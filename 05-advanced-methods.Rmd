@@ -5,6 +5,156 @@ date: "`r Sys.Date()`"
 # Advanced Methods
 ## Imputation (Missing Data)
 
+### Types of Imputation  
+
+#### Mean, Mode, Median Imputation
+
+ * Bad:  
+
+    - Mean imputation does not preserve the relationships among variables   
+    - Mean imputation leads to An Underestimate of Standard Errors → you’re making Type I errors without realizing it.  
+ 
+#### Hot Deck Imputation
+
+Randomly choose value from other observations that share similar values on other variables.  
+
+ * Good:  
+    - Constrained to only possible values.  
+    - Since the value is picked at random, it adds some variability, which might come in handy when calculating standard errors.  
+ 
+#### Cold Deck Imputation  
+
+Contrary to Hot Deck, Cold Deck choose value systematically from an observation that has similar values on other variables, which remove the random variation that we want.  
+
+#### Regression Imputation  
+
+Missing value is based (regress) on other variables.  
+
+ * Good:  
+    - Maintain the relationship with other variables  
+
+ * Bad:  
+    - No variability left.  
+    
+#### Stochatistc Imputation  
+
+`Regression imputation + random residual = Stochastic Imputation`
+
+Most multiple imputation is based off of some form of stochastic regression imputation.  
+
+#### Interpolation and Extrapolation  
+
+An estimated value from other observations from the same individual. It usually only works in longitudinal data.  
+
+#### E-M (Expectation-Maximization) Algorithm  
+
+An iterative process:  
+
+(1) Other variables are used to impute a value (Expectation).  
+(2) Check whether the value is most likely (Maximization).  
+(3) If not, it re-imputes a more likely value.  
+
+E-M also preserves the relationship with other variables. However, it still underestimates standard error.  
+
+#### K-nearest neighbour (KNN) imputation  
+
+The above methods are model-based imputation (regression).  
+This is an example of neighbor-based imputation (K-nearest neighbor).  
+
+For a discrete variable, it uses the most frequent value among the k nearest neighbors. 
+
+ * Distance metrics: Hamming distance.  
+ 
+For a continuous variable, it uses the mean or mode.  
+
+ * Distance metrics:  
+    - Euclidean  
+    - Mahalanobis  
+    - Manhattan  
+    
+#### Bayesian Ridge regression implementation  
+
+
+
+### Another Perspective  
+
+In the imputation world, you can go for either single or multiple imputation.  
+Most of the imputation methods listed above are single imputation. A downfall of single imputation is its underestimation towards standard error.
+
+<br>
+Model bias can arisen from various factors including:  
+ 
+ * Imputation method  
+ * Missing data mechanism (MCAR vs. MAR)  
+ * Proportion of the missing data  
+ * Information available in the data set  
+ 
+ 
+
+Since the imputed observations are themselves estimates, their values have corresponding random error. But when you put in that estimate as a data point, your software doesn’t know that. So it overlooks the extra source of error, resulting in too-small standard errors and too-small p-values.
+So multiple imputation comes up with multiple estimates. Two of the methods listed above work as the imputation method in multiple imputation–hot deck and stochastic regression.
+Because these two methods have a random component, the multiple estimates are slightly different. This re-introduces some variation that your software can incorporate in order to give your model accurate estimates of standard error.
+Multiple imputation was a huge breakthrough in statistics about 20 years ago. It solves a lot of problems with missing data (though, unfortunately not all) and if done well, leads to unbiased parameter estimates and accurate standard errors.
+If your rate of missing data is very, very small, it honestly doesn’t matter what technique you use. I’m talking very, very, very small (2-3%).
+
+Missing Data Mechanisms
+(1)	Missing Completely at Random (MCAR)
+-	the propensity for a data point to be missing is completely random.
+-	There’s no relationship between whether a data point is missing and any values in the data set, missing or observed.
+-	The missing data are just a random subset of the data.
+(2)	Missing at Random. (MAR)
+-	the propensity for a data point to be missing is not related to the missing data, but it is related to some of the observed data
+-	MAR requires that the cause of the missing data is unrelated to the missing values but may be related to the observed values of other variables.
+-	MAR means that the missing values are related to observed values on other variables. As an example of CD missing data, missing income data may be unrelated to the actual income values but are related to education. Perhaps people with more education are less likely to reveal their income than those with less education
+(3)	Non-Ignorable (NI)
+-	the missing data mechanism is related to the missing values
+-	It commonly occurs when people do not want to reveal something very personal or unpopular about themselves
+-	Complete case analysis can give highly biased results for NI missing data. If proportionally more low and moderate income individuals are left in the sample because high income people are missing, an estimate of the mean income will be lower than the actual population mean.
+
+Remember that there are three goals of multiple imputation, or any missing data technique: Unbiased parameter estimates in the final analysis (regression coefficients, group means, odds ratios, etc.); accurate standard errors of those parameter estimates, and therefore, accurate p-values in the analysis; and adequate power to find meaningful parameter values significant.
+1. Don’t round off imputations for dummy variables. Many common imputation techniques, like MCMC, require normally distributed variables. Suggestions for imputing categorical variables were to dummy code them, impute them, then round off imputed values to 0 or 1. Recent research, however, has found that rounding off imputed values actually leads to biased parameter estimates in the analysis model. You actually get better results by leaving the imputed values at impossible values, even though it’s counter-intuitive.
+
+2. Don’t transform skewed variables. Likewise, when you transform a variable to meet normality assumptions before imputing, you not only are changing the distribution of that variable but the relationship between that variable and the others you use to impute. Doing so can lead to imputing outliers, creating more bias than just imputing the skewed variable.
+
+3. Use more imputations. The advice for years has been that 5-10 imputations are adequate. And while this is true for unbiasedness, you can get inconsistent results if you run the multiple imputation more than once. Bodner (2008) recommends having as many imputations as the percentage of missing data. Since running more imputations isn’t any more work for the data analyst, there’s no reason not to.
+Bodner, T. E. 2008. “What Improves with Increased Missing Data Imputations?”
+Structural Equation Modeling 15(4):651–75.
+4. Create multiplicative terms before imputing. When the analysis model contains a multiplicative term, like an interaction term or a quadratic, create the multiplicative terms first, then impute. Imputing first, and then creating the multiplicative terms actually biases the regression parameters of the multiplicative term (von Hippel, 2009).
+von Hippel, P.T. (2009). “How To Impute Squares, Interactions, and Other Transformed Variables.” Sociological Methodology 39.
+1.	Alternatives to multiple imputation aren’t usually better. Multiple imputation assumes the data are missing at random. In most tests, if an assumption is not met, there are better alternatives—a nonparametric test or an alternative type of model. This is often not true with missing data. Alternatives like listwise deletion (a.k.a. ignoring it) have more stringent assumptions. So do nonignorable missing data techniques like Heckman’s selection models.
+
+
+Do not use these ad-hoc: 
+Pairwise Deletion: use the available data for each part of an analysis.  This has been shown to result in correlations beyond the 0,1 range and other fun statistical impossibilities.
+Mean Imputation: substitute the mean of the observed values for all missing data.  There are so many problems, it’s difficult to list them all, but suffice it to say, this technique never meets the above 3 criteria.
+Dummy Variable: create a dummy variable that indicates whether a data point is missing, then substitute any arbitrary value for the missing data in the original variable.  Use both variables in the analysis.  While it does help the loss of power, it usually leads to biased results.
+
+Multiple Imputation of categorical variables is bad 
+Paul Allison, one of my favorite authors of statistical information for researchers, did a study that showed that the most common method actually gives worse results that listwise deletion.  (Did I mention I’ve used it myself?)
+What is the bad method?
+1. Dummy code the variable
+2. Impute a continuous value.  This will generally be between 0 and 1.
+3. Round off to either 0 or 1, based on whether the imputed value is below or above .5.
+As Allison discovered, this method generally leads to biased results, and incorrect standard errors
+What to do instead?
+Allison compared this approach to four others, each of which generally gave more accurate results, at least under some conditions.
+1. Listwise deletion
+2. Imputation of the continuous variable without rounding (just leave off step 3).
+3. Logistic Regression imputation
+4. Discriminant Analysis imputation
+These last two generally performed best, but only work in limited situations.
+
+
+
+
+
+
+
+
+
+
+
+
 ## Deep Learning
 ### Overview
 
