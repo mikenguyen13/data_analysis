@@ -75,6 +75,17 @@ For a continuous variable, it uses the mean or mode.
 #### Bayesian Ridge regression implementation  
 
 
+### Criteria for Choosing an Effective Approach
+
+Criteria for an ideal technique in treating missing data:  
+
+1. Unbiased parameter estimates
+2. Adequate power
+3. Accurate standard errors (p-values, confidence intervals)
+
+The Multiple Imputation and Full Information Maximum Likelihood are the the most ideal candidate. Single imputation will generally lead to underestimation of standard errors.
+
+
 
 ### Another Perspective  
 
@@ -103,13 +114,19 @@ Missing Data Mechanisms
 -	There’s no relationship between whether a data point is missing and any values in the data set, missing or observed.
 -	The missing data are just a random subset of the data.
 (2)	Missing at Random. (MAR)
--	the propensity for a data point to be missing is not related to the missing data, but it is related to some of the observed data
+-	the propensity for a data point to be missing is not related to the missing data, but it is related to some of the observed data. In another word, there is a systematic relationship between the propensity of missing values and the observed data, but not the missing data.
+- For example, if men are more likely to tell you their weight than women, weight is MAR
 -	MAR requires that the cause of the missing data is unrelated to the missing values but may be related to the observed values of other variables.
 -	MAR means that the missing values are related to observed values on other variables. As an example of CD missing data, missing income data may be unrelated to the actual income values but are related to education. Perhaps people with more education are less likely to reveal their income than those with less education
 (3)	Non-Ignorable (NI)
+- Another name: Missing Not at Random (MNAR): there is a relationship between the propensity of a value to be missing and its values
+- For example, people with low education will be less likely to report it.
+- We need to model why the data are missing and what the likely values are. 
 -	the missing data mechanism is related to the missing values
 -	It commonly occurs when people do not want to reveal something very personal or unpopular about themselves
 -	Complete case analysis can give highly biased results for NI missing data. If proportionally more low and moderate income individuals are left in the sample because high income people are missing, an estimate of the mean income will be lower than the actual population mean.
+
+
 
 Remember that there are three goals of multiple imputation, or any missing data technique: Unbiased parameter estimates in the final analysis (regression coefficients, group means, odds ratios, etc.); accurate standard errors of those parameter estimates, and therefore, accurate p-values in the analysis; and adequate power to find meaningful parameter values significant.
 1. Don’t round off imputations for dummy variables. Many common imputation techniques, like MCMC, require normally distributed variables. Suggestions for imputing categorical variables were to dummy code them, impute them, then round off imputed values to 0 or 1. Recent research, however, has found that rounding off imputed values actually leads to biased parameter estimates in the analysis model. You actually get better results by leaving the imputed values at impossible values, even though it’s counter-intuitive.
@@ -147,6 +164,65 @@ These last two generally performed best, but only work in limited situations.
 
 
 
+How to Diagnose the Missing Data Mechanism
+by Karen Grace-Martin 4 Comments
+
+One important consideration in choosing a missing data approach is the missing data mechanism—different approaches have different assumptions about the mechanism.
+
+Each of the three mechanisms describes one possible relationship between the propensity of data to be missing and values of the data, both missing and observed.
+
+The Missing Data Mechanisms
+Missing Completely at Random, MCAR, means there is no relationship between the missingness of the data and any values, observed or missing. Those missing data points are a random subset of the data. There is nothing systematic going on that makes some data more likely to be missing than others.
+
+Missing at Random, MAR, means there is a systematic relationship between the propensity of missing values and the observed data, but not the missing data.
+
+Whether an observation is missing has nothing to do with the missing values, but it does have to do with the values of an individual’s observed variables. So, for example, if men are more likely to tell you their weight than women, weight is MAR.
+
+Missing Not at Random, MNAR, means there is a relationship between the propensity of a value to be missing and its values. This is a case where the people with the lowest education are missing on education or the sickest people are most likely to drop out of the study.
+
+MNAR is called “non-ignorable” because the missing data mechanism itself has to be modeled as you deal with the missing data. You have to include some model for why the data are missing and what the likely values are.
+
+“Missing Completely at Random” and “Missing at Random” are both considered ‘ignorable’ because we don’t have to include any information about the missing data itself when we deal with the missing data.
+
+Why you need to know the mechanism you have
+Multiple imputation and Maximum Likelihood assume the data are at least missing at random. So the important distinction here is whether the data are MAR as opposed to MNAR.
+
+Listwise deletion, however, requires the data are MCAR in order to not introduce bias in the results.
+
+As long as the distribution and percentage of missing data is no so great that it negatively affects power, listwise deletion can be a good choice for MCAR missing data. So the important distinction here is whether the data are MCAR as opposed to MAR.
+
+Keep in mind that in most data sets, more than one variable will have missing data, and they may not all have the same mechanism. It’s worthwhile diagnosing the mechanism for each variable with missing data before choosing an approach.
+
+I use the term diagnosing rather than testing, because you’re not going to get a straight answer without knowing the values of the missing data. Of course, if you knew those, you wouldn’t be doing any of this.
+
+It’s like checking for multicollinearity or testing assumptions. Each piece of information tells you something, but there is no definitive answer.
+
+You have to get at the mechanism in a number of ways and then decide if making the assumption about the mechanism is reasonable.
+
+
+##### Diagnosing the Mechanism
+1. MAR vs. MNAR
+The only true way to distinguish between MNAR and MAR is to measure some of that missing data. It’s a common practice among professional surveyors to, for example, follow-up on a paper survey with phone calls to a group of the non-respondents and ask a few key survey items. This allows you to compare respondents to non-respondents.
+
+If their responses on those key items differ by very much, that’s good evidence that the data are MNAR.
+
+However in most missing data situations, we don’t have the luxury of getting a hold of the missing data. So while we can’t test it directly, we can examine patterns in the data get an idea of what’s the most likely mechanism.
+
+The first thing in diagnosing randomness of the missing data is to use your substantive scientific knowledge of the data and your field. The more sensitive the issue, the less likely people are to tell you. They’re not going to tell you as much about their cocaine usage as they are about their phone usage.
+
+Likewise, many fields have common research situations in which non-ignorable data is common. Educate yourself in your field’s literature.
+
+2. MCAR vs. MAR
+There is a very useful test for MCAR, Little’s test.
+
+A second technique is to create dummy variables for whether a variable is missing.
+
+1 = missing
+0 = observed
+
+You can then run t-tests and chi-square tests between this variable and other variables in the data set to see if the missingness on this variable is related to the values of other variables.
+
+For example, if women really are less likely to tell you their weight than men, a chi-square test will tell you that the percentage of missing data on the weight variable is higher for women than men.
 
 
 

@@ -35,7 +35,57 @@ apply multiple function to multiple variables:`map2`
 `mod_tidy = linear(reg) %>% set_engine('lm') %>% fit(price ~ ., data=data)` fit lm model. It could also fit other models (stan, spark, glmnet, keras)  
 
 
- * Sometimes, data-masking will not be able to recognize whether you're calling from environment or data variables. To bypass this, we use `.data$variable` or `.env$variable`. For example `data %>% mutate(x=.env$variable/.data$variable`
+ * Sometimes, data-masking will not be able to recognize whether you're calling from environment or data variables. To bypass this, we use `.data$variable` or `.env$variable`. For example `data %>% mutate(x=.env$variable/.data$variable`  
+ * Problems with data-masking:  
+        + Unexpected masking by data-var: Use `.data` and `.env` to disambiguate  
+        + Data-var cant get through:  
+            + Tunnel data-var with {{}}
+            + Subset `.data` with [[]]
+ * Passing Data-variables through arguments
+ 
+```{r eval=FALSE}
+library("dplyr")
+mean_by <- function(data,by,var){
+    data %>%
+        group_by({{{by}}}) %>%
+        summarise("{{var}}":=mean({{var}})) # new name for each var will be created by tunnel data-var inside strings
+}
+
+mean_by <- function(data,by,var){
+    data %>%
+        group_by({{{by}}}) %>%
+        summarise("{var}":=mean({{var}})) # use single {} to glue the string, but hard to reuse code in functions
+}
+```
+ * Trouble with selection:  
+```{r eval=FALSE}
+library("purrr")
+name <- c("mass","height")
+starwars %>% select(name) # Data-var. Here you are referring to variable named "name"
+
+starwars %>% select(all_of((name))) # use all_of() to disambiguate when 
+
+averages <- function(data,vars){ # take character vectors with all_of()
+    data %>%
+        select(all_of(vars)) %>%
+        map_dbl(mean,na.rm=TRUE)
+} 
+
+x = c("Sepal.Length","Petal.Length")
+iris %>% averages(x)
+
+
+# Another way
+averages <- function(data,vars){ # Tunnel selectiosn with {{}}
+    data %>%
+        select({{vars}}) %>%
+        map_dbl(mean,na.rm=TRUE)
+} 
+
+x = c("Sepal.Length","Petal.Length")
+iris %>% averages(x)
+```
+ 
 
 ## Citation
 
