@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Chapter 6 Experimental Design | A Guide on Data Analysis</title>
+  <title>6.1 Analysis of Variance (ANOVA) | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct a data analysis routine" />
   <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Chapter 6 Experimental Design | A Guide on Data Analysis" />
+  <meta property="og:title" content="6.1 Analysis of Variance (ANOVA) | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   <meta name="github-repo" content="mikenguyen13/data_analysis" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Chapter 6 Experimental Design | A Guide on Data Analysis" />
+  <meta name="twitter:title" content="6.1 Analysis of Variance (ANOVA) | A Guide on Data Analysis" />
   
   <meta name="twitter:description" content="This is a guide on how to conduct a data analysis routine" />
   
@@ -31,8 +31,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="non-linear-regression.html"/>
-<link rel="next" href="analysis-of-variance-anova.html"/>
+<link rel="prev" href="experimental-design.html"/>
+<link rel="next" href="advanced-methods.html"/>
 <script src="libs/jquery-3.5.0/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -280,16 +280,505 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="experimental-design" class="section level1">
-<h1><span class="header-section-number">Chapter 6</span> Experimental Design</h1>
+<div id="analysis-of-variance-anova" class="section level2">
+<h2><span class="header-section-number">6.1</span> Analysis of Variance (ANOVA)</h2>
+<p>ANOVA is using the same underlying mechanism as linear regression. However, the angle that ANOVA chooses to look at is slightly different from the traditional linear regression. It can be more useful in the case with <strong>qualitative variables</strong> and <strong>designed experiments</strong>.</p>
+<p><br>
+Experimental Design</p>
+<ul>
+<li><strong>Factor</strong>: explanatory or predictor variable to be studied in an investigation<br />
+</li>
+<li><strong>Treatment</strong> (or Factor Level): “value” of a factor applied to the experimental unit<br />
+</li>
+<li><strong>Experimental Unit</strong>: person, animal, piece of material, etc. that is subjected to treatment(s) and provides a response<br />
+</li>
+<li><strong>Single Factor Experiment</strong>: one explanatory variable considered<br />
+</li>
+<li><strong>Multifactor Experiment</strong>: more than one explanatory variable<br />
+</li>
+<li><strong>Classification Factor</strong>: A factor that is not under the control of the experimenter (observational data)<br />
+</li>
+<li><strong>Experimental Factor</strong>: assigned by the experimenter</li>
+</ul>
+<p><br>
+Basics of experimental design:</p>
+<ul>
+<li><p>Choices that a statistician has to make:</p>
+<ul>
+<li>set of treatments<br />
+</li>
+<li>set of experimental units<br />
+</li>
+<li>treatment assignment (selection bias)<br />
+</li>
+<li>measurement (measurement bias, blind experiments)</li>
+</ul></li>
+<li><p>Advancements in experimental design:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Factorial Experiments</strong>:<br />
+consider multiple factors at the same time (interaction)</p></li>
+<li><p><strong>Replication</strong>: repetition of experiment</p>
+<ul>
+<li>assess mean squared error<br />
+</li>
+<li>control over precision of experiment (power)</li>
+</ul></li>
+<li><p><strong>Randomization</strong></p>
+<ul>
+<li>Before R.A. Fisher (1900s), treatments were assigned systematically or subjectively<br />
+</li>
+<li>randomization: assign treatments to experimental units at random, which averages out systematic effects that cannot be control by the investigator</li>
+</ul></li>
+<li><p><strong>Local control</strong>: Blocking or Stratification</p>
+<ul>
+<li>Reduce experimental errors and increase power by placing restrictions on the randomization of treatments to experimental units.</li>
+</ul></li>
+</ol></li>
+</ul>
+<p>Randomization may also eliminate correlations due to time and space.</p>
+<div id="completely-randomized-design-crd" class="section level3">
+<h3><span class="header-section-number">6.1.1</span> Completely Randomized Design (CRD)</h3>
+<p>Treatment factor A with <span class="math inline">\(a\ge2\)</span> treatments levels.
+Experimental units are randomly assinged to each treatment. The number of experiemntal units in each group can be</p>
+<ul>
+<li>equal (balanced): n</li>
+<li>unequal (unbalanced): <span class="math inline">\(n_i\)</span> for the i-th group (i = 1,…,a).</li>
+</ul>
+<p>The total sample size is <span class="math inline">\(N=\sum_{i=1}^{a}n_i\)</span></p>
+<p>Possible assignments of units to treatments are <span class="math inline">\(k=\frac{N!}{n_1!n_2!...n_a!}\)</span></p>
+<p>Each has probability 1/k of being selected.
+Each experimental unit is measured with a response <span class="math inline">\(Y_{ij}\)</span>, in which j denotes unit and i denotes treatment.</p>
+<p>Treatment</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="center">1</th>
+<th align="center">2</th>
+<th align="center">…</th>
+<th align="center">a</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"></td>
+<td align="center"><span class="math inline">\(Y_{11}\)</span></td>
+<td align="center"><span class="math inline">\(Y_{21}\)</span></td>
+<td align="center">…</td>
+<td align="center"><span class="math inline">\(Y_{a1}\)</span></td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td align="center"><span class="math inline">\(Y_{12}\)</span></td>
+<td align="center">…</td>
+<td align="center">…</td>
+<td align="center">…</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td align="center">…</td>
+<td align="center">…</td>
+<td align="center">…</td>
+<td align="center">…</td>
+</tr>
+<tr class="even">
+<td align="left">Sample Mean</td>
+<td align="center"><span class="math inline">\(\bar{Y_{1.}}\)</span></td>
+<td align="center"><span class="math inline">\(\bar{Y_{2.}}\)</span></td>
+<td align="center">…</td>
+<td align="center"><span class="math inline">\(\bar{Y_{a.}}\)</span></td>
+</tr>
+<tr class="odd">
+<td align="left">Sample SD</td>
+<td align="center"><span class="math inline">\(s_1\)</span></td>
+<td align="center"><span class="math inline">\(s_2\)</span></td>
+<td align="center">…</td>
+<td align="center"><span class="math inline">\(s_a\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>where <span class="math inline">\(\bar{Y_{i.}}=\frac{1}{n_i}\sum_{j=1}^{n_i}Y_{ij}\)</span></p>
+<p><span class="math inline">\(s_i^2=\frac{1}{n_i-1}\sum_{j=1}^{n_i}(Y_{ij}-\bar{Y_i})^2\)</span></p>
+<p>And the grand mean is <span class="math inline">\(\bar{Y_{..}}=\frac{1}{N}\sum_{i}\sum_{j}Y_{ij}\)</span></p>
+<div id="single-factor-one-way-anova" class="section level4">
+<h4><span class="header-section-number">6.1.1.1</span> Single Factor (One-Way) ANOVA</h4>
+<p>Partitioning the Variance</p>
+<p>The total variability of the <span class="math inline">\(Y_{ij}\)</span> observation can be measured as the deviation of <span class="math inline">\(Y_{ij}\)</span> around the overall mean <span class="math inline">\(\bar{Y_{..}}\)</span>: <span class="math inline">\(Y_{ij} - \bar{Y_{..}}\)</span></p>
+<p>This can be rewritten as:
+<span class="math display">\[
+\begin{split}
+Y_{ij} - \bar{Y_{..}}&amp;=Y_{ij} - \bar{Y_{..}} + \bar{Y_{i.}} - \bar{Y_{i.}} \\
+&amp;= (\bar{Y_{i.}}-\bar{Y_{..}})+(Y_{ij}-\bar{Y_{i.}})
+\end{split}
+\]</span>
+where</p>
+<ul>
+<li>the first term is the <em>between</em> treatment differences (i.e., the deviation of the treatment mean from the overall mean)<br />
+</li>
+<li>the second term is <em>within</em> treatment differences (i.e., the deviation of the observation around its treatment mean)</li>
+</ul>
+<p><br></p>
+<p><span class="math display">\[
+\begin{split}
+\sum_{i}\sum_{j}(Y_{ij} - \bar{Y_{..}})^2 &amp;=  \sum_{i}n_i(\bar{Y_{i.}}-\bar{Y_{..}})^2+\sum_{i}\sum_{j}(Y_{ij}-\bar{Y_{i.}})^2 \\
+SSTO &amp;= SSTR + SSE \\
+total~SS &amp;= treatment~SS + error~SS \\
+(N-1)~d.f. &amp;= (a-1)~d.f. + (N - a) ~ d.f.
+\end{split}
+\]</span></p>
+<p>we lose a d.f. for the total corrected SSTO because of the estimation of the mean (<span class="math inline">\(\sum_{i}\sum_{j}(Y_{ij} - \bar{Y_{..}})=0\)</span>)<br />
+And, for the SSTR <span class="math inline">\(\sum_{i}n_i(\bar{Y_{i.}}-\bar{Y_{..}})=0\)</span></p>
+<p>Accordingly, <span class="math inline">\(MSTR= \frac{SST}{a-1}\)</span> and <span class="math inline">\(MSR=\frac{SSE}{N-a}\)</span></p>
+<p>ANOVA table</p>
+<table>
+<colgroup>
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Source of Variation</th>
+<th align="center">SS</th>
+<th align="center">df</th>
+<th align="center">MS</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Between Treatments</td>
+<td align="center"><span class="math inline">\(\sum_{i}n_i(\bar{Y_{i.}}-\bar{Y_{..}})^2\)</span></td>
+<td align="center">a-1</td>
+<td align="center">SSTR/(a-1)</td>
+</tr>
+<tr class="even">
+<td>Error (within treatments)</td>
+<td align="center"><span class="math inline">\(\sum_{i}\sum_{j}(Y_{ij}-\bar{Y_{i.}})^2\)</span></td>
+<td align="center">N-a</td>
+<td align="center">SSE/(N-a)</td>
+</tr>
+<tr class="odd">
+<td>Total (corrected)</td>
+<td align="center"><span class="math inline">\(\sum_{i}n_i(\bar{Y_{i.}}-\bar{Y_{..}})^2\)</span></td>
+<td align="center">N-1</td>
+<td align="center"></td>
+</tr>
+</tbody>
+</table>
+<p>Linear Model Explanation of ANOVA</p>
+<div id="cell-means-model" class="section level5">
+<h5><span class="header-section-number">6.1.1.1.1</span> Cell means model</h5>
+<p><span class="math inline">\(Y_{ij}=\mu_i+\epsilon_{ij}\)</span></p>
+<p>where<br />
+* <span class="math inline">\(Y_{ij}\)</span> response variable in j-th subject for the i-th treatment<br />
+* <span class="math inline">\(\mu_i\)</span>: parameters (fixed) representing the unknown population mean for the i-th treatment<br />
+* <span class="math inline">\(\epsilon_{ij}\)</span> independent <span class="math inline">\(N(0,\sigma^2)\)</span> errors</p>
+<ul>
+<li><span class="math inline">\(E(Y_{ij})=\mu_i\)</span> <span class="math inline">\(var(Y_{ij})=var(\epsilon_{ij})=\sigma^2\)</span><br />
+</li>
+<li>All observations have the same variance</li>
+</ul>
+<p>Example:</p>
+<p>a = 3 (3 treatments) <span class="math inline">\(n_1=n_2=n_3=2\)</span></p>
+<p><br></p>
+<p><span class="math display">\[
+\begin{split}
+\left(\begin{array}{c} 
+Y_{11}\\
+Y_{12}\\
+Y_{21}\\
+Y_{22}\\
+Y_{31}\\
+Y_{32}\\
+\end{array}\right) &amp;= 
+\left(\begin{array}{ccc} 
+1 &amp; 0 &amp; 0 \\ 
+1 &amp; 0 &amp; 0 \\ 
+0 &amp; 1 &amp; 0 \\ 
+0 &amp; 1 &amp; 0 \\ 
+0 &amp; 0 &amp; 1 \\ 
+0 &amp; 0 &amp; 1 \\ 
+\end{array}\right)
+\left(\begin{array}{c}
+\mu_1 \\
+\mu_2 \\
+\mu_3 \\
+\end{array}\right) + \left(\begin{array}{c}
+\epsilon_{11} \\
+\epsilon_{12} \\
+\epsilon_{21} \\
+\epsilon_{22} \\
+\epsilon_{31} \\
+\epsilon_{32} \\
+\end{array}\right)\\
+\mathbf{y} &amp;= \mathbf{X\beta} +\mathbf{\epsilon}
+\end{split}
+\]</span></p>
+<p><span class="math inline">\(X_{k,ij}=1\)</span> if the k-th treatment is used</p>
+<p><span class="math inline">\(X_{k,ij}=0\)</span> Otherwise</p>
+<p><br></p>
+<p>Note: no intercept term.</p>
+<p><span class="math display" id="eq:betaorigin">\[\begin{equation}
+\begin{split}
+\mathbf{b}= \left[\begin{array}{c}
+\mu_1 \\
+\mu_2 \\
+\mu_3 \\
+\end{array}\right] &amp;= 
+(\mathbf{x}&#39;\mathbf{x})^{-1}\mathbf{x}&#39;\mathbf{y} \\
+&amp; = 
+\left[\begin{array}{ccc}
+n_1 &amp; 0 &amp; 0\\
+0 &amp; n_2 &amp; 0\\
+0 &amp; 0 &amp; n_3 \\
+\end{array}\right]^{-1}
+\left[\begin{array}{c}
+Y_1\\
+Y_2\\
+Y_3\\
+\end{array}\right] \\
+&amp; = 
+\left[\begin{array}{c}
+\bar{Y_1}\\
+\bar{Y_2}\\
+\bar{Y_3}\\
+\end{array}\right] 
+\end{split} 
+\tag{6.1}
+\end{equation}\]</span></p>
+<p>is the BLUE (best linear unbiased estimator) for <span class="math inline">\(\beta=[\mu_1 \mu_2\mu_3]&#39;\)</span></p>
+<p><br></p>
+<p><span class="math display">\[E(\mathbf{b})=\beta\]</span></p>
+<p><span class="math display">\[
+var(\mathbf{b})=\sigma^2(\mathbf{X&#39;X})^{-1}=\sigma^2
+\left[\begin{array}{ccc}
+1/n_1 &amp; 0 &amp; 0\\
+0 &amp; 1/n_2 &amp; 0\\
+0 &amp; 0 &amp; 1/n_3\\
+\end{array}\right]
+\]</span></p>
+<p><span class="math inline">\(var(b_i)=var(\hat{\mu_i})=\sigma^2/n_i\)</span> where <span class="math inline">\(\mathbf{b} \sim N(\beta,\sigma^2(\mathbf{X&#39;X})^{-1})\)</span></p>
+<p><span class="math display">\[
+\begin{split}
+MSE &amp;= \frac{1}{N-a} \sum_{i}\sum_{j}(Y_{ij}-\bar{Y_{i.}})^2 \\
+    &amp;= \frac{1}{N-a} \sum_{i}[(n_i-1)\frac{\sum_{i}(Y_{ij}-\bar{Y_{i.}})^2}{n_i-1}] \\
+    &amp;= \frac{1}{N-a} \sum_{i}(n_i-1)s_1^2
+\end{split}
+\]</span></p>
+<p>We have <span class="math inline">\(E(s_i^2)=\sigma^2\)</span></p>
+<p><span class="math inline">\(E(MSE)=\frac{1}{N-a}\sum_{i}(n_i-1)\sigma^2=\sigma^2\)</span></p>
+<p>Hence, MSE is an unbiased estimator of <span class="math inline">\(\sigma^2\)</span>, regardless of whether the treatment means are equal or not.</p>
+<p><span class="math inline">\(E(MSTR)=\sigma^2+\frac{\sum_{i}n_i(\mu_i-\mu_.)^2}{a-1}\)</span><br />
+where
+<span class="math inline">\(\mu_.=\frac{\sum_{i=1}^{a}n_i\mu_i}{\sum_{i=1}^{a}n_i}\)</span><br />
+If all treatment means are equals (=<span class="math inline">\(\mu_.\)</span>), <span class="math inline">\(E(MSTR)=\sigma^2\)</span>.</p>
+<p>Then we can use an F-test for teh equality of all treatment means:</p>
+<p><span class="math display">\[H_0:\mu_1=\mu_2=..=\mu_a\]</span></p>
+<p><span class="math display">\[H_a: not~al l~ \mu_i ~ are ~ equal \]</span></p>
+<p><span class="math inline">\(F=\frac{MSTR}{MSE}\)</span><br />
+where large values of F support <span class="math inline">\(H_a\)</span> (since MSTR will tend to exceed MSE when <span class="math inline">\(H_a\)</span> holds)<br />
+and F near 1 support <span class="math inline">\(H_0\)</span> (upper tail test)</p>
+<p><strong>Equivalently</strong>, when <span class="math inline">\(H_0\)</span> is true, <span class="math inline">\(F \sim f_{(a-1,N-a)}\)</span></p>
+<ul>
+<li>If <span class="math inline">\(F \leq f_{(a-1,N-a;1-\alpha)}\)</span>, we cannot reject <span class="math inline">\(H_0\)</span><br />
+</li>
+<li>If <span class="math inline">\(F \geq f_{(a-1,N-a;1-\alpha)}\)</span>, we reject <span class="math inline">\(H_0\)</span></li>
+</ul>
+<p>Note: If a = 2 (2 treatments), F-test = two sample t-test</p>
+<p><br></p>
 </div>
+<div id="treatment-effects-factor-effects" class="section level5">
+<h5><span class="header-section-number">6.1.1.1.2</span> Treatment Effects (Factor Effects)</h5>
+<p>Besides Cell means model, we have another way to formalize one-way ANOVA:
+<span class="math display">\[Y_{ij} = \mu + \tau_i + \epsilon_{ij}\]</span>
+where</p>
+<ul>
+<li><span class="math inline">\(Y_{ij}\)</span> is the j-th response for the i-th treatment<br />
+</li>
+<li><span class="math inline">\(\tau_i\)</span> i-th treatment effect<br />
+</li>
+<li><span class="math inline">\(\mu\)</span> constant component, common to all observations<br />
+</li>
+<li><span class="math inline">\(\epsilon_{ij}\)</span> independent random errors ~ <span class="math inline">\(N(0,\sigma^2)\)</span></li>
+</ul>
+<p><br></p>
+<p>For example, a = 3, <span class="math inline">\(n_1=n_2=n_3=2\)</span></p>
+<p><br></p>
+<p><span class="math display" id="eq:unsolvable">\[\begin{equation} 
+\begin{split}
+\left(\begin{array}{c} 
+Y_{11}\\
+Y_{12}\\
+Y_{21}\\
+Y_{22}\\
+Y_{31}\\
+Y_{32}\\
+\end{array}\right) &amp;= 
+\left(\begin{array}{cccc} 
+1 &amp; 1 &amp; 0 &amp; 0 \\ 
+1 &amp; 1 &amp; 0 &amp; 0 \\ 
+1 &amp; 0 &amp; 1 &amp; 0 \\ 
+1 &amp; 0 &amp; 1 &amp; 0 \\ 
+1 &amp; 0 &amp; 0 &amp; 1 \\ 
+1 &amp; 0 &amp; 0 &amp; 1 \\ 
+\end{array}\right)
+\left(\begin{array}{c}
+\mu \\
+\tau_1 \\
+\tau_2 \\
+\tau_3\\
+\end{array}\right) + \left(\begin{array}{c}
+\epsilon_{11} \\
+\epsilon_{12} \\
+\epsilon_{21} \\
+\epsilon_{22} \\
+\epsilon_{31} \\
+\epsilon_{32} \\
+\end{array}\right)\\
+\mathbf{y} &amp;= \mathbf{X\beta} +\mathbf{\epsilon} 
+\end{split}
+\tag{6.2}
+\end{equation}\]</span></p>
+<p><br></p>
+<p>However,</p>
+<p><span class="math display">\[
+\mathbf{X&#39;X} = \left(\begin{array}{cccc}
+\sum_{i}n_i &amp; n_1 &amp; n_2 &amp; n_3 \\
+n_1 &amp; n_1 &amp; 0 &amp; 0 \\
+n_2 &amp; 0 &amp; n_2 &amp; 0 \\
+n_3 &amp; 0 &amp; 0 &amp; n_3 \\
+\end{array}\right)
+\]</span></p>
+<p>is <strong>singular</strong> thus does not exist, <span class="math inline">\(\mathbf{b}\)</span> is insolvable (infinite solutions)</p>
+<p>Hence, we have to impose restrictions on the parameters to a model matrix <span class="math inline">\(\mathbf{X}\)</span> of full rank.</p>
+<p>Whatever restriction we use, we still have:</p>
+<p><span class="math inline">\(E(Y_{ij})=\mu + \tau_i = \mu_i = mean ~ response ~ for ~ i-th ~ treatment\)</span></p>
+<div id="restriction-on-sum-of-tau" class="section level6">
+<h6><span class="header-section-number">6.1.1.1.2.1</span> Restriction on sum of tau</h6>
+<p><span class="math inline">\(\sum_{i=1}^{a}\tau_i=0\)</span></p>
+<p><br></p>
+<p>implies</p>
+<p><span class="math display">\[
+\mu= \mu +\frac{1}{a}\sum_{i=1}^{a}(\mu+\tau_i)
+\]</span></p>
+<p><br></p>
+<p>is the average of the treatment mean (grand mean) (overall mean)</p>
+<p><span class="math display">\[
+\begin{split}
+\tau_i  &amp;=(\mu+\tau_i) -\mu = \mu_i-\mu \\
+        &amp;= (treatment ~ mean) -(grand~mean) \\
+        &amp;= treatment ~ effect
+\end{split}
+\]</span></p>
+<p><br></p>
+<p><span class="math display">\[
+\tau_a=-\tau_1-\tau_2-...-\tau_{a-1}
+\]</span></p>
+<p>Hence, the mean for the a-th treatment is</p>
+<p><br></p>
+<p><span class="math display">\[
+\mu_a=\mu+\tau_a=\mu-\tau_1-\tau_2-...-\tau_{a-1}
+\]</span></p>
+<p>Hence, the model need only “a” parameters:</p>
+<p><br></p>
+<p><span class="math display">\[
+\mu,\tau_1,\tau_2,..,\tau_{a-1}
+\]</span></p>
+<p>Equation <a href="analysis-of-variance-anova.html#eq:unsolvable">(6.2)</a> becomes</p>
+<p><br></p>
+<p><span class="math display">\[\begin{equation}
+\begin{split}
+\left(\begin{array}{c} 
+Y_{11}\\
+Y_{12}\\
+Y_{21}\\
+Y_{22}\\
+Y_{31}\\
+Y_{32}\\
+\end{array}\right) &amp;= 
+\left(\begin{array}{cccc} 
+1 &amp; 1 &amp; 0 \\ 
+1 &amp; 1 &amp; 0 \\ 
+1 &amp; 0 &amp; 1 \\ 
+1 &amp; 0 &amp; 1 \\ 
+1 &amp; -1 &amp; -1 \\ 
+1 &amp; -1 &amp; -1 \\ 
+\end{array}\right)
+\left(\begin{array}{c}
+\mu \\
+\tau_1 \\
+\tau_2 \\
+\end{array}\right) + \left(\begin{array}{c}
+\epsilon_{11} \\
+\epsilon_{12} \\
+\epsilon_{21} \\
+\epsilon_{22} \\
+\epsilon_{31} \\
+\epsilon_{32} \\
+\end{array}\right)\\
+\mathbf{y} &amp;= \mathbf{X\beta} +\mathbf{\epsilon}
+\end{split}
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(\beta\equiv[\mu,\tau_1,\tau_2]&#39;\)</span></p>
+<p><br></p>
+<p>Equation <a href="analysis-of-variance-anova.html#eq:betaorigin">(6.1)</a> with <span class="math inline">\(\sum_{i}\tau_i=0\)</span> becomes</p>
+<p><br></p>
+<p><span class="math display">\[\begin{equation}
+\begin{split}
+\mathbf{b}= \left[\begin{array}{c}
+\hat{\mu} \\
+\hat{\tau_1} \\
+\hat{\tau_2} \\
+\end{array}\right] &amp;= 
+(\mathbf{x}&#39;\mathbf{x})^{-1}\mathbf{x}&#39;\mathbf{y} \\
+&amp; = 
+\left[\begin{array}{ccc}
+\sum_{i}n_i &amp; n_1-n_3 &amp; n_2-n_3\\
+n_1-n_3 &amp; n_1+n_3 &amp; n_3\\
+n_2-n_3 &amp; n_3 &amp; n_2-n_3 \\
+\end{array}\right]^{-1}
+\left[\begin{array}{c}
+Y_{..}\\
+Y_{1.}-Y_{3.}\\
+Y_{2.}-Y_{3.}\\
+\end{array}\right] \\
+&amp; =
+\left[\begin{array}{c}
+\frac{1}{3}\sum_{i=1}^{3}\bar{Y_{i.}}\\
+\bar{Y_{1.}}-\frac{1}{3}\sum_{i=1}^{3}\bar{Y_{i.}}\\
+\bar{Y_{2.}}-\frac{1}{3}\sum_{i=1}^{3}\bar{Y_{i.}}\\
+\end{array}\right]\\
+&amp; = 
+\left[\begin{array}{c}
+\hat{\mu}\\
+\hat{\tau_1}\\
+\hat{\tau_2}\\
+\end{array}\right]
+\end{split}
+\end{equation}\]</span></p>
+<p>and <span class="math inline">\(\hat{\tau_3}=-\hat{\tau_1}-\hat{\tau_2}=\bar{Y_3}-\frac{1}{3} \sum_{i}\bar{Y_{i.}}\)</span></p>
+<p>In R, <code>lm()</code> uses the restriction <span class="math inline">\(\tau_1=0\)</span></p>
+</div>
+</div>
+</div>
+<div id="two-factor-fixed-effect-anova" class="section level4">
+<h4><span class="header-section-number">6.1.1.2</span> Two Factor Fixed Effect ANOVA</h4>
+<div id="balanced" class="section level5">
+<h5><span class="header-section-number">6.1.1.2.1</span> Balanced</h5>
+
+</div>
+</div>
+</div>
+</div>
+<!-- </div> -->
             </section>
 
           </div>
         </div>
       </div>
-<a href="non-linear-regression.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="analysis-of-variance-anova.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="experimental-design.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="advanced-methods.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>

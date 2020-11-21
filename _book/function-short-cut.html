@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Chapter 6 Experimental Design | A Guide on Data Analysis</title>
+  <title>10.2 Function short-cut | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct a data analysis routine" />
   <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Chapter 6 Experimental Design | A Guide on Data Analysis" />
+  <meta property="og:title" content="10.2 Function short-cut | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   <meta name="github-repo" content="mikenguyen13/data_analysis" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Chapter 6 Experimental Design | A Guide on Data Analysis" />
+  <meta name="twitter:title" content="10.2 Function short-cut | A Guide on Data Analysis" />
   
   <meta name="twitter:description" content="This is a guide on how to conduct a data analysis routine" />
   
@@ -31,8 +31,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="non-linear-regression.html"/>
-<link rel="next" href="analysis-of-variance-anova.html"/>
+<link rel="prev" href="short-cut.html"/>
+<link rel="next" href="citation.html"/>
 <script src="libs/jquery-3.5.0/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -280,16 +280,75 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="experimental-design" class="section level1">
-<h1><span class="header-section-number">Chapter 6</span> Experimental Design</h1>
+<div id="function-short-cut" class="section level2">
+<h2><span class="header-section-number">10.2</span> Function short-cut</h2>
+<p>apply one function to your data to create a new variable:
+<code>mutate(mod=map(data,function))</code><br />
+instead of using <code>i in 1:length(object)</code>:
+<code>for (i in seq_along(object))</code><br />
+apply multiple function:
+<code>map_dbl</code><br />
+apply multiple function to multiple variables:<code>map2</code><br />
+<code>autoplot(data)</code> plot times series data<br />
+<code>mod_tidy = linear(reg) %&gt;% set_engine('lm') %&gt;% fit(price ~ ., data=data)</code> fit lm model. It could also fit other models (stan, spark, glmnet, keras)</p>
+<ul>
+<li>Sometimes, data-masking will not be able to recognize whether you’re calling from environment or data variables. To bypass this, we use <code>.data$variable</code> or <code>.env$variable</code>. For example <code>data %&gt;% mutate(x=.env$variable/.data$variable</code><br />
+</li>
+<li>Problems with data-masking:<br />
++ Unexpected masking by data-var: Use <code>.data</code> and <code>.env</code> to disambiguate<br />
++ Data-var cant get through:<br />
++ Tunnel data-var with {{}}
++ Subset <code>.data</code> with [[]]</li>
+<li>Passing Data-variables through arguments</li>
+</ul>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="function-short-cut.html#cb17-1"></a><span class="kw">library</span>(<span class="st">&quot;dplyr&quot;</span>)</span>
+<span id="cb17-2"><a href="function-short-cut.html#cb17-2"></a>mean_by &lt;-<span class="st"> </span><span class="cf">function</span>(data,by,var){</span>
+<span id="cb17-3"><a href="function-short-cut.html#cb17-3"></a>    data <span class="op">%&gt;%</span></span>
+<span id="cb17-4"><a href="function-short-cut.html#cb17-4"></a><span class="st">        </span><span class="kw">group_by</span>({{{by}}}) <span class="op">%&gt;%</span></span>
+<span id="cb17-5"><a href="function-short-cut.html#cb17-5"></a><span class="st">        </span><span class="kw">summarise</span>(<span class="st">&quot;{{var}}&quot;</span><span class="op">:</span><span class="er">=</span><span class="kw">mean</span>({{var}})) <span class="co"># new name for each var will be created by tunnel data-var inside strings</span></span>
+<span id="cb17-6"><a href="function-short-cut.html#cb17-6"></a>}</span>
+<span id="cb17-7"><a href="function-short-cut.html#cb17-7"></a></span>
+<span id="cb17-8"><a href="function-short-cut.html#cb17-8"></a>mean_by &lt;-<span class="st"> </span><span class="cf">function</span>(data,by,var){</span>
+<span id="cb17-9"><a href="function-short-cut.html#cb17-9"></a>    data <span class="op">%&gt;%</span></span>
+<span id="cb17-10"><a href="function-short-cut.html#cb17-10"></a><span class="st">        </span><span class="kw">group_by</span>({{{by}}}) <span class="op">%&gt;%</span></span>
+<span id="cb17-11"><a href="function-short-cut.html#cb17-11"></a><span class="st">        </span><span class="kw">summarise</span>(<span class="st">&quot;{var}&quot;</span><span class="op">:</span><span class="er">=</span><span class="kw">mean</span>({{var}})) <span class="co"># use single {} to glue the string, but hard to reuse code in functions</span></span>
+<span id="cb17-12"><a href="function-short-cut.html#cb17-12"></a>}</span></code></pre></div>
+<ul>
+<li>Trouble with selection:</li>
+</ul>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="function-short-cut.html#cb18-1"></a><span class="kw">library</span>(<span class="st">&quot;purrr&quot;</span>)</span>
+<span id="cb18-2"><a href="function-short-cut.html#cb18-2"></a>name &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;mass&quot;</span>,<span class="st">&quot;height&quot;</span>)</span>
+<span id="cb18-3"><a href="function-short-cut.html#cb18-3"></a>starwars <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(name) <span class="co"># Data-var. Here you are referring to variable named &quot;name&quot;</span></span>
+<span id="cb18-4"><a href="function-short-cut.html#cb18-4"></a></span>
+<span id="cb18-5"><a href="function-short-cut.html#cb18-5"></a>starwars <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">select</span>(<span class="kw">all_of</span>((name))) <span class="co"># use all_of() to disambiguate when </span></span>
+<span id="cb18-6"><a href="function-short-cut.html#cb18-6"></a></span>
+<span id="cb18-7"><a href="function-short-cut.html#cb18-7"></a>averages &lt;-<span class="st"> </span><span class="cf">function</span>(data,vars){ <span class="co"># take character vectors with all_of()</span></span>
+<span id="cb18-8"><a href="function-short-cut.html#cb18-8"></a>    data <span class="op">%&gt;%</span></span>
+<span id="cb18-9"><a href="function-short-cut.html#cb18-9"></a><span class="st">        </span><span class="kw">select</span>(<span class="kw">all_of</span>(vars)) <span class="op">%&gt;%</span></span>
+<span id="cb18-10"><a href="function-short-cut.html#cb18-10"></a><span class="st">        </span><span class="kw">map_dbl</span>(mean,<span class="dt">na.rm=</span><span class="ot">TRUE</span>)</span>
+<span id="cb18-11"><a href="function-short-cut.html#cb18-11"></a>} </span>
+<span id="cb18-12"><a href="function-short-cut.html#cb18-12"></a></span>
+<span id="cb18-13"><a href="function-short-cut.html#cb18-13"></a>x =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Sepal.Length&quot;</span>,<span class="st">&quot;Petal.Length&quot;</span>)</span>
+<span id="cb18-14"><a href="function-short-cut.html#cb18-14"></a>iris <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">averages</span>(x)</span>
+<span id="cb18-15"><a href="function-short-cut.html#cb18-15"></a></span>
+<span id="cb18-16"><a href="function-short-cut.html#cb18-16"></a></span>
+<span id="cb18-17"><a href="function-short-cut.html#cb18-17"></a><span class="co"># Another way</span></span>
+<span id="cb18-18"><a href="function-short-cut.html#cb18-18"></a>averages &lt;-<span class="st"> </span><span class="cf">function</span>(data,vars){ <span class="co"># Tunnel selectiosn with {{}}</span></span>
+<span id="cb18-19"><a href="function-short-cut.html#cb18-19"></a>    data <span class="op">%&gt;%</span></span>
+<span id="cb18-20"><a href="function-short-cut.html#cb18-20"></a><span class="st">        </span><span class="kw">select</span>({{vars}}) <span class="op">%&gt;%</span></span>
+<span id="cb18-21"><a href="function-short-cut.html#cb18-21"></a><span class="st">        </span><span class="kw">map_dbl</span>(mean,<span class="dt">na.rm=</span><span class="ot">TRUE</span>)</span>
+<span id="cb18-22"><a href="function-short-cut.html#cb18-22"></a>} </span>
+<span id="cb18-23"><a href="function-short-cut.html#cb18-23"></a></span>
+<span id="cb18-24"><a href="function-short-cut.html#cb18-24"></a>x =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Sepal.Length&quot;</span>,<span class="st">&quot;Petal.Length&quot;</span>)</span>
+<span id="cb18-25"><a href="function-short-cut.html#cb18-25"></a>iris <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">averages</span>(x)</span></code></pre></div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-<a href="non-linear-regression.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="analysis-of-variance-anova.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="short-cut.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="citation.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -320,7 +379,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/mikenguyen13/data_analysis/edit/main/04-ANOVA.Rmd",
+"link": "https://github.com/mikenguyen13/data_analysis/edit/main/08-Appendix.Rmd",
 "text": "Edit"
 },
 "history": {
