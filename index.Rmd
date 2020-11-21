@@ -2,13 +2,404 @@
 title: "A Guide on Data Analysis"
 author: "Mike Nguyen"
 date: "`r Sys.Date()`"
-site: bookdown::bookdown_site
+output: pdf_document
 documentclass: book
-output: bookdown::gitbook
-bibliography: [book.bib, packages.bib,references.bib]
+bibliography:
+- book.bib
+- packages.bib
+- references.bib
 biblio-style: apalike
 link-citations: yes
-description: "This is a guide on how to conduct a data analysis routine"
-github-repo: "mikenguyen13/data_analysis"
-cover-image: "images/cover.jpg"
+description: This is a guide on how to conduct a data analysis routine
+github-repo: mikenguyen13/data_analysis
+site: bookdown::bookdown_site
 ---
+# Prerequisites
+
+This chapter is just a quick review of [Matrix Theory] and [Probability Theory]  
+
+If you feel you do not need to brush up on these theories, you can jump right into [Introduction]
+
+
+## General Math 
+Maclaurin series expansion for 
+$$
+e^z = 1 + z + \frac{z^2}{2!} + \frac{z^3}{3!} + ...
+$$
+
+<br>
+
+Geometric series: 
+$$
+s_n=\sum_{k=1}^{n}ar^{n-1}=\frac{a(1-r^n)}{1-r}
+$$
+if |r| < 1
+$$
+s=\sum_{k=1}^{\infty}ar^{n-1}=\frac{a}{1-r}
+$$  
+
+## Matrix Theory
+
+\begin{equation}
+\begin{split}
+A=
+\left[\begin{array}{c}
+a_{11} & a_{12} \\
+a_{21} & a_{22} \\
+\end{array}
+\right]
+\end{split}
+\end{equation}
+
+
+\begin{equation}
+\begin{split}
+A' =
+\left[\begin{array}{c}
+a_{11} & a_{21} \\
+a_{12} & a_{22} \\
+\end{array}
+\right]
+\end{split}
+\end{equation}
+
+
+$$
+\mathbf{(ABC)'=C'B'A'}
+$$
+
+<br>
+
+\begin{equation}
+\begin{split}
+\mathbf{A} &= 
+\left(\begin{array}{cccc} 
+a_{11} & a_{12} & a_{13} \\ 
+a_{21} & a_{22} & a_{23} \\ 
+\end{array}\right)
+\left(\begin{array}{c}
+b_{11} & b_{12} & b_{13} \\
+b_{21} & b_{22} & b_{23} \\
+b_{31} & b_{32} & b_{33} \\
+\end{array}\right) \\
+&= 
+\left(\begin{array}{c}
+a_{11}b_{11}+a_{12}b_{21}+a_{13}b_{31} & \sum_{i=1}^{3}a_{1i}b_{i2} &  \sum_{i=1}^{3}a_{1i}b_{i3} \\
+\sum_{i=1}^{3}a_{2i}b_{i1} & \sum_{i=1}^{3}a_{2i}b_{i2} & \sum_{i=1}^{3}a_{2i}b_{i3} \\
+\end{array}\right) 
+\end{split}
+\end{equation}
+
+Let $\mathbf{a}$ be a 3 x 1 vector, then the quadratic form is 
+$$
+\mathbf{a'Ba} = \sum_{i=1}^{3}\sum_{i=1}^{3}a_i b_{ij} a_{j}
+$$
+
+### Rank 
+
+ * Dimension of space spanned by its columns (or its rows).  
+ * Number of linearly indepdent columns/rows  
+ 
+ For a n x k matrix **A** and k x k matrix **B**  
+ 
+ * $rank(A)\leq min(n,k)$
+ * $rank(A) = rank(A') = rank(A'A)=rank(AA')$  
+ * $rank(AB)=min(rank(A),rank(B))$  
+ * **B** is invertible if and only if rank(B) = k (non-singular)  
+
+<br>
+
+### Inverse
+A non-singular square matrix A is invertible if there exists a non-singular square matrix B such that, 
+$$AB=I$$
+Then $A^{-1}=B$. For a 2x2 matrix, 
+
+$$
+A =
+(\begin{array}{c}
+a & b \\
+c & d \\
+\end{array})
+$$
+
+$$
+A^{-1}=
+\frac{1}{ad-bc}
+(\begin{array}{c}
+d & -b \\
+-c & a \\
+\end{array})
+$$
+
+For the partition matrix, 
+
+\begin{equation}
+\begin{split}
+\left[\begin{array}{c}
+A & B \\
+C & D \\
+\end{array}
+\right]^{-1}
+ =
+\left[\begin{array}{c}
+\mathbf{(A-BD^{-1}C)^{-1}} & \mathbf{-(A-BD^{-1}C)^{-1}BD^-1}\\
+\mathbf{-DC(A-BD^{-1}C)^{-1}} & \mathbf{D^{-1}+D^{-1}C(A-BD^{-1}C)^{-1}BD^{-1}}\ \\
+\end{array}
+\right]
+\end{split}
+\end{equation}
+
+<br>
+
+Properties for a non-singular square matrix  
+
+ * $\mathbf{A^{-1}}=A$  
+ * for a non-zero scalar b, $\mathbf{(bA)^{-1}=b^{-1}A^{-1}}$  
+ * for a matrix B, $\mathbf(BA)^{-1}=B^{-1}A^{-1}$ only if B is non-singular
+ * $\mathbf{(A^{-1})'=(A')^{-1}}$  
+ * Never notate $\mathbf{1/A}$
+
+<br>
+
+### Definiteness
+
+A symmetric square k x k matrix, $\mathbf{A}$, is Positive Semi-Definite if for any non-zero k x 1 vector $\mathbf{x}$, 
+$$\mathbf{x'Ax \geq 0 }$$
+
+A symmetric square k x k matrix, $\mathbf{A}$, is Negative Semi-Definite if for any non-zero k x 1 vector $\mathbf{x}$
+$$\mathbf{x'Ax \leq 0 }$$
+
+$\mathbf{A}$ is indefinite if it is neither positive semi-definite or negative semi-definite. 
+
+The identity matrix is positive definite
+
+**Example**
+Let $\mathbf{x} =(x_1 x_2)'$, then for a 2 x 2 identity matrix, 
+
+\begin{equation}
+\begin{split}
+\mathbf{x'Ix} 
+&= (x_1 x_2) 
+\left(\begin{array}{c}
+1 & 0 \\
+0 & 1 \\
+\end{array}
+\right)
+\left(\begin{array}{c}
+x_1 \\
+x_2 \\
+\end{array}
+\right) \\
+&=
+(x_1 x_2)
+\left(\begin{array}{c}
+x_1 \\
+x_2 \\
+\end{array}
+\right) \\
+&=
+x_1^2 + x_2^2 >0
+\end{split}
+\end{equation}
+
+Definiteness gives us the ability to compare matrices
+$\mathbf{A-B}$ is PSD
+This property also helps us show efficiency (which variance covariance matrix of one estimator is smaller than another)  
+
+Properties  
+
+ * any variance matrix is PSD  
+ * a matrix $\mathbf{A}$ is PSD if and only if there exists a matrix $\mathbf{B}$ such that $\mathbf{A=B'B}$  
+ * if $\mathbf{A}$ is PSD, then $\mathbf{B'AB}$ is PSD  
+ * if A and C are non-singular, then A-C is PSD if and only if $\mathbf{C^{-1}-A^{-1}}$  
+ * if A is PD (ND) then $A^{-1}$ is PD (ND)  
+ 
+### Matrix Calculus
+$y=f(x_1,x_2,...,x_k)=f(x)$
+where x is a 1 x k row vector. The Gradient (first order derivative with respect to a vector) is, 
+
+$$
+\frac{\partial{f(x)}}{\partial{x}}=
+\left(\begin{array}{c}
+\frac{\partial{f(x)}}{\partial{x_1}} \\
+\frac{\partial{f(x)}}{\partial{x_2}} \\
+... \\
+\frac{\partial{f(x)}}{\partial{x_k}}
+\end{array}
+\right)
+$$
+
+The **Hessian** (second order derivative with respect to a vector) is, 
+
+$$
+\frac{\partial^2{f(x)}}{\partial{x}\partial{x'}}=
+\left(\begin{array}{c}
+\frac{\partial^2{f(x)}}{\partial{x_1}\partial{x_1}} & \frac{\partial^2{f(x)}}{\partial{x_1}\partial{x_2}} & ... & \frac{\partial^2{f(x)}}{\partial{x_1}\partial{x_k}} \\
+\frac{\partial^2{f(x)}}{\partial{x_1}\partial{x_2}} & \frac{\partial^2{f(x)}}{\partial{x_2}\partial{x_2}} & ... & \frac{\partial^2{f(x)}}{\partial{x_2}\partial{x_k}} \\
+... & ...& & ...\\
+\frac{\partial^2{f(x)}}{\partial{x_k}\partial{x_1}} & \frac{\partial^2{f(x)}}{\partial{x_k}\partial{x_2}} & ... & \frac{\partial^2{f(x)}}{\partial{x_k}\partial{x_k}}
+\end{array}
+\right)
+$$
+
+### Optimization
+
+| |**Scalar Optimization**|**Vector Optimization**|
+|---|:-:|:-:|
+|First Order Condition|$$\frac{\partial{f(x_0)}}{\partial{x}}=0$$|$$\frac{\partial{f(x_0)}}{\partial{x}}=\left(\begin{array}{c}0 \\ .\\ .\\ .\\ 0\end{array}\right)$$|
+|Second Order Condition \ **Convex** $\rightarrow$ **Min**|$$\frac{\partial^2{f(x_0)}}{\partial{x^2}} > 0$$|$$\frac{\partial^2{f(x_0)}}{\partial{xx'}}>0$$|
+**Concave** $\rightarrow$ **Max** |$$\frac{\partial^2{f(x_0)}}{\partial{x^2}} < 0$$|$$\frac{\partial^2{f(x_0)}}{\partial{xx'}}<0$$|
+
+
+
+
+## Probability Theory
+### Axiom and Theorems of Probability
+
+ 1. Let S denote a sample space of an experiment P[S]=1
+ 2. $P[A] \ge 0$ for every event A
+ 3. Let $A_1,A_2,A_3,...$ be a finite or an infinite collection of mutually exclusive events. Then $P[A_1\cup A_2 \cup A_3 ...]=P[A_1]+P[A_2]+P[A_3]+...$
+ 4. $P[\emptyset]=0$
+ 5. $P[A']=1-P[A]$
+ 6. $P[A_1 \cup A_2] = P[A_1] + P[A_2] - P[A_1 \cap A_2]$
+
+<br>
+
+**Conditional Probability**
+$$
+P[A|B]=\frac{A \cap B}{P[B]}
+$$
+
+<br>
+
+**Independent Events **
+Two events A and B are independent if and only if:  
+
+ 1. $P[A\cap B]=P[A]P[B]$
+ 2. $P[A|B]=P[A]$
+ 3. $P[B|A]=P[B]$
+
+A finite collection of events $A_1, A_2, ..., A_n$ is independent if and only if any subcollection is independent.
+
+<br>
+
+**Multiplication Rule**
+$P[A \cap B] = P[A|B]P[B] = P[B|A]P[A]$
+
+<br>
+
+**Bayes' Theorem**
+Let $A_1, A_2, ..., A_n$ be a collection of mutually exclusive events whose union is S.  
+Let b be an event such that $P[B]\neq0$  
+Then for any of the events $A_j$, j = 1,2,...,n
+$$
+P[A_|B]=\frac{P[B|A_j]P[A_j]}{\sum_{i=1}^{n}P[B|A_j]P[A_i]}
+$$
+
+<br>
+
+
+
+### Random variable
+
+| | Discrete Variable | Continuous Variable|
+|--- | --- | ---|
+|**Definition**|A random variable is discrete if it can assume at most a finite or countably infinite number of possible values| A random variable is continuous if it can assume any value in some interval or intervals of real numbers and the probability that it assumes any specific value is 0|
+|**Density Function**|A function f is called a density for X if: <br> (1) $f(x) \ge 0$ <br> (2) $\sum_{all~x}f(x)=1$ <br> (3) $f(x)=P(X=x)$ for x real |A function f is called a density for X if: <br> (1) $f(x) \ge 0$ for x real <br> (2) $\int_{-\infty}^{\infty} f(x) \; dx=1$ <br> (3) $P[a \le X \le] =\int_{a}^{b} f(x) \; dx$ for a and b real|
+|**Cumulative Distribution Function** <br> for x real| $F(x)=P[X \le x]$|$F(x)=P[X \le x]=\int_{-\infty}^{\infty}f(t)dt$|
+| $E[H(X)]$ | $\sum_{all ~x}H(x)f(x)$ | $\int_{-\infty}^{\infty}H(x)f(x)$ |
+|$\mu=E[X]$ | $\sum_{all ~ x}xf(x)$ | $\int_{-\infty}^{\infty}xf(x)$|
+|**Ordinary Moments** <br> the kth ordinary moment for variable X is defined as: $E[X^k]$| $\sum_{all ~ x \in X}(x^kf(x))$| $\int_{-\infty}^{\infty}(x^kf(x))$|
+|**Moment generating function (mgf)** <br> $m_X(t)=E[e^{tX}]$| $\sum_{all ~ x \in X}(e^{tx}f(x))$| $\int_{-\infty}^{\infty}(e^{tx}f(x)dx)$|
+
+<br>
+
+Expected value Properties:  
+
+ * E[c] = c for any constant c  
+ * E[cX] = cE[X] for any constant c  
+ * E[X+Y] = E[X] = E[Y]  
+ * E[XY] = E[X].E[Y] (if X and Y are independent)
+
+Expected Variance Properties:  
+
+ * Var c = 0 for any constant c  
+ * Var $cX = c^2Var(X)$ for any constant c  
+ * Var (X+Y) = Var(X) + Var(Y) (if X and Y are independent)
+
+Standard deviation 
+$\sigma=\sqrt(\sigma^2)=\sqrt(Var X)$
+
+Moment generating function properties:  
+
+ (a) $\frac{d^k(m_X(t))}{dt^k}|_{t=0}=E[X^k]$  
+ (b) $\mu=E[X]=m_X'(0)$  
+ (c) $E[X^2]=m_X''(0)$  
+
+
+### Moment
+Moment | Uncentered | Centered 
+---|---|---
+1st | $E(X)=\mu=Mean(X)$| 
+2nd | $E(X^2)$ | $E((X-\mu)^2)=Var(X)=\sigma^2$
+3rd | $E(X^3)$ | $E((X-\mu)^3)$
+4th | $E(X^4)$ | $E((X-\mu)^4)$
+
+Skewness(X) = $E((X-\mu)^3)/\sigma^3$  
+
+Kurtosis(X) = $E((X-\mu)^4)/\sigma^4$  
+
+
+### Distributions
+#### Discrete
+
+|Distribution| Density | CDF | MGF | Mean | Variance |
+|---|---|---|---|---|---|
+|Geometric|$f(x)=pq^{x-1}$|$F(x)=1-q^{[x]}$| $m_X(t) = \frac{pe^t}{1-qe^t}$ for t < -ln(q)| $\frac{1}{p}$ | $\frac{q}{p^2}$|
+|Binomial|$f(x)={{n}\choose{x}}p^xq^{n-x}$|Table| $m_X(t) =(q+pe^t)^n$|$np$|$npq$|
+|Hypergeometric|$f(x)=\frac{{{r}\choose{x}}{{N-r}\choose{n-x}}}{{{N}\choose{n}}}$ where $max[0,n-(N-r)] \le x \le min(n,r)$| | |$\frac{nr}{N}$ |n\frac{r}{N}\frac{N-r}{N}\frac{N-n}{N-1}|
+|Poisson|$f(x) = \frac{e^{-k}k^x}{x!}$,k > 0, x =0,1,...| Use table | $m_X(t)=e^{k(e^t-1)}$ | k | k |
+
+
+CDF: Cumulative Density Function 
+MGF: Moment Generating Function
+
+<br>
+
+**Properties**:  
+
+ 1. **Geometric** 
+ 
+ * The experiment consists of a series of trails. The outcome of each trial can be classed as being either a "success" (s) or "failure" (f). (This is called a Bernoulli trial).
+ * The trials are identical and independent in the sense that the outcome of one trial has no effect on the outcome of any other. The probability of success (p) and probability of failure (q=1-p) remains the same from trial to trial. 
+ * lack of memory
+ * X: the number of trials needed to obtain the first success.
+
+ 2. **Binomial**
+ 
+ * The experiment consists of a fixed number (n) of Bernoulli trials, each of which results in a "success" (s) or "failure" (f)  
+ The trials are identical and independent. The probability of success (p) and probability of failure (q=1-p) remains the same from trial to trial. 
+ The random variable X denotes the number of successes obtained in the n trails.  
+ 
+ 3. **Hypergeometric**
+ 
+ * The experiment consists of drawing a random sample of size n without replacement and without regard to order from a collection of N objects. 
+ * Of the N objects, r have a trait of interest; N-r do not have the trait 
+ * X is the number of objects in the sample with the trait.
+ 
+ 4. **Poisson**
+ 
+ * in connection with a Poisson process, which involves observing discrete events in a continuous "interval" of time, length, or space. 
+ * X : the number of occurrences of the event within an interval of s units 
+ * The parameter $\lambda$ is the average number of occurrences of the event per measurement unit. For the distribution, we use the parameter $k=\lambda s$
+
+
+#### Continuous
+
+|Distribution| Density | CDF | MGF | Mean | Variance |
+|---|---|---|---|---|---|
+|Uniform|$f(x)=\frac{1}{b-a}$ for a < x < b | \begin{cases}0&\text{if x <a }\frac{x-a}{b-a}&\text{if $a \le x \le b$ }\\1&\text{if x >b}\\\end{cases}| \begin{cases}\frac{e^{tb} - e^{ta}}{t(b-a)}&\text{ if $t \neq 0$}\\1&\text{if $ t \neq 0$}\\\end{cases}| \frac{a+b}{2}| \frac{(b-a)^2}{12}|
+
+
+
+
