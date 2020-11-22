@@ -1,7 +1,25 @@
 # Regression Analysis
 ## Linear Regression
+
 ### Ordinary Least Squares
 The most fundamental model in statistics or econometric is a OLS linear regression. 
+
+
+#### OLS Assumptions
+##### A1
+
+##### A2
+
+##### A3
+
+##### A4
+
+##### A5
+
+##### A6
+
+
+
 
 **Hierarchy of OLS Assumptions**
 
@@ -17,7 +35,124 @@ The most fundamental model in statistics or econometric is a OLS linear regressi
 
 ### Feasible Generalized Least Squares
 
+Motivation for a more efficient estimator  
 
+ * Gauss Markov Theorem holds under A1-A4
+ * A4: $Var(\epsilon| \mathbf{X} )=\sigma^2I_n$
+    + Heteroskedasticity: $Var(\epsilon_i|\mathbf{X}) \neq \sigma^2I_n$
+    + Serial Correlation: $Cov(\epsilon_i,\epsilon_j|\mathbf{X}) \neq 0$
+ * Without A4, how can we know which unbiased estimator is the most efficient?
+ 
+Original (unweighted) model:
+
+$$
+\mathbf{y=X\beta+ \epsilon}
+$$
+Suppose A1-A3 hold, but A4 does not hold, 
+$$
+\mathbf{Var(\epsilon|X)=\Omega \neq \sigma^2 I_n}
+$$
+
+We will try to use OLS to estimate the transformed (weighted) model
+
+$$
+\mathbf{wy=wX\beta + w\epsilon}
+$$
+We need to choose $\mathbf{w}$ so that
+
+$$
+\mathbf{w'w = \Omega^{-1}}
+$$
+then $\mathbf{w}$ (full-rank matrix) is the **Cholesky decomposition** of $\mathbf{\Omega^{-1}}$ (full-rank matrix)
+
+In other words, $\mathbf{w}$ is the squared root of $\Omega$ (squared root version in matrix)
+
+$$
+\Omega = var(\epsilon | X) \\
+\Omega^{-1} = var(\epsilon | X)^{-1}
+$$
+
+Then, the transformed equation (IGLS) will have the following properties.
+
+\begin{equation}
+\begin{split}
+\mathbf{\hat{\beta}_{IGLS}} &= \mathbf{(X'w'wX)^{-1}X'w'wy} \\
+& = \mathbf{(X'\Omega^{-1}X)^{-1}X'\Omega^{-1}y} \\
+& = \mathbf{\beta + X'\Omega^{-1}X'\Omega^{-1}\epsilon}
+\end{split}
+\end{equation}
+
+Since A1-A3 hold for the unweighted model
+\begin{equation}
+\begin{split}
+\mathbf{E(\hat{\beta}_{IGLS}|X)} & = E(\mathbf{\beta + (X'\Omega^{-1}X'\Omega^{-1}\epsilon)}|X)\\
+& = \mathbf{\beta + E(X'\Omega^{-1}X'\Omega^{-1}\epsilon)|X)} \\
+& = \mathbf{\beta + X'\Omega^{-1}X'\Omega^{-1}E(\epsilon|X)}  && \text{since A3: $E(\epsilon|X)=0$} \\
+& = \mathbf{\beta}
+\end{split}
+\end{equation}
+
+$\rightarrow$ IGLS estimator is unbiased
+
+\begin{equation}
+\begin{split}
+\mathbf{Var(w\epsilon|X)} &= \mathbf{wVar(\epsilon|X)w'} \\
+& = \mathbf{w\Omega w'} \\
+& = \mathbf{w(w'w)^{-1}w'} && \text{since w is a full-rank matrix}\\
+& = \mathbf{ww^{-1}(w')^{-1}w'} \\
+& = \mathbf{I_n}
+\end{split}
+\end{equation}
+
+$\rightarrow$ A4 holds for the transformed (weighted) equation
+
+Then, the variance for the estimator is
+
+\begin{equation}
+\begin{split}
+Var(\hat{\beta}_{IGLS}|\mathbf{X}) & = \mathbf{Var(\beta + (X'\Omega ^{-1}X)^{-1}X'\Omega^{-1}\epsilon|X)} \\
+&= \mathbf{Var((X'\Omega ^{-1}X)^{-1}X'\Omega^{-1}\epsilon|X)} \\
+&= \mathbf{(X'\Omega ^{-1}X)^{-1}X'\Omega^{-1} Var(\epsilon|X)   \Omega^{-1}X(X'\Omega ^{-1}X)^{-1}} && \text{because A4 holds}\\
+&= \mathbf{(X'\Omega ^{-1}X)^{-1}X'\Omega^{-1} \Omega \Omega^{-1} \Omega^{-1}X(X'\Omega ^{-1}X)^{-1}} \\
+&= \mathbf{(X'\Omega ^{-1}X)^{-1}}
+\end{split}
+\end{equation}
+
+Let $A = \mathbf{(X'X)^{-1}X'-(X'\Omega ^{-1} X)X' \Omega^{-1}}$ then
+$$
+Var(\hat{\beta}_{OLS}|X)- Var(\hat{\beta}_{IGLS}|X) = A\Omega A'
+$$
+And $\Omega$ is Positive Semi Definite, then $A\Omega A'$ also PSD, then IGLS is more efficient 
+
+The name **Infeasible** comes from the fact that it is impossible to compute this estimator. 
+
+\begin{equation}
+\mathbf{w} = 
+\left(
+\begin{array}{c}
+w_{11} & 0 & 0 & ... & 0 \\
+w_{21} & w_{22} & 0 & ... & 0 \\
+w_{31} & w_{32} & w_{33} & ... & ... \\
+w_{n1} & w_{n2} & w_{n3} & ... & w_{nn} \\
+\end{array}
+\right)
+\end{equation}
+
+With $n(n+1)/2$ number of elements and n observations $\rightarrow$ infeasible to estimate. (number of equation > data)
+
+Hence, we need to make assumption on $\Omega$ to make it feasible to estimate $\mathbf{w}$:  
+
+ 1. [Heteroskedasticity]: multiplicative exponential model
+ 2. Serial Correlation: AR(1)
+ 3. Serial Correlation: Cluster
+ 
+ 
+#### Heteroskedasticity
+
+$$
+Var(\epsilon_i |x_i) = E(\epsilon^2|x_i) \neq \sigma^2 \\
+= h(x_i) = \sigma_i^2 && \text{error is a function of x} \\
+$$
 
 ### Weighted Least Squares
 
