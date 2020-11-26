@@ -1,5 +1,4 @@
-# Advanced Methods
-## Imputation (Missing Data)
+# Imputation (Missing Data)
 
 Imputation is usually seen as the illegitimate child of statistical analysis. Several reasons that contribute to this negative views could be:  
 
@@ -13,15 +12,15 @@ We also need to talk why you would want to do imputation in the first place. If 
 
 For most software packages, it will use listwise deletion or casewise deletion to have complete case analysis (analysis with only observations with all information). Not until recently that statistician can propose some methods that are a bit better than listwise deletion which are maximum likelihood and multiple imputation. 
 
-### Assumptions 
+## Assumptions 
 
-#### Missing Completely at Random (MCAR)
+### Missing Completely at Random (MCAR)
 The probability of missing data on a variable is unrelated to the value of it or to the values of any other variables in the data set. 
 
 **Note**: the "missingness" on Y can be correlated with the "missingness" on X 
 We can compare the value of other variables for the observations with missing data, and observations without missing data. If we reject the t-test for mean difference, we can say there is evidence that the data are not MCAR. But we cannot say that our data are MCAR if we fail to reject the t-test. 
 
-#### Missing at Random (MAR)
+### Missing at Random (MAR)
 MAR is weaker than MCAR
 
 $$
@@ -30,7 +29,7 @@ $$
 The probability of Y missing given Y and X equal to the probability of of Y missing given X. 
 However, it is impossible to provide evidence to the MAR condition. 
 
-#### Ignorable
+### Ignorable
 The missing data mechanism is ignorable when 
 
  (1) The data are MAR
@@ -38,13 +37,13 @@ The missing data mechanism is ignorable when
  
  In this case, you actually don't need to model the missing data mechanisms unless you would like to improve on your accuracy, in which case you still need to be very rigorous about your approach to improve efficiency in your parameters. 
  
-#### Nonignorable
+### Nonignorable
 Hence, in the case of nonignorable, the data are not MAR. Then, your parameters of interest will be biased if you do not model the missing data mechanism. 
 One of the most widely used approach for nonignorable missing data is [@Heckman_1976]
 
 
-### Solutions to Missing data
-#### Listwise Deletion
+## Solutions to Missing data
+### Listwise Deletion
 
 Advantages: 
 
@@ -61,7 +60,7 @@ Disadvantages:
  * If the data are not MCAR, but MAR, then your listwise deletion can yield biased estimates. 
  * In other cases than regression analysis, other sophisticated methods can yield better estimates compared to listwise deletion. 
 
-#### Pairwise Deletion
+### Pairwise Deletion
 This method could only be used in the case of linear models such as linear regression, factor analysis, or SEM. 
 The premise of this method based on that the coefficient estimates are calculated based on the means, standard deviations, and correlation matrix. Compared to listwise deletion, we still utilized as many correlation between variables as possible to compute the correlation matrix. 
 
@@ -80,14 +79,49 @@ Disadvantages:
 
 **Note**: You need to read carefully on how your software specify the sample size because it will alter the standard errors.
 
-### Types of Imputation  
+### Dummy Variable Adjustment (Missing Indicator Method)
+
+Create 2 variables
+
+\begin{equation}
+D=
+\begin{cases}
+1 & \text{data on X are missing} \\
+0 & \text{otherwise}\\
+\end{cases}
+\end{equation}
+
+\begin{equation}
+X* = 
+\begin{cases}
+X & \text{data are available} \\
+c & \text{data are missing}\\
+\end{cases}
+\end{equation}
+
+**Note**: A typical choice for c is usually the mean of X
+
+Interpretation:
+
+ * Coefficient of D is the the difference in the expected value of Y between the group with data and the group without data on X.
+ * Coefficient of X* is the effect of the group with data on Y
+
+
+Disadvantages:
+
+ * This method yields bias estimates of the coefficient even in the case of MCAR [@Jones_1996]
+
+### Imputation
+
+
 
 #### Mean, Mode, Median Imputation
 
  * Bad:  
-
-    - Mean imputation does not preserve the relationships among variables   
-    - Mean imputation leads to An Underestimate of Standard Errors → you’re making Type I errors without realizing it.  
+ 
+    + Mean imputation does not preserve the relationships among variables   
+    + Mean imputation leads to An Underestimate of Standard Errors → you’re making Type I errors without realizing it.
+    + Biased estimates of variances and covariances [@Haitovsky_1968]
  
 #### Hot Deck Imputation
 
@@ -103,13 +137,20 @@ Contrary to Hot Deck, Cold Deck choose value systematically from an observation 
 
 #### Regression Imputation  
 
+Also known as conditional mean imputation
 Missing value is based (regress) on other variables.  
 
  * Good:  
+ 
     - Maintain the relationship with other variables  
+    - If the data are MCAR, least-squares coefficients estimates will be consistent, and approximately unbiased in large samples [@Gourieroux_1981]
+        + Can have improvement on efficiency by using weighted least squares [@Beale_1975] or generalized least squares [@Gourieroux_1981].
 
  * Bad:  
-    - No variability left.  
+ 
+    - No variability left.  treated data as if they were collected. 
+    - Underestimate the standard errors and overestimate test statistics
+    
     
 #### Stochatistc Imputation  
 
@@ -149,7 +190,7 @@ For a continuous variable, it uses the mean or mode.
     
 #### Bayesian Ridge regression implementation  
 
-#### Proxy Varible 
+#### Proxy Variable 
 
 Add another variable in the database to indicate whether a value is missing. 
 
@@ -305,122 +346,3 @@ For example, if women really are less likely to tell you their weight than men, 
 
 
 
-
-
-
-
-
-## Deep Learning
-### Overview
-
-This section is based on [@TensorFlow]
- 
- * What is deep learning?
-Input to output via layers of representation
-
- * What are layers?
-A layer is a geometric transformation function on the data that goes through it Weights determine the data transformation behavior of a layer  
-
-<br>
-Learning Representation  
-
- * Transforming input data into useful representation  
- 
-<br>
-
-The "deep" in deep learning  
-
- * multiple layers 
- * Other possibly more appropriate names for the field:
-    + Layered representations learning 
-    + Hierarchical representations learning 
-    + Chained geometric transformation learning  
-    
-<br>
-New problem domains for R:  
-
- * Computer vision  
- * Computer speech recognition  
- * Reinforcement learning applications  
- 
-<br>
-How do we train deep learning models?  
-
- * Basic of machine learning algorithms  
- * Machine learning vs. statistical modeling  
- * MNIST example  
-    + Model definition in R  
-    + Layers of representation  
- * The training loop  
- 
-<br>
-Machine learning algorithms  
-Learning model parameters via exposure to many example data points  
-
-<br>
-Statistics: Often focused on inferring the process by which data is generated 
-Machine Learning: Principally focused on predicting future data  
-
-<br>
-Deep learning frontiers  
-
- * Computer vision 
- * Natural language processing 
- * Time series 
- * Biomedical  
-
-
-\pagebreak
-
-
-### Tensor Flow and R
-TensorFlow APIs  
-
- * Keras API  
- * Estimator API  
- * Core API  
-
-<br>
-
-#### R packages 
-TensorFlow APIs 
- * keras: Interface for neural networks, with a focus on enabling fast experimentation. 
- * tfestimators: Implementations of common model types such as regressors and classifiers.  
- * tensorflow: Low *level interface to the TensorFlow computational graph. 
- * tfdatasets: Scalable input pipelines for TensorFlow models.
-
-Supporting Tools 
- * tfruns : Track , visualize, and manage TensorFlow training runs and experiments 
- * tfdeploy : Tools designed to make exporting and serving TensorFlow models straightforward. 
- * cloudml : R interface to Google Cloud Machine Learning Engine.  
-
-R interface to Keras  
-
- * Step by step example  
- * [Keras layers]  
- * [Compiling models]  
- * [Losses, Optimizers, and Metrics] 
- * More examples  
-
-<br>
-
-#### Keras layers  
-65 layers available  
-
- * Dense layers: classic "fully connected" neural network layers  
- * Convolutional layers: "Filters for learning local patterns in data  
- * Recurrent layers: Layers that maintain state based on on previously seen   data 
- * Embedding layers: Vectorization of text that reflects semantic relationships between words  
-
-
-### Compiling models
-Model compilation prepares the model for training by:  
-1. Converting the layers into a TensorFlow graph  
-2. Applying the specified loss function and optimizer  
-3. Arranging for the collection of metrics during training  
-
-### Losses, Optimizers, and Metrics
-All available at Keras for R [cheatsheet](https://github.com/rstudio/cheatsheets/raw/master/keras.pdf)
-
-
-Example of [Image classificaiton](https://blogs.rstudio.com/ai/posts/2017 *12 *14 *image *classification *on *small *datasets/)
