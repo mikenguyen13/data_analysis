@@ -24,7 +24,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2020-11-23" />
+<meta name="date" content="2020-11-25" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -228,9 +228,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="7" data-path="advanced-methods.html"><a href="advanced-methods.html"><i class="fa fa-check"></i><b>7</b> Advanced Methods</a><ul>
 <li class="chapter" data-level="7.1" data-path="imputation-missing-data.html"><a href="imputation-missing-data.html"><i class="fa fa-check"></i><b>7.1</b> Imputation (Missing Data)</a><ul>
-<li class="chapter" data-level="7.1.1" data-path="imputation-missing-data.html"><a href="imputation-missing-data.html#types-of-imputation"><i class="fa fa-check"></i><b>7.1.1</b> Types of Imputation</a></li>
-<li class="chapter" data-level="7.1.2" data-path="imputation-missing-data.html"><a href="imputation-missing-data.html#criteria-for-choosing-an-effective-approach"><i class="fa fa-check"></i><b>7.1.2</b> Criteria for Choosing an Effective Approach</a></li>
-<li class="chapter" data-level="7.1.3" data-path="imputation-missing-data.html"><a href="imputation-missing-data.html#another-perspective"><i class="fa fa-check"></i><b>7.1.3</b> Another Perspective</a></li>
+<li class="chapter" data-level="7.1.1" data-path="imputation-missing-data.html"><a href="imputation-missing-data.html#assumptions"><i class="fa fa-check"></i><b>7.1.1</b> Assumptions</a></li>
+<li class="chapter" data-level="7.1.2" data-path="imputation-missing-data.html"><a href="imputation-missing-data.html#solutions-to-missing-data"><i class="fa fa-check"></i><b>7.1.2</b> Solutions to Missing data</a></li>
+<li class="chapter" data-level="7.1.3" data-path="imputation-missing-data.html"><a href="imputation-missing-data.html#types-of-imputation"><i class="fa fa-check"></i><b>7.1.3</b> Types of Imputation</a></li>
+<li class="chapter" data-level="7.1.4" data-path="imputation-missing-data.html"><a href="imputation-missing-data.html#criteria-for-choosing-an-effective-approach"><i class="fa fa-check"></i><b>7.1.4</b> Criteria for Choosing an Effective Approach</a></li>
+<li class="chapter" data-level="7.1.5" data-path="imputation-missing-data.html"><a href="imputation-missing-data.html#another-perspective"><i class="fa fa-check"></i><b>7.1.5</b> Another Perspective</a></li>
 </ul></li>
 <li class="chapter" data-level="7.2" data-path="deep-learning.html"><a href="deep-learning.html"><i class="fa fa-check"></i><b>7.2</b> Deep Learning</a><ul>
 <li class="chapter" data-level="7.2.1" data-path="deep-learning.html"><a href="deep-learning.html#overview"><i class="fa fa-check"></i><b>7.2.1</b> Overview</a></li>
@@ -289,10 +291,86 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ol>
 <p>If you have missing data on y (dependent variable), you probability would not be able to do any imputation appropriately. However, if you have certain type of missing data (e.g., non-random missing data) in the xs variable (independent variables), then you can still salvage your collected data points with imputation.</p>
 <p>We also need to talk why you would want to do imputation in the first place. If your purpose is inference/ explanation, then imputation would not offer much help. However, if your purpose is prediction, you would want your standard error to be reduced by including information (non-missing data) on other variables of a data point. Then imputation could be the tool that you’re looking for.</p>
+<p>For most software packages, it will use listwise deletion or casewise deletion to have complete case analysis (analysis with only observations with all information). Not until recently that statistician can propose some methods that are a bit better than listwise deletion which are maximum likelihood and multiple imputation.</p>
+<div id="assumptions" class="section level3">
+<h3><span class="header-section-number">7.1.1</span> Assumptions</h3>
+<div id="missing-completely-at-random-mcar" class="section level4">
+<h4><span class="header-section-number">7.1.1.1</span> Missing Completely at Random (MCAR)</h4>
+<p>The probability of missing data on a variable is unrelated to the value of it or to the values of any other variables in the data set.</p>
+<p><strong>Note</strong>: the “missingness” on Y can be correlated with the “missingness” on X
+We can compare the value of other variables for the observations with missing data, and observations without missing data. If we reject the t-test for mean difference, we can say there is evidence that the data are not MCAR. But we cannot say that our data are MCAR if we fail to reject the t-test.</p>
+</div>
+<div id="missing-at-random-mar" class="section level4">
+<h4><span class="header-section-number">7.1.1.2</span> Missing at Random (MAR)</h4>
+<p>MAR is weaker than MCAR</p>
+<p><span class="math display">\[
+P(Y_{missing}|Y,X)= P(Y_{missing}|X)
+\]</span>
+The probability of Y missing given Y and X equal to the probability of of Y missing given X.
+However, it is impossible to provide evidence to the MAR condition.</p>
+</div>
+<div id="ignorable" class="section level4">
+<h4><span class="header-section-number">7.1.1.3</span> Ignorable</h4>
+<p>The missing data mechanism is ignorable when</p>
+<ol style="list-style-type: decimal">
+<li>The data are MAR</li>
+<li>the parameters in the function of the missing data process are unrelated to the parameters (of interest) that need to be estimated.</li>
+</ol>
+<p>In this case, you actually don’t need to model the missing data mechanisms unless you would like to improve on your accuracy, in which case you still need to be very rigorous about your approach to improve efficiency in your parameters.</p>
+</div>
+<div id="nonignorable" class="section level4">
+<h4><span class="header-section-number">7.1.1.4</span> Nonignorable</h4>
+<p>Hence, in the case of nonignorable, the data are not MAR. Then, your parameters of interest will be biased if you do not model the missing data mechanism.
+One of the most widely used approach for nonignorable missing data is <span class="citation">(Heckman <a href="#ref-Heckman_1976" role="doc-biblioref">1976</a>)</span></p>
+</div>
+</div>
+<div id="solutions-to-missing-data" class="section level3">
+<h3><span class="header-section-number">7.1.2</span> Solutions to Missing data</h3>
+<div id="listwise-deletion" class="section level4">
+<h4><span class="header-section-number">7.1.2.1</span> Listwise Deletion</h4>
+<p>Advantages:</p>
+<ul>
+<li>Can be applied to any statistical test (SEM, multi-level regression, etc.)</li>
+<li>In the case of MCAR, both the parameters estimates and its standard errors are unbiased.</li>
+<li>In the case of MAR among independent variables (not depend on the values of dependent variables), then listwise deletion parameter estimates can still be unbiased. <span class="citation">(Little <a href="#ref-Little_1992" role="doc-biblioref">1992</a>)</span> For example, you have a model <span class="math inline">\(y=\beta_{0}+\beta_1X_1 + \beta_2X_2 +\epsilon\)</span> if the probability of missing data on X1 is independent of Y, but dependent on the value of X1 and X2, then the model estimates are still unbiased.
+<ul>
+<li>The missing data mechanism the depends on the values of the independent variables are the same as stratified sampling. And stratified sampling does not bias your estimates</li>
+<li>In the case of logistic regression, if the probability of missing data on any variable depends on the value of the dependent variable, but independent of the value of the independent variables, then the listwise deletion will yield biased intercept estimate, but consistent estimates of the slope and their standard errors <span class="citation">(Vach <a href="#ref-Vach_1994" role="doc-biblioref">1994</a>)</span>. However, logistic regression will still fail if the probability of missing data is dependent on both the value of the dependent and independent variables.</li>
+<li>Under regression analysis, listwise deletion is more robust than maximum likelihood and multiple imputation when MAR assumption is violated.</li>
+</ul></li>
+</ul>
+<p>Disadvantages:</p>
+<ul>
+<li>It will yield a larger standard errors than other more sophisticated methods discussed later.</li>
+<li>If the data are not MCAR, but MAR, then your listwise deletion can yield biased estimates.</li>
+<li>In other cases than regression analysis, other sophisticated methods can yield better estimates compared to listwise deletion.</li>
+</ul>
+</div>
+<div id="pairwise-deletion" class="section level4">
+<h4><span class="header-section-number">7.1.2.2</span> Pairwise Deletion</h4>
+<p>This method could only be used in the case of linear models such as linear regression, factor analysis, or SEM.
+The premise of this method based on that the coefficient estimates are calculated based on the means, standard deviations, and correlation matrix. Compared to listwise deletion, we still utilized as many correlation between variables as possible to compute the correlation matrix.</p>
+<p>Advantages:</p>
+<ul>
+<li>If the true missing data mechanism is MCAR, pair wise deletion will yield consistent estimates, and unbiased in large samples</li>
+<li>Compared to listwise deletion: <span class="citation">(Glasser <a href="#ref-Glasser_1964" role="doc-biblioref">1964</a>)</span>
+<ul>
+<li>If the correlation among variables are low, pairwise deletion is more efficient estimates than listwise</li>
+<li>If the correlations among variables are high, listwise deletion is more efficient than pairwise.</li>
+</ul></li>
+</ul>
+<p>Disadvantages:</p>
+<ul>
+<li>If the data mechanism is MAR, pairwise deletion will yield biased estimates.</li>
+<li>In small sample, sometimes covariance matrix might not be positive definite, which means coefficients estimates cannot be calculated.</li>
+</ul>
+<p><strong>Note</strong>: You need to read carefully on how your software specify the sample size because it will alter the standard errors.</p>
+</div>
+</div>
 <div id="types-of-imputation" class="section level3">
-<h3><span class="header-section-number">7.1.1</span> Types of Imputation</h3>
+<h3><span class="header-section-number">7.1.3</span> Types of Imputation</h3>
 <div id="mean-mode-median-imputation" class="section level4">
-<h4><span class="header-section-number">7.1.1.1</span> Mean, Mode, Median Imputation</h4>
+<h4><span class="header-section-number">7.1.3.1</span> Mean, Mode, Median Imputation</h4>
 <ul>
 <li><p>Bad:</p>
 <ul>
@@ -303,7 +381,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul>
 </div>
 <div id="hot-deck-imputation" class="section level4">
-<h4><span class="header-section-number">7.1.1.2</span> Hot Deck Imputation</h4>
+<h4><span class="header-section-number">7.1.3.2</span> Hot Deck Imputation</h4>
 <p>Randomly choose value from other observations that share similar values on other variables.</p>
 <ul>
 <li>Good:
@@ -315,11 +393,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul>
 </div>
 <div id="cold-deck-imputation" class="section level4">
-<h4><span class="header-section-number">7.1.1.3</span> Cold Deck Imputation</h4>
+<h4><span class="header-section-number">7.1.3.3</span> Cold Deck Imputation</h4>
 <p>Contrary to Hot Deck, Cold Deck choose value systematically from an observation that has similar values on other variables, which remove the random variation that we want.</p>
 </div>
 <div id="regression-imputation" class="section level4">
-<h4><span class="header-section-number">7.1.1.4</span> Regression Imputation</h4>
+<h4><span class="header-section-number">7.1.3.4</span> Regression Imputation</h4>
 <p>Missing value is based (regress) on other variables.</p>
 <ul>
 <li>Good:
@@ -333,16 +411,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul>
 </div>
 <div id="stochatistc-imputation" class="section level4">
-<h4><span class="header-section-number">7.1.1.5</span> Stochatistc Imputation</h4>
+<h4><span class="header-section-number">7.1.3.5</span> Stochatistc Imputation</h4>
 <p><code>Regression imputation + random residual = Stochastic Imputation</code></p>
 <p>Most multiple imputation is based off of some form of stochastic regression imputation.</p>
 </div>
 <div id="interpolation-and-extrapolation" class="section level4">
-<h4><span class="header-section-number">7.1.1.6</span> Interpolation and Extrapolation</h4>
+<h4><span class="header-section-number">7.1.3.6</span> Interpolation and Extrapolation</h4>
 <p>An estimated value from other observations from the same individual. It usually only works in longitudinal data.</p>
 </div>
 <div id="e-m-expectation-maximization-algorithm" class="section level4">
-<h4><span class="header-section-number">7.1.1.7</span> E-M (Expectation-Maximization) Algorithm</h4>
+<h4><span class="header-section-number">7.1.3.7</span> E-M (Expectation-Maximization) Algorithm</h4>
 <p>An iterative process:</p>
 <ol style="list-style-type: decimal">
 <li>Other variables are used to impute a value (Expectation).<br />
@@ -354,7 +432,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>E-M also preserves the relationship with other variables. However, it still underestimates standard error.</p>
 </div>
 <div id="k-nearest-neighbour-knn-imputation" class="section level4">
-<h4><span class="header-section-number">7.1.1.8</span> K-nearest neighbour (KNN) imputation</h4>
+<h4><span class="header-section-number">7.1.3.8</span> K-nearest neighbour (KNN) imputation</h4>
 <p>The above methods are model-based imputation (regression).<br />
 This is an example of neighbor-based imputation (K-nearest neighbor).</p>
 <p>For a discrete variable, it uses the most frequent value among the k nearest neighbors.</p>
@@ -374,15 +452,15 @@ This is an example of neighbor-based imputation (K-nearest neighbor).</p>
 </ul>
 </div>
 <div id="bayesian-ridge-regression-implementation" class="section level4">
-<h4><span class="header-section-number">7.1.1.9</span> Bayesian Ridge regression implementation</h4>
+<h4><span class="header-section-number">7.1.3.9</span> Bayesian Ridge regression implementation</h4>
 </div>
 <div id="proxy-varible" class="section level4">
-<h4><span class="header-section-number">7.1.1.10</span> Proxy Varible</h4>
+<h4><span class="header-section-number">7.1.3.10</span> Proxy Varible</h4>
 <p>Add another variable in the database to indicate whether a value is missing.</p>
 </div>
 </div>
 <div id="criteria-for-choosing-an-effective-approach" class="section level3">
-<h3><span class="header-section-number">7.1.2</span> Criteria for Choosing an Effective Approach</h3>
+<h3><span class="header-section-number">7.1.4</span> Criteria for Choosing an Effective Approach</h3>
 <p>Criteria for an ideal technique in treating missing data:</p>
 <ol style="list-style-type: decimal">
 <li>Unbiased parameter estimates</li>
@@ -392,7 +470,7 @@ This is an example of neighbor-based imputation (K-nearest neighbor).</p>
 <p>The Multiple Imputation and Full Information Maximum Likelihood are the the most ideal candidate. Single imputation will generally lead to underestimation of standard errors.</p>
 </div>
 <div id="another-perspective" class="section level3">
-<h3><span class="header-section-number">7.1.3</span> Another Perspective</h3>
+<h3><span class="header-section-number">7.1.5</span> Another Perspective</h3>
 <p>In the imputation world, you can go for either single or multiple imputation.<br />
 Most of the imputation methods listed above are single imputation. A downfall of single imputation is its underestimation towards standard error.</p>
 <p><br>
@@ -477,7 +555,7 @@ Multiple imputation and Maximum Likelihood assume the data are at least missing 
 <p>It’s like checking for multicollinearity or testing assumptions. Each piece of information tells you something, but there is no definitive answer.</p>
 <p>You have to get at the mechanism in a number of ways and then decide if making the assumption about the mechanism is reasonable.</p>
 <div id="diagnosing-the-mechanism" class="section level5">
-<h5><span class="header-section-number">7.1.3.0.1</span> Diagnosing the Mechanism</h5>
+<h5><span class="header-section-number">7.1.5.0.1</span> Diagnosing the Mechanism</h5>
 <ol style="list-style-type: decimal">
 <li>MAR vs. MNAR
 The only true way to distinguish between MNAR and MAR is to measure some of that missing data. It’s a common practice among professional surveyors to, for example, follow-up on a paper survey with phone calls to a group of the non-respondents and ask a few key survey items. This allows you to compare respondents to non-respondents.</li>
@@ -496,6 +574,21 @@ There is a very useful test for MCAR, Little’s test.</li>
 <p>You can then run t-tests and chi-square tests between this variable and other variables in the data set to see if the missingness on this variable is related to the values of other variables.</p>
 <p>For example, if women really are less likely to tell you their weight than men, a chi-square test will tell you that the percentage of missing data on the weight variable is higher for women than men.</p>
 </div>
+</div>
+</div>
+<h3>References</h3>
+<div id="refs" class="references">
+<div id="ref-Glasser_1964">
+<p>Glasser, M. 1964. “Linear Regression Analysis with Missing Observations Among the Independent Variables.” <em>Journal of the American Statistical Association</em> 59 (307): 834–44. <a href="https://doi.org/10.1080/01621459.1964.10480730">https://doi.org/10.1080/01621459.1964.10480730</a>.</p>
+</div>
+<div id="ref-Heckman_1976">
+<p>Heckman, James J. 1976. “The Common Structure of Statistical Models of Truncation, Sample Selection and Limited Dependent Variables and a Simple Estimator for Such Models.” <em>Annals of Economic and Social Measurement</em> 5 (4): 475–92.</p>
+</div>
+<div id="ref-Little_1992">
+<p>Little, Roderick J. A. 1992. “Regression with Missing Xs: A Review.” <em>Journal of the American Statistical Association</em> 87 (420): 1227. <a href="https://doi.org/10.2307/2290664">https://doi.org/10.2307/2290664</a>.</p>
+</div>
+<div id="ref-Vach_1994">
+<p>Vach, Werner. 1994. <em>Logistic Regression with Missing Values in the Covariates</em>. Springer New York. <a href="https://doi.org/10.1007/978-1-4612-2650-5">https://doi.org/10.1007/978-1-4612-2650-5</a>.</p>
 </div>
 </div>
             </section>

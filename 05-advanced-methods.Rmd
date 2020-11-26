@@ -11,7 +11,77 @@ If you have missing data on y (dependent variable), you probability would not be
 We also need to talk why you would want to do imputation in the first place. If your purpose is inference/ explanation, then imputation would not offer much help. However, if your purpose is prediction, you would want your standard error to be reduced by including information (non-missing data) on other variables of a data point. Then imputation could be the tool that you're looking for.
 
 
+For most software packages, it will use listwise deletion or casewise deletion to have complete case analysis (analysis with only observations with all information). Not until recently that statistician can propose some methods that are a bit better than listwise deletion which are maximum likelihood and multiple imputation. 
+
+### Assumptions 
+
+#### Missing Completely at Random (MCAR)
+The probability of missing data on a variable is unrelated to the value of it or to the values of any other variables in the data set. 
+
+**Note**: the "missingness" on Y can be correlated with the "missingness" on X 
+We can compare the value of other variables for the observations with missing data, and observations without missing data. If we reject the t-test for mean difference, we can say there is evidence that the data are not MCAR. But we cannot say that our data are MCAR if we fail to reject the t-test. 
+
+#### Missing at Random (MAR)
+MAR is weaker than MCAR
+
+$$
+P(Y_{missing}|Y,X)= P(Y_{missing}|X)
+$$
+The probability of Y missing given Y and X equal to the probability of of Y missing given X. 
+However, it is impossible to provide evidence to the MAR condition. 
+
+#### Ignorable
+The missing data mechanism is ignorable when 
+
+ (1) The data are MAR
+ (2) the parameters in the function of the missing data process are unrelated to the parameters (of interest) that need to be estimated. 
+ 
+ In this case, you actually don't need to model the missing data mechanisms unless you would like to improve on your accuracy, in which case you still need to be very rigorous about your approach to improve efficiency in your parameters. 
+ 
+#### Nonignorable
+Hence, in the case of nonignorable, the data are not MAR. Then, your parameters of interest will be biased if you do not model the missing data mechanism. 
+One of the most widely used approach for nonignorable missing data is [@Heckman_1976]
+
+
+### Solutions to Missing data
+#### Listwise Deletion
+
+Advantages: 
+
+ * Can be applied to any statistical test (SEM, multi-level regression, etc.)
+ * In the case of MCAR, both the parameters estimates and its standard errors are unbiased. 
+ * In the case of MAR among independent variables (not depend on the values of dependent variables), then listwise deletion parameter estimates can still be unbiased. [@Little_1992] For example, you have a model $y=\beta_{0}+\beta_1X_1 + \beta_2X_2 +\epsilon$ if the probability of missing data on X1 is independent of Y, but dependent on the value of X1 and X2, then the model estimates are still unbiased.  
+    + The missing data mechanism the depends on the values of the independent variables are the same as stratified sampling. And stratified sampling does not bias your estimates 
+    + In the case of logistic regression, if the probability of missing data on any variable depends on the value of the dependent variable, but independent of the value of the independent variables, then the listwise deletion will yield biased intercept estimate, but consistent estimates of the slope and their standard errors [@Vach_1994]. However, logistic regression will still fail if the probability of missing data is dependent on both the value of the dependent and independent variables.
+    + Under regression analysis, listwise deletion is more robust than maximum likelihood and multiple imputation when MAR assumption is violated. 
+
+Disadvantages: 
+
+ * It will yield a larger standard errors than other more sophisticated methods discussed later. 
+ * If the data are not MCAR, but MAR, then your listwise deletion can yield biased estimates. 
+ * In other cases than regression analysis, other sophisticated methods can yield better estimates compared to listwise deletion. 
+
+#### Pairwise Deletion
+This method could only be used in the case of linear models such as linear regression, factor analysis, or SEM. 
+The premise of this method based on that the coefficient estimates are calculated based on the means, standard deviations, and correlation matrix. Compared to listwise deletion, we still utilized as many correlation between variables as possible to compute the correlation matrix. 
+
+Advantages: 
+
+ * If the true missing data mechanism is MCAR, pair wise deletion will yield consistent estimates, and unbiased in large samples 
+ * Compared to listwise deletion: [@Glasser_1964]
+    + If the correlation among variables are low, pairwise deletion is more efficient estimates than listwise
+    + If the correlations among variables are high, listwise deletion is more efficient than pairwise. 
+ 
+Disadvantages:
+
+ * If the data mechanism is MAR, pairwise deletion will yield biased estimates. 
+ * In small sample, sometimes covariance matrix might not be positive definite, which means coefficients estimates cannot be calculated. 
+
+
+**Note**: You need to read carefully on how your software specify the sample size because it will alter the standard errors.
+
 ### Types of Imputation  
+
 #### Mean, Mode, Median Imputation
 
  * Bad:  
