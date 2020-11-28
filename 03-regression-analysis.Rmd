@@ -9,10 +9,13 @@ OLS = Maximum likelihood when the error term is assumed to be normally distribut
 #### OLS Assumptions
 ##### A1 Linearity
 $$
+\begin{equation}
 A1: y=\mathbf{x}\beta + \epsilon
+(\#eq:A1)
+\end{equation}
 $$
 
-Non-restriction
+Not restrictive
 
  * x can be nonlinear transformation including interactions, natural log, quadratic
 
@@ -37,8 +40,16 @@ $y=\beta_0 + x_1\beta_1 + x_2\beta_2 + x_1x_2\beta_3 + \epsilon$
  * $\beta_1$ is the average effect on y for a unit change in $x_1$ when $x_2=0$
  * $\beta_1 + x_2\beta_3$ is the partial effect of $x_1$ on y which depends on the level of $x_2$
 
+<br>
+<br>
+
 ##### A2 Full rank
-$A2: rank(E(x'x))=k$
+$$
+\begin{equation}
+A2: rank(E(x'x))=k
+(\#eq:A2)
+\end{equation}
+$$
 
 
 also known as **identification condition**
@@ -46,9 +57,16 @@ also known as **identification condition**
  * columns of $\mathbf{x}$ cannot be written as a linear function of the other columns
  * which ensures that each parameter is unique and exists in the population regression equation
 
+<br>
+<br>
 
 ##### A3 Exogeneity of Independent Variables
-$A3: E[\epsilon|x_1,x_2,...,x_k]=E[\epsilon|\mathbf{x}]=0$
+$$
+\begin{equation}
+A3: E[\epsilon|x_1,x_2,...,x_k]=E[\epsilon|\mathbf{x}]=0
+(\#eq:A3)
+\end{equation}
+$$
 **strict exogeneity**
 
  * also known as **mean independence** check back on [Correlation and Independence]
@@ -56,26 +74,51 @@ $A3: E[\epsilon|x_1,x_2,...,x_k]=E[\epsilon|\mathbf{x}]=0$
  * independent variables do not carry information for prediction of $\epsilon$
  * A3 implies $E(y|x)=x\beta$, which means the conditional mean function must be a linear function of x [A1 Linearity]
 
+<br>
+<br>
+
 ##### A4 Homoskedasticity
-$A4: Var(\epsilon|x)=Var(\epsilon)=\sigma^2$
+$$
+\begin{equation}
+A4: Var(\epsilon|x)=Var(\epsilon)=\sigma^2
+(\#eq:A4)
+\end{equation}
+$$
 
  * Variation in the disturbance to be the same over the independent variables
 
+<br>
+<br>
+
 ##### A5 Data Generation (random Sampling)
-$A5: {y_i,x_{i1},...,x_{ik-1}: i = 1,..., n}$ is a random sample
+$$
+\begin{equation}
+A5: {y_i,x_{i1},...,x_{ik-1}: i = 1,..., n}
+(\#eq:A5)
+\end{equation}
+$$
+is a random sample
 
  * random sample mean samples are independent and identically distributed (iid) from a joint distribution of $(y,\mathbf{x})$
  * with [A3][A3 Exogeneity of Independent Variables] and [A4][A4 Homoskedasticity], we have
     + **Strict Exogeneity**: $E(\epsilon_i|x_1,...,x_n)=0$. independent variables do not carry information for prediction of $\epsilon$
-    + **Non-autocorrelation**: $E(\epsilon_i\epsilon_j|x_1,...,x_n)=0$ The error term is uncorrelated across the draws conditional on the independent variables
+    + **Non-autocorrelation**: $E(\epsilon_i\epsilon_j|x_1,...,x_n)=0$ The error term is uncorrelated across the draws conditional on the independent variables $\rightarrow$ $A4: Var(\epsilon|\mathbf{X})=Var(\epsilon)=\sigma^2I_n$
  * In times series and spatial settings, A5 is less likely to hold.
+ 
+<br>
 
-##### A6
+##### A6 Normal Distribution 
+$$
+\begin{equation}
+A6: \epsilon|\mathbf{x}\sim N(0,\sigma^2I_n)
+(\#eq:A6)
+\end{equation}
+$$
+The error term is normally distributed
 
+<br>
 
-
-
-From A1-A3, we have **identification** of the population parameter $\beta$
+From A1-A3, we have **identification** (also known as **Orthogonality Condition**) of the population parameter $\beta$
 
 \begin{align}
 y &= {x}\beta + \epsilon && \text{A1} \\
@@ -87,7 +130,70 @@ E(x'y) &= E(x'x)\beta && \text{A3} \\
 \end{align}
 
 
+\beta is the row vector of parameters that produces the best predictor of y
+we choose the min of  \gamma : 
+$$
+\underset{\gamma}{\operatorname{argmin}}E((y-x\gamma)^2)
+$$
+First Order Condition
+$$
+\begin{split}
+\frac{\partial((y-x\gamma)^2)}{\partial\gamma}&=0 \\
+-2E(x'(y-x\gamma))&=0 \\
+E(x'y)-E(x'x\gamma) &=0 \\
+E(x'y) &= E(x'x)\gamma \\
+(E(x'x))^{-1}E(x'y) &= \gamma
+\end{split}
+$$
 
+Second Order Conditon
+$$
+\begin{split}
+\frac{\partial^2E((y-x\gamma)^2)}{}&=0 \\
+E(\frac{\partial(y-x\partial)^2)}{\partial\gamma\partial\gamma'}) &= 2E(x'x)
+\end{split}
+$$
+If [A3][A3 Exogeneity of Independent Variables] holds, then $2E(x'x)$ is PSD $\rightarrow$ minimum
+
+<br>
+<br>
+
+#### Frisch-Waugh-Lovell Theorem
+$$
+\mathbf{y=X\beta + \epsilon=X_1\beta_1+X_2\beta_2 +\epsilon}
+$$
+Equivalently, 
+$$
+\left(
+\begin{array}{c}
+X_1'X_1 & X_1'X_2 \\
+X_2'X_1 & X_2'X_2
+\end{array}
+\right)
+\left(
+\begin{array}{c}
+\hat{\beta_1} \\
+\hat{\beta_2}
+\end{array}
+\right)
+=
+\left(
+\begin{array}{c}
+X_1'y \\
+X_2'y
+\end{array}
+\right)
+$$
+Hence, 
+$$
+\mathbf{\hat{\beta_1}=(X_1'X_1)^{-1}X_1'y - (X_1'X_1)^{-1}X_1'X_2\hat{\beta_2}}
+$$
+
+ 1. Betas from the multiple regression are not the same as the betas from each of the individual simple regression 
+ 2. Different set of X will affect all the coefficient estimates. 
+ 3. If $X_1'X_2 = 0$ or $\hat{\beta_2}=0, then 1 and 2 do not hold.
+
+<br>
 
 **Hierarchy of OLS Assumptions**
 
@@ -100,6 +206,10 @@ E(x'y) &= E(x'x)\beta && \text{A3} \\
 |     |                | Homoskedasticity | Homoskedasticity|
 |     |           |        | Normality of Errors|
 
+<br>
+<br>
+<br>
+<br>
 
 ### Feasible Generalized Least Squares
 
