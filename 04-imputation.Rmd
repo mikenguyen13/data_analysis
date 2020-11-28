@@ -79,7 +79,12 @@ Disadvantages:
 
 **Note**: You need to read carefully on how your software specify the sample size because it will alter the standard errors.
 
-### Dummy Variable Adjustment (Missing Indicator Method)
+### Dummy Variable Adjustment 
+
+Also known as Missing Indicator Method or Proxy Variable
+
+Add another variable in the database to indicate whether a value is missing. 
+
 
 Create 2 variables
 
@@ -113,7 +118,51 @@ Disadvantages:
 
 ### Imputation
 
+#### Maximum Likelihood
+When missing data are MAR and monotonic (such as in the case of panel studies), ML can be adequately in estimating coefficients. 
 
+Monotonic means that if you are missing data on X1, then that observation also has missing data on all other variables that come after it. 
+
+
+##### Expectation-Maximization Algorithm (EM Algorithm)
+
+An iterative process:  
+
+(1) Other variables are used to impute a value (Expectation).  
+(2) Check whether the value is most likely (Maximization).  
+(3) If not, it re-imputes a more likely value.  
+
+You start your regression with your estimates based on either listwise deletion or pairwise deletion.
+After regressing missing variables on available variables, you obtain a regression model.
+Plug the missing data back into the original model, with modified variances and covariances For example, if you have missing data on $X_{ij}$ you would regress it on available data of $X_{i(j)}$, then plug the expected value of $X_{ij}$ back with its $X_{ij}^2$ turn into $X_{ij}^2 + s_{j(j)}^2$ where $s_{j(j)}^2$ stands for the residual variance from regressing $X_{ij}$ on $X_{i(j)}$
+With the new estimated model, you rerun the process until the estimates converge.
+
+
+Advantages: 
+
+ (1) easy to use
+ (2) preserves the relationship with other variables
+ 
+Disadvantages:
+
+ (1) Standard errors of the coefficients are incorrect (biased usually downward)
+ (2) Models with overidentification, the estimates will not be efficient. 
+ 
+ 
+ 
+
+
+
+##### Direct ML (raw maximum likelihood)
+
+
+Advantages 
+
+ (1) efficient estimates and correct standard errors.
+
+Disadvantages:
+
+ (1) Hard to implement
 
 #### Mean, Mode, Median Imputation
 
@@ -162,15 +211,7 @@ Most multiple imputation is based off of some form of stochastic regression impu
 
 An estimated value from other observations from the same individual. It usually only works in longitudinal data.  
 
-#### E-M (Expectation-Maximization) Algorithm  
 
-An iterative process:  
-
-(1) Other variables are used to impute a value (Expectation).  
-(2) Check whether the value is most likely (Maximization).  
-(3) If not, it re-imputes a more likely value.  
-
-E-M also preserves the relationship with other variables. However, it still underestimates standard error.  
 
 #### K-nearest neighbour (KNN) imputation  
 
@@ -190,9 +231,7 @@ For a continuous variable, it uses the mean or mode.
     
 #### Bayesian Ridge regression implementation  
 
-#### Proxy Variable 
 
-Add another variable in the database to indicate whether a value is missing. 
 
 
 ### Criteria for Choosing an Effective Approach
