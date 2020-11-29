@@ -24,7 +24,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2020-11-28" />
+<meta name="date" content="2020-11-29" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -219,6 +219,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="5.1.5" data-path="linear-regression.html"><a href="linear-regression.html#maximum-likelihood"><i class="fa fa-check"></i><b>5.1.5</b> Maximum Likelihood</a></li>
 </ul></li>
 <li class="chapter" data-level="5.2" data-path="non-linear-regression.html"><a href="non-linear-regression.html"><i class="fa fa-check"></i><b>5.2</b> Non-linear Regression</a></li>
+<li class="chapter" data-level="5.3" data-path="quantile-regression.html"><a href="quantile-regression.html"><i class="fa fa-check"></i><b>5.3</b> Quantile Regression</a><ul>
+<li class="chapter" data-level="5.3.1" data-path="quantile-regression.html"><a href="quantile-regression.html#application"><i class="fa fa-check"></i><b>5.3.1</b> Application</a></li>
+</ul></li>
 </ul></li>
 <li class="chapter" data-level="6" data-path="imputation-missing-data.html"><a href="imputation-missing-data.html"><i class="fa fa-check"></i><b>6</b> Imputation (Missing Data)</a><ul>
 <li class="chapter" data-level="6.1" data-path="assumptions.html"><a href="assumptions.html"><i class="fa fa-check"></i><b>6.1</b> Assumptions</a><ul>
@@ -346,7 +349,7 @@ D=
 \end{cases}
 \end{equation}\]</span></p>
 <p><span class="math display">\[\begin{equation}
-X* = 
+X^* = 
 \begin{cases}
 X &amp; \text{data are available} \\
 c &amp; \text{data are missing}\\
@@ -369,6 +372,7 @@ c &amp; \text{data are missing}\\
 <h4><span class="header-section-number">6.2.4.1</span> Maximum Likelihood</h4>
 <p>When missing data are MAR and monotonic (such as in the case of panel studies), ML can be adequately in estimating coefficients.</p>
 <p>Monotonic means that if you are missing data on X1, then that observation also has missing data on all other variables that come after it.</p>
+<p>ML can generally handle linear models, log-linear model, but beyond that, ML still lacks both theory and software to implement.</p>
 <div id="expectation-maximization-algorithm-em-algorithm" class="section level5">
 <h5><span class="header-section-number">6.2.4.1.1</span> Expectation-Maximization Algorithm (EM Algorithm)</h5>
 <p>An iterative process:</p>
@@ -409,9 +413,34 @@ With the new estimated model, you rerun the process until the estimates converge
 <div id="multiple-imputation" class="section level4">
 <h4><span class="header-section-number">6.2.4.2</span> Multiple Imputation</h4>
 <p>MI is designed to use “the Bayesian model-based approach to <em>create</em> procedures, and the frequentist (randomization-based approach) to <em>evaluate</em> procedures”. <span class="citation">(Rubin <a href="#ref-Rubin_1996" role="doc-biblioref">1996</a>)</span></p>
+<p>MI estimates have the same properties as <a href="solutions-to-missing-data.html#maximum-likelihood-1">ML</a> when the data is <a href="assumptions.html#missing-at-random-mar">MAR</a></p>
+<ul>
+<li>Consistent</li>
+<li>Asymptotically efficient</li>
+<li>Asymptotically normal</li>
+</ul>
+<p>MI can be applied to any type of model, unlike <a href="solutions-to-missing-data.html#maximum-likelihood-1">Maximum Likelihood</a> that is only limited to a small set of models.</p>
+<p>A drawback of MI is that it will produce slightly different estimates every time you run it. To avoid such problem, you can set seed when doing your analysis to ensure its reproducibility.</p>
+<div id="single-random-imputaiton" class="section level5">
+<h5><span class="header-section-number">6.2.4.2.1</span> Single Random Imputaiton</h5>
+<p>Random draws form the residual distribution of each imputed variable and add those random numbers to the imputed values.</p>
+<p>For example, if we have missing data on X, and it’s MCAR, then</p>
+<ol style="list-style-type: decimal">
+<li>regress X on Y (<a href="solutions-to-missing-data.html#listwise-deletion">Listwise Deletion</a> method) to get its residual distribution.</li>
+<li>For every missing value on X, we substitute with <span class="math inline">\(\tilde{x_i}=\hat{x_i} + \rho u_i\)</span> where
+<ul>
+<li><span class="math inline">\(u_i\)</span> is a random draw from a standard normal distribution</li>
+<li><span class="math inline">\(x_i\)</span> is the predicted value from the regression of X and Y</li>
+<li><span class="math inline">\(\rho\)</span> is the standard deviation of the residual distribution of X regressed on Y.</li>
+</ul></li>
+</ol>
+<p>However, the model you run with the imputed data still thinks that your data are collected, not imputed, which leads your standard error estimates to be too low and test statistics too high.</p>
+<p>To address this problem, we need to repeat the imputation process which leads us to repeated imputation or multiple random imputation.</p>
+</div>
 <div id="repeated-imputation" class="section level5">
-<h5><span class="header-section-number">6.2.4.2.1</span> Repeated Imputation</h5>
+<h5><span class="header-section-number">6.2.4.2.2</span> Repeated Imputation</h5>
 <p>“Repeated imputations are draws from the posterior predictive distribution of the missing values under a specific model , a particular Bayesian model for both the data and the missing mechanism”.<span class="citation">(Rubin <a href="#ref-Rubin_1996" role="doc-biblioref">1996</a>)</span></p>
+<p>Repeated imputation, also known as, multiple random imputation, allows us to have multiple “completed” data sets. The variability across imputations will adjust the standard errors upward.</p>
 </div>
 </div>
 <div id="mean-mode-median-imputation" class="section level4">
