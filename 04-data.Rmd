@@ -1,0 +1,389 @@
+# Data
+## Repeated Cross Sections
+For each time point (day, month, year, etc.), a set of data is sampled. This set of data can be different among different time points.  
+
+For example, you can sample different groups of students each time you survey.
+
+### Pooled Cross Section
+$$
+y_i=\mathbf{x_i\beta +x_i \times y1\gamma_1 + ...+ x_i \times yT\gamma_T + \delta_1y_1+...+ \delta_Ty_T + \epsilon_i}
+$$
+Interact $x_i$ with time period dummy variables  
+
+ * allows different slopes for each time period
+ * allows effect to change based on time period (structural break)
+    + interacting all time period dummies with $x_i$ can produce many variables - use hypothesis testing to determine which structural breaks are needed.
+
+
+## Panel Data
+Follows an individual over T time periods. 
+
+Panel data structure is like having n samples of time series data
+
+**Characteristics**
+
+ * Information both across individuals and over time (cross-sectional and time-series)
+ * N individuals and T time periods
+ * Data can be either 
+    + Balanced: all individuals are observed in all time periods
+    + Unbalanced: all individuals are not observed in all time periods.
+ * Assume correlation (clustering) over time for a given individual, with independence over individuals. 
+
+**Types**
+
+ * Short panel: many individuals and few time periods.
+ * Long panel: many time periods and few individuals 
+ * Both: many time periods and many individuals 
+
+**Time Trends and Time Effects**
+
+ * Nonlinear 
+ * Seasonality
+* Discontinuous shocks
+
+**Regressors**
+
+ * Time-invariant regressors $x_{it}=x_i$ for all t (e.g., gender, race, education) have zero within variation
+ * Individual-invariant regressors $x_{it}=x_{t}$ for all i (e.g., time trend, economy trends) have zero between variation
+
+
+**Variation for the dependent variable and regressors**
+
+ * Overall variation: variation over time and individuals.
+ * Between variation: variation between individuals
+ * Within variation: variation within individuals (over time).
+
+Estimate | Formula
+---|---
+Individual mean | $\bar{x_i}= \frac{1}{T} \sum_{t}x_{it}$
+Overall mean | $\bar{x}=\frac{1}{NT} \sum_{i} \sum_t x_{it}$
+Overall Variance | $s_O^2 = \frac{1}{NT-1} \sum_i \sum_t (x_{it} - \bar{x})^2$
+Between variance | $s_B^2 = \frac{1}{N-1} \sum_i (\bar{x_i} -\bar{x})^2$
+Within variance | $s_W^2= \frac{1}{NT-1} \sum_i \sum_t (x_{it} - \bar{x_i})^2 = \frac{1}{NT-1} \sum_i \sum_t (x_{it} - \bar{x_i} +\bar{x})^2$
+
+**Note**: $s_O^2 \approx s_B^2 + s_W^2$
+
+
+Since we have n observation for each time period t, we can control for each time effect separately by including time dummies (time effects)
+
+$$
+y_{it}=\mathbf{x_{it}\beta} + d_1\delta_1+...+d_{T-1}\delta_{T-1} + \epsilon_{it}
+$$
+
+**Note**: we cannot use these many time dummies in time series data because in time series data, our n is 1. Hence, there is no variation, and sometimes not enough data compared to variables to estimate coefficients.
+
+
+**Unobserved Effects Model **
+Similar to group clustering, assume that there is a random effect that captures differences across individuals but is constant in time. 
+
+$$
+y_it=\mathbf{x_{it}\beta} + d_1\delta_1+...+d_{T-1}\delta_{T-1} + c_i + u_{it}
+$$
+
+where  
+
+ * $c_i + u_{it} = \epsilon_{it}$
+ * $c_i$ unobserved individual heterogeneity  (effect)
+ * $u_{it}$ idiosyncratic shock
+ * $\epsilon_{it}$ unobserved error term.
+
+### Pooled OLS Esimator
+
+If $c_i$ is uncorrelated with $x_{it}$
+
+$$
+E(\mathbf{x_{it}'}(c_i+u_{it})) = 0
+$$
+
+then [A3a] still holds. And we have Pooled OLS consistent.
+
+If [A4][A4 Homoskedasticity] does not hold, OLS is still consistent, but not efficient, and we need cluster robust SE.
+
+Sufficient for [A3a] to hold, we need  
+
+ * **Exogeneity** for $u_{it}$ [A3a] (contemporaneous exogeneity): $E(\mathbf{x_{it}'}u_{it})=0$ time varying error
+ * **Random Effect Assumption** (time constant error):  $E(\mathbf{x_{it}'}c_{i})=0$
+ 
+Pooled OLS will give you consistent coefficient estimates under [A1][A1 Linearity], [A2][A2 Full rank], [A3a] (for both $u_{it}$ and RE assumption), and [A5][A5 Data Generation (random Sampling)] (randomly sampling across i).
+
+### Individual-specific effects model 
+
+ * If we believe that there is unobserved heterogeneity across individual (e.g., unobserved ability of an individual affects $y$), If the individual-specific effects are correlated with the regressors, then we have the [Fixed Effects Estimator]. and if they are not correlated we have the [Random Effects Estimator. 
+
+#### Random Effects Estimator
+
+Random Effects estimator is the Feasible GLS estimator that assumes $u_{it}$ is serially uncorrelated and homoskedastic  
+
+ * Under [A1][A1 Linearity], [A2][A2 Full rank], [A3a] (for both $u_{it}$ and RE assumption) and [A5][A5 Data Generation (random Sampling)] (randomly sampling across i), RE estimator is consistent.  
+    + If [A4][A4 Homoskedasticity] holds for $u_{it}$, RE is the most efficient estimator 
+    + If [A4][A4 Homoskedasticity] fails to hold (may be heteroskedasticity across i, and serial correlation over t), then RE is not the most efficient, but still more efficient than pooled OLS.
+
+
+
+#### Fixed Effects Estimator 
+
+also known as **Within Estimator** uses within variation (over time)
+
+
+If the **RE assumption** is not hold ($E(\mathbf{x_{it}'}c_i) \neq 0$), then A3a does not hold ($E(\mathbf{x_{it}'}\epsilon_i) \neq 0$). Hence, the OLS and RE are inconsistent/biased (because of omitted variable bias)
+
+To deal with violation in $c_i$, we have 
+$$
+y_{it}= \mathbf{x_{it}\beta} + c_i + u_{it}
+$$
+
+$$
+\bar{y_i}=\bar{\mathbf{x_i}} \beta + c_i + \bar{u_i}
+$$
+where the second equation is the time averaged equation  
+
+using **within transformation**, we have
+$$
+y_{it} - \bar{y_i} = \mathbf{(x_{it} - \bar{x_i}\beta)} + u_{it} - \bar{u_i}
+$$
+
+because $c_i$ is time constant.
+
+The Fixed Effects estimator uses POLS on the transformed equation
+
+$$
+y_{it} - \bar{y_i} = \mathbf{(x_{it} - \bar{x_i}\beta)} + d_1\delta_1 + ... + d_{T-2}\delta_{T-2} + u_{it} - \bar{u_i}
+$$
+
+ * we need [A3][A3 Exogeneity of Independent Variables] (strict exogeneity) ($E((\mathbf{x_{it}-\bar{x_i}})'(u_{it}-\bar{u_i})=0$) to have FE consistent. 
+ * Variables that are time constant will be absorbed into $c_i$. Hence we cannot make inference on time constant independent variables.
+    + If you are interested in the effects of time-invariant variables, you could consider the OLS or **between estimator**
+ * It's recommended that you should still use cluster robust standard errors.
+ 
+Equivalent to the within transformation, we can have the fixed effect estimator be the same with the dummy regression
+
+$$
+y_{it} = x_{it}\beta + d_1\delta_1 + ... + d_{T-2}\delta_{T-2} + c_1\gamma_1 + ... + c_{n-1}\gamma_{n-1} + u_{it}
+$$
+where 
+
+\begin{equation}
+c_i
+=
+\begin{cases}
+1 &\text{if observation is i} \\
+0 &\text{otherwise} \\
+\end{cases}
+\end{equation}
+
+ * The standard error is incorrectly calculated.
+ * the FE within transformation is controlling for any difference across individual which is allowed to correlated with observables. 
+
+### Tests for Assumptions
+
+**Cross-sectional dependence/contemporaneous correlation**
+
+ * Null hypothesis: residuals across entities are not correlated. 
+ * usually seen in macro panels with long time series (large N and T), not seen in micro panels (small T and large N)
+ 
+**Serial Correlation**
+
+ * Null hypothesis: there is no serial correlation
+ * usually seen in macro panels with long time series (large N and T), not seen in micro panels (small T and large N)
+
+**Unit roots/stationarity**
+
+ * Dickey-Fuller test for stochastic trends.
+ * Null hypothesis: the series is non-stationary (unit root)
+ * You would want your test to be less than the critical value (p<.5) so that there is evidence there is not unit roots.
+
+**Heteroskedasticity**
+
+ * Breusch-Pagan test
+ * Null hypothesis: the data is homoskedastic
+ * If there is evidence for heteroskedasticity, robust covariance matrix is advised.
+ * To control for heteroskedasticity: Robust covariance matrix estimation (Sandwich estimator)
+    + "white1" - for general heteroskedasticity but no serial correlation (check serial correlation first). Recommended for random effects.
+    + "white2" - is "white1" restricted to a common variance within groups. Recommended for random effects.
+    + "arellano" - both heteroskedasticity and serial correlation. Recommended for fixed effects
+
+
+#### POLS vs. RE
+The continuum between RE (used FGLS which more assumption ) and POLS 
+check back on the section of FGLS
+
+**Breusch-Pagan LM** test
+
+ * Test for the random effect model based on the OLS residual
+ * Null hypothesis: variances across entities is zero. In another word, no panel effect.
+ * If the test is significant, RE is preferable compared to POLS
+
+
+#### FE vs. RE
+
+ * RE does not require strict exogeneity for consistency (feedback effect between residual and covariates) 
+
+Hypothesis | If true 
+---|---
+$H_0: Cov(c_i,\mathbf{x_{it}})=0$ | $\hat{\beta}_{RE}$ is consistent and efficient, while $\hat{\beta}_{FE}$ is consistent
+$H_0: Cov(c_i,\mathbf{x_{it}}) \neq 0$ | $\hat{\beta}_{RE}$ is inconsistent, while  $\hat{\beta}_{FE}$ is consistent
+
+**Hausman Test**
+
+For the Hausman test to run, you need to assume that
+
+ * strict exogeneity hold
+ * A4 to hold for $u_{it}$ 
+
+Then, 
+
+ * Hausman test statistic: $H=(\hat{\beta}_{RE}-\hat{\beta}_{FE})'(V(\hat{\beta}_{RE})- V(\hat{\beta}_{FE}))(\hat{\beta}_{RE}-\hat{\beta}_{FE}) \sim \chi_{n(X)}^2$ where $n(X)$ is the number of parameters for the time-varying regressors.
+ * A low p-value means that we would reject the null hypothesis and prefer FE
+ * A high p-value means that we would not reject the null hypothesis and consider RE estimator. 
+
+ 
+### Summary
+
+ * All three estimators (POLS, RE, FE) require [A1][A1 Linearity], [A2][A2 Full rank], [A5][A5 Data Generation (random Sampling)] (for individuals) to be consistent. Addtionally, 
+ * POLS is consistent under A3a(for $u_{it}$): $E(\mathbf{x}_{it}'u_{it})=0$, and RE Assumption $E(\mathbf{x}_{it}'c_{i})=0$
+    + If [A4][A4 Homoskedasticity] does not hold, use cluster robust SE but POLS is not efficient
+ * RE is consistent under A3a(for $u_{it}$): $E(\mathbf{x}_{it}'u_{it})=0$, and RE Assumption $E(\mathbf{x}_{it}'c_{i})=0$
+    + If [A4][A4 Homoskedasticity] (for $u_{it}$) holds then usual SE are valid and RE is most efficient 
+    + If [A4][A4 Homoskedasticity] (for $u_{it}$) does not hold, use cluster robust SE ,and RE is no longer most efficient (but still more efficient than POLS)
+ * FE is consistent under [A3][A3 Exogeneity of Independent Variables] $E((\mathbf{x}_{it}-\bar{\mathbf{x}}_{it})'(u_{it} -\bar{u}_{it}))=0$
+    + Cannot estimate effects of time constant variables 
+    + A4 generally does not hold for $u_{it} -\bar{u}_{it}$ so cluster robust SE are needed
+ 
+ 
+ 
+Estimator / True Model | POLS | RE| FE 
+---|---|---|---
+POLS | Consistent | Consistent | Inconsistent
+FE | Consistent | Consistent | Consistent
+RE | Consistent | Consistent | Inconsistent
+
+
+Based on table provided by [Ani Katchova](https://sites.google.com/site/econometricsacademy/econometrics-models/panel-data-models)
+
+### Application 
+
+```{r , eval=FALSE}
+#install.packages("plm")
+library("plm")
+
+library(foreign)
+Panel <- read.dta("http://dss.princeton.edu/training/Panel101.dta")
+
+attach(Panel)
+Y <- cbind(y)
+X <- cbind(x1, x2, x3)
+
+# Set data as panel data
+pdata <- plm.data(Panel, index=c("country","year"))
+
+# Pooled OLS estimator
+pooling <- plm(Y ~ X, data=pdata, model= "pooling")
+summary(pooling)
+
+# Between estimator
+between <- plm(Y ~ X, data=pdata, model= "between")
+summary(between)
+
+# First differences estimator
+firstdiff <- plm(Y ~ X, data=pdata, model= "fd")
+summary(firstdiff)
+
+# Fixed effects or within estimator
+fixed <- plm(Y ~ X, data=pdata, model= "within")
+summary(fixed)
+
+# Random effects estimator
+random <- plm(Y ~ X, data=pdata, model= "random")
+summary(random)
+
+# LM test for random effects versus OLS
+plmtest(pooling,effect = "individual", type = c("bp")) # other type: "honda", "kw"," "ghm"; other effect : "time" "twoways"
+
+
+# B-P/LM and Pesaran CD (cross-sectional dependence) test
+pcdtest(fixed, test = c("lm")) # Breusch and Pagan's original LM statistic
+pcdtest(fixed, test = c("cd")) # Pesaran's CD statistic
+
+# Serial Correlation
+pbgtest(fixed)
+
+# stationary
+library("tseries")
+adf.test(pdata$y, k = 2)
+
+# LM test for fixed effects versus OLS
+pFtest(fixed, pooling)
+
+# Hausman test for fixed versus random effects model
+phtest(random, fixed)
+
+# Breusch-Pagan heteroskedasticity
+library(lmtest)
+bptest(y ~ x1 + factor(country), data = pdata)
+
+# If there is presence of heteroskedasticity
+## For RE model
+coeftest(random) #orginal coef
+coeftest(random, vcovHC) # Heteroskedasticity consistent coefficients
+
+t(sapply(c("HC0", "HC1", "HC2", "HC3", "HC4"), function(x) sqrt(diag(vcovHC(random, type = x))))) #show HC SE of the coef
+# HC0 - heteroskedasticity consistent. The default.
+# HC1,HC2, HC3 – Recommended for small samples. HC3 gives less weight to influential observations.
+# HC4 - small samples with influential observations
+# HAC - heteroskedasticity and autocorrelation consistent
+
+## For FE model
+coeftest(fixed) # Original coefficients
+coeftest(fixed, vcovHC) # Heteroskedasticity consistent coefficients
+coeftest(fixed, vcovHC(fixed, method = "arellano")) # Heteroskedasticity consistent coefficients (Arellano)
+t(sapply(c("HC0", "HC1", "HC2", "HC3", "HC4"), function(x) sqrt(diag(vcovHC(fixed, type = x))))) #show HC SE of the coef
+
+```
+
+
+**Advanced**
+
+Other methods to estimate the random model:  
+
+ * `"swar"`: *default* [@Swamy_1972]
+ * `"walhus"`: [@Wallace_1969]
+ * `"amemiya"`: [@Fuller_1974]
+ * `"nerlove"`" [@Nerlove_1971]
+ 
+Other effects: 
+
+ * Individual effects: *default* 
+ * Time effects: `"time"`
+ * Individual and time effects: `"twoways"`
+
+**Note**: no random two-ways effect model for random.method = "nerlove"
+
+```{r, eval = FALSE}
+amemiya <- plm(Y ~ X, data=pdata, model= "random",random.method = "amemiya",effect = "twoways")
+```
+
+To call the estimation of the variance of the error components
+
+```{r, eval = FALSE}
+ercomp(Y~X, data=pdata, method = "amemiya", effect = "twoways")
+```
+
+Check for the unbalancedness. Closer to 1 indicates balanced data [@Ahrens_1981]
+
+```{r, eval = FALSE}
+punbalancedness(random)
+```
+
+
+**Instrumental variable**
+
+ * `"bvk"`: default [@Balestra_1987]
+ * `"baltagi"`: 
+ * `"am"` 
+ * `"bms"`: 
+
+
+### Other Estimators
+#### Variable Coeffiicents Model
+
+####

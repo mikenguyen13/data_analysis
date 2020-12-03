@@ -217,10 +217,50 @@ If your sample is small or the proportion of missing data is large, the extra Ba
 
 Two algorithms to get random draws of the regression parameters from its posterior distribution: 
 
- * Data augmentation
+ * [Data Augmentation]
  * Sampling importance/resampling (SIR)
  
 Authors have argued for SIR superiority due to its computer time [@King_2001]
+
+
+###### Data Augmentation
+
+Steps for data augmentation:  
+
+ (1) Choose starting values for the parameters (e.g., for multivariate normal, choose means and covariance matrix). These values can come from previous values, expert knowledge, or from listwise deletion or pairwise deletion or EM estimation. 
+ (2) Based on the current values of means and covariances  calculate the coefficients estimates for the equation that variable with missing data is regressed on all other variables (or variables that you think will help predict the missing values, could also be variables that are not in the final estimation model)
+ (3) Use the estimates in step (2) to predict values for missing values. For each predicted value, add a random error from the residual normal distribution for that variable.
+ (4) From the "complete" data set, recalculate the means and covariance matrix. And take  a random draw from the posterior distribution of the means and covariances with Jeffreys' prior. 
+ (5) Using the random draw from step (4), repeat step (2) to (4) until the means and covariances stabilize (converged).
+ 
+The iterative process allows us to get random draws from the joint posterior distribution of both data nd parameters, given the observed data.
+
+Rules of thumb regarding convergence:  
+
+ * The higher the proportion of missing, the more iterations 
+ * the rate of convergence for EM algorithm should be the minimum threshold for DA. 
+ * You can also check if your distribution has been converged by diagnostic statistics Can check [Bayesian Diagnostics](https://bookdown.org/mike/bayesian_analysis/diag.html) for some introduction.
+ 
+
+Types of chains  
+
+ 1. **Parallel**: Run a separate chain of iterations for each of data set. Different starting values are encouraged. For example, one could use bootstrap to generate different data set with replacement, and for each data set, calculate the starting values by EM estimates.  
+    + Pro: Run faster, and less likely to have dependence in the resulting data sets.
+    + Con: Sometimes it will not converge
+
+ 2. **Sequential** one long chain of data augmentation cycles. After burn-in and thinning, you will have to data sets  
+    + Pro: Converged to the true posterior distribution is more likely. 
+    + Con: The resulting data sets are likely to be dependent. Remedies can be thinning and burn-in. 
+
+
+**Note on Non-normal or categorical data**
+The normal-based methods still work well, but you will need to do some transformation. For example,  
+
+ * If the data is skewed, then log-transform, then impute, the exponentiate to have the missing data back to its original metric.
+ * If the data is proportion, logit-transform, impute, then de-transform the missing data. 
+
+If you want to impute non-linear relationship, such as interaction between 2 variables and 1 variable is categorical. You can do separate imputation for different levels of that variable separately, then combined for the final analysis.
+
 
 #### Mean, Mode, Median Imputation
 
