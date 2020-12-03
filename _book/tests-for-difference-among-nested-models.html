@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>9.4 Losses, Optimizers, and Metrics | A Guide on Data Analysis</title>
+  <title>Chapter 14 Tests for difference among nested models | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct a data analysis routine" />
   <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="9.4 Losses, Optimizers, and Metrics | A Guide on Data Analysis" />
+  <meta property="og:title" content="Chapter 14 Tests for difference among nested models | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   <meta name="github-repo" content="mikenguyen13/data_analysis" />
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="9.4 Losses, Optimizers, and Metrics | A Guide on Data Analysis" />
+  <meta name="twitter:title" content="Chapter 14 Tests for difference among nested models | A Guide on Data Analysis" />
   
   <meta name="twitter:description" content="This is a guide on how to conduct a data analysis routine" />
   
@@ -31,8 +31,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="compiling-models.html"/>
-<link rel="next" href="research-methods.html"/>
+<link rel="prev" href="references.html"/>
+<link rel="next" href="wald-test.html"/>
 <script src="libs/jquery-3.5.0/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
@@ -310,20 +310,31 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="losses-optimizers-and-metrics" class="section level2">
-<h2><span class="header-section-number">9.4</span> Losses, Optimizers, and Metrics</h2>
-<p>All available at Keras for R <a href="https://github.com/rstudio/cheatsheets/raw/master/keras.pdf">cheatsheet</a></p>
-<p>Example of <a href="https://blogs.rstudio.com/ai/posts/2017%20*12%20*14%20*image%20*classification%20*on%20*small%20*datasets/">Image classificaiton</a></p>
-
+<div id="tests-for-difference-among-nested-models" class="section level1">
+<h1><span class="header-section-number">Chapter 14</span> Tests for difference among nested models</h1>
+<p><span class="math inline">\(H_0 : \theta = \theta_0\)</span>
+<span class="math inline">\(H_1 : \theta \neq \theta_0\)</span></p>
+<p>How far away / extreme <span class="math inline">\(\theta\)</span> can be if our null hypothesis is true</p>
+<p>Assume that our likelihood function for q is <span class="math inline">\(L(q) = q^{30}(1-q)^{70}\)</span>
+<strong>Likelihood function</strong></p>
+<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="tests-for-difference-among-nested-models.html#cb55-1"></a>q =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="dt">length=</span><span class="dv">100</span>)</span>
+<span id="cb55-2"><a href="tests-for-difference-among-nested-models.html#cb55-2"></a>L=<span class="st"> </span><span class="cf">function</span>(q){q<span class="op">^</span><span class="dv">30</span> <span class="op">*</span><span class="st"> </span>(<span class="dv">1</span><span class="op">-</span>q)<span class="op">^</span><span class="dv">70</span>}</span>
+<span id="cb55-3"><a href="tests-for-difference-among-nested-models.html#cb55-3"></a><span class="kw">plot</span>(q,<span class="kw">L</span>(q),<span class="dt">ylab=</span><span class="st">&quot;L(q)&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;q&quot;</span>,<span class="dt">type=</span><span class="st">&quot;l&quot;</span>)</span></code></pre></div>
+<p><img src="Data-Analysis_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+<p><strong>Log-Likelihood function</strong></p>
+<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="tests-for-difference-among-nested-models.html#cb56-1"></a>q =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="dt">length=</span><span class="dv">100</span>)</span>
+<span id="cb56-2"><a href="tests-for-difference-among-nested-models.html#cb56-2"></a>l=<span class="st"> </span><span class="cf">function</span>(q){<span class="dv">30</span><span class="op">*</span><span class="kw">log</span>(q) <span class="op">+</span><span class="st"> </span><span class="dv">70</span> <span class="op">*</span><span class="st"> </span><span class="kw">log</span>(<span class="dv">1</span><span class="op">-</span>q)}</span>
+<span id="cb56-3"><a href="tests-for-difference-among-nested-models.html#cb56-3"></a><span class="kw">plot</span>(q,<span class="kw">l</span>(q)<span class="op">-</span><span class="kw">l</span>(<span class="fl">0.3</span>),<span class="dt">ylab=</span><span class="st">&quot;l(q) - l(qhat)&quot;</span>,<span class="dt">xlab=</span><span class="st">&quot;q&quot;</span>,<span class="dt">type=</span><span class="st">&quot;l&quot;</span>)</span>
+<span id="cb56-4"><a href="tests-for-difference-among-nested-models.html#cb56-4"></a><span class="kw">abline</span>(<span class="dt">v=</span><span class="fl">0.2</span>)</span></code></pre></div>
+<p><img src="Data-Analysis_files/figure-html/unnamed-chunk-27-1.png" width="672" /></p>
 </div>
-<!-- </div> -->
             </section>
 
           </div>
         </div>
       </div>
-<a href="compiling-models.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="research-methods.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="references.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="wald-test.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -354,7 +365,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/mikenguyen13/data_analysis/edit/main/06-deep-learning.Rmd",
+"link": "https://github.com/mikenguyen13/data_analysis/edit/main/tests.Rmd",
 "text": "Edit"
 },
 "history": {
