@@ -1,8 +1,8 @@
 # Regression Analysis
 
-**Estimator Properties**
+**Estimator Desirable Properties**
 
- 1. unbiased 
+ 1. Unbiased 
  
  2. Consistency
 
@@ -1329,7 +1329,7 @@ $$
 
 $\hat{\theta}$ is the Maximum Likelihood estimate if $L(\hat{\theta}) > L(\theta_0)$ for all values of $\theta_0$ in the parameter space.
 
-**Motivation for MLE**  
+#### Motivation for MLE
 
 Suppose we know the conditional distribution of y given x: 
 
@@ -1388,9 +1388,12 @@ $$
 
 
 
-**Assumption**: 
-observations are independent and have the same density function. 
-Under multivariate normal assumption, ML yields consistent estimates of the means and the covariance matrix for multivariate distribution with finite fourth moments [@Little_1987]
+#### Assumption
+
+ * **High Level Regulatory Assumptions** is the sufficient condition used to show large sample properties 
+    + Hence, for each MLE, we will need to either assume or verify if the regulatory assumptiosn holds.
+ * observations are independent and have the same density function. 
+ * Under multivariate normal assumption, ML yields consistent estimates of the means and the covariance matrix for multivariate distribution with finite fourth moments [@Little_1987]
 
 To find the MLE, we usually differentiate the **log-likelihood** function and set it equal to 0.
 
@@ -1416,7 +1419,37 @@ V(\hat{\Theta}) \approx I(\theta)^{-1}
 $$
 
 
-**Properties** 
+**Consistency** of MLE   
+Suppose that $y_i$ and $x_i$ are iid drawn from the true conditional pdf $f_{Y|X}(y_i,x_i;\theta_0)$. If the following regulatory assumptions hold,  
+
+ R1: If $\theta \neq \theta_0$ then $f_{Y|X}(y_i,x_i;\theta) \neq f_{Y|X}(y_i,x_i;\theta_0)$  
+ R2: The set $\Theta$ that contains the true parameters $\theta_0$ is compact   
+ R3: The log-likelihood $ln(f_{Y|X}(y_i,x_i;\theta_0))$ is continuous at each $\theta$ with probability 1  
+ R4: $E(sup_{\theta \in \Theta}|ln(f_{Y|X}(y_i,x_i;\theta_0))|)$  
+ 
+then the MLE estimator is consistent, 
+
+$$
+\hat{\theta}_{MLE} \to^p \theta_0
+$$
+
+
+**Asymptotic Normality** of MLE  
+
+Suppose that $y_1$ and $x_i$ are iid drawn from the true conditional pdf $f_{Y|X}(y_i,x_i;\theta)$. If R1-R4 and the following hold  
+
+ R5: $\theta_0$ is in the interior of the set $\Theta$  
+ R6: $f_{Y|X}(y_i,x_i;\theta)$ is twice continuously differentiable in $\theta$ and $f_{Y|X}(y_i,x_i;\theta) >0$ for a neighborhood $N \in \Theta$ around $\theta_0$  
+ R7: $\int sup_{\theta \in N}||\partial f_{Y|X}(y_i,x_i;\theta)\partial\theta||d(y,x) <\infty$, $\int sup_{\theta \in N} || \partial^2 f_{Y|X}(y_i,x_i;\theta)/\partial \theta \partial \theta' || d(y,x) < \infty$ and $E(sup_{\theta \in N} || \partial^2ln(f_{Y|X}(y_i,x_i;\theta)) / \partial \theta \partial \theta' ||) < \infty$  
+ R8: The information matrix $I(\theta_0) = Var(\partial f_{Y|X}(y,x_i; \theta_0)/\partial \theta)$ exists and is non-singular  
+ 
+then the MLE estimator is asymptotically normal, 
+
+$$
+\sqrt{n}(\hat{\theta}_{MLE} - \theta_0) \to^d N(0,I(\theta_0)^{-1})
+$$
+
+#### Properties
 [@EJD_1998]
 
  (1) Consistent: estimates are approximately unbiased in large samples
@@ -1434,6 +1467,29 @@ Explicit vs Implicit MLE
  * If there is no closed form for MLE, and we need some algorithms to derive its expression, it's called **implicit**
 
 
+**Large Sample Property** of MLE  
+
+Implicit in these theorems is the assumption that we know what the conditional distribution,  
+
+$$
+f_{Y|X}(y_i,x_i;\theta_0)
+$$
+but just do now know the exact parameter value.  
+
+ * Any Distributional mis-specification will result in inconsistent parameter estimates.  
+ * Quasi-MLE: Particular settings/ assumption that allow for certain types of distributional mis-specification (Ex: as long as the distribution is part of particular class or satisfies a particular assumption, then estimating with a wrong distribution will not lead to inconsistent parameter estimates).  
+ * non-parametric/ Semi-parametric estimation: no or very little distributional assumption are made. (hard to implement, derive properties, and interpret)  
+
+<br>
+
+The asymptotic variance of the MLE achieves the **Cramer-Rao Lower Bound**  
+
+ * The **Cramer-Rao Lower Bound** is a lower brand for the asymptotic variance of a consistent and asymptotically normally distributed estimator.  
+ * If an estimator achieves the lower bound then it is the most efficient estimator.  
+
+The maximum Likelihood estimator (assuming the distribution is correctly specified and R1-R8 hold) is the most efficient consistent and asymptotically normal estimator.  
+ * most efficient among ALL consistent estimators (not limited to unbiased or linear estimators).  
+
 **Note**  
 
  * ML is better choice for binary, strictly positive, count, or inherent heteroskedasticity than linear model. 
@@ -1441,6 +1497,149 @@ Explicit vs Implicit MLE
     + Adds an assumption that we know the distribution (which is similar to [A6 Normal Distribution] in linear model)
     + will produce a more efficient estimator.
 
+#### Application 
+
+Other applications of MLE   
+
+ * Corner Solution  
+    + Ex: hours worked, donations to charity  
+    + Estimate with Tobit  
+ * Non-negative count  
+    + Ex: Numbers of arrest, Number of cigarettes smoked a day  
+    + Estimate with Poisson regression  
+ * Multinomial Choice  
+    + Ex: Demand for cars, votes for primary election
+    + Estimate with mutinomial probit or logit  
+ * Ordinal Choice  
+    + Ex: Levels of Happiness, Levels of Income  
+    + Ordered Probit  
+
+Model for binary Response  
+A binary variable will have a [Bernoulli] distribution:  
+
+$$
+f_Y(y_i;p) = p^{y_i}(1-p)^{(1-y_i)}
+$$
+where p is the probability of success. The conditional distribution is:  
+
+$$
+f_{Y|X}(y_i,x_i;p(.)) = p(x_i)^{y_i} (1-p(x_i))^{(1-y_i)}
+$$
+
+So choose $p(x_i)$ to be a reasonable function of $x_i$ and unknown parameters $\theta$  
+
+We can use **latent variable model** as probability functions 
+
+$$
+y_i = 1\{y_i^* > 0 \}  \\
+y_i^* = x_i \beta-\epsilon_i
+$$
+
+ * $y_i^*$ is a latent variable (unobserved) that is not well-defined in terms of units/magnitudes  
+ * $\epsilon_i$ is a mean 0 unobserved random variable.  
+
+We can rewrite the mdoel without the latent variable,  
+
+$$
+y_i = 1\{x_i beta > \epsilon_i \}
+$$
+
+Then the probability function, 
+
+$$
+p(x_i) = P(y_i = 1|x_i) \\
+= P(x_i \beta > \epsilon_i | x_i) \\
+= F_{\epsilon|X}(x_i \beta | x_i)
+$$
+
+then we need to choose a conditional distribution for $\epsilon_i$. Hence, we can make additional strong independence assumption   
+
+$\epsilon_i$ is independent of $x_i$  
+
+Then the probability function is simply,  
+
+$$
+p(x_i) = F_\epsilon(x_i \beta)
+$$
+The probability function is also the conditional expectation function,  
+
+$$
+E(y_i | x_i) = P(y_i = 1|x_i) = F_\epsilon (x_i \beta)
+$$
+
+so we allow the conditional expectation function to be non-linear.   
+
+Common distributional assumption  
+
+ 1. **Probit**: Assume $\epsilon_i$ is standard normally distributed, then $F_\epsilon(.) = \Phi(.)$ is the standard normal CDF.  
+ 2. **Logit**: Assume $\epsilon_i$ is standard logistically distributed, then $F_\epsilon(.) = \Lambda(.)$ is the standard normal CDF.  
+
+Step to derive  
+
+ 1. Choose a distribution (normal or logistic) and plug into the following log likelihood,  
+
+$$
+ln(f_{Y|X} (y_i , x_i; \beta)) = y_i ln(F_\epsilon(x_i \beta)) + (1-y_i)ln(1-F_\epsilon(x_i \beta))
+$$
+
+ 2. Solve the MLE by finding the Maximum of 
+
+$$
+\hat{\beta}_{MLE} = argmax \sum_{i=1}^{n}ln(f_{Y|X}(y_i,x_i; \beta))
+$$
+
+<br>
+
+**Properties** of the Probit and Logit Estimators  
+
+ * Probit or Logit is consistent and asymptotically normal if  
+    + [A2][] holds: $E(x_i' x_i)$ exists and is non-singular  
+    + [A5][] (or [A5a]) holds: {y_i,x_i} are iid (or stationary and weakly dependent). 
+    + Distributional assumptions on $\epsilon_i$ hold: Normal/Logistic and independent of $x_i$ 
+ * Under the same assumptions, Probit or Logit is also asymptotically efficient with asymptotic variance,  
+
+$$
+I(\beta_0)^{-1} = [E(\frac{(f_\epsilon(x_i \beta_0))^2}{F_\epsilon(x_i\beta_0)(1-F_\epsilon(x_i\beta_0))}x_i' x_i)]^{-1}
+$$
+
+where $F_\epsilon(x_i\beta_0)$ is the probability density function (derivative of the CDF)  
+
+<br>
+
+
+##### Interpretation
+
+$\beta$ is the average response in the latent variable associated with a change in $x_i$  
+
+ * Magnitudes do not have meaning 
+ * Direction does have meaning 
+
+The **partial effect** for a Non-linear binary response model  
+
+$$
+E(y_i |x_i) = F_\epsilon (x_i \beta) \\
+PE(x_{ij}) = \frac{\partial E(y_i |x_i)}{\partial x_{ij}} = f_\epsilon (x_i \beta)\beta_j
+$$
+
+ * The partial effect is the coefficient parameter $\beta_j$ multiplied by a scaling factor $f_\epsilon (x_i \beta)$  
+ * The scaling factor depends on $x_i$ so the partial effect changes depending on what $x_i$ is
+
+Single value for the partial effect  
+
+ * **Partial Effect at the Average (PEA)** is the partial effect for an average individual 
+
+$$
+f_{\epsilon}(\bar{x}\hat{\beta})\hat{\beta}_j
+$$
+
+ * **Average Partial Effect (APE)** is the average of all partial effect for each individual. 
+
+$$
+\frac{1}{n}\sum_{i=1}^{n}f_\epsilon(x_i \hat{\beta})\hat{\beta}_j
+$$
+
+In the linear model, APE = PEA.  
+In a non-linear model (e.g., binary response), APE $\neq$ PEA
 
 ## Non-linear Regression
 ### Non-linear Least Sqaures
