@@ -13,7 +13,7 @@
  3. Efficiency 
 
  * Minimum variance in comparison to another estimator.  
-    + OLS is BlUE (best linear unbiased estimator) means that OLS is the most efficient among the class of linear unbiased estimator (Gauss-Markov Theorem)
+    + OLS is BlUE (best linear unbiased estimator) means that OLS is the most efficient among the class of linear unbiased estimator [Gauss-Markov Theorem] 
     + If we have correct distributional assumptions, then the Maximum Likelihood is asymptotically efficient among consistent estimators.
 
 ## Linear Regression
@@ -24,6 +24,14 @@ OLS = Maximum likelihood when the error term is assumed to be normally distribut
 
 
 #### OLS Assumptions
+
+ * [A1 Linearity]
+ * [A2 Full rank]
+ * [A3 Exogeneity of Independent Variables]
+ * [A4 Homoskedasticity]
+ * [A5 Data Generation (random Sampling)]
+ * [A6 Normal Distribution ]
+
 ##### A1 Linearity
 $$
 \begin{equation}
@@ -38,9 +46,15 @@ Not restrictive
 
 With A3 (Exogeneity of Independent), linearity can be restrictive
 
-###### Log-linear
-###### Linear-Log
-###### Log-Log
+###### Log Model
+
+Model | Form | Interpretation of $\beta$ | In words
+---|---|---|---
+Level-Level | $y =\beta_0+\beta_1x+\epsilon$ | $\Delta y = \beta_1 \Delta x$| A unit change in x will result in $\beta_1$ unit change in y
+Log-Level | $ln(y)= \beta_0 + \beta_1x +epsilon$ | $\% \Delta y=100 \beta_1 \Delta x$ | A unit change in x result in 100 $\beta_1$ % change in y
+Level-Log | $y = beta_0 + \beta_1 ln(x) + \epsilon$ | $\Delta y = (\beta_1/100)\%\Delta x$ | One percent change in x result in $\beta_1/100$ units change in y
+Log-Log | $ln(y) = \beta_0 + \beta_1 ln(x) +\epsilon$ | $\% \Delta y= \beta_1 \% \Delta x$ | One percent change in x result in $\beta_1$ percent change in y
+
 ###### Higher Orders
 $y=\beta_0 + x_1\beta_1 + x_1^2\beta_2 + \epsilon$
 $$
@@ -78,12 +92,14 @@ also known as **identification condition**
 <br>
 
 ##### A3 Exogeneity of Independent Variables
-$$
+
+
 \begin{equation}
 A3: E[\epsilon|x_1,x_2,...,x_k]=E[\epsilon|\mathbf{x}]=0
 (\#eq:A3)
 \end{equation}
-$$
+
+
 **strict exogeneity**
 
  * also known as **mean independence** check back on [Correlation and Independence]
@@ -92,6 +108,20 @@ $$
  * A3 implies $E(y|x)=x\beta$, which means the conditional mean function must be a linear function of x [A1 Linearity]
 
 ###### A3a
+Weaker Exogeneity Assumption 
+
+**Exogeneity of Independent variables**
+
+
+
+A3a: $E(\mathbf{x_i'}\epsilon_i)=0$
+
+
+ * $x_i$ is **uncorrelated** with $\epsilon_i$ [Correlation and Independence]
+ * Weaker than **mean independence** A3
+    + A3 implies A3a, not the reverse
+    + No causality interpretations
+    + Cannot test the difference
 
 
 <br>
@@ -124,10 +154,209 @@ is a random sample
     + **Strict Exogeneity**: $E(\epsilon_i|x_1,...,x_n)=0$. independent variables do not carry information for prediction of $\epsilon$
     + **Non-autocorrelation**: $E(\epsilon_i\epsilon_j|x_1,...,x_n)=0$ The error term is uncorrelated across the draws conditional on the independent variables $\rightarrow$ $A4: Var(\epsilon|\mathbf{X})=Var(\epsilon)=\sigma^2I_n$
  * In times series and spatial settings, A5 is less likely to hold.
- 
+
+
+###### A5a
+
+A stochastic process $\{x_t\}_{t=1}^T$ is **stationary** if for every collection fo time indices $\{t_1,t_2,...,t_m\}$, the joint distribution of 
+
+$$
+x_{t_1},x_{t_2},...,x_{t_m}
+$$
+is the same as the joint distribution of 
+
+$$
+x_{t_1+h},x_{t_2+h},...,x_{t_m+h}
+$$
+for any $h \ge 1$  
+
+ * The joint distribution for the first ten observation is the same for the next ten, etc. 
+ * Independent draws automatically satisfies this
+
+
 <br>
 
-##### A6 Normal Distribution 
+
+
+A stochastic process $\{x_t\}_{t=1}^T$ is **weakly stationary** if $x_t$ and $x_{t+h}$ are "almost independent" as h increases without bounds.  
+ * two observation that are very far apart should be "almost independent"
+
+Common Weakly Dependent Processes  
+
+ 1. Moving Average process of order 1 (MA(1))
+
+MA(1) means that there is only one period lag.
+
+$$
+y_t = u_t + \alpha_1 u_{t-1} \\
+E(y_t) = E(u_t) + \alpha_1E(u_{t-1}) = 0 \\
+Var(y_t) = var(u_t) + \alpha_1 var(u_{t-1}) = \sigma^2 + \alpha_1^2 \sigma^2 = \sigma^2(1+\alpha_1^2)
+$$
+where $u_t$ is drawn iid over t with variance $\sigma^2$
+
+An increase in the absolute value of $\alpha_1$ increases the variance
+
+When the MA(1) process can be **inverted** ($|\alpha|<1$ then
+
+$$
+u_t = y_t - \alpha_1u_{t-1}
+$$
+called the autoregressive representation (express current observation in term of past observation).
+
+
+We can expand it to more than 1 lag, then we have MA(q) process
+
+$$
+y_t = u_t + \alpha_1 u_{t-1} + ... + \alpha_q u_{t-q}
+$$
+
+where $u_t \sim WN(0,\sigma^2)$
+
+ * Covariance stationary: irrespective of the value of the parameters. 
+ * Invertibility when $\alpha < 1$
+ * The conditional mean of MA(q) depends on the q lags (long-term memory).
+ * In MA(q), all autorcorrealtions beyond q are 0.
+
+$$
+\begin{align}
+Cov(y_t,y_{t-1}) &= Cov(u_t + \alpha_1 u_{t-1},u_{t-1}+\alpha_1u_{t-2}) \\
+&= \alpha_1var(u_{t-1}) \\
+&= \alpha_1\sigma^2
+\end{align}
+$$
+
+
+$$
+\begin{align}
+Cov(y_t,y_{t-2}) &= Cov(u_t + \alpha_1 u_{t-1},u_{t-2}+\alpha_{1}u_{t-3}) \\
+&= 0
+\end{align}
+$$
+
+An MA models a linear relationship between teh dependent variable and teh current and past values of a stochastic term. 
+
+
+ 2. Auto regressive process of order 1 (AR(1))
+
+$$
+y_t = \rho y_{t-1}+ u_t, |\rho|<1
+$$
+
+where $u_t$ is drawn iid over t with variance $\sigma^2$
+
+
+$$
+\begin{align}
+Cov(y_t,y_{t-1}) &= Cov(\rho y_{t-1} + u-t,y_{t-1}) \\
+&= \rho Var(y_{t-1}) \\
+&= \rho \frac{\sigma^2}{1-\rho^2}
+\end{align}
+$$
+
+$$
+\begin{align}
+Cov(y_t,y_{t-h}) &= \rho^h \frac{\sigma^2}{1-\rho^2}
+\end{align}
+$$
+
+Stationarity: 
+in the continuum of t, the distribution of each t is the same 
+
+$$
+E(y_t) = E(y_{t-1}) = ...= E(y_0) \\
+y_1 = \rho y_0 + u_1
+$$
+where the initial observation $y_0=0$
+
+Assume $E(y_t)=0$
+
+
+$$
+y_t = \rho^t y_{t-t} + \rho^{t-1}u_1 + \rho^{t-2}u_2 +...+ \rho u_{t-1} + u_t \\
+= \rho^t y_0 + \rho^{t-1}u_1 + \rho^{t-2}u_2 +...+ \rho u_{t-1} + u_t
+$$
+
+Hence, $y_t$ is the weighted of all of the $u_t$ time observations before. 
+y will be correlated with all the previous observations as well as future observations. 
+
+$$
+Var(y_t) = Var(\rho y_{t-1} + u_t) \\
+= \rho^2 Var(y_{t-1}) + Var(u_t) + 2\rho Cov(y_{t-1}u_t) \\
+= \rho^2 Var(y_{t-1}) + \sigma^2
+$$
+Hence, 
+
+$$
+Var(y_t) = \frac{\sigma^2}{1-\rho^2}
+$$
+to have Variance constantly over time, then $\rho \neq 1$ or $-1$.
+
+**Then** stationarity requires $\rho \neq 1$ or -1. 
+weakly dependent process $|\rho|<1$
+
+
+To estimate the AR(1) process, we use **Yule-Walker Equation**
+
+$$
+y_t = \epsilon_t + \phi y_{t-1} \\
+y_t y_{t-\tau} = \epsilon_t y_{t-\tau} + \phi y_{t-1}y_{t-\tau} \\
+$$
+For $\tau \ge 1$, we have
+
+$$
+\gamma \tau = \phi \gamma (\tau -1) \\
+\rho_t = \phi^t
+$$
+when you generalize to pth order autoregressive process, AR(p):
+
+$$
+y_t = \phi_1 y_{t-1} + \phi_2 y_{t-2} + ... + \phi_p y_{t-p} + \epsilon_t
+$$
+
+AR(p) process is **covariance stationary**, and decay in autocorrelations. 
+
+When we combine MA(q) and AR(p), we have ARMA(p,q) process, where you can see seasonality. For example, ARMA(1,1)
+
+$$
+y_t = \phi y_{t-1} + \epsilon_t + \alpha \epsilon_{t-1}
+$$
+
+
+
+Random Walk process  
+
+
+$$
+y_t = y_0 + \sum_{s=1}^{t}u_t
+$$
+
+ * not stationary : when $y_0 = 0$ then $E(y_t)= 0$, but $Var(y_t)=t\sigma^2$. Further along in the spectrum, the variance will be larger
+ * not weakly dependent: $Cov(\sum_{s=1}^{t}u_s,\sum_{s=1}^{t-h}u_s) = (t-h)\sigma^2$. So the covariance (fixed) is not diminishing as h increases
+
+
+$$
+Assumption A5a: \{y_t,x_{t1},..,x_{tk-1} \}
+$$
+where $t=1,...,T$ are **stationary and weakly dependent processes**.
+
+Alternative [Weak Law], [Central Limit Theorem]  
+If $z_t$ is a weakly dependent stationary process with a finite first absolute moment and $E(z_t) = \mu$, then 
+
+$$
+T^{-1}\sum_{t=1}^{T}z_t \to^p \mu
+$$
+If additional regulatory conditions hold [@Greene_1990], then 
+
+$$
+\sqrt{T}(\bar{z}-\mu) \to^d N(0,B)
+$$
+where $B= Var(z_t) + 2\sum_{h=1}^{\infty}Cov(z_t,z_{t-h})$
+
+
+
+<br>
+
+##### A6 Normal Distribution
 $$
 \begin{equation}
 A6: \epsilon|\mathbf{x}\sim N(0,\sigma^2I_n)
@@ -178,7 +407,9 @@ If [A3][A3 Exogeneity of Independent Variables] holds, then $2E(x'x)$ is PSD $\r
 <br>
 <br>
 
-#### Frisch-Waugh-Lovell Theorem
+#### Theorems
+##### Frisch-Waugh-Lovell Theorem
+
 $$
 \mathbf{y=X\beta + \epsilon=X_1\beta_1+X_2\beta_2 +\epsilon}
 $$
@@ -215,9 +446,49 @@ $$
 
 <br>
 
+##### Gauss-Markov Theorem
+
+For a linear regression model
+
+$$
+\mathbf{y=X\beta + \epsilon}
+$$
+
+Under [A1][A1 Linearity], [A2][A2 Full rank], [A3][A3 Exogeneity of Independent Variables], [A4][A4 Homoskedasticity], OLS estimator defined as 
+
+$$
+\hat{\beta} = \mathbf{(X'X)^{-1}X'y}
+$$
+is the minimum variance linear (in y) unbiased estimator of $\beta$
+
+Let $\tilde{\beta}=\mathbf{Cy}$, be another linear estimator where $\mathbf{C}$ is k x n and only function of X), then for it be unbiased, 
+
+$$
+\begin{split}
+E(\tilde{\beta}|\mathbf{X}) &= E(\mathbf{Cy|X}) \\
+&= E(\mathbf{CX\beta + C\epsilon|X}) \\
+&= \mathbf{CX\beta}
+\end{split}
+$$
+which equals the true parameter $\beta$ only if $\mathbf{CX=I}$  
+Equivalently, 
+$\tilde{\beta} = \beta + \mathbf{C}\epsilon$
+and the variance of the estimator is $Var(\tilde{\beta}|\mathbf{X}) = \sigma^2\mathbf{CC'}$
+
+To show minimum variance, 
+$$
+\begin{split}
+&=\sigma^2\mathbf{(C-(X'X)^{-1}X')(C-(X'X)^{-1}X')'} \\
+&= \sigma^2\mathbf{(CC' - CX(X'X)^{-1})-(X'X)^{-1}X'C + (X'X)^{-1}X'X(X'X)^{-1})} \\
+&= \sigma^2 (\mathbf{CC' - (X'X)^{-1}-(X'X)^{-1} + (X'X)^{-1}}) \\
+&= \sigma^2\mathbf{CC'} - \sigma^2(\mathbf{X'X})^{-1} \\
+&= Var(\tilde{\beta}|\mathbf{X}) - Var(\hat{\beta}|\mathbf{X})
+\end{split}
+$$
+
 **Hierarchy of OLS Assumptions**
 
-|Identification Data Description | Unbiasedness Consistency | Gauss-Markov(BLUE) Asymptotic Inference (z and Chi-squared) | Classical LM (BUE) Small-sample Inference (t and F)|
+|Identification Data Description | Unbiasedness Consistency | [Gauss-Markov][Gauss-Markov Theorem] (BLUE) Asymptotic Inference (z and Chi-squared) | Classical LM (BUE) Small-sample Inference (t and F)|
 |--- | --- | --- | ---|
 |Variation in X | Variation in X | Variation in X | Variation in X|
 |     | Random Sampling | Random Sampling  | Random Sampling |
@@ -231,11 +502,284 @@ $$
 <br>
 <br>
 
+#### Finite Sample Properties
+
+ * n is fixed 
+ * **Bias** On average, how close is our estimate to the true value
+    + $Bias = E(\hat{\beta}) -\beta$ where $\beta$ is the true parameter value and $\hat{\beta}$ is the estimator for $\beta$
+    + An estimator is **unbiased** when  
+        - $Bias = E(\hat{\beta}) -\beta = 0$ or $E(\hat{\beta})=\beta$
+        - means that the estimator will produce estimates that are, on average, equal to the value it it trying to estimate
+ * **Distribution of an estimator**: An estimator is a function of random variables (data) 
+ * **Standard Deviation**: the spread of the estimator.
+
+**OLS**
+
+Under [A1][A1 Linearity] [A2][A2 Full rank] [A3][A3 Exogeneity of Independent Variables], OLS is unbiased
+
+$$
+\begin{align}
+E(\hat{\beta}) &= E(\mathbf{(X'X)^{-1}X'y}) && \text{A2}\\
+     &= E(\mathbf{(X'X)^{-1}X'(X\beta + \epsilon)}) && \text{A1}\\
+     &= E(\mathbf{(X'X)^{-1}X'X\beta + (X'X)^{-1}X'\epsilon})  && \text{} \\
+     &= E(\beta + \mathbf{(X'X)^{-1}X'\epsilon}) \\
+     &= \beta + E(\mathbf{(X'X^{-1}\epsilon)}) \\
+     &= \beta + E(E((\mathbf{X'X)^{-1}X'\epsilon|X})) &&\text{LIE} \\
+     &= \beta + E((\mathbf{X'X)^{-1}X'}E\mathbf{(\epsilon|X})) \\
+     &= \beta + E((\mathbf{X'X)^{-1}X'}0)) && \text{A3} \\
+     &= \beta
+\end{align}
+$$
+
+where LIE stands for [Law of Iterated Expectation]
+
+If [A3][A3 Exogeneity of Independent Variables] does not hold, then OLS will be **biased**
+
+From **Frisch-Waugh-Lovell Theorem**, if we have the omitted variable $\hat{\beta}_2 \neq 0$ and $\mathbf{X_1'X_2} \neq 0$, then the omitted variable will cause OLS estimator to be biased.
+
+
+Under [A1][A1 Linearity] [A2][A2 Full rank] [A3][A3 Exogeneity of Independent Variables] [A4][A4 Homoskedasticity],  we have the conditional variance of the OLS estimator as follows]
+
+$$
+\begin{align}
+Var(\hat{\beta}|\mathbf{X}) &= Var(\beta + \mathbf{(X'X)^{-1}X'\epsilon|X}) && \text{A1-A2}\\
+    &= Var((\mathbf{X'X)^{-1}X'\epsilon|X)} \\
+    &= \mathbf{X'X^{-1}X'} Var(\epsilon|\mathbf{X})\mathbf{X(X'X)^{-1}} \\
+    &= \mathbf{X'X^{-1}X'} \sigma^2I \mathbf{X(X'X)^{-1}} && \text{A4} \\
+    &= \sigma^2\mathbf{X'X^{-1}X'} I \mathbf{X(X'X)^{-1}} \\
+    &= \sigma^2\mathbf{(X'X)^{-1}}
+\end{align}
+$$
+
+Sources of variation 
+
+ 1. $\sigma^2=Var(\epsilon_i|\mathbf{X})$  
+    * The amount of unexplained variation $\epsilon_i$ is large relative to the explained $\mathbf{x_i \beta}$ variation
+
+ 2. "Small" $Var(x_{i1}), Var(x_{i1}),..$  
+    * Not a lot of variation in $\mathbf{X}$ (no information)
+    * small sample size
+
+ 3. "Strong" correlation between the explanatory variables
+    * $x_{i1}$ is highly correlated with a linear combination of 1, $x_{i2}$, $x_{i3}$, ... 
+    * include many irrelevant variables will contribute to this.
+    * If $x_1$ is perfectly determined in the regression $\rightarrow$ **Perfect Collinearity** $\rightarrow$ [A2][A2 Full rank] is violated. 
+    * If $x_1$ is highly correlated with a linear combination of other variables, then we have **Multicollinearity**
+
+##### Check for Multicollinearity
+
+**Variance Inflation Factor** (VIF)
+Rule of thumb $VIF \ge 10$ is large
+
+$$
+VIF = \frac{1}{1-R_1^2} 
+$$
+
+
+##### Standard Errors
+
+ * $Var(\hat{\beta}|\mathbf{X})=\sigma^2\mathbf{(X'X)^{-1}}$ is the variance of the estimate $\hat{\beta}$
+ * **Standard Errors**  are estimators/estimates of the standard deviation (square root of the variance) of the estimator $\hat{\beta}$
+ * Under A1-A5, then we can estimate $\sigma^2=Var(\epsilon^2|\mathbf{X})$ the standard errors as 
+
+$$
+s^2 = \frac{1}{n-k}\sum_{i=1}^{n}e_i^2 \\
+= \frac{1}{n-k}SSR
+$$
+ 
+ * degrees of freedom adjustment: because $e_i \neq \epsilon_i$ and are estimated using k estimates for $\beta$, we lose degrees of freedom in our variance estimate.
+ * $s=\sqrt{s^2}$ is a biased estimator for the standard deviation ([Jensen’s Inequality])
+
+**Standard Errors for $\hat{\beta}$**
+
+$$
+SE(\hat{\beta}_{j-1})=s\sqrt{[(\mathbf{X'X})^{-1}]_{jj}} \\
+= \frac{s}{\sqrt{SST_{j-1}(1-R_{j-1}^2)}}
+$$
+where $SST_{j-1}$ and $R_{j-1}^2$ from the following regression 
+
+$x_{j-1}$ on 1, $x_1$,... $x_{j-2}$,$x_j$,$x_{j+1}$, ..., $x_{k-1}$
+
+**Summary of Finite Sample Properties**
+
+ * Under A1-A3: OLS is unbiased 
+ * Under A1-A4: The variance of the OLS estimator is $Var(\hat{\beta}|\mathbf{X})=\sigma^2\mathbf{(X'X)^{-1}}$
+ * Under A1-A4, A6: OLS estimator $\hat{\beta} \sim N(\beta,\sigma^2\mathbf{(X'X)^{-1}})$
+ * Under A1-A4, Gauss-Markov Theorem holds $\rightarrow$ OLS is BLUE
+ * Under A1-A5, the above standard errors are unbiased estimator of standard deviation for $\hat{\beta}$
+
+
+#### Large Sample Properties
+
+ * let $n \rightarrow \infty$
+ * A perspective that allows us to evaluate the "quality" of estimators when finite sample properties are not informative, or impossible to compute
+ * consistency, asymptotic distribution, asymptotic variance
+
+**Motivation**
+
+ * [Finite Sample Properties] need strong assumption [A1][A1 Linearity] [A3][A3 Exogeneity of Independent Variables] [A4][A4 Homoskedasticity] [A6][A6 Normal Distribution]
+ * Other estimation such as GLS, MLE need to be analyzed using [Large Sample Properties]
+
+
+Let $\mu(\mathbf{X})=E(y|\mathbf{X})$ be the **Conditional Expectation Function** 
+
+ * $\mu(\mathbf{X})$ is the minimum mean squared predictor (over all possible functions) 
+
+$$
+minE((y-f(\mathbf{X}))^2)
+$$
+
+under A1 and A3, 
+
+$$
+\mu(\mathbf{X})=\mathbf{X}\beta
+$$
+
+Then the **linear projection**
+
+$$
+L(y|1,\mathbf{X})=\gamma_0 + \mathbf{X}Var(X)^{-1}Cov(X,Y)
+$$
+
+where $\mathbf{X}Var(X)^{-1}Cov(X,Y)=\gamma$
+
+is the minimum mean squared linear approximation to be conditional mean function 
+
+$$
+(\gamma_0,\gamma) = arg min E((E(y|\mathbf{X})-(a+\mathbf{Xb})^2)
+$$
+
+ * OLS is always **consistent** for the linear projection, but not necessarily unbiased.
+ * Linear projection has no causal interpretation 
+ * Linear projection does not depend on assumption A1 and A3
+
+
+Evaluating an estimator using large sample properties:
+
+ * Consistency: measure of centrality 
+ * Limiting Distribution: the shape of the scaled estimator as the sample size increases 
+ * Asymptotic variance: spread of the estimator with regards to its limiting distribution.
+
+An estimator $\hat{\theta}$ is consistent for $\theta$ if $\hat{\theta}_n \to^p \theta$
+
+ * As n increases, the estimator converges to the population parameter value. 
+ * Unbiased does not imply consistency and consistency does not imply unbiased. 
+
+Based on [Weak Law] of Large Numbers
+
+$$
+\begin{split}
+\hat{\beta} &= \mathbf{(X'X)^{-1}X'y} \\
+&= \mathbf{(\sum_{i=1}^{n}x_i'x_i)^{-1} \sum_{i=1}^{n}x_i'y_i} \\
+&= (n^{-1}\mathbf{\sum_{i=1}^{n}x_i'x_i)^{-1}} n^{-1}\mathbf{\sum_{i=1}^{n}x_i'y_i} \\
+plim(\hat{\beta}) &= plim((n^{-1}\mathbf{\sum_{i=1}^{n}x_i'x_i)^{-1}} n^{-1}\mathbf{\sum_{i=1}^{n}x_i'y_i}) \\
+&= plim((n^{-1}\mathbf{\sum_{i=1}^{n}x_i'x_i)^{-1}})plim(n^{-1}\mathbf{\sum_{i=1}^{n}x_i'y_i}) \\
+&= (plim(n^{-1}\mathbf{\sum_{i=1}^{n}x_i'x_i)^{-1}})plim(n^{-1}\mathbf{\sum_{i=1}^{n}x_i'y_i}) && \text{ due to A2, A5} \\
+&= E(\mathbf{x_i'x_i})^{-1}E(\mathbf{x_i'y_i})
+\end{split}
+$$
+
+$$
+E(\mathbf{x_i'x_i})^{-1}E(\mathbf{x_i'y_i}) = \beta + E(\mathbf{x_i'x_i})^{-1}E(\mathbf{x_i'\epsilon_i})
+$$
+
+Under [A1][A1 Linearity], [A2][A2 Full rank], [A3a], [A5][A5 Data Generation (random Sampling)] OLS is consistent, but not guarantee unbiased.
+
+
+Under [A1][A1 Linearity], [A2][A2 Full rank], [A3a], [A5][A5 Data Generation (random Sampling)], and $\mathbf{x_i'x_i}$ has finite first and second moments ([CLT][Central Limit Theorem]), $Var(\mathbf{x_i'}\epsilon_i)=\mathbf{B}$  
+
+ * $(n^{-1}\sum_{i=1}^{n}\mathbf{x_i'x_i})^{-1} \to^p (E(\mathbf{x'_ix_i}))^{-1}$
+ * $\sqrt{n}(n^{-1}\sum_{i=1}^{n}\mathbf{x_i'}\epsilon_i) \to^d N(0,\mathbf{B})$
+
+$$
+\sqrt{n}(\hat{\beta}-\beta) = (n^{-1}\sum_{i=1}^{n}\mathbf{x_i'x_i})^{-1}\sqrt{n}(n^{-1}\sum_{i=1}^{n}\mathbf{x_i'x_i}) \to^{d} N(0,\Sigma)
+$$
+where $\Sigma=(E(\mathbf{x_i'x_i}))^{-1}\mathbf{B}(E(\mathbf{x_i'x_i}))^{-1}$  
+
+ * holds under [A3a]
+ * Do not need [A4][A4 Homoskedasticity] and [A6][A6 Normal Distribution] to apply CLT
+    + If [A4][A4 Homoskedasticity] does not hold, then $\mathbf{B}=Var(\mathbf{x_i'}\epsilon_i)=\sigma^2E(x_i'x_i)$ which means $\Sigma=\sigma^2(E(\mathbf{x_i'x_i}))^{-1}$, use standard errors
+
+
+Heteroskedasticity can be from
+
+ * Limited dependent variable
+ * Dependent variables with large/skewed ranges
+
+
+
+Solving Asymptotic Variance
+
+$$
+\begin{split}
+\Sigma &= (E(\mathbf{x_i'x_i}))^{-1}\mathbf{B}(E(\mathbf{x_i'x_i}))^{-1} \\
+&= (E(\mathbf{x_i'x_i}))^{-1}Var(\mathbf{x_i'}\epsilon_i)(E(\mathbf{x_i'x_i}))^{-1} \\
+&= (E(\mathbf{x_i'x_i}))^{-1}E[(\mathbf{x_i'}\epsilon_i-0)(\mathbf{x_i'}\epsilon_i-0)](E(\mathbf{x_i'x_i}))^{-1} && \text{A3a} \\
+&= (E(\mathbf{x_i'x_i}))^{-1}E[E(\mathbf{\epsilon_i^2|x_i)x_i'x_i]}(E(\mathbf{x_i'x_i}))^{-1} && \text{LIE} \\
+&= (E(\mathbf{x_i'x_i}))^{-1}\sigma^2E(\mathbf{x_i'x_i})(E(\mathbf{x_i'x_i}))^{-1} && \text{A4} \\
+&= \sigma^2(E(\mathbf{x_i'x_i}))
+\end{split}
+$$
+
+Under [A1][A1 Linearity], [A2][A2 Full rank], [A3a], [A4][A4 Homoskedasticity], [A5][A5 Data Generation (random Sampling)]:
+
+$$
+\sqrt{n}(\hat{\beta}-\beta) \to^d N(0,\sigma^2(E(\mathbf{x_i'x_i}))^{-1})
+$$
+
+
+ * The Asymptotic variance is approximation for the variance in the scaled random variable for $\sqrt{n}(\hat{\beta}-\beta)$ when n is large.
+ * use $Avar(\sqrt{n}(\hat{\beta}-\beta))/n$ as an approximation for finite sample variance for large n:
+
+$$
+Avar(\sqrt{n}(\hat{\beta}-\beta)) \approx Var(\sqrt{n}(\hat{\beta}-\beta)) \\
+Avar(\sqrt{n}(\hat{\beta}-\beta))/n \approx Var(\sqrt{n}(\hat{\beta}-\beta))/n = Var(\hat{\beta})
+$$
+
+ * Avar(.) does not behave the same way as Var(.)
+
+$$
+Avar(\sqrt{n}(\hat{\beta}-\beta))/n \neq Avar(\sqrt{n}(\hat{\beta}-\beta)/\sqrt{n}) \\
+\neq Avar(\hat{\beta})
+$$
+
+In [Finite Sample Properties], we calculate standard errors as an estimate for the conditional standard deviation:
+
+$$
+SE_{fs}(\hat{\beta}_{j-1})=\sqrt{\hat{Var}}(\hat{\beta}_{j-1}|\mathbf{X}) = \sqrt{s^2[\mathbf{(X'X)}^{-1}]_{jj}}
+$$
+
+In [Large Sample Properties], we calculate standard errors as an estimate for the square root of asymptotic variance
+
+$$
+SE_{ls}(\hat{\beta}_{j-1})=\sqrt{\hat{Avar}(\sqrt{n}\hat{\beta}_{j-1})/n} = \sqrt{s^2[\mathbf{(X'X)}^{-1}]_{jj}}
+$$
+
+Hence, the standard error estimator is the same for finite sample and large sample.
+ * Same estimator, but conceptually estimating two different things.
+ * Valid under weaker assumptions: the assumptions needed to produce a consistent estimator for the finite sample conditional variance (A1-A5) are stronger than those needed to produce a consistent estimator for the asymptotic variance (A1,A2,A3a,A4,A5)
+
+
+
+
+
+
+
+#### Application
+
+```{r}
+
+```
+
+
+
+
+
 ### Feasible Generalized Least Squares
 
 Motivation for a more efficient estimator  
 
- * Gauss Markov Theorem holds under A1-A4
+ * [Gauss-Markov Theorem] holds under A1-A4
  * A4: $Var(\epsilon| \mathbf{X} )=\sigma^2I_n$
     + Heteroskedasticity: $Var(\epsilon_i|\mathbf{X}) \neq \sigma^2I_n$
     + Serial Correlation: $Cov(\epsilon_i,\epsilon_j|\mathbf{X}) \neq 0$
@@ -341,8 +885,8 @@ With $n(n+1)/2$ number of elements and n observations $\rightarrow$ infeasible t
 Hence, we need to make assumption on $\Omega$ to make it feasible to estimate $\mathbf{w}$:  
 
  1. [Heteroskedasticity]  : multiplicative exponential model
- 2. Serial Correlation: AR(1)
- 3. Serial Correlation: Cluster
+ 2. [AR(1)]
+ 3. [Cluster]
  
  
 #### Heteroskedasticity
@@ -366,6 +910,7 @@ $$
 
 then, from \@ref(eq:h-var-error-term)
 
+$$
 \begin{equation}
 \begin{split}
 Var((1/\sigma_i)\epsilon_i|X) &= (1/\sigma_i^2) Var(\epsilon_i|X) \\
@@ -373,11 +918,397 @@ Var((1/\sigma_i)\epsilon_i|X) &= (1/\sigma_i^2) Var(\epsilon_i|X) \\
 &= 1
 \end{split}
 \end{equation}
+$$
 
-then the
+
+then the weight matrix $\mathbf{w}$ in the matrix equation
+
+$$
+\mathbf{wy=wX\beta + w\epsilon}
+$$
+
+$$
+\mathbf{w}= 
+\left(
+\begin{array}{c}
+1/\sigma_1 & 0 & 0 & ... & 0 \\
+0 & 1/\sigma_2 & 0 & ... & 0 \\
+0 & 0 & 1/\sigma_3 & ... & . \\
+. & . & . & . & 0 \\
+0 & 0 & . & . & 1/\sigma_n
+\end{array}
+\right)
+$$
+
+**Infeasible Weighted Least Squares**
+
+ 1. Assume we know $\sigma_i^2$ (Infeasible)
+ 2. The IWLS estimator is obtained as the least squared estimated for the following weighted equation
+
+$$
+(1/\sigma_i)y_i = (1/\sigma_i)\mathbf{x}_i\beta + (1/\sigma_i)\epsilon_i 
+$$
+
+ * Usual standard errors for the weighted equation are valid if $Var(\epsilon | \mathbf{X}) = \sigma_i^2$
+ * If $Var(\epsilon | \mathbf{X}) \neq \sigma_i^2$ then heteroskedastic robust standard errors are valid.
+
+**Problem**: We do not know $\sigma_i^2=Var(\epsilon_i|\mathbf{x_i})=E(\epsilon_i^2|\mathbf{x}_i)$  
+
+ * One observation $\epsilon_i$ cannot estimate a sample variance estimate $\sigma_i^2$
+    + Model $\epsilon_i^2$ as reasonable (strictly positive) function of $x_i$ and independent error $v_i$ (strictly positive)
+
+$$
+\epsilon_i^2=v_i exp(\mathbf{x_i\gamma})
+$$
+Then we can apply a log transformation to recover a linear in parameters model,
+
+$$
+ln(\epsilon_i^2) = \mathbf{x_i\gamma} + ln(v_i)
+$$
+where $ln(v_i)$ is independent $\mathbf{x}_i$
+
+We do not observe $\epsilon_i$
+ * OLS residual ($e_i$) as an approximate
+
+
+
+#### Serial Correlation
+
+$$
+Cov(\epsilon_i, \epsilon_j | \mathbf{X}) \neq 0
+$$
+
+Under covariance stationary, 
+
+$$
+Cov(\epsilon_i,\epsilon_j|\mathbf{X}) = Cov(\epsilon_i, \epsilon_{i+h}|\mathbf{x_i,x_{i+h}})=\gamma_h
+$$
+
+And the variance covariance matrix is
+
+$$
+Var(\epsilon|\mathbf{X}) = \Omega = 
+\left(
+\begin{array}{c}
+\sigma^2 & \gamma_1 & \gamma_2 & ... & \gamma_{n-1} \\
+\gamma_1 & \sigma^2 & \gamma_1 & ... & \gamma_{n-2} \\
+\gamma_2 & \gamma_1 & \sigma^2 & ... & ... \\
+. & . & . & . & \gamma_1 \\
+\gamma_{n-1} & \gamma_{n-2} & . & \gamma_1 & \sigma^2
+\end{array}
+\right)
+$$
+
+There n parameters to estimate - need some sort fo structure to reduce number of parameters to estimate. 
+
+ * [Time Series][AR(1)]
+    + Effect of inflation and deficit on Treasury BIll interest rates
+ * [Cross-sectional][Cluster]
+    + Clustering
+
+##### AR(1)
+
+$$
+y_t= \beta_0 + x_t\beta_1 + \epsilon_t \\
+\epsilon_t = \rho \epsilon_{t-1} + u_t
+$$
+
+and the variance covariance matrix is 
+$$
+Var(\epsilon | \mathbf{X})= \frac{\sigma^2_u}{1-\rho}
+\left(
+\begin{array}{c}
+1 & \rho & \rho^2 & ... & \rho^{n-1} \\
+\rho & 1 & \rho & ... & \rho^{n-2} \\
+\rho^2 & \rho & 1 & . & . \\
+. & . & . & . & \rho \\
+\rho^{n-1} & \rho^{n-2} & . & \rho & 1 \\
+\end{array}
+\right)
+$$
+
+Hence, there is only 1 parameter to estimate: $\rho$
+
+
+ * Under A1, A2, A3a, A5a, OLS is consistent and asymptotically normal
+ * Use [Newey West Standard Errors] for valid inference.
+ * Apply [Infeasible Cochrane Orcutt] (as if we knew $\rho$)
+ * Because
+
+$$
+u_t = \epsilon_t - \rho \epsilon_{t-1}
+$$
+satisfies  A3, A4, A5 we'd like to to transform the above equation to one that has $u_t$ as the error.
+
+$$
+\begin{align}
+y_t - \rho y_{t-1} &= (\beta_0 + x\beta_1 + \epsilon_t) - \rho (\beta_0 + x_{t-1}\beta_1 + \epsilon_{t-1}) \\
+& = (1-\rho)\beta_0 + (x_t - \rho x_{t-1})\beta_1 + u_t
+\end{align}
+$$
+
+###### Infeasible Cochrane Orcutt
+ 1. Assume that we know $\rho$ (Infeasible)
+ 2. The ICO estimator is obtained as the least squared estimated for the following weighted first difference equation
+
+$$
+y_t -\rho y_{t-1} = (1-\rho)\beta_0 + (x_t - \rho x_{t-1})\beta_1 + u_t
+$$
+
+ * Usual standard errors for the weighted first difference equation are valid if the errors truly follow an AR(1) process
+ * If the serial correlation is generated from a more complex dynamic process then [Newey-West HAC standard errors][Newey West Standard Errors] are valid
+
+**Problem** 
+We do not know $\rho$
+
+ * $\rho$ is the correlation between $\epsilon_t$ and $\epsilon_{t-1}$: estimate using OLS residuals ($e_i$) as proxy
+
+$$
+\hat{\rho} = \frac{\sum_{t=1}^{T}e_te_{t-1}}{\sum_{t=1}^{T}e_t^2}
+$$
+
+which can be obtained from the OLS regression of 
+
+$$
+e_t = \rho e_{t-1} + u_t
+$$
+where we suppress the intercept.
+
+ * We are losing an observation
+    + By taking the first difference we are dropping the first observation
+
+$$
+y_1 = \beta_0 + x_1 \beta_1 + \epsilon_1
+$$
+    + [Feasiable Prais Winsten] Transformation applies the [Infeasible Cochrane Orcutt] but includes a weighted version of the first observation
+
+$$
+(\sqrt{1-\rho^2})y_1 = \beta_0 + (\sqrt{1-\rho^2})x_1 \beta_1 + (\sqrt{1-\rho^2}) \epsilon_1
+$$
+
+##### Cluster
+
+$$
+y_{gi} = \mathbf{x}_{gi}\beta + \epsilon_{gi}
+$$
+
+
+$$
+Cov(\epsilon_{gi}, \epsilon_{hj})
+\begin{cases}
+= 0 & \text{for $g \neq h$ and any pair (i,j)} \\
+\neq 0 & \text{for any (i,j) pair}\\
+\end{cases}
+$$
+
+**Intra-group Correlation**  
+Each individual in a single group may be correlated but independent across groups.   
+
+ * [A4][A4 Homoskedasticity] is violated. usual standard errors for OLS are valid. 
+ * Use **cluster robust standard errors** for OLS.
+
+Suppose there are 3 groups with different n
+
+$$
+Var(\epsilon| \mathbf{X})= \Omega =
+\left(
+\begin{array}{c}
+\sigma^2 & \delta_{12}^1 & \delta_{13}^1 & 0 & 0 & 0 \\
+\delta_{12}^1 & \sigma^2 & \delta_{23}^1 & 0 & 0 & 0 \\
+\delta_{13}^1 & \delta_{23}^1 & \sigma^2 & 0 & 0 & 0 \\
+0 & 0 & 0 & \sigma^2 & \delta_{12}^2 & 0 \\
+0 & 0 & 0 & \delta_{12}^2 & \sigma^2 & 0 \\
+0 & 0 & 0 & 0 & 0 & \sigma^2
+\end{array}
+\right)
+$$
+
+where $Cov(\epsilon_{gi}, \epsilon_{gj}) = \delta_{ij}^g$ and $Cov(\epsilon_{gi}, \epsilon_{hj}) = 0$ for any i and j 
+
+**Infeasible Generalized Least Squares (Cluster)**
+
+ 1. Assume that $\sigma^2$ and $\delta_{ij}^g$ are known, plug into $\Omega$ and solve for the inverse $\Omega^{-1}$ (infeasible)
+ 2. The Infeasible Generalized Least Squares Estimator is 
+
+$$
+\hat{\beta}_{IGLS} = \mathbf{(X'\Omega^{-1}X)^{-1}X'\Omega^{-1}y}
+$$
+
+**Problem** 
+ * We do not know $\sigma^2$ and $\delta_{ij}^g$
+    + Can make assumptions about data generating process that is causing the clustering behavior.
+        - Will give structure to $Cov(\epsilon_{gi},\epsilon_{gj})= \delta_{ij}^g$ which makes it feasible to estimate
+        - if the assumptions are wrong then we should use cluster robust standard errors.
+
+**Solution**
+Assume **group level random effects** specification in the error
+
+$$
+y_{gi} = \mathbf{g}_i \beta + c_g + u_{gi} \\
+Var(c_g|\mathbf{x}_i) = \sigma^2_c \\
+Var(u_{gi}|\mathbf{x}_i) = \sigma^2_u
+$$
+
+where $c_g$ and $u_{gi}$ are independent of each other, and mean independent of $\mathbf{x}_i$  
+
+ * $c_g$ captures the common group shocks (independent across groups)
+ * $u_{gi}$ captures the individual shocks (independent across individuals and groups)
+
+
+Then the error variance is 
+
+$$
+Var(\epsilon| \mathbf{X})= \Omega =
+\left(
+\begin{array}{c}
+\sigma^2_c + \sigma^2_u & \sigma^2_c & \sigma^2_c & 0 & 0 & 0 \\
+\sigma^2_c & \sigma^2 + \sigma^2_u & \sigma^2_c & 0 & 0 & 0 \\
+\sigma^2_c & \sigma^2_c  & \sigma^2+ \sigma^2_u & 0 & 0 & 0 \\
+0 & 0 & 0 & \sigma^2+ \sigma^2_u & \sigma^2_c & 0 \\
+0 & 0 & 0 & \sigma^2_c & \sigma^2+ \sigma^2_u & 0 \\
+0 & 0 & 0 & 0 & 0 & \sigma^2+ \sigma^2_u
+\end{array}
+\right)
+$$
+
+Use [Feasible group level Random Effects]
+
 
 
 ### Weighted Least Squares
+
+ 1. Estimate the following equation using OLS
+
+$$
+y_i = \mathbf{x}_i \beta + \epsilon_i
+$$
+and obtain the residuals $e_i=y_i -\mathbf{x}_i \hat{\beta}$
+
+ 2. Transform the residual and estimate the following by OLS, 
+
+$$
+ln(e_i^2)= \mathbf{x}_i\gamma + ln(v_i)
+$$
+
+and obtain the predicted values $g_i=\mathbf{x}_i \hat{\gamma}$
+
+ 3. The weights will be the untransformed predicted outcome, 
+
+$$
+\hat{\sigma}_i =\sqrt{exp(g_i)}
+$$
+
+ 4. The FWLS (Feasible WLS) estimator is obtained as the least squared estimated for the following weighted equation
+
+$$
+(1/\hat{\sigma}_i)y_i = (1/\hat{\sigma}_i) \mathbf{x}_i\beta + (1/\hat{\sigma}_i)\epsilon_i
+$$
+
+**Properties of the FWLS**  
+
+ * The infeasible WLS estimator is unbiased under A1-A3 for the unweighted equation.
+ * The FWLS estimator is NOT an unbiased estimator. 
+ * The FWLS estimator is consistent under [A1][A1 Linearity], [A2][A2 Full rank], (for the unweighted equation), [A5][A5 Data Generation (random Sampling)], and $E(\mathbf{x}_i'\epsilon_i/\sigma^2_i)=0$
+    + [A3a] is not sufficient for the above equation 
+    + [A3][A3 Exogeneity of Independent Variables] is sufficient for the above equation.
+ * The FWLS estimator is asymptotically more efficient than OLS if the errors have multiplicative exponential heteroskedasticity.
+    + If the errors are truly multiplicative exponential heteroskedasticity, then usual standard errors are valid
+    + If we believe that there may be some mis-specification with the **multiplicative exponential model**, then we should report heteroskedastic robust standard errors.
+
+
+### Feasiable Prais Winsten
+
+Weighting Matrix
+
+$$
+\mathbf{w} = 
+\left(
+\begin{array}{c}
+\sqrt{1- \hat{\rho}^2} & 0 & 0 &... & 0 \\
+-\hat{\rho} & 1 & 0 & ... & 0 \\
+0 &  -\hat{\rho} & 1 & & . \\
+. & . & . & . & 0 \\
+0 & . & 0 & -\hat{\rho} & 1
+\end{array}
+\right)
+$$
+
+ 1. Estimate the following equation using OLS
+
+$$
+y_t = \mathbf{x}_t \beta + \epsilon_t
+$$
+and obtain the residuals $e_t =  y_t - \mathbf{x}_t \hat{\beta}$
+
+ 2. Estimate the correlation coefficient for the [AR(1)] process by estimating the following by OLS (without no intercept)
+
+$$
+e_t = \rho e_{t-1} + u_t
+$$
+
+ 3. Transform the outcome and independent variables $\mathbf{wy}$ and $\mathbf{wX}$ respectively (weight matrix as stated). 
+ 4. The [FPW][Feasiable Prais Winsten] estimator is obtained as the least squared estimated for the following weighted equation 
+
+$$
+\mathbf{wy = wX\beta + w\epsilon}
+$$
+
+
+**Properties of [Feasiable Prais Winsten] Estimator**
+
+ * The Infeasible PW estimator is under A1-A3 for the unweighted equation
+ * The [FPW][Feasiable Prais Winsten] estimator is biased
+ * The [FPW][Feasiable Prais Winsten] is consistent under [A1][A1 Linearity] [A2][A2 Full rank] [A5][A5 Data Generation (random Sampling)] and 
+
+$$
+E((\mathbf{x_t - \rho x_{t-1}})')(\epsilon_t - \rho \epsilon_{t-1})=0
+$$
+
+    + [A3a] is not sufficient for the above equaiton 
+    + [A3][A3 Exogeneity of Independent Variables] is suffiicent for the above equaiton
+
+ * The [FPW][Feasiable Prais Winsten] estimator is asymptotically more efficient than OLS if the errors are truly generated as AR(1) process
+    + If the errors are truly generated as AR(1) process then usual standard errors are valid 
+    + If we are concerned that there may be a more complex dependence structure of heteroskedasticity, then we use [Newey West Standard Errors]
+
+### Feasible group level Random Effects
+
+ 1. Estimate the following equation using OLS
+
+$$
+y_{gi} = \mathbf{x}_{gi}\beta + \epsilon_{gi}
+$$
+and obtain the residuals $e_{gi} = y_{gi} - \mathbf{x}_{gi}\hat{\beta}$
+ 2. Estimate the variance using the usual $s^2 estimator 
+
+$$
+s^2 = \frac{1}{n-k}\sum_{i=1}^{n}e_i^2
+$$
+as an estimator for $\sigma^2_c + \sigma^2_u$ and estimate the within group correlation,
+
+$$
+\hat{\sigma}^2_c = \frac{1}{G} \sum_{g=1}^{G} (\frac{1}{\sum_{i=1}^{n_g-1}i}\sum_{i\neq j}\sum_{j}^{n_g}e_{gi}e_{gj})
+$$
+
+and plug in the estimates to obtain $\hat{\Omega}$
+
+ 3. The feasible group level RE estimator is obtained as 
+
+$$
+\hat{\beta}= \mathbf{(X'\hat{\Omega}^{-1}X)^{-1}X'\hat{\Omega}^{-1}y}
+$$
+
+**Properties of the [Feasible group level Random Effects] Estimator**
+
+ * The infeasible group RE estimator is a linear estimator and is unbiased under A1-A3 for the unweighted equation 
+    + A3 requires $E(\epsilon_{gi}|\mathbf{x}_i) = E(c_{g}|\mathbf{x}_i)+ (u_{gi}|\mathbf{x}_i)=0$ so we generally assume $E(c_{g}|\mathbf{x}_i)+ (u_{gi}|\mathbf{x}_i)=0$. The assumption $E(c_{g}|\mathbf{x}_i)=0$ is generally called **random effects assumption**
+ * The [Feasible group level Random Effects] is biased
+ * The [Feasible group level Random Effects] is consistent under A1-A3a, and A5a for the unweighted equation.
+    + [A3a] requires $E(\mathbf{x}_i'\epsilon_{gi}) = E(\mathbf{x}_i'c_{g})+ (\mathbf{x}_i'u_{gi})=0$
+ * The [Feasible group level Random Effects] estimator is asymptotically more efficient than OLS if the errors follow the random effects specification
+    + If the errors do follow the random effects specification than the usual standard errors are consistent
+    + If there might be a more complex dependence structure or heteroskedasticity, then we need cluster robust standard errors.
+
 
 ### Generalized Least Squares
 
@@ -396,11 +1327,93 @@ $$
 L(\theta)=\prod_{i=1}^{n}\theta^{y_i}(1-\theta)^{1-y_i}
 $$
 
+$\hat{\theta}$ is the Maximum Likelihood estimate if $L(\hat{\theta}) > L(\theta_0)$ for all values of $\theta_0$ in the parameter space.
+
+**Motivation for MLE**  
+
+Suppose we know the conditional distribution of y given x: 
+
+$$
+f_{Y|X}(y,x;\theta)
+$$
+where $\theta$ is the unknown parameter of distribution. Sometimes we are only concerned with the unconditional distribution $f_{Y}(y;\theta)$  
+
+Then given a sample of iid data, we can calculate the joint distribution of the entire sample, 
+
+$$
+f_{Y_1,...,Y_n|X_1,...,X_n(y_1,...y_n,x_1,...,x_n;\theta)}= \prod_{i=1}^{n}f_{Y|X}(y_i,x_i;\theta)
+$$
+The joint distribution evaluated at the sample is the likelihood (probability) that we observed this particular sample (depends on $\theta$)
+
+Idea for MLE: Given a sample, we choose our estimates of the parameters that gives the highest likelihood (probability) of observing our particular sample 
+
+$$
+max_{\theta} \prod_{i=1}^{n}f_{Y|X}(y_i,x_i; \theta)
+$$
+
+Equivalently,
+
+$$
+max_{\theta} \prod_{i=1}^{n} ln(f_{Y|X}(y_i,x_i; \theta))
+$$
+Solving for the Maximum Likelihood Estimator  
+
+ 1. Solve First Order Condition
+
+$$
+\frac{\partial}{\partial \theta}\sum_{i=1}^{n} ln(f_{Y|X}(y_i,x_i;\hat{\theta}_{MLE})) = 0
+$$
+where $\hat{\theta}_{MLE}$ is defined.
+
+ 2. Evaluate Second Order Condition
+
+$$
+\frac{\partial^2}{\partial \theta^2} \sum_{i=1}^{n} ln(f_{Y|X}(y_i,x_i;\hat{\theta}_{MLE})) < 0
+$$
+
+where the above condition ensures we can solve for a maximum
+
+
+
+
+Examples:  
+Unconditional Poisson Distribution: Number of products ordered on Amazon within an hour, number of website visits a day for a political campaign.  
+
+Exponential Distribution: Length of time until an earthquake occurs, length of time a car battery lasts.  
+
+$$
+f_{Y|X}(y,x;\theta) = exp(-y/x\theta)/x\theta \\
+f_{Y_1,..Y_n|X_1,...,X_n(y_1,...,y_n,x_1,...,x_n;\theta)} = \prod_{i=1}^{n}exp(-y_i/x_i \theta)/x_i \theta
+$$
+
 
 
 **Assumption**: 
 observations are independent and have the same density function. 
 Under multivariate normal assumption, ML yields consistent estimates of the means and the covariance matrix for multivariate distribution with finite fourth moments [@Little_1987]
+
+To find the MLE, we usually differentiate the **log-likelihood** function and set it equal to 0.
+
+$$
+\frac{d}{d\theta}l(\theta) = 0 
+$$
+This is the **score** equation
+
+Our confidence in the MLE is quantified by the "pointedness" of the log-likelihood
+$$
+I_O(\theta)= \frac{d^2}{d\theta^2}l(\theta) = 0 
+$$
+called the **observed information**
+
+while 
+$$
+I(\theta)=E[I_O(\theta;Y)]
+$$
+is the expected information. (also known as Fisher Information). which we base our variance of the estimator. 
+
+$$
+V(\hat{\Theta}) \approx I(\theta)^{-1}
+$$
 
 
 **Properties** 
@@ -409,13 +1422,32 @@ Under multivariate normal assumption, ML yields consistent estimates of the mean
  (1) Consistent: estimates are approximately unbiased in large samples
  (2) Asymptotically efficient: approximately smaller standard errors compared to other estimator
  (3) Asymptotically normal: with repeated sampling, the estimates will have an approximately normal distribution. 
+ (4) Invariance: MLE for $g(\theta) = g(\hat{\theta})$
+
+$$
+\hat{\Theta} \approx^d (\theta,I(\hat{\theta)^{-1}}))
+$$
+
+Explicit vs Implicit MLE
+
+ * If we solve the score equation to get an expression of MLE, then it's called **explicit**
+ * If there is no closed form for MLE, and we need some algorithms to derive its expression, it's called **implicit**
 
 
+**Note**  
 
+ * ML is better choice for binary, strictly positive, count, or inherent heteroskedasticity than linear model. 
+ * ML will assume that we know the conditional distribution of the outcome, and derive an estimator using that information. 
+    + Adds an assumption that we know the distribution (which is similar to [A6 Normal Distribution] in linear model)
+    + will produce a more efficient estimator.
 
 
 ## Non-linear Regression
+### Non-linear Least Sqaures
 
+### Genelized Method of Moments
+
+### Minimum Distance
 
 
 

@@ -1,8 +1,307 @@
 # Data
+
+There are multiple ways to categorize data. For example,  
+
+ * Qualitative vs. Quantitative:  
+
+Qualitative | Quantitative
+---|---
+in-depth interviews, documents, focus groups, case study, ethnography. open-ended questions. observations in words | experiments, observation in words, survey with closed-end questions, structured interviews
+language, descriptive | quantities, numbers
+Text-based | Numbers-based
+Subjective | Objectivity
+
+
+
+## Cross-Sectional
+
+## Time Series
+
+$$
+y_t = \beta_0 + x_{t1}\beta_1 + x_{t2}\beta_2 + ... + x_{t(k-1)}\beta_{k-1} + \epsilon_t
+$$
+
+Examples  
+
+ * Static Model 
+    + $y_t=\beta_0 + x_1\beta_1 + x_2\beta_2 - x_3\beta_3 - \epsilon_t$
+ * Finite Distributed Lag model
+    + $y_t=\beta_0 + pe_t\delta_0 + pe_{t-1}\delta_1 +pe_{t-2}\delta_2 + \epsilon_t$
+    + **Long Run Propensity (LRP)** is $LRP = \delta_0 + \delta_1 + \delta_2$
+ * Dynamic Model
+    + $GDP_t = \beta_0 + \beta_1GDP_{t-1} - \epsilon_t$
+
+<br>
+
+[Finite Sample Properties] for [Time Series]:  
+
+ * A1-A3: OLS is unbiased
+ * A1-A4: usual standard errors are consistent and [Gauss-Markov Theorem] holds (OLS is BLUE)
+ * A1-A6, A6: Finite Sample [Wald Test] (t-test and F-test) are valid
+
+[A3][A3 Exogeneity of Independent Variables] might not hold under time series setting  
+
+ * Spurious Time Trend - solvable
+ * [Strict][A3 Exogeneity of Independent Variables] vs Contemporaneous Exogeneity - not solvable
+ 
+In time series data, there are many processes:  
+
+ * Autoregressive model of order p: AR(p)
+ * Moving average model of order q: MA(q) 
+ * Autoregressive model of order p and moving average model of order q: ARMA(p,q) 
+ * Autoregressive conditional heteroskedasticity model of order p: ARCH(p)
+ * Generalized Autoregressive conditional heteroskedasticity of orders p and q; GARCH(p.q)
+
+### Deterministic Time trend
+Both the dependent and independent variables are trending over time
+
+**Spurious Time Series Regression**
+$$
+y_t = \alpha_0 + t\alpha_1 + v_t
+$$
+and x takes the form 
+$$
+x_t = \lambda_0 + t\lambda_1 + u_t
+$$
+
+ * $\alpha_1 \neq 0$ and $\lambda_1 \neq 0$
+ * $v_t$ and $u_t$ are independent
+ * there is no relationship between $y_t$ and $x_t$
+
+If we estimate the regression,
+$$
+y_t = \beta_0 + x_t\beta_1 + \epsilon_t
+$$
+so the true $\beta_1=0$  
+
+ * Inconsistent: $plim(\hat{\beta}_1)=\frac{\alpha_1}{\lambda_1}$
+ * Invalid Inference: $|t| \to^d \infty$ for $H_0: \beta_1=0$, will always reject the null as $n \to \infty$
+ * Uninformative $R^2$: $plim(R^2) = 1$ will be able to perfectly predict as $n \to \infty$
+
+We can rewrite the equation as
+$$
+y_t=\beta_0 + \beta_1x_t+\epsilon_t \\
+\epsilon_t = \alpha_1t + v_t
+$$
+where $\beta_0 = \alpha_0$ and $\beta_1=0$. Since $x_t$ is a deterministic function of time, $\epsilon_t$ is correlated with $x_t$ and we have the usual omitted variable bias.  
+Even when $y_t$ and $x_t$ are related ($\beta_1 \neq 0$) but they are both trending over time, we still get spurious results with the simple regression on $y_t$ on $x_t$
+
+**Solutions to Spurious Trend**
+
+ 1. Include time trend t as an additional control  
+    * consistent parameter estimates and valid inference
+ 2. Detrend both dependent and independent variables and then regress the detrended outcome on detrended independent variables (i.e., regress residuals $\hat{u}_t$ on residuals $\hat{v}_t$)
+    * Detrending is the same as partialling out in the [Frisch-Waugh-Lovell Theorem]
+        + Could allow for non-linear time trends by including t $t^2$, and exp(t)
+        + Allow for seasonality by including indicators for relevant "seasons" (quarters, months, weeks).
+
+
+[A3][A3 Exogeneity of Independent Variables] does not hold under:  
+
+ * [Feedback Effect]
+    + $\epsilon_t$ influences next period's independent variables
+ * [Dynamic Specification]
+    + include last time period outcome as an explanatory variable
+ * [Dynamically Complete]
+    + For finite distrusted lag model, the number of lags needs to be absolutely correct.
+
+### Feedback Effect
+
+$$
+y_t = \beta_0 + x_t\beta_1 + \epsilon_t
+$$
+[A3][A3 Exogeneity of Independent Variables] 
+$$
+E(\epsilon_t|\mathbf{X})= E(\epsilon_t| x_1,x_2, ...,x_t,x_{t+1},...,x_T)
+$$
+will not equal 0, because $y_t$ will likely influence $x_{t+1},..,x_T$  
+
+ * [A3][A3 Exogeneity of Independent Variables]  is violated because we require the error to be uncorrelated with all time observation of the independent regressors (**strict exogeneity**)
+
+### Dynamic Specification
+
+$$
+y_t = \beta_0 + y_{t-1}\beta_1 + \epsilon_t
+$$
+
+$$
+E(\epsilon_t|\mathbf{X})= E(\epsilon_t| y_1,y_2, ...,y_t,y_{t+1},...,y_T)
+$$
+
+will not equal 0, because $y_t$ and $\epsilon_t$ are inherently correlated  
+
+ * [A3][A3 Exogeneity of Independent Variables] is violated because we require the error to be uncorrelated with all time observation of the independent regressors (**strict exogeneity**)
+ * [Dynamic Specification] is not allowed under [A3][A3 Exogeneity of Independent Variables]
+
+### Dynamically Complete
+
+$$
+y_t = \beta_0 + x_t\delta_0 + x_{t-1}\delta_1 + \epsilon_t
+$$
+
+$$
+E(\epsilon_t|\mathbf{X})= E(\epsilon_t| x_1,x_2, ...,x_t,x_{t+1},...,x_T)
+$$
+ will not equal 0, because if we did not include enough lags, $x_{t-2}$ and $\epsilon_t$ are correlated
+
+ * [A3][A3 Exogeneity of Independent Variables] is violated because we require the error to be uncorrelated with all time observation of the independent regressors (strict exogeneity)
+ * Can be corrected by including more lags (but when stop? )
+
+Without [A3][A3 Exogeneity of Independent Variables]  
+
+ * OLS is biased 
+ * [Gauss-Markov Theorem]
+ * [Finite Sample Properties] are invalid
+
+then, we can  
+
+ * Focus on [Large Sample Properties]
+ * Can use [A3a] instead of [A3][A3 Exogeneity of Independent Variables]
+
+
+[A3a] in time series become
+$$
+A3a: E(\mathbf{x}_t'\epsilon_t)= 0
+$$
+
+only the regressors in this time period need to be independent from the error in this time period (**COntemporaneous Exogeneity**)  
+
+ * $\epsilon_t$ can be correlated with $...,x_{t-2},x_{t-1},x_{t+1}, x_{t+2},...$
+ * can have a dynamic specification $y_t = \beta_0 + y_{t-1}\beta_1 + \epsilon_t$
+
+
+Deriving [Large Sample Properties] for Time Series
+
+ * Assumptions [A1][A1 Linearity], [A2][A2 Full rank], [A3a]
+ * [Weak Law] and [Central Limit Theorem] depend on [A5][A5 Data Generation (random Sampling)]
+    + $x_t$ and $\epsilon_t$ are dependent over t
+    + without [Weak Law] or [Central Limit Theorem] depend on [A5][A5 Data Generation (random Sampling)], we cannot have [Large Sample Properties] for [OLS][Ordinary Least Squares]
+    + Instead of [A5][A5 Data Generation (random Sampling)], we consider [A5a]
+ * Derivation of the Asymptotic Variance depends on [A4][A4 Homoskedasticity]
+    + time series setting introduces **Serial Correlation**: $Cov(\epsilon_t, \epsilon_s) \neq 0$
+
+
+under [A1][A1 Linearity], [A2][A2 Full rank], [A3a], and [A5a], [OLS estimator][Ordinary Least Squares] is **consistent**, and **asymptotically normal**
+
+### Highly Persistent Data
+If $y_t, \mathbf{x}_t$ are not weakly dependent stationary process   
+ * $y_t$ and $y_{t-h}$ are not almost independent for large h
+ * [A5a] does not hold and OLS is not **consistent** and does not have a limiting distribution.
+ * Example
+    + Random Walk $y_t = y_{t-1} + u_t$
+    + Random Walk with a drift: $y_t = \alpha+ y_{t-1} + u_t$
+
+**Solution**
+First difference is a stationary process
+$$
+y_t - y_{t-1} = u_t
+$$
+
+ * If $u_t$ is a weakly dependent process (also called integrated of order 0) then $y_t$ is said to be difference-stationary process (integrated of order 1)
+ * For regression, if $\{y_t, \mathbf{x}_t \}$ are random walks (integrated at order 1), can consistently estimate the first difference equation 
+
+$$
+\begin{align}
+y_t - y_{t-1} &= (\mathbf{x}_t - \mathbf{x}_{t-1}\beta + \epsilon_t - \epsilon_{t-1}) \\
+\Delta y_t &= \Delta \mathbf{x}\beta + \Delta u_t
+\end{align}
+$$
+
+
+**Unit Root Test**
+$$
+y_t = \alpha + \alpha y_{t-1} + u_t
+$$
+tests if $\rho=1$ (integrated of order 1)  
+ * Under the null $H_0: \rho = 1$, OLS is not consistent or asymptotically normal. 
+ * Under the alternative $H_a: \rho < 1$,  OLS is consistent and asymptotically normal. 
+ * usual t-test is not valid, will need to use the transformed equation to produce a valid test.
+
+**Dickey-Fuller Test**
+$$
+\Delta y_t= \alpha + \theta y_{t-1} + v_t
+$$
+where $\theta = \rho -1$  
+ * $H_0: \theta = 0$ and $H_a: \theta < 0$
+ * Under the null, $\Delta y_t$ is weakly dependent but $y_{t-1}$ is not.
+ * Dickey and Fuller derived the non-normal asymptotic distribution. If you reject the null then $y_t$ is not a random walk.  
+
+Concerns with the standard Dickey Fuller Test  
+ 1. Only considers a fairly simplistic dynamic relationship
+
+$$
+\Delta y_t = \alpha + \theta y_{t-1} + \gamma_1 \Delta_{t-1} + ..+ \gamma_p \Delta_{t-p} +v_t
+$$
+ * with one additional lag, under the null $\Delta_{y_t}$ is an AR(1) process and under the alternative $y_t$ is an AR(2) process. 
+ * Solution: include lags of $\Delta_{y_t}$ as controls.
+
+2. Does not allow for time trend
+$$
+\Delta y_t = \alpha + \theta y_{t-1} + \delta t + v_t
+$$
+ * allows $y_t$ to have a quadratic relationship with t 
+ * Solution: include time trend (changes the critical values).
+
+
+**Adjusted Dickey-Fuller Test**
+$$
+\Delta y_t = \alpha + \theta y_{t-1} + \delta t + \gamma_1 \Delta y_{t-1} + ... + \gamma_p \Delta y_{t-p} + v_t
+$$
+where $\theta = 1 - \rho$  
+ * $H_0: \theta_1 = 0$ and $H_a: \theta_1 < 0$
+ * Under the null, $\Delta y_t$ is weakly dependent but $y_{t-1}$ is not
+ * Critical values are different with the time trend, if you reject the null then $y_t$ is not a random walk.
+
+
+##### Newey West Standard Errors
+If [A4][A4 Homoskedasticity] does not hold, we can use Newey West Standard Errors (HAC - Heteroskedasticity Autocorrelation Consistent)
+
+$$
+\hat{B} = T^{-1} \sum_{t=1}^{T} e_t^2 \mathbf{x'_tx_t} + \sum_{h=1}^{g}(1-\frac{h}{g+1})T^{-1}\sum_{t=h+1}^{T} e_t e_{t-h}(\mathbf{x_t'x_{t-h}+ x_{t-h}'x_t})
+$$
+
+ * estimates the covariances up to a distance g part
+ * downweights to insure $\hat{B}$ is PSD
+ * How to choose g:
+    + For yearly data: g = 1 or 2 is likely to account for most of the correlation
+    + For quarterly or monthly data: g should be larger (g = 4 or 8 for quarterly and g = 12 or 14 for monthly) 
+    + can also take integer part of $4(T/100)^{2/9}$ or integer part of $T^{1/4}$
+
+**Testing for Serial Correlation**  
+
+ 1. Run OLS regression of $y_t$ on $\mathbf{x_t}$ and obtain residuals $e_t$
+ 2. Run OLS regression of $e_t$ on $\mathbf{x}_t, e_{t-1}$ and test whether coefficient on $e_{t-1}$ is significant.
+ 3. Reject the null of no serial correlation if the coefficient is significant at the 5% level.
+    + Test using heteroskedastic robust standard errors
+    + can include $e_{t-2},e_{t-3},..$ in step 2 to test for higher order serial correlation (t-test would now be an F-test of joint significance)
+
+
+
 ## Repeated Cross Sections
 For each time point (day, month, year, etc.), a set of data is sampled. This set of data can be different among different time points.  
 
 For example, you can sample different groups of students each time you survey.
+
+Allowing structural change in pooled cross section
+
+$$
+y_i = \mathbf{x}_i \beta + \delta_1 y_1 + ... + \delta_T y_T + \epsilon_i
+$$
+Dummy variables for all but one time period  
+ * allows different intercept for each time period
+ * allows outcome to change on average for each time period
+
+
+Allowing for structural change in pooled cross section
+
+$$
+y_i = \mathbf{x}_i \beta + \mathbf{x}_i y_1 \gamma_1 + ... + \mathbf{x}_i y_T \gamma_T + \delta_1 y_1 + ...+ \delta_T y_T + \epsilon_i
+$$
+Interact $x_i$ with time period dummy variables  
+
+ * allows different slopes for each time period 
+ * allows effects to change based on time period (**structural break**)
+ * Interacting all time period dummies with $x_i$ can produce many variables - use hypothesis testing to determine which structural breaks are needed.
 
 ### Pooled Cross Section
 $$
@@ -108,7 +407,7 @@ Pooled OLS will give you consistent coefficient estimates under [A1][A1 Linearit
 
 ### Individual-specific effects model 
 
- * If we believe that there is unobserved heterogeneity across individual (e.g., unobserved ability of an individual affects $y$), If the individual-specific effects are correlated with the regressors, then we have the [Fixed Effects Estimator]. and if they are not correlated we have the [Random Effects Estimator. 
+ * If we believe that there is unobserved heterogeneity across individual (e.g., unobserved ability of an individual affects $y$), If the individual-specific effects are correlated with the regressors, then we have the [Fixed Effects Estimator]. and if they are not correlated we have the [Random Effects Estimator]. 
 
 #### Random Effects Estimator
 
@@ -176,23 +475,23 @@ c_i
 
 ### Tests for Assumptions
 
-**Cross-sectional dependence/contemporaneous correlation**
+#### Cross-sectional dependence/contemporaneous correlation
 
  * Null hypothesis: residuals across entities are not correlated. 
  * usually seen in macro panels with long time series (large N and T), not seen in micro panels (small T and large N)
  
-**Serial Correlation**
+#### Serial Correlation
 
  * Null hypothesis: there is no serial correlation
  * usually seen in macro panels with long time series (large N and T), not seen in micro panels (small T and large N)
 
-**Unit roots/stationarity**
+#### Unit roots/stationarity
 
  * Dickey-Fuller test for stochastic trends.
  * Null hypothesis: the series is non-stationary (unit root)
  * You would want your test to be less than the critical value (p<.5) so that there is evidence there is not unit roots.
 
-**Heteroskedasticity**
+#### Heteroskedasticity
 
  * Breusch-Pagan test
  * Null hypothesis: the data is homoskedastic
@@ -202,6 +501,7 @@ c_i
     + "white2" - is "white1" restricted to a common variance within groups. Recommended for random effects.
     + "arellano" - both heteroskedasticity and serial correlation. Recommended for fixed effects
 
+### Model Selection
 
 #### POLS vs. RE
 The continuum between RE (used FGLS which more assumption ) and POLS 
@@ -212,6 +512,7 @@ check back on the section of FGLS
  * Test for the random effect model based on the OLS residual
  * Null hypothesis: variances across entities is zero. In another word, no panel effect.
  * If the test is significant, RE is preferable compared to POLS
+
 
 
 #### FE vs. RE
@@ -236,10 +537,15 @@ Then,
  * A low p-value means that we would reject the null hypothesis and prefer FE
  * A high p-value means that we would not reject the null hypothesis and consider RE estimator. 
 
+
+
+Violation \ Estimator  | Basic Estimator | Instrumental variable Estimator | Variable Coefficients estimator | Generalized Method of Moments estimator | General FGLS estimator | Means groups estimator | CCEMG | Estimator for limited dependent variables 
+---|---|---|---|--|---|---|---|---|---
+
  
 ### Summary
 
- * All three estimators (POLS, RE, FE) require [A1][A1 Linearity], [A2][A2 Full rank], [A5][A5 Data Generation (random Sampling)] (for individuals) to be consistent. Addtionally, 
+ * All three estimators (POLS, RE, FE) require [A1][A1 Linearity], [A2][A2 Full rank], [A5][A5 Data Generation (random Sampling)] (for individuals) to be consistent. Additionally, 
  * POLS is consistent under A3a(for $u_{it}$): $E(\mathbf{x}_{it}'u_{it})=0$, and RE Assumption $E(\mathbf{x}_{it}'c_{i})=0$
     + If [A4][A4 Homoskedasticity] does not hold, use cluster robust SE but POLS is not efficient
  * RE is consistent under A3a(for $u_{it}$): $E(\mathbf{x}_{it}'u_{it})=0$, and RE Assumption $E(\mathbf{x}_{it}'c_{i})=0$
@@ -248,7 +554,8 @@ Then,
  * FE is consistent under [A3][A3 Exogeneity of Independent Variables] $E((\mathbf{x}_{it}-\bar{\mathbf{x}}_{it})'(u_{it} -\bar{u}_{it}))=0$
     + Cannot estimate effects of time constant variables 
     + A4 generally does not hold for $u_{it} -\bar{u}_{it}$ so cluster robust SE are needed
- 
+
+**Note**: [A5][A5 Data Generation (random Sampling)] for individual (not for time dimension) implies that you have [A5a] for the entire data set. 
  
  
 Estimator / True Model | POLS | RE| FE 
@@ -274,7 +581,7 @@ Y <- cbind(y)
 X <- cbind(x1, x2, x3)
 
 # Set data as panel data
-pdata <- plm.data(Panel, index=c("country","year"))
+pdata <- pdata.frame(Panel, index=c("country","year"))
 
 # Pooled OLS estimator
 pooling <- plm(Y ~ X, data=pdata, model= "pooling")
@@ -297,6 +604,7 @@ random <- plm(Y ~ X, data=pdata, model= "random")
 summary(random)
 
 # LM test for random effects versus OLS
+# Accept Null, then OLS, Reject Null then RE
 plmtest(pooling,effect = "individual", type = c("bp")) # other type: "honda", "kw"," "ghm"; other effect : "time" "twoways"
 
 
@@ -378,12 +686,44 @@ punbalancedness(random)
 **Instrumental variable**
 
  * `"bvk"`: default [@Balestra_1987]
- * `"baltagi"`: 
- * `"am"` 
- * `"bms"`: 
+ * `"baltagi"`: [@Baltagi_1981]
+ * `"am"` [@Amemiya_1986]
+ * `"bms"`: [@Breusch_1989]
+
+```{r, eval=FALSE}
+instr <- plm(Y ~ X | X_ins, data = pdata, random.method = "ht", model = "random", inst.method = "baltagi")
+```
 
 
 ### Other Estimators
 #### Variable Coeffiicents Model
+```{r, eval=FALSE}
+fixed_pvcm <- pvcm(Y~X, data=pdata, model="within")
+random_pvcm <- pvcm(Y~X, data=pdata, model="random")
+```
 
-####
+More details can be found [here](https://cran.r-project.org/web/packages/plm/vignettes/plmPackage.html)
+
+#### Generalized Method of Moments Estimator
+Typically use in dynamic models.
+Example is from [plm package](https://cran.r-project.org/web/packages/plm/vignettes/plmPackage.html)
+```{r,eval=FALSE}
+z2 <- pgmm(log(emp) ~ lag(log(emp), 1)+ lag(log(wage), 0:1) +
+           lag(log(capital), 0:1) | lag(log(emp), 2:99) +
+           lag(log(wage), 2:99) + lag(log(capital), 2:99),        
+           data = EmplUK, effect = "twoways", model = "onestep", 
+           transformation = "ld")
+summary(z2, robust = TRUE)
+```
+
+#### General Feasible Generalized Least Squares Models
+Assume there is no cross-sectional correlation Robust against intragroup heteroskedasticity and serial correlation. Suited when n is much larger than T (long panel)
+However, inefficient under groupwise heteorskedasticity. 
+```{r, eval=FALSE}
+# Random Effects
+zz <- pggls(log(emp)~log(wage)+log(capital), data=EmplUK, model="pooling")
+
+# Fixed
+zz <- pggls(log(emp)~log(wage)+log(capital), data=EmplUK, model="within")
+```
+

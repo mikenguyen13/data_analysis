@@ -1,0 +1,438 @@
+# Endogeneity
+
+[A3a] requires $\epsilon_i$ to be uncorrelated with $\mathbf{x}_i$
+
+Assume [A1][A1 Linearity] , [A2][A2 Full rank], [A5][A5 Data Generation (random Sampling)]
+
+$$
+plim(\hat{\beta}_{OLS}) = \beta + [E(\mathbf{x_i'x_i})]^{-1}E(\mathbf{x_i'}\epsilon_i)
+$$
+[A3a] is the weakest assumption needed for OLS to be **consistent**
+
+
+[A3] fails when $x_{ik}$ is correlated with $\epsilon_i$  
+
+ * [Omitted Variables Bias] $\epsilon_i$ includes any other factors that may influence the dependent variable (linearly)
+ * [Feedback Effect (Simultaneity)] Demand and prices are simultaneously determined. 
+ * [Endogenous sample design (sample selection)] we did not have iid sample
+ * [Measurement Error] 
+
+**Note**  
+
+ * Omitted Variable: an omitted variable is a variable, omitted from the model (but is in the $\epsilon_i$) and unobserved has predictive power towards the outcome.  
+ * Omitted Variable Bias: is the bias (and inconsistency when looking at large sample properties) of the OLS estimator when the omitted variable.  
+
+
+
+The **structural equation** is used to emphasize that we are interested understanding a **causal relationship**  
+
+$$
+y_{i1} = \beta_0 + \mathbf{z}_i1 \beta_1 + y_{i2}\beta_2 +  \epsilon_i
+$$
+
+where  
+
+ * $y_{it}$ is the outcome variable (inherently correlated with $\epsilon_i$)
+ * $y_{i2}$ is the endogenous covariate (presumed to be correlated with $\epsilon_i$)
+ * $\beta_1$ represents the causal effect of $y_{i2}$ on $y_{i1}$
+ * $\mathbf{z}_{i1}$ is exogenous controls (uncorrelated with $\epsilon_i$) ($E(z_{1i}'\epsilon_i) = 0$)
+
+OLS is an inconsistent estimator of the causal effect $\beta_2$  
+
+If there was no endogeneity   
+
+ * $E(y_{i2}'\epsilon_i) = 0$
+ * the exogenous variation in $y_{i2}$ is what identifies the causal effect
+
+If there is endogeneity
+
+ * Any wiggle in $y_{i2}$ will shift simultaneously with $\epsilon_i$
+
+$$
+plim(\hat{\beta}_{OLS}) = \beta + [E(\mathbf{x'_ix_i})]^{-1}E(\mathbf{x'_i}\epsilon_i)
+$$
+
+where  
+
+ * $\beta$ is the causal effect
+ * $[E(\mathbf{x'_ix_i})]^{-1}E(\mathbf{x'_i}\epsilon_i)$ is the endogenous effect
+
+Hence $\hat{\beta}_{OLS}$ can be either more positive and negative than the true causal effect. 
+
+<br>
+
+Motivation for **Two Stage Least Squares (2SLS)**
+
+$$
+y_{i1}=\beta_0 + \mathbf{z}_{i1}\beta_1 + y_{i2}\beta_2 + \epsilon_i
+$$
+
+We want to understand how movement in $y_{i2}$ effects movement in $y_{i1}$, but whenever we move $y_{i2}$, $\epsilon_i$ also moves. 
+
+**Solution**  
+We need a way to move $y_{i2}$ independently of $\epsilon_i$, then we can analyze the response in $y_{i1}$ as a causal effect   
+
+ * Find an **instrumental variable(s) $z_{i2}$  
+        + **Instrument Relevance**: when $z_{i2}$ moves then $y_{i2}$ also moves   
+        + **Instrument Exogeneity**: when $z_{i2}$ moves then $\epsilon_i$ does not move.   
+ * $z_{i2}$ is the **exogenous variation that identifies** the causal effect $\beta_2$  
+
+Finding an Instrumental variable:  
+
+ * Random Assignment: 
+        + Effect of class size on educational outcomes: instrument is initial random 
+ * Relation's Choice
+        + Effect of Education on Fertility: instrument is parent's educational level 
+ * Eligibility 
+        + Trade-off between IRA and 401K retirement savings: instrument is 401k eligibility
+
+**Example**  
+
+Return to College  
+
+ * education is correlated with ability - endogenous  
+ * **Near 4year** as an instrument  
+        + Instrument Relevance: when **near** moves then education also moves   
+        + Instrument Exogeneity: when **near** moves then $\epsilon_i$ does not move.   
+ * Other potential instruments; near a 2-year college. Parent's Education. Owning  Library Card  
+
+
+$$
+y_{i1}=\beta_0 + \mathbf{z}_{i1}\beta_1 + y_{i2}\beta_2 + \epsilon_i
+$$
+
+First Stage (Reduced Form) Equation: 
+
+$$
+y_{i2} = \pi_0 + \mathbf{z_{i1}\pi_1} + \mathbf{z_{i2}\pi_2} + v_i
+$$
+where  
+
+ * $\pi_0 + \mathbf{z_{i1}\pi_1} + \mathbf{z_{i2}\pi_2}$ is exogenous variation 
+ $v_i$ is endogenous variation
+
+This is called a **reduced form equation**  
+ * Not interested in the causal interpretation of $\pi_1$ or $\pi_2$
+ * A linear projection of $z_{i1}$ and $z_{i2}$ on $y_{i2}$ (simple correlations)
+ * The projections $\pi_1$ and $\pi_2$ guarantee that $E(z_{i1}'v_i)=0$ and $E(z_{i2}'v_i)=0$ 
+
+
+Instrumental variable $z_{i2}$  
+
+ * **Instrument Relevance**: $\pi_2 \neq 0$
+ * **Instrument Exogeneity**: $E(\mathbf{z_{i2}\epsilon_i})=0$
+
+Moving only the exogenous part of $y_i2$ is moving 
+
+$$
+\tilde{y}_{i2} = \pi_0 + \mathbf{z_{i1}\pi_1 + z_{i2}\pi_2}
+$$
+
+**two Stage Least Squares (2SLS)**
+
+$$
+y_{i1} = \beta_0 +\mathbf{z_{i1}\beta_1}+ y_{i2}\beta_2 + \epsilon_i \\
+y_{i2} = \pi_0 + \mathbf{z_{i2}\pi_2} + \mathbf{v_i}
+$$
+
+Equivalently, 
+
+$$
+\begin{equation}
+y_{i1} = \beta_0 + \mathbf{z_{i1}}\beta_1 + \tilde{y}_{i2}\beta_2 + u_i
+(\#eq:2SLS)
+\end{equation}
+$$
+where  
+
+ * $\tilde{y}_{i2} =\pi_0 + \mathbf{z_{i2}\pi_2}$
+ * $u_i = v_i \beta_2+ \epsilon_i$
+
+
+The \@ref(eq:2SLS) holds for [A1][A1 Linearity], [A5][A5 Data Generation (random Sampling)]  
+
+ * [A2][A2 Full rank] holds if the instrument is relevant $\pi_2 \neq 0$
+        + $y_{i1} = \beta_0 + \mathbf{z_{i1}\beta_1 + (\pi_0 + z_{i1}\pi_1 + z_{i2}\pi_2)}\beta_2 + u_i$
+ * [A3a] holds if the instrument is exogenous $E(\mathbf{z}_{i2}\epsilon_i)=0$
+
+$$
+\begin{align}
+E(\tilde{y}_{i2}'u_i) &= E((\pi_0 + \mathbf{z_{i1}\pi_1+z_{i2}})(v_i\beta_2 + \epsilon_i)) \\
+&= E((\pi_0 + \mathbf{z_{i1}\pi_1+z_{i2}})( \epsilon_i)) \\
+&= E(\epsilon_i)\pi_0 + E(\epsilon_iz_{i1})\pi_1 + E(\epsilon_iz_{i2}) \\
+&=0 
+\end{align}
+$$
+
+Hence, \@ref(eq:2SLS) is consistent 
+
+The 2SLS Estimator  
+ 1. Estimate the first stage using [OLS][Ordinary Least Squares]
+
+$$
+y_{i2} = \pi_0 + \mathbf{z_{i2}\pi_2} + \mathbf{v_i}
+$$
+and obtained estimated value $\hat{y}_{i2}$
+
+ 2. Estimate the altered equation using [OLS][Ordinary Least Squares]
+
+$$
+y_{i1} = \beta_0 +\mathbf{z_{i1}\beta_1}+ \hat{y}_{i2}\beta_2 + \epsilon_i \\
+$$
+
+**Properties of the 2SLS Estimator**
+
+ * Under [A1][A1 Linearity], [A2][A2 Full rank], [A3a] (for $z_{i1}$), [A5][A5 Data Generation (random Sampling)] and if the instrument satisfies the following two conditions, 
+        + **Instrument Relevance**: $\pi_2 \neq 0$
+        + **Instrument Exogeneity**: $E(\mathbf{z}_{i2}'\epsilon_i) = 0$
+ then the 2SLS estimator is consistent
+ * Can handle more than one endogenous variable and more than one instrumental variable 
+
+$$
+y_{i1} = \beta_0 + z_{i1}\beta_1 + y_{i2}\beta_2 + y_{i3}\beta_3 + \epsilon_i \\
+y_{i2} = \pi_0 + z_{i1}\pi_1 + z_{i2}\pi_2 + z_{i3}\pi_3 + z_{i4}\pi_4 + v_{i2} \\
+y_{i3} = \gamma_0 + z_{i1}\gamma_1 + z_{i2}\gamma_2 + z_{i3}\gamma_3 + z_{i4}\gamma_4 + v_{i3}
+$$
+        
+        + **IV estimator**: one endogenous variable with a single instrument 
+        + **2SLS estimator**: one endogenous variable with multiple instruments 
+        + **GMM estimator**: multiple endogenous variables with multiple instruments
+        
+ * Standard errors produced in the second step are not correct  
+        + Because we do not know $\tilde{y}$ perfectly and need to estimate it in the firs step, we are introducing additional variation   
+        + We did not have this problem with [FGLS][Feasible Generalized Least Squares] because "the first stage was orthogonal to the second stage." This is generally not true for most multi-step procedure.  
+        + If [A4][A4 Homoskedasticity] does not hold, need to report robust standard errors.  
+ * 2SLS is less efficient than OLS and will always have larger standard errors.  
+        + First, $Var(u_i) = Var(v_i\beta_2 + \epsilon_i) > Var(\epsilon_i)$  
+        + Second, $\hat{y}_{i2}$ is generally highly collinear with $\mathbf{z}_{i1}$  
+ * The number of instruments need to be at least as many or more the number of endogenous variables. 
+
+
+**Note**  
+
+ * 2SLS can be combined with [FGLS][Feasible Generalized Least Squares] to make the estimator more efficient: You have the same first-stage, and in the second-stage, instead of using OLS, you can use FLGS with the weight matrix $\hat{w}$  
+ * Generalized Method of Moments can be more efficient than 2SLS.  
+ * In the second-stage of 2SLS, you can also use [MLE][Maximum Likelihood], but then you are making assumption on the distribution of the outcome variable, the endogenous variable, and their relationship (joint distribution).  
+
+## Testing Assumption
+
+ 1. [Test of Endogeneity]: Is $y_{i2}$ truly endogenous (i.e., can we just use OLS instead of 2SLS)?
+ 2. [Testing Instrument's assumptions]  
+        + [Exogeneity]: Cannot always test (and when you can it might not be informative)  
+        + [Relevancy]: need to avoid "weak instruments"
+
+
+### Test of Endogeneity
+
+ * 2SLS is generally so inefficient that we may prefer OLS if there is not much endogeneity 
+ * Biased but inefficient vs efficient but biased 
+ * Want a sense of "how endogenous" $y_{i2}$ is  
+        + if "very" endgeneous - should use 2SLS   
+        + if not "very" endogenous - perhaps prefer OLS  
+
+**Invalid** Test of Endogeneity
+ * $y_{i2}$ is endogenous if it is correlated with $\epsilon_i$,
+
+$$
+\epsilon_i = \gamma_0 + y_{i2}\gamma_1 + error_i
+$$
+where $\gamma_1 \neq 0$ implies that there is endogeneity
+
+ * $\epsilon_i$ is not observed, but using the residuals
+
+$$
+e_i = \gamma_0 + y_{i2}\gamma_1 + error_i
+$$
+is **NOT** a valid test of endogeneity
+        + The OLS residual, e is mechanically uncorrelated with $y_{i2}$ (by FOC for OLS)
+        + In every situation, $\gamma_1$ will be essentially 0 and you will never be able to reject the null of no endogeneity  
+
+<br>
+
+**Valid** test of endogeneity
+
+ * If $y_{i2}$ is not endogenous then $\epsilon_i$ and v are uncorrelated
+
+$$
+y_{i1} = \beta_0 + \mathbf{z}_{i1}\beta_1 + y_{i2}\beta_2 + \epsilon_i \\
+y_{i2} = \pi_0 + \mathbf{z}_{i1}\pi_1 + z_{i2}\pi_2 + v_i
+$$
+
+**variable Addition test**: include the first stage residuals as an additional variable, 
+
+$$
+y_{i1} = \beta_0 + \mathbf{z}_{i1}\beta_1 + y_{i2}\beta_2 + \hat{v}_i \theta + error_i
+$$
+
+Then the usual t-test of significance is a valid test to evaluate the following hypothesis. **note** this test requires your instrument to be valid instrument.
+
+$$
+\begin{split}
+H_0: \theta = 0 && \text{  (not endogenous)} \\
+H_1: \theta \neq 0 && \text{  (endogenous)}
+\end{split}
+$$
+
+
+### Testing Instrument's assumptions
+
+The instrumental variable must satisfy  
+
+ 1. [Exogeneity]
+ 2. [Relevancy]
+
+#### Exogeneity
+
+Why exogeneity matter?
+
+$$
+E(\mathbf{z}_{i2}'\epsilon_i) = 0
+$$
+
+ * If [A3a] fails - 2SLS is also inconsistent 
+ * If instrument is not exogenous, then we need to find a new one.
+ * Similar to [Test of Endogeneity], when there is a single instrument 
+
+$$
+e_i = \gamma_0 + \mathbf{z}_{i2}\gamma_1 + error_i \\
+H_0: \gamma_1 = 0
+$$
+is **NOT** a valid test of endogeneity  
+ * the OLS residual, e is mechanically uncorrelated with $z_{i2}$: $\hat{\gamma}_1$ will be essentially 0 and you will never be able to determine if the instrument is endogenous. 
+
+**Solution**  
+
+Testing Instrumental Exegeneity in an Over-identified Model 
+ * When there is more than one exogenous instrument (per endogenous variable), we can test for instrument exogeneity.  
+        + When we have multiple instruments, the model is said to be over-identiifed.  
+        + Could estimate the same model several ways (i.e., can identify/ estimate $\beta_1$ more than one way)  
+ * Idea behind the test: if the controls and instruments are truly exogenous then OLS estimation of the following regression,  
+
+$$
+\epsilon_i = \gamma_0 + \mathbf{z}_{i1}\gamma_1 + \mathbf{z}_{i2}\gamma_2 + error_i
+$$
+should have a very low $R^2$  
+ * if the model is **just identified** (one instrument per endogenous variable) then the $R^2 = 0$ 
+
+Steps:
+
+ (1) Estimate the structural equation by 2SLS (using all available instruments) and obtain the residuals e
+ (2) Regress e on all controls and instruments and obtain the $R^2$
+ (3) Under the null hypothesis (all IV's are uncorrelated), $nR^2 \sim \chi^2(q)$, where q is the number of instrumental variables minus the number of endogenous variables
+        + if the model is just identified (one instrument per endogenous variable) then q = 0, and the distribution under the null collapses.  
+
+
+low p-value means you reject the null of exogenous instruments. Hence you would like to have high p-value in this test. 
+        
+<br>
+
+**Pitfalls for the Overid test**
+
+ * the overid test is essentially compiling the following information.  
+        + Conditional on first instrument being exogenous is the other instrument exogenous?  
+        + Conditional on the other instrument being exogenous, is the first instrument exogenous?  
+ * If all instruments are endogenous than neither test will be valid
+ * really only useful if one instrument is thought to be truly exogenous (randomly assigned). 
+ even f you do reject the null, the test does not tell you which instrument is exogenous and which is endogenous. 
+ 
+Result | Implication 
+---|---
+reject the null | you can be pretty sure there is an endogenous instrument, but don't know which one. 
+fail to reject | could be either (1) they are both exogenous, (2) they are both endogenous. 
+
+
+
+#### Relevancy
+
+Why Relevance matter?
+
+$$
+\pi_2 \neq 0 
+$$
+ * used to show [A2][A2 Full rank] holds
+        + If $\pi_2 = 0$ (instrument is not relevant) then [A2][A2 Full rank] fails - perfect multicollinearity  
+        + If $\pi_2$ is close to 0 (**weak instrument**) then there is near perfect multicollinearity - 2SLS is highly inefficient (Large standard errors).  
+ * A weak instrument will exacerbate any inconsistency due to an instrument being (even slightly) endogenous.  
+        + In the simple case with no controls and a single endogenous variable and single instrumental variable, 
+
+$$
+plim(\hat{\beta}_{2_{2SLS}}) = \beta_2 + \frac{E(z_{i2}\epsilon_i)}{E(z_{i2}y_{i2})}
+$$
+
+
+**Testing Weak Instruments**  
+
+ * can use t-test (or F-test for over-identified models) in the first stage to determine if there is a weak instrument problem. 
+ * [@Stock_2005]: a statistical rejection of the null hypothesis in the first stage at the 5% (or even 1%) level is not enough to insure the instrument is not weak  
+        + Rule of Thumb: need a F-stat of at least 10 (or a t-stat of at least 3.2) to reject the null hypothesis that the instrument is weak.
+
+
+**Summary of the 2SLS Estimator**
+
+$$
+y_{i1}=\beta_0 + \mathbf{z}_{i1}\beta_1 + y_{i2}\beta_2 + \epsilon_i \\
+y_{i2} = \pi_0 + \mathbf{z_{i1}\pi_1} + \mathbf{z_{i2}\pi_2} + v_i
+$$
+
+ * when [A3a] does not hold 
+
+$$
+E(y_{i2}'\epsilon_i) \neq 0
+$$
+        + Then the OLS estimator is no longer unbiased or consistent.  
+ * If we have valid instruments $\mathbf{z}_{i2}$
+        + [Exogeneity]: $E(\mathbf{z}_{i2}'\epsilon_i) = 0$
+        + [Relevancy]: $\pi_2 \neq 0$
+ Then the 2SLS estimator is consistent under [A1][A1 Linearity], [A2][A2 Full rank], [A5a], and the above two conditions. 
+        + If [A4][A4 Homoskedasticity] also holds, then the usual standard errors are valid. 
+        + If [A4][A4 Homoskedasticity] does not hold then use the robust standard errors. 
+
+$$
+y_{i1}=\beta_0 + \mathbf{z}_{i1}\beta_1 + y_{i2}\beta_2 + \epsilon_i \\
+y_{i2} = \pi_0 + \mathbf{z_{i1}\pi_1} + \mathbf{z_{i2}\pi_2} + v_i
+$$
+ * When [A3a] does hold 
+
+$$
+E(y_{i2}'\epsilon_i) = 0
+$$
+and we have valid instruments, then both the OLS and 2SLS estimators are consistent.  
+        + The OLS estimator is always more efficient 
+        + can use the variable addition test to determine if 2SLS is need (A3a does hold) or if OLS is valid (A3a does not hold)
+
+Sometimes we can test the assumption for instrument to be valid:  
+        + [Exogeneity]: Only table when there are more instruments than endogenous variables.
+        + [Relevancy]: Always testable, need the F-stat to be greater than 10 to rule out a weak instrument 
+
+
+## Omitted Variables Bias
+
+## Feedback Effect (Simultaneity)
+
+## Endogenous sample design (sample selection)
+
+## Measurement Error
+
+
+
+## Proxy Variables 
+Can be in place of the omitted variable,  
+ * will not be able to estimate the effect of the omitted variable 
+ * will be able to reduce some endogeneity caused bye the omitted variable 
+ 
+Criteria for a proxy variable:  
+
+ 1. The proxy is correlated with the omitted variable.
+ 2. Having the omitted variable in the regression will solve the problem of endogeneity 
+ 3.The variation of the omitted variable unexplained by the proxy is uncorrelated with all independent variables, including the proxy. 
+
+IQ test can be a proxy for ability in the regression between wage explained education. 
+
+For the third requirement 
+
+$$
+ability = \gamma_0 + \gamma_1 IQ + \epsilon
+$$
+
+where $\epsilon$ is uncorrelated with education and IQ test. 
+
