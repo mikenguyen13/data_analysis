@@ -67,7 +67,7 @@ If $\bar{X}$ is the sample mean based on a random sample of size n drawn from a 
 
 
 
-## One Sample Inference 
+## One Sample Inference
 
 $Y_i \sim  i.i.d. N(\mu, \sigma^2)$
 
@@ -236,7 +236,7 @@ $$
 n^* = \frac{(t_{v;\alpha/2}+t_{v;\beta})^2 \sigma^2}{\delta^2}
 $$
 
-### Non-parametric Methods
+### One-sample Non-parametric Methods
 #### Sign Test 
 
 If we want to test $H_0: \mu_{(0.5)} = 0; H_a: \mu_{(0.5)} >0$ where $\mu_{(0.5)}$ is the population median. We can  
@@ -435,17 +435,17 @@ we reject $H_0$ if $|t| > t_{n_y + n_x -2;\alpha/2}$
 
  1. Two samples are independent  
         1. Scatter plots  
-        2. Correlation coefficient (if normal)
+        2. [Correlation coefficient (if normal)][Correlation Coefficient with Normal Probability Plots]
  2. Independence of observation in each sample  
         1. Test for serial correlation  
  3. For each sample, homogeneity of variance  
-        1. Scatter plots
-        2. Formal tests 
+        1. Scatter plots  
+        2. Formal tests  
  4. [Normality][Normality Assessment]  
  5. Equality of variances (homogeneity of variance between samples)  
-        1. F-test  
+        1. [F-test]  
         2. Barlett test  
-        3. Modified Levene Test  
+        3. [Modified Levene Test]  
 
 
 To compare 2 normal $\sigma^2_y \neq \sigma^2_x$, we use the test statistic:  
@@ -534,9 +534,408 @@ $$
  * We reject the null hypothesis when $|t_L^*| > t_{n_y + n_x -2;\alpha/2}$  
  * This is just the two-sample t-test applied to the absolute deviations.   
 
-### Sample Size
-
 ### Power
 
+Consider $\sigma^2_y = \sigma^2_x = \sigma^2$  
+Under the assumption of equal variances, we take size samples from both groups ($n_y = n_x = n$)  
+
+For 1-sided testing,  
+
+$$
+H_0: \mu_y - \mu_x \le 0 \\
+H_a: \mu_y - \mu_x > 0
+$$
+
+$\alpha$-level z-test rejects $H_0$ if  
+
+$$
+z = \frac{\bar{y} - \bar{x}}{\sigma \sqrt{2/n}} > z_{\alpha}
+$$
+
+$$
+\pi(\mu_y - \mu_x) = \Phi(-z_{\alpha} + \frac{\mu_y -\mu_x}{\sigma}\sqrt{n/2})
+$$
+
+We need sample size n that gie at least $1-\beta$ power when $\mu_y - \mu_x = \delta$, where $\delta$ is the smallest difference that we want to see.  
+
+Power is given by:  
+
+$$
+\Phi(-z_{\alpha} + \frac{\delta}{\sigma}\sqrt{n/2}) = 1 - \beta
+$$
+
+### Sample Size
+
+Then, the sample size is  
+
+$$
+n = 2(\frac{\sigma (z_{\alpha} + z_{\beta}}{\delta})^2
+$$
+
+For 2-sided test, replace $z_{\alpha}$ with $z_{\alpha/2}$.  
+As with the one-sample case, to perform an exact 2-sample t-test sample size calculation, we must use a non-central [t-distribution][Student T].  
+
+A correction that gives the approximate t-test sample size can be obtained by using the z-test n value in the formula:  
+$$
+n^* = 2(\frac{\sigma (t_{2n-2;\alpha} + t_{2n-2;\beta})}{\delta})^2
+$$
+
+where we use $alpha/2$ for the two-sided test  
+
+### Matched Pair Designs
+
+We have two treatments  
+
+Subject | Treatment A | Treatment B | Difference 
+---|---|---|---
+1 | $y_1$ | $x_1$ | $d_1 = y_1 - x_1$
+2 | $y_2$ | $x_2$ | $d_2 = y_2 - x_2$
+. |. |.|.
+n | $y_n$ | $x_n$ | $d_n = y_n - x_n$
+
+we assume $y_i \sim^{iid} N(\mu_y, \sigma^2_y)$ and $x_i \sim^{iid} N(\mu_x,\sigma^2_x)$, but since $y_i$ and $x_i$ are measured on the same subject, they are correlated.  
+
+Let  
+
+$$
+\mu_D = E(y_i - x_i) = \mu_y -\mu_x \\
+\sigma^2_D = var(y_i - x_i) = Var(y_i) + Var(x_i) -2cov(y_i,x_i)
+$$
+
+If the matching induces **positive** correlation, then the variance of the difference of the measurements is reduced as compared to the independent case. This is the point of [Matched Pair Designs]. Although covariance can be negative, giving a larger variance of the difference than the independent sample case, usually the covariance is positive. This means both $y_i$ and $x_i$  are large for many of the same subjects, and for others, both measurement are small. (we still assume that various subjects respond independently of each other, which is necessary for the iid assumption within groups).  
+
+Let $d_i = y_i - x_i$, then   
+
+ * $\bar{d} = \bar{y}-\bar{x}$ is the sample mean of the $d_i$  
+ * $s_d^2=\frac{1}{n-1}\sum_{i=1}^n (d_i - \bar{d})^2$ is the sample variance of the difference  
+
+Once the data are converted to differences,  we are back to [One Sample Inference] and can use its tests and CIs. 
+
+### Nonparametric Tests for Two Samples
+
+For [Matched Pair Designs], we can use the [One-sample Non-parametric Methods].  
+
+Assume that Y and X are random variables with CDF $F_y$ and $F_x$. then, Y is **stochastically** larger than X for all real number u, $P(Y > u) \ge P(X > u)$.  
+
+Equivalently, $P(Y \le u) \le P(X \le u)$, which is $F_Y(u) \le F_X(u)$, same thing as $F_Y < F_X$  
+
+If two distributions are identical, except that one is shifted relative to the other, then each of distribution can be indexed by a location parameter, say $\theta_y$ and $\theta_x$. In this case, $Y>X$ if $\theta_y > \theta_x$  
+
+Consider the hypotheses,  
+
+$$
+H_0: F_Y = F_X \\
+H_a: F_Y < F_X
+$$
+where the alternative is an upper one-sided alternative.  
+
+ * We can also consider the lower one-sided alternative  
+
+$$
+H_a: F_Y > F_X \text{ or} \\
+H_a: F_Y < F_X \text{ or } F_Y > F_X
+$$
+
+ * In this case, we don't use $H_a: F_Y \neq F_X$ as that allows arbitrary differences between the distributions, without requiring one be stochastically larger than the other.  
+
+If the distributions only differ in terms of their location parameters, we can focus hypothesis tests on the parameters (e.g., $H_0: \theta_y = \theta_x$ vs. $\theta_y > \theta_x$)  
+
+We have 2 equivalent nonparametric tests that consider the hypothesis mentioned above  
+
+ 1. [Wilcoxon rank test]  
+ 2. [Mann-Whitney U test]
+
+#### Wilcoxon rank test
+
+ 1. Combine all $n= n_y + n_x$ observations and rank them in ascending order.  
+ 2. Sum the ranks of the y's and x's separately. Let $w_y$ and $w_x$ be these sums. ($w_y + w_x = 1 + 2 + ... + n = n(n+1)/2$)  
+ 3. Reject $H_0$ if $w_y$ is large (equivalently, $w_x$ is small)  
+
+
+Under $H_0$, any arrangement of the y's and x's is equally likely to occur, and there are $(n_y + n_x)!/(n_y! n_x!)$ possible arrangements.  
+
+ * Technically, for each arrangement we can compute the values of $w_y$ and $w_x$, and thus generate the distribution of the statistic under the null hypothesis.  
+ * This could lead to computationally intensive.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### Mann-Whitney U test
+
+
+The Mann-Whitney test is computed as follows:  
+
+ 1. Compare each $y_i$ wiht each $x_i$.  
+        Let $u_y$ be the number of pairs in which $y_i > x_i$ 
+        Let $u_x$ be the number of pairs in which $y_i < x_i$. (assume there are no ties). 
+        There are $n_y n_x$ such comparisons and $u_y + u_x = n_y n_x$.  
+ 2. Reject $H_0$ if $u_y$ is large (or $u_x$ is small)  
+
+
+[Mann-Whitney U test] and [Wilcoxon rank test] are related:  
+$$
+u_y = w_y - n_y(n_y+1) /2 \\
+u_x = w_x - n_x(n_x +1)/2
+$$
+
+An $\alpha$-level test rejects $H_0$ if $u_y \ge u_{n_y,n_x,\alpha}$, where $u_{n_y,n_x,\alpha}$ is the upper $\alpha$ critical point of the null distribution of the random variable, U.  
+
+The p-value is defined to be $P(Y \ge u_y) = P(U \le u_x)$. One advantage of [Mann-Whitney U test] is that we can use either $u_y$ or $u_x$ to carry out the test.  
+
+For large $n_y$ and $n_x$, the null distribution of U can be well approximated by a normal distribution with mean $E(U) = n_y n_x /2$ and variance $var(U) = n_y n_x (n+1)/12$. A large sample z-test can be based on the statistic:  
+
+$$
+z = \frac{u_y - n_y n_x /2 -1/2}{\sqrt{n_y n_x (n+1)/12}}
+$$
+
+The test rejects $H_0$ at level $\alpha$ if $z \ge z_{\alpha}$ or if $u_y \ge u_{n_y,n_x,\alpha}$ where  
+
+$$
+u_{n_y, n_x, \alpha} \approx n_y n_x /2 + 1/2 + z_{\alpha}\sqrt{n_y n_x (n+1)/12}
+$$
+
+For the 2-sided test, we use the test statistic $u_{max} = max(u_y,u_x)$ and $u_{min} = min(u_y, u_x)$ and p-value is given by  
+
+$$
+p-value = 2P(U \ge u_{max}) = 2P(U \le u_{min})
+$$
+Since we assume there are no ties (when $y_i = x_j$), we count 1/2 towards both $u_y$ and $u_x$. Even though the sampling distribution is not the same, but large sample approximation is still reasonable,  
+
+
 ## Categorical Data Analysis
+
+[Categorical Data Analysis] when we have categorical outcomes  
+
+ * Nominal variables: no logical ordering (e.g., sex)  
+ * Ordinal variables: logical order, but relative distances between values are not clear (e.g., small, medium, large)  
+
+The distribution of one variable changes when the level (or values) of the other variable change. The row percentages are different in each column. 
+
+### Inferences for Small Samples
+
+The approximate tests based on the asymptotic normality of $\hat{p}_1 - \hat{p}_2$ do not apply for small samples.  
+
+Using **Fisher's Exact Test** to evaluate $H_0: p_1 = p_2$  
+
+ * Assume $X_1$ and $X_2$ are independent [Binomial]  
+ * Let $x_1$ and $x_2$ be the corresponding observed values. 
+ * Let $n= n_1 + n_2$ be the total sample size
+ * $m = x_1 + x_2$ be the observed number of successes.  
+ * By assuming that m(total successes) is fixed, and conditioning on this value, one can show that the conditional distribution of the number of successes from sample 1 is [Hypergeometric]  
+ * If we want to test $H_0: p_1 = p_2$ and $H_a: p_1 \neq p_2$, we have  
+
+$$
+Z^2 = (\frac{\hat{p}_1 - \hat{p}_2}{\sqrt{\hat{p}(1-\hat{p})(1/n_1 + 1/n_2)}})^2 \sim \chi_{1,\alpha}^2
+$$
+
+where $\chi_{1,\alpha}^2$ is the upper $\alpha$ percentage point for the central [Chi-squared] with one d.f.  
+
+This extends to the contingency table setting: whether the observed frequencies are equal to those expected under a null hypothesis of no association.  
+
+Pearson Chi-square test statistic is  
+
+$$
+\chi^2 = \sum_{\text{all categories}} \frac{(observed - epxected)^2}{expected}
+$$
+
+Comparison of proportions for several independent surveys or experiments  
+
+| | Experiment 1 | Experiment 2 | ... | Experiment k |
+|---|---|---|---|---|
+| Number of successes | $x_1$| $x_2$ | ... | $x_k$ |
+| Number of failures | $n_1 - x_1$ | $n_2 - x_2$ | ... | $n_k - x_k$ |
+| | $n_1$ | $n_2$ | ... | $n_k$| 
+
+$H_0: p_1 = p_2 = ... = p_k$ vs. the alternative that the null is not true (at least one pair are not equal).  
+
+We estimate the common value of the probability of success on a single trial assuming $H_0$ is true:  
+
+$$
+\hat{p} = \frac{x_1 + x_2 + ... + x_k}{n_1 + n_2 + ...+ n_k}
+$$
+
+
+we use table of expected counts when $H_0$ is true:  
+
+| | | | | |
+|---|---|---|---|---|
+|success | $n_1 \hat{p}$ | $n_2 \hat{p}$ | ... | $n_k \hat{p}$ |
+|failure | $n_1(1-\hat{p})$ | $n_2(1-\hat{p})$ | ... | $n_k (1-\hat{p})$|
+|| $n_1$ | $n_2$ | ... | $n_k$ |
+
+$$
+\chi^2 = \sum_{\text{all cells in table}} \frac{(observed - expected)^2}{expected}
+$$
+
+with k-1 degrees of freedom 
+
+
+### Two-way Count Data
+
+| | 1 | 2 | ... | j | ... | c | Row Total|
+|---|---|---|---|---|---|---|---|
+|1|$n_{11}$ | $n_{12}$ | ... | $n_{1j}$| ... | $n_{1c}$ | $n_{1.}$|
+|2|$n_{21}$ | $n_{22}$ | ... | $n_{2j}$| ... | $n_{2c}$ | $n_{2.}$|
+| . | . | . | . | . | . | . | . |
+|r|$n_{r1}$ | $n_{r2}$ | ... | $n_{rj}$| ... | $n_{rc}$ | $n_{r.}$|
+|Column Total|$n_{.1}$ | $n_{.2}$ | ... | $n_{.j}$| ... | $n_{.c}$ | $n_{}$|
+
+**Design 1**  
+total sample size fixed n = constant (e.g., survey on job satisfaction and income); both row and column totals are random variables  
+
+**Design 2**  
+Fix the sample size in each group (in each row) (e.g., Drug treatments success or failure); fixed number of participants for each treatment; independent random samples from the two row populations.  
+
+These different sampling designs imply two different probability models.  
+
+
+#### Total Sample Size Fixed
+
+**Design 1**
+
+random sample of size n drawn from a single population, and sample units are cross-classified into r row categories and c column   
+
+This results in an r x c table of observed counts 
+
+$n_{ij} = 1,...,r;j=1,...,c$
+
+Let $p_{ij}$ be the probability of classification into cell (i,j) and $\sum_{i=1}^r \sum_{j=1}^c p_{ij} = 1$. Let $N_{ij}$ be the random variable corresponding to $n_{ij}$  
+The joint distribution of the $N_{ij}$ is multinomial with unknown parameters $p_{ij}$  
+
+Denote the row variable by X and column variable by Y, then $p_{ij} = P(X=i,Y = j)$ and $p_{i.} = P(X = i)$ and $p_{.j} = P(Y = j)$ are the marginal probabilities.  
+The null hypothesis that X and Y are statistically independent (i.e., no association) is just:  
+
+$$
+H_0: p_{ij} = P(X =i,Y=j) = P(X =i) P(Y =j) = p_{i.}p_{.j} \\
+H_a: p_{ij} \neq p_{i.}p_{.j}
+$$
+for all i,j.  
+
+
+#### Row Total Fixed 
+
+**Design 2**
+
+Random samples of sizes $n_1,...,n_r$ are drawn independently from $r \ge 2$ row populations. In this case, the 2-way table row totals are $n_{i.} = n_i$ for $i = 1,...,r$.  
+
+The counts from each row are modeled by independent multinomial distributions.  
+
+X is fixed, Y is observed.  
+
+Then, $p_{ij}$ represent conditional probabilities $p_{ij} = P(Y=j|X=i)$  
+
+The null hypothesis is the probability of response j is the same, regardless of the row population (i.e., no association):  
+
+$$
+H_0: p_{ij} = P(Y = j | X = i) = p_j \text{for all i,j =1,2,...,c} \\
+\text{or } H_0: (p_{i1},p_{i2},...,p_{ic}) = (p_1,p_2,...,p_c) \text{ for all i} \\
+H_a: (p_{i1},p_{i2},...,p_{ic}) \text{ are not the same for all i}
+$$
+
+Although the hypotheses to be tested are different for two sampling designs, **The chi-square test is identical**  
+
+We have estimated expected frequencies:  
+
+$$
+\hat{e}_{ij} = \frac{n_{i.}n_{.j}}{n}
+$$
+
+The Chi-square statistic is  
+
+$$
+\chi^2 = \sum_{i=1}^{r} \sum_{j=1}^{c} \frac{(n_{ij}-\hat{e}_{ij})^2}{\hat{e}_{ij}} \sim \chi_{(r-1)(c-1)}
+$$
+
+$\alpha$-level test rejects $H_0$ if $\chi^2 > \chi^2_{(r-1)(c-1),\alpha}$
+
+#### Pearson Chi-square Test
+
+ * Determine whether an association exists  
+ * Sometimes, $H_0$ represents the model whose validity is to be tested. Contrast this with the conventional formulation of $H_0$ as the hypothesis that is to be disproved. The goal in this case is not to disprove the model, but to see whether data are consistent with the model and if deviation can be attributed to chance.  
+ * These tests do not measure the strength of an association.  
+ * These tests depend on and reflect the sample size - double the sample size by copying each observation, double the $\chi^2$ statistic even thought the strength of the association does not change.  
+ * The [Pearson Chi-square Test] is not appropriate when more than about 20% of the cells have an expected cell frequency of less than 5 (large-sample p-values not appropriate).  
+ * When the sample size is small the exact p-values can be calculated (this is prohibitive for large samples); calculation of the exact p-values assumes that the column totals and row totals are fixed.  
+
+
+#### Ordinal Association
+
+ * An ordinal association implies that as one variable increases, the other tends to increase or decrease (depending on the nature of the association).  
+ * For tests for variables with two or more levels, the levels must be in a logical ordering.  
+
+##### Mantel-Haenszel Chi-square Test
+
+The [Mantel-Haenszel Chi-square Test] is more powerful for testing ordinal associations, but does not test for the strength of the association.  
+
+This test is presented in the case where one has a series of 2 x 2 tables that examine the same effects under different conditions (If there are K such tables, we have 2 x 2 x K table)  
+
+In stratum k, given the marginal totals $(n_{.1k},n_{.2k},n_{1.k},n_{2.k})$, the sampling model for cell counts is the [Hypergeometric] (knowing $n_{11k}$ determines $(n_{12k},n_{21k},n_{22k})$, given the marginal totals)  
+
+Assuming conditional independence, the [Hypergeometric] mean and variance of $n_{11k}$ are  
+
+$$
+m_{11k} = E(n_{11k}) = \frac{n_{1.k} n_{.1k}}{n_{..k}} \\
+var(n_{11k}) = \frac{n_{1.k} n_{2.k} n_{.1k} n_{.2k}}{n_{..k}^2(n_{..k}-1)}
+$$
+
+To test conditional independence, Mantel and Haenszel proposed  
+
+$$
+M^2 = \frac{(|\sum_{k} n_{11k} - \sum_k m_{11k}| -.5)^2}{\sum_{k}var(n_{11k})} \sim \chi^2_{1}
+$$
+This method can be extended to general I x J x K tables. 
+
+
+##### Spearman Rank Correlation
+
+To test for the strength of association between two ordinally scaled variables, we can use [Spearman Rank Correlation] statistic  
+
+Let X and Y be two random variables measured on an ordinal scale. Consider n pairs of observations ($x_i,y_i$), i = 1,...,n  
+
+The [Spearman Rank Correlation] coefficient (denoted by $r_S$ is calcualted using the Pearson correlation formula, but based on the ranks of $x_i$ and $y_i$).  
+
+[Spearman Rank Correlation] be calculated  
+
+ 1. Assign ranks to $x_i$'s and $y_i$'s separately. Let $u_i = rank(x_i)$ and $v_i = rank(y_i)$  
+ 2. Calculate $r_S$ using the formula for the Pearson correlation coefficient, but applied to the ranks: 
+
+$$
+r_S = \frac{\sum_{i=1}^{n}(u_i - \bar{u})(v_i - \bar{v})}{\sqrt{(\sum_{i = 1}^{n}(u_i - \bar{u})^2)(\sum_{i=1}^{n}(v_i - \bar{v})^2)}}
+$$
+
+$r_S$ ranges between -1 and +1 , with  
+ * $r_S = -1$ if there is a perfect negative monotone association 
+ * $r_S = +1$ if there is a perfect positive monotone association between X and Y.  
+
+To test  
+
+$H_0:$ X and Y independent  
+$H_a$: X and Y positively associated  
+
+For large n (e.g., $n \ge 10$), 
+
+$$
+r_S \sim N(0,1/(n-1))
+$$
+
+Then, 
+
+$$
+Z = r_s \sqrt{n-1} \sim N(0,1)
+$$
+
+
 
