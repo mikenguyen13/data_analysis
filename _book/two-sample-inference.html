@@ -24,7 +24,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2021-01-04" />
+<meta name="date" content="2021-01-05" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -233,7 +233,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="4.3" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html"><i class="fa fa-check"></i><b>4.3</b> Categorical Data Analysis</a><ul>
 <li class="chapter" data-level="4.3.1" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#inferences-for-small-samples"><i class="fa fa-check"></i><b>4.3.1</b> Inferences for Small Samples</a></li>
-<li class="chapter" data-level="4.3.2" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#two-way-count-data"><i class="fa fa-check"></i><b>4.3.2</b> Two-way Count Data</a></li>
+<li class="chapter" data-level="4.3.2" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#test-of-association"><i class="fa fa-check"></i><b>4.3.2</b> Test of Association</a></li>
+<li class="chapter" data-level="4.3.3" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#ordinal-association"><i class="fa fa-check"></i><b>4.3.3</b> Ordinal Association</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="5" data-path="confidence-intervals-hypothesis-testing.html"><a href="confidence-intervals-hypothesis-testing.html"><i class="fa fa-check"></i><b>5</b> Confidence Intervals &amp; Hypothesis Testing</a><ul>
@@ -514,7 +515,7 @@ H_1: \mu_y - \mu_x \neq \delta_0
 <li>Equality of variances (homogeneity of variance between samples)<br />
 1. <a href="two-sample-inference.html#f-test">F-test</a><br />
 2. Barlett test<br />
-3. <a href="two-sample-inference.html#modified-levene-test">Modified Levene Test</a></li>
+3. [Modified Levene Test]</li>
 </ol>
 <p>To compare 2 normal <span class="math inline">\(\sigma^2_y \neq \sigma^2_x\)</span>, we use the test statistic:</p>
 <p><span class="math display">\[
@@ -564,11 +565,27 @@ F= \frac{s^2_y}{s^2_x}
 </li>
 <li>In particular, it could give to many significant results when observations come from long-tailed distributions (i.e., positive kurtosis).<br />
 </li>
-<li>If we cannot find support for <a href="normality-assessment.html#normality-assessment">normality</a>, then we can use nonparametric tests such as the <a href="two-sample-inference.html#modified-levene-test">Modified Levene Test</a></li>
+<li>If we cannot find support for <a href="normality-assessment.html#normality-assessment">normality</a>, then we can use nonparametric tests such as the [Modified Levene Test]</li>
 </ul>
+<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="two-sample-inference.html#cb53-1"></a><span class="kw">data</span>(iris)</span>
+<span id="cb53-2"><a href="two-sample-inference.html#cb53-2"></a>irisVe=iris<span class="op">$</span>Petal.Width[iris<span class="op">$</span>Species<span class="op">==</span><span class="st">&quot;versicolor&quot;</span>] </span>
+<span id="cb53-3"><a href="two-sample-inference.html#cb53-3"></a>irisVi=iris<span class="op">$</span>Petal.Width[iris<span class="op">$</span>Species<span class="op">==</span><span class="st">&quot;virginica&quot;</span>]</span>
+<span id="cb53-4"><a href="two-sample-inference.html#cb53-4"></a></span>
+<span id="cb53-5"><a href="two-sample-inference.html#cb53-5"></a><span class="kw">var.test</span>(irisVe,irisVi)</span></code></pre></div>
+<pre><code>## 
+##  F test to compare two variances
+## 
+## data:  irisVe and irisVi
+## F = 0.51842, num df = 49, denom df = 49, p-value = 0.02335
+## alternative hypothesis: true ratio of variances is not equal to 1
+## 95 percent confidence interval:
+##  0.2941935 0.9135614
+## sample estimates:
+## ratio of variances 
+##          0.5184243</code></pre>
 </div>
-<div id="modified-levene-test" class="section level4">
-<h4><span class="header-section-number">4.2.2.2</span> Modified Levene Test</h4>
+<div id="modified-levene-test-brown-forsythe-test" class="section level4">
+<h4><span class="header-section-number">4.2.2.2</span> Modified Levene Test (Brown-Forsythe Test)</h4>
 <ul>
 <li>considers averages of absolute deviations rather than squared deviations. Hence, less sensitive to long-tailed distributions.<br />
 </li>
@@ -594,6 +611,33 @@ s^2 = \frac{\sum_i^{n_y}(d_{y,i}-\bar{d}_y)^2 + \sum_j^{n_x}(d_{x,i}-\bar{d}_x)^
 </li>
 <li>This is just the two-sample t-test applied to the absolute deviations.</li>
 </ul>
+<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="two-sample-inference.html#cb55-1"></a>dVe=<span class="kw">abs</span>(irisVe<span class="op">-</span><span class="kw">median</span>(irisVe)) </span>
+<span id="cb55-2"><a href="two-sample-inference.html#cb55-2"></a>dVi=<span class="kw">abs</span>(irisVi<span class="op">-</span><span class="kw">median</span>(irisVi)) </span>
+<span id="cb55-3"><a href="two-sample-inference.html#cb55-3"></a><span class="kw">t.test</span>(dVe,dVi,<span class="dt">var.equal=</span>T)</span></code></pre></div>
+<pre><code>## 
+##  Two Sample t-test
+## 
+## data:  dVe and dVi
+## t = -2.5584, df = 98, p-value = 0.01205
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -0.12784786 -0.01615214
+## sample estimates:
+## mean of x mean of y 
+##     0.154     0.226</code></pre>
+<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="two-sample-inference.html#cb57-1"></a><span class="co"># small samples t-test  </span></span>
+<span id="cb57-2"><a href="two-sample-inference.html#cb57-2"></a><span class="kw">t.test</span>(irisVe,irisVi,<span class="dt">var.equal=</span>F)</span></code></pre></div>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  irisVe and irisVi
+## t = -14.625, df = 89.043, p-value &lt; 2.2e-16
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -0.7951002 -0.6048998
+## sample estimates:
+## mean of x mean of y 
+##     1.326     2.026</code></pre>
 </div>
 </div>
 <div id="power-1" class="section level3">
@@ -730,6 +774,13 @@ H_a: F_Y &lt; F_X \text{ or } F_Y &gt; F_X
 </li>
 <li>This could lead to computationally intensive.</li>
 </ul>
+<div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb59-1"><a href="two-sample-inference.html#cb59-1"></a><span class="kw">wilcox.test</span>(irisVe,irisVi,<span class="dt">alternative=</span><span class="st">&quot;two.sided&quot;</span>,<span class="dt">conf.level=</span><span class="fl">0.95</span>, <span class="dt">exact=</span>F,<span class="dt">correct=</span>T)</span></code></pre></div>
+<pre><code>## 
+##  Wilcoxon rank sum test with continuity correction
+## 
+## data:  irisVe and irisVi
+## W = 49, p-value &lt; 2.2e-16
+## alternative hypothesis: true location shift is not equal to 0</code></pre>
 </div>
 <div id="mann-whitney-u-test" class="section level4">
 <h4><span class="header-section-number">4.2.6.2</span> Mann-Whitney U test</h4>
