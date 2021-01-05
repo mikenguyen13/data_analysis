@@ -215,6 +215,26 @@ n = (\frac{z_{\alpha/2}\sigma}{D})^2
 $$
 (round up to the nearest integer)  
 
+
+```{r}
+data = rnorm(100)
+t.test(data, conf.level=0.95)
+```
+
+$$
+H_0: \mu \ge 30 \\
+H_a: \mu < 30
+$$
+
+```{r}
+t.test(data, mu=30,alternative="less")
+```
+
+
+
+
+
+
 ### Note
 
 For t-tests, the sample and power are not as easy as z-test. 
@@ -237,6 +257,12 @@ n^* = \frac{(t_{v;\alpha/2}+t_{v;\beta})^2 \sigma^2}{\delta^2}
 $$
 
 ### One-sample Non-parametric Methods
+
+```{r}
+lecture.data=c(0.76, 0.82, 0.80, 0.79, 1.06, 0.83, -0.43, -0.34, 3.34, 2.33)
+```
+
+
 #### Sign Test 
 
 If we want to test $H_0: \mu_{(0.5)} = 0; H_a: \mu_{(0.5)} >0$ where $\mu_{(0.5)}$ is the population median. We can  
@@ -283,6 +309,12 @@ However, treatment of 0 is problematic for this test.
  * Solution 3: ignore 0 (reduces the power of test due to decreased sample size). 
 
 
+```{r}
+binom.test(sum(lecture.data > 0), length(lecture.data)) # alternative = "greater" or alternative = "less"
+```
+
+
+
 #### Wilcoxon Signed Rank Test
 
 Since the [Sign Test] could not consider the magnitude of each observation from 0, the [Wilcoxon Signed Rank Test] improves by  taking account the ordered magnitudes of the observation, but it will impose the requirement of symmetric to this test (while [Sign Test] does not)
@@ -326,6 +358,13 @@ Same as [Sign Test],we ignore 0. In some cases where some of the $|y_i|$'s may b
 
 Example, if $y_1 = -1$, $y_3 = 3$ and $y_3 = -3$, and $y_4 =5$, then $r_1 = 1$, $r_2 = r_3=(2+3)/2 = 2.5$, $r_4 = 4$
 
+```{r}
+wilcox.test(lecture.data) #does not use normal approximation (using the underlying W distribution)
+
+wilcox.test(lecture.data,exact=F) #uses normal approximation
+```
+
+
 
 ## Two Sample Inference
 ### Means
@@ -337,6 +376,8 @@ Suppose we have 2 sets of observations,
 
 that are random samples from two independent populations with means $\mu_y$ and $\mu_x$ and variances $\sigma^2_y$,$\sigma^2_x$. 
 Our goal is to compare $\mu_x$ and $\mu_y$ or $\sigma^2_y = \sigma^2_x$
+
+
 
 #### Large Sample Tests
 
@@ -507,7 +548,18 @@ Where $F>f_{n_y -1,n_x -1,\alpha/2}$ and $F<f_{n_y -1,n_x -1,1-\alpha/2}$ are th
  * If we cannot find support for [normality][Normality Assessment], then we can use nonparametric tests such as the [Modified Levene Test] 
  
 
-#### Modified Levene Test
+```{r}
+data(iris)
+irisVe=iris$Petal.Width[iris$Species=="versicolor"] 
+irisVi=iris$Petal.Width[iris$Species=="virginica"]
+
+var.test(irisVe,irisVi)
+
+```
+
+
+
+#### Modified Levene Test (Brown-Forsythe Test)
 
  * considers averages of absolute deviations rather than squared deviations. Hence, less sensitive to long-tailed distributions.  
  * This test is still good for normal data 
@@ -533,6 +585,16 @@ $$
  * If the error terms have constant variance and $n_y$ and $n_x$ are not extremely small, then $t_L^* \sim t_{n_x + n_y -2}$  
  * We reject the null hypothesis when $|t_L^*| > t_{n_y + n_x -2;\alpha/2}$  
  * This is just the two-sample t-test applied to the absolute deviations.   
+
+```{r}
+dVe=abs(irisVe-median(irisVe)) 
+dVi=abs(irisVi-median(irisVi)) 
+t.test(dVe,dVi,var.equal=T)
+
+# small samples t-test  
+t.test(irisVe,irisVi,var.equal=F)
+```
+
 
 ### Power
 
@@ -659,16 +721,9 @@ Under $H_0$, any arrangement of the y's and x's is equally likely to occur, and 
 
 
 
-
-
-
-
-
-
-
-
-
-
+```{r}
+wilcox.test(irisVe,irisVi,alternative="two.sided",conf.level=0.95, exact=F,correct=T)
+```
 
 
 
@@ -734,7 +789,7 @@ Using **Fisher's Exact Test** to evaluate $H_0: p_1 = p_2$
  * Let $x_1$ and $x_2$ be the corresponding observed values. 
  * Let $n= n_1 + n_2$ be the total sample size
  * $m = x_1 + x_2$ be the observed number of successes.  
- * By assuming that m(total successes) is fixed, and conditioning on this value, one can show that the conditional distribution of the number of successes from sample 1 is [Hypergeometric]  
+ * By assuming that m (total successes) is fixed, and conditioning on this value, one can show that the conditional distribution of the number of successes from sample 1 is [Hypergeometric]  
  * If we want to test $H_0: p_1 = p_2$ and $H_a: p_1 \neq p_2$, we have  
 
 $$
@@ -745,6 +800,7 @@ where $\chi_{1,\alpha}^2$ is the upper $\alpha$ percentage point for the central
 
 This extends to the contingency table setting: whether the observed frequencies are equal to those expected under a null hypothesis of no association.  
 
+### Test of Association
 Pearson Chi-square test statistic is  
 
 $$
@@ -783,7 +839,7 @@ $$
 with k-1 degrees of freedom 
 
 
-### Two-way Count Data
+#### Two-way Count Data
 
 | | 1 | 2 | ... | j | ... | c | Row Total|
 |---|---|---|---|---|---|---|---|
@@ -871,12 +927,41 @@ $\alpha$-level test rejects $H_0$ if $\chi^2 > \chi^2_{(r-1)(c-1),\alpha}$
  * When the sample size is small the exact p-values can be calculated (this is prohibitive for large samples); calculation of the exact p-values assumes that the column totals and row totals are fixed.  
 
 
-#### Ordinal Association
+```{r}
+july.x=480 
+july.n=1000 
+sept.x=704 
+sept.n=1600
+```
+
+$$
+H_0: p_J = 0.5 \\
+H_a: p_J < 0.5
+$$
+
+```{r}
+prop.test(x=july.x,n=july.n,p=0.5,alternative="less",correct=F)
+```
+
+
+$$
+H_0: p_J = p_S \\
+H_a: p_j \neq p_S
+$$
+
+```{r}
+prop.test(x=c(july.x,sept.x),n=c(july.n,sept.n),correct=F)
+```
+
+
+
+
+### Ordinal Association
 
  * An ordinal association implies that as one variable increases, the other tends to increase or decrease (depending on the nature of the association).  
  * For tests for variables with two or more levels, the levels must be in a logical ordering.  
 
-##### Mantel-Haenszel Chi-square Test
+#### Mantel-Haenszel Chi-square Test
 
 The [Mantel-Haenszel Chi-square Test] is more powerful for testing ordinal associations, but does not test for the strength of the association.  
 
@@ -898,14 +983,41 @@ M^2 = \frac{(|\sum_{k} n_{11k} - \sum_k m_{11k}| -.5)^2}{\sum_{k}var(n_{11k})} \
 $$
 This method can be extended to general I x J x K tables. 
 
+(2 x 2 x 3) table
 
-##### Spearman Rank Correlation
+```{r}
+Bron=array(c(20, 9, 382, 214, 10, 7, 172, 120, 12, 6, 327, 183), dim = c(2, 2, 3), dimnames = list( Particulate = c("High", "Low"), Bronchitis = c("Yes", "No"), Age = c("15-24", "25-39", "40+"))) 
+margin.table(Bron,c(1,2))
+# assess whether the relationship between Bronchitis by Particulate Level varies by Age
+library(samplesizeCMH)
+marginal_table=margin.table(Bron,c(1,2))
+odds.ratio(marginal_table)
+
+#  whether these odds vary by age. The conditional odds can be calculated using the original table.
+apply(Bron,3,odds.ratio)
+
+# Mantel-Haenszel Test
+mantelhaen.test(Bron,correct=T)
+```
+
+
+##### McNemar's Test 
+special case of [Mantel-Haenszel Chi-square Test]
+
+```{r}
+vote=cbind(c(682,22),c(86,810))
+mcnemar.test(vote,correct=T)
+
+```
+
+
+#### Spearman Rank Correlation
 
 To test for the strength of association between two ordinally scaled variables, we can use [Spearman Rank Correlation] statistic  
 
 Let X and Y be two random variables measured on an ordinal scale. Consider n pairs of observations ($x_i,y_i$), i = 1,...,n  
 
-The [Spearman Rank Correlation] coefficient (denoted by $r_S$ is calcualted using the Pearson correlation formula, but based on the ranks of $x_i$ and $y_i$).  
+The [Spearman Rank Correlation] coefficient (denoted by $r_S$ is calculated using the Pearson correlation formula, but based on the ranks of $x_i$ and $y_i$).  
 
 [Spearman Rank Correlation] be calculated  
 
@@ -917,6 +1029,7 @@ r_S = \frac{\sum_{i=1}^{n}(u_i - \bar{u})(v_i - \bar{v})}{\sqrt{(\sum_{i = 1}^{n
 $$
 
 $r_S$ ranges between -1 and +1 , with  
+
  * $r_S = -1$ if there is a perfect negative monotone association 
  * $r_S = +1$ if there is a perfect positive monotone association between X and Y.  
 
