@@ -24,7 +24,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2021-01-05" />
+<meta name="date" content="2021-01-07" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -348,6 +348,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="11.6.2" data-path="application-6.html"><a href="application-6.html#knn"><i class="fa fa-check"></i><b>11.6.2</b> KNN</a></li>
 <li class="chapter" data-level="11.6.3" data-path="application-6.html"><a href="application-6.html#rpart"><i class="fa fa-check"></i><b>11.6.3</b> rpart</a></li>
 <li class="chapter" data-level="11.6.4" data-path="application-6.html"><a href="application-6.html#mice-multivariate-imputation-via-chained-equations"><i class="fa fa-check"></i><b>11.6.4</b> MICE (Multivariate Imputation via Chained Equations)</a></li>
+<li class="chapter" data-level="11.6.5" data-path="application-6.html"><a href="application-6.html#amelia"><i class="fa fa-check"></i><b>11.6.5</b> Amelia</a></li>
 </ul></li>
 </ul></li>
 <li class="part"><span><b>III EXPERIMENTAL DESIGN</b></span></li>
@@ -520,76 +521,76 @@ smoothing splines have similar fits as kernel regression.</p>
 </div>
 <div id="application-3" class="section level4">
 <h4><span class="header-section-number">6.3.4.4</span> Application</h4>
-<div class="sourceCode" id="cb88"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb88-1"><a href="non-linear-regression.html#cb88-1"></a><span class="kw">library</span>(tidyverse)</span>
-<span id="cb88-2"><a href="non-linear-regression.html#cb88-2"></a><span class="kw">library</span>(caret)</span>
-<span id="cb88-3"><a href="non-linear-regression.html#cb88-3"></a><span class="kw">theme_set</span>(<span class="kw">theme_classic</span>())</span>
-<span id="cb88-4"><a href="non-linear-regression.html#cb88-4"></a></span>
-<span id="cb88-5"><a href="non-linear-regression.html#cb88-5"></a><span class="co"># Load the data</span></span>
-<span id="cb88-6"><a href="non-linear-regression.html#cb88-6"></a><span class="kw">data</span>(<span class="st">&quot;Boston&quot;</span>, <span class="dt">package =</span> <span class="st">&quot;MASS&quot;</span>)</span>
-<span id="cb88-7"><a href="non-linear-regression.html#cb88-7"></a><span class="co"># Split the data into training and test set</span></span>
-<span id="cb88-8"><a href="non-linear-regression.html#cb88-8"></a><span class="kw">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb88-9"><a href="non-linear-regression.html#cb88-9"></a>training.samples &lt;-<span class="st"> </span>Boston<span class="op">$</span>medv <span class="op">%&gt;%</span></span>
-<span id="cb88-10"><a href="non-linear-regression.html#cb88-10"></a><span class="st">  </span><span class="kw">createDataPartition</span>(<span class="dt">p =</span> <span class="fl">0.8</span>, <span class="dt">list =</span> <span class="ot">FALSE</span>)</span>
-<span id="cb88-11"><a href="non-linear-regression.html#cb88-11"></a>train.data  &lt;-<span class="st"> </span>Boston[training.samples, ]</span>
-<span id="cb88-12"><a href="non-linear-regression.html#cb88-12"></a>test.data &lt;-<span class="st"> </span>Boston[<span class="op">-</span>training.samples, ]</span>
-<span id="cb88-13"><a href="non-linear-regression.html#cb88-13"></a></span>
-<span id="cb88-14"><a href="non-linear-regression.html#cb88-14"></a>knots &lt;-<span class="st"> </span><span class="kw">quantile</span>(train.data<span class="op">$</span>lstat, <span class="dt">p =</span> <span class="kw">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>)) <span class="co"># we use 3 knots at 25,50,and 75 quantile.</span></span>
-<span id="cb88-15"><a href="non-linear-regression.html#cb88-15"></a></span>
-<span id="cb88-16"><a href="non-linear-regression.html#cb88-16"></a><span class="kw">library</span>(splines)</span>
-<span id="cb88-17"><a href="non-linear-regression.html#cb88-17"></a><span class="co"># Build the model</span></span>
-<span id="cb88-18"><a href="non-linear-regression.html#cb88-18"></a>knots &lt;-<span class="st"> </span><span class="kw">quantile</span>(train.data<span class="op">$</span>lstat, <span class="dt">p =</span> <span class="kw">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>))</span>
-<span id="cb88-19"><a href="non-linear-regression.html#cb88-19"></a>model &lt;-<span class="st"> </span><span class="kw">lm</span> (medv <span class="op">~</span><span class="st"> </span><span class="kw">bs</span>(lstat, <span class="dt">knots =</span> knots), <span class="dt">data =</span> train.data)</span>
-<span id="cb88-20"><a href="non-linear-regression.html#cb88-20"></a><span class="co"># Make predictions</span></span>
-<span id="cb88-21"><a href="non-linear-regression.html#cb88-21"></a>predictions &lt;-<span class="st"> </span>model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">predict</span>(test.data)</span>
-<span id="cb88-22"><a href="non-linear-regression.html#cb88-22"></a><span class="co"># Model performance</span></span>
-<span id="cb88-23"><a href="non-linear-regression.html#cb88-23"></a><span class="kw">data.frame</span>(</span>
-<span id="cb88-24"><a href="non-linear-regression.html#cb88-24"></a>  <span class="dt">RMSE =</span> <span class="kw">RMSE</span>(predictions, test.data<span class="op">$</span>medv),</span>
-<span id="cb88-25"><a href="non-linear-regression.html#cb88-25"></a>  <span class="dt">R2 =</span> <span class="kw">R2</span>(predictions, test.data<span class="op">$</span>medv)</span>
-<span id="cb88-26"><a href="non-linear-regression.html#cb88-26"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb87"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb87-1"><a href="non-linear-regression.html#cb87-1"></a><span class="kw">library</span>(tidyverse)</span>
+<span id="cb87-2"><a href="non-linear-regression.html#cb87-2"></a><span class="kw">library</span>(caret)</span>
+<span id="cb87-3"><a href="non-linear-regression.html#cb87-3"></a><span class="kw">theme_set</span>(<span class="kw">theme_classic</span>())</span>
+<span id="cb87-4"><a href="non-linear-regression.html#cb87-4"></a></span>
+<span id="cb87-5"><a href="non-linear-regression.html#cb87-5"></a><span class="co"># Load the data</span></span>
+<span id="cb87-6"><a href="non-linear-regression.html#cb87-6"></a><span class="kw">data</span>(<span class="st">&quot;Boston&quot;</span>, <span class="dt">package =</span> <span class="st">&quot;MASS&quot;</span>)</span>
+<span id="cb87-7"><a href="non-linear-regression.html#cb87-7"></a><span class="co"># Split the data into training and test set</span></span>
+<span id="cb87-8"><a href="non-linear-regression.html#cb87-8"></a><span class="kw">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb87-9"><a href="non-linear-regression.html#cb87-9"></a>training.samples &lt;-<span class="st"> </span>Boston<span class="op">$</span>medv <span class="op">%&gt;%</span></span>
+<span id="cb87-10"><a href="non-linear-regression.html#cb87-10"></a><span class="st">  </span><span class="kw">createDataPartition</span>(<span class="dt">p =</span> <span class="fl">0.8</span>, <span class="dt">list =</span> <span class="ot">FALSE</span>)</span>
+<span id="cb87-11"><a href="non-linear-regression.html#cb87-11"></a>train.data  &lt;-<span class="st"> </span>Boston[training.samples, ]</span>
+<span id="cb87-12"><a href="non-linear-regression.html#cb87-12"></a>test.data &lt;-<span class="st"> </span>Boston[<span class="op">-</span>training.samples, ]</span>
+<span id="cb87-13"><a href="non-linear-regression.html#cb87-13"></a></span>
+<span id="cb87-14"><a href="non-linear-regression.html#cb87-14"></a>knots &lt;-<span class="st"> </span><span class="kw">quantile</span>(train.data<span class="op">$</span>lstat, <span class="dt">p =</span> <span class="kw">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>)) <span class="co"># we use 3 knots at 25,50,and 75 quantile.</span></span>
+<span id="cb87-15"><a href="non-linear-regression.html#cb87-15"></a></span>
+<span id="cb87-16"><a href="non-linear-regression.html#cb87-16"></a><span class="kw">library</span>(splines)</span>
+<span id="cb87-17"><a href="non-linear-regression.html#cb87-17"></a><span class="co"># Build the model</span></span>
+<span id="cb87-18"><a href="non-linear-regression.html#cb87-18"></a>knots &lt;-<span class="st"> </span><span class="kw">quantile</span>(train.data<span class="op">$</span>lstat, <span class="dt">p =</span> <span class="kw">c</span>(<span class="fl">0.25</span>, <span class="fl">0.5</span>, <span class="fl">0.75</span>))</span>
+<span id="cb87-19"><a href="non-linear-regression.html#cb87-19"></a>model &lt;-<span class="st"> </span><span class="kw">lm</span> (medv <span class="op">~</span><span class="st"> </span><span class="kw">bs</span>(lstat, <span class="dt">knots =</span> knots), <span class="dt">data =</span> train.data)</span>
+<span id="cb87-20"><a href="non-linear-regression.html#cb87-20"></a><span class="co"># Make predictions</span></span>
+<span id="cb87-21"><a href="non-linear-regression.html#cb87-21"></a>predictions &lt;-<span class="st"> </span>model <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">predict</span>(test.data)</span>
+<span id="cb87-22"><a href="non-linear-regression.html#cb87-22"></a><span class="co"># Model performance</span></span>
+<span id="cb87-23"><a href="non-linear-regression.html#cb87-23"></a><span class="kw">data.frame</span>(</span>
+<span id="cb87-24"><a href="non-linear-regression.html#cb87-24"></a>  <span class="dt">RMSE =</span> <span class="kw">RMSE</span>(predictions, test.data<span class="op">$</span>medv),</span>
+<span id="cb87-25"><a href="non-linear-regression.html#cb87-25"></a>  <span class="dt">R2 =</span> <span class="kw">R2</span>(predictions, test.data<span class="op">$</span>medv)</span>
+<span id="cb87-26"><a href="non-linear-regression.html#cb87-26"></a>)</span></code></pre></div>
 <pre><code>##       RMSE        R2
 ## 1 5.317372 0.6786367</code></pre>
-<div class="sourceCode" id="cb90"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb90-1"><a href="non-linear-regression.html#cb90-1"></a><span class="kw">ggplot</span>(train.data, <span class="kw">aes</span>(lstat, medv) ) <span class="op">+</span></span>
-<span id="cb90-2"><a href="non-linear-regression.html#cb90-2"></a><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span></span>
-<span id="cb90-3"><a href="non-linear-regression.html#cb90-3"></a><span class="st">  </span><span class="kw">stat_smooth</span>(<span class="dt">method =</span> lm, <span class="dt">formula =</span> y <span class="op">~</span><span class="st"> </span>splines<span class="op">::</span><span class="kw">bs</span>(x, <span class="dt">df =</span> <span class="dv">3</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb89"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb89-1"><a href="non-linear-regression.html#cb89-1"></a><span class="kw">ggplot</span>(train.data, <span class="kw">aes</span>(lstat, medv) ) <span class="op">+</span></span>
+<span id="cb89-2"><a href="non-linear-regression.html#cb89-2"></a><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span></span>
+<span id="cb89-3"><a href="non-linear-regression.html#cb89-3"></a><span class="st">  </span><span class="kw">stat_smooth</span>(<span class="dt">method =</span> lm, <span class="dt">formula =</span> y <span class="op">~</span><span class="st"> </span>splines<span class="op">::</span><span class="kw">bs</span>(x, <span class="dt">df =</span> <span class="dv">3</span>))</span></code></pre></div>
 <p><img src="Data-Analysis_files/figure-html/unnamed-chunk-49-1.png" width="672" /></p>
-<div class="sourceCode" id="cb91"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb91-1"><a href="non-linear-regression.html#cb91-1"></a><span class="kw">attach</span>(train.data)</span>
-<span id="cb91-2"><a href="non-linear-regression.html#cb91-2"></a><span class="co">#fitting smoothing splines using smooth.spline(X,Y,df=...)</span></span>
-<span id="cb91-3"><a href="non-linear-regression.html#cb91-3"></a></span>
-<span id="cb91-4"><a href="non-linear-regression.html#cb91-4"></a>fit1&lt;-<span class="kw">smooth.spline</span>(train.data<span class="op">$</span>lstat,train.data<span class="op">$</span>medv,<span class="dt">df=</span><span class="dv">3</span> ) <span class="co"># 3 degrees of freedom</span></span>
-<span id="cb91-5"><a href="non-linear-regression.html#cb91-5"></a><span class="co">#Plotting both cubic and Smoothing Splines </span></span>
-<span id="cb91-6"><a href="non-linear-regression.html#cb91-6"></a><span class="kw">plot</span>(train.data<span class="op">$</span>lstat,train.data<span class="op">$</span>medv,<span class="dt">col=</span><span class="st">&quot;grey&quot;</span>)</span>
-<span id="cb91-7"><a href="non-linear-regression.html#cb91-7"></a>lstat.grid =<span class="st"> </span><span class="kw">seq</span>(<span class="dt">from =</span> <span class="kw">range</span>(lstat)[<span class="dv">1</span>], <span class="dt">to =</span> <span class="kw">range</span>(lstat)[<span class="dv">2</span>])</span>
-<span id="cb91-8"><a href="non-linear-regression.html#cb91-8"></a><span class="kw">points</span>(lstat.grid,<span class="kw">predict</span>(model,<span class="dt">newdata =</span> <span class="kw">list</span>(<span class="dt">lstat=</span>lstat.grid)),<span class="dt">col=</span><span class="st">&quot;darkgreen&quot;</span>,<span class="dt">lwd=</span><span class="dv">2</span>,<span class="dt">type=</span><span class="st">&quot;l&quot;</span>)</span>
-<span id="cb91-9"><a href="non-linear-regression.html#cb91-9"></a><span class="co">#adding cutpoints</span></span>
-<span id="cb91-10"><a href="non-linear-regression.html#cb91-10"></a><span class="kw">abline</span>(<span class="dt">v=</span><span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">20</span>,<span class="dv">30</span>),<span class="dt">lty=</span><span class="dv">2</span>,<span class="dt">col=</span><span class="st">&quot;darkgreen&quot;</span>)</span>
-<span id="cb91-11"><a href="non-linear-regression.html#cb91-11"></a><span class="kw">lines</span>(fit1,<span class="dt">col=</span><span class="st">&quot;red&quot;</span>,<span class="dt">lwd=</span><span class="dv">2</span>)</span>
-<span id="cb91-12"><a href="non-linear-regression.html#cb91-12"></a></span>
-<span id="cb91-13"><a href="non-linear-regression.html#cb91-13"></a><span class="kw">legend</span>(<span class="st">&quot;topright&quot;</span>,<span class="kw">c</span>(<span class="st">&quot;Smoothing Spline with 3 df&quot;</span>,<span class="st">&quot;Cubic Spline&quot;</span>),<span class="dt">col=</span><span class="kw">c</span>(<span class="st">&quot;red&quot;</span>,<span class="st">&quot;darkgreen&quot;</span>),<span class="dt">lwd=</span><span class="dv">2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb90"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb90-1"><a href="non-linear-regression.html#cb90-1"></a><span class="kw">attach</span>(train.data)</span>
+<span id="cb90-2"><a href="non-linear-regression.html#cb90-2"></a><span class="co">#fitting smoothing splines using smooth.spline(X,Y,df=...)</span></span>
+<span id="cb90-3"><a href="non-linear-regression.html#cb90-3"></a></span>
+<span id="cb90-4"><a href="non-linear-regression.html#cb90-4"></a>fit1&lt;-<span class="kw">smooth.spline</span>(train.data<span class="op">$</span>lstat,train.data<span class="op">$</span>medv,<span class="dt">df=</span><span class="dv">3</span> ) <span class="co"># 3 degrees of freedom</span></span>
+<span id="cb90-5"><a href="non-linear-regression.html#cb90-5"></a><span class="co">#Plotting both cubic and Smoothing Splines </span></span>
+<span id="cb90-6"><a href="non-linear-regression.html#cb90-6"></a><span class="kw">plot</span>(train.data<span class="op">$</span>lstat,train.data<span class="op">$</span>medv,<span class="dt">col=</span><span class="st">&quot;grey&quot;</span>)</span>
+<span id="cb90-7"><a href="non-linear-regression.html#cb90-7"></a>lstat.grid =<span class="st"> </span><span class="kw">seq</span>(<span class="dt">from =</span> <span class="kw">range</span>(lstat)[<span class="dv">1</span>], <span class="dt">to =</span> <span class="kw">range</span>(lstat)[<span class="dv">2</span>])</span>
+<span id="cb90-8"><a href="non-linear-regression.html#cb90-8"></a><span class="kw">points</span>(lstat.grid,<span class="kw">predict</span>(model,<span class="dt">newdata =</span> <span class="kw">list</span>(<span class="dt">lstat=</span>lstat.grid)),<span class="dt">col=</span><span class="st">&quot;darkgreen&quot;</span>,<span class="dt">lwd=</span><span class="dv">2</span>,<span class="dt">type=</span><span class="st">&quot;l&quot;</span>)</span>
+<span id="cb90-9"><a href="non-linear-regression.html#cb90-9"></a><span class="co">#adding cutpoints</span></span>
+<span id="cb90-10"><a href="non-linear-regression.html#cb90-10"></a><span class="kw">abline</span>(<span class="dt">v=</span><span class="kw">c</span>(<span class="dv">10</span>,<span class="dv">20</span>,<span class="dv">30</span>),<span class="dt">lty=</span><span class="dv">2</span>,<span class="dt">col=</span><span class="st">&quot;darkgreen&quot;</span>)</span>
+<span id="cb90-11"><a href="non-linear-regression.html#cb90-11"></a><span class="kw">lines</span>(fit1,<span class="dt">col=</span><span class="st">&quot;red&quot;</span>,<span class="dt">lwd=</span><span class="dv">2</span>)</span>
+<span id="cb90-12"><a href="non-linear-regression.html#cb90-12"></a></span>
+<span id="cb90-13"><a href="non-linear-regression.html#cb90-13"></a><span class="kw">legend</span>(<span class="st">&quot;topright&quot;</span>,<span class="kw">c</span>(<span class="st">&quot;Smoothing Spline with 3 df&quot;</span>,<span class="st">&quot;Cubic Spline&quot;</span>),<span class="dt">col=</span><span class="kw">c</span>(<span class="st">&quot;red&quot;</span>,<span class="st">&quot;darkgreen&quot;</span>),<span class="dt">lwd=</span><span class="dv">2</span>)</span></code></pre></div>
 <p><img src="Data-Analysis_files/figure-html/unnamed-chunk-49-2.png" width="672" /></p>
 </div>
 </div>
 <div id="generalized-additive-models" class="section level3">
 <h3><span class="header-section-number">6.3.5</span> Generalized Additive Models</h3>
 <p>To overcome <a href="non-linear-regression.html#spline-regression">Spline Regression</a>’s requirements for specifying the knots, we can use <a href="non-linear-regression.html#generalized-additive-models">Generalized Additive Models</a> or GAM.</p>
-<div class="sourceCode" id="cb92"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb92-1"><a href="non-linear-regression.html#cb92-1"></a><span class="kw">library</span>(mgcv)</span>
-<span id="cb92-2"><a href="non-linear-regression.html#cb92-2"></a><span class="co"># Build the model</span></span>
-<span id="cb92-3"><a href="non-linear-regression.html#cb92-3"></a>model &lt;-<span class="st"> </span><span class="kw">gam</span>(medv <span class="op">~</span><span class="st"> </span><span class="kw">s</span>(lstat), <span class="dt">data =</span> train.data)</span>
-<span id="cb92-4"><a href="non-linear-regression.html#cb92-4"></a><span class="kw">plot</span>(model)</span></code></pre></div>
+<div class="sourceCode" id="cb91"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb91-1"><a href="non-linear-regression.html#cb91-1"></a><span class="kw">library</span>(mgcv)</span>
+<span id="cb91-2"><a href="non-linear-regression.html#cb91-2"></a><span class="co"># Build the model</span></span>
+<span id="cb91-3"><a href="non-linear-regression.html#cb91-3"></a>model &lt;-<span class="st"> </span><span class="kw">gam</span>(medv <span class="op">~</span><span class="st"> </span><span class="kw">s</span>(lstat), <span class="dt">data =</span> train.data)</span>
+<span id="cb91-4"><a href="non-linear-regression.html#cb91-4"></a><span class="kw">plot</span>(model)</span></code></pre></div>
 <p><img src="Data-Analysis_files/figure-html/unnamed-chunk-50-1.png" width="672" /></p>
-<div class="sourceCode" id="cb93"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb93-1"><a href="non-linear-regression.html#cb93-1"></a><span class="co"># Make predictions</span></span>
-<span id="cb93-2"><a href="non-linear-regression.html#cb93-2"></a><span class="co"># predictions &lt;- model %&gt;% predict(test.data)</span></span>
-<span id="cb93-3"><a href="non-linear-regression.html#cb93-3"></a><span class="co"># Model performance</span></span>
-<span id="cb93-4"><a href="non-linear-regression.html#cb93-4"></a><span class="kw">data.frame</span>(</span>
-<span id="cb93-5"><a href="non-linear-regression.html#cb93-5"></a>  <span class="dt">RMSE =</span> <span class="kw">RMSE</span>(predictions, test.data<span class="op">$</span>medv),</span>
-<span id="cb93-6"><a href="non-linear-regression.html#cb93-6"></a>  <span class="dt">R2 =</span> <span class="kw">R2</span>(predictions, test.data<span class="op">$</span>medv)</span>
-<span id="cb93-7"><a href="non-linear-regression.html#cb93-7"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb92"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb92-1"><a href="non-linear-regression.html#cb92-1"></a><span class="co"># Make predictions</span></span>
+<span id="cb92-2"><a href="non-linear-regression.html#cb92-2"></a><span class="co"># predictions &lt;- model %&gt;% predict(test.data)</span></span>
+<span id="cb92-3"><a href="non-linear-regression.html#cb92-3"></a><span class="co"># Model performance</span></span>
+<span id="cb92-4"><a href="non-linear-regression.html#cb92-4"></a><span class="kw">data.frame</span>(</span>
+<span id="cb92-5"><a href="non-linear-regression.html#cb92-5"></a>  <span class="dt">RMSE =</span> <span class="kw">RMSE</span>(predictions, test.data<span class="op">$</span>medv),</span>
+<span id="cb92-6"><a href="non-linear-regression.html#cb92-6"></a>  <span class="dt">R2 =</span> <span class="kw">R2</span>(predictions, test.data<span class="op">$</span>medv)</span>
+<span id="cb92-7"><a href="non-linear-regression.html#cb92-7"></a>)</span></code></pre></div>
 <pre><code>##       RMSE        R2
 ## 1 5.317372 0.6786367</code></pre>
-<div class="sourceCode" id="cb95"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb95-1"><a href="non-linear-regression.html#cb95-1"></a><span class="kw">ggplot</span>(train.data, <span class="kw">aes</span>(lstat, medv) ) <span class="op">+</span></span>
-<span id="cb95-2"><a href="non-linear-regression.html#cb95-2"></a><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span></span>
-<span id="cb95-3"><a href="non-linear-regression.html#cb95-3"></a><span class="st">  </span><span class="kw">stat_smooth</span>(<span class="dt">method =</span> gam, <span class="dt">formula =</span> y <span class="op">~</span><span class="st"> </span><span class="kw">s</span>(x))</span></code></pre></div>
+<div class="sourceCode" id="cb94"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb94-1"><a href="non-linear-regression.html#cb94-1"></a><span class="kw">ggplot</span>(train.data, <span class="kw">aes</span>(lstat, medv) ) <span class="op">+</span></span>
+<span id="cb94-2"><a href="non-linear-regression.html#cb94-2"></a><span class="st">  </span><span class="kw">geom_point</span>() <span class="op">+</span></span>
+<span id="cb94-3"><a href="non-linear-regression.html#cb94-3"></a><span class="st">  </span><span class="kw">stat_smooth</span>(<span class="dt">method =</span> gam, <span class="dt">formula =</span> y <span class="op">~</span><span class="st"> </span><span class="kw">s</span>(x))</span></code></pre></div>
 <p><img src="Data-Analysis_files/figure-html/unnamed-chunk-50-2.png" width="672" /></p>
-<div class="sourceCode" id="cb96"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb96-1"><a href="non-linear-regression.html#cb96-1"></a><span class="kw">detach</span>(train.data)</span></code></pre></div>
+<div class="sourceCode" id="cb95"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb95-1"><a href="non-linear-regression.html#cb95-1"></a><span class="kw">detach</span>(train.data)</span></code></pre></div>
 
 </div>
 </div>

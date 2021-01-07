@@ -24,7 +24,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2021-01-05" />
+<meta name="date" content="2021-01-07" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -348,6 +348,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="11.6.2" data-path="application-6.html"><a href="application-6.html#knn"><i class="fa fa-check"></i><b>11.6.2</b> KNN</a></li>
 <li class="chapter" data-level="11.6.3" data-path="application-6.html"><a href="application-6.html#rpart"><i class="fa fa-check"></i><b>11.6.3</b> rpart</a></li>
 <li class="chapter" data-level="11.6.4" data-path="application-6.html"><a href="application-6.html#mice-multivariate-imputation-via-chained-equations"><i class="fa fa-check"></i><b>11.6.4</b> MICE (Multivariate Imputation via Chained Equations)</a></li>
+<li class="chapter" data-level="11.6.5" data-path="application-6.html"><a href="application-6.html#amelia"><i class="fa fa-check"></i><b>11.6.5</b> Amelia</a></li>
 </ul></li>
 </ul></li>
 <li class="part"><span><b>III EXPERIMENTAL DESIGN</b></span></li>
@@ -412,54 +413,54 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="application-6" class="section level2">
 <h2><span class="header-section-number">11.6</span> Application</h2>
-<div class="sourceCode" id="cb112"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb112-1"><a href="application-6.html#cb112-1"></a><span class="kw">library</span>(missForest)</span>
-<span id="cb112-2"><a href="application-6.html#cb112-2"></a></span>
-<span id="cb112-3"><a href="application-6.html#cb112-3"></a><span class="co">#load data</span></span>
-<span id="cb112-4"><a href="application-6.html#cb112-4"></a>data &lt;-<span class="st"> </span>iris</span>
-<span id="cb112-5"><a href="application-6.html#cb112-5"></a></span>
-<span id="cb112-6"><a href="application-6.html#cb112-6"></a><span class="co">#Generate 10% missing values at Random</span></span>
-<span id="cb112-7"><a href="application-6.html#cb112-7"></a><span class="kw">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb112-8"><a href="application-6.html#cb112-8"></a>iris.mis &lt;-<span class="st"> </span><span class="kw">prodNA</span>(iris, <span class="dt">noNA =</span> <span class="fl">0.1</span>)</span>
-<span id="cb112-9"><a href="application-6.html#cb112-9"></a></span>
-<span id="cb112-10"><a href="application-6.html#cb112-10"></a><span class="co">#remove categorical variables</span></span>
-<span id="cb112-11"><a href="application-6.html#cb112-11"></a>iris.mis.cat &lt;-<span class="st"> </span>iris.mis</span>
-<span id="cb112-12"><a href="application-6.html#cb112-12"></a>iris.mis &lt;-<span class="st"> </span><span class="kw">subset</span>(iris.mis, <span class="dt">select =</span> <span class="op">-</span><span class="kw">c</span>(Species))</span></code></pre></div>
+<div class="sourceCode" id="cb111"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb111-1"><a href="application-6.html#cb111-1"></a><span class="kw">library</span>(missForest)</span>
+<span id="cb111-2"><a href="application-6.html#cb111-2"></a></span>
+<span id="cb111-3"><a href="application-6.html#cb111-3"></a><span class="co">#load data</span></span>
+<span id="cb111-4"><a href="application-6.html#cb111-4"></a>data &lt;-<span class="st"> </span>iris</span>
+<span id="cb111-5"><a href="application-6.html#cb111-5"></a></span>
+<span id="cb111-6"><a href="application-6.html#cb111-6"></a><span class="co">#Generate 10% missing values at Random</span></span>
+<span id="cb111-7"><a href="application-6.html#cb111-7"></a><span class="kw">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb111-8"><a href="application-6.html#cb111-8"></a>iris.mis &lt;-<span class="st"> </span><span class="kw">prodNA</span>(iris, <span class="dt">noNA =</span> <span class="fl">0.1</span>)</span>
+<span id="cb111-9"><a href="application-6.html#cb111-9"></a></span>
+<span id="cb111-10"><a href="application-6.html#cb111-10"></a><span class="co">#remove categorical variables</span></span>
+<span id="cb111-11"><a href="application-6.html#cb111-11"></a>iris.mis.cat &lt;-<span class="st"> </span>iris.mis</span>
+<span id="cb111-12"><a href="application-6.html#cb111-12"></a>iris.mis &lt;-<span class="st"> </span><span class="kw">subset</span>(iris.mis, <span class="dt">select =</span> <span class="op">-</span><span class="kw">c</span>(Species))</span></code></pre></div>
 <div id="imputation-with-mean-median-mode" class="section level3">
 <h3><span class="header-section-number">11.6.1</span> Imputation with mean / median / mode</h3>
-<div class="sourceCode" id="cb113"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb113-1"><a href="application-6.html#cb113-1"></a><span class="co"># whole data set</span></span>
-<span id="cb113-2"><a href="application-6.html#cb113-2"></a>e1071<span class="op">::</span><span class="kw">impute</span>(iris.mis, <span class="dt">what =</span> <span class="st">&quot;mean&quot;</span>) <span class="co"># replace with mean</span></span>
-<span id="cb113-3"><a href="application-6.html#cb113-3"></a>e1071<span class="op">::</span><span class="kw">impute</span>(iris.mis, <span class="dt">what =</span> <span class="st">&quot;median&quot;</span>) <span class="co"># replace with median</span></span>
-<span id="cb113-4"><a href="application-6.html#cb113-4"></a></span>
-<span id="cb113-5"><a href="application-6.html#cb113-5"></a><span class="co"># by variables</span></span>
-<span id="cb113-6"><a href="application-6.html#cb113-6"></a>Hmisc<span class="op">::</span><span class="kw">impute</span>(iris.mis<span class="op">$</span>Sepal.Length, mean)  <span class="co"># mean</span></span>
-<span id="cb113-7"><a href="application-6.html#cb113-7"></a>Hmisc<span class="op">::</span><span class="kw">impute</span>(iris.mis<span class="op">$</span>Sepal.Length, median)  <span class="co"># median</span></span>
-<span id="cb113-8"><a href="application-6.html#cb113-8"></a>Hmisc<span class="op">::</span><span class="kw">impute</span>(iris.mis<span class="op">$</span>Sepal.Length, <span class="dv">0</span>)  <span class="co"># replace specific number</span></span></code></pre></div>
+<div class="sourceCode" id="cb112"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb112-1"><a href="application-6.html#cb112-1"></a><span class="co"># whole data set</span></span>
+<span id="cb112-2"><a href="application-6.html#cb112-2"></a>e1071<span class="op">::</span><span class="kw">impute</span>(iris.mis, <span class="dt">what =</span> <span class="st">&quot;mean&quot;</span>) <span class="co"># replace with mean</span></span>
+<span id="cb112-3"><a href="application-6.html#cb112-3"></a>e1071<span class="op">::</span><span class="kw">impute</span>(iris.mis, <span class="dt">what =</span> <span class="st">&quot;median&quot;</span>) <span class="co"># replace with median</span></span>
+<span id="cb112-4"><a href="application-6.html#cb112-4"></a></span>
+<span id="cb112-5"><a href="application-6.html#cb112-5"></a><span class="co"># by variables</span></span>
+<span id="cb112-6"><a href="application-6.html#cb112-6"></a>Hmisc<span class="op">::</span><span class="kw">impute</span>(iris.mis<span class="op">$</span>Sepal.Length, mean)  <span class="co"># mean</span></span>
+<span id="cb112-7"><a href="application-6.html#cb112-7"></a>Hmisc<span class="op">::</span><span class="kw">impute</span>(iris.mis<span class="op">$</span>Sepal.Length, median)  <span class="co"># median</span></span>
+<span id="cb112-8"><a href="application-6.html#cb112-8"></a>Hmisc<span class="op">::</span><span class="kw">impute</span>(iris.mis<span class="op">$</span>Sepal.Length, <span class="dv">0</span>)  <span class="co"># replace specific number</span></span></code></pre></div>
 <p>check accurary</p>
-<div class="sourceCode" id="cb114"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb114-1"><a href="application-6.html#cb114-1"></a><span class="kw">library</span>(DMwR)</span>
-<span id="cb114-2"><a href="application-6.html#cb114-2"></a>actuals &lt;-<span class="st"> </span>iris<span class="op">$</span>Sepal.Width[<span class="kw">is.na</span>(iris.mis<span class="op">$</span>Sepal.Width)]</span>
-<span id="cb114-3"><a href="application-6.html#cb114-3"></a>predicteds &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="kw">mean</span>(iris<span class="op">$</span>Sepal.Width, <span class="dt">na.rm=</span>T), <span class="kw">length</span>(actuals))</span>
-<span id="cb114-4"><a href="application-6.html#cb114-4"></a><span class="kw">regr.eval</span>(actuals, predicteds)</span></code></pre></div>
+<div class="sourceCode" id="cb113"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb113-1"><a href="application-6.html#cb113-1"></a><span class="kw">library</span>(DMwR)</span>
+<span id="cb113-2"><a href="application-6.html#cb113-2"></a>actuals &lt;-<span class="st"> </span>iris<span class="op">$</span>Sepal.Width[<span class="kw">is.na</span>(iris.mis<span class="op">$</span>Sepal.Width)]</span>
+<span id="cb113-3"><a href="application-6.html#cb113-3"></a>predicteds &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="kw">mean</span>(iris<span class="op">$</span>Sepal.Width, <span class="dt">na.rm=</span>T), <span class="kw">length</span>(actuals))</span>
+<span id="cb113-4"><a href="application-6.html#cb113-4"></a><span class="kw">regr.eval</span>(actuals, predicteds)</span></code></pre></div>
 <pre><code>##       mae       mse      rmse      mape 
 ## 0.2870303 0.1301598 0.3607767 0.1021485</code></pre>
 </div>
 <div id="knn" class="section level3">
 <h3><span class="header-section-number">11.6.2</span> KNN</h3>
-<div class="sourceCode" id="cb116"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb116-1"><a href="application-6.html#cb116-1"></a><span class="kw">library</span>(DMwR)</span>
-<span id="cb116-2"><a href="application-6.html#cb116-2"></a><span class="co"># iris.mis[,!names(iris.mis) %in% c(&quot;Sepal.Length&quot;)] </span></span>
-<span id="cb116-3"><a href="application-6.html#cb116-3"></a><span class="co"># data should be this line. But since knn cant work with 3 or less variables, we need to use at least 4 variables. </span></span>
-<span id="cb116-4"><a href="application-6.html#cb116-4"></a></span>
-<span id="cb116-5"><a href="application-6.html#cb116-5"></a><span class="co"># knn is not appropriate for categorical variables</span></span>
-<span id="cb116-6"><a href="application-6.html#cb116-6"></a>knnOutput &lt;-</span>
-<span id="cb116-7"><a href="application-6.html#cb116-7"></a><span class="st">    </span><span class="kw">knnImputation</span>(<span class="dt">data =</span> iris.mis.cat, </span>
-<span id="cb116-8"><a href="application-6.html#cb116-8"></a>                  <span class="co">#k = 10, </span></span>
-<span id="cb116-9"><a href="application-6.html#cb116-9"></a>                  <span class="dt">meth =</span> <span class="st">&quot;median&quot;</span> <span class="co"># could use &quot;median&quot; or &quot;weighAvg&quot;</span></span>
-<span id="cb116-10"><a href="application-6.html#cb116-10"></a>                  )  <span class="co"># should exclude the dependent variable: Sepal.Length</span></span>
-<span id="cb116-11"><a href="application-6.html#cb116-11"></a><span class="kw">anyNA</span>(knnOutput)</span></code></pre></div>
+<div class="sourceCode" id="cb115"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb115-1"><a href="application-6.html#cb115-1"></a><span class="kw">library</span>(DMwR)</span>
+<span id="cb115-2"><a href="application-6.html#cb115-2"></a><span class="co"># iris.mis[,!names(iris.mis) %in% c(&quot;Sepal.Length&quot;)] </span></span>
+<span id="cb115-3"><a href="application-6.html#cb115-3"></a><span class="co"># data should be this line. But since knn cant work with 3 or less variables, we need to use at least 4 variables. </span></span>
+<span id="cb115-4"><a href="application-6.html#cb115-4"></a></span>
+<span id="cb115-5"><a href="application-6.html#cb115-5"></a><span class="co"># knn is not appropriate for categorical variables</span></span>
+<span id="cb115-6"><a href="application-6.html#cb115-6"></a>knnOutput &lt;-</span>
+<span id="cb115-7"><a href="application-6.html#cb115-7"></a><span class="st">    </span><span class="kw">knnImputation</span>(<span class="dt">data =</span> iris.mis.cat, </span>
+<span id="cb115-8"><a href="application-6.html#cb115-8"></a>                  <span class="co">#k = 10, </span></span>
+<span id="cb115-9"><a href="application-6.html#cb115-9"></a>                  <span class="dt">meth =</span> <span class="st">&quot;median&quot;</span> <span class="co"># could use &quot;median&quot; or &quot;weighAvg&quot;</span></span>
+<span id="cb115-10"><a href="application-6.html#cb115-10"></a>                  )  <span class="co"># should exclude the dependent variable: Sepal.Length</span></span>
+<span id="cb115-11"><a href="application-6.html#cb115-11"></a><span class="kw">anyNA</span>(knnOutput)</span></code></pre></div>
 <pre><code>## [1] FALSE</code></pre>
-<div class="sourceCode" id="cb118"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb118-1"><a href="application-6.html#cb118-1"></a><span class="kw">library</span>(DMwR)</span>
-<span id="cb118-2"><a href="application-6.html#cb118-2"></a>actuals &lt;-<span class="st"> </span>iris<span class="op">$</span>Sepal.Width[<span class="kw">is.na</span>(iris.mis<span class="op">$</span>Sepal.Width)]</span>
-<span id="cb118-3"><a href="application-6.html#cb118-3"></a>predicteds &lt;-<span class="st"> </span>knnOutput[<span class="kw">is.na</span>(iris.mis<span class="op">$</span>Sepal.Width), <span class="st">&quot;Sepal.Width&quot;</span>]</span>
-<span id="cb118-4"><a href="application-6.html#cb118-4"></a><span class="kw">regr.eval</span>(actuals, predicteds)</span></code></pre></div>
+<div class="sourceCode" id="cb117"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb117-1"><a href="application-6.html#cb117-1"></a><span class="kw">library</span>(DMwR)</span>
+<span id="cb117-2"><a href="application-6.html#cb117-2"></a>actuals &lt;-<span class="st"> </span>iris<span class="op">$</span>Sepal.Width[<span class="kw">is.na</span>(iris.mis<span class="op">$</span>Sepal.Width)]</span>
+<span id="cb117-3"><a href="application-6.html#cb117-3"></a>predicteds &lt;-<span class="st"> </span>knnOutput[<span class="kw">is.na</span>(iris.mis<span class="op">$</span>Sepal.Width), <span class="st">&quot;Sepal.Width&quot;</span>]</span>
+<span id="cb117-4"><a href="application-6.html#cb117-4"></a><span class="kw">regr.eval</span>(actuals, predicteds)</span></code></pre></div>
 <pre><code>##       mae       mse      rmse      mape 
 ## 0.2318182 0.1038636 0.3222788 0.0823571</code></pre>
 <p>Compared to mape (mean absolute percentage error) of mean imputation, we see almost always see improvements.</p>
@@ -467,12 +468,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="rpart" class="section level3">
 <h3><span class="header-section-number">11.6.3</span> rpart</h3>
 <p>For categorical (factor) variables, rpart can handle</p>
-<div class="sourceCode" id="cb120"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb120-1"><a href="application-6.html#cb120-1"></a><span class="kw">library</span>(rpart)</span>
-<span id="cb120-2"><a href="application-6.html#cb120-2"></a>class_mod &lt;-<span class="st"> </span><span class="kw">rpart</span>(Species <span class="op">~</span><span class="st"> </span>. <span class="op">-</span><span class="st"> </span>Sepal.Length, <span class="dt">data=</span>iris.mis.cat[<span class="op">!</span><span class="kw">is.na</span>(iris.mis.cat<span class="op">$</span>Species), ], <span class="dt">method=</span><span class="st">&quot;class&quot;</span>, <span class="dt">na.action=</span>na.omit)  <span class="co"># since Species is a factor, and exclude dependent variable &quot;Sepal.Length&quot;</span></span>
-<span id="cb120-3"><a href="application-6.html#cb120-3"></a></span>
-<span id="cb120-4"><a href="application-6.html#cb120-4"></a>anova_mod &lt;-<span class="st"> </span><span class="kw">rpart</span>(Sepal.Width <span class="op">~</span><span class="st"> </span>. <span class="op">-</span><span class="st"> </span>Sepal.Length, <span class="dt">data=</span>iris.mis[<span class="op">!</span><span class="kw">is.na</span>(iris.mis<span class="op">$</span>Sepal.Width), ], <span class="dt">method=</span><span class="st">&quot;anova&quot;</span>, <span class="dt">na.action=</span>na.omit)  <span class="co"># since Sepal.Width is numeric.</span></span>
-<span id="cb120-5"><a href="application-6.html#cb120-5"></a>species_pred &lt;-<span class="st"> </span><span class="kw">predict</span>(class_mod, iris.mis.cat[<span class="kw">is.na</span>(iris.mis.cat<span class="op">$</span>Species), ])</span>
-<span id="cb120-6"><a href="application-6.html#cb120-6"></a>width_pred &lt;-<span class="st"> </span><span class="kw">predict</span>(anova_mod, iris.mis[<span class="kw">is.na</span>(iris.mis<span class="op">$</span>Sepal.Width), ])</span></code></pre></div>
+<div class="sourceCode" id="cb119"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb119-1"><a href="application-6.html#cb119-1"></a><span class="kw">library</span>(rpart)</span>
+<span id="cb119-2"><a href="application-6.html#cb119-2"></a>class_mod &lt;-<span class="st"> </span><span class="kw">rpart</span>(Species <span class="op">~</span><span class="st"> </span>. <span class="op">-</span><span class="st"> </span>Sepal.Length, <span class="dt">data=</span>iris.mis.cat[<span class="op">!</span><span class="kw">is.na</span>(iris.mis.cat<span class="op">$</span>Species), ], <span class="dt">method=</span><span class="st">&quot;class&quot;</span>, <span class="dt">na.action=</span>na.omit)  <span class="co"># since Species is a factor, and exclude dependent variable &quot;Sepal.Length&quot;</span></span>
+<span id="cb119-3"><a href="application-6.html#cb119-3"></a></span>
+<span id="cb119-4"><a href="application-6.html#cb119-4"></a>anova_mod &lt;-<span class="st"> </span><span class="kw">rpart</span>(Sepal.Width <span class="op">~</span><span class="st"> </span>. <span class="op">-</span><span class="st"> </span>Sepal.Length, <span class="dt">data=</span>iris.mis[<span class="op">!</span><span class="kw">is.na</span>(iris.mis<span class="op">$</span>Sepal.Width), ], <span class="dt">method=</span><span class="st">&quot;anova&quot;</span>, <span class="dt">na.action=</span>na.omit)  <span class="co"># since Sepal.Width is numeric.</span></span>
+<span id="cb119-5"><a href="application-6.html#cb119-5"></a>species_pred &lt;-<span class="st"> </span><span class="kw">predict</span>(class_mod, iris.mis.cat[<span class="kw">is.na</span>(iris.mis.cat<span class="op">$</span>Species), ])</span>
+<span id="cb119-6"><a href="application-6.html#cb119-6"></a>width_pred &lt;-<span class="st"> </span><span class="kw">predict</span>(anova_mod, iris.mis[<span class="kw">is.na</span>(iris.mis<span class="op">$</span>Sepal.Width), ])</span></code></pre></div>
 </div>
 <div id="mice-multivariate-imputation-via-chained-equations" class="section level3">
 <h3><span class="header-section-number">11.6.4</span> MICE (Multivariate Imputation via Chained Equations)</h3>
@@ -490,12 +491,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li>polyreg(Bayesian polytomous regression) – For Factor Variables (&gt;= 2 levels)</li>
 <li>Proportional odds model (ordered, &gt;= 2 levels)</li>
 </ul>
-<div class="sourceCode" id="cb121"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb121-1"><a href="application-6.html#cb121-1"></a><span class="co"># load package</span></span>
-<span id="cb121-2"><a href="application-6.html#cb121-2"></a><span class="kw">library</span>(mice)</span>
-<span id="cb121-3"><a href="application-6.html#cb121-3"></a><span class="kw">library</span>(VIM)</span>
-<span id="cb121-4"><a href="application-6.html#cb121-4"></a></span>
-<span id="cb121-5"><a href="application-6.html#cb121-5"></a><span class="co"># check missing values</span></span>
-<span id="cb121-6"><a href="application-6.html#cb121-6"></a><span class="kw">md.pattern</span>(iris.mis)</span></code></pre></div>
+<div class="sourceCode" id="cb120"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb120-1"><a href="application-6.html#cb120-1"></a><span class="co"># load package</span></span>
+<span id="cb120-2"><a href="application-6.html#cb120-2"></a><span class="kw">library</span>(mice)</span>
+<span id="cb120-3"><a href="application-6.html#cb120-3"></a><span class="kw">library</span>(VIM)</span>
+<span id="cb120-4"><a href="application-6.html#cb120-4"></a></span>
+<span id="cb120-5"><a href="application-6.html#cb120-5"></a><span class="co"># check missing values</span></span>
+<span id="cb120-6"><a href="application-6.html#cb120-6"></a><span class="kw">md.pattern</span>(iris.mis)</span></code></pre></div>
 <p><img src="Data-Analysis_files/figure-html/unnamed-chunk-69-1.png" width="672" /></p>
 <pre><code>##     Sepal.Width Sepal.Length Petal.Length Petal.Width   
 ## 100           1            1            1           1  0
@@ -510,8 +511,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 ## 3             0            1            0           1  2
 ## 1             0            0            1           1  2
 ##              11           15           15          19 60</code></pre>
-<div class="sourceCode" id="cb123"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb123-1"><a href="application-6.html#cb123-1"></a><span class="co">#plot the missing values</span></span>
-<span id="cb123-2"><a href="application-6.html#cb123-2"></a><span class="kw">aggr</span>(iris.mis, <span class="dt">col=</span><span class="kw">mdc</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>), <span class="dt">numbers=</span><span class="ot">TRUE</span>, <span class="dt">sortVars=</span><span class="ot">TRUE</span>, <span class="dt">labels=</span><span class="kw">names</span>(iris.mis), <span class="dt">cex.axis=</span>.<span class="dv">7</span>, <span class="dt">gap=</span><span class="dv">3</span>, <span class="dt">ylab=</span><span class="kw">c</span>(<span class="st">&quot;Proportion of missingness&quot;</span>,<span class="st">&quot;Missingness Pattern&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb122"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb122-1"><a href="application-6.html#cb122-1"></a><span class="co">#plot the missing values</span></span>
+<span id="cb122-2"><a href="application-6.html#cb122-2"></a><span class="kw">aggr</span>(iris.mis, <span class="dt">col=</span><span class="kw">mdc</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>), <span class="dt">numbers=</span><span class="ot">TRUE</span>, <span class="dt">sortVars=</span><span class="ot">TRUE</span>, <span class="dt">labels=</span><span class="kw">names</span>(iris.mis), <span class="dt">cex.axis=</span>.<span class="dv">7</span>, <span class="dt">gap=</span><span class="dv">3</span>, <span class="dt">ylab=</span><span class="kw">c</span>(<span class="st">&quot;Proportion of missingness&quot;</span>,<span class="st">&quot;Missingness Pattern&quot;</span>))</span></code></pre></div>
 <p><img src="Data-Analysis_files/figure-html/unnamed-chunk-69-2.png" width="672" /></p>
 <pre><code>## 
 ##  Variables sorted by number of missings: 
@@ -520,10 +521,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 ##  Sepal.Length 0.10000000
 ##  Petal.Length 0.10000000
 ##   Sepal.Width 0.07333333</code></pre>
-<div class="sourceCode" id="cb125"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb125-1"><a href="application-6.html#cb125-1"></a>mice_plot &lt;-<span class="st"> </span><span class="kw">aggr</span>(iris.mis, <span class="dt">col=</span><span class="kw">c</span>(<span class="st">&#39;navyblue&#39;</span>,<span class="st">&#39;yellow&#39;</span>),</span>
-<span id="cb125-2"><a href="application-6.html#cb125-2"></a>                    <span class="dt">numbers=</span><span class="ot">TRUE</span>, <span class="dt">sortVars=</span><span class="ot">TRUE</span>,</span>
-<span id="cb125-3"><a href="application-6.html#cb125-3"></a>                    <span class="dt">labels=</span><span class="kw">names</span>(iris.mis), <span class="dt">cex.axis=</span>.<span class="dv">7</span>,</span>
-<span id="cb125-4"><a href="application-6.html#cb125-4"></a>                    <span class="dt">gap=</span><span class="dv">3</span>, <span class="dt">ylab=</span><span class="kw">c</span>(<span class="st">&quot;Missing data&quot;</span>,<span class="st">&quot;Pattern&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb124"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb124-1"><a href="application-6.html#cb124-1"></a>mice_plot &lt;-<span class="st"> </span><span class="kw">aggr</span>(iris.mis, <span class="dt">col=</span><span class="kw">c</span>(<span class="st">&#39;navyblue&#39;</span>,<span class="st">&#39;yellow&#39;</span>),</span>
+<span id="cb124-2"><a href="application-6.html#cb124-2"></a>                    <span class="dt">numbers=</span><span class="ot">TRUE</span>, <span class="dt">sortVars=</span><span class="ot">TRUE</span>,</span>
+<span id="cb124-3"><a href="application-6.html#cb124-3"></a>                    <span class="dt">labels=</span><span class="kw">names</span>(iris.mis), <span class="dt">cex.axis=</span>.<span class="dv">7</span>,</span>
+<span id="cb124-4"><a href="application-6.html#cb124-4"></a>                    <span class="dt">gap=</span><span class="dv">3</span>, <span class="dt">ylab=</span><span class="kw">c</span>(<span class="st">&quot;Missing data&quot;</span>,<span class="st">&quot;Pattern&quot;</span>))</span></code></pre></div>
 <p><img src="Data-Analysis_files/figure-html/unnamed-chunk-69-3.png" width="672" /></p>
 <pre><code>## 
 ##  Variables sorted by number of missings: 
@@ -533,23 +534,23 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 ##  Petal.Length 0.10000000
 ##   Sepal.Width 0.07333333</code></pre>
 <p>Impute Data</p>
-<div class="sourceCode" id="cb127"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb127-1"><a href="application-6.html#cb127-1"></a>imputed_Data &lt;-</span>
-<span id="cb127-2"><a href="application-6.html#cb127-2"></a><span class="st">    </span><span class="kw">mice</span>(</span>
-<span id="cb127-3"><a href="application-6.html#cb127-3"></a>        iris.mis,</span>
-<span id="cb127-4"><a href="application-6.html#cb127-4"></a>        <span class="dt">m =</span> <span class="dv">5</span>, <span class="co"># number of imputed datasets</span></span>
-<span id="cb127-5"><a href="application-6.html#cb127-5"></a>        <span class="dt">maxit =</span> <span class="dv">50</span>, <span class="co"># number of iterations taken to impute missing values</span></span>
-<span id="cb127-6"><a href="application-6.html#cb127-6"></a>        <span class="dt">method =</span> <span class="st">&#39;pmm&#39;</span>, <span class="co"># method used in imputation. Here, we used predictive mean matching</span></span>
-<span id="cb127-7"><a href="application-6.html#cb127-7"></a>        <span class="co"># other methods can be </span></span>
-<span id="cb127-8"><a href="application-6.html#cb127-8"></a>        <span class="co"># &quot;pmm&quot;: Predictive mean matching</span></span>
-<span id="cb127-9"><a href="application-6.html#cb127-9"></a>        <span class="co"># &quot;midastouch&quot; : weighted predictive mean matching</span></span>
-<span id="cb127-10"><a href="application-6.html#cb127-10"></a>        <span class="co"># &quot;sample&quot;: Random sample from observed values</span></span>
-<span id="cb127-11"><a href="application-6.html#cb127-11"></a>        <span class="co"># &quot;cart&quot;: classification and regression trees</span></span>
-<span id="cb127-12"><a href="application-6.html#cb127-12"></a>        <span class="co"># &quot;rf&quot;: random forest imputations.</span></span>
-<span id="cb127-13"><a href="application-6.html#cb127-13"></a>        <span class="co"># &quot;2lonly.pmm&quot;: Level-2 class predictive mean matching</span></span>
-<span id="cb127-14"><a href="application-6.html#cb127-14"></a>        <span class="co"># Other methods based on whether variables are (1) numeric, (2) binary, (3) ordered, (4), unordered</span></span>
-<span id="cb127-15"><a href="application-6.html#cb127-15"></a>        <span class="dt">seed =</span> <span class="dv">500</span></span>
-<span id="cb127-16"><a href="application-6.html#cb127-16"></a>    )</span></code></pre></div>
-<div class="sourceCode" id="cb128"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb128-1"><a href="application-6.html#cb128-1"></a><span class="kw">summary</span>(imputed_Data)</span></code></pre></div>
+<div class="sourceCode" id="cb126"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb126-1"><a href="application-6.html#cb126-1"></a>imputed_Data &lt;-</span>
+<span id="cb126-2"><a href="application-6.html#cb126-2"></a><span class="st">    </span><span class="kw">mice</span>(</span>
+<span id="cb126-3"><a href="application-6.html#cb126-3"></a>        iris.mis,</span>
+<span id="cb126-4"><a href="application-6.html#cb126-4"></a>        <span class="dt">m =</span> <span class="dv">5</span>, <span class="co"># number of imputed datasets</span></span>
+<span id="cb126-5"><a href="application-6.html#cb126-5"></a>        <span class="dt">maxit =</span> <span class="dv">50</span>, <span class="co"># number of iterations taken to impute missing values</span></span>
+<span id="cb126-6"><a href="application-6.html#cb126-6"></a>        <span class="dt">method =</span> <span class="st">&#39;pmm&#39;</span>, <span class="co"># method used in imputation. Here, we used predictive mean matching</span></span>
+<span id="cb126-7"><a href="application-6.html#cb126-7"></a>        <span class="co"># other methods can be </span></span>
+<span id="cb126-8"><a href="application-6.html#cb126-8"></a>        <span class="co"># &quot;pmm&quot;: Predictive mean matching</span></span>
+<span id="cb126-9"><a href="application-6.html#cb126-9"></a>        <span class="co"># &quot;midastouch&quot; : weighted predictive mean matching</span></span>
+<span id="cb126-10"><a href="application-6.html#cb126-10"></a>        <span class="co"># &quot;sample&quot;: Random sample from observed values</span></span>
+<span id="cb126-11"><a href="application-6.html#cb126-11"></a>        <span class="co"># &quot;cart&quot;: classification and regression trees</span></span>
+<span id="cb126-12"><a href="application-6.html#cb126-12"></a>        <span class="co"># &quot;rf&quot;: random forest imputations.</span></span>
+<span id="cb126-13"><a href="application-6.html#cb126-13"></a>        <span class="co"># &quot;2lonly.pmm&quot;: Level-2 class predictive mean matching</span></span>
+<span id="cb126-14"><a href="application-6.html#cb126-14"></a>        <span class="co"># Other methods based on whether variables are (1) numeric, (2) binary, (3) ordered, (4), unordered</span></span>
+<span id="cb126-15"><a href="application-6.html#cb126-15"></a>        <span class="dt">seed =</span> <span class="dv">500</span></span>
+<span id="cb126-16"><a href="application-6.html#cb126-16"></a>    )</span></code></pre></div>
+<div class="sourceCode" id="cb127"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb127-1"><a href="application-6.html#cb127-1"></a><span class="kw">summary</span>(imputed_Data)</span></code></pre></div>
 <pre><code>## Class: mids
 ## Number of multiple imputations:  5 
 ## Imputation methods:
@@ -561,27 +562,30 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 ## Sepal.Width             1           0            1           1
 ## Petal.Length            1           1            0           1
 ## Petal.Width             1           1            1           0</code></pre>
-<div class="sourceCode" id="cb130"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb130-1"><a href="application-6.html#cb130-1"></a><span class="co">#make a density plot</span></span>
-<span id="cb130-2"><a href="application-6.html#cb130-2"></a><span class="kw">densityplot</span>(imputed_Data)</span></code></pre></div>
+<div class="sourceCode" id="cb129"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb129-1"><a href="application-6.html#cb129-1"></a><span class="co">#make a density plot</span></span>
+<span id="cb129-2"><a href="application-6.html#cb129-2"></a><span class="kw">densityplot</span>(imputed_Data)</span></code></pre></div>
 <p><img src="Data-Analysis_files/figure-html/unnamed-chunk-71-1.png" width="672" /></p>
-<div class="sourceCode" id="cb131"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb131-1"><a href="application-6.html#cb131-1"></a><span class="co">#the red (imputed values) should be similar to the blue (observed)</span></span></code></pre></div>
+<div class="sourceCode" id="cb130"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb130-1"><a href="application-6.html#cb130-1"></a><span class="co">#the red (imputed values) should be similar to the blue (observed)</span></span></code></pre></div>
 <p>Check imputed dataset</p>
-<div class="sourceCode" id="cb132"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb132-1"><a href="application-6.html#cb132-1"></a><span class="co"># 1st dataset </span></span>
-<span id="cb132-2"><a href="application-6.html#cb132-2"></a>completeData &lt;-<span class="st"> </span><span class="kw">complete</span>(imputed_Data,<span class="dv">1</span>)</span>
-<span id="cb132-3"><a href="application-6.html#cb132-3"></a></span>
-<span id="cb132-4"><a href="application-6.html#cb132-4"></a><span class="co"># 2nd dataset</span></span>
-<span id="cb132-5"><a href="application-6.html#cb132-5"></a><span class="kw">complete</span>(imputed_Data,<span class="dv">2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb131"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb131-1"><a href="application-6.html#cb131-1"></a><span class="co"># 1st dataset </span></span>
+<span id="cb131-2"><a href="application-6.html#cb131-2"></a>completeData &lt;-<span class="st"> </span><span class="kw">complete</span>(imputed_Data,<span class="dv">1</span>)</span>
+<span id="cb131-3"><a href="application-6.html#cb131-3"></a></span>
+<span id="cb131-4"><a href="application-6.html#cb131-4"></a><span class="co"># 2nd dataset</span></span>
+<span id="cb131-5"><a href="application-6.html#cb131-5"></a><span class="kw">complete</span>(imputed_Data,<span class="dv">2</span>)</span></code></pre></div>
 <p>Regression model using imputed datasets</p>
-<div class="sourceCode" id="cb133"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb133-1"><a href="application-6.html#cb133-1"></a><span class="co"># regression model</span></span>
-<span id="cb133-2"><a href="application-6.html#cb133-2"></a>fit &lt;-<span class="st"> </span><span class="kw">with</span>(<span class="dt">data =</span> imputed_Data, <span class="dt">exp =</span> <span class="kw">lm</span>(Sepal.Width <span class="op">~</span><span class="st"> </span>Sepal.Length <span class="op">+</span><span class="st"> </span>Petal.Width)) </span>
-<span id="cb133-3"><a href="application-6.html#cb133-3"></a></span>
-<span id="cb133-4"><a href="application-6.html#cb133-4"></a><span class="co">#combine results of all 5 models</span></span>
-<span id="cb133-5"><a href="application-6.html#cb133-5"></a>combine &lt;-<span class="st"> </span><span class="kw">pool</span>(fit)</span>
-<span id="cb133-6"><a href="application-6.html#cb133-6"></a><span class="kw">summary</span>(combine)</span></code></pre></div>
+<div class="sourceCode" id="cb132"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb132-1"><a href="application-6.html#cb132-1"></a><span class="co"># regression model</span></span>
+<span id="cb132-2"><a href="application-6.html#cb132-2"></a>fit &lt;-<span class="st"> </span><span class="kw">with</span>(<span class="dt">data =</span> imputed_Data, <span class="dt">exp =</span> <span class="kw">lm</span>(Sepal.Width <span class="op">~</span><span class="st"> </span>Sepal.Length <span class="op">+</span><span class="st"> </span>Petal.Width)) </span>
+<span id="cb132-3"><a href="application-6.html#cb132-3"></a></span>
+<span id="cb132-4"><a href="application-6.html#cb132-4"></a><span class="co">#combine results of all 5 models</span></span>
+<span id="cb132-5"><a href="application-6.html#cb132-5"></a>combine &lt;-<span class="st"> </span><span class="kw">pool</span>(fit)</span>
+<span id="cb132-6"><a href="application-6.html#cb132-6"></a><span class="kw">summary</span>(combine)</span></code></pre></div>
 <pre><code>##           term   estimate  std.error statistic       df      p.value
 ## 1  (Intercept)  1.8963130 0.32453912  5.843095 131.0856 3.838556e-08
 ## 2 Sepal.Length  0.2974293 0.06679204  4.453066 130.2103 1.802241e-05
 ## 3  Petal.Width -0.4811603 0.07376809 -6.522608 108.8253 2.243032e-09</code></pre>
+</div>
+<div id="amelia" class="section level3">
+<h3><span class="header-section-number">11.6.5</span> Amelia</h3>
 
 </div>
 </div>
