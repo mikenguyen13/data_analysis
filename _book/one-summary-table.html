@@ -24,7 +24,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2021-01-05" />
+<meta name="date" content="2021-01-07" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -348,6 +348,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="11.6.2" data-path="application-6.html"><a href="application-6.html#knn"><i class="fa fa-check"></i><b>11.6.2</b> KNN</a></li>
 <li class="chapter" data-level="11.6.3" data-path="application-6.html"><a href="application-6.html#rpart"><i class="fa fa-check"></i><b>11.6.3</b> rpart</a></li>
 <li class="chapter" data-level="11.6.4" data-path="application-6.html"><a href="application-6.html#mice-multivariate-imputation-via-chained-equations"><i class="fa fa-check"></i><b>11.6.4</b> MICE (Multivariate Imputation via Chained Equations)</a></li>
+<li class="chapter" data-level="11.6.5" data-path="application-6.html"><a href="application-6.html#amelia"><i class="fa fa-check"></i><b>11.6.5</b> Amelia</a></li>
 </ul></li>
 </ul></li>
 <li class="part"><span><b>III EXPERIMENTAL DESIGN</b></span></li>
@@ -412,72 +413,485 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="one-summary-table" class="section level2">
 <h2><span class="header-section-number">15.1</span> One summary table</h2>
-<div class="sourceCode" id="cb135"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb135-1"><a href="one-summary-table.html#cb135-1"></a><span class="kw">library</span>(jtools)</span>
-<span id="cb135-2"><a href="one-summary-table.html#cb135-2"></a><span class="kw">data</span>(movies)</span>
-<span id="cb135-3"><a href="one-summary-table.html#cb135-3"></a>fit &lt;-<span class="st"> </span><span class="kw">lm</span>(metascore <span class="op">~</span><span class="st"> </span>budget <span class="op">+</span><span class="st"> </span>us_gross <span class="op">+</span><span class="st"> </span>year, <span class="dt">data =</span> movies)</span>
-<span id="cb135-4"><a href="one-summary-table.html#cb135-4"></a><span class="kw">summ</span>(fit)</span></code></pre></div>
-<pre><code>## MODEL INFO:
-## Observations: 831 (10 missing obs. deleted)
-## Dependent Variable: metascore
-## Type: OLS linear regression 
-## 
-## MODEL FIT:
-## F(3,827) = 26.23, p = 0.00
-## R² = 0.09
-## Adj. R² = 0.08 
-## 
-## Standard errors: OLS
-## --------------------------------------------------
-##                      Est.     S.E.   t val.      p
-## ----------------- ------- -------- -------- ------
-## (Intercept)         52.06   139.67     0.37   0.71
-## budget              -0.00     0.00    -5.89   0.00
-## us_gross             0.00     0.00     7.61   0.00
-## year                 0.01     0.07     0.08   0.94
-## --------------------------------------------------</code></pre>
-<div class="sourceCode" id="cb137"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb137-1"><a href="one-summary-table.html#cb137-1"></a><span class="kw">summ</span>(fit, <span class="dt">scale =</span> <span class="ot">TRUE</span>, <span class="dt">vifs =</span> <span class="ot">TRUE</span>, <span class="dt">part.corr =</span> <span class="ot">TRUE</span>, <span class="dt">confint =</span> <span class="ot">TRUE</span>, <span class="dt">pvals =</span> <span class="ot">FALSE</span>) <span class="co">#notice that scale here is TRUE</span></span></code></pre></div>
-<pre><code>## MODEL INFO:
-## Observations: 831 (10 missing obs. deleted)
-## Dependent Variable: metascore
-## Type: OLS linear regression 
-## 
-## MODEL FIT:
-## F(3,827) = 26.23, p = 0.00
-## R² = 0.09
-## Adj. R² = 0.08 
-## 
-## Standard errors: OLS
-## ------------------------------------------------------------------------------
-##                      Est.    2.5%   97.5%   t val.    VIF   partial.r   part.r
-## ----------------- ------- ------- ------- -------- ------ ----------- --------
-## (Intercept)         63.01   61.91   64.11   112.23                            
-## budget              -3.78   -5.05   -2.52    -5.89   1.31       -0.20    -0.20
-## us_gross             5.28    3.92    6.64     7.61   1.52        0.26     0.25
-## year                 0.05   -1.18    1.28     0.08   1.24        0.00     0.00
-## ------------------------------------------------------------------------------
-## 
-## Continuous predictors are mean-centered and scaled by 1 s.d.</code></pre>
-<div class="sourceCode" id="cb139"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb139-1"><a href="one-summary-table.html#cb139-1"></a><span class="co">#obtain clsuter-robust SE</span></span>
-<span id="cb139-2"><a href="one-summary-table.html#cb139-2"></a><span class="kw">data</span>(<span class="st">&quot;PetersenCL&quot;</span>, <span class="dt">package =</span> <span class="st">&quot;sandwich&quot;</span>)</span>
-<span id="cb139-3"><a href="one-summary-table.html#cb139-3"></a>fit2 &lt;-<span class="st"> </span><span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>x, <span class="dt">data =</span> PetersenCL)</span>
-<span id="cb139-4"><a href="one-summary-table.html#cb139-4"></a><span class="kw">summ</span>(fit2, <span class="dt">robust =</span> <span class="st">&quot;HC3&quot;</span>, <span class="dt">cluster =</span> <span class="st">&quot;firm&quot;</span>) </span></code></pre></div>
-<pre><code>## MODEL INFO:
-## Observations: 5000
-## Dependent Variable: y
-## Type: OLS linear regression 
-## 
-## MODEL FIT:
-## F(1,4998) = 1310.74, p = 0.00
-## R² = 0.21
-## Adj. R² = 0.21 
-## 
-## Standard errors: Cluster-robust, type = HC3
-## -----------------------------------------------
-##                     Est.   S.E.   t val.      p
-## ----------------- ------ ------ -------- ------
-## (Intercept)         0.03   0.07     0.44   0.66
-## x                   1.03   0.05    20.36   0.00
-## -----------------------------------------------</code></pre>
+<div class="sourceCode" id="cb134"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb134-1"><a href="one-summary-table.html#cb134-1"></a><span class="kw">library</span>(jtools)</span>
+<span id="cb134-2"><a href="one-summary-table.html#cb134-2"></a><span class="kw">data</span>(movies)</span>
+<span id="cb134-3"><a href="one-summary-table.html#cb134-3"></a>fit &lt;-<span class="st"> </span><span class="kw">lm</span>(metascore <span class="op">~</span><span class="st"> </span>budget <span class="op">+</span><span class="st"> </span>us_gross <span class="op">+</span><span class="st"> </span>year, <span class="dt">data =</span> movies)</span>
+<span id="cb134-4"><a href="one-summary-table.html#cb134-4"></a><span class="kw">summ</span>(fit)</span></code></pre></div>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Observations
+</td>
+<td style="text-align:right;">
+831 (10 missing obs. deleted)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Dependent variable
+</td>
+<td style="text-align:right;">
+metascore
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Type
+</td>
+<td style="text-align:right;">
+OLS linear regression
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+F(3,827)
+</td>
+<td style="text-align:right;">
+26.23
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+R²
+</td>
+<td style="text-align:right;">
+0.09
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Adj. R²
+</td>
+<td style="text-align:right;">
+0.08
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Est.
+</th>
+<th style="text-align:right;">
+S.E.
+</th>
+<th style="text-align:right;">
+t val.
+</th>
+<th style="text-align:right;">
+p
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+52.06
+</td>
+<td style="text-align:right;">
+139.67
+</td>
+<td style="text-align:right;">
+0.37
+</td>
+<td style="text-align:right;">
+0.71
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+budget
+</td>
+<td style="text-align:right;">
+-0.00
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+-5.89
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+us_gross
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+7.61
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+year
+</td>
+<td style="text-align:right;">
+0.01
+</td>
+<td style="text-align:right;">
+0.07
+</td>
+<td style="text-align:right;">
+0.08
+</td>
+<td style="text-align:right;">
+0.94
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: OLS
+</td>
+</tr>
+</tfoot>
+</table>
+<div class="sourceCode" id="cb135"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb135-1"><a href="one-summary-table.html#cb135-1"></a><span class="kw">summ</span>(fit, <span class="dt">scale =</span> <span class="ot">TRUE</span>, <span class="dt">vifs =</span> <span class="ot">TRUE</span>, <span class="dt">part.corr =</span> <span class="ot">TRUE</span>, <span class="dt">confint =</span> <span class="ot">TRUE</span>, <span class="dt">pvals =</span> <span class="ot">FALSE</span>) <span class="co">#notice that scale here is TRUE</span></span></code></pre></div>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Observations
+</td>
+<td style="text-align:right;">
+831 (10 missing obs. deleted)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Dependent variable
+</td>
+<td style="text-align:right;">
+metascore
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Type
+</td>
+<td style="text-align:right;">
+OLS linear regression
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+F(3,827)
+</td>
+<td style="text-align:right;">
+26.23
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+R²
+</td>
+<td style="text-align:right;">
+0.09
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Adj. R²
+</td>
+<td style="text-align:right;">
+0.08
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Est.
+</th>
+<th style="text-align:right;">
+2.5%
+</th>
+<th style="text-align:right;">
+97.5%
+</th>
+<th style="text-align:right;">
+t val.
+</th>
+<th style="text-align:right;">
+VIF
+</th>
+<th style="text-align:right;">
+partial.r
+</th>
+<th style="text-align:right;">
+part.r
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+63.01
+</td>
+<td style="text-align:right;">
+61.91
+</td>
+<td style="text-align:right;">
+64.11
+</td>
+<td style="text-align:right;">
+112.23
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+budget
+</td>
+<td style="text-align:right;">
+-3.78
+</td>
+<td style="text-align:right;">
+-5.05
+</td>
+<td style="text-align:right;">
+-2.52
+</td>
+<td style="text-align:right;">
+-5.89
+</td>
+<td style="text-align:right;">
+1.31
+</td>
+<td style="text-align:right;">
+-0.20
+</td>
+<td style="text-align:right;">
+-0.20
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+us_gross
+</td>
+<td style="text-align:right;">
+5.28
+</td>
+<td style="text-align:right;">
+3.92
+</td>
+<td style="text-align:right;">
+6.64
+</td>
+<td style="text-align:right;">
+7.61
+</td>
+<td style="text-align:right;">
+1.52
+</td>
+<td style="text-align:right;">
+0.26
+</td>
+<td style="text-align:right;">
+0.25
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+year
+</td>
+<td style="text-align:right;">
+0.05
+</td>
+<td style="text-align:right;">
+-1.18
+</td>
+<td style="text-align:right;">
+1.28
+</td>
+<td style="text-align:right;">
+0.08
+</td>
+<td style="text-align:right;">
+1.24
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: OLS; Continuous predictors are mean-centered and scaled by 1 s.d.
+</td>
+</tr>
+</tfoot>
+</table>
+<div class="sourceCode" id="cb136"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb136-1"><a href="one-summary-table.html#cb136-1"></a><span class="co">#obtain clsuter-robust SE</span></span>
+<span id="cb136-2"><a href="one-summary-table.html#cb136-2"></a><span class="kw">data</span>(<span class="st">&quot;PetersenCL&quot;</span>, <span class="dt">package =</span> <span class="st">&quot;sandwich&quot;</span>)</span>
+<span id="cb136-3"><a href="one-summary-table.html#cb136-3"></a>fit2 &lt;-<span class="st"> </span><span class="kw">lm</span>(y <span class="op">~</span><span class="st"> </span>x, <span class="dt">data =</span> PetersenCL)</span>
+<span id="cb136-4"><a href="one-summary-table.html#cb136-4"></a><span class="kw">summ</span>(fit2, <span class="dt">robust =</span> <span class="st">&quot;HC3&quot;</span>, <span class="dt">cluster =</span> <span class="st">&quot;firm&quot;</span>) </span></code></pre></div>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Observations
+</td>
+<td style="text-align:right;">
+5000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Dependent variable
+</td>
+<td style="text-align:right;">
+y
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Type
+</td>
+<td style="text-align:right;">
+OLS linear regression
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+F(1,4998)
+</td>
+<td style="text-align:right;">
+1310.74
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+R²
+</td>
+<td style="text-align:right;">
+0.21
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Adj. R²
+</td>
+<td style="text-align:right;">
+0.21
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Est.
+</th>
+<th style="text-align:right;">
+S.E.
+</th>
+<th style="text-align:right;">
+t val.
+</th>
+<th style="text-align:right;">
+p
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+0.03
+</td>
+<td style="text-align:right;">
+0.07
+</td>
+<td style="text-align:right;">
+0.44
+</td>
+<td style="text-align:right;">
+0.66
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+x
+</td>
+<td style="text-align:right;">
+1.03
+</td>
+<td style="text-align:right;">
+0.05
+</td>
+<td style="text-align:right;">
+20.36
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: Cluster-robust, type = HC3
+</td>
+</tr>
+</tfoot>
+</table>
 </div>
             </section>
 

@@ -24,7 +24,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2021-01-05" />
+<meta name="date" content="2021-01-07" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -348,6 +348,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="11.6.2" data-path="application-6.html"><a href="application-6.html#knn"><i class="fa fa-check"></i><b>11.6.2</b> KNN</a></li>
 <li class="chapter" data-level="11.6.3" data-path="application-6.html"><a href="application-6.html#rpart"><i class="fa fa-check"></i><b>11.6.3</b> rpart</a></li>
 <li class="chapter" data-level="11.6.4" data-path="application-6.html"><a href="application-6.html#mice-multivariate-imputation-via-chained-equations"><i class="fa fa-check"></i><b>11.6.4</b> MICE (Multivariate Imputation via Chained Equations)</a></li>
+<li class="chapter" data-level="11.6.5" data-path="application-6.html"><a href="application-6.html#amelia"><i class="fa fa-check"></i><b>11.6.5</b> Amelia</a></li>
 </ul></li>
 </ul></li>
 <li class="part"><span><b>III EXPERIMENTAL DESIGN</b></span></li>
@@ -416,8 +417,261 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3><span class="header-section-number">6.1.1</span> Ordinary Least Squares</h3>
 <p>The most fundamental model in statistics or econometric is a OLS linear regression.
 OLS = Maximum likelihood when the error term is assumed to be normally distributed.</p>
+<div id="basic-model" class="section level4">
+<h4><span class="header-section-number">6.1.1.1</span> Basic Model</h4>
+<p><span class="math display">\[
+Y_i = \beta_0 + \beta_1 X_i + \epsilon_i
+\]</span></p>
+<ul>
+<li><span class="math inline">\(Y_i\)</span>: response (dependent) variable at i-th observation<br />
+</li>
+<li><span class="math inline">\(\beta_0,\beta_1\)</span>: regression parameters for intercept and slope.<br />
+</li>
+<li><span class="math inline">\(X_i\)</span>: known constant (independent or predicotr variable) for i-th observation<br />
+</li>
+<li><span class="math inline">\(\epsilon_i\)</span>: random error term</li>
+</ul>
+<p><span class="math display">\[
+E(\epsilon_i) = 0 \\
+var(\epsilon_i) = \sigma^2 \\
+cov(\epsilon_i,\epsilon_j) = 0 \text{ for all $i \neq j$}
+\]</span></p>
+<p><span class="math inline">\(Y_i\)</span> is random since <span class="math inline">\(\epsilon_i\)</span> is:</p>
+<p><span class="math display">\[
+\begin{align}
+E(Y_i) &amp;= E(\beta_0 + \beta_1 X_i + \epsilon_i) \\
+&amp;= E(\beta_0) + E(\beta_1 X_i) + E(\epsilon) \\
+&amp;= \beta_0 + \beta_1 X_i
+\end{align}
+\]</span></p>
+<p><span class="math display">\[
+\begin{align}
+var(Y_i) &amp;= var(\beta_0 + \beta_1 X_i + \epsilon_i) \\
+&amp;= var(\epsilon_i) \\
+&amp;= \sigma^2
+\end{align}
+\]</span></p>
+<p>Since <span class="math inline">\(cov(\epsilon_i, \epsilon_j) = 0\)</span> (uncorrelated), the outcome in any one trail has no effect on the outcome of any other. Hence, <span class="math inline">\(Y_i, Y_j\)</span> are uncorrelated as well (conditioned on the X’s)</p>
+<p><strong>Note</strong><br />
+<a href="linear-regression.html#ordinary-least-squares">Least Squares</a> does not require a distributional assumption</p>
+<p><br></p>
+<div id="estimation" class="section level5">
+<h5><span class="header-section-number">6.1.1.1.1</span> Estimation</h5>
+<p>Deviation of <span class="math inline">\(Y_i\)</span> from its expected value:</p>
+<p><span class="math display">\[
+Y_i - E(Y_i) = Y_i - (\beta_0 + \beta_1 X_i)
+\]</span></p>
+<p>Consider the sum of the square of such deviations:</p>
+<p><span class="math display">\[
+Q = \sum_{i=1}^{n} (Y_i - \beta_0 -\beta_1 X_i)^2
+\]</span></p>
+<p><span class="math display">\[
+b_1 = \frac{\sum_{i=1}^{n} (X_i - \bar{X})(Y_i - \bar{Y})}{\sum_{i=1}^{n}(X_i - \bar{X})^2} \\
+b_0 = \frac{1}{n}(\sum_{i=1}^{n}Y_i - b_1\sum_{i=1}^{n}X_i) = \bar{Y} - b_1 \bar{X}
+\]</span></p>
+</div>
+<div id="properties-of-least-least-estimators" class="section level5">
+<h5><span class="header-section-number">6.1.1.1.2</span> Properties of Least Least Estimators</h5>
+<p><span class="math display">\[
+E(b_1) = \beta_1 \\
+E(b_0) = E(\bar{Y}) - \bar{X}\beta_1 \\
+E(\bar{Y}) = \beta_0 + \beta_1 \bar{X} \\
+E(b_0) = \beta_0 \\
+var(b_1) = \frac{\sigma^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2} \\
+var(b_0) = \sigma^2 (\frac{1}{n} + \frac{\bar{X}^2}{\sum (X_i - \bar{X})^2})
+\]</span></p>
+<p><span class="math inline">\(var(b_1)\)</span> approaches 0 as more measurements are taken at more <span class="math inline">\(X_i\)</span> values (unless <span class="math inline">\(X_i\)</span> is at its mean value)<br />
+<span class="math inline">\(var(b_0)\)</span> approaches 0 as n increases when the <span class="math inline">\(X_i\)</span> values are judiciously selected.</p>
+<p><strong>Mean Square Error</strong></p>
+<p><span class="math display">\[
+MSE = \frac{SSE}{n-2} = \frac{\sum_{i=1}^{n}e_i^2}{n-2} = \frac{\sum(Y_i - \hat{Y_i})^2}{n-2}
+\]</span></p>
+<p>Unbiased estimator of MSE:</p>
+<p><span class="math display">\[
+E(MSE) = \sigma^2
+\]</span></p>
+<p><span class="math display">\[
+s^2(b_1) = \widehat{var(b_1)} = \frac{MSE}{\sum_{i=1}^{n}(X_i - \bar{X})^2} \\
+s^2(b_0) = \widehat{var(b_0)} = MSE(\frac{1}{n} + \frac{\bar{X}^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2})
+\]</span></p>
+<p><span class="math display">\[
+E(s^2(b_1)) = var(b_1) \\
+E(s^2(b_0))=var(b_0)
+\]</span></p>
+</div>
+<div id="residuals" class="section level5">
+<h5><span class="header-section-number">6.1.1.1.3</span> Residuals</h5>
+<p><span class="math display">\[
+e_i = Y_i - \hat{Y} = Y_i - (b_0 + b_1 X_i)
+\]</span></p>
+<ul>
+<li><span class="math inline">\(e_i\)</span> is an estimate of <span class="math inline">\(\epsilon_i = Y_i - E(Y_i)\)</span><br />
+</li>
+<li><span class="math inline">\(\epsilon_i\)</span> is always unknown since we don’t know the true <span class="math inline">\(\beta_0, \beta_1\)</span></li>
+</ul>
+<p><span class="math display">\[
+\sum_{i=1}^{n} e_i = 0 \\
+\sum_{i=1}^{n} X_i e_i = 0
+\]</span></p>
+<p><br></p>
+</div>
+<div id="inference" class="section level5">
+<h5><span class="header-section-number">6.1.1.1.4</span> Inference</h5>
+<p><strong>Normality Assumption</strong></p>
+<ul>
+<li>Least Squares estimation does not require assumptions of normality.<br />
+</li>
+<li>However, to do inference on the parameters, we need distributional assumptions.<br />
+</li>
+<li>Inference on <span class="math inline">\(\beta_0,\beta_1\)</span> and <span class="math inline">\(Y_h\)</span> are not extremely sensitive to moderate departures from normality, especially if the sample size is large<br />
+</li>
+<li>Inference on <span class="math inline">\(Y_{pred}\)</span> is very sensitive to the normality assumptions.</li>
+</ul>
+<p><strong>Normal Error Regression Model</strong></p>
+<p><span class="math display">\[
+Y_i \sim N(\beta_0+\beta_1X_i, \sigma^2) \\
+\]</span></p>
+<p><br></p>
+<div id="beta_1" class="section level6">
+<h6><span class="header-section-number">6.1.1.1.4.1</span> <span class="math inline">\(\beta_1\)</span></h6>
+<p>Under the normal error model,</p>
+<p><span class="math display">\[
+b_1 \sim N(\beta_1,\frac{\sigma^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2})
+\]</span></p>
+<p>A linear combination of independent normal random variable is normally distributed</p>
+<p>Hence,</p>
+<p><span class="math display">\[
+\frac{b_1 - \beta_1}{s(b_1)} \sim t_{n-2}
+\]</span></p>
+<p>A <span class="math inline">\((1-\alpha) 100 \%\)</span> confidence interval for <span class="math inline">\(\beta_1\)</span> is</p>
+<p><span class="math display">\[
+b_1 \pm t_{t-\alpha/2 ; n-2}s(b_1)
+\]</span></p>
+<p><br></p>
+</div>
+<div id="beta_0" class="section level6">
+<h6><span class="header-section-number">6.1.1.1.4.2</span> <span class="math inline">\(\beta_0\)</span></h6>
+<p>Under the normal error model, the sampling distribution for <span class="math inline">\(b_0\)</span> is</p>
+<p><span class="math display">\[
+b_0 \sim N(\beta_0,\sigma^2(\frac{1}{n} + \frac{\bar{X}^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2}))
+\]</span></p>
+<p>Hence,</p>
+<p><span class="math display">\[
+\frac{b_0 - \beta_0}{s(b_0)} \sim t_{n-2}
+\]</span>
+A <span class="math inline">\((1-\alpha)100 \%\)</span> confidence interval for <span class="math inline">\(\beta_0\)</span> is</p>
+<p><span class="math display">\[
+b_0 \pm t_{1-\alpha/2;n-2}s(b_0)
+\]</span></p>
+<p><br></p>
+</div>
+<div id="mean-response" class="section level6">
+<h6><span class="header-section-number">6.1.1.1.4.3</span> Mean Response</h6>
+<p>Let <span class="math inline">\(X_h\)</span> denote the level of X for which we wish to estimate the mean response</p>
+<ul>
+<li>We denote the mean response when <span class="math inline">\(X = X_h\)</span> by <span class="math inline">\(E(Y_h)\)</span><br />
+</li>
+<li>A point estimator of <span class="math inline">\(E(Y_h)\)</span> is <span class="math inline">\(\hat{Y}_h\)</span>:</li>
+</ul>
+<p><span class="math display">\[
+\hat{Y}_h = b_0 + b_1 X_h
+\]</span>
+<strong>Note</strong></p>
+<p><span class="math display">\[
+E(\bar{Y}_h)= E(b_0 + b_1X_h) \\
+= \beta_0 + \beta_1 X_h \\
+= E(Y_h)
+\]</span>
+(unbiased estimator)</p>
+<p><span class="math display">\[
+\begin{align}
+var(\hat{Y}_h) &amp;= var(b_0 + b_1 X_h) \\
+&amp;= var(\hat{Y} + b_1 (X_h - \bar{X})) \\
+&amp;= var(\bar{Y}) + (X_h - \bar{X})^2var(b_1) + 2(X_h - \bar{X})cov(\bar{Y},b_1) \\
+&amp;= \frac{\sigma^2}{n} + (X_h - \bar{X})^2 \frac{\sigma^2}{\sum(X_i - \bar{X})^2} \\
+&amp;= \sigma^2(\frac{1}{n} + \frac{(X_h - \bar{X})^2}{\sum_{i=1}^{n} (X_i - \bar{X})^2})
+\end{align}
+\]</span></p>
+<p>Since <span class="math inline">\(cov(\bar{Y},b_1) = 0\)</span> due to the iid assumption on <span class="math inline">\(\epsilon_i\)</span></p>
+<p>An estimate of this variance is</p>
+<p><span class="math display">\[
+s^2(\hat{Y}_h) = MSE (\frac{1}{n} + \frac{(X_h - \bar{X})^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2})
+\]</span></p>
+<p>the sampling distribution for the mean response is</p>
+<p><span class="math display">\[
+\hat{Y}_h \sim N(E(Y_h),var(\hat{Y_h})) \\
+\frac{\hat{Y}_h - E(Y_h)}{s(\hat{Y}_h)} \sim t_{n-2}
+\]</span></p>
+<p>A <span class="math inline">\(100(1-\alpha) \%\)</span> CI for <span class="math inline">\(E(Y_h)\)</span> is</p>
+<p><span class="math display">\[
+\hat{Y}_h \pm t_{1-\alpha/2;n-2}s(\hat{Y}_h)
+\]</span></p>
+<p><br></p>
+</div>
+<div id="prediction-of-a-new-observation" class="section level6">
+<h6><span class="header-section-number">6.1.1.1.4.4</span> Prediction of a new observation</h6>
+<p>Regarding the <a href="linear-regression.html#mean-response">Mean Response</a>, we are interested in estimating <strong>mean</strong> of the distribution of Y given a certain X.</p>
+<p>Now, we want to <strong>predict</strong> an individual outcome for the distribution of Y at a given X. We call <span class="math inline">\(Y_{pred}\)</span></p>
+<p>Estimation of mean response versus prediction of a new observation:</p>
+<ul>
+<li>the point estimates are the same in both cases: <span class="math inline">\(\hat{Y}_{pred} = \hat{Y}_h\)</span><br />
+</li>
+<li>It is the variance of the prediction that is different; hence, prediction intervals are different than confidence intervals. The prediction variance must consider:
+<ul>
+<li>Variation in the mean of the distribution of Y<br />
+</li>
+<li>variation within the distribution of Y</li>
+</ul></li>
+</ul>
+<p>We want to predict: mean response + error</p>
+<p><span class="math display">\[
+\beta_0 + \beta_1 X_h + \epsilon
+\]</span></p>
+<p>Since <span class="math inline">\(E(\epsilon) = 0\)</span>, use the least squares predictor:</p>
+<p><span class="math display">\[
+\hat{Y}_h = b_0 + b_1 X_h
+\]</span></p>
+<p>The variance of the predictor is</p>
+<p><span class="math display">\[
+\begin{align}
+var(b_0 + b_1 X_h + \epsilon) &amp;= var(b_0 + b_1 X_h) + var(\epsilon) \\
+&amp;= \sigma^2(\frac{1}{n} + \frac{(X_h - \bar{X})^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2}) + \sigma^2 \\
+&amp;= \sigma^2(1+\frac{1}{n} + \frac{(X_h - \bar{X})^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2})
+\end{align}
+\]</span></p>
+<p>An estimate of the variance is given by</p>
+<p><span class="math display">\[
+s^2(pred)= MSE (1+ \frac{1}{n} + \frac{(X_h - \bar{X})^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2}) \\
+\frac{Y_{pred}-\hat{Y}_h}{s(pred)} \sim t_{n-2}
+\]</span></p>
+<p><span class="math inline">\(100(1-\alpha) \%\)</span> prediction interval is</p>
+<p><span class="math display">\[
+\bar{Y}_h \pm t_{1-\alpha/2; n-2}s(pred)
+\]</span></p>
+<p>The prediction interval is very sensitive to the distributional assumption on the errors, <span class="math inline">\(\epsilon\)</span></p>
+<p><br></p>
+</div>
+<div id="confidence-band" class="section level6">
+<h6><span class="header-section-number">6.1.1.1.4.5</span> Confidence Band</h6>
+<p>We want to know the confidence interval for the entire regression line, so we can draw conclusions about any and all mean response fo the entire regression line <span class="math inline">\(E(Y) = \beta_0 + \beta_1 X\)</span> rather than for a given response Y</p>
+<p><strong>Working-Hotelling Confidence Band</strong></p>
+<p>For a given <span class="math inline">\(X_h\)</span>, this band is</p>
+<p><span class="math display">\[
+\hat{Y}_h \pm W s(\hat{Y}_h)
+\]</span>
+where <span class="math inline">\(W^2 = 2F_{1-\alpha;2,n-2}\)</span>, which is just 2 times the F-stat with 2 and n-2 degrees of freedom</p>
+<ul>
+<li>the interval width will change with each <span class="math inline">\(X_h\)</span> (since <span class="math inline">\(s(\hat{Y}_h)\)</span> changes)<br />
+</li>
+<li>the boundary values for this confidence band will always define a hyperbole containing the regression line<br />
+</li>
+<li>will be smallest at <span class="math inline">\(X = \bar{X}\)</span></li>
+</ul>
+</div>
+</div>
+</div>
 <div id="ols-assumptions" class="section level4">
-<h4><span class="header-section-number">6.1.1.1</span> OLS Assumptions</h4>
+<h4><span class="header-section-number">6.1.1.2</span> OLS Assumptions</h4>
 <ul>
 <li><a href="linear-regression.html#a1-linearity">A1 Linearity</a></li>
 <li><a href="linear-regression.html#a2-full-rank">A2 Full rank</a></li>
@@ -427,7 +681,7 @@ OLS = Maximum likelihood when the error term is assumed to be normally distribut
 <li><a href="linear-regression.html#a6-normal-distribution">A6 Normal Distribution</a></li>
 </ul>
 <div id="a1-linearity" class="section level5">
-<h5><span class="header-section-number">6.1.1.1.1</span> A1 Linearity</h5>
+<h5><span class="header-section-number">6.1.1.2.1</span> A1 Linearity</h5>
 <p><span class="math display" id="eq:A1">\[
 \begin{equation}
 A1: y=\mathbf{x}\beta + \epsilon
@@ -440,7 +694,7 @@ A1: y=\mathbf{x}\beta + \epsilon
 </ul>
 <p>With A3 (Exogeneity of Independent), linearity can be restrictive</p>
 <div id="log-model" class="section level6">
-<h6><span class="header-section-number">6.1.1.1.1.1</span> Log Model</h6>
+<h6><span class="header-section-number">6.1.1.2.1.1</span> Log Model</h6>
 <table>
 <colgroup>
 <col width="25%" />
@@ -485,7 +739,7 @@ A1: y=\mathbf{x}\beta + \epsilon
 </table>
 </div>
 <div id="higher-orders" class="section level6">
-<h6><span class="header-section-number">6.1.1.1.1.2</span> Higher Orders</h6>
+<h6><span class="header-section-number">6.1.1.2.1.2</span> Higher Orders</h6>
 <p><span class="math inline">\(y=\beta_0 + x_1\beta_1 + x_1^2\beta_2 + \epsilon\)</span>
 <span class="math display">\[
 \frac{\partial y}{\partial x_1}=\beta_1 + 2x_1\beta_2
@@ -497,7 +751,7 @@ A1: y=\mathbf{x}\beta + \epsilon
 </ul>
 </div>
 <div id="interactions" class="section level6">
-<h6><span class="header-section-number">6.1.1.1.1.3</span> Interactions</h6>
+<h6><span class="header-section-number">6.1.1.2.1.3</span> Interactions</h6>
 <p><span class="math inline">\(y=\beta_0 + x_1\beta_1 + x_2\beta_2 + x_1x_2\beta_3 + \epsilon\)</span></p>
 <ul>
 <li><span class="math inline">\(\beta_1\)</span> is the average effect on y for a unit change in <span class="math inline">\(x_1\)</span> when <span class="math inline">\(x_2=0\)</span></li>
@@ -508,7 +762,7 @@ A1: y=\mathbf{x}\beta + \epsilon
 </div>
 </div>
 <div id="a2-full-rank" class="section level5">
-<h5><span class="header-section-number">6.1.1.1.2</span> A2 Full rank</h5>
+<h5><span class="header-section-number">6.1.1.2.2</span> A2 Full rank</h5>
 <p><span class="math display" id="eq:A2">\[
 \begin{equation}
 A2: rank(E(x&#39;x))=k
@@ -524,7 +778,7 @@ A2: rank(E(x&#39;x))=k
 <br></p>
 </div>
 <div id="a3-exogeneity-of-independent-variables" class="section level5">
-<h5><span class="header-section-number">6.1.1.1.3</span> A3 Exogeneity of Independent Variables</h5>
+<h5><span class="header-section-number">6.1.1.2.3</span> A3 Exogeneity of Independent Variables</h5>
 <p><span class="math display" id="eq:A3">\[\begin{equation}
 A3: E[\epsilon|x_1,x_2,...,x_k]=E[\epsilon|\mathbf{x}]=0
 \tag{6.3}
@@ -537,7 +791,7 @@ A3: E[\epsilon|x_1,x_2,...,x_k]=E[\epsilon|\mathbf{x}]=0
 <li>A3 implies <span class="math inline">\(E(y|x)=x\beta\)</span>, which means the conditional mean function must be a linear function of x <a href="linear-regression.html#a1-linearity">A1 Linearity</a></li>
 </ul>
 <div id="a3a" class="section level6">
-<h6><span class="header-section-number">6.1.1.1.3.1</span> A3a</h6>
+<h6><span class="header-section-number">6.1.1.2.3.1</span> A3a</h6>
 <p>Weaker Exogeneity Assumption</p>
 <p><strong>Exogeneity of Independent variables</strong></p>
 <p>A3a: <span class="math inline">\(E(\mathbf{x_i&#39;}\epsilon_i)=0\)</span></p>
@@ -555,7 +809,7 @@ A3: E[\epsilon|x_1,x_2,...,x_k]=E[\epsilon|\mathbf{x}]=0
 </div>
 </div>
 <div id="a4-homoskedasticity" class="section level5">
-<h5><span class="header-section-number">6.1.1.1.4</span> A4 Homoskedasticity</h5>
+<h5><span class="header-section-number">6.1.1.2.4</span> A4 Homoskedasticity</h5>
 <p><span class="math display" id="eq:A4">\[
 \begin{equation}
 A4: Var(\epsilon|x)=Var(\epsilon)=\sigma^2
@@ -569,7 +823,7 @@ A4: Var(\epsilon|x)=Var(\epsilon)=\sigma^2
 <br></p>
 </div>
 <div id="a5-data-generation-random-sampling" class="section level5">
-<h5><span class="header-section-number">6.1.1.1.5</span> A5 Data Generation (random Sampling)</h5>
+<h5><span class="header-section-number">6.1.1.2.5</span> A5 Data Generation (random Sampling)</h5>
 <p><span class="math display" id="eq:A5">\[
 \begin{equation}
 A5: {y_i,x_{i1},...,x_{ik-1}: i = 1,..., n}
@@ -587,7 +841,7 @@ is a random sample</p>
 <li>In times series and spatial settings, A5 is less likely to hold.</li>
 </ul>
 <div id="a5a" class="section level6">
-<h6><span class="header-section-number">6.1.1.1.5.1</span> A5a</h6>
+<h6><span class="header-section-number">6.1.1.2.5.1</span> A5a</h6>
 <p>A stochastic process <span class="math inline">\(\{x_t\}_{t=1}^T\)</span> is <strong>stationary</strong> if for every collection fo time indices <span class="math inline">\(\{t_1,t_2,...,t_m\}\)</span>, the joint distribution of</p>
 <p><span class="math display">\[
 x_{t_1},x_{t_2},...,x_{t_m}
@@ -736,7 +990,7 @@ where <span class="math inline">\(B= Var(z_t) + 2\sum_{h=1}^{\infty}Cov(z_t,z_{t
 </div>
 </div>
 <div id="a6-normal-distribution" class="section level5">
-<h5><span class="header-section-number">6.1.1.1.6</span> A6 Normal Distribution</h5>
+<h5><span class="header-section-number">6.1.1.2.6</span> A6 Normal Distribution</h5>
 <p><span class="math display" id="eq:A6">\[
 \begin{equation}
 A6: \epsilon|\mathbf{x}\sim N(0,\sigma^2I_n)
@@ -782,9 +1036,9 @@ If <a href="linear-regression.html#a3-exogeneity-of-independent-variables">A3</a
 </div>
 </div>
 <div id="theorems" class="section level4">
-<h4><span class="header-section-number">6.1.1.2</span> Theorems</h4>
+<h4><span class="header-section-number">6.1.1.3</span> Theorems</h4>
 <div id="frisch-waugh-lovell-theorem" class="section level5">
-<h5><span class="header-section-number">6.1.1.2.1</span> Frisch-Waugh-Lovell Theorem</h5>
+<h5><span class="header-section-number">6.1.1.3.1</span> Frisch-Waugh-Lovell Theorem</h5>
 <p><span class="math display">\[
 \mathbf{y=X\beta + \epsilon=X_1\beta_1+X_2\beta_2 +\epsilon}
 \]</span>
@@ -822,7 +1076,7 @@ Hence,
 <p><br></p>
 </div>
 <div id="gauss-markov-theorem" class="section level5">
-<h5><span class="header-section-number">6.1.1.2.2</span> Gauss-Markov Theorem</h5>
+<h5><span class="header-section-number">6.1.1.3.2</span> Gauss-Markov Theorem</h5>
 <p>For a linear regression model</p>
 <p><span class="math display">\[
 \mathbf{y=X\beta + \epsilon}
@@ -916,7 +1170,7 @@ and the variance of the estimator is <span class="math inline">\(Var(\tilde{\bet
 </div>
 </div>
 <div id="finite-sample-properties" class="section level4">
-<h4><span class="header-section-number">6.1.1.3</span> Finite Sample Properties</h4>
+<h4><span class="header-section-number">6.1.1.4</span> Finite Sample Properties</h4>
 <ul>
 <li>n is fixed</li>
 <li><strong>Bias</strong> On average, how close is our estimate to the true value
@@ -980,7 +1234,7 @@ Var(\hat{\beta}|\mathbf{X}) &amp;= Var(\beta + \mathbf{(X&#39;X)^{-1}X&#39;\epsi
 </ul></li>
 </ol>
 <div id="check-for-multicollinearity" class="section level5">
-<h5><span class="header-section-number">6.1.1.3.1</span> Check for Multicollinearity</h5>
+<h5><span class="header-section-number">6.1.1.4.1</span> Check for Multicollinearity</h5>
 <p><strong>Variance Inflation Factor</strong> (VIF)
 Rule of thumb <span class="math inline">\(VIF \ge 10\)</span> is large</p>
 <p><span class="math display">\[
@@ -988,7 +1242,7 @@ VIF = \frac{1}{1-R_1^2}
 \]</span></p>
 </div>
 <div id="standard-errors" class="section level5">
-<h5><span class="header-section-number">6.1.1.3.2</span> Standard Errors</h5>
+<h5><span class="header-section-number">6.1.1.4.2</span> Standard Errors</h5>
 <ul>
 <li><span class="math inline">\(Var(\hat{\beta}|\mathbf{X})=\sigma^2\mathbf{(X&#39;X)^{-1}}\)</span> is the variance of the estimate <span class="math inline">\(\hat{\beta}\)</span></li>
 <li><strong>Standard Errors</strong> are estimators/estimates of the standard deviation (square root of the variance) of the estimator <span class="math inline">\(\hat{\beta}\)</span></li>
@@ -1020,7 +1274,7 @@ where <span class="math inline">\(SST_{j-1}\)</span> and <span class="math inlin
 </div>
 </div>
 <div id="large-sample-properties" class="section level4">
-<h4><span class="header-section-number">6.1.1.4</span> Large Sample Properties</h4>
+<h4><span class="header-section-number">6.1.1.5</span> Large Sample Properties</h4>
 <ul>
 <li>let <span class="math inline">\(n \rightarrow \infty\)</span></li>
 <li>A perspective that allows us to evaluate the “quality” of estimators when finite sample properties are not informative, or impossible to compute</li>
@@ -1147,7 +1401,7 @@ SE_{ls}(\hat{\beta}_{j-1})=\sqrt{\hat{Avar}(\sqrt{n}\hat{\beta}_{j-1})/n} = \sqr
 * Valid under weaker assumptions: the assumptions needed to produce a consistent estimator for the finite sample conditional variance (A1-A5) are stronger than those needed to produce a consistent estimator for the asymptotic variance (A1,A2,A3a,A4,A5)</p>
 </div>
 <div id="application" class="section level4">
-<h4><span class="header-section-number">6.1.1.5</span> Application</h4>
+<h4><span class="header-section-number">6.1.1.6</span> Application</h4>
 </div>
 </div>
 <div id="feasible-generalized-least-squares" class="section level3">
@@ -1589,9 +1843,9 @@ e_t = \rho e_{t-1} + u_t
 </ul>
 <p><span class="math display">\[
 E((\mathbf{x_t - \rho x_{t-1}})&#39;)(\epsilon_t - \rho \epsilon_{t-1})=0
-\]</span></p>
-<pre><code>+ [A3a] is not sufficient for the above equaiton 
-+ [A3][A3 Exogeneity of Independent Variables] is suffiicent for the above equaiton</code></pre>
+\]</span>
++ <a href="linear-regression.html#a3a">A3a</a> is not sufficient for the above equation
++ <a href="linear-regression.html#a3-exogeneity-of-independent-variables">A3</a> is sufficient for the above equation</p>
 <ul>
 <li>The <a href="linear-regression.html#feasiable-prais-winsten">FPW</a> estimator is asymptotically more efficient than OLS if the errors are truly generated as AR(1) process
 <ul>

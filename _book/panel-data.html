@@ -24,7 +24,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2021-01-05" />
+<meta name="date" content="2021-01-07" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -348,6 +348,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="11.6.2" data-path="application-6.html"><a href="application-6.html#knn"><i class="fa fa-check"></i><b>11.6.2</b> KNN</a></li>
 <li class="chapter" data-level="11.6.3" data-path="application-6.html"><a href="application-6.html#rpart"><i class="fa fa-check"></i><b>11.6.3</b> rpart</a></li>
 <li class="chapter" data-level="11.6.4" data-path="application-6.html"><a href="application-6.html#mice-multivariate-imputation-via-chained-equations"><i class="fa fa-check"></i><b>11.6.4</b> MICE (Multivariate Imputation via Chained Equations)</a></li>
+<li class="chapter" data-level="11.6.5" data-path="application-6.html"><a href="application-6.html#amelia"><i class="fa fa-check"></i><b>11.6.5</b> Amelia</a></li>
 </ul></li>
 </ul></li>
 <li class="part"><span><b>III EXPERIMENTAL DESIGN</b></span></li>
@@ -756,81 +757,81 @@ check back on the section of FGLS</p>
 </div>
 <div id="application-4" class="section level3">
 <h3><span class="header-section-number">9.4.6</span> Application</h3>
-<div class="sourceCode" id="cb98"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb98-1"><a href="panel-data.html#cb98-1"></a><span class="co">#install.packages(&quot;plm&quot;)</span></span>
-<span id="cb98-2"><a href="panel-data.html#cb98-2"></a><span class="kw">library</span>(<span class="st">&quot;plm&quot;</span>)</span>
-<span id="cb98-3"><a href="panel-data.html#cb98-3"></a></span>
-<span id="cb98-4"><a href="panel-data.html#cb98-4"></a><span class="kw">library</span>(foreign)</span>
-<span id="cb98-5"><a href="panel-data.html#cb98-5"></a>Panel &lt;-<span class="st"> </span><span class="kw">read.dta</span>(<span class="st">&quot;http://dss.princeton.edu/training/Panel101.dta&quot;</span>)</span>
-<span id="cb98-6"><a href="panel-data.html#cb98-6"></a></span>
-<span id="cb98-7"><a href="panel-data.html#cb98-7"></a><span class="kw">attach</span>(Panel)</span>
-<span id="cb98-8"><a href="panel-data.html#cb98-8"></a>Y &lt;-<span class="st"> </span><span class="kw">cbind</span>(y)</span>
-<span id="cb98-9"><a href="panel-data.html#cb98-9"></a>X &lt;-<span class="st"> </span><span class="kw">cbind</span>(x1, x2, x3)</span>
-<span id="cb98-10"><a href="panel-data.html#cb98-10"></a></span>
-<span id="cb98-11"><a href="panel-data.html#cb98-11"></a><span class="co"># Set data as panel data</span></span>
-<span id="cb98-12"><a href="panel-data.html#cb98-12"></a>pdata &lt;-<span class="st"> </span><span class="kw">pdata.frame</span>(Panel, <span class="dt">index=</span><span class="kw">c</span>(<span class="st">&quot;country&quot;</span>,<span class="st">&quot;year&quot;</span>))</span>
-<span id="cb98-13"><a href="panel-data.html#cb98-13"></a></span>
-<span id="cb98-14"><a href="panel-data.html#cb98-14"></a><span class="co"># Pooled OLS estimator</span></span>
-<span id="cb98-15"><a href="panel-data.html#cb98-15"></a>pooling &lt;-<span class="st"> </span><span class="kw">plm</span>(Y <span class="op">~</span><span class="st"> </span>X, <span class="dt">data=</span>pdata, <span class="dt">model=</span> <span class="st">&quot;pooling&quot;</span>)</span>
-<span id="cb98-16"><a href="panel-data.html#cb98-16"></a><span class="kw">summary</span>(pooling)</span>
-<span id="cb98-17"><a href="panel-data.html#cb98-17"></a></span>
-<span id="cb98-18"><a href="panel-data.html#cb98-18"></a><span class="co"># Between estimator</span></span>
-<span id="cb98-19"><a href="panel-data.html#cb98-19"></a>between &lt;-<span class="st"> </span><span class="kw">plm</span>(Y <span class="op">~</span><span class="st"> </span>X, <span class="dt">data=</span>pdata, <span class="dt">model=</span> <span class="st">&quot;between&quot;</span>)</span>
-<span id="cb98-20"><a href="panel-data.html#cb98-20"></a><span class="kw">summary</span>(between)</span>
-<span id="cb98-21"><a href="panel-data.html#cb98-21"></a></span>
-<span id="cb98-22"><a href="panel-data.html#cb98-22"></a><span class="co"># First differences estimator</span></span>
-<span id="cb98-23"><a href="panel-data.html#cb98-23"></a>firstdiff &lt;-<span class="st"> </span><span class="kw">plm</span>(Y <span class="op">~</span><span class="st"> </span>X, <span class="dt">data=</span>pdata, <span class="dt">model=</span> <span class="st">&quot;fd&quot;</span>)</span>
-<span id="cb98-24"><a href="panel-data.html#cb98-24"></a><span class="kw">summary</span>(firstdiff)</span>
-<span id="cb98-25"><a href="panel-data.html#cb98-25"></a></span>
-<span id="cb98-26"><a href="panel-data.html#cb98-26"></a><span class="co"># Fixed effects or within estimator</span></span>
-<span id="cb98-27"><a href="panel-data.html#cb98-27"></a>fixed &lt;-<span class="st"> </span><span class="kw">plm</span>(Y <span class="op">~</span><span class="st"> </span>X, <span class="dt">data=</span>pdata, <span class="dt">model=</span> <span class="st">&quot;within&quot;</span>)</span>
-<span id="cb98-28"><a href="panel-data.html#cb98-28"></a><span class="kw">summary</span>(fixed)</span>
-<span id="cb98-29"><a href="panel-data.html#cb98-29"></a></span>
-<span id="cb98-30"><a href="panel-data.html#cb98-30"></a><span class="co"># Random effects estimator</span></span>
-<span id="cb98-31"><a href="panel-data.html#cb98-31"></a>random &lt;-<span class="st"> </span><span class="kw">plm</span>(Y <span class="op">~</span><span class="st"> </span>X, <span class="dt">data=</span>pdata, <span class="dt">model=</span> <span class="st">&quot;random&quot;</span>)</span>
-<span id="cb98-32"><a href="panel-data.html#cb98-32"></a><span class="kw">summary</span>(random)</span>
-<span id="cb98-33"><a href="panel-data.html#cb98-33"></a></span>
-<span id="cb98-34"><a href="panel-data.html#cb98-34"></a><span class="co"># LM test for random effects versus OLS</span></span>
-<span id="cb98-35"><a href="panel-data.html#cb98-35"></a><span class="co"># Accept Null, then OLS, Reject Null then RE</span></span>
-<span id="cb98-36"><a href="panel-data.html#cb98-36"></a><span class="kw">plmtest</span>(pooling,<span class="dt">effect =</span> <span class="st">&quot;individual&quot;</span>, <span class="dt">type =</span> <span class="kw">c</span>(<span class="st">&quot;bp&quot;</span>)) <span class="co"># other type: &quot;honda&quot;, &quot;kw&quot;,&quot; &quot;ghm&quot;; other effect : &quot;time&quot; &quot;twoways&quot;</span></span>
-<span id="cb98-37"><a href="panel-data.html#cb98-37"></a></span>
-<span id="cb98-38"><a href="panel-data.html#cb98-38"></a></span>
-<span id="cb98-39"><a href="panel-data.html#cb98-39"></a><span class="co"># B-P/LM and Pesaran CD (cross-sectional dependence) test</span></span>
-<span id="cb98-40"><a href="panel-data.html#cb98-40"></a><span class="kw">pcdtest</span>(fixed, <span class="dt">test =</span> <span class="kw">c</span>(<span class="st">&quot;lm&quot;</span>)) <span class="co"># Breusch and Pagan&#39;s original LM statistic</span></span>
-<span id="cb98-41"><a href="panel-data.html#cb98-41"></a><span class="kw">pcdtest</span>(fixed, <span class="dt">test =</span> <span class="kw">c</span>(<span class="st">&quot;cd&quot;</span>)) <span class="co"># Pesaran&#39;s CD statistic</span></span>
-<span id="cb98-42"><a href="panel-data.html#cb98-42"></a></span>
-<span id="cb98-43"><a href="panel-data.html#cb98-43"></a><span class="co"># Serial Correlation</span></span>
-<span id="cb98-44"><a href="panel-data.html#cb98-44"></a><span class="kw">pbgtest</span>(fixed)</span>
-<span id="cb98-45"><a href="panel-data.html#cb98-45"></a></span>
-<span id="cb98-46"><a href="panel-data.html#cb98-46"></a><span class="co"># stationary</span></span>
-<span id="cb98-47"><a href="panel-data.html#cb98-47"></a><span class="kw">library</span>(<span class="st">&quot;tseries&quot;</span>)</span>
-<span id="cb98-48"><a href="panel-data.html#cb98-48"></a><span class="kw">adf.test</span>(pdata<span class="op">$</span>y, <span class="dt">k =</span> <span class="dv">2</span>)</span>
-<span id="cb98-49"><a href="panel-data.html#cb98-49"></a></span>
-<span id="cb98-50"><a href="panel-data.html#cb98-50"></a><span class="co"># LM test for fixed effects versus OLS</span></span>
-<span id="cb98-51"><a href="panel-data.html#cb98-51"></a><span class="kw">pFtest</span>(fixed, pooling)</span>
-<span id="cb98-52"><a href="panel-data.html#cb98-52"></a></span>
-<span id="cb98-53"><a href="panel-data.html#cb98-53"></a><span class="co"># Hausman test for fixed versus random effects model</span></span>
-<span id="cb98-54"><a href="panel-data.html#cb98-54"></a><span class="kw">phtest</span>(random, fixed)</span>
-<span id="cb98-55"><a href="panel-data.html#cb98-55"></a></span>
-<span id="cb98-56"><a href="panel-data.html#cb98-56"></a><span class="co"># Breusch-Pagan heteroskedasticity</span></span>
-<span id="cb98-57"><a href="panel-data.html#cb98-57"></a><span class="kw">library</span>(lmtest)</span>
-<span id="cb98-58"><a href="panel-data.html#cb98-58"></a><span class="kw">bptest</span>(y <span class="op">~</span><span class="st"> </span>x1 <span class="op">+</span><span class="st"> </span><span class="kw">factor</span>(country), <span class="dt">data =</span> pdata)</span>
-<span id="cb98-59"><a href="panel-data.html#cb98-59"></a></span>
-<span id="cb98-60"><a href="panel-data.html#cb98-60"></a><span class="co"># If there is presence of heteroskedasticity</span></span>
-<span id="cb98-61"><a href="panel-data.html#cb98-61"></a><span class="co">## For RE model</span></span>
-<span id="cb98-62"><a href="panel-data.html#cb98-62"></a><span class="kw">coeftest</span>(random) <span class="co">#orginal coef</span></span>
-<span id="cb98-63"><a href="panel-data.html#cb98-63"></a><span class="kw">coeftest</span>(random, vcovHC) <span class="co"># Heteroskedasticity consistent coefficients</span></span>
-<span id="cb98-64"><a href="panel-data.html#cb98-64"></a></span>
-<span id="cb98-65"><a href="panel-data.html#cb98-65"></a><span class="kw">t</span>(<span class="kw">sapply</span>(<span class="kw">c</span>(<span class="st">&quot;HC0&quot;</span>, <span class="st">&quot;HC1&quot;</span>, <span class="st">&quot;HC2&quot;</span>, <span class="st">&quot;HC3&quot;</span>, <span class="st">&quot;HC4&quot;</span>), <span class="cf">function</span>(x) <span class="kw">sqrt</span>(<span class="kw">diag</span>(<span class="kw">vcovHC</span>(random, <span class="dt">type =</span> x))))) <span class="co">#show HC SE of the coef</span></span>
-<span id="cb98-66"><a href="panel-data.html#cb98-66"></a><span class="co"># HC0 - heteroskedasticity consistent. The default.</span></span>
-<span id="cb98-67"><a href="panel-data.html#cb98-67"></a><span class="co"># HC1,HC2, HC3 – Recommended for small samples. HC3 gives less weight to influential observations.</span></span>
-<span id="cb98-68"><a href="panel-data.html#cb98-68"></a><span class="co"># HC4 - small samples with influential observations</span></span>
-<span id="cb98-69"><a href="panel-data.html#cb98-69"></a><span class="co"># HAC - heteroskedasticity and autocorrelation consistent</span></span>
-<span id="cb98-70"><a href="panel-data.html#cb98-70"></a></span>
-<span id="cb98-71"><a href="panel-data.html#cb98-71"></a><span class="co">## For FE model</span></span>
-<span id="cb98-72"><a href="panel-data.html#cb98-72"></a><span class="kw">coeftest</span>(fixed) <span class="co"># Original coefficients</span></span>
-<span id="cb98-73"><a href="panel-data.html#cb98-73"></a><span class="kw">coeftest</span>(fixed, vcovHC) <span class="co"># Heteroskedasticity consistent coefficients</span></span>
-<span id="cb98-74"><a href="panel-data.html#cb98-74"></a><span class="kw">coeftest</span>(fixed, <span class="kw">vcovHC</span>(fixed, <span class="dt">method =</span> <span class="st">&quot;arellano&quot;</span>)) <span class="co"># Heteroskedasticity consistent coefficients (Arellano)</span></span>
-<span id="cb98-75"><a href="panel-data.html#cb98-75"></a><span class="kw">t</span>(<span class="kw">sapply</span>(<span class="kw">c</span>(<span class="st">&quot;HC0&quot;</span>, <span class="st">&quot;HC1&quot;</span>, <span class="st">&quot;HC2&quot;</span>, <span class="st">&quot;HC3&quot;</span>, <span class="st">&quot;HC4&quot;</span>), <span class="cf">function</span>(x) <span class="kw">sqrt</span>(<span class="kw">diag</span>(<span class="kw">vcovHC</span>(fixed, <span class="dt">type =</span> x))))) <span class="co">#show HC SE of the coef</span></span></code></pre></div>
+<div class="sourceCode" id="cb97"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb97-1"><a href="panel-data.html#cb97-1"></a><span class="co">#install.packages(&quot;plm&quot;)</span></span>
+<span id="cb97-2"><a href="panel-data.html#cb97-2"></a><span class="kw">library</span>(<span class="st">&quot;plm&quot;</span>)</span>
+<span id="cb97-3"><a href="panel-data.html#cb97-3"></a></span>
+<span id="cb97-4"><a href="panel-data.html#cb97-4"></a><span class="kw">library</span>(foreign)</span>
+<span id="cb97-5"><a href="panel-data.html#cb97-5"></a>Panel &lt;-<span class="st"> </span><span class="kw">read.dta</span>(<span class="st">&quot;http://dss.princeton.edu/training/Panel101.dta&quot;</span>)</span>
+<span id="cb97-6"><a href="panel-data.html#cb97-6"></a></span>
+<span id="cb97-7"><a href="panel-data.html#cb97-7"></a><span class="kw">attach</span>(Panel)</span>
+<span id="cb97-8"><a href="panel-data.html#cb97-8"></a>Y &lt;-<span class="st"> </span><span class="kw">cbind</span>(y)</span>
+<span id="cb97-9"><a href="panel-data.html#cb97-9"></a>X &lt;-<span class="st"> </span><span class="kw">cbind</span>(x1, x2, x3)</span>
+<span id="cb97-10"><a href="panel-data.html#cb97-10"></a></span>
+<span id="cb97-11"><a href="panel-data.html#cb97-11"></a><span class="co"># Set data as panel data</span></span>
+<span id="cb97-12"><a href="panel-data.html#cb97-12"></a>pdata &lt;-<span class="st"> </span><span class="kw">pdata.frame</span>(Panel, <span class="dt">index=</span><span class="kw">c</span>(<span class="st">&quot;country&quot;</span>,<span class="st">&quot;year&quot;</span>))</span>
+<span id="cb97-13"><a href="panel-data.html#cb97-13"></a></span>
+<span id="cb97-14"><a href="panel-data.html#cb97-14"></a><span class="co"># Pooled OLS estimator</span></span>
+<span id="cb97-15"><a href="panel-data.html#cb97-15"></a>pooling &lt;-<span class="st"> </span><span class="kw">plm</span>(Y <span class="op">~</span><span class="st"> </span>X, <span class="dt">data=</span>pdata, <span class="dt">model=</span> <span class="st">&quot;pooling&quot;</span>)</span>
+<span id="cb97-16"><a href="panel-data.html#cb97-16"></a><span class="kw">summary</span>(pooling)</span>
+<span id="cb97-17"><a href="panel-data.html#cb97-17"></a></span>
+<span id="cb97-18"><a href="panel-data.html#cb97-18"></a><span class="co"># Between estimator</span></span>
+<span id="cb97-19"><a href="panel-data.html#cb97-19"></a>between &lt;-<span class="st"> </span><span class="kw">plm</span>(Y <span class="op">~</span><span class="st"> </span>X, <span class="dt">data=</span>pdata, <span class="dt">model=</span> <span class="st">&quot;between&quot;</span>)</span>
+<span id="cb97-20"><a href="panel-data.html#cb97-20"></a><span class="kw">summary</span>(between)</span>
+<span id="cb97-21"><a href="panel-data.html#cb97-21"></a></span>
+<span id="cb97-22"><a href="panel-data.html#cb97-22"></a><span class="co"># First differences estimator</span></span>
+<span id="cb97-23"><a href="panel-data.html#cb97-23"></a>firstdiff &lt;-<span class="st"> </span><span class="kw">plm</span>(Y <span class="op">~</span><span class="st"> </span>X, <span class="dt">data=</span>pdata, <span class="dt">model=</span> <span class="st">&quot;fd&quot;</span>)</span>
+<span id="cb97-24"><a href="panel-data.html#cb97-24"></a><span class="kw">summary</span>(firstdiff)</span>
+<span id="cb97-25"><a href="panel-data.html#cb97-25"></a></span>
+<span id="cb97-26"><a href="panel-data.html#cb97-26"></a><span class="co"># Fixed effects or within estimator</span></span>
+<span id="cb97-27"><a href="panel-data.html#cb97-27"></a>fixed &lt;-<span class="st"> </span><span class="kw">plm</span>(Y <span class="op">~</span><span class="st"> </span>X, <span class="dt">data=</span>pdata, <span class="dt">model=</span> <span class="st">&quot;within&quot;</span>)</span>
+<span id="cb97-28"><a href="panel-data.html#cb97-28"></a><span class="kw">summary</span>(fixed)</span>
+<span id="cb97-29"><a href="panel-data.html#cb97-29"></a></span>
+<span id="cb97-30"><a href="panel-data.html#cb97-30"></a><span class="co"># Random effects estimator</span></span>
+<span id="cb97-31"><a href="panel-data.html#cb97-31"></a>random &lt;-<span class="st"> </span><span class="kw">plm</span>(Y <span class="op">~</span><span class="st"> </span>X, <span class="dt">data=</span>pdata, <span class="dt">model=</span> <span class="st">&quot;random&quot;</span>)</span>
+<span id="cb97-32"><a href="panel-data.html#cb97-32"></a><span class="kw">summary</span>(random)</span>
+<span id="cb97-33"><a href="panel-data.html#cb97-33"></a></span>
+<span id="cb97-34"><a href="panel-data.html#cb97-34"></a><span class="co"># LM test for random effects versus OLS</span></span>
+<span id="cb97-35"><a href="panel-data.html#cb97-35"></a><span class="co"># Accept Null, then OLS, Reject Null then RE</span></span>
+<span id="cb97-36"><a href="panel-data.html#cb97-36"></a><span class="kw">plmtest</span>(pooling,<span class="dt">effect =</span> <span class="st">&quot;individual&quot;</span>, <span class="dt">type =</span> <span class="kw">c</span>(<span class="st">&quot;bp&quot;</span>)) <span class="co"># other type: &quot;honda&quot;, &quot;kw&quot;,&quot; &quot;ghm&quot;; other effect : &quot;time&quot; &quot;twoways&quot;</span></span>
+<span id="cb97-37"><a href="panel-data.html#cb97-37"></a></span>
+<span id="cb97-38"><a href="panel-data.html#cb97-38"></a></span>
+<span id="cb97-39"><a href="panel-data.html#cb97-39"></a><span class="co"># B-P/LM and Pesaran CD (cross-sectional dependence) test</span></span>
+<span id="cb97-40"><a href="panel-data.html#cb97-40"></a><span class="kw">pcdtest</span>(fixed, <span class="dt">test =</span> <span class="kw">c</span>(<span class="st">&quot;lm&quot;</span>)) <span class="co"># Breusch and Pagan&#39;s original LM statistic</span></span>
+<span id="cb97-41"><a href="panel-data.html#cb97-41"></a><span class="kw">pcdtest</span>(fixed, <span class="dt">test =</span> <span class="kw">c</span>(<span class="st">&quot;cd&quot;</span>)) <span class="co"># Pesaran&#39;s CD statistic</span></span>
+<span id="cb97-42"><a href="panel-data.html#cb97-42"></a></span>
+<span id="cb97-43"><a href="panel-data.html#cb97-43"></a><span class="co"># Serial Correlation</span></span>
+<span id="cb97-44"><a href="panel-data.html#cb97-44"></a><span class="kw">pbgtest</span>(fixed)</span>
+<span id="cb97-45"><a href="panel-data.html#cb97-45"></a></span>
+<span id="cb97-46"><a href="panel-data.html#cb97-46"></a><span class="co"># stationary</span></span>
+<span id="cb97-47"><a href="panel-data.html#cb97-47"></a><span class="kw">library</span>(<span class="st">&quot;tseries&quot;</span>)</span>
+<span id="cb97-48"><a href="panel-data.html#cb97-48"></a><span class="kw">adf.test</span>(pdata<span class="op">$</span>y, <span class="dt">k =</span> <span class="dv">2</span>)</span>
+<span id="cb97-49"><a href="panel-data.html#cb97-49"></a></span>
+<span id="cb97-50"><a href="panel-data.html#cb97-50"></a><span class="co"># LM test for fixed effects versus OLS</span></span>
+<span id="cb97-51"><a href="panel-data.html#cb97-51"></a><span class="kw">pFtest</span>(fixed, pooling)</span>
+<span id="cb97-52"><a href="panel-data.html#cb97-52"></a></span>
+<span id="cb97-53"><a href="panel-data.html#cb97-53"></a><span class="co"># Hausman test for fixed versus random effects model</span></span>
+<span id="cb97-54"><a href="panel-data.html#cb97-54"></a><span class="kw">phtest</span>(random, fixed)</span>
+<span id="cb97-55"><a href="panel-data.html#cb97-55"></a></span>
+<span id="cb97-56"><a href="panel-data.html#cb97-56"></a><span class="co"># Breusch-Pagan heteroskedasticity</span></span>
+<span id="cb97-57"><a href="panel-data.html#cb97-57"></a><span class="kw">library</span>(lmtest)</span>
+<span id="cb97-58"><a href="panel-data.html#cb97-58"></a><span class="kw">bptest</span>(y <span class="op">~</span><span class="st"> </span>x1 <span class="op">+</span><span class="st"> </span><span class="kw">factor</span>(country), <span class="dt">data =</span> pdata)</span>
+<span id="cb97-59"><a href="panel-data.html#cb97-59"></a></span>
+<span id="cb97-60"><a href="panel-data.html#cb97-60"></a><span class="co"># If there is presence of heteroskedasticity</span></span>
+<span id="cb97-61"><a href="panel-data.html#cb97-61"></a><span class="co">## For RE model</span></span>
+<span id="cb97-62"><a href="panel-data.html#cb97-62"></a><span class="kw">coeftest</span>(random) <span class="co">#orginal coef</span></span>
+<span id="cb97-63"><a href="panel-data.html#cb97-63"></a><span class="kw">coeftest</span>(random, vcovHC) <span class="co"># Heteroskedasticity consistent coefficients</span></span>
+<span id="cb97-64"><a href="panel-data.html#cb97-64"></a></span>
+<span id="cb97-65"><a href="panel-data.html#cb97-65"></a><span class="kw">t</span>(<span class="kw">sapply</span>(<span class="kw">c</span>(<span class="st">&quot;HC0&quot;</span>, <span class="st">&quot;HC1&quot;</span>, <span class="st">&quot;HC2&quot;</span>, <span class="st">&quot;HC3&quot;</span>, <span class="st">&quot;HC4&quot;</span>), <span class="cf">function</span>(x) <span class="kw">sqrt</span>(<span class="kw">diag</span>(<span class="kw">vcovHC</span>(random, <span class="dt">type =</span> x))))) <span class="co">#show HC SE of the coef</span></span>
+<span id="cb97-66"><a href="panel-data.html#cb97-66"></a><span class="co"># HC0 - heteroskedasticity consistent. The default.</span></span>
+<span id="cb97-67"><a href="panel-data.html#cb97-67"></a><span class="co"># HC1,HC2, HC3 – Recommended for small samples. HC3 gives less weight to influential observations.</span></span>
+<span id="cb97-68"><a href="panel-data.html#cb97-68"></a><span class="co"># HC4 - small samples with influential observations</span></span>
+<span id="cb97-69"><a href="panel-data.html#cb97-69"></a><span class="co"># HAC - heteroskedasticity and autocorrelation consistent</span></span>
+<span id="cb97-70"><a href="panel-data.html#cb97-70"></a></span>
+<span id="cb97-71"><a href="panel-data.html#cb97-71"></a><span class="co">## For FE model</span></span>
+<span id="cb97-72"><a href="panel-data.html#cb97-72"></a><span class="kw">coeftest</span>(fixed) <span class="co"># Original coefficients</span></span>
+<span id="cb97-73"><a href="panel-data.html#cb97-73"></a><span class="kw">coeftest</span>(fixed, vcovHC) <span class="co"># Heteroskedasticity consistent coefficients</span></span>
+<span id="cb97-74"><a href="panel-data.html#cb97-74"></a><span class="kw">coeftest</span>(fixed, <span class="kw">vcovHC</span>(fixed, <span class="dt">method =</span> <span class="st">&quot;arellano&quot;</span>)) <span class="co"># Heteroskedasticity consistent coefficients (Arellano)</span></span>
+<span id="cb97-75"><a href="panel-data.html#cb97-75"></a><span class="kw">t</span>(<span class="kw">sapply</span>(<span class="kw">c</span>(<span class="st">&quot;HC0&quot;</span>, <span class="st">&quot;HC1&quot;</span>, <span class="st">&quot;HC2&quot;</span>, <span class="st">&quot;HC3&quot;</span>, <span class="st">&quot;HC4&quot;</span>), <span class="cf">function</span>(x) <span class="kw">sqrt</span>(<span class="kw">diag</span>(<span class="kw">vcovHC</span>(fixed, <span class="dt">type =</span> x))))) <span class="co">#show HC SE of the coef</span></span></code></pre></div>
 <p><strong>Advanced</strong></p>
 <p>Other methods to estimate the random model:</p>
 <ul>
@@ -846,11 +847,11 @@ check back on the section of FGLS</p>
 <li>Individual and time effects: <code>"twoways"</code></li>
 </ul>
 <p><strong>Note</strong>: no random two-ways effect model for random.method = “nerlove”</p>
-<div class="sourceCode" id="cb99"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb99-1"><a href="panel-data.html#cb99-1"></a>amemiya &lt;-<span class="st"> </span><span class="kw">plm</span>(Y <span class="op">~</span><span class="st"> </span>X, <span class="dt">data=</span>pdata, <span class="dt">model=</span> <span class="st">&quot;random&quot;</span>,<span class="dt">random.method =</span> <span class="st">&quot;amemiya&quot;</span>,<span class="dt">effect =</span> <span class="st">&quot;twoways&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb98"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb98-1"><a href="panel-data.html#cb98-1"></a>amemiya &lt;-<span class="st"> </span><span class="kw">plm</span>(Y <span class="op">~</span><span class="st"> </span>X, <span class="dt">data=</span>pdata, <span class="dt">model=</span> <span class="st">&quot;random&quot;</span>,<span class="dt">random.method =</span> <span class="st">&quot;amemiya&quot;</span>,<span class="dt">effect =</span> <span class="st">&quot;twoways&quot;</span>)</span></code></pre></div>
 <p>To call the estimation of the variance of the error components</p>
-<div class="sourceCode" id="cb100"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb100-1"><a href="panel-data.html#cb100-1"></a><span class="kw">ercomp</span>(Y<span class="op">~</span>X, <span class="dt">data=</span>pdata, <span class="dt">method =</span> <span class="st">&quot;amemiya&quot;</span>, <span class="dt">effect =</span> <span class="st">&quot;twoways&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb99"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb99-1"><a href="panel-data.html#cb99-1"></a><span class="kw">ercomp</span>(Y<span class="op">~</span>X, <span class="dt">data=</span>pdata, <span class="dt">method =</span> <span class="st">&quot;amemiya&quot;</span>, <span class="dt">effect =</span> <span class="st">&quot;twoways&quot;</span>)</span></code></pre></div>
 <p>Check for the unbalancedness. Closer to 1 indicates balanced data <span class="citation">(Ahrens and Pincus <a href="#ref-Ahrens_1981" role="doc-biblioref">1981</a>)</span></p>
-<div class="sourceCode" id="cb101"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb101-1"><a href="panel-data.html#cb101-1"></a><span class="kw">punbalancedness</span>(random)</span></code></pre></div>
+<div class="sourceCode" id="cb100"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb100-1"><a href="panel-data.html#cb100-1"></a><span class="kw">punbalancedness</span>(random)</span></code></pre></div>
 <p><strong>Instrumental variable</strong></p>
 <ul>
 <li><code>"bvk"</code>: default <span class="citation">(Balestra and Varadharajan-Krishnakumar <a href="#ref-Balestra_1987" role="doc-biblioref">1987</a>)</span></li>
@@ -858,36 +859,36 @@ check back on the section of FGLS</p>
 <li><code>"am"</code> <span class="citation">(Amemiya and MaCurdy <a href="#ref-Amemiya_1986" role="doc-biblioref">1986</a>)</span></li>
 <li><code>"bms"</code>: <span class="citation">(Breusch, Mizon, and Schmidt <a href="#ref-Breusch_1989" role="doc-biblioref">1989</a>)</span></li>
 </ul>
-<div class="sourceCode" id="cb102"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb102-1"><a href="panel-data.html#cb102-1"></a>instr &lt;-<span class="st"> </span><span class="kw">plm</span>(Y <span class="op">~</span><span class="st"> </span>X <span class="op">|</span><span class="st"> </span>X_ins, <span class="dt">data =</span> pdata, <span class="dt">random.method =</span> <span class="st">&quot;ht&quot;</span>, <span class="dt">model =</span> <span class="st">&quot;random&quot;</span>, <span class="dt">inst.method =</span> <span class="st">&quot;baltagi&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb101"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb101-1"><a href="panel-data.html#cb101-1"></a>instr &lt;-<span class="st"> </span><span class="kw">plm</span>(Y <span class="op">~</span><span class="st"> </span>X <span class="op">|</span><span class="st"> </span>X_ins, <span class="dt">data =</span> pdata, <span class="dt">random.method =</span> <span class="st">&quot;ht&quot;</span>, <span class="dt">model =</span> <span class="st">&quot;random&quot;</span>, <span class="dt">inst.method =</span> <span class="st">&quot;baltagi&quot;</span>)</span></code></pre></div>
 </div>
 <div id="other-estimators" class="section level3">
 <h3><span class="header-section-number">9.4.7</span> Other Estimators</h3>
 <div id="variable-coeffiicents-model" class="section level4">
 <h4><span class="header-section-number">9.4.7.1</span> Variable Coeffiicents Model</h4>
-<div class="sourceCode" id="cb103"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb103-1"><a href="panel-data.html#cb103-1"></a>fixed_pvcm &lt;-<span class="st"> </span><span class="kw">pvcm</span>(Y<span class="op">~</span>X, <span class="dt">data=</span>pdata, <span class="dt">model=</span><span class="st">&quot;within&quot;</span>)</span>
-<span id="cb103-2"><a href="panel-data.html#cb103-2"></a>random_pvcm &lt;-<span class="st"> </span><span class="kw">pvcm</span>(Y<span class="op">~</span>X, <span class="dt">data=</span>pdata, <span class="dt">model=</span><span class="st">&quot;random&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb102"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb102-1"><a href="panel-data.html#cb102-1"></a>fixed_pvcm &lt;-<span class="st"> </span><span class="kw">pvcm</span>(Y<span class="op">~</span>X, <span class="dt">data=</span>pdata, <span class="dt">model=</span><span class="st">&quot;within&quot;</span>)</span>
+<span id="cb102-2"><a href="panel-data.html#cb102-2"></a>random_pvcm &lt;-<span class="st"> </span><span class="kw">pvcm</span>(Y<span class="op">~</span>X, <span class="dt">data=</span>pdata, <span class="dt">model=</span><span class="st">&quot;random&quot;</span>)</span></code></pre></div>
 <p>More details can be found <a href="https://cran.r-project.org/web/packages/plm/vignettes/plmPackage.html">here</a></p>
 </div>
 <div id="generalized-method-of-moments-estimator" class="section level4">
 <h4><span class="header-section-number">9.4.7.2</span> Generalized Method of Moments Estimator</h4>
 <p>Typically use in dynamic models.
 Example is from <a href="https://cran.r-project.org/web/packages/plm/vignettes/plmPackage.html">plm package</a></p>
-<div class="sourceCode" id="cb104"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb104-1"><a href="panel-data.html#cb104-1"></a>z2 &lt;-<span class="st"> </span><span class="kw">pgmm</span>(<span class="kw">log</span>(emp) <span class="op">~</span><span class="st"> </span><span class="kw">lag</span>(<span class="kw">log</span>(emp), <span class="dv">1</span>)<span class="op">+</span><span class="st"> </span><span class="kw">lag</span>(<span class="kw">log</span>(wage), <span class="dv">0</span><span class="op">:</span><span class="dv">1</span>) <span class="op">+</span></span>
-<span id="cb104-2"><a href="panel-data.html#cb104-2"></a><span class="st">           </span><span class="kw">lag</span>(<span class="kw">log</span>(capital), <span class="dv">0</span><span class="op">:</span><span class="dv">1</span>) <span class="op">|</span><span class="st"> </span><span class="kw">lag</span>(<span class="kw">log</span>(emp), <span class="dv">2</span><span class="op">:</span><span class="dv">99</span>) <span class="op">+</span></span>
-<span id="cb104-3"><a href="panel-data.html#cb104-3"></a><span class="st">           </span><span class="kw">lag</span>(<span class="kw">log</span>(wage), <span class="dv">2</span><span class="op">:</span><span class="dv">99</span>) <span class="op">+</span><span class="st"> </span><span class="kw">lag</span>(<span class="kw">log</span>(capital), <span class="dv">2</span><span class="op">:</span><span class="dv">99</span>),        </span>
-<span id="cb104-4"><a href="panel-data.html#cb104-4"></a>           <span class="dt">data =</span> EmplUK, <span class="dt">effect =</span> <span class="st">&quot;twoways&quot;</span>, <span class="dt">model =</span> <span class="st">&quot;onestep&quot;</span>, </span>
-<span id="cb104-5"><a href="panel-data.html#cb104-5"></a>           <span class="dt">transformation =</span> <span class="st">&quot;ld&quot;</span>)</span>
-<span id="cb104-6"><a href="panel-data.html#cb104-6"></a><span class="kw">summary</span>(z2, <span class="dt">robust =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb103"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb103-1"><a href="panel-data.html#cb103-1"></a>z2 &lt;-<span class="st"> </span><span class="kw">pgmm</span>(<span class="kw">log</span>(emp) <span class="op">~</span><span class="st"> </span><span class="kw">lag</span>(<span class="kw">log</span>(emp), <span class="dv">1</span>)<span class="op">+</span><span class="st"> </span><span class="kw">lag</span>(<span class="kw">log</span>(wage), <span class="dv">0</span><span class="op">:</span><span class="dv">1</span>) <span class="op">+</span></span>
+<span id="cb103-2"><a href="panel-data.html#cb103-2"></a><span class="st">           </span><span class="kw">lag</span>(<span class="kw">log</span>(capital), <span class="dv">0</span><span class="op">:</span><span class="dv">1</span>) <span class="op">|</span><span class="st"> </span><span class="kw">lag</span>(<span class="kw">log</span>(emp), <span class="dv">2</span><span class="op">:</span><span class="dv">99</span>) <span class="op">+</span></span>
+<span id="cb103-3"><a href="panel-data.html#cb103-3"></a><span class="st">           </span><span class="kw">lag</span>(<span class="kw">log</span>(wage), <span class="dv">2</span><span class="op">:</span><span class="dv">99</span>) <span class="op">+</span><span class="st"> </span><span class="kw">lag</span>(<span class="kw">log</span>(capital), <span class="dv">2</span><span class="op">:</span><span class="dv">99</span>),        </span>
+<span id="cb103-4"><a href="panel-data.html#cb103-4"></a>           <span class="dt">data =</span> EmplUK, <span class="dt">effect =</span> <span class="st">&quot;twoways&quot;</span>, <span class="dt">model =</span> <span class="st">&quot;onestep&quot;</span>, </span>
+<span id="cb103-5"><a href="panel-data.html#cb103-5"></a>           <span class="dt">transformation =</span> <span class="st">&quot;ld&quot;</span>)</span>
+<span id="cb103-6"><a href="panel-data.html#cb103-6"></a><span class="kw">summary</span>(z2, <span class="dt">robust =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
 </div>
 <div id="general-feasible-generalized-least-squares-models" class="section level4">
 <h4><span class="header-section-number">9.4.7.3</span> General Feasible Generalized Least Squares Models</h4>
 <p>Assume there is no cross-sectional correlation Robust against intragroup heteroskedasticity and serial correlation. Suited when n is much larger than T (long panel)
 However, inefficient under groupwise heteorskedasticity.</p>
-<div class="sourceCode" id="cb105"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb105-1"><a href="panel-data.html#cb105-1"></a><span class="co"># Random Effects</span></span>
-<span id="cb105-2"><a href="panel-data.html#cb105-2"></a>zz &lt;-<span class="st"> </span><span class="kw">pggls</span>(<span class="kw">log</span>(emp)<span class="op">~</span><span class="kw">log</span>(wage)<span class="op">+</span><span class="kw">log</span>(capital), <span class="dt">data=</span>EmplUK, <span class="dt">model=</span><span class="st">&quot;pooling&quot;</span>)</span>
-<span id="cb105-3"><a href="panel-data.html#cb105-3"></a></span>
-<span id="cb105-4"><a href="panel-data.html#cb105-4"></a><span class="co"># Fixed</span></span>
-<span id="cb105-5"><a href="panel-data.html#cb105-5"></a>zz &lt;-<span class="st"> </span><span class="kw">pggls</span>(<span class="kw">log</span>(emp)<span class="op">~</span><span class="kw">log</span>(wage)<span class="op">+</span><span class="kw">log</span>(capital), <span class="dt">data=</span>EmplUK, <span class="dt">model=</span><span class="st">&quot;within&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb104"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb104-1"><a href="panel-data.html#cb104-1"></a><span class="co"># Random Effects</span></span>
+<span id="cb104-2"><a href="panel-data.html#cb104-2"></a>zz &lt;-<span class="st"> </span><span class="kw">pggls</span>(<span class="kw">log</span>(emp)<span class="op">~</span><span class="kw">log</span>(wage)<span class="op">+</span><span class="kw">log</span>(capital), <span class="dt">data=</span>EmplUK, <span class="dt">model=</span><span class="st">&quot;pooling&quot;</span>)</span>
+<span id="cb104-3"><a href="panel-data.html#cb104-3"></a></span>
+<span id="cb104-4"><a href="panel-data.html#cb104-4"></a><span class="co"># Fixed</span></span>
+<span id="cb104-5"><a href="panel-data.html#cb104-5"></a>zz &lt;-<span class="st"> </span><span class="kw">pggls</span>(<span class="kw">log</span>(emp)<span class="op">~</span><span class="kw">log</span>(wage)<span class="op">+</span><span class="kw">log</span>(capital), <span class="dt">data=</span>EmplUK, <span class="dt">model=</span><span class="st">&quot;within&quot;</span>)</span></code></pre></div>
 
 </div>
 </div>
