@@ -24,7 +24,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2021-01-07" />
+<meta name="date" content="2021-01-09" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -349,6 +349,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="11.6.3" data-path="application-6.html"><a href="application-6.html#rpart"><i class="fa fa-check"></i><b>11.6.3</b> rpart</a></li>
 <li class="chapter" data-level="11.6.4" data-path="application-6.html"><a href="application-6.html#mice-multivariate-imputation-via-chained-equations"><i class="fa fa-check"></i><b>11.6.4</b> MICE (Multivariate Imputation via Chained Equations)</a></li>
 <li class="chapter" data-level="11.6.5" data-path="application-6.html"><a href="application-6.html#amelia"><i class="fa fa-check"></i><b>11.6.5</b> Amelia</a></li>
+<li class="chapter" data-level="11.6.6" data-path="application-6.html"><a href="application-6.html#missforest"><i class="fa fa-check"></i><b>11.6.6</b> missForest</a></li>
+<li class="chapter" data-level="11.6.7" data-path="application-6.html"><a href="application-6.html#hmisc"><i class="fa fa-check"></i><b>11.6.7</b> Hmisc</a></li>
+<li class="chapter" data-level="11.6.8" data-path="application-6.html"><a href="application-6.html#mi"><i class="fa fa-check"></i><b>11.6.8</b> mi</a></li>
 </ul></li>
 </ul></li>
 <li class="part"><span><b>III EXPERIMENTAL DESIGN</b></span></li>
@@ -417,8 +420,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <h3><span class="header-section-number">6.1.1</span> Ordinary Least Squares</h3>
 <p>The most fundamental model in statistics or econometric is a OLS linear regression.
 OLS = Maximum likelihood when the error term is assumed to be normally distributed.</p>
-<div id="basic-model" class="section level4">
-<h4><span class="header-section-number">6.1.1.1</span> Basic Model</h4>
+<div id="simple-regression-basic-model" class="section level4">
+<h4><span class="header-section-number">6.1.1.1</span> Simple Regression (Basic Model)</h4>
 <p><span class="math display">\[
 Y_i = \beta_0 + \beta_1 X_i + \epsilon_i
 \]</span></p>
@@ -666,6 +669,255 @@ where <span class="math inline">\(W^2 = 2F_{1-\alpha;2,n-2}\)</span>, which is j
 <li>the boundary values for this confidence band will always define a hyperbole containing the regression line<br />
 </li>
 <li>will be smallest at <span class="math inline">\(X = \bar{X}\)</span></li>
+</ul>
+</div>
+<div id="anova" class="section level6">
+<h6><span class="header-section-number">6.1.1.1.4.6</span> ANOVA</h6>
+<p>Partitioning the Total Sum of Squares: Consider the corrected Total sum of squres:</p>
+<p><span class="math display">\[
+SSTO = \sum_{i=1}^{n} (Y_i -\bar{Y})^2
+\]</span>
+Measures the overall dispersion in the response variable<br />
+We use the term corrected because we correct for mean, the uncorrected total sum of squares is given by <span class="math inline">\(\sum Y_i^2\)</span></p>
+<p>use <span class="math inline">\(\hat{Y}_i = b_0 + b_1 X_i\)</span> to estimate the conditional mean for Y at <span class="math inline">\(X_i\)</span></p>
+<p><span class="math display">\[
+\begin{align}
+\sum_{i=1}^n (Y_i - \bar{Y})^2 &amp;= \sum_{i=1}^n (Y_i - \hat{Y}_i + \hat{Y}_i - \bar{Y})^2 \\
+&amp;= \sum_{i=1}^n(Y_i - \hat{Y}_i)^2 + \sum_{i=1}^n(\hat{Y}_i - \bar{Y})^2 + 2\sum_{i=1}^n(Y_i - \hat{Y}_i)(\hat{Y}_i-\bar{Y}) \\
+&amp;= \sum_{i=1}^n(Y_i - \hat{Y}_i)^2 + \sum_{i=1}^n(\bar{Y}_i -\bar{Y})^2 \\
+STTO &amp;= SSE + SSR \\
+\end{align}
+\]</span></p>
+<p>where SSR is the regression sum of squares, which measures how the conditional mean varies about a central value.</p>
+<p>The cross-product term in the decomposition is 0:</p>
+<p><span class="math display">\[
+\begin{align}
+\sum_{i=1}^n (Y_i - \hat{Y}_i)(\hat{Y}_i - \bar{Y}) &amp;= \sum_{i=1}^{n}(Y_i - \bar{Y} -b_1 (X_i - \bar{X}))(\bar{Y} + b_1 (X_i - \bar{X})-\bar{Y}) \\
+&amp;= b_1 \sum_{i=1}^{n} (Y_i - \bar{Y})(X_i - \bar{X}) - b_1^2\sum_{i=1}^{n}(X_i - \bar{X})^2 \\
+&amp;= b_1 \frac{\sum_{i=1}^{n}(Y_i -\bar{Y})(X_i - \bar{X})}{\sum_{i=1}^{n}(X_i - \bar{X})^2} \sum_{i=1}^{n}(X_i - \bar{X})^2 - b_1^2\sum_{i=1}^{n}(X_i - \bar{X})^2 \\
+&amp;= b_1^2 \sum_{i=1}^{n}(X_i - \bar{X})^2 - b_1^2 \sum_{i=1}^{n}(X_i - \bar{X})^2 \\
+&amp;= 0
+\end{align}
+\]</span></p>
+<p><span class="math display">\[
+\begin{align}
+SSTO &amp;= SSR + SSE \\
+(n-1 d.f) &amp;= (1 d.f.) + (n-2 d.f.)
+\end{align}
+\]</span></p>
+<table>
+<thead>
+<tr class="header">
+<th>Source of Variation</th>
+<th>Sum of Squares</th>
+<th>df</th>
+<th>Mean Square</th>
+<th>F</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Regression (model)</td>
+<td>SSR</td>
+<td>1</td>
+<td>MSR = SSR/df</td>
+<td>MSR/MSE</td>
+</tr>
+<tr class="even">
+<td>Error</td>
+<td>SSE</td>
+<td>n-2</td>
+<td>MSE = SSE/df</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Total (Corrected)</td>
+<td>SSTO</td>
+<td>n-1</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><span class="math display">\[
+E(MSE) = \sigma^2 \\
+E(MSR) = \sigma^2 + \beta_1^2 \sum_{i=1}^{n} (X_i - \bar{X})^2 
+\]</span></p>
+<ul>
+<li>If <span class="math inline">\(\beta_1 = 0\)</span>, then these two expected values are the same<br />
+</li>
+<li>if <span class="math inline">\(\beta_1 \neq 0\)</span> then E(MSR) will be larger than E(MSE)</li>
+</ul>
+<p>which means the ratio of these two quantities, we can infer something about <span class="math inline">\(\beta_1\)</span></p>
+<p>Distribution theory tells us that if <span class="math inline">\(\epsilon_i \sim iid N(0,\sigma^2)\)</span> and assuming <span class="math inline">\(H_0: \beta_1 = 0\)</span> is true,</p>
+<p><span class="math display">\[
+\frac{MSE}{\sigma^2} \sim \chi_{n-2}^2 \\
+\frac{MSR}{\sigma^2} \sim \chi_{1}^2 \text{ if $\beta_1=0$}
+\]</span></p>
+<p>where these two chi-square random variables are independent.</p>
+<p>Since the ratio of 2 independent chi-square random variable follows an F distribution, we consider:</p>
+<p><span class="math display">\[
+F = \frac{MSR}{MSE} \sim F_{1,n-2}
+\]</span>
+when <span class="math inline">\(\beta_1 =0\)</span>. Thus, we reject <span class="math inline">\(H_0: \beta_1 = 0\)</span> (or <span class="math inline">\(E(Y_i)\)</span> = constant) at <span class="math inline">\(\alpha\)</span> if</p>
+<p><span class="math display">\[
+F &gt; F_{1 - \alpha;1,n-2}
+\]</span>
+this is the only null hypothesis that can be tested with this approach.</p>
+<p><strong>Coefficient of Determination</strong></p>
+<p><span class="math display">\[
+R^2 = \frac{SSR}{SSTO} = 1- \frac{SSE}{SSTO}
+\]</span></p>
+<p>where <span class="math inline">\(0 \le R^2 \le 1\)</span></p>
+<p><strong>Interpretation</strong>: The proportionate reduction of the total variation in Y after fitting a linear model in X.<br />
+It is not really correct to say that <span class="math inline">\(R^2\)</span> is the “variation in Y explained by X”.</p>
+<p><span class="math inline">\(R^2\)</span> is related to the correlation coefficient between Y and X:</p>
+<p><span class="math display">\[
+R^2 = (r)^2
+\]</span>
+where <span class="math inline">\(r= corr(x,y)\)</span> is an estimate of the Pearson correlation coefficient. Also, note</p>
+<p><span class="math display">\[
+b_1 = (\frac{\sum_{i=1}^{n}(Y_i - \bar{Y})^2}{\sum_{i=1}^{n} (X_i - \bar{X})^2})^{1/2} \\
+r = \frac{s_y}{s_x} r
+\]</span></p>
+<p><strong>Lack of Fit</strong></p>
+<p><span class="math inline">\(Y_{11},Y_{21},...,Y_{n_1,1}\)</span>: <span class="math inline">\(n_1\)</span> repeat obs at <span class="math inline">\(X_1\)</span></p>
+<p><span class="math inline">\(Y_{1c},Y_{2c},...,Y_{n_c,c}\)</span>: <span class="math inline">\(n_c\)</span> repeat obs at <span class="math inline">\(X_c\)</span></p>
+<p>So, there are c distinct X values.</p>
+<p>Let <span class="math inline">\(\bar{Y}_j\)</span> be the mean over replicates for <span class="math inline">\(X_j\)</span></p>
+<p>Partition the Error Sum of Squares:</p>
+<p><span class="math display">\[
+\begin{align}
+\sum_{i} \sum_{j} (Y_{ij} - \hat{Y}_{ij})^2 &amp;= \sum_{i} \sum_{j} (Y_{ij} - \bar{Y}_j + \bar{Y}_j + \hat{Y}_{ij})^2 \\
+&amp;=  \sum_{i} \sum_{j} (Y_{ij} - \bar{Y}_j)^2 + \sum_{i} \sum_{j} (\bar{Y}_j - \hat{Y}_{ij})^2 + \text{cross product term} \\
+&amp;= \sum_{i} \sum_{j}(Y_{ij} - \bar{Y}_j)^2 + \sum_j n_j (\bar{Y}_j- \hat{Y}_{ij})^2 \\
+SSE &amp;= SSPE + SSLF \\
+\end{align}
+\]</span></p>
+<ul>
+<li>SSPE: “pure error sum of squares” has n-c degrees of freedom since we need to estimate c means<br />
+</li>
+<li>SSLF: “lack of fit sum of squares” has c - 2 degrees of freedom (the number of unique X values - number of parameters used to specify the conditional mean regression model)</li>
+</ul>
+<p><span class="math display">\[
+MSPE = \frac{SSPE}{df_{pe}} = \frac{SSPE}{n-c} \\
+MSLF = \frac{SSLF}{df_{lf}} = \frac{SSLF}{c-2}
+\]</span>
+The <strong>F-test for Lack-of-Fit</strong> tests</p>
+<p><span class="math display">\[
+H_0: Y_{ij} = \beta_0 + \beta_1 X_i + \epsilon_{ij}, \epsilon_{ij} \sim iid N(0,\sigma^2) \\
+H_a: Y_{ij} = \alpha_0 + \alpha_1 X_i + f(X_i, Z_1,...) + \epsilon_{ij}^*,\epsilon_{ij}^* \sim iid N(0, \sigma^2)
+\]</span></p>
+<p><span class="math inline">\(E(MSPE) = \sigma^2\)</span> under either <span class="math inline">\(H_0\)</span>, <span class="math inline">\(H_a\)</span></p>
+<p><span class="math inline">\(E(MSLF) = \sigma^2 + \frac{\sum n_j(f(X_i,...))^2}{n-2}\)</span> in general and</p>
+<p><span class="math inline">\(E(MSLF) = \sigma^2\)</span> when <span class="math inline">\(H_0\)</span> is true</p>
+<p>We reject <span class="math inline">\(H_0\)</span> (i.e., the model <span class="math inline">\(Y_i = \beta_0 + \beta_1 X_i + \epsilon_i\)</span> is not adequate) if</p>
+<p><span class="math display">\[
+F = \frac{MSLF}{MSPE} &gt; F_{1-\alpha;c-2,n-c}
+\]</span></p>
+<p>Failing to reject <span class="math inline">\(H_0\)</span> does not imply that <span class="math inline">\(H_0: Y_{ij} = \beta_0 + \beta_1 X_i + \epsilon_{ij}\)</span> is exactly true, but it suggests that this model may provide a reasonable approximation to the true model.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Source of Variation</th>
+<th>Sum of Squares</th>
+<th>df</th>
+<th>Mean Square</th>
+<th>F</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Regression</td>
+<td>SSR</td>
+<td>1</td>
+<td>MSR</td>
+<td>MSR / MSE</td>
+</tr>
+<tr class="even">
+<td>Error</td>
+<td>SSE</td>
+<td>n-2</td>
+<td>MSE</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Lack of fit</td>
+<td>SSLF</td>
+<td>c-2</td>
+<td>MSLF</td>
+<td>MSLF / MSPE</td>
+</tr>
+<tr class="even">
+<td>Pure Error</td>
+<td>SSPE</td>
+<td>n-c</td>
+<td>MSPE</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Total(Corrected)</td>
+<td>SSTO</td>
+<td>n-1</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Repeat observations have an effect on <span class="math inline">\(R^2\)</span>:</p>
+<ul>
+<li>It is impossible for <span class="math inline">\(R^2\)</span> to attain 1 when repeat obs. exist (SSE can’t be 0)<br />
+</li>
+<li>The maximum <span class="math inline">\(R^2\)</span> attainable in this situation:</li>
+</ul>
+<p><span class="math display">\[
+R^2_{max} = \frac{SSTo - SSPE}{SSTO}
+\]</span></p>
+<ul>
+<li>Not all levels of X need have repeat observations.<br />
+</li>
+<li>Typically, when <span class="math inline">\(H_0\)</span> is appropriate, one still uses MSE as the estimate for <span class="math inline">\(\sigma^2\)</span> rather than MSPE, Since MSE has more degrees of freedom, sometimes people will pool these estimates.</li>
+</ul>
+<p><strong>Joint Inference</strong><br />
+The confidence coefficient for both <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> considered simulatneoulsy is <span class="math inline">\(\le \alpha\)</span></p>
+<p>Let</p>
+<ul>
+<li><span class="math inline">\(\bar{A}_1\)</span> be the event that the first interval covers <span class="math inline">\(\beta_0\)</span><br />
+</li>
+<li><span class="math inline">\(\bar{A}_2\)</span> be the event that teh second interval covers <span class="math inline">\(\beta_1\)</span></li>
+</ul>
+<p><span class="math display">\[
+P(\bar{A}_1) = 1 - \alpha \\
+P(\bar{A}_2) = 1 - \alpha
+\]</span></p>
+<p>The probability that both <span class="math inline">\(\bar{A}_1\)</span> and <span class="math inline">\(\bar{A}_2\)</span></p>
+<p><span class="math display">\[
+\begin{align}
+P(\bar{A}_1 \cap \bar{A}_2) &amp;= 1 - P(\bar{A}_1 \cup \bar{A}_2) \\
+&amp;= 1 - P(A_1) - P(A_2) + P(A_1 \cap A_2) \\
+&amp;\ge 1 - P(A_1) - P(A_2) \\
+&amp;= 1 - 2\alpha
+\end{align}
+\]</span></p>
+<p>If <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> have separate 95% confidence intervals, the joint (family) confidence coefficient is at least <span class="math inline">\(1 - 2(0.05) = 0.9\)</span>. This is called a <strong>Bonferroni Inequality</strong><br />
+We could use a procedure in which we obtained <span class="math inline">\(1-\alpha/2\)</span> confidence intervals for the two regression parameters separately, then the joint (Bonferroni) family confidence coefficient would be at least <span class="math inline">\(1- \alpha\)</span></p>
+<p>The <span class="math inline">\(1-\alpha\)</span> joint Bonferroni confidence interval for <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> is given by calculating:</p>
+<p><span class="math display">\[
+b_0 \pm B s(b_0) \\
+b_1 \pm B s(b_1) 
+\]</span></p>
+<p>where <span class="math inline">\(B= t_{1-\alpha/4;n-2}\)</span></p>
+<p>Interpretation: If repeated samples were taken and the joint <span class="math inline">\((1-\alpha)\)</span> intervals for <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> were obtained, <span class="math inline">\((1-\alpha)100\)</span>% of the joint intervals would contain the true pair <span class="math inline">\((\beta_0, \beta_1)\)</span>. That is, in <span class="math inline">\(\alpha \times 100\)</span>% of the samples, one or both intervals would not contain the true value.</p>
+<ul>
+<li>The Bonferroni interval is <strong>conservative</strong>. It is a lower bound and the joint intervals will tend to be correct more than <span class="math inline">\((1-\alpha)100\)</span>% of the time (lower power). People usually consider a larger <span class="math inline">\(\alpha\)</span> for the Bonferroni joint tests (e.g, <span class="math inline">\(\alpha=0.1\)</span>)<br />
+</li>
+<li>The Bonferroni procedure extends to testing more than 2 parameters. Say we are interested in testing <span class="math inline">\(\beta_0,\beta_1,..., \beta_{g-1}\)</span> (g parameters to test). Then, the joint Bonferroni interval is obtained by calculating the $(1-/g)$100% level interval for each separately.<br />
+</li>
+<li>For example, if <span class="math inline">\(\alpha = 0.05\)</span> and <span class="math inline">\(g=10\)</span>, each individual test is done at the <span class="math inline">\(1- \frac{.05}{10}\)</span> level. For 2-sided intervals, this corresponds to using <span class="math inline">\(t_{1-\frac{0.05}{2(10)};n-p}\)</span> in the CI formula. This procedure works best if g is relatively small, otherwise the intervals for each individual parameter are very wide and teh test is way too conservative.<br />
+</li>
+<li><span class="math inline">\(b_0,b_1\)</span> are usually correlated (negatively if <span class="math inline">\(\bar{X} &gt;0\)</span> and positively if <span class="math inline">\(\bar{X}&lt;0\)</span>)<br />
+</li>
+<li>Other multiple comparison procedures are available.</li>
 </ul>
 </div>
 </div>

@@ -24,7 +24,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2021-01-07" />
+<meta name="date" content="2021-01-09" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -349,6 +349,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="11.6.3" data-path="application-6.html"><a href="application-6.html#rpart"><i class="fa fa-check"></i><b>11.6.3</b> rpart</a></li>
 <li class="chapter" data-level="11.6.4" data-path="application-6.html"><a href="application-6.html#mice-multivariate-imputation-via-chained-equations"><i class="fa fa-check"></i><b>11.6.4</b> MICE (Multivariate Imputation via Chained Equations)</a></li>
 <li class="chapter" data-level="11.6.5" data-path="application-6.html"><a href="application-6.html#amelia"><i class="fa fa-check"></i><b>11.6.5</b> Amelia</a></li>
+<li class="chapter" data-level="11.6.6" data-path="application-6.html"><a href="application-6.html#missforest"><i class="fa fa-check"></i><b>11.6.6</b> missForest</a></li>
+<li class="chapter" data-level="11.6.7" data-path="application-6.html"><a href="application-6.html#hmisc"><i class="fa fa-check"></i><b>11.6.7</b> Hmisc</a></li>
+<li class="chapter" data-level="11.6.8" data-path="application-6.html"><a href="application-6.html#mi"><i class="fa fa-check"></i><b>11.6.8</b> mi</a></li>
 </ul></li>
 </ul></li>
 <li class="part"><span><b>III EXPERIMENTAL DESIGN</b></span></li>
@@ -413,6 +416,16 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
             <section class="normal" id="section-">
 <div id="application-6" class="section level2">
 <h2><span class="header-section-number">11.6</span> Application</h2>
+<p>How many imputation:</p>
+<p><strong>usually 5</strong>. (unless you have extremely high portion of missing, in which case you probably need to check your data again)</p>
+<p>According to Rubin, the relative efficiency of an estimate based on m imputations to infinity imputation is approximately</p>
+<p><span class="math display">\[
+(1+\frac{\lambda}{m})^{-1}
+\]</span>
+where <span class="math inline">\(\lambda\)</span> is the rate of missing data</p>
+<p>Example:<br />
+50% of missing data means an estimate based on 5 imputation has standard deviation that is only 5% wider compared to an estimate based on infinity imputation<br />
+(<span class="math inline">\(\sqrt{1+0.5/5}=1.049\)</span>)</p>
 <div class="sourceCode" id="cb111"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb111-1"><a href="application-6.html#cb111-1"></a><span class="kw">library</span>(missForest)</span>
 <span id="cb111-2"><a href="application-6.html#cb111-2"></a></span>
 <span id="cb111-3"><a href="application-6.html#cb111-3"></a><span class="co">#load data</span></span>
@@ -481,9 +494,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>It imputes data per variable by specifying an imputation model for each variable</p>
 <p><strong>Example</strong></p>
 <p>We have <span class="math inline">\(X_1, X_2,..,X_k\)</span>. If <span class="math inline">\(X_1\)</span> has missing data, then it is regressed on the rest of the variables. Same procedure applies if <span class="math inline">\(X_2\)</span> has missing data. Then, predicted values are used in place of missing values.</p>
-<p>By default,<br />
-* <strong>Continuous variables</strong> use linear regression.<br />
-* <strong>Categorical Variables</strong> use logistic regression.</p>
+<p>By default,</p>
+<ul>
+<li><strong>Continuous variables</strong> use linear regression.<br />
+</li>
+<li><strong>Categorical Variables</strong> use logistic regression.</li>
+</ul>
 <p>Methods in <a href="application-6.html#mice-multivariate-imputation-via-chained-equations">MICE</a>:</p>
 <ul>
 <li>PMM (Predictive Mean Matching) – For numeric variables</li>
@@ -586,6 +602,291 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div id="amelia" class="section level3">
 <h3><span class="header-section-number">11.6.5</span> Amelia</h3>
+<ul>
+<li>Use bootstrap based EMB algorithm (faster and robust to impute many variables including cross sectional, time series data etc)<br />
+</li>
+<li>Use parallel imputation feature using multicore CPUs.</li>
+</ul>
+<p>Assumptions</p>
+<ul>
+<li>All variables follow Multivariate Normal Distribution (MVN). Hence, this package works best when data is MVN, or transformation to normality.<br />
+</li>
+<li>Missing data is <a href="assumptions.html#missing-at-random-mar">Missing at Random (MAR)</a></li>
+</ul>
+<p>Steps:</p>
+<ol style="list-style-type: decimal">
+<li>m bootstrap samples and applies EMB algorithm to each sample. Then we have m different estimates of mean and variances.<br />
+</li>
+<li>the first set of estimates are used to impute first set of missing values using regression, then second set of estimates are used for second set and so on.</li>
+</ol>
+<p>However, <a href="application-6.html#amelia">Amelia</a> is different from <a href="application-6.html#mice-multivariate-imputation-via-chained-equations">MICE</a></p>
+<ul>
+<li>MICE imputes data on variable by variable basis whereas MVN uses a joint modeling approach based on multivariate normal distribution.<br />
+</li>
+<li>MICE can handle different types of variables while the variables in MVN need to be normally distributed or transformed to approximate normality.<br />
+</li>
+<li>MICE can manage imputation of variables defined on a subset of data whereas MVN cannot.</li>
+</ul>
+<div class="sourceCode" id="cb134"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb134-1"><a href="application-6.html#cb134-1"></a><span class="kw">library</span>(Amelia)</span>
+<span id="cb134-2"><a href="application-6.html#cb134-2"></a><span class="kw">data</span>(<span class="st">&quot;iris&quot;</span>)</span>
+<span id="cb134-3"><a href="application-6.html#cb134-3"></a><span class="co">#seed 10% missing values</span></span>
+<span id="cb134-4"><a href="application-6.html#cb134-4"></a>iris.mis &lt;-<span class="st"> </span><span class="kw">prodNA</span>(iris, <span class="dt">noNA =</span> <span class="fl">0.1</span>)</span>
+<span id="cb134-5"><a href="application-6.html#cb134-5"></a></span>
+<span id="cb134-6"><a href="application-6.html#cb134-6"></a><span class="co"># idvars – keep all ID variables and other variables which you don’t want to impute</span></span>
+<span id="cb134-7"><a href="application-6.html#cb134-7"></a><span class="co"># noms – keep nominal variables here</span></span>
+<span id="cb134-8"><a href="application-6.html#cb134-8"></a></span>
+<span id="cb134-9"><a href="application-6.html#cb134-9"></a><span class="co">#specify columns and run amelia</span></span>
+<span id="cb134-10"><a href="application-6.html#cb134-10"></a>amelia_fit &lt;-<span class="st"> </span><span class="kw">amelia</span>(iris.mis, <span class="dt">m=</span><span class="dv">5</span>, <span class="dt">parallel =</span> <span class="st">&quot;multicore&quot;</span>, <span class="dt">noms =</span> <span class="st">&quot;Species&quot;</span>)</span></code></pre></div>
+<pre><code>## -- Imputation 1 --
+## 
+##   1  2  3  4  5  6  7  8
+## 
+## -- Imputation 2 --
+## 
+##   1  2  3  4  5  6  7  8
+## 
+## -- Imputation 3 --
+## 
+##   1  2  3  4  5
+## 
+## -- Imputation 4 --
+## 
+##   1  2  3  4  5  6  7
+## 
+## -- Imputation 5 --
+## 
+##   1  2  3  4  5  6  7</code></pre>
+<div class="sourceCode" id="cb136"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb136-1"><a href="application-6.html#cb136-1"></a><span class="co"># access imputed outputs</span></span>
+<span id="cb136-2"><a href="application-6.html#cb136-2"></a><span class="co"># amelia_fit$imputations[[1]]</span></span></code></pre></div>
+</div>
+<div id="missforest" class="section level3">
+<h3><span class="header-section-number">11.6.6</span> missForest</h3>
+<ul>
+<li>an implementation of random forest algorithm (a non parametric imputation method applicable to various variable types). Hence, no assumption about function form of f. Instead, it tries to estimate f such that it can be as close to the data points as possible.<br />
+</li>
+<li>builds a random forest model for each variable. Then it uses the model to predict missing values in the variable with the help of observed values.<br />
+</li>
+<li>It yields out of bag imputation error estimate. Moreover, it provides high level of control on imputation process.<br />
+</li>
+<li>Since bagging works well on categorical variable too, we don’t need to remove them here.</li>
+</ul>
+<div class="sourceCode" id="cb137"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb137-1"><a href="application-6.html#cb137-1"></a><span class="kw">library</span>(missForest)</span>
+<span id="cb137-2"><a href="application-6.html#cb137-2"></a><span class="co">#impute missing values, using all parameters as default values</span></span>
+<span id="cb137-3"><a href="application-6.html#cb137-3"></a>iris.imp &lt;-<span class="st"> </span><span class="kw">missForest</span>(iris.mis)</span></code></pre></div>
+<pre><code>##   missForest iteration 1 in progress...done!
+##   missForest iteration 2 in progress...done!
+##   missForest iteration 3 in progress...done!
+##   missForest iteration 4 in progress...done!</code></pre>
+<div class="sourceCode" id="cb139"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb139-1"><a href="application-6.html#cb139-1"></a><span class="co"># check imputed values</span></span>
+<span id="cb139-2"><a href="application-6.html#cb139-2"></a><span class="co"># iris.imp$ximp</span></span>
+<span id="cb139-3"><a href="application-6.html#cb139-3"></a></span>
+<span id="cb139-4"><a href="application-6.html#cb139-4"></a></span>
+<span id="cb139-5"><a href="application-6.html#cb139-5"></a><span class="co"># check imputation error</span></span>
+<span id="cb139-6"><a href="application-6.html#cb139-6"></a><span class="co"># NRMSE is normalized mean squared error. It is used to represent error derived from imputing continuous values. </span></span>
+<span id="cb139-7"><a href="application-6.html#cb139-7"></a><span class="co"># PFC (proportion of falsely classified) is used to represent error derived from imputing categorical values.</span></span>
+<span id="cb139-8"><a href="application-6.html#cb139-8"></a>iris.imp<span class="op">$</span>OOBerror</span></code></pre></div>
+<pre><code>##      NRMSE        PFC 
+## 0.13631893 0.04477612</code></pre>
+<div class="sourceCode" id="cb141"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb141-1"><a href="application-6.html#cb141-1"></a><span class="co">#comparing actual data accuracy</span></span>
+<span id="cb141-2"><a href="application-6.html#cb141-2"></a>iris.err &lt;-<span class="st"> </span><span class="kw">mixError</span>(iris.imp<span class="op">$</span>ximp, iris.mis, iris)</span>
+<span id="cb141-3"><a href="application-6.html#cb141-3"></a>iris.err</span></code></pre></div>
+<pre><code>##     NRMSE       PFC 
+## 0.1501524 0.0625000</code></pre>
+<p>This means categorical variables are imputed with 5% error and continuous variables are imputed with 14% error.</p>
+<p>This can be improved by tuning the values of mtry and ntree parameter.</p>
+<ul>
+<li>mtry refers to the number of variables being randomly sampled at each split.<br />
+</li>
+<li>ntree refers to number of trees to grow in the forest.</li>
+</ul>
+</div>
+<div id="hmisc" class="section level3">
+<h3><span class="header-section-number">11.6.7</span> Hmisc</h3>
+<ul>
+<li>impute() function imputes missing value using user defined statistical method (mean, max, mean). It’s default is median.<br />
+</li>
+<li>aregImpute() allows mean imputation using additive regression, bootstrapping, and predictive mean matching.</li>
+</ul>
+<ol style="list-style-type: decimal">
+<li>In bootstrapping, different bootstrap resamples are used for each of multiple imputations. Then, a flexible additive model (non parametric regression method) is fitted on samples taken with replacements from original data and missing values (acts as dependent variable) are predicted using non-missing values (independent variable).<br />
+</li>
+<li>it uses predictive mean matching (default) to impute missing values. Predictive mean matching works well for continuous and categorical (binary &amp; multi-level) without the need for computing residuals and maximum likelihood fit.</li>
+</ol>
+<p><strong>Note</strong></p>
+<ul>
+<li>For predicting categorical variables, Fisher’s optimum scoring method is used.<br />
+</li>
+<li>Hmisc automatically recognizes the variables types and uses bootstrap sample and predictive mean matching to impute missing values.<br />
+</li>
+<li>missForest can outperform Hmisc if the observed variables have sufficient information.</li>
+</ul>
+<p>Assumption</p>
+<ul>
+<li>linearity in the variables being predicted.</li>
+</ul>
+<div class="sourceCode" id="cb143"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb143-1"><a href="application-6.html#cb143-1"></a><span class="kw">library</span>(Hmisc)</span>
+<span id="cb143-2"><a href="application-6.html#cb143-2"></a><span class="co"># impute with mean value</span></span>
+<span id="cb143-3"><a href="application-6.html#cb143-3"></a>iris.mis<span class="op">$</span>imputed_age &lt;-<span class="st"> </span><span class="kw">with</span>(iris.mis, <span class="kw">impute</span>(Sepal.Length, mean))</span>
+<span id="cb143-4"><a href="application-6.html#cb143-4"></a></span>
+<span id="cb143-5"><a href="application-6.html#cb143-5"></a><span class="co"># impute with random value</span></span>
+<span id="cb143-6"><a href="application-6.html#cb143-6"></a>iris.mis<span class="op">$</span>imputed_age2 &lt;-<span class="st"> </span><span class="kw">with</span>(iris.mis, <span class="kw">impute</span>(Sepal.Length, <span class="st">&#39;random&#39;</span>))</span>
+<span id="cb143-7"><a href="application-6.html#cb143-7"></a></span>
+<span id="cb143-8"><a href="application-6.html#cb143-8"></a><span class="co"># could also use min, max, median to impute missing value</span></span>
+<span id="cb143-9"><a href="application-6.html#cb143-9"></a></span>
+<span id="cb143-10"><a href="application-6.html#cb143-10"></a><span class="co"># using argImpute</span></span>
+<span id="cb143-11"><a href="application-6.html#cb143-11"></a>impute_arg &lt;-<span class="st"> </span><span class="kw">aregImpute</span>(<span class="op">~</span><span class="st"> </span>Sepal.Length <span class="op">+</span><span class="st"> </span>Sepal.Width <span class="op">+</span><span class="st"> </span>Petal.Length <span class="op">+</span><span class="st"> </span>Petal.Width <span class="op">+</span></span>
+<span id="cb143-12"><a href="application-6.html#cb143-12"></a>Species, <span class="dt">data =</span> iris.mis, <span class="dt">n.impute =</span> <span class="dv">5</span>) <span class="co"># argImpute() automatically identifies the variable type and treats them accordingly.</span></span></code></pre></div>
+<pre><code>## Iteration 1 
+Iteration 2 
+Iteration 3 
+Iteration 4 
+Iteration 5 
+Iteration 6 
+Iteration 7 
+Iteration 8 </code></pre>
+<div class="sourceCode" id="cb145"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb145-1"><a href="application-6.html#cb145-1"></a>impute_arg <span class="co"># R-squares are for predicted missing values.</span></span></code></pre></div>
+<pre><code>## 
+## Multiple Imputation using Bootstrap and PMM
+## 
+## aregImpute(formula = ~Sepal.Length + Sepal.Width + Petal.Length + 
+##     Petal.Width + Species, data = iris.mis, n.impute = 5)
+## 
+## n: 150   p: 5    Imputations: 5      nk: 3 
+## 
+## Number of NAs:
+## Sepal.Length  Sepal.Width Petal.Length  Petal.Width      Species 
+##           11           11           13           24           16 
+## 
+##              type d.f.
+## Sepal.Length    s    2
+## Sepal.Width     s    2
+## Petal.Length    s    2
+## Petal.Width     s    2
+## Species         c    2
+## 
+## Transformation of Target Variables Forced to be Linear
+## 
+## R-squares for Predicting Non-Missing Values for Each Variable
+## Using Last Imputations of Predictors
+## Sepal.Length  Sepal.Width Petal.Length  Petal.Width      Species 
+##        0.907        0.660        0.978        0.963        0.993</code></pre>
+<div class="sourceCode" id="cb147"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb147-1"><a href="application-6.html#cb147-1"></a><span class="co"># check imputed variable Sepal.Length</span></span>
+<span id="cb147-2"><a href="application-6.html#cb147-2"></a>impute_arg<span class="op">$</span>imputed<span class="op">$</span>Sepal.Length</span></code></pre></div>
+<pre><code>##     [,1] [,2] [,3] [,4] [,5]
+## 19   5.2  5.2  5.2  5.8  5.7
+## 21   5.1  5.0  5.1  5.7  5.4
+## 31   4.8  5.0  5.2  5.0  4.8
+## 35   4.6  4.9  4.9  4.9  4.8
+## 49   5.0  5.1  5.1  5.1  5.1
+## 62   6.2  5.7  6.0  6.4  5.6
+## 65   5.5  5.5  5.2  5.8  5.5
+## 67   6.5  5.8  5.8  6.3  6.5
+## 82   5.2  5.1  5.7  5.8  5.5
+## 113  6.4  6.5  7.4  7.2  6.3
+## 122  6.2  5.8  5.5  5.8  6.7</code></pre>
+</div>
+<div id="mi" class="section level3">
+<h3><span class="header-section-number">11.6.8</span> mi</h3>
+<ol style="list-style-type: decimal">
+<li>allows graphical diagnostics of imputation models and convergence of imputation process.<br />
+</li>
+<li>uses Bayesian version of regression models to handle issue of separation.<br />
+</li>
+<li>automatically detects irregularities in data (e.g., high collinearity among variables).</li>
+<li>adds noise to imputation process to solve the problem of additive constraints.</li>
+</ol>
+<div class="sourceCode" id="cb149"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb149-1"><a href="application-6.html#cb149-1"></a><span class="kw">library</span>(mi)</span>
+<span id="cb149-2"><a href="application-6.html#cb149-2"></a><span class="co"># default values of parameters</span></span>
+<span id="cb149-3"><a href="application-6.html#cb149-3"></a><span class="co"># 1. rand.imp.method as “bootstrap”</span></span>
+<span id="cb149-4"><a href="application-6.html#cb149-4"></a><span class="co"># 2. n.imp (number of multiple imputations) as 3</span></span>
+<span id="cb149-5"><a href="application-6.html#cb149-5"></a><span class="co"># 3. n.iter ( number of iterations) as 30</span></span>
+<span id="cb149-6"><a href="application-6.html#cb149-6"></a>mi_data &lt;-<span class="st"> </span><span class="kw">mi</span>(iris.mis, <span class="dt">seed =</span> <span class="dv">335</span>)</span>
+<span id="cb149-7"><a href="application-6.html#cb149-7"></a><span class="kw">summary</span>(mi_data)</span></code></pre></div>
+<pre><code>## $Sepal.Length
+## $Sepal.Length$is_missing
+## missing
+## FALSE  TRUE 
+##   139    11 
+## 
+## $Sepal.Length$imputed
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## -0.45626 -0.08236 -0.01041 -0.01500  0.06622  0.29015 
+## 
+## $Sepal.Length$observed
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## -0.92742 -0.45370 -0.03919  0.00000  0.31610  1.20432 
+## 
+## 
+## $Sepal.Width
+## $Sepal.Width$is_missing
+## missing
+## FALSE  TRUE 
+##   139    11 
+## 
+## $Sepal.Width$imputed
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## -0.83720 -0.22331  0.06717  0.13373  0.45523  1.30866 
+## 
+## $Sepal.Width$observed
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## -1.2494 -0.3068 -0.0712  0.0000  0.2823  1.3427 
+## 
+## 
+## $Petal.Length
+## $Petal.Length$is_missing
+## missing
+## FALSE  TRUE 
+##   137    13 
+## 
+## $Petal.Length$imputed
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## -0.84561 -0.59824 -0.03837 -0.12928  0.23146  0.60995 
+## 
+## $Petal.Length$observed
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## -0.7892 -0.6196  0.1721  0.0000  0.3701  0.8790 
+## 
+## 
+## $Petal.Width
+## $Petal.Width$is_missing
+## missing
+## FALSE  TRUE 
+##   126    24 
+## 
+## $Petal.Width$imputed
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## -0.98946 -0.57303  0.02056 -0.05426  0.39918  0.77380 
+## 
+## $Petal.Width$observed
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## -0.72386 -0.59081  0.07444  0.00000  0.40707  0.87275 
+## 
+## 
+## $Species
+## $Species$crosstab
+##             
+##              observed imputed
+##   setosa          184      19
+##   versicolor      188      14
+##   virginica       164      31
+## 
+## 
+## $imputed_age
+## $imputed_age$is_missing
+## [1] &quot;all values observed&quot;
+## 
+## $imputed_age$observed
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## -0.9637 -0.4714  0.0000  0.0000  0.3285  1.2514 
+## 
+## 
+## $imputed_age2
+## $imputed_age2$is_missing
+## [1] &quot;all values observed&quot;
+## 
+## $imputed_age2$observed
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## -0.92932 -0.45738 -0.04444  0.00000  0.35375  1.19439</code></pre>
 
 </div>
 </div>

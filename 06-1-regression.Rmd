@@ -23,7 +23,7 @@ The most fundamental model in statistics or econometric is a OLS linear regressi
 OLS = Maximum likelihood when the error term is assumed to be normally distributed. 
 
 
-#### Basic Model 
+#### Simple Regression (Basic Model)
 
 $$
 Y_i = \beta_0 + \beta_1 X_i + \epsilon_i
@@ -331,6 +331,235 @@ where $W^2 = 2F_{1-\alpha;2,n-2}$, which is just 2 times the F-stat with 2 and n
  * the interval width will change with each $X_h$ (since $s(\hat{Y}_h)$ changes)  
  * the boundary values for this confidence band will always define a hyperbole containing the regression line  
  * will be smallest at $X = \bar{X}$  
+
+
+###### ANOVA
+
+Partitioning the Total Sum of Squares: Consider the corrected Total sum of squres:  
+
+$$
+SSTO = \sum_{i=1}^{n} (Y_i -\bar{Y})^2
+$$
+Measures the overall dispersion in the response variable  
+We use the term corrected because we correct for mean, the uncorrected total sum of squares is given by $\sum Y_i^2$  
+
+use $\hat{Y}_i = b_0 + b_1 X_i$ to estimate the conditional mean for Y at $X_i$  
+
+$$
+\begin{align}
+\sum_{i=1}^n (Y_i - \bar{Y})^2 &= \sum_{i=1}^n (Y_i - \hat{Y}_i + \hat{Y}_i - \bar{Y})^2 \\
+&= \sum_{i=1}^n(Y_i - \hat{Y}_i)^2 + \sum_{i=1}^n(\hat{Y}_i - \bar{Y})^2 + 2\sum_{i=1}^n(Y_i - \hat{Y}_i)(\hat{Y}_i-\bar{Y}) \\
+&= \sum_{i=1}^n(Y_i - \hat{Y}_i)^2 + \sum_{i=1}^n(\bar{Y}_i -\bar{Y})^2 \\
+STTO &= SSE + SSR \\
+\end{align}
+$$
+
+where SSR is the regression sum of squares, which measures how the conditional mean varies about a central value.  
+
+The cross-product term in the decomposition is 0:  
+
+$$
+\begin{align}
+\sum_{i=1}^n (Y_i - \hat{Y}_i)(\hat{Y}_i - \bar{Y}) &= \sum_{i=1}^{n}(Y_i - \bar{Y} -b_1 (X_i - \bar{X}))(\bar{Y} + b_1 (X_i - \bar{X})-\bar{Y}) \\
+&= b_1 \sum_{i=1}^{n} (Y_i - \bar{Y})(X_i - \bar{X}) - b_1^2\sum_{i=1}^{n}(X_i - \bar{X})^2 \\
+&= b_1 \frac{\sum_{i=1}^{n}(Y_i -\bar{Y})(X_i - \bar{X})}{\sum_{i=1}^{n}(X_i - \bar{X})^2} \sum_{i=1}^{n}(X_i - \bar{X})^2 - b_1^2\sum_{i=1}^{n}(X_i - \bar{X})^2 \\
+&= b_1^2 \sum_{i=1}^{n}(X_i - \bar{X})^2 - b_1^2 \sum_{i=1}^{n}(X_i - \bar{X})^2 \\
+&= 0
+\end{align}
+$$
+
+$$
+\begin{align}
+SSTO &= SSR + SSE \\
+(n-1 d.f) &= (1 d.f.) + (n-2 d.f.)
+\end{align}
+$$
+
+
+
+| Source of Variation | Sum of Squares | df | Mean Square | F | 
+|---|---|---|---|---|
+|Regression (model) | SSR | 1 | MSR = SSR/df | MSR/MSE | 
+| Error | SSE | n-2 | MSE = SSE/df | | 
+|Total (Corrected) | SSTO | n-1| | |
+
+
+$$
+E(MSE) = \sigma^2 \\
+E(MSR) = \sigma^2 + \beta_1^2 \sum_{i=1}^{n} (X_i - \bar{X})^2 
+$$
+
+ * If $\beta_1 = 0$, then these two expected values are the same  
+ * if $\beta_1 \neq 0$ then E(MSR) will be larger than E(MSE)  
+
+which means the ratio of these two quantities, we can infer something about $\beta_1$  
+
+Distribution theory tells us that if $\epsilon_i \sim iid N(0,\sigma^2)$ and assuming $H_0: \beta_1 = 0$ is true,  
+
+$$
+\frac{MSE}{\sigma^2} \sim \chi_{n-2}^2 \\
+\frac{MSR}{\sigma^2} \sim \chi_{1}^2 \text{ if $\beta_1=0$}
+$$
+
+where these two chi-square random variables are independent.  
+
+Since the ratio of 2 independent chi-square random variable follows an F distribution, we consider:  
+
+$$
+F = \frac{MSR}{MSE} \sim F_{1,n-2}
+$$
+when $\beta_1 =0$. Thus, we reject $H_0: \beta_1 = 0$ (or $E(Y_i)$ = constant) at $\alpha$ if 
+
+$$
+F > F_{1 - \alpha;1,n-2}
+$$
+this is the only null hypothesis that can be tested with this approach.  
+
+
+**Coefficient of Determination**  
+
+$$
+R^2 = \frac{SSR}{SSTO} = 1- \frac{SSE}{SSTO}
+$$
+
+where $0 \le R^2 \le 1$  
+
+**Interpretation**: The proportionate reduction of the total variation in Y after fitting a linear model in X.  
+It is not really correct to say that $R^2$ is the "variation in Y explained by X".  
+
+$R^2$ is related to the correlation coefficient between Y and X:  
+
+$$
+R^2 = (r)^2
+$$
+where $r= corr(x,y)$ is an estimate of the Pearson correlation coefficient. Also, note  
+
+$$
+b_1 = (\frac{\sum_{i=1}^{n}(Y_i - \bar{Y})^2}{\sum_{i=1}^{n} (X_i - \bar{X})^2})^{1/2} \\
+r = \frac{s_y}{s_x} r
+$$
+
+**Lack of Fit**
+
+$Y_{11},Y_{21},...,Y_{n_1,1}$: $n_1$  repeat obs at $X_1$  
+
+$Y_{1c},Y_{2c},...,Y_{n_c,c}$: $n_c$  repeat obs at $X_c$  
+
+So, there are c distinct X values.  
+
+
+Let $\bar{Y}_j$ be the mean over replicates for $X_j$  
+
+Partition the Error Sum of Squares:  
+
+$$
+\begin{align}
+\sum_{i} \sum_{j} (Y_{ij} - \hat{Y}_{ij})^2 &= \sum_{i} \sum_{j} (Y_{ij} - \bar{Y}_j + \bar{Y}_j + \hat{Y}_{ij})^2 \\
+&=  \sum_{i} \sum_{j} (Y_{ij} - \bar{Y}_j)^2 + \sum_{i} \sum_{j} (\bar{Y}_j - \hat{Y}_{ij})^2 + \text{cross product term} \\
+&= \sum_{i} \sum_{j}(Y_{ij} - \bar{Y}_j)^2 + \sum_j n_j (\bar{Y}_j- \hat{Y}_{ij})^2 \\
+SSE &= SSPE + SSLF \\
+\end{align}
+$$
+
+
+ * SSPE: "pure error sum of squares" has n-c degrees of freedom since we need to estimate c means  
+ * SSLF: "lack of fit sum of squares" has c - 2 degrees of freedom (the number of unique X values - number of parameters used to specify the conditional mean regression model)  
+
+$$
+MSPE = \frac{SSPE}{df_{pe}} = \frac{SSPE}{n-c} \\
+MSLF = \frac{SSLF}{df_{lf}} = \frac{SSLF}{c-2}
+$$
+The **F-test for Lack-of-Fit** tests  
+
+$$
+H_0: Y_{ij} = \beta_0 + \beta_1 X_i + \epsilon_{ij}, \epsilon_{ij} \sim iid N(0,\sigma^2) \\
+H_a: Y_{ij} = \alpha_0 + \alpha_1 X_i + f(X_i, Z_1,...) + \epsilon_{ij}^*,\epsilon_{ij}^* \sim iid N(0, \sigma^2)
+$$
+
+$E(MSPE) = \sigma^2$ under either $H_0$, $H_a$  
+
+$E(MSLF) = \sigma^2 + \frac{\sum n_j(f(X_i,...))^2}{n-2}$ in general and  
+
+$E(MSLF) = \sigma^2$ when $H_0$ is true  
+
+We reject $H_0$ (i.e., the model $Y_i = \beta_0 + \beta_1 X_i + \epsilon_i$ is not adequate) if  
+
+$$
+F = \frac{MSLF}{MSPE} > F_{1-\alpha;c-2,n-c}
+$$
+
+Failing to reject $H_0$ does not imply that $H_0: Y_{ij} = \beta_0 + \beta_1 X_i + \epsilon_{ij}$ is exactly true, but it suggests that this model may provide a reasonable approximation to the true model.  
+
+| Source of Variation | Sum of Squares | df | Mean Square | F |
+|---|---|---|---|---|
+|Regression| SSR | 1 | MSR | MSR / MSE |
+|Error | SSE | n-2 | MSE | |
+|Lack of fit | SSLF | c-2 | MSLF | MSLF / MSPE|
+|Pure Error | SSPE | n-c | MSPE | |
+|Total(Corrected) | SSTO | n-1 | | |
+
+
+Repeat observations have an effect on $R^2$:  
+
+ * It is impossible for $R^2$ to attain 1 when repeat obs. exist (SSE can't be 0)  
+ * The maximum $R^2$ attainable in this situation:  
+
+$$
+R^2_{max} = \frac{SSTo - SSPE}{SSTO}
+$$
+
+ * Not all levels of X need have repeat observations.  
+ * Typically, when $H_0$ is appropriate, one still uses MSE as the estimate for $\sigma^2$ rather than MSPE, Since MSE has more degrees of freedom, sometimes people will pool these estimates. 
+
+<br>
+
+**Joint Inference**  
+The confidence coefficient for both $\beta_0$ and $\beta_1$ considered simulatneoulsy is $\le \alpha$  
+
+Let  
+
+ * $\bar{A}_1$ be the event that the first interval covers $\beta_0$  
+ * $\bar{A}_2$ be the event that teh second interval covers $\beta_1$  
+
+$$
+P(\bar{A}_1) = 1 - \alpha \\
+P(\bar{A}_2) = 1 - \alpha
+$$
+
+The probability that both $\bar{A}_1$ and $\bar{A}_2$  
+
+$$
+\begin{align}
+P(\bar{A}_1 \cap \bar{A}_2) &= 1 - P(\bar{A}_1 \cup \bar{A}_2) \\
+&= 1 - P(A_1) - P(A_2) + P(A_1 \cap A_2) \\
+&\ge 1 - P(A_1) - P(A_2) \\
+&= 1 - 2\alpha
+\end{align}
+$$
+
+If $\beta_0$ and $\beta_1$ have separate 95% confidence intervals, the joint (family) confidence coefficient is at least $1 - 2(0.05) = 0.9$. This is called a **Bonferroni Inequality**  
+We could use a procedure in which we obtained $1-\alpha/2$ confidence intervals for the two regression parameters separately, then the joint (Bonferroni) family confidence coefficient would be at least $1- \alpha$  
+
+The $1-\alpha$ joint Bonferroni confidence interval for $\beta_0$ and $\beta_1$ is given by calculating:  
+
+$$
+b_0 \pm B s(b_0) \\
+b_1 \pm B s(b_1) 
+$$
+
+where $B= t_{1-\alpha/4;n-2}$  
+
+Interpretation:  If repeated samples were taken and the joint $(1-\alpha)$ intervals for $\beta_0$ and $\beta_1$ were obtained, $(1-\alpha)100$% of the joint intervals would contain the true pair $(\beta_0, \beta_1)$. That is, in $\alpha \times 100$% of the samples, one or both intervals would not contain the true value.  
+
+ * The Bonferroni interval is **conservative**. It is a lower bound and the joint intervals will tend to be correct more than $(1-\alpha)100$% of the time (lower power). People usually consider a larger $\alpha$ for the Bonferroni joint tests (e.g, $\alpha=0.1$)  
+ * The Bonferroni procedure extends to testing more than 2 parameters. Say we are interested in testing $\beta_0,\beta_1,..., \beta_{g-1}$ (g parameters to test). Then, the joint Bonferroni interval is obtained by calculating the $(1-\alpha/g)$ 100% level interval for each separately.  
+ * For example, if $\alpha = 0.05$ and $g=10$, each individual test is done at the $1- \frac{.05}{10}$ level. For 2-sided intervals, this corresponds to using $t_{1-\frac{0.05}{2(10)};n-p}$ in the CI formula. This procedure works best if g is relatively small, otherwise the intervals for each individual parameter are very wide and teh test is way too conservative.  
+ * $b_0,b_1$ are usually correlated (negatively if $\bar{X} >0$ and positively if $\bar{X}<0$)  
+ * Other multiple comparison procedures are available. 
+
+
+
+
 
 #### OLS Assumptions
 
