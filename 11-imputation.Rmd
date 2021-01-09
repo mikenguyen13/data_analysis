@@ -470,6 +470,22 @@ For example, if women really are less likely to tell you their weight than men, 
 
 ## Application 
 
+How many imputation:  
+
+**usually 5**. (unless you have extremely high portion of missing, in which case you probably need to check your data again)  
+
+According to Rubin, the relative efficiency of an estimate based on m imputations to infinity imputation is approximately
+
+$$
+(1+\frac{\lambda}{m})^{-1}
+$$
+where $\lambda$ is the rate of missing data  
+
+Example:  
+50% of missing data means an estimate based on 5 imputation has standard deviation that is only 5% wider compared to an estimate based on infinity imputation  
+($\sqrt{1+0.5/5}=1.049$)  
+
+
 ```{r}
 library(missForest)
 
@@ -559,6 +575,7 @@ We have $X_1, X_2,..,X_k$. If $X_1$ has missing data, then it is regressed on th
 
 
 By default,  
+
  * **Continuous variables** use linear regression.  
  * **Categorical Variables** use logistic regression.  
 
@@ -642,4 +659,132 @@ summary(combine)
 
 
 ### Amelia
+
+ * Use bootstrap based EMB algorithm (faster and robust to impute many variables including cross sectional, time series data etc)   
+ * Use parallel imputation feature using multicore CPUs.  
+
+Assumptions  
+
+ * All variables follow Multivariate Normal Distribution (MVN). Hence, this package works best when data is MVN, or transformation to normality.  
+ * Missing data is [Missing at Random (MAR)]
+
+Steps:  
+
+ 1. m bootstrap samples and applies EMB algorithm to each sample. Then we have m different estimates of mean and variances.  
+ 2. the first set of estimates are used to impute first set of missing values using regression, then second set of estimates are used for second set and so on.  
+
+However, [Amelia] is different from [MICE][MICE (Multivariate Imputation via Chained Equations)]  
+
+ * MICE imputes data on variable by variable basis whereas MVN uses a joint modeling approach based on multivariate normal distribution.  
+ * MICE can handle different types of variables while the variables in MVN need to be normally distributed or transformed to approximate normality.  
+ * MICE can manage imputation of variables defined on a subset of data whereas MVN cannot.  
+
+```{r}
+library(Amelia)
+data("iris")
+#seed 10% missing values
+iris.mis <- prodNA(iris, noNA = 0.1)
+
+# idvars – keep all ID variables and other variables which you don’t want to impute
+# noms – keep nominal variables here
+
+#specify columns and run amelia
+amelia_fit <- amelia(iris.mis, m=5, parallel = "multicore", noms = "Species")
+
+# access imputed outputs
+# amelia_fit$imputations[[1]]
+```
+
+
+### missForest
+
+ * an implementation of random forest algorithm (a non parametric imputation method applicable to various variable types). Hence, no assumption about function form of f. Instead, it tries to estimate f such that it can be as close to the data points as possible.  
+ * builds a random forest model for each variable. Then it uses the model to predict missing values in the variable with the help of observed values.  
+ * It yields out of bag imputation error estimate. Moreover, it provides high level of control on imputation process.  
+ * Since bagging works well on categorical variable too, we don’t need to remove them here.  
+
+```{r}
+library(missForest)
+#impute missing values, using all parameters as default values
+iris.imp <- missForest(iris.mis)
+# check imputed values
+# iris.imp$ximp
+
+
+# check imputation error
+# NRMSE is normalized mean squared error. It is used to represent error derived from imputing continuous values. 
+# PFC (proportion of falsely classified) is used to represent error derived from imputing categorical values.
+iris.imp$OOBerror
+
+#comparing actual data accuracy
+iris.err <- mixError(iris.imp$ximp, iris.mis, iris)
+iris.err
+
+```
+
+This means categorical variables are imputed with 5% error and continuous variables are imputed with 14% error.   
+
+This can be improved by tuning the values of mtry and ntree parameter.   
+
+ * mtry refers to the number of variables being randomly sampled at each split.  
+ * ntree refers to number of trees to grow in the forest.
+
+### Hmisc
+
+ * impute() function imputes missing value using user defined statistical method (mean, max, mean). It’s default is median.  
+ * aregImpute() allows mean imputation using additive regression, bootstrapping, and predictive mean matching.  
+
+ 1. In bootstrapping, different bootstrap resamples are used for each of multiple imputations. Then, a flexible additive model (non parametric regression method) is fitted on samples taken with replacements from original data and missing values (acts as dependent variable) are predicted using non-missing values (independent variable).  
+ 2. it uses predictive mean matching (default) to impute missing values. Predictive mean matching works well for continuous and categorical (binary & multi-level) without the need for computing residuals and maximum likelihood fit.
+
+**Note**  
+
+ * For predicting categorical variables, Fisher’s optimum scoring method is used.  
+ * Hmisc automatically recognizes the variables types and uses bootstrap sample and predictive mean matching to impute missing values.  
+ * missForest can outperform Hmisc if the observed variables have sufficient information.
+
+Assumption  
+
+ * linearity in the variables being predicted.  
+
+
+```{r}
+library(Hmisc)
+# impute with mean value
+iris.mis$imputed_age <- with(iris.mis, impute(Sepal.Length, mean))
+
+# impute with random value
+iris.mis$imputed_age2 <- with(iris.mis, impute(Sepal.Length, 'random'))
+
+# could also use min, max, median to impute missing value
+
+# using argImpute
+impute_arg <- aregImpute(~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width +
+Species, data = iris.mis, n.impute = 5) # argImpute() automatically identifies the variable type and treats them accordingly.
+impute_arg # R-squares are for predicted missing values.
+
+# check imputed variable Sepal.Length
+impute_arg$imputed$Sepal.Length
+```
+
+### mi
+
+ 1. allows graphical diagnostics of imputation models and convergence of imputation process.  
+ 2. uses Bayesian version of regression models to handle issue of separation.  
+ 3. automatically detects irregularities in data (e.g., high collinearity among variables).
+ 4. adds noise to imputation process to solve the problem of additive constraints.  
+
+```{r}
+library(mi)
+# default values of parameters
+# 1. rand.imp.method as “bootstrap”
+# 2. n.imp (number of multiple imputations) as 3
+# 3. n.iter ( number of iterations) as 30
+mi_data <- mi(iris.mis, seed = 335)
+summary(mi_data)
+
+```
+
+
+
 
