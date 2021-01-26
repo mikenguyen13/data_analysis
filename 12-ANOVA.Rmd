@@ -70,7 +70,9 @@ $s_i^2=\frac{1}{n_i-1}\sum_{j=1}^{n_i}(Y_{ij}-\bar{Y_i})^2$
 
 And the grand mean is $\bar{Y_{..}}=\frac{1}{N}\sum_{i}\sum_{j}Y_{ij}$  
 
-### Single Factor (One-Way) ANOVA
+### Single Factor Fixed Effects Model
+
+also known as Single Factor (One-Way) ANOVA or ANOVA Type I model. 
 
 Partitioning the Variance  
 
@@ -639,8 +641,8 @@ The F-test here serves as a preliminary analysis, to see if there is any differe
 
  * A [Single Treatment Mean] $\mu_i$
  * A [Differences Between Treatment Means]
- * A contrast among treatment means
- * A linear combination of treatment means 
+ * A [Contrast Among Treatment Means]
+ * A [Linear Combination of Treatment Means] 
 
 ##### Single Treatment Mean
 
@@ -681,8 +683,275 @@ $$
 s^2(\hat{D}) = MSE(1/n_i + 1/n_i')
 $$
 
-slide 45
+With the single treatment inference,  
 
+$$
+\frac{\hat{D}-D}{s(\hat{D})} \sim t_{N-a}
+$$
+hence,  
+
+$$
+\hat{D} \pm t_{(1-\alpha/2;N-a)}s(\hat{D})
+$$
+
+Hypothesis tests:  
+
+$$
+H_0: \mu_i = \mu_i' \\
+H_a: \mu_i \neq \mu_i'
+$$
+
+can be tested by the following statistic  
+
+$$
+T = \frac{\hat{D}}{s(\hat{D})} \sim t_{1-\alpha/2;N-a}
+$$
+reject $H_0$ if $|T| > t_{1-\alpha/2;N-a}$  
+
+
+##### Contrast Among Treatment Means
+
+generalize the comparison of two means, we have **contrasts**  
+
+A contrast is a linear combination of treatment means:  
+
+$$
+L = \sum_{i=1}^{a}c_i \mu_i
+$$
+where each $c_i$ is non-random constant and sum to 0:  
+
+$$
+\sum_{i=1}^{a} c_i = 0
+$$
+An unbiased estimator of a contrast L is  
+
+$$
+\hat{L} = \sum_{i=1}^{a}c_i \bar{Y}_{i.}
+$$
+and $E(\hat{L}) = L$. Since the $\bar{Y}_{i.}$, i = 1,..., a are independent.  
+
+$$
+var(\hat{L}) = var(\sum_{i=1}^a c_i \bar{Y}_{i.}) = \sum_{i=1}^a var(c_i \bar{Y}_i)  \\
+= \sum_{i=1}^a c_i^2 var(\bar{Y}_i) = \sum_{i=1}^a c_i^2 \sigma^2 /n_i \\
+= \sigma^2 \sum_{i=1}^{a} c_i^2 /n_i
+$$
+
+Estimation of the variance:  
+
+$$
+s^2(\hat{L}) = MSE \sum_{i=1}^{a} \frac{c_i^2}{n_i}
+$$
+
+$\hat{L}$ is normally distributed (since it is a linear combination of independent normal random variables).  
+
+Then, since $SSE/\sigma^2$ is $\chi_{N-a}^2$ 
+
+$$
+\frac{\hat{L}-L}{s(\hat{L})} \sim t_{N-a}
+$$
+A $1-\alpha$ confidence limits are given by 
+
+$$
+\hat{L} \pm t_{1-\alpha/2; N-a}s(\hat{L})
+$$
+
+Hypothesis testing  
+
+$$
+H_0: L = 0 \\
+H_a: L \neq 0
+$$
+with  
+
+$$
+T = \frac{\hat{L}}{s(\hat{L})}
+$$
+reject H_0 if $|T| > t_{1-\alpha/2;N-a}$
+
+
+##### Linear Combination of Treatment Means
+
+just like contrast $L = \sum_{i=1}^a c_i \mu_i$ but no restrictions on the $c_i$ coefficients.  
+
+
+Tests og a single treatment mean, two treatment means, and contrasts can all be considered form the same perspective.  
+
+$$
+H_0: \sum c_i \mu_i = c \\
+H_a: \sum c_i \mu_i \neq c 
+$$
+
+The test statistics (t-stat) can be considered equivalently as F-tests;  $F = (T)^2$ where $F \sim F_{1,N-a}$. Since the numerator degrees of freedom is always 1 in these cases, we refer to them as single-degree-of-freedom tests.  
+
+<br>
+
+**Multiple Contrasts**  
+
+To test simultaneously $k \ge 2$ contrasts, let $T_1,...,T_k$ be the t-stat. The joint distribution of these random variables is a multivariate t-distribution (the tests are dependent since they re based on the same data).  
+
+Limitations for comparing multiple contrasts:  
+
+ 1. The confidence coefficient $1-\alpha$ only applies to a particular estimate, not a series of estimates; similarly, the Type I error rate, $\alpha$, applies to a particular test, not a series of tests. Example: 3 t-tests at $\alpha = 0.05$, if tests are independent (which they are not), $0.95^3 = 0.857$ (thus $\alpha - 0.143$ not 0.05)  
+ 2. The confidence coefficient $1-\alpha$ and significance level $\alpha$ are appropriate only if the test was not suggest by the data.  
+    + often, the results of an experiment suggest important (ie..g, potential significant) relationships.  
+    + the process of studying effects suggests by the data is called **data snooping**  
+
+<br>
+
+Multiple Comparison Procedures:  
+
+ * [Tukey]  
+ * [Scheffe]  
+ * [Bonferroni]  
+
+###### Tukey
+
+All pairwise comparisons of factor level means. All pairs $D = \mu_i - \mu_i'$ or all tests of the form:  
+
+$$
+H_0: \mu_i -\mu_i' = 0 \\
+H_a: \mu_i - \mu_i' \neq 0
+$$
+
+ * When all sample sizes are equal ($n_1 = n_2 = ... = n_a$) then the Tukey method family confidence coefficient is exactly $1-\alpha$ and the significance level is exactly $\alpha$  
+ * When the sample sizes are not equal, the family confidence coefficient is greater than $1-\alpha$ (i.e., the significance level is less than $\alpha$) so the test i**conservative**  
+ * Tukey considers the **studentized range distribution**. If we have $Y_1,..,Y_r$, observations from a normal distribution with mean $\alpha$ and variance $\sigma^2$. Define: 
+$$
+w = max(Y_i) - min(Y_i)
+$$
+as the range of the observations. Let $s^2$ be an estimate of $\sigma^2$ with v degrees of freedom. Then, 
+$$
+q(r,v) = \frac{w}{s}
+$$
+is called the studentized range. The distribution of q uses a special table.  
+
+<br>  
+
+**Notes**  
+
+ * when we are not interested in testing all pairwise comparison,s the confidence coefficient for the family of comparisons under consideration will be greater than $1-\alpha$ (with the significance level less than $\alpha$)  
+ * Tukey can be used for "data snooping" as long as the effects to be studied on the basis of preliminary data analysis are pairwise comparisons.  
+
+
+###### Scheffe
+
+This method applies when the family of interest is the set of possible contrasts among the treatment means:  
+
+$$
+L = \sum_{i=1}^a c_i \mu_i
+$$
+
+where $\sum_{i=1}^a c_i =0$  
+
+That is, the family of all possible contrasts L or  
+
+$$
+H_0: L = 0 \\
+H_a: L \neq 0
+$$
+
+The family confidence level for the Scheffe procedure is exactly $1-\alpha$ (i.e., significance level = $\alpha$) whether the sample sizes are equal or not.  
+
+For simultaneous confidence intervals,  
+
+$$
+\hat{L} \pm Ss(\hat{L})
+$$
+where $\hat{L}=\sum c_i \bar{Y}_{i.},s^2(\hat{L}) = MSE \sum c_i^2/n_i$ and $S^2 = (a-1)f_{1-\alpha;a-1,N-a}$  
+
+The Scheffe procedure considers  
+
+$$
+F = \frac{\hat{L}^2}{(a-1)s^2(\hat{L})}
+$$
+where we reject $H_0$ at the family significance level $\alpha$ if $F > f_{(1-\alpha;a-1,N-a)}$  
+
+**Note**  
+
+ * Since applications of the Scheffe never involve all conceivable contrasts, the **finite family** confidence coefficient will be larger than $1-\alpha$, so $1-\alpha$ is a lower bound. Thus, people often consider a larger $\alpha$ (e.g., 90% confidence interval)  
+ * Scheffe can be used for "data scooping" since the family of statements contains all possible contrasts.  
+ * If only pairwise comparisons are to be considered, The Tukey procedure gives narrower confidence limits.  
+
+###### Bonferroni
+
+Applicable whether the sample sizes are equal or unequal.  
+
+For the confidence intervals,  
+
+$$
+\hat{L} \pm B s(\hat{L})
+$$
+where $B= t_{(1-\alpha/(2g);N-a)}$ and g is the number of comparisons in the family.  
+
+Hypothesis testing  
+
+$$
+H_0: L = 0 \\
+H_a: L \neq 0 
+$$
+Let $T= \frac{\hat{L}}{s(\hat{L})}$ and reject $H_0$ if $|T|>t_{1-\alpha/(2g),N-a}$  
+
+
+**Notes**  
+
+ * If all pairwise comparisons are of interest, the Tukey procedure is superior (narrower confidence intervals). If not, Bonferroni may be better.  
+ * Bonferroni is better than Scheffe when the number of contrasts is about the same as the treatment levels (or less).  
+ * Recommendation: compute all threes and pick the smallest.  
+ * Bonferroni can't be used for **data snooping**  
+
+### Single Factor Random Effects Model
+
+Also known as ANOVA Type II models. 
+
+
+Treatments are chosen at from from larger population.  We extend inference to all treatments in the population and not restrict our inference to those treatments that happened to be selected for the study.  
+
+**random cell means** model  
+
+$$
+Y_{ij} = \mu_i + \epsilon_{ij}
+$$
+
+where  
+
+ * $\mu_i \sim N(\mu, \sigma^2_{\mu})$ and independent  
+ * $\epsilon_{ij} \sim N(0,\sigma^2)$ and independent  
+
+$\mu_i$ and $\epsilon_{ij}$ are mutually independent for $i =1,...,a; j = 1,...,n$
+
+With all treatment sample sizes are equal  
+
+$$
+E(Y_{ij}) = E(\mu_i) = \mu \\
+var(Y_{ij}) = var(\mu_i) + var(\epsilon_i) = \sigma^2_{\mu} + \sigma^2
+$$
+
+Since $Y_{ij}$ are not independent  
+
+$$
+\begin{align}
+cov(Y_{ij},Y_{ij'}) &= E(Y_{ij},Y_{ij'}) - E(Y_{ij})E(Y_{ij'})  \\
+&= E(\mu_i^2 + \mu_i \epsilon_{ij'} + \mu_i \epsilon_{ij} + \epsilon_{ij}\epsilon_{ij'}) - \mu^2 \\
+&= \sigma^2_{\mu} + \mu^2 - \mu^2 && \text{if $j \neq j'$} \\
+&= \sigma^2 && \text{if $j \neq j'$} \\
+cov(Y_{ij},Y_{i'j'}) &= E(\mu_i \mu_{i'} + \mu_i \epsilon_{i'j'}+ \mu_{i'}\epsilon_{ij}+ \epsilon_{ij}\epsilon_{i'j'}) - \mu^2 \\
+&= \mu^2 - \mu^2 && \text{if $i \neq i'$} \\
+&= 0\\
+\end{align}
+$$
+
+Hence,  
+
+ * all observations have the same variance  
+ * any two observations from the same treatment have covariance $\sigma^2_{\mu}$  
+ * The correlation between any two responses from the same treatment:  
+$$
+\begin{align}
+\rho(Y_{ij},Y_{ij'}) &= \frac{\sigma^2_{\mu}}{\sigma^2_{\mu}+ \sigma^2} && \text{$j \neq j'$}
+\end{align}
+$$
+
+slide 76
 
 ### Two Factor Fixed Effect ANOVA
 #### Balanced

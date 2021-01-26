@@ -1,11 +1,172 @@
-## Non-linear Regression
-### Non-linear Least Squares
+# Non-linear Regression
 
-### Genelized Method of Moments
+**Definition**: models in which the derivatives of the mean function with respect to the parameters depend on one or more of the parameters.  
 
-### Minimum Distance
 
-### Spline Regression
+To approximate data, we can approximate the function  
+
+ * by a high-order polynomial  
+ * by a linear model (e.g., a Taylor expansion around X's)  
+ * a collection of locally linear models or basis function  
+
+but it would not easy to interpret, or not enough data, or can't interpret them globally.  
+
+**intrinsically nonlinear** models:  
+
+$$
+Y_i = f(\mathbf{x_i;\theta}) + \epsilon_i
+$$
+where $f(\mathbf{x_i;\theta})$ is a nonlinear function relating $E(Y_i)$ to the independent variables $x_i$  
+
+ * $\mathbf{x}_i$ is a k x 1 vector of independent variables (fixed).  
+ * $\mathbf{\theta}$ is a p x 1 vector of parameters.  
+ * $\epsilon_i$s are iid variables mean 0 and variance $\sigma^2$. (sometimes it's normal).  
+
+
+
+## Non-linear Least Squares
+
+ * The LS estimate of $\theta$, $\hat{\theta}$ is the set of parameters that minimizes the residual sum of squares:  
+$$
+S(\hat{\theta}) = SSE(\hat{\theta}) = \sum_{i=1}^{n}\{Y_i - f(\mathbf{x_i};\hat{\theta})\}^2
+$$
+ * to obtain the solution, we can consider the partial derivatives of $S(\theta)$ with respect to each $\theta_j$ and set them to 0, which gives a system of p equations. Each normal equation is 
+$$
+\frac{\partial S(\theta)}{\partial \theta_j} = -2\sum_{i=1}^{n}\{Y_i -f(\mathbf{x}_i;\theta)\}[\frac{\partial(\mathbf{x}_i;\theta)}{\partial \theta_j}] = 0
+$$
+ * but we can't obtain a solution directly/analytically for this equation. 
+
+**Numerical Solutions**  
+
+ * Grid search  
+  + A "grid" of possible parameter values and see which one minimize the residual sum of squares.  
+  + finer grid = greater accuracy  
+  + could be inefficient, and hard when p is large.  
+ * Gauss-Newton Algorithm  
+  + we have an initial estimate of $\theta$ denoted as $\hat{\theta}^{(0)}$  
+  + use a Taylor expansions of $f(\mathbf{x}_i;\theta)$ as a function of $\theta$ about the point $\hat{\theta}^{(0)}$  
+
+$$
+\begin{align} 
+Y_i &= f(x_i;\theta) + \epsilon_i \\
+&= f(x_i;\theta) + \sum_{j=1}^{p}\{\frac{\partial f(x_i;\theta)}{\partial \theta_j}\}_{\theta = \hat{\theta}^{(0)}} (\theta_j - \hat{\theta}^{(0)}) + \text{remainder} + \epsilon_i
+\end{align}
+$$
+
+Equivalently,  
+
+$$
+\mathbf{Y} = \mathbf{f}(\hat{\theta}^{(0)}) + \mathbf{F}(\hat{\theta}^{(0)})(\theta - \hat{\theta}^{(0)}) + \epsilon + \text{remainder}
+$$
+where we assume that the remainder is small and the error term is only assumed to be iid with mean 0 and variance $\sigma^2$.  
+
+We can rewrite the above equation as  
+
+$$
+\mathbf{Y} - \mathbf{f}(\hat{\theta}^{(0)}) \approx \mathbf{F}(\hat{\theta}^{(0)})(\theta - \hat{\theta}^{(0)}) + \epsilon
+$$
+where it is in the form of linear model. After we solve for $(\theta - \hat{\theta}^{(0)})$ and let it equal to $\hat{\delta}^{(1)}$  
+ Then we new estimate is given by adding the Gauss increment adjustment to the initial estimate $\hat{\theta}^{(1)} = \hat{\theta}^{(0)} + \hat{\delta}^{(1)}$  
+ We can repeat this process. 
+
+
+Gauss-Newton Algorithm Steps:  
+
+ 1. initial estimate $\hat{\theta}^{(0)}$, set j = 0  
+ 2. Taylor series expansion and calculate  $\mathbf{f}(\hat{\theta}^{(j)})$ and $\mathbf{F}(\hat{\theta}^{(j)})$ 
+ 3. Use OLS to get $\hat{\delta}^{(j+1)}$  
+ 4. get the new estimate $\hat{\theta}^{(j+1)}$, return to step 2  
+ 5. continue until "convergence"  
+ 6. With the final parameter estimate $\hat{\theta}$, we can estimate $\sigma^2$ if $\epsilon \sim (\mathbf{0}, \sigma^2 \mathbf{I})$ by  
+
+$$
+\hat{\sigma}^2= \frac{1}{n-p}(\mathbf{Y}-\mathbf{f}(x;\hat{\theta}))'(\mathbf{Y}-\mathbf{f}(x;\hat{\theta}))
+$$
+
+
+Criteria for convergence  
+
+ 1. Minor change in the objective function (SSE = residual sum of squares)  
+$$
+\frac{|SSE(\hat{\theta}^{(j+1)})-SSE(\hat{\theta}^{(j)})|}{SSE(\hat{\theta}^{(j)})} < \gamma_1
+$$
+ 2. Minor change in the parameter estimates  
+$$
+|\hat{\theta}^{(j+1)}-\hat{\theta}^{(j)}| < \gamma_2
+$$
+ 3. "residual projection" criterion of [@Bates_1981]  
+
+
+**Gauss-Newton Algorithm**  
+
+Normal equations:  
+
+$$
+\frac{\partial SSE(\theta)}{\partial \theta} = 2\mathbf{F}(\theta)'[\mathbf{Y}-\mathbf{f}(\theta)]
+$$
+
+$$
+\begin{align}
+\hat{\theta}^{(j+1)} &= \hat{\theta}^{(j)} + \hat{\delta}^{(j+1)} \\
+&= \hat{\theta}^{(j)} + [\mathbf{F}((\hat{\theta})^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1}\mathbf{F}(\hat{\theta})^{(j)} \\
+&= \hat{\theta}^{(j)} - \frac{1}{2}[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1}\frac{\partial SSE(\hat{\theta}^{(j)})}{\partial \theta}
+\end{align}
+$$
+where  
+
+ * $\frac{\partial SSE(\hat{\theta}^{(j)})}{\partial \theta}$ is a gradient vecotr  (points in the direction in which the SSE increases most rapidly). This path is known as steepest ascent.  
+ * $[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1}$ indicates how far to move  
+ * $-1/2$: indicator of the direction of steepest descent.  
+
+
+**Modified Gauss-Newton Algorithm**  
+
+To avoid overstepping (the local min), we can use the modified Gauss-Newton Algorithm. We define a new proposal for $\theta$  
+
+$$
+\hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} + \alpha_j \hat{\delta}^{(j+1)}, 0 < \alpha_j < 1
+$$
+where  
+
+ * $\alpha_j$ (called the "learning rate"): is used to modify the step length.  
+
+A way to choose $\alpha_j$, we can use **step halving**  
+
+$$
+\hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} + \frac{1}{2^k}\hat{\delta}^{(j+1)}
+$$
+where  
+
+ * k is the smallest non-negative integer such that  
+$$
+SSE(\hat{\theta}^{(j)}+\frac{1}{2^k}\hat{\delta}^{(j+1)}) < SSE(\hat{\theta}^{(j)})
+$$
+which means we try $\hat{\delta}^{(j+1)}$, then $\hat{\delta}^{(j+1)}/2$, $\hat{\delta}^{(j+1)}/4$, etc.  
+
+
+The most general form of the convergence algorithm is  
+
+$$
+\hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} - \alpha_j \mathbf{A}_j \frac{\partial Q(\hat{\theta}^{(j)})}{\partial \theta} 
+$$
+where  
+
+ * $\mathbf{A}_j$ is a positive definite matrix  
+ * $\alpha_j$ is the learning rate  
+ * $\frac{\partial Q(\hat{\theta}^{(j)})}{\partial \theta}$is the gradient based on some objective function Q (a function of $\theta$), which is typically the SSE in nonlinear regression applications (e.g., cross-entropy for classification).  
+
+Refer back to the **Modified Gauss-Newton Algorithm**, we can see it is in this form  
+
+$$
+\hat{\theta}^{(j+1)} =\hat{\theta}^{(j)} - \alpha_j[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1}\frac{\partial SSE(\hat{\theta}^{(j)})}{\partial \theta}
+$$
+where Q = SSE
+
+## Genelized Method of Moments
+
+## Minimum Distance
+
+## Spline Regression
 
 This chapter is based on [CMU stat](https://www.stat.cmu.edu/~ryantibs/advmethods/notes/smoothspline.pdf)  
 
@@ -32,7 +193,7 @@ where j = 1,...,m and $x_+$ = max{x,0}
 
 However, now software typically use B-spline basis.  
 
-#### Regression Splines
+### Regression Splines
 
 To estimate the regression function $r(X) = E(Y|X =x)$, we can fit a k-th order spline with knots at some prespecified locations $t_1,...,t_m$  
 
@@ -79,7 +240,7 @@ $$
 \hat{r} (x) = g(x)^T \hat{\beta}= g(x)^T(G^TG)^{-1}G^Ty
 $$
 
-#### Natural splines
+### Natural splines
 
 A natural spline of order k, with knots at $t_1 <...< t_m$, is a piecewise polynomial function f such that  
 
@@ -91,7 +252,7 @@ A natural spline of order k, with knots at $t_1 <...< t_m$, is a piecewise polyn
 
 natural splines are only defined for odd orders k.
 
-#### Smoothing spliness
+### Smoothing spliness
 
 These estimators use a regularized regression over the natural spline basis: placing knots at all points $x_1,...x_n$  
 
@@ -120,8 +281,7 @@ smoothing splines have similar fits as kernel regression.
 |tuning parameter | smoothing parameter $\lambda$ | bandwidth h |
 
 
-#### Application 
-
+### Application 
 ```{r}
 
 library(tidyverse)
@@ -172,7 +332,7 @@ legend("topright",c("Smoothing Spline with 3 df","Cubic Spline"),col=c("red","da
 
 ```
 
-### Generalized Additive Models
+## Generalized Additive Models
 To overcome [Spline Regression]'s requirements for specifying the knots, we can use [Generalized Additive Models] or GAM. 
 
 ```{r}
@@ -193,4 +353,145 @@ ggplot(train.data, aes(lstat, medv) ) +
   stat_smooth(method = gam, formula = y ~ s(x))
 detach(train.data)
 ```
+
+
+
+## Quantile Regression
+
+For academic review on quantile regression, check [@Yu_2003]
+
+[Linear Regression] is based on the conditional mean function $E(y|x)$  
+
+In Quantile regression, we can view each points in the conditional distribution of y. Quantile regression estimates the conditional median or any other quantile of Y.
+
+In the case that we're interested in the 50th percentile, quantile regression is median regression, also known as least-absolute-deviations (LAD) regression, minimizes $\sum_{i}|e_i|$
+
+
+Properties of estimators $\beta$
+
+ * Asymptotically normally distributed
+
+
+Advantages  
+
+ * More robust to outliers compared to [OLS][Ordinary Least Squares]
+ * In the case the dependent variable has a bimodal or multimodal (multiple humps with multiple modes) distribution, quantile regression can be extremely useful. 
+ * Avoids parametric distribution assumption of the error process. In another word, no assumptions regarding the distribution of the error term.
+ * Better characterization of the data (not just its conditional mean)
+ * is invariant to monotonic transformations (such as log) while OLS is not. In another word, $E(g(y))=g(E(y))$
+ 
+Disadvantages
+
+ * The dependent variable needs to be continuous with no zeroes or too many repeated values. 
+ 
+ 
+$$
+y_i = x_i'\beta_q + e_i
+$$
+ 
+Let $e(x) = y -\hat{y}(x)$, then $L(e(x)) = L(y -\hat{y}(x))$ is the loss function of the error term.  
+
+If $L(e) = |e|$ (called absolute-error loss function) then $\hat{\beta}$ can be estimated by minimizing $\sum_{i}|y_i-x_i'\beta|$  
+
+More specifically, the objective function is 
+$$
+Q(\beta_q)=\sum_{i:y_i \ge x_i'\beta}^{N} q|y_i - x_i'\beta_q| + \sum_{i:y_i < x_i'\beta}^{N} (1-q)|y_i-x_i'\beta_q
+$$
+where $0<q<1$
+
+The sum penalizes $q|e_i|$ for under-prediction and $(1-q)|e_i|$ for over-prediction
+
+
+We use simplex method to minimize this function (cannot use analytical solution since it's non-differentiable). Standard errors can be estimated by bootstrap.
+
+
+The absolute-error loss function is symmetric. 
+
+**Interpretation**
+For the jth regressor ($x_j$), the marginal effect is the coefficient for the qth quantile
+
+$$
+\frac{\partial Q_q(y|x)}{\partial x_j} = \beta_{qj}
+$$
+At the quantile q of the dependent variable y, $\beta_q$ represents a one unit change in the independent variable $x_j$ on the dependent variable y.  
+
+In other words, at the qth percentile, a one unit change in x results in $\beta_q$ unit change in y.
+
+
+
+
+### Application
+
+```{r}
+# generate data with non-constant variance
+
+x <- seq(0,100,length.out = 100)        # independent variable
+sig <- 0.1 + 0.05*x                     # non-constant variance
+b_0 <- 3                                # true intercept
+b_1 <- 0.05                             # true slope
+set.seed(1)                             # reproducibility
+e <- rnorm(100,mean = 0, sd = sig)      # normal random error with non-constant variance
+y <- b_0 + b_1*x + e                    # dependent variable
+dat <- data.frame(x,y)
+hist(y)
+library(ggplot2)
+ggplot(dat, aes(x,y)) + geom_point()
+ggplot(dat, aes(x,y)) + geom_point() + geom_smooth(method="lm")
+```
+
+We follow [@Roger_1996] to estimate quantile regression 
+```{r}
+library(quantreg)
+qr <- rq(y ~ x, data=dat, tau = 0.5) # tau: quantile of interest. Here we have it at 50th percentile.
+summary(qr)
+```
+adding the regression line
+
+```{r}
+ggplot(dat, aes(x,y)) + geom_point() + 
+  geom_abline(intercept=coef(qr)[1], slope=coef(qr)[2])
+```
+
+
+To have R estimate multiple quantile at once
+
+```{r}
+qs <- 1:9/10
+qr1 <- rq(y ~ x, data=dat, tau = qs)
+#check for its coefficients
+coef(qr1)
+
+# plot
+ggplot(dat, aes(x,y)) + geom_point() + geom_quantile(quantiles = qs)
+```
+
+To examine if the quantile regression is appropriate, we can see its plot compared to least squares regression 
+```{r}
+plot(summary(qr1), parm="x")
+```
+
+where red line is the least squares estimates, and its confidence interval. 
+x-axis is the quantile 
+y-axis is the value of the quantile regression coefficients at different quantile
+
+If the error term is normally distributed, the quantile regression line will fall inside the coefficient interval of least squares regression. 
+```{r}
+# generate data with constant variance
+
+x <- seq(0, 100, length.out = 100)    # independent variable
+b_0 <- 3                              # true intercept
+b_1 <- 0.05                           # true slope
+set.seed(1)                           # reproducibility
+e <- rnorm(100, mean = 0, sd = 1)     # normal random error with constant variance
+y <- b_0 + b_1 * x + e                # dependent variable
+dat2 <- data.frame(x, y)
+qr2 = rq(y ~ x, data = dat2, tau = qs)
+plot(summary(qr2), parm = "x")
+```
+
+
+
+
+
+
 
