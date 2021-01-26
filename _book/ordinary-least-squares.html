@@ -1,0 +1,2552 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>5.1 Ordinary Least Squares | A Guide on Data Analysis</title>
+  <meta name="description" content="This is a guide on how to conduct a data analysis routine" />
+  <meta name="generator" content="bookdown 0.21 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="5.1 Ordinary Least Squares | A Guide on Data Analysis" />
+  <meta property="og:type" content="book" />
+  
+  
+  <meta property="og:description" content="This is a guide on how to conduct a data analysis routine" />
+  <meta name="github-repo" content="mikenguyen13/data_analysis" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="5.1 Ordinary Least Squares | A Guide on Data Analysis" />
+  
+  <meta name="twitter:description" content="This is a guide on how to conduct a data analysis routine" />
+  
+
+<meta name="author" content="Mike Nguyen" />
+
+
+<meta name="date" content="2021-01-26" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="linear-regression.html"/>
+<link rel="next" href="feasible-generalized-least-squares.html"/>
+<script src="libs/jquery-3.5.0/jquery.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+
+<script src="libs/accessible-code-block-0.0.1/empty-anchor.js"></script>
+<link href="libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.0/anchor-sections.js"></script>
+<script src="libs/htmlwidgets-1.5.3/htmlwidgets.js"></script>
+<script src="libs/proj4js-2.3.15/proj4.js"></script>
+<link href="libs/highcharts-8.1.2/css/motion.css" rel="stylesheet" />
+<script src="libs/highcharts-8.1.2/highcharts.js"></script>
+<script src="libs/highcharts-8.1.2/highcharts-3d.js"></script>
+<script src="libs/highcharts-8.1.2/highcharts-more.js"></script>
+<script src="libs/highcharts-8.1.2/modules/stock.js"></script>
+<script src="libs/highcharts-8.1.2/modules/map.js"></script>
+<script src="libs/highcharts-8.1.2/modules/annotations.js"></script>
+<script src="libs/highcharts-8.1.2/modules/data.js"></script>
+<script src="libs/highcharts-8.1.2/modules/drilldown.js"></script>
+<script src="libs/highcharts-8.1.2/modules/item-series.js"></script>
+<script src="libs/highcharts-8.1.2/modules/offline-exporting.js"></script>
+<script src="libs/highcharts-8.1.2/modules/overlapping-datalabels.js"></script>
+<script src="libs/highcharts-8.1.2/modules/exporting.js"></script>
+<script src="libs/highcharts-8.1.2/modules/export-data.js"></script>
+<script src="libs/highcharts-8.1.2/modules/funnel.js"></script>
+<script src="libs/highcharts-8.1.2/modules/heatmap.js"></script>
+<script src="libs/highcharts-8.1.2/modules/treemap.js"></script>
+<script src="libs/highcharts-8.1.2/modules/sankey.js"></script>
+<script src="libs/highcharts-8.1.2/modules/dependency-wheel.js"></script>
+<script src="libs/highcharts-8.1.2/modules/organization.js"></script>
+<script src="libs/highcharts-8.1.2/modules/solid-gauge.js"></script>
+<script src="libs/highcharts-8.1.2/modules/streamgraph.js"></script>
+<script src="libs/highcharts-8.1.2/modules/sunburst.js"></script>
+<script src="libs/highcharts-8.1.2/modules/vector.js"></script>
+<script src="libs/highcharts-8.1.2/modules/wordcloud.js"></script>
+<script src="libs/highcharts-8.1.2/modules/xrange.js"></script>
+<script src="libs/highcharts-8.1.2/modules/tilemap.js"></script>
+<script src="libs/highcharts-8.1.2/modules/venn.js"></script>
+<script src="libs/highcharts-8.1.2/modules/gantt.js"></script>
+<script src="libs/highcharts-8.1.2/modules/timeline.js"></script>
+<script src="libs/highcharts-8.1.2/modules/parallel-coordinates.js"></script>
+<script src="libs/highcharts-8.1.2/modules/bullet.js"></script>
+<script src="libs/highcharts-8.1.2/modules/coloraxis.js"></script>
+<script src="libs/highcharts-8.1.2/modules/dumbbell.js"></script>
+<script src="libs/highcharts-8.1.2/modules/lollipop.js"></script>
+<script src="libs/highcharts-8.1.2/modules/series-label.js"></script>
+<script src="libs/highcharts-8.1.2/plugins/motion.js"></script>
+<script src="libs/highcharts-8.1.2/custom/reset.js"></script>
+<script src="libs/highcharts-8.1.2/modules/boost.js"></script>
+<script src="libs/highchart-binding-0.8.2/highchart.js"></script>
+
+
+<style type="text/css">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li><a href="./">A Guide on Data Analysis</a></li>
+
+<li class="divider"></li>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Introduction</a></li>
+<li class="chapter" data-level="2" data-path="prerequisites.html"><a href="prerequisites.html"><i class="fa fa-check"></i><b>2</b> Prerequisites</a><ul>
+<li class="chapter" data-level="2.1" data-path="matrix-theory.html"><a href="matrix-theory.html"><i class="fa fa-check"></i><b>2.1</b> Matrix Theory</a><ul>
+<li class="chapter" data-level="2.1.1" data-path="matrix-theory.html"><a href="matrix-theory.html#rank"><i class="fa fa-check"></i><b>2.1.1</b> Rank</a></li>
+<li class="chapter" data-level="2.1.2" data-path="matrix-theory.html"><a href="matrix-theory.html#inverse"><i class="fa fa-check"></i><b>2.1.2</b> Inverse</a></li>
+<li class="chapter" data-level="2.1.3" data-path="matrix-theory.html"><a href="matrix-theory.html#definiteness"><i class="fa fa-check"></i><b>2.1.3</b> Definiteness</a></li>
+<li class="chapter" data-level="2.1.4" data-path="matrix-theory.html"><a href="matrix-theory.html#matrix-calculus"><i class="fa fa-check"></i><b>2.1.4</b> Matrix Calculus</a></li>
+<li class="chapter" data-level="2.1.5" data-path="matrix-theory.html"><a href="matrix-theory.html#optimization"><i class="fa fa-check"></i><b>2.1.5</b> Optimization</a></li>
+</ul></li>
+<li class="chapter" data-level="2.2" data-path="probability-theory.html"><a href="probability-theory.html"><i class="fa fa-check"></i><b>2.2</b> Probability Theory</a><ul>
+<li class="chapter" data-level="2.2.1" data-path="probability-theory.html"><a href="probability-theory.html#axiom-and-theorems-of-probability"><i class="fa fa-check"></i><b>2.2.1</b> Axiom and Theorems of Probability</a></li>
+<li class="chapter" data-level="2.2.2" data-path="probability-theory.html"><a href="probability-theory.html#central-limit-theorem"><i class="fa fa-check"></i><b>2.2.2</b> Central Limit Theorem</a></li>
+<li class="chapter" data-level="2.2.3" data-path="probability-theory.html"><a href="probability-theory.html#random-variable"><i class="fa fa-check"></i><b>2.2.3</b> Random variable</a></li>
+<li class="chapter" data-level="2.2.4" data-path="probability-theory.html"><a href="probability-theory.html#moment-generating-function"><i class="fa fa-check"></i><b>2.2.4</b> Moment generating function</a></li>
+<li class="chapter" data-level="2.2.5" data-path="probability-theory.html"><a href="probability-theory.html#moment"><i class="fa fa-check"></i><b>2.2.5</b> Moment</a></li>
+<li class="chapter" data-level="2.2.6" data-path="probability-theory.html"><a href="probability-theory.html#distributions"><i class="fa fa-check"></i><b>2.2.6</b> Distributions</a></li>
+</ul></li>
+<li class="chapter" data-level="2.3" data-path="general-math.html"><a href="general-math.html"><i class="fa fa-check"></i><b>2.3</b> General Math</a><ul>
+<li class="chapter" data-level="2.3.1" data-path="general-math.html"><a href="general-math.html#law-of-large-numbers"><i class="fa fa-check"></i><b>2.3.1</b> Law of large numbers</a></li>
+<li class="chapter" data-level="2.3.2" data-path="general-math.html"><a href="general-math.html#law-of-iterated-expectation"><i class="fa fa-check"></i><b>2.3.2</b> Law of Iterated Expectation</a></li>
+<li class="chapter" data-level="2.3.3" data-path="general-math.html"><a href="general-math.html#convergence"><i class="fa fa-check"></i><b>2.3.3</b> Convergence</a></li>
+<li class="chapter" data-level="2.3.4" data-path="general-math.html"><a href="general-math.html#sufficient-statistics"><i class="fa fa-check"></i><b>2.3.4</b> Sufficient Statistics</a></li>
+<li class="chapter" data-level="2.3.5" data-path="general-math.html"><a href="general-math.html#parameter-transformations"><i class="fa fa-check"></i><b>2.3.5</b> Parameter transformations</a></li>
+</ul></li>
+<li class="chapter" data-level="2.4" data-path="methods.html"><a href="methods.html"><i class="fa fa-check"></i><b>2.4</b> Methods</a></li>
+<li class="chapter" data-level="2.5" data-path="data-manipulation.html"><a href="data-manipulation.html"><i class="fa fa-check"></i><b>2.5</b> Data Manipulation</a></li>
+</ul></li>
+<li class="part"><span><b>I BASIC</b></span></li>
+<li class="chapter" data-level="3" data-path="descriptive-stat.html"><a href="descriptive-stat.html"><i class="fa fa-check"></i><b>3</b> Descriptive Statistics</a><ul>
+<li class="chapter" data-level="3.1" data-path="numerical-measures.html"><a href="numerical-measures.html"><i class="fa fa-check"></i><b>3.1</b> Numerical Measures</a></li>
+<li class="chapter" data-level="3.2" data-path="graphical-measures.html"><a href="graphical-measures.html"><i class="fa fa-check"></i><b>3.2</b> Graphical Measures</a><ul>
+<li class="chapter" data-level="3.2.1" data-path="graphical-measures.html"><a href="graphical-measures.html#shape"><i class="fa fa-check"></i><b>3.2.1</b> Shape</a></li>
+</ul></li>
+<li class="chapter" data-level="3.3" data-path="normality-assessment.html"><a href="normality-assessment.html"><i class="fa fa-check"></i><b>3.3</b> Normality Assessment</a><ul>
+<li class="chapter" data-level="3.3.1" data-path="normality-assessment.html"><a href="normality-assessment.html#graphical-assessment"><i class="fa fa-check"></i><b>3.3.1</b> Graphical Assessment</a></li>
+<li class="chapter" data-level="3.3.2" data-path="normality-assessment.html"><a href="normality-assessment.html#summary-statistics"><i class="fa fa-check"></i><b>3.3.2</b> Summary Statistics</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="basic-statistical-inference.html"><a href="basic-statistical-inference.html"><i class="fa fa-check"></i><b>4</b> Basic Statistical Inference</a><ul>
+<li class="chapter" data-level="4.1" data-path="one-sample-inference.html"><a href="one-sample-inference.html"><i class="fa fa-check"></i><b>4.1</b> One Sample Inference</a><ul>
+<li class="chapter" data-level="4.1.1" data-path="one-sample-inference.html"><a href="one-sample-inference.html#the-mean"><i class="fa fa-check"></i><b>4.1.1</b> The Mean</a></li>
+<li class="chapter" data-level="4.1.2" data-path="one-sample-inference.html"><a href="one-sample-inference.html#single-variance"><i class="fa fa-check"></i><b>4.1.2</b> Single Variance</a></li>
+<li class="chapter" data-level="4.1.3" data-path="one-sample-inference.html"><a href="one-sample-inference.html#single-proportion-p"><i class="fa fa-check"></i><b>4.1.3</b> Single Proportion (p)</a></li>
+<li class="chapter" data-level="4.1.4" data-path="one-sample-inference.html"><a href="one-sample-inference.html#power"><i class="fa fa-check"></i><b>4.1.4</b> Power</a></li>
+<li class="chapter" data-level="4.1.5" data-path="one-sample-inference.html"><a href="one-sample-inference.html#sample-size"><i class="fa fa-check"></i><b>4.1.5</b> Sample Size</a></li>
+<li class="chapter" data-level="4.1.6" data-path="one-sample-inference.html"><a href="one-sample-inference.html#note"><i class="fa fa-check"></i><b>4.1.6</b> Note</a></li>
+<li class="chapter" data-level="4.1.7" data-path="one-sample-inference.html"><a href="one-sample-inference.html#one-sample-non-parametric-methods"><i class="fa fa-check"></i><b>4.1.7</b> One-sample Non-parametric Methods</a></li>
+</ul></li>
+<li class="chapter" data-level="4.2" data-path="two-sample-inference.html"><a href="two-sample-inference.html"><i class="fa fa-check"></i><b>4.2</b> Two Sample Inference</a><ul>
+<li class="chapter" data-level="4.2.1" data-path="two-sample-inference.html"><a href="two-sample-inference.html#means"><i class="fa fa-check"></i><b>4.2.1</b> Means</a></li>
+<li class="chapter" data-level="4.2.2" data-path="two-sample-inference.html"><a href="two-sample-inference.html#variances"><i class="fa fa-check"></i><b>4.2.2</b> Variances</a></li>
+<li class="chapter" data-level="4.2.3" data-path="two-sample-inference.html"><a href="two-sample-inference.html#power-1"><i class="fa fa-check"></i><b>4.2.3</b> Power</a></li>
+<li class="chapter" data-level="4.2.4" data-path="two-sample-inference.html"><a href="two-sample-inference.html#sample-size-1"><i class="fa fa-check"></i><b>4.2.4</b> Sample Size</a></li>
+<li class="chapter" data-level="4.2.5" data-path="two-sample-inference.html"><a href="two-sample-inference.html#matched-pair-designs"><i class="fa fa-check"></i><b>4.2.5</b> Matched Pair Designs</a></li>
+<li class="chapter" data-level="4.2.6" data-path="two-sample-inference.html"><a href="two-sample-inference.html#nonparametric-tests-for-two-samples"><i class="fa fa-check"></i><b>4.2.6</b> Nonparametric Tests for Two Samples</a></li>
+</ul></li>
+<li class="chapter" data-level="4.3" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html"><i class="fa fa-check"></i><b>4.3</b> Categorical Data Analysis</a><ul>
+<li class="chapter" data-level="4.3.1" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#inferences-for-small-samples"><i class="fa fa-check"></i><b>4.3.1</b> Inferences for Small Samples</a></li>
+<li class="chapter" data-level="4.3.2" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#test-of-association"><i class="fa fa-check"></i><b>4.3.2</b> Test of Association</a></li>
+<li class="chapter" data-level="4.3.3" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#ordinal-association"><i class="fa fa-check"></i><b>4.3.3</b> Ordinal Association</a></li>
+</ul></li>
+</ul></li>
+<li class="part"><span><b>II REGRESSION</b></span></li>
+<li class="chapter" data-level="5" data-path="linear-regression.html"><a href="linear-regression.html"><i class="fa fa-check"></i><b>5</b> Linear Regression</a><ul>
+<li class="chapter" data-level="5.1" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html"><i class="fa fa-check"></i><b>5.1</b> Ordinary Least Squares</a><ul>
+<li class="chapter" data-level="5.1.1" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#simple-regression-basic-model"><i class="fa fa-check"></i><b>5.1.1</b> Simple Regression (Basic Model)</a></li>
+<li class="chapter" data-level="5.1.2" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#multiple-linear-regression"><i class="fa fa-check"></i><b>5.1.2</b> Multiple Linear Regression</a></li>
+<li class="chapter" data-level="5.1.3" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#ols-assumptions"><i class="fa fa-check"></i><b>5.1.3</b> OLS Assumptions</a></li>
+<li class="chapter" data-level="5.1.4" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#theorems"><i class="fa fa-check"></i><b>5.1.4</b> Theorems</a></li>
+<li class="chapter" data-level="5.1.5" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#variable-selection"><i class="fa fa-check"></i><b>5.1.5</b> Variable Selection</a></li>
+<li class="chapter" data-level="5.1.6" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#diagnostics-1"><i class="fa fa-check"></i><b>5.1.6</b> Diagnostics</a></li>
+<li class="chapter" data-level="5.1.7" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#model-validation"><i class="fa fa-check"></i><b>5.1.7</b> Model Validation</a></li>
+<li class="chapter" data-level="5.1.8" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#finite-sample-properties"><i class="fa fa-check"></i><b>5.1.8</b> Finite Sample Properties</a></li>
+<li class="chapter" data-level="5.1.9" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#large-sample-properties"><i class="fa fa-check"></i><b>5.1.9</b> Large Sample Properties</a></li>
+<li class="chapter" data-level="5.1.10" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#application"><i class="fa fa-check"></i><b>5.1.10</b> Application</a></li>
+</ul></li>
+<li class="chapter" data-level="5.2" data-path="feasible-generalized-least-squares.html"><a href="feasible-generalized-least-squares.html"><i class="fa fa-check"></i><b>5.2</b> Feasible Generalized Least Squares</a><ul>
+<li class="chapter" data-level="5.2.1" data-path="feasible-generalized-least-squares.html"><a href="feasible-generalized-least-squares.html#heteroskedasticity"><i class="fa fa-check"></i><b>5.2.1</b> Heteroskedasticity</a></li>
+<li class="chapter" data-level="5.2.2" data-path="feasible-generalized-least-squares.html"><a href="feasible-generalized-least-squares.html#serial-correlation"><i class="fa fa-check"></i><b>5.2.2</b> Serial Correlation</a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="weighted-least-squares.html"><a href="weighted-least-squares.html"><i class="fa fa-check"></i><b>5.3</b> Weighted Least Squares</a></li>
+<li class="chapter" data-level="5.4" data-path="generalized-least-squares.html"><a href="generalized-least-squares.html"><i class="fa fa-check"></i><b>5.4</b> Generalized Least Squares</a></li>
+<li class="chapter" data-level="5.5" data-path="feasiable-prais-winsten.html"><a href="feasiable-prais-winsten.html"><i class="fa fa-check"></i><b>5.5</b> Feasiable Prais Winsten</a></li>
+<li class="chapter" data-level="5.6" data-path="feasible-group-level-random-effects.html"><a href="feasible-group-level-random-effects.html"><i class="fa fa-check"></i><b>5.6</b> Feasible group level Random Effects</a></li>
+<li class="chapter" data-level="5.7" data-path="ridge-regression.html"><a href="ridge-regression.html"><i class="fa fa-check"></i><b>5.7</b> Ridge Regression</a></li>
+<li class="chapter" data-level="5.8" data-path="principal-component-regression.html"><a href="principal-component-regression.html"><i class="fa fa-check"></i><b>5.8</b> Principal Component Regression</a></li>
+<li class="chapter" data-level="5.9" data-path="robust-regression.html"><a href="robust-regression.html"><i class="fa fa-check"></i><b>5.9</b> Robust Regression</a><ul>
+<li class="chapter" data-level="5.9.1" data-path="robust-regression.html"><a href="robust-regression.html#least-absolute-residuals-lar-regression"><i class="fa fa-check"></i><b>5.9.1</b> Least Absolute Residuals (LAR) Regression</a></li>
+<li class="chapter" data-level="5.9.2" data-path="robust-regression.html"><a href="robust-regression.html#least-median-of-squares-lms-regression"><i class="fa fa-check"></i><b>5.9.2</b> Least Median of Squares (LMS) Regression</a></li>
+<li class="chapter" data-level="5.9.3" data-path="robust-regression.html"><a href="robust-regression.html#iteratively-reweighted-least-squares-irls-robust-regression"><i class="fa fa-check"></i><b>5.9.3</b> Iteratively Reweighted Least Squares (IRLS) Robust Regression</a></li>
+</ul></li>
+<li class="chapter" data-level="5.10" data-path="maximum-likelihood.html"><a href="maximum-likelihood.html"><i class="fa fa-check"></i><b>5.10</b> Maximum Likelihood</a><ul>
+<li class="chapter" data-level="5.10.1" data-path="maximum-likelihood.html"><a href="maximum-likelihood.html#motivation-for-mle"><i class="fa fa-check"></i><b>5.10.1</b> Motivation for MLE</a></li>
+<li class="chapter" data-level="5.10.2" data-path="maximum-likelihood.html"><a href="maximum-likelihood.html#assumption"><i class="fa fa-check"></i><b>5.10.2</b> Assumption</a></li>
+<li class="chapter" data-level="5.10.3" data-path="maximum-likelihood.html"><a href="maximum-likelihood.html#properties"><i class="fa fa-check"></i><b>5.10.3</b> Properties</a></li>
+<li class="chapter" data-level="5.10.4" data-path="maximum-likelihood.html"><a href="maximum-likelihood.html#application-1"><i class="fa fa-check"></i><b>5.10.4</b> Application</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="non-linear-regression.html"><a href="non-linear-regression.html"><i class="fa fa-check"></i><b>6</b> Non-linear Regression</a><ul>
+<li class="chapter" data-level="6.1" data-path="non-linear-least-squares.html"><a href="non-linear-least-squares.html"><i class="fa fa-check"></i><b>6.1</b> Non-linear Least Squares</a></li>
+<li class="chapter" data-level="6.2" data-path="genelized-method-of-moments.html"><a href="genelized-method-of-moments.html"><i class="fa fa-check"></i><b>6.2</b> Genelized Method of Moments</a></li>
+<li class="chapter" data-level="6.3" data-path="minimum-distance.html"><a href="minimum-distance.html"><i class="fa fa-check"></i><b>6.3</b> Minimum Distance</a></li>
+<li class="chapter" data-level="6.4" data-path="spline-regression.html"><a href="spline-regression.html"><i class="fa fa-check"></i><b>6.4</b> Spline Regression</a><ul>
+<li class="chapter" data-level="6.4.1" data-path="spline-regression.html"><a href="spline-regression.html#regression-splines"><i class="fa fa-check"></i><b>6.4.1</b> Regression Splines</a></li>
+<li class="chapter" data-level="6.4.2" data-path="spline-regression.html"><a href="spline-regression.html#natural-splines"><i class="fa fa-check"></i><b>6.4.2</b> Natural splines</a></li>
+<li class="chapter" data-level="6.4.3" data-path="spline-regression.html"><a href="spline-regression.html#smoothing-spliness"><i class="fa fa-check"></i><b>6.4.3</b> Smoothing spliness</a></li>
+<li class="chapter" data-level="6.4.4" data-path="spline-regression.html"><a href="spline-regression.html#application-2"><i class="fa fa-check"></i><b>6.4.4</b> Application</a></li>
+</ul></li>
+<li class="chapter" data-level="6.5" data-path="generalized-additive-models.html"><a href="generalized-additive-models.html"><i class="fa fa-check"></i><b>6.5</b> Generalized Additive Models</a></li>
+<li class="chapter" data-level="6.6" data-path="quantile-regression.html"><a href="quantile-regression.html"><i class="fa fa-check"></i><b>6.6</b> Quantile Regression</a><ul>
+<li class="chapter" data-level="6.6.1" data-path="quantile-regression.html"><a href="quantile-regression.html#application-3"><i class="fa fa-check"></i><b>6.6.1</b> Application</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="model-specification.html"><a href="model-specification.html"><i class="fa fa-check"></i><b>7</b> Model Specification</a><ul>
+<li class="chapter" data-level="7.1" data-path="nested-model.html"><a href="nested-model.html"><i class="fa fa-check"></i><b>7.1</b> Nested Model</a><ul>
+<li class="chapter" data-level="7.1.1" data-path="nested-model.html"><a href="nested-model.html#chow-test"><i class="fa fa-check"></i><b>7.1.1</b> Chow test</a></li>
+</ul></li>
+<li class="chapter" data-level="7.2" data-path="non-nested-model.html"><a href="non-nested-model.html"><i class="fa fa-check"></i><b>7.2</b> Non-Nested Model</a><ul>
+<li class="chapter" data-level="7.2.1" data-path="non-nested-model.html"><a href="non-nested-model.html#davidson-mackinnon-test"><i class="fa fa-check"></i><b>7.2.1</b> Davidson-Mackinnon test</a></li>
+</ul></li>
+<li class="chapter" data-level="7.3" data-path="heteroskedasticity-1.html"><a href="heteroskedasticity-1.html"><i class="fa fa-check"></i><b>7.3</b> Heteroskedasticity</a><ul>
+<li class="chapter" data-level="7.3.1" data-path="heteroskedasticity-1.html"><a href="heteroskedasticity-1.html#breusch-pagan-test"><i class="fa fa-check"></i><b>7.3.1</b> Breusch-Pagan test</a></li>
+<li class="chapter" data-level="7.3.2" data-path="heteroskedasticity-1.html"><a href="heteroskedasticity-1.html#white-test"><i class="fa fa-check"></i><b>7.3.2</b> White test</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="8" data-path="endogeneity.html"><a href="endogeneity.html"><i class="fa fa-check"></i><b>8</b> Endogeneity</a><ul>
+<li class="chapter" data-level="8.1" data-path="testing-assumption.html"><a href="testing-assumption.html"><i class="fa fa-check"></i><b>8.1</b> Testing Assumption</a><ul>
+<li class="chapter" data-level="8.1.1" data-path="testing-assumption.html"><a href="testing-assumption.html#test-of-endogeneity"><i class="fa fa-check"></i><b>8.1.1</b> Test of Endogeneity</a></li>
+<li class="chapter" data-level="8.1.2" data-path="testing-assumption.html"><a href="testing-assumption.html#testing-instruments-assumptions"><i class="fa fa-check"></i><b>8.1.2</b> Testing Instrument’s assumptions</a></li>
+</ul></li>
+<li class="chapter" data-level="8.2" data-path="omitted-variables-bias.html"><a href="omitted-variables-bias.html"><i class="fa fa-check"></i><b>8.2</b> Omitted Variables Bias</a></li>
+<li class="chapter" data-level="8.3" data-path="feedback-effect-simultaneity.html"><a href="feedback-effect-simultaneity.html"><i class="fa fa-check"></i><b>8.3</b> Feedback Effect (Simultaneity)</a></li>
+<li class="chapter" data-level="8.4" data-path="endogenous-sample-design-sample-selection.html"><a href="endogenous-sample-design-sample-selection.html"><i class="fa fa-check"></i><b>8.4</b> Endogenous sample design (sample selection)</a></li>
+<li class="chapter" data-level="8.5" data-path="measurement-error.html"><a href="measurement-error.html"><i class="fa fa-check"></i><b>8.5</b> Measurement Error</a></li>
+<li class="chapter" data-level="8.6" data-path="proxy-variables.html"><a href="proxy-variables.html"><i class="fa fa-check"></i><b>8.6</b> Proxy Variables</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="data.html"><a href="data.html"><i class="fa fa-check"></i><b>9</b> Data</a><ul>
+<li class="chapter" data-level="9.1" data-path="cross-sectional.html"><a href="cross-sectional.html"><i class="fa fa-check"></i><b>9.1</b> Cross-Sectional</a></li>
+<li class="chapter" data-level="9.2" data-path="time-series-1.html"><a href="time-series-1.html"><i class="fa fa-check"></i><b>9.2</b> Time Series</a><ul>
+<li class="chapter" data-level="9.2.1" data-path="time-series-1.html"><a href="time-series-1.html#deterministic-time-trend"><i class="fa fa-check"></i><b>9.2.1</b> Deterministic Time trend</a></li>
+<li class="chapter" data-level="9.2.2" data-path="time-series-1.html"><a href="time-series-1.html#feedback-effect"><i class="fa fa-check"></i><b>9.2.2</b> Feedback Effect</a></li>
+<li class="chapter" data-level="9.2.3" data-path="time-series-1.html"><a href="time-series-1.html#dynamic-specification"><i class="fa fa-check"></i><b>9.2.3</b> Dynamic Specification</a></li>
+<li class="chapter" data-level="9.2.4" data-path="time-series-1.html"><a href="time-series-1.html#dynamically-complete"><i class="fa fa-check"></i><b>9.2.4</b> Dynamically Complete</a></li>
+<li class="chapter" data-level="9.2.5" data-path="time-series-1.html"><a href="time-series-1.html#highly-persistent-data"><i class="fa fa-check"></i><b>9.2.5</b> Highly Persistent Data</a></li>
+</ul></li>
+<li class="chapter" data-level="9.3" data-path="repeated-cross-sections.html"><a href="repeated-cross-sections.html"><i class="fa fa-check"></i><b>9.3</b> Repeated Cross Sections</a><ul>
+<li class="chapter" data-level="9.3.1" data-path="repeated-cross-sections.html"><a href="repeated-cross-sections.html#pooled-cross-section"><i class="fa fa-check"></i><b>9.3.1</b> Pooled Cross Section</a></li>
+</ul></li>
+<li class="chapter" data-level="9.4" data-path="panel-data.html"><a href="panel-data.html"><i class="fa fa-check"></i><b>9.4</b> Panel Data</a><ul>
+<li class="chapter" data-level="9.4.1" data-path="panel-data.html"><a href="panel-data.html#pooled-ols-esimator"><i class="fa fa-check"></i><b>9.4.1</b> Pooled OLS Esimator</a></li>
+<li class="chapter" data-level="9.4.2" data-path="panel-data.html"><a href="panel-data.html#individual-specific-effects-model"><i class="fa fa-check"></i><b>9.4.2</b> Individual-specific effects model</a></li>
+<li class="chapter" data-level="9.4.3" data-path="panel-data.html"><a href="panel-data.html#tests-for-assumptions"><i class="fa fa-check"></i><b>9.4.3</b> Tests for Assumptions</a></li>
+<li class="chapter" data-level="9.4.4" data-path="panel-data.html"><a href="panel-data.html#model-selection"><i class="fa fa-check"></i><b>9.4.4</b> Model Selection</a></li>
+<li class="chapter" data-level="9.4.5" data-path="panel-data.html"><a href="panel-data.html#summary-1"><i class="fa fa-check"></i><b>9.4.5</b> Summary</a></li>
+<li class="chapter" data-level="9.4.6" data-path="panel-data.html"><a href="panel-data.html#application-4"><i class="fa fa-check"></i><b>9.4.6</b> Application</a></li>
+<li class="chapter" data-level="9.4.7" data-path="panel-data.html"><a href="panel-data.html#other-estimators"><i class="fa fa-check"></i><b>9.4.7</b> Other Estimators</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="hypothesis-testing.html"><a href="hypothesis-testing.html"><i class="fa fa-check"></i><b>10</b> Hypothesis Testing</a><ul>
+<li class="chapter" data-level="10.1" data-path="types-of-hypothesis-testing.html"><a href="types-of-hypothesis-testing.html"><i class="fa fa-check"></i><b>10.1</b> Types of hypothesis testing</a></li>
+<li class="chapter" data-level="10.2" data-path="wald-test.html"><a href="wald-test.html"><i class="fa fa-check"></i><b>10.2</b> Wald test</a><ul>
+<li class="chapter" data-level="10.2.1" data-path="wald-test.html"><a href="wald-test.html#multiple-hypothesis"><i class="fa fa-check"></i><b>10.2.1</b> Multiple Hypothesis</a></li>
+<li class="chapter" data-level="10.2.2" data-path="wald-test.html"><a href="wald-test.html#linear-combination"><i class="fa fa-check"></i><b>10.2.2</b> Linear Combination</a></li>
+<li class="chapter" data-level="10.2.3" data-path="wald-test.html"><a href="wald-test.html#application-5"><i class="fa fa-check"></i><b>10.2.3</b> Application</a></li>
+</ul></li>
+<li class="chapter" data-level="10.3" data-path="the-likelihood-ratio-test.html"><a href="the-likelihood-ratio-test.html"><i class="fa fa-check"></i><b>10.3</b> The likelihood ratio test</a></li>
+<li class="chapter" data-level="10.4" data-path="lagrange-multiplier-score.html"><a href="lagrange-multiplier-score.html"><i class="fa fa-check"></i><b>10.4</b> Lagrange Multiplier (Score)</a></li>
+</ul></li>
+<li class="chapter" data-level="11" data-path="imputation-missing-data.html"><a href="imputation-missing-data.html"><i class="fa fa-check"></i><b>11</b> Imputation (Missing Data)</a><ul>
+<li class="chapter" data-level="11.1" data-path="assumptions-1.html"><a href="assumptions-1.html"><i class="fa fa-check"></i><b>11.1</b> Assumptions</a><ul>
+<li class="chapter" data-level="11.1.1" data-path="assumptions-1.html"><a href="assumptions-1.html#missing-completely-at-random-mcar"><i class="fa fa-check"></i><b>11.1.1</b> Missing Completely at Random (MCAR)</a></li>
+<li class="chapter" data-level="11.1.2" data-path="assumptions-1.html"><a href="assumptions-1.html#missing-at-random-mar"><i class="fa fa-check"></i><b>11.1.2</b> Missing at Random (MAR)</a></li>
+<li class="chapter" data-level="11.1.3" data-path="assumptions-1.html"><a href="assumptions-1.html#ignorable"><i class="fa fa-check"></i><b>11.1.3</b> Ignorable</a></li>
+<li class="chapter" data-level="11.1.4" data-path="assumptions-1.html"><a href="assumptions-1.html#nonignorable"><i class="fa fa-check"></i><b>11.1.4</b> Nonignorable</a></li>
+</ul></li>
+<li class="chapter" data-level="11.2" data-path="solutions-to-missing-data.html"><a href="solutions-to-missing-data.html"><i class="fa fa-check"></i><b>11.2</b> Solutions to Missing data</a><ul>
+<li class="chapter" data-level="11.2.1" data-path="solutions-to-missing-data.html"><a href="solutions-to-missing-data.html#listwise-deletion"><i class="fa fa-check"></i><b>11.2.1</b> Listwise Deletion</a></li>
+<li class="chapter" data-level="11.2.2" data-path="solutions-to-missing-data.html"><a href="solutions-to-missing-data.html#pairwise-deletion"><i class="fa fa-check"></i><b>11.2.2</b> Pairwise Deletion</a></li>
+<li class="chapter" data-level="11.2.3" data-path="solutions-to-missing-data.html"><a href="solutions-to-missing-data.html#dummy-variable-adjustment"><i class="fa fa-check"></i><b>11.2.3</b> Dummy Variable Adjustment</a></li>
+<li class="chapter" data-level="11.2.4" data-path="solutions-to-missing-data.html"><a href="solutions-to-missing-data.html#imputation"><i class="fa fa-check"></i><b>11.2.4</b> Imputation</a></li>
+<li class="chapter" data-level="11.2.5" data-path="solutions-to-missing-data.html"><a href="solutions-to-missing-data.html#heckmans-sample-selection-model"><i class="fa fa-check"></i><b>11.2.5</b> Heckman’s Sample Selection Model</a></li>
+</ul></li>
+<li class="chapter" data-level="11.3" data-path="criteria-for-choosing-an-effective-approach.html"><a href="criteria-for-choosing-an-effective-approach.html"><i class="fa fa-check"></i><b>11.3</b> Criteria for Choosing an Effective Approach</a></li>
+<li class="chapter" data-level="11.4" data-path="another-perspective.html"><a href="another-perspective.html"><i class="fa fa-check"></i><b>11.4</b> Another Perspective</a></li>
+<li class="chapter" data-level="11.5" data-path="diagnosing-the-mechanism.html"><a href="diagnosing-the-mechanism.html"><i class="fa fa-check"></i><b>11.5</b> Diagnosing the Mechanism</a><ul>
+<li class="chapter" data-level="11.5.1" data-path="diagnosing-the-mechanism.html"><a href="diagnosing-the-mechanism.html#mar-vs.-mnar"><i class="fa fa-check"></i><b>11.5.1</b> MAR vs. MNAR</a></li>
+<li class="chapter" data-level="11.5.2" data-path="diagnosing-the-mechanism.html"><a href="diagnosing-the-mechanism.html#mcar-vs.-mar"><i class="fa fa-check"></i><b>11.5.2</b> MCAR vs. MAR</a></li>
+</ul></li>
+<li class="chapter" data-level="11.6" data-path="application-6.html"><a href="application-6.html"><i class="fa fa-check"></i><b>11.6</b> Application</a><ul>
+<li class="chapter" data-level="11.6.1" data-path="application-6.html"><a href="application-6.html#imputation-with-mean-median-mode"><i class="fa fa-check"></i><b>11.6.1</b> Imputation with mean / median / mode</a></li>
+<li class="chapter" data-level="11.6.2" data-path="application-6.html"><a href="application-6.html#knn"><i class="fa fa-check"></i><b>11.6.2</b> KNN</a></li>
+<li class="chapter" data-level="11.6.3" data-path="application-6.html"><a href="application-6.html#rpart"><i class="fa fa-check"></i><b>11.6.3</b> rpart</a></li>
+<li class="chapter" data-level="11.6.4" data-path="application-6.html"><a href="application-6.html#mice-multivariate-imputation-via-chained-equations"><i class="fa fa-check"></i><b>11.6.4</b> MICE (Multivariate Imputation via Chained Equations)</a></li>
+<li class="chapter" data-level="11.6.5" data-path="application-6.html"><a href="application-6.html#amelia"><i class="fa fa-check"></i><b>11.6.5</b> Amelia</a></li>
+<li class="chapter" data-level="11.6.6" data-path="application-6.html"><a href="application-6.html#missforest"><i class="fa fa-check"></i><b>11.6.6</b> missForest</a></li>
+<li class="chapter" data-level="11.6.7" data-path="application-6.html"><a href="application-6.html#hmisc"><i class="fa fa-check"></i><b>11.6.7</b> Hmisc</a></li>
+<li class="chapter" data-level="11.6.8" data-path="application-6.html"><a href="application-6.html#mi"><i class="fa fa-check"></i><b>11.6.8</b> mi</a></li>
+</ul></li>
+</ul></li>
+<li class="part"><span><b>III EXPERIMENTAL DESIGN</b></span></li>
+<li class="chapter" data-level="12" data-path="analysis-of-variance-anova.html"><a href="analysis-of-variance-anova.html"><i class="fa fa-check"></i><b>12</b> Analysis of Variance (ANOVA)</a><ul>
+<li class="chapter" data-level="12.1" data-path="completely-randomized-design-crd.html"><a href="completely-randomized-design-crd.html"><i class="fa fa-check"></i><b>12.1</b> Completely Randomized Design (CRD)</a><ul>
+<li class="chapter" data-level="12.1.1" data-path="completely-randomized-design-crd.html"><a href="completely-randomized-design-crd.html#single-factor-fixed-effects-model"><i class="fa fa-check"></i><b>12.1.1</b> Single Factor Fixed Effects Model</a></li>
+<li class="chapter" data-level="12.1.2" data-path="completely-randomized-design-crd.html"><a href="completely-randomized-design-crd.html#single-factor-random-effects-model"><i class="fa fa-check"></i><b>12.1.2</b> Single Factor Random Effects Model</a></li>
+<li class="chapter" data-level="12.1.3" data-path="completely-randomized-design-crd.html"><a href="completely-randomized-design-crd.html#two-factor-fixed-effect-anova"><i class="fa fa-check"></i><b>12.1.3</b> Two Factor Fixed Effect ANOVA</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="13" data-path="causality.html"><a href="causality.html"><i class="fa fa-check"></i><b>13</b> Causality</a></li>
+<li class="chapter" data-level="14" data-path="report.html"><a href="report.html"><i class="fa fa-check"></i><b>14</b> Report</a><ul>
+<li class="chapter" data-level="14.1" data-path="one-summary-table.html"><a href="one-summary-table.html"><i class="fa fa-check"></i><b>14.1</b> One summary table</a></li>
+<li class="chapter" data-level="14.2" data-path="model-comparison.html"><a href="model-comparison.html"><i class="fa fa-check"></i><b>14.2</b> Model Comparison</a></li>
+<li class="chapter" data-level="14.3" data-path="changes-in-an-estimate.html"><a href="changes-in-an-estimate.html"><i class="fa fa-check"></i><b>14.3</b> Changes in an estimate</a></li>
+</ul></li>
+<li class="appendix"><span><b>APPENDIX</b></span></li>
+<li class="chapter" data-level="A" data-path="appendix.html"><a href="appendix.html"><i class="fa fa-check"></i><b>A</b> Appendix</a><ul>
+<li class="chapter" data-level="A.1" data-path="short-cut.html"><a href="short-cut.html"><i class="fa fa-check"></i><b>A.1</b> Short-cut</a></li>
+<li class="chapter" data-level="A.2" data-path="function-short-cut.html"><a href="function-short-cut.html"><i class="fa fa-check"></i><b>A.2</b> Function short-cut</a></li>
+<li class="chapter" data-level="A.3" data-path="citation.html"><a href="citation.html"><i class="fa fa-check"></i><b>A.3</b> Citation</a></li>
+</ul></li>
+<li class="chapter" data-level="B" data-path="bookdown-cheat-sheet.html"><a href="bookdown-cheat-sheet.html"><i class="fa fa-check"></i><b>B</b> Bookdown cheat sheet</a><ul>
+<li class="chapter" data-level="B.1" data-path="math-expresssion-syntax.html"><a href="math-expresssion-syntax.html"><i class="fa fa-check"></i><b>B.1</b> Math Expresssion/ Syntax</a><ul>
+<li class="chapter" data-level="B.1.1" data-path="math-expresssion-syntax.html"><a href="math-expresssion-syntax.html#statistics-notation"><i class="fa fa-check"></i><b>B.1.1</b> Statistics Notation</a></li>
+</ul></li>
+<li class="chapter" data-level="B.2" data-path="table.html"><a href="table.html"><i class="fa fa-check"></i><b>B.2</b> Table</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">A Guide on Data Analysis</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="ordinary-least-squares" class="section level2">
+<h2><span class="header-section-number">5.1</span> Ordinary Least Squares</h2>
+<p>The most fundamental model in statistics or econometric is a OLS linear regression.
+OLS = Maximum likelihood when the error term is assumed to be normally distributed.</p>
+<div id="simple-regression-basic-model" class="section level3">
+<h3><span class="header-section-number">5.1.1</span> Simple Regression (Basic Model)</h3>
+<p><span class="math display">\[
+Y_i = \beta_0 + \beta_1 X_i + \epsilon_i
+\]</span></p>
+<ul>
+<li><span class="math inline">\(Y_i\)</span>: response (dependent) variable at i-th observation<br />
+</li>
+<li><span class="math inline">\(\beta_0,\beta_1\)</span>: regression parameters for intercept and slope.<br />
+</li>
+<li><span class="math inline">\(X_i\)</span>: known constant (independent or predicotr variable) for i-th observation<br />
+</li>
+<li><span class="math inline">\(\epsilon_i\)</span>: random error term</li>
+</ul>
+<p><span class="math display">\[
+E(\epsilon_i) = 0 \\
+var(\epsilon_i) = \sigma^2 \\
+cov(\epsilon_i,\epsilon_j) = 0 \text{ for all $i \neq j$}
+\]</span></p>
+<p><span class="math inline">\(Y_i\)</span> is random since <span class="math inline">\(\epsilon_i\)</span> is:</p>
+<p><span class="math display">\[
+\begin{align}
+E(Y_i) &amp;= E(\beta_0 + \beta_1 X_i + \epsilon_i) \\
+&amp;= E(\beta_0) + E(\beta_1 X_i) + E(\epsilon) \\
+&amp;= \beta_0 + \beta_1 X_i
+\end{align}
+\]</span></p>
+<p><span class="math display">\[
+\begin{align}
+var(Y_i) &amp;= var(\beta_0 + \beta_1 X_i + \epsilon_i) \\
+&amp;= var(\epsilon_i) \\
+&amp;= \sigma^2
+\end{align}
+\]</span></p>
+<p>Since <span class="math inline">\(cov(\epsilon_i, \epsilon_j) = 0\)</span> (uncorrelated), the outcome in any one trail has no effect on the outcome of any other. Hence, <span class="math inline">\(Y_i, Y_j\)</span> are uncorrelated as well (conditioned on the X’s)</p>
+<p><strong>Note</strong><br />
+<a href="ordinary-least-squares.html#ordinary-least-squares">Least Squares</a> does not require a distributional assumption</p>
+<p><br></p>
+<div id="estimation" class="section level4">
+<h4><span class="header-section-number">5.1.1.1</span> Estimation</h4>
+<p>Deviation of <span class="math inline">\(Y_i\)</span> from its expected value:</p>
+<p><span class="math display">\[
+Y_i - E(Y_i) = Y_i - (\beta_0 + \beta_1 X_i)
+\]</span></p>
+<p>Consider the sum of the square of such deviations:</p>
+<p><span class="math display">\[
+Q = \sum_{i=1}^{n} (Y_i - \beta_0 -\beta_1 X_i)^2
+\]</span></p>
+<p><span class="math display">\[
+b_1 = \frac{\sum_{i=1}^{n} (X_i - \bar{X})(Y_i - \bar{Y})}{\sum_{i=1}^{n}(X_i - \bar{X})^2} \\
+b_0 = \frac{1}{n}(\sum_{i=1}^{n}Y_i - b_1\sum_{i=1}^{n}X_i) = \bar{Y} - b_1 \bar{X}
+\]</span></p>
+</div>
+<div id="properties-of-least-least-estimators" class="section level4">
+<h4><span class="header-section-number">5.1.1.2</span> Properties of Least Least Estimators</h4>
+<p><span class="math display">\[
+E(b_1) = \beta_1 \\
+E(b_0) = E(\bar{Y}) - \bar{X}\beta_1 \\
+E(\bar{Y}) = \beta_0 + \beta_1 \bar{X} \\
+E(b_0) = \beta_0 \\
+var(b_1) = \frac{\sigma^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2} \\
+var(b_0) = \sigma^2 (\frac{1}{n} + \frac{\bar{X}^2}{\sum (X_i - \bar{X})^2})
+\]</span></p>
+<p><span class="math inline">\(var(b_1)\)</span> approaches 0 as more measurements are taken at more <span class="math inline">\(X_i\)</span> values (unless <span class="math inline">\(X_i\)</span> is at its mean value)<br />
+<span class="math inline">\(var(b_0)\)</span> approaches 0 as n increases when the <span class="math inline">\(X_i\)</span> values are judiciously selected.</p>
+<p><strong>Mean Square Error</strong></p>
+<p><span class="math display">\[
+MSE = \frac{SSE}{n-2} = \frac{\sum_{i=1}^{n}e_i^2}{n-2} = \frac{\sum(Y_i - \hat{Y_i})^2}{n-2}
+\]</span></p>
+<p>Unbiased estimator of MSE:</p>
+<p><span class="math display">\[
+E(MSE) = \sigma^2
+\]</span></p>
+<p><span class="math display">\[
+s^2(b_1) = \widehat{var(b_1)} = \frac{MSE}{\sum_{i=1}^{n}(X_i - \bar{X})^2} \\
+s^2(b_0) = \widehat{var(b_0)} = MSE(\frac{1}{n} + \frac{\bar{X}^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2})
+\]</span></p>
+<p><span class="math display">\[
+E(s^2(b_1)) = var(b_1) \\
+E(s^2(b_0))=var(b_0)
+\]</span></p>
+</div>
+<div id="residuals" class="section level4">
+<h4><span class="header-section-number">5.1.1.3</span> Residuals</h4>
+<p><span class="math display">\[
+e_i = Y_i - \hat{Y} = Y_i - (b_0 + b_1 X_i)
+\]</span></p>
+<ul>
+<li><span class="math inline">\(e_i\)</span> is an estimate of <span class="math inline">\(\epsilon_i = Y_i - E(Y_i)\)</span><br />
+</li>
+<li><span class="math inline">\(\epsilon_i\)</span> is always unknown since we don’t know the true <span class="math inline">\(\beta_0, \beta_1\)</span></li>
+</ul>
+<p><span class="math display">\[
+\sum_{i=1}^{n} e_i = 0 \\
+\sum_{i=1}^{n} X_i e_i = 0
+\]</span></p>
+<p><br></p>
+</div>
+<div id="inference" class="section level4">
+<h4><span class="header-section-number">5.1.1.4</span> Inference</h4>
+<p><strong>Normality Assumption</strong></p>
+<ul>
+<li>Least Squares estimation does not require assumptions of normality.<br />
+</li>
+<li>However, to do inference on the parameters, we need distributional assumptions.<br />
+</li>
+<li>Inference on <span class="math inline">\(\beta_0,\beta_1\)</span> and <span class="math inline">\(Y_h\)</span> are not extremely sensitive to moderate departures from normality, especially if the sample size is large<br />
+</li>
+<li>Inference on <span class="math inline">\(Y_{pred}\)</span> is very sensitive to the normality assumptions.</li>
+</ul>
+<p><strong>Normal Error Regression Model</strong></p>
+<p><span class="math display">\[
+Y_i \sim N(\beta_0+\beta_1X_i, \sigma^2) \\
+\]</span></p>
+<p><br></p>
+<div id="beta_1" class="section level5">
+<h5><span class="header-section-number">5.1.1.4.1</span> <span class="math inline">\(\beta_1\)</span></h5>
+<p>Under the normal error model,</p>
+<p><span class="math display">\[
+b_1 \sim N(\beta_1,\frac{\sigma^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2})
+\]</span></p>
+<p>A linear combination of independent normal random variable is normally distributed</p>
+<p>Hence,</p>
+<p><span class="math display">\[
+\frac{b_1 - \beta_1}{s(b_1)} \sim t_{n-2}
+\]</span></p>
+<p>A <span class="math inline">\((1-\alpha) 100 \%\)</span> confidence interval for <span class="math inline">\(\beta_1\)</span> is</p>
+<p><span class="math display">\[
+b_1 \pm t_{t-\alpha/2 ; n-2}s(b_1)
+\]</span></p>
+<p><br></p>
+</div>
+<div id="beta_0" class="section level5">
+<h5><span class="header-section-number">5.1.1.4.2</span> <span class="math inline">\(\beta_0\)</span></h5>
+<p>Under the normal error model, the sampling distribution for <span class="math inline">\(b_0\)</span> is</p>
+<p><span class="math display">\[
+b_0 \sim N(\beta_0,\sigma^2(\frac{1}{n} + \frac{\bar{X}^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2}))
+\]</span></p>
+<p>Hence,</p>
+<p><span class="math display">\[
+\frac{b_0 - \beta_0}{s(b_0)} \sim t_{n-2}
+\]</span>
+A <span class="math inline">\((1-\alpha)100 \%\)</span> confidence interval for <span class="math inline">\(\beta_0\)</span> is</p>
+<p><span class="math display">\[
+b_0 \pm t_{1-\alpha/2;n-2}s(b_0)
+\]</span></p>
+<p><br></p>
+</div>
+<div id="mean-response" class="section level5">
+<h5><span class="header-section-number">5.1.1.4.3</span> Mean Response</h5>
+<p>Let <span class="math inline">\(X_h\)</span> denote the level of X for which we wish to estimate the mean response</p>
+<ul>
+<li>We denote the mean response when <span class="math inline">\(X = X_h\)</span> by <span class="math inline">\(E(Y_h)\)</span><br />
+</li>
+<li>A point estimator of <span class="math inline">\(E(Y_h)\)</span> is <span class="math inline">\(\hat{Y}_h\)</span>:</li>
+</ul>
+<p><span class="math display">\[
+\hat{Y}_h = b_0 + b_1 X_h
+\]</span>
+<strong>Note</strong></p>
+<p><span class="math display">\[
+E(\bar{Y}_h)= E(b_0 + b_1X_h) \\
+= \beta_0 + \beta_1 X_h \\
+= E(Y_h)
+\]</span>
+(unbiased estimator)</p>
+<p><span class="math display">\[
+\begin{align}
+var(\hat{Y}_h) &amp;= var(b_0 + b_1 X_h) \\
+&amp;= var(\hat{Y} + b_1 (X_h - \bar{X})) \\
+&amp;= var(\bar{Y}) + (X_h - \bar{X})^2var(b_1) + 2(X_h - \bar{X})cov(\bar{Y},b_1) \\
+&amp;= \frac{\sigma^2}{n} + (X_h - \bar{X})^2 \frac{\sigma^2}{\sum(X_i - \bar{X})^2} \\
+&amp;= \sigma^2(\frac{1}{n} + \frac{(X_h - \bar{X})^2}{\sum_{i=1}^{n} (X_i - \bar{X})^2})
+\end{align}
+\]</span></p>
+<p>Since <span class="math inline">\(cov(\bar{Y},b_1) = 0\)</span> due to the iid assumption on <span class="math inline">\(\epsilon_i\)</span></p>
+<p>An estimate of this variance is</p>
+<p><span class="math display">\[
+s^2(\hat{Y}_h) = MSE (\frac{1}{n} + \frac{(X_h - \bar{X})^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2})
+\]</span></p>
+<p>the sampling distribution for the mean response is</p>
+<p><span class="math display">\[
+\hat{Y}_h \sim N(E(Y_h),var(\hat{Y_h})) \\
+\frac{\hat{Y}_h - E(Y_h)}{s(\hat{Y}_h)} \sim t_{n-2}
+\]</span></p>
+<p>A <span class="math inline">\(100(1-\alpha) \%\)</span> CI for <span class="math inline">\(E(Y_h)\)</span> is</p>
+<p><span class="math display">\[
+\hat{Y}_h \pm t_{1-\alpha/2;n-2}s(\hat{Y}_h)
+\]</span></p>
+<p><br></p>
+</div>
+<div id="prediction-of-a-new-observation" class="section level5">
+<h5><span class="header-section-number">5.1.1.4.4</span> Prediction of a new observation</h5>
+<p>Regarding the <a href="ordinary-least-squares.html#mean-response">Mean Response</a>, we are interested in estimating <strong>mean</strong> of the distribution of Y given a certain X.</p>
+<p>Now, we want to <strong>predict</strong> an individual outcome for the distribution of Y at a given X. We call <span class="math inline">\(Y_{pred}\)</span></p>
+<p>Estimation of mean response versus prediction of a new observation:</p>
+<ul>
+<li>the point estimates are the same in both cases: <span class="math inline">\(\hat{Y}_{pred} = \hat{Y}_h\)</span><br />
+</li>
+<li>It is the variance of the prediction that is different; hence, prediction intervals are different than confidence intervals. The prediction variance must consider:
+<ul>
+<li>Variation in the mean of the distribution of Y<br />
+</li>
+<li>variation within the distribution of Y</li>
+</ul></li>
+</ul>
+<p>We want to predict: mean response + error</p>
+<p><span class="math display">\[
+\beta_0 + \beta_1 X_h + \epsilon
+\]</span></p>
+<p>Since <span class="math inline">\(E(\epsilon) = 0\)</span>, use the least squares predictor:</p>
+<p><span class="math display">\[
+\hat{Y}_h = b_0 + b_1 X_h
+\]</span></p>
+<p>The variance of the predictor is</p>
+<p><span class="math display">\[
+\begin{align}
+var(b_0 + b_1 X_h + \epsilon) &amp;= var(b_0 + b_1 X_h) + var(\epsilon) \\
+&amp;= \sigma^2(\frac{1}{n} + \frac{(X_h - \bar{X})^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2}) + \sigma^2 \\
+&amp;= \sigma^2(1+\frac{1}{n} + \frac{(X_h - \bar{X})^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2})
+\end{align}
+\]</span></p>
+<p>An estimate of the variance is given by</p>
+<p><span class="math display">\[
+s^2(pred)= MSE (1+ \frac{1}{n} + \frac{(X_h - \bar{X})^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2}) \\
+\frac{Y_{pred}-\hat{Y}_h}{s(pred)} \sim t_{n-2}
+\]</span></p>
+<p><span class="math inline">\(100(1-\alpha) \%\)</span> prediction interval is</p>
+<p><span class="math display">\[
+\bar{Y}_h \pm t_{1-\alpha/2; n-2}s(pred)
+\]</span></p>
+<p>The prediction interval is very sensitive to the distributional assumption on the errors, <span class="math inline">\(\epsilon\)</span></p>
+<p><br></p>
+</div>
+<div id="confidence-band" class="section level5">
+<h5><span class="header-section-number">5.1.1.4.5</span> Confidence Band</h5>
+<p>We want to know the confidence interval for the entire regression line, so we can draw conclusions about any and all mean response fo the entire regression line <span class="math inline">\(E(Y) = \beta_0 + \beta_1 X\)</span> rather than for a given response Y</p>
+<p><strong>Working-Hotelling Confidence Band</strong></p>
+<p>For a given <span class="math inline">\(X_h\)</span>, this band is</p>
+<p><span class="math display">\[
+\hat{Y}_h \pm W s(\hat{Y}_h)
+\]</span>
+where <span class="math inline">\(W^2 = 2F_{1-\alpha;2,n-2}\)</span>, which is just 2 times the F-stat with 2 and n-2 degrees of freedom</p>
+<ul>
+<li>the interval width will change with each <span class="math inline">\(X_h\)</span> (since <span class="math inline">\(s(\hat{Y}_h)\)</span> changes)<br />
+</li>
+<li>the boundary values for this confidence band will always define a hyperbole containing the regression line<br />
+</li>
+<li>will be smallest at <span class="math inline">\(X = \bar{X}\)</span></li>
+</ul>
+</div>
+</div>
+<div id="anova" class="section level4">
+<h4><span class="header-section-number">5.1.1.5</span> ANOVA</h4>
+<p>Partitioning the Total Sum of Squares: Consider the corrected Total sum of squres:</p>
+<p><span class="math display">\[
+SSTO = \sum_{i=1}^{n} (Y_i -\bar{Y})^2
+\]</span>
+Measures the overall dispersion in the response variable<br />
+We use the term corrected because we correct for mean, the uncorrected total sum of squares is given by <span class="math inline">\(\sum Y_i^2\)</span></p>
+<p>use <span class="math inline">\(\hat{Y}_i = b_0 + b_1 X_i\)</span> to estimate the conditional mean for Y at <span class="math inline">\(X_i\)</span></p>
+<p><span class="math display">\[
+\begin{align}
+\sum_{i=1}^n (Y_i - \bar{Y})^2 &amp;= \sum_{i=1}^n (Y_i - \hat{Y}_i + \hat{Y}_i - \bar{Y})^2 \\
+&amp;= \sum_{i=1}^n(Y_i - \hat{Y}_i)^2 + \sum_{i=1}^n(\hat{Y}_i - \bar{Y})^2 + 2\sum_{i=1}^n(Y_i - \hat{Y}_i)(\hat{Y}_i-\bar{Y}) \\
+&amp;= \sum_{i=1}^n(Y_i - \hat{Y}_i)^2 + \sum_{i=1}^n(\bar{Y}_i -\bar{Y})^2 \\
+STTO &amp;= SSE + SSR \\
+\end{align}
+\]</span></p>
+<p>where SSR is the regression sum of squares, which measures how the conditional mean varies about a central value.</p>
+<p>The cross-product term in the decomposition is 0:</p>
+<p><span class="math display">\[
+\begin{align}
+\sum_{i=1}^n (Y_i - \hat{Y}_i)(\hat{Y}_i - \bar{Y}) &amp;= \sum_{i=1}^{n}(Y_i - \bar{Y} -b_1 (X_i - \bar{X}))(\bar{Y} + b_1 (X_i - \bar{X})-\bar{Y}) \\
+&amp;= b_1 \sum_{i=1}^{n} (Y_i - \bar{Y})(X_i - \bar{X}) - b_1^2\sum_{i=1}^{n}(X_i - \bar{X})^2 \\
+&amp;= b_1 \frac{\sum_{i=1}^{n}(Y_i -\bar{Y})(X_i - \bar{X})}{\sum_{i=1}^{n}(X_i - \bar{X})^2} \sum_{i=1}^{n}(X_i - \bar{X})^2 - b_1^2\sum_{i=1}^{n}(X_i - \bar{X})^2 \\
+&amp;= b_1^2 \sum_{i=1}^{n}(X_i - \bar{X})^2 - b_1^2 \sum_{i=1}^{n}(X_i - \bar{X})^2 \\
+&amp;= 0
+\end{align}
+\]</span></p>
+<p><span class="math display">\[
+\begin{align}
+SSTO &amp;= SSR + SSE \\
+(n-1 d.f) &amp;= (1 d.f.) + (n-2 d.f.)
+\end{align}
+\]</span></p>
+<table>
+<thead>
+<tr class="header">
+<th>Source of Variation</th>
+<th>Sum of Squares</th>
+<th>df</th>
+<th>Mean Square</th>
+<th>F</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Regression (model)</td>
+<td>SSR</td>
+<td>1</td>
+<td>MSR = SSR/df</td>
+<td>MSR/MSE</td>
+</tr>
+<tr class="even">
+<td>Error</td>
+<td>SSE</td>
+<td>n-2</td>
+<td>MSE = SSE/df</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Total (Corrected)</td>
+<td>SSTO</td>
+<td>n-1</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><span class="math display">\[
+E(MSE) = \sigma^2 \\
+E(MSR) = \sigma^2 + \beta_1^2 \sum_{i=1}^{n} (X_i - \bar{X})^2 
+\]</span></p>
+<ul>
+<li>If <span class="math inline">\(\beta_1 = 0\)</span>, then these two expected values are the same<br />
+</li>
+<li>if <span class="math inline">\(\beta_1 \neq 0\)</span> then E(MSR) will be larger than E(MSE)</li>
+</ul>
+<p>which means the ratio of these two quantities, we can infer something about <span class="math inline">\(\beta_1\)</span></p>
+<p>Distribution theory tells us that if <span class="math inline">\(\epsilon_i \sim iid N(0,\sigma^2)\)</span> and assuming <span class="math inline">\(H_0: \beta_1 = 0\)</span> is true,</p>
+<p><span class="math display">\[
+\frac{MSE}{\sigma^2} \sim \chi_{n-2}^2 \\
+\frac{MSR}{\sigma^2} \sim \chi_{1}^2 \text{ if $\beta_1=0$}
+\]</span></p>
+<p>where these two chi-square random variables are independent.</p>
+<p>Since the ratio of 2 independent chi-square random variable follows an F distribution, we consider:</p>
+<p><span class="math display">\[
+F = \frac{MSR}{MSE} \sim F_{1,n-2}
+\]</span>
+when <span class="math inline">\(\beta_1 =0\)</span>. Thus, we reject <span class="math inline">\(H_0: \beta_1 = 0\)</span> (or <span class="math inline">\(E(Y_i)\)</span> = constant) at <span class="math inline">\(\alpha\)</span> if</p>
+<p><span class="math display">\[
+F &gt; F_{1 - \alpha;1,n-2}
+\]</span>
+this is the only null hypothesis that can be tested with this approach.</p>
+<p><strong>Coefficient of Determination</strong></p>
+<p><span class="math display">\[
+R^2 = \frac{SSR}{SSTO} = 1- \frac{SSE}{SSTO}
+\]</span></p>
+<p>where <span class="math inline">\(0 \le R^2 \le 1\)</span></p>
+<p><strong>Interpretation</strong>: The proportionate reduction of the total variation in Y after fitting a linear model in X.<br />
+It is not really correct to say that <span class="math inline">\(R^2\)</span> is the “variation in Y explained by X”.</p>
+<p><span class="math inline">\(R^2\)</span> is related to the correlation coefficient between Y and X:</p>
+<p><span class="math display">\[
+R^2 = (r)^2
+\]</span>
+where <span class="math inline">\(r= corr(x,y)\)</span> is an estimate of the Pearson correlation coefficient. Also, note</p>
+<p><span class="math display">\[
+b_1 = (\frac{\sum_{i=1}^{n}(Y_i - \bar{Y})^2}{\sum_{i=1}^{n} (X_i - \bar{X})^2})^{1/2} \\
+r = \frac{s_y}{s_x} r
+\]</span></p>
+<p><strong>Lack of Fit</strong></p>
+<p><span class="math inline">\(Y_{11},Y_{21},...,Y_{n_1,1}\)</span>: <span class="math inline">\(n_1\)</span> repeat obs at <span class="math inline">\(X_1\)</span></p>
+<p><span class="math inline">\(Y_{1c},Y_{2c},...,Y_{n_c,c}\)</span>: <span class="math inline">\(n_c\)</span> repeat obs at <span class="math inline">\(X_c\)</span></p>
+<p>So, there are c distinct X values.</p>
+<p>Let <span class="math inline">\(\bar{Y}_j\)</span> be the mean over replicates for <span class="math inline">\(X_j\)</span></p>
+<p>Partition the Error Sum of Squares:</p>
+<p><span class="math display">\[
+\begin{align}
+\sum_{i} \sum_{j} (Y_{ij} - \hat{Y}_{ij})^2 &amp;= \sum_{i} \sum_{j} (Y_{ij} - \bar{Y}_j + \bar{Y}_j + \hat{Y}_{ij})^2 \\
+&amp;=  \sum_{i} \sum_{j} (Y_{ij} - \bar{Y}_j)^2 + \sum_{i} \sum_{j} (\bar{Y}_j - \hat{Y}_{ij})^2 + \text{cross product term} \\
+&amp;= \sum_{i} \sum_{j}(Y_{ij} - \bar{Y}_j)^2 + \sum_j n_j (\bar{Y}_j- \hat{Y}_{ij})^2 \\
+SSE &amp;= SSPE + SSLF \\
+\end{align}
+\]</span></p>
+<ul>
+<li>SSPE: “pure error sum of squares” has n-c degrees of freedom since we need to estimate c means<br />
+</li>
+<li>SSLF: “lack of fit sum of squares” has c - 2 degrees of freedom (the number of unique X values - number of parameters used to specify the conditional mean regression model)</li>
+</ul>
+<p><span class="math display">\[
+MSPE = \frac{SSPE}{df_{pe}} = \frac{SSPE}{n-c} \\
+MSLF = \frac{SSLF}{df_{lf}} = \frac{SSLF}{c-2}
+\]</span>
+The <strong>F-test for Lack-of-Fit</strong> tests</p>
+<p><span class="math display">\[
+H_0: Y_{ij} = \beta_0 + \beta_1 X_i + \epsilon_{ij}, \epsilon_{ij} \sim iid N(0,\sigma^2) \\
+H_a: Y_{ij} = \alpha_0 + \alpha_1 X_i + f(X_i, Z_1,...) + \epsilon_{ij}^*,\epsilon_{ij}^* \sim iid N(0, \sigma^2)
+\]</span></p>
+<p><span class="math inline">\(E(MSPE) = \sigma^2\)</span> under either <span class="math inline">\(H_0\)</span>, <span class="math inline">\(H_a\)</span></p>
+<p><span class="math inline">\(E(MSLF) = \sigma^2 + \frac{\sum n_j(f(X_i,...))^2}{n-2}\)</span> in general and</p>
+<p><span class="math inline">\(E(MSLF) = \sigma^2\)</span> when <span class="math inline">\(H_0\)</span> is true</p>
+<p>We reject <span class="math inline">\(H_0\)</span> (i.e., the model <span class="math inline">\(Y_i = \beta_0 + \beta_1 X_i + \epsilon_i\)</span> is not adequate) if</p>
+<p><span class="math display">\[
+F = \frac{MSLF}{MSPE} &gt; F_{1-\alpha;c-2,n-c}
+\]</span></p>
+<p>Failing to reject <span class="math inline">\(H_0\)</span> does not imply that <span class="math inline">\(H_0: Y_{ij} = \beta_0 + \beta_1 X_i + \epsilon_{ij}\)</span> is exactly true, but it suggests that this model may provide a reasonable approximation to the true model.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Source of Variation</th>
+<th>Sum of Squares</th>
+<th>df</th>
+<th>Mean Square</th>
+<th>F</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Regression</td>
+<td>SSR</td>
+<td>1</td>
+<td>MSR</td>
+<td>MSR / MSE</td>
+</tr>
+<tr class="even">
+<td>Error</td>
+<td>SSE</td>
+<td>n-2</td>
+<td>MSE</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Lack of fit</td>
+<td>SSLF</td>
+<td>c-2</td>
+<td>MSLF</td>
+<td>MSLF / MSPE</td>
+</tr>
+<tr class="even">
+<td>Pure Error</td>
+<td>SSPE</td>
+<td>n-c</td>
+<td>MSPE</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Total(Corrected)</td>
+<td>SSTO</td>
+<td>n-1</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Repeat observations have an effect on <span class="math inline">\(R^2\)</span>:</p>
+<ul>
+<li>It is impossible for <span class="math inline">\(R^2\)</span> to attain 1 when repeat obs. exist (SSE can’t be 0)<br />
+</li>
+<li>The maximum <span class="math inline">\(R^2\)</span> attainable in this situation:</li>
+</ul>
+<p><span class="math display">\[
+R^2_{max} = \frac{SSTo - SSPE}{SSTO}
+\]</span></p>
+<ul>
+<li>Not all levels of X need have repeat observations.<br />
+</li>
+<li>Typically, when <span class="math inline">\(H_0\)</span> is appropriate, one still uses MSE as the estimate for <span class="math inline">\(\sigma^2\)</span> rather than MSPE, Since MSE has more degrees of freedom, sometimes people will pool these estimates.</li>
+</ul>
+<p><br></p>
+<p><strong>Joint Inference</strong><br />
+The confidence coefficient for both <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> considered simultaneously is <span class="math inline">\(\le \alpha\)</span></p>
+<p>Let</p>
+<ul>
+<li><span class="math inline">\(\bar{A}_1\)</span> be the event that the first interval covers <span class="math inline">\(\beta_0\)</span><br />
+</li>
+<li><span class="math inline">\(\bar{A}_2\)</span> be the event that teh second interval covers <span class="math inline">\(\beta_1\)</span></li>
+</ul>
+<p><span class="math display">\[
+P(\bar{A}_1) = 1 - \alpha \\
+P(\bar{A}_2) = 1 - \alpha
+\]</span></p>
+<p>The probability that both <span class="math inline">\(\bar{A}_1\)</span> and <span class="math inline">\(\bar{A}_2\)</span></p>
+<p><span class="math display">\[
+\begin{align}
+P(\bar{A}_1 \cap \bar{A}_2) &amp;= 1 - P(\bar{A}_1 \cup \bar{A}_2) \\
+&amp;= 1 - P(A_1) - P(A_2) + P(A_1 \cap A_2) \\
+&amp;\ge 1 - P(A_1) - P(A_2) \\
+&amp;= 1 - 2\alpha
+\end{align}
+\]</span></p>
+<p>If <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> have separate 95% confidence intervals, the joint (family) confidence coefficient is at least <span class="math inline">\(1 - 2(0.05) = 0.9\)</span>. This is called a <strong>Bonferroni Inequality</strong><br />
+We could use a procedure in which we obtained <span class="math inline">\(1-\alpha/2\)</span> confidence intervals for the two regression parameters separately, then the joint (Bonferroni) family confidence coefficient would be at least <span class="math inline">\(1- \alpha\)</span></p>
+<p>The <span class="math inline">\(1-\alpha\)</span> joint Bonferroni confidence interval for <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> is given by calculating:</p>
+<p><span class="math display">\[
+b_0 \pm B s(b_0) \\
+b_1 \pm B s(b_1) 
+\]</span></p>
+<p>where <span class="math inline">\(B= t_{1-\alpha/4;n-2}\)</span></p>
+<p>Interpretation: If repeated samples were taken and the joint <span class="math inline">\((1-\alpha)\)</span> intervals for <span class="math inline">\(\beta_0\)</span> and <span class="math inline">\(\beta_1\)</span> were obtained, <span class="math inline">\((1-\alpha)100\)</span>% of the joint intervals would contain the true pair <span class="math inline">\((\beta_0, \beta_1)\)</span>. That is, in <span class="math inline">\(\alpha \times 100\)</span>% of the samples, one or both intervals would not contain the true value.</p>
+<ul>
+<li>The Bonferroni interval is <strong>conservative</strong>. It is a lower bound and the joint intervals will tend to be correct more than <span class="math inline">\((1-\alpha)100\)</span>% of the time (lower power). People usually consider a larger <span class="math inline">\(\alpha\)</span> for the Bonferroni joint tests (e.g, <span class="math inline">\(\alpha=0.1\)</span>)<br />
+</li>
+<li>The Bonferroni procedure extends to testing more than 2 parameters. Say we are interested in testing <span class="math inline">\(\beta_0,\beta_1,..., \beta_{g-1}\)</span> (g parameters to test). Then, the joint Bonferroni interval is obtained by calculating the <span class="math inline">\((1-\alpha/g)\)</span> 100% level interval for each separately.<br />
+</li>
+<li>For example, if <span class="math inline">\(\alpha = 0.05\)</span> and <span class="math inline">\(g=10\)</span>, each individual test is done at the <span class="math inline">\(1- \frac{.05}{10}\)</span> level. For 2-sided intervals, this corresponds to using <span class="math inline">\(t_{1-\frac{0.05}{2(10)};n-p}\)</span> in the CI formula. This procedure works best if g is relatively small, otherwise the intervals for each individual parameter are very wide and teh test is way too conservative.<br />
+</li>
+<li><span class="math inline">\(b_0,b_1\)</span> are usually correlated (negatively if <span class="math inline">\(\bar{X} &gt;0\)</span> and positively if <span class="math inline">\(\bar{X}&lt;0\)</span>)<br />
+</li>
+<li>Other multiple comparison procedures are available.</li>
+</ul>
+</div>
+<div id="assumptions" class="section level4">
+<h4><span class="header-section-number">5.1.1.6</span> Assumptions</h4>
+<ul>
+<li>Linearity of the regression function<br />
+</li>
+<li>Error terms have constant variance<br />
+</li>
+<li>Error terms are independent<br />
+</li>
+<li>No outliers<br />
+</li>
+<li>Error terms are normally distributed<br />
+</li>
+<li>No Omitted variables</li>
+</ul>
+</div>
+<div id="diagnostics" class="section level4">
+<h4><span class="header-section-number">5.1.1.7</span> Diagnostics</h4>
+<p>Constant Variance<br />
+Plot residuals vs. X</p>
+<p>Outliers<br />
+plot residuals vs. X<br />
+box plots<br />
+stem-leaf plots<br />
+scatter plots</p>
+<p>we could use standardize the residuals to have unit variance. These standardized residuals are called studentized residuals:</p>
+<p><span class="math display">\[
+r_i = \frac{e_i -\bar{e}}{s(e_i)} = \frac{e_i}{s(e_i)}
+\]</span></p>
+<p>A simplified standardization procedure gives semi-studentized residuals:</p>
+<p><span class="math display">\[
+e_i^* = \frac{e_i - \bar{e}}{\sqrt{MSE}} = \frac{e_i}{\sqrt{MSE}}
+\]</span></p>
+<p>Non-independent of Error Terms<br />
+plot residuals vs. time</p>
+<p>Residuals <span class="math inline">\(e_i\)</span> are not independent random variables because they involve the fitted values <span class="math inline">\(\hat{Y}_i\)</span>, which are based on the same fitted regression function.</p>
+<p>If the sample size is large, the dependency among <span class="math inline">\(e_i\)</span> is relatively unimportant.</p>
+<p>To detect non-independence, it helps to plot the residual for the i-th response vs. the (i-1)-th</p>
+<p>Non-normality of Error Terms</p>
+<p>to detect non-normality (distribution plots of residuals, box plots of residuals, stem-leaf plots of residuals, normal probability plots of residuals)</p>
+<ul>
+<li>Need relatively large sample sizes.<br />
+</li>
+<li>Other types of departure affect the distribution of the residuals (wrong regression function, non-constant error variance,…)</li>
+</ul>
+<div id="objective-tests-of-model-assumptions" class="section level5">
+<h5><span class="header-section-number">5.1.1.7.1</span> Objective Tests of Model Assumptions</h5>
+<ul>
+<li>Normality
+<ul>
+<li>Use <a href="normality-assessment.html#methods-based-on-empirical-cumulative-distribution-function">Methods based on empirical cumulative distribution function</a> to test on residuals.<br />
+</li>
+</ul></li>
+<li>Constancy of error variance
+<ul>
+<li><a href="ordinary-least-squares.html#brown-forsythe-test-modified-levene-test">Brown-Forsythe Test (Modified Levene Test)</a><br />
+</li>
+<li><a href="ordinary-least-squares.html#breusch-pagan-test-cook-weisberg-test">Breusch-Pagan Test (Cook-Weisberg Test)</a></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="remeidal-measures" class="section level4">
+<h4><span class="header-section-number">5.1.1.8</span> Remeidal Measures</h4>
+<p>If the simple linear regression is not appropriate, one can:</p>
+<ul>
+<li>more complicated models<br />
+</li>
+<li>transformations on X and/or Y (may not be “optimal” results)</li>
+</ul>
+<p>Remedial measures based on deviations:</p>
+<ul>
+<li>Non-linearity:
+<ul>
+<li><a href="Non-normality%20often%20occurs%20with%20non-constant%20error%20variances;%20need%20to%20transform%20to%20constant%20error%20variance%20first,%20then%20check%20normality.">Transformations</a><br />
+</li>
+<li>more complicated models<br />
+</li>
+</ul></li>
+<li>Non-constant error variance:
+<ul>
+<li><a href="weighted-least-squares.html#weighted-least-squares">Weighted Least Squares</a><br />
+</li>
+<li><a href="Non-normality%20often%20occurs%20with%20non-constant%20error%20variances;%20need%20to%20transform%20to%20constant%20error%20variance%20first,%20then%20check%20normality.">Transformations</a><br />
+</li>
+</ul></li>
+<li>Correlated errors:
+<ul>
+<li>serially correlated error models (times series )<br />
+</li>
+</ul></li>
+<li>Non-normality:
+<ul>
+<li></li>
+</ul></li>
+<li>Additional variables: multiple regression.<br />
+</li>
+<li>Outliers:
+<ul>
+<li>Robust estimation.</li>
+</ul></li>
+</ul>
+<div id="transformations" class="section level5">
+<h5><span class="header-section-number">5.1.1.8.1</span> Transformations</h5>
+<p>use transformations of one or both variables before performing the regression analysis.<br />
+The properties of least-squares estimates apply to the transformed regression, not the original variable.</p>
+<p>If we transform the Y variable and perform regression to get:</p>
+<p><span class="math display">\[
+g(Y_i) = b_0 + b_1 X_i
+\]</span>
+Transform back:</p>
+<p><span class="math display">\[
+\hat{Y}_i = g^{-1}(b_0 + b_1 X_i)
+\]</span></p>
+<p><span class="math inline">\(\hat{Y}_i\)</span> will be biased. we can correct this bias.</p>
+<p><strong>Box-Cox Family Transformations</strong></p>
+<p><span class="math display">\[
+Y&#39;= Y^{\lambda}
+\]</span></p>
+<p>where <span class="math inline">\(\lambda\)</span> is a parameter to be determined from the data.</p>
+<table>
+<thead>
+<tr class="header">
+<th align="center"><span class="math inline">\(\lambda\)</span></th>
+<th align="center"><span class="math inline">\(Y&#39;\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">2</td>
+<td align="center"><span class="math inline">\(Y^2\)</span></td>
+</tr>
+<tr class="even">
+<td align="center">0.5</td>
+<td align="center"><span class="math inline">\(\sqrt{Y}\)</span></td>
+</tr>
+<tr class="odd">
+<td align="center">0</td>
+<td align="center"><span class="math inline">\(ln(Y)\)</span></td>
+</tr>
+<tr class="even">
+<td align="center">-0.5</td>
+<td align="center"><span class="math inline">\(1/\sqrt{Y}\)</span></td>
+</tr>
+<tr class="odd">
+<td align="center">-1</td>
+<td align="center"><span class="math inline">\(1/Y\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>To pick <span class="math inline">\(\lambda\)</span>, we can do estimation by:</p>
+<ul>
+<li>trial and error<br />
+</li>
+<li>maximum likelihood<br />
+</li>
+<li>numerical search</li>
+</ul>
+<p><strong>Variance Stabilizing Transformations</strong></p>
+<p>A general method for finding a variance stabilizing transformation, when the standard deviation is a function of the mean, is the <strong>delta method</strong> - an application of a Taylor series expansion.</p>
+<p><span class="math display">\[
+\sigma = \sqrt{var(Y)} = f(\mu)
+\]</span>
+where <span class="math inline">\(\mu = E(Y)\)</span> and <span class="math inline">\(f(\mu)\)</span> is some smooth function of the mean.</p>
+<p>COnsider the transformation h(Y). Expand this function in a Taylor series about <span class="math inline">\(\mu\)</span>. Then,</p>
+<p><span class="math display">\[
+h(Y) = h(\mu) + h&#39;(\mu)(Y-\mu) + \text{small terms}
+\]</span>
+we want to select the function h(.) so that the variance of h(Y) is nearly constant for all values of <span class="math inline">\(\mu= E(Y)\)</span>:</p>
+<p><span class="math display">\[
+\begin{align}
+const &amp;= var(h(Y)) \\
+&amp;= var(h(\mu) + h&#39;(\mu)(Y-\mu)) \\
+&amp;= (h&#39;(\mu))^2 var(Y-\mu) \\
+&amp;= (h&#39;(\mu))^2 var(Y) \\
+&amp;= (h&#39;(\mu))^2(f(\mu))^2 \\
+\end{align}
+\]</span></p>
+<p>we must have,</p>
+<p><span class="math display">\[
+h&#39;(\mu) \propto \frac{1}{f(\mu)}
+\]</span></p>
+<p>then,</p>
+<p><span class="math display">\[
+h(\mu) = \int\frac{1}{f(\mu)}d\mu
+\]</span></p>
+<p>Example: For the Poisson distribution: <span class="math inline">\(\sigma^2 = var(Y) = E(Y) = \mu\)</span></p>
+<p>Then,</p>
+<p><span class="math display">\[
+\sigma = f(\mu) = \sqrt{mu} \\
+h&#39;(\mu) \propto \frac{1}{\mu} = \mu^{-.5}
+\]</span>
+Then, the variance stabilizing transformation is:</p>
+<p><span class="math display">\[
+h(\mu) = \int \mu^{-.5} d\mu = \frac{1}{2} \sqrt{\mu}
+\]</span></p>
+<p>hence, <span class="math inline">\(\sqrt{Y}\)</span> is used as the variance stabilizing transformation.</p>
+<p>If we don’t know <span class="math inline">\(f(\mu)\)</span></p>
+<ol style="list-style-type: decimal">
+<li>Trial and error. Look at residuals plots<br />
+</li>
+<li>Ask researchers about previous studies or find published results on similar experiments and determine what transformation was used.<br />
+</li>
+<li>If you have multiple observations <span class="math inline">\(Y_{ij}\)</span> at the same X values, compute <span class="math inline">\(\bar{Y}_i\)</span> and <span class="math inline">\(s_i\)</span> and plot them<br />
+If <span class="math inline">\(s_i \propto \bar{Y}_i^{\lambda}\)</span> then consider <span class="math inline">\(s_i = a \bar{Y}_i^{\lambda}\)</span> or <span class="math inline">\(ln(s_i) = ln(a) + \lambda ln(\bar{Y}_i)\)</span>. So regression the natural log of <span class="math inline">\(s_i\)</span> on the natural log of <span class="math inline">\(\bar{Y}_i\)</span> gives <span class="math inline">\(\hat{a}\)</span> and <span class="math inline">\(\hat{\lambda}\)</span> and suggests the form of <span class="math inline">\(f(\mu)\)</span> If we don’t have multiple obs, might still be able to “group” the observations to get <span class="math inline">\(\bar{Y}_i\)</span> and <span class="math inline">\(s_i\)</span>.</li>
+</ol>
+<table>
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Transformation</th>
+<th>Situation</th>
+<th>Comments</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(\sqrt{Y}\)</span></td>
+<td><span class="math inline">\(var(\epsilon_i) = k E(Y_i)\)</span></td>
+<td>counts from Poisson dist</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\sqrt{Y} + \sqrt{Y+1}\)</span></td>
+<td><span class="math inline">\(var(\epsilon_i) = k E(Y_i)\)</span></td>
+<td>small counts or zeroes</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(log(Y)\)</span></td>
+<td><span class="math inline">\(var(\epsilon_i) = k (E(Y_i))^2\)</span></td>
+<td>positive integers with wide range</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(log(Y+1)\)</span></td>
+<td><span class="math inline">\(var(\epsilon_i) = k(E(Y_i))^2\)</span></td>
+<td>some counts zero</td>
+</tr>
+<tr class="odd">
+<td>1/Y</td>
+<td><span class="math inline">\(var(\epsilon_i) = k(E(Y_i))^4\)</span></td>
+<td>most responses near zero, others large</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(arcsin(\sqrt{Y})\)</span></td>
+<td><span class="math inline">\(var(\epsilon_i) = k E(Y_i)(1-E(Y_i))\)</span></td>
+<td>data are binomial proportions or %</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div id="multiple-linear-regression" class="section level3">
+<h3><span class="header-section-number">5.1.2</span> Multiple Linear Regression</h3>
+<p>Geometry of Least Squares</p>
+<p>$$
+<span class="math display">\[\begin{align}
+
+\mathbf{\hat{y}} &amp;= \mathbf{Xb} \\
+&amp;= \mathbf{X(X&#39;X)^{-1}X&#39;y} \\
+&amp;= \mathbf{Hy}
+\end{align}\]</span>
+$$
+sometimes H is denoted as P.</p>
+<p>H is the projection operator.<br />
+<span class="math display">\[
+\mathbf{\hat{y}= Hy}
+\]</span>
+is the projection of y onto the linear space spanned by the columns of X (model space). The dimension of the model space is the rank of X.</p>
+<p>Facts:</p>
+<ol style="list-style-type: decimal">
+<li>H is symmetric (i.e., H = H’)<br />
+</li>
+<li>HH = H
+<span class="math display">\[
+\begin{align}
+\mathbf{HH} &amp;= \mathbf{X(X&#39;X)^{-1}X&#39;X(X&#39;X)^{-1}X&#39;} \\
+&amp;= \mathbf{X(X&#39;X)^{-1}IX&#39;} \\
+&amp;= \mathbf{X(X&#39;X)^{-1}X&#39;}
+\end{align}
+\]</span></li>
+<li>H is an n x n matrix with rank(H) = rank(X)<br />
+</li>
+<li><span class="math inline">\(\mathbf{(I-H) = I - X(X&#39;X)^{-1}X&#39;}\)</span> is also a projection operator. It projects onto the n - k dimensional space that is orthogonal to the k dimensional space spanned by the columns of X</li>
+<li><span class="math inline">\(\mathbf{H(I-H)=(I-H)H = 0}\)</span></li>
+</ol>
+<p>Partition of uncorrected total sum of squares:</p>
+<p><span class="math display">\[
+\begin{align}
+\mathbf{y&#39;y} &amp;= \mathbf{\hat{y}&#39;\hat{y} + e&#39;e} \\
+&amp;= \mathbf{(Hy)&#39;(Hy) + ((I-H)y)&#39;((I-H)y)} \\
+&amp;= \mathbf{y&#39;H&#39;Hy + y&#39;(I-H)&#39;(I-H)y} \\
+&amp;= \mathbf{y&#39;Hy + y&#39;(I-H)y} \\
+\end{align}
+\]</span></p>
+<p>or partition for the corrected total sum of squares:</p>
+<p><span class="math display">\[
+\mathbf{y&#39;(I-H_1)y = y&#39;(H-H_1)y + y&#39;(I-H)y}
+\]</span>
+where <span class="math inline">\(H_1 = \frac{1}{n} J = 1&#39;(1&#39;1)1\)</span></p>
+<table>
+<thead>
+<tr class="header">
+<th>Source</th>
+<th>SS</th>
+<th>df</th>
+<th>MS</th>
+<th>F</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Regression</td>
+<td><span class="math inline">\(SSR = \mathbf{y&#39; (H-\frac{1}{n}J)y}\)</span></td>
+<td>p - 1</td>
+<td>SSR/(p-1)</td>
+<td>MSR /MSE</td>
+</tr>
+<tr class="even">
+<td>Error</td>
+<td><span class="math inline">\(SSE = \mathbf{y&#39;(I - H)y}\)</span></td>
+<td>n - p</td>
+<td>SSE /(n-p)</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>Total</td>
+<td><span class="math inline">\(\mathbf{y&#39;y - y&#39;Jy/n}\)</span></td>
+<td>n -1</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>Coefficient of Multiple Determination</p>
+<p><span class="math display">\[
+ R^2 = \frac{SSR}{SSTO}= 1- \frac{SSE}{SSTO}
+\]</span>
+Adjusted Coefficient of Multiple Determination</p>
+<p><span class="math display">\[
+R^2_a = 1 - \frac{SSE/(n-p)}{SSTO/(n-1)} = 1 - \frac{(n-1)SSE}{(n-p)SSTO}
+\]</span></p>
+<p>Sequential and Partial Sums of Squares:</p>
+<p>In a regression model with coefficients <span class="math inline">\(\beta = (\beta_0, \beta_1,...,\beta_{p-1})&#39;\)</span>, we denote the uncorrected and corrected SS by</p>
+<p><span class="math display">\[
+SSM = SS(\beta_0, \beta_1,...,\beta_{p-1}) \\
+SSM_m = SS(\beta_0, \beta_1,...,\beta_{p-1}|\beta_0)
+\]</span>
+There are 2 decompositions of <span class="math inline">\(SSM_m\)</span>:</p>
+<ul>
+<li><strong>Sequential SS</strong>: (not unique -depends on order, also referred to as Type I SS, and is the default of anova() in R)<br />
+<span class="math display">\[
+SSM_m = SS(\beta_1 | \beta_0) + SS(\beta_2 | \beta_0, \beta_1) + ...+ SS(\beta_{p-1}| \beta_0,...,\beta_{p-2})
+\]</span></li>
+<li>**Partial SS: (use more in practice - contribution of each given all of the others)</li>
+</ul>
+<p><span class="math display">\[
+SSM_m = SS(\beta_1 | \beta_0,\beta_2,...,\beta_{p-1}) + ... + SS(\beta_{p-1}| \beta_0, \beta_1,...,\beta_{p-2})
+\]</span></p>
+</div>
+<div id="ols-assumptions" class="section level3">
+<h3><span class="header-section-number">5.1.3</span> OLS Assumptions</h3>
+<ul>
+<li><a href="ordinary-least-squares.html#a1-linearity">A1 Linearity</a></li>
+<li><a href="ordinary-least-squares.html#a2-full-rank">A2 Full rank</a></li>
+<li><a href="ordinary-least-squares.html#a3-exogeneity-of-independent-variables">A3 Exogeneity of Independent Variables</a></li>
+<li><a href="ordinary-least-squares.html#a4-homoskedasticity">A4 Homoskedasticity</a></li>
+<li><a href="ordinary-least-squares.html#a5-data-generation-random-sampling">A5 Data Generation (random Sampling)</a></li>
+<li><a href="ordinary-least-squares.html#a6-normal-distribution">A6 Normal Distribution</a></li>
+</ul>
+<div id="a1-linearity" class="section level4">
+<h4><span class="header-section-number">5.1.3.1</span> A1 Linearity</h4>
+<p><span class="math display" id="eq:A1">\[
+\begin{equation}
+A1: y=\mathbf{x}\beta + \epsilon
+\tag{5.1}
+\end{equation}
+\]</span></p>
+<p>Not restrictive</p>
+<ul>
+<li>x can be nonlinear transformation including interactions, natural log, quadratic</li>
+</ul>
+<p>With A3 (Exogeneity of Independent), linearity can be restrictive</p>
+<div id="log-model" class="section level5">
+<h5><span class="header-section-number">5.1.3.1.1</span> Log Model</h5>
+<table>
+<colgroup>
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th>Form</th>
+<th>Interpretation of <span class="math inline">\(\beta\)</span></th>
+<th>In words</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Level-Level</td>
+<td><span class="math inline">\(y =\beta_0+\beta_1x+\epsilon\)</span></td>
+<td><span class="math inline">\(\Delta y = \beta_1 \Delta x\)</span></td>
+<td>A unit change in x will result in <span class="math inline">\(\beta_1\)</span> unit change in y</td>
+</tr>
+<tr class="even">
+<td>Log-Level</td>
+<td><span class="math inline">\(ln(y)= \beta_0 + \beta_1x +epsilon\)</span></td>
+<td><span class="math inline">\(\% \Delta y=100 \beta_1 \Delta x\)</span></td>
+<td>A unit change in x result in 100 <span class="math inline">\(\beta_1\)</span> % change in y</td>
+</tr>
+<tr class="odd">
+<td>Level-Log</td>
+<td><span class="math inline">\(y = beta_0 + \beta_1 ln(x) + \epsilon\)</span></td>
+<td><span class="math inline">\(\Delta y = (\beta_1/100)\%\Delta x\)</span></td>
+<td>One percent change in x result in <span class="math inline">\(\beta_1/100\)</span> units change in y</td>
+</tr>
+<tr class="even">
+<td>Log-Log</td>
+<td><span class="math inline">\(ln(y) = \beta_0 + \beta_1 ln(x) +\epsilon\)</span></td>
+<td><span class="math inline">\(\% \Delta y= \beta_1 \% \Delta x\)</span></td>
+<td>One percent change in x result in <span class="math inline">\(\beta_1\)</span> percent change in y</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="higher-orders" class="section level5">
+<h5><span class="header-section-number">5.1.3.1.2</span> Higher Orders</h5>
+<p><span class="math inline">\(y=\beta_0 + x_1\beta_1 + x_1^2\beta_2 + \epsilon\)</span>
+<span class="math display">\[
+\frac{\partial y}{\partial x_1}=\beta_1 + 2x_1\beta_2
+\]</span></p>
+<ul>
+<li>The effect of <span class="math inline">\(x_1\)</span> on y depends on the level of <span class="math inline">\(x_1\)</span></li>
+<li>The partial effect at the average = <span class="math inline">\(\beta_1+2E(x_1)\beta_2\)</span></li>
+<li>Average Partial Effect = <span class="math inline">\(E(\beta_1 + 2x_1\beta_2)\)</span></li>
+</ul>
+</div>
+<div id="interactions" class="section level5">
+<h5><span class="header-section-number">5.1.3.1.3</span> Interactions</h5>
+<p><span class="math inline">\(y=\beta_0 + x_1\beta_1 + x_2\beta_2 + x_1x_2\beta_3 + \epsilon\)</span></p>
+<ul>
+<li><span class="math inline">\(\beta_1\)</span> is the average effect on y for a unit change in <span class="math inline">\(x_1\)</span> when <span class="math inline">\(x_2=0\)</span></li>
+<li><span class="math inline">\(\beta_1 + x_2\beta_3\)</span> is the partial effect of <span class="math inline">\(x_1\)</span> on y which depends on the level of <span class="math inline">\(x_2\)</span></li>
+</ul>
+<p><br>
+<br></p>
+</div>
+</div>
+<div id="a2-full-rank" class="section level4">
+<h4><span class="header-section-number">5.1.3.2</span> A2 Full rank</h4>
+<p><span class="math display" id="eq:A2">\[
+\begin{equation}
+A2: rank(E(x&#39;x))=k
+\tag{5.2}
+\end{equation}
+\]</span></p>
+<p>also known as <strong>identification condition</strong></p>
+<ul>
+<li>columns of <span class="math inline">\(\mathbf{x}\)</span> cannot be written as a linear function of the other columns</li>
+<li>which ensures that each parameter is unique and exists in the population regression equation</li>
+</ul>
+<p><br>
+<br></p>
+</div>
+<div id="a3-exogeneity-of-independent-variables" class="section level4">
+<h4><span class="header-section-number">5.1.3.3</span> A3 Exogeneity of Independent Variables</h4>
+<p><span class="math display" id="eq:A3">\[\begin{equation}
+A3: E[\epsilon|x_1,x_2,...,x_k]=E[\epsilon|\mathbf{x}]=0
+\tag{5.3}
+\end{equation}\]</span></p>
+<p><strong>strict exogeneity</strong></p>
+<ul>
+<li>also known as <strong>mean independence</strong> check back on <a href="probability-theory.html#correlation-and-independence">Correlation and Independence</a></li>
+<li>by the <a href="probability-theory.html#law-of-iterated-expectations">Law of Iterated Expectations</a> <span class="math inline">\(E(\epsilon)=0\)</span>, which can be satisfied by always including an intercept.</li>
+<li>independent variables do not carry information for prediction of <span class="math inline">\(\epsilon\)</span></li>
+<li>A3 implies <span class="math inline">\(E(y|x)=x\beta\)</span>, which means the conditional mean function must be a linear function of x <a href="ordinary-least-squares.html#a1-linearity">A1 Linearity</a></li>
+</ul>
+<div id="a3a" class="section level5">
+<h5><span class="header-section-number">5.1.3.3.1</span> A3a</h5>
+<p>Weaker Exogeneity Assumption</p>
+<p><strong>Exogeneity of Independent variables</strong></p>
+<p>A3a: <span class="math inline">\(E(\mathbf{x_i&#39;}\epsilon_i)=0\)</span></p>
+<ul>
+<li><span class="math inline">\(x_i\)</span> is <strong>uncorrelated</strong> with <span class="math inline">\(\epsilon_i\)</span> <a href="probability-theory.html#correlation-and-independence">Correlation and Independence</a></li>
+<li>Weaker than <strong>mean independence</strong> A3
+<ul>
+<li>A3 implies A3a, not the reverse</li>
+<li>No causality interpretations</li>
+<li>Cannot test the difference</li>
+</ul></li>
+</ul>
+<p><br>
+<br></p>
+</div>
+</div>
+<div id="a4-homoskedasticity" class="section level4">
+<h4><span class="header-section-number">5.1.3.4</span> A4 Homoskedasticity</h4>
+<p><span class="math display" id="eq:A4">\[
+\begin{equation}
+A4: Var(\epsilon|x)=Var(\epsilon)=\sigma^2
+\tag{5.4}
+\end{equation}
+\]</span></p>
+<ul>
+<li>Variation in the disturbance to be the same over the independent variables</li>
+</ul>
+<p><br>
+<br></p>
+</div>
+<div id="a5-data-generation-random-sampling" class="section level4">
+<h4><span class="header-section-number">5.1.3.5</span> A5 Data Generation (random Sampling)</h4>
+<p><span class="math display" id="eq:A5">\[
+\begin{equation}
+A5: {y_i,x_{i1},...,x_{ik-1}: i = 1,..., n}
+\tag{5.5}
+\end{equation}
+\]</span>
+is a random sample</p>
+<ul>
+<li>random sample mean samples are independent and identically distributed (iid) from a joint distribution of <span class="math inline">\((y,\mathbf{x})\)</span></li>
+<li>with <a href="ordinary-least-squares.html#a3-exogeneity-of-independent-variables">A3</a> and <a href="ordinary-least-squares.html#a4-homoskedasticity">A4</a>, we have
+<ul>
+<li><strong>Strict Exogeneity</strong>: <span class="math inline">\(E(\epsilon_i|x_1,...,x_n)=0\)</span>. independent variables do not carry information for prediction of <span class="math inline">\(\epsilon\)</span></li>
+<li><strong>Non-autocorrelation</strong>: <span class="math inline">\(E(\epsilon_i\epsilon_j|x_1,...,x_n)=0\)</span> The error term is uncorrelated across the draws conditional on the independent variables <span class="math inline">\(\rightarrow\)</span> <span class="math inline">\(A4: Var(\epsilon|\mathbf{X})=Var(\epsilon)=\sigma^2I_n\)</span></li>
+</ul></li>
+<li>In times series and spatial settings, A5 is less likely to hold.</li>
+</ul>
+<div id="a5a" class="section level5">
+<h5><span class="header-section-number">5.1.3.5.1</span> A5a</h5>
+<p>A stochastic process <span class="math inline">\(\{x_t\}_{t=1}^T\)</span> is <strong>stationary</strong> if for every collection fo time indices <span class="math inline">\(\{t_1,t_2,...,t_m\}\)</span>, the joint distribution of</p>
+<p><span class="math display">\[
+x_{t_1},x_{t_2},...,x_{t_m}
+\]</span>
+is the same as the joint distribution of</p>
+<p><span class="math display">\[
+x_{t_1+h},x_{t_2+h},...,x_{t_m+h}
+\]</span>
+for any <span class="math inline">\(h \ge 1\)</span></p>
+<ul>
+<li>The joint distribution for the first ten observation is the same for the next ten, etc.</li>
+<li>Independent draws automatically satisfies this</li>
+</ul>
+<p><br></p>
+<p>A stochastic process <span class="math inline">\(\{x_t\}_{t=1}^T\)</span> is <strong>weakly stationary</strong> if <span class="math inline">\(x_t\)</span> and <span class="math inline">\(x_{t+h}\)</span> are “almost independent” as h increases without bounds.<br />
+* two observation that are very far apart should be “almost independent”</p>
+<p>Common Weakly Dependent Processes</p>
+<ol style="list-style-type: decimal">
+<li>Moving Average process of order 1 (MA(1))</li>
+</ol>
+<p>MA(1) means that there is only one period lag.</p>
+<p><span class="math display">\[
+y_t = u_t + \alpha_1 u_{t-1} \\
+E(y_t) = E(u_t) + \alpha_1E(u_{t-1}) = 0 \\
+Var(y_t) = var(u_t) + \alpha_1 var(u_{t-1}) = \sigma^2 + \alpha_1^2 \sigma^2 = \sigma^2(1+\alpha_1^2)
+\]</span>
+where <span class="math inline">\(u_t\)</span> is drawn iid over t with variance <span class="math inline">\(\sigma^2\)</span></p>
+<p>An increase in the absolute value of <span class="math inline">\(\alpha_1\)</span> increases the variance</p>
+<p>When the MA(1) process can be <strong>inverted</strong> (<span class="math inline">\(|\alpha|&lt;1\)</span> then</p>
+<p><span class="math display">\[
+u_t = y_t - \alpha_1u_{t-1}
+\]</span>
+called the autoregressive representation (express current observation in term of past observation).</p>
+<p>We can expand it to more than 1 lag, then we have MA(q) process</p>
+<p><span class="math display">\[
+y_t = u_t + \alpha_1 u_{t-1} + ... + \alpha_q u_{t-q}
+\]</span></p>
+<p>where <span class="math inline">\(u_t \sim WN(0,\sigma^2)\)</span></p>
+<ul>
+<li>Covariance stationary: irrespective of the value of the parameters.</li>
+<li>Invertibility when <span class="math inline">\(\alpha &lt; 1\)</span></li>
+<li>The conditional mean of MA(q) depends on the q lags (long-term memory).</li>
+<li>In MA(q), all autorcorrealtions beyond q are 0.</li>
+</ul>
+<p><span class="math display">\[
+\begin{align}
+Cov(y_t,y_{t-1}) &amp;= Cov(u_t + \alpha_1 u_{t-1},u_{t-1}+\alpha_1u_{t-2}) \\
+&amp;= \alpha_1var(u_{t-1}) \\
+&amp;= \alpha_1\sigma^2
+\end{align}
+\]</span></p>
+<p><span class="math display">\[
+\begin{align}
+Cov(y_t,y_{t-2}) &amp;= Cov(u_t + \alpha_1 u_{t-1},u_{t-2}+\alpha_{1}u_{t-3}) \\
+&amp;= 0
+\end{align}
+\]</span></p>
+<p>An MA models a linear relationship between teh dependent variable and teh current and past values of a stochastic term.</p>
+<ol start="2" style="list-style-type: decimal">
+<li>Auto regressive process of order 1 (AR(1))</li>
+</ol>
+<p><span class="math display">\[
+y_t = \rho y_{t-1}+ u_t, |\rho|&lt;1
+\]</span></p>
+<p>where <span class="math inline">\(u_t\)</span> is drawn iid over t with variance <span class="math inline">\(\sigma^2\)</span></p>
+<p><span class="math display">\[
+\begin{align}
+Cov(y_t,y_{t-1}) &amp;= Cov(\rho y_{t-1} + u-t,y_{t-1}) \\
+&amp;= \rho Var(y_{t-1}) \\
+&amp;= \rho \frac{\sigma^2}{1-\rho^2}
+\end{align}
+\]</span></p>
+<p><span class="math display">\[
+\begin{align}
+Cov(y_t,y_{t-h}) &amp;= \rho^h \frac{\sigma^2}{1-\rho^2}
+\end{align}
+\]</span></p>
+<p>Stationarity:
+in the continuum of t, the distribution of each t is the same</p>
+<p><span class="math display">\[
+E(y_t) = E(y_{t-1}) = ...= E(y_0) \\
+y_1 = \rho y_0 + u_1
+\]</span>
+where the initial observation <span class="math inline">\(y_0=0\)</span></p>
+<p>Assume <span class="math inline">\(E(y_t)=0\)</span></p>
+<p><span class="math display">\[
+y_t = \rho^t y_{t-t} + \rho^{t-1}u_1 + \rho^{t-2}u_2 +...+ \rho u_{t-1} + u_t \\
+= \rho^t y_0 + \rho^{t-1}u_1 + \rho^{t-2}u_2 +...+ \rho u_{t-1} + u_t
+\]</span></p>
+<p>Hence, <span class="math inline">\(y_t\)</span> is the weighted of all of the <span class="math inline">\(u_t\)</span> time observations before.
+y will be correlated with all the previous observations as well as future observations.</p>
+<p><span class="math display">\[
+Var(y_t) = Var(\rho y_{t-1} + u_t) \\
+= \rho^2 Var(y_{t-1}) + Var(u_t) + 2\rho Cov(y_{t-1}u_t) \\
+= \rho^2 Var(y_{t-1}) + \sigma^2
+\]</span>
+Hence,</p>
+<p><span class="math display">\[
+Var(y_t) = \frac{\sigma^2}{1-\rho^2}
+\]</span>
+to have Variance constantly over time, then <span class="math inline">\(\rho \neq 1\)</span> or <span class="math inline">\(-1\)</span>.</p>
+<p><strong>Then</strong> stationarity requires <span class="math inline">\(\rho \neq 1\)</span> or -1.
+weakly dependent process <span class="math inline">\(|\rho|&lt;1\)</span></p>
+<p>To estimate the AR(1) process, we use <strong>Yule-Walker Equation</strong></p>
+<p><span class="math display">\[
+y_t = \epsilon_t + \phi y_{t-1} \\
+y_t y_{t-\tau} = \epsilon_t y_{t-\tau} + \phi y_{t-1}y_{t-\tau} \\
+\]</span>
+For <span class="math inline">\(\tau \ge 1\)</span>, we have</p>
+<p><span class="math display">\[
+\gamma \tau = \phi \gamma (\tau -1) \\
+\rho_t = \phi^t
+\]</span>
+when you generalize to pth order autoregressive process, AR(p):</p>
+<p><span class="math display">\[
+y_t = \phi_1 y_{t-1} + \phi_2 y_{t-2} + ... + \phi_p y_{t-p} + \epsilon_t
+\]</span></p>
+<p>AR(p) process is <strong>covariance stationary</strong>, and decay in autocorrelations.</p>
+<p>When we combine MA(q) and AR(p), we have ARMA(p,q) process, where you can see seasonality. For example, ARMA(1,1)</p>
+<p><span class="math display">\[
+y_t = \phi y_{t-1} + \epsilon_t + \alpha \epsilon_{t-1}
+\]</span></p>
+<p>Random Walk process</p>
+<p><span class="math display">\[
+y_t = y_0 + \sum_{s=1}^{t}u_t
+\]</span></p>
+<ul>
+<li>not stationary : when <span class="math inline">\(y_0 = 0\)</span> then <span class="math inline">\(E(y_t)= 0\)</span>, but <span class="math inline">\(Var(y_t)=t\sigma^2\)</span>. Further along in the spectrum, the variance will be larger</li>
+<li>not weakly dependent: <span class="math inline">\(Cov(\sum_{s=1}^{t}u_s,\sum_{s=1}^{t-h}u_s) = (t-h)\sigma^2\)</span>. So the covariance (fixed) is not diminishing as h increases</li>
+</ul>
+<p><span class="math display">\[
+Assumption A5a: \{y_t,x_{t1},..,x_{tk-1} \}
+\]</span>
+where <span class="math inline">\(t=1,...,T\)</span> are <strong>stationary and weakly dependent processes</strong>.</p>
+<p>Alternative <a href="general-math.html#weak-law">Weak Law</a>, <a href="probability-theory.html#central-limit-theorem">Central Limit Theorem</a><br />
+If <span class="math inline">\(z_t\)</span> is a weakly dependent stationary process with a finite first absolute moment and <span class="math inline">\(E(z_t) = \mu\)</span>, then</p>
+<p><span class="math display">\[
+T^{-1}\sum_{t=1}^{T}z_t \to^p \mu
+\]</span>
+If additional regulatory conditions hold <span class="citation">(Greene <a href="#ref-Greene_1990" role="doc-biblioref">1990</a>)</span>, then</p>
+<p><span class="math display">\[
+\sqrt{T}(\bar{z}-\mu) \to^d N(0,B)
+\]</span>
+where <span class="math inline">\(B= Var(z_t) + 2\sum_{h=1}^{\infty}Cov(z_t,z_{t-h})\)</span></p>
+<p><br></p>
+</div>
+</div>
+<div id="a6-normal-distribution" class="section level4">
+<h4><span class="header-section-number">5.1.3.6</span> A6 Normal Distribution</h4>
+<p><span class="math display" id="eq:A6">\[
+\begin{equation}
+A6: \epsilon|\mathbf{x}\sim N(0,\sigma^2I_n)
+\tag{5.6}
+\end{equation}
+\]</span>
+The error term is normally distributed</p>
+<p><br></p>
+<p>From A1-A3, we have <strong>identification</strong> (also known as <strong>Orthogonality Condition</strong>) of the population parameter <span class="math inline">\(\beta\)</span></p>
+<p><span class="math display">\[\begin{align}
+y &amp;= {x}\beta + \epsilon &amp;&amp; \text{A1} \\
+x&#39;y &amp;= x&#39;x\beta + x&#39;\epsilon &amp;&amp; \text{} \\
+E(x&#39;y) &amp;= E(x&#39;x)\beta + E(x&#39;\epsilon)  &amp;&amp; \text{} \\
+E(x&#39;y) &amp;= E(x&#39;x)\beta &amp;&amp; \text{A3} \\
+[E(x&#39;x)]^{-1}E(x&#39;y) &amp;= [E(x&#39;x)]^{-1}E(x&#39;x)\beta &amp;&amp; \text{A2} \\
+[E(x&#39;x)]^{-1}E(x&#39;y) &amp;= \beta
+\end{align}\]</span></p>
+<p>is the row vector of parameters that produces the best predictor of y
+we choose the min of :
+<span class="math display">\[
+\underset{\gamma}{\operatorname{argmin}}E((y-x\gamma)^2)
+\]</span>
+First Order Condition
+<span class="math display">\[
+\begin{split}
+\frac{\partial((y-x\gamma)^2)}{\partial\gamma}&amp;=0 \\
+-2E(x&#39;(y-x\gamma))&amp;=0 \\
+E(x&#39;y)-E(x&#39;x\gamma) &amp;=0 \\
+E(x&#39;y) &amp;= E(x&#39;x)\gamma \\
+(E(x&#39;x))^{-1}E(x&#39;y) &amp;= \gamma
+\end{split}
+\]</span></p>
+<p>Second Order Conditon
+<span class="math display">\[
+\begin{split}
+\frac{\partial^2E((y-x\gamma)^2)}{}&amp;=0 \\
+E(\frac{\partial(y-x\partial)^2)}{\partial\gamma\partial\gamma&#39;}) &amp;= 2E(x&#39;x)
+\end{split}
+\]</span>
+If <a href="ordinary-least-squares.html#a3-exogeneity-of-independent-variables">A3</a> holds, then <span class="math inline">\(2E(x&#39;x)\)</span> is PSD <span class="math inline">\(\rightarrow\)</span> minimum</p>
+<p><br>
+<br></p>
+</div>
+</div>
+<div id="theorems" class="section level3">
+<h3><span class="header-section-number">5.1.4</span> Theorems</h3>
+<div id="frisch-waugh-lovell-theorem" class="section level4">
+<h4><span class="header-section-number">5.1.4.1</span> Frisch-Waugh-Lovell Theorem</h4>
+<p><span class="math display">\[
+\mathbf{y=X\beta + \epsilon=X_1\beta_1+X_2\beta_2 +\epsilon}
+\]</span>
+Equivalently,
+<span class="math display">\[
+\left(
+\begin{array}{c}
+X_1&#39;X_1 &amp; X_1&#39;X_2 \\
+X_2&#39;X_1 &amp; X_2&#39;X_2
+\end{array}
+\right)
+\left(
+\begin{array}{c}
+\hat{\beta_1} \\
+\hat{\beta_2}
+\end{array}
+\right)
+=
+\left(
+\begin{array}{c}
+X_1&#39;y \\
+X_2&#39;y
+\end{array}
+\right)
+\]</span>
+Hence,
+<span class="math display">\[
+\mathbf{\hat{\beta_1}=(X_1&#39;X_1)^{-1}X_1&#39;y - (X_1&#39;X_1)^{-1}X_1&#39;X_2\hat{\beta_2}}
+\]</span></p>
+<ol style="list-style-type: decimal">
+<li>Betas from the multiple regression are not the same as the betas from each of the individual simple regression</li>
+<li>Different set of X will affect all the coefficient estimates.</li>
+<li>If <span class="math inline">\(X_1&#39;X_2 = 0\)</span> or $=0, then 1 and 2 do not hold.</li>
+</ol>
+<p><br></p>
+</div>
+<div id="gauss-markov-theorem" class="section level4">
+<h4><span class="header-section-number">5.1.4.2</span> Gauss-Markov Theorem</h4>
+<p>For a linear regression model</p>
+<p><span class="math display">\[
+\mathbf{y=X\beta + \epsilon}
+\]</span></p>
+<p>Under <a href="ordinary-least-squares.html#a1-linearity">A1</a>, <a href="ordinary-least-squares.html#a2-full-rank">A2</a>, <a href="ordinary-least-squares.html#a3-exogeneity-of-independent-variables">A3</a>, <a href="ordinary-least-squares.html#a4-homoskedasticity">A4</a>, OLS estimator defined as</p>
+<p><span class="math display">\[
+\hat{\beta} = \mathbf{(X&#39;X)^{-1}X&#39;y}
+\]</span>
+is the minimum variance linear (in y) unbiased estimator of <span class="math inline">\(\beta\)</span></p>
+<p>Let <span class="math inline">\(\tilde{\beta}=\mathbf{Cy}\)</span>, be another linear estimator where <span class="math inline">\(\mathbf{C}\)</span> is k x n and only function of X), then for it be unbiased,</p>
+<p><span class="math display">\[
+\begin{split}
+E(\tilde{\beta}|\mathbf{X}) &amp;= E(\mathbf{Cy|X}) \\
+&amp;= E(\mathbf{CX\beta + C\epsilon|X}) \\
+&amp;= \mathbf{CX\beta}
+\end{split}
+\]</span>
+which equals the true parameter <span class="math inline">\(\beta\)</span> only if <span class="math inline">\(\mathbf{CX=I}\)</span><br />
+Equivalently,
+<span class="math inline">\(\tilde{\beta} = \beta + \mathbf{C}\epsilon\)</span>
+and the variance of the estimator is <span class="math inline">\(Var(\tilde{\beta}|\mathbf{X}) = \sigma^2\mathbf{CC&#39;}\)</span></p>
+<p>To show minimum variance,
+<span class="math display">\[
+\begin{split}
+&amp;=\sigma^2\mathbf{(C-(X&#39;X)^{-1}X&#39;)(C-(X&#39;X)^{-1}X&#39;)&#39;} \\
+&amp;= \sigma^2\mathbf{(CC&#39; - CX(X&#39;X)^{-1})-(X&#39;X)^{-1}X&#39;C + (X&#39;X)^{-1}X&#39;X(X&#39;X)^{-1})} \\
+&amp;= \sigma^2 (\mathbf{CC&#39; - (X&#39;X)^{-1}-(X&#39;X)^{-1} + (X&#39;X)^{-1}}) \\
+&amp;= \sigma^2\mathbf{CC&#39;} - \sigma^2(\mathbf{X&#39;X})^{-1} \\
+&amp;= Var(\tilde{\beta}|\mathbf{X}) - Var(\hat{\beta}|\mathbf{X})
+\end{split}
+\]</span></p>
+<p><strong>Hierarchy of OLS Assumptions</strong></p>
+<table>
+<colgroup>
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Identification Data Description</th>
+<th>Unbiasedness Consistency</th>
+<th><a href="ordinary-least-squares.html#gauss-markov-theorem">Gauss-Markov</a> (BLUE) Asymptotic Inference (z and Chi-squared)</th>
+<th>Classical LM (BUE) Small-sample Inference (t and F)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Variation in X</td>
+<td>Variation in X</td>
+<td>Variation in X</td>
+<td>Variation in X</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Random Sampling</td>
+<td>Random Sampling</td>
+<td>Random Sampling</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>Linearity in Parameters</td>
+<td>Linearity in Parameters</td>
+<td>Linearity in Parameters</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>Zero Conditional Mean</td>
+<td>Zero Conditional Mean</td>
+<td>Zero Conditional Mean</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td></td>
+<td>Homoskedasticity</td>
+<td>Homoskedasticity</td>
+</tr>
+<tr class="even">
+<td></td>
+<td></td>
+<td></td>
+<td>Normality of Errors</td>
+</tr>
+</tbody>
+</table>
+<p><br>
+<br>
+<br></p>
+</div>
+</div>
+<div id="variable-selection" class="section level3">
+<h3><span class="header-section-number">5.1.5</span> Variable Selection</h3>
+<p>depends on</p>
+<ul>
+<li>Objectives or goals<br />
+</li>
+<li>Previously acquired expertise<br />
+</li>
+<li>availability of data<br />
+</li>
+<li>availability of computer software</li>
+</ul>
+<p>Let P - 1 be the number of possible X variables</p>
+<div id="mallowss-c_p-statistic" class="section level4">
+<h4><span class="header-section-number">5.1.5.1</span> Mallows’s <span class="math inline">\(C_p\)</span> Statistic</h4>
+<p>(Mallows, 1973, Technometrics, 15, 661-675)</p>
+<p>A measure of the predictive ability of a fitted model<br />
+Let <span class="math inline">\(\hat{Y}_{ip}\)</span> be the predicted value of <span class="math inline">\(Y_i\)</span> using the model with p parameters. The total standardized mean square error of prediction is:</p>
+<p><span class="math display">\[
+\Gamma_p = \frac{\sum_{i=1}^n E(\hat{Y}_{ip}-E(Y_i))^2}{\sigma^2} \\
+= \frac{\sum_{i=1}^n [E(\hat{Y}_{ip})-E(Y_i)]^2+\sum_{i=1}^n var(\hat{Y}_{ip})}{\sigma^2}
+\]</span>
+the first term in the numerator is the (bias)^2 term and the 2nd term is the prediction variance term.</p>
+<ul>
+<li>bias term decreases as more variables are added to the model.<br />
+</li>
+<li>if we assume the full model (p=P) is the true model, then <span class="math inline">\(E(\hat{Y}_{ip}) - E(Y_i) = 0\)</span> and the bias is 0.<br />
+</li>
+<li>Prediction variance increase as more variables are added to the model <span class="math inline">\(\sum var(\hat{Y}_{ip}) = p \sigma^2\)</span><br />
+</li>
+<li>thus, a tradeoff between bias and variance terns is achieved by minimizing <span class="math inline">\(\Gamma_p\)</span>.<br />
+</li>
+<li>Since <span class="math inline">\(\Gamma_p\)</span> is unknown (due to <span class="math inline">\(\beta\)</span>). we use an estimate: <span class="math inline">\(C_p = \frac{SSE_p}{\hat{\sigma^2}}- (n-2p)\)</span> which is an unbiased estimate of <span class="math inline">\(\Gamma_p\)</span><br />
+</li>
+<li>As more variables are added to the model, the <span class="math inline">\(SSE_p\)</span> decreases but 2p increases. where <span class="math inline">\(\hat{\sigma^2}=MSE(X_1,..,X_{P-1})\)</span> the MSE with all possible X variables in the model.<br />
+</li>
+<li>when there is no bias then <span class="math inline">\(E(C_p) \approx p\)</span>. Thus, good models have <span class="math inline">\(C_p\)</span> close to p.<br />
+</li>
+<li>Prediction: consider models with <span class="math inline">\(C_p \le p\)</span><br />
+</li>
+<li>Parameter estimation: consider models with <span class="math inline">\(C_p \le 2p -(P-1)\)</span>. Fewer variables should be eliminated from the model to avoid excess bias in the estimates.</li>
+</ul>
+</div>
+<div id="akaike-information-criterion-aic" class="section level4">
+<h4><span class="header-section-number">5.1.5.2</span> Akaike Information Criterion (AIC)</h4>
+<p><span class="math display">\[
+AUC = n ln(\frac{SSE_p}{n}) + 2p
+\]</span></p>
+<ul>
+<li>increasing p (number of parameters) leads first-term decreases, and second-term increases.</li>
+<li>We want model with small values of AIC. If the AIC increases when a parameter is added to the model, that parameter is not needed.<br />
+</li>
+<li>AIC represents a tradeoff between precision of fit against the number of parameters used.</li>
+</ul>
+</div>
+<div id="bayes-or-schwarz-information-criterion" class="section level4">
+<h4><span class="header-section-number">5.1.5.3</span> Bayes (or Schwarz) Information Criterion</h4>
+<p><span class="math display">\[
+BIC = n \ln(\frac{SSE_p}{n})+ (\ln n)p
+\]</span></p>
+<p>The coefficient in front of p tends to penalize more heavily models with a larger number of parameters (as compared to AIC).</p>
+</div>
+<div id="prrediciton-error-sum-of-squares-press" class="section level4">
+<h4><span class="header-section-number">5.1.5.4</span> Prrediciton Error Sum of Squares (PRESS)</h4>
+<p><span class="math display">\[
+PRESS_p = \sum_{i=1}^{n} (Y_i - \hat{Y}_{i(i)})^2
+\]</span>
+where <span class="math inline">\(\hat{Y}_{i(i)}\)</span> is the prediction of the i-th response when the i-th observation is not used, obtained for the model with p parameters.</p>
+<ul>
+<li>evaluates the predictive ability of a postulated model by omitting one observation at a time.<br />
+</li>
+<li>we want small <span class="math inline">\(PRESS_p\)</span> values<br />
+</li>
+<li>It can be computationally intensive when you have large p. </li>
+</ul>
+</div>
+<div id="best-subsets-algorithm" class="section level4">
+<h4><span class="header-section-number">5.1.5.5</span> Best Subsets Algorithm</h4>
+<ul>
+<li>“leap and bounds” algorithm of <span class="citation">(Furnival and Wilson <a href="#ref-Furnival_1974" role="doc-biblioref">1974</a>)</span> combines comparison of SSE for different subset models with control over the sequence in which the subset regression are computed.<br />
+</li>
+<li>Guarantees finding the best m subset regressions within each subset size with less computational burden than all possible subsets.</li>
+</ul>
+<div class="sourceCode" id="cb145"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb145-1"><a href="ordinary-least-squares.html#cb145-1"></a><span class="kw">library</span>(<span class="st">&quot;leaps&quot;</span>)</span>
+<span id="cb145-2"><a href="ordinary-least-squares.html#cb145-2"></a><span class="kw">regsubsets</span>()</span></code></pre></div>
+</div>
+<div id="stepwise-selection-procedures" class="section level4">
+<h4><span class="header-section-number">5.1.5.6</span> Stepwise Selection Procedures</h4>
+<p>The <strong>forward stepwise</strong> procedure:</p>
+<ul>
+<li>finds a plausible subset sequentially.<br />
+</li>
+<li>at each step, a variable is added or deleted.<br />
+</li>
+<li>criterion for adding or deleting is based on SSE, <span class="math inline">\(R^2\)</span>, T, or F-statistic.</li>
+</ul>
+<p>Note:</p>
+<ul>
+<li>Instead of using exact F-values, computer packages usually specify the equivalent “significance” level. For example, SLE is the “significance” level to enter, and SLS is the “significance” level to stay. The SLE and SLS are guides rather than true tests of significance.<br />
+</li>
+<li>The choice of SLE and SLS represents a balancing of opposing tendencies. Use of large SLE values tends to result in too many predictor variables; models with small SLE tend to be under-specified resulting in <span class="math inline">\(\sigma^2\)</span> being badly overestimated.<br />
+</li>
+<li>As for choice of SLE, can choose between 0.05 and 0.5.<br />
+</li>
+<li>If SLE &gt; SLS then a cycling pattern may occur. Although most computer packages can detect can stop when it happens. A quick fix: SLS = SLE /2 <span class="citation">(Bendel and Afifi <a href="#ref-Bendel_1977" role="doc-biblioref">1977</a>)</span>.<br />
+</li>
+<li>If SLE &lt; SLS then the procedure is conservative and may lead variables with low contribution to be retained.<br />
+</li>
+<li>Order of variable entry does not matter.</li>
+</ul>
+<p>Automated Selection Procedures:</p>
+<ul>
+<li>Forward selection: Same idea as forward stepwise except it doesn’t test if variables should be dropped once enter. (not as good as forward stepwise).<br />
+</li>
+<li>Backward Elimination: begin with all variables and identifies the one with the smallest F-value to be dropped.</li>
+</ul>
+<p><br></p>
+</div>
+</div>
+<div id="diagnostics-1" class="section level3">
+<h3><span class="header-section-number">5.1.6</span> Diagnostics</h3>
+<div id="normality-of-errors" class="section level4">
+<h4><span class="header-section-number">5.1.6.1</span> Normality of errors</h4>
+<p>could use <a href="normality-assessment.html#methods-based-on-normal-probability-plot">Methods based on normal probability plot</a> or <a href="normality-assessment.html#methods-based-on-empirical-cumulative-distribution-function">Methods based on empirical cumulative distribution function</a></p>
+<p>or plots such as</p>
+<div class="sourceCode" id="cb146"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb146-1"><a href="ordinary-least-squares.html#cb146-1"></a>y =<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">100</span></span>
+<span id="cb146-2"><a href="ordinary-least-squares.html#cb146-2"></a>x =<span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">100</span>)</span>
+<span id="cb146-3"><a href="ordinary-least-squares.html#cb146-3"></a><span class="kw">qqplot</span>(x,y)</span></code></pre></div>
+<p><img src="Data-Analysis_files/figure-html/unnamed-chunk-44-1.png" width="672" /></p>
+</div>
+<div id="influential-observationsoutliers" class="section level4">
+<h4><span class="header-section-number">5.1.6.2</span> Influential observations/outliers</h4>
+<div id="hat-matrix" class="section level5">
+<h5><span class="header-section-number">5.1.6.2.1</span> Hat matrix</h5>
+<p><span class="math display">\[
+\mathbf{H = X(X&#39;X)^{-1}}
+\]</span>
+where <span class="math inline">\(\mathbf{\hat{Y}= HY, e = (I-H)Y}\)</span> and <span class="math inline">\(var(\mathbf{e}) = \sigma^2 (\mathbf{I-H})\)</span></p>
+<ul>
+<li><span class="math inline">\(\sigma^2(e_i) = \sigma^2 (1-h_{ii})\)</span>, where <span class="math inline">\(h_{ii}\)</span> is the i-th element of the main diagonal of <span class="math inline">\(\mathbf{H}\)</span> (must be between 0 and 1).<br />
+</li>
+<li><span class="math inline">\(\sum_{i=1}^{n} h_{ii} = p\)</span><br />
+</li>
+<li><span class="math inline">\(cov(e_i,e_j) = -h_{ii}\sigma^2\)</span> where <span class="math inline">\(i \neq j\)</span><br />
+</li>
+<li>Estimate: <span class="math inline">\(s^2(e_i) = MSE (1-h_{ii})\)</span><br />
+</li>
+<li>Estimate: <span class="math inline">\(\hat{cov}(e_i,e_j) = -h_{ij}(MSE)\)</span>; if model assumption are correct, this covariance is very small for large data sets.<br />
+</li>
+<li>If <span class="math inline">\(\mathbf{x}_i = [1 X_{i,1} ... X_{i,p-1}]&#39;\)</span> (the vector of X-values for a given response), then <span class="math inline">\(h_{ii} = \mathbf{x_i&#39;(X&#39;X)^{-1}x_i}\)</span> (depends on relative positions of the design points <span class="math inline">\(X_{i,1},...,X_{i,p-1}\)</span>)</li>
+</ul>
+</div>
+<div id="studentized-residuals" class="section level5">
+<h5><span class="header-section-number">5.1.6.2.2</span> Studentized Residuals</h5>
+<p><span class="math display">\[
+r_i = \frac{e_i}{s(e_i)} \\
+r_i \sim N(0,1)
+\]</span></p>
+<p>where <span class="math inline">\(s(e_i) = \sqrt{MSE(1-h_{ii})}\)</span>. <span class="math inline">\(r_i\)</span> is called the studentized residual or standardized residual.</p>
+<ul>
+<li>you can use the semi-studentized residual before, <span class="math inline">\(e_i^*= e_i \sqrt{MSE}\)</span>. This doesn’t take into account the different variances for each <span class="math inline">\(e_i\)</span>.</li>
+</ul>
+<p>We would want to see the model without a particular value. You delete the i-th case, fit the regression to the remaining n-1 cases, get estimated responses for the i-th case, <span class="math inline">\(\hat{Y}_{i(i)}\)</span>, and find the difference, called the <strong>deleted residual</strong>:</p>
+<p><span class="math display">\[
+d_i = Y_i - \hat{Y}_{i(i)} \\
+= \frac{e_i}{1-h_{ii}} 
+\]</span>
+we don’t need to recompute the regression model for each case</p>
+<p>As <span class="math inline">\(h_{ii}\)</span> increases, <span class="math inline">\(d_i\)</span> increases.</p>
+<p><span class="math display">\[
+s^2(d_i)= \frac{MSE_{(i)}}{1-h_{ii}}
+\]</span>
+where <span class="math inline">\(MSE_{(i)}\)</span> is the mean square error when the i-th case is omitted.</p>
+<p>Let</p>
+<p><span class="math display">\[
+t_i = \frac{d_i}{s(d_i)} = \frac{e_i}{\sqrt{MSE_{(i)}(1-h_{ii})}}
+\]</span></p>
+<p>be the <strong>studentized deleted residual</strong>, which follows a t-distribution with n-p-1 df.</p>
+<p><span class="math display">\[
+(n-p)MSE = (n-p-1)MSE_{(i)}+ \frac{e^2_{i}}{1-h_{ii}}
+\]</span>
+hence, we do not need to fit regressions for each case and</p>
+<p><span class="math display">\[
+t_i = e_i (\frac{n-p-1}{SSE(1-h_{ii})-e^2_i})^{1/2}
+\]</span></p>
+<p>The outlying Y-observations are those cases whose studentized deleted residuals are large in absolute value. If there are many residuals to consider, a Bonferroni critical value can be can (<span class="math inline">\(t_{1-\alpha/2n;n-p-1}\)</span>)</p>
+<p><strong>Outlying X Observations</strong></p>
+<p>Recall, <span class="math inline">\(0 \le h_{ii} \le 1\)</span> and <span class="math inline">\(\sum_{i=1}^{n}h_{ii}=p\)</span> (the total number of parameters)</p>
+<p>A large <span class="math inline">\(h_{ii}\)</span> indicates that the i-th case is distant from the center of all X observations (the <strong>leverage</strong> of the i-th case). That is, a large value suggests that the observation exercises substantial leverage in determining the fitted value <span class="math inline">\(\hat{Y}_i\)</span></p>
+<p>We have <span class="math inline">\(\mathbf{\hat{Y}=HY}\)</span>, a linear combination of Y-values; <span class="math inline">\(h_{ii}\)</span> is the weight of the observation <span class="math inline">\(Y_i\)</span>; so <span class="math inline">\(h_{ii}\)</span> measures the role of the X values in determining how important <span class="math inline">\(Y_i\)</span> is in affecting the <span class="math inline">\(\hat{Y}_i\)</span>.</p>
+<p>Large <span class="math inline">\(h_{ii}\)</span> implies <span class="math inline">\(var(e_i)\)</span> is small, so larger <span class="math inline">\(h_{ii}\)</span> implies that <span class="math inline">\(\hat{Y}_i\)</span> is close to <span class="math inline">\(Y_i\)</span></p>
+<ul>
+<li>small data sets: <span class="math inline">\(h_{ii} &gt; .5\)</span> suggests “large”.<br />
+</li>
+<li>large data sets: <span class="math inline">\(h_{ii} &gt; \frac{2p}{n}\)</span> is "large.</li>
+</ul>
+<p>Using the hat matrix to identify extrapolation:</p>
+<ul>
+<li>Let <span class="math inline">\(\mathbf{x_{new}}\)</span> be a vector containing the X values for which an inference about a mean response or a new observation is to be made.<br />
+</li>
+<li>Let <span class="math inline">\(\mathbf{X}\)</span> be the data design matrix used to fit the data. Then, if <span class="math inline">\(h_{new,new} = \mathbf{x_{new}(X&#39;X)^{-1}x_{new}}\)</span> is within the range of leverage values (<span class="math inline">\(h_{ii}\)</span>) for cases in the data set, no extrapolation is involved; otherwise; extrapolation is indicated.</li>
+</ul>
+<p><strong>Identifying Influential Cases</strong>:</p>
+<p>by influential we mean that exclusion of an observation causes major changes int he fitted regression. (not all outliers are influential)</p>
+<ul>
+<li>Influence on Single Fitted Values: <a href="ordinary-least-squares.html#dffits">DFFITS</a><br />
+</li>
+<li>Influence on All Fitted Values: <a href="ordinary-least-squares.html#cooks-d">Cook’s D</a><br />
+</li>
+<li>Influence on the Regression Coefficients: <a href="ordinary-least-squares.html#dfbetas">DFBETAS</a></li>
+</ul>
+</div>
+<div id="dffits" class="section level5">
+<h5><span class="header-section-number">5.1.6.2.3</span> DFFITS</h5>
+<p>Influence on Single Fitted Values: <a href="ordinary-least-squares.html#dffits">DFFITS</a></p>
+<p><span class="math display">\[
+(DFFITS)_i = \frac{\hat{Y}_i - \hat{Y}_{i(i)}}{\sqrt{MSE_{(i)}h_{ii}}} \\
+= t_i (\frac{h_{ii}}{1-h_{ii}})^{1/2}
+\]</span></p>
+<ul>
+<li>the standardized difference between the i-th fitted value with all observations and with the i-th case removed.<br />
+</li>
+<li>studentized deleted residual multiplied by a factor that is a function fo the i-th leverage value.<br />
+</li>
+<li>influence if:
+<ul>
+<li>small to medium data sets: <span class="math inline">\(|DFFITS|&gt;1\)</span><br />
+</li>
+<li>large data sets: <span class="math inline">\(|DFFITS|&gt; 2 \sqrt{p/n}\)</span></li>
+</ul></li>
+</ul>
+</div>
+<div id="cooks-d" class="section level5">
+<h5><span class="header-section-number">5.1.6.2.4</span> Cook’s D</h5>
+<p>Influence on All Fitted Values: <a href="ordinary-least-squares.html#cooks-d">Cook’s D</a></p>
+<p><span class="math display">\[
+D_i = \frac{\sum_{j=1}^{n}(\hat{Y}_j - \hat{Y}_{j(i)})^2}{p(MSE)} \\
+= \frac{e^2_i}{p(MSE)}(\frac{h_{ii}}{(1-h_{ii})^2})
+\]</span>
+gives the influence of i-th case on all fitted values.</p>
+<p>If <span class="math inline">\(e_i\)</span> increases or <span class="math inline">\(h_{ii}\)</span> increases, then <span class="math inline">\(D_i\)</span> increases.</p>
+<p><span class="math inline">\(D_i\)</span> is a percentile of an <span class="math inline">\(F_{(p,n-p)}\)</span> distribution. If the percentile is greater than <span class="math inline">\(.5(50\%)\)</span> then the i-th case has major influence. In practice, if <span class="math inline">\(D_i &gt;4/n\)</span>, then the i-th case has major influence.</p>
+</div>
+<div id="dfbetas" class="section level5">
+<h5><span class="header-section-number">5.1.6.2.5</span> DFBETAS</h5>
+<p>Influence on the Regression Coefficients: <a href="ordinary-least-squares.html#dfbetas">DFBETAS</a></p>
+<p><span class="math display">\[
+(DFBETAS)_{k(i)} = \frac{b_k - b_{k(i)}}{\sqrt{MSE_{(i)}c_{kk}}}
+\]</span></p>
+<p>for <span class="math inline">\(k = 0,...,p-1\)</span> and <span class="math inline">\(c_{kk}\)</span> si the k-th diagonal element of <span class="math inline">\(\mathbf{X&#39;X}^{-1}\)</span></p>
+<p>Influence of the i-th case on each regression coefficient <span class="math inline">\(b_k\)</span> (k=0,..,p-1) is the difference between the estimated regression coefficients based on all n cases and the regression coefficients obtained when the i-th case is omitted (<span class="math inline">\(b_{k(i)}\)</span>)</p>
+<ul>
+<li>small data sets: <span class="math inline">\(|DFBETA|&gt;1\)</span><br />
+</li>
+<li>large data sets: <span class="math inline">\(|DFBETA| &gt; 2\sqrt{n}\)</span><br />
+</li>
+<li>Sign of DFBETA inculcates whether inclusion of a case leads to an increase or a decrease in estimates of the regression coefficient.</li>
+</ul>
+</div>
+</div>
+<div id="collinearity" class="section level4">
+<h4><span class="header-section-number">5.1.6.3</span> Collinearity</h4>
+<p>Multicollinearity refers to correlation among explanatory variables.</p>
+<ul>
+<li>large changes in the estimated regression coefficient when a predictor variable is added or deleted, or when an observation is altered or deleted.<br />
+</li>
+<li>noninsignificant results in individual tests on regression coefficients for important predictor variables.<br />
+</li>
+<li>estimated regression coefficients with an algebraic sign that is the opposite of that expected from theoretical consideration or prior experience.<br />
+</li>
+<li>large coefficients of simple correlation between pairs of predictor variables in the correlation matrix.<br />
+</li>
+<li>wide confidence intervals for the regression coefficients representing important predictor variables.</li>
+</ul>
+<p>When some of X variables are so highly correlated that the inverse <span class="math inline">\((X&#39;X)^{-1}\)</span> does not exist or is very computationally unstable.</p>
+<p>Correlated Predictor Variables: if some X variables are “perfectly” correlated, the system is undetermined and there are an infinite number of models that fit the data. That is, if <span class="math inline">\(X&#39;X\)</span> is singular, then <span class="math inline">\((X&#39;X)^{-1}\)</span> doesn’t exist. Then,</p>
+<ul>
+<li>parameters cannot be interpreted (<span class="math inline">\(\mathbf{b = (X&#39;X)^{-1}X&#39;y}\)</span>)<br />
+</li>
+<li>sampling variability is infinite (<span class="math inline">\(\mathbf{s^2(b) = MSE (X&#39;X)^{-1}}\)</span>)</li>
+</ul>
+<div id="vifs" class="section level5">
+<h5><span class="header-section-number">5.1.6.3.1</span> VIFs</h5>
+<p>Let <span class="math inline">\(R^2_k\)</span> be the coefficient of multiple determination when <span class="math inline">\(X_k\)</span> is regressed on the p - 2 other X variables in the model. Then,</p>
+<p><span class="math display">\[
+VIF_k = \frac{1}{1-R^2_k}
+\]</span></p>
+<ul>
+<li>large values indicate that a near collinearity is causing the variance of <span class="math inline">\(b_k\)</span> to be inflated, <span class="math inline">\(var(b_k) \propto \sigma^2 (VIF_k)\)</span><br />
+</li>
+<li>typically, <span class="math inline">\(VIF_k &gt; 10\)</span> indicates a collinearity problem that could result in poor parameters estimates.<br />
+</li>
+<li>the mean of all VIF’s provide an estimate of the ratio of the true multicollinearity to a model where the X variables are uncorrelated<br />
+</li>
+<li>serious multicollinearity if <span class="math inline">\(avg(VIF) &gt;&gt;1\)</span></li>
+</ul>
+</div>
+<div id="condition-number" class="section level5">
+<h5><span class="header-section-number">5.1.6.3.2</span> Condition Number</h5>
+<p><strong>Condition Number</strong></p>
+<p>spectral decomposition</p>
+<p><span class="math display">\[
+\mathbf{X&#39;X}= \sum_{i=1}^{p} \lambda_i \mathbf{u_i u_i&#39;}
+\]</span>
+where <span class="math inline">\(\lambda_i\)</span> is the eigenvalue and <span class="math inline">\(\mathbf{u}_i\)</span> is the eigenvector. <span class="math inline">\(\lambda_1 &gt; ...&gt;\lambda_p\)</span> and the eigenvecotrs are orthogonal:</p>
+<span class="math display">\[\begin{cases}
+\mathbf{u_i&#39;u_j} =
+0&amp;\text{for $i \neq j$}\\
+1&amp;\text{for $i =j$}\\
+\end{cases}\]</span>
+<p>The condition number is then</p>
+<p><span class="math display">\[
+k = \sqrt{\frac{\lambda_{max}}{\lambda_{min}}}
+\]</span></p>
+<ul>
+<li>values <span class="math inline">\(k&gt;30\)</span> are cause for concern<br />
+</li>
+<li>values <span class="math inline">\(30&lt;k&lt;100\)</span> imply moderate dependencies.<br />
+</li>
+<li>values <span class="math inline">\(k&gt;100\)</span> imply strong collinearity</li>
+</ul>
+<p><strong>Condition index</strong></p>
+<p><span class="math display">\[
+\delta_i = \sqrt{\frac{\lambda_{max}}{\lambda_i}}
+\]</span>
+where i = 1,…,p</p>
+<p>we can find the proportion of the total variance associated with the k-th regression coefficient and the i-th eigenmode:</p>
+<p><span class="math display">\[
+\frac{u_{ik}^2/\lambda_i}{\sum_j (u^2_{jk}/\lambda_j)}
+\]</span>
+These variance proportions can be helpful for identifying serious conllienarity</p>
+<ul>
+<li>the condition index must be large<br />
+</li>
+<li>the variance proportions must be large (&gt;,5) for at least two regression coefficients.</li>
+</ul>
+</div>
+</div>
+<div id="constancy-of-error-variance" class="section level4">
+<h4><span class="header-section-number">5.1.6.4</span> Constancy of Error Variance</h4>
+<div id="brown-forsythe-test-modified-levene-test" class="section level5">
+<h5><span class="header-section-number">5.1.6.4.1</span> Brown-Forsythe Test (Modified Levene Test)</h5>
+<ul>
+<li>Does not depend on normality<br />
+</li>
+<li>Applicable when error variance increases or decreases with X<br />
+</li>
+<li>relatively large sample size needed (so we can ignore dependency between residuals)<br />
+</li>
+<li>Split residuals into 2 groups (<span class="math inline">\(e_{i1}, i = 1, ..., n_1; e_{i2}, j=1,...,n_2\)</span>)<br />
+</li>
+<li>Let <span class="math inline">\(d_{i1}= |e_{i1}-\tilde{e}_{1}|\)</span> where <span class="math inline">\(\tilde{e}_{1}\)</span> is the median of group 1.<br />
+</li>
+<li>Let <span class="math inline">\(d_{j2}=|e_{j2}-\tilde{e}_{2}|\)</span>.<br />
+</li>
+<li>Then, a 2-sample t-test:<br />
+<span class="math display">\[
+t_L = \frac{\bar{d}_1 - \bar{d}_2}{s\sqrt{1/n_1+1/n_2}}
+\]</span>
+where
+<span class="math display">\[
+s^2 = \frac{\sum_i(d_{i1}-\bar{d}_1)^2+\sum_j(d_{j2}-\bar{d}_2)^2}{n-2}
+\]</span>
+If <span class="math inline">\(|t_L|&gt;t_{1-\alpha/2;n-2}\)</span> conclude the error variance is not constant.</li>
+</ul>
+</div>
+<div id="breusch-pagan-test-cook-weisberg-test" class="section level5">
+<h5><span class="header-section-number">5.1.6.4.2</span> Breusch-Pagan Test (Cook-Weisberg Test)</h5>
+<p>Assume the error terms are independent and normally distributed, and</p>
+<p><span class="math display">\[
+\sigma^2_i = \gamma_0 + \gamma_1 X_i
+\]</span></p>
+<p>Constant error variance corresponds to <span class="math inline">\(\gamma_1 = 0\)</span>, i.e., test</p>
+<ul>
+<li><span class="math inline">\(H_0: \gamma_1 =0\)</span><br />
+</li>
+<li><span class="math inline">\(H_1: \gamma_1 \neq 0\)</span></li>
+</ul>
+<p>by regressing the squared residuals on X in the usual manner. Obtain the regression sum of squares from this: SSR* (the SSR from the regression of <span class="math inline">\(e^2_i\)</span> on <span class="math inline">\(X_i\)</span>). Then, define</p>
+<p><span class="math display">\[
+X^2_{BP} = \frac{SSR*/2}{(SSE/n)^2}
+\]</span></p>
+<p>where SSE is the error sum of squares from the regression of Y on X.</p>
+<p>If <span class="math inline">\(H_0: \gamma_1 = 0\)</span> holds and n is reasonably large, <span class="math inline">\(X^2_{BP}\)</span> follows approximately the <span class="math inline">\(\chi^2\)</span> distribution with 1 d.f. We reject <span class="math inline">\(H_0\)</span> (Homogeneous variance) if <span class="math inline">\(X^2_{BP} &gt; \chi^2_{1-\alpha;1}\)</span></p>
+</div>
+</div>
+<div id="independence" class="section level4">
+<h4><span class="header-section-number">5.1.6.5</span> Independence</h4>
+<div id="plots" class="section level5">
+<h5><span class="header-section-number">5.1.6.5.1</span> Plots</h5>
+</div>
+<div id="durbin-watson" class="section level5">
+<h5><span class="header-section-number">5.1.6.5.2</span> Durbin-Watson</h5>
+</div>
+<div id="time-series" class="section level5">
+<h5><span class="header-section-number">5.1.6.5.3</span> Time-series</h5>
+</div>
+<div id="spatial-statistics" class="section level5">
+<h5><span class="header-section-number">5.1.6.5.4</span> Spatial Statistics</h5>
+</div>
+</div>
+</div>
+<div id="model-validation" class="section level3">
+<h3><span class="header-section-number">5.1.7</span> Model Validation</h3>
+<ul>
+<li>split data into 2 groups: training (model building) sample and validation (prediction) sample.<br />
+</li>
+<li>the model MSE will tend to underestimate the inherent variability in making future predictions. to consider actual predictive ability, consider mean squared prediction error (MSPE):<br />
+<span class="math display">\[
+MSPE = \frac{\sum_{i=1}^{n} (Y_i- \hat{Y}_i)^2}{n^*}
+\]</span>
+<ul>
+<li>where <span class="math inline">\(Y_i\)</span> is the known value of the response variable in the i-th validation case.</li>
+<li><span class="math inline">\(\hat{Y}_i\)</span> is the predicted value based on a model fit with the training data set.</li>
+<li><span class="math inline">\(n^*\)</span> is the number of cases in the validation set.<br />
+</li>
+</ul></li>
+<li>we want MSPE to be close to MSE (in which MSE is not biased); so look at the the ratio MSPE / MSE (closer to 1, the better).</li>
+</ul>
+</div>
+<div id="finite-sample-properties" class="section level3">
+<h3><span class="header-section-number">5.1.8</span> Finite Sample Properties</h3>
+<ul>
+<li>n is fixed</li>
+<li><strong>Bias</strong> On average, how close is our estimate to the true value
+<ul>
+<li><span class="math inline">\(Bias = E(\hat{\beta}) -\beta\)</span> where <span class="math inline">\(\beta\)</span> is the true parameter value and <span class="math inline">\(\hat{\beta}\)</span> is the estimator for <span class="math inline">\(\beta\)</span></li>
+<li>An estimator is <strong>unbiased</strong> when
+<ul>
+<li><span class="math inline">\(Bias = E(\hat{\beta}) -\beta = 0\)</span> or <span class="math inline">\(E(\hat{\beta})=\beta\)</span></li>
+<li>means that the estimator will produce estimates that are, on average, equal to the value it it trying to estimate</li>
+</ul></li>
+</ul></li>
+<li><strong>Distribution of an estimator</strong>: An estimator is a function of random variables (data)</li>
+<li><strong>Standard Deviation</strong>: the spread of the estimator.</li>
+</ul>
+<p><strong>OLS</strong></p>
+<p>Under <a href="ordinary-least-squares.html#a1-linearity">A1</a> <a href="ordinary-least-squares.html#a2-full-rank">A2</a> <a href="ordinary-least-squares.html#a3-exogeneity-of-independent-variables">A3</a>, OLS is unbiased</p>
+<p><span class="math display">\[
+\begin{align}
+E(\hat{\beta}) &amp;= E(\mathbf{(X&#39;X)^{-1}X&#39;y}) &amp;&amp; \text{A2}\\
+     &amp;= E(\mathbf{(X&#39;X)^{-1}X&#39;(X\beta + \epsilon)}) &amp;&amp; \text{A1}\\
+     &amp;= E(\mathbf{(X&#39;X)^{-1}X&#39;X\beta + (X&#39;X)^{-1}X&#39;\epsilon})  &amp;&amp; \text{} \\
+     &amp;= E(\beta + \mathbf{(X&#39;X)^{-1}X&#39;\epsilon}) \\
+     &amp;= \beta + E(\mathbf{(X&#39;X^{-1}\epsilon)}) \\
+     &amp;= \beta + E(E((\mathbf{X&#39;X)^{-1}X&#39;\epsilon|X})) &amp;&amp;\text{LIE} \\
+     &amp;= \beta + E((\mathbf{X&#39;X)^{-1}X&#39;}E\mathbf{(\epsilon|X})) \\
+     &amp;= \beta + E((\mathbf{X&#39;X)^{-1}X&#39;}0)) &amp;&amp; \text{A3} \\
+     &amp;= \beta
+\end{align}
+\]</span></p>
+<p>where LIE stands for <a href="general-math.html#law-of-iterated-expectation">Law of Iterated Expectation</a></p>
+<p>If <a href="ordinary-least-squares.html#a3-exogeneity-of-independent-variables">A3</a> does not hold, then OLS will be <strong>biased</strong></p>
+<p>From <strong>Frisch-Waugh-Lovell Theorem</strong>, if we have the omitted variable <span class="math inline">\(\hat{\beta}_2 \neq 0\)</span> and <span class="math inline">\(\mathbf{X_1&#39;X_2} \neq 0\)</span>, then the omitted variable will cause OLS estimator to be biased.</p>
+<p>Under <a href="ordinary-least-squares.html#a1-linearity">A1</a> <a href="ordinary-least-squares.html#a2-full-rank">A2</a> <a href="ordinary-least-squares.html#a3-exogeneity-of-independent-variables">A3</a> <a href="ordinary-least-squares.html#a4-homoskedasticity">A4</a>, we have the conditional variance of the OLS estimator as follows]</p>
+<p><span class="math display">\[
+\begin{align}
+Var(\hat{\beta}|\mathbf{X}) &amp;= Var(\beta + \mathbf{(X&#39;X)^{-1}X&#39;\epsilon|X}) &amp;&amp; \text{A1-A2}\\
+    &amp;= Var((\mathbf{X&#39;X)^{-1}X&#39;\epsilon|X)} \\
+    &amp;= \mathbf{X&#39;X^{-1}X&#39;} Var(\epsilon|\mathbf{X})\mathbf{X(X&#39;X)^{-1}} \\
+    &amp;= \mathbf{X&#39;X^{-1}X&#39;} \sigma^2I \mathbf{X(X&#39;X)^{-1}} &amp;&amp; \text{A4} \\
+    &amp;= \sigma^2\mathbf{X&#39;X^{-1}X&#39;} I \mathbf{X(X&#39;X)^{-1}} \\
+    &amp;= \sigma^2\mathbf{(X&#39;X)^{-1}}
+\end{align}
+\]</span></p>
+<p>Sources of variation</p>
+<ol style="list-style-type: decimal">
+<li><span class="math inline">\(\sigma^2=Var(\epsilon_i|\mathbf{X})\)</span>
+<ul>
+<li>The amount of unexplained variation <span class="math inline">\(\epsilon_i\)</span> is large relative to the explained <span class="math inline">\(\mathbf{x_i \beta}\)</span> variation</li>
+</ul></li>
+<li>“Small” <span class="math inline">\(Var(x_{i1}), Var(x_{i1}),..\)</span>
+<ul>
+<li>Not a lot of variation in <span class="math inline">\(\mathbf{X}\)</span> (no information)</li>
+<li>small sample size</li>
+</ul></li>
+<li>“Strong” correlation between the explanatory variables
+<ul>
+<li><span class="math inline">\(x_{i1}\)</span> is highly correlated with a linear combination of 1, <span class="math inline">\(x_{i2}\)</span>, <span class="math inline">\(x_{i3}\)</span>, …</li>
+<li>include many irrelevant variables will contribute to this.</li>
+<li>If <span class="math inline">\(x_1\)</span> is perfectly determined in the regression <span class="math inline">\(\rightarrow\)</span> <strong>Perfect Collinearity</strong> <span class="math inline">\(\rightarrow\)</span> <a href="ordinary-least-squares.html#a2-full-rank">A2</a> is violated.</li>
+<li>If <span class="math inline">\(x_1\)</span> is highly correlated with a linear combination of other variables, then we have <strong>Multicollinearity</strong></li>
+</ul></li>
+</ol>
+<div id="check-for-multicollinearity" class="section level4">
+<h4><span class="header-section-number">5.1.8.1</span> Check for Multicollinearity</h4>
+<p><strong>Variance Inflation Factor</strong> (VIF)
+Rule of thumb <span class="math inline">\(VIF \ge 10\)</span> is large</p>
+<p><span class="math display">\[
+VIF = \frac{1}{1-R_1^2} 
+\]</span></p>
+</div>
+<div id="standard-errors" class="section level4">
+<h4><span class="header-section-number">5.1.8.2</span> Standard Errors</h4>
+<ul>
+<li><span class="math inline">\(Var(\hat{\beta}|\mathbf{X})=\sigma^2\mathbf{(X&#39;X)^{-1}}\)</span> is the variance of the estimate <span class="math inline">\(\hat{\beta}\)</span></li>
+<li><strong>Standard Errors</strong> are estimators/estimates of the standard deviation (square root of the variance) of the estimator <span class="math inline">\(\hat{\beta}\)</span></li>
+<li>Under A1-A5, then we can estimate <span class="math inline">\(\sigma^2=Var(\epsilon^2|\mathbf{X})\)</span> the standard errors as</li>
+</ul>
+<p><span class="math display">\[
+s^2 = \frac{1}{n-k}\sum_{i=1}^{n}e_i^2 \\
+= \frac{1}{n-k}SSR
+\]</span></p>
+<ul>
+<li>degrees of freedom adjustment: because <span class="math inline">\(e_i \neq \epsilon_i\)</span> and are estimated using k estimates for <span class="math inline">\(\beta\)</span>, we lose degrees of freedom in our variance estimate.</li>
+<li><span class="math inline">\(s=\sqrt{s^2}\)</span> is a biased estimator for the standard deviation ([Jensen’s Inequality])</li>
+</ul>
+<p><strong>Standard Errors for <span class="math inline">\(\hat{\beta}\)</span></strong></p>
+<p><span class="math display">\[
+SE(\hat{\beta}_{j-1})=s\sqrt{[(\mathbf{X&#39;X})^{-1}]_{jj}} \\
+= \frac{s}{\sqrt{SST_{j-1}(1-R_{j-1}^2)}}
+\]</span>
+where <span class="math inline">\(SST_{j-1}\)</span> and <span class="math inline">\(R_{j-1}^2\)</span> from the following regression</p>
+<p><span class="math inline">\(x_{j-1}\)</span> on 1, <span class="math inline">\(x_1\)</span>,… <span class="math inline">\(x_{j-2}\)</span>,<span class="math inline">\(x_j\)</span>,<span class="math inline">\(x_{j+1}\)</span>, …, <span class="math inline">\(x_{k-1}\)</span></p>
+<p><strong>Summary of Finite Sample Properties</strong></p>
+<ul>
+<li>Under A1-A3: OLS is unbiased</li>
+<li>Under A1-A4: The variance of the OLS estimator is <span class="math inline">\(Var(\hat{\beta}|\mathbf{X})=\sigma^2\mathbf{(X&#39;X)^{-1}}\)</span></li>
+<li>Under A1-A4, A6: OLS estimator <span class="math inline">\(\hat{\beta} \sim N(\beta,\sigma^2\mathbf{(X&#39;X)^{-1}})\)</span></li>
+<li>Under A1-A4, Gauss-Markov Theorem holds <span class="math inline">\(\rightarrow\)</span> OLS is BLUE</li>
+<li>Under A1-A5, the above standard errors are unbiased estimator of standard deviation for <span class="math inline">\(\hat{\beta}\)</span></li>
+</ul>
+</div>
+</div>
+<div id="large-sample-properties" class="section level3">
+<h3><span class="header-section-number">5.1.9</span> Large Sample Properties</h3>
+<ul>
+<li>let <span class="math inline">\(n \rightarrow \infty\)</span></li>
+<li>A perspective that allows us to evaluate the “quality” of estimators when finite sample properties are not informative, or impossible to compute</li>
+<li>consistency, asymptotic distribution, asymptotic variance</li>
+</ul>
+<p><strong>Motivation</strong></p>
+<ul>
+<li><a href="ordinary-least-squares.html#finite-sample-properties">Finite Sample Properties</a> need strong assumption <a href="ordinary-least-squares.html#a1-linearity">A1</a> <a href="ordinary-least-squares.html#a3-exogeneity-of-independent-variables">A3</a> <a href="ordinary-least-squares.html#a4-homoskedasticity">A4</a> <a href="ordinary-least-squares.html#a6-normal-distribution">A6</a></li>
+<li>Other estimation such as GLS, MLE need to be analyzed using <a href="ordinary-least-squares.html#large-sample-properties">Large Sample Properties</a></li>
+</ul>
+<p>Let <span class="math inline">\(\mu(\mathbf{X})=E(y|\mathbf{X})\)</span> be the <strong>Conditional Expectation Function</strong></p>
+<ul>
+<li><span class="math inline">\(\mu(\mathbf{X})\)</span> is the minimum mean squared predictor (over all possible functions)</li>
+</ul>
+<p><span class="math display">\[
+minE((y-f(\mathbf{X}))^2)
+\]</span></p>
+<p>under A1 and A3,</p>
+<p><span class="math display">\[
+\mu(\mathbf{X})=\mathbf{X}\beta
+\]</span></p>
+<p>Then the <strong>linear projection</strong></p>
+<p><span class="math display">\[
+L(y|1,\mathbf{X})=\gamma_0 + \mathbf{X}Var(X)^{-1}Cov(X,Y)
+\]</span></p>
+<p>where <span class="math inline">\(\mathbf{X}Var(X)^{-1}Cov(X,Y)=\gamma\)</span></p>
+<p>is the minimum mean squared linear approximation to be conditional mean function</p>
+<p><span class="math display">\[
+(\gamma_0,\gamma) = arg min E((E(y|\mathbf{X})-(a+\mathbf{Xb})^2)
+\]</span></p>
+<ul>
+<li>OLS is always <strong>consistent</strong> for the linear projection, but not necessarily unbiased.</li>
+<li>Linear projection has no causal interpretation</li>
+<li>Linear projection does not depend on assumption A1 and A3</li>
+</ul>
+<p>Evaluating an estimator using large sample properties:</p>
+<ul>
+<li>Consistency: measure of centrality</li>
+<li>Limiting Distribution: the shape of the scaled estimator as the sample size increases</li>
+<li>Asymptotic variance: spread of the estimator with regards to its limiting distribution.</li>
+</ul>
+<p>An estimator <span class="math inline">\(\hat{\theta}\)</span> is consistent for <span class="math inline">\(\theta\)</span> if <span class="math inline">\(\hat{\theta}_n \to^p \theta\)</span></p>
+<ul>
+<li>As n increases, the estimator converges to the population parameter value.</li>
+<li>Unbiased does not imply consistency and consistency does not imply unbiased.</li>
+</ul>
+<p>Based on <a href="general-math.html#weak-law">Weak Law</a> of Large Numbers</p>
+<p><span class="math display">\[
+\begin{split}
+\hat{\beta} &amp;= \mathbf{(X&#39;X)^{-1}X&#39;y} \\
+&amp;= \mathbf{(\sum_{i=1}^{n}x_i&#39;x_i)^{-1} \sum_{i=1}^{n}x_i&#39;y_i} \\
+&amp;= (n^{-1}\mathbf{\sum_{i=1}^{n}x_i&#39;x_i)^{-1}} n^{-1}\mathbf{\sum_{i=1}^{n}x_i&#39;y_i} \\
+plim(\hat{\beta}) &amp;= plim((n^{-1}\mathbf{\sum_{i=1}^{n}x_i&#39;x_i)^{-1}} n^{-1}\mathbf{\sum_{i=1}^{n}x_i&#39;y_i}) \\
+&amp;= plim((n^{-1}\mathbf{\sum_{i=1}^{n}x_i&#39;x_i)^{-1}})plim(n^{-1}\mathbf{\sum_{i=1}^{n}x_i&#39;y_i}) \\
+&amp;= (plim(n^{-1}\mathbf{\sum_{i=1}^{n}x_i&#39;x_i)^{-1}})plim(n^{-1}\mathbf{\sum_{i=1}^{n}x_i&#39;y_i}) &amp;&amp; \text{ due to A2, A5} \\
+&amp;= E(\mathbf{x_i&#39;x_i})^{-1}E(\mathbf{x_i&#39;y_i})
+\end{split}
+\]</span></p>
+<p><span class="math display">\[
+E(\mathbf{x_i&#39;x_i})^{-1}E(\mathbf{x_i&#39;y_i}) = \beta + E(\mathbf{x_i&#39;x_i})^{-1}E(\mathbf{x_i&#39;\epsilon_i})
+\]</span></p>
+<p>Under <a href="ordinary-least-squares.html#a1-linearity">A1</a>, <a href="ordinary-least-squares.html#a2-full-rank">A2</a>, <a href="ordinary-least-squares.html#a3a">A3a</a>, <a href="ordinary-least-squares.html#a5-data-generation-random-sampling">A5</a> OLS is consistent, but not guarantee unbiased.</p>
+<p>Under <a href="ordinary-least-squares.html#a1-linearity">A1</a>, <a href="ordinary-least-squares.html#a2-full-rank">A2</a>, <a href="ordinary-least-squares.html#a3a">A3a</a>, <a href="ordinary-least-squares.html#a5-data-generation-random-sampling">A5</a>, and <span class="math inline">\(\mathbf{x_i&#39;x_i}\)</span> has finite first and second moments (<a href="probability-theory.html#central-limit-theorem">CLT</a>), <span class="math inline">\(Var(\mathbf{x_i&#39;}\epsilon_i)=\mathbf{B}\)</span></p>
+<ul>
+<li><span class="math inline">\((n^{-1}\sum_{i=1}^{n}\mathbf{x_i&#39;x_i})^{-1} \to^p (E(\mathbf{x&#39;_ix_i}))^{-1}\)</span></li>
+<li><span class="math inline">\(\sqrt{n}(n^{-1}\sum_{i=1}^{n}\mathbf{x_i&#39;}\epsilon_i) \to^d N(0,\mathbf{B})\)</span></li>
+</ul>
+<p><span class="math display">\[
+\sqrt{n}(\hat{\beta}-\beta) = (n^{-1}\sum_{i=1}^{n}\mathbf{x_i&#39;x_i})^{-1}\sqrt{n}(n^{-1}\sum_{i=1}^{n}\mathbf{x_i&#39;x_i}) \to^{d} N(0,\Sigma)
+\]</span>
+where <span class="math inline">\(\Sigma=(E(\mathbf{x_i&#39;x_i}))^{-1}\mathbf{B}(E(\mathbf{x_i&#39;x_i}))^{-1}\)</span></p>
+<ul>
+<li>holds under <a href="ordinary-least-squares.html#a3a">A3a</a></li>
+<li>Do not need <a href="ordinary-least-squares.html#a4-homoskedasticity">A4</a> and <a href="ordinary-least-squares.html#a6-normal-distribution">A6</a> to apply CLT
+<ul>
+<li>If <a href="ordinary-least-squares.html#a4-homoskedasticity">A4</a> does not hold, then <span class="math inline">\(\mathbf{B}=Var(\mathbf{x_i&#39;}\epsilon_i)=\sigma^2E(x_i&#39;x_i)\)</span> which means <span class="math inline">\(\Sigma=\sigma^2(E(\mathbf{x_i&#39;x_i}))^{-1}\)</span>, use standard errors</li>
+</ul></li>
+</ul>
+<p>Heteroskedasticity can be from</p>
+<ul>
+<li>Limited dependent variable</li>
+<li>Dependent variables with large/skewed ranges</li>
+</ul>
+<p>Solving Asymptotic Variance</p>
+<p><span class="math display">\[
+\begin{split}
+\Sigma &amp;= (E(\mathbf{x_i&#39;x_i}))^{-1}\mathbf{B}(E(\mathbf{x_i&#39;x_i}))^{-1} \\
+&amp;= (E(\mathbf{x_i&#39;x_i}))^{-1}Var(\mathbf{x_i&#39;}\epsilon_i)(E(\mathbf{x_i&#39;x_i}))^{-1} \\
+&amp;= (E(\mathbf{x_i&#39;x_i}))^{-1}E[(\mathbf{x_i&#39;}\epsilon_i-0)(\mathbf{x_i&#39;}\epsilon_i-0)](E(\mathbf{x_i&#39;x_i}))^{-1} &amp;&amp; \text{A3a} \\
+&amp;= (E(\mathbf{x_i&#39;x_i}))^{-1}E[E(\mathbf{\epsilon_i^2|x_i)x_i&#39;x_i]}(E(\mathbf{x_i&#39;x_i}))^{-1} &amp;&amp; \text{LIE} \\
+&amp;= (E(\mathbf{x_i&#39;x_i}))^{-1}\sigma^2E(\mathbf{x_i&#39;x_i})(E(\mathbf{x_i&#39;x_i}))^{-1} &amp;&amp; \text{A4} \\
+&amp;= \sigma^2(E(\mathbf{x_i&#39;x_i}))
+\end{split}
+\]</span></p>
+<p>Under <a href="ordinary-least-squares.html#a1-linearity">A1</a>, <a href="ordinary-least-squares.html#a2-full-rank">A2</a>, <a href="ordinary-least-squares.html#a3a">A3a</a>, <a href="ordinary-least-squares.html#a4-homoskedasticity">A4</a>, <a href="ordinary-least-squares.html#a5-data-generation-random-sampling">A5</a>:</p>
+<p><span class="math display">\[
+\sqrt{n}(\hat{\beta}-\beta) \to^d N(0,\sigma^2(E(\mathbf{x_i&#39;x_i}))^{-1})
+\]</span></p>
+<ul>
+<li>The Asymptotic variance is approximation for the variance in the scaled random variable for <span class="math inline">\(\sqrt{n}(\hat{\beta}-\beta)\)</span> when n is large.</li>
+<li>use <span class="math inline">\(Avar(\sqrt{n}(\hat{\beta}-\beta))/n\)</span> as an approximation for finite sample variance for large n:</li>
+</ul>
+<p><span class="math display">\[
+Avar(\sqrt{n}(\hat{\beta}-\beta)) \approx Var(\sqrt{n}(\hat{\beta}-\beta)) \\
+Avar(\sqrt{n}(\hat{\beta}-\beta))/n \approx Var(\sqrt{n}(\hat{\beta}-\beta))/n = Var(\hat{\beta})
+\]</span></p>
+<ul>
+<li>Avar(.) does not behave the same way as Var(.)</li>
+</ul>
+<p><span class="math display">\[
+Avar(\sqrt{n}(\hat{\beta}-\beta))/n \neq Avar(\sqrt{n}(\hat{\beta}-\beta)/\sqrt{n}) \\
+\neq Avar(\hat{\beta})
+\]</span></p>
+<p>In <a href="ordinary-least-squares.html#finite-sample-properties">Finite Sample Properties</a>, we calculate standard errors as an estimate for the conditional standard deviation:</p>
+<p><span class="math display">\[
+SE_{fs}(\hat{\beta}_{j-1})=\sqrt{\hat{Var}}(\hat{\beta}_{j-1}|\mathbf{X}) = \sqrt{s^2[\mathbf{(X&#39;X)}^{-1}]_{jj}}
+\]</span></p>
+<p>In <a href="ordinary-least-squares.html#large-sample-properties">Large Sample Properties</a>, we calculate standard errors as an estimate for the square root of asymptotic variance</p>
+<p><span class="math display">\[
+SE_{ls}(\hat{\beta}_{j-1})=\sqrt{\hat{Avar}(\sqrt{n}\hat{\beta}_{j-1})/n} = \sqrt{s^2[\mathbf{(X&#39;X)}^{-1}]_{jj}}
+\]</span></p>
+<p>Hence, the standard error estimator is the same for finite sample and large sample.
+* Same estimator, but conceptually estimating two different things.
+* Valid under weaker assumptions: the assumptions needed to produce a consistent estimator for the finite sample conditional variance (A1-A5) are stronger than those needed to produce a consistent estimator for the asymptotic variance (A1,A2,A3a,A4,A5)</p>
+<p>Suppose that <span class="math inline">\(y_1,...,y_n\)</span> are a random sample from some population with mean <span class="math inline">\(\mu\)</span> and variance-covariance matrix <span class="math inline">\(\Sigma\)</span></p>
+<ul>
+<li><span class="math inline">\(\bar{y} = \frac{1}{n}\sum_{i=1}^{n} y_i\)</span> is a consistent estimator for <span class="math inline">\(\mu\)</span><br />
+</li>
+<li><span class="math inline">\(S = \frac{1}{n-1}\sum_{i=1}^{n} (y_i -\bar{y})(y_i-\bar{y})&#39;\)</span> is a consistent estimator for <span class="math inline">\(\Sigma\)</span>.<br />
+</li>
+<li>Multivariate Central limit Theorem: Similar to the univariate case, <span class="math inline">\(\sqrt{n}(\bar{y}-\mu) \sim N_p(0,\Sigma)\)</span>, when n is large relative to p (e.g., <span class="math inline">\(n \ge 25p\)</span>). Equivalently, <span class="math inline">\(\bar{y} \sim N_p(\mu,\Sigma/n)\)</span>.<br />
+</li>
+<li>Wald’s Theorem: <span class="math inline">\(n(\bar{y} - \mu)&#39;S^{-1}(\bar{y}-\mu) \sim \chi^2_{(p)}\)</span> when n is large relative to p. </li>
+</ul>
+</div>
+<div id="application" class="section level3">
+<h3><span class="header-section-number">5.1.10</span> Application</h3>
+</div>
+</div>
+<h3>References</h3>
+<div id="refs" class="references">
+<div id="ref-Bendel_1977">
+<p>Bendel, Robert B., and A. A. Afifi. 1977. “Comparison of Stopping Rules in Forward “Stepwise” Regression.” <em>Journal of the American Statistical Association</em> 72 (357): 46–53. <a href="https://doi.org/10.1080/01621459.1977.10479905">https://doi.org/10.1080/01621459.1977.10479905</a>.</p>
+</div>
+<div id="ref-Furnival_1974">
+<p>Furnival, George M., and Robert W. Wilson. 1974. “Regressions by Leaps and Bounds.” <em>Technometrics</em> 16 (4): 499–511. <a href="https://doi.org/10.1080/00401706.1974.10489231">https://doi.org/10.1080/00401706.1974.10489231</a>.</p>
+</div>
+<div id="ref-Greene_1990">
+<p>Greene, William H. 1990. <em>Econometric Analysis</em>.</p>
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="linear-regression.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="feasible-generalized-least-squares.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/lunr.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": "https://github.com/mikenguyen13/data_analysis/edit/main/06-1-regression.Rmd",
+"text": "Edit"
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": ["Data Analysis.pdf", "Data Analysis.epub", "Data Analysis.mobi"],
+"toc": {
+"collapse": "subsection",
+"scroll_highlight": true,
+"sharing": {
+"facebook": true,
+"github": true,
+"twitter": true,
+"linkedin": true
+},
+"info": true,
+"edit": true
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>
