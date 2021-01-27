@@ -39,12 +39,12 @@ $$
 **Numerical Solutions**  
 
  * Grid search  
-  + A "grid" of possible parameter values and see which one minimize the residual sum of squares.  
-  + finer grid = greater accuracy  
-  + could be inefficient, and hard when p is large.  
+    + A "grid" of possible parameter values and see which one minimize the residual sum of squares.  
+    + finer grid = greater accuracy  
+    + could be inefficient, and hard when p is large.  
  * Gauss-Newton Algorithm  
-  + we have an initial estimate of $\theta$ denoted as $\hat{\theta}^{(0)}$  
-  + use a Taylor expansions of $f(\mathbf{x}_i;\theta)$ as a function of $\theta$ about the point $\hat{\theta}^{(0)}$  
+    + we have an initial estimate of $\theta$ denoted as $\hat{\theta}^{(0)}$  
+    + use a Taylor expansions of $f(\mathbf{x}_i;\theta)$ as a function of $\theta$ about the point $\hat{\theta}^{(0)}$  
 
 $$
 \begin{align} 
@@ -83,8 +83,9 @@ $$
 \hat{\sigma}^2= \frac{1}{n-p}(\mathbf{Y}-\mathbf{f}(x;\hat{\theta}))'(\mathbf{Y}-\mathbf{f}(x;\hat{\theta}))
 $$
 
+<br>
 
-Criteria for convergence  
+**Criteria for convergence**  
 
  1. Minor change in the objective function (SSE = residual sum of squares)  
 $$
@@ -96,8 +97,9 @@ $$
 $$
  3. "residual projection" criterion of [@Bates_1981]  
 
+### Alternative of Gauss-Newton Algorithm
 
-**Gauss-Newton Algorithm**  
+#### Gauss-Newton Algorithm
 
 Normal equations:  
 
@@ -119,7 +121,7 @@ where
  * $-1/2$: indicator of the direction of steepest descent.  
 
 
-**Modified Gauss-Newton Algorithm**  
+#### Modified Gauss-Newton Algorithm
 
 To avoid overstepping (the local min), we can use the modified Gauss-Newton Algorithm. We define a new proposal for $\theta$  
 
@@ -129,6 +131,8 @@ $$
 where  
 
  * $\alpha_j$ (called the "learning rate"): is used to modify the step length.  
+
+We could also have $\alpha *1/2$, but typically it is assumed to be absorbed into the learning rate. 
 
 A way to choose $\alpha_j$, we can use **step halving**  
 
@@ -160,7 +164,84 @@ Refer back to the **Modified Gauss-Newton Algorithm**, we can see it is in this 
 $$
 \hat{\theta}^{(j+1)} =\hat{\theta}^{(j)} - \alpha_j[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1}\frac{\partial SSE(\hat{\theta}^{(j)})}{\partial \theta}
 $$
-where Q = SSE
+where Q = SSE, $[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1} = \mathbf{A}$
+
+
+#### Steepest Descent
+
+(also known just "gradient descent")  
+
+$$
+\hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} - \alpha_j \mathbf{I}_{p \times p}\frac{\partial \mathbf{Q}(\hat{\theta}^{(j)})}{\partial \theta}
+$$
+
+ * slow to converge, moves rapidly initially.  
+ * could be use for starting values  
+
+#### Levenberg -Marquardt
+
+$$
+\hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} - \alpha_j [\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})+ \tau \mathbf{I}_{p \times p}]\frac{\partial \mathbf{Q}(\hat{\theta}^{(j)})}{\partial \theta}
+$$
+
+which is a compromise between the [Gauss-Newton Algorithm] and the [Steepest Descent].  
+
+ * best when $\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})$ is nearly singular ($\mathbf{F}(\hat{\theta}^{(j)})$ isn't of full rank)  
+ * similar to ridge regression  
+ * If $SSE(\hat{\theta}^{(j+1)}) < SSE(\hat{\theta}^{(j)})$, then $\tau= \tau/10$ for the next iteration. Otherwise, $\tau = 10 \tau$
+
+
+#### Newton-Raphson
+
+$$
+\hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} - \alpha_j [\frac{\partial^2Q(\hat{\theta}^{(j)})}{\partial \theta \partial \theta'}]^{-1}\frac{\partial \mathbf{Q}(\hat{\theta}^{(j)})}{\partial \theta}
+$$
+
+The **Hessian matrix** can be rewritten as:  
+
+$$
+\frac{\partial^2Q(\hat{\theta}^{(j)})}{\partial \theta \partial \theta'} = 2 \mathbf{F}((\hat{\theta})^{(j)})'\mathbf{F}(\hat{\theta}^{(j)}) - 2\sum_{i=1}^{n}[Y_i - f(x_i;\theta)]\frac{\partial^2f(x_i;\theta)}{\partial \theta \partial \theta'}
+$$
+which contains the same term that [Gauss-Newton Algorithm
+], combined with one containing the second partial derivatives of f(). (methods that require the second derivatives of the objective function are known as "second-order methods".)  
+However, the last term \frac{\partial^2f(x_i;\theta)}{\partial \theta \partial \theta'} can sometimes be nonsingular.  
+
+
+
+#### Quasi-Newton
+
+update $\theta$ according to  
+
+$$
+\hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} - \alpha_j \mathbf{H}_j^{-1}\frac{\partial \mathbf{Q}(\hat{\theta}^{(j)})}{\partial \theta}
+$$
+where $H_j$ is a symmetric positive definite approximation to the Hessian, which gets closer as $j \to \infty$.  
+
+ * $\mathbf{H}_j$ is computed iteratively  
+ * AMong first-order methods(where only first derivatives are required), this method performs best.  
+
+#### Derivative Free Methods
+
+ * **secant Method**: like [Gauss-Newton Algorithm], but calculates the derivatives numerically from past iterations.  
+ * **Simplex Methods**  
+ * **Genetic Algorithm**  
+ * **Differential Evolution Algorithms**  
+ * **Particle Swarm Optimization**  
+ * **Ant Colony Optimization**  
+
+### Practical Considerations
+
+#### Failure to converge
+
+ * $SSE(\theta)$ may be "flat" in a neighborhood of the minimum.  
+ * You can try different or "better" starting values.  
+ * Might suggest the model is too complex for the data, might consider simpler model.  
+
+
+#### Convergence to a Local Minimum
+
+
+
 
 ## Genelized Method of Moments
 
