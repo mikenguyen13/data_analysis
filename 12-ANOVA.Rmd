@@ -906,7 +906,7 @@ Also known as ANOVA Type II models.
 
 Treatments are chosen at from from larger population.  We extend inference to all treatments in the population and not restrict our inference to those treatments that happened to be selected for the study.  
 
-**random cell means** model  
+#### Random Cell Means
 
 $$
 Y_{ij} = \mu_i + \epsilon_{ij}
@@ -951,9 +951,435 @@ $$
 \end{align}
 $$
 
-slide 76
+
+**Inference**
+
+**Intraclass Correlation Coefficient**  
+
+$$
+\frac{\sigma^2_{\mu}}{\sigma^2 + \sigma^2_{\mu}}
+$$
+which measures the proportion of total variability of $Y_{ij}$ accounted for by the variance of $\mu_i$
+
+
+$$
+H_0: \sigma_{\mu}^2 = 0 \\
+H_a: \sigma_{\mu}^2 \neq 0
+$$
+
+$H_0$ implies $\mu_i = \mu$ for all i, which can be tested by the F-test in ANOVA.  
+
+The understandings of the [Single Factor Fixed Effects Model] and the [Single Factor Random Effects Model] are different, the ANOVA is same for the one factor model. The difference is in the expected mean squares  
+
+**Random Effects** Model | **Fixed Effects** Model  
+---|---
+$E(MSE) = \sigma^2$ | $E(MSE) = \sigma^2$
+$E(MSTR) = \sigma^2 - n \sigma^2_\mu$ | $E(MSTR) = \sigma^2 + \frac{\sum_i n_i (\mu_i - \mu)^2}{a-1}$
+
+
+If $\sigma^2_\mu$, then MSE and MSTR have the same expectation ($\sigma^2$). Otherwise, $E(MSTR) >E(MSE)$. Large values of the statistic  
+
+$$
+F = \frac{MSTR}{MSE}
+$$
+suggest we reject $H_0$. 
+
+Since $F \sim F_{(a-1,a(n-1))}$ when $H_0$ holds. If $F > f_{(1-\alpha;a-1,a(n-1))}$ we reject $H_0$. If sample sizes are not equal, F-test can still be used, but the df  are $a-1$ and $N-a$.   
+
+##### Estimation of $\mu$  
+
+An unbiased estimator of $E(Y_{ij})=\mu$ is the grand mean: $\hat{\mu} = \hat{Y}_{..}$  
+
+The variance of this estimator is  
+
+$$
+\begin{align}
+var(\bar{Y}_{..}) &= var(\sum_i \bar{Y}_{i.}/a) \\
+&= \frac{1}{a^2}\sum_ivar(\bar{Y}_{i.}) \\
+&= \frac{1}{a^2}\sum_i(\sigma^2_\mu+\sigma^2/n) \\
+&= \frac{1}{a^2}(\sigma^2_{\mu}+\sigma^2/n) \\
+&= \frac{n\sigma^2_{\mu}+ \sigma^2}{an}
+\end{align}
+$$
+
+An unbiased estimator of this variance is  $s^2(\bar{Y})=\frac{MSTR}{an}$. Thus $\frac{\bar{Y}_{..}-\mu}{s(\bar{Y}_{..})} \sim t_{a-1}$  
+
+A $1-\alpha$ confidence interval is $\bar{Y}_{..} \pm t_{(1-\alpha/2;a-1)}s(\bar{Y}_{..})$  
+
+
+##### Estimation of $\sigma^2_\mu/(\sigma^2_{\mu}+\sigma^2)$  
+
+In the random and fixed effects model, MSTR and MSE are independent. When the sample sizes are equal ($n_i = n$ for all i), 
+
+$$
+\frac{\frac{MSTR}{n\sigma^2_\mu+ \sigma^2}}{\frac{MSE}{\sigma^2}} \sim f_{(a-1,a(n-1))}
+$$
+
+$$
+P(f_{(\alpha/2;a-1,a(n-1))}\le \frac{\frac{MSTR}{n\sigma^2_\mu+ \sigma^2}}{\frac{MSE}{\sigma^2}} \le f_{(1-\alpha/2;a-1,a(n-1))}) = 1-\alpha
+$$
+
+
+$$
+L = \frac{1}{n}(\frac{MSTR}{MSE}(\frac{1}{f_{(1-\alpha/2;a-1,a(n-1))}})-1) \\
+U = \frac{1}{n}(\frac{MSTR}{MSE}(\frac{1}{f_{(\alpha/2;a-1,a(n-1))}})-1)
+$$
+
+The lower and upper $(L^*,U^*)$ confidence limits for $\frac{\sigma^2_\mu}{\sigma^2_\mu + \sigma^2}$  
+
+$$
+L^* = \frac{L}{1+L} \\
+U^* = \frac{U}{1+U}
+$$
+If the lower limit for $\frac{\sigma^2_\mu}{\sigma^2}$ is negative, it is customary to set L = 0.  
+
+##### Estimation of $\sigma^2$  
+
+$a(n-1)MSE/\sigma^2 \sim \chi^2_{a(n-1)}$, the $(1-\alpha)$ confidence interval for $\sigma^2$:  
+
+$$
+\frac{a(n-1)MSE}{\chi^2_{1-\alpha/2;a(n-1)}} \le \sigma^2 \le \frac{a(n-1)MSE}{\chi^2_{\alpha/2;a(n-1)}}
+$$
+can also be used in case sample sizes are not equal - then df is N-a.  
+
+##### Estimation of $\sigma^2_\mu$
+
+$E(MSE) = \sigma^2$  $E(MSTR) = \sigma^2 + n\sigma^2_\mu$. Hence,  
+
+$$
+\sigma^2_{\mu} = \frac{E(MSTR)- E(MSE)}{n}
+$$
+An unbiased estimator of $\sigma^2_\mu$ is given by  
+
+$$
+s^2_\mu =\frac{MSTR-MSE}{n}
+$$
+
+if $s^2_\mu < 0$, set $s^2_\mu = 0$  
+
+If sample sizes are not equal,  
+
+$$
+s^2_\mu = \frac{MSTR - MSE}{n'}
+$$
+where $n' = \frac{1}{a-1}(\sum_i n_i- \frac{\sum_i n^2_i}{\sum_i n_i})$  
+
+no exact confidence intervals for $\sigma^2_\mu$, but we can approximate intervals.  
+
+**Satterthewaite Procedure** can be used to construct approximate confidence intervals for linear combination of expected mean squares  
+A linear combination:  
+
+$$
+\sigma^2_\mu = \frac{1}{n} E(MSTR) + (-\frac{1}{n}) E(MSE)
+$$
+$$
+S = d_1 E(MS_1) + ..+ d_h E(MS_h)
+$$
+where $d_i$ are coefficients.  
+
+
+An unbiased estimator of S is  
+
+$$
+\hat{S} = d_1 MS_1 + ...+ d_h  MS_h 
+$$
+
+Let $df_i$ be the degrees of freedom associated with teh mean square $MS_i$. The **Satterthwaite** approximation:  
+
+$$
+\frac{(df)\hat{S}}{S} \sim \chi^2_{df}
+$$
+where 
+$$
+df = \frac{(d_1MS_1+...+d_hMS_h)^2}{(d_1MS_1)^2/df_1 + ...+ (d_hMS_h)^2/df_h}
+$$
+
+An approximate $1-\alpha$ confidence interval for S:  
+
+$$
+\frac{(df)\hat{S}}{\chi^2_{1-\alpha/2;df}} \le S \le \frac{(df)\hat{S}}{\chi^2_{\alpha/2;df}}
+$$
+
+For the single factor random effects model  
+
+$$
+\frac{(df)s^2_\mu}{\chi^2_{1-\alpha/2;df}} \le \sigma^2_\mu \le \frac{(df)s^2_\mu}{\chi^2_{\alpha/2;df}}
+$$
+
+where 
+
+$$
+df = \frac{(sn^2_\mu)^2}{\frac{(MSTR)^2}{a-1}+ \frac{(MSE)^2}{a(n-1)}}
+$$
+
+#### Random Treatment Effects Model
+
+$$
+\tau_i = \mu_i - E(\mu_i) = \mu_i - \mu
+$$
+we have $\mu_i = \mu + \tau_i$ and
+$$
+Y_{ij} = \mu + \tau_i + \epsilon_{ij}
+$$
+where  
+
+ * $\mu$ = constant, common to all observations  
+ * $\tau_i \sim N(0,\sigma^2_\tau)$ independent (random variables)  
+ * $\epsilon_{ij} \sim N(0,\sigma^2)$ independent.  
+ * $\tau_{i}, \epsilon_{ij}$ are independent (i=1,...,a; j =1,..,n) 
+ * our model is concerned with only balanced single factor ANOVA.  
+
+<br>
+
+**Diagnostics Measures**  
+
+ * Non-constant error variance (plots, Levene test, Hartley test).  
+ * Non-independence of errors (plots, Durban-Watson test).  
+ * Outliers (plots, regression methods).  
+ * Non-normality of error terms (plots, Shapiro-Wilk, Anderson-Darling).  
+ * Omitted Variable Bias (plots)  
+
+
+**Remedial**  
+
+ * [Weighted Least Squares]  
+ * [Transformations]
+ * Non-parametric Procedures.  
+
+
+**Note**
+
+ * Fixed effect ANOVA is relatively robust to 
+    + non-normality  
+    + unequal variances when sample sizes are approximately equal; at least the F-test and multiple comparisons. However, single comparisons of treatment means are sensitive to unequal variances.  
+ * Lack of independence can seriously affect both fixed and random effect ANVOA.  
+
 
 ### Two Factor Fixed Effect ANOVA
+
+The multi-factor experiment is  
+
+ * more efficient
+ * provides more info  
+ * gives more validity to the findings.  
+
 #### Balanced
+
+Assumption:  
+
+ * All treatment sample sizes are equal  
+ * All treatment means are of equal importance  
+
+Assume:  
+
+ * Factor A has `a` levels and Factor B has `b` levels. All a x b factor levels are considered.  
+ * The number of treatments for each level is n. $N = abn$ observations in the study.  
+
+
+##### Cell Means Model
+
+$$
+Y_{ijk} = \mu_{ij} + \epsilon_{ijk}
+$$
+where  
+
+ * $\mu_{ij}$ are fixed parameters (cell means)  
+ * $i = 1,...,a$ = the levels of Factor A  
+ * $j = 1,...,b$ = the levels of Factor B.  
+ * $\epsilon_{ijk} \sim \text{indep } N(0,\sigma^2)$ for $i = 1,...,a$, $j = 1,..,b$ and $k = 1,..,n$  
+
+
+And 
+
+$$
+E(Y_{ijk}) = \mu_{ij} \\
+var(Y_{ijk}) = var(\epsilon_{ijk}) = \sigma^2
+$$
+Hence,  
+
+$$
+Y_{ijk} \sim \text{indep } N(\mu_{ij},\sigma^2)
+$$
+And the model is  
+$$
+\mathbf{Y} = \mathbf{X} \beta + \epsilon
+$$
+Thus,  
+
+$$
+E(\mathbf{Y}) = \mathbf{X}\beta \\
+var(\mathbf{Y}) = \sigma^2 \mathbf{I}
+$$
+
+**Interaction**  
+
+$$
+(\alpha \beta)_{ij} = \mu_{ij} - (\mu_{..}+ \alpha_i + \beta_j)
+$$
+where  
+
+ * $\mu_{..} = \sum_i \sum_j \mu_{ij}/ab$  is the grand mean  
+ * $\alpha_i = \mu_{i.}-\mu_{..}$ is the main effect for factor A at the i-th level  
+ * $\beta_j = \mu_{.j} - \mu_{..}$ is the main effect for factor B at the j-th level  
+ * $(\alpha \beta)_{ij}$ is the interaction effect when factor A is at the i-th level and factor B is at the j-th level.  
+ * $(\alpha \beta)_{ij} = \mu_{ij} - \mu_{i.}-\mu_{.j}+ \mu_{..}$  
+
+
+Examine interactions:  
+
+ * Examine whether all $\mu_{ij}$ can be expressed as the sums $\mu_{..} + \alpha_i + \beta_j$  
+ * Examine whether the difference between the mean responses for any two levels of factor B is the same for all levels of factor A.  
+ * Examine whether the difference between the mean response for any two levels of factor A is the same for all levels of factor B  
+ * Examine whether the treatment mean curves for the different factor levels in a treatment plot are parallel.  
+
+For $j = 1,...,b$  
+
+$$
+\begin{align}
+\sum_i(\alpha \beta)_{ij} &= \sum_i (\mu_{ij} - \mu_{..} - \alpha_i - \beta_j) \\
+&= \sum_i \mu_{ij} - a \mu_{..} - \sum_i \alpha_i - a \beta_j \\
+&= a \mu_{.j} - a \mu_{..}- \sum_i (\mu_{i.} - \mu_{..}) - a(\mu_{.j}-\mu_{..}) \\
+&= a \mu_{.j} - a \mu_{..} - a \mu_{..}+ a \mu_{..} - a (\mu_{.j} - \mu_{..}) \\
+&= 0
+\end{align}
+$$
+Similarly, $\sum_j (\alpha \beta) = 0, i = 1,...,a$ and $\sum_i \sum_j (\alpha \beta)_{ij} =0$, $\sum_i \alpha_i = 0$, $\sum_j \beta_j = 0$  
+
+
+##### Factor Effects Model
+
+$$
+\mu_{ij} = \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij} \\
+Y_{ijk} = \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ijk}
+$$
+
+where  
+
+ * $\mu_{..}$ is a constant  
+ * $\alpha_i$ are constants subject to the restriction $\sum_i \alpha_i=0$  
+ * $\beta_j$ are constants subject to the restriction $\sum_j \beta_j = 0$  
+ * $(\alpha \beta)_{ij}$ are constants subject to the restriction $\sum_i(\alpha \beta)_{ij} = 0$ for $j=1,...,b$ and $\sum_j(\alpha \beta)_{ij} = 0$ for $i = 1,...,a$  
+ * $\epsilon_{ijk} \sim \text{indep } N(0,\sigma^2)$ for $k = 1,..,n$  
+
+We have
+$$
+E(Y_{ijk}) = \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij}\\
+var(Y_{ijk}) = \sigma^2 \\
+Y_{ijk} \sim N (\mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij}, \sigma^2)
+$$
+
+We have $1+a+b+ab$ parameters. But there are $ab$ parameters in the [Cell Means Model]. In the [Factor Effects Model], the restrictions limit the number of parameters that can be estimated:  
+
+$$
+1 \text{ for } \mu_{..} \\
+(a-1) \text{ for } \alpha_i \\
+(b-1) \text{ for } \beta_j \\
+(a-1)(b-1) \text{ for } (\alpha \beta)_{ij}
+$$
+
+Hence, there are 
+
+$$
+1 + a - 1 + b - 1 + ab - a- b + 1 = ab
+$$
+parameters in the model.  
+
+We can have several restrictions when considering the model in the form $\mathbf{Y} = \mathbf{X} \beta + \epsilon$  
+
+One way:  
+
+$$
+\alpha_a  = \alpha_1 - \alpha_2 - ... - \alpha_{a-1} \\
+\beta_b = -\beta_1 - \beta_2 - ... - \beta_{b-1} \\
+(\alpha \beta)_{ib} = -(\alpha \beta)_{i1} -(\alpha \beta)_{i2} -...-(\alpha \beta)_{i,b-1} ; i = 1,..,a \\
+(\alpha \beta)_{aj} = -(\alpha \beta)_{1j}-(\alpha \beta)_{2j} - ... -(\alpha \beta)_{a-1,j}; j = 1,..,b
+$$
+
+We can fit the model by least squares or maximum likelihood  
+
+**Cell Means Model**  
+minimize  
+$$
+Q = \sum_i \sum_j \sum_k (Y_{ijk}-\mu_{ij})^2
+$$
+estimators
+
+$$
+\hat{\mu}_{ij}= \bar{Y}_{ij} \\
+\hat{Y}_{ijk} = \bar{Y}_{ij} \\
+e_{ijk} = Y_{ijk} - \hat{Y}_{ijk} = Y_{ijk} - \bar{Y}_{ij}
+$$
+
+
+**Factor Effects Model**  
+
+$$
+Q = \sum_i \sum_j \sum_k (Y_{ijk} - \mu_{..}-\alpha_i = \beta_j - (\alpha \beta)_{ij})^2
+$$
+
+subject to the restrictions
+
+$$
+\sum_i \alpha_i = 0 \\
+\sum_j \beta_j = 0 \\
+\sum_i (\alpha \beta)_{ij} = 0 \\
+\sum_j (\alpha \beta)_{ij} = 0
+$$
+
+estimators  
+
+$$
+\hat{\mu}_{..} = \bar{Y}_{...} \\
+\hat{\alpha}_i = \bar{Y}_{i..} - \bar{Y}_{...} \\
+\hat{\beta}_j = \bar{Y}_{.j.}-\bar{Y}_{...} \\
+(\hat{\alpha \beta})_{ij} = \bar{Y}_{ij.} - \bar{Y}_{i..} - \bar{Y}_{.j.}+ \bar{Y}_{...}
+$$
+The fitted values  
+
+$$
+\hat{Y}_{ijk} = \bar{Y}_{...}+ (\bar{Y}_{i..}- \bar{Y}_{...})+ (\bar{Y}_{.j.}- \bar{Y}_{...}) + (\bar{Y}_{ij.} - \bar{Y}_{i..}-\bar{Y}_{.j.}+\bar{Y}_{...}) = \bar{Y}_{ij.}
+$$
+
+where 
+
+$$
+e_{ijk} = Y_{ijk} - \bar{Y}_{ij.} \\
+e_{ijk} \sim \text{ indep } (0,\sigma^2)
+$$
+
+and  
+
+$$
+s^2_{\hat{\mu}..} = \frac{MSE}{nab} \\
+s^2_{\hat{\alpha}_i} = MSE(\frac{1}{nb} - \frac{1}{nab}) \\
+s^2_{\hat{\beta}_j} = MSE(\frac{1}{na} - \frac{1}{nab}) \\
+s^2_{(\hat{\alpha\beta})_{ij}} = MSE (\frac{1}{n} - \frac{1}{na}- \frac{1}{nb} + \frac{1}{nab})
+$$
+
+
+**Partitioning the Total Sum of Squares**  
+
+$$
+Y_{ijk} - \bar{Y}_{...} = \bar{Y}_{ij.} - \bar{Y}_{...} + Y_{ijk} - \bar{Y}_{ij.}
+$$
+
+$Y_{ijk} - \bar{Y}_{...}$: Total deviation  
+$\bar{Y}_{ij.} - \bar{Y}_{...}$: Deviation of treatment mean from overall mean  
+$Y_{ijk} - \bar{Y}_{ij.}$: Deviation of observation around treatment mean (residual).  
+
+$$
+\begin{align}
+\sum_i \sum_j \sum_k (Y_{ijk} - \bar{Y}_{...})^2 &= n \sum_i \sum_j (\bar{Y}_{ij.}- \bar{Y}_{...})^2+ \sum_i \sum_j sum_k (Y_{ijk} - \bar{ij.})^2 \\
+SSTO &= SSTR + SSE
+\end{align}
+$$
+
+(cross product terms are 0)
+
+
+
+
+
+
 
 #### Unbalanced
