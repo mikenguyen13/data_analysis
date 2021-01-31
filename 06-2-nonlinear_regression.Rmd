@@ -22,6 +22,124 @@ where $f(\mathbf{x_i;\theta})$ is a nonlinear function relating $E(Y_i)$ to the 
  * $\mathbf{\theta}$ is a p x 1 vector of parameters.  
  * $\epsilon_i$s are iid variables mean 0 and variance $\sigma^2$. (sometimes it's normal).  
 
+## Inference
+
+Since $Y_i = f(\mathbf{x}_i,\theta) + \epsilon_i$, where $\epsilon_i \sim iid(0,\sigma^2)$. We can obtain $\hat{\theta}$ by minimizing $\sum_{i=1}^{n}(Y_i - f(x_i,\theta))^2$ and estimate  $s^2 = \hat{\sigma}^2_{\epsilon}=\frac{\sum_{i=1}^{n}(Y_i - f(x_i,\theta))^2}{n-p}$
+
+### Linear Function of the Parameters
+
+If we assume $\epsilon_i \sim N(0,\sigma^2)$, then 
+
+$$
+\hat{\theta} \sim AN(\mathbf{\theta},\sigma^2[\mathbf{F}(\theta)'\mathbf{F}(\theta)]^{-1})
+$$
+where An = asymptotic normality
+
+Asymptotic means we have enough data to make inference (As your sample size increases, this becomes more and more accurate (to the true value)).
+
+
+Since we want to do inference on linear combinations of parameters or contrasts.  
+
+If we have $\mathbf{\theta} = (\theta_0,\theta_1,\theta_2)'$ and we want to look at $\theta_1 - \theta_2$; we can define vector $\mathbf{a} = (0,1,-1)'$, consider inference for $\mathbf{a'\theta}$  
+
+
+Rules for expectation and variance of a fixed vector $\mathbf{a}$ and random vector $\mathbf{Z}$;  
+
+$$
+E(\mathbf{a'Z}) = \mathbf{a'}E(\mathbf{Z}) \\
+var(\mathbf{a'Z}) = \mathbf{a'}var(\mathbf{Z})\mathbf{a}
+$$
+
+Then,  
+
+$$
+\mathbf{a'\hat{\theta}} \sim AN(\mathbf{a'\theta},\sigma^2\mathbf{a'[F(\theta)'F(\theta)]^{-1}a})
+$$
+
+and $\mathbf{a'\hat{\theta}}$ is asymptotically independent of $s^2$ (to order 1/n) then  
+
+$$
+\frac{\mathbf{a'\hat{\theta}-a'\theta}}{s(\mathbf{a'[F(\theta)'F(\theta)]^{-1}a})^{1/2}} \sim t_{n-p}
+$$
+to construct $100(1-\alpha)\%$ confidence interval for $\mathbf{a'\theta}$  
+
+$$
+\mathbf{a'\theta} \pm t_{(1-\alpha/2,n-p)}s(\mathbf{a'[F(\theta)'F(\theta)]^{-1}a})^{1/2}
+$$
+
+Suppose $\mathbf{a'} = (0,...,j,...,0)$. Then, a confidence interval for the jth element of $\mathbf{\theta}$ is 
+
+$$
+\hat{\theta}_j \pm t_{(1-\alpha/2,n-p)}s\sqrt{\hat{c}^{j}}
+$$
+where $\hat{c}^{j}$ is the jth diagonal element of $[\mathbf{F(\hat{\theta})'F(\hat{\theta})}]^{-1}$  
+
+
+### Nonlinear
+Suppose that $h(\theta)$ is a nonlinear function of the parameters. We can use Taylor series about $\theta$  
+
+$$
+h(\hat{\theta}) \approx h(\theta) + \mathbf{h}'[\hat{\theta}-\theta]
+$$
+where $\mathbf{h} = (\frac{\partial h}{\partial \theta_1},...,\frac{\partial h}{\partial \theta_p})'$  
+
+with 
+
+$$
+E(\hat{\theta}) \approx \theta \\
+var(\hat{\theta}) \approx  \sigma^2[\mathbf{F(\theta)'F(\theta)}]^{-1} \\
+E(h(\hat{\theta})) \approx h(\theta) \\
+var(h(\hat{\theta})) \approx \sigma^2 \mathbf{h'[F(\theta)'F(\theta)]^{-1}h}
+$$
+
+Thus,  
+
+$$
+h(\hat{\theta}) \sim AN(h(\theta),\sigma^2\mathbf{h'[F(\theta)'F(\theta)]^{-1}h})
+$$
+and an approximate $100(1-\alpha)\%$ confidence interval for $h(\theta)$ is 
+
+$$
+h(\hat{\theta}) \pm t_{(1-\alpha/2;n-p)}s(\mathbf{h'[F(\theta)'F(\theta)]^{-1}h})^{1/2}
+$$
+
+where $\mathbf{h}$ and $\mathbf{F}(\theta)$ are evaluated at $\hat{\theta}$  
+
+Regarding **prediction interval** for Y at $x=x_0$  
+
+$$
+Y_0 = f(x_0;\theta) + \epsilon_0, \epsilon_0 \sim N(0,\sigma^2) \\
+\hat{Y}_0 = f(x_0,\hat{\theta})
+$$
+
+As $n \to \infty$, $\hat{\theta} \to \theta$, so we  
+
+$$
+f(x_0, \hat{\theta}) \approx f(x_0,\theta) + \mathbf{f}_0(\mathbf{\theta})'[\hat{\theta}-\theta]
+$$
+where $f_0(\theta)= (\frac{\partial f(x_0,\theta)}{\partial \theta_1},..,\frac{\partial f(x_0,\theta)}{\partial \theta_p})'$ (note: this $f_0(\theta)$ is different from $f(\theta)$).  
+
+$$
+Y_0 - \hat{Y}_0 \approx Y_0  - f(x_0,\theta) - f_0(\theta)'[\hat{\theta}-\theta]  \\
+= \epsilon_0 - f_0(\theta)'[\hat{\theta}-\theta]
+$$
+
+$$
+E(Y_0 - \hat{Y}_0) \approx E(\epsilon_0)E(\hat{\theta}-\theta) = 0 \\
+var(Y_0 - \hat{Y}_0) \approx var(\epsilon_0 - \mathbf{(f_0(\theta)'[\hat{\theta}-\theta])}) \\
+= \sigma^2 + \sigma^2 \mathbf{f_0 (\theta)'[F(\theta)'F(\theta)]^{-1}f_0(\theta)} \\
+= \sigma^2 (1 + \mathbf{f_0 (\theta)'[F(\theta)'F(\theta)]^{-1}f_0(\theta)})
+$$
+
+Hence, combining  
+
+$$
+Y_0 - \hat{Y}_0 \sim AN (0,\sigma^2 (1 + \mathbf{f_0 (\theta)'[F(\theta)'F(\theta)]^{-1}f_0(\theta)}))
+$$
+
+
+
+
 
 
 ## Non-linear Least Squares
@@ -54,6 +172,53 @@ Y_i &= f(x_i;\theta) + \epsilon_i \\
 $$
 
 Equivalently,  
+
+In matrix notation,  
+
+$$
+\mathbf{Y} = 
+\left[ \begin{array}
+{ccc}
+Y_1 \\
+. \\
+Y_n
+\end{array} \right]
+$$
+
+$$
+\mathbf{f}(\hat{\theta}^{(0)}) =
+\left[ \begin{array}
+{ccc}
+f(\mathbf{x_1,\hat{\theta}}^{(0)}) \\
+. \\
+f(\mathbf{x_n,\hat{\theta}}^{(0)})
+\end{array} \right]
+$$
+
+
+$$
+\mathbf{\epsilon} = 
+\left[ \begin{array}
+{ccc}
+\epsilon_1 \\
+. \\
+\epsilon_n
+\end{array} \right]
+$$
+
+$$
+\mathbf{F}(\hat{\theta}^{(0)}) = 
+\left[ \begin{array}
+{ccc}
+\frac{\partial f(x_1,\mathbf{\theta})}{\partial \theta_1} && ... && \frac{\partial f(x_1,\mathbf{\theta})}{\partial \theta_p}\\
+. && . && . \\
+\frac{\partial f(x_n,\mathbf{\theta})}{\partial \theta_1} && ... && \frac{\partial f(x_n,\mathbf{\theta})}{\partial \theta_p}
+\end{array} \right]_{\theta = \hat{\theta}^{(0)}}
+$$
+
+
+Hence,  
+
 
 $$
 \mathbf{Y} = \mathbf{f}(\hat{\theta}^{(0)}) + \mathbf{F}(\hat{\theta}^{(0)})(\theta - \hat{\theta}^{(0)}) + \epsilon + \text{remainder}
@@ -231,6 +396,19 @@ where $H_j$ is a symmetric positive definite approximation to the Hessian, which
 
 ### Practical Considerations
 
+To converge, algorithm need good initial estimates.  
+
+ * Starting values:  
+    + Prior or theoretical info  
+    + A grid search or a graph of $SSE(\theta)$  
+    + could also use OLS to get starting values.  
+    + Model interpretation: if you have some idea regarding the form of the objective function, then you can try to guess the initial value.  
+    + Expected Value Parameterization  
+ * Constrained Parameters: (constraints on parameters like $\theta_i>a,a< \theta_i <b$)  
+    + fit the model first to see if the converged parameter estimates satisfy the constraints. 
+    + if they dont' satisfy, then try re-parameterizing  
+
+
 #### Failure to converge
 
  * $SSE(\theta)$ may be "flat" in a neighborhood of the minimum.  
@@ -240,6 +418,11 @@ where $H_j$ is a symmetric positive definite approximation to the Hessian, which
 
 #### Convergence to a Local Minimum
 
+ * Linear least squares has the property that $SSE(\theta) = \mathbf{(Y-X\beta)'(Y-X\beta)}$, which is quadratic and has a unique minimum (or maximum).  
+ * Nonlinear east squares need  not have a unique minimum  
+ * Using different starting values can help  
+ * If the dimension of $\theta$ is low, graph $SSE(\theta)$ as a function of $\theta_i$  
+ * Different algorithm can help (e.g., genetic algorithm, particle swarm)  
 
 
 
