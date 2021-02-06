@@ -1,5 +1,16 @@
 # Non-linear Regression
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(ggplot2)
+library(kableExtra)
+library(knitr)
+library(nlstools)
+library(investr)
+library(MASS)
+```
+
 **Definition**: models in which the derivatives of the mean function with respect to the parameters depend on one or more of the parameters.  
 
 
@@ -75,6 +86,57 @@ $$
 where $\hat{c}^{j}$ is the jth diagonal element of $[\mathbf{F(\hat{\theta})'F(\hat{\theta})}]^{-1}$  
 
 
+
+```{r}
+#set a seed value 
+set.seed(23)
+
+#Generate x as 100 integers using seq function
+x<-seq(0,100,1)
+
+#Generate y as a*e^(bx)+c
+y<-runif(1,0,20)*exp(runif(1,0.005,0.075)*x)+runif(101,0,5)
+
+# visulize
+plot(x,y)
+
+#define our data frame
+datf = data.frame(x,y)
+
+#define our model function
+mod =function(a,b,x) a*exp(b*x)
+```
+
+In this example, we can get the starting values by using linearized version of the function $\log y = \log a + b x$.  Then, we can fit a linear regression to this and use our estimates as starting values
+
+```{r}
+#get starting values by linearizing
+lin_mod=lm(log(y)~x,data=datf)
+
+#convert the a parameter back from the log scale; b is ok 
+astrt = exp(as.numeric(lin_mod$coef[1]))
+bstrt = as.numeric(lin_mod$coef[2])
+print(c(astrt,bstrt))
+```
+
+
+with `nls`, we can fit the nonlinear model via least squares
+
+```{r}
+nlin_mod=nls(y~mod(a,b,x),start=list(a=astrt,b=bstrt),data=datf) 
+
+#look at model fit summary
+summary(nlin_mod)
+
+#add prediction to plot
+plot(x,y)
+lines(x,predict(nlin_mod),col="red")
+
+
+```
+
+
+
 ### Nonlinear
 Suppose that $h(\theta)$ is a nonlinear function of the parameters. We can use Taylor series about $\theta$  
 
@@ -137,6 +199,10 @@ $$
 Y_0 - \hat{Y}_0 \sim AN (0,\sigma^2 (1 + \mathbf{f_0 (\theta)'[F(\theta)'F(\theta)]^{-1}f_0(\theta)}))
 $$
 
+
+Note:  
+
+Confidence intervals for the mean response $Y_i$ (which is different from prediction intervals) can be obtained similarly. 
 
 
 
@@ -423,6 +489,365 @@ To converge, algorithm need good initial estimates.
  * Using different starting values can help  
  * If the dimension of $\theta$ is low, graph $SSE(\theta)$ as a function of $\theta_i$  
  * Different algorithm can help (e.g., genetic algorithm, particle swarm)  
+
+
+To converge, algorithms need good initial estimates.  
+
+ * Starting values:  
+    + prior or theoretical info  
+    + A grid search or a graph 
+    + OLS estimates as starting values  
+    + Model interpretation  
+    + Expected Value Parameterization  
+ * Constrained Parameters:  
+    + try the model without the constraints first.  
+    + If the resulted parameter estimates does not satisfy the constraint, try re-parameterizing
+
+
+```{r}
+# Grid search
+#choose grid of a and b values
+aseq = seq(10,18,.2)
+bseq = seq(.001,.075,.001)
+
+na = length(aseq)
+nb = length(bseq)
+SSout = matrix(0,na*nb,3) #matrix to save output
+cnt = 0
+for (k in 1:na){
+   for (j in 1:nb){
+      cnt = cnt+1
+      ypred = mod(aseq[k],bseq[j],x) #evaluate model w/ these parms
+      ss = sum((y-ypred)^2)  #this is our SSE objective function
+      #save values of a, b, and SSE
+      SSout[cnt,1]=aseq[k]
+      SSout[cnt,2]=bseq[j]
+      SSout[cnt,3]=ss
+   }
+}
+#find minimum SSE and associated a,b values
+mn_indx = which.min(SSout[,3])
+astrt = SSout[mn_indx,1]
+bstrt = SSout[mn_indx,2]
+#now, run nls function with these starting values
+nlin_modG=nls(y~mod(a,b,x),start=list(a=astrt,b=bstrt)) 
+
+nlin_modG
+# Note, the package `nls_multstart` will allow you to do a grid search without programming your own loop
+
+
+```
+
+For prediction interval 
+
+```{r}
+plotFit(nlin_modG, interval = "both", pch = 19, shade = TRUE, 
+        col.conf = "skyblue4", col.pred = "lightskyblue2",data=datf)  
+```
+
+
+Based on the forms of your function, you can also have programmed starting values from `nls` function (e.e.g, logistic growth, asymptotic regression, etc).  
+
+```{r}
+apropos("^SS")
+```
+
+For example, a logistic growth model:  
+
+$$
+P = \frac{K}{1+ exp(P_0+ rt)} + \epsilon
+$$
+where 
+
+ * P = population at time t  
+ * K = carrying capacity   
+ * r = population growth rate  
+
+but in `R` you have slight different parameterization:  
+
+$$
+P = \frac{asym}{1 + exp(\frac{xmid - t}{scal})}
+$$
+where  
+
+ * asym = carrying capacity  
+ * xmid = the x value at the inflection point of the curve  
+ * scal = scaling parameter.  
+
+Hence, you have  
+
+ * K = asym  
+ * r = -1/scal  
+ * $P_0 = -rxmid$
+
+```{r}
+# simulated data
+time <- c(1,2,3,5,10,15,20,25,30,35)
+population <- c(2.8,4.2,3.5,6.3,15.7,21.3,23.7,25.1,25.8,25.9)
+plot(time, population, las=1, pch=16)
+
+# model fitting
+logisticModelSS <- nls(population~SSlogis(time, Asym, xmid, scal))
+summary(logisticModelSS)
+coef(logisticModelSS)
+```
+
+
+Other parameterization
+
+```{r}
+#convert to other parameterization
+Ks = as.numeric(coef(logisticModelSS)[1])
+rs = -1/as.numeric(coef(logisticModelSS)[3])
+Pos = - rs * as.numeric(coef(logisticModelSS)[2])
+#let's refit with these parameters
+logisticModel <- nls(population ~ K / (1 + exp(Po + r * time)),start=list(Po=Pos,r=rs,K=Ks))
+summary(logisticModel)
+```
+
+```{r}
+#note: initial values =  solution (highly unusual, but ok)
+plot(time, population, las=1, pch=16)
+lines(time,predict(logisticModel),col="red")
+
+```
+
+
+If can also define your own self-starting fucntion if your models are uncommon (built in `nls`)
+
+Example is based on [@Schabenberger_2001]
+
+```{r}
+#Load data
+dat <- read.table("images/dat.txt", header = T)
+# plot
+dat.plot <- ggplot(dat)+geom_point(aes(x=no3,y=ryp, color=as.factor(depth))) +
+labs(color='Depth (cm)') + xlab('Soil NO3') + ylab('relative yield percent')
+dat.plot
+```
+
+The suggested model (known as plateau model) is  
+
+$$
+E(Y_{ij}) = (\beta_{0j} + \beta_{1j}N_{ij})I_{N_{ij}\le \alpha_j} + (\beta_{0j} + \beta_{1j}\alpha_j)I_{N_{ij} > \alpha_j}
+$$
+where  
+
+ * N is an observation   
+ * i is a particular observation  
+ * j = 1,2 corresponding to depths (30,60)  
+
+
+```{r}
+#First define model as a function
+nonlinModel <- function(predictor,b0,b1,alpha){
+  ifelse(predictor<=alpha, 
+         b0+b1*predictor, #if observation less than cutoff simple linear model
+         b0+b1*alpha) #otherwise flat line
+}
+
+```
+
+define `selfStart` function. Because we defined our model to be linear in the first part and then plateau (remain constant) we can use the first half of our predictors (sorted by increasing value) to get an initial estimate for the slope and intercept of the model, and the last predictor value (alpha) can be the starting value for the plateau parameter.
+
+```{r}
+nonlinModelInit <- function(mCall,LHS,data){
+  #sort data by increasing predictor value - 
+  #done so we can just use the low level no3 conc to fit a simple model
+  xy <- sortedXyData(mCall[['predictor']],LHS,data)
+  n <- nrow(xy)
+  #For the first half of the data a simple linear model is fit
+  lmFit <- lm(xy[1:(n/2),'y']~xy[1:(n/2),'x'])
+  b0 <- coef(lmFit)[1]
+  b1 <- coef(lmFit)[2]
+  #for the cut off to the flat part select the last x value used in creating linear model
+  alpha <- xy[(n/2),'x']
+  value <- c(b0,b1,alpha)
+  names(value) <- mCall[c('b0','b1','alpha')]
+  value
+}
+```
+
+combine model and custom function to calculate starting values.
+
+```{r}
+SS_nonlinModel <- selfStart(nonlinModel,nonlinModelInit,c('b0','b1','alpha'))
+```
+
+```{r}
+#Above code defined model and selfStart now just need to call it for each of the depths
+sep30_nls <- nls(ryp~SS_nonlinModel(predictor=no3,b0,b1,alpha),data=dat[dat$depth==30,])
+
+sep60_nls <- nls(ryp~SS_nonlinModel(predictor=no3,b0,b1,alpha),data=dat[dat$depth==60,])
+
+par(mfrow=c(1,2))
+plotFit(sep30_nls, interval = "both", pch = 19, shade = TRUE,
+col.conf = "skyblue4", col.pred = "lightskyblue2",
+data=dat[dat$depth==30,],main='Results 30 cm depth',
+ylab = 'relative yield percent',xlab = 'Soil NO3 concentration',
+xlim = c(0,120))
+plotFit(sep60_nls, interval = "both", pch = 19, shade = TRUE,
+col.conf = "lightpink4", col.pred = "lightpink2",
+data=dat[dat$depth==60,],main='Results 60 cm depth',
+ylab = 'relative yield percent',xlab = 'Soil NO3 concentration',
+xlim = c(0,120))
+```
+
+```{r}
+summary(sep30_nls)
+summary(sep60_nls)
+```
+Instead of modeling the depths model separately we model them together - so there is a common slope, intercept, and plateau.
+
+```{r reduce-model}
+
+red_nls <- nls(ryp~SS_nonlinModel(predictor=no3,b0,b1,alpha),data=dat)
+
+summary(red_nls)
+
+par(mfrow=c(1,1))
+plotFit(red_nls, interval = "both", pch = 19, shade = TRUE,
+col.conf = "lightblue4", col.pred = "lightblue2",
+data=dat,main='Results combined',
+ylab = 'relative yield percent',xlab = 'Soil NO3 concentration')
+
+```
+
+Examine residual values for the combined model.
+
+```{r reduce-model-resid}
+library(nlstools)
+#using nlstools nlsResiduals function to get some quick residual plots 
+#can also use test.nlsResiduals(resid)
+# https://www.rdocumentation.org/packages/nlstools/versions/1.0-2
+resid <- nlsResiduals(red_nls)
+plot(resid)
+```
+
+can we test whether the parameters for the two soil depth fits are significantly different?  To know if the combined model is appropriate, we consider a parameterization where we let the parameters for the 60cm model be equal to the parameters from the 30cm model plus some increment:
+
+$$
+\beta_{02} = \beta_{01} + d_0 \\
+\beta_{12} = \beta_{11} + d_1 \\
+\alpha_{2} = \alpha_{1} + d_a
+$$
+
+We can implement this in the following function:
+
+```{r full-model, eval=TRUE}
+
+nonlinModelF <- function(predictor,soildep,b01,b11,a1,d0,d1,da){
+   b02 = b01 + d0 #make 60cm parms = 30cm parms + increment
+   b12 = b11 + d1
+   a2 = a1 + da
+   
+   y1 = ifelse(predictor<=a1, 
+         b01+b11*predictor, #if observation less than cutoff simple linear model
+         b01+b11*a1) #otherwise flat line
+   y2 = ifelse(predictor<=a2, 
+               b02+b12*predictor, 
+               b02+b12*a2) 
+   y =  y1*(soildep == 30) + y2*(soildep == 60)  #combine models
+   return(y)
+}
+
+```
+
+Starting values are easy now because we fit each model individually.
+```{r full-model-fit, eval=TRUE}
+
+Soil_full=nls(ryp~nonlinModelF(predictor=no3,soildep=depth,b01,b11,a1,d0,d1,da),
+              data=dat,
+              start=list(b01=15.2,b11=3.58,a1=23.13,d0=-9.74,d1=2.11,da=-6.85)) 
+
+summary(Soil_full)
+```
+So, the increment parameters, $d_1$,$d_2$,$d_a$ are all significantly different from 0, suggesting that we should have two models here. 
+
+
+
+
+
+### Model/Estiamtion Adequcy
+
+[@Bates_1980] assess nonlinearity in terms of 2 components of curvature:  
+
+ * **Intrinsic nonlinearity**: the degree of bending and twisting in $f(\theta)$; our estimation approach assumes that hte true function is relatively flat (planar) in the neighborhood fo $\hat{\theta}$, which would not be true if $f()$ has a lot of "bending" int he neighborhood of $\hat{\theta}$ (independent of parameterizaiton)  
+    + If bad, the distribution of residuals will be seriously distorted  
+    + slow to converge  
+    + difficult to identify ( could use this function `rms.curve`)  
+    + Solution:   
+        - could use higher order Taylor expansions estimation   
+        - Bayesian method
+ * **Parameter effects nonlinearity**: degree to which curvature (nonlinearity) is affected by choice of $\theta$ (data dependent; dependent on parameterization)  
+    + leads to problems with inferecne on $\hat{\theta}$  
+    + `rms.curve` in `MASS` can identify  
+    + bootstrap-based inference can also be used  
+    + Solution: try to reparaemterize. 
+
+```{r}
+#check parameter effects and intrinsic curvature
+
+modD = deriv3(~ a*exp(b*x), c("a","b"),function(a,b,x) NULL)
+
+nlin_modD=nls(y~modD(a,b,x),start=list(a=astrt,b=bstrt),data=datf)
+
+rms.curv(nlin_modD)
+```
+
+
+
+In linear model, we have [Linear Regression], we have goodness of fit measure as $R^2$:  
+
+$$
+R^2 = \frac{SSR}{SSTO} = 1- \frac{SSE}{SSTO} \\
+= \frac{\sum_{i=1}^n (\hat{Y}_i- \bar{Y})^2}{\sum_{i=1}^n (Y_i- \bar{Y})^2} = 1- \frac{\sum_{i=1}^n ({Y}_i- \hat{Y})^2}{\sum_{i=1}^n (Y_i- \bar{Y})^2}
+$$
+but not valid in the nonlinear case because the error sum of squares and model sum of squares do not add to the total corrected sum of squares  
+
+$$
+SSR + SSE \neq SST
+$$
+
+but we can use pseudo-$R^2$:  
+
+$$
+R^2_{pseudo} = 1 - \frac{\sum_{i=1}^n ({Y}_i- \hat{Y})^2}{\sum_{i=1}^n (Y_i- \bar{Y})^2}
+$$
+But we can't interpret this as the proportion of variability explained by the model. We should use as a relative comparison of different models.  
+
+
+
+**Residual Plots**:  standardize, similar to OLS. useful when the intrinsic curvature is small:  
+
+The studentized residuals  
+
+$$
+r_i = \frac{e_i}{s\sqrt{1-\hat{c}_i}}
+$$
+
+where $\hat{c}_i$is the i-th diagonal of $\mathbf{\hat{H}= F(\hat{\theta})[F(\hat{\theta})'F(\hat{\theta})]^{-1}F(\hat{\theta})'}$
+
+We could have problems of  
+
+ * Collinearity: the condition number of $\mathbf{[F(\hat{\theta})'F(\hat{\theta})]^{-1}}$ should be less than 30. Follow [@Magel_1987]; reparameterize if possible  
+ * Leverage: Like [OLS][Ordinary Least Squares], but consider $\mathbf{\hat{H}= F(\hat{\theta})[F(\hat{\theta})'F(\hat{\theta})]^{-1}F(\hat{\theta})'}$ (also known as "tangent plant hat matrix") [@Laurent_1992]  
+ * Heterogeneous Errors: weighted Non-linear Least Squares  
+ * Correlated Errors:  
+    + Generalized Nonlinear Least Squares  
+    + Nonlinear Mixed Models  
+    + Bayesian methods
+
+
+
+
+
+
+
+
+
+
+
 
 
 

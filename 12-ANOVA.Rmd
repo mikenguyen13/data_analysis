@@ -899,6 +899,49 @@ Let $T= \frac{\hat{L}}{s(\hat{L})}$ and reject $H_0$ if $|T|>t_{1-\alpha/(2g),N-
  * Recommendation: compute all threes and pick the smallest.  
  * Bonferroni can't be used for **data snooping**  
 
+###### Fisher's LSD
+
+does not control for family error rate  
+
+use t-stat for testing 
+
+$$
+H_0: \mu_i = \mu_j
+$$
+
+t-stat  
+
+$$
+t = \frac{\bar{y}_i - \bar{y}_j}{\sqrt{MSE(\frac{1}{n_i}+ \frac{1}{n_j})}}
+$$
+
+###### Newman-Keuls
+
+Do not recommend using this test since it has less power than ANOVA. 
+
+##### Multiple comparisons with a control
+
+###### Dunnett
+
+We have $a$ groups where the last group is the control group, and the $a-1$ treatment groups.  
+
+Then, we compare treatment groups to the control group.  Hence, we have $a-1$ contrasts (i.e., $a-1$ pairwise comparisons)
+
+
+##### Summary
+When choosing a multiple contrast method:  
+
+ * Pairwise  
+    + Equal groups sizes: [Tukey]  
+    + Unequal groups sizes: [Tukey], [Scheffe]  
+ * Not pairwise  
+    + with control: [Dunnett]  
+    + general: [Bonferroni], [Scheffe]    
+
+
+
+
+
 ### Single Factor Random Effects Model
 
 Also known as ANOVA Type II models. 
@@ -1357,7 +1400,7 @@ s^2_{(\hat{\alpha\beta})_{ij}} = MSE (\frac{1}{n} - \frac{1}{na}- \frac{1}{nb} +
 $$
 
 
-**Partitioning the Total Sum of Squares**  
+###### Partitioning the Total Sum of Squares
 
 $$
 Y_{ijk} - \bar{Y}_{...} = \bar{Y}_{ij.} - \bar{Y}_{...} + Y_{ijk} - \bar{Y}_{ij.}
@@ -1376,10 +1419,657 @@ $$
 
 (cross product terms are 0)
 
+$$
+\bar{Y}_{ij.}- \bar{Y}_{...} = \bar{Y}_{i..}-\bar{Y}_{...} + \bar{Y}_{.j.}-\bar{Y}_{...} + \bar{Y}_{ij.} - \bar{Y}_{i..} - \bar{Y}_{.j.} + \bar{Y}_{...}
+$$
+
+squaring and summing:  
+$$
+\begin{align}
+n\sum_i \sum_j (\bar{Y}_{ij.}-\bar{Y}_{...})^2 &= nb\sum_i (\bar{Y}_{i..}-\bar{Y}_{...})^2 + na \sum_j (\bar{Y}_{.j.}-\bar{Y}_{...})^2 + n \sum_i \sum_j (\bar{Y}_{ij.}-\bar{Y}_{i..}- \bar{Y}_{.j.}+ \bar{Y}_{...})^2 \\
+SSTR &= SSA + SSB + SSAB
+\end{align}
+$$
+
+The interaction term from 
+
+$$
+SSAB = SSTO - SSE - SSA - SSB \\
+SSAB = SSTR - SSA - SSB 
+$$
+where  
+
+ * SSA is the factor A sum of squares  (measures the variability of the estimated factor A level means $\bar{Y}_{i..}$)- the more variable, the larger SSA  
+ * SSB is the factor B sum of squares  
+ * SSAB is the interaction sum of squares, measuring the variability of the estimated interactions.  
 
 
 
 
+###### Partitioning the df
 
+$N = abn$ cases and $ab$ treatments. 
+
+For one-way ANOVA and regression, the partition has df:  
+
+$$
+SS: SSTO = SSTR + SSE \\
+df: N-1 = (ab-1) + (N-ab) 
+$$
+
+
+we must further partition the $ab-1$ df with SSTR  
+
+$$
+SSTR = SSA + SSB + SSAB \\
+ab-1 = (a-1) + (b-1) + (a-1)(b-1) 
+$$
+
+ * $df_{SSA} = a-1$: a treatment deviations but 1 df is lost due to the restriction $\sum (\bar{Y}_{i..}- \bar{Y}_{...})=0$  
+ * $df_{SSB} = b-1$: b treatment deviations but 1 df is lost due to the restriction $\sum (\bar{Y}_{.j.}- \bar{Y}_{...})=0$  
+ * $df_{SSAB} = (a-1)(b-1)= (ab-1)-(a-1)-(b-1)$: ab interactions, there are (a+b-1) restrictions, so df = ab-a-(b-1)= (a-1)(b-1)  
+
+
+###### Mean Squares
+$$
+MSA = \frac{SSA}{a-1}\\
+MSB = \frac{SSB}{b-1}\\
+MSAB = \frac{SSAB}{(a-1)(b-1)}
+$$
+
+The expected mean squares are  
+
+$$
+E(MSE) = \sigma^2 \\
+E(MSA) = \sigma^2 + nb \frac{\sum \alpha_i^2}{a-1} = \sigma^2 + nb \frac{\sum(\sum_{i.}-\mu_{..})^2}{a-1}  \\
+E(MSB) = \sigma^2 + na \frac{\sum \beta_i^2}{b-1} = \sigma^2 + na \frac{\sum(\sum_{.j}-\mu_{..})^2}{b-1} \\
+E(MSAB) = \sigma^2 + n \frac{\sum \sum (\alpha \beta)_{ij}^2}{(a-1)(b-1)} = \sigma^2 + n \frac{\sum (\mu_{ij}- \mu_{i.}- \mu_{.j}+ \mu_{..} )^2}{(a-1)(b-1)}
+$$
+If there are no factor A main effects (all $\mu_{i.} = 0$ or $\alpha_i = 0$) the MSA and MSE have the same expectation; otherwise MSA > MSE. Same for factor B, and interaction effects. which case we can examine F-statistics.  
+
+**Interaction**  
+
+$$
+\begin{align}
+H_0: \mu_{ij}- \mu_{i.} - \mu_{.j} + \mu_{..} = 0 && \text{for all i,j} \\
+H_a: \mu_{ij}- \mu_{i.} - \mu_{.j} + \mu_{..} \neq 0 && \text{for some i,j}
+\end{align}
+$$
+
+
+or 
+$$
+H_0: \text{All}(\alpha \beta)_{ij} = 0 \\
+H_a: \text{Not all} (\alpha \beta) = 0
+$$
+
+Let $F = \frac{MSAB}{MSE}$. When $H_0$ is true $F \sim f_{((a-1)(b-1),ab(n-1))}$. So reject $H_0$ when $F > f_{((a-1)(b-1),ab(n-1))}$  
+
+Factor A main effects:  
+$$
+H_0: \mu_{1.} = \mu_{2.} = ... = \mu_{a.} \\
+H_a: \text{Not all $\mu_{i.}$ are equal}
+$$
+or 
+
+$$
+H_0: \alpha_1 = ... = \alpha_a = 0 \\
+H_a: \text{Not all $\alpha_i$ are equal to 0}
+$$
+$F= \frac{MSA}{MSE}$ and reject $H_0$ if $F>f_{(1-\alpha;a-1,ab(n-1))}$  
+
+###### Two-way ANOVA
+
+Source of Variation | SS | df | MS | F 
+---|---|---|---|---
+Factor A | SSA | a-1 | MSA = SSA/(a-1) | MSA/MSE 
+Factor B | SSB | b-1 | MSB = SSB/(b-1) | MSB/MSE
+AB interactions | SSAB | (a-1)(b-1) | MSAB = SSAB /MSE 
+Error | SSE | ab(n-1) | MSE = SSE/ab(n-1) | 
+Total (corrected) | SSTO | abn - 1 | | 
+
+Doing 2-way ANOVA means you always check interaction first, because if there are significant interactions, checking the significance of the main effects becomes moot.  
+
+The main effects concern the mean responses for levels of one factor averaged over the levels of the other factor. WHen interaction is present, we can't conclude that a given factor has no effect, even if these averages are the same. It means that the effect of the factor depends on the level of the other factor.  
+
+
+On the other hand, if you can establish that there is no interaction, then you can consider inference on the factor main effects, which are then said to be **additive**.  
+And we can also compare factor means like the [Single Factor Fixed Effects Model] using [Tukey], [Scheffe], [Bonferroni].  
+
+We can also consider contrasts in the 2-way model  
+
+$$
+L = \sum c_i \mu_i
+$$
+
+where $\sum c_i =0$  
+which is estimated by  
+
+$$
+\hat{L} = \sum c_i \bar{Y}_{i..}
+$$
+with variance  
+
+$$
+\sigma^2(\hat{L}) = \frac{\sigma^2}{bn} \sum c_i^2
+$$
+and variance estimate 
+
+$$
+\frac{MSE}{bn} \sum c_i^2
+$$
+
+**Orthogonal Contrasts**  
+
+$$
+L_1 = \sum c_i \mu_i, \sum c_i = 0 \\
+L_2 = \sum d_i \mu_i , \sum d_i = 0
+$$
+these contrasts are said to be **orthogonal** if  
+
+$$
+\sum \frac{c_i d_i}{n_i} = 0
+$$
+
+in balanced case $\sum c_i d_i =0$  
+
+$$
+\begin{align}
+cov(\hat{L}_1, \hat{L}_2) &= cov(\sum_i c_i \bar{Y}_{i..}, \sum_l d_l \bar{Y}_{l..}) \\
+&= \sum_i \sum_l c_i d_l cov(\bar{Y}_{i..},\bar{Y}_{l..}) \\
+&= \sum_i c_i d_i \frac{\sigma^2}{bn} = 0
+\end{align}
+$$
+Orthogonal contrasts can be used to further partition the model sum of squares. There are many sets of orthogonal contrasts and thus, many ways to partition the sum of squares.  
+
+
+A special set of orthogonal contrasts that are used when the levels of a factor can be assigned values on a metric scale are called **orthogonal polynomials**  
+
+
+Coefficients can be found for the special case of  
+
+ * equal spaced levels (e.g., (0 15 30 45 60))  
+ * equal sample sizes ($n_1 = n_2 = ... = n_{ab}$)  
+
+We can define the SS for a given contrast:  
+
+$$
+SS_L = \frac{\hat{L}^2}{\sum_{i=1}^a (c^2_i/bn_i)}
+$$
+
+$$
+T = \frac{\hat{L}}{\sqrt{MSE\sum_{i=1}^a(c_i^2/bn_i)}} \sim t
+$$
+
+Moreover,  
+
+$$
+t^2_{(1-\alpha/2;df)}=F_{(1-\alpha;1,df)}
+$$
+
+So, 
+
+$$
+\frac{SS_L}{MSE} \sim F_{(1-\alpha;1,df_{MSE})}
+$$
+all contrasts have d.f = 1
 
 #### Unbalanced
+
+
+
+We could have unequal numbers of replications for all treatment combinations:  
+
+ * observational studies  
+ * dropouts in designed studies  
+ * larger sample sizes for inexpensive treatments  
+ * Sample sizes to match population makeup.  
+ 
+Assume that each factor combination has at least 1 observation (no empty cells)  
+
+Consider the same model as:  
+
+$$
+Y_{ijk} = \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ijk}
+$$
+where sample sizes are: $n_{ij}$:  
+
+$$
+n_{i.} = \sum_j n_{ij} \\
+n_{.j} = \sum_i n_{ij} \\
+n_T = \sum_i \sum_j n_{ij}
+$$
+Problem here is that  
+
+$$
+SSTO \neq SSA + SSB + SSAB + SSE
+$$
+(the design is **non-orthogonal**)  
+
+ * For $i = 1,...,a-1,$  
+\begin{equation}
+u_i = 
+\begin{cases}
++1 & \text{if the obs is from the i-th level of Factor 1} \\
+-1 & \text{if the obs is from the a-th level of Factor 1} \\
+0 & \text{otherwise} \\
+\end{cases}
+\end{equation}
+ * For $j=1,...,b-1$  
+\begin{equation}
+v_i = 
+\begin{cases}
++1 & \text{if the obs is from the j-th level of Factor 1} \\
+-1 & \text{if the obs is from the b-th level of Factor 1} \\
+0 & \text{otherwise} \\
+\end{cases}
+\end{equation}
+
+We can use these indicator variables as predictor variables and $\mu_{..}, \alpha_i ,\beta_j, (\alpha \beta)_{ij}$ as unknown parameters.  
+
+$$
+Y = \mu_{..} + \sum_{i=1}^{a-1} \alpha_i u_i + \sum_{j=1}^{b-1} \beta_j v_j + \sum_{i=10}^
+$$
+
+To test hypotheses, we use the extra sum of squares idea.  
+
+For interaction effects  
+
+$$
+H_0: all (\alpha \beta)_{ij} = 0 \\
+H_a: \text{not all }(\alpha \beta)_{ij} =0
+$$
+Or to test  
+
+$$
+H_0: \beta_1 = \beta_2 = \beta_3 = 0 \\
+H_a: \text{not all } \beta_j = 0
+$$
+
+
+**Analysis of Factor Means**  
+
+(e.g., contrasts)  is analogous to the balanced case, with modifications in the formulas for means and standard errors to account for unequal sample sizes.  
+
+Or , we can fit the cell means model and consider it from a regression perspective  
+
+If you have empty cells (i.e., some factor combinations have no observation), then the equivalent regression approach can't be used.  But you can still do partial analyses  
+
+
+### Two-Way Random Effects ANOVA
+
+$$
+Y_{ijk} = \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ij}
+$$
+
+where  
+
+ * $\mu_{..}$: constant  
+ * $\alpha_i \sim N(0,\sigma^2_{\alpha}), i = 1,..,a$ (independent)  
+ * $\beta_j \sim N(0,\sigma^2_{\beta}), j = 1,..,b$ (independent)  
+ * $(\alpha \beta)_{ij} \sim N(0,\sigma^2_{\alpha \beta}),i=1,...,a,j=1,..,b$ (independent)  
+ * $\epsilon_{ijk} \sim N(0,\sigma^2)$ (independent)  
+
+All $\alpha_i, \beta_j, (\alpha \beta)_{ij}$ are pairwise independent  
+
+
+Theoretical means, variances, and covariances are  
+
+$$
+E(Y_{ijk}) = \mu_{..} \\
+var(Y_{ijk}) = \sigma^2_Y= \sigma^2_\alpha + \sigma^2_\beta +  \sigma^2_{\alpha \beta} + \sigma^2 
+$$
+So $Y_{ijk} \sim N(\mu_{..},\sigma^2_\alpha + \sigma^2_\beta +  \sigma^2_{\alpha \beta} + \sigma^2)$  
+
+$$
+cov(Y_{ijk},Y_{ij'k'}) = \sigma^2_{\alpha}, j \neq j' \\
+cov(Y_{ijk},Y_{i'jk'}) = \sigma^2_{\beta}, i \neq i'\\
+cov(Y_{ijk},Y_{ijk'}) = \sigma^2_\alpha + \sigma^2_{\beta} + \sigma^2_{\alpha \beta}, k \neq k' \\
+cov(Y_{ijk},Y_{i'j'k'}) = , i \neq i', j \neq j'
+$$
+
+### Two-Way Mixed Effects ANOVA
+
+#### Balanced
+
+One fixed factor, while other is random treatment levels, we have a **mixed effects model** or a **mixed model**  
+
+**Restricted mixed model**  for 2-way ANOVA:  
+
+$$
+Y_{ijk} = \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ijk}
+$$
+
+where  
+
+ * $\mu_{..}$: constant  
+ * $\alpha_i$: fixed effects with constraints subject to restriction $\sum \alpha_i = 0$  
+ * $\beta_j \sim indep N(0,\sigma^2_\beta)$  
+ * $(\alpha \beta)_{ij} \sim N(0,\frac{a-1}{a}\sigma^2_{\alpha \beta})$ subject to restriction $\sum_i (\alpha \beta)_{ij} = 0$ for all j, the variance here is written as the proportion for convenience; it makes the expected mean squares simpler (other assumed $var((\alpha \beta)_{ij}= \sigma^2_{\alpha \beta}$)  
+ * $cov((\alpha \beta)_{ij},(\alpha \beta)_{i'j'}) = - \frac{1}{a} \sigma^2_{\alpha \beta}, i \neq i'$  
+ * $\epsilon_{ijk}\sim indepN(0,\sigma^2)$  
+ * $\beta_j, (\alpha \beta)_{ij}, \epsilon_{ijk}$ are pairwise independent   
+
+Two-way mixed models are written in an "unrestricted" form, with no restrictions on the interaction effects $(\alpha \beta)_{ij}$, they are pairwise independent. Let $\beta^*, (\alpha \beta)^*_{ij}$ be the unrestricted random effects, and $(\bar{\alpha \beta})_{ij}^*$ the means averaged over the fixed factor for each level of random factor B.   
+
+$$
+\beta_j = \beta_j^* + (\bar{\alpha \beta})_{ij}^* \\
+(\alpha \beta)_{ij} = (\alpha \beta)_{ij}^* - (\bar{\alpha \beta})_{ij}^*
+$$
+
+Some consider the restricted model to be more general. but here we consider the restricted form.  
+
+$$
+E(Y_{ijk}) = \mu_{..} + \alpha_i \\
+var(Y_{ijk}) = \sigma^2_\beta + \frac{a-1}{a} \sigma^2_{\alpha \beta} + \sigma^2
+$$
+
+Responses from the same random factor (B) level are correlated  
+
+$$
+cov(Y_{ijk},Y_{ijk'}) = E(Y_{ijk}Y_{ijk'}) - E(Y_{ijk})E(Y_{ijk'}) \\
+= \sigma^2_\beta + \frac{a-1}{a} \sigma^2_{\alpha \beta} , k \neq k'
+$$
+Similarly,  
+
+
+$$
+cov(Y_{ijk},Y_{i'jk'}) = \sigma^2_\beta - \frac{1}{a} \sigma^2_{\alpha\ \beta}, i \neq i' \\
+cov(Y_{ijk},Y_{i'j'k'}) = 0,  j \neq j'
+$$
+
+An advantage of the **restricted mixed model** is that 2 observations from the same random factor b level can be positively or negatively correlated. In the **unrestricted model**, they can only be positively correlated.  
+
+Mean Square | df | Fixed ANOVA \ (A, B fixed) | Random ANOVA \ (A, B random) | Mixed ANOVA \ (A fixed, B random) 
+---|---|---|---|---
+MSA | a -1 | $\sigma^2 + nb \frac{\sum \alpha_i^2}{a-1}$ | $\sigma^2 + nb \sigma^2_\alpha + n \sigma^2_{\alpha \beta}$ | $\sigma^2 + nb \frac{\sum \sigma^2}{a-1} + n\sigma^2_{\alpha \beta}$ 
+MSB | b -1 | $\sigma^2 + na \frac{\sum\beta^2_j}{b-1}$ | $\sigma^2 + na \sigma^2_\beta+ n \sigma^2_{\alpha \beta}$ | $\sigma^2 + na \sigma^2_{\beta}$ 
+MSAB | (a-1)(b-1) | $\sigma^2 + n \frac{\sum \sum (\alpha \beta)^2_{ij}}{(a-1)(b-1)}$ | $\sigma^2 + n \sigma^2_{\alpha \beta}$ | $\sigma^2 + n \sigma^2_{\alpha \beta}$ 
+MSE | (n-1)ab | $\sigma^2$ | $\sigma^2$ | $\sigma^2$ 
+
+
+For fixed, random, and mixed models (balanced), the ANOVA table sums of squares calculations are identical. (also true for df and mean squares). The only difference is with the expected mean squares, thus the test statistics.  
+
+
+In Random ANOVA, we test 
+
+$$
+H_0: \sigma^2 = 0 \\
+H_a: \sigma^2 > 0 
+$$
+by considering $F= \frac{MSA}{MSAB} \sim F_{a-1;(a-1)(b-1)}$  
+
+The same test statistic is used for mixed models, but in that case we are testing null hypothesis that all of the $\alpha_i = 0$  
+
+The test statistic different for the same null hypothesis under the fixed effects model.  
+
+
+Test for effects of | Fixed ANOVA \ (A&B fixed) | Random ANOVA \ (A&B random) | Mixed ANOVA \ (A fixed, B random) 
+Factor A | $\frac{MSA}{MSE}$ | $\frac{MSA}{MSAB}$ | $\frac{MSA}{MSAB}$ 
+Factor B | $\frac{MSB}{MSE}$ | $\frac{MSB}{MSAB}$ | $\frac{MSB}{MSE}$  
+AB interactions | $\frac{MSAB}{MSE}$ | $\frac{MSAB}{MSE}$ | $\frac{MSAB}{MSE}$ 
+
+**Estimation Of Variance Components**  
+
+In random and mixed effects models, we are interested in estimating the **variance components**  
+Variance component $\sigma^2_\beta$ in the mixed ANOVA.  
+
+$$
+E(\sigma^2_\beta) = \frac{E(MSB)-E(MSE)}{na} = \frac{\sigma^2 + na \sigma^2_\beta - \sigma^2}{na} = \sigma^2_\beta
+$$
+
+which can be estimated with 
+
+$$
+\hat{\sigma}^2_\beta = \frac{MSB - MSE}{na}
+$$
+
+Confidence intervals for variance components can be constructed (approximately) by using the **Satterthwaite** procedure or the MLS procedure (like the 1-way random effects)  
+
+
+**Estimation of Fixed Effects in Mixed Models**  
+
+$$
+\hat{\alpha}_i = \bar{Y}_{i..} - \bar{Y}_{...} \\
+\hat{\mu}_{i.} = \bar{Y}_{...} + (\bar{Y}_{i..}- \bar{Y}_{...}) = \bar{Y}_{i..}  \\
+\sigma^2(\hat{\alpha}_i) = \frac{\sigma^2 + n \sigma^2_{\alpha \beta}}{bn} = \frac{E(MSAB)}{bn} \\
+s^2(\hat{\alpha}_i) = \frac{MSAB}{bn}
+$$
+Contrasts on the **Fixed Effects**  
+
+$$
+L = \sum c_i \alpha_i \\
+\sum c_i = 0 \\
+\hat{L} = \sum c_i \hat{\alpha}_i \\
+\sigma^2(\hat{L}) = \sum c^2_i \sigma^2 (\hat{\alpha}_i) \\
+s^2(\hat{L}) = \frac{MSAB}{bn} \sum c^2_i
+$$
+
+Confidence intervals and tests can be constructed as usual  
+
+#### Unbalanced
+
+For a mixed model with a = 2, b = 4  
+
+$$
+Y_{ijk} = \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ijk} \\
+var(\beta_j)= \sigma^2_\beta \\
+var((\alpha \beta)_{ij})= \frac{2-1}{2}\sigma^2_{\alpha \beta} = \frac{\sigma^2_{\alpha \beta}}{2} \\
+var(\epsilon_{ijk}) = \sigma^2 \\
+E(Y_{ijk}) = \mu_{..} + \alpha_i \\
+var(Y_{ijk}) = \sigma^2_{\beta} + \frac{\sigma^2_{\alpha \beta}}{2} + \sigma^2 \\
+cov(Y_{ijk},Y_{ijk'}) = \sigma^2 + \frac{\sigma^2_{\alpha \beta}}{2}, k \neq k' \\
+cov(Y_{ijk},Y_{i'jk'}) = \sigma^2_{\beta} - \frac{\sigma^2_{\alpha \beta}}{2}, i neq i' \\
+cov(Y_{ijk},Y_{i'j'k'}) = 0, j \neq j' 
+$$
+
+assume $\mathbf{Y \sim N(X\beta, \blacksquare)}$ where $\blacksquare$ is block diagonal  
+
+density function  
+
+$$
+f(\mathbf{Y}) = \frac{1}{(2\pi)^{N/2}|\blacksquare|^{1/2}}exp(-\frac{1}{2}\mathbf{(Y - X \beta)' \blacksquare^{-1}(Y-X\beta)})
+$$
+
+if we knew the variance components, we could use GLS:  
+
+$$
+\hat{\beta}_{GLS} = \mathbf{(X'\blacksquare^{-1}X)^{-1}X'\blacksquare^{-1}Y}
+$$
+but we usually don't know the variance components $\sigma^2, \sigma^2_\beta, \sigma^2_{\alpha \beta}$ that make up $\blacksquare$  
+Another way to get estimates is by **Maximum likelihood estimation**  
+
+we try to maximize its log  
+
+$$
+\ln L = - \frac{N}{2} \ln (2\pi) - \frac{1}{2}\ln|\blacksquare| - \frac{1}{2} \mathbf{(Y-X \beta)'\Sigma^{-1}(Y-X\beta)}
+$$
+
+
+
+## Randomized Block Designs
+
+To improve the precision of treatment comparisons, we can reduce variability among the experimental units.  We can group experimental units into **blocks** so that each block contains relatively homogeneous units.  
+
+ * Within each block, random assignment treatments to units (separate random assignment for each block)  
+ * The number of units per block is a multiple of the number of factor combinations.  
+ * Commonly, use each treatment once in each block.  
+
+Benefits of **Blocking**  
+
+ * Reduction in variability of estimators for treatment means  
+    + Improved power for t-tests and F-tests  
+    + Narrower confidence intervals  
+    + Smaller MSE  
+ * Compare treatments under different conditions (related to different blocks).  
+
+Loss from **Blocking**  (little to lose)
+
+ * If you don't do blocking well, you waste df on negligible block effects that could have been used to estimate $\sigma^2$  
+ * hence, the df for t-tests and denominator df for F-tests will be reduced without reducing MSE and small loss of power for both tests.  
+
+Consider  
+
+$$
+Y_{ij} = \mu_{..} + \rho_i + \tau_j + \epsilon_{ij} \\
+i = 1,2,...,n \\
+j = 1,2,..,r
+$$
+
+where  
+
+ * $\mu_{..}$: overall mean response, averaging across all blocks and treatments  
+ * $\rho_i$: block effect, average difference in response for i-th block ($\sum \rho_i =0$)  
+ * $\tau_j$ treatment effect, average across blocks ($\sum \tau_j = 0$)  
+ * $\epsilon_{ij} \sim iid N(0,\sigma^2)$: random experimental error.  
+
+
+Here, we assume that the block and treatment effects are additive. The difference in average response for any pair of treatments i the same **within** each block  
+
+$$
+(\mu_{..} +  \rho_i + \tau_j) - (\mu_{..} + \rho_i + \tau_j') = \tau_j - \tau_j'
+$$
+for all $i=1,..,n$ blocks  
+
+$$
+\hat{\mu} = \bar{Y}_{..} \\
+\hat{\rho}_i = \bar{Y}_{i.} - \bar{Y}_{..} \\
+\hat{\tau}_j = \bar{Y}_{.j} - \bar{Y}_{..}
+$$
+
+Hence, 
+
+$$
+\hat{Y}_{ij} = \bar{Y}_{..} + (\bar{Y}_{i.} - \bar{Y}_{..}) + (\bar{Y}_{.j}- \bar{Y}_{..}) = \bar{Y}_{i.} + \bar{Y}_{.j} - \bar{Y}_{..} \\
+e_{ij} = Y_{ij} - \hat{Y}_{ij} = Y_{ij}- \bar{Y}_{i.} - \bar{Y}_{.j} + \bar{Y}_{..}
+$$
+
+**ANOVA table**  
+
+Source of Variation | SS | df | Fixed Treatments \ E(MS) | Random Treatments \ E(MS) 
+---|---|---|---|---
+Blocks | $r \sum_i (\bar{Y}_{i.} - \bar{Y}_{..})^2$ | n - 1 | $\sigma^2 + r \frac{\sum \rho^2_i}{n-1}$ | $\sigma^2 + r \frac{\sum \rho^2_i}{n-1}$ 
+Treatments | $n\sum_j(\bar{Y}_{.j}-\bar{Y}_{..})^2$ | r - 1 | $\sigma^2 + n \frac{\sum \tau^2_j}{r-1}$ | $\sigma^2 + n \sigma^2_\tau$ 
+Error | $\sum_i \sum_j (Y_{ij} - \bar{Y}_{i.} - \bar{Y}_{.j} + \bar{Y}_{..})^2$ | (n-1)(r-1) | $\sigma^2$ | $\sigma^2$ 
+Total | SSTO | nr-1 | | 
+
+**F-tests**  
+
+$$
+\begin{align}
+H_0: \tau_1 = \tau_2 = ... = \tau_r = 0 && \text{Fixed Treatment Effects} \\
+H_a: \text{not all } \tau_j = 0 \\
+\\
+H_0: \sigma^2_{\tau} = 0 && \text{Random Treatment Effects} \\
+H_a: \sigma^2_{\tau} \neq 0 
+\end{align}
+$$
+
+
+In both cases $F = \frac{MSTR}{MSE}$, reject $H_0$ if $F > f_{(1-\alpha; r-1,(n-1)(r-1))}$
+
+
+we don't use F-test to compare blocks, because   
+
+ * We have a priori that blocs are different  
+ * Randomization is done "within" block.  
+
+To estimate the efficiency that was gained by blocking (relative to completely randomized design).  
+
+$$
+\begin{align}
+\hat{\sigma}^2_{CR} &= \frac{(n-1)MSBL + n(r-1)MSE}{nr-1} \\
+\hat{\sigma}^2_{RB} &= MSE \\
+\frac{\hat{\sigma}^2_{CR}}{\hat{\sigma}^2_{RB}} = \text{above 1} \\
+\end{align}
+$$
+
+
+then a completely randomized experiment would 
+$$
+(\frac{\hat{\sigma}^2_{CR}}{\hat{\sigma}^2_{RB}}-1)\%%
+$$
+
+
+more observations than the randomized block design to get the same MSE  
+
+
+If batches are randomly selected then they are random effects. That is , if the experiment was repeated, a new sample of i batches would be selected,d yielding new values for $\rho_1, \rho_2,...,\rho_i$ then.  
+
+$$
+\rho_1, \rho_2,...,\rho_j \sim N(0,\sigma^2_\rho)
+$$
+
+Then, 
+
+$$
+Y_{ij} = \mu_{..} + \rho_i + \tau_j + \epsilon_{ij}
+$$
+where  
+
+ * $\mu_{..}$ fixed  
+ * $\rho_i$: random iid $N(0,\sigma^2_p)$  
+ * $\tau_j$ fixed (or random) $\sum \tau_j = 0$  
+ * $\epsilon_{ij} \sim iid N(0,\sigma^2)$  
+
+
+**Fixed Treatment&&  
+
+$$
+E(Y_{ij}) = \mu_{..} + \tau_j \\
+var(Y_{ij}) = \sigma^2_{\rho} + \sigma^2 \\
+cov(Y_{ij},Y_{ij'}) = \sigma^2 , j \neq j' \text{ treatments within same block are correlated} \\
+cov(Y_{ij},Y_{i'j'}) = 0 , i \neq i' , j \neq j'
+$$
+Correlation between 2 observations in teh same block 
+
+$$
+\frac{\sigma^2_{\rho}}{\sigma^2 + \sigma^2_{\rho}}
+$$
+
+
+The expected MS for the additive fixed treatment effect, random block effect is  
+
+Source | SS | E(MS) 
+---|---|---
+Blocks | SSBL | $\sigma^2 + r \sigma^2_\rho$ 
+Treatment | SSTR  | $\sigma^2 + n \frac{\sum \tau^2_j}{r-1}$ 
+Error | SSE  | $\sigma^2$
+
+
+**Interactions and Blocks**  
+without replications within each block for each treatment, we can't consider interaction between block and treatment when the block effect is fixed. Hence, only in the random block effect, we have  
+
+$$
+Y_{ij} = \mu_{..} + \rho_i + \tau_j + (\rho \tau)_{ij} + \epsilon_{ij}
+$$
+where  
+
+ * $\mu_{..}$ constant  
+ * $\rho_i \sim idd N(0,\sigma^2_{\rho})$ random  
+ * $\tau_j$ fixed ($\sum \tau_j = 0$)  
+ * $(\rho \tau)_{ij} \sim N(0,\frac{r-1}{r}\sigma^2_{\rho \tau})$ with $\sum_j (\rho \tau)_{ij}=0$ for all i  
+ * $cov((\rho \tau)_{ij},(\rho \tau)_{ij'})= -\frac{1}{r} \sigma^2_{\rho \tau}$ for $j \neq j'$  
+ * $\epsilon_{ij} \sim iid N(0,\sigma^2)$ random
+
+Note: a special case of mixed 2-factor model with 1 observation per "cell"  
+
+$$
+E(Y_{ij}) = \mu_{..} + \tau_j \\
+var(Y_{ij}) = \sigma^2_\rho + \frac{r-1}{r} \sigma^2_{\rho \tau} + \sigma^2
+$$
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
