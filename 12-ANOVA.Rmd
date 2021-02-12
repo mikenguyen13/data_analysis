@@ -1887,6 +1887,191 @@ $$
 
 
 
+## Nonparametric ANOVA
+
+### Kruskal-Wallis
+
+Generalization of independent samples Wilcoxon Rank sum test for 2 independent samples (like F-test of one-way ANOVA is a generalization to several independent maples of the two sample t-test)
+
+Consider the one-way case:  
+
+We have   
+
+ * $a\ge2$ treatments  
+ * $n_i$ is the sample size for the ith treatment   
+ * $Y_{ij}$ is the j-th observation from the ith treatment.  
+ * we make **no** assumption of normality  
+ * We only assume that observations on the ith treatment are a random sample from the continuous CDF $F_i$, i = 1,..,n, and are mutually independent.  
+
+
+$$
+H_0: F_1 = F_2 = ... = F_a \\
+H_a: F_i < F_j \text{ for some } i \neq j
+$$
+
+or if distribution is from the location-scale family, $H_0: \theta_1 = \theta_2 = ... = \theta_a$)
+
+**Procedure**  
+
+ * Rank all $N = \sum_{i=1}^a n_i$ observations in ascending order. Let $r_{ij} = rank(Y_{ij})$, note $\sum_i \sum_j r_{ij} = 1 + 2 .. + N = \frac{N(N+1)}{2}$  
+ * Calculate the rank sums and averages:  
+$$
+r_{i.} = \sum_{j=1}^{n_i} r_{ij}
+$$
+and
+$$
+\bar{r}_{i.} = \frac{r_{i.}}{n_i}, i = 1,..,a
+$$
+ * Calculate the test statistic on the ranks: 
+$$
+\chi_{KW}^2 = \frac{SSTR}{\frac{SSTO}{N-1}}
+$$
+where $SSTR = \sum n_i (\bar{r}_{i.}- \bar{r}_{..})^2$ and $SSTO = \sum \sum (\bar{r}_{ij}- \bar{r}_{..})^2$
+ * FOr large $n_i$ ($\ge 5$ observations) the Kruskal-Wallis statistic is approximated by a $\chi^2_{a-1}$ distribution when all the treatment means are equal. Hence, reject $H_0$ if $\chi^2_{KW} > \chi^2_{(1-\alpha;a-1)}$.  
+ * If sample sizes are small, one can exhaustively work out all possible distinct ways of assigning N ranks to the observations from a  treatments and calculate the value of the KW statistic in each case ($\frac{N!}{n_1!..n_a!}$ possible combinations). Under $H_0$ all of these assignments are equally likely.  
+
+
+### Friedman Test
+When the responses $Y_{ij} = 1,..,n, j = 1,..,r$ in a randomized complete block design are not normally distributed (or do not have constant variance), a nonparametric test is more helpful.  
+
+A distribution-free rank-based test for comparing the treatments in this setting is the Friedman test. Let $F_{ij}$ be the CDF of random $Y_{ij}$, corresponding to the observed value $y_{ij}$
+
+Under the null hypothesis, $F_{ij}$ are identical for all treatments j separately for each block i.  
+
+$$
+H_0: F_{i1} = F_{i2} = ... = F_{ir}  \text{ for all i} \\
+H_a: F_{ij} < F_{ij'} \text{ for some } j \neq j' \text{ for all } i
+$$
+For location parameter distributions, treatment effects can be tested:  
+
+$$
+H_0: \tau_1 = \tau_2 = ... = \tau_r \\
+H_a: \tau_j > \tau_{j'} \text{ for some } j \neq j'
+$$
+
+**Procedure**  
+
+ * Rank observations from the r treatments separately within each block (in ascending order; if ties, each tied observation is given the mean of ranks involved). Let the ranks be called $r_{ij}$  
+ * Calculate the Friedman test statistic  
+$$
+\chi^2_F = \frac{SSTR}{\frac{SSTR + SSE}{n(r-1)}}
+$$
+where
+$$
+SSTR = n \sum (\bar{r}_{.j}-\bar{r}_{..})^2 \\
+SSE = \sum \sum (r_{ij} - \bar{r}_{.j})^2 \\
+\bar{r}_{.j} = \frac{\sum_i r_{ij}}{n}\\
+\bar{r}_{..} = \frac{r+1}{2}
+$$
+
+If there is no ties, it can be rewritten as  
+
+$$
+\chi^2_{F} = [\frac{12}{nr(n+1)}\sum_j r_{.j}^2] - 3n(r+1)
+$$
+with large number of blocks, $\chi^2_F$ is approximately $\chi^2_{r-1}$ under $H_0$. Hence, we reject $H_0$ if $\chi^2_F > \chi^2_{(1-\alpha;r-1)}$  
+The exact null distribution for $\chi^2_F$ can be derived since there are r! possible ways of assigning ranks 1,2,...,r to the r observations within each block. There are n blocks and thus $(r!)^n$ possible assignments to the ranks, which are equally likely when $H_0$ is true.  
+
+
+
+## Sample Size Planning for ANOVA
+
+### Balanced Designs
+
+#### Single Factor Studies
+
+##### Fixed cell means
+
+$$
+P(F>f_{(1-\alpha;a-1,N-a)}|\phi) = 1 - \beta
+$$
+
+where $\phi$ is the **noncentrality parameter** (measures how unequal the treatment means $\mu_i$ are)  
+
+$$
+\phi = \frac{1}{\sigma}\sqrt{\frac{n}{a}\sum_i (\mu_i - \mu_.)^2} , (n_i \equiv n)
+$$
+
+and 
+$$
+\mu_. = \frac{\sum \mu_i}{a}
+$$
+
+To decide on the power probabilities we use the noncetral F distribution.  
+
+We could use the power tablse directly when effects are fixed and design is balanced by using **minimum range** of factor level means for your desired differences  
+
+$$
+\Delta = \max(\mu_i) - \min(\mu_i)
+$$
+Hence, we need  
+
+ * $\alpha$ level  
+ * $\Delta$  
+ * $\sigma$  
+ * $\beta$  
+
+Notes:  
+
+ * When $\Delta/\sigma$ is small greatly affects sample size, but if $\Delta/\sigma$ is large.  
+ * Reducing $\alpha$ or $\beta$ increases the required sample sizes.  
+ * Error in estimating $\sigma$ can make a large difference.  
+
+#### Multi-factor Studies
+
+The same noncentral F tables can be used here 
+
+For two-factor fixed effect model  
+
+Test for interactions:  
+
+$$
+\phi = \frac{1}{\sigma} \sqrt{\frac{n \sum \sum (\alpha \beta_{ij})^2}{(a-1)(b-1)+1}} = \frac{1}{\sigma} \sqrt{\frac{n \sum \sum (\mu_{ij}- \mu_{i.} - \mu_{.j} + \mu_{..})^2}{(a-1)(b-1)+1}} \\
+\upsilon_1 = (a-1)(b-1) \\
+\upsilon_2 = ab(n-1)
+$$
+
+
+Test for Factor A main effects:   
+
+$$
+\phi = \frac{1}{\sigma} \sqrt{\frac{nb \sum \alpha_i^2}{a}} = \frac{1}{\sigma}\sqrt{\frac{nb \sum (\mu_{i.}- \mu_{..})^2}{a}} \\
+\upsilon_1 = a-1 \\
+\upsilon_2 = ab(n-1)
+$$
+
+Test for Factor B main effects:   
+
+$$
+\phi = \frac{1}{\sigma} \sqrt{\frac{na \sum \beta_j^2}{b}} = \frac{1}{\sigma}\sqrt{\frac{na \sum (\mu_{.j}- \mu_{..})^2}{b}} \\
+\upsilon_1 = b-1 \\
+\upsilon_2 = ab(n-1)
+$$
+
+Procedure:  
+
+ 1. Specify the minimu range of Factor A means  
+ 2. Obtain sample sizes with r = a. The  resulting sample size is bn, from which n can be obtained.  
+ 3. Repeat the first 2 steps for Factor B minimum range.  
+ 4. Choose the greater number of sample size between A and B.  
+
+
+### Randomized Block Experiments
+
+Analogous to completely randomized designs . The power of the F-test for treatment effects for randomized block design uses the same non-centrality parameter as completely randomized design:  
+
+$$
+\phi = \frac{1}{\sigma} \sqrt{\frac{n}{r} \sum (\mu_i - \mu_.)^2}
+$$
+
+
+However, the power level is different from the randomized block design because  
+
+ * error variance $\sigma^2$ is different  
+ * df(MSE) is different.  
+
+
+
 ## Randomized Block Designs
 
 To improve the precision of treatment comparisons, we can reduce variability among the experimental units.  We can group experimental units into **blocks** so that each block contains relatively homogeneous units.  
@@ -2056,20 +2241,448 @@ Note: a special case of mixed 2-factor model with 1 observation per "cell"
 
 $$
 E(Y_{ij}) = \mu_{..} + \tau_j \\
-var(Y_{ij}) = \sigma^2_\rho + \frac{r-1}{r} \sigma^2_{\rho \tau} + \sigma^2
+var(Y_{ij}) = \sigma^2_\rho + \frac{r-1}{r} \sigma^2_{\rho \tau} + \sigma^2 \\
+cov(Y_{ij},Y_{ij'}) = \sigma^2_\rho - \frac{1}{r} \sigma^2_{\rho \tau}, j \neq j' \text{ obs from the same block are correlated} \\
+cov(Y_{ij},Y_{i'j'}) = 0, i \neq i', j \neq j' \text{ obs from different blocks are independent}
+$$
+
+The sum of squares and degrees of freedom for interaction model are the same as those for the additive model. The difference exists only with the expected mean squares  
+
+Source | SS | df | E(MS) 
+---|---|---|---
+Blocks | SSBL | n-1 | $\sigma^2 + r \sigma^2_\rho$ 
+Treatment | SSTR | r -1 | $\sigma^2 + \sigma^2_{\rho \tau} + n \frac{\sum \tau_j^2}{r-1}$ 
+Error | SSE | (n-1)(r-1) | $\sigma^2 + \sigma^2_{\rho \tau}$
+
+ * No exact test is possible for block effects when interaction is present (Not important if blocks are used primarily to reduce experimental error variability)  
+ * $E(MSE) = \sigma^2 + \sigma^2_{\rho \tau}$ the error term variance and interaction variance $\sigma^2_{\rho \tau}$. We can't estimate these components separately with this model. The two are **confounded**.  
+ * If more than 1 observation per treatment block combination, one can consider interaction with fixed block effects, which is called **generalized randomized block designs** (multifactor analysis).  
+
+
+
+### Tukey Test of Additivity
+
+(Tukey's 1 df test for additivity)  
+
+formal test of interaction effects between blocks and treatments for a randomized block design. can also considered for testing additivity in 2-way analyses when there is only one observation per cell.  
+
+we consider a less restricted interaction term  
+
+$$
+(\rho \tau)_{ij} = D\rho_i \tau_j \text{(D: Constant)}
+$$
+
+So,  
+
+$$
+Y_{ij} = \mu_{..} + \rho_i + \tau_j + D\rho_i \tau_j + \epsilon_{ij}
+$$
+
+the least square estimate or MLE for D 
+
+$$
+\hat{D} = \frac{\sum_i \sum_j \rho_i \tau_j Y_{ij}}{\sum_i \rho_i^2 \sum_j \tau^2_j}
+$$
+
+
+replacing the parameters by their estimates 
+
+$$
+\hat{D} = \frac{\sum_i \sum_j (\bar{Y}_{i.}- \bar{Y}_{..})(\bar{Y}_{.j}- \bar{Y}_{..})Y_{ij}}{\sum_i (\bar{Y}_{i.}- \bar{Y}_{..})^2 \sum_j(\bar{Y}_{.j}- \bar{Y}_{..})^2}
+$$
+
+Thus, the interaction sum of squares 
+
+$$
+SSint = \sum_i \sum_j \hat{D}^2(\bar{Y}_{i.}- \bar{Y}_{..})^2(\bar{Y}_{.j}- \bar{Y}_{..})^2
+$$
+
+The ANOVA decomposition 
+
+$$
+SSTO = SSBL + SSTR + SSint + SSRem
+$$
+
+where $SSRem$: remainder sum of squares 
+
+$$
+SSRem = SSTO - SSBL - SSTR - SSint
+$$
+if D = 0 (i.e., no interactions of the type $D \rho_i \tau_j$). SSint and SSRem are independent $\chi^2_{1,rn-r-n}$.  
+
+
+If D -0, 
+
+$$
+F = \frac{SSint/1}{SSRem/(rn-r-n)} \sim f_{(1-\alpha;rn-r-n)}
+$$
+if 
+
+$$
+H_0: D = 0 \text{ no interaction present} \\
+H_a: D \neq 0 \text{ interaction of form $D \rho_i \tau_j$ present}
+$$
+
+
+we reject $H_0$ if $F > f_{(1-\alpha;1,nr-r-n)}$  
+
+
+## Nested Designs
+
+Let $\mu_{ij}$ be the mean response when factor A is at the i-th level and factor B is at the j-th level.  
+If the factors are crossed, the jth level of B is the same for all levels of A.  
+If factor B is nested within A, the j-th level of B when A is at level 1 has nothing in common with the j-th level of B when A is at level 2.  
+
+Factors that can't be manipulated are designated as **classification factors**, as opposed to **experimental factors** (i.e., you assign to the experimental units).  
+
+
+### Two-Factor Nested Designs
+
+ * Consider B is nested within A.  
+ * both factors are fixed  
+ * All treatment means are equally important.  
+
+
+**Mean responses**  
+
+$$
+\mu_{i.} = \sum_j \mu_{ij}/b
+$$
+
+Main effect factor A  
+
+$$
+\alpha_i = \mu_{i.} - \mu_{..}
+$$
+where $\mu_{..} = \frac{\mu_{ij}}{ab} = \frac{\sum_i \mu_{i.}}{a}$ and $\sum_i \alpha_i = 0$  
+
+Individual effects of B is denoted as $\beta_{j(i)}$ where $j(i)$ indicates the j-th level of factor B is nested within the it-h level of factor A
+
+$$
+\beta_{j(i)} = \mu_{ij} - \mu_{i.} \\
+= \mu_{ij} - \alpha_i - \mu_{..} \\
+\sum_j \beta_{j(i)}=0 , i = 1,...,a
+$$
+
+$\beta_{j(i)}$ is the **specific effect** of the jth level of factor B nested within the ith level of factor A. Hence,  
+
+$$
+\mu_{ij} \equiv \mu_{..} + \alpha_i + \beta_{j(i)} \equiv \mu_{..} + (\mu_{i.} - \mu_{..}) + (\mu_{ij} - \mu_{i.})
 $$
 
 
 
+**Model**  
+
+$$
+Y_{ijk} = \mu_{..} + \alpha_i + \beta_{j(i)} + \epsilon_{ijk}
+$$
+where  
+
+ * $Y_{ijk}$ response for the kth treatment when factor A is at the i-th level and factor B is at hte jth level (i = 1,..,a; j = 1,..,b; k = 1,..n)  
+ * $\mu_{..}$ constant  
+ * $\alpha_i$ constants subject to restriction $\sum_i \alpha_i = 0$  
+ * $\beta_{j(i)}$ constants subject to restriction $\sum_j \beta_{j(i)} = 0$ for all i  
+ * $\epsilon_{ijk} \sim iid N(0,\sigma^2)$  
+
+$$
+E(Y_{ijk}) = \mu_{..} + \alpha_i + \beta_{j(i)} \\
+var(Y_{ijk}) = \sigma^2
+$$
+there is no interaction term in a nested model  
+
+
+**ANOVA for Two-Factor Nested Designs**  
+
+Least Squares and MLE estimates  
+
+Parameter | Estimator
+---|---
+$\mu_{..}$ | $\bar{Y}_{...}$
+$\alpha_i$ | $\bar{Y}_{i..} - \bar{Y}_{...}$
+$\beta_{j(i)}$ | $\bar{Y}_{ij.} - \bar{Y}_{i..}$
+$\hat{Y}_{ijk}$ | $\bar{Y}_{ij.}$
+
+residual $e_{ijk} = Y_{ijk} - \bar{Y}_{ijk}$  
+
+$$
+\begin{align}
+SSTO &= SSA + SSB(A) + SSE \\
+\sum_i \sum_j \sum_k (Y_{ijk}- \bar{Y}_{...})^2 &= bn \sum_i (\bar{Y}_{i..}- \bar{Y}_{...})^2 + n \sum_i \sum_j (\bar{Y}_{ij.}- \bar{Y}_{i..})^2 + \sum_i \sum_j \sum_k (Y_{ijk} -\bar{Y}_{ij.})^2
+\end{align}
+$$
+
+ANOVA Table  
+
+Source of Variation | SS | df | MS | E(MS) 
+---|---|---|---|---
+Factor A | SSA | a-1 | MSA | $\sigma^2 + bn \frac{\sum \alpha_i^2}{a-1}$
+Factor B | SSB(A) | a(b-1) | MSB(A) | $\sigma^2 + n \frac{\sum \sum \beta_{j(i)}^2}{a(b-1)}$
+Error | SSE | ab(n-1) | MSE | $\sigma^2$
+Total | SSTO | abn -1 | | 
+
+Degree of freedom  
+
+ * Factor A: For any level of factor A, there are b(n-1) df associated with the error sum of squares Aggregating over all levels of factor A, there are ab(n-1) df associated with SSE  
+ * Factor: For any level of factor A, there are b-1 df associated with the factor B sum of squares.Aggregating over all levels of factor A, there are  a(b-1) df associated with SSB(A)  
+
+**Tests For Factor Effects**  
+
+$$
+H_0: \text{ All } \alpha_i =0 \\
+H_a: \text{ not all } \alpha_i = 0
+$$
+
+$F = \frac{MSA}{MSE} \sim f_{(1-\alpha;a-1,(n-1)ab)}$ reject if $F > f$   
+
+$$
+H_0: \text{ All } \beta_{j(i)} =0 \\
+H_a: \text{ not all } \beta_{j(i)} = 0
+$$
+
+$F = \frac{MSB(A)}{MSE} \sim f_{(1-\alpha;a(b-1),(n-1)ab)}$ reject $F>f$  
+
+**Testing Factor Effect Contrasts**  
+
+$L = \sum c_i \mu_i$ where $\sum c_i =0$ 
+
+$$
+\hat{L} = \sum c_i \bar{Y}_{i..} \\
+\hat{L} \pm t_{(1-\alpha/2;df)}s(\hat{L})
+$$
+where $s^2(\hat{L}) = \sum c_i^2 s^2(\bar{Y}_{i..})$, where $s^2(\bar{Y}_{i..}) = \frac{MSE}{bn}, df = ab(n-1)$  
+
+**Testing Treatment Means**  
+
+$L = \sum c_i \mu_{.j}$ estimated by $\hat{L} = \sum c_i \bar{Y}_{ij}$ with confidence limits:  
+
+$$
+\hat{L} \pm t_{(1-\alpha/2;(n-1)ab)}s(\hat{L})
+$$
+where  
+
+$$
+s^2(\hat{L}) = \frac{MSE}{n}\sum c^2_i
+$$
+
+
+**Unbalanced Nested Two-Factor Designs**  
+
+If there are different number of levels of factor B for different levels of factor A, then the design is called **unbalanced**  
+
+The model  
+
+$$
+Y_{ijk} = \mu_{..} + \alpha_i + \beta_{j(i)} + \epsilon_{ijk} \\
+i = 1,2;j =1,..,b_i;k=1,..,n_{ij} \\
+b_1 = 3, b_2= 2, n_{11} =  n_{13} =2, n_{12}=1,n_{21} = n_{22} = 2\\
+\sum_{i=1}^2 \alpha_i =0 \\
+\sum_{j=1}^3 \beta_{j(1)} = 0 \\
+\sum_{j=1}^2 \beta_{j(2)}=0
+$$
+
+where $\alpha_1,\beta_{1(1)}, \beta_{2(1)}, \beta_{1(2)}$ are parameters. And constraints: $\alpha_2 = - \alpha_1, \beta_{3(1)}= - \beta_{1(1)}-\beta_{2(1)}, \beta_{2(2)}=-\beta_{1(2)}$  
+
+4 indicator variables  
+
+
+\begin{equation}
+X_1 = 
+\begin{cases}
+1&\text{if obs from school 1}\\
+-1&\text{if obs from school 2}\\
+\end{cases}
+\end{equation}
+
+\begin{equation}
+X_2 = 
+\begin{cases}
+1&\text{if obs from instructor 1 in school 1}\\
+-1&\text{if obs from instructor 3 in school 1}\\
+0&\text{otherwise}\\
+\end{cases}
+\end{equation}
+
+\begin{equation}
+X_3 = 
+\begin{cases}
+1&\text{if obs from instructor 2 in school 1}\\
+-1&\text{if obs from instructor 3 in school 1}\\
+0&\text{otherwise}\\
+\end{cases}
+\end{equation}
+
+
+\begin{equation}
+X_4 = 
+\begin{cases}
+1&\text{if obs from instructor 1 in school 1}\\
+-1&\text{if obs from instructor 2 in school 1}\\
+0&\text{otherwise}\\
+\end{cases}
+\end{equation}
+
+Regression Full Model  
+
+$$
+Y_{ijk} = \mu_{..} + \alpha_1 X_{ijk1} + \beta_{1(1)}X_{ijk2} + \beta_{2(1)}X_{ijk3} + \beta_{1(2)}X_{ijk4} + \epsilon_{ijk}
+$$
+
+**Random Factor Effects**  
+
+If  
+
+$$
+\alpha_1 \sim iid N(0,\sigma^2_\alpha) \\
+\beta_{j(i)} \sim iid N(0,\sigma^2_\beta)
+$$
+
+
+Mean square | Expected Mean Squares A fixed, B random | Expected Mean Squares A random, B random
+---|---|---
+MSA | $\sigma^2 + bn \frac{\sum \alpha_i^2}{a-1} + n \sigma^2_\beta$ | $\sigma^2 + bn \sigma^2_\alpha + n \sigma^2_\beta$
+MSB(A) | $\sigma^2 + n \sigma^2_\beta$ | $\sigma^2 + n \sigma^2_\beta$
+MSE | $\sigma^2$ | $\sigma^2$
+**Test Statistics** | | 
+Factor A | $\frac{MSA}{MSB(B)}$ | $\frac{MSA}{MSB(A)}$
+Factor B(A) | $\frac{MSB(A)}{MSE}$ | $\frac{MSB(A)}{MSE}$
 
 
 
 
+# Analysis of Covariance
+
+Another way to increase the precision of treatment comparisons by reducing variability is to use regression models to adjust for differences among experimental units (also known as **analysis of covariance**).  
+
+## Single Factor Covariance Model
+
+$$
+Y_{ij} = \mu_{.} + \tau_i + \gamma(X_{ij} - \bar{X}_{..}) + \epsilon_{ij} 
+$$
+for $i = 1,...,r;j=1,..,n_i$
+
+where  
+
+ * $\mu_.$ overall mean  
+ * $\tau_i$: fixed treatment effects ($\sum \tau_i =0$)  
+ * $\gamma$: fixed regression coefficient effect between X and Y  
+ * $X_{ij}$ covariate (not random)  
+ * $\epsilon_{ij} \sim iid N(0,\sigma^2)$: random errors  
+
+If we just use $\gamma X_{ij}$ as the regression term (rather than $\gamma(X_{ij}-\bar{X}_{..})$), then $\mu_.$ is no longer the overall mean; thus we need to centered mean.  
+
+$$
+E(Y_{ij}) = \mu_. + \tau_i + \gamma(X_{ij}-\bar{X}_{..}) \\
+var(Y_{ij}) = \sigma^2
+$$
+
+$Y_{ij} \sim N(\mu_{ij},\sigma^2)$, where  
+
+$$
+\mu_{ij} = \mu_. + \tau_i + \gamma(X_{ij} - \bar{X}_{..}) \\
+\sum \tau_i =0 
+$$
+
+Thus, the mean response ($\mu_{ij}$) is a regression line with intercept $\mu_. + \tau_i$ and slope $\gamma$ for each treatment i.  
+
+**Assumption**:  
+
+ * All treatment regression lines have the same slope  
+ * when treatment interact with covariate X (non-parallel slopes), covariance analysis is **not** appropriate. in which case we should use separate regression lines.  
 
 
 
+More complicated regression features (e.g., quadratic, cubic) or additional covariates e.g.,  
+
+$$
+Y_{ij} = \mu_. + \tau_i + \gamma_1(X_{ij1}-\bar{X}_{..2}) + \gamma_2(X_{ij2}-\bar{X}_{..2}) + \epsilon_{ij}
+$$
 
 
+**Regression Formulation**  
 
+We can use indicator variables for treatments  
+
+$$
+l_1 =
+\begin{cases}
+1 & \text{if case is from treatment 1}\\
+-1 & \text{if case is from treatment r}\\
+0 &\text{otherwise}\\
+\end{cases}
+. \\
+. \\
+. \\
+l_{r-1} =
+\begin{cases}
+1 & \text{if case is from treatment r-1}\\
+-1 & \text{if case is from treatment r}\\
+0 &\text{otherwise}\\
+\end{cases}
+$$
+
+Let $x_{ij} = X_{ij}- \bar{X}_{..}$. the regression model is  
+
+$$
+Y_{ij} = \mu_. + \tau_1l_{ij,1} + .. + \tau_{r-1}l_{ij,r-1} + \gamma x_{ij}+\epsilon_{ij}
+$$
+where $I_{ij,1}$ is the indicator variable $l_1$ for the j-th case from treatment i.  The treatment effect $\tau_1,..\tau_{r-1}$ are just regression coefficients for the indicator variables.  
+
+We could use the same diagnostic tools for this case.  
+
+**Inference**  
+
+Treatment effects  
+
+$$
+H_0: \tau_1 = \tau_2 = ...= 0 \\
+H_a: \text{not all } \tau_i =0
+$$
+$$
+\text{Full Model}: Y_{ij} = \mu_. + \tau_i + \gamma X_{ij} +\epsilon_{ij}  \\
+\text{Reduced Model}: Y_{ij} = \mu_. + \gamma X_{ij} + \epsilon_{ij}
+$$
+
+$$
+F = \frac{SSE(R) - SSE(F)}{(N-2)-(N-(r+1))} / \frac{SSE(F)}{N-(r+1)} \sim F_{(r-1,N-(r+1))}
+$$
+
+
+If we are interested in comparisons of treatment effects.  
+For example, r - 3. We estimate $\tau_1,\tau_2, \tau_3 = -\tau_1 - \tau_2$
+
+Comparison | Estimate | Variance of Estimator 
+---|---|---
+$\tau_1 -\tau_2$ |  $\hat{\tau}_1 - \hat{\tau}_2$ | $var(\hat{\tau}_1) + var(\hat{\tau}_2) - 2cov(\hat{\tau}_1\hat{\tau}_2)$
+$\tau_1 -\tau_3$ |  $2\hat{\tau}_1 - \hat{\tau}_2$ | $4var(\hat{\tau}_1) + var(\hat{\tau}_2) - 4cov(\hat{\tau}_1\hat{\tau}_2)$
+$\tau_2 -\tau_3$ |  $\hat{\tau}_1 + 2\hat{\tau}_2$ | $var(\hat{\tau}_1) + 4var(\hat{\tau}_2) - 4cov(\hat{\tau}_1\hat{\tau}_2)$
+
+we can use $t_{N-r-1}$  
+
+**Testing for Parallel Slopes**  
+
+Example:  
+
+r = 3 
+
+$$
+Y_{ij} = \mu_{.} + \tau_1 I_{ij,1} + \tau_2 I_{ij,2} + \gamma X_{ij} + \beta_1 I_{ij,1}X_{ij} + \beta_2 I_{ij,2}X_{ij} + \epsilon_{ij}
+$$
+where
+$\beta_1,\beta_2$: interaction coefficients. 
+
+$$
+H_0: \beta_1 = \beta_2 = 0 \\
+H_a: \text{at least one} \beta \neq 0 
+$$
+If we can't reject $H_0$ using F-test then we have evidence that the slopes are parallel  
+
+**Adjusted Means**  
+
+The means in response after adjusting for the covariate effect  
+
+$$
+Y_{i.}(adj) = \bar{Y}_{i.} - \hat{\gamma}(\bar{X}_{i.} - \bar{X}_{..})
+$$
 
 

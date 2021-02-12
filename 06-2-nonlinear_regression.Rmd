@@ -851,6 +851,493 @@ We could have problems of
 
 
 
+## Generalized Linear Models
+
+Even though we call it generalized linear model, it is still under the paradigm of non-linear regression, because the form of the regression model is non-linear. The name generalized linear model derived from the fact that we have $\mathbf{x'_i \beta}$ (which is linear form) in the model.  
+
+### Logistic Regression
+
+$$
+p_i = f(\mathbf{x}_i ; \beta) = \frac{exp(\mathbf{x_i'\beta})}{1 + exp(\mathbf{x_i'\beta})}
+$$
+Equivalently,  
+
+$$
+logit(p_i) = log(\frac{p_i}{1+p_i}) = \mathbf{x_i'\beta}
+$$
+where $\frac{p_i}{1+p_i}$is the **odds**.
+
+In this form, the model is specified such that **a function of the mean response is linear**. Hence, **Generalized Linear Models**  
+
+The likelihood function  
+
+$$
+L(p_i) = \prod_{i=1}^{n} p_i^{Y_i}(1-p_i)^{1-Y_i}
+$$
+where $p_i = \frac{\mathbf{x'_i \beta}}{1+\mathbf{x'_i \beta}}$ and $1-p_i = (1+ exp(\mathbf{x'_i \beta}))^{-1}$  
+
+Hence, our objective function is  
+
+$$
+Q(\beta) = log(L(\beta)) = \sum_{i=1}^n Y_i \mathbf{x'_i \beta} - \sum_{i=1}^n  log(1+ exp(\mathbf{x'_i \beta}))
+$$
+
+we could maximize this function numerically using the optimization method above, which allows us to find numerical MLE for $\hat{\beta}$. Then we can use the standard asymptotic properties of MLEs to make inference.  
+
+Property of MLEs is that parameters are asymptotically unbiased with sample variance-covariance matrix given by the **inverse Fisher information matrix**
+
+
+$$
+\hat{\beta} \dot{\sim} AN(\beta,[\mathbf{I}(\beta)]^{-1})
+$$
+where the **Fisher Information matrix**, $\mathbf{I}(\beta)$ is 
+
+$$
+\begin{align}
+\mathbf{I}(\beta) &= E[\frac{\partial \log(L(\beta))}{\partial (\beta)}\frac{\partial \log(L(\beta))}{\partial \beta'}] \\
+&= E[(\frac{\partial \log(L(\beta))}{\partial \beta_i} \frac{\partial \log(L(\beta))}{\partial \beta_j})_{ij}]
+\end{align}
+$$
+Under **regularity conditions**, this is equivalent to the negative of the expected value of the Hessian Matrix   
+
+$$
+\begin{align}
+\mathbf{I}(\beta) &= -E[\frac{\partial^2 \log(L(\beta))}{\partial \beta \partial \beta'}] \\
+&= -E[(\frac{\partial^2 \log(L(\beta))}{\partial \beta_i \partial \beta_j})_{ij}]
+\end{align}
+$$
+
+Example:  
+
+$$
+x_i' \beta = \beta_0 + \beta_1 x_i
+$$
+
+
+$$
+- \frac{\partial^2 \ln(L(\beta))}{\partial \beta^2_0} = \sum_{i=1}^n \frac{\exp(x'_i \beta)}{1 + \exp(x'_i \beta)} - [\frac{\exp(x_i' \beta)}{1+ \exp(x'_i \beta)}]^2 = \sum_{i=1}^n p_i (1-p_i) \\
+- \frac{\partial^2 \ln(L(\beta))}{\partial \beta^2_1} = \sum_{i=1}^n \frac{x_i^2\exp(x'_i \beta)}{1 + \exp(x'_i \beta)} - [\frac{x_i\exp(x_i' \beta)}{1+ \exp(x'_i \beta)}]^2 = \sum_{i=1}^n x_i^2p_i (1-p_i) \\
+- \frac{\partial^2 \ln(L(\beta))}{\partial \beta_0 \partial \beta_1} = \sum_{i=1}^n \frac{x_i\exp(x'_i \beta)}{1 + \exp(x'_i \beta)} - x_i[\frac{\exp(x_i' \beta)}{1+ \exp(x'_i \beta)}]^2 = \sum_{i=1}^n x_ip_i (1-p_i) \\
+$$
+
+Hence,  
+
+$$
+\mathbf{I} (\beta) = 
+\left[
+\begin{array}
+{cc}
+\sum_i p_i(1-p_i) && \sum_i x_i p_i(1-p_i) \\
+\sum_i x_i p_i(1-p_i) && \sum_i x_i^2 p_i(1-p_i)
+\end{array}
+\right]
+$$
+
+
+**Inference**  
+
+**Likelihood Ratio Tests**  
+
+To formulate the test, let $\beta = [\beta_1', \beta_2']'$. If you are interested in testing a hypothesis about $\beta_1$, then we leave $\beta_2$ unspecified (called **nuisance parameters**). $\beta_1$ and $\beta_2$ can either a **vector** or **scalar**, or $\beta_2$ can be null.  
+
+Example: $H_0: \beta_1 = \beta_{1,0}$ (where $\beta_{1,0}$ is specified) and $\hat{\beta}_{2,0}$ be the MLE of $\beta_2$ under the restriction that $\beta_1 = \beta_{1,0}$. The likelihood ratio test statistic is  
+
+$$
+-2\log\Lambda = -2[\log(L(\beta_{1,0},\hat{\beta}_{2,0})) - \log(L(\hat{\beta}_1,\hat{\beta}_2))]
+$$
+where  
+
+ * the first term is the value fo the likelihood for the fitted restricted model  
+ * the second term is the likelihood value of the fitted unrestricted model  
+
+
+Under the null, 
+
+$$
+-2 \log \Lambda \sim \chi^2_{\upsilon}
+$$
+where $\upsilon$ is the dimension of $\beta_1$  
+
+We reject the null when $-2\log \Lambda > \chi_{\upsilon,1-\alpha}^2$  
+
+**Wald Statistics**  
+
+Based on 
+
+$$
+\hat{\beta} \sim AN (\beta, [\mathbf{I}(\beta)^{-1}])
+$$
+$$
+H_0: \mathbf{L}\hat{\beta} = 0 
+$$
+where $\mathbf{L}$ is a q x p matrix with q linearly independent rows. Then  
+
+$$
+W = (\mathbf{L\hat{\beta}})'(\mathbf{L[I(\hat{\beta})]^{-1}L'})^{-1}(\mathbf{L\hat{\beta}})
+$$
+under the null hypothesis  
+
+Confidence interval  
+
+$$
+\hat{\beta}_i \pm 1.96 \hat{s}_{ii}^2
+$$
+where $\hat{s}_{ii}^2$ is the i-th diagonal of $\mathbf{[I(\hat{\beta})]}^{-1}$  
+
+If you have   
+
+ * large sample size, the likelihood ratio and Wald tests have similar results.  
+ * small sample size, the likelihood ratio test is better.  
+
+**Logistic Regression: Interpretation of $\beta$**  
+
+For single regressor, the model is  
+
+$$
+logit\{\hat{p}_{x_i}\} \equiv logit (\hat{p}_i) = \log(\frac{\hat{p}_i}{1 - \hat{p}_i}) = \hat{\beta}_0 + \hat{\beta}_1 x_i
+$$
+
+When $x= x_i + 1$  
+
+$$
+logit\{\hat{p}_{x_i +1}\} = \hat{\beta}_0 + \hat{\beta}(x_i + 1) = logit\{\hat{p}_{x_i}\} + \hat{\beta}_1
+$$
+
+Then,  
+
+$$
+logit\{\hat{p}_{x_i +1}\} - logit\{\hat{p}_{x_i}\} = log\{odds[\hat{p}_{x_i +1}]\} - log\{odds[\hat{p}_{x_i}]\} \\
+= log(\frac{odds[\hat{p}_{x_i + 1}]}{odds[\hat{p}_{x_i}]}) = \hat{\beta}_1
+$$
+
+and  
+
+$$
+exp(\hat{\beta}_1) = \frac{odds[\hat{p}_{x_i + 1}]}{odds[\hat{p}_{x_i}]}
+$$
+the estimated **odds ratio**  
+
+
+the estimated odds ratio, when there is a difference of c units in the regressor x, is $exp(c\hat{\beta}_1)$. When there are multiple covariates, $exp(\hat{\beta}_k)$ is the estimated odds ratio for the variable $x_k$, assuming that all of the other variables are held constant.  
+
+
+**Inference on the Mean Response**  
+
+Let $x_h = (1, x_{h1}, ...,x_{h,p-1})'$. Then 
+
+$$
+\hat{p}_h = \frac{exp(\mathbf{x'_h \hat{\beta}})}{1 + exp(\mathbf{x'_h \hat{\beta}})}
+$$
+
+and $s^2(\hat{p}_h) = \mathbf{x'_h[I(\hat{\beta})]^{-1}x_h}$  
+
+For new observation, we can have a cutoff point to decide whether y = 0 or 1.  
+
+
+### Probit Regression
+
+$$
+E(Y_i) = p_i = \Phi(\mathbf{x_i'\theta})
+$$
+where $\Phi()$ is the CDF of a N(0,1) random variable.  
+
+Other models (e..g, t--distribution; log-log; I complimentary log-log)  
+
+We let $Y_i = 1$ success, $Y_i =0$ no success. We assume $Y \sim Ber$ and $p_i = P(Y_i =1)$, the success probability. We cosnider a logistic regression with the response function $logit(p_i) = x'_i \beta$
+
+
+**Confusion matrix**  
+
+| | Predicted |  |
+|---|---|---|
+| Truth | 1 | 0 |
+|1|True Positive (TP) | False Negative (FN) |
+|0 | False Positive (FP) | True Negative (TN) |
+
+
+Sensitivity: ability to identify positive results  
+
+$$
+\text{Sensitivity} = \frac{TP}{TP + FN}
+$$
+
+Specificity: ability to identify negative results  
+
+$$
+\text{Specificity} = \frac{TN}{TN + FP}
+$$
+
+False positive rate: Type I error (1- specificity)
+
+$$
+\text{ False Positive Rate} = \frac{FP}{TN+ FP}
+$$
+
+False Negative Rate: Type II error (1-sensitivity)
+
+$$
+\text{False Negative Rate} = \frac{FN}{TP + FN}
+$$
+
+| | Predicted |  |
+|---|---|---|
+| Truth | 1 | 0 |
+|1|Sensitivity | False Negative Rate |
+|0 | False Positive Rate | Specificity |
+
+
+### Poisson Regression
+
+From the Poisson distribution  
+
+$$
+f(Y_i) = \frac{\mu_i^{Y_i}exp(-\mu_i)}{Y_i!}, Y_i = 0,1,.. \\
+E(Y_i) = \mu_i  \\
+var(Y_i) = \mu_i
+$$
+which is a natural distribution for counts. We can see that the variance is a function of the mean. If we let $\mu_i = f(\mathbf{x_i; \theta})$, it would be similar to [Logistic Regression] since we can choose $f()$ as $\mu_i = \mathbf{x_i'\theta}, \mu_i = \exp(\mathbf{x_i'\theta}), \mu_i = \log(\mathbf{x_i'\theta})$  
+
+### Generalization
+
+We can see that Poisson regression looks similar to logistic regression. Hence, we can generalize to a class of modeling. Thanks to [@Nelder_1972], we have the **generalized linear models** (GLMs). Estimation is generalize in these models.  
+
+
+**Exponential Family**  
+The theory of GLMs is developed for data with distribution given y the **exponential family**.  
+The form of the data distribution that is useful for GLMs  is  
+
+$$
+f(y;\theta, \phi) = \exp(\frac{\theta y - b(\theta)}{a(\phi)} + c(y, \phi))
+$$
+where  
+
+ * $\theta$ is called the natural parameter  
+ * $\phi$ is called the dispersion parameter 
+
+**Note**:   
+
+This family includes the [Gamma], [Normal], [Poisson], and other.  
+
+**Example**  
+
+if we have $Y \sim N(\mu, \sigma^2)$
+
+$$
+\begin{align}
+f(y; \mu, \sigma^2) &= \frac{1}{(2\pi \sigma^2)^{1/2}}\exp(-\frac{1}{2\sigma^2}(y- \mu)^2) \\
+&= \exp(-\frac{1}{2\sigma^2}(y^2 - 2y \mu +\mu^2)- \frac{1}{2}\log(2\pi \sigma^2)) \\
+&= \exp(\frac{y \mu - \mu^2/2}{\sigma^2} - \frac{y^2}{2\sigma^2} - \frac{1}{2}\log(2\pi \sigma^2)) \\
+&= \exp(\frac{\theta y - b(\theta)}{a(\phi)} + c(y , \phi))
+\end{align}
+$$
+where   
+
+ * $\theta = \mu$  
+ * $b(\theta) = \frac{\mu^2}{2}$  
+ * $a(\phi) = \sigma^2 = \phi$  
+ * $c(y , \phi) = - \frac{1}{2}(\frac{y^2}{\phi}+\log(2\pi \sigma^2))$
+
+
+**Properties of GLM exponential families**  
+
+ 1. $E(Y) = b' (\theta)$ where $b'(\theta) = \frac{\partial b(\theta)}{\partial \theta}$ (here `'` is "prime", not transpose)  
+ 2. $var(Y) = a(\phi)b''(\theta)= a(\phi)V(\mu)$.  
+    + $V(\mu)$ is the *variance function*; however, it is only the variance in the case that $a(\phi) =1$  
+ 3. If $a(), b(), c()$ are identifiable, we will derive expected value and variance of Y.   
+
+Example  
+
+Normal distribution
+
+$$
+b'(\theta) = \frac{\partial b(\mu^2/2)}{\partial \mu} = \mu \\
+V(\mu) = \frac{\partial^2 (\mu^2/2)}{\partial \mu^2} = 1 \\
+\to var(Y) = a(\phi) = \sigma^2
+$$
+
+Poisson distribution   
+
+$$
+\begin{align}
+f(y, \theta, \phi) &= \frac{\mu^y \exp(-\mu)}{y!} \\
+&= \exp(y\log(\mu) - \mu - \log(y!)) \\
+&= \exp(y\theta - \exp(\theta) - \log(y!))
+\end{align}
+$$
+
+where  
+
+ * $\theta = \log(\mu)$  
+ * $a(\phi) = 1$  
+ * $b(\theta) = \exp(\theta)$  
+ * $c(y, \phi) = \log(y!)$  
+
+
+Hence,  
+
+$$
+E(Y) = \frac{\partial b(\theta)}{\partial \theta} = \exp(\theta) = \mu \\
+var(Y) = \frac{\partial^2 b(\theta)}{\partial \theta^2} = \mu
+$$
+
+
+Since $\mu = E(Y) = b'(\theta)$  
+
+In GLM, we take some monotone function (typically nonlinear) of $\mu$ to be linear in the set of covariates  
+
+$$
+g(\mu) = g(b'(\theta)) = \mathbf{x'\beta}
+$$
+Equivalently,  
+
+$$
+\mu = g^{-1}(\mathbf{x'\beta})
+$$
+where $g(.)$ is the **link function** since it links mean response ($\mu = E(Y)$) and a linear expression of the covariates  
+
+Some people use $\eta = \mathbf{x'\beta}$ where $\eta$ = the "linear predictor"  
+
+
+**GLM is composed of 2 components**  
+
+The **random component**:  
+
+ * is the distribution chosen to model the response variables $Y_1,...,Y_n$ 
+ * is specified by the choice fo $a(), b(), c()$ in the exponential form  
+ * Notation:  
+    + Assume that there are n **independent** response variables $Y_1,...,Y_n$ with densities   
+$$
+f(y_i ; \theta_i, \phi) = \exp(\frac{\theta_i y_i - b(\theta_i)}{a(\phi)}+ c(y_i, \phi))
+$$
+notice each observation might have different densities 
+    + Assume that $\phi$ is constant for all $i = 1,...,n$, but $\theta_i$ will vary. $\mu_i = E(Y_i)$ for all i.  
+
+The **systematic component**  
+
+ * is the portion of the model that gives the relation between $\mu$ and the covariates $\mathbf{x}$  
+ * consists of 2 parts:  
+    + the *link* function, $g(.)$  
+    + the *linear predictor*, $\eta = \mathbf{x'\beta}$  
+ * Notation:  
+    + assume $g(\mu_i) = \mathbf{x'\beta} = \eta_i$ where $\mathbf{\beta} = (\beta_1,..., \beta_p)'$  
+    + The parameters to be estimated are $\beta_1,...\beta_p , \phi$
+
+**The Canonical Link**  
+
+To choose $g(.)$, we can use **canonical link function**  
+
+If the link function $g(.)$ is such $g(\mu_i) = \theta_i$, the natural parameter, then $g(.)$ is the canonical link.  
+
+Example  
+
+Distribution | Mean Response | Canonical link | name 
+---|---|---|---
+Normal random component | $\mu_i = \theta_i$ | $g(\mu_i) = \mu_i$ | the identity link  
+Binomial random component | $\mu_i = \frac{n_i \exp(\theta)}{1+\exp(\theta_i)} \\ \theta(\mu_i) = \log(\frac{p_i}{1-p_i}) = \log (\frac{\mu_i}{n_i - \mu_i})$ | $g(\mu_i) = \log(\frac{\mu_i}{n_i - \mu_i})$ | the logit link  
+Poisson random component | $\mu_i = \exp(\theta_i)$ | $g(\mu_i) = \log(\mu_i)$ | 
+Gamma random component | $\mu_i = -\frac{1}{\theta_i} \\ \theta(\mu_i) = - \mu_i^{-1}$ | $g(\mu_i) = - \frac{1}{\mu_i}$ | 
+Inverse Gaussian random | | $g(\mu_i) = \frac{1}{\mu_i^2}$ |
+
+#### Estimation
+
+ * MLE for parameters of the **systematic component ($\beta$)**  
+ * Unification of derivation and computation (thanks to the exponential forms)  
+ * No unification for estimation of the dispersion parameter ($\phi$)   
+
+##### Estimation of $\beta$ 
+
+We have  
+
+$$
+f(y_i ; \theta_i, \phi) = \exp(\frac{\theta_i y_i - b(\theta_i)}{a(\phi)}+ c(y_i, \phi)) \\
+E(Y_i) = \mu_i = b'(\theta) \\
+var(Y_i) = b''(\theta)a(\phi) = V(\mu_i)a(\phi) \\
+g(\mu_i) = \mathbf{x}_i'\beta = \eta_i
+$$
+
+If the log-likelihood for a single observation is $l_i (\beta,\phi)$. The log-likelihood for all n observations is  
+
+$$
+\begin{align}
+l(\beta,\phi) &= \sum_{i=1}^n l_i (\beta,\phi) \\
+&= \sum_{i=1}^n (\frac{\theta_i y_i - b(\theta_i)}{a(\phi)}+ c(y_i, \phi))
+\end{align}
+$$
+
+Using MLE to find $\beta$, we use the chain rule to get the derivatives    
+
+$$
+\begin{align}
+\frac{\partial l_i (\beta,\phi)}{\partial \beta_j} &=  \frac{\partial l_i (\beta, \phi)}{\partial \theta_i} \times \frac{\partial \theta_i}{\partial \mu_i} \times \frac{\partial \mu_i}{\partial \eta_i}\times \frac{\partial \eta_i}{\partial \beta_j} \\
+&= \sum_{i=1}^{n}(\frac{ y_i - \mu_i}{a(\phi)} \times \frac{1}{V(\mu_i)} \times \frac{\partial \mu_i}{\partial \eta_i} \times x_{ij})
+\end{align}
+$$
+
+If we let 
+
+$$
+w_i \equiv ((\frac{\partial \eta_i}{\partial \mu_i})^2 V(\mu_i))^{-1}
+$$
+
+Then,  
+
+$$
+\frac{\partial l_i (\beta,\phi)}{\partial \beta_j} = \sum_{i=1}^n (\frac{y_i \mu_i}{a(\phi)} \times w_i \times \frac{\partial \eta_i}{\partial \mu_i} \times x_{ij})
+$$
+
+We can also get the second derivatives using the chain rule.  
+
+Example:  
+
+For the [Newton-Raphson] algorithm, we need  
+
+$$
+- E(\frac{\partial^2 l(\beta,\phi)}{\partial \beta_j \partial \beta_k})
+$$
+where $(j,k)$th element of the **Fisher information matrix** $\mathbf{I}(\beta)$  
+
+Hence, 
+
+$$
+- E(\frac{\partial^2 l(\beta,\phi)}{\partial \beta_j \partial \beta_k}) = \sum_{i=1}^n \frac{w_i}{a(\phi)}x_{ij}x_{ik}
+$$
+for the (j,k)th element  
+
+If Bernoulli model with logit link function (which is the canonical link)  
+
+$$
+b(\theta) = \log(1 + \exp(\theta)) = \log(1 + \exp(\mathbf{x'\beta})) \\
+a(\phi) = 1  \\
+c(y_i, \phi) = 0 \\
+E(Y) = b'(\theta) = \frac{\exp(\theta)}{1 + \exp(\theta)} = \mu = p \\
+\eta = g(\mu) = \log(\frac{\mu}{1-\mu}) = \theta = \log(\frac{p}{1-p}) = \mathbf{x'\beta} 
+$$
+
+For $Y_i$, i = 1,.., the log-likelihood is  
+
+$$
+l_i (\beta, \phi) = \frac{y_i \theta_i - b(\theta_i)}{a(\phi)} + c(y_i, \phi) = y_i \mathbf{x}'_i \beta - \log(1+ \exp(\mathbf{x'\beta}))
+$$
+Additionally,
+
+$$
+V(\mu_i) = \mu_i(1-\mu_i)= p_i (1-p_i) \\
+\frac{\partial \mu_i}{\partial \eta_i} = p_i(1-p_i)
+$$
+
+Hence,  
+
+$$
+\begin{align}
+\frac{\partial l(\beta, \phi)}{\partial \beta_j} = \sum_{i=1}^n
+\end{align}
+$$
+
+##### Estimation of $\phi$
+
+
+
+
 ## Genelized Method of Moments
 
 ## Minimum Distance
