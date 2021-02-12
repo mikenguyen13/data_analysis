@@ -27,6 +27,104 @@ export_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 ```
 
 
+Another package is `stargazer`  
+
+```{r}
+library("stargazer")
+stargazer(attitude)
+## 2 OLS models
+linear.1 <- lm(rating ~ complaints + privileges + learning + raises + critical,data = attitude)
+linear.2 <- lm(rating ~ complaints + privileges + learning, data = attitude)
+## create an indicator dependent variable, and run a probit model
+attitude$high.rating <- (attitude$rating > 70)
+probit.model <-
+    glm(
+        high.rating ~ learning + critical + advance,
+        data = attitude,
+        family = binomial(link = "probit")
+    )
+stargazer(linear.1,
+          linear.2,
+          probit.model,
+          title = "Results",
+          align = TRUE)
+```
+
+```{r eval = FALSE}
+# Latex
+stargazer(
+    linear.1,
+    linear.2,
+    probit.model,
+    title = "Regression Results",
+    align = TRUE,
+    dep.var.labels = c("Overall Rating", "High Rating"),
+    covariate.labels = c(
+        "Handling of Complaints",
+        "No Special Privileges",
+        "Opportunity to Learn",
+        "Performance-Based Raises",
+        "Too Critical",
+        "Advancement"
+    ),
+    omit.stat = c("LL", "ser", "f"),
+    no.space = TRUE
+)
+```
+
+```{r}
+# ASCII text output
+stargazer(
+    linear.1,
+    linear.2,
+    type = "text",
+    title = "Regression Results",
+    dep.var.labels = c("Overall Rating", "High Rating"),
+    covariate.labels = c(
+        "Handling of Complaints",
+        "No Special Privileges",
+        "Opportunity to Learn",
+        "Performance-Based Raises",
+        "Too Critical",
+        "Advancement"
+    ),
+    omit.stat = c("LL", "ser", "f"),
+    ci = TRUE,
+    ci.level = 0.90,
+    single.row = TRUE
+)
+```
+
+```{r eval = FALSE}
+stargazer(
+    linear.1,
+    linear.2,
+    probit.model,
+    title = "Regression Results",
+    align = TRUE,
+    dep.var.labels = c("Overall Rating", "High Rating"),
+    covariate.labels = c(
+        "Handling of Complaints",
+        "No Special Privileges",
+        "Opportunity to Learn",
+        "Performance-Based Raises",
+        "Too Critical",
+        "Advancement"
+    ),
+    omit.stat = c("LL", "ser", "f"),
+    no.space = TRUE
+)
+```
+
+Correlation Table  
+
+```{r eval = FALSE}
+correlation.matrix <- cor(attitude[,c("rating","complaints","privileges")])
+stargazer(correlation.matrix, title="Correlation Matrix")
+```
+
+
+
 ## Changes in an estimate 
  
 ```{r}
