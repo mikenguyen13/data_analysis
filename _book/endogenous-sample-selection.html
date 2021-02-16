@@ -24,7 +24,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2021-02-12" />
+<meta name="date" content="2021-02-15" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -323,6 +323,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul></li>
 <li class="chapter" data-level="8.2" data-path="endogenous-sample-selection.html"><a href="endogenous-sample-selection.html"><i class="fa fa-check"></i><b>8.2</b> Endogenous Sample Selection</a><ul>
 <li class="chapter" data-level="8.2.1" data-path="endogenous-sample-selection.html"><a href="endogenous-sample-selection.html#tobit-2"><i class="fa fa-check"></i><b>8.2.1</b> Tobit-2</a></li>
+<li class="chapter" data-level="8.2.2" data-path="endogenous-sample-selection.html"><a href="endogenous-sample-selection.html#tobit-5"><i class="fa fa-check"></i><b>8.2.2</b> Tobit-5</a></li>
 </ul></li>
 </ul></li>
 <li class="chapter" data-level="9" data-path="data.html"><a href="data.html"><i class="fa fa-check"></i><b>9</b> Data</a><ul>
@@ -476,9 +477,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </ul>
 <div id="tobit-2" class="section level3">
 <h3><span class="header-section-number">8.2.1</span> Tobit-2</h3>
-<p>also known as Heckman’s standard sample selection model</p>
+<p>also known as Heckman’s standard sample selection model<br />
+Assumption: joint normality of the errors</p>
 <p>Data here is taken from <span class="citation">(Mroz <a href="#ref-Mroz_1987" role="doc-biblioref">1987</a>)</span>’s paper.</p>
 <p>We want to estimate the log(wage) for married women, with education, experience, experience squared, and a dummy variable for living in a big city. But we can only observe the wage for women who are working, which means a lot of married women in 1975 who were out of the labor force are unaccounted for. Hence, an OLS estimate of the wage equation would be bias due to sample selection. Since we have data on non-participants (i.e., those who are not working for pay), we can correct for the selection process.</p>
+<p>The Tobit-2 estimates are consistent</p>
+<div id="example-1" class="section level4">
+<h4><span class="header-section-number">8.2.1.1</span> Example 1</h4>
 <div class="sourceCode" id="cb228"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb228-1"><a href="endogenous-sample-selection.html#cb228-1"></a><span class="kw">library</span>(sampleSelection)</span>
 <span id="cb228-2"><a href="endogenous-sample-selection.html#cb228-2"></a><span class="kw">library</span>(dplyr)</span>
 <span id="cb228-3"><a href="endogenous-sample-selection.html#cb228-3"></a><span class="kw">data</span>(<span class="st">&quot;Mroz87&quot;</span>) <span class="co">#1975 data on married women’s pay and labor-force participation from the Panel Study of Income Dynamics (PSID)</span></span>
@@ -582,6 +587,211 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 ## Note:                              *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
 <p>Rho is an estimate of the correlation of the errors between the selection and wage equations. In the lower panel, the estimated coefficient on the inverse Mills ratio is given for the Heckman model. The fact that it is not statistically different from zero is consistent with the idea that selection bias was not a serious problem in this case.</p>
 <p>If the estimated coefficient of the inverse Mills ratio in the Heckman model is not statistically different from zero, then selection bias was not a serious problem.</p>
+</div>
+<div id="example-2" class="section level4">
+<h4><span class="header-section-number">8.2.1.2</span> Example 2</h4>
+<p>This code is from <a href="https://cran.r-project.org/web/packages/sampleSelection/vignettes/selection.pdf">R package sampleSelection</a></p>
+<div class="sourceCode" id="cb235"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb235-1"><a href="endogenous-sample-selection.html#cb235-1"></a><span class="kw">set.seed</span>(<span class="dv">0</span>)</span>
+<span id="cb235-2"><a href="endogenous-sample-selection.html#cb235-2"></a><span class="kw">library</span>(<span class="st">&quot;sampleSelection&quot;</span>)</span>
+<span id="cb235-3"><a href="endogenous-sample-selection.html#cb235-3"></a><span class="kw">library</span>(<span class="st">&quot;mvtnorm&quot;</span>)</span>
+<span id="cb235-4"><a href="endogenous-sample-selection.html#cb235-4"></a>eps &lt;-<span class="st"> </span><span class="kw">rmvnorm</span>(<span class="dv">500</span>, <span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">0</span>), <span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">1</span>,<span class="op">-</span><span class="fl">0.7</span>,<span class="op">-</span><span class="fl">0.7</span>,<span class="dv">1</span>), <span class="dv">2</span>, <span class="dv">2</span>)) <span class="co"># bivariate normal disturbances</span></span>
+<span id="cb235-5"><a href="endogenous-sample-selection.html#cb235-5"></a>xs &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dv">500</span>)<span class="co"># uniformly distributed explanatory variable (vectors of explanatory variables for the selection )</span></span>
+<span id="cb235-6"><a href="endogenous-sample-selection.html#cb235-6"></a>ys &lt;-<span class="st"> </span>xs <span class="op">+</span><span class="st"> </span>eps[,<span class="dv">1</span>] <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span> <span class="co"># probit data generating process</span></span>
+<span id="cb235-7"><a href="endogenous-sample-selection.html#cb235-7"></a>xo &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dv">500</span>) <span class="co"># vectors of explanatory variables for outcome equation </span></span>
+<span id="cb235-8"><a href="endogenous-sample-selection.html#cb235-8"></a>yoX &lt;-<span class="st"> </span>xo <span class="op">+</span><span class="st"> </span>eps[,<span class="dv">2</span>] <span class="co"># latent outcome</span></span>
+<span id="cb235-9"><a href="endogenous-sample-selection.html#cb235-9"></a>yo &lt;-<span class="st"> </span>yoX<span class="op">*</span>(ys <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>) <span class="co"># observable outcome</span></span>
+<span id="cb235-10"><a href="endogenous-sample-selection.html#cb235-10"></a><span class="co"># true intercepts = 0 and our true slopes = 1</span></span>
+<span id="cb235-11"><a href="endogenous-sample-selection.html#cb235-11"></a><span class="co"># xs and xo are independent. Hence, exclusion restriction is fulfilled</span></span>
+<span id="cb235-12"><a href="endogenous-sample-selection.html#cb235-12"></a><span class="kw">summary</span>( <span class="kw">selection</span>(ys<span class="op">~</span>xs, yo <span class="op">~</span>xo))</span></code></pre></div>
+<pre><code>## --------------------------------------------
+## Tobit 2 model (sample selection model)
+## Maximum Likelihood estimation
+## Newton-Raphson maximisation, 5 iterations
+## Return code 1: gradient close to zero (gradtol)
+## Log-Likelihood: -712.3163 
+## 500 observations (172 censored and 328 observed)
+## 6 free parameters (df = 494)
+## Probit selection equation:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  -0.2228     0.1081  -2.061   0.0399 *  
+## xs            1.3377     0.2014   6.642 8.18e-11 ***
+## Outcome equation:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -0.0002265  0.1294178  -0.002    0.999    
+## xo           0.7299070  0.1635925   4.462 1.01e-05 ***
+##    Error terms:
+##       Estimate Std. Error t value Pr(&gt;|t|)    
+## sigma   0.9190     0.0574  16.009  &lt; 2e-16 ***
+## rho    -0.5392     0.1521  -3.544 0.000431 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## --------------------------------------------</code></pre>
+<p>without the exclusion restriction, we generate yo using xs instead of xo.</p>
+<div class="sourceCode" id="cb237"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb237-1"><a href="endogenous-sample-selection.html#cb237-1"></a>yoX &lt;-<span class="st"> </span>xs <span class="op">+</span><span class="st"> </span>eps[,<span class="dv">2</span>]</span>
+<span id="cb237-2"><a href="endogenous-sample-selection.html#cb237-2"></a>yo &lt;-<span class="st"> </span>yoX<span class="op">*</span>(ys <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>)</span>
+<span id="cb237-3"><a href="endogenous-sample-selection.html#cb237-3"></a><span class="kw">summary</span>(<span class="kw">selection</span>(ys <span class="op">~</span><span class="st"> </span>xs, yo <span class="op">~</span><span class="st"> </span>xs))</span></code></pre></div>
+<pre><code>## --------------------------------------------
+## Tobit 2 model (sample selection model)
+## Maximum Likelihood estimation
+## Newton-Raphson maximisation, 14 iterations
+## Return code 8: successive function values within relative tolerance limit (reltol)
+## Log-Likelihood: -712.8298 
+## 500 observations (172 censored and 328 observed)
+## 6 free parameters (df = 494)
+## Probit selection equation:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  -0.1984     0.1114  -1.781   0.0756 .  
+## xs            1.2907     0.2085   6.191 1.25e-09 ***
+## Outcome equation:
+##             Estimate Std. Error t value Pr(&gt;|t|)   
+## (Intercept)  -0.5499     0.5644  -0.974  0.33038   
+## xs            1.3987     0.4482   3.120  0.00191 **
+##    Error terms:
+##       Estimate Std. Error t value Pr(&gt;|t|)    
+## sigma  0.85091    0.05352  15.899   &lt;2e-16 ***
+## rho   -0.13226    0.72684  -0.182    0.856    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## --------------------------------------------</code></pre>
+<p>We can see that our estimates are still unbiased but standard errors are substantially larger.
+The exclusion restriction (i.e., independent information about the selection process) has a certain identifying power that we desire. Hence, it’s better to have different set of variable for the selection process from the interested equation. Without the exclusion restriction, we solely rely on the functional form identification.</p>
+</div>
+</div>
+<div id="tobit-5" class="section level3">
+<h3><span class="header-section-number">8.2.2</span> Tobit-5</h3>
+<p>Also known as the switching regression model<br />
+Condition: There is at least one variable in X in the selection process not included in the observed process. Used when there are separate models for participants, and non-participants.</p>
+<div class="sourceCode" id="cb239"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb239-1"><a href="endogenous-sample-selection.html#cb239-1"></a><span class="kw">set.seed</span>(<span class="dv">0</span>)</span>
+<span id="cb239-2"><a href="endogenous-sample-selection.html#cb239-2"></a>vc &lt;-<span class="st"> </span><span class="kw">diag</span>(<span class="dv">3</span>)</span>
+<span id="cb239-3"><a href="endogenous-sample-selection.html#cb239-3"></a>vc[<span class="kw">lower.tri</span>(vc)] &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.9</span>, <span class="fl">0.5</span>, <span class="fl">0.1</span>)</span>
+<span id="cb239-4"><a href="endogenous-sample-selection.html#cb239-4"></a>vc[<span class="kw">upper.tri</span>(vc)] &lt;-<span class="st"> </span>vc[<span class="kw">lower.tri</span>(vc)]</span>
+<span id="cb239-5"><a href="endogenous-sample-selection.html#cb239-5"></a>eps &lt;-<span class="st"> </span><span class="kw">rmvnorm</span>(<span class="dv">500</span>, <span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>), vc) <span class="co"># 3 disturbance vectors by a 3-dimensional normal distribution</span></span>
+<span id="cb239-6"><a href="endogenous-sample-selection.html#cb239-6"></a>xs &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dv">500</span>) <span class="co"># uniformly distributed on [0, 1]</span></span>
+<span id="cb239-7"><a href="endogenous-sample-selection.html#cb239-7"></a>ys &lt;-<span class="st"> </span>xs <span class="op">+</span><span class="st"> </span>eps[,<span class="dv">1</span>] <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span></span>
+<span id="cb239-8"><a href="endogenous-sample-selection.html#cb239-8"></a>xo1 &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dv">500</span>) <span class="co"># uniformly distributed on [0, 1]</span></span>
+<span id="cb239-9"><a href="endogenous-sample-selection.html#cb239-9"></a>yo1 &lt;-<span class="st"> </span>xo1 <span class="op">+</span><span class="st"> </span>eps[,<span class="dv">2</span>]</span>
+<span id="cb239-10"><a href="endogenous-sample-selection.html#cb239-10"></a>xo2 &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dv">500</span>) <span class="co"># uniformly distributed on [0, 1]</span></span>
+<span id="cb239-11"><a href="endogenous-sample-selection.html#cb239-11"></a>yo2 &lt;-<span class="st"> </span>xo2 <span class="op">+</span><span class="st"> </span>eps[,<span class="dv">3</span>]</span></code></pre></div>
+<p>exclusion restriction is fulfilled when x’s are independent.</p>
+<div class="sourceCode" id="cb240"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb240-1"><a href="endogenous-sample-selection.html#cb240-1"></a><span class="kw">summary</span>(<span class="kw">selection</span>(ys<span class="op">~</span>xs, <span class="kw">list</span>(yo1 <span class="op">~</span><span class="st"> </span>xo1, yo2 <span class="op">~</span><span class="st"> </span>xo2))) <span class="co"># one selection equation and a list of two outcome equations</span></span></code></pre></div>
+<pre><code>## --------------------------------------------
+## Tobit 5 model (switching regression model)
+## Maximum Likelihood estimation
+## Newton-Raphson maximisation, 11 iterations
+## Return code 1: gradient close to zero (gradtol)
+## Log-Likelihood: -895.8201 
+## 500 observations: 172 selection 1 (FALSE) and 328 selection 2 (TRUE)
+## 10 free parameters (df = 490)
+## Probit selection equation:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  -0.1550     0.1051  -1.474    0.141    
+## xs            1.1408     0.1785   6.390 3.86e-10 ***
+## Outcome equation 1:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  0.02708    0.16395   0.165    0.869    
+## xo1          0.83959    0.14968   5.609  3.4e-08 ***
+## Outcome equation 2:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   0.1583     0.1885   0.840    0.401    
+## xo2           0.8375     0.1707   4.908 1.26e-06 ***
+##    Error terms:
+##        Estimate Std. Error t value Pr(&gt;|t|)    
+## sigma1  0.93191    0.09211  10.118   &lt;2e-16 ***
+## sigma2  0.90697    0.04434  20.455   &lt;2e-16 ***
+## rho1    0.88988    0.05353  16.623   &lt;2e-16 ***
+## rho2    0.17695    0.33139   0.534    0.594    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## --------------------------------------------</code></pre>
+<p>All the estimates are close to the true values.</p>
+<p>Example of functional form misspecification</p>
+<div class="sourceCode" id="cb242"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb242-1"><a href="endogenous-sample-selection.html#cb242-1"></a><span class="kw">set.seed</span>(<span class="dv">5</span>)</span>
+<span id="cb242-2"><a href="endogenous-sample-selection.html#cb242-2"></a>eps &lt;-<span class="st"> </span><span class="kw">rmvnorm</span>(<span class="dv">1000</span>, <span class="kw">rep</span>(<span class="dv">0</span>, <span class="dv">3</span>), vc)</span>
+<span id="cb242-3"><a href="endogenous-sample-selection.html#cb242-3"></a>eps &lt;-<span class="st"> </span>eps<span class="op">^</span><span class="dv">2</span> <span class="op">-</span><span class="st"> </span><span class="dv">1</span> <span class="co"># subtract 1 in order to get the mean zero disturbances</span></span>
+<span id="cb242-4"><a href="endogenous-sample-selection.html#cb242-4"></a>xs &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dv">1000</span>, <span class="dv">-1</span>, <span class="dv">0</span>) <span class="co"># interval [−1, 0] to get an asymmetric distribution over observed choices</span></span>
+<span id="cb242-5"><a href="endogenous-sample-selection.html#cb242-5"></a>ys &lt;-<span class="st"> </span>xs <span class="op">+</span><span class="st"> </span>eps[,<span class="dv">1</span>] <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span></span>
+<span id="cb242-6"><a href="endogenous-sample-selection.html#cb242-6"></a>xo1 &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dv">1000</span>)</span>
+<span id="cb242-7"><a href="endogenous-sample-selection.html#cb242-7"></a>yo1 &lt;-<span class="st"> </span>xo1 <span class="op">+</span><span class="st"> </span>eps[,<span class="dv">2</span>]</span>
+<span id="cb242-8"><a href="endogenous-sample-selection.html#cb242-8"></a>xo2 &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dv">1000</span>)</span>
+<span id="cb242-9"><a href="endogenous-sample-selection.html#cb242-9"></a>yo2 &lt;-<span class="st"> </span>xo2 <span class="op">+</span><span class="st"> </span>eps[,<span class="dv">3</span>]</span>
+<span id="cb242-10"><a href="endogenous-sample-selection.html#cb242-10"></a><span class="kw">summary</span>(<span class="kw">selection</span>(ys<span class="op">~</span>xs, <span class="kw">list</span>(yo1 <span class="op">~</span><span class="st"> </span>xo1, yo2 <span class="op">~</span><span class="st"> </span>xo2), <span class="dt">iterlim=</span><span class="dv">20</span>))</span></code></pre></div>
+<pre><code>## --------------------------------------------
+## Tobit 5 model (switching regression model)
+## Maximum Likelihood estimation
+## Newton-Raphson maximisation, 4 iterations
+## Return code 3: Last step could not find a value above the current.
+## Boundary of parameter space?  
+## Consider switching to a more robust optimisation method temporarily.
+## Log-Likelihood: -1665.936 
+## 1000 observations: 760 selection 1 (FALSE) and 240 selection 2 (TRUE)
+## 10 free parameters (df = 990)
+## Probit selection equation:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -0.53698    0.05808  -9.245  &lt; 2e-16 ***
+## xs           0.31268    0.09395   3.328 0.000906 ***
+## Outcome equation 1:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -0.70679    0.03573  -19.78   &lt;2e-16 ***
+## xo1          0.91603    0.05626   16.28   &lt;2e-16 ***
+## Outcome equation 2:
+##             Estimate Std. Error t value Pr(&gt;|t|)  
+## (Intercept)   0.1446         NA      NA       NA  
+## xo2           1.1196     0.5014   2.233   0.0258 *
+##    Error terms:
+##        Estimate Std. Error t value Pr(&gt;|t|)    
+## sigma1  0.67770    0.01760   38.50   &lt;2e-16 ***
+## sigma2  2.31432    0.07615   30.39   &lt;2e-16 ***
+## rho1   -0.97137         NA      NA       NA    
+## rho2    0.17039         NA      NA       NA    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## --------------------------------------------</code></pre>
+<p>Although we still have an exclusion restriction (xo1 and xo2 are independent), we now have problems with the intercepts (i.e., they are statistically significantly different from the true values zero), and convergence problems.</p>
+<p>If we don’t have the exclusion restriction, we will have a larger variance of xs</p>
+<div class="sourceCode" id="cb244"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb244-1"><a href="endogenous-sample-selection.html#cb244-1"></a><span class="kw">set.seed</span>(<span class="dv">6</span>)</span>
+<span id="cb244-2"><a href="endogenous-sample-selection.html#cb244-2"></a>xs &lt;-<span class="st"> </span><span class="kw">runif</span>(<span class="dv">1000</span>, <span class="dv">-1</span>, <span class="dv">1</span>)</span>
+<span id="cb244-3"><a href="endogenous-sample-selection.html#cb244-3"></a>ys &lt;-<span class="st"> </span>xs <span class="op">+</span><span class="st"> </span>eps[,<span class="dv">1</span>] <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span></span>
+<span id="cb244-4"><a href="endogenous-sample-selection.html#cb244-4"></a>yo1 &lt;-<span class="st"> </span>xs <span class="op">+</span><span class="st"> </span>eps[,<span class="dv">2</span>]</span>
+<span id="cb244-5"><a href="endogenous-sample-selection.html#cb244-5"></a>yo2 &lt;-<span class="st"> </span>xs <span class="op">+</span><span class="st"> </span>eps[,<span class="dv">3</span>]</span>
+<span id="cb244-6"><a href="endogenous-sample-selection.html#cb244-6"></a><span class="kw">summary</span>(tmp &lt;-<span class="st"> </span><span class="kw">selection</span>(ys<span class="op">~</span>xs, <span class="kw">list</span>(yo1 <span class="op">~</span><span class="st"> </span>xs, yo2 <span class="op">~</span><span class="st"> </span>xs), <span class="dt">iterlim=</span><span class="dv">20</span>))</span></code></pre></div>
+<pre><code>## --------------------------------------------
+## Tobit 5 model (switching regression model)
+## Maximum Likelihood estimation
+## Newton-Raphson maximisation, 16 iterations
+## Return code 8: successive function values within relative tolerance limit (reltol)
+## Log-Likelihood: -1936.431 
+## 1000 observations: 626 selection 1 (FALSE) and 374 selection 2 (TRUE)
+## 10 free parameters (df = 990)
+## Probit selection equation:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  -0.3528     0.0424  -8.321 2.86e-16 ***
+## xs            0.8354     0.0756  11.050  &lt; 2e-16 ***
+## Outcome equation 1:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -0.55448    0.06339  -8.748   &lt;2e-16 ***
+## xs           0.81764    0.06048  13.519   &lt;2e-16 ***
+## Outcome equation 2:
+##             Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept)   0.6457     0.4994   1.293    0.196
+## xs            0.3520     0.3197   1.101    0.271
+##    Error terms:
+##        Estimate Std. Error t value Pr(&gt;|t|)    
+## sigma1  0.59187    0.01853  31.935   &lt;2e-16 ***
+## sigma2  1.97257    0.07228  27.289   &lt;2e-16 ***
+## rho1    0.15568    0.15914   0.978    0.328    
+## rho2   -0.01541    0.23370  -0.066    0.947    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## --------------------------------------------</code></pre>
+<p>Usually it will not converge. Even if it does, the results may be seriously biased.</p>
+<p><strong>Note</strong></p>
+<p>The log-likelihood function of the models might not be globally concave. Hence, it might not converge, or converge to a local maximum. To combat this, we can use</p>
+<ul>
+<li>Different starting values<br />
+</li>
+<li>Different maximization methods.</li>
+<li>refer to <a href="non-linear-least-squares.html#non-linear-least-squares">Non-linear Least Squares</a> for suggestions.</li>
+</ul>
 
 </div>
 </div>
