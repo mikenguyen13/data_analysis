@@ -857,7 +857,11 @@ Assumption: joint normality of the errors
 
 Data here is taken from [@Mroz_1987]'s paper.   
 
-We want to estimate the log(wage) for married women, with education, experience, experience squared, and a dummy variable for living in a big city. But we can only observe the wage for women who are working, which means a lot of married women in 1975 who were out of the labor force are unaccounted for. Hence, an OLS estimate of the wage equation would be bias due to sample selection. Since we have data on non-participants (i.e., those who are not working for pay), we can correct for the selection process. 
+We want to estimate the log(wage) for married women, with education, experience, experience squared, and a dummy variable for living in a big city. But we can only observe the wage for women who are working, which means a lot of married women in 1975 who were out of the labor force are unaccounted for. Hence, an OLS estimate of the wage equation would be bias due to sample selection. Since we have data on non-participants (i.e., those who are not working for pay), we can correct for the selection process.  
+
+The Tobit-2 estimates are consistent
+
+#### Example 1
 
 ```{r}
 library(sampleSelection)
@@ -920,3 +924,119 @@ Rho is an estimate of the correlation of the errors between the selection and wa
 
 If the estimated coefficient of the inverse Mills ratio in the Heckman model is not statistically different from zero, then selection bias was not a serious problem. 
 
+
+
+#### Example 2
+
+
+
+
+
+
+
+
+This code is from [R package sampleSelection](https://cran.r-project.org/web/packages/sampleSelection/vignettes/selection.pdf)
+
+
+
+
+
+
+
+
+```{r}
+set.seed(0)
+library("sampleSelection")
+library("mvtnorm")
+eps <- rmvnorm(500, c(0,0), matrix(c(1,-0.7,-0.7,1), 2, 2)) # bivariate normal disturbances
+xs <- runif(500)# uniformly distributed explanatory variable (vectors of explanatory variables for the selection )
+ys <- xs + eps[,1] > 0 # probit data generating process
+xo <- runif(500) # vectors of explanatory variables for outcome equation 
+yoX <- xo + eps[,2] # latent outcome
+yo <- yoX*(ys > 0) # observable outcome
+# true intercepts = 0 and our true slopes = 1
+# xs and xo are independent. Hence, exclusion restriction is fulfilled
+summary( selection(ys~xs, yo ~xo))
+```
+
+without the exclusion restriction, we generate yo using xs instead of xo.
+
+```{r}
+yoX <- xs + eps[,2]
+yo <- yoX*(ys > 0)
+summary(selection(ys ~ xs, yo ~ xs))
+```
+
+We can see that our estimates are still unbiased but standard errors are substantially larger.
+The exclusion restriction (i.e., independent information about the selection process) has a certain identifying power that we desire. Hence, it's better to have different set of variable for the selection process from the interested equation. Without the exclusion restriction, we solely rely on the functional form identification.
+
+
+
+### Tobit-5
+Also known as the switching regression model  
+Condition:  There is at least one variable in X in the selection process not included in the observed process. Used when there are separate models for participants, and non-participants.  
+
+
+
+```{r}
+set.seed(0)
+vc <- diag(3)
+vc[lower.tri(vc)] <- c(0.9, 0.5, 0.1)
+vc[upper.tri(vc)] <- vc[lower.tri(vc)]
+eps <- rmvnorm(500, c(0,0,0), vc) # 3 disturbance vectors by a 3-dimensional normal distribution
+xs <- runif(500) # uniformly distributed on [0, 1]
+ys <- xs + eps[,1] > 0
+xo1 <- runif(500) # uniformly distributed on [0, 1]
+yo1 <- xo1 + eps[,2]
+xo2 <- runif(500) # uniformly distributed on [0, 1]
+yo2 <- xo2 + eps[,3]
+```
+
+exclusion restriction is fulfilled when x's are independent.  
+
+```{r}
+summary(selection(ys~xs, list(yo1 ~ xo1, yo2 ~ xo2))) # one selection equation and a list of two outcome equations
+```
+
+
+All the estimates are close to the true values.  
+
+Example of functional form misspecification  
+
+
+```{r}
+set.seed(5)
+eps <- rmvnorm(1000, rep(0, 3), vc)
+eps <- eps^2 - 1 # subtract 1 in order to get the mean zero disturbances
+xs <- runif(1000, -1, 0) # interval [−1, 0] to get an asymmetric distribution over observed choices
+ys <- xs + eps[,1] > 0
+xo1 <- runif(1000)
+yo1 <- xo1 + eps[,2]
+xo2 <- runif(1000)
+yo2 <- xo2 + eps[,3]
+summary(selection(ys~xs, list(yo1 ~ xo1, yo2 ~ xo2), iterlim=20))
+```
+
+Although we still have an exclusion restriction (xo1 and xo2 are independent), we now have problems with  the intercepts (i.e., they are statistically significantly different from the true values zero), and convergence problems.  
+
+
+If we don't have the exclusion restriction, we will have a larger variance of xs
+
+```{r}
+set.seed(6)
+xs <- runif(1000, -1, 1)
+ys <- xs + eps[,1] > 0
+yo1 <- xs + eps[,2]
+yo2 <- xs + eps[,3]
+summary(tmp <- selection(ys~xs, list(yo1 ~ xs, yo2 ~ xs), iterlim=20))
+```
+
+Usually it will not converge. Even if it does, the results may be seriously biased.  
+
+**Note**  
+
+The log-likelihood function of the models might not be globally concave. Hence, it might not converge, or converge to a local maximum. To combat this, we can use   
+
+ * Different starting values  
+ * Different maximization methods. 
+ * refer to [Non-linear Least Squares] for suggestions.  

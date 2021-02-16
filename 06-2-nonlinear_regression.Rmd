@@ -1329,11 +1329,206 @@ Hence,
 
 $$
 \begin{align}
-\frac{\partial l(\beta, \phi)}{\partial \beta_j} = \sum_{i=1}^n
+\frac{\partial l(\beta, \phi)}{\partial \beta_j} &= \sum_{i=1}^n[\frac{y_i - \mu_i}{a(\phi)} \times \frac{1}{V(\mu_i)}\times \frac{\partial \mu_i}{\partial \eta_i} \times x_{ij}] \\
+&= \sum_{i=1}^n (y_i - p_i) \times \frac{1}{p_i(1-p_i)} \times p_i(1-p_i) \times x_{ij} \\
+&= \sum_{i=1}^n (y_i - p_i) x_{ij} \\
+&= \sum_{i=1}^n (y_i - \frac{\exp(\mathbf{x'_i\beta})}{1+ \exp(\mathbf{x'_i\beta})})x_{ij}
+\end{align}
+$$
+then  
+
+$$
+w_i = ((\frac{\partial \eta_i}{\partial \mu_i})^2 V(\mu_i))^{-1} = p_i (1-p_i)
+$$
+
+$$
+\mathbf{I}_{jk}(\mathbf{\beta}) = \sum_{i=1}^n \frac{w_i}{a(\phi)} x_{ij}x_{ik} = \sum_{i=1}^n p_i (1-p_i)x_{ij}x_{ik}
+$$
+
+The **Fisher-scoring** algorithm for the MLE of $\mathbf{\beta}$ is 
+
+$$
+\left(
+\begin{array}
+{c}
+\beta_1 \\
+\beta_2 \\
+. \\
+. \\
+. \\
+\beta_p \\
+\end{array}
+\right)^{(m+1)}
+=
+\left(
+\begin{array}
+{c}
+\beta_1 \\
+\beta_2 \\
+. \\
+. \\
+. \\
+\beta_p \\
+\end{array}
+\right)^{(m)} +
+\mathbf{I}^{-1}(\mathbf{\beta})
+\left(
+\begin{array}
+{c}
+\frac{\partial l (\beta, \phi)}{\partial \beta_1} \\
+\frac{\partial l (\beta, \phi)}{\partial \beta_2} \\
+. \\
+. \\
+. \\
+\frac{\partial l (\beta, \phi)}{\partial \beta_p} \\
+\end{array}
+\right)|_{\beta = \beta^{(m)}}
+$$
+Similar to [Newton-Raphson] expect the matrix of second derivatives by the expected value of the second derivative matrix.  
+
+In matrix notation,  
+
+$$
+\begin{align}
+\frac{\partial l }{\partial \beta} &= \frac{1}{a(\phi)}\mathbf{X'W\Delta(y - \mu)} \\
+&= \frac{1}{a(\phi)}\mathbf{F'V^{-1}(y - \mu)} \\
 \end{align}
 $$
 
+$$
+\mathbf{I}(\beta) = \frac{1}{a(\phi)}\mathbf{X'WX} = \frac{1}{a(\phi)}\mathbf{F'V^{-1}F} \\
+$$
+where  
+
+ * $\mathbf{X}$ is an n x p matrix of covariates  
+ * $\mathbf{W}$ is an n x n diagonal matrix with (i,i)th element given by $w_i$  
+ * $\mathbf{\Delta}$ an n x n diagonal matrix with (i,i)th element given by $\frac{\partial \eta_i}{\partial \mu_i}$  
+ * $\mathbf{F} = \mathbf{\frac{\partial \mu}{\partial \beta}}$ an n x p matrix with ith row $\frac{\partial \mu_i}{\partial \beta} = (\frac{\partial \mu_i}{\partial \eta_i})\mathbf{x}'_i$  
+ * $\mathbf{V}$ an n x n diagonal matrix with (i,i)th element given by $V(\mu_i)$   
+
+Setting the derivative of the log-likelihood equal to 0, ML estimating equations are  
+
+$$
+\mathbf{F'V^{-1}y= F'V^{-1}\mu}
+$$
+where all components of this equation expect y depends on the parameters $\beta$  
+
+**Special Cases**  
+
+If one has a canonical link, the estimating equations reduce to  
+
+$$
+\mathbf{X'y= X'\mu}
+$$
+If one has an identity link, then  
+
+$$
+\mathbf{X'V^{-1}y = X'V^{-1}X\hat{\beta}}
+$$
+which gives the generalized least squares estimator  
+
+Generally, we can rewrite the Fisher-scoring algorithm as  
+
+$$
+\beta^{(m+1)} = \beta^{(m)} + \mathbf{(\hat{F}'\hat{V}^{-1}\hat{F})^{-1}\hat{F}'\hat{V}^{-1}(y- \hat{\mu})}
+$$
+
+Since $\hat{F},\hat{V}, \hat{\mu}$ depend on $\beta$, we evaluate at $\beta^{(m)}$  
+
+From starting values $\beta^{(0)}$, we can iterate until convergence.  
+
+Notes:  
+
+ * if $a(\phi)$ is a constant or of the form $m_i \phi$ with known $m_i$, then $\phi$ cancels.  
+
+
 ##### Estimation of $\phi$
+
+2 approaches:  
+
+ 1. MLE  
+
+$$
+\frac{\partial l_i}{\partial \phi} = \frac{(\theta_i y_i - b(\theta_i)a'(\phi))}{a^2(\phi)} + \frac{\partial c(y_i,\phi)}{\partial \phi}
+$$
+
+the MLE of $\phi$ solves  
+
+$$
+\frac{a^2(\phi)}{a'(\phi)}\sum_{i=1}^n \frac{\partial c(y_i, \phi)}{\partial \phi} = \sum_{i=1}^n(\theta_i y_i - b(\theta_i))
+$$
+ * Situation others than normal error case, expression for $\frac{\partial c(y,\phi)}{\partial \phi}$ are not simple  
+ * Even for the canonical link and $a(\phi)$ constant, there is no nice general expression for $-E(\frac{\partial^2 l}{\partial \phi^2})$, so the unification GLMs provide for estimation of $\beta$ breaks down for $\phi$  
+
+ 2. Moment Estimation ("Bias Corrected $\chi^2$")  
+
+    * The MLE is not conventional approach to estimation of $\phi$ in GLMS.  
+    * For the exponential family $var(Y) =V(\mu)a(\phi)$. This implies  
+$$
+a(\phi) = \frac{var(Y)}{V(\mu)} = \frac{E(Y- \mu)^2}{V(\mu)} \\
+a(\hat{\phi})  = \frac{1}{n-p} \sum_{i=1}^n \frac{(y_i -\hat{\mu}_i)^2}{V(\hat{\mu})}
+$$
+where p is the dimension of $\beta$  
+    * GLM with canonical link function $g(.)= (b'(.))^{-1}$  
+$$
+g(\mu) = \theta = \eta = \mathbf{x'\beta} \\
+\mu = g^{-1}(\eta)= b'(\eta)
+$$
+    * so the method estimator for $a(\phi)=\phi$ is  
+
+$$
+\hat{\phi} = \frac{1}{n-p} \sum_{i=1}^n \frac{(y_i - g^{-1}(\hat{\eta}_i))^2}{V(g^{-1}(\hat{\eta}_i))}
+$$
+
+#### Inference
+
+We have 
+
+$$
+\hat{var}(\beta) = a(\phi)(\mathbf{\hat{F}'\hat{V}\hat{F}})^{-1}
+$$
+where  
+
+ * $\mathbf{V}$ is an n x n diagonal matrix with diagonal elements given by $V(\mu_i)$  
+ * $\mathbf{F}$ is an n x p matrix given by $\mathbf{F} = \frac{\partial \mu}{\partial \beta}$  
+ * Both $\mathbf{V,F}$ are dependent on the mean $\mu$, and thus $\beta$. Hence, their estimates ($\mathbf{\hat{V},\hat{F}}$) depend on $\hat{\beta}$.  
+
+$$
+H_0: \mathbf{L\beta = d}
+$$
+where $\mathbf{L}$ is a q x p matrix with a **Wald** test  
+
+$$
+W = \mathbf{(L \hat{\beta}-d)'(a(\phi)L(\hat{F}'\hat{V}^{-1}\hat{F})L')^{-1}(L \hat{\beta}-d)}
+$$
+which follows $\chi_q^2$ distribution (asymptotically), where q is the rank of $\mathbf{L}$  
+
+In the simple case  $H_0: \beta_j = 0$ gives $W = \frac{\hat{\beta}^2_j}{\hat{var}(\hat{\beta}_j)} \sim \chi^2_1$ asymptotically  
+
+Likelihood ratio test  
+
+
+$$
+\Lambda = 2 (l(\hat{\beta}_f)-l(\hat{\beta}_r)) \sim \chi^2_q
+$$
+where  
+
+ * q is the number of constraints used to fit the reduced model $\hat{\beta}_r$, and $\hat{\beta}_r$ is the fit under the full model.  
+ 
+Wald test is easier to implement, but likelihood ratio test is better (especially for small samples).  
+
+
+
+#### Deviance
+
+[Deviance] is necessary for goodness of fit, inference and for alternative estimation of the dispersion parameter. We define and consider [Deviance] from a likelihood ratio perspective.  
+
+ * Assume that $\phi$ is known. Let $\tilde{\theta}$ denote the full and $\hat{\theta}$ denote the reduced model MLEs. Then, the likelihood ratio (2 times the difference in log-likelihoods) is
+
+$$
+2\sum_{i=1}^{n} \frac{y_i (\tilde{\theta}_i- \hat{\theta}_i)-b(\tilde{\theta}_i) + b(\hat{\theta}_i)}{a_i(\phi)}
+$$
+
 
 
 
