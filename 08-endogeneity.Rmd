@@ -853,6 +853,112 @@ To combat Sample selection, we can
  * Instruments that determine the treatment status (i.e., treatment vs. control) but not the outcome (Y)  
  * Functional form of the selection and outcome processes: originated from [@Heckman_1976], later on generalize by [@Amemiya_1984] 
 
+We have our main model  
+
+$$
+\mathbf{y^* = xb + \epsilon}
+$$
+
+However, the pattern of missingness (i.e., censored) is related to the unobserved (latent) process: 
+
+$$
+\mathbf{z^* = w \gamma + u}
+$$
+
+and 
+
+$$
+z_i = 
+\begin{cases}
+1& \text{if } z_i^*>0 \\
+0&\text{if } z_i^*\le0\\
+\end{cases}
+$$
+Equivalently, $z_i = 1$ ($y_i$ is observed) when   
+
+$$
+u_i \ge -w_i \gamma
+$$
+Hence, the probability of observed $y_i$ is  
+
+$$
+\begin{align}
+P(u_i \ge -w_i \gamma) &= 1 - \Phi(-w_i \gamma) \\
+&= \Phi(w_i \gamma) && \text{symmetry of the standard normal distribution}
+\end{align}
+$$
+
+We will **assume**   
+
+ * the error term of the selection $\mathbf{u \sim N(0,I)}$  
+ * $Var(u_i) = 1$ for identification purposes 
+
+Visually, $P(u_i \ge -w_i \gamma)$ is the shaded area.  
+
+
+```{r}
+x=seq(-3,3,length=200)
+y=dnorm(x,mean=0,sd=1)
+plot(x,y,type="l", main = bquote("Probabibility distribution of"~u[i]))
+x=seq(0.3,3,length=100)
+y=dnorm(x,mean=0,sd=1)
+polygon(c(0.3,x,3),c(0,y,0),col="gray")
+text(1,0.1,bquote(1 - Phi~(-w[i]~gamma)))
+arrows(-0.5,0.1,0.3,0,length=.15)
+text(-0.5,0.12,bquote(-w[i]~gamma))
+legend("topright", "Gray = Prob of Observed", pch=1, title= "legend",inset = .02)
+```
+
+Hence in our observed model, we see 
+
+$$
+\begin{equation}
+y_i = x_i\beta + \epsilon_i \text{when $z_i=1$}
+\end{equation}
+$$
+
+and the joint distribution of the selection model ($u_i$), and the observed equation ($\epsilon_i$) as 
+
+$$
+\left[
+\begin{array}
+{c}
+u \\
+\epsilon \\
+\end{array}
+\right]
+\sim^{iid}N
+\left(
+\left[
+\begin{array}
+{c}
+0 \\
+0 \\
+\end{array}
+\right],
+\left[
+\begin{array}
+{c}
+1 & \rho \\
+\rho & \sigma^2_{\epsilon} \\
+\end{array}
+\right]
+\right)
+$$
+
+The relation between the observed and selection models: 
+
+$$
+\begin{align}
+E(y_i | y_i \text{ observed}) &= E(y_i| z^*>0) \\
+&= E(y_i| -w_i \gamma) \\
+&= \mathbf{x}_i \beta + E(\epsilon_i | u_i > -w_i \gamma) \\
+&= \mathbf{x}_i \beta + \rho \sigma_\epsilon \frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)}
+\end{align}
+$$
+where $\frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)}$ is the Inverse Mills Ratio. and $\rho \sigma_\epsilon \frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)} \ge 0$  
+
+Great visualization of special cases of correlation patterns amongst data and errors by professor [Rob Hick](https://rlhick.people.wm.edu/stories/econ_407_notes_heckman.html)  
 
 Note: 
 
@@ -864,7 +970,11 @@ Usually we want to understand , but because of S, we only have $P(y, x|S = 1)$. 
 
  * If both X and Y affect S, we can't unbiasedly estimate $P(y|x)$ 
 
-In the case of Omitted variable bias (U) and sample selection bias (S), you have unblocked extraneous "flow" of information between X and Y, which causes spurious correlation for X and Y. Traditionally, we would recover Q by parametric assumption of (1) the data generating process (e.g., Heckman 2-step), (2) type of data-generating model (e..g, treatment-dependent or outcome-dependent), and (3) selection’s probability $P(S = 1|P a_s)$ with non-parametrically based causal graphical models, the authors proposed more robust way to model misspecification regardless of the type of data-generating model, and do not require  selection's probability.  Hence, you can recover  Q   
+In the case of Omitted variable bias (U) and sample selection bias (S), you have unblocked extraneous "flow" of information between X and Y, which causes spurious correlation for X and Y. Traditionally, we would recover Q by parametric assumption of  
+
+ (1) the data generating process (e.g., Heckman 2-step)  
+ (2) type of data-generating model (e..g, treatment-dependent or outcome-dependent)  
+ (3) selection’s probability $P(S = 1|P a_s)$ with non-parametrically based causal graphical models, the authors proposed more robust way to model misspecification regardless of the type of data-generating model, and do not require  selection's probability.  Hence, you can recover  Q   
 
  * without external data
  * with external data  
@@ -1062,3 +1172,5 @@ The log-likelihood function of the models might not be globally concave. Hence, 
  * Different starting values  
  * Different maximization methods. 
  * refer to [Non-linear Least Squares] for suggestions.  
+
+
