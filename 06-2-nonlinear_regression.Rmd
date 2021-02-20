@@ -840,9 +840,219 @@ We could have problems of
 
 
 
+### Application
+
+$$
+y_i = \frac{\theta_0 + \theta_1 x_i}{1 + \theta_2 \exp(0.4 x_i)} + \epsilon_i
+$$
+where $i = 1,..,n$ 
+
+Get the starting values
+
+```{r echo=FALSE}
+library(dplyr)
+my_data <- read.delim("images/S21hw1pr4.txt", header = F,sep = "") %>%
+    dplyr::rename(x=V1,y=V2)
+```
+
+```{r}
+plot(my_data)
+
+```
 
 
 
+We notice that $Y_{max} = \theta_0 + \theta_1 x_i$ in which we can find x_i from data 
+
+
+```{r}
+max(my_data$y)
+my_data$x[which.max(my_data$y)]
+```
+
+hence, x = 0.0094 when y = 2.6722 when we have the first equation as 
+
+$$
+2.6722 = \theta_0 + 0.0094 \theta_1 \\
+\theta_0 + 0.0094 \theta_1 + 0 \theta_2 = 2.6722
+$$
+
+
+Secondly, we notice that we can obtain the "average" of y when 
+
+$$
+1+ \theta_2 exp(0.4 x) = 2
+$$
+then we can find this average numbers of x and y
+
+```{r}
+mean(my_data$y) #find mean y
+my_data$y[which.min(abs(my_data$y-(mean(my_data$y))))] # find y closest to its mean
+
+my_data$x[which.min(abs(my_data$y-(mean(my_data$y))))] #find x closest to the mean y
+
+```
+we have the second equation
+
+$$
+1 + \theta_2 exp(0.4*11.0648) = 2 \\
+0 \theta_1 + 0 \theta_1 + 83.58967 \theta_2 = 1
+$$
+
+Thirdly, we can plug in the value of x closest to 1 to find the value of y 
+
+```{r}
+my_data$x[which.min(abs(my_data$x-1))] # find value of x closet to 1
+match(my_data$x[which.min(abs(my_data$x-1))], my_data$x) # find index of x closest to 1
+my_data$y[match(my_data$x[which.min(abs(my_data$x-1))], my_data$x)]# find y value
+```
+hence we have 
+
+$$
+1.457 = \frac{\theta_0 + \theta_1*0.9895}{1 + \theta_2 exp(0.4*0.9895)} \\
+1.457 + 2.164479 *\theta_2 = \theta_0 + \theta_1*0.9895 \\
+\theta_0 + \theta_1*0.9895 -  2.164479 *\theta_2 = 1.457
+$$
+
+with 3 equations, we can solve them to get the starting value for $\theta_0,\theta_1, \theta_2$ 
+
+
+$$
+\theta_0 + 0.0094 \theta_1 + 0 \theta_2 = 2.6722 \\
+0 \theta_1 + 0 \theta_1 + 83.58967 \theta_2 = 1 \\
+\theta_0 + \theta_1*0.9895 -  2.164479 *\theta_2 = 1.457
+$$
+
+```{r}
+library(matlib) 
+A = matrix(c(0,0.0094, 0, 0,0, 83.58967, 1, 0.9895, - 2.164479), nrow = 3, ncol = 3, byrow = T)
+b = c(2.6722,1,1.457 )
+showEqn(A, b)
+Solve(A, b, fractions = F)
+```
+
+Construct manually [Gauss-Newton Algorithm]
+
+
+```{r}
+
+#starting value
+theta_0_strt = -279.80879739 
+theta_1_strt =  284.27659574 
+theta_2_strt = 0.0119632 
+
+#model
+mod_4 = function(theta_0,theta_1,theta_2,x){
+    (theta_0 + theta_1*x)/(1+ theta_2*exp(0.4*x))
+}
+
+#define a function
+f_4 = expression((theta_0 + theta_1*x)/(1+ theta_2*exp(0.4*x)))
+
+#take the first derivative
+df_4.d_theta_0=D(f_4,'theta_0')
+
+df_4.d_theta_1=D(f_4,'theta_1')
+
+df_4.d_theta_2=D(f_4,'theta_2')
+
+# save the result of all iterations
+theta_vec = matrix(c(theta_0_strt,theta_1_strt,theta_2_strt))
+delta= matrix(NA, nrow=3,ncol = 1)
+
+f_theta = as.matrix(eval(f_4,list(x=my_data$x,theta_0 = theta_vec[1,1],theta_1 = theta_vec[2,1],theta_2 = theta_vec[3,1])))
+
+i = 1
+
+repeat {
+    F_theta_0 = as.matrix(cbind(
+        eval(
+            df_4.d_theta_0,
+            list(
+                x = my_data$x,
+                theta_0 = theta_vec[1, i],
+                theta_1 = theta_vec[2, i],
+                theta_2 = theta_vec[3, i]
+            )
+        ),
+        eval(
+            df_4.d_theta_1,
+            list(
+                x = my_data$x,
+                theta_0 = theta_vec[1, i],
+                theta_1 = theta_vec[2, i],
+                theta_2 = theta_vec[3, i]
+            )
+        ),
+        eval(
+            df_4.d_theta_2,
+            list(
+                x = my_data$x,
+                theta_0 = theta_vec[1, i],
+                theta_1 = theta_vec[2, i],
+                theta_2 = theta_vec[3, i]
+            )
+        )
+    ))
+    delta[, i] = (solve(t(F_theta_0) %*% F_theta_0)) %*% t(F_theta_0) %*% (my_data$y - f_theta[,i])
+    theta_vec = cbind(theta_vec, matrix(NA, nrow = 3, ncol = 1))
+    theta_vec[, i+1] = theta_vec[, i] + delta[, i]
+    i = i + 1
+    
+    f_theta = cbind(f_theta, as.matrix(eval(
+        f_4,
+        list(
+            x = my_data$x,
+            theta_0 = theta_vec[1, i],
+            theta_1 = theta_vec[2, i],
+            theta_2 = theta_vec[3, i]
+        )
+    )))
+    delta = cbind(delta, matrix(NA, nrow = 3, ncol = 1))
+    
+    #convergence criteria based on SSE
+    if (abs(sum((my_data$y - f_theta[,i])^2)-sum((my_data$y - f_theta[,i-1])^2))/(sum((my_data$y - f_theta[,i-1])^2))<0.001){
+        break
+    }
+}
+delta
+theta_vec
+
+head(f_theta)
+
+# estimate sigma^2 
+
+sigma2 = 1 / (nrow(my_data) - 3) * (t(my_data$y - (f_theta[, ncol(f_theta)]))) %*%
+    (my_data$y - (f_theta[, ncol(f_theta)])) # p = 3
+sigma2
+
+```
+After 8 iterations, my function has converged. And objective function value at convergence is
+
+```{r}
+sum((my_data$y - f_theta[,i])^2)
+```
+and the parameters of $\theta$s are 
+
+```{r}
+theta_vec[,ncol(theta_vec)]
+```
+
+
+and the asymptotic variance covariance matrix is 
+
+```{r}
+as.numeric(sigma2)*as.matrix(solve(crossprod(F_theta_0)))
+```
+
+Issue that I encounter in this problem was that it was very sensitive to starting values. when I tried the value of 1 for all $\theta$s, I have vastly different parameter estimates. Then, I try to use the model interpretation to try to find reasonable starting values.  
+
+Check with predefined function in nls
+
+```{r}
+nlin_4 = nls(y ~ mod_4(theta_0,theta_1, theta_2, x), start = list(theta_0=-279.80879739 ,theta_1=284.27659574 , theta_2=0.0119632), data = my_data)
+nlin_4
+```
 
 
 
@@ -1524,14 +1734,109 @@ Wald test is easier to implement, but likelihood ratio test is better (especiall
 [Deviance] is necessary for goodness of fit, inference and for alternative estimation of the dispersion parameter. We define and consider [Deviance] from a likelihood ratio perspective.  
 
  * Assume that $\phi$ is known. Let $\tilde{\theta}$ denote the full and $\hat{\theta}$ denote the reduced model MLEs. Then, the likelihood ratio (2 times the difference in log-likelihoods) is
-
 $$
 2\sum_{i=1}^{n} \frac{y_i (\tilde{\theta}_i- \hat{\theta}_i)-b(\tilde{\theta}_i) + b(\hat{\theta}_i)}{a_i(\phi)}
 $$
+ * For exponential families, $\mu = E(y) = b'(\theta)$, so the natural parameter is a function of $\mu: \theta = \theta(\mu) = b'^{-1}(\mu)$, and the likelihood ratio turns into  
+$$
+2 \sum_{i=1}^m \frac{y_i\{\theta(\tilde{\mu}_i - \theta(\hat{\mu}_i)\} - b(\theta(\tilde{\mu}_i)) + b(\theta(\hat{\mu}_i))}{a_i(\phi)}
+$$
+ * Comparing a fitted model to "the fullest possible model", which is the **saturated model**: $\tilde{\mu}_i = y_i$, i = 1,..,n. If $\tilde{\theta}_i^* = \theta(y_i), \hat{\theta}_i^* = \theta (\hat{\mu})$, the likelihood ratio is  
+$$
+2 \sum_{i=1}^{n} \frac{y_i (\tilde{\theta}_i^* - \hat{\theta}_i^* + b(\hat{\theta}_i^*))}{a_i(\phi)}
+$$
+ * [@McCullagh_2019] specify $a(\phi) = \phi$, then the likelihood ratio can be written as  
+$$
+D^*(\mathbf{y, \hat{\mu}}) = \frac{2}{\phi}\sum_{i=1}^n\{y_i (\tilde{\theta}_i^*- \hat{\theta}_i^*)- b(\tilde{\theta}_i^*) +b(\hat{\theta}_i^*)  \}  
+$$
+where  
+
+ * $D^*(\mathbf{y, \hat{\mu}})$ = **scaled deviance**  
+ * $D(\mathbf{y, \hat{\mu}}) = \phi D^*(\mathbf{y, \hat{\mu}})$ = **deviance**  
+
+<br>
 
 
+**Note**:  
+
+ * in some random component distributions, we can write $a_i(\phi) = \phi m_i$, where  
+    + $m_i$ is some known scalar that may change with the observations. THen, the scaled deviance components are divided by $m_i$:  
+$$
+D^*(\mathbf{y, \hat{\mu}}) \equiv 2\sum_{i=1}^n\{y_i (\tilde{\theta}_i^*- \hat{\theta}_i^*)- b(\tilde{\theta}_i^*) +b(\hat{\theta}_i^*)\} / (\phi m_i)  
+$$
+ * $D^*(\mathbf{y, \hat{\mu}}) = \sum_{i=1}^n d_i$m where $d_i$ is the deviance contribution from the ith observation.  
+ * D is used in model selection  
+ * $D^*$ is used in goodness of fit tests (as it is a likelihood ratio statistic). 
+$$
+D^*(\mathbf{y, \hat{\mu}}) = 2\{l(\mathbf{y,\tilde{\mu}})-l(\mathbf{y,\hat{\mu}})\}
+$$
+ * $d_i$ are used to form **deviance residuals**  
 
 
+**Example**:  
+
+**Normal**  
+
+We have  
+
+$$
+\theta = \mu \\
+\phi = \sigma^2 \\
+b(\theta) = \frac{1}{2} \theta^2 \\
+a(\phi) = \phi
+$$
+Hence,  
+
+$$
+\tilde{\theta}_i = y_i \\
+\hat{\theta}_i = \hat{\mu}_i = g^{-1}(\hat{\eta}_i) 
+$$
+
+And  
+
+$$
+\begin{align}
+D &= 2 \sum_{1=1}^n Y^2_i - y_i \hat{\mu}_i - \frac{1}{2}y^2_i + \frac{1}{2} \hat{\mu}_i^2 \\
+&= \sum_{i=1}^n y_i^2 - 2y_i \hat{\mu}_i + \hat{\mu}_i^2 \\
+&= \sum_{i=1}^n (y_i - \hat{\mu}_i)^2
+\end{align}
+$$
+which is the **residual sum of squares**  
+
+**Poisson**  
+
+$$
+f(y) = \exp\{y\log(\mu) - \mu - \log(y!)\} \\
+\theta = \log(\mu) \\
+b(\theta) = \exp(\theta) \\
+a(\phi) = 1 \\
+\tilde{\theta}_i = \log(y_i) \\
+\hat{\theta}_i = \log(\hat{\mu}_i) \\
+\hat{\mu}_i = g^{-1}(\hat{\eta}_i)
+$$
+Then, 
+
+$$
+\begin{align}
+D &= 2 \sum_{i = 1}^n y_i \log(y_i) - y_i \log(\hat{\mu}_i) - y_i + \hat{\mu}_i \\
+&= 2 \sum_{i = 1}^n y_i \log(\frac{y_i}{\hat{\mu}_i}) - (y_i - \hat{\mu}_i)
+\end{align}
+$$
+and  
+
+$$
+d_i = 2\{y_i \log(\frac{y_i}{\hat{\mu}})- (y_i - \hat{\mu}_i)\}
+$$
+
+##### Analysis of Deviance
+
+The difference in deviance between a reduced and full model, where q is the difference in the number of free parameters, has an asymptotic $\chi^2_q$. The likelihood ratio test  
+
+$$
+D^*(\mathbf{y;\hat{\mu}_r}) - D^*(\mathbf{y;\hat{\mu}_f}) = 2\{l(\mathbf{y;\hat{\mu}_f})-l(\mathbf{y;\hat{\mu}_r})\}
+$$
+
+this comparison of models is **Analysis of Deviance**  
 
 ## Genelized Method of Moments
 
