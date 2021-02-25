@@ -11,81 +11,72 @@ library(investr)
 library(MASS)
 ```
 
-**Definition**: models in which the derivatives of the mean function with respect to the parameters depend on one or more of the parameters.  
+**Definition**: models in which the derivatives of the mean function with respect to the parameters depend on one or more of the parameters.
 
+To approximate data, we can approximate the function
 
-To approximate data, we can approximate the function  
+-   by a high-order polynomial\
+-   by a linear model (e.g., a Taylor expansion around X's)\
+-   a collection of locally linear models or basis function
 
- * by a high-order polynomial  
- * by a linear model (e.g., a Taylor expansion around X's)  
- * a collection of locally linear models or basis function  
+but it would not easy to interpret, or not enough data, or can't interpret them globally.
 
-but it would not easy to interpret, or not enough data, or can't interpret them globally.  
-
-**intrinsically nonlinear** models:  
+**intrinsically nonlinear** models:
 
 $$
 Y_i = f(\mathbf{x_i;\theta}) + \epsilon_i
-$$
-where $f(\mathbf{x_i;\theta})$ is a nonlinear function relating $E(Y_i)$ to the independent variables $x_i$  
+$$ where $f(\mathbf{x_i;\theta})$ is a nonlinear function relating $E(Y_i)$ to the independent variables $x_i$
 
- * $\mathbf{x}_i$ is a k x 1 vector of independent variables (fixed).  
- * $\mathbf{\theta}$ is a p x 1 vector of parameters.  
- * $\epsilon_i$s are iid variables mean 0 and variance $\sigma^2$. (sometimes it's normal).  
+-   $\mathbf{x}_i$ is a k x 1 vector of independent variables (fixed).\
+-   $\mathbf{\theta}$ is a p x 1 vector of parameters.\
+-   $\epsilon_i$s are iid variables mean 0 and variance $\sigma^2$. (sometimes it's normal).
 
 ## Inference
 
-Since $Y_i = f(\mathbf{x}_i,\theta) + \epsilon_i$, where $\epsilon_i \sim iid(0,\sigma^2)$. We can obtain $\hat{\theta}$ by minimizing $\sum_{i=1}^{n}(Y_i - f(x_i,\theta))^2$ and estimate  $s^2 = \hat{\sigma}^2_{\epsilon}=\frac{\sum_{i=1}^{n}(Y_i - f(x_i,\theta))^2}{n-p}$
+Since $Y_i = f(\mathbf{x}_i,\theta) + \epsilon_i$, where $\epsilon_i \sim iid(0,\sigma^2)$. We can obtain $\hat{\theta}$ by minimizing $\sum_{i=1}^{n}(Y_i - f(x_i,\theta))^2$ and estimate $s^2 = \hat{\sigma}^2_{\epsilon}=\frac{\sum_{i=1}^{n}(Y_i - f(x_i,\theta))^2}{n-p}$
 
 ### Linear Function of the Parameters
 
-If we assume $\epsilon_i \sim N(0,\sigma^2)$, then 
+If we assume $\epsilon_i \sim N(0,\sigma^2)$, then
 
 $$
 \hat{\theta} \sim AN(\mathbf{\theta},\sigma^2[\mathbf{F}(\theta)'\mathbf{F}(\theta)]^{-1})
-$$
-where An = asymptotic normality
+$$ where An = asymptotic normality
 
 Asymptotic means we have enough data to make inference (As your sample size increases, this becomes more and more accurate (to the true value)).
 
+Since we want to do inference on linear combinations of parameters or contrasts.
 
-Since we want to do inference on linear combinations of parameters or contrasts.  
+If we have $\mathbf{\theta} = (\theta_0,\theta_1,\theta_2)'$ and we want to look at $\theta_1 - \theta_2$; we can define vector $\mathbf{a} = (0,1,-1)'$, consider inference for $\mathbf{a'\theta}$
 
-If we have $\mathbf{\theta} = (\theta_0,\theta_1,\theta_2)'$ and we want to look at $\theta_1 - \theta_2$; we can define vector $\mathbf{a} = (0,1,-1)'$, consider inference for $\mathbf{a'\theta}$  
-
-
-Rules for expectation and variance of a fixed vector $\mathbf{a}$ and random vector $\mathbf{Z}$;  
+Rules for expectation and variance of a fixed vector $\mathbf{a}$ and random vector $\mathbf{Z}$;
 
 $$
 E(\mathbf{a'Z}) = \mathbf{a'}E(\mathbf{Z}) \\
 var(\mathbf{a'Z}) = \mathbf{a'}var(\mathbf{Z})\mathbf{a}
 $$
 
-Then,  
+Then,
 
 $$
 \mathbf{a'\hat{\theta}} \sim AN(\mathbf{a'\theta},\sigma^2\mathbf{a'[F(\theta)'F(\theta)]^{-1}a})
 $$
 
-and $\mathbf{a'\hat{\theta}}$ is asymptotically independent of $s^2$ (to order 1/n) then  
+and $\mathbf{a'\hat{\theta}}$ is asymptotically independent of $s^2$ (to order 1/n) then
 
 $$
 \frac{\mathbf{a'\hat{\theta}-a'\theta}}{s(\mathbf{a'[F(\theta)'F(\theta)]^{-1}a})^{1/2}} \sim t_{n-p}
-$$
-to construct $100(1-\alpha)\%$ confidence interval for $\mathbf{a'\theta}$  
+$$ to construct $100(1-\alpha)\%$ confidence interval for $\mathbf{a'\theta}$
 
 $$
 \mathbf{a'\theta} \pm t_{(1-\alpha/2,n-p)}s(\mathbf{a'[F(\theta)'F(\theta)]^{-1}a})^{1/2}
 $$
 
-Suppose $\mathbf{a'} = (0,...,j,...,0)$. Then, a confidence interval for the jth element of $\mathbf{\theta}$ is 
+Suppose $\mathbf{a'} = (0,...,j,...,0)$. Then, a confidence interval for the jth element of $\mathbf{\theta}$ is
 
 $$
 \hat{\theta}_j \pm t_{(1-\alpha/2,n-p)}s\sqrt{\hat{c}^{j}}
-$$
-where $\hat{c}^{j}$ is the jth diagonal element of $[\mathbf{F(\hat{\theta})'F(\hat{\theta})}]^{-1}$  
-
-
+$$ where $\hat{c}^{j}$ is the jth diagonal element of $[\mathbf{F(\hat{\theta})'F(\hat{\theta})}]^{-1}$
 
 ```{r}
 #set a seed value 
@@ -107,7 +98,7 @@ datf = data.frame(x,y)
 mod =function(a,b,x) a*exp(b*x)
 ```
 
-In this example, we can get the starting values by using linearized version of the function $\log y = \log a + b x$.  Then, we can fit a linear regression to this and use our estimates as starting values
+In this example, we can get the starting values by using linearized version of the function $\log y = \log a + b x$. Then, we can fit a linear regression to this and use our estimates as starting values
 
 ```{r}
 #get starting values by linearizing
@@ -118,7 +109,6 @@ astrt = exp(as.numeric(lin_mod$coef[1]))
 bstrt = as.numeric(lin_mod$coef[2])
 print(c(astrt,bstrt))
 ```
-
 
 with `nls`, we can fit the nonlinear model via least squares
 
@@ -135,17 +125,15 @@ lines(x,predict(nlin_mod),col="red")
 
 ```
 
-
-
 ### Nonlinear
-Suppose that $h(\theta)$ is a nonlinear function of the parameters. We can use Taylor series about $\theta$  
+
+Suppose that $h(\theta)$ is a nonlinear function of the parameters. We can use Taylor series about $\theta$
 
 $$
 h(\hat{\theta}) \approx h(\theta) + \mathbf{h}'[\hat{\theta}-\theta]
-$$
-where $\mathbf{h} = (\frac{\partial h}{\partial \theta_1},...,\frac{\partial h}{\partial \theta_p})'$  
+$$ where $\mathbf{h} = (\frac{\partial h}{\partial \theta_1},...,\frac{\partial h}{\partial \theta_p})'$
 
-with 
+with
 
 $$
 E(\hat{\theta}) \approx \theta \\
@@ -154,32 +142,30 @@ E(h(\hat{\theta})) \approx h(\theta) \\
 var(h(\hat{\theta})) \approx \sigma^2 \mathbf{h'[F(\theta)'F(\theta)]^{-1}h}
 $$
 
-Thus,  
+Thus,
 
 $$
 h(\hat{\theta}) \sim AN(h(\theta),\sigma^2\mathbf{h'[F(\theta)'F(\theta)]^{-1}h})
-$$
-and an approximate $100(1-\alpha)\%$ confidence interval for $h(\theta)$ is 
+$$ and an approximate $100(1-\alpha)\%$ confidence interval for $h(\theta)$ is
 
 $$
 h(\hat{\theta}) \pm t_{(1-\alpha/2;n-p)}s(\mathbf{h'[F(\theta)'F(\theta)]^{-1}h})^{1/2}
 $$
 
-where $\mathbf{h}$ and $\mathbf{F}(\theta)$ are evaluated at $\hat{\theta}$  
+where $\mathbf{h}$ and $\mathbf{F}(\theta)$ are evaluated at $\hat{\theta}$
 
-Regarding **prediction interval** for Y at $x=x_0$  
+Regarding **prediction interval** for Y at $x=x_0$
 
 $$
 Y_0 = f(x_0;\theta) + \epsilon_0, \epsilon_0 \sim N(0,\sigma^2) \\
 \hat{Y}_0 = f(x_0,\hat{\theta})
 $$
 
-As $n \to \infty$, $\hat{\theta} \to \theta$, so we  
+As $n \to \infty$, $\hat{\theta} \to \theta$, so we
 
 $$
 f(x_0, \hat{\theta}) \approx f(x_0,\theta) + \mathbf{f}_0(\mathbf{\theta})'[\hat{\theta}-\theta]
-$$
-where $f_0(\theta)= (\frac{\partial f(x_0,\theta)}{\partial \theta_1},..,\frac{\partial f(x_0,\theta)}{\partial \theta_p})'$ (note: this $f_0(\theta)$ is different from $f(\theta)$).  
+$$ where $f_0(\theta)= (\frac{\partial f(x_0,\theta)}{\partial \theta_1},..,\frac{\partial f(x_0,\theta)}{\partial \theta_p})'$ (note: this $f_0(\theta)$ is different from $f(\theta)$).
 
 $$
 Y_0 - \hat{Y}_0 \approx Y_0  - f(x_0,\theta) - f_0(\theta)'[\hat{\theta}-\theta]  \\
@@ -193,42 +179,39 @@ var(Y_0 - \hat{Y}_0) \approx var(\epsilon_0 - \mathbf{(f_0(\theta)'[\hat{\theta}
 = \sigma^2 (1 + \mathbf{f_0 (\theta)'[F(\theta)'F(\theta)]^{-1}f_0(\theta)})
 $$
 
-Hence, combining  
+Hence, combining
 
 $$
 Y_0 - \hat{Y}_0 \sim AN (0,\sigma^2 (1 + \mathbf{f_0 (\theta)'[F(\theta)'F(\theta)]^{-1}f_0(\theta)}))
 $$
 
+Note:
 
-Note:  
-
-Confidence intervals for the mean response $Y_i$ (which is different from prediction intervals) can be obtained similarly. 
-
-
-
-
+Confidence intervals for the mean response $Y_i$ (which is different from prediction intervals) can be obtained similarly.
 
 ## Non-linear Least Squares
 
- * The LS estimate of $\theta$, $\hat{\theta}$ is the set of parameters that minimizes the residual sum of squares:  
-$$
-S(\hat{\theta}) = SSE(\hat{\theta}) = \sum_{i=1}^{n}\{Y_i - f(\mathbf{x_i};\hat{\theta})\}^2
-$$
- * to obtain the solution, we can consider the partial derivatives of $S(\theta)$ with respect to each $\theta_j$ and set them to 0, which gives a system of p equations. Each normal equation is 
-$$
-\frac{\partial S(\theta)}{\partial \theta_j} = -2\sum_{i=1}^{n}\{Y_i -f(\mathbf{x}_i;\theta)\}[\frac{\partial(\mathbf{x}_i;\theta)}{\partial \theta_j}] = 0
-$$
- * but we can't obtain a solution directly/analytically for this equation. 
+-   The LS estimate of $\theta$, $\hat{\theta}$ is the set of parameters that minimizes the residual sum of squares:\
+    $$
+    S(\hat{\theta}) = SSE(\hat{\theta}) = \sum_{i=1}^{n}\{Y_i - f(\mathbf{x_i};\hat{\theta})\}^2
+    $$
+-   to obtain the solution, we can consider the partial derivatives of $S(\theta)$ with respect to each $\theta_j$ and set them to 0, which gives a system of p equations. Each normal equation is $$
+    \frac{\partial S(\theta)}{\partial \theta_j} = -2\sum_{i=1}^{n}\{Y_i -f(\mathbf{x}_i;\theta)\}[\frac{\partial(\mathbf{x}_i;\theta)}{\partial \theta_j}] = 0
+    $$
+-   but we can't obtain a solution directly/analytically for this equation.
 
-**Numerical Solutions**  
+**Numerical Solutions**
 
- * Grid search  
-    + A "grid" of possible parameter values and see which one minimize the residual sum of squares.  
-    + finer grid = greater accuracy  
-    + could be inefficient, and hard when p is large.  
- * Gauss-Newton Algorithm  
-    + we have an initial estimate of $\theta$ denoted as $\hat{\theta}^{(0)}$  
-    + use a Taylor expansions of $f(\mathbf{x}_i;\theta)$ as a function of $\theta$ about the point $\hat{\theta}^{(0)}$  
+-   Grid search
+
+    -   A "grid" of possible parameter values and see which one minimize the residual sum of squares.\
+    -   finer grid = greater accuracy\
+    -   could be inefficient, and hard when p is large.\
+
+-   Gauss-Newton Algorithm
+
+    -   we have an initial estimate of $\theta$ denoted as $\hat{\theta}^{(0)}$\
+    -   use a Taylor expansions of $f(\mathbf{x}_i;\theta)$ as a function of $\theta$ about the point $\hat{\theta}^{(0)}$
 
 $$
 \begin{align} 
@@ -237,9 +220,9 @@ Y_i &= f(x_i;\theta) + \epsilon_i \\
 \end{align}
 $$
 
-Equivalently,  
+Equivalently,
 
-In matrix notation,  
+In matrix notation,
 
 $$
 \mathbf{Y} = 
@@ -261,7 +244,6 @@ f(\mathbf{x_n,\hat{\theta}}^{(0)})
 \end{array} \right]
 $$
 
-
 $$
 \mathbf{\epsilon} = 
 \left[ \begin{array}
@@ -282,33 +264,28 @@ $$
 \end{array} \right]_{\theta = \hat{\theta}^{(0)}}
 $$
 
-
-Hence,  
-
+Hence,
 
 $$
 \mathbf{Y} = \mathbf{f}(\hat{\theta}^{(0)}) + \mathbf{F}(\hat{\theta}^{(0)})(\theta - \hat{\theta}^{(0)}) + \epsilon + \text{remainder}
-$$
-where we assume that the remainder is small and the error term is only assumed to be iid with mean 0 and variance $\sigma^2$.  
+$$ where we assume that the remainder is small and the error term is only assumed to be iid with mean 0 and variance $\sigma^2$.
 
-We can rewrite the above equation as  
+We can rewrite the above equation as
 
 $$
 \mathbf{Y} - \mathbf{f}(\hat{\theta}^{(0)}) \approx \mathbf{F}(\hat{\theta}^{(0)})(\theta - \hat{\theta}^{(0)}) + \epsilon
-$$
-where it is in the form of linear model. After we solve for $(\theta - \hat{\theta}^{(0)})$ and let it equal to $\hat{\delta}^{(1)}$  
- Then we new estimate is given by adding the Gauss increment adjustment to the initial estimate $\hat{\theta}^{(1)} = \hat{\theta}^{(0)} + \hat{\delta}^{(1)}$  
- We can repeat this process. 
+$$ where it is in the form of linear model. After we solve for $(\theta - \hat{\theta}^{(0)})$ and let it equal to $\hat{\delta}^{(1)}$\
+Then we new estimate is given by adding the Gauss increment adjustment to the initial estimate $\hat{\theta}^{(1)} = \hat{\theta}^{(0)} + \hat{\delta}^{(1)}$\
+We can repeat this process.
 
+Gauss-Newton Algorithm Steps:
 
-Gauss-Newton Algorithm Steps:  
-
- 1. initial estimate $\hat{\theta}^{(0)}$, set j = 0  
- 2. Taylor series expansion and calculate  $\mathbf{f}(\hat{\theta}^{(j)})$ and $\mathbf{F}(\hat{\theta}^{(j)})$ 
- 3. Use OLS to get $\hat{\delta}^{(j+1)}$  
- 4. get the new estimate $\hat{\theta}^{(j+1)}$, return to step 2  
- 5. continue until "convergence"  
- 6. With the final parameter estimate $\hat{\theta}$, we can estimate $\sigma^2$ if $\epsilon \sim (\mathbf{0}, \sigma^2 \mathbf{I})$ by  
+1.  initial estimate $\hat{\theta}^{(0)}$, set j = 0\
+2.  Taylor series expansion and calculate $\mathbf{f}(\hat{\theta}^{(j)})$ and $\mathbf{F}(\hat{\theta}^{(j)})$
+3.  Use OLS to get $\hat{\delta}^{(j+1)}$\
+4.  get the new estimate $\hat{\theta}^{(j+1)}$, return to step 2\
+5.  continue until "convergence"\
+6.  With the final parameter estimate $\hat{\theta}$, we can estimate $\sigma^2$ if $\epsilon \sim (\mathbf{0}, \sigma^2 \mathbf{I})$ by
 
 $$
 \hat{\sigma}^2= \frac{1}{n-p}(\mathbf{Y}-\mathbf{f}(x;\hat{\theta}))'(\mathbf{Y}-\mathbf{f}(x;\hat{\theta}))
@@ -316,23 +293,23 @@ $$
 
 <br>
 
-**Criteria for convergence**  
+**Criteria for convergence**
 
- 1. Minor change in the objective function (SSE = residual sum of squares)  
-$$
-\frac{|SSE(\hat{\theta}^{(j+1)})-SSE(\hat{\theta}^{(j)})|}{SSE(\hat{\theta}^{(j)})} < \gamma_1
-$$
- 2. Minor change in the parameter estimates  
-$$
-|\hat{\theta}^{(j+1)}-\hat{\theta}^{(j)}| < \gamma_2
-$$
- 3. "residual projection" criterion of [@Bates_1981]  
+1.  Minor change in the objective function (SSE = residual sum of squares)\
+    $$
+    \frac{|SSE(\hat{\theta}^{(j+1)})-SSE(\hat{\theta}^{(j)})|}{SSE(\hat{\theta}^{(j)})} < \gamma_1
+    $$
+2.  Minor change in the parameter estimates\
+    $$
+    |\hat{\theta}^{(j+1)}-\hat{\theta}^{(j)}| < \gamma_2
+    $$
+3.  "residual projection" criterion of [@Bates_1981]
 
 ### Alternative of Gauss-Newton Algorithm
 
 #### Gauss-Newton Algorithm
 
-Normal equations:  
+Normal equations:
 
 $$
 \frac{\partial SSE(\theta)}{\partial \theta} = 2\mathbf{F}(\theta)'[\mathbf{Y}-\mathbf{f}(\theta)]
@@ -344,70 +321,61 @@ $$
 &= \hat{\theta}^{(j)} + [\mathbf{F}((\hat{\theta})^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1}\mathbf{F}(\hat{\theta})^{(j)} \\
 &= \hat{\theta}^{(j)} - \frac{1}{2}[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1}\frac{\partial SSE(\hat{\theta}^{(j)})}{\partial \theta}
 \end{align}
-$$
-where  
+$$ where
 
- * $\frac{\partial SSE(\hat{\theta}^{(j)})}{\partial \theta}$ is a gradient vecotr  (points in the direction in which the SSE increases most rapidly). This path is known as steepest ascent.  
- * $[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1}$ indicates how far to move  
- * $-1/2$: indicator of the direction of steepest descent.  
-
+-   $\frac{\partial SSE(\hat{\theta}^{(j)})}{\partial \theta}$ is a gradient vecotr (points in the direction in which the SSE increases most rapidly). This path is known as steepest ascent.\
+-   $[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1}$ indicates how far to move\
+-   $-1/2$: indicator of the direction of steepest descent.
 
 #### Modified Gauss-Newton Algorithm
 
-To avoid overstepping (the local min), we can use the modified Gauss-Newton Algorithm. We define a new proposal for $\theta$  
+To avoid overstepping (the local min), we can use the modified Gauss-Newton Algorithm. We define a new proposal for $\theta$
 
 $$
 \hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} + \alpha_j \hat{\delta}^{(j+1)}, 0 < \alpha_j < 1
-$$
-where  
+$$ where
 
- * $\alpha_j$ (called the "learning rate"): is used to modify the step length.  
+-   $\alpha_j$ (called the "learning rate"): is used to modify the step length.
 
-We could also have $\alpha *1/2$, but typically it is assumed to be absorbed into the learning rate. 
+We could also have $\alpha *1/2$, but typically it is assumed to be absorbed into the learning rate.
 
-A way to choose $\alpha_j$, we can use **step halving**  
+A way to choose $\alpha_j$, we can use **step halving**
 
 $$
 \hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} + \frac{1}{2^k}\hat{\delta}^{(j+1)}
-$$
-where  
+$$ where
 
- * k is the smallest non-negative integer such that  
-$$
-SSE(\hat{\theta}^{(j)}+\frac{1}{2^k}\hat{\delta}^{(j+1)}) < SSE(\hat{\theta}^{(j)})
-$$
-which means we try $\hat{\delta}^{(j+1)}$, then $\hat{\delta}^{(j+1)}/2$, $\hat{\delta}^{(j+1)}/4$, etc.  
+-   k is the smallest non-negative integer such that\
+    $$
+    SSE(\hat{\theta}^{(j)}+\frac{1}{2^k}\hat{\delta}^{(j+1)}) < SSE(\hat{\theta}^{(j)})
+    $$ which means we try $\hat{\delta}^{(j+1)}$, then $\hat{\delta}^{(j+1)}/2$, $\hat{\delta}^{(j+1)}/4$, etc.
 
-
-The most general form of the convergence algorithm is  
+The most general form of the convergence algorithm is
 
 $$
 \hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} - \alpha_j \mathbf{A}_j \frac{\partial Q(\hat{\theta}^{(j)})}{\partial \theta} 
-$$
-where  
+$$ where
 
- * $\mathbf{A}_j$ is a positive definite matrix  
- * $\alpha_j$ is the learning rate  
- * $\frac{\partial Q(\hat{\theta}^{(j)})}{\partial \theta}$is the gradient based on some objective function Q (a function of $\theta$), which is typically the SSE in nonlinear regression applications (e.g., cross-entropy for classification).  
+-   $\mathbf{A}_j$ is a positive definite matrix\
+-   $\alpha_j$ is the learning rate\
+-   $\frac{\partial Q(\hat{\theta}^{(j)})}{\partial \theta}$is the gradient based on some objective function Q (a function of $\theta$), which is typically the SSE in nonlinear regression applications (e.g., cross-entropy for classification).
 
-Refer back to the **Modified Gauss-Newton Algorithm**, we can see it is in this form  
+Refer back to the **Modified Gauss-Newton Algorithm**, we can see it is in this form
 
 $$
 \hat{\theta}^{(j+1)} =\hat{\theta}^{(j)} - \alpha_j[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1}\frac{\partial SSE(\hat{\theta}^{(j)})}{\partial \theta}
-$$
-where Q = SSE, $[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1} = \mathbf{A}$
-
+$$ where Q = SSE, $[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1} = \mathbf{A}$
 
 #### Steepest Descent
 
-(also known just "gradient descent")  
+(also known just "gradient descent")
 
 $$
 \hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} - \alpha_j \mathbf{I}_{p \times p}\frac{\partial \mathbf{Q}(\hat{\theta}^{(j)})}{\partial \theta}
 $$
 
- * slow to converge, moves rapidly initially.  
- * could be use for starting values  
+-   slow to converge, moves rapidly initially.\
+-   could be use for starting values
 
 #### Levenberg -Marquardt
 
@@ -415,12 +383,11 @@ $$
 \hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} - \alpha_j [\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})+ \tau \mathbf{I}_{p \times p}]\frac{\partial \mathbf{Q}(\hat{\theta}^{(j)})}{\partial \theta}
 $$
 
-which is a compromise between the [Gauss-Newton Algorithm] and the [Steepest Descent].  
+which is a compromise between the [Gauss-Newton Algorithm] and the [Steepest Descent].
 
- * best when $\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})$ is nearly singular ($\mathbf{F}(\hat{\theta}^{(j)})$ isn't of full rank)  
- * similar to ridge regression  
- * If $SSE(\hat{\theta}^{(j+1)}) < SSE(\hat{\theta}^{(j)})$, then $\tau= \tau/10$ for the next iteration. Otherwise, $\tau = 10 \tau$
-
+-   best when $\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})$ is nearly singular ($\mathbf{F}(\hat{\theta}^{(j)})$ isn't of full rank)\
+-   similar to ridge regression\
+-   If $SSE(\hat{\theta}^{(j+1)}) < SSE(\hat{\theta}^{(j)})$, then $\tau= \tau/10$ for the next iteration. Otherwise, $\tau = 10 \tau$
 
 #### Newton-Raphson
 
@@ -428,81 +395,78 @@ $$
 \hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} - \alpha_j [\frac{\partial^2Q(\hat{\theta}^{(j)})}{\partial \theta \partial \theta'}]^{-1}\frac{\partial \mathbf{Q}(\hat{\theta}^{(j)})}{\partial \theta}
 $$
 
-The **Hessian matrix** can be rewritten as:  
+The **Hessian matrix** can be rewritten as:
 
 $$
 \frac{\partial^2Q(\hat{\theta}^{(j)})}{\partial \theta \partial \theta'} = 2 \mathbf{F}((\hat{\theta})^{(j)})'\mathbf{F}(\hat{\theta}^{(j)}) - 2\sum_{i=1}^{n}[Y_i - f(x_i;\theta)]\frac{\partial^2f(x_i;\theta)}{\partial \theta \partial \theta'}
-$$
-which contains the same term that [Gauss-Newton Algorithm
-], combined with one containing the second partial derivatives of f(). (methods that require the second derivatives of the objective function are known as "second-order methods".)  
-However, the last term \frac{\partial^2f(x_i;\theta)}{\partial \theta \partial \theta'} can sometimes be nonsingular.  
-
-
+$$ which contains the same term that [Gauss-Newton Algorithm], combined with one containing the second partial derivatives of f(). (methods that require the second derivatives of the objective function are known as "second-order methods".)\
+However, the last term \frac{\partial^2f(x_i;\theta)}{\partial \theta \partial \theta'} can sometimes be nonsingular.
 
 #### Quasi-Newton
 
-update $\theta$ according to  
+update $\theta$ according to
 
 $$
 \hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} - \alpha_j \mathbf{H}_j^{-1}\frac{\partial \mathbf{Q}(\hat{\theta}^{(j)})}{\partial \theta}
-$$
-where $H_j$ is a symmetric positive definite approximation to the Hessian, which gets closer as $j \to \infty$.  
+$$ where $H_j$ is a symmetric positive definite approximation to the Hessian, which gets closer as $j \to \infty$.
 
- * $\mathbf{H}_j$ is computed iteratively  
- * AMong first-order methods(where only first derivatives are required), this method performs best.  
+-   $\mathbf{H}_j$ is computed iteratively\
+-   AMong first-order methods(where only first derivatives are required), this method performs best.
 
 #### Derivative Free Methods
 
- * **secant Method**: like [Gauss-Newton Algorithm], but calculates the derivatives numerically from past iterations.  
- * **Simplex Methods**  
- * **Genetic Algorithm**  
- * **Differential Evolution Algorithms**  
- * **Particle Swarm Optimization**  
- * **Ant Colony Optimization**  
+-   **secant Method**: like [Gauss-Newton Algorithm], but calculates the derivatives numerically from past iterations.\
+-   **Simplex Methods**\
+-   **Genetic Algorithm**\
+-   **Differential Evolution Algorithms**\
+-   **Particle Swarm Optimization**\
+-   **Ant Colony Optimization**
 
 ### Practical Considerations
 
-To converge, algorithm need good initial estimates.  
+To converge, algorithm need good initial estimates.
 
- * Starting values:  
-    + Prior or theoretical info  
-    + A grid search or a graph of $SSE(\theta)$  
-    + could also use OLS to get starting values.  
-    + Model interpretation: if you have some idea regarding the form of the objective function, then you can try to guess the initial value.  
-    + Expected Value Parameterization  
- * Constrained Parameters: (constraints on parameters like $\theta_i>a,a< \theta_i <b$)  
-    + fit the model first to see if the converged parameter estimates satisfy the constraints. 
-    + if they dont' satisfy, then try re-parameterizing  
+-   Starting values:
 
+    -   Prior or theoretical info\
+    -   A grid search or a graph of $SSE(\theta)$\
+    -   could also use OLS to get starting values.\
+    -   Model interpretation: if you have some idea regarding the form of the objective function, then you can try to guess the initial value.\
+    -   Expected Value Parameterization\
+
+-   Constrained Parameters: (constraints on parameters like $\theta_i>a,a< \theta_i <b$)
+
+    -   fit the model first to see if the converged parameter estimates satisfy the constraints.
+    -   if they dont' satisfy, then try re-parameterizing
 
 #### Failure to converge
 
- * $SSE(\theta)$ may be "flat" in a neighborhood of the minimum.  
- * You can try different or "better" starting values.  
- * Might suggest the model is too complex for the data, might consider simpler model.  
-
+-   $SSE(\theta)$ may be "flat" in a neighborhood of the minimum.\
+-   You can try different or "better" starting values.\
+-   Might suggest the model is too complex for the data, might consider simpler model.
 
 #### Convergence to a Local Minimum
 
- * Linear least squares has the property that $SSE(\theta) = \mathbf{(Y-X\beta)'(Y-X\beta)}$, which is quadratic and has a unique minimum (or maximum).  
- * Nonlinear east squares need  not have a unique minimum  
- * Using different starting values can help  
- * If the dimension of $\theta$ is low, graph $SSE(\theta)$ as a function of $\theta_i$  
- * Different algorithm can help (e.g., genetic algorithm, particle swarm)  
+-   Linear least squares has the property that $SSE(\theta) = \mathbf{(Y-X\beta)'(Y-X\beta)}$, which is quadratic and has a unique minimum (or maximum).\
+-   Nonlinear east squares need not have a unique minimum\
+-   Using different starting values can help\
+-   If the dimension of $\theta$ is low, graph $SSE(\theta)$ as a function of $\theta_i$\
+-   Different algorithm can help (e.g., genetic algorithm, particle swarm)
 
+To converge, algorithms need good initial estimates.
 
-To converge, algorithms need good initial estimates.  
+-   Starting values:
 
- * Starting values:  
-    + prior or theoretical info  
-    + A grid search or a graph 
-    + OLS estimates as starting values  
-    + Model interpretation  
-    + Expected Value Parameterization  
- * Constrained Parameters:  
-    + try the model without the constraints first.  
-    + If the resulted parameter estimates does not satisfy the constraint, try re-parameterizing
+    -   prior or theoretical info\
+    -   A grid search or a graph
+    -   OLS estimates as starting values\
+    -   Model interpretation\
+    -   Expected Value Parameterization\
 
+-   Constrained Parameters:
+
+    -   try the model without the constraints first.\
+    -   If the resulted parameter estimates does not satisfy the constraint, try re-parameterizing
 
 ```{r}
 # Grid search
@@ -538,47 +502,44 @@ nlin_modG
 
 ```
 
-For prediction interval 
+For prediction interval
 
 ```{r}
 plotFit(nlin_modG, interval = "both", pch = 19, shade = TRUE, 
         col.conf = "skyblue4", col.pred = "lightskyblue2",data=datf)  
 ```
 
-
-Based on the forms of your function, you can also have programmed starting values from `nls` function (e.e.g, logistic growth, asymptotic regression, etc).  
+Based on the forms of your function, you can also have programmed starting values from `nls` function (e.e.g, logistic growth, asymptotic regression, etc).
 
 ```{r}
 apropos("^SS")
 ```
 
-For example, a logistic growth model:  
+For example, a logistic growth model:
 
 $$
 P = \frac{K}{1+ exp(P_0+ rt)} + \epsilon
-$$
-where 
+$$ where
 
- * P = population at time t  
- * K = carrying capacity   
- * r = population growth rate  
+-   P = population at time t\
+-   K = carrying capacity\
+-   r = population growth rate
 
-but in `R` you have slight different parameterization:  
+but in `R` you have slight different parameterization:
 
 $$
 P = \frac{asym}{1 + exp(\frac{xmid - t}{scal})}
-$$
-where  
+$$ where
 
- * asym = carrying capacity  
- * xmid = the x value at the inflection point of the curve  
- * scal = scaling parameter.  
+-   asym = carrying capacity\
+-   xmid = the x value at the inflection point of the curve\
+-   scal = scaling parameter.
 
-Hence, you have  
+Hence, you have
 
- * K = asym  
- * r = -1/scal  
- * $P_0 = -rxmid$
+-   K = asym\
+-   r = -1/scal\
+-   $P_0 = -rxmid$
 
 ```{r}
 # simulated data
@@ -591,7 +552,6 @@ logisticModelSS <- nls(population~SSlogis(time, Asym, xmid, scal))
 summary(logisticModelSS)
 coef(logisticModelSS)
 ```
-
 
 Other parameterization
 
@@ -612,7 +572,6 @@ lines(time,predict(logisticModel),col="red")
 
 ```
 
-
 If can also define your own self-starting fucntion if your models are uncommon (built in `nls`)
 
 Example is based on [@Schabenberger_2001]
@@ -626,17 +585,15 @@ labs(color='Depth (cm)') + xlab('Soil NO3') + ylab('relative yield percent')
 dat.plot
 ```
 
-The suggested model (known as plateau model) is  
+The suggested model (known as plateau model) is
 
 $$
 E(Y_{ij}) = (\beta_{0j} + \beta_{1j}N_{ij})I_{N_{ij}\le \alpha_j} + (\beta_{0j} + \beta_{1j}\alpha_j)I_{N_{ij} > \alpha_j}
-$$
-where  
+$$ where
 
- * N is an observation   
- * i is a particular observation  
- * j = 1,2 corresponding to depths (30,60)  
-
+-   N is an observation\
+-   i is a particular observation\
+-   j = 1,2 corresponding to depths (30,60)
 
 ```{r}
 #First define model as a function
@@ -697,6 +654,7 @@ xlim = c(0,120))
 summary(sep30_nls)
 summary(sep60_nls)
 ```
+
 Instead of modeling the depths model separately we model them together - so there is a common slope, intercept, and plateau.
 
 ```{r reduce-model}
@@ -724,7 +682,7 @@ resid <- nlsResiduals(red_nls)
 plot(resid)
 ```
 
-can we test whether the parameters for the two soil depth fits are significantly different?  To know if the combined model is appropriate, we consider a parameterization where we let the parameters for the 60cm model be equal to the parameters from the 30cm model plus some increment:
+can we test whether the parameters for the two soil depth fits are significantly different? To know if the combined model is appropriate, we consider a parameterization where we let the parameters for the 60cm model be equal to the parameters from the 30cm model plus some increment:
 
 $$
 \beta_{02} = \beta_{01} + d_0 \\
@@ -754,6 +712,7 @@ nonlinModelF <- function(predictor,soildep,b01,b11,a1,d0,d1,da){
 ```
 
 Starting values are easy now because we fit each model individually.
+
 ```{r full-model-fit, eval=TRUE}
 
 Soil_full=nls(ryp~nonlinModelF(predictor=no3,soildep=depth,b01,b11,a1,d0,d1,da),
@@ -762,28 +721,32 @@ Soil_full=nls(ryp~nonlinModelF(predictor=no3,soildep=depth,b01,b11,a1,d0,d1,da),
 
 summary(Soil_full)
 ```
-So, the increment parameters, $d_1$,$d_2$,$d_a$ are all significantly different from 0, suggesting that we should have two models here. 
 
-
-
-
+So, the increment parameters, $d_1$,$d_2$,$d_a$ are all significantly different from 0, suggesting that we should have two models here.
 
 ### Model/Estiamtion Adequcy
 
-[@Bates_1980] assess nonlinearity in terms of 2 components of curvature:  
+[@Bates_1980] assess nonlinearity in terms of 2 components of curvature:
 
- * **Intrinsic nonlinearity**: the degree of bending and twisting in $f(\theta)$; our estimation approach assumes that hte true function is relatively flat (planar) in the neighborhood fo $\hat{\theta}$, which would not be true if $f()$ has a lot of "bending" int he neighborhood of $\hat{\theta}$ (independent of parameterizaiton)  
-    + If bad, the distribution of residuals will be seriously distorted  
-    + slow to converge  
-    + difficult to identify ( could use this function `rms.curve`)  
-    + Solution:   
-        - could use higher order Taylor expansions estimation   
-        - Bayesian method
- * **Parameter effects nonlinearity**: degree to which curvature (nonlinearity) is affected by choice of $\theta$ (data dependent; dependent on parameterization)  
-    + leads to problems with inferecne on $\hat{\theta}$  
-    + `rms.curve` in `MASS` can identify  
-    + bootstrap-based inference can also be used  
-    + Solution: try to reparaemterize. 
+-   **Intrinsic nonlinearity**: the degree of bending and twisting in $f(\theta)$; our estimation approach assumes that hte true function is relatively flat (planar) in the neighborhood fo $\hat{\theta}$, which would not be true if $f()$ has a lot of "bending" int he neighborhood of $\hat{\theta}$ (independent of parameterizaiton)
+
+    -   If bad, the distribution of residuals will be seriously distorted\
+
+    -   slow to converge\
+
+    -   difficult to identify ( could use this function `rms.curve`)\
+
+    -   Solution:
+
+        -   could use higher order Taylor expansions estimation\
+        -   Bayesian method
+
+-   **Parameter effects nonlinearity**: degree to which curvature (nonlinearity) is affected by choice of $\theta$ (data dependent; dependent on parameterization)
+
+    -   leads to problems with inferecne on $\hat{\theta}$\
+    -   `rms.curve` in `MASS` can identify\
+    -   bootstrap-based inference can also be used\
+    -   Solution: try to reparaemterize.
 
 ```{r}
 #check parameter effects and intrinsic curvature
@@ -795,32 +758,26 @@ nlin_modD=nls(y~modD(a,b,x),start=list(a=astrt,b=bstrt),data=datf)
 rms.curv(nlin_modD)
 ```
 
-
-
-In linear model, we have [Linear Regression], we have goodness of fit measure as $R^2$:  
+In linear model, we have [Linear Regression], we have goodness of fit measure as $R^2$:
 
 $$
 R^2 = \frac{SSR}{SSTO} = 1- \frac{SSE}{SSTO} \\
 = \frac{\sum_{i=1}^n (\hat{Y}_i- \bar{Y})^2}{\sum_{i=1}^n (Y_i- \bar{Y})^2} = 1- \frac{\sum_{i=1}^n ({Y}_i- \hat{Y})^2}{\sum_{i=1}^n (Y_i- \bar{Y})^2}
-$$
-but not valid in the nonlinear case because the error sum of squares and model sum of squares do not add to the total corrected sum of squares  
+$$ but not valid in the nonlinear case because the error sum of squares and model sum of squares do not add to the total corrected sum of squares
 
 $$
 SSR + SSE \neq SST
 $$
 
-but we can use pseudo-$R^2$:  
+but we can use pseudo-$R^2$:
 
 $$
 R^2_{pseudo} = 1 - \frac{\sum_{i=1}^n ({Y}_i- \hat{Y})^2}{\sum_{i=1}^n (Y_i- \bar{Y})^2}
-$$
-But we can't interpret this as the proportion of variability explained by the model. We should use as a relative comparison of different models.  
+$$ But we can't interpret this as the proportion of variability explained by the model. We should use as a relative comparison of different models.
 
+**Residual Plots**: standardize, similar to OLS. useful when the intrinsic curvature is small:
 
-
-**Residual Plots**:  standardize, similar to OLS. useful when the intrinsic curvature is small:  
-
-The studentized residuals  
+The studentized residuals
 
 $$
 r_i = \frac{e_i}{s\sqrt{1-\hat{c}_i}}
@@ -828,24 +785,25 @@ $$
 
 where $\hat{c}_i$is the i-th diagonal of $\mathbf{\hat{H}= F(\hat{\theta})[F(\hat{\theta})'F(\hat{\theta})]^{-1}F(\hat{\theta})'}$
 
-We could have problems of  
+We could have problems of
 
- * Collinearity: the condition number of $\mathbf{[F(\hat{\theta})'F(\hat{\theta})]^{-1}}$ should be less than 30. Follow [@Magel_1987]; reparameterize if possible  
- * Leverage: Like [OLS][Ordinary Least Squares], but consider $\mathbf{\hat{H}= F(\hat{\theta})[F(\hat{\theta})'F(\hat{\theta})]^{-1}F(\hat{\theta})'}$ (also known as "tangent plant hat matrix") [@Laurent_1992]  
- * Heterogeneous Errors: weighted Non-linear Least Squares  
- * Correlated Errors:  
-    + Generalized Nonlinear Least Squares  
-    + Nonlinear Mixed Models  
-    + Bayesian methods
+-   Collinearity: the condition number of $\mathbf{[F(\hat{\theta})'F(\hat{\theta})]^{-1}}$ should be less than 30. Follow [@Magel_1987]; reparameterize if possible\
 
+-   Leverage: Like [OLS][Ordinary Least Squares], but consider $\mathbf{\hat{H}= F(\hat{\theta})[F(\hat{\theta})'F(\hat{\theta})]^{-1}F(\hat{\theta})'}$ (also known as "tangent plant hat matrix") [@Laurent_1992]\
 
+-   Heterogeneous Errors: weighted Non-linear Least Squares\
+
+-   Correlated Errors:
+
+    -   Generalized Nonlinear Least Squares\
+    -   Nonlinear Mixed Models\
+    -   Bayesian methods
 
 ### Application
 
 $$
 y_i = \frac{\theta_0 + \theta_1 x_i}{1 + \theta_2 \exp(0.4 x_i)} + \epsilon_i
-$$
-where $i = 1,..,n$ 
+$$ where $i = 1,..,n$
 
 Get the starting values
 
@@ -860,30 +818,25 @@ plot(my_data)
 
 ```
 
-
-
-We notice that $Y_{max} = \theta_0 + \theta_1 x_i$ in which we can find x_i from data 
-
+We notice that $Y_{max} = \theta_0 + \theta_1 x_i$ in which we can find x_i from data
 
 ```{r}
 max(my_data$y)
 my_data$x[which.max(my_data$y)]
 ```
 
-hence, x = 0.0094 when y = 2.6722 when we have the first equation as 
+hence, x = 0.0094 when y = 2.6722 when we have the first equation as
 
 $$
 2.6722 = \theta_0 + 0.0094 \theta_1 \\
 \theta_0 + 0.0094 \theta_1 + 0 \theta_2 = 2.6722
 $$
 
-
-Secondly, we notice that we can obtain the "average" of y when 
+Secondly, we notice that we can obtain the "average" of y when
 
 $$
 1+ \theta_2 exp(0.4 x) = 2
-$$
-then we can find this average numbers of x and y
+$$ then we can find this average numbers of x and y
 
 ```{r}
 mean(my_data$y) #find mean y
@@ -892,6 +845,7 @@ my_data$y[which.min(abs(my_data$y-(mean(my_data$y))))] # find y closest to its m
 my_data$x[which.min(abs(my_data$y-(mean(my_data$y))))] #find x closest to the mean y
 
 ```
+
 we have the second equation
 
 $$
@@ -899,14 +853,15 @@ $$
 0 \theta_1 + 0 \theta_1 + 83.58967 \theta_2 = 1
 $$
 
-Thirdly, we can plug in the value of x closest to 1 to find the value of y 
+Thirdly, we can plug in the value of x closest to 1 to find the value of y
 
 ```{r}
 my_data$x[which.min(abs(my_data$x-1))] # find value of x closet to 1
 match(my_data$x[which.min(abs(my_data$x-1))], my_data$x) # find index of x closest to 1
 my_data$y[match(my_data$x[which.min(abs(my_data$x-1))], my_data$x)]# find y value
 ```
-hence we have 
+
+hence we have
 
 $$
 1.457 = \frac{\theta_0 + \theta_1*0.9895}{1 + \theta_2 exp(0.4*0.9895)} \\
@@ -914,8 +869,7 @@ $$
 \theta_0 + \theta_1*0.9895 -  2.164479 *\theta_2 = 1.457
 $$
 
-with 3 equations, we can solve them to get the starting value for $\theta_0,\theta_1, \theta_2$ 
-
+with 3 equations, we can solve them to get the starting value for $\theta_0,\theta_1, \theta_2$
 
 $$
 \theta_0 + 0.0094 \theta_1 + 0 \theta_2 = 2.6722 \\
@@ -932,7 +886,6 @@ Solve(A, b, fractions = F)
 ```
 
 Construct manually [Gauss-Newton Algorithm]
-
 
 ```{r}
 
@@ -1027,25 +980,26 @@ sigma2 = 1 / (nrow(my_data) - 3) * (t(my_data$y - (f_theta[, ncol(f_theta)]))) %
 sigma2
 
 ```
+
 After 8 iterations, my function has converged. And objective function value at convergence is
 
 ```{r}
 sum((my_data$y - f_theta[,i])^2)
 ```
-and the parameters of $\theta$s are 
+
+and the parameters of $\theta$s are
 
 ```{r}
 theta_vec[,ncol(theta_vec)]
 ```
 
-
-and the asymptotic variance covariance matrix is 
+and the asymptotic variance covariance matrix is
 
 ```{r}
 as.numeric(sigma2)*as.matrix(solve(crossprod(F_theta_0)))
 ```
 
-Issue that I encounter in this problem was that it was very sensitive to starting values. when I tried the value of 1 for all $\theta$s, I have vastly different parameter estimates. Then, I try to use the model interpretation to try to find reasonable starting values.  
+Issue that I encounter in this problem was that it was very sensitive to starting values. when I tried the value of 1 for all $\theta$s, I have vastly different parameter estimates. Then, I try to use the model interpretation to try to find reasonable starting values.
 
 Check with predefined function in nls
 
@@ -1054,61 +1008,48 @@ nlin_4 = nls(y ~ mod_4(theta_0,theta_1, theta_2, x), start = list(theta_0=-279.8
 nlin_4
 ```
 
+## Generalized Linear Models {#generalized-linear-models}
 
-
-
-
-
-
-
-## Generalized Linear Models
-
-Even though we call it generalized linear model, it is still under the paradigm of non-linear regression, because the form of the regression model is non-linear. The name generalized linear model derived from the fact that we have $\mathbf{x'_i \beta}$ (which is linear form) in the model.  
+Even though we call it generalized linear model, it is still under the paradigm of non-linear regression, because the form of the regression model is non-linear. The name generalized linear model derived from the fact that we have $\mathbf{x'_i \beta}$ (which is linear form) in the model.
 
 ### Logistic Regression
 
 $$
 p_i = f(\mathbf{x}_i ; \beta) = \frac{exp(\mathbf{x_i'\beta})}{1 + exp(\mathbf{x_i'\beta})}
-$$
-Equivalently,  
+$$ Equivalently,
 
 $$
 logit(p_i) = log(\frac{p_i}{1+p_i}) = \mathbf{x_i'\beta}
-$$
-where $\frac{p_i}{1+p_i}$is the **odds**.
+$$ where $\frac{p_i}{1+p_i}$is the **odds**.
 
-In this form, the model is specified such that **a function of the mean response is linear**. Hence, **Generalized Linear Models**  
+In this form, the model is specified such that **a function of the mean response is linear**. Hence, **Generalized Linear Models**
 
-The likelihood function  
+The likelihood function
 
 $$
 L(p_i) = \prod_{i=1}^{n} p_i^{Y_i}(1-p_i)^{1-Y_i}
-$$
-where $p_i = \frac{\mathbf{x'_i \beta}}{1+\mathbf{x'_i \beta}}$ and $1-p_i = (1+ exp(\mathbf{x'_i \beta}))^{-1}$  
+$$ where $p_i = \frac{\mathbf{x'_i \beta}}{1+\mathbf{x'_i \beta}}$ and $1-p_i = (1+ exp(\mathbf{x'_i \beta}))^{-1}$
 
-Hence, our objective function is  
+Hence, our objective function is
 
 $$
 Q(\beta) = log(L(\beta)) = \sum_{i=1}^n Y_i \mathbf{x'_i \beta} - \sum_{i=1}^n  log(1+ exp(\mathbf{x'_i \beta}))
 $$
 
-we could maximize this function numerically using the optimization method above, which allows us to find numerical MLE for $\hat{\beta}$. Then we can use the standard asymptotic properties of MLEs to make inference.  
+we could maximize this function numerically using the optimization method above, which allows us to find numerical MLE for $\hat{\beta}$. Then we can use the standard asymptotic properties of MLEs to make inference.
 
 Property of MLEs is that parameters are asymptotically unbiased with sample variance-covariance matrix given by the **inverse Fisher information matrix**
 
-
 $$
 \hat{\beta} \dot{\sim} AN(\beta,[\mathbf{I}(\beta)]^{-1})
-$$
-where the **Fisher Information matrix**, $\mathbf{I}(\beta)$ is 
+$$ where the **Fisher Information matrix**, $\mathbf{I}(\beta)$ is
 
 $$
 \begin{align}
 \mathbf{I}(\beta) &= E[\frac{\partial \log(L(\beta))}{\partial (\beta)}\frac{\partial \log(L(\beta))}{\partial \beta'}] \\
 &= E[(\frac{\partial \log(L(\beta))}{\partial \beta_i} \frac{\partial \log(L(\beta))}{\partial \beta_j})_{ij}]
 \end{align}
-$$
-Under **regularity conditions**, this is equivalent to the negative of the expected value of the Hessian Matrix   
+$$ Under **regularity conditions**, this is equivalent to the negative of the expected value of the Hessian Matrix
 
 $$
 \begin{align}
@@ -1117,12 +1058,11 @@ $$
 \end{align}
 $$
 
-Example:  
+Example:
 
 $$
 x_i' \beta = \beta_0 + \beta_1 x_i
 $$
-
 
 $$
 - \frac{\partial^2 \ln(L(\beta))}{\partial \beta^2_0} = \sum_{i=1}^n \frac{\exp(x'_i \beta)}{1 + \exp(x'_i \beta)} - [\frac{\exp(x_i' \beta)}{1+ \exp(x'_i \beta)}]^2 = \sum_{i=1}^n p_i (1-p_i) \\
@@ -1130,7 +1070,7 @@ $$
 - \frac{\partial^2 \ln(L(\beta))}{\partial \beta_0 \partial \beta_1} = \sum_{i=1}^n \frac{x_i\exp(x'_i \beta)}{1 + \exp(x'_i \beta)} - x_i[\frac{\exp(x_i' \beta)}{1+ \exp(x'_i \beta)}]^2 = \sum_{i=1}^n x_ip_i (1-p_i) \\
 $$
 
-Hence,  
+Hence,
 
 $$
 \mathbf{I} (\beta) = 
@@ -1143,135 +1083,286 @@ $$
 \right]
 $$
 
+**Inference**
 
-**Inference**  
+**Likelihood Ratio Tests**
 
-**Likelihood Ratio Tests**  
+To formulate the test, let $\beta = [\beta_1', \beta_2']'$. If you are interested in testing a hypothesis about $\beta_1$, then we leave $\beta_2$ unspecified (called **nuisance parameters**). $\beta_1$ and $\beta_2$ can either a **vector** or **scalar**, or $\beta_2$ can be null.
 
-To formulate the test, let $\beta = [\beta_1', \beta_2']'$. If you are interested in testing a hypothesis about $\beta_1$, then we leave $\beta_2$ unspecified (called **nuisance parameters**). $\beta_1$ and $\beta_2$ can either a **vector** or **scalar**, or $\beta_2$ can be null.  
-
-Example: $H_0: \beta_1 = \beta_{1,0}$ (where $\beta_{1,0}$ is specified) and $\hat{\beta}_{2,0}$ be the MLE of $\beta_2$ under the restriction that $\beta_1 = \beta_{1,0}$. The likelihood ratio test statistic is  
+Example: $H_0: \beta_1 = \beta_{1,0}$ (where $\beta_{1,0}$ is specified) and $\hat{\beta}_{2,0}$ be the MLE of $\beta_2$ under the restriction that $\beta_1 = \beta_{1,0}$. The likelihood ratio test statistic is
 
 $$
 -2\log\Lambda = -2[\log(L(\beta_{1,0},\hat{\beta}_{2,0})) - \log(L(\hat{\beta}_1,\hat{\beta}_2))]
-$$
-where  
+$$ where
 
- * the first term is the value fo the likelihood for the fitted restricted model  
- * the second term is the likelihood value of the fitted unrestricted model  
+-   the first term is the value fo the likelihood for the fitted restricted model\
+-   the second term is the likelihood value of the fitted unrestricted model
 
-
-Under the null, 
+Under the null,
 
 $$
 -2 \log \Lambda \sim \chi^2_{\upsilon}
-$$
-where $\upsilon$ is the dimension of $\beta_1$  
+$$ where $\upsilon$ is the dimension of $\beta_1$
 
-We reject the null when $-2\log \Lambda > \chi_{\upsilon,1-\alpha}^2$  
+We reject the null when $-2\log \Lambda > \chi_{\upsilon,1-\alpha}^2$
 
-**Wald Statistics**  
+**Wald Statistics**
 
-Based on 
+Based on
 
 $$
 \hat{\beta} \sim AN (\beta, [\mathbf{I}(\beta)^{-1}])
-$$
-$$
+$$ $$
 H_0: \mathbf{L}\hat{\beta} = 0 
-$$
-where $\mathbf{L}$ is a q x p matrix with q linearly independent rows. Then  
+$$ where $\mathbf{L}$ is a q x p matrix with q linearly independent rows. Then
 
 $$
 W = (\mathbf{L\hat{\beta}})'(\mathbf{L[I(\hat{\beta})]^{-1}L'})^{-1}(\mathbf{L\hat{\beta}})
-$$
-under the null hypothesis  
+$$ under the null hypothesis
 
-Confidence interval  
+Confidence interval
 
 $$
 \hat{\beta}_i \pm 1.96 \hat{s}_{ii}^2
-$$
-where $\hat{s}_{ii}^2$ is the i-th diagonal of $\mathbf{[I(\hat{\beta})]}^{-1}$  
+$$ where $\hat{s}_{ii}^2$ is the i-th diagonal of $\mathbf{[I(\hat{\beta})]}^{-1}$
 
-If you have   
+If you have
 
- * large sample size, the likelihood ratio and Wald tests have similar results.  
- * small sample size, the likelihood ratio test is better.  
+-   large sample size, the likelihood ratio and Wald tests have similar results.\
+-   small sample size, the likelihood ratio test is better.
 
-**Logistic Regression: Interpretation of $\beta$**  
+**Logistic Regression: Interpretation of** $\beta$
 
-For single regressor, the model is  
+For single regressor, the model is
 
 $$
 logit\{\hat{p}_{x_i}\} \equiv logit (\hat{p}_i) = \log(\frac{\hat{p}_i}{1 - \hat{p}_i}) = \hat{\beta}_0 + \hat{\beta}_1 x_i
 $$
 
-When $x= x_i + 1$  
+When $x= x_i + 1$
 
 $$
 logit\{\hat{p}_{x_i +1}\} = \hat{\beta}_0 + \hat{\beta}(x_i + 1) = logit\{\hat{p}_{x_i}\} + \hat{\beta}_1
 $$
 
-Then,  
+Then,
 
 $$
 logit\{\hat{p}_{x_i +1}\} - logit\{\hat{p}_{x_i}\} = log\{odds[\hat{p}_{x_i +1}]\} - log\{odds[\hat{p}_{x_i}]\} \\
 = log(\frac{odds[\hat{p}_{x_i + 1}]}{odds[\hat{p}_{x_i}]}) = \hat{\beta}_1
 $$
 
-and  
+and
 
 $$
 exp(\hat{\beta}_1) = \frac{odds[\hat{p}_{x_i + 1}]}{odds[\hat{p}_{x_i}]}
-$$
-the estimated **odds ratio**  
+$$ the estimated **odds ratio**
 
+the estimated odds ratio, when there is a difference of c units in the regressor x, is $exp(c\hat{\beta}_1)$. When there are multiple covariates, $exp(\hat{\beta}_k)$ is the estimated odds ratio for the variable $x_k$, assuming that all of the other variables are held constant.
 
-the estimated odds ratio, when there is a difference of c units in the regressor x, is $exp(c\hat{\beta}_1)$. When there are multiple covariates, $exp(\hat{\beta}_k)$ is the estimated odds ratio for the variable $x_k$, assuming that all of the other variables are held constant.  
+**Inference on the Mean Response**
 
-
-**Inference on the Mean Response**  
-
-Let $x_h = (1, x_{h1}, ...,x_{h,p-1})'$. Then 
+Let $x_h = (1, x_{h1}, ...,x_{h,p-1})'$. Then
 
 $$
 \hat{p}_h = \frac{exp(\mathbf{x'_h \hat{\beta}})}{1 + exp(\mathbf{x'_h \hat{\beta}})}
 $$
 
-and $s^2(\hat{p}_h) = \mathbf{x'_h[I(\hat{\beta})]^{-1}x_h}$  
+and $s^2(\hat{p}_h) = \mathbf{x'_h[I(\hat{\beta})]^{-1}x_h}$
 
-For new observation, we can have a cutoff point to decide whether y = 0 or 1.  
+For new observation, we can have a cutoff point to decide whether y = 0 or 1.
 
+#### Application
+
+```{r}
+library(kableExtra)
+library(dplyr)
+library(pscl)
+library(ggplot2)
+library(faraway)
+library(nnet)
+library(agridat)
+library(nlstools)
+```
+
+Logistic Regression
+
+$x \sim Unif(-0.5,2.5)$. Then $\eta = 0.5 + 0.75 x$
+
+```{r}
+set.seed(23) #set seed for reproducibility
+x <- runif(1000,min = -0.5,max = 2.5)
+eta1 <- 0.5 + 0.75*x
+```
+
+Passing $\eta$'s into the inverse-logit function, we get
+
+$$
+p = \frac{\exp(\eta)}{1+ \exp(\eta)}
+$$
+
+where $p \in [0,1]$
+
+Then, we generate $y \sim Bernoulli(p)$
+
+```{r}
+p <- exp(eta1)/(1+exp(eta1))
+y <- rbinom(1000,1,p)
+BinData <- data.frame(X = x, Y = y)
+
+```
+
+**Model Fit**
+
+```{r}
+Logistic_Model <- glm(formula = Y ~ X,
+                      family = binomial, # family = specifies the response distribution
+                      data = BinData)
+summary(Logistic_Model)
+nlstools::confint2(Logistic_Model)
+OddsRatio <- coef(Logistic_Model) %>% exp
+
+```
+
+Based on the odds ratio, when
+
+-   $x = 0$ , the odds of success of 1/59
+-   $x = 1$, the odds of success increase by a factor of 2.19 (i.e., 119.29% increase).
+
+Deviance Tests
+
+$$
+H_0: \text{No variables are related to the response (i.e., model with just the intercept)} \\
+H_1: \text{at least one variable is related to the response}
+$$
+
+```{r}
+Test_Dev = Logistic_Model$null.deviance - Logistic_Model$deviance
+p_val_dev <- 1-pchisq(q = Test_Dev, df = 1)
+
+```
+
+Since we see the p-value of 0, we reject the null that no variables are related to the response
+
+**Deviance residuals**
+
+```{r}
+Logistic_Resids <- residuals(Logistic_Model,type="deviance")
+plot(y = Logistic_Resids, x = BinData$X,xlab = 'X',ylab = 'Deviance Resids')
+
+```
+
+However, this plot is not informative. Hence, we can can see the residudals plots that are grouped into bins based on prediction values.
+
+```{r}
+plot_bin <- function(Y,
+                     X,
+                     bins = 100,
+                     return.DF = FALSE) {
+    Y_Name <- deparse(substitute(Y))
+    X_Name <- deparse(substitute(X))
+    Binned_Plot <- data.frame(Plot_Y = Y, Plot_X = X)
+    Binned_Plot$bin <-
+        cut(Binned_Plot$Plot_X, breaks = bins) %>% as.numeric
+    Binned_Plot_summary <- Binned_Plot %>%
+        group_by(bin) %>%
+        summarise(
+            Y_ave = mean(Plot_Y),
+            X_ave = mean(Plot_X),
+            Count = n()
+        ) %>% as.data.frame
+    plot(
+        y = Binned_Plot_summary$Y_ave,
+        x = Binned_Plot_summary$X_ave,
+        ylab = Y_Name,
+        xlab = X_Name
+    )
+    if (return.DF)
+        return(Binned_Plot_summary)
+}
+plot_bin(Y = Logistic_Resids,
+         X = BinData$X,
+         bins = 100)
+
+```
+
+We can also see the predicted value against the residuals.
+
+```{r}
+Logistic_Predictions <- predict(Logistic_Model,type = "response")
+plot_bin(Y = Logistic_Resids, X = Logistic_Predictions,bins = 100)
+```
+
+We can also look at a binned plot of the logistic prediction versus the true category
+
+```{r}
+NumBins <- 10
+Binned_Data <-plot_bin(Y = BinData$Y,
+X = Logistic_Predictions,
+bins = NumBins,
+return.DF = TRUE)
+Binned_Data
+abline(0,1,lty=2,col='blue')
+
+```
+
+**Formal deviance test**
+
+**Hosmer-Lemeshow test**
+
+Null hypothesis: the observed events match the expected evens
+
+$$
+X^2_{HL} = \sum_{j=1}^{J} \frac{(y_j - m_j \hat{p}_j)^2}{m_j \hat{p}_j(1-\hat{p}_j)}
+$$
+
+where
+
+-   within the j-th bin, $y_j$ is the number of successes
+-   $m_j$ = number of observations
+-   $\hat{p}_j$ = predicted probability
+
+Under the null hypothesis, $X^2_{HLL} \sim \chi^2_{J-1}$
+
+```{r}
+HL_BinVals <-
+(Binned_Data$Count*Binned_Data$Y_ave - Binned_Data$Count*Binned_Data$X_ave)^2/
+Binned_Data$Count*Binned_Data$X_ave*(1-Binned_Data$X_ave)
+HLpval <- pchisq(q = sum(HL_BinVals),df = NumBins,lower.tail = FALSE)
+HLpval
+```
+
+Since p-value = 0.99, we do not reject the null hypothesis (i.e., the model is fitting well).
+
+<br>
 
 ### Probit Regression
 
 $$
 E(Y_i) = p_i = \Phi(\mathbf{x_i'\theta})
 $$
-where $\Phi()$ is the CDF of a N(0,1) random variable.  
 
-Other models (e..g, t--distribution; log-log; I complimentary log-log)  
+where $\Phi()$ is the CDF of a N(0,1) random variable.
+
+Other models (e..g, t--distribution; log-log; I complimentary log-log)
 
 We let $Y_i = 1$ success, $Y_i =0$ no success. We assume $Y \sim Ber$ and $p_i = P(Y_i =1)$, the success probability. We cosnider a logistic regression with the response function $logit(p_i) = x'_i \beta$
 
+**Confusion matrix**
 
-**Confusion matrix**  
+|       | Predicted           |                     |
+|-------|---------------------|---------------------|
+| Truth | 1                   | 0                   |
+| 1     | True Positive (TP)  | False Negative (FN) |
+| 0     | False Positive (FP) | True Negative (TN)  |
 
-| | Predicted |  |
-|---|---|---|
-| Truth | 1 | 0 |
-|1|True Positive (TP) | False Negative (FN) |
-|0 | False Positive (FP) | True Negative (TN) |
-
-
-Sensitivity: ability to identify positive results  
+Sensitivity: ability to identify positive results
 
 $$
 \text{Sensitivity} = \frac{TP}{TP + FN}
 $$
 
-Specificity: ability to identify negative results  
+Specificity: ability to identify negative results
 
 $$
 \text{Specificity} = \frac{TN}{TN + FP}
@@ -1289,46 +1380,369 @@ $$
 \text{False Negative Rate} = \frac{FN}{TP + FN}
 $$
 
-| | Predicted |  |
-|---|---|---|
-| Truth | 1 | 0 |
-|1|Sensitivity | False Negative Rate |
-|0 | False Positive Rate | Specificity |
+|       | Predicted           |                     |
+|-------|---------------------|---------------------|
+| Truth | 1                   | 0                   |
+| 1     | Sensitivity         | False Negative Rate |
+| 0     | False Positive Rate | Specificity         |
 
+### Binomial Regression
+
+**Binomial**
+
+Here, cancer case = successes, and control case = failures.
+
+```{r}
+data("esoph")
+head(esoph, n = 3)
+plot(
+    esoph$ncases / (esoph$ncases + esoph$ncontrols) ~ esoph$alcgp,
+    ylab = "Proportion",
+    xlab = 'Alcohol consumption',
+    main = 'Esophageal Cancer data'
+)
+class(esoph$agegp) <- "factor"
+class(esoph$alcgp) <- "factor"
+class(esoph$tobgp) <- "factor"
+```
+
+```{r}
+#  only the alcohol consumption as a predictor
+model <- glm(cbind(ncases, ncontrols) ~ alcgp, data = esoph, family = binomial)
+summary(model)
+```
+
+```{r}
+#Coefficient Odds
+coefficients(model) %>% exp
+deviance(model)/df.residual(model)
+model$aic
+```
+
+```{r}
+# alcohol consumption and age as predictors
+better_model <- glm(cbind(ncases, ncontrols) ~ agegp + alcgp, data = esoph, family = binomial)
+summary(better_model)
+
+```
+
+```{r}
+better_model$aic #smaller AIC is better
+coefficients(better_model) %>% exp
+pchisq(
+    q = model$deviance - better_model$deviance,
+    df = model$df.residual - better_model$df.residual,
+    lower = FALSE
+)
+
+```
+
+```{r}
+# specify link function as probit
+Prob_better_model <- glm(
+    cbind(ncases, ncontrols) ~ agegp + alcgp,
+    data = esoph,
+    family = binomial(link = probit)
+)
+summary(Prob_better_model)
+```
 
 ### Poisson Regression
 
-From the Poisson distribution  
+From the Poisson distribution
 
 $$
 f(Y_i) = \frac{\mu_i^{Y_i}exp(-\mu_i)}{Y_i!}, Y_i = 0,1,.. \\
 E(Y_i) = \mu_i  \\
 var(Y_i) = \mu_i
 $$
-which is a natural distribution for counts. We can see that the variance is a function of the mean. If we let $\mu_i = f(\mathbf{x_i; \theta})$, it would be similar to [Logistic Regression] since we can choose $f()$ as $\mu_i = \mathbf{x_i'\theta}, \mu_i = \exp(\mathbf{x_i'\theta}), \mu_i = \log(\mathbf{x_i'\theta})$  
+
+which is a natural distribution for counts. We can see that the variance is a function of the mean. If we let $\mu_i = f(\mathbf{x_i; \theta})$, it would be similar to [Logistic Regression] since we can choose $f()$ as $\mu_i = \mathbf{x_i'\theta}, \mu_i = \exp(\mathbf{x_i'\theta}), \mu_i = \log(\mathbf{x_i'\theta})$
+
+#### Application
+
+Count Data and Poisson regression
+
+```{r}
+data(bioChemists, package = "pscl")
+bioChemists <- bioChemists %>%
+    rename(
+        Num_Article = art, #articles in last 3 years of PhD
+        Sex = fem, #coded 1 if female
+        Married = mar, #coded 1 if married
+        Num_Kid5 = kid5, #number of childeren under age 6
+        PhD_Quality = phd, #prestige of PhD program
+        Num_MentArticle = ment #articles by mentor in last 3 years
+    )
+hist(bioChemists$Num_Article, breaks = 25, main = 'Number of Articles')
+
+```
+
+```{r}
+Poisson_Mod <- glm(Num_Article ~ ., family=poisson, bioChemists)
+summary(Poisson_Mod)
+```
+
+Residual of 1634 with 909 df isn't great.
+
+We see Pearson $\chi^2$
+
+```{r}
+Predicted_Means <- predict(Poisson_Mod,type = "response")
+X2 <- sum((bioChemists$Num_Article - Predicted_Means)^2/Predicted_Means)
+X2
+pchisq(X2,Poisson_Mod$df.residual, lower.tail = FALSE)
+
+
+```
+
+With interaction terms, there are some improvements
+
+```{r}
+Poisson_Mod_All2way <- glm(Num_Article ~ .^2, family=poisson, bioChemists)
+Poisson_Mod_All3way <- glm(Num_Article ~ .^3, family=poisson, bioChemists)
+
+```
+
+Consider the $\hat{\phi} = \frac{\text{deviance}}{df}$
+
+```{r}
+Poisson_Mod$deviance / Poisson_Mod$df.residual
+```
+
+This is evidence for over-dispersion. Likely cause is missing variables. And remedies could either be to include more variables or consider random effects.
+
+A quick fix is to force the Poisson Regression to include this value of $\phi$, and this model is called "Quasi-Poisson".
+
+```{r}
+phi_hat = Poisson_Mod$deviance/Poisson_Mod$df.residual
+summary(Poisson_Mod,dispersion = phi_hat)
+```
+
+Or directly rerun the model as
+
+```{r}
+quasiPoisson_Mod <- glm(Num_Article ~ ., family=quasipoisson, bioChemists)
+```
+
+Quasi-Poisson is not recommended, but [Negative Binomial Regression] that has an extra parameter to account for over-dispersion is.
+
+### Negative Binomial Regression
+
+```{r}
+library(MASS)
+NegBinom_Mod <- MASS::glm.nb(Num_Article ~ .,bioChemists)
+summary(NegBinom_Mod)
+```
+
+We can see the dispersion is 2.264 with SE = 0.271, which is significantly different from 1, indicating overdispersion. Check [Over-Dispersion] for more detail
+
+### Multinomial
+
+If we have more than two categories or groups that we want to model relative to covariates (e.g., we have observations $i = 1,…,n$ and groups/ covariates $j = 1,2,…,J$), multinomial is our candidate model
+
+Let
+
+-   $p_{ij}$ be the probability that the i-th observation belongs to the j-th group
+-   $Y_{ij}$ be the number of observations for individual i in group j; An individual will have observations $Y_{i1},Y_{i2},…Y_{iJ}$
+-   assume the probability of observing this response is given by a multinomial distribution in terms of probabilities $p_{ij}$, where $\sum_{j = 1}^J p_{ij} = 1$ . For interpretation, we have a baseline category $p_{i1} = 1 - \sum_{j = 2}^J p_{ij}$
+
+The link between the mean response (probability) $p_{ij}$ and a linear function of the covariates
+
+$$
+\eta_{ij} = \mathbf{x'_i \beta_j} = \log \frac{p_{ij}}{p_{i1}}, j = 2,..,J
+$$
+
+We compare $p_{ij}$ to the baseline $p_{i1}$, suggesting
+
+$$
+p_{ij} = \frac{\exp(\eta_{ij})}{1 + \sum_{i=2}^J \exp(\eta_{ij})}
+$$
+
+which is known as **multinomial logistic** model.
+
+```{r}
+library(faraway)
+library(dplyr)
+data(nes96, package="faraway")
+head(nes96,3)
+```
+
+We try to understand their political strength
+
+```{r}
+table(nes96$PID)
+nes96$Political_Strength <- NA
+nes96$Political_Strength[nes96$PID %in% c("strDem", "strRep")] <-
+    "Strong"
+nes96$Political_Strength[nes96$PID %in% c("weakDem", "weakRep")] <-
+    "Weak"
+nes96$Political_Strength[nes96$PID %in% c("indDem", "indind", "indRep")] <-
+    "Neutral"
+nes96 %>% group_by(Political_Strength) %>% summarise(Count=n())
+```
+
+visualize the political strength variable
+
+```{r}
+library(ggplot2)
+Plot_DF <- nes96 %>%
+    mutate(Age_Grp = cut_number(age, 4)) %>%
+    group_by(Age_Grp, Political_Strength) %>%
+    summarise(count = n()) %>%
+    group_by(Age_Grp) %>%
+    mutate(etotal = sum(count), proportion = count / etotal)
+Age_Plot <- ggplot(
+    Plot_DF,
+    aes(
+        x = Age_Grp,
+        y = proportion,
+        group = Political_Strength,
+        linetype = Political_Strength,
+        color = Political_Strength
+    )
+) +
+    geom_line(size = 2)
+Age_Plot
+```
+
+Fit the multinomial logistic model:
+
+model political strength as a function of age and education
+
+```{r}
+library(nnet)
+Multinomial_Model <-
+    multinom(Political_Strength ~ age + educ, nes96, trace = F)
+summary(Multinomial_Model)
+```
+
+Alternatively, stepwise model selection based AIC
+
+```{r}
+Multinomial_Step <- step(Multinomial_Model,trace = 0)
+Multinomial_Step
+```
+
+compare the best model to the full model based on deviance
+
+```{r}
+pchisq(q = deviance(Multinomial_Step) - deviance(Multinomial_Model),
+df = Multinomial_Model$edf-Multinomial_Step$edf,lower=F)
+
+```
+
+We see no significant difference
+
+Plot of the fitted model
+
+```{r}
+PlotData <- data.frame(age = seq(from = 19, to = 91))
+Preds <-
+    PlotData %>% bind_cols(data.frame(predict(
+        object = Multinomial_Step,
+        PlotData, type = "probs"
+    )))
+plot(
+    x = Preds$age,
+    y = Preds$Neutral,
+    type = "l",
+    ylim = c(0.2, 0.6),
+    col = "black",
+    ylab = "Proportion",
+    xlab = "Age"
+)
+lines(x = Preds$age,
+      y = Preds$Weak,
+      col = "blue")
+lines(x = Preds$age,
+      y = Preds$Strong,
+      col = "red")
+legend(
+    'topleft',
+    legend = c('Neutral', 'Weak', 'Strong'),
+    col = c('black', 'blue', 'red'),
+    lty = 1
+)
+
+```
+
+```{r}
+predict(Multinomial_Step,data.frame(age = 34)) # predicted result (categoriy of political strength) of 34 year old
+predict(Multinomial_Step,data.frame(age = c(34,35)),type="probs") # predicted result of the probabilities of each level of political strength for a 34 and 35
+
+```
+
+If categories are ordered (i.e., ordinal data), we must use another approach (still multinomial, but use cumulative probabilities).
+
+Another example
+
+```{r}
+library(agridat)
+dat <- agridat::streibig.competition
+# See Schaberger and Pierce, pages 370+
+# Consider only the mono-species barley data (no competition from Sinapis)
+gammaDat <- subset(dat, sseeds<1)
+gammaDat <- transform(gammaDat, x=bseeds, y=bdwt, block=factor(block))
+# Inverse yield looks like it will be a good fit for Gamma's inverse link
+ggplot(gammaDat,aes(x=x,y=1/y))+geom_point(aes(color=block,shape=block))+
+xlab('Seeding Rate')+ylab('Inverse yield')+ggtitle('Streibig Competion - Barley only')
+
+```
+
+$$
+Y \sim Gamma
+$$
+
+because Gamma is non-negative as opposed to Normal. The canonical Gamma link function is the inverse (or reciprocal) link
+
+$$
+\eta_{ij} = \beta_{0j} + \beta_{1j}x_{ij} + \beta_2x_{ij}^2 \\
+Y_{ij} = \eta_{ij}^{-1}
+$$
+
+The linear predictor is a quadratic model fit to each of the j-th blocks. A different model (not fitted) could be one with common slopes: glm(y $\sim$ x + I(x\^2),...)
+
+```{r}
+# linear predictor is quadratic, with separate intercept and slope per block
+m1 <- glm(y ~ block + block*x + block*I(x^2), data=gammaDat,family=Gamma(link="inverse"))
+summary(m1)
+
+```
+
+For predict new value of x
+
+```{r}
+newdf <- expand.grid(x=seq(0,120,length=50), block=factor(c('B1','B2','B3')) )
+newdf$pred <- predict(m1, new=newdf, type='response')
+ggplot(gammaDat,aes(x=x,y=y))+geom_point(aes(color=block,shape=block))+
+xlab('Seeding Rate')+ylab('Inverse yield')+ggtitle('Streibig Competion - Barley only Predictions') +
+geom_line(data=newdf,aes(x=x,y=pred,color=block,linetype=block))
+
+```
 
 ### Generalization
 
-We can see that Poisson regression looks similar to logistic regression. Hence, we can generalize to a class of modeling. Thanks to [@Nelder_1972], we have the **generalized linear models** (GLMs). Estimation is generalize in these models.  
+We can see that Poisson regression looks similar to logistic regression. Hence, we can generalize to a class of modeling. Thanks to [@Nelder_1972], we have the **generalized linear models** (GLMs). Estimation is generalize in these models.
 
-
-**Exponential Family**  
-The theory of GLMs is developed for data with distribution given y the **exponential family**.  
-The form of the data distribution that is useful for GLMs  is  
+**Exponential Family**\
+The theory of GLMs is developed for data with distribution given y the **exponential family**.\
+The form of the data distribution that is useful for GLMs is
 
 $$
 f(y;\theta, \phi) = \exp(\frac{\theta y - b(\theta)}{a(\phi)} + c(y, \phi))
 $$
-where  
 
- * $\theta$ is called the natural parameter  
- * $\phi$ is called the dispersion parameter 
+where
 
-**Note**:   
+-   $\theta$ is called the natural parameter
+-   $\phi$ is called the dispersion parameter
 
-This family includes the [Gamma], [Normal], [Poisson], and other.  
+**Note**:
 
-**Example**  
+This family includes the [Gamma], [Normal], [Poisson], and other. For all parameterization of the exponential family, check this [link](https://www.stat.purdue.edu/~tlzhang/stat526/logistic.pdf)
+
+**Example**
 
 if we have $Y \sim N(\mu, \sigma^2)$
 
@@ -1340,22 +1754,25 @@ f(y; \mu, \sigma^2) &= \frac{1}{(2\pi \sigma^2)^{1/2}}\exp(-\frac{1}{2\sigma^2}(
 &= \exp(\frac{\theta y - b(\theta)}{a(\phi)} + c(y , \phi))
 \end{align}
 $$
-where   
 
- * $\theta = \mu$  
- * $b(\theta) = \frac{\mu^2}{2}$  
- * $a(\phi) = \sigma^2 = \phi$  
- * $c(y , \phi) = - \frac{1}{2}(\frac{y^2}{\phi}+\log(2\pi \sigma^2))$
+where
 
+-   $\theta = \mu$
+-   $b(\theta) = \frac{\mu^2}{2}$
+-   $a(\phi) = \sigma^2 = \phi$
+-   $c(y , \phi) = - \frac{1}{2}(\frac{y^2}{\phi}+\log(2\pi \sigma^2))$
 
-**Properties of GLM exponential families**  
+**Properties of GLM exponential families**
 
- 1. $E(Y) = b' (\theta)$ where $b'(\theta) = \frac{\partial b(\theta)}{\partial \theta}$ (here `'` is "prime", not transpose)  
- 2. $var(Y) = a(\phi)b''(\theta)= a(\phi)V(\mu)$.  
-    + $V(\mu)$ is the *variance function*; however, it is only the variance in the case that $a(\phi) =1$  
- 3. If $a(), b(), c()$ are identifiable, we will derive expected value and variance of Y.   
+1.  $E(Y) = b' (\theta)$ where $b'(\theta) = \frac{\partial b(\theta)}{\partial \theta}$ (here `'` is "prime", not transpose)\
 
-Example  
+2.  $var(Y) = a(\phi)b''(\theta)= a(\phi)V(\mu)$.
+
+    -   $V(\mu)$ is the *variance function*; however, it is only the variance in the case that $a(\phi) =1$\
+
+3.  If $a(), b(), c()$ are identifiable, we will derive expected value and variance of Y.
+
+Example
 
 Normal distribution
 
@@ -1365,7 +1782,7 @@ V(\mu) = \frac{\partial^2 (\mu^2/2)}{\partial \mu^2} = 1 \\
 \to var(Y) = a(\phi) = \sigma^2
 $$
 
-Poisson distribution   
+Poisson distribution
 
 $$
 \begin{align}
@@ -1375,88 +1792,101 @@ f(y, \theta, \phi) &= \frac{\mu^y \exp(-\mu)}{y!} \\
 \end{align}
 $$
 
-where  
+where
 
- * $\theta = \log(\mu)$  
- * $a(\phi) = 1$  
- * $b(\theta) = \exp(\theta)$  
- * $c(y, \phi) = \log(y!)$  
+-   $\theta = \log(\mu)$
+-   $a(\phi) = 1$
+-   $b(\theta) = \exp(\theta)$
+-   $c(y, \phi) = \log(y!)$
 
-
-Hence,  
+Hence,
 
 $$
 E(Y) = \frac{\partial b(\theta)}{\partial \theta} = \exp(\theta) = \mu \\
 var(Y) = \frac{\partial^2 b(\theta)}{\partial \theta^2} = \mu
 $$
 
+Since $\mu = E(Y) = b'(\theta)$
 
-Since $\mu = E(Y) = b'(\theta)$  
-
-In GLM, we take some monotone function (typically nonlinear) of $\mu$ to be linear in the set of covariates  
+In GLM, we take some monotone function (typically nonlinear) of $\mu$ to be linear in the set of covariates
 
 $$
 g(\mu) = g(b'(\theta)) = \mathbf{x'\beta}
 $$
-Equivalently,  
+
+Equivalently,
 
 $$
 \mu = g^{-1}(\mathbf{x'\beta})
 $$
-where $g(.)$ is the **link function** since it links mean response ($\mu = E(Y)$) and a linear expression of the covariates  
 
-Some people use $\eta = \mathbf{x'\beta}$ where $\eta$ = the "linear predictor"  
+where $g(.)$ is the **link function** since it links mean response ($\mu = E(Y)$) and a linear expression of the covariates
 
+Some people use $\eta = \mathbf{x'\beta}$ where $\eta$ = the "linear predictor"
 
-**GLM is composed of 2 components**  
+**GLM is composed of 2 components**
 
-The **random component**:  
+The **random component**:
 
- * is the distribution chosen to model the response variables $Y_1,...,Y_n$ 
- * is specified by the choice fo $a(), b(), c()$ in the exponential form  
- * Notation:  
-    + Assume that there are n **independent** response variables $Y_1,...,Y_n$ with densities   
-$$
-f(y_i ; \theta_i, \phi) = \exp(\frac{\theta_i y_i - b(\theta_i)}{a(\phi)}+ c(y_i, \phi))
-$$
-notice each observation might have different densities 
-    + Assume that $\phi$ is constant for all $i = 1,...,n$, but $\theta_i$ will vary. $\mu_i = E(Y_i)$ for all i.  
+-   is the distribution chosen to model the response variables $Y_1,...,Y_n$
 
-The **systematic component**  
+-   is specified by the choice fo $a(), b(), c()$ in the exponential form
 
- * is the portion of the model that gives the relation between $\mu$ and the covariates $\mathbf{x}$  
- * consists of 2 parts:  
-    + the *link* function, $g(.)$  
-    + the *linear predictor*, $\eta = \mathbf{x'\beta}$  
- * Notation:  
-    + assume $g(\mu_i) = \mathbf{x'\beta} = \eta_i$ where $\mathbf{\beta} = (\beta_1,..., \beta_p)'$  
-    + The parameters to be estimated are $\beta_1,...\beta_p , \phi$
+-   Notation:
 
-**The Canonical Link**  
+    -   Assume that there are n **independent** response variables $Y_1,...,Y_n$ with densities\
+        $$
+        f(y_i ; \theta_i, \phi) = \exp(\frac{\theta_i y_i - b(\theta_i)}{a(\phi)}+ c(y_i, \phi))
+        $$ notice each observation might have different densities
+    -   Assume that $\phi$ is constant for all $i = 1,...,n$, but $\theta_i$ will vary. $\mu_i = E(Y_i)$ for all i.
 
-To choose $g(.)$, we can use **canonical link function**  
+The **systematic component**
 
-If the link function $g(.)$ is such $g(\mu_i) = \theta_i$, the natural parameter, then $g(.)$ is the canonical link.  
+-   is the portion of the model that gives the relation between $\mu$ and the covariates $\mathbf{x}$
 
-Example  
+-   consists of 2 parts:
 
-Distribution | Mean Response | Canonical link | name 
----|---|---|---
-Normal random component | $\mu_i = \theta_i$ | $g(\mu_i) = \mu_i$ | the identity link  
-Binomial random component | $\mu_i = \frac{n_i \exp(\theta)}{1+\exp(\theta_i)} \\ \theta(\mu_i) = \log(\frac{p_i}{1-p_i}) = \log (\frac{\mu_i}{n_i - \mu_i})$ | $g(\mu_i) = \log(\frac{\mu_i}{n_i - \mu_i})$ | the logit link  
-Poisson random component | $\mu_i = \exp(\theta_i)$ | $g(\mu_i) = \log(\mu_i)$ | 
-Gamma random component | $\mu_i = -\frac{1}{\theta_i} \\ \theta(\mu_i) = - \mu_i^{-1}$ | $g(\mu_i) = - \frac{1}{\mu_i}$ | 
-Inverse Gaussian random | | $g(\mu_i) = \frac{1}{\mu_i^2}$ |
+    -   the *link* function, $g(.)$
+    -   the *linear predictor*, $\eta = \mathbf{x'\beta}$
+
+-   Notation:
+
+    -   assume $g(\mu_i) = \mathbf{x'\beta} = \eta_i$ where $\mathbf{\beta} = (\beta_1,..., \beta_p)'$
+    -   The parameters to be estimated are $\beta_1,...\beta_p , \phi$
+
+**The Canonical Link**
+
+To choose $g(.)$, we can use **canonical link function**
+
+If the link function $g(.)$ is such $g(\mu_i) = \theta_i$, the natural parameter, then $g(.)$ is the canonical link.
+
+Example
+
++---------------------------+---------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+-------------------+
+| Distribution              | Mean Response                                                                                                                         | Canonical link                                | name              |
++===========================+=======================================================================================================================================+===============================================+===================+
+| Normal random component   | $\mu_i = \theta_i$                                                                                                                    | $g( \mu_i) = \mu_i$                           | the identity link |
++---------------------------+---------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+-------------------+
+| Binomial random component | $\mu_i = \frac{n_i \exp( \theta)}{1+\exp (\theta_i)} \\ \theta(\mu_i) = \log(\frac{p_i }{1-p_i}) = \log (\frac{\mu_i} {n_i - \mu_i})$ | $g(\mu_i) = \log(\frac{\mu_i} {n_i - \mu_i})$ | the logit link    |
++---------------------------+---------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+-------------------+
+| Poisson random component  | $\mu_i = \exp(\theta_i)$                                                                                                              | $g(\mu_i) = \log(\mu_i)$                      |                   |
++---------------------------+---------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+-------------------+
+| Gamma random component    | $\mu_i = -\frac{1}{\theta_i}$                                                                                                         | $g(\mu\_i) = - \frac{1}{\mu_i}$               |                   |
+|                           |                                                                                                                                       |                                               |                   |
+|                           | $\theta(\mu_i) = - \mu_i^{-1}$                                                                                                        |                                               |                   |
++---------------------------+---------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+-------------------+
+| Inverse Gaussian random   |                                                                                                                                       | $g(\mu_i) = \frac{1}{\mu_i^2}$                |                   |
++---------------------------+---------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+-------------------+
 
 #### Estimation
 
- * MLE for parameters of the **systematic component ($\beta$)**  
- * Unification of derivation and computation (thanks to the exponential forms)  
- * No unification for estimation of the dispersion parameter ($\phi$)   
+-   MLE for parameters of the **systematic component (**$\beta$)\
+-   Unification of derivation and computation (thanks to the exponential forms)\
+-   No unification for estimation of the dispersion parameter ($\phi$)
 
-##### Estimation of $\beta$ 
+##### Estimation of $\beta$
 
-We have  
+We have
 
 $$
 f(y_i ; \theta_i, \phi) = \exp(\frac{\theta_i y_i - b(\theta_i)}{a(\phi)}+ c(y_i, \phi)) \\
@@ -1465,7 +1895,7 @@ var(Y_i) = b''(\theta)a(\phi) = V(\mu_i)a(\phi) \\
 g(\mu_i) = \mathbf{x}_i'\beta = \eta_i
 $$
 
-If the log-likelihood for a single observation is $l_i (\beta,\phi)$. The log-likelihood for all n observations is  
+If the log-likelihood for a single observation is $l_i (\beta,\phi)$. The log-likelihood for all n observations is
 
 $$
 \begin{align}
@@ -1474,7 +1904,7 @@ l(\beta,\phi) &= \sum_{i=1}^n l_i (\beta,\phi) \\
 \end{align}
 $$
 
-Using MLE to find $\beta$, we use the chain rule to get the derivatives    
+Using MLE to find $\beta$, we use the chain rule to get the derivatives
 
 $$
 \begin{align}
@@ -1483,37 +1913,35 @@ $$
 \end{align}
 $$
 
-If we let 
+If we let
 
 $$
 w_i \equiv ((\frac{\partial \eta_i}{\partial \mu_i})^2 V(\mu_i))^{-1}
 $$
 
-Then,  
+Then,
 
 $$
 \frac{\partial l_i (\beta,\phi)}{\partial \beta_j} = \sum_{i=1}^n (\frac{y_i \mu_i}{a(\phi)} \times w_i \times \frac{\partial \eta_i}{\partial \mu_i} \times x_{ij})
 $$
 
-We can also get the second derivatives using the chain rule.  
+We can also get the second derivatives using the chain rule.
 
-Example:  
+Example:
 
-For the [Newton-Raphson] algorithm, we need  
+For the [Newton-Raphson] algorithm, we need
 
 $$
 - E(\frac{\partial^2 l(\beta,\phi)}{\partial \beta_j \partial \beta_k})
-$$
-where $(j,k)$th element of the **Fisher information matrix** $\mathbf{I}(\beta)$  
+$$ where $(j,k)$th element of the **Fisher information matrix** $\mathbf{I}(\beta)$
 
-Hence, 
+Hence,
 
 $$
 - E(\frac{\partial^2 l(\beta,\phi)}{\partial \beta_j \partial \beta_k}) = \sum_{i=1}^n \frac{w_i}{a(\phi)}x_{ij}x_{ik}
-$$
-for the (j,k)th element  
+$$ for the (j,k)th element
 
-If Bernoulli model with logit link function (which is the canonical link)  
+If Bernoulli model with logit link function (which is the canonical link)
 
 $$
 b(\theta) = \log(1 + \exp(\theta)) = \log(1 + \exp(\mathbf{x'\beta})) \\
@@ -1523,11 +1951,12 @@ E(Y) = b'(\theta) = \frac{\exp(\theta)}{1 + \exp(\theta)} = \mu = p \\
 \eta = g(\mu) = \log(\frac{\mu}{1-\mu}) = \theta = \log(\frac{p}{1-p}) = \mathbf{x'\beta} 
 $$
 
-For $Y_i$, i = 1,.., the log-likelihood is  
+For $Y_i$, i = 1,.., the log-likelihood is
 
 $$
 l_i (\beta, \phi) = \frac{y_i \theta_i - b(\theta_i)}{a(\phi)} + c(y_i, \phi) = y_i \mathbf{x}'_i \beta - \log(1+ \exp(\mathbf{x'\beta}))
 $$
+
 Additionally,
 
 $$
@@ -1535,7 +1964,7 @@ V(\mu_i) = \mu_i(1-\mu_i)= p_i (1-p_i) \\
 \frac{\partial \mu_i}{\partial \eta_i} = p_i(1-p_i)
 $$
 
-Hence,  
+Hence,
 
 $$
 \begin{align}
@@ -1545,7 +1974,8 @@ $$
 &= \sum_{i=1}^n (y_i - \frac{\exp(\mathbf{x'_i\beta})}{1+ \exp(\mathbf{x'_i\beta})})x_{ij}
 \end{align}
 $$
-then  
+
+then
 
 $$
 w_i = ((\frac{\partial \eta_i}{\partial \mu_i})^2 V(\mu_i))^{-1} = p_i (1-p_i)
@@ -1555,7 +1985,7 @@ $$
 \mathbf{I}_{jk}(\mathbf{\beta}) = \sum_{i=1}^n \frac{w_i}{a(\phi)} x_{ij}x_{ik} = \sum_{i=1}^n p_i (1-p_i)x_{ij}x_{ik}
 $$
 
-The **Fisher-scoring** algorithm for the MLE of $\mathbf{\beta}$ is 
+The **Fisher-scoring** algorithm for the MLE of $\mathbf{\beta}$ is
 
 $$
 \left(
@@ -1594,9 +2024,10 @@ $$
 \end{array}
 \right)|_{\beta = \beta^{(m)}}
 $$
-Similar to [Newton-Raphson] expect the matrix of second derivatives by the expected value of the second derivative matrix.  
 
-In matrix notation,  
+Similar to [Newton-Raphson] expect the matrix of second derivatives by the expected value of the second derivative matrix.
+
+In matrix notation,
 
 $$
 \begin{align}
@@ -1608,83 +2039,86 @@ $$
 $$
 \mathbf{I}(\beta) = \frac{1}{a(\phi)}\mathbf{X'WX} = \frac{1}{a(\phi)}\mathbf{F'V^{-1}F} \\
 $$
-where  
 
- * $\mathbf{X}$ is an n x p matrix of covariates  
- * $\mathbf{W}$ is an n x n diagonal matrix with (i,i)th element given by $w_i$  
- * $\mathbf{\Delta}$ an n x n diagonal matrix with (i,i)th element given by $\frac{\partial \eta_i}{\partial \mu_i}$  
- * $\mathbf{F} = \mathbf{\frac{\partial \mu}{\partial \beta}}$ an n x p matrix with ith row $\frac{\partial \mu_i}{\partial \beta} = (\frac{\partial \mu_i}{\partial \eta_i})\mathbf{x}'_i$  
- * $\mathbf{V}$ an n x n diagonal matrix with (i,i)th element given by $V(\mu_i)$   
+where
 
-Setting the derivative of the log-likelihood equal to 0, ML estimating equations are  
+-   $\mathbf{X}$ is an n x p matrix of covariates
+-   $\mathbf{W}$ is an n x n diagonal matrix with (i,i)th element given by $w_i$
+-   $\mathbf{\Delta}$ an n x n diagonal matrix with (i,i)th element given by $\frac{\partial \eta_i}{\partial \mu_i}$
+-   $\mathbf{F} = \mathbf{\frac{\partial \mu}{\partial \beta}}$ an n x p matrix with ith row $\frac{\partial \mu_i}{\partial \beta} = (\frac{\partial \mu_i}{\partial \eta_i})\mathbf{x}'_i$
+-   $\mathbf{V}$ an n x n diagonal matrix with (i,i)th element given by $V(\mu_i)$
+
+Setting the derivative of the log-likelihood equal to 0, ML estimating equations are
 
 $$
 \mathbf{F'V^{-1}y= F'V^{-1}\mu}
 $$
-where all components of this equation expect y depends on the parameters $\beta$  
 
-**Special Cases**  
+where all components of this equation expect y depends on the parameters $\beta$
 
-If one has a canonical link, the estimating equations reduce to  
+**Special Cases**
+
+If one has a canonical link, the estimating equations reduce to
 
 $$
 \mathbf{X'y= X'\mu}
 $$
-If one has an identity link, then  
+
+If one has an identity link, then
 
 $$
 \mathbf{X'V^{-1}y = X'V^{-1}X\hat{\beta}}
 $$
-which gives the generalized least squares estimator  
 
-Generally, we can rewrite the Fisher-scoring algorithm as  
+which gives the generalized least squares estimator
+
+Generally, we can rewrite the Fisher-scoring algorithm as
 
 $$
 \beta^{(m+1)} = \beta^{(m)} + \mathbf{(\hat{F}'\hat{V}^{-1}\hat{F})^{-1}\hat{F}'\hat{V}^{-1}(y- \hat{\mu})}
 $$
 
-Since $\hat{F},\hat{V}, \hat{\mu}$ depend on $\beta$, we evaluate at $\beta^{(m)}$  
+Since $\hat{F},\hat{V}, \hat{\mu}$ depend on $\beta$, we evaluate at $\beta^{(m)}$
 
-From starting values $\beta^{(0)}$, we can iterate until convergence.  
+From starting values $\beta^{(0)}$, we can iterate until convergence.
 
-Notes:  
+Notes:
 
- * if $a(\phi)$ is a constant or of the form $m_i \phi$ with known $m_i$, then $\phi$ cancels.  
-
+-   if $a(\phi)$ is a constant or of the form $m_i \phi$ with known $m_i$, then $\phi$ cancels.
 
 ##### Estimation of $\phi$
 
-2 approaches:  
+2 approaches:
 
- 1. MLE  
+1.  MLE
 
 $$
 \frac{\partial l_i}{\partial \phi} = \frac{(\theta_i y_i - b(\theta_i)a'(\phi))}{a^2(\phi)} + \frac{\partial c(y_i,\phi)}{\partial \phi}
 $$
 
-the MLE of $\phi$ solves  
+the MLE of $\phi$ solves
 
 $$
 \frac{a^2(\phi)}{a'(\phi)}\sum_{i=1}^n \frac{\partial c(y_i, \phi)}{\partial \phi} = \sum_{i=1}^n(\theta_i y_i - b(\theta_i))
 $$
- * Situation others than normal error case, expression for $\frac{\partial c(y,\phi)}{\partial \phi}$ are not simple  
- * Even for the canonical link and $a(\phi)$ constant, there is no nice general expression for $-E(\frac{\partial^2 l}{\partial \phi^2})$, so the unification GLMs provide for estimation of $\beta$ breaks down for $\phi$  
 
- 2. Moment Estimation ("Bias Corrected $\chi^2$")  
+\* Situation others than normal error case, expression for $\frac{\partial c(y,\phi)}{\partial \phi}$ are not simple\
+\* Even for the canonical link and $a(\phi)$ constant, there is no nice general expression for $-E(\frac{\partial^2 l}{\partial \phi^2})$, so the unification GLMs provide for estimation of $\beta$ breaks down for $\phi$
 
-    * The MLE is not conventional approach to estimation of $\phi$ in GLMS.  
-    * For the exponential family $var(Y) =V(\mu)a(\phi)$. This implies  
-$$
-a(\phi) = \frac{var(Y)}{V(\mu)} = \frac{E(Y- \mu)^2}{V(\mu)} \\
-a(\hat{\phi})  = \frac{1}{n-p} \sum_{i=1}^n \frac{(y_i -\hat{\mu}_i)^2}{V(\hat{\mu})}
-$$
-where p is the dimension of $\beta$  
-    * GLM with canonical link function $g(.)= (b'(.))^{-1}$  
-$$
-g(\mu) = \theta = \eta = \mathbf{x'\beta} \\
-\mu = g^{-1}(\eta)= b'(\eta)
-$$
-    * so the method estimator for $a(\phi)=\phi$ is  
+2.  Moment Estimation ("Bias Corrected $\chi^2$")
+
+    -   The MLE is not conventional approach to estimation of $\phi$ in GLMS.\
+    -   For the exponential family $var(Y) =V(\mu)a(\phi)$. This implies\
+        $$
+        a(\phi) = \frac{var(Y)}{V(\mu)} = \frac{E(Y- \mu)^2}{V(\mu)} \\
+        a(\hat{\phi})  = \frac{1}{n-p} \sum_{i=1}^n \frac{(y_i -\hat{\mu}_i)^2}{V(\hat{\mu})}
+        $$ where p is the dimension of $\beta$\
+    -   GLM with canonical link function $g(.)= (b'(.))^{-1}$\
+        $$
+        g(\mu) = \theta = \eta = \mathbf{x'\beta} \\
+        \mu = g^{-1}(\eta)= b'(\eta)
+        $$
+    -   so the method estimator for $a(\phi)=\phi$ is
 
 $$
 \hat{\phi} = \frac{1}{n-p} \sum_{i=1}^n \frac{(y_i - g^{-1}(\hat{\eta}_i))^2}{V(g^{-1}(\hat{\eta}_i))}
@@ -1692,92 +2126,101 @@ $$
 
 #### Inference
 
-We have 
+We have
 
 $$
 \hat{var}(\beta) = a(\phi)(\mathbf{\hat{F}'\hat{V}\hat{F}})^{-1}
 $$
-where  
 
- * $\mathbf{V}$ is an n x n diagonal matrix with diagonal elements given by $V(\mu_i)$  
- * $\mathbf{F}$ is an n x p matrix given by $\mathbf{F} = \frac{\partial \mu}{\partial \beta}$  
- * Both $\mathbf{V,F}$ are dependent on the mean $\mu$, and thus $\beta$. Hence, their estimates ($\mathbf{\hat{V},\hat{F}}$) depend on $\hat{\beta}$.  
+where
+
+-   $\mathbf{V}$ is an n x n diagonal matrix with diagonal elements given by $V(\mu_i)$
+-   $\mathbf{F}$ is an n x p matrix given by $\mathbf{F} = \frac{\partial \mu}{\partial \beta}$
+-   Both $\mathbf{V,F}$ are dependent on the mean $\mu$, and thus $\beta$. Hence, their estimates ($\mathbf{\hat{V},\hat{F}}$) depend on $\hat{\beta}$.
 
 $$
 H_0: \mathbf{L\beta = d}
 $$
-where $\mathbf{L}$ is a q x p matrix with a **Wald** test  
+
+where $\mathbf{L}$ is a q x p matrix with a **Wald** test
 
 $$
 W = \mathbf{(L \hat{\beta}-d)'(a(\phi)L(\hat{F}'\hat{V}^{-1}\hat{F})L')^{-1}(L \hat{\beta}-d)}
 $$
-which follows $\chi_q^2$ distribution (asymptotically), where q is the rank of $\mathbf{L}$  
 
-In the simple case  $H_0: \beta_j = 0$ gives $W = \frac{\hat{\beta}^2_j}{\hat{var}(\hat{\beta}_j)} \sim \chi^2_1$ asymptotically  
+which follows $\chi_q^2$ distribution (asymptotically), where q is the rank of $\mathbf{L}$
 
-Likelihood ratio test  
+In the simple case $H_0: \beta_j = 0$ gives $W = \frac{\hat{\beta}^2_j}{\hat{var}(\hat{\beta}_j)} \sim \chi^2_1$ asymptotically
 
+Likelihood ratio test
 
 $$
 \Lambda = 2 (l(\hat{\beta}_f)-l(\hat{\beta}_r)) \sim \chi^2_q
 $$
-where  
 
- * q is the number of constraints used to fit the reduced model $\hat{\beta}_r$, and $\hat{\beta}_r$ is the fit under the full model.  
- 
-Wald test is easier to implement, but likelihood ratio test is better (especially for small samples).  
+where
 
+-   q is the number of constraints used to fit the reduced model $\hat{\beta}_r$, and $\hat{\beta}_r$ is the fit under the full model.
 
+Wald test is easier to implement, but likelihood ratio test is better (especially for small samples).
 
 #### Deviance
 
-[Deviance] is necessary for goodness of fit, inference and for alternative estimation of the dispersion parameter. We define and consider [Deviance] from a likelihood ratio perspective.  
+[Deviance] is necessary for goodness of fit, inference and for alternative estimation of the dispersion parameter. We define and consider [Deviance] from a likelihood ratio perspective.
 
- * Assume that $\phi$ is known. Let $\tilde{\theta}$ denote the full and $\hat{\theta}$ denote the reduced model MLEs. Then, the likelihood ratio (2 times the difference in log-likelihoods) is
-$$
-2\sum_{i=1}^{n} \frac{y_i (\tilde{\theta}_i- \hat{\theta}_i)-b(\tilde{\theta}_i) + b(\hat{\theta}_i)}{a_i(\phi)}
-$$
- * For exponential families, $\mu = E(y) = b'(\theta)$, so the natural parameter is a function of $\mu: \theta = \theta(\mu) = b'^{-1}(\mu)$, and the likelihood ratio turns into  
-$$
-2 \sum_{i=1}^m \frac{y_i\{\theta(\tilde{\mu}_i - \theta(\hat{\mu}_i)\} - b(\theta(\tilde{\mu}_i)) + b(\theta(\hat{\mu}_i))}{a_i(\phi)}
-$$
- * Comparing a fitted model to "the fullest possible model", which is the **saturated model**: $\tilde{\mu}_i = y_i$, i = 1,..,n. If $\tilde{\theta}_i^* = \theta(y_i), \hat{\theta}_i^* = \theta (\hat{\mu})$, the likelihood ratio is  
-$$
-2 \sum_{i=1}^{n} \frac{y_i (\tilde{\theta}_i^* - \hat{\theta}_i^* + b(\hat{\theta}_i^*))}{a_i(\phi)}
-$$
- * [@McCullagh_2019] specify $a(\phi) = \phi$, then the likelihood ratio can be written as  
-$$
-D^*(\mathbf{y, \hat{\mu}}) = \frac{2}{\phi}\sum_{i=1}^n\{y_i (\tilde{\theta}_i^*- \hat{\theta}_i^*)- b(\tilde{\theta}_i^*) +b(\hat{\theta}_i^*)  \}  
-$$
-where  
+-   Assume that $\phi$ is known. Let $\tilde{\theta}$ denote the full and $\hat{\theta}$ denote the reduced model MLEs. Then, the likelihood ratio (2 times the difference in log-likelihoods) is $$
+    2\sum_{i=1}^{n} \frac{y_i (\tilde{\theta}_i- \hat{\theta}_i)-b(\tilde{\theta}_i) + b(\hat{\theta}_i)}{a_i(\phi)}
+    $$
 
- * $D^*(\mathbf{y, \hat{\mu}})$ = **scaled deviance**  
- * $D(\mathbf{y, \hat{\mu}}) = \phi D^*(\mathbf{y, \hat{\mu}})$ = **deviance**  
+-   For exponential families, $\mu = E(y) = b'(\theta)$, so the natural parameter is a function of $\mu: \theta = \theta(\mu) = b'^{-1}(\mu)$, and the likelihood ratio turns into\
+    $$
+    2 \sum_{i=1}^m \frac{y_i\{\theta(\tilde{\mu}_i - \theta(\hat{\mu}_i)\} - b(\theta(\tilde{\mu}_i)) + b(\theta(\hat{\mu}_i))}{a_i(\phi)}
+    $$
+
+-   Comparing a fitted model to "the fullest possible model", which is the **saturated model**: $\tilde{\mu}_i = y_i$, i = 1,..,n. If $\tilde{\theta}_i^* = \theta(y_i), \hat{\theta}_i^* = \theta (\hat{\mu})$, the likelihood ratio is\
+    $$
+    2 \sum_{i=1}^{n} \frac{y_i (\tilde{\theta}_i^* - \hat{\theta}_i^* + b(\hat{\theta}_i^*))}{a_i(\phi)}
+    $$
+
+-   [@McCullagh_2019] specify $a(\phi) = \phi$, then the likelihood ratio can be written as\
+    $$
+    D^*(\mathbf{y, \hat{\mu}}) = \frac{2}{\phi}\sum_{i=1}^n\{y_i (\tilde{\theta}_i^*- \hat{\theta}_i^*)- b(\tilde{\theta}_i^*) +b(\hat{\theta}_i^*)  \}  
+    $$ where
+
+-   $D^*(\mathbf{y, \hat{\mu}})$ = **scaled deviance**
+
+-   $D(\mathbf{y, \hat{\mu}}) = \phi D^*(\mathbf{y, \hat{\mu}})$ = **deviance**
 
 <br>
 
+**Note**:
 
-**Note**:  
+-   in some random component distributions, we can write $a_i(\phi) = \phi m_i$, where
 
- * in some random component distributions, we can write $a_i(\phi) = \phi m_i$, where  
-    + $m_i$ is some known scalar that may change with the observations. THen, the scaled deviance components are divided by $m_i$:  
-$$
-D^*(\mathbf{y, \hat{\mu}}) \equiv 2\sum_{i=1}^n\{y_i (\tilde{\theta}_i^*- \hat{\theta}_i^*)- b(\tilde{\theta}_i^*) +b(\hat{\theta}_i^*)\} / (\phi m_i)  
-$$
- * $D^*(\mathbf{y, \hat{\mu}}) = \sum_{i=1}^n d_i$m where $d_i$ is the deviance contribution from the ith observation.  
- * D is used in model selection  
- * $D^*$ is used in goodness of fit tests (as it is a likelihood ratio statistic). 
-$$
-D^*(\mathbf{y, \hat{\mu}}) = 2\{l(\mathbf{y,\tilde{\mu}})-l(\mathbf{y,\hat{\mu}})\}
-$$
- * $d_i$ are used to form **deviance residuals**  
+    -   $m_i$ is some known scalar that may change with the observations. THen, the scaled deviance components are divided by $m_i$:\
+        $$
+        D^*(\mathbf{y, \hat{\mu}}) \equiv 2\sum_{i=1}^n\{y_i (\tilde{\theta}_i^*- \hat{\theta}_i^*)- b(\tilde{\theta}_i^*) +b(\hat{\theta}_i^*)\} / (\phi m_i)  
+        $$
 
+-   $D^*(\mathbf{y, \hat{\mu}}) = \sum_{i=1}^n d_i$m where $d_i$ is the deviance contribution from the ith observation.
 
-**Example**:  
+-   D is used in model selection
 
-**Normal**  
+-   $D^*$ is used in goodness of fit tests (as it is a likelihood ratio statistic). $$
+    D^*(\mathbf{y, \hat{\mu}}) = 2\{l(\mathbf{y,\tilde{\mu}})-l(\mathbf{y,\hat{\mu}})\}
+    $$
 
-We have  
+-   $d_i$ are used to form **deviance residuals**
+
+<br>
+
+**Example**:
+
+<br>
+
+**Normal**
+
+We have
 
 $$
 \theta = \mu \\
@@ -1785,14 +2228,15 @@ $$
 b(\theta) = \frac{1}{2} \theta^2 \\
 a(\phi) = \phi
 $$
-Hence,  
+
+Hence,
 
 $$
 \tilde{\theta}_i = y_i \\
 \hat{\theta}_i = \hat{\mu}_i = g^{-1}(\hat{\eta}_i) 
 $$
 
-And  
+And
 
 $$
 \begin{align}
@@ -1801,9 +2245,12 @@ D &= 2 \sum_{1=1}^n Y^2_i - y_i \hat{\mu}_i - \frac{1}{2}y^2_i + \frac{1}{2} \ha
 &= \sum_{i=1}^n (y_i - \hat{\mu}_i)^2
 \end{align}
 $$
-which is the **residual sum of squares**  
 
-**Poisson**  
+which is the **residual sum of squares**
+
+<br>
+
+**Poisson**
 
 $$
 f(y) = \exp\{y\log(\mu) - \mu - \log(y!)\} \\
@@ -1814,7 +2261,8 @@ a(\phi) = 1 \\
 \hat{\theta}_i = \log(\hat{\mu}_i) \\
 \hat{\mu}_i = g^{-1}(\hat{\eta}_i)
 $$
-Then, 
+
+Then,
 
 $$
 \begin{align}
@@ -1822,40 +2270,253 @@ D &= 2 \sum_{i = 1}^n y_i \log(y_i) - y_i \log(\hat{\mu}_i) - y_i + \hat{\mu}_i 
 &= 2 \sum_{i = 1}^n y_i \log(\frac{y_i}{\hat{\mu}_i}) - (y_i - \hat{\mu}_i)
 \end{align}
 $$
-and  
+
+and
 
 $$
 d_i = 2\{y_i \log(\frac{y_i}{\hat{\mu}})- (y_i - \hat{\mu}_i)\}
 $$
 
+<br>
+
 ##### Analysis of Deviance
 
-The difference in deviance between a reduced and full model, where q is the difference in the number of free parameters, has an asymptotic $\chi^2_q$. The likelihood ratio test  
+The difference in deviance between a reduced and full model, where q is the difference in the number of free parameters, has an asymptotic $\chi^2_q$. The likelihood ratio test
 
 $$
 D^*(\mathbf{y;\hat{\mu}_r}) - D^*(\mathbf{y;\hat{\mu}_f}) = 2\{l(\mathbf{y;\hat{\mu}_f})-l(\mathbf{y;\hat{\mu}_r})\}
 $$
 
-this comparison of models is **Analysis of Deviance**  
+this comparison of models is **Analysis of Deviance**. [GLM](#generalized-linear-models) uses this analysis for model selection.
 
-## Genelized Method of Moments
+An estimation of $\phi$ is
+
+$$
+\hat{\phi} = \frac{D(\mathbf{y, \hat{\mu}})}{n - p}
+$$
+
+where p = number of parameters fit.
+
+Excessive use of $\chi^2$ test could be problematic since it is asymptotic [@McCullagh_2019]
+
+<br>
+
+##### Deviance Residuals
+
+We have $D = \sum_{i=1}^{n}d_i$. Then, we define **deviance residuals**
+
+$$
+r_{D_i} = \text{sign}(y_i -\hat{\mu}_i)\sqrt{d_i}
+$$
+
+Standardized version of deviance residuals is
+
+$$
+r_{s,i} = \frac{y_i -\hat{\mu}}{\hat{\sigma}(1-h_{ii})^{1/2}}
+$$
+
+Let $\mathbf{H^{GLM} = W^{1/2}X(X'WX)^{-1}X'W^{-1/2}}$, where $\mathbf{W}$ is an n x n diagonal matrix with (i,i)th element given by $w_i$ (see [Estimation of $\beta$]). Then Standardized deviance residuals is equivalently
+
+$$
+r_{s, D_i} = \frac{r_{D_i}}{\{\hat{\phi}(1-h_{ii}^{glm}\}^{1/2}}
+$$
+
+where $h_{ii}^{glm}$ is the ith diagonal of $\mathbf{H}^{GLM}$
+
+<br>
+
+##### Pearson Chi-square Residuals
+
+Another $\chi^2$ statistic is **Pearson** $\chi^2$ statistics: (assume $m_i = 1$)
+
+$$
+X^2 = \sum_{i=1}^{n} \frac{(y_i - \hat{\mu}_i)^2}{V(\hat{\mu}_i)}
+$$
+
+where $\hat{\mu}_i$ is the fitted mean response fo the model of interest.
+
+The **Scaled Pearson** $\chi^2$ statistic is given by $\frac{X^2}{\phi} \sim \chi^2_{n-p}$ where p is the number of parameters esitamted. Hence, the **Pearson** $\chi^2$ residuals are
+
+$$
+X^2_i = \frac{(y_i - \hat{\mu}_i)^2}{V(\hat{\mu}_i)}
+$$
+
+If we have the following assumptions:
+
+-   Independent samples\
+-   No over-dispersion: If $\phi = 1$, $\frac{D(\mathbf{y;\hat{\mu}})}{n-p}$ and $\frac{X^2}{n-p}$ have a value substantially larger 1 indicates **improperly specified model** or **overdispersion**\
+-   Multiple groups
+
+then $\frac{X^2}{\phi}$ and $D^*(\mathbf{y; \hat{\mu}})$ both follow $\chi^2_{n-p}$
+
+<br>
+
+#### Diagnostic Plots
+
+-   Standardized residual Plots:
+
+    -   plot($r_{s, D_i}$, $\hat{\mu}_i$) or plot($r_{s, D_i}$, $T(\hat{\mu}_i)$) where $T(\hat{\mu}_i)$ is transformation($\hat{\mu}_i$) called **constant information scale**:\
+    -   plot($r_{s, D_i}$, $\hat{\eta}_i$)
+
+| Random Component |        $T(\hat{\mu}_i)$         |
+|:----------------:|:-------------------------------:|
+|      Normal      |           $\hat{\mu}$           |
+|     Poisson      |          $2\sqrt{\mu}$          |
+|     Binomial     | $2 \sin^{-1}(\sqrt{\hat{\mu}})$ |
+|      Gamma       |       $2 \log(\hat{\mu})$       |
+| Inverse Gaussian |      $-2\hat{\mu}^{-1/2}$       |
+
+-   If we see:
+
+    -   Trend, it means we might have a wrong link function, or choice of scale\
+    -   Systematic change in range of residuals with a change in $T(\hat{\mu})$ (incorrect random component) (systematic $\neq$ random)\
+
+-   plot($|r_{D_i}|,\hat{\mu}_i$) to check **Variance Function**.
+
+#### Goodness of Fit
+
+To assess goodness of fit, we can use
+
+-   [Deviance]\
+-   [Pearson Chi-square Residuals]
+
+In nested model, we could use likelihood-based information measures:
+
+$$
+AIC = -2l(\mathbf{\hat{\mu}}) + 2p \\
+AICC = -2l(\mathbf{\hat{\mu}}) + 2p(\frac{n}{n-p-1}) \\
+BIC = 2l(\hat{\mu}) + p \log(n)
+$$
+
+where
+
+-   $l(\hat{\mu})$ is the log-likelihood evaluated at the parameter estimates\
+-   p is the number of parameters\
+-   n is the number of observations.
+
+Note: you have to use the same data with the same model (i.e., same link function, same random underlying random distribution). but you can have different number of parameters.
+
+Even though statisticians try to come up with measures that are similar to $R^2$, in practice, it is not so appropriate. For example, they comapre the log-likelihood of the fitted model against the that of a model with jsut the intercept:
+
+$$
+R^2_p = 1 - \frac{l(\hat{\mu})}{l(\hat{\mu}_0)}
+$$
+
+For certain specific random components such as binary response model, we have \*\*rescaled generalized $R^2$:
+
+$$
+\bar{R}^2 = \frac{R^2_*}{\max(R^2_*)} = \frac{1-\exp\{-\frac{2}{n}(l(\hat{\mu}) - l(\hat{\mu}_0) \}}{1 - \exp\{\frac{2}{n}l(\hat{\mu}_0)\}}
+$$
+
+#### Over-Dispersion
+
+| Random Components | $var(Y)$                  | $V(\mu)$                                     |
+|-------------------|---------------------------|----------------------------------------------|
+| Binomial          | $var(Y) = n \mu (1- \mu)$ | $V(\mu) = \phi n \mu(1- \mu)$ where $m_i =n$ |
+| Poisson           | $var(Y) = \mu$            | $V(\mu) = \phi \mu$                          |
+
+In both cases $\phi = 1$. Recall $b''(\theta)= V(\mu)$ check [Estimation of $\phi$].
+
+If we find
+
+-   $\phi >1$: over-dispersion (i.e., too much variation for an independent binomial or Poisson distribution).
+-   $\phi<1$: under-dispersion (i.e., too little variation for an independent binomial or Poisson distribution).
+
+If we have either over or under-dispersion, it means we might have unspecified random component, we could
+
+-   Select a different random component distribution that can accommodate over or under-dispersion (e.g., negative binomial, Conway-Maxwell Poisson)
+-   use [Generalized Linear Mixed Models] to handle random effects in generalized linear models.
+
+## Generalized Linear Mixed Models
+
+### Dependent Data
+
+Forms of dependent data:
+
+-   Multivariate measurements on different individuals: (e.g., a person's blood pressure, fat, etc are correlated)
+-   Clustered measurements: (e.g., blood pressure measurements of people in the same family can be correlated).
+-   Repeated measurements: (e.g., measurement of cholesterol over time can be correlated) "If data are collected repeatedly on experimental material to which treatments were applied initially, the data is a repeated measure." [@Schabenberger_2001]
+-   Longitudinal data: (e.g., individual's cholesterol tracked over time are correlated): "data collected repeatedly over time in an observational study are termed longitudinal." [@Schabenberger_2001]
+-   Spatial data: (e.g., measurement of individuals living in the same neighborhood are correlated)
+
+Hence, we like to account for these correlations.
+
+**Linear Mixed Model** (LMM), also known as **Mixed Linear Model** has 2 components:
+
+-   **Fixed effect** (e.g, gender, age, diet, time)
+
+-   **Random effects** representing individual variation or auto correlation/spatial effects that imply **dependent (correlated) errors**
+
+Review [Two-Way Mixed Effects ANOVA]
+
+**LLM Motivation**
+
+In a repeated measurements analysis where $Y_{ij}$ is the response for the i-th individual measured at the j-th time,
+
+$i =1,…,N$ ; $j = 1,…,n_i$
+
+$$
+\mathbf{Y}_i = 
+\left(
+\begin{array}
+{c}
+Y_{i1} \\
+. \\
+.\\
+.\\
+Y_{in_i}
+\end{array}
+\right)
+$$
+
+is all measurements for subject i.
+
+[*Stage 1: (Regression Model)*]{.ul} how the response changes over time for the ith subject
+
+$$
+\mathbf{Y_i = Z_i \beta_i + \epsilon_i}
+$$
+
+where
+
+-   $Z_i$ is an \$n_i \times q\$ matrix of known covariates
+-   $\beta_i$ is an unknown q x 1 vector of subjective -specific coefficients (regression coefficients different for each subject)
+-   $\epsilon_i$ are the random errors (typically \$\\sim N(0, \sigma\^2 I)\$)
+
+We notice that there are two many $\beta$ to estimate here. Hence, this is the motivation for the second stage
+
+[*Stage 2: (Parameter Model)*]{.ul}
+
+$$
+\mathbf{\beta_i = K_i \beta + b_i}
+$$
+
+where
+
+-   $K_i$ is a q x p matrix of known covariates
+-   $\beta$ is a p x 1 vector of unknown parameter
+-   $\mathbf{b}_i$ are independent\$N(0,D)\$ random variables
+
+This model explain the observed variability between subjects with respect to the subject-specific regression coefficients, $\beta_i$. We model our different coefficient (\$\\beta_i\$) with respect to \$\\beta\$.
+
+## Generalized Method of Moments
 
 ## Minimum Distance
 
 ## Spline Regression
 
-This chapter is based on [CMU stat](https://www.stat.cmu.edu/~ryantibs/advmethods/notes/smoothspline.pdf)  
+This chapter is based on [CMU stat](https://www.stat.cmu.edu/~ryantibs/advmethods/notes/smoothspline.pdf)
 
-Definition: a k-th order spline is a piecewise polynomial function of degree k, that is continuous and has continuous derivatives of orders 1,..., k -1, at its knot points   
+Definition: a k-th order spline is a piecewise polynomial function of degree k, that is continuous and has continuous derivatives of orders 1,..., k -1, at its knot points
 
-Equivalently, a function f is a k-th order spline with knot points at $t_1 < ...< t_m$ if  
+Equivalently, a function f is a k-th order spline with knot points at $t_1 < ...< t_m$ if
 
- * f is a polynomial of degree k on each of the intervals $(-\infty, t_1], [t_1,t_2],...,[t_m, \infty)$  
- * $f^{(j)}$, the j-th derivative of f, is continuous at $t_1,...,t_m$ for each j = 0,1,...,k-1
+-   f is a polynomial of degree k on each of the intervals $(-\infty, t_1], [t_1,t_2],...,[t_m, \infty)$\
+-   $f^{(j)}$, the j-th derivative of f, is continuous at $t_1,...,t_m$ for each j = 0,1,...,k-1
 
-A common case is when k = 3, called cubic splines. (piecewise cubic functions are continuous, and also continuous at its first and second derivatives)  
+A common case is when k = 3, called cubic splines. (piecewise cubic functions are continuous, and also continuous at its first and second derivatives)
 
-To parameterize the set of splines, we could use **truncated power basis**, defined as  
+To parameterize the set of splines, we could use **truncated power basis**, defined as
 
 $$
 g_1(x) = 1 \\
@@ -1865,52 +2526,47 @@ g_{k+1}(x) = x^k \\
 g_{k+1+j}(x) = (x-t_j)^k_+
 $$
 
-where j = 1,...,m and $x_+$ = max{x,0}  
+where j = 1,...,m and $x_+$ = max{x,0}
 
-However, now software typically use B-spline basis.  
+However, now software typically use B-spline basis.
 
 ### Regression Splines
 
-To estimate the regression function $r(X) = E(Y|X =x)$, we can fit a k-th order spline with knots at some prespecified locations $t_1,...,t_m$  
+To estimate the regression function $r(X) = E(Y|X =x)$, we can fit a k-th order spline with knots at some prespecified locations $t_1,...,t_m$
 
-Regression splines are functions of 
+Regression splines are functions of
 
 $$
 \sum_{j=1}^{m+k+1} \beta_jg_j
 $$
 
-where  
+where
 
- *$\beta_1,..\beta_{m+k+1}$ are coefficients
- * $g_1,...,g_{m+k+1}$ are the truncated power basis functions for k-th order splines over the knots $t_1,...,t_m$
+$\beta_1,..\beta_{m+k+1}$ are coefficients $g_1,...,g_{m+k+1}$ are the truncated power basis functions for k-th order splines over the knots $t_1,...,t_m$
 
-
-To estimate the coefficients  
+To estimate the coefficients
 
 $$
 \sum_{i=1}^{n} (y_i - \sum_{j=1}^{m} \beta_j g_j (x_i))^2
 $$
 
-then regression spline is  
+then regression spline is
 
 $$
 \hat{r}(x) = \sum_{j=1}^{m+k+1} \hat{\beta}_j g_j (x)
 $$
 
-
-If we define the basis matrix $G \in R^{n \times (m+k+1)}$ by 
-$$
+If we define the basis matrix $G \in R^{n \times (m+k+1)}$ by $$
 G_{ij} = g_j(x_i) 
-$$
-where $i = 1,..,n$ , $j = 1,..,m+k+1$
+$$ where $i = 1,..,n$ , $j = 1,..,m+k+1$
 
-Then,  
+Then,
 
 $$
 \sum_{i=1}^{n} (y_i - \sum_{j=1}^{m} \beta_j g_j (x_i))^2 = ||y - G \beta||_2^2
 $$
 
-and the regression spline estimate at x is  
+and the regression spline estimate at x is
 
 $$
 \hat{r} (x) = g(x)^T \hat{\beta}= g(x)^T(G^TG)^{-1}G^Ty
@@ -1918,27 +2574,27 @@ $$
 
 ### Natural splines
 
-A natural spline of order k, with knots at $t_1 <...< t_m$, is a piecewise polynomial function f such that  
+A natural spline of order k, with knots at $t_1 <...< t_m$, is a piecewise polynomial function f such that
 
- * f is polynomial of degree k on each of $[t_1,t_2],...,[t_{m-1},t_m]$
- * f is a polynomial of degree $(k-1)/2$ on $(-\infty,t_1]$ and $[t_m,\infty)$
- * f is continuous and has continuous derivatives of orders 1,.,,, k -1 at its knots $t_1,..,t_m$
+-   f is polynomial of degree k on each of $[t_1,t_2],...,[t_{m-1},t_m]$
+-   f is a polynomial of degree $(k-1)/2$ on $(-\infty,t_1]$ and $[t_m,\infty)$
+-   f is continuous and has continuous derivatives of orders 1,.,,, k -1 at its knots $t_1,..,t_m$
 
-**Note**  
+**Note**
 
 natural splines are only defined for odd orders k.
 
-### Smoothing spliness
+### Smoothing splines
 
-These estimators use a regularized regression over the natural spline basis: placing knots at all points $x_1,...x_n$  
+These estimators use a regularized regression over the natural spline basis: placing knots at all points $x_1,...x_n$
 
-For the case of cubic splines, the coefficients are the minimization of 
+For the case of cubic splines, the coefficients are the minimization of
 
 $$
 ||y - G\beta||^2_2 + \lambda \beta^T \Omega \beta
 $$
 
-where  $\Omega \in R^{n \times n}$ is the penalty matrix
+where $\Omega \in R^{n \times n}$ is the penalty matrix
 
 $$
 \Omega_{ij} = \int g''_i(t) g''_j(t) dt,
@@ -1946,18 +2602,17 @@ $$
 
 and i,j = 1,..,n
 
-and $\lambda \beta^T \Omega \beta$ is the **regularization term** used to shrink the components of $\hat{\beta}$ towards 0. 
-$\lambda > 0$ is the tuning parameter (or smoothing parameter). Higher value of $\lambda$, faster shrinkage  (shrinking away basis functions)  
+and $\lambda \beta^T \Omega \beta$ is the **regularization term** used to shrink the components of $\hat{\beta}$ towards 0. $\lambda > 0$ is the tuning parameter (or smoothing parameter). Higher value of $\lambda$, faster shrinkage (shrinking away basis functions)
 
-**Note**  
-smoothing splines have similar fits as kernel regression. 
+**Note**\
+smoothing splines have similar fits as kernel regression.
 
-| | Smoothing splines | kernel regression |
-|---|---|---|
-|tuning parameter | smoothing parameter $\lambda$ | bandwidth h |
+|                  | Smoothing splines             | kernel regression |
+|------------------|-------------------------------|-------------------|
+| tuning parameter | smoothing parameter $\lambda$ | bandwidth h       |
 
+### Application
 
-### Application 
 ```{r}
 
 library(tidyverse)
@@ -2009,7 +2664,8 @@ legend("topright",c("Smoothing Spline with 3 df","Cubic Spline"),col=c("red","da
 ```
 
 ## Generalized Additive Models
-To overcome [Spline Regression]'s requirements for specifying the knots, we can use [Generalized Additive Models] or GAM. 
+
+To overcome [Spline Regression]'s requirements for specifying the knots, we can use [Generalized Additive Models] or GAM.
 
 ```{r}
 library(mgcv)
@@ -2030,71 +2686,57 @@ ggplot(train.data, aes(lstat, medv) ) +
 detach(train.data)
 ```
 
-
-
 ## Quantile Regression
 
 For academic review on quantile regression, check [@Yu_2003]
 
-[Linear Regression] is based on the conditional mean function $E(y|x)$  
+[Linear Regression] is based on the conditional mean function $E(y|x)$
 
 In Quantile regression, we can view each points in the conditional distribution of y. Quantile regression estimates the conditional median or any other quantile of Y.
 
 In the case that we're interested in the 50th percentile, quantile regression is median regression, also known as least-absolute-deviations (LAD) regression, minimizes $\sum_{i}|e_i|$
 
-
 Properties of estimators $\beta$
 
- * Asymptotically normally distributed
+-   Asymptotically normally distributed
 
+Advantages
 
-Advantages  
+-   More robust to outliers compared to [OLS][Ordinary Least Squares]
+-   In the case the dependent variable has a bimodal or multimodal (multiple humps with multiple modes) distribution, quantile regression can be extremely useful.
+-   Avoids parametric distribution assumption of the error process. In another word, no assumptions regarding the distribution of the error term.
+-   Better characterization of the data (not just its conditional mean)
+-   is invariant to monotonic transformations (such as log) while OLS is not. In another word, $E(g(y))=g(E(y))$
 
- * More robust to outliers compared to [OLS][Ordinary Least Squares]
- * In the case the dependent variable has a bimodal or multimodal (multiple humps with multiple modes) distribution, quantile regression can be extremely useful. 
- * Avoids parametric distribution assumption of the error process. In another word, no assumptions regarding the distribution of the error term.
- * Better characterization of the data (not just its conditional mean)
- * is invariant to monotonic transformations (such as log) while OLS is not. In another word, $E(g(y))=g(E(y))$
- 
 Disadvantages
 
- * The dependent variable needs to be continuous with no zeroes or too many repeated values. 
- 
- 
+-   The dependent variable needs to be continuous with no zeroes or too many repeated values.
+
 $$
 y_i = x_i'\beta_q + e_i
 $$
- 
-Let $e(x) = y -\hat{y}(x)$, then $L(e(x)) = L(y -\hat{y}(x))$ is the loss function of the error term.  
 
-If $L(e) = |e|$ (called absolute-error loss function) then $\hat{\beta}$ can be estimated by minimizing $\sum_{i}|y_i-x_i'\beta|$  
+Let $e(x) = y -\hat{y}(x)$, then $L(e(x)) = L(y -\hat{y}(x))$ is the loss function of the error term.
 
-More specifically, the objective function is 
-$$
+If $L(e) = |e|$ (called absolute-error loss function) then $\hat{\beta}$ can be estimated by minimizing $\sum_{i}|y_i-x_i'\beta|$
+
+More specifically, the objective function is $$
 Q(\beta_q)=\sum_{i:y_i \ge x_i'\beta}^{N} q|y_i - x_i'\beta_q| + \sum_{i:y_i < x_i'\beta}^{N} (1-q)|y_i-x_i'\beta_q
-$$
-where $0<q<1$
+$$ where $0<q<1$
 
 The sum penalizes $q|e_i|$ for under-prediction and $(1-q)|e_i|$ for over-prediction
 
-
 We use simplex method to minimize this function (cannot use analytical solution since it's non-differentiable). Standard errors can be estimated by bootstrap.
 
+The absolute-error loss function is symmetric.
 
-The absolute-error loss function is symmetric. 
-
-**Interpretation**
-For the jth regressor ($x_j$), the marginal effect is the coefficient for the qth quantile
+**Interpretation** For the jth regressor ($x_j$), the marginal effect is the coefficient for the qth quantile
 
 $$
 \frac{\partial Q_q(y|x)}{\partial x_j} = \beta_{qj}
-$$
-At the quantile q of the dependent variable y, $\beta_q$ represents a one unit change in the independent variable $x_j$ on the dependent variable y.  
+$$ At the quantile q of the dependent variable y, $\beta_q$ represents a one unit change in the independent variable $x_j$ on the dependent variable y.
 
 In other words, at the qth percentile, a one unit change in x results in $\beta_q$ unit change in y.
-
-
-
 
 ### Application
 
@@ -2115,19 +2757,20 @@ ggplot(dat, aes(x,y)) + geom_point()
 ggplot(dat, aes(x,y)) + geom_point() + geom_smooth(method="lm")
 ```
 
-We follow [@Roger_1996] to estimate quantile regression 
+We follow [@Roger_1996] to estimate quantile regression
+
 ```{r}
 library(quantreg)
 qr <- rq(y ~ x, data=dat, tau = 0.5) # tau: quantile of interest. Here we have it at 50th percentile.
 summary(qr)
 ```
+
 adding the regression line
 
 ```{r}
 ggplot(dat, aes(x,y)) + geom_point() + 
   geom_abline(intercept=coef(qr)[1], slope=coef(qr)[2])
 ```
-
 
 To have R estimate multiple quantile at once
 
@@ -2141,16 +2784,16 @@ coef(qr1)
 ggplot(dat, aes(x,y)) + geom_point() + geom_quantile(quantiles = qs)
 ```
 
-To examine if the quantile regression is appropriate, we can see its plot compared to least squares regression 
+To examine if the quantile regression is appropriate, we can see its plot compared to least squares regression
+
 ```{r}
 plot(summary(qr1), parm="x")
 ```
 
-where red line is the least squares estimates, and its confidence interval. 
-x-axis is the quantile 
-y-axis is the value of the quantile regression coefficients at different quantile
+where red line is the least squares estimates, and its confidence interval. x-axis is the quantile y-axis is the value of the quantile regression coefficients at different quantile
 
-If the error term is normally distributed, the quantile regression line will fall inside the coefficient interval of least squares regression. 
+If the error term is normally distributed, the quantile regression line will fall inside the coefficient interval of least squares regression.
+
 ```{r}
 # generate data with constant variance
 
@@ -2164,10 +2807,3 @@ dat2 <- data.frame(x, y)
 qr2 = rq(y ~ x, data = dat2, tau = qs)
 plot(summary(qr2), parm = "x")
 ```
-
-
-
-
-
-
-
