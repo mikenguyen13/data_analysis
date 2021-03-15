@@ -1,0 +1,1247 @@
+# Imputation (Missing Data)
+
+Imputation is usually seen as the illegitimate child of statistical analysis. Several reasons that contribute to this negative views could be:
+
+(1) Peopled hardly do imputation correctly
+(2) Imputation can only be applied to a small range of problems correctly
+
+If you have missing data on y (dependent variable), you probability would not be able to do any imputation appropriately. However, if you have certain type of missing data (e.g., non-random missing data) in the xs variable (independent variables), then you can still salvage your collected data points with imputation.
+
+We also need to talk why you would want to do imputation in the first place. If your purpose is inference/ explanation (valid statistical inference not optimal point prediction), then imputation would not offer much help [@Rubin_1996]. However, if your purpose is prediction, you would want your standard error to be reduced by including information (non-missing data) on other variables of a data point. Then imputation could be the tool that you're looking for.
+
+For most software packages, it will use listwise deletion or casewise deletion to have complete case analysis (analysis with only observations with all information). Not until recently that statistician can propose some methods that are a bit better than listwise deletion which are maximum likelihood and multiple imputation.
+
+"Judging the quality of missing data procedures by their ability to recreate the individual missing values (according to hit rate, mean square error, etc) does not lead to choosing procedures that result in valid inference", [@Rubin_1996]
+
+## Assumptions
+
+### Missing Completely at Random (MCAR) {#missing-completely-at-random-mcar}
+
+Missing Completely at Random, MCAR, means there is no relationship between the missingness of the data and any values, observed or missing. Those missing data points are a random subset of the data. There is nothing systematic going on that makes some data more likely to be missing than others.
+
+The probability of missing data on a variable is unrelated to the value of it or to the values of any other variables in the data set.
+
+**Note**: the "missingness" on Y can be correlated with the "missingness" on X We can compare the value of other variables for the observations with missing data, and observations without missing data. If we reject the t-test for mean difference, we can say there is evidence that the data are not MCAR. But we cannot say that our data are MCAR if we fail to reject the t-test.
+
+-   the propensity for a data point to be missing is completely random.
+-   There's no relationship between whether a data point is missing and any values in the data set, missing or observed.
+-   The missing data are just a random subset of the data.
+
+### Missing at Random (MAR) {#missing-at-random-mar}
+
+Missing at Random, MAR, means there is a systematic relationship between the propensity of missing values and the observed data, but not the missing data. Whether an observation is missing has nothing to do with the missing values, but it does have to do with the values of an individual's observed variables. So, for example, if men are more likely to tell you their weight than women, weight is MAR.
+
+MAR is weaker than MCAR
+
+$$
+P(Y_{missing}|Y,X)= P(Y_{missing}|X)
+$$ The probability of Y missing given Y and X equal to the probability of of Y missing given X. However, it is impossible to provide evidence to the MAR condition.
+
+-   the propensity for a data point to be missing is not related to the missing data, but it is related to some of the observed data. In another word, there is a systematic relationship between the propensity of missing values and the observed data, but not the missing data.
+
+    -   For example, if men are more likely to tell you their weight than women, weight is MAR
+
+-   MAR requires that the cause of the missing data is unrelated to the missing values but may be related to the observed values of other variables.
+
+-   MAR means that the missing values are related to observed values on other variables. As an example of CD missing data, missing income data may be unrelated to the actual income values but are related to education. Perhaps people with more education are less likely to reveal their income than those with less education
+
+### Ignorable
+
+The missing data mechanism is ignorable when
+
+(1) The data are [MAR](#missing-at-random-mar)
+(2) the parameters in the function of the missing data process are unrelated to the parameters (of interest) that need to be estimated.
+
+In this case, you actually don't need to model the missing data mechanisms unless you would like to improve on your accuracy, in which case you still need to be very rigorous about your approach to improve efficiency in your parameters.
+
+### Nonignorable
+
+Missing Not at Random, MNAR, means there is a relationship between the propensity of a value to be missing and its values.
+
+Example: people with the lowest education are missing on education or the sickest people are most likely to drop out of the study.
+
+MNAR is called [Nonignorable] because the missing data mechanism itself has to be modeled as you deal with the missing data. You have to include some model for why the data are missing and what the likely values are.
+
+Hence, in the case of nonignorable, the data are not MAR. Then, your parameters of interest will be biased if you do not model the missing data mechanism. One of the most widely used approach for nonignorable missing data is [@Heckman_1976]
+
+-   Another name: Missing Not at Random (MNAR): there is a relationship between the propensity of a value to be missing and its values
+
+    -   For example, people with low education will be less likely to report it.\
+
+-   We need to model why the data are missing and what the likely values are.
+
+-   the missing data mechanism is related to the missing values\
+
+-   It commonly occurs when people do not want to reveal something very personal or unpopular about themselves\
+
+-   Complete case analysis can give highly biased results for NI missing data. If proportionally more low and moderate income individuals are left in the sample because high income people are missing, an estimate of the mean income will be lower than the actual population mean.
+
+## Solutions to Missing data
+
+### Listwise Deletion
+
+Advantages:
+
+-   Can be applied to any statistical test (SEM, multi-level regression, etc.)
+
+-   In the case of MCAR, both the parameters estimates and its standard errors are unbiased.
+
+-   In the case of MAR among independent variables (not depend on the values of dependent variables), then listwise deletion parameter estimates can still be unbiased. [@Little_1992] For example, you have a model $y=\beta_{0}+\beta_1X_1 + \beta_2X_2 +\epsilon$ if the probability of missing data on X1 is independent of Y, but dependent on the value of X1 and X2, then the model estimates are still unbiased.
+
+    -   The missing data mechanism the depends on the values of the independent variables are the same as stratified sampling. And stratified sampling does not bias your estimates
+    -   In the case of logistic regression, if the probability of missing data on any variable depends on the value of the dependent variable, but independent of the value of the independent variables, then the listwise deletion will yield biased intercept estimate, but consistent estimates of the slope and their standard errors [@Vach_1994]. However, logistic regression will still fail if the probability of missing data is dependent on both the value of the dependent and independent variables.
+    -   Under regression analysis, listwise deletion is more robust than maximum likelihood and multiple imputation when MAR assumption is violated.
+
+Disadvantages:
+
+-   It will yield a larger standard errors than other more sophisticated methods discussed later.
+-   If the data are not MCAR, but MAR, then your listwise deletion can yield biased estimates.
+-   In other cases than regression analysis, other sophisticated methods can yield better estimates compared to listwise deletion.
+
+### Pairwise Deletion
+
+This method could only be used in the case of linear models such as linear regression, factor analysis, or SEM. The premise of this method based on that the coefficient estimates are calculated based on the means, standard deviations, and correlation matrix. Compared to listwise deletion, we still utilized as many correlation between variables as possible to compute the correlation matrix.
+
+Advantages:
+
+-   If the true missing data mechanism is MCAR, pair wise deletion will yield consistent estimates, and unbiased in large samples
+
+-   Compared to listwise deletion: [@Glasser_1964]
+
+    -   If the correlation among variables are low, pairwise deletion is more efficient estimates than listwise
+    -   If the correlations among variables are high, listwise deletion is more efficient than pairwise.
+
+Disadvantages:
+
+-   If the data mechanism is MAR, pairwise deletion will yield biased estimates.
+-   In small sample, sometimes covariance matrix might not be positive definite, which means coefficients estimates cannot be calculated.
+
+**Note**: You need to read carefully on how your software specify the sample size because it will alter the standard errors.
+
+### Dummy Variable Adjustment
+
+Also known as Missing Indicator Method or Proxy Variable
+
+Add another variable in the database to indicate whether a value is missing.
+
+Create 2 variables
+
+```{=tex}
+\begin{equation}
+D=
+\begin{cases}
+1 & \text{data on X are missing} \\
+0 & \text{otherwise}\\
+\end{cases}
+\end{equation}
+```
+```{=tex}
+\begin{equation}
+X^* = 
+\begin{cases}
+X & \text{data are available} \\
+c & \text{data are missing}\\
+\end{cases}
+\end{equation}
+```
+**Note**: A typical choice for c is usually the mean of X
+
+Interpretation:
+
+-   Coefficient of D is the the difference in the expected value of Y between the group with data and the group without data on X.
+-   Coefficient of X\* is the effect of the group with data on Y
+
+Disadvantages:
+
+-   This method yields bias estimates of the coefficient even in the case of MCAR [@Jones_1996]
+
+### Imputation
+
+#### Mean, Mode, Median Imputation
+
+-   Bad:
+
+    -   Mean imputation does not preserve the relationships among variables
+    -   Mean imputation leads to An Underestimate of Standard Errors → you're making Type I errors without realizing it.
+    -   Biased estimates of variances and covariances [@Haitovsky_1968]
+
+#### Maximum Likelihood {#maximum-likelihood}
+
+When missing data are MAR and monotonic (such as in the case of panel studies), ML can be adequately in estimating coefficients.
+
+Monotonic means that if you are missing data on X1, then that observation also has missing data on all other variables that come after it.
+
+ML can generally handle linear models, log-linear model, but beyond that, ML still lacks both theory and software to implement.
+
+##### Expectation-Maximization Algorithm (EM Algorithm)
+
+An iterative process:
+
+(1) Other variables are used to impute a value (Expectation).
+(2) Check whether the value is most likely (Maximization).
+(3) If not, it re-imputes a more likely value.
+
+You start your regression with your estimates based on either listwise deletion or pairwise deletion. After regressing missing variables on available variables, you obtain a regression model. Plug the missing data back into the original model, with modified variances and covariances For example, if you have missing data on $X_{ij}$ you would regress it on available data of $X_{i(j)}$, then plug the expected value of $X_{ij}$ back with its $X_{ij}^2$ turn into $X_{ij}^2 + s_{j(j)}^2$ where $s_{j(j)}^2$ stands for the residual variance from regressing $X_{ij}$ on $X_{i(j)}$ With the new estimated model, you rerun the process until the estimates converge.
+
+Advantages:
+
+(1) easy to use
+(2) preserves the relationship with other variables (important if you use Factor Analysis or Linear Regression later on), but best in the case of Factor Analysis, which doesn't require standard error of individuals item.
+
+Disadvantages:
+
+(1) Standard errors of the coefficients are incorrect (biased usually downward - underestimate)
+(2) Models with overidentification, the estimates will not be efficient
+
+##### Direct ML (raw maximum likelihood)
+
+Advantages
+
+(1) efficient estimates and correct standard errors.
+
+Disadvantages:
+
+(1) Hard to implements
+
+#### Multiple Imputation
+
+MI is designed to use "the Bayesian model-based approach to *create* procedures, and the frequentist (randomization-based approach) to *evaluate* procedures". [@Rubin_1996]
+
+MI estimates have the same properties as [ML](#maximum-likelihood) when the data is [MAR](#missing-at-random-mar)
+
+-   Consistent
+-   Asymptotically efficient
+-   Asymptotically normal
+
+MI can be applied to any type of model, unlike [Maximum Likelihood](#maximum-likelihood) that is only limited to a small set of models.
+
+A drawback of MI is that it will produce slightly different estimates every time you run it. To avoid such problem, you can set seed when doing your analysis to ensure its reproducibility.
+
+##### Single Random Imputation
+
+Random draws form the residual distribution of each imputed variable and add those random numbers to the imputed values.
+
+For example, if we have missing data on X, and it's MCAR, then
+
+(1) regress X on Y ([Listwise Deletion] method) to get its residual distribution.
+
+(2) For every missing value on X, we substitute with $\tilde{x_i}=\hat{x_i} + \rho u_i$ where
+
+    -   $u_i$ is a random draw from a standard normal distribution
+    -   $x_i$ is the predicted value from the regression of X and Y
+    -   $\rho$ is the standard deviation of the residual distribution of X regressed on Y.
+
+However, the model you run with the imputed data still thinks that your data are collected, not imputed, which leads your standard error estimates to be too low and test statistics too high.
+
+To address this problem, we need to repeat the imputation process which leads us to repeated imputation or multiple random imputation.
+
+##### Repeated Imputation
+
+"Repeated imputations are draws from the posterior predictive distribution of the missing values under a specific model , a particular Bayesian model for both the data and the missing mechanism".[@Rubin_1996]
+
+Repeated imputation, also known as, multiple random imputation, allows us to have multiple "completed" data sets. The variability across imputations will adjust the standard errors upward.
+
+The estimate of the standard error of $\bar{r}$ (mean correlation estimates between X and Y) is $$
+SE(\bar{r})=\sqrt{\frac{1}{M}\sum_{k}s_k^2+ (1+\frac{1}{M})(\frac{1}{M-1})\sum_{k}(r_k-\bar{r})^2}
+$$ where M is the number of replications, $r_k$ is the the correlation in replication k, $s_k$ is the estimated standard error in replication k.
+
+However, this method still considers the parameter in predicting $\tilde{x}$ is still fixed, which means we assume that we are using the true parameters to predict $\tilde{x}$. To overcome this challenge, we need to introduce variability into our model for $\tilde{x}$ by treating the parameters as a random variables and use Bayesian posterior distribution of the parameters to predict the parameters.
+
+However, if your sample is large and the proportion of missing data is small, the extra Bayesian step might not be necessary. If your sample is small or the proportion of missing data is large, the extra Bayesian step is necessary.
+
+Two algorithms to get random draws of the regression parameters from its posterior distribution:
+
+-   [Data Augmentation]
+-   Sampling importance/resampling (SIR)
+
+Authors have argued for SIR superiority due to its computer time [@King_2001]
+
+###### Data Augmentation
+
+Steps for data augmentation:
+
+(1) Choose starting values for the parameters (e.g., for multivariate normal, choose means and covariance matrix). These values can come from previous values, expert knowledge, or from listwise deletion or pairwise deletion or EM estimation.
+(2) Based on the current values of means and covariances calculate the coefficients estimates for the equation that variable with missing data is regressed on all other variables (or variables that you think will help predict the missing values, could also be variables that are not in the final estimation model)
+(3) Use the estimates in step (2) to predict values for missing values. For each predicted value, add a random error from the residual normal distribution for that variable.
+(4) From the "complete" data set, recalculate the means and covariance matrix. And take a random draw from the posterior distribution of the means and covariances with Jeffreys' prior.
+(5) Using the random draw from step (4), repeat step (2) to (4) until the means and covariances stabilize (converged).
+
+The iterative process allows us to get random draws from the joint posterior distribution of both data nd parameters, given the observed data.
+
+Rules of thumb regarding convergence:
+
+-   The higher the proportion of missing, the more iterations
+-   the rate of convergence for EM algorithm should be the minimum threshold for DA.
+-   You can also check if your distribution has been converged by diagnostic statistics Can check [Bayesian Diagnostics](https://bookdown.org/mike/bayesian_analysis/diag.html) for some introduction.
+
+Types of chains
+
+1.  **Parallel**: Run a separate chain of iterations for each of data set. Different starting values are encouraged. For example, one could use bootstrap to generate different data set with replacement, and for each data set, calculate the starting values by EM estimates.
+
+    -   Pro: Run faster, and less likely to have dependence in the resulting data sets.
+    -   Con: Sometimes it will not converge
+
+2.  **Sequential** one long chain of data augmentation cycles. After burn-in and thinning, you will have to data sets
+
+    -   Pro: Converged to the true posterior distribution is more likely.
+    -   Con: The resulting data sets are likely to be dependent. Remedies can be thinning and burn-in.
+
+**Note on Non-normal or categorical data** The normal-based methods still work well, but you will need to do some transformation. For example,
+
+-   If the data is skewed, then log-transform, then impute, the exponentiate to have the missing data back to its original metric.
+-   If the data is proportion, logit-transform, impute, then de-transform the missing data.
+
+If you want to impute non-linear relationship, such as interaction between 2 variables and 1 variable is categorical. You can do separate imputation for different levels of that variable separately, then combined for the final analysis.
+
+-   If all variables that have missing data are categorical, then **unrestricted multinomial model** or **log-linear model** is recommended.
+-   If a single categorical variable, **logistic (logit) regression** would be sufficient.
+
+#### Nonparametric/ Semiparametric Methods
+
+##### Hot Deck Imputation
+
+-   Used by U.S. Census Bureau for public datasets
+-   approximate Bayesian bootstrap\
+    A randomly chosen value from an individual in the sample who has similar values on other variables. In other words, find all the sample subjects who are similar on other variables, then randomly choose one of their values on the missing variable.
+
+When we have $n_1$ cases with complete data on Y and $n_0$ cases with missing data on Y
+
+-   Step 1: From $n_1$, take a random sample (with replacement) of $n_1$ cases
+-   Step 2: From the retrieved sample take a random sample (with replacement) of $n_0$ cases
+-   Step 3: Assign the $n_0$ cases in step 2 to $n_0$ missing data cases.
+-   Step 4: Repeat the process for every variable.
+-   Step 5: For multiple imputation, repeat the four steps multiple times.
+
+Note:
+
+-   If we skip step 1, it reduce variability for estimating standard errors.
+
+-   Good:
+
+    -   Constrained to only possible values.
+    -   Since the value is picked at random, it adds some variability, which might come in handy when calculating standard errors.
+
+##### Cold Deck Imputation
+
+Contrary to Hot Deck, Cold Deck choose value systematically from an observation that has similar values on other variables, which remove the random variation that we want.
+
+##### Predictive Mean Matching
+
+#### Regression Imputation
+
+Also known as conditional mean imputation Missing value is based (regress) on other variables.
+
+-   Good:
+
+    -   Maintain the relationship with other variables\
+
+    -   If the data are MCAR, least-squares coefficients estimates will be consistent, and approximately unbiased in large samples [@Gourieroux_1981]
+
+        -   Can have improvement on efficiency by using weighted least squares [@Beale_1975] or generalized least squares [@Gourieroux_1981].
+
+-   Bad:
+
+    -   No variability left. treated data as if they were collected.
+    -   Underestimate the standard errors and overestimate test statistics
+
+#### Stochatic Imputation
+
+`Regression imputation + random residual = Stochastic Imputation`
+
+Most multiple imputation is based off of some form of stochastic regression imputation. Good:
+
+-   Has all the advantage of [Regression Imputation]
+-   and also has the random components
+
+**Note**\
+Multiple Imputation usually based on some form of stochastic regression imputation.
+
+#### Interpolation and Extrapolation
+
+An estimated value from other observations from the same individual. It usually only works in longitudinal data.
+
+#### K-nearest neighbor (KNN) imputation
+
+The above methods are model-based imputation (regression).\
+This is an example of neighbor-based imputation (K-nearest neighbor).
+
+For every observation that needs to be imputed, the algorithm identifies 'k' closest observations based on some types distance (e.g., Euclidean) and computes the weighted average (weighted based on distance) of these 'k' obs.
+
+For a discrete variable, it uses the most frequent value among the k nearest neighbors.\
+\* Distance metrics: Hamming distance.
+
+For a continuous variable, it uses the mean or mode.
+
+-   Distance metrics:
+
+    -   Euclidean
+    -   Mahalanobis
+    -   Manhattan
+
+#### Bayesian Ridge regression implementation
+
+## Criteria for Choosing an Effective Approach
+
+Criteria for an ideal technique in treating missing data:
+
+1.  Unbiased parameter estimates
+2.  Adequate power
+3.  Accurate standard errors (p-values, confidence intervals)
+
+The Multiple Imputation and Full Information Maximum Likelihood are the the most ideal candidate. Single imputation will generally lead to underestimation of standard errors.
+
+## Another Perspective
+
+Model bias can arisen from various factors including:
+
+-   Imputation method
+-   Missing data mechanism ([MCAR](#missing-completely-at-random-mcar) vs. [MAR](#missing-at-random-mar))
+-   Proportion of the missing data
+-   Information available in the data set
+
+Since the imputed observations are themselves estimates, their values have corresponding random error. But when you put in that estimate as a data point, your software doesn't know that. So it overlooks the extra source of error, resulting in too-small standard errors and too-small p-values. So multiple imputation comes up with multiple estimates.
+
+Because multiple imputation have a random component, the multiple estimates are slightly different. This re-introduces some variation that your software can incorporate in order to give your model accurate estimates of standard error. Multiple imputation was a huge breakthrough in statistics about 20 years ago. It solves a lot of problems with missing data (though, unfortunately not all) and if done well, leads to unbiased parameter estimates and accurate standard errors. If your rate of missing data is very, very small (2-3%) it doesn't matter what technique you use.
+
+Remember that there are three goals of multiple imputation, or any missing data technique:
+
+-   Unbiased parameter estimates in the final analysis (regression coefficients, group means, odds ratios, etc.)
+-   accurate standard errors of those parameter estimates, and therefore, accurate p-values in the analysis
+-   adequate power to find meaningful parameter values significant.
+
+Hence,
+
+1.  Don't round off imputations for dummy variables. Many common imputation techniques, like MCMC, require normally distributed variables. Suggestions for imputing categorical variables were to dummy code them, impute them, then round off imputed values to 0 or 1. Recent research, however, has found that rounding off imputed values actually leads to biased parameter estimates in the analysis model. You actually get better results by leaving the imputed values at impossible values, even though it's counter-intuitive.
+
+2.  Don't transform skewed variables. Likewise, when you transform a variable to meet normality assumptions before imputing, you not only are changing the distribution of that variable but the relationship between that variable and the others you use to impute. Doing so can lead to imputing outliers, creating more bias than just imputing the skewed variable.
+
+3.  Use more imputations. The advice for years has been that 5-10 imputations are adequate. And while this is true for unbiasedness, you can get inconsistent results if you run the multiple imputation more than once. [@Bodner_2008] recommends having as many imputations as the percentage of missing data. Since running more imputations isn't any more work for the data analyst, there's no reason not to.
+
+4.  Create multiplicative terms before imputing. When the analysis model contains a multiplicative term, like an interaction term or a quadratic, create the multiplicative terms first, then impute. Imputing first, and then creating the multiplicative terms actually biases the regression parameters of the multiplicative term [@von_Hippel_2009]
+
+## Diagnosing the Mechanism
+
+### MAR vs. MNAR
+
+The only true way to distinguish between MNAR and MAR is to measure some of that missing data.
+
+It's a common practice among professional surveyors to, for example, follow-up on a paper survey with phone calls to a group of the non-respondents and ask a few key survey items. This allows you to compare respondents to non-respondents.
+
+If their responses on those key items differ by very much, that's good evidence that the data are MNAR.
+
+However in most missing data situations, we can't get a hold of the missing data. So while we can't test it directly, we can examine patterns in the data get an idea of what's the most likely mechanism.
+
+The first thing in diagnosing randomness of the missing data is to use your substantive scientific knowledge of the data and your field. The more sensitive the issue, the less likely people are to tell you. They're not going to tell you as much about their cocaine usage as they are about their phone usage.
+
+Likewise, many fields have common research situations in which non-ignorable data is common. Educate yourself in your field's literature.
+
+### MCAR vs. MAR
+
+There is a very useful test for MCAR, Little's test.
+
+A second technique is to create dummy variables for whether a variable is missing.
+
+1 = missing 0 = observed
+
+You can then run t-tests and chi-square tests between this variable and other variables in the data set to see if the missingness on this variable is related to the values of other variables.
+
+For example, if women really are less likely to tell you their weight than men, a chi-square test will tell you that the percentage of missing data on the weight variable is higher for women than men.
+
+## Application
+
+How many imputation:
+
+**usually 5**. (unless you have extremely high portion of missing, in which case you probably need to check your data again)
+
+According to Rubin, the relative efficiency of an estimate based on m imputations to infinity imputation is approximately
+
+$$
+(1+\frac{\lambda}{m})^{-1}
+$$ where $\lambda$ is the rate of missing data
+
+[[Example:\\\\](Example:\\){.uri}]([Example:\\](Example:\){.uri}){.uri} 50% of missing data means an estimate based on 5 imputation has standard deviation that is only 5% wider compared to an estimate based on infinity imputation\
+($\sqrt{1+0.5/5}=1.049$)
+
+
+```r
+library(missForest)
+```
+
+```
+## Loading required package: randomForest
+```
+
+```
+## randomForest 4.6-14
+```
+
+```
+## Type rfNews() to see new features/changes/bug fixes.
+```
+
+```
+## Loading required package: foreach
+```
+
+```
+## Loading required package: itertools
+```
+
+```
+## Loading required package: iterators
+```
+
+```r
+#load data
+data <- iris
+
+#Generate 10% missing values at Random
+set.seed(1)
+iris.mis <- prodNA(iris, noNA = 0.1)
+
+#remove categorical variables
+iris.mis.cat <- iris.mis
+iris.mis <- subset(iris.mis, select = -c(Species))
+```
+
+### Imputation with mean / median / mode
+
+
+```r
+# whole data set
+e1071::impute(iris.mis, what = "mean") # replace with mean
+e1071::impute(iris.mis, what = "median") # replace with median
+
+# by variables
+Hmisc::impute(iris.mis$Sepal.Length, mean)  # mean
+Hmisc::impute(iris.mis$Sepal.Length, median)  # median
+Hmisc::impute(iris.mis$Sepal.Length, 0)  # replace specific number
+```
+
+check accurary
+
+
+```r
+library(DMwR)
+```
+
+```
+## Loading required package: lattice
+```
+
+```
+## Loading required package: grid
+```
+
+```
+## Registered S3 method overwritten by 'quantmod':
+##   method            from
+##   as.zoo.data.frame zoo
+```
+
+```r
+actuals <- iris$Sepal.Width[is.na(iris.mis$Sepal.Width)]
+predicteds <- rep(mean(iris$Sepal.Width, na.rm=T), length(actuals))
+regr.eval(actuals, predicteds)
+```
+
+```
+##       mae       mse      rmse      mape 
+## 0.2870303 0.1301598 0.3607767 0.1021485
+```
+
+### KNN
+
+
+```r
+library(DMwR)
+# iris.mis[,!names(iris.mis) %in% c("Sepal.Length")] 
+# data should be this line. But since knn cant work with 3 or less variables, we need to use at least 4 variables. 
+
+# knn is not appropriate for categorical variables
+knnOutput <-
+    knnImputation(data = iris.mis.cat, 
+                  #k = 10, 
+                  meth = "median" # could use "median" or "weighAvg"
+                  )  # should exclude the dependent variable: Sepal.Length
+anyNA(knnOutput)
+```
+
+```
+## [1] FALSE
+```
+
+
+```r
+library(DMwR)
+actuals <- iris$Sepal.Width[is.na(iris.mis$Sepal.Width)]
+predicteds <- knnOutput[is.na(iris.mis$Sepal.Width), "Sepal.Width"]
+regr.eval(actuals, predicteds)
+```
+
+```
+##       mae       mse      rmse      mape 
+## 0.2318182 0.1038636 0.3222788 0.0823571
+```
+
+Compared to mape (mean absolute percentage error) of mean imputation, we see almost always see improvements.
+
+### rpart
+
+For categorical (factor) variables, rpart can handle
+
+
+```r
+library(rpart)
+class_mod <- rpart(Species ~ . - Sepal.Length, data=iris.mis.cat[!is.na(iris.mis.cat$Species), ], method="class", na.action=na.omit)  # since Species is a factor, and exclude dependent variable "Sepal.Length"
+
+anova_mod <- rpart(Sepal.Width ~ . - Sepal.Length, data=iris.mis[!is.na(iris.mis$Sepal.Width), ], method="anova", na.action=na.omit)  # since Sepal.Width is numeric.
+species_pred <- predict(class_mod, iris.mis.cat[is.na(iris.mis.cat$Species), ])
+width_pred <- predict(anova_mod, iris.mis[is.na(iris.mis$Sepal.Width), ])
+```
+
+### MICE (Multivariate Imputation via Chained Equations) {#mice-multivariate-imputation-via-chained-equations}
+
+Assumption: data are [MAR](#missing-at-random-mar)
+
+It imputes data per variable by specifying an imputation model for each variable
+
+**Example**
+
+We have $X_1, X_2,..,X_k$. If $X_1$ has missing data, then it is regressed on the rest of the variables. Same procedure applies if $X_2$ has missing data. Then, predicted values are used in place of missing values.
+
+By default,
+
+-   **Continuous variables** use linear regression.\
+-   **Categorical Variables** use logistic regression.
+
+Methods in [MICE](#mice-multivariate-imputation-via-chained-equations):
+
+-   PMM (Predictive Mean Matching) -- For numeric variables
+-   logreg(Logistic Regression) -- For Binary Variables( with 2 levels)
+-   polyreg(Bayesian polytomous regression) -- For Factor Variables (\>= 2 levels)
+-   Proportional odds model (ordered, \>= 2 levels)
+
+
+```r
+# load package
+library(mice)
+```
+
+```
+## 
+## Attaching package: 'mice'
+```
+
+```
+## The following object is masked from 'package:stats':
+## 
+##     filter
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     cbind, rbind
+```
+
+```r
+library(VIM)
+```
+
+```
+## Loading required package: colorspace
+```
+
+```
+## VIM is ready to use.
+```
+
+```
+## Suggestions and bug-reports can be submitted at: https://github.com/statistikat/VIM/issues
+```
+
+```
+## 
+## Attaching package: 'VIM'
+```
+
+```
+## The following object is masked from 'package:DMwR':
+## 
+##     kNN
+```
+
+```
+## The following object is masked from 'package:missForest':
+## 
+##     nrmse
+```
+
+```
+## The following object is masked from 'package:datasets':
+## 
+##     sleep
+```
+
+```r
+# check missing values
+md.pattern(iris.mis)
+```
+
+<img src="09-imputation_files/figure-html/unnamed-chunk-7-1.png" width="672" />
+
+```
+##     Sepal.Width Sepal.Length Petal.Length Petal.Width   
+## 100           1            1            1           1  0
+## 15            1            1            1           0  1
+## 8             1            1            0           1  1
+## 2             1            1            0           0  2
+## 11            1            0            1           1  1
+## 1             1            0            1           0  2
+## 1             1            0            0           1  2
+## 1             1            0            0           0  3
+## 7             0            1            1           1  1
+## 3             0            1            0           1  2
+## 1             0            0            1           1  2
+##              11           15           15          19 60
+```
+
+```r
+#plot the missing values
+aggr(iris.mis, col=mdc(1:2), numbers=TRUE, sortVars=TRUE, labels=names(iris.mis), cex.axis=.7, gap=3, ylab=c("Proportion of missingness","Missingness Pattern"))
+```
+
+<img src="09-imputation_files/figure-html/unnamed-chunk-7-2.png" width="672" />
+
+```
+## 
+##  Variables sorted by number of missings: 
+##      Variable      Count
+##   Petal.Width 0.12666667
+##  Sepal.Length 0.10000000
+##  Petal.Length 0.10000000
+##   Sepal.Width 0.07333333
+```
+
+```r
+mice_plot <- aggr(iris.mis, col=c('navyblue','yellow'),
+                    numbers=TRUE, sortVars=TRUE,
+                    labels=names(iris.mis), cex.axis=.7,
+                    gap=3, ylab=c("Missing data","Pattern"))
+```
+
+<img src="09-imputation_files/figure-html/unnamed-chunk-7-3.png" width="672" />
+
+```
+## 
+##  Variables sorted by number of missings: 
+##      Variable      Count
+##   Petal.Width 0.12666667
+##  Sepal.Length 0.10000000
+##  Petal.Length 0.10000000
+##   Sepal.Width 0.07333333
+```
+
+Impute Data
+
+
+```r
+imputed_Data <-
+    mice(
+        iris.mis,
+        m = 5, # number of imputed datasets
+        maxit = 50, # number of iterations taken to impute missing values
+        method = 'pmm', # method used in imputation. Here, we used predictive mean matching
+        # other methods can be 
+        # "pmm": Predictive mean matching
+        # "midastouch" : weighted predictive mean matching
+        # "sample": Random sample from observed values
+        # "cart": classification and regression trees
+        # "rf": random forest imputations.
+        # "2lonly.pmm": Level-2 class predictive mean matching
+        # Other methods based on whether variables are (1) numeric, (2) binary, (3) ordered, (4), unordered
+        seed = 500
+    )
+```
+
+
+```r
+summary(imputed_Data)
+```
+
+```
+## Class: mids
+## Number of multiple imputations:  5 
+## Imputation methods:
+## Sepal.Length  Sepal.Width Petal.Length  Petal.Width 
+##        "pmm"        "pmm"        "pmm"        "pmm" 
+## PredictorMatrix:
+##              Sepal.Length Sepal.Width Petal.Length Petal.Width
+## Sepal.Length            0           1            1           1
+## Sepal.Width             1           0            1           1
+## Petal.Length            1           1            0           1
+## Petal.Width             1           1            1           0
+```
+
+```r
+#make a density plot
+densityplot(imputed_Data)
+```
+
+<img src="09-imputation_files/figure-html/unnamed-chunk-9-1.png" width="672" />
+
+```r
+#the red (imputed values) should be similar to the blue (observed)
+```
+
+Check imputed dataset
+
+
+```r
+# 1st dataset 
+completeData <- complete(imputed_Data,1)
+
+# 2nd dataset
+complete(imputed_Data,2)
+```
+
+Regression model using imputed datasets
+
+
+```r
+# regression model
+fit <- with(data = imputed_Data, exp = lm(Sepal.Width ~ Sepal.Length + Petal.Width)) 
+
+#combine results of all 5 models
+combine <- pool(fit)
+summary(combine)
+```
+
+```
+##           term   estimate  std.error statistic       df      p.value
+## 1  (Intercept)  1.8963130 0.32453912  5.843095 131.0856 3.838556e-08
+## 2 Sepal.Length  0.2974293 0.06679204  4.453066 130.2103 1.802241e-05
+## 3  Petal.Width -0.4811603 0.07376809 -6.522608 108.8253 2.243032e-09
+```
+
+### Amelia
+
+-   Use bootstrap based EMB algorithm (faster and robust to impute many variables including cross sectional, time series data etc)\
+-   Use parallel imputation feature using multicore CPUs.
+
+Assumptions
+
+-   All variables follow Multivariate Normal Distribution (MVN). Hence, this package works best when data is MVN, or transformation to normality.\
+-   Missing data is [Missing at Random (MAR)](#missing-at-random-mar)
+
+Steps:
+
+1.  m bootstrap samples and applies EMB algorithm to each sample. Then we have m different estimates of mean and variances.\
+2.  the first set of estimates are used to impute first set of missing values using regression, then second set of estimates are used for second set and so on.
+
+However, [Amelia] is different from [MICE](#mice-multivariate-imputation-via-chained-equations)
+
+-   MICE imputes data on variable by variable basis whereas MVN uses a joint modeling approach based on multivariate normal distribution.\
+-   MICE can handle different types of variables while the variables in MVN need to be normally distributed or transformed to approximate normality.\
+-   MICE can manage imputation of variables defined on a subset of data whereas MVN cannot.
+
+
+```r
+library(Amelia)
+```
+
+```
+## Loading required package: Rcpp
+```
+
+```
+## ## 
+## ## Amelia II: Multiple Imputation
+## ## (Version 1.7.6, built: 2019-11-24)
+## ## Copyright (C) 2005-2021 James Honaker, Gary King and Matthew Blackwell
+## ## Refer to http://gking.harvard.edu/amelia/ for more information
+## ##
+```
+
+```r
+data("iris")
+#seed 10% missing values
+iris.mis <- prodNA(iris, noNA = 0.1)
+
+# idvars – keep all ID variables and other variables which you don’t want to impute
+# noms – keep nominal variables here
+
+#specify columns and run amelia
+amelia_fit <- amelia(iris.mis, m=5, parallel = "multicore", noms = "Species")
+```
+
+```
+## -- Imputation 1 --
+## 
+##   1  2  3  4  5  6  7  8
+## 
+## -- Imputation 2 --
+## 
+##   1  2  3  4  5  6  7  8
+## 
+## -- Imputation 3 --
+## 
+##   1  2  3  4  5
+## 
+## -- Imputation 4 --
+## 
+##   1  2  3  4  5  6  7
+## 
+## -- Imputation 5 --
+## 
+##   1  2  3  4  5  6  7
+```
+
+```r
+# access imputed outputs
+# amelia_fit$imputations[[1]]
+```
+
+### missForest
+
+-   an implementation of random forest algorithm (a non parametric imputation method applicable to various variable types). Hence, no assumption about function form of f. Instead, it tries to estimate f such that it can be as close to the data points as possible.
+-   builds a random forest model for each variable. Then it uses the model to predict missing values in the variable with the help of observed values.
+-   It yields out of bag imputation error estimate. Moreover, it provides high level of control on imputation process.
+-   Since bagging works well on categorical variable too, we don't need to remove them here.
+
+
+```r
+library(missForest)
+#impute missing values, using all parameters as default values
+iris.imp <- missForest(iris.mis)
+```
+
+```
+##   missForest iteration 1 in progress...done!
+##   missForest iteration 2 in progress...done!
+##   missForest iteration 3 in progress...done!
+##   missForest iteration 4 in progress...done!
+```
+
+```r
+# check imputed values
+# iris.imp$ximp
+
+
+# check imputation error
+# NRMSE is normalized mean squared error. It is used to represent error derived from imputing continuous values. 
+# PFC (proportion of falsely classified) is used to represent error derived from imputing categorical values.
+iris.imp$OOBerror
+```
+
+```
+##      NRMSE        PFC 
+## 0.13631893 0.04477612
+```
+
+```r
+#comparing actual data accuracy
+iris.err <- mixError(iris.imp$ximp, iris.mis, iris)
+iris.err
+```
+
+```
+##     NRMSE       PFC 
+## 0.1501524 0.0625000
+```
+
+This means categorical variables are imputed with 5% error and continuous variables are imputed with 14% error.
+
+This can be improved by tuning the values of `mtry` and `ntree` parameter.
+
+-   `mtry` refers to the number of variables being randomly sampled at each split.
+-   `ntree` refers to number of trees to grow in the forest.
+
+### Hmisc
+
+-   `impute()` function imputes missing value using user defined statistical method (mean, max, mean). It's default is median.\
+-   `aregImpute()` allows mean imputation using additive regression, bootstrapping, and predictive mean matching.
+
+1.  In bootstrapping, different bootstrap resamples are used for each of multiple imputations. Then, a flexible additive model (non parametric regression method) is fitted on samples taken with replacements from original data and missing values (acts as dependent variable) are predicted using non-missing values (independent variable).\
+2.  it uses predictive mean matching (default) to impute missing values. Predictive mean matching works well for continuous and categorical (binary & multi-level) without the need for computing residuals and maximum likelihood fit.
+
+**Note**
+
+-   For predicting categorical variables, Fisher's optimum scoring method is used.
+-   `Hmisc` automatically recognizes the variables types and uses bootstrap sample and predictive mean matching to impute missing values.
+-   `missForest` can outperform `Hmisc` if the observed variables have sufficient information.
+
+Assumption
+
+-   linearity in the variables being predicted.
+
+
+```r
+library(Hmisc)
+```
+
+```
+## Loading required package: survival
+```
+
+```
+## Loading required package: Formula
+```
+
+```
+## Loading required package: ggplot2
+```
+
+```
+## 
+## Attaching package: 'ggplot2'
+```
+
+```
+## The following object is masked from 'package:randomForest':
+## 
+##     margin
+```
+
+```
+## 
+## Attaching package: 'Hmisc'
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     format.pval, units
+```
+
+```r
+# impute with mean value
+iris.mis$imputed_age <- with(iris.mis, impute(Sepal.Length, mean))
+
+# impute with random value
+iris.mis$imputed_age2 <- with(iris.mis, impute(Sepal.Length, 'random'))
+
+# could also use min, max, median to impute missing value
+
+# using argImpute
+impute_arg <- aregImpute(~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width +
+Species, data = iris.mis, n.impute = 5) # argImpute() automatically identifies the variable type and treats them accordingly.
+```
+
+```
+## Iteration 1 Iteration 2 Iteration 3 Iteration 4 Iteration 5 Iteration 6 Iteration 7 Iteration 8 
+```
+
+```r
+impute_arg # R-squares are for predicted missing values.
+```
+
+```
+## 
+## Multiple Imputation using Bootstrap and PMM
+## 
+## aregImpute(formula = ~Sepal.Length + Sepal.Width + Petal.Length + 
+##     Petal.Width + Species, data = iris.mis, n.impute = 5)
+## 
+## n: 150 	p: 5 	Imputations: 5  	nk: 3 
+## 
+## Number of NAs:
+## Sepal.Length  Sepal.Width Petal.Length  Petal.Width      Species 
+##           11           11           13           24           16 
+## 
+##              type d.f.
+## Sepal.Length    s    2
+## Sepal.Width     s    2
+## Petal.Length    s    2
+## Petal.Width     s    2
+## Species         c    2
+## 
+## Transformation of Target Variables Forced to be Linear
+## 
+## R-squares for Predicting Non-Missing Values for Each Variable
+## Using Last Imputations of Predictors
+## Sepal.Length  Sepal.Width Petal.Length  Petal.Width      Species 
+##        0.907        0.660        0.978        0.963        0.993
+```
+
+```r
+# check imputed variable Sepal.Length
+impute_arg$imputed$Sepal.Length
+```
+
+```
+##     [,1] [,2] [,3] [,4] [,5]
+## 19   5.2  5.2  5.2  5.8  5.7
+## 21   5.1  5.0  5.1  5.7  5.4
+## 31   4.8  5.0  5.2  5.0  4.8
+## 35   4.6  4.9  4.9  4.9  4.8
+## 49   5.0  5.1  5.1  5.1  5.1
+## 62   6.2  5.7  6.0  6.4  5.6
+## 65   5.5  5.5  5.2  5.8  5.5
+## 67   6.5  5.8  5.8  6.3  6.5
+## 82   5.2  5.1  5.7  5.8  5.5
+## 113  6.4  6.5  7.4  7.2  6.3
+## 122  6.2  5.8  5.5  5.8  6.7
+```
+
+### mi
+
+1.  allows graphical diagnostics of imputation models and convergence of imputation process.
+2.  uses Bayesian version of regression models to handle issue of separation.
+3.  automatically detects irregularities in data (e.g., high collinearity among variables).
+4.  adds noise to imputation process to solve the problem of additive constraints.
+
+
+```r
+library(mi)
+```
+
+```
+## Loading required package: Matrix
+```
+
+```
+## Loading required package: stats4
+```
+
+```
+## Registered S3 methods overwritten by 'lme4':
+##   method                          from
+##   cooks.distance.influence.merMod car 
+##   influence.merMod                car 
+##   dfbeta.influence.merMod         car 
+##   dfbetas.influence.merMod        car
+```
+
+```
+## mi (Version 1.0, packaged: 2015-04-16 14:03:10 UTC; goodrich)
+```
+
+```
+## mi  Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015 Trustees of Columbia University
+```
+
+```
+## This program comes with ABSOLUTELY NO WARRANTY.
+```
+
+```
+## This is free software, and you are welcome to redistribute it
+```
+
+```
+## under the General Public License version 2 or later.
+```
+
+```
+## Execute RShowDoc('COPYING') for details.
+```
+
+```
+## 
+## Attaching package: 'mi'
+```
+
+```
+## The following objects are masked from 'package:mice':
+## 
+##     complete, pool
+```
+
+```r
+# default values of parameters
+# 1. rand.imp.method as “bootstrap”
+# 2. n.imp (number of multiple imputations) as 3
+# 3. n.iter ( number of iterations) as 30
+mi_data <- mi(iris.mis, seed = 335)
+summary(mi_data)
+```
+
+```
+## $Sepal.Length
+## $Sepal.Length$is_missing
+## missing
+## FALSE  TRUE 
+##   139    11 
+## 
+## $Sepal.Length$imputed
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## -0.26578 -0.05962  0.01231  0.01064  0.07137  0.41795 
+## 
+## $Sepal.Length$observed
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## -0.92742 -0.45370 -0.03919  0.00000  0.31610  1.20432 
+## 
+## 
+## $Sepal.Width
+## $Sepal.Width$is_missing
+## missing
+## FALSE  TRUE 
+##   139    11 
+## 
+## $Sepal.Width$imputed
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## -1.02162 -0.43449  0.02617  0.06745  0.56059  1.34934 
+## 
+## $Sepal.Width$observed
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## -1.2494 -0.3068 -0.0712  0.0000  0.2823  1.3427 
+## 
+## 
+## $Petal.Length
+## $Petal.Length$is_missing
+## missing
+## FALSE  TRUE 
+##   137    13 
+## 
+## $Petal.Length$imputed
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## -0.87625 -0.57860  0.04407 -0.11080  0.24928  0.63695 
+## 
+## $Petal.Length$observed
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## -0.7892 -0.6196  0.1721  0.0000  0.3701  0.8790 
+## 
+## 
+## $Petal.Width
+## $Petal.Width$is_missing
+## missing
+## FALSE  TRUE 
+##   126    24 
+## 
+## $Petal.Width$imputed
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## -0.88181 -0.57938  0.03861 -0.06502  0.38551  0.79620 
+## 
+## $Petal.Width$observed
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## -0.72386 -0.59081  0.07444  0.00000  0.40707  0.87275 
+## 
+## 
+## $Species
+## $Species$crosstab
+##             
+##              observed imputed
+##   setosa          184      20
+##   versicolor      188      15
+##   virginica       164      29
+## 
+## 
+## $imputed_age
+## $imputed_age$is_missing
+## [1] "all values observed"
+## 
+## $imputed_age$observed
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## -0.9637 -0.4714  0.0000  0.0000  0.3285  1.2514 
+## 
+## 
+## $imputed_age2
+## $imputed_age2$is_missing
+## [1] "all values observed"
+## 
+## $imputed_age2$observed
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## -0.92932 -0.45738 -0.04444  0.00000  0.35375  1.19439
+```

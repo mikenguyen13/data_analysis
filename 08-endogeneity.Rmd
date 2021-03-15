@@ -1,24 +1,24 @@
 # Endogeneity
 
+Types of endogeneity
 
-Types of endogeneity 
+1.  [Endogenous Treatment]
 
-1. [Endogenous Treatment]  
- * Omitted Variables Bias  
-        + Motivation/choice   
-        + Ability/talent  
-        + Self-selection  
- * Feedback Effect (Simultaneity): also known as bidirectionality
- * Measurement Error
-2. [Endogenous Sample Selection]
+-   Omitted Variables Bias\
 
+    -   Motivation/choice\
+    -   Ability/talent\
+    -   Self-selection
 
+-   Feedback Effect (Simultaneity): also known as bidirectionality
 
+-   Measurement Error
+
+2.  [Endogenous Sample Selection]
 
 ## Endogenous Treatment
 
-
-Using the OLS estimates as a reference point 
+Using the OLS estimates as a reference point
 
 ```{r}
 library(AER)
@@ -40,58 +40,54 @@ Assume [A1][A1 Linearity] , [A2][A2 Full rank], [A5][A5 Data Generation (random 
 
 $$
 plim(\hat{\beta}_{OLS}) = \beta + [E(\mathbf{x_i'x_i})]^{-1}E(\mathbf{x_i'}\epsilon_i)
-$$
-[A3a] is the weakest assumption needed for OLS to be **consistent**
+$$ [A3a] is the weakest assumption needed for OLS to be **consistent**
 
+[A3] fails when $x_{ik}$ is correlated with $\epsilon_i$
 
-[A3] fails when $x_{ik}$ is correlated with $\epsilon_i$  
+-   [Omitted Variables Bias] $\epsilon_i$ includes any other factors that may influence the dependent variable (linearly)
+-   [Feedback Effect (Simultaneity)] Demand and prices are simultaneously determined.
+-   [Endogenous sample design (sample selection)] we did not have iid sample
+-   [Measurement Error]
 
- * [Omitted Variables Bias] $\epsilon_i$ includes any other factors that may influence the dependent variable (linearly)
- * [Feedback Effect (Simultaneity)] Demand and prices are simultaneously determined. 
- * [Endogenous sample design (sample selection)] we did not have iid sample
- * [Measurement Error] 
+**Note**
 
-**Note**  
+-   Omitted Variable: an omitted variable is a variable, omitted from the model (but is in the $\epsilon_i$) and unobserved has predictive power towards the outcome.\
+-   Omitted Variable Bias: is the bias (and inconsistency when looking at large sample properties) of the OLS estimator when the omitted variable.
 
- * Omitted Variable: an omitted variable is a variable, omitted from the model (but is in the $\epsilon_i$) and unobserved has predictive power towards the outcome.  
- * Omitted Variable Bias: is the bias (and inconsistency when looking at large sample properties) of the OLS estimator when the omitted variable.  
-
-
-
-The **structural equation** is used to emphasize that we are interested understanding a **causal relationship**  
+The **structural equation** is used to emphasize that we are interested understanding a **causal relationship**
 
 $$
 y_{i1} = \beta_0 + \mathbf{z}_i1 \beta_1 + y_{i2}\beta_2 +  \epsilon_i
 $$
 
-where  
+where
 
- * $y_{it}$ is the outcome variable (inherently correlated with $\epsilon_i$)
- * $y_{i2}$ is the endogenous covariate (presumed to be correlated with $\epsilon_i$)
- * $\beta_1$ represents the causal effect of $y_{i2}$ on $y_{i1}$
- * $\mathbf{z}_{i1}$ is exogenous controls (uncorrelated with $\epsilon_i$) ($E(z_{1i}'\epsilon_i) = 0$)
+-   $y_{it}$ is the outcome variable (inherently correlated with $\epsilon_i$)
+-   $y_{i2}$ is the endogenous covariate (presumed to be correlated with $\epsilon_i$)
+-   $\beta_1$ represents the causal effect of $y_{i2}$ on $y_{i1}$
+-   $\mathbf{z}_{i1}$ is exogenous controls (uncorrelated with $\epsilon_i$) ($E(z_{1i}'\epsilon_i) = 0$)
 
-OLS is an inconsistent estimator of the causal effect $\beta_2$  
+OLS is an inconsistent estimator of the causal effect $\beta_2$
 
-If there was no endogeneity   
+If there was no endogeneity
 
- * $E(y_{i2}'\epsilon_i) = 0$
- * the exogenous variation in $y_{i2}$ is what identifies the causal effect
+-   $E(y_{i2}'\epsilon_i) = 0$
+-   the exogenous variation in $y_{i2}$ is what identifies the causal effect
 
 If there is endogeneity
 
- * Any wiggle in $y_{i2}$ will shift simultaneously with $\epsilon_i$
+-   Any wiggle in $y_{i2}$ will shift simultaneously with $\epsilon_i$
 
 $$
 plim(\hat{\beta}_{OLS}) = \beta + [E(\mathbf{x'_ix_i})]^{-1}E(\mathbf{x'_i}\epsilon_i)
 $$
 
-where  
+where
 
- * $\beta$ is the causal effect
- * $[E(\mathbf{x'_ix_i})]^{-1}E(\mathbf{x'_i}\epsilon_i)$ is the endogenous effect
+-   $\beta$ is the causal effect
+-   $[E(\mathbf{x'_ix_i})]^{-1}E(\mathbf{x'_i}\epsilon_i)$ is the endogenous effect
 
-Hence $\hat{\beta}_{OLS}$ can be either more positive and negative than the true causal effect. 
+Hence $\hat{\beta}_{OLS}$ can be either more positive and negative than the true causal effect.
 
 <br>
 
@@ -101,62 +97,58 @@ $$
 y_{i1}=\beta_0 + \mathbf{z}_{i1}\beta_1 + y_{i2}\beta_2 + \epsilon_i
 $$
 
-We want to understand how movement in $y_{i2}$ effects movement in $y_{i1}$, but whenever we move $y_{i2}$, $\epsilon_i$ also moves. 
+We want to understand how movement in $y_{i2}$ effects movement in $y_{i1}$, but whenever we move $y_{i2}$, $\epsilon_i$ also moves.
 
-**Solution**  
-We need a way to move $y_{i2}$ independently of $\epsilon_i$, then we can analyze the response in $y_{i1}$ as a causal effect   
+**Solution**\
+We need a way to move $y_{i2}$ independently of $\epsilon_i$, then we can analyze the response in $y_{i1}$ as a causal effect
 
- * Find an **instrumental variable(s) $z_{i2}$  
-        + **Instrument Relevance**: when $z_{i2}$ moves then $y_{i2}$ also moves   
-        + **Instrument Exogeneity**: when $z_{i2}$ moves then $\epsilon_i$ does not move.   
- * $z_{i2}$ is the **exogenous variation that identifies** the causal effect $\beta_2$  
+-   Find an **instrumental variable(s)** $z_{i2}$\
 
-Finding an Instrumental variable:  
+    -   Instrument Relevance**: when** $z_{i2}$ moves then $y_{i2}$ also moves\
+    -   Instrument Exogeneity\*\*: when $z_{i2}$ moves then $\epsilon_i$ does not move.\
 
- * Random Assignment: 
-        + Effect of class size on educational outcomes: instrument is initial random 
- * Relation's Choice
-        + Effect of Education on Fertility: instrument is parent's educational level 
- * Eligibility 
-        + Trade-off between IRA and 401K retirement savings: instrument is 401k eligibility
+-   $z_{i2}$ is the **exogenous variation that identifies** the causal effect $\beta_2$
 
-**Example**  
+Finding an Instrumental variable:
 
-Return to College  
+-   Random Assignment: + Effect of class size on educational outcomes: instrument is initial random
+-   Relation's Choice + Effect of Education on Fertility: instrument is parent's educational level
+-   Eligibility + Trade-off between IRA and 401K retirement savings: instrument is 401k eligibility
 
- * education is correlated with ability - endogenous  
- * **Near 4year** as an instrument  
-        + Instrument Relevance: when **near** moves then education also moves   
-        + Instrument Exogeneity: when **near** moves then $\epsilon_i$ does not move.   
- * Other potential instruments; near a 2-year college. Parent's Education. Owning  Library Card  
+**Example**
 
+Return to College
+
+-   education is correlated with ability - endogenous\
+
+-   **Near 4year** as an instrument\
+
+    -   Instrument Relevance: when **near** moves then education also moves\
+    -   Instrument Exogeneity: when **near** moves then $\epsilon_i$ does not move.\
+
+-   Other potential instruments; near a 2-year college. Parent's Education. Owning Library Card
 
 $$
 y_{i1}=\beta_0 + \mathbf{z}_{i1}\beta_1 + y_{i2}\beta_2 + \epsilon_i
 $$
 
-First Stage (Reduced Form) Equation: 
+First Stage (Reduced Form) Equation:
 
 $$
 y_{i2} = \pi_0 + \mathbf{z_{i1}\pi_1} + \mathbf{z_{i2}\pi_2} + v_i
-$$
-where  
+$$ where
 
- * $\pi_0 + \mathbf{z_{i1}\pi_1} + \mathbf{z_{i2}\pi_2}$ is exogenous variation 
- $v_i$ is endogenous variation
+-   $\pi_0 + \mathbf{z_{i1}\pi_1} + \mathbf{z_{i2}\pi_2}$ is exogenous variation $v_i$ is endogenous variation
 
-This is called a **reduced form equation**  
- * Not interested in the causal interpretation of $\pi_1$ or $\pi_2$
- * A linear projection of $z_{i1}$ and $z_{i2}$ on $y_{i2}$ (simple correlations)
- * The projections $\pi_1$ and $\pi_2$ guarantee that $E(z_{i1}'v_i)=0$ and $E(z_{i2}'v_i)=0$ 
+This is called a **reduced form equation**\
+\* Not interested in the causal interpretation of $\pi_1$ or $\pi_2$ \* A linear projection of $z_{i1}$ and $z_{i2}$ on $y_{i2}$ (simple correlations) \* The projections $\pi_1$ and $\pi_2$ guarantee that $E(z_{i1}'v_i)=0$ and $E(z_{i2}'v_i)=0$
 
+Instrumental variable $z_{i2}$
 
-Instrumental variable $z_{i2}$  
+-   **Instrument Relevance**: $\pi_2 \neq 0$
+-   **Instrument Exogeneity**: $E(\mathbf{z_{i2}\epsilon_i})=0$
 
- * **Instrument Relevance**: $\pi_2 \neq 0$
- * **Instrument Exogeneity**: $E(\mathbf{z_{i2}\epsilon_i})=0$
-
-Moving only the exogenous part of $y_i2$ is moving 
+Moving only the exogenous part of $y_i2$ is moving
 
 $$
 \tilde{y}_{i2} = \pi_0 + \mathbf{z_{i1}\pi_1 + z_{i2}\pi_2}
@@ -169,25 +161,22 @@ y_{i1} = \beta_0 +\mathbf{z_{i1}\beta_1}+ y_{i2}\beta_2 + \epsilon_i \\
 y_{i2} = \pi_0 + \mathbf{z_{i2}\pi_2} + \mathbf{v_i}
 $$
 
-Equivalently, 
+Equivalently,
 
 $$
 \begin{equation}
 y_{i1} = \beta_0 + \mathbf{z_{i1}}\beta_1 + \tilde{y}_{i2}\beta_2 + u_i
 (\#eq:2SLS)
 \end{equation}
-$$
-where  
+$$ where
 
- * $\tilde{y}_{i2} =\pi_0 + \mathbf{z_{i2}\pi_2}$
- * $u_i = v_i \beta_2+ \epsilon_i$
+-   $\tilde{y}_{i2} =\pi_0 + \mathbf{z_{i2}\pi_2}$
+-   $u_i = v_i \beta_2+ \epsilon_i$
 
+The \@ref(eq:2SLS) holds for [A1][A1 Linearity], [A5][A5 Data Generation (random Sampling)]
 
-The \@ref(eq:2SLS) holds for [A1][A1 Linearity], [A5][A5 Data Generation (random Sampling)]  
-
- * [A2][A2 Full rank] holds if the instrument is relevant $\pi_2 \neq 0$
-        + $y_{i1} = \beta_0 + \mathbf{z_{i1}\beta_1 + (\pi_0 + z_{i1}\pi_1 + z_{i2}\pi_2)}\beta_2 + u_i$
- * [A3a] holds if the instrument is exogenous $E(\mathbf{z}_{i2}\epsilon_i)=0$
+-   [A2][A2 Full rank] holds if the instrument is relevant $\pi_2 \neq 0$ + $y_{i1} = \beta_0 + \mathbf{z_{i1}\beta_1 + (\pi_0 + z_{i1}\pi_1 + z_{i2}\pi_2)}\beta_2 + u_i$
+-   [A3a] holds if the instrument is exogenous $E(\mathbf{z}_{i2}\epsilon_i)=0$
 
 $$
 \begin{align}
@@ -198,17 +187,16 @@ E(\tilde{y}_{i2}'u_i) &= E((\pi_0 + \mathbf{z_{i1}\pi_1+z_{i2}})(v_i\beta_2 + \e
 \end{align}
 $$
 
-Hence, \@ref(eq:2SLS) is consistent 
+Hence, \@ref(eq:2SLS) is consistent
 
-The 2SLS Estimator  
- 1. Estimate the first stage using [OLS][Ordinary Least Squares]
+The 2SLS Estimator\
+1. Estimate the first stage using [OLS][Ordinary Least Squares]
 
 $$
 y_{i2} = \pi_0 + \mathbf{z_{i2}\pi_2} + \mathbf{v_i}
-$$
-and obtained estimated value $\hat{y}_{i2}$
+$$ and obtained estimated value $\hat{y}_{i2}$
 
- 2. Estimate the altered equation using [OLS][Ordinary Least Squares]
+2.  Estimate the altered equation using [OLS][Ordinary Least Squares]
 
 $$
 y_{i1} = \beta_0 +\mathbf{z_{i1}\beta_1}+ \hat{y}_{i2}\beta_2 + \epsilon_i \\
@@ -216,83 +204,83 @@ $$
 
 **Properties of the 2SLS Estimator**
 
- * Under [A1][A1 Linearity], [A2][A2 Full rank], [A3a] (for $z_{i1}$), [A5][A5 Data Generation (random Sampling)] and if the instrument satisfies the following two conditions, 
-        + **Instrument Relevance**: $\pi_2 \neq 0$
-        + **Instrument Exogeneity**: $E(\mathbf{z}_{i2}'\epsilon_i) = 0$
- then the 2SLS estimator is consistent
- * Can handle more than one endogenous variable and more than one instrumental variable 
+-   Under [A1][A1 Linearity], [A2][A2 Full rank], [A3a] (for $z_{i1}$), [A5][A5 Data Generation (random Sampling)] and if the instrument satisfies the following two conditions, + **Instrument Relevance**: $\pi_2 \neq 0$ + **Instrument Exogeneity**: $E(\mathbf{z}_{i2}'\epsilon_i) = 0$ then the 2SLS estimator is consistent
+-   Can handle more than one endogenous variable and more than one instrumental variable
 
 $$
 y_{i1} = \beta_0 + z_{i1}\beta_1 + y_{i2}\beta_2 + y_{i3}\beta_3 + \epsilon_i \\
 y_{i2} = \pi_0 + z_{i1}\pi_1 + z_{i2}\pi_2 + z_{i3}\pi_3 + z_{i4}\pi_4 + v_{i2} \\
 y_{i3} = \gamma_0 + z_{i1}\gamma_1 + z_{i2}\gamma_2 + z_{i3}\gamma_3 + z_{i4}\gamma_4 + v_{i3}
 $$
-        
+
         + **IV estimator**: one endogenous variable with a single instrument 
         + **2SLS estimator**: one endogenous variable with multiple instruments 
         + **GMM estimator**: multiple endogenous variables with multiple instruments
         
- * Standard errors produced in the second step are not correct  
-        + Because we do not know $\tilde{y}$ perfectly and need to estimate it in the firs step, we are introducing additional variation   
-        + We did not have this problem with [FGLS][Feasible Generalized Least Squares] because "the first stage was orthogonal to the second stage." This is generally not true for most multi-step procedure.  
-        + If [A4][A4 Homoskedasticity] does not hold, need to report robust standard errors.  
- * 2SLS is less efficient than OLS and will always have larger standard errors.  
-        + First, $Var(u_i) = Var(v_i\beta_2 + \epsilon_i) > Var(\epsilon_i)$  
-        + Second, $\hat{y}_{i2}$ is generally highly collinear with $\mathbf{z}_{i1}$  
- * The number of instruments need to be at least as many or more the number of endogenous variables. 
 
+-   Standard errors produced in the second step are not correct\
 
-**Note**  
+    -   Because we do not know $\tilde{y}$ perfectly and need to estimate it in the firs step, we are introducing additional variation\
+    -   We did not have this problem with [FGLS][Feasible Generalized Least Squares] because "the first stage was orthogonal to the second stage." This is generally not true for most multi-step procedure.\
+    -   If [A4][A4 Homoskedasticity] does not hold, need to report robust standard errors.\
 
- * 2SLS can be combined with [FGLS][Feasible Generalized Least Squares] to make the estimator more efficient: You have the same first-stage, and in the second-stage, instead of using OLS, you can use FLGS with the weight matrix $\hat{w}$  
- * Generalized Method of Moments can be more efficient than 2SLS.  
- * In the second-stage of 2SLS, you can also use [MLE][Maximum Likelihood], but then you are making assumption on the distribution of the outcome variable, the endogenous variable, and their relationship (joint distribution).  
+-   2SLS is less efficient than OLS and will always have larger standard errors.\
+
+    -   First, $Var(u_i) = Var(v_i\beta_2 + \epsilon_i) > Var(\epsilon_i)$\
+    -   Second, $\hat{y}_{i2}$ is generally highly collinear with $\mathbf{z}_{i1}$\
+
+-   The number of instruments need to be at least as many or more the number of endogenous variables.
+
+**Note**
+
+-   2SLS can be combined with [FGLS][Feasible Generalized Least Squares] to make the estimator more efficient: You have the same first-stage, and in the second-stage, instead of using OLS, you can use FLGS with the weight matrix $\hat{w}$\
+-   Generalized Method of Moments can be more efficient than 2SLS.\
+-   In the second-stage of 2SLS, you can also use [MLE][Maximum Likelihood], but then you are making assumption on the distribution of the outcome variable, the endogenous variable, and their relationship (joint distribution).
 
 #### Testing Assumption
 
- 1. [Test of Endogeneity]: Is $y_{i2}$ truly endogenous (i.e., can we just use OLS instead of 2SLS)?
- 2. [Testing Instrument's assumptions]  
-        + [Exogeneity]: Cannot always test (and when you can it might not be informative)  
-        + [Relevancy]: need to avoid "weak instruments"
+1.  [Test of Endogeneity]: Is $y_{i2}$ truly endogenous (i.e., can we just use OLS instead of 2SLS)?
 
+2.  [Testing Instrument's assumptions]\
+
+    -   [Exogeneity]: Cannot always test (and when you can it might not be informative)\
+    -   
 
 ##### Test of Endogeneity
 
- * 2SLS is generally so inefficient that we may prefer OLS if there is not much endogeneity 
- * Biased but inefficient vs efficient but biased 
- * Want a sense of "how endogenous" $y_{i2}$ is  
-        + if "very" endgeneous - should use 2SLS   
-        + if not "very" endogenous - perhaps prefer OLS  
+-   2SLS is generally so inefficient that we may prefer OLS if there is not much endogeneity
 
-**Invalid** Test of Endogeneity
- * $y_{i2}$ is endogenous if it is correlated with $\epsilon_i$,
+-   Biased but inefficient vs efficient but biased
+
+-   Want a sense of "how endogenous" $y_{i2}$ is\
+
+    -   if "very" endgeneous - should use 2SLS\
+    -   if not "very" endogenous - perhaps prefer OLS
+
+**Invalid** Test of Endogeneity \* $y_{i2}$ is endogenous if it is correlated with $\epsilon_i$,
 
 $$
 \epsilon_i = \gamma_0 + y_{i2}\gamma_1 + error_i
-$$
-where $\gamma_1 \neq 0$ implies that there is endogeneity
+$$ where $\gamma_1 \neq 0$ implies that there is endogeneity
 
- * $\epsilon_i$ is not observed, but using the residuals
+-   $\epsilon_i$ is not observed, but using the residuals
 
 $$
 e_i = \gamma_0 + y_{i2}\gamma_1 + error_i
-$$
-is **NOT** a valid test of endogeneity
-        + The OLS residual, e is mechanically uncorrelated with $y_{i2}$ (by FOC for OLS)
-        + In every situation, $\gamma_1$ will be essentially 0 and you will never be able to reject the null of no endogeneity  
+$$ is **NOT** a valid test of endogeneity + The OLS residual, e is mechanically uncorrelated with $y_{i2}$ (by FOC for OLS) + In every situation, $\gamma_1$ will be essentially 0 and you will never be able to reject the null of no endogeneity
 
 <br>
 
 **Valid** test of endogeneity
 
- * If $y_{i2}$ is not endogenous then $\epsilon_i$ and v are uncorrelated
+-   If $y_{i2}$ is not endogenous then $\epsilon_i$ and v are uncorrelated
 
 $$
 y_{i1} = \beta_0 + \mathbf{z}_{i1}\beta_1 + y_{i2}\beta_2 + \epsilon_i \\
 y_{i2} = \pi_0 + \mathbf{z}_{i1}\pi_1 + z_{i2}\pi_2 + v_i
 $$
 
-**variable Addition test**: include the first stage residuals as an additional variable, 
+**variable Addition test**: include the first stage residuals as an additional variable,
 
 $$
 y_{i1} = \beta_0 + \mathbf{z}_{i1}\beta_1 + y_{i2}\beta_2 + \hat{v}_i \theta + error_i
@@ -307,13 +295,12 @@ H_1: \theta \neq 0 && \text{  (endogenous)}
 \end{split}
 $$
 
-
 ##### Testing Instrument's assumptions
 
-The instrumental variable must satisfy  
+The instrumental variable must satisfy
 
- 1. [Exogeneity]
- 2. [Relevancy]
+1.  [Exogeneity]
+2.  [Relevancy](need%20to%20avoid "weak instruments")
 
 ###### Exogeneity
 
@@ -323,58 +310,57 @@ $$
 E(\mathbf{z}_{i2}'\epsilon_i) = 0
 $$
 
- * If [A3a] fails - 2SLS is also inconsistent 
- * If instrument is not exogenous, then we need to find a new one.
- * Similar to [Test of Endogeneity], when there is a single instrument 
+-   If [A3a] fails - 2SLS is also inconsistent
+-   If instrument is not exogenous, then we need to find a new one.
+-   Similar to [Test of Endogeneity], when there is a single instrument
 
 $$
 e_i = \gamma_0 + \mathbf{z}_{i2}\gamma_1 + error_i \\
 H_0: \gamma_1 = 0
-$$
-is **NOT** a valid test of endogeneity  
- * the OLS residual, e is mechanically uncorrelated with $z_{i2}$: $\hat{\gamma}_1$ will be essentially 0 and you will never be able to determine if the instrument is endogenous. 
+$$ is **NOT** a valid test of endogeneity\
+\* the OLS residual, e is mechanically uncorrelated with $z_{i2}$: $\hat{\gamma}_1$ will be essentially 0 and you will never be able to determine if the instrument is endogenous.
 
-**Solution**  
+**Solution**
 
-Testing Instrumental Exegeneity in an Over-identified Model 
- * When there is more than one exogenous instrument (per endogenous variable), we can test for instrument exogeneity.  
-        + When we have multiple instruments, the model is said to be over-identiifed.  
-        + Could estimate the same model several ways (i.e., can identify/ estimate $\beta_1$ more than one way)  
- * Idea behind the test: if the controls and instruments are truly exogenous then OLS estimation of the following regression,  
+Testing Instrumental Exegeneity in an Over-identified Model \* When there is more than one exogenous instrument (per endogenous variable), we can test for instrument exogeneity.\
++ When we have multiple instruments, the model is said to be over-identiifed.\
++ Could estimate the same model several ways (i.e., can identify/ estimate $\beta_1$ more than one way)\
+\* Idea behind the test: if the controls and instruments are truly exogenous then OLS estimation of the following regression,
 
 $$
 \epsilon_i = \gamma_0 + \mathbf{z}_{i1}\gamma_1 + \mathbf{z}_{i2}\gamma_2 + error_i
-$$
-should have a very low $R^2$  
- * if the model is **just identified** (one instrument per endogenous variable) then the $R^2 = 0$ 
+$$ should have a very low $R^2$\
+\* if the model is **just identified** (one instrument per endogenous variable) then the $R^2 = 0$
 
 Steps:
 
- (1) Estimate the structural equation by 2SLS (using all available instruments) and obtain the residuals e
- (2) Regress e on all controls and instruments and obtain the $R^2$
- (3) Under the null hypothesis (all IV's are uncorrelated), $nR^2 \sim \chi^2(q)$, where q is the number of instrumental variables minus the number of endogenous variables
-        + if the model is just identified (one instrument per endogenous variable) then q = 0, and the distribution under the null collapses.  
+(1) Estimate the structural equation by 2SLS (using all available instruments) and obtain the residuals e
 
+(2) Regress e on all controls and instruments and obtain the $R^2$
 
-low p-value means you reject the null of exogenous instruments. Hence you would like to have high p-value in this test. 
-        
+(3) Under the null hypothesis (all IV's are uncorrelated), $nR^2 \sim \chi^2(q)$, where q is the number of instrumental variables minus the number of endogenous variables
+
+    -   if the model is just identified (one instrument per endogenous variable) then q = 0, and the distribution under the null collapses.
+
+low p-value means you reject the null of exogenous instruments. Hence you would like to have high p-value in this test.
+
 <br>
 
 **Pitfalls for the Overid test**
 
- * the overid test is essentially compiling the following information.  
-        + Conditional on first instrument being exogenous is the other instrument exogenous?  
-        + Conditional on the other instrument being exogenous, is the first instrument exogenous?  
- * If all instruments are endogenous than neither test will be valid
- * really only useful if one instrument is thought to be truly exogenous (randomly assigned). 
- even f you do reject the null, the test does not tell you which instrument is exogenous and which is endogenous. 
- 
-Result | Implication 
----|---
-reject the null | you can be pretty sure there is an endogenous instrument, but don't know which one. 
-fail to reject | could be either (1) they are both exogenous, (2) they are both endogenous. 
+-   the overid test is essentially compiling the following information.\
 
+    -   Conditional on first instrument being exogenous is the other instrument exogenous?\
+    -   Conditional on the other instrument being exogenous, is the first instrument exogenous?\
 
+-   If all instruments are endogenous than neither test will be valid
+
+-   really only useful if one instrument is thought to be truly exogenous (randomly assigned). even f you do reject the null, the test does not tell you which instrument is exogenous and which is endogenous.
+
+| Result          | Implication                                                                         |
+|-----------------|-------------------------------------------------------------------------------------|
+| reject the null | you can be pretty sure there is an endogenous instrument, but don't know which one. |
+| fail to reject  | could be either (1) they are both exogenous, (2) they are both endogenous.          |
 
 ###### Relevancy
 
@@ -382,24 +368,22 @@ Why Relevance matter?
 
 $$
 \pi_2 \neq 0 
-$$
- * used to show [A2][A2 Full rank] holds
-        + If $\pi_2 = 0$ (instrument is not relevant) then [A2][A2 Full rank] fails - perfect multicollinearity  
-        + If $\pi_2$ is close to 0 (**weak instrument**) then there is near perfect multicollinearity - 2SLS is highly inefficient (Large standard errors).  
- * A weak instrument will exacerbate any inconsistency due to an instrument being (even slightly) endogenous.  
-        + In the simple case with no controls and a single endogenous variable and single instrumental variable, 
+$$ \* used to show [A2][A2 Full rank] holds + If $\pi_2 = 0$ (instrument is not relevant) then [A2][A2 Full rank] fails - perfect multicollinearity\
++ If $\pi_2$ is close to 0 (**weak instrument**) then there is near perfect multicollinearity - 2SLS is highly inefficient (Large standard errors).\
+\* A weak instrument will exacerbate any inconsistency due to an instrument being (even slightly) endogenous.\
++ In the simple case with no controls and a single endogenous variable and single instrumental variable,
 
 $$
 plim(\hat{\beta}_{2_{2SLS}}) = \beta_2 + \frac{E(z_{i2}\epsilon_i)}{E(z_{i2}y_{i2})}
 $$
 
+**Testing Weak Instruments**
 
-**Testing Weak Instruments**  
+-   can use t-test (or F-test for over-identified models) in the first stage to determine if there is a weak instrument problem.
 
- * can use t-test (or F-test for over-identified models) in the first stage to determine if there is a weak instrument problem. 
- * [@Stock_2005]: a statistical rejection of the null hypothesis in the first stage at the 5% (or even 1%) level is not enough to insure the instrument is not weak  
-        + Rule of Thumb: need a F-stat of at least 10 (or a t-stat of at least 3.2) to reject the null hypothesis that the instrument is weak.
+-   [@Stock_2005]: a statistical rejection of the null hypothesis in the first stage at the 5% (or even 1%) level is not enough to insure the instrument is not weak\
 
+    -   Rule of Thumb: need a F-stat of at least 10 (or a t-stat of at least 3.2) to reject the null hypothesis that the instrument is weak.
 
 **Summary of the 2SLS Estimator**
 
@@ -408,39 +392,27 @@ y_{i1}=\beta_0 + \mathbf{z}_{i1}\beta_1 + y_{i2}\beta_2 + \epsilon_i \\
 y_{i2} = \pi_0 + \mathbf{z_{i1}\pi_1} + \mathbf{z_{i2}\pi_2} + v_i
 $$
 
- * when [A3a] does not hold 
+-   when [A3a] does not hold
 
 $$
 E(y_{i2}'\epsilon_i) \neq 0
-$$
-        + Then the OLS estimator is no longer unbiased or consistent.  
- * If we have valid instruments $\mathbf{z}_{i2}$
-        + [Exogeneity]: $E(\mathbf{z}_{i2}'\epsilon_i) = 0$
-        + [Relevancy]: $\pi_2 \neq 0$
- Then the 2SLS estimator is consistent under [A1][A1 Linearity], [A2][A2 Full rank], [A5a], and the above two conditions. 
-        + If [A4][A4 Homoskedasticity] also holds, then the usual standard errors are valid. 
-        + If [A4][A4 Homoskedasticity] does not hold then use the robust standard errors. 
+$$ + Then the OLS estimator is no longer unbiased or consistent.\
+\* If we have valid instruments $\mathbf{z}_{i2}$ + [Exogeneity]: $E(\mathbf{z}_{i2}'\epsilon_i) = 0$ + [Relevancy](need%20to%20avoid "weak instruments"): $\pi_2 \neq 0$ Then the 2SLS estimator is consistent under [A1][A1 Linearity], [A2][A2 Full rank], [A5a], and the above two conditions. + If [A4][A4 Homoskedasticity] also holds, then the usual standard errors are valid. + If [A4][A4 Homoskedasticity] does not hold then use the robust standard errors.
 
 $$
 y_{i1}=\beta_0 + \mathbf{z}_{i1}\beta_1 + y_{i2}\beta_2 + \epsilon_i \\
 y_{i2} = \pi_0 + \mathbf{z_{i1}\pi_1} + \mathbf{z_{i2}\pi_2} + v_i
-$$
- * When [A3a] does hold 
+$$ \* When [A3a] does hold
 
 $$
 E(y_{i2}'\epsilon_i) = 0
-$$
-and we have valid instruments, then both the OLS and 2SLS estimators are consistent.  
-        + The OLS estimator is always more efficient 
-        + can use the variable addition test to determine if 2SLS is need (A3a does hold) or if OLS is valid (A3a does not hold)
+$$ and we have valid instruments, then both the OLS and 2SLS estimators are consistent.\
++ The OLS estimator is always more efficient + can use the variable addition test to determine if 2SLS is need (A3a does hold) or if OLS is valid (A3a does not hold)
 
-Sometimes we can test the assumption for instrument to be valid:  
-        + [Exogeneity]: Only table when there are more instruments than endogenous variables.
-        + [Relevancy]: Always testable, need the F-stat to be greater than 10 to rule out a weak instrument 
+Sometimes we can test the assumption for instrument to be valid:\
++ [Exogeneity]: Only table when there are more instruments than endogenous variables. + [Relevancy](need%20to%20avoid "weak instruments"): Always testable, need the F-stat to be greater than 10 to rule out a weak instrument
 
-
-
-Application   
+Application
 
 Expenditure as observed instrument
 
@@ -455,29 +427,15 @@ m2.2sls <-
 summary(m2.2sls)$coefficients[1:7, ]
 ```
 
-
-
-
-
-
-
-
-
 ### Internal instrumental variable
 
-(also **instrument free methods**). This section is based on Raluca Gui's [guide](https://cran.r-project.org/web/packages/REndo/vignettes/REndo-introduction.pdf) 
+(also **instrument free methods**). This section is based on Raluca Gui's [guide](https://cran.r-project.org/web/packages/REndo/vignettes/REndo-introduction.pdf)
 
 alternative to external instrumental variable approaches
 
-All approaches here assume a **continuous dependent variable**  
+All approaches here assume a **continuous dependent variable**
 
-
-**Application**  
-
-
-
-
-
+**Application**
 
 #### Non-hierarchical Data (Cross-classified)
 
@@ -485,119 +443,109 @@ $$
 Y_t = \beta_0 + \beta_1 P_t + \beta_2 X_t + \epsilon_t
 $$
 
+where
 
-where  
+-   $t = 1, .., T$ (indexes either time or cross-sectional units)\
+-   $Y_t$ is a k x 1 response variable\
+-   $X_t$ is a k x n exogenous regressor\
+-   $P_t$ is a k x 1 continuous endogenous regressor\
+-   $\epsilon_t$ is a structural error term with $\mu_\epsilon =0$ and $E(\epsilon^2) = \sigma^2$
+-   $\beta$ are model parameters
 
- * $t = 1, .., T$ (indexes either time or cross-sectional units)  
- * $Y_t$ is a k x 1 response variable   
- * $X_t$ is a k x n exogenous regressor  
- * $P_t$ is a k x 1 continuous endogenous regressor  
- * $\epsilon_t$ is a structural error term with $\mu_\epsilon =0$ and $E(\epsilon^2) = \sigma^2$
- * $\beta$ are model parameters   
-
-The endogeneity problem arises from the correlation of $P_t$ and  $\epsilon_t$: 
-
+The endogeneity problem arises from the correlation of $P_t$ and $\epsilon_t$:
 
 $$
 P_t = \gamma Z_t + v_t
 $$
 
-where  
+where
 
- * $Z_t$ is a l x 1 vector of internal instrumental variables  
- * $ν_t$ is a random error with $\mu_{v_t}, E(v^2) = \sigma^2_v, E(\epsilon v) = \sigma_{\epsilon v}$  
- * $Z_t$ is assumed to be stochastic with distribution G  
- * $ν_t$ is assumed to have density h(·)
+-   $Z_t$ is a l x 1 vector of internal instrumental variables\
+-   $ν_t$ is a random error with $\mu_{v_t}, E(v^2) = \sigma^2_v, E(\epsilon v) = \sigma_{\epsilon v}$\
+-   $Z_t$ is assumed to be stochastic with distribution G\
+-   $ν_t$ is assumed to have density h(·)
 
-##### Latent Instrumental Variable
+##### Latent Instrumental Variable {#latent-instrumental-variable}
 
-[@Ebbes_2005]  
+[@Ebbes_2005]
 
-assume $Z_t$ (unobserved) to be uncorrelated with $\epsilon_t$, which is similar to [Instrumental Variable]. Hence, $Z_t$ and $ν_t$ can't be identified without distributional assumptions  
+assume $Z_t$ (unobserved) to be uncorrelated with $\epsilon_t$, which is similar to [Instrumental Variable]. Hence, $Z_t$ and $ν_t$ can't be identified without distributional assumptions
 
+The distributions of $Z_t$ and $ν_t$ need to be specified such that:
 
-The distributions of $Z_t$ and $ν_t$ need to be specified such that:  
-
- (1) endogeneity of $P_t$ is corrected  
- (2) the distribution of $P_t$ is empirically close to the integral that expresses the amount of
-overlap of Z as it is shifted over ν (= the convolution between $Z_t$ and $ν_t$).   
-
+(1) endogeneity of $P_t$ is corrected\
+(2) the distribution of $P_t$ is empirically close to the integral that expresses the amount of overlap of Z as it is shifted over ν (= the convolution between $Z_t$ and $ν_t$).
 
 When the density h(·) = Normal, then G cannot be normal because the parameters would not be identified [@Ebbes_2005] .
 
-Hence,  
+Hence,
 
- * in the [LIV][Latent Instrumental Variable] model the distribution of $Z_t$ is discrete   
- * in the [Higher Moments Method] and [Joint Estimation Using Copula] methods, the distribution of $Z_t$ is taken to be skewed.
+-   in the [LIV](#latent-instrumental-variable) model the distribution of $Z_t$ is discrete\
+-   in the [Higher Moments Method] and [Joint Estimation Using Copula] methods, the distribution of $Z_t$ is taken to be skewed.
 
+$Z_t$ are assumed **unobserved, discrete and exogenous**, with
 
-$Z_t$ are assumed **unobserved, discrete and exogenous**, with  
+-   an unknown number of groups m\
+-   $\gamma$ is a vector of group means.
 
- * an unknown number of groups m  
- * $\gamma$ is a vector of group means. 
+Identification of the parameters relies on the distributional assumptions of
 
+-   $P_t$: a non-Gaussian distribution\
+-   $Z_t$ discrete with $m \ge 2$
 
-Identification of the parameters relies on the distributional assumptions of  
+Note:
 
- * $P_t$: a non-Gaussian distribution  
- * $Z_t$ discrete with $m \ge 2$  
-
-
-Note:  
-
- * If $Z_t$ is continuous, the model is unidentified  
- * If $P_t \sim N$, you have inefficient estimates.
+-   If $Z_t$ is continuous, the model is unidentified\
+-   If $P_t \sim N$, you have inefficient estimates.
 
 ```{r}
 m3.liv <- latentIV(read ~ stratio, data=school)
 summary(m3.liv)$coefficients[1:7,]
 ```
 
-it will return a coefficient very different from the other methods since there is only one endogenous variable. 
-
+it will return a coefficient very different from the other methods since there is only one endogenous variable.
 
 ##### Joint Estimation Using Copula
 
-assume $Z_t$ (unobserved) to be uncorrelated with $\epsilon_t$, which is similar to [Instrumental Variable]. Hence, $Z_t$ and $ν_t$ can't be identified without distributional assumptions  
+assume $Z_t$ (unobserved) to be uncorrelated with $\epsilon_t$, which is similar to [Instrumental Variable]. Hence, $Z_t$ and $ν_t$ can't be identified without distributional assumptions
 
-[@Park_2012] allows joint estimation of the continuous $P_t$ and $\epsilon_t$ using Gaussian copulas, where a copula is a function that maps several conditional distribution functions (CDF) into their joint CDF).  
+[@Park_2012] allows joint estimation of the continuous $P_t$ and $\epsilon_t$ using Gaussian copulas, where a copula is a function that maps several conditional distribution functions (CDF) into their joint CDF).
 
-The underlying idea is that using information contained in the observed data, one selects marginal distributions for $P_t$ and $\epsilon_t$. Then, the copula model constructs a flexible multivariate joint distribution that allows a wide range of correlations between the two marginals.  
+The underlying idea is that using information contained in the observed data, one selects marginal distributions for $P_t$ and $\epsilon_t$. Then, the copula model constructs a flexible multivariate joint distribution that allows a wide range of correlations between the two marginals.
 
+The method allows both continuous and discrete $P_t$.
 
-The method allows both continuous and discrete $P_t$.  
+In the special case of **one continuous** $P_t$, estimation is based on MLE\
+Otherwise, based on Gaussian copulas, augmented OLS estimation is used.
 
-In the special case of **one continuous** $P_t$, estimation is based on MLE  
-Otherwise, based on Gaussian copulas, augmented OLS estimation is used.   
+**Assumptions**:
 
+-   skewed $P_t$\
 
-**Assumptions**:  
+-   the recovery of the correct parameter estimates\
 
- * skewed $P_t$   
- * the recovery of the correct parameter estimates  
- * $\epsilon_t \sim$ normal marginal distribution. The marginal distribution of $P_t$ is obtained using the **Epanechnikov kernel density estimator**  
-$$
-\hat{h}_p = \frac{1}{T . b} \sum_{t=1}^TK(\frac{p - P_t}{b})
-$$
-where  
+-   $\epsilon_t \sim$ normal marginal distribution. The marginal distribution of $P_t$ is obtained using the **Epanechnikov kernel density estimator**\
+    $$
+    \hat{h}_p = \frac{1}{T . b} \sum_{t=1}^TK(\frac{p - P_t}{b})
+    $$ where
 
- * $P_t$ = endogenous variables  
- * $K(x) = 0.75(1-x^2)I(||x||\le 1)$  
- * $b=0.9T^{-1/5}\times min(s, IQR/1.34)$ suggested by [@Silverman_1969]  
-        + IQR = interquartile range  
-        + s = sample standard deviation  
-        + T = n of time periods observed in the data  
+-   $P_t$ = endogenous variables\
 
+-   $K(x) = 0.75(1-x^2)I(||x||\le 1)$\
 
-In augmented OLS and MLE, the inference procedure occurs in two stages:  
+-   $b=0.9T^{-1/5}\times min(s, IQR/1.34)$ suggested by [@Silverman_1969]\
 
- (1): the empirical distribution of $P_t$ is computed  
- (2) used in it constructing the likelihood function)   
-Hence, the standard errors would not be correct.  
+    -   IQR = interquartile range\
+    -   s = sample standard deviation\
+    -   T = n of time periods observed in the data
 
-So we use the sampling distributions (from bootstrapping) to get standard errors and the variance-covariance matrix. Since the distribution of the bootstraped parameters is highly skewed, we report the percentile confidence intervals is preferable.  
+In augmented OLS and MLE, the inference procedure occurs in two stages:
 
+(1): the empirical distribution of $P_t$ is computed\
+(2) used in it constructing the likelihood function)\
+Hence, the standard errors would not be correct.
 
+So we use the sampling distributions (from bootstrapping) to get standard errors and the variance-covariance matrix. Since the distribution of the bootstraped parameters is highly skewed, we report the percentile confidence intervals is preferable.
 
 ```{r}
 set.seed(110)
@@ -613,20 +561,18 @@ m4.cc <-
 summary(m4.cc)$coefficients[1:7, ]
 ```
 
-we run this model with only one endogenous continuous regressor (`stratio`). Sometimes, the code will not converge, in which case you can use different  
+we run this model with only one endogenous continuous regressor (`stratio`). Sometimes, the code will not converge, in which case you can use different
 
- * optimization algorithm  
- * starting values  
- * maximum number of iterations
-
-
+-   optimization algorithm\
+-   starting values\
+-   maximum number of iterations
 
 ##### Higher Moments Method
 
-suggested by [@Lewbel_1997] to identify $\epsilon_t$ caused by **measurement error**.  
+suggested by [@Lewbel_1997] to identify $\epsilon_t$ caused by **measurement error**.
 
-Identification is achieved by using third moments of the data, with no restrictions on the distribution of $\epsilon_t$  
-The following instruments can be used with 2SLS estimation to obtain consistent estimates:  
+Identification is achieved by using third moments of the data, with no restrictions on the distribution of $\epsilon_t$\
+The following instruments can be used with 2SLS estimation to obtain consistent estimates:
 
 $$
 \begin{align}
@@ -639,18 +585,16 @@ q_{6t} &=  (Y_t - \bar{Y})^2 \\
 \end{align}
 $$
 
-where  
+where
 
- * $G_t = G(X_t)$ for any given function G that has finite third own and cross moments  
- * X = exogenous variable  
+-   $G_t = G(X_t)$ for any given function G that has finite third own and cross moments\
+-   X = exogenous variable
 
-$q_{5t}, q_{6t}$ can be used only when the measurement and $\epsilon_t$ are symmetrically distributed. The rest of the instruments does not require any distributional assumptions for $\epsilon_t$.  
+$q_{5t}, q_{6t}$ can be used only when the measurement and $\epsilon_t$ are symmetrically distributed. The rest of the instruments does not require any distributional assumptions for $\epsilon_t$.
 
-Since the regressors $G(X) = X$ are included as instruments, $G(X)$ can't be a linear function of X in $q_{1t}$  
+Since the regressors $G(X) = X$ are included as instruments, $G(X)$ can't be a linear function of X in $q_{1t}$
 
-
-Since this method has very strong assumptions, [Higher Moments Method] should only be used in case of overidentification 
-
+Since this method has very strong assumptions, [Higher Moments Method] should only be used in case of overidentification
 
 ```{r}
 set.seed(111)
@@ -667,12 +611,11 @@ recommend using this approach to create additional instruments to use with exter
 
 ##### Heteroskedastic Error Approach
 
+-   using means of variables that are uncorrelated with the product of heteroskedastic errors to identify structural parameters.\
+-   This method can be use either when you don't have external instruments or you want to use additional instruments to improve the efficiency of the IV estimator [@Lewbel_2012]\
+-   The instruments are constructed as simple functions of data\
+-   Model's assumptions:
 
- * using means of variables that are uncorrelated with the product of heteroskedastic errors to identify structural parameters.  
- * This method can be use either when you don't have external instruments or you want to use additional instruments to improve the efficiency of the IV estimator [@Lewbel_2012]  
- * The instruments are constructed as simple functions of data  
- * Model's assumptions:  
- 
 $$
 E(X \epsilon) = 0 \\
 E(X v ) = 0 \\
@@ -680,30 +623,28 @@ cov(Z, \epsilon v) = 0  \\
 cov(Z, v^2) \neq 0 \text{  (for identification)}
 $$
 
-Structural parameters are identified by 2SLS regression of Y on X and P, using X and [Z − E(Z)]ν as instruments.  
+Structural parameters are identified by 2SLS regression of Y on X and P, using X and [Z − E(Z)]ν as instruments.
 
 $$
 \text{instrument's strength} \propto cov((Z-\bar{Z})v,v)
-$$
-where $cov((Z-\bar{Z})v,v)$ is the degree of heteroskedasticity of ν with respect to Z [@Lewbel_2012], which can be empirically tested.  
+$$ where $cov((Z-\bar{Z})v,v)$ is the degree of heteroskedasticity of ν with respect to Z [@Lewbel_2012], which can be empirically tested.
 
-If it is zero or close to zero (i.e.,the instrument is weak), you might have imprecise estimates, with large standard errors.   
+If it is zero or close to zero (i.e.,the instrument is weak), you might have imprecise estimates, with large standard errors.
 
- * Under homoskedasticity, the parameters of the model are unidentified.  
- * Under heteroskedasticity related to at least some elements of X, the parameters of the model are identified.
+-   Under homoskedasticity, the parameters of the model are unidentified.\
+-   Under heteroskedasticity related to at least some elements of X, the parameters of the model are identified.
 
 #### Hierarchical Data
 
-Multiple independent assumptions involving various random components at different levels mean that any moderate correlation between some predictors and a random component or error term can result in a significant bias of the coefficients and of the variance components. [@Kim_2007] proposed a generalized method of moments which uses both, the between and within variations of the exogenous variables, but only
-assumes the within variation of the variables to be endogenous.  
+Multiple independent assumptions involving various random components at different levels mean that any moderate correlation between some predictors and a random component or error term can result in a significant bias of the coefficients and of the variance components. [@Kim_2007] proposed a generalized method of moments which uses both, the between and within variations of the exogenous variables, but only assumes the within variation of the variables to be endogenous.
 
-**Assumptions**  
+**Assumptions**
 
- * the errors at each level $\sim iid N$  
- * the slope variables are exogenous  
- * the level-1 $\epsilon \perp X, P$. If this is not the case, additional, external instruments are necessary  
+-   the errors at each level $\sim iid N$\
+-   the slope variables are exogenous\
+-   the level-1 $\epsilon \perp X, P$. If this is not the case, additional, external instruments are necessary
 
-**Hierarchical Model**  
+**Hierarchical Model**
 
 $$
 Y_{cst} = Z_{cst}^1 \beta_{cs}^1 + X_{cst}^1 \beta_1 + \epsilon_{cst}^1 \\
@@ -711,17 +652,16 @@ Y_{cst} = Z_{cst}^1 \beta_{cs}^1 + X_{cst}^1 \beta_1 + \epsilon_{cst}^1 \\
 \beta^2_{c} = X^3_c \beta_3 + \epsilon_c^3
 $$
 
-Bias could stem from:  
+Bias could stem from:
 
- * errors at the higher two levels ($\epsilon_c^3,\epsilon_{cst}^2$) are correlated with some of the regressors  
- * only third level errors ($\epsilon_c^3$) are correlated with some of the regressors  
+-   errors at the higher two levels ($\epsilon_c^3,\epsilon_{cst}^2$) are correlated with some of the regressors\
+-   only third level errors ($\epsilon_c^3$) are correlated with some of the regressors
 
-[@Kim_2007] proposed  
+[@Kim_2007] proposed
 
- * When all variables are assumed exogenous, the proposed estimator equals the random effects estimator  
- * When all variables are assumed endogenous, it equals the fixed effects estimator  
- * also use omitted variable test (based on the Hausman-test [@Hausman_1978] for panel data), which allows the comparison of a robust estimator and an estimator that is efficient under the null hypothesis of no omitted variables or the comparison of two robust estimators at different levels. 
-
+-   When all variables are assumed exogenous, the proposed estimator equals the random effects estimator\
+-   When all variables are assumed endogenous, it equals the fixed effects estimator\
+-   also use omitted variable test (based on the Hausman-test [@Hausman_1978] for panel data), which allows the comparison of a robust estimator and an estimator that is efficient under the null hypothesis of no omitted variables or the comparison of two robust estimators at different levels.
 
 ```{r}
 set.seed(113)
@@ -733,23 +673,18 @@ m7.multilevel <-
 summary(m7.multilevel)$coefficients[1:7, ]
 ```
 
+Another example using simulated data
 
+-   level-1 regressors: $X_{11}, X_{12}, X_{13}, X_{14}, X_{15}$, where $X_{15}$ is correlated with the level-2 error (i.e., endogenous).\
+-   level-2 regressors: $X_{21}, X_{22}, X_{23}, X_{24}$\
+-   level-3 regressors: $X_{31}, X_{32}, X_{33}$
 
-Another example using simulated data  
+We estimate a three-level model with X15 assumed endogenous. Having a three-level hierarchy, `multilevelIV()` returns five estimators, from the most robust to omitted variables (FE_L2), to the most efficient (REF) (i.e. lowest mean squared error).
 
- * level-1 regressors: $X_{11}, X_{12}, X_{13}, X_{14}, X_{15}$, where $X_{15}$ is correlated with the level-2 error (i.e., endogenous).  
- * level-2 regressors: $X_{21}, X_{22}, X_{23}, X_{24}$  
- * level-3 regressors: $X_{31}, X_{32}, X_{33}$  
-
-We estimate a three-level model with X15 assumed endogenous.
-Having a three-level hierarchy, `multilevelIV()` returns five estimators, from the most robust to omitted
-variables (FE_L2), to the most efficient (REF) (i.e. lowest mean squared error).  
-
- * The random effects estimator (REF) is efficient assuming no omitted variables 
- * The fixed effects estimator (FE) is unbiased and asymptotically normal even in the presence of omitted variables.  
- * Because of the efficiency, the random effects estimator is preferable if you think there is no omitted. variables  
- * The robust estimator would be preferable if you think there is omitted variables. 
-
+-   The random effects estimator (REF) is efficient assuming no omitted variables
+-   The fixed effects estimator (FE) is unbiased and asymptotically normal even in the presence of omitted variables.\
+-   Because of the efficiency, the random effects estimator is preferable if you think there is no omitted. variables\
+-   The robust estimator would be preferable if you think there is omitted variables.
 
 ```{r}
 data(dataMultilevelIV)
@@ -762,110 +697,103 @@ m8.multilevel <-
 coef(m8.multilevel)
 ```
 
-
 ```{r}
 summary(m8.multilevel, "REF")
 ```
 
-True $\beta_{X_{15}} =-1$. We can see that some estimators are bias because $X_{15}$  is correlated with the level-two error, to which only FE_L2 and GMM_L2 are robust  
+True $\beta_{X_{15}} =-1$. We can see that some estimators are bias because $X_{15}$ is correlated with the level-two error, to which only FE_L2 and GMM_L2 are robust
 
-To select the appropriate estimator, we use the omitted variable test.   
+To select the appropriate estimator, we use the omitted variable test.
 
-In a three-level setting, we can have different estimator comparisons:  
+In a three-level setting, we can have different estimator comparisons:
 
- * Fixed effects vs. random effects estimators: Test for omitted level-two and level-three
-omitted effects, simultaneously, one compares FE_L2 to REF. But we will not know at which omitted variables  exist.  
- * Fixed effects vs. GMM estimators: Once the existence of omitted effects is established but not sure at which level, we test for level-2 omitted effects by comparing FE_L2 vs GMM_L3. If you reject the null, the omitted variables are at level-2 The same is accomplished by testing FE_L2 vs. GMM_L2, since the latter is consistent only if there are no omitted effects at level-2.  
- * Fixed effects vs. fixed effects estimators: We can test for omitted level-2 effects, while
-allowing for omitted level-3 effects by comparing FE_L2 vs. FE_L3 since FE_L2 is robust against both level-2 and level-3 omitted effects while FE_L3 is only robust to level-3 omitted variables.  
+-   Fixed effects vs. random effects estimators: Test for omitted level-two and level-three omitted effects, simultaneously, one compares FE_L2 to REF. But we will not know at which omitted variables exist.\
+-   Fixed effects vs. GMM estimators: Once the existence of omitted effects is established but not sure at which level, we test for level-2 omitted effects by comparing FE_L2 vs GMM_L3. If you reject the null, the omitted variables are at level-2 The same is accomplished by testing FE_L2 vs. GMM_L2, since the latter is consistent only if there are no omitted effects at level-2.\
+-   Fixed effects vs. fixed effects estimators: We can test for omitted level-2 effects, while allowing for omitted level-3 effects by comparing FE_L2 vs. FE_L3 since FE_L2 is robust against both level-2 and level-3 omitted effects while FE_L3 is only robust to level-3 omitted variables.
 
-Summary, use the omitted variable test comparing `REF vs. FE_L2` first.  
+Summary, use the omitted variable test comparing `REF vs. FE_L2` first.
 
- * If the null hypothesis is rejected, then there are omitted variables either at level-2 or level-3
- * Next, test whether there are level-2 omitted effects, since testing for omitted level three effects relies on the assumption there are no level-two omitted effects. You can use any of these pair of comparisons:  
-        + `FE_L2 vs. FE_L3`  
-        + `FE_L2 vs. GMM_L2`  
- * If no omitted variables at level-2 are found, test for omitted level-3 effects by comparing either  
-        + FE_L3 vs. GMM_L3  
-        + GMM_L2 vs. GMM_L3  
+-   If the null hypothesis is rejected, then there are omitted variables either at level-2 or level-3
+
+-   Next, test whether there are level-2 omitted effects, since testing for omitted level three effects relies on the assumption there are no level-two omitted effects. You can use any of these pair of comparisons:\
+
+    -   `FE_L2 vs. FE_L3`\
+    -   `FE_L2 vs. GMM_L2`\
+
+-   If no omitted variables at level-2 are found, test for omitted level-3 effects by comparing either\
+
+    -   FE_L3 vs. GMM_L3\
+    -   GMM_L2 vs. GMM_L3
 
 ```{r}
 summary(m8.multilevel, "REF")
 # compare REF with all the other estimators. Testing REF (the most efficient estimator) against FE_L2 (the most robust estimator), equivalently we are testing simultaneously for level-2 and level-3 omitted effects. 
 ```
-Since the null hypothesis is rejected (p = 0.000139), there is bias in the random effects estimator.  
 
+Since the null hypothesis is rejected (p = 0.000139), there is bias in the random effects estimator.
 
-To test for level-2 omitted effects (regardless of level-3 omitted effects), we compare FE_L2 versus FE_L3 
+To test for level-2 omitted effects (regardless of level-3 omitted effects), we compare FE_L2 versus FE_L3
 
 ```{r}
 summary(m8.multilevel,"FE_L2")
 ```
 
-The null hypothesis of no omitted level-2 effects is rejected ($p = 3.92e − 05$). Hence, there are omitted effects at level-two. We should use FE_L2 which is consistent with the underlying data that we generated (level-2 error correlated with $X_15$, which leads to biased FE_L3 coefficients.  
+The null hypothesis of no omitted level-2 effects is rejected ($p = 3.92e − 05$). Hence, there are omitted effects at level-two. We should use FE_L2 which is consistent with the underlying data that we generated (level-2 error correlated with $X_15$, which leads to biased FE_L3 coefficients.
 
-The omitted variable test between FE_L2 and GMM_L2 should reject the null hypothesis of no
-omitted level-2 effects (p-value is 0).  
+The omitted variable test between FE_L2 and GMM_L2 should reject the null hypothesis of no omitted level-2 effects (p-value is 0).
 
-If we assume an endogenous variable as exogenous, the RE and GMM estimators will be biased because of the wrong set of internal instrumental variables. To increase our confidence, we should compare the omitted variable tests when the variable is considered endogenous vs. exogenous to get a sense whether the variable is truly endogenous.  
+If we assume an endogenous variable as exogenous, the RE and GMM estimators will be biased because of the wrong set of internal instrumental variables. To increase our confidence, we should compare the omitted variable tests when the variable is considered endogenous vs. exogenous to get a sense whether the variable is truly endogenous.
 
-### Proxy Variables 
-Can be in place of the omitted variable,  
- * will not be able to estimate the effect of the omitted variable 
- * will be able to reduce some endogeneity caused bye the omitted variable 
- 
-Criteria for a proxy variable:  
+### Proxy Variables
 
- 1. The proxy is correlated with the omitted variable.
- 2. Having the omitted variable in the regression will solve the problem of endogeneity 
- 3.The variation of the omitted variable unexplained by the proxy is uncorrelated with all independent variables, including the proxy. 
+Can be in place of the omitted variable,\
+\* will not be able to estimate the effect of the omitted variable \* will be able to reduce some endogeneity caused bye the omitted variable
 
-IQ test can be a proxy for ability in the regression between wage explained education. 
+Criteria for a proxy variable:
 
-For the third requirement 
+1.  The proxy is correlated with the omitted variable.
+2.  Having the omitted variable in the regression will solve the problem of endogeneity 3.The variation of the omitted variable unexplained by the proxy is uncorrelated with all independent variables, including the proxy.
+
+IQ test can be a proxy for ability in the regression between wage explained education.
+
+For the third requirement
 
 $$
 ability = \gamma_0 + \gamma_1 IQ + \epsilon
 $$
 
-where $\epsilon$ is uncorrelated with education and IQ test. 
-
-
+where $\epsilon$ is uncorrelated with education and IQ test.
 
 ## Endogenous Sample Selection
 
-sample selection or self-selection problem 
-
+sample selection or self-selection problem
 
 the omitted variable is how people were selected into the sample
 
-Some disciplines consider nonresponse bias and selection bias as sample selection. 
+Some disciplines consider nonresponse bias and selection bias as sample selection.
 
- * When unobservable factors that affect who is in the sample are independent of unobservable factors that affect the outcome, the sample selection is not endogenous. Hence, the sample selection is ignorable and estimator that ignores sample selection is still consistent.  
- * when the unobservable factors that affect who is included in the sample are correlated with the unobservable factors that affect the outcome, the sample selection is endogenous and not ignorable, because estimators that ignore endogenous sample selection are not consistent (we don't know which part of the observable outcome is related to the causal relationship and which part is due to different people were selected for the treatment and control groups). 
+-   When unobservable factors that affect who is in the sample are independent of unobservable factors that affect the outcome, the sample selection is not endogenous. Hence, the sample selection is ignorable and estimator that ignores sample selection is still consistent.\
+-   when the unobservable factors that affect who is included in the sample are correlated with the unobservable factors that affect the outcome, the sample selection is endogenous and not ignorable, because estimators that ignore endogenous sample selection are not consistent (we don't know which part of the observable outcome is related to the causal relationship and which part is due to different people were selected for the treatment and control groups).
 
+To combat Sample selection, we can
 
+-   Randomization: participants are randomly selected into treatment and control.\
+-   Instruments that determine the treatment status (i.e., treatment vs. control) but not the outcome (Y)\
+-   Functional form of the selection and outcome processes: originated from [@Heckman_1976], later on generalize by [@Amemiya_1984]
 
-
-To combat Sample selection, we can  
-
- * Randomization: participants are randomly selected into treatment and control.  
- * Instruments that determine the treatment status (i.e., treatment vs. control) but not the outcome (Y)  
- * Functional form of the selection and outcome processes: originated from [@Heckman_1976], later on generalize by [@Amemiya_1984] 
-
-We have our main model  
+We have our main model
 
 $$
 \mathbf{y^* = xb + \epsilon}
 $$
 
-However, the pattern of missingness (i.e., censored) is related to the unobserved (latent) process: 
+However, the pattern of missingness (i.e., censored) is related to the unobserved (latent) process:
 
 $$
 \mathbf{z^* = w \gamma + u}
 $$
 
-and 
+and
 
 $$
 z_i = 
@@ -873,13 +801,11 @@ z_i =
 1& \text{if } z_i^*>0 \\
 0&\text{if } z_i^*\le0\\
 \end{cases}
-$$
-Equivalently, $z_i = 1$ ($y_i$ is observed) when   
+$$ Equivalently, $z_i = 1$ ($y_i$ is observed) when
 
 $$
 u_i \ge -w_i \gamma
-$$
-Hence, the probability of observed $y_i$ is  
+$$ Hence, the probability of observed $y_i$ is
 
 $$
 \begin{align}
@@ -888,13 +814,12 @@ P(u_i \ge -w_i \gamma) &= 1 - \Phi(-w_i \gamma) \\
 \end{align}
 $$
 
-We will **assume**   
+We will **assume**
 
- * the error term of the selection $\mathbf{u \sim N(0,I)}$  
- * $Var(u_i) = 1$ for identification purposes 
+-   the error term of the selection $\mathbf{u \sim N(0,I)}$\
+-   $Var(u_i) = 1$ for identification purposes
 
-Visually, $P(u_i \ge -w_i \gamma)$ is the shaded area.  
-
+Visually, $P(u_i \ge -w_i \gamma)$ is the shaded area.
 
 ```{r}
 x=seq(-3,3,length=200)
@@ -909,7 +834,7 @@ text(-0.5,0.12,bquote(-w[i]~gamma))
 legend("topright", "Gray = Prob of Observed", pch=1, title= "legend",inset = .02)
 ```
 
-Hence in our observed model, we see 
+Hence in our observed model, we see
 
 $$
 \begin{equation}
@@ -917,7 +842,7 @@ y_i = x_i\beta + \epsilon_i \text{when $z_i=1$}
 \end{equation}
 $$
 
-and the joint distribution of the selection model ($u_i$), and the observed equation ($\epsilon_i$) as 
+and the joint distribution of the selection model ($u_i$), and the observed equation ($\epsilon_i$) as
 
 $$
 \left[
@@ -946,7 +871,7 @@ u \\
 \right)
 $$
 
-The relation between the observed and selection models: 
+The relation between the observed and selection models:
 
 $$
 \begin{align}
@@ -955,41 +880,38 @@ E(y_i | y_i \text{ observed}) &= E(y_i| z^*>0) \\
 &= \mathbf{x}_i \beta + E(\epsilon_i | u_i > -w_i \gamma) \\
 &= \mathbf{x}_i \beta + \rho \sigma_\epsilon \frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)}
 \end{align}
-$$
-where $\frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)}$ is the Inverse Mills Ratio. and $\rho \sigma_\epsilon \frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)} \ge 0$  
+$$ where $\frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)}$ is the Inverse Mills Ratio. and $\rho \sigma_\epsilon \frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)} \ge 0$
 
-Great visualization of special cases of correlation patterns amongst data and errors by professor [Rob Hick](https://rlhick.people.wm.edu/stories/econ_407_notes_heckman.html)  
+Great visualization of special cases of correlation patterns amongst data and errors by professor [Rob Hick](https://rlhick.people.wm.edu/stories/econ_407_notes_heckman.html)
 
-Note: 
+Note:
 
-[@Bareinboim_2014] is an excellent summary of cases that we can still do causal inference in case of selection bias. I'll try to summarize their idea here:  
+[@Bareinboim_2014] is an excellent summary of cases that we can still do causal inference in case of selection bias. I'll try to summarize their idea here:
 
-Let X be an action, Y be an outcome, and S be a binary indicator of entry into the data pool where (S = 1 = in the sample, S = 0 =out of sample) and Q be the conditional distribution $Q = P(y|x)$.   
+Let X be an action, Y be an outcome, and S be a binary indicator of entry into the data pool where (S = 1 = in the sample, S = 0 =out of sample) and Q be the conditional distribution $Q = P(y|x)$.
 
-Usually we want to understand , but because of S, we only have $P(y, x|S = 1)$. Hence, we'd like to recover $P(y|x)$ from $P(y, x|S = 1)$ 
+Usually we want to understand , but because of S, we only have $P(y, x|S = 1)$. Hence, we'd like to recover $P(y|x)$ from $P(y, x|S = 1)$
 
- * If both X and Y affect S, we can't unbiasedly estimate $P(y|x)$ 
+-   If both X and Y affect S, we can't unbiasedly estimate $P(y|x)$
 
-In the case of Omitted variable bias (U) and sample selection bias (S), you have unblocked extraneous "flow" of information between X and Y, which causes spurious correlation for X and Y. Traditionally, we would recover Q by parametric assumption of  
+In the case of Omitted variable bias (U) and sample selection bias (S), you have unblocked extraneous "flow" of information between X and Y, which causes spurious correlation for X and Y. Traditionally, we would recover Q by parametric assumption of
 
- (1) the data generating process (e.g., Heckman 2-step)  
- (2) type of data-generating model (e..g, treatment-dependent or outcome-dependent)  
- (3) selection’s probability $P(S = 1|P a_s)$ with non-parametrically based causal graphical models, the authors proposed more robust way to model misspecification regardless of the type of data-generating model, and do not require  selection's probability.  Hence, you can recover  Q   
+(1) the data generating process (e.g., Heckman 2-step)\
+(2) type of data-generating model (e..g, treatment-dependent or outcome-dependent)\
+(3) selection's probability $P(S = 1|P a_s)$ with non-parametrically based causal graphical models, the authors proposed more robust way to model misspecification regardless of the type of data-generating model, and do not require selection's probability. Hence, you can recover Q
 
- * without external data
- * with external data  
- * causal effects with the Selection-backdoor criterion
-
-
+-   without external data
+-   with external data\
+-   causal effects with the Selection-backdoor criterion
 
 ### Tobit-2
-also known as Heckman's standard sample selection model  
+
+also known as Heckman's standard sample selection model\
 Assumption: joint normality of the errors
 
+Data here is taken from [@Mroz_1987]'s paper.
 
-Data here is taken from [@Mroz_1987]'s paper.   
-
-We want to estimate the log(wage) for married women, with education, experience, experience squared, and a dummy variable for living in a big city. But we can only observe the wage for women who are working, which means a lot of married women in 1975 who were out of the labor force are unaccounted for. Hence, an OLS estimate of the wage equation would be bias due to sample selection. Since we have data on non-participants (i.e., those who are not working for pay), we can correct for the selection process.  
+We want to estimate the log(wage) for married women, with education, experience, experience squared, and a dummy variable for living in a big city. But we can only observe the wage for women who are working, which means a lot of married women in 1975 who were out of the labor force are unaccounted for. Hence, an OLS estimate of the wage equation would be bias due to sample selection. Since we have data on non-participants (i.e., those who are not working for pay), we can correct for the selection process.
 
 The Tobit-2 estimates are consistent
 
@@ -1008,11 +930,10 @@ library(ggplot2)
 library(reshape2)
 ```
 
-2-stage Heckman's model:  
+2-stage Heckman's model:
 
- (1) probit equation estimates the selection process (who is in the labor force?)
- (2) the results from 1st stage are used to construct a variable that captures the selection effect in the wage equation. This correction variable is called the **inverse Mills ratio**.
-
+(1) probit equation estimates the selection process (who is in the labor force?)
+(2) the results from 1st stage are used to construct a variable that captures the selection effect in the wage equation. This correction variable is called the **inverse Mills ratio**.
 
 ```{r}
 # OLS: log wage regression on LF participants only
@@ -1022,11 +943,9 @@ heck1 = heckit( lfp ~ age + I( age^2 ) + kids + huswage + educ, # the selection 
                  log(wage) ~ educ + exper + I( exper^2 ) + city, data=Mroz87 )
 ```
 
-
 Use only variables that affect the selection process in the selection equation. Technically, the selection equation and the equation of interest could have the same set of regressors. But it is not recommended because we should only use variables (or at least one) in the selection equation that affect the selection process, but not the wage process (i.e., instruments). Here, variable `kids` fulfill that role: women with kids may be more likely to stay home, but working moms with kids would not have their wages change.
 
 Alternatively,
-
 
 ```{r}
 # ML estimation of selection model
@@ -1051,30 +970,13 @@ stargazer(ols1, heck1, ml1,
           df=FALSE, digits=4, selection.equation = T)
 ```
 
+Rho is an estimate of the correlation of the errors between the selection and wage equations. In the lower panel, the estimated coefficient on the inverse Mills ratio is given for the Heckman model. The fact that it is not statistically different from zero is consistent with the idea that selection bias was not a serious problem in this case.
 
-Rho is an estimate of the correlation of the errors between the selection and wage equations. In the lower panel, the estimated coefficient on the inverse Mills ratio is given for the Heckman model. The fact that it is not statistically different from zero is consistent with the idea that selection bias was not a serious problem in this case. 
-
-If the estimated coefficient of the inverse Mills ratio in the Heckman model is not statistically different from zero, then selection bias was not a serious problem. 
-
-
+If the estimated coefficient of the inverse Mills ratio in the Heckman model is not statistically different from zero, then selection bias was not a serious problem.
 
 #### Example 2
 
-
-
-
-
-
-
-
 This code is from [R package sampleSelection](https://cran.r-project.org/web/packages/sampleSelection/vignettes/selection.pdf)
-
-
-
-
-
-
-
 
 ```{r}
 set.seed(0)
@@ -1099,16 +1001,12 @@ yo <- yoX*(ys > 0)
 summary(selection(ys ~ xs, yo ~ xs))
 ```
 
-We can see that our estimates are still unbiased but standard errors are substantially larger.
-The exclusion restriction (i.e., independent information about the selection process) has a certain identifying power that we desire. Hence, it's better to have different set of variable for the selection process from the interested equation. Without the exclusion restriction, we solely rely on the functional form identification.
-
-
+We can see that our estimates are still unbiased but standard errors are substantially larger. The exclusion restriction (i.e., independent information about the selection process) has a certain identifying power that we desire. Hence, it's better to have different set of variable for the selection process from the interested equation. Without the exclusion restriction, we solely rely on the functional form identification.
 
 ### Tobit-5
-Also known as the switching regression model  
-Condition:  There is at least one variable in X in the selection process not included in the observed process. Used when there are separate models for participants, and non-participants.  
 
-
+Also known as the switching regression model\
+Condition: There is at least one variable in X in the selection process not included in the observed process. Used when there are separate models for participants, and non-participants.
 
 ```{r}
 set.seed(0)
@@ -1124,17 +1022,15 @@ xo2 <- runif(500) # uniformly distributed on [0, 1]
 yo2 <- xo2 + eps[,3]
 ```
 
-exclusion restriction is fulfilled when x's are independent.  
+exclusion restriction is fulfilled when x's are independent.
 
 ```{r}
 summary(selection(ys~xs, list(yo1 ~ xo1, yo2 ~ xo2))) # one selection equation and a list of two outcome equations
 ```
 
+All the estimates are close to the true values.
 
-All the estimates are close to the true values.  
-
-Example of functional form misspecification  
-
+Example of functional form misspecification
 
 ```{r}
 set.seed(5)
@@ -1149,8 +1045,7 @@ yo2 <- xo2 + eps[,3]
 summary(selection(ys~xs, list(yo1 ~ xo1, yo2 ~ xo2), iterlim=20))
 ```
 
-Although we still have an exclusion restriction (xo1 and xo2 are independent), we now have problems with  the intercepts (i.e., they are statistically significantly different from the true values zero), and convergence problems.  
-
+Although we still have an exclusion restriction (xo1 and xo2 are independent), we now have problems with the intercepts (i.e., they are statistically significantly different from the true values zero), and convergence problems.
 
 If we don't have the exclusion restriction, we will have a larger variance of xs
 
@@ -1163,14 +1058,12 @@ yo2 <- xs + eps[,3]
 summary(tmp <- selection(ys~xs, list(yo1 ~ xs, yo2 ~ xs), iterlim=20))
 ```
 
-Usually it will not converge. Even if it does, the results may be seriously biased.  
+Usually it will not converge. Even if it does, the results may be seriously biased.
 
-**Note**  
+**Note**
 
-The log-likelihood function of the models might not be globally concave. Hence, it might not converge, or converge to a local maximum. To combat this, we can use   
+The log-likelihood function of the models might not be globally concave. Hence, it might not converge, or converge to a local maximum. To combat this, we can use
 
- * Different starting values  
- * Different maximization methods. 
- * refer to [Non-linear Least Squares] for suggestions.  
-
-
+-   Different starting values\
+-   Different maximization methods.
+-   refer to [Non-linear Least Squares] for suggestions.
