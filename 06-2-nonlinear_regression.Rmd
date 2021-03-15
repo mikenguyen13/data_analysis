@@ -1221,12 +1221,12 @@ Logistic_Model <- glm(formula = Y ~ X,
 summary(Logistic_Model)
 nlstools::confint2(Logistic_Model)
 OddsRatio <- coef(Logistic_Model) %>% exp
-
+OddsRatio 
 ```
 
 Based on the odds ratio, when
 
--   $x = 0$ , the odds of success of 1/59
+-   $x = 0$ , the odds of success of 1.59
 -   $x = 1$, the odds of success increase by a factor of 2.19 (i.e., 119.29% increase).
 
 Deviance Tests
@@ -1682,11 +1682,16 @@ library(agridat)
 dat <- agridat::streibig.competition
 # See Schaberger and Pierce, pages 370+
 # Consider only the mono-species barley data (no competition from Sinapis)
-gammaDat <- subset(dat, sseeds<1)
-gammaDat <- transform(gammaDat, x=bseeds, y=bdwt, block=factor(block))
+gammaDat <- subset(dat, sseeds < 1)
+gammaDat <-
+    transform(gammaDat,
+              x = bseeds,
+              y = bdwt,
+              block = factor(block))
 # Inverse yield looks like it will be a good fit for Gamma's inverse link
-ggplot(gammaDat,aes(x=x,y=1/y))+geom_point(aes(color=block,shape=block))+
-xlab('Seeding Rate')+ylab('Inverse yield')+ggtitle('Streibig Competion - Barley only')
+ggplot(gammaDat, aes(x = x, y = 1 / y)) + geom_point(aes(color = block, shape =
+                                                             block)) +
+    xlab('Seeding Rate') + ylab('Inverse yield') + ggtitle('Streibig Competion - Barley only')
 
 ```
 
@@ -1713,11 +1718,18 @@ summary(m1)
 For predict new value of x
 
 ```{r}
-newdf <- expand.grid(x=seq(0,120,length=50), block=factor(c('B1','B2','B3')) )
-newdf$pred <- predict(m1, new=newdf, type='response')
-ggplot(gammaDat,aes(x=x,y=y))+geom_point(aes(color=block,shape=block))+
-xlab('Seeding Rate')+ylab('Inverse yield')+ggtitle('Streibig Competion - Barley only Predictions') +
-geom_line(data=newdf,aes(x=x,y=pred,color=block,linetype=block))
+newdf <-
+    expand.grid(x = seq(0, 120, length = 50), block = factor(c('B1', 'B2', 'B3')))
+newdf$pred <- predict(m1, new = newdf, type = 'response')
+ggplot(gammaDat, aes(x = x, y = y)) + geom_point(aes(color = block, shape =
+                                                         block)) +
+    xlab('Seeding Rate') + ylab('Inverse yield') + ggtitle('Streibig Competion - Barley only Predictions') +
+    geom_line(data = newdf, aes(
+        x = x,
+        y = pred,
+        color = block,
+        linetype = block
+    ))
 
 ```
 
@@ -2479,9 +2491,9 @@ $$
 
 where
 
--   $Z_i$ is an \$n_i \times q\$ matrix of known covariates
+-   $Z_i$ is an $n_i \times q$ matrix of known covariates
 -   $\beta_i$ is an unknown q x 1 vector of subjective -specific coefficients (regression coefficients different for each subject)
--   $\epsilon_i$ are the random errors (typically \$\\sim N(0, \sigma\^2 I)\$)
+-   $\epsilon_i$ are the random errors (typically $\sim N(0, \sigma^2 I)$)
 
 We notice that there are two many $\beta$ to estimate here. Hence, this is the motivation for the second stage
 
@@ -2495,315 +2507,1256 @@ where
 
 -   $K_i$ is a q x p matrix of known covariates
 -   $\beta$ is a p x 1 vector of unknown parameter
--   $\mathbf{b}_i$ are independent\$N(0,D)\$ random variables
+-   $\mathbf{b}_i$ are independent $N(0,D)$ random variables
 
-This model explain the observed variability between subjects with respect to the subject-specific regression coefficients, $\beta_i$. We model our different coefficient (\$\\beta_i\$) with respect to \$\\beta\$.
+This model explain the observed variability between subjects with respect to the subject-specific regression coefficients, $\beta_i$. We model our different coefficient ($\beta_i$) with respect to $\beta$.
 
-## Generalized Method of Moments
+Example:
 
-## Minimum Distance
-
-## Spline Regression
-
-This chapter is based on [CMU stat](https://www.stat.cmu.edu/~ryantibs/advmethods/notes/smoothspline.pdf)
-
-Definition: a k-th order spline is a piecewise polynomial function of degree k, that is continuous and has continuous derivatives of orders 1,..., k -1, at its knot points
-
-Equivalently, a function f is a k-th order spline with knot points at $t_1 < ...< t_m$ if
-
--   f is a polynomial of degree k on each of the intervals $(-\infty, t_1], [t_1,t_2],...,[t_m, \infty)$\
--   $f^{(j)}$, the j-th derivative of f, is continuous at $t_1,...,t_m$ for each j = 0,1,...,k-1
-
-A common case is when k = 3, called cubic splines. (piecewise cubic functions are continuous, and also continuous at its first and second derivatives)
-
-To parameterize the set of splines, we could use **truncated power basis**, defined as
+Stage 1:
 
 $$
-g_1(x) = 1 \\
-g_2(x) = x \\
-... \\
-g_{k+1}(x) = x^k \\
-g_{k+1+j}(x) = (x-t_j)^k_+
-$$
-
-where j = 1,...,m and $x_+$ = max{x,0}
-
-However, now software typically use B-spline basis.
-
-### Regression Splines
-
-To estimate the regression function $r(X) = E(Y|X =x)$, we can fit a k-th order spline with knots at some prespecified locations $t_1,...,t_m$
-
-Regression splines are functions of
-
-$$
-\sum_{j=1}^{m+k+1} \beta_jg_j
+Y_{ij} = \beta_{1i} + \beta_{2i}t_{ij} + \epsilon_{ij}
 $$
 
 where
 
-$\beta_1,..\beta_{m+k+1}$ are coefficients $g_1,...,g_{m+k+1}$ are the truncated power basis functions for k-th order splines over the knots $t_1,...,t_m$
+-   $j = 1,..,n_i$
 
-To estimate the coefficients
-
-$$
-\sum_{i=1}^{n} (y_i - \sum_{j=1}^{m} \beta_j g_j (x_i))^2
-$$
-
-then regression spline is
+In the matrix notation,
 
 $$
-\hat{r}(x) = \sum_{j=1}^{m+k+1} \hat{\beta}_j g_j (x)
+\mathbf{Y_i} = 
+\left(
+\begin{array}
+{c}
+Y_{i1} \\
+.\\
+Y_{in_i}
+\end{array}
+\right)
 $$
 
-If we define the basis matrix $G \in R^{n \times (m+k+1)}$ by $$
-G_{ij} = g_j(x_i) 
-$$ where $i = 1,..,n$ , $j = 1,..,m+k+1$
+$$
+\mathbf{Z}_i = 
+\left(
+\begin{array}
+{cc}
+1 & t_{i1} \\
+. & . \\
+1 & t_{in_i} 
+\end{array}
+\right)
+$$
+
+$$
+\beta_i =
+\left(
+\begin{array}
+{c}
+\beta_{1i} \\
+\beta_{2i}
+\end{array}
+\right)
+$$
+
+$$
+\epsilon_i = 
+\left(
+\begin{array}
+{c}
+\epsilon_{i1} \\
+. \\
+\epsilon_{in_i}
+\end{array}
+\right)
+$$
+
+Thus,
+
+$$
+\mathbf{Y_i = Z_i \beta_i + \epsilon_i}
+$$
+
+Stage 2:
+
+$$
+\beta_{1i} = \beta_0 + b_{1i} \\
+\beta_{2i} = \beta_1 L_i + \beta_2 H_i + \beta_3 C_i + b_{2i}
+$$
+
+where $L_i, H_i, C_i$ are indicator variables defined to 1 as the subject falls into different categories.
+
+Subject specific intercepts do not depend upon treatment, with $\beta_0$ (the average response at the start of treatment), and $\beta_1 , \beta_2, \beta_3$ (the average time effects for each of three treatment groups).
+
+$$
+\mathbf{K}_i = \left(
+\begin{array}
+{cccc}
+1 & 0 & 0 & 0 \\
+0 & L_i & H_i & C_i 
+\end{array}
+\right) \\ \beta = (\beta_0 , \beta_1, \beta_2, \beta_3)' \\ 
+\mathbf{b}_i = 
+\left(
+\begin{array}
+{c}
+b_{1i} \\
+b_{2i} \\
+\end{array}
+\right) \\ 
+\beta_i = \mathbf{K_i \beta + b_i}
+$$
+
+To get $\hat{\beta}$, we can fit the model sequentially:
+
+1.  Estimate $\hat{\beta_i}$ in the first stage
+2.  Estimate $\hat{\beta}$ in the second stage by replacing $\beta_i$ with $\hat{\beta}_i$
+
+However, problems arise from this method:
+
+-   information is lost by summarizing the vector $\mathbf{Y}_i$ solely by $\hat{\beta}_i$
+-   we need to account for variability when replacing $\beta_i$ with its estimate
+-   different subjects might have different number of observations.
+
+To address these problems, we can use **Linear Mixed Model [@Laird_1982]**
+
+Substituting stage 2 into stage 1:
+
+$$
+\mathbf{Y}_i = \mathbf{Z}_i \mathbf{K}_i \beta + \mathbf{Z}_i \mathbf{b}_i + \mathbf{\epsilon}_i
+$$
+
+Let $\mathbf{X}_i = \mathbf{Z}_i \mathbf{K}_i$ be an $n_i \times p$ matrix . Then, the LMM is
+
+$$
+\mathbf{Y}_i = \mathbf{X}_i \beta + \mathbf{Z}_i \mathbf{b}_i + \mathbf{\epsilon}_i
+$$
+
+where
+
+-   $i = 1,..,N$
+-   $\beta$ are the fixed effects, which are common to all subjects
+-   $\mathbf{b}_i$ are the subject specific random effects. $\mathbf{b}_i \sim N_q (\mathbf{0,D})$
+-   $\mathbf{\epsilon}_i \sim N_{n_i}(\mathbf{0,\Sigma_i})$
+-   $\mathbf{b}_i$ and $\epsilon_i$ are independent
+-   $\mathbf{Z}_{i(n_i \times q})$ and $\mathbf{X}_{i(n_i \times p})$ are matrices of known covariates.
+
+Equivalently, in the hierarchical form, we call **conditional** or **hierarchical** formulation of the linear mixed model
+
+$$
+\mathbf{Y}_i | \mathbf{b}_i \sim N(\mathbf{X}_i \beta+ \mathbf{Z}_i \mathbf{b}_i, \mathbf{\Sigma}_i) \\
+\mathbf{b}_i \sim N(\mathbf{0,D})
+$$
+
+for $i = 1,..,N$. denote the respective functions by $f(\mathbf{Y}_i |\mathbf{b}_i)$ and $f(\mathbf{b}_i)$
+
+In general,
+
+$$
+f(A,B) = f(A|B)f(B) \\
+f(A) = \int f(A,B)dB = \int f(A|B) f(B) dB
+$$
+
+In the LMM, the marginal density of $\mathbf{Y}_i$ is
+
+$$
+f(\mathbf{Y}_i) = \int f(\mathbf{Y}_i | \mathbf{b}_i) f(\mathbf{b}_i) d\mathbf{b}_i
+$$
+
+which can be shown
+
+$$
+\mathbf{Y}_i \sim N(\mathbf{X_i \beta, Z_i DZ'_i + \Sigma_i})
+$$
+
+This is the **marginal** formulation of the linear mixed model
+
+Notes:
+
+We no longer have $Z_i b_i$ in the mean, but add error in the variance (marginal dependence in Y). kinda of averaging out the common effect. Technically, we shouldn't call it averaging the error b (adding it to the variance covariance matrix), it should be called adding random effect
+
+Continue with our example
+
+$$
+Y_{ij} = (\beta_0 + b_{1i}) + (\beta_1L_i + \beta_2 H_i + \beta_3 C_i + b_{2i})t_{ij} + \epsilon_{ij}
+$$
+
+for each treatment group
+
+$$
+Y_{ik}= 
+\begin{cases}
+\beta_0 + b_{1i} + (\beta_1 + \ b_{2i})t_{ij} + \epsilon_{ij} && L \\
+\beta_0 + b_{1i} + (\beta_2 + \ b_{2i})t_{ij} + \epsilon_{ij} && H\\
+\beta_0 + b_{1i} + (\beta_3 + \ b_{2i})t_{ij} + \epsilon_{ij} && C
+\end{cases}
+$$
+
+-   Intercepts and slopes are all subject specific
+-   Different treatment groups have different slops, but the same intercept.
+
+**In the hierarchical model form**
+
+$$
+\mathbf{Y}_i | \mathbf{b}_i \sim N(\mathbf{X}_i \beta + \mathbf{Z}_i \mathbf{b}_i, \mathbf{\Sigma}_i)\\
+\mathbf{b}_i \sim N(\mathbf{0,D})
+$$
+
+X will be in the form of
+
+$$
+\mathbf{X}_i = \mathbf{Z}_i \mathbf{K}_i \\
+= 
+\left[
+\begin{array}
+{cc}
+1 & t_{i1} \\
+1 & t_{i2} \\
+. & . \\
+1 & t_{in_i}
+\end{array}
+\right]
+\times
+\left[
+\begin{array}
+{cccc}
+1 & 0 & 0 & 0 \\
+0 & L_i & H_i & C_i \\
+\end{array}
+\right] \\
+=
+\left[ 
+\begin{array}
+{cccc}
+1 & t_{i1}L_i & t_{i1}H_i & T_{i1}C_i \\
+1 & t_{i2}L_i & t_{i2}H_i & T_{i2}C_i \\
+. &. &. &. \\
+1 & t_{in_i}L_i & t_{in_i}H_i & T_{in_i}C_i \\
+\end{array}
+\right]
+$$
+
+$$
+\beta = (\beta_0, \beta_1, \beta_2, \beta_3)' \\
+\mathbf{b}_i = 
+\left(
+\begin{array}
+{c}
+b_{1i} \\
+b_{2i}
+\end{array}
+\right)
+,
+D = 
+\left(
+\begin{array}
+{cc}
+d_{11} & d_{12}\\
+d_{12} & d_{22}
+\end{array}
+\right)
+$$
+
+Assuming $\mathbf{\Sigma}_i = \sigma^2 \mathbf{I}_{n_i}$, which is called **conditional independence**, meaning the response on subject i are independent conditional on $\mathbf{b}_i$ and $\beta$
+
+<br>
+
+**In the marginal model form**
+
+$$
+Y_{ij} = \beta_0 + \beta_1 L_i t_{ij} + \beta_2 H_i t_{ij} + \beta_3 C_i t_{ij} + \eta_{ij}
+$$
+
+where $\eta_i \sim N(\mathbf{0},\mathbf{Z}_i\mathbf{DZ}_i'+ \mathbf{\Sigma}_i)$
+
+Equivalently,
+
+$$
+\mathbf{Y_i \sim N(X_i \beta, Z_i DZ_i' + \Sigma_i})
+$$
+
+In this case that $n_i = 2$
+
+$$
+\mathbf{Z_iDZ_i'} = 
+\left(
+\begin{array}
+{cc}
+1 & t_{i1} \\
+1 & t_{i2} 
+\end{array}
+\right)
+\left(
+\begin{array}
+{cc}
+d_{11} & d_{12} \\
+d_{12} & d_{22} 
+\end{array}
+\right)
+\left(
+\begin{array}
+{cc}
+1 & 1 \\
+t_{i1} & t_{i2} 
+\end{array}
+\right) \\
+=
+\left(
+\begin{array}
+{cc}
+d_{11} + 2d_{12}t_{i1} + d_{22}t_{i1}^2 & d_{11} + d_{12}(t_{i1} + t_{i2}) + d_{22}t_{i1}t_{i2} \\
+d_{11} + d_{12}(t_{i1} + t_{i2}) + d_{22} t_{i1} t_{i2} & d_{11} + 2d_{12}t_{i2} + d_{22}t_{i2}^2  
+\end{array}
+\right)
+$$
+
+$$
+var(Y_{i1}) = d_{11} + 2d_{12}t_{i1} + d_{22} t_{i1}^2 + \sigma^2
+$$
+
+On top of correlation in the errors, the marginal implies that the variance function of the response is quadratic over time, with positive curvature $d_{22}$
+
+#### **Random-Intercepts Model**
+
+If we remove the random slopes,
+
+-   the assumption is that all variability in subject-specific slopes can be attributed to treatment differences
+-   the model is random-intercepts model. This has subject specific intercepts, but the same slopes within each treatment group.
+
+$$
+\mathbf{Y}_i | b_i \sim N(\mathbf{X}_i \beta + 1 b_i , \Sigma_i) \\
+b_i \sim N(0,d_{11})
+$$
+
+The marginal model is then ($\mathbf{\Sigma}_i = \sigma^2 \mathbf{I}$)
+
+$$
+\mathbf{Y}_i \sim N(\mathbf{X}_i \beta, 11'd_{11} + \sigma^2 \mathbf{I})
+$$
+
+The marginal covariance matrix is
+
+$$
+cov(\mathbf{Y}_i)  = 11'd_{11} + \sigma^2I \\
+=
+\left(
+\begin{array}
+{ccc}
+d_{11}+ \sigma^2 & d_{11} & ... & d_{11} \\
+d_{11} & d_{11} + \sigma^2 & d_{11} & ... \\
+. & . & . & . \\
+d_{11} & ... & ... & d_{11} + \sigma^2
+\end{array}
+\right)
+$$
+
+the associated correlation matrix is
+
+$$
+corr(\mathbf{Y}_i) = 
+\left(
+\begin{array}
+{cccc}
+1 & \rho & ... & \rho \\
+\rho & 1 & \rho & ... \\
+. & . & . & . \\
+\rho & ... & ... & 1 \\
+\end{array}
+\right)
+$$
+
+where $\rho \equiv \frac{d_{11}}{d_{11} + \sigma^2}$
+
+Thu, we have
+
+-   constant variance over time
+-   equal, positive correlation between any two measurements from the same subject
+-   a covariance structure that is called **compound symmetry**, and $\rho$ is called the **intra-class correlation**
+-   that when $\rho$ is large, the **inter-subject variability** ($d_{11}$) is large relative to the intra-subject variability ($\sigma^2$)
+
+#### **Covariance Models**
+
+If the conditional independence assumption, ($\mathbf{\Sigma_i= \sigma^2 I_{n_i}}$). Consider, $\epsilon_i = \epsilon_{(1)i} + \epsilon_{(2)i}$, where
+
+-   $\epsilon_{(1)i}$ is a "serial correlation" component. That is, part of the individual's profile is a response to time-varying stochastic processes.
+-   $\epsilon_{(2)i}$ is the measurement error component, and is independent of $\epsilon_{(1)i}$
+
+Then
+
+$$
+\mathbf{Y_i = X_i \beta + Z_i b_i + \epsilon_{(1)i} + \epsilon_{(2)i}}
+$$
+
+where
+
+-   $\mathbf{b_i} \sim N(\mathbf{0,D})$
+
+-   $\epsilon_{(2)i} \sim N(\mathbf{0,\sigma^2 I_{n_i}})$
+
+-   $\epsilon_{(1)i} \sim N(\mathbf{0,\tau^2H_i})$
+
+-   $\mathbf{b}_i$ and $\epsilon_i$ are mutually independent
+
+To model the structure of the $n_i \times n_i$ correlation (or covariance ) matrix $\mathbf{H}_i$. Let the (j,k)th element of $\mathbf{H}_i$ be $h_{ijk}= g(t_{ij}t_{ik})$. that is a function of the times $t_{ij}$ and $t_{ik}$ , which is assumed to be some function of the "distance' between the times.
+
+$$
+h_{ijk} = g(|t_{ij}-t_{ik}|)
+$$
+
+for some decreasing function $g(.)$ with $g(0)=1$ (for correlation matrices).
+
+Examples of this type of function:
+
+-   Exponential function: $g(|t_{ij}-t_{ik}|) = \exp(-\phi|t_{ij} - t_{ik}|)$
+-   Gaussian function: $g(|t_{ij} - t_{ik}|) = \exp(-\phi(t_{ij} - t_{ik})^2)$
+
+Similar structures could also be used for $\mathbf{D}$ matrix (of $\mathbf{b}$)
+
+Example: Autoregressive Covariance Structure
+
+A first order Autoregressive Model (AR(1)) has the form
+
+$$
+\alpha_t = \phi \alpha_{t-1} + \eta_t
+$$
+
+where $\eta_t \sim iid N (0,\sigma^2_\eta)$
+
+Then, the covariance between two observations is
+
+$$
+cov(\alpha_t, \alpha_{t+h}) = \frac{\sigma^2_\eta \phi^{|h|}}{1- \phi^2}
+$$
+
+for $h = 0, \pm 1, \pm 2, ...; |\phi|<1$
+
+Hence,
+
+$$
+corr(\alpha_t, \alpha_{t+h}) = \phi^{|h|}
+$$
+
+If we let $\alpha_T = (\alpha_1,...\alpha_T)'$, then
+
+$$
+corr(\alpha_T) = 
+\left[
+\begin{array}
+{ccccc}
+1 & \phi^1 & \phi^2 & ... & \phi^2 \\
+\phi^1 & 1 & \phi^1 & ... & \phi^{T-1} \\
+\phi^2 & \phi^1 & 1 & ... & \phi^{T-2} \\
+. & . & . & . &. \\
+\phi^T & \phi^{T-1} & \phi^{T-2} & ... & 1
+\end{array}
+\right]
+$$
+
+Notes:
+
+-   The correlation decreases as time lag increases
+-   This matrix structure is known as a **Toeplitz** structure
+-   More complicated covariance structures are possible, which is critical component of spatial random effects models and time series models.
+-   Often, we don't need both random effects $\mathbf{b}$ and $\epsilon_{(1)i}$
+
+More in the [Time Series] section
+
+### Estimation
+
+$$
+\mathbf{Y}_i = \mathbf{X}_i \beta + \mathbf{Z}_i \mathbf{b}_i + \epsilon_i
+$$
+
+where $\beta, \mathbf{b}_i, \mathbf{D}, \mathbf{\Sigma}_i$ we must obtain estimation from the data
+
+-   $\mathbf{\beta}, \mathbf{D}, \mathbf{\Sigma}_i$ are unknown, but fixed, parameters, and must be estimated from the data
+-   $\mathbf{b}_i$ is a random variable. Thus, we can't estimate these values, but we can predict them. (i.e., you can't estimate a random thing).
+
+If we have
+
+-   $\hat{\beta}$ as an estimator of $\beta$
+-   $\mathbf{b}_i$ as a predictor of $\mathbf{b}_i$
 
 Then,
 
-$$
-\sum_{i=1}^{n} (y_i - \sum_{j=1}^{m} \beta_j g_j (x_i))^2 = ||y - G \beta||_2^2
-$$
+-   The population average estimate of $\mathbf{Y}_i$ is $\hat{\mathbf{Y}_i} = \mathbf{X}_i \hat{\beta}$
+-   The subject-specific prediction is $\hat{\mathbf{Y}_i} = \mathbf{X}_i \hat{\beta} + \mathbf{Z}_i \hat{b}_i$
 
-and the regression spline estimate at x is
-
-$$
-\hat{r} (x) = g(x)^T \hat{\beta}= g(x)^T(G^TG)^{-1}G^Ty
-$$
-
-### Natural splines
-
-A natural spline of order k, with knots at $t_1 <...< t_m$, is a piecewise polynomial function f such that
-
--   f is polynomial of degree k on each of $[t_1,t_2],...,[t_{m-1},t_m]$
--   f is a polynomial of degree $(k-1)/2$ on $(-\infty,t_1]$ and $[t_m,\infty)$
--   f is continuous and has continuous derivatives of orders 1,.,,, k -1 at its knots $t_1,..,t_m$
-
-**Note**
-
-natural splines are only defined for odd orders k.
-
-### Smoothing splines
-
-These estimators use a regularized regression over the natural spline basis: placing knots at all points $x_1,...x_n$
-
-For the case of cubic splines, the coefficients are the minimization of
+According to [@Henderson_1950], estimating equations known as the mixed model equations:
 
 $$
-||y - G\beta||^2_2 + \lambda \beta^T \Omega \beta
+\left[
+\begin{array}
+{c}
+\hat{\beta} \\
+\hat{\mathbf{b}}
+\end{array}
+\right]
+=
+\left[
+\begin{array}
+{cc}
+\mathbf{X'\Sigma^{-1}X} & \mathbf{X'\Sigma^{-1}Z} \\
+\mathbf{Z'\Sigma^{-1}X} & \mathbf{Z'\Sigma^{-1}Z +B^{-1}}
+\end{array}
+\right]
+\left[
+\begin{array}
+{cc}
+\mathbf{X'\Sigma^{-1}Y} \\
+\mathbf{Z'\Sigma^{-1}Y}
+\end{array}
+\right]
 $$
 
-where $\Omega \in R^{n \times n}$ is the penalty matrix
+where
 
 $$
-\Omega_{ij} = \int g''_i(t) g''_j(t) dt,
+\mathbf{Y}
+=
+\left[
+\begin{array}
+{c}
+\mathbf{y}_1 \\
+. \\
+\mathbf{y}_N
+\end{array}
+\right] ;
+\mathbf{X}
+=
+\left[
+\begin{array}
+{c}
+\mathbf{X}_1 \\
+. \\
+\mathbf{X}_N
+\end{array}
+\right];
+\mathbf{b} = 
+\left[
+\begin{array}
+{c}
+\mathbf{b}_1 \\
+. \\
+\mathbf{b}_N
+\end{array}
+\right] ;
+\epsilon = 
+\left[
+\begin{array}
+{c}
+\epsilon_1 \\
+. \\
+\epsilon_N
+\end{array}
+\right]
+\\
+cov(\epsilon) = \mathbf{\Sigma},
+\mathbf{Z} = 
+\left[
+\begin{array}
+{cccc}
+\mathbf{Z}_1 & 0 &  ... & 0 \\
+0 & \mathbf{Z}_2 & ... & 0 \\
+. & . & . & . \\
+0 & 0 & ... & \mathbf{Z}_n
+\end{array}
+\right],
+\mathbf{B} =
+\left[
+\begin{array}
+{cccc}
+\mathbf{D} & 0 & ... & 0 \\
+0 & \mathbf{D} & ... & 0 \\
+. & . & . & . \\
+0 & 0 & ... & \mathbf{D}
+\end{array}
+\right]
 $$
 
-and i,j = 1,..,n
-
-and $\lambda \beta^T \Omega \beta$ is the **regularization term** used to shrink the components of $\hat{\beta}$ towards 0. $\lambda > 0$ is the tuning parameter (or smoothing parameter). Higher value of $\lambda$, faster shrinkage (shrinking away basis functions)
-
-**Note**\
-smoothing splines have similar fits as kernel regression.
-
-|                  | Smoothing splines             | kernel regression |
-|------------------|-------------------------------|-------------------|
-| tuning parameter | smoothing parameter $\lambda$ | bandwidth h       |
-
-### Application
-
-```{r}
-
-library(tidyverse)
-library(caret)
-theme_set(theme_classic())
-
-# Load the data
-data("Boston", package = "MASS")
-# Split the data into training and test set
-set.seed(123)
-training.samples <- Boston$medv %>%
-  createDataPartition(p = 0.8, list = FALSE)
-train.data  <- Boston[training.samples, ]
-test.data <- Boston[-training.samples, ]
-
-knots <- quantile(train.data$lstat, p = c(0.25, 0.5, 0.75)) # we use 3 knots at 25,50,and 75 quantile.
-
-library(splines)
-# Build the model
-knots <- quantile(train.data$lstat, p = c(0.25, 0.5, 0.75))
-model <- lm (medv ~ bs(lstat, knots = knots), data = train.data)
-# Make predictions
-predictions <- model %>% predict(test.data)
-# Model performance
-data.frame(
-  RMSE = RMSE(predictions, test.data$medv),
-  R2 = R2(predictions, test.data$medv)
-)
-
-ggplot(train.data, aes(lstat, medv) ) +
-  geom_point() +
-  stat_smooth(method = lm, formula = y ~ splines::bs(x, df = 3))
-
-
-attach(train.data)
-#fitting smoothing splines using smooth.spline(X,Y,df=...)
-
-fit1<-smooth.spline(train.data$lstat,train.data$medv,df=3 ) # 3 degrees of freedom
-#Plotting both cubic and Smoothing Splines 
-plot(train.data$lstat,train.data$medv,col="grey")
-lstat.grid = seq(from = range(lstat)[1], to = range(lstat)[2])
-points(lstat.grid,predict(model,newdata = list(lstat=lstat.grid)),col="darkgreen",lwd=2,type="l")
-#adding cutpoints
-abline(v=c(10,20,30),lty=2,col="darkgreen")
-lines(fit1,col="red",lwd=2)
-
-legend("topright",c("Smoothing Spline with 3 df","Cubic Spline"),col=c("red","darkgreen"),lwd=2)
-
-```
-
-## Generalized Additive Models
-
-To overcome [Spline Regression]'s requirements for specifying the knots, we can use [Generalized Additive Models] or GAM.
-
-```{r}
-library(mgcv)
-# Build the model
-model <- gam(medv ~ s(lstat), data = train.data)
-plot(model)
-# Make predictions
-# predictions <- model %>% predict(test.data)
-# Model performance
-data.frame(
-  RMSE = RMSE(predictions, test.data$medv),
-  R2 = R2(predictions, test.data$medv)
-)
-
-ggplot(train.data, aes(lstat, medv) ) +
-  geom_point() +
-  stat_smooth(method = gam, formula = y ~ s(x))
-detach(train.data)
-```
-
-## Quantile Regression
-
-For academic review on quantile regression, check [@Yu_2003]
-
-[Linear Regression] is based on the conditional mean function $E(y|x)$
-
-In Quantile regression, we can view each points in the conditional distribution of y. Quantile regression estimates the conditional median or any other quantile of Y.
-
-In the case that we're interested in the 50th percentile, quantile regression is median regression, also known as least-absolute-deviations (LAD) regression, minimizes $\sum_{i}|e_i|$
-
-Properties of estimators $\beta$
-
--   Asymptotically normally distributed
-
-Advantages
-
--   More robust to outliers compared to [OLS][Ordinary Least Squares]
--   In the case the dependent variable has a bimodal or multimodal (multiple humps with multiple modes) distribution, quantile regression can be extremely useful.
--   Avoids parametric distribution assumption of the error process. In another word, no assumptions regarding the distribution of the error term.
--   Better characterization of the data (not just its conditional mean)
--   is invariant to monotonic transformations (such as log) while OLS is not. In another word, $E(g(y))=g(E(y))$
-
-Disadvantages
-
--   The dependent variable needs to be continuous with no zeroes or too many repeated values.
+The model has the form
 
 $$
-y_i = x_i'\beta_q + e_i
+\mathbf{Y = X \beta + Z b + \epsilon} \\
+\mathbf{Y} \sim N(\mathbf{X \beta, ZBZ' + \Sigma})
 $$
 
-Let $e(x) = y -\hat{y}(x)$, then $L(e(x)) = L(y -\hat{y}(x))$ is the loss function of the error term.
-
-If $L(e) = |e|$ (called absolute-error loss function) then $\hat{\beta}$ can be estimated by minimizing $\sum_{i}|y_i-x_i'\beta|$
-
-More specifically, the objective function is $$
-Q(\beta_q)=\sum_{i:y_i \ge x_i'\beta}^{N} q|y_i - x_i'\beta_q| + \sum_{i:y_i < x_i'\beta}^{N} (1-q)|y_i-x_i'\beta_q
-$$ where $0<q<1$
-
-The sum penalizes $q|e_i|$ for under-prediction and $(1-q)|e_i|$ for over-prediction
-
-We use simplex method to minimize this function (cannot use analytical solution since it's non-differentiable). Standard errors can be estimated by bootstrap.
-
-The absolute-error loss function is symmetric.
-
-**Interpretation** For the jth regressor ($x_j$), the marginal effect is the coefficient for the qth quantile
+If $\mathbf{V = ZBZ' + \Sigma}$, then the solutions to the estimating equations can be
 
 $$
-\frac{\partial Q_q(y|x)}{\partial x_j} = \beta_{qj}
-$$ At the quantile q of the dependent variable y, $\beta_q$ represents a one unit change in the independent variable $x_j$ on the dependent variable y.
+\hat{\beta} = \mathbf{(X'V^{-1}X)^{-1}X'V^{-1}Y} \\
+\hat{\mathbf{b}} = \mathbf{BZ'V^{-1}(Y-X\hat{\beta}})
+$$
 
-In other words, at the qth percentile, a one unit change in x results in $\beta_q$ unit change in y.
+The estimate $\hat{\beta}$ is a generalized least squares estimate.
 
-### Application
+The predictor, $\hat{\mathbf{b}}$ is the best linear unbiased predictor (BLUP), for $\mathbf{b}$
 
-```{r}
-# generate data with non-constant variance
+$$
+E(\hat{\beta}) = \beta \\
+var(\hat{\beta}) = (\mathbf{X'V^{-1}X})^{-1} \\
+E(\hat{\mathbf{b}}) = 0 \\
+var(\mathbf{\hat{b}-b}) = \mathbf{B-BZ'V^{-1}ZB + BZ'V^{-1}X(X'V^{-1}X)^{-1}X'V^{-1}B}
+$$
 
-x <- seq(0,100,length.out = 100)        # independent variable
-sig <- 0.1 + 0.05*x                     # non-constant variance
-b_0 <- 3                                # true intercept
-b_1 <- 0.05                             # true slope
-set.seed(1)                             # reproducibility
-e <- rnorm(100,mean = 0, sd = sig)      # normal random error with non-constant variance
-y <- b_0 + b_1*x + e                    # dependent variable
-dat <- data.frame(x,y)
-hist(y)
-library(ggplot2)
-ggplot(dat, aes(x,y)) + geom_point()
-ggplot(dat, aes(x,y)) + geom_point() + geom_smooth(method="lm")
-```
+The variance here is the variance of the prediction error (mean squared prediction error, MSPE), which is more meaningful than $var(\hat{\mathbf{b}})$, since MSPE accounts for both variance and bias in the prediction.
 
-We follow [@Roger_1996] to estimate quantile regression
+To derive the mixed model equations, consider
 
-```{r}
-library(quantreg)
-qr <- rq(y ~ x, data=dat, tau = 0.5) # tau: quantile of interest. Here we have it at 50th percentile.
-summary(qr)
-```
+$$
+\mathbf{\epsilon = Y - X\beta - Zb}
+$$
 
-adding the regression line
+Let $T = \sum_{i=1}^N n_i$ be the total number of observations (i.e., the length of $\mathbf{Y},\epsilon$) and $Nq$ the length of $\mathbf{b}$. The joint distribution of $\mathbf{b, \epsilon}$ is
 
-```{r}
-ggplot(dat, aes(x,y)) + geom_point() + 
-  geom_abline(intercept=coef(qr)[1], slope=coef(qr)[2])
-```
+$$
+f(\mathbf{b,\epsilon})= \frac{1}{(2\pi)^{(T+ Nq)/2}}
+\left|
+\begin{array}
+{cc}
+\mathbf{B} & 0 \\
+0 & \mathbf{\Sigma}
+\end{array}
+\right| ^{-1/2}
+\exp
+\left(
+-\frac{1}{2}
+\left[
+\begin{array}
+{c}
+\mathbf{b} \\
+\mathbf{Y - X \beta - Zb}
+\end{array}
+\right]'
+\left[
+\begin{array}
+{cc}
+\mathbf{B} & 0 \\
+0 & \mathbf{\Sigma}
+\end{array}
+\right]^{-1}
+\left[
+\begin{array}
+{c}
+\mathbf{b} \\
+\mathbf{Y - X \beta - Zb}
+\end{array}
+\right]
+\right)
+$$
 
-To have R estimate multiple quantile at once
+Maximization of $f(\mathbf{b},\epsilon)$ with respect to $\mathbf{b}$ and $\beta$ requires minimization of
 
-```{r}
-qs <- 1:9/10
-qr1 <- rq(y ~ x, data=dat, tau = qs)
-#check for its coefficients
-coef(qr1)
+$$
+Q = 
+\left[
+\begin{array}
+{c}
+\mathbf{b} \\
+\mathbf{Y - X \beta - Zb}
+\end{array}
+\right]'
+\left[
+\begin{array}
+{cc}
+\mathbf{B} & 0 \\
+0 & \mathbf{\Sigma}
+\end{array}
+\right]^{-1}
+\left[
+\begin{array}
+{c}
+\mathbf{b} \\
+\mathbf{Y - X \beta - Zb}
+\end{array}
+\right] \\
+= \mathbf{b'B^{-1}b+(Y-X \beta-Zb)'\Sigma^{-1}(Y-X \beta-Zb)}
+$$
 
-# plot
-ggplot(dat, aes(x,y)) + geom_point() + geom_quantile(quantiles = qs)
-```
+Setting the derivatives of Q with respect to $\mathbf{b}$ and $\mathbf{\beta}$ to zero leads to the system of equations:
 
-To examine if the quantile regression is appropriate, we can see its plot compared to least squares regression
+$$
+\begin{align}
+\mathbf{X'\Sigma^{-1}X\beta + X'\Sigma^{-1}Zb} &= \mathbf{X'\Sigma^{-1}Y}\\
+\mathbf{(Z'\Sigma^{-1}Z + B^{-1})b + Z'\Sigma^{-1}X\beta} &= \mathbf{Z'\Sigma^{-1}Y}
+\end{align}
+$$
 
-```{r}
-plot(summary(qr1), parm="x")
-```
+Rearranging
 
-where red line is the least squares estimates, and its confidence interval. x-axis is the quantile y-axis is the value of the quantile regression coefficients at different quantile
+$$
+\left[
+\begin{array}
+{cc}
+\mathbf{X'\Sigma^{-1}X} & \mathbf{X'\Sigma^{-1}Z} \\
+\mathbf{Z'\Sigma^{-1}X} & \mathbf{Z'\Sigma^{-1}Z + B^{-1}}
+\end{array}
+\right]
+\left[
+\begin{array}
+{c}
+\beta \\
+\mathbf{b}
+\end{array}
+\right]
+= 
+\left[
+\begin{array}
+{c}
+\mathbf{X'\Sigma^{-1}Y} \\
+\mathbf{Z'\Sigma^{-1}Y}
+\end{array}
+\right]
+$$
 
-If the error term is normally distributed, the quantile regression line will fall inside the coefficient interval of least squares regression.
+Thus, the solution to the mixed model equations give:
 
-```{r}
-# generate data with constant variance
+$$
+\left[
+\begin{array}
+{c}
+\hat{\beta} \\
+\hat{\mathbf{b}}
+\end{array}
+\right]
+= 
+\left[
+\begin{array}
+{cc}
+\mathbf{X'\Sigma^{-1}X} & \mathbf{X'\Sigma^{-1}Z} \\
+\mathbf{Z'\Sigma^{-1}X} & \mathbf{Z'\Sigma^{-1}Z + B^{-1}}
+\end{array}
+\right]
+\left[
+\begin{array}
+{c}
+\mathbf{X'\Sigma^{-1}Y} \\
+\mathbf{Z'\Sigma^{-1}Y}
+\end{array}
+\right]
+$$
 
-x <- seq(0, 100, length.out = 100)    # independent variable
-b_0 <- 3                              # true intercept
-b_1 <- 0.05                           # true slope
-set.seed(1)                           # reproducibility
-e <- rnorm(100, mean = 0, sd = 1)     # normal random error with constant variance
-y <- b_0 + b_1 * x + e                # dependent variable
-dat2 <- data.frame(x, y)
-qr2 = rq(y ~ x, data = dat2, tau = qs)
-plot(summary(qr2), parm = "x")
-```
+<br>
+
+Equivalently,
+
+Bayes' theorem
+
+$$
+f(\mathbf{b}| \mathbf{Y}) = \frac{f(\mathbf{Y}|\mathbf{b})f(\mathbf{b})}{\int f(\mathbf{Y}|\mathbf{b})f(\mathbf{b}) d\mathbf{b}}
+$$
+
+where
+
+-   $f(\mathbf{Y}|\mathbf{b})$ is the "likelihood"
+-   $f(\mathbf{b})$ is the prior
+-   the denominator is the "normalizing constant"
+-   $f(\mathbf{b}|\mathbf{Y})$ is the posterior distribution
+
+In this case
+
+$$
+\mathbf{Y} | \mathbf{b} \sim N(\mathbf{X\beta+Zb,\Sigma}) \\
+\mathbf{b} \sim N(\mathbf{0,B})
+$$
+
+The posterior distribution has the form
+
+$$
+\mathbf{b}|\mathbf{Y} \sim N(\mathbf{BZ'V^{-1}(Y-X\beta),(Z'\Sigma^{-1}Z + B^{-1})^{-1}})
+$$
+
+Hence, the best predictor (based on squared error loss)
+
+$$
+E(\mathbf{b}|\mathbf{Y}) = \mathbf{BZ'V^{-1}(Y-X\beta)}
+$$
+
+#### Estimating $\mathbf{V}$
+
+If we have $\tilde{\mathbf{V}}$ (estimate of $\mathbf{V}$), then we can estimate:
+
+$$
+\hat{\beta} = \mathbf{(X'\tilde{V}^{-1}X)^{-1}X'\tilde{V}^{-1}Y} \\
+\hat{\mathbf{b}} = \mathbf{BZ'\tilde{V}^{-1}(Y-X\hat{\beta})}
+$$
+
+where ${\mathbf{b}}$ is **EBLUP** (estimated BLUP) or **empirical Bayes estimate**
+
+Note:
+
+-   $\hat{var}(\hat{\beta})$ is a consistent estimator of $var(\hat{\beta})$ if $\tilde{\mathbf{V}}$ is a consistent estimator of $\mathbf{V}$
+-   However, $\hat{var}(\hat{\beta})$ is biased since the variability arises from estimating $\mathbf{V}$ is not accounted for in the estimate.
+-   Hence, $\hat{var}(\hat{\beta})$ underestimates the true variability
+
+Ways to estimate $\mathbf{V}$
+
+-   [Maximum Likelihood Estimation (MLE)](#maximum-likelihood-estimation-mle)
+-   [Restricted Maximum Likelihood (REML)](#restricted-maximum-likelihood-reml)
+-   [Estimated Generalized Least Squares]
+-   [Bayesian Hierarchical Models (BHM)](#bayesian-hierarchical-models-bhm)
+
+##### Maximum Likelihood Estimation (MLE) {#maximum-likelihood-estimation-mle}
+
+Grouping unknown parameters in $\Sigma$ and $B$ under a parameter vector $\theta$. Under MLE, $\hat{\theta}$ and $\hat{\beta}$ maximize the likelihood $\mathbf{y} \sim N(\mathbf{X\beta, V(\theta))}$. Synonymously, $-2\log L(\mathbf{y;\theta,\beta})$:
+
+$$
+-2l(\mathbf{\beta,\theta,y}) = \log |\mathbf{V(\theta)}| + \mathbf{(y-X\beta)'V(\theta)^{-1}(y-X\beta)} + N \log(2\pi)
+$$
+
+-   Step 1: Replace $\beta$ with its maximum likelihood (where $\theta$ is known $\hat{\beta}= (\mathbf{X'V(\theta)^{-1}X)^{-1}X'V(\theta)^{-1}y}$
+-   Step 2: Minimize the above equation with respect to $\theta$ to get the estimator $\hat{\theta}_{MLE}$
+-   Step 3: Substitute $\hat{\theta}_{MLE}$ back to get $\hat{\beta}_{MLE} = (\mathbf{X'V(\theta_{MLE})^{-1}X)^{-1}X'V(\theta_{MLE})^{-1}y}$
+-   Step 4: Get $\hat{\mathbf{b}}_{MLE} = \mathbf{B(\hat{\theta}_{MLE})Z'V(\hat{\theta}_{MLE})^{-1}(y-X\hat{\beta}_{MLE})}$
+
+Note:
+
+-   $\hat{\theta}$ are typically negatively biased due to unaccounted fixed effects being estimated, which we could try to account for.
+
+<br>
+
+##### Restricted Maximum Likelihood (REML) {#restricted-maximum-likelihood-reml}
+
+REML accounts for the number of estimated mean parameters by adjusting the objective function. Specifically, the likelihood of linear combination of the elements of $\mathbf{y}$ is accounted for.
+
+We have $\mathbf{K'y}$, where $\mathbf{K}$ is any $N \times (N - p)$ full-rank contrast matrix, which has columns orthogonal to the $\mathbf{X}$ matrix (that is $\mathbf{K'X} = 0$). Then,
+
+$$
+\mathbf{K'y} \sim N(0,\mathbf{K'V(\theta)K})
+$$
+
+where $\beta$ is no longer in the distribution
+
+We can proceed to maximize this likelihood for the contrasts to get $\hat{\theta}_{REML}$, which does not depend on the choice of $\mathbf{K}$. And $\hat{\beta}$ are based on $\hat{\theta}$
+
+Comparison REML and MLE
+
+-   Both methods are based upon the likelihood principle, and have desired properties for the estimates:
+
+    -   consistency
+
+    -   asymptotic normality
+
+    -   efficiency
+
+-   ML estimation provides estimates for fixed effects, while REML can't
+
+-   In balanced models, REML is identical to ANOVA
+
+-   REML accounts for df for the fixed effects int eh model, which is important when $\mathbf{X}$ is large relative to the sample size
+
+-   Changing $\mathbf{\beta}$ has no effect on the REML estimates of $\theta$
+
+-   REML is less sensitive to outliers than MLE
+
+-   MLE is better than REML regarding model comparisons (e.g., AIC or BIC)
+
+<br>
+
+##### Estimated Generalized Least Squares
+
+MLE and REML rely upon the Gaussian assumption. To overcome this issue, EGLS uses the first and second moments.
+
+$$
+\mathbf{Y}_i = \mathbf{X}_i \beta + \mathbf{Z}_i \mathbf{b}_i + \epsilon_i
+$$
+
+where
+
+-   $\epsilon_i \sim (\mathbf{0,\Sigma_i})$
+-   $\mathbf{b}_i \sim (\mathbf{0,D})$
+-   $cov(\epsilon_i, \mathbf{b}_i) = 0$
+
+Then the EGLS estimator is
+
+$$
+\begin{align}
+\hat{\beta}_{GLS} &= \{\sum_{i=1}^n \mathbf{X'_iV_i(\theta)^{-1}X_i}  \}^{-1} \sum_{i=1}^n \mathbf{X'_iV_i(\theta)^{-1}Y_i} \\
+&=\{\mathbf{X'V(\theta)^{-1}X} \}^{-1} \mathbf{X'V(\theta)^{-1}Y}
+\end{align}
+$$
+
+depends on the first two moments
+
+-   $E(\mathbf{Y}_i) = \mathbf{X}_i \beta$
+-   $var(\mathbf{Y}_i)= \mathbf{V}_i$
+
+EGLS use $\hat{\mathbf{V}}$ for $\mathbf{V(\theta)}$
+
+$$
+\hat{\beta}_{EGLS} = \{ \mathbf{X'\hat{V}^{-1}X} \}^{-1} \mathbf{X'\hat{V}^{-1}Y}
+$$
+
+Hence, the fixed effects estimators for the MLE, REML, and EGLS are of the same form, except for the estimate of $\mathbf{V}$
+
+In case of non-iterative approach, EGLS can be appealing when $\mathbf{V}$ can be estimated without much computational burden.
+
+<br>
+
+##### Bayesian Hierarchical Models (BHM) {#bayesian-hierarchical-models-bhm}
+
+Joint distribution cane be decomposed hierarchically in terms of the product of conditional distributions and a marginal distribution
+
+$$
+f(A,B,C) = f(A|B,C) f(B|C)f(C)
+$$
+
+Applying to estimate $\mathbf{V}$
+
+$$
+\begin{align}
+f(\mathbf{Y, \beta, b, \theta}) &= f(\mathbf{Y|\beta,b, \theta})f(\mathbf{b|\theta,\beta})f(\mathbf{\beta|\theta})f(\mathbf{\theta}) && \text{based on probability decomposition} \\
+&= f(\mathbf{Y|\beta,b, \theta})f(\mathbf{b|\theta})f(\mathbf{\beta})f(\mathbf{\theta}) && \text{based on simplifying modeling assumptions}
+\end{align}
+$$
+
+elaborate on the second equality, if we assume conditional independence (e.g., given $\theta$, no additional info about $\mathbf{b}$ is given by knowing $\beta$), then we can simply from the first equality
+
+Using Bayes' rule
+
+$$
+f(\mathbf{\beta, b, \theta|Y}) \propto f(\mathbf{Y|\beta,b, \theta})f(\mathbf{b|\theta})f(\mathbf{\beta})f(\mathbf{\theta})
+$$
+
+where
+
+$$
+\mathbf{Y| \beta, b, \theta \sim N(X\beta+ Zb, \Sigma(\theta))} \\
+\mathbf{b | \theta \sim N(0, B(\theta))}
+$$
+
+and we also have to have prior distributions for $f(\beta), f(\theta)$
+
+With normalizing constant, we can obtain the posterior distribution. Typically, we can't get analytical solution right away. Hence, we can use Markov Chain Monte Carlo (MCMC) to obtain samples from the posterior distribution.
+
+Bayesian Methods:
+
+-   account for the uncertainty in parameters estimates and accommodate the propagation of that uncertainty through the model
+-   can adjust prior information (i.e., priori) in parameters
+-   Can extend beyond Gaussian distributions
+-   but hard to implement algorithms and might have problem converging
+
+### Inference
+
+#### Parameters $\beta$
+
+##### Wald test {#wald-test-GLMM}
+
+We have
+
+$$
+\mathbf{\hat{\beta}(\theta) = \{X'V^{-1}(\theta) X\}^{-1}X'V^{-1}(\theta) Y} \\
+var(\hat{\beta}(\theta)) = \mathbf{\{X'V^{-1}(\theta) X\}^{-1}}
+$$
+
+We can use $\hat{\theta}$ in place of $\theta$ to approximate Wald test
+
+$$
+H_0: \mathbf{A \beta =d} 
+$$
+
+With
+
+$$
+W = \mathbf{(A\hat{\beta} - d)'[A(X'\hat{V}^{-1}X)^{-1}A']^{-1}(A\hat{\beta} - d)}
+$$
+
+where $W \sim \chi^2_{rank(A)}$ under $H_0$ is true. However, it does not take into account variability from using $\hat{\theta}$ in place of $\theta$, hence the standard errors are underestimated
+
+<br>
+
+##### F-test
+
+Alternatively, we can use the modified F-test, suppose we have $var(\mathbf{Y}) = \sigma^2 \mathbf{V}(\theta)$, then
+
+$$
+F^* = \frac{\mathbf{(A\hat{\beta} - d)'[A(X'\hat{V}^{-1}X)^{-1}A']^{-1}(A\hat{\beta} - d)}}{\hat{\sigma}^2 \text{rank}(A)}
+$$
+
+where $F^* \sim f_{rank(A), den(df)}$ under the null hypothesis. And den(df) needs to be approximated from the data by either:
+
+-   Satterthwaite method
+-   Kenward-Roger approximation
+
+Under balanced cases, the Wald and F tests are similar. But for small sample sizes, they can differ in p-values. And both can be reduced to t-test for a single $\beta$
+
+<br>
+
+##### Likelihood Ratio Test
+
+$$
+H_0: \beta \in \Theta_{\beta,0}
+$$
+
+where $\Theta_{\beta, 0}$ is a subspace of the parameter space, $\Theta_{\beta}$ of the fixed effects $\beta$ . Then
+
+$$
+-2\log \lambda_N = -2\log\{\frac{\hat{L}_{ML,0}}{\hat{L}_{ML}}\}
+$$
+
+where
+
+-   $\hat{L}_{ML,0}$ , $\hat{L}_{ML}$ are the maximized likelihood obtained from maximizing over $\Theta_{\beta,0}$ and $\Theta_{\beta}$
+-   $-2 \log \lambda_N \dot{\sim} \chi^2_{df}$ where df is the difference in the dimension (i.e., number of parameters) of $\Theta_{\beta,0}$ and $\Theta_{\beta}$
+
+This method is not applicable for REML. But REML can still be used to test for covariance parameters between nested models.
+
+<br>
+
+#### Variance Components
+
+-   For ML and REML estimator, $\hat{\theta} \sim N(\theta, I(\theta))$ for large samples
+
+-   Wald test in variance components is analogous to the fixed effects case (see \@ref(wald-test-GLMM) )
+
+    -   However, the normal approximation depends largely on the true value of $\theta$. It will fail if the true value of $\theta$ is close to the boundary of the parameter space $\Theta_{\theta}$ (i.e., $\sigma^2 \approx 0$)
+
+    -   Typically works better for covariance parameter, than vairance prarmetesr.
+
+-   The likelihood ratio tests can also be used with ML or REML estimates. However, the same problem of parameters
+
+<br>
+
+### Information Criteria
+
+-   account for the likelihood and the number of parameters to assess model comparison.
+
+#### Akaike's Information Criteria (AIC)
+
+Derived as an estimator of the expected Kullback discrepancy between the true model and a fitted candidate model
+
+$$
+AIC = -2l(\hat{\theta}, \hat{\beta}) + 2q
+$$
+
+where
+
+-   $l(\hat{\theta}, \hat{\beta})$ is the log-likelihood
+-   q = the effective number of parameters; total of fixed and those associated with random effects (variance/covariance; those not estimated to be on a boundary constraint)
+
+Note:
+
+-   In comparing models that differ in their random effects, this method is not advised to due the inability to get the correct number of effective parameters).
+-   We prefer smaller AIC values.
+-   If your program uses $l-q$ then we prefer larger AIC values (but rarely).
+-   can be used for mixed model section, (e.g., selection of the covariance structure), but the sample size must be very large to have adequate comparison based on the criterion
+-   Can have a large negative bias (e.g., when sample size is small but the number of parameters is large) due to the penalty term can't approximate the bias adjustment adequately
+
+<br>
+
+#### Corrected AIC (AICC)
+
+-   developed by [@HURVICH_1989]
+-   correct small-sample adjustment
+-   depends on the candidate model class
+-   Only if you have fixed covariance structure, then AICC is justified, but not general covariance structure
+
+<br>
+
+#### Bayesian Information Criteria (BIC)
+
+$$
+BIC = -2l(\hat{\theta}, \hat{\beta}) + q \log n
+$$
+
+where n = number of observations.
+
+-   we prefer smaller BIC value
+-   BIC and AIC are used for both REML and MLE if we have the same mean structure. Otherwise, in general, we should prefer MLE
+
+<br>
+
+With our example presented at the beginning of [Generalized Linear Mixed Models],
+
+$$
+Y_{ik}= 
+\begin{cases}
+\beta_0 + b_{1i} + (\beta_1 + \ b_{2i})t_{ij} + \epsilon_{ij} && L \\
+\beta_0 + b_{1i} + (\beta_2 + \ b_{2i})t_{ij} + \epsilon_{ij} && H\\
+\beta_0 + b_{1i} + (\beta_3 + \ b_{2i})t_{ij} + \epsilon_{ij} && C
+\end{cases}
+$$
+
+where
+
+-   $i = 1,..,N$
+-   $j = 1,..,n_i$ (measures at time $t_{ij}$)
+
+Note:
+
+-   we have subject-specific intercepts,
+
+$$
+\mathbf{Y}_i |b_i \sim N(\mathbf{X}_i \beta + 1 b_i, \sigma^2 \mathbf{I}) \\
+b_i \sim N(0,d_{11})
+$$
+
+here, we want to estimate $\beta, \sigma^2, d_{11}$ and predict $b_i$
+
+<br>
+
+### Split-Plot Designs
+
+-   Typically used in the case that you have two factors where one needs much larger units than the other.
+
+Example:
+
+A: 3 levels (large units)
+
+B: 2 levels (small units)
+
+-   A and B levels are randomized into 4 blocks.
+-   But it differs from [Randomized Block Designs]. In each block, both have one of the 6 (3x2) treatment combinations. But [Randomized Block Designs] assign in each block randomly, while split-plot does not randomize this step.
+-   Moreover, because A needs to be applied in large units, factor A is applied only once in each block while B can be applied multiple times.
+
+Hence, we have our model
+
+If A is our factor of interest
+
+$$
+Y_{ij} = \mu + \rho_i + \alpha_j + e_{ij}
+$$
+
+where
+
+-   i = replication (block or subject)
+-   j = level of Factor A
+-   $\mu$ = overall mean
+-   $\rho_i$ = variation due to the i-th block
+-   $e_{ij} \sim N(0, \sigma^2_e)$ = whole plot error
+
+If B is our factor of interest
+
+$$
+Y_{ijk} = \mu + \phi_{ij} + \beta_k + \epsilon_{ijk}
+$$
+
+where
+
+-   $\phi_{ij}$ = variation due to the ij-th main plot
+-   $\beta_k$ = Factor B effect
+-   $\epsilon_{ijk} \sim N(0, \sigma^2_\epsilon)$ = subplot error
+-   $\phi_{ij} = \rho_i + \alpha_j + e_{ij}$
+
+Together, the split-plot model
+
+$$
+Y_{ijk} = \mu + \rho_i + \alpha_j + e_{ij} + \beta_k + (\alpha \beta)_{jk} + \epsilon_{ijk}
+$$
+
+where
+
+-   i = replicate (blocks or subjects)
+-   j = level of factor A
+-   k = level of factor B
+-   $\mu$ = overall mean
+-   $\rho_i$ = effect of the block
+-   $\alpha_j$ = main effect of factor A (fixed)
+-   $e_{ij} = (\rho \alpha)_{ij}$ = block by factor A interaction (the whole plot error, random)
+-   $\beta_k$ = main effect of factor B (fixed)
+-   $(\alpha \beta)_{jk}$ = interaction between factors A and B (fixed)
+-   $\epsilon_{ijk}$ = subplot error (random)
+
+We can approach sub-plot analysis based on
+
+-   the ANOVA perspective
+
+    -   Whole plot comparisons
+
+        -   Compare factor A to the whole plot error (i.e., $\alpha_j$ to $e_{ij}$)
+
+        -   Compare the block to the whole plot error (i.e., $\rho_i$ to $e_{ij}$)
+
+    -   Sub-plot comparisons:
+
+        -   Compare factor B to the subplot error ($\beta$ to $\epsilon_{ijk}$)
+
+        -   Compare the AB interaction to the subplot error ($(\alpha \beta)_{jk}$ to $\epsilon_{ijk}$)
+
+-   the mixed model perspective
+
+$$
+\mathbf{Y = X \beta + Zb + \epsilon}
+$$
+
+<br>
+
+### Repeated Measures in Mixed Models
+
+$$
+Y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \delta_{i(k)}+ \epsilon_{ijk}
+$$
+
+where
+
+-   i-th group (fixed)
+-   j-th (repeated measure) time effect (fixed)
+-   k-th subject
+-   $\delta_{i(k)} \sim N(0,\sigma^2_\delta)$ (k-th subject in the i-th group) and $\epsilon_{ijk} \sim N(0,\sigma^2)$ (independent error) are random effects ($i = 1,..,n_A, j = 1,..,n_B, k = 1,...,n_i$)
+
+hence, the variance-covariance matrix of the repeated observations on the k-th subject of the i-th group, $\mathbf{Y}_{ik} = (Y_{i1k},..,Y_{in_Bk})'$, will be
+
+$$
+\begin{align}
+\mathbf{\Sigma}_{subject} &=
+\left(
+\begin{array}
+{cccc}
+\sigma^2_\delta + \sigma^2 & \sigma^2_\delta & ... & \sigma^2_\delta \\
+\sigma^2_\delta & \sigma^2_\delta +\sigma^2 & ... & \sigma^2_\delta \\
+. & . & . & . \\
+\sigma^2_\delta & \sigma^2_\delta & ... & \sigma^2_\delta + \sigma^2 \\
+\end{array}
+\right) \\
+&= (\sigma^2_\delta + \sigma^2)
+\left(
+\begin{array}
+{cccc}
+1 & \rho & ... & \rho \\
+\rho & 1 & ... & \rho \\
+. & . & . & . \\
+\rho & \rho & ... & 1 \\
+\end{array}
+\right) 
+&& \text{product of a scalar and a correlation matrix}
+\end{align}
+$$
+
+where $\rho = \frac{\sigma^2_\delta}{\sigma^2_\delta + \sigma^2}$, which is the compound symmetry structure that we discussed in [Random-Intercepts Model]
+
+But if you only have repeated measurements on the subject over time, AR(1) structure might be more appropriate
+
+Mixed model for a repeated measure
+
+$$
+Y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ijk}
+$$ where
+
+-   $\epsilon_{ijk}$ combines random error of both the whole and subplots.
+
+In general,
+
+$$
+\mathbf{Y = X \beta + \epsilon}
+$$
+
+where
+
+-   $\epsilon \sim N(0, \sigma^2 \mathbf{\Sigma})$ where $\mathbf{\Sigma}$ is block diagonal if the random error covariance is the same for each subject
+
+The variance covariance matrix with AR(1) structure is
+
+$$
+\mathbf{\Sigma}_{subject} =
+\sigma^2
+\left(
+\begin{array}
+{ccccc}
+1  & \rho & \rho^2 & ... & \rho^{n_B-1} \\
+\rho & 1 & \rho & ... & \rho^{n_B-2} \\
+. & . & . & . & . \\
+\rho^{n_B-1} & \rho^{n_B-2} & \rho^{n_B-3} & ... & 1 \\
+\end{array}
+\right)
+$$
