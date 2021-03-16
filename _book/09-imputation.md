@@ -327,6 +327,595 @@ Contrary to Hot Deck, Cold Deck choose value systematically from an observation 
 
 ##### Predictive Mean Matching
 
+Steps:
+
+1.  Regress Y on X (matrix of covariates) for the $n_1$ (i.e., non-missing cases) to get coefficients $b$ (a $k \times 1$ vector) and residual variance estimates $s^2$
+2.  Draw randomly from the posterior predictive distribution of the residual variance (assuming a noninformative prior) by calculating $\frac{(n_1-k)s^2}{\chi^2}$, where $\chi^2$ is a random draw from a $\chi^2_{n_1-k}$ and let $s^2_{[1]}$ be an i-th random draw
+3.  Randomly draw from the posterior distribution of the coefficients $b$, by drawing from $MVN(b, s^2_{[1]}(X'X)^{-1})$, where X is an $n_1 \times k$ matrix of X values. Then we have $b_{1}$
+4.  Using step 1, we can calculate standardized residuals for $n_1$ cases: $e_i = \frac{y_i - bx_i}{\sqrt{s^2(1-k/n_1)}}$
+5.  Randomly draw a sample (with replacement) of $n_0$ from the $n_1$ residuals in step 4
+6.  With $n_0$ cases, we can calculate imputed values of Y: $y_i = b_{[1]}x_i + s_{[1]}e_i$ where $e_i$ are taken from step 5, and $b_{[1]}$ taken from step 3, and $s_{[1]}$ taken from step 2.
+7.  Repeat steps 2 through 6 except for step 4.
+
+Notes:
+
+-   can be used for multiple variables where each variable is imputed using all other variables as predictor.
+-   can also be used for heteroskedasticity in imputed values.
+
+Example from [Statistics Globle](https://statisticsglobe.com/predictive-mean-matching-imputation-method/)
+
+
+```r
+set.seed(918273)                                # Seed
+N <- 3000                                       # Sample size
+y <- round(runif(N, -10, 10))                   # Target variable Y
+x1 <- y + round(runif(N, 0, 50))                # Auxiliary variable 1
+x2 <- round(y + 0.25 * x1 + rnorm(N, - 3, 15))  # Auxiliary variable 2
+x3 <- round(0.1 * x1 + rpois(N, 2))             # Auxiliary variable 3
+x4 <- as.factor(round(0.02 * y + runif(N)))     # Auxiliary variable 4 (categorical variable)
+y[rbinom(N, 1, 0.2) == 1] <- NA                 # Insert 20% missing data in Y
+data <- data.frame(y, x1, x2, x3, x4)           # Store data in dataset
+head(data)                                      # First 6 rows of our data
+```
+
+```
+##    y x1  x2 x3 x4
+## 1  8 38  -3  6  1
+## 2  1 50  -9  5  0
+## 3  5 43  20  5  1
+## 4 NA  9  13  3  0
+## 5 -4 40 -10  6  0
+## 6 NA 29  -6  5  1
+```
+
+```r
+library("mice")                                 # Load mice package
+```
+
+```
+## 
+## Attaching package: 'mice'
+```
+
+```
+## The following object is masked from 'package:stats':
+## 
+##     filter
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     cbind, rbind
+```
+
+```r
+##### Impute data via predictive mean matching (single imputation)#####
+ 
+imp_single <- mice(data, m = 1, method = "pmm") # Impute missing values
+```
+
+```
+## 
+##  iter imp variable
+##   1   1  y
+##   2   1  y
+##   3   1  y
+##   4   1  y
+##   5   1  y
+```
+
+```r
+data_imp_single <- complete(imp_single)         # Store imputed data
+# head(data_imp_single)
+
+# SInce single imputation underestiamtes stnadard errors, we use multiple imputaiton
+
+##### Predictive mean matching (multiple imputation)#####
+ 
+imp_multi <- mice(data, m = 5, method = "pmm")  # Impute missing values multiple times
+```
+
+```
+## 
+##  iter imp variable
+##   1   1  y
+##   1   2  y
+##   1   3  y
+##   1   4  y
+##   1   5  y
+##   2   1  y
+##   2   2  y
+##   2   3  y
+##   2   4  y
+##   2   5  y
+##   3   1  y
+##   3   2  y
+##   3   3  y
+##   3   4  y
+##   3   5  y
+##   4   1  y
+##   4   2  y
+##   4   3  y
+##   4   4  y
+##   4   5  y
+##   5   1  y
+##   5   2  y
+##   5   3  y
+##   5   4  y
+##   5   5  y
+```
+
+```r
+data_imp_multi_all <- complete(imp_multi,       # Store multiply imputed data
+                           "repeated",
+                           include = TRUE)
+```
+
+```
+## New names:
+## * y -> y...1
+## * x1 -> x1...2
+## * x2 -> x2...3
+## * x3 -> x3...4
+## * x4 -> x4...5
+## * ...
+```
+
+```r
+data_imp_multi <- data.frame(                   # Combine imputed Y and X1-X4 (for convenience)
+  data_imp_multi_all[ , 1:6], data[, 2:5])
+head(data_imp_multi)                            # First 6 rows of our multiply imputed data
+```
+
+```
+##   y.0 y.1 y.2 y.3 y.4 y.5 x1  x2 x3 x4
+## 1   8   8   8   8   8   8 38  -3  6  1
+## 2   1   1   1   1   1   1 50  -9  5  0
+## 3   5   5   5   5   5   5 43  20  5  1
+## 4  NA   1  -2  -4   9  -8  9  13  3  0
+## 5  -4  -4  -4  -4  -4  -4 40 -10  6  0
+## 6  NA   4   7   7   6   0 29  -6  5  1
+```
+
+Example from [UCLA Statistical Consulting](https://stats.idre.ucla.edu/r/faq/how-do-i-perform-multiple-imputation-using-predictive-mean-matching-in-r/) [@newtest]
+
+
+```r
+library(mice)
+library(VIM)
+```
+
+```
+## Loading required package: colorspace
+```
+
+```
+## Loading required package: grid
+```
+
+```
+## VIM is ready to use.
+```
+
+```
+## Suggestions and bug-reports can be submitted at: https://github.com/statistikat/VIM/issues
+```
+
+```
+## 
+## Attaching package: 'VIM'
+```
+
+```
+## The following object is masked from 'package:datasets':
+## 
+##     sleep
+```
+
+```r
+library(lattice)
+library(ggplot2)
+## set observations to NA
+anscombe <- within(anscombe, {
+    y1[1:3] <- NA
+    y4[3:5] <- NA
+})
+## view
+head(anscombe)
+```
+
+```
+##   x1 x2 x3 x4   y1   y2    y3   y4
+## 1 10 10 10  8   NA 9.14  7.46 6.58
+## 2  8  8  8  8   NA 8.14  6.77 5.76
+## 3 13 13 13  8   NA 8.74 12.74   NA
+## 4  9  9  9  8 8.81 8.77  7.11   NA
+## 5 11 11 11  8 8.33 9.26  7.81   NA
+## 6 14 14 14  8 9.96 8.10  8.84 7.04
+```
+
+```r
+## check missing data patterns
+md.pattern(anscombe)
+```
+
+<img src="09-imputation_files/figure-html/unnamed-chunk-2-1.png" width="672" />
+
+```
+##   x1 x2 x3 x4 y2 y3 y1 y4  
+## 6  1  1  1  1  1  1  1  1 0
+## 2  1  1  1  1  1  1  1  0 1
+## 2  1  1  1  1  1  1  0  1 1
+## 1  1  1  1  1  1  1  0  0 2
+##    0  0  0  0  0  0  3  3 6
+```
+
+```r
+## Number of observations per patterns for all pairs of variables
+p <- md.pairs(anscombe)
+p # rr = number of observations where both pairs of values are observed
+```
+
+```
+## $rr
+##    x1 x2 x3 x4 y1 y2 y3 y4
+## x1 11 11 11 11  8 11 11  8
+## x2 11 11 11 11  8 11 11  8
+## x3 11 11 11 11  8 11 11  8
+## x4 11 11 11 11  8 11 11  8
+## y1  8  8  8  8  8  8  8  6
+## y2 11 11 11 11  8 11 11  8
+## y3 11 11 11 11  8 11 11  8
+## y4  8  8  8  8  6  8  8  8
+## 
+## $rm
+##    x1 x2 x3 x4 y1 y2 y3 y4
+## x1  0  0  0  0  3  0  0  3
+## x2  0  0  0  0  3  0  0  3
+## x3  0  0  0  0  3  0  0  3
+## x4  0  0  0  0  3  0  0  3
+## y1  0  0  0  0  0  0  0  2
+## y2  0  0  0  0  3  0  0  3
+## y3  0  0  0  0  3  0  0  3
+## y4  0  0  0  0  2  0  0  0
+## 
+## $mr
+##    x1 x2 x3 x4 y1 y2 y3 y4
+## x1  0  0  0  0  0  0  0  0
+## x2  0  0  0  0  0  0  0  0
+## x3  0  0  0  0  0  0  0  0
+## x4  0  0  0  0  0  0  0  0
+## y1  3  3  3  3  0  3  3  2
+## y2  0  0  0  0  0  0  0  0
+## y3  0  0  0  0  0  0  0  0
+## y4  3  3  3  3  2  3  3  0
+## 
+## $mm
+##    x1 x2 x3 x4 y1 y2 y3 y4
+## x1  0  0  0  0  0  0  0  0
+## x2  0  0  0  0  0  0  0  0
+## x3  0  0  0  0  0  0  0  0
+## x4  0  0  0  0  0  0  0  0
+## y1  0  0  0  0  3  0  0  1
+## y2  0  0  0  0  0  0  0  0
+## y3  0  0  0  0  0  0  0  0
+## y4  0  0  0  0  1  0  0  3
+```
+
+```r
+# rm = the number of observations where both variables are missing values
+# mr = the number of observations where the first variable’s value (e.g. the row variable) is observed and second (or column) variable is missing
+# mm = the number of observations where the second variable’s value (e.g. the col variable) is observed and first (or row) variable is missing
+
+## Margin plot of y1 and y4
+marginplot(anscombe[c(5, 8)], col = c("blue", "red", "orange"))
+```
+
+<img src="09-imputation_files/figure-html/unnamed-chunk-2-2.png" width="672" />
+
+```r
+## 5 imputations for all missing values
+imp1 <- mice(anscombe, m = 5)
+```
+
+```
+## 
+##  iter imp variable
+##   1   1  y1  y4
+##   1   2  y1  y4
+##   1   3  y1  y4
+##   1   4  y1  y4
+##   1   5  y1  y4
+##   2   1  y1  y4
+##   2   2  y1  y4
+##   2   3  y1  y4
+##   2   4  y1  y4
+##   2   5  y1  y4
+##   3   1  y1  y4
+##   3   2  y1  y4
+##   3   3  y1  y4
+##   3   4  y1  y4
+##   3   5  y1  y4
+##   4   1  y1  y4
+##   4   2  y1  y4
+##   4   3  y1  y4
+##   4   4  y1  y4
+##   4   5  y1  y4
+##   5   1  y1  y4
+##   5   2  y1  y4
+##   5   3  y1  y4
+##   5   4  y1  y4
+##   5   5  y1  y4
+```
+
+```
+## Warning: Number of logged events: 52
+```
+
+```r
+## linear regression for each imputed data set - 5 regression are run
+fitm <- with(imp1, lm(y1 ~ y4 + x1))
+summary(fitm)
+```
+
+```
+## # A tibble: 15 x 6
+##    term        estimate std.error statistic p.value  nobs
+##    <chr>          <dbl>     <dbl>     <dbl>   <dbl> <int>
+##  1 (Intercept)    8.60      2.67      3.23  0.0121     11
+##  2 y4            -0.533     0.251    -2.12  0.0667     11
+##  3 x1             0.334     0.155     2.16  0.0628     11
+##  4 (Intercept)    4.19      2.93      1.43  0.190      11
+##  5 y4            -0.213     0.273    -0.782 0.457      11
+##  6 x1             0.510     0.167     3.05  0.0159     11
+##  7 (Intercept)    6.51      2.35      2.77  0.0244     11
+##  8 y4            -0.347     0.215    -1.62  0.145      11
+##  9 x1             0.395     0.132     3.00  0.0169     11
+## 10 (Intercept)    5.48      3.02      1.81  0.107      11
+## 11 y4            -0.316     0.282    -1.12  0.295      11
+## 12 x1             0.486     0.173     2.81  0.0230     11
+## 13 (Intercept)    7.12      1.81      3.92  0.00439    11
+## 14 y4            -0.436     0.173    -2.53  0.0355     11
+## 15 x1             0.425     0.102     4.18  0.00308    11
+```
+
+```r
+## pool coefficients and standard errors across all 5 regression models
+pool(fitm)
+```
+
+```
+## Class: mipo    m = 5 
+##          term m   estimate       ubar           b           t dfcom       df
+## 1 (Intercept) 5  6.3808015 6.72703243 2.785088109 10.06913816     8 3.902859
+## 2          y4 5 -0.3690455 0.05860053 0.014674911  0.07621042     8 4.716160
+## 3          x1 5  0.4301588 0.02191260 0.004980516  0.02788922     8 4.856052
+##         riv    lambda       fmi
+## 1 0.4968172 0.3319158 0.5254832
+## 2 0.3005074 0.2310693 0.4303733
+## 3 0.2727480 0.2142985 0.4143230
+```
+
+```r
+## output parameter estimates
+summary(pool(fitm))
+```
+
+```
+##          term   estimate std.error statistic       df    p.value
+## 1 (Intercept)  6.3808015 3.1731905  2.010847 3.902859 0.11643863
+## 2          y4 -0.3690455 0.2760624 -1.336819 4.716160 0.24213491
+## 3          x1  0.4301588 0.1670007  2.575791 4.856052 0.05107581
+```
+
+##### Stochastic Imputation
+
+`Regression imputation + random residual = Stochastic Imputation`
+
+Most multiple imputation is based off of some form of stochastic regression imputation.
+
+Good:
+
+-   Has all the advantage of [Regression Imputation]
+-   and also has the random components
+
+Bad:
+
+-   might lead to implausible values (e.g. negative values)
+-   can't handle heteroskadastic data
+
+**Note**\
+Multiple Imputation usually based on some form of stochastic regression imputation.
+
+
+```r
+# Income data
+ 
+set.seed(91919)                              # Set seed
+N <- 1000                                    # Sample size
+ 
+income <- round(rnorm(N, 0, 500))            # Create some synthetic income data
+income[income < 0] <- income[income < 0] * (- 1)
+ 
+x1 <- income + rnorm(N, 1000, 1500)          # Auxiliary variables
+x2 <- income + rnorm(N, - 5000, 2000)
+ 
+income[rbinom(N, 1, 0.1) == 1] <- NA         # Create 10% missingness in income
+ 
+data_inc_miss <- data.frame(income, x1, x2)
+```
+
+Single stochastic regression imputation
+
+
+```r
+imp_inc_sri <- mice(data_inc_miss, method = "norm.nob", m = 1)
+```
+
+```
+## 
+##  iter imp variable
+##   1   1  income
+##   2   1  income
+##   3   1  income
+##   4   1  income
+##   5   1  income
+```
+
+```r
+data_inc_sri <- complete(imp_inc_sri)
+```
+
+Single predictive mean matching
+
+
+```r
+imp_inc_pmm <- mice(data_inc_miss, method = "pmm", m = 1)
+```
+
+```
+## 
+##  iter imp variable
+##   1   1  income
+##   2   1  income
+##   3   1  income
+##   4   1  income
+##   5   1  income
+```
+
+```r
+data_inc_pmm <- complete(imp_inc_pmm)
+```
+
+Stochastic regression imputation contains negative values
+
+
+```r
+data_inc_sri$income[data_inc_sri$income < 0]
+```
+
+```
+## [1]  -66.055957  -96.980053  -28.921432   -4.175686  -54.480798  -27.207102
+## [7] -143.603500  -80.960488
+```
+
+```r
+data_inc_pmm$income[data_inc_pmm$income < 0] # No values below 0
+```
+
+```
+## numeric(0)
+```
+
+Proof for heteroskadastic data
+
+
+```r
+# Heteroscedastic data
+ 
+set.seed(654654)                             # Set seed
+N <- 1:5000                                  # Sample size
+ 
+a <- 0
+b <- 1
+sigma2 <- N^2
+eps <- rnorm(N, mean = 0, sd = sqrt(sigma2))
+ 
+y <- a + b * N + eps                         # Heteroscedastic variable
+x <- 30 * N + rnorm(N[length(N)], 1000, 200) # Correlated variable
+ 
+y[rbinom(N[length(N)], 1, 0.3) == 1] <- NA   # 30% missings
+ 
+data_het_miss <- data.frame(y, x)
+```
+
+Single stochastic regression imputation
+
+
+```r
+imp_het_sri <- mice(data_het_miss, method = "norm.nob", m = 1)
+```
+
+```
+## 
+##  iter imp variable
+##   1   1  y
+##   2   1  y
+##   3   1  y
+##   4   1  y
+##   5   1  y
+```
+
+```r
+data_het_sri <- complete(imp_het_sri)
+```
+
+Single predictive mean matching
+
+
+```r
+imp_het_pmm <- mice(data_het_miss, method = "pmm", m = 1)
+```
+
+```
+## 
+##  iter imp variable
+##   1   1  y
+##   2   1  y
+##   3   1  y
+##   4   1  y
+##   5   1  y
+```
+
+```r
+data_het_pmm <- complete(imp_het_pmm)
+```
+
+Comparison between predictive mean matching and stochastic regression imputation
+
+
+```r
+par(mfrow = c(1, 2))                              # Both plots in one graphic
+ 
+plot(x[!is.na(data_het_sri$y)],                   # Plot of observed values
+     data_het_sri$y[!is.na(data_het_sri$y)],
+     main = "",
+     xlab = "X", ylab = "Y")
+points(x[is.na(y)], data_het_sri$y[is.na(y)],     # Plot of missing values
+       col = "red")
+title("Stochastic Regression Imputation",         # Title of plot
+      line = 0.5)
+abline(lm(y ~ x, data_het_sri),                   # Regression line
+       col = "#1b98e0", lwd = 2.5)
+legend("topleft",                                 # Legend
+       c("Observed Values", "Imputed Values", "Regression Y ~ X"),
+       pch = c(1, 1, NA),
+       lty = c(NA, NA, 1),
+       col = c("black", "red", "#1b98e0"))
+ 
+plot(x[!is.na(data_het_pmm$y)],                   # Plot of observed values
+     data_het_pmm$y[!is.na(data_het_pmm$y)],
+     main = "",
+     xlab = "X", ylab = "Y")
+points(x[is.na(y)], data_het_pmm$y[is.na(y)],     # Plot of missing values
+       col = "red")
+title("Predictive Mean Matching",                 # Title of plot
+      line = 0.5)
+abline(lm(y ~ x, data_het_pmm),
+       col = "#1b98e0", lwd = 2.5)
+legend("topleft",                                 # Legend
+       c("Observed Values", "Imputed Values", "Regression Y ~ X"),
+       pch = c(1, 1, NA),
+       lty = c(NA, NA, 1),
+       col = c("black", "red", "#1b98e0"))
+ 
+mtext("Imputation of Heteroscedastic Data",       # Main title of plot
+      side = 3, line = - 1.5, outer = TRUE, cex = 2)
+```
+
+<img src="09-imputation_files/figure-html/unnamed-chunk-10-1.png" width="672" />
+
 #### Regression Imputation
 
 Also known as conditional mean imputation Missing value is based (regress) on other variables.
@@ -343,18 +932,6 @@ Also known as conditional mean imputation Missing value is based (regress) on ot
 
     -   No variability left. treated data as if they were collected.
     -   Underestimate the standard errors and overestimate test statistics
-
-#### Stochatic Imputation
-
-`Regression imputation + random residual = Stochastic Imputation`
-
-Most multiple imputation is based off of some form of stochastic regression imputation. Good:
-
--   Has all the advantage of [Regression Imputation]
--   and also has the random components
-
-**Note**\
-Multiple Imputation usually based on some form of stochastic regression imputation.
 
 #### Interpolation and Extrapolation
 
@@ -379,6 +956,10 @@ For a continuous variable, it uses the mean or mode.
     -   Manhattan
 
 #### Bayesian Ridge regression implementation
+
+Other methods:
+
+-   For panel data, or clustered data, use `pan` package by Schafer (1997)
 
 ## Criteria for Choosing an Effective Approach
 
@@ -480,6 +1061,17 @@ library(missForest)
 ```
 
 ```
+## 
+## Attaching package: 'randomForest'
+```
+
+```
+## The following object is masked from 'package:ggplot2':
+## 
+##     margin
+```
+
+```
 ## Loading required package: foreach
 ```
 
@@ -489,6 +1081,17 @@ library(missForest)
 
 ```
 ## Loading required package: iterators
+```
+
+```
+## 
+## Attaching package: 'missForest'
+```
+
+```
+## The following object is masked from 'package:VIM':
+## 
+##     nrmse
 ```
 
 ```r
@@ -526,17 +1129,20 @@ library(DMwR)
 ```
 
 ```
-## Loading required package: lattice
-```
-
-```
-## Loading required package: grid
-```
-
-```
 ## Registered S3 method overwritten by 'quantmod':
 ##   method            from
 ##   as.zoo.data.frame zoo
+```
+
+```
+## 
+## Attaching package: 'DMwR'
+```
+
+```
+## The following object is masked from 'package:VIM':
+## 
+##     kNN
 ```
 
 ```r
@@ -626,70 +1232,13 @@ Methods in [MICE](#mice-multivariate-imputation-via-chained-equations):
 ```r
 # load package
 library(mice)
-```
-
-```
-## 
-## Attaching package: 'mice'
-```
-
-```
-## The following object is masked from 'package:stats':
-## 
-##     filter
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     cbind, rbind
-```
-
-```r
 library(VIM)
-```
 
-```
-## Loading required package: colorspace
-```
-
-```
-## VIM is ready to use.
-```
-
-```
-## Suggestions and bug-reports can be submitted at: https://github.com/statistikat/VIM/issues
-```
-
-```
-## 
-## Attaching package: 'VIM'
-```
-
-```
-## The following object is masked from 'package:DMwR':
-## 
-##     kNN
-```
-
-```
-## The following object is masked from 'package:missForest':
-## 
-##     nrmse
-```
-
-```
-## The following object is masked from 'package:datasets':
-## 
-##     sleep
-```
-
-```r
 # check missing values
 md.pattern(iris.mis)
 ```
 
-<img src="09-imputation_files/figure-html/unnamed-chunk-7-1.png" width="672" />
+<img src="09-imputation_files/figure-html/unnamed-chunk-17-1.png" width="672" />
 
 ```
 ##     Sepal.Width Sepal.Length Petal.Length Petal.Width   
@@ -712,7 +1261,7 @@ md.pattern(iris.mis)
 aggr(iris.mis, col=mdc(1:2), numbers=TRUE, sortVars=TRUE, labels=names(iris.mis), cex.axis=.7, gap=3, ylab=c("Proportion of missingness","Missingness Pattern"))
 ```
 
-<img src="09-imputation_files/figure-html/unnamed-chunk-7-2.png" width="672" />
+<img src="09-imputation_files/figure-html/unnamed-chunk-17-2.png" width="672" />
 
 ```
 ## 
@@ -731,7 +1280,7 @@ mice_plot <- aggr(iris.mis, col=c('navyblue','yellow'),
                     gap=3, ylab=c("Missing data","Pattern"))
 ```
 
-<img src="09-imputation_files/figure-html/unnamed-chunk-7-3.png" width="672" />
+<img src="09-imputation_files/figure-html/unnamed-chunk-17-3.png" width="672" />
 
 ```
 ## 
@@ -789,7 +1338,7 @@ summary(imputed_Data)
 densityplot(imputed_Data)
 ```
 
-<img src="09-imputation_files/figure-html/unnamed-chunk-9-1.png" width="672" />
+<img src="09-imputation_files/figure-html/unnamed-chunk-19-1.png" width="672" />
 
 ```r
 #the red (imputed values) should be similar to the blue (observed)
@@ -990,21 +1539,6 @@ library(Hmisc)
 ```
 
 ```
-## Loading required package: ggplot2
-```
-
-```
-## 
-## Attaching package: 'ggplot2'
-```
-
-```
-## The following object is masked from 'package:randomForest':
-## 
-##     margin
-```
-
-```
 ## 
 ## Attaching package: 'Hmisc'
 ```
@@ -1167,7 +1701,7 @@ summary(mi_data)
 ## 
 ## $Sepal.Length$imputed
 ##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## -0.26578 -0.05962  0.01231  0.01064  0.07137  0.41795 
+## -0.53448 -0.07660 -0.01091 -0.01727  0.07109  0.33991 
 ## 
 ## $Sepal.Length$observed
 ##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -1182,7 +1716,7 @@ summary(mi_data)
 ## 
 ## $Sepal.Width$imputed
 ##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## -1.02162 -0.43449  0.02617  0.06745  0.56059  1.34934 
+## -1.21841 -0.30563  0.08841  0.13152  0.52986  2.77291 
 ## 
 ## $Sepal.Width$observed
 ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -1197,7 +1731,7 @@ summary(mi_data)
 ## 
 ## $Petal.Length$imputed
 ##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## -0.87625 -0.57860  0.04407 -0.11080  0.24928  0.63695 
+## -0.94513 -0.58388  0.02674 -0.10201  0.25916  0.64881 
 ## 
 ## $Petal.Length$observed
 ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -1212,7 +1746,7 @@ summary(mi_data)
 ## 
 ## $Petal.Width$imputed
 ##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## -0.88181 -0.57938  0.03861 -0.06502  0.38551  0.79620 
+## -0.86151 -0.57909  0.06688 -0.04991  0.38920  0.86249 
 ## 
 ## $Petal.Width$observed
 ##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -1223,9 +1757,9 @@ summary(mi_data)
 ## $Species$crosstab
 ##             
 ##              observed imputed
-##   setosa          184      20
-##   versicolor      188      15
-##   virginica       164      29
+##   setosa          184      22
+##   versicolor      188      14
+##   virginica       164      28
 ## 
 ## 
 ## $imputed_age
