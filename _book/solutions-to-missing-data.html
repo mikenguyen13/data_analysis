@@ -24,7 +24,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2021-03-15" />
+<meta name="date" content="2021-03-16" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -322,6 +322,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="6.4.4" data-path="generalized-linear-mixed-models.html"><a href="generalized-linear-mixed-models.html#information-criteria"><i class="fa fa-check"></i><b>6.4.4</b> Information Criteria</a></li>
 <li class="chapter" data-level="6.4.5" data-path="generalized-linear-mixed-models.html"><a href="generalized-linear-mixed-models.html#split-plot-designs"><i class="fa fa-check"></i><b>6.4.5</b> Split-Plot Designs</a></li>
 <li class="chapter" data-level="6.4.6" data-path="generalized-linear-mixed-models.html"><a href="generalized-linear-mixed-models.html#repeated-measures-in-mixed-models"><i class="fa fa-check"></i><b>6.4.6</b> Repeated Measures in Mixed Models</a></li>
+<li class="chapter" data-level="6.4.7" data-path="generalized-linear-mixed-models.html"><a href="generalized-linear-mixed-models.html#unbalanced-or-unequally-spaced-data"><i class="fa fa-check"></i><b>6.4.7</b> Unbalanced or Unequally Spaced Data</a></li>
 </ul></li>
 <li class="chapter" data-level="6.5" data-path="generalized-method-of-moments.html"><a href="generalized-method-of-moments.html"><i class="fa fa-check"></i><b>6.5</b> Generalized Method of Moments</a></li>
 <li class="chapter" data-level="6.6" data-path="minimum-distance.html"><a href="minimum-distance.html"><i class="fa fa-check"></i><b>6.6</b> Minimum Distance</a></li>
@@ -757,6 +758,403 @@ A randomly chosen value from an individual in the sample who has similar values 
 </div>
 <div id="predictive-mean-matching" class="section level5" number="9.2.4.4.3">
 <h5><span class="header-section-number">9.2.4.4.3</span> Predictive Mean Matching</h5>
+<p>Steps:</p>
+<ol style="list-style-type: decimal">
+<li>Regress Y on X (matrix of covariates) for the <span class="math inline">\(n_1\)</span> (i.e., non-missing cases) to get coefficients <span class="math inline">\(b\)</span> (a <span class="math inline">\(k \times 1\)</span> vector) and residual variance estimates <span class="math inline">\(s^2\)</span></li>
+<li>Draw randomly from the posterior predictive distribution of the residual variance (assuming a noninformative prior) by calculating <span class="math inline">\(\frac{(n_1-k)s^2}{\chi^2}\)</span>, where <span class="math inline">\(\chi^2\)</span> is a random draw from a <span class="math inline">\(\chi^2_{n_1-k}\)</span> and let <span class="math inline">\(s^2_{[1]}\)</span> be an i-th random draw</li>
+<li>Randomly draw from the posterior distribution of the coefficients <span class="math inline">\(b\)</span>, by drawing from <span class="math inline">\(MVN(b, s^2_{[1]}(X&#39;X)^{-1})\)</span>, where X is an <span class="math inline">\(n_1 \times k\)</span> matrix of X values. Then we have <span class="math inline">\(b_{1}\)</span></li>
+<li>Using step 1, we can calculate standardized residuals for <span class="math inline">\(n_1\)</span> cases: <span class="math inline">\(e_i = \frac{y_i - bx_i}{\sqrt{s^2(1-k/n_1)}}\)</span></li>
+<li>Randomly draw a sample (with replacement) of <span class="math inline">\(n_0\)</span> from the <span class="math inline">\(n_1\)</span> residuals in step 4</li>
+<li>With <span class="math inline">\(n_0\)</span> cases, we can calculate imputed values of Y: <span class="math inline">\(y_i = b_{[1]}x_i + s_{[1]}e_i\)</span> where <span class="math inline">\(e_i\)</span> are taken from step 5, and <span class="math inline">\(b_{[1]}\)</span> taken from step 3, and <span class="math inline">\(s_{[1]}\)</span> taken from step 2.</li>
+<li>Repeat steps 2 through 6 except for step 4.</li>
+</ol>
+<p>Notes:</p>
+<ul>
+<li>can be used for multiple variables where each variable is imputed using all other variables as predictor.</li>
+<li>can also be used for heteroskedasticity in imputed values.</li>
+</ul>
+<p>Example from <a href="https://statisticsglobe.com/predictive-mean-matching-imputation-method/">Statistics Globle</a></p>
+<div class="sourceCode" id="cb460"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb460-1"><a href="solutions-to-missing-data.html#cb460-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">918273</span>)                                <span class="co"># Seed</span></span>
+<span id="cb460-2"><a href="solutions-to-missing-data.html#cb460-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">3000</span>                                       <span class="co"># Sample size</span></span>
+<span id="cb460-3"><a href="solutions-to-missing-data.html#cb460-3" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">runif</span>(N, <span class="sc">-</span><span class="dv">10</span>, <span class="dv">10</span>))                   <span class="co"># Target variable Y</span></span>
+<span id="cb460-4"><a href="solutions-to-missing-data.html#cb460-4" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> y <span class="sc">+</span> <span class="fu">round</span>(<span class="fu">runif</span>(N, <span class="dv">0</span>, <span class="dv">50</span>))                <span class="co"># Auxiliary variable 1</span></span>
+<span id="cb460-5"><a href="solutions-to-missing-data.html#cb460-5" aria-hidden="true" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> <span class="fu">round</span>(y <span class="sc">+</span> <span class="fl">0.25</span> <span class="sc">*</span> x1 <span class="sc">+</span> <span class="fu">rnorm</span>(N, <span class="sc">-</span> <span class="dv">3</span>, <span class="dv">15</span>))  <span class="co"># Auxiliary variable 2</span></span>
+<span id="cb460-6"><a href="solutions-to-missing-data.html#cb460-6" aria-hidden="true" tabindex="-1"></a>x3 <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fl">0.1</span> <span class="sc">*</span> x1 <span class="sc">+</span> <span class="fu">rpois</span>(N, <span class="dv">2</span>))             <span class="co"># Auxiliary variable 3</span></span>
+<span id="cb460-7"><a href="solutions-to-missing-data.html#cb460-7" aria-hidden="true" tabindex="-1"></a>x4 <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(<span class="fu">round</span>(<span class="fl">0.02</span> <span class="sc">*</span> y <span class="sc">+</span> <span class="fu">runif</span>(N)))     <span class="co"># Auxiliary variable 4 (categorical variable)</span></span>
+<span id="cb460-8"><a href="solutions-to-missing-data.html#cb460-8" aria-hidden="true" tabindex="-1"></a>y[<span class="fu">rbinom</span>(N, <span class="dv">1</span>, <span class="fl">0.2</span>) <span class="sc">==</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="cn">NA</span>                 <span class="co"># Insert 20% missing data in Y</span></span>
+<span id="cb460-9"><a href="solutions-to-missing-data.html#cb460-9" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(y, x1, x2, x3, x4)           <span class="co"># Store data in dataset</span></span>
+<span id="cb460-10"><a href="solutions-to-missing-data.html#cb460-10" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data)                                      <span class="co"># First 6 rows of our data</span></span></code></pre></div>
+<pre><code>##    y x1  x2 x3 x4
+## 1  8 38  -3  6  1
+## 2  1 50  -9  5  0
+## 3  5 43  20  5  1
+## 4 NA  9  13  3  0
+## 5 -4 40 -10  6  0
+## 6 NA 29  -6  5  1</code></pre>
+<div class="sourceCode" id="cb462"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb462-1"><a href="solutions-to-missing-data.html#cb462-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;mice&quot;</span>)                                 <span class="co"># Load mice package</span></span></code></pre></div>
+<pre><code>## 
+## Attaching package: &#39;mice&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:stats&#39;:
+## 
+##     filter</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     cbind, rbind</code></pre>
+<div class="sourceCode" id="cb466"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb466-1"><a href="solutions-to-missing-data.html#cb466-1" aria-hidden="true" tabindex="-1"></a><span class="do">##### Impute data via predictive mean matching (single imputation)#####</span></span>
+<span id="cb466-2"><a href="solutions-to-missing-data.html#cb466-2" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb466-3"><a href="solutions-to-missing-data.html#cb466-3" aria-hidden="true" tabindex="-1"></a>imp_single <span class="ot">&lt;-</span> <span class="fu">mice</span>(data, <span class="at">m =</span> <span class="dv">1</span>, <span class="at">method =</span> <span class="st">&quot;pmm&quot;</span>) <span class="co"># Impute missing values</span></span></code></pre></div>
+<pre><code>## 
+##  iter imp variable
+##   1   1  y
+##   2   1  y
+##   3   1  y
+##   4   1  y
+##   5   1  y</code></pre>
+<div class="sourceCode" id="cb468"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb468-1"><a href="solutions-to-missing-data.html#cb468-1" aria-hidden="true" tabindex="-1"></a>data_imp_single <span class="ot">&lt;-</span> <span class="fu">complete</span>(imp_single)         <span class="co"># Store imputed data</span></span>
+<span id="cb468-2"><a href="solutions-to-missing-data.html#cb468-2" aria-hidden="true" tabindex="-1"></a><span class="co"># head(data_imp_single)</span></span>
+<span id="cb468-3"><a href="solutions-to-missing-data.html#cb468-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb468-4"><a href="solutions-to-missing-data.html#cb468-4" aria-hidden="true" tabindex="-1"></a><span class="co"># SInce single imputation underestiamtes stnadard errors, we use multiple imputaiton</span></span>
+<span id="cb468-5"><a href="solutions-to-missing-data.html#cb468-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb468-6"><a href="solutions-to-missing-data.html#cb468-6" aria-hidden="true" tabindex="-1"></a><span class="do">##### Predictive mean matching (multiple imputation)#####</span></span>
+<span id="cb468-7"><a href="solutions-to-missing-data.html#cb468-7" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb468-8"><a href="solutions-to-missing-data.html#cb468-8" aria-hidden="true" tabindex="-1"></a>imp_multi <span class="ot">&lt;-</span> <span class="fu">mice</span>(data, <span class="at">m =</span> <span class="dv">5</span>, <span class="at">method =</span> <span class="st">&quot;pmm&quot;</span>)  <span class="co"># Impute missing values multiple times</span></span></code></pre></div>
+<pre><code>## 
+##  iter imp variable
+##   1   1  y
+##   1   2  y
+##   1   3  y
+##   1   4  y
+##   1   5  y
+##   2   1  y
+##   2   2  y
+##   2   3  y
+##   2   4  y
+##   2   5  y
+##   3   1  y
+##   3   2  y
+##   3   3  y
+##   3   4  y
+##   3   5  y
+##   4   1  y
+##   4   2  y
+##   4   3  y
+##   4   4  y
+##   4   5  y
+##   5   1  y
+##   5   2  y
+##   5   3  y
+##   5   4  y
+##   5   5  y</code></pre>
+<div class="sourceCode" id="cb470"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb470-1"><a href="solutions-to-missing-data.html#cb470-1" aria-hidden="true" tabindex="-1"></a>data_imp_multi_all <span class="ot">&lt;-</span> <span class="fu">complete</span>(imp_multi,       <span class="co"># Store multiply imputed data</span></span>
+<span id="cb470-2"><a href="solutions-to-missing-data.html#cb470-2" aria-hidden="true" tabindex="-1"></a>                           <span class="st">&quot;repeated&quot;</span>,</span>
+<span id="cb470-3"><a href="solutions-to-missing-data.html#cb470-3" aria-hidden="true" tabindex="-1"></a>                           <span class="at">include =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<pre><code>## New names:
+## * y -&gt; y...1
+## * x1 -&gt; x1...2
+## * x2 -&gt; x2...3
+## * x3 -&gt; x3...4
+## * x4 -&gt; x4...5
+## * ...</code></pre>
+<div class="sourceCode" id="cb472"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb472-1"><a href="solutions-to-missing-data.html#cb472-1" aria-hidden="true" tabindex="-1"></a>data_imp_multi <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(                   <span class="co"># Combine imputed Y and X1-X4 (for convenience)</span></span>
+<span id="cb472-2"><a href="solutions-to-missing-data.html#cb472-2" aria-hidden="true" tabindex="-1"></a>  data_imp_multi_all[ , <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>], data[, <span class="dv">2</span><span class="sc">:</span><span class="dv">5</span>])</span>
+<span id="cb472-3"><a href="solutions-to-missing-data.html#cb472-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(data_imp_multi)                            <span class="co"># First 6 rows of our multiply imputed data</span></span></code></pre></div>
+<pre><code>##   y.0 y.1 y.2 y.3 y.4 y.5 x1  x2 x3 x4
+## 1   8   8   8   8   8   8 38  -3  6  1
+## 2   1   1   1   1   1   1 50  -9  5  0
+## 3   5   5   5   5   5   5 43  20  5  1
+## 4  NA   1  -2  -4   9  -8  9  13  3  0
+## 5  -4  -4  -4  -4  -4  -4 40 -10  6  0
+## 6  NA   4   7   7   6   0 29  -6  5  1</code></pre>
+<p>Example from <a href="https://stats.idre.ucla.edu/r/faq/how-do-i-perform-multiple-imputation-using-predictive-mean-matching-in-r/">UCLA Statistical Consulting</a> <span class="citation">(<a href="references.html#ref-newtest" role="doc-biblioref">Bruin 2011</a>)</span></p>
+<div class="sourceCode" id="cb474"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb474-1"><a href="solutions-to-missing-data.html#cb474-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(mice)</span>
+<span id="cb474-2"><a href="solutions-to-missing-data.html#cb474-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(VIM)</span></code></pre></div>
+<pre><code>## Loading required package: colorspace</code></pre>
+<pre><code>## Loading required package: grid</code></pre>
+<pre><code>## VIM is ready to use.</code></pre>
+<pre><code>## Suggestions and bug-reports can be submitted at: https://github.com/statistikat/VIM/issues</code></pre>
+<pre><code>## 
+## Attaching package: &#39;VIM&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:datasets&#39;:
+## 
+##     sleep</code></pre>
+<div class="sourceCode" id="cb481"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb481-1"><a href="solutions-to-missing-data.html#cb481-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lattice)</span>
+<span id="cb481-2"><a href="solutions-to-missing-data.html#cb481-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb481-3"><a href="solutions-to-missing-data.html#cb481-3" aria-hidden="true" tabindex="-1"></a><span class="do">## set observations to NA</span></span>
+<span id="cb481-4"><a href="solutions-to-missing-data.html#cb481-4" aria-hidden="true" tabindex="-1"></a>anscombe <span class="ot">&lt;-</span> <span class="fu">within</span>(anscombe, {</span>
+<span id="cb481-5"><a href="solutions-to-missing-data.html#cb481-5" aria-hidden="true" tabindex="-1"></a>    y1[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb481-6"><a href="solutions-to-missing-data.html#cb481-6" aria-hidden="true" tabindex="-1"></a>    y4[<span class="dv">3</span><span class="sc">:</span><span class="dv">5</span>] <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb481-7"><a href="solutions-to-missing-data.html#cb481-7" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb481-8"><a href="solutions-to-missing-data.html#cb481-8" aria-hidden="true" tabindex="-1"></a><span class="do">## view</span></span>
+<span id="cb481-9"><a href="solutions-to-missing-data.html#cb481-9" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(anscombe)</span></code></pre></div>
+<pre><code>##   x1 x2 x3 x4   y1   y2    y3   y4
+## 1 10 10 10  8   NA 9.14  7.46 6.58
+## 2  8  8  8  8   NA 8.14  6.77 5.76
+## 3 13 13 13  8   NA 8.74 12.74   NA
+## 4  9  9  9  8 8.81 8.77  7.11   NA
+## 5 11 11 11  8 8.33 9.26  7.81   NA
+## 6 14 14 14  8 9.96 8.10  8.84 7.04</code></pre>
+<div class="sourceCode" id="cb483"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb483-1"><a href="solutions-to-missing-data.html#cb483-1" aria-hidden="true" tabindex="-1"></a><span class="do">## check missing data patterns</span></span>
+<span id="cb483-2"><a href="solutions-to-missing-data.html#cb483-2" aria-hidden="true" tabindex="-1"></a><span class="fu">md.pattern</span>(anscombe)</span></code></pre></div>
+<p><img src="09-imputation_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<pre><code>##   x1 x2 x3 x4 y2 y3 y1 y4  
+## 6  1  1  1  1  1  1  1  1 0
+## 2  1  1  1  1  1  1  1  0 1
+## 2  1  1  1  1  1  1  0  1 1
+## 1  1  1  1  1  1  1  0  0 2
+##    0  0  0  0  0  0  3  3 6</code></pre>
+<div class="sourceCode" id="cb485"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb485-1"><a href="solutions-to-missing-data.html#cb485-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Number of observations per patterns for all pairs of variables</span></span>
+<span id="cb485-2"><a href="solutions-to-missing-data.html#cb485-2" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">md.pairs</span>(anscombe)</span>
+<span id="cb485-3"><a href="solutions-to-missing-data.html#cb485-3" aria-hidden="true" tabindex="-1"></a>p <span class="co"># rr = number of observations where both pairs of values are observed</span></span></code></pre></div>
+<pre><code>## $rr
+##    x1 x2 x3 x4 y1 y2 y3 y4
+## x1 11 11 11 11  8 11 11  8
+## x2 11 11 11 11  8 11 11  8
+## x3 11 11 11 11  8 11 11  8
+## x4 11 11 11 11  8 11 11  8
+## y1  8  8  8  8  8  8  8  6
+## y2 11 11 11 11  8 11 11  8
+## y3 11 11 11 11  8 11 11  8
+## y4  8  8  8  8  6  8  8  8
+## 
+## $rm
+##    x1 x2 x3 x4 y1 y2 y3 y4
+## x1  0  0  0  0  3  0  0  3
+## x2  0  0  0  0  3  0  0  3
+## x3  0  0  0  0  3  0  0  3
+## x4  0  0  0  0  3  0  0  3
+## y1  0  0  0  0  0  0  0  2
+## y2  0  0  0  0  3  0  0  3
+## y3  0  0  0  0  3  0  0  3
+## y4  0  0  0  0  2  0  0  0
+## 
+## $mr
+##    x1 x2 x3 x4 y1 y2 y3 y4
+## x1  0  0  0  0  0  0  0  0
+## x2  0  0  0  0  0  0  0  0
+## x3  0  0  0  0  0  0  0  0
+## x4  0  0  0  0  0  0  0  0
+## y1  3  3  3  3  0  3  3  2
+## y2  0  0  0  0  0  0  0  0
+## y3  0  0  0  0  0  0  0  0
+## y4  3  3  3  3  2  3  3  0
+## 
+## $mm
+##    x1 x2 x3 x4 y1 y2 y3 y4
+## x1  0  0  0  0  0  0  0  0
+## x2  0  0  0  0  0  0  0  0
+## x3  0  0  0  0  0  0  0  0
+## x4  0  0  0  0  0  0  0  0
+## y1  0  0  0  0  3  0  0  1
+## y2  0  0  0  0  0  0  0  0
+## y3  0  0  0  0  0  0  0  0
+## y4  0  0  0  0  1  0  0  3</code></pre>
+<div class="sourceCode" id="cb487"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb487-1"><a href="solutions-to-missing-data.html#cb487-1" aria-hidden="true" tabindex="-1"></a><span class="co"># rm = the number of observations where both variables are missing values</span></span>
+<span id="cb487-2"><a href="solutions-to-missing-data.html#cb487-2" aria-hidden="true" tabindex="-1"></a><span class="co"># mr = the number of observations where the first variable’s value (e.g. the row variable) is observed and second (or column) variable is missing</span></span>
+<span id="cb487-3"><a href="solutions-to-missing-data.html#cb487-3" aria-hidden="true" tabindex="-1"></a><span class="co"># mm = the number of observations where the second variable’s value (e.g. the col variable) is observed and first (or row) variable is missing</span></span>
+<span id="cb487-4"><a href="solutions-to-missing-data.html#cb487-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb487-5"><a href="solutions-to-missing-data.html#cb487-5" aria-hidden="true" tabindex="-1"></a><span class="do">## Margin plot of y1 and y4</span></span>
+<span id="cb487-6"><a href="solutions-to-missing-data.html#cb487-6" aria-hidden="true" tabindex="-1"></a><span class="fu">marginplot</span>(anscombe[<span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">8</span>)], <span class="at">col =</span> <span class="fu">c</span>(<span class="st">&quot;blue&quot;</span>, <span class="st">&quot;red&quot;</span>, <span class="st">&quot;orange&quot;</span>))</span></code></pre></div>
+<p><img src="09-imputation_files/figure-html/unnamed-chunk-2-2.png" width="672" /></p>
+<div class="sourceCode" id="cb488"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb488-1"><a href="solutions-to-missing-data.html#cb488-1" aria-hidden="true" tabindex="-1"></a><span class="do">## 5 imputations for all missing values</span></span>
+<span id="cb488-2"><a href="solutions-to-missing-data.html#cb488-2" aria-hidden="true" tabindex="-1"></a>imp1 <span class="ot">&lt;-</span> <span class="fu">mice</span>(anscombe, <span class="at">m =</span> <span class="dv">5</span>)</span></code></pre></div>
+<pre><code>## 
+##  iter imp variable
+##   1   1  y1  y4
+##   1   2  y1  y4
+##   1   3  y1  y4
+##   1   4  y1  y4
+##   1   5  y1  y4
+##   2   1  y1  y4
+##   2   2  y1  y4
+##   2   3  y1  y4
+##   2   4  y1  y4
+##   2   5  y1  y4
+##   3   1  y1  y4
+##   3   2  y1  y4
+##   3   3  y1  y4
+##   3   4  y1  y4
+##   3   5  y1  y4
+##   4   1  y1  y4
+##   4   2  y1  y4
+##   4   3  y1  y4
+##   4   4  y1  y4
+##   4   5  y1  y4
+##   5   1  y1  y4
+##   5   2  y1  y4
+##   5   3  y1  y4
+##   5   4  y1  y4
+##   5   5  y1  y4</code></pre>
+<pre><code>## Warning: Number of logged events: 52</code></pre>
+<div class="sourceCode" id="cb491"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb491-1"><a href="solutions-to-missing-data.html#cb491-1" aria-hidden="true" tabindex="-1"></a><span class="do">## linear regression for each imputed data set - 5 regression are run</span></span>
+<span id="cb491-2"><a href="solutions-to-missing-data.html#cb491-2" aria-hidden="true" tabindex="-1"></a>fitm <span class="ot">&lt;-</span> <span class="fu">with</span>(imp1, <span class="fu">lm</span>(y1 <span class="sc">~</span> y4 <span class="sc">+</span> x1))</span>
+<span id="cb491-3"><a href="solutions-to-missing-data.html#cb491-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fitm)</span></code></pre></div>
+<pre><code>## # A tibble: 15 x 6
+##    term        estimate std.error statistic p.value  nobs
+##    &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt; &lt;int&gt;
+##  1 (Intercept)    8.60      2.67      3.23  0.0121     11
+##  2 y4            -0.533     0.251    -2.12  0.0667     11
+##  3 x1             0.334     0.155     2.16  0.0628     11
+##  4 (Intercept)    4.19      2.93      1.43  0.190      11
+##  5 y4            -0.213     0.273    -0.782 0.457      11
+##  6 x1             0.510     0.167     3.05  0.0159     11
+##  7 (Intercept)    6.51      2.35      2.77  0.0244     11
+##  8 y4            -0.347     0.215    -1.62  0.145      11
+##  9 x1             0.395     0.132     3.00  0.0169     11
+## 10 (Intercept)    5.48      3.02      1.81  0.107      11
+## 11 y4            -0.316     0.282    -1.12  0.295      11
+## 12 x1             0.486     0.173     2.81  0.0230     11
+## 13 (Intercept)    7.12      1.81      3.92  0.00439    11
+## 14 y4            -0.436     0.173    -2.53  0.0355     11
+## 15 x1             0.425     0.102     4.18  0.00308    11</code></pre>
+<div class="sourceCode" id="cb493"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb493-1"><a href="solutions-to-missing-data.html#cb493-1" aria-hidden="true" tabindex="-1"></a><span class="do">## pool coefficients and standard errors across all 5 regression models</span></span>
+<span id="cb493-2"><a href="solutions-to-missing-data.html#cb493-2" aria-hidden="true" tabindex="-1"></a><span class="fu">pool</span>(fitm)</span></code></pre></div>
+<pre><code>## Class: mipo    m = 5 
+##          term m   estimate       ubar           b           t dfcom       df
+## 1 (Intercept) 5  6.3808015 6.72703243 2.785088109 10.06913816     8 3.902859
+## 2          y4 5 -0.3690455 0.05860053 0.014674911  0.07621042     8 4.716160
+## 3          x1 5  0.4301588 0.02191260 0.004980516  0.02788922     8 4.856052
+##         riv    lambda       fmi
+## 1 0.4968172 0.3319158 0.5254832
+## 2 0.3005074 0.2310693 0.4303733
+## 3 0.2727480 0.2142985 0.4143230</code></pre>
+<div class="sourceCode" id="cb495"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb495-1"><a href="solutions-to-missing-data.html#cb495-1" aria-hidden="true" tabindex="-1"></a><span class="do">## output parameter estimates</span></span>
+<span id="cb495-2"><a href="solutions-to-missing-data.html#cb495-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(<span class="fu">pool</span>(fitm))</span></code></pre></div>
+<pre><code>##          term   estimate std.error statistic       df    p.value
+## 1 (Intercept)  6.3808015 3.1731905  2.010847 3.902859 0.11643863
+## 2          y4 -0.3690455 0.2760624 -1.336819 4.716160 0.24213491
+## 3          x1  0.4301588 0.1670007  2.575791 4.856052 0.05107581</code></pre>
+</div>
+<div id="stochastic-imputation" class="section level5" number="9.2.4.4.4">
+<h5><span class="header-section-number">9.2.4.4.4</span> Stochastic Imputation</h5>
+<p><code>Regression imputation + random residual = Stochastic Imputation</code></p>
+<p>Most multiple imputation is based off of some form of stochastic regression imputation.</p>
+<p>Good:</p>
+<ul>
+<li>Has all the advantage of <a href="solutions-to-missing-data.html#regression-imputation">Regression Imputation</a></li>
+<li>and also has the random components</li>
+</ul>
+<p>Bad:</p>
+<ul>
+<li>might lead to implausible values (e.g. negative values)</li>
+<li>can’t handle heteroskadastic data</li>
+</ul>
+<p><strong>Note</strong><br />
+Multiple Imputation usually based on some form of stochastic regression imputation.</p>
+<div class="sourceCode" id="cb497"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb497-1"><a href="solutions-to-missing-data.html#cb497-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Income data</span></span>
+<span id="cb497-2"><a href="solutions-to-missing-data.html#cb497-2" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb497-3"><a href="solutions-to-missing-data.html#cb497-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">91919</span>)                              <span class="co"># Set seed</span></span>
+<span id="cb497-4"><a href="solutions-to-missing-data.html#cb497-4" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">1000</span>                                    <span class="co"># Sample size</span></span>
+<span id="cb497-5"><a href="solutions-to-missing-data.html#cb497-5" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb497-6"><a href="solutions-to-missing-data.html#cb497-6" aria-hidden="true" tabindex="-1"></a>income <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">rnorm</span>(N, <span class="dv">0</span>, <span class="dv">500</span>))            <span class="co"># Create some synthetic income data</span></span>
+<span id="cb497-7"><a href="solutions-to-missing-data.html#cb497-7" aria-hidden="true" tabindex="-1"></a>income[income <span class="sc">&lt;</span> <span class="dv">0</span>] <span class="ot">&lt;-</span> income[income <span class="sc">&lt;</span> <span class="dv">0</span>] <span class="sc">*</span> (<span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb497-8"><a href="solutions-to-missing-data.html#cb497-8" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb497-9"><a href="solutions-to-missing-data.html#cb497-9" aria-hidden="true" tabindex="-1"></a>x1 <span class="ot">&lt;-</span> income <span class="sc">+</span> <span class="fu">rnorm</span>(N, <span class="dv">1000</span>, <span class="dv">1500</span>)          <span class="co"># Auxiliary variables</span></span>
+<span id="cb497-10"><a href="solutions-to-missing-data.html#cb497-10" aria-hidden="true" tabindex="-1"></a>x2 <span class="ot">&lt;-</span> income <span class="sc">+</span> <span class="fu">rnorm</span>(N, <span class="sc">-</span> <span class="dv">5000</span>, <span class="dv">2000</span>)</span>
+<span id="cb497-11"><a href="solutions-to-missing-data.html#cb497-11" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb497-12"><a href="solutions-to-missing-data.html#cb497-12" aria-hidden="true" tabindex="-1"></a>income[<span class="fu">rbinom</span>(N, <span class="dv">1</span>, <span class="fl">0.1</span>) <span class="sc">==</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="cn">NA</span>         <span class="co"># Create 10% missingness in income</span></span>
+<span id="cb497-13"><a href="solutions-to-missing-data.html#cb497-13" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb497-14"><a href="solutions-to-missing-data.html#cb497-14" aria-hidden="true" tabindex="-1"></a>data_inc_miss <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(income, x1, x2)</span></code></pre></div>
+<p>Single stochastic regression imputation</p>
+<div class="sourceCode" id="cb498"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb498-1"><a href="solutions-to-missing-data.html#cb498-1" aria-hidden="true" tabindex="-1"></a>imp_inc_sri <span class="ot">&lt;-</span> <span class="fu">mice</span>(data_inc_miss, <span class="at">method =</span> <span class="st">&quot;norm.nob&quot;</span>, <span class="at">m =</span> <span class="dv">1</span>)</span></code></pre></div>
+<pre><code>## 
+##  iter imp variable
+##   1   1  income
+##   2   1  income
+##   3   1  income
+##   4   1  income
+##   5   1  income</code></pre>
+<div class="sourceCode" id="cb500"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb500-1"><a href="solutions-to-missing-data.html#cb500-1" aria-hidden="true" tabindex="-1"></a>data_inc_sri <span class="ot">&lt;-</span> <span class="fu">complete</span>(imp_inc_sri)</span></code></pre></div>
+<p>Single predictive mean matching</p>
+<div class="sourceCode" id="cb501"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb501-1"><a href="solutions-to-missing-data.html#cb501-1" aria-hidden="true" tabindex="-1"></a>imp_inc_pmm <span class="ot">&lt;-</span> <span class="fu">mice</span>(data_inc_miss, <span class="at">method =</span> <span class="st">&quot;pmm&quot;</span>, <span class="at">m =</span> <span class="dv">1</span>)</span></code></pre></div>
+<pre><code>## 
+##  iter imp variable
+##   1   1  income
+##   2   1  income
+##   3   1  income
+##   4   1  income
+##   5   1  income</code></pre>
+<div class="sourceCode" id="cb503"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb503-1"><a href="solutions-to-missing-data.html#cb503-1" aria-hidden="true" tabindex="-1"></a>data_inc_pmm <span class="ot">&lt;-</span> <span class="fu">complete</span>(imp_inc_pmm)</span></code></pre></div>
+<p>Stochastic regression imputation contains negative values</p>
+<div class="sourceCode" id="cb504"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb504-1"><a href="solutions-to-missing-data.html#cb504-1" aria-hidden="true" tabindex="-1"></a>data_inc_sri<span class="sc">$</span>income[data_inc_sri<span class="sc">$</span>income <span class="sc">&lt;</span> <span class="dv">0</span>]</span></code></pre></div>
+<pre><code>## [1]  -66.055957  -96.980053  -28.921432   -4.175686  -54.480798  -27.207102
+## [7] -143.603500  -80.960488</code></pre>
+<div class="sourceCode" id="cb506"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb506-1"><a href="solutions-to-missing-data.html#cb506-1" aria-hidden="true" tabindex="-1"></a>data_inc_pmm<span class="sc">$</span>income[data_inc_pmm<span class="sc">$</span>income <span class="sc">&lt;</span> <span class="dv">0</span>] <span class="co"># No values below 0</span></span></code></pre></div>
+<pre><code>## numeric(0)</code></pre>
+<p>Proof for heteroskadastic data</p>
+<div class="sourceCode" id="cb508"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb508-1"><a href="solutions-to-missing-data.html#cb508-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Heteroscedastic data</span></span>
+<span id="cb508-2"><a href="solutions-to-missing-data.html#cb508-2" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb508-3"><a href="solutions-to-missing-data.html#cb508-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">654654</span>)                             <span class="co"># Set seed</span></span>
+<span id="cb508-4"><a href="solutions-to-missing-data.html#cb508-4" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5000</span>                                  <span class="co"># Sample size</span></span>
+<span id="cb508-5"><a href="solutions-to-missing-data.html#cb508-5" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb508-6"><a href="solutions-to-missing-data.html#cb508-6" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb508-7"><a href="solutions-to-missing-data.html#cb508-7" aria-hidden="true" tabindex="-1"></a>b <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb508-8"><a href="solutions-to-missing-data.html#cb508-8" aria-hidden="true" tabindex="-1"></a>sigma2 <span class="ot">&lt;-</span> N<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb508-9"><a href="solutions-to-missing-data.html#cb508-9" aria-hidden="true" tabindex="-1"></a>eps <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(N, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> <span class="fu">sqrt</span>(sigma2))</span>
+<span id="cb508-10"><a href="solutions-to-missing-data.html#cb508-10" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb508-11"><a href="solutions-to-missing-data.html#cb508-11" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> a <span class="sc">+</span> b <span class="sc">*</span> N <span class="sc">+</span> eps                         <span class="co"># Heteroscedastic variable</span></span>
+<span id="cb508-12"><a href="solutions-to-missing-data.html#cb508-12" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="dv">30</span> <span class="sc">*</span> N <span class="sc">+</span> <span class="fu">rnorm</span>(N[<span class="fu">length</span>(N)], <span class="dv">1000</span>, <span class="dv">200</span>) <span class="co"># Correlated variable</span></span>
+<span id="cb508-13"><a href="solutions-to-missing-data.html#cb508-13" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb508-14"><a href="solutions-to-missing-data.html#cb508-14" aria-hidden="true" tabindex="-1"></a>y[<span class="fu">rbinom</span>(N[<span class="fu">length</span>(N)], <span class="dv">1</span>, <span class="fl">0.3</span>) <span class="sc">==</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="cn">NA</span>   <span class="co"># 30% missings</span></span>
+<span id="cb508-15"><a href="solutions-to-missing-data.html#cb508-15" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb508-16"><a href="solutions-to-missing-data.html#cb508-16" aria-hidden="true" tabindex="-1"></a>data_het_miss <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(y, x)</span></code></pre></div>
+<p>Single stochastic regression imputation</p>
+<div class="sourceCode" id="cb509"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb509-1"><a href="solutions-to-missing-data.html#cb509-1" aria-hidden="true" tabindex="-1"></a>imp_het_sri <span class="ot">&lt;-</span> <span class="fu">mice</span>(data_het_miss, <span class="at">method =</span> <span class="st">&quot;norm.nob&quot;</span>, <span class="at">m =</span> <span class="dv">1</span>)</span></code></pre></div>
+<pre><code>## 
+##  iter imp variable
+##   1   1  y
+##   2   1  y
+##   3   1  y
+##   4   1  y
+##   5   1  y</code></pre>
+<div class="sourceCode" id="cb511"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb511-1"><a href="solutions-to-missing-data.html#cb511-1" aria-hidden="true" tabindex="-1"></a>data_het_sri <span class="ot">&lt;-</span> <span class="fu">complete</span>(imp_het_sri)</span></code></pre></div>
+<p>Single predictive mean matching</p>
+<div class="sourceCode" id="cb512"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb512-1"><a href="solutions-to-missing-data.html#cb512-1" aria-hidden="true" tabindex="-1"></a>imp_het_pmm <span class="ot">&lt;-</span> <span class="fu">mice</span>(data_het_miss, <span class="at">method =</span> <span class="st">&quot;pmm&quot;</span>, <span class="at">m =</span> <span class="dv">1</span>)</span></code></pre></div>
+<pre><code>## 
+##  iter imp variable
+##   1   1  y
+##   2   1  y
+##   3   1  y
+##   4   1  y
+##   5   1  y</code></pre>
+<div class="sourceCode" id="cb514"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb514-1"><a href="solutions-to-missing-data.html#cb514-1" aria-hidden="true" tabindex="-1"></a>data_het_pmm <span class="ot">&lt;-</span> <span class="fu">complete</span>(imp_het_pmm)</span></code></pre></div>
+<p>Comparison between predictive mean matching and stochastic regression imputation</p>
+<div class="sourceCode" id="cb515"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb515-1"><a href="solutions-to-missing-data.html#cb515-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>))                              <span class="co"># Both plots in one graphic</span></span>
+<span id="cb515-2"><a href="solutions-to-missing-data.html#cb515-2" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb515-3"><a href="solutions-to-missing-data.html#cb515-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x[<span class="sc">!</span><span class="fu">is.na</span>(data_het_sri<span class="sc">$</span>y)],                   <span class="co"># Plot of observed values</span></span>
+<span id="cb515-4"><a href="solutions-to-missing-data.html#cb515-4" aria-hidden="true" tabindex="-1"></a>     data_het_sri<span class="sc">$</span>y[<span class="sc">!</span><span class="fu">is.na</span>(data_het_sri<span class="sc">$</span>y)],</span>
+<span id="cb515-5"><a href="solutions-to-missing-data.html#cb515-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">&quot;&quot;</span>,</span>
+<span id="cb515-6"><a href="solutions-to-missing-data.html#cb515-6" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">&quot;X&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;Y&quot;</span>)</span>
+<span id="cb515-7"><a href="solutions-to-missing-data.html#cb515-7" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(x[<span class="fu">is.na</span>(y)], data_het_sri<span class="sc">$</span>y[<span class="fu">is.na</span>(y)],     <span class="co"># Plot of missing values</span></span>
+<span id="cb515-8"><a href="solutions-to-missing-data.html#cb515-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">&quot;red&quot;</span>)</span>
+<span id="cb515-9"><a href="solutions-to-missing-data.html#cb515-9" aria-hidden="true" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;Stochastic Regression Imputation&quot;</span>,         <span class="co"># Title of plot</span></span>
+<span id="cb515-10"><a href="solutions-to-missing-data.html#cb515-10" aria-hidden="true" tabindex="-1"></a>      <span class="at">line =</span> <span class="fl">0.5</span>)</span>
+<span id="cb515-11"><a href="solutions-to-missing-data.html#cb515-11" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x, data_het_sri),                   <span class="co"># Regression line</span></span>
+<span id="cb515-12"><a href="solutions-to-missing-data.html#cb515-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">&quot;#1b98e0&quot;</span>, <span class="at">lwd =</span> <span class="fl">2.5</span>)</span>
+<span id="cb515-13"><a href="solutions-to-missing-data.html#cb515-13" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">&quot;topleft&quot;</span>,                                 <span class="co"># Legend</span></span>
+<span id="cb515-14"><a href="solutions-to-missing-data.html#cb515-14" aria-hidden="true" tabindex="-1"></a>       <span class="fu">c</span>(<span class="st">&quot;Observed Values&quot;</span>, <span class="st">&quot;Imputed Values&quot;</span>, <span class="st">&quot;Regression Y ~ X&quot;</span>),</span>
+<span id="cb515-15"><a href="solutions-to-missing-data.html#cb515-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="cn">NA</span>),</span>
+<span id="cb515-16"><a href="solutions-to-missing-data.html#cb515-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">lty =</span> <span class="fu">c</span>(<span class="cn">NA</span>, <span class="cn">NA</span>, <span class="dv">1</span>),</span>
+<span id="cb515-17"><a href="solutions-to-missing-data.html#cb515-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="fu">c</span>(<span class="st">&quot;black&quot;</span>, <span class="st">&quot;red&quot;</span>, <span class="st">&quot;#1b98e0&quot;</span>))</span>
+<span id="cb515-18"><a href="solutions-to-missing-data.html#cb515-18" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb515-19"><a href="solutions-to-missing-data.html#cb515-19" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(x[<span class="sc">!</span><span class="fu">is.na</span>(data_het_pmm<span class="sc">$</span>y)],                   <span class="co"># Plot of observed values</span></span>
+<span id="cb515-20"><a href="solutions-to-missing-data.html#cb515-20" aria-hidden="true" tabindex="-1"></a>     data_het_pmm<span class="sc">$</span>y[<span class="sc">!</span><span class="fu">is.na</span>(data_het_pmm<span class="sc">$</span>y)],</span>
+<span id="cb515-21"><a href="solutions-to-missing-data.html#cb515-21" aria-hidden="true" tabindex="-1"></a>     <span class="at">main =</span> <span class="st">&quot;&quot;</span>,</span>
+<span id="cb515-22"><a href="solutions-to-missing-data.html#cb515-22" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">&quot;X&quot;</span>, <span class="at">ylab =</span> <span class="st">&quot;Y&quot;</span>)</span>
+<span id="cb515-23"><a href="solutions-to-missing-data.html#cb515-23" aria-hidden="true" tabindex="-1"></a><span class="fu">points</span>(x[<span class="fu">is.na</span>(y)], data_het_pmm<span class="sc">$</span>y[<span class="fu">is.na</span>(y)],     <span class="co"># Plot of missing values</span></span>
+<span id="cb515-24"><a href="solutions-to-missing-data.html#cb515-24" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">&quot;red&quot;</span>)</span>
+<span id="cb515-25"><a href="solutions-to-missing-data.html#cb515-25" aria-hidden="true" tabindex="-1"></a><span class="fu">title</span>(<span class="st">&quot;Predictive Mean Matching&quot;</span>,                 <span class="co"># Title of plot</span></span>
+<span id="cb515-26"><a href="solutions-to-missing-data.html#cb515-26" aria-hidden="true" tabindex="-1"></a>      <span class="at">line =</span> <span class="fl">0.5</span>)</span>
+<span id="cb515-27"><a href="solutions-to-missing-data.html#cb515-27" aria-hidden="true" tabindex="-1"></a><span class="fu">abline</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x, data_het_pmm),</span>
+<span id="cb515-28"><a href="solutions-to-missing-data.html#cb515-28" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="st">&quot;#1b98e0&quot;</span>, <span class="at">lwd =</span> <span class="fl">2.5</span>)</span>
+<span id="cb515-29"><a href="solutions-to-missing-data.html#cb515-29" aria-hidden="true" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">&quot;topleft&quot;</span>,                                 <span class="co"># Legend</span></span>
+<span id="cb515-30"><a href="solutions-to-missing-data.html#cb515-30" aria-hidden="true" tabindex="-1"></a>       <span class="fu">c</span>(<span class="st">&quot;Observed Values&quot;</span>, <span class="st">&quot;Imputed Values&quot;</span>, <span class="st">&quot;Regression Y ~ X&quot;</span>),</span>
+<span id="cb515-31"><a href="solutions-to-missing-data.html#cb515-31" aria-hidden="true" tabindex="-1"></a>       <span class="at">pch =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>, <span class="cn">NA</span>),</span>
+<span id="cb515-32"><a href="solutions-to-missing-data.html#cb515-32" aria-hidden="true" tabindex="-1"></a>       <span class="at">lty =</span> <span class="fu">c</span>(<span class="cn">NA</span>, <span class="cn">NA</span>, <span class="dv">1</span>),</span>
+<span id="cb515-33"><a href="solutions-to-missing-data.html#cb515-33" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="fu">c</span>(<span class="st">&quot;black&quot;</span>, <span class="st">&quot;red&quot;</span>, <span class="st">&quot;#1b98e0&quot;</span>))</span>
+<span id="cb515-34"><a href="solutions-to-missing-data.html#cb515-34" aria-hidden="true" tabindex="-1"></a> </span>
+<span id="cb515-35"><a href="solutions-to-missing-data.html#cb515-35" aria-hidden="true" tabindex="-1"></a><span class="fu">mtext</span>(<span class="st">&quot;Imputation of Heteroscedastic Data&quot;</span>,       <span class="co"># Main title of plot</span></span>
+<span id="cb515-36"><a href="solutions-to-missing-data.html#cb515-36" aria-hidden="true" tabindex="-1"></a>      <span class="at">side =</span> <span class="dv">3</span>, <span class="at">line =</span> <span class="sc">-</span> <span class="fl">1.5</span>, <span class="at">outer =</span> <span class="cn">TRUE</span>, <span class="at">cex =</span> <span class="dv">2</span>)</span></code></pre></div>
+<p><img src="09-imputation_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 </div>
 </div>
 <div id="regression-imputation" class="section level4" number="9.2.4.5">
@@ -779,23 +1177,12 @@ A randomly chosen value from an individual in the sample who has similar values 
 </ul></li>
 </ul>
 </div>
-<div id="stochatic-imputation" class="section level4" number="9.2.4.6">
-<h4><span class="header-section-number">9.2.4.6</span> Stochatic Imputation</h4>
-<p><code>Regression imputation + random residual = Stochastic Imputation</code></p>
-<p>Most multiple imputation is based off of some form of stochastic regression imputation. Good:</p>
-<ul>
-<li>Has all the advantage of <a href="solutions-to-missing-data.html#regression-imputation">Regression Imputation</a></li>
-<li>and also has the random components</li>
-</ul>
-<p><strong>Note</strong><br />
-Multiple Imputation usually based on some form of stochastic regression imputation.</p>
-</div>
-<div id="interpolation-and-extrapolation" class="section level4" number="9.2.4.7">
-<h4><span class="header-section-number">9.2.4.7</span> Interpolation and Extrapolation</h4>
+<div id="interpolation-and-extrapolation" class="section level4" number="9.2.4.6">
+<h4><span class="header-section-number">9.2.4.6</span> Interpolation and Extrapolation</h4>
 <p>An estimated value from other observations from the same individual. It usually only works in longitudinal data.</p>
 </div>
-<div id="k-nearest-neighbor-knn-imputation" class="section level4" number="9.2.4.8">
-<h4><span class="header-section-number">9.2.4.8</span> K-nearest neighbor (KNN) imputation</h4>
+<div id="k-nearest-neighbor-knn-imputation" class="section level4" number="9.2.4.7">
+<h4><span class="header-section-number">9.2.4.7</span> K-nearest neighbor (KNN) imputation</h4>
 <p>The above methods are model-based imputation (regression).<br />
 This is an example of neighbor-based imputation (K-nearest neighbor).</p>
 <p>For every observation that needs to be imputed, the algorithm identifies ‘k’ closest observations based on some types distance (e.g., Euclidean) and computes the weighted average (weighted based on distance) of these ‘k’ obs.</p>
@@ -811,8 +1198,12 @@ This is an example of neighbor-based imputation (K-nearest neighbor).</p>
 </ul></li>
 </ul>
 </div>
-<div id="bayesian-ridge-regression-implementation" class="section level4" number="9.2.4.9">
-<h4><span class="header-section-number">9.2.4.9</span> Bayesian Ridge regression implementation</h4>
+<div id="bayesian-ridge-regression-implementation" class="section level4" number="9.2.4.8">
+<h4><span class="header-section-number">9.2.4.8</span> Bayesian Ridge regression implementation</h4>
+<p>Other methods:</p>
+<ul>
+<li>For panel data, or clustered data, use <code>pan</code> package by Schafer (1997)</li>
+</ul>
 </div>
 </div>
 </div>

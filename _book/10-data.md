@@ -4,12 +4,17 @@ There are multiple ways to categorize data. For example,
 
 -   Qualitative vs. Quantitative:
 
++--------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------+
 | Qualitative                                                                                                        | Quantitative                                                                               |
-|--------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
++====================================================================================================================+============================================================================================+
 | in-depth interviews, documents, focus groups, case study, ethnography. open-ended questions. observations in words | experiments, observation in words, survey with closed-end questions, structured interviews |
++--------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------+
 | language, descriptive                                                                                              | quantities, numbers                                                                        |
++--------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------+
 | Text-based                                                                                                         | Numbers-based                                                                              |
++--------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------+
 | Subjective                                                                                                         | Objectivity                                                                                |
++--------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------+
 
 ## Cross-Sectional
 
@@ -354,13 +359,19 @@ Panel data structure is like having n samples of time series data
 -   Between variation: variation between individuals
 -   Within variation: variation within individuals (over time).
 
++------------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Estimate         | Formula                                                                                                                     |
-|------------------|-----------------------------------------------------------------------------------------------------------------------------|
++==================+=============================================================================================================================+
 | Individual mean  | $\bar{x_i}= \frac{1}{T} \sum_{t}x_{it}$                                                                                     |
++------------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Overall mean     | $\bar{x}=\frac{1}{NT} \sum_{i} \sum_t x_{it}$                                                                               |
++------------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Overall Variance | $s _O^2 = \frac{1}{NT-1} \sum_i \sum_t (x_{it} - \bar{x})^2$                                                                |
++------------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Between variance | $s_B^2 = \frac{1}{N-1} \sum_i (\bar{x_i} -\bar{x})^2$                                                                       |
++------------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Within variance  | $s_W^2= \frac{1}{NT-1} \sum_i \sum_t (x_{it} - \bar{x_i})^2 = \frac{1}{NT-1} \sum_i \sum_t (x_{it} - \bar{x_i} +\bar{x})^2$ |
++------------------+-----------------------------------------------------------------------------------------------------------------------------+
 
 **Note**: $s_O^2 \approx s_B^2 + s_W^2$
 
@@ -569,7 +580,40 @@ pFtest(inv~value+capital, data=Grunfeld, effect="time")
 #### Cross-sectional dependence/contemporaneous correlation
 
 -   Null hypothesis: residuals across entities are not correlated.
--   usually seen in macro panels with long time series (large N and T), not seen in micro panels (small T and large N)
+
+##### Global cross-sectional dependence 
+
+
+```r
+pcdtest(inv~value+capital, data=Grunfeld, model="within")
+```
+
+```
+## 
+## 	Pesaran CD test for cross-sectional dependence in panels
+## 
+## data:  inv ~ value + capital
+## z = 4.6612, p-value = 3.144e-06
+## alternative hypothesis: cross-sectional dependence
+```
+
+##### Local cross-sectional dependence
+
+use the same command, but supply matrix `w` to the argument.
+
+
+```r
+pcdtest(inv~value+capital, data=Grunfeld, model="within")
+```
+
+```
+## 
+## 	Pesaran CD test for cross-sectional dependence in panels
+## 
+## data:  inv ~ value + capital
+## z = 4.6612, p-value = 3.144e-06
+## alternative hypothesis: cross-sectional dependence
+```
 
 #### Serial Correlation
 
@@ -615,9 +659,9 @@ Here, we reject the null hypothesis that the no unobserved effects in the residu
 
 <br>
 
-#### Locally robust tests for random effects and serial correlation
+##### Locally robust tests for random effects and serial correlation
 
--   A joint LM test for **random effects** and **serial correlation** under the assumptions of normality and homoskedasticity of the idiosyncratic errors [@Baltagi_1991][@Baltagi_1995]
+-   A joint LM test for **random effects** and **serial correlation** assuming normality and homoskedasticity of the idiosyncratic errors [@Baltagi_1991][@Baltagi_1995]
 
 
 ```r
@@ -631,6 +675,125 @@ pbsytest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, data=Produc, test="j")
 ## data:  formula
 ## chisq = 4187.6, df = 2, p-value < 2.2e-16
 ## alternative hypothesis: AR(1) errors or random effects
+```
+
+Here, we reject the null hypothesis that there is no presence of **serial correlation,** and **random effects**. But we still do not know whether it is because of serial correlation, of random effects or of both
+
+To know the departure from the null assumption, we can use [@Bera_2001]'s test for first-order serial correlation or random effects (both under normality and homoskedasticity assumption of the error).
+
+BSY for serial correlation
+
+
+```r
+pbsytest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, data=Produc)
+```
+
+```
+## 
+## 	Bera, Sosa-Escudero and Yoon locally robust test - balanced panel
+## 
+## data:  formula
+## chisq = 52.636, df = 1, p-value = 4.015e-13
+## alternative hypothesis: AR(1) errors sub random effects
+```
+
+BSY for random effects
+
+
+```r
+pbsytest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, data=Produc, test="re")
+```
+
+```
+## 
+## 	Bera, Sosa-Escudero and Yoon locally robust test (one-sided) -
+## 	balanced panel
+## 
+## data:  formula
+## z = 57.914, p-value < 2.2e-16
+## alternative hypothesis: random effects sub AR(1) errors
+```
+
+Since BSY is only locally robust, if you "know" there is no serial correlation, then this test is based on LM test is more superior:
+
+
+```r
+plmtest(inv ~ value + capital, data = Grunfeld, type = "honda")
+```
+
+```
+## 
+## 	Lagrange Multiplier Test - (Honda) for balanced panels
+## 
+## data:  inv ~ value + capital
+## normal = 28.252, p-value < 2.2e-16
+## alternative hypothesis: significant effects
+```
+
+On the other hand, if you know there is no random effects, to test for serial correlation, use [@BREUSCH_1978]-[@Godfrey_1978]'s test
+
+
+```r
+lmtest::bgtest()
+```
+
+If you "know" there are random effects, use [@Baltagi_1995]'s. to test for serial correlation in both AR(1) and MA(1) processes.
+
+$H_0$: Uncorrelated errors.
+
+Note:
+
+-   one-sided only has power against positive serial correlation.
+-   applicable to only balanced panels.
+
+
+```r
+pbltest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, 
+        data=Produc, alternative="onesided")
+```
+
+```
+## 
+## 	Baltagi and Li one-sided LM test
+## 
+## data:  log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp
+## z = 21.69, p-value < 2.2e-16
+## alternative hypothesis: AR(1)/MA(1) errors in RE panel model
+```
+
+General serial correlation tests
+
+-   applicable to random effects model, OLS, and FE (with large T, also known as long panel).
+-   can also test higher-order serial correlation
+
+
+```r
+plm::pbgtest(plm::plm(inv~value+capital, data = Grunfeld, model = "within"), order = 2)
+```
+
+```
+## 
+## 	Breusch-Godfrey/Wooldridge test for serial correlation in panel models
+## 
+## data:  inv ~ value + capital
+## chisq = 42.587, df = 2, p-value = 5.655e-10
+## alternative hypothesis: serial correlation in idiosyncratic errors
+```
+
+in the case of short panels (small T and large n), we can use
+
+
+```r
+pwartest(log(emp) ~ log(wage) + log(capital), data=EmplUK)
+```
+
+```
+## 
+## 	Wooldridge's test for serial correlation in FE panels
+## 
+## data:  plm.model
+## F = 312.3, df1 = 1, df2 = 889, p-value < 2.2e-16
+## alternative hypothesis: serial correlation
 ```
 
 #### Unit roots/stationarity
@@ -669,10 +832,13 @@ The continuum between RE (used FGLS which more assumption ) and POLS check back 
 
 -   RE does not require strict exogeneity for consistency (feedback effect between residual and covariates)
 
++----------------------------------------+----------------------------------------------------------------------------------------+
 | Hypothesis                             | If true                                                                                |
-|----------------------------------------|----------------------------------------------------------------------------------------|
++========================================+========================================================================================+
 | $H_0: Cov(c_i,\mathbf{x_{it}})=0$      | $\hat{\beta}_{RE}$ is consistent and efficient, while $\hat{\beta}_{FE}$ is consistent |
++----------------------------------------+----------------------------------------------------------------------------------------+
 | $H_0: Cov(c_i,\mathbf{x_{it}}) \neq 0$ | $\hat{\beta}_{RE}$ is inconsistent, while $\hat{\beta}_{FE}$ is consistent             |
++----------------------------------------+----------------------------------------------------------------------------------------+
 
 **Hausman Test**
 
@@ -703,9 +869,9 @@ phtest(gw, gr)
 ## alternative hypothesis: one model is inconsistent
 ```
 
-|                       |                 |                                 |                                 |                                         |                        |                        |       |                                           |
-|-----------------------|-----------------|---------------------------------|---------------------------------|-----------------------------------------|------------------------|------------------------|-------|-------------------------------------------|
++-----------------------+-----------------+---------------------------------+---------------------------------+-----------------------------------------+------------------------+------------------------+-------+-------------------------------------------+
 | Violation   Estimator | Basic Estimator | Instrumental variable Estimator | Variable Coefficients estimator | Generalized Method of Moments estimator | General FGLS estimator | Means groups estimator | CCEMG | Estimator for limited dependent variables |
++-----------------------+-----------------+---------------------------------+---------------------------------+-----------------------------------------+------------------------+------------------------+-------+-------------------------------------------+
 
 ### Summary
 
@@ -736,6 +902,8 @@ phtest(gw, gr)
 Based on table provided by [Ani Katchova](https://sites.google.com/site/econometricsacademy/econometrics-models/panel-data-models)
 
 ### Application
+
+Recommended application of `plm` can be found [here](https://cran.r-project.org/web/packages/plm/vignettes/B_plmFunction.html) and [here](https://cran.r-project.org/web/packages/plm/vignettes/C_plmModelComponents.html) by Yves Croissant
 
 
 ```r
