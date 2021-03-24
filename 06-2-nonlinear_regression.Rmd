@@ -2461,6 +2461,15 @@ Hence, we like to account for these correlations.
 
 Review [Two-Way Mixed Effects ANOVA]
 
+<br>
+
+We choose to model the random subject-specific effect instead of including dummy subject covariates in our model because:
+
+-   reduction in the number of parameters to estimate
+-   when you do inference, it would make more sense that you can infer from a population (i.e., random effect).
+
+<br>
+
 **LLM Motivation**
 
 In a repeated measurements analysis where $Y_{ij}$ is the response for the i-th individual measured at the j-th time,
@@ -3680,6 +3689,73 @@ $$
 \mathbf{Y = X \beta + Zb + \epsilon}
 $$
 
+#### Application
+
+##### Example 1
+
+$$
+y_{ijk} = \mu + i_i + v_j + (iv)_{ij} + f_k + \epsilon_{ijk}
+$$
+
+where
+
+-   $y_{ijk}$ = observed yield
+-   $\mu$ = overall average yield
+-   $i_i$ = irrigation effect
+-   $v_j$ = variety effect
+-   $(iv)_{ij}$ = irrigation by variety interaction
+-   $f_k$ = random field (block) effect
+-   $\epsilon_{ijk}$ = residual
+-   because variety-field combination is only observed once, we can't have the random interaction effects between variety and field
+
+```{r}
+library(ggplot2)
+data(irrigation,package="faraway")
+summary(irrigation)
+head(irrigation,4)
+ggplot(irrigation,
+       aes(
+           x = field,
+           y = yield,
+           shape = irrigation,
+           color = variety
+       )) +
+    geom_point(size = 3)
+
+```
+
+```{r}
+sp_model <- lmerTest::lmer(yield ~ irrigation * variety + (1 | field), irrigation)
+summary(sp_model)
+
+anova(sp_model,ddf = c("Kenward-Roger"))
+
+```
+
+Since p-value of the interaction term is insignificant, we consider fitting without it.
+
+```{r}
+sp_model_additive <- lmer(yield ~ irrigation + variety + (1 | field), irrigation)
+anova(sp_model_additive,sp_model,ddf = "Kenward-Roger")
+```
+
+Since p-value of Chi-square test is insignificant, we can't reject the additive model is already sufficient. Looking at AIC and BIC, we can also see that we would prefer the additive model
+
+**Random Effect Examination**
+
+`exactRLRT` test
+
+-   $H_0$: Var(random effect) (i.e., $\sigma^2$)= 0
+-   $H_a$: Var(random effect) (i.e., $\sigma^2$)\> 0
+
+```{r}
+sp_model <- lme4::lmer(yield ~ irrigation * variety + (1 | field), irrigation)
+library(RLRsim)
+exactRLRT(sp_model)
+```
+
+Since the p-value is significant, we reject $H_0$
+
 <br>
 
 ### Repeated Measures in Mixed Models
@@ -3814,3 +3890,363 @@ $$
 which is called "power" covariance model
 
 We can consider $\beta_{2i} , \beta_{1i}, \beta_{0i}$ accordingly to see whether these terms are needed in the final model
+
+### Application
+
+R Packages for mixed models
+
+-   `nlme`
+
+    -   has nested structure
+
+    -   flexible for complex design
+
+    -   not user-friendly
+
+-   `lme4`
+
+    -   computationally efficient
+
+    -   user-friendly
+
+    -   can handle nonnormal response
+
+    -   for more detailed application, check [Fitting Linear Mixed-Effects Models Using lme4](https://arxiv.org/abs/1406.5823)
+
+-   Others
+
+    -   Bayesian setting: `MCMCglmm`, `brms`
+
+    -   For genetics: `ASReml`
+
+#### Example 1 (Pulps)
+
+Model:
+
+$$
+y_{ij} = \mu + \alpha_i + \epsilon_{ij}
+$$
+
+where
+
+-   $i = 1,..,a$ groups for random effect $\alpha_i$
+-   $j = 1,...,n$ individuals in each group
+-   $\alpha_i \sim N(0, \sigma^2_\alpha)$ is random effects
+-   $\epsilon_{ij} \sim N(0, \sigma^2_\epsilon)$ is random effects
+-   Imply compound symmetry model where the intraclass correlation coefficient is: $\rho = \frac{\sigma^2_\alpha}{\sigma^2_\alpha + \sigma^2_\epsilon}$
+-   If factor $a$ does not explain much variation, low correlation within the levels: $\sigma^2_\alpha \to 0$ then $\rho \to 0$
+-   If factor $a$ explain much variation, high correlation within the levels $\sigma^2_\alpha \to \infty$ hence, $\rho \to 1$
+
+```{r}
+data(pulp, package="faraway")
+plot(y=pulp$bright, x=pulp$operator,xlab = "Operator", ylab = "Brightness")
+pulp %>% dplyr::group_by(operator) %>% dplyr::summarise(average=mean(bright))
+
+```
+
+`lmer` application
+
+```{r}
+library(lme4)
+mixed_model <- lmer(formula = bright ~ 1 + (1 | operator), # pipe (i..e, | ) denotes random-effect terms
+                    data = pulp)
+summary(mixed_model)
+coef(mixed_model)
+fixef(mixed_model) # fixed effects
+confint(mixed_model) # confidence interval
+ranef(mixed_model) # random effects
+VarCorr(mixed_model) # random effects standard deviation
+re_dat = as.data.frame(VarCorr(mixed_model))
+rho = re_dat[1,'vcov']/(re_dat[1,'vcov'] + re_dat[2,'vcov']) # rho based on the above formula
+rho
+```
+
+To Satterthwaite approximation for the denominator df, we use `lmerTest`
+
+```{r}
+library(lmerTest)
+summary(lmerTest::lmer(bright ~ 1 + (1 | operator), pulp))$coefficients
+confint(mixed_model)[3,]
+```
+
+In this example, we can see that the confidence interval computed by `confint` in `lmer` package is very close is `confint` in `lmerTest` model. <br>
+
+`MCMglmm` application
+
+under the Bayesian framework
+
+```{r}
+library(MCMCglmm)
+mixed_model_bayes <- MCMCglmm(bright~1,random=~operator, data=pulp, verbose=FALSE)
+summary(mixed_model_bayes)$solutions
+```
+
+this method offers the confidence interval slightly more positive than `lmer` and `lmerTest`
+
+##### Prediction
+
+```{r}
+# random effects prediction (BLUPs)
+ranef(mixed_model)$operator
+fixef(mixed_model) + ranef(mixed_model)$operator #prediction for each categories
+predict(mixed_model, newdata=data.frame(operator=c('a','b','c','d'))) # equivalent to the above method
+
+```
+
+use `bootMer()` to get bootstrap-based confidence intervals for predictions.
+
+Another example using GLMM in the context of blocking
+
+Penicillin data
+
+```{r}
+data(penicillin, package="faraway")
+summary(penicillin)
+library(ggplot2)
+ggplot(penicillin, aes(y=yield, x=treat, shape=blend, color=blend)) + # treatment = fixed effect, blend = random effects
+    geom_point(size=3) + 
+    xlab("Treatment") 
+```
+
+```{r}
+library(lmerTest) # for p-values
+mixed_model <- lmerTest::lmer(yield ~ treat + (1 | blend), 
+                              data = penicillin) 
+summary(mixed_model)
+
+#The BLUPs for the each blend 
+ranef(mixed_model)$blend
+```
+
+Examine treatment effect
+
+```{r}
+anova(mixed_model) # p-value based on lmerTest
+```
+
+Since the p-value is greater than 0.05, we can't reject the null hypothesis that there is no treatment effect.
+
+```{r}
+library(pbkrtest)
+full_model <- lmer(yield ~ treat + (1 | blend), penicillin, REML=FALSE) #REML is not appropriate for testing fixed effects, it should be ML
+null_model <- lmer(yield ~ 1 + (1 | blend), penicillin, REML=FALSE)
+KRmodcomp(full_model, null_model) # use  Kenward-Roger approximation for df
+```
+
+Since the p-value is greater than 0.05, and consistent with our previous observation, we conclude that we can't reject the null hypothesis that there is no treatment effect.
+
+#### Example 2 (Rats)
+
+```{r}
+rats <- read.csv(
+    "images/rats.dat",
+    header = F,
+    sep = ' ',
+    col.names = c('Treatment', 'rat', 'age', 'y')
+)
+rats$t <- log(1 + (rats$age - 45)/10) #log transformed age
+```
+
+We are interested in whether treatment effect induces changes over time.
+
+```{r}
+rat_model <- lmerTest::lmer(y~t:Treatment+(1|rat),data=rats) #treatment = fixed effect, rat = random effects
+summary(rat_model)
+anova(rat_model)
+```
+
+Since the p-value is significant, we can be confident concluding that there is a treatment effect
+
+<br>
+
+#### Example 3 (Agridat)
+
+```{r}
+library(agridat)
+library(latticeExtra)
+dat <- harris.wateruse
+# Compare to Schabenberger & Pierce, fig 7.23
+useOuterStrips(
+    xyplot(
+        water ~ day | species * age,
+        dat,
+        as.table = TRUE,
+        group = tree,
+        type = c('p', 'smooth'),
+        main = "harris.wateruse 2 species, 2 ages (10 trees each)"
+    )
+)
+```
+
+Remove outliers
+
+```{r}
+dat <- subset(dat, day!=268)
+```
+
+Plot between age and species
+
+```{r}
+xyplot(water ~ day|tree,dat, subset=age=="A2" & species=="S2",
+as.table=TRUE, type=c('p','smooth'),
+ylab="Water use profiles of individual trees",
+main="harris.wateruse (Age 2, Species 2)")
+```
+
+```{r}
+# Rescale day for nicer output, and convergence issues, add quadratic term
+dat <- transform(dat, ti=day/100)
+dat <- transform(dat, ti2=ti*ti)
+# Start with a subgroup: age 2, species 2
+d22 <- droplevels(subset(dat, age=="A2" & species=="S2"))
+```
+
+`lme` function from `nlme` package
+
+```{r}
+library(nlme)
+## We use pdDiag() to get uncorrelated random effects
+m1n <- lme(
+    water ~ 1 + ti + ti2, #intercept, time and time-squared = fixed effects
+    data = d22,
+    na.action = na.omit,
+    random = list(tree = pdDiag( ~ 1 + ti + ti2)) # random intercept, time and time squared per tree = random effects
+)
+ranef(m1n)
+```
+
+```{r}
+fixef(m1n)
+summary(m1n)
+
+```
+
+`lmer` function from `lme4` package
+
+```{r}
+m1lmer <- lmer(water~1+ti+ti2+(ti+ti2||tree),data = d22,na.action = na.omit)
+ranef(m1lmer)
+
+```
+
+Notes:
+
+-   `||` double pipes= uncorrelated random effects
+
+-   To remove the intercept term:
+
+    -   `(0+ti|tree)`
+
+    -   `(ti-1|tree)`
+
+```{r}
+fixef(m1lmer)
+m1l <- lmer(water ~ 1 + ti + ti2 + (1 | tree) +
+                (0 + ti | tree) + (0 + ti2 | tree), data = d22)
+ranef(m1l)
+fixef(m1l)
+```
+
+To include structured covariance terms, we can use the following way
+
+```{r}
+m2n <- lme(
+    water ~ 1 + ti + ti2,
+    data = d22,
+    random = ~ 1 | tree,
+    cor = corExp(form =  ~ day | tree),
+    na.action = na.omit
+)
+ranef(m2n)
+fixef(m2n)
+summary(m2n)
+```
+
+<br>
+
+# Nonlinear and Generalized Linear Mixed Models
+
+-   NLMMs extend the nonlinear model to include both fixed effects and random effects
+-   GLMMs extend the generalized linear model to include both fixed effects and random effects.
+
+A nonlinear mixed model has the form of
+
+$$
+Y_{ij} = f(\mathbf{x_{ij} , \theta, \alpha_i}) + \epsilon_{ij}
+$$
+
+for the j-th response from cluster (or sujbect) i ($i = 1,...,n$), where
+
+-   $j = 1,...,n_i$
+-   $\mathbf{\theta}$ are the fixed effects
+-   $\mathbf{\alpha}_i$ are the random effects for cluster i
+-   $\mathbf{x}_{ij}$ are the regressors or design variables
+-   $f(.)$ is nonlinear mean response function
+
+A GLMM can be written as:
+
+we assume
+
+$$
+y_i |\alpha_i \sim \text{indep } f(y_i | \alpha)
+$$
+
+and $f(y_i | \mathbf{\alpha})$ is an exponential family distribution,
+
+$$
+f(y_i | \alpha) = \exp [\frac{y_i \theta_i - b(\theta_i)}{a(\phi)} - c(y_i, \phi)]
+$$
+
+The conditional mean of $y_i$ is related to $\theta_i$
+
+$$
+\mu_i = \frac{\partial b(\theta_i)}{\partial \theta_i}
+$$
+
+The transformation of this mean will give us the desired linear model to model both the fixed and random effects.
+
+$$
+E(y_i |\alpha) = \mu_i \\
+g(\mu_i) = \mathbf{x_i' \beta + z'_i \alpha}
+$$
+
+where $g()$ is a known link function and $\mu_i$ is the conditional mean. We can see similarity to [GLM](#generalized-linear-models)
+
+We also have to specify the random effects distribution
+
+$$
+\alpha \sim f(\alpha)
+$$
+
+which is similar to the specification for mixed models.
+
+Moreover, law of large number applies to fixed effects so that you know it is a normal distribution. But here, you can specify $\alpha$ subjectively.
+
+Hence, we can show NLMM is a special case of the GLMM
+
+$$
+\mathbf{Y}_i = \mathbf{f}(\mathbf{x}_i, \mathbf{\theta, \alpha}_i) + \mathbf{\epsilon}_i \\
+\mathbf{Y}_i = \mathbf{g}^{-1} (\mathbf{x}_i' \beta + \mathbf{z}_i' \mathbf{\alpha}_i) + \mathbf{\epsilon}_i
+$$
+
+where the inverse link function corresponds to a nonlinear transformation of the fixed and random effects.
+
+$$
+E(y_i) = E_\alpha(E(y_i | \alpha)) = E_\alpha (\mu_i) = E(g^{-1}(\mathbf{x_i' \beta + z_i' \alpha}))
+$$
+
+$$
+E(y_i) = E(\exp(\mathbf{x_i' \beta + z_i' \alpha})) = \exp(\mathbf{x'_i \beta})
+$$
+
+**Marginal variance** of $y_i$
+
+$$
+\begin{align}
+var(y_i) &= var_\alpha (E(y_i | \alpha)) + E_\alpha (var(y_i | \alpha)) \\
+&= var(\mu_i) + E(a(\phi) V(\mu_i)) \\
+&= var(g^{-1} (\mathbf{x'_i \beta + z'_i \alpha})) + E(a(\phi)V(g^{-1} (\mathbf{x'_i \beta + z'_i \alpha})))
+\end{align}
+$$
+
+![](images/umbrella_of_models.PNG)

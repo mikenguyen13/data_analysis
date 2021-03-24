@@ -326,7 +326,7 @@ stargazer(attitude)
 ```
 ## 
 ## % Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
-## % Date and time: Tue, Mar 16, 2021 - 6:55:59 PM
+## % Date and time: Wed, Mar 17, 2021 - 3:18:59 PM
 ## \begin{table}[!htbp] \centering 
 ##   \caption{} 
 ##   \label{} 
@@ -369,7 +369,7 @@ stargazer(linear.1,
 ```
 ## 
 ## % Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
-## % Date and time: Tue, Mar 16, 2021 - 6:55:59 PM
+## % Date and time: Wed, Mar 17, 2021 - 3:18:59 PM
 ## % Requires LaTeX packages: dcolumn 
 ## \begin{table}[!htbp] \centering 
 ##   \caption{Results} 

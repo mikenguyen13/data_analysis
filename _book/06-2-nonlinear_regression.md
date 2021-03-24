@@ -4696,3 +4696,189 @@ $$
 which is called "power" covariance model
 
 We can consider $\beta_{2i} , \beta_{1i}, \beta_{0i}$ accordingly to see whether these terms are needed in the final model
+
+### Application
+
+R Packages for mixed models
+
+-   `nlme`
+
+    -   has nested structure
+
+    -   flexible for complex design
+
+    -   not user-friendly
+
+-   `lme4`
+
+    -   computationally efficient
+
+    -   user-friendly
+
+    -   can handle nonnormal response
+
+-   Others
+
+    -   Bayesian setting: `MCMCglmm`, `brms`
+
+    -   For genetics: `ASReml`
+
+Model:
+
+$$
+y_{ij} = \mu + \alpha_i + \epsilon_{ij}
+$$
+
+where
+
+-   $i = 1,..,a$ groups for random effect $\alpha_i$
+-   $j = 1,...,n$ individuals in each group
+-   $\alpha_i \sim N(0, \sigma^2_\alpha)$ is random effects
+-   $\epsilon_{ij} \sim N(0, \sigma^2_\epsilon)$ is random effects
+-   Imply compound symmetry model where the intraclass correlation coefficient is: $\rho = \frac{\sigma^2_\alpha}{\sigma^2_\alpha + \sigma^2_\epsilon}$
+-   If factor $a$ does not explain much variation, low correlation within the levels: $\sigma^2_\alpha \to 0$ then $\rho \to 0$
+-   If factor $a$ explain much variation, high correlation within the levels $\sigma^2_\alpha \to \infty$ hence, $\rho \to 1$
+
+
+```r
+data(pulp, package="faraway")
+plot(y=pulp$bright, x=pulp$operator,xlab = "Operator", ylab = "Brightness")
+```
+
+<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-63-1.png" width="672" />
+
+```r
+pulp %>% dplyr::group_by(operator) %>% dplyr::summarise(average=mean(bright))
+```
+
+```
+## # A tibble: 4 x 2
+##   operator average
+## * <fct>      <dbl>
+## 1 a           60.2
+## 2 b           60.1
+## 3 c           60.6
+## 4 d           60.7
+```
+
+`lmer` application
+
+
+```r
+library(lme4)
+```
+
+```
+## Loading required package: Matrix
+```
+
+```r
+mixed_model <- lmer(formula = bright ~ 1 + (1 | operator),
+data = pulp)
+summary(mixed_model)
+```
+
+```
+## Linear mixed model fit by REML ['lmerMod']
+## Formula: bright ~ 1 + (1 | operator)
+##    Data: pulp
+## 
+## REML criterion at convergence: 18.6
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -1.4666 -0.7595 -0.1244  0.6281  1.6012 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  operator (Intercept) 0.06808  0.2609  
+##  Residual             0.10625  0.3260  
+## Number of obs: 20, groups:  operator, 4
+## 
+## Fixed effects:
+##             Estimate Std. Error t value
+## (Intercept)  60.4000     0.1494   404.2
+```
+
+```r
+coef(mixed_model)
+```
+
+```
+## $operator
+##   (Intercept)
+## a    60.27806
+## b    60.14088
+## c    60.56767
+## d    60.61340
+## 
+## attr(,"class")
+## [1] "coef.mer"
+```
+
+`MCMglmm` application
+
+# Nonlinear and Generalized Linear Mixed Models
+
+-   NLMMs extend the nonlinear model to include both fixed effects and random effects
+-   GLMMs extend the generalized linear model to include both fixed effects and random effects.
+
+A nonlinear mixed model has the form of
+
+$$
+Y_{ij} = f(\mathbf{x_{ij} , \theta, \alpha_i}) + \epsilon_{ij}
+$$
+
+for the j-th response from cluster (or sujbect) i ($i = 1,...,n$), where
+
+-   $j = 1,...,n_i$
+-   $\mathbf{\theta}$ are the fixed effects
+-   $\mathbf{\alpha}_i$ are the random effects for cluster i
+-   $\mathbf{x}_{ij}$ are the regressors or design variables
+-   $f(.)$ is nonlinear mean response function
+
+A GLMM can be written as:
+
+we assume
+
+$$
+y_i |\alpha_i \sim \text{indep } f(y_i | \alpha)
+$$
+
+and $f(y_i | \mathbf{\alpha})$ is an exponential family distribution,
+
+$$
+f(y_i | \alpha) = \exp [\frac{y_i \theta_i - b(\theta_i)}{a(\phi)} - c(y_i, \phi)]
+$$
+
+The conditional mean of $y_i$ is related to $\theta_i$
+
+$$
+\mu_i = \frac{\partial b(\theta_i)}{\partial \theta_i}
+$$
+
+The transformation of this mean will give us the desired linear model to model both the fixed and random effects.
+
+$$
+E(y_i |\alpha) = \mu_i \\
+g(\mu_i) = \mathbf{x_i' \beta + z'_i \alpha}
+$$
+
+where $g()$ is a known link function and $\mu_i$ is the conditional mean. We can see similarity to [GLM](\#generalized-linear-models)
+
+We also have to specify the random effects distribution
+
+$$
+\alpha \sim f(\alpha)
+$$
+
+which is similar to the specification for mixed models.
+
+Moreover, law of large number applies to fixed effects so that you know it is a normal distribution. But here, you can specify $\alpha$ subjectively.
+
+Hence, we can show NLMM is a special case of the GLMM
+
+$$
+\mathbf{Y}_i = \mathbf{f}(\mathbf{x}_i, \mathbf{\theta, \alpha}_i) + \mathbf{\epsilon}_i \\
+\mathbf{Y}_i = \mathbf{g}^{-1} (\mathbf{x}_i' \beta + z_i' \alpha_i) + \epsilon_i}
+$$
