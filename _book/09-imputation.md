@@ -944,8 +944,9 @@ This is an example of neighbor-based imputation (K-nearest neighbor).
 
 For every observation that needs to be imputed, the algorithm identifies 'k' closest observations based on some types distance (e.g., Euclidean) and computes the weighted average (weighted based on distance) of these 'k' obs.
 
-For a discrete variable, it uses the most frequent value among the k nearest neighbors.\
-\* Distance metrics: Hamming distance.
+For a discrete variable, it uses the most frequent value among the k nearest neighbors.
+
+-   Distance metrics: Hamming distance.
 
 For a continuous variable, it uses the mean or mode.
 
@@ -957,7 +958,7 @@ For a continuous variable, it uses the mean or mode.
 
 #### Bayesian Ridge regression implementation
 
-Other methods:
+### Other methods
 
 -   For panel data, or clustered data, use `pan` package by Schafer (1997)
 
@@ -1032,7 +1033,7 @@ For example, if women really are less likely to tell you their weight than men, 
 
 How many imputation:
 
-**usually 5**. (unless you have extremely high portion of missing, in which case you probably need to check your data again)
+**Usually 5**. (unless you have extremely high portion of missing, in which case you probably need to check your data again)
 
 According to Rubin, the relative efficiency of an estimate based on m imputations to infinity imputation is approximately
 
@@ -1040,7 +1041,7 @@ $$
 (1+\frac{\lambda}{m})^{-1}
 $$ where $\lambda$ is the rate of missing data
 
-[[Example:\\\\](Example:\\){.uri}]([Example:\\](Example:\){.uri}){.uri} 50% of missing data means an estimate based on 5 imputation has standard deviation that is only 5% wider compared to an estimate based on infinity imputation\
+Example 50% of missing data means an estimate based on 5 imputation has standard deviation that is only 5% wider compared to an estimate based on infinity imputation\
 ($\sqrt{1+0.5/5}=1.049$)
 
 
@@ -1218,7 +1219,7 @@ We have $X_1, X_2,..,X_k$. If $X_1$ has missing data, then it is regressed on th
 
 By default,
 
--   **Continuous variables** use linear regression.\
+-   **Continuous variables** use linear regression.
 -   **Categorical Variables** use logistic regression.
 
 Methods in [MICE](#mice-multivariate-imputation-via-chained-equations):
@@ -1376,23 +1377,23 @@ summary(combine)
 
 ### Amelia
 
--   Use bootstrap based EMB algorithm (faster and robust to impute many variables including cross sectional, time series data etc)\
+-   Use bootstrap based EMB algorithm (faster and robust to impute many variables including cross sectional, time series data etc)
 -   Use parallel imputation feature using multicore CPUs.
 
 Assumptions
 
--   All variables follow Multivariate Normal Distribution (MVN). Hence, this package works best when data is MVN, or transformation to normality.\
+-   All variables follow Multivariate Normal Distribution (MVN). Hence, this package works best when data is MVN, or transformation to normality.
 -   Missing data is [Missing at Random (MAR)](#missing-at-random-mar)
 
 Steps:
 
-1.  m bootstrap samples and applies EMB algorithm to each sample. Then we have m different estimates of mean and variances.\
+1.  m bootstrap samples and applies EMB algorithm to each sample. Then we have m different estimates of mean and variances.
 2.  the first set of estimates are used to impute first set of missing values using regression, then second set of estimates are used for second set and so on.
 
 However, [Amelia] is different from [MICE](#mice-multivariate-imputation-via-chained-equations)
 
--   MICE imputes data on variable by variable basis whereas MVN uses a joint modeling approach based on multivariate normal distribution.\
--   MICE can handle different types of variables while the variables in MVN need to be normally distributed or transformed to approximate normality.\
+-   MICE imputes data on variable by variable basis whereas MVN uses a joint modeling approach based on multivariate normal distribution.
+-   MICE can handle different types of variables while the variables in MVN need to be normally distributed or transformed to approximate normality.
 -   MICE can manage imputation of variables defined on a subset of data whereas MVN cannot.
 
 
@@ -1700,8 +1701,8 @@ summary(mi_data)
 ##   139    11 
 ## 
 ## $Sepal.Length$imputed
-##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## -0.53448 -0.07660 -0.01091 -0.01727  0.07109  0.33991 
+##      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
+## -0.757428 -0.051889 -0.002727 -0.020313  0.051724  0.481686 
 ## 
 ## $Sepal.Length$observed
 ##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -1716,7 +1717,7 @@ summary(mi_data)
 ## 
 ## $Sepal.Width$imputed
 ##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## -1.21841 -0.30563  0.08841  0.13152  0.52986  2.77291 
+## -1.29526 -0.56502 -0.10400 -0.04352  0.56157  1.17819 
 ## 
 ## $Sepal.Width$observed
 ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -1731,7 +1732,7 @@ summary(mi_data)
 ## 
 ## $Petal.Length$imputed
 ##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## -0.94513 -0.58388  0.02674 -0.10201  0.25916  0.64881 
+## -0.84707 -0.63807 -0.01188 -0.12834  0.26006  0.62975 
 ## 
 ## $Petal.Length$observed
 ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -1746,7 +1747,7 @@ summary(mi_data)
 ## 
 ## $Petal.Width$imputed
 ##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## -0.86151 -0.57909  0.06688 -0.04991  0.38920  0.86249 
+## -0.85410 -0.53131  0.01140 -0.04752  0.37519  0.84874 
 ## 
 ## $Petal.Width$observed
 ##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -1757,9 +1758,9 @@ summary(mi_data)
 ## $Species$crosstab
 ##             
 ##              observed imputed
-##   setosa          184      22
-##   versicolor      188      14
-##   virginica       164      28
+##   setosa          184      21
+##   versicolor      188      11
+##   virginica       164      32
 ## 
 ## 
 ## $imputed_age
