@@ -1,7 +1,7 @@
 ---
 title: "A Guide on Data Analysis"
 author: "Mike Nguyen"
-date: "2021-03-17"
+date: "2021-04-17"
 header-includes:
 - \usepackage{titling}
 - \pretitle{\begin{center}}
@@ -30,7 +30,7 @@ Since the beginning of the century, we have been bombarded with amazing advancem
 
 It's all fun and exciting when I learned these new tools. But I have to admit that I hardly retain any of these new inventions.However, writing down from the beginning till the end of a data analysis process is the solution that I came up with. Accordingly, let's dive right in.
 
-<img src="images/meme.jpg" width="300" style="display: block; margin: auto;" />
+<img src="images/meme.jpg" width="600" style="display: block; margin: auto;" />
 
 <br>
 

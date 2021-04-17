@@ -10,10 +10,10 @@ Test whether underlying assumptions hold true
 ## Nested Model
 
 $$
-\begin{align}
+\begin{aligned}
 y = \beta_0 + x_1\beta_1 + x_2\beta-2 + x_3\beta_3 + \epsilon && \text{unrestricted model} \\
 y = \beta_0 + x_1\beta_1 + \epsilon && \text{restricted model}
-\end{align}
+\end{aligned}
 $$
 
 Unrestricted model is always longer than the restricted model  
@@ -52,10 +52,10 @@ should the independent variables be logged?
 decide between non-nested alternatives 
 
 $$
-\begin{align}
+\begin{aligned}
 y =  \beta_0 + x_1\beta_1 + x_2\beta_2 + \epsilon && \text{(level eq)} \\
 y =  \beta_0 + ln(x_1)\beta_1 + x_2\beta_2 + \epsilon && \text{(log eq)}
-\end{align}
+\end{aligned}
 $$
 
  1. Obtain predict outcome when estimating the model in log equation $\check{y}$ and then estimate the following auxiliary equation, 
@@ -90,10 +90,10 @@ $$
 
 #### Dependent Variable
 $$
-\begin{align}
+\begin{aligned}
 y = \beta_0 + x_1\beta_1 + \epsilon && \text{level eq} \\
 ln(y) = \beta_0 + x_1\beta_1 + \epsilon && \text{log eq} \\
-\end{align}
+\end{aligned}
 $$
 
  * In the level model, regardless of how big y is, x has a constant effect (i.e., one unit change in $x_1$ results in a $\beta_1$ unit change in y)
@@ -150,6 +150,7 @@ However, [Breusch-Pagan test] cannot detect heteroskedasticity in non-linear for
 
 ### White test
 test heteroskedasticity would allow for a non-linear relationship by computing the F-test of total significance for the following model (assume there are three independent random variables) 
+
 $$
 e_i^2=\gamma_0 + x_i \gamma_1 + x_{i2}\gamma_2 + x_{i3}\gamma_3 + x_{i1}^2\gamma_4 + x_{i2}^2\gamma_5 + x_{i3}^2\gamma_6 + (x_{i1} \times x_{i2})\gamma_7 + (x_{i1} \times x_{i3})\gamma_8 + (x_{i2} \times x_{i3})\gamma_9 + error
 $$

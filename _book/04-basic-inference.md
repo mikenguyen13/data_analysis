@@ -296,12 +296,12 @@ For 1-sided z-test where $H_0: \mu \le \mu_0 \\ H_A: \mu >0$
 The power is:  
 
 $$
-\begin{align}
+\begin{aligned}
 \pi(\mu) &= P(\bar{y} > \mu_0 + z_{\alpha} \sigma/\sqrt{n}|\mu) \\
 &= P(Z = \frac{\bar{y} - \mu}{\sigma / \sqrt{n}} > z_{\alpha} + \frac{\mu_0 - \mu}{\sigma/ \sqrt{n}}|\mu) \\
 &= 1 - \Phi(z_{\alpha} + \frac{(\mu_0 - \mu)\sqrt{n}}{\sigma}) \\
 &= \Phi(-z_{\alpha}+\frac{(\mu -\mu_0)\sqrt{n}}{\sigma})
-\end{align}
+\end{aligned}
 $$
 
 where $1-\Phi(x) = \Phi(-x)$ since the normal pdf is symmetric  
@@ -385,13 +385,13 @@ t.test(data, conf.level=0.95)
 ## 	One Sample t-test
 ## 
 ## data:  data
-## t = -1.3564, df = 99, p-value = 0.1781
+## t = 0.33553, df = 99, p-value = 0.7379
 ## alternative hypothesis: true mean is not equal to 0
 ## 95 percent confidence interval:
-##  -0.31842275  0.05984719
+##  -0.1709579  0.2405413
 ## sample estimates:
 ##  mean of x 
-## -0.1292878
+## 0.03479169
 ```
 
 $$
@@ -409,13 +409,13 @@ t.test(data, mu=30,alternative="less")
 ## 	One Sample t-test
 ## 
 ## data:  data
-## t = -316.09, df = 99, p-value < 2.2e-16
+## t = -288.98, df = 99, p-value < 2.2e-16
 ## alternative hypothesis: true mean is less than 30
 ## 95 percent confidence interval:
-##        -Inf 0.02898022
+##       -Inf 0.2069628
 ## sample estimates:
 ##  mean of x 
-## -0.1292878
+## 0.03479169
 ```
 
 
@@ -659,11 +659,11 @@ Then we have 2 cases
  * Independence between samples: No observation from one sample can influence any observation from the other sample, to have  
 
 $$
-\begin{align}
+\begin{aligned}
 var(\bar{y} - \bar{x}) &= var(\bar{y}) + var{\bar{x}} - 2cov(\bar{y},\bar{x}) \\
 &= var(\bar{y}) + var{\bar{x}} \\
 &= \sigma^2_y / n_y + \sigma^2_x / n_x 
-\end{align}
+\end{aligned}
 $$
 
  * Normality: Justifies the use of the [t-distribution][Student T]

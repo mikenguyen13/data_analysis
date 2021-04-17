@@ -35,7 +35,9 @@ MAR is weaker than MCAR
 
 $$
 P(Y_{missing}|Y,X)= P(Y_{missing}|X)
-$$ The probability of Y missing given Y and X equal to the probability of of Y missing given X. However, it is impossible to provide evidence to the MAR condition.
+$$ 
+
+The probability of Y missing given Y and X equal to the probability of of Y missing given X. However, it is impossible to provide evidence to the MAR condition.
 
 -   the propensity for a data point to be missing is not related to the missing data, but it is related to some of the observed data. In another word, there is a systematic relationship between the propensity of missing values and the observed data, but not the missing data.
 
@@ -126,7 +128,7 @@ Add another variable in the database to indicate whether a value is missing.
 
 Create 2 variables
 
-```{=tex}
+
 \begin{equation}
 D=
 \begin{cases}
@@ -134,8 +136,8 @@ D=
 0 & \text{otherwise}\\
 \end{cases}
 \end{equation}
-```
-```{=tex}
+
+
 \begin{equation}
 X^* = 
 \begin{cases}
@@ -143,7 +145,9 @@ X & \text{data are available} \\
 c & \text{data are missing}\\
 \end{cases}
 \end{equation}
-```
+
+
+
 **Note**: A typical choice for c is usually the mean of X
 
 Interpretation:
@@ -540,7 +544,7 @@ head(anscombe)
 md.pattern(anscombe)
 ```
 
-<img src="09-imputation_files/figure-html/unnamed-chunk-2-1.png" width="672" />
+![](09-imputation_files/figure-epub3/unnamed-chunk-2-1.png)<!-- -->
 
 ```
 ##   x1 x2 x3 x4 y2 y3 y1 y4  
@@ -612,7 +616,7 @@ p # rr = number of observations where both pairs of values are observed
 marginplot(anscombe[c(5, 8)], col = c("blue", "red", "orange"))
 ```
 
-<img src="09-imputation_files/figure-html/unnamed-chunk-2-2.png" width="672" />
+![](09-imputation_files/figure-epub3/unnamed-chunk-2-2.png)<!-- -->
 
 ```r
 ## 5 imputations for all missing values
@@ -914,7 +918,7 @@ mtext("Imputation of Heteroscedastic Data",       # Main title of plot
       side = 3, line = - 1.5, outer = TRUE, cex = 2)
 ```
 
-<img src="09-imputation_files/figure-html/unnamed-chunk-10-1.png" width="672" />
+![](09-imputation_files/figure-epub3/unnamed-chunk-10-1.png)<!-- -->
 
 #### Regression Imputation
 
@@ -1039,7 +1043,9 @@ According to Rubin, the relative efficiency of an estimate based on m imputation
 
 $$
 (1+\frac{\lambda}{m})^{-1}
-$$ where $\lambda$ is the rate of missing data
+$$ 
+
+where $\lambda$ is the rate of missing data
 
 Example 50% of missing data means an estimate based on 5 imputation has standard deviation that is only 5% wider compared to an estimate based on infinity imputation\
 ($\sqrt{1+0.5/5}=1.049$)
@@ -1239,7 +1245,7 @@ library(VIM)
 md.pattern(iris.mis)
 ```
 
-<img src="09-imputation_files/figure-html/unnamed-chunk-17-1.png" width="672" />
+![](09-imputation_files/figure-epub3/unnamed-chunk-17-1.png)<!-- -->
 
 ```
 ##     Sepal.Width Sepal.Length Petal.Length Petal.Width   
@@ -1262,7 +1268,12 @@ md.pattern(iris.mis)
 aggr(iris.mis, col=mdc(1:2), numbers=TRUE, sortVars=TRUE, labels=names(iris.mis), cex.axis=.7, gap=3, ylab=c("Proportion of missingness","Missingness Pattern"))
 ```
 
-<img src="09-imputation_files/figure-html/unnamed-chunk-17-2.png" width="672" />
+```
+## Warning in plot.aggr(res, ...): not enough horizontal space to display
+## frequencies
+```
+
+![](09-imputation_files/figure-epub3/unnamed-chunk-17-2.png)<!-- -->
 
 ```
 ## 
@@ -1281,7 +1292,12 @@ mice_plot <- aggr(iris.mis, col=c('navyblue','yellow'),
                     gap=3, ylab=c("Missing data","Pattern"))
 ```
 
-<img src="09-imputation_files/figure-html/unnamed-chunk-17-3.png" width="672" />
+```
+## Warning in plot.aggr(res, ...): not enough horizontal space to display
+## frequencies
+```
+
+![](09-imputation_files/figure-epub3/unnamed-chunk-17-3.png)<!-- -->
 
 ```
 ## 
@@ -1339,7 +1355,7 @@ summary(imputed_Data)
 densityplot(imputed_Data)
 ```
 
-<img src="09-imputation_files/figure-html/unnamed-chunk-19-1.png" width="672" />
+![](09-imputation_files/figure-epub3/unnamed-chunk-19-1.png)<!-- -->
 
 ```r
 #the red (imputed values) should be similar to the blue (observed)
@@ -1630,153 +1646,10 @@ impute_arg$imputed$Sepal.Length
 
 ```r
 library(mi)
-```
-
-```
-## Loading required package: Matrix
-```
-
-```
-## Loading required package: stats4
-```
-
-```
-## Registered S3 methods overwritten by 'lme4':
-##   method                          from
-##   cooks.distance.influence.merMod car 
-##   influence.merMod                car 
-##   dfbeta.influence.merMod         car 
-##   dfbetas.influence.merMod        car
-```
-
-```
-## mi (Version 1.0, packaged: 2015-04-16 14:03:10 UTC; goodrich)
-```
-
-```
-## mi  Copyright (C) 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015 Trustees of Columbia University
-```
-
-```
-## This program comes with ABSOLUTELY NO WARRANTY.
-```
-
-```
-## This is free software, and you are welcome to redistribute it
-```
-
-```
-## under the General Public License version 2 or later.
-```
-
-```
-## Execute RShowDoc('COPYING') for details.
-```
-
-```
-## 
-## Attaching package: 'mi'
-```
-
-```
-## The following objects are masked from 'package:mice':
-## 
-##     complete, pool
-```
-
-```r
 # default values of parameters
 # 1. rand.imp.method as “bootstrap”
 # 2. n.imp (number of multiple imputations) as 3
 # 3. n.iter ( number of iterations) as 30
 mi_data <- mi(iris.mis, seed = 335)
 summary(mi_data)
-```
-
-```
-## $Sepal.Length
-## $Sepal.Length$is_missing
-## missing
-## FALSE  TRUE 
-##   139    11 
-## 
-## $Sepal.Length$imputed
-##      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-## -0.757428 -0.051889 -0.002727 -0.020313  0.051724  0.481686 
-## 
-## $Sepal.Length$observed
-##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## -0.92742 -0.45370 -0.03919  0.00000  0.31610  1.20432 
-## 
-## 
-## $Sepal.Width
-## $Sepal.Width$is_missing
-## missing
-## FALSE  TRUE 
-##   139    11 
-## 
-## $Sepal.Width$imputed
-##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## -1.29526 -0.56502 -0.10400 -0.04352  0.56157  1.17819 
-## 
-## $Sepal.Width$observed
-##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-## -1.2494 -0.3068 -0.0712  0.0000  0.2823  1.3427 
-## 
-## 
-## $Petal.Length
-## $Petal.Length$is_missing
-## missing
-## FALSE  TRUE 
-##   137    13 
-## 
-## $Petal.Length$imputed
-##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## -0.84707 -0.63807 -0.01188 -0.12834  0.26006  0.62975 
-## 
-## $Petal.Length$observed
-##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-## -0.7892 -0.6196  0.1721  0.0000  0.3701  0.8790 
-## 
-## 
-## $Petal.Width
-## $Petal.Width$is_missing
-## missing
-## FALSE  TRUE 
-##   126    24 
-## 
-## $Petal.Width$imputed
-##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## -0.85410 -0.53131  0.01140 -0.04752  0.37519  0.84874 
-## 
-## $Petal.Width$observed
-##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## -0.72386 -0.59081  0.07444  0.00000  0.40707  0.87275 
-## 
-## 
-## $Species
-## $Species$crosstab
-##             
-##              observed imputed
-##   setosa          184      21
-##   versicolor      188      11
-##   virginica       164      32
-## 
-## 
-## $imputed_age
-## $imputed_age$is_missing
-## [1] "all values observed"
-## 
-## $imputed_age$observed
-##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-## -0.9637 -0.4714  0.0000  0.0000  0.3285  1.2514 
-## 
-## 
-## $imputed_age2
-## $imputed_age2$is_missing
-## [1] "all values observed"
-## 
-## $imputed_age2$observed
-##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-## -0.92932 -0.45738 -0.04444  0.00000  0.35375  1.19439
 ```
