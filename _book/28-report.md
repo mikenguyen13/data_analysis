@@ -1,7 +1,46 @@
 # Report
+
+Structure
+
+-   Exploratory analysis
+
+    -   plots
+    -   preliminary results
+    -   interesting structure/features in the data
+    -   outliers
+
+-   Model
+
+    -   Assumptions
+    -   Why this model/ How is this model the best one?
+    -   Consideration: interactions, collinearity, dependence
+
+-   Model Fit
+
+    -   How well does it fit?
+
+    -   Are the model assumptions met?
+
+        -   Residual analysis
+
+-   Inference/ Prediction
+
+    -   Are there different way to support your inference?
+
+-   Conclusion
+
+    -   Recommendation
+
+    -   Limitation of the analysis
+
+    -   How to correct those in the future
+
+<br>
+
 This chapter is based on the `jtools` package. More information can be found [here.](https://www.rdocumentation.org/packages/jtools/versions/2.1.0)
 
 ## One summary table
+
 
 ```r
 library(jtools)
@@ -244,8 +283,40 @@ summ(fit2, robust = "HC3", cluster = "firm")
 <sup></sup> Standard errors: Cluster-robust, type = HC3</td></tr></tfoot>
 </table>
 
+Model to Equation
+
+
+```r
+# install.packages("equatiomatic")
+fit <- lm(metascore ~ budget + us_gross + year, data = movies)
+# show the theoretical model
+equatiomatic::extract_eq(fit)
+```
+
+```
+## Registered S3 methods overwritten by 'broom':
+##   method            from  
+##   tidy.glht         jtools
+##   tidy.summary.glht jtools
+```
+
+$$
+\operatorname{metascore} = \alpha + \beta_{1}(\operatorname{budget}) + \beta_{2}(\operatorname{us\_gross}) + \beta_{3}(\operatorname{year}) + \epsilon
+$$
+
+```r
+# display the actual coefficients
+equatiomatic::extract_eq(fit, use_coefs = TRUE)
+```
+
+$$
+\operatorname{\widehat{metascore}} = 52.06 + 0(\operatorname{budget}) + 0(\operatorname{us\_gross}) + 0.01(\operatorname{year})
+$$
+
+
 
 ## Model Comparison
+
 
 ```r
 fit <- lm(metascore ~ log(budget), data = movies)
@@ -257,49 +328,38 @@ export_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 ```
 
 ```
-## Registered S3 methods overwritten by 'broom':
-##   method            from  
-##   tidy.glht         jtools
-##   tidy.summary.glht jtools
-```
-
-```
 ## Warning in checkMatrixPackageVersion(): Package version inconsistency detected.
 ## TMB was built with Matrix version 1.2.18
 ## Current Matrix version is 1.3.2
 ## Please re-install 'TMB' from source using install.packages('TMB', type = 'source') or ask CRAN for a binary version of 'TMB' matching CRAN's 'Matrix' package
 ```
 
-<!--html_preserve--><table class="huxtable" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-2">
-<caption style="caption-side: top; text-align: center;">(#tab:unnamed-chunk-2) </caption><col><col><col><col><tr>
-<th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 1</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 2</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 3</th></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Budget</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-2.43 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-5.16 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-6.70 ***</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.44)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.62)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.67)&nbsp;&nbsp;&nbsp;</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">US Gross</th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.96 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.85 ***</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.51)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.48)&nbsp;&nbsp;&nbsp;</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Runtime (Hours)</th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">14.29 ***</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(1.63)&nbsp;&nbsp;&nbsp;</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Constant</th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">105.29 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">81.84 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">83.35 ***</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(7.65)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(8.66)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(8.82)&nbsp;&nbsp;&nbsp;</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">N</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">R2</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.03&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.09&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.17&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
-<tr>
-<th colspan="4" style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Standard errors are heteroskedasticity robust.  *** p &lt; 0.001;  ** p &lt; 0.01;  * p &lt; 0.05.</th></tr>
-</table>
-<!--/html_preserve-->
+```
+## Warning in knit_print.huxtable(x, ...): Unrecognized output format "epub3". Using `to_screen` to print huxtables.
+## Set options("huxtable.knitr_output_format") manually to "latex", "html", "rtf", "docx", "pptx", "md" or "screen".
+```
 
+ ─────────────────────────────────────────────────────────────────────────────
+                               Model 1            Model 2            Model 3  
+                    ──────────────────────────────────────────────────────────
+   Budget                    -2.43 ***          -5.16 ***          -6.70 ***  
+                             (0.44)             (0.62)             (0.67)     
+   US Gross                                      3.96 ***           3.85 ***  
+                                                (0.51)             (0.48)     
+   Runtime (Hours)                                                 14.29 ***  
+                                                                   (1.63)     
+   Constant                 105.29 ***          81.84 ***          83.35 ***  
+                             (7.65)             (8.66)             (8.82)     
+                    ──────────────────────────────────────────────────────────
+   N                        831                831                831         
+   R2                         0.03               0.09               0.17      
+ ─────────────────────────────────────────────────────────────────────────────
+   Standard errors are heteroskedasticity robust.  *** p < 0.001;             
+   ** p < 0.01; * p < 0.05.                                                   
 
-Another package is `stargazer`  
+Column names: names, Model 1, Model 2, Model 3
+
+Another package is `stargazer`
 
 
 ```r
@@ -326,7 +386,7 @@ stargazer(attitude)
 ```
 ## 
 ## % Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
-## % Date and time: Wed, Mar 17, 2021 - 3:18:59 PM
+## % Date and time: Sat, Apr 17, 2021 - 5:00:43 PM
 ## \begin{table}[!htbp] \centering 
 ##   \caption{} 
 ##   \label{} 
@@ -369,7 +429,7 @@ stargazer(linear.1,
 ```
 ## 
 ## % Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
-## % Date and time: Wed, Mar 17, 2021 - 3:18:59 PM
+## % Date and time: Sat, Apr 17, 2021 - 5:00:43 PM
 ## % Requires LaTeX packages: dcolumn 
 ## \begin{table}[!htbp] \centering 
 ##   \caption{Results} 
@@ -511,7 +571,7 @@ stargazer(
 )
 ```
 
-Correlation Table  
+Correlation Table
 
 
 ```r
@@ -519,25 +579,18 @@ correlation.matrix <- cor(attitude[,c("rating","complaints","privileges")])
 stargazer(correlation.matrix, title="Correlation Matrix")
 ```
 
+## Changes in an estimate
 
-
-## Changes in an estimate 
- 
 
 ```r
 coef_names <- coef_names[1:3] # Dropping intercept for plots
 plot_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 ```
 
-<img src="28-report_files/figure-html/unnamed-chunk-8-1.png" width="672" />
+![](28-report_files/figure-epub3/unnamed-chunk-9-1.png)<!-- -->
 
 ```r
 plot_summs(fit_c, robust = "HC3", coefs = coef_names, plot.distributions = TRUE)
 ```
 
-<img src="28-report_files/figure-html/unnamed-chunk-8-2.png" width="672" />
-
-
-
-
-
+![](28-report_files/figure-epub3/unnamed-chunk-9-2.png)<!-- -->

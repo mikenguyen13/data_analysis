@@ -6,30 +6,32 @@ If you feel you do not need to brush up on these theories, you can jump right in
 
 ## Matrix Theory
 
-```{=tex}
+
 \begin{equation}
 \begin{split}
 A=
-\left[\begin{array}{c}
+\left[\begin{array}
+{cc}
 a_{11} & a_{12} \\
 a_{21} & a_{22} \\
 \end{array}
 \right]
 \end{split}
 \end{equation}
-```
-```{=tex}
+
+
 \begin{equation}
 \begin{split}
 A' =
-\left[\begin{array}{c}
+\left[\begin{array}
+{cc}
 a_{11} & a_{21} \\
 a_{12} & a_{22} \\
 \end{array}
 \right]
 \end{split}
 \end{equation}
-```
+
 $$
 \mathbf{(ABC)'=C'B'A'} \\
 \mathbf{A(B+C)= AB + AC} \\
@@ -46,27 +48,30 @@ If A has an inverse, it is called **invertible.** If A is not invertible it is c
 
 <br>
 
-```{=tex}
+
 \begin{equation}
 \begin{split}
 \mathbf{A} &= 
-\left(\begin{array}{cccc} 
+\left(\begin{array}
+{ccc} 
 a_{11} & a_{12} & a_{13} \\ 
 a_{21} & a_{22} & a_{23} \\ 
 \end{array}\right)
-\left(\begin{array}{c}
+\left(\begin{array}
+{ccc}
 b_{11} & b_{12} & b_{13} \\
 b_{21} & b_{22} & b_{23} \\
 b_{31} & b_{32} & b_{33} \\
 \end{array}\right) \\
 &= 
-\left(\begin{array}{c}
+\left(\begin{array}
+{ccc}
 a_{11}b_{11}+a_{12}b_{21}+a_{13}b_{31} & \sum_{i=1}^{3}a_{1i}b_{i2} &  \sum_{i=1}^{3}a_{1i}b_{i3} \\
 \sum_{i=1}^{3}a_{2i}b_{i1} & \sum_{i=1}^{3}a_{2i}b_{i2} & \sum_{i=1}^{3}a_{2i}b_{i3} \\
 \end{array}\right) 
 \end{split}
 \end{equation}
-```
+
 Let $\mathbf{a}$ be a 3 x 1 vector, then the quadratic form is
 
 $$
@@ -83,13 +88,13 @@ $$
 ### Rank
 
 -   Dimension of space spanned by its columns (or its rows).\
--   Number of linearly indepdent columns/rows
+-   Number of linearly independent columns/rows
 
 For a n x k matrix **A** and k x k matrix **B**
 
 -   $rank(A)\leq min(n,k)$
--   $rank(A) = rank(A') = rank(A'A)=rank(AA')$\
--   $rank(AB)=min(rank(A),rank(B))$\
+-   $rank(A) = rank(A') = rank(A'A)=rank(AA')$
+-   $rank(AB)=min(rank(A),rank(B))$
 -   **B** is invertible if and only if rank(B) = k (non-singular)
 
 <br>
@@ -102,7 +107,7 @@ A non-singular square matrix A is invertible if there exists a non-singular squa
 
 $$
 A =
-\left(\begin{array}{c}
+\left(\begin{array}{cc}
 a & b \\
 c & d \\
 \end{array}
@@ -112,7 +117,7 @@ $$
 $$
 A^{-1}=
 \frac{1}{ad-bc}
-\left(\begin{array}{c}
+\left(\begin{array}{cc}
 d & -b \\
 -c & a \\
 \end{array}
@@ -121,31 +126,33 @@ $$
 
 For the partition matrix,
 
-```{=tex}
+
 \begin{equation}
 \begin{split}
-\left[\begin{array}{c}
+\left[\begin{array}
+{cc}
 A & B \\
 C & D \\
 \end{array}
 \right]^{-1}
  =
-\left[\begin{array}{c}
+\left[\begin{array}
+{cc}
 \mathbf{(A-BD^{-1}C)^{-1}} & \mathbf{-(A-BD^{-1}C)^{-1}BD^-1}\\
 \mathbf{-DC(A-BD^{-1}C)^{-1}} & \mathbf{D^{-1}+D^{-1}C(A-BD^{-1}C)^{-1}BD^{-1}}\ \\
 \end{array}
 \right]
 \end{split}
 \end{equation}
-```
+
 <br>
 
 Properties for a non-singular square matrix
 
--   $\mathbf{A^{-1}}=A$\
--   for a non-zero scalar b, $\mathbf{(bA)^{-1}=b^{-1}A^{-1}}$\
+-   $\mathbf{A^{-1}}=A$
+-   for a non-zero scalar b, $\mathbf{(bA)^{-1}=b^{-1}A^{-1}}$
 -   for a matrix B, $\mathbf(BA)^{-1}=B^{-1}A^{-1}$ only if B is non-singular
--   $\mathbf{(A^{-1})'=(A')^{-1}}$\
+-   $\mathbf{(A^{-1})'=(A')^{-1}}$
 -   Never notate $\mathbf{1/A}$
 
 <br>
@@ -162,12 +169,13 @@ The identity matrix is positive definite
 
 **Example** Let $\mathbf{x} =(x_1 x_2)'$, then for a 2 x 2 identity matrix,
 
-```{=tex}
+
 \begin{equation}
 \begin{split}
 \mathbf{x'Ix} 
 &= (x_1 x_2) 
-\left(\begin{array}{c}
+\left(\begin{array}
+{cc}
 1 & 0 \\
 0 & 1 \\
 \end{array}
@@ -179,7 +187,8 @@ x_2 \\
 \right) \\
 &=
 (x_1 x_2)
-\left(\begin{array}{c}
+\left(\begin{array}
+{c}
 x_1 \\
 x_2 \\
 \end{array}
@@ -188,15 +197,15 @@ x_2 \\
 x_1^2 + x_2^2 >0
 \end{split}
 \end{equation}
-```
+
 Definiteness gives us the ability to compare matrices $\mathbf{A-B}$ is PSD This property also helps us show efficiency (which variance covariance matrix of one estimator is smaller than another)
 
 Properties
 
--   any variance matrix is PSD\
--   a matrix $\mathbf{A}$ is PSD if and only if there exists a matrix $\mathbf{B}$ such that $\mathbf{A=B'B}$\
--   if $\mathbf{A}$ is PSD, then $\mathbf{B'AB}$ is PSD\
--   if A and C are non-singular, then A-C is PSD if and only if $\mathbf{C^{-1}-A^{-1}}$\
+-   any variance matrix is PSD
+-   a matrix $\mathbf{A}$ is PSD if and only if there exists a matrix $\mathbf{B}$ such that $\mathbf{A=B'B}$
+-   if $\mathbf{A}$ is PSD, then $\mathbf{B'AB}$ is PSD
+-   if A and C are non-singular, then A-C is PSD if and only if $\mathbf{C^{-1}-A^{-1}}$
 -   if A is PD (ND) then $A^{-1}$ is PD (ND)
 
 **Note**
@@ -210,7 +219,8 @@ Example:
 
 $$
 \left[
-\begin{array}{a}
+\begin{array}
+{cc}
 -1 & 0 \\
 0 & 10 \\
 \end{array}
@@ -221,7 +231,8 @@ $$
 
 $$
 \left[
-\begin{array}{a}
+\begin{array}
+{cc}
 0 & 1 \\
 0 & 0 \\
 \end{array}
@@ -232,7 +243,8 @@ $$
 
 $$
 \left[
-\begin{array}{a}
+\begin{array}
+{cc}
 1 & 0 \\
 0 & 1 \\
 \end{array}
@@ -243,7 +255,8 @@ $$
 
 $$
 \left[
-\begin{array}{a}
+\begin{array}
+{cc}
 0 & 0 \\
 0 & 1 \\
 \end{array}
@@ -269,7 +282,8 @@ The **Hessian** (second order derivative with respect to a vector) is,
 
 $$
 \frac{\partial^2{f(x)}}{\partial{x}\partial{x'}}=
-\left(\begin{array}{c}
+\left(\begin{array}
+{cccc}
 \frac{\partial^2{f(x)}}{\partial{x_1}\partial{x_1}} & \frac{\partial^2{f(x)}}{\partial{x_1}\partial{x_2}} & ... & \frac{\partial^2{f(x)}}{\partial{x_1}\partial{x_k}} \\
 \frac{\partial^2{f(x)}}{\partial{x_1}\partial{x_2}} & \frac{\partial^2{f(x)}}{\partial{x_2}\partial{x_2}} & ... & \frac{\partial^2{f(x)}}{\partial{x_2}\partial{x_k}} \\
 ... & ...& & ...\\
@@ -277,6 +291,55 @@ $$
 \end{array}
 \right)
 $$
+
+Define the derivative of $f(\mathbf{X})$ with respect to $\mathbf{X}_{(n \times p)}$ as the matrix 
+
+$$
+\frac{\partial f(\mathbf{X})}{\partial \mathbf{X}} = (\frac{\partial f(\mathbf{X})}{\partial x_{ij}})
+$$
+
+Define $\mathbf{a}$ to be a vector and $\mathbf{A}$ to be a matrix which does not depend upon $\mathbf{y}$. Then
+
+$$
+\frac{\partial \mathbf{a'y}}{\partial \mathbf{y}} = \mathbf{a}
+$$
+
+$$
+\frac{\partial \mathbf{y'y}}{\partial \mathbf{y}} = 2\mathbf{y}
+$$
+
+$$
+\frac{\partial \mathbf{y'Ay}}{\partial \mathbf{y}} = \mathbf{(A + A')y}
+$$
+
+
+If $\mathbf{X}$ is a symmetric matrix then 
+
+$$
+\frac{\partial |\mathbf{X}|}{\partial x_{ij}} = 
+\begin{cases}
+X_{ii}, i = j \\
+X_ij, i \neq j
+\end{cases}
+$$
+where $X_{ij}$ is the (i,j)th cofactor of $\mathbf{X}$
+
+If $\mathbf{X}$ is symmetric and $\mathbf{A}$ is a matrix which does not depend upon $\mathbf{X}$ then
+
+$$
+\frac{\partial tr \mathbf{XA}}{\partial \mathbf{X}} = \mathbf{A} + \mathbf{A}' - diag(\mathbf{A})
+$$
+
+If $\mathbf{X}$ is symmetric and we let $\mathbf{J}_{ij}$ be a matrix which has a 1 in the (i,j)th position and 0s elsewhere, then
+
+$$
+\frac{\partial \mathbf{X}6{-1}}{\partial x_{ij}} = 
+\begin{cases}
+- \mathbf{X}^{-1}\mathbf{J}_{ii} \mathbf{X}^{-1} , i = j \\
+- \mathbf{X}^{-1}(\mathbf{J}_{ij} + \mathbf{J}_{ji}) \mathbf{X}^{-1} , i \neq j
+\end{cases}
+$$
+
 
 ### Optimization
 
@@ -510,17 +573,19 @@ $$
 \rho_{ij} = \frac{\sigma_{ij}}{\sqrt{\sigma_{ii} \sigma_{jj}}}
 $$
 
-```{=tex}
+$$
 \mathbf{R} = \left(
 \begin{array}
-{rrrr}
+{cccc}
 \rho_{11} & \rho_{12} & ... & \rho_{1p} \\
 \rho_{21} & \rho_{22} & ... & \rho_{2p} \\
 . & . & . & . \\
 \rho_{p1} & \rho_{p2} & ... & \rho_{pp}\\
 \end{array}
 \right)
-```
+$$
+
+
 where $\rho_{ii}=1$ for all i.
 
 Let x and y be random vectors with means $\mu_x$ and $\mu_y$ and variance-covariance matrices $\Sigma_x$ and $\Sigma_y$. Let $\mathbf{A}$ and $\mathbf{B}$ be matrices of constants and c and d be vectors of constants. Then,
@@ -579,7 +644,7 @@ $$
 
 #### Multivariate Moments
 
-$$
+
 \begin{equation}
 E=
 \left(
@@ -603,9 +668,9 @@ E(Y) \\
 \end{array}
 \right)
 \end{equation}
-$$
 
-$$
+
+
 \begin{equation}
 \begin{split}
 Var
@@ -617,21 +682,23 @@ Y \\
 \right)
 &=
 \left(
-\begin{array}{c}
+\begin{array}
+{cc}
 Var(X) & Cov(X,Y) \\
 Cov(X,Y) & Var(Y) \\
 \end{array}
 \right) \\
 &=
 \left(
-\begin{array}{c}
+\begin{array}
+{cc}
 E((X-\mu_X)^2) & E((X-\mu_X)(Y-\mu_Y)) \\
 E((X-\mu_X)(Y-\mu_Y)) & E((Y-\mu_Y)^2) \\
 \end{array}
 \right)
 \end{split}
 \end{equation}
-$$
+
 
 <br>
 
@@ -664,7 +731,7 @@ $Bernoulli(p)$
 hist(mc2d::rbern(100000, prob=.5))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-1-1.png" width="672" />
+![](02-prerequisites_files/figure-epub3/unnamed-chunk-1-1.png)<!-- -->
 
 ##### Binomial
 
@@ -691,7 +758,7 @@ You have to use table
 hist(rbinom(100000, size = 100, prob = 0.5))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-2-1.png" width="672" />
+![](02-prerequisites_files/figure-epub3/unnamed-chunk-2-1.png)<!-- -->
 
 **MGF**
 
@@ -738,7 +805,7 @@ Use table
 hist(rpois(10000, lambda = 5))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+![](02-prerequisites_files/figure-epub3/unnamed-chunk-3-1.png)<!-- -->
 
 **MGF**
 
@@ -784,7 +851,7 @@ $$
 hist(rgeom(n = 10000, prob = 0.5))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-4-1.png" width="672" />
+![](02-prerequisites_files/figure-epub3/unnamed-chunk-4-1.png)<!-- -->
 
 **MGF**
 
@@ -828,7 +895,7 @@ where $max[0,n-(N-r)] \le x \le min(n,r)$
 hist(rhyper(nn = 10000 , m=50, n=20, k=30))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-5-1.png" width="672" />
+![](02-prerequisites_files/figure-epub3/unnamed-chunk-5-1.png)<!-- -->
 
 **Mean**
 
@@ -864,13 +931,14 @@ for a \< x \< b
 
 **CDF**
 
-```{=tex}
+$$
 \begin{cases}
 0 & \text{if x <a } \\
 \frac{x-a}{b-a} & \text{if $a \le x \le b$ }\\
 1 & \text{if x >b}\\
 \end{cases}
-```
+$$
+
 **PDF**
 
 
@@ -878,16 +946,17 @@ for a \< x \< b
 hist(runif(100000, min = 0, max = 1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-6-1.png" width="672" />
+![](02-prerequisites_files/figure-epub3/unnamed-chunk-6-1.png)<!-- -->
 
 **MGF**
 
-```{=tex}
+$$
 \begin{cases}
 \frac{e^{tb} - e^{ta}}{t(b-a)}&\text{ if $t \neq 0$}\\
 1&\text{if $ t \neq 0$}\\
 \end{cases}
-```
+$$
+
 **Mean**
 
 $$
@@ -936,7 +1005,7 @@ for x\>0, and $\alpha = n$ (a positive integer)
 hist(rgamma(n = 10000, shape = 5, rate = 1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-7-1.png" width="672" />
+![](02-prerequisites_files/figure-epub3/unnamed-chunk-7-1.png)<!-- -->
 
 **MGF**
 
@@ -984,7 +1053,7 @@ Use table
 hist(rnorm(1000000, mean = 0, sd = 1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-8-1.png" width="672" />
+![](02-prerequisites_files/figure-epub3/unnamed-chunk-8-1.png)<!-- -->
 
 **MGF**
 
@@ -1040,7 +1109,7 @@ $Logistic(\mu,s)$
 hist(rlogis(n = 100000, location = 0, scale = 1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-9-1.png" width="672" />
+![](02-prerequisites_files/figure-epub3/unnamed-chunk-9-1.png)<!-- -->
 
 ##### Lognomral
 
@@ -1053,7 +1122,7 @@ $lognormal(\mu,\sigma^2)$
 hist(rlnorm(n = 10000, meanlog = 0, sdlog = 1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-10-1.png" width="672" />
+![](02-prerequisites_files/figure-epub3/unnamed-chunk-10-1.png)<!-- -->
 
 ##### Exponential
 
@@ -1073,7 +1142,7 @@ for $x,\beta > 0$
 
 **CDF**
 
-```{=tex}
+
 \begin{equation}
 F(x) = 
 \begin{cases}
@@ -1081,7 +1150,7 @@ F(x) =
 1 - e^{-x/\beta} & \text{if $x > 0$}\\
 \end{cases}
 \end{equation}
-```
+
 **PDF**
 
 
@@ -1089,7 +1158,7 @@ F(x) =
 hist(rexp(n = 100000, rate = 1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-11-1.png" width="672" />
+![](02-prerequisites_files/figure-epub3/unnamed-chunk-11-1.png)<!-- -->
 
 **MGF**
 
@@ -1129,7 +1198,7 @@ $\chi^2=\chi^2(k)$
 hist(rchisq(n = 10000, df=2, ncp = 0))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-12-1.png" width="672" />
+![](02-prerequisites_files/figure-epub3/unnamed-chunk-12-1.png)<!-- -->
 
 **MGF**
 
@@ -1161,7 +1230,7 @@ $T(v)$
 hist(rt(n = 100000, df=2, ncp =1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-13-1.png" width="672" />
+![](02-prerequisites_files/figure-epub3/unnamed-chunk-13-1.png)<!-- -->
 
 ##### F-Distribution
 
@@ -1178,7 +1247,7 @@ $F(d_1,d_2)$
 hist(rf(n = 100000, df1=2, df2=3, ncp=1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-14-1.png" width="672" />
+![](02-prerequisites_files/figure-epub3/unnamed-chunk-14-1.png)<!-- -->
 
 ##### Cauchy
 
@@ -1191,7 +1260,7 @@ hist(rf(n = 100000, df1=2, df2=3, ncp=1))
 hist(rcauchy(n = 100000, location = 0, scale = 1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-15-1.png" width="672" />
+![](02-prerequisites_files/figure-epub3/unnamed-chunk-15-1.png)<!-- -->
 
 ##### Multivariate Normal Distribution
 
@@ -1474,6 +1543,288 @@ log transformation
 
 Trade-off between parametric and non-parametric
 
+## Data Import/Export
+
+[Extended Manual by R](https://cran.r-project.org/doc/manuals/r-release/R-data.html)
+
+| Format                                                | Typical Extension       | Import Package                                                  | Export Package                                                  | Installed by Default |
+|:------------------------------------------------------|:------------------------|:----------------------------------------------------------------|:----------------------------------------------------------------|:---------------------|
+| Comma-separated data                                  | .csv                    | [**data.table**](https://cran.r-project.org/package=data.table) | [**data.table**](https://cran.r-project.org/package=data.table) | Yes                  |
+| Pipe-separated data                                   | .psv                    | [**data.table**](https://cran.r-project.org/package=data.table) | [**data.table**](https://cran.r-project.org/package=data.table) | Yes                  |
+| Tab-separated data                                    | .tsv                    | [**data.table**](https://cran.r-project.org/package=data.table) | [**data.table**](https://cran.r-project.org/package=data.table) | Yes                  |
+| CSVY (CSV + YAML metadata header)                     | .csvy                   | [**data.table**](https://cran.r-project.org/package=data.table) | [**data.table**](https://cran.r-project.org/package=data.table) | Yes                  |
+| SAS                                                   | .sas7bdat               | [**haven**](https://cran.r-project.org/package=haven)           | [**haven**](https://cran.r-project.org/package=haven)           | Yes                  |
+| SPSS                                                  | .sav                    | [**haven**](https://cran.r-project.org/package=haven)           | [**haven**](https://cran.r-project.org/package=haven)           | Yes                  |
+| SPSS (compressed)                                     | .zsav                   | [**haven**](https://cran.r-project.org/package=haven)           | [**haven**](https://cran.r-project.org/package=haven)           | Yes                  |
+| Stata                                                 | .dta                    | [**haven**](https://cran.r-project.org/package=haven)           | [**haven**](https://cran.r-project.org/package=haven)           | Yes                  |
+| SAS XPORT                                             | .xpt                    | [**haven**](https://cran.r-project.org/package=haven)           | [**haven**](https://cran.r-project.org/package=haven)           | Yes                  |
+| SPSS Portable                                         | .por                    | [**haven**](https://cran.r-project.org/package=haven)           |                                                                 | Yes                  |
+| Excel                                                 | .xls                    | [**readxl**](https://cran.r-project.org/package=readxl)         |                                                                 | Yes                  |
+| Excel                                                 | .xlsx                   | [**readxl**](https://cran.r-project.org/package=readxl)         | [**openxlsx**](https://cran.r-project.org/package=openxlsx)     | Yes                  |
+| R syntax                                              | .R                      | **base**                                                        | **base**                                                        | Yes                  |
+| Saved R objects                                       | .RData, .rda            | **base**                                                        | **base**                                                        | Yes                  |
+| Serialized R objects                                  | .rds                    | **base**                                                        | **base**                                                        | Yes                  |
+| Epiinfo                                               | .rec                    | [**foreign**](https://cran.r-project.org/package=foreign)       |                                                                 | Yes                  |
+| Minitab                                               | .mtp                    | [**foreign**](https://cran.r-project.org/package=foreign)       |                                                                 | Yes                  |
+| Systat                                                | .syd                    | [**foreign**](https://cran.r-project.org/package=foreign)       |                                                                 | Yes                  |
+| "XBASE" database files                                | .dbf                    | [**foreign**](https://cran.r-project.org/package=foreign)       | [**foreign**](https://cran.r-project.org/package=foreign)       | Yes                  |
+| Weka Attribute-Relation File Format                   | .arff                   | [**foreign**](https://cran.r-project.org/package=foreign)       | [**foreign**](https://cran.r-project.org/package=foreign)       | Yes                  |
+| Data Interchange Format                               | .dif                    | **utils**                                                       |                                                                 | Yes                  |
+| Fortran data                                          | no recognized extension | **utils**                                                       |                                                                 | Yes                  |
+| Fixed-width format data                               | .fwf                    | **utils**                                                       | **utils**                                                       | Yes                  |
+| gzip comma-separated data                             | .csv.gz                 | **utils**                                                       | **utils**                                                       | Yes                  |
+| Apache Arrow (Parquet)                                | .parquet                | [**arrow**](https://cran.r-project.org/package=arrow)           | [**arrow**](https://cran.r-project.org/package=arrow)           | No                   |
+| EViews                                                | .wf1                    | [**hexView**](https://cran.r-project.org/package=hexView)       |                                                                 | No                   |
+| Feather R/Python interchange format                   | .feather                | [**feather**](https://cran.r-project.org/package=feather)       | [**feather**](https://cran.r-project.org/package=feather)       | No                   |
+| Fast Storage                                          | .fst                    | [**fst**](https://cran.r-project.org/package=fst)               | [**fst**](https://cran.r-project.org/package=fst)               | No                   |
+| JSON                                                  | .json                   | [**jsonlite**](https://cran.r-project.org/package=jsonlite)     | [**jsonlite**](https://cran.r-project.org/package=jsonlite)     | No                   |
+| Matlab                                                | .mat                    | [**rmatio**](https://cran.r-project.org/package=rmatio)         | [**rmatio**](https://cran.r-project.org/package=rmatio)         | No                   |
+| OpenDocument Spreadsheet                              | .ods                    | [**readODS**](https://cran.r-project.org/package=readODS)       | [**readODS**](https://cran.r-project.org/package=readODS)       | No                   |
+| HTML Tables                                           | .html                   | [**xml2**](https://cran.r-project.org/package=xml2)             | [**xml2**](https://cran.r-project.org/package=xml2)             | No                   |
+| Shallow XML documents                                 | .xml                    | [**xml2**](https://cran.r-project.org/package=xml2)             | [**xml2**](https://cran.r-project.org/package=xml2)             | No                   |
+| YAML                                                  | .yml                    | [**yaml**](https://cran.r-project.org/package=yaml)             | [**yaml**](https://cran.r-project.org/package=yaml)             | No                   |
+| Clipboard                                             | default is tsv          | [**clipr**](https://cran.r-project.org/package=clipr)           | [**clipr**](https://cran.r-project.org/package=clipr)           | No                   |
+| [Google Sheets](https://www.google.com/sheets/about/) | as Comma-separated data |                                                                 |                                                                 |                      |
+
+: Table by [Rio Vignette](https://cran.r-project.org/web/packages/rio/vignettes/rio.html)
+
+R limitations:
+
+-   By default, R use 1 core in CPU
+
+-   R puts data into memory (limit around 2-4 GB), while SAS uses data from files on demand
+
+-   Categorization
+
+    -   Medium-size file: within RAM limit, around 1-2 GB
+
+    -   Large file: 2-10 GB, there might be some workaround solution
+
+    -   Very large file \> 10 GB, you have to use distributed or parallel computing
+
+Solutions:
+
+-   buy more RAM
+
+-   HPC packages
+
+    -   Explicit Parallelism
+
+    -   Implicit Parallelism
+
+    -   Large Memory
+
+    -   Map/Reduce
+
+<!-- -->
+
+-   specify number of rows and columns, typically including command `nrow =`
+
+-   Use packages that store data differently
+
+    -   `bigmemory`, `biganalytics`, `bigtabulate` , `synchronicity`, `bigalgebra`, `bigvideo` use C++ to store matrices, but also support one class type
+
+    -   For multiple class types, use `ff` package
+
+-   Very Large datasets use
+
+    -   `RHaddop` package
+    -   `HadoopStreaming`
+    -   `Rhipe`
+
+### Medium size
+
+
+```r
+library("rio")
+```
+
+To import multiple files in a directory
+
+
+```r
+str(import_list(dir()), which = 1)
+```
+
+To export a single data file
+
+
+```r
+export(data, "data.csv")
+export(data,"data.dta")
+export(data,"data.txt")
+export(data,"data_cyl.rds")
+export(data,"data.rdata")
+export(data,"data.R")
+export(data,"data.csv.zip")
+export(data,"list.json")
+```
+
+To export multiple data files
+
+
+```r
+export(list(mtcars = mtcars, iris = iris), "data_file_type") # where data_file_type should substituted with the extension listed above
+```
+
+<br>
+
+To convert between data file types
+
+
+```r
+# convert Stata to SPSS
+convert("data.dta", "data.sav")
+```
+
+### Large size
+
+Use R on a cluster
+
+-   Amazon Web Service (AWS): \$1/hr
+
+Import files as chunks
+
+
+```r
+file_in    <- file("in.csv","r")
+chunk_size <- 100000 # choose the best size for you
+x          <- readLines(file_in, n=chunk_size)
+```
+
+`data.table` method
+
+
+```r
+require(data.table)
+mydata = fread("in.csv", header = T)
+```
+
+`ff` package: this method does not allow you to pass connections
+
+
+```r
+library("ff")
+x <- read.csv.ffdf(
+    file = "file.csv",
+    nrow = 10,
+    header = TRUE,
+    VERBOSE = TRUE,
+    first.rows = 10000,
+    next.rows = 50000,
+    colClasses = NA
+)
+```
+
+`bigmemory` package
+
+
+```r
+my_data <- read.big.matrix('in.csv', header = T)
+```
+
+`sqldf` package
+
+
+```r
+library(sqldf)
+my_data <- read.csv.sql('in.csv')
+
+iris2 <- read.csv.sql("iris.csv", 
+    sql = "select * from file where Species = 'setosa' ")
+```
+
+
+```r
+library(RMySQL)
+```
+
+```
+## Loading required package: DBI
+```
+
+`RQLite` package
+
+ * [Download SQLite](https://sqlite.org/download.html), pick "A bundle of command-line tools for managing SQLite database files" for Window 10
+ * Unzip file, and open `sqlite3.exe.`
+ * Type in the prompt
+    + `sqlite> .cd 'C:\Users\data'` specify path to your desired directory
+    + `sqlite> .open database_name.db` to open a database
+    +  To import the CSV file into the database
+        - `sqlite> .mode csv` specify to SQLite that the next file is .csv file 
+        - `sqlite> .import file_name.csv datbase_name` to import the csv file to the database
+    + `sqlite> .exit` After you're done, exit the sqlite program 
+
+
+```r
+library(DBI)
+library(dplyr)
+library("RSQLite")
+setwd("")
+con <- dbConnect(RSQLite::SQLite(), "data_base.db")
+tbl <- tbl(con, "data_table")
+tbl %>% 
+    filter() %>%
+    select() %>%
+    collect() # to actually pull the data into the workspace
+dbDisconnect(con)
+```
+
+`arrow` package
+
+
+```r
+library("arrow")
+read_csv_arrow()
+```
+
+
+`vroom` package
+
+
+```r
+library(vroom)
+spec(vroom(file_path))
+compressed <- vroom_example("mtcars.csv.zip")
+vroom(compressed)
+```
+
+`data.table` package
+
+
+```r
+s = fread("sample.csv")
+```
+
+
+
+Comparisons regarding storage space
+
+
+```r
+test = ff::read.csv.ffdf(file = "")
+object.size(test) # worst
+
+test1 = data.table::fread(file = "")
+object.size(test1) # best
+
+test2 = readr::read_csv(""))
+object.size(test2) # 2nd
+
+test3 = vroom(file = "")
+object.size(test3) # equal to read_csv
+```
+
+To work with big data, you can convert it to `csv.gz` , but since typically, R would require you to load the whole data then export it. With data greater than 10 GB, we have to do it sequentially. Even though `read.csv` is much slower than `readr::read_csv` , we still have to use it because it can pass connection, and it allows you to loop sequentially. On the other, because currently `readr::read_csv` does not have the `skip` function, and even if we can use the skip, we still have to read and skip lines in previous loop.
+
+For example, say you `read_csv(, n_max = 100, skip =0)` and then `read_csv(, n_max = 200, skip = 100)` you actually have to read again the first 100 rows. However, `read.csv` without specifying anything, will continue at the 100 mark.
+
+Notice, sometimes you might have error looking like this
+
+"Error in (function (con, what, n = 1L, size = NA_integer\_, signed = TRUE, : can only read from a binary connection"
+
+then you can change it instead of `r` in the connection into `rb` . Even though an author of the package suggested that `file` should be able to recognize the appropriate form, so far I did not prevail.
+
 ## Data Manipulation
 
 
@@ -1488,8 +1839,8 @@ library(tidyverse)
 
 ```
 ## v ggplot2 3.3.3     v purrr   0.3.4
-## v tibble  3.0.6     v dplyr   1.0.4
-## v tidyr   1.1.2     v stringr 1.4.0
+## v tibble  3.1.0     v dplyr   1.0.5
+## v tidyr   1.1.3     v stringr 1.4.0
 ## v readr   1.4.0     v forcats 0.5.1
 ```
 
@@ -1559,7 +1910,7 @@ str(df)
 ```
 
 ```
-## tibble [3 x 2] (S3: tbl_df/tbl/data.frame)
+## tibble[,2] [3 x 2] (S3: tbl_df/tbl/data.frame)
 ##  $ n: num [1:3] 1 3 5
 ##  $ g: chr [1:3] "M" "M" "F"
 ```
@@ -1754,13 +2105,13 @@ dat03
 
 ```
 ## # A tibble: 5 x 1
-##        z
-##    <dbl>
-## 1 0.0124
-## 2 0.333 
-## 3 0.865 
-## 4 0.570 
-## 5 0.421
+##       z
+##   <dbl>
+## 1 0.838
+## 2 0.764
+## 3 0.496
+## 4 0.723
+## 5 0.361
 ```
 
 ```r
@@ -1920,13 +2271,13 @@ bind_cols(dat01, dat03)
 
 ```
 ## # A tibble: 5 x 3
-##       x     y      z
-##   <int> <int>  <dbl>
-## 1     1     5 0.0124
-## 2     2     4 0.333 
-## 3     3     3 0.865 
-## 4     4     2 0.570 
-## 5     5     1 0.421
+##       x     y     z
+##   <int> <int> <dbl>
+## 1     1     5 0.838
+## 2     2     4 0.764
+## 3     3     3 0.496
+## 4     4     2 0.723
+## 5     5     1 0.361
 ```
 
 ```r
@@ -2016,7 +2367,7 @@ ggplot(long, aes(x = factor(test), y = score, color = name, group = name)) +
   xlab("Test")
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-16-1.png" width="672" />
+![](02-prerequisites_files/figure-epub3/unnamed-chunk-32-1.png)<!-- -->
 
 ```r
 #### reshape wide to long

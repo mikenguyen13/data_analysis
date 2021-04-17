@@ -1,8 +1,8 @@
-## Generalized Method of Moments
+# Generalized Method of Moments
 
-## Minimum Distance
+# Minimum Distance
 
-## Spline Regression
+# Spline Regression
 
 This chapter is based on [CMU stat](https://www.stat.cmu.edu/~ryantibs/advmethods/notes/smoothspline.pdf)
 
@@ -29,7 +29,7 @@ where j = 1,...,m and $x_+$ = max{x,0}
 
 However, now software typically use B-spline basis.
 
-### Regression Splines
+## Regression Splines
 
 To estimate the regression function $r(X) = E(Y|X =x)$, we can fit a k-th order spline with knots at some prespecified locations $t_1,...,t_m$
 
@@ -71,7 +71,7 @@ $$
 \hat{r} (x) = g(x)^T \hat{\beta}= g(x)^T(G^TG)^{-1}G^Ty
 $$
 
-### Natural splines
+## Natural splines
 
 A natural spline of order k, with knots at $t_1 <...< t_m$, is a piecewise polynomial function f such that
 
@@ -83,7 +83,7 @@ A natural spline of order k, with knots at $t_1 <...< t_m$, is a piecewise polyn
 
 natural splines are only defined for odd orders k.
 
-### Smoothing splines
+## Smoothing splines
 
 These estimators use a regularized regression over the natural spline basis: placing knots at all points $x_1,...x_n$
 
@@ -110,7 +110,7 @@ smoothing splines have similar fits as kernel regression.
 |------------------|-------------------------------|-------------------|
 | tuning parameter | smoothing parameter $\lambda$ | bandwidth h       |
 
-### Application
+## Application
 
 
 ```r
@@ -123,8 +123,8 @@ library(tidyverse)
 
 ```
 ## v ggplot2 3.3.3     v purrr   0.3.4
-## v tibble  3.0.6     v dplyr   1.0.4
-## v tidyr   1.1.2     v stringr 1.4.0
+## v tibble  3.1.0     v dplyr   1.0.5
+## v tidyr   1.1.3     v stringr 1.4.0
 ## v readr   1.4.0     v forcats 0.5.1
 ```
 
@@ -191,7 +191,7 @@ ggplot(train.data, aes(lstat, medv) ) +
   stat_smooth(method = lm, formula = y ~ splines::bs(x, df = 3))
 ```
 
-<img src="06-2-nonlinear_regression2_files/figure-html/unnamed-chunk-1-1.png" width="672" />
+![](06-2-nonlinear_regression2_files/figure-epub3/unnamed-chunk-1-1.png)<!-- -->
 
 ```r
 attach(train.data)
@@ -209,9 +209,9 @@ lines(fit1,col="red",lwd=2)
 legend("topright",c("Smoothing Spline with 3 df","Cubic Spline"),col=c("red","darkgreen"),lwd=2)
 ```
 
-<img src="06-2-nonlinear_regression2_files/figure-html/unnamed-chunk-1-2.png" width="672" />
+![](06-2-nonlinear_regression2_files/figure-epub3/unnamed-chunk-1-2.png)<!-- -->
 
-## Generalized Additive Models
+# Generalized Additive Models
 
 To overcome [Spline Regression]'s requirements for specifying the knots, we can use [Generalized Additive Models] or GAM.
 
@@ -245,7 +245,7 @@ model <- gam(medv ~ s(lstat), data = train.data)
 plot(model)
 ```
 
-<img src="06-2-nonlinear_regression2_files/figure-html/unnamed-chunk-2-1.png" width="672" />
+![](06-2-nonlinear_regression2_files/figure-epub3/unnamed-chunk-2-1.png)<!-- -->
 
 ```r
 # Make predictions
@@ -268,13 +268,13 @@ ggplot(train.data, aes(lstat, medv) ) +
   stat_smooth(method = gam, formula = y ~ s(x))
 ```
 
-<img src="06-2-nonlinear_regression2_files/figure-html/unnamed-chunk-2-2.png" width="672" />
+![](06-2-nonlinear_regression2_files/figure-epub3/unnamed-chunk-2-2.png)<!-- -->
 
 ```r
 detach(train.data)
 ```
 
-## Quantile Regression
+# Quantile Regression
 
 For academic review on quantile regression, check [@Yu_2003]
 
@@ -308,9 +308,14 @@ Let $e(x) = y -\hat{y}(x)$, then $L(e(x)) = L(y -\hat{y}(x))$ is the loss functi
 
 If $L(e) = |e|$ (called absolute-error loss function) then $\hat{\beta}$ can be estimated by minimizing $\sum_{i}|y_i-x_i'\beta|$
 
-More specifically, the objective function is $$
+More specifically, the objective function is 
+
+
+$$
 Q(\beta_q)=\sum_{i:y_i \ge x_i'\beta}^{N} q|y_i - x_i'\beta_q| + \sum_{i:y_i < x_i'\beta}^{N} (1-q)|y_i-x_i'\beta_q
-$$ where $0<q<1$
+$$ 
+
+where $0<q<1$
 
 The sum penalizes $q|e_i|$ for under-prediction and $(1-q)|e_i|$ for over-prediction
 
@@ -322,11 +327,13 @@ The absolute-error loss function is symmetric.
 
 $$
 \frac{\partial Q_q(y|x)}{\partial x_j} = \beta_{qj}
-$$ At the quantile q of the dependent variable y, $\beta_q$ represents a one unit change in the independent variable $x_j$ on the dependent variable y.
+$$ 
+
+At the quantile q of the dependent variable y, $\beta_q$ represents a one unit change in the independent variable $x_j$ on the dependent variable y.
 
 In other words, at the qth percentile, a one unit change in x results in $\beta_q$ unit change in y.
 
-### Application
+## Application
 
 
 ```r
@@ -343,14 +350,14 @@ dat <- data.frame(x,y)
 hist(y)
 ```
 
-<img src="06-2-nonlinear_regression2_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+![](06-2-nonlinear_regression2_files/figure-epub3/unnamed-chunk-3-1.png)<!-- -->
 
 ```r
 library(ggplot2)
 ggplot(dat, aes(x,y)) + geom_point()
 ```
 
-<img src="06-2-nonlinear_regression2_files/figure-html/unnamed-chunk-3-2.png" width="672" />
+![](06-2-nonlinear_regression2_files/figure-epub3/unnamed-chunk-3-2.png)<!-- -->
 
 ```r
 ggplot(dat, aes(x,y)) + geom_point() + geom_smooth(method="lm")
@@ -360,7 +367,7 @@ ggplot(dat, aes(x,y)) + geom_point() + geom_smooth(method="lm")
 ## `geom_smooth()` using formula 'y ~ x'
 ```
 
-<img src="06-2-nonlinear_regression2_files/figure-html/unnamed-chunk-3-3.png" width="672" />
+![](06-2-nonlinear_regression2_files/figure-epub3/unnamed-chunk-3-3.png)<!-- -->
 
 We follow [@Roger_1996] to estimate quantile regression
 
@@ -413,7 +420,7 @@ ggplot(dat, aes(x,y)) + geom_point() +
   geom_abline(intercept=coef(qr)[1], slope=coef(qr)[2])
 ```
 
-<img src="06-2-nonlinear_regression2_files/figure-html/unnamed-chunk-5-1.png" width="672" />
+![](06-2-nonlinear_regression2_files/figure-epub3/unnamed-chunk-5-1.png)<!-- -->
 
 To have R estimate multiple quantile at once
 
@@ -443,7 +450,7 @@ ggplot(dat, aes(x,y)) + geom_point() + geom_quantile(quantiles = qs)
 ## Smoothing formula not specified. Using: y ~ x
 ```
 
-<img src="06-2-nonlinear_regression2_files/figure-html/unnamed-chunk-6-1.png" width="672" />
+![](06-2-nonlinear_regression2_files/figure-epub3/unnamed-chunk-6-1.png)<!-- -->
 
 To examine if the quantile regression is appropriate, we can see its plot compared to least squares regression
 
@@ -472,7 +479,7 @@ plot(summary(qr1), parm="x")
 ## Warning in rq.fit.br(x, y, tau = tau, ci = TRUE, ...): Solution may be nonunique
 ```
 
-<img src="06-2-nonlinear_regression2_files/figure-html/unnamed-chunk-7-1.png" width="672" />
+![](06-2-nonlinear_regression2_files/figure-epub3/unnamed-chunk-7-1.png)<!-- -->
 
 where red line is the least squares estimates, and its confidence interval. x-axis is the quantile y-axis is the value of the quantile regression coefficients at different quantile
 
@@ -513,4 +520,4 @@ plot(summary(qr2), parm = "x")
 ## Warning in rq.fit.br(x, y, tau = tau, ci = TRUE, ...): Solution may be nonunique
 ```
 
-<img src="06-2-nonlinear_regression2_files/figure-html/unnamed-chunk-8-1.png" width="672" />
+![](06-2-nonlinear_regression2_files/figure-epub3/unnamed-chunk-8-1.png)<!-- -->

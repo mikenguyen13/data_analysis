@@ -64,9 +64,15 @@ In time series data, there are many processes:
 
 Both the dependent and independent variables are trending over time
 
-**Spurious Time Series Regression** $$
+**Spurious Time Series Regression** 
+
+$$
 y_t = \alpha_0 + t\alpha_1 + v_t
-$$ and x takes the form $$
+$$ 
+
+and x takes the form 
+
+$$
 x_t = \lambda_0 + t\lambda_1 + u_t
 $$
 
@@ -74,18 +80,26 @@ $$
 -   $v_t$ and $u_t$ are independent
 -   there is no relationship between $y_t$ and $x_t$
 
-If we estimate the regression, $$
+If we estimate the regression, 
+
+$$
 y_t = \beta_0 + x_t\beta_1 + \epsilon_t
-$$ so the true $\beta_1=0$
+$$ 
+
+so the true $\beta_1=0$
 
 -   Inconsistent: $plim(\hat{\beta}_1)=\frac{\alpha_1}{\lambda_1}$
 -   Invalid Inference: $|t| \to^d \infty$ for $H_0: \beta_1=0$, will always reject the null as $n \to \infty$
 -   Uninformative $R^2$: $plim(R^2) = 1$ will be able to perfectly predict as $n \to \infty$
 
-We can rewrite the equation as $$
+We can rewrite the equation as 
+
+$$
 y_t=\beta_0 + \beta_1x_t+\epsilon_t \\
 \epsilon_t = \alpha_1t + v_t
-$$ where $\beta_0 = \alpha_0$ and $\beta_1=0$. Since $x_t$ is a deterministic function of time, $\epsilon_t$ is correlated with $x_t$ and we have the usual omitted variable bias.\
+$$ 
+
+where $\beta_0 = \alpha_0$ and $\beta_1=0$. Since $x_t$ is a deterministic function of time, $\epsilon_t$ is correlated with $x_t$ and we have the usual omitted variable bias.\
 Even when $y_t$ and $x_t$ are related ($\beta_1 \neq 0$) but they are both trending over time, we still get spurious results with the simple regression on $y_t$ on $x_t$
 
 **Solutions to Spurious Trend**
@@ -119,9 +133,15 @@ Even when $y_t$ and $x_t$ are related ($\beta_1 \neq 0$) but they are both trend
 
 $$
 y_t = \beta_0 + x_t\beta_1 + \epsilon_t
-$$ [A3][A3 Exogeneity of Independent Variables] $$
+$$ 
+
+[A3][A3 Exogeneity of Independent Variables] 
+
+$$
 E(\epsilon_t|\mathbf{X})= E(\epsilon_t| x_1,x_2, ...,x_t,x_{t+1},...,x_T)
-$$ will not equal 0, because $y_t$ will likely influence $x_{t+1},..,x_T$
+$$ 
+
+will not equal 0, because $y_t$ will likely influence $x_{t+1},..,x_T$
 
 -   [A3][A3 Exogeneity of Independent Variables] is violated because we require the error to be uncorrelated with all time observation of the independent regressors (**strict exogeneity**)
 
@@ -148,7 +168,9 @@ $$
 
 $$
 E(\epsilon_t|\mathbf{X})= E(\epsilon_t| x_1,x_2, ...,x_t,x_{t+1},...,x_T)
-$$ will not equal 0, because if we did not include enough lags, $x_{t-2}$ and $\epsilon_t$ are correlated
+$$ 
+
+will not equal 0, because if we did not include enough lags, $x_{t-2}$ and $\epsilon_t$ are correlated
 
 -   [A3][A3 Exogeneity of Independent Variables] is violated because we require the error to be uncorrelated with all time observation of the independent regressors (strict exogeneity)
 -   Can be corrected by including more lags (but when stop? )
@@ -164,7 +186,9 @@ then, we can
 -   Focus on [Large Sample Properties]
 -   Can use [A3a] instead of [A3][A3 Exogeneity of Independent Variables]
 
-[A3a] in time series become $$
+[A3a] in time series become 
+
+$$
 A3a: E(\mathbf{x}_t'\epsilon_t)= 0
 $$
 
@@ -194,7 +218,9 @@ under [A1][A1 Linearity], [A2][A2 Full rank], [A3a], and [A5a], [OLS estimator][
 If $y_t, \mathbf{x}_t$ are not weakly dependent stationary process\
 \* $y_t$ and $y_{t-h}$ are not almost independent for large h \* [A5a] does not hold and OLS is not **consistent** and does not have a limiting distribution. \* Example + Random Walk $y_t = y_{t-1} + u_t$ + Random Walk with a drift: $y_t = \alpha+ y_{t-1} + u_t$
 
-**Solution** First difference is a stationary process $$
+**Solution** First difference is a stationary process 
+
+$$
 y_t - y_{t-1} = u_t
 $$
 
@@ -202,15 +228,19 @@ $$
 -   For regression, if $\{y_t, \mathbf{x}_t \}$ are random walks (integrated at order 1), can consistently estimate the first difference equation
 
 $$
-\begin{align}
+\begin{aligned}
 y_t - y_{t-1} &= (\mathbf{x}_t - \mathbf{x}_{t-1}\beta + \epsilon_t - \epsilon_{t-1}) \\
 \Delta y_t &= \Delta \mathbf{x}\beta + \Delta u_t
-\end{align}
+\end{aligned}
 $$
 
-**Unit Root Test** $$
+**Unit Root Test** 
+
+$$
 y_t = \alpha + \alpha y_{t-1} + u_t
-$$ tests if $\rho=1$ (integrated of order 1)\
+$$ 
+
+tests if $\rho=1$ (integrated of order 1)\
 
 -   Under the null $H_0: \rho = 1$, OLS is not consistent or asymptotically normal.
 -   Under the alternative $H_a: \rho < 1$, OLS is consistent and asymptotically normal.
@@ -288,7 +318,9 @@ Allowing structural change in pooled cross section
 
 $$
 y_i = \mathbf{x}_i \beta + \delta_1 y_1 + ... + \delta_T y_T + \epsilon_i
-$$ Dummy variables for all but one time period
+$$ 
+
+Dummy variables for all but one time period
 
 -   allows different intercept for each time period
 -   allows outcome to change on average for each time period
@@ -297,7 +329,9 @@ Allowing for structural change in pooled cross section
 
 $$
 y_i = \mathbf{x}_i \beta + \mathbf{x}_i y_1 \gamma_1 + ... + \mathbf{x}_i y_T \gamma_T + \delta_1 y_1 + ...+ \delta_T y_T + \epsilon_i
-$$ Interact $x_i$ with time period dummy variables
+$$ 
+
+Interact $x_i$ with time period dummy variables
 
 -   allows different slopes for each time period
 -   allows effects to change based on time period (**structural break**)
@@ -307,7 +341,9 @@ $$ Interact $x_i$ with time period dummy variables
 
 $$
 y_i=\mathbf{x_i\beta +x_i \times y1\gamma_1 + ...+ x_i \times yT\gamma_T + \delta_1y_1+...+ \delta_Ty_T + \epsilon_i}
-$$ Interact $x_i$ with time period dummy variables
+$$ 
+
+Interact $x_i$ with time period dummy variables
 
 -   allows different slopes for each time period
 
@@ -434,15 +470,21 @@ also known as **Within Estimator** uses within variation (over time)
 
 If the **RE assumption** is not hold ($E(\mathbf{x_{it}'}c_i) \neq 0$), then A3a does not hold ($E(\mathbf{x_{it}'}\epsilon_i) \neq 0$). Hence, the OLS and RE are inconsistent/biased (because of omitted variable bias)
 
-To deal with violation in $c_i$, we have $$
+To deal with violation in $c_i$, we have 
+
+$$
 y_{it}= \mathbf{x_{it}\beta} + c_i + u_{it}
 $$
 
 $$
 \bar{y_i}=\bar{\mathbf{x_i}} \beta + c_i + \bar{u_i}
-$$ where the second equation is the time averaged equation
+$$ 
 
-using **within transformation**, we have $$
+where the second equation is the time averaged equation
+
+using **within transformation**, we have 
+
+$$
 y_{it} - \bar{y_i} = \mathbf{(x_{it} - \bar{x_i}\beta)} + u_{it} - \bar{u_i}
 $$
 
@@ -466,9 +508,10 @@ Equivalent to the within transformation, we can have the fixed effect estimator 
 
 $$
 y_{it} = x_{it}\beta + d_1\delta_1 + ... + d_{T-2}\delta_{T-2} + c_1\gamma_1 + ... + c_{n-1}\gamma_{n-1} + u_{it}
-$$ where
+$$ 
 
-```{=tex}
+where
+
 \begin{equation}
 c_i
 =
@@ -477,7 +520,7 @@ c_i
 0 &\text{otherwise} \\
 \end{cases}
 \end{equation}
-```
+
 -   The standard error is incorrectly calculated.
 -   the FE within transformation is controlling for any difference across individual which is allowed to correlated with observables.
 

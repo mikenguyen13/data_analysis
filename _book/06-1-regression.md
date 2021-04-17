@@ -31,31 +31,37 @@ $$
 
  * $Y_i$: response (dependent) variable at i-th observation  
  * $\beta_0,\beta_1$: regression parameters for intercept and slope.  
- * $X_i$: known constant (independent or predicotr variable) for i-th observation  
+ * $X_i$: known constant (independent or predictor variable) for i-th observation  
  * $\epsilon_i$: random error term  
+
 
 $$
 E(\epsilon_i) = 0 \\
-var(\epsilon_i) = \sigma^2 \\
-cov(\epsilon_i,\epsilon_j) = 0 \text{ for all $i \neq j$}
+var(\epsilon_i) = \sigma^2
 $$
+
+
+$$
+cov(\epsilon_i,\epsilon_j) = 0  \text{ for all } i \neq j
+$$
+
 
 $Y_i$ is random since $\epsilon_i$ is:  
 
 $$
-\begin{align}
+\begin{aligned}
 E(Y_i) &= E(\beta_0 + \beta_1 X_i + \epsilon_i) \\
 &= E(\beta_0) + E(\beta_1 X_i) + E(\epsilon) \\
 &= \beta_0 + \beta_1 X_i
-\end{align}
+\end{aligned}
 $$
 
 $$
-\begin{align}
+\begin{aligned}
 var(Y_i) &= var(\beta_0 + \beta_1 X_i + \epsilon_i) \\
 &= var(\epsilon_i) \\
 &= \sigma^2
-\end{align}
+\end{aligned}
 $$
 
 Since $cov(\epsilon_i, \epsilon_j) = 0$ (uncorrelated), the outcome in any one trail has no effect on the outcome of any other. Hence, $Y_i, Y_j$ are uncorrelated as well (conditioned on the X's) 
@@ -64,6 +70,7 @@ Since $cov(\epsilon_i, \epsilon_j) = 0$ (uncorrelated), the outcome in any one t
 [Least Squares][Ordinary Least Squares] does not require a distributional assumption  
 
 <br>
+
 
 #### Estimation
 
@@ -228,13 +235,13 @@ $$
 
 
 $$
-\begin{align}
+\begin{aligned}
 var(\hat{Y}_h) &= var(b_0 + b_1 X_h) \\
 &= var(\hat{Y} + b_1 (X_h - \bar{X})) \\
 &= var(\bar{Y}) + (X_h - \bar{X})^2var(b_1) + 2(X_h - \bar{X})cov(\bar{Y},b_1) \\
 &= \frac{\sigma^2}{n} + (X_h - \bar{X})^2 \frac{\sigma^2}{\sum(X_i - \bar{X})^2} \\
 &= \sigma^2(\frac{1}{n} + \frac{(X_h - \bar{X})^2}{\sum_{i=1}^{n} (X_i - \bar{X})^2})
-\end{align}
+\end{aligned}
 $$
 
 Since $cov(\bar{Y},b_1) = 0$ due to the iid assumption on $\epsilon_i$  
@@ -290,11 +297,11 @@ $$
 The variance of the predictor is  
 
 $$
-\begin{align}
+\begin{aligned}
 var(b_0 + b_1 X_h + \epsilon) &= var(b_0 + b_1 X_h) + var(\epsilon) \\
 &= \sigma^2(\frac{1}{n} + \frac{(X_h - \bar{X})^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2}) + \sigma^2 \\
 &= \sigma^2(1+\frac{1}{n} + \frac{(X_h - \bar{X})^2}{\sum_{i=1}^{n}(X_i - \bar{X})^2})
-\end{align}
+\end{aligned}
 $$
 
 An estimate of the variance is given by  
@@ -314,6 +321,8 @@ The prediction interval is very sensitive to the distributional assumption on th
 
 
 <br>
+
+
 
 ##### Confidence Band
 
@@ -346,12 +355,12 @@ We use the term corrected because we correct for mean, the uncorrected total sum
 use $\hat{Y}_i = b_0 + b_1 X_i$ to estimate the conditional mean for Y at $X_i$  
 
 $$
-\begin{align}
+\begin{aligned}
 \sum_{i=1}^n (Y_i - \bar{Y})^2 &= \sum_{i=1}^n (Y_i - \hat{Y}_i + \hat{Y}_i - \bar{Y})^2 \\
 &= \sum_{i=1}^n(Y_i - \hat{Y}_i)^2 + \sum_{i=1}^n(\hat{Y}_i - \bar{Y})^2 + 2\sum_{i=1}^n(Y_i - \hat{Y}_i)(\hat{Y}_i-\bar{Y}) \\
 &= \sum_{i=1}^n(Y_i - \hat{Y}_i)^2 + \sum_{i=1}^n(\bar{Y}_i -\bar{Y})^2 \\
 STTO &= SSE + SSR \\
-\end{align}
+\end{aligned}
 $$
 
 where SSR is the regression sum of squares, which measures how the conditional mean varies about a central value.  
@@ -359,20 +368,20 @@ where SSR is the regression sum of squares, which measures how the conditional m
 The cross-product term in the decomposition is 0:  
 
 $$
-\begin{align}
+\begin{aligned}
 \sum_{i=1}^n (Y_i - \hat{Y}_i)(\hat{Y}_i - \bar{Y}) &= \sum_{i=1}^{n}(Y_i - \bar{Y} -b_1 (X_i - \bar{X}))(\bar{Y} + b_1 (X_i - \bar{X})-\bar{Y}) \\
 &= b_1 \sum_{i=1}^{n} (Y_i - \bar{Y})(X_i - \bar{X}) - b_1^2\sum_{i=1}^{n}(X_i - \bar{X})^2 \\
 &= b_1 \frac{\sum_{i=1}^{n}(Y_i -\bar{Y})(X_i - \bar{X})}{\sum_{i=1}^{n}(X_i - \bar{X})^2} \sum_{i=1}^{n}(X_i - \bar{X})^2 - b_1^2\sum_{i=1}^{n}(X_i - \bar{X})^2 \\
 &= b_1^2 \sum_{i=1}^{n}(X_i - \bar{X})^2 - b_1^2 \sum_{i=1}^{n}(X_i - \bar{X})^2 \\
 &= 0
-\end{align}
+\end{aligned}
 $$
 
 $$
-\begin{align}
+\begin{aligned}
 SSTO &= SSR + SSE \\
 (n-1 d.f) &= (1 d.f.) + (n-2 d.f.)
-\end{align}
+\end{aligned}
 $$
 
 
@@ -453,12 +462,12 @@ Let $\bar{Y}_j$ be the mean over replicates for $X_j$
 Partition the Error Sum of Squares:  
 
 $$
-\begin{align}
+\begin{aligned}
 \sum_{i} \sum_{j} (Y_{ij} - \hat{Y}_{ij})^2 &= \sum_{i} \sum_{j} (Y_{ij} - \bar{Y}_j + \bar{Y}_j + \hat{Y}_{ij})^2 \\
 &=  \sum_{i} \sum_{j} (Y_{ij} - \bar{Y}_j)^2 + \sum_{i} \sum_{j} (\bar{Y}_j - \hat{Y}_{ij})^2 + \text{cross product term} \\
 &= \sum_{i} \sum_{j}(Y_{ij} - \bar{Y}_j)^2 + \sum_j n_j (\bar{Y}_j- \hat{Y}_{ij})^2 \\
 SSE &= SSPE + SSLF \\
-\end{align}
+\end{aligned}
 $$
 
 
@@ -529,12 +538,12 @@ $$
 The probability that both $\bar{A}_1$ and $\bar{A}_2$  
 
 $$
-\begin{align}
+\begin{aligned}
 P(\bar{A}_1 \cap \bar{A}_2) &= 1 - P(\bar{A}_1 \cup \bar{A}_2) \\
 &= 1 - P(A_1) - P(A_2) + P(A_1 \cap A_2) \\
 &\ge 1 - P(A_1) - P(A_2) \\
 &= 1 - 2\alpha
-\end{align}
+\end{aligned}
 $$
 
 If $\beta_0$ and $\beta_1$ have separate 95% confidence intervals, the joint (family) confidence coefficient is at least $1 - 2(0.05) = 0.9$. This is called a **Bonferroni Inequality**  
@@ -697,13 +706,13 @@ $$
 we want to select the function h(.) so that the variance of h(Y) is nearly constant for all values of $\mu= E(Y)$:  
 
 $$
-\begin{align}
+\begin{aligned}
 const &= var(h(Y)) \\
 &= var(h(\mu) + h'(\mu)(Y-\mu)) \\
 &= (h'(\mu))^2 var(Y-\mu) \\
 &= (h'(\mu))^2 var(Y) \\
 &= (h'(\mu))^2(f(\mu))^2 \\
-\end{align}
+\end{aligned}
 $$
 
 we must have,  
@@ -751,16 +760,17 @@ $log(Y+1)$ | $var(\epsilon_i) = k(E(Y_i))^2$ | some counts zero
 1/Y | $var(\epsilon_i) = k(E(Y_i))^4$ | most responses near zero, others large 
 $arcsin(\sqrt{Y})$ | $var(\epsilon_i) = k E(Y_i)(1-E(Y_i))$ | data are binomial proportions or %
 
-
 ### Multiple Linear Regression
 
 Geometry of Least Squares  
 
-\begin{align}
+$$
+\begin{aligned}
 \mathbf{\hat{y}} &= \mathbf{Xb} \\
 &= \mathbf{X(X'X)^{-1}X'y} \\
 &= \mathbf{Hy}
-\end{align}
+\end{aligned}
+$$
 
 sometimes H is denoted as P.  
 
@@ -774,13 +784,15 @@ Facts:
 
  1. H is symmetric (i.e., H = H')  
  2. HH = H
+ 
 $$
-\begin{align}
+\begin{aligned}
 \mathbf{HH} &= \mathbf{X(X'X)^{-1}X'X(X'X)^{-1}X'} \\
 &= \mathbf{X(X'X)^{-1}IX'} \\
 &= \mathbf{X(X'X)^{-1}X'}
-\end{align}
+\end{aligned}
 $$
+
  3. H is an n x n matrix with rank(H) = rank(X)  
  4. $\mathbf{(I-H) = I - X(X'X)^{-1}X'}$ is also a projection operator. It projects onto the n - k dimensional space that is orthogonal to the k dimensional space spanned by the columns of X
  5. $\mathbf{H(I-H)=(I-H)H = 0}$  
@@ -788,12 +800,12 @@ $$
 Partition of uncorrected total sum of squares:  
 
 $$
-\begin{align}
+\begin{aligned}
 \mathbf{y'y} &= \mathbf{\hat{y}'\hat{y} + e'e} \\
 &= \mathbf{(Hy)'(Hy) + ((I-H)y)'((I-H)y)} \\
 &= \mathbf{y'H'Hy + y'(I-H)'(I-H)y} \\
 &= \mathbf{y'Hy + y'(I-H)y} \\
-\end{align}
+\end{aligned}
 $$
 
 or partition for the corrected total sum of squares:  
@@ -827,13 +839,13 @@ where
 We choose least squares estimator that minimize the distance between $\mathbf{Y}$ and $\mathbf{X \hat{\beta}}$, which is the **orthogonal projection** of $\mathbf{Y}$ onto $\mathbf{X\beta}$.  
 
 $$
-\begin{align}
+\begin{aligned}
 ||\mathbf{Y} - \mathbf{X}\hat{\beta}||^2 &= \mathbf{||Y - X\hat{\beta}||}^2 + \mathbf{||X \hat{\beta}||}^2 \\
 &= \mathbf{(Y - X\hat{\beta})'(Y - X\hat{\beta}) +(X \hat{\beta})'(X \hat{\beta})} \\
 &= \mathbf{(Y - X\hat{\beta})'Y - (Y - X\hat{\beta})'X\hat{\beta} + \hat{\beta}' X'X\hat{\beta}} \\
 &= \mathbf{(Y-X\hat{\beta})'Y + \hat{\beta}'X'X(XX')^{-1}X'Y} \\
 &= \mathbf{Y'Y - \hat{\beta}'X'Y + \hat{\beta}'X'Y}
-\end{align}
+\end{aligned}
 $$
 
  
@@ -884,28 +896,6 @@ $$
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ### OLS Assumptions
 
  * [A1 Linearity]
@@ -916,12 +906,12 @@ $$
  * [A6 Normal Distribution ]
 
 #### A1 Linearity
-$$
+
 \begin{equation}
 A1: y=\mathbf{x}\beta + \epsilon
 (\#eq:A1)
 \end{equation}
-$$
+
 
 Not restrictive
 
@@ -940,6 +930,7 @@ Log-Log | $ln(y) = \beta_0 + \beta_1 ln(x) +\epsilon$ | $\% \Delta y= \beta_1 \%
 
 ##### Higher Orders
 $y=\beta_0 + x_1\beta_1 + x_1^2\beta_2 + \epsilon$
+
 $$
 \frac{\partial y}{\partial x_1}=\beta_1 + 2x_1\beta_2
 $$
@@ -958,12 +949,12 @@ $y=\beta_0 + x_1\beta_1 + x_2\beta_2 + x_1x_2\beta_3 + \epsilon$
 <br>
 
 #### A2 Full rank
-$$
+
 \begin{equation}
 A2: rank(E(x'x))=k
 (\#eq:A2)
 \end{equation}
-$$
+
 
 
 also known as **identification condition**
@@ -1011,25 +1002,23 @@ A3a: $E(\mathbf{x_i'}\epsilon_i)=0$
 <br>
 
 #### A4 Homoskedasticity
-$$
+
 \begin{equation}
 A4: Var(\epsilon|x)=Var(\epsilon)=\sigma^2
 (\#eq:A4)
 \end{equation}
-$$
-
- * Variation in the disturbance to be the same over the independent variables
+* Variation in the disturbance to be the same over the independent variables
 
 <br>
 <br>
 
 #### A5 Data Generation (random Sampling)
-$$
+
 \begin{equation}
 A5: {y_i,x_{i1},...,x_{ik-1}: i = 1,..., n}
 (\#eq:A5)
 \end{equation}
-$$
+
 is a random sample
 
  * random sample mean samples are independent and identically distributed (iid) from a joint distribution of $(y,\mathbf{x})$
@@ -1051,10 +1040,17 @@ is the same as the joint distribution of
 $$
 x_{t_1+h},x_{t_2+h},...,x_{t_m+h}
 $$
+
 for any $h \ge 1$  
 
  * The joint distribution for the first ten observation is the same for the next ten, etc. 
  * Independent draws automatically satisfies this
+
+
+<br>
+
+
+
 
 
 <br>
@@ -1101,19 +1097,19 @@ where $u_t \sim WN(0,\sigma^2)$
  * In MA(q), all autorcorrealtions beyond q are 0.
 
 $$
-\begin{align}
+\begin{aligned}
 Cov(y_t,y_{t-1}) &= Cov(u_t + \alpha_1 u_{t-1},u_{t-1}+\alpha_1u_{t-2}) \\
 &= \alpha_1var(u_{t-1}) \\
 &= \alpha_1\sigma^2
-\end{align}
+\end{aligned}
 $$
 
 
 $$
-\begin{align}
+\begin{aligned}
 Cov(y_t,y_{t-2}) &= Cov(u_t + \alpha_1 u_{t-1},u_{t-2}+\alpha_{1}u_{t-3}) \\
 &= 0
-\end{align}
+\end{aligned}
 $$
 
 An MA models a linear relationship between teh dependent variable and teh current and past values of a stochastic term. 
@@ -1129,17 +1125,17 @@ where $u_t$ is drawn iid over t with variance $\sigma^2$
 
 
 $$
-\begin{align}
+\begin{aligned}
 Cov(y_t,y_{t-1}) &= Cov(\rho y_{t-1} + u-t,y_{t-1}) \\
 &= \rho Var(y_{t-1}) \\
 &= \rho \frac{\sigma^2}{1-\rho^2}
-\end{align}
+\end{aligned}
 $$
 
 $$
-\begin{align}
+\begin{aligned}
 Cov(y_t,y_{t-h}) &= \rho^h \frac{\sigma^2}{1-\rho^2}
-\end{align}
+\end{aligned}
 $$
 
 Stationarity: 
@@ -1228,6 +1224,7 @@ If $z_t$ is a weakly dependent stationary process with a finite first absolute m
 $$
 T^{-1}\sum_{t=1}^{T}z_t \to^p \mu
 $$
+
 If additional regulatory conditions hold [@Greene_1990], then 
 
 $$
@@ -1240,34 +1237,37 @@ where $B= Var(z_t) + 2\sum_{h=1}^{\infty}Cov(z_t,z_{t-h})$
 <br>
 
 #### A6 Normal Distribution
-$$
+
 \begin{equation}
 A6: \epsilon|\mathbf{x}\sim N(0,\sigma^2I_n)
 (\#eq:A6)
 \end{equation}
-$$
+
 The error term is normally distributed
 
 <br>
 
 From A1-A3, we have **identification** (also known as **Orthogonality Condition**) of the population parameter $\beta$
 
-\begin{align}
+$$
+\begin{aligned}
 y &= {x}\beta + \epsilon && \text{A1} \\
 x'y &= x'x\beta + x'\epsilon && \text{} \\
 E(x'y) &= E(x'x)\beta + E(x'\epsilon)  && \text{} \\
 E(x'y) &= E(x'x)\beta && \text{A3} \\
 [E(x'x)]^{-1}E(x'y) &= [E(x'x)]^{-1}E(x'x)\beta && \text{A2} \\
 [E(x'x)]^{-1}E(x'y) &= \beta
-\end{align}
+\end{aligned}
+$$
 
+$\beta$ is the row vector of parameters that produces the best predictor of y
+we choose the min of  $\gamma$ : 
 
-\beta is the row vector of parameters that produces the best predictor of y
-we choose the min of  \gamma : 
 $$
 \underset{\gamma}{\operatorname{argmin}}E((y-x\gamma)^2)
 $$
 First Order Condition
+
 $$
 \begin{split}
 \frac{\partial((y-x\gamma)^2)}{\partial\gamma}&=0 \\
@@ -1278,7 +1278,8 @@ E(x'y) &= E(x'x)\gamma \\
 \end{split}
 $$
 
-Second Order Conditon
+Second Order Condition
+
 $$
 \begin{split}
 \frac{\partial^2E((y-x\gamma)^2)}{}&=0 \\
@@ -1296,16 +1297,20 @@ If [A3][A3 Exogeneity of Independent Variables] holds, then $2E(x'x)$ is PSD $\r
 $$
 \mathbf{y=X\beta + \epsilon=X_1\beta_1+X_2\beta_2 +\epsilon}
 $$
+
 Equivalently, 
+
 $$
 \left(
-\begin{array}{c}
+\begin{array}
+{cc}
 X_1'X_1 & X_1'X_2 \\
 X_2'X_1 & X_2'X_2
 \end{array}
 \right)
 \left(
-\begin{array}{c}
+\begin{array}
+{c}
 \hat{\beta_1} \\
 \hat{\beta_2}
 \end{array}
@@ -1319,13 +1324,14 @@ X_2'y
 \right)
 $$
 Hence, 
+
 $$
 \mathbf{\hat{\beta_1}=(X_1'X_1)^{-1}X_1'y - (X_1'X_1)^{-1}X_1'X_2\hat{\beta_2}}
 $$
 
  1. Betas from the multiple regression are not the same as the betas from each of the individual simple regression 
  2. Different set of X will affect all the coefficient estimates. 
- 3. If $X_1'X_2 = 0$ or $\hat{\beta_2}=0, then 1 and 2 do not hold.
+ 3. If $X_1'X_2 = 0$ or $\hat{\beta_2}=0$, then 1 and 2 do not hold.
 
 <br>
 
@@ -1359,6 +1365,7 @@ $\tilde{\beta} = \beta + \mathbf{C}\epsilon$
 and the variance of the estimator is $Var(\tilde{\beta}|\mathbf{X}) = \sigma^2\mathbf{CC'}$
 
 To show minimum variance, 
+
 $$
 \begin{split}
 &=\sigma^2\mathbf{(C-(X'X)^{-1}X')(C-(X'X)^{-1}X')'} \\
@@ -1383,6 +1390,11 @@ $$
 <br>
 <br>
 <br>
+
+
+
+
+
 
 
 ### Variable Selection
@@ -1505,7 +1517,7 @@ x = rnorm(100)
 qqplot(x,y)
 ```
 
-<img src="06-1-regression_files/figure-html/unnamed-chunk-2-1.png" width="672" />
+![](06-1-regression_files/figure-epub3/unnamed-chunk-2-1.png)<!-- -->
 
 
 
@@ -1569,6 +1581,8 @@ hence, we do not need to fit regressions for each case and
 $$
 t_i = e_i (\frac{n-p-1}{SSE(1-h_{ii})-e^2_i})^{1/2}
 $$
+
+
 
 
 
@@ -1698,11 +1712,13 @@ $$
 $$
 where $\lambda_i$ is the eigenvalue and $\mathbf{u}_i$ is the eigenvector. $\lambda_1 > ...>\lambda_p$ and the eigenvecotrs are orthogonal:  
 
+$$
 \begin{cases}
 \mathbf{u_i'u_j} =
 0&\text{for $i \neq j$}\\
 1&\text{for $i =j$}\\
 \end{cases}
+$$
 
 The condition number is then  
 
@@ -1777,6 +1793,8 @@ where SSE is the error sum of squares from the regression of Y on X.
 If $H_0: \gamma_1 = 0$ holds and n is reasonably large, $X^2_{BP}$ follows approximately the $\chi^2$ distribution with 1 d.f. We reject $H_0$ (Homogeneous variance) if $X^2_{BP} > \chi^2_{1-\alpha;1}$
 
 
+
+
 #### Independence
 
 ##### Plots
@@ -1816,7 +1834,7 @@ $$
 Under [A1][A1 Linearity] [A2][A2 Full rank] [A3][A3 Exogeneity of Independent Variables], OLS is unbiased
 
 $$
-\begin{align}
+\begin{aligned}
 E(\hat{\beta}) &= E(\mathbf{(X'X)^{-1}X'y}) && \text{A2}\\
      &= E(\mathbf{(X'X)^{-1}X'(X\beta + \epsilon)}) && \text{A1}\\
      &= E(\mathbf{(X'X)^{-1}X'X\beta + (X'X)^{-1}X'\epsilon})  && \text{} \\
@@ -1826,7 +1844,7 @@ E(\hat{\beta}) &= E(\mathbf{(X'X)^{-1}X'y}) && \text{A2}\\
      &= \beta + E((\mathbf{X'X)^{-1}X'}E\mathbf{(\epsilon|X})) \\
      &= \beta + E((\mathbf{X'X)^{-1}X'}0)) && \text{A3} \\
      &= \beta
-\end{align}
+\end{aligned}
 $$
 
 where LIE stands for [Law of Iterated Expectation]
@@ -1839,14 +1857,14 @@ From **Frisch-Waugh-Lovell Theorem**, if we have the omitted variable $\hat{\bet
 Under [A1][A1 Linearity] [A2][A2 Full rank] [A3][A3 Exogeneity of Independent Variables] [A4][A4 Homoskedasticity],  we have the conditional variance of the OLS estimator as follows]
 
 $$
-\begin{align}
+\begin{aligned}
 Var(\hat{\beta}|\mathbf{X}) &= Var(\beta + \mathbf{(X'X)^{-1}X'\epsilon|X}) && \text{A1-A2}\\
     &= Var((\mathbf{X'X)^{-1}X'\epsilon|X)} \\
     &= \mathbf{X'X^{-1}X'} Var(\epsilon|\mathbf{X})\mathbf{X(X'X)^{-1}} \\
     &= \mathbf{X'X^{-1}X'} \sigma^2I \mathbf{X(X'X)^{-1}} && \text{A4} \\
     &= \sigma^2\mathbf{X'X^{-1}X'} I \mathbf{X(X'X)^{-1}} \\
     &= \sigma^2\mathbf{(X'X)^{-1}}
-\end{align}
+\end{aligned}
 $$
 
 Sources of variation 
@@ -1863,6 +1881,7 @@ Sources of variation
     * include many irrelevant variables will contribute to this.
     * If $x_1$ is perfectly determined in the regression $\rightarrow$ **Perfect Collinearity** $\rightarrow$ [A2][A2 Full rank] is violated. 
     * If $x_1$ is highly correlated with a linear combination of other variables, then we have **Multicollinearity**
+
 
 #### Check for Multicollinearity
 
@@ -1905,6 +1924,8 @@ $x_{j-1}$ on 1, $x_1$,... $x_{j-2}$,$x_j$,$x_{j+1}$, ..., $x_{k-1}$
  * Under A1-A4, A6: OLS estimator $\hat{\beta} \sim N(\beta,\sigma^2\mathbf{(X'X)^{-1}})$
  * Under A1-A4, Gauss-Markov Theorem holds $\rightarrow$ OLS is BLUE
  * Under A1-A5, the above standard errors are unbiased estimator of standard deviation for $\hat{\beta}$
+
+
 
 
 ### Large Sample Properties
@@ -1965,17 +1986,28 @@ An estimator $\hat{\theta}$ is consistent for $\theta$ if $\hat{\theta}_n \to^p 
 
 Based on [Weak Law] of Large Numbers
 
+
+
 $$
 \begin{split}
 \hat{\beta} &= \mathbf{(X'X)^{-1}X'y} \\
 &= \mathbf{(\sum_{i=1}^{n}x_i'x_i)^{-1} \sum_{i=1}^{n}x_i'y_i} \\
-&= (n^{-1}\mathbf{\sum_{i=1}^{n}x_i'x_i)^{-1}} n^{-1}\mathbf{\sum_{i=1}^{n}x_i'y_i} \\
+&= (n^{-1}\mathbf{\sum_{i=1}^{n}x_i'x_i)^{-1}} n^{-1}\mathbf{\sum_{i=1}^{n}x_i'y_i}
+\end{split}
+$$
+
+
+
+
+$$
+\begin{split}
 plim(\hat{\beta}) &= plim((n^{-1}\mathbf{\sum_{i=1}^{n}x_i'x_i)^{-1}} n^{-1}\mathbf{\sum_{i=1}^{n}x_i'y_i}) \\
 &= plim((n^{-1}\mathbf{\sum_{i=1}^{n}x_i'x_i)^{-1}})plim(n^{-1}\mathbf{\sum_{i=1}^{n}x_i'y_i}) \\
-&= (plim(n^{-1}\mathbf{\sum_{i=1}^{n}x_i'x_i)^{-1}})plim(n^{-1}\mathbf{\sum_{i=1}^{n}x_i'y_i}) && \text{ due to A2, A5} \\
+&= (plim(n^{-1}\mathbf{\sum_{i=1}^{n}x_i'x_i)^{-1}})plim(n^{-1}\mathbf{\sum_{i=1}^{n}x_i'y_i}) \text{ due to A2, A5} \\
 &= E(\mathbf{x_i'x_i})^{-1}E(\mathbf{x_i'y_i})
 \end{split}
 $$
+
 
 $$
 E(\mathbf{x_i'x_i})^{-1}E(\mathbf{x_i'y_i}) = \beta + E(\mathbf{x_i'x_i})^{-1}E(\mathbf{x_i'\epsilon_i})
@@ -2008,16 +2040,20 @@ Heteroskedasticity can be from
 
 Solving Asymptotic Variance
 
+
+
 $$
-\begin{split}
+\begin{aligned}
 \Sigma &= (E(\mathbf{x_i'x_i}))^{-1}\mathbf{B}(E(\mathbf{x_i'x_i}))^{-1} \\
 &= (E(\mathbf{x_i'x_i}))^{-1}Var(\mathbf{x_i'}\epsilon_i)(E(\mathbf{x_i'x_i}))^{-1} \\
-&= (E(\mathbf{x_i'x_i}))^{-1}E[(\mathbf{x_i'}\epsilon_i-0)(\mathbf{x_i'}\epsilon_i-0)](E(\mathbf{x_i'x_i}))^{-1} && \text{A3a} \\
-&= (E(\mathbf{x_i'x_i}))^{-1}E[E(\mathbf{\epsilon_i^2|x_i)x_i'x_i]}(E(\mathbf{x_i'x_i}))^{-1} && \text{LIE} \\
-&= (E(\mathbf{x_i'x_i}))^{-1}\sigma^2E(\mathbf{x_i'x_i})(E(\mathbf{x_i'x_i}))^{-1} && \text{A4} \\
+&= (E(\mathbf{x_i'x_i}))^{-1}E[(\mathbf{x_i'}\epsilon_i-0)(\mathbf{x_i'}\epsilon_i-0)](E(\mathbf{x_i'x_i}))^{-1} & \text{A3a} \\
+&= (E(\mathbf{x_i'x_i}))^{-1}E[E(\mathbf{\epsilon_i^2|x_i)x_i'x_i]}(E(\mathbf{x_i'x_i}))^{-1} & \text{LIE} \\
+&= (E(\mathbf{x_i'x_i}))^{-1}\sigma^2E(\mathbf{x_i'x_i})(E(\mathbf{x_i'x_i}))^{-1} & \text{A4} \\
 &= \sigma^2(E(\mathbf{x_i'x_i}))
-\end{split}
+\end{aligned}
 $$
+
+
 
 Under [A1][A1 Linearity], [A2][A2 Full rank], [A3a], [A4][A4 Homoskedasticity], [A5][A5 Data Generation (random Sampling)]:
 
@@ -2033,6 +2069,11 @@ $$
 Avar(\sqrt{n}(\hat{\beta}-\beta)) \approx Var(\sqrt{n}(\hat{\beta}-\beta)) \\
 Avar(\sqrt{n}(\hat{\beta}-\beta))/n \approx Var(\sqrt{n}(\hat{\beta}-\beta))/n = Var(\hat{\beta})
 $$
+
+
+
+
+
 
  * Avar(.) does not behave the same way as Var(.)
 
@@ -2071,6 +2112,7 @@ Suppose that $y_1,...,y_n$ are a random sample from some population with mean $\
 
 
 ### Application
+
 
 
 
@@ -2120,49 +2162,56 @@ $$
 
 Then, the transformed equation (IGLS) will have the following properties.
 
-\begin{equation}
+$$
 \begin{split}
 \mathbf{\hat{\beta}_{IGLS}} &= \mathbf{(X'w'wX)^{-1}X'w'wy} \\
 & = \mathbf{(X'\Omega^{-1}X)^{-1}X'\Omega^{-1}y} \\
 & = \mathbf{\beta + X'\Omega^{-1}X'\Omega^{-1}\epsilon}
 \end{split}
-\end{equation}
+$$
 
 Since A1-A3 hold for the unweighted model
-\begin{equation}
-\begin{split}
+
+
+
+
+
+
+$$
+\begin{aligned}
 \mathbf{E(\hat{\beta}_{IGLS}|X)} & = E(\mathbf{\beta + (X'\Omega^{-1}X'\Omega^{-1}\epsilon)}|X)\\
 & = \mathbf{\beta + E(X'\Omega^{-1}X'\Omega^{-1}\epsilon)|X)} \\
-& = \mathbf{\beta + X'\Omega^{-1}X'\Omega^{-1}E(\epsilon|X)}  && \text{since A3: $E(\epsilon|X)=0$} \\
+& = \mathbf{\beta + X'\Omega^{-1}X'\Omega^{-1}E(\epsilon|X)}  && \text{since A3}: E(\epsilon|X)=0 \\
 & = \mathbf{\beta}
-\end{split}
-\end{equation}
+\end{aligned}
+$$
+
 
 $\rightarrow$ IGLS estimator is unbiased
 
-\begin{equation}
-\begin{split}
+$$
+\begin{aligned}
 \mathbf{Var(w\epsilon|X)} &= \mathbf{wVar(\epsilon|X)w'} \\
 & = \mathbf{w\Omega w'} \\
 & = \mathbf{w(w'w)^{-1}w'} && \text{since w is a full-rank matrix}\\
 & = \mathbf{ww^{-1}(w')^{-1}w'} \\
 & = \mathbf{I_n}
-\end{split}
-\end{equation}
+\end{aligned}
+$$
 
 $\rightarrow$ A4 holds for the transformed (weighted) equation
 
 Then, the variance for the estimator is
 
-\begin{equation}
-\begin{split}
+$$
+\begin{aligned}
 Var(\hat{\beta}_{IGLS}|\mathbf{X}) & = \mathbf{Var(\beta + (X'\Omega ^{-1}X)^{-1}X'\Omega^{-1}\epsilon|X)} \\
 &= \mathbf{Var((X'\Omega ^{-1}X)^{-1}X'\Omega^{-1}\epsilon|X)} \\
 &= \mathbf{(X'\Omega ^{-1}X)^{-1}X'\Omega^{-1} Var(\epsilon|X)   \Omega^{-1}X(X'\Omega ^{-1}X)^{-1}} && \text{because A4 holds}\\
 &= \mathbf{(X'\Omega ^{-1}X)^{-1}X'\Omega^{-1} \Omega \Omega^{-1} \Omega^{-1}X(X'\Omega ^{-1}X)^{-1}} \\
 &= \mathbf{(X'\Omega ^{-1}X)^{-1}}
-\end{split}
-\end{equation}
+\end{aligned}
+$$
 
 Let $A = \mathbf{(X'X)^{-1}X'-(X'\Omega ^{-1} X)X' \Omega^{-1}}$ then
 $$
@@ -2172,17 +2221,17 @@ And $\Omega$ is Positive Semi Definite, then $A\Omega A'$ also PSD, then IGLS is
 
 The name **Infeasible** comes from the fact that it is impossible to compute this estimator. 
 
-\begin{equation}
+$$
 \mathbf{w} = 
 \left(
-\begin{array}{c}
+\begin{array}{ccccc}
 w_{11} & 0 & 0 & ... & 0 \\
 w_{21} & w_{22} & 0 & ... & 0 \\
 w_{31} & w_{32} & w_{33} & ... & ... \\
 w_{n1} & w_{n2} & w_{n3} & ... & w_{nn} \\
 \end{array}
 \right)
-\end{equation}
+$$
 
 With $n(n+1)/2$ number of elements and n observations $\rightarrow$ infeasible to estimate. (number of equation > data)
 
@@ -2215,13 +2264,11 @@ $$
 then, from \@ref(eq:h-var-error-term)
 
 $$
-\begin{equation}
 \begin{split}
 Var((1/\sigma_i)\epsilon_i|X) &= (1/\sigma_i^2) Var(\epsilon_i|X) \\
 &= (1/\sigma_i^2)\sigma_i^2 \\
 &= 1
 \end{split}
-\end{equation}
 $$
 
 
@@ -2234,7 +2281,7 @@ $$
 $$
 \mathbf{w}= 
 \left(
-\begin{array}{c}
+\begin{array}{ccccc}
 1/\sigma_1 & 0 & 0 & ... & 0 \\
 0 & 1/\sigma_2 & 0 & ... & 0 \\
 0 & 0 & 1/\sigma_3 & ... & . \\
@@ -2293,7 +2340,7 @@ And the variance covariance matrix is
 $$
 Var(\epsilon|\mathbf{X}) = \Omega = 
 \left(
-\begin{array}{c}
+\begin{array}{ccccc}
 \sigma^2 & \gamma_1 & \gamma_2 & ... & \gamma_{n-1} \\
 \gamma_1 & \sigma^2 & \gamma_1 & ... & \gamma_{n-2} \\
 \gamma_2 & \gamma_1 & \sigma^2 & ... & ... \\
@@ -2310,6 +2357,7 @@ There n parameters to estimate - need some sort fo structure to reduce number of
  * [Cross-sectional][Cluster]
     + Clustering
 
+
 #### AR(1)
 
 $$
@@ -2321,7 +2369,7 @@ and the variance covariance matrix is
 $$
 Var(\epsilon | \mathbf{X})= \frac{\sigma^2_u}{1-\rho}
 \left(
-\begin{array}{c}
+\begin{array}{ccccc}
 1 & \rho & \rho^2 & ... & \rho^{n-1} \\
 \rho & 1 & \rho & ... & \rho^{n-2} \\
 \rho^2 & \rho & 1 & . & . \\
@@ -2345,10 +2393,10 @@ $$
 satisfies  A3, A4, A5 we'd like to to transform the above equation to one that has $u_t$ as the error.
 
 $$
-\begin{align}
+\begin{aligned}
 y_t - \rho y_{t-1} &= (\beta_0 + x\beta_1 + \epsilon_t) - \rho (\beta_0 + x_{t-1}\beta_1 + \epsilon_{t-1}) \\
 & = (1-\rho)\beta_0 + (x_t - \rho x_{t-1})\beta_1 + u_t
-\end{align}
+\end{aligned}
 $$
 
 ##### Infeasible Cochrane Orcutt
@@ -2390,6 +2438,9 @@ $$
 (\sqrt{1-\rho^2})y_1 = \beta_0 + (\sqrt{1-\rho^2})x_1 \beta_1 + (\sqrt{1-\rho^2}) \epsilon_1
 $$
 
+
+
+
 #### Cluster
 
 $$
@@ -2416,7 +2467,7 @@ Suppose there are 3 groups with different n
 $$
 Var(\epsilon| \mathbf{X})= \Omega =
 \left(
-\begin{array}{c}
+\begin{array}{cccccc}
 \sigma^2 & \delta_{12}^1 & \delta_{13}^1 & 0 & 0 & 0 \\
 \delta_{12}^1 & \sigma^2 & \delta_{23}^1 & 0 & 0 & 0 \\
 \delta_{13}^1 & \delta_{23}^1 & \sigma^2 & 0 & 0 & 0 \\
@@ -2464,7 +2515,7 @@ Then the error variance is
 $$
 Var(\epsilon| \mathbf{X})= \Omega =
 \left(
-\begin{array}{c}
+\begin{array}{cccccc}
 \sigma^2_c + \sigma^2_u & \sigma^2_c & \sigma^2_c & 0 & 0 & 0 \\
 \sigma^2_c & \sigma^2 + \sigma^2_u & \sigma^2_c & 0 & 0 & 0 \\
 \sigma^2_c & \sigma^2_c  & \sigma^2+ \sigma^2_u & 0 & 0 & 0 \\
@@ -2519,6 +2570,11 @@ $$
     + If the errors are truly multiplicative exponential heteroskedasticity, then usual standard errors are valid
     + If we believe that there may be some mis-specification with the **multiplicative exponential model**, then we should report heteroskedastic robust standard errors.
 
+
+
+
+
+
 ## Generalized Least Squares
 
 Consider  
@@ -2532,7 +2588,7 @@ $$
 var(\epsilon) = \mathbf{G} = 
 \left(
 \begin{array}
-{ccc}
+{cccc}
 g_{11} & g_{12} & ... & g_{1n} \\
 g_{21} & g_{22} & ... & g_{2n} \\
 . & . & . & . \\
@@ -2556,7 +2612,7 @@ Weighting Matrix
 $$
 \mathbf{w} = 
 \left(
-\begin{array}{c}
+\begin{array}{ccccc}
 \sqrt{1- \hat{\rho}^2} & 0 & 0 &... & 0 \\
 -\hat{\rho} & 1 & 0 & ... & 0 \\
 0 &  -\hat{\rho} & 1 & & . \\
@@ -2722,7 +2778,7 @@ Process:
 
 
 
-## Maximum Likelihood
+## Maximum Likelihood {#maximum-likelihood-regression}
 Premise: find values of the parameters that maximize the probability of observing the data
 In other words, we try to maximize the value of theta in the likelihood function 
 $$
@@ -3060,5 +3116,6 @@ $$
 
 In the linear model, APE = PEA.  
 In a non-linear model (e.g., binary response), APE $\neq$ PEA
+
 
 

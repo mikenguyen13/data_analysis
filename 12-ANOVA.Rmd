@@ -1,7 +1,3 @@
-------------------------------------------------------------------------
-
-------------------------------------------------------------------------
-
 # Analysis of Variance (ANOVA)
 
 ANOVA is using the same underlying mechanism as linear regression. However, the angle that ANOVA chooses to look at is slightly different from the traditional linear regression. It can be more useful in the case with **qualitative variables** and **designed experiments**.
@@ -227,7 +223,9 @@ is the BLUE (best linear unbiased estimator) for $\beta=[\mu_1 \mu_2\mu_3]'$
 
 <br>
 
-$$E(\mathbf{b})=\beta$$
+$$
+E(\mathbf{b})=\beta
+$$
 
 $$
 var(\mathbf{b})=\sigma^2(\mathbf{X'X})^{-1}=\sigma^2
@@ -415,7 +413,7 @@ Y_{22}\\
 Y_{31}\\
 Y_{32}\\
 \end{array}\right) &= 
-\left(\begin{array}{cccc} 
+\left(\begin{array}{ccc} 
 1 & 1 & 0 \\ 
 1 & 1 & 0 \\ 
 1 & 0 & 1 \\ 
@@ -448,7 +446,6 @@ Equation \@ref(eq:betaorigin) with $\sum_{i}\tau_i=0$ becomes
 <br>
 
 $$
-\begin{equation}
 \begin{split}
 \mathbf{b}= \left[\begin{array}{c}
 \hat{\mu} \\
@@ -480,7 +477,6 @@ Y_{2.}-Y_{3.}\\
 \hat{\tau_2}\\
 \end{array}\right]
 \end{split}
-\end{equation}
 $$
 
 and $\hat{\tau_3}=-\hat{\tau_1}-\hat{\tau_2}=\bar{Y_3}-\frac{1}{3} \sum_{i}\bar{Y_{i.}}$
@@ -502,7 +498,6 @@ Hence, $\mu$ is the mean response for the first treatment
 In the matrix form,
 
 $$
-\begin{equation}
 \begin{split}
 \left(\begin{array}{c} 
 Y_{11}\\
@@ -512,7 +507,7 @@ Y_{22}\\
 Y_{31}\\
 Y_{32}\\
 \end{array}\right) &= 
-\left(\begin{array}{cccc} 
+\left(\begin{array}{ccc} 
 1 & 0 & 0 \\ 
 1 & 0 & 0 \\ 
 1 & 1 & 0 \\ 
@@ -534,13 +529,11 @@ Y_{32}\\
 \end{array}\right)\\
 \mathbf{y} &= \mathbf{X\beta} +\mathbf{\epsilon}
 \end{split}
-\end{equation}
 $$
 
 $\beta = [\mu,\tau_2,\tau_3]'$
 
 $$
-\begin{equation}
 \begin{split}
 \mathbf{b}= \left[\begin{array}{c}
 \hat{\mu} \\
@@ -567,7 +560,6 @@ Y_{3.}\\
 \bar{Y_{3.}} - \bar{Y_{1.}}\\
 \end{array}\right]
 \end{split}
-\end{equation}
 $$
 
 $$
@@ -855,13 +847,17 @@ For simultaneous confidence intervals,
 
 $$
 \hat{L} \pm Ss(\hat{L})
-$$ where $\hat{L}=\sum c_i \bar{Y}_{i.},s^2(\hat{L}) = MSE \sum c_i^2/n_i$ and $S^2 = (a-1)f_{1-\alpha;a-1,N-a}$
+$$
+
+where $\hat{L}=\sum c_i \bar{Y}_{i.},s^2(\hat{L}) = MSE \sum c_i^2/n_i$ and $S^2 = (a-1)f_{1-\alpha;a-1,N-a}$
 
 The Scheffe procedure considers
 
 $$
 F = \frac{\hat{L}^2}{(a-1)s^2(\hat{L})}
-$$ where we reject $H_0$ at the family significance level $\alpha$ if $F > f_{(1-\alpha;a-1,N-a)}$
+$$
+
+where we reject $H_0$ at the family significance level $\alpha$ if $F > f_{(1-\alpha;a-1,N-a)}$
 
 **Note**
 
@@ -877,14 +873,18 @@ For the confidence intervals,
 
 $$
 \hat{L} \pm B s(\hat{L})
-$$ where $B= t_{(1-\alpha/(2g);N-a)}$ and g is the number of comparisons in the family.
+$$
+
+where $B= t_{(1-\alpha/(2g);N-a)}$ and g is the number of comparisons in the family.
 
 Hypothesis testing
 
 $$
 H_0: L = 0 \\
 H_a: L \neq 0 
-$$ Let $T= \frac{\hat{L}}{s(\hat{L})}$ and reject $H_0$ if $|T|>t_{1-\alpha/(2g),N-a}$
+$$
+
+Let $T= \frac{\hat{L}}{s(\hat{L})}$ and reject $H_0$ if $|T|>t_{1-\alpha/(2g),N-a}$
 
 **Notes**
 
@@ -964,15 +964,20 @@ $$
 Since $Y_{ij}$ are not independent
 
 $$
-\begin{align}
+\begin{aligned}
 cov(Y_{ij},Y_{ij'}) &= E(Y_{ij}Y_{ij'}) - E(Y_{ij})E(Y_{ij'})  \\
 &= E(\mu_i^2 + \mu_i \epsilon_{ij'} + \mu_i \epsilon_{ij} + \epsilon_{ij}\epsilon_{ij'}) - \mu^2 \\
-&= \sigma^2_{\mu} + \mu^2 - \mu^2 && \text{if $j \neq j'$} \\
-&= \sigma^2_{\mu} && \text{if $j \neq j'$} \\
+&= \sigma^2_{\mu} + \mu^2 - \mu^2 & \text{if} j \neq j' \\
+&= \sigma^2_{\mu} & \text{if} j \neq j' 
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
 cov(Y_{ij},Y_{i'j'}) &= E(\mu_i \mu_{i'} + \mu_i \epsilon_{i'j'}+ \mu_{i'}\epsilon_{ij}+ \epsilon_{ij}\epsilon_{i'j'}) - \mu^2 \\
-&= \mu^2 - \mu^2 && \text{if $i \neq i'$} \\
+&= \mu^2 - \mu^2 & \text{if } i \neq i' \\
 &= 0 \\
-\end{align}
+\end{aligned}
 $$
 
 Hence,
@@ -981,9 +986,9 @@ Hence,
 -   any two observations from the same treatment have covariance $\sigma^2_{\mu}$\
 -   The correlation between any two responses from the same treatment:\
     $$
-    \begin{align}
+    \begin{aligned}
     \rho(Y_{ij},Y_{ij'}) &= \frac{\sigma^2_{\mu}}{\sigma^2_{\mu}+ \sigma^2} && \text{$j \neq j'$}
-    \end{align}
+    \end{aligned}
     $$
 
 **Inference**
@@ -992,7 +997,9 @@ Hence,
 
 $$
 \frac{\sigma^2_{\mu}}{\sigma^2 + \sigma^2_{\mu}}
-$$ which measures the proportion of total variability of $Y_{ij}$ accounted for by the variance of $\mu_i$
+$$
+
+which measures the proportion of total variability of $Y_{ij}$ accounted for by the variance of $\mu_i$
 
 $$
 H_0: \sigma_{\mu}^2 = 0 \\
@@ -1015,7 +1022,9 @@ If $\sigma^2_\mu$, then MSE and MSTR have the same expectation ($\sigma^2$). Oth
 
 $$
 F = \frac{MSTR}{MSE}
-$$ suggest we reject $H_0$.
+$$
+
+suggest we reject $H_0$.
 
 Since $F \sim F_{(a-1,a(n-1))}$ when $H_0$ holds. If $F > f_{(1-\alpha;a-1,a(n-1))}$ we reject $H_0$. If sample sizes are not equal, F-test can still be used, but the df are $a-1$ and $N-a$.
 
@@ -1026,13 +1035,13 @@ An unbiased estimator of $E(Y_{ij})=\mu$ is the grand mean: $\hat{\mu} = \hat{Y}
 The variance of this estimator is
 
 $$
-\begin{align}
+\begin{aligned}
 var(\bar{Y}_{..}) &= var(\sum_i \bar{Y}_{i.}/a) \\
 &= \frac{1}{a^2}\sum_ivar(\bar{Y}_{i.}) \\
 &= \frac{1}{a^2}\sum_i(\sigma^2_\mu+\sigma^2/n) \\
 &= \frac{1}{a^2}(\sigma^2_{\mu}+\sigma^2/n) \\
 &= \frac{n\sigma^2_{\mu}+ \sigma^2}{an}
-\end{align}
+\end{aligned}
 $$
 
 An unbiased estimator of this variance is $s^2(\bar{Y})=\frac{MSTR}{an}$. Thus $\frac{\bar{Y}_{..}-\mu}{s(\bar{Y}_{..})} \sim t_{a-1}$
@@ -1061,7 +1070,9 @@ The lower and upper $(L^*,U^*)$ confidence limits for $\frac{\sigma^2_\mu}{\sigm
 $$
 L^* = \frac{L}{1+L} \\
 U^* = \frac{U}{1+U}
-$$ If the lower limit for $\frac{\sigma^2_\mu}{\sigma^2}$ is negative, it is customary to set L = 0.
+$$
+
+If the lower limit for $\frac{\sigma^2_\mu}{\sigma^2}$ is negative, it is customary to set L = 0.
 
 ##### Estimation of $\sigma^2$
 
@@ -1069,7 +1080,9 @@ $a(n-1)MSE/\sigma^2 \sim \chi^2_{a(n-1)}$, the $(1-\alpha)$ confidence interval 
 
 $$
 \frac{a(n-1)MSE}{\chi^2_{1-\alpha/2;a(n-1)}} \le \sigma^2 \le \frac{a(n-1)MSE}{\chi^2_{\alpha/2;a(n-1)}}
-$$ can also be used in case sample sizes are not equal - then df is N-a.
+$$
+
+can also be used in case sample sizes are not equal - then df is N-a.
 
 ##### Estimation of $\sigma^2_\mu$
 
@@ -1077,7 +1090,9 @@ $E(MSE) = \sigma^2$ $E(MSTR) = \sigma^2 + n\sigma^2_\mu$. Hence,
 
 $$
 \sigma^2_{\mu} = \frac{E(MSTR)- E(MSE)}{n}
-$$ An unbiased estimator of $\sigma^2_\mu$ is given by
+$$
+
+An unbiased estimator of $\sigma^2_\mu$ is given by
 
 $$
 s^2_\mu =\frac{MSTR-MSE}{n}
@@ -1089,7 +1104,9 @@ If sample sizes are not equal,
 
 $$
 s^2_\mu = \frac{MSTR - MSE}{n'}
-$$ where $n' = \frac{1}{a-1}(\sum_i n_i- \frac{\sum_i n^2_i}{\sum_i n_i})$
+$$
+
+where $n' = \frac{1}{a-1}(\sum_i n_i- \frac{\sum_i n^2_i}{\sum_i n_i})$
 
 no exact confidence intervals for $\sigma^2_\mu$, but we can approximate intervals.
 
@@ -1098,9 +1115,13 @@ A linear combination:
 
 $$
 \sigma^2_\mu = \frac{1}{n} E(MSTR) + (-\frac{1}{n}) E(MSE)
-$$ $$
+$$
+
+$$
 S = d_1 E(MS_1) + ..+ d_h E(MS_h)
-$$ where $d_i$ are coefficients.
+$$
+
+where $d_i$ are coefficients.
 
 An unbiased estimator of S is
 
@@ -1112,7 +1133,11 @@ Let $df_i$ be the degrees of freedom associated with teh mean square $MS_i$. The
 
 $$
 \frac{(df)\hat{S}}{S} \sim \chi^2_{df}
-$$ where $$
+$$
+
+where
+
+$$
 df = \frac{(d_1MS_1+...+d_hMS_h)^2}{(d_1MS_1)^2/df_1 + ...+ (d_hMS_h)^2/df_h}
 $$
 
@@ -1138,9 +1163,15 @@ $$
 
 $$
 \tau_i = \mu_i - E(\mu_i) = \mu_i - \mu
-$$ we have $\mu_i = \mu + \tau_i$ and $$
+$$
+
+we have $\mu_i = \mu + \tau_i$ and
+
+$$
 Y_{ij} = \mu + \tau_i + \epsilon_{ij}
-$$ where
+$$
+
+where
 
 -   $\mu$ = constant, common to all observations\
 -   $\tau_i \sim N(0,\sigma^2_\tau)$ independent (random variables)\
@@ -1197,7 +1228,9 @@ Assume:
 
 $$
 Y_{ijk} = \mu_{ij} + \epsilon_{ijk}
-$$ where
+$$
+
+where
 
 -   $\mu_{ij}$ are fixed parameters (cell means)\
 -   $i = 1,...,a$ = the levels of Factor A\
@@ -1209,14 +1242,21 @@ And
 $$
 E(Y_{ijk}) = \mu_{ij} \\
 var(Y_{ijk}) = var(\epsilon_{ijk}) = \sigma^2
-$$ Hence,
+$$
+
+Hence,
 
 $$
 Y_{ijk} \sim \text{indep } N(\mu_{ij},\sigma^2)
-$$ And the model is\
+$$
+
+And the model is\
+
 $$
 \mathbf{Y} = \mathbf{X} \beta + \epsilon
-$$ Thus,
+$$
+
+Thus,
 
 $$
 E(\mathbf{Y}) = \mathbf{X}\beta \\
@@ -1227,7 +1267,9 @@ $$
 
 $$
 (\alpha \beta)_{ij} = \mu_{ij} - (\mu_{..}+ \alpha_i + \beta_j)
-$$ where
+$$
+
+where
 
 -   $\mu_{..} = \sum_i \sum_j \mu_{ij}/ab$ is the grand mean\
 -   $\alpha_i = \mu_{i.}-\mu_{..}$ is the main effect for factor A at the i-th level\
@@ -1245,14 +1287,16 @@ Examine interactions:
 For $j = 1,...,b$
 
 $$
-\begin{align}
+\begin{aligned}
 \sum_i(\alpha \beta)_{ij} &= \sum_i (\mu_{ij} - \mu_{..} - \alpha_i - \beta_j) \\
 &= \sum_i \mu_{ij} - a \mu_{..} - \sum_i \alpha_i - a \beta_j \\
 &= a \mu_{.j} - a \mu_{..}- \sum_i (\mu_{i.} - \mu_{..}) - a(\mu_{.j}-\mu_{..}) \\
 &= a \mu_{.j} - a \mu_{..} - a \mu_{..}+ a \mu_{..} - a (\mu_{.j} - \mu_{..}) \\
 &= 0
-\end{align}
-$$ Similarly, $\sum_j (\alpha \beta) = 0, i = 1,...,a$ and $\sum_i \sum_j (\alpha \beta)_{ij} =0$, $\sum_i \alpha_i = 0$, $\sum_j \beta_j = 0$
+\end{aligned}
+$$
+
+Similarly, $\sum_j (\alpha \beta) = 0, i = 1,...,a$ and $\sum_i \sum_j (\alpha \beta)_{ij} =0$, $\sum_i \alpha_i = 0$, $\sum_j \beta_j = 0$
 
 ##### Factor Effects Model
 
@@ -1269,7 +1313,9 @@ where
 -   $(\alpha \beta)_{ij}$ are constants subject to the restriction $\sum_i(\alpha \beta)_{ij} = 0$ for $j=1,...,b$ and $\sum_j(\alpha \beta)_{ij} = 0$ for $i = 1,...,a$\
 -   $\epsilon_{ijk} \sim \text{indep } N(0,\sigma^2)$ for $k = 1,..,n$
 
-We have $$
+We have
+
+$$
 E(Y_{ijk}) = \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij}\\
 var(Y_{ijk}) = \sigma^2 \\
 Y_{ijk} \sim N (\mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij}, \sigma^2)
@@ -1288,7 +1334,9 @@ Hence, there are
 
 $$
 1 + a - 1 + b - 1 + ab - a- b + 1 = ab
-$$ parameters in the model.
+$$
+
+parameters in the model.
 
 We can have several restrictions when considering the model in the form $\mathbf{Y} = \mathbf{X} \beta + \epsilon$
 
@@ -1305,9 +1353,12 @@ We can fit the model by least squares or maximum likelihood
 
 **Cell Means Model**\
 minimize\
+
 $$
 Q = \sum_i \sum_j \sum_k (Y_{ijk}-\mu_{ij})^2
-$$ estimators
+$$
+
+estimators
 
 $$
 \hat{\mu}_{ij}= \bar{Y}_{ij} \\
@@ -1337,7 +1388,9 @@ $$
 \hat{\alpha}_i = \bar{Y}_{i..} - \bar{Y}_{...} \\
 \hat{\beta}_j = \bar{Y}_{.j.}-\bar{Y}_{...} \\
 (\hat{\alpha \beta})_{ij} = \bar{Y}_{ij.} - \bar{Y}_{i..} - \bar{Y}_{.j.}+ \bar{Y}_{...}
-$$ The fitted values
+$$
+
+The fitted values
 
 $$
 \hat{Y}_{ijk} = \bar{Y}_{...}+ (\bar{Y}_{i..}- \bar{Y}_{...})+ (\bar{Y}_{.j.}- \bar{Y}_{...}) + (\bar{Y}_{ij.} - \bar{Y}_{i..}-\bar{Y}_{.j.}+\bar{Y}_{...}) = \bar{Y}_{ij.}
@@ -1370,10 +1423,10 @@ $\bar{Y}_{ij.} - \bar{Y}_{...}$: Deviation of treatment mean from overall mean\
 $Y_{ijk} - \bar{Y}_{ij.}$: Deviation of observation around treatment mean (residual).
 
 $$
-\begin{align}
+\begin{aligned}
 \sum_i \sum_j \sum_k (Y_{ijk} - \bar{Y}_{...})^2 &= n \sum_i \sum_j (\bar{Y}_{ij.}- \bar{Y}_{...})^2+ \sum_i \sum_j sum_k (Y_{ijk} - \bar{ij.})^2 \\
 SSTO &= SSTR + SSE
-\end{align}
+\end{aligned}
 $$
 
 (cross product terms are 0)
@@ -1383,11 +1436,12 @@ $$
 $$
 
 squaring and summing:\
+
 $$
-\begin{align}
+\begin{aligned}
 n\sum_i \sum_j (\bar{Y}_{ij.}-\bar{Y}_{...})^2 &= nb\sum_i (\bar{Y}_{i..}-\bar{Y}_{...})^2 + na \sum_j (\bar{Y}_{.j.}-\bar{Y}_{...})^2 + n \sum_i \sum_j (\bar{Y}_{ij.}-\bar{Y}_{i..}- \bar{Y}_{.j.}+ \bar{Y}_{...})^2 \\
 SSTR &= SSA + SSB + SSAB
-\end{align}
+\end{aligned}
 $$
 
 The interaction term from
@@ -1395,7 +1449,9 @@ The interaction term from
 $$
 SSAB = SSTO - SSE - SSA - SSB \\
 SSAB = SSTR - SSA - SSB 
-$$ where
+$$
+
+where
 
 -   SSA is the factor A sum of squares (measures the variability of the estimated factor A level means $\bar{Y}_{i..}$)- the more variable, the larger SSA\
 -   SSB is the factor B sum of squares\
@@ -1438,18 +1494,22 @@ E(MSE) = \sigma^2 \\
 E(MSA) = \sigma^2 + nb \frac{\sum \alpha_i^2}{a-1} = \sigma^2 + nb \frac{\sum(\sum_{i.}-\mu_{..})^2}{a-1}  \\
 E(MSB) = \sigma^2 + na \frac{\sum \beta_i^2}{b-1} = \sigma^2 + na \frac{\sum(\sum_{.j}-\mu_{..})^2}{b-1} \\
 E(MSAB) = \sigma^2 + n \frac{\sum \sum (\alpha \beta)_{ij}^2}{(a-1)(b-1)} = \sigma^2 + n \frac{\sum (\mu_{ij}- \mu_{i.}- \mu_{.j}+ \mu_{..} )^2}{(a-1)(b-1)}
-$$ If there are no factor A main effects (all $\mu_{i.} = 0$ or $\alpha_i = 0$) the MSA and MSE have the same expectation; otherwise MSA \> MSE. Same for factor B, and interaction effects. which case we can examine F-statistics.
+$$
+
+If there are no factor A main effects (all $\mu_{i.} = 0$ or $\alpha_i = 0$) the MSA and MSE have the same expectation; otherwise MSA \> MSE. Same for factor B, and interaction effects. which case we can examine F-statistics.
 
 **Interaction**
 
 $$
-\begin{align}
+\begin{aligned}
 H_0: \mu_{ij}- \mu_{i.} - \mu_{.j} + \mu_{..} = 0 && \text{for all i,j} \\
 H_a: \mu_{ij}- \mu_{i.} - \mu_{.j} + \mu_{..} \neq 0 && \text{for some i,j}
-\end{align}
+\end{aligned}
 $$
 
-or $$
+or
+
+$$
 H_0: \text{All}(\alpha \beta)_{ij} = 0 \\
 H_a: \text{Not all} (\alpha \beta) = 0
 $$
@@ -1457,15 +1517,20 @@ $$
 Let $F = \frac{MSAB}{MSE}$. When $H_0$ is true $F \sim f_{((a-1)(b-1),ab(n-1))}$. So reject $H_0$ when $F > f_{((a-1)(b-1),ab(n-1))}$
 
 Factor A main effects:\
+
 $$
 H_0: \mu_{1.} = \mu_{2.} = ... = \mu_{a.} \\
 H_a: \text{Not all $\mu_{i.}$ are equal}
-$$ or
+$$
+
+or
 
 $$
 H_0: \alpha_1 = ... = \alpha_a = 0 \\
 H_a: \text{Not all $\alpha_i$ are equal to 0}
-$$ $F= \frac{MSA}{MSE}$ and reject $H_0$ if $F>f_{(1-\alpha;a-1,ab(n-1))}$
+$$
+
+$F= \frac{MSA}{MSE}$ and reject $H_0$ if $F>f_{(1-\alpha;a-1,ab(n-1))}$
 
 ###### Two-way ANOVA
 
@@ -1495,11 +1560,15 @@ which is estimated by
 
 $$
 \hat{L} = \sum c_i \bar{Y}_{i..}
-$$ with variance
+$$
+
+with variance
 
 $$
 \sigma^2(\hat{L}) = \frac{\sigma^2}{bn} \sum c_i^2
-$$ and variance estimate
+$$
+
+and variance estimate
 
 $$
 \frac{MSE}{bn} \sum c_i^2
@@ -1510,7 +1579,9 @@ $$
 $$
 L_1 = \sum c_i \mu_i, \sum c_i = 0 \\
 L_2 = \sum d_i \mu_i , \sum d_i = 0
-$$ these contrasts are said to be **orthogonal** if
+$$
+
+these contrasts are said to be **orthogonal** if
 
 $$
 \sum \frac{c_i d_i}{n_i} = 0
@@ -1519,12 +1590,14 @@ $$
 in balanced case $\sum c_i d_i =0$
 
 $$
-\begin{align}
+\begin{aligned}
 cov(\hat{L}_1, \hat{L}_2) &= cov(\sum_i c_i \bar{Y}_{i..}, \sum_l d_l \bar{Y}_{l..}) \\
 &= \sum_i \sum_l c_i d_l cov(\bar{Y}_{i..},\bar{Y}_{l..}) \\
 &= \sum_i c_i d_i \frac{\sigma^2}{bn} = 0
-\end{align}
-$$ Orthogonal contrasts can be used to further partition the model sum of squares. There are many sets of orthogonal contrasts and thus, many ways to partition the sum of squares.
+\end{aligned}
+$$
+
+Orthogonal contrasts can be used to further partition the model sum of squares. There are many sets of orthogonal contrasts and thus, many ways to partition the sum of squares.
 
 A special set of orthogonal contrasts that are used when the levels of a factor can be assigned values on a metric scale are called **orthogonal polynomials**
 
@@ -1553,7 +1626,9 @@ So,
 
 $$
 \frac{SS_L}{MSE} \sim F_{(1-\alpha;1,df_{MSE})}
-$$ all contrasts have d.f = 1
+$$
+
+all contrasts have d.f = 1
 
 #### Unbalanced
 
@@ -1570,13 +1645,17 @@ Consider the same model as:
 
 $$
 Y_{ijk} = \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ijk}
-$$ where sample sizes are: $n_{ij}$:
+$$
+
+where sample sizes are: $n_{ij}$:
 
 $$
 n_{i.} = \sum_j n_{ij} \\
 n_{.j} = \sum_i n_{ij} \\
 n_T = \sum_i \sum_j n_{ij}
-$$ Problem here is that
+$$
+
+Problem here is that
 
 $$
 SSTO \neq SSA + SSB + SSAB + SSE
@@ -1772,7 +1851,9 @@ $$
 \hat{\mu}_{i.} = \bar{Y}_{...} + (\bar{Y}_{i..}- \bar{Y}_{...}) = \bar{Y}_{i..}  \\
 \sigma^2(\hat{\alpha}_i) = \frac{\sigma^2 + n \sigma^2_{\alpha \beta}}{bn} = \frac{E(MSAB)}{bn} \\
 s^2(\hat{\alpha}_i) = \frac{MSAB}{bn}
-$$ Contrasts on the **Fixed Effects**
+$$
+
+Contrasts on the **Fixed Effects**
 
 $$
 L = \sum c_i \alpha_i \\
@@ -1798,31 +1879,37 @@ var(\epsilon_{ijk}) = \sigma^2 \\
 E(Y_{ijk}) = \mu_{..} + \alpha_i \\
 var(Y_{ijk}) = \sigma^2_{\beta} + \frac{\sigma^2_{\alpha \beta}}{2} + \sigma^2 \\
 cov(Y_{ijk},Y_{ijk'}) = \sigma^2 + \frac{\sigma^2_{\alpha \beta}}{2}, k \neq k' \\
-cov(Y_{ijk},Y_{i'jk'}) = \sigma^2_{\beta} - \frac{\sigma^2_{\alpha \beta}}{2}, i neq i' \\
+cov(Y_{ijk},Y_{i'jk'}) = \sigma^2_{\beta} - \frac{\sigma^2_{\alpha \beta}}{2}, i \neq i' \\
 cov(Y_{ijk},Y_{i'j'k'}) = 0, j \neq j' 
 $$
 
-assume $\mathbf{Y \sim N(X\beta, \blacksquare)}$ where $\blacksquare$ is block diagonal
+assume
+
+$$
+\mathbf{Y} \sim N(\mathbf{X}\beta, M)
+$$
+
+where $M$ is block diagonal
 
 density function
 
 $$
-f(\mathbf{Y}) = \frac{1}{(2\pi)^{N/2}|\blacksquare|^{1/2}}exp(-\frac{1}{2}\mathbf{(Y - X \beta)' \blacksquare^{-1}(Y-X\beta)})
+f(\mathbf{Y}) = \frac{1}{(2\pi)^{N/2}|M|^{1/2}}exp(-\frac{1}{2}\mathbf{(Y - X \beta)' M^{-1}(Y-X\beta)})
 $$
 
 if we knew the variance components, we could use GLS:
 
 $$
-\hat{\beta}_{GLS} = \mathbf{(X'\blacksquare^{-1}X)^{-1}X'\blacksquare^{-1}Y}
+\hat{\beta}_{GLS} = \mathbf{(X'M^{-1}X)^{-1}X'M^{-1}Y}
 $$
 
-but we usually don't know the variance components $\sigma^2, \sigma^2_\beta, \sigma^2_{\alpha \beta}$ that make up $\blacksquare$\
+but we usually don't know the variance components $\sigma^2, \sigma^2_\beta, \sigma^2_{\alpha \beta}$ that make up $M$\
 Another way to get estimates is by **Maximum likelihood estimation**
 
 we try to maximize its log
 
 $$
-\ln L = - \frac{N}{2} \ln (2\pi) - \frac{1}{2}\ln|\blacksquare| - \frac{1}{2} \mathbf{(Y-X \beta)'\Sigma^{-1}(Y-X\beta)}
+\ln L = - \frac{N}{2} \ln (2\pi) - \frac{1}{2}\ln|M| - \frac{1}{2} \mathbf{(Y-X \beta)'\Sigma^{-1}(Y-X\beta)}
 $$
 
 ## Nonparametric ANOVA
@@ -2042,7 +2129,9 @@ Here, we assume that the block and treatment effects are additive. The differenc
 
 $$
 (\mu_{..} +  \rho_i + \tau_j) - (\mu_{..} + \rho_i + \tau_j') = \tau_j - \tau_j'
-$$ for all $i=1,..,n$ blocks
+$$
+
+for all $i=1,..,n$ blocks
 
 $$
 \hat{\mu} = \bar{Y}_{..} \\
@@ -2059,28 +2148,28 @@ $$
 
 **ANOVA table**
 
-+---------------------+--------------------------------------------------------------------------------+------------+-----------------------------------------------------+-----------------------------------------------------+
-| Source of Variation | SS                                                                             | df         | Fixed Treatments  E(MS)                             | Random Treatments  E(MS)                            |
-+=====================+================================================================================+============+=====================================================+=====================================================+
-| Blocks              | \$r \sum\*i (\* \bar{Y}{ i .} -\bar{Y}\_{..})\^2\$                             | n - 1      | \$ \sigma \^2 + r \fra c {\sum \\rho \^ 2_i}{n-1}\$ | \$ \sigma \^2 + r \fra c {\sum \\rho \^ 2_i}{n-1}\$ |
-+---------------------+--------------------------------------------------------------------------------+------------+-----------------------------------------------------+-----------------------------------------------------+
-| Treatments          | $n\sum_ j (\bar{Y} _ {.j}-\bar{ Y}_{..})^2$                                    | r - 1      | \$ \sigma \^2 + n \fra c {\sum \\tau \^ 2_j}{r-1}\$ | $\sigma^2 + n \sigma^2_\tau$                        |
-+---------------------+--------------------------------------------------------------------------------+------------+-----------------------------------------------------+-----------------------------------------------------+
-| Error               | $\sum_i \sum _j ( Y_{ ij } - \bar { Y}_{i.} - \bar{Y}_{.j} + \bar{ Y}_{..})^2$ | (n-1)(r-1) | $\sigma^2$                                          | $\sigma^2$                                          |
-+---------------------+--------------------------------------------------------------------------------+------------+-----------------------------------------------------+-----------------------------------------------------+
-| Total               | SSTO                                                                           | nr-1       |                                                     |                                                     |
-+---------------------+--------------------------------------------------------------------------------+------------+-----------------------------------------------------+-----------------------------------------------------+
++---------------------+--------------------------------------------------------------------------------+------------+------------------------------------------+------------------------------------------+
+| Source of Variation | SS                                                                             | df         | Fixed Treatments  E(MS)                  | Random Treatments  E(MS)                 |
++=====================+================================================================================+============+==========================================+==========================================+
+| Blocks              | $r \sum_i(\bar{Y}_{i.}-\bar{Y}_{..})^2$                                        | n - 1      | $\sigma^2 +r \frac{\sum \rho^2_i}{n-1}$  | $\sigma^2 + r \frac{\sum \rho^2_i}{n-1}$ |
++---------------------+--------------------------------------------------------------------------------+------------+------------------------------------------+------------------------------------------+
+| Treatments          | $n\sum_ j (\bar{Y} _ {.j}-\bar{ Y}_{..})^2$                                    | r - 1      | $\sigma^2 + n \frac{\sum \tau^2_j}{r-1}$ | $\sigma^2 + n \sigma^2_\tau$             |
++---------------------+--------------------------------------------------------------------------------+------------+------------------------------------------+------------------------------------------+
+| Error               | $\sum_i \sum _j ( Y_{ ij } - \bar { Y}_{i.} - \bar{Y}_{.j} + \bar{ Y}_{..})^2$ | (n-1)(r-1) | $\sigma^2$                               | $\sigma^2$                               |
++---------------------+--------------------------------------------------------------------------------+------------+------------------------------------------+------------------------------------------+
+| Total               | SSTO                                                                           | nr-1       |                                          |                                          |
++---------------------+--------------------------------------------------------------------------------+------------+------------------------------------------+------------------------------------------+
 
 **F-tests**
 
 $$
-\begin{align}
+\begin{aligned}
 H_0: \tau_1 = \tau_2 = ... = \tau_r = 0 && \text{Fixed Treatment Effects} \\
 H_a: \text{not all } \tau_j = 0 \\
 \\
 H_0: \sigma^2_{\tau} = 0 && \text{Random Treatment Effects} \\
 H_a: \sigma^2_{\tau} \neq 0 
-\end{align}
+\end{aligned}
 $$
 
 In both cases $F = \frac{MSTR}{MSE}$, reject $H_0$ if $F > f_{(1-\alpha; r-1,(n-1)(r-1))}$
@@ -2093,14 +2182,16 @@ we don't use F-test to compare blocks, because
 To estimate the efficiency that was gained by blocking (relative to completely randomized design).
 
 $$
-\begin{align}
+\begin{aligned}
 \hat{\sigma}^2_{CR} &= \frac{(n-1)MSBL + n(r-1)MSE}{nr-1} \\
 \hat{\sigma}^2_{RB} &= MSE \\
-\frac{\hat{\sigma}^2_{CR}}{\hat{\sigma}^2_{RB}} = \text{above 1} \\
-\end{align}
+\frac{\hat{\sigma}^2_{CR}}{\hat{\sigma}^2_{RB}} &= \text{above 1} \\
+\end{aligned}
 $$
 
-then a completely randomized experiment would $$
+then a completely randomized experiment would
+
+$$
 (\frac{\hat{\sigma}^2_{CR}}{\hat{\sigma}^2_{RB}}-1)\%%
 $$
 
@@ -2116,7 +2207,9 @@ Then,
 
 $$
 Y_{ij} = \mu_{..} + \rho_i + \tau_j + \epsilon_{ij}
-$$ where
+$$
+
+where
 
 -   $\mu_{..}$ fixed\
 -   $\rho_i$: random iid $N(0,\sigma^2_p)$\
@@ -2130,7 +2223,9 @@ E(Y_{ij}) = \mu_{..} + \tau_j \\
 var(Y_{ij}) = \sigma^2_{\rho} + \sigma^2 \\
 cov(Y_{ij},Y_{ij'}) = \sigma^2 , j \neq j' \text{ treatments within same block are correlated} \\
 cov(Y_{ij},Y_{i'j'}) = 0 , i \neq i' , j \neq j'
-$$ Correlation between 2 observations in teh same block
+$$
+
+Correlation between 2 observations in teh same block
 
 $$
 \frac{\sigma^2_{\rho}}{\sigma^2 + \sigma^2_{\rho}}
@@ -2327,10 +2422,10 @@ Least Squares and MLE estimates
 residual $e_{ijk} = Y_{ijk} - \bar{Y}_{ijk}$
 
 $$
-\begin{align}
+\begin{aligned}
 SSTO &= SSA + SSB(A) + SSE \\
 \sum_i \sum_j \sum_k (Y_{ijk}- \bar{Y}_{...})^2 &= bn \sum_i (\bar{Y}_{i..}- \bar{Y}_{...})^2 + n \sum_i \sum_j (\bar{Y}_{ij.}- \bar{Y}_{i..})^2 + \sum_i \sum_j \sum_k (Y_{ijk} -\bar{Y}_{ij.})^2
-\end{align}
+\end{aligned}
 $$
 
 ANOVA Table
@@ -2407,7 +2502,7 @@ where $\alpha_1,\beta_{1(1)}, \beta_{2(1)}, \beta_{1(2)}$ are parameters. And co
 
 4 indicator variables
 
-```{=tex}
+
 \begin{equation}
 X_1 = 
 \begin{cases}
@@ -2415,8 +2510,7 @@ X_1 =
 -1&\text{if obs from school 2}\\
 \end{cases}
 \end{equation}
-```
-```{=tex}
+
 \begin{equation}
 X_2 = 
 \begin{cases}
@@ -2425,8 +2519,8 @@ X_2 =
 0&\text{otherwise}\\
 \end{cases}
 \end{equation}
-```
-```{=tex}
+
+
 \begin{equation}
 X_3 = 
 \begin{cases}
@@ -2435,8 +2529,8 @@ X_3 =
 0&\text{otherwise}\\
 \end{cases}
 \end{equation}
-```
-```{=tex}
+
+
 \begin{equation}
 X_4 = 
 \begin{cases}
@@ -2445,7 +2539,8 @@ X_4 =
 0&\text{otherwise}\\
 \end{cases}
 \end{equation}
-```
+
+
 Regression Full Model
 
 $$
@@ -2561,7 +2656,9 @@ Treatment effects
 $$
 H_0: \tau_1 = \tau_2 = ...= 0 \\
 H_a: \text{not all } \tau_i =0
-$$ $$
+$$
+
+$$
 \text{Full Model}: Y_{ij} = \mu_. + \tau_i + \gamma X_{ij} +\epsilon_{ij}  \\
 \text{Reduced Model}: Y_{ij} = \mu_. + \gamma X_{ij} + \epsilon_{ij}
 $$
@@ -2609,3 +2706,6 @@ The means in response after adjusting for the covariate effect
 $$
 Y_{i.}(adj) = \bar{Y}_{i.} - \hat{\gamma}(\bar{X}_{i.} - \bar{X}_{..})
 $$
+
+
+

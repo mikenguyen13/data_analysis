@@ -6,8 +6,8 @@
 
 To approximate data, we can approximate the function
 
--   by a high-order polynomial\
--   by a linear model (e.g., a Taylor expansion around X's)\
+-   by a high-order polynomial
+-   by a linear model (e.g., a Taylor expansion around X's)
 -   a collection of locally linear models or basis function
 
 but it would not easy to interpret, or not enough data, or can't interpret them globally.
@@ -16,10 +16,12 @@ but it would not easy to interpret, or not enough data, or can't interpret them 
 
 $$
 Y_i = f(\mathbf{x_i;\theta}) + \epsilon_i
-$$ where $f(\mathbf{x_i;\theta})$ is a nonlinear function relating $E(Y_i)$ to the independent variables $x_i$
+$$
 
--   $\mathbf{x}_i$ is a k x 1 vector of independent variables (fixed).\
--   $\mathbf{\theta}$ is a p x 1 vector of parameters.\
+where $f(\mathbf{x_i;\theta})$ is a nonlinear function relating $E(Y_i)$ to the independent variables $x_i$
+
+-   $\mathbf{x}_i$ is a k x 1 vector of independent variables (fixed).
+-   $\mathbf{\theta}$ is a p x 1 vector of parameters.
 -   $\epsilon_i$s are iid variables mean 0 and variance $\sigma^2$. (sometimes it's normal).
 
 ## Inference
@@ -32,7 +34,9 @@ If we assume $\epsilon_i \sim N(0,\sigma^2)$, then
 
 $$
 \hat{\theta} \sim AN(\mathbf{\theta},\sigma^2[\mathbf{F}(\theta)'\mathbf{F}(\theta)]^{-1})
-$$ where An = asymptotic normality
+$$
+
+where An = asymptotic normality
 
 Asymptotic means we have enough data to make inference (As your sample size increases, this becomes more and more accurate (to the true value)).
 
@@ -44,7 +48,7 @@ Rules for expectation and variance of a fixed vector $\mathbf{a}$ and random vec
 
 $$
 E(\mathbf{a'Z}) = \mathbf{a'}E(\mathbf{Z}) \\
-var(\mathbf{a'Z}) = \mathbf{a'}var(\mathbf{Z})\mathbf{a}
+var(\mathbf{a'Z}) = \mathbf{a'}var(\mathbf{Z}) \mathbf{a}
 $$
 
 Then,
@@ -57,7 +61,9 @@ and $\mathbf{a'\hat{\theta}}$ is asymptotically independent of $s^2$ (to order 1
 
 $$
 \frac{\mathbf{a'\hat{\theta}-a'\theta}}{s(\mathbf{a'[F(\theta)'F(\theta)]^{-1}a})^{1/2}} \sim t_{n-p}
-$$ to construct $100(1-\alpha)\%$ confidence interval for $\mathbf{a'\theta}$
+$$
+
+to construct $100(1-\alpha)\%$ confidence interval for $\mathbf{a'\theta}$
 
 $$
 \mathbf{a'\theta} \pm t_{(1-\alpha/2,n-p)}s(\mathbf{a'[F(\theta)'F(\theta)]^{-1}a})^{1/2}
@@ -67,7 +73,9 @@ Suppose $\mathbf{a'} = (0,...,j,...,0)$. Then, a confidence interval for the jth
 
 $$
 \hat{\theta}_j \pm t_{(1-\alpha/2,n-p)}s\sqrt{\hat{c}^{j}}
-$$ where $\hat{c}^{j}$ is the jth diagonal element of $[\mathbf{F(\hat{\theta})'F(\hat{\theta})}]^{-1}$
+$$
+
+where $\hat{c}^{j}$ is the jth diagonal element of $[\mathbf{F(\hat{\theta})'F(\hat{\theta})}]^{-1}$
 
 
 ```r
@@ -80,11 +88,11 @@ x<-seq(0,100,1)
 #Generate y as a*e^(bx)+c
 y<-runif(1,0,20)*exp(runif(1,0.005,0.075)*x)+runif(101,0,5)
 
-# visulize
+# visualize
 plot(x,y)
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-1-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-1-1.png)<!-- -->
 
 ```r
 #define our data frame
@@ -115,7 +123,9 @@ with `nls`, we can fit the nonlinear model via least squares
 
 
 ```r
-nlin_mod=nls(y~mod(a,b,x),start=list(a=astrt,b=bstrt),data=datf) 
+nlin_mod = nls(y ~ mod(a, b, x),
+               start = list(a = astrt, b = bstrt),
+               data = datf)
 
 #look at model fit summary
 summary(nlin_mod)
@@ -140,11 +150,11 @@ summary(nlin_mod)
 
 ```r
 #add prediction to plot
-plot(x,y)
-lines(x,predict(nlin_mod),col="red")
+plot(x, y)
+lines(x, predict(nlin_mod), col = "red")
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-3-1.png)<!-- -->
 
 ### Nonlinear
 
@@ -152,12 +162,14 @@ Suppose that $h(\theta)$ is a nonlinear function of the parameters. We can use T
 
 $$
 h(\hat{\theta}) \approx h(\theta) + \mathbf{h}'[\hat{\theta}-\theta]
-$$ where $\mathbf{h} = (\frac{\partial h}{\partial \theta_1},...,\frac{\partial h}{\partial \theta_p})'$
+$$
+
+where $\mathbf{h} = (\frac{\partial h}{\partial \theta_1},...,\frac{\partial h}{\partial \theta_p})'$
 
 with
 
 $$
-E(\hat{\theta}) \approx \theta \\
+E( \hat{\theta}) \approx \theta \\
 var(\hat{\theta}) \approx  \sigma^2[\mathbf{F(\theta)'F(\theta)}]^{-1} \\
 E(h(\hat{\theta})) \approx h(\theta) \\
 var(h(\hat{\theta})) \approx \sigma^2 \mathbf{h'[F(\theta)'F(\theta)]^{-1}h}
@@ -167,7 +179,9 @@ Thus,
 
 $$
 h(\hat{\theta}) \sim AN(h(\theta),\sigma^2\mathbf{h'[F(\theta)'F(\theta)]^{-1}h})
-$$ and an approximate $100(1-\alpha)\%$ confidence interval for $h(\theta)$ is
+$$
+
+and an approximate $100(1-\alpha)\%$ confidence interval for $h(\theta)$ is
 
 $$
 h(\hat{\theta}) \pm t_{(1-\alpha/2;n-p)}s(\mathbf{h'[F(\theta)'F(\theta)]^{-1}h})^{1/2}
@@ -186,7 +200,15 @@ As $n \to \infty$, $\hat{\theta} \to \theta$, so we
 
 $$
 f(x_0, \hat{\theta}) \approx f(x_0,\theta) + \mathbf{f}_0(\mathbf{\theta})'[\hat{\theta}-\theta]
-$$ where $f_0(\theta)= (\frac{\partial f(x_0,\theta)}{\partial \theta_1},..,\frac{\partial f(x_0,\theta)}{\partial \theta_p})'$ (note: this $f_0(\theta)$ is different from $f(\theta)$).
+$$
+
+where
+
+$$
+f_0(\theta)= (\frac{\partial f(x_0,\theta)}{\partial \theta_1},..,\frac{\partial f(x_0,\theta)}{\partial \theta_p})'
+$$
+
+(note: this $f_0(\theta)$ is different from $f(\theta)$).
 
 $$
 Y_0 - \hat{Y}_0 \approx Y_0  - f(x_0,\theta) - f_0(\theta)'[\hat{\theta}-\theta]  \\
@@ -225,20 +247,20 @@ Confidence intervals for the mean response $Y_i$ (which is different from predic
 
 -   Grid search
 
-    -   A "grid" of possible parameter values and see which one minimize the residual sum of squares.\
-    -   finer grid = greater accuracy\
-    -   could be inefficient, and hard when p is large.\
+    -   A "grid" of possible parameter values and see which one minimize the residual sum of squares.
+    -   finer grid = greater accuracy
+    -   could be inefficient, and hard when p is large.
 
 -   Gauss-Newton Algorithm
 
-    -   we have an initial estimate of $\theta$ denoted as $\hat{\theta}^{(0)}$\
+    -   we have an initial estimate of $\theta$ denoted as $\hat{\theta}^{(0)}$
     -   use a Taylor expansions of $f(\mathbf{x}_i;\theta)$ as a function of $\theta$ about the point $\hat{\theta}^{(0)}$
 
 $$
-\begin{align} 
+\begin{aligned} 
 Y_i &= f(x_i;\theta) + \epsilon_i \\
 &= f(x_i;\theta) + \sum_{j=1}^{p}\{\frac{\partial f(x_i;\theta)}{\partial \theta_j}\}_{\theta = \hat{\theta}^{(0)}} (\theta_j - \hat{\theta}^{(0)}) + \text{remainder} + \epsilon_i
-\end{align}
+\end{aligned}
 $$
 
 Equivalently,
@@ -247,41 +269,48 @@ In matrix notation,
 
 $$
 \mathbf{Y} = 
-\left[ \begin{array}
-{ccc}
+\left[ 
+\begin{array}
+{c}
 Y_1 \\
 . \\
 Y_n
-\end{array} \right]
+\end{array} 
+\right]
 $$
 
 $$
 \mathbf{f}(\hat{\theta}^{(0)}) =
-\left[ \begin{array}
-{ccc}
+\left[ 
+\begin{array}
+{c}
 f(\mathbf{x_1,\hat{\theta}}^{(0)}) \\
 . \\
 f(\mathbf{x_n,\hat{\theta}}^{(0)})
-\end{array} \right]
+\end{array} 
+\right]
 $$
 
 $$
 \mathbf{\epsilon} = 
-\left[ \begin{array}
-{ccc}
+\left[ 
+\begin{array}
+{c}
 \epsilon_1 \\
 . \\
 \epsilon_n
-\end{array} \right]
+\end{array} 
+\right]
 $$
 
 $$
 \mathbf{F}(\hat{\theta}^{(0)}) = 
-\left[ \begin{array}
+\left[ 
+\begin{array}
 {ccc}
-\frac{\partial f(x_1,\mathbf{\theta})}{\partial \theta_1} && ... && \frac{\partial f(x_1,\mathbf{\theta})}{\partial \theta_p}\\
-. && . && . \\
-\frac{\partial f(x_n,\mathbf{\theta})}{\partial \theta_1} && ... && \frac{\partial f(x_n,\mathbf{\theta})}{\partial \theta_p}
+\frac{\partial f(x_1,\mathbf{\theta})}{\partial \theta_1} & ... & \frac{\partial f(x_1,\mathbf{\theta})}{\partial \theta_p}\\
+. & . & . \\
+\frac{\partial f(x_n,\mathbf{\theta})}{\partial \theta_1} & ... & \frac{\partial f(x_n,\mathbf{\theta})}{\partial \theta_p}
 \end{array} \right]_{\theta = \hat{\theta}^{(0)}}
 $$
 
@@ -289,23 +318,27 @@ Hence,
 
 $$
 \mathbf{Y} = \mathbf{f}(\hat{\theta}^{(0)}) + \mathbf{F}(\hat{\theta}^{(0)})(\theta - \hat{\theta}^{(0)}) + \epsilon + \text{remainder}
-$$ where we assume that the remainder is small and the error term is only assumed to be iid with mean 0 and variance $\sigma^2$.
+$$
+
+where we assume that the remainder is small and the error term is only assumed to be iid with mean 0 and variance $\sigma^2$.
 
 We can rewrite the above equation as
 
 $$
 \mathbf{Y} - \mathbf{f}(\hat{\theta}^{(0)}) \approx \mathbf{F}(\hat{\theta}^{(0)})(\theta - \hat{\theta}^{(0)}) + \epsilon
-$$ where it is in the form of linear model. After we solve for $(\theta - \hat{\theta}^{(0)})$ and let it equal to $\hat{\delta}^{(1)}$\
+$$
+
+where it is in the form of linear model. After we solve for $(\theta - \hat{\theta}^{(0)})$ and let it equal to $\hat{\delta}^{(1)}$\
 Then we new estimate is given by adding the Gauss increment adjustment to the initial estimate $\hat{\theta}^{(1)} = \hat{\theta}^{(0)} + \hat{\delta}^{(1)}$\
 We can repeat this process.
 
 Gauss-Newton Algorithm Steps:
 
-1.  initial estimate $\hat{\theta}^{(0)}$, set j = 0\
+1.  initial estimate $\hat{\theta}^{(0)}$, set j = 0
 2.  Taylor series expansion and calculate $\mathbf{f}(\hat{\theta}^{(j)})$ and $\mathbf{F}(\hat{\theta}^{(j)})$
-3.  Use OLS to get $\hat{\delta}^{(j+1)}$\
-4.  get the new estimate $\hat{\theta}^{(j+1)}$, return to step 2\
-5.  continue until "convergence"\
+3.  Use OLS to get $\hat{\delta}^{(j+1)}$
+4.  get the new estimate $\hat{\theta}^{(j+1)}$, return to step 2
+5.  continue until "convergence"
 6.  With the final parameter estimate $\hat{\theta}$, we can estimate $\sigma^2$ if $\epsilon \sim (\mathbf{0}, \sigma^2 \mathbf{I})$ by
 
 $$
@@ -337,12 +370,14 @@ $$
 $$
 
 $$
-\begin{align}
+\begin{aligned}
 \hat{\theta}^{(j+1)} &= \hat{\theta}^{(j)} + \hat{\delta}^{(j+1)} \\
 &= \hat{\theta}^{(j)} + [\mathbf{F}((\hat{\theta})^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1}\mathbf{F}(\hat{\theta})^{(j)} \\
 &= \hat{\theta}^{(j)} - \frac{1}{2}[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1}\frac{\partial SSE(\hat{\theta}^{(j)})}{\partial \theta}
-\end{align}
-$$ where
+\end{aligned}
+$$
+
+where
 
 -   $\frac{\partial SSE(\hat{\theta}^{(j)})}{\partial \theta}$ is a gradient vecotr (points in the direction in which the SSE increases most rapidly). This path is known as steepest ascent.\
 -   $[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1}$ indicates how far to move\
@@ -354,7 +389,9 @@ To avoid overstepping (the local min), we can use the modified Gauss-Newton Algo
 
 $$
 \hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} + \alpha_j \hat{\delta}^{(j+1)}, 0 < \alpha_j < 1
-$$ where
+$$
+
+where
 
 -   $\alpha_j$ (called the "learning rate"): is used to modify the step length.
 
@@ -364,7 +401,9 @@ A way to choose $\alpha_j$, we can use **step halving**
 
 $$
 \hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} + \frac{1}{2^k}\hat{\delta}^{(j+1)}
-$$ where
+$$
+
+where
 
 -   k is the smallest non-negative integer such that\
     $$
@@ -375,7 +414,9 @@ The most general form of the convergence algorithm is
 
 $$
 \hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} - \alpha_j \mathbf{A}_j \frac{\partial Q(\hat{\theta}^{(j)})}{\partial \theta} 
-$$ where
+$$
+
+where
 
 -   $\mathbf{A}_j$ is a positive definite matrix\
 -   $\alpha_j$ is the learning rate\
@@ -385,7 +426,9 @@ Refer back to the **Modified Gauss-Newton Algorithm**, we can see it is in this 
 
 $$
 \hat{\theta}^{(j+1)} =\hat{\theta}^{(j)} - \alpha_j[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1}\frac{\partial SSE(\hat{\theta}^{(j)})}{\partial \theta}
-$$ where Q = SSE, $[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1} = \mathbf{A}$
+$$
+
+where Q = SSE, $[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})]^{-1} = \mathbf{A}$
 
 #### Steepest Descent
 
@@ -419,9 +462,11 @@ $$
 The **Hessian matrix** can be rewritten as:
 
 $$
-\frac{\partial^2Q(\hat{\theta}^{(j)})}{\partial \theta \partial \theta'} = 2 \mathbf{F}((\hat{\theta})^{(j)})'\mathbf{F}(\hat{\theta}^{(j)}) - 2\sum_{i=1}^{n}[Y_i - f(x_i;\theta)]\frac{\partial^2f(x_i;\theta)}{\partial \theta \partial \theta'}
-$$ which contains the same term that [Gauss-Newton Algorithm], combined with one containing the second partial derivatives of f(). (methods that require the second derivatives of the objective function are known as "second-order methods".)\
-However, the last term \frac{\partial^2f(x_i;\theta)}{\partial \theta \partial \theta'} can sometimes be nonsingular.
+\frac{ \partial^2Q(\hat{ \theta}^{(j)})}{ \partial \theta \partial \theta'} = 2 \mathbf{F}((\hat{ \theta})^{(j)})' \mathbf{F} ( \hat{\theta}^{(j)}) - 2\sum_{i=1}^{n} [Y_i - f(x_i;\theta)] \frac{\partial^2f(x_i;\theta)}{\partial \theta \partial \theta'}
+$$
+
+which contains the same term that [Gauss-Newton Algorithm], combined with one containing the second partial derivatives of f(). (methods that require the second derivatives of the objective function are known as "second-order methods".)\
+However, the last term $\frac{\partial^2f(x_i;\theta)}{\partial \theta \partial \theta'}$ can sometimes be nonsingular.
 
 #### Quasi-Newton
 
@@ -429,7 +474,9 @@ update $\theta$ according to
 
 $$
 \hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} - \alpha_j \mathbf{H}_j^{-1}\frac{\partial \mathbf{Q}(\hat{\theta}^{(j)})}{\partial \theta}
-$$ where $H_j$ is a symmetric positive definite approximation to the Hessian, which gets closer as $j \to \infty$.
+$$
+
+where $H_j$ is a symmetric positive definite approximation to the Hessian, which gets closer as $j \to \infty$.
 
 -   $\mathbf{H}_j$ is computed iteratively\
 -   AMong first-order methods(where only first derivatives are required), this method performs best.
@@ -468,25 +515,25 @@ To converge, algorithm need good initial estimates.
 
 #### Convergence to a Local Minimum
 
--   Linear least squares has the property that $SSE(\theta) = \mathbf{(Y-X\beta)'(Y-X\beta)}$, which is quadratic and has a unique minimum (or maximum).\
--   Nonlinear east squares need not have a unique minimum\
--   Using different starting values can help\
--   If the dimension of $\theta$ is low, graph $SSE(\theta)$ as a function of $\theta_i$\
+-   Linear least squares has the property that $SSE(\theta) = \mathbf{(Y-X\beta)'(Y-X\beta)}$, which is quadratic and has a unique minimum (or maximum).
+-   Nonlinear east squares need not have a unique minimum
+-   Using different starting values can help
+-   If the dimension of $\theta$ is low, graph $SSE(\theta)$ as a function of $\theta_i$
 -   Different algorithm can help (e.g., genetic algorithm, particle swarm)
 
 To converge, algorithms need good initial estimates.
 
 -   Starting values:
 
-    -   prior or theoretical info\
+    -   prior or theoretical info
     -   A grid search or a graph
-    -   OLS estimates as starting values\
-    -   Model interpretation\
-    -   Expected Value Parameterization\
+    -   OLS estimates as starting values
+    -   Model interpretation
+    -   Expected Value Parameterization
 
 -   Constrained Parameters:
 
-    -   try the model without the constraints first.\
+    -   try the model without the constraints first.
     -   If the resulted parameter estimates does not satisfy the constraint, try re-parameterizing
 
 
@@ -541,11 +588,18 @@ For prediction interval
 
 
 ```r
-plotFit(nlin_modG, interval = "both", pch = 19, shade = TRUE, 
-        col.conf = "skyblue4", col.pred = "lightskyblue2",data=datf)  
+plotFit(
+  nlin_modG,
+  interval = "both",
+  pch = 19,
+  shade = TRUE,
+  col.conf = "skyblue4",
+  col.pred = "lightskyblue2",
+  data = datf
+)  
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-5-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-5-1.png)<!-- -->
 
 Based on the forms of your function, you can also have programmed starting values from `nls` function (e.e.g, logistic growth, asymptotic regression, etc).
 
@@ -564,41 +618,45 @@ For example, a logistic growth model:
 
 $$
 P = \frac{K}{1+ exp(P_0+ rt)} + \epsilon
-$$ where
+$$
 
--   P = population at time t\
--   K = carrying capacity\
+where
+
+-   P = population at time t
+-   K = carrying capacity
 -   r = population growth rate
 
 but in `R` you have slight different parameterization:
 
 $$
 P = \frac{asym}{1 + exp(\frac{xmid - t}{scal})}
-$$ where
+$$
 
--   asym = carrying capacity\
--   xmid = the x value at the inflection point of the curve\
+where
+
+-   asym = carrying capacity
+-   xmid = the x value at the inflection point of the curve
 -   scal = scaling parameter.
 
 Hence, you have
 
--   K = asym\
--   r = -1/scal\
+-   K = asym
+-   r = -1/scal
 -   $P_0 = -rxmid$
 
 
 ```r
 # simulated data
-time <- c(1,2,3,5,10,15,20,25,30,35)
-population <- c(2.8,4.2,3.5,6.3,15.7,21.3,23.7,25.1,25.8,25.9)
-plot(time, population, las=1, pch=16)
+time <- c(1, 2, 3, 5, 10, 15, 20, 25, 30, 35)
+population <- c(2.8, 4.2, 3.5, 6.3, 15.7, 21.3, 23.7, 25.1, 25.8, 25.9)
+plot(time, population, las = 1, pch = 16)
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-7-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-7-1.png)<!-- -->
 
 ```r
 # model fitting
-logisticModelSS <- nls(population~SSlogis(time, Asym, xmid, scal))
+logisticModelSS <- nls(population ~ SSlogis(time, Asym, xmid, scal))
 summary(logisticModelSS)
 ```
 
@@ -663,11 +721,11 @@ summary(logisticModel)
 
 ```r
 #note: initial values =  solution (highly unusual, but ok)
-plot(time, population, las=1, pch=16)
-lines(time,predict(logisticModel),col="red")
+plot(time, population, las = 1, pch = 16)
+lines(time, predict(logisticModel), col = "red")
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-9-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-9-1.png)<!-- -->
 
 If can also define your own self-starting fucntion if your models are uncommon (built in `nls`)
 
@@ -678,21 +736,28 @@ Example is based on [@Schabenberger_2001]
 #Load data
 dat <- read.table("images/dat.txt", header = T)
 # plot
-dat.plot <- ggplot(dat)+geom_point(aes(x=no3,y=ryp, color=as.factor(depth))) +
-labs(color='Depth (cm)') + xlab('Soil NO3') + ylab('relative yield percent')
+dat.plot <-
+  ggplot(dat) + geom_point(aes(
+    x = no3,
+    y = ryp,
+    color = as.factor(depth)
+  )) +
+  labs(color = 'Depth (cm)') + xlab('Soil NO3') + ylab('relative yield percent')
 dat.plot
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-10-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-10-1.png)<!-- -->
 
 The suggested model (known as plateau model) is
 
 $$
 E(Y_{ij}) = (\beta_{0j} + \beta_{1j}N_{ij})I_{N_{ij}\le \alpha_j} + (\beta_{0j} + \beta_{1j}\alpha_j)I_{N_{ij} > \alpha_j}
-$$ where
+$$
 
--   N is an observation\
--   i is a particular observation\
+where
+
+-   N is an observation
+-   i is a particular observation
 -   j = 1,2 corresponding to depths (30,60)
 
 
@@ -736,24 +801,44 @@ SS_nonlinModel <- selfStart(nonlinModel,nonlinModelInit,c('b0','b1','alpha'))
 
 ```r
 #Above code defined model and selfStart now just need to call it for each of the depths
-sep30_nls <- nls(ryp~SS_nonlinModel(predictor=no3,b0,b1,alpha),data=dat[dat$depth==30,])
+sep30_nls <-
+  nls(ryp ~ SS_nonlinModel(predictor = no3, b0, b1, alpha), data = dat[dat$depth ==
+                                                                         30, ])
 
-sep60_nls <- nls(ryp~SS_nonlinModel(predictor=no3,b0,b1,alpha),data=dat[dat$depth==60,])
+sep60_nls <-
+  nls(ryp ~ SS_nonlinModel(predictor = no3, b0, b1, alpha), data = dat[dat$depth ==
+                                                                         60, ])
 
-par(mfrow=c(1,2))
-plotFit(sep30_nls, interval = "both", pch = 19, shade = TRUE,
-col.conf = "skyblue4", col.pred = "lightskyblue2",
-data=dat[dat$depth==30,],main='Results 30 cm depth',
-ylab = 'relative yield percent',xlab = 'Soil NO3 concentration',
-xlim = c(0,120))
-plotFit(sep60_nls, interval = "both", pch = 19, shade = TRUE,
-col.conf = "lightpink4", col.pred = "lightpink2",
-data=dat[dat$depth==60,],main='Results 60 cm depth',
-ylab = 'relative yield percent',xlab = 'Soil NO3 concentration',
-xlim = c(0,120))
+par(mfrow = c(1, 2))
+plotFit(
+  sep30_nls,
+  interval = "both",
+  pch = 19,
+  shade = TRUE,
+  col.conf = "skyblue4",
+  col.pred = "lightskyblue2",
+  data = dat[dat$depth == 30, ],
+  main = 'Results 30 cm depth',
+  ylab = 'relative yield percent',
+  xlab = 'Soil NO3 concentration',
+  xlim = c(0, 120)
+)
+plotFit(
+  sep60_nls,
+  interval = "both",
+  pch = 19,
+  shade = TRUE,
+  col.conf = "lightpink4",
+  col.pred = "lightpink2",
+  data = dat[dat$depth == 60, ],
+  main = 'Results 60 cm depth',
+  ylab = 'relative yield percent',
+  xlab = 'Soil NO3 concentration',
+  xlim = c(0, 120)
+)
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-14-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-14-1.png)<!-- -->
 
 
 ```r
@@ -804,7 +889,8 @@ Instead of modeling the depths model separately we model them together - so ther
 
 
 ```r
-red_nls <- nls(ryp~SS_nonlinModel(predictor=no3,b0,b1,alpha),data=dat)
+red_nls <-
+  nls(ryp ~ SS_nonlinModel(predictor = no3, b0, b1, alpha), data = dat)
 
 summary(red_nls)
 ```
@@ -828,28 +914,36 @@ summary(red_nls)
 ```
 
 ```r
-par(mfrow=c(1,1))
-plotFit(red_nls, interval = "both", pch = 19, shade = TRUE,
-col.conf = "lightblue4", col.pred = "lightblue2",
-data=dat,main='Results combined',
-ylab = 'relative yield percent',xlab = 'Soil NO3 concentration')
+par(mfrow = c(1, 1))
+plotFit(
+  red_nls,
+  interval = "both",
+  pch = 19,
+  shade = TRUE,
+  col.conf = "lightblue4",
+  col.pred = "lightblue2",
+  data = dat,
+  main = 'Results combined',
+  ylab = 'relative yield percent',
+  xlab = 'Soil NO3 concentration'
+)
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/reduce-model-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/reduce-model-1.png)<!-- -->
 
 Examine residual values for the combined model.
 
 
 ```r
 library(nlstools)
-#using nlstools nlsResiduals function to get some quick residual plots 
+#using nlstools nlsResiduals function to get some quick residual plots
 #can also use test.nlsResiduals(resid)
 # https://www.rdocumentation.org/packages/nlstools/versions/1.0-2
 resid <- nlsResiduals(red_nls)
 plot(resid)
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/reduce-model-resid-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/reduce-model-resid-1.png)<!-- -->
 
 can we test whether the parameters for the two soil depth fits are significantly different? To know if the combined model is appropriate, we consider a parameterization where we let the parameters for the 60cm model be equal to the parameters from the 30cm model plus some increment:
 
@@ -920,22 +1014,22 @@ So, the increment parameters, $d_1$,$d_2$,$d_a$ are all significantly different 
 
 -   **Intrinsic nonlinearity**: the degree of bending and twisting in $f(\theta)$; our estimation approach assumes that hte true function is relatively flat (planar) in the neighborhood fo $\hat{\theta}$, which would not be true if $f()$ has a lot of "bending" int he neighborhood of $\hat{\theta}$ (independent of parameterizaiton)
 
-    -   If bad, the distribution of residuals will be seriously distorted\
+    -   If bad, the distribution of residuals will be seriously distorted
 
-    -   slow to converge\
+    -   slow to converge
 
-    -   difficult to identify ( could use this function `rms.curve`)\
+    -   difficult to identify ( could use this function `rms.curve`)
 
     -   Solution:
 
-        -   could use higher order Taylor expansions estimation\
+        -   could use higher order Taylor expansions estimation
         -   Bayesian method
 
 -   **Parameter effects nonlinearity**: degree to which curvature (nonlinearity) is affected by choice of $\theta$ (data dependent; dependent on parameterization)
 
-    -   leads to problems with inferecne on $\hat{\theta}$\
-    -   `rms.curve` in `MASS` can identify\
-    -   bootstrap-based inference can also be used\
+    -   leads to problems with inferecne on $\hat{\theta}$
+    -   `rms.curve` in `MASS` can identify
+    -   bootstrap-based inference can also be used
     -   Solution: try to reparaemterize.
 
 
@@ -959,7 +1053,9 @@ In linear model, we have [Linear Regression], we have goodness of fit measure as
 $$
 R^2 = \frac{SSR}{SSTO} = 1- \frac{SSE}{SSTO} \\
 = \frac{\sum_{i=1}^n (\hat{Y}_i- \bar{Y})^2}{\sum_{i=1}^n (Y_i- \bar{Y})^2} = 1- \frac{\sum_{i=1}^n ({Y}_i- \hat{Y})^2}{\sum_{i=1}^n (Y_i- \bar{Y})^2}
-$$ but not valid in the nonlinear case because the error sum of squares and model sum of squares do not add to the total corrected sum of squares
+$$
+
+but not valid in the nonlinear case because the error sum of squares and model sum of squares do not add to the total corrected sum of squares
 
 $$
 SSR + SSE \neq SST
@@ -969,7 +1065,9 @@ but we can use pseudo-$R^2$:
 
 $$
 R^2_{pseudo} = 1 - \frac{\sum_{i=1}^n ({Y}_i- \hat{Y})^2}{\sum_{i=1}^n (Y_i- \bar{Y})^2}
-$$ But we can't interpret this as the proportion of variability explained by the model. We should use as a relative comparison of different models.
+$$
+
+But we can't interpret this as the proportion of variability explained by the model. We should use as a relative comparison of different models.
 
 **Residual Plots**: standardize, similar to OLS. useful when the intrinsic curvature is small:
 
@@ -983,23 +1081,25 @@ where $\hat{c}_i$is the i-th diagonal of $\mathbf{\hat{H}= F(\hat{\theta})[F(\ha
 
 We could have problems of
 
--   Collinearity: the condition number of $\mathbf{[F(\hat{\theta})'F(\hat{\theta})]^{-1}}$ should be less than 30. Follow [@Magel_1987]; reparameterize if possible\
+-   Collinearity: the condition number of $\mathbf{[F(\hat{\theta})'F(\hat{\theta})]^{-1}}$ should be less than 30. Follow [@Magel_1987]; reparameterize if possible
 
--   Leverage: Like [OLS][Ordinary Least Squares], but consider $\mathbf{\hat{H}= F(\hat{\theta})[F(\hat{\theta})'F(\hat{\theta})]^{-1}F(\hat{\theta})'}$ (also known as "tangent plant hat matrix") [@Laurent_1992]\
+-   Leverage: Like [OLS][Ordinary Least Squares], but consider $\mathbf{\hat{H}= F(\hat{\theta})[F(\hat{\theta})'F(\hat{\theta})]^{-1}F(\hat{\theta})'}$ (also known as "tangent plant hat matrix") [@Laurent_1992]
 
--   Heterogeneous Errors: weighted Non-linear Least Squares\
+-   Heterogeneous Errors: weighted Non-linear Least Squares
 
 -   Correlated Errors:
 
-    -   Generalized Nonlinear Least Squares\
-    -   Nonlinear Mixed Models\
+    -   Generalized Nonlinear Least Squares
+    -   Nonlinear Mixed Models
     -   Bayesian methods
 
 ### Application
 
 $$
 y_i = \frac{\theta_0 + \theta_1 x_i}{1 + \theta_2 \exp(0.4 x_i)} + \epsilon_i
-$$ where $i = 1,..,n$
+$$
+
+where $i = 1,..,n$
 
 Get the starting values
 
@@ -1038,7 +1138,7 @@ Get the starting values
 plot(my_data)
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-18-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-18-1.png)<!-- -->
 
 We notice that $Y_{max} = \theta_0 + \theta_1 x_i$ in which we can find x_i from data
 
@@ -1070,7 +1170,9 @@ Secondly, we notice that we can obtain the "average" of y when
 
 $$
 1+ \theta_2 exp(0.4 x) = 2
-$$ then we can find this average numbers of x and y
+$$
+
+then we can find this average numbers of x and y
 
 
 ```r
@@ -1368,19 +1470,23 @@ nlin_4
 ## Achieved convergence tolerance: 2.294e-07
 ```
 
-## Generalized Linear Models {#generalized-linear-models}
+# Generalized Linear Models {#generalized-linear-models}
 
 Even though we call it generalized linear model, it is still under the paradigm of non-linear regression, because the form of the regression model is non-linear. The name generalized linear model derived from the fact that we have $\mathbf{x'_i \beta}$ (which is linear form) in the model.
 
-### Logistic Regression
+## Logistic Regression
 
 $$
 p_i = f(\mathbf{x}_i ; \beta) = \frac{exp(\mathbf{x_i'\beta})}{1 + exp(\mathbf{x_i'\beta})}
-$$ Equivalently,
+$$
+
+Equivalently,
 
 $$
 logit(p_i) = log(\frac{p_i}{1+p_i}) = \mathbf{x_i'\beta}
-$$ where $\frac{p_i}{1+p_i}$is the **odds**.
+$$
+
+where $\frac{p_i}{1+p_i}$is the **odds**.
 
 In this form, the model is specified such that **a function of the mean response is linear**. Hence, **Generalized Linear Models**
 
@@ -1388,7 +1494,9 @@ The likelihood function
 
 $$
 L(p_i) = \prod_{i=1}^{n} p_i^{Y_i}(1-p_i)^{1-Y_i}
-$$ where $p_i = \frac{\mathbf{x'_i \beta}}{1+\mathbf{x'_i \beta}}$ and $1-p_i = (1+ exp(\mathbf{x'_i \beta}))^{-1}$
+$$
+
+where $p_i = \frac{\mathbf{x'_i \beta}}{1+\mathbf{x'_i \beta}}$ and $1-p_i = (1+ exp(\mathbf{x'_i \beta}))^{-1}$
 
 Hence, our objective function is
 
@@ -1402,20 +1510,24 @@ Property of MLEs is that parameters are asymptotically unbiased with sample vari
 
 $$
 \hat{\beta} \dot{\sim} AN(\beta,[\mathbf{I}(\beta)]^{-1})
-$$ where the **Fisher Information matrix**, $\mathbf{I}(\beta)$ is
+$$
+
+where the **Fisher Information matrix**, $\mathbf{I}(\beta)$ is
 
 $$
-\begin{align}
+\begin{aligned}
 \mathbf{I}(\beta) &= E[\frac{\partial \log(L(\beta))}{\partial (\beta)}\frac{\partial \log(L(\beta))}{\partial \beta'}] \\
 &= E[(\frac{\partial \log(L(\beta))}{\partial \beta_i} \frac{\partial \log(L(\beta))}{\partial \beta_j})_{ij}]
-\end{align}
-$$ Under **regularity conditions**, this is equivalent to the negative of the expected value of the Hessian Matrix
+\end{aligned}
+$$
+
+Under **regularity conditions**, this is equivalent to the negative of the expected value of the Hessian Matrix
 
 $$
-\begin{align}
+\begin{aligned}
 \mathbf{I}(\beta) &= -E[\frac{\partial^2 \log(L(\beta))}{\partial \beta \partial \beta'}] \\
 &= -E[(\frac{\partial^2 \log(L(\beta))}{\partial \beta_i \partial \beta_j})_{ij}]
-\end{align}
+\end{aligned}
 $$
 
 Example:
@@ -1437,8 +1549,8 @@ $$
 \left[
 \begin{array}
 {cc}
-\sum_i p_i(1-p_i) && \sum_i x_i p_i(1-p_i) \\
-\sum_i x_i p_i(1-p_i) && \sum_i x_i^2 p_i(1-p_i)
+\sum_i p_i(1-p_i) & \sum_i x_i p_i(1-p_i) \\
+\sum_i x_i p_i(1-p_i) & \sum_i x_i^2 p_i(1-p_i)
 \end{array}
 \right]
 $$
@@ -1453,7 +1565,9 @@ Example: $H_0: \beta_1 = \beta_{1,0}$ (where $\beta_{1,0}$ is specified) and $\h
 
 $$
 -2\log\Lambda = -2[\log(L(\beta_{1,0},\hat{\beta}_{2,0})) - \log(L(\hat{\beta}_1,\hat{\beta}_2))]
-$$ where
+$$
+
+where
 
 -   the first term is the value fo the likelihood for the fitted restricted model\
 -   the second term is the likelihood value of the fitted unrestricted model
@@ -1462,7 +1576,9 @@ Under the null,
 
 $$
 -2 \log \Lambda \sim \chi^2_{\upsilon}
-$$ where $\upsilon$ is the dimension of $\beta_1$
+$$
+
+where $\upsilon$ is the dimension of $\beta_1$
 
 We reject the null when $-2\log \Lambda > \chi_{\upsilon,1-\alpha}^2$
 
@@ -1472,19 +1588,27 @@ Based on
 
 $$
 \hat{\beta} \sim AN (\beta, [\mathbf{I}(\beta)^{-1}])
-$$ $$
+$$
+
+$$
 H_0: \mathbf{L}\hat{\beta} = 0 
-$$ where $\mathbf{L}$ is a q x p matrix with q linearly independent rows. Then
+$$
+
+where $\mathbf{L}$ is a q x p matrix with q linearly independent rows. Then
 
 $$
 W = (\mathbf{L\hat{\beta}})'(\mathbf{L[I(\hat{\beta})]^{-1}L'})^{-1}(\mathbf{L\hat{\beta}})
-$$ under the null hypothesis
+$$
+
+under the null hypothesis
 
 Confidence interval
 
 $$
 \hat{\beta}_i \pm 1.96 \hat{s}_{ii}^2
-$$ where $\hat{s}_{ii}^2$ is the i-th diagonal of $\mathbf{[I(\hat{\beta})]}^{-1}$
+$$
+
+where $\hat{s}_{ii}^2$ is the i-th diagonal of $\mathbf{[I(\hat{\beta})]}^{-1}$
 
 If you have
 
@@ -1516,7 +1640,9 @@ and
 
 $$
 exp(\hat{\beta}_1) = \frac{odds[\hat{p}_{x_i + 1}]}{odds[\hat{p}_{x_i}]}
-$$ the estimated **odds ratio**
+$$
+
+the estimated **odds ratio**
 
 the estimated odds ratio, when there is a difference of c units in the regressor x, is $exp(c\hat{\beta}_1)$. When there are multiple covariates, $exp(\hat{\beta}_k)$ is the estimated odds ratio for the variable $x_k$, assuming that all of the other variables are held constant.
 
@@ -1532,7 +1658,7 @@ and $s^2(\hat{p}_h) = \mathbf{x'_h[I(\hat{\beta})]^{-1}x_h}$
 
 For new observation, we can have a cutoff point to decide whether y = 0 or 1.
 
-#### Application
+### Application
 
 
 ```r
@@ -1688,11 +1814,16 @@ Since we see the p-value of 0, we reject the null that no variables are related 
 
 
 ```r
-Logistic_Resids <- residuals(Logistic_Model,type="deviance")
-plot(y = Logistic_Resids, x = BinData$X,xlab = 'X',ylab = 'Deviance Resids')
+Logistic_Resids <- residuals(Logistic_Model, type = "deviance")
+plot(
+  y = Logistic_Resids,
+  x = BinData$X,
+  xlab = 'X',
+  ylab = 'Deviance Resids'
+)
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-33-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-33-1.png)<!-- -->
 
 However, this plot is not informative. Hence, we can can see the residudals plots that are grouped into bins based on prediction values.
 
@@ -1702,53 +1833,55 @@ plot_bin <- function(Y,
                      X,
                      bins = 100,
                      return.DF = FALSE) {
-    Y_Name <- deparse(substitute(Y))
-    X_Name <- deparse(substitute(X))
-    Binned_Plot <- data.frame(Plot_Y = Y, Plot_X = X)
-    Binned_Plot$bin <-
-        cut(Binned_Plot$Plot_X, breaks = bins) %>% as.numeric
-    Binned_Plot_summary <- Binned_Plot %>%
-        group_by(bin) %>%
-        summarise(
-            Y_ave = mean(Plot_Y),
-            X_ave = mean(Plot_X),
-            Count = n()
-        ) %>% as.data.frame
-    plot(
-        y = Binned_Plot_summary$Y_ave,
-        x = Binned_Plot_summary$X_ave,
-        ylab = Y_Name,
-        xlab = X_Name
-    )
-    if (return.DF)
-        return(Binned_Plot_summary)
+  Y_Name <- deparse(substitute(Y))
+  X_Name <- deparse(substitute(X))
+  Binned_Plot <- data.frame(Plot_Y = Y, Plot_X = X)
+  Binned_Plot$bin <-
+    cut(Binned_Plot$Plot_X, breaks = bins) %>% as.numeric
+  Binned_Plot_summary <- Binned_Plot %>%
+    group_by(bin) %>%
+    summarise(
+      Y_ave = mean(Plot_Y),
+      X_ave = mean(Plot_X),
+      Count = n()
+    ) %>% as.data.frame
+  plot(
+    y = Binned_Plot_summary$Y_ave,
+    x = Binned_Plot_summary$X_ave,
+    ylab = Y_Name,
+    xlab = X_Name
+  )
+  if (return.DF)
+    return(Binned_Plot_summary)
 }
 plot_bin(Y = Logistic_Resids,
          X = BinData$X,
          bins = 100)
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-34-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-34-1.png)<!-- -->
 
 We can also see the predicted value against the residuals.
 
 
 ```r
-Logistic_Predictions <- predict(Logistic_Model,type = "response")
-plot_bin(Y = Logistic_Resids, X = Logistic_Predictions,bins = 100)
+Logistic_Predictions <- predict(Logistic_Model, type = "response")
+plot_bin(Y = Logistic_Resids, X = Logistic_Predictions, bins = 100)
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-35-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-35-1.png)<!-- -->
 
 We can also look at a binned plot of the logistic prediction versus the true category
 
 
 ```r
 NumBins <- 10
-Binned_Data <-plot_bin(Y = BinData$Y,
-X = Logistic_Predictions,
-bins = NumBins,
-return.DF = TRUE)
+Binned_Data <- plot_bin(
+  Y = BinData$Y,
+  X = Logistic_Predictions,
+  bins = NumBins,
+  return.DF = TRUE
+)
 Binned_Data
 ```
 
@@ -1767,10 +1900,10 @@ Binned_Data
 ```
 
 ```r
-abline(0,1,lty=2,col='blue')
+abline(0, 1, lty = 2, col = 'blue')
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-36-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-36-1.png)<!-- -->
 
 **Formal deviance test**
 
@@ -1793,9 +1926,13 @@ Under the null hypothesis, $X^2_{HLL} \sim \chi^2_{J-1}$
 
 ```r
 HL_BinVals <-
-(Binned_Data$Count*Binned_Data$Y_ave - Binned_Data$Count*Binned_Data$X_ave)^2/
-Binned_Data$Count*Binned_Data$X_ave*(1-Binned_Data$X_ave)
-HLpval <- pchisq(q = sum(HL_BinVals),df = NumBins,lower.tail = FALSE)
+  (Binned_Data$Count * Binned_Data$Y_ave - Binned_Data$Count * Binned_Data$X_ave) ^
+  2 /
+  Binned_Data$Count * Binned_Data$X_ave * (1 - Binned_Data$X_ave)
+HLpval <-
+  pchisq(q = sum(HL_BinVals),
+         df = NumBins,
+         lower.tail = FALSE)
 HLpval
 ```
 
@@ -1807,7 +1944,7 @@ Since p-value = 0.99, we do not reject the null hypothesis (i.e., the model is f
 
 <br>
 
-### Probit Regression
+## Probit Regression
 
 $$
 E(Y_i) = p_i = \Phi(\mathbf{x_i'\theta})
@@ -1857,7 +1994,7 @@ $$
 | 1     | Sensitivity         | False Negative Rate |
 | 0     | False Positive Rate | Specificity         |
 
-### Binomial Regression
+## Binomial Regression
 
 **Binomial**
 
@@ -1878,14 +2015,14 @@ head(esoph, n = 3)
 
 ```r
 plot(
-    esoph$ncases / (esoph$ncases + esoph$ncontrols) ~ esoph$alcgp,
-    ylab = "Proportion",
-    xlab = 'Alcohol consumption',
-    main = 'Esophageal Cancer data'
+  esoph$ncases / (esoph$ncases + esoph$ncontrols) ~ esoph$alcgp,
+  ylab = "Proportion",
+  xlab = 'Alcohol consumption',
+  main = 'Esophageal Cancer data'
 )
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-38-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-38-1.png)<!-- -->
 
 ```r
 class(esoph$agegp) <- "factor"
@@ -2071,7 +2208,7 @@ summary(Prob_better_model)
 ## Number of Fisher Scoring iterations: 6
 ```
 
-### Poisson Regression
+## Poisson Regression
 
 From the Poisson distribution
 
@@ -2083,7 +2220,7 @@ $$
 
 which is a natural distribution for counts. We can see that the variance is a function of the mean. If we let $\mu_i = f(\mathbf{x_i; \theta})$, it would be similar to [Logistic Regression] since we can choose $f()$ as $\mu_i = \mathbf{x_i'\theta}, \mu_i = \exp(\mathbf{x_i'\theta}), \mu_i = \log(\mathbf{x_i'\theta})$
 
-#### Application
+### Application
 
 Count Data and Poisson regression
 
@@ -2102,7 +2239,7 @@ bioChemists <- bioChemists %>%
 hist(bioChemists$Num_Article, breaks = 25, main = 'Number of Articles')
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-44-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-44-1.png)<!-- -->
 
 
 ```r
@@ -2229,7 +2366,7 @@ quasiPoisson_Mod <- glm(Num_Article ~ ., family=quasipoisson, bioChemists)
 
 Quasi-Poisson is not recommended, but [Negative Binomial Regression] that has an extra parameter to account for over-dispersion is.
 
-### Negative Binomial Regression
+## Negative Binomial Regression
 
 
 ```r
@@ -2276,7 +2413,7 @@ summary(NegBinom_Mod)
 
 We can see the dispersion is 2.264 with SE = 0.271, which is significantly different from 1, indicating overdispersion. Check [Over-Dispersion] for more detail
 
-### Multinomial
+## Multinomial
 
 If we have more than two categories or groups that we want to model relative to covariates (e.g., we have observations $i = 1,…,n$ and groups/ covariates $j = 1,2,…,J$), multinomial is our candidate model
 
@@ -2331,18 +2468,18 @@ table(nes96$PID)
 ```r
 nes96$Political_Strength <- NA
 nes96$Political_Strength[nes96$PID %in% c("strDem", "strRep")] <-
-    "Strong"
+  "Strong"
 nes96$Political_Strength[nes96$PID %in% c("weakDem", "weakRep")] <-
-    "Weak"
+  "Weak"
 nes96$Political_Strength[nes96$PID %in% c("indDem", "indind", "indRep")] <-
-    "Neutral"
-nes96 %>% group_by(Political_Strength) %>% summarise(Count=n())
+  "Neutral"
+nes96 %>% group_by(Political_Strength) %>% summarise(Count = n())
 ```
 
 ```
 ## # A tibble: 3 x 2
 ##   Political_Strength Count
-## * <chr>              <int>
+##   <chr>              <int>
 ## 1 Neutral              239
 ## 2 Strong               375
 ## 3 Weak                 330
@@ -2354,11 +2491,11 @@ visualize the political strength variable
 ```r
 library(ggplot2)
 Plot_DF <- nes96 %>%
-    mutate(Age_Grp = cut_number(age, 4)) %>%
-    group_by(Age_Grp, Political_Strength) %>%
-    summarise(count = n()) %>%
-    group_by(Age_Grp) %>%
-    mutate(etotal = sum(count), proportion = count / etotal)
+  mutate(Age_Grp = cut_number(age, 4)) %>%
+  group_by(Age_Grp, Political_Strength) %>%
+  summarise(count = n()) %>%
+  group_by(Age_Grp) %>%
+  mutate(etotal = sum(count), proportion = count / etotal)
 ```
 
 ```
@@ -2367,20 +2504,20 @@ Plot_DF <- nes96 %>%
 
 ```r
 Age_Plot <- ggplot(
-    Plot_DF,
-    aes(
-        x = Age_Grp,
-        y = proportion,
-        group = Political_Strength,
-        linetype = Political_Strength,
-        color = Political_Strength
-    )
+  Plot_DF,
+  aes(
+    x = Age_Grp,
+    y = proportion,
+    group = Political_Strength,
+    linetype = Political_Strength,
+    color = Political_Strength
+  )
 ) +
-    geom_line(size = 2)
+  geom_line(size = 2)
 Age_Plot
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-54-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-54-1.png)<!-- -->
 
 Fit the multinomial logistic model:
 
@@ -2469,18 +2606,18 @@ Plot of the fitted model
 ```r
 PlotData <- data.frame(age = seq(from = 19, to = 91))
 Preds <-
-    PlotData %>% bind_cols(data.frame(predict(
-        object = Multinomial_Step,
-        PlotData, type = "probs"
-    )))
+  PlotData %>% bind_cols(data.frame(predict(
+    object = Multinomial_Step,
+    PlotData, type = "probs"
+  )))
 plot(
-    x = Preds$age,
-    y = Preds$Neutral,
-    type = "l",
-    ylim = c(0.2, 0.6),
-    col = "black",
-    ylab = "Proportion",
-    xlab = "Age"
+  x = Preds$age,
+  y = Preds$Neutral,
+  type = "l",
+  ylim = c(0.2, 0.6),
+  col = "black",
+  ylab = "Proportion",
+  xlab = "Age"
 )
 lines(x = Preds$age,
       y = Preds$Weak,
@@ -2489,14 +2626,14 @@ lines(x = Preds$age,
       y = Preds$Strong,
       col = "red")
 legend(
-    'topleft',
-    legend = c('Neutral', 'Weak', 'Strong'),
-    col = c('black', 'blue', 'red'),
-    lty = 1
+  'topleft',
+  legend = c('Neutral', 'Weak', 'Strong'),
+  col = c('black', 'blue', 'red'),
+  lty = 1
 )
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-58-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-58-1.png)<!-- -->
 
 
 ```r
@@ -2530,17 +2667,17 @@ dat <- agridat::streibig.competition
 # Consider only the mono-species barley data (no competition from Sinapis)
 gammaDat <- subset(dat, sseeds < 1)
 gammaDat <-
-    transform(gammaDat,
-              x = bseeds,
-              y = bdwt,
-              block = factor(block))
+  transform(gammaDat,
+            x = bseeds,
+            y = bdwt,
+            block = factor(block))
 # Inverse yield looks like it will be a good fit for Gamma's inverse link
 ggplot(gammaDat, aes(x = x, y = 1 / y)) + geom_point(aes(color = block, shape =
-                                                             block)) +
-    xlab('Seeding Rate') + ylab('Inverse yield') + ggtitle('Streibig Competion - Barley only')
+                                                           block)) +
+  xlab('Seeding Rate') + ylab('Inverse yield') + ggtitle('Streibig Competion - Barley only')
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-60-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-60-1.png)<!-- -->
 
 $$
 Y \sim Gamma
@@ -2600,22 +2737,22 @@ For predict new value of x
 
 ```r
 newdf <-
-    expand.grid(x = seq(0, 120, length = 50), block = factor(c('B1', 'B2', 'B3')))
+  expand.grid(x = seq(0, 120, length = 50), block = factor(c('B1', 'B2', 'B3')))
 newdf$pred <- predict(m1, new = newdf, type = 'response')
 ggplot(gammaDat, aes(x = x, y = y)) + geom_point(aes(color = block, shape =
-                                                         block)) +
-    xlab('Seeding Rate') + ylab('Inverse yield') + ggtitle('Streibig Competion - Barley only Predictions') +
-    geom_line(data = newdf, aes(
-        x = x,
-        y = pred,
-        color = block,
-        linetype = block
-    ))
+                                                       block)) +
+  xlab('Seeding Rate') + ylab('Inverse yield') + ggtitle('Streibig Competion - Barley only Predictions') +
+  geom_line(data = newdf, aes(
+    x = x,
+    y = pred,
+    color = block,
+    linetype = block
+  ))
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-62-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-62-1.png)<!-- -->
 
-### Generalization
+## Generalization
 
 We can see that Poisson regression looks similar to logistic regression. Hence, we can generalize to a class of modeling. Thanks to [@Nelder_1972], we have the **generalized linear models** (GLMs). Estimation is generalize in these models.
 
@@ -2632,6 +2769,9 @@ where
 -   $\theta$ is called the natural parameter
 -   $\phi$ is called the dispersion parameter
 
+
+
+
 **Note**:
 
 This family includes the [Gamma], [Normal], [Poisson], and other. For all parameterization of the exponential family, check this [link](https://www.stat.purdue.edu/~tlzhang/stat526/logistic.pdf)
@@ -2641,12 +2781,12 @@ This family includes the [Gamma], [Normal], [Poisson], and other. For all parame
 if we have $Y \sim N(\mu, \sigma^2)$
 
 $$
-\begin{align}
+\begin{aligned}
 f(y; \mu, \sigma^2) &= \frac{1}{(2\pi \sigma^2)^{1/2}}\exp(-\frac{1}{2\sigma^2}(y- \mu)^2) \\
 &= \exp(-\frac{1}{2\sigma^2}(y^2 - 2y \mu +\mu^2)- \frac{1}{2}\log(2\pi \sigma^2)) \\
 &= \exp(\frac{y \mu - \mu^2/2}{\sigma^2} - \frac{y^2}{2\sigma^2} - \frac{1}{2}\log(2\pi \sigma^2)) \\
 &= \exp(\frac{\theta y - b(\theta)}{a(\phi)} + c(y , \phi))
-\end{align}
+\end{aligned}
 $$
 
 where
@@ -2658,11 +2798,11 @@ where
 
 **Properties of GLM exponential families**
 
-1.  $E(Y) = b' (\theta)$ where $b'(\theta) = \frac{\partial b(\theta)}{\partial \theta}$ (here `'` is "prime", not transpose)\
+1.  $E(Y) = b' (\theta)$ where $b'(\theta) = \frac{\partial b(\theta)}{\partial \theta}$ (here `'` is "prime", not transpose)
 
 2.  $var(Y) = a(\phi)b''(\theta)= a(\phi)V(\mu)$.
 
-    -   $V(\mu)$ is the *variance function*; however, it is only the variance in the case that $a(\phi) =1$\
+    -   $V(\mu)$ is the *variance function*; however, it is only the variance in the case that $a(\phi) =1$
 
 3.  If $a(), b(), c()$ are identifiable, we will derive expected value and variance of Y.
 
@@ -2679,11 +2819,11 @@ $$
 Poisson distribution
 
 $$
-\begin{align}
+\begin{aligned}
 f(y, \theta, \phi) &= \frac{\mu^y \exp(-\mu)}{y!} \\
 &= \exp(y\log(\mu) - \mu - \log(y!)) \\
 &= \exp(y\theta - \exp(\theta) - \log(y!))
-\end{align}
+\end{aligned}
 $$
 
 where
@@ -2750,35 +2890,93 @@ The **systematic component**
 
 **The Canonical Link**
 
-To choose $g(.)$, we can use **canonical link function**
+To choose $g(.)$, we can use **canonical link function** (Remember: Canonical link is just a special case of the link function)
 
-If the link function $g(.)$ is such $g(\mu_i) = \theta_i$, the natural parameter, then $g(.)$ is the canonical link.
+If the link function $g(.)$ is such $g(\mu_i) = \eta_i = \theta_i$, the natural parameter, then $g(.)$ is the canonical link.
+
+
+<img src="images/GLM.PNG" width="832" style="display: block; margin: auto;" />
+
+
+ * $b(\theta)$ = cumulant moment generating function 
+ * $g(\mu)$ is the link function, which relates the linear predictor to the mean and is required to be monotone increasing, continuously differentiable and invertible. 
+
+
+Equivalently, we can think of canonical link function as 
+
+$$
+\gamma^{-1} \circ g^{-1} = I
+$$
+which is the identity. Hence,
+
+$$
+\theta = \eta
+$$
+
+
+**The inverse link**  
+
+$g^{-1}(.)$ is also known as the mean function, take linear predictor output (ranging from $-\infty$ to $\infty$) and transform it into a different scale. 
+
+ * **Exponential**: converts $\mathbf{\beta X}$ into a curve that is restricted between 0 and $\infty$ (which you can see that is useful in case you want to convert a linear predictor into a non-negative value). $\lambda = \exp(y) = \mathbf{\beta X}$
+ * **Inverse Logit** (also known as logistic): converts $\mathbf{\beta X}$ into a curve that is restricted between 0 and 1, which is useful in case you want to convert a linear predictor to a probability. $\theta = \frac{1}{1 + \exp(-y)} = \frac{1}{1 + \exp(- \mathbf{\beta X})}$
+    + $y$ = linear predictor value
+    + $\theta$ = transformed value
+
+
+The **identity link** is that
+
+$$
+\eta_i = g(\mu_i) = \mu_i \\
+\mu_i = g^{-1}(\eta_i) = \eta_i
+$$
+
+<img src="images/2-Table15.1-1.png" width="850" style="display: block; margin: auto;" />
+
+Table 15.1 Generalized Linear Models 15.1 the Structure of Generalized Linear Models
+
+
+More example on the link functions and their inverses can be found on [page 380](https://www.sagepub.com/sites/default/files/upm-binaries/21121_Chapter_15.pdf)
+
+
 
 Example
 
-+---------------------------+---------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+-------------------+
-| Distribution              | Mean Response                                                                                                                         | Canonical link                                | name              |
-+===========================+=======================================================================================================================================+===============================================+===================+
-| Normal random component   | $\mu_i = \theta_i$                                                                                                                    | $g( \mu_i) = \mu_i$                           | the identity link |
-+---------------------------+---------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+-------------------+
-| Binomial random component | $\mu_i = \frac{n_i \exp( \theta)}{1+\exp (\theta_i)} \\ \theta(\mu_i) = \log(\frac{p_i }{1-p_i}) = \log (\frac{\mu_i} {n_i - \mu_i})$ | $g(\mu_i) = \log(\frac{\mu_i} {n_i - \mu_i})$ | the logit link    |
-+---------------------------+---------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+-------------------+
-| Poisson random component  | $\mu_i = \exp(\theta_i)$                                                                                                              | $g(\mu_i) = \log(\mu_i)$                      |                   |
-+---------------------------+---------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+-------------------+
-| Gamma random component    | $\mu_i = -\frac{1}{\theta_i}$                                                                                                         | $g(\mu\_i) = - \frac{1}{\mu_i}$               |                   |
-|                           |                                                                                                                                       |                                               |                   |
-|                           | $\theta(\mu_i) = - \mu_i^{-1}$                                                                                                        |                                               |                   |
-+---------------------------+---------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+-------------------+
-| Inverse Gaussian random   |                                                                                                                                       | $g(\mu_i) = \frac{1}{\mu_i^2}$                |                   |
-+---------------------------+---------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------+-------------------+
+Normal random component
 
-#### Estimation
+-   Mean Response: $\mu_i = \theta_i$
+
+-   Canonical Link: $g( \mu_i) = \mu_i$ (the identity link)
+
+Binomial random component
+
+-   Mean Response: $\mu_i = \frac{n_i \exp( \theta)}{1+\exp (\theta_i)}$ and $\theta(\mu_i) = \log(\frac{p_i }{1-p_i}) = \log (\frac{\mu_i} {n_i - \mu_i})$
+
+-   Canonical link: $g(\mu_i) = \log(\frac{\mu_i} {n_i - \mu_i})$ (logit link)
+
+Poisson random component
+
+-   Mean Response: $\mu_i = \exp(\theta_i)$
+
+-   Canonical Link: $g(\mu_i) = \log(\mu_i)$
+
+Gamma random component:
+
+-   Mean response: $\mu_i = -\frac{1}{\theta_i}$ and $\theta(\mu_i) = - \mu_i^{-1}$
+
+-   Canonical Link: $g(\mu\_i) = - \frac{1}{\mu_i}$
+
+Inverse Gaussian random
+
+-   Canonical Link: $g(\mu_i) = \frac{1}{\mu_i^2}$
+
+### Estimation
 
 -   MLE for parameters of the **systematic component (**$\beta$)\
 -   Unification of derivation and computation (thanks to the exponential forms)\
 -   No unification for estimation of the dispersion parameter ($\phi$)
 
-##### Estimation of $\beta$
+#### Estimation of $\beta$
 
 We have
 
@@ -2792,19 +2990,19 @@ $$
 If the log-likelihood for a single observation is $l_i (\beta,\phi)$. The log-likelihood for all n observations is
 
 $$
-\begin{align}
+\begin{aligned}
 l(\beta,\phi) &= \sum_{i=1}^n l_i (\beta,\phi) \\
 &= \sum_{i=1}^n (\frac{\theta_i y_i - b(\theta_i)}{a(\phi)}+ c(y_i, \phi))
-\end{align}
+\end{aligned}
 $$
 
 Using MLE to find $\beta$, we use the chain rule to get the derivatives
 
 $$
-\begin{align}
+\begin{aligned}
 \frac{\partial l_i (\beta,\phi)}{\partial \beta_j} &=  \frac{\partial l_i (\beta, \phi)}{\partial \theta_i} \times \frac{\partial \theta_i}{\partial \mu_i} \times \frac{\partial \mu_i}{\partial \eta_i}\times \frac{\partial \eta_i}{\partial \beta_j} \\
 &= \sum_{i=1}^{n}(\frac{ y_i - \mu_i}{a(\phi)} \times \frac{1}{V(\mu_i)} \times \frac{\partial \mu_i}{\partial \eta_i} \times x_{ij})
-\end{align}
+\end{aligned}
 $$
 
 If we let
@@ -2827,13 +3025,17 @@ For the [Newton-Raphson] algorithm, we need
 
 $$
 - E(\frac{\partial^2 l(\beta,\phi)}{\partial \beta_j \partial \beta_k})
-$$ where $(j,k)$th element of the **Fisher information matrix** $\mathbf{I}(\beta)$
+$$
+
+where $(j,k)$th element of the **Fisher information matrix** $\mathbf{I}(\beta)$
 
 Hence,
 
 $$
 - E(\frac{\partial^2 l(\beta,\phi)}{\partial \beta_j \partial \beta_k}) = \sum_{i=1}^n \frac{w_i}{a(\phi)}x_{ij}x_{ik}
-$$ for the (j,k)th element
+$$
+
+for the (j,k)th element
 
 If Bernoulli model with logit link function (which is the canonical link)
 
@@ -2861,12 +3063,12 @@ $$
 Hence,
 
 $$
-\begin{align}
+\begin{aligned}
 \frac{\partial l(\beta, \phi)}{\partial \beta_j} &= \sum_{i=1}^n[\frac{y_i - \mu_i}{a(\phi)} \times \frac{1}{V(\mu_i)}\times \frac{\partial \mu_i}{\partial \eta_i} \times x_{ij}] \\
 &= \sum_{i=1}^n (y_i - p_i) \times \frac{1}{p_i(1-p_i)} \times p_i(1-p_i) \times x_{ij} \\
 &= \sum_{i=1}^n (y_i - p_i) x_{ij} \\
 &= \sum_{i=1}^n (y_i - \frac{\exp(\mathbf{x'_i\beta})}{1+ \exp(\mathbf{x'_i\beta})})x_{ij}
-\end{align}
+\end{aligned}
 $$
 
 then
@@ -2924,10 +3126,10 @@ Similar to [Newton-Raphson] expect the matrix of second derivatives by the expec
 In matrix notation,
 
 $$
-\begin{align}
+\begin{aligned}
 \frac{\partial l }{\partial \beta} &= \frac{1}{a(\phi)}\mathbf{X'W\Delta(y - \mu)} \\
 &= \frac{1}{a(\phi)}\mathbf{F'V^{-1}(y - \mu)} \\
-\end{align}
+\end{aligned}
 $$
 
 $$
@@ -2980,7 +3182,7 @@ Notes:
 
 -   if $a(\phi)$ is a constant or of the form $m_i \phi$ with known $m_i$, then $\phi$ cancels.
 
-##### Estimation of $\phi$
+#### Estimation of $\phi$
 
 2 approaches:
 
@@ -2996,17 +3198,18 @@ $$
 \frac{a^2(\phi)}{a'(\phi)}\sum_{i=1}^n \frac{\partial c(y_i, \phi)}{\partial \phi} = \sum_{i=1}^n(\theta_i y_i - b(\theta_i))
 $$
 
-\* Situation others than normal error case, expression for $\frac{\partial c(y,\phi)}{\partial \phi}$ are not simple\
-\* Even for the canonical link and $a(\phi)$ constant, there is no nice general expression for $-E(\frac{\partial^2 l}{\partial \phi^2})$, so the unification GLMs provide for estimation of $\beta$ breaks down for $\phi$
+-   Situation others than normal error case, expression for $\frac{\partial c(y,\phi)}{\partial \phi}$ are not simple
+
+-   Even for the canonical link and $a(\phi)$ constant, there is no nice general expression for $-E(\frac{\partial^2 l}{\partial \phi^2})$, so the unification GLMs provide for estimation of $\beta$ breaks down for $\phi$
 
 2.  Moment Estimation ("Bias Corrected $\chi^2$")
 
-    -   The MLE is not conventional approach to estimation of $\phi$ in GLMS.\
+    -   The MLE is not conventional approach to estimation of $\phi$ in GLMS.
     -   For the exponential family $var(Y) =V(\mu)a(\phi)$. This implies\
         $$
         a(\phi) = \frac{var(Y)}{V(\mu)} = \frac{E(Y- \mu)^2}{V(\mu)} \\
         a(\hat{\phi})  = \frac{1}{n-p} \sum_{i=1}^n \frac{(y_i -\hat{\mu}_i)^2}{V(\hat{\mu})}
-        $$ where p is the dimension of $\beta$\
+        $$ where p is the dimension of $\beta$
     -   GLM with canonical link function $g(.)= (b'(.))^{-1}$\
         $$
         g(\mu) = \theta = \eta = \mathbf{x'\beta} \\
@@ -3018,7 +3221,7 @@ $$
 \hat{\phi} = \frac{1}{n-p} \sum_{i=1}^n \frac{(y_i - g^{-1}(\hat{\eta}_i))^2}{V(g^{-1}(\hat{\eta}_i))}
 $$
 
-#### Inference
+### Inference
 
 We have
 
@@ -3058,7 +3261,7 @@ where
 
 Wald test is easier to implement, but likelihood ratio test is better (especially for small samples).
 
-#### Deviance
+### Deviance
 
 [Deviance] is necessary for goodness of fit, inference and for alternative estimation of the dispersion parameter. We define and consider [Deviance] from a likelihood ratio perspective.
 
@@ -3133,11 +3336,11 @@ $$
 And
 
 $$
-\begin{align}
+\begin{aligned}
 D &= 2 \sum_{1=1}^n Y^2_i - y_i \hat{\mu}_i - \frac{1}{2}y^2_i + \frac{1}{2} \hat{\mu}_i^2 \\
 &= \sum_{i=1}^n y_i^2 - 2y_i \hat{\mu}_i + \hat{\mu}_i^2 \\
 &= \sum_{i=1}^n (y_i - \hat{\mu}_i)^2
-\end{align}
+\end{aligned}
 $$
 
 which is the **residual sum of squares**
@@ -3159,10 +3362,10 @@ $$
 Then,
 
 $$
-\begin{align}
+\begin{aligned}
 D &= 2 \sum_{i = 1}^n y_i \log(y_i) - y_i \log(\hat{\mu}_i) - y_i + \hat{\mu}_i \\
 &= 2 \sum_{i = 1}^n y_i \log(\frac{y_i}{\hat{\mu}_i}) - (y_i - \hat{\mu}_i)
-\end{align}
+\end{aligned}
 $$
 
 and
@@ -3173,7 +3376,7 @@ $$
 
 <br>
 
-##### Analysis of Deviance
+#### Analysis of Deviance
 
 The difference in deviance between a reduced and full model, where q is the difference in the number of free parameters, has an asymptotic $\chi^2_q$. The likelihood ratio test
 
@@ -3195,7 +3398,7 @@ Excessive use of $\chi^2$ test could be problematic since it is asymptotic [@McC
 
 <br>
 
-##### Deviance Residuals
+#### Deviance Residuals
 
 We have $D = \sum_{i=1}^{n}d_i$. Then, we define **deviance residuals**
 
@@ -3219,7 +3422,7 @@ where $h_{ii}^{glm}$ is the ith diagonal of $\mathbf{H}^{GLM}$
 
 <br>
 
-##### Pearson Chi-square Residuals
+#### Pearson Chi-square Residuals
 
 Another $\chi^2$ statistic is **Pearson** $\chi^2$ statistics: (assume $m_i = 1$)
 
@@ -3229,7 +3432,7 @@ $$
 
 where $\hat{\mu}_i$ is the fitted mean response fo the model of interest.
 
-The **Scaled Pearson** $\chi^2$ statistic is given by $\frac{X^2}{\phi} \sim \chi^2_{n-p}$ where p is the number of parameters esitamted. Hence, the **Pearson** $\chi^2$ residuals are
+The **Scaled Pearson** $\chi^2$ statistic is given by $\frac{X^2}{\phi} \sim \chi^2_{n-p}$ where p is the number of parameters estimated. Hence, the **Pearson** $\chi^2$ residuals are
 
 $$
 X^2_i = \frac{(y_i - \hat{\mu}_i)^2}{V(\hat{\mu}_i)}
@@ -3245,7 +3448,7 @@ then $\frac{X^2}{\phi}$ and $D^*(\mathbf{y; \hat{\mu}})$ both follow $\chi^2_{n-
 
 <br>
 
-#### Diagnostic Plots
+### Diagnostic Plots
 
 -   Standardized residual Plots:
 
@@ -3267,7 +3470,7 @@ then $\frac{X^2}{\phi}$ and $D^*(\mathbf{y; \hat{\mu}})$ both follow $\chi^2_{n-
 
 -   plot($|r_{D_i}|,\hat{\mu}_i$) to check **Variance Function**.
 
-#### Goodness of Fit
+### Goodness of Fit
 
 To assess goodness of fit, we can use
 
@@ -3284,8 +3487,8 @@ $$
 
 where
 
--   $l(\hat{\mu})$ is the log-likelihood evaluated at the parameter estimates\
--   p is the number of parameters\
+-   $l(\hat{\mu})$ is the log-likelihood evaluated at the parameter estimates
+-   p is the number of parameters
 -   n is the number of observations.
 
 Note: you have to use the same data with the same model (i.e., same link function, same random underlying random distribution). but you can have different number of parameters.
@@ -3302,7 +3505,7 @@ $$
 \bar{R}^2 = \frac{R^2_*}{\max(R^2_*)} = \frac{1-\exp\{-\frac{2}{n}(l(\hat{\mu}) - l(\hat{\mu}_0) \}}{1 - \exp\{\frac{2}{n}l(\hat{\mu}_0)\}}
 $$
 
-#### Over-Dispersion
+### Over-Dispersion
 
 | Random Components | $var(Y)$                  | $V(\mu)$                                     |
 |-------------------|---------------------------|----------------------------------------------|
@@ -3319,11 +3522,11 @@ If we find
 If we have either over or under-dispersion, it means we might have unspecified random component, we could
 
 -   Select a different random component distribution that can accommodate over or under-dispersion (e.g., negative binomial, Conway-Maxwell Poisson)
--   use [Generalized Linear Mixed Models] to handle random effects in generalized linear models.
+-   use [Generalized Linear Mixed Models][Nonlinear and Generalized Linear Mixed Models] to handle random effects in generalized linear models.
 
-## Generalized Linear Mixed Models
+# Linear Mixed Models
 
-### Dependent Data
+## Dependent Data
 
 Forms of dependent data:
 
@@ -3342,6 +3545,15 @@ Hence, we like to account for these correlations.
 -   **Random effects** representing individual variation or auto correlation/spatial effects that imply **dependent (correlated) errors**
 
 Review [Two-Way Mixed Effects ANOVA]
+
+<br>
+
+We choose to model the random subject-specific effect instead of including dummy subject covariates in our model because:
+
+-   reduction in the number of parameters to estimate
+-   when you do inference, it would make more sense that you can infer from a population (i.e., random effect).
+
+<br>
 
 **LLM Motivation**
 
@@ -3569,9 +3781,9 @@ for each treatment group
 $$
 Y_{ik}= 
 \begin{cases}
-\beta_0 + b_{1i} + (\beta_1 + \ b_{2i})t_{ij} + \epsilon_{ij} && L \\
-\beta_0 + b_{1i} + (\beta_2 + \ b_{2i})t_{ij} + \epsilon_{ij} && H\\
-\beta_0 + b_{1i} + (\beta_3 + \ b_{2i})t_{ij} + \epsilon_{ij} && C
+\beta_0 + b_{1i} + (\beta_1 + \ b_{2i})t_{ij} + \epsilon_{ij} & L \\
+\beta_0 + b_{1i} + (\beta_2 + \ b_{2i})t_{ij} + \epsilon_{ij} & H\\
+\beta_0 + b_{1i} + (\beta_3 + \ b_{2i})t_{ij} + \epsilon_{ij} & C
 \end{cases}
 $$
 
@@ -3699,7 +3911,7 @@ $$
 
 On top of correlation in the errors, the marginal implies that the variance function of the response is quadratic over time, with positive curvature $d_{22}$
 
-#### **Random-Intercepts Model**
+### Random-Intercepts Model
 
 If we remove the random slopes,
 
@@ -3724,7 +3936,7 @@ cov(\mathbf{Y}_i)  = 11'd_{11} + \sigma^2I \\
 =
 \left(
 \begin{array}
-{ccc}
+{cccc}
 d_{11}+ \sigma^2 & d_{11} & ... & d_{11} \\
 d_{11} & d_{11} + \sigma^2 & d_{11} & ... \\
 . & . & . & . \\
@@ -3757,7 +3969,7 @@ Thu, we have
 -   a covariance structure that is called **compound symmetry**, and $\rho$ is called the **intra-class correlation**
 -   that when $\rho$ is large, the **inter-subject variability** ($d_{11}$) is large relative to the intra-subject variability ($\sigma^2$)
 
-#### **Covariance Models**
+### Covariance Models
 
 If the conditional independence assumption, ($\mathbf{\Sigma_i= \sigma^2 I_{n_i}}$). Consider, $\epsilon_i = \epsilon_{(1)i} + \epsilon_{(2)i}$, where
 
@@ -3844,7 +4056,7 @@ Notes:
 
 More in the [Time Series] section
 
-### Estimation
+## Estimation
 
 $$
 \mathbf{Y}_i = \mathbf{X}_i \beta + \mathbf{Z}_i \mathbf{b}_i + \epsilon_i
@@ -4059,10 +4271,10 @@ $$
 Setting the derivatives of Q with respect to $\mathbf{b}$ and $\mathbf{\beta}$ to zero leads to the system of equations:
 
 $$
-\begin{align}
+\begin{aligned}
 \mathbf{X'\Sigma^{-1}X\beta + X'\Sigma^{-1}Zb} &= \mathbf{X'\Sigma^{-1}Y}\\
 \mathbf{(Z'\Sigma^{-1}Z + B^{-1})b + Z'\Sigma^{-1}X\beta} &= \mathbf{Z'\Sigma^{-1}Y}
-\end{align}
+\end{aligned}
 $$
 
 Rearranging
@@ -4155,7 +4367,7 @@ $$
 E(\mathbf{b}|\mathbf{Y}) = \mathbf{BZ'V^{-1}(Y-X\beta)}
 $$
 
-#### Estimating $\mathbf{V}$
+### Estimating $\mathbf{V}$
 
 If we have $\tilde{\mathbf{V}}$ (estimate of $\mathbf{V}$), then we can estimate:
 
@@ -4179,7 +4391,7 @@ Ways to estimate $\mathbf{V}$
 -   [Estimated Generalized Least Squares]
 -   [Bayesian Hierarchical Models (BHM)](#bayesian-hierarchical-models-bhm)
 
-##### Maximum Likelihood Estimation (MLE) {#maximum-likelihood-estimation-mle}
+#### Maximum Likelihood Estimation (MLE) {#maximum-likelihood-estimation-mle}
 
 Grouping unknown parameters in $\Sigma$ and $B$ under a parameter vector $\theta$. Under MLE, $\hat{\theta}$ and $\hat{\beta}$ maximize the likelihood $\mathbf{y} \sim N(\mathbf{X\beta, V(\theta))}$. Synonymously, $-2\log L(\mathbf{y;\theta,\beta})$:
 
@@ -4198,7 +4410,7 @@ Note:
 
 <br>
 
-##### Restricted Maximum Likelihood (REML) {#restricted-maximum-likelihood-reml}
+#### Restricted Maximum Likelihood (REML) {#restricted-maximum-likelihood-reml}
 
 REML accounts for the number of estimated mean parameters by adjusting the objective function. Specifically, the likelihood of linear combination of the elements of $\mathbf{y}$ is accounted for.
 
@@ -4236,7 +4448,7 @@ Comparison REML and MLE
 
 <br>
 
-##### Estimated Generalized Least Squares
+#### Estimated Generalized Least Squares
 
 MLE and REML rely upon the Gaussian assumption. To overcome this issue, EGLS uses the first and second moments.
 
@@ -4253,10 +4465,10 @@ where
 Then the EGLS estimator is
 
 $$
-\begin{align}
+\begin{aligned}
 \hat{\beta}_{GLS} &= \{\sum_{i=1}^n \mathbf{X'_iV_i(\theta)^{-1}X_i}  \}^{-1} \sum_{i=1}^n \mathbf{X'_iV_i(\theta)^{-1}Y_i} \\
 &=\{\mathbf{X'V(\theta)^{-1}X} \}^{-1} \mathbf{X'V(\theta)^{-1}Y}
-\end{align}
+\end{aligned}
 $$
 
 depends on the first two moments
@@ -4276,7 +4488,7 @@ In case of non-iterative approach, EGLS can be appealing when $\mathbf{V}$ can b
 
 <br>
 
-##### Bayesian Hierarchical Models (BHM) {#bayesian-hierarchical-models-bhm}
+#### Bayesian Hierarchical Models (BHM) {#bayesian-hierarchical-models-bhm}
 
 Joint distribution cane be decomposed hierarchically in terms of the product of conditional distributions and a marginal distribution
 
@@ -4287,10 +4499,10 @@ $$
 Applying to estimate $\mathbf{V}$
 
 $$
-\begin{align}
-f(\mathbf{Y, \beta, b, \theta}) &= f(\mathbf{Y|\beta,b, \theta})f(\mathbf{b|\theta,\beta})f(\mathbf{\beta|\theta})f(\mathbf{\theta}) && \text{based on probability decomposition} \\
-&= f(\mathbf{Y|\beta,b, \theta})f(\mathbf{b|\theta})f(\mathbf{\beta})f(\mathbf{\theta}) && \text{based on simplifying modeling assumptions}
-\end{align}
+\begin{aligned}
+f(\mathbf{Y, \beta, b, \theta}) &= f(\mathbf{Y|\beta,b, \theta})f(\mathbf{b|\theta,\beta})f(\mathbf{\beta|\theta})f(\mathbf{\theta}) & \text{based on probability decomposition} \\
+&= f(\mathbf{Y|\beta,b, \theta})f(\mathbf{b|\theta})f(\mathbf{\beta})f(\mathbf{\theta}) & \text{based on simplifying modeling assumptions}
+\end{aligned}
 $$
 
 elaborate on the second equality, if we assume conditional independence (e.g., given $\theta$, no additional info about $\mathbf{b}$ is given by knowing $\beta$), then we can simply from the first equality
@@ -4319,11 +4531,11 @@ Bayesian Methods:
 -   Can extend beyond Gaussian distributions
 -   but hard to implement algorithms and might have problem converging
 
-### Inference
+## Inference
 
-#### Parameters $\beta$
+### Parameters $\beta$
 
-##### Wald test {#wald-test-GLMM}
+#### Wald test {#wald-test-GLMM}
 
 We have
 
@@ -4348,7 +4560,7 @@ where $W \sim \chi^2_{rank(A)}$ under $H_0$ is true. However, it does not take i
 
 <br>
 
-##### F-test
+#### F-test
 
 Alternatively, we can use the modified F-test, suppose we have $var(\mathbf{Y}) = \sigma^2 \mathbf{V}(\theta)$, then
 
@@ -4365,7 +4577,7 @@ Under balanced cases, the Wald and F tests are similar. But for small sample siz
 
 <br>
 
-##### Likelihood Ratio Test
+#### Likelihood Ratio Test
 
 $$
 H_0: \beta \in \Theta_{\beta,0}
@@ -4386,7 +4598,7 @@ This method is not applicable for REML. But REML can still be used to test for c
 
 <br>
 
-#### Variance Components
+### Variance Components
 
 -   For ML and REML estimator, $\hat{\theta} \sim N(\theta, I(\theta))$ for large samples
 
@@ -4400,11 +4612,11 @@ This method is not applicable for REML. But REML can still be used to test for c
 
 <br>
 
-### Information Criteria
+## Information Criteria
 
 -   account for the likelihood and the number of parameters to assess model comparison.
 
-#### Akaike's Information Criteria (AIC)
+### Akaike's Information Criteria (AIC)
 
 Derived as an estimator of the expected Kullback discrepancy between the true model and a fitted candidate model
 
@@ -4427,7 +4639,7 @@ Note:
 
 <br>
 
-#### Corrected AIC (AICC)
+### Corrected AIC (AICC)
 
 -   developed by [@HURVICH_1989]
 -   correct small-sample adjustment
@@ -4436,7 +4648,7 @@ Note:
 
 <br>
 
-#### Bayesian Information Criteria (BIC)
+### Bayesian Information Criteria (BIC)
 
 $$
 BIC = -2l(\hat{\theta}, \hat{\beta}) + q \log n
@@ -4449,14 +4661,14 @@ where n = number of observations.
 
 <br>
 
-With our example presented at the beginning of [Generalized Linear Mixed Models],
+With our example presented at the beginning of [Linear Mixed Models],
 
 $$
 Y_{ik}= 
 \begin{cases}
-\beta_0 + b_{1i} + (\beta_1 + \ b_{2i})t_{ij} + \epsilon_{ij} && L \\
-\beta_0 + b_{1i} + (\beta_2 + \ b_{2i})t_{ij} + \epsilon_{ij} && H\\
-\beta_0 + b_{1i} + (\beta_3 + \ b_{2i})t_{ij} + \epsilon_{ij} && C
+\beta_0 + b_{1i} + (\beta_1 + \ b_{2i})t_{ij} + \epsilon_{ij} & L \\
+\beta_0 + b_{1i} + (\beta_2 + \ b_{2i})t_{ij} + \epsilon_{ij} & H\\
+\beta_0 + b_{1i} + (\beta_3 + \ b_{2i})t_{ij} + \epsilon_{ij} & C
 \end{cases}
 $$
 
@@ -4478,7 +4690,7 @@ here, we want to estimate $\beta, \sigma^2, d_{11}$ and predict $b_i$
 
 <br>
 
-### Split-Plot Designs
+## Split-Plot Designs
 
 -   Typically used in the case that you have two factors where one needs much larger units than the other.
 
@@ -4562,9 +4774,189 @@ $$
 \mathbf{Y = X \beta + Zb + \epsilon}
 $$
 
+### Application
+
+#### Example 1
+
+$$
+y_{ijk} = \mu + i_i + v_j + (iv)_{ij} + f_k + \epsilon_{ijk}
+$$
+
+where
+
+-   $y_{ijk}$ = observed yield
+-   $\mu$ = overall average yield
+-   $i_i$ = irrigation effect
+-   $v_j$ = variety effect
+-   $(iv)_{ij}$ = irrigation by variety interaction
+-   $f_k$ = random field (block) effect
+-   $\epsilon_{ijk}$ = residual
+-   because variety-field combination is only observed once, we can't have the random interaction effects between variety and field
+
+
+```r
+library(ggplot2)
+data(irrigation, package = "faraway")
+summary(irrigation)
+```
+
+```
+##      field   irrigation variety     yield      
+##  f1     :2   i1:4       v1:8    Min.   :34.80  
+##  f2     :2   i2:4       v2:8    1st Qu.:37.60  
+##  f3     :2   i3:4               Median :40.15  
+##  f4     :2   i4:4               Mean   :40.23  
+##  f5     :2                      3rd Qu.:42.73  
+##  f6     :2                      Max.   :47.60  
+##  (Other):4
+```
+
+```r
+head(irrigation, 4)
+```
+
+```
+##   field irrigation variety yield
+## 1    f1         i1      v1  35.4
+## 2    f1         i1      v2  37.9
+## 3    f2         i2      v1  36.7
+## 4    f2         i2      v2  38.2
+```
+
+```r
+ggplot(irrigation,
+       aes(
+         x = field,
+         y = yield,
+         shape = irrigation,
+         color = variety
+       )) +
+  geom_point(size = 3)
+```
+
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-65-1.png)<!-- -->
+
+
+```r
+sp_model <- lmerTest::lmer(yield ~ irrigation * variety + (1 | field), irrigation)
+summary(sp_model)
+```
+
+```
+## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+## lmerModLmerTest]
+## Formula: yield ~ irrigation * variety + (1 | field)
+##    Data: irrigation
+## 
+## REML criterion at convergence: 45.4
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -0.7448 -0.5509  0.0000  0.5509  0.7448 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  field    (Intercept) 16.200   4.025   
+##  Residual              2.107   1.452   
+## Number of obs: 16, groups:  field, 8
+## 
+## Fixed effects:
+##                        Estimate Std. Error     df t value Pr(>|t|)    
+## (Intercept)              38.500      3.026  4.487  12.725 0.000109 ***
+## irrigationi2              1.200      4.279  4.487   0.280 0.791591    
+## irrigationi3              0.700      4.279  4.487   0.164 0.877156    
+## irrigationi4              3.500      4.279  4.487   0.818 0.454584    
+## varietyv2                 0.600      1.452  4.000   0.413 0.700582    
+## irrigationi2:varietyv2   -0.400      2.053  4.000  -0.195 0.855020    
+## irrigationi3:varietyv2   -0.200      2.053  4.000  -0.097 0.927082    
+## irrigationi4:varietyv2    1.200      2.053  4.000   0.584 0.590265    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Correlation of Fixed Effects:
+##             (Intr) irrgt2 irrgt3 irrgt4 vrtyv2 irr2:2 irr3:2
+## irrigation2 -0.707                                          
+## irrigation3 -0.707  0.500                                   
+## irrigation4 -0.707  0.500  0.500                            
+## varietyv2   -0.240  0.170  0.170  0.170                     
+## irrgtn2:vr2  0.170 -0.240 -0.120 -0.120 -0.707              
+## irrgtn3:vr2  0.170 -0.120 -0.240 -0.120 -0.707  0.500       
+## irrgtn4:vr2  0.170 -0.120 -0.120 -0.240 -0.707  0.500  0.500
+```
+
+```r
+anova(sp_model,ddf = c("Kenward-Roger"))
+```
+
+```
+## Type III Analysis of Variance Table with Kenward-Roger's method
+##                    Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
+## irrigation         2.4545 0.81818     3     4  0.3882 0.7685
+## variety            2.2500 2.25000     1     4  1.0676 0.3599
+## irrigation:variety 1.5500 0.51667     3     4  0.2452 0.8612
+```
+
+Since p-value of the interaction term is insignificant, we consider fitting without it.
+
+
+```r
+library(lme4)
+```
+
+```
+## Loading required package: Matrix
+```
+
+```r
+sp_model_additive <- lmer(yield ~ irrigation + variety + (1 | field), irrigation)
+anova(sp_model_additive,sp_model,ddf = "Kenward-Roger")
+```
+
+```
+## refitting model(s) with ML (instead of REML)
+```
+
+```
+## Data: irrigation
+## Models:
+## sp_model_additive: yield ~ irrigation + variety + (1 | field)
+## sp_model: yield ~ irrigation * variety + (1 | field)
+##                   npar    AIC    BIC  logLik deviance  Chisq Df Pr(>Chisq)
+## sp_model_additive    7 83.959 89.368 -34.980   69.959                     
+## sp_model            10 88.609 96.335 -34.305   68.609 1.3503  3     0.7172
+```
+
+Since p-value of Chi-square test is insignificant, we can't reject the additive model is already sufficient. Looking at AIC and BIC, we can also see that we would prefer the additive model
+
+**Random Effect Examination**
+
+`exactRLRT` test
+
+-   $H_0$: Var(random effect) (i.e., $\sigma^2$)= 0
+-   $H_a$: Var(random effect) (i.e., $\sigma^2$) \> 0
+
+
+```r
+sp_model <- lme4::lmer(yield ~ irrigation * variety + (1 | field), irrigation)
+library(RLRsim)
+exactRLRT(sp_model)
+```
+
+```
+## 
+## 	simulated finite sample distribution of RLRT.
+## 	
+## 	(p-value based on 10000 simulated values)
+## 
+## data:  
+## RLRT = 6.1118, p-value = 0.0088
+```
+
+Since the p-value is significant, we reject $H_0$
+
 <br>
 
-### Repeated Measures in Mixed Models
+## Repeated Measures in Mixed Models
 
 $$
 Y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \delta_{i(k)}+ \epsilon_{ijk}
@@ -4580,7 +4972,7 @@ where
 hence, the variance-covariance matrix of the repeated observations on the k-th subject of the i-th group, $\mathbf{Y}_{ik} = (Y_{i1k},..,Y_{in_Bk})'$, will be
 
 $$
-\begin{align}
+\begin{aligned}
 \mathbf{\Sigma}_{subject} &=
 \left(
 \begin{array}
@@ -4601,8 +4993,8 @@ $$
 \rho & \rho & ... & 1 \\
 \end{array}
 \right) 
-&& \text{product of a scalar and a correlation matrix}
-\end{align}
+& \text{product of a scalar and a correlation matrix}
+\end{aligned}
 $$
 
 where $\rho = \frac{\sigma^2_\delta}{\sigma^2_\delta + \sigma^2}$, which is the compound symmetry structure that we discussed in [Random-Intercepts Model]
@@ -4613,7 +5005,9 @@ Mixed model for a repeated measure
 
 $$
 Y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ijk}
-$$ where
+$$
+
+where
 
 -   $\epsilon_{ijk}$ combines random error of both the whole and subplots.
 
@@ -4661,7 +5055,7 @@ $$
 
 where $\epsilon \sim N(0, \mathbf{\sigma^2 \Sigma})$ and $\Sigma$ = block diagonal if the random error covariance is the same for each subject.
 
-### Unbalanced or Unequally Spaced Data
+## Unbalanced or Unequally Spaced Data
 
 Consider the model
 
@@ -4697,7 +5091,7 @@ which is called "power" covariance model
 
 We can consider $\beta_{2i} , \beta_{1i}, \beta_{0i}$ accordingly to see whether these terms are needed in the final model
 
-### Application
+## Application
 
 R Packages for mixed models
 
@@ -4717,11 +5111,15 @@ R Packages for mixed models
 
     -   can handle nonnormal response
 
+    -   for more detailed application, check [Fitting Linear Mixed-Effects Models Using lme4](https://arxiv.org/abs/1406.5823)
+
 -   Others
 
     -   Bayesian setting: `MCMCglmm`, `brms`
 
     -   For genetics: `ASReml`
+
+### Example 1 (Pulps)
 
 Model:
 
@@ -4741,20 +5139,25 @@ where
 
 
 ```r
-data(pulp, package="faraway")
-plot(y=pulp$bright, x=pulp$operator,xlab = "Operator", ylab = "Brightness")
+data(pulp, package = "faraway")
+plot(
+  y = pulp$bright,
+  x = pulp$operator,
+  xlab = "Operator",
+  ylab = "Brightness"
+)
 ```
 
-<img src="06-2-nonlinear_regression_files/figure-html/unnamed-chunk-63-1.png" width="672" />
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-69-1.png)<!-- -->
 
 ```r
-pulp %>% dplyr::group_by(operator) %>% dplyr::summarise(average=mean(bright))
+pulp %>% dplyr::group_by(operator) %>% dplyr::summarise(average = mean(bright))
 ```
 
 ```
 ## # A tibble: 4 x 2
 ##   operator average
-## * <fct>      <dbl>
+##   <fct>      <dbl>
 ## 1 a           60.2
 ## 2 b           60.1
 ## 3 c           60.6
@@ -4766,15 +5169,8 @@ pulp %>% dplyr::group_by(operator) %>% dplyr::summarise(average=mean(bright))
 
 ```r
 library(lme4)
-```
-
-```
-## Loading required package: Matrix
-```
-
-```r
-mixed_model <- lmer(formula = bright ~ 1 + (1 | operator),
-data = pulp)
+mixed_model <- lmer(formula = bright ~ 1 + (1 | operator), # pipe (i..e, | ) denotes random-effect terms
+                    data = pulp)
 summary(mixed_model)
 ```
 
@@ -4816,69 +5212,714 @@ coef(mixed_model)
 ## [1] "coef.mer"
 ```
 
+```r
+fixef(mixed_model) # fixed effects
+```
+
+```
+## (Intercept) 
+##        60.4
+```
+
+```r
+confint(mixed_model) # confidence interval
+```
+
+```
+## Computing profile confidence intervals ...
+```
+
+```
+##                 2.5 %     97.5 %
+## .sig01       0.000000  0.6178987
+## .sigma       0.238912  0.4821845
+## (Intercept) 60.071299 60.7287012
+```
+
+```r
+ranef(mixed_model) # random effects
+```
+
+```
+## $operator
+##   (Intercept)
+## a  -0.1219403
+## b  -0.2591231
+## c   0.1676679
+## d   0.2133955
+## 
+## with conditional variances for "operator"
+```
+
+```r
+VarCorr(mixed_model) # random effects standard deviation
+```
+
+```
+##  Groups   Name        Std.Dev.
+##  operator (Intercept) 0.26093 
+##  Residual             0.32596
+```
+
+```r
+re_dat = as.data.frame(VarCorr(mixed_model))
+rho = re_dat[1,'vcov']/(re_dat[1,'vcov'] + re_dat[2,'vcov']) # rho based on the above formula
+rho
+```
+
+```
+## [1] 0.3905354
+```
+
+To Satterthwaite approximation for the denominator df, we use `lmerTest`
+
+
+```r
+library(lmerTest)
+```
+
+```
+## 
+## Attaching package: 'lmerTest'
+```
+
+```
+## The following object is masked from 'package:lme4':
+## 
+##     lmer
+```
+
+```
+## The following object is masked from 'package:stats':
+## 
+##     step
+```
+
+```r
+summary(lmerTest::lmer(bright ~ 1 + (1 | operator), pulp))$coefficients
+```
+
+```
+##             Estimate Std. Error df  t value     Pr(>|t|)
+## (Intercept)     60.4  0.1494434  3 404.1664 3.340265e-08
+```
+
+```r
+confint(mixed_model)[3,]
+```
+
+```
+## Computing profile confidence intervals ...
+```
+
+```
+##   2.5 %  97.5 % 
+## 60.0713 60.7287
+```
+
+In this example, we can see that the confidence interval computed by `confint` in `lmer` package is very close is `confint` in `lmerTest` model. <br>
+
 `MCMglmm` application
 
-# Nonlinear and Generalized Linear Mixed Models
+under the Bayesian framework
 
--   NLMMs extend the nonlinear model to include both fixed effects and random effects
--   GLMMs extend the generalized linear model to include both fixed effects and random effects.
 
-A nonlinear mixed model has the form of
+```r
+library(MCMCglmm)
+```
 
-$$
-Y_{ij} = f(\mathbf{x_{ij} , \theta, \alpha_i}) + \epsilon_{ij}
-$$
+```
+## Loading required package: coda
+```
 
-for the j-th response from cluster (or sujbect) i ($i = 1,...,n$), where
+```
+## Loading required package: ape
+```
 
--   $j = 1,...,n_i$
--   $\mathbf{\theta}$ are the fixed effects
--   $\mathbf{\alpha}_i$ are the random effects for cluster i
--   $\mathbf{x}_{ij}$ are the regressors or design variables
--   $f(.)$ is nonlinear mean response function
+```r
+mixed_model_bayes <- MCMCglmm(bright~1,random=~operator, data=pulp, verbose=FALSE)
+summary(mixed_model_bayes)$solutions
+```
 
-A GLMM can be written as:
+```
+##             post.mean l-95% CI u-95% CI eff.samp pMCMC
+## (Intercept)  60.39357 60.07742 60.66047 1184.638 0.001
+```
 
-we assume
+this method offers the confidence interval slightly more positive than `lmer` and `lmerTest`
 
-$$
-y_i |\alpha_i \sim \text{indep } f(y_i | \alpha)
-$$
+#### Prediction
 
-and $f(y_i | \mathbf{\alpha})$ is an exponential family distribution,
 
-$$
-f(y_i | \alpha) = \exp [\frac{y_i \theta_i - b(\theta_i)}{a(\phi)} - c(y_i, \phi)]
-$$
+```r
+# random effects prediction (BLUPs)
+ranef(mixed_model)$operator
+```
 
-The conditional mean of $y_i$ is related to $\theta_i$
+```
+##   (Intercept)
+## a  -0.1219403
+## b  -0.2591231
+## c   0.1676679
+## d   0.2133955
+```
 
-$$
-\mu_i = \frac{\partial b(\theta_i)}{\partial \theta_i}
-$$
+```r
+fixef(mixed_model) + ranef(mixed_model)$operator #prediction for each categories
+```
 
-The transformation of this mean will give us the desired linear model to model both the fixed and random effects.
+```
+##   (Intercept)
+## a    60.27806
+## b    60.14088
+## c    60.56767
+## d    60.61340
+```
 
-$$
-E(y_i |\alpha) = \mu_i \\
-g(\mu_i) = \mathbf{x_i' \beta + z'_i \alpha}
-$$
+```r
+predict(mixed_model, newdata=data.frame(operator=c('a','b','c','d'))) # equivalent to the above method
+```
 
-where $g()$ is a known link function and $\mu_i$ is the conditional mean. We can see similarity to [GLM](\#generalized-linear-models)
+```
+##        1        2        3        4 
+## 60.27806 60.14088 60.56767 60.61340
+```
 
-We also have to specify the random effects distribution
+use `bootMer()` to get bootstrap-based confidence intervals for predictions.
 
-$$
-\alpha \sim f(\alpha)
-$$
+Another example using GLMM in the context of blocking
 
-which is similar to the specification for mixed models.
+Penicillin data
 
-Moreover, law of large number applies to fixed effects so that you know it is a normal distribution. But here, you can specify $\alpha$ subjectively.
 
-Hence, we can show NLMM is a special case of the GLMM
+```r
+data(penicillin, package = "faraway")
+summary(penicillin)
+```
 
-$$
-\mathbf{Y}_i = \mathbf{f}(\mathbf{x}_i, \mathbf{\theta, \alpha}_i) + \mathbf{\epsilon}_i \\
-\mathbf{Y}_i = \mathbf{g}^{-1} (\mathbf{x}_i' \beta + z_i' \alpha_i) + \epsilon_i}
-$$
+```
+##  treat    blend       yield   
+##  A:5   Blend1:4   Min.   :77  
+##  B:5   Blend2:4   1st Qu.:81  
+##  C:5   Blend3:4   Median :87  
+##  D:5   Blend4:4   Mean   :86  
+##        Blend5:4   3rd Qu.:89  
+##                   Max.   :97
+```
+
+```r
+library(ggplot2)
+ggplot(penicillin, aes(
+  y = yield,
+  x = treat,
+  shape = blend,
+  color = blend
+)) + # treatment = fixed effect, blend = random effects
+  geom_point(size = 3) +
+  xlab("Treatment")
+```
+
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-74-1.png)<!-- -->
+
+```r
+library(lmerTest) # for p-values
+mixed_model <- lmerTest::lmer(yield ~ treat + (1 | blend),
+                              data = penicillin)
+summary(mixed_model)
+```
+
+```
+## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+## lmerModLmerTest]
+## Formula: yield ~ treat + (1 | blend)
+##    Data: penicillin
+## 
+## REML criterion at convergence: 103.8
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -1.4152 -0.5017 -0.1644  0.6830  1.2836 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  blend    (Intercept) 11.79    3.434   
+##  Residual             18.83    4.340   
+## Number of obs: 20, groups:  blend, 5
+## 
+## Fixed effects:
+##             Estimate Std. Error     df t value Pr(>|t|)    
+## (Intercept)   84.000      2.475 11.075  33.941 1.51e-12 ***
+## treatB         1.000      2.745 12.000   0.364   0.7219    
+## treatC         5.000      2.745 12.000   1.822   0.0935 .  
+## treatD         2.000      2.745 12.000   0.729   0.4802    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Correlation of Fixed Effects:
+##        (Intr) treatB treatC
+## treatB -0.555              
+## treatC -0.555  0.500       
+## treatD -0.555  0.500  0.500
+```
+
+```r
+#The BLUPs for the each blend
+ranef(mixed_model)$blend
+```
+
+```
+##        (Intercept)
+## Blend1   4.2878788
+## Blend2  -2.1439394
+## Blend3  -0.7146465
+## Blend4   1.4292929
+## Blend5  -2.8585859
+```
+
+Examine treatment effect
+
+
+```r
+anova(mixed_model) # p-value based on lmerTest
+```
+
+```
+## Type III Analysis of Variance Table with Satterthwaite's method
+##       Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
+## treat     70  23.333     3    12  1.2389 0.3387
+```
+
+Since the p-value is greater than 0.05, we can't reject the null hypothesis that there is no treatment effect.
+
+
+```r
+library(pbkrtest)
+full_model <- lmer(yield ~ treat + (1 | blend), penicillin, REML=FALSE) #REML is not appropriate for testing fixed effects, it should be ML
+null_model <- lmer(yield ~ 1 + (1 | blend), penicillin, REML=FALSE)
+KRmodcomp(full_model, null_model) # use  Kenward-Roger approximation for df
+```
+
+```
+## large : yield ~ treat + (1 | blend)
+## small : yield ~ 1 + (1 | blend)
+##          stat     ndf     ddf F.scaling p.value
+## Ftest  1.2389  3.0000 12.0000         1  0.3387
+```
+
+Since the p-value is greater than 0.05, and consistent with our previous observation, we conclude that we can't reject the null hypothesis that there is no treatment effect.
+
+### Example 2 (Rats)
+
+
+```r
+rats <- read.csv(
+    "images/rats.dat",
+    header = F,
+    sep = ' ',
+    col.names = c('Treatment', 'rat', 'age', 'y')
+)
+rats$t <- log(1 + (rats$age - 45)/10) #log transformed age
+```
+
+We are interested in whether treatment effect induces changes over time.
+
+
+```r
+rat_model <- lmerTest::lmer(y~t:Treatment+(1|rat),data=rats) #treatment = fixed effect, rat = random effects
+summary(rat_model)
+```
+
+```
+## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+## lmerModLmerTest]
+## Formula: y ~ t:Treatment + (1 | rat)
+##    Data: rats
+## 
+## REML criterion at convergence: 932.4
+## 
+## Scaled residuals: 
+##      Min       1Q   Median       3Q      Max 
+## -2.25574 -0.65898 -0.01163  0.58356  2.88309 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  rat      (Intercept) 3.565    1.888   
+##  Residual             1.445    1.202   
+## Number of obs: 252, groups:  rat, 50
+## 
+## Fixed effects:
+##                Estimate Std. Error       df t value Pr(>|t|)    
+## (Intercept)     68.6074     0.3312  89.0275  207.13   <2e-16 ***
+## t:Treatmentcon   7.3138     0.2808 247.2762   26.05   <2e-16 ***
+## t:Treatmenthig   6.8711     0.2276 247.7097   30.19   <2e-16 ***
+## t:Treatmentlow   7.5069     0.2252 247.5196   33.34   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Correlation of Fixed Effects:
+##             (Intr) t:Trtmntc t:Trtmnth
+## t:Tretmntcn -0.327                    
+## t:Tretmnthg -0.340  0.111             
+## t:Tretmntlw -0.351  0.115     0.119
+```
+
+```r
+anova(rat_model)
+```
+
+```
+## Type III Analysis of Variance Table with Satterthwaite's method
+##             Sum Sq Mean Sq NumDF  DenDF F value    Pr(>F)    
+## t:Treatment 3181.9  1060.6     3 223.21  734.11 < 2.2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+Since the p-value is significant, we can be confident concluding that there is a treatment effect
+
+<br>
+
+### Example 3 (Agridat)
+
+
+```r
+library(agridat)
+library(latticeExtra)
+```
+
+```
+## Loading required package: lattice
+```
+
+```
+## 
+## Attaching package: 'lattice'
+```
+
+```
+## The following object is masked from 'package:faraway':
+## 
+##     melanoma
+```
+
+```
+## 
+## Attaching package: 'latticeExtra'
+```
+
+```
+## The following object is masked from 'package:ggplot2':
+## 
+##     layer
+```
+
+```r
+dat <- harris.wateruse
+# Compare to Schabenberger & Pierce, fig 7.23
+useOuterStrips(
+  xyplot(
+    water ~ day | species * age,
+    dat,
+    as.table = TRUE,
+    group = tree,
+    type = c('p', 'smooth'),
+    main = "harris.wateruse 2 species, 2 ages (10 trees each)"
+  )
+)
+```
+
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-79-1.png)<!-- -->
+
+Remove outliers
+
+
+```r
+dat <- subset(dat, day!=268)
+```
+
+Plot between age and species
+
+
+```r
+xyplot(
+  water ~ day | tree,
+  dat,
+  subset = age == "A2" & species == "S2",
+  as.table = TRUE,
+  type = c('p', 'smooth'),
+  ylab = "Water use profiles of individual trees",
+  main = "harris.wateruse (Age 2, Species 2)"
+)
+```
+
+![](06-2-nonlinear_regression_files/figure-epub3/unnamed-chunk-81-1.png)<!-- -->
+
+
+```r
+# Rescale day for nicer output, and convergence issues, add quadratic term
+dat <- transform(dat, ti = day / 100)
+dat <- transform(dat, ti2 = ti * ti)
+# Start with a subgroup: age 2, species 2
+d22 <- droplevels(subset(dat, age == "A2" & species == "S2"))
+```
+
+`lme` function from `nlme` package
+
+
+```r
+library(nlme)
+```
+
+```
+## 
+## Attaching package: 'nlme'
+```
+
+```
+## The following object is masked from 'package:lme4':
+## 
+##     lmList
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     collapse
+```
+
+```r
+## We use pdDiag() to get uncorrelated random effects
+m1n <- lme(
+    water ~ 1 + ti + ti2, #intercept, time and time-squared = fixed effects
+    data = d22,
+    na.action = na.omit,
+    random = list(tree = pdDiag( ~ 1 + ti + ti2)) # random intercept, time and time squared per tree = random effects
+)
+ranef(m1n)
+```
+
+```
+##     (Intercept)            ti           ti2
+## T04   0.1985796  1.609864e-09  4.990101e-10
+## T05   0.3492827  2.487690e-10 -4.845287e-11
+## T19  -0.1978989 -7.681202e-10 -1.961453e-10
+## T23   0.4519003 -3.270426e-10 -2.413583e-10
+## T38  -0.6457494 -1.608770e-09 -3.298010e-10
+## T40   0.3739432  3.264705e-10 -2.543109e-11
+## T49   0.8620648  9.021831e-10 -5.402247e-12
+## T53  -0.5655049 -8.279040e-10 -4.579291e-11
+## T67  -0.4394623 -3.485113e-10  2.147434e-11
+## T71  -0.3871552  7.930610e-10  3.718993e-10
+```
+
+
+```r
+fixef(m1n)
+```
+
+```
+## (Intercept)          ti         ti2 
+##  -10.798799   12.346704   -2.838503
+```
+
+```r
+summary(m1n)
+```
+
+```
+## Linear mixed-effects model fit by REML
+##   Data: d22 
+##        AIC     BIC    logLik
+##   276.5142 300.761 -131.2571
+## 
+## Random effects:
+##  Formula: ~1 + ti + ti2 | tree
+##  Structure: Diagonal
+##         (Intercept)           ti          ti2  Residual
+## StdDev:   0.5187869 1.438333e-05 3.864019e-06 0.3836614
+## 
+## Fixed effects:  water ~ 1 + ti + ti2 
+##                  Value Std.Error  DF   t-value p-value
+## (Intercept) -10.798799 0.8814666 227 -12.25094       0
+## ti           12.346704 0.7827112 227  15.77428       0
+## ti2          -2.838503 0.1720614 227 -16.49704       0
+##  Correlation: 
+##     (Intr) ti    
+## ti  -0.979       
+## ti2  0.970 -0.997
+## 
+## Standardized Within-Group Residuals:
+##         Min          Q1         Med          Q3         Max 
+## -3.07588246 -0.58531056  0.01210209  0.65402695  3.88777402 
+## 
+## Number of Observations: 239
+## Number of Groups: 10
+```
+
+`lmer` function from `lme4` package
+
+
+```r
+m1lmer <- lmer(water~1+ti+ti2+(ti+ti2||tree),data = d22,na.action = na.omit)
+```
+
+```
+## boundary (singular) fit: see ?isSingular
+```
+
+```r
+ranef(m1lmer)
+```
+
+```
+## $tree
+##     (Intercept) ti ti2
+## T04   0.1985796  0   0
+## T05   0.3492827  0   0
+## T19  -0.1978989  0   0
+## T23   0.4519003  0   0
+## T38  -0.6457494  0   0
+## T40   0.3739432  0   0
+## T49   0.8620648  0   0
+## T53  -0.5655049  0   0
+## T67  -0.4394623  0   0
+## T71  -0.3871552  0   0
+## 
+## with conditional variances for "tree"
+```
+
+Notes:
+
+-   `||` double pipes= uncorrelated random effects
+
+-   To remove the intercept term:
+
+    -   `(0+ti|tree)`
+
+    -   `(ti-1|tree)`
+
+
+```r
+fixef(m1lmer)
+```
+
+```
+## (Intercept)          ti         ti2 
+##  -10.798799   12.346704   -2.838503
+```
+
+```r
+m1l <- lmer(water ~ 1 + ti + ti2 + (1 | tree) + (0 + ti | tree) + (0 + ti2 | tree), data = d22)
+```
+
+```
+## boundary (singular) fit: see ?isSingular
+```
+
+```r
+ranef(m1l)
+```
+
+```
+## $tree
+##     (Intercept) ti ti2
+## T04   0.1985796  0   0
+## T05   0.3492827  0   0
+## T19  -0.1978989  0   0
+## T23   0.4519003  0   0
+## T38  -0.6457494  0   0
+## T40   0.3739432  0   0
+## T49   0.8620648  0   0
+## T53  -0.5655049  0   0
+## T67  -0.4394623  0   0
+## T71  -0.3871552  0   0
+## 
+## with conditional variances for "tree"
+```
+
+```r
+fixef(m1l)
+```
+
+```
+## (Intercept)          ti         ti2 
+##  -10.798799   12.346704   -2.838503
+```
+
+To include structured covariance terms, we can use the following way
+
+
+```r
+m2n <- lme(
+    water ~ 1 + ti + ti2,
+    data = d22,
+    random = ~ 1 | tree,
+    cor = corExp(form =  ~ day | tree),
+    na.action = na.omit
+)
+ranef(m2n)
+```
+
+```
+##     (Intercept)
+## T04   0.1929971
+## T05   0.3424631
+## T19  -0.1988495
+## T23   0.4538660
+## T38  -0.6413664
+## T40   0.3769378
+## T49   0.8410043
+## T53  -0.5528236
+## T67  -0.4452930
+## T71  -0.3689358
+```
+
+```r
+fixef(m2n)
+```
+
+```
+## (Intercept)          ti         ti2 
+##  -11.223310   12.712094   -2.913682
+```
+
+```r
+summary(m2n)
+```
+
+```
+## Linear mixed-effects model fit by REML
+##   Data: d22 
+##        AIC      BIC   logLik
+##   263.3081 284.0911 -125.654
+## 
+## Random effects:
+##  Formula: ~1 | tree
+##         (Intercept)  Residual
+## StdDev:   0.5154042 0.3925777
+## 
+## Correlation Structure: Exponential spatial correlation
+##  Formula: ~day | tree 
+##  Parameter estimate(s):
+##    range 
+## 3.794624 
+## Fixed effects:  water ~ 1 + ti + ti2 
+##                  Value Std.Error  DF   t-value p-value
+## (Intercept) -11.223310 1.0988725 227 -10.21348       0
+## ti           12.712094 0.9794235 227  12.97916       0
+## ti2          -2.913682 0.2148551 227 -13.56115       0
+##  Correlation: 
+##     (Intr) ti    
+## ti  -0.985       
+## ti2  0.976 -0.997
+## 
+## Standardized Within-Group Residuals:
+##         Min          Q1         Med          Q3         Max 
+## -3.04861039 -0.55703950  0.00278101  0.62558762  3.80676991 
+## 
+## Number of Observations: 239
+## Number of Groups: 10
+```
+
+<br>
+
