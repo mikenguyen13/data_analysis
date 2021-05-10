@@ -2272,6 +2272,8 @@ summary(profile_fit)
 
 ### Summary
 
+![](images/MANOVA_summary.PNG "MANOVA summary")
+
 <br>
 
 ## Principal Components {#principal-components}
@@ -4445,11 +4447,11 @@ table(truth = Y_train, fitted = knn_2)
 ```
 ##             fitted
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          8    0      2        1          0
-##   Corn            0    6      0        1          0
-##   Cotton          1    0      5        0          0
+##   Clover          9    0      1        1          0
+##   Corn            0    5      0        2          0
+##   Cotton          0    0      5        0          1
 ##   Soybeans        0    0      0        4          2
-##   Sugarbeets      1    0      1        0          4
+##   Sugarbeets      1    0      1        2          2
 ```
 
 ```r
@@ -4458,7 +4460,7 @@ mean(Y_train==knn_2)
 ```
 
 ```
-## [1] 0.75
+## [1] 0.6944444
 ```
 
 ```r
@@ -4495,10 +4497,10 @@ table(truth = Y_train, fitted = knn_3)
 ```
 ##             fitted
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          8    0      2        1          0
-##   Corn            0    4      1        2          0
-##   Cotton          1    0      3        1          1
-##   Soybeans        0    0      2        3          1
+##   Clover          7    0      2        2          0
+##   Corn            0    4      0        3          0
+##   Cotton          1    1      3        0          1
+##   Soybeans        0    1      1        3          1
 ##   Sugarbeets      0    0      0        3          3
 ```
 
@@ -4508,7 +4510,7 @@ mean(Y_train==knn_3)
 ```
 
 ```
-## [1] 0.5833333
+## [1] 0.5555556
 ```
 
 ```r
@@ -4566,7 +4568,7 @@ step <- stepclass(
 ## correctness rate: 0.46667;  in: "y1";  variables (1): y1 
 ## 
 ##  hr.elapsed min.elapsed sec.elapsed 
-##        0.00        0.00        0.16
+##        0.00        0.00        0.12
 ```
 
 ```r

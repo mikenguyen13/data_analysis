@@ -565,8 +565,8 @@ benchmark(
 
 ```
 ##   test replications elapsed relative
-## 1 MASS           50    2.11    1.000
-## 2 lme4           50    4.37    2.071
+## 1 MASS           50    2.37    1.000
+## 2 lme4           50    4.58    1.932
 ```
 
 In numerical integration, we can set `nAGQ > 1` to switch the method of likelihood evaluation, which might increase accuracy
@@ -628,25 +628,25 @@ summary(Bayes_cbpp)
 ##  Thinning interval  = 10
 ##  Sample size  = 1000 
 ## 
-##  DIC: 538.1732 
+##  DIC: 538.2949 
 ## 
 ##  G-structure:  ~herd
 ## 
-##      post.mean l-95% CI  u-95% CI eff.samp
-## herd  0.001848 7.23e-17 3.661e-07      128
+##      post.mean  l-95% CI u-95% CI eff.samp
+## herd   0.02234 9.578e-17  0.08768    178.7
 ## 
 ##  R-structure:  ~units
 ## 
 ##       post.mean l-95% CI u-95% CI eff.samp
-## units     1.136     0.28    2.224    437.4
+## units     1.108   0.2205    2.086    240.4
 ## 
 ##  Location effects: cbind(incidence, size - incidence) ~ period 
 ## 
 ##             post.mean l-95% CI u-95% CI eff.samp  pMCMC    
-## (Intercept)   -1.5353  -2.1625  -0.8814    788.2 <0.001 ***
-## period2       -1.2736  -2.2743  -0.1792    792.7  0.018 *  
-## period3       -1.3758  -2.4527  -0.3212    744.5  0.014 *  
-## period4       -1.9474  -3.2696  -0.8076    600.8 <0.001 ***
+## (Intercept)   -1.5367  -2.1237  -0.8595    782.5 <0.001 ***
+## period2       -1.2621  -2.2580  -0.1835    677.7  0.016 *  
+## period3       -1.3889  -2.3947  -0.2399    638.7  0.006 ** 
+## period4       -1.9241  -3.2344  -0.6563    450.9  0.004 ** 
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -659,8 +659,8 @@ apply(Bayes_cbpp$VCV,2,sd) #explains less variability
 ```
 
 ```
-##       herd      units 
-## 0.01770192 0.53064949
+##      herd     units 
+## 0.1436177 0.5750310
 ```
 
 
@@ -670,10 +670,10 @@ summary(Bayes_cbpp)$solutions
 
 ```
 ##             post.mean  l-95% CI   u-95% CI eff.samp pMCMC
-## (Intercept) -1.535336 -2.162530 -0.8814035 788.1716 0.001
-## period2     -1.273615 -2.274257 -0.1791831 792.7482 0.018
-## period3     -1.375760 -2.452745 -0.3212208 744.5485 0.014
-## period4     -1.947445 -3.269552 -0.8076366 600.7886 0.001
+## (Intercept) -1.536709 -2.123669 -0.8594571 782.4997 0.001
+## period2     -1.262106 -2.257955 -0.1834649 677.7111 0.016
+## period3     -1.388941 -2.394653 -0.2399472 638.7122 0.006
+## period4     -1.924142 -3.234363 -0.6563254 450.9209 0.004
 ```
 
 interpret Bayesian "credible intervals" similarly to confidence intervals
