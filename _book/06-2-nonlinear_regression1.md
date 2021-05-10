@@ -565,8 +565,8 @@ benchmark(
 
 ```
 ##   test replications elapsed relative
-## 1 MASS           50    1.98     1.00
-## 2 lme4           50    4.00     2.02
+## 1 MASS           50    2.14    1.000
+## 2 lme4           50    4.22    1.972
 ```
 
 In numerical integration, we can set `nAGQ > 1` to switch the method of likelihood evaluation, which might increase accuracy
@@ -628,25 +628,25 @@ summary(Bayes_cbpp)
 ##  Thinning interval  = 10
 ##  Sample size  = 1000 
 ## 
-##  DIC: 538.3378 
+##  DIC: 538.3881 
 ## 
 ##  G-structure:  ~herd
 ## 
 ##      post.mean  l-95% CI u-95% CI eff.samp
-## herd   0.03967 6.045e-17   0.2168    74.62
+## herd   0.06208 9.266e-17   0.3933    95.81
 ## 
 ##  R-structure:  ~units
 ## 
 ##       post.mean l-95% CI u-95% CI eff.samp
-## units     1.062   0.2425    2.004    289.4
+## units     1.024   0.1299    1.924      330
 ## 
 ##  Location effects: cbind(incidence, size - incidence) ~ period 
 ## 
 ##             post.mean l-95% CI u-95% CI eff.samp  pMCMC    
-## (Intercept)   -1.5344  -2.1113  -0.8501   1000.0 <0.001 ***
-## period2       -1.2886  -2.2867  -0.3739    636.3  0.010 ** 
-## period3       -1.3669  -2.4386  -0.3679    948.3  0.018 *  
-## period4       -1.9217  -3.2343  -0.8185    620.0  0.002 ** 
+## (Intercept)   -1.5176  -2.1703  -0.8830    669.1 <0.001 ***
+## period2       -1.2463  -2.3284  -0.1607    847.5  0.026 *  
+## period3       -1.3886  -2.5055  -0.4613    762.4  0.006 ** 
+## period4       -1.9397  -3.1759  -0.7592    462.9 <0.001 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -660,7 +660,7 @@ apply(Bayes_cbpp$VCV,2,sd) #explains less variability
 
 ```
 ##      herd     units 
-## 0.1492888 0.4873010
+## 0.1880532 0.4748754
 ```
 
 
@@ -669,11 +669,11 @@ summary(Bayes_cbpp)$solutions
 ```
 
 ```
-##             post.mean  l-95% CI   u-95% CI  eff.samp pMCMC
-## (Intercept) -1.534424 -2.111273 -0.8500911 1000.0000 0.001
-## period2     -1.288591 -2.286668 -0.3738952  636.3377 0.010
-## period3     -1.366855 -2.438565 -0.3679421  948.2527 0.018
-## period4     -1.921683 -3.234278 -0.8185461  619.9578 0.002
+##             post.mean  l-95% CI   u-95% CI eff.samp pMCMC
+## (Intercept) -1.517587 -2.170309 -0.8830031 669.1273 0.001
+## period2     -1.246332 -2.328375 -0.1606865 847.4513 0.026
+## period3     -1.388601 -2.505460 -0.4612840 762.4208 0.006
+## period4     -1.939717 -3.175903 -0.7591509 462.9367 0.001
 ```
 
 interpret Bayesian "credible intervals" similarly to confidence intervals
@@ -1010,7 +1010,7 @@ We can see ZIP GLMM with an arrival time covariate on the zero is best.
 
 -   nest variability is large in magnitude (without this, the parameter estimates change)
 
-### Binomial 
+### Binomial
 
 
 ```r
