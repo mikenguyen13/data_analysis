@@ -866,6 +866,8 @@ y_{kj}
 </div>
 <div id="application-13" class="section level3" number="21.2.3">
 <h3><span class="header-section-number">21.2.3</span> Application</h3>
+<p>PCA on the covariance matrix is usually not preferred due to the fact that PCA is not invariant to changes in scale. Hence, PCA on the correlation matrix is more preferred</p>
+<p>The eigvenvectors may differ by a multiplication of -1 for different implementation, but same interpretation.</p>
 <div class="sourceCode" id="cb908"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb908-1"><a href="principal-components.html#cb908-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
 <span id="cb908-2"><a href="principal-components.html#cb908-2" aria-hidden="true" tabindex="-1"></a><span class="do">## Read in and check data</span></span>
 <span id="cb908-3"><a href="principal-components.html#cb908-3" aria-hidden="true" tabindex="-1"></a>stock <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">&quot;images/stock.dat&quot;</span>)</span>
@@ -893,13 +895,17 @@ y_{kj}
 ## carbide 0.5086555 0.5983841 1.0000000 0.4361014 0.4256266
 ## exxon   0.3867206 0.3895191 0.4361014 1.0000000 0.5235293
 ## texaco  0.4621781 0.3219534 0.4256266 0.5235293 1.0000000</code></pre>
-<div class="sourceCode" id="cb914"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb914-1"><a href="principal-components.html#cb914-1" aria-hidden="true" tabindex="-1"></a><span class="do">## PCA with covariance</span></span>
-<span id="cb914-2"><a href="principal-components.html#cb914-2" aria-hidden="true" tabindex="-1"></a>cov_pca <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(stock)</span>
-<span id="cb914-3"><a href="principal-components.html#cb914-3" aria-hidden="true" tabindex="-1"></a><span class="co"># eigen values</span></span>
-<span id="cb914-4"><a href="principal-components.html#cb914-4" aria-hidden="true" tabindex="-1"></a>cov_results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">eigen_values =</span> cov_pca<span class="sc">$</span>sdev <span class="sc">^</span> <span class="dv">2</span>)</span>
-<span id="cb914-5"><a href="principal-components.html#cb914-5" aria-hidden="true" tabindex="-1"></a>cov_results <span class="sc">%&gt;%</span></span>
-<span id="cb914-6"><a href="principal-components.html#cb914-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">proportion =</span> eigen_values <span class="sc">/</span> <span class="fu">sum</span>(eigen_values),</span>
-<span id="cb914-7"><a href="principal-components.html#cb914-7" aria-hidden="true" tabindex="-1"></a>           <span class="at">cumulative =</span> <span class="fu">cumsum</span>(proportion))</span></code></pre></div>
+<div class="sourceCode" id="cb914"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb914-1"><a href="principal-components.html#cb914-1" aria-hidden="true" tabindex="-1"></a><span class="co"># cov(scale(stock)) # give the same result</span></span>
+<span id="cb914-2"><a href="principal-components.html#cb914-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb914-3"><a href="principal-components.html#cb914-3" aria-hidden="true" tabindex="-1"></a><span class="do">## PCA with covariance</span></span>
+<span id="cb914-4"><a href="principal-components.html#cb914-4" aria-hidden="true" tabindex="-1"></a>cov_pca <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(stock) <span class="co"># uses singular value decomposition for calculation and an N -1 divisor</span></span>
+<span id="cb914-5"><a href="principal-components.html#cb914-5" aria-hidden="true" tabindex="-1"></a><span class="co"># alternatively, princomp can do PCA via spectral decomposition, but it has worse numerical accuracy</span></span>
+<span id="cb914-6"><a href="principal-components.html#cb914-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb914-7"><a href="principal-components.html#cb914-7" aria-hidden="true" tabindex="-1"></a><span class="co"># eigen values</span></span>
+<span id="cb914-8"><a href="principal-components.html#cb914-8" aria-hidden="true" tabindex="-1"></a>cov_results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">eigen_values =</span> cov_pca<span class="sc">$</span>sdev <span class="sc">^</span> <span class="dv">2</span>)</span>
+<span id="cb914-9"><a href="principal-components.html#cb914-9" aria-hidden="true" tabindex="-1"></a>cov_results <span class="sc">%&gt;%</span></span>
+<span id="cb914-10"><a href="principal-components.html#cb914-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">proportion =</span> eigen_values <span class="sc">/</span> <span class="fu">sum</span>(eigen_values),</span>
+<span id="cb914-11"><a href="principal-components.html#cb914-11" aria-hidden="true" tabindex="-1"></a>           <span class="at">cumulative =</span> <span class="fu">cumsum</span>(proportion)) <span class="co"># first 2 PCs account for 73% variance in the data</span></span></code></pre></div>
 <pre><code>##   eigen_values proportion cumulative
 ## 1 0.0035953867 0.60159252  0.6015925
 ## 2 0.0007921798 0.13255027  0.7341428
@@ -907,40 +913,52 @@ y_{kj}
 ## 4 0.0005086686 0.08511218  0.9424791
 ## 5 0.0003437707 0.05752091  1.0000000</code></pre>
 <div class="sourceCode" id="cb916"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb916-1"><a href="principal-components.html#cb916-1" aria-hidden="true" tabindex="-1"></a><span class="co"># eigen vectors</span></span>
-<span id="cb916-2"><a href="principal-components.html#cb916-2" aria-hidden="true" tabindex="-1"></a>cov_pca<span class="sc">$</span>rotation</span></code></pre></div>
+<span id="cb916-2"><a href="principal-components.html#cb916-2" aria-hidden="true" tabindex="-1"></a>cov_pca<span class="sc">$</span>rotation <span class="co"># prcomp calls rotation</span></span></code></pre></div>
 <pre><code>##               PC1         PC2        PC3         PC4         PC5
 ## allied  0.5605914  0.73884565 -0.1260222  0.28373183 -0.20846832
 ## dupont  0.4698673 -0.09286987 -0.4675066 -0.68793190  0.28069055
 ## carbide 0.5473322 -0.65401929 -0.1140581  0.50045312 -0.09603973
 ## exxon   0.2908932 -0.11267353  0.6099196 -0.43808002 -0.58203935
 ## texaco  0.2842017  0.07103332  0.6168831  0.06227778  0.72784638</code></pre>
-<div class="sourceCode" id="cb918"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb918-1"><a href="principal-components.html#cb918-1" aria-hidden="true" tabindex="-1"></a><span class="do">## PCA with correlation</span></span>
-<span id="cb918-2"><a href="principal-components.html#cb918-2" aria-hidden="true" tabindex="-1"></a><span class="co">#same as scale(stock) %&gt;% prcomp</span></span>
-<span id="cb918-3"><a href="principal-components.html#cb918-3" aria-hidden="true" tabindex="-1"></a>cor_pca <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(stock, <span class="at">scale =</span> T)</span>
-<span id="cb918-4"><a href="principal-components.html#cb918-4" aria-hidden="true" tabindex="-1"></a><span class="co"># eigen values</span></span>
-<span id="cb918-5"><a href="principal-components.html#cb918-5" aria-hidden="true" tabindex="-1"></a>cor_results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">eigen_values =</span> cor_pca<span class="sc">$</span>sdev <span class="sc">^</span> <span class="dv">2</span>)</span>
-<span id="cb918-6"><a href="principal-components.html#cb918-6" aria-hidden="true" tabindex="-1"></a>cor_results <span class="sc">%&gt;%</span></span>
-<span id="cb918-7"><a href="principal-components.html#cb918-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">proportion =</span> eigen_values <span class="sc">/</span> <span class="fu">sum</span>(eigen_values),</span>
-<span id="cb918-8"><a href="principal-components.html#cb918-8" aria-hidden="true" tabindex="-1"></a>           <span class="at">cumulative =</span> <span class="fu">cumsum</span>(proportion))</span></code></pre></div>
+<div class="sourceCode" id="cb918"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb918-1"><a href="principal-components.html#cb918-1" aria-hidden="true" tabindex="-1"></a><span class="co"># princomp calls loadings.</span></span>
+<span id="cb918-2"><a href="principal-components.html#cb918-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb918-3"><a href="principal-components.html#cb918-3" aria-hidden="true" tabindex="-1"></a><span class="co"># first PC = overall average</span></span>
+<span id="cb918-4"><a href="principal-components.html#cb918-4" aria-hidden="true" tabindex="-1"></a><span class="co"># second PC compares Allied to Carbide</span></span>
+<span id="cb918-5"><a href="principal-components.html#cb918-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb918-6"><a href="principal-components.html#cb918-6" aria-hidden="true" tabindex="-1"></a><span class="do">## PCA with correlation</span></span>
+<span id="cb918-7"><a href="principal-components.html#cb918-7" aria-hidden="true" tabindex="-1"></a><span class="co">#same as scale(stock) %&gt;% prcomp</span></span>
+<span id="cb918-8"><a href="principal-components.html#cb918-8" aria-hidden="true" tabindex="-1"></a>cor_pca <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(stock, <span class="at">scale =</span> T)</span>
+<span id="cb918-9"><a href="principal-components.html#cb918-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb918-10"><a href="principal-components.html#cb918-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb918-11"><a href="principal-components.html#cb918-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb918-12"><a href="principal-components.html#cb918-12" aria-hidden="true" tabindex="-1"></a><span class="co"># eigen values</span></span>
+<span id="cb918-13"><a href="principal-components.html#cb918-13" aria-hidden="true" tabindex="-1"></a>cor_results <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">eigen_values =</span> cor_pca<span class="sc">$</span>sdev <span class="sc">^</span> <span class="dv">2</span>)</span>
+<span id="cb918-14"><a href="principal-components.html#cb918-14" aria-hidden="true" tabindex="-1"></a>cor_results <span class="sc">%&gt;%</span></span>
+<span id="cb918-15"><a href="principal-components.html#cb918-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">proportion =</span> eigen_values <span class="sc">/</span> <span class="fu">sum</span>(eigen_values),</span>
+<span id="cb918-16"><a href="principal-components.html#cb918-16" aria-hidden="true" tabindex="-1"></a>           <span class="at">cumulative =</span> <span class="fu">cumsum</span>(proportion))</span></code></pre></div>
 <pre><code>##   eigen_values proportion cumulative
 ## 1    2.8564869 0.57129738  0.5712974
 ## 2    0.8091185 0.16182370  0.7331211
 ## 3    0.5400440 0.10800880  0.8411299
 ## 4    0.4513468 0.09026936  0.9313992
 ## 5    0.3430038 0.06860076  1.0000000</code></pre>
-<div class="sourceCode" id="cb920"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb920-1"><a href="principal-components.html#cb920-1" aria-hidden="true" tabindex="-1"></a><span class="co"># eigen vectors</span></span>
-<span id="cb920-2"><a href="principal-components.html#cb920-2" aria-hidden="true" tabindex="-1"></a>cor_pca<span class="sc">$</span>rotation</span></code></pre></div>
+<div class="sourceCode" id="cb920"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb920-1"><a href="principal-components.html#cb920-1" aria-hidden="true" tabindex="-1"></a><span class="co"># first egiven values corresponds to less variance than PCA based on the covariance matrix</span></span>
+<span id="cb920-2"><a href="principal-components.html#cb920-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb920-3"><a href="principal-components.html#cb920-3" aria-hidden="true" tabindex="-1"></a><span class="co"># eigen vectors</span></span>
+<span id="cb920-4"><a href="principal-components.html#cb920-4" aria-hidden="true" tabindex="-1"></a>cor_pca<span class="sc">$</span>rotation</span></code></pre></div>
 <pre><code>##               PC1        PC2        PC3        PC4        PC5
 ## allied  0.4635405 -0.2408499  0.6133570 -0.3813727  0.4532876
 ## dupont  0.4570764 -0.5090997 -0.1778996 -0.2113068 -0.6749814
 ## carbide 0.4699804 -0.2605774 -0.3370355  0.6640985  0.3957247
 ## exxon   0.4216770  0.5252647 -0.5390181 -0.4728036  0.1794482
 ## texaco  0.4213291  0.5822416  0.4336029  0.3812273 -0.3874672</code></pre>
+<div class="sourceCode" id="cb922"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb922-1"><a href="principal-components.html#cb922-1" aria-hidden="true" tabindex="-1"></a><span class="co"># interpretation of PC2 is different from above: it is a comparison of Allied, Dupont and Carbid to Exxon and Texaco </span></span></code></pre></div>
 <p>Covid Example</p>
-<div class="sourceCode" id="cb922"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb922-1"><a href="principal-components.html#cb922-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&#39;images/MOcovid.RData&#39;</span>)</span>
-<span id="cb922-2"><a href="principal-components.html#cb922-2" aria-hidden="true" tabindex="-1"></a>covidpca <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(ndat[,<span class="sc">-</span><span class="dv">1</span>],<span class="at">scale =</span> T,<span class="at">center =</span> T)</span>
-<span id="cb922-3"><a href="principal-components.html#cb922-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb922-4"><a href="principal-components.html#cb922-4" aria-hidden="true" tabindex="-1"></a>covidpca<span class="sc">$</span>rotation[,<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>]</span></code></pre></div>
+<p>To reduce collinearity problem in this dataset, we can use principal components as regressors.</p>
+<div class="sourceCode" id="cb923"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb923-1"><a href="principal-components.html#cb923-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">&#39;images/MOcovid.RData&#39;</span>)</span>
+<span id="cb923-2"><a href="principal-components.html#cb923-2" aria-hidden="true" tabindex="-1"></a>covidpca <span class="ot">&lt;-</span> <span class="fu">prcomp</span>(ndat[,<span class="sc">-</span><span class="dv">1</span>],<span class="at">scale =</span> T,<span class="at">center =</span> T)</span>
+<span id="cb923-3"><a href="principal-components.html#cb923-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb923-4"><a href="principal-components.html#cb923-4" aria-hidden="true" tabindex="-1"></a>covidpca<span class="sc">$</span>rotation[,<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>]</span></code></pre></div>
 <pre><code>##                                                          PC1         PC2
 ## X..Population.in.Rural.Areas                      0.32865838  0.05090955
 ## Area..sq..miles.                                  0.12014444 -0.28579183
@@ -960,36 +978,41 @@ y_{kj}
 ## prop..White..nonHisp                              0.35627561 -0.14142646
 ## prop..Hispanic                                   -0.16655381 -0.15105342
 ## prop..Black                                      -0.33333359  0.24405802</code></pre>
-<div class="sourceCode" id="cb924"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb924-1"><a href="principal-components.html#cb924-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Variability of each principal component: pr.var</span></span>
-<span id="cb924-2"><a href="principal-components.html#cb924-2" aria-hidden="true" tabindex="-1"></a>pr.var <span class="ot">&lt;-</span> covidpca<span class="sc">$</span>sdev <span class="sc">^</span> <span class="dv">2</span></span>
-<span id="cb924-3"><a href="principal-components.html#cb924-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Variance explained by each principal component: pve</span></span>
-<span id="cb924-4"><a href="principal-components.html#cb924-4" aria-hidden="true" tabindex="-1"></a>pve <span class="ot">&lt;-</span> pr.var <span class="sc">/</span> <span class="fu">sum</span>(pr.var)</span>
-<span id="cb924-5"><a href="principal-components.html#cb924-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
-<span id="cb924-6"><a href="principal-components.html#cb924-6" aria-hidden="true" tabindex="-1"></a>    pve,</span>
-<span id="cb924-7"><a href="principal-components.html#cb924-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">&quot;Principal Component&quot;</span>,</span>
-<span id="cb924-8"><a href="principal-components.html#cb924-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">&quot;Proportion of Variance Explained&quot;</span>,</span>
-<span id="cb924-9"><a href="principal-components.html#cb924-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.5</span>),</span>
-<span id="cb924-10"><a href="principal-components.html#cb924-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">&quot;b&quot;</span></span>
-<span id="cb924-11"><a href="principal-components.html#cb924-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb925"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb925-1"><a href="principal-components.html#cb925-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Variability of each principal component: pr.var</span></span>
+<span id="cb925-2"><a href="principal-components.html#cb925-2" aria-hidden="true" tabindex="-1"></a>pr.var <span class="ot">&lt;-</span> covidpca<span class="sc">$</span>sdev <span class="sc">^</span> <span class="dv">2</span></span>
+<span id="cb925-3"><a href="principal-components.html#cb925-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Variance explained by each principal component: pve</span></span>
+<span id="cb925-4"><a href="principal-components.html#cb925-4" aria-hidden="true" tabindex="-1"></a>pve <span class="ot">&lt;-</span> pr.var <span class="sc">/</span> <span class="fu">sum</span>(pr.var)</span>
+<span id="cb925-5"><a href="principal-components.html#cb925-5" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb925-6"><a href="principal-components.html#cb925-6" aria-hidden="true" tabindex="-1"></a>    pve,</span>
+<span id="cb925-7"><a href="principal-components.html#cb925-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">&quot;Principal Component&quot;</span>,</span>
+<span id="cb925-8"><a href="principal-components.html#cb925-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">&quot;Proportion of Variance Explained&quot;</span>,</span>
+<span id="cb925-9"><a href="principal-components.html#cb925-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.5</span>),</span>
+<span id="cb925-10"><a href="principal-components.html#cb925-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">&quot;b&quot;</span></span>
+<span id="cb925-11"><a href="principal-components.html#cb925-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
 <p><img src="13-multivariate_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
-<div class="sourceCode" id="cb925"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb925-1"><a href="principal-components.html#cb925-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
-<span id="cb925-2"><a href="principal-components.html#cb925-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cumsum</span>(pve),</span>
-<span id="cb925-3"><a href="principal-components.html#cb925-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">&quot;Principal Component&quot;</span>,</span>
-<span id="cb925-4"><a href="principal-components.html#cb925-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">&quot;Cumulative Proportion of Variance Explained&quot;</span>,</span>
-<span id="cb925-5"><a href="principal-components.html#cb925-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb925-6"><a href="principal-components.html#cb925-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">&quot;b&quot;</span></span>
-<span id="cb925-7"><a href="principal-components.html#cb925-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb926"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb926-1"><a href="principal-components.html#cb926-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb926-2"><a href="principal-components.html#cb926-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">cumsum</span>(pve),</span>
+<span id="cb926-3"><a href="principal-components.html#cb926-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">&quot;Principal Component&quot;</span>,</span>
+<span id="cb926-4"><a href="principal-components.html#cb926-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">&quot;Cumulative Proportion of Variance Explained&quot;</span>,</span>
+<span id="cb926-5"><a href="principal-components.html#cb926-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb926-6"><a href="principal-components.html#cb926-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">&quot;b&quot;</span></span>
+<span id="cb926-7"><a href="principal-components.html#cb926-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
 <p><img src="13-multivariate_files/figure-html/unnamed-chunk-15-2.png" width="672" /></p>
-<div class="sourceCode" id="cb926"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb926-1"><a href="principal-components.html#cb926-1" aria-hidden="true" tabindex="-1"></a><span class="co">#using base lm function for PC regression</span></span>
-<span id="cb926-2"><a href="principal-components.html#cb926-2" aria-hidden="true" tabindex="-1"></a>pcadat <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(covidpca<span class="sc">$</span>x[, <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>])</span>
-<span id="cb926-3"><a href="principal-components.html#cb926-3" aria-hidden="true" tabindex="-1"></a>pcadat<span class="sc">$</span>y <span class="ot">&lt;-</span> ndat<span class="sc">$</span>Y</span>
-<span id="cb926-4"><a href="principal-components.html#cb926-4" aria-hidden="true" tabindex="-1"></a>pcr.man <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(y) <span class="sc">~</span> ., pcadat)</span>
-<span id="cb926-5"><a href="principal-components.html#cb926-5" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(pcr.man<span class="sc">$</span>residuals <span class="sc">^</span> <span class="dv">2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb927"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb927-1"><a href="principal-components.html#cb927-1" aria-hidden="true" tabindex="-1"></a><span class="co"># the first six principe account for around 80% of the variance. </span></span>
+<span id="cb927-2"><a href="principal-components.html#cb927-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb927-3"><a href="principal-components.html#cb927-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb927-4"><a href="principal-components.html#cb927-4" aria-hidden="true" tabindex="-1"></a><span class="co">#using base lm function for PC regression</span></span>
+<span id="cb927-5"><a href="principal-components.html#cb927-5" aria-hidden="true" tabindex="-1"></a>pcadat <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(covidpca<span class="sc">$</span>x[, <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>])</span>
+<span id="cb927-6"><a href="principal-components.html#cb927-6" aria-hidden="true" tabindex="-1"></a>pcadat<span class="sc">$</span>y <span class="ot">&lt;-</span> ndat<span class="sc">$</span>Y</span>
+<span id="cb927-7"><a href="principal-components.html#cb927-7" aria-hidden="true" tabindex="-1"></a>pcr.man <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(y) <span class="sc">~</span> ., pcadat)</span>
+<span id="cb927-8"><a href="principal-components.html#cb927-8" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(pcr.man<span class="sc">$</span>residuals <span class="sc">^</span> <span class="dv">2</span>)</span></code></pre></div>
 <pre><code>## [1] 0.03453371</code></pre>
-<div class="sourceCode" id="cb928"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb928-1"><a href="principal-components.html#cb928-1" aria-hidden="true" tabindex="-1"></a><span class="co">#comparison to lm w/o prin comps</span></span>
-<span id="cb928-2"><a href="principal-components.html#cb928-2" aria-hidden="true" tabindex="-1"></a>lm.fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(Y) <span class="sc">~</span> ., <span class="at">data =</span> ndat)</span>
-<span id="cb928-3"><a href="principal-components.html#cb928-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(lm.fit<span class="sc">$</span>residuals <span class="sc">^</span> <span class="dv">2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb929"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb929-1"><a href="principal-components.html#cb929-1" aria-hidden="true" tabindex="-1"></a><span class="co">#comparison to lm w/o prin comps</span></span>
+<span id="cb929-2"><a href="principal-components.html#cb929-2" aria-hidden="true" tabindex="-1"></a>lm.fit <span class="ot">&lt;-</span> <span class="fu">lm</span>(<span class="fu">log</span>(Y) <span class="sc">~</span> ., <span class="at">data =</span> ndat)</span>
+<span id="cb929-3"><a href="principal-components.html#cb929-3" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(lm.fit<span class="sc">$</span>residuals <span class="sc">^</span> <span class="dv">2</span>)</span></code></pre></div>
 <pre><code>## [1] 0.02335128</code></pre>
+<p>MSE for the PC-based model is larger than regular regression, because models with a large degree of collinearity can still perform well.</p>
+<p><code>pcr</code> function in <code>pls</code> can be used for fitting PC regression (it will select the optimal number of components in the model).</p>
 <p><br></p>
 </div>
 </div>
