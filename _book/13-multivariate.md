@@ -751,10 +751,6 @@ where
 
 We can test this hypothesis using the following statistic
 
-
-
-
-
 $$
 F = \frac{n - c}{(n-1)c} T^2
 $$
@@ -1325,10 +1321,6 @@ $$
 for $i = 1,..,h$ and $j = 1,..,n_i$
 
 Equivalently,
-
-
-
-
 
 $$
 \mathbf{Y} = \mathbf{XB} + \mathbf{\epsilon}
@@ -2278,8 +2270,6 @@ summary(profile_fit)
 # reject the null hypothesis that the profiles are flat
 ```
 
-
-
 ### Summary
 
 <br>
@@ -2608,6 +2598,10 @@ Issues:
 
 ### Application
 
+PCA on the covariance matrix is usually not preferred due to the fact that PCA is not invariant to changes in scale. Hence, PCA on the correlation matrix is more preferred
+
+The eigvenvectors may differ by a multiplication of -1 for different implementation, but same interpretation.
+
 
 ```r
 library(tidyverse)
@@ -2655,13 +2649,17 @@ cor(stock)
 ```
 
 ```r
+# cov(scale(stock)) # give the same result
+
 ## PCA with covariance
-cov_pca <- prcomp(stock)
+cov_pca <- prcomp(stock) # uses singular value decomposition for calculation and an N -1 divisor
+# alternatively, princomp can do PCA via spectral decomposition, but it has worse numerical accuracy
+
 # eigen values
 cov_results <- data.frame(eigen_values = cov_pca$sdev ^ 2)
 cov_results %>%
     mutate(proportion = eigen_values / sum(eigen_values),
-           cumulative = cumsum(proportion))
+           cumulative = cumsum(proportion)) # first 2 PCs account for 73% variance in the data
 ```
 
 ```
@@ -2675,7 +2673,7 @@ cov_results %>%
 
 ```r
 # eigen vectors
-cov_pca$rotation
+cov_pca$rotation # prcomp calls rotation
 ```
 
 ```
@@ -2688,9 +2686,17 @@ cov_pca$rotation
 ```
 
 ```r
+# princomp calls loadings.
+
+# first PC = overall average
+# second PC compares Allied to Carbide
+
 ## PCA with correlation
 #same as scale(stock) %>% prcomp
 cor_pca <- prcomp(stock, scale = T)
+
+
+
 # eigen values
 cor_results <- data.frame(eigen_values = cor_pca$sdev ^ 2)
 cor_results %>%
@@ -2708,6 +2714,8 @@ cor_results %>%
 ```
 
 ```r
+# first egiven values corresponds to less variance than PCA based on the covariance matrix
+
 # eigen vectors
 cor_pca$rotation
 ```
@@ -2721,9 +2729,13 @@ cor_pca$rotation
 ## texaco  0.4213291  0.5822416  0.4336029  0.3812273 -0.3874672
 ```
 
-
+```r
+# interpretation of PC2 is different from above: it is a comparison of Allied, Dupont and Carbid to Exxon and Texaco 
+```
 
 Covid Example
+
+To reduce collinearity problem in this dataset, we can use principal components as regressors.
 
 
 ```r
@@ -2784,6 +2796,9 @@ plot(
 ![](13-multivariate_files/figure-epub3/unnamed-chunk-15-2.png)<!-- -->
 
 ```r
+# the first six principe account for around 80% of the variance. 
+
+
 #using base lm function for PC regression
 pcadat <- data.frame(covidpca$x[, 1:6])
 pcadat$y <- ndat$Y
@@ -2804,6 +2819,10 @@ mean(lm.fit$residuals ^ 2)
 ```
 ## [1] 0.02335128
 ```
+
+MSE for the PC-based model is larger than regular regression, because models with a large degree of collinearity can still perform well.
+
+`pcr` function in `pls` can be used for fitting PC regression (it will select the optimal number of components in the model).
 
 <br>
 
@@ -3184,6 +3203,14 @@ where $j = 1,\dots,n$
 
 ### Application
 
+In the `psych` package,
+
+-   h2 = the communalities
+
+-   u2 = the uniqueness
+
+-   com = the complexity
+
 
 ```r
 library(psych)
@@ -3327,7 +3354,11 @@ factor_pca
 ```
 
 ```r
-## SMC prior, no rotation
+# factor 1 = overall socioeconomic health
+# factor 2 = contrast of the population and employment against school and house value
+
+
+## Ssquared multiple correlation (SMC) prior, no rotation
 factor_pca_smc <- fa(
     Harman.5,
     nfactors = 2,
@@ -3513,6 +3544,8 @@ flag_gg
 ![](13-multivariate_files/figure-epub3/unnamed-chunk-16-3.png)<!-- -->
 
 ```r
+# promax and varimax did a good job to assign trait to a particular factor
+
 factor_mle_1 <- fa(
     Harman.5,
     nfactors = 1,
@@ -3663,7 +3696,13 @@ factor_mle_3
 ## Minimum correlation of possible factor scores     0.96 0.99 0.36
 ```
 
+The output info for the null hypothesis of no common factors is in the statement "The degrees of freedom for the null model .."
 
+The output info for the null hypothesis that number of factors is sufficient is in the statement "The total number of observations was ..."
+
+One factor is not enough, two is sufficient, and not enough data for 3 factors (df of -2 and NA for p-value). Hence, we should use 2-factor model.
+
+<br>
 
 ## Discriminant Analysis
 
@@ -3953,8 +3992,6 @@ When the distribution are exactly known, we can determine the misclassification 
 
 <br>
 
-
-
 Summary
 
 Consider the group-specific densities $f_j (\mathbf{x})$ for multivariate vector $\mathbf{x}$.
@@ -4114,8 +4151,6 @@ The machine learning and pattern recognition are growing with strong focus on no
 
 The general framework
 
-
-
 $$
 g_j (\mathbf{x}) = \sum_{l = 1}^m w_{jl}\phi_l (\mathbf{x}; \mathbf{\theta}_l) + w_{j0}
 $$
@@ -4130,7 +4165,7 @@ We assign $\mathbf{x}$ to the j-th population if $g_j(\mathbf{x})$ is the maximu
 
 Development usually focuses on the choice and estimation of the basis functions, $\phi_l$ and the estimation of the weights $w_{jl}$
 
-[More details](Statistical Pattern Recognition | Wiley Online Books
+[More details](Statistical Pattern Recognition \| Wiley Online Books
 
 )
 
@@ -4197,7 +4232,9 @@ str(crops_test)
 ##  $ y4  : int  33 24 28 54 16
 ```
 
-LDA
+#### LDA
+
+Default prior is proportional to sample size and `lda` and `qda` do not fit a constant or intercept term
 
 
 ```r
@@ -4254,6 +4291,8 @@ lda_table
 ```
 
 ```r
+# accuracy of 0.5 is just random (not good)
+
 ## Posterior probabilities of membership
 crops_post <- cbind.data.frame(crops,
                                crop_pred = lda_fitted$class,
@@ -4281,7 +4320,11 @@ head(crops_post)
 ```
 
 ```r
+# posterior shows that posterior of corn membershp is much higher than the prior
+
 ## LOOCV
+# leave-one-out cross validation for linear discriminant analysis
+# cannot run the prdecit function using the object with CV = TRUE because it returns the wihtin sample predictions
 lda_cv <- lda(crop ~ y1 + y2 + y3 + y4,
               data = crops, CV = TRUE)
 # Contingency table
@@ -4317,7 +4360,9 @@ table(truth=crops_test$crop, predict=lda_pred$class)
 ##   Sugarbeets      1    0      0        0          0
 ```
 
-QDA
+LDA didn't do well on both within sample and out-of-sample data.
+
+#### QDA
 
 
 ```r
@@ -4378,7 +4423,9 @@ table(truth = crops_test$crop, predict = qda_pred$class)
 ##   Sugarbeets      0    0      0        0          1
 ```
 
-KNN
+#### KNN
+
+`knn` uses design matrices of the features.
 
 
 ```r
@@ -4398,11 +4445,11 @@ table(truth = Y_train, fitted = knn_2)
 ```
 ##             fitted
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          7    0      3        1          0
-##   Corn            0    7      0        0          0
-##   Cotton          1    0      3        0          2
-##   Soybeans        0    0      0        5          1
-##   Sugarbeets      0    0      2        1          3
+##   Clover          8    0      2        1          0
+##   Corn            0    6      0        1          0
+##   Cotton          1    0      5        0          0
+##   Soybeans        0    0      0        4          2
+##   Sugarbeets      1    0      1        0          4
 ```
 
 ```r
@@ -4411,7 +4458,7 @@ mean(Y_train==knn_2)
 ```
 
 ```
-## [1] 0.6944444
+## [1] 0.75
 ```
 
 ```r
@@ -4448,11 +4495,11 @@ table(truth = Y_train, fitted = knn_3)
 ```
 ##             fitted
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          7    0      2        2          0
-##   Corn            0    4      0        3          0
-##   Cotton          1    0      4        0          1
-##   Soybeans        1    0      1        3          1
-##   Sugarbeets      0    0      0        2          4
+##   Clover          8    0      2        1          0
+##   Corn            0    4      1        2          0
+##   Cotton          1    0      3        1          1
+##   Soybeans        0    0      2        3          1
+##   Sugarbeets      0    0      0        3          3
 ```
 
 ```r
@@ -4461,7 +4508,7 @@ mean(Y_train==knn_3)
 ```
 
 ```
-## [1] 0.6111111
+## [1] 0.5833333
 ```
 
 ```r
@@ -4489,7 +4536,9 @@ mean(Y_test==knn_3_test)
 ## [1] 1
 ```
 
-Stepwise
+#### Stepwise
+
+Stepwise discriminant analysis using the `stepclass` in function in the `klaR` package.
 
 
 ```r
@@ -4514,10 +4563,10 @@ step <- stepclass(
 ```
 
 ```
-## correctness rate: 0.475;  in: "y1";  variables (1): y1 
+## correctness rate: 0.46667;  in: "y1";  variables (1): y1 
 ## 
 ##  hr.elapsed min.elapsed sec.elapsed 
-##        0.00        0.00        0.12
+##        0.00        0.00        0.16
 ```
 
 ```r
@@ -4526,8 +4575,8 @@ step$process
 
 ```
 ##    step var varname result.pm
-## 0 start   0      --     0.000
-## 1    in   1      y1     0.475
+## 0 start   0      -- 0.0000000
+## 1    in   1      y1 0.4666667
 ```
 
 ```r
@@ -4587,6 +4636,10 @@ table(truth=test.iris$Species,prediction=pred.qda$class)
 ##   virginica       0          0        13
 ```
 
+#### PCA with Discriminant Analysis
+
+we can use both PCA for dimension reduction in discriminant analysis
+
 
 ```r
 zeros <- as.matrix(read.table("images/mnist0_train_b.txt"))
@@ -4639,4 +4692,3 @@ table(truth=test.large$y.test,prediction=pred.qda$class)
 ```
 
 ## Cluster Analysis
-
