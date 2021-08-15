@@ -41,9 +41,34 @@ This chapter is based on the `jtools` package. More information can be found [he
 
 ## One summary table
 
+Packages for reporting:
+
+Summary Statistics Table:
+
+ * [qwraps2](https://cran.r-project.org/web/packages/qwraps2/vignettes/summary-statistics.html)
+ * [vtable](https://cran.r-project.org/web/packages/vtable/vignettes/sumtable.html)
+ * [gtsummary](http://www.danieldsjoberg.com/gtsummary/)
+ * [apaTables](https://cran.r-project.org/web/packages/apaTables/apaTables.pdf)
+ * [stargazer](https://cran.r-project.org/web/packages/stargazer/vignettes/stargazer.pdf)
+ 
+Regression Table
+
+ * [gtsummary](http://www.danieldsjoberg.com/gtsummary/) 
+ * [sjPlot,sjmisc, sjlabelled](https://cran.r-project.org/web/packages/sjPlot/vignettes/tab_model_estimates.html)
+ * [stargazer](https://cran.r-project.org/web/packages/stargazer/vignettes/stargazer.pdf): recommended ([Example](https://www.jakeruss.com/cheatsheets/stargazer/))
+ * [modelsummary](https://github.com/vincentarelbundock/modelsummary#a-simple-example)
+ 
+
 
 ```r
 library(jtools)
+```
+
+```
+## Warning: package 'jtools' was built under R version 4.0.5
+```
+
+```r
 data(movies)
 fit <- lm(metascore ~ budget + us_gross + year, data = movies)
 summ(fit)
@@ -329,8 +354,8 @@ export_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 
 ```
 ## Warning in checkMatrixPackageVersion(): Package version inconsistency detected.
-## TMB was built with Matrix version 1.2.18
-## Current Matrix version is 1.3.2
+## TMB was built with Matrix version 1.3.2
+## Current Matrix version is 1.3.3
 ## Please re-install 'TMB' from source using install.packages('TMB', type = 'source') or ask CRAN for a binary version of 'TMB' matching CRAN's 'Matrix' package
 ```
 
@@ -340,7 +365,7 @@ export_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 ```
 
  ─────────────────────────────────────────────────────────────────────────────
-                               Model 1            Model 2            Model 3  
+                          Model 1            Model 2            Model 3       
                     ──────────────────────────────────────────────────────────
    Budget                    -2.43 ***          -5.16 ***          -6.70 ***  
                              (0.44)             (0.62)             (0.67)     
@@ -386,7 +411,7 @@ stargazer(attitude)
 ```
 ## 
 ## % Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
-## % Date and time: Mon, May 10, 2021 - 5:22:29 PM
+## % Date and time: Sat, Aug 14, 2021 - 6:52:05 PM
 ## \begin{table}[!htbp] \centering 
 ##   \caption{} 
 ##   \label{} 
@@ -429,7 +454,7 @@ stargazer(linear.1,
 ```
 ## 
 ## % Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
-## % Date and time: Mon, May 10, 2021 - 5:22:29 PM
+## % Date and time: Sat, Aug 14, 2021 - 6:52:05 PM
 ## % Requires LaTeX packages: dcolumn 
 ## \begin{table}[!htbp] \centering 
 ##   \caption{Results} 

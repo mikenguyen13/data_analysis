@@ -1834,14 +1834,22 @@ library(tidyverse)
 ```
 
 ```
-## -- Attaching packages --------------------------------------- tidyverse 1.3.0 --
+## Warning: package 'tidyverse' was built under R version 4.0.5
+```
+
+```
+## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
 ```
 
 ```
 ## v ggplot2 3.3.3     v purrr   0.3.4
-## v tibble  3.1.0     v dplyr   1.0.5
+## v tibble  3.1.2     v dplyr   1.0.6
 ## v tidyr   1.1.3     v stringr 1.4.0
 ## v readr   1.4.0     v forcats 0.5.1
+```
+
+```
+## Warning: package 'dplyr' was built under R version 4.0.5
 ```
 
 ```
@@ -1852,6 +1860,10 @@ library(tidyverse)
 
 ```r
 library(lubridate)
+```
+
+```
+## Warning: package 'lubridate' was built under R version 4.0.5
 ```
 
 ```
@@ -1910,7 +1922,7 @@ str(df)
 ```
 
 ```
-## tibble[,2] [3 x 2] (S3: tbl_df/tbl/data.frame)
+## tibble [3 x 2] (S3: tbl_df/tbl/data.frame)
 ##  $ n: num [1:3] 1 3 5
 ##  $ g: chr [1:3] "M" "M" "F"
 ```
@@ -2105,13 +2117,13 @@ dat03
 
 ```
 ## # A tibble: 5 x 1
-##        z
-##    <dbl>
-## 1 0.479 
-## 2 0.857 
-## 3 0.578 
-## 4 0.0844
-## 5 0.0348
+##       z
+##   <dbl>
+## 1 0.886
+## 2 0.531
+## 3 0.365
+## 4 0.665
+## 5 0.702
 ```
 
 ```r
@@ -2271,13 +2283,13 @@ bind_cols(dat01, dat03)
 
 ```
 ## # A tibble: 5 x 3
-##       x     y      z
-##   <int> <int>  <dbl>
-## 1     1     5 0.479 
-## 2     2     4 0.857 
-## 3     3     3 0.578 
-## 4     4     2 0.0844
-## 5     5     1 0.0348
+##       x     y     z
+##   <int> <int> <dbl>
+## 1     1     5 0.886
+## 2     2     4 0.531
+## 3     3     3 0.365
+## 4     4     2 0.665
+## 5     5     1 0.702
 ```
 
 ```r

@@ -417,7 +417,17 @@ library(MVN)
 
 ```r
 library(tidyverse)
+```
 
+```
+## Warning: package 'tidyverse' was built under R version 4.0.5
+```
+
+```
+## Warning: package 'dplyr' was built under R version 4.0.5
+```
+
+```r
 trees = read.table("images/trees.dat")
 names(trees) <- c("Nitrogen","Phosphorous","Potassium","Ash","Height")
 str(trees)
@@ -1450,6 +1460,10 @@ library(profileR)
 ## Warning: package 'profileR' was built under R version 4.0.5
 ```
 
+```
+## Warning: package 'lavaan' was built under R version 4.0.5
+```
+
 ```r
 library(tidyverse)
 
@@ -1652,7 +1666,7 @@ str(heart)
 ```
 
 ```
-## tibble[,6] [24 x 6] (S3: tbl_df/tbl/data.frame)
+## tibble [24 x 6] (S3: tbl_df/tbl/data.frame)
 ##  $ drug   : chr [1:24] "ax23" "ax23" "ax23" "ax23" ...
 ##  $ y1     : int [1:24] 72 78 71 72 66 74 62 69 85 82 ...
 ##  $ y2     : int [1:24] 86 83 82 83 79 83 73 75 86 86 ...
@@ -2358,6 +2372,10 @@ $$
 
 ```r
 library(MASS)
+```
+
+```
+## Warning: package 'MASS' was built under R version 4.0.5
 ```
 
 ```
@@ -3216,6 +3234,10 @@ In the `psych` package,
 
 ```r
 library(psych)
+```
+
+```
+## Warning: package 'psych' was built under R version 4.0.5
 ```
 
 ```
@@ -4447,11 +4469,11 @@ table(truth = Y_train, fitted = knn_2)
 ```
 ##             fitted
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          9    0      1        1          0
-##   Corn            0    5      0        2          0
-##   Cotton          0    0      5        0          1
+##   Clover          6    0      3        1          1
+##   Corn            0    7      0        0          0
+##   Cotton          1    0      4        0          1
 ##   Soybeans        0    0      0        4          2
-##   Sugarbeets      1    0      1        2          2
+##   Sugarbeets      0    0      2        1          3
 ```
 
 ```r
@@ -4460,7 +4482,7 @@ mean(Y_train==knn_2)
 ```
 
 ```
-## [1] 0.6944444
+## [1] 0.6666667
 ```
 
 ```r
@@ -4497,11 +4519,11 @@ table(truth = Y_train, fitted = knn_3)
 ```
 ##             fitted
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          7    0      2        2          0
-##   Corn            0    4      0        3          0
-##   Cotton          1    1      3        0          1
-##   Soybeans        0    1      1        3          1
-##   Sugarbeets      0    0      0        3          3
+##   Clover          8    0      2        1          0
+##   Corn            0    6      0        1          0
+##   Cotton          1    0      3        0          2
+##   Soybeans        1    1      0        2          2
+##   Sugarbeets      0    1      0        1          4
 ```
 
 ```r
@@ -4510,7 +4532,7 @@ mean(Y_train==knn_3)
 ```
 
 ```
-## [1] 0.5555556
+## [1] 0.6388889
 ```
 
 ```r
@@ -4565,10 +4587,10 @@ step <- stepclass(
 ```
 
 ```
-## correctness rate: 0.46667;  in: "y1";  variables (1): y1 
+## correctness rate: 0.48333;  in: "y1";  variables (1): y1 
 ## 
 ##  hr.elapsed min.elapsed sec.elapsed 
-##        0.00        0.00        0.12
+##        0.00        0.00        0.13
 ```
 
 ```r
@@ -4578,7 +4600,7 @@ step$process
 ```
 ##    step var varname result.pm
 ## 0 start   0      -- 0.0000000
-## 1    in   1      y1 0.4666667
+## 1    in   1      y1 0.4833333
 ```
 
 ```r

@@ -118,14 +118,22 @@ library(tidyverse)
 ```
 
 ```
-## -- Attaching packages --------------------------------------- tidyverse 1.3.0 --
+## Warning: package 'tidyverse' was built under R version 4.0.5
+```
+
+```
+## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
 ```
 
 ```
 ## v ggplot2 3.3.3     v purrr   0.3.4
-## v tibble  3.1.0     v dplyr   1.0.5
+## v tibble  3.1.2     v dplyr   1.0.6
 ## v tidyr   1.1.3     v stringr 1.4.0
 ## v readr   1.4.0     v forcats 0.5.1
+```
+
+```
+## Warning: package 'dplyr' was built under R version 4.0.5
 ```
 
 ```
@@ -377,6 +385,10 @@ library(quantreg)
 ```
 
 ```
+## Warning: package 'quantreg' was built under R version 4.0.5
+```
+
+```
 ## Loading required package: SparseM
 ```
 
@@ -389,6 +401,11 @@ library(quantreg)
 ## The following object is masked from 'package:base':
 ## 
 ##     backsolve
+```
+
+```
+## Warning in .recacheSubclasses(def@className, def, env): undefined subclass
+## "numericVector" of class "Mnumeric"; definition not updated
 ```
 
 ```r

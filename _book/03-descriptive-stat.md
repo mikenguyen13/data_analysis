@@ -65,11 +65,18 @@ Note:
 ```r
 data = rnorm(100)
 library(e1071)
+```
+
+```
+## Warning: package 'e1071' was built under R version 4.0.5
+```
+
+```r
 skewness(data,type = 1)
 ```
 
 ```
-## [1] 0.6038194
+## [1] -0.2921241
 ```
 
 ```r
@@ -77,7 +84,7 @@ kurtosis(data, type = 1)
 ```
 
 ```
-## [1] 0.2312494
+## [1] 0.1239661
 ```
 
 ## Graphical Measures
@@ -137,16 +144,12 @@ stem(data)
 ## 
 ##   The decimal point is at the |
 ## 
-##   -2 | 4
-##   -1 | 886655
-##   -1 | 333221
-##   -0 | 999988877666666655
-##   -0 | 44443333332211000
-##    0 | 00001112233344444
-##    0 | 555666677788999
-##    1 | 001111122344
-##    1 | 5577
-##    2 | 0022
+##   -2 | 50
+##   -1 | 975544443322111
+##   -0 | 9999988877766666444333332222211
+##    0 | 000111112222333444455566666788899
+##    1 | 002222344567889
+##    2 | 0279
 ```
 
 ```r
@@ -258,7 +261,7 @@ gofTest(data,test="ppcc")$p.value #Probability Plot Correlation Coefficient
 ```
 
 ```
-## [1] 0.9818241
+## [1] 0.8175874
 ```
 
 ##### Shapiro-Wilk Test
@@ -277,7 +280,7 @@ gofTest(data,test="sw")$p.value #Shapiro-Wilk is the default.
 ```
 
 ```
-## [1] 0.9394542
+## [1] 0.8606211
 ```
 
 #### Methods based on empirical cumulative distribution function
@@ -337,7 +340,7 @@ gofTest(data,test="ad")$p.value #Anderson-Darling
 ```
 
 ```
-## [1] 0.9692418
+## [1] 0.8823775
 ```
 
 ##### Kolmogorov-Smirnov Test
@@ -351,11 +354,11 @@ gofTest(data,test="ks")$p.value #Komogorov-Smirnov
 ```
 
 ```
-## Warning in ksGofTest(x = c(-0.131684500150694, -0.628618987340233, 0.619293003125221, : The standard Kolmogorov-Smirnov test is very conservative (Type I error smaller than assumed; high Type II error) for testing departures from the Normal distribution when you have to estimate the distribution parameters.
+## Warning in ksGofTest(x = c(0.0664750375835724, -1.49143029241708, -0.650285211091661, : The standard Kolmogorov-Smirnov test is very conservative (Type I error smaller than assumed; high Type II error) for testing departures from the Normal distribution when you have to estimate the distribution parameters.
 ```
 
 ```
-## [1] 0.9900119
+## [1] 0.9943967
 ```
 
 ##### Cramer-von Mises Test
@@ -368,7 +371,7 @@ gofTest(data,test="cvm")$p.value #Cramer-von Mises
 ```
 
 ```
-## [1] 0.9394203
+## [1] 0.8971189
 ```
 
 ##### Jarque--Bera Test {#jarquebera-test}
