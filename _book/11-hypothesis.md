@@ -1,5 +1,16 @@
 # Hypothesis Testing
 
+Error types: 
+
+ * Type I Error (False Positive): 
+    - Reality: nope 
+    - Diagnosis/Analysis: yes 
+ * Type II Error (False Negative):
+    - Reality: yes
+    - Diagnosis/Analysis: nope
+
+Power: The probability of rejecting the null hypothesis when it is actually false
+
 **Note:**
 
 -   Always written in terms of the population parameter ($\beta$) not the estimator/estimate ($\hat{\beta}$)

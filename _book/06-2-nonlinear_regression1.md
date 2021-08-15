@@ -397,6 +397,13 @@ Cons:
 
 ```r
 library(MASS)
+```
+
+```
+## Warning: package 'MASS' was built under R version 4.0.5
+```
+
+```r
 pql_cbpp <-
     glmmPQL(
         cbind(incidence, size - incidence) ~ period,
@@ -565,8 +572,8 @@ benchmark(
 
 ```
 ##   test replications elapsed relative
-## 1 MASS           50    2.37    1.000
-## 2 lme4           50    4.58    1.932
+## 1 MASS           50    2.07    1.000
+## 2 lme4           50    4.33    2.092
 ```
 
 In numerical integration, we can set `nAGQ > 1` to switch the method of likelihood evaluation, which might increase accuracy
@@ -603,6 +610,10 @@ library(MCMCglmm)
 ```
 
 ```
+## Warning: package 'MCMCglmm' was built under R version 4.0.5
+```
+
+```
 ## Loading required package: coda
 ```
 
@@ -628,25 +639,25 @@ summary(Bayes_cbpp)
 ##  Thinning interval  = 10
 ##  Sample size  = 1000 
 ## 
-##  DIC: 538.2949 
+##  DIC: 537.4511 
 ## 
 ##  G-structure:  ~herd
 ## 
 ##      post.mean  l-95% CI u-95% CI eff.samp
-## herd   0.02234 9.578e-17  0.08768    178.7
+## herd  0.007901 2.144e-16  0.01354    146.3
 ## 
 ##  R-structure:  ~units
 ## 
 ##       post.mean l-95% CI u-95% CI eff.samp
-## units     1.108   0.2205    2.086    240.4
+## units     1.107   0.3226    2.149    322.3
 ## 
 ##  Location effects: cbind(incidence, size - incidence) ~ period 
 ## 
 ##             post.mean l-95% CI u-95% CI eff.samp  pMCMC    
-## (Intercept)   -1.5367  -2.1237  -0.8595    782.5 <0.001 ***
-## period2       -1.2621  -2.2580  -0.1835    677.7  0.016 *  
-## period3       -1.3889  -2.3947  -0.2399    638.7  0.006 ** 
-## period4       -1.9241  -3.2344  -0.6563    450.9  0.004 ** 
+## (Intercept)   -1.5531  -2.2620  -0.9645    754.0 <0.001 ***
+## period2       -1.2244  -2.2277  -0.1901    871.8  0.012 *  
+## period3       -1.3462  -2.4318  -0.3233    617.9  0.016 *  
+## period4       -1.9505  -3.1926  -0.6159    611.4 <0.001 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -659,8 +670,8 @@ apply(Bayes_cbpp$VCV,2,sd) #explains less variability
 ```
 
 ```
-##      herd     units 
-## 0.1436177 0.5750310
+##       herd      units 
+## 0.05559294 0.52544548
 ```
 
 
@@ -670,10 +681,10 @@ summary(Bayes_cbpp)$solutions
 
 ```
 ##             post.mean  l-95% CI   u-95% CI eff.samp pMCMC
-## (Intercept) -1.536709 -2.123669 -0.8594571 782.4997 0.001
-## period2     -1.262106 -2.257955 -0.1834649 677.7111 0.016
-## period3     -1.388941 -2.394653 -0.2399472 638.7122 0.006
-## period4     -1.924142 -3.234363 -0.6563254 450.9209 0.004
+## (Intercept) -1.553144 -2.262047 -0.9644581 754.0409 0.001
+## period2     -1.224403 -2.227745 -0.1901189 871.8191 0.012
+## period3     -1.346158 -2.431772 -0.3233087 617.8600 0.016
+## period4     -1.950460 -3.192628 -0.6158990 611.3675 0.001
 ```
 
 interpret Bayesian "credible intervals" similarly to confidence intervals
@@ -745,13 +756,17 @@ library(glmmTMB)
 
 ```
 ## Warning in checkMatrixPackageVersion(): Package version inconsistency detected.
-## TMB was built with Matrix version 1.2.18
-## Current Matrix version is 1.3.2
+## TMB was built with Matrix version 1.3.2
+## Current Matrix version is 1.3.3
 ## Please re-install 'TMB' from source using install.packages('TMB', type = 'source') or ask CRAN for a binary version of 'TMB' matching CRAN's 'Matrix' package
 ```
 
 ```r
 library(dplyr)
+```
+
+```
+## Warning: package 'dplyr' was built under R version 4.0.5
 ```
 
 ```

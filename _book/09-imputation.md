@@ -1548,7 +1548,15 @@ library(Hmisc)
 ```
 
 ```
+## Warning: package 'Hmisc' was built under R version 4.0.5
+```
+
+```
 ## Loading required package: survival
+```
+
+```
+## Warning: package 'survival' was built under R version 4.0.5
 ```
 
 ```

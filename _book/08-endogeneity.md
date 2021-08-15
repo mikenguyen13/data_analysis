@@ -42,6 +42,10 @@ library(AER)
 ```
 
 ```
+## Warning: package 'zoo' was built under R version 4.0.5
+```
+
+```
 ## 
 ## Attaching package: 'zoo'
 ```
@@ -58,6 +62,10 @@ library(AER)
 
 ```
 ## Loading required package: survival
+```
+
+```
+## Warning: package 'survival' was built under R version 4.0.5
 ```
 
 ```r
@@ -1343,6 +1351,10 @@ library(sampleSelection)
 
 ```r
 library(dplyr)
+```
+
+```
+## Warning: package 'dplyr' was built under R version 4.0.5
 ```
 
 ```
