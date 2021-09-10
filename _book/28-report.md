@@ -353,13 +353,6 @@ export_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 ```
 
 ```
-## Warning in checkMatrixPackageVersion(): Package version inconsistency detected.
-## TMB was built with Matrix version 1.3.2
-## Current Matrix version is 1.3.3
-## Please re-install 'TMB' from source using install.packages('TMB', type = 'source') or ask CRAN for a binary version of 'TMB' matching CRAN's 'Matrix' package
-```
-
-```
 ## Warning in knit_print.huxtable(x, ...): Unrecognized output format "epub3". Using `to_screen` to print huxtables.
 ## Set options("huxtable.knitr_output_format") manually to "latex", "html", "rtf", "docx", "pptx", "md" or "screen".
 ```
@@ -411,7 +404,7 @@ stargazer(attitude)
 ```
 ## 
 ## % Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
-## % Date and time: Sat, Aug 14, 2021 - 6:52:05 PM
+## % Date and time: Thu, Sep 09, 2021 - 8:23:56 PM
 ## \begin{table}[!htbp] \centering 
 ##   \caption{} 
 ##   \label{} 
@@ -454,7 +447,7 @@ stargazer(linear.1,
 ```
 ## 
 ## % Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
-## % Date and time: Sat, Aug 14, 2021 - 6:52:05 PM
+## % Date and time: Thu, Sep 09, 2021 - 8:23:56 PM
 ## % Requires LaTeX packages: dcolumn 
 ## \begin{table}[!htbp] \centering 
 ##   \caption{Results} 

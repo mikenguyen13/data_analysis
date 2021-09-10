@@ -76,7 +76,7 @@ skewness(data,type = 1)
 ```
 
 ```
-## [1] -0.2921241
+## [1] 0.4824861
 ```
 
 ```r
@@ -84,7 +84,7 @@ kurtosis(data, type = 1)
 ```
 
 ```
-## [1] 0.1239661
+## [1] 0.3557721
 ```
 
 ## Graphical Measures
@@ -144,12 +144,17 @@ stem(data)
 ## 
 ##   The decimal point is at the |
 ## 
-##   -2 | 50
-##   -1 | 975544443322111
-##   -0 | 9999988877766666444333332222211
-##    0 | 000111112222333444455566666788899
-##    1 | 002222344567889
-##    2 | 0279
+##   -2 | 221
+##   -1 | 987755
+##   -1 | 3222100000
+##   -0 | 98877765555
+##   -0 | 44444333333222111111110
+##    0 | 01112233333334444
+##    0 | 5555566777899999
+##    1 | 1233334
+##    1 | 66779
+##    2 | 3
+##    2 | 6
 ```
 
 ```r
@@ -171,6 +176,17 @@ Others more advanced plots
 # vioplot()         #library("vioplot")
 ```
 
+
+### Scatterplot
+
+
+```r
+# pairs(mtcars)
+```
+
+
+
+
 ## Normality Assessment
 
 Since Normal (Gaussian) distribution has many applications, we typically want/ wish our data or our variable is normal. Hence, we have to assess the normality based on not only [Numerical Measures] but also [Graphical Measures]
@@ -184,7 +200,7 @@ qqnorm(precip, ylab = "Precipitation [in/yr] for 70 US cities")
 qqline(precip)
 ```
 
-![](03-descriptive-stat_files/figure-epub3/unnamed-chunk-4-1.png)<!-- -->
+![](03-descriptive-stat_files/figure-epub3/unnamed-chunk-5-1.png)<!-- -->
 
 The straight line represents the theoretical line for normally distributed data. The dots represent real empirical data that we are checking. If all the dots fall on the straight line, we can be confident that our data follow a normal distribution. If our data wiggle and deviate from the line, we should be concerned with the normality assumption.
 
@@ -261,7 +277,7 @@ gofTest(data,test="ppcc")$p.value #Probability Plot Correlation Coefficient
 ```
 
 ```
-## [1] 0.8175874
+## [1] 0.9204031
 ```
 
 ##### Shapiro-Wilk Test
@@ -280,7 +296,7 @@ gofTest(data,test="sw")$p.value #Shapiro-Wilk is the default.
 ```
 
 ```
-## [1] 0.8606211
+## [1] 0.8914786
 ```
 
 #### Methods based on empirical cumulative distribution function
@@ -297,7 +313,7 @@ This method requires large sample sizes. However, it can apply to distributions 
 plot.ecdf(data,verticals = T, do.points=F)
 ```
 
-![](03-descriptive-stat_files/figure-epub3/unnamed-chunk-7-1.png)<!-- -->
+![](03-descriptive-stat_files/figure-epub3/unnamed-chunk-8-1.png)<!-- -->
 
 ##### Anderson-Darling Test
 
@@ -340,7 +356,7 @@ gofTest(data,test="ad")$p.value #Anderson-Darling
 ```
 
 ```
-## [1] 0.8823775
+## [1] 0.897541
 ```
 
 ##### Kolmogorov-Smirnov Test
@@ -354,11 +370,11 @@ gofTest(data,test="ks")$p.value #Komogorov-Smirnov
 ```
 
 ```
-## Warning in ksGofTest(x = c(0.0664750375835724, -1.49143029241708, -0.650285211091661, : The standard Kolmogorov-Smirnov test is very conservative (Type I error smaller than assumed; high Type II error) for testing departures from the Normal distribution when you have to estimate the distribution parameters.
+## Warning in ksGofTest(x = c(0.530267788990286, 0.510123510393147, 0.350540491587185, : The standard Kolmogorov-Smirnov test is very conservative (Type I error smaller than assumed; high Type II error) for testing departures from the Normal distribution when you have to estimate the distribution parameters.
 ```
 
 ```
-## [1] 0.9943967
+## [1] 0.9782405
 ```
 
 ##### Cramer-von Mises Test
@@ -371,7 +387,7 @@ gofTest(data,test="cvm")$p.value #Cramer-von Mises
 ```
 
 ```
-## [1] 0.8971189
+## [1] 0.8460868
 ```
 
 ##### Jarque--Bera Test {#jarquebera-test}

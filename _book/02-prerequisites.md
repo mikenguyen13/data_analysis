@@ -1639,6 +1639,10 @@ Solutions:
 library("rio")
 ```
 
+```
+## Warning: package 'rio' was built under R version 4.0.5
+```
+
 To import multiple files in a directory
 
 
@@ -1737,6 +1741,10 @@ iris2 <- read.csv.sql("iris.csv",
 
 ```r
 library(RMySQL)
+```
+
+```
+## Warning: package 'RMySQL' was built under R version 4.0.5
 ```
 
 ```
@@ -1842,10 +1850,18 @@ library(tidyverse)
 ```
 
 ```
-## v ggplot2 3.3.3     v purrr   0.3.4
+## v ggplot2 3.3.5     v purrr   0.3.4
 ## v tibble  3.1.2     v dplyr   1.0.6
 ## v tidyr   1.1.3     v stringr 1.4.0
-## v readr   1.4.0     v forcats 0.5.1
+## v readr   2.0.1     v forcats 0.5.1
+```
+
+```
+## Warning: package 'ggplot2' was built under R version 4.0.5
+```
+
+```
+## Warning: package 'readr' was built under R version 4.0.5
 ```
 
 ```
@@ -2119,11 +2135,11 @@ dat03
 ## # A tibble: 5 x 1
 ##       z
 ##   <dbl>
-## 1 0.886
-## 2 0.531
-## 3 0.365
-## 4 0.665
-## 5 0.702
+## 1 0.644
+## 2 0.889
+## 3 0.242
+## 4 0.993
+## 5 0.385
 ```
 
 ```r
@@ -2285,11 +2301,11 @@ bind_cols(dat01, dat03)
 ## # A tibble: 5 x 3
 ##       x     y     z
 ##   <int> <int> <dbl>
-## 1     1     5 0.886
-## 2     2     4 0.531
-## 3     3     3 0.365
-## 4     4     2 0.665
-## 5     5     1 0.702
+## 1     1     5 0.644
+## 2     2     4 0.889
+## 3     3     3 0.242
+## 4     4     2 0.993
+## 5     5     1 0.385
 ```
 
 ```r
