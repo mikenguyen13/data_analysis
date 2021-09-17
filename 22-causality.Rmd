@@ -23,6 +23,20 @@ To teach a robot to make inference, we need inference engine
 
 ![p. 12 [@Pearl_2018]](images/Figure%20I.png "Inference Engine")
 
+Levels of cognitive ability to be a causal learner:
+
+1.  Seeing
+2.  Doing
+3.  Imagining
+
+<br>
+
+Simpson's Paradox:
+
+-   A statistical association seen in an entire population is reversed in sub-population.
+
+Structural Causal Model accompanies graphical causal model to create more efficient language to represent causality
+
 <br>
 
 Tools in a hierarchical order
@@ -31,21 +45,21 @@ Tools in a hierarchical order
 
 2.  [Quasi-experimental]
 
-    1.  
+    1.  [Regression Discontinuity] Tier 1A
 
-    2.  
+    2.  [Difference-In-Differences] Tier 2
 
-    3.  
+    3.  [Synthetic Control] Tier 2A
 
-    4.  
+    4.  Fixed Effects Estimator: Tier 3
 
     5.  [Endogenous Treatment]: mostly [Instrumental Variable]: Tier 3A
 
-    6.  
+    6.  [Matching Methods] Tier 4
 
-    7.  
+    7.  [Interrupted Time Series] Tier 4A
 
-    8.  
+    8.  Endogenous Sample Selection: mostly Heckman's correction
 
 <br>
 

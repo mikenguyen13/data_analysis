@@ -580,8 +580,8 @@ benchmark(
 
 ```
 ##   test replications elapsed relative
-## 1 MASS           50    2.03    1.000
-## 2 lme4           50    4.11    2.025
+## 1 MASS           50    2.02    1.000
+## 2 lme4           50    4.15    2.054
 ```
 
 In numerical integration, we can set `nAGQ > 1` to switch the method of likelihood evaluation, which might increase accuracy
@@ -651,25 +651,25 @@ summary(Bayes_cbpp)
 ##  Thinning interval  = 10
 ##  Sample size  = 1000 
 ## 
-##  DIC: 538.493 
+##  DIC: 537.7914 
 ## 
 ##  G-structure:  ~herd
 ## 
-##      post.mean l-95% CI u-95% CI eff.samp
-## herd   0.02154 8.28e-17  0.09853    48.47
+##      post.mean  l-95% CI u-95% CI eff.samp
+## herd  0.008446 8.728e-17  0.02999    86.45
 ## 
 ##  R-structure:  ~units
 ## 
 ##       post.mean l-95% CI u-95% CI eff.samp
-## units     1.098    0.255    2.129    301.1
+## units     1.103   0.3003    2.141    347.6
 ## 
 ##  Location effects: cbind(incidence, size - incidence) ~ period 
 ## 
 ##             post.mean l-95% CI u-95% CI eff.samp  pMCMC    
-## (Intercept)   -1.5184  -2.1849  -0.8974    857.0 <0.001 ***
-## period2       -1.2952  -2.3401  -0.2943    758.0  0.012 *  
-## period3       -1.4119  -2.3583  -0.2725    793.4  0.008 ** 
-## period4       -1.9806  -3.2274  -0.8153    445.4  0.002 ** 
+## (Intercept)   -1.5229  -2.1927  -0.8632    863.8 <0.001 ***
+## period2       -1.2584  -2.2374  -0.1369    866.1  0.012 *  
+## period3       -1.3764  -2.4823  -0.3169    683.9  0.008 ** 
+## period4       -1.9400  -3.3854  -0.6197    572.2 <0.001 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -682,8 +682,8 @@ apply(Bayes_cbpp$VCV,2,sd) #explains less variability
 ```
 
 ```
-##      herd     units 
-## 0.1038439 0.5389298
+##       herd      units 
+## 0.04361566 0.49715309
 ```
 
 
@@ -693,10 +693,10 @@ summary(Bayes_cbpp)$solutions
 
 ```
 ##             post.mean  l-95% CI   u-95% CI eff.samp pMCMC
-## (Intercept) -1.518383 -2.184896 -0.8974307 856.9711 0.001
-## period2     -1.295185 -2.340103 -0.2942719 757.9849 0.012
-## period3     -1.411875 -2.358328 -0.2725279 793.4213 0.008
-## period4     -1.980563 -3.227417 -0.8153267 445.4411 0.002
+## (Intercept) -1.522905 -2.192677 -0.8632195 863.8382 0.001
+## period2     -1.258409 -2.237366 -0.1368780 866.1180 0.012
+## period3     -1.376388 -2.482287 -0.3169383 683.9413 0.008
+## period4     -1.939970 -3.385380 -0.6196764 572.2106 0.001
 ```
 
 interpret Bayesian "credible intervals" similarly to confidence intervals
@@ -771,13 +771,6 @@ library(glmmTMB)
 
 ```
 ## Warning: package 'glmmTMB' was built under R version 4.0.5
-```
-
-```
-## Warning in checkMatrixPackageVersion(): Package version inconsistency detected.
-## TMB was built with Matrix version 1.3.2
-## Current Matrix version is 1.3.4
-## Please re-install 'TMB' from source using install.packages('TMB', type = 'source') or ask CRAN for a binary version of 'TMB' matching CRAN's 'Matrix' package
 ```
 
 ```r
@@ -1031,7 +1024,7 @@ library(spaMM)
 ```
 
 ```
-## spaMM (Rousset & Ferdy, 2014, version 3.8.23) is loaded.
+## spaMM (Rousset & Ferdy, 2014, version 3.9.0) is loaded.
 ## Type 'help(spaMM)' for a short introduction,
 ## 'news(package='spaMM')' for news,
 ## and 'citation('spaMM')' for proper citation.
@@ -1187,6 +1180,10 @@ where
 
 ```r
 library(nlme)
+```
+
+```
+## Warning: package 'nlme' was built under R version 4.0.5
 ```
 
 ```

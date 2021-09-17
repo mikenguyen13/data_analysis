@@ -1256,6 +1256,13 @@ $$
 
 ```r
 library(matlib) 
+```
+
+```
+## Warning: package 'matlib' was built under R version 4.0.5
+```
+
+```r
 A = matrix(c(0,0.0094, 0, 0,0, 83.58967, 1, 0.9895, - 2.164479), nrow = 3, ncol = 3, byrow = T)
 b = c(2.6722,1,1.457 )
 showEqn(A, b)
@@ -5720,6 +5727,10 @@ d22 <- droplevels(subset(dat, age == "A2" & species == "S2"))
 
 ```r
 library(nlme)
+```
+
+```
+## Warning: package 'nlme' was built under R version 4.0.5
 ```
 
 ```

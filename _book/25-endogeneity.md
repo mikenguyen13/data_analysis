@@ -68,8 +68,19 @@ library(AER)
 ## Loading required package: survival
 ```
 
+```
+## Warning: package 'survival' was built under R version 4.0.5
+```
+
 ```r
 library(REndo)
+```
+
+```
+## Warning: package 'REndo' was built under R version 4.0.5
+```
+
+```r
 set.seed(421)
 data("CASchools")
 school <- CASchools

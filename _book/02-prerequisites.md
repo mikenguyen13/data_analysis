@@ -1851,13 +1851,17 @@ library(tidyverse)
 
 ```
 ## v ggplot2 3.3.5     v purrr   0.3.4
-## v tibble  3.1.2     v dplyr   1.0.6
+## v tibble  3.1.4     v dplyr   1.0.7
 ## v tidyr   1.1.3     v stringr 1.4.0
 ## v readr   2.0.1     v forcats 0.5.1
 ```
 
 ```
 ## Warning: package 'ggplot2' was built under R version 4.0.5
+```
+
+```
+## Warning: package 'tibble' was built under R version 4.0.5
 ```
 
 ```
@@ -2133,13 +2137,13 @@ dat03
 
 ```
 ## # A tibble: 5 x 1
-##       z
-##   <dbl>
-## 1 0.263
-## 2 0.208
-## 3 0.919
-## 4 0.194
-## 5 0.925
+##        z
+##    <dbl>
+## 1 0.632 
+## 2 0.502 
+## 3 0.841 
+## 4 0.0698
+## 5 0.977
 ```
 
 ```r
@@ -2299,13 +2303,13 @@ bind_cols(dat01, dat03)
 
 ```
 ## # A tibble: 5 x 3
-##       x     y     z
-##   <int> <int> <dbl>
-## 1     1     5 0.263
-## 2     2     4 0.208
-## 3     3     3 0.919
-## 4     4     2 0.194
-## 5     5     1 0.925
+##       x     y      z
+##   <int> <int>  <dbl>
+## 1     1     5 0.632 
+## 2     2     4 0.502 
+## 3     3     3 0.841 
+## 4     4     2 0.0698
+## 5     5     1 0.977
 ```
 
 ```r
