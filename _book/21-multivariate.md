@@ -436,6 +436,10 @@ library(tidyverse)
 ```
 
 ```
+## Warning: package 'tibble' was built under R version 4.0.5
+```
+
+```
 ## Warning: package 'readr' was built under R version 4.0.5
 ```
 
@@ -4641,10 +4645,10 @@ table(truth = Y_train, fitted = knn_2)
 ```
 ##             fitted
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          8    0      3        0          0
+##   Clover          8    0      2        0          1
 ##   Corn            0    6      0        1          0
-##   Cotton          1    0      3        0          2
-##   Soybeans        0    0      0        4          2
+##   Cotton          0    0      3        0          3
+##   Soybeans        0    0      0        3          3
 ##   Sugarbeets      1    0      0        1          4
 ```
 
@@ -4654,7 +4658,7 @@ mean(Y_train==knn_2)
 ```
 
 ```
-## [1] 0.6944444
+## [1] 0.6666667
 ```
 
 ```r
@@ -4668,7 +4672,7 @@ table(truth = Y_test, predict = knn_2_test)
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
 ##   Clover          1    0      0        0          0
 ##   Corn            0    1      0        0          0
-##   Cotton          0    0      1        0          0
+##   Cotton          0    0      0        0          1
 ##   Soybeans        0    0      0        1          0
 ##   Sugarbeets      0    0      0        0          1
 ```
@@ -4679,7 +4683,7 @@ mean(Y_test==knn_2_test)
 ```
 
 ```
-## [1] 1
+## [1] 0.8
 ```
 
 ```r
@@ -4691,11 +4695,11 @@ table(truth = Y_train, fitted = knn_3)
 ```
 ##             fitted
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          6    0      3        1          1
-##   Corn            0    5      1        1          0
-##   Cotton          1    0      4        0          1
+##   Clover          7    0      2        2          0
+##   Corn            0    4      1        2          0
+##   Cotton          1    1      3        0          1
 ##   Soybeans        0    0      1        3          2
-##   Sugarbeets      0    0      1        1          4
+##   Sugarbeets      0    0      0        1          5
 ```
 
 ```r
@@ -4759,10 +4763,10 @@ step <- stepclass(
 ```
 
 ```
-## correctness rate: 0.5;  in: "y1";  variables (1): y1 
+## correctness rate: 0.425;  in: "y1";  variables (1): y1 
 ## 
 ##  hr.elapsed min.elapsed sec.elapsed 
-##        0.00        0.00        0.16
+##        0.00        0.00        0.14
 ```
 
 ```r
@@ -4771,8 +4775,8 @@ step$process
 
 ```
 ##    step var varname result.pm
-## 0 start   0      --       0.0
-## 1    in   1      y1       0.5
+## 0 start   0      --     0.000
+## 1    in   1      y1     0.425
 ```
 
 ```r

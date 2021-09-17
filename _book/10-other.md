@@ -127,13 +127,17 @@ library(tidyverse)
 
 ```
 ## v ggplot2 3.3.5     v purrr   0.3.4
-## v tibble  3.1.2     v dplyr   1.0.6
+## v tibble  3.1.4     v dplyr   1.0.7
 ## v tidyr   1.1.3     v stringr 1.4.0
 ## v readr   2.0.1     v forcats 0.5.1
 ```
 
 ```
 ## Warning: package 'ggplot2' was built under R version 4.0.5
+```
+
+```
+## Warning: package 'tibble' was built under R version 4.0.5
 ```
 
 ```
@@ -246,6 +250,10 @@ library(mgcv)
 
 ```
 ## Loading required package: nlme
+```
+
+```
+## Warning: package 'nlme' was built under R version 4.0.5
 ```
 
 ```
