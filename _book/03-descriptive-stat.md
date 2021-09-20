@@ -76,7 +76,7 @@ skewness(data,type = 1)
 ```
 
 ```
-## [1] 0.3341688
+## [1] 0.02999104
 ```
 
 ```r
@@ -84,7 +84,7 @@ kurtosis(data, type = 1)
 ```
 
 ```
-## [1] -0.09346485
+## [1] -0.2063838
 ```
 
 ## Graphical Measures
@@ -144,12 +144,17 @@ stem(data)
 ## 
 ##   The decimal point is at the |
 ## 
-##   -2 | 530
-##   -1 | 544333332210000
-##   -0 | 99888887777655443332111000
-##    0 | 000001111222222233333344455555555666777889
-##    1 | 00002444589
-##    2 | 245
+##   -2 | 0
+##   -1 | 
+##   -1 | 443221000
+##   -0 | 88887777666555
+##   -0 | 4444444433332222221111100
+##    0 | 0011111223333344
+##    0 | 55555666677778888
+##    1 | 00000122444
+##    1 | 56778
+##    2 | 0
+##    2 | 6
 ```
 
 ```r
@@ -272,7 +277,7 @@ gofTest(data,test="ppcc")$p.value #Probability Plot Correlation Coefficient
 ```
 
 ```
-## [1] 0.2494517
+## [1] 0.553347
 ```
 
 ##### Shapiro-Wilk Test
@@ -291,7 +296,7 @@ gofTest(data,test="sw")$p.value #Shapiro-Wilk is the default.
 ```
 
 ```
-## [1] 0.3283819
+## [1] 0.7137507
 ```
 
 #### Methods based on empirical cumulative distribution function
@@ -351,7 +356,7 @@ gofTest(data,test="ad")$p.value #Anderson-Darling
 ```
 
 ```
-## [1] 0.1011549
+## [1] 0.4915771
 ```
 
 ##### Kolmogorov-Smirnov Test
@@ -365,11 +370,11 @@ gofTest(data,test="ks")$p.value #Komogorov-Smirnov
 ```
 
 ```
-## Warning in ksGofTest(x = c(0.967380426460649, -1.28283322733737, -2.32769704036781, : The standard Kolmogorov-Smirnov test is very conservative (Type I error smaller than assumed; high Type II error) for testing departures from the Normal distribution when you have to estimate the distribution parameters.
+## Warning in ksGofTest(x = c(-0.820110291192116, 0.566940499883158, 0.474190834785495, : The standard Kolmogorov-Smirnov test is very conservative (Type I error smaller than assumed; high Type II error) for testing departures from the Normal distribution when you have to estimate the distribution parameters.
 ```
 
 ```
-## [1] 0.5338637
+## [1] 0.8851862
 ```
 
 ##### Cramer-von Mises Test
@@ -382,7 +387,7 @@ gofTest(data,test="cvm")$p.value #Cramer-von Mises
 ```
 
 ```
-## [1] 0.06741337
+## [1] 0.4049144
 ```
 
 ##### Jarque--Bera Test {#jarquebera-test}

@@ -114,19 +114,19 @@ summary(rdd_mod)
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
-## -3.1642 -0.6410 -0.0184  0.6990  3.5004 
+## -3.1436 -0.6782 -0.0125  0.6543  3.5687 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(>|t|)    
-## (Intercept) 16.95420    0.07014  241.72   <2e-16 ***
-## D           10.03629    0.11993   83.69   <2e-16 ***
-## x            1.96090    0.03488   56.21   <2e-16 ***
+## (Intercept) 17.01448    0.06715  253.39   <2e-16 ***
+## D            9.88318    0.12100   81.68   <2e-16 ***
+## x            2.01563    0.03322   60.68   <2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 1.026 on 997 degrees of freedom
-## Multiple R-squared:  0.9589,	Adjusted R-squared:  0.9588 
-## F-statistic: 1.163e+04 on 2 and 997 DF,  p-value: < 2.2e-16
+## Residual standard error: 1.012 on 997 degrees of freedom
+## Multiple R-squared:  0.9578,	Adjusted R-squared:  0.9577 
+## F-statistic: 1.131e+04 on 2 and 997 DF,  p-value: < 2.2e-16
 ```
 
 
@@ -989,7 +989,7 @@ sea1 <- microsynth(
 ```
 
 ```
-## Created main weights for synthetic control: Time = 0.88
+## Created main weights for synthetic control: Time = 1.05
 ```
 
 ```
@@ -1057,16 +1057,16 @@ sea1 <- microsynth(
 ## any_crime.2       250         250.0012    51.5429
 ## any_crime.1       242         242.0010    55.1145
 ## 
-## Calculation of weights complete: Total time = 1.52
+## Calculation of weights complete: Total time = 1.69
 ## 
 ## Calculating basic statistics for end.post = 16...
-## Completed calculation of basic statistics for end.post = 16.  Time = 3.4
+## Completed calculation of basic statistics for end.post = 16.  Time = 3.51
 ## 
 ## Calculating survey statistics for end.post = 16...
-## Completed survey statistics for main weights: Time = 5.53
-## Completed calculation of survey statistics for end.post = 16.  Time = 5.53
+## Completed survey statistics for main weights: Time = 5.46
+## Completed calculation of survey statistics for end.post = 16.  Time = 5.46
 ## 
-## microsynth complete: Overall time = 13.64
+## microsynth complete: Overall time = 13.97
 ```
 
 ```r
@@ -2634,7 +2634,7 @@ genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
 ```
 ## 
 ## 
-## Fri Sep 17 12:33:27 2021
+## Mon Sep 20 17:34:08 2021
 ## Domains:
 ##  0.000000e+00   <=  X1   <=    1.000000e+03 
 ##  0.000000e+00   <=  X2   <=    1.000000e+03 
@@ -2823,7 +2823,7 @@ genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
 ## Solution Found Generation 1
 ## Number of Generations Run 2
 ## 
-## Fri Sep 17 12:33:27 2021
+## Mon Sep 20 17:34:08 2021
 ## Total run time : 0 hours 0 minutes and 0 seconds
 ```
 
