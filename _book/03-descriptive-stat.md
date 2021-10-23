@@ -76,7 +76,7 @@ skewness(data,type = 1)
 ```
 
 ```
-## [1] 0.6260633
+## [1] -0.160944
 ```
 
 ```r
@@ -84,7 +84,7 @@ kurtosis(data, type = 1)
 ```
 
 ```
-## [1] -0.09385794
+## [1] -0.05973634
 ```
 
 ## Graphical Measures
@@ -144,13 +144,12 @@ stem(data)
 ## 
 ##   The decimal point is at the |
 ## 
-##   -2 | 00
-##   -1 | 95533222111000
-##   -0 | 99999988766555555555554333333322222111100
-##    0 | 1111222233344455566678899
-##    1 | 0011123334556679
-##    2 | 5
-##    3 | 2
+##   -2 | 94420
+##   -1 | 9877654444211100
+##   -0 | 999887766666665555553333322211110
+##    0 | 0111111222222333346666677788999
+##    1 | 00222334467
+##    2 | 0234
 ```
 
 ```r
@@ -273,7 +272,7 @@ gofTest(data,test="ppcc")$p.value #Probability Plot Correlation Coefficient
 ```
 
 ```
-## [1] 0.0796531
+## [1] 0.9858092
 ```
 
 ##### Shapiro-Wilk Test
@@ -292,7 +291,7 @@ gofTest(data,test="sw")$p.value #Shapiro-Wilk is the default.
 ```
 
 ```
-## [1] 0.1034802
+## [1] 0.967722
 ```
 
 #### Methods based on empirical cumulative distribution function
@@ -352,7 +351,7 @@ gofTest(data,test="ad")$p.value #Anderson-Darling
 ```
 
 ```
-## [1] 0.1123785
+## [1] 0.9771918
 ```
 
 ##### Kolmogorov-Smirnov Test
@@ -366,11 +365,11 @@ gofTest(data,test="ks")$p.value #Komogorov-Smirnov
 ```
 
 ```
-## Warning in ksGofTest(x = c(-1.26590782753074, -1.91328255805952, 0.959715697752991, : The standard Kolmogorov-Smirnov test is very conservative (Type I error smaller than assumed; high Type II error) for testing departures from the Normal distribution when you have to estimate the distribution parameters.
+## Warning in ksGofTest(x = c(0.216833358012125, -1.01667245378007, 2.37164310390444, : The standard Kolmogorov-Smirnov test is very conservative (Type I error smaller than assumed; high Type II error) for testing departures from the Normal distribution when you have to estimate the distribution parameters.
 ```
 
 ```
-## [1] 0.4245458
+## [1] 0.9672155
 ```
 
 ##### Cramer-von Mises Test
@@ -383,7 +382,7 @@ gofTest(data,test="cvm")$p.value #Cramer-von Mises
 ```
 
 ```
-## [1] 0.08407055
+## [1] 0.9405573
 ```
 
 ##### Jarque--Bera Test {#jarquebera-test}

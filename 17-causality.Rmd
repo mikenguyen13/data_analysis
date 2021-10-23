@@ -126,7 +126,7 @@ Tools in a hierarchical order
 
     3.  [Synthetic Control] Tier 2A
 
-    4.  Fixed Effects Estimator: Tier 3
+    4.  Fixed Effects Estimator \@ref(fixed-effects-estimator): Tier 3
 
     5.  [Endogenous Treatment]: mostly [Instrumental Variable]: Tier 3A
 
@@ -134,7 +134,27 @@ Tools in a hierarchical order
 
     7.  [Interrupted Time Series] Tier 4A
 
-    8.  Endogenous Sample Selection: mostly Heckman's correction
+    8.  Endogenous Sample Selection \@ref(endogenous-sample-selection): mostly Heckman's correction
+
+There are four types of subjects that we deal with:
+
+-   Non-switchers: we don't care about non-switchers because even if we introduce or don't introduce the intervention, it won't affect them.
+
+    -   Always takers
+
+    -   Never takers
+
+-   Switchers
+
+    -   Compliers: defined as those who respect the intervention.
+
+        -   We only care about compliers because when we introduce the intervention, they will do something. When we don't have any interventions, they won't do it.
+
+        -   Tools above are used to identify the causal impact of an intervention on compliers
+
+    -   Defiers: those who will go to the opposite direction of your treatment.
+
+        -   We typically aren't interested in defiers because they will do the opposite of what we want them to do. And they are typically a small group; hence, we just assume they don't exist.
 
 <br>
 

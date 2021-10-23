@@ -4645,9 +4645,9 @@ table(truth = Y_train, fitted = knn_2)
 ```
 ##             fitted
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          8    0      2        1          0
-##   Corn            0    5      0        2          0
-##   Cotton          0    0      5        0          1
+##   Clover          7    0      2        1          1
+##   Corn            0    7      0        0          0
+##   Cotton          1    0      3        0          2
 ##   Soybeans        0    0      0        3          3
 ##   Sugarbeets      1    0      1        1          3
 ```
@@ -4658,7 +4658,7 @@ mean(Y_train==knn_2)
 ```
 
 ```
-## [1] 0.6666667
+## [1] 0.6388889
 ```
 
 ```r
@@ -4695,11 +4695,11 @@ table(truth = Y_train, fitted = knn_3)
 ```
 ##             fitted
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          8    0      2        1          0
+##   Clover          7    0      3        0          1
 ##   Corn            0    5      1        1          0
-##   Cotton          1    1      3        1          0
+##   Cotton          1    0      5        0          0
 ##   Soybeans        0    0      0        4          2
-##   Sugarbeets      0    1      0        2          3
+##   Sugarbeets      0    0      1        1          4
 ```
 
 ```r
@@ -4708,7 +4708,7 @@ mean(Y_train==knn_3)
 ```
 
 ```
-## [1] 0.6388889
+## [1] 0.6944444
 ```
 
 ```r
@@ -4763,10 +4763,10 @@ step <- stepclass(
 ```
 
 ```
-## correctness rate: 0.40833;  in: "y1";  variables (1): y1 
+## correctness rate: 0.46667;  in: "y1";  variables (1): y1 
 ## 
 ##  hr.elapsed min.elapsed sec.elapsed 
-##        0.00        0.00        0.13
+##        0.00        0.00        0.14
 ```
 
 ```r
@@ -4776,7 +4776,7 @@ step$process
 ```
 ##    step var varname result.pm
 ## 0 start   0      -- 0.0000000
-## 1    in   1      y1 0.4083333
+## 1    in   1      y1 0.4666667
 ```
 
 ```r
