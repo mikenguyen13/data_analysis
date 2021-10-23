@@ -113,20 +113,20 @@ summary(rdd_mod)
 ## lm(formula = y ~ ., data = dat_step1, weights = weights)
 ## 
 ## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -3.5094 -0.6457  0.0217  0.6948  2.9589 
+##      Min       1Q   Median       3Q      Max 
+## -2.99738 -0.67116  0.02257  0.67270  2.54756 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(>|t|)    
-## (Intercept) 16.98391    0.06604  257.19   <2e-16 ***
-## D           10.03611    0.11204   89.58   <2e-16 ***
-## x            1.99768    0.03310   60.34   <2e-16 ***
+## (Intercept) 16.99553    0.06577  258.41   <2e-16 ***
+## D           10.08438    0.11841   85.17   <2e-16 ***
+## x            1.96346    0.03232   60.74   <2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.9832 on 997 degrees of freedom
-## Multiple R-squared:  0.9644,	Adjusted R-squared:  0.9644 
-## F-statistic: 1.351e+04 on 2 and 997 DF,  p-value: < 2.2e-16
+## Residual standard error: 0.975 on 997 degrees of freedom
+## Multiple R-squared:  0.9602,	Adjusted R-squared:  0.9602 
+## F-statistic: 1.204e+04 on 2 and 997 DF,  p-value: < 2.2e-16
 ```
 
 
@@ -989,7 +989,7 @@ sea1 <- microsynth(
 ```
 
 ```
-## Created main weights for synthetic control: Time = 0.99
+## Created main weights for synthetic control: Time = 0.96
 ```
 
 ```
@@ -1057,16 +1057,16 @@ sea1 <- microsynth(
 ## any_crime.2       250         250.0012    51.5429
 ## any_crime.1       242         242.0010    55.1145
 ## 
-## Calculation of weights complete: Total time = 1.63
+## Calculation of weights complete: Total time = 1.66
 ## 
 ## Calculating basic statistics for end.post = 16...
-## Completed calculation of basic statistics for end.post = 16.  Time = 3.25
+## Completed calculation of basic statistics for end.post = 16.  Time = 3.62
 ## 
 ## Calculating survey statistics for end.post = 16...
-## Completed survey statistics for main weights: Time = 5.5
-## Completed calculation of survey statistics for end.post = 16.  Time = 5.5
+## Completed survey statistics for main weights: Time = 5.81
+## Completed calculation of survey statistics for end.post = 16.  Time = 5.81
 ## 
-## microsynth complete: Overall time = 13.5
+## microsynth complete: Overall time = 14.26
 ```
 
 ```r
@@ -1200,6 +1200,12 @@ For detail summary [@Stuart_2010]
 
 Matching is defined as "any method that aims to equate (or "balance") the distribution of covariates in the treated and control groups." [@Stuart_2010, pp. 1]
 
+Equivalently, matching is a selection on observables identifications strategy.
+
+**If you think your OLS estimate is biased, a matching estimate (almost surely) is too.**
+
+<br>
+
 Professor Gary King advocates instead of using the word "matching", we should use "**pruning**" (i.e., deleting observations). It is a preprocessing step where it prunes nonmatches to make control variables less important in your analysis.
 
 Without Matching
@@ -1261,7 +1267,7 @@ Assumptions of matching:
 
     -   You typically satisfy this assumption when unobserved covariates correlated with observed covariates.
 
-        -   But when unobserved covairtes are unreleated to the observered covarites, you can use sensitity analysis to check your result, or use "design sensitivity" [@Heller_2009]
+        -   But when unobserved covariates are unrelated to the observed covariates, you can use sensitivity analysis to check your result, or use "design sensitivity" [@Heller_2009]
 
 2.  positive probability of receiving treatment for all X
 
@@ -1532,8 +1538,14 @@ Packages
 | Easier to asses whether it's working                                                                         | estimate the effect of all the variables (not just the treatment) |
 |                                                                                                              |                                                                   |
 | Easier to explain                                                                                            |                                                                   |
+|                                                                                                              |                                                                   |
+| allows a nice visualization of an evaluation                                                                 |                                                                   |
 +--------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------+
 | If you treatment is fairly rare, you may have a lot of control observations that are obviously no comparable | can estimate interactions of treatment with covariates            |
++--------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------+
+| Less parametric                                                                                              | More parametric                                                   |
++--------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------+
+| Enforces common support (i.e., space where treatment and control have the same characteristics)              |                                                                   |
 +--------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------+
 
 However, the problem of **omitted variables** (i.e., those that affect both the outcome and whether observation was treated) - unobserved confounders is still present in matching methods.
@@ -2634,7 +2646,7 @@ genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
 ```
 ## 
 ## 
-## Mon Sep 20 17:54:14 2021
+## Fri Oct 22 18:53:58 2021
 ## Domains:
 ##  0.000000e+00   <=  X1   <=    1.000000e+03 
 ##  0.000000e+00   <=  X2   <=    1.000000e+03 
@@ -2823,8 +2835,8 @@ genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
 ## Solution Found Generation 1
 ## Number of Generations Run 2
 ## 
-## Mon Sep 20 17:54:14 2021
-## Total run time : 0 hours 0 minutes and 0 seconds
+## Fri Oct 22 18:53:59 2021
+## Total run time : 0 hours 0 minutes and 1 seconds
 ```
 
 ```r

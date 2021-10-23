@@ -1,7 +1,7 @@
 ---
 title: "A Guide on Data Analysis"
 author: "Mike Nguyen"
-date: "2021-09-20"
+date: "2021-10-22"
 header-includes:
   - \usepackage{titling}
   - \pretitle{\begin{center}
@@ -35,6 +35,13 @@ site: bookdown::bookdown_site
 
 <img src="logo.png" width="25%" style="display: block; margin: auto;" />
 
+More books by the author can be found [here](https://mikenguyen.netlify.app/books/written_books/):
+
+ * [Advanced Data Analysis](https://bookdown.org/mike/advanced_data_analysis/): the second book in the data analysis series, which covers machine learning models (with a focus on prediction)
+ * [Marketing Research](https://bookdown.org/mike/marketing_research/)
+ * [Communication Theory](https://bookdown.org/mike/comm_theory/)
+
+
 # Introduction
 
 This guide is an attempt to streamline and demystify the data analysis process.
@@ -46,11 +53,6 @@ By no means this is an ultimate guide, or I am a great source of knowledge, or I
 Since the beginning of the century, we have been bombarded with amazing advancements and inventions, especially in the field of statistics, information technology, computer science, or a new emerging filed - data science. However, I believe the downside of this introduction is that we use **big** and **trendy** words too often (i.e., big data, machine learning, deep learning).
 
 It's all fun and exciting when I learned these new tools. But I have to admit that I hardly retain any of these new ideas. However, writing down from the beginning till the end of a data analysis process is the solution that I came up with. Accordingly, let's dive right in.
-
-
-```
-## Warning: package 'jpeg' was built under R version 4.0.5
-```
 
 <img src="images/meme.jpg" width="600" style="display: block; margin: auto;" />
 
