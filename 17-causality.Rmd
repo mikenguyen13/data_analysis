@@ -7,7 +7,9 @@ It's important to have a deep understanding regarding the method research. Howev
 
 Here, we dive in a more conceptual side statistical analysis as a whole, regardless of particular approach.
 
-You probably heard scientists say correlation doesn't mean causation. There are ridiculous [spurious correlations](http://www.tylervigen.com/spurious-correlations) that give a firm grip on what the previous phrase means. Statistics is used to be a causality-free enterprise in the past. Not until the development of path analysis by Sewall Wright in the 1920s that the discipline started to pay attention to causation. Then, it remained dormant until the Causal Revolution (quoted Judea Pearl's words). This revolution introduced the calculus of causation which includes (1) causal diagrams), and (2) a symbolic language
+You probably heard scientists say correlation doesn't mean causation. There are ridiculous [spurious correlations](http://www.tylervigen.com/spurious-correlations) that give a firm grip on what the previous phrase means. The pioneer who tried to use regression to infer causation in social science was @yule1899 (but it was a fatal attempt where he found relief policy increases poverty). To make a causal inference from statistics, **the equation (function form) must be stable** under intervention (i.e., variables are manipulated). Statistics is used to be a causality-free enterprise in the past.
+
+Not until the development of path analysis by Sewall Wright in the 1920s that the discipline started to pay attention to causation. Then, it remained dormant until the Causal Revolution (quoted Judea Pearl's words). This revolution introduced the calculus of causation which includes (1) causal diagrams), and (2) a symbolic language
 
 The world has been using $P(Y|X)$ (statistics use to derive this), but what we want is to compare the difference between
 
@@ -35,6 +37,25 @@ Ladder of causation (associated with levels of cognitive ability as well):
 2.  Intervention
 3.  Counterfactuals
 
++-----------------+-------------+-------------------------------------------+------------------------------------------------------------+
+| Level           | Activity    | Questions                                 | Examples                                                   |
++=================+=============+===========================================+============================================================+
+| Association     | Seeing      | What is?                                  | What does a symptom tell me about a disease?               |
+|                 |             |                                           |                                                            |
+| $P(y|x)$        |             | How would seeing X change my belief in Y? |                                                            |
++-----------------+-------------+-------------------------------------------+------------------------------------------------------------+
+| Intervention    | Doing       | What if?                                  | What if I spend more time learning, will my result change? |
+|                 |             |                                           |                                                            |
+| $P(y|do(x),z)$  | Intervening | What if I do X?                           |                                                            |
++-----------------+-------------+-------------------------------------------+------------------------------------------------------------+
+| Counterfactuals | Imagining   | Why?\                                     | What if I stopped smoking a year ago?                      |
+|                 |             | was it X that caused Y?                   |                                                            |
+| $P(y_x|x',y')$  |             |                                           |                                                            |
+|                 |             | What if I had acted differently           |                                                            |
++-----------------+-------------+-------------------------------------------+------------------------------------------------------------+
+
+Table by [@pearl2019, p. 2]
+
 You cannot define causation from probability alone
 
 If you say X causes Y if X raises the probability of Y." On the surface, it might sound intuitively right. But when we translate it to probability notation: $P(Y|X) >P(Y)$ , it can't be more wrong. Just because you are seeing X (1st level), it **doesn't mean** the probability of Y increases.
@@ -50,6 +71,30 @@ $$
 and with the help of causal diagram, now you can answer questions at the 2nd level (Intervention)
 
 Note: people under econometrics might still use "Granger causality" and "vector autoregression" to use the probability language to represent causality (but it's not).
+
+<br>
+
+The 7 tools for Structural Causal Model framework [@pearl2019]:
+
+1.  Encoding Causal Assumptions - transparency and testability (with graphical representation)
+
+2.  Do-calculus and the control of confounding: "back-door"
+
+3.  The algorithmization of Counterfactuals
+
+4.  Mediation Analysis and the Assessment of Direct and Indirect Effects
+
+5.  Adaptability, External validity and Sample Selection Bias: are still researched under "domain adaptation", "transfer learning"
+
+6.  Recovering from missing data
+
+7.  Causal Discovery:
+
+    1.  d-separation
+
+    2.  Functional decomposition [@hoyer2008; @shimizu2009; @chen2012a]
+
+    3.  Spontaneous local changes [@pearla]
 
 <br>
 

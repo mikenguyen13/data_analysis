@@ -1,20 +1,389 @@
 # Endogeneity
 
+Refresher
+
+A general model framework
+
+$$
+\mathbf{Y = X \beta + \epsilon}
+$$
+
+where
+
+-   $\mathbf{Y} = n \times 1$
+
+-   $\mathbf{X} = n \times k$
+
+-   $\beta = k \times 1$
+
+-   $\epsilon = n \times 1$
+
+Then, OLS estimates of coefficients are
+
+$$
+\begin{aligned}
+\hat{\beta}_{OLS} &= (\mathbf{X}'\mathbf{X})^{-1}(\mathbf{X}'\mathbf{Y}) \\
+&= (\mathbf{X}'\mathbf{X})^{-1}(\mathbf{X}'(\mathbf{X \beta + \epsilon})) \\
+&= (\mathbf{X}'\mathbf{X})^{-1} (\mathbf{X}'\mathbf{X}) \beta + (\mathbf{X}'\mathbf{X})^{-1} (\mathbf{X}'\mathbf{\epsilon}) \\
+\hat{\beta}_{OLS} & \to \beta + (\mathbf{X}'\mathbf{X})^{-1} (\mathbf{X}'\mathbf{\epsilon})
+\end{aligned}
+$$
+
+To have unbiased estimates, we have to get rid of the second part $(\mathbf{X}'\mathbf{X})^{-1} (\mathbf{X}'\mathbf{\epsilon})$
+
+There are 2 conditions to achieve unbiased estimates:
+
+1.  $E(\epsilon |X) = 0$ (This is easy, putting an intercept can solve this issue)
+2.  $Cov(\mathbf{X}, \epsilon) = 0$ (This is the hard part)
+
+We only care about omitted variable
+
+Usually, the problem will stem Omitted Variables Bias, but we only care about omitted variable bias when
+
+1.  Omitted variables correlate with the variables we care about ($X$). If OMV does not correlate with $X$, we don't care, and random assignment makes this correlation goes to 0)
+2.  Omitted variables correlates with outcome/ dependent variable
+
+There are more types of endogeneity listed below.
+
+<br>
+
 Types of endogeneity
 
 1.  [Endogenous Treatment]
 
--   Omitted Variables Bias\
+-   Omitted Variables Bias
 
-    -   Motivation/choice\
-    -   Ability/talent\
+    -   Motivation/choice
+    -   Ability/talent
     -   Self-selection
 
--   Feedback Effect (Simultaneity): also known as bidirectionality
+-   Feedback Effect ([Simultaneity]): also known as bidirectionality
 
--   Measurement Error
+-   [Measurement Error]
 
 2.  [Endogenous Sample Selection]
+
+<br>
+
+To deal with this problem, we have a toolbox (that has been mentioned in previous chapter \@ref(causal-inference) )
+
+Tools in a hierarchical order
+
+1.  [Experimental Design]: Randomized Control Trials (Gold standard): Tier 1
+
+2.  [Quasi-experimental]
+
+    1.  [Regression Discontinuity] Tier 1A
+
+    2.  [Difference-In-Differences] Tier 2
+
+    3.  [Synthetic Control] Tier 2A
+
+    4.  Fixed Effects Estimator: Tier 3
+
+    5.  [Endogenous Treatment]: mostly [Instrumental Variable]: Tier 3A
+
+    6.  [Matching Methods] Tier 4
+
+    7.  [Interrupted Time Series] Tier 4A
+
+    8.  Endogenous Sample Selection: mostly Heckman's correction
+
+<br>
+
+Using control variables in regression is a "selection on observables" identification strategy.
+
+In other words, if you believe you have an omitted variable, and you can measure it, including it in the regression model solves your problem. These uninterested variables are called control variables in your model.
+
+However, this is rarely the case (because the problem is we don't have their measurements). Hence, we need more elaborate methods:
+
+-   [Endogenous Treatment]
+
+-   [Endogenous Sample Selection]
+
+Before we get to methods that deal with bias arises from omitted variables, we consider cases where we do have measurements of a variable, but there is measurement error (bias).
+
+<br>
+
+## Measurement Error
+
+-   Data error can stem from
+
+    -   Coding errors
+
+    -   Reporting errors
+
+### Classical Measurement Errors
+
+#### Right-hand side
+
+-   Right-hand side measurement error: When the measurement is in the covariates, then we have the endogeneity problem.
+
+Say you know the true model is
+
+$$
+Y_i = \beta_0 + \beta_1 X_i + u_i
+$$
+
+But you don't observe $X_i$, but you observe
+
+$$
+\tilde{X}_i = X_i + e_i
+$$
+
+which is known as classical measurement errors where we **assume** $e_i$ is uncorrelated with $X_i$ (i.e., $E(X_i e_i) = 0$)
+
+Then, when you estimate your observed variables, you have (substitute $X_i$ with $\tilde{X}_i - e_i$ ):
+
+$$
+\begin{aligned}
+Y_i &= \beta_0 + \beta_1 (\tilde{X}_i - e_i)+ u_i \\
+&= \beta_0 + \beta_1 \tilde{X}_i + u_i - \beta_1 e_i \\
+&= \beta_0 + \beta_1 \tilde{X}_i + v_i
+\end{aligned}
+$$
+
+In words, the measurement error in $X_i$ is now a part of the error term in the regression equation $v_i$. Hence, we have an endogeneity bias.
+
+Endogeneity arises when
+
+$$
+\begin{aligned}
+E(\tilde{X}_i v_i) &= E((X_i + e_i )(u_i - \beta_1 e_i)) \\
+&= -\beta_1 Var(e_i) \neq 0
+\end{aligned}
+$$
+
+Since $\tilde{X}_i$ and $e_i$ are positively correlated, then it leads to
+
+-   a negative bias in $\hat{\beta}_1$ if the true $\beta_1$ is positive
+
+-   a positive bias if $\beta_1$ is negative
+
+In other words, measurement errors cause **attenuation bias**, which inter turn pushes the coefficient towards 0
+
+As $Var(e_i)$ increases or $\frac{Var(e_i)}{Var(\tilde{X})} \to 1$ then $e_i$ is a random (noise) and $\beta_1 \to 0$ (random variable $\tilde{X}$ should not have any relation to $Y_i$)
+
+Technical note:
+
+The size of the bias in the OLS-estimator is
+
+$$
+\hat{\beta} = \frac{ cov(\tilde{X}, Y)}{var(\tilde{X})} = \frac{cov(X + e, \beta X + u)}{var(X + e)}
+$$
+
+then
+
+$$
+plim \hat{\beta} = \beta \frac{\sigma^2_X}{\sigma^2_X + \sigma^2_e} = \beta \lambda
+$$
+
+where $\lambda$ is reliability or signal-to-total variance ratio or attenuation factor
+
+Note:
+
+**Data transformation worsen (magnify) the measurement error**
+
+$$
+y= \beta x + \gamma x^2 + \epsilon
+$$
+
+then, the attenuation factor for $\hat{\gamma}$ is the square of the attenuation factor for $\hat{\beta}$ (i.e., $\lambda_{\hat{\gamma}} = \lambda_{\hat{\beta}}^2$)
+
+To fix classical measurement error problem, we can
+
+1.  Find estimates of either $\sigma^2_X, \sigma^2_\epsilon$ or $\lambda$ from validation studies, or survey data.
+2.  [Endogenous Treatment] Use instrument $Z$ correlated with $X$ but uncorrelated with $\epsilon$
+3.  Abandon your project
+
+<br>
+
+#### Left-hand side
+
+When the measurement is in the outcome variable, econometricians or causal scientists do not care because they still have an unbiased estimate of the coefficients (the zero conditional mean assumption is not violated, hence we don't have endogeneity). However, statisticians might care because it might inflate our uncertainty in the coefficient estimates (i.e., higher standard errors).
+
+$$
+\tilde{Y} = Y + v
+$$
+
+then the model you estimate is
+
+$$
+\tilde{Y} = \beta X + u + v
+$$
+
+Since $v$ is uncorrelated with $X$, then $\hat{\beta}$ is consistently estimated by OLS
+
+If we have measurement error in $Y_i$, it will pass through $\beta_1$ and go to $u_i$
+
+<br>
+
+### Non-classical Measurement Errors
+
+Relaxing the assumption that $X$ and $\epsilon$ are uncorrelated
+
+Recall the true model we have true estimate is
+
+$$
+\hat{\beta} = \frac{cov(X + \epsilon, \beta X + u)}{var(X + \epsilon)}
+$$
+
+then without the above assumption, we have
+
+$$
+\begin{aligned}
+plim \hat{\beta} &= \frac{\beta (\sigma^2_X + \sigma_{X \epsilon})}{\sigma^2_X + \sigma^2_\epsilon + 2 \sigma_{X \epsilon}} \\
+&= (1 - \frac{\sigma^2_{\epsilon} + \sigma_{X \epsilon}}{\sigma^2_X + \sigma^2_\epsilon + 2 \sigma_{X \epsilon}}) \beta \\
+&= (1 - b_{\epsilon \tilde{X}}) \beta
+\end{aligned}
+$$
+
+where $b_{\epsilon \tilde{X}}$ is the covariance between $\tilde{X}$ and $\epsilon$ (also the regression coefficient of a regression of $\epsilon$ on $\tilde{X}$)
+
+Hence, the [Classical Measurement Errors] is just a special case of [Non-classical Measurement Errors] where $b_{\epsilon \tilde{X}} = 1 - \lambda$
+
+So when $\sigma_{X \epsilon} = 0$ ([Classical Measurement Errors]), increasing this covariance $b_{\epsilon \tilde{X}}$ increases the covariance increases the attenuation factor if more than half of the variance in $\tilde{X}$ is measurement error, and decreases the attenuation factor otherwise. This is also known as **mean reverting measurement error [**@bound1989]
+
+A general framework for both right-hand side and left-hand side measurement error is [@bound1994]:
+
+consider the true model
+
+$$
+\mathbf{Y = X \beta + \epsilon}
+$$
+
+then
+
+$$
+\begin{aligned}
+\hat{\beta} &= \mathbf{(\tilde{X}' \tilde{X})^{-1}\tilde{X} \tilde{Y}} \\
+&= \mathbf{(\tilde{X}' \tilde{X})^{-1} \tilde{X}' (\tilde{X} \beta - U \beta + v + \epsilon )} \\
+&= \mathbf{\beta + (\tilde{X}' \tilde{X})^{-1} \tilde{X}' (-U \beta + v + \epsilon)} \\
+plim \hat{\beta} &= \beta + plim (\tilde{X}' \tilde{X})^{-1} \tilde{X}' ( -U\beta + v) \\
+&= \beta + plim (\tilde{X}' \tilde{X})^{-1} \tilde{X}' W 
+\left[
+\begin{array}
+{c}
+- \beta \\
+1
+\end{array}
+\right]
+\end{aligned}
+$$
+
+Since we collect the measurement errors in a matrix $W = [U|v]$, then
+
+$$
+( -U\beta + v) = W 
+\left[
+\begin{array}
+{c}
+- \beta \\
+1
+\end{array}
+\right]
+$$
+
+Hence, in general, biases in the coefficients $\beta$ are regression coefficients from regressing the measurement errors on the mis-measured $\tilde{X}$
+
+Notes:
+
+-   [Instrumental Variable] can help fix this problem
+
+-   There can also be measurement error in dummy variables and you can still use [Instrumental Variable] to fix it.
+
+<br>
+
+## Simultaneity
+
+-   When independent variables ($X$'s) are jointly determined with the dependent variable $Y$, typically through an equilibrium mechanism, violates the second condition for causality (i.e., temporal order).
+
+-   Examples: quantity and price by demand and supply, investment and productivity, sales and advertisement
+
+General Simultaneous (Structural) Equations
+
+$$
+Y_i = \beta_0 + \beta_1 X_i + u_i \\
+X_i = \alpha_0 + \alpha_1 Y_i + v_i
+$$
+
+Hence, the solutions are
+
+$$
+Y_i = \frac{\beta_0 + \beta_1 \alpha_0}{1 - \alpha_1 \beta_1} + \frac{\beta_1 v_i + u_i}{1 - \alpha_1 \beta_1} \\
+X_i = \frac{\alpha_0 + \alpha_1 \beta_0}{1 - \alpha_1 \beta_1} + \frac{v_i + \alpha_1 u_i}{1 - \alpha_1 \beta_1}
+$$
+
+If we run only one regression, we will have biased estimators (because of **simultaneity bias**):
+
+$$
+\begin{aligned}
+Cov(X_i, u_i) &= Cov(\frac{v_i + \alpha_1 u_i}{1 - \alpha_1 \beta_1}, u_i) \\
+&= \frac{\alpha_1}{1- \alpha_1 \beta_1} Var(u_i)
+\end{aligned}
+$$
+
+In an even more general model
+
+$$
+\begin{cases}
+Y_i = \beta_0 + \beta_1 X_i + \beta_2 T_i + u_i \\
+X_i = \alpha_0 + \alpha_1 Y_i + \alpha_2 Z_i + v_i
+\end{cases}
+$$
+
+where
+
+-   $X_i, Y_i$ are **endogenous** variables determined within the system
+
+-   $T_i, Z_i$ are **exogenous** variables
+
+Then, the reduced form of the model is
+
+$$
+\begin{cases}
+\begin{aligned}
+Y_i &= \frac{\beta_0 + \beta_1 \alpha_0}{1 - \alpha_1 \beta_1} + \frac{\beta_1 \alpha_2}{1 - \alpha_1 \beta_1} Z_i + \frac{\beta_2}{1 - \alpha_1 \beta_1} T_i + \tilde{u}_i \\
+&= B_0 + B_1 Z_i + B_2 T_i + \tilde{u}_i
+\end{aligned}
+\\
+\begin{aligned}
+X_i &= \frac{\alpha_0 + \alpha_1 \beta_0}{1 - \alpha_1 \beta_1} + \frac{\alpha_2}{1 - \alpha_1 \beta_1} Z_i + \frac{\alpha_1\beta_2}{1 - \alpha_1 \beta_1} T_i + \tilde{v}_i \\
+&= A_0 + A_1 Z_i + A_2 T_i + \tilde{v}_i
+\end{aligned}
+\end{cases}
+$$
+
+Then, now we can get consistent estimates of the reduced form parameters
+
+And to get the original parameter estimates
+
+$$
+\frac{B_1}{A_1} = \beta_1 \\
+B_2 (1 - \frac{B_1 A_2}{A_1B_2}) = \beta_2 \\
+\frac{A_2}{B_2} = \alpha_1 \\
+A_1 (1 - \frac{B_1 A_2}{A_1 B_2}) = \alpha_2
+$$
+
+Rules for Identification
+
+**Order Condition** (necessary but not sufficient)
+
+$$
+K - k \ge m - 1
+$$
+
+where
+
+-   $M$ = number of endogenous variables in the model
+
+-   K = number of exogenous variables int he model
+
+-   m = number of endogenous variables in a given
+
+-   k = is the number of exogenous variables in a given equation
+
+This is actually the general framework for instrumental variables
 
 ## Endogenous Treatment
 
@@ -110,7 +479,7 @@ Assume [A1][A1 Linearity] , [A2][A2 Full rank], [A5][A5 Data Generation (random 
 
 $$
 plim(\hat{\beta}_{OLS}) = \beta + [E(\mathbf{x_i'x_i})]^{-1}E(\mathbf{x_i'}\epsilon_i)
-$$ 
+$$
 
 [A3a] is the weakest assumption needed for OLS to be **consistent**
 
@@ -174,10 +543,10 @@ We want to understand how movement in $y_{i2}$ effects movement in $y_{i1}$, but
 **Solution**\
 We need a way to move $y_{i2}$ independently of $\epsilon_i$, then we can analyze the response in $y_{i1}$ as a causal effect
 
--   Find an **instrumental variable(s)** $z_{i2}$\
+-   Find an **instrumental variable(s)** $z_{i2}$
 
-    -   Instrument Relevance**: when** $z_{i2}$ moves then $y_{i2}$ also moves\
-    -   Instrument Exogeneity\*\*: when $z_{i2}$ moves then $\epsilon_i$ does not move.\
+    -   Instrument Relevance**: when** $z_{i2}$ moves then $y_{i2}$ also moves
+    -   Instrument Exogeneity\*\*: when $z_{i2}$ moves then $\epsilon_i$ does not move.
 
 -   $z_{i2}$ is the **exogenous variation that identifies** the causal effect $\beta_2$
 
@@ -191,12 +560,12 @@ Finding an Instrumental variable:
 
 Return to College
 
--   education is correlated with ability - endogenous\
+-   education is correlated with ability - endogenous
 
--   **Near 4year** as an instrument\
+-   **Near 4year** as an instrument
 
-    -   Instrument Relevance: when **near** moves then education also moves\
-    -   Instrument Exogeneity: when **near** moves then $\epsilon_i$ does not move.\
+    -   Instrument Relevance: when **near** moves then education also moves
+    -   Instrument Exogeneity: when **near** moves then $\epsilon_i$ does not move.
 
 -   Other potential instruments; near a 2-year college. Parent's Education. Owning Library Card
 
@@ -208,7 +577,7 @@ First Stage (Reduced Form) Equation:
 
 $$
 y_{i2} = \pi_0 + \mathbf{z_{i1}\pi_1} + \mathbf{z_{i2}\pi_2} + v_i
-$$ 
+$$
 
 where
 
@@ -240,16 +609,14 @@ $$
 
 Equivalently,
 
-
-
+```{=tex}
 \begin{equation}
 \begin{split}
 y_{i1} = \beta_0 + \mathbf{z_{i1}}\beta_1 + \tilde{y}_{i2}\beta_2 + u_i
 \end{split}
 (\#eq:2SLS)
 \end{equation}
-
-
+```
 where
 
 -   $\tilde{y}_{i2} =\pi_0 + \mathbf{z_{i2}\pi_2}$
@@ -276,7 +643,7 @@ The 2SLS Estimator\
 
 $$
 y_{i2} = \pi_0 + \mathbf{z_{i2}\pi_2} + \mathbf{v_i}
-$$ 
+$$
 
 and obtained estimated value $\hat{y}_{i2}$
 
@@ -325,10 +692,11 @@ $$
 
 1.  [Test of Endogeneity]: Is $y_{i2}$ truly endogenous (i.e., can we just use OLS instead of 2SLS)?
 
-2.  [Testing Instrument's assumptions]\
+2.  [Testing Instrument's assumptions]
 
-    -   [Exogeneity]: Cannot always test (and when you can it might not be informative)\
-    -   
+    -   [Exogeneity](Cannot%20always%20test "and when you can it might not be informative")
+
+    -   [Relevancy] (need to avoid "weak instruments")
 
 ##### Test of Endogeneity
 
@@ -336,16 +704,16 @@ $$
 
 -   Biased but inefficient vs efficient but biased
 
--   Want a sense of "how endogenous" $y_{i2}$ is\
+-   Want a sense of "how endogenous" $y_{i2}$ is
 
-    -   if "very" endgeneous - should use 2SLS\
+    -   if "very" endgeneous - should use 2SLS
     -   if not "very" endogenous - perhaps prefer OLS
 
 **Invalid** Test of Endogeneity \* $y_{i2}$ is endogenous if it is correlated with $\epsilon_i$,
 
 $$
 \epsilon_i = \gamma_0 + y_{i2}\gamma_1 + error_i
-$$ 
+$$
 
 where $\gamma_1 \neq 0$ implies that there is endogeneity
 
@@ -353,7 +721,7 @@ where $\gamma_1 \neq 0$ implies that there is endogeneity
 
 $$
 e_i = \gamma_0 + y_{i2}\gamma_1 + error_i
-$$ 
+$$
 
 is **NOT** a valid test of endogeneity + The OLS residual, e is mechanically uncorrelated with $y_{i2}$ (by FOC for OLS) + In every situation, $\gamma_1$ will be essentially 0 and you will never be able to reject the null of no endogeneity
 
@@ -376,8 +744,6 @@ $$
 
 Then the usual t-test of significance is a valid test to evaluate the following hypothesis. **note** this test requires your instrument to be valid instrument.
 
-
-
 $$
 \begin{aligned}
 H_0: \theta = 0 && \text{  (not endogenous)} \\
@@ -389,13 +755,8 @@ $$
 
 The instrumental variable must satisfy
 
-1.  [Exogeneity]
-2.  [Relevancy](need%20to%20avoid "weak instruments")
-
-
-
-
-
+1.  [Exogeneity](Cannot%20always%20test "and when you can it might not be informative")
+2.  [Relevancy] (need to avoid "weak instruments")
 
 ###### Exogeneity
 
@@ -412,24 +773,33 @@ $$
 $$
 e_i = \gamma_0 + \mathbf{z}_{i2}\gamma_1 + error_i \\
 H_0: \gamma_1 = 0
-$$ 
+$$
 
-is **NOT** a valid test of endogeneity\
-\* the OLS residual, e is mechanically uncorrelated with $z_{i2}$: $\hat{\gamma}_1$ will be essentially 0 and you will never be able to determine if the instrument is endogenous.
+is **NOT** a valid test of endogeneity
+
+-   the OLS residual, e is mechanically uncorrelated with $z_{i2}$: $\hat{\gamma}_1$ will be essentially 0 and you will never be able to determine if the instrument is endogenous.
+
+<br>
 
 **Solution**
 
-Testing Instrumental Exegeneity in an Over-identified Model \* When there is more than one exogenous instrument (per endogenous variable), we can test for instrument exogeneity.\
-+ When we have multiple instruments, the model is said to be over-identiifed.\
-+ Could estimate the same model several ways (i.e., can identify/ estimate $\beta_1$ more than one way)\
-\* Idea behind the test: if the controls and instruments are truly exogenous then OLS estimation of the following regression,
+Testing Instrumental Exegeneity in an Over-identified Model
+
+-   When there is more than one exogenous instrument (per endogenous variable), we can test for instrument exogeneity.
+
+    -   When we have multiple instruments, the model is said to be over-identified.
+
+    -   Could estimate the same model several ways (i.e., can identify/ estimate $\beta_1$ more than one way)
+
+-   Idea behind the test: if the controls and instruments are truly exogenous then OLS estimation of the following regression,
 
 $$
 \epsilon_i = \gamma_0 + \mathbf{z}_{i1}\gamma_1 + \mathbf{z}_{i2}\gamma_2 + error_i
-$$ 
+$$
 
-should have a very low $R^2$\
-\* if the model is **just identified** (one instrument per endogenous variable) then the $R^2 = 0$
+should have a very low $R^2$
+
+-   if the model is **just identified** (one instrument per endogenous variable) then the $R^2 = 0$
 
 Steps:
 
@@ -470,7 +840,7 @@ Why Relevance matter?
 
 $$
 \pi_2 \neq 0 
-$$ 
+$$
 
 \* used to show [A2][A2 Full rank] holds + If $\pi_2 = 0$ (instrument is not relevant) then [A2][A2 Full rank] fails - perfect multicollinearity\
 + If $\pi_2$ is close to 0 (**weak instrument**) then there is near perfect multicollinearity - 2SLS is highly inefficient (Large standard errors).\
@@ -500,31 +870,32 @@ $$
 
 $$
 E(y_{i2}'\epsilon_i) \neq 0
-$$ 
+$$
 
-+ Then the OLS estimator is no longer unbiased or consistent.\
-\* If we have valid instruments $\mathbf{z}_{i2}$ 
+-   Then the OLS estimator is no longer unbiased or consistent.
 
-+ [Exogeneity]: $E(\mathbf{z}_{i2}'\epsilon_i) = 0$ 
+-   If we have valid instruments $\mathbf{z}_{i2}$
 
-+ [Relevancy](need%20to%20avoid "weak instruments"): $\pi_2 \neq 0$ Then the 2SLS estimator is consistent under [A1][A1 Linearity], [A2][A2 Full rank], [A5a], and the above two conditions. + If [A4][A4 Homoskedasticity] also holds, then the usual standard errors are valid. + If [A4][A4 Homoskedasticity] does not hold then use the robust standard errors.
+-   [Relevancy](need%20to%20avoid "weak instruments"): $\pi_2 \neq 0$ Then the 2SLS estimator is consistent under [A1][A1 Linearity], [A2][A2 Full rank], [A5a], and the above two conditions. + If [A4][A4 Homoskedasticity] also holds, then the usual standard errors are valid. + If [A4][A4 Homoskedasticity] does not hold then use the robust standard errors.
 
 $$
 y_{i1}=\beta_0 + \mathbf{z}_{i1}\beta_1 + y_{i2}\beta_2 + \epsilon_i \\
 y_{i2} = \pi_0 + \mathbf{z_{i1}\pi_1} + \mathbf{z_{i2}\pi_2} + v_i
-$$ 
+$$
 
-\* When [A3a] does hold
+-   When [A3a] does hold
 
 $$
 E(y_{i2}'\epsilon_i) = 0
-$$ 
+$$
 
 and we have valid instruments, then both the OLS and 2SLS estimators are consistent.\
-+ The OLS estimator is always more efficient + can use the variable addition test to determine if 2SLS is need (A3a does hold) or if OLS is valid (A3a does not hold)
++ The OLS estimator is always more efficient
+
+\+ can use the variable addition test to determine if 2SLS is need (A3a does hold) or if OLS is valid (A3a does not hold)
 
 Sometimes we can test the assumption for instrument to be valid:\
-+ [Exogeneity]: Only table when there are more instruments than endogenous variables. + [Relevancy](need%20to%20avoid "weak instruments"): Always testable, need the F-stat to be greater than 10 to rule out a weak instrument
++ [Exogeneity]($E(\mathbf%7Bz%7D_%7Bi2%7D'\epsilon_i)%20=%200$): Only table when there are more instruments than endogenous variables. + [Relevancy](need%20to%20avoid "weak instruments"): Always testable, need the F-stat to be greater than 10 to rule out a weak instrument
 
 Application
 
@@ -553,15 +924,25 @@ summary(m2.2sls)$coefficients[1:7, ]
 ## calworks     -0.04950501  0.06244410  -0.7927892  4.284101e-01
 ```
 
+<br>
+
+#### Good Instruments 
+
+##### Lagged dependent variable 
+
+In time series data sets, we can use lagged dependent variable as an instrument because it is not influenced by current shocks.
+
+Citations for lagged dependent variable in econ [@chetty2013],
+
+<br>
+
 ### Internal instrumental variable
 
-(also **instrument free methods**). This section is based on Raluca Gui's [guide](https://cran.r-project.org/web/packages/REndo/vignettes/REndo-introduction.pdf)
+-   (also **instrument free methods**). This section is based on Raluca Gui's [guide](https://cran.r-project.org/web/packages/REndo/vignettes/REndo-introduction.pdf)
 
-alternative to external instrumental variable approaches
+-   alternative to external instrumental variable approaches
 
-All approaches here assume a **continuous dependent variable**
-
-**Application**
+-   All approaches here assume a **continuous dependent variable**
 
 #### Non-hierarchical Data (Cross-classified)
 
@@ -678,14 +1059,14 @@ Otherwise, based on Gaussian copulas, augmented OLS estimation is used.
     \hat{h}_p = \frac{1}{T . b} \sum_{t=1}^TK(\frac{p - P_t}{b})
     $$ where
 
--   $P_t$ = endogenous variables\
+-   $P_t$ = endogenous variables
 
--   $K(x) = 0.75(1-x^2)I(||x||\le 1)$\
+-   $K(x) = 0.75(1-x^2)I(||x||\le 1)$
 
--   $b=0.9T^{-1/5}\times min(s, IQR/1.34)$ suggested by [@Silverman_1969]\
+-   $b=0.9T^{-1/5}\times min(s, IQR/1.34)$ suggested by [@Silverman_1969]
 
-    -   IQR = interquartile range\
-    -   s = sample standard deviation\
+    -   IQR = interquartile range
+    -   s = sample standard deviation
     -   T = n of time periods observed in the data
 
 In augmented OLS and MLE, the inference procedure occurs in two stages:
@@ -731,12 +1112,9 @@ summary(m4.cc)$coefficients[1:7, ]
 
 we run this model with only one endogenous continuous regressor (`stratio`). Sometimes, the code will not converge, in which case you can use different
 
--   optimization algorithm\
--   starting values\
+-   optimization algorithm
+-   starting values
 -   maximum number of iterations
-
-
-
 
 ##### Higher Moments Method
 
@@ -758,7 +1136,7 @@ $$
 
 where
 
--   $G_t = G(X_t)$ for any given function G that has finite third own and cross moments\
+-   $G_t = G(X_t)$ for any given function G that has finite third own and cross moments
 -   X = exogenous variable
 
 $q_{5t}, q_{6t}$ can be used only when the measurement and $\epsilon_t$ are symmetrically distributed. The rest of the instruments does not require any distributional assumptions for $\epsilon_t$.
@@ -815,9 +1193,9 @@ recommend using this approach to create additional instruments to use with exter
 
 ##### Heteroskedastic Error Approach
 
--   using means of variables that are uncorrelated with the product of heteroskedastic errors to identify structural parameters.\
--   This method can be use either when you don't have external instruments or you want to use additional instruments to improve the efficiency of the IV estimator [@Lewbel_2012]\
--   The instruments are constructed as simple functions of data\
+-   using means of variables that are uncorrelated with the product of heteroskedastic errors to identify structural parameters.
+-   This method can be use either when you don't have external instruments or you want to use additional instruments to improve the efficiency of the IV estimator [@Lewbel_2012]
+-   The instruments are constructed as simple functions of data
 -   Model's assumptions:
 
 $$
@@ -831,7 +1209,7 @@ Structural parameters are identified by 2SLS regression of Y on X and P, using X
 
 $$
 \text{instrument's strength} \propto cov((Z-\bar{Z})v,v)
-$$ 
+$$
 
 where $cov((Z-\bar{Z})v,v)$ is the degree of heteroskedasticity of ν with respect to Z [@Lewbel_2012], which can be empirically tested.
 
@@ -860,13 +1238,13 @@ $$
 
 Bias could stem from:
 
--   errors at the higher two levels ($\epsilon_c^3,\epsilon_{cst}^2$) are correlated with some of the regressors\
+-   errors at the higher two levels ($\epsilon_c^3,\epsilon_{cst}^2$) are correlated with some of the regressors
 -   only third level errors ($\epsilon_c^3$) are correlated with some of the regressors
 
 [@Kim_2007] proposed
 
--   When all variables are assumed exogenous, the proposed estimator equals the random effects estimator\
--   When all variables are assumed endogenous, it equals the fixed effects estimator\
+-   When all variables are assumed exogenous, the proposed estimator equals the random effects estimator
+-   When all variables are assumed endogenous, it equals the fixed effects estimator
 -   also use omitted variable test (based on the Hausman-test [@Hausman_1978] for panel data), which allows the comparison of a robust estimator and an estimator that is efficient under the null hypothesis of no omitted variables or the comparison of two robust estimators at different levels.
 
 
@@ -1023,15 +1401,15 @@ Summary, use the omitted variable test comparing `REF vs. FE_L2` first.
 
 -   If the null hypothesis is rejected, then there are omitted variables either at level-2 or level-3
 
--   Next, test whether there are level-2 omitted effects, since testing for omitted level three effects relies on the assumption there are no level-two omitted effects. You can use any of these pair of comparisons:\
+-   Next, test whether there are level-2 omitted effects, since testing for omitted level three effects relies on the assumption there are no level-two omitted effects. You can use any of these pair of comparisons:
 
-    -   `FE_L2 vs. FE_L3`\
-    -   `FE_L2 vs. GMM_L2`\
+    -   `FE_L2 vs. FE_L3`
+    -   `FE_L2 vs. GMM_L2`
 
--   If no omitted variables at level-2 are found, test for omitted level-3 effects by comparing either\
+-   If no omitted variables at level-2 are found, test for omitted level-3 effects by comparing either
 
-    -   FE_L3 vs. GMM_L3\
-    -   GMM_L2 vs. GMM_L3
+    -   `FE_L3` vs. `GMM_L3`
+    -   `GMM_L2` vs. `GMM_L3`
 
 
 ```r
@@ -1133,13 +1511,19 @@ If we assume an endogenous variable as exogenous, the RE and GMM estimators will
 
 ### Proxy Variables
 
-Can be in place of the omitted variable,\
-\* will not be able to estimate the effect of the omitted variable \* will be able to reduce some endogeneity caused bye the omitted variable
+-   Can be in place of the omitted variable
+
+-   will not be able to estimate the effect of the omitted variable
+
+-   will be able to reduce some endogeneity caused bye the omitted variable
+
+-   but it can have [Measurement Error]. Hence, you have to be extremely careful when using proxies.
 
 Criteria for a proxy variable:
 
 1.  The proxy is correlated with the omitted variable.
-2.  Having the omitted variable in the regression will solve the problem of endogeneity 3.The variation of the omitted variable unexplained by the proxy is uncorrelated with all independent variables, including the proxy.
+2.  Having the omitted variable in the regression will solve the problem of endogeneity
+3.  The variation of the omitted variable unexplained by the proxy is uncorrelated with all independent variables, including the proxy.
 
 IQ test can be a proxy for ability in the regression between wage explained education.
 
@@ -1151,7 +1535,6 @@ $$
 
 where $\epsilon$ is uncorrelated with education and IQ test.
 
-
 ## Endogenous Sample Selection
 
 sample selection or self-selection problem
@@ -1160,13 +1543,13 @@ the omitted variable is how people were selected into the sample
 
 Some disciplines consider nonresponse bias and selection bias as sample selection.
 
--   When unobservable factors that affect who is in the sample are independent of unobservable factors that affect the outcome, the sample selection is not endogenous. Hence, the sample selection is ignorable and estimator that ignores sample selection is still consistent.\
+-   When unobservable factors that affect who is in the sample are independent of unobservable factors that affect the outcome, the sample selection is not endogenous. Hence, the sample selection is ignorable and estimator that ignores sample selection is still consistent.
 -   when the unobservable factors that affect who is included in the sample are correlated with the unobservable factors that affect the outcome, the sample selection is endogenous and not ignorable, because estimators that ignore endogenous sample selection are not consistent (we don't know which part of the observable outcome is related to the causal relationship and which part is due to different people were selected for the treatment and control groups).
 
 To combat Sample selection, we can
 
--   Randomization: participants are randomly selected into treatment and control.\
--   Instruments that determine the treatment status (i.e., treatment vs. control) but not the outcome (Y)\
+-   Randomization: participants are randomly selected into treatment and control.
+-   Instruments that determine the treatment status (i.e., treatment vs. control) but not the outcome (Y)
 -   Functional form of the selection and outcome processes: originated from [@Heckman_1976], later on generalize by [@Amemiya_1984]
 
 We have our main model
@@ -1189,13 +1572,13 @@ z_i =
 1& \text{if } z_i^*>0 \\
 0&\text{if } z_i^*\le0\\
 \end{cases}
-$$ 
+$$
 
 Equivalently, $z_i = 1$ ($y_i$ is observed) when
 
 $$
 u_i \ge -w_i \gamma
-$$ 
+$$
 
 Hence, the probability of observed $y_i$ is
 
@@ -1208,12 +1591,10 @@ $$
 
 We will **assume**
 
--   the error term of the selection $\mathbf{u \sim N(0,I)}$\
+-   the error term of the selection $\mathbf{u \sim N(0,I)}$
 -   $Var(u_i) = 1$ for identification purposes
 
 Visually, $P(u_i \ge -w_i \gamma)$ is the shaded area.
-
-
 
 
 ```r
@@ -1240,15 +1621,13 @@ legend(
 
 ![](20-endogeneity_files/figure-epub3/unnamed-chunk-11-1.png)<!-- -->
 
-
 Hence in our observed model, we see
 
-
+```{=tex}
 \begin{equation}
 y_i = x_i\beta + \epsilon_i \text{when $z_i=1$}
 \end{equation}
-
-
+```
 and the joint distribution of the selection model ($u_i$), and the observed equation ($\epsilon_i$) as
 
 $$
@@ -1287,7 +1666,7 @@ E(y_i | y_i \text{ observed}) &= E(y_i| z^*>0) \\
 &= \mathbf{x}_i \beta + E(\epsilon_i | u_i > -w_i \gamma) \\
 &= \mathbf{x}_i \beta + \rho \sigma_\epsilon \frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)}
 \end{aligned}
-$$ 
+$$
 
 where $\frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)}$ is the Inverse Mills Ratio. and $\rho \sigma_\epsilon \frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)} \ge 0$
 
@@ -1827,4 +2206,3 @@ The log-likelihood function of the models might not be globally concave. Hence, 
 
 -   compared to the Heckman's model where it assumes the value of the missing data is predetermined, pattern-mixture models assume missingness affect the distribution of variable of interest (e.g., Y)
 -   To read more, you can check [NCSU](https://www4.stat.ncsu.edu/~davidian/st790/notes/chap6.pdf), [stefvanbuuren](https://stefvanbuuren.name/fimd/sec-nonignorable.html).
-
