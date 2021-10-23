@@ -385,13 +385,13 @@ t.test(data, conf.level=0.95)
 ## 	One Sample t-test
 ## 
 ## data:  data
-## t = 0.60467, df = 99, p-value = 0.5468
+## t = 0.87096, df = 99, p-value = 0.3859
 ## alternative hypothesis: true mean is not equal to 0
 ## 95 percent confidence interval:
-##  -0.1406911  0.2640233
+##  -0.1134295  0.2909122
 ## sample estimates:
-## mean of x 
-## 0.0616661
+##  mean of x 
+## 0.08874132
 ```
 
 $$
@@ -409,13 +409,13 @@ t.test(data, mu=30,alternative="less")
 ## 	One Sample t-test
 ## 
 ## data:  data
-## t = -293.56, df = 99, p-value < 2.2e-16
+## t = -293.57, df = 99, p-value < 2.2e-16
 ## alternative hypothesis: true mean is less than 30
 ## 95 percent confidence interval:
-##       -Inf 0.2309985
+##       -Inf 0.2579177
 ## sample estimates:
-## mean of x 
-## 0.0616661
+##  mean of x 
+## 0.08874132
 ```
 
 

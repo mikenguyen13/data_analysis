@@ -4,6 +4,18 @@ In most cases, it means that you have pre- and post-intervention data.
 
 ## Regression Discontinuity
 
+-   A regression discontinuity occurs when there is a discrete change (jump) in treatment likelihood in the distribution of a continuous (or roughly continuous) variable.
+
+-   It's a localized experiment
+
+-   Threats: only valid near threshold: inference at threshold is valid on average. Interestingly, random experiment showed the validity already.
+
+-   Tradeoff between efficiency and bias
+
+-   Regression discontinuity is under the framework of [Instrumental Variable]
+
+Consider
+
 $$
 D_i = 1_{X_i > c}
 $$
@@ -33,6 +45,8 @@ $$
 $$
 
 RDD estimates the local average treatment effect (LATE), at the cutoff point which is not at the individual or population levels.
+
+Since researchers typically care more about the internal validity, than external validity, localness affects only external validity.
 
 Assumptions:
 
@@ -113,20 +127,20 @@ summary(rdd_mod)
 ## lm(formula = y ~ ., data = dat_step1, weights = weights)
 ## 
 ## Residuals:
-##      Min       1Q   Median       3Q      Max 
-## -2.99738 -0.67116  0.02257  0.67270  2.54756 
+##     Min      1Q  Median      3Q     Max 
+## -3.2346 -0.6477  0.0282  0.6504  3.7155 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(>|t|)    
-## (Intercept) 16.99553    0.06577  258.41   <2e-16 ***
-## D           10.08438    0.11841   85.17   <2e-16 ***
-## x            1.96346    0.03232   60.74   <2e-16 ***
+## (Intercept) 16.96775    0.06780  250.27   <2e-16 ***
+## D            9.95831    0.11840   84.11   <2e-16 ***
+## x            1.98924    0.03271   60.82   <2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.975 on 997 degrees of freedom
-## Multiple R-squared:  0.9602,	Adjusted R-squared:  0.9602 
-## F-statistic: 1.204e+04 on 2 and 997 DF,  p-value: < 2.2e-16
+## Residual standard error: 0.988 on 997 degrees of freedom
+## Multiple R-squared:  0.9611,	Adjusted R-squared:  0.961 
+## F-statistic: 1.233e+04 on 2 and 997 DF,  p-value: < 2.2e-16
 ```
 
 
@@ -144,6 +158,12 @@ plot(
 ![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-3-1.png)<!-- -->
 
 ## Difference-In-Differences
+
+-   A tool developed intuitively to study "natural experiment", but its uses are much broader.
+
+-   [Fixed Effects Estimator] is the foundation for DID
+
+Consider
 
 -   $D_i = 1$ treatment group
 
@@ -989,7 +1009,7 @@ sea1 <- microsynth(
 ```
 
 ```
-## Created main weights for synthetic control: Time = 0.96
+## Created main weights for synthetic control: Time = 0.98
 ```
 
 ```
@@ -1057,16 +1077,16 @@ sea1 <- microsynth(
 ## any_crime.2       250         250.0012    51.5429
 ## any_crime.1       242         242.0010    55.1145
 ## 
-## Calculation of weights complete: Total time = 1.66
+## Calculation of weights complete: Total time = 1.64
 ## 
 ## Calculating basic statistics for end.post = 16...
-## Completed calculation of basic statistics for end.post = 16.  Time = 3.62
+## Completed calculation of basic statistics for end.post = 16.  Time = 2.99
 ## 
 ## Calculating survey statistics for end.post = 16...
-## Completed survey statistics for main weights: Time = 5.81
-## Completed calculation of survey statistics for end.post = 16.  Time = 5.81
+## Completed survey statistics for main weights: Time = 5.15
+## Completed calculation of survey statistics for end.post = 16.  Time = 5.15
 ## 
-## microsynth complete: Overall time = 14.26
+## microsynth complete: Overall time = 12.9
 ```
 
 ```r
@@ -1203,6 +1223,36 @@ Matching is defined as "any method that aims to equate (or "balance") the distri
 Equivalently, matching is a selection on observables identifications strategy.
 
 **If you think your OLS estimate is biased, a matching estimate (almost surely) is too.**
+
+Unconditionally, consider
+
+$$
+E(Y_i^T | T) - E(Y_i^C |C) + E(Y_i^C | T) - E(Y_i^C | T) \\
+= E(Y_i^T - Y_i^C | T) + [E(Y_i^C | T) - E(Y_i^C |C)] \\
+= E(Y_i^T - Y_i^C | T) + \text{selection bias}
+$$
+
+where $E(Y_i^T - Y_i^C | T)$ is the causal inference that we want to know.
+
+Randomization eliminates the selection bias.
+
+If we don't have randomization, then $E(Y_i^C | T) \neq E(Y_i^C |C)$
+
+Matching tries to do selection on observables $E(Y_i^C | X, T) = E(Y_i^C|X, C)$
+
+[Propensity Scores] basically do $E(Y_i^C| P(X) , T) = E(Y_i^C | P(X), C)$
+
+**Matching standard errors will exceed OLS standard errors**
+
+The treatment should have larger predictive power than the control because you use treatment to pick control (not control to pick treatment).
+
+The average treatment effect (ATE) is
+
+$$
+\frac{1}{N_T} \sum_{i=1}^{N_T} (Y_i^T - \frac{1}{N_{C_T}} \sum_{i=1}^{N_{C_T}} Y_i^C)
+$$
+
+Since there is no closed-form solution for the standard error of the average treatment effect, we have to use bootstrapping to get standard error.
 
 <br>
 
@@ -2646,7 +2696,7 @@ genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
 ```
 ## 
 ## 
-## Fri Oct 22 18:53:58 2021
+## Sat Oct 23 13:56:21 2021
 ## Domains:
 ##  0.000000e+00   <=  X1   <=    1.000000e+03 
 ##  0.000000e+00   <=  X2   <=    1.000000e+03 
@@ -2835,8 +2885,8 @@ genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
 ## Solution Found Generation 1
 ## Number of Generations Run 2
 ## 
-## Fri Oct 22 18:53:59 2021
-## Total run time : 0 hours 0 minutes and 1 seconds
+## Sat Oct 23 13:56:21 2021
+## Total run time : 0 hours 0 minutes and 0 seconds
 ```
 
 ```r

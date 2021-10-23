@@ -24,7 +24,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2021-10-22" />
+<meta name="date" content="2021-10-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -719,8 +719,8 @@ div.csl-indent {
 </ul>
 <table>
 <colgroup>
-<col width="13%" />
-<col width="86%" />
+<col width="12%" />
+<col width="87%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -802,7 +802,11 @@ E(\mathbf{x_{it}&#39;}(c_i+u_{it})) = 0
 <div id="fixed-effects-estimator" class="section level4" number="12.4.2.2">
 <h4><span class="header-section-number">12.4.2.2</span> Fixed Effects Estimator</h4>
 <p>also known as <strong>Within Estimator</strong> uses within variation (over time)</p>
-<p>If the <strong>RE assumption</strong> is not hold (<span class="math inline">\(E(\mathbf{x_{it}&#39;}c_i) \neq 0\)</span>), then A3a does not hold (<span class="math inline">\(E(\mathbf{x_{it}&#39;}\epsilon_i) \neq 0\)</span>). Hence, the OLS and RE are inconsistent/biased (because of omitted variable bias)</p>
+<p>If the <strong>RE assumption</strong> is not hold (<span class="math inline">\(E(\mathbf{x_{it}&#39;}c_i) \neq 0\)</span>), then A3a does not hold (<span class="math inline">\(E(\mathbf{x_{it}&#39;}\epsilon_i) \neq 0\)</span>).</p>
+<p>Hence, the OLS and RE are inconsistent/biased (because of omitted variable bias)</p>
+<p>However, FE can only fix bias due to time-invariant factors (both observables and unobservables) correlated with treatment (not time-variant factors that correlated with the treatment).</p>
+<div id="demean-approach" class="section level5" number="12.4.2.2.1">
+<h5><span class="header-section-number">12.4.2.2.1</span> Demean Approach</h5>
 <p>To deal with violation in <span class="math inline">\(c_i\)</span>, we have</p>
 <p><span class="math display">\[
 y_{it}= \mathbf{x_{it}\beta} + c_i + u_{it}
@@ -813,12 +817,12 @@ y_{it}= \mathbf{x_{it}\beta} + c_i + u_{it}
 <p>where the second equation is the time averaged equation</p>
 <p>using <strong>within transformation</strong>, we have</p>
 <p><span class="math display">\[
-y_{it} - \bar{y_i} = \mathbf{(x_{it} - \bar{x_i}\beta)} + u_{it} - \bar{u_i}
+y_{it} - \bar{y_i} = \mathbf{(x_{it} - \bar{x_i})}\beta + u_{it} - \bar{u_i}
 \]</span></p>
 <p>because <span class="math inline">\(c_i\)</span> is time constant.</p>
 <p>The Fixed Effects estimator uses POLS on the transformed equation</p>
 <p><span class="math display">\[
-y_{it} - \bar{y_i} = \mathbf{(x_{it} - \bar{x_i}\beta)} + d_1\delta_1 + ... + d_{T-2}\delta_{T-2} + u_{it} - \bar{u_i}
+y_{it} - \bar{y_i} = \mathbf{(x_{it} - \bar{x_i})} \beta + d_1\delta_1 + ... + d_{T-2}\delta_{T-2} + u_{it} - \bar{u_i}
 \]</span></p>
 <ul>
 <li><p>we need <a href="ordinary-least-squares.html#a3-exogeneity-of-independent-variables">A3</a> (strict exogeneity) (<span class="math inline">\(E((\mathbf{x_{it}-\bar{x_i}})&#39;(u_{it}-\bar{u_i})=0\)</span>) to have FE consistent.</p></li>
@@ -828,23 +832,57 @@ y_{it} - \bar{y_i} = \mathbf{(x_{it} - \bar{x_i}\beta)} + d_1\delta_1 + ... + d_
 </ul></li>
 <li><p>It’s recommended that you should still use cluster robust standard errors.</p></li>
 </ul>
+</div>
+<div id="dummy-approach" class="section level5" number="12.4.2.2.2">
+<h5><span class="header-section-number">12.4.2.2.2</span> Dummy Approach</h5>
 <p>Equivalent to the within transformation, we can have the fixed effect estimator be the same with the dummy regression</p>
 <p><span class="math display">\[
 y_{it} = x_{it}\beta + d_1\delta_1 + ... + d_{T-2}\delta_{T-2} + c_1\gamma_1 + ... + c_{n-1}\gamma_{n-1} + u_{it}
 \]</span></p>
 <p>where</p>
-<p><span class="math display">\[\begin{equation}
+<span class="math display">\[\begin{equation}
 c_i
 =
 \begin{cases}
 1 &amp;\text{if observation is i} \\
 0 &amp;\text{otherwise} \\
 \end{cases}
-\end{equation}\]</span></p>
+\end{equation}\]</span>
 <ul>
 <li>The standard error is incorrectly calculated.</li>
 <li>the FE within transformation is controlling for any difference across individual which is allowed to correlated with observables.</li>
 </ul>
+</div>
+<div id="first-difference-approach" class="section level5" number="12.4.2.2.3">
+<h5><span class="header-section-number">12.4.2.2.3</span> First-difference Approach</h5>
+<p>Economists typically use this approach</p>
+<p><span class="math display">\[
+y_{it} - y_{i (t-1)} = (\mathbf{x}_{it} - \mathbf{x}_{i(t-1)}) \beta +  + (u_{it} - u_{i(t-1)})
+\]</span></p>
+</div>
+<div id="fixed-effects-summary" class="section level5" number="12.4.2.2.4">
+<h5><span class="header-section-number">12.4.2.2.4</span> Fixed Effects Summary</h5>
+<ul>
+<li><p>The three approaches are <strong>almost</strong> equivalent.</p></li>
+<li><p>Since fixed effect is a within estimator, only <strong>status changes</strong> can contribute to <span class="math inline">\(\beta\)</span> variation.</p>
+<ul>
+<li>Hence, with a small number of changes then the standard error for <span class="math inline">\(\beta\)</span> will explode</li>
+</ul></li>
+<li><p>Status changes mean subjects change from (1) control to treatment group or (2) treatment to control group. Those who have status change, we call them <strong>switchers</strong>. (more on this in</p>
+<ul>
+<li><p>Treatment effect is typically <strong>non-directional</strong>.</p></li>
+<li><p>You can give a parameter for the direction if needed.</p></li>
+</ul></li>
+<li><p>Issues:</p>
+<ul>
+<li><p>You could have fundamental difference between switchers and non-switchers. Even though we can’t definitive test this, but providing descriptive statistics on switchers and non-switchers can give us confidence in our conclusion.</p></li>
+<li><p>Because fixed effects focus on bias reduction, you might have larger variance (typically, with fixed effects you will have less df)</p></li>
+</ul></li>
+<li><p>If the true model is <a href="panel-data.html#random-effects-estimator">random effect</a>, economists typically don’t care, especially when <span class="math inline">\(c_i\)</span> is the random effect and <span class="math inline">\(c_i \perp x_{it}\)</span> (because RE assumption is that it is unrelated to <span class="math inline">\(x_{it}\)</span>). The reason why economists don’t care is because RE wouldn’t correct bias, it only improves efficiency over OLS.</p></li>
+<li><p>You can estimate FE for different units (not just individuals).</p></li>
+<li></li>
+</ul>
+</div>
 </div>
 </div>
 <div id="tests-for-assumptions" class="section level3" number="12.4.3">
@@ -1132,13 +1170,13 @@ c_i
 <table>
 <colgroup>
 <col width="9%" />
-<col width="7%" />
+<col width="6%" />
 <col width="13%" />
 <col width="13%" />
 <col width="16%" />
 <col width="9%" />
 <col width="9%" />
-<col width="3%" />
+<col width="2%" />
 <col width="17%" />
 </colgroup>
 <tbody>
