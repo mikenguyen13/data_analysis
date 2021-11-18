@@ -4,12 +4,17 @@ There are multiple ways to categorize data. For example,
 
 -   Qualitative vs. Quantitative:
 
++--------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------+
 | Qualitative                                                                                                        | Quantitative                                                                               |
-|--------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|
++====================================================================================================================+============================================================================================+
 | in-depth interviews, documents, focus groups, case study, ethnography. open-ended questions. observations in words | experiments, observation in words, survey with closed-end questions, structured interviews |
++--------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------+
 | language, descriptive                                                                                              | quantities, numbers                                                                        |
++--------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------+
 | Text-based                                                                                                         | Numbers-based                                                                              |
++--------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------+
 | Subjective                                                                                                         | Objectivity                                                                                |
++--------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------+
 
 ## Cross-Sectional
 
@@ -390,13 +395,19 @@ Panel data structure is like having n samples of time series data
 -   Between variation: variation between individuals
 -   Within variation: variation within individuals (over time).
 
++------------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Estimate         | Formula                                                                                                                     |
-|------------------|-----------------------------------------------------------------------------------------------------------------------------|
++==================+=============================================================================================================================+
 | Individual mean  | $\bar{x_i}= \frac{1}{T} \sum_{t}x_{it}$                                                                                     |
++------------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Overall mean     | $\bar{x}=\frac{1}{NT} \sum_{i} \sum_t x_{it}$                                                                               |
++------------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Overall Variance | $s _O^2 = \frac{1}{NT-1} \sum_i \sum_t (x_{it} - \bar{x})^2$                                                                |
++------------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Between variance | $s_B^2 = \frac{1}{N-1} \sum_i (\bar{x_i} -\bar{x})^2$                                                                       |
++------------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Within variance  | $s_W^2= \frac{1}{NT-1} \sum_i \sum_t (x_{it} - \bar{x_i})^2 = \frac{1}{NT-1} \sum_i \sum_t (x_{it} - \bar{x_i} +\bar{x})^2$ |
++------------------+-----------------------------------------------------------------------------------------------------------------------------+
 
 **Note**: $s_O^2 \approx s_B^2 + s_W^2$
 
@@ -501,7 +512,7 @@ $$
 
 ##### Dummy Approach
 
-Equivalent to the within transformation, we can have the fixed effect estimator be the same with the dummy regression
+Equivalent to the within transformation (i.e., mathematically equivalent to [Demean Approach]), we can have the fixed effect estimator be the same with the dummy regression
 
 $$
 y_{it} = x_{it}\beta + d_1\delta_1 + ... + d_{T-2}\delta_{T-2} + c_1\gamma_1 + ... + c_{n-1}\gamma_{n-1} + u_{it}
@@ -534,6 +545,10 @@ $$
 
 -   The three approaches are **almost** equivalent.
 
+    -   [Demean Approach] is mathematically equivalent to [Dummy Approach]
+
+    -   If you have only 1 period, all 3 are the same.
+
 -   Since fixed effect is a within estimator, only **status changes** can contribute to $\beta$ variation.
 
     -   Hence, with a small number of changes then the standard error for $\beta$ will explode
@@ -554,7 +569,282 @@ $$
 
 -   You can estimate FE for different units (not just individuals).
 
--   
+-   FE removes bias from time invariant factors but not without costs because it uses within variation, which imposes strict exogeneity assumption on $u_{it}$: $E[(x_{it} - \bar{x}_{i})(u_{it} - \bar{u}_{it})]=0$
+
+Recall
+
+$$
+Y_{it} = \beta_0 + X_{it}\beta_1 + \alpha_i + u_{it}
+$$
+
+where $\epsilon_{it} = \alpha_i + u_{it}$
+
+$$
+\hat{\sigma}^2_\epsilon = \frac{SSR_{OLS}}{NT - K}
+$$
+
+$$
+\hat{\sigma}^2_u = \frac{SSR_{FE}}{NT - (N+K)} = \frac{SSR_{FE}}{N(T-1)-K}
+$$
+
+It's ambiguous whether your variance of error changes up or down because SSR can increase while the denominator decreases.
+
+FE can be unbiased, but not consistent (i.e., not converging to the true effect)
+
+##### FE Examples
+
+##### @blau1999
+
+-   Intergenerational mobility
+
+-   If we transfer resources to low income family, can we generate upward mobility (increase ability)?
+
+Mechanisms for intergenerational mobility
+
+1.  Genetic (policy can't affect) (i.e., ability endowment)
+2.  Environmental indirect
+3.  Environmental direct
+
+$$
+\frac{\% \Delta \text{Human capital}}{\% \Delta \text{income}}
+$$
+
+4.  Financial transfer
+
+Income measures:
+
+1.  Total household income
+2.  Wage income
+3.  Non-wage income
+4.  Annual versus permanent income
+
+Core control variables:
+
+**Bad controls are those jointly determined with dependent variable**
+
+Control by mother = choice by mother
+
+Uncontrolled by mothers:
+
+-   mother race
+
+-   location of birth
+
+-   education of parents
+
+-   household structure at age 14
+
+$$
+Y_{ijt} = X_{jt} \beta_i + I_{jt} \alpha_i + \epsilon_{ijt}
+$$
+
+where
+
+-   $i$ = test
+
+-   $j$ = individual (child)
+
+-   $t$ = time
+
+Grandmother's model
+
+Since child is nested within mother and mother nested within grandmother, the fixed effect of child is included in the fixed effect of mother, which is included in the fixed-effect of grandmother
+
+$$
+Y_{ijgmt} = X_{it} \beta_{i} + I_{jt} \alpha_i + \gamma_g + u_{ijgmt}
+$$
+
+where
+
+-   i = test, j = kid, m = mother, g = grandmother
+
+-   where $\gamma_g$ includes $\gamma_m$ includes $\gamma_j$
+
+Grandma fixed-effect
+
+Pros:
+
+-   control for some genetics + fixed characteristics of how mother are raised
+
+-   can estimate effect of parameter income
+
+Con:
+
+-   Might not be a sufficient control
+
+Common to cluster a the fixed-effect level (common correlated component)
+
+**Fixed effect exaggerates attenuation bias**
+
+Error rate on survey can help you fix this (plug in the number only , but not the uncertainty associated with that number).
+
+<br>
+
+##### @babcock2010
+
+$$
+T_{ijct} = \alpha_0 + S_{jct} \alpha_1 + X_{ijct} \alpha_2 + u_{ijct}
+$$
+
+where
+
+-   $S_{jct}$ is the average class expectation
+
+-   $X_{ijct}\alpha_2$ is the individual characteristics
+
+-   $i$ student
+
+-   $j$ instructor
+
+-   $c$ course
+
+-   $t$ time
+
+$$
+T_{ijct} = \beta_0+ S_{jct} \beta_1+ X_{ijct} \beta_2 +\mu_{jc} + \epsilon_{ijct}
+$$
+
+where $\mu_{jc}$ is instructor by course fixed effect (unique id), which is different from $(\theta_j + \delta_c)$
+
+1.  Decrease course shopping because conditioned on available information ($\mu_{jc}$) (class grade and instructor's info).
+2.  Grade expectation change even though class materials stay the same
+
+Identification strategy is
+
+-   Under (fixed) time-varying factor that could bias my coefficient (simultaneity)
+
+$$
+Y_{ijt} = X_{it} \beta_1 + \text{Teacher Experience}_{jt} \beta_2 + \text{Teacher education}_{jt} \beta_3 + \text{Teacher score}_{it}\beta_4 + \dots + \epsilon_{ijt}
+$$
+
+Drop teacher characteristics, and include teacher dummy effect
+
+$$
+Y_{ijt} = X_{it} \alpha + \Gamma_{it} \theta_j + u_{ijt}
+$$
+
+where $\alpha$ is the within teacher (conditional on teacher fixed effect) and $j = 1 \to (J-1)$
+
+Nuisance in the sense that we don't about the interpretation of $\alpha$
+
+The least we can say about $\theta_j$ is the teacher effect conditional on student test score.
+
+$$
+Y_{ijt} = X_{it} \gamma + \epsilon_{ijt}
+$$
+
+$\gamma$ is between within (unconditional) and $e_{ijt}$ is the prediction error
+
+$$
+e_{ijt} = T_{it} \delta_j + \tilde{e}_{ijt}
+$$
+
+where $\delta_j$ is the mean for each group
+
+$$
+Y_{ijkt} = Y_{ijkt-1} + X_{it} \beta + T_{it} \tau_j + (W_i + P_k + \epsilon_{ijkt})
+$$
+
+where
+
+-   $Y_{ijkt-1}$ = lag control
+
+-   $\tau_j$ = teacher fixed time
+
+-   $W_i$ is the student fixed effect
+
+-   $P_k$ is the school fixed effect
+
+-   $u_{ijkt} = W_i + P_k + \epsilon_{ijkt}$
+
+And we worry about selection on class and school
+
+Bias in $\tau$ (for 1 teacher) is
+
+$$
+\frac{1}{N_j} \sum_{i = 1}^N (W_i + P_k + \epsilon_{ijkt})
+$$
+
+where $N_j$ = the number of student in class with teacher $j$
+
+then we can $P_k + \frac{1}{N_j} \sum_{i = 1}^{N_j} (W_i + \epsilon_{ijkt})$
+
+Shocks from small class can bias $\tau$
+
+$$
+\frac{1}{N_j} \sum_{i = 1}^{N_j} \epsilon_{ijkt} \neq 0
+$$
+
+which will inflate the teacher fixed effect
+
+Even if we create random teacher fixed effect and put it in the model, it still contains bias mentioned above which can still $\tau$ (but we do not know the way it will affect - whether more positive or negative).
+
+If teachers switch schools, then we can estimate both teacher and school fixed effect (**mobility web** thin vs. thick)
+
+Mobility web refers to the web of switchers (i.e., from one status to another).
+
+$$
+Y_{ijkt} = Y_{ijk(t-1)} \alpha + X_{it}\beta + T_{it} \tau + P_k + \epsilon_{ijkt}
+$$
+
+If we demean (fixed-effect), $\tau$ (teacher fixed effect) will go away
+
+If you want to examine teacher fixed effect, we have to include teacher fixed effect
+
+Control for school, the article argues that there is no selection bias
+
+For $\frac{1}{N_j} \sum_{i =1}^{N_j} \epsilon_{ijkt}$ (teacher-level average residuals), $var(\tau)$ does not change with $N_j$ (Figure 2 in the paper). In words, the quality of teachers is not a function of the number of students
+
+If $var(\tau) =0$ it means that teacher quality does not matter
+
+Spin-off of [Measurement Error]: Sampling error or estimation error
+
+$$
+\hat{\tau}_j = \tau_j + \lambda_j
+$$
+
+$$
+var(\hat{\tau}) = var(\tau + \lambda)
+$$
+
+Assume $cov(\tau_j, \lambda_j)=0$ (reasonable) In words, your randomness in getting children does not correlation with teacher quality.
+
+Hence,
+
+$$
+\begin{aligned}
+var(\hat{\tau}) &= var(\tau) + var(\lambda) \\
+var(\tau) &= var(\hat{\tau}) - var(\lambda) \\
+\end{aligned}
+$$
+
+We have $var(\hat{\tau})$ and we need to estimate $var(\lambda)$
+
+$$
+var(\lambda) = \frac{1}{J} \sum_{j=1}^J \hat{\sigma}^2_j
+$$ where $\hat{\sigma}^2_j$ is the squared standard error of the teacher $j$ (a function of $n$)
+
+Hence,
+
+$$
+\frac{var(\tau)}{var(\hat{\tau})} = \text{reliability} = \text{true variance signal}
+$$ also known as how much noise in $\hat{\tau}$ and
+
+$$
+1 - \frac{var(\tau)}{var(\hat{\tau})} = \text{noise}
+$$
+
+Even in cases where the true relationship is that $\tau$ is a function of $N_j$, then our recovery method for $\lambda$ is still not affected
+
+To examine our assumption 
+
+$$
+\hat{\tau}_j = \beta_0 + X_j \beta_1 + \epsilon_j
+$$
+
+Regressing teacher fixed-effect on teacher characteristics should give us $R^2$ close to 0, because teacher characteristics cannot predict sampling error ($\hat{\tau}$ contain sampling error)
+
+<br>
 
 ### Tests for Assumptions
 
@@ -907,10 +1197,13 @@ The continuum between RE (used FGLS which more assumption ) and POLS check back 
 
 -   RE does not require strict exogeneity for consistency (feedback effect between residual and covariates)
 
++----------------------------------------+----------------------------------------------------------------------------------------+
 | Hypothesis                             | If true                                                                                |
-|----------------------------------------|----------------------------------------------------------------------------------------|
++========================================+========================================================================================+
 | $H_0: Cov(c_i,\mathbf{x_{it}})=0$      | $\hat{\beta}_{RE}$ is consistent and efficient, while $\hat{\beta}_{FE}$ is consistent |
++----------------------------------------+----------------------------------------------------------------------------------------+
 | $H_0: Cov(c_i,\mathbf{x_{it}}) \neq 0$ | $\hat{\beta}_{RE}$ is inconsistent, while $\hat{\beta}_{FE}$ is consistent             |
++----------------------------------------+----------------------------------------------------------------------------------------+
 
 **Hausman Test**
 
@@ -941,9 +1234,9 @@ phtest(gw, gr)
 ## alternative hypothesis: one model is inconsistent
 ```
 
-|                       |                 |                                 |                                 |                                         |                        |                        |       |                                           |
-|-----------------------|-----------------|---------------------------------|---------------------------------|-----------------------------------------|------------------------|------------------------|-------|-------------------------------------------|
++-----------------------+-----------------+---------------------------------+---------------------------------+-----------------------------------------+------------------------+------------------------+-------+-------------------------------------------+
 | Violation   Estimator | Basic Estimator | Instrumental variable Estimator | Variable Coefficients estimator | Generalized Method of Moments estimator | General FGLS estimator | Means groups estimator | CCEMG | Estimator for limited dependent variables |
++-----------------------+-----------------+---------------------------------+---------------------------------+-----------------------------------------+------------------------+------------------------+-------+-------------------------------------------+
 
 ### Summary
 

@@ -319,6 +319,38 @@ $$
 
 where $\mathbf{R}$=(0 1 -1 0 0) and $\mathbf{q}=0$
 
+### Estimate Difference in Coefficients 
+
+There is no package to estimate for the difference between two coefficients and its CI, but a simple function created by [Katherine Zee](https://kzee.github.io/CoeffDiff_Demo.html) can be used to calculate this difference. 
+Some modifications might be needed if you don't use standard `lm` model in R. 
+
+
+```r
+difftest_lm <- function(x1, x2, model) {
+    diffest <-
+        summary(model)$coef[x1, "Estimate"] - summary(model)$coef[x2, "Estimate"]
+    vardiff <- (summary(model)$coef[x1, "Std. Error"] ^ 2 +
+                    summary(model)$coef[x2, "Std. Error"] ^ 2) - (2 * (vcov(model)[x1, x2]))
+    # variance of x1 + variance of x2 - 2*covariance of x1 and x2
+    diffse <- sqrt(vardiff)
+    tdiff <- (diffest) / (diffse)
+    ptdiff <- 2 * (1 - pt(abs(tdiff), model$df, lower.tail = T))
+    upr <-
+        diffest + qt(.975, df = model$df) * diffse # will usually be very close to 1.96
+    lwr <- diffest + qt(.025, df = model$df) * diffse
+    df <- model$df
+    return(list(
+        est = round(diffest, digits = 2),
+        t = round(tdiff, digits = 2),
+        p = round(ptdiff, digits = 4),
+        lwr = round(lwr, digits = 2),
+        upr = round(upr, digits = 2),
+        df = df
+    ))
+}
+```
+
+
 ### Application
 
 
