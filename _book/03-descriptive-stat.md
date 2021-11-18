@@ -76,7 +76,7 @@ skewness(data,type = 1)
 ```
 
 ```
-## [1] -0.160944
+## [1] 0.2265922
 ```
 
 ```r
@@ -84,7 +84,7 @@ kurtosis(data, type = 1)
 ```
 
 ```
-## [1] -0.05973634
+## [1] 0.06721953
 ```
 
 ## Graphical Measures
@@ -144,12 +144,12 @@ stem(data)
 ## 
 ##   The decimal point is at the |
 ## 
-##   -2 | 94420
-##   -1 | 9877654444211100
-##   -0 | 999887766666665555553333322211110
-##    0 | 0111111222222333346666677788999
-##    1 | 00222334467
-##    2 | 0234
+##   -2 | 3
+##   -1 | 87644322210
+##   -0 | 9999888887776665544444333222221111110
+##    0 | 001122222233334445666777888888999999
+##    1 | 00111344579
+##    2 | 2389
 ```
 
 ```r
@@ -272,7 +272,7 @@ gofTest(data,test="ppcc")$p.value #Probability Plot Correlation Coefficient
 ```
 
 ```
-## [1] 0.9858092
+## [1] 0.4205924
 ```
 
 ##### Shapiro-Wilk Test
@@ -291,7 +291,7 @@ gofTest(data,test="sw")$p.value #Shapiro-Wilk is the default.
 ```
 
 ```
-## [1] 0.967722
+## [1] 0.5296891
 ```
 
 #### Methods based on empirical cumulative distribution function
@@ -351,7 +351,7 @@ gofTest(data,test="ad")$p.value #Anderson-Darling
 ```
 
 ```
-## [1] 0.9771918
+## [1] 0.645578
 ```
 
 ##### Kolmogorov-Smirnov Test
@@ -365,11 +365,11 @@ gofTest(data,test="ks")$p.value #Komogorov-Smirnov
 ```
 
 ```
-## Warning in ksGofTest(x = c(0.216833358012125, -1.01667245378007, 2.37164310390444, : The standard Kolmogorov-Smirnov test is very conservative (Type I error smaller than assumed; high Type II error) for testing departures from the Normal distribution when you have to estimate the distribution parameters.
+## Warning in ksGofTest(x = c(-1.07973793943471, -0.443067190909386, 0.0595054501576734, : The standard Kolmogorov-Smirnov test is very conservative (Type I error smaller than assumed; high Type II error) for testing departures from the Normal distribution when you have to estimate the distribution parameters.
 ```
 
 ```
-## [1] 0.9672155
+## [1] 0.9741333
 ```
 
 ##### Cramer-von Mises Test
@@ -382,7 +382,7 @@ gofTest(data,test="cvm")$p.value #Cramer-von Mises
 ```
 
 ```
-## [1] 0.9405573
+## [1] 0.7726661
 ```
 
 ##### Jarque--Bera Test {#jarquebera-test}

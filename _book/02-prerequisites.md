@@ -1539,9 +1539,6 @@ $$
 
 log transformation
 
-## Methods
-
-Trade-off between parametric and non-parametric
 
 ## Data Import/Export
 
@@ -1851,7 +1848,7 @@ library(tidyverse)
 
 ```
 ## v ggplot2 3.3.5     v purrr   0.3.4
-## v tibble  3.1.4     v dplyr   1.0.7
+## v tibble  3.1.5     v dplyr   1.0.7
 ## v tidyr   1.1.3     v stringr 1.4.0
 ## v readr   2.0.1     v forcats 0.5.1
 ```
@@ -2139,11 +2136,11 @@ dat03
 ## # A tibble: 5 x 1
 ##       z
 ##   <dbl>
-## 1 0.136
-## 2 0.473
-## 3 0.194
-## 4 0.516
-## 5 0.449
+## 1 0.442
+## 2 0.916
+## 3 0.853
+## 4 0.276
+## 5 0.552
 ```
 
 ```r
@@ -2305,11 +2302,11 @@ bind_cols(dat01, dat03)
 ## # A tibble: 5 x 3
 ##       x     y     z
 ##   <int> <int> <dbl>
-## 1     1     5 0.136
-## 2     2     4 0.473
-## 3     3     3 0.194
-## 4     4     2 0.516
-## 5     5     1 0.449
+## 1     1     5 0.442
+## 2     2     4 0.916
+## 3     3     3 0.853
+## 4     4     2 0.276
+## 5     5     1 0.552
 ```
 
 ```r

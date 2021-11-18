@@ -128,19 +128,19 @@ summary(rdd_mod)
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
-## -3.2346 -0.6477  0.0282  0.6504  3.7155 
+## -3.1631 -0.6850 -0.0165  0.6730  2.6127 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(>|t|)    
-## (Intercept) 16.96775    0.06780  250.27   <2e-16 ***
-## D            9.95831    0.11840   84.11   <2e-16 ***
-## x            1.98924    0.03271   60.82   <2e-16 ***
+## (Intercept) 16.92098    0.06470  261.52   <2e-16 ***
+## D            9.97147    0.11426   87.27   <2e-16 ***
+## x            1.96098    0.03123   62.79   <2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.988 on 997 degrees of freedom
-## Multiple R-squared:  0.9611,	Adjusted R-squared:  0.961 
-## F-statistic: 1.233e+04 on 2 and 997 DF,  p-value: < 2.2e-16
+## Residual standard error: 0.9418 on 997 degrees of freedom
+## Multiple R-squared:  0.963,	Adjusted R-squared:  0.9629 
+## F-statistic: 1.297e+04 on 2 and 997 DF,  p-value: < 2.2e-16
 ```
 
 
@@ -270,6 +270,92 @@ The `did` coefficient is the differences-in-differences estimator. Treat has a n
 
 <br>
 
+Example by @card1993 found that increase in minimum wage increases employment
+
+Experimental Setting:
+
+-   New Jersey (treatment) increased minimum wage
+
+-   Penn (control) did not increase minimum wage
+
+|           |     | After | Before |                   |
+|-----------|-----|-------|--------|-------------------|
+| Treatment | NJ  | A     | B      | A - B             |
+| Control   | PA  | C     | D      | C - D             |
+|           |     | A - C | B - D  | (A - B) - (C - D) |
+
+where
+
+-   A - B = treatment effect + effect of time (additive)
+
+-   C - D = effect of time
+
+-   (A - B) - (C - D) = dif-n-dif
+
+**The identifying assumptions**:
+
+-   Can't have **switchers**
+
+-   PA is the control group
+
+    -   is a good counter factual
+
+    -   is what NJ would look like if they hadn't had the treatment
+
+$$
+Y_{jt} = \beta_0 + NJ_j \beta_1 + POST_t \beta_2 + (NJ_j \times POST_t)\beta_3+ X_{jt}\beta_4 + \epsilon_{jt}
+$$
+
+where
+
+-   $j$ = restaurant
+
+-   $NJ$ = dummy where 1 = NJ, and 0 = PA
+
+-   $POST$ = dummy where 1 = post, and 0 = pre
+
+We don't need $\beta_4$ in our model to have unbiased $\beta_3$, but including it would give our coefficients efficiency
+
+If we use $\Delta Y_{jt}$ as the dependent variable, we don't need $POST_t \beta_2$ anymore
+
+Alternative model specification is that the authors use NJ high wage restaurant as control group (still choose those that are close to the border)
+
+The reason why they can't control for everything (PA + NJ high wage) is because it's hard to interpret the causal treatment
+
+Dif-n-dif utilizes similarity in pretrend of the dependent variables. However, this is neither a necessary nor sufficient for the identifying assumption.
+
+-   It's not sufficient because they can have multiple treatments (technically, you could include more control, but your treatment can't interact)
+
+-   It's not necessary because trends can e parallel after treatment
+
+However, we can't never be certain; we just try to find evidence consistent with our theory so that dif-n-dif can work.
+
+Notice that we don't need before treatment the **levels of the dependent variable** to be the same (e.g., same wage average in both NJ and PA), dif-n-dif only needs **pre-trend (i.e., slope)** to be the same for the two groups.
+
+<br>
+
+Example by @butcher2014
+
+Theory:
+
+-   Highest achieving students are sually in hard science. Why?
+
+    -   Hard to give students students the benefit of dout for hard science
+
+    -   How unpleasant and how easy to get a job. Degress with lower market value typically want to make you feel more pleasant
+
+$$
+E_{ij} = \beta_0 + X_i \beta_1 + G_j \beta_2 + \epsilon_{ij}
+$$
+
+where
+
+-   $X_i$ = student attributes
+
+-   $\beta_2$ = causal estimate (from grade change)
+
+Examine $\hat{\beta}_2$
+
 Example by [Philipp Leppert](https://rpubs.com/phle/r_tutorial_difference_in_differences) replicating [Card and Krueger (1994)](https://davidcard.berkeley.edu/data_sets.html)
 
 Example by [Anthony Schmidt](https://bookdown.org/aschmi11/causal_inf/difference-in-differences.html)
@@ -284,7 +370,7 @@ Advantages over dif-in-dif:
 2.  Can also be used in cases where no untreated case with similar on matching dimensions with treated cases
 3.  Objective selection of controls.
 
-a data driven procedure to construct more comparable control groups.
+a data driven procedure to construct more comparable control groups (i.e., black box).
 
 To do causal inference with control and treatment group using [Matching Methods], you typically have to have similar covariates in the control and the treated groups. However, if you don't methods like [Propensity Scores] and DID can perform rather poorly (i.e., large bias).
 
@@ -1009,7 +1095,7 @@ sea1 <- microsynth(
 ```
 
 ```
-## Created main weights for synthetic control: Time = 0.98
+## Created main weights for synthetic control: Time = 1.03
 ```
 
 ```
@@ -1077,16 +1163,16 @@ sea1 <- microsynth(
 ## any_crime.2       250         250.0012    51.5429
 ## any_crime.1       242         242.0010    55.1145
 ## 
-## Calculation of weights complete: Total time = 1.64
+## Calculation of weights complete: Total time = 1.72
 ## 
 ## Calculating basic statistics for end.post = 16...
-## Completed calculation of basic statistics for end.post = 16.  Time = 2.99
+## Completed calculation of basic statistics for end.post = 16.  Time = 3.25
 ## 
 ## Calculating survey statistics for end.post = 16...
-## Completed survey statistics for main weights: Time = 5.15
-## Completed calculation of survey statistics for end.post = 16.  Time = 5.15
+## Completed survey statistics for main weights: Time = 5.23
+## Completed calculation of survey statistics for end.post = 16.  Time = 5.23
 ## 
-## microsynth complete: Overall time = 12.9
+## microsynth complete: Overall time = 13.53
 ```
 
 ```r
@@ -1214,7 +1300,84 @@ sea2 <- microsynth(seattledmi,
                    n.cores = min(parallel::detectCores(), 2))
 ```
 
+## Selection on observables
+
+**Example**
+
+@aaronson2007
+
+Do teachers qualifications (causally) affect student test scores?
+
+Step 1:
+
+$$
+Y_{ijt} = \delta_0 + Y_{ij(t-1)} \delta_1 + X_{it} \delta_2 + Z_{jt} \delta_3 + \epsilon_{ijt}
+$$
+
+There can always be another variable
+
+Any observable sorting is imperfect
+
+Step 2:
+
+$$
+Y_{ijst} = \alpha_0 + Y_{ij(t-1)}\alpha_1 + X_{it} \alpha_2 + Z_{jt} \alpha_3 + \gamma_s + u_{isjt}
+$$
+
+-   $\delta_3 >0$
+
+-   $\delta_3 > \alpha_3$
+
+-   $\gamma_s$ = school fixed effect
+
+Sorting is less within school. Hence, we can introduce the school fixed effect
+
+Step 3:
+
+Find schools that look like they are putting students in class randomly (or as good as random) + we run step 2
+
+$$
+Y_{isjt} = Y_{isj(t-1)} \lambda + X_{it} \alpha_1 +Z_{jt} \alpha_{21}+ (Z_{jt} \times D_i)\alpha_{22}+ \gamma_5 + u_{isjt}
+$$
+
+-   $D_{it}$ is an element of $X_{it}$
+
+-   $Z_{it}$ = teacher experience
+
+$$
+D_{it}=
+\begin{cases}
+1 & \text{ if high poverty} \\
+0 & \text{otherwise}
+\end{cases}
+$$
+
+$H_0:$ $\alpha_{22} = 0$ test for effect heterogeneity whether the effect of teacher experience ($Z_{jt}$) is different
+
+-   For low poverty is $\alpha_{21}$
+
+-   For high poverty effect is $\alpha_{21} + \alpha_{22}$
+
+<br>
+
 ## Matching Methods
+
+**Motivation**
+
+Effect of college quality on earnings
+
+They ultimately estimate the treatment effect on the treated of attending a top (high ACT) versus bottom (low ACT) quartile college
+
+Matching is [Selection on observables] and only works if you have good observables.
+
+Relative to [OLS][Ordinary Least Squares]
+
+1.  Matching makes the **common support** explicit (and changes default from "ignore" to "enforce")
+2.  Relaxes linear function form. Thus, less parametric.
+
+It also helps if you have high ratio of controls to treatments.
+
+<br>
 
 For detail summary [@Stuart_2010]
 
@@ -2696,7 +2859,7 @@ genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
 ```
 ## 
 ## 
-## Sat Oct 23 13:56:21 2021
+## Thu Nov 18 11:02:55 2021
 ## Domains:
 ##  0.000000e+00   <=  X1   <=    1.000000e+03 
 ##  0.000000e+00   <=  X2   <=    1.000000e+03 
@@ -2885,7 +3048,7 @@ genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
 ## Solution Found Generation 1
 ## Number of Generations Run 2
 ## 
-## Sat Oct 23 13:56:21 2021
+## Thu Nov 18 11:02:55 2021
 ## Total run time : 0 hours 0 minutes and 0 seconds
 ```
 

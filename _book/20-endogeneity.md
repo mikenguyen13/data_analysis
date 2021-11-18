@@ -242,7 +242,7 @@ where $b_{\epsilon \tilde{X}}$ is the covariance between $\tilde{X}$ and $\epsil
 
 Hence, the [Classical Measurement Errors] is just a special case of [Non-classical Measurement Errors] where $b_{\epsilon \tilde{X}} = 1 - \lambda$
 
-So when $\sigma_{X \epsilon} = 0$ ([Classical Measurement Errors]), increasing this covariance $b_{\epsilon \tilde{X}}$ increases the covariance increases the attenuation factor if more than half of the variance in $\tilde{X}$ is measurement error, and decreases the attenuation factor otherwise. This is also known as **mean reverting measurement error [**@bound1989]
+So when $\sigma_{X \epsilon} = 0$ ([Classical Measurement Errors]), increasing this covariance $b_{\epsilon \tilde{X}}$ increases the covariance increases the attenuation factor if more than half of the variance in $\tilde{X}$ is measurement error, and decreases the attenuation factor otherwise. This is also known as \*\*mean reverting measurement error [\*\* @bound1989]
 
 A general framework for both right-hand side and left-hand side measurement error is [@bound1994]:
 
@@ -834,13 +834,10 @@ low p-value means you reject the null of exogenous instruments. Hence you would 
 
 -   really only useful if one instrument is thought to be truly exogenous (randomly assigned). even f you do reject the null, the test does not tell you which instrument is exogenous and which is endogenous.
 
-+-----------------+-------------------------------------------------------------------------------------+
 | Result          | Implication                                                                         |
-+=================+=====================================================================================+
+|-----------------|-------------------------------------------------------------------------------------|
 | reject the null | you can be pretty sure there is an endogenous instrument, but don't know which one. |
-+-----------------+-------------------------------------------------------------------------------------+
 | fail to reject  | could be either (1) they are both exogenous, (2) they are both endogenous.          |
-+-----------------+-------------------------------------------------------------------------------------+
 
 ###### Relevancy
 
@@ -934,9 +931,9 @@ summary(m2.2sls)$coefficients[1:7, ]
 
 <br>
 
-#### Good Instruments 
+#### Good Instruments
 
-##### Lagged dependent variable 
+##### Lagged dependent variable
 
 In time series data sets, we can use lagged dependent variable as an instrument because it is not influenced by current shocks.
 

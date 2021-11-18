@@ -108,3 +108,144 @@ Say you have control variables ($X_i$), that is **uncorrelated with the treatmen
 $$
 Y_i = \alpha + \rho D_i + X_i'\gamma + \eta_i
 $$
+
+<br>
+
+## Semi-random Experiment
+
+Chicago Open Enrollment Program [@cullen2005]
+
+-   Students can apply to "choice" schools
+
+-   Many schools are oversubscribed (Demand \> Supply)
+
+-   Resolve scarcity via random lotteries
+
+-   Non-random enrollment, we only have random lottery which mean the above
+
+Let
+
+$$
+\delta_j = E(Y_i | Enroll_{ij} = 1; Apply_{ij} = 1) - E(Y_i | Enroll_{ij} = 0; Apply_{ij} = 1)
+$$
+
+and
+
+$$
+\theta_j = E(Y_i | Win_{ij} = 1; Apply_{ij} = 1) - E(Y_i | Win_{ij} = 0; Apply_{ij} = 1)
+$$
+
+Hence, we can clearly see that $\delta_j \neq \theta_j$ because you can only enroll, but you cannot ensure that you will win. Thus, **intention to treat is different from treatment effect**.
+
+Non-random enrollment, we only have random lottery which means we can only estimate $\theta_j$
+
+To recover the true treatment effect, we can use
+
+$$
+\delta_j = \frac{E(Y_i|W_{ij} = 1; A_{ij} = 1) - E(Y_i | W_{ij}=0; A_{ij} = 1)}{P(Enroll_{ij} = 1| W_{ij}= 1; A_{ij}=1) - P(Enroll_{ij} = 1| W_{ij}=0; A_{ij}=1)}
+$$
+
+where
+
+-   $\delta_j$ = treatment effect
+
+-   $W$ = Whether students win the lottery
+
+-   $A$ = Whether student apply for the lottery
+
+-   i = application
+
+-   j = school
+
+Say that we have
+
+**10 win**
+
+| Number students | Type          | Selection effect | Treatment effect | Total effect |
+|-----------------|---------------|------------------|------------------|--------------|
+| 1               | Always Takers | +0.2             | +1               | +1.2         |
+| 2               | Compliers     | 0                | +1               | +1           |
+| 7               | Never Takers  | -0.1             | 0                | -0.1         |
+
+**10 lose**
+
+| Number students | Type          | Selection effect | Treatment effect | Total effect |
+|-----------------|---------------|------------------|------------------|--------------|
+| 1               | Always Takers | +0.2             | +1               | +1.2         |
+| 2               | Compliers     | 0                | 0                | 0            |
+| 7               | Never Takers  | -0.1             | 0                | -0.1         |
+
+Intent to treatment = Average effect of who you give option to choose
+
+$$
+\begin{aligned}
+E(Y_i | W_{ij}=1; A_{ij} = 1) &= \frac{1*(1.2)+ 2*(1) + 7 * (-0.1)}{10}\\
+&= 0.25
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+E(Y_i | W_{ij}=0; A_{ij} = 1) &= \frac{1*(1.2)+ 2*(0) + 7 * (-0.1)}{10}\\
+&= 0.05
+\end{aligned}
+$$
+
+Hence,
+
+$$
+\begin{aligned}
+\text{Intent to treatment} &= 0.25 - 0.05 = 0.2 \\
+\text{Treatment effect} &= 1
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+P(Enroll_{ij} = 1 | W_{ij} = 1; A_{ij}=1 ) &= \frac{1+2}{10} = 0.3 \\
+P(Enroll_{ij} = 1 | W_{ij} = 0; A_{ij}=1 ) &= \frac{1}{10} = 0.1
+\end{aligned}
+$$
+
+$$
+\text{Treatment effect} = \frac{0.2}{0.3-0.1} = 1
+$$
+
+After knowing how to recover the treatment effect, we turn our attention to the main model
+
+$$
+Y_{ia} = \delta W_{ia} + \lambda L_{ia} + e_{ia}
+$$
+
+where
+
+-   $W$ = whether a student wins a lottery
+
+-   $L$ = whether student enrolls in the lottery
+
+-   $\delta$ = intent to treat
+
+Hence,
+
+-   Conditional on lottery, the $\delta$ is valid
+
+-   But without lottery, your $\delta$ is not random
+
+-   Winning and losing are only identified within lottery
+
+-   Each lottery has multiple entries. Thus, we can have within estimator
+
+We can also include other control variables ($X_i \theta$)
+
+$$
+Y_{ia} = \delta_1 W_{ia} + \lambda_1 L_{ia} + X_i \theta + u_{ia}
+$$
+
+$$
+\begin{aligned}
+E(\delta) &= E(\delta_1) \\
+E(\lambda) &\neq E(\lambda_1) && \text{because choosing a lottery is not random}
+\end{aligned}
+$$
+
+Including $(X_i \theta)$ just shifts around control variables (i.e., reweighting of lottery), which would not affect your treatment effect $E(\delta)$
