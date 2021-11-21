@@ -126,10 +126,10 @@ summary(results)
 ## Nonparametric Bootstrap Confidence Intervals with the Percentile Method
 ## 
 ##                Estimate 95% CI Lower 95% CI Upper p-value    
-## ACME             0.3565       0.2090         0.52  <2e-16 ***
-## ADE              0.0396      -0.1688         0.27    0.77    
-## Total Effect     0.3961       0.1492         0.62  <2e-16 ***
-## Prop. Mediated   0.9000       0.5045         1.96  <2e-16 ***
+## ACME             0.3565       0.2040         0.52  <2e-16 ***
+## ADE              0.0396      -0.1963         0.27    0.74    
+## Total Effect     0.3961       0.1427         0.61  <2e-16 ***
+## Prop. Mediated   0.9000       0.4888         1.98  <2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
@@ -395,7 +395,7 @@ test.TMint(med.out, conf.level = .95) # test treatment-mediator interaction effe
 plot(med.out)
 ```
 
-![](22-mediation_files/figure-epub3/unnamed-chunk-5-1.png)<!-- -->
+<img src="22-mediation_files/figure-html/unnamed-chunk-5-1.png" width="672" />
 
 `mediation` can be used in conjunction with any of your imputation packages.
 
@@ -484,7 +484,7 @@ summary(sens.out)
 plot(sens.out, sens.par = "rho", main = "Anxiety", ylim = c(-0.2, 0.2))
 ```
 
-![](22-mediation_files/figure-epub3/unnamed-chunk-7-1.png)<!-- -->![](22-mediation_files/figure-epub3/unnamed-chunk-7-2.png)<!-- -->
+<img src="22-mediation_files/figure-html/unnamed-chunk-7-1.png" width="672" /><img src="22-mediation_files/figure-html/unnamed-chunk-7-2.png" width="672" />
 
 ACME confidence intervals contains 0 when $\rho \in (0.3,0.4)$
 
@@ -500,4 +500,4 @@ plot(sens.out, sens.par = "R2", r.type = "total", sign.prod = "positive")
 ##   Use c() or as.vector() instead.
 ```
 
-![](22-mediation_files/figure-epub3/unnamed-chunk-8-1.png)<!-- -->![](22-mediation_files/figure-epub3/unnamed-chunk-8-2.png)<!-- -->
+<img src="22-mediation_files/figure-html/unnamed-chunk-8-1.png" width="672" /><img src="22-mediation_files/figure-html/unnamed-chunk-8-2.png" width="672" />

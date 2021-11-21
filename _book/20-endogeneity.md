@@ -169,16 +169,24 @@ Technical note:
 The size of the bias in the OLS-estimator is
 
 $$
-\hat{\beta} = \frac{ cov(\tilde{X}, Y)}{var(\tilde{X})} = \frac{cov(X + e, \beta X + u)}{var(X + e)}
+\hat{\beta}_{OLS} = \frac{ cov(\tilde{X}, Y)}{var(\tilde{X})} = \frac{cov(X + e, \beta X + u)}{var(X + e)}
 $$
 
 then
 
 $$
-plim \hat{\beta} = \beta \frac{\sigma^2_X}{\sigma^2_X + \sigma^2_e} = \beta \lambda
+plim \hat{\beta}_{OLS} = \beta \frac{\sigma^2_X}{\sigma^2_X + \sigma^2_e} = \beta \lambda
 $$
 
-where $\lambda$ is reliability or signal-to-total variance ratio or attenuation factor
+where $\lambda$ is **reliability** or signal-to-total variance ratio or attenuation factor
+
+Reliability affect the extent to which measurement error attenuates $\hat{\beta}$. The attenuation bias is
+
+$$
+\hat{\beta}_{OLS} - \beta = -(1-\lambda)\beta
+$$
+
+Thus, $\hat{\beta}_{OLS} < \beta$ (unless $\lambda = 1$, in which case we don't even have measurement error).
 
 Note:
 
@@ -189,6 +197,10 @@ y= \beta x + \gamma x^2 + \epsilon
 $$
 
 then, the attenuation factor for $\hat{\gamma}$ is the square of the attenuation factor for $\hat{\beta}$ (i.e., $\lambda_{\hat{\gamma}} = \lambda_{\hat{\beta}}^2$)
+
+<br>
+
+**Adding covariates increases attenuation bias**
 
 To fix classical measurement error problem, we can
 
@@ -1624,7 +1636,7 @@ legend(
 )
 ```
 
-![](20-endogeneity_files/figure-epub3/unnamed-chunk-11-1.png)<!-- -->
+<img src="20-endogeneity_files/figure-html/unnamed-chunk-11-1.png" width="672" />
 
 Hence in our observed model, we see
 

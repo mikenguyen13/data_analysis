@@ -1517,7 +1517,7 @@ x = rnorm(100)
 qqplot(x,y)
 ```
 
-![](05-regression_files/figure-epub3/unnamed-chunk-2-1.png)<!-- -->
+<img src="05-regression_files/figure-html/unnamed-chunk-2-1.png" width="672" />
 
 
 

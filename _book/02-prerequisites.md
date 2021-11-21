@@ -731,7 +731,7 @@ $Bernoulli(p)$
 hist(mc2d::rbern(100000, prob=.5))
 ```
 
-![](02-prerequisites_files/figure-epub3/unnamed-chunk-1-1.png)<!-- -->
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-1-1.png" width="672" />
 
 ##### Binomial
 
@@ -758,7 +758,7 @@ You have to use table
 hist(rbinom(100000, size = 100, prob = 0.5))
 ```
 
-![](02-prerequisites_files/figure-epub3/unnamed-chunk-2-1.png)<!-- -->
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-2-1.png" width="672" />
 
 **MGF**
 
@@ -805,7 +805,7 @@ Use table
 hist(rpois(10000, lambda = 5))
 ```
 
-![](02-prerequisites_files/figure-epub3/unnamed-chunk-3-1.png)<!-- -->
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-3-1.png" width="672" />
 
 **MGF**
 
@@ -851,7 +851,7 @@ $$
 hist(rgeom(n = 10000, prob = 0.5))
 ```
 
-![](02-prerequisites_files/figure-epub3/unnamed-chunk-4-1.png)<!-- -->
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-4-1.png" width="672" />
 
 **MGF**
 
@@ -895,7 +895,7 @@ where $max[0,n-(N-r)] \le x \le min(n,r)$
 hist(rhyper(nn = 10000 , m=50, n=20, k=30))
 ```
 
-![](02-prerequisites_files/figure-epub3/unnamed-chunk-5-1.png)<!-- -->
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-5-1.png" width="672" />
 
 **Mean**
 
@@ -946,7 +946,7 @@ $$
 hist(runif(100000, min = 0, max = 1))
 ```
 
-![](02-prerequisites_files/figure-epub3/unnamed-chunk-6-1.png)<!-- -->
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-6-1.png" width="672" />
 
 **MGF**
 
@@ -1005,7 +1005,7 @@ for x\>0, and $\alpha = n$ (a positive integer)
 hist(rgamma(n = 10000, shape = 5, rate = 1))
 ```
 
-![](02-prerequisites_files/figure-epub3/unnamed-chunk-7-1.png)<!-- -->
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-7-1.png" width="672" />
 
 **MGF**
 
@@ -1053,7 +1053,7 @@ Use table
 hist(rnorm(1000000, mean = 0, sd = 1))
 ```
 
-![](02-prerequisites_files/figure-epub3/unnamed-chunk-8-1.png)<!-- -->
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-8-1.png" width="672" />
 
 **MGF**
 
@@ -1109,7 +1109,7 @@ $Logistic(\mu,s)$
 hist(rlogis(n = 100000, location = 0, scale = 1))
 ```
 
-![](02-prerequisites_files/figure-epub3/unnamed-chunk-9-1.png)<!-- -->
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-9-1.png" width="672" />
 
 ##### Lognomral
 
@@ -1122,7 +1122,7 @@ $lognormal(\mu,\sigma^2)$
 hist(rlnorm(n = 10000, meanlog = 0, sdlog = 1))
 ```
 
-![](02-prerequisites_files/figure-epub3/unnamed-chunk-10-1.png)<!-- -->
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-10-1.png" width="672" />
 
 ##### Exponential
 
@@ -1158,7 +1158,7 @@ F(x) =
 hist(rexp(n = 100000, rate = 1))
 ```
 
-![](02-prerequisites_files/figure-epub3/unnamed-chunk-11-1.png)<!-- -->
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-11-1.png" width="672" />
 
 **MGF**
 
@@ -1198,7 +1198,7 @@ $\chi^2=\chi^2(k)$
 hist(rchisq(n = 10000, df=2, ncp = 0))
 ```
 
-![](02-prerequisites_files/figure-epub3/unnamed-chunk-12-1.png)<!-- -->
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-12-1.png" width="672" />
 
 **MGF**
 
@@ -1230,7 +1230,7 @@ $T(v)$
 hist(rt(n = 100000, df=2, ncp =1))
 ```
 
-![](02-prerequisites_files/figure-epub3/unnamed-chunk-13-1.png)<!-- -->
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-13-1.png" width="672" />
 
 ##### F-Distribution
 
@@ -1247,7 +1247,7 @@ $F(d_1,d_2)$
 hist(rf(n = 100000, df1=2, df2=3, ncp=1))
 ```
 
-![](02-prerequisites_files/figure-epub3/unnamed-chunk-14-1.png)<!-- -->
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-14-1.png" width="672" />
 
 ##### Cauchy
 
@@ -1260,7 +1260,7 @@ hist(rf(n = 100000, df1=2, df2=3, ncp=1))
 hist(rcauchy(n = 100000, location = 0, scale = 1))
 ```
 
-![](02-prerequisites_files/figure-epub3/unnamed-chunk-15-1.png)<!-- -->
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-15-1.png" width="672" />
 
 ##### Multivariate Normal Distribution
 
@@ -2136,11 +2136,11 @@ dat03
 ## # A tibble: 5 x 1
 ##       z
 ##   <dbl>
-## 1 0.442
-## 2 0.916
-## 3 0.853
-## 4 0.276
-## 5 0.552
+## 1 0.548
+## 2 0.138
+## 3 0.728
+## 4 0.858
+## 5 0.464
 ```
 
 ```r
@@ -2302,11 +2302,11 @@ bind_cols(dat01, dat03)
 ## # A tibble: 5 x 3
 ##       x     y     z
 ##   <int> <int> <dbl>
-## 1     1     5 0.442
-## 2     2     4 0.916
-## 3     3     3 0.853
-## 4     4     2 0.276
-## 5     5     1 0.552
+## 1     1     5 0.548
+## 2     2     4 0.138
+## 3     3     3 0.728
+## 4     4     2 0.858
+## 5     5     1 0.464
 ```
 
 ```r
@@ -2396,7 +2396,7 @@ ggplot(long, aes(x = factor(test), y = score, color = name, group = name)) +
   xlab("Test")
 ```
 
-![](02-prerequisites_files/figure-epub3/unnamed-chunk-32-1.png)<!-- -->
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-32-1.png" width="672" />
 
 ```r
 #### reshape wide to long

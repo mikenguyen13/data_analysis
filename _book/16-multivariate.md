@@ -507,7 +507,7 @@ gg <- trees %>%
 gg
 ```
 
-![](16-multivariate_files/figure-epub3/unnamed-chunk-1-1.png)<!-- -->
+<img src="16-multivariate_files/figure-html/unnamed-chunk-1-1.png" width="672" />
 
 ```r
 # Univariate normality
@@ -641,7 +641,7 @@ mardia_test <-
     )
 ```
 
-![](16-multivariate_files/figure-epub3/unnamed-chunk-1-2.png)<!-- -->
+<img src="16-multivariate_files/figure-html/unnamed-chunk-1-2.png" width="672" />
 
 ```r
 mardia_test$multivariateNormality
@@ -1166,7 +1166,7 @@ ggplot(steel, aes(x = Yield, y = Strength)) +
     ), col = "red")
 ```
 
-![](16-multivariate_files/figure-epub3/unnamed-chunk-4-1.png)<!-- -->
+<img src="16-multivariate_files/figure-html/unnamed-chunk-4-1.png" width="672" />
 
 ```r
 # Bartlett's test for equality of covariance matrices
@@ -1712,7 +1712,7 @@ gg_profile <- ggplot(heart_means, aes(x = time, y = mean)) +
 gg_profile
 ```
 
-![](16-multivariate_files/figure-epub3/unnamed-chunk-7-1.png)<!-- -->
+<img src="16-multivariate_files/figure-html/unnamed-chunk-7-1.png" width="672" />
 
 
 ```r
@@ -2416,7 +2416,7 @@ sim <- mvrnorm(n = 1000, mu = mu, Sigma = Sigma)
 plot(sim[,1],sim[,2])
 ```
 
-![](16-multivariate_files/figure-epub3/unnamed-chunk-12-1.png)<!-- -->
+<img src="16-multivariate_files/figure-html/unnamed-chunk-12-1.png" width="672" />
 
 Here,
 
@@ -2480,7 +2480,7 @@ sim1 <- mvrnorm(n = 1000, mu = t(A_matrix) %*% mu, Sigma = t(A_matrix) %*% Sigma
 plot(sim1[,1],sim1[,2])
 ```
 
-![](16-multivariate_files/figure-epub3/unnamed-chunk-13-1.png)<!-- -->
+<img src="16-multivariate_files/figure-html/unnamed-chunk-13-1.png" width="672" />
 
 No more dependence in the data structure, plot
 
@@ -2823,7 +2823,7 @@ plot(
 )
 ```
 
-![](16-multivariate_files/figure-epub3/unnamed-chunk-15-1.png)<!-- -->
+<img src="16-multivariate_files/figure-html/unnamed-chunk-15-1.png" width="672" />
 
 ```r
 plot(
@@ -2835,7 +2835,7 @@ plot(
 )
 ```
 
-![](16-multivariate_files/figure-epub3/unnamed-chunk-15-2.png)<!-- -->
+<img src="16-multivariate_files/figure-html/unnamed-chunk-15-2.png" width="672" />
 
 ```r
 # the first six principe account for around 80% of the variance. 
@@ -3358,13 +3358,13 @@ scree_gg <- ggplot(cor_results, aes(x = number, y = eigen_values)) +
 scree_gg
 ```
 
-![](16-multivariate_files/figure-epub3/unnamed-chunk-16-1.png)<!-- -->
+<img src="16-multivariate_files/figure-html/unnamed-chunk-16-1.png" width="672" />
 
 ```r
 screeplot(cor_pca, type = 'lines')
 ```
 
-![](16-multivariate_files/figure-epub3/unnamed-chunk-16-2.png)<!-- -->
+<img src="16-multivariate_files/figure-html/unnamed-chunk-16-2.png" width="672" />
 
 ```r
 ## Keep 2 factors based on scree plot and eigenvalues
@@ -3587,7 +3587,7 @@ flag_gg <- ggplot(factors_df) +
 flag_gg
 ```
 
-![](16-multivariate_files/figure-epub3/unnamed-chunk-16-3.png)<!-- -->
+<img src="16-multivariate_files/figure-html/unnamed-chunk-16-3.png" width="672" />
 
 ```r
 # promax and varimax did a good job to assign trait to a particular factor
@@ -4645,11 +4645,11 @@ table(truth = Y_train, fitted = knn_2)
 ```
 ##             fitted
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          9    0      1        0          1
+##   Clover          9    0      2        0          0
 ##   Corn            0    5      0        2          0
 ##   Cotton          0    0      4        0          2
 ##   Soybeans        0    0      0        5          1
-##   Sugarbeets      1    0      0        2          3
+##   Sugarbeets      1    0      1        1          3
 ```
 
 ```r
@@ -4672,7 +4672,7 @@ table(truth = Y_test, predict = knn_2_test)
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
 ##   Clover          1    0      0        0          0
 ##   Corn            0    1      0        0          0
-##   Cotton          0    0      1        0          0
+##   Cotton          0    0      0        0          1
 ##   Soybeans        0    0      0        1          0
 ##   Sugarbeets      0    0      0        0          1
 ```
@@ -4683,7 +4683,7 @@ mean(Y_test==knn_2_test)
 ```
 
 ```
-## [1] 1
+## [1] 0.8
 ```
 
 ```r
@@ -4695,11 +4695,11 @@ table(truth = Y_train, fitted = knn_3)
 ```
 ##             fitted
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          7    0      2        1          1
-##   Corn            0    5      1        1          0
-##   Cotton          1    0      4        0          1
-##   Soybeans        1    0      1        3          1
-##   Sugarbeets      0    0      0        1          5
+##   Clover          7    0      3        1          0
+##   Corn            0    5      0        2          0
+##   Cotton          1    1      3        1          0
+##   Soybeans        0    0      0        4          2
+##   Sugarbeets      0    1      1        1          3
 ```
 
 ```r
@@ -4708,7 +4708,7 @@ mean(Y_train==knn_3)
 ```
 
 ```
-## [1] 0.6666667
+## [1] 0.6111111
 ```
 
 ```r
@@ -4766,7 +4766,7 @@ step <- stepclass(
 ## correctness rate: 0.45;  in: "y1";  variables (1): y1 
 ## 
 ##  hr.elapsed min.elapsed sec.elapsed 
-##        0.00        0.00        0.16
+##        0.00        0.00        0.13
 ```
 
 ```r
@@ -4819,7 +4819,7 @@ table(truth = test.iris$Species, prediction = pred.lda$class)
 plot(iris.model)
 ```
 
-![](16-multivariate_files/figure-epub3/unnamed-chunk-22-1.png)<!-- -->
+<img src="16-multivariate_files/figure-html/unnamed-chunk-22-1.png" width="672" />
 
 ```r
 iris.model.qda <- qda(Species~.,data=train.iris)
@@ -4850,7 +4850,7 @@ train <- t(train) #each column is an observation
 image(matrix(train[, 1], nrow = 28), main = 'Example image, unrotated')
 ```
 
-![](16-multivariate_files/figure-epub3/unnamed-chunk-23-1.png)<!-- -->
+<img src="16-multivariate_files/figure-html/unnamed-chunk-23-1.png" width="672" />
 
 ```r
 test <- rbind(zeros[2501:3000, ], nines[2501:3000, ])
