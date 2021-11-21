@@ -580,8 +580,8 @@ benchmark(
 
 ```
 ##   test replications elapsed relative
-## 1 MASS           50    2.40    1.000
-## 2 lme4           50    4.25    1.771
+## 1 MASS           50    2.94    1.000
+## 2 lme4           50    5.55    1.888
 ```
 
 In numerical integration, we can set `nAGQ > 1` to switch the method of likelihood evaluation, which might increase accuracy
@@ -651,25 +651,25 @@ summary(Bayes_cbpp)
 ##  Thinning interval  = 10
 ##  Sample size  = 1000 
 ## 
-##  DIC: 538.4347 
+##  DIC: 538.858 
 ## 
 ##  G-structure:  ~herd
 ## 
 ##      post.mean  l-95% CI u-95% CI eff.samp
-## herd   0.01772 7.107e-17   0.1193    51.82
+## herd    0.0374 9.569e-17   0.2593    69.79
 ## 
 ##  R-structure:  ~units
 ## 
 ##       post.mean l-95% CI u-95% CI eff.samp
-## units     1.141   0.2616    2.302    292.3
+## units     1.081   0.1931    2.203    276.3
 ## 
 ##  Location effects: cbind(incidence, size - incidence) ~ period 
 ## 
 ##             post.mean l-95% CI u-95% CI eff.samp  pMCMC    
-## (Intercept)   -1.5475  -2.1692  -0.8901    752.1 <0.001 ***
-## period2       -1.2383  -2.3731  -0.2946   1000.0  0.022 *  
-## period3       -1.3806  -2.4914  -0.2882    789.3  0.008 ** 
-## period4       -1.9715  -3.2232  -0.6734    604.6 <0.001 ***
+## (Intercept)   -1.5285  -2.2140  -0.9069    835.7 <0.001 ***
+## period2       -1.2481  -2.3883  -0.3319    715.4  0.012 *  
+## period3       -1.4086  -2.4789  -0.3428    746.9  0.006 ** 
+## period4       -1.9697  -3.2491  -0.8112    544.6 <0.001 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -682,8 +682,8 @@ apply(Bayes_cbpp$VCV,2,sd) #explains less variability
 ```
 
 ```
-##       herd      units 
-## 0.07017279 0.54535884
+##      herd     units 
+## 0.1211482 0.5292711
 ```
 
 
@@ -692,11 +692,11 @@ summary(Bayes_cbpp)$solutions
 ```
 
 ```
-##             post.mean  l-95% CI   u-95% CI  eff.samp pMCMC
-## (Intercept) -1.547544 -2.169204 -0.8900829  752.0864 0.001
-## period2     -1.238298 -2.373114 -0.2945649 1000.0000 0.022
-## period3     -1.380599 -2.491402 -0.2881980  789.2912 0.008
-## period4     -1.971488 -3.223249 -0.6734054  604.5514 0.001
+##             post.mean  l-95% CI   u-95% CI eff.samp pMCMC
+## (Intercept) -1.528468 -2.214044 -0.9069433 835.7353 0.001
+## period2     -1.248071 -2.388257 -0.3318941 715.4167 0.012
+## period3     -1.408618 -2.478922 -0.3427916 746.8875 0.006
+## period4     -1.969726 -3.249141 -0.8112151 544.5600 0.001
 ```
 
 interpret Bayesian "credible intervals" similarly to confidence intervals
@@ -716,7 +716,7 @@ library(lattice)
 xyplot(as.mcmc(Bayes_cbpp$Sol), layout = c(2, 2))
 ```
 
-![](09-nonlinear_generalized_linear_mixed_files/figure-epub3/unnamed-chunk-11-1.png)<!-- -->
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-11-1.png" width="672" />
 
 There is no trend, well-mixed
 
@@ -725,7 +725,7 @@ There is no trend, well-mixed
 xyplot(as.mcmc(Bayes_cbpp$VCV),layout=c(2,1))
 ```
 
-![](09-nonlinear_generalized_linear_mixed_files/figure-epub3/unnamed-chunk-12-1.png)<!-- -->
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-12-1.png" width="672" />
 
 For the herd variable, a lot of them are 0, which suggests problem. To fix the instability in the herd effect sampling, we can either
 
@@ -752,7 +752,7 @@ Bayes_cbpp2 <-
 xyplot(as.mcmc(Bayes_cbpp2$VCV), layout = c(2, 1))
 ```
 
-![](09-nonlinear_generalized_linear_mixed_files/figure-epub3/unnamed-chunk-13-1.png)<!-- -->
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-13-1.png" width="672" />
 
 To change the shape of priors, in `MCMCglmm` use:
 
@@ -885,7 +885,7 @@ There is an improvement using negative binomial considering overdispersion
 hist(Owls$Ncalls,breaks=30)
 ```
 
-![](09-nonlinear_generalized_linear_mixed_files/figure-epub3/unnamed-chunk-17-1.png)<!-- -->
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-17-1.png" width="672" />
 
 To account for too many 0s in these data, we can use zero-inflated Poisson (ZIP) model.
 
@@ -1041,7 +1041,7 @@ ggplot(dat, aes(x = lat, y = long, fill = prop)) +
     ggtitle('Gotway Hessian Fly')
 ```
 
-![](09-nonlinear_generalized_linear_mixed_files/figure-epub3/unnamed-chunk-19-1.png)<!-- -->
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-19-1.png" width="672" />
 
 -   Fixed effects ($\beta$) = genotype
 
@@ -1122,14 +1122,14 @@ Bayes_flymodel <- MCMCglmm(
 plot(Bayes_flymodel$Sol[, 1], main = dimnames(Bayes_flymodel$Sol)[[2]][1])
 ```
 
-![](09-nonlinear_generalized_linear_mixed_files/figure-epub3/unnamed-chunk-21-1.png)<!-- -->
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-21-1.png" width="672" />
 
 
 ```r
 autocorr.plot(Bayes_flymodel$Sol[,1],main=dimnames(Bayes_flymodel$Sol)[[2]][1])
 ```
 
-![](09-nonlinear_generalized_linear_mixed_files/figure-epub3/unnamed-chunk-22-1.png)<!-- -->
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-22-1.png" width="672" />
 
 ### Example from [@Schabenberger_2001] section 8.4.1
 
@@ -1163,7 +1163,7 @@ dat2 <- dat2 %>% group_by(tn) %>% mutate(
 ggplot(dat2, aes(x = r, y = cumv)) + geom_point(size = 0.5) + facet_wrap(vars(z))
 ```
 
-![](09-nonlinear_generalized_linear_mixed_files/figure-epub3/unnamed-chunk-24-1.png)<!-- -->
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-24-1.png" width="672" />
 
 The proposed non-linear model:
 
@@ -1353,7 +1353,7 @@ p3 <- ggplot(pred279)+geom_line(aes(x=r,y=test,color='with random'))+geom_line(a
 plot_grid(p1,p2,p3)
 ```
 
-![](09-nonlinear_generalized_linear_mixed_files/figure-epub3/unnamed-chunk-26-1.png)<!-- -->
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-26-1.png" width="672" />
 
 red line = predicted observations based on the common fixed effects
 

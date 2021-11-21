@@ -76,7 +76,7 @@ skewness(data,type = 1)
 ```
 
 ```
-## [1] 0.2265922
+## [1] -0.108069
 ```
 
 ```r
@@ -84,7 +84,7 @@ kurtosis(data, type = 1)
 ```
 
 ```
-## [1] 0.06721953
+## [1] -0.05014757
 ```
 
 ## Graphical Measures
@@ -104,20 +104,23 @@ hist(data,labels = T,col="grey",breaks = 12)
 pacman::p_load("highcharter")
 ```
 
-![](03-descriptive-stat_files/figure-epub3/unnamed-chunk-2-1.png)<!-- -->
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-1.png" width="672" />
 
 ```r
 hchart(data) 
 ```
 
-![](03-descriptive-stat_files/figure-epub3/unnamed-chunk-2-2.png)<!-- -->
+```{=html}
+<div id="htmlwidget-9762222885f4e6a5dd36" style="width:100%;height:500px;" class="highchart html-widget"></div>
+<script type="application/json" data-for="htmlwidget-9762222885f4e6a5dd36">{"x":{"hc_opts":{"chart":{"reflow":true,"zoomType":"x"},"title":{"text":null},"yAxis":{"title":{"text":null}},"credits":{"enabled":false},"exporting":{"enabled":false},"boost":{"enabled":false},"plotOptions":{"series":{"label":{"enabled":false},"turboThreshold":0},"treemap":{"layoutAlgorithm":"squarified"}},"tooltip":{"formatter":"function() { return  this.point.name + '<br/>' + this.y; }"},"series":[{"data":[{"x":-3.25,"y":1,"name":"(-3.5, -3]"},{"x":-2.75,"y":0,"name":"(-3, -2.5]"},{"x":-2.25,"y":1,"name":"(-2.5, -2]"},{"x":-1.75,"y":4,"name":"(-2, -1.5]"},{"x":-1.25,"y":3,"name":"(-1.5, -1]"},{"x":-0.75,"y":17,"name":"(-1, -0.5]"},{"x":-0.25,"y":20,"name":"(-0.5, 0]"},{"x":0.25,"y":22,"name":"(0, 0.5]"},{"x":0.75,"y":18,"name":"(0.5, 1]"},{"x":1.25,"y":6,"name":"(1, 1.5]"},{"x":1.75,"y":6,"name":"(1.5, 2]"},{"x":2.25,"y":2,"name":"(2, 2.5]"}],"type":"column","pointRange":0.5,"groupPadding":0,"pointPadding":0,"borderWidth":0}]},"theme":{"chart":{"backgroundColor":"transparent"},"colors":["#7cb5ec","#434348","#90ed7d","#f7a35c","#8085e9","#f15c80","#e4d354","#2b908f","#f45b5b","#91e8e1"]},"conf_opts":{"global":{"Date":null,"VMLRadialGradientURL":"http =//code.highcharts.com/list(version)/gfx/vml-radial-gradient.png","canvasToolsURL":"http =//code.highcharts.com/list(version)/modules/canvas-tools.js","getTimezoneOffset":null,"timezoneOffset":0,"useUTC":true},"lang":{"contextButtonTitle":"Chart context menu","decimalPoint":".","downloadJPEG":"Download JPEG image","downloadPDF":"Download PDF document","downloadPNG":"Download PNG image","downloadSVG":"Download SVG vector image","drillUpText":"Back to {series.name}","invalidDate":null,"loading":"Loading...","months":["January","February","March","April","May","June","July","August","September","October","November","December"],"noData":"No data to display","numericSymbols":["k","M","G","T","P","E"],"printChart":"Print chart","resetZoom":"Reset zoom","resetZoomTitle":"Reset zoom level 1:1","shortMonths":["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"thousandsSep":" ","weekdays":["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]}},"type":"chart","fonts":[],"debug":false},"evals":["hc_opts.tooltip.formatter"],"jsHooks":[]}</script>
+```
 
 ```r
 # Box-and-Whisker plot
 boxplot(count ~ spray, data = InsectSprays,col = "lightgray",main="boxplot")
 ```
 
-![](03-descriptive-stat_files/figure-epub3/unnamed-chunk-2-3.png)<!-- -->
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-3.png" width="672" />
 
 ```r
 # Notched Boxplot
@@ -131,7 +134,7 @@ boxplot(len~supp*dose, data=ToothGrowth, notch=TRUE,
 ## notches went outside hinges ('box'): maybe set notch=FALSE
 ```
 
-![](03-descriptive-stat_files/figure-epub3/unnamed-chunk-2-4.png)<!-- -->
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-4.png" width="672" />
 
 ```r
 # If notches differ -> medians differ
@@ -144,12 +147,13 @@ stem(data)
 ## 
 ##   The decimal point is at the |
 ## 
-##   -2 | 3
-##   -1 | 87644322210
-##   -0 | 9999888887776665544444333222221111110
-##    0 | 001122222233334445666777888888999999
-##    1 | 00111344579
-##    2 | 2389
+##   -3 | 1
+##   -2 | 1
+##   -1 | 88762200
+##   -0 | 999988876666655555444443332222221110
+##    0 | 0111112223333334444555556677777888999
+##    1 | 00001133556789
+##    2 | 013
 ```
 
 ```r
@@ -160,7 +164,7 @@ bagplot(wt,mpg, xlab="Car Weight", ylab="Miles Per Gallon",
   main="Bagplot Example")
 ```
 
-![](03-descriptive-stat_files/figure-epub3/unnamed-chunk-2-5.png)<!-- -->
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-5.png" width="672" />
 
 Others more advanced plots
 
@@ -195,7 +199,7 @@ qqnorm(precip, ylab = "Precipitation [in/yr] for 70 US cities")
 qqline(precip)
 ```
 
-![](03-descriptive-stat_files/figure-epub3/unnamed-chunk-5-1.png)<!-- -->
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-5-1.png" width="672" />
 
 The straight line represents the theoretical line for normally distributed data. The dots represent real empirical data that we are checking. If all the dots fall on the straight line, we can be confident that our data follow a normal distribution. If our data wiggle and deviate from the line, we should be concerned with the normality assumption.
 
@@ -272,7 +276,7 @@ gofTest(data,test="ppcc")$p.value #Probability Plot Correlation Coefficient
 ```
 
 ```
-## [1] 0.4205924
+## [1] 0.3378694
 ```
 
 ##### Shapiro-Wilk Test
@@ -291,7 +295,7 @@ gofTest(data,test="sw")$p.value #Shapiro-Wilk is the default.
 ```
 
 ```
-## [1] 0.5296891
+## [1] 0.5388957
 ```
 
 #### Methods based on empirical cumulative distribution function
@@ -308,7 +312,7 @@ This method requires large sample sizes. However, it can apply to distributions 
 plot.ecdf(data,verticals = T, do.points=F)
 ```
 
-![](03-descriptive-stat_files/figure-epub3/unnamed-chunk-8-1.png)<!-- -->
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-8-1.png" width="672" />
 
 ##### Anderson-Darling Test
 
@@ -351,7 +355,7 @@ gofTest(data,test="ad")$p.value #Anderson-Darling
 ```
 
 ```
-## [1] 0.645578
+## [1] 0.8233695
 ```
 
 ##### Kolmogorov-Smirnov Test
@@ -365,11 +369,11 @@ gofTest(data,test="ks")$p.value #Komogorov-Smirnov
 ```
 
 ```
-## Warning in ksGofTest(x = c(-1.07973793943471, -0.443067190909386, 0.0595054501576734, : The standard Kolmogorov-Smirnov test is very conservative (Type I error smaller than assumed; high Type II error) for testing departures from the Normal distribution when you have to estimate the distribution parameters.
+## Warning in ksGofTest(x = c(1.74303288566018, 1.97432791245138, 1.30969624438982, : The standard Kolmogorov-Smirnov test is very conservative (Type I error smaller than assumed; high Type II error) for testing departures from the Normal distribution when you have to estimate the distribution parameters.
 ```
 
 ```
-## [1] 0.9741333
+## [1] 0.9733564
 ```
 
 ##### Cramer-von Mises Test
@@ -382,7 +386,7 @@ gofTest(data,test="cvm")$p.value #Cramer-von Mises
 ```
 
 ```
-## [1] 0.7726661
+## [1] 0.9105966
 ```
 
 ##### Jarque--Bera Test {#jarquebera-test}

@@ -566,7 +566,7 @@ head(anscombe)
 md.pattern(anscombe)
 ```
 
-![](11-imputation_files/figure-epub3/unnamed-chunk-2-1.png)<!-- -->
+<img src="11-imputation_files/figure-html/unnamed-chunk-2-1.png" width="672" />
 
 ```
 ##   x1 x2 x3 x4 y2 y3 y1 y4  
@@ -638,7 +638,7 @@ p # rr = number of observations where both pairs of values are observed
 marginplot(anscombe[c(5, 8)], col = c("blue", "red", "orange"))
 ```
 
-![](11-imputation_files/figure-epub3/unnamed-chunk-2-2.png)<!-- -->
+<img src="11-imputation_files/figure-html/unnamed-chunk-2-2.png" width="672" />
 
 ```r
 ## 5 imputations for all missing values
@@ -940,7 +940,7 @@ mtext("Imputation of Heteroscedastic Data",       # Main title of plot
       side = 3, line = - 1.5, outer = TRUE, cex = 2)
 ```
 
-![](11-imputation_files/figure-epub3/unnamed-chunk-10-1.png)<!-- -->
+<img src="11-imputation_files/figure-html/unnamed-chunk-10-1.png" width="672" />
 
 #### Regression Imputation
 
@@ -1271,7 +1271,7 @@ library(VIM)
 md.pattern(iris.mis)
 ```
 
-![](11-imputation_files/figure-epub3/unnamed-chunk-17-1.png)<!-- -->
+<img src="11-imputation_files/figure-html/unnamed-chunk-17-1.png" width="672" />
 
 ```
 ##     Sepal.Width Sepal.Length Petal.Length Petal.Width   
@@ -1294,12 +1294,7 @@ md.pattern(iris.mis)
 aggr(iris.mis, col=mdc(1:2), numbers=TRUE, sortVars=TRUE, labels=names(iris.mis), cex.axis=.7, gap=3, ylab=c("Proportion of missingness","Missingness Pattern"))
 ```
 
-```
-## Warning in plot.aggr(res, ...): not enough horizontal space to display
-## frequencies
-```
-
-![](11-imputation_files/figure-epub3/unnamed-chunk-17-2.png)<!-- -->
+<img src="11-imputation_files/figure-html/unnamed-chunk-17-2.png" width="672" />
 
 ```
 ## 
@@ -1318,12 +1313,7 @@ mice_plot <- aggr(iris.mis, col=c('navyblue','yellow'),
                     gap=3, ylab=c("Missing data","Pattern"))
 ```
 
-```
-## Warning in plot.aggr(res, ...): not enough horizontal space to display
-## frequencies
-```
-
-![](11-imputation_files/figure-epub3/unnamed-chunk-17-3.png)<!-- -->
+<img src="11-imputation_files/figure-html/unnamed-chunk-17-3.png" width="672" />
 
 ```
 ## 
@@ -1381,7 +1371,7 @@ summary(imputed_Data)
 densityplot(imputed_Data)
 ```
 
-![](11-imputation_files/figure-epub3/unnamed-chunk-19-1.png)<!-- -->
+<img src="11-imputation_files/figure-html/unnamed-chunk-19-1.png" width="672" />
 
 ```r
 #the red (imputed values) should be similar to the blue (observed)

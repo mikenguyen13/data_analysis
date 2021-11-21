@@ -4,15 +4,34 @@ In most cases, it means that you have pre- and post-intervention data.
 
 ## Regression Discontinuity
 
--   A regression discontinuity occurs when there is a discrete change (jump) in treatment likelihood in the distribution of a continuous (or roughly continuous) variable.
+-   A regression discontinuity occurs when there is a discrete change (jump) in treatment likelihood in the distribution of a continuous (or roughly continuous) variable (i.e., running/forcing/assignment variable).
 
--   It's a localized experiment
+    -   Running variable can also be time, but the argument for time to be continuous is hard to argue because usually we do not see increment of time (e.g., quarterly or annual data). Unless we have minute or hour data, then we might be able to argue for it.
+
+-   RD is a localized experiment at the cutoff point
+
+    -   Hence, we always have to qualify (perfunctory) our statement in research articles that "our research might not generalize to beyond the bandwidth."
+
+-   In reality, RD and experimental (from random assignment) estimates are very similar ([@chaplin2018; @bertanha2014]; [Mathematica](https://www.mathematica.org/publications/replicating-experimental-impact-estimates-using-a-regression-discontinuity-approach) ). But still, it's hard to prove empirically for every context (there might be future study that finds a huge difference between local estimate - causal - and overall estimate - random assignment.
 
 -   Threats: only valid near threshold: inference at threshold is valid on average. Interestingly, random experiment showed the validity already.
 
 -   Tradeoff between efficiency and bias
 
 -   Regression discontinuity is under the framework of [Instrumental Variable]
+
+-   The hard part is to find a setting that can apply, but once you find one, it's easy to apply
+
+-   We can also have multiple cutoff lines. However, for each cutoff line, there can only be one breakup point
+
+-   RD can have multiple coinciding effects (i.e., joint distribution or bundled treatment), then RD effect in this case would be the joint effect.
+
+-   As the running variable becomes more discrete your framework should be [Interrupted Time Series], but more granular levels you can use RD. When you have infinite data (or substantially large) the two frameworks are identical. RD is always better than [Interrupted Times Series]
+
+There are two types of Regression Discontinuity:
+
+1.  Sharp RD: Change in treatment probability at the cutoff point is 1
+2.  Fuzzy RD: Change in treatment probability less than 1
 
 Consider
 
@@ -36,6 +55,8 @@ where
 
 -   $c$ = cutoff point
 
+**Identifying assumption** of RD:
+
 $$
 \begin{aligned}
 \alpha_{SRDD} &= E[Y_{1i} - Y_{0i} | X_i = c] \\
@@ -55,6 +76,124 @@ Assumptions:
 -   Continuity of conditional regression functions
 
     -   $E[Y(0)|X=x]$ and $E[Y(1)|X=x]$ are continuous in x.
+
+-   RD is valid if cutpoint is **exogenous (i.e., no endogenous selection)** and running variable is **not manipulable**
+
+<br>
+
+**General Model**
+
+$$
+Y_i = \beta_0 + f(x_i) \beta_1 + [I(x_i \ge c)]\beta_2 + \epsilon_i
+$$
+
+where $f(x_i)$ is any functional form of $x_i$
+
+**Simple case**
+
+When $f(x_i) = x_i$ (linear function)
+
+$$
+Y_i = \beta_0 + x_i \beta_1 + [I(x_i \ge c)]\beta_2 + \epsilon_i
+$$
+
+![](images/rd1.PNG)
+
+RD gives you $\beta_2$ (causal effect) of $X$ on $Y$ at the cutoff point
+
+In practice, everyone does
+
+$$
+Y_i = \alpha_0 + f(x) \alpha _1 + [I(x_i \ge c)]\alpha_2 + [f(x_i)\times [I(x_i \ge c)]\alpha_3 + u_i
+$$
+
+![](images/rd2.PNG)
+
+where we estimate different slope on different sides of the line
+
+and if you estimate $\alpha_3$ to be no different from 0 then we return to the simple case
+
+Notes:
+
+-   Sparse data can make $\alpha_3$ large differential effect
+
+-   People are very skeptical when you have complex $f(x_i)$, usual simple function forms (e.g., linear, squared term, etc.) should be good
+
+Bandwidth of $c$ (window)
+
+-   Closer to $c$ can give you lower bias, but also efficiency
+
+-   Wider $c$ can increase bias, but higher efficiency.
+
+-   Optimal bandwidth is very controversial, but usually we have to do it in the appendix for research article anyway.
+
+-   We can either
+
+    -   drop observations outside of bandwidth or
+
+    -   weight depends on how far and close to $c$
+
+### Bunching Test
+
+-   Bunching happens when people self-select to a specific value in the range of a variable (e.g., key policy thresholds).
+
+-   Review paper [@kleven2016]
+
+-   Histogram in bunching is similar to a density curve (we want narrower bins, wider bins bias elasticity estimates)
+
+-   We can also use bunching method to study individuals' or firm's responsiveness to changes in policy.
+
+-   Under RD, we assume that we don't have any manipulation in the running variable. However, bunching behavior is a manipulation by firms or individuals. Thus, violating this assumption.
+
+    -   Bunching can fix this problem by estimating what densities of individuals would have been without manipulation (i.e., manipulation-free counterfactual).
+
+    -   **The fraction of persons who manipulated** is then calculated by comparing the observed distribution to manipulation-free counterfactual distributions.
+
+    -   Under RD, we do not need this step because the observed and manipulation-free counterfactual distributions are assumed to be the same. RD assume there is no manipulation (i.e., assume the manipulation-free counterfactual distribution)
+
+-   Assumptions:
+
+    -   Manipulation is **one-sided**: People move one way (i.e., either below the threshold to above the threshold or vice versa, but not to or away the threshold), which is similar to the monotonicity assumption under instrumental variable \@ref(instrumental-variable)
+
+    -   Manipulation is **bounded** (also known as regularity assumption): so that we can use people far away from this threshold to derive at our counterfactual distribution [@blomquist2017]
+
+Steps:
+
+1.  Identify the window in which the running variable contains bunching behavior. We can do this step empirically based on data [@bosch2020]. Additionally robustness test is needed (i.e., varying the manipulation window).
+2.  Estimate the manipulation-free counterfactual
+3.  Calculating the standard errors for inference can follow [@chetty2011] where we bootstrap resampling residuals in the estimation of the counts of individuals within bins (large data can render this step unnecessary).
+
+If we pass the bunching test, we can move on to the [Placebo Test]
+
+### Placebo Test
+
+Before and after the cutoff point, we can run the placebo test to see whether X's are different).
+
+The placebo test is where you expect your coefficients to be not different from 0.
+
+Balance on observable characteristics on both sides
+
+$$
+Z_i = \alpha_0 + \alpha_1 f(x_i) + [I(x_i \ge c)] \alpha_2 + [f(x_i) \times I(x_i \ge c)]\alpha_3 + u_i
+$$
+
+where
+
+-   $x_i$ is the running variable
+
+-   $Z_i$ is other characteristics of people (e.g., age, etc)
+
+Theoretically, $Z_i$ should no be affected by treatment. Hence, $E(\alpha_2) = 0$
+
+Moreover, when you have multiple $Z_i$, you typically have to simulate joint distribution (to avoid having significant coefficient based on chance).
+
+The only way that you don't need to generate joint distribution is when all $Z_i$'s are independent (unlikely in reality).
+
+Under RD, you shouldn't have to do any [Matching Methods]. Because just like when you have random assignment, there is no need to make balanced dataset before and after the cutoff. If you have to do balancing, then your RD assumptions are probably wrong in the first place.
+
+### Examples
+
+#### Example 1
 
 Example by [Leihua Ye](https://towardsdatascience.com/the-crown-jewel-of-causal-inference-regression-discontinuity-design-rdd-bad37a68e786)
 
@@ -112,7 +251,7 @@ plot(
 )
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-1-1.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-1-1.png" width="672" />
 
 
 ```r
@@ -128,19 +267,19 @@ summary(rdd_mod)
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
-## -3.1631 -0.6850 -0.0165  0.6730  2.6127 
+## -3.6349 -0.7214 -0.0012  0.7093  3.0216 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(>|t|)    
-## (Intercept) 16.92098    0.06470  261.52   <2e-16 ***
-## D            9.97147    0.11426   87.27   <2e-16 ***
-## x            1.96098    0.03123   62.79   <2e-16 ***
+## (Intercept) 16.91798    0.07051  239.94   <2e-16 ***
+## D           10.07462    0.12051   83.60   <2e-16 ***
+## x            1.95586    0.03428   57.05   <2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.9418 on 997 degrees of freedom
-## Multiple R-squared:  0.963,	Adjusted R-squared:  0.9629 
-## F-statistic: 1.297e+04 on 2 and 997 DF,  p-value: < 2.2e-16
+## Residual standard error: 1.01 on 997 degrees of freedom
+## Multiple R-squared:  0.9603,	Adjusted R-squared:  0.9602 
+## F-statistic: 1.207e+04 on 2 and 997 DF,  p-value: < 2.2e-16
 ```
 
 
@@ -155,9 +294,106 @@ plot(
 )
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-3-1.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+
+#### Example 2
+
+@bowblis2019
+
+Occupational licensing can either increase or decrease market efficiency:
+
+-   More information means more efficiency
+
+-   Increased entry barriers (i.e., friction) increase efficiency
+
+Components of RD
+
+-   Running variable
+-   Cutoff: 120 beds or above
+-   Treatment: you have to have the treatment before the cutoff point.
+
+Under OLS
+
+$$
+Y_i = \alpha_0 + X_i \alpha_1 + LW_i \alpha_2 + \epsilon_i
+$$
+
+where
+
+-   $LW_i$ Licensed/certified workers (in fraction format for each center).
+
+-   $Y_i$ = Quality of service
+
+Bias in $\alpha_2$
+
+-   Mitigation-based: terrible quality can lead to more hiring, which negatively bias $\alpha_2$
+
+-   Preference-based: places that have higher quality staff want to keep high quality staffs.
+
+Under RD
+
+$$
+Y_{ist} = \beta_0 + [I(Bed \ge121)_{ist}]\beta_1 + f(Size_{ist}) \beta_2 + [f(Size_{ist}) \times I(Bed \ge 121)_{ist}] \beta_3 \\
++ X_{it} \delta + \gamma_s + \theta_t + \epsilon_{ist}
+$$
+
+where
+
+-   $s$ = state
+
+-   $t$ = year
+
+-   $i$ = hospital
+
+This RD is fuzzy
+
+If right near the threshold (bandwidth), we have states with different sorting (i.e., non-random), then we need the fixed-effect for state $s$. But then your RD assumption wrong anyway, then you won't do it in the first place
+
+Technically, we could also run the fixed-effect regression, but because it's lower in the causal inference hierarchy. Hence, we don't do it.
+
+Moreover, in the RD framework, we don't include $t$ before treatment (but in the FE we have to include before and after)
+
+If we include $\pi_i$ for each hospital, then we don't have variation in the causal estimates (because hardly any hospital changes their bed size in the panel)
+
+When you have $\beta_1$ as the intent to treat (because the treatment effect does not coincide with the intent to treat)
+
+You cannot take those fuzzy cases out, because it will introduce the selection bias.
+
+Note that we cannot drop cases based on behavioral choice (because we will exclude non-compliers), but we can drop when we have particular behaviors ((e.g., people like round numbers).
+
+Thus, we have to use Instrument variable \@ref(instrumental-variable)
+
+Stage 1:
+
+$$
+QSW_{ist} = \alpha_0 + [I(Bed \ge121)_{ist}]\alpha_1 + f(Size_{ist}) \alpha_2 + [f(Size_{ist}) \times I(Bed \ge 121)_{ist}] \alpha_3 \\
++ X_{it} \delta + \gamma_s + \theta_t + \epsilon_{ist}
+$$
+
+(Note: you should have different fixed effects and error term - $\delta, \gamma_s, \theta_t, \epsilon_{ist}$ from the first equation, but I ran out of Greek letters)
+
+Stage 2:
+
+$$
+Y_{ist} = \gamma_0 + \gamma_1 \hat{QWS}_{ist} + f(Size_{ist}) \delta_2 + [f(Size_{ist}) \times I(Bed \ge 121)] \delta_3 \\
+ + X_{it} \lambda + \eta_s + \tau_t + u_{ist}
+$$
+
+The bigger the jump (discontinuity), the more similar the 2 coefficients ($\gamma_1 \approx \beta_1$) where $\gamma_1$ is the average treatment effect (of exposing to the policy)
+
+$\beta_1$ will always be closer to 0 than $\gamma_1$
+
+Figure 1 shows bunching at every 5 units cutoff, but 120 is still out there.
+
+If we have manipulable bunching, there should be decrease at 130
+
+Since we have limited number of mass points (at the round numbers), we should clustered standard errors by the mass point
+
+<br>
 
 ## Difference-In-Differences
+
+### Simple Dif-n-dif
 
 -   A tool developed intuitively to study "natural experiment", but its uses are much broader.
 
@@ -270,7 +506,9 @@ The `did` coefficient is the differences-in-differences estimator. Treat has a n
 
 <br>
 
-Example by @card1993 found that increase in minimum wage increases employment
+#### Example by @card1993
+
+found that increase in minimum wage increases employment
 
 Experimental Setting:
 
@@ -334,15 +572,17 @@ Notice that we don't need before treatment the **levels of the dependent variabl
 
 <br>
 
-Example by @butcher2014
+#### Example by @butcher2014
 
 Theory:
 
--   Highest achieving students are sually in hard science. Why?
+-   Highest achieving students are usually in hard science. Why?
 
-    -   Hard to give students students the benefit of dout for hard science
+    -   Hard to give students students the benefit of doubt for hard science
 
-    -   How unpleasant and how easy to get a job. Degress with lower market value typically want to make you feel more pleasant
+    -   How unpleasant and how easy to get a job. Degrees with lower market value typically want to make you feel more pleasant
+
+Under OLS
 
 $$
 E_{ij} = \beta_0 + X_i \beta_1 + G_j \beta_2 + \epsilon_{ij}
@@ -354,7 +594,119 @@ where
 
 -   $\beta_2$ = causal estimate (from grade change)
 
+-   $E_{ij}$ = Did you choose to enroll in major $j$
+
+-   $G_j$ = grade given in major $j$
+
 Examine $\hat{\beta}_2$
+
+-   Negative bias: Endogenous response because department with lower enrollment rate will give better grade
+
+-   Positive bias: hard science is already having best students (i.e., ability), so if they don't their grades can be even lower
+
+Under dif-n-dif
+
+$$
+Y_{idt} = \beta_0 + POST_t \beta_1 + Treat_d \beta_2 + (POST_t \times Treat_d)\beta_3 + X_{idt} + \epsilon_{idt}
+$$
+
+where
+
+-   $Y_{idt}$ = grade average
+
+|              | Intercept                         | Treat | Post | Treat\*Post |
+|--------------|-----------------------------------|-------|------|-------------|
+| Treat Pre    | 1                                 | 1     | 0    | 0           |
+| Treat Post   | 1                                 | 1     | 1    | 1           |
+| Control Pre  | 1                                 | 0     | 0    | 0           |
+| Control Post | 1                                 | 0     | 1    | 0           |
+|              | Average for pre-control $\beta_0$ |       |      |             |
+
+A more general specification of the dif-n-dif is that
+
+$$
+Y_{idt} = \alpha_0 + (POST_t \times Treat_d) \alpha_1 + \theta_d + \delta_t + X_{idt} + u_{idt}
+$$
+
+where
+
+-   $(\theta_d + \delta_t)$ richer , more df than $Treat_d \beta_2 + Post_t \beta_1$ (because fixed effects subsume Post and treat)
+
+-   $\alpha_1$ should be equivalent to $\beta_3$ (if your model assumptions are correct)
+
+Under causal inference, $R^2$ is not so important.
+
+<br>
+
+### Staggered Dif-n-dif
+
+#### Example by @doleac2020
+
+-   The purpose of banning a checking box for ex-criminal was banned because we thought that it gives more access to felons
+
+-   Even if we ban the box, employers wouldn't just change their behaviors. But then the unintended consequence is that employers statistically discriminate based on race
+
+3 types of ban the box
+
+1.  Public employer only
+2.  Private employer with government contract
+3.  All employers
+
+Main identification strategy
+
+-   If any county in the Metropolitan Statistical Area (MSA) adopts ban the box, it means the whole MSA is treated. Or if the state adopts "ban the ban," every county is treated
+
+Under [Simple Dif-n-dif]
+
+$$
+Y_{it} = \beta_0 + \beta_1 Post_t + \beta_2 treat_i + \beta_2 (Post_t \times Treat_i) + \epsilon_{it}
+$$
+
+But if there is no common post time, then we should use [Staggered Dif-n-dif]
+
+$$
+E_{imrt} = \alpha + \beta_1 BTB_{imt} W_{imt} + \beta_2 BTB_{mt} + \beta_3 BTB_{mt} H_{imt}+ \delta_m + D_{imt} \beta_5 + \lambda_{rt} + \delta_m\times f(t) \beta_7 + e_{imrt}
+$$
+
+where
+
+-   $i$ = person; $m$ = MSA; $r$ = region (US regions e.g., midwest) ; $r$ = region; $t$ = year
+
+-   $W$ = White; $B$ = Black; $H$ = Hispanic
+
+-   $\beta_1 BTB_{imt} W_{imt} + \beta_2 BTB_{mt} + \beta_3 BTB_{mt} H_{imt}$ are the 3 dif-n-dif variables ($BTB$ = "ban the box")
+
+-   $\delta_m$ = dummy for MSI
+
+-   $D_{imt}$ = control for people
+
+-   $\lambda_{rt}$ = region by time fixed effect
+
+-   $\delta_m \times f(t)$ = linear time trend within MSA (but we should not need this if we have good pre-trend)
+
+If we put $\lambda_r - \lambda_t$ (separately) we will more broad fixed effect, while $\lambda_{rt}$ will give us deeper and narrower fixed effect.
+
+Before running this model, we have to drop all other races. And $\beta_1, \beta_2, \beta_3$ are not collinear because there are all interaction terms with $BTB_{mt}$
+
+If we just want to estimate the model for black men, we will modify it to be
+
+$$
+E_{imrt} = \alpha + BTB_{mt} \beta_1 + \delta_m + D_{imt} \beta_5 + \lambda_{rt} + (\delta_m \times f(t)) \beta_7 + e_{imrt}
+$$
+
+$$
+E_{imrt} = \alpha + BTB_{m (t - 3t)} \theta_1 + BTB_{m(t-2)} \theta_2 + BTB_{mt} \theta_4 \\
++ BTB_{m(t+1)}\theta_5 + BTB_{m(t+2)}\theta_6 + BTB_{m(t+3t)}\theta_7 \\
++ [\delta_m + D_{imt}\beta_5 + \lambda_r + (\delta_m \times (f(t))\beta_7 + e_{imrt}]
+$$
+
+We have to leave $BTB_{m(t-1)}\theta_3$ out for the category would not be perfect collinearity
+
+So the year before BTB ($\theta_1, \theta_2, \theta_3$) should be similar to each other (i.e., same pre-trend). Remember, we only run for places with BTB.
+
+If $\theta_2$ is statistically different from $\theta_3$ (baseline), then there could be a problem, but it could also make sense if we have pre-trend announcement.
+
+<br>
 
 Example by [Philipp Leppert](https://rpubs.com/phle/r_tutorial_difference_in_differences) replicating [Card and Krueger (1994)](https://davidcard.berkeley.edu/data_sets.html)
 
@@ -540,7 +892,7 @@ abline(v   = 15,
        lty = 2)
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-14-1.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-14-1.png" width="672" />
 
 Gaps plot:
 
@@ -558,7 +910,7 @@ abline(v   = 15,
        lty = 2)
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-15-1.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-15-1.png" width="672" />
 
 Alternatively, `gsynth` provides options to estimate iterative fixed effects, and handle multiple treated units at tat time.
 
@@ -600,21 +952,21 @@ gsynth.out <- gsynth(
 plot(gsynth.out)
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-17-1.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-17-1.png" width="672" />
 
 
 ```r
 plot(gsynth.out, type = "counterfactual")
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-18-1.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-18-1.png" width="672" />
 
 
 ```r
 plot(gsynth.out, type = "counterfactual", raw = "all") # shows estimations for the control cases
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-19-1.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-19-1.png" width="672" />
 
 ### Example 2
 
@@ -821,7 +1173,7 @@ path.plot(
 )
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-26-1.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-26-1.png" width="672" />
 
 
 ```r
@@ -835,7 +1187,7 @@ gaps.plot(
 )
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-27-1.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-27-1.png" width="672" />
 
 Doubly Robust Difference-in-Differences
 
@@ -1014,7 +1366,7 @@ path.plot(
 )
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-35-1.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-35-1.png" width="672" />
 
 
 ```r
@@ -1028,7 +1380,7 @@ gaps.plot(
 )
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-36-1.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-36-1.png" width="672" />
 
 You could also run placebo tests
 
@@ -1095,7 +1447,7 @@ sea1 <- microsynth(
 ```
 
 ```
-## Created main weights for synthetic control: Time = 1.03
+## Created main weights for synthetic control: Time = 1.05
 ```
 
 ```
@@ -1163,16 +1515,16 @@ sea1 <- microsynth(
 ## any_crime.2       250         250.0012    51.5429
 ## any_crime.1       242         242.0010    55.1145
 ## 
-## Calculation of weights complete: Total time = 1.72
+## Calculation of weights complete: Total time = 1.69
 ## 
 ## Calculating basic statistics for end.post = 16...
-## Completed calculation of basic statistics for end.post = 16.  Time = 3.25
+## Completed calculation of basic statistics for end.post = 16.  Time = 3.53
 ## 
 ## Calculating survey statistics for end.post = 16...
-## Completed survey statistics for main weights: Time = 5.23
-## Completed calculation of survey statistics for end.post = 16.  Time = 5.23
+## Completed survey statistics for main weights: Time = 5.44
+## Completed calculation of survey statistics for end.post = 16.  Time = 5.44
 ## 
-## microsynth complete: Overall time = 13.53
+## microsynth complete: Overall time = 13.75
 ```
 
 ```r
@@ -1286,7 +1638,7 @@ summary(sea1)
 plot_microsynth(sea1)
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-39-1.png)<!-- -->![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-39-2.png)<!-- -->![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-39-3.png)<!-- -->![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-39-4.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-39-1.png" width="672" /><img src="19-quasi-experimental_files/figure-html/unnamed-chunk-39-2.png" width="672" /><img src="19-quasi-experimental_files/figure-html/unnamed-chunk-39-3.png" width="672" /><img src="19-quasi-experimental_files/figure-html/unnamed-chunk-39-4.png" width="672" />
 
 
 ```r
@@ -2016,14 +2368,14 @@ summary(m.out1, un = FALSE)
 plot(m.out1, type = "jitter", interactive = FALSE)
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-44-1.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-44-1.png" width="672" />
 
 ```r
 plot(m.out1, type = "qq", interactive = FALSE,
      which.xs = c("age", "married", "re75"))
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-44-2.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-44-2.png" width="672" />
 
 Try Full Match (i.e., every treated matches with one control, and every control with one treated).
 
@@ -2098,7 +2450,7 @@ summary(m.out2, un = FALSE)
 plot(summary(m.out2))
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-46-1.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-46-1.png" width="672" />
 
 Exact Matching
 
@@ -2438,7 +2790,7 @@ L1.estimates <-
 plotMeans(L1.frontier)
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-55-1.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-55-1.png" width="672" />
 
 ```r
 # parallel plot
@@ -2451,7 +2803,7 @@ parallelPlot(
 )
 ```
 
-![](19-quasi-experimental_files/figure-epub3/unnamed-chunk-55-2.png)<!-- -->
+<img src="19-quasi-experimental_files/figure-html/unnamed-chunk-55-2.png" width="672" />
 
 ```r
 # export matched dataset
@@ -2859,7 +3211,7 @@ genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
 ```
 ## 
 ## 
-## Thu Nov 18 11:02:55 2021
+## Sat Nov 20 22:29:22 2021
 ## Domains:
 ##  0.000000e+00   <=  X1   <=    1.000000e+03 
 ##  0.000000e+00   <=  X2   <=    1.000000e+03 
@@ -3048,8 +3400,8 @@ genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
 ## Solution Found Generation 1
 ## Number of Generations Run 2
 ## 
-## Thu Nov 18 11:02:55 2021
-## Total run time : 0 hours 0 minutes and 0 seconds
+## Sat Nov 20 22:29:23 2021
+## Total run time : 0 hours 0 minutes and 1 seconds
 ```
 
 ```r

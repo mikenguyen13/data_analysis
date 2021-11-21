@@ -70,7 +70,7 @@ L= function(q){q^30 * (1-q)^70}
 plot(q,L(q),ylab="L(q)",xlab="q",type="l")
 ```
 
-![](13-hypothesis_files/figure-epub3/unnamed-chunk-1-1.png)<!-- -->
+<img src="13-hypothesis_files/figure-html/unnamed-chunk-1-1.png" width="672" />
 
 **Log-Likelihood function**
 
@@ -82,14 +82,14 @@ plot(q,l(q)-l(0.3),ylab="l(q) - l(qhat)",xlab="q",type="l")
 abline(v=0.2)
 ```
 
-![](13-hypothesis_files/figure-epub3/unnamed-chunk-2-1.png)<!-- -->
+<img src="13-hypothesis_files/figure-html/unnamed-chunk-2-1.png" width="672" />
 
 
 ```
 ## Warning: package 'jpeg' was built under R version 4.0.5
 ```
 
-<img src="images/nested_tests.jpg" width="575" style="display: block; margin: auto;" />
+<img src="images/nested_tests.jpg" width="288" style="display: block; margin: auto;" />
 
 [@Fox_1991]
 

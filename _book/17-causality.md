@@ -170,6 +170,13 @@ There are four types of subjects that we deal with:
 
 <br>
 
+Directional Bias due to selection into treatment comes from 2 general opposite sources
+
+1.  Mitigation-based: select into treatment to combat a problem
+2.  Preference-based: select into treatment because units like that kind of treatment.
+
+<br>
+
 This section is based on Bernard Koch's [presentaiton](https://www.youtube.com/watch?v=v9uf9rDYEMg&ab_channel=SummerInstituteinComputationalSocialScience) at SICSS - Los Angeles 2021
 
 Identification under Selection on observable/ back-door criterion

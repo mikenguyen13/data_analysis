@@ -92,7 +92,7 @@ y<-runif(1,0,20)*exp(runif(1,0.005,0.075)*x)+runif(101,0,5)
 plot(x,y)
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-1-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-1-1.png" width="672" />
 
 ```r
 #define our data frame
@@ -154,7 +154,7 @@ plot(x, y)
 lines(x, predict(nlin_mod), col = "red")
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-3-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-3-1.png" width="672" />
 
 ### Nonlinear
 
@@ -599,7 +599,7 @@ plotFit(
 )  
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-5-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-5-1.png" width="672" />
 
 Based on the forms of your function, you can also have programmed starting values from `nls` function (e.e.g, logistic growth, asymptotic regression, etc).
 
@@ -652,7 +652,7 @@ population <- c(2.8, 4.2, 3.5, 6.3, 15.7, 21.3, 23.7, 25.1, 25.8, 25.9)
 plot(time, population, las = 1, pch = 16)
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-7-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-7-1.png" width="672" />
 
 ```r
 # model fitting
@@ -725,7 +725,7 @@ plot(time, population, las = 1, pch = 16)
 lines(time, predict(logisticModel), col = "red")
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-9-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-9-1.png" width="672" />
 
 If can also define your own self-starting fucntion if your models are uncommon (built in `nls`)
 
@@ -746,7 +746,7 @@ dat.plot <-
 dat.plot
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-10-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-10-1.png" width="672" />
 
 The suggested model (known as plateau model) is
 
@@ -838,7 +838,7 @@ plotFit(
 )
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-14-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-14-1.png" width="672" />
 
 
 ```r
@@ -929,7 +929,7 @@ plotFit(
 )
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/reduce-model-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/reduce-model-1.png" width="672" />
 
 Examine residual values for the combined model.
 
@@ -943,7 +943,7 @@ resid <- nlsResiduals(red_nls)
 plot(resid)
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/reduce-model-resid-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/reduce-model-resid-1.png" width="672" />
 
 can we test whether the parameters for the two soil depth fits are significantly different? To know if the combined model is appropriate, we consider a parameterization where we let the parameters for the 60cm model be equal to the parameters from the 30cm model plus some increment:
 
@@ -1142,7 +1142,7 @@ Get the starting values
 plot(my_data)
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-18-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-18-1.png" width="672" />
 
 We notice that $Y_{max} = \theta_0 + \theta_1 x_i$ in which we can find x_i from data
 
@@ -1832,7 +1832,7 @@ plot(
 )
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-33-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-33-1.png" width="672" />
 
 However, this plot is not informative. Hence, we can can see the residudals plots that are grouped into bins based on prediction values.
 
@@ -1868,7 +1868,7 @@ plot_bin(Y = Logistic_Resids,
          bins = 100)
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-34-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-34-1.png" width="672" />
 
 We can also see the predicted value against the residuals.
 
@@ -1878,7 +1878,7 @@ Logistic_Predictions <- predict(Logistic_Model, type = "response")
 plot_bin(Y = Logistic_Resids, X = Logistic_Predictions, bins = 100)
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-35-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-35-1.png" width="672" />
 
 We can also look at a binned plot of the logistic prediction versus the true category
 
@@ -1912,7 +1912,7 @@ Binned_Data
 abline(0, 1, lty = 2, col = 'blue')
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-36-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-36-1.png" width="672" />
 
 **Formal deviance test**
 
@@ -2031,7 +2031,7 @@ plot(
 )
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-38-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-38-1.png" width="672" />
 
 ```r
 class(esoph$agegp) <- "factor"
@@ -2248,7 +2248,7 @@ bioChemists <- bioChemists %>%
 hist(bioChemists$Num_Article, breaks = 25, main = 'Number of Articles')
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-44-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-44-1.png" width="672" />
 
 
 ```r
@@ -2544,7 +2544,7 @@ Age_Plot <- ggplot(
 Age_Plot
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-54-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-54-1.png" width="672" />
 
 Fit the multinomial logistic model:
 
@@ -2660,7 +2660,7 @@ legend(
 )
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-58-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-58-1.png" width="672" />
 
 
 ```r
@@ -2704,7 +2704,7 @@ ggplot(gammaDat, aes(x = x, y = 1 / y)) + geom_point(aes(color = block, shape =
   xlab('Seeding Rate') + ylab('Inverse yield') + ggtitle('Streibig Competion - Barley only')
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-60-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-60-1.png" width="672" />
 
 $$
 Y \sim Gamma
@@ -2777,7 +2777,7 @@ ggplot(gammaDat, aes(x = x, y = y)) + geom_point(aes(color = block, shape =
   ))
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-62-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-62-1.png" width="672" />
 
 ## Generalization
 
@@ -2927,7 +2927,7 @@ If the link function $g(.)$ is such $g(\mu_i) = \eta_i = \theta_i$, the natural 
 ## Warning: package 'jpeg' was built under R version 4.0.5
 ```
 
-<img src="images/GLM.PNG" width="832" style="display: block; margin: auto;" />
+<img src="images/GLM.PNG" width="416" style="display: block; margin: auto;" />
 
 
  * $b(\theta)$ = cumulant moment generating function 
@@ -2963,7 +2963,7 @@ $$
 \mu_i = g^{-1}(\eta_i) = \eta_i
 $$
 
-<img src="images/2-Table15.1-1.png" width="850" style="display: block; margin: auto;" />
+<img src="images/2-Table15.1-1.png" width="425" style="display: block; margin: auto;" />
 
 Table 15.1 Generalized Linear Models 15.1 the Structure of Generalized Linear Models
 
@@ -4866,7 +4866,7 @@ ggplot(irrigation,
   geom_point(size = 3)
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-65-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-65-1.png" width="672" />
 
 
 ```r
@@ -5188,7 +5188,7 @@ plot(
 )
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-69-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-69-1.png" width="672" />
 
 ```r
 pulp %>% dplyr::group_by(operator) %>% dplyr::summarise(average = mean(bright))
@@ -5467,7 +5467,7 @@ ggplot(penicillin, aes(
   xlab("Treatment")
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-74-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-74-1.png" width="672" />
 
 ```r
 library(lmerTest) # for p-values
@@ -5687,7 +5687,7 @@ useOuterStrips(
 )
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-79-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-79-1.png" width="672" />
 
 Remove outliers
 
@@ -5711,7 +5711,7 @@ xyplot(
 )
 ```
 
-![](06-nonlinear_regression_files/figure-epub3/unnamed-chunk-81-1.png)<!-- -->
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-81-1.png" width="672" />
 
 
 ```r
