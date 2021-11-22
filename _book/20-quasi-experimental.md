@@ -97,7 +97,7 @@ $$
 Y_i = \beta_0 + x_i \beta_1 + [I(x_i \ge c)]\beta_2 + \epsilon_i
 $$
 
-![](images/rd1.PNG)
+![](images/rd1.PNG){style="display: block; margin: 1em auto" width="100%"}
 
 RD gives you $\beta_2$ (causal effect) of $X$ on $Y$ at the cutoff point
 
@@ -107,7 +107,7 @@ $$
 Y_i = \alpha_0 + f(x) \alpha _1 + [I(x_i \ge c)]\alpha_2 + [f(x_i)\times [I(x_i \ge c)]\alpha_3 + u_i
 $$
 
-![](images/rd2.PNG)
+![](images/rd2.PNG){style="display: block; margin: 1em auto" width="100%"}
 
 where we estimate different slope on different sides of the line
 
@@ -267,19 +267,19 @@ summary(rdd_mod)
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
-## -2.5863 -0.6939  0.0012  0.7004  3.5736 
+## -3.8510 -0.6757  0.0094  0.6880  3.2894 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(>|t|)    
-## (Intercept) 17.05884    0.06681  255.33   <2e-16 ***
-## D           10.00581    0.11453   87.36   <2e-16 ***
-## x            2.00962    0.03272   61.41   <2e-16 ***
+## (Intercept) 16.95480    0.06708  252.76   <2e-16 ***
+## D           10.00710    0.11916   83.98   <2e-16 ***
+## x            1.97835    0.03348   59.09   <2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 1.003 on 997 degrees of freedom
-## Multiple R-squared:  0.9631,	Adjusted R-squared:  0.963 
-## F-statistic: 1.302e+04 on 2 and 997 DF,  p-value: < 2.2e-16
+## Residual standard error: 1.023 on 997 degrees of freedom
+## Multiple R-squared:  0.9587,	Adjusted R-squared:  0.9586 
+## F-statistic: 1.157e+04 on 2 and 997 DF,  p-value: < 2.2e-16
 ```
 
 
@@ -1447,7 +1447,7 @@ sea1 <- microsynth(
 ```
 
 ```
-## Created main weights for synthetic control: Time = 1.07
+## Created main weights for synthetic control: Time = 1.03
 ```
 
 ```
@@ -1515,16 +1515,16 @@ sea1 <- microsynth(
 ## any_crime.2       250         250.0012    51.5429
 ## any_crime.1       242         242.0010    55.1145
 ## 
-## Calculation of weights complete: Total time = 1.73
+## Calculation of weights complete: Total time = 1.68
 ## 
 ## Calculating basic statistics for end.post = 16...
-## Completed calculation of basic statistics for end.post = 16.  Time = 3.29
+## Completed calculation of basic statistics for end.post = 16.  Time = 3.22
 ## 
 ## Calculating survey statistics for end.post = 16...
-## Completed survey statistics for main weights: Time = 6.06
-## Completed calculation of survey statistics for end.post = 16.  Time = 6.06
+## Completed survey statistics for main weights: Time = 5.51
+## Completed calculation of survey statistics for end.post = 16.  Time = 5.51
 ## 
-## microsynth complete: Overall time = 14.31
+## microsynth complete: Overall time = 13.59
 ```
 
 ```r
@@ -3211,7 +3211,7 @@ genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
 ```
 ## 
 ## 
-## Sun Nov 21 16:41:07 2021
+## Mon Nov 22 14:39:20 2021
 ## Domains:
 ##  0.000000e+00   <=  X1   <=    1.000000e+03 
 ##  0.000000e+00   <=  X2   <=    1.000000e+03 
@@ -3400,7 +3400,7 @@ genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
 ## Solution Found Generation 1
 ## Number of Generations Run 2
 ## 
-## Sun Nov 21 16:41:08 2021
+## Mon Nov 22 14:39:21 2021
 ## Total run time : 0 hours 0 minutes and 1 seconds
 ```
 
