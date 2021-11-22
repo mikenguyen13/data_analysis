@@ -2306,7 +2306,9 @@ summary(profile_fit)
 
 ### Summary
 
-![](images/MANOVA_summary.PNG "MANOVA summary")
+![](images/MANOVA_summary.PNG "MANOVA summary"){style="display: block; margin: 1em auto" width="60%"}
+
+
 
 <br>
 
@@ -4645,11 +4647,11 @@ table(truth = Y_train, fitted = knn_2)
 ```
 ##             fitted
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          8    0      1        1          1
-##   Corn            0    6      0        1          0
+##   Clover          6    0      3        1          1
+##   Corn            0    7      0        0          0
 ##   Cotton          1    0      4        0          1
-##   Soybeans        0    0      0        5          1
-##   Sugarbeets      0    0      2        1          3
+##   Soybeans        0    0      0        4          2
+##   Sugarbeets      0    0      1        1          4
 ```
 
 ```r
@@ -4658,7 +4660,7 @@ mean(Y_train==knn_2)
 ```
 
 ```
-## [1] 0.7222222
+## [1] 0.6944444
 ```
 
 ```r
@@ -4672,7 +4674,7 @@ table(truth = Y_test, predict = knn_2_test)
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
 ##   Clover          1    0      0        0          0
 ##   Corn            0    1      0        0          0
-##   Cotton          0    0      1        0          0
+##   Cotton          0    0      0        0          1
 ##   Soybeans        0    0      0        1          0
 ##   Sugarbeets      0    0      0        0          1
 ```
@@ -4683,7 +4685,7 @@ mean(Y_test==knn_2_test)
 ```
 
 ```
-## [1] 1
+## [1] 0.8
 ```
 
 ```r
@@ -4695,11 +4697,11 @@ table(truth = Y_train, fitted = knn_3)
 ```
 ##             fitted
 ## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          8    0      1        2          0
-##   Corn            0    5      0        2          0
+##   Clover          7    0      3        1          0
+##   Corn            0    4      0        3          0
 ##   Cotton          1    0      4        0          1
-##   Soybeans        1    0      0        3          2
-##   Sugarbeets      0    1      1        1          3
+##   Soybeans        0    1      0        3          2
+##   Sugarbeets      0    0      0        1          5
 ```
 
 ```r
@@ -4763,7 +4765,7 @@ step <- stepclass(
 ```
 
 ```
-## correctness rate: 0.44167;  in: "y1";  variables (1): y1 
+## correctness rate: 0.46667;  in: "y1";  variables (1): y1 
 ## 
 ##  hr.elapsed min.elapsed sec.elapsed 
 ##        0.00        0.00        0.14
@@ -4776,7 +4778,7 @@ step$process
 ```
 ##    step var varname result.pm
 ## 0 start   0      -- 0.0000000
-## 1    in   1      y1 0.4416667
+## 1    in   1      y1 0.4666667
 ```
 
 ```r
@@ -4890,5 +4892,3 @@ table(truth=test.large$y.test,prediction=pred.qda$class)
 ##     0 493   7
 ##     9   3 497
 ```
-
-## Cluster Analysis

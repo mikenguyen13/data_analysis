@@ -23,7 +23,7 @@ The conclusion we want to make from data is counterfactuals: **What would have h
 
 To teach a robot to make inference, we need inference engine
 
-![p. 12 [@Pearl_2018]](images/Figure%20I.png "Inference Engine")
+![p. 12 [@Pearl_2018]](images/Figure%20I.png "Inference Engine"){style="display: block; margin: 1em auto" width="60%"}
 
 Levels of cognitive ability to be a causal learner:
 

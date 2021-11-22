@@ -76,7 +76,7 @@ skewness(data,type = 1)
 ```
 
 ```
-## [1] -0.108069
+## [1] -0.05512945
 ```
 
 ```r
@@ -84,7 +84,7 @@ kurtosis(data, type = 1)
 ```
 
 ```
-## [1] -0.05014757
+## [1] -0.5439923
 ```
 
 ## Graphical Measures
@@ -111,8 +111,8 @@ hchart(data)
 ```
 
 ```{=html}
-<div id="htmlwidget-9762222885f4e6a5dd36" style="width:100%;height:500px;" class="highchart html-widget"></div>
-<script type="application/json" data-for="htmlwidget-9762222885f4e6a5dd36">{"x":{"hc_opts":{"chart":{"reflow":true,"zoomType":"x"},"title":{"text":null},"yAxis":{"title":{"text":null}},"credits":{"enabled":false},"exporting":{"enabled":false},"boost":{"enabled":false},"plotOptions":{"series":{"label":{"enabled":false},"turboThreshold":0},"treemap":{"layoutAlgorithm":"squarified"}},"tooltip":{"formatter":"function() { return  this.point.name + '<br/>' + this.y; }"},"series":[{"data":[{"x":-3.25,"y":1,"name":"(-3.5, -3]"},{"x":-2.75,"y":0,"name":"(-3, -2.5]"},{"x":-2.25,"y":1,"name":"(-2.5, -2]"},{"x":-1.75,"y":4,"name":"(-2, -1.5]"},{"x":-1.25,"y":3,"name":"(-1.5, -1]"},{"x":-0.75,"y":17,"name":"(-1, -0.5]"},{"x":-0.25,"y":20,"name":"(-0.5, 0]"},{"x":0.25,"y":22,"name":"(0, 0.5]"},{"x":0.75,"y":18,"name":"(0.5, 1]"},{"x":1.25,"y":6,"name":"(1, 1.5]"},{"x":1.75,"y":6,"name":"(1.5, 2]"},{"x":2.25,"y":2,"name":"(2, 2.5]"}],"type":"column","pointRange":0.5,"groupPadding":0,"pointPadding":0,"borderWidth":0}]},"theme":{"chart":{"backgroundColor":"transparent"},"colors":["#7cb5ec","#434348","#90ed7d","#f7a35c","#8085e9","#f15c80","#e4d354","#2b908f","#f45b5b","#91e8e1"]},"conf_opts":{"global":{"Date":null,"VMLRadialGradientURL":"http =//code.highcharts.com/list(version)/gfx/vml-radial-gradient.png","canvasToolsURL":"http =//code.highcharts.com/list(version)/modules/canvas-tools.js","getTimezoneOffset":null,"timezoneOffset":0,"useUTC":true},"lang":{"contextButtonTitle":"Chart context menu","decimalPoint":".","downloadJPEG":"Download JPEG image","downloadPDF":"Download PDF document","downloadPNG":"Download PNG image","downloadSVG":"Download SVG vector image","drillUpText":"Back to {series.name}","invalidDate":null,"loading":"Loading...","months":["January","February","March","April","May","June","July","August","September","October","November","December"],"noData":"No data to display","numericSymbols":["k","M","G","T","P","E"],"printChart":"Print chart","resetZoom":"Reset zoom","resetZoomTitle":"Reset zoom level 1:1","shortMonths":["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"thousandsSep":" ","weekdays":["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]}},"type":"chart","fonts":[],"debug":false},"evals":["hc_opts.tooltip.formatter"],"jsHooks":[]}</script>
+<div id="htmlwidget-c2c1693e831da4a26f92" style="width:100%;height:500px;" class="highchart html-widget"></div>
+<script type="application/json" data-for="htmlwidget-c2c1693e831da4a26f92">{"x":{"hc_opts":{"chart":{"reflow":true,"zoomType":"x"},"title":{"text":null},"yAxis":{"title":{"text":null}},"credits":{"enabled":false},"exporting":{"enabled":false},"boost":{"enabled":false},"plotOptions":{"series":{"label":{"enabled":false},"turboThreshold":0},"treemap":{"layoutAlgorithm":"squarified"}},"tooltip":{"formatter":"function() { return  this.point.name + '<br/>' + this.y; }"},"series":[{"data":[{"x":-3.25,"y":1,"name":"(-3.5, -3]"},{"x":-2.75,"y":1,"name":"(-3, -2.5]"},{"x":-2.25,"y":1,"name":"(-2.5, -2]"},{"x":-1.75,"y":2,"name":"(-2, -1.5]"},{"x":-1.25,"y":7,"name":"(-1.5, -1]"},{"x":-0.75,"y":21,"name":"(-1, -0.5]"},{"x":-0.25,"y":21,"name":"(-0.5, 0]"},{"x":0.25,"y":18,"name":"(0, 0.5]"},{"x":0.75,"y":13,"name":"(0.5, 1]"},{"x":1.25,"y":7,"name":"(1, 1.5]"},{"x":1.75,"y":4,"name":"(1.5, 2]"},{"x":2.25,"y":3,"name":"(2, 2.5]"},{"x":2.75,"y":1,"name":"(2.5, 3]"}],"type":"column","pointRange":0.5,"groupPadding":0,"pointPadding":0,"borderWidth":0}]},"theme":{"chart":{"backgroundColor":"transparent"},"colors":["#7cb5ec","#434348","#90ed7d","#f7a35c","#8085e9","#f15c80","#e4d354","#2b908f","#f45b5b","#91e8e1"]},"conf_opts":{"global":{"Date":null,"VMLRadialGradientURL":"http =//code.highcharts.com/list(version)/gfx/vml-radial-gradient.png","canvasToolsURL":"http =//code.highcharts.com/list(version)/modules/canvas-tools.js","getTimezoneOffset":null,"timezoneOffset":0,"useUTC":true},"lang":{"contextButtonTitle":"Chart context menu","decimalPoint":".","downloadJPEG":"Download JPEG image","downloadPDF":"Download PDF document","downloadPNG":"Download PNG image","downloadSVG":"Download SVG vector image","drillUpText":"Back to {series.name}","invalidDate":null,"loading":"Loading...","months":["January","February","March","April","May","June","July","August","September","October","November","December"],"noData":"No data to display","numericSymbols":["k","M","G","T","P","E"],"printChart":"Print chart","resetZoom":"Reset zoom","resetZoomTitle":"Reset zoom level 1:1","shortMonths":["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"thousandsSep":" ","weekdays":["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]}},"type":"chart","fonts":[],"debug":false},"evals":["hc_opts.tooltip.formatter"],"jsHooks":[]}</script>
 ```
 
 ```r
@@ -147,13 +147,13 @@ stem(data)
 ## 
 ##   The decimal point is at the |
 ## 
-##   -3 | 1
-##   -2 | 1
-##   -1 | 88762200
-##   -0 | 999988876666655555444443332222221110
-##    0 | 0111112223333334444555556677777888999
-##    1 | 00001133556789
-##    2 | 013
+##   -3 | 5
+##   -2 | 51
+##   -1 | 6644332210
+##   -0 | 99998888888776666655554444333222211111100
+##    0 | 011112223333334445566666778899
+##    1 | 011233456789
+##    2 | 0027
 ```
 
 ```r
@@ -276,7 +276,7 @@ gofTest(data,test="ppcc")$p.value #Probability Plot Correlation Coefficient
 ```
 
 ```
-## [1] 0.3378694
+## [1] 0.1334752
 ```
 
 ##### Shapiro-Wilk Test
@@ -295,7 +295,7 @@ gofTest(data,test="sw")$p.value #Shapiro-Wilk is the default.
 ```
 
 ```
-## [1] 0.5388957
+## [1] 0.2959665
 ```
 
 #### Methods based on empirical cumulative distribution function
@@ -355,7 +355,7 @@ gofTest(data,test="ad")$p.value #Anderson-Darling
 ```
 
 ```
-## [1] 0.8233695
+## [1] 0.2855979
 ```
 
 ##### Kolmogorov-Smirnov Test
@@ -369,11 +369,11 @@ gofTest(data,test="ks")$p.value #Komogorov-Smirnov
 ```
 
 ```
-## Warning in ksGofTest(x = c(1.74303288566018, 1.97432791245138, 1.30969624438982, : The standard Kolmogorov-Smirnov test is very conservative (Type I error smaller than assumed; high Type II error) for testing departures from the Normal distribution when you have to estimate the distribution parameters.
+## Warning in ksGofTest(x = c(2.69123191738218, -0.125406276131149, -1.3438246693365, : The standard Kolmogorov-Smirnov test is very conservative (Type I error smaller than assumed; high Type II error) for testing departures from the Normal distribution when you have to estimate the distribution parameters.
 ```
 
 ```
-## [1] 0.9733564
+## [1] 0.7974042
 ```
 
 ##### Cramer-von Mises Test
@@ -386,7 +386,7 @@ gofTest(data,test="cvm")$p.value #Cramer-von Mises
 ```
 
 ```
-## [1] 0.9105966
+## [1] 0.35756
 ```
 
 ##### Jarque--Bera Test {#jarquebera-test}
