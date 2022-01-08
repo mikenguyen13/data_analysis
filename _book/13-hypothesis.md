@@ -73,7 +73,7 @@ L= function(q){q^30 * (1-q)^70}
 plot(q,L(q),ylab="L(q)",xlab="q",type="l")
 ```
 
-<img src="13-hypothesis_files/figure-html/unnamed-chunk-1-1.png" width="672" />
+<img src="13-hypothesis_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
 
 **Log-Likelihood function**
 
@@ -85,7 +85,7 @@ plot(q,l(q)-l(0.3),ylab="l(q) - l(qhat)",xlab="q",type="l")
 abline(v=0.2)
 ```
 
-<img src="13-hypothesis_files/figure-html/unnamed-chunk-2-1.png" width="672" />
+<img src="13-hypothesis_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
 
 ![](images/nested_tests.jpg){style="display: block; margin: 1em auto" width="90%"}
 
@@ -118,7 +118,7 @@ $$
 
 How far away in the distribution your sample estimate is from the hypothesized population parameter.
 
-For a null value, what is the probability you would obtained a realization "more extreme" or "worse" than the estimate you actually obtained.
+For a null value, what is the probability you would have obtained a realization "more extreme" or "worse" than the estimate you actually obtained?
 
 Significance Level ($\alpha$) and Confidence Level ($1-\alpha$)
 
@@ -352,59 +352,40 @@ difftest_lm <- function(x1, x2, model) {
 
 ```r
 library("car")
-```
 
-```
-## Warning: package 'car' was built under R version 4.0.5
-```
-
-```
-## Loading required package: carData
-```
-
-```r
 # Multiple hypothesis
 mod.davis <- lm(weight ~ repwt, data=Davis)
 linearHypothesis(mod.davis, c("(Intercept) = 0", "repwt = 1"),white.adjust = TRUE)
-```
-
-```
-## Linear hypothesis test
-## 
-## Hypothesis:
-## (Intercept) = 0
-## repwt = 1
-## 
-## Model 1: restricted model
-## Model 2: weight ~ repwt
-## 
-## Note: Coefficient covariance matrix supplied.
-## 
-##   Res.Df Df      F  Pr(>F)  
-## 1    183                    
-## 2    181  2 3.3896 0.03588 *
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-```
-
-```r
+#> Linear hypothesis test
+#> 
+#> Hypothesis:
+#> (Intercept) = 0
+#> repwt = 1
+#> 
+#> Model 1: restricted model
+#> Model 2: weight ~ repwt
+#> 
+#> Note: Coefficient covariance matrix supplied.
+#> 
+#>   Res.Df Df      F  Pr(>F)  
+#> 1    183                    
+#> 2    181  2 3.3896 0.03588 *
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 # Linear Combination
 mod.duncan <- lm(prestige ~ income + education, data=Duncan)
 linearHypothesis(mod.duncan, "1*income - 1*education = 0")
-```
-
-```
-## Linear hypothesis test
-## 
-## Hypothesis:
-## income - education = 0
-## 
-## Model 1: restricted model
-## Model 2: prestige ~ income + education
-## 
-##   Res.Df    RSS Df Sum of Sq      F Pr(>F)
-## 1     43 7518.9                           
-## 2     42 7506.7  1    12.195 0.0682 0.7952
+#> Linear hypothesis test
+#> 
+#> Hypothesis:
+#> income - education = 0
+#> 
+#> Model 1: restricted model
+#> Model 2: prestige ~ income + education
+#> 
+#>   Res.Df    RSS Df Sum of Sq      F Pr(>F)
+#> 1     43 7518.9                           
+#> 2     42 7506.7  1    12.195 0.0682 0.7952
 ```
 
 ### Nonlinear

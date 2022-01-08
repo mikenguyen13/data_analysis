@@ -378,20 +378,17 @@ $$
 ```r
 data = rnorm(100)
 t.test(data, conf.level=0.95)
-```
-
-```
-## 
-## 	One Sample t-test
-## 
-## data:  data
-## t = 0.067865, df = 99, p-value = 0.946
-## alternative hypothesis: true mean is not equal to 0
-## 95 percent confidence interval:
-##  -0.1688418  0.1808004
-## sample estimates:
-##  mean of x 
-## 0.00597927
+#> 
+#> 	One Sample t-test
+#> 
+#> data:  data
+#> t = -1.7893, df = 99, p-value = 0.07663
+#> alternative hypothesis: true mean is not equal to 0
+#> 95 percent confidence interval:
+#>  -0.37872088  0.01956463
+#> sample estimates:
+#>  mean of x 
+#> -0.1795781
 ```
 
 $$
@@ -402,20 +399,17 @@ $$
 
 ```r
 t.test(data, mu=30,alternative="less")
-```
-
-```
-## 
-## 	One Sample t-test
-## 
-## data:  data
-## t = -340.43, df = 99, p-value < 2.2e-16
-## alternative hypothesis: true mean is less than 30
-## 95 percent confidence interval:
-##       -Inf 0.1522694
-## sample estimates:
-##  mean of x 
-## 0.00597927
+#> 
+#> 	One Sample t-test
+#> 
+#> data:  data
+#> t = -300.7, df = 99, p-value < 2.2e-16
+#> alternative hypothesis: true mean is less than 30
+#> 95 percent confidence interval:
+#>         -Inf -0.01293562
+#> sample estimates:
+#>  mean of x 
+#> -0.1795781
 ```
 
 
@@ -501,20 +495,17 @@ However, treatment of 0 is problematic for this test.
 
 ```r
 binom.test(sum(lecture.data > 0), length(lecture.data)) # alternative = "greater" or alternative = "less"
-```
-
-```
-## 
-## 	Exact binomial test
-## 
-## data:  sum(lecture.data > 0) and length(lecture.data)
-## number of successes = 8, number of trials = 10, p-value = 0.1094
-## alternative hypothesis: true probability of success is not equal to 0.5
-## 95 percent confidence interval:
-##  0.4439045 0.9747893
-## sample estimates:
-## probability of success 
-##                    0.8
+#> 
+#> 	Exact binomial test
+#> 
+#> data:  sum(lecture.data > 0) and length(lecture.data)
+#> number of successes = 8, number of trials = 10, p-value = 0.1094
+#> alternative hypothesis: true probability of success is not equal to 0.5
+#> 95 percent confidence interval:
+#>  0.4439045 0.9747893
+#> sample estimates:
+#> probability of success 
+#>                    0.8
 ```
 
 
@@ -565,28 +556,19 @@ Example, if $y_1 = -1$, $y_3 = 3$ and $y_3 = -3$, and $y_4 =5$, then $r_1 = 1$, 
 
 ```r
 wilcox.test(lecture.data) #does not use normal approximation (using the underlying W distribution)
-```
-
-```
-## 
-## 	Wilcoxon signed rank exact test
-## 
-## data:  lecture.data
-## V = 52, p-value = 0.009766
-## alternative hypothesis: true location is not equal to 0
-```
-
-```r
+#> 
+#> 	Wilcoxon signed rank exact test
+#> 
+#> data:  lecture.data
+#> V = 52, p-value = 0.009766
+#> alternative hypothesis: true location is not equal to 0
 wilcox.test(lecture.data,exact=F) #uses normal approximation
-```
-
-```
-## 
-## 	Wilcoxon signed rank test with continuity correction
-## 
-## data:  lecture.data
-## V = 52, p-value = 0.01443
-## alternative hypothesis: true location is not equal to 0
+#> 
+#> 	Wilcoxon signed rank test with continuity correction
+#> 
+#> data:  lecture.data
+#> V = 52, p-value = 0.01443
+#> alternative hypothesis: true location is not equal to 0
 ```
 
 
@@ -792,20 +774,17 @@ irisVe=iris$Petal.Width[iris$Species=="versicolor"]
 irisVi=iris$Petal.Width[iris$Species=="virginica"]
 
 var.test(irisVe,irisVi)
-```
-
-```
-## 
-## 	F test to compare two variances
-## 
-## data:  irisVe and irisVi
-## F = 0.51842, num df = 49, denom df = 49, p-value = 0.02335
-## alternative hypothesis: true ratio of variances is not equal to 1
-## 95 percent confidence interval:
-##  0.2941935 0.9135614
-## sample estimates:
-## ratio of variances 
-##          0.5184243
+#> 
+#> 	F test to compare two variances
+#> 
+#> data:  irisVe and irisVi
+#> F = 0.51842, num df = 49, denom df = 49, p-value = 0.02335
+#> alternative hypothesis: true ratio of variances is not equal to 1
+#> 95 percent confidence interval:
+#>  0.2941935 0.9135614
+#> sample estimates:
+#> ratio of variances 
+#>          0.5184243
 ```
 
 
@@ -842,39 +821,30 @@ $$
 dVe=abs(irisVe-median(irisVe)) 
 dVi=abs(irisVi-median(irisVi)) 
 t.test(dVe,dVi,var.equal=T)
-```
-
-```
-## 
-## 	Two Sample t-test
-## 
-## data:  dVe and dVi
-## t = -2.5584, df = 98, p-value = 0.01205
-## alternative hypothesis: true difference in means is not equal to 0
-## 95 percent confidence interval:
-##  -0.12784786 -0.01615214
-## sample estimates:
-## mean of x mean of y 
-##     0.154     0.226
-```
-
-```r
+#> 
+#> 	Two Sample t-test
+#> 
+#> data:  dVe and dVi
+#> t = -2.5584, df = 98, p-value = 0.01205
+#> alternative hypothesis: true difference in means is not equal to 0
+#> 95 percent confidence interval:
+#>  -0.12784786 -0.01615214
+#> sample estimates:
+#> mean of x mean of y 
+#>     0.154     0.226
 # small samples t-test  
 t.test(irisVe,irisVi,var.equal=F)
-```
-
-```
-## 
-## 	Welch Two Sample t-test
-## 
-## data:  irisVe and irisVi
-## t = -14.625, df = 89.043, p-value < 2.2e-16
-## alternative hypothesis: true difference in means is not equal to 0
-## 95 percent confidence interval:
-##  -0.7951002 -0.6048998
-## sample estimates:
-## mean of x mean of y 
-##     1.326     2.026
+#> 
+#> 	Welch Two Sample t-test
+#> 
+#> data:  irisVe and irisVi
+#> t = -14.625, df = 89.043, p-value < 2.2e-16
+#> alternative hypothesis: true difference in means is not equal to 0
+#> 95 percent confidence interval:
+#>  -0.7951002 -0.6048998
+#> sample estimates:
+#> mean of x mean of y 
+#>     1.326     2.026
 ```
 
 
@@ -1006,15 +976,12 @@ Under $H_0$, any arrangement of the y's and x's is equally likely to occur, and 
 
 ```r
 wilcox.test(irisVe,irisVi,alternative="two.sided",conf.level=0.95, exact=F,correct=T)
-```
-
-```
-## 
-## 	Wilcoxon rank sum test with continuity correction
-## 
-## data:  irisVe and irisVi
-## W = 49, p-value < 2.2e-16
-## alternative hypothesis: true location shift is not equal to 0
+#> 
+#> 	Wilcoxon rank sum test with continuity correction
+#> 
+#> data:  irisVe and irisVi
+#> W = 49, p-value < 2.2e-16
+#> alternative hypothesis: true location shift is not equal to 0
 ```
 
 
@@ -1235,20 +1202,17 @@ $$
 
 ```r
 prop.test(x=july.x,n=july.n,p=0.5,alternative="less",correct=F)
-```
-
-```
-## 
-## 	1-sample proportions test without continuity correction
-## 
-## data:  july.x out of july.n, null probability 0.5
-## X-squared = 1.6, df = 1, p-value = 0.103
-## alternative hypothesis: true p is less than 0.5
-## 95 percent confidence interval:
-##  0.0000000 0.5060055
-## sample estimates:
-##    p 
-## 0.48
+#> 
+#> 	1-sample proportions test without continuity correction
+#> 
+#> data:  july.x out of july.n, null probability 0.5
+#> X-squared = 1.6, df = 1, p-value = 0.103
+#> alternative hypothesis: true p is less than 0.5
+#> 95 percent confidence interval:
+#>  0.0000000 0.5060055
+#> sample estimates:
+#>    p 
+#> 0.48
 ```
 
 
@@ -1260,21 +1224,18 @@ $$
 
 ```r
 prop.test(x=c(july.x,sept.x),n=c(july.n,sept.n),correct=F)
-```
-
-```
-## 
-## 	2-sample test for equality of proportions without continuity
-## 	correction
-## 
-## data:  c(july.x, sept.x) out of c(july.n, sept.n)
-## X-squared = 3.9701, df = 1, p-value = 0.04632
-## alternative hypothesis: two.sided
-## 95 percent confidence interval:
-##  0.0006247187 0.0793752813
-## sample estimates:
-## prop 1 prop 2 
-##   0.48   0.44
+#> 
+#> 	2-sample test for equality of proportions without continuity
+#> 	correction
+#> 
+#> data:  c(july.x, sept.x) out of c(july.n, sept.n)
+#> X-squared = 3.9701, df = 1, p-value = 0.04632
+#> alternative hypothesis: two.sided
+#> 95 percent confidence interval:
+#>  0.0006247187 0.0793752813
+#> sample estimates:
+#> prop 1 prop 2 
+#>   0.48   0.44
 ```
 
 
@@ -1313,53 +1274,32 @@ This method can be extended to general I x J x K tables.
 ```r
 Bron=array(c(20, 9, 382, 214, 10, 7, 172, 120, 12, 6, 327, 183), dim = c(2, 2, 3), dimnames = list( Particulate = c("High", "Low"), Bronchitis = c("Yes", "No"), Age = c("15-24", "25-39", "40+"))) 
 margin.table(Bron,c(1,2))
-```
-
-```
-##            Bronchitis
-## Particulate Yes  No
-##        High  42 881
-##        Low   22 517
-```
-
-```r
+#>            Bronchitis
+#> Particulate Yes  No
+#>        High  42 881
+#>        Low   22 517
 # assess whether the relationship between Bronchitis by Particulate Level varies by Age
 library(samplesizeCMH)
 marginal_table=margin.table(Bron,c(1,2))
 odds.ratio(marginal_table)
-```
-
-```
-## [1] 1.120318
-```
-
-```r
+#> [1] 1.120318
 #  whether these odds vary by age. The conditional odds can be calculated using the original table.
 apply(Bron,3,odds.ratio)
-```
-
-```
-##     15-24     25-39       40+ 
-## 1.2449098 0.9966777 1.1192661
-```
-
-```r
+#>     15-24     25-39       40+ 
+#> 1.2449098 0.9966777 1.1192661
 # Mantel-Haenszel Test
 mantelhaen.test(Bron,correct=T)
-```
-
-```
-## 
-## 	Mantel-Haenszel chi-squared test with continuity correction
-## 
-## data:  Bron
-## Mantel-Haenszel X-squared = 0.11442, df = 1, p-value = 0.7352
-## alternative hypothesis: true common odds ratio is not equal to 1
-## 95 percent confidence interval:
-##  0.6693022 1.9265813
-## sample estimates:
-## common odds ratio 
-##          1.135546
+#> 
+#> 	Mantel-Haenszel chi-squared test with continuity correction
+#> 
+#> data:  Bron
+#> Mantel-Haenszel X-squared = 0.11442, df = 1, p-value = 0.7352
+#> alternative hypothesis: true common odds ratio is not equal to 1
+#> 95 percent confidence interval:
+#>  0.6693022 1.9265813
+#> sample estimates:
+#> common odds ratio 
+#>          1.135546
 ```
 
 
@@ -1370,14 +1310,11 @@ special case of [Mantel-Haenszel Chi-square Test]
 ```r
 vote=cbind(c(682,22),c(86,810))
 mcnemar.test(vote,correct=T)
-```
-
-```
-## 
-## 	McNemar's Chi-squared test with continuity correction
-## 
-## data:  vote
-## McNemar's chi-squared = 36.75, df = 1, p-value = 1.343e-09
+#> 
+#> 	McNemar's Chi-squared test with continuity correction
+#> 
+#> data:  vote
+#> McNemar's chi-squared = 36.75, df = 1, p-value = 1.343e-09
 ```
 
 

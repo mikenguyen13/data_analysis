@@ -89,25 +89,6 @@ model.Y <- lm(Y ~ X + M, myData)
 
 # Step 4 (boostrapping)
 library(mediation)
-```
-
-```
-## Warning: package 'mediation' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'MASS' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'Matrix' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'mvtnorm' was built under R version 4.0.5
-```
-
-```r
 results <- mediate(
     model.M,
     model.Y,
@@ -117,26 +98,23 @@ results <- mediate(
     sims = 500
 )
 summary(results)
-```
-
-```
-## 
-## Causal Mediation Analysis 
-## 
-## Nonparametric Bootstrap Confidence Intervals with the Percentile Method
-## 
-##                Estimate 95% CI Lower 95% CI Upper p-value    
-## ACME             0.3565       0.2078         0.54  <2e-16 ***
-## ADE              0.0396      -0.2052         0.27    0.81    
-## Total Effect     0.3961       0.1429         0.64  <2e-16 ***
-## Prop. Mediated   0.9000       0.5181         2.10  <2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Sample Size Used: 100 
-## 
-## 
-## Simulations: 500
+#> 
+#> Causal Mediation Analysis 
+#> 
+#> Nonparametric Bootstrap Confidence Intervals with the Percentile Method
+#> 
+#>                Estimate 95% CI Lower 95% CI Upper p-value    
+#> ACME             0.3565       0.2132         0.51  <2e-16 ***
+#> ADE              0.0396      -0.1727         0.31    0.72    
+#> Total Effect     0.3961       0.1716         0.66  <2e-16 ***
+#> Prop. Mediated   0.9000       0.4655         1.89  <2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Sample Size Used: 100 
+#> 
+#> 
+#> Simulations: 500
 ```
 
 -   Total Effect = 0.3961 = $b_1$ (step 1) = total effect of $X$ on $Y$ without $M$
@@ -247,32 +225,29 @@ med.out <-
         sims = 1000 # should be 10000 in practice
     )
 summary(med.out)
-```
-
-```
-## 
-## Causal Mediation Analysis 
-## 
-## Quasi-Bayesian Confidence Intervals
-## 
-##                          Estimate 95% CI Lower 95% CI Upper p-value    
-## ACME (control)             0.0826       0.0356         0.14  <2e-16 ***
-## ACME (treated)             0.0831       0.0348         0.14  <2e-16 ***
-## ADE (control)              0.0137      -0.0967         0.13    0.82    
-## ADE (treated)              0.0142      -0.1101         0.14    0.82    
-## Total Effect               0.0968      -0.0290         0.23    0.14    
-## Prop. Mediated (control)   0.7706      -6.3968         4.70    0.14    
-## Prop. Mediated (treated)   0.7938      -5.7506         4.52    0.14    
-## ACME (average)             0.0829       0.0351         0.14  <2e-16 ***
-## ADE (average)              0.0140      -0.1047         0.13    0.82    
-## Prop. Mediated (average)   0.7822      -6.0737         4.61    0.14    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Sample Size Used: 265 
-## 
-## 
-## Simulations: 1000
+#> 
+#> Causal Mediation Analysis 
+#> 
+#> Quasi-Bayesian Confidence Intervals
+#> 
+#>                          Estimate 95% CI Lower 95% CI Upper p-value    
+#> ACME (control)             0.0826       0.0356         0.14  <2e-16 ***
+#> ACME (treated)             0.0831       0.0348         0.14  <2e-16 ***
+#> ADE (control)              0.0137      -0.0967         0.13    0.82    
+#> ADE (treated)              0.0142      -0.1101         0.14    0.82    
+#> Total Effect               0.0968      -0.0290         0.23    0.14    
+#> Prop. Mediated (control)   0.7706      -6.3968         4.70    0.14    
+#> Prop. Mediated (treated)   0.7938      -5.7506         4.52    0.14    
+#> ACME (average)             0.0829       0.0351         0.14  <2e-16 ***
+#> ADE (average)              0.0140      -0.1047         0.13    0.82    
+#> Prop. Mediated (average)   0.7822      -6.0737         4.61    0.14    
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Sample Size Used: 265 
+#> 
+#> 
+#> Simulations: 1000
 ```
 
 Nonparametric bootstrap version
@@ -289,40 +264,30 @@ med.out <-
         sims = 1000, # should be 10000 in practice
         boot.ci.type = "bca" # bias-corrected and accelerated intervals
     )
-```
-
-```
-## Running nonparametric bootstrap
-```
-
-```r
 summary(med.out)
-```
-
-```
-## 
-## Causal Mediation Analysis 
-## 
-## Nonparametric Bootstrap Confidence Intervals with the BCa Method
-## 
-##                          Estimate 95% CI Lower 95% CI Upper p-value   
-## ACME (control)             0.0833       0.0386         0.15   0.002 **
-## ACME (treated)             0.0844       0.0374         0.15   0.002 **
-## ADE (control)              0.0114      -0.0875         0.13   0.792   
-## ADE (treated)              0.0125      -0.1033         0.14   0.792   
-## Total Effect               0.0958      -0.0291         0.23   0.124   
-## Prop. Mediated (control)   0.8696     -97.4552         1.00   0.126   
-## Prop. Mediated (treated)   0.8806     -82.9081         1.02   0.126   
-## ACME (average)             0.0839       0.0381         0.15   0.002 **
-## ADE (average)              0.0120      -0.0961         0.14   0.792   
-## Prop. Mediated (average)   0.8751     -90.6217         1.01   0.126   
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Sample Size Used: 265 
-## 
-## 
-## Simulations: 1000
+#> 
+#> Causal Mediation Analysis 
+#> 
+#> Nonparametric Bootstrap Confidence Intervals with the BCa Method
+#> 
+#>                          Estimate 95% CI Lower 95% CI Upper p-value   
+#> ACME (control)             0.0833       0.0386         0.15   0.002 **
+#> ACME (treated)             0.0844       0.0374         0.15   0.002 **
+#> ADE (control)              0.0114      -0.0875         0.13   0.792   
+#> ADE (treated)              0.0125      -0.1033         0.14   0.792   
+#> Total Effect               0.0958      -0.0291         0.23   0.124   
+#> Prop. Mediated (control)   0.8696     -97.4552         1.00   0.126   
+#> Prop. Mediated (treated)   0.8806     -82.9081         1.02   0.126   
+#> ACME (average)             0.0839       0.0381         0.15   0.002 **
+#> ADE (average)              0.0120      -0.0961         0.14   0.792   
+#> Prop. Mediated (average)   0.8751     -90.6217         1.01   0.126   
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Sample Size Used: 265 
+#> 
+#> 
+#> Simulations: 1000
 ```
 
 If theoretically understanding suggests that there is treatment and mediator interaction
@@ -347,47 +312,38 @@ med.out <-
         sims = 100
     )
 summary(med.out)
-```
-
-```
-## 
-## Causal Mediation Analysis 
-## 
-## Quasi-Bayesian Confidence Intervals
-## 
-##                           Estimate 95% CI Lower 95% CI Upper p-value    
-## ACME (control)            0.079925     0.035230         0.14  <2e-16 ***
-## ACME (treated)            0.097504     0.045279         0.17  <2e-16 ***
-## ADE (control)            -0.000865    -0.107228         0.11    0.98    
-## ADE (treated)             0.016714    -0.121163         0.14    0.76    
-## Total Effect              0.096640    -0.046523         0.23    0.26    
-## Prop. Mediated (control)  0.672278    -5.266859         3.40    0.26    
-## Prop. Mediated (treated)  0.860650    -6.754965         3.60    0.26    
-## ACME (average)            0.088715     0.040207         0.15  <2e-16 ***
-## ADE (average)             0.007925    -0.111833         0.14    0.88    
-## Prop. Mediated (average)  0.766464    -5.848496         3.43    0.26    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Sample Size Used: 265 
-## 
-## 
-## Simulations: 100
-```
-
-```r
+#> 
+#> Causal Mediation Analysis 
+#> 
+#> Quasi-Bayesian Confidence Intervals
+#> 
+#>                           Estimate 95% CI Lower 95% CI Upper p-value    
+#> ACME (control)            0.079925     0.035230         0.14  <2e-16 ***
+#> ACME (treated)            0.097504     0.045279         0.17  <2e-16 ***
+#> ADE (control)            -0.000865    -0.107228         0.11    0.98    
+#> ADE (treated)             0.016714    -0.121163         0.14    0.76    
+#> Total Effect              0.096640    -0.046523         0.23    0.26    
+#> Prop. Mediated (control)  0.672278    -5.266859         3.40    0.26    
+#> Prop. Mediated (treated)  0.860650    -6.754965         3.60    0.26    
+#> ACME (average)            0.088715     0.040207         0.15  <2e-16 ***
+#> ADE (average)             0.007925    -0.111833         0.14    0.88    
+#> Prop. Mediated (average)  0.766464    -5.848496         3.43    0.26    
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Sample Size Used: 265 
+#> 
+#> 
+#> Simulations: 100
 test.TMint(med.out, conf.level = .95) # test treatment-mediator interaction effect 
-```
-
-```
-## 
-## 	Test of ACME(1) - ACME(0) = 0
-## 
-## data:  estimates from med.out
-## ACME(1) - ACME(0) = 0.017579, p-value = 0.44
-## alternative hypothesis: true ACME(1) - ACME(0) is not equal to 0
-## 95 percent confidence interval:
-##  -0.02676143  0.06257828
+#> 
+#> 	Test of ACME(1) - ACME(0) = 0
+#> 
+#> data:  estimates from med.out
+#> ACME(1) - ACME(0) = 0.017579, p-value = 0.44
+#> alternative hypothesis: true ACME(1) - ACME(0) is not equal to 0
+#> 95 percent confidence interval:
+#>  -0.02676143  0.06257828
 ```
 
 
@@ -395,7 +351,7 @@ test.TMint(med.out, conf.level = .95) # test treatment-mediator interaction effe
 plot(med.out)
 ```
 
-<img src="22-mediation_files/figure-html/unnamed-chunk-5-1.png" width="672" />
+<img src="22-mediation_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
 
 `mediation` can be used in conjunction with any of your imputation packages.
 
@@ -437,46 +393,30 @@ sens.out <-
             # effect.type = "direct", # sensitivity on ADE
             # effect.type = "both", # sensitivity on ACME and ADE
             sims = 100)
-```
-
-```
-## Warning in rho^2 * (1 - r.sq.m) * (1 - r.sq.y): Recycling array of length 1 in vector-array arithmetic is deprecated.
-##   Use c() or as.vector() instead.
-```
-
-```
-## Warning in err.cr.d^2 * (1 - r.sq.m) * (1 - r.sq.y): Recycling array of length 1 in vector-array arithmetic is deprecated.
-##   Use c() or as.vector() instead.
-```
-
-```r
 summary(sens.out)
-```
-
-```
-## 
-## Mediation Sensitivity Analysis: Average Mediation Effect
-## 
-## Sensitivity Region: ACME for Control Group
-## 
-##      Rho ACME(control) 95% CI Lower 95% CI Upper R^2_M*R^2_Y* R^2_M~R^2_Y~
-## [1,] 0.3        0.0061      -0.0070       0.0163         0.09       0.0493
-## [2,] 0.4       -0.0081      -0.0254       0.0043         0.16       0.0877
-## 
-## Rho at which ACME for Control Group = 0: 0.3
-## R^2_M*R^2_Y* at which ACME for Control Group = 0: 0.09
-## R^2_M~R^2_Y~ at which ACME for Control Group = 0: 0.0493 
-## 
-## 
-## Sensitivity Region: ACME for Treatment Group
-## 
-##      Rho ACME(treated) 95% CI Lower 95% CI Upper R^2_M*R^2_Y* R^2_M~R^2_Y~
-## [1,] 0.3        0.0069      -0.0085       0.0197         0.09       0.0493
-## [2,] 0.4       -0.0099      -0.0304       0.0054         0.16       0.0877
-## 
-## Rho at which ACME for Treatment Group = 0: 0.3
-## R^2_M*R^2_Y* at which ACME for Treatment Group = 0: 0.09
-## R^2_M~R^2_Y~ at which ACME for Treatment Group = 0: 0.0493
+#> 
+#> Mediation Sensitivity Analysis: Average Mediation Effect
+#> 
+#> Sensitivity Region: ACME for Control Group
+#> 
+#>      Rho ACME(control) 95% CI Lower 95% CI Upper R^2_M*R^2_Y* R^2_M~R^2_Y~
+#> [1,] 0.3        0.0061      -0.0070       0.0163         0.09       0.0493
+#> [2,] 0.4       -0.0081      -0.0254       0.0043         0.16       0.0877
+#> 
+#> Rho at which ACME for Control Group = 0: 0.3
+#> R^2_M*R^2_Y* at which ACME for Control Group = 0: 0.09
+#> R^2_M~R^2_Y~ at which ACME for Control Group = 0: 0.0493 
+#> 
+#> 
+#> Sensitivity Region: ACME for Treatment Group
+#> 
+#>      Rho ACME(treated) 95% CI Lower 95% CI Upper R^2_M*R^2_Y* R^2_M~R^2_Y~
+#> [1,] 0.3        0.0069      -0.0085       0.0197         0.09       0.0493
+#> [2,] 0.4       -0.0099      -0.0304       0.0054         0.16       0.0877
+#> 
+#> Rho at which ACME for Treatment Group = 0: 0.3
+#> R^2_M*R^2_Y* at which ACME for Treatment Group = 0: 0.09
+#> R^2_M~R^2_Y~ at which ACME for Treatment Group = 0: 0.0493
 ```
 
 
@@ -484,7 +424,7 @@ summary(sens.out)
 plot(sens.out, sens.par = "rho", main = "Anxiety", ylim = c(-0.2, 0.2))
 ```
 
-<img src="22-mediation_files/figure-html/unnamed-chunk-7-1.png" width="672" /><img src="22-mediation_files/figure-html/unnamed-chunk-7-2.png" width="672" />
+<img src="22-mediation_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" /><img src="22-mediation_files/figure-html/unnamed-chunk-7-2.png" width="90%" style="display: block; margin: auto;" />
 
 ACME confidence intervals contains 0 when $\rho \in (0.3,0.4)$
 
@@ -495,9 +435,4 @@ Alternatively, using $R^2$ interpretation, we need to specify the direction of c
 plot(sens.out, sens.par = "R2", r.type = "total", sign.prod = "positive")
 ```
 
-```
-## Warning in (1 - x$r.square.y) * seq(0, 1 - x$rho.by, 0.01): Recycling array of length 1 in array-vector arithmetic is deprecated.
-##   Use c() or as.vector() instead.
-```
-
-<img src="22-mediation_files/figure-html/unnamed-chunk-8-1.png" width="672" /><img src="22-mediation_files/figure-html/unnamed-chunk-8-2.png" width="672" />
+<img src="22-mediation_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" /><img src="22-mediation_files/figure-html/unnamed-chunk-8-2.png" width="90%" style="display: block; margin: auto;" />
