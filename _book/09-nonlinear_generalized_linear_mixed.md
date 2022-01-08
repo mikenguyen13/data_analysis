@@ -366,16 +366,13 @@ Example: Non-Gaussian Repeated measurements
 ```r
 data(cbpp,package = "lme4")
 head(cbpp)
-```
-
-```
-##   herd incidence size period
-## 1    1         2   14      1
-## 2    1         3   12      2
-## 3    1         4    9      3
-## 4    1         0    5      4
-## 5    2         3   22      1
-## 6    2         1   18      2
+#>   herd incidence size period
+#> 1    1         2   14      1
+#> 2    1         3   12      2
+#> 3    1         4    9      3
+#> 4    1         0    5      4
+#> 5    2         3   22      1
+#> 6    2         1   18      2
 ```
 
 PQL
@@ -397,13 +394,6 @@ Cons:
 
 ```r
 library(MASS)
-```
-
-```
-## Warning: package 'MASS' was built under R version 4.0.5
-```
-
-```r
 pql_cbpp <-
     glmmPQL(
         cbind(incidence, size - incidence) ~ period,
@@ -413,49 +403,43 @@ pql_cbpp <-
         verbose = F
     )
 summary(pql_cbpp)
-```
-
-```
-## Linear mixed-effects model fit by maximum likelihood
-##   Data: cbpp 
-##   AIC BIC logLik
-##    NA  NA     NA
-## 
-## Random effects:
-##  Formula: ~1 | herd
-##         (Intercept) Residual
-## StdDev:   0.5563535 1.184527
-## 
-## Variance function:
-##  Structure: fixed weights
-##  Formula: ~invwt 
-## Fixed effects:  cbind(incidence, size - incidence) ~ period 
-##                 Value Std.Error DF   t-value p-value
-## (Intercept) -1.327364 0.2390194 38 -5.553372  0.0000
-## period2     -1.016126 0.3684079 38 -2.758156  0.0089
-## period3     -1.149984 0.3937029 38 -2.920944  0.0058
-## period4     -1.605217 0.5178388 38 -3.099839  0.0036
-##  Correlation: 
-##         (Intr) perid2 perid3
-## period2 -0.399              
-## period3 -0.373  0.260       
-## period4 -0.282  0.196  0.182
-## 
-## Standardized Within-Group Residuals:
-##        Min         Q1        Med         Q3        Max 
-## -2.0591168 -0.6493095 -0.2747620  0.5170492  2.6187632 
-## 
-## Number of Observations: 56
-## Number of Groups: 15
+#> Linear mixed-effects model fit by maximum likelihood
+#>   Data: cbpp 
+#>   AIC BIC logLik
+#>    NA  NA     NA
+#> 
+#> Random effects:
+#>  Formula: ~1 | herd
+#>         (Intercept) Residual
+#> StdDev:   0.5563535 1.184527
+#> 
+#> Variance function:
+#>  Structure: fixed weights
+#>  Formula: ~invwt 
+#> Fixed effects:  cbind(incidence, size - incidence) ~ period 
+#>                 Value Std.Error DF   t-value p-value
+#> (Intercept) -1.327364 0.2390194 38 -5.553372  0.0000
+#> period2     -1.016126 0.3684079 38 -2.758156  0.0089
+#> period3     -1.149984 0.3937029 38 -2.920944  0.0058
+#> period4     -1.605217 0.5178388 38 -3.099839  0.0036
+#>  Correlation: 
+#>         (Intr) perid2 perid3
+#> period2 -0.399              
+#> period3 -0.373  0.260       
+#> period4 -0.282  0.196  0.182
+#> 
+#> Standardized Within-Group Residuals:
+#>        Min         Q1        Med         Q3        Max 
+#> -2.0591168 -0.6493095 -0.2747620  0.5170492  2.6187632 
+#> 
+#> Number of Observations: 56
+#> Number of Groups: 15
 ```
 
 
 ```r
 exp(0.556)
-```
-
-```
-## [1] 1.743684
+#> [1] 1.743684
 ```
 
 is how the herd specific outcome odds varies.
@@ -465,14 +449,11 @@ We can interpret the fixed effect coefficients just like in GLM. Because we use 
 
 ```r
 summary(pql_cbpp)$tTable
-```
-
-```
-##                 Value Std.Error DF   t-value      p-value
-## (Intercept) -1.327364 0.2390194 38 -5.553372 2.333216e-06
-## period2     -1.016126 0.3684079 38 -2.758156 8.888179e-03
-## period3     -1.149984 0.3937029 38 -2.920944 5.843007e-03
-## period4     -1.605217 0.5178388 38 -3.099839 3.637000e-03
+#>                 Value Std.Error DF   t-value      p-value
+#> (Intercept) -1.327364 0.2390194 38 -5.553372 2.333216e-06
+#> period2     -1.016126 0.3684079 38 -2.758156 8.888179e-03
+#> period3     -1.149984 0.3937029 38 -2.920944 5.843007e-03
+#> period4     -1.605217 0.5178388 38 -3.099839 3.637000e-03
 ```
 
 Numerical Integration
@@ -490,21 +471,6 @@ Con:
 
 ```r
 library(lme4)
-```
-
-```
-## Warning: package 'lme4' was built under R version 4.0.5
-```
-
-```
-## Loading required package: Matrix
-```
-
-```
-## Warning: package 'Matrix' was built under R version 4.0.5
-```
-
-```r
 numint_cbpp <-
     glmer(
         cbind(incidence, size - incidence) ~ period + (1 | herd),
@@ -512,41 +478,38 @@ numint_cbpp <-
         family = binomial(link = "logit")
     )
 summary(numint_cbpp)
-```
-
-```
-## Generalized linear mixed model fit by maximum likelihood (Laplace
-##   Approximation) [glmerMod]
-##  Family: binomial  ( logit )
-## Formula: cbind(incidence, size - incidence) ~ period + (1 | herd)
-##    Data: cbpp
-## 
-##      AIC      BIC   logLik deviance df.resid 
-##    194.1    204.2    -92.0    184.1       51 
-## 
-## Scaled residuals: 
-##     Min      1Q  Median      3Q     Max 
-## -2.3816 -0.7889 -0.2026  0.5142  2.8791 
-## 
-## Random effects:
-##  Groups Name        Variance Std.Dev.
-##  herd   (Intercept) 0.4123   0.6421  
-## Number of obs: 56, groups:  herd, 15
-## 
-## Fixed effects:
-##             Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)  -1.3983     0.2312  -6.048 1.47e-09 ***
-## period2      -0.9919     0.3032  -3.272 0.001068 ** 
-## period3      -1.1282     0.3228  -3.495 0.000474 ***
-## period4      -1.5797     0.4220  -3.743 0.000182 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Correlation of Fixed Effects:
-##         (Intr) perid2 perid3
-## period2 -0.363              
-## period3 -0.340  0.280       
-## period4 -0.260  0.213  0.198
+#> Generalized linear mixed model fit by maximum likelihood (Laplace
+#>   Approximation) [glmerMod]
+#>  Family: binomial  ( logit )
+#> Formula: cbind(incidence, size - incidence) ~ period + (1 | herd)
+#>    Data: cbpp
+#> 
+#>      AIC      BIC   logLik deviance df.resid 
+#>    194.1    204.2    -92.0    184.1       51 
+#> 
+#> Scaled residuals: 
+#>     Min      1Q  Median      3Q     Max 
+#> -2.3816 -0.7889 -0.2026  0.5142  2.8791 
+#> 
+#> Random effects:
+#>  Groups Name        Variance Std.Dev.
+#>  herd   (Intercept) 0.4123   0.6421  
+#> Number of obs: 56, groups:  herd, 15
+#> 
+#> Fixed effects:
+#>             Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept)  -1.3983     0.2312  -6.048 1.47e-09 ***
+#> period2      -0.9919     0.3032  -3.272 0.001068 ** 
+#> period3      -1.1282     0.3228  -3.495 0.000474 ***
+#> period4      -1.5797     0.4220  -3.743 0.000182 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Correlation of Fixed Effects:
+#>         (Intr) perid2 perid3
+#> period2 -0.363              
+#> period3 -0.340  0.280       
+#> period4 -0.260  0.213  0.198
 ```
 
 For small data set, the difference between two approaches are minimal
@@ -576,12 +539,9 @@ benchmark(
     columns = c("test", "replications", "elapsed", "relative"),
     order = "relative"
 )
-```
-
-```
-##   test replications elapsed relative
-## 1 MASS           50    2.62    1.000
-## 2 lme4           50    5.30    2.023
+#>   test replications elapsed relative
+#> 1 MASS           50    2.36    1.000
+#> 2 lme4           50    4.76    2.017
 ```
 
 In numerical integration, we can set `nAGQ > 1` to switch the method of likelihood evaluation, which might increase accuracy
@@ -597,11 +557,8 @@ numint_cbpp_GH <-
         nAGQ = 20
     )
 summary(numint_cbpp_GH)$coefficients[, 1] - summary(numint_cbpp)$coefficients[, 1]
-```
-
-```
-##   (Intercept)       period2       period3       period4 
-## -0.0008808634  0.0005160912  0.0004066218  0.0002644629
+#>   (Intercept)       period2       period3       period4 
+#> -0.0008808634  0.0005160912  0.0004066218  0.0002644629
 ```
 
 Bayesian approach to GLMMs
@@ -615,25 +572,6 @@ Bayesian approach to GLMMs
 
 ```r
 library(MCMCglmm)
-```
-
-```
-## Warning: package 'MCMCglmm' was built under R version 4.0.5
-```
-
-```
-## Loading required package: coda
-```
-
-```
-## Loading required package: ape
-```
-
-```
-## Warning: package 'ape' was built under R version 4.0.5
-```
-
-```r
 Bayes_cbpp <-
     MCMCglmm(
         cbind(incidence, size - incidence) ~ period,
@@ -643,35 +581,32 @@ Bayes_cbpp <-
         verbose = FALSE
     )
 summary(Bayes_cbpp)
-```
-
-```
-## 
-##  Iterations = 3001:12991
-##  Thinning interval  = 10
-##  Sample size  = 1000 
-## 
-##  DIC: 537.7511 
-## 
-##  G-structure:  ~herd
-## 
-##      post.mean  l-95% CI  u-95% CI eff.samp
-## herd  0.001022 9.579e-17 7.923e-05      287
-## 
-##  R-structure:  ~units
-## 
-##       post.mean l-95% CI u-95% CI eff.samp
-## units     1.155   0.3415    2.194    363.5
-## 
-##  Location effects: cbind(incidence, size - incidence) ~ period 
-## 
-##             post.mean l-95% CI u-95% CI eff.samp  pMCMC    
-## (Intercept)   -1.5404  -2.2180  -0.9078    755.1 <0.001 ***
-## period2       -1.2751  -2.2910  -0.1619    775.6  0.016 *  
-## period3       -1.4065  -2.4474  -0.3088    746.1  0.002 ** 
-## period4       -1.9516  -3.2032  -0.6183    704.3  0.002 ** 
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#>  Iterations = 3001:12991
+#>  Thinning interval  = 10
+#>  Sample size  = 1000 
+#> 
+#>  DIC: 538.2821 
+#> 
+#>  G-structure:  ~herd
+#> 
+#>      post.mean  l-95% CI u-95% CI eff.samp
+#> herd   0.01951 9.116e-17  0.06071    134.5
+#> 
+#>  R-structure:  ~units
+#> 
+#>       post.mean l-95% CI u-95% CI eff.samp
+#> units     1.118   0.2783     2.12    303.4
+#> 
+#>  Location effects: cbind(incidence, size - incidence) ~ period 
+#> 
+#>             post.mean l-95% CI u-95% CI eff.samp  pMCMC    
+#> (Intercept)   -1.5339  -2.1313  -0.8619    853.7 <0.001 ***
+#> period2       -1.2715  -2.2055  -0.2348    760.1  0.010 ** 
+#> period3       -1.3870  -2.4969  -0.4018    803.7  0.004 ** 
+#> period4       -1.9469  -3.1751  -0.7322    627.6  0.002 ** 
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
 -   `MCMCglmm` fits a residual variance component (useful with dispersion issues)
@@ -679,24 +614,18 @@ summary(Bayes_cbpp)
 
 ```r
 apply(Bayes_cbpp$VCV,2,sd) #explains less variability
-```
-
-```
-##       herd      units 
-## 0.01664994 0.52416759
+#>      herd     units 
+#> 0.1173682 0.5330293
 ```
 
 
 ```r
 summary(Bayes_cbpp)$solutions
-```
-
-```
-##             post.mean  l-95% CI   u-95% CI eff.samp pMCMC
-## (Intercept) -1.540398 -2.218031 -0.9078279 755.1080 0.001
-## period2     -1.275133 -2.291032 -0.1618755 775.6122 0.016
-## period3     -1.406450 -2.447372 -0.3087735 746.1049 0.002
-## period4     -1.951610 -3.203185 -0.6183007 704.2754 0.002
+#>             post.mean  l-95% CI   u-95% CI eff.samp pMCMC
+#> (Intercept) -1.533898 -2.131284 -0.8618501 853.7291 0.001
+#> period2     -1.271468 -2.205482 -0.2348138 760.0781 0.010
+#> period3     -1.387040 -2.496857 -0.4018460 803.7385 0.004
+#> period4     -1.946879 -3.175132 -0.7321673 627.6284 0.002
 ```
 
 interpret Bayesian "credible intervals" similarly to confidence intervals
@@ -706,17 +635,10 @@ Make sure you make post-hoc diagnoses
 
 ```r
 library(lattice)
-```
-
-```
-## Warning: package 'lattice' was built under R version 4.0.5
-```
-
-```r
 xyplot(as.mcmc(Bayes_cbpp$Sol), layout = c(2, 2))
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-11-1.png" width="672" />
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" />
 
 There is no trend, well-mixed
 
@@ -725,7 +647,7 @@ There is no trend, well-mixed
 xyplot(as.mcmc(Bayes_cbpp$VCV),layout=c(2,1))
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-12-1.png" width="672" />
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
 
 For the herd variable, a lot of them are 0, which suggests problem. To fix the instability in the herd effect sampling, we can either
 
@@ -752,7 +674,7 @@ Bayes_cbpp2 <-
 xyplot(as.mcmc(Bayes_cbpp2$VCV), layout = c(2, 1))
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-13-1.png" width="672" />
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
 
 To change the shape of priors, in `MCMCglmm` use:
 
@@ -767,44 +689,7 @@ To change the shape of priors, in `MCMCglmm` use:
 
 ```r
 library(glmmTMB)
-```
-
-```
-## Warning: package 'glmmTMB' was built under R version 4.0.5
-```
-
-```r
 library(dplyr)
-```
-
-```
-## Warning: package 'dplyr' was built under R version 4.0.5
-```
-
-```
-## 
-## Attaching package: 'dplyr'
-```
-
-```
-## The following object is masked from 'package:MASS':
-## 
-##     select
-```
-
-```
-## The following objects are masked from 'package:stats':
-## 
-##     filter, lag
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-```
-
-```r
 data(Owls, package = "glmmTMB")
 Owls <- Owls %>% rename(Ncalls = SiblingNegotiation)
 ```
@@ -821,42 +706,39 @@ owls_glmer <-
         data = Owls
     )
 summary(owls_glmer)
-```
-
-```
-## Generalized linear mixed model fit by maximum likelihood (Laplace
-##   Approximation) [glmerMod]
-##  Family: poisson  ( log )
-## Formula: Ncalls ~ offset(log(BroodSize)) + FoodTreatment * SexParent +  
-##     (1 | Nest)
-##    Data: Owls
-## 
-##      AIC      BIC   logLik deviance df.resid 
-##   5212.8   5234.8  -2601.4   5202.8      594 
-## 
-## Scaled residuals: 
-##     Min      1Q  Median      3Q     Max 
-## -3.5529 -1.7971 -0.6842  1.2689 11.4312 
-## 
-## Random effects:
-##  Groups Name        Variance Std.Dev.
-##  Nest   (Intercept) 0.2063   0.4542  
-## Number of obs: 599, groups:  Nest, 27
-## 
-## Fixed effects:
-##                                     Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)                          0.65585    0.09567   6.855 7.12e-12 ***
-## FoodTreatmentSatiated               -0.65612    0.05606 -11.705  < 2e-16 ***
-## SexParentMale                       -0.03705    0.04501  -0.823   0.4104    
-## FoodTreatmentSatiated:SexParentMale  0.13135    0.07036   1.867   0.0619 .  
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Correlation of Fixed Effects:
-##             (Intr) FdTrtS SxPrnM
-## FdTrtmntStt -0.225              
-## SexParentMl -0.292  0.491       
-## FdTrtmS:SPM  0.170 -0.768 -0.605
+#> Generalized linear mixed model fit by maximum likelihood (Laplace
+#>   Approximation) [glmerMod]
+#>  Family: poisson  ( log )
+#> Formula: Ncalls ~ offset(log(BroodSize)) + FoodTreatment * SexParent +  
+#>     (1 | Nest)
+#>    Data: Owls
+#> 
+#>      AIC      BIC   logLik deviance df.resid 
+#>   5212.8   5234.8  -2601.4   5202.8      594 
+#> 
+#> Scaled residuals: 
+#>     Min      1Q  Median      3Q     Max 
+#> -3.5529 -1.7971 -0.6842  1.2689 11.4312 
+#> 
+#> Random effects:
+#>  Groups Name        Variance Std.Dev.
+#>  Nest   (Intercept) 0.2063   0.4542  
+#> Number of obs: 599, groups:  Nest, 27
+#> 
+#> Fixed effects:
+#>                                     Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept)                          0.65585    0.09567   6.855 7.12e-12 ***
+#> FoodTreatmentSatiated               -0.65612    0.05606 -11.705  < 2e-16 ***
+#> SexParentMale                       -0.03705    0.04501  -0.823   0.4104    
+#> FoodTreatmentSatiated:SexParentMale  0.13135    0.07036   1.867   0.0619 .  
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Correlation of Fixed Effects:
+#>             (Intr) FdTrtS SxPrnM
+#> FdTrtmntStt -0.225              
+#> SexParentMl -0.292  0.491       
+#> FdTrtmS:SPM  0.170 -0.768 -0.605
 ```
 
 -   nest explains a relatively large proportion of the variability (its standard deviation is larger than some coefficients)
@@ -871,11 +753,8 @@ owls_glmerNB <-
              + (1 | Nest), data = Owls)
 c(Deviance = round(summary(owls_glmerNB)$AICtab["deviance"], 3),
   df = summary(owls_glmerNB)$AICtab["df.resid"])
-```
-
-```
-## Deviance.deviance       df.df.resid 
-##          3483.616           593.000
+#> Deviance.deviance       df.df.resid 
+#>          3483.616           593.000
 ```
 
 There is an improvement using negative binomial considering overdispersion
@@ -885,7 +764,7 @@ There is an improvement using negative binomial considering overdispersion
 hist(Owls$Ncalls,breaks=30)
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-17-1.png" width="672" />
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" />
 
 To account for too many 0s in these data, we can use zero-inflated Poisson (ZIP) model.
 
@@ -923,68 +802,53 @@ owls_glmm_zi_cov <- glmmTMB(
     data = Owls
 )
 as.matrix(anova(owls_glmm, owls_glmm_zi))
-```
-
-```
-##              Df      AIC      BIC    logLik deviance    Chisq Chi Df
-## owls_glmm     6 3495.610 3521.981 -1741.805 3483.610       NA     NA
-## owls_glmm_zi  7 3431.646 3462.413 -1708.823 3417.646 65.96373      1
-##                Pr(>Chisq)
-## owls_glmm              NA
-## owls_glmm_zi 4.592983e-16
-```
-
-```r
+#>              Df      AIC      BIC    logLik deviance    Chisq Chi Df
+#> owls_glmm     6 3495.610 3521.981 -1741.805 3483.610       NA     NA
+#> owls_glmm_zi  7 3431.646 3462.413 -1708.823 3417.646 65.96373      1
+#>                Pr(>Chisq)
+#> owls_glmm              NA
+#> owls_glmm_zi 4.592983e-16
 as.matrix(anova(owls_glmm_zi,owls_glmm_zi_cov))
-```
-
-```
-##                  Df      AIC      BIC    logLik deviance    Chisq Chi Df
-## owls_glmm_zi      7 3431.646 3462.413 -1708.823 3417.646       NA     NA
-## owls_glmm_zi_cov  8 3422.532 3457.694 -1703.266 3406.532 11.11411      1
-##                    Pr(>Chisq)
-## owls_glmm_zi               NA
-## owls_glmm_zi_cov 0.0008567362
-```
-
-```r
+#>                  Df      AIC      BIC    logLik deviance    Chisq Chi Df
+#> owls_glmm_zi      7 3431.646 3462.413 -1708.823 3417.646       NA     NA
+#> owls_glmm_zi_cov  8 3422.532 3457.694 -1703.266 3406.532 11.11411      1
+#>                    Pr(>Chisq)
+#> owls_glmm_zi               NA
+#> owls_glmm_zi_cov 0.0008567362
 summary(owls_glmm_zi_cov)
-```
-
-```
-##  Family: nbinom2  ( log )
-## Formula:          
-## Ncalls ~ FoodTreatment * SexParent + offset(log(BroodSize)) +      (1 | Nest)
-## Zero inflation:          ~ArrivalTime
-## Data: Owls
-## 
-##      AIC      BIC   logLik deviance df.resid 
-##   3422.5   3457.7  -1703.3   3406.5      591 
-## 
-## Random effects:
-## 
-## Conditional model:
-##  Groups Name        Variance Std.Dev.
-##  Nest   (Intercept) 0.07487  0.2736  
-## Number of obs: 599, groups:  Nest, 27
-## 
-## Dispersion parameter for nbinom2 family (): 2.22 
-## 
-## Conditional model:
-##                                     Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)                          0.84778    0.09961   8.511  < 2e-16 ***
-## FoodTreatmentSatiated               -0.39529    0.13742  -2.877  0.00402 ** 
-## SexParentMale                       -0.07025    0.10435  -0.673  0.50079    
-## FoodTreatmentSatiated:SexParentMale  0.12388    0.16449   0.753  0.45138    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Zero-inflation model:
-##             Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)  -1.3018     0.1261  -10.32  < 2e-16 ***
-## ArrivalTime   0.3545     0.1074    3.30 0.000966 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#>  Family: nbinom2  ( log )
+#> Formula:          
+#> Ncalls ~ FoodTreatment * SexParent + offset(log(BroodSize)) +      (1 | Nest)
+#> Zero inflation:          ~ArrivalTime
+#> Data: Owls
+#> 
+#>      AIC      BIC   logLik deviance df.resid 
+#>   3422.5   3457.7  -1703.3   3406.5      591 
+#> 
+#> Random effects:
+#> 
+#> Conditional model:
+#>  Groups Name        Variance Std.Dev.
+#>  Nest   (Intercept) 0.07487  0.2736  
+#> Number of obs: 599, groups:  Nest, 27
+#> 
+#> Dispersion parameter for nbinom2 family (): 2.22 
+#> 
+#> Conditional model:
+#>                                     Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept)                          0.84778    0.09961   8.511  < 2e-16 ***
+#> FoodTreatmentSatiated               -0.39529    0.13742  -2.877  0.00402 ** 
+#> SexParentMale                       -0.07025    0.10435  -0.673  0.50079    
+#> FoodTreatmentSatiated:SexParentMale  0.12388    0.16449   0.753  0.45138    
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Zero-inflation model:
+#>             Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept)  -1.3018     0.1261  -10.32  < 2e-16 ***
+#> ArrivalTime   0.3545     0.1074    3.30 0.000966 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
 We can see ZIP GLMM with an arrival time covariate on the zero is best.
@@ -1001,36 +865,8 @@ We can see ZIP GLMM with an arrival time covariate on the zero is best.
 ```r
 library(agridat)
 library(ggplot2)
-```
-
-```
-## Warning: package 'ggplot2' was built under R version 4.0.5
-```
-
-```r
 library(lme4)
 library(spaMM)
-```
-
-```
-## Warning: package 'spaMM' was built under R version 4.0.5
-```
-
-```
-## Registered S3 methods overwritten by 'registry':
-##   method               from 
-##   print.registry_field proxy
-##   print.registry_entry proxy
-```
-
-```
-## spaMM (Rousset & Ferdy, 2014, version 3.9.0) is loaded.
-## Type 'help(spaMM)' for a short introduction,
-## 'news(package='spaMM')' for news,
-## and 'citation('spaMM')' for proper citation.
-```
-
-```r
 data(gotway.hessianfly)
 dat <- gotway.hessianfly
 dat$prop <- dat$y / dat$n
@@ -1041,7 +877,7 @@ ggplot(dat, aes(x = lat, y = long, fill = prop)) +
     ggtitle('Gotway Hessian Fly')
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-19-1.png" width="672" />
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
 
 -   Fixed effects ($\beta$) = genotype
 
@@ -1057,54 +893,44 @@ flymodel <-
         nAGQ = 5
     )
 summary(flymodel)
-```
-
-```
-## Generalized linear mixed model fit by maximum likelihood (Adaptive
-##   Gauss-Hermite Quadrature, nAGQ = 5) [glmerMod]
-##  Family: binomial  ( logit )
-## Formula: cbind(y, n - y) ~ gen + (1 | block)
-##    Data: dat
-## 
-##      AIC      BIC   logLik deviance df.resid 
-##    162.2    198.9    -64.1    128.2       47 
-## 
-## Scaled residuals: 
-##      Min       1Q   Median       3Q      Max 
-## -2.38644 -1.01188  0.09631  1.03468  2.75479 
-## 
-## Random effects:
-##  Groups Name        Variance Std.Dev.
-##  block  (Intercept) 0.001022 0.03196 
-## Number of obs: 64, groups:  block, 4
-## 
-## Fixed effects:
-##             Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)   1.5035     0.3914   3.841 0.000122 ***
-## genG02       -0.1939     0.5302  -0.366 0.714644    
-## genG03       -0.5408     0.5103  -1.060 0.289260    
-## genG04       -1.4342     0.4714  -3.043 0.002346 ** 
-## genG05       -0.2037     0.5429  -0.375 0.707486    
-## genG06       -0.9783     0.5046  -1.939 0.052533 .  
-## genG07       -0.6041     0.5111  -1.182 0.237235    
-## genG08       -1.6774     0.4907  -3.418 0.000630 ***
-## genG09       -1.3984     0.4725  -2.960 0.003078 ** 
-## genG10       -0.6817     0.5333  -1.278 0.201181    
-## genG11       -1.4630     0.4843  -3.021 0.002522 ** 
-## genG12       -1.4591     0.4918  -2.967 0.003010 ** 
-## genG13       -3.5528     0.6600  -5.383 7.31e-08 ***
-## genG14       -2.5073     0.5264  -4.763 1.90e-06 ***
-## genG15       -2.0872     0.4851  -4.302 1.69e-05 ***
-## genG16       -2.9697     0.5383  -5.517 3.46e-08 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-```
-
-```
-## 
-## Correlation matrix not shown by default, as p = 16 > 12.
-## Use print(x, correlation=TRUE)  or
-##     vcov(x)        if you need it
+#> Generalized linear mixed model fit by maximum likelihood (Adaptive
+#>   Gauss-Hermite Quadrature, nAGQ = 5) [glmerMod]
+#>  Family: binomial  ( logit )
+#> Formula: cbind(y, n - y) ~ gen + (1 | block)
+#>    Data: dat
+#> 
+#>      AIC      BIC   logLik deviance df.resid 
+#>    162.2    198.9    -64.1    128.2       47 
+#> 
+#> Scaled residuals: 
+#>      Min       1Q   Median       3Q      Max 
+#> -2.38644 -1.01188  0.09631  1.03468  2.75479 
+#> 
+#> Random effects:
+#>  Groups Name        Variance Std.Dev.
+#>  block  (Intercept) 0.001022 0.03196 
+#> Number of obs: 64, groups:  block, 4
+#> 
+#> Fixed effects:
+#>             Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept)   1.5035     0.3914   3.841 0.000122 ***
+#> genG02       -0.1939     0.5302  -0.366 0.714644    
+#> genG03       -0.5408     0.5103  -1.060 0.289260    
+#> genG04       -1.4342     0.4714  -3.043 0.002346 ** 
+#> genG05       -0.2037     0.5429  -0.375 0.707486    
+#> genG06       -0.9783     0.5046  -1.939 0.052533 .  
+#> genG07       -0.6041     0.5111  -1.182 0.237235    
+#> genG08       -1.6774     0.4907  -3.418 0.000630 ***
+#> genG09       -1.3984     0.4725  -2.960 0.003078 ** 
+#> genG10       -0.6817     0.5333  -1.278 0.201181    
+#> genG11       -1.4630     0.4843  -3.021 0.002522 ** 
+#> genG12       -1.4591     0.4918  -2.967 0.003010 ** 
+#> genG13       -3.5528     0.6600  -5.383 7.31e-08 ***
+#> genG14       -2.5073     0.5264  -4.763 1.90e-06 ***
+#> genG15       -2.0872     0.4851  -4.302 1.69e-05 ***
+#> genG16       -2.9697     0.5383  -5.517 3.46e-08 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
 Equivalently, we can use `MCMCglmm` , for a Bayesian approach
@@ -1122,14 +948,14 @@ Bayes_flymodel <- MCMCglmm(
 plot(Bayes_flymodel$Sol[, 1], main = dimnames(Bayes_flymodel$Sol)[[2]][1])
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-21-1.png" width="672" />
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
 autocorr.plot(Bayes_flymodel$Sol[,1],main=dimnames(Bayes_flymodel$Sol)[[2]][1])
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-22-1.png" width="672" />
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
 
 ### Example from [@Schabenberger_2001] section 8.4.1
 
@@ -1163,7 +989,7 @@ dat2 <- dat2 %>% group_by(tn) %>% mutate(
 ggplot(dat2, aes(x = r, y = cumv)) + geom_point(size = 0.5) + facet_wrap(vars(z))
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-24-1.png" width="672" />
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
 
 The proposed non-linear model:
 
@@ -1180,30 +1006,6 @@ where
 
 ```r
 library(nlme)
-```
-
-```
-## Warning: package 'nlme' was built under R version 4.0.5
-```
-
-```
-## 
-## Attaching package: 'nlme'
-```
-
-```
-## The following object is masked from 'package:dplyr':
-## 
-##     collapse
-```
-
-```
-## The following object is masked from 'package:lme4':
-## 
-##     lmList
-```
-
-```r
 tmp <-
     nlme(
         cumv ~ (b0 + (b1 + u1) * (dbh * dbh * totht / 1000)) * (exp(-(b2 + u2) *
@@ -1223,67 +1025,58 @@ tmp <-
         ))
     )
 summary(tmp)
-```
-
-```
-## Nonlinear mixed-effects model fit by maximum likelihood
-##   Model: cumv ~ (b0 + (b1 + u1) * (dbh * dbh * totht/1000)) * (exp(-(b2 +      u2) * (t/1000) * exp(b3 * t))) 
-##   Data: dat2 
-##        AIC      BIC    logLik
-##   31103.73 31151.33 -15544.86
-## 
-## Random effects:
-##  Formula: list(u1 ~ 1, u2 ~ 1)
-##  Level: tn
-##  Structure: Diagonal
-##                u1       u2 Residual
-## StdDev: 0.1508094 0.447829 2.226361
-## 
-## Fixed effects:  b0 + b1 + b2 + b3 ~ 1 
-##       Value  Std.Error   DF  t-value p-value
-## b0 0.249386 0.12894686 6297   1.9340  0.0532
-## b1 2.288832 0.01266805 6297 180.6776  0.0000
-## b2 2.500497 0.05606685 6297  44.5985  0.0000
-## b3 6.848871 0.02140677 6297 319.9395  0.0000
-##  Correlation: 
-##    b0     b1     b2    
-## b1 -0.639              
-## b2  0.054  0.056       
-## b3 -0.011 -0.066 -0.850
-## 
-## Standardized Within-Group Residuals:
-##           Min            Q1           Med            Q3           Max 
-## -6.694575e+00 -3.081861e-01 -8.910696e-05  3.469469e-01  7.855665e+00 
-## 
-## Number of Observations: 6636
-## Number of Groups: 336
-```
-
-```r
+#> Nonlinear mixed-effects model fit by maximum likelihood
+#>   Model: cumv ~ (b0 + (b1 + u1) * (dbh * dbh * totht/1000)) * (exp(-(b2 +      u2) * (t/1000) * exp(b3 * t))) 
+#>   Data: dat2 
+#>        AIC      BIC    logLik
+#>   31103.73 31151.33 -15544.86
+#> 
+#> Random effects:
+#>  Formula: list(u1 ~ 1, u2 ~ 1)
+#>  Level: tn
+#>  Structure: Diagonal
+#>                u1       u2 Residual
+#> StdDev: 0.1508094 0.447829 2.226361
+#> 
+#> Fixed effects:  b0 + b1 + b2 + b3 ~ 1 
+#>       Value  Std.Error   DF  t-value p-value
+#> b0 0.249386 0.12894686 6297   1.9340  0.0532
+#> b1 2.288832 0.01266805 6297 180.6776  0.0000
+#> b2 2.500497 0.05606685 6297  44.5985  0.0000
+#> b3 6.848871 0.02140677 6297 319.9395  0.0000
+#>  Correlation: 
+#>    b0     b1     b2    
+#> b1 -0.639              
+#> b2  0.054  0.056       
+#> b3 -0.011 -0.066 -0.850
+#> 
+#> Standardized Within-Group Residuals:
+#>           Min            Q1           Med            Q3           Max 
+#> -6.694575e+00 -3.081861e-01 -8.910696e-05  3.469469e-01  7.855665e+00 
+#> 
+#> Number of Observations: 6636
+#> Number of Groups: 336
 nlme::intervals(tmp)
-```
-
-```
-## Approximate 95% confidence intervals
-## 
-##  Fixed effects:
-##           lower      est.     upper
-## b0 -0.003318095 0.2493855 0.5020891
-## b1  2.264006138 2.2888323 2.3136585
-## b2  2.390619987 2.5004970 2.6103740
-## b3  6.806919317 6.8488712 6.8908232
-## attr(,"label")
-## [1] "Fixed effects:"
-## 
-##  Random Effects:
-##   Level: tn 
-##            lower      est.     upper
-## sd(u1) 0.1376080 0.1508094 0.1652772
-## sd(u2) 0.4056135 0.4478290 0.4944382
-## 
-##  Within-group standard error:
-##    lower     est.    upper 
-## 2.187260 2.226361 2.266161
+#> Approximate 95% confidence intervals
+#> 
+#>  Fixed effects:
+#>           lower      est.     upper
+#> b0 -0.003318095 0.2493855 0.5020891
+#> b1  2.264006138 2.2888323 2.3136585
+#> b2  2.390619987 2.5004970 2.6103740
+#> b3  6.806919317 6.8488712 6.8908232
+#> attr(,"label")
+#> [1] "Fixed effects:"
+#> 
+#>  Random Effects:
+#>   Level: tn 
+#>            lower      est.     upper
+#> sd(u1) 0.1376080 0.1508094 0.1652772
+#> sd(u2) 0.4056135 0.4478290 0.4944382
+#> 
+#>  Within-group standard error:
+#>    lower     est.    upper 
+#> 2.187260 2.226361 2.266161
 ```
 
 -   Little different from the book because of different implementation of nonlinear mixed models.
@@ -1353,7 +1146,7 @@ p3 <- ggplot(pred279)+geom_line(aes(x=r,y=test,color='with random'))+geom_line(a
 plot_grid(p1,p2,p3)
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-26-1.png" width="672" />
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-26-1.png" width="90%" style="display: block; margin: auto;" />
 
 red line = predicted observations based on the common fixed effects
 

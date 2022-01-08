@@ -92,7 +92,7 @@ y<-runif(1,0,20)*exp(runif(1,0.005,0.075)*x)+runif(101,0,5)
 plot(x,y)
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-1-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 #define our data frame
@@ -113,10 +113,7 @@ lin_mod=lm(log(y)~x,data=datf)
 astrt = exp(as.numeric(lin_mod$coef[1]))
 bstrt = as.numeric(lin_mod$coef[2])
 print(c(astrt,bstrt))
-```
-
-```
-## [1] 14.07964761  0.01855635
+#> [1] 14.07964761  0.01855635
 ```
 
 with `nls`, we can fit the nonlinear model via least squares
@@ -129,32 +126,26 @@ nlin_mod = nls(y ~ mod(a, b, x),
 
 #look at model fit summary
 summary(nlin_mod)
-```
-
-```
-## 
-## Formula: y ~ mod(a, b, x)
-## 
-## Parameters:
-##    Estimate Std. Error t value Pr(>|t|)    
-## a 13.603909   0.165390   82.25   <2e-16 ***
-## b  0.019110   0.000153  124.90   <2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 1.542 on 99 degrees of freedom
-## 
-## Number of iterations to convergence: 3 
-## Achieved convergence tolerance: 7.006e-07
-```
-
-```r
+#> 
+#> Formula: y ~ mod(a, b, x)
+#> 
+#> Parameters:
+#>    Estimate Std. Error t value Pr(>|t|)    
+#> a 13.603909   0.165390   82.25   <2e-16 ***
+#> b  0.019110   0.000153  124.90   <2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 1.542 on 99 degrees of freedom
+#> 
+#> Number of iterations to convergence: 3 
+#> Achieved convergence tolerance: 7.006e-07
 #add prediction to plot
 plot(x, y)
 lines(x, predict(nlin_mod), col = "red")
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
 
 ### Nonlinear
 
@@ -566,21 +557,15 @@ bstrt = SSout[mn_indx,2]
 nlin_modG=nls(y~mod(a,b,x),start=list(a=astrt,b=bstrt)) 
 
 nlin_modG
-```
-
-```
-## Nonlinear regression model
-##   model: y ~ mod(a, b, x)
-##    data: parent.frame()
-##        a        b 
-## 13.60391  0.01911 
-##  residual sum-of-squares: 235.5
-## 
-## Number of iterations to convergence: 3 
-## Achieved convergence tolerance: 2.293e-07
-```
-
-```r
+#> Nonlinear regression model
+#>   model: y ~ mod(a, b, x)
+#>    data: parent.frame()
+#>        a        b 
+#> 13.60391  0.01911 
+#>  residual sum-of-squares: 235.5
+#> 
+#> Number of iterations to convergence: 3 
+#> Achieved convergence tolerance: 2.293e-07
 # Note, the package `nls_multstart` will allow you to do a grid search without programming your own loop
 ```
 
@@ -599,19 +584,16 @@ plotFit(
 )  
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-5-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
 
 Based on the forms of your function, you can also have programmed starting values from `nls` function (e.e.g, logistic growth, asymptotic regression, etc).
 
 
 ```r
 apropos("^SS")
-```
-
-```
-##  [1] "ss"          "SSasymp"     "SSasympOff"  "SSasympOrig" "SSbiexp"    
-##  [6] "SSD"         "SSfol"       "SSfpl"       "SSgompertz"  "SSlogis"    
-## [11] "SSmicmen"    "SSout"       "SSweibull"
+#>  [1] "ss"          "SSasymp"     "SSasympOff"  "SSasympOrig" "SSbiexp"    
+#>  [6] "SSD"         "SSfol"       "SSfpl"       "SSgompertz"  "SSlogis"    
+#> [11] "SSmicmen"    "SSout"       "SSweibull"
 ```
 
 For example, a logistic growth model:
@@ -652,39 +634,30 @@ population <- c(2.8, 4.2, 3.5, 6.3, 15.7, 21.3, 23.7, 25.1, 25.8, 25.9)
 plot(time, population, las = 1, pch = 16)
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-7-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 # model fitting
 logisticModelSS <- nls(population ~ SSlogis(time, Asym, xmid, scal))
 summary(logisticModelSS)
-```
-
-```
-## 
-## Formula: population ~ SSlogis(time, Asym, xmid, scal)
-## 
-## Parameters:
-##      Estimate Std. Error t value Pr(>|t|)    
-## Asym  25.5029     0.3666   69.56 3.34e-11 ***
-## xmid   8.7347     0.3007   29.05 1.48e-08 ***
-## scal   3.6353     0.2186   16.63 6.96e-07 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 0.6528 on 7 degrees of freedom
-## 
-## Number of iterations to convergence: 1 
-## Achieved convergence tolerance: 1.908e-06
-```
-
-```r
+#> 
+#> Formula: population ~ SSlogis(time, Asym, xmid, scal)
+#> 
+#> Parameters:
+#>      Estimate Std. Error t value Pr(>|t|)    
+#> Asym  25.5029     0.3666   69.56 3.34e-11 ***
+#> xmid   8.7347     0.3007   29.05 1.48e-08 ***
+#> scal   3.6353     0.2186   16.63 6.96e-07 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 0.6528 on 7 degrees of freedom
+#> 
+#> Number of iterations to convergence: 1 
+#> Achieved convergence tolerance: 1.908e-06
 coef(logisticModelSS)
-```
-
-```
-##      Asym      xmid      scal 
-## 25.502890  8.734698  3.635333
+#>      Asym      xmid      scal 
+#> 25.502890  8.734698  3.635333
 ```
 
 Other parameterization
@@ -698,24 +671,21 @@ Pos = - rs * as.numeric(coef(logisticModelSS)[2])
 #let's refit with these parameters
 logisticModel <- nls(population ~ K / (1 + exp(Po + r * time)),start=list(Po=Pos,r=rs,K=Ks))
 summary(logisticModel)
-```
-
-```
-## 
-## Formula: population ~ K/(1 + exp(Po + r * time))
-## 
-## Parameters:
-##    Estimate Std. Error t value Pr(>|t|)    
-## Po  2.40272    0.12702   18.92 2.87e-07 ***
-## r  -0.27508    0.01654  -16.63 6.96e-07 ***
-## K  25.50289    0.36665   69.56 3.34e-11 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 0.6528 on 7 degrees of freedom
-## 
-## Number of iterations to convergence: 0 
-## Achieved convergence tolerance: 1.924e-06
+#> 
+#> Formula: population ~ K/(1 + exp(Po + r * time))
+#> 
+#> Parameters:
+#>    Estimate Std. Error t value Pr(>|t|)    
+#> Po  2.40272    0.12702   18.92 2.87e-07 ***
+#> r  -0.27508    0.01654  -16.63 6.96e-07 ***
+#> K  25.50289    0.36665   69.56 3.34e-11 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 0.6528 on 7 degrees of freedom
+#> 
+#> Number of iterations to convergence: 0 
+#> Achieved convergence tolerance: 1.924e-06
 ```
 
 
@@ -725,7 +695,7 @@ plot(time, population, las = 1, pch = 16)
 lines(time, predict(logisticModel), col = "red")
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-9-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
 
 If can also define your own self-starting fucntion if your models are uncommon (built in `nls`)
 
@@ -746,7 +716,7 @@ dat.plot <-
 dat.plot
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-10-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
 
 The suggested model (known as plateau model) is
 
@@ -838,51 +808,42 @@ plotFit(
 )
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-14-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
 summary(sep30_nls)
-```
-
-```
-## 
-## Formula: ryp ~ SS_nonlinModel(predictor = no3, b0, b1, alpha)
-## 
-## Parameters:
-##       Estimate Std. Error t value Pr(>|t|)    
-## b0     15.1943     2.9781   5.102 6.89e-07 ***
-## b1      3.5760     0.1853  19.297  < 2e-16 ***
-## alpha  23.1324     0.5098  45.373  < 2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 8.258 on 237 degrees of freedom
-## 
-## Number of iterations to convergence: 6 
-## Achieved convergence tolerance: 3.608e-09
-```
-
-```r
+#> 
+#> Formula: ryp ~ SS_nonlinModel(predictor = no3, b0, b1, alpha)
+#> 
+#> Parameters:
+#>       Estimate Std. Error t value Pr(>|t|)    
+#> b0     15.1943     2.9781   5.102 6.89e-07 ***
+#> b1      3.5760     0.1853  19.297  < 2e-16 ***
+#> alpha  23.1324     0.5098  45.373  < 2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 8.258 on 237 degrees of freedom
+#> 
+#> Number of iterations to convergence: 6 
+#> Achieved convergence tolerance: 3.608e-09
 summary(sep60_nls)
-```
-
-```
-## 
-## Formula: ryp ~ SS_nonlinModel(predictor = no3, b0, b1, alpha)
-## 
-## Parameters:
-##       Estimate Std. Error t value Pr(>|t|)    
-## b0      5.4519     2.9785    1.83   0.0684 .  
-## b1      5.6820     0.2529   22.46   <2e-16 ***
-## alpha  16.2863     0.2818   57.80   <2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 7.427 on 237 degrees of freedom
-## 
-## Number of iterations to convergence: 5 
-## Achieved convergence tolerance: 8.571e-09
+#> 
+#> Formula: ryp ~ SS_nonlinModel(predictor = no3, b0, b1, alpha)
+#> 
+#> Parameters:
+#>       Estimate Std. Error t value Pr(>|t|)    
+#> b0      5.4519     2.9785    1.83   0.0684 .  
+#> b1      5.6820     0.2529   22.46   <2e-16 ***
+#> alpha  16.2863     0.2818   57.80   <2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 7.427 on 237 degrees of freedom
+#> 
+#> Number of iterations to convergence: 5 
+#> Achieved convergence tolerance: 8.571e-09
 ```
 
 Instead of modeling the depths model separately we model them together - so there is a common slope, intercept, and plateau.
@@ -893,27 +854,21 @@ red_nls <-
   nls(ryp ~ SS_nonlinModel(predictor = no3, b0, b1, alpha), data = dat)
 
 summary(red_nls)
-```
-
-```
-## 
-## Formula: ryp ~ SS_nonlinModel(predictor = no3, b0, b1, alpha)
-## 
-## Parameters:
-##       Estimate Std. Error t value Pr(>|t|)    
-## b0      8.7901     2.7688   3.175   0.0016 ** 
-## b1      4.8995     0.2207  22.203   <2e-16 ***
-## alpha  18.0333     0.3242  55.630   <2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 9.13 on 477 degrees of freedom
-## 
-## Number of iterations to convergence: 7 
-## Achieved convergence tolerance: 7.126e-09
-```
-
-```r
+#> 
+#> Formula: ryp ~ SS_nonlinModel(predictor = no3, b0, b1, alpha)
+#> 
+#> Parameters:
+#>       Estimate Std. Error t value Pr(>|t|)    
+#> b0      8.7901     2.7688   3.175   0.0016 ** 
+#> b1      4.8995     0.2207  22.203   <2e-16 ***
+#> alpha  18.0333     0.3242  55.630   <2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 9.13 on 477 degrees of freedom
+#> 
+#> Number of iterations to convergence: 7 
+#> Achieved convergence tolerance: 7.126e-09
 par(mfrow = c(1, 1))
 plotFit(
   red_nls,
@@ -929,7 +884,7 @@ plotFit(
 )
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/reduce-model-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/reduce-model-1.png" width="90%" style="display: block; margin: auto;" />
 
 Examine residual values for the combined model.
 
@@ -943,7 +898,7 @@ resid <- nlsResiduals(red_nls)
 plot(resid)
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/reduce-model-resid-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/reduce-model-resid-1.png" width="90%" style="display: block; margin: auto;" />
 
 can we test whether the parameters for the two soil depth fits are significantly different? To know if the combined model is appropriate, we consider a parameterization where we let the parameters for the 60cm model be equal to the parameters from the 30cm model plus some increment:
 
@@ -982,28 +937,25 @@ Soil_full=nls(ryp~nonlinModelF(predictor=no3,soildep=depth,b01,b11,a1,d0,d1,da),
               start=list(b01=15.2,b11=3.58,a1=23.13,d0=-9.74,d1=2.11,da=-6.85)) 
 
 summary(Soil_full)
-```
-
-```
-## 
-## Formula: ryp ~ nonlinModelF(predictor = no3, soildep = depth, b01, b11, 
-##     a1, d0, d1, da)
-## 
-## Parameters:
-##     Estimate Std. Error t value Pr(>|t|)    
-## b01  15.1943     2.8322   5.365 1.27e-07 ***
-## b11   3.5760     0.1762  20.291  < 2e-16 ***
-## a1   23.1324     0.4848  47.711  < 2e-16 ***
-## d0   -9.7424     4.2357  -2.300   0.0219 *  
-## d1    2.1060     0.3203   6.575 1.29e-10 ***
-## da   -6.8461     0.5691 -12.030  < 2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 7.854 on 474 degrees of freedom
-## 
-## Number of iterations to convergence: 1 
-## Achieved convergence tolerance: 3.742e-06
+#> 
+#> Formula: ryp ~ nonlinModelF(predictor = no3, soildep = depth, b01, b11, 
+#>     a1, d0, d1, da)
+#> 
+#> Parameters:
+#>     Estimate Std. Error t value Pr(>|t|)    
+#> b01  15.1943     2.8322   5.365 1.27e-07 ***
+#> b11   3.5760     0.1762  20.291  < 2e-16 ***
+#> a1   23.1324     0.4848  47.711  < 2e-16 ***
+#> d0   -9.7424     4.2357  -2.300   0.0219 *  
+#> d1    2.1060     0.3203   6.575 1.29e-10 ***
+#> da   -6.8461     0.5691 -12.030  < 2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 7.854 on 474 degrees of freedom
+#> 
+#> Number of iterations to convergence: 1 
+#> Achieved convergence tolerance: 3.742e-06
 ```
 
 So, the increment parameters, $d_1$,$d_2$,$d_a$ are all significantly different from 0, suggesting that we should have two models here.
@@ -1041,11 +993,8 @@ modD = deriv3(~ a*exp(b*x), c("a","b"),function(a,b,x) NULL)
 nlin_modD=nls(y~modD(a,b,x),start=list(a=astrt,b=bstrt),data=datf)
 
 rms.curv(nlin_modD)
-```
-
-```
-## Parameter effects: c^theta x sqrt(F) = 0.0626 
-##         Intrinsic: c^iota  x sqrt(F) = 0.0062
+#> Parameter effects: c^theta x sqrt(F) = 0.0626 
+#>         Intrinsic: c^iota  x sqrt(F) = 0.0062
 ```
 
 In linear model, we have [Linear Regression], we have goodness of fit measure as $R^2$:
@@ -1104,63 +1053,22 @@ where $i = 1,..,n$
 Get the starting values
 
 
-```
-## Warning: package 'dplyr' was built under R version 4.0.5
-```
-
-```
-## 
-## Attaching package: 'dplyr'
-```
-
-```
-## The following object is masked from 'package:MASS':
-## 
-##     select
-```
-
-```
-## The following object is masked from 'package:kableExtra':
-## 
-##     group_rows
-```
-
-```
-## The following objects are masked from 'package:stats':
-## 
-##     filter, lag
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-```
 
 
 ```r
 plot(my_data)
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-18-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;" />
 
 We notice that $Y_{max} = \theta_0 + \theta_1 x_i$ in which we can find x_i from data
 
 
 ```r
 max(my_data$y)
-```
-
-```
-## [1] 2.6722
-```
-
-```r
+#> [1] 2.6722
 my_data$x[which.max(my_data$y)]
-```
-
-```
-## [1] 0.0094
+#> [1] 0.0094
 ```
 
 hence, x = 0.0094 when y = 2.6722 when we have the first equation as
@@ -1181,26 +1089,11 @@ then we can find this average numbers of x and y
 
 ```r
 mean(my_data$y) #find mean y
-```
-
-```
-## [1] -0.0747864
-```
-
-```r
+#> [1] -0.0747864
 my_data$y[which.min(abs(my_data$y-(mean(my_data$y))))] # find y closest to its mean
-```
-
-```
-## [1] -0.0773
-```
-
-```r
+#> [1] -0.0773
 my_data$x[which.min(abs(my_data$y-(mean(my_data$y))))] #find x closest to the mean y
-```
-
-```
-## [1] 11.0648
+#> [1] 11.0648
 ```
 
 we have the second equation
@@ -1215,26 +1108,11 @@ Thirdly, we can plug in the value of x closest to 1 to find the value of y
 
 ```r
 my_data$x[which.min(abs(my_data$x-1))] # find value of x closet to 1
-```
-
-```
-## [1] 0.9895
-```
-
-```r
+#> [1] 0.9895
 match(my_data$x[which.min(abs(my_data$x-1))], my_data$x) # find index of x closest to 1
-```
-
-```
-## [1] 14
-```
-
-```r
+#> [1] 14
 my_data$y[match(my_data$x[which.min(abs(my_data$x-1))], my_data$x)]# find y value
-```
-
-```
-## [1] 1.4577
+#> [1] 1.4577
 ```
 
 hence we have
@@ -1256,32 +1134,16 @@ $$
 
 ```r
 library(matlib) 
-```
-
-```
-## Warning: package 'matlib' was built under R version 4.0.5
-```
-
-```r
 A = matrix(c(0,0.0094, 0, 0,0, 83.58967, 1, 0.9895, - 2.164479), nrow = 3, ncol = 3, byrow = T)
 b = c(2.6722,1,1.457 )
 showEqn(A, b)
-```
-
-```
-## 0*x1 + 0.0094*x2        + 0*x3  =  2.6722 
-## 0*x1      + 0*x2 + 83.58967*x3  =       1 
-## 1*x1 + 0.9895*x2 - 2.164479*x3  =   1.457
-```
-
-```r
+#> 0*x1 + 0.0094*x2        + 0*x3  =  2.6722 
+#> 0*x1      + 0*x2 + 83.58967*x3  =       1 
+#> 1*x1 + 0.9895*x2 - 2.164479*x3  =   1.457
 Solve(A, b, fractions = F)
-```
-
-```
-## x1      =  -279.80879739 
-##   x2    =   284.27659574 
-##     x3  =      0.0119632
+#> x1      =  -279.80879739 
+#>   x2    =   284.27659574 
+#>     x3  =      0.0119632
 ```
 
 Construct manually [Gauss-Newton Algorithm]
@@ -1368,59 +1230,38 @@ repeat {
     }
 }
 delta
-```
-
-```
-##               [,1]        [,2]        [,3]       [,4]       [,5]       [,6]
-## [1,]  2.811840e+02 -0.03929013  0.43160654  0.6904856  0.6746748  0.4056460
-## [2,] -2.846545e+02  0.03198446 -0.16403964 -0.2895487 -0.2933345 -0.1734087
-## [3,] -1.804567e-05  0.01530258  0.05137285  0.1183271  0.1613129  0.1160404
-##             [,7] [,8]
-## [1,]  0.09517681   NA
-## [2,] -0.03928239   NA
-## [3,]  0.03004911   NA
-```
-
-```r
+#>               [,1]        [,2]        [,3]       [,4]       [,5]       [,6]
+#> [1,]  2.811840e+02 -0.03929013  0.43160654  0.6904856  0.6746748  0.4056460
+#> [2,] -2.846545e+02  0.03198446 -0.16403964 -0.2895487 -0.2933345 -0.1734087
+#> [3,] -1.804567e-05  0.01530258  0.05137285  0.1183271  0.1613129  0.1160404
+#>             [,7] [,8]
+#> [1,]  0.09517681   NA
+#> [2,] -0.03928239   NA
+#> [3,]  0.03004911   NA
 theta_vec
-```
-
-```
-##              [,1]        [,2]        [,3]        [,4]       [,5]       [,6]
-## [1,] -279.8087974  1.37521388  1.33592375  1.76753029  2.4580158  3.1326907
-## [2,]  284.2765957 -0.37788712 -0.34590266 -0.50994230 -0.7994910 -1.0928255
-## [3,]    0.0119632  0.01194515  0.02724773  0.07862059  0.1969477  0.3582607
-##            [,7]       [,8]
-## [1,]  3.5383367  3.6335135
-## [2,] -1.2662342 -1.3055166
-## [3,]  0.4743011  0.5043502
-```
-
-```r
+#>              [,1]        [,2]        [,3]        [,4]       [,5]       [,6]
+#> [1,] -279.8087974  1.37521388  1.33592375  1.76753029  2.4580158  3.1326907
+#> [2,]  284.2765957 -0.37788712 -0.34590266 -0.50994230 -0.7994910 -1.0928255
+#> [3,]    0.0119632  0.01194515  0.02724773  0.07862059  0.1969477  0.3582607
+#>            [,7]       [,8]
+#> [1,]  3.5383367  3.6335135
+#> [2,] -1.2662342 -1.3055166
+#> [3,]  0.4743011  0.5043502
 head(f_theta)
-```
-
-```
-##           [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]     [,8]
-## [1,] -273.8482 1.355410 1.297194 1.633802 2.046023 2.296554 2.389041 2.404144
-## [2,] -209.0859 1.268192 1.216738 1.514575 1.863098 2.059505 2.126009 2.135969
-## [3,] -190.3323 1.242916 1.193433 1.480136 1.810629 1.992095 2.051603 2.060202
-## [4,] -177.1891 1.225196 1.177099 1.456024 1.774000 1.945197 1.999945 2.007625
-## [5,] -148.5872 1.186618 1.141549 1.403631 1.694715 1.844154 1.888953 1.894730
-## [6,] -119.9585 1.147980 1.105961 1.351301 1.615968 1.744450 1.779859 1.783866
-```
-
-```r
+#>           [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]     [,8]
+#> [1,] -273.8482 1.355410 1.297194 1.633802 2.046023 2.296554 2.389041 2.404144
+#> [2,] -209.0859 1.268192 1.216738 1.514575 1.863098 2.059505 2.126009 2.135969
+#> [3,] -190.3323 1.242916 1.193433 1.480136 1.810629 1.992095 2.051603 2.060202
+#> [4,] -177.1891 1.225196 1.177099 1.456024 1.774000 1.945197 1.999945 2.007625
+#> [5,] -148.5872 1.186618 1.141549 1.403631 1.694715 1.844154 1.888953 1.894730
+#> [6,] -119.9585 1.147980 1.105961 1.351301 1.615968 1.744450 1.779859 1.783866
 # estimate sigma^2 
 
 sigma2 = 1 / (nrow(my_data) - 3) * (t(my_data$y - (f_theta[, ncol(f_theta)]))) %*%
     (my_data$y - (f_theta[, ncol(f_theta)])) # p = 3
 sigma2
-```
-
-```
-##           [,1]
-## [1,] 0.0801686
+#>           [,1]
+#> [1,] 0.0801686
 ```
 
 After 8 iterations, my function has converged. And objective function value at convergence is
@@ -1428,10 +1269,7 @@ After 8 iterations, my function has converged. And objective function value at c
 
 ```r
 sum((my_data$y - f_theta[,i])^2)
-```
-
-```
-## [1] 19.80165
+#> [1] 19.80165
 ```
 
 and the parameters of $\theta$s are
@@ -1439,10 +1277,7 @@ and the parameters of $\theta$s are
 
 ```r
 theta_vec[,ncol(theta_vec)]
-```
-
-```
-## [1]  3.6335135 -1.3055166  0.5043502
+#> [1]  3.6335135 -1.3055166  0.5043502
 ```
 
 and the asymptotic variance covariance matrix is
@@ -1450,13 +1285,10 @@ and the asymptotic variance covariance matrix is
 
 ```r
 as.numeric(sigma2)*as.matrix(solve(crossprod(F_theta_0)))
-```
-
-```
-##             [,1]        [,2]        [,3]
-## [1,]  0.11552571 -0.04817428  0.02685848
-## [2,] -0.04817428  0.02100861 -0.01158212
-## [3,]  0.02685848 -0.01158212  0.00703916
+#>             [,1]        [,2]        [,3]
+#> [1,]  0.11552571 -0.04817428  0.02685848
+#> [2,] -0.04817428  0.02100861 -0.01158212
+#> [3,]  0.02685848 -0.01158212  0.00703916
 ```
 
 Issue that I encounter in this problem was that it was very sensitive to starting values. when I tried the value of 1 for all $\theta$s, I have vastly different parameter estimates. Then, I try to use the model interpretation to try to find reasonable starting values.
@@ -1467,18 +1299,15 @@ Check with predefined function in nls
 ```r
 nlin_4 = nls(y ~ mod_4(theta_0,theta_1, theta_2, x), start = list(theta_0=-279.80879739 ,theta_1=284.27659574 , theta_2=0.0119632), data = my_data)
 nlin_4
-```
-
-```
-## Nonlinear regression model
-##   model: y ~ mod_4(theta_0, theta_1, theta_2, x)
-##    data: my_data
-## theta_0 theta_1 theta_2 
-##  3.6359 -1.3064  0.5053 
-##  residual sum-of-squares: 19.8
-## 
-## Number of iterations to convergence: 9 
-## Achieved convergence tolerance: 2.294e-07
+#> Nonlinear regression model
+#>   model: y ~ mod_4(theta_0, theta_1, theta_2, x)
+#>    data: my_data
+#> theta_0 theta_1 theta_2 
+#>  3.6359 -1.3064  0.5053 
+#>  residual sum-of-squares: 19.8
+#> 
+#> Number of iterations to convergence: 9 
+#> Achieved convergence tolerance: 2.294e-07
 ```
 
 # Generalized Linear Models {#generalized-linear-models}
@@ -1676,42 +1505,9 @@ For new observation, we can have a cutoff point to decide whether y = 0 or 1.
 library(kableExtra)
 library(dplyr)
 library(pscl)
-```
-
-```
-## Classes and Methods for R developed in the
-## Political Science Computational Laboratory
-## Department of Political Science
-## Stanford University
-## Simon Jackman
-## hurdle and zeroinfl functions by Achim Zeileis
-```
-
-```r
 library(ggplot2)
 library(faraway)
-```
-
-```
-## 
-## Attaching package: 'faraway'
-```
-
-```
-## The following object is masked from 'package:investr':
-## 
-##     beetle
-```
-
-```r
 library(nnet)
-```
-
-```
-## Warning: package 'nnet' was built under R version 4.0.5
-```
-
-```r
 library(agridat)
 library(nlstools)
 ```
@@ -1752,51 +1548,36 @@ Logistic_Model <- glm(formula = Y ~ X,
                       family = binomial, # family = specifies the response distribution
                       data = BinData)
 summary(Logistic_Model)
-```
-
-```
-## 
-## Call:
-## glm(formula = Y ~ X, family = binomial, data = BinData)
-## 
-## Deviance Residuals: 
-##     Min       1Q   Median       3Q      Max  
-## -2.2317   0.4153   0.5574   0.7922   1.1469  
-## 
-## Coefficients:
-##             Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)  0.46205    0.10201   4.530 5.91e-06 ***
-## X            0.78527    0.09296   8.447  < 2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for binomial family taken to be 1)
-## 
-##     Null deviance: 1106.7  on 999  degrees of freedom
-## Residual deviance: 1027.4  on 998  degrees of freedom
-## AIC: 1031.4
-## 
-## Number of Fisher Scoring iterations: 4
-```
-
-```r
+#> 
+#> Call:
+#> glm(formula = Y ~ X, family = binomial, data = BinData)
+#> 
+#> Deviance Residuals: 
+#>     Min       1Q   Median       3Q      Max  
+#> -2.2317   0.4153   0.5574   0.7922   1.1469  
+#> 
+#> Coefficients:
+#>             Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept)  0.46205    0.10201   4.530 5.91e-06 ***
+#> X            0.78527    0.09296   8.447  < 2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> (Dispersion parameter for binomial family taken to be 1)
+#> 
+#>     Null deviance: 1106.7  on 999  degrees of freedom
+#> Residual deviance: 1027.4  on 998  degrees of freedom
+#> AIC: 1031.4
+#> 
+#> Number of Fisher Scoring iterations: 4
 nlstools::confint2(Logistic_Model)
-```
-
-```
-##                 2.5 %    97.5 %
-## (Intercept) 0.2618709 0.6622204
-## X           0.6028433 0.9676934
-```
-
-```r
+#>                 2.5 %    97.5 %
+#> (Intercept) 0.2618709 0.6622204
+#> X           0.6028433 0.9676934
 OddsRatio <- coef(Logistic_Model) %>% exp
 OddsRatio 
-```
-
-```
-## (Intercept)           X 
-##    1.587318    2.192995
+#> (Intercept)           X 
+#>    1.587318    2.192995
 ```
 
 Based on the odds ratio, when
@@ -1832,7 +1613,7 @@ plot(
 )
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-33-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-33-1.png" width="90%" style="display: block; margin: auto;" />
 
 However, this plot is not informative. Hence, we can can see the residudals plots that are grouped into bins based on prediction values.
 
@@ -1868,7 +1649,7 @@ plot_bin(Y = Logistic_Resids,
          bins = 100)
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-34-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-34-1.png" width="90%" style="display: block; margin: auto;" />
 
 We can also see the predicted value against the residuals.
 
@@ -1878,7 +1659,7 @@ Logistic_Predictions <- predict(Logistic_Model, type = "response")
 plot_bin(Y = Logistic_Resids, X = Logistic_Predictions, bins = 100)
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-35-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-35-1.png" width="90%" style="display: block; margin: auto;" />
 
 We can also look at a binned plot of the logistic prediction versus the true category
 
@@ -1892,27 +1673,21 @@ Binned_Data <- plot_bin(
   return.DF = TRUE
 )
 Binned_Data
-```
-
-```
-##    bin     Y_ave     X_ave Count
-## 1    1 0.5833333 0.5382095    72
-## 2    2 0.5200000 0.5795887    75
-## 3    3 0.6567164 0.6156540    67
-## 4    4 0.7014925 0.6579674    67
-## 5    5 0.6373626 0.6984765    91
-## 6    6 0.7500000 0.7373341    72
-## 7    7 0.7096774 0.7786747    93
-## 8    8 0.8503937 0.8203819   127
-## 9    9 0.8947368 0.8601232   133
-## 10  10 0.8916256 0.9004734   203
-```
-
-```r
+#>    bin     Y_ave     X_ave Count
+#> 1    1 0.5833333 0.5382095    72
+#> 2    2 0.5200000 0.5795887    75
+#> 3    3 0.6567164 0.6156540    67
+#> 4    4 0.7014925 0.6579674    67
+#> 5    5 0.6373626 0.6984765    91
+#> 6    6 0.7500000 0.7373341    72
+#> 7    7 0.7096774 0.7786747    93
+#> 8    8 0.8503937 0.8203819   127
+#> 9    9 0.8947368 0.8601232   133
+#> 10  10 0.8916256 0.9004734   203
 abline(0, 1, lty = 2, col = 'blue')
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-36-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-36-1.png" width="90%" style="display: block; margin: auto;" />
 
 **Formal deviance test**
 
@@ -1943,10 +1718,7 @@ HLpval <-
          df = NumBins,
          lower.tail = FALSE)
 HLpval
-```
-
-```
-## [1] 0.9999989
+#> [1] 0.9999989
 ```
 
 Since p-value = 0.99, we do not reject the null hypothesis (i.e., the model is fitting well).
@@ -2013,16 +1785,10 @@ Here, cancer case = successes, and control case = failures.
 ```r
 data("esoph")
 head(esoph, n = 3)
-```
-
-```
-##   agegp     alcgp    tobgp ncases ncontrols
-## 1 25-34 0-39g/day 0-9g/day      0        40
-## 2 25-34 0-39g/day    10-19      0        10
-## 3 25-34 0-39g/day    20-29      0         6
-```
-
-```r
+#>   agegp     alcgp    tobgp ncases ncontrols
+#> 1 25-34 0-39g/day 0-9g/day      0        40
+#> 2 25-34 0-39g/day    10-19      0        10
+#> 3 25-34 0-39g/day    20-29      0         6
 plot(
   esoph$ncases / (esoph$ncases + esoph$ncontrols) ~ esoph$alcgp,
   ylab = "Proportion",
@@ -2031,7 +1797,7 @@ plot(
 )
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-38-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-38-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 class(esoph$agegp) <- "factor"
@@ -2044,61 +1810,43 @@ class(esoph$tobgp) <- "factor"
 #  only the alcohol consumption as a predictor
 model <- glm(cbind(ncases, ncontrols) ~ alcgp, data = esoph, family = binomial)
 summary(model)
-```
-
-```
-## 
-## Call:
-## glm(formula = cbind(ncases, ncontrols) ~ alcgp, family = binomial, 
-##     data = esoph)
-## 
-## Deviance Residuals: 
-##     Min       1Q   Median       3Q      Max  
-## -3.6629  -1.0478  -0.0081   0.6307   3.0296  
-## 
-## Coefficients:
-##             Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)  -2.6610     0.1921 -13.854  < 2e-16 ***
-## alcgp40-79    1.1064     0.2303   4.804 1.56e-06 ***
-## alcgp80-119   1.6656     0.2525   6.597 4.20e-11 ***
-## alcgp120+     2.2630     0.2721   8.317  < 2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for binomial family taken to be 1)
-## 
-##     Null deviance: 227.24  on 87  degrees of freedom
-## Residual deviance: 138.79  on 84  degrees of freedom
-## AIC: 294.27
-## 
-## Number of Fisher Scoring iterations: 5
+#> 
+#> Call:
+#> glm(formula = cbind(ncases, ncontrols) ~ alcgp, family = binomial, 
+#>     data = esoph)
+#> 
+#> Deviance Residuals: 
+#>     Min       1Q   Median       3Q      Max  
+#> -3.6629  -1.0478  -0.0081   0.6307   3.0296  
+#> 
+#> Coefficients:
+#>             Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept)  -2.6610     0.1921 -13.854  < 2e-16 ***
+#> alcgp40-79    1.1064     0.2303   4.804 1.56e-06 ***
+#> alcgp80-119   1.6656     0.2525   6.597 4.20e-11 ***
+#> alcgp120+     2.2630     0.2721   8.317  < 2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> (Dispersion parameter for binomial family taken to be 1)
+#> 
+#>     Null deviance: 227.24  on 87  degrees of freedom
+#> Residual deviance: 138.79  on 84  degrees of freedom
+#> AIC: 294.27
+#> 
+#> Number of Fisher Scoring iterations: 5
 ```
 
 
 ```r
 #Coefficient Odds
 coefficients(model) %>% exp
-```
-
-```
-## (Intercept)  alcgp40-79 alcgp80-119   alcgp120+ 
-##  0.06987952  3.02331229  5.28860570  9.61142563
-```
-
-```r
+#> (Intercept)  alcgp40-79 alcgp80-119   alcgp120+ 
+#>  0.06987952  3.02331229  5.28860570  9.61142563
 deviance(model)/df.residual(model)
-```
-
-```
-## [1] 1.652253
-```
-
-```r
+#> [1] 1.652253
 model$aic
-```
-
-```
-## [1] 294.27
+#> [1] 294.27
 ```
 
 
@@ -2106,71 +1854,53 @@ model$aic
 # alcohol consumption and age as predictors
 better_model <- glm(cbind(ncases, ncontrols) ~ agegp + alcgp, data = esoph, family = binomial)
 summary(better_model)
-```
-
-```
-## 
-## Call:
-## glm(formula = cbind(ncases, ncontrols) ~ agegp + alcgp, family = binomial, 
-##     data = esoph)
-## 
-## Deviance Residuals: 
-##     Min       1Q   Median       3Q      Max  
-## -1.8979  -0.5592  -0.1995   0.5029   2.6250  
-## 
-## Coefficients:
-##             Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)  -5.6180     1.0217  -5.499 3.82e-08 ***
-## agegp35-44    1.5376     1.0646   1.444 0.148669    
-## agegp45-54    2.9470     1.0217   2.884 0.003922 ** 
-## agegp55-64    3.3116     1.0172   3.255 0.001132 ** 
-## agegp65-74    3.5774     1.0209   3.504 0.000458 ***
-## agegp75+      3.5858     1.0620   3.377 0.000734 ***
-## alcgp40-79    1.1392     0.2367   4.814 1.48e-06 ***
-## alcgp80-119   1.4951     0.2600   5.749 8.97e-09 ***
-## alcgp120+     2.2228     0.2843   7.820 5.29e-15 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for binomial family taken to be 1)
-## 
-##     Null deviance: 227.241  on 87  degrees of freedom
-## Residual deviance:  64.572  on 79  degrees of freedom
-## AIC: 230.05
-## 
-## Number of Fisher Scoring iterations: 6
+#> 
+#> Call:
+#> glm(formula = cbind(ncases, ncontrols) ~ agegp + alcgp, family = binomial, 
+#>     data = esoph)
+#> 
+#> Deviance Residuals: 
+#>     Min       1Q   Median       3Q      Max  
+#> -1.8979  -0.5592  -0.1995   0.5029   2.6250  
+#> 
+#> Coefficients:
+#>             Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept)  -5.6180     1.0217  -5.499 3.82e-08 ***
+#> agegp35-44    1.5376     1.0646   1.444 0.148669    
+#> agegp45-54    2.9470     1.0217   2.884 0.003922 ** 
+#> agegp55-64    3.3116     1.0172   3.255 0.001132 ** 
+#> agegp65-74    3.5774     1.0209   3.504 0.000458 ***
+#> agegp75+      3.5858     1.0620   3.377 0.000734 ***
+#> alcgp40-79    1.1392     0.2367   4.814 1.48e-06 ***
+#> alcgp80-119   1.4951     0.2600   5.749 8.97e-09 ***
+#> alcgp120+     2.2228     0.2843   7.820 5.29e-15 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> (Dispersion parameter for binomial family taken to be 1)
+#> 
+#>     Null deviance: 227.241  on 87  degrees of freedom
+#> Residual deviance:  64.572  on 79  degrees of freedom
+#> AIC: 230.05
+#> 
+#> Number of Fisher Scoring iterations: 6
 ```
 
 
 ```r
 better_model$aic #smaller AIC is better
-```
-
-```
-## [1] 230.0526
-```
-
-```r
+#> [1] 230.0526
 coefficients(better_model) %>% exp
-```
-
-```
-##  (Intercept)   agegp35-44   agegp45-54   agegp55-64   agegp65-74     agegp75+ 
-##  0.003631855  4.653273722 19.047899816 27.428640745 35.780787582 36.082010052 
-##   alcgp40-79  alcgp80-119    alcgp120+ 
-##  3.124334222  4.459579378  9.233256747
-```
-
-```r
+#>  (Intercept)   agegp35-44   agegp45-54   agegp55-64   agegp65-74     agegp75+ 
+#>  0.003631855  4.653273722 19.047899816 27.428640745 35.780787582 36.082010052 
+#>   alcgp40-79  alcgp80-119    alcgp120+ 
+#>  3.124334222  4.459579378  9.233256747
 pchisq(
     q = model$deviance - better_model$deviance,
     df = model$df.residual - better_model$df.residual,
     lower = FALSE
 )
-```
-
-```
-## [1] 1.354906e-14
+#> [1] 1.354906e-14
 ```
 
 
@@ -2182,39 +1912,36 @@ Prob_better_model <- glm(
     family = binomial(link = probit)
 )
 summary(Prob_better_model)
-```
-
-```
-## 
-## Call:
-## glm(formula = cbind(ncases, ncontrols) ~ agegp + alcgp, family = binomial(link = probit), 
-##     data = esoph)
-## 
-## Deviance Residuals: 
-##     Min       1Q   Median       3Q      Max  
-## -1.8676  -0.5938  -0.1802   0.4852   2.6056  
-## 
-## Coefficients:
-##             Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)  -2.9800     0.4291  -6.945 3.79e-12 ***
-## agegp35-44    0.6991     0.4491   1.557 0.119520    
-## agegp45-54    1.4212     0.4292   3.311 0.000929 ***
-## agegp55-64    1.6512     0.4262   3.874 0.000107 ***
-## agegp65-74    1.8039     0.4297   4.198 2.69e-05 ***
-## agegp75+      1.8025     0.4613   3.908 9.32e-05 ***
-## alcgp40-79    0.6224     0.1247   4.990 6.03e-07 ***
-## alcgp80-119   0.8256     0.1418   5.823 5.80e-09 ***
-## alcgp120+     1.2839     0.1596   8.043 8.77e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for binomial family taken to be 1)
-## 
-##     Null deviance: 227.241  on 87  degrees of freedom
-## Residual deviance:  61.938  on 79  degrees of freedom
-## AIC: 227.42
-## 
-## Number of Fisher Scoring iterations: 6
+#> 
+#> Call:
+#> glm(formula = cbind(ncases, ncontrols) ~ agegp + alcgp, family = binomial(link = probit), 
+#>     data = esoph)
+#> 
+#> Deviance Residuals: 
+#>     Min       1Q   Median       3Q      Max  
+#> -1.8676  -0.5938  -0.1802   0.4852   2.6056  
+#> 
+#> Coefficients:
+#>             Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept)  -2.9800     0.4291  -6.945 3.79e-12 ***
+#> agegp35-44    0.6991     0.4491   1.557 0.119520    
+#> agegp45-54    1.4212     0.4292   3.311 0.000929 ***
+#> agegp55-64    1.6512     0.4262   3.874 0.000107 ***
+#> agegp65-74    1.8039     0.4297   4.198 2.69e-05 ***
+#> agegp75+      1.8025     0.4613   3.908 9.32e-05 ***
+#> alcgp40-79    0.6224     0.1247   4.990 6.03e-07 ***
+#> alcgp80-119   0.8256     0.1418   5.823 5.80e-09 ***
+#> alcgp120+     1.2839     0.1596   8.043 8.77e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> (Dispersion parameter for binomial family taken to be 1)
+#> 
+#>     Null deviance: 227.241  on 87  degrees of freedom
+#> Residual deviance:  61.938  on 79  degrees of freedom
+#> AIC: 227.42
+#> 
+#> Number of Fisher Scoring iterations: 6
 ```
 
 ## Poisson Regression
@@ -2248,41 +1975,38 @@ bioChemists <- bioChemists %>%
 hist(bioChemists$Num_Article, breaks = 25, main = 'Number of Articles')
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-44-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-44-1.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
 Poisson_Mod <- glm(Num_Article ~ ., family=poisson, bioChemists)
 summary(Poisson_Mod)
-```
-
-```
-## 
-## Call:
-## glm(formula = Num_Article ~ ., family = poisson, data = bioChemists)
-## 
-## Deviance Residuals: 
-##     Min       1Q   Median       3Q      Max  
-## -3.5672  -1.5398  -0.3660   0.5722   5.4467  
-## 
-## Coefficients:
-##                  Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)      0.304617   0.102981   2.958   0.0031 ** 
-## SexWomen        -0.224594   0.054613  -4.112 3.92e-05 ***
-## MarriedMarried   0.155243   0.061374   2.529   0.0114 *  
-## Num_Kid5        -0.184883   0.040127  -4.607 4.08e-06 ***
-## PhD_Quality      0.012823   0.026397   0.486   0.6271    
-## Num_MentArticle  0.025543   0.002006  12.733  < 2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for poisson family taken to be 1)
-## 
-##     Null deviance: 1817.4  on 914  degrees of freedom
-## Residual deviance: 1634.4  on 909  degrees of freedom
-## AIC: 3314.1
-## 
-## Number of Fisher Scoring iterations: 5
+#> 
+#> Call:
+#> glm(formula = Num_Article ~ ., family = poisson, data = bioChemists)
+#> 
+#> Deviance Residuals: 
+#>     Min       1Q   Median       3Q      Max  
+#> -3.5672  -1.5398  -0.3660   0.5722   5.4467  
+#> 
+#> Coefficients:
+#>                  Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept)      0.304617   0.102981   2.958   0.0031 ** 
+#> SexWomen        -0.224594   0.054613  -4.112 3.92e-05 ***
+#> MarriedMarried   0.155243   0.061374   2.529   0.0114 *  
+#> Num_Kid5        -0.184883   0.040127  -4.607 4.08e-06 ***
+#> PhD_Quality      0.012823   0.026397   0.486   0.6271    
+#> Num_MentArticle  0.025543   0.002006  12.733  < 2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> (Dispersion parameter for poisson family taken to be 1)
+#> 
+#>     Null deviance: 1817.4  on 914  degrees of freedom
+#> Residual deviance: 1634.4  on 909  degrees of freedom
+#> AIC: 3314.1
+#> 
+#> Number of Fisher Scoring iterations: 5
 ```
 
 Residual of 1634 with 909 df isn't great.
@@ -2294,18 +2018,9 @@ We see Pearson $\chi^2$
 Predicted_Means <- predict(Poisson_Mod,type = "response")
 X2 <- sum((bioChemists$Num_Article - Predicted_Means)^2/Predicted_Means)
 X2
-```
-
-```
-## [1] 1662.547
-```
-
-```r
+#> [1] 1662.547
 pchisq(X2,Poisson_Mod$df.residual, lower.tail = FALSE)
-```
-
-```
-## [1] 7.849882e-47
+#> [1] 7.849882e-47
 ```
 
 With interaction terms, there are some improvements
@@ -2321,10 +2036,7 @@ Consider the $\hat{\phi} = \frac{\text{deviance}}{df}$
 
 ```r
 Poisson_Mod$deviance / Poisson_Mod$df.residual
-```
-
-```
-## [1] 1.797988
+#> [1] 1.797988
 ```
 
 This is evidence for over-dispersion. Likely cause is missing variables. And remedies could either be to include more variables or consider random effects.
@@ -2335,35 +2047,32 @@ A quick fix is to force the Poisson Regression to include this value of $\phi$, 
 ```r
 phi_hat = Poisson_Mod$deviance/Poisson_Mod$df.residual
 summary(Poisson_Mod,dispersion = phi_hat)
-```
-
-```
-## 
-## Call:
-## glm(formula = Num_Article ~ ., family = poisson, data = bioChemists)
-## 
-## Deviance Residuals: 
-##     Min       1Q   Median       3Q      Max  
-## -3.5672  -1.5398  -0.3660   0.5722   5.4467  
-## 
-## Coefficients:
-##                 Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)      0.30462    0.13809   2.206  0.02739 *  
-## SexWomen        -0.22459    0.07323  -3.067  0.00216 ** 
-## MarriedMarried   0.15524    0.08230   1.886  0.05924 .  
-## Num_Kid5        -0.18488    0.05381  -3.436  0.00059 ***
-## PhD_Quality      0.01282    0.03540   0.362  0.71715    
-## Num_MentArticle  0.02554    0.00269   9.496  < 2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for poisson family taken to be 1.797988)
-## 
-##     Null deviance: 1817.4  on 914  degrees of freedom
-## Residual deviance: 1634.4  on 909  degrees of freedom
-## AIC: 3314.1
-## 
-## Number of Fisher Scoring iterations: 5
+#> 
+#> Call:
+#> glm(formula = Num_Article ~ ., family = poisson, data = bioChemists)
+#> 
+#> Deviance Residuals: 
+#>     Min       1Q   Median       3Q      Max  
+#> -3.5672  -1.5398  -0.3660   0.5722   5.4467  
+#> 
+#> Coefficients:
+#>                 Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept)      0.30462    0.13809   2.206  0.02739 *  
+#> SexWomen        -0.22459    0.07323  -3.067  0.00216 ** 
+#> MarriedMarried   0.15524    0.08230   1.886  0.05924 .  
+#> Num_Kid5        -0.18488    0.05381  -3.436  0.00059 ***
+#> PhD_Quality      0.01282    0.03540   0.362  0.71715    
+#> Num_MentArticle  0.02554    0.00269   9.496  < 2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> (Dispersion parameter for poisson family taken to be 1.797988)
+#> 
+#>     Null deviance: 1817.4  on 914  degrees of freedom
+#> Residual deviance: 1634.4  on 909  degrees of freedom
+#> AIC: 3314.1
+#> 
+#> Number of Fisher Scoring iterations: 5
 ```
 
 Or directly rerun the model as
@@ -2382,42 +2091,39 @@ Quasi-Poisson is not recommended, but [Negative Binomial Regression] that has an
 library(MASS)
 NegBinom_Mod <- MASS::glm.nb(Num_Article ~ .,bioChemists)
 summary(NegBinom_Mod)
-```
-
-```
-## 
-## Call:
-## MASS::glm.nb(formula = Num_Article ~ ., data = bioChemists, init.theta = 2.264387695, 
-##     link = log)
-## 
-## Deviance Residuals: 
-##     Min       1Q   Median       3Q      Max  
-## -2.1678  -1.3617  -0.2806   0.4476   3.4524  
-## 
-## Coefficients:
-##                  Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)      0.256144   0.137348   1.865 0.062191 .  
-## SexWomen        -0.216418   0.072636  -2.979 0.002887 ** 
-## MarriedMarried   0.150489   0.082097   1.833 0.066791 .  
-## Num_Kid5        -0.176415   0.052813  -3.340 0.000837 ***
-## PhD_Quality      0.015271   0.035873   0.426 0.670326    
-## Num_MentArticle  0.029082   0.003214   9.048  < 2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for Negative Binomial(2.2644) family taken to be 1)
-## 
-##     Null deviance: 1109.0  on 914  degrees of freedom
-## Residual deviance: 1004.3  on 909  degrees of freedom
-## AIC: 3135.9
-## 
-## Number of Fisher Scoring iterations: 1
-## 
-## 
-##               Theta:  2.264 
-##           Std. Err.:  0.271 
-## 
-##  2 x log-likelihood:  -3121.917
+#> 
+#> Call:
+#> MASS::glm.nb(formula = Num_Article ~ ., data = bioChemists, init.theta = 2.264387695, 
+#>     link = log)
+#> 
+#> Deviance Residuals: 
+#>     Min       1Q   Median       3Q      Max  
+#> -2.1678  -1.3617  -0.2806   0.4476   3.4524  
+#> 
+#> Coefficients:
+#>                  Estimate Std. Error z value Pr(>|z|)    
+#> (Intercept)      0.256144   0.137348   1.865 0.062191 .  
+#> SexWomen        -0.216418   0.072636  -2.979 0.002887 ** 
+#> MarriedMarried   0.150489   0.082097   1.833 0.066791 .  
+#> Num_Kid5        -0.176415   0.052813  -3.340 0.000837 ***
+#> PhD_Quality      0.015271   0.035873   0.426 0.670326    
+#> Num_MentArticle  0.029082   0.003214   9.048  < 2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> (Dispersion parameter for Negative Binomial(2.2644) family taken to be 1)
+#> 
+#>     Null deviance: 1109.0  on 914  degrees of freedom
+#> Residual deviance: 1004.3  on 909  degrees of freedom
+#> AIC: 3135.9
+#> 
+#> Number of Fisher Scoring iterations: 1
+#> 
+#> 
+#>               Theta:  2.264 
+#>           Std. Err.:  0.271 
+#> 
+#>  2 x log-likelihood:  -3121.917
 ```
 
 We can see the dispersion is 2.264 with SE = 0.271, which is significantly different from 1, indicating overdispersion. Check [Over-Dispersion] for more detail
@@ -2470,13 +2176,10 @@ library(faraway)
 library(dplyr)
 data(nes96, package="faraway")
 head(nes96,3)
-```
-
-```
-##   popul TVnews selfLR ClinLR DoleLR     PID age  educ   income    vote
-## 1     0      7 extCon extLib    Con  strRep  36    HS $3Kminus    Dole
-## 2   190      1 sliLib sliLib sliCon weakDem  20  Coll $3Kminus Clinton
-## 3    31      7    Lib    Lib    Con weakDem  24 BAdeg $3Kminus Clinton
+#>   popul TVnews selfLR ClinLR DoleLR     PID age  educ   income    vote
+#> 1     0      7 extCon extLib    Con  strRep  36    HS $3Kminus    Dole
+#> 2   190      1 sliLib sliLib sliCon weakDem  20  Coll $3Kminus Clinton
+#> 3    31      7    Lib    Lib    Con weakDem  24 BAdeg $3Kminus Clinton
 ```
 
 We try to understand their political strength
@@ -2484,15 +2187,9 @@ We try to understand their political strength
 
 ```r
 table(nes96$PID)
-```
-
-```
-## 
-##  strDem weakDem  indDem  indind  indRep weakRep  strRep 
-##     200     180     108      37      94     150     175
-```
-
-```r
+#> 
+#>  strDem weakDem  indDem  indind  indRep weakRep  strRep 
+#>     200     180     108      37      94     150     175
 nes96$Political_Strength <- NA
 nes96$Political_Strength[nes96$PID %in% c("strDem", "strRep")] <-
   "Strong"
@@ -2501,15 +2198,12 @@ nes96$Political_Strength[nes96$PID %in% c("weakDem", "weakRep")] <-
 nes96$Political_Strength[nes96$PID %in% c("indDem", "indind", "indRep")] <-
   "Neutral"
 nes96 %>% group_by(Political_Strength) %>% summarise(Count = n())
-```
-
-```
-## # A tibble: 3 x 2
-##   Political_Strength Count
-##   <chr>              <int>
-## 1 Neutral              239
-## 2 Strong               375
-## 3 Weak                 330
+#> # A tibble: 3 x 2
+#>   Political_Strength Count
+#>   <chr>              <int>
+#> 1 Neutral              239
+#> 2 Strong               375
+#> 3 Weak                 330
 ```
 
 visualize the political strength variable
@@ -2523,13 +2217,6 @@ Plot_DF <- nes96 %>%
   summarise(count = n()) %>%
   group_by(Age_Grp) %>%
   mutate(etotal = sum(count), proportion = count / etotal)
-```
-
-```
-## `summarise()` has grouped output by 'Age_Grp'. You can override using the `.groups` argument.
-```
-
-```r
 Age_Plot <- ggplot(
   Plot_DF,
   aes(
@@ -2544,7 +2231,7 @@ Age_Plot <- ggplot(
 Age_Plot
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-54-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-54-1.png" width="90%" style="display: block; margin: auto;" />
 
 Fit the multinomial logistic model:
 
@@ -2556,31 +2243,28 @@ library(nnet)
 Multinomial_Model <-
     multinom(Political_Strength ~ age + educ, nes96, trace = F)
 summary(Multinomial_Model)
-```
-
-```
-## Call:
-## multinom(formula = Political_Strength ~ age + educ, data = nes96, 
-##     trace = F)
-## 
-## Coefficients:
-##        (Intercept)          age     educ.L     educ.Q     educ.C      educ^4
-## Strong -0.08788729  0.010700364 -0.1098951 -0.2016197 -0.1757739 -0.02116307
-## Weak    0.51976285 -0.004868771 -0.1431104 -0.2405395 -0.2411795  0.18353634
-##            educ^5     educ^6
-## Strong -0.1664377 -0.1359449
-## Weak   -0.1489030 -0.2173144
-## 
-## Std. Errors:
-##        (Intercept)         age    educ.L    educ.Q    educ.C    educ^4
-## Strong   0.3017034 0.005280743 0.4586041 0.4318830 0.3628837 0.2964776
-## Weak     0.3097923 0.005537561 0.4920736 0.4616446 0.3881003 0.3169149
-##           educ^5    educ^6
-## Strong 0.2515012 0.2166774
-## Weak   0.2643747 0.2199186
-## 
-## Residual Deviance: 2024.596 
-## AIC: 2056.596
+#> Call:
+#> multinom(formula = Political_Strength ~ age + educ, data = nes96, 
+#>     trace = F)
+#> 
+#> Coefficients:
+#>        (Intercept)          age     educ.L     educ.Q     educ.C      educ^4
+#> Strong -0.08788729  0.010700364 -0.1098951 -0.2016197 -0.1757739 -0.02116307
+#> Weak    0.51976285 -0.004868771 -0.1431104 -0.2405395 -0.2411795  0.18353634
+#>            educ^5     educ^6
+#> Strong -0.1664377 -0.1359449
+#> Weak   -0.1489030 -0.2173144
+#> 
+#> Std. Errors:
+#>        (Intercept)         age    educ.L    educ.Q    educ.C    educ^4
+#> Strong   0.3017034 0.005280743 0.4586041 0.4318830 0.3628837 0.2964776
+#> Weak     0.3097923 0.005537561 0.4920736 0.4616446 0.3881003 0.3169149
+#>           educ^5    educ^6
+#> Strong 0.2515012 0.2166774
+#> Weak   0.2643747 0.2199186
+#> 
+#> Residual Deviance: 2024.596 
+#> AIC: 2056.596
 ```
 
 Alternatively, stepwise model selection based AIC
@@ -2588,29 +2272,20 @@ Alternatively, stepwise model selection based AIC
 
 ```r
 Multinomial_Step <- step(Multinomial_Model,trace = 0)
-```
-
-```
-## trying - age 
-## trying - educ 
-## trying - age
-```
-
-```r
+#> trying - age 
+#> trying - educ 
+#> trying - age
 Multinomial_Step
-```
-
-```
-## Call:
-## multinom(formula = Political_Strength ~ age, data = nes96, trace = F)
-## 
-## Coefficients:
-##        (Intercept)          age
-## Strong -0.01988977  0.009832916
-## Weak    0.59497046 -0.005954348
-## 
-## Residual Deviance: 2030.756 
-## AIC: 2038.756
+#> Call:
+#> multinom(formula = Political_Strength ~ age, data = nes96, trace = F)
+#> 
+#> Coefficients:
+#>        (Intercept)          age
+#> Strong -0.01988977  0.009832916
+#> Weak    0.59497046 -0.005954348
+#> 
+#> Residual Deviance: 2030.756 
+#> AIC: 2038.756
 ```
 
 compare the best model to the full model based on deviance
@@ -2619,10 +2294,7 @@ compare the best model to the full model based on deviance
 ```r
 pchisq(q = deviance(Multinomial_Step) - deviance(Multinomial_Model),
 df = Multinomial_Model$edf-Multinomial_Step$edf,lower=F)
-```
-
-```
-## [1] 0.9078172
+#> [1] 0.9078172
 ```
 
 We see no significant difference
@@ -2660,26 +2332,17 @@ legend(
 )
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-58-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-58-1.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
 predict(Multinomial_Step,data.frame(age = 34)) # predicted result (categoriy of political strength) of 34 year old
-```
-
-```
-## [1] Weak
-## Levels: Neutral Strong Weak
-```
-
-```r
+#> [1] Weak
+#> Levels: Neutral Strong Weak
 predict(Multinomial_Step,data.frame(age = c(34,35)),type="probs") # predicted result of the probabilities of each level of political strength for a 34 and 35
-```
-
-```
-##     Neutral    Strong      Weak
-## 1 0.2597275 0.3556910 0.3845815
-## 2 0.2594080 0.3587639 0.3818281
+#>     Neutral    Strong      Weak
+#> 1 0.2597275 0.3556910 0.3845815
+#> 2 0.2594080 0.3587639 0.3818281
 ```
 
 If categories are ordered (i.e., ordinal data), we must use another approach (still multinomial, but use cumulative probabilities).
@@ -2704,7 +2367,7 @@ ggplot(gammaDat, aes(x = x, y = 1 / y)) + geom_point(aes(color = block, shape =
   xlab('Seeding Rate') + ylab('Inverse yield') + ggtitle('Streibig Competion - Barley only')
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-60-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-60-1.png" width="90%" style="display: block; margin: auto;" />
 
 $$
 Y \sim Gamma
@@ -2724,39 +2387,36 @@ The linear predictor is a quadratic model fit to each of the j-th blocks. A diff
 # linear predictor is quadratic, with separate intercept and slope per block
 m1 <- glm(y ~ block + block*x + block*I(x^2), data=gammaDat,family=Gamma(link="inverse"))
 summary(m1)
-```
-
-```
-## 
-## Call:
-## glm(formula = y ~ block + block * x + block * I(x^2), family = Gamma(link = "inverse"), 
-##     data = gammaDat)
-## 
-## Deviance Residuals: 
-##      Min        1Q    Median        3Q       Max  
-## -1.21708  -0.44148   0.02479   0.17999   0.80745  
-## 
-## Coefficients:
-##                  Estimate Std. Error t value Pr(>|t|)    
-## (Intercept)     1.115e-01  2.870e-02   3.886 0.000854 ***
-## blockB2        -1.208e-02  3.880e-02  -0.311 0.758630    
-## blockB3        -2.386e-02  3.683e-02  -0.648 0.524029    
-## x              -2.075e-03  1.099e-03  -1.888 0.072884 .  
-## I(x^2)          1.372e-05  9.109e-06   1.506 0.146849    
-## blockB2:x       5.198e-04  1.468e-03   0.354 0.726814    
-## blockB3:x       7.475e-04  1.393e-03   0.537 0.597103    
-## blockB2:I(x^2) -5.076e-06  1.184e-05  -0.429 0.672475    
-## blockB3:I(x^2) -6.651e-06  1.123e-05  -0.592 0.560012    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## (Dispersion parameter for Gamma family taken to be 0.3232083)
-## 
-##     Null deviance: 13.1677  on 29  degrees of freedom
-## Residual deviance:  7.8605  on 21  degrees of freedom
-## AIC: 225.32
-## 
-## Number of Fisher Scoring iterations: 5
+#> 
+#> Call:
+#> glm(formula = y ~ block + block * x + block * I(x^2), family = Gamma(link = "inverse"), 
+#>     data = gammaDat)
+#> 
+#> Deviance Residuals: 
+#>      Min        1Q    Median        3Q       Max  
+#> -1.21708  -0.44148   0.02479   0.17999   0.80745  
+#> 
+#> Coefficients:
+#>                  Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)     1.115e-01  2.870e-02   3.886 0.000854 ***
+#> blockB2        -1.208e-02  3.880e-02  -0.311 0.758630    
+#> blockB3        -2.386e-02  3.683e-02  -0.648 0.524029    
+#> x              -2.075e-03  1.099e-03  -1.888 0.072884 .  
+#> I(x^2)          1.372e-05  9.109e-06   1.506 0.146849    
+#> blockB2:x       5.198e-04  1.468e-03   0.354 0.726814    
+#> blockB3:x       7.475e-04  1.393e-03   0.537 0.597103    
+#> blockB2:I(x^2) -5.076e-06  1.184e-05  -0.429 0.672475    
+#> blockB3:I(x^2) -6.651e-06  1.123e-05  -0.592 0.560012    
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> (Dispersion parameter for Gamma family taken to be 0.3232083)
+#> 
+#>     Null deviance: 13.1677  on 29  degrees of freedom
+#> Residual deviance:  7.8605  on 21  degrees of freedom
+#> AIC: 225.32
+#> 
+#> Number of Fisher Scoring iterations: 5
 ```
 
 For predict new value of x
@@ -2777,7 +2437,7 @@ ggplot(gammaDat, aes(x = x, y = y)) + geom_point(aes(color = block, shape =
   ))
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-62-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-62-1.png" width="90%" style="display: block; margin: auto;" />
 
 ## Generalization
 
@@ -2922,12 +2582,7 @@ To choose $g(.)$, we can use **canonical link function** (Remember: Canonical li
 If the link function $g(.)$ is such $g(\mu_i) = \eta_i = \theta_i$, the natural parameter, then $g(.)$ is the canonical link.
 
 
-
-```
-## Warning: package 'jpeg' was built under R version 4.0.5
-```
-
-<img src="images/GLM.PNG" width="416" style="display: block; margin: auto;" />
+<img src="images/GLM.PNG" width="90%" style="display: block; margin: auto;" />
 
 
  * $b(\theta)$ = cumulant moment generating function 
@@ -2963,7 +2618,7 @@ $$
 \mu_i = g^{-1}(\eta_i) = \eta_i
 $$
 
-<img src="images/2-Table15.1-1.png" width="425" style="display: block; margin: auto;" />
+<img src="images/2-Table15.1-1.png" width="90%" style="display: block; margin: auto;" />
 
 Table 15.1 Generalized Linear Models 15.1 the Structure of Generalized Linear Models
 
@@ -4830,32 +4485,20 @@ where
 library(ggplot2)
 data(irrigation, package = "faraway")
 summary(irrigation)
-```
-
-```
-##      field   irrigation variety     yield      
-##  f1     :2   i1:4       v1:8    Min.   :34.80  
-##  f2     :2   i2:4       v2:8    1st Qu.:37.60  
-##  f3     :2   i3:4               Median :40.15  
-##  f4     :2   i4:4               Mean   :40.23  
-##  f5     :2                      3rd Qu.:42.73  
-##  f6     :2                      Max.   :47.60  
-##  (Other):4
-```
-
-```r
+#>      field   irrigation variety     yield      
+#>  f1     :2   i1:4       v1:8    Min.   :34.80  
+#>  f2     :2   i2:4       v2:8    1st Qu.:37.60  
+#>  f3     :2   i3:4               Median :40.15  
+#>  f4     :2   i4:4               Mean   :40.23  
+#>  f5     :2                      3rd Qu.:42.73  
+#>  f6     :2                      Max.   :47.60  
+#>  (Other):4
 head(irrigation, 4)
-```
-
-```
-##   field irrigation variety yield
-## 1    f1         i1      v1  35.4
-## 2    f1         i1      v2  37.9
-## 3    f2         i2      v1  36.7
-## 4    f2         i2      v2  38.2
-```
-
-```r
+#>   field irrigation variety yield
+#> 1    f1         i1      v1  35.4
+#> 2    f1         i1      v2  37.9
+#> 3    f2         i2      v1  36.7
+#> 4    f2         i2      v2  38.2
 ggplot(irrigation,
        aes(
          x = field,
@@ -4866,66 +4509,57 @@ ggplot(irrigation,
   geom_point(size = 3)
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-65-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-65-1.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
 sp_model <- lmerTest::lmer(yield ~ irrigation * variety + (1 | field), irrigation)
 summary(sp_model)
-```
-
-```
-## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
-## lmerModLmerTest]
-## Formula: yield ~ irrigation * variety + (1 | field)
-##    Data: irrigation
-## 
-## REML criterion at convergence: 45.4
-## 
-## Scaled residuals: 
-##     Min      1Q  Median      3Q     Max 
-## -0.7448 -0.5509  0.0000  0.5509  0.7448 
-## 
-## Random effects:
-##  Groups   Name        Variance Std.Dev.
-##  field    (Intercept) 16.200   4.025   
-##  Residual              2.107   1.452   
-## Number of obs: 16, groups:  field, 8
-## 
-## Fixed effects:
-##                        Estimate Std. Error     df t value Pr(>|t|)    
-## (Intercept)              38.500      3.026  4.487  12.725 0.000109 ***
-## irrigationi2              1.200      4.279  4.487   0.280 0.791591    
-## irrigationi3              0.700      4.279  4.487   0.164 0.877156    
-## irrigationi4              3.500      4.279  4.487   0.818 0.454584    
-## varietyv2                 0.600      1.452  4.000   0.413 0.700582    
-## irrigationi2:varietyv2   -0.400      2.053  4.000  -0.195 0.855020    
-## irrigationi3:varietyv2   -0.200      2.053  4.000  -0.097 0.927082    
-## irrigationi4:varietyv2    1.200      2.053  4.000   0.584 0.590265    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Correlation of Fixed Effects:
-##             (Intr) irrgt2 irrgt3 irrgt4 vrtyv2 irr2:2 irr3:2
-## irrigation2 -0.707                                          
-## irrigation3 -0.707  0.500                                   
-## irrigation4 -0.707  0.500  0.500                            
-## varietyv2   -0.240  0.170  0.170  0.170                     
-## irrgtn2:vr2  0.170 -0.240 -0.120 -0.120 -0.707              
-## irrgtn3:vr2  0.170 -0.120 -0.240 -0.120 -0.707  0.500       
-## irrgtn4:vr2  0.170 -0.120 -0.120 -0.240 -0.707  0.500  0.500
-```
-
-```r
+#> Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+#> lmerModLmerTest]
+#> Formula: yield ~ irrigation * variety + (1 | field)
+#>    Data: irrigation
+#> 
+#> REML criterion at convergence: 45.4
+#> 
+#> Scaled residuals: 
+#>     Min      1Q  Median      3Q     Max 
+#> -0.7448 -0.5509  0.0000  0.5509  0.7448 
+#> 
+#> Random effects:
+#>  Groups   Name        Variance Std.Dev.
+#>  field    (Intercept) 16.200   4.025   
+#>  Residual              2.107   1.452   
+#> Number of obs: 16, groups:  field, 8
+#> 
+#> Fixed effects:
+#>                        Estimate Std. Error     df t value Pr(>|t|)    
+#> (Intercept)              38.500      3.026  4.487  12.725 0.000109 ***
+#> irrigationi2              1.200      4.279  4.487   0.280 0.791591    
+#> irrigationi3              0.700      4.279  4.487   0.164 0.877156    
+#> irrigationi4              3.500      4.279  4.487   0.818 0.454584    
+#> varietyv2                 0.600      1.452  4.000   0.413 0.700582    
+#> irrigationi2:varietyv2   -0.400      2.053  4.000  -0.195 0.855020    
+#> irrigationi3:varietyv2   -0.200      2.053  4.000  -0.097 0.927082    
+#> irrigationi4:varietyv2    1.200      2.053  4.000   0.584 0.590265    
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Correlation of Fixed Effects:
+#>             (Intr) irrgt2 irrgt3 irrgt4 vrtyv2 irr2:2 irr3:2
+#> irrigation2 -0.707                                          
+#> irrigation3 -0.707  0.500                                   
+#> irrigation4 -0.707  0.500  0.500                            
+#> varietyv2   -0.240  0.170  0.170  0.170                     
+#> irrgtn2:vr2  0.170 -0.240 -0.120 -0.120 -0.707              
+#> irrgtn3:vr2  0.170 -0.120 -0.240 -0.120 -0.707  0.500       
+#> irrgtn4:vr2  0.170 -0.120 -0.120 -0.240 -0.707  0.500  0.500
 anova(sp_model,ddf = c("Kenward-Roger"))
-```
-
-```
-## Type III Analysis of Variance Table with Kenward-Roger's method
-##                    Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
-## irrigation         2.4545 0.81818     3     4  0.3882 0.7685
-## variety            2.2500 2.25000     1     4  1.0676 0.3599
-## irrigation:variety 1.5500 0.51667     3     4  0.2452 0.8612
+#> Type III Analysis of Variance Table with Kenward-Roger's method
+#>                    Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
+#> irrigation         2.4545 0.81818     3     4  0.3882 0.7685
+#> variety            2.2500 2.25000     1     4  1.0676 0.3599
+#> irrigation:variety 1.5500 0.51667     3     4  0.2452 0.8612
 ```
 
 Since p-value of the interaction term is insignificant, we consider fitting without it.
@@ -4933,37 +4567,15 @@ Since p-value of the interaction term is insignificant, we consider fitting with
 
 ```r
 library(lme4)
-```
-
-```
-## Warning: package 'lme4' was built under R version 4.0.5
-```
-
-```
-## Loading required package: Matrix
-```
-
-```
-## Warning: package 'Matrix' was built under R version 4.0.5
-```
-
-```r
 sp_model_additive <- lmer(yield ~ irrigation + variety + (1 | field), irrigation)
 anova(sp_model_additive,sp_model,ddf = "Kenward-Roger")
-```
-
-```
-## refitting model(s) with ML (instead of REML)
-```
-
-```
-## Data: irrigation
-## Models:
-## sp_model_additive: yield ~ irrigation + variety + (1 | field)
-## sp_model: yield ~ irrigation * variety + (1 | field)
-##                   npar    AIC    BIC  logLik deviance  Chisq Df Pr(>Chisq)
-## sp_model_additive    7 83.959 89.368 -34.980   69.959                     
-## sp_model            10 88.609 96.335 -34.305   68.609 1.3503  3     0.7172
+#> Data: irrigation
+#> Models:
+#> sp_model_additive: yield ~ irrigation + variety + (1 | field)
+#> sp_model: yield ~ irrigation * variety + (1 | field)
+#>                   npar    AIC    BIC  logLik deviance  Chisq Df Pr(>Chisq)
+#> sp_model_additive    7 83.959 89.368 -34.980   69.959                     
+#> sp_model            10 88.609 96.335 -34.305   68.609 1.3503  3     0.7172
 ```
 
 Since p-value of Chi-square test is insignificant, we can't reject the additive model is already sufficient. Looking at AIC and BIC, we can also see that we would prefer the additive model
@@ -4980,16 +4592,13 @@ Since p-value of Chi-square test is insignificant, we can't reject the additive 
 sp_model <- lme4::lmer(yield ~ irrigation * variety + (1 | field), irrigation)
 library(RLRsim)
 exactRLRT(sp_model)
-```
-
-```
-## 
-## 	simulated finite sample distribution of RLRT.
-## 	
-## 	(p-value based on 10000 simulated values)
-## 
-## data:  
-## RLRT = 6.1118, p-value = 0.0088
+#> 
+#> 	simulated finite sample distribution of RLRT.
+#> 	
+#> 	(p-value based on 10000 simulated values)
+#> 
+#> data:  
+#> RLRT = 6.1118, p-value = 0.0088
 ```
 
 Since the p-value is significant, we reject $H_0$
@@ -5188,20 +4797,17 @@ plot(
 )
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-69-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-69-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 pulp %>% dplyr::group_by(operator) %>% dplyr::summarise(average = mean(bright))
-```
-
-```
-## # A tibble: 4 x 2
-##   operator average
-##   <fct>      <dbl>
-## 1 a           60.2
-## 2 b           60.1
-## 3 c           60.6
-## 4 d           60.7
+#> # A tibble: 4 x 2
+#>   operator average
+#>   <fct>      <dbl>
+#> 1 a           60.2
+#> 2 b           60.1
+#> 3 c           60.6
+#> 4 d           60.7
 ```
 
 `lmer` application
@@ -5212,103 +4818,60 @@ library(lme4)
 mixed_model <- lmer(formula = bright ~ 1 + (1 | operator), # pipe (i..e, | ) denotes random-effect terms
                     data = pulp)
 summary(mixed_model)
-```
-
-```
-## Linear mixed model fit by REML ['lmerMod']
-## Formula: bright ~ 1 + (1 | operator)
-##    Data: pulp
-## 
-## REML criterion at convergence: 18.6
-## 
-## Scaled residuals: 
-##     Min      1Q  Median      3Q     Max 
-## -1.4666 -0.7595 -0.1244  0.6281  1.6012 
-## 
-## Random effects:
-##  Groups   Name        Variance Std.Dev.
-##  operator (Intercept) 0.06808  0.2609  
-##  Residual             0.10625  0.3260  
-## Number of obs: 20, groups:  operator, 4
-## 
-## Fixed effects:
-##             Estimate Std. Error t value
-## (Intercept)  60.4000     0.1494   404.2
-```
-
-```r
+#> Linear mixed model fit by REML ['lmerMod']
+#> Formula: bright ~ 1 + (1 | operator)
+#>    Data: pulp
+#> 
+#> REML criterion at convergence: 18.6
+#> 
+#> Scaled residuals: 
+#>     Min      1Q  Median      3Q     Max 
+#> -1.4666 -0.7595 -0.1244  0.6281  1.6012 
+#> 
+#> Random effects:
+#>  Groups   Name        Variance Std.Dev.
+#>  operator (Intercept) 0.06808  0.2609  
+#>  Residual             0.10625  0.3260  
+#> Number of obs: 20, groups:  operator, 4
+#> 
+#> Fixed effects:
+#>             Estimate Std. Error t value
+#> (Intercept)  60.4000     0.1494   404.2
 coef(mixed_model)
-```
-
-```
-## $operator
-##   (Intercept)
-## a    60.27806
-## b    60.14088
-## c    60.56767
-## d    60.61340
-## 
-## attr(,"class")
-## [1] "coef.mer"
-```
-
-```r
+#> $operator
+#>   (Intercept)
+#> a    60.27806
+#> b    60.14088
+#> c    60.56767
+#> d    60.61340
+#> 
+#> attr(,"class")
+#> [1] "coef.mer"
 fixef(mixed_model) # fixed effects
-```
-
-```
-## (Intercept) 
-##        60.4
-```
-
-```r
+#> (Intercept) 
+#>        60.4
 confint(mixed_model) # confidence interval
-```
-
-```
-## Computing profile confidence intervals ...
-```
-
-```
-##                 2.5 %     97.5 %
-## .sig01       0.000000  0.6178987
-## .sigma       0.238912  0.4821845
-## (Intercept) 60.071299 60.7287012
-```
-
-```r
+#>                 2.5 %     97.5 %
+#> .sig01       0.000000  0.6178987
+#> .sigma       0.238912  0.4821845
+#> (Intercept) 60.071299 60.7287012
 ranef(mixed_model) # random effects
-```
-
-```
-## $operator
-##   (Intercept)
-## a  -0.1219403
-## b  -0.2591231
-## c   0.1676679
-## d   0.2133955
-## 
-## with conditional variances for "operator"
-```
-
-```r
+#> $operator
+#>   (Intercept)
+#> a  -0.1219403
+#> b  -0.2591231
+#> c   0.1676679
+#> d   0.2133955
+#> 
+#> with conditional variances for "operator"
 VarCorr(mixed_model) # random effects standard deviation
-```
-
-```
-##  Groups   Name        Std.Dev.
-##  operator (Intercept) 0.26093 
-##  Residual             0.32596
-```
-
-```r
+#>  Groups   Name        Std.Dev.
+#>  operator (Intercept) 0.26093 
+#>  Residual             0.32596
 re_dat = as.data.frame(VarCorr(mixed_model))
 rho = re_dat[1,'vcov']/(re_dat[1,'vcov'] + re_dat[2,'vcov']) # rho based on the above formula
 rho
-```
-
-```
-## [1] 0.3905354
+#> [1] 0.3905354
 ```
 
 To Satterthwaite approximation for the denominator df, we use `lmerTest`
@@ -5316,45 +4879,12 @@ To Satterthwaite approximation for the denominator df, we use `lmerTest`
 
 ```r
 library(lmerTest)
-```
-
-```
-## 
-## Attaching package: 'lmerTest'
-```
-
-```
-## The following object is masked from 'package:lme4':
-## 
-##     lmer
-```
-
-```
-## The following object is masked from 'package:stats':
-## 
-##     step
-```
-
-```r
 summary(lmerTest::lmer(bright ~ 1 + (1 | operator), pulp))$coefficients
-```
-
-```
-##             Estimate Std. Error df  t value     Pr(>|t|)
-## (Intercept)     60.4  0.1494434  3 404.1664 3.340265e-08
-```
-
-```r
+#>             Estimate Std. Error df  t value     Pr(>|t|)
+#> (Intercept)     60.4  0.1494434  3 404.1664 3.340265e-08
 confint(mixed_model)[3,]
-```
-
-```
-## Computing profile confidence intervals ...
-```
-
-```
-##   2.5 %  97.5 % 
-## 60.0713 60.7287
+#>   2.5 %  97.5 % 
+#> 60.0713 60.7287
 ```
 
 In this example, we can see that the confidence interval computed by `confint` in `lmer` package is very close is `confint` in `lmerTest` model. <br>
@@ -5366,32 +4896,10 @@ under the Bayesian framework
 
 ```r
 library(MCMCglmm)
-```
-
-```
-## Warning: package 'MCMCglmm' was built under R version 4.0.5
-```
-
-```
-## Loading required package: coda
-```
-
-```
-## Loading required package: ape
-```
-
-```
-## Warning: package 'ape' was built under R version 4.0.5
-```
-
-```r
 mixed_model_bayes <- MCMCglmm(bright~1,random=~operator, data=pulp, verbose=FALSE)
 summary(mixed_model_bayes)$solutions
-```
-
-```
-##             post.mean l-95% CI u-95% CI eff.samp pMCMC
-## (Intercept)  60.39357 60.07742 60.66047 1184.638 0.001
+#>             post.mean l-95% CI u-95% CI eff.samp pMCMC
+#> (Intercept)  60.39357 60.07742 60.66047 1184.638 0.001
 ```
 
 this method offers the confidence interval slightly more positive than `lmer` and `lmerTest`
@@ -5402,35 +4910,20 @@ this method offers the confidence interval slightly more positive than `lmer` an
 ```r
 # random effects prediction (BLUPs)
 ranef(mixed_model)$operator
-```
-
-```
-##   (Intercept)
-## a  -0.1219403
-## b  -0.2591231
-## c   0.1676679
-## d   0.2133955
-```
-
-```r
+#>   (Intercept)
+#> a  -0.1219403
+#> b  -0.2591231
+#> c   0.1676679
+#> d   0.2133955
 fixef(mixed_model) + ranef(mixed_model)$operator #prediction for each categories
-```
-
-```
-##   (Intercept)
-## a    60.27806
-## b    60.14088
-## c    60.56767
-## d    60.61340
-```
-
-```r
+#>   (Intercept)
+#> a    60.27806
+#> b    60.14088
+#> c    60.56767
+#> d    60.61340
 predict(mixed_model, newdata=data.frame(operator=c('a','b','c','d'))) # equivalent to the above method
-```
-
-```
-##        1        2        3        4 
-## 60.27806 60.14088 60.56767 60.61340
+#>        1        2        3        4 
+#> 60.27806 60.14088 60.56767 60.61340
 ```
 
 use `bootMer()` to get bootstrap-based confidence intervals for predictions.
@@ -5443,19 +4936,13 @@ Penicillin data
 ```r
 data(penicillin, package = "faraway")
 summary(penicillin)
-```
-
-```
-##  treat    blend       yield   
-##  A:5   Blend1:4   Min.   :77  
-##  B:5   Blend2:4   1st Qu.:81  
-##  C:5   Blend3:4   Median :87  
-##  D:5   Blend4:4   Mean   :86  
-##        Blend5:4   3rd Qu.:89  
-##                   Max.   :97
-```
-
-```r
+#>  treat    blend       yield   
+#>  A:5   Blend1:4   Min.   :77  
+#>  B:5   Blend2:4   1st Qu.:81  
+#>  C:5   Blend3:4   Median :87  
+#>  D:5   Blend4:4   Mean   :86  
+#>        Blend5:4   3rd Qu.:89  
+#>                   Max.   :97
 library(ggplot2)
 ggplot(penicillin, aes(
   y = yield,
@@ -5467,61 +4954,52 @@ ggplot(penicillin, aes(
   xlab("Treatment")
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-74-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-74-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 library(lmerTest) # for p-values
 mixed_model <- lmerTest::lmer(yield ~ treat + (1 | blend),
                               data = penicillin)
 summary(mixed_model)
-```
-
-```
-## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
-## lmerModLmerTest]
-## Formula: yield ~ treat + (1 | blend)
-##    Data: penicillin
-## 
-## REML criterion at convergence: 103.8
-## 
-## Scaled residuals: 
-##     Min      1Q  Median      3Q     Max 
-## -1.4152 -0.5017 -0.1644  0.6830  1.2836 
-## 
-## Random effects:
-##  Groups   Name        Variance Std.Dev.
-##  blend    (Intercept) 11.79    3.434   
-##  Residual             18.83    4.340   
-## Number of obs: 20, groups:  blend, 5
-## 
-## Fixed effects:
-##             Estimate Std. Error     df t value Pr(>|t|)    
-## (Intercept)   84.000      2.475 11.075  33.941 1.51e-12 ***
-## treatB         1.000      2.745 12.000   0.364   0.7219    
-## treatC         5.000      2.745 12.000   1.822   0.0935 .  
-## treatD         2.000      2.745 12.000   0.729   0.4802    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Correlation of Fixed Effects:
-##        (Intr) treatB treatC
-## treatB -0.555              
-## treatC -0.555  0.500       
-## treatD -0.555  0.500  0.500
-```
-
-```r
+#> Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+#> lmerModLmerTest]
+#> Formula: yield ~ treat + (1 | blend)
+#>    Data: penicillin
+#> 
+#> REML criterion at convergence: 103.8
+#> 
+#> Scaled residuals: 
+#>     Min      1Q  Median      3Q     Max 
+#> -1.4152 -0.5017 -0.1644  0.6830  1.2836 
+#> 
+#> Random effects:
+#>  Groups   Name        Variance Std.Dev.
+#>  blend    (Intercept) 11.79    3.434   
+#>  Residual             18.83    4.340   
+#> Number of obs: 20, groups:  blend, 5
+#> 
+#> Fixed effects:
+#>             Estimate Std. Error     df t value Pr(>|t|)    
+#> (Intercept)   84.000      2.475 11.075  33.941 1.51e-12 ***
+#> treatB         1.000      2.745 12.000   0.364   0.7219    
+#> treatC         5.000      2.745 12.000   1.822   0.0935 .  
+#> treatD         2.000      2.745 12.000   0.729   0.4802    
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Correlation of Fixed Effects:
+#>        (Intr) treatB treatC
+#> treatB -0.555              
+#> treatC -0.555  0.500       
+#> treatD -0.555  0.500  0.500
 #The BLUPs for the each blend
 ranef(mixed_model)$blend
-```
-
-```
-##        (Intercept)
-## Blend1   4.2878788
-## Blend2  -2.1439394
-## Blend3  -0.7146465
-## Blend4   1.4292929
-## Blend5  -2.8585859
+#>        (Intercept)
+#> Blend1   4.2878788
+#> Blend2  -2.1439394
+#> Blend3  -0.7146465
+#> Blend4   1.4292929
+#> Blend5  -2.8585859
 ```
 
 Examine treatment effect
@@ -5529,12 +5007,9 @@ Examine treatment effect
 
 ```r
 anova(mixed_model) # p-value based on lmerTest
-```
-
-```
-## Type III Analysis of Variance Table with Satterthwaite's method
-##       Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
-## treat     70  23.333     3    12  1.2389 0.3387
+#> Type III Analysis of Variance Table with Satterthwaite's method
+#>       Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
+#> treat     70  23.333     3    12  1.2389 0.3387
 ```
 
 Since the p-value is greater than 0.05, we can't reject the null hypothesis that there is no treatment effect.
@@ -5542,23 +5017,13 @@ Since the p-value is greater than 0.05, we can't reject the null hypothesis that
 
 ```r
 library(pbkrtest)
-```
-
-```
-## Warning: package 'pbkrtest' was built under R version 4.0.5
-```
-
-```r
 full_model <- lmer(yield ~ treat + (1 | blend), penicillin, REML=FALSE) #REML is not appropriate for testing fixed effects, it should be ML
 null_model <- lmer(yield ~ 1 + (1 | blend), penicillin, REML=FALSE)
 KRmodcomp(full_model, null_model) # use  Kenward-Roger approximation for df
-```
-
-```
-## large : yield ~ treat + (1 | blend)
-## small : yield ~ 1 + (1 | blend)
-##          stat     ndf     ddf F.scaling p.value
-## Ftest  1.2389  3.0000 12.0000         1  0.3387
+#> large : yield ~ treat + (1 | blend)
+#> small : yield ~ 1 + (1 | blend)
+#>          stat     ndf     ddf F.scaling p.value
+#> Ftest  1.2389  3.0000 12.0000         1  0.3387
 ```
 
 Since the p-value is greater than 0.05, and consistent with our previous observation, we conclude that we can't reject the null hypothesis that there is no treatment effect.
@@ -5582,52 +5047,43 @@ We are interested in whether treatment effect induces changes over time.
 ```r
 rat_model <- lmerTest::lmer(y~t:Treatment+(1|rat),data=rats) #treatment = fixed effect, rat = random effects
 summary(rat_model)
-```
-
-```
-## Linear mixed model fit by REML. t-tests use Satterthwaite's method [
-## lmerModLmerTest]
-## Formula: y ~ t:Treatment + (1 | rat)
-##    Data: rats
-## 
-## REML criterion at convergence: 932.4
-## 
-## Scaled residuals: 
-##      Min       1Q   Median       3Q      Max 
-## -2.25574 -0.65898 -0.01163  0.58356  2.88309 
-## 
-## Random effects:
-##  Groups   Name        Variance Std.Dev.
-##  rat      (Intercept) 3.565    1.888   
-##  Residual             1.445    1.202   
-## Number of obs: 252, groups:  rat, 50
-## 
-## Fixed effects:
-##                Estimate Std. Error       df t value Pr(>|t|)    
-## (Intercept)     68.6074     0.3312  89.0275  207.13   <2e-16 ***
-## t:Treatmentcon   7.3138     0.2808 247.2762   26.05   <2e-16 ***
-## t:Treatmenthig   6.8711     0.2276 247.7097   30.19   <2e-16 ***
-## t:Treatmentlow   7.5069     0.2252 247.5196   33.34   <2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Correlation of Fixed Effects:
-##             (Intr) t:Trtmntc t:Trtmnth
-## t:Tretmntcn -0.327                    
-## t:Tretmnthg -0.340  0.111             
-## t:Tretmntlw -0.351  0.115     0.119
-```
-
-```r
+#> Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+#> lmerModLmerTest]
+#> Formula: y ~ t:Treatment + (1 | rat)
+#>    Data: rats
+#> 
+#> REML criterion at convergence: 932.4
+#> 
+#> Scaled residuals: 
+#>      Min       1Q   Median       3Q      Max 
+#> -2.25574 -0.65898 -0.01163  0.58356  2.88309 
+#> 
+#> Random effects:
+#>  Groups   Name        Variance Std.Dev.
+#>  rat      (Intercept) 3.565    1.888   
+#>  Residual             1.445    1.202   
+#> Number of obs: 252, groups:  rat, 50
+#> 
+#> Fixed effects:
+#>                Estimate Std. Error       df t value Pr(>|t|)    
+#> (Intercept)     68.6074     0.3312  89.0275  207.13   <2e-16 ***
+#> t:Treatmentcon   7.3138     0.2808 247.2762   26.05   <2e-16 ***
+#> t:Treatmenthig   6.8711     0.2276 247.7097   30.19   <2e-16 ***
+#> t:Treatmentlow   7.5069     0.2252 247.5196   33.34   <2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Correlation of Fixed Effects:
+#>             (Intr) t:Trtmntc t:Trtmnth
+#> t:Tretmntcn -0.327                    
+#> t:Tretmnthg -0.340  0.111             
+#> t:Tretmntlw -0.351  0.115     0.119
 anova(rat_model)
-```
-
-```
-## Type III Analysis of Variance Table with Satterthwaite's method
-##             Sum Sq Mean Sq NumDF  DenDF F value    Pr(>F)    
-## t:Treatment 3181.9  1060.6     3 223.21  734.11 < 2.2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> Type III Analysis of Variance Table with Satterthwaite's method
+#>             Sum Sq Mean Sq NumDF  DenDF F value    Pr(>F)    
+#> t:Treatment 3181.9  1060.6     3 223.21  734.11 < 2.2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
 Since the p-value is significant, we can be confident concluding that there is a treatment effect
@@ -5640,39 +5096,6 @@ Since the p-value is significant, we can be confident concluding that there is a
 ```r
 library(agridat)
 library(latticeExtra)
-```
-
-```
-## Loading required package: lattice
-```
-
-```
-## Warning: package 'lattice' was built under R version 4.0.5
-```
-
-```
-## 
-## Attaching package: 'lattice'
-```
-
-```
-## The following object is masked from 'package:faraway':
-## 
-##     melanoma
-```
-
-```
-## 
-## Attaching package: 'latticeExtra'
-```
-
-```
-## The following object is masked from 'package:ggplot2':
-## 
-##     layer
-```
-
-```r
 dat <- harris.wateruse
 # Compare to Schabenberger & Pierce, fig 7.23
 useOuterStrips(
@@ -5687,7 +5110,7 @@ useOuterStrips(
 )
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-79-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-79-1.png" width="90%" style="display: block; margin: auto;" />
 
 Remove outliers
 
@@ -5711,7 +5134,7 @@ xyplot(
 )
 ```
 
-<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-81-1.png" width="672" />
+<img src="06-nonlinear_regression_files/figure-html/unnamed-chunk-81-1.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
@@ -5727,30 +5150,6 @@ d22 <- droplevels(subset(dat, age == "A2" & species == "S2"))
 
 ```r
 library(nlme)
-```
-
-```
-## Warning: package 'nlme' was built under R version 4.0.5
-```
-
-```
-## 
-## Attaching package: 'nlme'
-```
-
-```
-## The following object is masked from 'package:lme4':
-## 
-##     lmList
-```
-
-```
-## The following object is masked from 'package:dplyr':
-## 
-##     collapse
-```
-
-```r
 ## We use pdDiag() to get uncorrelated random effects
 m1n <- lme(
     water ~ 1 + ti + ti2, #intercept, time and time-squared = fixed effects
@@ -5759,64 +5158,52 @@ m1n <- lme(
     random = list(tree = pdDiag( ~ 1 + ti + ti2)) # random intercept, time and time squared per tree = random effects
 )
 ranef(m1n)
-```
-
-```
-##     (Intercept)            ti           ti2
-## T04   0.1985796  1.609864e-09  4.990101e-10
-## T05   0.3492827  2.487690e-10 -4.845287e-11
-## T19  -0.1978989 -7.681202e-10 -1.961453e-10
-## T23   0.4519003 -3.270426e-10 -2.413583e-10
-## T38  -0.6457494 -1.608770e-09 -3.298010e-10
-## T40   0.3739432  3.264705e-10 -2.543109e-11
-## T49   0.8620648  9.021831e-10 -5.402247e-12
-## T53  -0.5655049 -8.279040e-10 -4.579291e-11
-## T67  -0.4394623 -3.485113e-10  2.147434e-11
-## T71  -0.3871552  7.930610e-10  3.718993e-10
+#>     (Intercept)            ti           ti2
+#> T04   0.1985796  1.609864e-09  4.990101e-10
+#> T05   0.3492827  2.487690e-10 -4.845287e-11
+#> T19  -0.1978989 -7.681202e-10 -1.961453e-10
+#> T23   0.4519003 -3.270426e-10 -2.413583e-10
+#> T38  -0.6457494 -1.608770e-09 -3.298010e-10
+#> T40   0.3739432  3.264705e-10 -2.543109e-11
+#> T49   0.8620648  9.021831e-10 -5.402247e-12
+#> T53  -0.5655049 -8.279040e-10 -4.579291e-11
+#> T67  -0.4394623 -3.485113e-10  2.147434e-11
+#> T71  -0.3871552  7.930610e-10  3.718993e-10
 ```
 
 
 ```r
 fixef(m1n)
-```
-
-```
-## (Intercept)          ti         ti2 
-##  -10.798799   12.346704   -2.838503
-```
-
-```r
+#> (Intercept)          ti         ti2 
+#>  -10.798799   12.346704   -2.838503
 summary(m1n)
-```
-
-```
-## Linear mixed-effects model fit by REML
-##   Data: d22 
-##        AIC     BIC    logLik
-##   276.5142 300.761 -131.2571
-## 
-## Random effects:
-##  Formula: ~1 + ti + ti2 | tree
-##  Structure: Diagonal
-##         (Intercept)           ti          ti2  Residual
-## StdDev:   0.5187869 1.438333e-05 3.864019e-06 0.3836614
-## 
-## Fixed effects:  water ~ 1 + ti + ti2 
-##                  Value Std.Error  DF   t-value p-value
-## (Intercept) -10.798799 0.8814666 227 -12.25094       0
-## ti           12.346704 0.7827112 227  15.77428       0
-## ti2          -2.838503 0.1720614 227 -16.49704       0
-##  Correlation: 
-##     (Intr) ti    
-## ti  -0.979       
-## ti2  0.970 -0.997
-## 
-## Standardized Within-Group Residuals:
-##         Min          Q1         Med          Q3         Max 
-## -3.07588246 -0.58531056  0.01210209  0.65402695  3.88777402 
-## 
-## Number of Observations: 239
-## Number of Groups: 10
+#> Linear mixed-effects model fit by REML
+#>   Data: d22 
+#>        AIC     BIC    logLik
+#>   276.5142 300.761 -131.2571
+#> 
+#> Random effects:
+#>  Formula: ~1 + ti + ti2 | tree
+#>  Structure: Diagonal
+#>         (Intercept)           ti          ti2  Residual
+#> StdDev:   0.5187869 1.438333e-05 3.864019e-06 0.3836614
+#> 
+#> Fixed effects:  water ~ 1 + ti + ti2 
+#>                  Value Std.Error  DF   t-value p-value
+#> (Intercept) -10.798799 0.8814666 227 -12.25094       0
+#> ti           12.346704 0.7827112 227  15.77428       0
+#> ti2          -2.838503 0.1720614 227 -16.49704       0
+#>  Correlation: 
+#>     (Intr) ti    
+#> ti  -0.979       
+#> ti2  0.970 -0.997
+#> 
+#> Standardized Within-Group Residuals:
+#>         Min          Q1         Med          Q3         Max 
+#> -3.07588246 -0.58531056  0.01210209  0.65402695  3.88777402 
+#> 
+#> Number of Observations: 239
+#> Number of Groups: 10
 ```
 
 `lmer` function from `lme4` package
@@ -5824,31 +5211,21 @@ summary(m1n)
 
 ```r
 m1lmer <- lmer(water~1+ti+ti2+(ti+ti2||tree),data = d22,na.action = na.omit)
-```
-
-```
-## boundary (singular) fit: see ?isSingular
-```
-
-```r
 ranef(m1lmer)
-```
-
-```
-## $tree
-##     (Intercept) ti ti2
-## T04   0.1985796  0   0
-## T05   0.3492827  0   0
-## T19  -0.1978989  0   0
-## T23   0.4519003  0   0
-## T38  -0.6457494  0   0
-## T40   0.3739432  0   0
-## T49   0.8620648  0   0
-## T53  -0.5655049  0   0
-## T67  -0.4394623  0   0
-## T71  -0.3871552  0   0
-## 
-## with conditional variances for "tree"
+#> $tree
+#>     (Intercept) ti ti2
+#> T04   0.1985796  0   0
+#> T05   0.3492827  0   0
+#> T19  -0.1978989  0   0
+#> T23   0.4519003  0   0
+#> T38  -0.6457494  0   0
+#> T40   0.3739432  0   0
+#> T49   0.8620648  0   0
+#> T53  -0.5655049  0   0
+#> T67  -0.4394623  0   0
+#> T71  -0.3871552  0   0
+#> 
+#> with conditional variances for "tree"
 ```
 
 Notes:
@@ -5864,49 +5241,27 @@ Notes:
 
 ```r
 fixef(m1lmer)
-```
-
-```
-## (Intercept)          ti         ti2 
-##  -10.798799   12.346704   -2.838503
-```
-
-```r
+#> (Intercept)          ti         ti2 
+#>  -10.798799   12.346704   -2.838503
 m1l <- lmer(water ~ 1 + ti + ti2 + (1 | tree) + (0 + ti | tree) + (0 + ti2 | tree), data = d22)
-```
-
-```
-## boundary (singular) fit: see ?isSingular
-```
-
-```r
 ranef(m1l)
-```
-
-```
-## $tree
-##     (Intercept) ti ti2
-## T04   0.1985796  0   0
-## T05   0.3492827  0   0
-## T19  -0.1978989  0   0
-## T23   0.4519003  0   0
-## T38  -0.6457494  0   0
-## T40   0.3739432  0   0
-## T49   0.8620648  0   0
-## T53  -0.5655049  0   0
-## T67  -0.4394623  0   0
-## T71  -0.3871552  0   0
-## 
-## with conditional variances for "tree"
-```
-
-```r
+#> $tree
+#>     (Intercept) ti ti2
+#> T04   0.1985796  0   0
+#> T05   0.3492827  0   0
+#> T19  -0.1978989  0   0
+#> T23   0.4519003  0   0
+#> T38  -0.6457494  0   0
+#> T40   0.3739432  0   0
+#> T49   0.8620648  0   0
+#> T53  -0.5655049  0   0
+#> T67  -0.4394623  0   0
+#> T71  -0.3871552  0   0
+#> 
+#> with conditional variances for "tree"
 fixef(m1l)
-```
-
-```
-## (Intercept)          ti         ti2 
-##  -10.798799   12.346704   -2.838503
+#> (Intercept)          ti         ti2 
+#>  -10.798799   12.346704   -2.838503
 ```
 
 To include structured covariance terms, we can use the following way
@@ -5921,68 +5276,204 @@ m2n <- lme(
     na.action = na.omit
 )
 ranef(m2n)
-```
-
-```
-##     (Intercept)
-## T04   0.1929971
-## T05   0.3424631
-## T19  -0.1988495
-## T23   0.4538660
-## T38  -0.6413664
-## T40   0.3769378
-## T49   0.8410043
-## T53  -0.5528236
-## T67  -0.4452930
-## T71  -0.3689358
-```
-
-```r
+#>     (Intercept)
+#> T04   0.1929971
+#> T05   0.3424631
+#> T19  -0.1988495
+#> T23   0.4538660
+#> T38  -0.6413664
+#> T40   0.3769378
+#> T49   0.8410043
+#> T53  -0.5528236
+#> T67  -0.4452930
+#> T71  -0.3689358
 fixef(m2n)
-```
-
-```
-## (Intercept)          ti         ti2 
-##  -11.223310   12.712094   -2.913682
-```
-
-```r
+#> (Intercept)          ti         ti2 
+#>  -11.223310   12.712094   -2.913682
 summary(m2n)
-```
-
-```
-## Linear mixed-effects model fit by REML
-##   Data: d22 
-##        AIC      BIC   logLik
-##   263.3081 284.0911 -125.654
-## 
-## Random effects:
-##  Formula: ~1 | tree
-##         (Intercept)  Residual
-## StdDev:   0.5154042 0.3925777
-## 
-## Correlation Structure: Exponential spatial correlation
-##  Formula: ~day | tree 
-##  Parameter estimate(s):
-##    range 
-## 3.794624 
-## Fixed effects:  water ~ 1 + ti + ti2 
-##                  Value Std.Error  DF   t-value p-value
-## (Intercept) -11.223310 1.0988725 227 -10.21348       0
-## ti           12.712094 0.9794235 227  12.97916       0
-## ti2          -2.913682 0.2148551 227 -13.56115       0
-##  Correlation: 
-##     (Intr) ti    
-## ti  -0.985       
-## ti2  0.976 -0.997
-## 
-## Standardized Within-Group Residuals:
-##         Min          Q1         Med          Q3         Max 
-## -3.04861039 -0.55703950  0.00278101  0.62558762  3.80676991 
-## 
-## Number of Observations: 239
-## Number of Groups: 10
+#> Linear mixed-effects model fit by REML
+#>   Data: d22 
+#>        AIC      BIC   logLik
+#>   263.3081 284.0911 -125.654
+#> 
+#> Random effects:
+#>  Formula: ~1 | tree
+#>         (Intercept)  Residual
+#> StdDev:   0.5154042 0.3925777
+#> 
+#> Correlation Structure: Exponential spatial correlation
+#>  Formula: ~day | tree 
+#>  Parameter estimate(s):
+#>    range 
+#> 3.794624 
+#> Fixed effects:  water ~ 1 + ti + ti2 
+#>                  Value Std.Error  DF   t-value p-value
+#> (Intercept) -11.223310 1.0988725 227 -10.21348       0
+#> ti           12.712094 0.9794235 227  12.97916       0
+#> ti2          -2.913682 0.2148551 227 -13.56115       0
+#>  Correlation: 
+#>     (Intr) ti    
+#> ti  -0.985       
+#> ti2  0.976 -0.997
+#> 
+#> Standardized Within-Group Residuals:
+#>         Min          Q1         Med          Q3         Max 
+#> -3.04861039 -0.55703950  0.00278101  0.62558762  3.80676991 
+#> 
+#> Number of Observations: 239
+#> Number of Groups: 10
 ```
 
 <br>
 
+
+
+```r
+devtools::session_info()
+#> - Session info ---------------------------------------------------------------
+#>  setting  value                       
+#>  version  R version 4.0.4 (2021-02-15)
+#>  os       Windows 10 x64              
+#>  system   x86_64, mingw32             
+#>  ui       RTerm                       
+#>  language (EN)                        
+#>  collate  English_United States.1252  
+#>  ctype    English_United States.1252  
+#>  tz       America/Chicago             
+#>  date     2022-01-05                  
+#> 
+#> - Packages -------------------------------------------------------------------
+#>  ! package      * version    date       lib source        
+#>    abind          1.4-5      2016-07-21 [2] CRAN (R 4.0.3)
+#>    agridat      * 1.18       2021-01-12 [2] CRAN (R 4.0.3)
+#>    ape          * 5.5        2021-04-25 [2] CRAN (R 4.0.5)
+#>    assertthat     0.2.1      2019-03-21 [2] CRAN (R 4.0.3)
+#>    backports      1.2.1      2020-12-09 [2] CRAN (R 4.0.3)
+#>    bookdown       0.24       2021-09-02 [2] CRAN (R 4.0.5)
+#>    boot           1.3-28     2021-05-03 [2] CRAN (R 4.0.5)
+#>    broom          0.7.9      2021-07-27 [2] CRAN (R 4.0.5)
+#>    bslib          0.3.1      2021-10-06 [2] CRAN (R 4.0.5)
+#>    cachem         1.0.6      2021-08-19 [2] CRAN (R 4.0.5)
+#>    callr          3.7.0      2021-04-20 [2] CRAN (R 4.0.5)
+#>    car            3.0-11     2021-06-27 [2] CRAN (R 4.0.5)
+#>    carData        3.0-4      2020-05-22 [2] CRAN (R 4.0.3)
+#>    cellranger     1.1.0      2016-07-27 [2] CRAN (R 4.0.3)
+#>    cli            3.0.1      2021-07-17 [2] CRAN (R 4.0.5)
+#>    coda         * 0.19-4     2020-09-30 [2] CRAN (R 4.0.3)
+#>    colorspace     2.0-2      2021-06-24 [2] CRAN (R 4.0.5)
+#>    corpcor        1.6.9      2017-04-01 [2] CRAN (R 4.0.3)
+#>    crayon         1.4.2      2021-10-29 [2] CRAN (R 4.0.5)
+#>    cubature       2.0.4.2    2021-05-13 [2] CRAN (R 4.0.5)
+#>    curl           4.3.2      2021-06-23 [2] CRAN (R 4.0.5)
+#>    data.table     1.14.0     2021-02-21 [2] CRAN (R 4.0.4)
+#>    DBI            1.1.1      2021-01-15 [2] CRAN (R 4.0.3)
+#>    dbplyr         2.1.1      2021-04-06 [2] CRAN (R 4.0.5)
+#>    desc           1.3.0      2021-03-05 [2] CRAN (R 4.0.5)
+#>    devtools       2.4.2      2021-06-07 [2] CRAN (R 4.0.5)
+#>    digest         0.6.27     2020-10-24 [2] CRAN (R 4.0.3)
+#>    dplyr        * 1.0.7      2021-06-18 [2] CRAN (R 4.0.5)
+#>    ellipsis       0.3.2      2021-04-29 [2] CRAN (R 4.0.5)
+#>    evaluate       0.14       2019-05-28 [2] CRAN (R 4.0.3)
+#>    extrafont      0.17       2014-12-08 [2] CRAN (R 4.0.3)
+#>    extrafontdb    1.0        2012-06-11 [2] CRAN (R 4.0.3)
+#>    fansi          0.5.0      2021-05-25 [2] CRAN (R 4.0.5)
+#>    faraway      * 1.0.7      2016-02-15 [2] CRAN (R 4.0.3)
+#>    fastmap        1.1.0      2021-01-25 [2] CRAN (R 4.0.3)
+#>    forcats      * 0.5.1      2021-01-27 [2] CRAN (R 4.0.3)
+#>  D foreign        0.8-81     2020-12-22 [2] CRAN (R 4.0.4)
+#>    fs             1.5.0      2020-07-31 [2] CRAN (R 4.0.3)
+#>    generics       0.1.1      2021-10-25 [2] CRAN (R 4.0.5)
+#>    ggplot2      * 3.3.5      2021-06-25 [2] CRAN (R 4.0.5)
+#>    glue           1.4.2      2020-08-27 [2] CRAN (R 4.0.3)
+#>    gtable         0.3.0      2019-03-25 [2] CRAN (R 4.0.3)
+#>    haven          2.4.3      2021-08-04 [2] CRAN (R 4.0.5)
+#>    hms            1.1.0      2021-05-17 [2] CRAN (R 4.0.5)
+#>    htmltools      0.5.2      2021-08-25 [2] CRAN (R 4.0.5)
+#>    htmlwidgets    1.5.4      2021-09-08 [2] CRAN (R 4.0.5)
+#>    httr           1.4.2      2020-07-20 [2] CRAN (R 4.0.3)
+#>    investr      * 1.4.0      2016-04-09 [2] CRAN (R 4.0.3)
+#>    jpeg         * 0.1-9      2021-07-24 [2] CRAN (R 4.0.5)
+#>    jquerylib      0.1.4      2021-04-26 [2] CRAN (R 4.0.5)
+#>    jsonlite       1.7.2      2020-12-09 [2] CRAN (R 4.0.3)
+#>    kableExtra   * 1.3.4      2021-02-20 [2] CRAN (R 4.0.4)
+#>    knitr        * 1.34       2021-09-09 [2] CRAN (R 4.0.5)
+#>    lattice      * 0.20-44    2021-05-02 [2] CRAN (R 4.0.5)
+#>    latticeExtra * 0.6-29     2019-12-19 [2] CRAN (R 4.0.3)
+#>    lifecycle      1.0.1      2021-09-24 [2] CRAN (R 4.0.5)
+#>    lme4         * 1.1-27.1   2021-06-22 [2] CRAN (R 4.0.5)
+#>    lmerTest     * 3.1-3      2020-10-23 [2] CRAN (R 4.0.3)
+#>    lubridate      1.7.10     2021-02-26 [2] CRAN (R 4.0.5)
+#>    magrittr       2.0.1      2020-11-17 [2] CRAN (R 4.0.3)
+#>    MASS         * 7.3-54     2021-05-03 [2] CRAN (R 4.0.5)
+#>    matlib       * 0.9.5      2021-08-21 [2] CRAN (R 4.0.5)
+#>    Matrix       * 1.3-4      2021-06-01 [2] CRAN (R 4.0.5)
+#>    MCMCglmm     * 2.32       2021-03-12 [2] CRAN (R 4.0.5)
+#>    memoise        2.0.0      2021-01-26 [2] CRAN (R 4.0.3)
+#>    mgcv           1.8-36     2021-06-01 [2] CRAN (R 4.0.5)
+#>    minqa          1.2.4      2014-10-09 [2] CRAN (R 4.0.3)
+#>    modelr         0.1.8      2020-05-19 [2] CRAN (R 4.0.3)
+#>    munsell        0.5.0      2018-06-12 [2] CRAN (R 4.0.3)
+#>    nlme         * 3.1-153    2021-09-07 [2] CRAN (R 4.0.5)
+#>    nloptr         1.2.2.2    2020-07-02 [2] CRAN (R 4.0.3)
+#>    nlstools     * 1.0-2      2015-07-31 [2] CRAN (R 4.0.3)
+#>    nnet         * 7.3-16     2021-05-03 [2] CRAN (R 4.0.5)
+#>    numDeriv       2016.8-1.1 2019-06-06 [2] CRAN (R 4.0.3)
+#>    openxlsx       4.2.4      2021-06-16 [2] CRAN (R 4.0.5)
+#>    pbkrtest     * 0.5.1      2021-03-09 [2] CRAN (R 4.0.5)
+#>    pillar         1.6.4      2021-10-18 [2] CRAN (R 4.0.5)
+#>    pkgbuild       1.2.0      2020-12-15 [2] CRAN (R 4.0.3)
+#>    pkgconfig      2.0.3      2019-09-22 [2] CRAN (R 4.0.3)
+#>    pkgload        1.2.2      2021-09-11 [2] CRAN (R 4.0.5)
+#>    png            0.1-7      2013-12-03 [2] CRAN (R 4.0.3)
+#>    prettyunits    1.1.1      2020-01-24 [2] CRAN (R 4.0.3)
+#>    processx       3.5.2      2021-04-30 [2] CRAN (R 4.0.5)
+#>    ps             1.6.0      2021-02-28 [2] CRAN (R 4.0.5)
+#>    pscl         * 1.5.5      2020-03-07 [2] CRAN (R 4.0.3)
+#>    purrr        * 0.3.4      2020-04-17 [2] CRAN (R 4.0.3)
+#>    R6             2.5.1      2021-08-19 [2] CRAN (R 4.0.5)
+#>    RColorBrewer   1.1-2      2014-12-07 [2] CRAN (R 4.0.3)
+#>    Rcpp           1.0.7      2021-07-07 [2] CRAN (R 4.0.5)
+#>    readr        * 2.0.1      2021-08-10 [2] CRAN (R 4.0.5)
+#>    readxl         1.3.1      2019-03-13 [2] CRAN (R 4.0.3)
+#>    remotes        2.4.0      2021-06-02 [2] CRAN (R 4.0.5)
+#>    reprex         2.0.1      2021-08-05 [2] CRAN (R 4.0.5)
+#>    rgl            0.107.14   2021-08-21 [2] CRAN (R 4.0.5)
+#>    rio            0.5.27     2021-06-21 [2] CRAN (R 4.0.5)
+#>    rlang          0.4.11     2021-04-30 [2] CRAN (R 4.0.5)
+#>    RLRsim       * 3.1-6      2020-03-25 [2] CRAN (R 4.0.4)
+#>    rmarkdown      2.11       2021-09-14 [2] CRAN (R 4.0.5)
+#>    rprojroot      2.0.2      2020-11-15 [2] CRAN (R 4.0.3)
+#>    rstudioapi     0.13       2020-11-12 [2] CRAN (R 4.0.3)
+#>    Rttf2pt1       1.3.9      2021-07-22 [2] CRAN (R 4.0.5)
+#>    rvest          1.0.1      2021-07-26 [2] CRAN (R 4.0.5)
+#>    sass           0.4.0      2021-05-12 [2] CRAN (R 4.0.5)
+#>    scales       * 1.1.1      2020-05-11 [2] CRAN (R 4.0.3)
+#>    sessioninfo    1.1.1      2018-11-05 [2] CRAN (R 4.0.3)
+#>    stringi        1.7.4      2021-08-25 [2] CRAN (R 4.0.5)
+#>    stringr      * 1.4.0      2019-02-10 [2] CRAN (R 4.0.3)
+#>    svglite        2.0.0      2021-02-20 [2] CRAN (R 4.0.4)
+#>    systemfonts    1.0.2      2021-05-11 [2] CRAN (R 4.0.5)
+#>    tensorA        0.36.2     2020-11-19 [2] CRAN (R 4.0.3)
+#>    testthat       3.0.4      2021-07-01 [2] CRAN (R 4.0.5)
+#>    tibble       * 3.1.5      2021-09-30 [2] CRAN (R 4.0.5)
+#>    tidyr        * 1.1.3      2021-03-03 [2] CRAN (R 4.0.4)
+#>    tidyselect     1.1.1      2021-04-30 [2] CRAN (R 4.0.5)
+#>    tidyverse    * 1.3.1      2021-04-15 [2] CRAN (R 4.0.5)
+#>    tzdb           0.1.2      2021-07-20 [2] CRAN (R 4.0.5)
+#>    usethis        2.0.1      2021-02-10 [2] CRAN (R 4.0.3)
+#>    utf8           1.2.2      2021-07-24 [2] CRAN (R 4.0.5)
+#>    vctrs          0.3.8      2021-04-29 [2] CRAN (R 4.0.5)
+#>    viridisLite    0.4.0      2021-04-13 [2] CRAN (R 4.0.5)
+#>    webshot        0.5.2      2019-11-22 [1] CRAN (R 4.0.5)
+#>    withr          2.4.2      2021-04-18 [2] CRAN (R 4.0.5)
+#>    xfun           0.29       2021-12-14 [1] CRAN (R 4.0.5)
+#>    xml2           1.3.2      2020-04-23 [2] CRAN (R 4.0.3)
+#>    xtable         1.8-4      2019-04-21 [2] CRAN (R 4.0.3)
+#>    yaml           2.2.1      2020-02-01 [2] CRAN (R 4.0.3)
+#>    zip            2.2.0      2021-05-31 [2] CRAN (R 4.0.5)
+#> 
+#> [1] C:/Users/tn9k4/OneDrive - University of Missouri/Documents/R/win-library/4.0
+#> [2] C:/Program Files/R/R-4.0.4/library
+#> 
+#>  D -- DLL MD5 mismatch, broken installation.
+```

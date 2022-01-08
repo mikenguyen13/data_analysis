@@ -878,15 +878,12 @@ Notes:
 ```r
 library(plm)
 plm::pooltest(inv~value+capital, data=Grunfeld, model="within")
-```
-
-```
-## 
-## 	F statistic
-## 
-## data:  inv ~ value + capital
-## F = 5.7805, df1 = 18, df2 = 170, p-value = 1.219e-10
-## alternative hypothesis: unstability
+#> 
+#> 	F statistic
+#> 
+#> data:  inv ~ value + capital
+#> F = 5.7805, df1 = 18, df2 = 170, p-value = 1.219e-10
+#> alternative hypothesis: unstability
 ```
 
 Hence, we reject the null hypothesis that coefficients are stable. Then, we should use the random model.
@@ -905,41 +902,26 @@ Types:
 
 ```r
 pFtest(inv~value+capital, data=Grunfeld, effect="twoways")
-```
-
-```
-## 
-## 	F test for twoways effects
-## 
-## data:  inv ~ value + capital
-## F = 17.403, df1 = 28, df2 = 169, p-value < 2.2e-16
-## alternative hypothesis: significant effects
-```
-
-```r
+#> 
+#> 	F test for twoways effects
+#> 
+#> data:  inv ~ value + capital
+#> F = 17.403, df1 = 28, df2 = 169, p-value < 2.2e-16
+#> alternative hypothesis: significant effects
 pFtest(inv~value+capital, data=Grunfeld, effect="individual")
-```
-
-```
-## 
-## 	F test for individual effects
-## 
-## data:  inv ~ value + capital
-## F = 49.177, df1 = 9, df2 = 188, p-value < 2.2e-16
-## alternative hypothesis: significant effects
-```
-
-```r
+#> 
+#> 	F test for individual effects
+#> 
+#> data:  inv ~ value + capital
+#> F = 49.177, df1 = 9, df2 = 188, p-value < 2.2e-16
+#> alternative hypothesis: significant effects
 pFtest(inv~value+capital, data=Grunfeld, effect="time")
-```
-
-```
-## 
-## 	F test for time effects
-## 
-## data:  inv ~ value + capital
-## F = 0.23451, df1 = 19, df2 = 178, p-value = 0.9997
-## alternative hypothesis: significant effects
+#> 
+#> 	F test for time effects
+#> 
+#> data:  inv ~ value + capital
+#> F = 0.23451, df1 = 19, df2 = 178, p-value = 0.9997
+#> alternative hypothesis: significant effects
 ```
 
 #### Cross-sectional dependence/contemporaneous correlation
@@ -951,15 +933,12 @@ pFtest(inv~value+capital, data=Grunfeld, effect="time")
 
 ```r
 pcdtest(inv~value+capital, data=Grunfeld, model="within")
-```
-
-```
-## 
-## 	Pesaran CD test for cross-sectional dependence in panels
-## 
-## data:  inv ~ value + capital
-## z = 4.6612, p-value = 3.144e-06
-## alternative hypothesis: cross-sectional dependence
+#> 
+#> 	Pesaran CD test for cross-sectional dependence in panels
+#> 
+#> data:  inv ~ value + capital
+#> z = 4.6612, p-value = 3.144e-06
+#> alternative hypothesis: cross-sectional dependence
 ```
 
 ##### Local cross-sectional dependence
@@ -969,15 +948,12 @@ use the same command, but supply matrix `w` to the argument.
 
 ```r
 pcdtest(inv~value+capital, data=Grunfeld, model="within")
-```
-
-```
-## 
-## 	Pesaran CD test for cross-sectional dependence in panels
-## 
-## data:  inv ~ value + capital
-## z = 4.6612, p-value = 3.144e-06
-## alternative hypothesis: cross-sectional dependence
+#> 
+#> 	Pesaran CD test for cross-sectional dependence in panels
+#> 
+#> data:  inv ~ value + capital
+#> z = 4.6612, p-value = 3.144e-06
+#> alternative hypothesis: cross-sectional dependence
 ```
 
 #### Serial Correlation
@@ -1009,15 +985,12 @@ pcdtest(inv~value+capital, data=Grunfeld, model="within")
 
 ```r
 pwtest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, data=Produc)
-```
-
-```
-## 
-## 	Wooldridge's test for unobserved individual effects
-## 
-## data:  formula
-## z = 3.9383, p-value = 8.207e-05
-## alternative hypothesis: unobserved effect
+#> 
+#> 	Wooldridge's test for unobserved individual effects
+#> 
+#> data:  formula
+#> z = 3.9383, p-value = 8.207e-05
+#> alternative hypothesis: unobserved effect
 ```
 
 Here, we reject the null hypothesis that the no unobserved effects in the residuals. Hence, we will exclude using pooled OLS.
@@ -1031,15 +1004,12 @@ Here, we reject the null hypothesis that the no unobserved effects in the residu
 
 ```r
 pbsytest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, data=Produc, test="j")
-```
-
-```
-## 
-## 	Baltagi and Li AR-RE joint test - balanced panel
-## 
-## data:  formula
-## chisq = 4187.6, df = 2, p-value < 2.2e-16
-## alternative hypothesis: AR(1) errors or random effects
+#> 
+#> 	Baltagi and Li AR-RE joint test - balanced panel
+#> 
+#> data:  formula
+#> chisq = 4187.6, df = 2, p-value < 2.2e-16
+#> alternative hypothesis: AR(1) errors or random effects
 ```
 
 Here, we reject the null hypothesis that there is no presence of **serial correlation,** and **random effects**. But we still do not know whether it is because of serial correlation, of random effects or of both
@@ -1051,15 +1021,12 @@ BSY for serial correlation
 
 ```r
 pbsytest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, data=Produc)
-```
-
-```
-## 
-## 	Bera, Sosa-Escudero and Yoon locally robust test - balanced panel
-## 
-## data:  formula
-## chisq = 52.636, df = 1, p-value = 4.015e-13
-## alternative hypothesis: AR(1) errors sub random effects
+#> 
+#> 	Bera, Sosa-Escudero and Yoon locally robust test - balanced panel
+#> 
+#> data:  formula
+#> chisq = 52.636, df = 1, p-value = 4.015e-13
+#> alternative hypothesis: AR(1) errors sub random effects
 ```
 
 BSY for random effects
@@ -1067,16 +1034,13 @@ BSY for random effects
 
 ```r
 pbsytest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, data=Produc, test="re")
-```
-
-```
-## 
-## 	Bera, Sosa-Escudero and Yoon locally robust test (one-sided) -
-## 	balanced panel
-## 
-## data:  formula
-## z = 57.914, p-value < 2.2e-16
-## alternative hypothesis: random effects sub AR(1) errors
+#> 
+#> 	Bera, Sosa-Escudero and Yoon locally robust test (one-sided) -
+#> 	balanced panel
+#> 
+#> data:  formula
+#> z = 57.914, p-value < 2.2e-16
+#> alternative hypothesis: random effects sub AR(1) errors
 ```
 
 Since BSY is only locally robust, if you "know" there is no serial correlation, then this test is based on LM test is more superior:
@@ -1084,15 +1048,12 @@ Since BSY is only locally robust, if you "know" there is no serial correlation, 
 
 ```r
 plmtest(inv ~ value + capital, data = Grunfeld, type = "honda")
-```
-
-```
-## 
-## 	Lagrange Multiplier Test - (Honda) for balanced panels
-## 
-## data:  inv ~ value + capital
-## normal = 28.252, p-value < 2.2e-16
-## alternative hypothesis: significant effects
+#> 
+#> 	Lagrange Multiplier Test - (Honda) for balanced panels
+#> 
+#> data:  inv ~ value + capital
+#> normal = 28.252, p-value < 2.2e-16
+#> alternative hypothesis: significant effects
 ```
 
 On the other hand, if you know there is no random effects, to test for serial correlation, use [@BREUSCH_1978]-[@Godfrey_1978]'s test
@@ -1115,15 +1076,12 @@ Note:
 ```r
 pbltest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, 
         data=Produc, alternative="onesided")
-```
-
-```
-## 
-## 	Baltagi and Li one-sided LM test
-## 
-## data:  log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp
-## z = 21.69, p-value < 2.2e-16
-## alternative hypothesis: AR(1)/MA(1) errors in RE panel model
+#> 
+#> 	Baltagi and Li one-sided LM test
+#> 
+#> data:  log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp
+#> z = 21.69, p-value < 2.2e-16
+#> alternative hypothesis: AR(1)/MA(1) errors in RE panel model
 ```
 
 General serial correlation tests
@@ -1134,15 +1092,12 @@ General serial correlation tests
 
 ```r
 plm::pbgtest(plm::plm(inv~value+capital, data = Grunfeld, model = "within"), order = 2)
-```
-
-```
-## 
-## 	Breusch-Godfrey/Wooldridge test for serial correlation in panel models
-## 
-## data:  inv ~ value + capital
-## chisq = 42.587, df = 2, p-value = 5.655e-10
-## alternative hypothesis: serial correlation in idiosyncratic errors
+#> 
+#> 	Breusch-Godfrey/Wooldridge test for serial correlation in panel models
+#> 
+#> data:  inv ~ value + capital
+#> chisq = 42.587, df = 2, p-value = 5.655e-10
+#> alternative hypothesis: serial correlation in idiosyncratic errors
 ```
 
 in the case of short panels (small T and large n), we can use
@@ -1150,15 +1105,12 @@ in the case of short panels (small T and large n), we can use
 
 ```r
 pwartest(log(emp) ~ log(wage) + log(capital), data=EmplUK)
-```
-
-```
-## 
-## 	Wooldridge's test for serial correlation in FE panels
-## 
-## data:  plm.model
-## F = 312.3, df1 = 1, df2 = 889, p-value < 2.2e-16
-## alternative hypothesis: serial correlation
+#> 
+#> 	Wooldridge's test for serial correlation in FE panels
+#> 
+#> data:  plm.model
+#> F = 312.3, df1 = 1, df2 = 889, p-value < 2.2e-16
+#> alternative hypothesis: serial correlation
 ```
 
 #### Unit roots/stationarity
@@ -1223,15 +1175,12 @@ Then,
 gw <- plm(inv~value+capital, data=Grunfeld, model="within")
 gr <- plm(inv~value+capital, data=Grunfeld, model="random")
 phtest(gw, gr)
-```
-
-```
-## 
-## 	Hausman Test
-## 
-## data:  inv ~ value + capital
-## chisq = 2.3304, df = 2, p-value = 0.3119
-## alternative hypothesis: one model is inconsistent
+#> 
+#> 	Hausman Test
+#> 
+#> data:  inv ~ value + capital
+#> chisq = 2.3304, df = 2, p-value = 0.3119
+#> alternative hypothesis: one model is inconsistent
 ```
 
 +-----------------------+-----------------+---------------------------------+---------------------------------+-----------------------------------------+------------------------+------------------------+-------+-------------------------------------------+

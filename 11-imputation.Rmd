@@ -1,17 +1,25 @@
 # Imputation (Missing Data)
 
+Imputation is a statistical procedure where you replace missing data with *some values*
+
+-   Unit imputation = single data point
+
+-   Item imputation = single feature value
+
 Imputation is usually seen as the illegitimate child of statistical analysis. Several reasons that contribute to this negative views could be:
 
-(1) Peopled hardly do imputation correctly
+(1) Peopled hardly do imputation correctly (which will introduce bias to your estimates)
 (2) Imputation can only be applied to a small range of problems correctly
 
-If you have missing data on y (dependent variable), you probability would not be able to do any imputation appropriately. However, if you have certain type of missing data (e.g., non-random missing data) in the xs variable (independent variables), then you can still salvage your collected data points with imputation.
+If you have missing data on $y$ (dependent variable), you probability would not be able to do any imputation appropriately. However, if you have certain type of missing data (e.g., non-random missing data) in the $x$'s variable (independent variables), then you can still salvage your collected data points with imputation.
 
 We also need to talk why you would want to do imputation in the first place. If your purpose is inference/ explanation (valid statistical inference not optimal point prediction), then imputation would not offer much help [@Rubin_1996]. However, if your purpose is prediction, you would want your standard error to be reduced by including information (non-missing data) on other variables of a data point. Then imputation could be the tool that you're looking for.
 
 For most software packages, it will use listwise deletion or casewise deletion to have complete case analysis (analysis with only observations with all information). Not until recently that statistician can propose some methods that are a bit better than listwise deletion which are maximum likelihood and multiple imputation.
 
 "Judging the quality of missing data procedures by their ability to recreate the individual missing values (according to hit rate, mean square error, etc) does not lead to choosing procedures that result in valid inference", [@Rubin_1996]
+
+Missing data can make it more challenging to big datasets.
 
 ## Assumptions
 
@@ -35,7 +43,7 @@ MAR is weaker than MCAR
 
 $$
 P(Y_{missing}|Y,X)= P(Y_{missing}|X)
-$$ 
+$$
 
 The probability of Y missing given Y and X equal to the probability of of Y missing given X. However, it is impossible to provide evidence to the MAR condition.
 
@@ -81,6 +89,8 @@ Hence, in the case of nonignorable, the data are not MAR. Then, your parameters 
 ## Solutions to Missing data
 
 ### Listwise Deletion
+
+Also known as complete case deletion only where you only retain cases with complete data for all features.
 
 Advantages:
 
@@ -128,7 +138,7 @@ Add another variable in the database to indicate whether a value is missing.
 
 Create 2 variables
 
-
+```{=tex}
 \begin{equation}
 D=
 \begin{cases}
@@ -136,8 +146,8 @@ D=
 0 & \text{otherwise}\\
 \end{cases}
 \end{equation}
-
-
+```
+```{=tex}
 \begin{equation}
 X^* = 
 \begin{cases}
@@ -145,9 +155,7 @@ X & \text{data are available} \\
 c & \text{data are missing}\\
 \end{cases}
 \end{equation}
-
-
-
+```
 **Note**: A typical choice for c is usually the mean of X
 
 Interpretation:
@@ -168,6 +176,7 @@ Disadvantages:
     -   Mean imputation does not preserve the relationships among variables
     -   Mean imputation leads to An Underestimate of Standard Errors → you're making Type I errors without realizing it.
     -   Biased estimates of variances and covariances [@Haitovsky_1968]
+    -   In high-dimensions, mean substitution cannot account for dependence structure among features.
 
 #### Maximum Likelihood {#maximum-likelihood}
 
@@ -305,8 +314,8 @@ If you want to impute non-linear relationship, such as interaction between 2 var
 ##### Hot Deck Imputation
 
 -   Used by U.S. Census Bureau for public datasets
--   approximate Bayesian bootstrap\
-    A randomly chosen value from an individual in the sample who has similar values on other variables. In other words, find all the sample subjects who are similar on other variables, then randomly choose one of their values on the missing variable.
+-   approximate Bayesian bootstrap
+-   A randomly chosen value from an individual in the sample who has similar values on other variables. In other words, find all the sample subjects who are similar on other variables, then randomly choose one of their values on the missing variable.
 
 When we have $n_1$ cases with complete data on Y and $n_0$ cases with missing data on Y
 
@@ -325,9 +334,13 @@ Note:
     -   Constrained to only possible values.
     -   Since the value is picked at random, it adds some variability, which might come in handy when calculating standard errors.
 
+-   Challenge: how can you define "similar" here.
+
 ##### Cold Deck Imputation
 
 Contrary to Hot Deck, Cold Deck choose value systematically from an observation that has similar values on other variables, which remove the random variation that we want.
+
+Donor samples of "cold-deck" imputation come from a different data set.
 
 ##### Predictive Mean Matching
 
@@ -564,7 +577,7 @@ Also known as conditional mean imputation Missing value is based (regress) on ot
 
 -   Good:
 
-    -   Maintain the relationship with other variables\
+    -   Maintain the relationship with other variables (i.e., preserve dependence structure among features, unlike \@ref(mean-mode-median-imputation)).
 
     -   If the data are MCAR, least-squares coefficients estimates will be consistent, and approximately unbiased in large samples [@Gourieroux_1981]
 
@@ -599,6 +612,68 @@ For a continuous variable, it uses the mean or mode.
     -   Manhattan
 
 #### Bayesian Ridge regression implementation
+
+#### Matrix Completion
+
+Impute items missing at random while accounting for dependence between features by using principal components, which is known as **matrix completion** [@james2013, Sec 12.3]
+
+Consider an $n \times p$ feature matrix, $\mathbf{X}$, with element $x_{ij}$, some of which are missing.
+
+Similar to \@ref(principal-components), we can approximate the matrix $\mathbf{X}$ in terms of its leading PCs.
+
+We consider the $M$ principal components that optimize
+
+$$
+\underset{\mathbf{A} \in R^{n \times M}, \mathbf{B} \in R^{p \times M}}{\operatorname{min}} \{ \sum_{(i,j) \in \cal{O}} (x_{ij} - \sum_{m=1}^M a_{im}b_{jm})^2 \} 
+$$
+
+where $\cal{O}$ is the set of all observed pairs indices $(i,j)$, a subset of the possible $n \times p$ pairs
+
+Once this minimization is solved,
+
+-   One can impute a missing observation, $x_{ij}$, with $\hat{x}_{ij} = \sum_{m=1}^M \hat{a}_{im}\hat{b}_{jm}$ where $\hat{a}_{im}, \hat{b}_{jm}$ are the $(i,m)$ and $(j.m)$ elements, respectively, of the matrices $\hat{\mathbf{A}}$ and $\hat{\mathbf{B}}$ from the minimization, and
+
+-   One can approximately recover the $M$ principal component scores and loadings, as we did when the data were complete
+
+The challenge here is to solve this minimization problem: the eigen-decomposition non longer applies (as in \@ref(principal-components)
+
+Hence, we have to use iterative algorithm [@james2013 Alg 12.1]
+
+1.  Create a complete data matrix $\tilde{\mathbf{X}}$ of dimension $n \times p$ of which the $(i,j)$ element equals
+
+$$
+\tilde{x}_{ij} =
+\begin{cases}
+x_{ij} & \text{if } (i,j) \in \cal{O} \\
+\bar{x}_{j} & \text{if } (i,j) \notin \cal{O}
+\end{cases}
+$$
+
+where $\bar{x}_j$ is the average of the observed values for the $j$th variable in the incomplete data matrix $\mathbf{X}$
+
+$\cal{O}$ indexes the observations that are observed in $\mathbf{X}$
+
+2.  Repeat these 3 steps until some objectives are met
+
+a\. Solve
+
+$$
+\underset{\mathbf{A} \in R^{n \times M}, \mathbf{B} \in R^{p \times M}}{\operatorname{min}} \{ \sum_{(i,j) \in \cal{O}} (x_{ij} - \sum_{m=1}^M a_{im}b_{jm})^2 \} 
+$$
+
+by computing the principal components of $\tilde{\mathbf{X}}$
+
+b\. For each element $(i,j) \notin \cal{O}$, set $\tilde{x}_{ij} \leftarrow \sum_{m=1}^M \hat{a}_{im}\hat{b}_{jm}$
+
+c\. Compute the objective
+
+$$
+\sum_{(i,j \in \cal{O})} (x_{ij} - \sum_{m=1}^M \hat{a}_{im} \hat{b}_{jm})^2
+$$
+
+3.  Return the estimated missing entries $\tilde{x}_{ij}, (i,j) \notin \cal{O}$
+
+<br>
 
 ### Other methods
 
@@ -681,7 +756,7 @@ According to Rubin, the relative efficiency of an estimate based on m imputation
 
 $$
 (1+\frac{\lambda}{m})^{-1}
-$$ 
+$$
 
 where $\lambda$ is the rate of missing data
 

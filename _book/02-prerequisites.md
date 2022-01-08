@@ -731,7 +731,7 @@ $Bernoulli(p)$
 hist(mc2d::rbern(100000, prob=.5))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-1-1.png" width="672" />
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
 
 ##### Binomial
 
@@ -758,7 +758,7 @@ You have to use table
 hist(rbinom(100000, size = 100, prob = 0.5))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-2-1.png" width="672" />
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
 
 **MGF**
 
@@ -805,7 +805,7 @@ Use table
 hist(rpois(10000, lambda = 5))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-3-1.png" width="672" />
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
 
 **MGF**
 
@@ -851,7 +851,7 @@ $$
 hist(rgeom(n = 10000, prob = 0.5))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-4-1.png" width="672" />
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
 
 **MGF**
 
@@ -895,7 +895,7 @@ where $max[0,n-(N-r)] \le x \le min(n,r)$
 hist(rhyper(nn = 10000 , m=50, n=20, k=30))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-5-1.png" width="672" />
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
 
 **Mean**
 
@@ -946,7 +946,7 @@ $$
 hist(runif(100000, min = 0, max = 1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-6-1.png" width="672" />
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" />
 
 **MGF**
 
@@ -1005,7 +1005,7 @@ for x\>0, and $\alpha = n$ (a positive integer)
 hist(rgamma(n = 10000, shape = 5, rate = 1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-7-1.png" width="672" />
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
 
 **MGF**
 
@@ -1053,7 +1053,7 @@ Use table
 hist(rnorm(1000000, mean = 0, sd = 1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-8-1.png" width="672" />
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" />
 
 **MGF**
 
@@ -1109,7 +1109,7 @@ $Logistic(\mu,s)$
 hist(rlogis(n = 100000, location = 0, scale = 1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-9-1.png" width="672" />
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
 
 ##### Lognomral
 
@@ -1122,7 +1122,7 @@ $lognormal(\mu,\sigma^2)$
 hist(rlnorm(n = 10000, meanlog = 0, sdlog = 1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-10-1.png" width="672" />
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
 
 ##### Exponential
 
@@ -1158,7 +1158,7 @@ F(x) =
 hist(rexp(n = 100000, rate = 1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-11-1.png" width="672" />
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" />
 
 **MGF**
 
@@ -1198,7 +1198,7 @@ $\chi^2=\chi^2(k)$
 hist(rchisq(n = 10000, df=2, ncp = 0))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-12-1.png" width="672" />
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
 
 **MGF**
 
@@ -1230,7 +1230,7 @@ $T(v)$
 hist(rt(n = 100000, df=2, ncp =1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-13-1.png" width="672" />
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
 
 ##### F-Distribution
 
@@ -1247,7 +1247,7 @@ $F(d_1,d_2)$
 hist(rf(n = 100000, df1=2, df2=3, ncp=1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-14-1.png" width="672" />
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;" />
 
 ##### Cauchy
 
@@ -1260,7 +1260,7 @@ hist(rf(n = 100000, df1=2, df2=3, ncp=1))
 hist(rcauchy(n = 100000, location = 0, scale = 1))
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-15-1.png" width="672" />
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
 
 ##### Multivariate Normal Distribution
 
@@ -1636,10 +1636,6 @@ Solutions:
 library("rio")
 ```
 
-```
-## Warning: package 'rio' was built under R version 4.0.5
-```
-
 To import multiple files in a directory
 
 
@@ -1740,14 +1736,6 @@ iris2 <- read.csv.sql("iris.csv",
 library(RMySQL)
 ```
 
-```
-## Warning: package 'RMySQL' was built under R version 4.0.5
-```
-
-```
-## Loading required package: DBI
-```
-
 `RQLite` package
 
  * [Download SQLite](https://sqlite.org/download.html), pick "A bundle of command-line tools for managing SQLite database files" for Window 10
@@ -1836,492 +1824,286 @@ then you can change it instead of `r` in the connection into `rb` . Even though 
 ```r
 # load packages
 library(tidyverse)
-```
-
-```
-## Warning: package 'tidyverse' was built under R version 4.0.5
-```
-
-```
-## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
-```
-
-```
-## v ggplot2 3.3.5     v purrr   0.3.4
-## v tibble  3.1.5     v dplyr   1.0.7
-## v tidyr   1.1.3     v stringr 1.4.0
-## v readr   2.0.1     v forcats 0.5.1
-```
-
-```
-## Warning: package 'ggplot2' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'tibble' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'readr' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'dplyr' was built under R version 4.0.5
-```
-
-```
-## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
-## x dplyr::filter() masks stats::filter()
-## x dplyr::lag()    masks stats::lag()
-```
-
-```r
 library(lubridate)
-```
 
-```
-## Warning: package 'lubridate' was built under R version 4.0.5
-```
 
-```
-## 
-## Attaching package: 'lubridate'
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     date, intersect, setdiff, union
-```
-
-```r
 x <- c(1, 4, 23, 4, 45)
 n <- c(1, 3, 5)
 g <- c("M", "M", "F")
 df <- data.frame(n, g)
 df
-```
-
-```
-##   n g
-## 1 1 M
-## 2 3 M
-## 3 5 F
-```
-
-```r
+#>   n g
+#> 1 1 M
+#> 2 3 M
+#> 3 5 F
 str(df)
-```
-
-```
-## 'data.frame':	3 obs. of  2 variables:
-##  $ n: num  1 3 5
-##  $ g: chr  "M" "M" "F"
-```
-
-```r
+#> 'data.frame':	3 obs. of  2 variables:
+#>  $ n: num  1 3 5
+#>  $ g: chr  "M" "M" "F"
 #Similarly
 df <- tibble(n, g)
 df
-```
-
-```
-## # A tibble: 3 x 2
-##       n g    
-##   <dbl> <chr>
-## 1     1 M    
-## 2     3 M    
-## 3     5 F
-```
-
-```r
+#> # A tibble: 3 x 2
+#>       n g    
+#>   <dbl> <chr>
+#> 1     1 M    
+#> 2     3 M    
+#> 3     5 F
 str(df)
-```
-
-```
-## tibble [3 x 2] (S3: tbl_df/tbl/data.frame)
-##  $ n: num [1:3] 1 3 5
-##  $ g: chr [1:3] "M" "M" "F"
-```
-
-```r
+#> tibble [3 x 2] (S3: tbl_df/tbl/data.frame)
+#>  $ n: num [1:3] 1 3 5
+#>  $ g: chr [1:3] "M" "M" "F"
 # list form
 lst <- list(x, n, g, df)
 lst
-```
-
-```
-## [[1]]
-## [1]  1  4 23  4 45
-## 
-## [[2]]
-## [1] 1 3 5
-## 
-## [[3]]
-## [1] "M" "M" "F"
-## 
-## [[4]]
-## # A tibble: 3 x 2
-##       n g    
-##   <dbl> <chr>
-## 1     1 M    
-## 2     3 M    
-## 3     5 F
-```
-
-```r
+#> [[1]]
+#> [1]  1  4 23  4 45
+#> 
+#> [[2]]
+#> [1] 1 3 5
+#> 
+#> [[3]]
+#> [1] "M" "M" "F"
+#> 
+#> [[4]]
+#> # A tibble: 3 x 2
+#>       n g    
+#>   <dbl> <chr>
+#> 1     1 M    
+#> 2     3 M    
+#> 3     5 F
 # Or
 lst2 <- list(num = x, size = n, sex = g, data = df)
 lst2
-```
-
-```
-## $num
-## [1]  1  4 23  4 45
-## 
-## $size
-## [1] 1 3 5
-## 
-## $sex
-## [1] "M" "M" "F"
-## 
-## $data
-## # A tibble: 3 x 2
-##       n g    
-##   <dbl> <chr>
-## 1     1 M    
-## 2     3 M    
-## 3     5 F
-```
-
-```r
+#> $num
+#> [1]  1  4 23  4 45
+#> 
+#> $size
+#> [1] 1 3 5
+#> 
+#> $sex
+#> [1] "M" "M" "F"
+#> 
+#> $data
+#> # A tibble: 3 x 2
+#>       n g    
+#>   <dbl> <chr>
+#> 1     1 M    
+#> 2     3 M    
+#> 3     5 F
 # Or
 lst3 <- list(x = c(1, 3, 5, 7),
              y = c(2, 2, 2, 4, 5, 5, 5, 6),
              z = c(22, 3, 3, 3, 5, 10))
 lst3
-```
-
-```
-## $x
-## [1] 1 3 5 7
-## 
-## $y
-## [1] 2 2 2 4 5 5 5 6
-## 
-## $z
-## [1] 22  3  3  3  5 10
-```
-
-```r
+#> $x
+#> [1] 1 3 5 7
+#> 
+#> $y
+#> [1] 2 2 2 4 5 5 5 6
+#> 
+#> $z
+#> [1] 22  3  3  3  5 10
 # find the means of x, y, z.
 
 # can do one at a time
 mean(lst3$x)
-```
-
-```
-## [1] 4
-```
-
-```r
+#> [1] 4
 mean(lst3$y)
-```
-
-```
-## [1] 3.875
-```
-
-```r
+#> [1] 3.875
 mean(lst3$z)
-```
-
-```
-## [1] 7.666667
-```
-
-```r
+#> [1] 7.666667
 # list apply
 lapply(lst3, mean)
-```
-
-```
-## $x
-## [1] 4
-## 
-## $y
-## [1] 3.875
-## 
-## $z
-## [1] 7.666667
-```
-
-```r
+#> $x
+#> [1] 4
+#> 
+#> $y
+#> [1] 3.875
+#> 
+#> $z
+#> [1] 7.666667
 # OR
 sapply(lst3, mean)
-```
-
-```
-##        x        y        z 
-## 4.000000 3.875000 7.666667
-```
-
-```r
+#>        x        y        z 
+#> 4.000000 3.875000 7.666667
 # Or, tidyverse function map() 
 map(lst3, mean)
-```
-
-```
-## $x
-## [1] 4
-## 
-## $y
-## [1] 3.875
-## 
-## $z
-## [1] 7.666667
-```
-
-```r
+#> $x
+#> [1] 4
+#> 
+#> $y
+#> [1] 3.875
+#> 
+#> $z
+#> [1] 7.666667
 # The tidyverse requires a modified map function called map_dbl()
 map_dbl(lst3, mean)
-```
-
-```
-##        x        y        z 
-## 4.000000 3.875000 7.666667
-```
-
-```r
+#>        x        y        z 
+#> 4.000000 3.875000 7.666667
 # Binding 
 dat01 <- tibble(x = 1:5, y = 5:1)
 dat01
-```
-
-```
-## # A tibble: 5 x 2
-##       x     y
-##   <int> <int>
-## 1     1     5
-## 2     2     4
-## 3     3     3
-## 4     4     2
-## 5     5     1
-```
-
-```r
+#> # A tibble: 5 x 2
+#>       x     y
+#>   <int> <int>
+#> 1     1     5
+#> 2     2     4
+#> 3     3     3
+#> 4     4     2
+#> 5     5     1
 dat02 <- tibble(x = 10:16, y = x/2)
 dat02
-```
-
-```
-## # A tibble: 7 x 2
-##       x     y
-##   <int> <dbl>
-## 1    10   5  
-## 2    11   5.5
-## 3    12   6  
-## 4    13   6.5
-## 5    14   7  
-## 6    15   7.5
-## 7    16   8
-```
-
-```r
+#> # A tibble: 7 x 2
+#>       x     y
+#>   <int> <dbl>
+#> 1    10   5  
+#> 2    11   5.5
+#> 3    12   6  
+#> 4    13   6.5
+#> 5    14   7  
+#> 6    15   7.5
+#> 7    16   8
 dat03 <- tibble(z = runif(5)) # 5 random numbers from interval (0,1)
 dat03
-```
-
-```
-## # A tibble: 5 x 1
-##        z
-##    <dbl>
-## 1 0.0734
-## 2 0.407 
-## 3 0.197 
-## 4 0.764 
-## 5 0.398
-```
-
-```r
+#> # A tibble: 5 x 1
+#>       z
+#>   <dbl>
+#> 1 0.699
+#> 2 0.185
+#> 3 0.912
+#> 4 0.452
+#> 5 0.582
 # row binding
 bind_rows(dat01, dat02, dat01)
-```
-
-```
-## # A tibble: 17 x 2
-##        x     y
-##    <int> <dbl>
-##  1     1   5  
-##  2     2   4  
-##  3     3   3  
-##  4     4   2  
-##  5     5   1  
-##  6    10   5  
-##  7    11   5.5
-##  8    12   6  
-##  9    13   6.5
-## 10    14   7  
-## 11    15   7.5
-## 12    16   8  
-## 13     1   5  
-## 14     2   4  
-## 15     3   3  
-## 16     4   2  
-## 17     5   1
-```
-
-```r
+#> # A tibble: 17 x 2
+#>        x     y
+#>    <int> <dbl>
+#>  1     1   5  
+#>  2     2   4  
+#>  3     3   3  
+#>  4     4   2  
+#>  5     5   1  
+#>  6    10   5  
+#>  7    11   5.5
+#>  8    12   6  
+#>  9    13   6.5
+#> 10    14   7  
+#> 11    15   7.5
+#> 12    16   8  
+#> 13     1   5  
+#> 14     2   4  
+#> 15     3   3  
+#> 16     4   2  
+#> 17     5   1
 # use ".id" argument to create a new column that contains an identifier for the original data.
 bind_rows(dat01, dat02, .id = "id")
-```
-
-```
-## # A tibble: 12 x 3
-##    id        x     y
-##    <chr> <int> <dbl>
-##  1 1         1   5  
-##  2 1         2   4  
-##  3 1         3   3  
-##  4 1         4   2  
-##  5 1         5   1  
-##  6 2        10   5  
-##  7 2        11   5.5
-##  8 2        12   6  
-##  9 2        13   6.5
-## 10 2        14   7  
-## 11 2        15   7.5
-## 12 2        16   8
-```
-
-```r
+#> # A tibble: 12 x 3
+#>    id        x     y
+#>    <chr> <int> <dbl>
+#>  1 1         1   5  
+#>  2 1         2   4  
+#>  3 1         3   3  
+#>  4 1         4   2  
+#>  5 1         5   1  
+#>  6 2        10   5  
+#>  7 2        11   5.5
+#>  8 2        12   6  
+#>  9 2        13   6.5
+#> 10 2        14   7  
+#> 11 2        15   7.5
+#> 12 2        16   8
 # with name
 bind_rows("dat01" = dat01, "dat02" = dat02, .id = "id")
-```
-
-```
-## # A tibble: 12 x 3
-##    id        x     y
-##    <chr> <int> <dbl>
-##  1 dat01     1   5  
-##  2 dat01     2   4  
-##  3 dat01     3   3  
-##  4 dat01     4   2  
-##  5 dat01     5   1  
-##  6 dat02    10   5  
-##  7 dat02    11   5.5
-##  8 dat02    12   6  
-##  9 dat02    13   6.5
-## 10 dat02    14   7  
-## 11 dat02    15   7.5
-## 12 dat02    16   8
-```
-
-```r
+#> # A tibble: 12 x 3
+#>    id        x     y
+#>    <chr> <int> <dbl>
+#>  1 dat01     1   5  
+#>  2 dat01     2   4  
+#>  3 dat01     3   3  
+#>  4 dat01     4   2  
+#>  5 dat01     5   1  
+#>  6 dat02    10   5  
+#>  7 dat02    11   5.5
+#>  8 dat02    12   6  
+#>  9 dat02    13   6.5
+#> 10 dat02    14   7  
+#> 11 dat02    15   7.5
+#> 12 dat02    16   8
 # bind_rows() also works on lists of data frames
 list01 <- list("dat01" = dat01, "dat02" = dat02)
 list01
-```
-
-```
-## $dat01
-## # A tibble: 5 x 2
-##       x     y
-##   <int> <int>
-## 1     1     5
-## 2     2     4
-## 3     3     3
-## 4     4     2
-## 5     5     1
-## 
-## $dat02
-## # A tibble: 7 x 2
-##       x     y
-##   <int> <dbl>
-## 1    10   5  
-## 2    11   5.5
-## 3    12   6  
-## 4    13   6.5
-## 5    14   7  
-## 6    15   7.5
-## 7    16   8
-```
-
-```r
+#> $dat01
+#> # A tibble: 5 x 2
+#>       x     y
+#>   <int> <int>
+#> 1     1     5
+#> 2     2     4
+#> 3     3     3
+#> 4     4     2
+#> 5     5     1
+#> 
+#> $dat02
+#> # A tibble: 7 x 2
+#>       x     y
+#>   <int> <dbl>
+#> 1    10   5  
+#> 2    11   5.5
+#> 3    12   6  
+#> 4    13   6.5
+#> 5    14   7  
+#> 6    15   7.5
+#> 7    16   8
 bind_rows(list01)
-```
-
-```
-## # A tibble: 12 x 2
-##        x     y
-##    <int> <dbl>
-##  1     1   5  
-##  2     2   4  
-##  3     3   3  
-##  4     4   2  
-##  5     5   1  
-##  6    10   5  
-##  7    11   5.5
-##  8    12   6  
-##  9    13   6.5
-## 10    14   7  
-## 11    15   7.5
-## 12    16   8
-```
-
-```r
+#> # A tibble: 12 x 2
+#>        x     y
+#>    <int> <dbl>
+#>  1     1   5  
+#>  2     2   4  
+#>  3     3   3  
+#>  4     4   2  
+#>  5     5   1  
+#>  6    10   5  
+#>  7    11   5.5
+#>  8    12   6  
+#>  9    13   6.5
+#> 10    14   7  
+#> 11    15   7.5
+#> 12    16   8
 bind_rows(list01, .id = "source")
-```
-
-```
-## # A tibble: 12 x 3
-##    source     x     y
-##    <chr>  <int> <dbl>
-##  1 dat01      1   5  
-##  2 dat01      2   4  
-##  3 dat01      3   3  
-##  4 dat01      4   2  
-##  5 dat01      5   1  
-##  6 dat02     10   5  
-##  7 dat02     11   5.5
-##  8 dat02     12   6  
-##  9 dat02     13   6.5
-## 10 dat02     14   7  
-## 11 dat02     15   7.5
-## 12 dat02     16   8
-```
-
-```r
+#> # A tibble: 12 x 3
+#>    source     x     y
+#>    <chr>  <int> <dbl>
+#>  1 dat01      1   5  
+#>  2 dat01      2   4  
+#>  3 dat01      3   3  
+#>  4 dat01      4   2  
+#>  5 dat01      5   1  
+#>  6 dat02     10   5  
+#>  7 dat02     11   5.5
+#>  8 dat02     12   6  
+#>  9 dat02     13   6.5
+#> 10 dat02     14   7  
+#> 11 dat02     15   7.5
+#> 12 dat02     16   8
 # The extended example below demonstrates how this can be very handy.
 
 # column binding
 bind_cols(dat01, dat03)
-```
-
-```
-## # A tibble: 5 x 3
-##       x     y      z
-##   <int> <int>  <dbl>
-## 1     1     5 0.0734
-## 2     2     4 0.407 
-## 3     3     3 0.197 
-## 4     4     2 0.764 
-## 5     5     1 0.398
-```
-
-```r
+#> # A tibble: 5 x 3
+#>       x     y     z
+#>   <int> <int> <dbl>
+#> 1     1     5 0.699
+#> 2     2     4 0.185
+#> 3     3     3 0.912
+#> 4     4     2 0.452
+#> 5     5     1 0.582
 # Regular expressions -----------------------------------------------------
 names <- c("Ford, MS", "Jones, PhD", "Martin, Phd", "Huck, MA, MLS")
 
 # pattern: first comma and everything after it
 str_remove(names, pattern = ", [[:print:]]+")
-```
-
-```
-## [1] "Ford"   "Jones"  "Martin" "Huck"
-```
-
-```r
+#> [1] "Ford"   "Jones"  "Martin" "Huck"
 # [[:print:]]+ = one or more printable characters
 
 
@@ -2334,61 +2116,37 @@ wide <- data.frame(name=c("Clay","Garrett","Addison"),
                    test2=c(87, 91, 97),
                    test3=c(88, 99, 91))
 wide
-```
-
-```
-##      name test1 test2 test3
-## 1    Clay    78    87    88
-## 2 Garrett    93    91    99
-## 3 Addison    90    97    91
-```
-
-```r
+#>      name test1 test2 test3
+#> 1    Clay    78    87    88
+#> 2 Garrett    93    91    99
+#> 3 Addison    90    97    91
 # Example of a long data frame. This is the same data as above, but in long
 # format. We have one row per person per test.
 long <- data.frame(name=rep(c("Clay","Garrett","Addison"),each=3),
                    test=rep(1:3, 3),
                    score=c(78, 87, 88, 93, 91, 99, 90, 97, 91))
 long
-```
-
-```
-##      name test score
-## 1    Clay    1    78
-## 2    Clay    2    87
-## 3    Clay    3    88
-## 4 Garrett    1    93
-## 5 Garrett    2    91
-## 6 Garrett    3    99
-## 7 Addison    1    90
-## 8 Addison    2    97
-## 9 Addison    3    91
-```
-
-```r
+#>      name test score
+#> 1    Clay    1    78
+#> 2    Clay    2    87
+#> 3    Clay    3    88
+#> 4 Garrett    1    93
+#> 5 Garrett    2    91
+#> 6 Garrett    3    99
+#> 7 Addison    1    90
+#> 8 Addison    2    97
+#> 9 Addison    3    91
 # mean score per student
 aggregate(score ~ name, data = long, mean)
-```
-
-```
-##      name    score
-## 1 Addison 92.66667
-## 2    Clay 84.33333
-## 3 Garrett 94.33333
-```
-
-```r
+#>      name    score
+#> 1 Addison 92.66667
+#> 2    Clay 84.33333
+#> 3 Garrett 94.33333
 aggregate(score ~ test, data = long, mean)
-```
-
-```
-##   test    score
-## 1    1 87.00000
-## 2    2 91.66667
-## 3    3 92.66667
-```
-
-```r
+#>   test    score
+#> 1    1 87.00000
+#> 2    2 91.66667
+#> 3    3 92.66667
 # line plot of scores over test, grouped by name
 ggplot(long, aes(x = factor(test), y = score, color = name, group = name)) +
   geom_point() +
@@ -2396,96 +2154,69 @@ ggplot(long, aes(x = factor(test), y = score, color = name, group = name)) +
   xlab("Test")
 ```
 
-<img src="02-prerequisites_files/figure-html/unnamed-chunk-32-1.png" width="672" />
+<img src="02-prerequisites_files/figure-html/unnamed-chunk-32-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 #### reshape wide to long
 pivot_longer(wide, test1:test3, names_to = "test", values_to = "score")
-```
-
-```
-## # A tibble: 9 x 3
-##   name    test  score
-##   <chr>   <chr> <dbl>
-## 1 Clay    test1    78
-## 2 Clay    test2    87
-## 3 Clay    test3    88
-## 4 Garrett test1    93
-## 5 Garrett test2    91
-## 6 Garrett test3    99
-## 7 Addison test1    90
-## 8 Addison test2    97
-## 9 Addison test3    91
-```
-
-```r
+#> # A tibble: 9 x 3
+#>   name    test  score
+#>   <chr>   <chr> <dbl>
+#> 1 Clay    test1    78
+#> 2 Clay    test2    87
+#> 3 Clay    test3    88
+#> 4 Garrett test1    93
+#> 5 Garrett test2    91
+#> 6 Garrett test3    99
+#> 7 Addison test1    90
+#> 8 Addison test2    97
+#> 9 Addison test3    91
 # Or
 pivot_longer(wide, -name, names_to = "test", values_to = "score")
-```
-
-```
-## # A tibble: 9 x 3
-##   name    test  score
-##   <chr>   <chr> <dbl>
-## 1 Clay    test1    78
-## 2 Clay    test2    87
-## 3 Clay    test3    88
-## 4 Garrett test1    93
-## 5 Garrett test2    91
-## 6 Garrett test3    99
-## 7 Addison test1    90
-## 8 Addison test2    97
-## 9 Addison test3    91
-```
-
-```r
+#> # A tibble: 9 x 3
+#>   name    test  score
+#>   <chr>   <chr> <dbl>
+#> 1 Clay    test1    78
+#> 2 Clay    test2    87
+#> 3 Clay    test3    88
+#> 4 Garrett test1    93
+#> 5 Garrett test2    91
+#> 6 Garrett test3    99
+#> 7 Addison test1    90
+#> 8 Addison test2    97
+#> 9 Addison test3    91
 # drop "test" from the test column with names_prefix argument
 pivot_longer(wide, -name, names_to = "test", values_to = "score", 
              names_prefix = "test")
-```
-
-```
-## # A tibble: 9 x 3
-##   name    test  score
-##   <chr>   <chr> <dbl>
-## 1 Clay    1        78
-## 2 Clay    2        87
-## 3 Clay    3        88
-## 4 Garrett 1        93
-## 5 Garrett 2        91
-## 6 Garrett 3        99
-## 7 Addison 1        90
-## 8 Addison 2        97
-## 9 Addison 3        91
-```
-
-```r
+#> # A tibble: 9 x 3
+#>   name    test  score
+#>   <chr>   <chr> <dbl>
+#> 1 Clay    1        78
+#> 2 Clay    2        87
+#> 3 Clay    3        88
+#> 4 Garrett 1        93
+#> 5 Garrett 2        91
+#> 6 Garrett 3        99
+#> 7 Addison 1        90
+#> 8 Addison 2        97
+#> 9 Addison 3        91
 #### reshape long to wide 
 pivot_wider(long, name, names_from = test, values_from = score)
-```
-
-```
-## # A tibble: 3 x 4
-##   name      `1`   `2`   `3`
-##   <chr>   <dbl> <dbl> <dbl>
-## 1 Clay       78    87    88
-## 2 Garrett    93    91    99
-## 3 Addison    90    97    91
-```
-
-```r
+#> # A tibble: 3 x 4
+#>   name      `1`   `2`   `3`
+#>   <chr>   <dbl> <dbl> <dbl>
+#> 1 Clay       78    87    88
+#> 2 Garrett    93    91    99
+#> 3 Addison    90    97    91
 # using the names_prefix argument lets us prepend text to the column names.
 pivot_wider(long, name, names_from = test, values_from = score,
             names_prefix = "test")
-```
-
-```
-## # A tibble: 3 x 4
-##   name    test1 test2 test3
-##   <chr>   <dbl> <dbl> <dbl>
-## 1 Clay       78    87    88
-## 2 Garrett    93    91    99
-## 3 Addison    90    97    91
+#> # A tibble: 3 x 4
+#>   name    test1 test2 test3
+#>   <chr>   <dbl> <dbl> <dbl>
+#> 1 Clay       78    87    88
+#> 2 Garrett    93    91    99
+#> 3 Addison    90    97    91
 ```
 
 The verbs of data manipulation
