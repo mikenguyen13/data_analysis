@@ -1,0 +1,262 @@
+# Quantile Regression
+
+Since we lose info when we summarize distribution (e.g., $Y \sim N(\mu, \sigma^2)$), quantiles can complement in summarizing a distribution.
+
+They capture skewness, spread, tails, other aspects of the distribution's shape.
+
+<br>
+
+$\tau$-quantile = 100$\tau$ -th percentile:
+
+Let $\tau \in [0,1]$ be the quantile index (or level)
+
+$Q_\tau(Y)$ be the $\tau$-quantile of random variable $Y$
+
+Then, $Q_\tau(Y)$ satisfies $P(Y \le Q_\tau(Y)) = \tau$ or $F_Y (Q_\tau(Y)) = \tau$
+
+and $Q_\tau (Y) = F^{-1}_Y (\tau)$ if the CDF $F(.)$ is invertible
+
+$$
+Q_\tau(Y) \equiv \inf\{y : F_Y(y) \ge \tau \}
+$$
+
+The quantile function $Q_Y(.)$ expresses the quantiles of $Y$ as a function of $\tau$
+
+$$
+Q_Y(\tau) \equiv \inf \{ y : F_Y(y) \ge \tau \}, 0 \le \tau \le 1
+$$
+
+-   If the CDF $F_Y(.)$ is invertible, then $Q_Y(.) = F^{-1}_Y (.)$
+
+-   If $F_Y(.)$ has a flat spot, then $Q_Y(.)$ has a jump discontinuity
+
+-   If $F_Y(.)$ has a discontinuity (e.g., if $Y$ is discrete), then $Q_Y(.)$ has a corresponding flat spot
+
+-   Whereas CDFs are right-continuous (with left limits), quantile function are left-continuous (with right limits)
+
+<br>
+
+## Prediction 
+
+Like the mean, quantiles are optimal predictors under certain "loss functions"
+
+Let $Y$ be a discrete random variable with $P(Y=1)= P(Y = 2) = P(Y = 99) = 1/3$
+
+**Population minimization**
+
+Quadratic loss
+
+$$
+\theta_1 = \arg \min_{t \in \mathbb{R}} E((Y-t)^2) \\
+= E(Y) = 34
+$$
+
+Absolute loss
+
+$$
+\theta_2 = \arg \min_{t \in \mathbb{R}} E(|Y-t|)
+$$
+
+Loss function $L(y,g)$ quantifies how bad it is to guess (predict) $g$ when the true value is $y$
+
+The (infinitely) long-run average loss given fixed $g$ is the expected loss (also known as risk), where the expectation is wrt the distribution of $Y$: $E[L(Y,g)]$
+
+Given this framework and a particular loss function, the optimal predictor minimizes risk.
+
+Given loss function $L$, the optimal frequentist predictor minimizes risk (expected loss):
+
+$$
+g_L^* \equiv \arg \min_g E[L(Y,g)]
+$$
+
+Since the population mean is the "best" unconditional predictor of $Y$ given a certain definition of "best"
+
+Consider quadratic loss function
+
+$$
+L_2(y,g) = \rho_2 (y-g) = (y - g)^2
+$$
+
+Then, the mean is optimal in that
+
+$$
+E(Y) = \arg \min_g E[L_2 (Y,g)]
+$$
+
+Equivalently, the mean $E(Y)$ minimizes the mean squared prediction error, where
+
+-   $y-g$ is the prediction error
+
+-   $(y-g)^2$ is the squared prediction
+
+-   $E[(Y- g)^2]$ is the mean squared prediction error (MSPE).
+
+This can be derived from the FOC:
+
+$$
+0 = \frac{d}{d g} E[L_2(Y,g)] |_{g - g^*_2} = \frac{d}{d g} E[(Y- g)^2]|_{g = g^*_2} = 2 E[Y- g^*_2]
+$$
+
+thus, $g_2^* = E(Y)$
+
+Replacing $L_2(y,g)$ with $L_1(y,g) = |y - g|$ yields a different optimal predictor, specifically the population median:
+
+$$Q_{0.5} (Y) = \arg \min_{g} E[L_1(Y, g)]$$A broader class of loss function characterizes all quantiles over $\tau \in (0,1)$
+
+Given $\tau$. the **check function** or **tick function** is
+
+$$
+\rho_\tau(u) \equiv u(\tau - \mathbb{1} \{ u < 0\})
+$$ with $\tau = 0.5$ actually $\rho_{0.5} (u) = \frac{|u|}{2}$ not $|u|$
+
+However, scaling by a constant does not affect minimization:
+
+$$
+\begin{aligned}
+Q_{0.5} (Y) &= \arg \min_{g}E[L_1 (Y,g)] \\
+&= \arg \min_g (1/2) E[L_1 (Y,g)] \\
+&= \arg \min_g E[\rho_{0.5} (Y-g)] 
+\end{aligned}
+$$
+
+More generally,
+
+$$
+Q_\tau(Y) = \arg \min_g E[\rho_\tau (Y-g)]
+$$
+
+that is the $\tau$-quantile of $Y$ is the optimal unconditional predictor of $Y$ under loss function $L(y,g) = \rho_\tau(y-g)$
+
+<br>
+
+When $\tau = 0.95$ penalize under-prediction ($g < y$) more heavily
+
+Intuitively, it makes sense that $Q_{0.95} (Y)$ is a better predictor than $Q_{0.5}(Y)$ given the $\tau = 0.95$ loss function $\rho_{0.95}(.)$
+
+**Sample minimization**
+
+Quadratic loss
+
+$$
+\hat{\theta}_1 = \arg \min_{t \in \mathbb{R}} \frac{1}{n} \sum_{i = 1}^n (Y_i -t)^2
+$$
+
+Absolute loss
+
+$$
+\hat{\theta}_2 = \arg \min_{t \in \mathbb{R}} \frac{1}{n} \sum_{i = 1}^n |Y_i -t|
+$$
+
+As with the mean, there are 2 approaches to estimating quantiles
+
+1.  We could "plug in" the estimated CDF into a CDF-based definition. With iid data the empirical CDF is
+
+$$
+\hat{F}_Y(y) = \frac{1}{n} \sum_{i=1}^n \mathbb{1} \{Y_i \le y\}, \forall y \in R
+$$
+
+(i.e., the sample proportion of $Y_i$ below the point of evaluation $y$)
+
+This is the CDF for a discrete distribution with probability $\frac{1}{n}$ on each observed $Y_i$ value (if values are unique)
+
+The population mean is
+
+$$
+E(Y) = \int_\mathbb{R} y dF_Y(y)
+$$
+
+The plug-in principle or analogy principle suggests "plugging in" $\hat{F}_Y(.)$ for $F_Y(.)$ to get the sample analog of $E(Y)$
+
+$$
+\hat{E}(Y) = \int_\mathbb{R} y d \hat{F}_Y (y) = \sum_{i=1}^n Y_i (1/n) = \bar{Y}_n
+$$
+
+for familiar sample mean.
+
+For $Q_\tau(Y)$, we can replace $F_Y(.)$
+
+$$
+\hat{Q}_\tau (Y) = \inf \{y: \hat{F}_Y(y) \ge \tau\}
+$$
+
+called the sample $\tau$-quantile
+
+The second quantile estimation approach relates to prediction: solve the sample version of the population minimization problem. For the mean,
+
+$$
+E(Y) = \arg \min_g E[(Y - g)^2]
+$$
+
+in the population.
+
+Replacing the population expectation $E[.]$ with the sample expectation $\hat{E}[.]$ (i.e., sample average)
+
+$$
+\hat{E} (Y) = \arg \min_g \hat{E}[(Y -g)^2] = \arg\min_g \frac{1}{n} \sum_{i=1}^n (Y_i - g)^2
+$$
+
+which is the familiar "least squares" approach, minimizing the sum of squared residuals.
+
+For quantiles, replacing $E[.]$ with $\hat{E}[.]$
+
+$$
+\hat{Q}_\tau (Y) = \arg\min_g \hat{E} [ \rho_\tau (Y -g)] = \arg \min_g \frac{1}{n} \sum_{i=1}^n \rho_\tau (Y_i - g)
+$$<br>
+
+## Censoring 
+
+Quantiles are useful when observations are censored (i.e., we do not always observe the true value)
+
+More specifically, the observed value is a function of the true value, but this function is not injective (not one-to-one), so the true values can't be recovered exactly from the censored values
+
+Example top-coding of earnings data
+
+Approaches:
+
+1.  impute values (i.e., guess the true values)
+2.  ask economic question that don't rely on the very upper tail (e.g., questions often involve quantiles)
+
+Consider income inequality: The qualitative idea of "inequality" can be quantified in many possible ways:
+
+1.  Standard deviation, but it depends on the very upper tail that we can't observe
+2.  The difference between the 0.9-quantile and the 0.1-quantile (the 0.9-0.1 interquantile range) does not require any knowledge about the top 10% of the distribution
+
+**Identification**:
+
+-   Assume we can learn about the joint distribution of observable variables (e..g, we can consistently estimate the population distribution)
+
+-   In a time series setting, this may not make sense
+
+-   We assume that we can learn the population distribution of observables, is that that sufficient to learn about the parameter of interest?
+
+Let $\mathcal{F}$ be a set of possible joint distribution of observable variables.
+
+Parameter $\theta \in \mathbb{R}$ is identified on $\mathcal{F}$ is $F$ uniquely determines $\theta$ for all $F \in \mathcal{F}$
+
+Consider the following form of top-coding.
+
+An individual's true earnings are $Y^*$
+
+Constant $c$ is the top-coding threshold. The observed $Y$ is
+
+$$
+Y=
+\begin{cases}
+Y^* && \text{if } Y^* \le c \\
+c && \text{if } Y^* > c
+\end{cases}
+$$
+
+Since $P(Y=c) = P(Y^* \ge c)$, the distribution of $Y$may have a mass point at $c$ even if $Y^*$ is continuous
+
+This means the observable CDF $F(.)$ may jump discontinuously at $c$ since $F(c) = 1$
+
+More generally, the CDF of the observed $Y$ is
+
+$$
+F(y) = 
+\begin{cases}
+F^* (y) && \text{if } y < c \\
+1 && \text{if } y \ge c
+\end{cases}
+$$

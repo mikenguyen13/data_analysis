@@ -629,11 +629,11 @@ $$
         + **GMM estimator**: multiple endogenous variables with multiple instruments
         
 
--   Standard errors produced in the second step are not correct\
+-   Standard errors produced in the second step are not correct
 
-    -   Because we do not know $\tilde{y}$ perfectly and need to estimate it in the firs step, we are introducing additional variation\
+    -   Because we do not know $\tilde{y}$ perfectly and need to estimate it in the firs step, we are introducing additional variation
     -   We did not have this problem with [FGLS][Feasible Generalized Least Squares] because "the first stage was orthogonal to the second stage." This is generally not true for most multi-step procedure.\
-    -   If [A4][A4 Homoskedasticity] does not hold, need to report robust standard errors.\
+    -   If [A4][A4 Homoskedasticity] does not hold, need to report robust standard errors.
 
 -   2SLS is less efficient than OLS and will always have larger standard errors.\
 
@@ -654,7 +654,7 @@ $$
 
 2.  [Testing Instrument's assumptions]
 
-    -   [Exogeneity](Cannot%20always%20test "and when you can it might not be informative")
+    -   [Exogeneity] (Cannot always test "and when you can it might not be informative")
 
     -   [Relevancy] (need to avoid "weak instruments")
 
@@ -666,10 +666,10 @@ $$
 
 -   Want a sense of "how endogenous" $y_{i2}$ is
 
-    -   if "very" endgeneous - should use 2SLS
+    -   if "very" endogeneous - should use 2SLS
     -   if not "very" endogenous - perhaps prefer OLS
 
-**Invalid** Test of Endogeneity \* $y_{i2}$ is endogenous if it is correlated with $\epsilon_i$,
+**Invalid** Test of Endogeneity: $y_{i2}$ is endogenous if it is correlated with $\epsilon_i$,
 
 $$
 \epsilon_i = \gamma_0 + y_{i2}\gamma_1 + error_i
@@ -715,7 +715,7 @@ $$
 
 The instrumental variable must satisfy
 
-1.  [Exogeneity](Cannot%20always%20test "and when you can it might not be informative")
+1.  [Exogeneity] (Cannot always test "and when you can it might not be informative")
 2.  [Relevancy] (need to avoid "weak instruments")
 
 ###### Exogeneity
@@ -786,10 +786,13 @@ low p-value means you reject the null of exogenous instruments. Hence you would 
 
 -   really only useful if one instrument is thought to be truly exogenous (randomly assigned). even f you do reject the null, the test does not tell you which instrument is exogenous and which is endogenous.
 
++-----------------+-------------------------------------------------------------------------------------+
 | Result          | Implication                                                                         |
-|-----------------|-------------------------------------------------------------------------------------|
++=================+=====================================================================================+
 | reject the null | you can be pretty sure there is an endogenous instrument, but don't know which one. |
++-----------------+-------------------------------------------------------------------------------------+
 | fail to reject  | could be either (1) they are both exogenous, (2) they are both endogenous.          |
++-----------------+-------------------------------------------------------------------------------------+
 
 ###### Relevancy
 
@@ -833,7 +836,7 @@ $$
 
 -   If we have valid instruments $\mathbf{z}_{i2}$
 
--   [Relevancy](need%20to%20avoid "weak instruments"): $\pi_2 \neq 0$ Then the 2SLS estimator is consistent under [A1][A1 Linearity], [A2][A2 Full rank], [A5a], and the above two conditions. + If [A4][A4 Homoskedasticity] also holds, then the usual standard errors are valid. + If [A4][A4 Homoskedasticity] does not hold then use the robust standard errors.
+-   [Relevancy] (need to avoid "weak instruments"): $\pi_2 \neq 0$ Then the 2SLS estimator is consistent under [A1][A1 Linearity], [A2][A2 Full rank], [A5a], and the above two conditions. + If [A4][A4 Homoskedasticity] also holds, then the usual standard errors are valid. + If [A4][A4 Homoskedasticity] does not hold then use the robust standard errors.
 
 $$
 y_{i1}=\beta_0 + \mathbf{z}_{i1}\beta_1 + y_{i2}\beta_2 + \epsilon_i \\
@@ -846,13 +849,15 @@ $$
 E(y_{i2}'\epsilon_i) = 0
 $$
 
-and we have valid instruments, then both the OLS and 2SLS estimators are consistent.\
-+ The OLS estimator is always more efficient
+and we have valid instruments, then both the OLS and 2SLS estimators are consistent.
 
-\+ can use the variable addition test to determine if 2SLS is need (A3a does hold) or if OLS is valid (A3a does not hold)
+-   The OLS estimator is always more efficient
+-   can use the variable addition test to determine if 2SLS is need (A3a does hold) or if OLS is valid (A3a does not hold)
 
-Sometimes we can test the assumption for instrument to be valid:\
-+ [Exogeneity]($E(\mathbf%7Bz%7D_%7Bi2%7D'\epsilon_i)%20=%200$): Only table when there are more instruments than endogenous variables. + [Relevancy](need%20to%20avoid "weak instruments"): Always testable, need the F-stat to be greater than 10 to rule out a weak instrument
+Sometimes we can test the assumption for instrument to be valid:
+
+-   [Exogeneity] : Only table when there are more instruments than endogenous variables.
+-   [Relevancy] (need to avoid "weak instruments"): Always testable, need the F-stat to be greater than 10 to rule out a weak instrument
 
 Application
 
@@ -882,6 +887,33 @@ summary(m2.2sls)$coefficients[1:7, ]
 
 #### Good Instruments
 
+[Exogeneity] and [Relevancy] are necessary but not sufficient for IV to produce consistent estimates.
+
+Without theory or possible explanation, you can always create a new variable that is correlated with $X$ and uncorrelated with $\epsilon$
+
+For example, we want to estimate the effect of price on quantity [@reiss2011, p. 960]
+
+$$
+Q = \beta_1 P + \beta_2 X + \epsilon \\
+P = \pi_1 X + \eta
+$$
+
+where $\epsilon$ and $\eta$ are jointly determined, $X \perp \epsilon, \eta$
+
+Without theory, we can just create a new variable $Z = X + u$ where $E(u) = 0; u \perp X, \epsilon, \eta$
+
+Then, $Z$ satisfied both conditions:
+
+-   Relevancy: $X$ correlates $P$ $\rightarrow$ $Z$ correlates $P$
+
+-   Exogeneity: $u \perp \epsilon$ (random noise)
+
+But obviously, it's not a valid instrument (intuitively). But theoretically, relevance and exogeneity are not sufficient to identify $\beta$ because of unsatisfied rank condition for identification. 
+
+Moreover, the functional form of the instrument also plays a role when choosing a good instrument. Hence, we always need to check for the robustness of our instrument. 
+
+IV methods even with valid instruments can still have poor sampling properties (finite sample bias, large sampling errors)  [@rossi2014even]
+
 ##### Lagged dependent variable
 
 In time series data sets, we can use lagged dependent variable as an instrument because it is not influenced by current shocks.
@@ -892,7 +924,7 @@ Citations for lagged dependent variable in econ [@chetty2013],
 
 ### Internal instrumental variable
 
--   (also **instrument free methods**). This section is based on Raluca Gui's [guide](https://cran.r-project.org/web/packages/REndo/vignettes/REndo-introduction.pdf)
+-   (also known as **instrument free methods**). This section is based on Raluca Gui's [guide](https://cran.r-project.org/web/packages/REndo/vignettes/REndo-introduction.pdf)
 
 -   alternative to external instrumental variable approaches
 
@@ -906,10 +938,10 @@ $$
 
 where
 
--   $t = 1, .., T$ (indexes either time or cross-sectional units)\
--   $Y_t$ is a k x 1 response variable\
--   $X_t$ is a k x n exogenous regressor\
--   $P_t$ is a k x 1 continuous endogenous regressor\
+-   $t = 1, .., T$ (indexes either time or cross-sectional units)
+-   $Y_t$ is a k x 1 response variable
+-   $X_t$ is a k x n exogenous regressor
+-   $P_t$ is a k x 1 continuous endogenous regressor
 -   $\epsilon_t$ is a structural error term with $\mu_\epsilon =0$ and $E(\epsilon^2) = \sigma^2$
 -   $\beta$ are model parameters
 
@@ -941,22 +973,22 @@ When the density h(·) = Normal, then G cannot be normal because the parameters 
 
 Hence,
 
--   in the [LIV](#latent-instrumental-variable) model the distribution of $Z_t$ is discrete\
+-   in the [LIV](#latent-instrumental-variable) model the distribution of $Z_t$ is discrete
 -   in the [Higher Moments Method] and [Joint Estimation Using Copula] methods, the distribution of $Z_t$ is taken to be skewed.
 
 $Z_t$ are assumed **unobserved, discrete and exogenous**, with
 
--   an unknown number of groups m\
+-   an unknown number of groups m
 -   $\gamma$ is a vector of group means.
 
 Identification of the parameters relies on the distributional assumptions of
 
--   $P_t$: a non-Gaussian distribution\
+-   $P_t$: a non-Gaussian distribution
 -   $Z_t$ discrete with $m \ge 2$
 
 Note:
 
--   If $Z_t$ is continuous, the model is unidentified\
+-   If $Z_t$ is continuous, the model is unidentified
 -   If $P_t \sim N$, you have inefficient estimates.
 
 
@@ -990,9 +1022,9 @@ Otherwise, based on Gaussian copulas, augmented OLS estimation is used.
 
 **Assumptions**:
 
--   skewed $P_t$\
+-   skewed $P_t$
 
--   the recovery of the correct parameter estimates\
+-   the recovery of the correct parameter estimates
 
 -   $\epsilon_t \sim$ normal marginal distribution. The marginal distribution of $P_t$ is obtained using the **Epanechnikov kernel density estimator**\
     $$
@@ -1121,7 +1153,7 @@ where $cov((Z-\bar{Z})v,v)$ is the degree of heteroskedasticity of ν with respe
 
 If it is zero or close to zero (i.e.,the instrument is weak), you might have imprecise estimates, with large standard errors.
 
--   Under homoskedasticity, the parameters of the model are unidentified.\
+-   Under homoskedasticity, the parameters of the model are unidentified.
 -   Under heteroskedasticity related to at least some elements of X, the parameters of the model are identified.
 
 #### Hierarchical Data
@@ -1130,8 +1162,8 @@ Multiple independent assumptions involving various random components at differen
 
 **Assumptions**
 
--   the errors at each level $\sim iid N$\
--   the slope variables are exogenous\
+-   the errors at each level $\sim iid N$
+-   the slope variables are exogenous
 -   the level-1 $\epsilon \perp X, P$. If this is not the case, additional, external instruments are necessary
 
 **Hierarchical Model**
@@ -1181,8 +1213,8 @@ Another example using simulated data
 We estimate a three-level model with X15 assumed endogenous. Having a three-level hierarchy, `multilevelIV()` returns five estimators, from the most robust to omitted variables (FE_L2), to the most efficient (REF) (i.e. lowest mean squared error).
 
 -   The random effects estimator (REF) is efficient assuming no omitted variables
--   The fixed effects estimator (FE) is unbiased and asymptotically normal even in the presence of omitted variables.\
--   Because of the efficiency, the random effects estimator is preferable if you think there is no omitted. variables\
+-   The fixed effects estimator (FE) is unbiased and asymptotically normal even in the presence of omitted variables.
+-   Because of the efficiency, the random effects estimator is preferable if you think there is no omitted. variables
 -   The robust estimator would be preferable if you think there is omitted variables.
 
 
