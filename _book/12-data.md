@@ -474,6 +474,11 @@ Hence, the OLS and RE are inconsistent/biased (because of omitted variable bias)
 
 However, FE can only fix bias due to time-invariant factors (both observables and unobservables) correlated with treatment (not time-variant factors that correlated with the treatment).
 
+The traditional FE technique is flawed when lagged dependent variables are included in the model. [@nickell1981biases] [@narayanan2013estimating] 
+
+With measurement error in the independent, FE will exacerbate the errors-in-the-variables bias. 
+
+
 ##### Demean Approach
 
 To deal with violation in $c_i$, we have

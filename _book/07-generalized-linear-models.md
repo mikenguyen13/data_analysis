@@ -303,7 +303,7 @@ plot(
 
 <img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" />
 
-However, this plot is not informative. Hence, we can can see the residudals plots that are grouped into bins based on prediction values.
+However, this plot is not informative. Hence, we can can see the residuals plots that are grouped into bins based on prediction values.
 
 
 ```r
@@ -423,7 +423,7 @@ where $\Phi()$ is the CDF of a N(0,1) random variable.
 
 Other models (e..g, t--distribution; log-log; I complimentary log-log)
 
-We let $Y_i = 1$ success, $Y_i =0$ no success. We assume $Y \sim Ber$ and $p_i = P(Y_i =1)$, the success probability. We cosnider a logistic regression with the response function $logit(p_i) = x'_i \beta$
+We let $Y_i = 1$ success, $Y_i =0$ no success. We assume $Y \sim Ber$ and $p_i = P(Y_i =1)$, the success probability. We consider a logistic regression with the response function $logit(p_i) = x'_i \beta$
 
 **Confusion matrix**
 
@@ -840,17 +840,15 @@ $$
 
 which is known as **multinomial logistic** model.
 
+Note:
 
-Note: 
-
- * Softmax coding for multinomial logistic regression: rather than selecting a baseline class, we treat all K class symmetrically - euqllay important (no baseline). 
-
+-   Softmax coding for multinomial logistic regression: rather than selecting a baseline class, we treat all K class symmetrically - euqllay important (no baseline).
 
 $$
 P(Y = k | X = x) = \frac{exp(\beta_{k1} + \dots + \beta_{k_p x_p})}{\sum_{l = 1}^K exp(\beta_{l0} + \dots + \beta_{l_p x_p})}
 $$
 
-then the log odds ratio between k-th and k'-th classes is 
+then the log odds ratio between k-th and k'-th classes is
 
 $$
 \log (\frac{P(Y=k|X=x)}{P(Y = k' | X=x)}) = (\beta_{k0} - \beta_{k'0}) + \dots + (\beta_{kp} - \beta_{k'p}) x_p
@@ -1144,12 +1142,9 @@ where
 -   $\theta$ is called the natural parameter
 -   $\phi$ is called the dispersion parameter
 
-
-
-
 **Note**:
 
-This family includes the [Gamma], [Normal], [Poisson], and other. For all parameterization of the exponential family, check this [link](https://www.stat.purdue.edu/~tlzhang/stat526/logistic.pdf)
+This family includes the \[Gamma\], \[Normal\], \[Poisson\], and other. For all parameterization of the exponential family, check this [link](https://www.stat.purdue.edu/~tlzhang/stat526/logistic.pdf)
 
 **Example**
 
@@ -1269,35 +1264,31 @@ To choose $g(.)$, we can use **canonical link function** (Remember: Canonical li
 
 If the link function $g(.)$ is such $g(\mu_i) = \eta_i = \theta_i$, the natural parameter, then $g(.)$ is the canonical link.
 
-
 <img src="images/GLM.PNG" width="90%" style="display: block; margin: auto;" />
 
+-   $b(\theta)$ = cumulant moment generating function
+-   $g(\mu)$ is the link function, which relates the linear predictor to the mean and is required to be monotone increasing, continuously differentiable and invertible.
 
- * $b(\theta)$ = cumulant moment generating function 
- * $g(\mu)$ is the link function, which relates the linear predictor to the mean and is required to be monotone increasing, continuously differentiable and invertible. 
-
-
-Equivalently, we can think of canonical link function as 
+Equivalently, we can think of canonical link function as
 
 $$
 \gamma^{-1} \circ g^{-1} = I
-$$
-which is the identity. Hence,
+$$ which is the identity. Hence,
 
 $$
 \theta = \eta
 $$
 
+**The inverse link**
 
-**The inverse link**  
+$g^{-1}(.)$ is also known as the mean function, take linear predictor output (ranging from $-\infty$ to $\infty$) and transform it into a different scale.
 
-$g^{-1}(.)$ is also known as the mean function, take linear predictor output (ranging from $-\infty$ to $\infty$) and transform it into a different scale. 
+-   **Exponential**: converts $\mathbf{\beta X}$ into a curve that is restricted between 0 and $\infty$ (which you can see that is useful in case you want to convert a linear predictor into a non-negative value). $\lambda = \exp(y) = \mathbf{\beta X}$
 
- * **Exponential**: converts $\mathbf{\beta X}$ into a curve that is restricted between 0 and $\infty$ (which you can see that is useful in case you want to convert a linear predictor into a non-negative value). $\lambda = \exp(y) = \mathbf{\beta X}$
- * **Inverse Logit** (also known as logistic): converts $\mathbf{\beta X}$ into a curve that is restricted between 0 and 1, which is useful in case you want to convert a linear predictor to a probability. $\theta = \frac{1}{1 + \exp(-y)} = \frac{1}{1 + \exp(- \mathbf{\beta X})}$
-    + $y$ = linear predictor value
-    + $\theta$ = transformed value
+-   **Inverse Logit** (also known as logistic): converts $\mathbf{\beta X}$ into a curve that is restricted between 0 and 1, which is useful in case you want to convert a linear predictor to a probability. $\theta = \frac{1}{1 + \exp(-y)} = \frac{1}{1 + \exp(- \mathbf{\beta X})}$
 
+    -   $y$ = linear predictor value
+    -   $\theta$ = transformed value
 
 The **identity link** is that
 
@@ -1310,10 +1301,7 @@ $$
 
 Table 15.1 Generalized Linear Models 15.1 the Structure of Generalized Linear Models
 
-
 More example on the link functions and their inverses can be found on [page 380](https://www.sagepub.com/sites/default/files/upm-binaries/21121_Chapter_15.pdf)
-
-
 
 Example
 
@@ -1396,7 +1384,7 @@ We can also get the second derivatives using the chain rule.
 
 Example:
 
-For the [Newton-Raphson] algorithm, we need
+For the \[Newton-Raphson\] algorithm, we need
 
 $$
 - E(\frac{\partial^2 l(\beta,\phi)}{\partial \beta_j \partial \beta_k})
@@ -1496,7 +1484,7 @@ $$
 \right)|_{\beta = \beta^{(m)}}
 $$
 
-Similar to [Newton-Raphson] expect the matrix of second derivatives by the expected value of the second derivative matrix.
+Similar to \[Newton-Raphson\] expect the matrix of second derivatives by the expected value of the second derivative matrix.
 
 In matrix notation,
 
@@ -1897,4 +1885,4 @@ If we find
 If we have either over or under-dispersion, it means we might have unspecified random component, we could
 
 -   Select a different random component distribution that can accommodate over or under-dispersion (e.g., negative binomial, Conway-Maxwell Poisson)
--   use [Generalized Linear Mixed Models][Nonlinear and Generalized Linear Mixed Models] to handle random effects in generalized linear models.
+-   use \[Generalized Linear Mixed Models\]\[Nonlinear and Generalized Linear Mixed Models\] to handle random effects in generalized linear models.
