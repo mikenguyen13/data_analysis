@@ -36,7 +36,7 @@ $$
 
 <br>
 
-## Prediction 
+## Prediction
 
 Like the mean, quantiles are optimal predictors under certain "loss functions"
 
@@ -203,7 +203,7 @@ $$
 \hat{Q}_\tau (Y) = \arg\min_g \hat{E} [ \rho_\tau (Y -g)] = \arg \min_g \frac{1}{n} \sum_{i=1}^n \rho_\tau (Y_i - g)
 $$<br>
 
-## Censoring 
+## Censoring
 
 Quantiles are useful when observations are censored (i.e., we do not always observe the true value)
 
@@ -260,3 +260,141 @@ F^* (y) && \text{if } y < c \\
 1 && \text{if } y \ge c
 \end{cases}
 $$
+
+If $c$ greater than median, then $\mathcal{F}$ be restricted to ensure they always have the same median.
+
+```{r, message=FALSE, warning=FALSE}
+plot(0:1,0:1,type='l')
+lines(c(0,0.8,2),c(0,0.8,1), col=2)
+lines(c(0,0.7,0.7,100),c(0,0.7,1,1), col=3)
+```
+
+## Robustness and Efficiency
+
+The median is well defined for any probbability distribution, while the mean is not (e.g., Cauchy distribution has median 0, but undefined mean).
+
+the median can have better estimation efficiency (i.e., smaller standard error) in the case of outliers.
+
+For example, $Y_i = i$ for $i = 1, \dots, 98$ and $Y_{99} = J$
+
+As $J \to \infty$, the sample mean $\hat{E}(Y) = \bar{Y}_n \to \infty$, butt the sample median remains 50
+
+Quantile regression is only robust to outliers in $Y$, not $X$, to get robust regression methods, least median of squares can be better candidate.
+
+## Inference
+
+with iid sampling,
+
+$$
+\sqrt{n} (\hat{Q}_\tau (Y) - Q_\tau (Y)) \to^d N(0, \sigma^2) \\
+\sigma^2 = \frac{\tau(1-\tau)}{[f_Y(T_\tau(Y))]^2}
+$$
+
+where $f_Y(.)$ is the PDF of $Y$
+
+Given $\hat{\sigma} \to^p \sigma$, the CI $\hat{Q}_\tau(Y) \pm 1.96 \hat{\sigma}/\sqrt{n}$ has coverage probability approaching 95% as $n \to \infty$
+
+But for finite samples, $\hat{\sigma}$ isn't accuate. Hence, other apporaches that account for the estimation error in the nonparaametric $\hat{\sigma}$ should be eexplored (e..g, Bayesian bootstrap, or CIs based onn order statistics)
+
+<br>
+
+## Description
+
+### Conditional Quantile Function
+
+CEF is the "best" predictor (because it's for a specific loss function - squared loss function).
+
+Hence, depending on the true loss function, CEF might not be the best predictor. (Per task or job, we have a "true" loss function in a set of loss functions)
+
+## Causality
+
+1.  Potential outcomes "Treatment" ATE
+
+SUTVA = no inference
+
+2.  Structural
+
+$$
+Y = X' \beta +U \\
+E(U|Z) = 0
+$$
+
+Let $Y_1$ = individual's treated potential outcome
+
+$Y_0$ = same person untreated potential outcome
+
+The treatment effect for an individual $Y_1 - Y_0$
+
+The treatment effect for individual $i$ is $Y_{1i} - Y_{0i}$
+
+The average treatment effect (ATE) = $E(Y_1 - Y_0)$ (Because of the linear operation of the expectation $E(Y_1 - Y_0) = E(Y_1) - E(Y_0)$ (treatment effect on the mean)
+
+Potential outcomes
+
+| $Y_0$ | $Y_1$ | $Y_1 - Y_0$ | Prob |
+|-------|-------|-------------|------|
+| 0     | 1     | 1           | 0.25 |
+| 1     | 2     | 1           | 0.25 |
+| 2     | 4     | 2           | 0.25 |
+| 3     | 0     | -3          | 0.25 |
+
+Table 6.1 p. 79 (Distributional and nonparametric econometrics)
+
+$$
+E(Y_0) = (0 + 1+ 2 + 3)/4 = 6/4\\
+E(Y_1 = (1 + 2 + 4 + 0) /4 = 7/4 \\
+E(Y_1) - E(Y_0) = 7/4-6/4 = 1/4 \\
+E(Y_1 - Y_0) = (1 + 1 + 2 + -3) /4 = 1/4 \\
+Q_{0.4}(Y_1) - Q_{0.4}(Y_0) = 1 - 1 = 0 \\
+Q_{0.4}(Y_1 - Y_0) = 1
+$$
+
+Because of the linear operation of the expectation we have $E(Y_1) - E(Y_0) = E(Y_1 - Y_0)$
+
+$Q_\tau (Y_1 - Y_0) \neq Q_\tau (Y_1) - Q_\tau(Y_0)$ (nonlinear operation)
+
+We want to learn: do scholarships increase earning?
+
+Discussion 6.4
+
+A. $\beta_0(u_2) > \beta_0(u_1)$
+
+B. $\beta_1 (u_2) >< \beta_1 (u_1)$
+
+C. $\beta_0 (u_2) + \beta_1 (u_2) > \beta_0(u_1) + \beta_1(u_1)$
+
+Wage if $X_1, U = u_2$ \> Wage if $X=1, U = u_1$
+
+<br>
+
+$$
+Y = \beta_0 (U) + \beta_1(U) X
+$$
+
+individual = $(Y_i, X_i,U_i)$
+
+if monotonicity + $U \perp\!\!\!\perp X$ + norm $U \sim Unif(0,1)$ to have $U = 0.5 = \text{median}$
+
+$Q_\tau(Y|X=x) = \beta_0(\tau)+ \beta_1 (\tau) X$
+
+but we don't usually believe $U \perp X$ is true, now we try to weaken this assumption
+
+We can technically think of the smoothness in terms of bias-variance trade off. However, it's better to think of
+
+-   smoothness in `ivgrsee` can help with computation problem + statistically problem
+
+$$
+Y_1 SD_1 Y_2 
+$$
+
+means that $Y_1$ **first-order stochastic dominance** $Y_2$, which means that
+
+$$
+E[u(Y_1)] \ge E[u(Y_2)] \forall u \in \mathcal{U}
+$$
+
+where $\mathcal{U}$ is all possible utility function (weakly increasing)
+
+equivalently $F_1(.) \le F_2(.)$ (cdf 1 less than cdf 2) (this is the easiest to deal with). Because with lower function, when we have a particular value of $\tau$, and we draw it on $F_1,F_2$, then $Q_2(\tau) < Q_1(\tau)$
+
+equivalently, $Q_1(.) \ge Q_2(.)$ (quantile function 1 less than quantile function 2)

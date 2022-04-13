@@ -1840,6 +1840,7 @@ str(df)
 #> 'data.frame':	3 obs. of  2 variables:
 #>  $ n: num  1 3 5
 #>  $ g: chr  "M" "M" "F"
+
 #Similarly
 df <- tibble(n, g)
 df
@@ -1853,6 +1854,7 @@ str(df)
 #> tibble [3 x 2] (S3: tbl_df/tbl/data.frame)
 #>  $ n: num [1:3] 1 3 5
 #>  $ g: chr [1:3] "M" "M" "F"
+
 # list form
 lst <- list(x, n, g, df)
 lst
@@ -1872,6 +1874,7 @@ lst
 #> 1     1 M    
 #> 2     3 M    
 #> 3     5 F
+
 # Or
 lst2 <- list(num = x, size = n, sex = g, data = df)
 lst2
@@ -1891,6 +1894,7 @@ lst2
 #> 1     1 M    
 #> 2     3 M    
 #> 3     5 F
+
 # Or
 lst3 <- list(x = c(1, 3, 5, 7),
              y = c(2, 2, 2, 4, 5, 5, 5, 6),
@@ -1904,6 +1908,7 @@ lst3
 #> 
 #> $z
 #> [1] 22  3  3  3  5 10
+
 # find the means of x, y, z.
 
 # can do one at a time
@@ -1913,6 +1918,7 @@ mean(lst3$y)
 #> [1] 3.875
 mean(lst3$z)
 #> [1] 7.666667
+
 # list apply
 lapply(lst3, mean)
 #> $x
@@ -1923,10 +1929,12 @@ lapply(lst3, mean)
 #> 
 #> $z
 #> [1] 7.666667
+
 # OR
 sapply(lst3, mean)
 #>        x        y        z 
 #> 4.000000 3.875000 7.666667
+
 # Or, tidyverse function map() 
 map(lst3, mean)
 #> $x
@@ -1937,10 +1945,13 @@ map(lst3, mean)
 #> 
 #> $z
 #> [1] 7.666667
+
 # The tidyverse requires a modified map function called map_dbl()
 map_dbl(lst3, mean)
 #>        x        y        z 
 #> 4.000000 3.875000 7.666667
+
+
 # Binding 
 dat01 <- tibble(x = 1:5, y = 5:1)
 dat01
@@ -1969,11 +1980,12 @@ dat03
 #> # A tibble: 5 x 1
 #>       z
 #>   <dbl>
-#> 1 0.699
-#> 2 0.185
-#> 3 0.912
-#> 4 0.452
-#> 5 0.582
+#> 1 0.140
+#> 2 0.952
+#> 3 0.238
+#> 4 0.131
+#> 5 0.427
+
 # row binding
 bind_rows(dat01, dat02, dat01)
 #> # A tibble: 17 x 2
@@ -1996,6 +2008,7 @@ bind_rows(dat01, dat02, dat01)
 #> 15     3   3  
 #> 16     4   2  
 #> 17     5   1
+
 # use ".id" argument to create a new column that contains an identifier for the original data.
 bind_rows(dat01, dat02, .id = "id")
 #> # A tibble: 12 x 3
@@ -2013,6 +2026,7 @@ bind_rows(dat01, dat02, .id = "id")
 #> 10 2        14   7  
 #> 11 2        15   7.5
 #> 12 2        16   8
+
 # with name
 bind_rows("dat01" = dat01, "dat02" = dat02, .id = "id")
 #> # A tibble: 12 x 3
@@ -2030,6 +2044,7 @@ bind_rows("dat01" = dat01, "dat02" = dat02, .id = "id")
 #> 10 dat02    14   7  
 #> 11 dat02    15   7.5
 #> 12 dat02    16   8
+
 # bind_rows() also works on lists of data frames
 list01 <- list("dat01" = dat01, "dat02" = dat02)
 list01
@@ -2086,6 +2101,7 @@ bind_rows(list01, .id = "source")
 #> 10 dat02     14   7  
 #> 11 dat02     15   7.5
 #> 12 dat02     16   8
+
 # The extended example below demonstrates how this can be very handy.
 
 # column binding
@@ -2093,17 +2109,20 @@ bind_cols(dat01, dat03)
 #> # A tibble: 5 x 3
 #>       x     y     z
 #>   <int> <int> <dbl>
-#> 1     1     5 0.699
-#> 2     2     4 0.185
-#> 3     3     3 0.912
-#> 4     4     2 0.452
-#> 5     5     1 0.582
+#> 1     1     5 0.140
+#> 2     2     4 0.952
+#> 3     3     3 0.238
+#> 4     4     2 0.131
+#> 5     5     1 0.427
+
+
 # Regular expressions -----------------------------------------------------
 names <- c("Ford, MS", "Jones, PhD", "Martin, Phd", "Huck, MA, MLS")
 
 # pattern: first comma and everything after it
 str_remove(names, pattern = ", [[:print:]]+")
 #> [1] "Ford"   "Jones"  "Martin" "Huck"
+
 # [[:print:]]+ = one or more printable characters
 
 
@@ -2120,6 +2139,7 @@ wide
 #> 1    Clay    78    87    88
 #> 2 Garrett    93    91    99
 #> 3 Addison    90    97    91
+
 # Example of a long data frame. This is the same data as above, but in long
 # format. We have one row per person per test.
 long <- data.frame(name=rep(c("Clay","Garrett","Addison"),each=3),
@@ -2136,6 +2156,7 @@ long
 #> 7 Addison    1    90
 #> 8 Addison    2    97
 #> 9 Addison    3    91
+
 # mean score per student
 aggregate(score ~ name, data = long, mean)
 #>      name    score
@@ -2147,6 +2168,7 @@ aggregate(score ~ test, data = long, mean)
 #> 1    1 87.00000
 #> 2    2 91.66667
 #> 3    3 92.66667
+
 # line plot of scores over test, grouped by name
 ggplot(long, aes(x = factor(test), y = score, color = name, group = name)) +
   geom_point() +
@@ -2157,6 +2179,8 @@ ggplot(long, aes(x = factor(test), y = score, color = name, group = name)) +
 <img src="02-prerequisites_files/figure-html/unnamed-chunk-32-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
+
 #### reshape wide to long
 pivot_longer(wide, test1:test3, names_to = "test", values_to = "score")
 #> # A tibble: 9 x 3
@@ -2171,6 +2195,7 @@ pivot_longer(wide, test1:test3, names_to = "test", values_to = "score")
 #> 7 Addison test1    90
 #> 8 Addison test2    97
 #> 9 Addison test3    91
+
 # Or
 pivot_longer(wide, -name, names_to = "test", values_to = "score")
 #> # A tibble: 9 x 3
@@ -2185,6 +2210,7 @@ pivot_longer(wide, -name, names_to = "test", values_to = "score")
 #> 7 Addison test1    90
 #> 8 Addison test2    97
 #> 9 Addison test3    91
+
 # drop "test" from the test column with names_prefix argument
 pivot_longer(wide, -name, names_to = "test", values_to = "score", 
              names_prefix = "test")
@@ -2200,6 +2226,7 @@ pivot_longer(wide, -name, names_to = "test", values_to = "score",
 #> 7 Addison 1        90
 #> 8 Addison 2        97
 #> 9 Addison 3        91
+
 #### reshape long to wide 
 pivot_wider(long, name, names_from = test, values_from = score)
 #> # A tibble: 3 x 4
@@ -2208,6 +2235,7 @@ pivot_wider(long, name, names_from = test, values_from = score)
 #> 1 Clay       78    87    88
 #> 2 Garrett    93    91    99
 #> 3 Addison    90    97    91
+
 # using the names_prefix argument lets us prepend text to the column names.
 pivot_wider(long, name, names_from = test, values_from = score,
             names_prefix = "test")

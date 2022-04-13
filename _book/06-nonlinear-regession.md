@@ -95,6 +95,7 @@ plot(x,y)
 <img src="06-nonlinear-regession_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 #define our data frame
 datf = data.frame(x,y)
 
@@ -140,6 +141,7 @@ summary(nlin_mod)
 #> 
 #> Number of iterations to convergence: 3 
 #> Achieved convergence tolerance: 7.006e-07
+
 #add prediction to plot
 plot(x, y)
 lines(x, predict(nlin_mod), col = "red")
@@ -567,6 +569,7 @@ nlin_modG
 #> Number of iterations to convergence: 3 
 #> Achieved convergence tolerance: 2.293e-07
 # Note, the package `nls_multstart` will allow you to do a grid search without programming your own loop
+
 ```
 
 For prediction interval
@@ -637,6 +640,7 @@ plot(time, population, las = 1, pch = 16)
 <img src="06-nonlinear-regession_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 # model fitting
 logisticModelSS <- nls(population ~ SSlogis(time, Asym, xmid, scal))
 summary(logisticModelSS)
@@ -850,6 +854,7 @@ Instead of modeling the depths model separately we model them together - so ther
 
 
 ```r
+
 red_nls <-
   nls(ryp ~ SS_nonlinModel(predictor = no3, b0, b1, alpha), data = dat)
 
@@ -869,6 +874,7 @@ summary(red_nls)
 #> 
 #> Number of iterations to convergence: 7 
 #> Achieved convergence tolerance: 7.126e-09
+
 par(mfrow = c(1, 1))
 plotFit(
   red_nls,
@@ -912,6 +918,7 @@ We can implement this in the following function:
 
 
 ```r
+
 nonlinModelF <- function(predictor,soildep,b01,b11,a1,d0,d1,da){
    b02 = b01 + d0 #make 60cm parms = 30cm parms + increment
    b12 = b11 + d1
@@ -932,6 +939,7 @@ Starting values are easy now because we fit each model individually.
 
 
 ```r
+
 Soil_full=nls(ryp~nonlinModelF(predictor=no3,soildep=depth,b01,b11,a1,d0,d1,da),
               data=dat,
               start=list(b01=15.2,b11=3.58,a1=23.13,d0=-9.74,d1=2.11,da=-6.85)) 
@@ -1092,6 +1100,7 @@ mean(my_data$y) #find mean y
 #> [1] -0.0747864
 my_data$y[which.min(abs(my_data$y-(mean(my_data$y))))] # find y closest to its mean
 #> [1] -0.0773
+
 my_data$x[which.min(abs(my_data$y-(mean(my_data$y))))] #find x closest to the mean y
 #> [1] 11.0648
 ```
@@ -1150,6 +1159,7 @@ Construct manually [Gauss-Newton Algorithm]
 
 
 ```r
+
 #starting value
 theta_0_strt = -279.80879739 
 theta_1_strt =  284.27659574 
@@ -1247,6 +1257,7 @@ theta_vec
 #> [1,]  3.5383367  3.6335135
 #> [2,] -1.2662342 -1.3055166
 #> [3,]  0.4743011  0.5043502
+
 head(f_theta)
 #>           [,1]     [,2]     [,3]     [,4]     [,5]     [,6]     [,7]     [,8]
 #> [1,] -273.8482 1.355410 1.297194 1.633802 2.046023 2.296554 2.389041 2.404144
@@ -1255,6 +1266,7 @@ head(f_theta)
 #> [4,] -177.1891 1.225196 1.177099 1.456024 1.774000 1.945197 1.999945 2.007625
 #> [5,] -148.5872 1.186618 1.141549 1.403631 1.694715 1.844154 1.888953 1.894730
 #> [6,] -119.9585 1.147980 1.105961 1.351301 1.615968 1.744450 1.779859 1.783866
+
 # estimate sigma^2 
 
 sigma2 = 1 / (nrow(my_data) - 3) * (t(my_data$y - (f_theta[, ncol(f_theta)]))) %*%

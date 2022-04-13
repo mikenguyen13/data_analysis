@@ -316,9 +316,9 @@ using derivatives of the log of the likelihood function with respect to $\mu$ an
 
 -   Check univariate normality for each trait (X) separately
 
-    -   Can check [Normality Assessment]
+    -   Can check \[Normality Assessment\]
 
-    -   The good thing is that if any of the univariate trait is not normal, then the joint distribution is not normal (see again [Properties of MVN]). If a joint multivariate distribution is normal, then the marginal distribution has to be normal.
+    -   The good thing is that if any of the univariate trait is not normal, then the joint distribution is not normal (see again [m]). If a joint multivariate distribution is normal, then the marginal distribution has to be normal.
 
     -   However, marginal normality of all traits does not imply joint MVN
 
@@ -366,6 +366,8 @@ using derivatives of the log of the likelihood function with respect to $\mu$ an
 
         -   When the data are non-normal, normal theory tests on the mean are sensitive to $\beta_{1,p}$ , while tests on the covariance are sensitive to $\beta_{2,p}$
 
+-   Alternatively, Doornik-Hansen test for multivariate normality [@doornik2008]
+
 -   Chi-square Q-Q plot
 
     -   Let $\mathbf{y}_i, i = 1,...,n$ be a random sample sample from $N_p(\mathbf{\mu}, \mathbf{\Sigma})$
@@ -382,7 +384,7 @@ using derivatives of the log of the likelihood function with respect to $\mu$ an
 
     -   use nonparametric methods
 
-    -   use models based upon an approximate distirubiton (e.g., GLMM)
+    -   use models based upon an approximate distribution (e.g., GLMM)
 
     -   try performing a transformation
 
@@ -402,6 +404,7 @@ str(trees)
 #>  $ Potassium  : num  1.35 0.9 0.71 0.9 1.26 1.15 0.83 0.89 0.79 0.72 ...
 #>  $ Ash        : num  1.79 1.08 0.47 1.48 1.09 0.99 0.85 0.94 0.8 0.77 ...
 #>  $ Height     : int  351 249 171 373 321 191 225 291 284 213 ...
+
 summary(trees)
 #>     Nitrogen      Phosphorous       Potassium           Ash        
 #>  Min.   :1.130   Min.   :0.1570   Min.   :0.3800   Min.   :0.4500  
@@ -424,6 +427,7 @@ cor(trees, method = "pearson") # correlation matrix
 #> Potassium   0.5462456   0.7037469 1.0000000 0.6710548 0.7915683
 #> Ash         0.6509771   0.6707871 0.6710548 1.0000000 0.7676771
 #> Height      0.8181641   0.7739656 0.7915683 0.7676771 1.0000000
+
 # qq-plot 
 gg <- trees %>%
     pivot_longer(everything(), names_to = "Var", values_to = "Value") %>%
@@ -437,6 +441,7 @@ gg
 <img src="17-multivariate_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 # Univariate normality
 sw_tests <- apply(trees, MARGIN = 2, FUN = shapiro.test)
 sw_tests
@@ -524,6 +529,7 @@ ks_tests
 #> data:  scale(.x)
 #> D = 0.1107, p-value = 0.9076
 #> alternative hypothesis: two-sided
+
 # Mardia's test, need large sample size for power
 mardia_test <-
     mvn(
@@ -532,16 +538,68 @@ mardia_test <-
         covariance = FALSE,
         multivariatePlot = "qq"
     )
-```
 
-<img src="17-multivariate_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" />
-
-```r
 mardia_test$multivariateNormality
 #>              Test         Statistic            p value Result
 #> 1 Mardia Skewness  29.7248528871795   0.72054426745778    YES
 #> 2 Mardia Kurtosis -1.67743173185383 0.0934580886477281    YES
 #> 3             MVN              <NA>               <NA>    YES
+
+# Doornik-Hansen's test 
+dh_test <-
+    mvn(
+        trees,
+        mvnTest = "dh",
+        covariance = FALSE,
+        multivariatePlot = "qq"
+    )
+```
+
+<img src="17-multivariate_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+dh_test$multivariateNormality
+#>             Test        E df      p value MVN
+#> 1 Doornik-Hansen 161.9446 10 1.285352e-29  NO
+
+# Henze-Zirkler's test 
+hz_test <-
+    mvn(
+        trees,
+        mvnTest = "hz",
+        covariance = FALSE,
+        multivariatePlot = "qq"
+    )
+hz_test$multivariateNormality
+#>            Test        HZ   p value MVN
+#> 1 Henze-Zirkler 0.7591525 0.6398905 YES
+# The last column indicates whether dataset follows a multivariate normality or not (i.e, YES or NO) at significance level 0.05.
+
+# Royston's test
+# can only apply for 3 < obs < 5000 (because of Shapiro-Wilk's test)
+royston_test <-
+    mvn(
+        trees,
+        mvnTest = "royston",
+        covariance = FALSE,
+        multivariatePlot = "qq"
+    )
+royston_test$multivariateNormality
+#>      Test        H    p value MVN
+#> 1 Royston 9.064631 0.08199215 YES
+
+
+# E-statistic
+estat_test <-
+    mvn(
+        trees,
+        mvnTest = "energy",
+        covariance = FALSE,
+        multivariatePlot = "qq"
+    )
+estat_test$multivariateNormality
+#>          Test Statistic p value MVN
+#> 1 E-statistic  1.091101   0.501 YES
 ```
 
 <br>
@@ -635,7 +693,7 @@ $$
 
 -   These intervals have the property that the probability that at least one such interval does not contain the appropriate $\mathbf{a' \mu}$ is no more than $\alpha$
 
--   These types of intervals can be used for "data snooping" (like [Scheffe])
+-   These types of intervals can be used for "data snooping" (like \[Scheffe\])
 
 <br>
 
@@ -651,7 +709,7 @@ $$
 
 -   But they ignore the covariance structure of the $p$ variables
 
--   If we only care about $k$ simultaneous intervals, we can use "one at a time" method with the [Bonferroni] correction.
+-   If we only care about $k$ simultaneous intervals, we can use "one at a time" method with the \[Bonferroni\] correction.
 
 -   This method gets more conservative as the number of intervals $k$ increases.
 
@@ -1030,6 +1088,7 @@ str(steel)
 #>  $ Temp    : int  1 1 1 1 1 2 2 2 2 2 ...
 #>  $ Yield   : int  33 36 35 38 40 35 36 38 39 41 ...
 #>  $ Strength: int  60 61 64 63 65 57 59 59 61 63 ...
+
 # Plot the data
 ggplot(steel, aes(x = Yield, y = Strength)) +
     geom_text(aes(label = Temp), size = 5) +
@@ -1044,6 +1103,8 @@ ggplot(steel, aes(x = Yield, y = Strength)) +
 <img src="17-multivariate_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
+
 # Bartlett's test for equality of covariance matrices
 # same thing as Box's M test in the multivariate setting
 bart_test <- boxM(steel[, -1], steel$Temp)
@@ -1053,6 +1114,7 @@ bart_test # fail to reject the null of equal covariances
 #> 
 #> data:  steel[, -1]
 #> Chi-Sq (approx.) = 0.38077, df = 3, p-value = 0.9442
+
 # anova.mlm
 twosamp_fit <-
     anova(lm(cbind(Yield, Strength) ~ factor(Temp), data = steel), test = "Wilks")
@@ -1065,6 +1127,7 @@ twosamp_fit
 #> Residuals    10                                              
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
 # ICSNP package
 twosamp_fit2 <-
     HotellingsT2(cbind(steel$Yield, steel$Strength) ~ factor(steel$Temp))
@@ -1075,6 +1138,7 @@ twosamp_fit2
 #> data:  cbind(steel$Yield, steel$Strength) by factor(steel$Temp)
 #> T.2 = 10.76, df1 = 2, df2 = 9, p-value = 0.004106
 #> alternative hypothesis: true location difference is not equal to c(0,0)
+
 # reject null. Hence, there is a difference in the means of the bivariate normal distributions 
 ```
 
@@ -1338,6 +1402,7 @@ str(gpagmat)
 #>  $ y1   : num  2.96 3.14 3.22 3.29 3.69 3.46 3.03 3.19 3.63 3.59 ...
 #>  $ y2   : int  596 473 482 527 505 693 626 663 447 588 ...
 #>  $ admit: int  1 1 1 1 1 1 1 1 1 1 ...
+
 ## Plot the data
 gg <- ggplot(gpagmat, aes(x = y1, y = y2)) +
     geom_text(aes(label = admit, col = as.character(admit))) +
@@ -1474,6 +1539,7 @@ ref_grid(stress_mod, mult.name = "time")
 #> 'emmGrid' object with variables:
 #>     1 = 1
 #>     time = multivariate response levels: begin, middle, final
+
 # marginal means for the levels of time
 contr_means <- emmeans(stress_mod, ~ time, mult.name = "time")
 contrast(contr_means, method = "poly")
@@ -1502,6 +1568,7 @@ str(heart)
 #>  $ y3     : int [1:24] 81 88 81 83 77 84 78 76 83 80 ...
 #>  $ y4     : int [1:24] 77 82 75 69 66 77 70 70 80 84 ...
 #>  $ subject: int [1:24] 1 2 3 4 5 6 7 8 1 2 ...
+
 ## Create means summary for profile plot, pivot longer for plotting with ggplot
 heart_means <- heart %>%
     group_by(drug) %>%
@@ -1574,6 +1641,7 @@ contrasts(heart$drug)
 #> ax23         0         2
 #> bww9         1        -1
 #> ctrl        -1        -1
+
 # do not set contrast L if you do further analysis (e.g., Anova, lm)
 # do M matrix instead
 
@@ -1587,6 +1655,7 @@ coef(heart_mod2)
 #> (Intercept)   75.00 78.9583333 77.041667 74.75
 #> drugbww9:ctrl  4.50  5.8125000  3.562500  4.25
 #> drugax23:rest -2.25  0.7708333  1.979167 -0.75
+
 # Hypothesis test for bww9 vs control after transformation M
 # same as linearHypothesis(heart_mod, hypothesis.matrix = c(0,1,-1), P = M)
 bww9vctrl <-
@@ -1620,6 +1689,7 @@ bww9vctrl
 #> Wilks             1 0.7435694 2.184141      3     19 0.1233
 #> Hotelling-Lawley  1 0.3448644 2.184141      3     19 0.1233
 #> Roy               1 0.3448644 2.184141      3     19 0.1233
+
 bww9vctrl <-
     car::linearHypothesis(heart_mod,
                      hypothesis.matrix = c(0, 1, -1),
@@ -1691,6 +1761,7 @@ axx23vrest
 #> Roy               1  5.913921 37.45483      3     19 3.5484e-08 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
 axx23vrest <-
     car::linearHypothesis(heart_mod,
                      hypothesis.matrix = c(2, -1, 1),
@@ -2216,6 +2287,7 @@ t(A_matrix) %*% A_matrix
 #>          [,1]     [,2]
 #> [1,] 1.000051 0.000000
 #> [2,] 0.000000 1.000051
+
 sim1 <- mvrnorm(n = 1000, mu = t(A_matrix) %*% mu, Sigma = t(A_matrix) %*% Sigma %*% A_matrix)
 plot(sim1[,1],sim1[,2])
 ```
@@ -2307,7 +2379,7 @@ $$
 r_{x_l , \hat{y}_i} = \frac{\hat{a}_{il}\sqrt{\lambda_i}}{\sqrt{s_{ll}}}
 $$
 
--   The correlation coefficient is typically used to interpret the components (i.e., if this correlation is high then it suggests that the l-th original trait is important in the i-th principle component). According to [@Johnson_1988, pp.433-434], $r_{x_l, \hat{y}_i}$ only measures the univariate contribution of an individual X to a component Y without taking into account the presence of the other X's. Hence, some prefer $\hat{a}_{il}$ coefficient to interpret the principal component.
+-   The correlation coefficient is typically used to interpret the components (i.e., if this correlation is high then it suggests that the l-th original trait is important in the i-th principle component). According to \[@Johnson_1988, pp.433-434\], $r_{x_l, \hat{y}_i}$ only measures the univariate contribution of an individual X to a component Y without taking into account the presence of the other X's. Hence, some prefer $\hat{a}_{il}$ coefficient to interpret the principal component.
 
 -   $r_{x_l, \hat{y}_i} ; \hat{a}_{il}$ are referred to as "loadings"
 
@@ -2397,6 +2469,7 @@ str(stock)
 #>  $ carbide: num  0 -0.00303 0.08815 0.06681 -0.03979 ...
 #>  $ exxon  : num  0.0395 -0.0145 0.0862 0.0135 -0.0186 ...
 #>  $ texaco : num  0 0.0435 0.0781 0.0195 -0.0242 ...
+
 ## Covariance matrix of data
 cov(stock)
 #>               allied       dupont      carbide        exxon       texaco
@@ -2405,6 +2478,7 @@ cov(stock)
 #> carbide 0.0008100713 0.0008276330 0.0015560763 0.0004872816 0.0004624767
 #> exxon   0.0004422405 0.0003868550 0.0004872816 0.0008023323 0.0004084734
 #> texaco  0.0005139715 0.0003109431 0.0004624767 0.0004084734 0.0007587370
+
 ## Correlation matrix of data
 cor(stock)
 #>            allied    dupont   carbide     exxon    texaco
@@ -2413,6 +2487,7 @@ cor(stock)
 #> carbide 0.5086555 0.5983841 1.0000000 0.4361014 0.4256266
 #> exxon   0.3867206 0.3895191 0.4361014 1.0000000 0.5235293
 #> texaco  0.4621781 0.3219534 0.4256266 0.5235293 1.0000000
+
 # cov(scale(stock)) # give the same result
 
 ## PCA with covariance
@@ -2430,6 +2505,7 @@ cov_results %>%
 #> 3 0.0007364426 0.12322412  0.8573669
 #> 4 0.0005086686 0.08511218  0.9424791
 #> 5 0.0003437707 0.05752091  1.0000000
+
 # eigen vectors
 cov_pca$rotation # prcomp calls rotation
 #>               PC1         PC2        PC3         PC4         PC5
@@ -2460,6 +2536,7 @@ cor_results %>%
 #> 3    0.5400440 0.10800880  0.8411299
 #> 4    0.4513468 0.09026936  0.9313992
 #> 5    0.3430038 0.06860076  1.0000000
+
 # first egiven values corresponds to less variance than PCA based on the covariance matrix
 
 # eigen vectors
@@ -2502,6 +2579,10 @@ covidpca$rotation[,1:2]
 #> prop..White..nonHisp                              0.35627561 -0.14142646
 #> prop..Hispanic                                   -0.16655381 -0.15105342
 #> prop..Black                                      -0.33333359  0.24405802
+
+
+
+
 # Variability of each principal component: pr.var
 pr.var <- covidpca$sdev ^ 2
 # Variance explained by each principal component: pve
@@ -2518,6 +2599,7 @@ plot(
 <img src="17-multivariate_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 plot(
     cumsum(pve),
     xlab = "Principal Component",
@@ -2530,6 +2612,7 @@ plot(
 <img src="17-multivariate_files/figure-html/unnamed-chunk-15-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 # the first six principe account for around 80% of the variance. 
 
 
@@ -2539,6 +2622,7 @@ pcadat$y <- ndat$Y
 pcr.man <- lm(log(y) ~ ., pcadat)
 mean(pcr.man$residuals ^ 2)
 #> [1] 0.03453371
+
 #comparison to lm w/o prin comps
 lm.fit <- lm(log(Y) ~ ., data = ndat)
 mean(lm.fit$residuals ^ 2)
@@ -2956,6 +3040,7 @@ Harman.5
 #> Tract10       9600      13.7       3600          390      25000
 #> Tract11       9600       9.6       3300           80      12000
 #> Tract12       9400      11.4       4000          100      13000
+
 # Correlation matrix
 cor_mat <- cor(Harman.5)
 cor_mat
@@ -2965,6 +3050,7 @@ cor_mat
 #> employment   0.97244826 0.15428378  1.0000000    0.5147184 0.12192599
 #> professional 0.43887083 0.69140824  0.5147184    1.0000000 0.77765425
 #> housevalue   0.02241157 0.86307009  0.1219260    0.7776543 1.00000000
+
 ## Principal Component Method with Correlation
 cor_pca <- prcomp(Harman.5, scale = T)
 # eigen values
@@ -2983,6 +3069,7 @@ cor_results
 #> 3   0.21483689 0.042967377  0.9769621      3
 #> 4   0.09993405 0.019986811  0.9969489      4
 #> 5   0.01525537 0.003051075  1.0000000      5
+
 # Scree plot of Eigenvalues
 scree_gg <- ggplot(cor_results, aes(x = number, y = eigen_values)) +
     geom_line(alpha = 0.5) +
@@ -2996,12 +3083,14 @@ scree_gg
 <img src="17-multivariate_files/figure-html/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 screeplot(cor_pca, type = 'lines')
 ```
 
 <img src="17-multivariate_files/figure-html/unnamed-chunk-16-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 ## Keep 2 factors based on scree plot and eigenvalues
 factor_pca <- principal(Harman.5, nfactors = 2, rotate = "none")
 factor_pca
@@ -3029,6 +3118,7 @@ factor_pca
 #>  with the empirical chi square  0.29  with prob <  0.59 
 #> 
 #> Fit based upon off diagonal values = 1
+
 # factor 1 = overall socioeconomic health
 # factor 2 = contrast of the population and employment against school and house value
 
@@ -3075,6 +3165,7 @@ factor_pca_smc
 #> RMSEA index =  0.336  and the 90 % confidence intervals are  0 0.967
 #> BIC =  -0.04
 #> Fit based upon off diagonal values = 1
+
 ## SMC prior, Promax rotation
 factor_pca_smc_pro <- fa(
     Harman.5,
@@ -3123,6 +3214,7 @@ factor_pca_smc_pro
 #> RMSEA index =  0.336  and the 90 % confidence intervals are  0 0.967
 #> BIC =  -0.04
 #> Fit based upon off diagonal values = 1
+
 ## SMC prior, varimax rotation
 factor_pca_smc_var <- fa(
     Harman.5,
@@ -3169,6 +3261,7 @@ flag_gg
 <img src="17-multivariate_files/figure-html/unnamed-chunk-16-3.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 # promax and varimax did a good job to assign trait to a particular factor
 
 factor_mle_1 <- fa(
@@ -3214,6 +3307,7 @@ factor_mle_1
 #> Correlation of (regression) scores with factors   1.00
 #> Multiple R square of scores with factors          1.00
 #> Minimum correlation of possible factor scores     0.99
+
 factor_mle_2 <- fa(
     Harman.5,
     nfactors = 2,
@@ -3260,6 +3354,7 @@ factor_mle_2
 #> Correlation of (regression) scores with factors   0.98 1.00
 #> Multiple R square of scores with factors          0.95 1.00
 #> Minimum correlation of possible factor scores     0.91 0.99
+
 factor_mle_3 <- fa(
     Harman.5,
     nfactors = 3,
@@ -3948,6 +4043,8 @@ str(crops)
 #>  $ y2  : int  27 23 27 20 15 32 15 23 24 25 ...
 #>  $ y3  : int  31 30 27 25 31 32 16 23 25 23 ...
 #>  $ y4  : int  33 30 26 23 32 15 73 25 32 24 ...
+
+
 ## Read in test data
 crops_test <- read.table("images/crops_test.txt")
 names(crops_test) <- c("crop", "y1", "y2", "y3", "y4")
@@ -3995,6 +4092,7 @@ lda_mod
 #> Proportion of trace:
 #>    LD1    LD2    LD3    LD4 
 #> 0.7364 0.1985 0.0576 0.0075
+
 ## Look at accuracy on the training data
 lda_fitted <- predict(lda_mod,newdata = crops)
 # Contingency table
@@ -4047,6 +4145,7 @@ lda_table_cv
 #>   Cotton          3    0      0        2          1
 #>   Soybeans        0    1      1        3          1
 #>   Sugarbeets      2    1      0        2          1
+
 ## Predict the test data
 lda_pred <- predict(lda_mod, newdata = crops_test)
 
@@ -4083,6 +4182,7 @@ qda_table
 #>   Cotton          0    0      6        0          0
 #>   Soybeans        0    0      0        6          0
 #>   Sugarbeets      0    0      1        1          4
+
 ## LOOCV
 qda_cv <- qda(crop ~ y1 + y2 + y3 + y4,
               data = crops, CV = TRUE)
@@ -4096,6 +4196,7 @@ qda_table_cv
 #>   Cotton          3    0      2        0          1
 #>   Soybeans        3    0      0        2          1
 #>   Sugarbeets      3    0      1        1          1
+
 ## Predict the test data
 qda_pred <- predict(qda_mod, newdata = crops_test)
 ## Make a contingency table with truth and most likely class
@@ -4128,14 +4229,16 @@ knn_2 <- knn(X_train, X_train, Y_train, k = 2)
 table(truth = Y_train, fitted = knn_2)
 #>             fitted
 #> truth        Clover Corn Cotton Soybeans Sugarbeets
-#>   Clover          8    0      3        0          0
+#>   Clover          9    0      1        1          0
 #>   Corn            0    6      0        1          0
-#>   Cotton          1    0      4        0          1
-#>   Soybeans        0    0      0        6          0
-#>   Sugarbeets      1    0      1        1          3
+#>   Cotton          0    0      3        0          3
+#>   Soybeans        0    0      0        4          2
+#>   Sugarbeets      0    0      2        1          3
+
 ## Accuracy
 mean(Y_train==knn_2)
-#> [1] 0.75
+#> [1] 0.6944444
+
 ## Performance on test data
 knn_2_test <- knn(X_train, X_test, Y_train, k = 2)
 table(truth = Y_test, predict = knn_2_test)
@@ -4143,25 +4246,29 @@ table(truth = Y_test, predict = knn_2_test)
 #> truth        Clover Corn Cotton Soybeans Sugarbeets
 #>   Clover          1    0      0        0          0
 #>   Corn            0    1      0        0          0
-#>   Cotton          0    0      0        0          1
+#>   Cotton          0    0      1        0          0
 #>   Soybeans        0    0      0        1          0
 #>   Sugarbeets      0    0      0        0          1
+
 ## Accuracy
 mean(Y_test==knn_2_test)
-#> [1] 0.8
+#> [1] 1
+
 ## Nearest neighbors with 3 neighbors
 knn_3 <- knn(X_train, X_train, Y_train, k = 3)
 table(truth = Y_train, fitted = knn_3)
 #>             fitted
 #> truth        Clover Corn Cotton Soybeans Sugarbeets
-#>   Clover          8    0      1        2          0
+#>   Clover          8    0      2        1          0
 #>   Corn            0    5      0        2          0
 #>   Cotton          1    0      4        0          1
-#>   Soybeans        0    0      0        4          2
-#>   Sugarbeets      0    0      0        2          4
+#>   Soybeans        0    0      0        3          3
+#>   Sugarbeets      0    0      0        1          5
+
 ## Accuracy
 mean(Y_train==knn_3)
 #> [1] 0.6944444
+
 ## Performance on test data
 knn_3_test <- knn(X_train, X_test, Y_train, k = 3)
 table(truth = Y_test, predict = knn_3_test)
@@ -4172,6 +4279,7 @@ table(truth = Y_test, predict = knn_3_test)
 #>   Cotton          0    0      1        0          0
 #>   Soybeans        0    0      0        1          0
 #>   Sugarbeets      0    0      0        0          1
+
 ## Accuracy
 mean(Y_test==knn_3_test)
 #> [1] 1
@@ -4192,11 +4300,13 @@ step <- stepclass(
 #> correctness rate: 0.475;  in: "y1";  variables (1): y1 
 #> 
 #>  hr.elapsed min.elapsed sec.elapsed 
-#>        0.00        0.00        0.13
+#>        0.00        0.00        0.15
+
 step$process
 #>    step var varname result.pm
 #> 0 start   0      --     0.000
 #> 1    in   1      y1     0.475
+
 step$performance.measure
 #> [1] "correctness rate"
 ```
@@ -4205,6 +4315,7 @@ Iris Data
 
 
 ```r
+
 library(dplyr)
 data('iris')
 set.seed(1)
@@ -4224,12 +4335,14 @@ table(truth = test.iris$Species, prediction = pred.lda$class)
 #>   setosa         15          0         0
 #>   versicolor      0         17         0
 #>   virginica       0          0        13
+
 plot(iris.model)
 ```
 
 <img src="17-multivariate_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 iris.model.qda <- qda(Species~.,data=train.iris)
 #pred
 pred.qda <- predict(iris.model.qda,test.iris)
@@ -4258,6 +4371,8 @@ image(matrix(train[, 1], nrow = 28), main = 'Example image, unrotated')
 <img src="17-multivariate_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
+
 test <- rbind(zeros[2501:3000, ], nines[2501:3000, ])
 test <- test / 255
 test <- t(test)
@@ -4277,6 +4392,7 @@ table(truth = test.large$y.test, prediction = pred.lda$class)
 #> truth   0   9
 #>     0 491   9
 #>     9   5 495
+
 large.qda <- qda(y.train~.,data=train.large)
 #prediction
 pred.qda <- predict(large.qda,test.large)

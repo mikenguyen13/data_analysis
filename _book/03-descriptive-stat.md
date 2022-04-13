@@ -16,18 +16,29 @@ Estimands include:
 
 There are differences between a population and a sample
 
++------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
 | Measures of      | Category                                                                  | Population                                                                            | Sample                                                                                                               |
-|------------------|---------------------------------------------------------------------------|---------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
++==================+===========================================================================+=======================================================================================+======================================================================================================================+
 | \-               | What is it?                                                               | Reality                                                                               | A small fraction of reality (inference)                                                                              |
++------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
 | \-               | Characteristics described by                                              | Parameters                                                                            | Statistics                                                                                                           |
++------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
 | Central Tendency | Mean                                                                      | $\mu = E(Y)$                                                                          | $\hat{\mu} = \overline{y}$                                                                                           |
++------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
 | Central Tendency | Median                                                                    | 50-th percentile                                                                      | $y_{(\frac{n+1}{2})}$                                                                                                |
++------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
 | Dispersion       | Variance                                                                  | $\sigma^2=var(Y)$  $=E(Y-\mu)^2$                                                      | $s^2=\frac{1}{n-1} \sum_{i = 1}^{n} (y_i-\overline{y})^2$  $=\frac{1}{n-1} \sum_{i = 1}^{n} (y_i^2-n\overline{y}^2)$ |
++------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
 | Dispersion       | Coefficient of Variation                                                  | $\frac{\sigma}{\mu}$                                                                  | $\frac{s}{\overline{y}}$                                                                                             |
++------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
 | Dispersion       | Interquartile Range                                                       | difference between 25th and 75th percentiles. Robust to outliers                      |                                                                                                                      |
++------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
 | Shape            | Skewness  Standardized 3rd central moment (unitless)                      | $g_1=\frac{\mu_3}{\mu_2^{3/2}}$                                                       | $\hat{g_1}=\frac{m_3}{m_2sqrt(m_2)}$                                                                                 |
++------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
 | Shape            | Central moments                                                           | $\mu=E(Y)$  $\mu_2 = \sigma^2=E(Y-\mu)^2$  $\mu_3 = E(Y-\mu)^3$  $\mu_4 = E(Y-\mu)^4$ | $m_2=\sum_{i=1}^{n}(y_1-\overline{y})^2/n$   $m_3=\sum_{i=1}^{n}(y_1-\overline{y})^3/n$                              |
++------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
 | Shape            | Kurtosis (peakedness and tail thickness)  Standardized 4th central moment | $g_2^*=\frac{E(Y-\mu)^4}{\sigma^4}$                                                   | $\hat{g_2}=\frac{m_4}{m_2^2}-3$                                                                                      |
++------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
 
 Note:
 
@@ -37,7 +48,7 @@ Note:
 
 -   Symmetric: mean = median, skewness = 0
 
--   Skewed right: mean > median, skewness > 0
+-   Skewed right: mean \> median, skewness \> 0
 
 -   Skewed left: mean \< median, skewness \< 0
 
@@ -45,19 +56,20 @@ Note:
 
 -   For normal distributions, $\mu_3=0$, so $g_1=0$
 
--   $\hat{g_1}$ is distributed approximately as N(0,6/n) if sample is from a normal population. (valid when n > 150)
+-   $\hat{g_1}$ is distributed approximately as N(0,6/n) if sample is from a normal population. (valid when n \> 150)
 
     -   For large samples, inference on skewness can be based on normal tables with 95% confidence interval for $g_1$ as $\hat{g_1}\pm1.96\sqrt{6/n}$
     -   For small samples, special tables from Snedecor and Cochran 1989, Table A 19(i) or Monte Carlo test
 
-|                             |              |                                                                                 |
-|-----------------------------|--------------|---------------------------------------------------------------------------------|
++-----------------------------+--------------+---------------------------------------------------------------------------------+
 | Kurtosis \> 0 (leptokurtic) | heavier tail | compared to a normal distribution with the same $\sigma$ (e.g., t-distribution) |
++-----------------------------+--------------+---------------------------------------------------------------------------------+
 | Kurtosis \< 0 (platykurtic) | lighter tail | compared to a normal distribution with the same $\sigma$                        |
++-----------------------------+--------------+---------------------------------------------------------------------------------+
 
 -   For a normal distribution, $g_2^*=3$. Kurtosis is often redefined as: $g_2=\frac{E(Y-\mu)^4}{\sigma^4}-3$ where the 4th central moment is estimated by $m_4=\sum_{i=1}^{n}(y_i-\overline{y})^4/n$
 
-    -   the asymptotic sampling distribution for $\hat{g_2}$ is approximately N(0,24/n) (with n > 1000)
+    -   the asymptotic sampling distribution for $\hat{g_2}$ is approximately N(0,24/n) (with n \> 1000)
     -   large sample on kurtosis uses standard normal tables
     -   small sample uses tables by Snedecor and Cochran, 1989, Table A 19(ii) or Geary 1936
 
@@ -65,10 +77,11 @@ Note:
 ```r
 data = rnorm(100)
 library(e1071)
-skewness(data,type = 1)
-#> [1] 0.2054197
-kurtosis(data, type = 1)
-#> [1] -0.4962623
+skewness(data)
+#> [1] 0.001062268
+
+kurtosis(data)
+#> [1] -0.6185863
 ```
 
 ## Graphical Measures
@@ -88,14 +101,16 @@ hist(data,labels = T,col="grey",breaks = 12)
 <img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 # Interactive histogram  
 pacman::p_load("highcharter")
 hchart(data) 
 ```
 
 ```{=html}
-<div id="htmlwidget-4977aa583d485554e5f9" style="width:100%;height:500px;" class="highchart html-widget"></div>
-<script type="application/json" data-for="htmlwidget-4977aa583d485554e5f9">{"x":{"hc_opts":{"chart":{"reflow":true,"zoomType":"x"},"title":{"text":null},"yAxis":{"title":{"text":null}},"credits":{"enabled":false},"exporting":{"enabled":false},"boost":{"enabled":false},"plotOptions":{"series":{"label":{"enabled":false},"turboThreshold":0},"treemap":{"layoutAlgorithm":"squarified"}},"tooltip":{"formatter":"function() { return  this.point.name + '<br/>' + this.y; }"},"series":[{"data":[{"x":-2.75,"y":1,"name":"(-3, -2.5]"},{"x":-2.25,"y":1,"name":"(-2.5, -2]"},{"x":-1.75,"y":6,"name":"(-2, -1.5]"},{"x":-1.25,"y":11,"name":"(-1.5, -1]"},{"x":-0.75,"y":21,"name":"(-1, -0.5]"},{"x":-0.25,"y":16,"name":"(-0.5, 0]"},{"x":0.25,"y":21,"name":"(0, 0.5]"},{"x":0.75,"y":12,"name":"(0.5, 1]"},{"x":1.25,"y":7,"name":"(1, 1.5]"},{"x":1.75,"y":2,"name":"(1.5, 2]"},{"x":2.25,"y":2,"name":"(2, 2.5]"}],"type":"column","pointRange":0.5,"groupPadding":0,"pointPadding":0,"borderWidth":0}]},"theme":{"chart":{"backgroundColor":"transparent"},"colors":["#7cb5ec","#434348","#90ed7d","#f7a35c","#8085e9","#f15c80","#e4d354","#2b908f","#f45b5b","#91e8e1"]},"conf_opts":{"global":{"Date":null,"VMLRadialGradientURL":"http =//code.highcharts.com/list(version)/gfx/vml-radial-gradient.png","canvasToolsURL":"http =//code.highcharts.com/list(version)/modules/canvas-tools.js","getTimezoneOffset":null,"timezoneOffset":0,"useUTC":true},"lang":{"contextButtonTitle":"Chart context menu","decimalPoint":".","downloadJPEG":"Download JPEG image","downloadPDF":"Download PDF document","downloadPNG":"Download PNG image","downloadSVG":"Download SVG vector image","drillUpText":"Back to {series.name}","invalidDate":null,"loading":"Loading...","months":["January","February","March","April","May","June","July","August","September","October","November","December"],"noData":"No data to display","numericSymbols":["k","M","G","T","P","E"],"printChart":"Print chart","resetZoom":"Reset zoom","resetZoomTitle":"Reset zoom level 1:1","shortMonths":["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"thousandsSep":" ","weekdays":["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]}},"type":"chart","fonts":[],"debug":false},"evals":["hc_opts.tooltip.formatter"],"jsHooks":[]}</script>
+<div id="htmlwidget-053ab8e9baf2f7102a7f" style="width:90%;height:480px;" class="highchart html-widget"></div>
+<script type="application/json" data-for="htmlwidget-053ab8e9baf2f7102a7f">{"x":{"hc_opts":{"chart":{"reflow":true,"zoomType":"x"},"title":{"text":null},"yAxis":{"title":{"text":null}},"credits":{"enabled":false},"exporting":{"enabled":false},"boost":{"enabled":false},"plotOptions":{"series":{"label":{"enabled":false},"turboThreshold":0},"treemap":{"layoutAlgorithm":"squarified"}},"tooltip":{"formatter":"function() { return  this.point.name + '<br/>' + this.y; }"},"series":[{"data":[{"x":-2.25,"y":2,"name":"(-2.5, -2]"},{"x":-1.75,"y":12,"name":"(-2, -1.5]"},{"x":-1.25,"y":8,"name":"(-1.5, -1]"},{"x":-0.75,"y":17,"name":"(-1, -0.5]"},{"x":-0.25,"y":16,"name":"(-0.5, 0]"},{"x":0.25,"y":14,"name":"(0, 0.5]"},{"x":0.75,"y":13,"name":"(0.5, 1]"},{"x":1.25,"y":9,"name":"(1, 1.5]"},{"x":1.75,"y":2,"name":"(1.5, 2]"},{"x":2.25,"y":4,"name":"(2, 2.5]"},{"x":2.75,"y":2,"name":"(2.5, 3]"},{"x":3.25,"y":1,"name":"(3, 3.5]"}],"type":"column","pointRange":0.5,"groupPadding":0,"pointPadding":0,"borderWidth":0}]},"theme":{"chart":{"backgroundColor":"transparent"},"colors":["#7cb5ec","#434348","#90ed7d","#f7a35c","#8085e9","#f15c80","#e4d354","#2b908f","#f45b5b","#91e8e1"]},"conf_opts":{"global":{"Date":null,"VMLRadialGradientURL":"http =//code.highcharts.com/list(version)/gfx/vml-radial-gradient.png","canvasToolsURL":"http =//code.highcharts.com/list(version)/modules/canvas-tools.js","getTimezoneOffset":null,"timezoneOffset":0,"useUTC":true},"lang":{"contextButtonTitle":"Chart context menu","decimalPoint":".","downloadCSV":"Download CSV","downloadJPEG":"Download JPEG image","downloadPDF":"Download PDF document","downloadPNG":"Download PNG image","downloadSVG":"Download SVG vector image","downloadXLS":"Download XLS","drillUpText":"◁ Back to {series.name}","exitFullscreen":"Exit from full screen","exportData":{"annotationHeader":"Annotations","categoryDatetimeHeader":"DateTime","categoryHeader":"Category"},"hideData":"Hide data table","invalidDate":null,"loading":"Loading...","months":["January","February","March","April","May","June","July","August","September","October","November","December"],"noData":"No data to display","numericSymbolMagnitude":1000,"numericSymbols":["k","M","G","T","P","E"],"printChart":"Print chart","resetZoom":"Reset zoom","resetZoomTitle":"Reset zoom level 1:1","shortMonths":["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"shortWeekdays":["Sat","Sun","Mon","Tue","Wed","Thu","Fri"],"thousandsSep":" ","viewData":"View data table","viewFullscreen":"View in full screen","weekdays":["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]}},"type":"chart","fonts":[],"debug":false},"evals":["hc_opts.tooltip.formatter"],"jsHooks":[]}</script>
+
 # Box-and-Whisker plot
 boxplot(count ~ spray, data = InsectSprays,col = "lightgray",main="boxplot")
 ```
@@ -103,6 +118,7 @@ boxplot(count ~ spray, data = InsectSprays,col = "lightgray",main="boxplot")
 <img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-3.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 # Notched Boxplot
 boxplot(len~supp*dose, data=ToothGrowth, notch=TRUE,
   col=(c("gold","darkgreen")),
@@ -119,12 +135,15 @@ stem(data)
 #> 
 #>   The decimal point is at the |
 #> 
-#>   -2 | 72
-#>   -1 | 998765544332221000000
-#>   -0 | 998888887777777655554322222111100
-#>    0 | 000011122222233333344666677788889
-#>    1 | 012224567
-#>    2 | 14
+#>   -2 | 43
+#>   -1 | 99999887776644332110000
+#>   -0 | 988877666655555544333333222210
+#>    0 | 1112333444445556678889999
+#>    1 | 0001112333467
+#>    2 | 01129
+#>    3 | 00
+
+
 # Bagplot - A 2D Boxplot Extension
 pacman::p_load(aplpack)
 attach(mtcars)
@@ -205,7 +224,7 @@ $$\hat{p}=\frac{\sum_{i-1}^{n}(y_i-\bar{y})(x_i-\bar{x})}{(\sum_{i=1}^{n}(y_{i}-
 ```r
 library("EnvStats")
 gofTest(data,test="ppcc")$p.value #Probability Plot Correlation Coefficient 
-#> [1] 0.9435573
+#> [1] 0.2658983
 ```
 
 ##### Shapiro-Wilk Test
@@ -221,7 +240,7 @@ where $a_1,..,a_n$ are weights computed from the covariance matrix for the order
 
 ```r
 gofTest(data,test="sw")$p.value #Shapiro-Wilk is the default.
-#> [1] 0.9877556
+#> [1] 0.1875251
 ```
 
 #### Methods based on empirical cumulative distribution function
@@ -278,7 +297,7 @@ Consult [@Stephens_1974] for more detailed transformation and critical values.
 
 ```r
 gofTest(data,test="ad")$p.value #Anderson-Darling
-#> [1] 0.852593
+#> [1] 0.4590664
 ```
 
 ##### Kolmogorov-Smirnov Test
@@ -289,7 +308,7 @@ gofTest(data,test="ad")$p.value #Anderson-Darling
 
 ```r
 gofTest(data,test="ks")$p.value #Komogorov-Smirnov 
-#> [1] 0.7647543
+#> [1] 0.6544764
 ```
 
 ##### Cramer-von Mises Test
@@ -299,7 +318,7 @@ gofTest(data,test="ks")$p.value #Komogorov-Smirnov
 
 ```r
 gofTest(data,test="cvm")$p.value #Cramer-von Mises
-#> [1] 0.6645547
+#> [1] 0.5817909
 ```
 
 ##### Jarque--Bera Test {#jarquebera-test}
@@ -328,35 +347,35 @@ Correlation between
 -   [Two Discrete] variables
 -   [Categorical and Continuous]
 
-+-------------+------------------------------+------------------------+
-|             | Categorical                  | Continuous             |
-+=============+==============================+========================+
-| Categorical | [Phi coefficient]            |                        |
-|             |                              |                        |
-|             | [Cramer's V]                 |                        |
-|             |                              |                        |
-|             | [Tschuprow's T]              |                        |
-|             |                              |                        |
-|             | [Freeman's Theta]            |                        |
-|             |                              |                        |
-|             | [Epsilon-squared]            |                        |
-|             |                              |                        |
-|             | \[Goodman Kruskal's Lambda\] |                        |
-|             |                              |                        |
-|             | [Somers' D]                  |                        |
-|             |                              |                        |
-|             | [Kendall's Tau-b]            |                        |
-|             |                              |                        |
-|             | [Yule's Q and Y]             |                        |
-|             |                              |                        |
-|             | [Tetrachoric Correlation]    |                        |
-|             |                              |                        |
-|             | [Polychoric Correlation]     |                        |
-+-------------+------------------------------+------------------------+
-| Continuous  | [Point-Biserial Correlation] | [Pearson Correlation]  |
-|             |                              |                        |
-|             | [Logistic Regression]        | [Spearman Correlation] |
-+-------------+------------------------------+------------------------+
++---------------+------------------------------+------------------------+
+|               | Categorical                  | Continuous             |
++===============+==============================+========================+
+| Categorical   | [Phi coefficient]            |                        |
+|               |                              |                        |
+|               | [Cramer's V]                 |                        |
+|               |                              |                        |
+|               | [Tschuprow's T]              |                        |
+|               |                              |                        |
+|               | [Freeman's Theta]            |                        |
+|               |                              |                        |
+|               | [Epsilon-squared]            |                        |
+|               |                              |                        |
+|               | $$Goodman Kruskal's Lambda$$ |                        |
+|               |                              |                        |
+|               | [Somers' D]                  |                        |
+|               |                              |                        |
+|               | [Kendall's Tau-b]            |                        |
+|               |                              |                        |
+|               | [Yule's Q and Y]             |                        |
+|               |                              |                        |
+|               | [Tetrachoric Correlation]    |                        |
+|               |                              |                        |
+|               | [Polychoric Correlation]     |                        |
++---------------+------------------------------+------------------------+
+| Continuous    | [Point-Biserial Correlation] | [Pearson Correlation]  |
+|               |                              |                        |
+|               | [Logistic Regression]        | [Spearman Correlation] |
++---------------+------------------------------+------------------------+
 
 Questions to keep in mind:
 
@@ -385,16 +404,16 @@ data = data.frame(A = sample(1:20, replace = TRUE, size = n),
 library(Hmisc)
 rcorr(data$A, data$B, type="pearson") 
 #>       x     y
-#> x  1.00 -0.04
-#> y -0.04  1.00
+#> x  1.00 -0.17
+#> y -0.17  1.00
 #> 
 #> n= 100 
 #> 
 #> 
 #> P
 #>   x      y     
-#> x        0.7249
-#> y 0.7249
+#> x        0.0887
+#> y 0.0887
 ```
 
 ### Spearman Correlation
@@ -404,16 +423,16 @@ rcorr(data$A, data$B, type="pearson")
 library(Hmisc)
 rcorr(data$A, data$B, type="spearman") 
 #>       x     y
-#> x  1.00 -0.03
-#> y -0.03  1.00
+#> x  1.00 -0.17
+#> y -0.17  1.00
 #> 
 #> n= 100 
 #> 
 #> 
 #> P
 #>   x      y     
-#> x        0.7363
-#> y 0.7363
+#> x        0.0895
+#> y 0.0895
 ```
 
 ## Categorical and Continuous
@@ -700,6 +719,7 @@ dt
 #> A    0  1
 #>   0 25 24
 #>   1 28 23
+
 DescTools::YuleQ(dt)
 #> [1] -0.07778669
 ```
@@ -726,11 +746,14 @@ head(data)
 #> 4 1 0
 #> 5 1 0
 #> 6 1 0
+
 table(data)
 #>    B
 #> A    0  1
 #>   0 21 23
 #>   1 34 22
+
+
 #calculate tetrachoric correlation
 tetrachoric(data)
 #> Call: tetrachoric(x = data)
@@ -766,6 +789,8 @@ head(data)
 #> 4 2 3
 #> 5 3 5
 #> 6 4 4
+
+
 #calculate polychoric correlation between ratings
 polychor(data$A, data$B)
 #> [1] 0.01607982
@@ -844,6 +869,7 @@ cor(df)
 #> am   -0.22986086  0.1683451  1.00000000  0.7940588  0.05753435
 #> gear -0.21268223  0.2060233  0.79405876  1.0000000  0.27407284
 #> carb -0.65624923 -0.5696071  0.05753435  0.2740728  1.00000000
+
 # only complete obs
 # cor(df, use = "complete.obs")
 ```

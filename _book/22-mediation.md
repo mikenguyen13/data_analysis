@@ -104,10 +104,10 @@ summary(results)
 #> Nonparametric Bootstrap Confidence Intervals with the Percentile Method
 #> 
 #>                Estimate 95% CI Lower 95% CI Upper p-value    
-#> ACME             0.3565       0.2132         0.51  <2e-16 ***
-#> ADE              0.0396      -0.1727         0.31    0.72    
-#> Total Effect     0.3961       0.1716         0.66  <2e-16 ***
-#> Prop. Mediated   0.9000       0.4655         1.89  <2e-16 ***
+#> ACME             0.3565       0.2252         0.53  <2e-16 ***
+#> ADE              0.0396      -0.2081         0.25    0.73    
+#> Total Effect     0.3961       0.1606         0.62  <2e-16 ***
+#> Prop. Mediated   0.9000       0.5262         2.02  <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -335,6 +335,7 @@ summary(med.out)
 #> 
 #> 
 #> Simulations: 100
+
 test.TMint(med.out, conf.level = .95) # test treatment-mediator interaction effect 
 #> 
 #> 	Test of ACME(1) - ACME(0) = 0

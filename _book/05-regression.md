@@ -1707,8 +1707,9 @@ $$
 VIF_k = \frac{1}{1-R^2_k}
 $$
 
+
 -   large values indicate that a near collinearity is causing the variance of $b_k$ to be inflated, $var(b_k) \propto \sigma^2 (VIF_k)$\
--   typically, $VIF_k > 10$ indicates a collinearity problem that could result in poor parameters estimates.\
+-   Typically, the rule of thumb is that $VIF > 4$ mean you should see why this is the case, and $VIF_k > 10$ indicates a serious problem collinearity problem that could result in poor parameters estimates.\
 -   the mean of all VIF's provide an estimate of the ratio of the true multicollinearity to a model where the X variables are uncorrelated\
 -   serious multicollinearity if $avg(VIF) >>1$
 

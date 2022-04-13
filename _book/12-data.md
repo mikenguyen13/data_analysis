@@ -1301,6 +1301,7 @@ coeftest(fixed) # Original coefficients
 coeftest(fixed, vcovHC) # Heteroskedasticity consistent coefficients
 coeftest(fixed, vcovHC(fixed, method = "arellano")) # Heteroskedasticity consistent coefficients (Arellano)
 t(sapply(c("HC0", "HC1", "HC2", "HC3", "HC4"), function(x) sqrt(diag(vcovHC(fixed, type = x))))) #show HC SE of the coef
+
 ```
 
 **Advanced**
