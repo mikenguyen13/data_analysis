@@ -372,6 +372,7 @@ linearHypothesis(mod.davis, c("(Intercept) = 0", "repwt = 1"),white.adjust = TRU
 #> 2    181  2 3.3896 0.03588 *
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
 # Linear Combination
 mod.duncan <- lm(prestige ~ income + education, data=Duncan)
 linearHypothesis(mod.duncan, "1*income - 1*education = 0")

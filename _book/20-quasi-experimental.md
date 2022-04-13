@@ -28,7 +28,7 @@ A great resource for causal inference is [Causal Inference Mixtape](https://mixt
 
 -   Tradeoff between efficiency and bias
 
--   Regression discontinuity is under the framework of \[Instrumental Variable\]
+-   Regression discontinuity is under the framework of $$Instrumental Variable$$
 
 -   The hard part is to find a setting that can apply, but once you find one, it's easy to apply
 
@@ -139,7 +139,7 @@ Since researchers typically care more about the internal validity, than external
 
 -   Formal test is McCrary sorting test [@mccrary2008] or [@cattaneo2019]
 
--   Since human subjects can manipulate the running variable to be just above or below the cutoff (assuming that the running variable is manipulable), especially when the cutoff point is known in advance for all subjects, this can result in a discontinuity in the distribution of the running variable at the cutoff (i.e., we will see "bunching" behavior right before or after the cutoff)>
+-   Since human subjects can manipulate the running variable to be just above or below the cutoff (assuming that the running variable is manipulable), especially when the cutoff point is known in advance for all subjects, this can result in a discontinuity in the distribution of the running variable at the cutoff (i.e., we will see "bunching" behavior right before or after the cutoff)\>
 
     -   People would like to sort into treatment if it's desirable. The density of the running variable would be 0 just below the threshold
 
@@ -195,7 +195,7 @@ Steps:
 2.  Estimate the manipulation-free counterfactual
 3.  Calculating the standard errors for inference can follow [@chetty2011] where we bootstrap resampling residuals in the estimation of the counts of individuals within bins (large data can render this step unnecessary).
 
-If we pass the bunching test, we can move on to the \[Placebo Test\]
+If we pass the bunching test, we can move on to the $$Placebo Test$$
 
 @mccrary2008 test
 
@@ -216,7 +216,8 @@ DCdensity(x,0)
 <img src="20-quasi-experimental_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```
-#> [1] 0.8058466
+#> [1] 0.8279339
+
 #Discontinuity
 x<-runif(1000,-1,1)
 x<-x+2*(runif(1000,-1,1)>0&x<0)
@@ -226,7 +227,7 @@ DCdensity(x,0)
 <img src="20-quasi-experimental_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```
-#> [1] 0.00181709
+#> [1] 0.009108202
 ```
 
 @cattaneo2019 test
@@ -274,6 +275,7 @@ summary(rdd)
 #> 0.102                      66      59    0.5917
 #> 0.115                      74      67    0.6135
 #> 0.128                      82      71    0.4189
+
 # you have to specify your own plot (read package manual)
 ```
 
@@ -301,7 +303,7 @@ summary(rdd)
 
     -   Inclusion and exclusion of covariates: RDD parameter estimates should not be sensitive to the inclusion or exclusion of other covariates.
 
--   This is analogous to \[Experimental Design\] where we cannot only test whether the observables are similar in both treatment and control groups (if we reject this, then we don't have random assignment), but we cannot test unobservables.
+-   This is analogous to $$Experimental Design$$ where we cannot only test whether the observables are similar in both treatment and control groups (if we reject this, then we don't have random assignment), but we cannot test unobservables.
 
 Balance on observable characteristics on both sides
 
@@ -629,23 +631,23 @@ where
 
 This RD is fuzzy
 
-If right near the threshold (bandwidth), we have states with different sorting (i.e., non-random), then we need the fixed-effect for state $s$. But then your RD assumption wrong anyway, then you won't do it in the first place
+-   If right near the threshold (bandwidth), we have states with different sorting (i.e., non-random), then we need the fixed-effect for state $s$. But then your RD assumption wrong anyway, then you won't do it in the first place
 
-Technically, we could also run the fixed-effect regression, but because it's lower in the causal inference hierarchy. Hence, we don't do it.
+-   Technically, we could also run the fixed-effect regression, but because it's lower in the causal inference hierarchy. Hence, we don't do it.
 
-Moreover, in the RD framework, we don't include $t$ before treatment (but in the FE we have to include before and after)
+-   Moreover, in the RD framework, we don't include $t$ before treatment (but in the FE we have to include before and after)
 
-If we include $\pi_i$ for each hospital, then we don't have variation in the causal estimates (because hardly any hospital changes their bed size in the panel)
+-   If we include $\pi_i$ for each hospital, then we don't have variation in the causal estimates (because hardly any hospital changes their bed size in the panel)
 
-When you have $\beta_1$ as the intent to treat (because the treatment effect does not coincide with the intent to treat)
+-   When you have $\beta_1$ as the intent to treat (because the treatment effect does not coincide with the intent to treat)
 
-You cannot take those fuzzy cases out, because it will introduce the selection bias.
+-   You cannot take those fuzzy cases out, because it will introduce the selection bias.
 
-Note that we cannot drop cases based on behavioral choice (because we will exclude non-compliers), but we can drop when we have particular behaviors ((e.g., people like round numbers).
+-   Note that we cannot drop cases based on behavioral choice (because we will exclude non-compliers), but we can drop when we have particular behaviors ((e.g., people like round numbers).
 
 Thus, we have to use Instrument variable \@ref(instrumental-variable)
 
-Stage 1:
+**Stage 1:**
 
 $$
 QSW_{ist} = \alpha_0 + [I(Bed \ge121)_{ist}]\alpha_1 + f(Size_{ist}) \alpha_2 + [f(Size_{ist}) \times I(Bed \ge 121)_{ist}] \alpha_3 \\
@@ -654,22 +656,22 @@ $$
 
 (Note: you should have different fixed effects and error term - $\delta, \gamma_s, \theta_t, \epsilon_{ist}$ from the first equation, but I ran out of Greek letters)
 
-Stage 2:
+**Stage 2:**
 
 $$
 Y_{ist} = \gamma_0 + \gamma_1 \hat{QWS}_{ist} + f(Size_{ist}) \delta_2 + [f(Size_{ist}) \times I(Bed \ge 121)] \delta_3 \\
  + X_{it} \lambda + \eta_s + \tau_t + u_{ist}
 $$
 
-The bigger the jump (discontinuity), the more similar the 2 coefficients ($\gamma_1 \approx \beta_1$) where $\gamma_1$ is the average treatment effect (of exposing to the policy)
+-   The bigger the jump (discontinuity), the more similar the 2 coefficients ($\gamma_1 \approx \beta_1$) where $\gamma_1$ is the average treatment effect (of exposing to the policy)
 
-$\beta_1$ will always be closer to 0 than $\gamma_1$
+-   $\beta_1$ will always be closer to 0 than $\gamma_1$
 
-Figure 1 shows bunching at every 5 units cutoff, but 120 is still out there.
+-   Figure 1 shows bunching at every 5 units cutoff, but 120 is still out there.
 
-If we have manipulable bunching, there should be decrease at 130
+-   If we have manipulable bunching, there should be decrease at 130
 
-Since we have limited number of mass points (at the round numbers), we should clustered standard errors by the mass point
+-   Since we have limited number of mass points (at the round numbers), we should clustered standard errors by the mass point
 
 <br>
 
@@ -689,7 +691,13 @@ For a detailed application, see [@thoemmes2016] where they use `rdd`, `rdrobust`
 
 -   A tool developed intuitively to study "natural experiment", but its uses are much broader.
 
--   \[Fixed Effects Estimator\] is the foundation for DID
+-   $$Fixed Effects Estimator$$ is the foundation for DID
+
+-   Why is dif-in-dif attractive?
+
+    -   **Cross-sectional estimator** helps avoid omitted (unobserved) **common trends**
+
+    -   **Time-series estimator** helps overcome omitted (unobserved) **cross-sectional differences**
 
 Consider
 
@@ -715,21 +723,51 @@ E[Y_1(1) - Y_0(1)|D=1] \\
 = \{E[Y(1)|D=1] - E[Y(1)|D=0] \} - \{E[Y(0)|D=1] - E[Y(0)|D=0] \}
 $$
 
+<br>
+
+**Extension**
+
+More than 2 groups (multiple treatments and multiple controls), and more than 2 period (pre and post)
+
+$$
+Y_{igt} = \alpha_g + \gamma_t + \beta I_{gt} + \delta X_{igt} + \epsilon_{igt}
+$$
+
+where
+
+-   $\alpha_g$ is the group-specific fixed effect
+
+-   $\gamma_t$ = time specific fixed effect
+
+-   $\beta$ = dif-in-dif effect
+
+-   $I_{gt}$ = interaction terms (n treatment indicators x n post-treatment dummies) (capture effect heterogeneity over time)
+
+<br>
+
+[Matching Methods]
+
+-   Match treatment and control based on pre-treatment observables
+
+-   Modify SEs appropriately [@heckman1997]
+
+<br>
+
 **Assumption**
 
--   Parallel Trends: Difference between the treatment and control groups remain constant if there were no treatment.
+-   **Parallel Trends**: Difference between the treatment and control groups remain constant if there were no treatment.
 
-should be used in cases where
+    -   should be used in cases where
 
--   you observe before and after an event
+        -   you observe before and after an event
 
--   you have treatment and control groups
+        -   you have treatment and control groups
 
-not in cases where
+    -   not in cases where
 
--   treatment is not random
+        -   treatment is not random
 
--   confounders.
+        -   confounders.
 
 **Possible issues**
 
@@ -745,7 +783,11 @@ not in cases where
 
 -   Ashenfelter dip
 
-    -   Participants are systemitcally different from nonparticipants before the treatment, leading to the question of permanent or transitory changes.
+    -   Participants are systemically different from nonparticipants before the treatment, leading to the question of permanent or transitory changes.
+
+-   Response to event might not be immediate (can't be observed right away in the dependent variable)
+
+    -   Using lagged dependent variable might be more appropriate [@blundell1998]
 
 **Robustness Check**
 
@@ -755,7 +797,13 @@ not in cases where
 
 -   Try different windows (further away from the treatment point, other factors can creep in and nullify your effect).
 
--   Treatment Reversal
+-   Treatment Reversal (what if we don't see the treatment event)
+
+-   Higher-order polynomial time trend (to relax linearity assumption)
+
+-   Test whether other dependent variables that should be affected by the event are indeed unaffected.
+
+<br>
 
 #### Example from [Princeton](https://www.princeton.edu/~otorres/DID101R.pdf)
 
@@ -867,23 +915,25 @@ where
 
 -   $POST$ = dummy where 1 = post, and 0 = pre
 
-We don't need $\beta_4$ in our model to have unbiased $\beta_3$, but including it would give our coefficients efficiency
+Notes:
 
-If we use $\Delta Y_{jt}$ as the dependent variable, we don't need $POST_t \beta_2$ anymore
+-   We don't need $\beta_4$ in our model to have unbiased $\beta_3$, but including it would give our coefficients efficiency
 
-Alternative model specification is that the authors use NJ high wage restaurant as control group (still choose those that are close to the border)
+-   If we use $\Delta Y_{jt}$ as the dependent variable, we don't need $POST_t \beta_2$ anymore
 
-The reason why they can't control for everything (PA + NJ high wage) is because it's hard to interpret the causal treatment
+-   Alternative model specification is that the authors use NJ high wage restaurant as control group (still choose those that are close to the border)
 
-Dif-n-dif utilizes similarity in pretrend of the dependent variables. However, this is neither a necessary nor sufficient for the identifying assumption.
+-   The reason why they can't control for everything (PA + NJ high wage) is because it's hard to interpret the causal treatment
 
--   It's not sufficient because they can have multiple treatments (technically, you could include more control, but your treatment can't interact)
+-   Dif-n-dif utilizes similarity in pretrend of the dependent variables. However, this is neither a necessary nor sufficient for the identifying assumption.
 
--   It's not necessary because trends can e parallel after treatment
+    -   It's not sufficient because they can have multiple treatments (technically, you could include more control, but your treatment can't interact)
 
-However, we can't never be certain; we just try to find evidence consistent with our theory so that dif-n-dif can work.
+    -   It's not necessary because trends can be parallel after treatment
 
-Notice that we don't need before treatment the **levels of the dependent variable** to be the same (e.g., same wage average in both NJ and PA), dif-n-dif only needs **pre-trend (i.e., slope)** to be the same for the two groups.
+-   However, we can't never be certain; we just try to find evidence consistent with our theory so that dif-n-dif can work.
+
+-   Notice that we don't need before treatment the **levels of the dependent variable** to be the same (e.g., same wage average in both NJ and PA), dif-n-dif only needs **pre-trend (i.e., slope)** to be the same for the two groups.
 
 <br>
 
@@ -929,13 +979,19 @@ where
 
 -   $Y_{idt}$ = grade average
 
-|              | Intercept                         | Treat | Post | Treat\*Post |
-|--------------|-----------------------------------|-------|------|-------------|
-| Treat Pre    | 1                                 | 1     | 0    | 0           |
-| Treat Post   | 1                                 | 1     | 1    | 1           |
-| Control Pre  | 1                                 | 0     | 0    | 0           |
-| Control Post | 1                                 | 0     | 1    | 0           |
-|              | Average for pre-control $\beta_0$ |       |      |             |
++--------------+-----------------------------------+----------+----------+-------------+
+|              | Intercept                         | Treat    | Post     | Treat\*Post |
++==============+===================================+==========+==========+=============+
+| Treat Pre    | 1                                 | 1        | 0        | 0           |
++--------------+-----------------------------------+----------+----------+-------------+
+| Treat Post   | 1                                 | 1        | 1        | 1           |
++--------------+-----------------------------------+----------+----------+-------------+
+| Control Pre  | 1                                 | 0        | 0        | 0           |
++--------------+-----------------------------------+----------+----------+-------------+
+| Control Post | 1                                 | 0        | 1        | 0           |
++--------------+-----------------------------------+----------+----------+-------------+
+|              | Average for pre-control $\beta_0$ |          |          |             |
++--------------+-----------------------------------+----------+----------+-------------+
 
 A more general specification of the dif-n-dif is that
 
@@ -1268,6 +1324,7 @@ by [Leihua Ye](https://towardsdatascience.com/causal-inference-using-synthetic-c
 
 
 ```r
+
 library(Synth)
 data("basque")
 dim(basque) #774*17
@@ -1866,7 +1923,7 @@ They ultimately estimate the treatment effect on the treated of attending a top 
 
 Matching is [Selection on observables] and only works if you have good observables.
 
-Relative to \[OLS\]\[Ordinary Least Squares\]
+Relative to $$OLS$$$$Ordinary Least Squares$$
 
 1.  Matching makes the **common support** explicit (and changes default from "ignore" to "enforce")
 2.  Relaxes linear function form. Thus, less parametric.
@@ -1877,7 +1934,7 @@ It also helps if you have high ratio of controls to treatments.
 
 For detail summary [@Stuart_2010]
 
-Matching is defined as "any method that aims to equate (or "balance") the distribution of covariates in the treated and control groups." \[@Stuart_2010, pp. 1\]
+Matching is defined as "any method that aims to equate (or "balance") the distribution of covariates in the treated and control groups." $$@Stuart_2010, pp. 1$$
 
 Equivalently, matching is a selection on observables identifications strategy.
 
@@ -1954,7 +2011,7 @@ Matching is used when
 
 -   Outcomes are available to improve precision of the estimate (i.e., reduce bias)
 
-Hence, we can only observe one outcome of a unit (either treated or control), we can think of this problem as missing data as well. Thus, this section is closely related to \[Imputation (Missing Data)\]
+Hence, we can only observe one outcome of a unit (either treated or control), we can think of this problem as missing data as well. Thus, this section is closely related to $$Imputation (Missing Data)$$
 
 In observational studies, we cannot randomize the treatment effect. Subjects select their own treatments, which could introduce selection bias (i.e., systematic differences between group differences that confound the effects of response variable differences).
 
@@ -1990,9 +2047,9 @@ Assumptions of matching:
 
 Generalization
 
--   $P_t$: treated population -> $N_t$: random sample from treated
+-   $P_t$: treated population -\> $N_t$: random sample from treated
 
--   $P_c$: control population -> $N_c$: random sample from control
+-   $P_c$: control population -\> $N_c$: random sample from control
 
 -   $\mu_i$ = means ; $\Sigma_i$ = variance covariance matrix of the $p$ covariates in group i ($i = t,c$)
 
@@ -2126,7 +2183,7 @@ Notes:
 
     -   minimize the standardized difference of means of a few particularly prognostic covariates
 
-    -   fest number of large standardized difference of means (> 0.25)
+    -   fest number of large standardized difference of means (\> 0.25)
 
     -   [@Diamond_2013] automates the process
 
@@ -2363,6 +2420,899 @@ Procedure typically involves (proposed by [Noah Freifer](https://cran.r-project.
 ```r
 library(MatchIt)
 data("lalonde")
+lalonde
+#>     age educ black hisp married nodegr      re74       re75       re78 u74 u75
+#> 1    37   11     1    0       1      1     0.000     0.0000  9930.0500   1   1
+#> 2    22    9     0    1       0      1     0.000     0.0000  3595.8900   1   1
+#> 3    30   12     1    0       0      0     0.000     0.0000 24909.5000   1   1
+#> 4    27   11     1    0       0      1     0.000     0.0000  7506.1500   1   1
+#> 5    33    8     1    0       0      1     0.000     0.0000   289.7900   1   1
+#> 6    22    9     1    0       0      1     0.000     0.0000  4056.4900   1   1
+#> 7    23   12     1    0       0      0     0.000     0.0000     0.0000   1   1
+#> 8    32   11     1    0       0      1     0.000     0.0000  8472.1600   1   1
+#> 9    22   16     1    0       0      0     0.000     0.0000  2164.0200   1   1
+#> 10   33   12     0    0       1      0     0.000     0.0000 12418.1000   1   1
+#> 11   19    9     1    0       0      1     0.000     0.0000  8173.9100   1   1
+#> 12   21   13     1    0       0      0     0.000     0.0000 17094.6000   1   1
+#> 13   18    8     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 14   27   10     1    0       1      1     0.000     0.0000 18739.9000   1   1
+#> 15   17    7     1    0       0      1     0.000     0.0000  3023.8800   1   1
+#> 16   19   10     1    0       0      1     0.000     0.0000  3228.5000   1   1
+#> 17   27   13     1    0       0      0     0.000     0.0000 14581.9000   1   1
+#> 18   23   10     1    0       0      1     0.000     0.0000  7693.4000   1   1
+#> 19   40   12     1    0       0      0     0.000     0.0000 10804.3000   1   1
+#> 20   26   12     1    0       0      0     0.000     0.0000 10747.4000   1   1
+#> 21   23   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 22   41   14     0    0       0      0     0.000     0.0000  5149.5000   1   1
+#> 23   38    9     0    0       0      1     0.000     0.0000  6408.9500   1   1
+#> 24   24   11     1    0       0      1     0.000     0.0000  1991.4000   1   1
+#> 25   18   10     1    0       0      1     0.000     0.0000 11163.2000   1   1
+#> 26   29   11     1    0       1      1     0.000     0.0000  9643.0000   1   1
+#> 27   25   11     1    0       0      1     0.000     0.0000  9897.0500   1   1
+#> 28   27   10     0    1       0      1     0.000     0.0000 11142.9000   1   1
+#> 29   17   10     1    0       0      1     0.000     0.0000 16218.0000   1   1
+#> 30   24   11     1    0       0      1     0.000     0.0000   995.7000   1   1
+#> 31   17   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 32   48    4     1    0       0      1     0.000     0.0000  6551.5900   1   1
+#> 33   25   11     1    0       1      1     0.000     0.0000  1574.4200   1   1
+#> 34   20   12     1    0       0      0     0.000     0.0000     0.0000   1   1
+#> 35   25   12     1    0       0      0     0.000     0.0000  3191.7500   1   1
+#> 36   42   14     1    0       0      0     0.000     0.0000 20505.9000   1   1
+#> 37   25    5     1    0       0      1     0.000     0.0000  6181.8800   1   1
+#> 38   23   12     1    0       1      0     0.000     0.0000  5911.5500   1   1
+#> 39   46    8     1    0       1      1     0.000     0.0000  3094.1600   1   1
+#> 40   24   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 41   21   12     1    0       0      0     0.000     0.0000  1254.5800   1   1
+#> 42   19    9     0    0       0      1     0.000     0.0000 13188.8000   1   1
+#> 43   17    8     1    0       0      1     0.000     0.0000  8061.4900   1   1
+#> 44   18    8     0    1       1      1     0.000     0.0000  2787.9600   1   1
+#> 45   20   11     1    0       0      1     0.000     0.0000  3972.5400   1   1
+#> 46   25   11     1    0       1      1     0.000     0.0000     0.0000   1   1
+#> 47   17    8     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 48   17    9     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 49   25    5     1    0       0      1     0.000     0.0000 12187.4000   1   1
+#> 50   23   12     1    0       0      0     0.000     0.0000  4843.1800   1   1
+#> 51   28    8     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 52   31   11     1    0       1      1     0.000     0.0000  8087.4900   1   1
+#> 53   18   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 54   25   12     1    0       0      0     0.000     0.0000  2348.9700   1   1
+#> 55   30   11     1    0       1      1     0.000     0.0000   590.7820   1   1
+#> 56   17   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 57   37    9     1    0       0      1     0.000     0.0000  1067.5100   1   1
+#> 58   41    4     1    0       1      1     0.000     0.0000  7284.9900   1   1
+#> 59   42   14     1    0       1      0     0.000     0.0000 13167.5000   1   1
+#> 60   22   11     0    0       0      1     0.000     0.0000  1048.4300   1   1
+#> 61   17    8     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 62   29    8     1    0       0      1     0.000     0.0000  1923.9400   1   1
+#> 63   35   10     1    0       0      1     0.000     0.0000  4666.2400   1   1
+#> 64   27   11     1    0       0      1     0.000     0.0000   549.2980   1   1
+#> 65   29    4     1    0       0      1     0.000     0.0000   762.9150   1   1
+#> 66   28    9     1    0       0      1     0.000     0.0000 10694.3000   1   1
+#> 67   27   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 68   23    7     0    0       0      1     0.000     0.0000     0.0000   1   1
+#> 69   45    5     1    0       1      1     0.000     0.0000  8546.7200   1   1
+#> 70   29   13     1    0       0      0     0.000     0.0000  7479.6600   1   1
+#> 71   27    9     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 72   46   13     1    0       0      0     0.000     0.0000   647.2050   1   1
+#> 73   18    6     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 74   25   12     1    0       0      0     0.000     0.0000 11965.8000   1   1
+#> 75   28   15     1    0       0      0     0.000     0.0000  9598.5400   1   1
+#> 76   25   11     0    0       0      1     0.000     0.0000 18783.4000   1   1
+#> 77   22   12     1    0       0      0     0.000     0.0000 18678.1000   1   1
+#> 78   21    9     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 79   40   11     1    0       0      1     0.000     0.0000 23005.6000   1   1
+#> 80   22   11     1    0       0      1     0.000     0.0000  6456.7000   1   1
+#> 81   25   12     1    0       0      0     0.000     0.0000     0.0000   1   1
+#> 82   18   12     1    0       0      0     0.000     0.0000  2321.1100   1   1
+#> 83   38   12     0    0       0      0     0.000     0.0000  4941.8500   1   1
+#> 84   27   13     1    0       0      0     0.000     0.0000     0.0000   1   1
+#> 85   27    8     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 86   38   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 87   23    8     0    1       0      1     0.000     0.0000  3881.2800   1   1
+#> 88   26   11     1    0       0      1     0.000     0.0000 17231.0000   1   1
+#> 89   21   12     0    0       0      0     0.000     0.0000  8048.6000   1   1
+#> 90   25    8     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 91   31   11     1    0       1      1     0.000     0.0000 14509.9000   1   1
+#> 92   17   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 93   25   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 94   21   12     1    0       0      0     0.000     0.0000  9983.7800   1   1
+#> 95   44   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 96   25   12     0    0       0      0     0.000     0.0000  5587.5000   1   1
+#> 97   18    9     1    0       0      1     0.000     0.0000  4482.8500   1   1
+#> 98   42   12     1    0       0      0     0.000     0.0000  2456.1500   1   1
+#> 99   25   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 100  31    9     0    1       0      1     0.000     0.0000 26817.6000   1   1
+#> 101  24   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 102  26   10     1    0       0      1     0.000     0.0000  9265.7900   1   1
+#> 103  25   11     1    0       0      1     0.000     0.0000   485.2300   1   1
+#> 104  18   11     1    0       0      1     0.000     0.0000  4814.6300   1   1
+#> 105  19   11     1    0       0      1     0.000     0.0000  7458.1100   1   1
+#> 106  43    9     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 107  27   13     1    0       0      0     0.000     0.0000 34099.3000   1   1
+#> 108  17    9     1    0       0      1     0.000     0.0000  1953.2700   1   1
+#> 109  30   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 110  26   10     1    0       1      1  2028.000     0.0000     0.0000   0   1
+#> 111  20    9     1    0       0      1  6083.990     0.0000  8881.6700   0   1
+#> 112  17    9     0    1       0      1   445.170    74.3435  6210.6700   0   0
+#> 113  20   12     1    0       0      0   989.268   165.2080     0.0000   0   0
+#> 114  18   11     1    0       0      1   858.254   214.5640   929.8840   0   0
+#> 115  27   12     1    0       1      0  3670.870   334.0490     0.0000   0   0
+#> 116  21   12     0    0       0      0  3670.870   334.0490 12558.0000   0   0
+#> 117  27   12     1    0       0      0  2143.410   357.9500 22163.3000   0   0
+#> 118  20   12     1    0       0      0     0.000   377.5690  1652.6400   1   0
+#> 119  19   10     1    0       0      1     0.000   385.2740  8124.7200   1   0
+#> 120  23   12     1    0       0      0  5506.310   501.0740   671.3320   0   0
+#> 121  29   14     1    0       0      0     0.000   679.6730 17815.0000   1   0
+#> 122  18   10     1    0       0      1     0.000   798.9080  9737.1500   1   0
+#> 123  19    9     1    0       0      1     0.000   798.9080 17685.2000   1   0
+#> 124  27   13     0    0       1      0  9381.570   853.7230     0.0000   0   0
+#> 125  18   11     0    0       0      1  3678.230   919.5580  4321.7100   0   0
+#> 126  27    9     1    0       1      1     0.000   934.4450  1773.4200   1   0
+#> 127  22   12     1    0       0      0  5605.850   936.1770     0.0000   0   0
+#> 128  23   10     1    0       1      1     0.000   936.4390 11233.3000   1   0
+#> 129  23   12     0    1       0      0  9385.740  1117.4400   559.4430   0   0
+#> 130  20   11     1    0       0      1  3637.500  1220.8400  1085.4400   0   0
+#> 131  17    9     1    0       0      1  1716.510  1253.4400  5445.2000   0   0
+#> 132  28   11     1    0       0      1     0.000  1284.0800 60307.9000   1   0
+#> 133  26   11     1    0       1      1     0.000  1392.8500  1460.3600   1   0
+#> 134  20   11     1    0       0      1 16318.600  1484.9900  6943.3400   0   0
+#> 135  24   11     1    0       1      1   824.389  1666.1100  4032.7100   0   0
+#> 136  31    9     1    0       0      1     0.000  1698.6100 10363.3000   1   0
+#> 137  23    8     0    0       1      1     0.000  1713.1500  4232.3100   1   0
+#> 138  18   10     1    0       0      1  2143.410  1784.2700 11141.4000   0   0
+#> 139  29   12     1    0       0      0 10881.900  1817.2800     0.0000   0   0
+#> 140  26   11     0    0       0      1     0.000  2226.2700 13385.9000   1   0
+#> 141  24    9     1    0       0      1  9154.700  2288.6800  4849.5600   0   0
+#> 142  25   12     1    0       0      0 14426.800  2409.2700     0.0000   0   0
+#> 143  24   10     1    0       0      1  4250.400  2421.9500  1660.5100   0   0
+#> 144  46    8     1    0       0      1  3165.660  2594.7200     0.0000   0   0
+#> 145  31   12     0    0       0      0     0.000  2611.2200  2484.5500   1   0
+#> 146  19   11     1    0       0      1  2305.030  2615.2800  4146.6000   0   0
+#> 147  19    8     1    0       0      1     0.000  2657.0600  9970.6800   1   0
+#> 148  27   11     1    0       0      1  2206.940  2666.2700     0.0000   0   0
+#> 149  26   11     1    0       1      1     0.000  2754.6500 26372.3000   1   0
+#> 150  20   10     1    0       0      1  5005.730  2777.3600  5615.1900   0   0
+#> 151  28   10     1    0       0      1     0.000  2836.5100  3196.5700   1   0
+#> 152  24   12     1    0       0      0 13765.800  2842.7600  6167.6800   0   0
+#> 153  19    8     1    0       0      1  2636.350  2937.2600  7535.9400   0   0
+#> 154  23   12     1    0       0      0  6269.340  3039.9600  8484.2400   0   0
+#> 155  42    9     1    0       1      1     0.000  3058.5300  1294.4100   1   0
+#> 156  25   13     1    0       0      0 12362.900  3090.7300     0.0000   0   0
+#> 157  18    9     1    0       0      1     0.000  3287.3800  5010.3400   1   0
+#> 158  21   12     1    0       0      0  6473.680  3332.4100  9371.0400   0   0
+#> 159  27   10     1    0       0      1  1001.150  3550.0800     0.0000   0   0
+#> 160  21    8     1    0       0      1   989.268  3695.9000  4279.6100   0   0
+#> 161  22    9     1    0       0      1  2192.880  3836.9900  3462.5600   0   0
+#> 162  31    4     1    0       0      1  8517.590  4023.2100  7382.5500   0   0
+#> 163  24   10     1    0       1      1 11703.200  4078.1500     0.0000   0   0
+#> 164  29   10     1    0       0      1     0.000  4398.9500     0.0000   1   0
+#> 165  29   12     1    0       0      0  9748.390  4878.9400 10976.5000   0   0
+#> 166  19   10     0    0       0      1     0.000  5324.1100 13829.6000   1   0
+#> 167  19   11     0    1       1      1  5424.490  5463.8000  6788.4600   0   0
+#> 168  31    9     1    0       0      1 10717.000  5517.8400  9558.5000   0   0
+#> 169  22   10     1    0       1      1  1468.350  5588.6600 13228.3000   0   0
+#> 170  21    9     1    0       0      1  6416.470  5749.3300   743.6670   0   0
+#> 171  17   10     1    0       0      1  1291.470  5793.8500  5522.7900   0   0
+#> 172  26   12     1    0       1      0  8408.760  5794.8300  1424.9400   0   0
+#> 173  20    9     0    1       0      1 12260.800  5875.0500  1358.6400   0   0
+#> 174  19   10     1    0       0      1  4121.950  6056.7500     0.0000   0   0
+#> 175  26   10     1    0       0      1 25929.700  6788.9600   672.8770   0   0
+#> 176  28   11     1    0       0      1  1929.030  6871.8600     0.0000   0   0
+#> 177  22   12     0    1       1      0   492.231  7055.7000 10092.8000   0   0
+#> 178  33   11     1    0       0      1     0.000  7867.9200  6281.4300   1   0
+#> 179  22   12     0    0       0      0  6759.990  8455.5000 12590.7000   0   0
+#> 180  29   10     0    1       0      1     0.000  8853.6700  5112.0100   1   0
+#> 181  33   12     1    0       1      0 20280.000 10941.4000 15952.6000   0   0
+#> 182  25   14     1    0       1      0 35040.100 11536.6000 36647.0000   0   0
+#> 183  35    9     1    0       1      1 13602.400 13830.6000 12804.0000   0   0
+#> 184  35    8     1    0       1      1 13732.100 17976.2000  3786.6300   0   0
+#> 185  33   11     1    0       1      1 14660.700 25142.2000  4181.9400   0   0
+#> 186  23   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 187  26   12     0    0       0      0     0.000     0.0000 12383.7000   1   1
+#> 188  22    9     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 189  18    9     1    0       0      1     0.000     0.0000 10740.1000   1   1
+#> 190  45   11     1    0       0      1     0.000     0.0000 11796.5000   1   1
+#> 191  18    9     1    0       0      1     0.000     0.0000  9227.0500   1   1
+#> 192  24    8     0    0       0      1     0.000     0.0000 10569.3000   1   1
+#> 193  34   11     1    0       1      1     0.000     0.0000  6040.3400   1   1
+#> 194  24    4     0    1       0      1     0.000     0.0000  3880.8300   1   1
+#> 195  36   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 196  21   14     1    0       0      0     0.000     0.0000  5775.0600   1   1
+#> 197  28    9     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 198  27    7     1    0       1      1     0.000     0.0000     0.0000   1   1
+#> 199  19   11     0    0       0      1     0.000     0.0000     0.0000   1   1
+#> 200  20    8     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 201  34   12     1    0       0      0     0.000     0.0000  2113.7200   1   1
+#> 202  24   10     1    0       0      1     0.000     0.0000  7618.6400   1   1
+#> 203  22    8     0    1       0      1     0.000     0.0000  9920.9500   1   1
+#> 204  25   11     1    0       0      1     0.000     0.0000  4196.3800   1   1
+#> 205  39    9     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 206  19    9     1    0       1      1     0.000     0.0000 16658.3000   1   1
+#> 207  44    9     1    0       0      1     0.000     0.0000  9722.0000   1   1
+#> 208  27    8     1    0       0      1     0.000     0.0000  3783.6600   1   1
+#> 209  25    8     1    0       0      1     0.000     0.0000  3515.9300   1   1
+#> 210  31   10     1    0       0      1     0.000     0.0000 17014.6000   1   1
+#> 211  34   10     1    0       1      1     0.000     0.0000     0.0000   1   1
+#> 212  21    7     0    1       0      1     0.000     0.0000     0.0000   1   1
+#> 213  33   12     1    0       0      0     0.000     0.0000  5970.2600   1   1
+#> 214  18   10     0    1       0      1     0.000     0.0000  1859.1700   1   1
+#> 215  26   12     1    0       1      0     0.000     0.0000  6191.9400   1   1
+#> 216  31   12     1    0       0      0     0.000     0.0000  7284.3900   1   1
+#> 217  35   10     1    0       0      1     0.000     0.0000   445.8310   1   1
+#> 218  20   12     1    0       0      0     0.000     0.0000     0.0000   1   1
+#> 219  25   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 220  25   10     1    0       0      1     0.000     0.0000  7367.0400   1   1
+#> 221  35   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 222  20   10     1    0       0      1     0.000     0.0000  2015.5000   1   1
+#> 223  25    9     0    1       0      1     0.000     0.0000 15791.1000   1   1
+#> 224  27   10     1    0       0      1     0.000     0.0000  1135.4700   1   1
+#> 225  20   11     0    1       0      1     0.000     0.0000  6378.7200   1   1
+#> 226  26   11     1    0       0      1     0.000     0.0000  7176.1900   1   1
+#> 227  38    8     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 228  34   10     1    0       0      1     0.000     0.0000  7952.5400   1   1
+#> 229  19   12     1    0       0      0     0.000     0.0000     0.0000   1   1
+#> 230  32    8     1    0       0      1     0.000     0.0000  7152.1300   1   1
+#> 231  20    9     0    1       0      1     0.000     0.0000  8329.8200   1   1
+#> 232  23   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 233  38   10     1    0       0      1     0.000     0.0000 12429.9000   1   1
+#> 234  24   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 235  23   11     1    0       0      1     0.000     0.0000  5088.7600   1   1
+#> 236  20    7     0    1       0      1     0.000     0.0000  4374.0400   1   1
+#> 237  21   11     1    0       0      1     0.000     0.0000  1553.2900   1   1
+#> 238  25   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 239  22   11     1    0       1      1     0.000     0.0000  1698.3000   1   1
+#> 240  23   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 241  24   12     0    0       0      0     0.000     0.0000 11294.6000   1   1
+#> 242  29   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 243  24   11     1    0       0      1     0.000     0.0000 14626.4000   1   1
+#> 244  22    9     1    0       0      1     0.000     0.0000 12898.4000   1   1
+#> 245  28   11     1    0       0      1     0.000     0.0000  5767.1300   1   1
+#> 246  18   10     0    1       0      1     0.000     0.0000  6527.9200   1   1
+#> 247  26   10     1    0       0      1     0.000     0.0000  3931.2400   1   1
+#> 248  25   10     1    0       0      1     0.000     0.0000 20942.2000   1   1
+#> 249  24   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 250  26    5     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 251  36   10     1    0       0      1     0.000     0.0000 14690.4000   1   1
+#> 252  22   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 253  25   12     1    0       0      0     0.000     0.0000  3418.1000   1   1
+#> 254  27   11     1    0       0      1     0.000     0.0000 11197.3000   1   1
+#> 255  29    8     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 256  24   12     1    0       0      0     0.000     0.0000     0.0000   1   1
+#> 257  22   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 258  24    7     1    0       0      1     0.000     0.0000  1455.6900   1   1
+#> 259  29   12     1    0       0      0     0.000     0.0000  1890.9400   1   1
+#> 260  25   11     0    1       1      1     0.000     0.0000  4485.6200   1   1
+#> 261  30   12     1    0       0      0     0.000     0.0000 13613.4000   1   1
+#> 262  22    8     1    0       0      1     0.000     0.0000  1390.5100   1   1
+#> 263  55    3     1    0       0      1     0.000     0.0000  5843.8000   1   1
+#> 264  20   10     1    0       0      1     0.000     0.0000  8598.5200   1   1
+#> 265  34   11     1    0       0      1     0.000     0.0000  2920.2000   1   1
+#> 266  22   12     1    0       0      0     0.000     0.0000     0.0000   1   1
+#> 267  32   12     0    1       1      0     0.000     0.0000  6735.3200   1   1
+#> 268  31   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 269  18    9     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 270  50   10     0    1       0      1     0.000     0.0000     0.0000   1   1
+#> 271  25   11     1    0       1      1     0.000     0.0000    44.7555   1   1
+#> 272  23   10     1    0       1      1     0.000     0.0000     0.0000   1   1
+#> 273  38   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 274  25   10     1    0       1      1     0.000     0.0000  3701.8100   1   1
+#> 275  42   10     1    0       0      1     0.000     0.0000  6930.3400   1   1
+#> 276  39   12     1    0       1      0     0.000     0.0000  3795.8000   1   1
+#> 277  34   13     1    0       1      0     0.000     0.0000  5193.2500   1   1
+#> 278  24    7     1    0       0      1     0.000     0.0000  2193.5300   1   1
+#> 279  32   11     1    0       0      1     0.000     0.0000 11120.5000   1   1
+#> 280  27   13     1    0       0      0     0.000     0.0000  7609.5200   1   1
+#> 281  26   10     1    0       0      1     0.000     0.0000  2169.0300   1   1
+#> 282  44   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 283  25   11     1    0       0      1     0.000     0.0000  1264.2300   1   1
+#> 284  25   12     1    0       0      0     0.000     0.0000     0.0000   1   1
+#> 285  28   12     1    0       1      0     0.000     0.0000     0.0000   1   1
+#> 286  32   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 287  22   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 288  19    9     1    0       0      1     0.000     0.0000  5712.6400   1   1
+#> 289  31   10     1    0       1      1     0.000     0.0000     0.0000   1   1
+#> 290  23   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 291  33   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 292  27   10     1    0       0      1     0.000     0.0000  1184.8800   1   1
+#> 293  29   11     1    0       1      1     0.000     0.0000 10225.9000   1   1
+#> 294  23   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 295  25    9     1    0       1      1     0.000     0.0000  4715.3700   1   1
+#> 296  25   10     1    0       0      1     0.000     0.0000   289.7900   1   1
+#> 297  24   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 298  28    8     0    0       0      1     0.000     0.0000  8190.4200   1   1
+#> 299  26    6     1    0       0      1     0.000     0.0000  4813.0500   1   1
+#> 300  30   14     1    0       1      0     0.000     0.0000  7344.6800   1   1
+#> 301  25   10     1    0       1      1     0.000     0.0000     0.0000   1   1
+#> 302  29   11     1    0       1      1     0.000     0.0000     0.0000   1   1
+#> 303  25   12     1    0       1      0     0.000     0.0000     0.0000   1   1
+#> 304  28   13     1    0       0      0     0.000     0.0000     0.0000   1   1
+#> 305  23   11     1    0       0      1     0.000     0.0000  4350.9100   1   1
+#> 306  54   11     1    0       0      1     0.000     0.0000  7812.5200   1   1
+#> 307  33    5     0    1       0      1     0.000     0.0000     0.0000   1   1
+#> 308  20    8     1    0       0      1     0.000     0.0000  3644.6600   1   1
+#> 309  45    9     1    0       0      1     0.000     0.0000  4844.8000   1   1
+#> 310  39    6     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 311  26   12     1    0       0      0     0.000     0.0000     0.0000   1   1
+#> 312  23   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 313  27   12     0    0       0      0     0.000     0.0000 14792.9000   1   1
+#> 314  33    9     0    1       1      1     0.000     0.0000     0.0000   1   1
+#> 315  25   10     1    0       1      1     0.000     0.0000     0.0000   1   1
+#> 316  23    8     1    0       0      1     0.000     0.0000  3746.7000   1   1
+#> 317  18    8     1    0       0      1     0.000     0.0000  1568.1500   1   1
+#> 318  17    8     1    0       0      1     0.000     0.0000  7010.4400   1   1
+#> 319  19    9     0    1       0      1     0.000     0.0000  3811.6800   1   1
+#> 320  18    8     0    1       0      1     0.000     0.0000 10798.6000   1   1
+#> 321  18   11     1    0       0      1     0.000     0.0000  4657.2700   1   1
+#> 322  17   11     1    0       0      1     0.000     0.0000  8551.5300   1   1
+#> 323  19   10     1    0       0      1     0.000     0.0000  4309.8800   1   1
+#> 324  19   10     1    0       0      1     0.000     0.0000  5286.4000   1   1
+#> 325  18    9     1    0       0      1     0.000     0.0000 12486.2000   1   1
+#> 326  18    9     1    0       0      1     0.000     0.0000 10877.4000   1   1
+#> 327  18   10     1    0       0      1     0.000     0.0000   202.2850   1   1
+#> 328  17   10     1    0       0      1     0.000     0.0000  2657.7100   1   1
+#> 329  18    7     1    0       0      1     0.000     0.0000  4132.5800   1   1
+#> 330  18   11     1    0       0      1     0.000     0.0000 11303.1000   1   1
+#> 331  19   10     0    1       0      1     0.000     0.0000     0.0000   1   1
+#> 332  18    9     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 333  17   10     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 334  17   10     1    0       0      1     0.000     0.0000  2189.4300   1   1
+#> 335  19   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 336  17    8     0    0       0      1     0.000     0.0000 10211.0000   1   1
+#> 337  18   10     1    0       0      1     0.000     0.0000 11048.1000   1   1
+#> 338  18    9     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 339  17    8     1    0       0      1     0.000     0.0000  8993.8700   1   1
+#> 340  19    6     0    1       0      1     0.000     0.0000  5071.8000   1   1
+#> 341  19   10     0    0       0      1     0.000     0.0000  3194.0100   1   1
+#> 342  17   11     0    0       0      1     0.000     0.0000     0.0000   1   1
+#> 343  20    9     1    0       0      1     0.000     0.0000  5193.0900   1   1
+#> 344  17    9     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 345  17   10     1    0       0      1     0.000     0.0000   275.5660   1   1
+#> 346  17    9     1    0       0      1     0.000     0.0000  3590.7000   1   1
+#> 347  19   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 348  19   10     1    0       1      1     0.000     0.0000 12797.7000   1   1
+#> 349  20    9     1    0       0      1     0.000     0.0000  2035.9100   1   1
+#> 350  18    9     1    0       0      1     0.000     0.0000  2389.6800   1   1
+#> 351  18   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 352  17   10     0    1       0      1     0.000     0.0000  8469.2800   1   1
+#> 353  19   11     1    0       0      1     0.000     0.0000     0.0000   1   1
+#> 354  17   10     1    0       0      1     0.000     0.0000  1143.3900   1   1
+#> 355  17    9     0    1       0      1     0.000     0.0000  5114.8100   1   1
+#> 356  18   10     1    0       0      1     0.000     0.0000   781.2240   1   1
+#> 357  21    9     1    0       0      1   591.499     0.0000  3343.2200   0   1
+#> 358  18   10     1    0       0      1  1563.250     0.0000  9602.4400   0   1
+#> 359  19   11     1    0       0      1  1626.620     0.0000     0.0000   0   1
+#> 360  24    9     1    0       0      1  2788.500     0.0000 16461.6000   0   1
+#> 361  28   11     0    1       1      1  3472.950     0.0000  6771.6200   0   1
+#> 362  25   11     1    0       0      1  5281.250     0.0000     0.0000   0   1
+#> 363  21    7     1    0       0      1 33800.000     0.0000 11011.6000   0   1
+#> 364  39   11     1    0       0      1     0.000    83.6896     0.0000   1   0
+#> 365  36   12     1    0       0      0     0.000   142.3970     0.0000   1   0
+#> 366  24   12     1    0       0      0     0.000   159.8850     0.0000   1   0
+#> 367  17   11     1    0       0      1   989.268   165.2080  4251.1300   0   0
+#> 368  18   10     1    0       0      1   960.427   240.1070  2891.6700   0   0
+#> 369  18   10     1    0       0      1     0.000   273.5530  5514.3700   1   0
+#> 370  28   10     1    0       0      1  1471.290   367.8230  4858.9000   0   0
+#> 371  27   13     0    0       0      0  5214.310   474.5020  4812.5800   0   0
+#> 372  31   12     0    0       0      0     0.000   494.6430     0.0000   1   0
+#> 373  22    9     1    0       0      1     0.000   506.4080   604.1990   1   0
+#> 374  31   10     1    0       0      1     0.000   520.4460 14527.9000   1   0
+#> 375  26   10     1    0       1      1  6140.370   558.7730     0.0000   0   0
+#> 376  18    9     0    0       0      1     0.000   559.5960  7300.5000   1   0
+#> 377  23   11     1    0       0      1  6382.310   580.7900     0.0000   0   0
+#> 378  20   12     1    0       0      0     0.000   591.8150  4159.9200   1   0
+#> 379  19   10     1    0       0      1     0.000   604.1540     0.0000   1   0
+#> 380  18   11     1    0       0      1  1064.700   645.2720  5497.5900   0   0
+#> 381  17   10     1    0       0      1     0.000   664.5690     0.0000   1   0
+#> 382  27   12     1    0       1      0     0.000   752.3900     0.0000   1   0
+#> 383  27   11     1    0       0      1  3065.190   766.2990     0.0000   0   0
+#> 384  28   12     0    0       0      0     0.000   803.3430 16477.0000   1   0
+#> 385  28   11     1    0       0      1  2431.950   863.4800     0.0000   0   0
+#> 386  21   10     1    0       0      1  6661.060  1162.3600 39483.5000   0   0
+#> 387  17   10     0    1       0      1  4905.120  1168.9000 11306.3000   0   0
+#> 388  26   11     1    0       0      1  4699.960  1174.9900  6672.0200   0   0
+#> 389  29    9     1    0       0      1     0.000  1203.8200  9378.6500   1   0
+#> 390  17   10     0    1       0      1  1203.610  1239.6300  5088.9900   0   0
+#> 391  22   11     1    0       0      1  7914.130  1321.6600  2639.2900   0   0
+#> 392  24   11     1    0       0      1     0.000  1327.9900  9495.9000   1   0
+#> 393  20   12     1    0       0      0   557.699  1371.4700 20893.1000   0   0
+#> 394  18   12     1    0       0      0     0.000  1405.5100     0.0000   1   0
+#> 395  24   11     0    0       0      1  2669.730  1468.3800 10361.7000   0   0
+#> 396  21    9     0    0       0      1  2988.410  1577.1700  1740.2000   0   0
+#> 397  30    8     1    0       0      1     0.000  1706.6600     0.0000   1   0
+#> 398  31   11     1    0       0      1 17711.900  1726.4500     0.0000   0   0
+#> 399  17   10     0    1       0      1  1442.680  1734.5600  6354.1900   0   0
+#> 400  19    9     1    0       0      1  8409.630  1778.0900  7171.0000   0   0
+#> 401  23   11     1    0       0      1     0.000  1896.0200  5573.5500   1   0
+#> 402  22   12     1    0       0      0  4380.020  2003.6800   439.6880   0   0
+#> 403  29   12     1    0       0      0 22859.400  2080.2100 16970.0000   0   0
+#> 404  22   10     1    0       0      1     0.000  2174.9600  5344.0200   1   0
+#> 405  29   13     1    0       0      0   718.249  2265.5800  2725.3200   0   0
+#> 406  19   11     1    0       0      1   721.341  2445.5900  9772.2800   0   0
+#> 407  17    9     1    0       0      1     0.000  2595.2700     0.0000   1   0
+#> 408  18   10     1    0       0      1  1716.510  2682.1300     0.0000   0   0
+#> 409  19   12     1    0       0      0  8417.000  2814.2000  1720.9100   0   0
+#> 410  20    6     1    0       0      1  6006.880  2850.6100     0.0000   0   0
+#> 411  33   11     1    0       0      1 10523.800  2899.8200 18859.9000   0   0
+#> 412  36   11     0    1       0      1  5443.730  3063.8800  1324.5400   0   0
+#> 413  25   11     1    0       0      1 15210.000  3072.7300   284.6580   0   0
+#> 414  19   11     1    0       0      1  3504.010  3285.6800 11195.9000   0   0
+#> 415  23    8     1    0       0      1  7724.280  3403.0600     0.0000   0   0
+#> 416  17   11     1    0       0      1  4080.730  3796.0300     0.0000   0   0
+#> 417  43   10     1    0       0      1  2502.870  4128.4400  7565.2700   0   0
+#> 418  26   11     1    0       1      1     0.000  4184.7300     0.0000   1   0
+#> 419  27   11     1    0       1      1     0.000  4491.8800     0.0000   1   0
+#> 420  19   11     1    0       0      1  6337.490  4503.0600     0.0000   0   0
+#> 421  28   11     1    0       1      1  8593.160  5393.9000  4974.5900   0   0
+#> 422  28   12     1    0       1      0 10585.100  5551.4600 12780.0000   0   0
+#> 423  26    8     1    0       0      1  1126.290  5562.6000  3523.5800   0   0
+#> 424  31   12     1    0       0      0     0.000  5613.9100     0.0000   1   0
+#> 425  23   11     1    0       0      1  7617.360  5716.4100 10274.8000   0   0
+#> 426  20   12     1    0       0      0  7182.490  6004.7300  4779.7200   0   0
+#> 427  28   10     1    0       1      1  8293.350  6449.4800 16988.2000   0   0
+#> 428  39   12     1    0       1      0 19785.300  6608.1400   499.2570   0   0
+#> 429  21    8     1    0       0      1 39570.700  6608.3000  3083.5800   0   0
+#> 430  22   11     1    0       0      1  8810.070  6974.4800  3708.7200   0   0
+#> 431  20   11     1    0       0      1  8009.160  7666.8800  7659.2200   0   0
+#> 432  21   11     0    1       0      1  2992.530  8920.4700 20857.8000   0   0
+#> 433  23   12     0    1       0      0  5721.700  8960.6800  7078.1800   0   0
+#> 434  29    9     1    0       0      1  9268.940  9160.6900     0.0000   0   0
+#> 435  28    9     1    0       1      1 10222.400  9210.4500  1239.8400   0   0
+#> 436  30   11     1    0       1      1     0.000  9311.9400  3982.8000   1   0
+#> 437  25   10     1    0       1      1 13520.000  9319.4400     0.0000   0   0
+#> 438  28   11     1    0       1      1   824.389 10033.9000     0.0000   0   0
+#> 439  22   10     0    0       0      1 27864.400 10598.7000  7094.9200   0   0
+#> 440  44    9     1    0       1      1 12260.800 10857.2000 12359.3000   0   0
+#> 441  21    9     1    0       0      1 31886.400 12357.2000     0.0000   0   0
+#> 442  28   11     1    0       0      1 17491.500 13371.3000     0.0000   0   0
+#> 443  29    9     0    1       0      1  9594.310 16341.2000 16900.3000   0   0
+#> 444  25    9     1    0       1      1 24731.600 16946.6000  7343.9600   0   0
+#> 445  22   10     0    0       1      1 25720.900 23032.0000  5448.8000   0   0
+#>     treat
+#> 1       1
+#> 2       1
+#> 3       1
+#> 4       1
+#> 5       1
+#> 6       1
+#> 7       1
+#> 8       1
+#> 9       1
+#> 10      1
+#> 11      1
+#> 12      1
+#> 13      1
+#> 14      1
+#> 15      1
+#> 16      1
+#> 17      1
+#> 18      1
+#> 19      1
+#> 20      1
+#> 21      1
+#> 22      1
+#> 23      1
+#> 24      1
+#> 25      1
+#> 26      1
+#> 27      1
+#> 28      1
+#> 29      1
+#> 30      1
+#> 31      1
+#> 32      1
+#> 33      1
+#> 34      1
+#> 35      1
+#> 36      1
+#> 37      1
+#> 38      1
+#> 39      1
+#> 40      1
+#> 41      1
+#> 42      1
+#> 43      1
+#> 44      1
+#> 45      1
+#> 46      1
+#> 47      1
+#> 48      1
+#> 49      1
+#> 50      1
+#> 51      1
+#> 52      1
+#> 53      1
+#> 54      1
+#> 55      1
+#> 56      1
+#> 57      1
+#> 58      1
+#> 59      1
+#> 60      1
+#> 61      1
+#> 62      1
+#> 63      1
+#> 64      1
+#> 65      1
+#> 66      1
+#> 67      1
+#> 68      1
+#> 69      1
+#> 70      1
+#> 71      1
+#> 72      1
+#> 73      1
+#> 74      1
+#> 75      1
+#> 76      1
+#> 77      1
+#> 78      1
+#> 79      1
+#> 80      1
+#> 81      1
+#> 82      1
+#> 83      1
+#> 84      1
+#> 85      1
+#> 86      1
+#> 87      1
+#> 88      1
+#> 89      1
+#> 90      1
+#> 91      1
+#> 92      1
+#> 93      1
+#> 94      1
+#> 95      1
+#> 96      1
+#> 97      1
+#> 98      1
+#> 99      1
+#> 100     1
+#> 101     1
+#> 102     1
+#> 103     1
+#> 104     1
+#> 105     1
+#> 106     1
+#> 107     1
+#> 108     1
+#> 109     1
+#> 110     1
+#> 111     1
+#> 112     1
+#> 113     1
+#> 114     1
+#> 115     1
+#> 116     1
+#> 117     1
+#> 118     1
+#> 119     1
+#> 120     1
+#> 121     1
+#> 122     1
+#> 123     1
+#> 124     1
+#> 125     1
+#> 126     1
+#> 127     1
+#> 128     1
+#> 129     1
+#> 130     1
+#> 131     1
+#> 132     1
+#> 133     1
+#> 134     1
+#> 135     1
+#> 136     1
+#> 137     1
+#> 138     1
+#> 139     1
+#> 140     1
+#> 141     1
+#> 142     1
+#> 143     1
+#> 144     1
+#> 145     1
+#> 146     1
+#> 147     1
+#> 148     1
+#> 149     1
+#> 150     1
+#> 151     1
+#> 152     1
+#> 153     1
+#> 154     1
+#> 155     1
+#> 156     1
+#> 157     1
+#> 158     1
+#> 159     1
+#> 160     1
+#> 161     1
+#> 162     1
+#> 163     1
+#> 164     1
+#> 165     1
+#> 166     1
+#> 167     1
+#> 168     1
+#> 169     1
+#> 170     1
+#> 171     1
+#> 172     1
+#> 173     1
+#> 174     1
+#> 175     1
+#> 176     1
+#> 177     1
+#> 178     1
+#> 179     1
+#> 180     1
+#> 181     1
+#> 182     1
+#> 183     1
+#> 184     1
+#> 185     1
+#> 186     0
+#> 187     0
+#> 188     0
+#> 189     0
+#> 190     0
+#> 191     0
+#> 192     0
+#> 193     0
+#> 194     0
+#> 195     0
+#> 196     0
+#> 197     0
+#> 198     0
+#> 199     0
+#> 200     0
+#> 201     0
+#> 202     0
+#> 203     0
+#> 204     0
+#> 205     0
+#> 206     0
+#> 207     0
+#> 208     0
+#> 209     0
+#> 210     0
+#> 211     0
+#> 212     0
+#> 213     0
+#> 214     0
+#> 215     0
+#> 216     0
+#> 217     0
+#> 218     0
+#> 219     0
+#> 220     0
+#> 221     0
+#> 222     0
+#> 223     0
+#> 224     0
+#> 225     0
+#> 226     0
+#> 227     0
+#> 228     0
+#> 229     0
+#> 230     0
+#> 231     0
+#> 232     0
+#> 233     0
+#> 234     0
+#> 235     0
+#> 236     0
+#> 237     0
+#> 238     0
+#> 239     0
+#> 240     0
+#> 241     0
+#> 242     0
+#> 243     0
+#> 244     0
+#> 245     0
+#> 246     0
+#> 247     0
+#> 248     0
+#> 249     0
+#> 250     0
+#> 251     0
+#> 252     0
+#> 253     0
+#> 254     0
+#> 255     0
+#> 256     0
+#> 257     0
+#> 258     0
+#> 259     0
+#> 260     0
+#> 261     0
+#> 262     0
+#> 263     0
+#> 264     0
+#> 265     0
+#> 266     0
+#> 267     0
+#> 268     0
+#> 269     0
+#> 270     0
+#> 271     0
+#> 272     0
+#> 273     0
+#> 274     0
+#> 275     0
+#> 276     0
+#> 277     0
+#> 278     0
+#> 279     0
+#> 280     0
+#> 281     0
+#> 282     0
+#> 283     0
+#> 284     0
+#> 285     0
+#> 286     0
+#> 287     0
+#> 288     0
+#> 289     0
+#> 290     0
+#> 291     0
+#> 292     0
+#> 293     0
+#> 294     0
+#> 295     0
+#> 296     0
+#> 297     0
+#> 298     0
+#> 299     0
+#> 300     0
+#> 301     0
+#> 302     0
+#> 303     0
+#> 304     0
+#> 305     0
+#> 306     0
+#> 307     0
+#> 308     0
+#> 309     0
+#> 310     0
+#> 311     0
+#> 312     0
+#> 313     0
+#> 314     0
+#> 315     0
+#> 316     0
+#> 317     0
+#> 318     0
+#> 319     0
+#> 320     0
+#> 321     0
+#> 322     0
+#> 323     0
+#> 324     0
+#> 325     0
+#> 326     0
+#> 327     0
+#> 328     0
+#> 329     0
+#> 330     0
+#> 331     0
+#> 332     0
+#> 333     0
+#> 334     0
+#> 335     0
+#> 336     0
+#> 337     0
+#> 338     0
+#> 339     0
+#> 340     0
+#> 341     0
+#> 342     0
+#> 343     0
+#> 344     0
+#> 345     0
+#> 346     0
+#> 347     0
+#> 348     0
+#> 349     0
+#> 350     0
+#> 351     0
+#> 352     0
+#> 353     0
+#> 354     0
+#> 355     0
+#> 356     0
+#> 357     0
+#> 358     0
+#> 359     0
+#> 360     0
+#> 361     0
+#> 362     0
+#> 363     0
+#> 364     0
+#> 365     0
+#> 366     0
+#> 367     0
+#> 368     0
+#> 369     0
+#> 370     0
+#> 371     0
+#> 372     0
+#> 373     0
+#> 374     0
+#> 375     0
+#> 376     0
+#> 377     0
+#> 378     0
+#> 379     0
+#> 380     0
+#> 381     0
+#> 382     0
+#> 383     0
+#> 384     0
+#> 385     0
+#> 386     0
+#> 387     0
+#> 388     0
+#> 389     0
+#> 390     0
+#> 391     0
+#> 392     0
+#> 393     0
+#> 394     0
+#> 395     0
+#> 396     0
+#> 397     0
+#> 398     0
+#> 399     0
+#> 400     0
+#> 401     0
+#> 402     0
+#> 403     0
+#> 404     0
+#> 405     0
+#> 406     0
+#> 407     0
+#> 408     0
+#> 409     0
+#> 410     0
+#> 411     0
+#> 412     0
+#> 413     0
+#> 414     0
+#> 415     0
+#> 416     0
+#> 417     0
+#> 418     0
+#> 419     0
+#> 420     0
+#> 421     0
+#> 422     0
+#> 423     0
+#> 424     0
+#> 425     0
+#> 426     0
+#> 427     0
+#> 428     0
+#> 429     0
+#> 430     0
+#> 431     0
+#> 432     0
+#> 433     0
+#> 434     0
+#> 435     0
+#> 436     0
+#> 437     0
+#> 438     0
+#> 439     0
+#> 440     0
+#> 441     0
+#> 442     0
+#> 443     0
+#> 444     0
+#> 445     0
 ```
 
 examine `treat` on `re78`
@@ -2381,51 +3331,16 @@ examine `treat` on `re78`
 ```r
 # No matching; constructing a pre-match matchit object
 m.out0 <- matchit(
-    treat ~ age + educ + race + married +
-        nodegree + re74 + re75,
-    data = lalonde,
-    method = NULL, # assess balance before matching
+    formula(treat ~ age + educ + race + married + nodegree + re74 + re75, env = lalonde),
+    data = data.frame(lalonde),
+    method = NULL,
+    # assess balance before matching
     distance = "glm" # logistic regression
 )
 
 # Checking balance prior to matching
 summary(m.out0)
-#> 
-#> Call:
-#> matchit(formula = treat ~ age + educ + race + married + nodegree + 
-#>     re74 + re75, data = lalonde, method = NULL, distance = "glm")
-#> 
-#> Summary of Balance for All Data:
-#>            Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
-#> distance          0.5774        0.1822          1.7941     0.9211    0.3774
-#> age              25.8162       28.0303         -0.3094     0.4400    0.0813
-#> educ             10.3459       10.2354          0.0550     0.4959    0.0347
-#> raceblack         0.8432        0.2028          1.7615          .    0.6404
-#> racehispan        0.0595        0.1422         -0.3498          .    0.0827
-#> racewhite         0.0973        0.6550         -1.8819          .    0.5577
-#> married           0.1892        0.5128         -0.8263          .    0.3236
-#> nodegree          0.7081        0.5967          0.2450          .    0.1114
-#> re74           2095.5737     5619.2365         -0.7211     0.5181    0.2248
-#> re75           1532.0553     2466.4844         -0.2903     0.9563    0.1342
-#>            eCDF Max
-#> distance     0.6444
-#> age          0.1577
-#> educ         0.1114
-#> raceblack    0.6404
-#> racehispan   0.0827
-#> racewhite    0.5577
-#> married      0.3236
-#> nodegree     0.1114
-#> re74         0.4470
-#> re75         0.2876
-#> 
-#> 
-#> Sample Sizes:
-#>           Control Treated
-#> All           429     185
-#> Matched       429     185
-#> Unmatched       0       0
-#> Discarded       0       0
+
 ```
 
 3.  Matching
@@ -2433,17 +3348,20 @@ summary(m.out0)
 
 ```r
 # 1:1 NN PS matching w/o replacement
-m.out1 <- matchit(treat ~ age + educ + race + married + 
-                   nodegree + re74 + re75, data = lalonde,
-                 method = "nearest", distance = "glm")
+m.out1 <- matchit(
+    treat ~ age + educ, #+ race + married + nodegree + re74 + re75,
+    data = lalonde,
+    method = "nearest",
+    distance = "glm"
+)
 m.out1
 #> A matchit object
-#>  - method: Variable ratio 1:1 nearest neighbor matching without replacement
+#>  - method: 1:1 nearest neighbor matching without replacement
 #>  - distance: Propensity score
 #>              - estimated with logistic regression
-#>  - number of obs.: 614 (original), 370 (matched)
+#>  - number of obs.: 445 (original), 370 (matched)
 #>  - target estimand: ATT
-#>  - covariates: age, educ, race, married, nodegree, re74, re75
+#>  - covariates: age, educ
 ```
 
 4.  Check balance
@@ -2456,48 +3374,40 @@ Sometimes you have to make trade-off between balance and sample size.
 summary(m.out1, un = FALSE)
 #> 
 #> Call:
-#> matchit(formula = treat ~ age + educ + race + married + nodegree + 
-#>     re74 + re75, data = lalonde, method = "nearest", distance = "glm")
+#> matchit(formula = treat ~ age + educ, data = lalonde, method = "nearest", 
+#>     distance = "glm")
 #> 
 #> Summary of Balance for Matched Data:
-#>            Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
-#> distance          0.5774        0.3629          0.9739     0.7566    0.1321
-#> age              25.8162       25.3027          0.0718     0.4568    0.0847
-#> educ             10.3459       10.6054         -0.1290     0.5721    0.0239
-#> raceblack         0.8432        0.4703          1.0259          .    0.3730
-#> racehispan        0.0595        0.2162         -0.6629          .    0.1568
-#> racewhite         0.0973        0.3135         -0.7296          .    0.2162
-#> married           0.1892        0.2108         -0.0552          .    0.0216
-#> nodegree          0.7081        0.6378          0.1546          .    0.0703
-#> re74           2095.5737     2342.1076         -0.0505     1.3289    0.0469
-#> re75           1532.0553     1614.7451         -0.0257     1.4956    0.0452
-#>            eCDF Max Std. Pair Dist.
-#> distance     0.4216          0.9740
-#> age          0.2541          1.3938
-#> educ         0.0757          1.2474
-#> raceblack    0.3730          1.0259
-#> racehispan   0.1568          1.0743
-#> racewhite    0.2162          0.8390
-#> married      0.0216          0.8281
-#> nodegree     0.0703          1.0106
-#> re74         0.2757          0.7965
-#> re75         0.2054          0.7381
+#>          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
+#> distance        0.4203        0.4179          0.0520     1.1691    0.0105
+#> age            25.8162       25.5081          0.0431     1.1518    0.0148
+#> educ           10.3459       10.2811          0.0323     1.5138    0.0224
+#>          eCDF Max Std. Pair Dist.
+#> distance   0.0595          0.0598
+#> age        0.0486          0.5628
+#> educ       0.0757          0.3602
 #> 
 #> Sample Sizes:
 #>           Control Treated
-#> All           429     185
+#> All           260     185
 #> Matched       185     185
-#> Unmatched     244       0
+#> Unmatched      75       0
 #> Discarded       0       0
-# examine visually 
+
+# examine visually
 plot(m.out1, type = "jitter", interactive = FALSE)
 ```
 
 <img src="20-quasi-experimental_files/figure-html/unnamed-chunk-47-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
-plot(m.out1, type = "qq", interactive = FALSE,
-     which.xs = c("age", "married", "re75"))
+
+plot(
+    m.out1,
+    type = "qq",
+    interactive = FALSE,
+    which.xs = c("age")#, "married", "re75")
+)
 ```
 
 <img src="20-quasi-experimental_files/figure-html/unnamed-chunk-47-2.png" width="90%" style="display: block; margin: auto;" />
@@ -2507,17 +3417,19 @@ Try Full Match (i.e., every treated matches with one control, and every control 
 
 ```r
 # Full matching on a probit PS
-m.out2 <- matchit(treat ~ age + educ + race + married + 
-                   nodegree + re74 + re75, data = lalonde,
-                 method = "full", distance = "glm", link = "probit")
+m.out2 <- matchit(treat ~ age + educ, # + race + married + nodegree + re74 + re75, 
+                  data = lalonde,
+                  method = "full", 
+                  distance = "glm", 
+                  link = "probit")
 m.out2
 #> A matchit object
 #>  - method: Optimal full matching
 #>  - distance: Propensity score
 #>              - estimated with probit regression
-#>  - number of obs.: 614 (original), 614 (matched)
+#>  - number of obs.: 445 (original), 445 (matched)
 #>  - target estimand: ATT
-#>  - covariates: age, educ, race, married, nodegree, re74, re75
+#>  - covariates: age, educ
 ```
 
 Checking balance again
@@ -2528,41 +3440,27 @@ Checking balance again
 summary(m.out2, un = FALSE)
 #> 
 #> Call:
-#> matchit(formula = treat ~ age + educ + race + married + nodegree + 
-#>     re74 + re75, data = lalonde, method = "full", distance = "glm", 
-#>     link = "probit")
+#> matchit(formula = treat ~ age + educ, data = lalonde, method = "full", 
+#>     distance = "glm", link = "probit")
 #> 
 #> Summary of Balance for Matched Data:
-#>            Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
-#> distance          0.5773        0.5765          0.0040     0.9943    0.0042
-#> age              25.8162       25.6722          0.0201     0.4614    0.0848
-#> educ             10.3459       10.3693         -0.0116     0.6173    0.0194
-#> raceblack         0.8432        0.8389          0.0119          .    0.0043
-#> racehispan        0.0595        0.0500          0.0402          .    0.0095
-#> racewhite         0.0973        0.1111         -0.0467          .    0.0138
-#> married           0.1892        0.1580          0.0797          .    0.0312
-#> nodegree          0.7081        0.6898          0.0404          .    0.0184
-#> re74           2095.5737     2103.5534         -0.0016     1.3513    0.0328
-#> re75           1532.0553     1552.4673         -0.0063     1.5678    0.0496
-#>            eCDF Max Std. Pair Dist.
-#> distance     0.0541          0.0198
-#> age          0.2846          1.2741
-#> educ         0.0597          1.2233
-#> raceblack    0.0043          0.0162
-#> racehispan   0.0095          0.4985
-#> racewhite    0.0138          0.3911
-#> married      0.0312          0.4866
-#> nodegree     0.0184          0.9593
-#> re74         0.2159          0.8533
-#> re75         0.2013          0.8279
+#>          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
+#> distance        0.4203        0.4198          0.0114     1.0326    0.0035
+#> age            25.8162       25.9285         -0.0157     0.9139    0.0125
+#> educ           10.3459       10.2973          0.0242     1.4232    0.0189
+#>          eCDF Max Std. Pair Dist.
+#> distance    0.027          0.0169
+#> age         0.037          0.5230
+#> educ        0.072          0.3603
 #> 
 #> Sample Sizes:
 #>               Control Treated
-#> All            429.       185
-#> Matched (ESS)   53.51     185
-#> Matched        429.       185
+#> All            260.       185
+#> Matched (ESS)  154.33     185
+#> Matched        260.       185
 #> Unmatched        0.         0
 #> Discarded        0.         0
+
 plot(summary(m.out2))
 ```
 
@@ -2573,80 +3471,93 @@ Exact Matching
 
 ```r
 # Full matching on a probit PS
-m.out3 <- matchit(treat ~ age + educ + race + married + 
-                   nodegree + re74 + re75, data = lalonde,
-                 method = "exact")
+m.out3 <-
+    matchit(
+        treat ~ age + educ, # + race + married + nodegree + re74 + re75,
+        data = lalonde,
+        method = "exact"
+    )
 m.out3
 #> A matchit object
 #>  - method: Exact matching
-#>  - number of obs.: 614 (original), 25 (matched)
+#>  - number of obs.: 445 (original), 319 (matched)
 #>  - target estimand: ATT
-#>  - covariates: age, educ, race, married, nodegree, re74, re75
+#>  - covariates: age, educ
 ```
 
 Subclassfication
 
 
 ```r
-m.out4 <- matchit(treat ~ age + educ + race + married +
-                   nodegree + re74 + re75, data = lalonde,
-                 method = "subclass")
+m.out4 <- matchit(
+    treat ~ age + educ, # + race + married + nodegree + re74 + re75,
+    data = lalonde,
+    method = "subclass"
+)
 m.out4
 #> A matchit object
 #>  - method: Subclassification (6 subclasses)
 #>  - distance: Propensity score
 #>              - estimated with logistic regression
-#>  - number of obs.: 614 (original), 614 (matched)
+#>  - number of obs.: 445 (original), 445 (matched)
 #>  - target estimand: ATT
-#>  - covariates: age, educ, race, married, nodegree, re74, re75
+#>  - covariates: age, educ
+
 # Or you can use in conjunction with "nearest"
-m.out4 <- matchit(treat ~ age + educ + race + married + 
-                   nodegree + re74 + re75, data = lalonde,
-                 method = "nearest", option = "subclass")
+m.out4 <- matchit(
+    treat ~ age + educ, # + race + married +  nodegree + re74 + re75,
+    data = lalonde,
+    method = "nearest",
+    option = "subclass"
+)
 m.out4
 #> A matchit object
-#>  - method: Variable ratio 1:1 nearest neighbor matching without replacement
+#>  - method: 1:1 nearest neighbor matching without replacement
 #>  - distance: Propensity score
 #>              - estimated with logistic regression
-#>  - number of obs.: 614 (original), 370 (matched)
+#>  - number of obs.: 445 (original), 370 (matched)
 #>  - target estimand: ATT
-#>  - covariates: age, educ, race, married, nodegree, re74, re75
+#>  - covariates: age, educ
 ```
 
 Optimal Matching
 
 
 ```r
-m.out5 <- matchit(treat ~ age + educ + race + married + 
-                   nodegree + re74 + re75, data = lalonde,
-                 method = "optimal",ratio = 2)
+m.out5 <- matchit(
+    treat ~ age + educ, # + race + married + nodegree + re74 + re75,
+    data = lalonde,
+    method = "optimal",
+    ratio = 2
+)
 m.out5
 #> A matchit object
-#>  - method: Variable ratio 2:1 optimal pair matching
+#>  - method: 2:1 optimal pair matching
 #>  - distance: Propensity score
 #>              - estimated with logistic regression
-#>  - number of obs.: 614 (original), 555 (matched)
+#>  - number of obs.: 445 (original), 445 (matched)
 #>  - target estimand: ATT
-#>  - covariates: age, educ, race, married, nodegree, re74, re75
+#>  - covariates: age, educ
 ```
 
 Genetic Matching
 
 
 ```r
-m.out6 <- matchit(treat ~ age + educ + race + married + 
-                   nodegree + re74 + re75, data = lalonde,
-                 method = "genetic")
+m.out6 <- matchit(
+    treat ~ age + educ, # + race + married + nodegree + re74 + re75,
+    data = lalonde,
+    method = "genetic"
+)
 m.out6
 #> A matchit object
 #>  - method: 1:1 genetic matching without replacement
 #>  - distance: Propensity score
 #>              - estimated with logistic regression
-#>  - number of obs.: 614 (original), 370 (matched)
+#>  - number of obs.: 445 (original), 370 (matched)
 #>  - target estimand: ATT
-#>  - covariates: age, educ, race, married, nodegree, re74, re75
+#>  - covariates: age, educ
 ```
-
 
 
 4.  Estimating the Treatment Effect
@@ -2657,20 +3568,20 @@ m.out6
 m.data1 <- match.data(m.out1)
 
 head(m.data1)
-#>      treat age educ   race married nodegree re74 re75       re78  distance
-#> NSW1     1  37   11  black       1        1    0    0  9930.0460 0.6387699
-#> NSW2     1  22    9 hispan       0        1    0    0  3595.8940 0.2246342
-#> NSW3     1  30   12  black       0        0    0    0 24909.4500 0.6782439
-#> NSW4     1  27   11  black       0        1    0    0  7506.1460 0.7763241
-#> NSW5     1  33    8  black       0        1    0    0   289.7899 0.7016387
-#> NSW6     1  22    9  black       0        1    0    0  4056.4940 0.6990699
-#>      weights subclass
-#> NSW1       1        1
-#> NSW2       1       98
-#> NSW3       1      109
-#> NSW4       1      120
-#> NSW5       1      131
-#> NSW6       1      142
+#>   age educ black hisp married nodegr re74 re75     re78 u74 u75 treat  distance
+#> 1  37   11     1    0       1      1    0    0  9930.05   1   1     1 0.4729814
+#> 2  22    9     0    1       0      1    0    0  3595.89   1   1     1 0.3803739
+#> 3  30   12     1    0       0      0    0    0 24909.50   1   1     1 0.4673429
+#> 4  27   11     1    0       0      1    0    0  7506.15   1   1     1 0.4366549
+#> 5  33    8     1    0       0      1    0    0   289.79   1   1     1 0.3997038
+#> 6  22    9     1    0       0      1    0    0  4056.49   1   1     1 0.3803739
+#>   weights subclass
+#> 1       1        1
+#> 2       1       98
+#> 3       1      109
+#> 4       1      120
+#> 5       1      131
+#> 6       1      142
 ```
 
 
@@ -2679,24 +3590,19 @@ library("lmtest") #coeftest
 library("sandwich") #vcovCL
 
 # imbalance matched dataset
-fit1 <- lm(re78 ~ treat + age + educ + race + married + nodegree + 
-             re74 + re75, data = m.data1, weights = weights)
+fit1 <- lm(re78 ~ treat + age + educ , #+ race + married + nodegree + re74 + re75, 
+           data = m.data1, 
+           weights = weights)
 
 coeftest(fit1, vcov. = vcovCL, cluster = ~subclass)
 #> 
 #> t test of coefficients:
 #> 
-#>                Estimate  Std. Error t value Pr(>|t|)   
-#> (Intercept) -2.5816e+03  3.3209e+03 -0.7774 0.437439   
-#> treat        1.3449e+03  7.3084e+02  1.8403 0.066552 . 
-#> age          7.8035e+00  4.4148e+01  0.1768 0.859797   
-#> educ         6.0220e+02  2.1007e+02  2.8667 0.004391 **
-#> racehispan   1.5335e+03  1.0248e+03  1.4964 0.135417   
-#> racewhite    4.6943e+02  8.9854e+02  0.5224 0.601687   
-#> married     -1.5825e+02  9.3354e+02 -0.1695 0.865482   
-#> nodegree     9.2328e+02  1.1496e+03  0.8032 0.422412   
-#> re74         2.6362e-02  1.6646e-01  0.1584 0.874257   
-#> re75         2.2068e-01  1.6771e-01  1.3158 0.189069   
+#>              Estimate Std. Error t value Pr(>|t|)   
+#> (Intercept) -1639.384   2022.796 -0.8105 0.418206   
+#> treat        2169.118    685.457  3.1645 0.001684 **
+#> age            45.251     40.980  1.1042 0.270225   
+#> educ          449.568    168.471  2.6685 0.007958 **
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -2708,24 +3614,18 @@ coeftest(fit1, vcov. = vcovCL, cluster = ~subclass)
 # balance matched dataset 
 m.data2 <- match.data(m.out2)
 
-fit2 <- lm(re78 ~ treat + age + educ + race + married + nodegree + 
-             re74 + re75, data = m.data2, weights = weights)
+fit2 <- lm(re78 ~ treat + age + educ , #+ race + married + nodegree + re74 + re75, 
+           data = m.data2, weights = weights)
 
 coeftest(fit2, vcov. = vcovCL, cluster = ~subclass)
 #> 
 #> t test of coefficients:
 #> 
-#>                Estimate  Std. Error t value  Pr(>|t|)    
-#> (Intercept)  2.8493e+03  3.1547e+03  0.9032 0.3667819    
-#> treat        1.9797e+03  7.5611e+02  2.6183 0.0090589 ** 
-#> age         -4.5799e+01  3.7917e+01 -1.2079 0.2275592    
-#> educ         2.3234e+02  2.0245e+02  1.1477 0.2515594    
-#> racehispan   9.6380e+02  1.4435e+03  0.6677 0.5045794    
-#> racewhite    1.7067e+03  8.2231e+02  2.0755 0.0383636 *  
-#> married      9.0378e+02  1.1858e+03  0.7622 0.4462384    
-#> nodegree    -1.2712e+03  1.2691e+03 -1.0017 0.3169017    
-#> re74        -1.1459e-02  1.4547e-01 -0.0788 0.9372369    
-#> re75         5.4080e-01  1.4212e-01  3.8053 0.0001561 ***
+#>              Estimate Std. Error t value  Pr(>|t|)    
+#> (Intercept) -1024.030   1689.180 -0.6062 0.5446743    
+#> treat        1688.974    763.312  2.2127 0.0274304 *  
+#> age            39.757     35.413  1.1227 0.2621903    
+#> educ          450.209    134.534  3.3464 0.0008887 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -2754,8 +3654,9 @@ data("lalonde")
 # choose var to match on
 match.on <- colnames(lalonde)[!(colnames(lalonde) %in% c('re78', 'treat'))]
 match.on
-#> [1] "age"       "education" "black"     "hispanic"  "married"   "nodegree" 
-#> [7] "re74"      "re75"
+#>  [1] "age"     "educ"    "black"   "hisp"    "married" "nodegr"  "re74"   
+#>  [8] "re75"    "u74"     "u75"
+
 # Mahanlanobis frontier (default)
 mahal.frontier <-
     makeFrontier(
@@ -2767,7 +3668,8 @@ mahal.frontier <-
 #> Calculating theoretical frontier...
 #> Calculating information for plotting the frontier...
 mahal.frontier
-#> An imbalance frontier with 997 points.
+#> An imbalance frontier with 174 points.
+
 # L1 frontier
 L1.frontier <-
     makeFrontier(
@@ -2781,7 +3683,8 @@ L1.frontier <-
 #> Calculating L1 binnings...
 #> Calculating L1 frontier... This may take a few minutes...
 L1.frontier
-#> An imbalance frontier with 976 points.
+#> An imbalance frontier with 210 points.
+
 # estimate effects along the frontier
 
 # Set base form
@@ -2798,7 +3701,8 @@ mahal.estimates <-
         prop.estimated = .1,
         means.as.cutpoints = TRUE
     )
-#>   |                                                                              |                                                                      |   0%  |                                                                              |=                                                                     |   1%  |                                                                              |=                                                                     |   2%  |                                                                              |==                                                                    |   3%  |                                                                              |===                                                                   |   4%  |                                                                              |====                                                                  |   5%  |                                                                              |====                                                                  |   6%  |                                                                              |=====                                                                 |   7%  |                                                                              |======                                                                |   8%  |                                                                              |======                                                                |   9%  |                                                                              |=======                                                               |  10%  |                                                                              |========                                                              |  11%  |                                                                              |========                                                              |  12%  |                                                                              |=========                                                             |  13%  |                                                                              |==========                                                            |  14%  |                                                                              |===========                                                           |  15%  |                                                                              |===========                                                           |  16%  |                                                                              |============                                                          |  17%  |                                                                              |=============                                                         |  18%  |                                                                              |=============                                                         |  19%  |                                                                              |==============                                                        |  20%  |                                                                              |===============                                                       |  21%  |                                                                              |================                                                      |  22%  |                                                                              |================                                                      |  23%  |                                                                              |=================                                                     |  24%  |                                                                              |==================                                                    |  25%  |                                                                              |==================                                                    |  26%  |                                                                              |===================                                                   |  27%  |                                                                              |====================                                                  |  28%  |                                                                              |=====================                                                 |  29%  |                                                                              |=====================                                                 |  30%  |                                                                              |======================                                                |  31%  |                                                                              |=======================                                               |  32%  |                                                                              |=======================                                               |  33%  |                                                                              |========================                                              |  34%  |                                                                              |=========================                                             |  35%  |                                                                              |=========================                                             |  36%  |                                                                              |==========================                                            |  37%  |                                                                              |===========================                                           |  38%  |                                                                              |============================                                          |  39%  |                                                                              |============================                                          |  40%  |                                                                              |=============================                                         |  41%  |                                                                              |==============================                                        |  42%  |                                                                              |==============================                                        |  43%  |                                                                              |===============================                                       |  44%  |                                                                              |================================                                      |  45%  |                                                                              |=================================                                     |  46%  |                                                                              |=================================                                     |  47%  |                                                                              |==================================                                    |  48%  |                                                                              |===================================                                   |  49%  |                                                                              |===================================                                   |  51%  |                                                                              |====================================                                  |  52%  |                                                                              |=====================================                                 |  53%  |                                                                              |=====================================                                 |  54%  |                                                                              |======================================                                |  55%  |                                                                              |=======================================                               |  56%  |                                                                              |========================================                              |  57%  |                                                                              |========================================                              |  58%  |                                                                              |=========================================                             |  59%  |                                                                              |==========================================                            |  60%  |                                                                              |==========================================                            |  61%  |                                                                              |===========================================                           |  62%  |                                                                              |============================================                          |  63%  |                                                                              |=============================================                         |  64%  |                                                                              |=============================================                         |  65%  |                                                                              |==============================================                        |  66%  |                                                                              |===============================================                       |  67%  |                                                                              |===============================================                       |  68%  |                                                                              |================================================                      |  69%  |                                                                              |=================================================                     |  70%  |                                                                              |=================================================                     |  71%  |                                                                              |==================================================                    |  72%  |                                                                              |===================================================                   |  73%  |                                                                              |====================================================                  |  74%  |                                                                              |====================================================                  |  75%  |                                                                              |=====================================================                 |  76%  |                                                                              |======================================================                |  77%  |                                                                              |======================================================                |  78%  |                                                                              |=======================================================               |  79%  |                                                                              |========================================================              |  80%  |                                                                              |=========================================================             |  81%  |                                                                              |=========================================================             |  82%  |                                                                              |==========================================================            |  83%  |                                                                              |===========================================================           |  84%  |                                                                              |===========================================================           |  85%  |                                                                              |============================================================          |  86%  |                                                                              |=============================================================         |  87%  |                                                                              |==============================================================        |  88%  |                                                                              |==============================================================        |  89%  |                                                                              |===============================================================       |  90%  |                                                                              |================================================================      |  91%  |                                                                              |================================================================      |  92%  |                                                                              |=================================================================     |  93%  |                                                                              |==================================================================    |  94%  |                                                                              |==================================================================    |  95%  |                                                                              |===================================================================   |  96%  |                                                                              |====================================================================  |  97%  |                                                                              |===================================================================== |  98%  |                                                                              |===================================================================== |  99%  |                                                                              |======================================================================| 100%
+#>   |                                                                              |                                                                      |   0%  |                                                                              |====                                                                  |   6%  |                                                                              |=========                                                             |  12%  |                                                                              |=============                                                         |  19%  |                                                                              |==================                                                    |  25%  |                                                                              |======================                                                |  31%  |                                                                              |==========================                                            |  38%  |                                                                              |===============================                                       |  44%  |                                                                              |===================================                                   |  50%  |                                                                              |=======================================                               |  56%  |                                                                              |============================================                          |  62%  |                                                                              |================================================                      |  69%  |                                                                              |====================================================                  |  75%  |                                                                              |=========================================================             |  81%  |                                                                              |=============================================================         |  88%  |                                                                              |==================================================================    |  94%  |                                                                              |======================================================================| 100%
+
 # Estimate effects for the L1 frontier
 L1.estimates <-
     estimateEffects(
@@ -2809,7 +3713,8 @@ L1.estimates <-
         prop.estimated = .1,
         means.as.cutpoints = TRUE
     )
-#>   |                                                                              |                                                                      |   0%  |                                                                              |=                                                                     |   1%  |                                                                              |=                                                                     |   2%  |                                                                              |==                                                                    |   3%  |                                                                              |===                                                                   |   4%  |                                                                              |====                                                                  |   5%  |                                                                              |====                                                                  |   6%  |                                                                              |=====                                                                 |   7%  |                                                                              |======                                                                |   8%  |                                                                              |======                                                                |   9%  |                                                                              |=======                                                               |  10%  |                                                                              |========                                                              |  11%  |                                                                              |=========                                                             |  12%  |                                                                              |=========                                                             |  13%  |                                                                              |==========                                                            |  14%  |                                                                              |===========                                                           |  15%  |                                                                              |============                                                          |  16%  |                                                                              |============                                                          |  18%  |                                                                              |=============                                                         |  19%  |                                                                              |==============                                                        |  20%  |                                                                              |==============                                                        |  21%  |                                                                              |===============                                                       |  22%  |                                                                              |================                                                      |  23%  |                                                                              |=================                                                     |  24%  |                                                                              |=================                                                     |  25%  |                                                                              |==================                                                    |  26%  |                                                                              |===================                                                   |  27%  |                                                                              |===================                                                   |  28%  |                                                                              |====================                                                  |  29%  |                                                                              |=====================                                                 |  30%  |                                                                              |======================                                                |  31%  |                                                                              |======================                                                |  32%  |                                                                              |=======================                                               |  33%  |                                                                              |========================                                              |  34%  |                                                                              |=========================                                             |  35%  |                                                                              |=========================                                             |  36%  |                                                                              |==========================                                            |  37%  |                                                                              |===========================                                           |  38%  |                                                                              |===========================                                           |  39%  |                                                                              |============================                                          |  40%  |                                                                              |=============================                                         |  41%  |                                                                              |==============================                                        |  42%  |                                                                              |==============================                                        |  43%  |                                                                              |===============================                                       |  44%  |                                                                              |================================                                      |  45%  |                                                                              |================================                                      |  46%  |                                                                              |=================================                                     |  47%  |                                                                              |==================================                                    |  48%  |                                                                              |===================================                                   |  49%  |                                                                              |===================================                                   |  51%  |                                                                              |====================================                                  |  52%  |                                                                              |=====================================                                 |  53%  |                                                                              |======================================                                |  54%  |                                                                              |======================================                                |  55%  |                                                                              |=======================================                               |  56%  |                                                                              |========================================                              |  57%  |                                                                              |========================================                              |  58%  |                                                                              |=========================================                             |  59%  |                                                                              |==========================================                            |  60%  |                                                                              |===========================================                           |  61%  |                                                                              |===========================================                           |  62%  |                                                                              |============================================                          |  63%  |                                                                              |=============================================                         |  64%  |                                                                              |=============================================                         |  65%  |                                                                              |==============================================                        |  66%  |                                                                              |===============================================                       |  67%  |                                                                              |================================================                      |  68%  |                                                                              |================================================                      |  69%  |                                                                              |=================================================                     |  70%  |                                                                              |==================================================                    |  71%  |                                                                              |===================================================                   |  72%  |                                                                              |===================================================                   |  73%  |                                                                              |====================================================                  |  74%  |                                                                              |=====================================================                 |  75%  |                                                                              |=====================================================                 |  76%  |                                                                              |======================================================                |  77%  |                                                                              |=======================================================               |  78%  |                                                                              |========================================================              |  79%  |                                                                              |========================================================              |  80%  |                                                                              |=========================================================             |  81%  |                                                                              |==========================================================            |  82%  |                                                                              |==========================================================            |  84%  |                                                                              |===========================================================           |  85%  |                                                                              |============================================================          |  86%  |                                                                              |=============================================================         |  87%  |                                                                              |=============================================================         |  88%  |                                                                              |==============================================================        |  89%  |                                                                              |===============================================================       |  90%  |                                                                              |================================================================      |  91%  |                                                                              |================================================================      |  92%  |                                                                              |=================================================================     |  93%  |                                                                              |==================================================================    |  94%  |                                                                              |==================================================================    |  95%  |                                                                              |===================================================================   |  96%  |                                                                              |====================================================================  |  97%  |                                                                              |===================================================================== |  98%  |                                                                              |===================================================================== |  99%  |                                                                              |======================================================================| 100%
+#>   |                                                                              |                                                                      |   0%  |                                                                              |====                                                                  |   5%  |                                                                              |=======                                                               |  10%  |                                                                              |==========                                                            |  15%  |                                                                              |==============                                                        |  20%  |                                                                              |==================                                                    |  25%  |                                                                              |=====================                                                 |  30%  |                                                                              |========================                                              |  35%  |                                                                              |============================                                          |  40%  |                                                                              |================================                                      |  45%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================                                |  55%  |                                                                              |==========================================                            |  60%  |                                                                              |==============================================                        |  65%  |                                                                              |=================================================                     |  70%  |                                                                              |====================================================                  |  75%  |                                                                              |========================================================              |  80%  |                                                                              |============================================================          |  85%  |                                                                              |===============================================================       |  90%  |                                                                              |==================================================================    |  95%  |                                                                              |======================================================================| 100%
+
 # Plot covariates means 
 # plotPrunedMeans()
 
@@ -2827,9 +3732,11 @@ L1.estimates <-
 plotMeans(L1.frontier)
 ```
 
-<img src="20-quasi-experimental_files/figure-html/unnamed-chunk-58-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="20-quasi-experimental_files/figure-html/unnamed-chunk-57-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
+
 # parallel plot
 parallelPlot(
     L1.frontier,
@@ -2840,9 +3747,10 @@ parallelPlot(
 )
 ```
 
-<img src="20-quasi-experimental_files/figure-html/unnamed-chunk-58-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="20-quasi-experimental_files/figure-html/unnamed-chunk-57-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 # export matched dataset
 matched.data <- generateDataset(L1.frontier, N = 400) # take 400 units
 ```
@@ -2891,7 +3799,7 @@ Steps by Gary King's [slides](https://www.youtube.com/watch?v=rBv39pK1iEs&ab_cha
 
 -   control units: not reused; pruned if unused
 
--   prune matches if distances > caliper
+-   prune matches if distances \> caliper
 
 In the best case scenario, you randomly prune, which increases imbalance
 
@@ -2980,6 +3888,7 @@ nct <- length(ct)
 # unadjusted, biased difference in means
 mean(Le$re78[tr]) - mean(Le$re78[ct])
 #> [1] 759.0479
+
 # pre-treatment covariates
 vars <-
     c(
@@ -3028,6 +3937,7 @@ imbalance(group=Le$treated, data=Le[vars]) # L1 = 0.902
 #> u74           0.0000
 #> u75           0.0000
 #> q1                NA
+
 # drop other variables that are not pre-treatmentt matching variables
 todrop <- c("treated", "re78")
 imbalance(group=Le$treated, data=Le, drop=todrop)
@@ -3075,6 +3985,7 @@ mat
 #> All       392 258
 #> Matched    95  84
 #> Unmatched 297 174
+
 # mat$w
 ```
 
@@ -3160,7 +4071,7 @@ genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
                    pop.size=16, max.generations=10, wait.generations=1)
 #> 
 #> 
-#> Mon Jan 03 21:35:52 2022
+#> Mon Feb 21 18:04:04 2022
 #> Domains:
 #>  0.000000e+00   <=  X1   <=    1.000000e+03 
 #>  0.000000e+00   <=  X2   <=    1.000000e+03 
@@ -3349,8 +4260,9 @@ genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
 #> Solution Found Generation 1
 #> Number of Generations Run 2
 #> 
-#> Mon Jan 03 21:35:53 2022
+#> Mon Feb 21 18:04:05 2022
 #> Total run time : 0 hours 0 minutes and 1 seconds
+
 #The outcome variable
 Y=re78/1000
 
@@ -3370,6 +4282,7 @@ summary(mout)
 #> Original number of treated obs...............  185 
 #> Matched number of observations...............  445 
 #> Matched number of observations  (unweighted).  597
+
 #                        
 #Let's determine if balance has actually been obtained on the variables of interest
 #                        
@@ -3610,6 +4523,8 @@ Identification strategy:
 -   within-time across-units variation
 
 ## Interrupted Time Series
+
+-   Regression Discontinuity in Time
 
 -   Control for
 

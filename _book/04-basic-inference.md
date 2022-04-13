@@ -382,13 +382,13 @@ t.test(data, conf.level=0.95)
 #> 	One Sample t-test
 #> 
 #> data:  data
-#> t = -1.7893, df = 99, p-value = 0.07663
+#> t = 0.17647, df = 99, p-value = 0.8603
 #> alternative hypothesis: true mean is not equal to 0
 #> 95 percent confidence interval:
-#>  -0.37872088  0.01956463
+#>  -0.1774126  0.2120499
 #> sample estimates:
 #>  mean of x 
-#> -0.1795781
+#> 0.01731865
 ```
 
 $$
@@ -403,13 +403,13 @@ t.test(data, mu=30,alternative="less")
 #> 	One Sample t-test
 #> 
 #> data:  data
-#> t = -300.7, df = 99, p-value < 2.2e-16
+#> t = -305.51, df = 99, p-value < 2.2e-16
 #> alternative hypothesis: true mean is less than 30
 #> 95 percent confidence interval:
-#>         -Inf -0.01293562
+#>       -Inf 0.1802696
 #> sample estimates:
 #>  mean of x 
-#> -0.1795781
+#> 0.01731865
 ```
 
 
@@ -562,6 +562,7 @@ wilcox.test(lecture.data) #does not use normal approximation (using the underlyi
 #> data:  lecture.data
 #> V = 52, p-value = 0.009766
 #> alternative hypothesis: true location is not equal to 0
+
 wilcox.test(lecture.data,exact=F) #uses normal approximation
 #> 
 #> 	Wilcoxon signed rank test with continuity correction
@@ -832,6 +833,7 @@ t.test(dVe,dVi,var.equal=T)
 #> sample estimates:
 #> mean of x mean of y 
 #>     0.154     0.226
+
 # small samples t-test  
 t.test(irisVe,irisVi,var.equal=F)
 #> 
@@ -1283,10 +1285,12 @@ library(samplesizeCMH)
 marginal_table=margin.table(Bron,c(1,2))
 odds.ratio(marginal_table)
 #> [1] 1.120318
+
 #  whether these odds vary by age. The conditional odds can be calculated using the original table.
 apply(Bron,3,odds.ratio)
 #>     15-24     25-39       40+ 
 #> 1.2449098 0.9966777 1.1192661
+
 # Mantel-Haenszel Test
 mantelhaen.test(Bron,correct=T)
 #> 

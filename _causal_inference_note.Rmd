@@ -21,9 +21,6 @@ $$
 where
 
 -   $ATET = E[Y_{1i} | T_i = 1] - E[Y_{0i} |T=1]$
-
-<!-- -->
-
 -   $\text{selection bias} = E[Y_{0i} |T=1]- E[Y_{0i} |T=0]$
 
 Potential outcomes with random assignment
@@ -91,3 +88,217 @@ Second-best solution: find "natural experiments", or as-good-as-random variation
 If you want to estimate the effect of X on Y, you have to have as-good-as-random variation in X
 
 If you don't have exogenous variation inn X, then the only way to determine the causal effect of X on anything is to add additional info (i..e, structure) to the problem, and hope you're right (with evidence)
+
+<br>
+
+Tests of RDD Identifying Assumption
+
+1.  Look for discontinuities in pre-determined or exogenous characteristics
+
+    -   if there is a discontinuity we could control for Xs, but
+
+    -   Statistical power (or lack thereof) can be an issue
+
+2.  Show RD Estimates with and without controls
+
+    1.  Good outcome: estimate is the same (i.e., treatment is orthogonal to controls, at least once you control for running variable)
+
+    2.  Bad Outcome: Estimate changes in a significant way (i.e., there is manipulation around the cutoff, as controls are systematically correlated with begin above the cutoff, conditional on the running variable
+
+        1.  Concern: If treatment and control vary on things we can observe, what about unobservables?
+
+3.  Look for "lumpiness" inn the density function
+
+Robustness Tests
+
+1.  What is the right functional form?
+
+    1.  Primary rule: Look at the data ad see how well you are fitting the data
+
+    2.  Show results from multiple functional forms (remember, when you make arbitrary decisions, show that they don't matter)
+
+2.  How are observations weighted around the cutoff (the weights should not matter, but if they do,then you probably don't have a big jump)
+
+    1.  Uniform kernel
+
+    2.  Triangle Kernel
+
+    3.  Epanechinikov kernel
+
+3.  What is the appropriate bandwidth?
+
+    1.  Tradeoff:
+
+        1.  Bigger bandwidths -\> more precise estimates and less susceptibility to noise
+
+        2.  Bigger bandwidths -\> obs far from cutoff can influence RD estimate
+
+    2.  Official solution: cross validation method [@imbens2008]
+
+    3.  Simple solution: show all data with large bandwidth, and then present estimates for a narrower bandwidths
+
+4.  Look for discontinuities in the outcome at fake cutoffs (if you are typically misspecified, or if inference is wrong, the magnitude o the estimate at the real cutoff won't stand out)
+
+RDD Issues:
+
+-   OLS vs. Local linear estimation (prefer)
+
+-   SE: When running variable is discrete, some argue you should cluster SE at the level of the "clusters" in the running variable [@lee2008]
+
+-   Interpretation: Fuzzy vs. Sharp RDD
+
+    -   Local Average Treatment Effect (LATE) [@angrist1996a]
+
+    -   Sharp RD: obtain average treatment effect for individuals near cutoff
+
+    -   Fuzzy RD: Obtain local average treatment effect, interpreted as the avergae effect on compliers near the cutoff
+
+|               |             | Assignment             |                         |
+|---------------|-------------|------------------------|-------------------------|
+|               |             | Control                | Treatment               |
+| Actual Status | Treated     | Always-Takers/Defiers  | Compliers/Always-Takers |
+|               | Not Treated | Compliers/ Never-Taker | Never-Takers/Defiers    |
+
+Other extensions
+
+-   varying cutoffs
+
+    -   estimate effect separately
+
+    -   Normalize r and pool
+
+-   Regression Kink designs
+
+    -   Slope change instead of discontinuity
+
+Final thoughts
+
+-   Upsides:
+
+    -   under identifying assumption, it offers a clean and transparent way of getting at a causal effect
+
+    -   Identifying assumption is testable
+
+-   Downsides:
+
+    -   Obtaining precise estimates can be difficult
+
+    -   Estimates are only relevant for population near the cutoff, and additionally in fuzzy RDD, are only relevant for compliers near the cutoff
+
+Donut RD is met with criticism because you don't know how big your donut hole should be
+
+$$
+Y_i = \beta_0 + \beta_1 I(above) + \beta_2 f(running) + \beta_3 f(running) + \beta_3 f(running) * I(above) \\+ \beta_4(run)^2 + \beta_5 I(above) * (run)^2
+$$
+
+<br>
+
+## 
+
+## Instrumental Variable
+
+1.  Instrument must be correlated with the endogenous variable
+
+Rule of thumb: the F-stat must be over 10, or you worry about the implication of having a weak instrument (if you are willing to accept bias that is no more than 10% of bias from OLS)
+
+If you are willing to accept bias up to 20% of OLS bias, threshold is F \> 6.5[@staiger1997]
+
+But the newest method is [@lee2021], you need F stat \> 104.7
+
+2.  Exclusion restriction
+    1.  Independence: instrument must be uncorrelated with the error term in the properly specified equation
+
+    2.  Exclusion restriction: The only effect the instrument can have on the outcome variable is through its effect on the endogenous variable
+
+$$
+Y_t = \beta_1 X_t
+$$
+
+You might want to do
+
+$$
+Y_t = \beta_2 X_{t-1}
+$$
+
+as the instrument.
+
+Lag instrument is always bad
+
+If you cannot have that treatment will never affect instrument, it's very likely that you will fail 2.1., and 2.2
+
+What must be true a suitable instrument?
+
+The instrumental variable (weakly) operate in the same direction on all individual units (monotonicity) (no defiers)
+
+-   i.e., while the instrument may have no effect on some people, all those who are affected are affected in the same direction (i.e., positively or negatively, but not both)
+
+If we know the probability of being defiers, you can subsample (i.e., pick only those who are compliers or defiers) and run the IV separately to keep monotonicity.
+
+For the crime example (crime = coef \* police), we propose median income as an instrument, we need
+
+-   Cov(median inome, police) \> 1
+
+-   cov (median income, $\epsilon$) =0
+
+-   median income cannot directly affect crime (only through police)
+
+-   monotonicity
+
+Levitt solution: use electoral cycles as an instrument fo police
+
+-   Intuition: incumbent politicians will boost policing during the election year.
+
+-   But spending can also boost other variables then to crime. (even though you can control for welfare, etc., but not unobservables).
+
+Note:
+
+-   If you do 2SLS by hand, you have to correct for SE
+
+-   Advantages:
+
+    -   Easy to interpret coefficient
+
+    -   under identifying assumptions, 2SLS estimates are consistent (i.e., as sample gets large, estimates converge to the "truth")
+
+-   Disadvantages:
+
+    -   2SLS estimator has larger SE than OLS (10x in Letvitt's case)
+
+        -   You are using part of the variation in the endogenous variable (hopefully an exogenous part), not all of it
+
+    -   Finite sample bias, and bias towards OLS
+
+Problems:
+
+1.  Potential for reverse causation
+2.  C causes A and B
+3.  C causes A and B (selection)
+
+To rule out 3, we can randomly assign to some group (could use group level later)
+
+1.  2SLS: specify the exact mechanisms
+2.  Reduced-form IV: you do not specify the exact mechanism of channel, but it changes your interpretation.
+
+Example:
+
+$$
+Log(Wages) \alpha + \beta Schooling + \lambda X + \mu
+$$
+
+Schooling is endogenous, and $Z$ as instrument
+
+$$
+Cov(W, Z) = E(WZ) - E(W) E(Z) \\
+= E[(\alpha + \beta School + \lambda X)Z] - E[\alpha + \beta School + \lambda X] E(Z)\\
+= \lambda E(Z) - \alpha E(Z) + \beta [ E(School Z) - E(School) E(Z) ] + \lambda [E(XZ) - E(X)E(Z)] \\
++ E(\mu Z) - E(\mu)E(Z) \\
+= \beta Cov(SZ) + \lambda Cov(X,Z) + Cov(\mu, Z)
+$$
+
+is $Cov(W,Z)$ the reduced form and $\beta$ is the true effect
+
+$$
+\beta= \frac{\text{reduced form}}{\text{1st stage}}
+$$
+
+and if your 1st stage is small, then you will inflate your $\beta$

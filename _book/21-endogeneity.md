@@ -304,6 +304,170 @@ Notes:
 
 -   There can also be measurement error in dummy variables and you can still use [Instrumental Variable] to fix it.
 
+### Solution to Measurement Errors
+
+#### Correlation
+
+$$
+\begin{aligned}
+P(\rho | data) &= \frac{P(data|\rho)P(\rho)}{P(data)} \\
+\text{Posterior Probability} &\propto \text{Likelihood} \times \text{Prior Probability}
+\end{aligned}
+$$
+where 
+
+ * $\rho$ is a correlation coefficient 
+ * $P(data|\rho)$ is the likelihood function evaluated at $\rho$
+ * $P(\rho)$ prior probability 
+ * $P(data)$ is the normalizing constant
+
+With sample correlation coefficient $r$:
+
+$$
+r = \frac{S_{xy}}{\sqrt{S_{xx}S_{yy}}}
+$$
+Then the posterior density approximation of $\rho$ is [@schisterman2003estimation,  pp.3]
+
+$$
+P(\rho| x, y)  \propto P(\rho) \frac{(1- \rho^2)^{(n-1)/2}}{(1- \rho \times r)^{n - (3/2)}}
+$$
+
+where 
+
+ * $\rho = \tanh \xi$ where $\xi \sim N(z, 1/n)$
+ * $r = \tanh z$
+
+Then the posterior density follow a normal distribution where 
+
+**Mean**
+
+$$
+\mu_{posterior} = \sigma^2_{posterior} \times (n_{prior} \times \tanh^{-1} r_{prior}+ n_{likelihood} \times \tanh^{-1} r_{likelihood})
+$$
+
+**variance**
+
+$$
+\sigma^2_{posterior} = \frac{1}{n_{prior} + n_{Likelihood}}
+$$
+
+To simplify the integration process, we choose prior that is 
+
+$$
+P(\rho) \propto (1 - \rho^2)^c
+$$
+where 
+
+ * $c$ is the weight the prior will have in estimation (i.e., $c = 0$ if no prior info, hence $P(\rho) \propto 1$)
+ 
+
+Example:
+
+Current study: $r_{xy} = 0.5, n = 200$  
+
+Previous study: $r_{xy} = 0.2765, (n=50205)$
+
+Combining two, we have the posterior following a normal distribution with the **variance** of 
+
+$$
+\sigma^2_{posterior} =  \frac{1}{n_{prior} + n_{Likelihood}} = \frac{1}{200 + 50205} = 0.0000198393
+$$
+
+**Mean**
+
+$$
+\begin{aligned}
+\mu_{Posterior} &= \sigma^2_{Posterior}  \times (n_{prior} \times \tanh^{-1} r_{prior}+ n_{likelihood} \times \tanh^{-1} r_{likelihood}) \\
+&= 0.0000198393 \times (50205 \times \tanh^{-1} 0.2765 + 200 \times \tanh^{-1}0.5 )\\
+&= 0.2849415
+\end{aligned}
+$$
+
+Hence, $Posterior \sim N(0.691, 0.0009)$, which means the correlation coefficient is $\tanh(0.691) = 0.598$ and 95\% CI is 
+
+$$
+\mu_{posterior} \pm 1.96 \times \sqrt{\sigma^2_{Posterior}} = 0.2849415 \pm 1.96 \times (0.0000198393)^{1/2} = (0.2762115, 0.2936714)
+$$
+
+Hence, the interval for posterior $\rho$ is (0.2693952, 0.2855105)
+
+
+
+If future authors suspect that they have 
+
+ 1. Large sampling variation 
+ 2. Measurement error in either measures in the correlation, which attenuates the relationship between the two variables
+
+Applying this Bayesian correction can give them a better estimate of the correlation between the two.
+
+To implement this calculation in R, see below
+
+
+```r
+n_new              <- 200
+r_new              <- 0.5
+alpha              <- 0.05
+
+update_correlation <- function(n_new, r_new, alpha) {
+    n_meta             <- 50205
+    r_meta             <- 0.2765
+    
+    # Variance
+    var_xi         <- 1 / (n_new + n_meta)
+    format(var_xi, scientific = FALSE)
+    
+    # mean
+    mu_xi          <- var_xi * (n_meta * atanh(r_meta) + n_new * (atanh(r_new)))
+    format(mu_xi, scientific  = FALSE)
+    
+    # confidence interval
+    upper_xi       <- mu_xi + qnorm(1 - alpha / 2) * sqrt(var_xi)
+    lower_xi       <- mu_xi - qnorm(1 - alpha / 2) * sqrt(var_xi)
+    
+    # rho
+    mean_rho       <- tanh(mu_xi)
+    upper_rho      <- tanh(upper_xi)
+    lower_rho      <- tanh(lower_xi)
+    
+    # return a list
+    return(
+        list(
+            "mu_xi" = mu_xi,
+            "var_xi" = var_xi,
+            "upper_xi" = upper_xi,
+            "lower_xi" = lower_xi,
+            "mean_rho" = mean_rho,
+            "upper_rho" = upper_rho,
+            "lower_rho" = lower_rho
+        )
+    )
+}
+
+
+
+
+# Old confidence interval
+r_new + qnorm(1 - alpha / 2) * sqrt(1/n_new)
+#> [1] 0.6385904
+r_new - qnorm(1 - alpha / 2) * sqrt(1/n_new)
+#> [1] 0.3614096
+
+testing = update_correlation(n_new = n_new, r_new = r_new, alpha = alpha)
+
+# Updated rho
+testing$mean_rho
+#> [1] 0.2774723
+
+# Updated confidence interval
+testing$upper_rho
+#> [1] 0.2855105
+testing$lower_rho
+#> [1] 0.2693952
+```
+
+
+
+
 <br>
 
 ## Simultaneity
@@ -1505,7 +1669,7 @@ legend(
 )
 ```
 
-<img src="21-endogeneity_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="21-endogeneity_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
 
 Hence in our observed model, we see
 

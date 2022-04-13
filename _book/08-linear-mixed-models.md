@@ -1341,6 +1341,7 @@ summary(sp_model)
 #> irrgtn2:vr2  0.170 -0.240 -0.120 -0.120 -0.707              
 #> irrgtn3:vr2  0.170 -0.120 -0.240 -0.120 -0.707  0.500       
 #> irrgtn4:vr2  0.170 -0.120 -0.120 -0.240 -0.707  0.500  0.500
+
 anova(sp_model,ddf = c("Kenward-Roger"))
 #> Type III Analysis of Variance Table with Kenward-Roger's method
 #>                    Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
@@ -1385,7 +1386,7 @@ exactRLRT(sp_model)
 #> 	(p-value based on 10000 simulated values)
 #> 
 #> data:  
-#> RLRT = 6.1118, p-value = 0.0084
+#> RLRT = 6.1118, p-value = 0.0103
 ```
 
 Since the p-value is significant, we reject $H_0$
@@ -1605,7 +1606,8 @@ library(lme4)
 mixed_model <- lmer(formula = bright ~ 1 + (1 | operator), # pipe (i..e, | ) denotes random-effect terms
                     data = pulp)
 summary(mixed_model)
-#> Linear mixed model fit by REML ['lmerMod']
+#> Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+#> lmerModLmerTest]
 #> Formula: bright ~ 1 + (1 | operator)
 #>    Data: pulp
 #> 
@@ -1622,8 +1624,10 @@ summary(mixed_model)
 #> Number of obs: 20, groups:  operator, 4
 #> 
 #> Fixed effects:
-#>             Estimate Std. Error t value
-#> (Intercept)  60.4000     0.1494   404.2
+#>             Estimate Std. Error      df t value Pr(>|t|)    
+#> (Intercept)  60.4000     0.1494  3.0000   404.2 3.34e-08 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 coef(mixed_model)
 #> $operator
 #>   (Intercept)
@@ -1686,7 +1690,7 @@ library(MCMCglmm)
 mixed_model_bayes <- MCMCglmm(bright~1,random=~operator, data=pulp, verbose=FALSE)
 summary(mixed_model_bayes)$solutions
 #>             post.mean l-95% CI u-95% CI eff.samp pMCMC
-#> (Intercept)  60.39618 60.11516 60.74509 1374.471 0.001
+#> (Intercept)  60.39377 60.18023 60.60114 791.6158 0.001
 ```
 
 this method offers the confidence interval slightly more positive than `lmer` and `lmerTest`
@@ -1744,6 +1748,7 @@ ggplot(penicillin, aes(
 <img src="08-linear-mixed-models_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 library(lmerTest) # for p-values
 mixed_model <- lmerTest::lmer(yield ~ treat + (1 | blend),
                               data = penicillin)
@@ -1779,6 +1784,7 @@ summary(mixed_model)
 #> treatB -0.555              
 #> treatC -0.555  0.500       
 #> treatD -0.555  0.500  0.500
+
 #The BLUPs for the each blend
 ranef(mixed_model)$blend
 #>        (Intercept)

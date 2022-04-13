@@ -1,0 +1,395 @@
+# Event Study
+
+The earliest paper that used event study was [@dolley1933characteristics]
+
+[@campbell1997] introduced this method, which based on the efficient markets theory by [@fama1970]
+
+Previous marketing studies:
+
+-   [@horsky1987]: name change
+
+-   [@chaney1991] new product announcements
+
+-   [@agrawal1995]: celebrity endorsement
+
+-   [@lane1995]: brand extensions
+
+-   [@johnson2000a]: joint venture
+
+-   [@geyskens2002]: Internet channel (for newspapers)
+
+Potentional avenues:
+
+-   Ad campaigns
+
+-   Market entry
+
+-   product failure/recalls
+
+-   Patents
+
+Pros:
+
+-   Better than accounting based measures (e.g., profits) because managers can manipulate profits [@benston1985validity]
+
+-   Easy to do
+
+Cons:
+
+-   
+
+**Assumptions**:
+
+1.  Efficient market theory
+2.  Shareholders are the most important group among stakeholders
+3.  The event sharply affects share price
+4.  Expected return is calculated appropriately
+
+**Steps**:
+
+1.  Event Identification: (e.g., dividends, M&A, stock buyback, laws or regulation, privatization vs. nationalization, celebrity endorsements, name changes, or brand extensions etc.)
+    1.  Estimation window: Normal return expected return ($T_0 \to T_1$) (sometimes include days before to capture leakages). Recommendation by [@moorman2004assessing, p. 13] is to use 250 days before the event (and 45-day between the estimation window and the event window).
+
+    2.  Event window: contain the event date ($T_1 \to T_2$) (have to argue for the event window and can't do it empirically)
+
+    3.  Post Event window: $T_2 \to T_3$
+2.  Normal vs. Abnormal returns
+
+$$
+\epsilon_{it}^* = R_{it} - E(R_{it}|X_t)
+$$
+
+where
+
+-   $\epsilon_{it}^*$ = abnormal return
+
+-   $R_{it}$ = realized (actual) return
+
+-   $E(R_i|X_t)$ normal expected return
+
+There are several model to calculate the expected return
+
+A. Statistical Models: assumes jointly multivariate normal and iid over time (need distributional assumptions for valid finite-sample estimation) rather robust (hence, recommended)
+
+1.  Constant Mean Return Model
+2.  Market Model
+3.  Adjusted Market Return Model
+4.  Factor Model
+
+B. Economic Models (strong assumption regarding investor behavior)
+
+1.  Capital Asset Pricing Model
+2.  Arbitrage pricing theory
+
+## Other Issues
+
+### Economic significance
+
+Total wealth gain (loss) from the event
+
+$$
+\Delta W_t = CAR_t \times MKTVAL_0
+$$
+
+where
+
+-   $\Delta W_t$ = gain (loss)
+
+-   $CAR_t$ = cumulative residuals to date $t$
+
+-   $MKTVAL_0$ market value of the firm before the event window
+
+### Statistical Power
+
+increases with
+
+-   more firms
+
+-   less days in the event window (avoiding potential contamination from confounds)
+
+### Biases
+
+-   Different closing time obscure estimation of the abnormal returns, check [@campbell1998econometrics]
+
+-   Upward bias in aggregating CAR + transaction prices (bid and ask)
+
+### Long-run event studies
+
+-   12 - 60 months event window: [@loughran1995] [@brav1997] [@desai1999]
+
+-   Exemplar: [@dutta2018]
+
+```{r}
+library(crseEventStudy)
+
+# example by the package's author
+data(demo_returns)
+SAR <-
+    sar(event = demo_returns$EON,
+        control = demo_returns$RWE,
+        logret = FALSE)
+mean(SAR)
+```
+
+## Aggregation
+
+### Over Time
+
+We calculate the cumulative abnormal (CAR) for the event windows
+
+$H_0$: Standardized cumulative abnormal return for stock $i$ is 0 (no effect of events on stock performance)
+
+$H_1$: SCAR is not 0 (there is an effect of events on stock performance)
+
+### Across Firms + Over Time
+
+Additional assumptions: Abnormal returns of different socks are uncorrelated (rather strong), but it's very valid if event windows for different stocks do not overlap. If the windows for different overlap, follow [@bernard1987] and [@schipper1983]
+
+$H_0$: The mean of the abnormal returns across all firms is 0 (no effect)
+
+$H_1$: The mean of the abnormal returns across all firms is different form 0 (there is an effect)
+
+Parametric (empirically either one works fine) (assume abnormal returns is normally distributed) :
+
+1.  Aggregate the CAR of all stocks (Use this if the true abnormal variance is greater for stocks with higher variance)
+2.  Aggregate the SCAR of all stocks (Use this if the true abnormal return is constant across all stocks)
+
+Non-parametric (no parametric assumptions):
+
+1.  Sign test:
+    -   Assume both the abnormal returns and CAR to be independent across stocks
+
+    -   Assume 50% with positive abnormal returns and 50% with negative abnormal return
+
+    -   The null will be that there is a positive abnormal return correlated with the event (if you want the alternative to be there is a negative relationship)
+
+    -   With skewed distribution (likely in daily stock data), the size test is not trustworthy. Hence, rank test might be better
+2.  Rank test
+    -   Null: there is no abnormal return during the event window
+
+## Heterogeneity in the event effect
+
+$$
+y = X \theta + \eta
+$$
+
+where
+
+-   $y$ = CAR
+
+-   $X$ = Characteristics that lead to heterogeneity in the event effect (i.e., abnormal returns) (e.g., firm or event specific)
+
+-   $\eta$ = error term
+
+Note:
+
+-   In cases with selection bias (firm characteristics and investor anticipation of the event: larger firms might enjoy great positive effect of an event, and investors endogenously anticipate this effect and overvalue the stock), we have to use the White's $t$-statistics to have the lower bounds of the true significance of the estimates.
+
+## Expected Return Calculation
+
+### Statistical Models
+
+#### Constant Mean Return Model
+
+The expected normal return is the mean of the real returns
+
+$$
+Ra_{it} = R_{it} - \bar{R}_i
+$$
+
+Assumption:
+
+-   returns revert to its mean (very questionable)
+
+#### Market Model
+
+$$
+R_{it} = \alpha_i + \beta R_{mt} + \epsilon_{it}
+$$
+
+where
+
+-   $R_{it}$ = stock return $i$ in period $t$
+
+-   $R_{mt}$ = market return
+
+-   $\epsilon_{it}$ = zero mean error term with its own variance $\sigma^2$
+
+Notes:
+
+-   People typically use S&P 500, CRSP value-weighed or equal-weighted index as the market portfolio.
+
+-   better fit of the market-model, the less variance in abnormal return, and the more easy to detect the event's effect
+
+-   recommend generalized method of moments to be robust against auto-correlation and heteroskedasticity
+
+### Economic Model
+
+The only difference difference between CAPM and APT is that APT has multiple factors (including factors beyond the focal company)
+
+#### Capital Asset Pricing Model (CAPM)
+
+$$
+E(R_i) = R_f + \beta_i (E(R_m) - R_f)
+$$
+
+where
+
+-   $E(R_i)$ = expected firm return
+
+-   $R_f$ = risk free rate
+
+-   $E(R_m - R_f)$ = market risk premium
+
+-   $\beta_i$ = firm sensitivity
+
+#### Arbitrage Pricing Theory (APT)
+
+$$
+R = R_f + \Lambda f + \epsilon
+$$
+
+where
+
+-   $\epsilon \sim N(0, \Psi)$
+
+-   $\Lambda$ = factor loadigns
+
+-   $f \sim N(\mu, \Omega)$ = general factor model
+
+    -   $\mu$ = expected risk premium vector
+
+    -   $\Omega$ = factor covariance matrix
+
+## Application
+
+Packages:
+
+-   `eventstudies`
+
+-   `erer`
+
+-   `EventStudy`
+
+-   `AbnormalReturns`
+
+Examples:
+
+Forestry:
+
+-   [@mei2008] M&A on financial performance (forest product)
+
+-   [@sun2011] litigation on firm values
+
+```{r}
+library(erer)
+
+# example by the package's author
+data(daEsa)
+hh <- evReturn(
+    y = daEsa,       # dataset
+    firm = "wpp",    # firm name
+    y.date = "date", # date in y 
+    index = "sp500", # index
+    est.win = 250,   # estimation window wedith in days
+    digits = 3, 
+    event.date = 19990505, # firm event dates 
+    event.win = 5          # one-side event window wdith in days (default = 3, where 3 before + 1 event date + 3 days after = 7 days)
+)
+hh; plot(hh)
+```
+
+Example by [Ana Julia Akaishi Padula, Pedro Albuquerque (posted on LAMFO)](<https://lamfo-unb.github.io/2017/08/17/Teste-de-Eventos-en/#>:\~:text=The%20abnormal%20return%20(Ra,regression%20in%20the%20estimation%20window.)
+
+```{r}
+#Step 1: List the assets and the date of the event
+eventsDates <-
+    data.frame(
+        "name" = c("BVSP", "GAFISA", "CYRELA"),
+        "when" = c("2008-03-13", "2008-03-13", "2008-03-13")
+    )
+#Step 2: Convert the text
+eventsDates$name <-
+    as.character(eventsDates$name) 
+eventsDates$when <-
+    as.character(eventsDates$when)
+
+#Step 3: Return Lists
+BVSP <-
+    read.csv("^BVSP.csv") 
+BVSP <-
+    BVSP[, c(1, 6)]
+colnames(BVSP) <-
+    c("Date", "BVSP") 
+
+GAFISA <-
+    read.csv("GFSA3.SA.csv") 
+
+GAFISA <-
+    GAFISA[, c(1, 6)] 
+colnames(GAFISA) <-
+    c("Date", "GAFISA") 
+
+CYRELA <-
+    read.csv("CYRE3.SA.csv") 
+CYRELA <-
+    CYRELA[, c(1, 6)] 
+colnames(CYRELA) <- c("Date", "CYRELA")
+
+
+#Step 4: Merge the data bases
+data <-
+    merge(BVSP, GAFISA, by = "Date", all = T) data <-
+    merge(dados, CYRELA, by = "Date", all = T)
+
+#Step 5: Calculate the return
+data$BVSP <-
+    c(NA, diff(log(as.numeric(data$BVSP)), lag = 1)) data$GAFISA <-
+    c(NA, diff(log(as.numeric(data$GAFISA)), lag = 1)) data$CYRELA <-
+    c(NA, diff(log(as.numeric(data$CYRELA)), lag = 1))
+#Step 6: Convert into zoo objects
+data.zoo <- read.zoo(data)
+#Step 7: Event Study Market Model
+es.mm <- eventstudy(
+    firm.returns = data.zoo,
+    #Returns base
+    event.list = eventsDatas,
+    #Event Dates
+    event.window = 5,
+    #Safety Window size
+    type = "marketModel",
+    #Abnormal return model
+    to.remap = TRUE,
+    #Recalculate the return using cumsum
+    remap = "cumsum",
+    #Accumulative return
+    inference = TRUE,
+    #Inference of the event
+    inference.strategy = "bootstrap",
+    #Boostrap to standert error
+    model.args = list(market.returns = dados$BVSP)
+) #Data base with the index IBOVESPA
+
+#Step 8: Plot event study
+plot(es.mm)
+
+#Step 9: Results
+summary(es.mm)
+```
+
+Example in `AbnormalReturns` package
+
+```{r}
+library(AbnormalReturns)
+abnormal = abnormalReturn(
+    prices_stock = "ADS.DE",
+    prices_market = "%5EGDAXI",
+    model = "marketmodel",
+    from = "2015-01-01",
+    to = "2015-12-31",
+    estimationWindowLength = 10,
+    c = 3,
+    attributeOfInterest = "Close",
+    showPlot = TRUE
+    )
+```
