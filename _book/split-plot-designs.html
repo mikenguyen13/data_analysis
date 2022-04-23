@@ -24,7 +24,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2022-04-12" />
+<meta name="date" content="2022-04-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -308,6 +308,13 @@ div.csl-indent {
 <li class="chapter" data-level="4.3.1" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#inferences-for-small-samples"><i class="fa fa-check"></i><b>4.3.1</b> Inferences for Small Samples</a></li>
 <li class="chapter" data-level="4.3.2" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#test-of-association"><i class="fa fa-check"></i><b>4.3.2</b> Test of Association</a></li>
 <li class="chapter" data-level="4.3.3" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#ordinal-association"><i class="fa fa-check"></i><b>4.3.3</b> Ordinal Association</a></li>
+</ul></li>
+<li class="chapter" data-level="4.4" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html"><i class="fa fa-check"></i><b>4.4</b> Divergence Metrics and Test for Comparing Distributions</a>
+<ul>
+<li class="chapter" data-level="4.4.1" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html#kullback-leibler-divergence"><i class="fa fa-check"></i><b>4.4.1</b> Kullback-Leibler Divergence</a></li>
+<li class="chapter" data-level="4.4.2" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html#jensen-shannon-divergence"><i class="fa fa-check"></i><b>4.4.2</b> Jensen-Shannon Divergence</a></li>
+<li class="chapter" data-level="4.4.3" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html#wasserstein-distance"><i class="fa fa-check"></i><b>4.4.3</b> Wasserstein Distance</a></li>
+<li class="chapter" data-level="4.4.4" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html#kolmogorov-smirnov-test-1"><i class="fa fa-check"></i><b>4.4.4</b> Kolmogorov-Smirnov Test</a></li>
 </ul></li>
 </ul></li>
 <li class="part"><span><b>II REGRESSION</b></span></li>
@@ -850,91 +857,91 @@ y_{ijk} = \mu + i_i + v_j + (iv)_{ij} + f_k + \epsilon_{ijk}
 <li><span class="math inline">\(\epsilon_{ijk}\)</span> = residual</li>
 <li>because variety-field combination is only observed once, we can’t have the random interaction effects between variety and field</li>
 </ul>
-<div class="sourceCode" id="cb164"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb164-1"><a href="split-plot-designs.html#cb164-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb164-2"><a href="split-plot-designs.html#cb164-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(irrigation, <span class="at">package =</span> <span class="st">&quot;faraway&quot;</span>)</span>
-<span id="cb164-3"><a href="split-plot-designs.html#cb164-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(irrigation)</span>
-<span id="cb164-4"><a href="split-plot-designs.html#cb164-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      field   irrigation variety     yield      </span></span>
-<span id="cb164-5"><a href="split-plot-designs.html#cb164-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  f1     :2   i1:4       v1:8    Min.   :34.80  </span></span>
-<span id="cb164-6"><a href="split-plot-designs.html#cb164-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  f2     :2   i2:4       v2:8    1st Qu.:37.60  </span></span>
-<span id="cb164-7"><a href="split-plot-designs.html#cb164-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  f3     :2   i3:4               Median :40.15  </span></span>
-<span id="cb164-8"><a href="split-plot-designs.html#cb164-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  f4     :2   i4:4               Mean   :40.23  </span></span>
-<span id="cb164-9"><a href="split-plot-designs.html#cb164-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  f5     :2                      3rd Qu.:42.73  </span></span>
-<span id="cb164-10"><a href="split-plot-designs.html#cb164-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  f6     :2                      Max.   :47.60  </span></span>
-<span id="cb164-11"><a href="split-plot-designs.html#cb164-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  (Other):4</span></span>
-<span id="cb164-12"><a href="split-plot-designs.html#cb164-12" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(irrigation, <span class="dv">4</span>)</span>
-<span id="cb164-13"><a href="split-plot-designs.html#cb164-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   field irrigation variety yield</span></span>
-<span id="cb164-14"><a href="split-plot-designs.html#cb164-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1    f1         i1      v1  35.4</span></span>
-<span id="cb164-15"><a href="split-plot-designs.html#cb164-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2    f1         i1      v2  37.9</span></span>
-<span id="cb164-16"><a href="split-plot-designs.html#cb164-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3    f2         i2      v1  36.7</span></span>
-<span id="cb164-17"><a href="split-plot-designs.html#cb164-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4    f2         i2      v2  38.2</span></span>
-<span id="cb164-18"><a href="split-plot-designs.html#cb164-18" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(irrigation,</span>
-<span id="cb164-19"><a href="split-plot-designs.html#cb164-19" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(</span>
-<span id="cb164-20"><a href="split-plot-designs.html#cb164-20" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> field,</span>
-<span id="cb164-21"><a href="split-plot-designs.html#cb164-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> yield,</span>
-<span id="cb164-22"><a href="split-plot-designs.html#cb164-22" aria-hidden="true" tabindex="-1"></a>         <span class="at">shape =</span> irrigation,</span>
-<span id="cb164-23"><a href="split-plot-designs.html#cb164-23" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> variety</span>
-<span id="cb164-24"><a href="split-plot-designs.html#cb164-24" aria-hidden="true" tabindex="-1"></a>       )) <span class="sc">+</span></span>
-<span id="cb164-25"><a href="split-plot-designs.html#cb164-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb169"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb169-1"><a href="split-plot-designs.html#cb169-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb169-2"><a href="split-plot-designs.html#cb169-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(irrigation, <span class="at">package =</span> <span class="st">&quot;faraway&quot;</span>)</span>
+<span id="cb169-3"><a href="split-plot-designs.html#cb169-3" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(irrigation)</span>
+<span id="cb169-4"><a href="split-plot-designs.html#cb169-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      field   irrigation variety     yield      </span></span>
+<span id="cb169-5"><a href="split-plot-designs.html#cb169-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  f1     :2   i1:4       v1:8    Min.   :34.80  </span></span>
+<span id="cb169-6"><a href="split-plot-designs.html#cb169-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  f2     :2   i2:4       v2:8    1st Qu.:37.60  </span></span>
+<span id="cb169-7"><a href="split-plot-designs.html#cb169-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  f3     :2   i3:4               Median :40.15  </span></span>
+<span id="cb169-8"><a href="split-plot-designs.html#cb169-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  f4     :2   i4:4               Mean   :40.23  </span></span>
+<span id="cb169-9"><a href="split-plot-designs.html#cb169-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  f5     :2                      3rd Qu.:42.73  </span></span>
+<span id="cb169-10"><a href="split-plot-designs.html#cb169-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  f6     :2                      Max.   :47.60  </span></span>
+<span id="cb169-11"><a href="split-plot-designs.html#cb169-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  (Other):4</span></span>
+<span id="cb169-12"><a href="split-plot-designs.html#cb169-12" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(irrigation, <span class="dv">4</span>)</span>
+<span id="cb169-13"><a href="split-plot-designs.html#cb169-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   field irrigation variety yield</span></span>
+<span id="cb169-14"><a href="split-plot-designs.html#cb169-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1    f1         i1      v1  35.4</span></span>
+<span id="cb169-15"><a href="split-plot-designs.html#cb169-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2    f1         i1      v2  37.9</span></span>
+<span id="cb169-16"><a href="split-plot-designs.html#cb169-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3    f2         i2      v1  36.7</span></span>
+<span id="cb169-17"><a href="split-plot-designs.html#cb169-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4    f2         i2      v2  38.2</span></span>
+<span id="cb169-18"><a href="split-plot-designs.html#cb169-18" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(irrigation,</span>
+<span id="cb169-19"><a href="split-plot-designs.html#cb169-19" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(</span>
+<span id="cb169-20"><a href="split-plot-designs.html#cb169-20" aria-hidden="true" tabindex="-1"></a>         <span class="at">x =</span> field,</span>
+<span id="cb169-21"><a href="split-plot-designs.html#cb169-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> yield,</span>
+<span id="cb169-22"><a href="split-plot-designs.html#cb169-22" aria-hidden="true" tabindex="-1"></a>         <span class="at">shape =</span> irrigation,</span>
+<span id="cb169-23"><a href="split-plot-designs.html#cb169-23" aria-hidden="true" tabindex="-1"></a>         <span class="at">color =</span> variety</span>
+<span id="cb169-24"><a href="split-plot-designs.html#cb169-24" aria-hidden="true" tabindex="-1"></a>       )) <span class="sc">+</span></span>
+<span id="cb169-25"><a href="split-plot-designs.html#cb169-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>)</span></code></pre></div>
 <p><img src="08-linear-mixed-models_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" /></p>
-<div class="sourceCode" id="cb165"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb165-1"><a href="split-plot-designs.html#cb165-1" aria-hidden="true" tabindex="-1"></a>sp_model <span class="ot">&lt;-</span> lmerTest<span class="sc">::</span><span class="fu">lmer</span>(yield <span class="sc">~</span> irrigation <span class="sc">*</span> variety <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> field), irrigation)</span>
-<span id="cb165-2"><a href="split-plot-designs.html#cb165-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(sp_model)</span>
-<span id="cb165-3"><a href="split-plot-designs.html#cb165-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [</span></span>
-<span id="cb165-4"><a href="split-plot-designs.html#cb165-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; lmerModLmerTest]</span></span>
-<span id="cb165-5"><a href="split-plot-designs.html#cb165-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Formula: yield ~ irrigation * variety + (1 | field)</span></span>
-<span id="cb165-6"><a href="split-plot-designs.html#cb165-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    Data: irrigation</span></span>
-<span id="cb165-7"><a href="split-plot-designs.html#cb165-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb165-8"><a href="split-plot-designs.html#cb165-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; REML criterion at convergence: 45.4</span></span>
-<span id="cb165-9"><a href="split-plot-designs.html#cb165-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb165-10"><a href="split-plot-designs.html#cb165-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Scaled residuals: </span></span>
-<span id="cb165-11"><a href="split-plot-designs.html#cb165-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
-<span id="cb165-12"><a href="split-plot-designs.html#cb165-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -0.7448 -0.5509  0.0000  0.5509  0.7448 </span></span>
-<span id="cb165-13"><a href="split-plot-designs.html#cb165-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb165-14"><a href="split-plot-designs.html#cb165-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Random effects:</span></span>
-<span id="cb165-15"><a href="split-plot-designs.html#cb165-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Groups   Name        Variance Std.Dev.</span></span>
-<span id="cb165-16"><a href="split-plot-designs.html#cb165-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  field    (Intercept) 16.200   4.025   </span></span>
-<span id="cb165-17"><a href="split-plot-designs.html#cb165-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Residual              2.107   1.452   </span></span>
-<span id="cb165-18"><a href="split-plot-designs.html#cb165-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Number of obs: 16, groups:  field, 8</span></span>
-<span id="cb165-19"><a href="split-plot-designs.html#cb165-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb165-20"><a href="split-plot-designs.html#cb165-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Fixed effects:</span></span>
-<span id="cb165-21"><a href="split-plot-designs.html#cb165-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                        Estimate Std. Error     df t value Pr(&gt;|t|)    </span></span>
-<span id="cb165-22"><a href="split-plot-designs.html#cb165-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Intercept)              38.500      3.026  4.487  12.725 0.000109 ***</span></span>
-<span id="cb165-23"><a href="split-plot-designs.html#cb165-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigationi2              1.200      4.279  4.487   0.280 0.791591    </span></span>
-<span id="cb165-24"><a href="split-plot-designs.html#cb165-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigationi3              0.700      4.279  4.487   0.164 0.877156    </span></span>
-<span id="cb165-25"><a href="split-plot-designs.html#cb165-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigationi4              3.500      4.279  4.487   0.818 0.454584    </span></span>
-<span id="cb165-26"><a href="split-plot-designs.html#cb165-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; varietyv2                 0.600      1.452  4.000   0.413 0.700582    </span></span>
-<span id="cb165-27"><a href="split-plot-designs.html#cb165-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigationi2:varietyv2   -0.400      2.053  4.000  -0.195 0.855020    </span></span>
-<span id="cb165-28"><a href="split-plot-designs.html#cb165-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigationi3:varietyv2   -0.200      2.053  4.000  -0.097 0.927082    </span></span>
-<span id="cb165-29"><a href="split-plot-designs.html#cb165-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigationi4:varietyv2    1.200      2.053  4.000   0.584 0.590265    </span></span>
-<span id="cb165-30"><a href="split-plot-designs.html#cb165-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb165-31"><a href="split-plot-designs.html#cb165-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb165-32"><a href="split-plot-designs.html#cb165-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb165-33"><a href="split-plot-designs.html#cb165-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Correlation of Fixed Effects:</span></span>
-<span id="cb165-34"><a href="split-plot-designs.html#cb165-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;             (Intr) irrgt2 irrgt3 irrgt4 vrtyv2 irr2:2 irr3:2</span></span>
-<span id="cb165-35"><a href="split-plot-designs.html#cb165-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigation2 -0.707                                          </span></span>
-<span id="cb165-36"><a href="split-plot-designs.html#cb165-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigation3 -0.707  0.500                                   </span></span>
-<span id="cb165-37"><a href="split-plot-designs.html#cb165-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigation4 -0.707  0.500  0.500                            </span></span>
-<span id="cb165-38"><a href="split-plot-designs.html#cb165-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; varietyv2   -0.240  0.170  0.170  0.170                     </span></span>
-<span id="cb165-39"><a href="split-plot-designs.html#cb165-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrgtn2:vr2  0.170 -0.240 -0.120 -0.120 -0.707              </span></span>
-<span id="cb165-40"><a href="split-plot-designs.html#cb165-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrgtn3:vr2  0.170 -0.120 -0.240 -0.120 -0.707  0.500       </span></span>
-<span id="cb165-41"><a href="split-plot-designs.html#cb165-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrgtn4:vr2  0.170 -0.120 -0.120 -0.240 -0.707  0.500  0.500</span></span>
-<span id="cb165-42"><a href="split-plot-designs.html#cb165-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb165-43"><a href="split-plot-designs.html#cb165-43" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(sp_model,<span class="at">ddf =</span> <span class="fu">c</span>(<span class="st">&quot;Kenward-Roger&quot;</span>))</span>
-<span id="cb165-44"><a href="split-plot-designs.html#cb165-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Type III Analysis of Variance Table with Kenward-Roger&#39;s method</span></span>
-<span id="cb165-45"><a href="split-plot-designs.html#cb165-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                    Sum Sq Mean Sq NumDF DenDF F value Pr(&gt;F)</span></span>
-<span id="cb165-46"><a href="split-plot-designs.html#cb165-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigation         2.4545 0.81818     3     4  0.3882 0.7685</span></span>
-<span id="cb165-47"><a href="split-plot-designs.html#cb165-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; variety            2.2500 2.25000     1     4  1.0676 0.3599</span></span>
-<span id="cb165-48"><a href="split-plot-designs.html#cb165-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigation:variety 1.5500 0.51667     3     4  0.2452 0.8612</span></span></code></pre></div>
+<div class="sourceCode" id="cb170"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb170-1"><a href="split-plot-designs.html#cb170-1" aria-hidden="true" tabindex="-1"></a>sp_model <span class="ot">&lt;-</span> lmerTest<span class="sc">::</span><span class="fu">lmer</span>(yield <span class="sc">~</span> irrigation <span class="sc">*</span> variety <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> field), irrigation)</span>
+<span id="cb170-2"><a href="split-plot-designs.html#cb170-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(sp_model)</span>
+<span id="cb170-3"><a href="split-plot-designs.html#cb170-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [</span></span>
+<span id="cb170-4"><a href="split-plot-designs.html#cb170-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; lmerModLmerTest]</span></span>
+<span id="cb170-5"><a href="split-plot-designs.html#cb170-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Formula: yield ~ irrigation * variety + (1 | field)</span></span>
+<span id="cb170-6"><a href="split-plot-designs.html#cb170-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;    Data: irrigation</span></span>
+<span id="cb170-7"><a href="split-plot-designs.html#cb170-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb170-8"><a href="split-plot-designs.html#cb170-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; REML criterion at convergence: 45.4</span></span>
+<span id="cb170-9"><a href="split-plot-designs.html#cb170-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb170-10"><a href="split-plot-designs.html#cb170-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Scaled residuals: </span></span>
+<span id="cb170-11"><a href="split-plot-designs.html#cb170-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span id="cb170-12"><a href="split-plot-designs.html#cb170-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -0.7448 -0.5509  0.0000  0.5509  0.7448 </span></span>
+<span id="cb170-13"><a href="split-plot-designs.html#cb170-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb170-14"><a href="split-plot-designs.html#cb170-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Random effects:</span></span>
+<span id="cb170-15"><a href="split-plot-designs.html#cb170-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Groups   Name        Variance Std.Dev.</span></span>
+<span id="cb170-16"><a href="split-plot-designs.html#cb170-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  field    (Intercept) 16.200   4.025   </span></span>
+<span id="cb170-17"><a href="split-plot-designs.html#cb170-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Residual              2.107   1.452   </span></span>
+<span id="cb170-18"><a href="split-plot-designs.html#cb170-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Number of obs: 16, groups:  field, 8</span></span>
+<span id="cb170-19"><a href="split-plot-designs.html#cb170-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb170-20"><a href="split-plot-designs.html#cb170-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Fixed effects:</span></span>
+<span id="cb170-21"><a href="split-plot-designs.html#cb170-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                        Estimate Std. Error     df t value Pr(&gt;|t|)    </span></span>
+<span id="cb170-22"><a href="split-plot-designs.html#cb170-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Intercept)              38.500      3.026  4.487  12.725 0.000109 ***</span></span>
+<span id="cb170-23"><a href="split-plot-designs.html#cb170-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigationi2              1.200      4.279  4.487   0.280 0.791591    </span></span>
+<span id="cb170-24"><a href="split-plot-designs.html#cb170-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigationi3              0.700      4.279  4.487   0.164 0.877156    </span></span>
+<span id="cb170-25"><a href="split-plot-designs.html#cb170-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigationi4              3.500      4.279  4.487   0.818 0.454584    </span></span>
+<span id="cb170-26"><a href="split-plot-designs.html#cb170-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; varietyv2                 0.600      1.452  4.000   0.413 0.700582    </span></span>
+<span id="cb170-27"><a href="split-plot-designs.html#cb170-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigationi2:varietyv2   -0.400      2.053  4.000  -0.195 0.855020    </span></span>
+<span id="cb170-28"><a href="split-plot-designs.html#cb170-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigationi3:varietyv2   -0.200      2.053  4.000  -0.097 0.927082    </span></span>
+<span id="cb170-29"><a href="split-plot-designs.html#cb170-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigationi4:varietyv2    1.200      2.053  4.000   0.584 0.590265    </span></span>
+<span id="cb170-30"><a href="split-plot-designs.html#cb170-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb170-31"><a href="split-plot-designs.html#cb170-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb170-32"><a href="split-plot-designs.html#cb170-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb170-33"><a href="split-plot-designs.html#cb170-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Correlation of Fixed Effects:</span></span>
+<span id="cb170-34"><a href="split-plot-designs.html#cb170-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;             (Intr) irrgt2 irrgt3 irrgt4 vrtyv2 irr2:2 irr3:2</span></span>
+<span id="cb170-35"><a href="split-plot-designs.html#cb170-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigation2 -0.707                                          </span></span>
+<span id="cb170-36"><a href="split-plot-designs.html#cb170-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigation3 -0.707  0.500                                   </span></span>
+<span id="cb170-37"><a href="split-plot-designs.html#cb170-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigation4 -0.707  0.500  0.500                            </span></span>
+<span id="cb170-38"><a href="split-plot-designs.html#cb170-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; varietyv2   -0.240  0.170  0.170  0.170                     </span></span>
+<span id="cb170-39"><a href="split-plot-designs.html#cb170-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrgtn2:vr2  0.170 -0.240 -0.120 -0.120 -0.707              </span></span>
+<span id="cb170-40"><a href="split-plot-designs.html#cb170-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrgtn3:vr2  0.170 -0.120 -0.240 -0.120 -0.707  0.500       </span></span>
+<span id="cb170-41"><a href="split-plot-designs.html#cb170-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrgtn4:vr2  0.170 -0.120 -0.120 -0.240 -0.707  0.500  0.500</span></span>
+<span id="cb170-42"><a href="split-plot-designs.html#cb170-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb170-43"><a href="split-plot-designs.html#cb170-43" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(sp_model,<span class="at">ddf =</span> <span class="fu">c</span>(<span class="st">&quot;Kenward-Roger&quot;</span>))</span>
+<span id="cb170-44"><a href="split-plot-designs.html#cb170-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Type III Analysis of Variance Table with Kenward-Roger&#39;s method</span></span>
+<span id="cb170-45"><a href="split-plot-designs.html#cb170-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                    Sum Sq Mean Sq NumDF DenDF F value Pr(&gt;F)</span></span>
+<span id="cb170-46"><a href="split-plot-designs.html#cb170-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigation         2.4545 0.81818     3     4  0.3882 0.7685</span></span>
+<span id="cb170-47"><a href="split-plot-designs.html#cb170-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; variety            2.2500 2.25000     1     4  1.0676 0.3599</span></span>
+<span id="cb170-48"><a href="split-plot-designs.html#cb170-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; irrigation:variety 1.5500 0.51667     3     4  0.2452 0.8612</span></span></code></pre></div>
 <p>Since p-value of the interaction term is insignificant, we consider fitting without it.</p>
-<div class="sourceCode" id="cb166"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb166-1"><a href="split-plot-designs.html#cb166-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lme4)</span>
-<span id="cb166-2"><a href="split-plot-designs.html#cb166-2" aria-hidden="true" tabindex="-1"></a>sp_model_additive <span class="ot">&lt;-</span> <span class="fu">lmer</span>(yield <span class="sc">~</span> irrigation <span class="sc">+</span> variety <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> field), irrigation)</span>
-<span id="cb166-3"><a href="split-plot-designs.html#cb166-3" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(sp_model_additive,sp_model,<span class="at">ddf =</span> <span class="st">&quot;Kenward-Roger&quot;</span>)</span>
-<span id="cb166-4"><a href="split-plot-designs.html#cb166-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Data: irrigation</span></span>
-<span id="cb166-5"><a href="split-plot-designs.html#cb166-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Models:</span></span>
-<span id="cb166-6"><a href="split-plot-designs.html#cb166-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; sp_model_additive: yield ~ irrigation + variety + (1 | field)</span></span>
-<span id="cb166-7"><a href="split-plot-designs.html#cb166-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; sp_model: yield ~ irrigation * variety + (1 | field)</span></span>
-<span id="cb166-8"><a href="split-plot-designs.html#cb166-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                   npar    AIC    BIC  logLik deviance  Chisq Df Pr(&gt;Chisq)</span></span>
-<span id="cb166-9"><a href="split-plot-designs.html#cb166-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; sp_model_additive    7 83.959 89.368 -34.980   69.959                     </span></span>
-<span id="cb166-10"><a href="split-plot-designs.html#cb166-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; sp_model            10 88.609 96.335 -34.305   68.609 1.3503  3     0.7172</span></span></code></pre></div>
+<div class="sourceCode" id="cb171"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb171-1"><a href="split-plot-designs.html#cb171-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lme4)</span>
+<span id="cb171-2"><a href="split-plot-designs.html#cb171-2" aria-hidden="true" tabindex="-1"></a>sp_model_additive <span class="ot">&lt;-</span> <span class="fu">lmer</span>(yield <span class="sc">~</span> irrigation <span class="sc">+</span> variety <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> field), irrigation)</span>
+<span id="cb171-3"><a href="split-plot-designs.html#cb171-3" aria-hidden="true" tabindex="-1"></a><span class="fu">anova</span>(sp_model_additive,sp_model,<span class="at">ddf =</span> <span class="st">&quot;Kenward-Roger&quot;</span>)</span>
+<span id="cb171-4"><a href="split-plot-designs.html#cb171-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Data: irrigation</span></span>
+<span id="cb171-5"><a href="split-plot-designs.html#cb171-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Models:</span></span>
+<span id="cb171-6"><a href="split-plot-designs.html#cb171-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; sp_model_additive: yield ~ irrigation + variety + (1 | field)</span></span>
+<span id="cb171-7"><a href="split-plot-designs.html#cb171-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; sp_model: yield ~ irrigation * variety + (1 | field)</span></span>
+<span id="cb171-8"><a href="split-plot-designs.html#cb171-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                   npar    AIC    BIC  logLik deviance  Chisq Df Pr(&gt;Chisq)</span></span>
+<span id="cb171-9"><a href="split-plot-designs.html#cb171-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; sp_model_additive    7 83.959 89.368 -34.980   69.959                     </span></span>
+<span id="cb171-10"><a href="split-plot-designs.html#cb171-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; sp_model            10 88.609 96.335 -34.305   68.609 1.3503  3     0.7172</span></span></code></pre></div>
 <p>Since p-value of Chi-square test is insignificant, we can’t reject the additive model is already sufficient. Looking at AIC and BIC, we can also see that we would prefer the additive model</p>
 <p><strong>Random Effect Examination</strong></p>
 <p><code>exactRLRT</code> test</p>
@@ -942,16 +949,16 @@ y_{ijk} = \mu + i_i + v_j + (iv)_{ij} + f_k + \epsilon_{ijk}
 <li><span class="math inline">\(H_0\)</span>: Var(random effect) (i.e., <span class="math inline">\(\sigma^2\)</span>)= 0</li>
 <li><span class="math inline">\(H_a\)</span>: Var(random effect) (i.e., <span class="math inline">\(\sigma^2\)</span>) &gt; 0</li>
 </ul>
-<div class="sourceCode" id="cb167"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb167-1"><a href="split-plot-designs.html#cb167-1" aria-hidden="true" tabindex="-1"></a>sp_model <span class="ot">&lt;-</span> lme4<span class="sc">::</span><span class="fu">lmer</span>(yield <span class="sc">~</span> irrigation <span class="sc">*</span> variety <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> field), irrigation)</span>
-<span id="cb167-2"><a href="split-plot-designs.html#cb167-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RLRsim)</span>
-<span id="cb167-3"><a href="split-plot-designs.html#cb167-3" aria-hidden="true" tabindex="-1"></a><span class="fu">exactRLRT</span>(sp_model)</span>
-<span id="cb167-4"><a href="split-plot-designs.html#cb167-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb167-5"><a href="split-plot-designs.html#cb167-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  simulated finite sample distribution of RLRT.</span></span>
-<span id="cb167-6"><a href="split-plot-designs.html#cb167-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  </span></span>
-<span id="cb167-7"><a href="split-plot-designs.html#cb167-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  (p-value based on 10000 simulated values)</span></span>
-<span id="cb167-8"><a href="split-plot-designs.html#cb167-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb167-9"><a href="split-plot-designs.html#cb167-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; data:  </span></span>
-<span id="cb167-10"><a href="split-plot-designs.html#cb167-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; RLRT = 6.1118, p-value = 0.0103</span></span></code></pre></div>
+<div class="sourceCode" id="cb172"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb172-1"><a href="split-plot-designs.html#cb172-1" aria-hidden="true" tabindex="-1"></a>sp_model <span class="ot">&lt;-</span> lme4<span class="sc">::</span><span class="fu">lmer</span>(yield <span class="sc">~</span> irrigation <span class="sc">*</span> variety <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> field), irrigation)</span>
+<span id="cb172-2"><a href="split-plot-designs.html#cb172-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RLRsim)</span>
+<span id="cb172-3"><a href="split-plot-designs.html#cb172-3" aria-hidden="true" tabindex="-1"></a><span class="fu">exactRLRT</span>(sp_model)</span>
+<span id="cb172-4"><a href="split-plot-designs.html#cb172-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb172-5"><a href="split-plot-designs.html#cb172-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  simulated finite sample distribution of RLRT.</span></span>
+<span id="cb172-6"><a href="split-plot-designs.html#cb172-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  </span></span>
+<span id="cb172-7"><a href="split-plot-designs.html#cb172-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  (p-value based on 10000 simulated values)</span></span>
+<span id="cb172-8"><a href="split-plot-designs.html#cb172-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb172-9"><a href="split-plot-designs.html#cb172-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; data:  </span></span>
+<span id="cb172-10"><a href="split-plot-designs.html#cb172-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; RLRT = 6.1118, p-value = 0.0103</span></span></code></pre></div>
 <p>Since the p-value is significant, we reject <span class="math inline">\(H_0\)</span></p>
 <p><br></p>
 </div>

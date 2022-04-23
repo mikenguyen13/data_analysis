@@ -1031,6 +1031,11 @@ $$
 Since we assume there are no ties (when $y_i = x_j$), we count 1/2 towards both $u_y$ and $u_x$. Even though the sampling distribution is not the same, but large sample approximation is still reasonable,  
 
 
+
+
+
+
+
 ## Categorical Data Analysis
 
 [Categorical Data Analysis] when we have categorical outcomes  
@@ -1360,6 +1365,226 @@ Then,
 $$
 Z = r_s \sqrt{n-1} \sim N(0,1)
 $$
+
+
+## Divergence Metrics and Test for Comparing Distributions
+
+Similarity among distributions using divergence statistics, which is different from
+
+-   Deviation statistics: difference between the realization of a variable and some value (e.g., mean). Statistics of the deviation distributions consist of standard deviation, average absolute deviation, median absolute deviation , maximum absolute deviation.
+
+-   Deviance statistics: goodness-of-fit statistic for statistical models (comparable to the sum of squares of residuals in OLS to cases that use ML estimation). Usually used in generalized linear models.
+
+Divergence statistics is a statistical distance (different from metrics)
+
+-   Divergences do not require symmetry
+
+-   Divergences generalize squared distance (instead of linear distance). Hence, fail the triangle inequity
+
+Can be used for
+
+-   Detecting data drift in machine learning
+
+-   Feature selections
+
+-   Variational Auto Encoder
+
+-   Detect similarity between policies (i.e., distributions) in reinforcement learning
+
+-   To see consistency in two measured variables of two constructs.
+
+Techniques
+
+-   [Kullback-Leibler Divergence]
+
+-   [Jensen-Shannon Divergence]
+
+-   [Kolmogorov-Smirnov Test]
+
+Packages
+
+-   `entropy`
+
+-   `philentropy`
+
+### Kullback-Leibler Divergence
+
+-   Also known as relative entropy
+
+-   Not a metric (does not satisfy the triangle inequality)
+
+-   Can be generalized to the multivariate case
+
+-   Measure the similarity between two discrete probability distributions
+
+    -   $P$ = true data distribution
+
+    -   $Q$ = predicted data distribution
+
+-   It quantifies info loss when moving from $P$ to $Q$ (i.e., information loss when $P$ is approximated by $Q$)
+
+Discrete
+
+$$
+D_{KL}(P ||Q) = \sum_i P_i \log(\frac{P_i}{Q_i})
+$$
+
+Continuous
+
+$$
+D_{KL}(P||Q) = \int P(x) \log(\frac{P(x)}{Q(x)}) dx
+$$
+
+where
+
+-   $K \in [0, \infty)$ from similar to diverge
+
+-    Non-symmetric between two distributions: $D_{KL}(P|Q) \neq D_{KL}(Q|P)$
+
+
+```r
+library(philentropy)
+# philentropy::dist.diversity(rbind(X = 1:10 / sum(1:10), Y = 1:20 / sum(1:20)),
+#                             p = 2,
+#                             unit = "log2")
+
+
+# continuous
+KL(rbind(X = 1:10/sum(1:10), Y = 1:10/sum(1:10)), unit = "log2")
+#> kullback-leibler 
+#>                0
+
+# discrete
+KL(rbind(X = 1:10, Y = 1:10), est.prob = "empirical")
+#> kullback-leibler 
+#>                0
+```
+
+### Jensen-Shannon Divergence
+
+-   Also known as info radius or total divergence to the average
+
+$$
+D_{JS} (P ||Q) = \frac{1}{2}( D_{KL}(P||M)+ D_{KL}(Q||M))
+$$
+
+where
+
+-   $M = \frac{1}{2} (P + Q)$ is a mixed distribution
+
+-   $D_{JS} \in [0,1]$ for $\log_2$ and $D_{JS} \in [0,\ln(2)]$ for $\log_e$
+
+
+```r
+library(philentropy)
+# continous
+JSD(rbind(X = 1:10, Y = 1:20), unit = "log2")
+#> jensen-shannon 
+#>       20.03201
+
+# discrete
+JSD(rbind(X = 1:10, Y = 1:20), est.prob = "empirical")
+#> jensen-shannon 
+#>     0.06004756
+```
+
+### Wasserstein Distance
+
+-   measure the distance between two empirical cdfs
+
+$$
+W = \int_{x \in R}|E(x) - F(X)|^p
+$$
+
+-   This is also a test statistics
+
+
+```r
+set.seed(1)
+transport::wasserstein1d(rnorm(100), rnorm(100, mean = 1))
+#> [1] 0.8533046
+
+set.seed(1)
+# Wasserstein metric 
+twosamples::wass_stat(rnorm(100), rnorm(100, mean = 1))
+#> [1] 0.8533046
+
+set.seed(1)
+# permutation-based tw sample test using Wasserstein metric
+twosamples::wass_test(rnorm(100), rnorm(100, mean = 1))
+#> Test Stat   P-Value 
+#> 0.8533046 0.0002500 
+#> attr(,"details")
+#>      n1      n2 n.boots 
+#>     100     100    2000
+```
+
+### Kolmogorov-Smirnov Test
+
+-   Can be used for continuous distribution
+
+$H_0$: Empirical distribution follows a specified distribution
+
+$H_1$: Empirical distribution does not follow a specified distribution
+
+-   Using non-parametric
+
+$$
+D= \max|P(X) - Q(X)|
+$$
+
+-   $D \in [0,1]$ from the densities are evenly distributed to not evenly distributed
+
+
+```r
+library(entropy)
+library(tidyverse)
+
+lst = list(sample_1 = c(1:20), sample_2 = c(2:30), sample_3 = c(3:30))
+
+expand.grid(1:length(lst), 1:length(lst)) %>%
+    rowwise() %>%
+    mutate(KL = KL.empirical(lst[[Var1]], lst[[Var2]]))
+#> # A tibble: 9 x 3
+#> # Rowwise: 
+#>    Var1  Var2     KL
+#>   <int> <int>  <dbl>
+#> 1     1     1 0     
+#> 2     2     1 0.150 
+#> 3     3     1 0.183 
+#> 4     1     2 0.704 
+#> 5     2     2 0     
+#> 6     3     2 0.0679
+#> 7     1     3 0.622 
+#> 8     2     3 0.0870
+#> 9     3     3 0
+```
+
+<br>
+
+To use the test for discrete date, use bootstrap version of the KS test (bypass the continuity requirement)
+
+
+```r
+Matching::ks.boot(Tr = c(0:10), Co = c(0:10))
+#> $ks.boot.pvalue
+#> [1] 1
+#> 
+#> $ks
+#> 
+#> 	Two-sample Kolmogorov-Smirnov test
+#> 
+#> data:  Tr and Co
+#> D = 0, p-value = 1
+#> alternative hypothesis: two-sided
+#> 
+#> 
+#> $nboots
+#> [1] 1000
+#> 
+#> attr(,"class")
+#> [1] "ks.boot"
+```
 
 
 

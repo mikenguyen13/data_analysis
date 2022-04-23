@@ -1515,8 +1515,211 @@ r_S \sim N(0,1/(n-1))
 <p><span class="math display">\[
 Z = r_s \sqrt{n-1} \sim N(0,1)
 \]</span></p>
-
 </div>
+</div>
+</div>
+<div id="divergence-metrics-and-test-for-comparing-distributions" class="section level2" number="4.4">
+<h2>
+<span class="header-section-number">4.4</span> Divergence Metrics and Test for Comparing Distributions<a class="anchor" aria-label="anchor" href="#divergence-metrics-and-test-for-comparing-distributions"><i class="fas fa-link"></i></a>
+</h2>
+<p>Similarity among distributions using divergence statistics, which is different from</p>
+<ul>
+<li><p>Deviation statistics: difference between the realization of a variable and some value (e.g., mean). Statistics of the deviation distributions consist of standard deviation, average absolute deviation, median absolute deviation , maximum absolute deviation.</p></li>
+<li><p>Deviance statistics: goodness-of-fit statistic for statistical models (comparable to the sum of squares of residuals in OLS to cases that use ML estimation). Usually used in generalized linear models.</p></li>
+</ul>
+<p>Divergence statistics is a statistical distance (different from metrics)</p>
+<ul>
+<li><p>Divergences do not require symmetry</p></li>
+<li><p>Divergences generalize squared distance (instead of linear distance). Hence, fail the triangle inequity</p></li>
+</ul>
+<p>Can be used for</p>
+<ul>
+<li><p>Detecting data drift in machine learning</p></li>
+<li><p>Feature selections</p></li>
+<li><p>Variational Auto Encoder</p></li>
+<li><p>Detect similarity between policies (i.e., distributions) in reinforcement learning</p></li>
+<li><p>To see consistency in two measured variables of two constructs.</p></li>
+</ul>
+<p>Techniques</p>
+<ul>
+<li><p><a href="basic-statistical-inference.html#kullback-leibler-divergence">Kullback-Leibler Divergence</a></p></li>
+<li><p><a href="basic-statistical-inference.html#jensen-shannon-divergence">Jensen-Shannon Divergence</a></p></li>
+<li><p><a href="basic-statistical-inference.html#kolmogorov-smirnov-test-1">Kolmogorov-Smirnov Test</a></p></li>
+</ul>
+<p>Packages</p>
+<ul>
+<li><p><code>entropy</code></p></li>
+<li><p><code>philentropy</code></p></li>
+</ul>
+<div id="kullback-leibler-divergence" class="section level3" number="4.4.1">
+<h3>
+<span class="header-section-number">4.4.1</span> Kullback-Leibler Divergence<a class="anchor" aria-label="anchor" href="#kullback-leibler-divergence"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li><p>Also known as relative entropy</p></li>
+<li><p>Not a metric (does not satisfy the triangle inequality)</p></li>
+<li><p>Can be generalized to the multivariate case</p></li>
+<li>
+<p>Measure the similarity between two discrete probability distributions</p>
+<ul>
+<li><p><span class="math inline">\(P\)</span> = true data distribution</p></li>
+<li><p><span class="math inline">\(Q\)</span> = predicted data distribution</p></li>
+</ul>
+</li>
+<li><p>It quantifies info loss when moving from <span class="math inline">\(P\)</span> to <span class="math inline">\(Q\)</span> (i.e., information loss when <span class="math inline">\(P\)</span> is approximated by <span class="math inline">\(Q\)</span>)</p></li>
+</ul>
+<p>Discrete</p>
+<p><span class="math display">\[
+D_{KL}(P ||Q) = \sum_i P_i \log(\frac{P_i}{Q_i})
+\]</span></p>
+<p>Continuous</p>
+<p><span class="math display">\[
+D_{KL}(P||Q) = \int P(x) \log(\frac{P(x)}{Q(x)}) dx
+\]</span></p>
+<p>where</p>
+<ul>
+<li><p><span class="math inline">\(K \in [0, \infty)\)</span> from similar to diverge</p></li>
+<li><p>Non-symmetric between two distributions: <span class="math inline">\(D_{KL}(P|Q) \neq D_{KL}(Q|P)\)</span></p></li>
+</ul>
+<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/drostlab/philentropy">philentropy</a></span><span class="op">)</span>
+<span class="co"># philentropy::dist.diversity(rbind(X = 1:10 / sum(1:10), Y = 1:20 / sum(1:20)),</span>
+<span class="co">#                             p = 2,</span>
+<span class="co">#                             unit = "log2")</span>
+
+
+<span class="co"># continuous</span>
+<span class="fu"><a href="https://rdrr.io/pkg/philentropy/man/KL.html">KL</a></span><span class="op">(</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/rbindlist.html">rbind</a></span><span class="op">(</span>X <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>, Y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">/</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span>, unit <span class="op">=</span> <span class="st">"log2"</span><span class="op">)</span>
+<span class="co">#&gt; kullback-leibler </span>
+<span class="co">#&gt;                0</span>
+
+<span class="co"># discrete</span>
+<span class="fu"><a href="https://rdrr.io/pkg/philentropy/man/KL.html">KL</a></span><span class="op">(</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/rbindlist.html">rbind</a></span><span class="op">(</span>X <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, Y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>, est.prob <span class="op">=</span> <span class="st">"empirical"</span><span class="op">)</span>
+<span class="co">#&gt; kullback-leibler </span>
+<span class="co">#&gt;                0</span></code></pre></div>
+</div>
+<div id="jensen-shannon-divergence" class="section level3" number="4.4.2">
+<h3>
+<span class="header-section-number">4.4.2</span> Jensen-Shannon Divergence<a class="anchor" aria-label="anchor" href="#jensen-shannon-divergence"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>Also known as info radius or total divergence to the average</li>
+</ul>
+<p><span class="math display">\[
+D_{JS} (P ||Q) = \frac{1}{2}( D_{KL}(P||M)+ D_{KL}(Q||M))
+\]</span></p>
+<p>where</p>
+<ul>
+<li><p><span class="math inline">\(M = \frac{1}{2} (P + Q)\)</span> is a mixed distribution</p></li>
+<li><p><span class="math inline">\(D_{JS} \in [0,1]\)</span> for <span class="math inline">\(\log_2\)</span> and <span class="math inline">\(D_{JS} \in [0,\ln(2)]\)</span> for <span class="math inline">\(\log_e\)</span></p></li>
+</ul>
+<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/drostlab/philentropy">philentropy</a></span><span class="op">)</span>
+<span class="co"># continous</span>
+<span class="fu"><a href="https://rdrr.io/pkg/philentropy/man/JSD.html">JSD</a></span><span class="op">(</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/rbindlist.html">rbind</a></span><span class="op">(</span>X <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, Y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">)</span>, unit <span class="op">=</span> <span class="st">"log2"</span><span class="op">)</span>
+<span class="co">#&gt; jensen-shannon </span>
+<span class="co">#&gt;       20.03201</span>
+
+<span class="co"># discrete</span>
+<span class="fu"><a href="https://rdrr.io/pkg/philentropy/man/JSD.html">JSD</a></span><span class="op">(</span><span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/rbindlist.html">rbind</a></span><span class="op">(</span>X <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, Y <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">)</span>, est.prob <span class="op">=</span> <span class="st">"empirical"</span><span class="op">)</span>
+<span class="co">#&gt; jensen-shannon </span>
+<span class="co">#&gt;     0.06004756</span></code></pre></div>
+</div>
+<div id="wasserstein-distance" class="section level3" number="4.4.3">
+<h3>
+<span class="header-section-number">4.4.3</span> Wasserstein Distance<a class="anchor" aria-label="anchor" href="#wasserstein-distance"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>measure the distance between two empirical cdfs</li>
+</ul>
+<p><span class="math display">\[
+W = \int_{x \in R}|E(x) - F(X)|^p
+\]</span></p>
+<ul>
+<li>This is also a test statistics</li>
+</ul>
+<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>
+<span class="fu">transport</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/transport/man/wasserstein1d.html">wasserstein1d</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">100</span>, mean <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt; [1] 0.8533046</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>
+<span class="co"># Wasserstein metric </span>
+<span class="fu">twosamples</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/twosamples/man/wass_test.html">wass_stat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">100</span>, mean <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt; [1] 0.8533046</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>
+<span class="co"># permutation-based tw sample test using Wasserstein metric</span>
+<span class="fu">twosamples</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/twosamples/man/wass_test.html">wass_test</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">100</span>, mean <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt; Test Stat   P-Value </span>
+<span class="co">#&gt; 0.8533046 0.0002500 </span>
+<span class="co">#&gt; attr(,"details")</span>
+<span class="co">#&gt;      n1      n2 n.boots </span>
+<span class="co">#&gt;     100     100    2000</span></code></pre></div>
+</div>
+<div id="kolmogorov-smirnov-test-1" class="section level3" number="4.4.4">
+<h3>
+<span class="header-section-number">4.4.4</span> Kolmogorov-Smirnov Test<a class="anchor" aria-label="anchor" href="#kolmogorov-smirnov-test-1"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>Can be used for continuous distribution</li>
+</ul>
+<p><span class="math inline">\(H_0\)</span>: Empirical distribution follows a specified distribution</p>
+<p><span class="math inline">\(H_1\)</span>: Empirical distribution does not follow a specified distribution</p>
+<ul>
+<li>Using non-parametric</li>
+</ul>
+<p><span class="math display">\[
+D= \max|P(X) - Q(X)|
+\]</span></p>
+<ul>
+<li>
+<span class="math inline">\(D \in [0,1]\)</span> from the densities are evenly distributed to not evenly distributed</li>
+</ul>
+<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://strimmerlab.github.io/software/entropy/">entropy</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span>
+
+<span class="va">lst</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/gsubfn/man/list.html">list</a></span><span class="op">(</span>sample_1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">)</span>, sample_2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span><span class="op">:</span><span class="fl">30</span><span class="op">)</span>, sample_3 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">3</span><span class="op">:</span><span class="fl">30</span><span class="op">)</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html">expand.grid</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">lst</span><span class="op">)</span>, <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">lst</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/rowwise.html">rowwise</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span>
+    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>KL <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/entropy/man/entropy.empirical.html">KL.empirical</a></span><span class="op">(</span><span class="va">lst</span><span class="op">[[</span><span class="va">Var1</span><span class="op">]</span><span class="op">]</span>, <span class="va">lst</span><span class="op">[[</span><span class="va">Var2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt; # A tibble: 9 x 3</span>
+<span class="co">#&gt; # Rowwise: </span>
+<span class="co">#&gt;    Var1  Var2     KL</span>
+<span class="co">#&gt;   &lt;int&gt; &lt;int&gt;  &lt;dbl&gt;</span>
+<span class="co">#&gt; 1     1     1 0     </span>
+<span class="co">#&gt; 2     2     1 0.150 </span>
+<span class="co">#&gt; 3     3     1 0.183 </span>
+<span class="co">#&gt; 4     1     2 0.704 </span>
+<span class="co">#&gt; 5     2     2 0     </span>
+<span class="co">#&gt; 6     3     2 0.0679</span>
+<span class="co">#&gt; 7     1     3 0.622 </span>
+<span class="co">#&gt; 8     2     3 0.0870</span>
+<span class="co">#&gt; 9     3     3 0</span></code></pre></div>
+<p><br></p>
+<p>To use the test for discrete date, use bootstrap version of the KS test (bypass the continuity requirement)</p>
+<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">Matching</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Matching/man/ks.boot.html">ks.boot</a></span><span class="op">(</span>Tr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>, Co <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt; $ks.boot.pvalue</span>
+<span class="co">#&gt; [1] 1</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $ks</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;  Two-sample Kolmogorov-Smirnov test</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; data:  Tr and Co</span>
+<span class="co">#&gt; D = 0, p-value = 1</span>
+<span class="co">#&gt; alternative hypothesis: two-sided</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; $nboots</span>
+<span class="co">#&gt; [1] 1000</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; attr(,"class")</span>
+<span class="co">#&gt; [1] "ks.boot"</span></code></pre></div>
+
 </div>
 </div>
 </div>
@@ -1558,6 +1761,14 @@ Z = r_s \sqrt{n-1} \sim N(0,1)
 <li><a class="nav-link" href="#ordinal-association"><span class="header-section-number">4.3.3</span> Ordinal Association</a></li>
 </ul>
 </li>
+<li>
+<a class="nav-link" href="#divergence-metrics-and-test-for-comparing-distributions"><span class="header-section-number">4.4</span> Divergence Metrics and Test for Comparing Distributions</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#kullback-leibler-divergence"><span class="header-section-number">4.4.1</span> Kullback-Leibler Divergence</a></li>
+<li><a class="nav-link" href="#jensen-shannon-divergence"><span class="header-section-number">4.4.2</span> Jensen-Shannon Divergence</a></li>
+<li><a class="nav-link" href="#wasserstein-distance"><span class="header-section-number">4.4.3</span> Wasserstein Distance</a></li>
+<li><a class="nav-link" href="#kolmogorov-smirnov-test-1"><span class="header-section-number">4.4.4</span> Kolmogorov-Smirnov Test</a></li>
+</ul>
+</li>
 </ul>
 
       <div class="book-extra">
@@ -1579,7 +1790,7 @@ Z = r_s \sqrt{n-1} \sim N(0,1)
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2022-04-12.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2022-04-23.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

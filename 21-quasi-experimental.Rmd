@@ -4,6 +4,56 @@ In most cases, it means that you have pre- and post-intervention data.
 
 A great resource for causal inference is [Causal Inference Mixtape](https://mixtape.scunning.com/introduction.html), especially if you like to read about the history of causal inference as a field as well (codes for Stata, R, and Python).
 
+**Identification strategy** for any quasi-experiment (No ways to prove or formal statistical test, but you can provide plausible argument and evidence)
+
+1.  Where the exogenous variation comes from (by argument and institutional knowledge)
+2.  Exclusion restriction: Evidence that the the variation in the exogenous shock and the outcome is due to no other factors
+    1.  Stable unit treatment value assumption (SUTVA) state that the treatment of unit $i$ affect only the outcome of unit $i$ (i.e., no spillover to the control groups)
+
+All quasi-experimental methods involve tradeoff between power and support for the exogeniety assumption (i.e., discard variation in the data that is not exogenous).
+
+Consequently, we don't usually look at $R^2$ [@ebbes2011]. And it can even be misleading to use $R^2$ as the basis for model comparison.
+
+Clustering should be based on the design, not the expectations of correlation [@abadie2017]. With **small sample**, you should use **wild bootstrap procedure** [@cameron2008] to correct for the downward bias (see [@canay2021]for additional assumptions).
+
+Typical robustness check: recommended by [@goldfarb2022]
+
+-   Different controls: show models with and without controls. Typically, we want to see the change in the estimate of interest. See [@altonji2005] for formal assessment based on Rosenbaum bounds (i.e., changes in the estimate and threat of Omitted variables on the estimate). For specific application in marketing, see [@manchanda2015] [@shin2012]
+
+-   Different funcitonal forms
+
+-   Different window of time (in longitudinal setting)
+
+-   Different dependent variables (those that are related) or different measure of the dependent variables
+
+-   Different control group size (matched vs. un-matched samples)
+
+-   Placebo tests: see each placebo test for each setting below.
+
+Showing the mechanism:
+
+-   Mediation analysis
+
+-   Moderation analysis
+
+    -   Estimate the model separate (for different group)
+
+    -   Assess whether the three-way interaction between the source of variation (e.g., under DID, cross-sectional and time series) and group membership is significant.
+
+External Validity:
+
+-   Assess how representative your sample is
+
+-   Explain limitation of the design
+
+-   Use quasi-experimental results in conjunction with structural models: see [@anderson2015] [@einav2010][@chung2014]
+
+Limitation
+
+1.  What is your idenifiying assumptions or idnetifaciton strategy
+2.  What are threats to the validity of your assumptions?
+3.  What you do to address it? And maybe how future research can do to address it.
+
 ## Regression Discontinuity
 
 -   A regression discontinuity occurs when there is a discrete change (jump) in treatment likelihood in the distribution of a continuous (or roughly continuous) variable (i.e., **running/forcing/assignment variable**).
@@ -296,11 +346,13 @@ Under RD, you shouldn't have to do any [Matching Methods]. Because just like whe
 
 #### Sensitivity to Bandwidth Choice
 
--   2 methods for bandwidth selection
+-   Methods for bandwidth selection
 
     -   Ad hoc or substantively driven
 
-    -   Data driven
+    -   Data driven: cross validation
+
+    -   Conservative approach: [@cattaneo2020]
 
 -   The objective is to minimize the mean squared error between the estimated and actual treatment effects.
 
@@ -405,9 +457,8 @@ Notes:
 
 -   Additional assumption: Time-varying confounders change smoothly across the cutoff date
 
-```{=html}
 <!-- -->
-```
+
 -   Typically used in policy implementation in the same date for all subjects, but can also be used for cases where implementation dates are different between subjects. In the second case, researchers typically use different RDiT specification for each time series.
 
 -   Sometimes the date of implementation is not randomly assigned by chosen strategically. Hence, RDiT should be thought of as the "discontinuity at a threshold" interpretation of RD (not as "local randomization"). [@hausman2018, p. 8]
@@ -760,6 +811,21 @@ For a detailed application, see [@thoemmes2016] where they use `rdd`, `rdrobust`
 Examples in marketing
 
 -   [@liaukonyte2015]: TV ad on online shopping
+-   [@akca2020]: aggregators for airlines business effect
+-   [@pattabhiramaiah2018]: paywall affects readership
+-   [@wang2018]: political ad source and message tone on vote shares and turnout using discontinuities in the level of political ads at the borders
+-   [@datta2018]: streaming service on total music consumption using timing of users adoption of a music streaming service
+-   [@janakiraman2018]: data breach announcement affect customer spending using timing of data breach and variation whether customer info was breached in that event
+-   [@lim2020]: nutritional labels on nutritional quality for other brands in a category using variation in timing of adoption of nutritional labels across categories
+-   [@guo2020]: payment disclosure laws effect on physician prescription behavior using Timing of the Massachusetts open payment law as the exogenous shock
+-   [@israeli2018]: digital monitoring and enforcement on violations using enforcement of min ad price policies
+-   [@ramani2019]: firms respond to foreign direct investment liberalization using India's reform in 1991.
+
+Show the mechanism via
+
+-   Mediation analysis: see [@habel2021]
+
+-   Moderation analysis: see [@goldfarb2011]
 
 ### Simple Dif-n-dif
 
@@ -934,7 +1000,13 @@ Alternatively,
 
 -   Other factors that affect the difference in trends between the two groups (i.e., treatment and control) will bias your estimation.
 
--   Correlated observatiosn within a group or time.
+-   Correlated observations within a group or time.
+
+-   Incidental parameters problems [@lancaster2000]: it's always better to use individual and time fixed effect.
+
+-   When examining the effects of variation in treatment timing, we have to be careful because negative weights (per group) can be negative if there is a heterogeneity in the treatment effects over time. Example: [@athey2022][@borusyak2021][@goodman-bacon2021]. In this case you should use new estimands proposed by [@callaway2021][@dechaisemartin2020], in the `did` package. If you expect lags and leads, see [@sun2021]
+
+-   [@gibbons2018] caution when we suspect the treatment effect and treatment variance vary across groups
 
 <br>
 
@@ -1263,10 +1335,14 @@ Example by [Anthony Schmidt](https://bookdown.org/aschmi11/causal_inf/difference
 Examples in marketing:
 
 -   [@tirunillai2017]: offline TV ad on Online Chatter
+-   [@guo2020]: payment disclosure laws effect on physician prescription behavior using Timing of the Massachusetts open payment law as the exogenous shock
+-   [@wang2019]: mobile hailing technology adoption on drivers' hourly earnings
 
 Synthetic control method (SCM) is a generalization of the [Difference-In-Differences] model
 
 SCMs can also be used under the Bayesian framework where we do not have to impose any restrictive priori [@kim2020]
+
+Different from [Matching Methods] because SCMs match on the pre-treatment outcomes in each period while [Matching Methods] match on the number of covariates.
 
 Advantages over [Difference-In-Differences]
 
@@ -1289,15 +1365,23 @@ Advantages:
 2.  Post-intervention outcomes are not used in synthetic. Hence, you can't retro-fit.
 3.  Observable similarity between control and treatment cases is maximized
 
+Disadvantages:
+
+1.  It's hard to argue for the weights you use to create the "synthetic control"
+
 <br>
 
-Assumptions
+**Assumptions**
 
 -   Donor subject is a good match for the synthetic control (i.e., gap between the dependent of the donor subject and that of the synthetic control should be 0 before treatment)
 
 -   Only the treated subject undergoes the treatment and not any of the subjects in the donor pool.
 
 -   No other changes to the subjects during the whole window.
+
+-   The counterfactual outcome of the treatment group can be imputed in a **linear combination** of control groups.
+
+**Identification**: The exclusion restriction is met conditional on the pre-treatment outcomes.
 
 `Synth` provides an algorithm that finds weighted combination of the comparison units where the weights are chosen such that it best resembles the values of predictors of the outcome variable for the affected units before the intervention.
 
@@ -1794,6 +1878,10 @@ $H_0:$ $\alpha_{22} = 0$ test for effect heterogeneity whether the effect of tea
 
 ## Matching Methods
 
+**Assumption**: Observables can identify the selection into the treatment and control groups
+
+**Identification**: The exclusion restriction can be met conditional on the observables
+
 **Motivation**
 
 Effect of college quality on earnings
@@ -1802,7 +1890,7 @@ They ultimately estimate the treatment effect on the treated of attending a top 
 
 Matching is [Selection on observables] and only works if you have good observables.
 
-Relative to $$OLS$$$$Ordinary Least Squares$$
+Relative to [OLS][Ordinary Least Squares]
 
 1.  Matching makes the **common support** explicit (and changes default from "ignore" to "enforce")
 2.  Relaxes linear function form. Thus, less parametric.
@@ -1813,7 +1901,7 @@ It also helps if you have high ratio of controls to treatments.
 
 For detail summary [@Stuart_2010]
 
-Matching is defined as "any method that aims to equate (or "balance") the distribution of covariates in the treated and control groups." $$@Stuart_2010, pp. 1$$
+Matching is defined as "any method that aims to equate (or "balance") the distribution of covariates in the treated and control groups." [@Stuart_2010, pp. 1]
 
 Equivalently, matching is a selection on observables identifications strategy.
 
@@ -1890,7 +1978,7 @@ Matching is used when
 
 -   Outcomes are available to improve precision of the estimate (i.e., reduce bias)
 
-Hence, we can only observe one outcome of a unit (either treated or control), we can think of this problem as missing data as well. Thus, this section is closely related to $$Imputation (Missing Data)$$
+Hence, we can only observe one outcome of a unit (either treated or control), we can think of this problem as missing data as well. Thus, this section is closely related to [Imputation (Missing Data)]
 
 In observational studies, we cannot randomize the treatment effect. Subjects select their own treatments, which could introduce selection bias (i.e., systematic differences between group differences that confound the effects of response variable differences).
 
