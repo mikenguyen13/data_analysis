@@ -1,7 +1,7 @@
 ---
 title: "A Guide on Data Analysis"
 author: "Mike Nguyen"
-date: "2022-04-12"
+date: "2022-04-23"
 header-includes:
   - \usepackage{titling}
   - \pretitle{\begin{center}

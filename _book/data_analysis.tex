@@ -137,7 +137,7 @@
 
 \title{A Guide on Data Analysis}
 \author{Mike Nguyen}
-\date{2022-04-12}
+\date{2022-04-23}
 
 \begin{document}
 \maketitle
@@ -3492,7 +3492,7 @@ Sometimes it's hard to tell whether your data follow the normal distribution by 
   \item
     \protect\hyperlink{anderson-darling-test}{Anderson-Darling Test}
   \item
-    \protect\hyperlink{kolmogorov-smirnov-test}{Kolmogorov-Smirnov Test}
+    \protect\hyperlink{kolmogorov-smirnov-test-1}{Kolmogorov-Smirnov Test}
   \item
     \protect\hyperlink{cramer-von-mises-test}{Cramer-von Mises Test}
   \item
@@ -6272,6 +6272,284 @@ Then,
 \[
 Z = r_s \sqrt{n-1} \sim N(0,1)
 \]
+
+\hypertarget{divergence-metrics-and-test-for-comparing-distributions}{%
+\section{Divergence Metrics and Test for Comparing Distributions}\label{divergence-metrics-and-test-for-comparing-distributions}}
+
+Similarity among distributions using divergence statistics, which is different from
+
+\begin{itemize}
+\item
+  Deviation statistics: difference between the realization of a variable and some value (e.g., mean). Statistics of the deviation distributions consist of standard deviation, average absolute deviation, median absolute deviation , maximum absolute deviation.
+\item
+  Deviance statistics: goodness-of-fit statistic for statistical models (comparable to the sum of squares of residuals in OLS to cases that use ML estimation). Usually used in generalized linear models.
+\end{itemize}
+
+Divergence statistics is a statistical distance (different from metrics)
+
+\begin{itemize}
+\item
+  Divergences do not require symmetry
+\item
+  Divergences generalize squared distance (instead of linear distance). Hence, fail the triangle inequity
+\end{itemize}
+
+Can be used for
+
+\begin{itemize}
+\item
+  Detecting data drift in machine learning
+\item
+  Feature selections
+\item
+  Variational Auto Encoder
+\item
+  Detect similarity between policies (i.e., distributions) in reinforcement learning
+\item
+  To see consistency in two measured variables of two constructs.
+\end{itemize}
+
+Techniques
+
+\begin{itemize}
+\item
+  \protect\hyperlink{kullback-leibler-divergence}{Kullback-Leibler Divergence}
+\item
+  \protect\hyperlink{jensen-shannon-divergence}{Jensen-Shannon Divergence}
+\item
+  \protect\hyperlink{kolmogorov-smirnov-test-1}{Kolmogorov-Smirnov Test}
+\end{itemize}
+
+Packages
+
+\begin{itemize}
+\item
+  \texttt{entropy}
+\item
+  \texttt{philentropy}
+\end{itemize}
+
+\hypertarget{kullback-leibler-divergence}{%
+\subsection{Kullback-Leibler Divergence}\label{kullback-leibler-divergence}}
+
+\begin{itemize}
+\item
+  Also known as relative entropy
+\item
+  Not a metric (does not satisfy the triangle inequality)
+\item
+  Can be generalized to the multivariate case
+\item
+  Measure the similarity between two discrete probability distributions
+
+  \begin{itemize}
+  \item
+    \(P\) = true data distribution
+  \item
+    \(Q\) = predicted data distribution
+  \end{itemize}
+\item
+  It quantifies info loss when moving from \(P\) to \(Q\) (i.e., information loss when \(P\) is approximated by \(Q\))
+\end{itemize}
+
+Discrete
+
+\[
+D_{KL}(P ||Q) = \sum_i P_i \log(\frac{P_i}{Q_i})
+\]
+
+Continuous
+
+\[
+D_{KL}(P||Q) = \int P(x) \log(\frac{P(x)}{Q(x)}) dx
+\]
+
+where
+
+\begin{itemize}
+\item
+  \(K \in [0, \infty)\) from similar to diverge
+\item
+  Non-symmetric between two distributions: \(D_{KL}(P|Q) \neq D_{KL}(Q|P)\)
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(philentropy)}
+\CommentTok{\# philentropy::dist.diversity(rbind(X = 1:10 / sum(1:10), Y = 1:20 / sum(1:20)),}
+\CommentTok{\#                             p = 2,}
+\CommentTok{\#                             unit = "log2")}
+
+
+\CommentTok{\# continuous}
+\FunctionTok{KL}\NormalTok{(}\FunctionTok{rbind}\NormalTok{(}\AttributeTok{X =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{10}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{10}\NormalTok{), }\AttributeTok{Y =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{10}\SpecialCharTok{/}\FunctionTok{sum}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{10}\NormalTok{)), }\AttributeTok{unit =} \StringTok{"log2"}\NormalTok{)}
+\CommentTok{\#\textgreater{} kullback{-}leibler }
+\CommentTok{\#\textgreater{}                0}
+
+\CommentTok{\# discrete}
+\FunctionTok{KL}\NormalTok{(}\FunctionTok{rbind}\NormalTok{(}\AttributeTok{X =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{10}\NormalTok{, }\AttributeTok{Y =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{10}\NormalTok{), }\AttributeTok{est.prob =} \StringTok{"empirical"}\NormalTok{)}
+\CommentTok{\#\textgreater{} kullback{-}leibler }
+\CommentTok{\#\textgreater{}                0}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{jensen-shannon-divergence}{%
+\subsection{Jensen-Shannon Divergence}\label{jensen-shannon-divergence}}
+
+\begin{itemize}
+\tightlist
+\item
+  Also known as info radius or total divergence to the average
+\end{itemize}
+
+\[
+D_{JS} (P ||Q) = \frac{1}{2}( D_{KL}(P||M)+ D_{KL}(Q||M))
+\]
+
+where
+
+\begin{itemize}
+\item
+  \(M = \frac{1}{2} (P + Q)\) is a mixed distribution
+\item
+  \(D_{JS} \in [0,1]\) for \(\log_2\) and \(D_{JS} \in [0,\ln(2)]\) for \(\log_e\)
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(philentropy)}
+\CommentTok{\# continous}
+\FunctionTok{JSD}\NormalTok{(}\FunctionTok{rbind}\NormalTok{(}\AttributeTok{X =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{10}\NormalTok{, }\AttributeTok{Y =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{20}\NormalTok{), }\AttributeTok{unit =} \StringTok{"log2"}\NormalTok{)}
+\CommentTok{\#\textgreater{} jensen{-}shannon }
+\CommentTok{\#\textgreater{}       20.03201}
+
+\CommentTok{\# discrete}
+\FunctionTok{JSD}\NormalTok{(}\FunctionTok{rbind}\NormalTok{(}\AttributeTok{X =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{10}\NormalTok{, }\AttributeTok{Y =} \DecValTok{1}\SpecialCharTok{:}\DecValTok{20}\NormalTok{), }\AttributeTok{est.prob =} \StringTok{"empirical"}\NormalTok{)}
+\CommentTok{\#\textgreater{} jensen{-}shannon }
+\CommentTok{\#\textgreater{}     0.06004756}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{wasserstein-distance}{%
+\subsection{Wasserstein Distance}\label{wasserstein-distance}}
+
+\begin{itemize}
+\tightlist
+\item
+  measure the distance between two empirical cdfs
+\end{itemize}
+
+\[
+W = \int_{x \in R}|E(x) - F(X)|^p
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  This is also a test statistics
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\NormalTok{transport}\SpecialCharTok{::}\FunctionTok{wasserstein1d}\NormalTok{(}\FunctionTok{rnorm}\NormalTok{(}\DecValTok{100}\NormalTok{), }\FunctionTok{rnorm}\NormalTok{(}\DecValTok{100}\NormalTok{, }\AttributeTok{mean =} \DecValTok{1}\NormalTok{))}
+\CommentTok{\#\textgreater{} [1] 0.8533046}
+
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\CommentTok{\# Wasserstein metric }
+\NormalTok{twosamples}\SpecialCharTok{::}\FunctionTok{wass\_stat}\NormalTok{(}\FunctionTok{rnorm}\NormalTok{(}\DecValTok{100}\NormalTok{), }\FunctionTok{rnorm}\NormalTok{(}\DecValTok{100}\NormalTok{, }\AttributeTok{mean =} \DecValTok{1}\NormalTok{))}
+\CommentTok{\#\textgreater{} [1] 0.8533046}
+
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\CommentTok{\# permutation{-}based tw sample test using Wasserstein metric}
+\NormalTok{twosamples}\SpecialCharTok{::}\FunctionTok{wass\_test}\NormalTok{(}\FunctionTok{rnorm}\NormalTok{(}\DecValTok{100}\NormalTok{), }\FunctionTok{rnorm}\NormalTok{(}\DecValTok{100}\NormalTok{, }\AttributeTok{mean =} \DecValTok{1}\NormalTok{))}
+\CommentTok{\#\textgreater{} Test Stat   P{-}Value }
+\CommentTok{\#\textgreater{} 0.8533046 0.0002500 }
+\CommentTok{\#\textgreater{} attr(,"details")}
+\CommentTok{\#\textgreater{}      n1      n2 n.boots }
+\CommentTok{\#\textgreater{}     100     100    2000}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{kolmogorov-smirnov-test-1}{%
+\subsection{Kolmogorov-Smirnov Test}\label{kolmogorov-smirnov-test-1}}
+
+\begin{itemize}
+\tightlist
+\item
+  Can be used for continuous distribution
+\end{itemize}
+
+\(H_0\): Empirical distribution follows a specified distribution
+
+\(H_1\): Empirical distribution does not follow a specified distribution
+
+\begin{itemize}
+\tightlist
+\item
+  Using non-parametric
+\end{itemize}
+
+\[
+D= \max|P(X) - Q(X)|
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  \(D \in [0,1]\) from the densities are evenly distributed to not evenly distributed
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(entropy)}
+\FunctionTok{library}\NormalTok{(tidyverse)}
+
+\NormalTok{lst }\OtherTok{=} \FunctionTok{list}\NormalTok{(}\AttributeTok{sample\_1 =} \FunctionTok{c}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\DecValTok{20}\NormalTok{), }\AttributeTok{sample\_2 =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\SpecialCharTok{:}\DecValTok{30}\NormalTok{), }\AttributeTok{sample\_3 =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\SpecialCharTok{:}\DecValTok{30}\NormalTok{))}
+
+\FunctionTok{expand.grid}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(lst), }\DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(lst)) }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{rowwise}\NormalTok{() }\SpecialCharTok{\%\textgreater{}\%}
+    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{KL =} \FunctionTok{KL.empirical}\NormalTok{(lst[[Var1]], lst[[Var2]]))}
+\CommentTok{\#\textgreater{} \# A tibble: 9 x 3}
+\CommentTok{\#\textgreater{} \# Rowwise: }
+\CommentTok{\#\textgreater{}    Var1  Var2     KL}
+\CommentTok{\#\textgreater{}   \textless{}int\textgreater{} \textless{}int\textgreater{}  \textless{}dbl\textgreater{}}
+\CommentTok{\#\textgreater{} 1     1     1 0     }
+\CommentTok{\#\textgreater{} 2     2     1 0.150 }
+\CommentTok{\#\textgreater{} 3     3     1 0.183 }
+\CommentTok{\#\textgreater{} 4     1     2 0.704 }
+\CommentTok{\#\textgreater{} 5     2     2 0     }
+\CommentTok{\#\textgreater{} 6     3     2 0.0679}
+\CommentTok{\#\textgreater{} 7     1     3 0.622 }
+\CommentTok{\#\textgreater{} 8     2     3 0.0870}
+\CommentTok{\#\textgreater{} 9     3     3 0}
+\end{Highlighting}
+\end{Shaded}
+
+To use the test for discrete date, use bootstrap version of the KS test (bypass the continuity requirement)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Matching}\SpecialCharTok{::}\FunctionTok{ks.boot}\NormalTok{(}\AttributeTok{Tr =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\SpecialCharTok{:}\DecValTok{10}\NormalTok{), }\AttributeTok{Co =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\SpecialCharTok{:}\DecValTok{10}\NormalTok{))}
+\CommentTok{\#\textgreater{} $ks.boot.pvalue}
+\CommentTok{\#\textgreater{} [1] 1}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $ks}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{}  Two{-}sample Kolmogorov{-}Smirnov test}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} data:  Tr and Co}
+\CommentTok{\#\textgreater{} D = 0, p{-}value = 1}
+\CommentTok{\#\textgreater{} alternative hypothesis: two{-}sided}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $nboots}
+\CommentTok{\#\textgreater{} [1] 1000}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} attr(,"class")}
+\CommentTok{\#\textgreater{} [1] "ks.boot"}
+\end{Highlighting}
+\end{Shaded}
 
 \hypertarget{part-regression}{%
 \part{REGRESSION}\label{part-regression}}
@@ -33060,6 +33338,87 @@ In most cases, it means that you have pre- and post-intervention data.
 
 A great resource for causal inference is \href{https://mixtape.scunning.com/introduction.html}{Causal Inference Mixtape}, especially if you like to read about the history of causal inference as a field as well (codes for Stata, R, and Python).
 
+\textbf{Identification strategy} for any quasi-experiment (No ways to prove or formal statistical test, but you can provide plausible argument and evidence)
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Where the exogenous variation comes from (by argument and institutional knowledge)
+\item
+  Exclusion restriction: Evidence that the the variation in the exogenous shock and the outcome is due to no other factors
+
+  \begin{enumerate}
+  \def\labelenumii{\arabic{enumii}.}
+  \tightlist
+  \item
+    Stable unit treatment value assumption (SUTVA) state that the treatment of unit \(i\) affect only the outcome of unit \(i\) (i.e., no spillover to the control groups)
+  \end{enumerate}
+\end{enumerate}
+
+All quasi-experimental methods involve tradeoff between power and support for the exogeniety assumption (i.e., discard variation in the data that is not exogenous).
+
+Consequently, we don't usually look at \(R^2\) \citep{ebbes2011}. And it can even be misleading to use \(R^2\) as the basis for model comparison.
+
+Clustering should be based on the design, not the expectations of correlation \citep{abadie2017}. With \textbf{small sample}, you should use \textbf{wild bootstrap procedure} \citep{cameron2008} to correct for the downward bias (see \citep{canay2021}for additional assumptions).
+
+Typical robustness check: recommended by \citep{goldfarb2022}
+
+\begin{itemize}
+\item
+  Different controls: show models with and without controls. Typically, we want to see the change in the estimate of interest. See \citep{altonji2005} for formal assessment based on Rosenbaum bounds (i.e., changes in the estimate and threat of Omitted variables on the estimate). For specific application in marketing, see \citep{manchanda2015} \citep{shin2012}
+\item
+  Different funcitonal forms
+\item
+  Different window of time (in longitudinal setting)
+\item
+  Different dependent variables (those that are related) or different measure of the dependent variables
+\item
+  Different control group size (matched vs.~un-matched samples)
+\item
+  Placebo tests: see each placebo test for each setting below.
+\end{itemize}
+
+Showing the mechanism:
+
+\begin{itemize}
+\item
+  Mediation analysis
+\item
+  Moderation analysis
+
+  \begin{itemize}
+  \item
+    Estimate the model separate (for different group)
+  \item
+    Assess whether the three-way interaction between the source of variation (e.g., under DID, cross-sectional and time series) and group membership is significant.
+  \end{itemize}
+\end{itemize}
+
+External Validity:
+
+\begin{itemize}
+\item
+  Assess how representative your sample is
+\item
+  Explain limitation of the design
+\item
+  Use quasi-experimental results in conjunction with structural models: see \citep{anderson2015} {[}\citet{einav2010}{]}\citep{chung2014}
+\end{itemize}
+
+Limitation
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  What is your idenifiying assumptions or idnetifaciton strategy
+\item
+  What are threats to the validity of your assumptions?
+\item
+  What you do to address it? And maybe how future research can do to address it.
+\end{enumerate}
+
 \hypertarget{regression-discontinuity}{%
 \section{Regression Discontinuity}\label{regression-discontinuity}}
 
@@ -33496,13 +33855,15 @@ Under RD, you shouldn't have to do any \protect\hyperlink{matching-methods}{Matc
 
 \begin{itemize}
 \item
-  2 methods for bandwidth selection
+  Methods for bandwidth selection
 
   \begin{itemize}
   \item
     Ad hoc or substantively driven
   \item
-    Data driven
+    Data driven: cross validation
+  \item
+    Conservative approach: \citep{cattaneo2020}
   \end{itemize}
 \item
   The objective is to minimize the mean squared error between the estimated and actual treatment effects.
@@ -34123,6 +34484,33 @@ Examples in marketing
 \tightlist
 \item
   \citep{liaukonyte2015}: TV ad on online shopping
+\item
+  \citep{akca2020}: aggregators for airlines business effect
+\item
+  \citep{pattabhiramaiah2018}: paywall affects readership
+\item
+  \citep{wang2018}: political ad source and message tone on vote shares and turnout using discontinuities in the level of political ads at the borders
+\item
+  \citep{datta2018}: streaming service on total music consumption using timing of users adoption of a music streaming service
+\item
+  \citep{janakiraman2018}: data breach announcement affect customer spending using timing of data breach and variation whether customer info was breached in that event
+\item
+  \citep{lim2020}: nutritional labels on nutritional quality for other brands in a category using variation in timing of adoption of nutritional labels across categories
+\item
+  \citep{guo2020}: payment disclosure laws effect on physician prescription behavior using Timing of the Massachusetts open payment law as the exogenous shock
+\item
+  \citep{israeli2018}: digital monitoring and enforcement on violations using enforcement of min ad price policies
+\item
+  \citep{ramani2019}: firms respond to foreign direct investment liberalization using India's reform in 1991.
+\end{itemize}
+
+Show the mechanism via
+
+\begin{itemize}
+\item
+  Mediation analysis: see \citep{habel2021}
+\item
+  Moderation analysis: see \citep{goldfarb2011}
 \end{itemize}
 
 \hypertarget{simple-dif-n-dif}{%
@@ -34393,7 +34781,13 @@ Alternatively,
 \item
   Other factors that affect the difference in trends between the two groups (i.e., treatment and control) will bias your estimation.
 \item
-  Correlated observatiosn within a group or time.
+  Correlated observations within a group or time.
+\item
+  Incidental parameters problems \citep{lancaster2000}: it's always better to use individual and time fixed effect.
+\item
+  When examining the effects of variation in treatment timing, we have to be careful because negative weights (per group) can be negative if there is a heterogeneity in the treatment effects over time. Example: {[}\citet{athey2022}{]}\citep{borusyak2021}\citep{goodman-bacon2021}. In this case you should use new estimands proposed by {[}\citet{callaway2021}{]}\citep{dechaisemartin2020}, in the \texttt{did} package. If you expect lags and leads, see \citep{sun2021}
+\item
+  \citep{gibbons2018} caution when we suspect the treatment effect and treatment variance vary across groups
 \end{itemize}
 
 \textbf{Robustness Check}
@@ -34853,11 +35247,17 @@ Examples in marketing:
 \tightlist
 \item
   \citep{tirunillai2017}: offline TV ad on Online Chatter
+\item
+  \citep{guo2020}: payment disclosure laws effect on physician prescription behavior using Timing of the Massachusetts open payment law as the exogenous shock
+\item
+  \citep{wang2019}: mobile hailing technology adoption on drivers' hourly earnings
 \end{itemize}
 
 Synthetic control method (SCM) is a generalization of the \protect\hyperlink{difference-in-differences}{Difference-In-Differences} model
 
 SCMs can also be used under the Bayesian framework where we do not have to impose any restrictive priori \citep{kim2020}
+
+Different from \protect\hyperlink{matching-methods}{Matching Methods} because SCMs match on the pre-treatment outcomes in each period while \protect\hyperlink{matching-methods}{Matching Methods} match on the number of covariates.
 
 Advantages over \protect\hyperlink{difference-in-differences}{Difference-In-Differences}
 
@@ -34900,7 +35300,16 @@ Advantages:
   Observable similarity between control and treatment cases is maximized
 \end{enumerate}
 
-Assumptions
+Disadvantages:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  It's hard to argue for the weights you use to create the ``synthetic control''
+\end{enumerate}
+
+\textbf{Assumptions}
 
 \begin{itemize}
 \item
@@ -34909,7 +35318,11 @@ Assumptions
   Only the treated subject undergoes the treatment and not any of the subjects in the donor pool.
 \item
   No other changes to the subjects during the whole window.
+\item
+  The counterfactual outcome of the treatment group can be imputed in a \textbf{linear combination} of control groups.
 \end{itemize}
+
+\textbf{Identification}: The exclusion restriction is met conditional on the pre-treatment outcomes.
 
 \texttt{Synth} provides an algorithm that finds weighted combination of the comparison units where the weights are chosen such that it best resembles the values of predictors of the outcome variable for the affected units before the intervention.
 
@@ -35781,6 +36194,10 @@ D_{it}=
 \hypertarget{matching-methods}{%
 \section{Matching Methods}\label{matching-methods}}
 
+\textbf{Assumption}: Observables can identify the selection into the treatment and control groups
+
+\textbf{Identification}: The exclusion restriction can be met conditional on the observables
+
 \textbf{Motivation}
 
 Effect of college quality on earnings
@@ -35789,7 +36206,7 @@ They ultimately estimate the treatment effect on the treated of attending a top 
 
 Matching is \protect\hyperlink{selection-on-observables}{Selection on observables} and only works if you have good observables.
 
-Relative to \[OLS\]\[Ordinary Least Squares\]
+Relative to \protect\hyperlink{ordinary-least-squares}{OLS}
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -35804,7 +36221,7 @@ It also helps if you have high ratio of controls to treatments.
 
 For detail summary \citep{Stuart_2010}
 
-Matching is defined as ``any method that aims to equate (or''balance'') the distribution of covariates in the treated and control groups.'' \[@Stuart_2010, pp. 1\]
+Matching is defined as ``any method that aims to equate (or''balance'') the distribution of covariates in the treated and control groups.'' \citep[pp.~1]{Stuart_2010}
 
 Equivalently, matching is a selection on observables identifications strategy.
 
@@ -35901,7 +36318,7 @@ Matching is used when
   Outcomes are available to improve precision of the estimate (i.e., reduce bias)
 \end{itemize}
 
-Hence, we can only observe one outcome of a unit (either treated or control), we can think of this problem as missing data as well. Thus, this section is closely related to \[Imputation (Missing Data)\]
+Hence, we can only observe one outcome of a unit (either treated or control), we can think of this problem as missing data as well. Thus, this section is closely related to \protect\hyperlink{imputation-missing-data}{Imputation (Missing Data)}
 
 In observational studies, we cannot randomize the treatment effect. Subjects select their own treatments, which could introduce selection bias (i.e., systematic differences between group differences that confound the effects of response variable differences).
 
@@ -39675,6 +40092,26 @@ Expenditure as observed instrument
 \end{Highlighting}
 \end{Shaded}
 
+\hypertarget{checklist}{%
+\subsubsection{Checklist}\label{checklist}}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Regress the dependent variable on the instrument (reduced form). Since under OLS, we have unbiased estimate, the coefficient estimate should be significant (make sure the sign makes sense)
+\item
+  Report F-stat on the excluded instruments. F-stat \textless{} 10 means you have a weak instrument \citep{stock2002survey}.
+\item
+  Present \(R^2\) before and after including the instrument \citep{rossi2014even}
+\item
+  For models with multiple instrument, present firs-t and second-stage result for each instrument separately. Overid test should be conducted (e.g., Sargan-Hansen J)
+\item
+  Hausman test between OLS and 2SLS (don't confuse this test for evidence that endogeneity is irrelevant - under invalid IV, the test is useless)
+\item
+  Compare the 2SLS with the limited information ML. If they are different, you have evidence for weak instruments.
+\end{enumerate}
+
 \hypertarget{good-instruments}{%
 \subsubsection{Good Instruments}\label{good-instruments}}
 
@@ -39707,6 +40144,8 @@ But obviously, it's not a valid instrument (intuitively). But theoretically, rel
 Moreover, the functional form of the instrument also plays a role when choosing a good instrument. Hence, we always need to check for the robustness of our instrument.
 
 IV methods even with valid instruments can still have poor sampling properties (finite sample bias, large sampling errors) \citep{rossi2014even}
+
+When you have a weak instrument, it's important to report it appropriately \citep{lee2021valid}. This problem will be exacerbated if you have multiple instruments.
 
 \hypertarget{lagged-dependent-variable}{%
 \paragraph{Lagged dependent variable}\label{lagged-dependent-variable}}
@@ -40384,6 +40823,17 @@ Some disciplines consider nonresponse bias and selection bias as sample selectio
 \item
   when the unobservable factors that affect who is included in the sample are correlated with the unobservable factors that affect the outcome, the sample selection is endogenous and not ignorable, because estimators that ignore endogenous sample selection are not consistent (we don't know which part of the observable outcome is related to the causal relationship and which part is due to different people were selected for the treatment and control groups).
 \end{itemize}
+
+Assumptions:
+- The unobservables that affect the treatment selection and the outcome are jointly distributed as bivariate normal.
+
+Notes:
+- If you don't have strong exclusion restriction, identification is driven by the assumed non linearity in the functional form (through inverse Mills ratio). E.g., the estimate depend on the bivariate normal distribution of the error structure:
+
+\begin{verbatim}
++ With strong exclusion restriction for the covariate in the correction equation, the variation in this vairable can help idnetify the control for selection 
++ With weak exclusion restriction, and the coavriate exists in both steps, it's the assumed error structure that identifies the control for selection. 
+\end{verbatim}
 
 To combat Sample selection, we can
 

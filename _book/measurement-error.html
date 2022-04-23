@@ -24,7 +24,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2022-04-12" />
+<meta name="date" content="2022-04-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -308,6 +308,13 @@ div.csl-indent {
 <li class="chapter" data-level="4.3.1" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#inferences-for-small-samples"><i class="fa fa-check"></i><b>4.3.1</b> Inferences for Small Samples</a></li>
 <li class="chapter" data-level="4.3.2" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#test-of-association"><i class="fa fa-check"></i><b>4.3.2</b> Test of Association</a></li>
 <li class="chapter" data-level="4.3.3" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#ordinal-association"><i class="fa fa-check"></i><b>4.3.3</b> Ordinal Association</a></li>
+</ul></li>
+<li class="chapter" data-level="4.4" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html"><i class="fa fa-check"></i><b>4.4</b> Divergence Metrics and Test for Comparing Distributions</a>
+<ul>
+<li class="chapter" data-level="4.4.1" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html#kullback-leibler-divergence"><i class="fa fa-check"></i><b>4.4.1</b> Kullback-Leibler Divergence</a></li>
+<li class="chapter" data-level="4.4.2" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html#jensen-shannon-divergence"><i class="fa fa-check"></i><b>4.4.2</b> Jensen-Shannon Divergence</a></li>
+<li class="chapter" data-level="4.4.3" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html#wasserstein-distance"><i class="fa fa-check"></i><b>4.4.3</b> Wasserstein Distance</a></li>
+<li class="chapter" data-level="4.4.4" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html#kolmogorov-smirnov-test-1"><i class="fa fa-check"></i><b>4.4.4</b> Kolmogorov-Smirnov Test</a></li>
 </ul></li>
 </ul></li>
 <li class="part"><span><b>II REGRESSION</b></span></li>
@@ -999,65 +1006,65 @@ where</p>
 </ol>
 <p>Applying this Bayesian correction can give them a better estimate of the correlation between the two.</p>
 <p>To implement this calculation in R, see below</p>
-<div class="sourceCode" id="cb428"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb428-1"><a href="measurement-error.html#cb428-1" aria-hidden="true" tabindex="-1"></a>n_new              <span class="ot">&lt;-</span> <span class="dv">200</span></span>
-<span id="cb428-2"><a href="measurement-error.html#cb428-2" aria-hidden="true" tabindex="-1"></a>r_new              <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
-<span id="cb428-3"><a href="measurement-error.html#cb428-3" aria-hidden="true" tabindex="-1"></a>alpha              <span class="ot">&lt;-</span> <span class="fl">0.05</span></span>
-<span id="cb428-4"><a href="measurement-error.html#cb428-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb428-5"><a href="measurement-error.html#cb428-5" aria-hidden="true" tabindex="-1"></a>update_correlation <span class="ot">&lt;-</span> <span class="cf">function</span>(n_new, r_new, alpha) {</span>
-<span id="cb428-6"><a href="measurement-error.html#cb428-6" aria-hidden="true" tabindex="-1"></a>    n_meta             <span class="ot">&lt;-</span> <span class="dv">50205</span></span>
-<span id="cb428-7"><a href="measurement-error.html#cb428-7" aria-hidden="true" tabindex="-1"></a>    r_meta             <span class="ot">&lt;-</span> <span class="fl">0.2765</span></span>
-<span id="cb428-8"><a href="measurement-error.html#cb428-8" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb428-9"><a href="measurement-error.html#cb428-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Variance</span></span>
-<span id="cb428-10"><a href="measurement-error.html#cb428-10" aria-hidden="true" tabindex="-1"></a>    var_xi         <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> (n_new <span class="sc">+</span> n_meta)</span>
-<span id="cb428-11"><a href="measurement-error.html#cb428-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">format</span>(var_xi, <span class="at">scientific =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb428-12"><a href="measurement-error.html#cb428-12" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb428-13"><a href="measurement-error.html#cb428-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># mean</span></span>
-<span id="cb428-14"><a href="measurement-error.html#cb428-14" aria-hidden="true" tabindex="-1"></a>    mu_xi          <span class="ot">&lt;-</span> var_xi <span class="sc">*</span> (n_meta <span class="sc">*</span> <span class="fu">atanh</span>(r_meta) <span class="sc">+</span> n_new <span class="sc">*</span> (<span class="fu">atanh</span>(r_new)))</span>
-<span id="cb428-15"><a href="measurement-error.html#cb428-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">format</span>(mu_xi, <span class="at">scientific  =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb428-16"><a href="measurement-error.html#cb428-16" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb428-17"><a href="measurement-error.html#cb428-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># confidence interval</span></span>
-<span id="cb428-18"><a href="measurement-error.html#cb428-18" aria-hidden="true" tabindex="-1"></a>    upper_xi       <span class="ot">&lt;-</span> mu_xi <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(var_xi)</span>
-<span id="cb428-19"><a href="measurement-error.html#cb428-19" aria-hidden="true" tabindex="-1"></a>    lower_xi       <span class="ot">&lt;-</span> mu_xi <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(var_xi)</span>
-<span id="cb428-20"><a href="measurement-error.html#cb428-20" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb428-21"><a href="measurement-error.html#cb428-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># rho</span></span>
-<span id="cb428-22"><a href="measurement-error.html#cb428-22" aria-hidden="true" tabindex="-1"></a>    mean_rho       <span class="ot">&lt;-</span> <span class="fu">tanh</span>(mu_xi)</span>
-<span id="cb428-23"><a href="measurement-error.html#cb428-23" aria-hidden="true" tabindex="-1"></a>    upper_rho      <span class="ot">&lt;-</span> <span class="fu">tanh</span>(upper_xi)</span>
-<span id="cb428-24"><a href="measurement-error.html#cb428-24" aria-hidden="true" tabindex="-1"></a>    lower_rho      <span class="ot">&lt;-</span> <span class="fu">tanh</span>(lower_xi)</span>
-<span id="cb428-25"><a href="measurement-error.html#cb428-25" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb428-26"><a href="measurement-error.html#cb428-26" aria-hidden="true" tabindex="-1"></a>    <span class="co"># return a list</span></span>
-<span id="cb428-27"><a href="measurement-error.html#cb428-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(</span>
-<span id="cb428-28"><a href="measurement-error.html#cb428-28" aria-hidden="true" tabindex="-1"></a>        <span class="fu">list</span>(</span>
-<span id="cb428-29"><a href="measurement-error.html#cb428-29" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;mu_xi&quot;</span> <span class="ot">=</span> mu_xi,</span>
-<span id="cb428-30"><a href="measurement-error.html#cb428-30" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;var_xi&quot;</span> <span class="ot">=</span> var_xi,</span>
-<span id="cb428-31"><a href="measurement-error.html#cb428-31" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;upper_xi&quot;</span> <span class="ot">=</span> upper_xi,</span>
-<span id="cb428-32"><a href="measurement-error.html#cb428-32" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;lower_xi&quot;</span> <span class="ot">=</span> lower_xi,</span>
-<span id="cb428-33"><a href="measurement-error.html#cb428-33" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;mean_rho&quot;</span> <span class="ot">=</span> mean_rho,</span>
-<span id="cb428-34"><a href="measurement-error.html#cb428-34" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;upper_rho&quot;</span> <span class="ot">=</span> upper_rho,</span>
-<span id="cb428-35"><a href="measurement-error.html#cb428-35" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;lower_rho&quot;</span> <span class="ot">=</span> lower_rho</span>
-<span id="cb428-36"><a href="measurement-error.html#cb428-36" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb428-37"><a href="measurement-error.html#cb428-37" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb428-38"><a href="measurement-error.html#cb428-38" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb428-39"><a href="measurement-error.html#cb428-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb428-40"><a href="measurement-error.html#cb428-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb428-41"><a href="measurement-error.html#cb428-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb428-42"><a href="measurement-error.html#cb428-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb428-43"><a href="measurement-error.html#cb428-43" aria-hidden="true" tabindex="-1"></a><span class="co"># Old confidence interval</span></span>
-<span id="cb428-44"><a href="measurement-error.html#cb428-44" aria-hidden="true" tabindex="-1"></a>r_new <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>n_new)</span>
-<span id="cb428-45"><a href="measurement-error.html#cb428-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.6385904</span></span>
-<span id="cb428-46"><a href="measurement-error.html#cb428-46" aria-hidden="true" tabindex="-1"></a>r_new <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>n_new)</span>
-<span id="cb428-47"><a href="measurement-error.html#cb428-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.3614096</span></span>
-<span id="cb428-48"><a href="measurement-error.html#cb428-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb428-49"><a href="measurement-error.html#cb428-49" aria-hidden="true" tabindex="-1"></a>testing <span class="ot">=</span> <span class="fu">update_correlation</span>(<span class="at">n_new =</span> n_new, <span class="at">r_new =</span> r_new, <span class="at">alpha =</span> alpha)</span>
-<span id="cb428-50"><a href="measurement-error.html#cb428-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb428-51"><a href="measurement-error.html#cb428-51" aria-hidden="true" tabindex="-1"></a><span class="co"># Updated rho</span></span>
-<span id="cb428-52"><a href="measurement-error.html#cb428-52" aria-hidden="true" tabindex="-1"></a>testing<span class="sc">$</span>mean_rho</span>
-<span id="cb428-53"><a href="measurement-error.html#cb428-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.2774723</span></span>
-<span id="cb428-54"><a href="measurement-error.html#cb428-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb428-55"><a href="measurement-error.html#cb428-55" aria-hidden="true" tabindex="-1"></a><span class="co"># Updated confidence interval</span></span>
-<span id="cb428-56"><a href="measurement-error.html#cb428-56" aria-hidden="true" tabindex="-1"></a>testing<span class="sc">$</span>upper_rho</span>
-<span id="cb428-57"><a href="measurement-error.html#cb428-57" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.2855105</span></span>
-<span id="cb428-58"><a href="measurement-error.html#cb428-58" aria-hidden="true" tabindex="-1"></a>testing<span class="sc">$</span>lower_rho</span>
-<span id="cb428-59"><a href="measurement-error.html#cb428-59" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.2693952</span></span></code></pre></div>
+<div class="sourceCode" id="cb433"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb433-1"><a href="measurement-error.html#cb433-1" aria-hidden="true" tabindex="-1"></a>n_new              <span class="ot">&lt;-</span> <span class="dv">200</span></span>
+<span id="cb433-2"><a href="measurement-error.html#cb433-2" aria-hidden="true" tabindex="-1"></a>r_new              <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb433-3"><a href="measurement-error.html#cb433-3" aria-hidden="true" tabindex="-1"></a>alpha              <span class="ot">&lt;-</span> <span class="fl">0.05</span></span>
+<span id="cb433-4"><a href="measurement-error.html#cb433-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb433-5"><a href="measurement-error.html#cb433-5" aria-hidden="true" tabindex="-1"></a>update_correlation <span class="ot">&lt;-</span> <span class="cf">function</span>(n_new, r_new, alpha) {</span>
+<span id="cb433-6"><a href="measurement-error.html#cb433-6" aria-hidden="true" tabindex="-1"></a>    n_meta             <span class="ot">&lt;-</span> <span class="dv">50205</span></span>
+<span id="cb433-7"><a href="measurement-error.html#cb433-7" aria-hidden="true" tabindex="-1"></a>    r_meta             <span class="ot">&lt;-</span> <span class="fl">0.2765</span></span>
+<span id="cb433-8"><a href="measurement-error.html#cb433-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb433-9"><a href="measurement-error.html#cb433-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Variance</span></span>
+<span id="cb433-10"><a href="measurement-error.html#cb433-10" aria-hidden="true" tabindex="-1"></a>    var_xi         <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> (n_new <span class="sc">+</span> n_meta)</span>
+<span id="cb433-11"><a href="measurement-error.html#cb433-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">format</span>(var_xi, <span class="at">scientific =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb433-12"><a href="measurement-error.html#cb433-12" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb433-13"><a href="measurement-error.html#cb433-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># mean</span></span>
+<span id="cb433-14"><a href="measurement-error.html#cb433-14" aria-hidden="true" tabindex="-1"></a>    mu_xi          <span class="ot">&lt;-</span> var_xi <span class="sc">*</span> (n_meta <span class="sc">*</span> <span class="fu">atanh</span>(r_meta) <span class="sc">+</span> n_new <span class="sc">*</span> (<span class="fu">atanh</span>(r_new)))</span>
+<span id="cb433-15"><a href="measurement-error.html#cb433-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">format</span>(mu_xi, <span class="at">scientific  =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb433-16"><a href="measurement-error.html#cb433-16" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb433-17"><a href="measurement-error.html#cb433-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># confidence interval</span></span>
+<span id="cb433-18"><a href="measurement-error.html#cb433-18" aria-hidden="true" tabindex="-1"></a>    upper_xi       <span class="ot">&lt;-</span> mu_xi <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(var_xi)</span>
+<span id="cb433-19"><a href="measurement-error.html#cb433-19" aria-hidden="true" tabindex="-1"></a>    lower_xi       <span class="ot">&lt;-</span> mu_xi <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(var_xi)</span>
+<span id="cb433-20"><a href="measurement-error.html#cb433-20" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb433-21"><a href="measurement-error.html#cb433-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># rho</span></span>
+<span id="cb433-22"><a href="measurement-error.html#cb433-22" aria-hidden="true" tabindex="-1"></a>    mean_rho       <span class="ot">&lt;-</span> <span class="fu">tanh</span>(mu_xi)</span>
+<span id="cb433-23"><a href="measurement-error.html#cb433-23" aria-hidden="true" tabindex="-1"></a>    upper_rho      <span class="ot">&lt;-</span> <span class="fu">tanh</span>(upper_xi)</span>
+<span id="cb433-24"><a href="measurement-error.html#cb433-24" aria-hidden="true" tabindex="-1"></a>    lower_rho      <span class="ot">&lt;-</span> <span class="fu">tanh</span>(lower_xi)</span>
+<span id="cb433-25"><a href="measurement-error.html#cb433-25" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb433-26"><a href="measurement-error.html#cb433-26" aria-hidden="true" tabindex="-1"></a>    <span class="co"># return a list</span></span>
+<span id="cb433-27"><a href="measurement-error.html#cb433-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(</span>
+<span id="cb433-28"><a href="measurement-error.html#cb433-28" aria-hidden="true" tabindex="-1"></a>        <span class="fu">list</span>(</span>
+<span id="cb433-29"><a href="measurement-error.html#cb433-29" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;mu_xi&quot;</span> <span class="ot">=</span> mu_xi,</span>
+<span id="cb433-30"><a href="measurement-error.html#cb433-30" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;var_xi&quot;</span> <span class="ot">=</span> var_xi,</span>
+<span id="cb433-31"><a href="measurement-error.html#cb433-31" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;upper_xi&quot;</span> <span class="ot">=</span> upper_xi,</span>
+<span id="cb433-32"><a href="measurement-error.html#cb433-32" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;lower_xi&quot;</span> <span class="ot">=</span> lower_xi,</span>
+<span id="cb433-33"><a href="measurement-error.html#cb433-33" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;mean_rho&quot;</span> <span class="ot">=</span> mean_rho,</span>
+<span id="cb433-34"><a href="measurement-error.html#cb433-34" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;upper_rho&quot;</span> <span class="ot">=</span> upper_rho,</span>
+<span id="cb433-35"><a href="measurement-error.html#cb433-35" aria-hidden="true" tabindex="-1"></a>            <span class="st">&quot;lower_rho&quot;</span> <span class="ot">=</span> lower_rho</span>
+<span id="cb433-36"><a href="measurement-error.html#cb433-36" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb433-37"><a href="measurement-error.html#cb433-37" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb433-38"><a href="measurement-error.html#cb433-38" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb433-39"><a href="measurement-error.html#cb433-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb433-40"><a href="measurement-error.html#cb433-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb433-41"><a href="measurement-error.html#cb433-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb433-42"><a href="measurement-error.html#cb433-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb433-43"><a href="measurement-error.html#cb433-43" aria-hidden="true" tabindex="-1"></a><span class="co"># Old confidence interval</span></span>
+<span id="cb433-44"><a href="measurement-error.html#cb433-44" aria-hidden="true" tabindex="-1"></a>r_new <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>n_new)</span>
+<span id="cb433-45"><a href="measurement-error.html#cb433-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.6385904</span></span>
+<span id="cb433-46"><a href="measurement-error.html#cb433-46" aria-hidden="true" tabindex="-1"></a>r_new <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>n_new)</span>
+<span id="cb433-47"><a href="measurement-error.html#cb433-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.3614096</span></span>
+<span id="cb433-48"><a href="measurement-error.html#cb433-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb433-49"><a href="measurement-error.html#cb433-49" aria-hidden="true" tabindex="-1"></a>testing <span class="ot">=</span> <span class="fu">update_correlation</span>(<span class="at">n_new =</span> n_new, <span class="at">r_new =</span> r_new, <span class="at">alpha =</span> alpha)</span>
+<span id="cb433-50"><a href="measurement-error.html#cb433-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb433-51"><a href="measurement-error.html#cb433-51" aria-hidden="true" tabindex="-1"></a><span class="co"># Updated rho</span></span>
+<span id="cb433-52"><a href="measurement-error.html#cb433-52" aria-hidden="true" tabindex="-1"></a>testing<span class="sc">$</span>mean_rho</span>
+<span id="cb433-53"><a href="measurement-error.html#cb433-53" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.2774723</span></span>
+<span id="cb433-54"><a href="measurement-error.html#cb433-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb433-55"><a href="measurement-error.html#cb433-55" aria-hidden="true" tabindex="-1"></a><span class="co"># Updated confidence interval</span></span>
+<span id="cb433-56"><a href="measurement-error.html#cb433-56" aria-hidden="true" tabindex="-1"></a>testing<span class="sc">$</span>upper_rho</span>
+<span id="cb433-57"><a href="measurement-error.html#cb433-57" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.2855105</span></span>
+<span id="cb433-58"><a href="measurement-error.html#cb433-58" aria-hidden="true" tabindex="-1"></a>testing<span class="sc">$</span>lower_rho</span>
+<span id="cb433-59"><a href="measurement-error.html#cb433-59" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.2693952</span></span></code></pre></div>
 <p><br></p>
 </div>
 </div>
@@ -1068,7 +1075,7 @@ where</p>
 Bound, John, Charles Brown, Greg J. Duncan, and Willard L. Rodgers. 1994. <span>“Evidence on the Validity of Cross-Sectional and Longitudinal Labor Market Data.”</span> <em>Journal of Labor Economics</em> 12 (3): 345–68. <a href="https://doi.org/10.1086/298348">https://doi.org/10.1086/298348</a>.
 </div>
 <div id="ref-bound1989" class="csl-entry">
-Bound, John, and Alan Krueger. 1989. <span>“The Extent of Measurement Error in Longitudinal Earnings Data: Do Two Wrongs Make a Right?”</span> <a href="https://doi.org/10.3386/w2885">https://doi.org/10.3386/w2885</a>.
+Bound, John, and Alan Krueger. 1989. <span>“The Extent of Measurement Error in Longitudinal Earnings Data: Do Two Wrongs Make a Right?”</span> March. <a href="https://doi.org/10.3386/w2885">https://doi.org/10.3386/w2885</a>.
 </div>
 <div id="ref-schisterman2003estimation" class="csl-entry">
 Schisterman, Enrique F, Kirsten B Moysich, Lucinda J England, and Malla Rao. 2003. <span>“Estimation of the Correlation Coefficient Using the Bayesian Approach and Its Applications for Epidemiologic Research.”</span> <em>BMC Medical Research Methodology</em> 3 (1): 1–4.

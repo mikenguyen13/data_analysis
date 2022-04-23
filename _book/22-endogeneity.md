@@ -1064,6 +1064,15 @@ summary(m2.2sls)$coefficients[1:7, ]
 
 <br>
 
+#### Checklist 
+
+1. Regress the dependent variable on the instrument (reduced form). Since under OLS, we have unbiased estimate, the coefficient estimate should be significant (make sure the sign makes sense)
+2. Report F-stat on the excluded instruments. F-stat < 10 means you have a weak instrument [@stock2002survey]. 
+3. Present $R^2$ before and after including the instrument [@rossi2014even]
+4. For models with multiple instrument, present firs-t and second-stage result for each instrument separately. Overid test should be conducted (e.g., Sargan-Hansen J)
+5. Hausman test between OLS and 2SLS (don't confuse this test for evidence that endogeneity is irrelevant - under invalid IV, the test is useless)
+6. Compare the 2SLS with the limited information ML. If they are different, you have evidence for weak instruments. 
+
 #### Good Instruments
 
 [Exogeneity] and [Relevancy] are necessary but not sufficient for IV to produce consistent estimates.
@@ -1092,6 +1101,8 @@ But obviously, it's not a valid instrument (intuitively). But theoretically, rel
 Moreover, the functional form of the instrument also plays a role when choosing a good instrument. Hence, we always need to check for the robustness of our instrument. 
 
 IV methods even with valid instruments can still have poor sampling properties (finite sample bias, large sampling errors)  [@rossi2014even]
+
+When you have a weak instrument, it's important to report it appropriately [@lee2021valid]. This problem will be exacerbated if you have multiple instruments. 
 
 ##### Lagged dependent variable
 
@@ -1612,6 +1623,15 @@ Some disciplines consider nonresponse bias and selection bias as sample selectio
 
 -   When unobservable factors that affect who is in the sample are independent of unobservable factors that affect the outcome, the sample selection is not endogenous. Hence, the sample selection is ignorable and estimator that ignores sample selection is still consistent.
 -   when the unobservable factors that affect who is included in the sample are correlated with the unobservable factors that affect the outcome, the sample selection is endogenous and not ignorable, because estimators that ignore endogenous sample selection are not consistent (we don't know which part of the observable outcome is related to the causal relationship and which part is due to different people were selected for the treatment and control groups).
+
+Assumptions: 
+- The unobservables that affect the treatment selection and the outcome are jointly distributed as bivariate normal. 
+
+Notes: 
+- If you don't have strong exclusion restriction, identification is driven by the assumed non linearity in the functional form (through inverse Mills ratio). E.g., the estimate depend on the bivariate normal distribution of the error structure: 
+    
+    + With strong exclusion restriction for the covariate in the correction equation, the variation in this vairable can help idnetify the control for selection 
+    + With weak exclusion restriction, and the coavriate exists in both steps, it's the assumed error structure that identifies the control for selection. 
 
 To combat Sample selection, we can
 

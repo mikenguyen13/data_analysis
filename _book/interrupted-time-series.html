@@ -24,7 +24,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2022-04-12" />
+<meta name="date" content="2022-04-23" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -308,6 +308,13 @@ div.csl-indent {
 <li class="chapter" data-level="4.3.1" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#inferences-for-small-samples"><i class="fa fa-check"></i><b>4.3.1</b> Inferences for Small Samples</a></li>
 <li class="chapter" data-level="4.3.2" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#test-of-association"><i class="fa fa-check"></i><b>4.3.2</b> Test of Association</a></li>
 <li class="chapter" data-level="4.3.3" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#ordinal-association"><i class="fa fa-check"></i><b>4.3.3</b> Ordinal Association</a></li>
+</ul></li>
+<li class="chapter" data-level="4.4" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html"><i class="fa fa-check"></i><b>4.4</b> Divergence Metrics and Test for Comparing Distributions</a>
+<ul>
+<li class="chapter" data-level="4.4.1" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html#kullback-leibler-divergence"><i class="fa fa-check"></i><b>4.4.1</b> Kullback-Leibler Divergence</a></li>
+<li class="chapter" data-level="4.4.2" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html#jensen-shannon-divergence"><i class="fa fa-check"></i><b>4.4.2</b> Jensen-Shannon Divergence</a></li>
+<li class="chapter" data-level="4.4.3" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html#wasserstein-distance"><i class="fa fa-check"></i><b>4.4.3</b> Wasserstein Distance</a></li>
+<li class="chapter" data-level="4.4.4" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html#kolmogorov-smirnov-test-1"><i class="fa fa-check"></i><b>4.4.4</b> Kolmogorov-Smirnov Test</a></li>
 </ul></li>
 </ul></li>
 <li class="part"><span><b>II REGRESSION</b></span></li>
@@ -782,39 +789,39 @@ div.csl-indent {
 <li>For subgroup analysis (heterogeneity in effect size), see <span class="citation">(<a href="#ref-harper2017" role="doc-biblioref">Harper and Bruckner 2017</a>)</span></li>
 </ul>
 <p>Example by <a href="https://towardsdatascience.com/what-is-the-strongest-quasi-experimental-method-interrupted-time-series-period-f59fe5b00b31">Leihua Ye</a></p>
-<div class="sourceCode" id="cb427"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb427-1"><a href="interrupted-time-series.html#cb427-1" aria-hidden="true" tabindex="-1"></a><span class="co"># data preparation</span></span>
-<span id="cb427-2"><a href="interrupted-time-series.html#cb427-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb427-3"><a href="interrupted-time-series.html#cb427-3" aria-hidden="true" tabindex="-1"></a>CaseID <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>, <span class="dv">6</span>)</span>
-<span id="cb427-4"><a href="interrupted-time-series.html#cb427-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb427-5"><a href="interrupted-time-series.html#cb427-5" aria-hidden="true" tabindex="-1"></a><span class="co"># intervention</span></span>
-<span id="cb427-6"><a href="interrupted-time-series.html#cb427-6" aria-hidden="true" tabindex="-1"></a>Intervention <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">300</span>), <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">300</span>))</span>
-<span id="cb427-7"><a href="interrupted-time-series.html#cb427-7" aria-hidden="true" tabindex="-1"></a>Outcome_Variable <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">rnorm</span>(<span class="dv">300</span>), <span class="fu">abs</span>(<span class="fu">rnorm</span>(<span class="dv">300</span>) <span class="sc">*</span> <span class="dv">4</span>))</span>
-<span id="cb427-8"><a href="interrupted-time-series.html#cb427-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb427-9"><a href="interrupted-time-series.html#cb427-9" aria-hidden="true" tabindex="-1"></a>mydata <span class="ot">=</span> <span class="fu">cbind</span>(CaseID, Intervention, Outcome_Variable)</span>
-<span id="cb427-10"><a href="interrupted-time-series.html#cb427-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb427-11"><a href="interrupted-time-series.html#cb427-11" aria-hidden="true" tabindex="-1"></a>mydata <span class="ot">=</span> <span class="fu">as.data.frame</span>(mydata)</span>
-<span id="cb427-12"><a href="interrupted-time-series.html#cb427-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb427-13"><a href="interrupted-time-series.html#cb427-13" aria-hidden="true" tabindex="-1"></a><span class="co">#construct a simple OLS model</span></span>
-<span id="cb427-14"><a href="interrupted-time-series.html#cb427-14" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">lm</span>(Outcome_Variable <span class="sc">~</span> Intervention, <span class="at">data =</span> mydata)</span>
-<span id="cb427-15"><a href="interrupted-time-series.html#cb427-15" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model) <span class="co"># there is a signficant effect </span></span>
-<span id="cb427-16"><a href="interrupted-time-series.html#cb427-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb427-17"><a href="interrupted-time-series.html#cb427-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb427-18"><a href="interrupted-time-series.html#cb427-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; lm(formula = Outcome_Variable ~ Intervention, data = mydata)</span></span>
-<span id="cb427-19"><a href="interrupted-time-series.html#cb427-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb427-20"><a href="interrupted-time-series.html#cb427-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
-<span id="cb427-21"><a href="interrupted-time-series.html#cb427-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
-<span id="cb427-22"><a href="interrupted-time-series.html#cb427-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -3.3050 -1.2315 -0.1734  0.8691 11.9185 </span></span>
-<span id="cb427-23"><a href="interrupted-time-series.html#cb427-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb427-24"><a href="interrupted-time-series.html#cb427-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb427-25"><a href="interrupted-time-series.html#cb427-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span id="cb427-26"><a href="interrupted-time-series.html#cb427-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Intercept)   0.03358    0.11021   0.305    0.761    </span></span>
-<span id="cb427-27"><a href="interrupted-time-series.html#cb427-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Intervention  3.28903    0.15586  21.103   &lt;2e-16 ***</span></span>
-<span id="cb427-28"><a href="interrupted-time-series.html#cb427-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb427-29"><a href="interrupted-time-series.html#cb427-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb427-30"><a href="interrupted-time-series.html#cb427-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb427-31"><a href="interrupted-time-series.html#cb427-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 1.909 on 598 degrees of freedom</span></span>
-<span id="cb427-32"><a href="interrupted-time-series.html#cb427-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.4268, Adjusted R-squared:  0.4259 </span></span>
-<span id="cb427-33"><a href="interrupted-time-series.html#cb427-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; F-statistic: 445.3 on 1 and 598 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
+<div class="sourceCode" id="cb432"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb432-1"><a href="interrupted-time-series.html#cb432-1" aria-hidden="true" tabindex="-1"></a><span class="co"># data preparation</span></span>
+<span id="cb432-2"><a href="interrupted-time-series.html#cb432-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb432-3"><a href="interrupted-time-series.html#cb432-3" aria-hidden="true" tabindex="-1"></a>CaseID <span class="ot">=</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>, <span class="dv">6</span>)</span>
+<span id="cb432-4"><a href="interrupted-time-series.html#cb432-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb432-5"><a href="interrupted-time-series.html#cb432-5" aria-hidden="true" tabindex="-1"></a><span class="co"># intervention</span></span>
+<span id="cb432-6"><a href="interrupted-time-series.html#cb432-6" aria-hidden="true" tabindex="-1"></a>Intervention <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">rep</span>(<span class="dv">0</span>, <span class="dv">300</span>), <span class="fu">rep</span>(<span class="dv">1</span>, <span class="dv">300</span>))</span>
+<span id="cb432-7"><a href="interrupted-time-series.html#cb432-7" aria-hidden="true" tabindex="-1"></a>Outcome_Variable <span class="ot">=</span> <span class="fu">c</span>(<span class="fu">rnorm</span>(<span class="dv">300</span>), <span class="fu">abs</span>(<span class="fu">rnorm</span>(<span class="dv">300</span>) <span class="sc">*</span> <span class="dv">4</span>))</span>
+<span id="cb432-8"><a href="interrupted-time-series.html#cb432-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb432-9"><a href="interrupted-time-series.html#cb432-9" aria-hidden="true" tabindex="-1"></a>mydata <span class="ot">=</span> <span class="fu">cbind</span>(CaseID, Intervention, Outcome_Variable)</span>
+<span id="cb432-10"><a href="interrupted-time-series.html#cb432-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb432-11"><a href="interrupted-time-series.html#cb432-11" aria-hidden="true" tabindex="-1"></a>mydata <span class="ot">=</span> <span class="fu">as.data.frame</span>(mydata)</span>
+<span id="cb432-12"><a href="interrupted-time-series.html#cb432-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb432-13"><a href="interrupted-time-series.html#cb432-13" aria-hidden="true" tabindex="-1"></a><span class="co">#construct a simple OLS model</span></span>
+<span id="cb432-14"><a href="interrupted-time-series.html#cb432-14" aria-hidden="true" tabindex="-1"></a>model <span class="ot">=</span> <span class="fu">lm</span>(Outcome_Variable <span class="sc">~</span> Intervention, <span class="at">data =</span> mydata)</span>
+<span id="cb432-15"><a href="interrupted-time-series.html#cb432-15" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(model) <span class="co"># there is a signficant effect </span></span>
+<span id="cb432-16"><a href="interrupted-time-series.html#cb432-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb432-17"><a href="interrupted-time-series.html#cb432-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb432-18"><a href="interrupted-time-series.html#cb432-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; lm(formula = Outcome_Variable ~ Intervention, data = mydata)</span></span>
+<span id="cb432-19"><a href="interrupted-time-series.html#cb432-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb432-20"><a href="interrupted-time-series.html#cb432-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
+<span id="cb432-21"><a href="interrupted-time-series.html#cb432-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span id="cb432-22"><a href="interrupted-time-series.html#cb432-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -3.3050 -1.2315 -0.1734  0.8691 11.9185 </span></span>
+<span id="cb432-23"><a href="interrupted-time-series.html#cb432-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb432-24"><a href="interrupted-time-series.html#cb432-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb432-25"><a href="interrupted-time-series.html#cb432-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb432-26"><a href="interrupted-time-series.html#cb432-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Intercept)   0.03358    0.11021   0.305    0.761    </span></span>
+<span id="cb432-27"><a href="interrupted-time-series.html#cb432-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Intervention  3.28903    0.15586  21.103   &lt;2e-16 ***</span></span>
+<span id="cb432-28"><a href="interrupted-time-series.html#cb432-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb432-29"><a href="interrupted-time-series.html#cb432-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb432-30"><a href="interrupted-time-series.html#cb432-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb432-31"><a href="interrupted-time-series.html#cb432-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 1.909 on 598 degrees of freedom</span></span>
+<span id="cb432-32"><a href="interrupted-time-series.html#cb432-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.4268, Adjusted R-squared:  0.4259 </span></span>
+<span id="cb432-33"><a href="interrupted-time-series.html#cb432-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; F-statistic: 445.3 on 1 and 598 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
 
 </div>
 <!-- </div> -->
