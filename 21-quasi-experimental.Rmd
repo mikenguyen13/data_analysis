@@ -10,7 +10,7 @@ A great resource for causal inference is [Causal Inference Mixtape](https://mixt
 2.  Exclusion restriction: Evidence that the the variation in the exogenous shock and the outcome is due to no other factors
     1.  Stable unit treatment value assumption (SUTVA) state that the treatment of unit $i$ affect only the outcome of unit $i$ (i.e., no spillover to the control groups)
 
-All quasi-experimental methods involve tradeoff between power and support for the exogeniety assumption (i.e., discard variation in the data that is not exogenous).
+All quasi-experimental methods involve tradeoff between power and support for the exogeneity assumption (i.e., discard variation in the data that is not exogenous).
 
 Consequently, we don't usually look at $R^2$ [@ebbes2011]. And it can even be misleading to use $R^2$ as the basis for model comparison.
 
@@ -20,7 +20,7 @@ Typical robustness check: recommended by [@goldfarb2022]
 
 -   Different controls: show models with and without controls. Typically, we want to see the change in the estimate of interest. See [@altonji2005] for formal assessment based on Rosenbaum bounds (i.e., changes in the estimate and threat of Omitted variables on the estimate). For specific application in marketing, see [@manchanda2015] [@shin2012]
 
--   Different funcitonal forms
+-   Different functional forms
 
 -   Different window of time (in longitudinal setting)
 
@@ -50,7 +50,7 @@ External Validity:
 
 Limitation
 
-1.  What is your idenifiying assumptions or idnetifaciton strategy
+1.  What is your identifying assumptions or identification strategy
 2.  What are threats to the validity of your assumptions?
 3.  What you do to address it? And maybe how future research can do to address it.
 
@@ -108,9 +108,25 @@ There are several types of Regression Discontinuity:
 
     -   Kink design: Instead of a discontinuity in the level of running variable, we have a discontinuity in the slope of the function (while the function/level can remain continuous) [@nielsen2010]. See [@böckerman2018] for application, and [@card2012; @card2015b] for theory.
 
-2.  Fuzzy RD: Change in treatment probability less than 1
+2.  Kink RD
 
-3.  RDiT: running variable is time.
+3.  Fuzzy RD: Change in treatment probability less than 1
+
+4.  Fuzzy Kink RD
+
+5.  RDiT: running variable is time.
+
+Others:
+
+-   Multiple cutoff
+
+-   Multiple Scores
+
+-   Geographic RD
+
+-   Dynamic Treatments
+
+-   Continuous Treatments
 
 Consider
 
@@ -136,6 +152,8 @@ where
 
 **Identification (Identifying assumption**s) of RD:
 
+Average Treatment Effect at the cutoff (continuity-based)
+
 $$
 \begin{aligned}
 \alpha_{SRDD} &= E[Y_{1i} - Y_{0i} | X_i = c] \\
@@ -143,6 +161,27 @@ $$
 &= \lim_{x \to c^+} E[Y_{1i}|X_i = c] - \lim_{x \to c^=} E[Y_{0i}|X_i = c]
 \end{aligned}
 $$
+
+Average Treatment Effect in a neighborhood (Local Randomization-based):
+
+$$
+\begin{aligned}
+\alpha_{LR} &= E[Y_{1i} - Y_{0i}|X_i \in W] \\
+&= \frac{1}{N_1} \sum_{X_i \in W, T_i = 1}Y_i - \frac{1}{N_0}\sum_{X_i \in W, T_i =0} Y_i
+\end{aligned}
+$$
+
+Local Randomization Approach assumes that inside the chosen window $W = [c-w, c+w]$ are assigned to treatment as good as random:
+
+1.  Joint probability distribution of scores for units inside the chosen window $W$ is known
+2.  Potential outcomes are not affected by value of the score
+
+$$
+Y_i(0,x) = Y_i(0) \\
+Y_i(1,x) = Y_i(1)
+$$
+
+This approach is stronger than the continuity-based because we assume the regressions are continuously at $c$ and unaffected by the running variable inside the chosen window $W$
 
 RDD estimates the local average treatment effect (LATE), at the cutoff point which is not at the individual or population levels.
 
@@ -387,7 +426,7 @@ $$
 \lim_{c - \epsilon \le X \le c + \epsilon, \epsilon \to 0}( \frac{E(Y |Z = 1) - E(Y |Z=0)}{E(D|Z = 1) - E(D|Z = 0)})
 $$
 
-equivalently,
+equivalently, the canonical parameter:
 
 $$
 \frac{lim_{x \downarrow c}E(Y|X = x) - \lim_{x \uparrow c} E(Y|X = x)}{\lim_{x \downarrow c } E(D |X = x) - \lim_{x \uparrow c}E(D |X=x)}
@@ -412,6 +451,34 @@ Two equivalent ways to estimate
 -   If the slope of the treatment intensity changes at the cutoff (instead of the level of treatment assignment), we can have regression kink design
 
 -   Example: unemployment benefits
+
+Sharp Kink RD parameter
+
+$$
+\alpha_{KRD} = \frac{\lim_{x \downarrow c} \frac{d}{dx}E[Y_i |X_i = x]- \lim_{x \uparrow c} \frac{d}{dx}E[Y_i |X_i = x]}{\lim_{x \downarrow c} \frac{d}{dx}b(x) - \lim_{x \uparrow c} \frac{d}{dx}b(x)}
+$$
+
+where $b(x)$ is a known function inducing "kink"
+
+Fuzzy Kink RD parameter
+
+$$
+\alpha_{KRD} = \frac{\lim_{x \downarrow c} \frac{d}{dx}E[Y_i |X_i = x]- \lim_{x \uparrow c} \frac{d}{dx}E[Y_i |X_i = x]}{\lim_{x \downarrow c} \frac{d}{dx}E[D_i |X_i = x]- \lim_{x \uparrow c} \frac{d}{dx}E[D_i |X_i = x]}
+$$
+
+#### Mutli-cutoff, Multi-score, geographic RD
+
+Multi-cutoff
+
+$$
+E[Y_{1i} - Y_{0i}|X_i = x, C_i = c]
+$$
+
+Multi-score (in multiple dimensions) (e.g., math and English cutoff for certain honor class):
+
+$$
+E[Y_{1i} - Y_{0i}|X_{1i} = x_1, X_{2i} = x]
+$$
 
 <br>
 
@@ -456,17 +523,10 @@ Two equivalent ways to estimate
 Notes:
 
 -   Additional assumption: Time-varying confounders change smoothly across the cutoff date
-
-<!-- -->
-
 -   Typically used in policy implementation in the same date for all subjects, but can also be used for cases where implementation dates are different between subjects. In the second case, researchers typically use different RDiT specification for each time series.
-
 -   Sometimes the date of implementation is not randomly assigned by chosen strategically. Hence, RDiT should be thought of as the "discontinuity at a threshold" interpretation of RD (not as "local randomization"). [@hausman2018, p. 8]
-
 -   Normal RD uses variation in the $N$ dimension, while RDiT uses variation in the $T$ dimension
-
 -   Choose polynomials based on BIC typically. And can have either global polynomial or pre-period and post-period polynomial for each time series (but usually the global one will perform better)
-
 -   Could use **augmented local linear** outlined by [@hausman2018, p. 12], where estimate the model with all the control first then take the residuals to include in the model with the RDiT treatment (remember to use bootstrapping method to account for the first-stage variance in the second stage).
 
 Pros:
@@ -517,17 +577,17 @@ Biases
 
     -   Need to use **clustered standard errors** to account for serial dependence in the residuals
 
-    -   In the case of serial dependence in $\epsilon_{it}$, we don't have a solution, including a lagged dependnet vraible would misspecify the model (probablyfind another research project)
+    -   In the case of serial dependence in $\epsilon_{it}$, we don't have a solution, including a lagged dependent variable would misspecify the model (probably find another research project)
 
-    -   In the case of seiral dependence in $y_{it}$, with long window, it becomes fuzzy to what you try to recover. You can include the **lagged dependent varialbe** (bias can still come from the time-varying treatment or over-fitting of the global polynomial)
+    -   In the case of serial dependence in $y_{it}$, with long window, it becomes fuzzy to what you try to recover. You can include the **lagged dependent variable** (bias can still come from the time-varying treatment or over-fitting of the global polynomial)
 
 -   Sorting and Anticipation Effects
 
-    -   Cannot run the [@mccrary2008] because the density of the time runing vairable is uniform
+    -   Cannot run the [@mccrary2008] because the density of the time running variable is uniform
 
-    -   Can still run tests to check discontinuities in other covariates (you want no discontinuities) and discontinuitiesin the outocme vairalbe at other placebo thresholds ( you don't want discontinuities)
+    -   Can still run tests to check discontinuities in other covariates (you want no discontinuities) and discontinuities in the outcome variable at other placebo thresholds ( you don't want discontinuities)
 
-    -   Hence, it's hard to aruge for the causal effect here because it could be the total effect of the causal treatment and the unobserved sorting/anticipation/adaptation/avoidance effects. You can only argue that there is no such behavior
+    -   Hence, it's hard to argue for the causal effect here because it could be the total effect of the causal treatment and the unobserved sorting/anticipation/adaptation/avoidance effects. You can only argue that there is no such behavior
 
 Recommendations for robustness check following [@hausman2018, p. 549]
 
@@ -536,11 +596,11 @@ Recommendations for robustness check following [@hausman2018, p. 549]
 3.  [Placebo Tests]: estimate another RD (1) on another location or subject (that did not receive the treatment) or (2) use another date.
 4.  Plot RD discontinuity on continuous controls
 5.  Donut RD to see if avoiding the selection close to the cutoff would yield better results [@barreca2011]
-6.  Test for autoregression (using only pre-treatment data). If there is evidence for autoregression, include the lagged dpednetnvariable
-7.  Augmented local linear (no need to use global polynomail and avoid over-fitting)
-    1.  Use full sample to exclude the effect of important predicotrs
+6.  Test for auto-regression (using only pre-treatment data). If there is evidence for autoregression, include the lagged dpednetn variable
+7.  Augmented local linear (no need to use global polynomial and avoid over-fitting)
+    1.  Use full sample to exclude the effect of important predictors
 
-    2.  Estiamte the conditioned second stage on a smaller sample bandwidth
+    2.  Estimate the conditioned second stage on a smaller sample bandwidth
 
 Examples from [@hausman2018, p. 534] in
 
@@ -561,6 +621,8 @@ econ
 -   [@anderson2014]: Traffic
 
 -   [@burger2014]: Car accidents
+
+-   [@brodeur2021]: covid 19 lockdowns on well-being
 
 marketing
 
@@ -642,13 +704,61 @@ Bandwidth of $c$ (window)
 
     -   weight depends on how far and close to $c$
 
-### Examples
+### Applications
 
 Examples in marketing:
 
 -   [@narayanan2015]
 
--   [@hartmann2011a]: nonparametric estimation and guide to identifying causal marketing mix effects.
+-   [@hartmann2011a]: nonparametric estimation and guide to identifying causal marketing mix effects
+
+[Packages](https://rdpackages.github.io/) in R (see [@thoemmes2016] for detailed comparisons): all can handle both sharp and fuzzy RD
+
+-   `rdd`
+
+-   `rdrobust`
+
+-   `rddensity` discontinuity in density tests ([Sorting/Bunching/Manipulation]) using local polynomials and binomial test
+
+-   `rdlocrand` covariate balance, binomial tests, window selection
+
+-   `rdmulti` multiple cutoffs and multiple scores
+
+-   `rdpower` power, sample selection
+
+-   `rddtools`
+
++-----------------------+-------------------------+---------------------------------+----------------------------------------------+
+| Package               | rdd                     | rdrobust                        | rddtools                                     |
++=======================+=========================+=================================+==============================================+
+| Coefficient estimator | Local linear regression | local polynomial regression     | local polynomial regression                  |
++-----------------------+-------------------------+---------------------------------+----------------------------------------------+
+| bandwidth selectors   | [@imbens2009]           | [@calonico2014]                 | [@imbens2010]                                |
+|                       |                         |                                 |                                              |
+|                       |                         | [@imbens2010]                   |                                              |
+|                       |                         |                                 |                                              |
+|                       |                         | [@ludwig2007]                   |                                              |
+|                       |                         |                                 |                                              |
+|                       |                         | [@calonico2019; @calonico2019a] |                                              |
++-----------------------+-------------------------+---------------------------------+----------------------------------------------+
+| Kernel functions      | Epanechnikov            | Epanechnikov                    | Gaussian                                     |
+|                       |                         |                                 |                                              |
+| -   Triangular        | Gaussian                |                                 |                                              |
+|                       |                         |                                 |                                              |
+| -   Rectangular       |                         |                                 |                                              |
++-----------------------+-------------------------+---------------------------------+----------------------------------------------+
+| Bias Correction       |                         | Local polynomial regression     |                                              |
++-----------------------+-------------------------+---------------------------------+----------------------------------------------+
+| Covariate options     | Include                 | Include                         | Include                                      |
+|                       |                         |                                 |                                              |
+|                       |                         |                                 | Residuals                                    |
++-----------------------+-------------------------+---------------------------------+----------------------------------------------+
+| Assumptions testing   | McCrary sorting         |                                 | McCrary sorting                              |
+|                       |                         |                                 |                                              |
+|                       |                         |                                 | Equality of covariates distribution and mean |
++-----------------------+-------------------------+---------------------------------+----------------------------------------------+
+
+based on table 1 [@thoemmes2016] (p. 347)
 
 #### Example 1
 
@@ -806,7 +916,7 @@ For a detailed application, see [@thoemmes2016] where they use `rdd`, `rdrobust`
 
 <br>
 
-## Difference-In-Differences
+## Difference-in-differences
 
 Examples in marketing
 
@@ -820,6 +930,8 @@ Examples in marketing
 -   [@guo2020]: payment disclosure laws effect on physician prescription behavior using Timing of the Massachusetts open payment law as the exogenous shock
 -   [@israeli2018]: digital monitoring and enforcement on violations using enforcement of min ad price policies
 -   [@ramani2019]: firms respond to foreign direct investment liberalization using India's reform in 1991.
+-   [@he2022]: using Aamzon policy change to examine the causal impact of fake reviews on sales, average ratings.
+-    [@peukert2022]: using European General data proection Regulation, examien the impact of policy change on website usage.
 
 Show the mechanism via
 
@@ -1330,6 +1442,92 @@ Example by [Philipp Leppert](https://rpubs.com/phle/r_tutorial_difference_in_dif
 
 Example by [Anthony Schmidt](https://bookdown.org/aschmi11/causal_inf/difference-in-differences.html)
 
+### Two-way Fixed-effects
+
+A generalization of the dif-n-dif model is the two-way fixed-effects models where you have multiple groups and time effects.
+
+This package is based on [@somaini2016]
+
+```{r}
+# dataset
+library(bacondecomp)
+df <- bacondecomp::castle
+
+library(xtreg2way)
+# output <- xtreg2way(y,
+#                     data.frame(x1, x2),
+#                     iid,
+#                     tid,
+#                     w,
+#                     noise = "1",
+#                     se = "1")
+
+# equilvalently
+output <- xtreg2way(l_homicide ~ post,
+                    df,
+                    iid = df$state, # group id
+                    tid = df$year, # time id
+                    # w, # vector of weight
+                    se = "1")
+output$betaHat
+output$aVarHat
+
+# to save time, you can use your structure in the last output for a new set of variables
+# output2 <- xtreg2way(y, x1, struc=output$struc)
+
+```
+
+Standard errors estimation options
+
++----------------------+---------------------------------------------------------------------------------------------+
+| Set                  | Estimation                                                                                  |
++======================+=============================================================================================+
+| `se = "0"`           | Assume homoskedasticity and no within group correlation or serial correlation               |
++----------------------+---------------------------------------------------------------------------------------------+
+| `se = "1"` (default) | robust to heteroskadasticity and serial correlation [@arellano1987computing]                |
++----------------------+---------------------------------------------------------------------------------------------+
+| `se = "2"`           | robust to heteroskedasticity, but assumes no correlation within group or serial correlation |
++----------------------+---------------------------------------------------------------------------------------------+
+| `se = "11"`          | Aerllano SE with df correction performed by Stata xtreg [@somaini2021twfem]                 |
++----------------------+---------------------------------------------------------------------------------------------+
+
+Alternatively, you can also do it manually or with the `plm` package, but you have to be careful with how the SEs are estimated
+
+```{r}
+library(multiwayvcov) # get vcov matrix 
+library(lmtest) # robust SEs estimation
+
+# manual
+output3 <- lm(l_homicide ~ post + factor(state) + factor(year),
+              data = df)
+
+# get variance-covariance matrix
+vcov_tw <- multiwayvcov::cluster.vcov(output3,
+                        cbind(df$state, df$year),
+                        use_white = F,
+                        df_correction = F)
+
+# get coefficients
+coeftest(output3, vcov_tw)[2,] 
+
+```
+
+```{r}
+# using the plm package
+library(plm)
+
+output4 <- plm(l_homicide ~ post, 
+               data = df, 
+               index = c("state", "year"), 
+               model = "within", 
+               effect = "twoways")
+
+# get coefficients
+coeftest(output4, vcov = vcovHC, type = "HC1")
+```
+
+As you can see, differences stem from SE estimation, not the coefficient estimate.
+
 ## Synthetic Control
 
 Examples in marketing:
@@ -1338,26 +1536,35 @@ Examples in marketing:
 -   [@guo2020]: payment disclosure laws effect on physician prescription behavior using Timing of the Massachusetts open payment law as the exogenous shock
 -   [@wang2019]: mobile hailing technology adoption on drivers' hourly earnings
 
-Synthetic control method (SCM) is a generalization of the [Difference-In-Differences] model
+Notes
 
-SCMs can also be used under the Bayesian framework where we do not have to impose any restrictive priori [@kim2020]
+-   Synthetic control method (SCM) is a generalization of the [Difference-in-differences] model
 
-Different from [Matching Methods] because SCMs match on the pre-treatment outcomes in each period while [Matching Methods] match on the number of covariates.
+-   For a review of the method, see [@abadie2021a]
 
-Advantages over [Difference-In-Differences]
+-   SCMs can also be used under the Bayesian framework where we do not have to impose any restrictive priori [@kim2020]
+
+-   Different from [Matching Methods] because SCMs match on the pre-treatment outcomes in each period while [Matching Methods] match on the number of covariates.
+
+-   A data driven procedure to construct more comparable control groups (i.e., black box).
+
+-   To do causal inference with control and treatment group using [Matching Methods], you typically have to have similar covariates in the control and the treated groups. However, if you don't methods like [Propensity Scores] and DID can perform rather poorly (i.e., large bias).
+
+Advantages over [Difference-in-differences]
 
 1.  Maximization of the observable similarity between control and treatment (maybe also unobservables)
 2.  Can also be used in cases where no untreated case with similar on matching dimensions with treated cases
 3.  Objective selection of controls.
 
-A data driven procedure to construct more comparable control groups (i.e., black box).
+Advantages over linear regression
 
-To do causal inference with control and treatment group using [Matching Methods], you typically have to have similar covariates in the control and the treated groups. However, if you don't methods like [Propensity Scores] and DID can perform rather poorly (i.e., large bias).
+-   Regression weights for the estimator will be outside of [0,1] (because regression allows extrapolation), and it will not be sparse (i.e., can be less than 0).
 
-SCM is recommended when
+-   No extrapalation under SCMs
 
-1.  Social events to evaluate large-scale program or policy
-2.  Only one treated case with several control candidates.
+-   Explicitly state the fit (i.e., the weight)
+
+-   Can be estimated without the post-treatment outcomes for the control group (can't p-hack)
 
 Advantages:
 
@@ -1368,6 +1575,11 @@ Advantages:
 Disadvantages:
 
 1.  It's hard to argue for the weights you use to create the "synthetic control"
+
+SCM is recommended when
+
+1.  Social events to evaluate large-scale program or policy
+2.  Only one treated case with several control candidates.
 
 <br>
 
@@ -1383,7 +1595,137 @@ Disadvantages:
 
 **Identification**: The exclusion restriction is met conditional on the pre-treatment outcomes.
 
-`Synth` provides an algorithm that finds weighted combination of the comparison units where the weights are chosen such that it best resembles the values of predictors of the outcome variable for the affected units before the intervention.
+`Synth` provides an algorithm that finds weighted combination of the comparison units where the weights are chosen such that it best resembles the values of predictors of the outcome variable for the affected units before the intervention
+
+Setting (notation followed professor [Alberto Abadie](https://conference.nber.org/confer/2021/SI2021/ML/AbadieSlides.pdf))
+
+-   $J + 1$ units in periods $1, \dots, T$
+
+-   The first unit is the treated one during $T_0 + 1, \dots, T$
+
+-   $J$ units are called a donor pool
+
+-   $Y_{it}^I$ is the outcome for unit $i$ if it's exposed to the treatment during $T_0 + 1 , \dots T$
+
+-   $Y_{it}^N$ is the outcome for unit $i$ if it's not exposed to the treatment
+
+We try to estimate the effect of treatment on the treated unit
+
+$$
+\tau_{1t} = Y_{1t}^I - Y_{1t}^N
+$$
+
+where we observe the first treated unit already $Y_{1t}^I = Y_{1t}$
+
+To construct the synthetic control unit, we have to find appropriate weight for each donor in the donor pool by finding $\mathbf{W} = (w_2, \dots, w_{J=1})'$ where
+
+-   $w_j \ge 0$ for $j = 2, \dots, J+1$
+
+-   $w_2 + \dots + w_{J+1} = 1$
+
+The "appropriate" vector $\mathbf{W}$ here is constrained to
+
+$$
+\min||\mathbf{X}_1 - \mathbf{X}_0 \mathbf{W}||
+$$
+
+where
+
+-   $\mathbf{X}_1$ is the $k \times 1$ vector of pre-treatment characteristics for the treated unit
+
+-   $\mathbf{X}_0$ is the $k \times J$ matrix of pre-treatment characteristics for the untreated units
+
+For simplicity, researchers usually use
+
+$$
+\min||\mathbf{X}_1 - \mathbf{X}_0 \mathbf{W}|| \\
+= (\sum_{h=1}^k v_h(X_{h1}- w_2 X-{h2} - \dots - w_{J+1} X_{hJ +1})^{1/2}
+$$
+
+where
+
+-   $v_1, \dots, v_k$ is a vector positive constants that represent the predictive power of the $k$ predictors on $Y_{1t}^N$ (i.e., the potential outcome of the treated without treatment) and it can be chosen either explicitly by the researcher or by data-driven methods
+
+For penalized synthetic control [@abadie2021], the minimization problem becomes
+
+$$
+\min_{\mathbf{W}} ||\mathbf{X}_1 - \sum_{j=2}^{J + 1}W_j \mathbf{X}_j ||^2 + \lambda \sum_{j=2}^{J+1} W_j ||\mathbf{X}_1 - \mathbf{X}_j||^2
+$$
+
+where
+
+-   $W_j \ge 0$ and $\sum_{j=2}^{J+1} W_j = 1$
+
+-   $\lambda >0$ balances over-fitting of the treated and minimize the sum of pairwise distances
+
+    -   $\lambda \to 0$: pure synthetic control (i.e solution for the unpernalized esitmator)
+
+    -   $\lambda \to \infty$: nearest neighbor matching
+
+Advantages:
+
+-   For $\lambda >0$, you have unique and sparse solution
+
+-   Reduces the interpolation bias when averaging dissimilar units
+
+-   Penalized SC never uses dissimilar units
+
+<br>
+
+Then the synthetic control estimator is
+
+$$
+\hat{\tau}_{1t} = Y_{1t} - \sum_{j=2}^{J+1} w_j^* Y_{jt}
+$$
+
+where $Y_{jt}$ is the outcome for unit $j$ at time $t$
+
+Consideration
+
+Under the factor model [@abadie2010]
+
+$$
+Y_{it}^N = \mathbf{\theta}_t \mathbf{Z}_i + \mathbf{\lambda}_t \mathbf{\mu}_i + \epsilon_{it}
+$$
+
+where
+
+-   $Z_i$ = observables
+
+-   $\mu_i$ = unobservables
+
+-   $\epsilon_{it}$ = unit-level transitory shock (i.e., random noise)
+
+with assumptions of $\mathbf{W}^*$ such that
+
+$$
+\begin{aligned}
+\sum_{j=2}^{J+1} w_j^* \mathbf{Z}_j  &= \mathbf{Z}_1 \\
+\dots \\
+\sum_{j=2}^{J+1} w_j^* Y_{j1} &= Y_{11} \\
+\sum_{j=2}^{J+1} w_j^* Y_{jT_0} &= Y_{1T_0}
+\end{aligned}
+$$
+
+Basically, we assume that the synthetic control is a good counterfactual when the treated unit is not exposed to the treatment.
+
+Then,
+
+-   the bias bound depends on close fit, which is controlled by the ratio between $\epsilon_{it}$ (transitory shock) and $T_0$ (the number of pre-treatment periods). In other words, you should have good fit for $Y_{1t}$ for pre-treatment period (i.e., $T_0$ should be large while small variance in $\epsilon_{it}$)
+
+-   When you have poor fit, you have to use bias correction version of the syntehtic control. See [@arkhangelsky2019; @abadie2021][@ben2020varying]
+
+-   Overfitting can be the result of small $T_0$ (the number of pre-treatment periods), large $J$ (the number of units in the donor pool), and large $\epsilon_{it}$ (noise)
+
+    -   Mitigation: put only similar units (to the treated one) in the donor pool
+
+To make inference, we have to create a permutation distribution (by iteratively reassigning the treatment to the units in the donor pool and estimate the placebo effects in each iteration). We say there is an effect of the treatment when the magnitude of value of the treatment effect on the treated unit is extreme relative to the permutation distribution.
+
+It's recommended to use one-sided inference. And the permutation distribution is superior to the p-values alone (because sampling-based inference is hard under SCMs either because of undefined sampling mechanism or the sample is the population).
+
+For benchmark (permutation) distribution (e.g., uniform), see [@firpo2018]
+
+<br>
 
 ### Example 1
 
@@ -1815,6 +2157,10 @@ sea2 <- microsynth(seattledmi,
                    perm=250, jack=TRUE,
                    n.cores = min(parallel::detectCores(), 2))
 ```
+
+## Synthetic Difference-in-differences
+
+reference: [@arkhangelsky2021]
 
 ## Selection on observables
 

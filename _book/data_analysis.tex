@@ -137,7 +137,7 @@
 
 \title{A Guide on Data Analysis}
 \author{Mike Nguyen}
-\date{2022-04-23}
+\date{2022-06-06}
 
 \begin{document}
 \maketitle
@@ -4635,6 +4635,8 @@ More elaboration with \texttt{ggplot2}
   \protect\hyperlink{two-sample-inference}{Two Sample Inference}\\
 \item
   \protect\hyperlink{categorical-data-analysis}{Categorical Data Analysis}
+\item
+  \protect\hyperlink{divergence-metrics-and-test-for-comparing-distributions}{Divergence Metrics and Test for Comparing Distributions}
 \end{itemize}
 
 \begin{itemize}
@@ -21069,7 +21071,7 @@ With measurement error in the independent, FE will exacerbate the errors-in-the-
 To deal with violation in \(c_i\), we have
 
 \[
-y_{it}= \mathbf{x_{it}\beta} + c_i + u_{it}
+y_{it}= \mathbf{x_{it} \beta} + c_i + u_{it}
 \]
 
 \[
@@ -32926,22 +32928,216 @@ There are four types of subjects that we deal with:
   \end{itemize}
 \end{itemize}
 
+\begin{longtable}[]{@{}lll@{}}
+\toprule
+& Treatment Assignment & Control Assignment \\
+\midrule
+\endhead
+Compliers & Treated & No Treated \\
+Always-takers & Treated & Treated \\
+Never-takers & Not treated & No treated \\
+Defiers & Not treated & Treated \\
+\bottomrule
+\end{longtable}
+
 Directional Bias due to selection into treatment comes from 2 general opposite sources
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
 \tightlist
 \item
-  Mitigation-based: select into treatment to combat a problem
+  \textbf{Mitigation-based}: select into treatment to combat a problem
 \item
-  Preference-based: select into treatment because units like that kind of treatment.
+  \textbf{Preference-based}: select into treatment because units like that kind of treatment.
 \end{enumerate}
+
+\hypertarget{treatment-effect-types}{%
+\section{Treatment effect types}\label{treatment-effect-types}}
+
+This section is based on \href{https://egap.org/resource/10-types-of-treatment-effect-you-should-know-about/}{Paul Testa's note on egap}
+
+Terminology:
+
+\begin{itemize}
+\item
+  Quantities of causal interest (i.e., treatment effect types)
+\item
+  Estimands: parameters of interest
+\item
+  Estimators: procedures to calculate hesitates for the parameters of interest
+\end{itemize}
+
+\hypertarget{average-treatment-effects}{%
+\subsection{Average Treatment Effects}\label{average-treatment-effects}}
+
+Average treatment effect (ATE) is the difference in means of the treated and control groups
+
+\textbf{Randomization} under \protect\hyperlink{experimental-design}{Experimental Design} can provide an unbiased estimate of ATE.
+
+Let \(Y_i(1)\) denote the outcome of individual \(i\) under treatment and
+
+\(Y_i(0)\) denote the outcome of individual \(i\) under control
+
+Then, the treatment effect for individual \(i\) is the difference between her outcome under treatment and control
+
+\[
+\tau_i = Y_i(1) - Y_i(0)
+\]
+
+Without a time machine or dimension portal, we can only observe one of the two event: either individual \(i\) experiences the treatment or she doesn't.
+
+Then, the ATE as a quantity of interest can come in handy since we can observe across all individuals
+
+\[
+ATE = \frac{1}{N} \sum_{i=1}^N \tau_i = \frac{\sum_1^N Y_i(1)}{N} - \frac{\sum_i^N Y_i(0)}{N}
+\]
+
+With random assignment (i.e., treatment assignment is independent of potential outcome and observables and unobservables), the observed means difference between the two groups is an unbiased estimator of the average treatment effect
+
+\[
+E(Y_i (1) |D = 1) = E(Y_i(1)|D=0) = E(Y_i(1)) \\
+E(Y_i(0) |D = 1) = E(Y_i(0)|D = 0 ) = E(Y_i(0))
+\]
+
+\[
+ATE = E(Y_i(1)) - E(Y_i(0))
+\]
+
+\hypertarget{conditional-average-treatment-effects}{%
+\subsection{Conditional Average Treatment Effects}\label{conditional-average-treatment-effects}}
+
+Treatment effects can be different for different groups of people. In words, treatment effects can vary across subgroups.
+
+To examine the heterogeneity across groups (e.g., men vs.~women), we can estimate the conditional average treatment effects (CATE) for each subgroup
+
+\[
+CATE = E(Y_i(1) - Y_i(0) |D_i, X_i))
+\]
+
+\hypertarget{intent-to-treat-effects}{%
+\subsection{Intent-to-treat Effects}\label{intent-to-treat-effects}}
+
+When we encounter non-compliance (either people suppose to receive treatment don't receive it, or people suppose to be in the control group receive the treatment), treatment receipt is not independent of potential outcomes and confounders.
+
+In this case, the difference in observed means between the treatment and control groups is not \protect\hyperlink{average-treatment-effects}{Average Treatment Effects}, but \protect\hyperlink{intent-to-treat-effects}{Intent-to-treat Effects} (ITT). In words, ITT is the treatment effect on those who \textbf{receive} the treatment
+
+\hypertarget{local-average-treatment-effects}{%
+\subsection{Local Average Treatment Effects}\label{local-average-treatment-effects}}
+
+Instead of estimating the treatment effects of those who \textbf{receive} the treatment (i.e., \protect\hyperlink{intent-to-treat-effects}{Intent-to-treat Effects}), you want to estimate the treatment effect of those who actually \textbf{comply} with the treatment. This is the local average treatment effects (LATE) or complier average causal effects (CACE). I assume we don't use CATE to denote complier average treatment effect because it was reserved for conditional average treatment effects.
+
+\begin{itemize}
+\tightlist
+\item
+  Using random treatment assignment as an instrument, we can recover the effect of treatment on compliers.
+\end{itemize}
+
+\includegraphics{images/iv_late.PNG}
+
+\begin{itemize}
+\item
+  As the percent of compliers increases, \protect\hyperlink{intent-to-treat-effects}{Intent-to-treat Effects} and \protect\hyperlink{local-average-treatment-effects}{Local Average Treatment Effects} converge
+\item
+  Rule of thumb: SE(LATE) = SE(ITT)/(share of compliers)
+\item
+  LATE estimate is always greater than the ITT estimate
+\item
+  LATE can also be estimated using a pure placebo group \citep{gerber2010}.
+\item
+  Partial compliance is hard to study, and IV/2SLS estimator is biased, we have to use Bayesian \citep{long2010, jin2009, jin2008}.
+\end{itemize}
+
+\hypertarget{one-sided-noncompliance}{%
+\subsubsection{One-sided noncompliance}\label{one-sided-noncompliance}}
+
+\begin{itemize}
+\item
+  One-sided noncompliance is when in the sample, we only have compliers and never-takers
+\item
+  With the exclusion restriction (i.e., excludability), never-takers have the same results in the treatment or control group (i.e., never treated)
+\item
+  With random assignment, we can have the same number of never-takers in the treatment and control groups
+\item
+  Hence,
+\end{itemize}
+
+\[
+LATE = \frac{ITT}{\text{share of compliers}}
+\]
+
+\hypertarget{two-sided-noncompliance}{%
+\subsubsection{Two-sided noncompliance}\label{two-sided-noncompliance}}
+
+\begin{itemize}
+\item
+  Two-sided noncompliance is when in the sample, we have compliers, never-takers, and always-takers
+\item
+  To estimate LATE, beyond excludability like in the \protect\hyperlink{one-sided-noncompliance}{One-sided noncompliance} case, we need to assume that there is no defiers (i.e., monotonicity assumption) (this is excusable in practical studies)
+\end{itemize}
+
+\[
+LATE = \frac{ITT}{\text{share of compliers}}
+\]
+
+\hypertarget{population-vs.-sample-average-treatment-effects}{%
+\subsection{Population vs.~Sample Average Treatment Effects}\label{population-vs.-sample-average-treatment-effects}}
+
+See \citep{imai2008} for when the sample average treatment effect (SATE) diverges from the population average treatment effect (PATE).
+
+\hypertarget{average-treatment-effects-on-the-treated-and-control}{%
+\subsection{Average Treatment Effects on the Treated and Control}\label{average-treatment-effects-on-the-treated-and-control}}
+
+Average Effect of treatment on the Treated (ATT) is
+
+\[
+ATT = E(Y_i(1) - Y_i(0)|D_i = 1) = E(Y_i(1)|D_i = 1) - E(Y_i(0) |D_i = 1)
+\]
+
+Average Effect of treatment on the Control (ATC) (i.e., the effect \textbf{would be} for those weren't treated) is
+
+\[
+ATC = E(Y_i(1) - Y_i (0) |D_i =0) = E(Y_i(1)|D_i = 0) - E(Y_i(0)|D_i = 0)
+\]
+
+Under random assignment and full compliance,
+
+\[
+ATE = ATT = ATC
+\]
+
+\hypertarget{quantile-average-treatment-effects}{%
+\subsection{Quantile Average Treatment Effects}\label{quantile-average-treatment-effects}}
+
+Instead of the middle point estimate (ATE), we can also understand the changes in the distirbuiton the outcome vairable due to the treatment.
+
+Using quantile regression and more assumptions \citep{abadie2002, chernozhukov2005}, we can have consisntent estimate of quantile treatment effects (QTE), with which we can make inference regarding a given quantile.
+
+\hypertarget{mediation-effects}{%
+\subsection{Mediation Effects}\label{mediation-effects}}
+
+With additional assumptions (i.e., squential ignorability \citep{Imai_2010_6060, bullock2010}), we can examine the mechanism of the treatment on the outcome.
+
+Under the causal framework,
+
+\begin{itemize}
+\item
+  the indirect effect of treatment via a mediator is called average causal mediation effect (ACME)
+\item
+  the direct effect of treatment on outcome is the average direct effect (ADE)
+\end{itemize}
+
+More in the \protect\hyperlink{mediation}{Mediation} Section \ref{mediation}
+
+\hypertarget{log-odds-treatment-effects}{%
+\subsection{Log-odds Treatment Effects}\label{log-odds-treatment-effects}}
+
+For binary outcome variable, we might be interested in the log-odds of success. See \citep{freedman2008} on how to estimate a consistent causal effect.
+
+Alternatively, attributable effects \citep{rosenbaum2002} can also be appropriate for binary outcome.
 
 This section is based on Bernard Koch's \href{https://www.youtube.com/watch?v=v9uf9rDYEMg\&ab_channel=SummerInstituteinComputationalSocialScience}{presentaiton} at SICSS - Los Angeles 2021
 
-Identification under Selection on observable/ back-door criterion
-
-Conditions:
+Sufficient identification assumption under Selection on observable/ back-door criterion
 
 \begin{itemize}
 \item
@@ -32972,42 +33168,20 @@ Conditions:
   \end{itemize}
 \end{itemize}
 
-Example
-
-We have
-
-\begin{itemize}
-\item
-  binary treatment \(T \in \{ 0,1\}\)
-\item
-  \(Y(1), Y(0)\) are the potential outcomes
-\item
-  The average treatment effect is
-\end{itemize}
-
-\[
-ATE = E(Y(1) - Y(0)) = E(\tau(x))
-\]
-
-\begin{itemize}
-\tightlist
-\item
-  The conditional average treatment effect is
-\end{itemize}
-
-\[
-CATE = \tau(x) = E(Y(1) - Y(0)|X = x)
-\]
-
-see \url{https://github.com/maxwshen/iap-cidl/blob/master/iap-cidl-lecture1_fredrik_potential_outcomes.pdf}
-
 \hypertarget{experimental-design}{%
 \chapter{Experimental Design}\label{experimental-design}}
 
 \begin{itemize}
 \tightlist
 \item
-  Randomized Control Trials (RCT) or Experiments have always been and are likely to continue in the future to be the holy grail of causal inference.
+  Randomized Control Trials (RCT) or Experiments have always been and are likely to continue in the future to be the holy grail of causal inference, because of
+
+  \begin{itemize}
+  \item
+    unbiased estimates
+  \item
+    elimination of confouding factors on average (covariate imbalance is always possible. Hence, you want to do \protect\hyperlink{rerandomization}{Rerandomization} to achieve platinum standard set by \citep{tukey1993})
+  \end{itemize}
 \item
   RCT means you have two group treatment (or experimental) gorp and control group. Hence, as you introduce the treatment (your exogenous variable) to the treatment group, the only expected difference in the outcomes of the two group should be due to the treatment.
 \item
@@ -33197,11 +33371,11 @@ Say that we have
 \textbf{10 win}
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2073}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1829}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2195}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2195}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1707}}@{}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}@{}}
 \toprule
 \begin{minipage}[b]{\linewidth}\raggedright
 Number students
@@ -33225,11 +33399,11 @@ Total effect
 \textbf{10 lose}
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2073}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1829}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2195}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2195}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1707}}@{}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}@{}}
 \toprule
 \begin{minipage}[b]{\linewidth}\raggedright
 Number students
@@ -33331,6 +33505,86 @@ E(\lambda) &\neq E(\lambda_1) && \text{because choosing a lottery is not random}
 
 Including \((X_i \theta)\) just shifts around control variables (i.e., reweighting of lottery), which would not affect your treatment effect \(E(\delta)\)
 
+\hypertarget{rerandomization}{%
+\section{Rerandomization}\label{rerandomization}}
+
+\begin{itemize}
+\item
+  Since randomization only balances baseline covariates on average, imbalance in covairates due to random chance can still happen.
+\item
+  In case that you have a ``bad'' randomization (i.e., imbalance for important baseline covariates), \citep{morgan2012} introduce the idea of rerandomization.
+\item
+  Rerandomization is checking balance during the randomization process (before the experiment), to eliminate bad allocation (i.e., those with unacceptable balance).
+\item
+  The greater the number of variables, the greater the likelihood that at least one covariate would be imbalanced across treatment groups.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Example: For 10 covariates, the probability of a significant difference at \(\alpha = .05\) for at least one covariate is \(1 - (1-.05)^{10} = 0.4 = 40\%\)
+  \end{itemize}
+\item
+  Rerandomization increase treatment effect estimate precision if the covariates are correlated with the outcome.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Improvement in precision for treatment effect estimate depends on (1) improvement in covariate balance and (2) correlation between covariates and the outcome.
+  \end{itemize}
+\item
+  You also need to take into account rerandomization into your analysis when making inference.
+\item
+  Rerandomization is equivalent to increasing our sample size.
+\item
+  Alternatives include
+
+  \begin{itemize}
+  \item
+    Stratified randomization \citep{johansson2022}
+  \item
+    Matched randomization \citep{greevy2004, kapelner2014}
+  \item
+    Minimization \citep{pocock1975, correcti1976}
+  \end{itemize}
+\end{itemize}
+
+\href{https://healthpolicy.usc.edu/evidence-base/rerandomization-what-is-it-and-why-should-you-use-it-for-random-assignment/}{\includegraphics{images/The-Randomization-Procedure.png}}
+
+Rerandomization Criterion
+
+\begin{itemize}
+\tightlist
+\item
+  Acceptable randomization is based on a function of covariate matrix \(\mathbf{X}\) and vector of treatment assignments \(\mathbf{W}\)
+\end{itemize}
+
+\[
+W_i = 
+\begin{cases}
+1 \text{ if treated} \\
+0 \text{ if control} 
+\end{cases}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  Mahalanobis Distance, \(M\), can be used as criteria for acceptable balance
+\end{itemize}
+
+Let \(M\) be the multivariate distance between groups means
+
+\[
+M = (\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)' cov(\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)^{-1} (\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C) \\
+= (\frac{1}{n_T}+ \frac{1}{n_C})^{-1}(\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)' cov(\mathbf{X})^{-1}(\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)
+\]
+
+With large sample size and ``pure'' randomization \(M \sim \chi^2_k\) where \(k\) is the number of covariates to be balanced
+
+Then let \(p_a\) be the probability of accepting a randomization. Choosing appropriate \(p_a\) is a tradeoff between balance and time.
+
+Then the rule of thumb is rerandoize when \(M > a\)
+
 \hypertarget{quasi-experimental}{%
 \chapter{Quasi-experimental}\label{quasi-experimental}}
 
@@ -33356,7 +33610,7 @@ A great resource for causal inference is \href{https://mixtape.scunning.com/intr
   \end{enumerate}
 \end{enumerate}
 
-All quasi-experimental methods involve tradeoff between power and support for the exogeniety assumption (i.e., discard variation in the data that is not exogenous).
+All quasi-experimental methods involve tradeoff between power and support for the exogeneity assumption (i.e., discard variation in the data that is not exogenous).
 
 Consequently, we don't usually look at \(R^2\) \citep{ebbes2011}. And it can even be misleading to use \(R^2\) as the basis for model comparison.
 
@@ -33368,7 +33622,7 @@ Typical robustness check: recommended by \citep{goldfarb2022}
 \item
   Different controls: show models with and without controls. Typically, we want to see the change in the estimate of interest. See \citep{altonji2005} for formal assessment based on Rosenbaum bounds (i.e., changes in the estimate and threat of Omitted variables on the estimate). For specific application in marketing, see \citep{manchanda2015} \citep{shin2012}
 \item
-  Different funcitonal forms
+  Different functional forms
 \item
   Different window of time (in longitudinal setting)
 \item
@@ -33412,7 +33666,7 @@ Limitation
 \def\labelenumi{\arabic{enumi}.}
 \tightlist
 \item
-  What is your idenifiying assumptions or idnetifaciton strategy
+  What is your identifying assumptions or identification strategy
 \item
   What are threats to the validity of your assumptions?
 \item
@@ -33496,10 +33750,29 @@ There are several types of Regression Discontinuity:
     Kink design: Instead of a discontinuity in the level of running variable, we have a discontinuity in the slope of the function (while the function/level can remain continuous) \citep{nielsen2010}. See \citep{böckerman2018} for application, and \citep{card2012, card2015b} for theory.
   \end{itemize}
 \item
+  Kink RD
+\item
   Fuzzy RD: Change in treatment probability less than 1
+\item
+  Fuzzy Kink RD
 \item
   RDiT: running variable is time.
 \end{enumerate}
+
+Others:
+
+\begin{itemize}
+\item
+  Multiple cutoff
+\item
+  Multiple Scores
+\item
+  Geographic RD
+\item
+  Dynamic Treatments
+\item
+  Continuous Treatments
+\end{itemize}
 
 Consider
 
@@ -33528,6 +33801,8 @@ where
 
 \textbf{Identification (Identifying assumption}s) of RD:
 
+Average Treatment Effect at the cutoff (continuity-based)
+
 \[
 \begin{aligned}
 \alpha_{SRDD} &= E[Y_{1i} - Y_{0i} | X_i = c] \\
@@ -33535,6 +33810,33 @@ where
 &= \lim_{x \to c^+} E[Y_{1i}|X_i = c] - \lim_{x \to c^=} E[Y_{0i}|X_i = c]
 \end{aligned}
 \]
+
+Average Treatment Effect in a neighborhood (Local Randomization-based):
+
+\[
+\begin{aligned}
+\alpha_{LR} &= E[Y_{1i} - Y_{0i}|X_i \in W] \\
+&= \frac{1}{N_1} \sum_{X_i \in W, T_i = 1}Y_i - \frac{1}{N_0}\sum_{X_i \in W, T_i =0} Y_i
+\end{aligned}
+\]
+
+Local Randomization Approach assumes that inside the chosen window \(W = [c-w, c+w]\) are assigned to treatment as good as random:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Joint probability distribution of scores for units inside the chosen window \(W\) is known
+\item
+  Potential outcomes are not affected by value of the score
+\end{enumerate}
+
+\[
+Y_i(0,x) = Y_i(0) \\
+Y_i(1,x) = Y_i(1)
+\]
+
+This approach is stronger than the continuity-based because we assume the regressions are continuously at \(c\) and unaffected by the running variable inside the chosen window \(W\)
 
 RDD estimates the local average treatment effect (LATE), at the cutoff point which is not at the individual or population levels.
 
@@ -33903,7 +34205,7 @@ The LATE parameter
 \lim_{c - \epsilon \le X \le c + \epsilon, \epsilon \to 0}( \frac{E(Y |Z = 1) - E(Y |Z=0)}{E(D|Z = 1) - E(D|Z = 0)})
 \]
 
-equivalently,
+equivalently, the canonical parameter:
 
 \[
 \frac{lim_{x \downarrow c}E(Y|X = x) - \lim_{x \uparrow c} E(Y|X = x)}{\lim_{x \downarrow c } E(D |X = x) - \lim_{x \uparrow c}E(D |X=x)}
@@ -33938,6 +34240,35 @@ Two equivalent ways to estimate
 \item
   Example: unemployment benefits
 \end{itemize}
+
+Sharp Kink RD parameter
+
+\[
+\alpha_{KRD} = \frac{\lim_{x \downarrow c} \frac{d}{dx}E[Y_i |X_i = x]- \lim_{x \uparrow c} \frac{d}{dx}E[Y_i |X_i = x]}{\lim_{x \downarrow c} \frac{d}{dx}b(x) - \lim_{x \uparrow c} \frac{d}{dx}b(x)}
+\]
+
+where \(b(x)\) is a known function inducing ``kink''
+
+Fuzzy Kink RD parameter
+
+\[
+\alpha_{KRD} = \frac{\lim_{x \downarrow c} \frac{d}{dx}E[Y_i |X_i = x]- \lim_{x \uparrow c} \frac{d}{dx}E[Y_i |X_i = x]}{\lim_{x \downarrow c} \frac{d}{dx}E[D_i |X_i = x]- \lim_{x \uparrow c} \frac{d}{dx}E[D_i |X_i = x]}
+\]
+
+\hypertarget{mutli-cutoff-multi-score-geographic-rd}{%
+\subsubsection{Mutli-cutoff, Multi-score, geographic RD}\label{mutli-cutoff-multi-score-geographic-rd}}
+
+Multi-cutoff
+
+\[
+E[Y_{1i} - Y_{0i}|X_i = x, C_i = c]
+\]
+
+Multi-score (in multiple dimensions) (e.g., math and English cutoff for certain honor class):
+
+\[
+E[Y_{1i} - Y_{0i}|X_{1i} = x_1, X_{2i} = x]
+\]
 
 \hypertarget{steps-for-sharp-rd}{%
 \subsection{Steps for Sharp RD}\label{steps-for-sharp-rd}}
@@ -34000,9 +34331,6 @@ Notes:
 \tightlist
 \item
   Additional assumption: Time-varying confounders change smoothly across the cutoff date
-\end{itemize}
-
-\begin{itemize}
 \item
   Typically used in policy implementation in the same date for all subjects, but can also be used for cases where implementation dates are different between subjects. In the second case, researchers typically use different RDiT specification for each time series.
 \item
@@ -34090,20 +34418,20 @@ Biases
   \item
     Need to use \textbf{clustered standard errors} to account for serial dependence in the residuals
   \item
-    In the case of serial dependence in \(\epsilon_{it}\), we don't have a solution, including a lagged dependnet vraible would misspecify the model (probablyfind another research project)
+    In the case of serial dependence in \(\epsilon_{it}\), we don't have a solution, including a lagged dependent variable would misspecify the model (probably find another research project)
   \item
-    In the case of seiral dependence in \(y_{it}\), with long window, it becomes fuzzy to what you try to recover. You can include the \textbf{lagged dependent varialbe} (bias can still come from the time-varying treatment or over-fitting of the global polynomial)
+    In the case of serial dependence in \(y_{it}\), with long window, it becomes fuzzy to what you try to recover. You can include the \textbf{lagged dependent variable} (bias can still come from the time-varying treatment or over-fitting of the global polynomial)
   \end{itemize}
 \item
   Sorting and Anticipation Effects
 
   \begin{itemize}
   \item
-    Cannot run the \citep{mccrary2008} because the density of the time runing vairable is uniform
+    Cannot run the \citep{mccrary2008} because the density of the time running variable is uniform
   \item
-    Can still run tests to check discontinuities in other covariates (you want no discontinuities) and discontinuitiesin the outocme vairalbe at other placebo thresholds ( you don't want discontinuities)
+    Can still run tests to check discontinuities in other covariates (you want no discontinuities) and discontinuities in the outcome variable at other placebo thresholds ( you don't want discontinuities)
   \item
-    Hence, it's hard to aruge for the causal effect here because it could be the total effect of the causal treatment and the unobserved sorting/anticipation/adaptation/avoidance effects. You can only argue that there is no such behavior
+    Hence, it's hard to argue for the causal effect here because it could be the total effect of the causal treatment and the unobserved sorting/anticipation/adaptation/avoidance effects. You can only argue that there is no such behavior
   \end{itemize}
 \end{itemize}
 
@@ -34123,16 +34451,16 @@ Recommendations for robustness check following \citep[p.~549]{hausman2018}
 \item
   Donut RD to see if avoiding the selection close to the cutoff would yield better results \citep{barreca2011}
 \item
-  Test for autoregression (using only pre-treatment data). If there is evidence for autoregression, include the lagged dpednetnvariable
+  Test for auto-regression (using only pre-treatment data). If there is evidence for autoregression, include the lagged dpednetn variable
 \item
-  Augmented local linear (no need to use global polynomail and avoid over-fitting)
+  Augmented local linear (no need to use global polynomial and avoid over-fitting)
 
   \begin{enumerate}
   \def\labelenumii{\arabic{enumii}.}
   \item
-    Use full sample to exclude the effect of important predicotrs
+    Use full sample to exclude the effect of important predictors
   \item
-    Estiamte the conditioned second stage on a smaller sample bandwidth
+    Estimate the conditioned second stage on a smaller sample bandwidth
   \end{enumerate}
 \end{enumerate}
 
@@ -34157,6 +34485,8 @@ econ
   \citep{anderson2014}: Traffic
 \item
   \citep{burger2014}: Car accidents
+\item
+  \citep{brodeur2021}: covid 19 lockdowns on well-being
 \end{itemize}
 
 marketing
@@ -34254,8 +34584,8 @@ Bandwidth of \(c\) (window)
   \end{itemize}
 \end{itemize}
 
-\hypertarget{examples}{%
-\subsection{Examples}\label{examples}}
+\hypertarget{applications}{%
+\subsection{Applications}\label{applications}}
 
 Examples in marketing:
 
@@ -34263,8 +34593,76 @@ Examples in marketing:
 \item
   \citep{narayanan2015}
 \item
-  \citep{hartmann2011a}: nonparametric estimation and guide to identifying causal marketing mix effects.
+  \citep{hartmann2011a}: nonparametric estimation and guide to identifying causal marketing mix effects
 \end{itemize}
+
+\href{https://rdpackages.github.io/}{Packages} in R (see \citep{thoemmes2016} for detailed comparisons): all can handle both sharp and fuzzy RD
+
+\begin{itemize}
+\item
+  \texttt{rdd}
+\item
+  \texttt{rdrobust}
+\item
+  \texttt{rddensity} discontinuity in density tests (\protect\hyperlink{sortingbunchingmanipulation}{Sorting/Bunching/Manipulation}) using local polynomials and binomial test
+\item
+  \texttt{rdlocrand} covariate balance, binomial tests, window selection
+\item
+  \texttt{rdmulti} multiple cutoffs and multiple scores
+\item
+  \texttt{rdpower} power, sample selection
+\item
+  \texttt{rddtools}
+\end{itemize}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1832}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1985}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2595}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3588}}@{}}
+\toprule
+\begin{minipage}[b]{\linewidth}\raggedright
+Package
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+rdd
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+rdrobust
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+rddtools
+\end{minipage} \\
+\midrule
+\endhead
+Coefficient estimator & Local linear regression & local polynomial regression & local polynomial regression \\
+bandwidth selectors & \citep{imbens2009} & \citep{calonico2014}
+
+\citep{imbens2010}
+
+\citep{ludwig2007}
+
+\citep{calonico2019, calonico2019a} & \citep{imbens2010} \\
+\begin{minipage}[t]{\linewidth}\raggedright
+Kernel functions
+
+\begin{itemize}
+\item
+  Triangular
+\item
+  Rectangular
+\end{itemize}
+\end{minipage} & Epanechnikov
+
+Gaussian & Epanechnikov & Gaussian \\
+Bias Correction & & Local polynomial regression & \\
+Covariate options & Include & Include & Include
+
+Residuals \\
+Assumptions testing & McCrary sorting & & McCrary sorting
+
+Equality of covariates distribution and mean \\
+\bottomrule
+\end{longtable}
+
+based on table 1 \citep{thoemmes2016} (p.~347)
 
 \hypertarget{example-1-1}{%
 \subsubsection{Example 1}\label{example-1-1}}
@@ -34476,7 +34874,7 @@ Replication of \citep{carpenter2009} by \href{https://rpubs.com/phle/r_tutorial_
 For a detailed application, see \citep{thoemmes2016} where they use \texttt{rdd}, \texttt{rdrobust}, \texttt{rddtools}
 
 \hypertarget{difference-in-differences}{%
-\section{Difference-In-Differences}\label{difference-in-differences}}
+\section{Difference-in-differences}\label{difference-in-differences}}
 
 Examples in marketing
 
@@ -34502,6 +34900,10 @@ Examples in marketing
   \citep{israeli2018}: digital monitoring and enforcement on violations using enforcement of min ad price policies
 \item
   \citep{ramani2019}: firms respond to foreign direct investment liberalization using India's reform in 1991.
+\item
+  \citep{he2022}: using Aamzon policy change to examine the causal impact of fake reviews on sales, average ratings.
+\item
+  \citep{peukert2022}: using European General data proection Regulation, examien the impact of policy change on website usage.
 \end{itemize}
 
 Show the mechanism via
@@ -34820,8 +35222,8 @@ Alternatively,
   \end{itemize}
 \end{itemize}
 
-\hypertarget{examples-1}{%
-\subsubsection{Examples}\label{examples-1}}
+\hypertarget{examples}{%
+\subsubsection{Examples}\label{examples}}
 
 \hypertarget{example-from-princeton}{%
 \paragraph{\texorpdfstring{Example from \href{https://www.princeton.edu/~otorres/DID101R.pdf}{Princeton}}{Example from Princeton}}\label{example-from-princeton}}
@@ -35238,6 +35640,114 @@ Example by \href{https://rpubs.com/phle/r_tutorial_difference_in_differences}{Ph
 
 Example by \href{https://bookdown.org/aschmi11/causal_inf/difference-in-differences.html}{Anthony Schmidt}
 
+\hypertarget{two-way-fixed-effects}{%
+\subsection{Two-way Fixed-effects}\label{two-way-fixed-effects}}
+
+A generalization of the dif-n-dif model is the two-way fixed-effects models where you have multiple groups and time effects.
+
+This package is based on \citep{somaini2016}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# dataset}
+\FunctionTok{library}\NormalTok{(bacondecomp)}
+\NormalTok{df }\OtherTok{\textless{}{-}}\NormalTok{ bacondecomp}\SpecialCharTok{::}\NormalTok{castle}
+
+\FunctionTok{library}\NormalTok{(xtreg2way)}
+\CommentTok{\# output \textless{}{-} xtreg2way(y,}
+\CommentTok{\#                     data.frame(x1, x2),}
+\CommentTok{\#                     iid,}
+\CommentTok{\#                     tid,}
+\CommentTok{\#                     w,}
+\CommentTok{\#                     noise = "1",}
+\CommentTok{\#                     se = "1")}
+
+\CommentTok{\# equilvalently}
+\NormalTok{output }\OtherTok{\textless{}{-}} \FunctionTok{xtreg2way}\NormalTok{(l\_homicide }\SpecialCharTok{\textasciitilde{}}\NormalTok{ post,}
+\NormalTok{                    df,}
+                    \AttributeTok{iid =}\NormalTok{ df}\SpecialCharTok{$}\NormalTok{state, }\CommentTok{\# group id}
+                    \AttributeTok{tid =}\NormalTok{ df}\SpecialCharTok{$}\NormalTok{year, }\CommentTok{\# time id}
+                    \CommentTok{\# w, \# vector of weight}
+                    \AttributeTok{se =} \StringTok{"1"}\NormalTok{)}
+\NormalTok{output}\SpecialCharTok{$}\NormalTok{betaHat}
+\CommentTok{\#\textgreater{}                  [,1]}
+\CommentTok{\#\textgreater{} l\_homicide 0.08181162}
+\NormalTok{output}\SpecialCharTok{$}\NormalTok{aVarHat}
+\CommentTok{\#\textgreater{}             [,1]}
+\CommentTok{\#\textgreater{} [1,] 0.003751709}
+
+\CommentTok{\# to save time, you can use your structure in the last output for a new set of variables}
+\CommentTok{\# output2 \textless{}{-} xtreg2way(y, x1, struc=output$struc)}
+\end{Highlighting}
+\end{Shaded}
+
+Standard errors estimation options
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.1966}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.8034}}@{}}
+\toprule
+\begin{minipage}[b]{\linewidth}\raggedright
+Set
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Estimation
+\end{minipage} \\
+\midrule
+\endhead
+\texttt{se\ =\ "0"} & Assume homoskedasticity and no within group correlation or serial correlation \\
+\texttt{se\ =\ "1"} (default) & robust to heteroskadasticity and serial correlation \citep{arellano1987computing} \\
+\texttt{se\ =\ "2"} & robust to heteroskedasticity, but assumes no correlation within group or serial correlation \\
+\texttt{se\ =\ "11"} & Aerllano SE with df correction performed by Stata xtreg \citep{somaini2021twfem} \\
+\bottomrule
+\end{longtable}
+
+Alternatively, you can also do it manually or with the \texttt{plm} package, but you have to be careful with how the SEs are estimated
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(multiwayvcov) }\CommentTok{\# get vcov matrix }
+\FunctionTok{library}\NormalTok{(lmtest) }\CommentTok{\# robust SEs estimation}
+
+\CommentTok{\# manual}
+\NormalTok{output3 }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(l\_homicide }\SpecialCharTok{\textasciitilde{}}\NormalTok{ post }\SpecialCharTok{+} \FunctionTok{factor}\NormalTok{(state) }\SpecialCharTok{+} \FunctionTok{factor}\NormalTok{(year),}
+              \AttributeTok{data =}\NormalTok{ df)}
+
+\CommentTok{\# get variance{-}covariance matrix}
+\NormalTok{vcov\_tw }\OtherTok{\textless{}{-}}\NormalTok{ multiwayvcov}\SpecialCharTok{::}\FunctionTok{cluster.vcov}\NormalTok{(output3,}
+                        \FunctionTok{cbind}\NormalTok{(df}\SpecialCharTok{$}\NormalTok{state, df}\SpecialCharTok{$}\NormalTok{year),}
+                        \AttributeTok{use\_white =}\NormalTok{ F,}
+                        \AttributeTok{df\_correction =}\NormalTok{ F)}
+
+\CommentTok{\# get coefficients}
+\FunctionTok{coeftest}\NormalTok{(output3, vcov\_tw)[}\DecValTok{2}\NormalTok{,] }
+\CommentTok{\#\textgreater{}   Estimate Std. Error    t value   Pr(\textgreater{}|t|) }
+\CommentTok{\#\textgreater{} 0.08181162 0.05671410 1.44252696 0.14979397}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# using the plm package}
+\FunctionTok{library}\NormalTok{(plm)}
+
+\NormalTok{output4 }\OtherTok{\textless{}{-}} \FunctionTok{plm}\NormalTok{(l\_homicide }\SpecialCharTok{\textasciitilde{}}\NormalTok{ post, }
+               \AttributeTok{data =}\NormalTok{ df, }
+               \AttributeTok{index =} \FunctionTok{c}\NormalTok{(}\StringTok{"state"}\NormalTok{, }\StringTok{"year"}\NormalTok{), }
+               \AttributeTok{model =} \StringTok{"within"}\NormalTok{, }
+               \AttributeTok{effect =} \StringTok{"twoways"}\NormalTok{)}
+
+\CommentTok{\# get coefficients}
+\FunctionTok{coeftest}\NormalTok{(output4, }\AttributeTok{vcov =}\NormalTok{ vcovHC, }\AttributeTok{type =} \StringTok{"HC1"}\NormalTok{)}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} t test of coefficients:}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{}      Estimate Std. Error t value Pr(\textgreater{}|t|)}
+\CommentTok{\#\textgreater{} post 0.081812   0.057748  1.4167   0.1572}
+\end{Highlighting}
+\end{Shaded}
+
+As you can see, differences stem from SE estimation, not the coefficient estimate.
+
 \hypertarget{synthetic-control}{%
 \section{Synthetic Control}\label{synthetic-control}}
 
@@ -35253,13 +35763,24 @@ Examples in marketing:
   \citep{wang2019}: mobile hailing technology adoption on drivers' hourly earnings
 \end{itemize}
 
-Synthetic control method (SCM) is a generalization of the \protect\hyperlink{difference-in-differences}{Difference-In-Differences} model
+Notes
 
-SCMs can also be used under the Bayesian framework where we do not have to impose any restrictive priori \citep{kim2020}
+\begin{itemize}
+\item
+  Synthetic control method (SCM) is a generalization of the \protect\hyperlink{difference-in-differences}{Difference-in-differences} model
+\item
+  For a review of the method, see \citep{abadie2021a}
+\item
+  SCMs can also be used under the Bayesian framework where we do not have to impose any restrictive priori \citep{kim2020}
+\item
+  Different from \protect\hyperlink{matching-methods}{Matching Methods} because SCMs match on the pre-treatment outcomes in each period while \protect\hyperlink{matching-methods}{Matching Methods} match on the number of covariates.
+\item
+  A data driven procedure to construct more comparable control groups (i.e., black box).
+\item
+  To do causal inference with control and treatment group using \protect\hyperlink{matching-methods}{Matching Methods}, you typically have to have similar covariates in the control and the treated groups. However, if you don't methods like \protect\hyperlink{propensity-scores}{Propensity Scores} and DID can perform rather poorly (i.e., large bias).
+\end{itemize}
 
-Different from \protect\hyperlink{matching-methods}{Matching Methods} because SCMs match on the pre-treatment outcomes in each period while \protect\hyperlink{matching-methods}{Matching Methods} match on the number of covariates.
-
-Advantages over \protect\hyperlink{difference-in-differences}{Difference-In-Differences}
+Advantages over \protect\hyperlink{difference-in-differences}{Difference-in-differences}
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -35272,20 +35793,18 @@ Advantages over \protect\hyperlink{difference-in-differences}{Difference-In-Diff
   Objective selection of controls.
 \end{enumerate}
 
-A data driven procedure to construct more comparable control groups (i.e., black box).
+Advantages over linear regression
 
-To do causal inference with control and treatment group using \protect\hyperlink{matching-methods}{Matching Methods}, you typically have to have similar covariates in the control and the treated groups. However, if you don't methods like \protect\hyperlink{propensity-scores}{Propensity Scores} and DID can perform rather poorly (i.e., large bias).
-
-SCM is recommended when
-
-\begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\tightlist
+\begin{itemize}
 \item
-  Social events to evaluate large-scale program or policy
+  Regression weights for the estimator will be outside of {[}0,1{]} (because regression allows extrapolation), and it will not be sparse (i.e., can be less than 0).
 \item
-  Only one treated case with several control candidates.
-\end{enumerate}
+  No extrapalation under SCMs
+\item
+  Explicitly state the fit (i.e., the weight)
+\item
+  Can be estimated without the post-treatment outcomes for the control group (can't p-hack)
+\end{itemize}
 
 Advantages:
 
@@ -35309,6 +35828,17 @@ Disadvantages:
   It's hard to argue for the weights you use to create the ``synthetic control''
 \end{enumerate}
 
+SCM is recommended when
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Social events to evaluate large-scale program or policy
+\item
+  Only one treated case with several control candidates.
+\end{enumerate}
+
 \textbf{Assumptions}
 
 \begin{itemize}
@@ -35324,7 +35854,165 @@ Disadvantages:
 
 \textbf{Identification}: The exclusion restriction is met conditional on the pre-treatment outcomes.
 
-\texttt{Synth} provides an algorithm that finds weighted combination of the comparison units where the weights are chosen such that it best resembles the values of predictors of the outcome variable for the affected units before the intervention.
+\texttt{Synth} provides an algorithm that finds weighted combination of the comparison units where the weights are chosen such that it best resembles the values of predictors of the outcome variable for the affected units before the intervention
+
+Setting (notation followed professor \href{https://conference.nber.org/confer/2021/SI2021/ML/AbadieSlides.pdf}{Alberto Abadie})
+
+\begin{itemize}
+\item
+  \(J + 1\) units in periods \(1, \dots, T\)
+\item
+  The first unit is the treated one during \(T_0 + 1, \dots, T\)
+\item
+  \(J\) units are called a donor pool
+\item
+  \(Y_{it}^I\) is the outcome for unit \(i\) if it's exposed to the treatment during \(T_0 + 1 , \dots T\)
+\item
+  \(Y_{it}^N\) is the outcome for unit \(i\) if it's not exposed to the treatment
+\end{itemize}
+
+We try to estimate the effect of treatment on the treated unit
+
+\[
+\tau_{1t} = Y_{1t}^I - Y_{1t}^N
+\]
+
+where we observe the first treated unit already \(Y_{1t}^I = Y_{1t}\)
+
+To construct the synthetic control unit, we have to find appropriate weight for each donor in the donor pool by finding \(\mathbf{W} = (w_2, \dots, w_{J=1})'\) where
+
+\begin{itemize}
+\item
+  \(w_j \ge 0\) for \(j = 2, \dots, J+1\)
+\item
+  \(w_2 + \dots + w_{J+1} = 1\)
+\end{itemize}
+
+The ``appropriate'' vector \(\mathbf{W}\) here is constrained to
+
+\[
+\min||\mathbf{X}_1 - \mathbf{X}_0 \mathbf{W}||
+\]
+
+where
+
+\begin{itemize}
+\item
+  \(\mathbf{X}_1\) is the \(k \times 1\) vector of pre-treatment characteristics for the treated unit
+\item
+  \(\mathbf{X}_0\) is the \(k \times J\) matrix of pre-treatment characteristics for the untreated units
+\end{itemize}
+
+For simplicity, researchers usually use
+
+\[
+\min||\mathbf{X}_1 - \mathbf{X}_0 \mathbf{W}|| \\
+= (\sum_{h=1}^k v_h(X_{h1}- w_2 X-{h2} - \dots - w_{J+1} X_{hJ +1})^{1/2}
+\]
+
+where
+
+\begin{itemize}
+\tightlist
+\item
+  \(v_1, \dots, v_k\) is a vector positive constants that represent the predictive power of the \(k\) predictors on \(Y_{1t}^N\) (i.e., the potential outcome of the treated without treatment) and it can be chosen either explicitly by the researcher or by data-driven methods
+\end{itemize}
+
+For penalized synthetic control \citep{abadie2021}, the minimization problem becomes
+
+\[
+\min_{\mathbf{W}} ||\mathbf{X}_1 - \sum_{j=2}^{J + 1}W_j \mathbf{X}_j ||^2 + \lambda \sum_{j=2}^{J+1} W_j ||\mathbf{X}_1 - \mathbf{X}_j||^2
+\]
+
+where
+
+\begin{itemize}
+\item
+  \(W_j \ge 0\) and \(\sum_{j=2}^{J+1} W_j = 1\)
+\item
+  \(\lambda >0\) balances over-fitting of the treated and minimize the sum of pairwise distances
+
+  \begin{itemize}
+  \item
+    \(\lambda \to 0\): pure synthetic control (i.e solution for the unpernalized esitmator)
+  \item
+    \(\lambda \to \infty\): nearest neighbor matching
+  \end{itemize}
+\end{itemize}
+
+Advantages:
+
+\begin{itemize}
+\item
+  For \(\lambda >0\), you have unique and sparse solution
+\item
+  Reduces the interpolation bias when averaging dissimilar units
+\item
+  Penalized SC never uses dissimilar units
+\end{itemize}
+
+Then the synthetic control estimator is
+
+\[
+\hat{\tau}_{1t} = Y_{1t} - \sum_{j=2}^{J+1} w_j^* Y_{jt}
+\]
+
+where \(Y_{jt}\) is the outcome for unit \(j\) at time \(t\)
+
+Consideration
+
+Under the factor model \citep{abadie2010}
+
+\[
+Y_{it}^N = \mathbf{\theta}_t \mathbf{Z}_i + \mathbf{\lambda}_t \mathbf{\mu}_i + \epsilon_{it}
+\]
+
+where
+
+\begin{itemize}
+\item
+  \(Z_i\) = observables
+\item
+  \(\mu_i\) = unobservables
+\item
+  \(\epsilon_{it}\) = unit-level transitory shock (i.e., random noise)
+\end{itemize}
+
+with assumptions of \(\mathbf{W}^*\) such that
+
+\[
+\begin{aligned}
+\sum_{j=2}^{J+1} w_j^* \mathbf{Z}_j  &= \mathbf{Z}_1 \\
+\dots \\
+\sum_{j=2}^{J+1} w_j^* Y_{j1} &= Y_{11} \\
+\sum_{j=2}^{J+1} w_j^* Y_{jT_0} &= Y_{1T_0}
+\end{aligned}
+\]
+
+Basically, we assume that the synthetic control is a good counterfactual when the treated unit is not exposed to the treatment.
+
+Then,
+
+\begin{itemize}
+\item
+  the bias bound depends on close fit, which is controlled by the ratio between \(\epsilon_{it}\) (transitory shock) and \(T_0\) (the number of pre-treatment periods). In other words, you should have good fit for \(Y_{1t}\) for pre-treatment period (i.e., \(T_0\) should be large while small variance in \(\epsilon_{it}\))
+\item
+  When you have poor fit, you have to use bias correction version of the syntehtic control. See {[}\citet{arkhangelsky2019}; \citet{abadie2021}{]}\citep{ben2020varying}
+\item
+  Overfitting can be the result of small \(T_0\) (the number of pre-treatment periods), large \(J\) (the number of units in the donor pool), and large \(\epsilon_{it}\) (noise)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Mitigation: put only similar units (to the treated one) in the donor pool
+  \end{itemize}
+\end{itemize}
+
+To make inference, we have to create a permutation distribution (by iteratively reassigning the treatment to the units in the donor pool and estimate the placebo effects in each iteration). We say there is an effect of the treatment when the magnitude of value of the treatment effect on the treated unit is extreme relative to the permutation distribution.
+
+It's recommended to use one-sided inference. And the permutation distribution is superior to the p-values alone (because sampling-based inference is hard under SCMs either because of undefined sampling mechanism or the sample is the population).
+
+For benchmark (permutation) distribution (e.g., uniform), see \citep{firpo2018}
 
 \hypertarget{example-1-2}{%
 \subsection{Example 1}\label{example-1-2}}
@@ -35466,7 +36154,7 @@ simulate data for 10 states and 30 years. State A receives the treatment \texttt
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-17-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-20-1} \end{center}
 
 Gaps plot:
 
@@ -35485,7 +36173,7 @@ Gaps plot:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-18-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-21-1} \end{center}
 
 Alternatively, \texttt{gsynth} provides options to estimate iterative fixed effects, and handle multiple treated units at tat time.
 
@@ -35528,7 +36216,7 @@ Here, we use two=way fixed effects and bootstrapped standard errors
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-20-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-23-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -35536,7 +36224,7 @@ Here, we use two=way fixed effects and bootstrapped standard errors
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-21-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-24-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -35544,7 +36232,7 @@ Here, we use two=way fixed effects and bootstrapped standard errors
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-22-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-25-1} \end{center}
 
 \hypertarget{example-2-1}{%
 \subsection{Example 2}\label{example-2-1}}
@@ -35736,7 +36424,7 @@ Relative importance of each unit
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-29-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-32-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -35751,7 +36439,7 @@ Relative importance of each unit
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-30-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-33-1} \end{center}
 
 Doubly Robust Difference-in-Differences
 
@@ -35923,7 +36611,7 @@ find optimal weights that identifies the synthetic control for the treatment gro
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-38-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-41-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -35938,7 +36626,7 @@ find optimal weights that identifies the synthetic control for the treatment gro
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-39-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-42-1} \end{center}
 
 You could also run placebo tests
 
@@ -36102,13 +36790,13 @@ Notes:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-42-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-45-1} \end{center}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-42-2} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-45-2} \end{center}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-42-3} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-45-3} \end{center}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-42-4} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-45-4} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -36122,6 +36810,11 @@ Notes:
                    \AttributeTok{n.cores =} \FunctionTok{min}\NormalTok{(parallel}\SpecialCharTok{::}\FunctionTok{detectCores}\NormalTok{(), }\DecValTok{2}\NormalTok{))}
 \end{Highlighting}
 \end{Shaded}
+
+\hypertarget{synthetic-difference-in-differences}{%
+\section{Synthetic Difference-in-differences}\label{synthetic-difference-in-differences}}
+
+reference: \citep{arkhangelsky2021}
 
 \hypertarget{selection-on-observables}{%
 \section{Selection on observables}\label{selection-on-observables}}
@@ -36971,7 +37664,7 @@ examine \texttt{treat} on \texttt{re78}
 \CommentTok{\#\textgreater{}  {-} method: 1:1 nearest neighbor matching without replacement}
 \CommentTok{\#\textgreater{}  {-} distance: Propensity score}
 \CommentTok{\#\textgreater{}              {-} estimated with logistic regression}
-\CommentTok{\#\textgreater{}  {-} number of obs.: 614 (original), 370 (matched)}
+\CommentTok{\#\textgreater{}  {-} number of obs.: 445 (original), 370 (matched)}
 \CommentTok{\#\textgreater{}  {-} target estimand: ATT}
 \CommentTok{\#\textgreater{}  {-} covariates: age, educ}
 \end{Highlighting}
@@ -36998,19 +37691,19 @@ Sometimes you have to make trade-off between balance and sample size.
 \CommentTok{\#\textgreater{} }
 \CommentTok{\#\textgreater{} Summary of Balance for Matched Data:}
 \CommentTok{\#\textgreater{}          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean}
-\CommentTok{\#\textgreater{} distance        0.3080        0.3077          0.0094     0.9963    0.0033}
-\CommentTok{\#\textgreater{} age            25.8162       25.8649         {-}0.0068     1.0300    0.0050}
-\CommentTok{\#\textgreater{} educ           10.3459       10.2865          0.0296     0.5886    0.0253}
+\CommentTok{\#\textgreater{} distance        0.4203        0.4179          0.0520     1.1691    0.0105}
+\CommentTok{\#\textgreater{} age            25.8162       25.5081          0.0431     1.1518    0.0148}
+\CommentTok{\#\textgreater{} educ           10.3459       10.2811          0.0323     1.5138    0.0224}
 \CommentTok{\#\textgreater{}          eCDF Max Std. Pair Dist.}
-\CommentTok{\#\textgreater{} distance   0.0432          0.0146}
-\CommentTok{\#\textgreater{} age        0.0162          0.0597}
-\CommentTok{\#\textgreater{} educ       0.1189          0.8146}
+\CommentTok{\#\textgreater{} distance   0.0595          0.0598}
+\CommentTok{\#\textgreater{} age        0.0486          0.5628}
+\CommentTok{\#\textgreater{} educ       0.0757          0.3602}
 \CommentTok{\#\textgreater{} }
 \CommentTok{\#\textgreater{} Sample Sizes:}
 \CommentTok{\#\textgreater{}           Control Treated}
-\CommentTok{\#\textgreater{} All           429     185}
+\CommentTok{\#\textgreater{} All           260     185}
 \CommentTok{\#\textgreater{} Matched       185     185}
-\CommentTok{\#\textgreater{} Unmatched     244       0}
+\CommentTok{\#\textgreater{} Unmatched      75       0}
 \CommentTok{\#\textgreater{} Discarded       0       0}
 
 \CommentTok{\# examine visually}
@@ -37018,7 +37711,7 @@ Sometimes you have to make trade-off between balance and sample size.
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-47-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-50-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -37032,7 +37725,7 @@ Sometimes you have to make trade-off between balance and sample size.
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-47-2} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-50-2} \end{center}
 
 Try Full Match (i.e., every treated matches with one control, and every control with one treated).
 
@@ -37049,7 +37742,7 @@ Try Full Match (i.e., every treated matches with one control, and every control 
 \CommentTok{\#\textgreater{}  {-} method: Optimal full matching}
 \CommentTok{\#\textgreater{}  {-} distance: Propensity score}
 \CommentTok{\#\textgreater{}              {-} estimated with probit regression}
-\CommentTok{\#\textgreater{}  {-} number of obs.: 614 (original), 614 (matched)}
+\CommentTok{\#\textgreater{}  {-} number of obs.: 445 (original), 445 (matched)}
 \CommentTok{\#\textgreater{}  {-} target estimand: ATT}
 \CommentTok{\#\textgreater{}  {-} covariates: age, educ}
 \end{Highlighting}
@@ -37068,19 +37761,19 @@ Checking balance again
 \CommentTok{\#\textgreater{} }
 \CommentTok{\#\textgreater{} Summary of Balance for Matched Data:}
 \CommentTok{\#\textgreater{}          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean}
-\CommentTok{\#\textgreater{} distance        0.3082        0.3082          0.0015     0.9837    0.0042}
-\CommentTok{\#\textgreater{} age            25.8162       25.8670         {-}0.0071     0.9966    0.0064}
-\CommentTok{\#\textgreater{} educ           10.3459       10.4669         {-}0.0602     0.4703    0.0416}
+\CommentTok{\#\textgreater{} distance        0.4203        0.4198          0.0114     1.0326    0.0035}
+\CommentTok{\#\textgreater{} age            25.8162       25.9285         {-}0.0157     0.9139    0.0125}
+\CommentTok{\#\textgreater{} educ           10.3459       10.2973          0.0242     1.4232    0.0189}
 \CommentTok{\#\textgreater{}          eCDF Max Std. Pair Dist.}
-\CommentTok{\#\textgreater{} distance   0.0270          0.0453}
-\CommentTok{\#\textgreater{} age        0.0264          0.1369}
-\CommentTok{\#\textgreater{} educ       0.1613          1.3057}
+\CommentTok{\#\textgreater{} distance    0.027          0.0169}
+\CommentTok{\#\textgreater{} age         0.037          0.5230}
+\CommentTok{\#\textgreater{} educ        0.072          0.3603}
 \CommentTok{\#\textgreater{} }
 \CommentTok{\#\textgreater{} Sample Sizes:}
 \CommentTok{\#\textgreater{}               Control Treated}
-\CommentTok{\#\textgreater{} All            429.       185}
-\CommentTok{\#\textgreater{} Matched (ESS)  216.09     185}
-\CommentTok{\#\textgreater{} Matched        429.       185}
+\CommentTok{\#\textgreater{} All            260.       185}
+\CommentTok{\#\textgreater{} Matched (ESS)  154.33     185}
+\CommentTok{\#\textgreater{} Matched        260.       185}
 \CommentTok{\#\textgreater{} Unmatched        0.         0}
 \CommentTok{\#\textgreater{} Discarded        0.         0}
 
@@ -37088,7 +37781,7 @@ Checking balance again
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-49-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-52-1} \end{center}
 
 Exact Matching
 
@@ -37104,7 +37797,7 @@ Exact Matching
 \NormalTok{m.out3}
 \CommentTok{\#\textgreater{} A matchit object}
 \CommentTok{\#\textgreater{}  {-} method: Exact matching}
-\CommentTok{\#\textgreater{}  {-} number of obs.: 614 (original), 332 (matched)}
+\CommentTok{\#\textgreater{}  {-} number of obs.: 445 (original), 319 (matched)}
 \CommentTok{\#\textgreater{}  {-} target estimand: ATT}
 \CommentTok{\#\textgreater{}  {-} covariates: age, educ}
 \end{Highlighting}
@@ -37124,7 +37817,7 @@ Subclassfication
 \CommentTok{\#\textgreater{}  {-} method: Subclassification (6 subclasses)}
 \CommentTok{\#\textgreater{}  {-} distance: Propensity score}
 \CommentTok{\#\textgreater{}              {-} estimated with logistic regression}
-\CommentTok{\#\textgreater{}  {-} number of obs.: 614 (original), 614 (matched)}
+\CommentTok{\#\textgreater{}  {-} number of obs.: 445 (original), 445 (matched)}
 \CommentTok{\#\textgreater{}  {-} target estimand: ATT}
 \CommentTok{\#\textgreater{}  {-} covariates: age, educ}
 
@@ -37140,7 +37833,7 @@ Subclassfication
 \CommentTok{\#\textgreater{}  {-} method: 1:1 nearest neighbor matching without replacement}
 \CommentTok{\#\textgreater{}  {-} distance: Propensity score}
 \CommentTok{\#\textgreater{}              {-} estimated with logistic regression}
-\CommentTok{\#\textgreater{}  {-} number of obs.: 614 (original), 370 (matched)}
+\CommentTok{\#\textgreater{}  {-} number of obs.: 445 (original), 370 (matched)}
 \CommentTok{\#\textgreater{}  {-} target estimand: ATT}
 \CommentTok{\#\textgreater{}  {-} covariates: age, educ}
 \end{Highlighting}
@@ -37161,7 +37854,7 @@ Optimal Matching
 \CommentTok{\#\textgreater{}  {-} method: 2:1 optimal pair matching}
 \CommentTok{\#\textgreater{}  {-} distance: Propensity score}
 \CommentTok{\#\textgreater{}              {-} estimated with logistic regression}
-\CommentTok{\#\textgreater{}  {-} number of obs.: 614 (original), 555 (matched)}
+\CommentTok{\#\textgreater{}  {-} number of obs.: 445 (original), 445 (matched)}
 \CommentTok{\#\textgreater{}  {-} target estimand: ATT}
 \CommentTok{\#\textgreater{}  {-} covariates: age, educ}
 \end{Highlighting}
@@ -37181,7 +37874,7 @@ Genetic Matching
 \CommentTok{\#\textgreater{}  {-} method: 1:1 genetic matching without replacement}
 \CommentTok{\#\textgreater{}  {-} distance: Propensity score}
 \CommentTok{\#\textgreater{}              {-} estimated with logistic regression}
-\CommentTok{\#\textgreater{}  {-} number of obs.: 614 (original), 370 (matched)}
+\CommentTok{\#\textgreater{}  {-} number of obs.: 445 (original), 370 (matched)}
 \CommentTok{\#\textgreater{}  {-} target estimand: ATT}
 \CommentTok{\#\textgreater{}  {-} covariates: age, educ}
 \end{Highlighting}
@@ -37201,20 +37894,20 @@ Genetic Matching
 \NormalTok{m.data1 }\OtherTok{\textless{}{-}} \FunctionTok{match.data}\NormalTok{(m.out1)}
 
 \FunctionTok{head}\NormalTok{(m.data1)}
-\CommentTok{\#\textgreater{}      treat age educ   race married nodegree re74 re75       re78  distance}
-\CommentTok{\#\textgreater{} NSW1     1  37   11  black       1        1    0    0  9930.0460 0.2536942}
-\CommentTok{\#\textgreater{} NSW2     1  22    9 hispan       0        1    0    0  3595.8940 0.3245468}
-\CommentTok{\#\textgreater{} NSW3     1  30   12  black       0        0    0    0 24909.4500 0.2881139}
-\CommentTok{\#\textgreater{} NSW4     1  27   11  black       0        1    0    0  7506.1460 0.3016672}
-\CommentTok{\#\textgreater{} NSW5     1  33    8  black       0        1    0    0   289.7899 0.2683025}
-\CommentTok{\#\textgreater{} NSW6     1  22    9  black       0        1    0    0  4056.4940 0.3245468}
-\CommentTok{\#\textgreater{}      weights subclass}
-\CommentTok{\#\textgreater{} NSW1       1        1}
-\CommentTok{\#\textgreater{} NSW2       1       98}
-\CommentTok{\#\textgreater{} NSW3       1      109}
-\CommentTok{\#\textgreater{} NSW4       1      120}
-\CommentTok{\#\textgreater{} NSW5       1      131}
-\CommentTok{\#\textgreater{} NSW6       1      142}
+\CommentTok{\#\textgreater{}   age educ black hisp married nodegr re74 re75     re78 u74 u75 treat  distance}
+\CommentTok{\#\textgreater{} 1  37   11     1    0       1      1    0    0  9930.05   1   1     1 0.4729814}
+\CommentTok{\#\textgreater{} 2  22    9     0    1       0      1    0    0  3595.89   1   1     1 0.3803739}
+\CommentTok{\#\textgreater{} 3  30   12     1    0       0      0    0    0 24909.50   1   1     1 0.4673429}
+\CommentTok{\#\textgreater{} 4  27   11     1    0       0      1    0    0  7506.15   1   1     1 0.4366549}
+\CommentTok{\#\textgreater{} 5  33    8     1    0       0      1    0    0   289.79   1   1     1 0.3997038}
+\CommentTok{\#\textgreater{} 6  22    9     1    0       0      1    0    0  4056.49   1   1     1 0.3803739}
+\CommentTok{\#\textgreater{}   weights subclass}
+\CommentTok{\#\textgreater{} 1       1        1}
+\CommentTok{\#\textgreater{} 2       1       98}
+\CommentTok{\#\textgreater{} 3       1      109}
+\CommentTok{\#\textgreater{} 4       1      120}
+\CommentTok{\#\textgreater{} 5       1      131}
+\CommentTok{\#\textgreater{} 6       1      142}
 \end{Highlighting}
 \end{Shaded}
 
@@ -37233,10 +37926,10 @@ Genetic Matching
 \CommentTok{\#\textgreater{} t test of coefficients:}
 \CommentTok{\#\textgreater{} }
 \CommentTok{\#\textgreater{}              Estimate Std. Error t value Pr(\textgreater{}|t|)   }
-\CommentTok{\#\textgreater{} (Intercept)  {-}106.555   2464.875 {-}0.0432 0.965542   }
-\CommentTok{\#\textgreater{} treat       {-}1221.832    785.492 {-}1.5555 0.120691   }
-\CommentTok{\#\textgreater{} age           152.118     53.241  2.8571 0.004519 **}
-\CommentTok{\#\textgreater{} educ          362.502    171.893  2.1089 0.035634 * }
+\CommentTok{\#\textgreater{} (Intercept) {-}1639.384   2022.796 {-}0.8105 0.418206   }
+\CommentTok{\#\textgreater{} treat        2169.118    685.457  3.1645 0.001684 **}
+\CommentTok{\#\textgreater{} age            45.251     40.980  1.1042 0.270225   }
+\CommentTok{\#\textgreater{} educ          449.568    168.471  2.6685 0.007958 **}
 \CommentTok{\#\textgreater{} {-}{-}{-}}
 \CommentTok{\#\textgreater{} Signif. codes:  0 \textquotesingle{}***\textquotesingle{} 0.001 \textquotesingle{}**\textquotesingle{} 0.01 \textquotesingle{}*\textquotesingle{} 0.05 \textquotesingle{}.\textquotesingle{} 0.1 \textquotesingle{} \textquotesingle{} 1}
 \end{Highlighting}
@@ -37256,11 +37949,11 @@ Genetic Matching
 \CommentTok{\#\textgreater{} }
 \CommentTok{\#\textgreater{} t test of coefficients:}
 \CommentTok{\#\textgreater{} }
-\CommentTok{\#\textgreater{}             Estimate Std. Error t value Pr(\textgreater{}|t|)   }
-\CommentTok{\#\textgreater{} (Intercept) {-}588.890   2890.500 {-}0.2037 0.838630   }
-\CommentTok{\#\textgreater{} treat       {-}380.494    685.482 {-}0.5551 0.579047   }
-\CommentTok{\#\textgreater{} age          169.097     53.592  3.1553 0.001682 **}
-\CommentTok{\#\textgreater{} educ         285.433    206.986  1.3790 0.168400   }
+\CommentTok{\#\textgreater{}              Estimate Std. Error t value  Pr(\textgreater{}|t|)    }
+\CommentTok{\#\textgreater{} (Intercept) {-}1024.030   1689.180 {-}0.6062 0.5446743    }
+\CommentTok{\#\textgreater{} treat        1688.974    763.312  2.2127 0.0274304 *  }
+\CommentTok{\#\textgreater{} age            39.757     35.413  1.1227 0.2621903    }
+\CommentTok{\#\textgreater{} educ          450.209    134.534  3.3464 0.0008887 ***}
 \CommentTok{\#\textgreater{} {-}{-}{-}}
 \CommentTok{\#\textgreater{} Signif. codes:  0 \textquotesingle{}***\textquotesingle{} 0.001 \textquotesingle{}**\textquotesingle{} 0.01 \textquotesingle{}*\textquotesingle{} 0.05 \textquotesingle{}.\textquotesingle{} 0.1 \textquotesingle{} \textquotesingle{} 1}
 \end{Highlighting}
@@ -37301,8 +37994,8 @@ I follow \texttt{MatchingFrontier} \href{https://projects.iq.harvard.edu/files/f
 \CommentTok{\# choose var to match on}
 \NormalTok{match.on }\OtherTok{\textless{}{-}} \FunctionTok{colnames}\NormalTok{(lalonde)[}\SpecialCharTok{!}\NormalTok{(}\FunctionTok{colnames}\NormalTok{(lalonde) }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}re78\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}treat\textquotesingle{}}\NormalTok{))]}
 \NormalTok{match.on}
-\CommentTok{\#\textgreater{} [1] "age"       "education" "black"     "hispanic"  "married"   "nodegree" }
-\CommentTok{\#\textgreater{} [7] "re74"      "re75"}
+\CommentTok{\#\textgreater{}  [1] "age"     "educ"    "black"   "hisp"    "married" "nodegr"  "re74"   }
+\CommentTok{\#\textgreater{}  [8] "re75"    "u74"     "u75"}
 
 \CommentTok{\# Mahanlanobis frontier (default)}
 \NormalTok{mahal.frontier }\OtherTok{\textless{}{-}}
@@ -37315,7 +38008,7 @@ I follow \texttt{MatchingFrontier} \href{https://projects.iq.harvard.edu/files/f
 \CommentTok{\#\textgreater{} Calculating theoretical frontier...}
 \CommentTok{\#\textgreater{} Calculating information for plotting the frontier...}
 \NormalTok{mahal.frontier}
-\CommentTok{\#\textgreater{} An imbalance frontier with 997 points.}
+\CommentTok{\#\textgreater{} An imbalance frontier with 174 points.}
 
 \CommentTok{\# L1 frontier}
 \NormalTok{L1.frontier }\OtherTok{\textless{}{-}}
@@ -37330,7 +38023,7 @@ I follow \texttt{MatchingFrontier} \href{https://projects.iq.harvard.edu/files/f
 \CommentTok{\#\textgreater{} Calculating L1 binnings...}
 \CommentTok{\#\textgreater{} Calculating L1 frontier... This may take a few minutes...}
 \NormalTok{L1.frontier}
-\CommentTok{\#\textgreater{} An imbalance frontier with 976 points.}
+\CommentTok{\#\textgreater{} An imbalance frontier with 210 points.}
 
 \CommentTok{\# estimate effects along the frontier}
 
@@ -37352,201 +38045,35 @@ I follow \texttt{MatchingFrontier} \href{https://projects.iq.harvard.edu/files/f
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|}                                                                      \ErrorTok{|}   \DecValTok{0}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=}                                                                     \ErrorTok{|}   \DecValTok{1}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=}                                                                     \ErrorTok{|}   \DecValTok{2}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==}                                                                    \ErrorTok{|}   \DecValTok{3}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===}                                                                   \ErrorTok{|}   \DecValTok{4}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|====}                                                                  \ErrorTok{|}   \DecValTok{5}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
   \ErrorTok{|====}                                                                  \ErrorTok{|}   \DecValTok{6}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=====}                                                                 \ErrorTok{|}   \DecValTok{7}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|======}                                                                \ErrorTok{|}   \DecValTok{8}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|======}                                                                \ErrorTok{|}   \DecValTok{9}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=======}                                                               \ErrorTok{|}  \DecValTok{10}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|========}                                                              \ErrorTok{|}  \DecValTok{11}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|========}                                                              \ErrorTok{|}  \DecValTok{12}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=========}                                                             \ErrorTok{|}  \DecValTok{13}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==========}                                                            \ErrorTok{|}  \DecValTok{14}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===========}                                                           \ErrorTok{|}  \DecValTok{15}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===========}                                                           \ErrorTok{|}  \DecValTok{16}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|============}                                                          \ErrorTok{|}  \DecValTok{17}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=============}                                                         \ErrorTok{|}  \DecValTok{18}\NormalTok{\%}
+  \ErrorTok{|=========}                                                             \ErrorTok{|}  \DecValTok{12}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|=============}                                                         \ErrorTok{|}  \DecValTok{19}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==============}                                                        \ErrorTok{|}  \DecValTok{20}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===============}                                                       \ErrorTok{|}  \DecValTok{21}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|================}                                                      \ErrorTok{|}  \DecValTok{22}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|================}                                                      \ErrorTok{|}  \DecValTok{23}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=================}                                                     \ErrorTok{|}  \DecValTok{24}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
   \ErrorTok{|==================}                                                    \ErrorTok{|}  \DecValTok{25}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==================}                                                    \ErrorTok{|}  \DecValTok{26}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===================}                                                   \ErrorTok{|}  \DecValTok{27}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|====================}                                                  \ErrorTok{|}  \DecValTok{28}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=====================}                                                 \ErrorTok{|}  \DecValTok{29}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=====================}                                                 \ErrorTok{|}  \DecValTok{30}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|======================}                                                \ErrorTok{|}  \DecValTok{31}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=======================}                                               \ErrorTok{|}  \DecValTok{32}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=======================}                                               \ErrorTok{|}  \DecValTok{33}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|========================}                                              \ErrorTok{|}  \DecValTok{34}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=========================}                                             \ErrorTok{|}  \DecValTok{35}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=========================}                                             \ErrorTok{|}  \DecValTok{36}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==========================}                                            \ErrorTok{|}  \DecValTok{37}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===========================}                                           \ErrorTok{|}  \DecValTok{38}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|============================}                                          \ErrorTok{|}  \DecValTok{39}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|============================}                                          \ErrorTok{|}  \DecValTok{40}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=============================}                                         \ErrorTok{|}  \DecValTok{41}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==============================}                                        \ErrorTok{|}  \DecValTok{42}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==============================}                                        \ErrorTok{|}  \DecValTok{43}\NormalTok{\%}
+  \ErrorTok{|==========================}                                            \ErrorTok{|}  \DecValTok{38}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|===============================}                                       \ErrorTok{|}  \DecValTok{44}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|================================}                                      \ErrorTok{|}  \DecValTok{45}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=================================}                                     \ErrorTok{|}  \DecValTok{46}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=================================}                                     \ErrorTok{|}  \DecValTok{47}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==================================}                                    \ErrorTok{|}  \DecValTok{48}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===================================}                                   \ErrorTok{|}  \DecValTok{49}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===================================}                                   \ErrorTok{|}  \DecValTok{51}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|====================================}                                  \ErrorTok{|}  \DecValTok{52}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=====================================}                                 \ErrorTok{|}  \DecValTok{53}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=====================================}                                 \ErrorTok{|}  \DecValTok{54}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|======================================}                                \ErrorTok{|}  \DecValTok{55}\NormalTok{\%}
+  \ErrorTok{|===================================}                                   \ErrorTok{|}  \DecValTok{50}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|=======================================}                               \ErrorTok{|}  \DecValTok{56}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|========================================}                              \ErrorTok{|}  \DecValTok{57}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|========================================}                              \ErrorTok{|}  \DecValTok{58}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=========================================}                             \ErrorTok{|}  \DecValTok{59}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==========================================}                            \ErrorTok{|}  \DecValTok{60}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==========================================}                            \ErrorTok{|}  \DecValTok{61}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===========================================}                           \ErrorTok{|}  \DecValTok{62}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|============================================}                          \ErrorTok{|}  \DecValTok{63}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=============================================}                         \ErrorTok{|}  \DecValTok{64}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=============================================}                         \ErrorTok{|}  \DecValTok{65}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==============================================}                        \ErrorTok{|}  \DecValTok{66}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===============================================}                       \ErrorTok{|}  \DecValTok{67}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===============================================}                       \ErrorTok{|}  \DecValTok{68}\NormalTok{\%}
+  \ErrorTok{|============================================}                          \ErrorTok{|}  \DecValTok{62}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|================================================}                      \ErrorTok{|}  \DecValTok{69}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=================================================}                     \ErrorTok{|}  \DecValTok{70}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=================================================}                     \ErrorTok{|}  \DecValTok{71}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==================================================}                    \ErrorTok{|}  \DecValTok{72}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===================================================}                   \ErrorTok{|}  \DecValTok{73}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|====================================================}                  \ErrorTok{|}  \DecValTok{74}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
   \ErrorTok{|====================================================}                  \ErrorTok{|}  \DecValTok{75}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=====================================================}                 \ErrorTok{|}  \DecValTok{76}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|======================================================}                \ErrorTok{|}  \DecValTok{77}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|======================================================}                \ErrorTok{|}  \DecValTok{78}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=======================================================}               \ErrorTok{|}  \DecValTok{79}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|========================================================}              \ErrorTok{|}  \DecValTok{80}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|=========================================================}             \ErrorTok{|}  \DecValTok{81}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=========================================================}             \ErrorTok{|}  \DecValTok{82}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==========================================================}            \ErrorTok{|}  \DecValTok{83}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===========================================================}           \ErrorTok{|}  \DecValTok{84}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===========================================================}           \ErrorTok{|}  \DecValTok{85}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|============================================================}          \ErrorTok{|}  \DecValTok{86}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=============================================================}         \ErrorTok{|}  \DecValTok{87}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==============================================================}        \ErrorTok{|}  \DecValTok{88}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==============================================================}        \ErrorTok{|}  \DecValTok{89}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===============================================================}       \ErrorTok{|}  \DecValTok{90}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|================================================================}      \ErrorTok{|}  \DecValTok{91}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|================================================================}      \ErrorTok{|}  \DecValTok{92}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=================================================================}     \ErrorTok{|}  \DecValTok{93}\NormalTok{\%}
+  \ErrorTok{|=============================================================}         \ErrorTok{|}  \DecValTok{88}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|==================================================================}    \ErrorTok{|}  \DecValTok{94}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==================================================================}    \ErrorTok{|}  \DecValTok{95}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===================================================================}   \ErrorTok{|}  \DecValTok{96}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|====================================================================}  \ErrorTok{|}  \DecValTok{97}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=====================================================================} \ErrorTok{|}  \DecValTok{98}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=====================================================================} \ErrorTok{|}  \DecValTok{99}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|======================================================================|} \DecValTok{100}\NormalTok{\%}
 
@@ -37564,197 +38091,43 @@ I follow \texttt{MatchingFrontier} \href{https://projects.iq.harvard.edu/files/f
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|}                                                                      \ErrorTok{|}   \DecValTok{0}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=}                                                                     \ErrorTok{|}   \DecValTok{1}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=}                                                                     \ErrorTok{|}   \DecValTok{2}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==}                                                                    \ErrorTok{|}   \DecValTok{3}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===}                                                                   \ErrorTok{|}   \DecValTok{4}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
   \ErrorTok{|====}                                                                  \ErrorTok{|}   \DecValTok{5}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|====}                                                                  \ErrorTok{|}   \DecValTok{6}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=====}                                                                 \ErrorTok{|}   \DecValTok{7}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|======}                                                                \ErrorTok{|}   \DecValTok{8}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|======}                                                                \ErrorTok{|}   \DecValTok{9}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|=======}                                                               \ErrorTok{|}  \DecValTok{10}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|========}                                                              \ErrorTok{|}  \DecValTok{11}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=========}                                                             \ErrorTok{|}  \DecValTok{12}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=========}                                                             \ErrorTok{|}  \DecValTok{13}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==========}                                                            \ErrorTok{|}  \DecValTok{14}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===========}                                                           \ErrorTok{|}  \DecValTok{15}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|============}                                                          \ErrorTok{|}  \DecValTok{16}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|============}                                                          \ErrorTok{|}  \DecValTok{18}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=============}                                                         \ErrorTok{|}  \DecValTok{19}\NormalTok{\%}
+  \ErrorTok{|==========}                                                            \ErrorTok{|}  \DecValTok{15}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|==============}                                                        \ErrorTok{|}  \DecValTok{20}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==============}                                                        \ErrorTok{|}  \DecValTok{21}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===============}                                                       \ErrorTok{|}  \DecValTok{22}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|================}                                                      \ErrorTok{|}  \DecValTok{23}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=================}                                                     \ErrorTok{|}  \DecValTok{24}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=================}                                                     \ErrorTok{|}  \DecValTok{25}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==================}                                                    \ErrorTok{|}  \DecValTok{26}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===================}                                                   \ErrorTok{|}  \DecValTok{27}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===================}                                                   \ErrorTok{|}  \DecValTok{28}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|====================}                                                  \ErrorTok{|}  \DecValTok{29}\NormalTok{\%}
+  \ErrorTok{|==================}                                                    \ErrorTok{|}  \DecValTok{25}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|=====================}                                                 \ErrorTok{|}  \DecValTok{30}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|======================}                                                \ErrorTok{|}  \DecValTok{31}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|======================}                                                \ErrorTok{|}  \DecValTok{32}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=======================}                                               \ErrorTok{|}  \DecValTok{33}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|========================}                                              \ErrorTok{|}  \DecValTok{34}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=========================}                                             \ErrorTok{|}  \DecValTok{35}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=========================}                                             \ErrorTok{|}  \DecValTok{36}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==========================}                                            \ErrorTok{|}  \DecValTok{37}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===========================}                                           \ErrorTok{|}  \DecValTok{38}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===========================}                                           \ErrorTok{|}  \DecValTok{39}\NormalTok{\%}
+  \ErrorTok{|========================}                                              \ErrorTok{|}  \DecValTok{35}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|============================}                                          \ErrorTok{|}  \DecValTok{40}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=============================}                                         \ErrorTok{|}  \DecValTok{41}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==============================}                                        \ErrorTok{|}  \DecValTok{42}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==============================}                                        \ErrorTok{|}  \DecValTok{43}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===============================}                                       \ErrorTok{|}  \DecValTok{44}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
   \ErrorTok{|================================}                                      \ErrorTok{|}  \DecValTok{45}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|================================}                                      \ErrorTok{|}  \DecValTok{46}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=================================}                                     \ErrorTok{|}  \DecValTok{47}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==================================}                                    \ErrorTok{|}  \DecValTok{48}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===================================}                                   \ErrorTok{|}  \DecValTok{49}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===================================}                                   \ErrorTok{|}  \DecValTok{51}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|====================================}                                  \ErrorTok{|}  \DecValTok{52}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=====================================}                                 \ErrorTok{|}  \DecValTok{53}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|======================================}                                \ErrorTok{|}  \DecValTok{54}\NormalTok{\%}
+  \ErrorTok{|===================================}                                   \ErrorTok{|}  \DecValTok{50}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|======================================}                                \ErrorTok{|}  \DecValTok{55}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=======================================}                               \ErrorTok{|}  \DecValTok{56}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|========================================}                              \ErrorTok{|}  \DecValTok{57}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|========================================}                              \ErrorTok{|}  \DecValTok{58}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=========================================}                             \ErrorTok{|}  \DecValTok{59}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
   \ErrorTok{|==========================================}                            \ErrorTok{|}  \DecValTok{60}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===========================================}                           \ErrorTok{|}  \DecValTok{61}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===========================================}                           \ErrorTok{|}  \DecValTok{62}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|============================================}                          \ErrorTok{|}  \DecValTok{63}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=============================================}                         \ErrorTok{|}  \DecValTok{64}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=============================================}                         \ErrorTok{|}  \DecValTok{65}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==============================================}                        \ErrorTok{|}  \DecValTok{66}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===============================================}                       \ErrorTok{|}  \DecValTok{67}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|================================================}                      \ErrorTok{|}  \DecValTok{68}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|================================================}                      \ErrorTok{|}  \DecValTok{69}\NormalTok{\%}
+  \ErrorTok{|==============================================}                        \ErrorTok{|}  \DecValTok{65}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|=================================================}                     \ErrorTok{|}  \DecValTok{70}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==================================================}                    \ErrorTok{|}  \DecValTok{71}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===================================================}                   \ErrorTok{|}  \DecValTok{72}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===================================================}                   \ErrorTok{|}  \DecValTok{73}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|====================================================}                  \ErrorTok{|}  \DecValTok{74}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=====================================================}                 \ErrorTok{|}  \DecValTok{75}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=====================================================}                 \ErrorTok{|}  \DecValTok{76}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|======================================================}                \ErrorTok{|}  \DecValTok{77}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=======================================================}               \ErrorTok{|}  \DecValTok{78}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|========================================================}              \ErrorTok{|}  \DecValTok{79}\NormalTok{\%}
+  \ErrorTok{|====================================================}                  \ErrorTok{|}  \DecValTok{75}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|========================================================}              \ErrorTok{|}  \DecValTok{80}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=========================================================}             \ErrorTok{|}  \DecValTok{81}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==========================================================}            \ErrorTok{|}  \DecValTok{82}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==========================================================}            \ErrorTok{|}  \DecValTok{84}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===========================================================}           \ErrorTok{|}  \DecValTok{85}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|============================================================}          \ErrorTok{|}  \DecValTok{86}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=============================================================}         \ErrorTok{|}  \DecValTok{87}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=============================================================}         \ErrorTok{|}  \DecValTok{88}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==============================================================}        \ErrorTok{|}  \DecValTok{89}\NormalTok{\%}
+  \ErrorTok{|============================================================}          \ErrorTok{|}  \DecValTok{85}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|===============================================================}       \ErrorTok{|}  \DecValTok{90}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
-  \ErrorTok{|================================================================}      \ErrorTok{|}  \DecValTok{91}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|================================================================}      \ErrorTok{|}  \DecValTok{92}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=================================================================}     \ErrorTok{|}  \DecValTok{93}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|==================================================================}    \ErrorTok{|}  \DecValTok{94}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
   \ErrorTok{|==================================================================}    \ErrorTok{|}  \DecValTok{95}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|===================================================================}   \ErrorTok{|}  \DecValTok{96}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|====================================================================}  \ErrorTok{|}  \DecValTok{97}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=====================================================================} \ErrorTok{|}  \DecValTok{98}\NormalTok{\%}
-  \SpecialCharTok{|}                                                                            
-  \ErrorTok{|=====================================================================} \ErrorTok{|}  \DecValTok{99}\NormalTok{\%}
   \SpecialCharTok{|}                                                                            
   \ErrorTok{|======================================================================|} \DecValTok{100}\NormalTok{\%}
 
@@ -37776,7 +38149,7 @@ I follow \texttt{MatchingFrontier} \href{https://projects.iq.harvard.edu/files/f
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-57-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-60-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -37793,7 +38166,7 @@ I follow \texttt{MatchingFrontier} \href{https://projects.iq.harvard.edu/files/f
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-57-2} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{21-quasi-experimental_files/figure-latex/unnamed-chunk-60-2} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -38173,7 +38546,7 @@ Packages
                    \AttributeTok{pop.size=}\DecValTok{16}\NormalTok{, }\AttributeTok{max.generations=}\DecValTok{10}\NormalTok{, }\AttributeTok{wait.generations=}\DecValTok{1}\NormalTok{)}
 \CommentTok{\#\textgreater{} }
 \CommentTok{\#\textgreater{} }
-\CommentTok{\#\textgreater{} Tue Feb 22 18:26:34 2022}
+\CommentTok{\#\textgreater{} Mon Jun 06 21:01:13 2022}
 \CommentTok{\#\textgreater{} Domains:}
 \CommentTok{\#\textgreater{}  0.000000e+00   \textless{}=  X1   \textless{}=    1.000000e+03 }
 \CommentTok{\#\textgreater{}  0.000000e+00   \textless{}=  X2   \textless{}=    1.000000e+03 }
@@ -38362,7 +38735,7 @@ Packages
 \CommentTok{\#\textgreater{} Solution Found Generation 1}
 \CommentTok{\#\textgreater{} Number of Generations Run 2}
 \CommentTok{\#\textgreater{} }
-\CommentTok{\#\textgreater{} Tue Feb 22 18:26:34 2022}
+\CommentTok{\#\textgreater{} Mon Jun 06 21:01:13 2022}
 \CommentTok{\#\textgreater{} Total run time : 0 hours 0 minutes and 0 seconds}
 
 \CommentTok{\#The outcome variable}
@@ -41664,7 +42037,7 @@ My understanding is that until the moment I write this note, there is \textbf{no
 \hypertarget{model-based-causal-mediation-analysis}{%
 \section{Model-based causal mediation analysis}\label{model-based-causal-mediation-analysis}}
 
-I only put my understanding of model-based causal mediation analysis because I do not encounter design-based on. Maybe in the future when I have to use it, I will start reading on it.
+I only put my understanding of model-based causal mediation analysis because I do not encounter design-based. Maybe in the future when I have to use it, I will start reading on it.
 
 Fit 2 models
 
@@ -42362,6 +42735,51 @@ Model to Equation
 \end{table}
  
 
+Another package is \texttt{modelsummary}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(modelsummary)}
+\NormalTok{lm\_mod }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(mpg }\SpecialCharTok{\textasciitilde{}}\NormalTok{ wt }\SpecialCharTok{+}\NormalTok{ hp }\SpecialCharTok{+}\NormalTok{ cyl, mtcars)}
+\FunctionTok{msummary}\NormalTok{(lm\_mod, }\AttributeTok{vcov =} \FunctionTok{c}\NormalTok{(}\StringTok{"iid"}\NormalTok{,}\StringTok{"robust"}\NormalTok{,}\StringTok{"HC4"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{table}
+\centering
+\begin{tabular}[t]{lccc}
+\toprule
+  & Model 1 & Model 2 & Model 3\\
+\midrule
+(Intercept) & \num{38.752} & \num{38.752} & \num{38.752}\\
+ & (\num{1.787}) & (\num{2.286}) & (\num{2.177})\\
+wt & \num{-3.167} & \num{-3.167} & \num{-3.167}\\
+ & (\num{0.741}) & (\num{0.833}) & (\num{0.819})\\
+hp & \num{-0.018} & \num{-0.018} & \num{-0.018}\\
+ & (\num{0.012}) & (\num{0.010}) & (\num{0.013})\\
+cyl & \num{-0.942} & \num{-0.942} & \num{-0.942}\\
+ & (\num{0.551}) & (\num{0.573}) & (\num{0.572})\\
+\midrule
+Num.Obs. & \num{32} & \num{32} & \num{32}\\
+R2 & \num{0.843} & \num{0.843} & \num{0.843}\\
+R2 Adj. & \num{0.826} & \num{0.826} & \num{0.826}\\
+AIC & \num{155.5} & \num{155.5} & \num{155.5}\\
+BIC & \num{162.8} & \num{162.8} & \num{162.8}\\
+Log.Lik. & \num{-72.738} & \num{-72.738} & \num{-72.738}\\
+F & \num{50.171} & \num{31.065} & \num{32.623}\\
+Std.Errors & IID & Robust & HC4\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{modelplot}\NormalTok{(lm\_mod, }\AttributeTok{vcov =} \FunctionTok{c}\NormalTok{(}\StringTok{"iid"}\NormalTok{,}\StringTok{"robust"}\NormalTok{,}\StringTok{"HC4"}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{31-report_files/figure-latex/unnamed-chunk-4-1} \end{center}
+
 Another package is \texttt{stargazer}
 
 \begin{Shaded}
@@ -42370,7 +42788,7 @@ Another package is \texttt{stargazer}
 \FunctionTok{stargazer}\NormalTok{(attitude)}
 \CommentTok{\#\textgreater{} }
 \CommentTok{\#\textgreater{} \% Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E{-}mail: hlavac at fas.harvard.edu}
-\CommentTok{\#\textgreater{} \% Date and time: Tue, Feb 22, 2022 {-} 5:24:15 PM}
+\CommentTok{\#\textgreater{} \% Date and time: Mon, Jun 06, 2022 {-} 9:01:43 PM}
 \CommentTok{\#\textgreater{} \textbackslash{}begin\{table\}[!htbp] \textbackslash{}centering }
 \CommentTok{\#\textgreater{}   \textbackslash{}caption\{\} }
 \CommentTok{\#\textgreater{}   \textbackslash{}label\{\} }
@@ -42407,7 +42825,7 @@ Another package is \texttt{stargazer}
           \AttributeTok{align =} \ConstantTok{TRUE}\NormalTok{)}
 \CommentTok{\#\textgreater{} }
 \CommentTok{\#\textgreater{} \% Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E{-}mail: hlavac at fas.harvard.edu}
-\CommentTok{\#\textgreater{} \% Date and time: Tue, Feb 22, 2022 {-} 5:24:15 PM}
+\CommentTok{\#\textgreater{} \% Date and time: Mon, Jun 06, 2022 {-} 9:01:43 PM}
 \CommentTok{\#\textgreater{} \% Requires LaTeX packages: dcolumn }
 \CommentTok{\#\textgreater{} \textbackslash{}begin\{table\}[!htbp] \textbackslash{}centering }
 \CommentTok{\#\textgreater{}   \textbackslash{}caption\{Results\} }
@@ -42569,7 +42987,7 @@ Correlation Table
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{31-report_files/figure-latex/unnamed-chunk-9-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{31-report_files/figure-latex/unnamed-chunk-10-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -42577,7 +42995,7 @@ Correlation Table
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{31-report_files/figure-latex/unnamed-chunk-9-2} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{31-report_files/figure-latex/unnamed-chunk-10-2} \end{center}
 
 \hypertarget{exploratory-data-analysis}{%
 \chapter{Exploratory Data Analysis}\label{exploratory-data-analysis}}

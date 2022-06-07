@@ -484,7 +484,7 @@ With measurement error in the independent, FE will exacerbate the errors-in-the-
 To deal with violation in $c_i$, we have
 
 $$
-y_{it}= \mathbf{x_{it}\beta} + c_i + u_{it}
+y_{it}= \mathbf{x_{it} \beta} + c_i + u_{it}
 $$
 
 $$
@@ -525,7 +525,6 @@ $$
 
 where
 
-```{=tex}
 \begin{equation}
 c_i
 =
@@ -534,7 +533,8 @@ c_i
 0 &\text{otherwise} \\
 \end{cases}
 \end{equation}
-```
+
+
 -   The standard error is incorrectly calculated.
 -   the FE within transformation is controlling for any difference across individual which is allowed to correlated with observables.
 

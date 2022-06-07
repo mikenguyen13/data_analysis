@@ -364,6 +364,130 @@ export_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 </table>
 <!--/html_preserve-->
 
+Another package is `modelsummary`
+
+
+```r
+library(modelsummary)
+lm_mod <- lm(mpg ~ wt + hp + cyl, mtcars)
+msummary(lm_mod, vcov = c("iid","robust","HC4"))
+```
+
+<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:center;"> Model 1 </th>
+   <th style="text-align:center;"> Model 2 </th>
+   <th style="text-align:center;"> Model 3 </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;"> (Intercept) </td>
+   <td style="text-align:center;"> 38.752 </td>
+   <td style="text-align:center;"> 38.752 </td>
+   <td style="text-align:center;"> 38.752 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (1.787) </td>
+   <td style="text-align:center;"> (2.286) </td>
+   <td style="text-align:center;"> (2.177) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> wt </td>
+   <td style="text-align:center;"> -3.167 </td>
+   <td style="text-align:center;"> -3.167 </td>
+   <td style="text-align:center;"> -3.167 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.741) </td>
+   <td style="text-align:center;"> (0.833) </td>
+   <td style="text-align:center;"> (0.819) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> hp </td>
+   <td style="text-align:center;"> -0.018 </td>
+   <td style="text-align:center;"> -0.018 </td>
+   <td style="text-align:center;"> -0.018 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;">  </td>
+   <td style="text-align:center;"> (0.012) </td>
+   <td style="text-align:center;"> (0.010) </td>
+   <td style="text-align:center;"> (0.013) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> cyl </td>
+   <td style="text-align:center;"> -0.942 </td>
+   <td style="text-align:center;"> -0.942 </td>
+   <td style="text-align:center;"> -0.942 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;box-shadow: 0px 1px">  </td>
+   <td style="text-align:center;box-shadow: 0px 1px"> (0.551) </td>
+   <td style="text-align:center;box-shadow: 0px 1px"> (0.573) </td>
+   <td style="text-align:center;box-shadow: 0px 1px"> (0.572) </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Num.Obs. </td>
+   <td style="text-align:center;"> 32 </td>
+   <td style="text-align:center;"> 32 </td>
+   <td style="text-align:center;"> 32 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 </td>
+   <td style="text-align:center;"> 0.843 </td>
+   <td style="text-align:center;"> 0.843 </td>
+   <td style="text-align:center;"> 0.843 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> R2 Adj. </td>
+   <td style="text-align:center;"> 0.826 </td>
+   <td style="text-align:center;"> 0.826 </td>
+   <td style="text-align:center;"> 0.826 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> AIC </td>
+   <td style="text-align:center;"> 155.5 </td>
+   <td style="text-align:center;"> 155.5 </td>
+   <td style="text-align:center;"> 155.5 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> BIC </td>
+   <td style="text-align:center;"> 162.8 </td>
+   <td style="text-align:center;"> 162.8 </td>
+   <td style="text-align:center;"> 162.8 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Log.Lik. </td>
+   <td style="text-align:center;"> -72.738 </td>
+   <td style="text-align:center;"> -72.738 </td>
+   <td style="text-align:center;"> -72.738 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> F </td>
+   <td style="text-align:center;"> 50.171 </td>
+   <td style="text-align:center;"> 31.065 </td>
+   <td style="text-align:center;"> 32.623 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;"> Std.Errors </td>
+   <td style="text-align:center;"> IID </td>
+   <td style="text-align:center;"> Robust </td>
+   <td style="text-align:center;"> HC4 </td>
+  </tr>
+</tbody>
+</table>
+
+```r
+modelplot(lm_mod, vcov = c("iid","robust","HC4"))
+```
+
+<img src="31-report_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
+
 Another package is `stargazer`
 
 
@@ -372,7 +496,7 @@ library("stargazer")
 stargazer(attitude)
 #> 
 #> % Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
-#> % Date and time: Tue, Feb 22, 2022 - 5:03:22 PM
+#> % Date and time: Mon, Jun 06, 2022 - 8:54:56 PM
 #> \begin{table}[!htbp] \centering 
 #>   \caption{} 
 #>   \label{} 
@@ -409,7 +533,7 @@ stargazer(linear.1,
           align = TRUE)
 #> 
 #> % Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
-#> % Date and time: Tue, Feb 22, 2022 - 5:03:22 PM
+#> % Date and time: Mon, Jun 06, 2022 - 8:54:56 PM
 #> % Requires LaTeX packages: dcolumn 
 #> \begin{table}[!htbp] \centering 
 #>   \caption{Results} 
@@ -564,10 +688,10 @@ coef_names <- coef_names[1:3] # Dropping intercept for plots
 plot_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 ```
 
-<img src="31-report_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="31-report_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 plot_summs(fit_c, robust = "HC3", coefs = coef_names, plot.distributions = TRUE)
 ```
 
-<img src="31-report_files/figure-html/unnamed-chunk-9-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="31-report_files/figure-html/unnamed-chunk-10-2.png" width="90%" style="display: block; margin: auto;" />

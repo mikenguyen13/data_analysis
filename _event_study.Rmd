@@ -18,6 +18,10 @@ Previous marketing studies:
 
 -   [@geyskens2002]: Internet channel (for newspapers)
 
+-   [@wiles2010]: Regulatory Reports of Deceptive Advertising
+
+-   [@sood2009]: innovation payoff
+
 Potential avenues:
 
 -   Ad campaigns
@@ -34,9 +38,11 @@ Pros:
 
 -   Easy to do
 
-Cons:
+Events can be
 
--   
+-   Internal (e.g., stock repurchase)
+
+-   External (e.g., macroeconomic variables)
 
 **Assumptions**:
 
@@ -69,7 +75,7 @@ where
 
 -   $R_{it}$ = realized (actual) return
 
--   $E(R_i|X_t)$ normal expected return
+-   $E(R_{it}|X_t)$ normal expected return
 
 There are several model to calculate the expected return
 
@@ -111,13 +117,32 @@ increases with
 
 -   less days in the event window (avoiding potential contamination from confounds)
 
+### Testing
+
+#### Parametric Test
+
+Applying CLT
+
+$$
+t_{CAR} = \frac{\bar{CAR_{it}}}{\sigma (CAR_{it})/\sqrt{n}} \\
+t_{BHAR} = \frac{\bar{BHAR_{it}}}{\sigma (BHAR_{it})/\sqrt{n}}
+$$
+
+#### Non-parametric Test
+
+-   No assumptions about return distribution
+
+-   Sign Test (assumes symmetry in returns)
+
+-   Rank Test (allows for non-symmetry in returns)
+
 ### Confounders
 
 According to [@fornell2006a], need to control:
 
 -   one-day event period = day when Wall Street Journal publish ACSI announcement.
 
--   5 days before and after event to rule out other news (PR Newswire, Dow Jones, Business Wires)
+-   5 days before and after event to rule out other news (PR Newswires, Dow Jones, Business Wires)
 
     -   M&A, Spin-offs, stock splits
 
@@ -125,11 +150,15 @@ According to [@fornell2006a], need to control:
 
     -   Layoffs, restructurings, earnings announcements, lawsuits
 
+    -   Capital IQ - Key Developments: covers almost all important events so you don't have to search on news.
+
 ### Biases
 
 -   Different closing time obscure estimation of the abnormal returns, check [@campbell1998econometrics]
 
 -   Upward bias in aggregating CAR + transaction prices (bid and ask)
+
+-   Cross-sectional dependence in the returns bias the standard deviation estimates downward, which inflates the test statistics when events share common dates [@mackinlay1997event]. Hence, [@jaffe1974] [Portfolio method] should be used to correct for this bias.
 
 ### Long-run event studies
 
@@ -148,6 +177,74 @@ SAR <-
         logret = FALSE)
 mean(SAR)
 ```
+
+#### Buy and Hold Abnormal Returns (BHAR)
+
+-   Classic references: [@loughran1995] [@barber1997] [@lyon1999]
+
+$$
+AR_{it} = R_{it} - E(R_{it}|X_t)
+$$
+
+$$
+BHAR_{t \to t + K}^i = \Pi_k(1 + AR_{i (t+k)})
+$$
+
+Where as CAR is the arithmetic sum, BHAR is the geometric sum
+
+#### Portfolio method {data-link="Portfolio method"}
+
+This section follows strictly the procedure in [@wiles2010]
+
+A portfolio for every day in calendar time (including all securities which experience an event that time).
+
+For each portfolio, the securities and their returns are equally weighted
+
+1.  For all portfolios, the average abnormal return are calculated as
+
+$$
+AAR_{Pt} = \frac{\sum_{i=1}^S AR_i}{S}
+$$
+
+where
+
+-   $S$ is the number of securities in portfolio $P$
+-   $AR_i$ is the abnormal return for the stock $i$ in the portfolio
+
+2.  For every portfolio $P$, a time series estimate of $\sigma(AAR_{Pt})$ is calculated for the preceding $k$ days, assuming that the $AAR_{Pt}$ are independent over time.
+3.  Each portfolio's average abnormal return is standardized
+
+$$
+SAAR_{Pt} = \frac{AAR_{Pt}}{SD(AAR_{Pt})}
+$$
+
+4.  Average standardized residual across all portfolio's in calendar time
+
+$$
+ASAAR = \frac{1}{n}\sum_{i=1}^{255} SAAR_{Pt} \times D_t
+$$
+
+where
+
+-   $D_t = 1$ when there is at least one security in portfolio $t$
+
+-   $D_t = 0$ when there are no security in portfolio $t$
+
+-   $n$ is the number of days in which the portfolio have at least one security $n = \sum_{i = 1}^{255}D_t$
+
+5.  The cumulative average standardized average abnormal returns is
+
+$$
+CASSAR_{S_1, S_2} = \sum_{i=S_1}^{S_2} ASAAR
+$$
+
+If the ASAAR are independent over time, then standard deviation for the above estimate is $\sqrt{S_2 - S_1 + 1}$
+
+then, the test statistics is
+
+$$
+t = \frac{CASAAR_{S_1,S_2}}{\sqrt{S_2 - S_1 + 1}}
+$$
 
 ## Aggregation
 
@@ -207,6 +304,10 @@ Note:
 
 ### Statistical Models
 
+-   based on statistical assumptions about the behavior of returns (e..g, multivariate normality)
+
+-   we only need to assume stable distributions [@owen1983]
+
 #### Constant Mean Return Model
 
 The expected normal return is the mean of the real returns
@@ -218,6 +319,8 @@ $$
 Assumption:
 
 -   returns revert to its mean (very questionable)
+
+The basic mean returns model generally delivers similar findings to more complex models since the variance of abnormal returns is not decreased considerably [@brown1985]
 
 #### Market Model
 
@@ -231,19 +334,42 @@ where
 
 -   $R_{mt}$ = market return
 
--   $\epsilon_{it}$ = zero mean error term with its own variance $\sigma^2$
+-   $\epsilon_{it}$ = zero mean ($E(e_{it}) = 0$) error term with its own variance $\sigma^2$
 
 Notes:
 
 -   People typically use S&P 500, CRSP value-weighed or equal-weighted index as the market portfolio.
 
+-   When $\beta =0$, the [Market Model] is the [Constant Mean Return Model]
+
 -   better fit of the market-model, the less variance in abnormal return, and the more easy to detect the event's effect
 
 -   recommend generalized method of moments to be robust against auto-correlation and heteroskedasticity
 
+#### FF3
+
+[@fama1993]
+
+$$
+E(R_{it}|X_t) - r_{ft} = \alpha_i + \beta_{1i} (E(R_{mt}|X_t )- r_{ft}) \\
++ b_{2i} SML_t + b_{3i} HML_t
+$$
+
+where
+
+-   $r_{ft}$ risk-free rate (e.g., 3-month Treasury bill)
+
+-   $R_{mt}$ is the market-rate (e.g., S&P 500)
+
+-   SML: returns on small (size) portfolio minus returns on big portfolio
+
+-   HML: returns on high (B/M) portfolio minus returns on low portfolio.
+
 ### Economic Model
 
 The only difference difference between CAPM and APT is that APT has multiple factors (including factors beyond the focal company)
+
+Economic models put limits on a statistical model that come from assumed behavior that is derived from theory.
 
 #### Capital Asset Pricing Model (CAPM)
 
@@ -290,6 +416,29 @@ Packages:
 -   `EventStudy`
 
 -   `AbnormalReturns`
+
+-   [Event Study Tools](https://www.eventstudytools.com/)
+
+-   [estudy2](https://irudnyts.github.io/estudy2/)
+
+-   `PerformanceAnalytics`
+
+In practice, people usually sort portfolio because they are not sure whether the FF model is specified correctly.
+
+Steps:
+
+1.  Sort all returns in CRSP into 10 deciles based on size.
+2.  In each decile, sort returns into 10 decides based on BM
+3.  Get the average return of the 100 portfolios for each period (i.e., expected returns of stocks given decile - characteristics)
+4.  For each stock in the event study: Compare the return of the stock to the corresponding portfolio based on size and BM.
+
+Notes:
+
+-   Sorting produces outcomes that are often more conservative (e.g., FF abnormal returns can be greater than those that used sorting).
+
+-   If the results change when we do B/M first then size or vice versa, then the results are not robust (this extends to more than just two characteristics - e.g., momentum).
+
+-   
 
 Examples:
 
