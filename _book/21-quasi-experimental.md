@@ -10,7 +10,7 @@ A great resource for causal inference is [Causal Inference Mixtape](https://mixt
 2.  Exclusion restriction: Evidence that the the variation in the exogenous shock and the outcome is due to no other factors
     1.  Stable unit treatment value assumption (SUTVA) state that the treatment of unit $i$ affect only the outcome of unit $i$ (i.e., no spillover to the control groups)
 
-All quasi-experimental methods involve tradeoff between power and support for the exogeniety assumption (i.e., discard variation in the data that is not exogenous).
+All quasi-experimental methods involve tradeoff between power and support for the exogeneity assumption (i.e., discard variation in the data that is not exogenous).
 
 Consequently, we don't usually look at $R^2$ [@ebbes2011]. And it can even be misleading to use $R^2$ as the basis for model comparison.
 
@@ -20,7 +20,7 @@ Typical robustness check: recommended by [@goldfarb2022]
 
 -   Different controls: show models with and without controls. Typically, we want to see the change in the estimate of interest. See [@altonji2005] for formal assessment based on Rosenbaum bounds (i.e., changes in the estimate and threat of Omitted variables on the estimate). For specific application in marketing, see [@manchanda2015] [@shin2012]
 
--   Different funcitonal forms
+-   Different functional forms
 
 -   Different window of time (in longitudinal setting)
 
@@ -50,7 +50,7 @@ External Validity:
 
 Limitation
 
-1.  What is your idenifiying assumptions or idnetifaciton strategy
+1.  What is your identifying assumptions or identification strategy
 2.  What are threats to the validity of your assumptions?
 3.  What you do to address it? And maybe how future research can do to address it.
 
@@ -108,9 +108,25 @@ There are several types of Regression Discontinuity:
 
     -   Kink design: Instead of a discontinuity in the level of running variable, we have a discontinuity in the slope of the function (while the function/level can remain continuous) [@nielsen2010]. See [@böckerman2018] for application, and [@card2012; @card2015b] for theory.
 
-2.  Fuzzy RD: Change in treatment probability less than 1
+2.  Kink RD
 
-3.  RDiT: running variable is time.
+3.  Fuzzy RD: Change in treatment probability less than 1
+
+4.  Fuzzy Kink RD
+
+5.  RDiT: running variable is time.
+
+Others:
+
+-   Multiple cutoff
+
+-   Multiple Scores
+
+-   Geographic RD
+
+-   Dynamic Treatments
+
+-   Continuous Treatments
 
 Consider
 
@@ -136,6 +152,8 @@ where
 
 **Identification (Identifying assumption**s) of RD:
 
+Average Treatment Effect at the cutoff (continuity-based)
+
 $$
 \begin{aligned}
 \alpha_{SRDD} &= E[Y_{1i} - Y_{0i} | X_i = c] \\
@@ -143,6 +161,27 @@ $$
 &= \lim_{x \to c^+} E[Y_{1i}|X_i = c] - \lim_{x \to c^=} E[Y_{0i}|X_i = c]
 \end{aligned}
 $$
+
+Average Treatment Effect in a neighborhood (Local Randomization-based):
+
+$$
+\begin{aligned}
+\alpha_{LR} &= E[Y_{1i} - Y_{0i}|X_i \in W] \\
+&= \frac{1}{N_1} \sum_{X_i \in W, T_i = 1}Y_i - \frac{1}{N_0}\sum_{X_i \in W, T_i =0} Y_i
+\end{aligned}
+$$
+
+Local Randomization Approach assumes that inside the chosen window $W = [c-w, c+w]$ are assigned to treatment as good as random:
+
+1.  Joint probability distribution of scores for units inside the chosen window $W$ is known
+2.  Potential outcomes are not affected by value of the score
+
+$$
+Y_i(0,x) = Y_i(0) \\
+Y_i(1,x) = Y_i(1)
+$$
+
+This approach is stronger than the continuity-based because we assume the regressions are continuously at $c$ and unaffected by the running variable inside the chosen window $W$
 
 RDD estimates the local average treatment effect (LATE), at the cutoff point which is not at the individual or population levels.
 
@@ -435,7 +474,7 @@ $$
 \lim_{c - \epsilon \le X \le c + \epsilon, \epsilon \to 0}( \frac{E(Y |Z = 1) - E(Y |Z=0)}{E(D|Z = 1) - E(D|Z = 0)})
 $$
 
-equivalently,
+equivalently, the canonical parameter:
 
 $$
 \frac{lim_{x \downarrow c}E(Y|X = x) - \lim_{x \uparrow c} E(Y|X = x)}{\lim_{x \downarrow c } E(D |X = x) - \lim_{x \uparrow c}E(D |X=x)}
@@ -460,6 +499,34 @@ Two equivalent ways to estimate
 -   If the slope of the treatment intensity changes at the cutoff (instead of the level of treatment assignment), we can have regression kink design
 
 -   Example: unemployment benefits
+
+Sharp Kink RD parameter
+
+$$
+\alpha_{KRD} = \frac{\lim_{x \downarrow c} \frac{d}{dx}E[Y_i |X_i = x]- \lim_{x \uparrow c} \frac{d}{dx}E[Y_i |X_i = x]}{\lim_{x \downarrow c} \frac{d}{dx}b(x) - \lim_{x \uparrow c} \frac{d}{dx}b(x)}
+$$
+
+where $b(x)$ is a known function inducing "kink"
+
+Fuzzy Kink RD parameter
+
+$$
+\alpha_{KRD} = \frac{\lim_{x \downarrow c} \frac{d}{dx}E[Y_i |X_i = x]- \lim_{x \uparrow c} \frac{d}{dx}E[Y_i |X_i = x]}{\lim_{x \downarrow c} \frac{d}{dx}E[D_i |X_i = x]- \lim_{x \uparrow c} \frac{d}{dx}E[D_i |X_i = x]}
+$$
+
+#### Mutli-cutoff, Multi-score, geographic RD
+
+Multi-cutoff
+
+$$
+E[Y_{1i} - Y_{0i}|X_i = x, C_i = c]
+$$
+
+Multi-score (in multiple dimensions) (e.g., math and English cutoff for certain honor class):
+
+$$
+E[Y_{1i} - Y_{0i}|X_{1i} = x_1, X_{2i} = x]
+$$
 
 <br>
 
@@ -504,17 +571,10 @@ Two equivalent ways to estimate
 Notes:
 
 -   Additional assumption: Time-varying confounders change smoothly across the cutoff date
-
-<!-- -->
-
 -   Typically used in policy implementation in the same date for all subjects, but can also be used for cases where implementation dates are different between subjects. In the second case, researchers typically use different RDiT specification for each time series.
-
 -   Sometimes the date of implementation is not randomly assigned by chosen strategically. Hence, RDiT should be thought of as the "discontinuity at a threshold" interpretation of RD (not as "local randomization"). [@hausman2018, p. 8]
-
 -   Normal RD uses variation in the $N$ dimension, while RDiT uses variation in the $T$ dimension
-
 -   Choose polynomials based on BIC typically. And can have either global polynomial or pre-period and post-period polynomial for each time series (but usually the global one will perform better)
-
 -   Could use **augmented local linear** outlined by [@hausman2018, p. 12], where estimate the model with all the control first then take the residuals to include in the model with the RDiT treatment (remember to use bootstrapping method to account for the first-stage variance in the second stage).
 
 Pros:
@@ -565,17 +625,17 @@ Biases
 
     -   Need to use **clustered standard errors** to account for serial dependence in the residuals
 
-    -   In the case of serial dependence in $\epsilon_{it}$, we don't have a solution, including a lagged dependnet vraible would misspecify the model (probablyfind another research project)
+    -   In the case of serial dependence in $\epsilon_{it}$, we don't have a solution, including a lagged dependent variable would misspecify the model (probably find another research project)
 
-    -   In the case of seiral dependence in $y_{it}$, with long window, it becomes fuzzy to what you try to recover. You can include the **lagged dependent varialbe** (bias can still come from the time-varying treatment or over-fitting of the global polynomial)
+    -   In the case of serial dependence in $y_{it}$, with long window, it becomes fuzzy to what you try to recover. You can include the **lagged dependent variable** (bias can still come from the time-varying treatment or over-fitting of the global polynomial)
 
 -   Sorting and Anticipation Effects
 
-    -   Cannot run the [@mccrary2008] because the density of the time runing vairable is uniform
+    -   Cannot run the [@mccrary2008] because the density of the time running variable is uniform
 
-    -   Can still run tests to check discontinuities in other covariates (you want no discontinuities) and discontinuitiesin the outocme vairalbe at other placebo thresholds ( you don't want discontinuities)
+    -   Can still run tests to check discontinuities in other covariates (you want no discontinuities) and discontinuities in the outcome variable at other placebo thresholds ( you don't want discontinuities)
 
-    -   Hence, it's hard to aruge for the causal effect here because it could be the total effect of the causal treatment and the unobserved sorting/anticipation/adaptation/avoidance effects. You can only argue that there is no such behavior
+    -   Hence, it's hard to argue for the causal effect here because it could be the total effect of the causal treatment and the unobserved sorting/anticipation/adaptation/avoidance effects. You can only argue that there is no such behavior
 
 Recommendations for robustness check following [@hausman2018, p. 549]
 
@@ -584,11 +644,11 @@ Recommendations for robustness check following [@hausman2018, p. 549]
 3.  [Placebo Tests]: estimate another RD (1) on another location or subject (that did not receive the treatment) or (2) use another date.
 4.  Plot RD discontinuity on continuous controls
 5.  Donut RD to see if avoiding the selection close to the cutoff would yield better results [@barreca2011]
-6.  Test for autoregression (using only pre-treatment data). If there is evidence for autoregression, include the lagged dpednetnvariable
-7.  Augmented local linear (no need to use global polynomail and avoid over-fitting)
-    1.  Use full sample to exclude the effect of important predicotrs
+6.  Test for auto-regression (using only pre-treatment data). If there is evidence for autoregression, include the lagged dpednetn variable
+7.  Augmented local linear (no need to use global polynomial and avoid over-fitting)
+    1.  Use full sample to exclude the effect of important predictors
 
-    2.  Estiamte the conditioned second stage on a smaller sample bandwidth
+    2.  Estimate the conditioned second stage on a smaller sample bandwidth
 
 Examples from [@hausman2018, p. 534] in
 
@@ -609,6 +669,8 @@ econ
 -   [@anderson2014]: Traffic
 
 -   [@burger2014]: Car accidents
+
+-   [@brodeur2021]: covid 19 lockdowns on well-being
 
 marketing
 
@@ -690,13 +752,61 @@ Bandwidth of $c$ (window)
 
     -   weight depends on how far and close to $c$
 
-### Examples
+### Applications
 
 Examples in marketing:
 
 -   [@narayanan2015]
 
--   [@hartmann2011a]: nonparametric estimation and guide to identifying causal marketing mix effects.
+-   [@hartmann2011a]: nonparametric estimation and guide to identifying causal marketing mix effects
+
+[Packages](https://rdpackages.github.io/) in R (see [@thoemmes2016] for detailed comparisons): all can handle both sharp and fuzzy RD
+
+-   `rdd`
+
+-   `rdrobust`
+
+-   `rddensity` discontinuity in density tests ([Sorting/Bunching/Manipulation]) using local polynomials and binomial test
+
+-   `rdlocrand` covariate balance, binomial tests, window selection
+
+-   `rdmulti` multiple cutoffs and multiple scores
+
+-   `rdpower` power, sample selection
+
+-   `rddtools`
+
++-----------------------+-------------------------+---------------------------------+----------------------------------------------+
+| Package               | rdd                     | rdrobust                        | rddtools                                     |
++=======================+=========================+=================================+==============================================+
+| Coefficient estimator | Local linear regression | local polynomial regression     | local polynomial regression                  |
++-----------------------+-------------------------+---------------------------------+----------------------------------------------+
+| bandwidth selectors   | [@imbens2009]           | [@calonico2014]                 | [@imbens2010]                                |
+|                       |                         |                                 |                                              |
+|                       |                         | [@imbens2010]                   |                                              |
+|                       |                         |                                 |                                              |
+|                       |                         | [@ludwig2007]                   |                                              |
+|                       |                         |                                 |                                              |
+|                       |                         | [@calonico2019; @calonico2019a] |                                              |
++-----------------------+-------------------------+---------------------------------+----------------------------------------------+
+| Kernel functions      | Epanechnikov            | Epanechnikov                    | Gaussian                                     |
+|                       |                         |                                 |                                              |
+| -   Triangular        | Gaussian                |                                 |                                              |
+|                       |                         |                                 |                                              |
+| -   Rectangular       |                         |                                 |                                              |
++-----------------------+-------------------------+---------------------------------+----------------------------------------------+
+| Bias Correction       |                         | Local polynomial regression     |                                              |
++-----------------------+-------------------------+---------------------------------+----------------------------------------------+
+| Covariate options     | Include                 | Include                         | Include                                      |
+|                       |                         |                                 |                                              |
+|                       |                         |                                 | Residuals                                    |
++-----------------------+-------------------------+---------------------------------+----------------------------------------------+
+| Assumptions testing   | McCrary sorting         |                                 | McCrary sorting                              |
+|                       |                         |                                 |                                              |
+|                       |                         |                                 | Equality of covariates distribution and mean |
++-----------------------+-------------------------+---------------------------------+----------------------------------------------+
+
+based on table 1 [@thoemmes2016] (p. 347)
 
 #### Example 1
 
@@ -880,7 +990,7 @@ For a detailed application, see [@thoemmes2016] where they use `rdd`, `rdrobust`
 
 <br>
 
-## Difference-In-Differences
+## Difference-in-differences
 
 Examples in marketing
 
@@ -894,6 +1004,8 @@ Examples in marketing
 -   [@guo2020]: payment disclosure laws effect on physician prescription behavior using Timing of the Massachusetts open payment law as the exogenous shock
 -   [@israeli2018]: digital monitoring and enforcement on violations using enforcement of min ad price policies
 -   [@ramani2019]: firms respond to foreign direct investment liberalization using India's reform in 1991.
+-   [@he2022]: using Aamzon policy change to examine the causal impact of fake reviews on sales, average ratings.
+-    [@peukert2022]: using European General data proection Regulation, examien the impact of policy change on website usage.
 
 Show the mechanism via
 
@@ -1428,6 +1540,104 @@ Example by [Philipp Leppert](https://rpubs.com/phle/r_tutorial_difference_in_dif
 
 Example by [Anthony Schmidt](https://bookdown.org/aschmi11/causal_inf/difference-in-differences.html)
 
+### Two-way Fixed-effects
+
+A generalization of the dif-n-dif model is the two-way fixed-effects models where you have multiple groups and time effects.
+
+This package is based on [@somaini2016]
+
+
+```r
+# dataset
+library(bacondecomp)
+df <- bacondecomp::castle
+
+library(xtreg2way)
+# output <- xtreg2way(y,
+#                     data.frame(x1, x2),
+#                     iid,
+#                     tid,
+#                     w,
+#                     noise = "1",
+#                     se = "1")
+
+# equilvalently
+output <- xtreg2way(l_homicide ~ post,
+                    df,
+                    iid = df$state, # group id
+                    tid = df$year, # time id
+                    # w, # vector of weight
+                    se = "1")
+output$betaHat
+#>                  [,1]
+#> l_homicide 0.08181162
+output$aVarHat
+#>             [,1]
+#> [1,] 0.003751709
+
+# to save time, you can use your structure in the last output for a new set of variables
+# output2 <- xtreg2way(y, x1, struc=output$struc)
+```
+
+Standard errors estimation options
+
++----------------------+---------------------------------------------------------------------------------------------+
+| Set                  | Estimation                                                                                  |
++======================+=============================================================================================+
+| `se = "0"`           | Assume homoskedasticity and no within group correlation or serial correlation               |
++----------------------+---------------------------------------------------------------------------------------------+
+| `se = "1"` (default) | robust to heteroskadasticity and serial correlation [@arellano1987computing]                |
++----------------------+---------------------------------------------------------------------------------------------+
+| `se = "2"`           | robust to heteroskedasticity, but assumes no correlation within group or serial correlation |
++----------------------+---------------------------------------------------------------------------------------------+
+| `se = "11"`          | Aerllano SE with df correction performed by Stata xtreg [@somaini2021twfem]                 |
++----------------------+---------------------------------------------------------------------------------------------+
+
+Alternatively, you can also do it manually or with the `plm` package, but you have to be careful with how the SEs are estimated
+
+
+```r
+library(multiwayvcov) # get vcov matrix 
+library(lmtest) # robust SEs estimation
+
+# manual
+output3 <- lm(l_homicide ~ post + factor(state) + factor(year),
+              data = df)
+
+# get variance-covariance matrix
+vcov_tw <- multiwayvcov::cluster.vcov(output3,
+                        cbind(df$state, df$year),
+                        use_white = F,
+                        df_correction = F)
+
+# get coefficients
+coeftest(output3, vcov_tw)[2,] 
+#>   Estimate Std. Error    t value   Pr(>|t|) 
+#> 0.08181162 0.05671410 1.44252696 0.14979397
+```
+
+
+```r
+# using the plm package
+library(plm)
+
+output4 <- plm(l_homicide ~ post, 
+               data = df, 
+               index = c("state", "year"), 
+               model = "within", 
+               effect = "twoways")
+
+# get coefficients
+coeftest(output4, vcov = vcovHC, type = "HC1")
+#> 
+#> t test of coefficients:
+#> 
+#>      Estimate Std. Error t value Pr(>|t|)
+#> post 0.081812   0.057748  1.4167   0.1572
+```
+
+As you can see, differences stem from SE estimation, not the coefficient estimate.
+
 ## Synthetic Control
 
 Examples in marketing:
@@ -1436,26 +1646,35 @@ Examples in marketing:
 -   [@guo2020]: payment disclosure laws effect on physician prescription behavior using Timing of the Massachusetts open payment law as the exogenous shock
 -   [@wang2019]: mobile hailing technology adoption on drivers' hourly earnings
 
-Synthetic control method (SCM) is a generalization of the [Difference-In-Differences] model
+Notes
 
-SCMs can also be used under the Bayesian framework where we do not have to impose any restrictive priori [@kim2020]
+-   Synthetic control method (SCM) is a generalization of the [Difference-in-differences] model
 
-Different from [Matching Methods] because SCMs match on the pre-treatment outcomes in each period while [Matching Methods] match on the number of covariates.
+-   For a review of the method, see [@abadie2021a]
 
-Advantages over [Difference-In-Differences]
+-   SCMs can also be used under the Bayesian framework where we do not have to impose any restrictive priori [@kim2020]
+
+-   Different from [Matching Methods] because SCMs match on the pre-treatment outcomes in each period while [Matching Methods] match on the number of covariates.
+
+-   A data driven procedure to construct more comparable control groups (i.e., black box).
+
+-   To do causal inference with control and treatment group using [Matching Methods], you typically have to have similar covariates in the control and the treated groups. However, if you don't methods like [Propensity Scores] and DID can perform rather poorly (i.e., large bias).
+
+Advantages over [Difference-in-differences]
 
 1.  Maximization of the observable similarity between control and treatment (maybe also unobservables)
 2.  Can also be used in cases where no untreated case with similar on matching dimensions with treated cases
 3.  Objective selection of controls.
 
-A data driven procedure to construct more comparable control groups (i.e., black box).
+Advantages over linear regression
 
-To do causal inference with control and treatment group using [Matching Methods], you typically have to have similar covariates in the control and the treated groups. However, if you don't methods like [Propensity Scores] and DID can perform rather poorly (i.e., large bias).
+-   Regression weights for the estimator will be outside of [0,1] (because regression allows extrapolation), and it will not be sparse (i.e., can be less than 0).
 
-SCM is recommended when
+-   No extrapalation under SCMs
 
-1.  Social events to evaluate large-scale program or policy
-2.  Only one treated case with several control candidates.
+-   Explicitly state the fit (i.e., the weight)
+
+-   Can be estimated without the post-treatment outcomes for the control group (can't p-hack)
 
 Advantages:
 
@@ -1466,6 +1685,11 @@ Advantages:
 Disadvantages:
 
 1.  It's hard to argue for the weights you use to create the "synthetic control"
+
+SCM is recommended when
+
+1.  Social events to evaluate large-scale program or policy
+2.  Only one treated case with several control candidates.
 
 <br>
 
@@ -1481,7 +1705,137 @@ Disadvantages:
 
 **Identification**: The exclusion restriction is met conditional on the pre-treatment outcomes.
 
-`Synth` provides an algorithm that finds weighted combination of the comparison units where the weights are chosen such that it best resembles the values of predictors of the outcome variable for the affected units before the intervention.
+`Synth` provides an algorithm that finds weighted combination of the comparison units where the weights are chosen such that it best resembles the values of predictors of the outcome variable for the affected units before the intervention
+
+Setting (notation followed professor [Alberto Abadie](https://conference.nber.org/confer/2021/SI2021/ML/AbadieSlides.pdf))
+
+-   $J + 1$ units in periods $1, \dots, T$
+
+-   The first unit is the treated one during $T_0 + 1, \dots, T$
+
+-   $J$ units are called a donor pool
+
+-   $Y_{it}^I$ is the outcome for unit $i$ if it's exposed to the treatment during $T_0 + 1 , \dots T$
+
+-   $Y_{it}^N$ is the outcome for unit $i$ if it's not exposed to the treatment
+
+We try to estimate the effect of treatment on the treated unit
+
+$$
+\tau_{1t} = Y_{1t}^I - Y_{1t}^N
+$$
+
+where we observe the first treated unit already $Y_{1t}^I = Y_{1t}$
+
+To construct the synthetic control unit, we have to find appropriate weight for each donor in the donor pool by finding $\mathbf{W} = (w_2, \dots, w_{J=1})'$ where
+
+-   $w_j \ge 0$ for $j = 2, \dots, J+1$
+
+-   $w_2 + \dots + w_{J+1} = 1$
+
+The "appropriate" vector $\mathbf{W}$ here is constrained to
+
+$$
+\min||\mathbf{X}_1 - \mathbf{X}_0 \mathbf{W}||
+$$
+
+where
+
+-   $\mathbf{X}_1$ is the $k \times 1$ vector of pre-treatment characteristics for the treated unit
+
+-   $\mathbf{X}_0$ is the $k \times J$ matrix of pre-treatment characteristics for the untreated units
+
+For simplicity, researchers usually use
+
+$$
+\min||\mathbf{X}_1 - \mathbf{X}_0 \mathbf{W}|| \\
+= (\sum_{h=1}^k v_h(X_{h1}- w_2 X-{h2} - \dots - w_{J+1} X_{hJ +1})^{1/2}
+$$
+
+where
+
+-   $v_1, \dots, v_k$ is a vector positive constants that represent the predictive power of the $k$ predictors on $Y_{1t}^N$ (i.e., the potential outcome of the treated without treatment) and it can be chosen either explicitly by the researcher or by data-driven methods
+
+For penalized synthetic control [@abadie2021], the minimization problem becomes
+
+$$
+\min_{\mathbf{W}} ||\mathbf{X}_1 - \sum_{j=2}^{J + 1}W_j \mathbf{X}_j ||^2 + \lambda \sum_{j=2}^{J+1} W_j ||\mathbf{X}_1 - \mathbf{X}_j||^2
+$$
+
+where
+
+-   $W_j \ge 0$ and $\sum_{j=2}^{J+1} W_j = 1$
+
+-   $\lambda >0$ balances over-fitting of the treated and minimize the sum of pairwise distances
+
+    -   $\lambda \to 0$: pure synthetic control (i.e solution for the unpernalized esitmator)
+
+    -   $\lambda \to \infty$: nearest neighbor matching
+
+Advantages:
+
+-   For $\lambda >0$, you have unique and sparse solution
+
+-   Reduces the interpolation bias when averaging dissimilar units
+
+-   Penalized SC never uses dissimilar units
+
+<br>
+
+Then the synthetic control estimator is
+
+$$
+\hat{\tau}_{1t} = Y_{1t} - \sum_{j=2}^{J+1} w_j^* Y_{jt}
+$$
+
+where $Y_{jt}$ is the outcome for unit $j$ at time $t$
+
+Consideration
+
+Under the factor model [@abadie2010]
+
+$$
+Y_{it}^N = \mathbf{\theta}_t \mathbf{Z}_i + \mathbf{\lambda}_t \mathbf{\mu}_i + \epsilon_{it}
+$$
+
+where
+
+-   $Z_i$ = observables
+
+-   $\mu_i$ = unobservables
+
+-   $\epsilon_{it}$ = unit-level transitory shock (i.e., random noise)
+
+with assumptions of $\mathbf{W}^*$ such that
+
+$$
+\begin{aligned}
+\sum_{j=2}^{J+1} w_j^* \mathbf{Z}_j  &= \mathbf{Z}_1 \\
+\dots \\
+\sum_{j=2}^{J+1} w_j^* Y_{j1} &= Y_{11} \\
+\sum_{j=2}^{J+1} w_j^* Y_{jT_0} &= Y_{1T_0}
+\end{aligned}
+$$
+
+Basically, we assume that the synthetic control is a good counterfactual when the treated unit is not exposed to the treatment.
+
+Then,
+
+-   the bias bound depends on close fit, which is controlled by the ratio between $\epsilon_{it}$ (transitory shock) and $T_0$ (the number of pre-treatment periods). In other words, you should have good fit for $Y_{1t}$ for pre-treatment period (i.e., $T_0$ should be large while small variance in $\epsilon_{it}$)
+
+-   When you have poor fit, you have to use bias correction version of the syntehtic control. See [@arkhangelsky2019; @abadie2021][@ben2020varying]
+
+-   Overfitting can be the result of small $T_0$ (the number of pre-treatment periods), large $J$ (the number of units in the donor pool), and large $\epsilon_{it}$ (noise)
+
+    -   Mitigation: put only similar units (to the treated one) in the donor pool
+
+To make inference, we have to create a permutation distribution (by iteratively reassigning the treatment to the units in the donor pool and estimate the placebo effects in each iteration). We say there is an effect of the treatment when the magnitude of value of the treatment effect on the treated unit is extreme relative to the permutation distribution.
+
+It's recommended to use one-sided inference. And the permutation distribution is superior to the p-values alone (because sampling-based inference is hard under SCMs either because of undefined sampling mechanism or the sample is the population).
+
+For benchmark (permutation) distribution (e.g., uniform), see [@firpo2018]
+
+<br>
 
 ### Example 1
 
@@ -1616,7 +1970,7 @@ abline(v   = 15,
        lty = 2)
 ```
 
-<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
 
 Gaps plot:
 
@@ -1634,7 +1988,7 @@ abline(v   = 15,
        lty = 2)
 ```
 
-<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
 
 Alternatively, `gsynth` provides options to estimate iterative fixed effects, and handle multiple treated units at tat time.
 
@@ -1673,21 +2027,21 @@ gsynth.out <- gsynth(
 plot(gsynth.out)
 ```
 
-<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
 plot(gsynth.out, type = "counterfactual")
 ```
 
-<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
 plot(gsynth.out, type = "counterfactual", raw = "all") # shows estimations for the control cases
 ```
 
-<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-25-1.png" width="90%" style="display: block; margin: auto;" />
 
 ### Example 2
 
@@ -1868,7 +2222,7 @@ path.plot(
 )
 ```
 
-<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-29-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-32-1.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
@@ -1882,7 +2236,7 @@ gaps.plot(
 )
 ```
 
-<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-30-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-33-1.png" width="90%" style="display: block; margin: auto;" />
 
 Doubly Robust Difference-in-Differences
 
@@ -2042,7 +2396,7 @@ path.plot(
 )
 ```
 
-<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-38-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-41-1.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
@@ -2056,7 +2410,7 @@ gaps.plot(
 )
 ```
 
-<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-39-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-42-1.png" width="90%" style="display: block; margin: auto;" />
 
 You could also run placebo tests
 
@@ -2210,7 +2564,7 @@ summary(sea1)
 plot_microsynth(sea1)
 ```
 
-<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-42-1.png" width="90%" style="display: block; margin: auto;" /><img src="21-quasi-experimental_files/figure-html/unnamed-chunk-42-2.png" width="90%" style="display: block; margin: auto;" /><img src="21-quasi-experimental_files/figure-html/unnamed-chunk-42-3.png" width="90%" style="display: block; margin: auto;" /><img src="21-quasi-experimental_files/figure-html/unnamed-chunk-42-4.png" width="90%" style="display: block; margin: auto;" />
+<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-45-1.png" width="90%" style="display: block; margin: auto;" /><img src="21-quasi-experimental_files/figure-html/unnamed-chunk-45-2.png" width="90%" style="display: block; margin: auto;" /><img src="21-quasi-experimental_files/figure-html/unnamed-chunk-45-3.png" width="90%" style="display: block; margin: auto;" /><img src="21-quasi-experimental_files/figure-html/unnamed-chunk-45-4.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
@@ -2223,6 +2577,10 @@ sea2 <- microsynth(seattledmi,
                    perm=250, jack=TRUE,
                    n.cores = min(parallel::detectCores(), 2))
 ```
+
+## Synthetic Difference-in-differences
+
+reference: [@arkhangelsky2021]
 
 ## Selection on observables
 
@@ -2841,7 +3199,7 @@ m.out1
 #>  - method: 1:1 nearest neighbor matching without replacement
 #>  - distance: Propensity score
 #>              - estimated with logistic regression
-#>  - number of obs.: 614 (original), 370 (matched)
+#>  - number of obs.: 445 (original), 370 (matched)
 #>  - target estimand: ATT
 #>  - covariates: age, educ
 ```
@@ -2861,26 +3219,26 @@ summary(m.out1, un = FALSE)
 #> 
 #> Summary of Balance for Matched Data:
 #>          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
-#> distance        0.3080        0.3077          0.0094     0.9963    0.0033
-#> age            25.8162       25.8649         -0.0068     1.0300    0.0050
-#> educ           10.3459       10.2865          0.0296     0.5886    0.0253
+#> distance        0.4203        0.4179          0.0520     1.1691    0.0105
+#> age            25.8162       25.5081          0.0431     1.1518    0.0148
+#> educ           10.3459       10.2811          0.0323     1.5138    0.0224
 #>          eCDF Max Std. Pair Dist.
-#> distance   0.0432          0.0146
-#> age        0.0162          0.0597
-#> educ       0.1189          0.8146
+#> distance   0.0595          0.0598
+#> age        0.0486          0.5628
+#> educ       0.0757          0.3602
 #> 
 #> Sample Sizes:
 #>           Control Treated
-#> All           429     185
+#> All           260     185
 #> Matched       185     185
-#> Unmatched     244       0
+#> Unmatched      75       0
 #> Discarded       0       0
 
 # examine visually
 plot(m.out1, type = "jitter", interactive = FALSE)
 ```
 
-<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-47-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-50-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -2892,7 +3250,7 @@ plot(
 )
 ```
 
-<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-47-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-50-2.png" width="90%" style="display: block; margin: auto;" />
 
 Try Full Match (i.e., every treated matches with one control, and every control with one treated).
 
@@ -2909,7 +3267,7 @@ m.out2
 #>  - method: Optimal full matching
 #>  - distance: Propensity score
 #>              - estimated with probit regression
-#>  - number of obs.: 614 (original), 614 (matched)
+#>  - number of obs.: 445 (original), 445 (matched)
 #>  - target estimand: ATT
 #>  - covariates: age, educ
 ```
@@ -2927,26 +3285,26 @@ summary(m.out2, un = FALSE)
 #> 
 #> Summary of Balance for Matched Data:
 #>          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
-#> distance        0.3082        0.3082          0.0015     0.9837    0.0042
-#> age            25.8162       25.8670         -0.0071     0.9966    0.0064
-#> educ           10.3459       10.4669         -0.0602     0.4703    0.0416
+#> distance        0.4203        0.4198          0.0114     1.0326    0.0035
+#> age            25.8162       25.9285         -0.0157     0.9139    0.0125
+#> educ           10.3459       10.2973          0.0242     1.4232    0.0189
 #>          eCDF Max Std. Pair Dist.
-#> distance   0.0270          0.0453
-#> age        0.0264          0.1369
-#> educ       0.1613          1.3057
+#> distance    0.027          0.0169
+#> age         0.037          0.5230
+#> educ        0.072          0.3603
 #> 
 #> Sample Sizes:
 #>               Control Treated
-#> All            429.       185
-#> Matched (ESS)  216.09     185
-#> Matched        429.       185
+#> All            260.       185
+#> Matched (ESS)  154.33     185
+#> Matched        260.       185
 #> Unmatched        0.         0
 #> Discarded        0.         0
 
 plot(summary(m.out2))
 ```
 
-<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-49-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-52-1.png" width="90%" style="display: block; margin: auto;" />
 
 Exact Matching
 
@@ -2962,7 +3320,7 @@ m.out3 <-
 m.out3
 #> A matchit object
 #>  - method: Exact matching
-#>  - number of obs.: 614 (original), 332 (matched)
+#>  - number of obs.: 445 (original), 319 (matched)
 #>  - target estimand: ATT
 #>  - covariates: age, educ
 ```
@@ -2981,7 +3339,7 @@ m.out4
 #>  - method: Subclassification (6 subclasses)
 #>  - distance: Propensity score
 #>              - estimated with logistic regression
-#>  - number of obs.: 614 (original), 614 (matched)
+#>  - number of obs.: 445 (original), 445 (matched)
 #>  - target estimand: ATT
 #>  - covariates: age, educ
 
@@ -2997,7 +3355,7 @@ m.out4
 #>  - method: 1:1 nearest neighbor matching without replacement
 #>  - distance: Propensity score
 #>              - estimated with logistic regression
-#>  - number of obs.: 614 (original), 370 (matched)
+#>  - number of obs.: 445 (original), 370 (matched)
 #>  - target estimand: ATT
 #>  - covariates: age, educ
 ```
@@ -3017,7 +3375,7 @@ m.out5
 #>  - method: 2:1 optimal pair matching
 #>  - distance: Propensity score
 #>              - estimated with logistic regression
-#>  - number of obs.: 614 (original), 555 (matched)
+#>  - number of obs.: 445 (original), 445 (matched)
 #>  - target estimand: ATT
 #>  - covariates: age, educ
 ```
@@ -3036,7 +3394,7 @@ m.out6
 #>  - method: 1:1 genetic matching without replacement
 #>  - distance: Propensity score
 #>              - estimated with logistic regression
-#>  - number of obs.: 614 (original), 370 (matched)
+#>  - number of obs.: 445 (original), 370 (matched)
 #>  - target estimand: ATT
 #>  - covariates: age, educ
 ```
@@ -3049,20 +3407,20 @@ m.out6
 m.data1 <- match.data(m.out1)
 
 head(m.data1)
-#>      treat age educ   race married nodegree re74 re75       re78  distance
-#> NSW1     1  37   11  black       1        1    0    0  9930.0460 0.2536942
-#> NSW2     1  22    9 hispan       0        1    0    0  3595.8940 0.3245468
-#> NSW3     1  30   12  black       0        0    0    0 24909.4500 0.2881139
-#> NSW4     1  27   11  black       0        1    0    0  7506.1460 0.3016672
-#> NSW5     1  33    8  black       0        1    0    0   289.7899 0.2683025
-#> NSW6     1  22    9  black       0        1    0    0  4056.4940 0.3245468
-#>      weights subclass
-#> NSW1       1        1
-#> NSW2       1       98
-#> NSW3       1      109
-#> NSW4       1      120
-#> NSW5       1      131
-#> NSW6       1      142
+#>   age educ black hisp married nodegr re74 re75     re78 u74 u75 treat  distance
+#> 1  37   11     1    0       1      1    0    0  9930.05   1   1     1 0.4729814
+#> 2  22    9     0    1       0      1    0    0  3595.89   1   1     1 0.3803739
+#> 3  30   12     1    0       0      0    0    0 24909.50   1   1     1 0.4673429
+#> 4  27   11     1    0       0      1    0    0  7506.15   1   1     1 0.4366549
+#> 5  33    8     1    0       0      1    0    0   289.79   1   1     1 0.3997038
+#> 6  22    9     1    0       0      1    0    0  4056.49   1   1     1 0.3803739
+#>   weights subclass
+#> 1       1        1
+#> 2       1       98
+#> 3       1      109
+#> 4       1      120
+#> 5       1      131
+#> 6       1      142
 ```
 
 
@@ -3080,10 +3438,10 @@ coeftest(fit1, vcov. = vcovCL, cluster = ~subclass)
 #> t test of coefficients:
 #> 
 #>              Estimate Std. Error t value Pr(>|t|)   
-#> (Intercept)  -106.555   2464.875 -0.0432 0.965542   
-#> treat       -1221.832    785.492 -1.5555 0.120691   
-#> age           152.118     53.241  2.8571 0.004519 **
-#> educ          362.502    171.893  2.1089 0.035634 * 
+#> (Intercept) -1639.384   2022.796 -0.8105 0.418206   
+#> treat        2169.118    685.457  3.1645 0.001684 **
+#> age            45.251     40.980  1.1042 0.270225   
+#> educ          449.568    168.471  2.6685 0.007958 **
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -3102,11 +3460,11 @@ coeftest(fit2, vcov. = vcovCL, cluster = ~subclass)
 #> 
 #> t test of coefficients:
 #> 
-#>             Estimate Std. Error t value Pr(>|t|)   
-#> (Intercept) -588.890   2890.500 -0.2037 0.838630   
-#> treat       -380.494    685.482 -0.5551 0.579047   
-#> age          169.097     53.592  3.1553 0.001682 **
-#> educ         285.433    206.986  1.3790 0.168400   
+#>              Estimate Std. Error t value  Pr(>|t|)    
+#> (Intercept) -1024.030   1689.180 -0.6062 0.5446743    
+#> treat        1688.974    763.312  2.2127 0.0274304 *  
+#> age            39.757     35.413  1.1227 0.2621903    
+#> educ          450.209    134.534  3.3464 0.0008887 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -3135,8 +3493,8 @@ data("lalonde")
 # choose var to match on
 match.on <- colnames(lalonde)[!(colnames(lalonde) %in% c('re78', 'treat'))]
 match.on
-#> [1] "age"       "education" "black"     "hispanic"  "married"   "nodegree" 
-#> [7] "re74"      "re75"
+#>  [1] "age"     "educ"    "black"   "hisp"    "married" "nodegr"  "re74"   
+#>  [8] "re75"    "u74"     "u75"
 
 # Mahanlanobis frontier (default)
 mahal.frontier <-
@@ -3149,7 +3507,7 @@ mahal.frontier <-
 #> Calculating theoretical frontier...
 #> Calculating information for plotting the frontier...
 mahal.frontier
-#> An imbalance frontier with 997 points.
+#> An imbalance frontier with 174 points.
 
 # L1 frontier
 L1.frontier <-
@@ -3164,7 +3522,7 @@ L1.frontier <-
 #> Calculating L1 binnings...
 #> Calculating L1 frontier... This may take a few minutes...
 L1.frontier
-#> An imbalance frontier with 976 points.
+#> An imbalance frontier with 210 points.
 
 # estimate effects along the frontier
 
@@ -3182,7 +3540,7 @@ mahal.estimates <-
         prop.estimated = .1,
         means.as.cutpoints = TRUE
     )
-#>   |                                                                              |                                                                      |   0%  |                                                                              |=                                                                     |   1%  |                                                                              |=                                                                     |   2%  |                                                                              |==                                                                    |   3%  |                                                                              |===                                                                   |   4%  |                                                                              |====                                                                  |   5%  |                                                                              |====                                                                  |   6%  |                                                                              |=====                                                                 |   7%  |                                                                              |======                                                                |   8%  |                                                                              |======                                                                |   9%  |                                                                              |=======                                                               |  10%  |                                                                              |========                                                              |  11%  |                                                                              |========                                                              |  12%  |                                                                              |=========                                                             |  13%  |                                                                              |==========                                                            |  14%  |                                                                              |===========                                                           |  15%  |                                                                              |===========                                                           |  16%  |                                                                              |============                                                          |  17%  |                                                                              |=============                                                         |  18%  |                                                                              |=============                                                         |  19%  |                                                                              |==============                                                        |  20%  |                                                                              |===============                                                       |  21%  |                                                                              |================                                                      |  22%  |                                                                              |================                                                      |  23%  |                                                                              |=================                                                     |  24%  |                                                                              |==================                                                    |  25%  |                                                                              |==================                                                    |  26%  |                                                                              |===================                                                   |  27%  |                                                                              |====================                                                  |  28%  |                                                                              |=====================                                                 |  29%  |                                                                              |=====================                                                 |  30%  |                                                                              |======================                                                |  31%  |                                                                              |=======================                                               |  32%  |                                                                              |=======================                                               |  33%  |                                                                              |========================                                              |  34%  |                                                                              |=========================                                             |  35%  |                                                                              |=========================                                             |  36%  |                                                                              |==========================                                            |  37%  |                                                                              |===========================                                           |  38%  |                                                                              |============================                                          |  39%  |                                                                              |============================                                          |  40%  |                                                                              |=============================                                         |  41%  |                                                                              |==============================                                        |  42%  |                                                                              |==============================                                        |  43%  |                                                                              |===============================                                       |  44%  |                                                                              |================================                                      |  45%  |                                                                              |=================================                                     |  46%  |                                                                              |=================================                                     |  47%  |                                                                              |==================================                                    |  48%  |                                                                              |===================================                                   |  49%  |                                                                              |===================================                                   |  51%  |                                                                              |====================================                                  |  52%  |                                                                              |=====================================                                 |  53%  |                                                                              |=====================================                                 |  54%  |                                                                              |======================================                                |  55%  |                                                                              |=======================================                               |  56%  |                                                                              |========================================                              |  57%  |                                                                              |========================================                              |  58%  |                                                                              |=========================================                             |  59%  |                                                                              |==========================================                            |  60%  |                                                                              |==========================================                            |  61%  |                                                                              |===========================================                           |  62%  |                                                                              |============================================                          |  63%  |                                                                              |=============================================                         |  64%  |                                                                              |=============================================                         |  65%  |                                                                              |==============================================                        |  66%  |                                                                              |===============================================                       |  67%  |                                                                              |===============================================                       |  68%  |                                                                              |================================================                      |  69%  |                                                                              |=================================================                     |  70%  |                                                                              |=================================================                     |  71%  |                                                                              |==================================================                    |  72%  |                                                                              |===================================================                   |  73%  |                                                                              |====================================================                  |  74%  |                                                                              |====================================================                  |  75%  |                                                                              |=====================================================                 |  76%  |                                                                              |======================================================                |  77%  |                                                                              |======================================================                |  78%  |                                                                              |=======================================================               |  79%  |                                                                              |========================================================              |  80%  |                                                                              |=========================================================             |  81%  |                                                                              |=========================================================             |  82%  |                                                                              |==========================================================            |  83%  |                                                                              |===========================================================           |  84%  |                                                                              |===========================================================           |  85%  |                                                                              |============================================================          |  86%  |                                                                              |=============================================================         |  87%  |                                                                              |==============================================================        |  88%  |                                                                              |==============================================================        |  89%  |                                                                              |===============================================================       |  90%  |                                                                              |================================================================      |  91%  |                                                                              |================================================================      |  92%  |                                                                              |=================================================================     |  93%  |                                                                              |==================================================================    |  94%  |                                                                              |==================================================================    |  95%  |                                                                              |===================================================================   |  96%  |                                                                              |====================================================================  |  97%  |                                                                              |===================================================================== |  98%  |                                                                              |===================================================================== |  99%  |                                                                              |======================================================================| 100%
+#>   |                                                                              |                                                                      |   0%  |                                                                              |====                                                                  |   6%  |                                                                              |=========                                                             |  12%  |                                                                              |=============                                                         |  19%  |                                                                              |==================                                                    |  25%  |                                                                              |======================                                                |  31%  |                                                                              |==========================                                            |  38%  |                                                                              |===============================                                       |  44%  |                                                                              |===================================                                   |  50%  |                                                                              |=======================================                               |  56%  |                                                                              |============================================                          |  62%  |                                                                              |================================================                      |  69%  |                                                                              |====================================================                  |  75%  |                                                                              |=========================================================             |  81%  |                                                                              |=============================================================         |  88%  |                                                                              |==================================================================    |  94%  |                                                                              |======================================================================| 100%
 
 # Estimate effects for the L1 frontier
 L1.estimates <-
@@ -3194,7 +3552,7 @@ L1.estimates <-
         prop.estimated = .1,
         means.as.cutpoints = TRUE
     )
-#>   |                                                                              |                                                                      |   0%  |                                                                              |=                                                                     |   1%  |                                                                              |=                                                                     |   2%  |                                                                              |==                                                                    |   3%  |                                                                              |===                                                                   |   4%  |                                                                              |====                                                                  |   5%  |                                                                              |====                                                                  |   6%  |                                                                              |=====                                                                 |   7%  |                                                                              |======                                                                |   8%  |                                                                              |======                                                                |   9%  |                                                                              |=======                                                               |  10%  |                                                                              |========                                                              |  11%  |                                                                              |=========                                                             |  12%  |                                                                              |=========                                                             |  13%  |                                                                              |==========                                                            |  14%  |                                                                              |===========                                                           |  15%  |                                                                              |============                                                          |  16%  |                                                                              |============                                                          |  18%  |                                                                              |=============                                                         |  19%  |                                                                              |==============                                                        |  20%  |                                                                              |==============                                                        |  21%  |                                                                              |===============                                                       |  22%  |                                                                              |================                                                      |  23%  |                                                                              |=================                                                     |  24%  |                                                                              |=================                                                     |  25%  |                                                                              |==================                                                    |  26%  |                                                                              |===================                                                   |  27%  |                                                                              |===================                                                   |  28%  |                                                                              |====================                                                  |  29%  |                                                                              |=====================                                                 |  30%  |                                                                              |======================                                                |  31%  |                                                                              |======================                                                |  32%  |                                                                              |=======================                                               |  33%  |                                                                              |========================                                              |  34%  |                                                                              |=========================                                             |  35%  |                                                                              |=========================                                             |  36%  |                                                                              |==========================                                            |  37%  |                                                                              |===========================                                           |  38%  |                                                                              |===========================                                           |  39%  |                                                                              |============================                                          |  40%  |                                                                              |=============================                                         |  41%  |                                                                              |==============================                                        |  42%  |                                                                              |==============================                                        |  43%  |                                                                              |===============================                                       |  44%  |                                                                              |================================                                      |  45%  |                                                                              |================================                                      |  46%  |                                                                              |=================================                                     |  47%  |                                                                              |==================================                                    |  48%  |                                                                              |===================================                                   |  49%  |                                                                              |===================================                                   |  51%  |                                                                              |====================================                                  |  52%  |                                                                              |=====================================                                 |  53%  |                                                                              |======================================                                |  54%  |                                                                              |======================================                                |  55%  |                                                                              |=======================================                               |  56%  |                                                                              |========================================                              |  57%  |                                                                              |========================================                              |  58%  |                                                                              |=========================================                             |  59%  |                                                                              |==========================================                            |  60%  |                                                                              |===========================================                           |  61%  |                                                                              |===========================================                           |  62%  |                                                                              |============================================                          |  63%  |                                                                              |=============================================                         |  64%  |                                                                              |=============================================                         |  65%  |                                                                              |==============================================                        |  66%  |                                                                              |===============================================                       |  67%  |                                                                              |================================================                      |  68%  |                                                                              |================================================                      |  69%  |                                                                              |=================================================                     |  70%  |                                                                              |==================================================                    |  71%  |                                                                              |===================================================                   |  72%  |                                                                              |===================================================                   |  73%  |                                                                              |====================================================                  |  74%  |                                                                              |=====================================================                 |  75%  |                                                                              |=====================================================                 |  76%  |                                                                              |======================================================                |  77%  |                                                                              |=======================================================               |  78%  |                                                                              |========================================================              |  79%  |                                                                              |========================================================              |  80%  |                                                                              |=========================================================             |  81%  |                                                                              |==========================================================            |  82%  |                                                                              |==========================================================            |  84%  |                                                                              |===========================================================           |  85%  |                                                                              |============================================================          |  86%  |                                                                              |=============================================================         |  87%  |                                                                              |=============================================================         |  88%  |                                                                              |==============================================================        |  89%  |                                                                              |===============================================================       |  90%  |                                                                              |================================================================      |  91%  |                                                                              |================================================================      |  92%  |                                                                              |=================================================================     |  93%  |                                                                              |==================================================================    |  94%  |                                                                              |==================================================================    |  95%  |                                                                              |===================================================================   |  96%  |                                                                              |====================================================================  |  97%  |                                                                              |===================================================================== |  98%  |                                                                              |===================================================================== |  99%  |                                                                              |======================================================================| 100%
+#>   |                                                                              |                                                                      |   0%  |                                                                              |====                                                                  |   5%  |                                                                              |=======                                                               |  10%  |                                                                              |==========                                                            |  15%  |                                                                              |==============                                                        |  20%  |                                                                              |==================                                                    |  25%  |                                                                              |=====================                                                 |  30%  |                                                                              |========================                                              |  35%  |                                                                              |============================                                          |  40%  |                                                                              |================================                                      |  45%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================                                |  55%  |                                                                              |==========================================                            |  60%  |                                                                              |==============================================                        |  65%  |                                                                              |=================================================                     |  70%  |                                                                              |====================================================                  |  75%  |                                                                              |========================================================              |  80%  |                                                                              |============================================================          |  85%  |                                                                              |===============================================================       |  90%  |                                                                              |==================================================================    |  95%  |                                                                              |======================================================================| 100%
 
 # Plot covariates means 
 # plotPrunedMeans()
@@ -3213,7 +3571,7 @@ L1.estimates <-
 plotMeans(L1.frontier)
 ```
 
-<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-57-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-60-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -3228,7 +3586,7 @@ parallelPlot(
 )
 ```
 
-<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-57-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="21-quasi-experimental_files/figure-html/unnamed-chunk-60-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -3552,7 +3910,7 @@ genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
                    pop.size=16, max.generations=10, wait.generations=1)
 #> 
 #> 
-#> Tue Feb 22 18:17:48 2022
+#> Mon Jun 06 20:54:36 2022
 #> Domains:
 #>  0.000000e+00   <=  X1   <=    1.000000e+03 
 #>  0.000000e+00   <=  X2   <=    1.000000e+03 
@@ -3741,7 +4099,7 @@ genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
 #> Solution Found Generation 1
 #> Number of Generations Run 2
 #> 
-#> Tue Feb 22 18:17:48 2022
+#> Mon Jun 06 20:54:36 2022
 #> Total run time : 0 hours 0 minutes and 0 seconds
 
 #The outcome variable

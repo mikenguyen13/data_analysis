@@ -168,20 +168,182 @@ There are four types of subjects that we deal with:
 
         -   We typically aren't interested in defiers because they will do the opposite of what we want them to do. And they are typically a small group; hence, we just assume they don't exist.
 
+|               | Treatment Assignment | Control Assignment |
+|---------------|----------------------|--------------------|
+| Compliers     | Treated              | No Treated         |
+| Always-takers | Treated              | Treated            |
+| Never-takers  | Not treated          | No treated         |
+| Defiers       | Not treated          | Treated            |
+
 <br>
 
 Directional Bias due to selection into treatment comes from 2 general opposite sources
 
-1.  Mitigation-based: select into treatment to combat a problem
-2.  Preference-based: select into treatment because units like that kind of treatment.
+1.  **Mitigation-based**: select into treatment to combat a problem
+2.  **Preference-based**: select into treatment because units like that kind of treatment.
+
+<br>
+
+## Treatment effect types
+
+This section is based on [Paul Testa's note on egap](https://egap.org/resource/10-types-of-treatment-effect-you-should-know-about/)
+
+Terminology:
+
+-   Quantities of causal interest (i.e., treatment effect types)
+
+-   Estimands: parameters of interest
+
+-   Estimators: procedures to calculate hesitates for the parameters of interest
+
+### Average Treatment Effects
+
+Average treatment effect (ATE) is the difference in means of the treated and control groups
+
+**Randomization** under [Experimental Design] can provide an unbiased estimate of ATE.
+
+Let $Y_i(1)$ denote the outcome of individual $i$ under treatment and
+
+$Y_i(0)$ denote the outcome of individual $i$ under control
+
+Then, the treatment effect for individual $i$ is the difference between her outcome under treatment and control
+
+$$
+\tau_i = Y_i(1) - Y_i(0)
+$$
+
+Without a time machine or dimension portal, we can only observe one of the two event: either individual $i$ experiences the treatment or she doesn't.
+
+Then, the ATE as a quantity of interest can come in handy since we can observe across all individuals
+
+$$
+ATE = \frac{1}{N} \sum_{i=1}^N \tau_i = \frac{\sum_1^N Y_i(1)}{N} - \frac{\sum_i^N Y_i(0)}{N}
+$$
+
+With random assignment (i.e., treatment assignment is independent of potential outcome and observables and unobservables), the observed means difference between the two groups is an unbiased estimator of the average treatment effect
+
+$$
+E(Y_i (1) |D = 1) = E(Y_i(1)|D=0) = E(Y_i(1)) \\
+E(Y_i(0) |D = 1) = E(Y_i(0)|D = 0 ) = E(Y_i(0))
+$$
+
+$$
+ATE = E(Y_i(1)) - E(Y_i(0))
+$$
+
+### Conditional Average Treatment Effects
+
+Treatment effects can be different for different groups of people. In words, treatment effects can vary across subgroups.
+
+To examine the heterogeneity across groups (e.g., men vs. women), we can estimate the conditional average treatment effects (CATE) for each subgroup
+
+$$
+CATE = E(Y_i(1) - Y_i(0) |D_i, X_i))
+$$
+
+### Intent-to-treat Effects
+
+When we encounter non-compliance (either people suppose to receive treatment don't receive it, or people suppose to be in the control group receive the treatment), treatment receipt is not independent of potential outcomes and confounders.
+
+In this case, the difference in observed means between the treatment and control groups is not [Average Treatment Effects], but [Intent-to-treat Effects] (ITT). In words, ITT is the treatment effect on those who **receive** the treatment
+
+<br>
+
+### Local Average Treatment Effects
+
+Instead of estimating the treatment effects of those who **receive** the treatment (i.e., [Intent-to-treat Effects]), you want to estimate the treatment effect of those who actually **comply** with the treatment. This is the local average treatment effects (LATE) or complier average causal effects (CACE). I assume we don't use CATE to denote complier average treatment effect because it was reserved for conditional average treatment effects.
+
+-   Using random treatment assignment as an instrument, we can recover the effect of treatment on compliers.
+
+![](images/iv_late.PNG)
+
+-   As the percent of compliers increases, [Intent-to-treat Effects] and [Local Average Treatment Effects] converge
+
+-   Rule of thumb: SE(LATE) = SE(ITT)/(share of compliers)
+
+-   LATE estimate is always greater than the ITT estimate
+
+-   LATE can also be estimated using a pure placebo group [@gerber2010].
+
+-   Partial compliance is hard to study, and IV/2SLS estimator is biased, we have to use Bayesian [@long2010; @jin2009; @jin2008].
+
+#### One-sided noncompliance
+
+-   One-sided noncompliance is when in the sample, we only have compliers and never-takers
+
+-   With the exclusion restriction (i.e., excludability), never-takers have the same results in the treatment or control group (i.e., never treated)
+
+-   With random assignment, we can have the same number of never-takers in the treatment and control groups
+
+-   Hence,
+
+$$
+LATE = \frac{ITT}{\text{share of compliers}}
+$$
+
+#### Two-sided noncompliance
+
+-   Two-sided noncompliance is when in the sample, we have compliers, never-takers, and always-takers
+
+-   To estimate LATE, beyond excludability like in the [One-sided noncompliance] case, we need to assume that there is no defiers (i.e., monotonicity assumption) (this is excusable in practical studies)
+
+$$
+LATE = \frac{ITT}{\text{share of compliers}}
+$$
+
+### Population vs. Sample Average Treatment Effects
+
+See [@imai2008] for when the sample average treatment effect (SATE) diverges from the population average treatment effect (PATE).
+
+### Average Treatment Effects on the Treated and Control
+
+Average Effect of treatment on the Treated (ATT) is
+
+$$
+ATT = E(Y_i(1) - Y_i(0)|D_i = 1) = E(Y_i(1)|D_i = 1) - E(Y_i(0) |D_i = 1)
+$$
+
+Average Effect of treatment on the Control (ATC) (i.e., the effect **would be** for those weren't treated) is
+
+$$
+ATC = E(Y_i(1) - Y_i (0) |D_i =0) = E(Y_i(1)|D_i = 0) - E(Y_i(0)|D_i = 0)
+$$
+
+Under random assignment and full compliance,
+
+$$
+ATE = ATT = ATC
+$$
+
+### Quantile Average Treatment Effects
+
+Instead of the middle point estimate (ATE), we can also understand the changes in the distirbuiton the outcome vairable due to the treatment.
+
+Using quantile regression and more assumptions [@abadie2002; @chernozhukov2005], we can have consisntent estimate of quantile treatment effects (QTE), with which we can make inference regarding a given quantile.
+
+### Mediation Effects 
+
+With additional assumptions (i.e., squential ignorability [@Imai_2010_6060; @bullock2010]), we can examine the mechanism of the treatment on the outcome.
+
+Under the causal framework,
+
+-   the indirect effect of treatment via a mediator is called average causal mediation effect (ACME)
+
+-   the direct effect of treatment on outcome is the average direct effect (ADE)
+
+More in the [Mediation] Section \@ref(mediation)
+
+### Log-odds Treatment Effects
+
+For binary outcome variable, we might be interested in the log-odds of success. See [@freedman2008] on how to estimate a consistent causal effect.
+
+Alternatively, attributable effects [@rosenbaum2002] can also be appropriate for binary outcome.
 
 <br>
 
 This section is based on Bernard Koch's [presentaiton](https://www.youtube.com/watch?v=v9uf9rDYEMg&ab_channel=SummerInstituteinComputationalSocialScience) at SICSS - Los Angeles 2021
 
-Identification under Selection on observable/ back-door criterion
-
-Conditions:
+Sufficient identification assumption under Selection on observable/ back-door criterion
 
 -   Strong conditional ignorability
 
@@ -198,27 +360,3 @@ Conditions:
 -   SUTVA/ Consistency
 
     -   Treatment and outcomes of different subjects are independent
-
-<br>
-
-Example
-
-We have
-
--   binary treatment $T \in \{ 0,1\}$
-
--   $Y(1), Y(0)$ are the potential outcomes
-
--   The average treatment effect is
-
-$$
-ATE = E(Y(1) - Y(0)) = E(\tau(x))
-$$
-
--   The conditional average treatment effect is
-
-$$
-CATE = \tau(x) = E(Y(1) - Y(0)|X = x)
-$$
-
-see <https://github.com/maxwshen/iap-cidl/blob/master/iap-cidl-lecture1_fredrik_potential_outcomes.pdf>

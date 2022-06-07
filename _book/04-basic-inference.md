@@ -2,7 +2,8 @@
 
  * [One Sample Inference]  
  * [Two Sample Inference]  
- * [Categorical Data Analysis]  
+ * [Categorical Data Analysis] 
+ * [Divergence Metrics and Test for Comparing Distributions]
 
 <br>
 
