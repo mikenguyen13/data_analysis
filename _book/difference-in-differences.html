@@ -1,819 +1,158 @@
 <!DOCTYPE html>
-<html lang="" xml:lang="">
+<html lang="en">
 <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 23 Difference-in-differences | A Guide on Data Analysis</title>
+<meta name="author" content="Mike Nguyen">
+<meta name="description" content="Examples in marketing (Liaukonyte, Teixeira, and Wilbur 2015): TV ad on online shopping (Akca and Rao 2020): aggregators for airlines business effect (Pattabhiramaiah, Sriram, and Manchanda 2018):...">
+<meta name="generator" content="bookdown 0.24 with bs4_book()">
+<meta property="og:title" content="Chapter 23 Difference-in-differences | A Guide on Data Analysis">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://bookdown.org/mike/data_analysis/difference-in-differences.html">
+<meta property="og:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<meta property="og:description" content="Examples in marketing (Liaukonyte, Teixeira, and Wilbur 2015): TV ad on online shopping (Akca and Rao 2020): aggregators for airlines business effect (Pattabhiramaiah, Sriram, and Manchanda 2018):...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 23 Difference-in-differences | A Guide on Data Analysis">
+<meta name="twitter:description" content="Examples in marketing (Liaukonyte, Teixeira, and Wilbur 2015): TV ad on online shopping (Akca and Rao 2020): aggregators for airlines business effect (Pattabhiramaiah, Sriram, and Manchanda 2018):...">
+<meta name="twitter:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/header-attrs-2.11/header-attrs.js"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.3.1/transition.js"></script><script src="libs/bs3compat-0.3.1/tabs.js"></script><script src="libs/bs3compat-0.3.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/htmlwidgets-1.5.4/htmlwidgets.js"></script><script src="libs/proj4js-2.3.15/proj4.js"></script><link href="libs/highcharts-9.3.1/css/motion.css" rel="stylesheet">
+<script src="libs/highcharts-9.3.1/highcharts.js"></script><script src="libs/highcharts-9.3.1/highcharts-3d.js"></script><script src="libs/highcharts-9.3.1/highcharts-more.js"></script><script src="libs/highcharts-9.3.1/modules/stock.js"></script><script src="libs/highcharts-9.3.1/modules/map.js"></script><script src="libs/highcharts-9.3.1/modules/data.js"></script><script src="libs/highcharts-9.3.1/modules/exporting.js"></script><script src="libs/highcharts-9.3.1/modules/offline-exporting.js"></script><script src="libs/highcharts-9.3.1/modules/drilldown.js"></script><script src="libs/highcharts-9.3.1/modules/item-series.js"></script><script src="libs/highcharts-9.3.1/modules/overlapping-datalabels.js"></script><script src="libs/highcharts-9.3.1/modules/annotations.js"></script><script src="libs/highcharts-9.3.1/modules/export-data.js"></script><script src="libs/highcharts-9.3.1/modules/funnel.js"></script><script src="libs/highcharts-9.3.1/modules/heatmap.js"></script><script src="libs/highcharts-9.3.1/modules/treemap.js"></script><script src="libs/highcharts-9.3.1/modules/sankey.js"></script><script src="libs/highcharts-9.3.1/modules/dependency-wheel.js"></script><script src="libs/highcharts-9.3.1/modules/organization.js"></script><script src="libs/highcharts-9.3.1/modules/solid-gauge.js"></script><script src="libs/highcharts-9.3.1/modules/streamgraph.js"></script><script src="libs/highcharts-9.3.1/modules/sunburst.js"></script><script src="libs/highcharts-9.3.1/modules/vector.js"></script><script src="libs/highcharts-9.3.1/modules/wordcloud.js"></script><script src="libs/highcharts-9.3.1/modules/xrange.js"></script><script src="libs/highcharts-9.3.1/modules/tilemap.js"></script><script src="libs/highcharts-9.3.1/modules/venn.js"></script><script src="libs/highcharts-9.3.1/modules/gantt.js"></script><script src="libs/highcharts-9.3.1/modules/timeline.js"></script><script src="libs/highcharts-9.3.1/modules/parallel-coordinates.js"></script><script src="libs/highcharts-9.3.1/modules/bullet.js"></script><script src="libs/highcharts-9.3.1/modules/coloraxis.js"></script><script src="libs/highcharts-9.3.1/modules/dumbbell.js"></script><script src="libs/highcharts-9.3.1/modules/lollipop.js"></script><script src="libs/highcharts-9.3.1/modules/series-label.js"></script><script src="libs/highcharts-9.3.1/plugins/motion.js"></script><script src="libs/highcharts-9.3.1/custom/reset.js"></script><script src="libs/highcharts-9.3.1/modules/boost.js"></script><script src="libs/highchart-binding-0.9.4/highchart.js"></script><script src="libs/kePrint-0.0.1/kePrint.js"></script><link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+<!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script><script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
 
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>21.2 Difference-in-differences | A Guide on Data Analysis</title>
-  <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.24 and GitBook 2.6.7" />
-
-  <meta property="og:title" content="21.2 Difference-in-differences | A Guide on Data Analysis" />
-  <meta property="og:type" content="book" />
-  <meta property="og:url" content="https://bookdown.org/mike/data_analysis/" />
-  <meta property="og:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg" />
-  <meta property="og:description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="github-repo" content="mikenguyen13/data_analysis" />
-
-  <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="21.2 Difference-in-differences | A Guide on Data Analysis" />
-  
-  <meta name="twitter:description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="twitter:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg" />
-
-<meta name="author" content="Mike Nguyen" />
-
-
-<meta name="date" content="2022-06-06" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  <link rel="apple-touch-icon-precomposed" sizes="120x120" href="logo.png" />
-  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
-<link rel="prev" href="regression-discontinuity.html"/>
-<link rel="next" href="synthetic-control.html"/>
-<script src="libs/header-attrs-2.11/header-attrs.js"></script>
-<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
-<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
-<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
-
-
-
-
-
-
-
-
-<link href="libs/anchor-sections-1.0.1/anchor-sections.css" rel="stylesheet" />
-<script src="libs/anchor-sections-1.0.1/anchor-sections.js"></script>
-<script src="libs/htmlwidgets-1.5.4/htmlwidgets.js"></script>
-<script src="libs/proj4js-2.3.15/proj4.js"></script>
-<link href="libs/highcharts-9.3.1/css/motion.css" rel="stylesheet" />
-<script src="libs/highcharts-9.3.1/highcharts.js"></script>
-<script src="libs/highcharts-9.3.1/highcharts-3d.js"></script>
-<script src="libs/highcharts-9.3.1/highcharts-more.js"></script>
-<script src="libs/highcharts-9.3.1/modules/stock.js"></script>
-<script src="libs/highcharts-9.3.1/modules/map.js"></script>
-<script src="libs/highcharts-9.3.1/modules/data.js"></script>
-<script src="libs/highcharts-9.3.1/modules/exporting.js"></script>
-<script src="libs/highcharts-9.3.1/modules/offline-exporting.js"></script>
-<script src="libs/highcharts-9.3.1/modules/drilldown.js"></script>
-<script src="libs/highcharts-9.3.1/modules/item-series.js"></script>
-<script src="libs/highcharts-9.3.1/modules/overlapping-datalabels.js"></script>
-<script src="libs/highcharts-9.3.1/modules/annotations.js"></script>
-<script src="libs/highcharts-9.3.1/modules/export-data.js"></script>
-<script src="libs/highcharts-9.3.1/modules/funnel.js"></script>
-<script src="libs/highcharts-9.3.1/modules/heatmap.js"></script>
-<script src="libs/highcharts-9.3.1/modules/treemap.js"></script>
-<script src="libs/highcharts-9.3.1/modules/sankey.js"></script>
-<script src="libs/highcharts-9.3.1/modules/dependency-wheel.js"></script>
-<script src="libs/highcharts-9.3.1/modules/organization.js"></script>
-<script src="libs/highcharts-9.3.1/modules/solid-gauge.js"></script>
-<script src="libs/highcharts-9.3.1/modules/streamgraph.js"></script>
-<script src="libs/highcharts-9.3.1/modules/sunburst.js"></script>
-<script src="libs/highcharts-9.3.1/modules/vector.js"></script>
-<script src="libs/highcharts-9.3.1/modules/wordcloud.js"></script>
-<script src="libs/highcharts-9.3.1/modules/xrange.js"></script>
-<script src="libs/highcharts-9.3.1/modules/tilemap.js"></script>
-<script src="libs/highcharts-9.3.1/modules/venn.js"></script>
-<script src="libs/highcharts-9.3.1/modules/gantt.js"></script>
-<script src="libs/highcharts-9.3.1/modules/timeline.js"></script>
-<script src="libs/highcharts-9.3.1/modules/parallel-coordinates.js"></script>
-<script src="libs/highcharts-9.3.1/modules/bullet.js"></script>
-<script src="libs/highcharts-9.3.1/modules/coloraxis.js"></script>
-<script src="libs/highcharts-9.3.1/modules/dumbbell.js"></script>
-<script src="libs/highcharts-9.3.1/modules/lollipop.js"></script>
-<script src="libs/highcharts-9.3.1/modules/series-label.js"></script>
-<script src="libs/highcharts-9.3.1/plugins/motion.js"></script>
-<script src="libs/highcharts-9.3.1/custom/reset.js"></script>
-<script src="libs/highcharts-9.3.1/modules/boost.js"></script>
-<script src="libs/highchart-binding-0.9.4/highchart.js"></script>
-<script src="libs/kePrint-0.0.1/kePrint.js"></script>
-<link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
-<!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){window.dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-DMNX2X65HQ');
-</script>
-
-
-<style type="text/css">
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-    color: #aaaaaa;
-  }
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } /* Alert */
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
-code span.at { color: #7d9029; } /* Attribute */
-code span.bn { color: #40a070; } /* BaseN */
-code span.bu { } /* BuiltIn */
-code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
-code span.ch { color: #4070a0; } /* Char */
-code span.cn { color: #880000; } /* Constant */
-code span.co { color: #60a0b0; font-style: italic; } /* Comment */
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
-code span.do { color: #ba2121; font-style: italic; } /* Documentation */
-code span.dt { color: #902000; } /* DataType */
-code span.dv { color: #40a070; } /* DecVal */
-code span.er { color: #ff0000; font-weight: bold; } /* Error */
-code span.ex { } /* Extension */
-code span.fl { color: #40a070; } /* Float */
-code span.fu { color: #06287e; } /* Function */
-code span.im { } /* Import */
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
-code span.kw { color: #007020; font-weight: bold; } /* Keyword */
-code span.op { color: #666666; } /* Operator */
-code span.ot { color: #007020; } /* Other */
-code span.pp { color: #bc7a00; } /* Preprocessor */
-code span.sc { color: #4070a0; } /* SpecialChar */
-code span.ss { color: #bb6688; } /* SpecialString */
-code span.st { color: #4070a0; } /* String */
-code span.va { color: #19177c; } /* Variable */
-code span.vs { color: #4070a0; } /* VerbatimString */
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
-</style>
-
-<style type="text/css">
-/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
-div.csl-bib-body { }
-div.csl-entry {
-  clear: both;
-}
-.hanging div.csl-entry {
-  margin-left:2em;
-  text-indent:-2em;
-}
-div.csl-left-margin {
-  min-width:2em;
-  float:left;
-}
-div.csl-right-inline {
-  margin-left:2em;
-  padding-left:1em;
-}
-div.csl-indent {
-  margin-left: 2em;
-}
-</style>
-
-<link rel="stylesheet" href="style.css" type="text/css" />
+      gtag('config', 'G-DMNX2X65HQ');
+    </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS -->
 </head>
+<body data-spy="scroll" data-target="#toc">
 
-<body>
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
 
-
-
-  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
-
-    <div class="book-summary">
-      <nav role="navigation">
-
-<ul class="summary">
-<li><a href="./">A Guide on Data Analysis</a></li>
-
-<li class="divider"></li>
-<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Preface</a></li>
-<li class="chapter" data-level="1" data-path="introduction.html"><a href="introduction.html"><i class="fa fa-check"></i><b>1</b> Introduction</a></li>
-<li class="chapter" data-level="2" data-path="prerequisites.html"><a href="prerequisites.html"><i class="fa fa-check"></i><b>2</b> Prerequisites</a>
-<ul>
-<li class="chapter" data-level="2.1" data-path="matrix-theory.html"><a href="matrix-theory.html"><i class="fa fa-check"></i><b>2.1</b> Matrix Theory</a>
-<ul>
-<li class="chapter" data-level="2.1.1" data-path="matrix-theory.html"><a href="matrix-theory.html#rank"><i class="fa fa-check"></i><b>2.1.1</b> Rank</a></li>
-<li class="chapter" data-level="2.1.2" data-path="matrix-theory.html"><a href="matrix-theory.html#inverse"><i class="fa fa-check"></i><b>2.1.2</b> Inverse</a></li>
-<li class="chapter" data-level="2.1.3" data-path="matrix-theory.html"><a href="matrix-theory.html#definiteness"><i class="fa fa-check"></i><b>2.1.3</b> Definiteness</a></li>
-<li class="chapter" data-level="2.1.4" data-path="matrix-theory.html"><a href="matrix-theory.html#matrix-calculus"><i class="fa fa-check"></i><b>2.1.4</b> Matrix Calculus</a></li>
-<li class="chapter" data-level="2.1.5" data-path="matrix-theory.html"><a href="matrix-theory.html#optimization"><i class="fa fa-check"></i><b>2.1.5</b> Optimization</a></li>
-</ul></li>
-<li class="chapter" data-level="2.2" data-path="probability-theory.html"><a href="probability-theory.html"><i class="fa fa-check"></i><b>2.2</b> Probability Theory</a>
-<ul>
-<li class="chapter" data-level="2.2.1" data-path="probability-theory.html"><a href="probability-theory.html#axiom-and-theorems-of-probability"><i class="fa fa-check"></i><b>2.2.1</b> Axiom and Theorems of Probability</a></li>
-<li class="chapter" data-level="2.2.2" data-path="probability-theory.html"><a href="probability-theory.html#central-limit-theorem"><i class="fa fa-check"></i><b>2.2.2</b> Central Limit Theorem</a></li>
-<li class="chapter" data-level="2.2.3" data-path="probability-theory.html"><a href="probability-theory.html#random-variable"><i class="fa fa-check"></i><b>2.2.3</b> Random variable</a></li>
-<li class="chapter" data-level="2.2.4" data-path="probability-theory.html"><a href="probability-theory.html#moment-generating-function"><i class="fa fa-check"></i><b>2.2.4</b> Moment generating function</a></li>
-<li class="chapter" data-level="2.2.5" data-path="probability-theory.html"><a href="probability-theory.html#moment"><i class="fa fa-check"></i><b>2.2.5</b> Moment</a></li>
-<li class="chapter" data-level="2.2.6" data-path="probability-theory.html"><a href="probability-theory.html#distributions"><i class="fa fa-check"></i><b>2.2.6</b> Distributions</a></li>
-</ul></li>
-<li class="chapter" data-level="2.3" data-path="general-math.html"><a href="general-math.html"><i class="fa fa-check"></i><b>2.3</b> General Math</a>
-<ul>
-<li class="chapter" data-level="2.3.1" data-path="general-math.html"><a href="general-math.html#law-of-large-numbers"><i class="fa fa-check"></i><b>2.3.1</b> Law of large numbers</a></li>
-<li class="chapter" data-level="2.3.2" data-path="general-math.html"><a href="general-math.html#law-of-iterated-expectation"><i class="fa fa-check"></i><b>2.3.2</b> Law of Iterated Expectation</a></li>
-<li class="chapter" data-level="2.3.3" data-path="general-math.html"><a href="general-math.html#convergence"><i class="fa fa-check"></i><b>2.3.3</b> Convergence</a></li>
-<li class="chapter" data-level="2.3.4" data-path="general-math.html"><a href="general-math.html#sufficient-statistics"><i class="fa fa-check"></i><b>2.3.4</b> Sufficient Statistics</a></li>
-<li class="chapter" data-level="2.3.5" data-path="general-math.html"><a href="general-math.html#parameter-transformations"><i class="fa fa-check"></i><b>2.3.5</b> Parameter transformations</a></li>
-</ul></li>
-<li class="chapter" data-level="2.4" data-path="data-importexport.html"><a href="data-importexport.html"><i class="fa fa-check"></i><b>2.4</b> Data Import/Export</a>
-<ul>
-<li class="chapter" data-level="2.4.1" data-path="data-importexport.html"><a href="data-importexport.html#medium-size"><i class="fa fa-check"></i><b>2.4.1</b> Medium size</a></li>
-<li class="chapter" data-level="2.4.2" data-path="data-importexport.html"><a href="data-importexport.html#large-size"><i class="fa fa-check"></i><b>2.4.2</b> Large size</a></li>
-</ul></li>
-<li class="chapter" data-level="2.5" data-path="data-manipulation.html"><a href="data-manipulation.html"><i class="fa fa-check"></i><b>2.5</b> Data Manipulation</a></li>
-</ul></li>
-<li class="part"><span><b>I BASIC</b></span></li>
-<li class="chapter" data-level="3" data-path="descriptive-stat.html"><a href="descriptive-stat.html"><i class="fa fa-check"></i><b>3</b> Descriptive Statistics</a>
-<ul>
-<li class="chapter" data-level="3.1" data-path="numerical-measures.html"><a href="numerical-measures.html"><i class="fa fa-check"></i><b>3.1</b> Numerical Measures</a></li>
-<li class="chapter" data-level="3.2" data-path="graphical-measures.html"><a href="graphical-measures.html"><i class="fa fa-check"></i><b>3.2</b> Graphical Measures</a>
-<ul>
-<li class="chapter" data-level="3.2.1" data-path="graphical-measures.html"><a href="graphical-measures.html#shape"><i class="fa fa-check"></i><b>3.2.1</b> Shape</a></li>
-<li class="chapter" data-level="3.2.2" data-path="graphical-measures.html"><a href="graphical-measures.html#scatterplot"><i class="fa fa-check"></i><b>3.2.2</b> Scatterplot</a></li>
-</ul></li>
-<li class="chapter" data-level="3.3" data-path="normality-assessment.html"><a href="normality-assessment.html"><i class="fa fa-check"></i><b>3.3</b> Normality Assessment</a>
-<ul>
-<li class="chapter" data-level="3.3.1" data-path="normality-assessment.html"><a href="normality-assessment.html#graphical-assessment"><i class="fa fa-check"></i><b>3.3.1</b> Graphical Assessment</a></li>
-<li class="chapter" data-level="3.3.2" data-path="normality-assessment.html"><a href="normality-assessment.html#summary-statistics"><i class="fa fa-check"></i><b>3.3.2</b> Summary Statistics</a></li>
-</ul></li>
-<li class="chapter" data-level="3.4" data-path="bivariate-statistics.html"><a href="bivariate-statistics.html"><i class="fa fa-check"></i><b>3.4</b> Bivariate Statistics</a></li>
-<li class="chapter" data-level="3.5" data-path="two-continuous.html"><a href="two-continuous.html"><i class="fa fa-check"></i><b>3.5</b> Two Continuous</a>
-<ul>
-<li class="chapter" data-level="3.5.1" data-path="two-continuous.html"><a href="two-continuous.html#pearson-correlation"><i class="fa fa-check"></i><b>3.5.1</b> Pearson Correlation</a></li>
-<li class="chapter" data-level="3.5.2" data-path="two-continuous.html"><a href="two-continuous.html#spearman-correlation"><i class="fa fa-check"></i><b>3.5.2</b> Spearman Correlation</a></li>
-</ul></li>
-<li class="chapter" data-level="3.6" data-path="categorical-and-continuous.html"><a href="categorical-and-continuous.html"><i class="fa fa-check"></i><b>3.6</b> Categorical and Continuous</a>
-<ul>
-<li class="chapter" data-level="3.6.1" data-path="categorical-and-continuous.html"><a href="categorical-and-continuous.html#point-biserial-correlation"><i class="fa fa-check"></i><b>3.6.1</b> Point-Biserial Correlation</a></li>
-<li class="chapter" data-level="3.6.2" data-path="categorical-and-continuous.html"><a href="categorical-and-continuous.html#logistic-regression"><i class="fa fa-check"></i><b>3.6.2</b> Logistic Regression</a></li>
-</ul></li>
-<li class="chapter" data-level="3.7" data-path="two-discrete.html"><a href="two-discrete.html"><i class="fa fa-check"></i><b>3.7</b> Two Discrete</a>
-<ul>
-<li class="chapter" data-level="3.7.1" data-path="two-discrete.html"><a href="two-discrete.html#distance-metrics"><i class="fa fa-check"></i><b>3.7.1</b> Distance Metrics</a></li>
-<li class="chapter" data-level="3.7.2" data-path="two-discrete.html"><a href="two-discrete.html#statistical-metrics"><i class="fa fa-check"></i><b>3.7.2</b> Statistical Metrics</a></li>
-<li class="chapter" data-level="3.7.3" data-path="two-discrete.html"><a href="two-discrete.html#ordinal-association-rank-correlation"><i class="fa fa-check"></i><b>3.7.3</b> Ordinal Association (Rank correlation)</a></li>
-<li class="chapter" data-level="3.7.4" data-path="two-discrete.html"><a href="two-discrete.html#summary-1"><i class="fa fa-check"></i><b>3.7.4</b> Summary</a></li>
-<li class="chapter" data-level="3.7.5" data-path="two-discrete.html"><a href="two-discrete.html#visualization"><i class="fa fa-check"></i><b>3.7.5</b> Visualization</a></li>
-</ul></li>
-</ul></li>
-<li class="chapter" data-level="4" data-path="basic-statistical-inference.html"><a href="basic-statistical-inference.html"><i class="fa fa-check"></i><b>4</b> Basic Statistical Inference</a>
-<ul>
-<li class="chapter" data-level="4.1" data-path="one-sample-inference.html"><a href="one-sample-inference.html"><i class="fa fa-check"></i><b>4.1</b> One Sample Inference</a>
-<ul>
-<li class="chapter" data-level="4.1.1" data-path="one-sample-inference.html"><a href="one-sample-inference.html#the-mean"><i class="fa fa-check"></i><b>4.1.1</b> The Mean</a></li>
-<li class="chapter" data-level="4.1.2" data-path="one-sample-inference.html"><a href="one-sample-inference.html#single-variance"><i class="fa fa-check"></i><b>4.1.2</b> Single Variance</a></li>
-<li class="chapter" data-level="4.1.3" data-path="one-sample-inference.html"><a href="one-sample-inference.html#single-proportion-p"><i class="fa fa-check"></i><b>4.1.3</b> Single Proportion (p)</a></li>
-<li class="chapter" data-level="4.1.4" data-path="one-sample-inference.html"><a href="one-sample-inference.html#power"><i class="fa fa-check"></i><b>4.1.4</b> Power</a></li>
-<li class="chapter" data-level="4.1.5" data-path="one-sample-inference.html"><a href="one-sample-inference.html#sample-size"><i class="fa fa-check"></i><b>4.1.5</b> Sample Size</a></li>
-<li class="chapter" data-level="4.1.6" data-path="one-sample-inference.html"><a href="one-sample-inference.html#note"><i class="fa fa-check"></i><b>4.1.6</b> Note</a></li>
-<li class="chapter" data-level="4.1.7" data-path="one-sample-inference.html"><a href="one-sample-inference.html#one-sample-non-parametric-methods"><i class="fa fa-check"></i><b>4.1.7</b> One-sample Non-parametric Methods</a></li>
-</ul></li>
-<li class="chapter" data-level="4.2" data-path="two-sample-inference.html"><a href="two-sample-inference.html"><i class="fa fa-check"></i><b>4.2</b> Two Sample Inference</a>
-<ul>
-<li class="chapter" data-level="4.2.1" data-path="two-sample-inference.html"><a href="two-sample-inference.html#means"><i class="fa fa-check"></i><b>4.2.1</b> Means</a></li>
-<li class="chapter" data-level="4.2.2" data-path="two-sample-inference.html"><a href="two-sample-inference.html#variances"><i class="fa fa-check"></i><b>4.2.2</b> Variances</a></li>
-<li class="chapter" data-level="4.2.3" data-path="two-sample-inference.html"><a href="two-sample-inference.html#power-1"><i class="fa fa-check"></i><b>4.2.3</b> Power</a></li>
-<li class="chapter" data-level="4.2.4" data-path="two-sample-inference.html"><a href="two-sample-inference.html#sample-size-1"><i class="fa fa-check"></i><b>4.2.4</b> Sample Size</a></li>
-<li class="chapter" data-level="4.2.5" data-path="two-sample-inference.html"><a href="two-sample-inference.html#matched-pair-designs"><i class="fa fa-check"></i><b>4.2.5</b> Matched Pair Designs</a></li>
-<li class="chapter" data-level="4.2.6" data-path="two-sample-inference.html"><a href="two-sample-inference.html#nonparametric-tests-for-two-samples"><i class="fa fa-check"></i><b>4.2.6</b> Nonparametric Tests for Two Samples</a></li>
-</ul></li>
-<li class="chapter" data-level="4.3" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html"><i class="fa fa-check"></i><b>4.3</b> Categorical Data Analysis</a>
-<ul>
-<li class="chapter" data-level="4.3.1" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#inferences-for-small-samples"><i class="fa fa-check"></i><b>4.3.1</b> Inferences for Small Samples</a></li>
-<li class="chapter" data-level="4.3.2" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#test-of-association"><i class="fa fa-check"></i><b>4.3.2</b> Test of Association</a></li>
-<li class="chapter" data-level="4.3.3" data-path="categorical-data-analysis.html"><a href="categorical-data-analysis.html#ordinal-association"><i class="fa fa-check"></i><b>4.3.3</b> Ordinal Association</a></li>
-</ul></li>
-<li class="chapter" data-level="4.4" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html"><i class="fa fa-check"></i><b>4.4</b> Divergence Metrics and Test for Comparing Distributions</a>
-<ul>
-<li class="chapter" data-level="4.4.1" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html#kullback-leibler-divergence"><i class="fa fa-check"></i><b>4.4.1</b> Kullback-Leibler Divergence</a></li>
-<li class="chapter" data-level="4.4.2" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html#jensen-shannon-divergence"><i class="fa fa-check"></i><b>4.4.2</b> Jensen-Shannon Divergence</a></li>
-<li class="chapter" data-level="4.4.3" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html#wasserstein-distance"><i class="fa fa-check"></i><b>4.4.3</b> Wasserstein Distance</a></li>
-<li class="chapter" data-level="4.4.4" data-path="divergence-metrics-and-test-for-comparing-distributions.html"><a href="divergence-metrics-and-test-for-comparing-distributions.html#kolmogorov-smirnov-test-1"><i class="fa fa-check"></i><b>4.4.4</b> Kolmogorov-Smirnov Test</a></li>
-</ul></li>
-</ul></li>
-<li class="part"><span><b>II REGRESSION</b></span></li>
-<li class="chapter" data-level="5" data-path="linear-regression.html"><a href="linear-regression.html"><i class="fa fa-check"></i><b>5</b> Linear Regression</a>
-<ul>
-<li class="chapter" data-level="5.1" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html"><i class="fa fa-check"></i><b>5.1</b> Ordinary Least Squares</a>
-<ul>
-<li class="chapter" data-level="5.1.1" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#simple-regression-basic-model"><i class="fa fa-check"></i><b>5.1.1</b> Simple Regression (Basic Model)</a></li>
-<li class="chapter" data-level="5.1.2" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#multiple-linear-regression"><i class="fa fa-check"></i><b>5.1.2</b> Multiple Linear Regression</a></li>
-<li class="chapter" data-level="5.1.3" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#ols-assumptions"><i class="fa fa-check"></i><b>5.1.3</b> OLS Assumptions</a></li>
-<li class="chapter" data-level="5.1.4" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#theorems"><i class="fa fa-check"></i><b>5.1.4</b> Theorems</a></li>
-<li class="chapter" data-level="5.1.5" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#variable-selection"><i class="fa fa-check"></i><b>5.1.5</b> Variable Selection</a></li>
-<li class="chapter" data-level="5.1.6" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#diagnostics-1"><i class="fa fa-check"></i><b>5.1.6</b> Diagnostics</a></li>
-<li class="chapter" data-level="5.1.7" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#model-validation"><i class="fa fa-check"></i><b>5.1.7</b> Model Validation</a></li>
-<li class="chapter" data-level="5.1.8" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#finite-sample-properties"><i class="fa fa-check"></i><b>5.1.8</b> Finite Sample Properties</a></li>
-<li class="chapter" data-level="5.1.9" data-path="ordinary-least-squares.html"><a href="ordinary-least-squares.html#large-sample-properties"><i class="fa fa-check"></i><b>5.1.9</b> Large Sample Properties</a></li>
-</ul></li>
-<li class="chapter" data-level="5.2" data-path="feasible-generalized-least-squares.html"><a href="feasible-generalized-least-squares.html"><i class="fa fa-check"></i><b>5.2</b> Feasible Generalized Least Squares</a>
-<ul>
-<li class="chapter" data-level="5.2.1" data-path="feasible-generalized-least-squares.html"><a href="feasible-generalized-least-squares.html#heteroskedasticity"><i class="fa fa-check"></i><b>5.2.1</b> Heteroskedasticity</a></li>
-<li class="chapter" data-level="5.2.2" data-path="feasible-generalized-least-squares.html"><a href="feasible-generalized-least-squares.html#serial-correlation"><i class="fa fa-check"></i><b>5.2.2</b> Serial Correlation</a></li>
-</ul></li>
-<li class="chapter" data-level="5.3" data-path="weighted-least-squares.html"><a href="weighted-least-squares.html"><i class="fa fa-check"></i><b>5.3</b> Weighted Least Squares</a></li>
-<li class="chapter" data-level="5.4" data-path="generalized-least-squares.html"><a href="generalized-least-squares.html"><i class="fa fa-check"></i><b>5.4</b> Generalized Least Squares</a></li>
-<li class="chapter" data-level="5.5" data-path="feasiable-prais-winsten.html"><a href="feasiable-prais-winsten.html"><i class="fa fa-check"></i><b>5.5</b> Feasiable Prais Winsten</a></li>
-<li class="chapter" data-level="5.6" data-path="feasible-group-level-random-effects.html"><a href="feasible-group-level-random-effects.html"><i class="fa fa-check"></i><b>5.6</b> Feasible group level Random Effects</a></li>
-<li class="chapter" data-level="5.7" data-path="ridge-regression.html"><a href="ridge-regression.html"><i class="fa fa-check"></i><b>5.7</b> Ridge Regression</a></li>
-<li class="chapter" data-level="5.8" data-path="principal-component-regression.html"><a href="principal-component-regression.html"><i class="fa fa-check"></i><b>5.8</b> Principal Component Regression</a></li>
-<li class="chapter" data-level="5.9" data-path="robust-regression.html"><a href="robust-regression.html"><i class="fa fa-check"></i><b>5.9</b> Robust Regression</a>
-<ul>
-<li class="chapter" data-level="5.9.1" data-path="robust-regression.html"><a href="robust-regression.html#least-absolute-residuals-lar-regression"><i class="fa fa-check"></i><b>5.9.1</b> Least Absolute Residuals (LAR) Regression</a></li>
-<li class="chapter" data-level="5.9.2" data-path="robust-regression.html"><a href="robust-regression.html#least-median-of-squares-lms-regression"><i class="fa fa-check"></i><b>5.9.2</b> Least Median of Squares (LMS) Regression</a></li>
-<li class="chapter" data-level="5.9.3" data-path="robust-regression.html"><a href="robust-regression.html#iteratively-reweighted-least-squares-irls-robust-regression"><i class="fa fa-check"></i><b>5.9.3</b> Iteratively Reweighted Least Squares (IRLS) Robust Regression</a></li>
-</ul></li>
-<li class="chapter" data-level="5.10" data-path="maximum-likelihood-regression.html"><a href="maximum-likelihood-regression.html"><i class="fa fa-check"></i><b>5.10</b> Maximum Likelihood</a>
-<ul>
-<li class="chapter" data-level="5.10.1" data-path="maximum-likelihood-regression.html"><a href="maximum-likelihood-regression.html#motivation-for-mle"><i class="fa fa-check"></i><b>5.10.1</b> Motivation for MLE</a></li>
-<li class="chapter" data-level="5.10.2" data-path="maximum-likelihood-regression.html"><a href="maximum-likelihood-regression.html#assumption"><i class="fa fa-check"></i><b>5.10.2</b> Assumption</a></li>
-<li class="chapter" data-level="5.10.3" data-path="maximum-likelihood-regression.html"><a href="maximum-likelihood-regression.html#properties"><i class="fa fa-check"></i><b>5.10.3</b> Properties</a></li>
-<li class="chapter" data-level="5.10.4" data-path="maximum-likelihood-regression.html"><a href="maximum-likelihood-regression.html#compare-to-ols"><i class="fa fa-check"></i><b>5.10.4</b> Compare to OLS</a></li>
-<li class="chapter" data-level="5.10.5" data-path="maximum-likelihood-regression.html"><a href="maximum-likelihood-regression.html#application"><i class="fa fa-check"></i><b>5.10.5</b> Application</a></li>
-</ul></li>
-</ul></li>
-<li class="chapter" data-level="6" data-path="non-linear-regression.html"><a href="non-linear-regression.html"><i class="fa fa-check"></i><b>6</b> Non-linear Regression</a>
-<ul>
-<li class="chapter" data-level="6.1" data-path="inference-1.html"><a href="inference-1.html"><i class="fa fa-check"></i><b>6.1</b> Inference</a>
-<ul>
-<li class="chapter" data-level="6.1.1" data-path="inference-1.html"><a href="inference-1.html#linear-function-of-the-parameters"><i class="fa fa-check"></i><b>6.1.1</b> Linear Function of the Parameters</a></li>
-<li class="chapter" data-level="6.1.2" data-path="inference-1.html"><a href="inference-1.html#nonlinear"><i class="fa fa-check"></i><b>6.1.2</b> Nonlinear</a></li>
-</ul></li>
-<li class="chapter" data-level="6.2" data-path="non-linear-least-squares.html"><a href="non-linear-least-squares.html"><i class="fa fa-check"></i><b>6.2</b> Non-linear Least Squares</a>
-<ul>
-<li class="chapter" data-level="6.2.1" data-path="non-linear-least-squares.html"><a href="non-linear-least-squares.html#alternative-of-gauss-newton-algorithm"><i class="fa fa-check"></i><b>6.2.1</b> Alternative of Gauss-Newton Algorithm</a></li>
-<li class="chapter" data-level="6.2.2" data-path="non-linear-least-squares.html"><a href="non-linear-least-squares.html#practical-considerations"><i class="fa fa-check"></i><b>6.2.2</b> Practical Considerations</a></li>
-<li class="chapter" data-level="6.2.3" data-path="non-linear-least-squares.html"><a href="non-linear-least-squares.html#modelestiamtion-adequcy"><i class="fa fa-check"></i><b>6.2.3</b> Model/Estiamtion Adequcy</a></li>
-<li class="chapter" data-level="6.2.4" data-path="non-linear-least-squares.html"><a href="non-linear-least-squares.html#application-1"><i class="fa fa-check"></i><b>6.2.4</b> Application</a></li>
-</ul></li>
-</ul></li>
-<li class="chapter" data-level="7" data-path="generalized-linear-models.html"><a href="generalized-linear-models.html"><i class="fa fa-check"></i><b>7</b> Generalized Linear Models</a>
-<ul>
-<li class="chapter" data-level="7.1" data-path="logistic-regression-1.html"><a href="logistic-regression-1.html"><i class="fa fa-check"></i><b>7.1</b> Logistic Regression</a>
-<ul>
-<li class="chapter" data-level="7.1.1" data-path="logistic-regression-1.html"><a href="logistic-regression-1.html#application-2"><i class="fa fa-check"></i><b>7.1.1</b> Application</a></li>
-</ul></li>
-<li class="chapter" data-level="7.2" data-path="probit-regression.html"><a href="probit-regression.html"><i class="fa fa-check"></i><b>7.2</b> Probit Regression</a></li>
-<li class="chapter" data-level="7.3" data-path="binomial-regression.html"><a href="binomial-regression.html"><i class="fa fa-check"></i><b>7.3</b> Binomial Regression</a></li>
-<li class="chapter" data-level="7.4" data-path="poisson-regression.html"><a href="poisson-regression.html"><i class="fa fa-check"></i><b>7.4</b> Poisson Regression</a>
-<ul>
-<li class="chapter" data-level="7.4.1" data-path="poisson-regression.html"><a href="poisson-regression.html#application-3"><i class="fa fa-check"></i><b>7.4.1</b> Application</a></li>
-</ul></li>
-<li class="chapter" data-level="7.5" data-path="negative-binomial-regression.html"><a href="negative-binomial-regression.html"><i class="fa fa-check"></i><b>7.5</b> Negative Binomial Regression</a></li>
-<li class="chapter" data-level="7.6" data-path="multinomial.html"><a href="multinomial.html"><i class="fa fa-check"></i><b>7.6</b> Multinomial</a></li>
-<li class="chapter" data-level="7.7" data-path="generalization.html"><a href="generalization.html"><i class="fa fa-check"></i><b>7.7</b> Generalization</a>
-<ul>
-<li class="chapter" data-level="7.7.1" data-path="generalization.html"><a href="generalization.html#estimation-1"><i class="fa fa-check"></i><b>7.7.1</b> Estimation</a></li>
-<li class="chapter" data-level="7.7.2" data-path="generalization.html"><a href="generalization.html#inference-2"><i class="fa fa-check"></i><b>7.7.2</b> Inference</a></li>
-<li class="chapter" data-level="7.7.3" data-path="generalization.html"><a href="generalization.html#deviance"><i class="fa fa-check"></i><b>7.7.3</b> Deviance</a></li>
-<li class="chapter" data-level="7.7.4" data-path="generalization.html"><a href="generalization.html#diagnostic-plots"><i class="fa fa-check"></i><b>7.7.4</b> Diagnostic Plots</a></li>
-<li class="chapter" data-level="7.7.5" data-path="generalization.html"><a href="generalization.html#goodness-of-fit"><i class="fa fa-check"></i><b>7.7.5</b> Goodness of Fit</a></li>
-<li class="chapter" data-level="7.7.6" data-path="generalization.html"><a href="generalization.html#over-dispersion"><i class="fa fa-check"></i><b>7.7.6</b> Over-Dispersion</a></li>
-</ul></li>
-</ul></li>
-<li class="chapter" data-level="8" data-path="linear-mixed-models.html"><a href="linear-mixed-models.html"><i class="fa fa-check"></i><b>8</b> Linear Mixed Models</a>
-<ul>
-<li class="chapter" data-level="8.1" data-path="dependent-data.html"><a href="dependent-data.html"><i class="fa fa-check"></i><b>8.1</b> Dependent Data</a>
-<ul>
-<li class="chapter" data-level="8.1.1" data-path="dependent-data.html"><a href="dependent-data.html#random-intercepts-model"><i class="fa fa-check"></i><b>8.1.1</b> Random-Intercepts Model</a></li>
-<li class="chapter" data-level="8.1.2" data-path="dependent-data.html"><a href="dependent-data.html#covariance-models"><i class="fa fa-check"></i><b>8.1.2</b> Covariance Models</a></li>
-</ul></li>
-<li class="chapter" data-level="8.2" data-path="estimation-2.html"><a href="estimation-2.html"><i class="fa fa-check"></i><b>8.2</b> Estimation</a>
-<ul>
-<li class="chapter" data-level="8.2.1" data-path="estimation-2.html"><a href="estimation-2.html#estimating-mathbfv"><i class="fa fa-check"></i><b>8.2.1</b> Estimating <span class="math inline">\(\mathbf{V}\)</span></a></li>
-</ul></li>
-<li class="chapter" data-level="8.3" data-path="inference-3.html"><a href="inference-3.html"><i class="fa fa-check"></i><b>8.3</b> Inference</a>
-<ul>
-<li class="chapter" data-level="8.3.1" data-path="inference-3.html"><a href="inference-3.html#parameters-beta"><i class="fa fa-check"></i><b>8.3.1</b> Parameters <span class="math inline">\(\beta\)</span></a></li>
-<li class="chapter" data-level="8.3.2" data-path="inference-3.html"><a href="inference-3.html#variance-components"><i class="fa fa-check"></i><b>8.3.2</b> Variance Components</a></li>
-</ul></li>
-<li class="chapter" data-level="8.4" data-path="information-criteria.html"><a href="information-criteria.html"><i class="fa fa-check"></i><b>8.4</b> Information Criteria</a>
-<ul>
-<li class="chapter" data-level="8.4.1" data-path="information-criteria.html"><a href="information-criteria.html#akaikes-information-criteria-aic"><i class="fa fa-check"></i><b>8.4.1</b> Akaike’s Information Criteria (AIC)</a></li>
-<li class="chapter" data-level="8.4.2" data-path="information-criteria.html"><a href="information-criteria.html#corrected-aic-aicc"><i class="fa fa-check"></i><b>8.4.2</b> Corrected AIC (AICC)</a></li>
-<li class="chapter" data-level="8.4.3" data-path="information-criteria.html"><a href="information-criteria.html#bayesian-information-criteria-bic"><i class="fa fa-check"></i><b>8.4.3</b> Bayesian Information Criteria (BIC)</a></li>
-</ul></li>
-<li class="chapter" data-level="8.5" data-path="split-plot-designs.html"><a href="split-plot-designs.html"><i class="fa fa-check"></i><b>8.5</b> Split-Plot Designs</a>
-<ul>
-<li class="chapter" data-level="8.5.1" data-path="split-plot-designs.html"><a href="split-plot-designs.html#application-4"><i class="fa fa-check"></i><b>8.5.1</b> Application</a></li>
-</ul></li>
-<li class="chapter" data-level="8.6" data-path="repeated-measures-in-mixed-models.html"><a href="repeated-measures-in-mixed-models.html"><i class="fa fa-check"></i><b>8.6</b> Repeated Measures in Mixed Models</a></li>
-<li class="chapter" data-level="8.7" data-path="unbalanced-or-unequally-spaced-data.html"><a href="unbalanced-or-unequally-spaced-data.html"><i class="fa fa-check"></i><b>8.7</b> Unbalanced or Unequally Spaced Data</a></li>
-<li class="chapter" data-level="8.8" data-path="application-5.html"><a href="application-5.html"><i class="fa fa-check"></i><b>8.8</b> Application</a>
-<ul>
-<li class="chapter" data-level="8.8.1" data-path="application-5.html"><a href="application-5.html#example-1-pulps"><i class="fa fa-check"></i><b>8.8.1</b> Example 1 (Pulps)</a></li>
-<li class="chapter" data-level="8.8.2" data-path="application-5.html"><a href="application-5.html#example-2-rats"><i class="fa fa-check"></i><b>8.8.2</b> Example 2 (Rats)</a></li>
-<li class="chapter" data-level="8.8.3" data-path="application-5.html"><a href="application-5.html#example-3-agridat"><i class="fa fa-check"></i><b>8.8.3</b> Example 3 (Agridat)</a></li>
-</ul></li>
-</ul></li>
-<li class="chapter" data-level="9" data-path="nonlinear-and-generalized-linear-mixed-models.html"><a href="nonlinear-and-generalized-linear-mixed-models.html"><i class="fa fa-check"></i><b>9</b> Nonlinear and Generalized Linear Mixed Models</a>
-<ul>
-<li class="chapter" data-level="9.1" data-path="estimation-3.html"><a href="estimation-3.html"><i class="fa fa-check"></i><b>9.1</b> Estimation</a>
-<ul>
-<li class="chapter" data-level="9.1.1" data-path="estimation-3.html"><a href="estimation-3.html#estimation-by-numerical-integration"><i class="fa fa-check"></i><b>9.1.1</b> Estimation by Numerical Integration</a></li>
-<li class="chapter" data-level="9.1.2" data-path="estimation-3.html"><a href="estimation-3.html#estimation-by-linearization"><i class="fa fa-check"></i><b>9.1.2</b> Estimation by Linearization</a></li>
-<li class="chapter" data-level="9.1.3" data-path="estimation-3.html"><a href="estimation-3.html#estimation-by-bayesian-hierarchical-models"><i class="fa fa-check"></i><b>9.1.3</b> Estimation by Bayesian Hierarchical Models</a></li>
-</ul></li>
-<li class="chapter" data-level="9.2" data-path="application-6.html"><a href="application-6.html"><i class="fa fa-check"></i><b>9.2</b> Application</a>
-<ul>
-<li class="chapter" data-level="9.2.1" data-path="application-6.html"><a href="application-6.html#binomial-cbpp-data"><i class="fa fa-check"></i><b>9.2.1</b> Binomial (CBPP Data)</a></li>
-<li class="chapter" data-level="9.2.2" data-path="application-6.html"><a href="application-6.html#count-owl-data"><i class="fa fa-check"></i><b>9.2.2</b> Count (Owl Data)</a></li>
-<li class="chapter" data-level="9.2.3" data-path="application-6.html"><a href="application-6.html#binomial-1"><i class="fa fa-check"></i><b>9.2.3</b> Binomial</a></li>
-<li class="chapter" data-level="9.2.4" data-path="application-6.html"><a href="application-6.html#example-from-schabenberger_2001-section-8.4.1"><i class="fa fa-check"></i><b>9.2.4</b> Example from <span class="citation">(<span>Schabenberger and Pierce 2001</span>)</span> section 8.4.1</a></li>
-</ul></li>
-<li class="chapter" data-level="9.3" data-path="summary-2.html"><a href="summary-2.html"><i class="fa fa-check"></i><b>9.3</b> Summary</a></li>
-</ul></li>
-<li class="part"><span><b>III RAMIFICATIONS</b></span></li>
-<li class="chapter" data-level="10" data-path="model-specification.html"><a href="model-specification.html"><i class="fa fa-check"></i><b>10</b> Model Specification</a>
-<ul>
-<li class="chapter" data-level="10.1" data-path="nested-model.html"><a href="nested-model.html"><i class="fa fa-check"></i><b>10.1</b> Nested Model</a>
-<ul>
-<li class="chapter" data-level="10.1.1" data-path="nested-model.html"><a href="nested-model.html#chow-test"><i class="fa fa-check"></i><b>10.1.1</b> Chow test</a></li>
-</ul></li>
-<li class="chapter" data-level="10.2" data-path="non-nested-model.html"><a href="non-nested-model.html"><i class="fa fa-check"></i><b>10.2</b> Non-Nested Model</a>
-<ul>
-<li class="chapter" data-level="10.2.1" data-path="non-nested-model.html"><a href="non-nested-model.html#davidson-mackinnon-test"><i class="fa fa-check"></i><b>10.2.1</b> Davidson-Mackinnon test</a></li>
-</ul></li>
-<li class="chapter" data-level="10.3" data-path="heteroskedasticity-1.html"><a href="heteroskedasticity-1.html"><i class="fa fa-check"></i><b>10.3</b> Heteroskedasticity</a>
-<ul>
-<li class="chapter" data-level="10.3.1" data-path="heteroskedasticity-1.html"><a href="heteroskedasticity-1.html#breusch-pagan-test"><i class="fa fa-check"></i><b>10.3.1</b> Breusch-Pagan test</a></li>
-<li class="chapter" data-level="10.3.2" data-path="heteroskedasticity-1.html"><a href="heteroskedasticity-1.html#white-test"><i class="fa fa-check"></i><b>10.3.2</b> White test</a></li>
-</ul></li>
-</ul></li>
-<li class="chapter" data-level="11" data-path="imputation-missing-data.html"><a href="imputation-missing-data.html"><i class="fa fa-check"></i><b>11</b> Imputation (Missing Data)</a>
-<ul>
-<li class="chapter" data-level="11.1" data-path="assumptions-1.html"><a href="assumptions-1.html"><i class="fa fa-check"></i><b>11.1</b> Assumptions</a>
-<ul>
-<li class="chapter" data-level="11.1.1" data-path="assumptions-1.html"><a href="assumptions-1.html#missing-completely-at-random-mcar"><i class="fa fa-check"></i><b>11.1.1</b> Missing Completely at Random (MCAR)</a></li>
-<li class="chapter" data-level="11.1.2" data-path="assumptions-1.html"><a href="assumptions-1.html#missing-at-random-mar"><i class="fa fa-check"></i><b>11.1.2</b> Missing at Random (MAR)</a></li>
-<li class="chapter" data-level="11.1.3" data-path="assumptions-1.html"><a href="assumptions-1.html#ignorable"><i class="fa fa-check"></i><b>11.1.3</b> Ignorable</a></li>
-<li class="chapter" data-level="11.1.4" data-path="assumptions-1.html"><a href="assumptions-1.html#nonignorable"><i class="fa fa-check"></i><b>11.1.4</b> Nonignorable</a></li>
-</ul></li>
-<li class="chapter" data-level="11.2" data-path="solutions-to-missing-data.html"><a href="solutions-to-missing-data.html"><i class="fa fa-check"></i><b>11.2</b> Solutions to Missing data</a>
-<ul>
-<li class="chapter" data-level="11.2.1" data-path="solutions-to-missing-data.html"><a href="solutions-to-missing-data.html#listwise-deletion"><i class="fa fa-check"></i><b>11.2.1</b> Listwise Deletion</a></li>
-<li class="chapter" data-level="11.2.2" data-path="solutions-to-missing-data.html"><a href="solutions-to-missing-data.html#pairwise-deletion"><i class="fa fa-check"></i><b>11.2.2</b> Pairwise Deletion</a></li>
-<li class="chapter" data-level="11.2.3" data-path="solutions-to-missing-data.html"><a href="solutions-to-missing-data.html#dummy-variable-adjustment"><i class="fa fa-check"></i><b>11.2.3</b> Dummy Variable Adjustment</a></li>
-<li class="chapter" data-level="11.2.4" data-path="solutions-to-missing-data.html"><a href="solutions-to-missing-data.html#imputation"><i class="fa fa-check"></i><b>11.2.4</b> Imputation</a></li>
-<li class="chapter" data-level="11.2.5" data-path="solutions-to-missing-data.html"><a href="solutions-to-missing-data.html#other-methods"><i class="fa fa-check"></i><b>11.2.5</b> Other methods</a></li>
-</ul></li>
-<li class="chapter" data-level="11.3" data-path="criteria-for-choosing-an-effective-approach.html"><a href="criteria-for-choosing-an-effective-approach.html"><i class="fa fa-check"></i><b>11.3</b> Criteria for Choosing an Effective Approach</a></li>
-<li class="chapter" data-level="11.4" data-path="another-perspective.html"><a href="another-perspective.html"><i class="fa fa-check"></i><b>11.4</b> Another Perspective</a></li>
-<li class="chapter" data-level="11.5" data-path="diagnosing-the-mechanism.html"><a href="diagnosing-the-mechanism.html"><i class="fa fa-check"></i><b>11.5</b> Diagnosing the Mechanism</a>
-<ul>
-<li class="chapter" data-level="11.5.1" data-path="diagnosing-the-mechanism.html"><a href="diagnosing-the-mechanism.html#mar-vs.-mnar"><i class="fa fa-check"></i><b>11.5.1</b> MAR vs. MNAR</a></li>
-<li class="chapter" data-level="11.5.2" data-path="diagnosing-the-mechanism.html"><a href="diagnosing-the-mechanism.html#mcar-vs.-mar"><i class="fa fa-check"></i><b>11.5.2</b> MCAR vs. MAR</a></li>
-</ul></li>
-<li class="chapter" data-level="11.6" data-path="application-7.html"><a href="application-7.html"><i class="fa fa-check"></i><b>11.6</b> Application</a>
-<ul>
-<li class="chapter" data-level="11.6.1" data-path="application-7.html"><a href="application-7.html#imputation-with-mean-median-mode"><i class="fa fa-check"></i><b>11.6.1</b> Imputation with mean / median / mode</a></li>
-<li class="chapter" data-level="11.6.2" data-path="application-7.html"><a href="application-7.html#knn"><i class="fa fa-check"></i><b>11.6.2</b> KNN</a></li>
-<li class="chapter" data-level="11.6.3" data-path="application-7.html"><a href="application-7.html#rpart"><i class="fa fa-check"></i><b>11.6.3</b> rpart</a></li>
-<li class="chapter" data-level="11.6.4" data-path="application-7.html"><a href="application-7.html#mice-multivariate-imputation-via-chained-equations"><i class="fa fa-check"></i><b>11.6.4</b> MICE (Multivariate Imputation via Chained Equations)</a></li>
-<li class="chapter" data-level="11.6.5" data-path="application-7.html"><a href="application-7.html#amelia"><i class="fa fa-check"></i><b>11.6.5</b> Amelia</a></li>
-<li class="chapter" data-level="11.6.6" data-path="application-7.html"><a href="application-7.html#missforest"><i class="fa fa-check"></i><b>11.6.6</b> missForest</a></li>
-<li class="chapter" data-level="11.6.7" data-path="application-7.html"><a href="application-7.html#hmisc"><i class="fa fa-check"></i><b>11.6.7</b> Hmisc</a></li>
-<li class="chapter" data-level="11.6.8" data-path="application-7.html"><a href="application-7.html#mi"><i class="fa fa-check"></i><b>11.6.8</b> mi</a></li>
-</ul></li>
-</ul></li>
-<li class="chapter" data-level="12" data-path="data.html"><a href="data.html"><i class="fa fa-check"></i><b>12</b> Data</a>
-<ul>
-<li class="chapter" data-level="12.1" data-path="cross-sectional.html"><a href="cross-sectional.html"><i class="fa fa-check"></i><b>12.1</b> Cross-Sectional</a></li>
-<li class="chapter" data-level="12.2" data-path="time-series-1.html"><a href="time-series-1.html"><i class="fa fa-check"></i><b>12.2</b> Time Series</a>
-<ul>
-<li class="chapter" data-level="12.2.1" data-path="time-series-1.html"><a href="time-series-1.html#deterministic-time-trend"><i class="fa fa-check"></i><b>12.2.1</b> Deterministic Time trend</a></li>
-<li class="chapter" data-level="12.2.2" data-path="time-series-1.html"><a href="time-series-1.html#feedback-effect"><i class="fa fa-check"></i><b>12.2.2</b> Feedback Effect</a></li>
-<li class="chapter" data-level="12.2.3" data-path="time-series-1.html"><a href="time-series-1.html#dynamic-specification"><i class="fa fa-check"></i><b>12.2.3</b> Dynamic Specification</a></li>
-<li class="chapter" data-level="12.2.4" data-path="time-series-1.html"><a href="time-series-1.html#dynamically-complete"><i class="fa fa-check"></i><b>12.2.4</b> Dynamically Complete</a></li>
-<li class="chapter" data-level="12.2.5" data-path="time-series-1.html"><a href="time-series-1.html#highly-persistent-data"><i class="fa fa-check"></i><b>12.2.5</b> Highly Persistent Data</a></li>
-</ul></li>
-<li class="chapter" data-level="12.3" data-path="repeated-cross-sections.html"><a href="repeated-cross-sections.html"><i class="fa fa-check"></i><b>12.3</b> Repeated Cross Sections</a>
-<ul>
-<li class="chapter" data-level="12.3.1" data-path="repeated-cross-sections.html"><a href="repeated-cross-sections.html#pooled-cross-section"><i class="fa fa-check"></i><b>12.3.1</b> Pooled Cross Section</a></li>
-</ul></li>
-<li class="chapter" data-level="12.4" data-path="panel-data.html"><a href="panel-data.html"><i class="fa fa-check"></i><b>12.4</b> Panel Data</a>
-<ul>
-<li class="chapter" data-level="12.4.1" data-path="panel-data.html"><a href="panel-data.html#pooled-ols-estimator"><i class="fa fa-check"></i><b>12.4.1</b> Pooled OLS Estimator</a></li>
-<li class="chapter" data-level="12.4.2" data-path="panel-data.html"><a href="panel-data.html#individual-specific-effects-model"><i class="fa fa-check"></i><b>12.4.2</b> Individual-specific effects model</a></li>
-<li class="chapter" data-level="12.4.3" data-path="panel-data.html"><a href="panel-data.html#tests-for-assumptions"><i class="fa fa-check"></i><b>12.4.3</b> Tests for Assumptions</a></li>
-<li class="chapter" data-level="12.4.4" data-path="panel-data.html"><a href="panel-data.html#model-selection"><i class="fa fa-check"></i><b>12.4.4</b> Model Selection</a></li>
-<li class="chapter" data-level="12.4.5" data-path="panel-data.html"><a href="panel-data.html#summary-3"><i class="fa fa-check"></i><b>12.4.5</b> Summary</a></li>
-<li class="chapter" data-level="12.4.6" data-path="panel-data.html"><a href="panel-data.html#application-8"><i class="fa fa-check"></i><b>12.4.6</b> Application</a></li>
-<li class="chapter" data-level="12.4.7" data-path="panel-data.html"><a href="panel-data.html#other-estimators"><i class="fa fa-check"></i><b>12.4.7</b> Other Estimators</a></li>
-</ul></li>
-</ul></li>
-<li class="chapter" data-level="13" data-path="hypothesis-testing.html"><a href="hypothesis-testing.html"><i class="fa fa-check"></i><b>13</b> Hypothesis Testing</a>
-<ul>
-<li class="chapter" data-level="13.1" data-path="types-of-hypothesis-testing.html"><a href="types-of-hypothesis-testing.html"><i class="fa fa-check"></i><b>13.1</b> Types of hypothesis testing</a></li>
-<li class="chapter" data-level="13.2" data-path="wald-test.html"><a href="wald-test.html"><i class="fa fa-check"></i><b>13.2</b> Wald test</a>
-<ul>
-<li class="chapter" data-level="13.2.1" data-path="wald-test.html"><a href="wald-test.html#multiple-hypothesis"><i class="fa fa-check"></i><b>13.2.1</b> Multiple Hypothesis</a></li>
-<li class="chapter" data-level="13.2.2" data-path="wald-test.html"><a href="wald-test.html#linear-combination"><i class="fa fa-check"></i><b>13.2.2</b> Linear Combination</a></li>
-<li class="chapter" data-level="13.2.3" data-path="wald-test.html"><a href="wald-test.html#estimate-difference-in-coefficients"><i class="fa fa-check"></i><b>13.2.3</b> Estimate Difference in Coefficients</a></li>
-<li class="chapter" data-level="13.2.4" data-path="wald-test.html"><a href="wald-test.html#application-9"><i class="fa fa-check"></i><b>13.2.4</b> Application</a></li>
-<li class="chapter" data-level="13.2.5" data-path="wald-test.html"><a href="wald-test.html#nonlinear-1"><i class="fa fa-check"></i><b>13.2.5</b> Nonlinear</a></li>
-</ul></li>
-<li class="chapter" data-level="13.3" data-path="the-likelihood-ratio-test.html"><a href="the-likelihood-ratio-test.html"><i class="fa fa-check"></i><b>13.3</b> The likelihood ratio test</a></li>
-<li class="chapter" data-level="13.4" data-path="lagrange-multiplier-score.html"><a href="lagrange-multiplier-score.html"><i class="fa fa-check"></i><b>13.4</b> Lagrange Multiplier (Score)</a></li>
-</ul></li>
-<li class="chapter" data-level="14" data-path="prediction-and-estimation.html"><a href="prediction-and-estimation.html"><i class="fa fa-check"></i><b>14</b> Prediction and Estimation</a></li>
-<li class="chapter" data-level="15" data-path="moderation.html"><a href="moderation.html"><i class="fa fa-check"></i><b>15</b> Moderation</a>
-<ul>
-<li class="chapter" data-level="15.1" data-path="emmeans-package.html"><a href="emmeans-package.html"><i class="fa fa-check"></i><b>15.1</b> emmeans package</a>
-<ul>
-<li class="chapter" data-level="15.1.1" data-path="emmeans-package.html"><a href="emmeans-package.html#continuous-by-continuous"><i class="fa fa-check"></i><b>15.1.1</b> Continuous by continuous</a></li>
-<li class="chapter" data-level="15.1.2" data-path="emmeans-package.html"><a href="emmeans-package.html#continuous-by-categorical"><i class="fa fa-check"></i><b>15.1.2</b> Continuous by categorical</a></li>
-<li class="chapter" data-level="15.1.3" data-path="emmeans-package.html"><a href="emmeans-package.html#categorical-by-categorical"><i class="fa fa-check"></i><b>15.1.3</b> Categorical by categorical</a></li>
-</ul></li>
-<li class="chapter" data-level="15.2" data-path="probmod-package.html"><a href="probmod-package.html"><i class="fa fa-check"></i><b>15.2</b> probmod package</a></li>
-<li class="chapter" data-level="15.3" data-path="interactions-package.html"><a href="interactions-package.html"><i class="fa fa-check"></i><b>15.3</b> interactions package</a>
-<ul>
-<li class="chapter" data-level="15.3.1" data-path="interactions-package.html"><a href="interactions-package.html#continuous-interaction"><i class="fa fa-check"></i><b>15.3.1</b> Continuous interaction</a></li>
-<li class="chapter" data-level="15.3.2" data-path="interactions-package.html"><a href="interactions-package.html#categorical-interaction"><i class="fa fa-check"></i><b>15.3.2</b> Categorical interaction</a></li>
-</ul></li>
-<li class="chapter" data-level="15.4" data-path="interactionr-package.html"><a href="interactionr-package.html"><i class="fa fa-check"></i><b>15.4</b> interactionR package</a></li>
-<li class="chapter" data-level="15.5" data-path="sjplot-package.html"><a href="sjplot-package.html"><i class="fa fa-check"></i><b>15.5</b> sjPlot package</a></li>
-</ul></li>
-<li class="part"><span><b>IV EXPERIMENTAL DESIGN</b></span></li>
-<li class="chapter" data-level="16" data-path="sampling.html"><a href="sampling.html"><i class="fa fa-check"></i><b>16</b> Sampling</a>
-<ul>
-<li class="chapter" data-level="16.1" data-path="simple-sampling.html"><a href="simple-sampling.html"><i class="fa fa-check"></i><b>16.1</b> Simple Sampling</a></li>
-<li class="chapter" data-level="16.2" data-path="stratified-sampling.html"><a href="stratified-sampling.html"><i class="fa fa-check"></i><b>16.2</b> Stratified Sampling</a></li>
-<li class="chapter" data-level="16.3" data-path="unequal-probability-sampling.html"><a href="unequal-probability-sampling.html"><i class="fa fa-check"></i><b>16.3</b> Unequal Probability Sampling</a></li>
-<li class="chapter" data-level="16.4" data-path="balanced-sampling.html"><a href="balanced-sampling.html"><i class="fa fa-check"></i><b>16.4</b> Balanced Sampling</a>
-<ul>
-<li class="chapter" data-level="16.4.1" data-path="balanced-sampling.html"><a href="balanced-sampling.html#cube"><i class="fa fa-check"></i><b>16.4.1</b> Cube</a></li>
-<li class="chapter" data-level="16.4.2" data-path="balanced-sampling.html"><a href="balanced-sampling.html#stratification"><i class="fa fa-check"></i><b>16.4.2</b> Stratification</a></li>
-<li class="chapter" data-level="16.4.3" data-path="balanced-sampling.html"><a href="balanced-sampling.html#cluster-1"><i class="fa fa-check"></i><b>16.4.3</b> Cluster</a></li>
-<li class="chapter" data-level="16.4.4" data-path="balanced-sampling.html"><a href="balanced-sampling.html#two-stage"><i class="fa fa-check"></i><b>16.4.4</b> Two-stage</a></li>
-</ul></li>
-</ul></li>
-<li class="chapter" data-level="17" data-path="analysis-of-variance-anova.html"><a href="analysis-of-variance-anova.html"><i class="fa fa-check"></i><b>17</b> Analysis of Variance (ANOVA)</a>
-<ul>
-<li class="chapter" data-level="17.1" data-path="completely-randomized-design-crd.html"><a href="completely-randomized-design-crd.html"><i class="fa fa-check"></i><b>17.1</b> Completely Randomized Design (CRD)</a>
-<ul>
-<li class="chapter" data-level="17.1.1" data-path="completely-randomized-design-crd.html"><a href="completely-randomized-design-crd.html#single-factor-fixed-effects-model"><i class="fa fa-check"></i><b>17.1.1</b> Single Factor Fixed Effects Model</a></li>
-<li class="chapter" data-level="17.1.2" data-path="completely-randomized-design-crd.html"><a href="completely-randomized-design-crd.html#single-factor-random-effects-model"><i class="fa fa-check"></i><b>17.1.2</b> Single Factor Random Effects Model</a></li>
-<li class="chapter" data-level="17.1.3" data-path="completely-randomized-design-crd.html"><a href="completely-randomized-design-crd.html#two-factor-fixed-effect-anova"><i class="fa fa-check"></i><b>17.1.3</b> Two Factor Fixed Effect ANOVA</a></li>
-<li class="chapter" data-level="17.1.4" data-path="completely-randomized-design-crd.html"><a href="completely-randomized-design-crd.html#two-way-random-effects-anova"><i class="fa fa-check"></i><b>17.1.4</b> Two-Way Random Effects ANOVA</a></li>
-<li class="chapter" data-level="17.1.5" data-path="completely-randomized-design-crd.html"><a href="completely-randomized-design-crd.html#two-way-mixed-effects-anova"><i class="fa fa-check"></i><b>17.1.5</b> Two-Way Mixed Effects ANOVA</a></li>
-</ul></li>
-<li class="chapter" data-level="17.2" data-path="nonparametric-anova.html"><a href="nonparametric-anova.html"><i class="fa fa-check"></i><b>17.2</b> Nonparametric ANOVA</a>
-<ul>
-<li class="chapter" data-level="17.2.1" data-path="nonparametric-anova.html"><a href="nonparametric-anova.html#kruskal-wallis"><i class="fa fa-check"></i><b>17.2.1</b> Kruskal-Wallis</a></li>
-<li class="chapter" data-level="17.2.2" data-path="nonparametric-anova.html"><a href="nonparametric-anova.html#friedman-test"><i class="fa fa-check"></i><b>17.2.2</b> Friedman Test</a></li>
-</ul></li>
-<li class="chapter" data-level="17.3" data-path="sample-size-planning-for-anova.html"><a href="sample-size-planning-for-anova.html"><i class="fa fa-check"></i><b>17.3</b> Sample Size Planning for ANOVA</a>
-<ul>
-<li class="chapter" data-level="17.3.1" data-path="sample-size-planning-for-anova.html"><a href="sample-size-planning-for-anova.html#balanced-designs"><i class="fa fa-check"></i><b>17.3.1</b> Balanced Designs</a></li>
-<li class="chapter" data-level="17.3.2" data-path="sample-size-planning-for-anova.html"><a href="sample-size-planning-for-anova.html#randomized-block-experiments"><i class="fa fa-check"></i><b>17.3.2</b> Randomized Block Experiments</a></li>
-</ul></li>
-<li class="chapter" data-level="17.4" data-path="randomized-block-designs.html"><a href="randomized-block-designs.html"><i class="fa fa-check"></i><b>17.4</b> Randomized Block Designs</a>
-<ul>
-<li class="chapter" data-level="17.4.1" data-path="randomized-block-designs.html"><a href="randomized-block-designs.html#tukey-test-of-additivity"><i class="fa fa-check"></i><b>17.4.1</b> Tukey Test of Additivity</a></li>
-</ul></li>
-<li class="chapter" data-level="17.5" data-path="nested-designs.html"><a href="nested-designs.html"><i class="fa fa-check"></i><b>17.5</b> Nested Designs</a>
-<ul>
-<li class="chapter" data-level="17.5.1" data-path="nested-designs.html"><a href="nested-designs.html#two-factor-nested-designs"><i class="fa fa-check"></i><b>17.5.1</b> Two-Factor Nested Designs</a></li>
-</ul></li>
-<li class="chapter" data-level="17.6" data-path="single-factor-covariance-model.html"><a href="single-factor-covariance-model.html"><i class="fa fa-check"></i><b>17.6</b> Single Factor Covariance Model</a></li>
-</ul></li>
-<li class="chapter" data-level="18" data-path="multivariate-methods.html"><a href="multivariate-methods.html"><i class="fa fa-check"></i><b>18</b> Multivariate Methods</a>
-<ul>
-<li class="chapter" data-level="18.0.1" data-path="multivariate-methods.html"><a href="multivariate-methods.html#properties-of-mvn"><i class="fa fa-check"></i><b>18.0.1</b> Properties of MVN</a></li>
-<li class="chapter" data-level="18.0.2" data-path="multivariate-methods.html"><a href="multivariate-methods.html#mean-vector-inference"><i class="fa fa-check"></i><b>18.0.2</b> Mean Vector Inference</a></li>
-<li class="chapter" data-level="18.0.3" data-path="multivariate-methods.html"><a href="multivariate-methods.html#general-hypothesis-testing"><i class="fa fa-check"></i><b>18.0.3</b> General Hypothesis Testing</a></li>
-<li class="chapter" data-level="18.1" data-path="manova.html"><a href="manova.html"><i class="fa fa-check"></i><b>18.1</b> MANOVA</a>
-<ul>
-<li class="chapter" data-level="18.1.1" data-path="manova.html"><a href="manova.html#testing-general-hypotheses"><i class="fa fa-check"></i><b>18.1.1</b> Testing General Hypotheses</a></li>
-<li class="chapter" data-level="18.1.2" data-path="manova.html"><a href="manova.html#profile-analysis"><i class="fa fa-check"></i><b>18.1.2</b> Profile Analysis</a></li>
-<li class="chapter" data-level="18.1.3" data-path="manova.html"><a href="manova.html#summary-5"><i class="fa fa-check"></i><b>18.1.3</b> Summary</a></li>
-</ul></li>
-<li class="chapter" data-level="18.2" data-path="principal-components.html"><a href="principal-components.html"><i class="fa fa-check"></i><b>18.2</b> Principal Components</a>
-<ul>
-<li class="chapter" data-level="18.2.1" data-path="principal-components.html"><a href="principal-components.html#population-principal-components"><i class="fa fa-check"></i><b>18.2.1</b> Population Principal Components</a></li>
-<li class="chapter" data-level="18.2.2" data-path="principal-components.html"><a href="principal-components.html#sample-principal-components"><i class="fa fa-check"></i><b>18.2.2</b> Sample Principal Components</a></li>
-<li class="chapter" data-level="18.2.3" data-path="principal-components.html"><a href="principal-components.html#application-10"><i class="fa fa-check"></i><b>18.2.3</b> Application</a></li>
-</ul></li>
-<li class="chapter" data-level="18.3" data-path="factor-analysis.html"><a href="factor-analysis.html"><i class="fa fa-check"></i><b>18.3</b> Factor Analysis</a>
-<ul>
-<li class="chapter" data-level="18.3.1" data-path="factor-analysis.html"><a href="factor-analysis.html#methods-of-estimation"><i class="fa fa-check"></i><b>18.3.1</b> Methods of Estimation</a></li>
-<li class="chapter" data-level="18.3.2" data-path="factor-analysis.html"><a href="factor-analysis.html#factor-rotation"><i class="fa fa-check"></i><b>18.3.2</b> Factor Rotation</a></li>
-<li class="chapter" data-level="18.3.3" data-path="factor-analysis.html"><a href="factor-analysis.html#estimation-of-factor-scores"><i class="fa fa-check"></i><b>18.3.3</b> Estimation of Factor Scores</a></li>
-<li class="chapter" data-level="18.3.4" data-path="factor-analysis.html"><a href="factor-analysis.html#model-diagnostic"><i class="fa fa-check"></i><b>18.3.4</b> Model Diagnostic</a></li>
-<li class="chapter" data-level="18.3.5" data-path="factor-analysis.html"><a href="factor-analysis.html#application-11"><i class="fa fa-check"></i><b>18.3.5</b> Application</a></li>
-</ul></li>
-<li class="chapter" data-level="18.4" data-path="discriminant-analysis.html"><a href="discriminant-analysis.html"><i class="fa fa-check"></i><b>18.4</b> Discriminant Analysis</a>
-<ul>
-<li class="chapter" data-level="18.4.1" data-path="discriminant-analysis.html"><a href="discriminant-analysis.html#known-populations"><i class="fa fa-check"></i><b>18.4.1</b> Known Populations</a></li>
-<li class="chapter" data-level="18.4.2" data-path="discriminant-analysis.html"><a href="discriminant-analysis.html#probabilities-of-misclassification"><i class="fa fa-check"></i><b>18.4.2</b> Probabilities of Misclassification</a></li>
-<li class="chapter" data-level="18.4.3" data-path="discriminant-analysis.html"><a href="discriminant-analysis.html#unknown-populations-nonparametric-discrimination"><i class="fa fa-check"></i><b>18.4.3</b> Unknown Populations/ Nonparametric Discrimination</a></li>
-<li class="chapter" data-level="18.4.4" data-path="discriminant-analysis.html"><a href="discriminant-analysis.html#application-12"><i class="fa fa-check"></i><b>18.4.4</b> Application</a></li>
-</ul></li>
-</ul></li>
-<li class="part"><span><b>V CAUSAL INFERENCE</b></span></li>
-<li class="chapter" data-level="19" data-path="causal-inference.html"><a href="causal-inference.html"><i class="fa fa-check"></i><b>19</b> Causal Inference</a>
-<ul>
-<li class="chapter" data-level="19.1" data-path="treatment-effect-types.html"><a href="treatment-effect-types.html"><i class="fa fa-check"></i><b>19.1</b> Treatment effect types</a>
-<ul>
-<li class="chapter" data-level="19.1.1" data-path="treatment-effect-types.html"><a href="treatment-effect-types.html#average-treatment-effects"><i class="fa fa-check"></i><b>19.1.1</b> Average Treatment Effects</a></li>
-<li class="chapter" data-level="19.1.2" data-path="treatment-effect-types.html"><a href="treatment-effect-types.html#conditional-average-treatment-effects"><i class="fa fa-check"></i><b>19.1.2</b> Conditional Average Treatment Effects</a></li>
-<li class="chapter" data-level="19.1.3" data-path="treatment-effect-types.html"><a href="treatment-effect-types.html#intent-to-treat-effects"><i class="fa fa-check"></i><b>19.1.3</b> Intent-to-treat Effects</a></li>
-<li class="chapter" data-level="19.1.4" data-path="treatment-effect-types.html"><a href="treatment-effect-types.html#local-average-treatment-effects"><i class="fa fa-check"></i><b>19.1.4</b> Local Average Treatment Effects</a></li>
-<li class="chapter" data-level="19.1.5" data-path="treatment-effect-types.html"><a href="treatment-effect-types.html#population-vs.-sample-average-treatment-effects"><i class="fa fa-check"></i><b>19.1.5</b> Population vs. Sample Average Treatment Effects</a></li>
-<li class="chapter" data-level="19.1.6" data-path="treatment-effect-types.html"><a href="treatment-effect-types.html#average-treatment-effects-on-the-treated-and-control"><i class="fa fa-check"></i><b>19.1.6</b> Average Treatment Effects on the Treated and Control</a></li>
-<li class="chapter" data-level="19.1.7" data-path="treatment-effect-types.html"><a href="treatment-effect-types.html#quantile-average-treatment-effects"><i class="fa fa-check"></i><b>19.1.7</b> Quantile Average Treatment Effects</a></li>
-<li class="chapter" data-level="19.1.8" data-path="treatment-effect-types.html"><a href="treatment-effect-types.html#mediation-effects"><i class="fa fa-check"></i><b>19.1.8</b> Mediation Effects</a></li>
-<li class="chapter" data-level="19.1.9" data-path="treatment-effect-types.html"><a href="treatment-effect-types.html#log-odds-treatment-effects"><i class="fa fa-check"></i><b>19.1.9</b> Log-odds Treatment Effects</a></li>
-</ul></li>
-</ul></li>
-<li class="chapter" data-level="20" data-path="experimental-design.html"><a href="experimental-design.html"><i class="fa fa-check"></i><b>20</b> Experimental Design</a>
-<ul>
-<li class="chapter" data-level="20.1" data-path="semi-random-experiment.html"><a href="semi-random-experiment.html"><i class="fa fa-check"></i><b>20.1</b> Semi-random Experiment</a></li>
-<li class="chapter" data-level="20.2" data-path="rerandomization.html"><a href="rerandomization.html"><i class="fa fa-check"></i><b>20.2</b> Rerandomization</a></li>
-</ul></li>
-<li class="chapter" data-level="21" data-path="quasi-experimental.html"><a href="quasi-experimental.html"><i class="fa fa-check"></i><b>21</b> Quasi-experimental</a>
-<ul>
-<li class="chapter" data-level="21.1" data-path="regression-discontinuity.html"><a href="regression-discontinuity.html"><i class="fa fa-check"></i><b>21.1</b> Regression Discontinuity</a>
-<ul>
-<li class="chapter" data-level="21.1.1" data-path="regression-discontinuity.html"><a href="regression-discontinuity.html#specification-checks"><i class="fa fa-check"></i><b>21.1.1</b> Specification Checks</a></li>
-<li class="chapter" data-level="21.1.2" data-path="regression-discontinuity.html"><a href="regression-discontinuity.html#steps-for-sharp-rd"><i class="fa fa-check"></i><b>21.1.2</b> Steps for Sharp RD</a></li>
-<li class="chapter" data-level="21.1.3" data-path="regression-discontinuity.html"><a href="regression-discontinuity.html#steps-for-fuzzy-rd"><i class="fa fa-check"></i><b>21.1.3</b> Steps for Fuzzy RD</a></li>
-<li class="chapter" data-level="21.1.4" data-path="regression-discontinuity.html"><a href="regression-discontinuity.html#steps-for-rdit-regression-discontinuity-in-time"><i class="fa fa-check"></i><b>21.1.4</b> Steps for RDiT (Regression Discontinuity in Time)</a></li>
-<li class="chapter" data-level="21.1.5" data-path="regression-discontinuity.html"><a href="regression-discontinuity.html#evaluation-of-an-rd"><i class="fa fa-check"></i><b>21.1.5</b> Evaluation of an RD</a></li>
-<li class="chapter" data-level="21.1.6" data-path="regression-discontinuity.html"><a href="regression-discontinuity.html#applications"><i class="fa fa-check"></i><b>21.1.6</b> Applications</a></li>
-</ul></li>
-<li class="chapter" data-level="21.2" data-path="difference-in-differences.html"><a href="difference-in-differences.html"><i class="fa fa-check"></i><b>21.2</b> Difference-in-differences</a>
-<ul>
-<li class="chapter" data-level="21.2.1" data-path="difference-in-differences.html"><a href="difference-in-differences.html#simple-dif-n-dif"><i class="fa fa-check"></i><b>21.2.1</b> Simple Dif-n-dif</a></li>
-<li class="chapter" data-level="21.2.2" data-path="difference-in-differences.html"><a href="difference-in-differences.html#staggered-dif-n-dif"><i class="fa fa-check"></i><b>21.2.2</b> Staggered Dif-n-dif</a></li>
-<li class="chapter" data-level="21.2.3" data-path="difference-in-differences.html"><a href="difference-in-differences.html#two-way-fixed-effects"><i class="fa fa-check"></i><b>21.2.3</b> Two-way Fixed-effects</a></li>
-</ul></li>
-<li class="chapter" data-level="21.3" data-path="synthetic-control.html"><a href="synthetic-control.html"><i class="fa fa-check"></i><b>21.3</b> Synthetic Control</a>
-<ul>
-<li class="chapter" data-level="21.3.1" data-path="synthetic-control.html"><a href="synthetic-control.html#example-1-2"><i class="fa fa-check"></i><b>21.3.1</b> Example 1</a></li>
-<li class="chapter" data-level="21.3.2" data-path="synthetic-control.html"><a href="synthetic-control.html#example-2-1"><i class="fa fa-check"></i><b>21.3.2</b> Example 2</a></li>
-<li class="chapter" data-level="21.3.3" data-path="synthetic-control.html"><a href="synthetic-control.html#example-3-1"><i class="fa fa-check"></i><b>21.3.3</b> Example 3</a></li>
-<li class="chapter" data-level="21.3.4" data-path="synthetic-control.html"><a href="synthetic-control.html#example-4-1"><i class="fa fa-check"></i><b>21.3.4</b> Example 4</a></li>
-</ul></li>
-<li class="chapter" data-level="21.4" data-path="synthetic-difference-in-differences.html"><a href="synthetic-difference-in-differences.html"><i class="fa fa-check"></i><b>21.4</b> Synthetic Difference-in-differences</a></li>
-<li class="chapter" data-level="21.5" data-path="selection-on-observables.html"><a href="selection-on-observables.html"><i class="fa fa-check"></i><b>21.5</b> Selection on observables</a></li>
-<li class="chapter" data-level="21.6" data-path="matching-methods.html"><a href="matching-methods.html"><i class="fa fa-check"></i><b>21.6</b> Matching Methods</a>
-<ul>
-<li class="chapter" data-level="21.6.1" data-path="matching-methods.html"><a href="matching-methods.html#matchit"><i class="fa fa-check"></i><b>21.6.1</b> MatchIt</a></li>
-<li class="chapter" data-level="21.6.2" data-path="matching-methods.html"><a href="matching-methods.html#matchingfrontier"><i class="fa fa-check"></i><b>21.6.2</b> MatchingFrontier</a></li>
-<li class="chapter" data-level="21.6.3" data-path="matching-methods.html"><a href="matching-methods.html#propensity-scores"><i class="fa fa-check"></i><b>21.6.3</b> Propensity Scores</a></li>
-<li class="chapter" data-level="21.6.4" data-path="matching-methods.html"><a href="matching-methods.html#mahalanobis-distance"><i class="fa fa-check"></i><b>21.6.4</b> Mahalanobis Distance</a></li>
-<li class="chapter" data-level="21.6.5" data-path="matching-methods.html"><a href="matching-methods.html#coarsened-exact-matching"><i class="fa fa-check"></i><b>21.6.5</b> Coarsened Exact Matching</a></li>
-<li class="chapter" data-level="21.6.6" data-path="matching-methods.html"><a href="matching-methods.html#genetic-matching"><i class="fa fa-check"></i><b>21.6.6</b> Genetic Matching</a></li>
-<li class="chapter" data-level="21.6.7" data-path="matching-methods.html"><a href="matching-methods.html#matching-for-time-series-cross-section-data"><i class="fa fa-check"></i><b>21.6.7</b> Matching for time series-cross-section data</a></li>
-</ul></li>
-<li class="chapter" data-level="21.7" data-path="interrupted-time-series.html"><a href="interrupted-time-series.html"><i class="fa fa-check"></i><b>21.7</b> Interrupted Time Series</a></li>
-</ul></li>
-<li class="chapter" data-level="22" data-path="endogeneity.html"><a href="endogeneity.html"><i class="fa fa-check"></i><b>22</b> Endogeneity</a>
-<ul>
-<li class="chapter" data-level="22.1" data-path="measurement-error.html"><a href="measurement-error.html"><i class="fa fa-check"></i><b>22.1</b> Measurement Error</a>
-<ul>
-<li class="chapter" data-level="22.1.1" data-path="measurement-error.html"><a href="measurement-error.html#classical-measurement-errors"><i class="fa fa-check"></i><b>22.1.1</b> Classical Measurement Errors</a></li>
-<li class="chapter" data-level="22.1.2" data-path="measurement-error.html"><a href="measurement-error.html#non-classical-measurement-errors"><i class="fa fa-check"></i><b>22.1.2</b> Non-classical Measurement Errors</a></li>
-<li class="chapter" data-level="22.1.3" data-path="measurement-error.html"><a href="measurement-error.html#solution-to-measurement-errors"><i class="fa fa-check"></i><b>22.1.3</b> Solution to Measurement Errors</a></li>
-</ul></li>
-<li class="chapter" data-level="22.2" data-path="simultaneity.html"><a href="simultaneity.html"><i class="fa fa-check"></i><b>22.2</b> Simultaneity</a></li>
-<li class="chapter" data-level="22.3" data-path="endogenous-treatment.html"><a href="endogenous-treatment.html"><i class="fa fa-check"></i><b>22.3</b> Endogenous Treatment</a>
-<ul>
-<li class="chapter" data-level="22.3.1" data-path="endogenous-treatment.html"><a href="endogenous-treatment.html#instrumental-variable"><i class="fa fa-check"></i><b>22.3.1</b> Instrumental Variable</a></li>
-<li class="chapter" data-level="22.3.2" data-path="endogenous-treatment.html"><a href="endogenous-treatment.html#internal-instrumental-variable"><i class="fa fa-check"></i><b>22.3.2</b> Internal instrumental variable</a></li>
-<li class="chapter" data-level="22.3.3" data-path="endogenous-treatment.html"><a href="endogenous-treatment.html#proxy-variables"><i class="fa fa-check"></i><b>22.3.3</b> Proxy Variables</a></li>
-</ul></li>
-<li class="chapter" data-level="22.4" data-path="endogenous-sample-selection.html"><a href="endogenous-sample-selection.html"><i class="fa fa-check"></i><b>22.4</b> Endogenous Sample Selection</a>
-<ul>
-<li class="chapter" data-level="22.4.1" data-path="endogenous-sample-selection.html"><a href="endogenous-sample-selection.html#tobit-2"><i class="fa fa-check"></i><b>22.4.1</b> Tobit-2</a></li>
-<li class="chapter" data-level="22.4.2" data-path="endogenous-sample-selection.html"><a href="endogenous-sample-selection.html#tobit-5"><i class="fa fa-check"></i><b>22.4.2</b> Tobit-5</a></li>
-</ul></li>
-</ul></li>
-<li class="chapter" data-level="23" data-path="mediation.html"><a href="mediation.html"><i class="fa fa-check"></i><b>23</b> Mediation</a>
-<ul>
-<li class="chapter" data-level="23.1" data-path="traditional.html"><a href="traditional.html"><i class="fa fa-check"></i><b>23.1</b> Traditional</a>
-<ul>
-<li class="chapter" data-level="23.1.1" data-path="traditional.html"><a href="traditional.html#example-1-mediation-traditional"><i class="fa fa-check"></i><b>23.1.1</b> Example 1</a></li>
-</ul></li>
-<li class="chapter" data-level="23.2" data-path="model-based-causal-mediation-analysis.html"><a href="model-based-causal-mediation-analysis.html"><i class="fa fa-check"></i><b>23.2</b> Model-based causal mediation analysis</a></li>
-</ul></li>
-<li class="chapter" data-level="24" data-path="directed-acyclic-graph.html"><a href="directed-acyclic-graph.html"><i class="fa fa-check"></i><b>24</b> Directed Acyclic Graph</a></li>
-<li class="part"><span><b>VI MISCELLANEOUS</b></span></li>
-<li class="chapter" data-level="25" data-path="report.html"><a href="report.html"><i class="fa fa-check"></i><b>25</b> Report</a>
-<ul>
-<li class="chapter" data-level="25.1" data-path="one-summary-table.html"><a href="one-summary-table.html"><i class="fa fa-check"></i><b>25.1</b> One summary table</a></li>
-<li class="chapter" data-level="25.2" data-path="model-comparison.html"><a href="model-comparison.html"><i class="fa fa-check"></i><b>25.2</b> Model Comparison</a></li>
-<li class="chapter" data-level="25.3" data-path="changes-in-an-estimate.html"><a href="changes-in-an-estimate.html"><i class="fa fa-check"></i><b>25.3</b> Changes in an estimate</a></li>
-</ul></li>
-<li class="chapter" data-level="26" data-path="exploratory-data-analysis.html"><a href="exploratory-data-analysis.html"><i class="fa fa-check"></i><b>26</b> Exploratory Data Analysis</a></li>
-<li class="chapter" data-level="27" data-path="sensitivity-analysis-robustness-check.html"><a href="sensitivity-analysis-robustness-check.html"><i class="fa fa-check"></i><b>27</b> Sensitivity Analysis/ Robustness Check</a>
-<ul>
-<li class="chapter" data-level="27.1" data-path="specification-curve.html"><a href="specification-curve.html"><i class="fa fa-check"></i><b>27.1</b> Specification curve</a>
-<ul>
-<li class="chapter" data-level="27.1.1" data-path="specification-curve.html"><a href="specification-curve.html#starbility"><i class="fa fa-check"></i><b>27.1.1</b> starbility</a></li>
-<li class="chapter" data-level="27.1.2" data-path="specification-curve.html"><a href="specification-curve.html#rdfanalysis"><i class="fa fa-check"></i><b>27.1.2</b> rdfanalysis</a></li>
-</ul></li>
-<li class="chapter" data-level="27.2" data-path="coefficient-stability.html"><a href="coefficient-stability.html"><i class="fa fa-check"></i><b>27.2</b> Coefficient stability</a></li>
-</ul></li>
-<li class="appendix"><span><b>APPENDIX</b></span></li>
-<li class="chapter" data-level="A" data-path="appendix.html"><a href="appendix.html"><i class="fa fa-check"></i><b>A</b> Appendix</a>
-<ul>
-<li class="chapter" data-level="A.1" data-path="git.html"><a href="git.html"><i class="fa fa-check"></i><b>A.1</b> Git</a></li>
-<li class="chapter" data-level="A.2" data-path="short-cut.html"><a href="short-cut.html"><i class="fa fa-check"></i><b>A.2</b> Short-cut</a></li>
-<li class="chapter" data-level="A.3" data-path="function-short-cut.html"><a href="function-short-cut.html"><i class="fa fa-check"></i><b>A.3</b> Function short-cut</a></li>
-<li class="chapter" data-level="A.4" data-path="citation.html"><a href="citation.html"><i class="fa fa-check"></i><b>A.4</b> Citation</a></li>
-<li class="chapter" data-level="A.5" data-path="install-all-necessary-packageslibaries-on-your-local-machine.html"><a href="install-all-necessary-packageslibaries-on-your-local-machine.html"><i class="fa fa-check"></i><b>A.5</b> Install all necessary packages/libaries on your local machine</a></li>
-</ul></li>
-<li class="chapter" data-level="B" data-path="bookdown-cheat-sheet.html"><a href="bookdown-cheat-sheet.html"><i class="fa fa-check"></i><b>B</b> Bookdown cheat sheet</a>
-<ul>
-<li class="chapter" data-level="B.1" data-path="operation.html"><a href="operation.html"><i class="fa fa-check"></i><b>B.1</b> Operation</a></li>
-<li class="chapter" data-level="B.2" data-path="math-expresssion-syntax.html"><a href="math-expresssion-syntax.html"><i class="fa fa-check"></i><b>B.2</b> Math Expresssion/ Syntax</a>
-<ul>
-<li class="chapter" data-level="B.2.1" data-path="math-expresssion-syntax.html"><a href="math-expresssion-syntax.html#statistics-notation"><i class="fa fa-check"></i><b>B.2.1</b> Statistics Notation</a></li>
-</ul></li>
-<li class="chapter" data-level="B.3" data-path="table.html"><a href="table.html"><i class="fa fa-check"></i><b>B.3</b> Table</a></li>
-</ul></li>
-<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
-<li class="divider"></li>
-<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
-
-</ul>
-
-      </nav>
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">A Guide on Data Analysis</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
     </div>
 
-    <div class="book-body">
-      <div class="body-inner">
-        <div class="book-header" role="navigation">
-          <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">A Guide on Data Analysis</a>
-          </h1>
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Preface</a></li>
+<li><a class="" href="introduction.html"><span class="header-section-number">1</span> Introduction</a></li>
+<li><a class="" href="prerequisites.html"><span class="header-section-number">2</span> Prerequisites</a></li>
+<li class="book-part">I. BASIC</li>
+<li><a class="" href="descriptive-stat.html"><span class="header-section-number">3</span> Descriptive Statistics</a></li>
+<li><a class="" href="basic-statistical-inference.html"><span class="header-section-number">4</span> Basic Statistical Inference</a></li>
+<li class="book-part">II. REGRESSION</li>
+<li><a class="" href="linear-regression.html"><span class="header-section-number">5</span> Linear Regression</a></li>
+<li><a class="" href="non-linear-regression.html"><span class="header-section-number">6</span> Non-linear Regression</a></li>
+<li><a class="" href="generalized-linear-models.html"><span class="header-section-number">7</span> Generalized Linear Models</a></li>
+<li><a class="" href="linear-mixed-models.html"><span class="header-section-number">8</span> Linear Mixed Models</a></li>
+<li><a class="" href="nonlinear-and-generalized-linear-mixed-models.html"><span class="header-section-number">9</span> Nonlinear and Generalized Linear Mixed Models</a></li>
+<li class="book-part">III. RAMIFICATIONS</li>
+<li><a class="" href="model-specification.html"><span class="header-section-number">10</span> Model Specification</a></li>
+<li><a class="" href="imputation-missing-data.html"><span class="header-section-number">11</span> Imputation (Missing Data)</a></li>
+<li><a class="" href="data.html"><span class="header-section-number">12</span> Data</a></li>
+<li><a class="" href="hypothesis-testing.html"><span class="header-section-number">13</span> Hypothesis Testing</a></li>
+<li><a class="" href="prediction-and-estimation.html"><span class="header-section-number">14</span> Prediction and Estimation</a></li>
+<li><a class="" href="moderation.html"><span class="header-section-number">15</span> Moderation</a></li>
+<li class="book-part">IV. CAUSAL INFERENCE</li>
+<li><a class="" href="causal-inference.html"><span class="header-section-number">16</span> Causal Inference</a></li>
+<li class="book-part">A. EXPERIMENTAL DESIGN</li>
+<li><a class="" href="experimental-design.html"><span class="header-section-number">17</span> Experimental Design</a></li>
+<li><a class="" href="sampling.html"><span class="header-section-number">18</span> Sampling</a></li>
+<li><a class="" href="analysis-of-variance-anova.html"><span class="header-section-number">19</span> Analysis of Variance (ANOVA)</a></li>
+<li><a class="" href="multivariate-methods.html"><span class="header-section-number">20</span> Multivariate Methods</a></li>
+<li class="book-part">B. QUASI-EXPERIMENTAL DESIGN</li>
+<li><a class="" href="quasi-experimental.html"><span class="header-section-number">21</span> Quasi-experimental</a></li>
+<li><a class="" href="regression-discontinuity.html"><span class="header-section-number">22</span> Regression Discontinuity</a></li>
+<li><a class="active" href="difference-in-differences.html"><span class="header-section-number">23</span> Difference-in-differences</a></li>
+<li><a class="" href="synthetic-control.html"><span class="header-section-number">24</span> Synthetic Control</a></li>
+<li><a class="" href="event-studies.html"><span class="header-section-number">25</span> Event Studies</a></li>
+<li><a class="" href="matching-methods.html"><span class="header-section-number">26</span> Matching Methods</a></li>
+<li><a class="" href="interrupted-time-series.html"><span class="header-section-number">27</span> Interrupted Time Series</a></li>
+<li class="book-part">C. OTHER CONCERNS</li>
+<li><a class="" href="endogeneity.html"><span class="header-section-number">28</span> Endogeneity</a></li>
+<li><a class="" href="mediation.html"><span class="header-section-number">29</span> Mediation</a></li>
+<li><a class="" href="directed-acyclic-graph.html"><span class="header-section-number">30</span> Directed Acyclic Graph</a></li>
+<li class="book-part">V. MISCELLANEOUS</li>
+<li><a class="" href="report.html"><span class="header-section-number">31</span> Report</a></li>
+<li><a class="" href="exploratory-data-analysis.html"><span class="header-section-number">32</span> Exploratory Data Analysis</a></li>
+<li><a class="" href="sensitivity-analysis-robustness-check.html"><span class="header-section-number">33</span> Sensitivity Analysis/ Robustness Check</a></li>
+<li class="book-part">APPENDIX</li>
+<li><a class="" href="appendix.html"><span class="header-section-number">A</span> Appendix</a></li>
+<li><a class="" href="bookdown-cheat-sheet.html"><span class="header-section-number">B</span> Bookdown cheat sheet</a></li>
+<li><a class="" href="references.html">References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/mikenguyen13/data_analysis">View book source <i class="fab fa-github"></i></a></p>
         </div>
-
-        <div class="page-wrapper" tabindex="-1" role="main">
-          <div class="page-inner">
-
-            <section class="normal" id="section-">
-<div id="difference-in-differences" class="section level2" number="21.2">
-<h2><span class="header-section-number">21.2</span> Difference-in-differences</h2>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="difference-in-differences" class="section level1" number="23">
+<h1>
+<span class="header-section-number">23</span> Difference-in-differences<a class="anchor" aria-label="anchor" href="#difference-in-differences"><i class="fas fa-link"></i></a>
+</h1>
 <p>Examples in marketing</p>
 <ul>
-<li><span class="citation">(<a href="#ref-liaukonyte2015" role="doc-biblioref">Liaukonyte, Teixeira, and Wilbur 2015</a>)</span>: TV ad on online shopping</li>
-<li><span class="citation">(<a href="#ref-akca2020" role="doc-biblioref">Akca and Rao 2020</a>)</span>: aggregators for airlines business effect</li>
-<li><span class="citation">(<a href="#ref-pattabhiramaiah2018" role="doc-biblioref">Pattabhiramaiah, Sriram, and Manchanda 2018</a>)</span>: paywall affects readership</li>
-<li><span class="citation">(<a href="#ref-wang2018" role="doc-biblioref">Wang, Lewis, and Schweidel 2018</a>)</span>: political ad source and message tone on vote shares and turnout using discontinuities in the level of political ads at the borders</li>
-<li><span class="citation">(<a href="#ref-datta2018" role="doc-biblioref">Datta, Knox, and Bronnenberg 2018</a>)</span>: streaming service on total music consumption using timing of users adoption of a music streaming service</li>
-<li><span class="citation">(<a href="#ref-janakiraman2018" role="doc-biblioref">Janakiraman, Lim, and Rishika 2018</a>)</span>: data breach announcement affect customer spending using timing of data breach and variation whether customer info was breached in that event</li>
-<li><span class="citation">(<a href="#ref-lim2020" role="doc-biblioref">Lim et al. 2020</a>)</span>: nutritional labels on nutritional quality for other brands in a category using variation in timing of adoption of nutritional labels across categories</li>
-<li><span class="citation">(<a href="#ref-guo2020" role="doc-biblioref">Guo, Sriram, and Manchanda 2020</a>)</span>: payment disclosure laws effect on physician prescription behavior using Timing of the Massachusetts open payment law as the exogenous shock</li>
-<li><span class="citation">(<a href="#ref-israeli2018" role="doc-biblioref">Israeli 2018</a>)</span>: digital monitoring and enforcement on violations using enforcement of min ad price policies</li>
-<li><span class="citation">(<a href="#ref-ramani2019" role="doc-biblioref">Ramani and Srinivasan 2019</a>)</span>: firms respond to foreign direct investment liberalization using India’s reform in 1991.</li>
-<li><span class="citation">(<a href="#ref-he2022" role="doc-biblioref">He, Hollenbeck, and Proserpio 2022</a>)</span>: using Aamzon policy change to examine the causal impact of fake reviews on sales, average ratings.</li>
-<li><span class="citation">(<a href="#ref-peukert2022" role="doc-biblioref">Peukert et al. 2022</a>)</span>: using European General data proection Regulation, examien the impact of policy change on website usage.</li>
+<li>
+<span class="citation">(<a href="references.html#ref-liaukonyte2015" role="doc-biblioref">Liaukonyte, Teixeira, and Wilbur 2015</a>)</span>: TV ad on online shopping</li>
+<li>
+<span class="citation">(<a href="references.html#ref-akca2020" role="doc-biblioref">Akca and Rao 2020</a>)</span>: aggregators for airlines business effect</li>
+<li>
+<span class="citation">(<a href="references.html#ref-pattabhiramaiah2018" role="doc-biblioref">Pattabhiramaiah, Sriram, and Manchanda 2018</a>)</span>: paywall affects readership</li>
+<li>
+<span class="citation">(<a href="references.html#ref-wang2018" role="doc-biblioref">Wang, Lewis, and Schweidel 2018</a>)</span>: political ad source and message tone on vote shares and turnout using discontinuities in the level of political ads at the borders</li>
+<li>
+<span class="citation">(<a href="references.html#ref-datta2018" role="doc-biblioref">Datta, Knox, and Bronnenberg 2018</a>)</span>: streaming service on total music consumption using timing of users adoption of a music streaming service</li>
+<li>
+<span class="citation">(<a href="references.html#ref-janakiraman2018" role="doc-biblioref">Janakiraman, Lim, and Rishika 2018</a>)</span>: data breach announcement affect customer spending using timing of data breach and variation whether customer info was breached in that event</li>
+<li>
+<span class="citation">(<a href="references.html#ref-lim2020" role="doc-biblioref">Lim et al. 2020</a>)</span>: nutritional labels on nutritional quality for other brands in a category using variation in timing of adoption of nutritional labels across categories</li>
+<li>
+<span class="citation">(<a href="references.html#ref-guo2020" role="doc-biblioref">Guo, Sriram, and Manchanda 2020</a>)</span>: payment disclosure laws effect on physician prescription behavior using Timing of the Massachusetts open payment law as the exogenous shock</li>
+<li>
+<span class="citation">(<a href="references.html#ref-israeli2018" role="doc-biblioref">Israeli 2018</a>)</span>: digital monitoring and enforcement on violations using enforcement of min ad price policies</li>
+<li>
+<span class="citation">(<a href="references.html#ref-ramani2019" role="doc-biblioref">Ramani and Srinivasan 2019</a>)</span>: firms respond to foreign direct investment liberalization using India’s reform in 1991.</li>
+<li>
+<span class="citation">(<a href="references.html#ref-he2022" role="doc-biblioref">He, Hollenbeck, and Proserpio 2022</a>)</span>: using Aamzon policy change to examine the causal impact of fake reviews on sales, average ratings.</li>
+<li>
+<span class="citation">(<a href="references.html#ref-peukert2022" role="doc-biblioref">Peukert et al. 2022</a>)</span>: using European General data proection Regulation, examien the impact of policy change on website usage.</li>
 </ul>
 <p>Show the mechanism via</p>
 <ul>
-<li><p>Mediation analysis: see <span class="citation">(<a href="#ref-habel2021" role="doc-biblioref">Habel, Alavi, and Linsenmayer 2021</a>)</span></p></li>
-<li><p>Moderation analysis: see <span class="citation">(<a href="#ref-goldfarb2011" role="doc-biblioref">Goldfarb and Tucker 2011</a>)</span></p></li>
+<li><p>Mediation analysis: see <span class="citation">(<a href="references.html#ref-habel2021" role="doc-biblioref">Habel, Alavi, and Linsenmayer 2021</a>)</span></p></li>
+<li><p>Moderation analysis: see <span class="citation">(<a href="references.html#ref-goldfarb2011" role="doc-biblioref">Goldfarb and Tucker 2011</a>)</span></p></li>
 </ul>
-<div id="simple-dif-n-dif" class="section level3" number="21.2.1">
-<h3><span class="header-section-number">21.2.1</span> Simple Dif-n-dif</h3>
+<div id="simple-dif-n-dif" class="section level2" number="23.1">
+<h2>
+<span class="header-section-number">23.1</span> Simple Dif-n-dif<a class="anchor" aria-label="anchor" href="#simple-dif-n-dif"><i class="fas fa-link"></i></a>
+</h2>
 <ul>
 <li><p>A tool developed intuitively to study “natural experiment”, but its uses are much broader.</p></li>
-<li><p><a href="panel-data.html#fixed-effects-estimator">Fixed Effects Estimator</a> is the foundation for DID</p></li>
-<li><p>Why is dif-in-dif attractive? Identification strategy: Inter-temporal variation between groups</p>
+<li><p><a href="data.html#fixed-effects-estimator">Fixed Effects Estimator</a> is the foundation for DID</p></li>
+<li>
+<p>Why is dif-in-dif attractive? Identification strategy: Inter-temporal variation between groups</p>
 <ul>
 <li><p><strong>Cross-sectional estimator</strong> helps avoid omitted (unobserved) <strong>common trends</strong></p></li>
 <li><p><strong>Time-series estimator</strong> helps overcome omitted (unobserved) <strong>cross-sectional differences</strong></p></li>
-</ul></li>
+</ul>
+</li>
 </ul>
 <p>Consider</p>
 <ul>
@@ -822,29 +161,29 @@ div.csl-indent {
 <li><p><span class="math inline">\(T= 1\)</span> After the treatment</p></li>
 <li><p><span class="math inline">\(T =0\)</span> Before the treatment</p></li>
 </ul>
-<table>
-<thead>
-<tr class="header">
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
 <th></th>
 <th>After (T = 1)</th>
 <th>Before (T = 0)</th>
-</tr>
-</thead>
+</tr></thead>
 <tbody>
 <tr class="odd">
-<td>Treated <span class="math inline">\(D_i =1\)</span></td>
+<td>Treated <span class="math inline">\(D_i =1\)</span>
+</td>
 <td><span class="math inline">\(E[Y_{1i}(1)|D_i = 1]\)</span></td>
 <td><span class="math inline">\(E[Y_{0i}(0)|D)i=1]\)</span></td>
 </tr>
 <tr class="even">
-<td>Control <span class="math inline">\(D_i = 0\)</span></td>
+<td>Control <span class="math inline">\(D_i = 0\)</span>
+</td>
 <td><span class="math inline">\(E[Y_{0i}(1) |D_i =0]\)</span></td>
 <td><span class="math inline">\(E[Y_{0i}(0)|D_i=0]\)</span></td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p>missing <span class="math inline">\(E[Y_{0i}(1)|D=1]\)</span></p>
-<p>The Average Treatment Effect on Treated</p>
+<p><strong>The Average Treatment Effect on Treated (ATT)</strong></p>
 <p><span class="math display">\[
 E[Y_1(1) - Y_0(1)|D=1] \\
 = \{E[Y(1)|D=1] - E[Y(1)|D=0] \} - \{E[Y(0)|D=1] - E[Y(0)|D=0] \}
@@ -874,38 +213,53 @@ Y_{igt} = \alpha_g + \gamma_t + \beta I_{gt} + \delta X_{igt} + \epsilon_{igt}
 <p><a href="matching-methods.html#matching-methods">Matching Methods</a></p>
 <ul>
 <li><p>Match treatment and control based on pre-treatment observables</p></li>
-<li><p>Modify SEs appropriately <span class="citation">(<a href="#ref-heckman1997" role="doc-biblioref">J. J. Heckman, Ichimura, and Todd 1997</a>)</span></p></li>
+<li><p>Modify SEs appropriately <span class="citation">(<a href="references.html#ref-heckman1997" role="doc-biblioref">J. J. Heckman, Ichimura, and Todd 1997</a>)</span></p></li>
 </ul>
 <p><br></p>
-<div id="assumptions-2" class="section level4" number="21.2.1.1">
-<h4><span class="header-section-number">21.2.1.1</span> Assumptions</h4>
+<div id="assumptions-2" class="section level3" number="23.1.1">
+<h3>
+<span class="header-section-number">23.1.1</span> Assumptions<a class="anchor" aria-label="anchor" href="#assumptions-2"><i class="fas fa-link"></i></a>
+</h3>
 <ul>
-<li><p><strong>Parallel Trends</strong>: Difference between the treatment and control groups remain constant if there were no treatment.</p>
+<li>
+<p><strong>Parallel Trends</strong>: Difference between the treatment and control groups remain constant if there were no treatment.</p>
 <ul>
-<li><p>should be used in cases where</p>
+<li>
+<p>should be used in cases where</p>
 <ul>
 <li><p>you observe before and after an event</p></li>
 <li><p>you have treatment and control groups</p></li>
-</ul></li>
-<li><p>not in cases where</p>
+</ul>
+</li>
+<li>
+<p>not in cases where</p>
 <ul>
 <li><p>treatment is not random</p></li>
 <li><p>confounders.</p></li>
-</ul></li>
-<li><p>To support we use</p>
+</ul>
+</li>
+<li>
+<p>To support we use</p>
 <ul>
 <li><p><a href="difference-in-differences.html#placebo-test">Placebo test</a></p></li>
 <li><p><a href="difference-in-differences.html#prior-trends-test">Prior trends test</a></p></li>
-</ul></li>
-</ul></li>
-<li><p><strong>Linear additive effects</strong> (of group/unit specific and time-specific):</p>
-<ul>
-<li><p>If they are not additively interact, we have to use the weighted 2FE estimator <span class="citation">(<a href="#ref-imai2020" role="doc-biblioref">Imai and Kim 2020</a>)</span></p></li>
-<li><p>Typically seen in the <a href="difference-in-differences.html#staggered-dif-n-dif">Staggered Dif-n-dif</a></p></li>
-</ul></li>
 </ul>
-<div id="prior-trends-test" class="section level5" number="21.2.1.1.1">
-<h5><span class="header-section-number">21.2.1.1.1</span> Prior Trends Test</h5>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Linear additive effects</strong> (of group/unit specific and time-specific):</p>
+<ul>
+<li><p>If they are not additively interact, we have to use the weighted 2FE estimator <span class="citation">(<a href="references.html#ref-imai2020" role="doc-biblioref">Imai and Kim 2020</a>)</span></p></li>
+<li><p>Typically seen in the <a href="difference-in-differences.html#staggered-dif-n-dif">Staggered Dif-n-dif</a></p></li>
+</ul>
+</li>
+<li><p>No anticipation: There is no causal effect of the treatment before its implementation.</p></li>
+</ul>
+<div id="prior-trends-test" class="section level4" number="23.1.1.1">
+<h4>
+<span class="header-section-number">23.1.1.1</span> Prior Trends Test<a class="anchor" aria-label="anchor" href="#prior-trends-test"><i class="fas fa-link"></i></a>
+</h4>
 <ol style="list-style-type: decimal">
 <li>Plot the average outcomes over time for both treatment and control group before and after the treatment in time.</li>
 <li>Statistical test for difference in trends (using data from before the treatment period)</li>
@@ -927,10 +281,12 @@ Y = \alpha_g + \beta_1 T + \beta_2 T\times G + \epsilon
 <li><p>Statistical significance can be driven by large sample</p></li>
 <li><p>Or the trends are so consistent, and just one period deviation can throw off the trends. Hence, statistical statistical significance.</p></li>
 </ul>
-<p>Technically, we can still salvage the research by including time fixed effects, instead of just the before-and-after time fixed effect (actually, most researchers do this mechanically anyways nowadays). However, a side effect can be that the time fixed effects can also absorb some part your treatment effect as well, especially in cases where the treatment effects vary with time (i.e., stronger or weaker over time) <span class="citation">(<a href="#ref-wolfers2003" role="doc-biblioref">Wolfers 2003</a>)</span>.</p>
+<p>Technically, we can still salvage the research by including time fixed effects, instead of just the before-and-after time fixed effect (actually, most researchers do this mechanically anyways nowadays). However, a side effect can be that the time fixed effects can also absorb some part your treatment effect as well, especially in cases where the treatment effects vary with time (i.e., stronger or weaker over time) <span class="citation">(<a href="references.html#ref-wolfers2003" role="doc-biblioref">Wolfers 2003</a>)</span>.</p>
 </div>
-<div id="placebo-test" class="section level5" number="21.2.1.1.2">
-<h5><span class="header-section-number">21.2.1.1.2</span> Placebo Test</h5>
+<div id="placebo-test" class="section level4" number="23.1.1.2">
+<h4>
+<span class="header-section-number">23.1.1.2</span> Placebo Test<a class="anchor" aria-label="anchor" href="#placebo-test"><i class="fas fa-link"></i></a>
+</h4>
 <p>Procedure:</p>
 <ol style="list-style-type: decimal">
 <li>Sample data only in the period before the treatment in time.</li>
@@ -938,121 +294,147 @@ Y = \alpha_g + \beta_1 T + \beta_2 T\times G + \epsilon
 <ol style="list-style-type: decimal">
 <li><p>Try the whole sequence in time</p></li>
 <li><p>Generate random treatment period, and use <strong>randomization inference</strong> to account for sampling distribution of the fake effect.</p></li>
-</ol></li>
+</ol>
+</li>
 <li>Estimate the DiD model but with the post-time = 1 with the fake cutoff</li>
 <li>A significant DiD coefficient means that you violate the parallel trends! You have a big problem.</li>
 </ol>
 <p>Alternatively,</p>
 <ul>
-<li>When data have multiple control groups, drop the treated group, and assign another control group as a “fake” treated group. But even if it fails (i.e., you find a significant DiD effect) among the control groups, it can still be fine. However, this method is used under <a href="synthetic-control.html#synthetic-control">Synthetic Control</a></li>
+<li>When data have multiple control groups, drop the treated group, and assign another control group as a “fake” treated group. But even if it fails (i.e., you find a significant DiD effect) among the control groups, it can still be fine. However, this method is used under <a href="synthetic-control.html#synthetic-control">Synthetic Control</a>
+</li>
 </ul>
 <p><strong>Possible issues</strong></p>
 <ul>
-<li><p>Estimate dependent on functional form:</p>
+<li>
+<p>Estimate dependent on functional form:</p>
 <ul>
 <li>When the size of the response depends (nonlinearly) on the size of the intervention, we might want to look at the the difference in the group with high intensity vs. low.</li>
-</ul></li>
-<li><p>Long-term effects</p>
+</ul>
+</li>
+<li>
+<p>Long-term effects</p>
 <ul>
 <li>Parallel trends are more likely to be observed over shorter period (window of observation)</li>
-</ul></li>
-<li><p>Heterogeneous effects</p>
+</ul>
+</li>
+<li>
+<p>Heterogeneous effects</p>
 <ul>
 <li>Different intensity (e.g., doses) for different groups.</li>
-</ul></li>
-<li><p>Ashenfelter dip</p>
+</ul>
+</li>
+<li>
+<p>Ashenfelter dip</p>
 <ul>
 <li>Participants are systemically different from nonparticipants before the treatment, leading to the question of permanent or transitory changes.</li>
-</ul></li>
-<li><p>Response to event might not be immediate (can’t be observed right away in the dependent variable)</p>
+</ul>
+</li>
+<li>
+<p>Response to event might not be immediate (can’t be observed right away in the dependent variable)</p>
 <ul>
-<li>Using lagged dependent variable <span class="math inline">\(Y_{it-1}\)</span> might be more appropriate <span class="citation">(<a href="#ref-blundell1998" role="doc-biblioref">Blundell and Bond 1998</a>)</span></li>
-</ul></li>
+<li>Using lagged dependent variable <span class="math inline">\(Y_{it-1}\)</span> might be more appropriate <span class="citation">(<a href="references.html#ref-blundell1998" role="doc-biblioref">Blundell and Bond 1998</a>)</span>
+</li>
+</ul>
+</li>
 <li><p>Other factors that affect the difference in trends between the two groups (i.e., treatment and control) will bias your estimation.</p></li>
 <li><p>Correlated observations within a group or time.</p></li>
-<li><p>Incidental parameters problems <span class="citation">(<a href="#ref-lancaster2000" role="doc-biblioref">Lancaster 2000</a>)</span>: it’s always better to use individual and time fixed effect.</p></li>
-<li><p>When examining the effects of variation in treatment timing, we have to be careful because negative weights (per group) can be negative if there is a heterogeneity in the treatment effects over time. Example: [<span class="citation">Athey and Imbens (<a href="#ref-athey2022" role="doc-biblioref">2022</a>)</span>]<span class="citation">(<a href="#ref-borusyak2021" role="doc-biblioref">Borusyak, Hull, and Jaravel 2021</a>)</span><span class="citation">(<a href="#ref-goodman-bacon2021" role="doc-biblioref">Goodman-Bacon 2021</a>)</span>. In this case you should use new estimands proposed by [<span class="citation">Callaway and Sant’Anna (<a href="#ref-callaway2021" role="doc-biblioref">2021</a>)</span>]<span class="citation">(<a href="#ref-dechaisemartin2020" role="doc-biblioref">Chaisemartin and D’Haultfœuille 2020</a>)</span>, in the <code>did</code> package. If you expect lags and leads, see <span class="citation">(<a href="#ref-sun2021" role="doc-biblioref">Sun and Abraham 2021</a>)</span></p></li>
-<li><p><span class="citation">(<a href="#ref-gibbons2018" role="doc-biblioref">Gibbons, Suárez Serrato, and Urbancic 2018</a>)</span> caution when we suspect the treatment effect and treatment variance vary across groups</p></li>
+<li><p>Incidental parameters problems <span class="citation">(<a href="references.html#ref-lancaster2000" role="doc-biblioref">Lancaster 2000</a>)</span>: it’s always better to use individual and time fixed effect.</p></li>
+<li><p>When examining the effects of variation in treatment timing, we have to be careful because negative weights (per group) can be negative if there is a heterogeneity in the treatment effects over time. Example: [<span class="citation">Athey and Imbens (<a href="references.html#ref-athey2022" role="doc-biblioref">2022</a>)</span>]<span class="citation">(<a href="references.html#ref-borusyak2021" role="doc-biblioref">Borusyak, Hull, and Jaravel 2021</a>)</span><span class="citation">(<a href="references.html#ref-goodman-bacon2021" role="doc-biblioref">Goodman-Bacon 2021</a>)</span>. In this case you should use new estimands proposed by [<span class="citation">Callaway and Sant’Anna (<a href="references.html#ref-callaway2021" role="doc-biblioref">2021</a>)</span>]<span class="citation">(<a href="references.html#ref-dechaisemartin2020" role="doc-biblioref">Chaisemartin and D’Haultfœuille 2020</a>)</span>, in the <code>did</code> package. If you expect lags and leads, see <span class="citation">(<a href="references.html#ref-sun2021" role="doc-biblioref">L. Sun and Abraham 2021</a>)</span></p></li>
+<li><p><span class="citation">(<a href="references.html#ref-gibbons2018" role="doc-biblioref">Gibbons, Suárez Serrato, and Urbancic 2018</a>)</span> caution when we suspect the treatment effect and treatment variance vary across groups</p></li>
 </ul>
 <p><br></p>
 <p><strong>Robustness Check</strong></p>
 <ul>
-<li><p>Placebo DiD (if the DiD estimate <span class="math inline">\(\neq 0\)</span>, parallel trend is violated, and original DiD is biased):</p>
+<li>
+<p>Placebo DiD (if the DiD estimate <span class="math inline">\(\neq 0\)</span>, parallel trend is violated, and original DiD is biased):</p>
 <ul>
 <li><p>Group: Use fake treatment groups: A population that was <strong>not</strong> affect by the treatment</p></li>
 <li><p>Time: Redo the DiD analysis for period before the treatment (expected treatment effect is 0) (e..g, for previous year or period).</p></li>
-</ul></li>
+</ul>
+</li>
 <li><p>Possible alternative control group: Expected results should be similar</p></li>
 <li><p>Try different windows (further away from the treatment point, other factors can creep in and nullify your effect).</p></li>
 <li><p>Treatment Reversal (what if we don’t see the treatment event)</p></li>
 <li><p>Higher-order polynomial time trend (to relax linearity assumption)</p></li>
-<li><p>Test whether other dependent variables that should be affected by the event are indeed unaffected.</p>
+<li>
+<p>Test whether other dependent variables that should be affected by the event are indeed unaffected.</p>
 <ul>
 <li>Use the same control and treatment period (DiD <span class="math inline">\(\neq0\)</span>, there is a problem)</li>
-</ul></li>
+</ul>
+</li>
 </ul>
 <p><br></p>
 </div>
 </div>
-<div id="examples" class="section level4" number="21.2.1.2">
-<h4><span class="header-section-number">21.2.1.2</span> Examples</h4>
-<div id="example-from-princeton" class="section level5" number="21.2.1.2.1">
-<h5><span class="header-section-number">21.2.1.2.1</span> Example from <a href="https://www.princeton.edu/~otorres/DID101R.pdf">Princeton</a></h5>
-<div class="sourceCode" id="cb374"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb374-1"><a href="difference-in-differences.html#cb374-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(foreign)</span>
-<span id="cb374-2"><a href="difference-in-differences.html#cb374-2" aria-hidden="true" tabindex="-1"></a>mydata <span class="ot">=</span> <span class="fu">read.dta</span>(<span class="st">&quot;http://dss.princeton.edu/training/Panel101.dta&quot;</span>)</span></code></pre></div>
+<div id="examples" class="section level3" number="23.1.2">
+<h3>
+<span class="header-section-number">23.1.2</span> Examples<a class="anchor" aria-label="anchor" href="#examples"><i class="fas fa-link"></i></a>
+</h3>
+<div id="example-from-princeton" class="section level4" number="23.1.2.1">
+<h4>
+<span class="header-section-number">23.1.2.1</span> Example from <a href="https://www.princeton.edu/~otorres/DID101R.pdf">Princeton</a><a class="anchor" aria-label="anchor" href="#example-from-princeton"><i class="fas fa-link"></i></a>
+</h4>
+<div class="sourceCode" id="cb374"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://svn.r-project.org/R-packages/trunk/foreign/">foreign</a></span><span class="op">)</span>
+<span class="va">mydata</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/foreign/man/read.dta.html">read.dta</a></span><span class="op">(</span><span class="st">"http://dss.princeton.edu/training/Panel101.dta"</span><span class="op">)</span></code></pre></div>
 <p>create a dummy variable to indicate the time when the treatment started</p>
-<div class="sourceCode" id="cb375"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb375-1"><a href="difference-in-differences.html#cb375-1" aria-hidden="true" tabindex="-1"></a>mydata<span class="sc">$</span>time <span class="ot">=</span> <span class="fu">ifelse</span>(mydata<span class="sc">$</span>year <span class="sc">&gt;=</span> <span class="dv">1994</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb375"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">mydata</span><span class="op">$</span><span class="va">time</span> <span class="op">=</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html">ifelse</a></span><span class="op">(</span><span class="va">mydata</span><span class="op">$</span><span class="va">year</span> <span class="op">&gt;=</span> <span class="fl">1994</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span></code></pre></div>
 <p>create a dummy variable to identify the treatment group</p>
-<div class="sourceCode" id="cb376"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb376-1"><a href="difference-in-differences.html#cb376-1" aria-hidden="true" tabindex="-1"></a>mydata<span class="sc">$</span>treated <span class="ot">=</span> <span class="fu">ifelse</span>(mydata<span class="sc">$</span>country <span class="sc">==</span> <span class="st">&quot;E&quot;</span> <span class="sc">|</span></span>
-<span id="cb376-2"><a href="difference-in-differences.html#cb376-2" aria-hidden="true" tabindex="-1"></a>                            mydata<span class="sc">$</span>country <span class="sc">==</span> <span class="st">&quot;F&quot;</span> <span class="sc">|</span> mydata<span class="sc">$</span>country <span class="sc">==</span> <span class="st">&quot;G&quot;</span> ,</span>
-<span id="cb376-3"><a href="difference-in-differences.html#cb376-3" aria-hidden="true" tabindex="-1"></a>                        <span class="dv">1</span>,</span>
-<span id="cb376-4"><a href="difference-in-differences.html#cb376-4" aria-hidden="true" tabindex="-1"></a>                        <span class="dv">0</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb376"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">mydata</span><span class="op">$</span><span class="va">treated</span> <span class="op">=</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/fifelse.html">ifelse</a></span><span class="op">(</span><span class="va">mydata</span><span class="op">$</span><span class="va">country</span> <span class="op">==</span> <span class="st">"E"</span> <span class="op">|</span>
+                            <span class="va">mydata</span><span class="op">$</span><span class="va">country</span> <span class="op">==</span> <span class="st">"F"</span> <span class="op">|</span> <span class="va">mydata</span><span class="op">$</span><span class="va">country</span> <span class="op">==</span> <span class="st">"G"</span> ,
+                        <span class="fl">1</span>,
+                        <span class="fl">0</span><span class="op">)</span></code></pre></div>
 <p>create an interaction between time and treated</p>
-<div class="sourceCode" id="cb377"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb377-1"><a href="difference-in-differences.html#cb377-1" aria-hidden="true" tabindex="-1"></a>mydata<span class="sc">$</span>did <span class="ot">=</span> mydata<span class="sc">$</span>time <span class="sc">*</span> mydata<span class="sc">$</span>treated</span></code></pre></div>
+<div class="sourceCode" id="cb377"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">mydata</span><span class="op">$</span><span class="va">did</span> <span class="op">=</span> <span class="va">mydata</span><span class="op">$</span><span class="va">time</span> <span class="op">*</span> <span class="va">mydata</span><span class="op">$</span><span class="va">treated</span></code></pre></div>
 <p>estimate the DID estimator</p>
-<div class="sourceCode" id="cb378"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb378-1"><a href="difference-in-differences.html#cb378-1" aria-hidden="true" tabindex="-1"></a>didreg <span class="ot">=</span> <span class="fu">lm</span>(y <span class="sc">~</span> treated <span class="sc">+</span> time <span class="sc">+</span> did, <span class="at">data =</span> mydata)</span>
-<span id="cb378-2"><a href="difference-in-differences.html#cb378-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(didreg)</span>
-<span id="cb378-3"><a href="difference-in-differences.html#cb378-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb378-4"><a href="difference-in-differences.html#cb378-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb378-5"><a href="difference-in-differences.html#cb378-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; lm(formula = y ~ treated + time + did, data = mydata)</span></span>
-<span id="cb378-6"><a href="difference-in-differences.html#cb378-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb378-7"><a href="difference-in-differences.html#cb378-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
-<span id="cb378-8"><a href="difference-in-differences.html#cb378-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;        Min         1Q     Median         3Q        Max </span></span>
-<span id="cb378-9"><a href="difference-in-differences.html#cb378-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; -9.768e+09 -1.623e+09  1.167e+08  1.393e+09  6.807e+09 </span></span>
-<span id="cb378-10"><a href="difference-in-differences.html#cb378-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb378-11"><a href="difference-in-differences.html#cb378-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb378-12"><a href="difference-in-differences.html#cb378-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error t value Pr(&gt;|t|)  </span></span>
-<span id="cb378-13"><a href="difference-in-differences.html#cb378-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Intercept)  3.581e+08  7.382e+08   0.485   0.6292  </span></span>
-<span id="cb378-14"><a href="difference-in-differences.html#cb378-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; treated      1.776e+09  1.128e+09   1.575   0.1200  </span></span>
-<span id="cb378-15"><a href="difference-in-differences.html#cb378-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; time         2.289e+09  9.530e+08   2.402   0.0191 *</span></span>
-<span id="cb378-16"><a href="difference-in-differences.html#cb378-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; did         -2.520e+09  1.456e+09  -1.731   0.0882 .</span></span>
-<span id="cb378-17"><a href="difference-in-differences.html#cb378-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb378-18"><a href="difference-in-differences.html#cb378-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb378-19"><a href="difference-in-differences.html#cb378-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb378-20"><a href="difference-in-differences.html#cb378-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 2.953e+09 on 66 degrees of freedom</span></span>
-<span id="cb378-21"><a href="difference-in-differences.html#cb378-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.08273,    Adjusted R-squared:  0.04104 </span></span>
-<span id="cb378-22"><a href="difference-in-differences.html#cb378-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; F-statistic: 1.984 on 3 and 66 DF,  p-value: 0.1249</span></span></code></pre></div>
+<div class="sourceCode" id="cb378"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">didreg</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">treated</span> <span class="op">+</span> <span class="va">time</span> <span class="op">+</span> <span class="va">did</span>, data <span class="op">=</span> <span class="va">mydata</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/pkg/spaMM/man/summary.HL.html">summary</a></span><span class="op">(</span><span class="va">didreg</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Call:</span>
+<span class="co">#&gt; lm(formula = y ~ treated + time + did, data = mydata)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Residuals:</span>
+<span class="co">#&gt;        Min         1Q     Median         3Q        Max </span>
+<span class="co">#&gt; -9.768e+09 -1.623e+09  1.167e+08  1.393e+09  6.807e+09 </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Coefficients:</span>
+<span class="co">#&gt;               Estimate Std. Error t value Pr(&gt;|t|)  </span>
+<span class="co">#&gt; (Intercept)  3.581e+08  7.382e+08   0.485   0.6292  </span>
+<span class="co">#&gt; treated      1.776e+09  1.128e+09   1.575   0.1200  </span>
+<span class="co">#&gt; time         2.289e+09  9.530e+08   2.402   0.0191 *</span>
+<span class="co">#&gt; did         -2.520e+09  1.456e+09  -1.731   0.0882 .</span>
+<span class="co">#&gt; ---</span>
+<span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Residual standard error: 2.953e+09 on 66 degrees of freedom</span>
+<span class="co">#&gt; Multiple R-squared:  0.08273,    Adjusted R-squared:  0.04104 </span>
+<span class="co">#&gt; F-statistic: 1.984 on 3 and 66 DF,  p-value: 0.1249</span></code></pre></div>
 <p>The <code>did</code> coefficient is the differences-in-differences estimator. Treat has a negative effect</p>
 <p><br></p>
 </div>
-<div id="example-by-card1993" class="section level5" number="21.2.1.2.2">
-<h5><span class="header-section-number">21.2.1.2.2</span> Example by <span class="citation">Card and Krueger (<a href="#ref-card1993" role="doc-biblioref">1993</a>)</span></h5>
+<div id="example-by-card1993" class="section level4" number="23.1.2.2">
+<h4>
+<span class="header-section-number">23.1.2.2</span> Example by <span class="citation">Card and Krueger (<a href="references.html#ref-card1993" role="doc-biblioref">1993</a>)</span><a class="anchor" aria-label="anchor" href="#example-by-card1993"><i class="fas fa-link"></i></a>
+</h4>
 <p>found that increase in minimum wage increases employment</p>
 <p>Experimental Setting:</p>
 <ul>
 <li><p>New Jersey (treatment) increased minimum wage</p></li>
 <li><p>Penn (control) did not increase minimum wage</p></li>
 </ul>
-<table>
-<thead>
-<tr class="header">
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
 <th></th>
 <th></th>
 <th>After</th>
 <th>Before</th>
 <th></th>
-</tr>
-</thead>
+</tr></thead>
 <tbody>
 <tr class="odd">
 <td>Treatment</td>
@@ -1076,7 +458,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 T\times G + \epsilon
 <td>(A - B) - (C - D)</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p>where</p>
 <ul>
 <li><p>A - B = treatment effect + effect of time (additive)</p></li>
@@ -1086,11 +468,13 @@ Y = \alpha_g + \beta_1 T + \beta_2 T\times G + \epsilon
 <p><strong>The identifying assumptions</strong>:</p>
 <ul>
 <li><p>Can’t have <strong>switchers</strong></p></li>
-<li><p>PA is the control group</p>
+<li>
+<p>PA is the control group</p>
 <ul>
 <li><p>is a good counter factual</p></li>
 <li><p>is what NJ would look like if they hadn’t had the treatment</p></li>
-</ul></li>
+</ul>
+</li>
 </ul>
 <p><span class="math display">\[
 Y_{jt} = \beta_0 + NJ_j \beta_1 + POST_t \beta_2 + (NJ_j \times POST_t)\beta_3+ X_{jt}\beta_4 + \epsilon_{jt}
@@ -1107,25 +491,31 @@ Y_{jt} = \beta_0 + NJ_j \beta_1 + POST_t \beta_2 + (NJ_j \times POST_t)\beta_3+ 
 <li><p>If we use <span class="math inline">\(\Delta Y_{jt}\)</span> as the dependent variable, we don’t need <span class="math inline">\(POST_t \beta_2\)</span> anymore</p></li>
 <li><p>Alternative model specification is that the authors use NJ high wage restaurant as control group (still choose those that are close to the border)</p></li>
 <li><p>The reason why they can’t control for everything (PA + NJ high wage) is because it’s hard to interpret the causal treatment</p></li>
-<li><p>Dif-n-dif utilizes similarity in pretrend of the dependent variables. However, this is neither a necessary nor sufficient for the identifying assumption.</p>
+<li>
+<p>Dif-n-dif utilizes similarity in pretrend of the dependent variables. However, this is neither a necessary nor sufficient for the identifying assumption.</p>
 <ul>
 <li><p>It’s not sufficient because they can have multiple treatments (technically, you could include more control, but your treatment can’t interact)</p></li>
 <li><p>It’s not necessary because trends can be parallel after treatment</p></li>
-</ul></li>
+</ul>
+</li>
 <li><p>However, we can’t never be certain; we just try to find evidence consistent with our theory so that dif-n-dif can work.</p></li>
 <li><p>Notice that we don’t need before treatment the <strong>levels of the dependent variable</strong> to be the same (e.g., same wage average in both NJ and PA), dif-n-dif only needs <strong>pre-trend (i.e., slope)</strong> to be the same for the two groups.</p></li>
 </ul>
 <p><br></p>
 </div>
-<div id="example-by-butcher2014" class="section level5" number="21.2.1.2.3">
-<h5><span class="header-section-number">21.2.1.2.3</span> Example by <span class="citation">Butcher, McEwan, and Weerapana (<a href="#ref-butcher2014" role="doc-biblioref">2014</a>)</span></h5>
+<div id="example-by-butcher2014" class="section level4" number="23.1.2.3">
+<h4>
+<span class="header-section-number">23.1.2.3</span> Example by <span class="citation">Butcher, McEwan, and Weerapana (<a href="references.html#ref-butcher2014" role="doc-biblioref">2014</a>)</span><a class="anchor" aria-label="anchor" href="#example-by-butcher2014"><i class="fas fa-link"></i></a>
+</h4>
 <p>Theory:</p>
 <ul>
-<li><p>Highest achieving students are usually in hard science. Why?</p>
+<li>
+<p>Highest achieving students are usually in hard science. Why?</p>
 <ul>
 <li><p>Hard to give students students the benefit of doubt for hard science</p></li>
 <li><p>How unpleasant and how easy to get a job. Degrees with lower market value typically want to make you feel more pleasant</p></li>
-</ul></li>
+</ul>
+</li>
 </ul>
 <p>Under OLS</p>
 <p><span class="math display">\[
@@ -1149,25 +539,24 @@ Y_{idt} = \beta_0 + POST_t \beta_1 + Treat_d \beta_2 + (POST_t \times Treat_d)\b
 \]</span></p>
 <p>where</p>
 <ul>
-<li><span class="math inline">\(Y_{idt}\)</span> = grade average</li>
+<li>
+<span class="math inline">\(Y_{idt}\)</span> = grade average</li>
 </ul>
-<table>
+<div class="inline-table"><table class="table table-sm">
 <colgroup>
-<col width="17%" />
-<col width="41%" />
-<col width="12%" />
-<col width="12%" />
-<col width="16%" />
+<col width="18%">
+<col width="46%">
+<col width="9%">
+<col width="8%">
+<col width="17%">
 </colgroup>
-<thead>
-<tr class="header">
+<thead><tr class="header">
 <th></th>
 <th>Intercept</th>
 <th>Treat</th>
 <th>Post</th>
 <th>Treat*Post</th>
-</tr>
-</thead>
+</tr></thead>
 <tbody>
 <tr class="odd">
 <td>Treat Pre</td>
@@ -1199,13 +588,14 @@ Y_{idt} = \beta_0 + POST_t \beta_1 + Treat_d \beta_2 + (POST_t \times Treat_d)\b
 </tr>
 <tr class="odd">
 <td></td>
-<td>Average for pre-control <span class="math inline">\(\beta_0\)</span></td>
+<td>Average for pre-control <span class="math inline">\(\beta_0\)</span>
+</td>
 <td></td>
 <td></td>
 <td></td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p>A more general specification of the dif-n-dif is that</p>
 <p><span class="math display">\[
 Y_{idt} = \alpha_0 + (POST_t \times Treat_d) \alpha_1 + \theta_d + \delta_t + X_{idt} + u_{idt}
@@ -1216,20 +606,31 @@ Y_{idt} = \alpha_0 + (POST_t \times Treat_d) \alpha_1 + \theta_d + \delta_t + X_
 <li><p><span class="math inline">\(\alpha_1\)</span> should be equivalent to <span class="math inline">\(\beta_3\)</span> (if your model assumptions are correct)</p></li>
 </ul>
 <p>Under causal inference, <span class="math inline">\(R^2\)</span> is not so important.</p>
+</div>
+</div>
+</div>
+<div id="multiple-periods-and-variation-in-treatment-timing" class="section level2" number="23.2">
+<h2>
+<span class="header-section-number">23.2</span> Multiple periods and variation in treatment timing<a class="anchor" aria-label="anchor" href="#multiple-periods-and-variation-in-treatment-timing"><i class="fas fa-link"></i></a>
+</h2>
+<p>This is an extension of the DiD framework to settings where you have</p>
+<ul>
+<li><p>more than 2 time periods</p></li>
+<li><p>different treatment timing</p></li>
+</ul>
+<p>Wheen treatment effects are heterogeneous across time or units,</p>
 <p><br></p>
 </div>
-</div>
-</div>
-<div id="staggered-dif-n-dif" class="section level3" number="21.2.2">
-<h3><span class="header-section-number">21.2.2</span> Staggered Dif-n-dif</h3>
+<div id="staggered-dif-n-dif" class="section level2" number="23.3">
+<h2>
+<span class="header-section-number">23.3</span> Staggered Dif-n-dif<a class="anchor" aria-label="anchor" href="#staggered-dif-n-dif"><i class="fas fa-link"></i></a>
+</h2>
 <ul>
 <li>When subjects are treated at different point in time, we have to use staggered DiD</li>
+<li>For design where a treatment is applied and units are exposed to this treatment at all time afterward, see <span class="citation">(<a href="references.html#ref-athey2022" role="doc-biblioref">Athey and Imbens 2022</a>)</span>
+</li>
 </ul>
-<!-- -->
-<ul>
-<li>For design where a treatment is applied and units are exposed to this treatment at all time afterward, see <span class="citation">(<a href="#ref-athey2022" role="doc-biblioref">Athey and Imbens 2022</a>)</span></li>
-</ul>
-<p>Basic design <span class="citation">(<a href="#ref-stevenson2006" role="doc-biblioref">Stevenson and Wolfers 2006</a>)</span></p>
+<p>Basic design <span class="citation">(<a href="references.html#ref-stevenson2006" role="doc-biblioref">Stevenson and Wolfers 2006</a>)</span></p>
 <p><span class="math display">\[
 Y_{it} = \alpha_i + \delta_t + \sum_k \gamma_k D_{ik} + \epsilon_{it}
 \]</span></p>
@@ -1243,21 +644,27 @@ Y_{it} = \alpha_i + \delta_t + \sum_k \gamma_k D_{ik} + \epsilon_{it}
 <ul>
 <li><p><strong>Rollout Exogeneity</strong>: if the treatment is randomly implemented over time (i.e., unrelated to variables that could also affect our dependent variables</p></li>
 <li><p><strong>No counfounding events</strong></p></li>
-<li><p><strong>Exclusion restrictions</strong></p>
+<li>
+<p><strong>Exclusion restrictions</strong></p>
 <ul>
 <li><p><strong><em>No-anticipation assumption</em></strong>: future treatment time do not affect current outcomes</p></li>
 <li><p><strong><em>Invariance-to-history assumption</em></strong>: the time a unit under treatment does not affect the outcome (i.e., the time exposed does not matter, just whether exposed or not). This presents causal effect of early or late adoption on the outcome.</p></li>
-</ul></li>
-<li><p>Auxiliary assumptions:</p>
+</ul>
+</li>
+<li>
+<p>Auxiliary assumptions:</p>
 <ul>
 <li><p>Contant treatment effects across units</p></li>
 <li><p>Constnat treatment effect over time</p></li>
 <li><p>Random sampling</p></li>
 <li><p>Effect Addiviity</p></li>
-</ul></li>
 </ul>
-<div id="example-by-doleac2020" class="section level4" number="21.2.2.1">
-<h4><span class="header-section-number">21.2.2.1</span> Example by <span class="citation">Doleac and Hansen (<a href="#ref-doleac2020" role="doc-biblioref">2020</a>)</span></h4>
+</li>
+</ul>
+<div id="example-by-doleac2020" class="section level3" number="23.3.1">
+<h3>
+<span class="header-section-number">23.3.1</span> Example by <span class="citation">Doleac and Hansen (<a href="references.html#ref-doleac2020" role="doc-biblioref">2020</a>)</span><a class="anchor" aria-label="anchor" href="#example-by-doleac2020"><i class="fas fa-link"></i></a>
+</h3>
 <ul>
 <li><p>The purpose of banning a checking box for ex-criminal was banned because we thought that it gives more access to felons</p></li>
 <li><p>Even if we ban the box, employers wouldn’t just change their behaviors. But then the unintended consequence is that employers statistically discriminate based on race</p></li>
@@ -1309,59 +716,62 @@ E_{imrt} = \alpha + BTB_{m (t - 3t)} \theta_1 + BTB_{m(t-2)} \theta_2 + BTB_{mt}
 <p>Example by <a href="https://bookdown.org/aschmi11/causal_inf/difference-in-differences.html">Anthony Schmidt</a></p>
 </div>
 </div>
-<div id="two-way-fixed-effects" class="section level3" number="21.2.3">
-<h3><span class="header-section-number">21.2.3</span> Two-way Fixed-effects</h3>
+<div id="two-way-fixed-effects" class="section level2" number="23.4">
+<h2>
+<span class="header-section-number">23.4</span> Two-way Fixed-effects<a class="anchor" aria-label="anchor" href="#two-way-fixed-effects"><i class="fas fa-link"></i></a>
+</h2>
 <p>A generalization of the dif-n-dif model is the two-way fixed-effects models where you have multiple groups and time effects.</p>
-<p>This package is based on <span class="citation">(<a href="#ref-somaini2016" role="doc-biblioref">Somaini and Wolak 2016</a>)</span></p>
-<div class="sourceCode" id="cb379"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb379-1"><a href="difference-in-differences.html#cb379-1" aria-hidden="true" tabindex="-1"></a><span class="co"># dataset</span></span>
-<span id="cb379-2"><a href="difference-in-differences.html#cb379-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(bacondecomp)</span>
-<span id="cb379-3"><a href="difference-in-differences.html#cb379-3" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> bacondecomp<span class="sc">::</span>castle</span>
-<span id="cb379-4"><a href="difference-in-differences.html#cb379-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb379-5"><a href="difference-in-differences.html#cb379-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xtreg2way)</span>
-<span id="cb379-6"><a href="difference-in-differences.html#cb379-6" aria-hidden="true" tabindex="-1"></a><span class="co"># output &lt;- xtreg2way(y,</span></span>
-<span id="cb379-7"><a href="difference-in-differences.html#cb379-7" aria-hidden="true" tabindex="-1"></a><span class="co">#                     data.frame(x1, x2),</span></span>
-<span id="cb379-8"><a href="difference-in-differences.html#cb379-8" aria-hidden="true" tabindex="-1"></a><span class="co">#                     iid,</span></span>
-<span id="cb379-9"><a href="difference-in-differences.html#cb379-9" aria-hidden="true" tabindex="-1"></a><span class="co">#                     tid,</span></span>
-<span id="cb379-10"><a href="difference-in-differences.html#cb379-10" aria-hidden="true" tabindex="-1"></a><span class="co">#                     w,</span></span>
-<span id="cb379-11"><a href="difference-in-differences.html#cb379-11" aria-hidden="true" tabindex="-1"></a><span class="co">#                     noise = &quot;1&quot;,</span></span>
-<span id="cb379-12"><a href="difference-in-differences.html#cb379-12" aria-hidden="true" tabindex="-1"></a><span class="co">#                     se = &quot;1&quot;)</span></span>
-<span id="cb379-13"><a href="difference-in-differences.html#cb379-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb379-14"><a href="difference-in-differences.html#cb379-14" aria-hidden="true" tabindex="-1"></a><span class="co"># equilvalently</span></span>
-<span id="cb379-15"><a href="difference-in-differences.html#cb379-15" aria-hidden="true" tabindex="-1"></a>output <span class="ot">&lt;-</span> <span class="fu">xtreg2way</span>(l_homicide <span class="sc">~</span> post,</span>
-<span id="cb379-16"><a href="difference-in-differences.html#cb379-16" aria-hidden="true" tabindex="-1"></a>                    df,</span>
-<span id="cb379-17"><a href="difference-in-differences.html#cb379-17" aria-hidden="true" tabindex="-1"></a>                    <span class="at">iid =</span> df<span class="sc">$</span>state, <span class="co"># group id</span></span>
-<span id="cb379-18"><a href="difference-in-differences.html#cb379-18" aria-hidden="true" tabindex="-1"></a>                    <span class="at">tid =</span> df<span class="sc">$</span>year, <span class="co"># time id</span></span>
-<span id="cb379-19"><a href="difference-in-differences.html#cb379-19" aria-hidden="true" tabindex="-1"></a>                    <span class="co"># w, # vector of weight</span></span>
-<span id="cb379-20"><a href="difference-in-differences.html#cb379-20" aria-hidden="true" tabindex="-1"></a>                    <span class="at">se =</span> <span class="st">&quot;1&quot;</span>)</span>
-<span id="cb379-21"><a href="difference-in-differences.html#cb379-21" aria-hidden="true" tabindex="-1"></a>output<span class="sc">$</span>betaHat</span>
-<span id="cb379-22"><a href="difference-in-differences.html#cb379-22" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                  [,1]</span></span>
-<span id="cb379-23"><a href="difference-in-differences.html#cb379-23" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; l_homicide 0.08181162</span></span>
-<span id="cb379-24"><a href="difference-in-differences.html#cb379-24" aria-hidden="true" tabindex="-1"></a>output<span class="sc">$</span>aVarHat</span>
-<span id="cb379-25"><a href="difference-in-differences.html#cb379-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;             [,1]</span></span>
-<span id="cb379-26"><a href="difference-in-differences.html#cb379-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1,] 0.003751709</span></span>
-<span id="cb379-27"><a href="difference-in-differences.html#cb379-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb379-28"><a href="difference-in-differences.html#cb379-28" aria-hidden="true" tabindex="-1"></a><span class="co"># to save time, you can use your structure in the last output for a new set of variables</span></span>
-<span id="cb379-29"><a href="difference-in-differences.html#cb379-29" aria-hidden="true" tabindex="-1"></a><span class="co"># output2 &lt;- xtreg2way(y, x1, struc=output$struc)</span></span></code></pre></div>
+<p>This package is based on <span class="citation">(<a href="references.html#ref-somaini2016" role="doc-biblioref">Somaini and Wolak 2016</a>)</span></p>
+<div class="sourceCode" id="cb379"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># dataset</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">bacondecomp</span><span class="op">)</span>
+<span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">bacondecomp</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/bacondecomp/man/castle.html">castle</a></span>
+
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/paulosomaini/xtreg2way">xtreg2way</a></span><span class="op">)</span>
+<span class="co"># output &lt;- xtreg2way(y,</span>
+<span class="co">#                     data.frame(x1, x2),</span>
+<span class="co">#                     iid,</span>
+<span class="co">#                     tid,</span>
+<span class="co">#                     w,</span>
+<span class="co">#                     noise = "1",</span>
+<span class="co">#                     se = "1")</span>
+
+<span class="co"># equilvalently</span>
+<span class="va">output</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/xtreg2way/man/xtreg2way.html">xtreg2way</a></span><span class="op">(</span><span class="va">l_homicide</span> <span class="op">~</span> <span class="va">post</span>,
+                    <span class="va">df</span>,
+                    iid <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">state</span>, <span class="co"># group id</span>
+                    tid <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">year</span>, <span class="co"># time id</span>
+                    <span class="co"># w, # vector of weight</span>
+                    se <span class="op">=</span> <span class="st">"1"</span><span class="op">)</span>
+<span class="va">output</span><span class="op">$</span><span class="va">betaHat</span>
+<span class="co">#&gt;                  [,1]</span>
+<span class="co">#&gt; l_homicide 0.08181162</span>
+<span class="va">output</span><span class="op">$</span><span class="va">aVarHat</span>
+<span class="co">#&gt;             [,1]</span>
+<span class="co">#&gt; [1,] 0.003751709</span>
+
+<span class="co"># to save time, you can use your structure in the last output for a new set of variables</span>
+<span class="co"># output2 &lt;- xtreg2way(y, x1, struc=output$struc)</span></code></pre></div>
 <p>Standard errors estimation options</p>
-<table>
+<div class="inline-table"><table class="table table-sm">
 <colgroup>
-<col width="19%" />
-<col width="80%" />
+<col width="19%">
+<col width="80%">
 </colgroup>
-<thead>
-<tr class="header">
+<thead><tr class="header">
 <th>Set</th>
 <th>Estimation</th>
-</tr>
-</thead>
+</tr></thead>
 <tbody>
 <tr class="odd">
 <td><code>se = "0"</code></td>
 <td>Assume homoskedasticity and no within group correlation or serial correlation</td>
 </tr>
 <tr class="even">
-<td><code>se = "1"</code> (default)</td>
-<td>robust to heteroskadasticity and serial correlation <span class="citation">(<a href="#ref-arellano1987computing" role="doc-biblioref">Arellano et al. 1987</a>)</span></td>
+<td>
+<code>se = "1"</code> (default)</td>
+<td>robust to heteroskadasticity and serial correlation <span class="citation">(<a href="references.html#ref-arellano1987computing" role="doc-biblioref">Arellano et al. 1987</a>)</span>
+</td>
 </tr>
 <tr class="odd">
 <td><code>se = "2"</code></td>
@@ -1369,220 +779,95 @@ E_{imrt} = \alpha + BTB_{m (t - 3t)} \theta_1 + BTB_{m(t-2)} \theta_2 + BTB_{mt}
 </tr>
 <tr class="even">
 <td><code>se = "11"</code></td>
-<td>Aerllano SE with df correction performed by Stata xtreg <span class="citation">(<a href="#ref-somaini2021twfem" role="doc-biblioref">Somaini and Wolak 2021</a>)</span></td>
+<td>Aerllano SE with df correction performed by Stata xtreg <span class="citation">(<a href="references.html#ref-somaini2021twfem" role="doc-biblioref">Somaini and Wolak 2021</a>)</span>
+</td>
 </tr>
 </tbody>
-</table>
+</table></div>
 <p>Alternatively, you can also do it manually or with the <code>plm</code> package, but you have to be careful with how the SEs are estimated</p>
-<div class="sourceCode" id="cb380"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb380-1"><a href="difference-in-differences.html#cb380-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(multiwayvcov) <span class="co"># get vcov matrix </span></span>
-<span id="cb380-2"><a href="difference-in-differences.html#cb380-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lmtest) <span class="co"># robust SEs estimation</span></span>
-<span id="cb380-3"><a href="difference-in-differences.html#cb380-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb380-4"><a href="difference-in-differences.html#cb380-4" aria-hidden="true" tabindex="-1"></a><span class="co"># manual</span></span>
-<span id="cb380-5"><a href="difference-in-differences.html#cb380-5" aria-hidden="true" tabindex="-1"></a>output3 <span class="ot">&lt;-</span> <span class="fu">lm</span>(l_homicide <span class="sc">~</span> post <span class="sc">+</span> <span class="fu">factor</span>(state) <span class="sc">+</span> <span class="fu">factor</span>(year),</span>
-<span id="cb380-6"><a href="difference-in-differences.html#cb380-6" aria-hidden="true" tabindex="-1"></a>              <span class="at">data =</span> df)</span>
-<span id="cb380-7"><a href="difference-in-differences.html#cb380-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb380-8"><a href="difference-in-differences.html#cb380-8" aria-hidden="true" tabindex="-1"></a><span class="co"># get variance-covariance matrix</span></span>
-<span id="cb380-9"><a href="difference-in-differences.html#cb380-9" aria-hidden="true" tabindex="-1"></a>vcov_tw <span class="ot">&lt;-</span> multiwayvcov<span class="sc">::</span><span class="fu">cluster.vcov</span>(output3,</span>
-<span id="cb380-10"><a href="difference-in-differences.html#cb380-10" aria-hidden="true" tabindex="-1"></a>                        <span class="fu">cbind</span>(df<span class="sc">$</span>state, df<span class="sc">$</span>year),</span>
-<span id="cb380-11"><a href="difference-in-differences.html#cb380-11" aria-hidden="true" tabindex="-1"></a>                        <span class="at">use_white =</span> F,</span>
-<span id="cb380-12"><a href="difference-in-differences.html#cb380-12" aria-hidden="true" tabindex="-1"></a>                        <span class="at">df_correction =</span> F)</span>
-<span id="cb380-13"><a href="difference-in-differences.html#cb380-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb380-14"><a href="difference-in-differences.html#cb380-14" aria-hidden="true" tabindex="-1"></a><span class="co"># get coefficients</span></span>
-<span id="cb380-15"><a href="difference-in-differences.html#cb380-15" aria-hidden="true" tabindex="-1"></a><span class="fu">coeftest</span>(output3, vcov_tw)[<span class="dv">2</span>,] </span>
-<span id="cb380-16"><a href="difference-in-differences.html#cb380-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Estimate Std. Error    t value   Pr(&gt;|t|) </span></span>
-<span id="cb380-17"><a href="difference-in-differences.html#cb380-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 0.08181162 0.05671410 1.44252696 0.14979397</span></span></code></pre></div>
-<div class="sourceCode" id="cb381"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb381-1"><a href="difference-in-differences.html#cb381-1" aria-hidden="true" tabindex="-1"></a><span class="co"># using the plm package</span></span>
-<span id="cb381-2"><a href="difference-in-differences.html#cb381-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(plm)</span>
-<span id="cb381-3"><a href="difference-in-differences.html#cb381-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb381-4"><a href="difference-in-differences.html#cb381-4" aria-hidden="true" tabindex="-1"></a>output4 <span class="ot">&lt;-</span> <span class="fu">plm</span>(l_homicide <span class="sc">~</span> post, </span>
-<span id="cb381-5"><a href="difference-in-differences.html#cb381-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">data =</span> df, </span>
-<span id="cb381-6"><a href="difference-in-differences.html#cb381-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">index =</span> <span class="fu">c</span>(<span class="st">&quot;state&quot;</span>, <span class="st">&quot;year&quot;</span>), </span>
-<span id="cb381-7"><a href="difference-in-differences.html#cb381-7" aria-hidden="true" tabindex="-1"></a>               <span class="at">model =</span> <span class="st">&quot;within&quot;</span>, </span>
-<span id="cb381-8"><a href="difference-in-differences.html#cb381-8" aria-hidden="true" tabindex="-1"></a>               <span class="at">effect =</span> <span class="st">&quot;twoways&quot;</span>)</span>
-<span id="cb381-9"><a href="difference-in-differences.html#cb381-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb381-10"><a href="difference-in-differences.html#cb381-10" aria-hidden="true" tabindex="-1"></a><span class="co"># get coefficients</span></span>
-<span id="cb381-11"><a href="difference-in-differences.html#cb381-11" aria-hidden="true" tabindex="-1"></a><span class="fu">coeftest</span>(output4, <span class="at">vcov =</span> vcovHC, <span class="at">type =</span> <span class="st">&quot;HC1&quot;</span>)</span>
-<span id="cb381-12"><a href="difference-in-differences.html#cb381-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb381-13"><a href="difference-in-differences.html#cb381-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
-<span id="cb381-14"><a href="difference-in-differences.html#cb381-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb381-15"><a href="difference-in-differences.html#cb381-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      Estimate Std. Error t value Pr(&gt;|t|)</span></span>
-<span id="cb381-16"><a href="difference-in-differences.html#cb381-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; post 0.081812   0.057748  1.4167   0.1572</span></span></code></pre></div>
+<div class="sourceCode" id="cb380"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://sites.google.com/site/npgraham1/research/code">multiwayvcov</a></span><span class="op">)</span> <span class="co"># get vcov matrix </span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">lmtest</span><span class="op">)</span> <span class="co"># robust SEs estimation</span>
+
+<span class="co"># manual</span>
+<span class="va">output3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">l_homicide</span> <span class="op">~</span> <span class="va">post</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">state</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">year</span><span class="op">)</span>,
+              data <span class="op">=</span> <span class="va">df</span><span class="op">)</span>
+
+<span class="co"># get variance-covariance matrix</span>
+<span class="va">vcov_tw</span> <span class="op">&lt;-</span> <span class="fu">multiwayvcov</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/multiwayvcov/man/cluster.vcov.html">cluster.vcov</a></span><span class="op">(</span><span class="va">output3</span>,
+                        <span class="fu"><a href="https://amices.org/mice/reference/cbind.html">cbind</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">state</span>, <span class="va">df</span><span class="op">$</span><span class="va">year</span><span class="op">)</span>,
+                        use_white <span class="op">=</span> <span class="cn">F</span>,
+                        df_correction <span class="op">=</span> <span class="cn">F</span><span class="op">)</span>
+
+<span class="co"># get coefficients</span>
+<span class="fu"><a href="https://rdrr.io/pkg/lmtest/man/coeftest.html">coeftest</a></span><span class="op">(</span><span class="va">output3</span>, <span class="va">vcov_tw</span><span class="op">)</span><span class="op">[</span><span class="fl">2</span>,<span class="op">]</span> 
+<span class="co">#&gt;   Estimate Std. Error    t value   Pr(&gt;|t|) </span>
+<span class="co">#&gt; 0.08181162 0.05671410 1.44252696 0.14979397</span></code></pre></div>
+<div class="sourceCode" id="cb381"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># using the plm package</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://cran.r-project.org/package=plm">plm</a></span><span class="op">)</span>
+
+<span class="va">output4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/plm/man/plm.html">plm</a></span><span class="op">(</span><span class="va">l_homicide</span> <span class="op">~</span> <span class="va">post</span>, 
+               data <span class="op">=</span> <span class="va">df</span>, 
+               index <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"state"</span>, <span class="st">"year"</span><span class="op">)</span>, 
+               model <span class="op">=</span> <span class="st">"within"</span>, 
+               effect <span class="op">=</span> <span class="st">"twoways"</span><span class="op">)</span>
+
+<span class="co"># get coefficients</span>
+<span class="fu"><a href="https://rdrr.io/pkg/lmtest/man/coeftest.html">coeftest</a></span><span class="op">(</span><span class="va">output4</span>, vcov <span class="op">=</span> <span class="va">vcovHC</span>, type <span class="op">=</span> <span class="st">"HC1"</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; t test of coefficients:</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;      Estimate Std. Error t value Pr(&gt;|t|)</span>
+<span class="co">#&gt; post 0.081812   0.057748  1.4167   0.1572</span></code></pre></div>
 <p>As you can see, differences stem from SE estimation, not the coefficient estimate.</p>
-</div>
-</div>
-<h3>References</h3>
-<div id="refs" class="references csl-bib-body hanging-indent">
-<div id="ref-akca2020" class="csl-entry">
-Akca, Selin, and Anita Rao. 2020. <span>“Value of Aggregators.”</span> <em>Marketing Science</em> 39 (5): 893–922. <a href="https://doi.org/10.1287/mksc.2020.1236">https://doi.org/10.1287/mksc.2020.1236</a>.
-</div>
-<div id="ref-arellano1987computing" class="csl-entry">
-Arellano, Manuel et al. 1987. <span>“Computing Robust Standard Errors for Within-Groups Estimators.”</span> <em>Oxford Bulletin of Economics and Statistics</em> 49 (4): 431–34.
-</div>
-<div id="ref-athey2022" class="csl-entry">
-Athey, Susan, and Guido W. Imbens. 2022. <span>“Design-Based Analysis in Difference-In-Differences Settings with Staggered Adoption.”</span> <em>Journal of Econometrics</em> 226 (1): 62–79. <a href="https://doi.org/10.1016/j.jeconom.2020.10.012">https://doi.org/10.1016/j.jeconom.2020.10.012</a>.
-</div>
-<div id="ref-blundell1998" class="csl-entry">
-Blundell, Richard, and Stephen Bond. 1998. <span>“Initial Conditions and Moment Restrictions in Dynamic Panel Data Models.”</span> <em>Journal of Econometrics</em> 87 (1): 115–43. <a href="https://doi.org/10.1016/s0304-4076(98)00009-8">https://doi.org/10.1016/s0304-4076(98)00009-8</a>.
-</div>
-<div id="ref-borusyak2021" class="csl-entry">
-Borusyak, Kirill, Peter Hull, and Xavier Jaravel. 2021. <span>“Quasi-Experimental Shift-Share Research Designs.”</span> Edited by Dirk Krueger. <em>The Review of Economic Studies</em> 89 (1): 181–213. <a href="https://doi.org/10.1093/restud/rdab030">https://doi.org/10.1093/restud/rdab030</a>.
-</div>
-<div id="ref-butcher2014" class="csl-entry">
-Butcher, Kristin F., Patrick J. McEwan, and Akila Weerapana. 2014. <span>“The Effects of an Anti-Grade Inflation Policy at Wellesley College.”</span> <em>Journal of Economic Perspectives</em> 28 (3): 189–204. <a href="https://doi.org/10.1257/jep.28.3.189">https://doi.org/10.1257/jep.28.3.189</a>.
-</div>
-<div id="ref-callaway2021" class="csl-entry">
-Callaway, Brantly, and Pedro H. C. Sant’Anna. 2021. <span>“Difference-in-Differences with Multiple Time Periods.”</span> <em>Journal of Econometrics</em> 225 (2): 200–230. <a href="https://doi.org/10.1016/j.jeconom.2020.12.001">https://doi.org/10.1016/j.jeconom.2020.12.001</a>.
-</div>
-<div id="ref-card1993" class="csl-entry">
-Card, David, and Alan Krueger. 1993. <span>“Minimum Wages and Employment: A Case Study of the Fast Food Industry in New Jersey and Pennsylvania,”</span> October. <a href="https://doi.org/10.3386/w4509">https://doi.org/10.3386/w4509</a>.
-</div>
-<div id="ref-dechaisemartin2020" class="csl-entry">
-Chaisemartin, Clément de, and Xavier D’Haultfœuille. 2020. <span>“Two-Way Fixed Effects Estimators with Heterogeneous Treatment Effects.”</span> <em>American Economic Review</em> 110 (9): 2964–96. <a href="https://doi.org/10.1257/aer.20181169">https://doi.org/10.1257/aer.20181169</a>.
-</div>
-<div id="ref-datta2018" class="csl-entry">
-Datta, Hannes, George Knox, and Bart J. Bronnenberg. 2018. <span>“Changing Their Tune: How Consumers<span>’</span> Adoption of Online Streaming Affects Music Consumption and Discovery.”</span> <em>Marketing Science</em> 37 (1): 5–21. <a href="https://doi.org/10.1287/mksc.2017.1051">https://doi.org/10.1287/mksc.2017.1051</a>.
-</div>
-<div id="ref-doleac2020" class="csl-entry">
-Doleac, Jennifer L., and Benjamin Hansen. 2020. <span>“The Unintended Consequences of <span>“</span>Ban the Box<span>”</span>: Statistical Discrimination and Employment Outcomes When Criminal Histories Are Hidden.”</span> <em>Journal of Labor Economics</em> 38 (2): 321–74. <a href="https://doi.org/10.1086/705880">https://doi.org/10.1086/705880</a>.
-</div>
-<div id="ref-gibbons2018" class="csl-entry">
-Gibbons, Charles E., Juan Carlos Suárez Serrato, and Michael B. Urbancic. 2018. <span>“Broken or Fixed Effects?”</span> <em>Journal of Econometric Methods</em> 8 (1). <a href="https://doi.org/10.1515/jem-2017-0002">https://doi.org/10.1515/jem-2017-0002</a>.
-</div>
-<div id="ref-goldfarb2011" class="csl-entry">
-Goldfarb, Avi, and Catherine E. Tucker. 2011. <span>“Privacy Regulation and Online Advertising.”</span> <em>Management Science</em> 57 (1): 57–71. <a href="https://doi.org/10.1287/mnsc.1100.1246">https://doi.org/10.1287/mnsc.1100.1246</a>.
-</div>
-<div id="ref-goodman-bacon2021" class="csl-entry">
-Goodman-Bacon, Andrew. 2021. <span>“Difference-in-Differences with Variation in Treatment Timing.”</span> <em>Journal of Econometrics</em> 225 (2): 254–77. <a href="https://doi.org/10.1016/j.jeconom.2021.03.014">https://doi.org/10.1016/j.jeconom.2021.03.014</a>.
-</div>
-<div id="ref-guo2020" class="csl-entry">
-Guo, Tong, Srinivasaraghavan Sriram, and Puneet Manchanda. 2020. <span>“<span>“</span>Let the Sunshine In<span>”</span>: The Impact of Industry Payment Disclosure on Physician Prescription Behavior.”</span> <em>Marketing Science</em> 39 (3): 516–39. <a href="https://doi.org/10.1287/mksc.2019.1181">https://doi.org/10.1287/mksc.2019.1181</a>.
-</div>
-<div id="ref-habel2021" class="csl-entry">
-Habel, Johannes, Sascha Alavi, and Kim Linsenmayer. 2021. <span>“Variable Compensation and Salesperson Health.”</span> <em>Journal of Marketing</em> 85 (3): 130–49. <a href="https://doi.org/10.1177/0022242921993195">https://doi.org/10.1177/0022242921993195</a>.
-</div>
-<div id="ref-he2022" class="csl-entry">
-He, Sherry, Brett Hollenbeck, and Davide Proserpio. 2022. <span>“The Market for Fake Reviews.”</span> <em>Marketing Science</em>, February. <a href="https://doi.org/10.1287/mksc.2022.1353">https://doi.org/10.1287/mksc.2022.1353</a>.
-</div>
-<div id="ref-heckman1997" class="csl-entry">
-Heckman, J. J., H. Ichimura, and P. E. Todd. 1997. <span>“Matching As An Econometric Evaluation Estimator: Evidence from Evaluating a Job Training Programme.”</span> <em>The Review of Economic Studies</em> 64 (4): 605–54. <a href="https://doi.org/10.2307/2971733">https://doi.org/10.2307/2971733</a>.
-</div>
-<div id="ref-imai2020" class="csl-entry">
-Imai, Kosuke, and In Song Kim. 2020. <span>“On the Use of Two-Way Fixed Effects Regression Models for Causal Inference with Panel Data.”</span> <em>Political Analysis</em> 29 (3): 405–15. <a href="https://doi.org/10.1017/pan.2020.33">https://doi.org/10.1017/pan.2020.33</a>.
-</div>
-<div id="ref-israeli2018" class="csl-entry">
-Israeli, Ayelet. 2018. <span>“Online MAP Enforcement: Evidence from a Quasi-Experiment.”</span> <em>Marketing Science</em> 37 (5): 710–32. <a href="https://doi.org/10.1287/mksc.2018.1092">https://doi.org/10.1287/mksc.2018.1092</a>.
-</div>
-<div id="ref-janakiraman2018" class="csl-entry">
-Janakiraman, Ramkumar, Joon Ho Lim, and Rishika Rishika. 2018. <span>“The Effect of a Data Breach Announcement on Customer Behavior: Evidence from a Multichannel Retailer.”</span> <em>Journal of Marketing</em> 82 (2): 85–105. <a href="https://doi.org/10.1509/jm.16.0124">https://doi.org/10.1509/jm.16.0124</a>.
-</div>
-<div id="ref-lancaster2000" class="csl-entry">
-Lancaster, Tony. 2000. <span>“The Incidental Parameter Problem Since 1948.”</span> <em>Journal of Econometrics</em> 95 (2): 391–413. <a href="https://doi.org/10.1016/s0304-4076(99)00044-5">https://doi.org/10.1016/s0304-4076(99)00044-5</a>.
-</div>
-<div id="ref-liaukonyte2015" class="csl-entry">
-Liaukonyte, Jura, Thales Teixeira, and Kenneth C. Wilbur. 2015. <span>“Television Advertising and Online Shopping.”</span> <em>Marketing Science</em> 34 (3): 311–30. <a href="https://doi.org/10.1287/mksc.2014.0899">https://doi.org/10.1287/mksc.2014.0899</a>.
-</div>
-<div id="ref-lim2020" class="csl-entry">
-Lim, Joon Ho, Rishika Rishika, Ramkumar Janakiraman, and P. K. Kannan. 2020. <span>“Competitive Effects of Front-of-Package Nutrition Labeling Adoption on Nutritional Quality: Evidence from Facts Up Front<span></span>Style Labels.”</span> <em>Journal of Marketing</em> 84 (6): 3–21. <a href="https://doi.org/10.1177/0022242920942563">https://doi.org/10.1177/0022242920942563</a>.
-</div>
-<div id="ref-pattabhiramaiah2018" class="csl-entry">
-Pattabhiramaiah, Adithya, S. Sriram, and Puneet Manchanda. 2018. <span>“Paywalls: Monetizing Online Content.”</span> <em>Journal of Marketing</em> 83 (2): 19–36. <a href="https://doi.org/10.1177/0022242918815163">https://doi.org/10.1177/0022242918815163</a>.
-</div>
-<div id="ref-peukert2022" class="csl-entry">
-Peukert, Christian, Stefan Bechtold, Michail Batikas, and Tobias Kretschmer. 2022. <span>“Regulatory Spillovers and Data Governance: Evidence from the GDPR.”</span> <em>Marketing Science</em>, February. <a href="https://doi.org/10.1287/mksc.2021.1339">https://doi.org/10.1287/mksc.2021.1339</a>.
-</div>
-<div id="ref-ramani2019" class="csl-entry">
-Ramani, Nandini, and Raji Srinivasan. 2019. <span>“Effects of Liberalization on Incumbent Firms<span>’</span> Marketing-Mix Responses and Performance: Evidence from a Quasi-Experiment.”</span> <em>Journal of Marketing</em> 83 (5): 97–114. <a href="https://doi.org/10.1177/0022242919860085">https://doi.org/10.1177/0022242919860085</a>.
-</div>
-<div id="ref-somaini2021twfem" class="csl-entry">
-Somaini, Paulo, and Frank A Wolak. 2021. <span>“TWFEM: Stata Module to Efficiently Estimate a Two-Way Fixed Effects Model Based on Somaini and Wolak (2015).”</span>
-</div>
-<div id="ref-somaini2016" class="csl-entry">
-Somaini, Paulo, and Frank A. Wolak. 2016. <span>“An Algorithm to Estimate the Two-Way Fixed Effects Model.”</span> <em>Journal of Econometric Methods</em> 5 (1). <a href="https://doi.org/10.1515/jem-2014-0008">https://doi.org/10.1515/jem-2014-0008</a>.
-</div>
-<div id="ref-stevenson2006" class="csl-entry">
-Stevenson, B., and J. Wolfers. 2006. <span>“Bargaining in the Shadow of the Law: Divorce Laws and Family Distress.”</span> <em>The Quarterly Journal of Economics</em> 121 (1): 267–88. <a href="https://doi.org/10.1093/qje/121.1.267">https://doi.org/10.1093/qje/121.1.267</a>.
-</div>
-<div id="ref-sun2021" class="csl-entry">
-Sun, Liyang, and Sarah Abraham. 2021. <span>“Estimating Dynamic Treatment Effects in Event Studies with Heterogeneous Treatment Effects.”</span> <em>Journal of Econometrics</em> 225 (2): 175–99. <a href="https://doi.org/10.1016/j.jeconom.2020.09.006">https://doi.org/10.1016/j.jeconom.2020.09.006</a>.
-</div>
-<div id="ref-wang2018" class="csl-entry">
-Wang, Yanwen, Michael Lewis, and David A. Schweidel. 2018. <span>“A Border Strategy Analysis of Ad Source and Message Tone in Senatorial Campaigns.”</span> <em>Marketing Science</em> 37 (3): 333–55. <a href="https://doi.org/10.1287/mksc.2017.1079">https://doi.org/10.1287/mksc.2017.1079</a>.
-</div>
-<div id="ref-wolfers2003" class="csl-entry">
-Wolfers, Justin. 2003. <span>“Did Unilateral Divorce Laws Raise Divorce Rates? A Reconciliation and New Results,”</span> October. <a href="https://doi.org/10.3386/w10014">https://doi.org/10.3386/w10014</a>.
-</div>
-</div>
-            </section>
 
-          </div>
-        </div>
-      </div>
-<a href="regression-discontinuity.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="synthetic-control.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
-    </div>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="regression-discontinuity.html"><span class="header-section-number">22</span> Regression Discontinuity</a></div>
+<div class="next"><a href="synthetic-control.html"><span class="header-section-number">24</span> Synthetic Control</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#difference-in-differences"><span class="header-section-number">23</span> Difference-in-differences</a></li>
+<li>
+<a class="nav-link" href="#simple-dif-n-dif"><span class="header-section-number">23.1</span> Simple Dif-n-dif</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#assumptions-2"><span class="header-section-number">23.1.1</span> Assumptions</a></li>
+<li><a class="nav-link" href="#examples"><span class="header-section-number">23.1.2</span> Examples</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#multiple-periods-and-variation-in-treatment-timing"><span class="header-section-number">23.2</span> Multiple periods and variation in treatment timing</a></li>
+<li>
+<a class="nav-link" href="#staggered-dif-n-dif"><span class="header-section-number">23.3</span> Staggered Dif-n-dif</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#example-by-doleac2020"><span class="header-section-number">23.3.1</span> Example by Doleac and Hansen (2020)</a></li></ul>
+</li>
+<li><a class="nav-link" href="#two-way-fixed-effects"><span class="header-section-number">23.4</span> Two-way Fixed-effects</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/mikenguyen13/data_analysis/blob/main/23-dif-in-dif.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/mikenguyen13/data_analysis/edit/main/23-dif-in-dif.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2022-06-10.</p>
   </div>
-<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
-<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
-<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
-<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
-<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
-<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
-<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
-<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
-<script>
-gitbook.require(["gitbook"], function(gitbook) {
-gitbook.start({
-"sharing": {
-"github": false,
-"facebook": true,
-"twitter": true,
-"linkedin": false,
-"weibo": false,
-"instapaper": false,
-"vk": false,
-"whatsapp": false,
-"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
-},
-"fontsettings": {
-"theme": "white",
-"family": "sans",
-"size": 2
-},
-"edit": {
-"link": "https://github.com/mikenguyen13/data_analysis/edit/main/21-quasi-experimental.Rmd",
-"text": "Edit"
-},
-"history": {
-"link": null,
-"text": null
-},
-"view": {
-"link": "https://github.com/mikenguyen13/data_analysis/blob/main/21-quasi-experimental.Rmd",
-"text": null
-},
-"download": ["data_analysis.pdf", "data_analysis.epub", "data_analysis.mobi"],
-"search": {
-"engine": "fuse",
-"options": null
-},
-"toc": {
-"collapse": "section",
-"scroll_highlight": true,
-"sharing": {
-"facebook": true,
-"github": true,
-"twitter": true,
-"linkedin": true
-},
-"info": true,
-"edit": "https://github.com/mikenguyen13/data_analysis/edit/main/%s"
-}
-});
-});
-</script>
 
-<!-- dynamically load mathjax for compatibility with self-contained -->
-<script>
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
   (function () {
     var script = document.createElement("script");
     script.type = "text/javascript";
@@ -1594,7 +879,22 @@ gitbook.start({
     script.src = src;
     document.getElementsByTagName("head")[0].appendChild(script);
   })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
 </script>
 </body>
-
 </html>
