@@ -111,15 +111,15 @@ Accordingly, $MSTR= \frac{SST}{a-1}$ and $MSR=\frac{SSE}{N-a}$
 
 **ANOVA Table**
 
-+---------------------------+---------------------------------------------+-----+------------+
-| Source of Variation       | SS                                          | df  | MS         |
-+===========================+:===========================================:+:===:+:==========:+
-| Between Treatments        | $\sum_{i}n_i (\bar{Y_{i.}}-\bar{Y_{..}})^2$ | a-1 | SSTR/(a-1) |
-+---------------------------+---------------------------------------------+-----+------------+
-| Error (within treatments) | $\sum_{i}\sum_{j}(Y_{ij}-\bar{Y_{i.}})^2$   | N-a | SSE/(N-a)  |
-+---------------------------+---------------------------------------------+-----+------------+
-| Total (corrected)         | $\sum_{i}n_i (\bar{Y_{i.}}-\bar{Y_{..}})^2$ | N-1 |            |
-+---------------------------+---------------------------------------------+-----+------------+
++---------------------------+---------------------------------------------+------------+------------+
+| Source of Variation       | SS                                          | df         | MS         |
++===========================+:===========================================:+:==========:+:==========:+
+| Between Treatments        | $\sum_{i}n_i (\bar{Y_{i.}}-\bar{Y_{..}})^2$ | a-1        | SSTR/(a-1) |
++---------------------------+---------------------------------------------+------------+------------+
+| Error (within treatments) | $\sum_{i}\sum_{j}(Y_{ij}-\bar{Y_{i.}})^2$   | N-a        | SSE/(N-a)  |
++---------------------------+---------------------------------------------+------------+------------+
+| Total (corrected)         | $\sum_{i}n_i (\bar{Y_{i.}}-\bar{Y_{..}})^2$ | N-1        |            |
++---------------------------+---------------------------------------------+------------+------------+
 
 Linear Model Explanation of ANOVA
 
@@ -600,17 +600,17 @@ $$
 
 **ANOVA Table**
 
-+---------------------+------------------------------------------------------------------------------+-----+--------------------+--------------------+
-| Source of Variation | SS                                                                           | df  | MS                 | F                  |
-+=====================+:============================================================================:+:===:+:==================:+:==================:+
-| Between Treatments  | $\sum_{i} n _ i (\bar { Y_ {i .} } -\bar{Y_{..}})^2 = \mathbf{Y ' (P-P_1)Y}$ | a-1 | $\frac{SSTR}{a-1}$ | $\frac{MSTR}{MSE}$ |
-+---------------------+------------------------------------------------------------------------------+-----+--------------------+--------------------+
-| Error               | $\sum_{i}\sum_{j}(Y_{ij} -\bar{Y_{i.}})^2=\mathbf{e'e}$                      | N-a | $\frac{SSE}{N-a}$  |                    |
-|                     |                                                                              |     |                    |                    |
-| (within treatments) |                                                                              |     |                    |                    |
-+---------------------+------------------------------------------------------------------------------+-----+--------------------+--------------------+
-| Total (corrected)   | $\sum_{i } n_i(\bar{Y_{i.}}-\bar{Y_{..}})^2=\mathbf{Y'Y - Y'P_1Y}$           | N-1 |                    |                    |
-+---------------------+------------------------------------------------------------------------------+-----+--------------------+--------------------+
++---------------------+------------------------------------------------------------------------------+---------+--------------------+--------------------+
+| Source of Variation | SS                                                                           | df      | MS                 | F                  |
++=====================+:============================================================================:+:=======:+:==================:+:==================:+
+| Between Treatments  | $\sum_{i} n _ i (\bar { Y_ {i .} } -\bar{Y_{..}})^2 = \mathbf{Y ' (P-P_1)Y}$ | a-1     | $\frac{SSTR}{a-1}$ | $\frac{MSTR}{MSE}$ |
++---------------------+------------------------------------------------------------------------------+---------+--------------------+--------------------+
+| Error               | $\sum_{i}\sum_{j}(Y_{ij} -\bar{Y_{i.}})^2=\mathbf{e'e}$                      | N-a     | $\frac{SSE}{N-a}$  |                    |
+|                     |                                                                              |         |                    |                    |
+| (within treatments) |                                                                              |         |                    |                    |
++---------------------+------------------------------------------------------------------------------+---------+--------------------+--------------------+
+| Total (corrected)   | $\sum_{i } n_i(\bar{Y_{i.}}-\bar{Y_{..}})^2=\mathbf{Y'Y - Y'P_1Y}$           | N-1     |                    |                    |
++---------------------+------------------------------------------------------------------------------+---------+--------------------+--------------------+
 
 where $\mathbf{P_1} = \frac{1}{n}\mathbf{J}$
 
@@ -1307,10 +1307,10 @@ $$
 
 where
 
--   $\mu_{..}$ is a constant\
--   $\alpha_i$ are constants subject to the restriction $\sum_i \alpha_i=0$\
--   $\beta_j$ are constants subject to the restriction $\sum_j \beta_j = 0$\
--   $(\alpha \beta)_{ij}$ are constants subject to the restriction $\sum_i(\alpha \beta)_{ij} = 0$ for $j=1,...,b$ and $\sum_j(\alpha \beta)_{ij} = 0$ for $i = 1,...,a$\
+-   $\mu_{..}$ is a constant
+-   $\alpha_i$ are constants subject to the restriction $\sum_i \alpha_i=0$
+-   $\beta_j$ are constants subject to the restriction $\sum_j \beta_j = 0$
+-   $(\alpha \beta)_{ij}$ are constants subject to the restriction $\sum_i(\alpha \beta)_{ij} = 0$ for $j=1,...,b$ and $\sum_j(\alpha \beta)_{ij} = 0$ for $i = 1,...,a$
 -   $\epsilon_{ijk} \sim \text{indep } N(0,\sigma^2)$ for $k = 1,..,n$
 
 We have
@@ -1534,13 +1534,19 @@ $F= \frac{MSA}{MSE}$ and reject $H_0$ if $F>f_{(1-\alpha;a-1,ab(n-1))}$
 
 ###### Two-way ANOVA
 
-| Source of Variation | SS   | df         | MS                | F       |
-|---------------------|------|------------|-------------------|---------|
-| Factor A            | SSA  | a-1        | MSA = SSA/(a-1)   | MSA/MSE |
-| Factor B            | SSB  | b-1        | MSB = SSB/(b-1)   | MSB/MSE |
-| AB interactions     | SSAB | (a-1)(b-1) | MSAB = SSAB /MSE  |         |
-| Error               | SSE  | ab(n-1)    | MSE = SSE/ab(n-1) |         |
-| Total (corrected)   | SSTO | abn - 1    |                   |         |
++---------------------+------------+------------+-------------------+------------+
+| Source of Variation | SS         | df         | MS                | F          |
++=====================+============+============+===================+============+
+| Factor A            | SSA        | a-1        | MSA = SSA/(a-1)   | MSA/MSE    |
++---------------------+------------+------------+-------------------+------------+
+| Factor B            | SSB        | b-1        | MSB = SSB/(b-1)   | MSB/MSE    |
++---------------------+------------+------------+-------------------+------------+
+| AB interactions     | SSAB       | (a-1)(b-1) | MSAB = SSAB /MSE  |            |
++---------------------+------------+------------+-------------------+------------+
+| Error               | SSE        | ab(n-1)    | MSE = SSE/ab(n-1) |            |
++---------------------+------------+------------+-------------------+------------+
+| Total (corrected)   | SSTO       | abn - 1    |                   |            |
++---------------------+------------+------------+-------------------+------------+
 
 Doing 2-way ANOVA means you always check interaction first, because if there are significant interactions, checking the significance of the main effects becomes moot.
 
@@ -1663,10 +1669,27 @@ $$
 
 (the design is **non-orthogonal**)
 
--   For $i = 1,...,a-1,$\
-    \\begin{equation} u_i = \\begin{cases} +1 & \\text{if the obs is from the i-th level of Factor 1} \\\\ -1 & \\text{if the obs is from the a-th level of Factor 1} \\\\ 0 & \\text{otherwise} \\\\ \\end{cases} \\end{equation}
--   For $j=1,...,b-1$\
-    \\begin{equation} v_i = \\begin{cases} +1 & \\text{if the obs is from the j-th level of Factor 1} \\\\ -1 & \\text{if the obs is from the b-th level of Factor 1} \\\\ 0 & \\text{otherwise} \\\\ \\end{cases} \\end{equation}
+-   For $i = 1,...,a-1,$
+
+\begin{equation} 
+u_i = 
+\begin{cases} 
++1 & \text{if the obs is from the i-th level of Factor 1} \\
+-1 & \text{if the obs is from the a-th level of Factor 1} \\ 
+0 & \text{otherwise} 
+\end{cases} 
+\end{equation}
+
+-   For $j=1,...,b-1$
+
+\begin{equation} 
+v_i = 
+\begin{cases} 
++1 & \text{if the obs is from the j-th level of Factor 1} \\ 
+-1 & \text{if the obs is from the b-th level of Factor 1} \\ 
+0 & \text{otherwise} 
+\end{cases} 
+\end{equation}
 
 We can use these indicator variables as predictor variables and $\mu_{..}, \alpha_i ,\beta_j, (\alpha \beta)_{ij}$ as unknown parameters.
 
@@ -2094,6 +2117,7 @@ To improve the precision of treatment comparisons, we can reduce variability amo
 -   Within each block, random assignment treatments to units (separate random assignment for each block)
 -   The number of units per block is a multiple of the number of factor combinations.
 -   Commonly, use each treatment once in each block.
+-   George Box's quote: "Block what you can and randomize what you cannot." (still caution by [@pashley2021])
 
 Benefits of **Blocking**
 
@@ -2266,15 +2290,15 @@ $$
 
 The sum of squares and degrees of freedom for interaction model are the same as those for the additive model. The difference exists only with the expected mean squares
 
-+-----------+------+------------+------------------------------------------------------------------+
-| Source    | SS   | df         | E(MS)                                                            |
-+===========+======+============+==================================================================+
-| Blocks    | SSBL | n-1        | $\sigma^2 + r \sigma^2_\rho$                                     |
-+-----------+------+------------+------------------------------------------------------------------+
-| Treatment | SSTR | r -1       | $\sigma^2 + \sigma ^2_{\rho \tau} + n \frac{\sum \tau_j^2}{r-1}$ |
-+-----------+------+------------+------------------------------------------------------------------+
-| Error     | SSE  | (n-1)(r-1) | $\sigma^2 + \sigma ^2_{\rho \tau}$                               |
-+-----------+------+------------+------------------------------------------------------------------+
++-----------+---------+------------+------------------------------------------------------------------+
+| Source    | SS      | df         | E(MS)                                                            |
++===========+=========+============+==================================================================+
+| Blocks    | SSBL    | n-1        | $\sigma^2 + r \sigma^2_\rho$                                     |
++-----------+---------+------------+------------------------------------------------------------------+
+| Treatment | SSTR    | r -1       | $\sigma^2 + \sigma ^2_{\rho \tau} + n \frac{\sum \tau_j^2}{r-1}$ |
++-----------+---------+------------+------------------------------------------------------------------+
+| Error     | SSE     | (n-1)(r-1) | $\sigma^2 + \sigma ^2_{\rho \tau}$                               |
++-----------+---------+------------+------------------------------------------------------------------+
 
 -   No exact test is possible for block effects when interaction is present (Not important if blocks are used primarily to reduce experimental error variability)\
 -   $E(MSE) = \sigma^2 + \sigma^2_{\rho \tau}$ the error term variance and interaction variance $\sigma^2_{\rho \tau}$. We can't estimate these components separately with this model. The two are **confounded**.\
@@ -2502,7 +2526,7 @@ where $\alpha_1,\beta_{1(1)}, \beta_{2(1)}, \beta_{1(2)}$ are parameters. And co
 
 4 indicator variables
 
-
+```{=tex}
 \begin{equation}
 X_1 = 
 \begin{cases}
@@ -2510,7 +2534,8 @@ X_1 =
 -1&\text{if obs from school 2}\\
 \end{cases}
 \end{equation}
-
+```
+```{=tex}
 \begin{equation}
 X_2 = 
 \begin{cases}
@@ -2519,8 +2544,8 @@ X_2 =
 0&\text{otherwise}\\
 \end{cases}
 \end{equation}
-
-
+```
+```{=tex}
 \begin{equation}
 X_3 = 
 \begin{cases}
@@ -2529,8 +2554,8 @@ X_3 =
 0&\text{otherwise}\\
 \end{cases}
 \end{equation}
-
-
+```
+```{=tex}
 \begin{equation}
 X_4 = 
 \begin{cases}
@@ -2539,8 +2564,7 @@ X_4 =
 0&\text{otherwise}\\
 \end{cases}
 \end{equation}
-
-
+```
 Regression Full Model
 
 $$
@@ -2706,6 +2730,3 @@ The means in response after adjusting for the covariate effect
 $$
 Y_{i.}(adj) = \bar{Y}_{i.} - \hat{\gamma}(\bar{X}_{i.} - \bar{X}_{..})
 $$
-
-
-

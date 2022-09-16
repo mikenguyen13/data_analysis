@@ -316,9 +316,9 @@ using derivatives of the log of the likelihood function with respect to $\mu$ an
 
 -   Check univariate normality for each trait (X) separately
 
-    -   Can check [Normality Assessment]
+    -   Can check \[Normality Assessment\]
 
-    -   The good thing is that if any of the univariate trait is not normal, then the joint distribution is not normal (see again [Properties of MVN]). If a joint multivariate distribution is normal, then the marginal distribution has to be normal.
+    -   The good thing is that if any of the univariate trait is not normal, then the joint distribution is not normal (see again [m]). If a joint multivariate distribution is normal, then the marginal distribution has to be normal.
 
     -   However, marginal normality of all traits does not imply joint MVN
 
@@ -366,6 +366,8 @@ using derivatives of the log of the likelihood function with respect to $\mu$ an
 
         -   When the data are non-normal, normal theory tests on the mean are sensitive to $\beta_{1,p}$ , while tests on the covariance are sensitive to $\beta_{2,p}$
 
+-   Alternatively, Doornik-Hansen test for multivariate normality [@doornik2008]
+
 -   Chi-square Q-Q plot
 
     -   Let $\mathbf{y}_i, i = 1,...,n$ be a random sample sample from $N_p(\mathbf{\mu}, \mathbf{\Sigma})$
@@ -382,121 +384,50 @@ using derivatives of the log of the likelihood function with respect to $\mu$ an
 
     -   use nonparametric methods
 
-    -   use models based upon an approximate distirubiton (e.g., GLMM)
+    -   use models based upon an approximate distribution (e.g., GLMM)
 
     -   try performing a transformation
 
 
 ```r
 library(heplots)
-```
-
-```
-## Warning: package 'heplots' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'car' was built under R version 4.0.5
-```
-
-```r
 library(ICSNP)
-```
-
-```
-## Warning: package 'ICSNP' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'mvtnorm' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'ICS' was built under R version 4.0.5
-```
-
-```r
 library(MVN)
-```
-
-```
-## Warning: package 'MVN' was built under R version 4.0.5
-```
-
-```r
 library(tidyverse)
-```
 
-```
-## Warning: package 'tidyverse' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'ggplot2' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'tibble' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'readr' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'dplyr' was built under R version 4.0.5
-```
-
-```r
 trees = read.table("images/trees.dat")
 names(trees) <- c("Nitrogen","Phosphorous","Potassium","Ash","Height")
 str(trees)
-```
+#> 'data.frame':	26 obs. of  5 variables:
+#>  $ Nitrogen   : num  2.2 2.1 1.52 2.88 2.18 1.87 1.52 2.37 2.06 1.84 ...
+#>  $ Phosphorous: num  0.417 0.354 0.208 0.335 0.314 0.271 0.164 0.302 0.373 0.265 ...
+#>  $ Potassium  : num  1.35 0.9 0.71 0.9 1.26 1.15 0.83 0.89 0.79 0.72 ...
+#>  $ Ash        : num  1.79 1.08 0.47 1.48 1.09 0.99 0.85 0.94 0.8 0.77 ...
+#>  $ Height     : int  351 249 171 373 321 191 225 291 284 213 ...
 
-```
-## 'data.frame':	26 obs. of  5 variables:
-##  $ Nitrogen   : num  2.2 2.1 1.52 2.88 2.18 1.87 1.52 2.37 2.06 1.84 ...
-##  $ Phosphorous: num  0.417 0.354 0.208 0.335 0.314 0.271 0.164 0.302 0.373 0.265 ...
-##  $ Potassium  : num  1.35 0.9 0.71 0.9 1.26 1.15 0.83 0.89 0.79 0.72 ...
-##  $ Ash        : num  1.79 1.08 0.47 1.48 1.09 0.99 0.85 0.94 0.8 0.77 ...
-##  $ Height     : int  351 249 171 373 321 191 225 291 284 213 ...
-```
-
-```r
 summary(trees)
-```
-
-```
-##     Nitrogen      Phosphorous       Potassium           Ash        
-##  Min.   :1.130   Min.   :0.1570   Min.   :0.3800   Min.   :0.4500  
-##  1st Qu.:1.532   1st Qu.:0.1963   1st Qu.:0.6050   1st Qu.:0.6375  
-##  Median :1.855   Median :0.2250   Median :0.7150   Median :0.9300  
-##  Mean   :1.896   Mean   :0.2506   Mean   :0.7619   Mean   :0.8873  
-##  3rd Qu.:2.160   3rd Qu.:0.2975   3rd Qu.:0.8975   3rd Qu.:0.9825  
-##  Max.   :2.880   Max.   :0.4170   Max.   :1.3500   Max.   :1.7900  
-##      Height     
-##  Min.   : 65.0  
-##  1st Qu.:122.5  
-##  Median :181.0  
-##  Mean   :196.6  
-##  3rd Qu.:276.0  
-##  Max.   :373.0
-```
-
-```r
+#>     Nitrogen      Phosphorous       Potassium           Ash        
+#>  Min.   :1.130   Min.   :0.1570   Min.   :0.3800   Min.   :0.4500  
+#>  1st Qu.:1.532   1st Qu.:0.1963   1st Qu.:0.6050   1st Qu.:0.6375  
+#>  Median :1.855   Median :0.2250   Median :0.7150   Median :0.9300  
+#>  Mean   :1.896   Mean   :0.2506   Mean   :0.7619   Mean   :0.8873  
+#>  3rd Qu.:2.160   3rd Qu.:0.2975   3rd Qu.:0.8975   3rd Qu.:0.9825  
+#>  Max.   :2.880   Max.   :0.4170   Max.   :1.3500   Max.   :1.7900  
+#>      Height     
+#>  Min.   : 65.0  
+#>  1st Qu.:122.5  
+#>  Median :181.0  
+#>  Mean   :196.6  
+#>  3rd Qu.:276.0  
+#>  Max.   :373.0
 cor(trees, method = "pearson") # correlation matrix
-```
+#>              Nitrogen Phosphorous Potassium       Ash    Height
+#> Nitrogen    1.0000000   0.6023902 0.5462456 0.6509771 0.8181641
+#> Phosphorous 0.6023902   1.0000000 0.7037469 0.6707871 0.7739656
+#> Potassium   0.5462456   0.7037469 1.0000000 0.6710548 0.7915683
+#> Ash         0.6509771   0.6707871 0.6710548 1.0000000 0.7676771
+#> Height      0.8181641   0.7739656 0.7915683 0.7676771 1.0000000
 
-```
-##              Nitrogen Phosphorous Potassium       Ash    Height
-## Nitrogen    1.0000000   0.6023902 0.5462456 0.6509771 0.8181641
-## Phosphorous 0.6023902   1.0000000 0.7037469 0.6707871 0.7739656
-## Potassium   0.5462456   0.7037469 1.0000000 0.6710548 0.7915683
-## Ash         0.6509771   0.6707871 0.6710548 1.0000000 0.7676771
-## Height      0.8181641   0.7739656 0.7915683 0.7676771 1.0000000
-```
-
-```r
 # qq-plot 
 gg <- trees %>%
     pivot_longer(everything(), names_to = "Var", values_to = "Value") %>%
@@ -507,130 +438,98 @@ gg <- trees %>%
 gg
 ```
 
-![](21-multivariate_files/figure-epub3/unnamed-chunk-1-1.png)<!-- -->
+<img src="21-multivariate_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 # Univariate normality
 sw_tests <- apply(trees, MARGIN = 2, FUN = shapiro.test)
 sw_tests
-```
-
-```
-## $Nitrogen
-## 
-## 	Shapiro-Wilk normality test
-## 
-## data:  newX[, i]
-## W = 0.96829, p-value = 0.5794
-## 
-## 
-## $Phosphorous
-## 
-## 	Shapiro-Wilk normality test
-## 
-## data:  newX[, i]
-## W = 0.93644, p-value = 0.1104
-## 
-## 
-## $Potassium
-## 
-## 	Shapiro-Wilk normality test
-## 
-## data:  newX[, i]
-## W = 0.95709, p-value = 0.3375
-## 
-## 
-## $Ash
-## 
-## 	Shapiro-Wilk normality test
-## 
-## data:  newX[, i]
-## W = 0.92071, p-value = 0.04671
-## 
-## 
-## $Height
-## 
-## 	Shapiro-Wilk normality test
-## 
-## data:  newX[, i]
-## W = 0.94107, p-value = 0.1424
-```
-
-```r
+#> $Nitrogen
+#> 
+#> 	Shapiro-Wilk normality test
+#> 
+#> data:  newX[, i]
+#> W = 0.96829, p-value = 0.5794
+#> 
+#> 
+#> $Phosphorous
+#> 
+#> 	Shapiro-Wilk normality test
+#> 
+#> data:  newX[, i]
+#> W = 0.93644, p-value = 0.1104
+#> 
+#> 
+#> $Potassium
+#> 
+#> 	Shapiro-Wilk normality test
+#> 
+#> data:  newX[, i]
+#> W = 0.95709, p-value = 0.3375
+#> 
+#> 
+#> $Ash
+#> 
+#> 	Shapiro-Wilk normality test
+#> 
+#> data:  newX[, i]
+#> W = 0.92071, p-value = 0.04671
+#> 
+#> 
+#> $Height
+#> 
+#> 	Shapiro-Wilk normality test
+#> 
+#> data:  newX[, i]
+#> W = 0.94107, p-value = 0.1424
 # Kolmogorov-Smirnov test 
 ks_tests <- map(trees, ~ ks.test(scale(.x),"pnorm"))
-```
-
-```
-## Warning in ks.test(scale(.x), "pnorm"): ties should not be present for the
-## Kolmogorov-Smirnov test
-```
-
-```
-## Warning in ks.test(scale(.x), "pnorm"): ties should not be present for the
-## Kolmogorov-Smirnov test
-
-## Warning in ks.test(scale(.x), "pnorm"): ties should not be present for the
-## Kolmogorov-Smirnov test
-
-## Warning in ks.test(scale(.x), "pnorm"): ties should not be present for the
-## Kolmogorov-Smirnov test
-
-## Warning in ks.test(scale(.x), "pnorm"): ties should not be present for the
-## Kolmogorov-Smirnov test
-```
-
-```r
 ks_tests
-```
+#> $Nitrogen
+#> 
+#> 	One-sample Kolmogorov-Smirnov test
+#> 
+#> data:  scale(.x)
+#> D = 0.12182, p-value = 0.8351
+#> alternative hypothesis: two-sided
+#> 
+#> 
+#> $Phosphorous
+#> 
+#> 	One-sample Kolmogorov-Smirnov test
+#> 
+#> data:  scale(.x)
+#> D = 0.17627, p-value = 0.3944
+#> alternative hypothesis: two-sided
+#> 
+#> 
+#> $Potassium
+#> 
+#> 	One-sample Kolmogorov-Smirnov test
+#> 
+#> data:  scale(.x)
+#> D = 0.10542, p-value = 0.9348
+#> alternative hypothesis: two-sided
+#> 
+#> 
+#> $Ash
+#> 
+#> 	One-sample Kolmogorov-Smirnov test
+#> 
+#> data:  scale(.x)
+#> D = 0.14503, p-value = 0.6449
+#> alternative hypothesis: two-sided
+#> 
+#> 
+#> $Height
+#> 
+#> 	One-sample Kolmogorov-Smirnov test
+#> 
+#> data:  scale(.x)
+#> D = 0.1107, p-value = 0.9076
+#> alternative hypothesis: two-sided
 
-```
-## $Nitrogen
-## 
-## 	One-sample Kolmogorov-Smirnov test
-## 
-## data:  scale(.x)
-## D = 0.12182, p-value = 0.8351
-## alternative hypothesis: two-sided
-## 
-## 
-## $Phosphorous
-## 
-## 	One-sample Kolmogorov-Smirnov test
-## 
-## data:  scale(.x)
-## D = 0.17627, p-value = 0.3944
-## alternative hypothesis: two-sided
-## 
-## 
-## $Potassium
-## 
-## 	One-sample Kolmogorov-Smirnov test
-## 
-## data:  scale(.x)
-## D = 0.10542, p-value = 0.9348
-## alternative hypothesis: two-sided
-## 
-## 
-## $Ash
-## 
-## 	One-sample Kolmogorov-Smirnov test
-## 
-## data:  scale(.x)
-## D = 0.14503, p-value = 0.6449
-## alternative hypothesis: two-sided
-## 
-## 
-## $Height
-## 
-## 	One-sample Kolmogorov-Smirnov test
-## 
-## data:  scale(.x)
-## D = 0.1107, p-value = 0.9076
-## alternative hypothesis: two-sided
-```
-
-```r
 # Mardia's test, need large sample size for power
 mardia_test <-
     mvn(
@@ -639,19 +538,68 @@ mardia_test <-
         covariance = FALSE,
         multivariatePlot = "qq"
     )
+
+mardia_test$multivariateNormality
+#>              Test         Statistic            p value Result
+#> 1 Mardia Skewness  29.7248528871795   0.72054426745778    YES
+#> 2 Mardia Kurtosis -1.67743173185383 0.0934580886477281    YES
+#> 3             MVN              <NA>               <NA>    YES
+
+# Doornik-Hansen's test 
+dh_test <-
+    mvn(
+        trees,
+        mvnTest = "dh",
+        covariance = FALSE,
+        multivariatePlot = "qq"
+    )
 ```
 
-![](21-multivariate_files/figure-epub3/unnamed-chunk-1-2.png)<!-- -->
+<img src="21-multivariate_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
-mardia_test$multivariateNormality
-```
+dh_test$multivariateNormality
+#>             Test        E df      p value MVN
+#> 1 Doornik-Hansen 161.9446 10 1.285352e-29  NO
 
-```
-##              Test         Statistic            p value Result
-## 1 Mardia Skewness  29.7248528871795   0.72054426745778    YES
-## 2 Mardia Kurtosis -1.67743173185383 0.0934580886477281    YES
-## 3             MVN              <NA>               <NA>    YES
+# Henze-Zirkler's test 
+hz_test <-
+    mvn(
+        trees,
+        mvnTest = "hz",
+        covariance = FALSE,
+        multivariatePlot = "qq"
+    )
+hz_test$multivariateNormality
+#>            Test        HZ   p value MVN
+#> 1 Henze-Zirkler 0.7591525 0.6398905 YES
+# The last column indicates whether dataset follows a multivariate normality or not (i.e, YES or NO) at significance level 0.05.
+
+# Royston's test
+# can only apply for 3 < obs < 5000 (because of Shapiro-Wilk's test)
+royston_test <-
+    mvn(
+        trees,
+        mvnTest = "royston",
+        covariance = FALSE,
+        multivariatePlot = "qq"
+    )
+royston_test$multivariateNormality
+#>      Test        H    p value MVN
+#> 1 Royston 9.064631 0.08199215 YES
+
+
+# E-statistic
+estat_test <-
+    mvn(
+        trees,
+        mvnTest = "energy",
+        covariance = FALSE,
+        multivariatePlot = "qq"
+    )
+estat_test$multivariateNormality
+#>          Test Statistic p value MVN
+#> 1 E-statistic  1.091101   0.551 YES
 ```
 
 <br>
@@ -745,7 +693,7 @@ $$
 
 -   These intervals have the property that the probability that at least one such interval does not contain the appropriate $\mathbf{a' \mu}$ is no more than $\alpha$
 
--   These types of intervals can be used for "data snooping" (like [Scheffe])
+-   These types of intervals can be used for "data snooping" (like \[Scheffe\])
 
 <br>
 
@@ -761,7 +709,7 @@ $$
 
 -   But they ignore the covariance structure of the $p$ variables
 
--   If we only care about $k$ simultaneous intervals, we can use "one at a time" method with the [Bonferroni] correction.
+-   If we only care about $k$ simultaneous intervals, we can use "one at a time" method with the \[Bonferroni\] correction.
 
 -   This method gets more conservative as the number of intervals $k$ increases.
 
@@ -1089,16 +1037,13 @@ plants_ctr <- plants %>%
 # Use anova.mlm to calculate Wilks' lambda
 onesamp_fit <- anova(lm(plants_ctr ~ 1), test = "Wilks")
 onesamp_fit # can't reject the null of hypothesized vector of means
-```
-
-```
-## Analysis of Variance Table
-## 
-##             Df    Wilks approx F num Df den Df  Pr(>F)  
-## (Intercept)  1 0.054219   11.629      3      2 0.08022 .
-## Residuals    4                                          
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> Analysis of Variance Table
+#> 
+#>             Df    Wilks approx F num Df den Df  Pr(>F)  
+#> (Intercept)  1 0.054219   11.629      3      2 0.08022 .
+#> Residuals    4                                          
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
 
@@ -1122,18 +1067,12 @@ waste_diff <- waste %>%
 # Run the test
 paired_fit <- HotellingsT2(waste_diff)
 paired_fit # value T.2 in the output corresponds to the approximate F-value in the output from anova.mlm
-```
-
-```
-## 
-## 	Hotelling's one sample T2-test
-## 
-## data:  waste_diff
-## T.2 = 6.1377, df1 = 2, df2 = 9, p-value = 0.02083
-## alternative hypothesis: true location is not equal to c(0,0)
-```
-
-```r
+#> 
+#> 	Hotelling's one sample T2-test
+#> 
+#> data:  waste_diff
+#> T.2 = 6.1377, df1 = 2, df2 = 9, p-value = 0.02083
+#> alternative hypothesis: true location is not equal to c(0,0)
 # reject the null that the two labs' measurements are equal
 ```
 
@@ -1145,16 +1084,11 @@ paired_fit # value T.2 in the output corresponds to the approximate F-value in t
 steel <- read.table("images/steel.dat")
 names(steel) <- c("Temp", "Yield", "Strength")
 str(steel)
-```
+#> 'data.frame':	12 obs. of  3 variables:
+#>  $ Temp    : int  1 1 1 1 1 2 2 2 2 2 ...
+#>  $ Yield   : int  33 36 35 38 40 35 36 38 39 41 ...
+#>  $ Strength: int  60 61 64 63 65 57 59 59 61 63 ...
 
-```
-## 'data.frame':	12 obs. of  3 variables:
-##  $ Temp    : int  1 1 1 1 1 2 2 2 2 2 ...
-##  $ Yield   : int  33 36 35 38 40 35 36 38 39 41 ...
-##  $ Strength: int  60 61 64 63 65 57 59 59 61 63 ...
-```
-
-```r
 # Plot the data
 ggplot(steel, aes(x = Yield, y = Strength)) +
     geom_text(aes(label = Temp), size = 5) +
@@ -1166,58 +1100,45 @@ ggplot(steel, aes(x = Yield, y = Strength)) +
     ), col = "red")
 ```
 
-![](21-multivariate_files/figure-epub3/unnamed-chunk-4-1.png)<!-- -->
+<img src="21-multivariate_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
+
 # Bartlett's test for equality of covariance matrices
 # same thing as Box's M test in the multivariate setting
 bart_test <- boxM(steel[, -1], steel$Temp)
 bart_test # fail to reject the null of equal covariances 
-```
+#> 
+#> 	Box's M-test for Homogeneity of Covariance Matrices
+#> 
+#> data:  steel[, -1]
+#> Chi-Sq (approx.) = 0.38077, df = 3, p-value = 0.9442
 
-```
-## 
-## 	Box's M-test for Homogeneity of Covariance Matrices
-## 
-## data:  steel[, -1]
-## Chi-Sq (approx.) = 0.38077, df = 3, p-value = 0.9442
-```
-
-```r
 # anova.mlm
 twosamp_fit <-
     anova(lm(cbind(Yield, Strength) ~ factor(Temp), data = steel), test = "Wilks")
 twosamp_fit
-```
+#> Analysis of Variance Table
+#> 
+#>              Df    Wilks approx F num Df den Df    Pr(>F)    
+#> (Intercept)   1 0.001177   3818.1      2      9 6.589e-14 ***
+#> factor(Temp)  1 0.294883     10.8      2      9  0.004106 ** 
+#> Residuals    10                                              
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-```
-## Analysis of Variance Table
-## 
-##              Df    Wilks approx F num Df den Df    Pr(>F)    
-## (Intercept)   1 0.001177   3818.1      2      9 6.589e-14 ***
-## factor(Temp)  1 0.294883     10.8      2      9  0.004106 ** 
-## Residuals    10                                              
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-```
-
-```r
 # ICSNP package
 twosamp_fit2 <-
     HotellingsT2(cbind(steel$Yield, steel$Strength) ~ factor(steel$Temp))
 twosamp_fit2
-```
+#> 
+#> 	Hotelling's two sample T2-test
+#> 
+#> data:  cbind(steel$Yield, steel$Strength) by factor(steel$Temp)
+#> T.2 = 10.76, df1 = 2, df2 = 9, p-value = 0.004106
+#> alternative hypothesis: true location difference is not equal to c(0,0)
 
-```
-## 
-## 	Hotelling's two sample T2-test
-## 
-## data:  cbind(steel$Yield, steel$Strength) by factor(steel$Temp)
-## T.2 = 10.76, df1 = 2, df2 = 9, p-value = 0.004106
-## alternative hypothesis: true location difference is not equal to c(0,0)
-```
-
-```r
 # reject null. Hence, there is a difference in the means of the bivariate normal distributions 
 ```
 
@@ -1466,25 +1387,7 @@ If $H_0$ is true and n is large, $-(n-1- \frac{p+h}{2})\ln \Lambda^* \sim \chi^2
 
 library(car)
 library(emmeans)
-```
-
-```
-## Warning: package 'emmeans' was built under R version 4.0.5
-```
-
-```r
 library(profileR)
-```
-
-```
-## Warning: package 'profileR' was built under R version 4.0.5
-```
-
-```
-## Warning: package 'lavaan' was built under R version 4.0.5
-```
-
-```r
 library(tidyverse)
 
 ## Read in the data
@@ -1495,16 +1398,11 @@ names(gpagmat) <- c("y1", "y2", "admit")
 
 ## Check the structure
 str(gpagmat)
-```
+#> 'data.frame':	85 obs. of  3 variables:
+#>  $ y1   : num  2.96 3.14 3.22 3.29 3.69 3.46 3.03 3.19 3.63 3.59 ...
+#>  $ y2   : int  596 473 482 527 505 693 626 663 447 588 ...
+#>  $ admit: int  1 1 1 1 1 1 1 1 1 1 ...
 
-```
-## 'data.frame':	85 obs. of  3 variables:
-##  $ y1   : num  2.96 3.14 3.22 3.29 3.69 3.46 3.03 3.19 3.63 3.59 ...
-##  $ y2   : int  596 473 482 527 505 693 626 663 447 588 ...
-##  $ admit: int  1 1 1 1 1 1 1 1 1 1 ...
-```
-
-```r
 ## Plot the data
 gg <- ggplot(gpagmat, aes(x = y1, y = y2)) +
     geom_text(aes(label = admit, col = as.character(admit))) +
@@ -1516,17 +1414,11 @@ gg <- ggplot(gpagmat, aes(x = y1, y = y2)) +
 ## Fit one-way MANOVA
 oneway_fit <- manova(cbind(y1, y2) ~ admit, data = gpagmat)
 summary(oneway_fit, test = "Wilks")
-```
-
-```
-##           Df  Wilks approx F num Df den Df    Pr(>F)    
-## admit      1 0.6126   25.927      2     82 1.881e-09 ***
-## Residuals 83                                            
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-```
-
-```r
+#>           Df  Wilks approx F num Df den Df    Pr(>F)    
+#> admit      1 0.6126   25.927      2     82 1.881e-09 ***
+#> Residuals 83                                            
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 # reject the null of equal multivariate mean vectors between the three admmission groups
 ```
 
@@ -1563,111 +1455,97 @@ repeat_fit <-
         icontrasts = "contr.poly"
     )
 summary(repeat_fit) # can't reject the null hypothesis of sphericity, hence univariate ANOVA is also appropriate.
-```
-
-```
-## 
-## Type III Repeated Measures MANOVA Tests:
-## 
-## ------------------------------------------
-##  
-## Term: (Intercept) 
-## 
-##  Response transformation matrix:
-##        (Intercept)
-## begin            1
-## middle           1
-## final            1
-## 
-## Sum of squares and products for the hypothesis:
-##             (Intercept)
-## (Intercept)        1352
-## 
-## Multivariate Tests: (Intercept)
-##                  Df test stat approx F num Df den Df     Pr(>F)    
-## Pillai            1  0.896552 60.66667      1      7 0.00010808 ***
-## Wilks             1  0.103448 60.66667      1      7 0.00010808 ***
-## Hotelling-Lawley  1  8.666667 60.66667      1      7 0.00010808 ***
-## Roy               1  8.666667 60.66667      1      7 0.00010808 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## ------------------------------------------
-##  
-## Term: time 
-## 
-##  Response transformation matrix:
-##               time.L     time.Q
-## begin  -7.071068e-01  0.4082483
-## middle -7.850462e-17 -0.8164966
-## final   7.071068e-01  0.4082483
-## 
-## Sum of squares and products for the hypothesis:
-##           time.L   time.Q
-## time.L 18.062500 6.747781
-## time.Q  6.747781 2.520833
-## 
-## Multivariate Tests: time
-##                  Df test stat approx F num Df den Df   Pr(>F)  
-## Pillai            1 0.7080717 7.276498      2      6 0.024879 *
-## Wilks             1 0.2919283 7.276498      2      6 0.024879 *
-## Hotelling-Lawley  1 2.4254992 7.276498      2      6 0.024879 *
-## Roy               1 2.4254992 7.276498      2      6 0.024879 *
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Univariate Type III Repeated-Measures ANOVA Assuming Sphericity
-## 
-##             Sum Sq num Df Error SS den Df F value    Pr(>F)    
-## (Intercept) 450.67      1    52.00      7 60.6667 0.0001081 ***
-## time         20.58      2    24.75     14  5.8215 0.0144578 *  
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## 
-## Mauchly Tests for Sphericity
-## 
-##      Test statistic p-value
-## time         0.7085 0.35565
-## 
-## 
-## Greenhouse-Geisser and Huynh-Feldt Corrections
-##  for Departure from Sphericity
-## 
-##       GG eps Pr(>F[GG])  
-## time 0.77429    0.02439 *
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-##         HF eps Pr(>F[HF])
-## time 0.9528433 0.01611634
-```
-
-```r
+#> 
+#> Type III Repeated Measures MANOVA Tests:
+#> 
+#> ------------------------------------------
+#>  
+#> Term: (Intercept) 
+#> 
+#>  Response transformation matrix:
+#>        (Intercept)
+#> begin            1
+#> middle           1
+#> final            1
+#> 
+#> Sum of squares and products for the hypothesis:
+#>             (Intercept)
+#> (Intercept)        1352
+#> 
+#> Multivariate Tests: (Intercept)
+#>                  Df test stat approx F num Df den Df     Pr(>F)    
+#> Pillai            1  0.896552 60.66667      1      7 0.00010808 ***
+#> Wilks             1  0.103448 60.66667      1      7 0.00010808 ***
+#> Hotelling-Lawley  1  8.666667 60.66667      1      7 0.00010808 ***
+#> Roy               1  8.666667 60.66667      1      7 0.00010808 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> ------------------------------------------
+#>  
+#> Term: time 
+#> 
+#>  Response transformation matrix:
+#>               time.L     time.Q
+#> begin  -7.071068e-01  0.4082483
+#> middle -7.850462e-17 -0.8164966
+#> final   7.071068e-01  0.4082483
+#> 
+#> Sum of squares and products for the hypothesis:
+#>           time.L   time.Q
+#> time.L 18.062500 6.747781
+#> time.Q  6.747781 2.520833
+#> 
+#> Multivariate Tests: time
+#>                  Df test stat approx F num Df den Df   Pr(>F)  
+#> Pillai            1 0.7080717 7.276498      2      6 0.024879 *
+#> Wilks             1 0.2919283 7.276498      2      6 0.024879 *
+#> Hotelling-Lawley  1 2.4254992 7.276498      2      6 0.024879 *
+#> Roy               1 2.4254992 7.276498      2      6 0.024879 *
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Univariate Type III Repeated-Measures ANOVA Assuming Sphericity
+#> 
+#>             Sum Sq num Df Error SS den Df F value    Pr(>F)    
+#> (Intercept) 450.67      1    52.00      7 60.6667 0.0001081 ***
+#> time         20.58      2    24.75     14  5.8215 0.0144578 *  
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> 
+#> Mauchly Tests for Sphericity
+#> 
+#>      Test statistic p-value
+#> time         0.7085 0.35565
+#> 
+#> 
+#> Greenhouse-Geisser and Huynh-Feldt Corrections
+#>  for Departure from Sphericity
+#> 
+#>       GG eps Pr(>F[GG])  
+#> time 0.77429    0.02439 *
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#>         HF eps Pr(>F[HF])
+#> time 0.9528433 0.01611634
 # we also see linear significant time effect, but no quadratic time effect
 
 
 ## Polynomial contrasts
 # What is the reference for the marginal means?
 ref_grid(stress_mod, mult.name = "time")
-```
+#> 'emmGrid' object with variables:
+#>     1 = 1
+#>     time = multivariate response levels: begin, middle, final
 
-```
-## 'emmGrid' object with variables:
-##     1 = 1
-##     time = multivariate response levels: begin, middle, final
-```
-
-```r
 # marginal means for the levels of time
 contr_means <- emmeans(stress_mod, ~ time, mult.name = "time")
 contrast(contr_means, method = "poly")
-```
-
-```
-##  contrast  estimate    SE df t.ratio p.value
-##  linear        2.12 0.766  7   2.773  0.0276
-##  quadratic     1.38 0.944  7   1.457  0.1885
+#>  contrast  estimate    SE df t.ratio p.value
+#>  linear        2.12 0.766  7   2.773  0.0276
+#>  quadratic     1.38 0.944  7   1.457  0.1885
 ```
 
 
@@ -1683,19 +1561,14 @@ heart <- heart %>%
     mutate(subject = row_number()) %>%
     ungroup()
 str(heart)
-```
+#> tibble [24 x 6] (S3: tbl_df/tbl/data.frame)
+#>  $ drug   : chr [1:24] "ax23" "ax23" "ax23" "ax23" ...
+#>  $ y1     : int [1:24] 72 78 71 72 66 74 62 69 85 82 ...
+#>  $ y2     : int [1:24] 86 83 82 83 79 83 73 75 86 86 ...
+#>  $ y3     : int [1:24] 81 88 81 83 77 84 78 76 83 80 ...
+#>  $ y4     : int [1:24] 77 82 75 69 66 77 70 70 80 84 ...
+#>  $ subject: int [1:24] 1 2 3 4 5 6 7 8 1 2 ...
 
-```
-## tibble [24 x 6] (S3: tbl_df/tbl/data.frame)
-##  $ drug   : chr [1:24] "ax23" "ax23" "ax23" "ax23" ...
-##  $ y1     : int [1:24] 72 78 71 72 66 74 62 69 85 82 ...
-##  $ y2     : int [1:24] 86 83 82 83 79 83 73 75 86 86 ...
-##  $ y3     : int [1:24] 81 88 81 83 77 84 78 76 83 80 ...
-##  $ y4     : int [1:24] 77 82 75 69 66 77 70 70 80 84 ...
-##  $ subject: int [1:24] 1 2 3 4 5 6 7 8 1 2 ...
-```
-
-```r
 ## Create means summary for profile plot, pivot longer for plotting with ggplot
 heart_means <- heart %>%
     group_by(drug) %>%
@@ -1712,7 +1585,7 @@ gg_profile <- ggplot(heart_means, aes(x = time, y = mean)) +
 gg_profile
 ```
 
-![](21-multivariate_files/figure-epub3/unnamed-chunk-7-1.png)<!-- -->
+<img src="21-multivariate_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
@@ -1720,41 +1593,35 @@ gg_profile
 heart_mod <- lm(cbind(y1, y2, y3, y4) ~ drug, data = heart)
 man_fit <- car::Anova(heart_mod)
 summary(man_fit)
-```
-
-```
-## 
-## Type II MANOVA Tests:
-## 
-## Sum of squares and products for error:
-##        y1      y2      y3     y4
-## y1 641.00 601.750 535.250 426.00
-## y2 601.75 823.875 615.500 534.25
-## y3 535.25 615.500 655.875 555.25
-## y4 426.00 534.250 555.250 674.50
-## 
-## ------------------------------------------
-##  
-## Term: drug 
-## 
-## Sum of squares and products for the hypothesis:
-##        y1       y2       y3    y4
-## y1 567.00 335.2500  42.7500 387.0
-## y2 335.25 569.0833 404.5417 367.5
-## y3  42.75 404.5417 391.0833 171.0
-## y4 387.00 367.5000 171.0000 316.0
-## 
-## Multivariate Tests: drug
-##                  Df test stat  approx F num Df den Df     Pr(>F)    
-## Pillai            2  1.283456  8.508082      8     38 1.5010e-06 ***
-## Wilks             2  0.079007 11.509581      8     36 6.3081e-08 ***
-## Hotelling-Lawley  2  7.069384 15.022441      8     34 3.9048e-09 ***
-## Roy               2  6.346509 30.145916      4     19 5.4493e-08 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-```
-
-```r
+#> 
+#> Type II MANOVA Tests:
+#> 
+#> Sum of squares and products for error:
+#>        y1      y2      y3     y4
+#> y1 641.00 601.750 535.250 426.00
+#> y2 601.75 823.875 615.500 534.25
+#> y3 535.25 615.500 655.875 555.25
+#> y4 426.00 534.250 555.250 674.50
+#> 
+#> ------------------------------------------
+#>  
+#> Term: drug 
+#> 
+#> Sum of squares and products for the hypothesis:
+#>        y1       y2       y3    y4
+#> y1 567.00 335.2500  42.7500 387.0
+#> y2 335.25 569.0833 404.5417 367.5
+#> y3  42.75 404.5417 391.0833 171.0
+#> y4 387.00 367.5000 171.0000 316.0
+#> 
+#> Multivariate Tests: drug
+#>                  Df test stat  approx F num Df den Df     Pr(>F)    
+#> Pillai            2  1.283456  8.508082      8     38 1.5010e-06 ***
+#> Wilks             2  0.079007 11.509581      8     36 6.3081e-08 ***
+#> Hotelling-Lawley  2  7.069384 15.022441      8     34 3.9048e-09 ***
+#> Roy               2  6.346509 30.145916      4     19 5.4493e-08 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 # reject the null hypothesis of no difference in means between treatments
 ```
 
@@ -1770,16 +1637,11 @@ colnames(L) <- c("bww9:ctrl", "ax23:rest")
 rownames(L) <- unique(heart$drug)
 contrasts(heart$drug) <- L
 contrasts(heart$drug)
-```
+#>      bww9:ctrl ax23:rest
+#> ax23         0         2
+#> bww9         1        -1
+#> ctrl        -1        -1
 
-```
-##      bww9:ctrl ax23:rest
-## ax23         0         2
-## bww9         1        -1
-## ctrl        -1        -1
-```
-
-```r
 # do not set contrast L if you do further analysis (e.g., Anova, lm)
 # do M matrix instead
 
@@ -1789,16 +1651,11 @@ M <- matrix(c(1, -1, 0, 0,
 ## update model to test contrasts
 heart_mod2 <- update(heart_mod)
 coef(heart_mod2)
-```
+#>                  y1         y2        y3    y4
+#> (Intercept)   75.00 78.9583333 77.041667 74.75
+#> drugbww9:ctrl  4.50  5.8125000  3.562500  4.25
+#> drugax23:rest -2.25  0.7708333  1.979167 -0.75
 
-```
-##                  y1         y2        y3    y4
-## (Intercept)   75.00 78.9583333 77.041667 74.75
-## drugbww9:ctrl  4.50  5.8125000  3.562500  4.25
-## drugax23:rest -2.25  0.7708333  1.979167 -0.75
-```
-
-```r
 # Hypothesis test for bww9 vs control after transformation M
 # same as linearHypothesis(heart_mod, hypothesis.matrix = c(0,1,-1), P = M)
 bww9vctrl <-
@@ -1806,72 +1663,64 @@ bww9vctrl <-
                      hypothesis.matrix = c(0, 1, 0),
                      P = M)
 bww9vctrl
-```
+#> 
+#>  Response transformation matrix:
+#>    [,1] [,2] [,3]
+#> y1    1    0    0
+#> y2   -1    1    0
+#> y3    0   -1    1
+#> y4    0    0   -1
+#> 
+#> Sum of squares and products for the hypothesis:
+#>          [,1]   [,2]     [,3]
+#> [1,]  27.5625 -47.25  14.4375
+#> [2,] -47.2500  81.00 -24.7500
+#> [3,]  14.4375 -24.75   7.5625
+#> 
+#> Sum of squares and products for error:
+#>          [,1]     [,2]    [,3]
+#> [1,]  261.375 -141.875  28.000
+#> [2,] -141.875  248.750 -19.375
+#> [3,]   28.000  -19.375 219.875
+#> 
+#> Multivariate Tests: 
+#>                  Df test stat approx F num Df den Df Pr(>F)
+#> Pillai            1 0.2564306 2.184141      3     19 0.1233
+#> Wilks             1 0.7435694 2.184141      3     19 0.1233
+#> Hotelling-Lawley  1 0.3448644 2.184141      3     19 0.1233
+#> Roy               1 0.3448644 2.184141      3     19 0.1233
 
-```
-## 
-##  Response transformation matrix:
-##    [,1] [,2] [,3]
-## y1    1    0    0
-## y2   -1    1    0
-## y3    0   -1    1
-## y4    0    0   -1
-## 
-## Sum of squares and products for the hypothesis:
-##          [,1]   [,2]     [,3]
-## [1,]  27.5625 -47.25  14.4375
-## [2,] -47.2500  81.00 -24.7500
-## [3,]  14.4375 -24.75   7.5625
-## 
-## Sum of squares and products for error:
-##          [,1]     [,2]    [,3]
-## [1,]  261.375 -141.875  28.000
-## [2,] -141.875  248.750 -19.375
-## [3,]   28.000  -19.375 219.875
-## 
-## Multivariate Tests: 
-##                  Df test stat approx F num Df den Df Pr(>F)
-## Pillai            1 0.2564306 2.184141      3     19 0.1233
-## Wilks             1 0.7435694 2.184141      3     19 0.1233
-## Hotelling-Lawley  1 0.3448644 2.184141      3     19 0.1233
-## Roy               1 0.3448644 2.184141      3     19 0.1233
-```
-
-```r
 bww9vctrl <-
     car::linearHypothesis(heart_mod,
                      hypothesis.matrix = c(0, 1, -1),
                      P = M)
 bww9vctrl
-```
-
-```
-## 
-##  Response transformation matrix:
-##    [,1] [,2] [,3]
-## y1    1    0    0
-## y2   -1    1    0
-## y3    0   -1    1
-## y4    0    0   -1
-## 
-## Sum of squares and products for the hypothesis:
-##          [,1]   [,2]     [,3]
-## [1,]  27.5625 -47.25  14.4375
-## [2,] -47.2500  81.00 -24.7500
-## [3,]  14.4375 -24.75   7.5625
-## 
-## Sum of squares and products for error:
-##          [,1]     [,2]    [,3]
-## [1,]  261.375 -141.875  28.000
-## [2,] -141.875  248.750 -19.375
-## [3,]   28.000  -19.375 219.875
-## 
-## Multivariate Tests: 
-##                  Df test stat approx F num Df den Df Pr(>F)
-## Pillai            1 0.2564306 2.184141      3     19 0.1233
-## Wilks             1 0.7435694 2.184141      3     19 0.1233
-## Hotelling-Lawley  1 0.3448644 2.184141      3     19 0.1233
-## Roy               1 0.3448644 2.184141      3     19 0.1233
+#> 
+#>  Response transformation matrix:
+#>    [,1] [,2] [,3]
+#> y1    1    0    0
+#> y2   -1    1    0
+#> y3    0   -1    1
+#> y4    0    0   -1
+#> 
+#> Sum of squares and products for the hypothesis:
+#>          [,1]   [,2]     [,3]
+#> [1,]  27.5625 -47.25  14.4375
+#> [2,] -47.2500  81.00 -24.7500
+#> [3,]  14.4375 -24.75   7.5625
+#> 
+#> Sum of squares and products for error:
+#>          [,1]     [,2]    [,3]
+#> [1,]  261.375 -141.875  28.000
+#> [2,] -141.875  248.750 -19.375
+#> [3,]   28.000  -19.375 219.875
+#> 
+#> Multivariate Tests: 
+#>                  Df test stat approx F num Df den Df Pr(>F)
+#> Pillai            1 0.2564306 2.184141      3     19 0.1233
+#> Wilks             1 0.7435694 2.184141      3     19 0.1233
+#> Hotelling-Lawley  1 0.3448644 2.184141      3     19 0.1233
+#> Roy               1 0.3448644 2.184141      3     19 0.1233
 ```
 
 there is no significant difference in means between the control and bww9 drug
@@ -1884,76 +1733,68 @@ axx23vrest <-
                      hypothesis.matrix = c(0, 0, 1),
                      P = M)
 axx23vrest
-```
+#> 
+#>  Response transformation matrix:
+#>    [,1] [,2] [,3]
+#> y1    1    0    0
+#> y2   -1    1    0
+#> y3    0   -1    1
+#> y4    0    0   -1
+#> 
+#> Sum of squares and products for the hypothesis:
+#>           [,1]       [,2]      [,3]
+#> [1,]  438.0208  175.20833 -395.7292
+#> [2,]  175.2083   70.08333 -158.2917
+#> [3,] -395.7292 -158.29167  357.5208
+#> 
+#> Sum of squares and products for error:
+#>          [,1]     [,2]    [,3]
+#> [1,]  261.375 -141.875  28.000
+#> [2,] -141.875  248.750 -19.375
+#> [3,]   28.000  -19.375 219.875
+#> 
+#> Multivariate Tests: 
+#>                  Df test stat approx F num Df den Df     Pr(>F)    
+#> Pillai            1  0.855364 37.45483      3     19 3.5484e-08 ***
+#> Wilks             1  0.144636 37.45483      3     19 3.5484e-08 ***
+#> Hotelling-Lawley  1  5.913921 37.45483      3     19 3.5484e-08 ***
+#> Roy               1  5.913921 37.45483      3     19 3.5484e-08 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-```
-## 
-##  Response transformation matrix:
-##    [,1] [,2] [,3]
-## y1    1    0    0
-## y2   -1    1    0
-## y3    0   -1    1
-## y4    0    0   -1
-## 
-## Sum of squares and products for the hypothesis:
-##           [,1]       [,2]      [,3]
-## [1,]  438.0208  175.20833 -395.7292
-## [2,]  175.2083   70.08333 -158.2917
-## [3,] -395.7292 -158.29167  357.5208
-## 
-## Sum of squares and products for error:
-##          [,1]     [,2]    [,3]
-## [1,]  261.375 -141.875  28.000
-## [2,] -141.875  248.750 -19.375
-## [3,]   28.000  -19.375 219.875
-## 
-## Multivariate Tests: 
-##                  Df test stat approx F num Df den Df     Pr(>F)    
-## Pillai            1  0.855364 37.45483      3     19 3.5484e-08 ***
-## Wilks             1  0.144636 37.45483      3     19 3.5484e-08 ***
-## Hotelling-Lawley  1  5.913921 37.45483      3     19 3.5484e-08 ***
-## Roy               1  5.913921 37.45483      3     19 3.5484e-08 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-```
-
-```r
 axx23vrest <-
     car::linearHypothesis(heart_mod,
                      hypothesis.matrix = c(2, -1, 1),
                      P = M)
 axx23vrest
-```
-
-```
-## 
-##  Response transformation matrix:
-##    [,1] [,2] [,3]
-## y1    1    0    0
-## y2   -1    1    0
-## y3    0   -1    1
-## y4    0    0   -1
-## 
-## Sum of squares and products for the hypothesis:
-##           [,1]       [,2]      [,3]
-## [1,]  402.5208  127.41667 -390.9375
-## [2,]  127.4167   40.33333 -123.7500
-## [3,] -390.9375 -123.75000  379.6875
-## 
-## Sum of squares and products for error:
-##          [,1]     [,2]    [,3]
-## [1,]  261.375 -141.875  28.000
-## [2,] -141.875  248.750 -19.375
-## [3,]   28.000  -19.375 219.875
-## 
-## Multivariate Tests: 
-##                  Df test stat approx F num Df den Df     Pr(>F)    
-## Pillai            1  0.842450 33.86563      3     19 7.9422e-08 ***
-## Wilks             1  0.157550 33.86563      3     19 7.9422e-08 ***
-## Hotelling-Lawley  1  5.347205 33.86563      3     19 7.9422e-08 ***
-## Roy               1  5.347205 33.86563      3     19 7.9422e-08 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#>  Response transformation matrix:
+#>    [,1] [,2] [,3]
+#> y1    1    0    0
+#> y2   -1    1    0
+#> y3    0   -1    1
+#> y4    0    0   -1
+#> 
+#> Sum of squares and products for the hypothesis:
+#>           [,1]       [,2]      [,3]
+#> [1,]  402.5208  127.41667 -390.9375
+#> [2,]  127.4167   40.33333 -123.7500
+#> [3,] -390.9375 -123.75000  379.6875
+#> 
+#> Sum of squares and products for error:
+#>          [,1]     [,2]    [,3]
+#> [1,]  261.375 -141.875  28.000
+#> [2,] -141.875  248.750 -19.375
+#> [3,]   28.000  -19.375 219.875
+#> 
+#> Multivariate Tests: 
+#>                  Df test stat approx F num Df den Df     Pr(>F)    
+#> Pillai            1  0.842450 33.86563      3     19 7.9422e-08 ***
+#> Wilks             1  0.157550 33.86563      3     19 7.9422e-08 ***
+#> Hotelling-Lawley  1  5.347205 33.86563      3     19 7.9422e-08 ***
+#> Roy               1  5.347205 33.86563      3     19 7.9422e-08 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
 there is a significant difference in means between ax23 drug treatment and the rest of the treatments
@@ -2271,34 +2112,28 @@ profile_fit <-
         profile.plot = FALSE
     )
 summary(profile_fit)
-```
-
-```
-## Call:
-## pbg(data = as.matrix(heart[, 2:5]), group = as.matrix(heart[, 
-##     1]), original.names = TRUE, profile.plot = FALSE)
-## 
-## Hypothesis Tests:
-## $`Ho: Profiles are parallel`
-##   Multivariate.Test Statistic  Approx.F num.df den.df      p.value
-## 1             Wilks 0.1102861 12.737599      6     38 7.891497e-08
-## 2            Pillai 1.0891707  7.972007      6     40 1.092397e-05
-## 3  Hotelling-Lawley 6.2587852 18.776356      6     36 9.258571e-10
-## 4               Roy 5.9550887 39.700592      3     20 1.302458e-08
-## 
-## $`Ho: Profiles have equal levels`
-##             Df Sum Sq Mean Sq F value  Pr(>F)   
-## group        2  328.7  164.35   5.918 0.00915 **
-## Residuals   21  583.2   27.77                   
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## $`Ho: Profiles are flat`
-##          F df1 df2      p-value
-## 1 14.30928   3  19 4.096803e-05
-```
-
-```r
+#> Call:
+#> pbg(data = as.matrix(heart[, 2:5]), group = as.matrix(heart[, 
+#>     1]), original.names = TRUE, profile.plot = FALSE)
+#> 
+#> Hypothesis Tests:
+#> $`Ho: Profiles are parallel`
+#>   Multivariate.Test Statistic  Approx.F num.df den.df      p.value
+#> 1             Wilks 0.1102861 12.737599      6     38 7.891497e-08
+#> 2            Pillai 1.0891707  7.972007      6     40 1.092397e-05
+#> 3  Hotelling-Lawley 6.2587852 18.776356      6     36 9.258571e-10
+#> 4               Roy 5.9550887 39.700592      3     20 1.302458e-08
+#> 
+#> $`Ho: Profiles have equal levels`
+#>             Df Sum Sq Mean Sq F value  Pr(>F)   
+#> group        2  328.7  164.35   5.918 0.00915 **
+#> Residuals   21  583.2   27.77                   
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> $`Ho: Profiles are flat`
+#>          F df1 df2      p-value
+#> 1 14.30928   3  19 4.096803e-05
 # reject null hypothesis of parallel profiles
 # reject the null hypothesis of coincidental profiles
 # reject the null hypothesis that the profiles are flat
@@ -2306,7 +2141,7 @@ summary(profile_fit)
 
 ### Summary
 
-![](images/MANOVA_summary.PNG "MANOVA summary")
+![](images/MANOVA_summary.PNG "MANOVA summary"){style="display: block; margin: 1em auto" width="90%"}
 
 <br>
 
@@ -2392,31 +2227,13 @@ $$
 
 ```r
 library(MASS)
-```
-
-```
-## Warning: package 'MASS' was built under R version 4.0.5
-```
-
-```
-## 
-## Attaching package: 'MASS'
-```
-
-```
-## The following object is masked from 'package:dplyr':
-## 
-##     select
-```
-
-```r
 mu = as.matrix(c(5,12))
 Sigma = matrix(c(4,1,1,2),nrow = 2, byrow = T)
 sim <- mvrnorm(n = 1000, mu = mu, Sigma = Sigma)
 plot(sim[,1],sim[,2])
 ```
 
-![](21-multivariate_files/figure-epub3/unnamed-chunk-12-1.png)<!-- -->
+<img src="21-multivariate_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
 
 Here,
 
@@ -2467,20 +2284,15 @@ $$
 ```r
 A_matrix = matrix(c(0.9239,-0.3827,0.3827,0.9239),nrow = 2, byrow = T)
 t(A_matrix) %*% A_matrix
-```
+#>          [,1]     [,2]
+#> [1,] 1.000051 0.000000
+#> [2,] 0.000000 1.000051
 
-```
-##          [,1]     [,2]
-## [1,] 1.000051 0.000000
-## [2,] 0.000000 1.000051
-```
-
-```r
 sim1 <- mvrnorm(n = 1000, mu = t(A_matrix) %*% mu, Sigma = t(A_matrix) %*% Sigma %*% A_matrix)
 plot(sim1[,1],sim1[,2])
 ```
 
-![](21-multivariate_files/figure-epub3/unnamed-chunk-13-1.png)<!-- -->
+<img src="21-multivariate_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
 
 No more dependence in the data structure, plot
 
@@ -2567,7 +2379,7 @@ $$
 r_{x_l , \hat{y}_i} = \frac{\hat{a}_{il}\sqrt{\lambda_i}}{\sqrt{s_{ll}}}
 $$
 
--   The correlation coefficient is typically used to interpret the components (i.e., if this correlation is high then it suggests that the l-th original trait is important in the i-th principle component). According to [@Johnson_1988, pp.433-434], $r_{x_l, \hat{y}_i}$ only measures the univariate contribution of an individual X to a component Y without taking into account the presence of the other X's. Hence, some prefer $\hat{a}_{il}$ coefficient to interpret the principal component.
+-   The correlation coefficient is typically used to interpret the components (i.e., if this correlation is high then it suggests that the l-th original trait is important in the i-th principle component). According to \[@Johnson_1988, pp.433-434\], $r_{x_l, \hat{y}_i}$ only measures the univariate contribution of an individual X to a component Y without taking into account the presence of the other X's. Hence, some prefer $\hat{a}_{il}$ coefficient to interpret the principal component.
 
 -   $r_{x_l, \hat{y}_i} ; \hat{a}_{il}$ are referred to as "loadings"
 
@@ -2651,46 +2463,31 @@ library(tidyverse)
 stock <- read.table("images/stock.dat")
 names(stock) <- c("allied", "dupont", "carbide", "exxon", "texaco")
 str(stock)
-```
+#> 'data.frame':	100 obs. of  5 variables:
+#>  $ allied : num  0 0.027 0.1228 0.057 0.0637 ...
+#>  $ dupont : num  0 -0.04485 0.06077 0.02995 -0.00379 ...
+#>  $ carbide: num  0 -0.00303 0.08815 0.06681 -0.03979 ...
+#>  $ exxon  : num  0.0395 -0.0145 0.0862 0.0135 -0.0186 ...
+#>  $ texaco : num  0 0.0435 0.0781 0.0195 -0.0242 ...
 
-```
-## 'data.frame':	100 obs. of  5 variables:
-##  $ allied : num  0 0.027 0.1228 0.057 0.0637 ...
-##  $ dupont : num  0 -0.04485 0.06077 0.02995 -0.00379 ...
-##  $ carbide: num  0 -0.00303 0.08815 0.06681 -0.03979 ...
-##  $ exxon  : num  0.0395 -0.0145 0.0862 0.0135 -0.0186 ...
-##  $ texaco : num  0 0.0435 0.0781 0.0195 -0.0242 ...
-```
-
-```r
 ## Covariance matrix of data
 cov(stock)
-```
+#>               allied       dupont      carbide        exxon       texaco
+#> allied  0.0016299269 0.0008166676 0.0008100713 0.0004422405 0.0005139715
+#> dupont  0.0008166676 0.0012293759 0.0008276330 0.0003868550 0.0003109431
+#> carbide 0.0008100713 0.0008276330 0.0015560763 0.0004872816 0.0004624767
+#> exxon   0.0004422405 0.0003868550 0.0004872816 0.0008023323 0.0004084734
+#> texaco  0.0005139715 0.0003109431 0.0004624767 0.0004084734 0.0007587370
 
-```
-##               allied       dupont      carbide        exxon       texaco
-## allied  0.0016299269 0.0008166676 0.0008100713 0.0004422405 0.0005139715
-## dupont  0.0008166676 0.0012293759 0.0008276330 0.0003868550 0.0003109431
-## carbide 0.0008100713 0.0008276330 0.0015560763 0.0004872816 0.0004624767
-## exxon   0.0004422405 0.0003868550 0.0004872816 0.0008023323 0.0004084734
-## texaco  0.0005139715 0.0003109431 0.0004624767 0.0004084734 0.0007587370
-```
-
-```r
 ## Correlation matrix of data
 cor(stock)
-```
+#>            allied    dupont   carbide     exxon    texaco
+#> allied  1.0000000 0.5769244 0.5086555 0.3867206 0.4621781
+#> dupont  0.5769244 1.0000000 0.5983841 0.3895191 0.3219534
+#> carbide 0.5086555 0.5983841 1.0000000 0.4361014 0.4256266
+#> exxon   0.3867206 0.3895191 0.4361014 1.0000000 0.5235293
+#> texaco  0.4621781 0.3219534 0.4256266 0.5235293 1.0000000
 
-```
-##            allied    dupont   carbide     exxon    texaco
-## allied  1.0000000 0.5769244 0.5086555 0.3867206 0.4621781
-## dupont  0.5769244 1.0000000 0.5983841 0.3895191 0.3219534
-## carbide 0.5086555 0.5983841 1.0000000 0.4361014 0.4256266
-## exxon   0.3867206 0.3895191 0.4361014 1.0000000 0.5235293
-## texaco  0.4621781 0.3219534 0.4256266 0.5235293 1.0000000
-```
-
-```r
 # cov(scale(stock)) # give the same result
 
 ## PCA with covariance
@@ -2702,32 +2499,21 @@ cov_results <- data.frame(eigen_values = cov_pca$sdev ^ 2)
 cov_results %>%
     mutate(proportion = eigen_values / sum(eigen_values),
            cumulative = cumsum(proportion)) # first 2 PCs account for 73% variance in the data
-```
+#>   eigen_values proportion cumulative
+#> 1 0.0035953867 0.60159252  0.6015925
+#> 2 0.0007921798 0.13255027  0.7341428
+#> 3 0.0007364426 0.12322412  0.8573669
+#> 4 0.0005086686 0.08511218  0.9424791
+#> 5 0.0003437707 0.05752091  1.0000000
 
-```
-##   eigen_values proportion cumulative
-## 1 0.0035953867 0.60159252  0.6015925
-## 2 0.0007921798 0.13255027  0.7341428
-## 3 0.0007364426 0.12322412  0.8573669
-## 4 0.0005086686 0.08511218  0.9424791
-## 5 0.0003437707 0.05752091  1.0000000
-```
-
-```r
 # eigen vectors
 cov_pca$rotation # prcomp calls rotation
-```
-
-```
-##               PC1         PC2        PC3         PC4         PC5
-## allied  0.5605914  0.73884565 -0.1260222  0.28373183 -0.20846832
-## dupont  0.4698673 -0.09286987 -0.4675066 -0.68793190  0.28069055
-## carbide 0.5473322 -0.65401929 -0.1140581  0.50045312 -0.09603973
-## exxon   0.2908932 -0.11267353  0.6099196 -0.43808002 -0.58203935
-## texaco  0.2842017  0.07103332  0.6168831  0.06227778  0.72784638
-```
-
-```r
+#>               PC1         PC2        PC3         PC4         PC5
+#> allied  0.5605914  0.73884565 -0.1260222  0.28373183 -0.20846832
+#> dupont  0.4698673 -0.09286987 -0.4675066 -0.68793190  0.28069055
+#> carbide 0.5473322 -0.65401929 -0.1140581  0.50045312 -0.09603973
+#> exxon   0.2908932 -0.11267353  0.6099196 -0.43808002 -0.58203935
+#> texaco  0.2842017  0.07103332  0.6168831  0.06227778  0.72784638
 # princomp calls loadings.
 
 # first PC = overall average
@@ -2744,34 +2530,23 @@ cor_results <- data.frame(eigen_values = cor_pca$sdev ^ 2)
 cor_results %>%
     mutate(proportion = eigen_values / sum(eigen_values),
            cumulative = cumsum(proportion))
-```
+#>   eigen_values proportion cumulative
+#> 1    2.8564869 0.57129738  0.5712974
+#> 2    0.8091185 0.16182370  0.7331211
+#> 3    0.5400440 0.10800880  0.8411299
+#> 4    0.4513468 0.09026936  0.9313992
+#> 5    0.3430038 0.06860076  1.0000000
 
-```
-##   eigen_values proportion cumulative
-## 1    2.8564869 0.57129738  0.5712974
-## 2    0.8091185 0.16182370  0.7331211
-## 3    0.5400440 0.10800880  0.8411299
-## 4    0.4513468 0.09026936  0.9313992
-## 5    0.3430038 0.06860076  1.0000000
-```
-
-```r
 # first egiven values corresponds to less variance than PCA based on the covariance matrix
 
 # eigen vectors
 cor_pca$rotation
-```
-
-```
-##               PC1        PC2        PC3        PC4        PC5
-## allied  0.4635405 -0.2408499  0.6133570 -0.3813727  0.4532876
-## dupont  0.4570764 -0.5090997 -0.1778996 -0.2113068 -0.6749814
-## carbide 0.4699804 -0.2605774 -0.3370355  0.6640985  0.3957247
-## exxon   0.4216770  0.5252647 -0.5390181 -0.4728036  0.1794482
-## texaco  0.4213291  0.5822416  0.4336029  0.3812273 -0.3874672
-```
-
-```r
+#>               PC1        PC2        PC3        PC4        PC5
+#> allied  0.4635405 -0.2408499  0.6133570 -0.3813727  0.4532876
+#> dupont  0.4570764 -0.5090997 -0.1778996 -0.2113068 -0.6749814
+#> carbide 0.4699804 -0.2605774 -0.3370355  0.6640985  0.3957247
+#> exxon   0.4216770  0.5252647 -0.5390181 -0.4728036  0.1794482
+#> texaco  0.4213291  0.5822416  0.4336029  0.3812273 -0.3874672
 # interpretation of PC2 is different from above: it is a comparison of Allied, Dupont and Carbid to Exxon and Texaco 
 ```
 
@@ -2785,31 +2560,29 @@ load('images/MOcovid.RData')
 covidpca <- prcomp(ndat[,-1],scale = T,center = T)
 
 covidpca$rotation[,1:2]
-```
+#>                                                          PC1         PC2
+#> X..Population.in.Rural.Areas                      0.32865838  0.05090955
+#> Area..sq..miles.                                  0.12014444 -0.28579183
+#> Population.density..sq..miles.                   -0.29670124  0.28312922
+#> Literacy.rate                                    -0.12517700 -0.08999542
+#> Families                                         -0.25856941  0.16485752
+#> Area.of.farm.land..sq..miles.                     0.02101106 -0.31070363
+#> Number.of.farms                                  -0.03814582 -0.44809679
+#> Average.value.of.all.property.per.farm..dollars. -0.05410709  0.14404306
+#> Estimation.of.rurality..                         -0.19040210  0.12089501
+#> Male..                                            0.02182394 -0.09568768
+#> Number.of.Physcians.per.100.000                  -0.31451606  0.13598026
+#> average.age                                       0.29414708  0.35593459
+#> X0.4.age.proportion                              -0.11431336 -0.23574057
+#> X20.44.age.proportion                            -0.32802128 -0.22718550
+#> X65.and.over.age.proportion                       0.30585033  0.32201626
+#> prop..White..nonHisp                              0.35627561 -0.14142646
+#> prop..Hispanic                                   -0.16655381 -0.15105342
+#> prop..Black                                      -0.33333359  0.24405802
 
-```
-##                                                          PC1         PC2
-## X..Population.in.Rural.Areas                      0.32865838  0.05090955
-## Area..sq..miles.                                  0.12014444 -0.28579183
-## Population.density..sq..miles.                   -0.29670124  0.28312922
-## Literacy.rate                                    -0.12517700 -0.08999542
-## Families                                         -0.25856941  0.16485752
-## Area.of.farm.land..sq..miles.                     0.02101106 -0.31070363
-## Number.of.farms                                  -0.03814582 -0.44809679
-## Average.value.of.all.property.per.farm..dollars. -0.05410709  0.14404306
-## Estimation.of.rurality..                         -0.19040210  0.12089501
-## Male..                                            0.02182394 -0.09568768
-## Number.of.Physcians.per.100.000                  -0.31451606  0.13598026
-## average.age                                       0.29414708  0.35593459
-## X0.4.age.proportion                              -0.11431336 -0.23574057
-## X20.44.age.proportion                            -0.32802128 -0.22718550
-## X65.and.over.age.proportion                       0.30585033  0.32201626
-## prop..White..nonHisp                              0.35627561 -0.14142646
-## prop..Hispanic                                   -0.16655381 -0.15105342
-## prop..Black                                      -0.33333359  0.24405802
-```
 
-```r
+
+
 # Variability of each principal component: pr.var
 pr.var <- covidpca$sdev ^ 2
 # Variance explained by each principal component: pve
@@ -2823,9 +2596,10 @@ plot(
 )
 ```
 
-![](21-multivariate_files/figure-epub3/unnamed-chunk-15-1.png)<!-- -->
+<img src="21-multivariate_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 plot(
     cumsum(pve),
     xlab = "Principal Component",
@@ -2835,9 +2609,10 @@ plot(
 )
 ```
 
-![](21-multivariate_files/figure-epub3/unnamed-chunk-15-2.png)<!-- -->
+<img src="21-multivariate_files/figure-html/unnamed-chunk-15-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 # the first six principe account for around 80% of the variance. 
 
 
@@ -2846,20 +2621,12 @@ pcadat <- data.frame(covidpca$x[, 1:6])
 pcadat$y <- ndat$Y
 pcr.man <- lm(log(y) ~ ., pcadat)
 mean(pcr.man$residuals ^ 2)
-```
+#> [1] 0.03453371
 
-```
-## [1] 0.03453371
-```
-
-```r
 #comparison to lm w/o prin comps
 lm.fit <- lm(log(Y) ~ ., data = ndat)
 mean(lm.fit$residuals ^ 2)
-```
-
-```
-## [1] 0.02335128
+#> [1] 0.02335128
 ```
 
 MSE for the PC-based model is larger than regular regression, because models with a large degree of collinearity can still perform well.
@@ -3256,74 +3023,34 @@ In the `psych` package,
 
 ```r
 library(psych)
-```
-
-```
-## Warning: package 'psych' was built under R version 4.0.5
-```
-
-```
-## 
-## Attaching package: 'psych'
-```
-
-```
-## The following object is masked from 'package:lavaan':
-## 
-##     cor2cov
-```
-
-```
-## The following objects are masked from 'package:ggplot2':
-## 
-##     %+%, alpha
-```
-
-```
-## The following object is masked from 'package:car':
-## 
-##     logit
-```
-
-```r
 library(tidyverse)
 ## Load the data from the psych package
 data(Harman.5)
 Harman.5
-```
+#>         population schooling employment professional housevalue
+#> Tract1        5700      12.8       2500          270      25000
+#> Tract2        1000      10.9        600           10      10000
+#> Tract3        3400       8.8       1000           10       9000
+#> Tract4        3800      13.6       1700          140      25000
+#> Tract5        4000      12.8       1600          140      25000
+#> Tract6        8200       8.3       2600           60      12000
+#> Tract7        1200      11.4        400           10      16000
+#> Tract8        9100      11.5       3300           60      14000
+#> Tract9        9900      12.5       3400          180      18000
+#> Tract10       9600      13.7       3600          390      25000
+#> Tract11       9600       9.6       3300           80      12000
+#> Tract12       9400      11.4       4000          100      13000
 
-```
-##         population schooling employment professional housevalue
-## Tract1        5700      12.8       2500          270      25000
-## Tract2        1000      10.9        600           10      10000
-## Tract3        3400       8.8       1000           10       9000
-## Tract4        3800      13.6       1700          140      25000
-## Tract5        4000      12.8       1600          140      25000
-## Tract6        8200       8.3       2600           60      12000
-## Tract7        1200      11.4        400           10      16000
-## Tract8        9100      11.5       3300           60      14000
-## Tract9        9900      12.5       3400          180      18000
-## Tract10       9600      13.7       3600          390      25000
-## Tract11       9600       9.6       3300           80      12000
-## Tract12       9400      11.4       4000          100      13000
-```
-
-```r
 # Correlation matrix
 cor_mat <- cor(Harman.5)
 cor_mat
-```
+#>              population  schooling employment professional housevalue
+#> population   1.00000000 0.00975059  0.9724483    0.4388708 0.02241157
+#> schooling    0.00975059 1.00000000  0.1542838    0.6914082 0.86307009
+#> employment   0.97244826 0.15428378  1.0000000    0.5147184 0.12192599
+#> professional 0.43887083 0.69140824  0.5147184    1.0000000 0.77765425
+#> housevalue   0.02241157 0.86307009  0.1219260    0.7776543 1.00000000
 
-```
-##              population  schooling employment professional housevalue
-## population   1.00000000 0.00975059  0.9724483    0.4388708 0.02241157
-## schooling    0.00975059 1.00000000  0.1542838    0.6914082 0.86307009
-## employment   0.97244826 0.15428378  1.0000000    0.5147184 0.12192599
-## professional 0.43887083 0.69140824  0.5147184    1.0000000 0.77765425
-## housevalue   0.02241157 0.86307009  0.1219260    0.7776543 1.00000000
-```
-
-```r
 ## Principal Component Method with Correlation
 cor_pca <- prcomp(Harman.5, scale = T)
 # eigen values
@@ -3336,18 +3063,13 @@ cor_results <- cor_results %>%
         number = row_number()
     )
 cor_results
-```
+#>   eigen_values  proportion cumulative number
+#> 1   2.87331359 0.574662719  0.5746627      1
+#> 2   1.79666009 0.359332019  0.9339947      2
+#> 3   0.21483689 0.042967377  0.9769621      3
+#> 4   0.09993405 0.019986811  0.9969489      4
+#> 5   0.01525537 0.003051075  1.0000000      5
 
-```
-##   eigen_values  proportion cumulative number
-## 1   2.87331359 0.574662719  0.5746627      1
-## 2   1.79666009 0.359332019  0.9339947      2
-## 3   0.21483689 0.042967377  0.9769621      3
-## 4   0.09993405 0.019986811  0.9969489      4
-## 5   0.01525537 0.003051075  1.0000000      5
-```
-
-```r
 # Scree plot of Eigenvalues
 scree_gg <- ggplot(cor_results, aes(x = number, y = eigen_values)) +
     geom_line(alpha = 0.5) +
@@ -3358,48 +3080,45 @@ scree_gg <- ggplot(cor_results, aes(x = number, y = eigen_values)) +
 scree_gg
 ```
 
-![](21-multivariate_files/figure-epub3/unnamed-chunk-16-1.png)<!-- -->
+<img src="21-multivariate_files/figure-html/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 screeplot(cor_pca, type = 'lines')
 ```
 
-![](21-multivariate_files/figure-epub3/unnamed-chunk-16-2.png)<!-- -->
+<img src="21-multivariate_files/figure-html/unnamed-chunk-16-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 ## Keep 2 factors based on scree plot and eigenvalues
 factor_pca <- principal(Harman.5, nfactors = 2, rotate = "none")
 factor_pca
-```
+#> Principal Components Analysis
+#> Call: principal(r = Harman.5, nfactors = 2, rotate = "none")
+#> Standardized loadings (pattern matrix) based upon correlation matrix
+#>               PC1   PC2   h2    u2 com
+#> population   0.58  0.81 0.99 0.012 1.8
+#> schooling    0.77 -0.54 0.89 0.115 1.8
+#> employment   0.67  0.73 0.98 0.021 2.0
+#> professional 0.93 -0.10 0.88 0.120 1.0
+#> housevalue   0.79 -0.56 0.94 0.062 1.8
+#> 
+#>                        PC1  PC2
+#> SS loadings           2.87 1.80
+#> Proportion Var        0.57 0.36
+#> Cumulative Var        0.57 0.93
+#> Proportion Explained  0.62 0.38
+#> Cumulative Proportion 0.62 1.00
+#> 
+#> Mean item complexity =  1.7
+#> Test of the hypothesis that 2 components are sufficient.
+#> 
+#> The root mean square of the residuals (RMSR) is  0.03 
+#>  with the empirical chi square  0.29  with prob <  0.59 
+#> 
+#> Fit based upon off diagonal values = 1
 
-```
-## Principal Components Analysis
-## Call: principal(r = Harman.5, nfactors = 2, rotate = "none")
-## Standardized loadings (pattern matrix) based upon correlation matrix
-##               PC1   PC2   h2    u2 com
-## population   0.58  0.81 0.99 0.012 1.8
-## schooling    0.77 -0.54 0.89 0.115 1.8
-## employment   0.67  0.73 0.98 0.021 2.0
-## professional 0.93 -0.10 0.88 0.120 1.0
-## housevalue   0.79 -0.56 0.94 0.062 1.8
-## 
-##                        PC1  PC2
-## SS loadings           2.87 1.80
-## Proportion Var        0.57 0.36
-## Cumulative Var        0.57 0.93
-## Proportion Explained  0.62 0.38
-## Cumulative Proportion 0.62 1.00
-## 
-## Mean item complexity =  1.7
-## Test of the hypothesis that 2 components are sufficient.
-## 
-## The root mean square of the residuals (RMSR) is  0.03 
-##  with the empirical chi square  0.29  with prob <  0.59 
-## 
-## Fit based upon off diagonal values = 1
-```
-
-```r
 # factor 1 = overall socioeconomic health
 # factor 2 = contrast of the population and employment against school and house value
 
@@ -3412,60 +3131,41 @@ factor_pca_smc <- fa(
     rotate = "none",
     SMC = TRUE
 )
-```
-
-```
-## Warning in fa.stats(r = r, f = f, phi = phi, n.obs = n.obs, np.obs = np.obs, :
-## The estimated weights for the factor scores are probably incorrect. Try a
-## different factor score estimation method.
-```
-
-```
-## Warning in fac(r = r, nfactors = nfactors, n.obs = n.obs, rotate = rotate, : An
-## ultra-Heywood case was detected. Examine the results carefully
-```
-
-```r
 factor_pca_smc
-```
+#> Factor Analysis using method =  pa
+#> Call: fa(r = Harman.5, nfactors = 2, rotate = "none", SMC = TRUE, fm = "pa")
+#> Standardized loadings (pattern matrix) based upon correlation matrix
+#>               PA1   PA2   h2      u2 com
+#> population   0.62  0.78 1.00 -0.0027 1.9
+#> schooling    0.70 -0.53 0.77  0.2277 1.9
+#> employment   0.70  0.68 0.96  0.0413 2.0
+#> professional 0.88 -0.15 0.80  0.2017 1.1
+#> housevalue   0.78 -0.60 0.96  0.0361 1.9
+#> 
+#>                        PA1  PA2
+#> SS loadings           2.76 1.74
+#> Proportion Var        0.55 0.35
+#> Cumulative Var        0.55 0.90
+#> Proportion Explained  0.61 0.39
+#> Cumulative Proportion 0.61 1.00
+#> 
+#> Mean item complexity =  1.7
+#> Test of the hypothesis that 2 factors are sufficient.
+#> 
+#> The degrees of freedom for the null model are  10  and the objective function was  6.38 with Chi Square of  54.25
+#> The degrees of freedom for the model are 1  and the objective function was  0.34 
+#> 
+#> The root mean square of the residuals (RMSR) is  0.01 
+#> The df corrected root mean square of the residuals is  0.03 
+#> 
+#> The harmonic number of observations is  12 with the empirical chi square  0.02  with prob <  0.88 
+#> The total number of observations was  12  with Likelihood Chi Square =  2.44  with prob <  0.12 
+#> 
+#> Tucker Lewis Index of factoring reliability =  0.596
+#> RMSEA index =  0.336  and the 90 % confidence intervals are  0 0.967
+#> BIC =  -0.04
+#> Fit based upon off diagonal values = 1
 
-```
-## Factor Analysis using method =  pa
-## Call: fa(r = Harman.5, nfactors = 2, rotate = "none", SMC = TRUE, fm = "pa")
-## Standardized loadings (pattern matrix) based upon correlation matrix
-##               PA1   PA2   h2      u2 com
-## population   0.62  0.78 1.00 -0.0027 1.9
-## schooling    0.70 -0.53 0.77  0.2277 1.9
-## employment   0.70  0.68 0.96  0.0413 2.0
-## professional 0.88 -0.15 0.80  0.2017 1.1
-## housevalue   0.78 -0.60 0.96  0.0361 1.9
-## 
-##                        PA1  PA2
-## SS loadings           2.76 1.74
-## Proportion Var        0.55 0.35
-## Cumulative Var        0.55 0.90
-## Proportion Explained  0.61 0.39
-## Cumulative Proportion 0.61 1.00
-## 
-## Mean item complexity =  1.7
-## Test of the hypothesis that 2 factors are sufficient.
-## 
-## The degrees of freedom for the null model are  10  and the objective function was  6.38 with Chi Square of  54.25
-## The degrees of freedom for the model are 1  and the objective function was  0.34 
-## 
-## The root mean square of the residuals (RMSR) is  0.01 
-## The df corrected root mean square of the residuals is  0.03 
-## 
-## The harmonic number of observations is  12 with the empirical chi square  0.02  with prob <  0.88 
-## The total number of observations was  12  with Likelihood Chi Square =  2.44  with prob <  0.12 
-## 
-## Tucker Lewis Index of factoring reliability =  0.596
-## RMSEA index =  0.336  and the 90 % confidence intervals are  0 0.967
-## BIC =  -0.04
-## Fit based upon off diagonal values = 1
-```
-
-```r
 ## SMC prior, Promax rotation
 factor_pca_smc_pro <- fa(
     Harman.5,
@@ -3474,64 +3174,47 @@ factor_pca_smc_pro <- fa(
     rotate = "Promax",
     SMC = TRUE
 )
-```
-
-```
-## Warning in fa.stats(r = r, f = f, phi = phi, n.obs = n.obs, np.obs = np.obs, :
-## The estimated weights for the factor scores are probably incorrect. Try a
-## different factor score estimation method.
-
-## Warning in fa.stats(r = r, f = f, phi = phi, n.obs = n.obs, np.obs = np.obs, :
-## An ultra-Heywood case was detected. Examine the results carefully
-```
-
-```r
 factor_pca_smc_pro
-```
+#> Factor Analysis using method =  pa
+#> Call: fa(r = Harman.5, nfactors = 2, rotate = "Promax", SMC = TRUE, 
+#>     fm = "pa")
+#> Standardized loadings (pattern matrix) based upon correlation matrix
+#>                PA1   PA2   h2      u2 com
+#> population   -0.11  1.02 1.00 -0.0027 1.0
+#> schooling     0.90 -0.11 0.77  0.2277 1.0
+#> employment    0.02  0.97 0.96  0.0413 1.0
+#> professional  0.75  0.33 0.80  0.2017 1.4
+#> housevalue    1.01 -0.14 0.96  0.0361 1.0
+#> 
+#>                        PA1  PA2
+#> SS loadings           2.38 2.11
+#> Proportion Var        0.48 0.42
+#> Cumulative Var        0.48 0.90
+#> Proportion Explained  0.53 0.47
+#> Cumulative Proportion 0.53 1.00
+#> 
+#>  With factor correlations of 
+#>      PA1  PA2
+#> PA1 1.00 0.25
+#> PA2 0.25 1.00
+#> 
+#> Mean item complexity =  1.1
+#> Test of the hypothesis that 2 factors are sufficient.
+#> 
+#> The degrees of freedom for the null model are  10  and the objective function was  6.38 with Chi Square of  54.25
+#> The degrees of freedom for the model are 1  and the objective function was  0.34 
+#> 
+#> The root mean square of the residuals (RMSR) is  0.01 
+#> The df corrected root mean square of the residuals is  0.03 
+#> 
+#> The harmonic number of observations is  12 with the empirical chi square  0.02  with prob <  0.88 
+#> The total number of observations was  12  with Likelihood Chi Square =  2.44  with prob <  0.12 
+#> 
+#> Tucker Lewis Index of factoring reliability =  0.596
+#> RMSEA index =  0.336  and the 90 % confidence intervals are  0 0.967
+#> BIC =  -0.04
+#> Fit based upon off diagonal values = 1
 
-```
-## Factor Analysis using method =  pa
-## Call: fa(r = Harman.5, nfactors = 2, rotate = "Promax", SMC = TRUE, 
-##     fm = "pa")
-## Standardized loadings (pattern matrix) based upon correlation matrix
-##                PA1   PA2   h2      u2 com
-## population   -0.11  1.02 1.00 -0.0027 1.0
-## schooling     0.90 -0.11 0.77  0.2277 1.0
-## employment    0.02  0.97 0.96  0.0413 1.0
-## professional  0.75  0.33 0.80  0.2017 1.4
-## housevalue    1.01 -0.14 0.96  0.0361 1.0
-## 
-##                        PA1  PA2
-## SS loadings           2.38 2.11
-## Proportion Var        0.48 0.42
-## Cumulative Var        0.48 0.90
-## Proportion Explained  0.53 0.47
-## Cumulative Proportion 0.53 1.00
-## 
-##  With factor correlations of 
-##      PA1  PA2
-## PA1 1.00 0.25
-## PA2 0.25 1.00
-## 
-## Mean item complexity =  1.1
-## Test of the hypothesis that 2 factors are sufficient.
-## 
-## The degrees of freedom for the null model are  10  and the objective function was  6.38 with Chi Square of  54.25
-## The degrees of freedom for the model are 1  and the objective function was  0.34 
-## 
-## The root mean square of the residuals (RMSR) is  0.01 
-## The df corrected root mean square of the residuals is  0.03 
-## 
-## The harmonic number of observations is  12 with the empirical chi square  0.02  with prob <  0.88 
-## The total number of observations was  12  with Likelihood Chi Square =  2.44  with prob <  0.12 
-## 
-## Tucker Lewis Index of factoring reliability =  0.596
-## RMSEA index =  0.336  and the 90 % confidence intervals are  0 0.967
-## BIC =  -0.04
-## Fit based upon off diagonal values = 1
-```
-
-```r
 ## SMC prior, varimax rotation
 factor_pca_smc_var <- fa(
     Harman.5,
@@ -3540,18 +3223,6 @@ factor_pca_smc_var <- fa(
     rotate = "varimax",
     SMC = TRUE
 )
-```
-
-```
-## Warning in fa.stats(r = r, f = f, phi = phi, n.obs = n.obs, np.obs = np.obs, :
-## The estimated weights for the factor scores are probably incorrect. Try a
-## different factor score estimation method.
-
-## Warning in fa.stats(r = r, f = f, phi = phi, n.obs = n.obs, np.obs = np.obs, :
-## An ultra-Heywood case was detected. Examine the results carefully
-```
-
-```r
 ## Make a data frame of the loadings for ggplot2
 factors_df <-
     bind_rows(
@@ -3587,9 +3258,10 @@ flag_gg <- ggplot(factors_df) +
 flag_gg
 ```
 
-![](21-multivariate_files/figure-epub3/unnamed-chunk-16-3.png)<!-- -->
+<img src="21-multivariate_files/figure-html/unnamed-chunk-16-3.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 # promax and varimax did a good job to assign trait to a particular factor
 
 factor_mle_1 <- fa(
@@ -3600,47 +3272,42 @@ factor_mle_1 <- fa(
     SMC = TRUE
 )
 factor_mle_1
-```
+#> Factor Analysis using method =  ml
+#> Call: fa(r = Harman.5, nfactors = 1, rotate = "none", SMC = TRUE, fm = "mle")
+#> Standardized loadings (pattern matrix) based upon correlation matrix
+#>               ML1    h2     u2 com
+#> population   0.97 0.950 0.0503   1
+#> schooling    0.14 0.021 0.9791   1
+#> employment   1.00 0.995 0.0049   1
+#> professional 0.51 0.261 0.7388   1
+#> housevalue   0.12 0.014 0.9864   1
+#> 
+#>                 ML1
+#> SS loadings    2.24
+#> Proportion Var 0.45
+#> 
+#> Mean item complexity =  1
+#> Test of the hypothesis that 1 factor is sufficient.
+#> 
+#> The degrees of freedom for the null model are  10  and the objective function was  6.38 with Chi Square of  54.25
+#> The degrees of freedom for the model are 5  and the objective function was  3.14 
+#> 
+#> The root mean square of the residuals (RMSR) is  0.41 
+#> The df corrected root mean square of the residuals is  0.57 
+#> 
+#> The harmonic number of observations is  12 with the empirical chi square  39.41  with prob <  2e-07 
+#> The total number of observations was  12  with Likelihood Chi Square =  24.56  with prob <  0.00017 
+#> 
+#> Tucker Lewis Index of factoring reliability =  0.022
+#> RMSEA index =  0.564  and the 90 % confidence intervals are  0.374 0.841
+#> BIC =  12.14
+#> Fit based upon off diagonal values = 0.5
+#> Measures of factor score adequacy             
+#>                                                    ML1
+#> Correlation of (regression) scores with factors   1.00
+#> Multiple R square of scores with factors          1.00
+#> Minimum correlation of possible factor scores     0.99
 
-```
-## Factor Analysis using method =  ml
-## Call: fa(r = Harman.5, nfactors = 1, rotate = "none", SMC = TRUE, fm = "mle")
-## Standardized loadings (pattern matrix) based upon correlation matrix
-##               ML1    h2     u2 com
-## population   0.97 0.950 0.0503   1
-## schooling    0.14 0.021 0.9791   1
-## employment   1.00 0.995 0.0049   1
-## professional 0.51 0.261 0.7388   1
-## housevalue   0.12 0.014 0.9864   1
-## 
-##                 ML1
-## SS loadings    2.24
-## Proportion Var 0.45
-## 
-## Mean item complexity =  1
-## Test of the hypothesis that 1 factor is sufficient.
-## 
-## The degrees of freedom for the null model are  10  and the objective function was  6.38 with Chi Square of  54.25
-## The degrees of freedom for the model are 5  and the objective function was  3.14 
-## 
-## The root mean square of the residuals (RMSR) is  0.41 
-## The df corrected root mean square of the residuals is  0.57 
-## 
-## The harmonic number of observations is  12 with the empirical chi square  39.41  with prob <  2e-07 
-## The total number of observations was  12  with Likelihood Chi Square =  24.56  with prob <  0.00017 
-## 
-## Tucker Lewis Index of factoring reliability =  0.022
-## RMSEA index =  0.564  and the 90 % confidence intervals are  0.374 0.841
-## BIC =  12.14
-## Fit based upon off diagonal values = 0.5
-## Measures of factor score adequacy             
-##                                                    ML1
-## Correlation of (regression) scores with factors   1.00
-## Multiple R square of scores with factors          1.00
-## Minimum correlation of possible factor scores     0.99
-```
-
-```r
 factor_mle_2 <- fa(
     Harman.5,
     nfactors = 2,
@@ -3649,50 +3316,45 @@ factor_mle_2 <- fa(
     SMC = TRUE
 )
 factor_mle_2
-```
+#> Factor Analysis using method =  ml
+#> Call: fa(r = Harman.5, nfactors = 2, rotate = "none", SMC = TRUE, fm = "mle")
+#> Standardized loadings (pattern matrix) based upon correlation matrix
+#>                ML2  ML1   h2    u2 com
+#> population   -0.03 1.00 1.00 0.005 1.0
+#> schooling     0.90 0.04 0.81 0.193 1.0
+#> employment    0.09 0.98 0.96 0.036 1.0
+#> professional  0.78 0.46 0.81 0.185 1.6
+#> housevalue    0.96 0.05 0.93 0.074 1.0
+#> 
+#>                        ML2  ML1
+#> SS loadings           2.34 2.16
+#> Proportion Var        0.47 0.43
+#> Cumulative Var        0.47 0.90
+#> Proportion Explained  0.52 0.48
+#> Cumulative Proportion 0.52 1.00
+#> 
+#> Mean item complexity =  1.1
+#> Test of the hypothesis that 2 factors are sufficient.
+#> 
+#> The degrees of freedom for the null model are  10  and the objective function was  6.38 with Chi Square of  54.25
+#> The degrees of freedom for the model are 1  and the objective function was  0.31 
+#> 
+#> The root mean square of the residuals (RMSR) is  0.01 
+#> The df corrected root mean square of the residuals is  0.05 
+#> 
+#> The harmonic number of observations is  12 with the empirical chi square  0.05  with prob <  0.82 
+#> The total number of observations was  12  with Likelihood Chi Square =  2.22  with prob <  0.14 
+#> 
+#> Tucker Lewis Index of factoring reliability =  0.658
+#> RMSEA index =  0.307  and the 90 % confidence intervals are  0 0.945
+#> BIC =  -0.26
+#> Fit based upon off diagonal values = 1
+#> Measures of factor score adequacy             
+#>                                                    ML2  ML1
+#> Correlation of (regression) scores with factors   0.98 1.00
+#> Multiple R square of scores with factors          0.95 1.00
+#> Minimum correlation of possible factor scores     0.91 0.99
 
-```
-## Factor Analysis using method =  ml
-## Call: fa(r = Harman.5, nfactors = 2, rotate = "none", SMC = TRUE, fm = "mle")
-## Standardized loadings (pattern matrix) based upon correlation matrix
-##                ML2  ML1   h2    u2 com
-## population   -0.03 1.00 1.00 0.005 1.0
-## schooling     0.90 0.04 0.81 0.193 1.0
-## employment    0.09 0.98 0.96 0.036 1.0
-## professional  0.78 0.46 0.81 0.185 1.6
-## housevalue    0.96 0.05 0.93 0.074 1.0
-## 
-##                        ML2  ML1
-## SS loadings           2.34 2.16
-## Proportion Var        0.47 0.43
-## Cumulative Var        0.47 0.90
-## Proportion Explained  0.52 0.48
-## Cumulative Proportion 0.52 1.00
-## 
-## Mean item complexity =  1.1
-## Test of the hypothesis that 2 factors are sufficient.
-## 
-## The degrees of freedom for the null model are  10  and the objective function was  6.38 with Chi Square of  54.25
-## The degrees of freedom for the model are 1  and the objective function was  0.31 
-## 
-## The root mean square of the residuals (RMSR) is  0.01 
-## The df corrected root mean square of the residuals is  0.05 
-## 
-## The harmonic number of observations is  12 with the empirical chi square  0.05  with prob <  0.82 
-## The total number of observations was  12  with Likelihood Chi Square =  2.22  with prob <  0.14 
-## 
-## Tucker Lewis Index of factoring reliability =  0.658
-## RMSEA index =  0.307  and the 90 % confidence intervals are  0 0.945
-## BIC =  -0.26
-## Fit based upon off diagonal values = 1
-## Measures of factor score adequacy             
-##                                                    ML2  ML1
-## Correlation of (regression) scores with factors   0.98 1.00
-## Multiple R square of scores with factors          0.95 1.00
-## Minimum correlation of possible factor scores     0.91 0.99
-```
-
-```r
 factor_mle_3 <- fa(
     Harman.5,
     nfactors = 3,
@@ -3701,45 +3363,42 @@ factor_mle_3 <- fa(
     SMC = TRUE
 )
 factor_mle_3
-```
-
-```
-## Factor Analysis using method =  ml
-## Call: fa(r = Harman.5, nfactors = 3, rotate = "none", SMC = TRUE, fm = "mle")
-## Standardized loadings (pattern matrix) based upon correlation matrix
-##                ML2  ML1   ML3   h2     u2 com
-## population   -0.12 0.98 -0.11 0.98 0.0162 1.1
-## schooling     0.89 0.15  0.29 0.90 0.0991 1.3
-## employment    0.00 1.00  0.04 0.99 0.0052 1.0
-## professional  0.72 0.52 -0.10 0.80 0.1971 1.9
-## housevalue    0.97 0.13 -0.09 0.97 0.0285 1.1
-## 
-##                        ML2  ML1  ML3
-## SS loadings           2.28 2.26 0.11
-## Proportion Var        0.46 0.45 0.02
-## Cumulative Var        0.46 0.91 0.93
-## Proportion Explained  0.49 0.49 0.02
-## Cumulative Proportion 0.49 0.98 1.00
-## 
-## Mean item complexity =  1.2
-## Test of the hypothesis that 3 factors are sufficient.
-## 
-## The degrees of freedom for the null model are  10  and the objective function was  6.38 with Chi Square of  54.25
-## The degrees of freedom for the model are -2  and the objective function was  0 
-## 
-## The root mean square of the residuals (RMSR) is  0 
-## The df corrected root mean square of the residuals is  NA 
-## 
-## The harmonic number of observations is  12 with the empirical chi square  0  with prob <  NA 
-## The total number of observations was  12  with Likelihood Chi Square =  0  with prob <  NA 
-## 
-## Tucker Lewis Index of factoring reliability =  1.318
-## Fit based upon off diagonal values = 1
-## Measures of factor score adequacy             
-##                                                    ML2  ML1  ML3
-## Correlation of (regression) scores with factors   0.99 1.00 0.82
-## Multiple R square of scores with factors          0.98 1.00 0.68
-## Minimum correlation of possible factor scores     0.96 0.99 0.36
+#> Factor Analysis using method =  ml
+#> Call: fa(r = Harman.5, nfactors = 3, rotate = "none", SMC = TRUE, fm = "mle")
+#> Standardized loadings (pattern matrix) based upon correlation matrix
+#>                ML2  ML1   ML3   h2     u2 com
+#> population   -0.12 0.98 -0.11 0.98 0.0162 1.1
+#> schooling     0.89 0.15  0.29 0.90 0.0991 1.3
+#> employment    0.00 1.00  0.04 0.99 0.0052 1.0
+#> professional  0.72 0.52 -0.10 0.80 0.1971 1.9
+#> housevalue    0.97 0.13 -0.09 0.97 0.0285 1.1
+#> 
+#>                        ML2  ML1  ML3
+#> SS loadings           2.28 2.26 0.11
+#> Proportion Var        0.46 0.45 0.02
+#> Cumulative Var        0.46 0.91 0.93
+#> Proportion Explained  0.49 0.49 0.02
+#> Cumulative Proportion 0.49 0.98 1.00
+#> 
+#> Mean item complexity =  1.2
+#> Test of the hypothesis that 3 factors are sufficient.
+#> 
+#> The degrees of freedom for the null model are  10  and the objective function was  6.38 with Chi Square of  54.25
+#> The degrees of freedom for the model are -2  and the objective function was  0 
+#> 
+#> The root mean square of the residuals (RMSR) is  0 
+#> The df corrected root mean square of the residuals is  NA 
+#> 
+#> The harmonic number of observations is  12 with the empirical chi square  0  with prob <  NA 
+#> The total number of observations was  12  with Likelihood Chi Square =  0  with prob <  NA 
+#> 
+#> Tucker Lewis Index of factoring reliability =  1.318
+#> Fit based upon off diagonal values = 1
+#> Measures of factor score adequacy             
+#>                                                    ML2  ML1  ML3
+#> Correlation of (regression) scores with factors   0.99 1.00 0.82
+#> Multiple R square of scores with factors          0.98 1.00 0.68
+#> Minimum correlation of possible factor scores     0.96 0.99 0.36
 ```
 
 The output info for the null hypothesis of no common factors is in the statement "The degrees of freedom for the null model .."
@@ -3888,7 +3547,7 @@ By **assuming the covariance matrices are equal, we assume that the shape and or
 
 In other words, for each variable, it can have different mean but the same variance.
 
--   Note: LDA Bayes decision boundary is linear. Hence, quadratic decision boundary might lead to better classification. Moreover, the assumption of same variance/covariance matrix across all classes for Gaussian densities imposes the linear rule, if we allow the predictors in each class to follow MVN distribution with class-specific mean vectors and variance/covariance matrices, then it is **Quadratic Discriminant Analysis.** But hten, you will have more parameters to estimate (which gives more flexibility than LDA) at the cost of more variance (bias -variance tradeoff).
+-   Note: LDA Bayes decision boundary is linear. Hence, quadratic decision boundary might lead to better classification. Moreover, the assumption of same variance/covariance matrix across all classes for Gaussian densities imposes the linear rule, if we allow the predictors in each class to follow MVN distribution with class-specific mean vectors and variance/covariance matrices, then it is **Quadratic Discriminant Analysis.** But then, you will have more parameters to estimate (which gives more flexibility than LDA) at the cost of more variance (bias -variance tradeoff).
 
 When $\mathbf{\mu}_1, \mathbf{\mu}_2, \mathbf{\Sigma}$ are known, the probability of misclassification can be determined:
 
@@ -4274,7 +3933,7 @@ $$
 
 where $j = 1,\dots, h$
 
-There are different choices for the kernel funciton:
+There are different choices for the kernel function:
 
 -   Uniform
 
@@ -4298,7 +3957,7 @@ $$
 
 But since we do not know for sure, we might choose several different values and select one that vies the best out of sample or cross-validation discrimination.
 
-Moreover, you also have to decide whether to use different kernel smoothness for different populations, which is similar to the individual andpooled covariances in the classical methodology.
+Moreover, you also have to decide whether to use different kernel smoothness for different populations, which is similar to the individual and pooled covariances in the classical methodology.
 
 <br>
 
@@ -4361,9 +4020,7 @@ We assign $\mathbf{x}$ to the j-th population if $g_j(\mathbf{x})$ is the maximu
 
 Development usually focuses on the choice and estimation of the basis functions, $\phi_l$ and the estimation of the weights $w_{jl}$
 
-[More details](Statistical Pattern Recognition \| Wiley Online Books
-
-)
+More details can be found [@webb2002]
 
 <br>
 
@@ -4372,32 +4029,7 @@ Development usually focuses on the choice and estimation of the basis functions,
 
 ```r
 library(class)
-```
-
-```
-## Warning: package 'class' was built under R version 4.0.5
-```
-
-```
-## 
-## Attaching package: 'class'
-```
-
-```
-## The following object is masked from 'package:reshape':
-## 
-##     condense
-```
-
-```r
 library(klaR)
-```
-
-```
-## Warning: package 'klaR' was built under R version 4.0.5
-```
-
-```r
 library(MASS)
 library(tidyverse)
 
@@ -4405,31 +4037,24 @@ library(tidyverse)
 crops <- read.table("images/crops.txt")
 names(crops) <- c("crop", "y1", "y2", "y3", "y4")
 str(crops)
-```
+#> 'data.frame':	36 obs. of  5 variables:
+#>  $ crop: chr  "Corn" "Corn" "Corn" "Corn" ...
+#>  $ y1  : int  16 15 16 18 15 15 12 20 24 21 ...
+#>  $ y2  : int  27 23 27 20 15 32 15 23 24 25 ...
+#>  $ y3  : int  31 30 27 25 31 32 16 23 25 23 ...
+#>  $ y4  : int  33 30 26 23 32 15 73 25 32 24 ...
 
-```
-## 'data.frame':	36 obs. of  5 variables:
-##  $ crop: chr  "Corn" "Corn" "Corn" "Corn" ...
-##  $ y1  : int  16 15 16 18 15 15 12 20 24 21 ...
-##  $ y2  : int  27 23 27 20 15 32 15 23 24 25 ...
-##  $ y3  : int  31 30 27 25 31 32 16 23 25 23 ...
-##  $ y4  : int  33 30 26 23 32 15 73 25 32 24 ...
-```
 
-```r
 ## Read in test data
 crops_test <- read.table("images/crops_test.txt")
 names(crops_test) <- c("crop", "y1", "y2", "y3", "y4")
 str(crops_test)
-```
-
-```
-## 'data.frame':	5 obs. of  5 variables:
-##  $ crop: chr  "Corn" "Soybeans" "Cotton" "Sugarbeets" ...
-##  $ y1  : int  16 21 29 54 32
-##  $ y2  : int  27 25 24 23 32
-##  $ y3  : int  31 23 26 21 62
-##  $ y4  : int  33 24 28 54 16
+#> 'data.frame':	5 obs. of  5 variables:
+#>  $ crop: chr  "Corn" "Soybeans" "Cotton" "Sugarbeets" ...
+#>  $ y1  : int  16 21 29 54 32
+#>  $ y2  : int  27 25 24 23 32
+#>  $ y3  : int  31 23 26 21 62
+#>  $ y4  : int  33 24 28 54 16
 ```
 
 #### LDA
@@ -4442,55 +4067,44 @@ Default prior is proportional to sample size and `lda` and `qda` do not fit a co
 lda_mod <- lda(crop ~ y1 + y2 + y3 + y4,
                data = crops)
 lda_mod
-```
+#> Call:
+#> lda(crop ~ y1 + y2 + y3 + y4, data = crops)
+#> 
+#> Prior probabilities of groups:
+#>     Clover       Corn     Cotton   Soybeans Sugarbeets 
+#>  0.3055556  0.1944444  0.1666667  0.1666667  0.1666667 
+#> 
+#> Group means:
+#>                  y1       y2       y3       y4
+#> Clover     46.36364 32.63636 34.18182 36.63636
+#> Corn       15.28571 22.71429 27.42857 33.14286
+#> Cotton     34.50000 32.66667 35.00000 39.16667
+#> Soybeans   21.00000 27.00000 23.50000 29.66667
+#> Sugarbeets 31.00000 32.16667 20.00000 40.50000
+#> 
+#> Coefficients of linear discriminants:
+#>              LD1          LD2         LD3          LD4
+#> y1 -6.147360e-02  0.009215431 -0.02987075 -0.014680566
+#> y2 -2.548964e-02  0.042838972  0.04631489  0.054842132
+#> y3  1.642126e-02 -0.079471595  0.01971222  0.008938745
+#> y4  5.143616e-05 -0.013917423  0.05381787 -0.025717667
+#> 
+#> Proportion of trace:
+#>    LD1    LD2    LD3    LD4 
+#> 0.7364 0.1985 0.0576 0.0075
 
-```
-## Call:
-## lda(crop ~ y1 + y2 + y3 + y4, data = crops)
-## 
-## Prior probabilities of groups:
-##     Clover       Corn     Cotton   Soybeans Sugarbeets 
-##  0.3055556  0.1944444  0.1666667  0.1666667  0.1666667 
-## 
-## Group means:
-##                  y1       y2       y3       y4
-## Clover     46.36364 32.63636 34.18182 36.63636
-## Corn       15.28571 22.71429 27.42857 33.14286
-## Cotton     34.50000 32.66667 35.00000 39.16667
-## Soybeans   21.00000 27.00000 23.50000 29.66667
-## Sugarbeets 31.00000 32.16667 20.00000 40.50000
-## 
-## Coefficients of linear discriminants:
-##              LD1          LD2         LD3          LD4
-## y1 -6.147360e-02  0.009215431 -0.02987075 -0.014680566
-## y2 -2.548964e-02  0.042838972  0.04631489  0.054842132
-## y3  1.642126e-02 -0.079471595  0.01971222  0.008938745
-## y4  5.143616e-05 -0.013917423  0.05381787 -0.025717667
-## 
-## Proportion of trace:
-##    LD1    LD2    LD3    LD4 
-## 0.7364 0.1985 0.0576 0.0075
-```
-
-```r
 ## Look at accuracy on the training data
 lda_fitted <- predict(lda_mod,newdata = crops)
 # Contingency table
 lda_table <- table(truth = crops$crop, fitted = lda_fitted$class)
 lda_table
-```
-
-```
-##             fitted
-## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          6    0      3        0          2
-##   Corn            0    6      0        1          0
-##   Cotton          3    0      1        2          0
-##   Soybeans        0    1      1        3          1
-##   Sugarbeets      1    1      0        2          2
-```
-
-```r
+#>             fitted
+#> truth        Clover Corn Cotton Soybeans Sugarbeets
+#>   Clover          6    0      3        0          2
+#>   Corn            0    6      0        1          0
+#>   Cotton          3    0      1        2          0
+#>   Soybeans        0    1      1        3          1
+#>   Sugarbeets      1    1      0        2          2
 # accuracy of 0.5 is just random (not good)
 
 ## Posterior probabilities of membership
@@ -4500,26 +4114,20 @@ crops_post <- cbind.data.frame(crops,
 crops_post <- crops_post %>%
     mutate(missed = crop != crop_pred)
 head(crops_post)
-```
-
-```
-##   crop y1 y2 y3 y4 crop_pred     Clover      Corn    Cotton  Soybeans
-## 1 Corn 16 27 31 33      Corn 0.08935164 0.4054296 0.1763189 0.2391845
-## 2 Corn 15 23 30 30      Corn 0.07690181 0.4558027 0.1420920 0.2530101
-## 3 Corn 16 27 27 26      Corn 0.09817815 0.3422454 0.1365315 0.3073105
-## 4 Corn 18 20 25 23      Corn 0.10521511 0.3633673 0.1078076 0.3281477
-## 5 Corn 15 15 31 32      Corn 0.05879921 0.5753907 0.1173332 0.2086696
-## 6 Corn 15 32 32 15  Soybeans 0.09723648 0.3278382 0.1318370 0.3419924
-##   Sugarbeets missed
-## 1 0.08971545  FALSE
-## 2 0.07219340  FALSE
-## 3 0.11573442  FALSE
-## 4 0.09546233  FALSE
-## 5 0.03980738  FALSE
-## 6 0.10109590   TRUE
-```
-
-```r
+#>   crop y1 y2 y3 y4 crop_pred     Clover      Corn    Cotton  Soybeans
+#> 1 Corn 16 27 31 33      Corn 0.08935164 0.4054296 0.1763189 0.2391845
+#> 2 Corn 15 23 30 30      Corn 0.07690181 0.4558027 0.1420920 0.2530101
+#> 3 Corn 16 27 27 26      Corn 0.09817815 0.3422454 0.1365315 0.3073105
+#> 4 Corn 18 20 25 23      Corn 0.10521511 0.3633673 0.1078076 0.3281477
+#> 5 Corn 15 15 31 32      Corn 0.05879921 0.5753907 0.1173332 0.2086696
+#> 6 Corn 15 32 32 15  Soybeans 0.09723648 0.3278382 0.1318370 0.3419924
+#>   Sugarbeets missed
+#> 1 0.08971545  FALSE
+#> 2 0.07219340  FALSE
+#> 3 0.11573442  FALSE
+#> 4 0.09546233  FALSE
+#> 5 0.03980738  FALSE
+#> 6 0.10109590   TRUE
 # posterior shows that posterior of corn membershp is much higher than the prior
 
 ## LOOCV
@@ -4530,34 +4138,26 @@ lda_cv <- lda(crop ~ y1 + y2 + y3 + y4,
 # Contingency table
 lda_table_cv <- table(truth = crops$crop, fitted = lda_cv$class)
 lda_table_cv
-```
+#>             fitted
+#> truth        Clover Corn Cotton Soybeans Sugarbeets
+#>   Clover          4    3      1        0          3
+#>   Corn            0    4      1        2          0
+#>   Cotton          3    0      0        2          1
+#>   Soybeans        0    1      1        3          1
+#>   Sugarbeets      2    1      0        2          1
 
-```
-##             fitted
-## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          4    3      1        0          3
-##   Corn            0    4      1        2          0
-##   Cotton          3    0      0        2          1
-##   Soybeans        0    1      1        3          1
-##   Sugarbeets      2    1      0        2          1
-```
-
-```r
 ## Predict the test data
 lda_pred <- predict(lda_mod, newdata = crops_test)
 
 ## Make a contingency table with truth and most likely class
 table(truth=crops_test$crop, predict=lda_pred$class)
-```
-
-```
-##             predict
-## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          0    0      1        0          0
-##   Corn            0    1      0        0          0
-##   Cotton          0    0      0        1          0
-##   Soybeans        0    0      0        1          0
-##   Sugarbeets      1    0      0        0          0
+#>             predict
+#> truth        Clover Corn Cotton Soybeans Sugarbeets
+#>   Clover          0    0      1        0          0
+#>   Corn            0    1      0        0          0
+#>   Cotton          0    0      0        1          0
+#>   Soybeans        0    0      0        1          0
+#>   Sugarbeets      1    0      0        0          0
 ```
 
 LDA didn't do well on both within sample and out-of-sample data.
@@ -4575,52 +4175,39 @@ qda_fitted <- predict(qda_mod, newdata = crops)
 # Contingency table
 qda_table <- table(truth = crops$crop, fitted = qda_fitted$class)
 qda_table
-```
+#>             fitted
+#> truth        Clover Corn Cotton Soybeans Sugarbeets
+#>   Clover          9    0      0        0          2
+#>   Corn            0    7      0        0          0
+#>   Cotton          0    0      6        0          0
+#>   Soybeans        0    0      0        6          0
+#>   Sugarbeets      0    0      1        1          4
 
-```
-##             fitted
-## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          9    0      0        0          2
-##   Corn            0    7      0        0          0
-##   Cotton          0    0      6        0          0
-##   Soybeans        0    0      0        6          0
-##   Sugarbeets      0    0      1        1          4
-```
-
-```r
 ## LOOCV
 qda_cv <- qda(crop ~ y1 + y2 + y3 + y4,
               data = crops, CV = TRUE)
 # Contingency table
 qda_table_cv <- table(truth = crops$crop, fitted = qda_cv$class)
 qda_table_cv
-```
+#>             fitted
+#> truth        Clover Corn Cotton Soybeans Sugarbeets
+#>   Clover          9    0      0        0          2
+#>   Corn            3    2      0        0          2
+#>   Cotton          3    0      2        0          1
+#>   Soybeans        3    0      0        2          1
+#>   Sugarbeets      3    0      1        1          1
 
-```
-##             fitted
-## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          9    0      0        0          2
-##   Corn            3    2      0        0          2
-##   Cotton          3    0      2        0          1
-##   Soybeans        3    0      0        2          1
-##   Sugarbeets      3    0      1        1          1
-```
-
-```r
 ## Predict the test data
 qda_pred <- predict(qda_mod, newdata = crops_test)
 ## Make a contingency table with truth and most likely class
 table(truth = crops_test$crop, predict = qda_pred$class)
-```
-
-```
-##             predict
-## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          1    0      0        0          0
-##   Corn            0    1      0        0          0
-##   Cotton          0    0      1        0          0
-##   Soybeans        0    0      0        1          0
-##   Sugarbeets      0    0      0        0          1
+#>             predict
+#> truth        Clover Corn Cotton Soybeans Sugarbeets
+#>   Clover          1    0      0        0          0
+#>   Corn            0    1      0        0          0
+#>   Cotton          0    0      1        0          0
+#>   Soybeans        0    0      0        1          0
+#>   Sugarbeets      0    0      0        0          1
 ```
 
 #### KNN
@@ -4640,100 +4227,62 @@ Y_test <- crops_test$crop
 ## Nearest neighbors with 2 neighbors
 knn_2 <- knn(X_train, X_train, Y_train, k = 2)
 table(truth = Y_train, fitted = knn_2)
-```
+#>             fitted
+#> truth        Clover Corn Cotton Soybeans Sugarbeets
+#>   Clover         10    0      1        0          0
+#>   Corn            0    7      0        0          0
+#>   Cotton          1    0      2        0          3
+#>   Soybeans        0    0      0        5          1
+#>   Sugarbeets      1    0      2        1          2
 
-```
-##             fitted
-## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          7    0      2        1          1
-##   Corn            0    7      0        0          0
-##   Cotton          1    0      4        0          1
-##   Soybeans        0    0      0        4          2
-##   Sugarbeets      1    0      2        1          2
-```
-
-```r
 ## Accuracy
 mean(Y_train==knn_2)
-```
+#> [1] 0.7222222
 
-```
-## [1] 0.6666667
-```
-
-```r
 ## Performance on test data
 knn_2_test <- knn(X_train, X_test, Y_train, k = 2)
 table(truth = Y_test, predict = knn_2_test)
-```
+#>             predict
+#> truth        Clover Corn Cotton Soybeans Sugarbeets
+#>   Clover          1    0      0        0          0
+#>   Corn            0    1      0        0          0
+#>   Cotton          0    0      0        0          1
+#>   Soybeans        0    0      0        1          0
+#>   Sugarbeets      0    0      0        0          1
 
-```
-##             predict
-## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          1    0      0        0          0
-##   Corn            0    1      0        0          0
-##   Cotton          0    0      0        0          1
-##   Soybeans        0    0      0        1          0
-##   Sugarbeets      0    0      0        0          1
-```
-
-```r
 ## Accuracy
 mean(Y_test==knn_2_test)
-```
+#> [1] 0.8
 
-```
-## [1] 0.8
-```
-
-```r
 ## Nearest neighbors with 3 neighbors
 knn_3 <- knn(X_train, X_train, Y_train, k = 3)
 table(truth = Y_train, fitted = knn_3)
-```
+#>             fitted
+#> truth        Clover Corn Cotton Soybeans Sugarbeets
+#>   Clover          8    0      3        0          0
+#>   Corn            0    5      0        2          0
+#>   Cotton          1    1      3        0          1
+#>   Soybeans        1    0      2        2          1
+#>   Sugarbeets      0    0      0        3          3
 
-```
-##             fitted
-## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          6    0      3        2          0
-##   Corn            0    6      0        1          0
-##   Cotton          1    0      4        1          0
-##   Soybeans        0    0      0        3          3
-##   Sugarbeets      0    0      0        3          3
-```
-
-```r
 ## Accuracy
 mean(Y_train==knn_3)
-```
+#> [1] 0.5833333
 
-```
-## [1] 0.6111111
-```
-
-```r
 ## Performance on test data
 knn_3_test <- knn(X_train, X_test, Y_train, k = 3)
 table(truth = Y_test, predict = knn_3_test)
-```
+#>             predict
+#> truth        Clover Corn Cotton Soybeans Sugarbeets
+#>   Clover          1    0      0        0          0
+#>   Corn            0    1      0        0          0
+#>   Cotton          0    0      1        0          0
+#>   Soybeans        0    0      0        1          0
+#>   Sugarbeets      0    0      0        0          1
 
-```
-##             predict
-## truth        Clover Corn Cotton Soybeans Sugarbeets
-##   Clover          1    0      0        0          0
-##   Corn            0    1      0        0          0
-##   Cotton          0    0      1        0          0
-##   Soybeans        0    0      0        1          0
-##   Sugarbeets      0    0      0        0          1
-```
-
-```r
 ## Accuracy
 mean(Y_test==knn_3_test)
-```
-
-```
-## [1] 1
+#> [1] 1
 ```
 
 #### Stepwise
@@ -4748,49 +4297,25 @@ step <- stepclass(
     method = "qda",
     improvement = 0.15
 )
-```
+#> correctness rate: 0.475;  in: "y1";  variables (1): y1 
+#> 
+#>  hr.elapsed min.elapsed sec.elapsed 
+#>        0.00        0.00        0.12
 
-```
-##  `stepwise classification', using 10-fold cross-validated correctness rate of method qda'.
-```
-
-```
-## 36 observations of 4 variables in 5 classes; direction: both
-```
-
-```
-## stop criterion: improvement less than 15%.
-```
-
-```
-## correctness rate: 0.46667;  in: "y1";  variables (1): y1 
-## 
-##  hr.elapsed min.elapsed sec.elapsed 
-##        0.00        0.00        0.16
-```
-
-```r
 step$process
-```
+#>    step var varname result.pm
+#> 0 start   0      --     0.000
+#> 1    in   1      y1     0.475
 
-```
-##    step var varname result.pm
-## 0 start   0      -- 0.0000000
-## 1    in   1      y1 0.4666667
-```
-
-```r
 step$performance.measure
-```
-
-```
-## [1] "correctness rate"
+#> [1] "correctness rate"
 ```
 
 Iris Data
 
 
 ```r
+
 library(dplyr)
 data('iris')
 set.seed(1)
@@ -4805,35 +4330,28 @@ iris.model <- lda(Species ~ ., data = train.iris)
 #pred
 pred.lda <- predict(iris.model, test.iris)
 table(truth = test.iris$Species, prediction = pred.lda$class)
-```
+#>             prediction
+#> truth        setosa versicolor virginica
+#>   setosa         15          0         0
+#>   versicolor      0         17         0
+#>   virginica       0          0        13
 
-```
-##             prediction
-## truth        setosa versicolor virginica
-##   setosa         15          0         0
-##   versicolor      0         17         0
-##   virginica       0          0        13
-```
-
-```r
 plot(iris.model)
 ```
 
-![](21-multivariate_files/figure-epub3/unnamed-chunk-22-1.png)<!-- -->
+<img src="21-multivariate_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
 iris.model.qda <- qda(Species~.,data=train.iris)
 #pred
 pred.qda <- predict(iris.model.qda,test.iris)
 table(truth=test.iris$Species,prediction=pred.qda$class)
-```
-
-```
-##             prediction
-## truth        setosa versicolor virginica
-##   setosa         15          0         0
-##   versicolor      0         16         1
-##   virginica       0          0        13
+#>             prediction
+#> truth        setosa versicolor virginica
+#>   setosa         15          0         0
+#>   versicolor      0         16         1
+#>   virginica       0          0        13
 ```
 
 #### PCA with Discriminant Analysis
@@ -4850,9 +4368,11 @@ train <- t(train) #each column is an observation
 image(matrix(train[, 1], nrow = 28), main = 'Example image, unrotated')
 ```
 
-![](21-multivariate_files/figure-epub3/unnamed-chunk-23-1.png)<!-- -->
+<img src="21-multivariate_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
+
+
 test <- rbind(zeros[2501:3000, ], nines[2501:3000, ])
 test <- test / 255
 test <- t(test)
@@ -4868,27 +4388,17 @@ large <- lda(y.train ~ ., data = train.large)
 test.large <- data.frame(cbind(y.test, predict(pc, t(test))[, 1:10]))
 pred.lda <- predict(large, test.large)
 table(truth = test.large$y.test, prediction = pred.lda$class)
-```
+#>      prediction
+#> truth   0   9
+#>     0 491   9
+#>     9   5 495
 
-```
-##      prediction
-## truth   0   9
-##     0 491   9
-##     9   5 495
-```
-
-```r
 large.qda <- qda(y.train~.,data=train.large)
 #prediction
 pred.qda <- predict(large.qda,test.large)
 table(truth=test.large$y.test,prediction=pred.qda$class)
+#>      prediction
+#> truth   0   9
+#>     0 493   7
+#>     9   3 497
 ```
-
-```
-##      prediction
-## truth   0   9
-##     0 493   7
-##     9   3 497
-```
-
-## Cluster Analysis

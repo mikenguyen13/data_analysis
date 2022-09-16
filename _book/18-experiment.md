@@ -1,13 +1,16 @@
 # Experimental Design
 
--   Randomized Control Trials (RCT) or Experiments have always been and are likely to continue in the future to be the holy grail of causal inference.
+-   Randomized Control Trials (RCT) or Experiments have always been and are likely to continue in the future to be the holy grail of causal inference, because of
+    -   unbiased estimates
+
+    -   elimination of confounding factors on average (covariate imbalance is always possible. Hence, you want to do [Rerandomization] to achieve platinum standard set by [@tukey1993])
 -   RCT means you have two group treatment (or experimental) gorp and control group. Hence, as you introduce the treatment (your exogenous variable) to the treatment group, the only expected difference in the outcomes of the two group should be due to the treatment.
 -   Subjects from the same population will be **randomly assigned** to either treatment or control group. This random assignment give us the confidence that changes in the outcome variable will be due only the treatment, not any other source (variable).
 -   It can be easier for hard science to have RCT because they can introduce the treatment, and have control environments. But it's hard for social scientists because their subjects are usually human, and some treatment can be hard to introduce, or environments are uncontrollable. Hence, social scientists have to develop different tools ([Quasi-experimental]) to recover causal inference or to recreate the treatment and control group environment.
 -   With RCT, you can easily establish internal validity
 -   Even though random assignment is not the same thing as *ceteris paribus* (i.e., holding everything else constant), it should have the same effect (i.e., under random manipulation, *other things equal* can be observed, on average, across treatment and control groups).
 
-Selection Problem
+**Selection Problem**
 
 Assume we have
 
@@ -52,15 +55,25 @@ With **random assignment** of treatment ($D_i$) under [Experimental Design], we 
 $$
 \begin{aligned}
 E[Y_i | D_i = 1] - E[Y_i|D_i = 0] &= E[Y_{1i}|D_i = 1]-E[Y_{0i}|D_i = 0)]\\
-&= E[Y_{1i}|D_i = 1]-E[Y_{0i}|D_i = 0)] && D_i \perp Y_i \\
+&= E[Y_{1i}|D_i = 1]-E[Y_{0i}|D_i = 0)] && D_i \perp\!\!\!\perp  (Y_{0i},Y_{1i}) \\
 &= E[Y_{1i} - Y_{0i}|D_i = 1] \\
 &= E[Y_{1i} - Y_{0i}]
 \end{aligned}
 $$
 
+It's worth noting that
+
+-   Good: [**potential outcomes**]{.underline} **are independent of the [treatment]{.underline}** $(Y_{0i}, Y_{1i}) \perp\!\!\!\perp D_i$ is different from
+
+-   Bad: [**outcomes**]{.underline} **are independent of the [treatment]{.underline}**$(Y_i \perp\!\!\!\perp D_i)$
+
+The second statement is undesirable because we want the treatment to **cause** the outcome.
+
+The first statement $(Y_{0i}, Y_{1i}) \perp\!\!\!\perp D_i$ allows us to reasonably say that in expectation, the potential outcomes of the treated group are comparable to the potential outcomes of the control group.
+
 <br>
 
-Another representation under regression
+**Another representation under regression**
 
 Suppose that you know the effect is
 
@@ -110,6 +123,70 @@ $$
 Y_i = \alpha + \rho D_i + X_i'\gamma + \eta_i
 $$
 
+Examples in marketing:
+
+-   [@gordon2019]
+
+-   [@lewis2015]
+
+<br>
+
+## Simulation
+
+Don't trust my words that random treatment assignment can do you wonders? Then, let's do a simulation.
+
+Say that you are an omniscient being who knows the true data generating process.
+
+
+```r
+set.seed(1)
+library(tidyverse)
+# treatment's population mean is 1 with standard deviation of 1
+treatment = rnorm(n = 1000, mean = 2, sd = 1)
+# control's population mean is 2, with standard deviation of 1
+control   = rnorm(n = 1000, mean = 1, sd = 1)
+# As humans, we can only observe one realization of the potential outcome
+# 1 means you observe treatment, 0 means you observe control
+observed  = sample(0:1, size = 100, replace = TRUE)
+
+data      = as.data.frame(cbind(treatment, control, observed)) %>% 
+    mutate(causal_dif = treatment - control) %>% 
+    mutate(observed_outcome = if_else(observed == 1, treatment, control))
+
+head(data)
+#>   treatment    control observed  causal_dif observed_outcome
+#> 1  1.373546  2.1349651        1 -0.76141890        1.3735462
+#> 2  2.183643  2.1119318        1  0.07171148        2.1836433
+#> 3  1.164371  0.1292224        0  1.03514902        0.1292224
+#> 4  3.595281  1.2107316        1  2.38454922        3.5952808
+#> 5  2.329508  1.0693956        1  1.26011212        2.3295078
+#> 6  1.179532 -0.6626489        1  1.84218047        1.1795316
+```
+
+Here we can think of random observation (i.e., either treatment or control outcome) as random assignment.
+
+As an omnisient being, you know the true popolation average treatment effect is 1, and the sample average treatment effect is
+
+
+```r
+mean(data$causal_dif)
+#> [1] 1.004614
+```
+
+But as humans, you can only observe one realization of the potential outcome, but you also have the power tool (i.e., treatment random assignment). Hence, your observed sample treatment effect is also consistent and unbiased
+
+
+```r
+# mean for the observed treatment group
+sample_mean_tr <- data %>% filter(observed == 1) %>% select(observed_outcome) %>% pull() %>% mean()
+
+# mean for the observed control group 
+sample_mean_ct <- data %>% filter(observed == 0) %>% select(observed_outcome) %>% pull() %>% mean()
+
+sample_mean_tr - sample_mean_ct
+#> [1] 0.9710933
+```
+
 <br>
 
 ## Semi-random Experiment
@@ -154,16 +231,16 @@ where
 
 -   $A$ = Whether student apply for the lottery
 
--   i = application
+-   $i$ = application
 
--   j = school
+-   $j$ = school
 
 Say that we have
 
 **10 win**
 
 | Number students | Type          | Selection effect | Treatment effect | Total effect |
-|-----------------|---------------|------------------|------------------|--------------|
+|---------------|---------------|---------------|---------------|---------------|
 | 1               | Always Takers | +0.2             | +1               | +1.2         |
 | 2               | Compliers     | 0                | +1               | +1           |
 | 7               | Never Takers  | -0.1             | 0                | -0.1         |
@@ -171,7 +248,7 @@ Say that we have
 **10 lose**
 
 | Number students | Type          | Selection effect | Treatment effect | Total effect |
-|-----------------|---------------|------------------|------------------|--------------|
+|---------------|---------------|---------------|---------------|---------------|
 | 1               | Always Takers | +0.2             | +1               | +1.2         |
 | 2               | Compliers     | 0                | 0                | 0            |
 | 7               | Never Takers  | -0.1             | 0                | -0.1         |
@@ -250,3 +327,66 @@ E(\lambda) &\neq E(\lambda_1) && \text{because choosing a lottery is not random}
 $$
 
 Including $(X_i \theta)$ just shifts around control variables (i.e., reweighting of lottery), which would not affect your treatment effect $E(\delta)$
+
+## Rerandomization
+
+-   Rerandomizing is inefficient blocking [@imai2008, p. 493, para. 5]
+
+-   Since randomization only balances baseline covariates on average, imbalance in covariates due to random chance can still happen.
+
+-   In case that you have a "bad" randomization (i.e., imbalance for important baseline covariates), [@morgan2012] introduce the idea of rerandomization.
+
+-   Rerandomization is checking balance during the randomization process (before the experiment), to eliminate bad allocation (i.e., those with unacceptable balance).
+
+-   The greater the number of variables, the greater the likelihood that at least one covariate would be imbalanced across treatment groups.
+
+    -   Example: For 10 covariates, the probability of a significant difference at $\alpha = .05$ for at least one covariate is $1 - (1-.05)^{10} = 0.4 = 40\%$
+
+-   Rerandomization increase treatment effect estimate precision if the covariates are correlated with the outcome.
+
+    -   Improvement in precision for treatment effect estimate depends on (1) improvement in covariate balance and (2) correlation between covariates and the outcome.
+
+-   You also need to take into account rerandomization into your analysis when making inference.
+
+-   Rerandomization is equivalent to increasing our sample size.
+
+-   Alternatives include
+
+    -   Stratified randomization [@johansson2022]
+
+    -   Matched randomization [@greevy2004; @kapelner2014]
+
+    -   Minimization [@pocock1975; @correcti1976]
+
+[![Figure from USC Schaeffer Center](images/The-Randomization-Procedure.png "Figure from USC Schaeffer Center")](https://healthpolicy.usc.edu/evidence-base/rerandomization-what-is-it-and-why-should-you-use-it-for-random-assignment/)
+
+Graph from USC Schaeffer Center
+
+<br>
+
+Rerandomization Criterion
+
+-   Acceptable randomization is based on a function of covariate matrix $\mathbf{X}$ and vector of treatment assignments $\mathbf{W}$
+
+$$
+W_i = 
+\begin{cases}
+1 \text{ if treated} \\
+0 \text{ if control} 
+\end{cases}
+$$
+
+-   Mahalanobis Distance, $M$, can be used as criteria for acceptable balance
+
+Let $M$ be the multivariate distance between groups means
+
+$$
+M = (\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)' cov(\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)^{-1} (\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C) \\
+= (\frac{1}{n_T}+ \frac{1}{n_C})^{-1}(\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)' cov(\mathbf{X})^{-1}(\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)
+$$
+
+With large sample size and "pure" randomization $M \sim \chi^2_k$ where $k$ is the number of covariates to be balanced
+
+Then let $p_a$ be the probability of accepting a randomization. Choosing appropriate $p_a$ is a tradeoff between balance and time.
+
+Then the rule of thumb is rerandomize when $M > a$
