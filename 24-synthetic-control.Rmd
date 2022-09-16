@@ -183,7 +183,7 @@ Then,
 
 -   the bias bound depends on close fit, which is controlled by the ratio between $\epsilon_{it}$ (transitory shock) and $T_0$ (the number of pre-treatment periods). In other words, you should have good fit for $Y_{1t}$ for pre-treatment period (i.e., $T_0$ should be large while small variance in $\epsilon_{it}$)
 
--   When you have poor fit, you have to use bias correction version of the syntehtic control. See [@arkhangelsky2019; @abadie2021][@ben2020varying]
+-   When you have poor fit, you have to use bias correction version of the synthetic control. See [@arkhangelsky2019; @abadie2021][@ben2020varying]
 
 -   Overfitting can be the result of small $T_0$ (the number of pre-treatment periods), large $J$ (the number of units in the donor pool), and large $\epsilon_{it}$ (noise)
 
