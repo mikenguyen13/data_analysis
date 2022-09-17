@@ -1,7 +1,7 @@
 ---
 title: "A Guide on Data Analysis"
 author: "Mike Nguyen"
-date: "2022-09-16"
+date: "2022-06-10"
 header-includes:
   - \usepackage{titling}
   - \pretitle{\begin{center}
@@ -12,7 +12,6 @@ bibliography:
 - book.bib
 - packages.bib
 - references.bib
-- references1.bib
 biblio-style: apalike
 link-citations: true
 link-as-notes: true

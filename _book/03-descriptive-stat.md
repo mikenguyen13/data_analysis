@@ -92,7 +92,6 @@ It's a good habit to label your graph, so others can easily follow.
 
 
 ```r
-set.seed(1)
 data = rnorm(100)
 
 # Histogram
@@ -109,8 +108,8 @@ hchart(data)
 ```
 
 ```{=html}
-<div id="htmlwidget-7bf94cd961c11210a1ca" style="width:90%;height:480px;" class="highchart html-widget"></div>
-<script type="application/json" data-for="htmlwidget-7bf94cd961c11210a1ca">{"x":{"hc_opts":{"chart":{"reflow":true,"zoomType":"x"},"title":{"text":null},"yAxis":{"title":{"text":null}},"credits":{"enabled":false},"exporting":{"enabled":false},"boost":{"enabled":false},"plotOptions":{"series":{"label":{"enabled":false},"turboThreshold":0},"treemap":{"layoutAlgorithm":"squarified"}},"tooltip":{"formatter":"function() { return  this.point.name + '<br/>' + this.y; }"},"series":[{"data":[{"x":-2.25,"y":1,"name":"(-2.5, -2]"},{"x":-1.75,"y":3,"name":"(-2, -1.5]"},{"x":-1.25,"y":7,"name":"(-1.5, -1]"},{"x":-0.75,"y":14,"name":"(-1, -0.5]"},{"x":-0.25,"y":21,"name":"(-0.5, 0]"},{"x":0.25,"y":20,"name":"(0, 0.5]"},{"x":0.75,"y":19,"name":"(0.5, 1]"},{"x":1.25,"y":9,"name":"(1, 1.5]"},{"x":1.75,"y":4,"name":"(1.5, 2]"},{"x":2.25,"y":2,"name":"(2, 2.5]"}],"type":"column","pointRange":0.5,"groupPadding":0,"pointPadding":0,"borderWidth":0}]},"theme":{"chart":{"backgroundColor":"transparent"},"colors":["#7cb5ec","#434348","#90ed7d","#f7a35c","#8085e9","#f15c80","#e4d354","#2b908f","#f45b5b","#91e8e1"]},"conf_opts":{"global":{"Date":null,"VMLRadialGradientURL":"http =//code.highcharts.com/list(version)/gfx/vml-radial-gradient.png","canvasToolsURL":"http =//code.highcharts.com/list(version)/modules/canvas-tools.js","getTimezoneOffset":null,"timezoneOffset":0,"useUTC":true},"lang":{"contextButtonTitle":"Chart context menu","decimalPoint":".","downloadCSV":"Download CSV","downloadJPEG":"Download JPEG image","downloadPDF":"Download PDF document","downloadPNG":"Download PNG image","downloadSVG":"Download SVG vector image","downloadXLS":"Download XLS","drillUpText":"◁ Back to {series.name}","exitFullscreen":"Exit from full screen","exportData":{"annotationHeader":"Annotations","categoryDatetimeHeader":"DateTime","categoryHeader":"Category"},"hideData":"Hide data table","invalidDate":null,"loading":"Loading...","months":["January","February","March","April","May","June","July","August","September","October","November","December"],"noData":"No data to display","numericSymbolMagnitude":1000,"numericSymbols":["k","M","G","T","P","E"],"printChart":"Print chart","resetZoom":"Reset zoom","resetZoomTitle":"Reset zoom level 1:1","shortMonths":["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"shortWeekdays":["Sat","Sun","Mon","Tue","Wed","Thu","Fri"],"thousandsSep":" ","viewData":"View data table","viewFullscreen":"View in full screen","weekdays":["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]}},"type":"chart","fonts":[],"debug":false},"evals":["hc_opts.tooltip.formatter"],"jsHooks":[]}</script>
+<div id="htmlwidget-053ab8e9baf2f7102a7f" style="width:90%;height:480px;" class="highchart html-widget"></div>
+<script type="application/json" data-for="htmlwidget-053ab8e9baf2f7102a7f">{"x":{"hc_opts":{"chart":{"reflow":true,"zoomType":"x"},"title":{"text":null},"yAxis":{"title":{"text":null}},"credits":{"enabled":false},"exporting":{"enabled":false},"boost":{"enabled":false},"plotOptions":{"series":{"label":{"enabled":false},"turboThreshold":0},"treemap":{"layoutAlgorithm":"squarified"}},"tooltip":{"formatter":"function() { return  this.point.name + '<br/>' + this.y; }"},"series":[{"data":[{"x":-2.25,"y":2,"name":"(-2.5, -2]"},{"x":-1.75,"y":12,"name":"(-2, -1.5]"},{"x":-1.25,"y":8,"name":"(-1.5, -1]"},{"x":-0.75,"y":17,"name":"(-1, -0.5]"},{"x":-0.25,"y":16,"name":"(-0.5, 0]"},{"x":0.25,"y":14,"name":"(0, 0.5]"},{"x":0.75,"y":13,"name":"(0.5, 1]"},{"x":1.25,"y":9,"name":"(1, 1.5]"},{"x":1.75,"y":2,"name":"(1.5, 2]"},{"x":2.25,"y":4,"name":"(2, 2.5]"},{"x":2.75,"y":2,"name":"(2.5, 3]"},{"x":3.25,"y":1,"name":"(3, 3.5]"}],"type":"column","pointRange":0.5,"groupPadding":0,"pointPadding":0,"borderWidth":0}]},"theme":{"chart":{"backgroundColor":"transparent"},"colors":["#7cb5ec","#434348","#90ed7d","#f7a35c","#8085e9","#f15c80","#e4d354","#2b908f","#f45b5b","#91e8e1"]},"conf_opts":{"global":{"Date":null,"VMLRadialGradientURL":"http =//code.highcharts.com/list(version)/gfx/vml-radial-gradient.png","canvasToolsURL":"http =//code.highcharts.com/list(version)/modules/canvas-tools.js","getTimezoneOffset":null,"timezoneOffset":0,"useUTC":true},"lang":{"contextButtonTitle":"Chart context menu","decimalPoint":".","downloadCSV":"Download CSV","downloadJPEG":"Download JPEG image","downloadPDF":"Download PDF document","downloadPNG":"Download PNG image","downloadSVG":"Download SVG vector image","downloadXLS":"Download XLS","drillUpText":"◁ Back to {series.name}","exitFullscreen":"Exit from full screen","exportData":{"annotationHeader":"Annotations","categoryDatetimeHeader":"DateTime","categoryHeader":"Category"},"hideData":"Hide data table","invalidDate":null,"loading":"Loading...","months":["January","February","March","April","May","June","July","August","September","October","November","December"],"noData":"No data to display","numericSymbolMagnitude":1000,"numericSymbols":["k","M","G","T","P","E"],"printChart":"Print chart","resetZoom":"Reset zoom","resetZoomTitle":"Reset zoom level 1:1","shortMonths":["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"shortWeekdays":["Sat","Sun","Mon","Tue","Wed","Thu","Fri"],"thousandsSep":" ","viewData":"View data table","viewFullscreen":"View in full screen","weekdays":["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]}},"type":"chart","fonts":[],"debug":false},"evals":["hc_opts.tooltip.formatter"],"jsHooks":[]}</script>
 
 # Box-and-Whisker plot
 boxplot(count ~ spray, data = InsectSprays,col = "lightgray",main="boxplot")
@@ -136,16 +135,13 @@ stem(data)
 #> 
 #>   The decimal point is at the |
 #> 
-#>   -2 | 20
-#>   -1 | 855
-#>   -1 | 433210
-#>   -0 | 9887777666666555
-#>   -0 | 4444333221111111000
-#>    0 | 001122233333444444
-#>    0 | 556666666677778888999
-#>    1 | 11122244
-#>    1 | 5566
-#>    2 | 024
+#>   -2 | 43
+#>   -1 | 99999887776644332110000
+#>   -0 | 988877666655555544333333222210
+#>    0 | 1112333444445556678889999
+#>    1 | 0001112333467
+#>    2 | 01129
+#>    3 | 00
 
 
 # Bagplot - A 2D Boxplot Extension
@@ -364,7 +360,7 @@ Correlation between
 |               |                              |                        |
 |               | [Epsilon-squared]            |                        |
 |               |                              |                        |
-|               | [Goodman Kruskal's Lambda]   |                        |
+|               | $$Goodman Kruskal's Lambda$$ |                        |
 |               |                              |                        |
 |               | [Somers' D]                  |                        |
 |               |                              |                        |
