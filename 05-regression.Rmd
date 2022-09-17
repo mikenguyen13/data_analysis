@@ -577,7 +577,7 @@ Interpretation: If repeated samples were taken and the joint $(1-\alpha)$ interv
 
 -   The Bonferroni interval is **conservative**. It is a lower bound and the joint intervals will tend to be correct more than $(1-\alpha)100$% of the time (lower power). People usually consider a larger $\alpha$ for the Bonferroni joint tests (e.g, $\alpha=0.1$)
 -   The Bonferroni procedure extends to testing more than 2 parameters. Say we are interested in testing $\beta_0,\beta_1,..., \beta_{g-1}$ (g parameters to test). Then, the joint Bonferroni interval is obtained by calculating the $(1-\alpha/g)$ 100% level interval for each separately.
--   For example, if $\alpha = 0.05$ and $g=10$, each individual test is done at the $1- \frac{.05}{10}$ level. For 2-sided intervals, this corresponds to using $t_{1-\frac{0.05}{2(10)};n-p}$ in the CI formula. This procedure works best if g is relatively small, otherwise the intervals for each individual parameter are very wide and teh test is way too conservative.
+-   For example, if $\alpha = 0.05$ and $g=10$, each individual test is done at the $1- \frac{.05}{10}$ level. For 2-sided intervals, this corresponds to using $t_{1-\frac{0.05}{2(10)};n-p}$ in the CI formula. This procedure works best if g is relatively small, otherwise the intervals for each individual parameter are very wide and the test is way too conservative.
 -   $b_0,b_1$ are usually correlated (negatively if $\bar{X} >0$ and positively if $\bar{X}<0$)
 -   Other multiple comparison procedures are available.
 
@@ -1140,7 +1140,7 @@ Cov(y_t,y_{t-2}) &= Cov(u_t + \alpha_1 u_{t-1},u_{t-2}+\alpha_{1}u_{t-3}) \\
 \end{aligned}
 $$
 
-An MA models a linear relationship between teh dependent variable and teh current and past values of a stochastic term.
+An MA models a linear relationship between the dependent variable and the current and past values of a stochastic term.
 
 2.  Auto regressive process of order 1 (AR(1))
 
