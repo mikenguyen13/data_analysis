@@ -135,42 +135,217 @@
 <li>For subgroup analysis (heterogeneity in effect size), see <span class="citation">(<a href="references.html#ref-harper2017" role="doc-biblioref">Harper and Bruckner 2017</a>)</span>
 </li>
 </ul>
-<p>Example by <a href="https://towardsdatascience.com/what-is-the-strongest-quasi-experimental-method-interrupted-time-series-period-f59fe5b00b31">Leihua Ye</a></p>
+<p>Interrupted time series should be used when</p>
+<ol style="list-style-type: decimal">
+<li>longitudinal data (outcome over time - observations before and after the intervention)</li>
+<li>full population was affected at one specific point in time (or can be stacked based on intervention)</li>
+</ol>
+<p>In each ITS framework, there can be 4 possible scenarios of outcome after an intervention</p>
+<ul>
+<li><p>No effects</p></li>
+<li><p>Immediate effect</p></li>
+<li><p>Sustained (long-term) effect (smooth)</p></li>
+<li><p>Both immediate and sustained effect</p></li>
+</ul>
+<p><span class="math display">\[
+Y = \beta_0 + \beta_1 T + \beta_2 D + \beta_3 P + \epsilon
+\]</span></p>
+<p>where</p>
+<ul>
+<li>
+<p><span class="math inline">\(Y\)</span> is the outcome variable</p>
+<ul>
+<li>
+<span class="math inline">\(\beta_0\)</span> is the baseline level of the outcome</li>
+</ul>
+</li>
+<li>
+<p><span class="math inline">\(T\)</span> is the time variable (e.g., days, weeks, etc.) passed from the start of the observation period</p>
+<ul>
+<li>
+<span class="math inline">\(\beta_1\)</span> is the slope of the line before the intervention</li>
+</ul>
+</li>
+<li>
+<p><span class="math inline">\(D\)</span> is the treatment variable where <span class="math inline">\(1\)</span> is after the intervention and <span class="math inline">\(0\)</span> is before the intervention.</p>
+<ul>
+<li>
+<span class="math inline">\(\beta_2\)</span> is the <strong>immediate effect</strong> after the intervention</li>
+</ul>
+</li>
+<li>
+<p><span class="math inline">\(P\)</span> is the time variable indicating time passed since the intervention (before the intervention, the value is set to 0) (to examine the sustained effect).</p>
+<ul>
+<li>
+<span class="math inline">\(\beta_3\)</span> is the <strong>sustained effect</strong> = difference between the slope of the line prior to the intervention and the slope of the line subsequent to the intervention</li>
+</ul>
+</li>
+</ul>
+<p><strong>Example</strong></p>
+<p>Create a fictitious dataset where we know the true data generating process</p>
+<p><span class="math display">\[
+Outcome = 10 * time + 20 * treatment + 25 * timesincetreatment + noise
+\]</span></p>
 <div class="sourceCode" id="cb437"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># data preparation</span>
-<span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>
-<span class="va">CaseID</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span>, <span class="fl">6</span><span class="op">)</span>
+<code class="sourceCode R"><span class="co"># number of days</span>
+<span class="va">n</span> <span class="op">=</span> <span class="fl">365</span>
 
-<span class="co"># intervention</span>
-<span class="va">Intervention</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">300</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">300</span><span class="op">)</span><span class="op">)</span>
-<span class="va">Outcome_Variable</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">300</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">abs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">300</span><span class="op">)</span> <span class="op">*</span> <span class="fl">4</span><span class="op">)</span><span class="op">)</span>
+<span class="co"># intervention at day </span>
+<span class="va">interven</span> <span class="op">=</span> <span class="fl">200</span>
 
-<span class="va">mydata</span> <span class="op">=</span> <span class="fu"><a href="https://amices.org/mice/reference/cbind.html">cbind</a></span><span class="op">(</span><span class="va">CaseID</span>, <span class="va">Intervention</span>, <span class="va">Outcome_Variable</span><span class="op">)</span>
+<span class="co"># time index from 1 to 365</span>
+<span class="va">time</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">n</span><span class="op">)</span>
 
-<span class="va">mydata</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">mydata</span><span class="op">)</span>
+<span class="co"># treatment variable: before internvation = day 1 to 200, after intervention = day 201 to 365</span>
+<span class="va">treatment</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">interven</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="va">n</span> <span class="op">-</span> <span class="va">interven</span><span class="op">)</span><span class="op">)</span>
 
-<span class="co">#construct a simple OLS model</span>
-<span class="va">model</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">Outcome_Variable</span> <span class="op">~</span> <span class="va">Intervention</span>, data <span class="op">=</span> <span class="va">mydata</span><span class="op">)</span>
-<span class="fu"><a href="https://rdrr.io/pkg/spaMM/man/summary.HL.html">summary</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="co"># there is a signficant effect </span>
+<span class="co"># time since treatment</span>
+<span class="va">timesincetreat</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">interven</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="op">(</span><span class="va">n</span> <span class="op">-</span> <span class="va">interven</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>
+
+<span class="co"># outcome </span>
+<span class="va">outcome</span> <span class="op">=</span> <span class="fl">10</span> <span class="op">+</span> <span class="fl">15</span> <span class="op">*</span> <span class="va">time</span> <span class="op">+</span> <span class="fl">20</span> <span class="op">*</span> <span class="va">treatment</span> <span class="op">+</span> <span class="fl">25</span> <span class="op">*</span> <span class="va">timesincetreat</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>
+
+<span class="va">df</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">outcome</span>, <span class="va">time</span>, <span class="va">treatment</span>, <span class="va">timesincetreat</span><span class="op">)</span></code></pre></div>
+<p>Visualize</p>
+<div class="sourceCode" id="cb438"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">time</span>, <span class="va">df</span><span class="op">$</span><span class="va">outcome</span><span class="op">)</span>
+
+<span class="co"># intervention date</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/abline.html">abline</a></span><span class="op">(</span>v <span class="op">=</span> <span class="va">interven</span>, col <span class="op">=</span> <span class="st">"blue"</span><span class="op">)</span>
+
+<span class="co"># regression line</span>
+<span class="va">ts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">outcome</span> <span class="op">~</span> <span class="va">time</span> <span class="op">+</span> <span class="va">treatment</span> <span class="op">+</span> <span class="va">timesincetreat</span>, data <span class="op">=</span> <span class="va">df</span><span class="op">)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">time</span>, <span class="va">ts</span><span class="op">$</span><span class="va">fitted.values</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></code></pre></div>
+<div class="inline-figure"><img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb439"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/pkg/spaMM/man/summary.HL.html">summary</a></span><span class="op">(</span><span class="va">ts</span><span class="op">)</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Call:</span>
-<span class="co">#&gt; lm(formula = Outcome_Variable ~ Intervention, data = mydata)</span>
+<span class="co">#&gt; lm(formula = outcome ~ time + treatment + timesincetreat, data = df)</span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Residuals:</span>
-<span class="co">#&gt;     Min      1Q  Median      3Q     Max </span>
-<span class="co">#&gt; -3.3050 -1.2315 -0.1734  0.8691 11.9185 </span>
+<span class="co">#&gt;      Min       1Q   Median       3Q      Max </span>
+<span class="co">#&gt; -2.84113 -0.63966 -0.05072  0.60352  3.05200 </span>
 <span class="co">#&gt; </span>
 <span class="co">#&gt; Coefficients:</span>
-<span class="co">#&gt;              Estimate Std. Error t value Pr(&gt;|t|)    </span>
-<span class="co">#&gt; (Intercept)   0.03358    0.11021   0.305    0.761    </span>
-<span class="co">#&gt; Intervention  3.28903    0.15586  21.103   &lt;2e-16 ***</span>
+<span class="co">#&gt;                 Estimate Std. Error  t value Pr(&gt;|t|)    </span>
+<span class="co">#&gt; (Intercept)    10.015529   0.147655    67.83   &lt;2e-16 ***</span>
+<span class="co">#&gt; time           15.000593   0.001274 11774.80   &lt;2e-16 ***</span>
+<span class="co">#&gt; treatment      19.734413   0.218967    90.12   &lt;2e-16 ***</span>
+<span class="co">#&gt; timesincetreat 24.999441   0.002124 11767.42   &lt;2e-16 ***</span>
 <span class="co">#&gt; ---</span>
 <span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt; Residual standard error: 1.909 on 598 degrees of freedom</span>
-<span class="co">#&gt; Multiple R-squared:  0.4268, Adjusted R-squared:  0.4259 </span>
-<span class="co">#&gt; F-statistic: 445.3 on 1 and 598 DF,  p-value: &lt; 2.2e-16</span></code></pre></div>
+<span class="co">#&gt; Residual standard error: 1.04 on 361 degrees of freedom</span>
+<span class="co">#&gt; Multiple R-squared:      1,  Adjusted R-squared:      1 </span>
+<span class="co">#&gt; F-statistic: 8.812e+08 on 3 and 361 DF,  p-value: &lt; 2.2e-16</span></code></pre></div>
+<p>Interpretation</p>
+<ul>
+<li><p>Time coefficient shows before-intervention outcome trend. Positive and significant, indicating a rising trend. Every day adds 15 points.</p></li>
+<li><p>The treatment coefficient shows the <strong>immediate</strong> increase in outcome. <strong>Immediate effect</strong> is positive and significant, increasing outcome by 20 points.</p></li>
+<li><p>The time since treatment coefficient reflects a change in trend subsequent to the intervention. The <strong>sustained effect</strong> is positive and statistically significant, showing that the outcome increases by 25 points per day after the intervention.</p></li>
+</ul>
+<p>Plot of counterfactual</p>
+<div class="sourceCode" id="cb440"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># treatment prediction</span>
+<span class="va">pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">ts</span>, <span class="va">df</span><span class="op">)</span>
 
+<span class="co"># counterfactual dataset</span>
+<span class="va">new_df</span> <span class="op">&lt;-</span>
+    <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://amices.org/mice/reference/cbind.html">cbind</a></span><span class="op">(</span>
+        time <span class="op">=</span> <span class="va">time</span>,
+        <span class="co"># treatment = 0 means counterfactual</span>
+        treatment <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="va">n</span><span class="op">)</span>,
+        <span class="co"># time since treatment = 0 means counterfactual</span>
+        timesincetreat <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span>
+    <span class="op">)</span><span class="op">)</span>
+
+<span class="co"># counterfactual predictions</span>
+<span class="va">pred_cf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">ts</span>, <span class="va">new_df</span><span class="op">)</span>
+
+<span class="co"># plot</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">outcome</span><span class="op">)</span>
+
+<span class="co"># regression line before treatment</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">interven</span><span class="op">)</span>, <span class="va">pred</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="va">interven</span><span class="op">]</span>, col <span class="op">=</span> <span class="st">"blue"</span><span class="op">)</span>
+
+<span class="co"># regression line after treatment</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="op">(</span><span class="va">interven</span><span class="op">+</span><span class="fl">1</span><span class="op">)</span><span class="op">:</span><span class="va">n</span><span class="op">)</span>, <span class="va">pred</span><span class="op">[</span><span class="op">(</span><span class="va">interven</span> <span class="op">+</span> <span class="fl">1</span><span class="op">)</span><span class="op">:</span><span class="va">n</span><span class="op">]</span>, col <span class="op">=</span> <span class="st">"blue"</span><span class="op">)</span>
+
+<span class="co"># regression line after treatment (counterfactual)</span>
+<span class="fu"><a href="https://rdrr.io/r/graphics/lines.html">lines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="va">interven</span><span class="op">:</span><span class="va">n</span><span class="op">)</span>, <span class="va">pred_cf</span><span class="op">[</span><span class="op">(</span><span class="va">interven</span><span class="op">)</span><span class="op">:</span> <span class="va">n</span><span class="op">]</span>, col <span class="op">=</span> <span class="st">"yellow"</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/graphics/abline.html">abline</a></span><span class="op">(</span>v <span class="op">=</span> <span class="va">interven</span>, col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></code></pre></div>
+<div class="inline-figure"><img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;"></div>
+<p>Possible threats to the validity of interrupted time series analysis <span class="citation">(<a href="references.html#ref-baicker2019" role="doc-biblioref">Baicker and Svoronos 2019</a>)</span></p>
+<ul>
+<li><p>Delayed effects <span class="citation">(<a href="references.html#ref-rodgers2005" role="doc-biblioref">Rodgers, John, and Coleman 2005</a>)</span> (may have to make assess some time after the intervention - do not assess the immediate dates).</p></li>
+<li><p>Other confounding events <span class="citation">(<a href="references.html#ref-linden2016a" role="doc-biblioref">Linden 2016a</a>)</span></p></li>
+<li><p>Intervention is introduced but later withdrawn <span class="citation">(<a href="references.html#ref-linden2016" role="doc-biblioref">Linden 2016b</a>)</span></p></li>
+<li><p><a href="interrupted-time-series.html#autocorrelation">Autocorrelation</a> (for every time series data): might cause underestimation in the standard errors (i.e., overestimating the statistical significance of the treatment effect)</p></li>
+<li><p>Regression to the mean: after a the short-term shock to the outcome, individuals can revert back to their initial states.</p></li>
+<li><p>Selection bias: only certain individuals are affected by the treatment (could use a <a href="interrupted-time-series.html#multiple-groups">Multiple Groups</a>).</p></li>
+</ul>
+<div id="autocorrelation" class="section level2" number="27.1">
+<h2>
+<span class="header-section-number">27.1</span> Autocorrelation<a class="anchor" aria-label="anchor" href="#autocorrelation"><i class="fas fa-link"></i></a>
+</h2>
+<p>Assess autocorrelation from residual</p>
+<div class="sourceCode" id="cb441"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="co"># simple regression on time </span>
+<span class="va">simple_ts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">outcome</span> <span class="op">~</span> <span class="va">time</span>, data <span class="op">=</span> <span class="va">df</span><span class="op">)</span>
+
+<span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">resid</a></span><span class="op">(</span><span class="va">simple_ts</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="inline-figure"><img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb442"><pre class="downlit sourceCode r">
+<code class="sourceCode R">
+<span class="co"># alternatively</span>
+<span class="fu"><a href="https://rdrr.io/r/stats/acf.html">acf</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">resid</a></span><span class="op">(</span><span class="va">simple_ts</span><span class="op">)</span><span class="op">)</span></code></pre></div>
+<div class="inline-figure"><img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-5-2.png" width="90%" style="display: block; margin: auto;"></div>
+<p>This is not the best example since I created this dataset. But when residuals do have autocorrelation, you should not see any patterns (i.e., points should be randomly distributed on the plot)</p>
+<p>To formally test for autocorrelation, we can use the Durbin-Watson test</p>
+<div class="sourceCode" id="cb443"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">lmtest</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/lmtest/man/dwtest.html">dwtest</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">outcome</span> <span class="op">~</span> <span class="va">df</span><span class="op">$</span><span class="va">time</span><span class="op">)</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt;  Durbin-Watson test</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; data:  df$outcome ~ df$time</span>
+<span class="co">#&gt; DW = 0.00037656, p-value &lt; 2.2e-16</span>
+<span class="co">#&gt; alternative hypothesis: true autocorrelation is greater than 0</span></code></pre></div>
+<p>From the p-value, we know that there is autocorrelation in the time series</p>
+<p>A solution to this problem is to use more advanced time series analysis (e.g., ARIMA - coming up in the book) to adjust for seasonality and other dependency.</p>
+<div class="sourceCode" id="cb444"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu">forecast</span><span class="fu">::</span><span class="fu"><a href="https://pkg.robjhyndman.com/forecast/reference/auto.arima.html">auto.arima</a></span><span class="op">(</span><span class="va">df</span><span class="op">$</span><span class="va">outcome</span>, xreg <span class="op">=</span> <span class="fu"><a href="https://Rdatatable.gitlab.io/data.table/reference/as.matrix.html">as.matrix</a></span><span class="op">(</span><span class="va">df</span><span class="op">[</span>, <span class="op">-</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span><span class="op">)</span>
+<span class="co">#&gt; Series: df$outcome </span>
+<span class="co">#&gt; Regression with ARIMA(1,0,1) errors </span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; Coefficients:</span>
+<span class="co">#&gt;          ar1      ma1  intercept     time  treatment  timesincetreat</span>
+<span class="co">#&gt;       0.7357  -0.8278    10.0243  15.0006    19.7283         24.9995</span>
+<span class="co">#&gt; s.e.  0.2422   0.2044     0.0974   0.0008     0.1491          0.0014</span>
+<span class="co">#&gt; </span>
+<span class="co">#&gt; sigma^2 = 1.068:  log likelihood = -526.95</span>
+<span class="co">#&gt; AIC=1067.9   AICc=1068.21   BIC=1095.19</span></code></pre></div>
+</div>
+<div id="multiple-groups" class="section level2" number="27.2">
+<h2>
+<span class="header-section-number">27.2</span> Multiple Groups<a class="anchor" aria-label="anchor" href="#multiple-groups"><i class="fas fa-link"></i></a>
+</h2>
+<p>When you suspect that you might have confounding events or selection bias, you can add a control group that did not experience the treatment (very much similar to <a href="difference-in-differences.html#difference-in-differences">Difference-in-differences</a>)</p>
+<p>The model then becomes</p>
+<p><span class="math display">\[
+Y = \beta_0 + \beta_1 time+ \beta_2 treatment +\beta_3 * timesincetreat + \\
+\beta_4 group + \beta_5 group * time + \beta_6 group * treatment + \beta_7 group * timesincetreat
+\]</span></p>
+<p>where</p>
+<ul>
+<li><p>Group = 1 when the observation is under treatment and 0 under control</p></li>
+<li><p><span class="math inline">\(\beta_4\)</span> = baseline difference between the treatment and control group</p></li>
+<li><p><span class="math inline">\(\beta_5\)</span> = slope difference between the treatment and control group before treatment</p></li>
+<li><p><span class="math inline">\(\beta_6\)</span> = baseline difference between the treatment and control group associated with the treatment.</p></li>
+<li><p><span class="math inline">\(\beta_7\)</span> = difference between the sustained effect of the treatment and control group after the treatment.</p></li>
+</ul>
+</div>
 </div>
 
 
@@ -180,7 +355,11 @@
 <div class="next"><a href="endogeneity.html"><span class="header-section-number">28</span> Endogeneity</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
-      <ul class="nav navbar-nav"><li><a class="nav-link" href="#interrupted-time-series"><span class="header-section-number">27</span> Interrupted Time Series</a></li></ul>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#interrupted-time-series"><span class="header-section-number">27</span> Interrupted Time Series</a></li>
+<li><a class="nav-link" href="#autocorrelation"><span class="header-section-number">27.1</span> Autocorrelation</a></li>
+<li><a class="nav-link" href="#multiple-groups"><span class="header-section-number">27.2</span> Multiple Groups</a></li>
+</ul>
 
       <div class="book-extra">
         <ul class="list-unstyled">
@@ -201,7 +380,7 @@
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2022-09-17.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2022-09-24.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

@@ -1,5 +1,11 @@
 # Linear Regression
 
+![](images/econometrics.PNG)
+
+ * Estimating parameters -> parametric (finite parameters)
+ * Estimating functions -> non-parametric 
+
+
 **Estimator Desirable Properties**
 
 1.  Unbiased
