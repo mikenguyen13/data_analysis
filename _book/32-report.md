@@ -695,3 +695,82 @@ plot_summs(fit_c, robust = "HC3", coefs = coef_names, plot.distributions = TRUE)
 ```
 
 <img src="32-report_files/figure-html/unnamed-chunk-10-2.png" width="90%" style="display: block; margin: auto;" />
+
+## Standard Errors
+
+`sandwich` [vignette](cran.r-project.org/web/packages/sandwich/vignettes/sandwich-CL.pdf)
+
++------------+------------+------------------------------------------------------------------------------------+---------------------+
+| Type       | Applicable | Usage                                                                              | Reference           |
++============+============+====================================================================================+=====================+
+| `const`    |            | Assume constant variances                                                          |                     |
++------------+------------+------------------------------------------------------------------------------------+---------------------+
+| `HC` `HC0` | `vcovCL`   | Heterogeneity                                                                      | [@white1980]        |
+|            |            |                                                                                    |                     |
+|            |            | White's estimator                                                                  |                     |
+|            |            |                                                                                    |                     |
+|            |            | All other heterogeneity SE methods are derivatives of this.                        |                     |
+|            |            |                                                                                    |                     |
+|            |            | No small sample bias adjustment                                                    |                     |
++------------+------------+------------------------------------------------------------------------------------+---------------------+
+| `HC1`      | `vcovCL`   | Uses a degrees of freedom-based correction                                         | [@mackinnon1985]    |
+|            |            |                                                                                    |                     |
+|            |            | When the number of clusters is small, `HC2` and `HC3` are better [@cameron2008]    |                     |
++------------+------------+------------------------------------------------------------------------------------+---------------------+
+| `HC2`      | `vcovCL`   | Better with the linear model, but still applicable for [Generalized Linear Models] |                     |
+|            |            |                                                                                    |                     |
+|            |            | Needs a hat (weighted) matrix                                                      |                     |
++------------+------------+------------------------------------------------------------------------------------+---------------------+
+| `HC3`      | `vcovCL`   | Better with the linear model, but still applicable for [Generalized Linear Models] |                     |
+|            |            |                                                                                    |                     |
+|            |            | Needs a hat (weighted) matrix                                                      |                     |
++------------+------------+------------------------------------------------------------------------------------+---------------------+
+| `HC4`      | `vcovHC`   |                                                                                    | [@cribari-neto2004] |
++------------+------------+------------------------------------------------------------------------------------+---------------------+
+| `HC4m`     | `vcovHC`   |                                                                                    | [@cribari-neto2007] |
++------------+------------+------------------------------------------------------------------------------------+---------------------+
+| `HC5`      | `vcovHC`   |                                                                                    | [@cribari-neto2010] |
++------------+------------+------------------------------------------------------------------------------------+---------------------+
+
+
+```r
+data(cars)
+model <- lm(speed ~ dist, data = cars)
+summary(model)
+#> 
+#> Call:
+#> lm(formula = speed ~ dist, data = cars)
+#> 
+#> Residuals:
+#>     Min      1Q  Median      3Q     Max 
+#> -7.5293 -2.1550  0.3615  2.4377  6.4179 
+#> 
+#> Coefficients:
+#>             Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)  8.28391    0.87438   9.474 1.44e-12 ***
+#> dist         0.16557    0.01749   9.464 1.49e-12 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 3.156 on 48 degrees of freedom
+#> Multiple R-squared:  0.6511,	Adjusted R-squared:  0.6438 
+#> F-statistic: 89.57 on 1 and 48 DF,  p-value: 1.49e-12
+lmtest::coeftest(model, vcov. = sandwich::vcovHC(model, type = "HC1"))
+#> 
+#> t test of coefficients:
+#> 
+#>             Estimate Std. Error t value  Pr(>|t|)    
+#> (Intercept) 8.283906   0.891860  9.2883 2.682e-12 ***
+#> dist        0.165568   0.019402  8.5335 3.482e-11 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+## Coefficient Uncertainty and Distribution
+
+The `ggdist` allows us to visualize uncertainty under both frequentist and Bayesian frameworks
+
+
+```r
+library(ggdist)
+```

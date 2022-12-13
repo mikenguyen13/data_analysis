@@ -97,7 +97,7 @@ $$
 
 where
 
--   the first term is the value fo the likelihood for the fitted restricted model\
+-   the first term is the value fo the likelihood for the fitted restricted model
 -   the second term is the likelihood value of the fitted unrestricted model
 
 Under the null,
@@ -140,7 +140,7 @@ where $\hat{s}_{ii}^2$ is the i-th diagonal of $\mathbf{[I(\hat{\beta})]}^{-1}$
 
 If you have
 
--   large sample size, the likelihood ratio and Wald tests have similar results.\
+-   large sample size, the likelihood ratio and Wald tests have similar results.
 -   small sample size, the likelihood ratio test is better.
 
 **Logistic Regression: Interpretation of** $\beta$
@@ -540,7 +540,10 @@ model$aic
 
 ```r
 # alcohol consumption and age as predictors
-better_model <- glm(cbind(ncases, ncontrols) ~ agegp + alcgp, data = esoph, family = binomial)
+better_model <-
+    glm(cbind(ncases, ncontrols) ~ agegp + alcgp,
+        data = esoph,
+        family = binomial)
 summary(better_model)
 #> 
 #> Call:
@@ -814,7 +817,7 @@ summary(NegBinom_Mod)
 #>  2 x log-likelihood:  -3121.917
 ```
 
-We can see the dispersion is 2.264 with SE = 0.271, which is significantly different from 1, indicating overdispersion. Check [Over-Dispersion] for more detail
+We can see the dispersion is 2.264 with SE = 0.271, which is significantly different from 1, indicating over-dispersion. Check [Over-Dispersion] for more detail
 
 ## Multinomial
 
@@ -842,7 +845,7 @@ which is known as **multinomial logistic** model.
 
 Note:
 
--   Softmax coding for multinomial logistic regression: rather than selecting a baseline class, we treat all K class symmetrically - euqllay important (no baseline).
+-   Softmax coding for multinomial logistic regression: rather than selecting a baseline class, we treat all K class symmetrically - equally important (no baseline).
 
 $$
 P(Y = k | X = x) = \frac{exp(\beta_{k1} + \dots + \beta_{k_p x_p})}{\sum_{l = 1}^K exp(\beta_{l0} + \dots + \beta_{l_p x_p})}
@@ -878,11 +881,11 @@ table(nes96$PID)
 #>     200     180     108      37      94     150     175
 nes96$Political_Strength <- NA
 nes96$Political_Strength[nes96$PID %in% c("strDem", "strRep")] <-
-  "Strong"
+    "Strong"
 nes96$Political_Strength[nes96$PID %in% c("weakDem", "weakRep")] <-
-  "Weak"
+    "Weak"
 nes96$Political_Strength[nes96$PID %in% c("indDem", "indind", "indRep")] <-
-  "Neutral"
+    "Neutral"
 nes96 %>% group_by(Political_Strength) %>% summarise(Count = n())
 #> # A tibble: 3 x 2
 #>   Political_Strength Count
@@ -1066,7 +1069,7 @@ $$
 Y_{ij} = \eta_{ij}^{-1}
 $$
 
-The linear predictor is a quadratic model fit to each of the j-th blocks. A different model (not fitted) could be one with common slopes: glm(y $\sim$ x + I(x\^2),...)
+The linear predictor is a quadratic model fit to each of the j-th blocks. A different model (not fitted) could be one with common slopes: `glm(y ~ x + I(x^2),…)`
 
 
 ```r
@@ -1110,17 +1113,19 @@ For predict new value of x
 
 ```r
 newdf <-
-  expand.grid(x = seq(0, 120, length = 50), block = factor(c('B1', 'B2', 'B3')))
+    expand.grid(x = seq(0, 120, length = 50), block = factor(c('B1', 'B2', 'B3')))
+
 newdf$pred <- predict(m1, new = newdf, type = 'response')
+
 ggplot(gammaDat, aes(x = x, y = y)) + geom_point(aes(color = block, shape =
-                                                       block)) +
-  xlab('Seeding Rate') + ylab('Inverse yield') + ggtitle('Streibig Competion - Barley only Predictions') +
-  geom_line(data = newdf, aes(
-    x = x,
-    y = pred,
-    color = block,
-    linetype = block
-  ))
+                                                         block)) +
+    xlab('Seeding Rate') + ylab('Inverse yield') + ggtitle('Streibig Competion - Barley only Predictions') +
+    geom_line(data = newdf, aes(
+        x = x,
+        y = pred,
+        color = block,
+        linetype = block
+    ))
 ```
 
 <img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-35-1.png" width="90%" style="display: block; margin: auto;" />
@@ -1144,7 +1149,7 @@ where
 
 **Note**:
 
-This family includes the \[Gamma\], \[Normal\], \[Poisson\], and other. For all parameterization of the exponential family, check this [link](https://www.stat.purdue.edu/~tlzhang/stat526/logistic.pdf)
+This family includes the [Gamma], [Normal], [Poisson], and other. For all parameterization of the exponential family, check this [link](https://www.stat.purdue.edu/~tlzhang/stat526/logistic.pdf)
 
 **Example**
 
@@ -1335,8 +1340,8 @@ Inverse Gaussian random
 
 ### Estimation
 
--   MLE for parameters of the **systematic component (**$\beta$)\
--   Unification of derivation and computation (thanks to the exponential forms)\
+-   MLE for parameters of the **systematic component (**$\beta$)
+-   Unification of derivation and computation (thanks to the exponential forms)
 -   No unification for estimation of the dispersion parameter ($\phi$)
 
 #### Estimation of $\beta$
@@ -1384,7 +1389,7 @@ We can also get the second derivatives using the chain rule.
 
 Example:
 
-For the \[Newton-Raphson\] algorithm, we need
+For the $$Newton-Raphson$$ algorithm, we need
 
 $$
 - E(\frac{\partial^2 l(\beta,\phi)}{\partial \beta_j \partial \beta_k})
@@ -1484,7 +1489,7 @@ $$
 \right)|_{\beta = \beta^{(m)}}
 $$
 
-Similar to \[Newton-Raphson\] expect the matrix of second derivatives by the expected value of the second derivative matrix.
+Similar to $$Newton-Raphson$$ expect the matrix of second derivatives by the expected value of the second derivative matrix.
 
 In matrix notation,
 
@@ -1504,7 +1509,7 @@ where
 -   $\mathbf{X}$ is an n x p matrix of covariates
 -   $\mathbf{W}$ is an n x n diagonal matrix with (i,i)th element given by $w_i$
 -   $\mathbf{\Delta}$ an n x n diagonal matrix with (i,i)th element given by $\frac{\partial \eta_i}{\partial \mu_i}$
--   $\mathbf{F} = \mathbf{\frac{\partial \mu}{\partial \beta}}$ an n x p matrix with ith row $\frac{\partial \mu_i}{\partial \beta} = (\frac{\partial \mu_i}{\partial \eta_i})\mathbf{x}'_i$
+-   $\mathbf{F} = \mathbf{\frac{\partial \mu}{\partial \beta}}$ an n x p matrix with i-th row $\frac{\partial \mu_i}{\partial \beta} = (\frac{\partial \mu_i}{\partial \eta_i})\mathbf{x}'_i$
 -   $\mathbf{V}$ an n x n diagonal matrix with (i,i)th element given by $V(\mu_i)$
 
 Setting the derivative of the log-likelihood equal to 0, ML estimating equations are
@@ -1781,7 +1786,7 @@ $$
 r_{s, D_i} = \frac{r_{D_i}}{\{\hat{\phi}(1-h_{ii}^{glm}\}^{1/2}}
 $$
 
-where $h_{ii}^{glm}$ is the ith diagonal of $\mathbf{H}^{GLM}$
+where $h_{ii}^{glm}$ is the i-th diagonal of $\mathbf{H}^{GLM}$
 
 <br>
 
@@ -1829,7 +1834,7 @@ then $\frac{X^2}{\phi}$ and $D^*(\mathbf{y; \hat{\mu}})$ both follow $\chi^2_{n-
 -   If we see:
 
     -   Trend, it means we might have a wrong link function, or choice of scale\
-    -   Systematic change in range of residuals with a change in $T(\hat{\mu})$ (incorrect random component) (systematic $\neq$ random)\
+    -   Systematic change in range of residuals with a change in $T(\hat{\mu})$ (incorrect random component) (systematic $\neq$ random)
 
 -   plot($|r_{D_i}|,\hat{\mu}_i$) to check **Variance Function**.
 
@@ -1837,7 +1842,7 @@ then $\frac{X^2}{\phi}$ and $D^*(\mathbf{y; \hat{\mu}})$ both follow $\chi^2_{n-
 
 To assess goodness of fit, we can use
 
--   [Deviance]\
+-   [Deviance]
 -   [Pearson Chi-square Residuals]
 
 In nested model, we could use likelihood-based information measures:
@@ -1856,13 +1861,13 @@ where
 
 Note: you have to use the same data with the same model (i.e., same link function, same random underlying random distribution). but you can have different number of parameters.
 
-Even though statisticians try to come up with measures that are similar to $R^2$, in practice, it is not so appropriate. For example, they comapre the log-likelihood of the fitted model against the that of a model with jsut the intercept:
+Even though statisticians try to come up with measures that are similar to $R^2$, in practice, it is not so appropriate. For example, they compare the log-likelihood of the fitted model against the that of a model with just the intercept:
 
 $$
 R^2_p = 1 - \frac{l(\hat{\mu})}{l(\hat{\mu}_0)}
 $$
 
-For certain specific random components such as binary response model, we have \*\*rescaled generalized $R^2$:
+For certain specific random components such as binary response model, we have rescaled generalized $R^2$:
 
 $$
 \bar{R}^2 = \frac{R^2_*}{\max(R^2_*)} = \frac{1-\exp\{-\frac{2}{n}(l(\hat{\mu}) - l(\hat{\mu}_0) \}}{1 - \exp\{\frac{2}{n}l(\hat{\mu}_0)\}}
@@ -1871,7 +1876,7 @@ $$
 ### Over-Dispersion
 
 | Random Components | $var(Y)$                  | $V(\mu)$                                     |
-|-------------------|---------------------------|----------------------------------------------|
+|------------------------|------------------------------|--------------------------------------|
 | Binomial          | $var(Y) = n \mu (1- \mu)$ | $V(\mu) = \phi n \mu(1- \mu)$ where $m_i =n$ |
 | Poisson           | $var(Y) = \mu$            | $V(\mu) = \phi \mu$                          |
 
@@ -1885,4 +1890,4 @@ If we find
 If we have either over or under-dispersion, it means we might have unspecified random component, we could
 
 -   Select a different random component distribution that can accommodate over or under-dispersion (e.g., negative binomial, Conway-Maxwell Poisson)
--   use \[Generalized Linear Mixed Models\]\[Nonlinear and Generalized Linear Mixed Models\] to handle random effects in generalized linear models.
+-   use [Nonlinear and Generalized Linear Mixed Models] to handle random effects in generalized linear models.

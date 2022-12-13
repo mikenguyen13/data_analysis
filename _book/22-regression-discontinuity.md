@@ -96,7 +96,7 @@ where
 
 **Identification (Identifying assumption**s) of RD:
 
-Average Treatment Effect at the cutoff (continuity-based)
+Average Treatment Effect at the cutoff ([Continuity-based])
 
 $$
 \begin{aligned}
@@ -106,7 +106,7 @@ $$
 \end{aligned}
 $$
 
-Average Treatment Effect in a neighborhood (Local Randomization-based):
+Average Treatment Effect in a neighborhood ([Local Randomization-based]):
 
 $$
 \begin{aligned}
@@ -114,18 +114,6 @@ $$
 &= \frac{1}{N_1} \sum_{X_i \in W, T_i = 1}Y_i - \frac{1}{N_0}\sum_{X_i \in W, T_i =0} Y_i
 \end{aligned}
 $$
-
-Local Randomization Approach assumes that inside the chosen window $W = [c-w, c+w]$ are assigned to treatment as good as random:
-
-1.  Joint probability distribution of scores for units inside the chosen window $W$ is known
-2.  Potential outcomes are not affected by value of the score
-
-$$
-Y_i(0,x) = Y_i(0) \\
-Y_i(1,x) = Y_i(1)
-$$
-
-This approach is stronger than the continuity-based because we assume the regressions are continuously at $c$ and unaffected by the running variable inside the chosen window $W$
 
 RDD estimates the local average treatment effect (LATE), at the cutoff point which is not at the individual or population levels.
 
@@ -149,7 +137,7 @@ Since researchers typically care more about the internal validity, than external
 
 **Threats to RD**
 
--   Variables (other than treatment) change discontinously at the cutoff
+-   Variables (other than treatment) change discontinuously at the cutoff
 
     -   We can test for jumps in these variables (including pre-treatment outcome)
 
@@ -160,6 +148,44 @@ Since researchers typically care more about the internal validity, than external
     -   At the cutoff point, check for continuity in the density of the assignment variable.
 
 <br>
+
+## Estimation and Inference
+
+### Local Randomization-based
+
+**Additional Assumption**: Local Randomization approach assumes that inside the chosen window $W = [c-w, c+w]$ are assigned to treatment as good as random:
+
+1.  Joint probability distribution of scores for units inside the chosen window $W$ is known
+2.  Potential outcomes are not affected by value of the score
+
+This approach is stronger than the [Continuity-based] because we assume the regressions are continuously at $c$ and unaffected by the running variable within window $W$
+
+Because we can choose the window $W$ (within which random assignment is plausible), the sample size can typically be small.
+
+To choose the window $W$, we can base on either
+
+1.  where the pre-treatment covariate-balance is observed
+2.  independent tests between outcome and score
+3.  domain knowledge
+
+To make inference, we can either use
+
+-   (Fisher) randomization inference
+
+-   (Neyman) design-based
+
+### Continuity-based
+
+-   also known as the local polynomial method
+
+    -   as the name suggests, global polynomial regression is not recommended (because of lack of robustness, and over-fitting and Runge's phenomenon)
+
+Step to estimate local polynomial regression
+
+1.  Choose polynomial order and weighting scheme
+2.  Choose bandwidth that has optimal MSE or coverage error
+3.  Estimate the parameter of interest
+4.  Examine robust bias-correct inference
 
 ## Specification Checks
 
@@ -242,7 +268,7 @@ Steps:
 
 1.  Identify the window in which the running variable contains bunching behavior. We can do this step empirically based on data [@bosch2020]. Additionally robustness test is needed (i.e., varying the manipulation window).
 2.  Estimate the manipulation-free counterfactual
-3.  Calculating the standard errors for inference can follow [@chetty2011] where we bootstrap resampling residuals in the estimation of the counts of individuals within bins (large data can render this step unnecessary).
+3.  Calculating the standard errors for inference can follow [@chetty2011] where we bootstrap re-sampling residuals in the estimation of the counts of individuals within bins (large data can render this step unnecessary).
 
 If we pass the bunching test, we can move on to the [Placebo Test]
 
@@ -350,6 +376,8 @@ summary(rdd)
 
     -   Testing other discontinuities
 
+    -   Placebo outcomes: we should see any changes in other outcomes that shouldn't have changed.
+
     -   Inclusion and exclusion of covariates: RDD parameter estimates should not be sensitive to the inclusion or exclusion of other covariates.
 
 -   This is analogous to [Experimental Design] where we cannot only test whether the observables are similar in both treatment and control groups (if we reject this, then we don't have random assignment), but we cannot test unobservables.
@@ -378,7 +406,7 @@ Under RD, you shouldn't have to do any [Matching Methods]. Because just like whe
 
 -   Methods for bandwidth selection
 
-    -   Ad hoc or substantively driven
+    -   Ad-hoc or substantively driven
 
     -   Data driven: cross validation
 
@@ -396,9 +424,9 @@ Under RD, you shouldn't have to do any [Matching Methods]. Because just like whe
 rdd::IKbandwidth(running_var, outcome_var, cutpoint = "", kernel = "triangular") # can also pick other kernels
 ```
 
-### Fuzzy RD Design
+## Fuzzy RD Design
 
-When you have cutoff that does not perfect determine treatment, but creates a discontinuity in the likelihood of receiving the treatment, you need another instrument
+When you have cutoff that does not perfectly determine treatment, but creates a discontinuity in the likelihood of receiving the treatment, you need another instrument
 
 For those that are close to the cutoff, we create an instrument for $D_i$
 
@@ -438,7 +466,7 @@ Two equivalent ways to estimate
 
 <br>
 
-### Regression Kink Design
+## Regression Kink Design
 
 -   If the slope of the treatment intensity changes at the cutoff (instead of the level of treatment assignment), we can have regression kink design
 
@@ -458,18 +486,18 @@ $$
 \alpha_{KRD} = \frac{\lim_{x \downarrow c} \frac{d}{dx}E[Y_i |X_i = x]- \lim_{x \uparrow c} \frac{d}{dx}E[Y_i |X_i = x]}{\lim_{x \downarrow c} \frac{d}{dx}E[D_i |X_i = x]- \lim_{x \uparrow c} \frac{d}{dx}E[D_i |X_i = x]}
 $$
 
-### Mutli-cutoff, Multi-score, geographic RD
-
-Multi-cutoff
+## Multi-cutoff
 
 $$
-E[Y_{1i} - Y_{0i}|X_i = x, C_i = c]
+\tau (x,c)= E[Y_{1i} - Y_{0i}|X_i = x, C_i = c]
 $$
+
+## Multi-score
 
 Multi-score (in multiple dimensions) (e.g., math and English cutoff for certain honor class):
 
 $$
-E[Y_{1i} - Y_{0i}|X_{1i} = x_1, X_{2i} = x]
+\tau (x_1, x_2) = E[Y_{1i} - Y_{0i}|X_{1i} = x_1, X_{2i} = x]
 $$
 
 <br>
@@ -614,7 +642,7 @@ econ
 
 -   [@burger2014]: Car accidents
 
--   [@brodeur2021]: covid 19 lockdowns on well-being
+-   [@brodeur2021]: covid 19 lock-downs on well-being
 
 marketing
 
@@ -708,7 +736,7 @@ Examples in marketing:
 
 -   `rdd`
 
--   `rdrobust`
+-   `rdrobust` estimation, inference and plot
 
 -   `rddensity` discontinuity in density tests ([Sorting/Bunching/Manipulation]) using local polynomials and binomial test
 
@@ -931,4 +959,3 @@ Replication of [@carpenter2009] by [Philipp Leppert](https://rpubs.com/phle/r_tu
 ### Example 4
 
 For a detailed application, see [@thoemmes2016] where they use `rdd`, `rdrobust`, `rddtools`
-

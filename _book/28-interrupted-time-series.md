@@ -88,6 +88,19 @@ timesincetreat = c(rep(0, interven), c(1:(n - interven)))
 outcome = 10 + 15 * time + 20 * treatment + 25 * timesincetreat + rnorm(n, mean = 0, sd = 1)
 
 df = data.frame(outcome, time, treatment, timesincetreat)
+
+head(df, 10)
+#>      outcome time treatment timesincetreat
+#> 1   24.83044    1         0              0
+#> 2   39.66660    2         0              0
+#> 3   54.72819    3         0              0
+#> 4   68.86242    4         0              0
+#> 5   86.50823    5         0              0
+#> 6  100.48627    6         0              0
+#> 7  115.58340    7         0              0
+#> 8  129.89530    8         0              0
+#> 9  144.69381    9         0              0
+#> 10 159.57969   10         0              0
 ```
 
 Visualize
@@ -160,18 +173,26 @@ new_df <-
 pred_cf <- predict(ts, new_df)
 
 # plot
-plot(outcome)
+plot(
+    outcome,
+    col = gray(0.2, 0.2),
+    pch = 19,
+    xlim  = c(1,365),
+    ylim = c(0, 10000),
+    xlab = "xlab",
+    ylab = "ylab"
+)
 
 # regression line before treatment
-lines(rep(1:interven), pred[1:interven], col = "blue")
+lines(rep(1:interven), pred[1:interven], col = "blue", lwd = 3)
 
 # regression line after treatment
-lines(rep((interven+1):n), pred[(interven + 1):n], col = "blue")
+lines(rep((interven+1):n), pred[(interven + 1):n], col = "blue", lwd = 3)
 
 # regression line after treatment (counterfactual)
-lines(rep(interven:n), pred_cf[(interven): n], col = "yellow")
+lines(rep(interven:n), pred_cf[(interven): n], col = "yellow", lwd = 3, lty = 5)
 
-abline(v = interven, col = "red")
+abline(v = interven, col = "red", lty = 2)
 ```
 
 <img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />

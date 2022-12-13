@@ -161,7 +161,7 @@ DT %>%
 
 ```
 
-## Autoregressive Moving Average (ARMA)
+## Autoregressive Moving Average (ARMA) {#autoregressive-moving-average-arma}
 
 -   is the combination of [Autoregressive (AR)](#autoregressive-ar) and [Moving Average (MA)](#moving-average-ma)
 
@@ -212,7 +212,7 @@ library(forecast)
 auto_mod <- auto.arima(gdp$lgdp[2:292])
 ```
 
-## Generalized Autoregressive Conditional Heterskedasticity (GARCH)
+## Generalized Autoregressive Conditional Heteroskedasticity (GARCH)
 
 -   Assume when variance error is serially auto-correlated (i.e., following an auto-regressive moving average process)
 
@@ -433,6 +433,216 @@ Additionally, non-parametric wavelet Granger causality is suitable for multiple 
 
 See[@li2021] for an example in finance
 
+## Distributed Lag Models
+
+A general distributed lag model
+
+$$
+Y_t = \alpha + \sum_{s = 0}^\infty \beta_s X_{t-s} + \epsilon_t
+$$
+
+-   $\beta$ are lag weights
+
+-   Short-run (Impact) Effect of $X$ is $\beta_0$
+
+-   Cumulative effect at one lag: $\beta_0 + \beta_1$
+
+-   Long-run Cumulative (Equilibrium) Effect of $X$ is $\beta = \sum_{s = 0}^\infty \beta_s < \infty$
+
+Define the lag weights as $w_s = \frac{\beta_s}{\beta}, s = 0, 1, \dots$ where $\sum_{s = 0}^{\infty} w_s = 1$
+
+The model becomes
+
+$$
+Y_t = \alpha + \beta \sum_{s = 0}^{\infty} w_s X_{t-s} + \epsilon_t
+$$
+
+Assume $w_s$'s have the same sign and $|w_s| <1$, then the period of adjustment to a new equilibrium is
+
+-   Median Lag The smallest number of lags $m$ such that $\sum_{s = 0}^{m -1} w_s = 0.5$
+
+-   Mean Lag weighted average of lags: $\sum_{s= 0}^{\infty} s w_s$
+
+Usually the assumption that $s$ is non-negative is reasonable (i.e., $y_t$ does not depend on future $x$). But if consumers change their current behaviors in anticipation of future change (e.g., laws), this assumption might break down.
+
+This model is similar to the [Autoregressive Moving Average (ARMA)](#autoregressive-moving-average-arma) process, where the lag polynomial is on the $X$ instead of the error process $\epsilon$
+
+**Estimation**
+
+-   Since an infinite number of $\beta$ cannot be estimated, we have to truncate the equation to finite lag length $q$
+
+    -   The choice of $q$ is the difficult part
+
+-   Alternatively, the lag distribution can gradually decay to 0.
+
+For a finite time lag model, we have
+
+$$
+y_t = \alpha + \sum_{s=0}^q \beta_s x_{t-s} + u_t
+$$
+
+**Interpretation**
+
+The marginal effect of each lag weight is
+
+$$
+\frac{\partial y_{t+s}}{\partial x_t} = \frac{\partial y_t}{x_{t-s}} = \beta_s
+$$
+
+The above equality depends on the assumption that correlation between $y$ and $x$ is stationary.
+
+### Finite Distributed Lag
+
+#### Unrestricted Distributed Lags
+
+Advantage
+
+-   can be estimated using GLS
+
+Disadvantages
+
+-   Inconsistent coefficient estimates (unreliable SE) when $x$ is stationary but highly auto-correlated
+
+-   need a large sample (each time we want to estimate one more lag term, we lose 1 df for the term and 1 df because we reduce the sample by 1 period).
+
+Hence, it's good when
+
+-   lag weights decline to 0 quickly
+
+-   regressor is not highly auto-correlated
+
+-   sample is long (in time) relative to the length of the lag distribution.
+
+#### Restricted Finite Distributed Lags
+
+-   Imposing smoothness on the lag weights $\beta_s$ as a function of $s$
+
+-   can decrease number of parameters to be estimated
+
+-   Restrict the function so that each lag is smaller than its predecessor.
+
+One possibility: Linearly declining lag weights
+
+$$
+\beta_s = \frac{q+1-s}{q+1} \beta_0
+$$
+
+where $s = 1, \dots, q$
+
+Another possibility: Symmetric "tent" shape weights where the lag weight increases linearly to a peak at lag $m$ and decline to 0.
+
+$$
+\beta_s = \beta_m (1 - \frac{|m-s|}{m + 1})
+$$
+
+where $s = 0, \dots, 2m$
+
+Common approach: polynomial distributed lag [@almon1965] where the lag coefficients are on a quadratic function
+
+$$
+\beta_s = \beta_0 + \beta_1 s + \beta_2 s^2
+$$
+
+where $s = 0,\dots, q$
+
+To have more regularity, we can restrict $\beta_{q+1} = 0$ so that the quadratic lag distribution converges to 0.
+
+We can also raise the function to any polynomial term that you want, but there will be less smoothness in the the lag distribution and more parameters to be estimated.
+
+### Lagged Dependent Variables
+
+#### Koyck Lag Models
+
+-   Also known as Geometric Lag Models
+
+-   Based on [@boschan1956]
+
+$$
+\begin{aligned}
+y_t &= \delta + \phi_1 y_{t-1} + \theta_0 x_t + \epsilon_t\\
+(1- \phi_1 L)y_t &= \delta + \theta_0 x_t + \epsilon_t \\
+y_t &= \frac{\delta}{1- \phi_1 L} + \frac{\theta_0}{1- \phi_1 L} + \frac{1}{1- \phi_1 L} \epsilon_t
+\end{aligned}
+$$
+
+An infinite distributed lag version of the Koyck function:
+
+$$
+y_t = \frac{\delta}{1-\phi_1} + \theta_0 \sum_{s=0}^{\infty} \phi_1^s x_{t-s} + \sum_{s=0}^\infty \phi_1^s \epsilon_{t-s}
+$$
+
+where
+
+-   $|\phi_1 |< 1$
+
+And we can regression the function considering
+
+-   $\alpha = \frac{\delta}{1-\phi_1}$
+
+-   $\beta_s = \theta_0 \phi_1^s$
+
+The dynamic marginal effects of $x$ on $y$ are
+
+$$
+\frac{\partial y_{t+s}}{x_t} = \beta_s = \theta_0 \phi_1^s
+$$
+
+and the long-run cumulative effect is
+
+$$
+\theta_0 \sum_{s=0}^\infty \phi_1^s = \frac{\theta_0}{1 - \phi_1}
+$$
+
+Problems with this model
+
+-   Different explanatory variables cannot have different exponential rate $\phi_1$ (e.g., the marginal effect of $z$ on $y$ would be $\lambda_0 \phi_1^s$ where $\lambda_0$ is the associated coefficient of $z$ in the first equation)
+
+-   Since having the lagged dependent variable as a regressor cannot satisfy strict exogeneity assumption (even weak exogeneity is questionable), consistent estimation of the coefficients is questionable
+
+    -   To fix this serially correlated error term, GLS should be used (with the Hildreth-Lu estimation)
+
+#### Autoregressive Lags
+
+The Koyck lag with more than one lag of the dependent variable can be written as the general autoregressive lag model [Autoregressive (AR)](#autoregressive-ar) (p):
+
+$$
+\phi(L)y_t = \delta + \theta_0 x_t + \epsilon_t
+$$
+
+where $\phi(L)$ is a p-order polynomial lag operator, and $|\phi_1|<1$ to guarantee the roots of $\phi(L)$ lie outside the unit circle)
+
+#### Autoregressive Distributed Lags (ARDL)
+
+With multiple lags of $x$, we have an even more general case of the Koyck lag function
+
+$$
+\phi(L)y_t = \delta + \theta(L) x_t + \epsilon_t
+$$
+
+where
+
+-   $\phi(L)$ is a p-order polynomial lag operator
+
+-   $|\phi_1|<1$ to guarantee the roots of $\phi(L)$ lie outside the unit circle)
+
+-   $\theta(L)$ is an q-order polynomial.
+
+ARDL is also known as the rational lag because it can be represented by the ratio of two finite lag polynomials, analogous to that rational numbers can be repeated as the ratio of two integers).
+
+The difference between ARDL and [Autoregressive Moving Average (ARMA)](#autoregressive-moving-average-arma) is that it the lag structure is applied to $x$ instead of $\epsilon$
+
+### Choosing the lag length
+
+-   Statistical significance
+
+    -   Add lag sequentially
+
+    -   Remove lag sequentially
+
+-   Information criteria; AIC, SBIC
+
+-   Residual autocorrelation: add lags until residuals look like white noise, then test the residuals using Breusch-Godfrey LM test or Box-Ljung Q test.
+
 ## Unobserved Component Models
 
 The UCM is proposed by [@harvey1990] to perform decomposition on a time series into various components:
@@ -443,7 +653,7 @@ The UCM is proposed by [@harvey1990] to perform decomposition on a time series i
 
     -   being a locally linear trend assuming the trend either has an upward or downward slope
 
--   Seasonality: consistent seasonal parttern
+-   Seasonality: consistent seasonal pattern
 
 -   Cycle: rise and fall that is not of fixed period
 

@@ -1116,6 +1116,8 @@ Based on table provided by [Ani Katchova](https://sites.google.com/site/economet
 
 ### Application
 
+#### plm package
+
 Recommended application of `plm` can be found [here](https://cran.r-project.org/web/packages/plm/vignettes/B_plmFunction.html) and [here](https://cran.r-project.org/web/packages/plm/vignettes/C_plmModelComponents.html) by Yves Croissant
 
 ```{r , eval=FALSE}
@@ -1241,9 +1243,9 @@ punbalancedness(random)
 instr <- plm(Y ~ X | X_ins, data = pdata, random.method = "ht", model = "random", inst.method = "baltagi")
 ```
 
-### Other Estimators
+##### Other Estimators
 
-#### Variable Coefficients Model
+###### Variable Coefficients Model
 
 ```{r, eval=FALSE}
 fixed_pvcm <- pvcm(Y~X, data=pdata, model="within")
@@ -1252,7 +1254,7 @@ random_pvcm <- pvcm(Y~X, data=pdata, model="random")
 
 More details can be found [here](https://cran.r-project.org/web/packages/plm/vignettes/plmPackage.html)
 
-#### Generalized Method of Moments Estimator
+###### Generalized Method of Moments Estimator
 
 Typically use in dynamic models. Example is from [plm package](https://cran.r-project.org/web/packages/plm/vignettes/plmPackage.html)
 
@@ -1265,7 +1267,7 @@ z2 <- pgmm(log(emp) ~ lag(log(emp), 1)+ lag(log(wage), 0:1) +
 summary(z2, robust = TRUE)
 ```
 
-#### General Feasible Generalized Least Squares Models
+###### General Feasible Generalized Least Squares Models
 
 Assume there is no cross-sectional correlation Robust against intragroup heteroskedasticity and serial correlation. Suited when n is much larger than T (long panel) However, inefficient under groupwise heteorskedasticity.
 
@@ -1276,3 +1278,182 @@ zz <- pggls(log(emp)~log(wage)+log(capital), data=EmplUK, model="pooling")
 # Fixed
 zz <- pggls(log(emp)~log(wage)+log(capital), data=EmplUK, model="within")
 ```
+
+#### fixest package
+
+Available functions
+
+-   `feols`: linear models
+
+-   `feglm`: generalized linear models
+
+-   `femlm`: maximum likelihood estimation
+
+-   `feNmlm`: non-linear in RHS parameters
+
+-   `fepois`: Poisson fixed-effect
+
+-   `fenegbin`: negative binomial fixed-effect
+
+Notes
+
+-   can only work for `fixest` object
+
+Examples by the package's [authors](https://cran.r-project.org/web/packages/fixest/vignettes/exporting_tables.html)
+
+```{r}
+library(fixest)
+data(airquality)
+
+# Setting a dictionary
+setFixest_dict(
+    c(
+        Ozone = "Ozone (ppb)",
+        Solar.R = "Solar Radiation (Langleys)",
+        Wind = "Wind Speed (mph)",
+        Temp = "Temperature"
+    )
+)
+
+# On multiple estimations: see the dedicated vignette
+est = feols(Ozone ~ Solar.R + sw0(Wind + Temp) | csw(Month, Day),
+            data = airquality,
+            cluster = ~ Day)
+
+etable(est)
+
+# in latex
+etable(est, tex = T)
+
+
+# get the fixed-effects coefficients for 1 model
+fixedEffects = fixef(est[[1]])
+summary(fixedEffects)
+
+# see the fixed effects for one dimension
+fixedEffects$Month
+
+plot(fixedEffects)
+```
+
+For [multiple estimation](https://cran.r-project.org/web/packages/fixest/vignettes/multiple_estimations.html)
+
+```{r}
+# set up 
+library(fixest)
+
+# let R know the base dataset (the biggest/ultimate dataset that includes everything in your analysis)
+base = iris
+
+# rename variables
+names(base) = c("y1","y2", "x1","x2", "species")
+
+res_multi = feols(
+    c(y1, y2) ~ x1 + csw(x2, x2 ^ 2) |
+        sw0(species),
+    data = base,
+    fsplit = ~ species,
+    lean = TRUE,
+    vcov = "hc1" # can also clustered at the fixed effect level
+)
+# it's recommended to use vcov at estimation stage, not summary stage
+
+summary(res_multi, "compact")
+
+# call the first 3 estimated models only
+etable(res_multi[1:3],
+       
+       # customize the headers
+       headers = c("mod1","mod2","mod3")) 
+```
+
+##### Multiple estimation (Left-hand side)
+
+-   When you have multiple interested dependent variables
+
+```{r}
+etable(feols(c(y1, y2) ~ x1 + x2, base))
+```
+
+To input a list of dependent variable
+
+```{r}
+depvars <- c("y1", "y2")
+
+res <- lapply(depvars, function(var) {
+    res <- feols(xpd(..lhs ~ x1 + x2, ..lhs = var), data = base)
+    # summary(res)
+})
+etable(res)
+```
+
+##### Multiple estimation (Right-hand side)
+
+Options to write the functions
+
+-   `sw` (stepwise): sequentially analyze each elements
+
+    -   `y ~ sw(x1, x2)` will be estimated as `y ~ x1` and `y ~ x2`
+
+-   `sw0` (stepwise 0): similar to `sw` but also estimate a model without the elements in the set first
+
+    -   `y ~ sw(x1, x2)` will be estimated as `y ~ 1` and `y ~ x1` and `y ~ x2`
+
+-   `csw` (cumulative stepwise): sequentially add each element of the set to the formula
+
+    -   `y ~ csw(x1, x2)` will be estimated as `y ~ x1` and `y ~ x1 + x2`
+
+-   `csw0` (cumulative stepwise 0): similar to `csw` but also estimate a model without the elements in the set first
+
+    -   `y ~ csw(x1, x2)` will be estimated as `y~ 1` `y ~ x1` and `y ~ x1 + x2`
+
+-   `mvsw` (multiverse stepwise): all possible combination of the elements in the set (it will get large very quick).
+
+    -   `mvsw(x1, x2, x3)` will be `sw0(x1, x2, x3, x1 + x2, x1 + x3, x2 + x3, x1 + x2 + x3)`
+
+##### Split sample estimation
+
+```{r}
+etable(feols(y1 ~ x1 + x2, fsplit = ~ species, data = base))
+```
+
+##### Standard Errors
+
+-   `iid`: errors are homoskedastic and independent and identically distributed
+
+-   `hetero`: errors are heteroskedastic using White correction
+
+-   `cluster`: errors are correlated within the cluster groups
+
+-   `newey_west`: [@newey1987] use for time series or panel data. Errors are heteroskedastic and serially correlated.
+
+    -   `vcov = newey_west ~ id + period` where `id` is the subject id and `period` is time period of the panel.
+
+    -   to specify lag period to consider `vcov = newey_west(2) ~ id + period` where we're considering 2 lag periods.
+
+-   `driscoll_kraay` [@driscoll1998] use for panel data. Errors are cross-sectionally and serially correlated.
+
+    -   `vcov = discoll_kraay ~ period`
+
+-   `conley`: [@conley1999] for cross-section data. Errors are spatially correlated
+
+    -   `vcov = conley ~ latitude + longitude`
+
+    -   to specify the distance cutoff, `vcov = vcov_conley(lat = "lat", lon = "long", cutoff = 100, distance = "spherical")`, which will use the `conley()` helper function.
+
+-   `hc`: from the `sandwich` package
+
+    -   `vcov = function(x) sandwich::vcovHC(x, type = "HC1"))`
+
+To let R know which SE estimation you want to use, insert `vcov = vcov_type ~ variables`
+
+##### Small sample correction
+
+To specify that R needs to use small sample correction add
+
+`ssc = ssc(adj = T, cluster.adj = T)`
+
+
+
+
+

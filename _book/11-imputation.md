@@ -962,6 +962,28 @@ For example, if women really are less likely to tell you their weight than men, 
 
 ## Application
 
+
+```r
+library(visdat)
+library(naniar)
+library(ggplot2)
+vis_miss()
+
+
+ggplot(data, aes(x, y)) + 
+    geom_miss_point() + 
+    facet_wrap(~ group)
+
+gg_miss_var(data, facet = group)
+
+gg_miss_upset(data)
+
+gg_miss_fct(x = variable1, fct = variable2)
+
+```
+
+Read more on [The Missing Book by Nicholas Tierney & Allison Horst](https://tmb.njtierney.com/)
+
 How many imputation:
 
 **Usually 5**. (unless you have extremely high portion of missing, in which case you probably need to check your data again)
@@ -1095,7 +1117,7 @@ library(VIM)
 md.pattern(iris.mis)
 ```
 
-<img src="11-imputation_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="11-imputation_files/figure-html/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```
 #>     Sepal.Width Sepal.Length Petal.Length Petal.Width   
@@ -1116,7 +1138,7 @@ md.pattern(iris.mis)
 aggr(iris.mis, col=mdc(1:2), numbers=TRUE, sortVars=TRUE, labels=names(iris.mis), cex.axis=.7, gap=3, ylab=c("Proportion of missingness","Missingness Pattern"))
 ```
 
-<img src="11-imputation_files/figure-html/unnamed-chunk-17-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="11-imputation_files/figure-html/unnamed-chunk-18-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```
 #> 
@@ -1134,7 +1156,7 @@ mice_plot <- aggr(iris.mis, col=c('navyblue','yellow'),
                     gap=3, ylab=c("Missing data","Pattern"))
 ```
 
-<img src="11-imputation_files/figure-html/unnamed-chunk-17-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="11-imputation_files/figure-html/unnamed-chunk-18-3.png" width="90%" style="display: block; margin: auto;" />
 
 ```
 #> 
@@ -1187,7 +1209,7 @@ summary(imputed_Data)
 densityplot(imputed_Data)
 ```
 
-<img src="11-imputation_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="11-imputation_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 #the red (imputed values) should be similar to the blue (observed)

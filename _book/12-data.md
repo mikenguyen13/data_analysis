@@ -1222,6 +1222,8 @@ Based on table provided by [Ani Katchova](https://sites.google.com/site/economet
 
 ### Application
 
+#### plm package
+
 Recommended application of `plm` can be found [here](https://cran.r-project.org/web/packages/plm/vignettes/B_plmFunction.html) and [here](https://cran.r-project.org/web/packages/plm/vignettes/C_plmModelComponents.html) by Yves Croissant
 
 
@@ -1352,9 +1354,9 @@ punbalancedness(random)
 instr <- plm(Y ~ X | X_ins, data = pdata, random.method = "ht", model = "random", inst.method = "baltagi")
 ```
 
-### Other Estimators
+##### Other Estimators
 
-#### Variable Coefficients Model
+###### Variable Coefficients Model
 
 
 ```r
@@ -1364,7 +1366,7 @@ random_pvcm <- pvcm(Y~X, data=pdata, model="random")
 
 More details can be found [here](https://cran.r-project.org/web/packages/plm/vignettes/plmPackage.html)
 
-#### Generalized Method of Moments Estimator
+###### Generalized Method of Moments Estimator
 
 Typically use in dynamic models. Example is from [plm package](https://cran.r-project.org/web/packages/plm/vignettes/plmPackage.html)
 
@@ -1378,7 +1380,7 @@ z2 <- pgmm(log(emp) ~ lag(log(emp), 1)+ lag(log(wage), 0:1) +
 summary(z2, robust = TRUE)
 ```
 
-#### General Feasible Generalized Least Squares Models
+###### General Feasible Generalized Least Squares Models
 
 Assume there is no cross-sectional correlation Robust against intragroup heteroskedasticity and serial correlation. Suited when n is much larger than T (long panel) However, inefficient under groupwise heteorskedasticity.
 
@@ -1390,3 +1392,393 @@ zz <- pggls(log(emp)~log(wage)+log(capital), data=EmplUK, model="pooling")
 # Fixed
 zz <- pggls(log(emp)~log(wage)+log(capital), data=EmplUK, model="within")
 ```
+
+#### fixest package
+
+Available functions
+
+-   `feols`: linear models
+
+-   `feglm`: generalized linear models
+
+-   `femlm`: maximum likelihood estimation
+
+-   `feNmlm`: non-linear in RHS parameters
+
+-   `fepois`: Poisson fixed-effect
+
+-   `fenegbin`: negative binomial fixed-effect
+
+Notes
+
+-   can only work for `fixest` object
+
+Examples by the package's [authors](https://cran.r-project.org/web/packages/fixest/vignettes/exporting_tables.html)
+
+
+```r
+library(fixest)
+data(airquality)
+
+# Setting a dictionary
+setFixest_dict(
+    c(
+        Ozone = "Ozone (ppb)",
+        Solar.R = "Solar Radiation (Langleys)",
+        Wind = "Wind Speed (mph)",
+        Temp = "Temperature"
+    )
+)
+
+# On multiple estimations: see the dedicated vignette
+est = feols(Ozone ~ Solar.R + sw0(Wind + Temp) | csw(Month, Day),
+            data = airquality,
+            cluster = ~ Day)
+
+etable(est)
+#>                                       model 1            model 2
+#> Dependent Var.:                   Ozone (ppb)        Ozone (ppb)
+#>                                                                 
+#> Solar Radiation (Langleys) 0.1148*** (0.0234)   0.0522* (0.0202)
+#> Wind Speed (mph)                              -3.109*** (0.7986)
+#> Temperature                                    1.875*** (0.3671)
+#> Fixed-Effects:             ------------------ ------------------
+#> Month                                     Yes                Yes
+#> Day                                        No                 No
+#> __________________________ __________________ __________________
+#> S.E.: Clustered                       by: Day            by: Day
+#> Observations                              111                111
+#> R2                                    0.31974            0.63686
+#> Within R2                             0.12245            0.53154
+#> 
+#>                                      model 3            model 4
+#> Dependent Var.:                  Ozone (ppb)        Ozone (ppb)
+#>                                                                
+#> Solar Radiation (Langleys) 0.1078** (0.0329)   0.0509* (0.0236)
+#> Wind Speed (mph)                             -3.289*** (0.7777)
+#> Temperature                                   2.052*** (0.2415)
+#> Fixed-Effects:             ----------------- ------------------
+#> Month                                    Yes                Yes
+#> Day                                      Yes                Yes
+#> __________________________ _________________ __________________
+#> S.E.: Clustered                      by: Day            by: Day
+#> Observations                             111                111
+#> R2                                   0.58018            0.81604
+#> Within R2                            0.12074            0.61471
+#> ---
+#> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+# in latex
+etable(est, tex = T)
+#> \begingroup
+#> \centering
+#> \begin{tabular}{lcccc}
+#>    \tabularnewline \midrule \midrule
+#>    Dependent Variable: & \multicolumn{4}{c}{Ozone (ppb)}\\
+#>    Model:                     & (1)            & (2)            & (3)            & (4)\\  
+#>    \midrule
+#>    \emph{Variables}\\
+#>    Solar Radiation (Langleys) & 0.1148$^{***}$ & 0.0522$^{**}$  & 0.1078$^{***}$ & 0.0509$^{**}$\\   
+#>                               & (0.0234)       & (0.0202)       & (0.0329)       & (0.0236)\\   
+#>    Wind Speed (mph)           &                & -3.109$^{***}$ &                & -3.289$^{***}$\\   
+#>                               &                & (0.7986)       &                & (0.7777)\\   
+#>    Temperature                &                & 1.875$^{***}$  &                & 2.052$^{***}$\\   
+#>                               &                & (0.3671)       &                & (0.2415)\\   
+#>    \midrule
+#>    \emph{Fixed-effects}\\
+#>    Month                      & Yes            & Yes            & Yes            & Yes\\  
+#>    Day                        &                &                & Yes            & Yes\\  
+#>    \midrule
+#>    \emph{Fit statistics}\\
+#>    Observations               & 111            & 111            & 111            & 111\\  
+#>    R$^2$                      & 0.31974        & 0.63686        & 0.58018        & 0.81604\\  
+#>    Within R$^2$               & 0.12245        & 0.53154        & 0.12074        & 0.61471\\  
+#>    \midrule \midrule
+#>    \multicolumn{5}{l}{\emph{Clustered (Day) standard-errors in parentheses}}\\
+#>    \multicolumn{5}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
+#> \end{tabular}
+#> \par\endgroup
+
+
+# get the fixed-effects coefficients for 1 model
+fixedEffects = fixef(est[[1]])
+summary(fixedEffects)
+#> Fixed_effects coefficients
+#> Number of fixed-effects for variable Month is 5.
+#> 	Mean = 19.6	Variance = 272
+#> 
+#> COEFFICIENTS:
+#>   Month:     5     6     7     8     9
+#>          3.219 8.288 34.26 40.12 12.13
+
+# see the fixed effects for one dimension
+fixedEffects$Month
+#>         5         6         7         8         9 
+#>  3.218876  8.287899 34.260812 40.122257 12.130971
+
+plot(fixedEffects)
+```
+
+<img src="12-data_files/figure-html/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
+
+For [multiple estimation](https://cran.r-project.org/web/packages/fixest/vignettes/multiple_estimations.html)
+
+
+```r
+# set up 
+library(fixest)
+
+# let R know the base dataset (the biggest/ultimate dataset that includes everything in your analysis)
+base = iris
+
+# rename variables
+names(base) = c("y1","y2", "x1","x2", "species")
+
+res_multi = feols(
+    c(y1, y2) ~ x1 + csw(x2, x2 ^ 2) |
+        sw0(species),
+    data = base,
+    fsplit = ~ species,
+    lean = TRUE,
+    vcov = "hc1" # can also clustered at the fixed effect level
+)
+# it's recommended to use vcov at estimation stage, not summary stage
+
+summary(res_multi, "compact")
+#>         sample lhs   fixef               rhs      (Intercept)
+#> 1  Full sample  y1 1       x1 + x2           4.19*** (0.104) 
+#> 2  Full sample  y1 1       x1 + x2 + I(x2^2) 4.27*** (0.101) 
+#> 3  Full sample  y1 species x1 + x2                           
+#> 4  Full sample  y1 species x1 + x2 + I(x2^2)                 
+#> 5  Full sample  y2 1       x1 + x2           3.59*** (0.103) 
+#> 6  Full sample  y2 1       x1 + x2 + I(x2^2) 3.68*** (0.0969)
+#> 7  Full sample  y2 species x1 + x2                           
+#> 8  Full sample  y2 species x1 + x2 + I(x2^2)                 
+#> 9  setosa       y1 1       x1 + x2           4.25*** (0.474) 
+#> 10 setosa       y1 1       x1 + x2 + I(x2^2)    4*** (0.504) 
+#> 11 setosa       y1 species x1 + x2                           
+#> 12 setosa       y1 species x1 + x2 + I(x2^2)                 
+#> 13 setosa       y2 1       x1 + x2           2.89*** (0.416) 
+#> 14 setosa       y2 1       x1 + x2 + I(x2^2) 2.82*** (0.423) 
+#> 15 setosa       y2 species x1 + x2                           
+#> 16 setosa       y2 species x1 + x2 + I(x2^2)                 
+#> 17 versicolor   y1 1       x1 + x2           2.38*** (0.423) 
+#> 18 versicolor   y1 1       x1 + x2 + I(x2^2)   0.323 (1.44)  
+#> 19 versicolor   y1 species x1 + x2                           
+#> 20 versicolor   y1 species x1 + x2 + I(x2^2)                 
+#> 21 versicolor   y2 1       x1 + x2           1.25*** (0.275) 
+#> 22 versicolor   y2 1       x1 + x2 + I(x2^2)   0.097 (1.01)  
+#> 23 versicolor   y2 species x1 + x2                           
+#> 24 versicolor   y2 species x1 + x2 + I(x2^2)                 
+#> 25 virginica    y1 1       x1 + x2             1.05. (0.539) 
+#> 26 virginica    y1 1       x1 + x2 + I(x2^2)   -2.39 (2.04)  
+#> 27 virginica    y1 species x1 + x2                           
+#> 28 virginica    y1 species x1 + x2 + I(x2^2)                 
+#> 29 virginica    y2 1       x1 + x2             1.06. (0.572) 
+#> 30 virginica    y2 1       x1 + x2 + I(x2^2)     1.1 (1.76)  
+#> 31 virginica    y2 species x1 + x2                           
+#> 32 virginica    y2 species x1 + x2 + I(x2^2)                 
+#>                    x1               x2           I(x2^2)
+#> 1   0.542*** (0.0761)   -0.32. (0.17)                   
+#> 2   0.719*** (0.0815) -1.52*** (0.307) 0.348*** (0.0748)
+#> 3   0.906*** (0.0759)   -0.006 (0.163)                  
+#> 4     0.9*** (0.0767)     0.29 (0.408)  -0.0879 (0.117) 
+#> 5  -0.257*** (0.0664)   0.364* (0.142)                  
+#> 6    -0.0301 (0.0778) -1.18*** (0.313) 0.446*** (0.0737)
+#> 7     0.155* (0.0735) 0.623*** (0.114)                  
+#> 8     0.148. (0.0755)   0.951* (0.472)  -0.0973 (0.125) 
+#> 9      0.399 (0.325)    0.712. (0.418)                  
+#> 10     0.405 (0.325)     2.51. (1.47)     -2.91 (2.1)   
+#> 11     0.399 (0.325)    0.712. (0.418)                  
+#> 12     0.405 (0.325)     2.51. (1.47)     -2.91 (2.1)   
+#> 13     0.247 (0.305)     0.702 (0.56)                   
+#> 14     0.248 (0.304)      1.27 (2.39)    -0.911 (3.28)  
+#> 15     0.247 (0.305)     0.702 (0.56)                   
+#> 16     0.248 (0.304)      1.27 (2.39)    -0.911 (3.28)  
+#> 17  0.934*** (0.166)     -0.32 (0.364)                  
+#> 18  0.901*** (0.164)      3.01 (2.31)     -1.24 (0.841) 
+#> 19  0.934*** (0.166)     -0.32 (0.364)                  
+#> 20  0.901*** (0.164)      3.01 (2.31)     -1.24 (0.841) 
+#> 21    0.0669 (0.0949) 0.929*** (0.244)                  
+#> 22     0.048 (0.0993)     2.8. (1.65)    -0.695 (0.583) 
+#> 23    0.0669 (0.0949) 0.929*** (0.244)                  
+#> 24     0.048 (0.0993)     2.8. (1.65)    -0.695 (0.583) 
+#> 25  0.995*** (0.0898)  0.00706 (0.205)                  
+#> 26  0.994*** (0.0881)     3.5. (2.09)     -0.87 (0.519) 
+#> 27  0.995*** (0.0898)  0.00706 (0.205)                  
+#> 28  0.994*** (0.0881)     3.5. (2.09)     -0.87 (0.519) 
+#> 29     0.149 (0.107)  0.535*** (0.122)                  
+#> 30     0.149 (0.108)     0.503 (1.56)   0.00798 (0.388) 
+#> 31     0.149 (0.107)  0.535*** (0.122)                  
+#> 32     0.149 (0.108)     0.503 (1.56)   0.00798 (0.388)
+
+# call the first 3 estimated models only
+etable(res_multi[1:3],
+       
+       # customize the headers
+       headers = c("mod1","mod2","mod3")) 
+#>                            model 1            model 2            model 3
+#>                               mod1               mod2               mod3
+#> Dependent Var.:                 y1                 y1                 y1
+#>                                                                         
+#> (Intercept)      4.191*** (0.1037)  4.266*** (0.1007)                   
+#> x1              0.5418*** (0.0761) 0.7189*** (0.0815) 0.9059*** (0.0759)
+#> x2               -0.3196. (0.1700) -1.522*** (0.3072)   -0.0060 (0.1625)
+#> x2 square                          0.3479*** (0.0748)                   
+#> Fixed-Effects:  ------------------ ------------------ ------------------
+#> species                         No                 No                Yes
+#> _______________ __________________ __________________ __________________
+#> S.E. type       Heteroskedas.-rob. Heteroskedas.-rob. Heteroskedas.-rob.
+#> Observations                   150                150                150
+#> R2                         0.76626            0.79456            0.83673
+#> Within R2                       --                 --            0.57179
+#> ---
+#> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+##### Multiple estimation (Left-hand side)
+
+-   When you have multiple interested dependent variables
+
+
+```r
+etable(feols(c(y1, y2) ~ x1 + x2, base))
+#>                            model 1             model 2
+#> Dependent Var.:                 y1                  y2
+#>                                                       
+#> (Intercept)      4.191*** (0.0970)   3.587*** (0.0937)
+#> x1              0.5418*** (0.0693) -0.2571*** (0.0669)
+#> x2               -0.3196* (0.1605)    0.3640* (0.1550)
+#> _______________ __________________ ___________________
+#> S.E. type                      IID                 IID
+#> Observations                   150                 150
+#> R2                         0.76626             0.21310
+#> Adj. R2                    0.76308             0.20240
+#> ---
+#> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+To input a list of dependent variable
+
+
+```r
+depvars <- c("y1", "y2")
+
+res <- lapply(depvars, function(var) {
+    res <- feols(xpd(..lhs ~ x1 + x2, ..lhs = var), data = base)
+    # summary(res)
+})
+etable(res)
+#>                            model 1             model 2
+#> Dependent Var.:                 y1                  y2
+#>                                                       
+#> (Intercept)      4.191*** (0.0970)   3.587*** (0.0937)
+#> x1              0.5418*** (0.0693) -0.2571*** (0.0669)
+#> x2               -0.3196* (0.1605)    0.3640* (0.1550)
+#> _______________ __________________ ___________________
+#> S.E. type                      IID                 IID
+#> Observations                   150                 150
+#> R2                         0.76626             0.21310
+#> Adj. R2                    0.76308             0.20240
+#> ---
+#> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+##### Multiple estimation (Right-hand side)
+
+Options to write the functions
+
+-   `sw` (stepwise): sequentially analyze each elements
+
+    -   `y ~ sw(x1, x2)` will be estimated as `y ~ x1` and `y ~ x2`
+
+-   `sw0` (stepwise 0): similar to `sw` but also estimate a model without the elements in the set first
+
+    -   `y ~ sw(x1, x2)` will be estimated as `y ~ 1` and `y ~ x1` and `y ~ x2`
+
+-   `csw` (cumulative stepwise): sequentially add each element of the set to the formula
+
+    -   `y ~ csw(x1, x2)` will be estimated as `y ~ x1` and `y ~ x1 + x2`
+
+-   `csw0` (cumulative stepwise 0): similar to `csw` but also estimate a model without the elements in the set first
+
+    -   `y ~ csw(x1, x2)` will be estimated as `y~ 1` `y ~ x1` and `y ~ x1 + x2`
+
+-   `mvsw` (multiverse stepwise): all possible combination of the elements in the set (it will get large very quick).
+
+    -   `mvsw(x1, x2, x3)` will be `sw0(x1, x2, x3, x1 + x2, x1 + x3, x2 + x3, x1 + x2 + x3)`
+
+##### Split sample estimation
+
+
+```r
+etable(feols(y1 ~ x1 + x2, fsplit = ~ species, data = base))
+#>                             model 1           model 2            model 3
+#> Sample (species)        Full sample            setosa         versicolor
+#> Dependent Var.:                  y1                y1                 y1
+#>                                                                         
+#> (Intercept)       4.191*** (0.0970) 4.248*** (0.4114)  2.381*** (0.4493)
+#> x1               0.5418*** (0.0693)   0.3990 (0.2958) 0.9342*** (0.1693)
+#> x2                -0.3196* (0.1605)   0.7121 (0.4874)   -0.3200 (0.4024)
+#> ________________ __________________ _________________ __________________
+#> S.E. type                       IID               IID                IID
+#> Observations                    150                50                 50
+#> R2                          0.76626           0.11173            0.57432
+#> Adj. R2                     0.76308           0.07393            0.55620
+#> 
+#>                             model 4
+#> Sample (species)          virginica
+#> Dependent Var.:                  y1
+#>                                    
+#> (Intercept)         1.052* (0.5139)
+#> x1               0.9946*** (0.0893)
+#> x2                  0.0071 (0.1795)
+#> ________________ __________________
+#> S.E. type                       IID
+#> Observations                     50
+#> R2                          0.74689
+#> Adj. R2                     0.73612
+#> ---
+#> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+##### Standard Errors
+
+-   `iid`: errors are homoskedastic and independent and identically distributed
+
+-   `hetero`: errors are heteroskedastic using White correction
+
+-   `cluster`: errors are correlated within the cluster groups
+
+-   `newey_west`: [@newey1987] use for time series or panel data. Errors are heteroskedastic and serially correlated.
+
+    -   `vcov = newey_west ~ id + period` where `id` is the subject id and `period` is time period of the panel.
+
+    -   to specify lag period to consider `vcov = newey_west(2) ~ id + period` where we're considering 2 lag periods.
+
+-   `driscoll_kraay` [@driscoll1998] use for panel data. Errors are cross-sectionally and serially correlated.
+
+    -   `vcov = discoll_kraay ~ period`
+
+-   `conley`: [@conley1999] for cross-section data. Errors are spatially correlated
+
+    -   `vcov = conley ~ latitude + longitude`
+
+    -   to specify the distance cutoff, `vcov = vcov_conley(lat = "lat", lon = "long", cutoff = 100, distance = "spherical")`, which will use the `conley()` helper function.
+
+-   `hc`: from the `sandwich` package
+
+    -   `vcov = function(x) sandwich::vcovHC(x, type = "HC1"))`
+
+To let R know which SE estimation you want to use, insert `vcov = vcov_type ~ variables`
+
+##### Small sample correction
+
+To specify that R needs to use small sample correction add
+
+`ssc = ssc(adj = T, cluster.adj = T)`
+
+
+
+
+
