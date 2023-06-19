@@ -21,6 +21,7 @@
 Notes:
 
 -   For subgroup analysis (heterogeneity in effect size), see [@harper2017]
+-   To interpret with control variables, see [@bottomley2019analysing]
 
 Interrupted time series should be used when
 
@@ -91,16 +92,16 @@ df = data.frame(outcome, time, treatment, timesincetreat)
 
 head(df, 10)
 #>      outcome time treatment timesincetreat
-#> 1   24.83044    1         0              0
-#> 2   39.66660    2         0              0
-#> 3   54.72819    3         0              0
-#> 4   68.86242    4         0              0
-#> 5   86.50823    5         0              0
-#> 6  100.48627    6         0              0
-#> 7  115.58340    7         0              0
-#> 8  129.89530    8         0              0
-#> 9  144.69381    9         0              0
-#> 10 159.57969   10         0              0
+#> 1   23.68558    1         0              0
+#> 2   38.71820    2         0              0
+#> 3   54.48975    3         0              0
+#> 4   69.78783    4         0              0
+#> 5   85.51400    5         0              0
+#> 6   98.71360    6         0              0
+#> 7  117.13795    7         0              0
+#> 8  128.39556    8         0              0
+#> 9  144.74154    9         0              0
+#> 10 160.92416   10         0              0
 ```
 
 Visualize
@@ -127,21 +128,21 @@ summary(ts)
 #> lm(formula = outcome ~ time + treatment + timesincetreat, data = df)
 #> 
 #> Residuals:
-#>      Min       1Q   Median       3Q      Max 
-#> -2.84113 -0.63966 -0.05072  0.60352  3.05200 
+#>     Min      1Q  Median      3Q     Max 
+#> -2.6415 -0.6815 -0.0165  0.7302  3.3466 
 #> 
 #> Coefficients:
 #>                 Estimate Std. Error  t value Pr(>|t|)    
-#> (Intercept)    10.015529   0.147655    67.83   <2e-16 ***
-#> time           15.000593   0.001274 11774.80   <2e-16 ***
-#> treatment      19.734413   0.218967    90.12   <2e-16 ***
-#> timesincetreat 24.999441   0.002124 11767.42   <2e-16 ***
+#> (Intercept)    10.196658   0.145187    70.23   <2e-16 ***
+#> time           14.998719   0.001253 11973.52   <2e-16 ***
+#> treatment      20.003481   0.215306    92.91   <2e-16 ***
+#> timesincetreat 25.001265   0.002089 11968.39   <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Residual standard error: 1.04 on 361 degrees of freedom
+#> Residual standard error: 1.023 on 361 degrees of freedom
 #> Multiple R-squared:      1,	Adjusted R-squared:      1 
-#> F-statistic: 8.812e+08 on 3 and 361 DF,  p-value: < 2.2e-16
+#> F-statistic: 9.114e+08 on 3 and 361 DF,  p-value: < 2.2e-16
 ```
 
 Interpretation
@@ -244,7 +245,7 @@ lmtest::dwtest(df$outcome ~ df$time)
 #> 	Durbin-Watson test
 #> 
 #> data:  df$outcome ~ df$time
-#> DW = 0.00037656, p-value < 2.2e-16
+#> DW = 0.00037563, p-value < 2.2e-16
 #> alternative hypothesis: true autocorrelation is greater than 0
 ```
 
@@ -256,15 +257,15 @@ A solution to this problem is to use more advanced time series analysis (e.g., A
 ```r
 forecast::auto.arima(df$outcome, xreg = as.matrix(df[, -1]))
 #> Series: df$outcome 
-#> Regression with ARIMA(1,0,1) errors 
+#> Regression with ARIMA(0,0,0) errors 
 #> 
 #> Coefficients:
-#>          ar1      ma1  intercept     time  treatment  timesincetreat
-#>       0.7357  -0.8278    10.0243  15.0006    19.7283         24.9995
-#> s.e.  0.2422   0.2044     0.0974   0.0008     0.1491          0.0014
+#>       intercept     time  treatment  timesincetreat
+#>         10.1967  14.9987    20.0035         25.0013
+#> s.e.     0.1444   0.0012     0.2141          0.0021
 #> 
-#> sigma^2 = 1.068:  log likelihood = -526.95
-#> AIC=1067.9   AICc=1068.21   BIC=1095.19
+#> sigma^2 = 1.046:  log likelihood = -524.12
+#> AIC=1058.24   AICc=1058.41   BIC=1077.74
 ```
 
 ## Multiple Groups

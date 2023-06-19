@@ -1010,7 +1010,7 @@ Here, we reject the null hypothesis that the no unobserved effects in the residu
 ```r
 pbsytest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, data=Produc, test="j")
 #> 
-#> 	Baltagi and Li AR-RE joint test - balanced panel
+#> 	Baltagi and Li AR-RE joint test
 #> 
 #> data:  formula
 #> chisq = 4187.6, df = 2, p-value < 2.2e-16
@@ -1027,7 +1027,7 @@ BSY for serial correlation
 ```r
 pbsytest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, data=Produc)
 #> 
-#> 	Bera, Sosa-Escudero and Yoon locally robust test - balanced panel
+#> 	Bera, Sosa-Escudero and Yoon locally robust test
 #> 
 #> data:  formula
 #> chisq = 52.636, df = 1, p-value = 4.015e-13
@@ -1040,8 +1040,7 @@ BSY for random effects
 ```r
 pbsytest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, data=Produc, test="re")
 #> 
-#> 	Bera, Sosa-Escudero and Yoon locally robust test (one-sided) -
-#> 	balanced panel
+#> 	Bera, Sosa-Escudero and Yoon locally robust test (one-sided)
 #> 
 #> data:  formula
 #> z = 57.914, p-value < 2.2e-16
@@ -1054,7 +1053,7 @@ Since BSY is only locally robust, if you "know" there is no serial correlation, 
 ```r
 plmtest(inv ~ value + capital, data = Grunfeld, type = "honda")
 #> 
-#> 	Lagrange Multiplier Test - (Honda) for balanced panels
+#> 	Lagrange Multiplier Test - (Honda)
 #> 
 #> data:  inv ~ value + capital
 #> normal = 28.252, p-value < 2.2e-16
@@ -1189,7 +1188,7 @@ phtest(gw, gr)
 ```
 
 +-----------------------+-----------------+---------------------------------+---------------------------------+-----------------------------------------+------------------------+------------------------+-------+-------------------------------------------+
-| Violation   Estimator | Basic Estimator | Instrumental variable Estimator | Variable Coefficients estimator | Generalized Method of Moments estimator | General FGLS estimator | Means groups estimator | CCEMG | Estimator for limited dependent variables |
+| Violation Estimator | Basic Estimator | Instrumental variable Estimator | Variable Coefficients estimator | Generalized Method of Moments estimator | General FGLS estimator | Means groups estimator | CCEMG | Estimator for limited dependent variables |
 +-----------------------+-----------------+---------------------------------+---------------------------------+-----------------------------------------+------------------------+------------------------+-------+-------------------------------------------+
 
 ### Summary
@@ -1436,7 +1435,7 @@ est = feols(Ozone ~ Solar.R + sw0(Wind + Temp) | csw(Month, Day),
             cluster = ~ Day)
 
 etable(est)
-#>                                       model 1            model 2
+#>                                         est.1              est.2
 #> Dependent Var.:                   Ozone (ppb)        Ozone (ppb)
 #>                                                                 
 #> Solar Radiation (Langleys) 0.1148*** (0.0234)   0.0522* (0.0202)
@@ -1451,7 +1450,7 @@ etable(est)
 #> R2                                    0.31974            0.63686
 #> Within R2                             0.12245            0.53154
 #> 
-#>                                      model 3            model 4
+#>                                        est.3              est.4
 #> Dependent Var.:                  Ozone (ppb)        Ozone (ppb)
 #>                                                                
 #> Solar Radiation (Langleys) 0.1078** (0.0329)   0.0509* (0.0236)
@@ -1545,93 +1544,91 @@ res_multi = feols(
 # it's recommended to use vcov at estimation stage, not summary stage
 
 summary(res_multi, "compact")
-#>         sample lhs   fixef               rhs      (Intercept)
-#> 1  Full sample  y1 1       x1 + x2           4.19*** (0.104) 
-#> 2  Full sample  y1 1       x1 + x2 + I(x2^2) 4.27*** (0.101) 
-#> 3  Full sample  y1 species x1 + x2                           
-#> 4  Full sample  y1 species x1 + x2 + I(x2^2)                 
-#> 5  Full sample  y2 1       x1 + x2           3.59*** (0.103) 
-#> 6  Full sample  y2 1       x1 + x2 + I(x2^2) 3.68*** (0.0969)
-#> 7  Full sample  y2 species x1 + x2                           
-#> 8  Full sample  y2 species x1 + x2 + I(x2^2)                 
-#> 9  setosa       y1 1       x1 + x2           4.25*** (0.474) 
-#> 10 setosa       y1 1       x1 + x2 + I(x2^2)    4*** (0.504) 
-#> 11 setosa       y1 species x1 + x2                           
-#> 12 setosa       y1 species x1 + x2 + I(x2^2)                 
-#> 13 setosa       y2 1       x1 + x2           2.89*** (0.416) 
-#> 14 setosa       y2 1       x1 + x2 + I(x2^2) 2.82*** (0.423) 
-#> 15 setosa       y2 species x1 + x2                           
-#> 16 setosa       y2 species x1 + x2 + I(x2^2)                 
-#> 17 versicolor   y1 1       x1 + x2           2.38*** (0.423) 
-#> 18 versicolor   y1 1       x1 + x2 + I(x2^2)   0.323 (1.44)  
-#> 19 versicolor   y1 species x1 + x2                           
-#> 20 versicolor   y1 species x1 + x2 + I(x2^2)                 
-#> 21 versicolor   y2 1       x1 + x2           1.25*** (0.275) 
-#> 22 versicolor   y2 1       x1 + x2 + I(x2^2)   0.097 (1.01)  
-#> 23 versicolor   y2 species x1 + x2                           
-#> 24 versicolor   y2 species x1 + x2 + I(x2^2)                 
-#> 25 virginica    y1 1       x1 + x2             1.05. (0.539) 
-#> 26 virginica    y1 1       x1 + x2 + I(x2^2)   -2.39 (2.04)  
-#> 27 virginica    y1 species x1 + x2                           
-#> 28 virginica    y1 species x1 + x2 + I(x2^2)                 
-#> 29 virginica    y2 1       x1 + x2             1.06. (0.572) 
-#> 30 virginica    y2 1       x1 + x2 + I(x2^2)     1.1 (1.76)  
-#> 31 virginica    y2 species x1 + x2                           
-#> 32 virginica    y2 species x1 + x2 + I(x2^2)                 
-#>                    x1               x2           I(x2^2)
-#> 1   0.542*** (0.0761)   -0.32. (0.17)                   
-#> 2   0.719*** (0.0815) -1.52*** (0.307) 0.348*** (0.0748)
-#> 3   0.906*** (0.0759)   -0.006 (0.163)                  
-#> 4     0.9*** (0.0767)     0.29 (0.408)  -0.0879 (0.117) 
-#> 5  -0.257*** (0.0664)   0.364* (0.142)                  
-#> 6    -0.0301 (0.0778) -1.18*** (0.313) 0.446*** (0.0737)
-#> 7     0.155* (0.0735) 0.623*** (0.114)                  
-#> 8     0.148. (0.0755)   0.951* (0.472)  -0.0973 (0.125) 
-#> 9      0.399 (0.325)    0.712. (0.418)                  
-#> 10     0.405 (0.325)     2.51. (1.47)     -2.91 (2.1)   
-#> 11     0.399 (0.325)    0.712. (0.418)                  
-#> 12     0.405 (0.325)     2.51. (1.47)     -2.91 (2.1)   
-#> 13     0.247 (0.305)     0.702 (0.56)                   
-#> 14     0.248 (0.304)      1.27 (2.39)    -0.911 (3.28)  
-#> 15     0.247 (0.305)     0.702 (0.56)                   
-#> 16     0.248 (0.304)      1.27 (2.39)    -0.911 (3.28)  
-#> 17  0.934*** (0.166)     -0.32 (0.364)                  
-#> 18  0.901*** (0.164)      3.01 (2.31)     -1.24 (0.841) 
-#> 19  0.934*** (0.166)     -0.32 (0.364)                  
-#> 20  0.901*** (0.164)      3.01 (2.31)     -1.24 (0.841) 
-#> 21    0.0669 (0.0949) 0.929*** (0.244)                  
-#> 22     0.048 (0.0993)     2.8. (1.65)    -0.695 (0.583) 
-#> 23    0.0669 (0.0949) 0.929*** (0.244)                  
-#> 24     0.048 (0.0993)     2.8. (1.65)    -0.695 (0.583) 
-#> 25  0.995*** (0.0898)  0.00706 (0.205)                  
-#> 26  0.994*** (0.0881)     3.5. (2.09)     -0.87 (0.519) 
-#> 27  0.995*** (0.0898)  0.00706 (0.205)                  
-#> 28  0.994*** (0.0881)     3.5. (2.09)     -0.87 (0.519) 
-#> 29     0.149 (0.107)  0.535*** (0.122)                  
-#> 30     0.149 (0.108)     0.503 (1.56)   0.00798 (0.388) 
-#> 31     0.149 (0.107)  0.535*** (0.122)                  
-#> 32     0.149 (0.108)     0.503 (1.56)   0.00798 (0.388)
+#>         sample   fixef lhs               rhs     (Intercept)                x1
+#> 1  Full sample 1        y1 x1 + x2           4.19*** (0.104)  0.542*** (0.076)
+#> 2  Full sample 1        y1 x1 + x2 + I(x2^2) 4.27*** (0.101)  0.719*** (0.082)
+#> 3  Full sample 1        y2 x1 + x2           3.59*** (0.103) -0.257*** (0.066)
+#> 4  Full sample 1        y2 x1 + x2 + I(x2^2) 3.68*** (0.097)    -0.030 (0.078)
+#> 5  Full sample species  y1 x1 + x2                            0.906*** (0.076)
+#> 6  Full sample species  y1 x1 + x2 + I(x2^2)                  0.900*** (0.077)
+#> 7  Full sample species  y2 x1 + x2                              0.155* (0.073)
+#> 8  Full sample species  y2 x1 + x2 + I(x2^2)                    0.148. (0.075)
+#> 9  setosa      1        y1 x1 + x2           4.25*** (0.474)     0.399 (0.325)
+#> 10 setosa      1        y1 x1 + x2 + I(x2^2) 4.00*** (0.504)     0.405 (0.325)
+#> 11 setosa      1        y2 x1 + x2           2.89*** (0.416)     0.247 (0.305)
+#> 12 setosa      1        y2 x1 + x2 + I(x2^2) 2.82*** (0.423)     0.248 (0.304)
+#> 13 setosa      species  y1 x1 + x2                               0.399 (0.325)
+#> 14 setosa      species  y1 x1 + x2 + I(x2^2)                     0.405 (0.325)
+#> 15 setosa      species  y2 x1 + x2                               0.247 (0.305)
+#> 16 setosa      species  y2 x1 + x2 + I(x2^2)                     0.248 (0.304)
+#> 17 versicolor  1        y1 x1 + x2           2.38*** (0.423)  0.934*** (0.166)
+#> 18 versicolor  1        y1 x1 + x2 + I(x2^2)   0.323 (1.44)   0.901*** (0.164)
+#> 19 versicolor  1        y2 x1 + x2           1.25*** (0.275)     0.067 (0.095)
+#> 20 versicolor  1        y2 x1 + x2 + I(x2^2)   0.097 (1.01)      0.048 (0.099)
+#> 21 versicolor  species  y1 x1 + x2                            0.934*** (0.166)
+#> 22 versicolor  species  y1 x1 + x2 + I(x2^2)                  0.901*** (0.164)
+#> 23 versicolor  species  y2 x1 + x2                               0.067 (0.095)
+#> 24 versicolor  species  y2 x1 + x2 + I(x2^2)                     0.048 (0.099)
+#> 25 virginica   1        y1 x1 + x2             1.05. (0.539)  0.995*** (0.090)
+#> 26 virginica   1        y1 x1 + x2 + I(x2^2)   -2.39 (2.04)   0.994*** (0.088)
+#> 27 virginica   1        y2 x1 + x2             1.06. (0.572)     0.149 (0.107)
+#> 28 virginica   1        y2 x1 + x2 + I(x2^2)    1.10 (1.76)      0.149 (0.108)
+#> 29 virginica   species  y1 x1 + x2                            0.995*** (0.090)
+#> 30 virginica   species  y1 x1 + x2 + I(x2^2)                  0.994*** (0.088)
+#> 31 virginica   species  y2 x1 + x2                               0.149 (0.107)
+#> 32 virginica   species  y2 x1 + x2 + I(x2^2)                     0.149 (0.108)
+#>                  x2          I(x2^2)
+#> 1   -0.320. (0.170)                 
+#> 2  -1.52*** (0.307) 0.348*** (0.075)
+#> 3    0.364* (0.142)                 
+#> 4  -1.18*** (0.313) 0.446*** (0.074)
+#> 5    -0.006 (0.163)                 
+#> 6     0.290 (0.408)   -0.088 (0.117)
+#> 7  0.623*** (0.114)                 
+#> 8    0.951* (0.472)   -0.097 (0.125)
+#> 9    0.712. (0.418)                 
+#> 10    2.51. (1.47)     -2.91 (2.10) 
+#> 11    0.702 (0.560)                 
+#> 12     1.27 (2.39)    -0.911 (3.28) 
+#> 13   0.712. (0.418)                 
+#> 14    2.51. (1.47)     -2.91 (2.10) 
+#> 15    0.702 (0.560)                 
+#> 16     1.27 (2.39)    -0.911 (3.28) 
+#> 17   -0.320 (0.364)                 
+#> 18     3.01 (2.31)     -1.24 (0.841)
+#> 19 0.929*** (0.244)                 
+#> 20    2.80. (1.65)    -0.695 (0.583)
+#> 21   -0.320 (0.364)                 
+#> 22     3.01 (2.31)     -1.24 (0.841)
+#> 23 0.929*** (0.244)                 
+#> 24    2.80. (1.65)    -0.695 (0.583)
+#> 25    0.007 (0.205)                 
+#> 26    3.50. (2.09)    -0.870 (0.519)
+#> 27 0.535*** (0.122)                 
+#> 28    0.503 (1.56)     0.008 (0.388)
+#> 29    0.007 (0.205)                 
+#> 30    3.50. (2.09)    -0.870 (0.519)
+#> 31 0.535*** (0.122)                 
+#> 32    0.503 (1.56)     0.008 (0.388)
 
 # call the first 3 estimated models only
 etable(res_multi[1:3],
        
        # customize the headers
        headers = c("mod1","mod2","mod3")) 
-#>                            model 1            model 2            model 3
-#>                               mod1               mod2               mod3
-#> Dependent Var.:                 y1                 y1                 y1
-#>                                                                         
-#> (Intercept)      4.191*** (0.1037)  4.266*** (0.1007)                   
-#> x1              0.5418*** (0.0761) 0.7189*** (0.0815) 0.9059*** (0.0759)
-#> x2               -0.3196. (0.1700) -1.522*** (0.3072)   -0.0060 (0.1625)
-#> x2 square                          0.3479*** (0.0748)                   
-#> Fixed-Effects:  ------------------ ------------------ ------------------
-#> species                         No                 No                Yes
-#> _______________ __________________ __________________ __________________
-#> S.E. type       Heteroskedas.-rob. Heteroskedas.-rob. Heteroskedas.-rob.
-#> Observations                   150                150                150
-#> R2                         0.76626            0.79456            0.83673
-#> Within R2                       --                 --            0.57179
+#>                   res_multi[1:3].1   res_multi[1:3].2    res_multi[1:3].3
+#>                               mod1               mod2                mod3
+#> Dependent Var.:                 y1                 y1                  y2
+#>                                                                          
+#> Constant         4.191*** (0.1037)  4.266*** (0.1007)   3.587*** (0.1031)
+#> x1              0.5418*** (0.0761) 0.7189*** (0.0815) -0.2571*** (0.0664)
+#> x2               -0.3196. (0.1700) -1.522*** (0.3072)    0.3640* (0.1419)
+#> x2 square                          0.3479*** (0.0748)                    
+#> _______________ __________________ __________________ ___________________
+#> S.E. type       Heteroskedas.-rob. Heteroskedas.-rob. Heteroskedast.-rob.
+#> Observations                   150                150                 150
+#> R2                         0.76626            0.79456             0.21310
+#> Adj. R2                    0.76308            0.79034             0.20240
 #> ---
 #> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -1643,10 +1640,10 @@ etable(res_multi[1:3],
 
 ```r
 etable(feols(c(y1, y2) ~ x1 + x2, base))
-#>                            model 1             model 2
+#>                 feols(c(y1, y2)..1 feols(c(y1, y2) ..2
 #> Dependent Var.:                 y1                  y2
 #>                                                       
-#> (Intercept)      4.191*** (0.0970)   3.587*** (0.0937)
+#> Constant         4.191*** (0.0970)   3.587*** (0.0937)
 #> x1              0.5418*** (0.0693) -0.2571*** (0.0669)
 #> x2               -0.3196* (0.1605)    0.3640* (0.1550)
 #> _______________ __________________ ___________________
@@ -1672,7 +1669,7 @@ etable(res)
 #>                            model 1             model 2
 #> Dependent Var.:                 y1                  y2
 #>                                                       
-#> (Intercept)      4.191*** (0.0970)   3.587*** (0.0937)
+#> Constant         4.191*** (0.0970)   3.587*** (0.0937)
 #> x1              0.5418*** (0.0693) -0.2571*** (0.0669)
 #> x2               -0.3196* (0.1605)    0.3640* (0.1550)
 #> _______________ __________________ ___________________
@@ -1713,11 +1710,11 @@ Options to write the functions
 
 ```r
 etable(feols(y1 ~ x1 + x2, fsplit = ~ species, data = base))
-#>                             model 1           model 2            model 3
+#>                  feols(y1 ~ x1 +..1 feols(y1 ~ x1 ..2 feols(y1 ~ x1 +..3
 #> Sample (species)        Full sample            setosa         versicolor
 #> Dependent Var.:                  y1                y1                 y1
 #>                                                                         
-#> (Intercept)       4.191*** (0.0970) 4.248*** (0.4114)  2.381*** (0.4493)
+#> Constant          4.191*** (0.0970) 4.248*** (0.4114)  2.381*** (0.4493)
 #> x1               0.5418*** (0.0693)   0.3990 (0.2958) 0.9342*** (0.1693)
 #> x2                -0.3196* (0.1605)   0.7121 (0.4874)   -0.3200 (0.4024)
 #> ________________ __________________ _________________ __________________
@@ -1726,11 +1723,11 @@ etable(feols(y1 ~ x1 + x2, fsplit = ~ species, data = base))
 #> R2                          0.76626           0.11173            0.57432
 #> Adj. R2                     0.76308           0.07393            0.55620
 #> 
-#>                             model 4
+#>                  feols(y1 ~ x1 +..4
 #> Sample (species)          virginica
 #> Dependent Var.:                  y1
 #>                                    
-#> (Intercept)         1.052* (0.5139)
+#> Constant            1.052* (0.5139)
 #> x1               0.9946*** (0.0893)
 #> x2                  0.0071 (0.1795)
 #> ________________ __________________

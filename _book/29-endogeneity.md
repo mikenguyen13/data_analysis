@@ -53,7 +53,7 @@ Types of endogeneity
 
 -   Omitted Variables Bias
 
-    -   Motivation/choice
+    -   Motivation/choiceheck
     -   Ability/talent
     -   Self-selection
 
@@ -824,7 +824,7 @@ $$
 
 1.  [Test of Endogeneity]: Is $y_{i2}$ truly endogenous (i.e., can we just use OLS instead of 2SLS)?
 
-2.  [Testing Instrument's assumptions]
+2.  [Testing Instrument's assumptions](#testing-instruments-assumptions)
 
     -   [Exogeneity] (Cannot always test "and when you can it might not be informative")
 
@@ -883,7 +883,7 @@ H_1: \theta \neq 0 && \text{  (endogenous)}
 \end{aligned}
 $$
 
-##### Testing Instrument's assumptions
+##### Testing Instrument's assumptions {#testing-instruments-assumptions}
 
 The instrumental variable must satisfy
 
@@ -959,7 +959,7 @@ low p-value means you reject the null of exogenous instruments. Hence you would 
 -   really only useful if one instrument is thought to be truly exogenous (randomly assigned). even f you do reject the null, the test does not tell you which instrument is exogenous and which is endogenous.
 
 | Result          | Implication                                                                         |
-|----------------|--------------------------------------------------------|
+|--------------------|----------------------------------------------------|
 | reject the null | you can be pretty sure there is an endogenous instrument, but don't know which one. |
 | fail to reject  | could be either (1) they are both exogenous, (2) they are both endogenous.          |
 
@@ -1409,20 +1409,20 @@ formula1 <-
 m8.multilevel <-
         multilevelIV(formula = formula1, data = dataMultilevelIV)
 coef(m8.multilevel)
-#>                    REF      FE_L2      FE_L3     GMM_L2     GMM_L3
-#> (Intercept) 64.3168856  0.0000000  0.0000000 64.3485944 64.3168868
-#> X11          3.0213405  3.0459605  3.0214255  3.0146686  3.0213403
-#> X12          8.9522160  8.9839088  8.9524723  8.9747533  8.9522169
-#> X13         -2.0194178 -2.0145054 -2.0193321 -2.0021426 -2.0194171
-#> X14          1.9651420  1.9791437  1.9648317  1.9658681  1.9651421
-#> X15         -0.5647915 -0.9777361 -0.5647621 -0.9750309 -0.5648070
-#> X21         -2.3316225  0.0000000 -2.2845297 -2.3052516 -2.3316215
-#> X22         -3.9564944  0.0000000 -3.9553644 -4.0130975 -3.9564966
-#> X23         -2.9779887  0.0000000 -2.9756848 -2.9488487 -2.9779876
-#> X24          4.9078293  0.0000000  4.9084694  4.7933756  4.9078250
-#> X31          2.1142348  0.0000000  0.0000000  2.1164477  2.1142349
-#> X32          0.3934770  0.0000000  0.0000000  0.3799626  0.3934764
-#> X33          0.1082086  0.0000000  0.0000000  0.1108386  0.1082087
+#>                    REF     FE_L2      FE_L3     GMM_L2     GMM_L3
+#> (Intercept) 64.3640774  0.000000  0.0000000 64.6642061 64.3644220
+#> X11          3.0356390  3.047931  3.0353448  3.0356094  3.0356389
+#> X12          9.0005462  8.996679  8.9999438  8.9966073  9.0005417
+#> X13         -2.0082559 -2.000106 -2.0090020 -2.0215816 -2.0082712
+#> X14          1.9809907  2.001761  1.9803275  1.9849995  1.9809953
+#> X15         -0.5739658 -1.036909 -0.5745241 -1.0344864 -0.5744947
+#> X21         -2.2423675  0.000000 -2.2319682 -2.2172859 -2.2423387
+#> X22         -3.2658889  0.000000 -2.9345899 -3.3146849 -3.2659449
+#> X23         -2.8332479  0.000000 -2.8060569 -2.8581647 -2.8332765
+#> X24          5.0696401  0.000000  5.0895430  5.0183704  5.0695812
+#> X31          2.0770536  0.000000  0.0000000  2.0710383  2.0770467
+#> X32          0.4540926  0.000000  0.0000000  0.4571712  0.4540962
+#> X33          0.0991915  0.000000  0.0000000  0.0980949  0.0991902
 ```
 
 
@@ -1433,33 +1433,33 @@ summary(m8.multilevel, "REF")
 #> multilevelIV(formula = formula1, data = dataMultilevelIV)
 #> 
 #> Number of levels: 3
-#> Number of observations: 2824
-#> Number of groups: L2(CID): 1368  L3(SID): 40
+#> Number of observations: 2767
+#> Number of groups: L2(CID): 1347  L3(SID): 40
 #> 
 #> Coefficients for model REF:
 #>             Estimate Std. Error z-score Pr(>|z|)    
-#> (Intercept) 64.31689    7.87332   8.169 3.11e-16 ***
-#> X11          3.02134    0.02576 117.306  < 2e-16 ***
-#> X12          8.95222    0.02572 348.131  < 2e-16 ***
-#> X13         -2.01942    0.02409 -83.835  < 2e-16 ***
-#> X14          1.96514    0.02521  77.937  < 2e-16 ***
-#> X15         -0.56479    0.01950 -28.962  < 2e-16 ***
-#> X21         -2.33162    0.16228 -14.368  < 2e-16 ***
-#> X22         -3.95649    0.13119 -30.160  < 2e-16 ***
-#> X23         -2.97799    0.06611 -45.044  < 2e-16 ***
-#> X24          4.90783    0.19796  24.792  < 2e-16 ***
-#> X31          2.11423    0.10433  20.264  < 2e-16 ***
-#> X32          0.39348    0.30426   1.293   0.1959    
-#> X33          0.10821    0.05236   2.067   0.0388 *  
+#> (Intercept) 64.36408    6.45959   9.964   <2e-16 ***
+#> X11          3.03564    0.02763 109.863   <2e-16 ***
+#> X12          9.00055    0.02608 345.152   <2e-16 ***
+#> X13         -2.00826    0.02521 -79.668   <2e-16 ***
+#> X14          1.98099    0.02639  75.079   <2e-16 ***
+#> X15         -0.57397    0.01980 -28.987   <2e-16 ***
+#> X21         -2.24237    0.18661 -12.016   <2e-16 ***
+#> X22         -3.26589    0.38703  -8.438   <2e-16 ***
+#> X23         -2.83325    0.10330 -27.427   <2e-16 ***
+#> X24          5.06964    0.07322  69.240   <2e-16 ***
+#> X31          2.07705    0.08935  23.246   <2e-16 ***
+#> X32          0.45409    0.19116   2.375   0.0175 *  
+#> X33          0.09919    0.04153   2.388   0.0169 *  
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> Omitted variable tests for model REF:
-#>               df     Chisq  p-value    
-#> GMM_L2_vs_REF  7     18.74 0.009040 ** 
-#> GMM_L3_vs_REF 13 -12872.98 1.000000    
-#> FE_L2_vs_REF  13     39.99 0.000139 ***
-#> FE_L3_vs_REF  13     39.99 0.000138 ***
+#>               df   Chisq  p-value    
+#> GMM_L2_vs_REF  7  161.14  < 2e-16 ***
+#> GMM_L3_vs_REF 13 -829.75 1.000000    
+#> FE_L2_vs_REF  13   40.00 0.000138 ***
+#> FE_L3_vs_REF  13   39.99 0.000139 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -1496,33 +1496,33 @@ summary(m8.multilevel, "REF")
 #> multilevelIV(formula = formula1, data = dataMultilevelIV)
 #> 
 #> Number of levels: 3
-#> Number of observations: 2824
-#> Number of groups: L2(CID): 1368  L3(SID): 40
+#> Number of observations: 2767
+#> Number of groups: L2(CID): 1347  L3(SID): 40
 #> 
 #> Coefficients for model REF:
 #>             Estimate Std. Error z-score Pr(>|z|)    
-#> (Intercept) 64.31689    7.87332   8.169 3.11e-16 ***
-#> X11          3.02134    0.02576 117.306  < 2e-16 ***
-#> X12          8.95222    0.02572 348.131  < 2e-16 ***
-#> X13         -2.01942    0.02409 -83.835  < 2e-16 ***
-#> X14          1.96514    0.02521  77.937  < 2e-16 ***
-#> X15         -0.56479    0.01950 -28.962  < 2e-16 ***
-#> X21         -2.33162    0.16228 -14.368  < 2e-16 ***
-#> X22         -3.95649    0.13119 -30.160  < 2e-16 ***
-#> X23         -2.97799    0.06611 -45.044  < 2e-16 ***
-#> X24          4.90783    0.19796  24.792  < 2e-16 ***
-#> X31          2.11423    0.10433  20.264  < 2e-16 ***
-#> X32          0.39348    0.30426   1.293   0.1959    
-#> X33          0.10821    0.05236   2.067   0.0388 *  
+#> (Intercept) 64.36408    6.45959   9.964   <2e-16 ***
+#> X11          3.03564    0.02763 109.863   <2e-16 ***
+#> X12          9.00055    0.02608 345.152   <2e-16 ***
+#> X13         -2.00826    0.02521 -79.668   <2e-16 ***
+#> X14          1.98099    0.02639  75.079   <2e-16 ***
+#> X15         -0.57397    0.01980 -28.987   <2e-16 ***
+#> X21         -2.24237    0.18661 -12.016   <2e-16 ***
+#> X22         -3.26589    0.38703  -8.438   <2e-16 ***
+#> X23         -2.83325    0.10330 -27.427   <2e-16 ***
+#> X24          5.06964    0.07322  69.240   <2e-16 ***
+#> X31          2.07705    0.08935  23.246   <2e-16 ***
+#> X32          0.45409    0.19116   2.375   0.0175 *  
+#> X33          0.09919    0.04153   2.388   0.0169 *  
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> Omitted variable tests for model REF:
-#>               df     Chisq  p-value    
-#> GMM_L2_vs_REF  7     18.74 0.009040 ** 
-#> GMM_L3_vs_REF 13 -12872.98 1.000000    
-#> FE_L2_vs_REF  13     39.99 0.000139 ***
-#> FE_L3_vs_REF  13     39.99 0.000138 ***
+#>               df   Chisq  p-value    
+#> GMM_L2_vs_REF  7  161.14  < 2e-16 ***
+#> GMM_L3_vs_REF 13 -829.75 1.000000    
+#> FE_L2_vs_REF  13   40.00 0.000138 ***
+#> FE_L3_vs_REF  13   39.99 0.000139 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 # compare REF with all the other estimators. Testing REF (the most efficient estimator) against FE_L2 (the most robust estimator), equivalently we are testing simultaneously for level-2 and level-3 omitted effects. 
@@ -1540,33 +1540,33 @@ summary(m8.multilevel,"FE_L2")
 #> multilevelIV(formula = formula1, data = dataMultilevelIV)
 #> 
 #> Number of levels: 3
-#> Number of observations: 2824
-#> Number of groups: L2(CID): 1368  L3(SID): 40
+#> Number of observations: 2767
+#> Number of groups: L2(CID): 1347  L3(SID): 40
 #> 
 #> Coefficients for model FE_L2:
 #>               Estimate Std. Error z-score Pr(>|z|)    
-#> (Intercept)  0.000e+00  4.275e-19    0.00        1    
-#> X11          3.046e+00  2.978e-02  102.30   <2e-16 ***
-#> X12          8.984e+00  3.360e-02  267.41   <2e-16 ***
-#> X13         -2.015e+00  3.107e-02  -64.83   <2e-16 ***
-#> X14          1.979e+00  3.203e-02   61.80   <2e-16 ***
-#> X15         -9.777e-01  3.364e-02  -29.06   <2e-16 ***
-#> X21          0.000e+00  1.824e-18    0.00        1    
-#> X22          0.000e+00  1.303e-18    0.00        1    
-#> X23          0.000e+00  4.389e-18    0.00        1    
-#> X24          0.000e+00  1.724e-18    0.00        1    
-#> X31          0.000e+00  1.468e-17    0.00        1    
-#> X32          0.000e+00  8.265e-18    0.00        1    
-#> X33          0.000e+00  2.793e-17    0.00        1    
+#> (Intercept)  0.000e+00  1.373e-18    0.00        1    
+#> X11          3.048e+00  3.193e-02   95.47   <2e-16 ***
+#> X12          8.997e+00  3.377e-02  266.43   <2e-16 ***
+#> X13         -2.000e+00  3.211e-02  -62.29   <2e-16 ***
+#> X14          2.002e+00  3.437e-02   58.24   <2e-16 ***
+#> X15         -1.037e+00  3.301e-02  -31.41   <2e-16 ***
+#> X21          0.000e+00  1.881e-18    0.00        1    
+#> X22          0.000e+00  1.060e-18    0.00        1    
+#> X23          0.000e+00  1.782e-18    0.00        1    
+#> X24          0.000e+00  7.536e-18    0.00        1    
+#> X31          0.000e+00  2.747e-17    0.00        1    
+#> X32          0.000e+00  2.679e-17    0.00        1    
+#> X33          0.000e+00  1.210e-16    0.00        1    
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> Omitted variable tests for model FE_L2:
 #>                 df Chisq  p-value    
-#> FE_L2_vs_REF    13 39.99 0.000139 ***
-#> FE_L2_vs_FE_L3   9 36.02 3.92e-05 ***
-#> FE_L2_vs_GMM_L2 12 39.99 7.21e-05 ***
-#> FE_L2_vs_GMM_L3 13 39.99 0.000139 ***
+#> FE_L2_vs_REF    13 40.00 0.000138 ***
+#> FE_L2_vs_FE_L3   9 38.95 1.18e-05 ***
+#> FE_L2_vs_GMM_L2 12 40.00 7.20e-05 ***
+#> FE_L2_vs_GMM_L3 13 40.00 0.000138 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -1616,10 +1616,12 @@ Some disciplines consider nonresponse bias and selection bias as sample selectio
 
 Assumptions: - The unobservables that affect the treatment selection and the outcome are jointly distributed as bivariate normal.
 
-Notes: - If you don't have strong exclusion restriction, identification is driven by the assumed non linearity in the functional form (through inverse Mills ratio). E.g., the estimate depend on the bivariate normal distribution of the error structure:
+Notes:
 
-    + With strong exclusion restriction for the covariate in the correction equation, the variation in this vairable can help idnetify the control for selection 
-    + With weak exclusion restriction, and the coavriate exists in both steps, it's the assumed error structure that identifies the control for selection. 
+-   If you don't have strong exclusion restriction, identification is driven by the assumed non linearity in the functional form (through inverse Mills ratio). E.g., the estimate depend on the bivariate normal distribution of the error structure:
+
+    -   With strong exclusion restriction for the covariate in the correction equation, the variation in this vairable can help idnetify the control for selection
+    -   With weak exclusion restriction, and the coavriate exists in both steps, it's the assumed error structure that identifies the control for selection.
 
 To combat Sample selection, we can
 
@@ -1745,6 +1747,8 @@ $$
 
 where $\frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)}$ is the Inverse Mills Ratio. and $\rho \sigma_\epsilon \frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)} \ge 0$
 
+A property of IMR: Its derivative is: $IMR'(x) = -x IMR(x) - IMR(x)^2$
+
 Great visualization of special cases of correlation patterns amongst data and errors by professor [Rob Hick](https://rlhick.people.wm.edu/stories/econ_407_notes_heckman.html)
 
 Note:
@@ -1764,7 +1768,7 @@ In the case of Omitted variable bias (U) and sample selection bias (S), you have
 (3) selection's probability $P(S = 1|P a_s)$ with non-parametrically based causal graphical models, the authors proposed more robust way to model misspecification regardless of the type of data-generating model, and do not require selection's probability. Hence, you can recover Q
 
 -   without external data
--   with external data\
+-   with external data
 -   causal effects with the Selection-backdoor criterion
 
 ### Tobit-2
@@ -1818,8 +1822,53 @@ library(reshape2)
 # OLS: log wage regression on LF participants only
 ols1 = lm(log(wage) ~ educ + exper + I( exper^2 ) + city, data=subset(Mroz87, lfp==1))
 # Heckman's Two-step estimation with LFP selection equation
-heck1 = heckit( lfp ~ age + I( age^2 ) + kids + huswage + educ, # the selection process, lfp = 1 if the woman is participating in the labor force 
-                 log(wage) ~ educ + exper + I( exper^2 ) + city, data=Mroz87 )
+heck1 = heckit(selection = lfp ~ age + I( age^2 ) + kids + huswage + educ, # the selection process, lfp = 1 if the woman is participating in the labor force 
+                 outcome = log(wage) ~ educ + exper + I( exper^2 ) + city, data=Mroz87 )
+
+summary(heck1$probit)
+#> --------------------------------------------
+#> Probit binary choice model/Maximum Likelihood estimation
+#> Newton-Raphson maximisation, 4 iterations
+#> Return code 1: gradient close to zero (gradtol)
+#> Log-Likelihood: -482.8212 
+#> Model: Y == '1' in contrary to '0'
+#> 753 observations (325 'negative' and 428 'positive') and 6 free parameters (df = 747)
+#> Estimates:
+#>                  Estimate  Std. error t value   Pr(> t)    
+#> XS(Intercept) -4.18146681  1.40241567 -2.9816  0.002867 ** 
+#> XSage          0.18608901  0.06517476  2.8552  0.004301 ** 
+#> XSI(age^2)    -0.00241491  0.00075857 -3.1835  0.001455 ** 
+#> XSkids        -0.14955977  0.03825079 -3.9100 9.230e-05 ***
+#> XShuswage     -0.04303635  0.01220791 -3.5253  0.000423 ***
+#> XSeduc         0.12502818  0.02277645  5.4894 4.034e-08 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> Significance test:
+#> chi2(5) = 64.10407 (p=1.719042e-12)
+#> --------------------------------------------
+summary(heck1$lm)
+#> 
+#> Call:
+#> lm(formula = YO ~ -1 + XO + imrData$IMR1, subset = YS == 1, weights = weightsNoNA)
+#> 
+#> Residuals:
+#>      Min       1Q   Median       3Q      Max 
+#> -3.09494 -0.30953  0.05341  0.36530  2.34770 
+#> 
+#> Coefficients:
+#>                 Estimate Std. Error t value Pr(>|t|)    
+#> XO(Intercept) -0.6143381  0.3768796  -1.630  0.10383    
+#> XOeduc         0.1092363  0.0197062   5.543 5.24e-08 ***
+#> XOexper        0.0419205  0.0136176   3.078  0.00222 ** 
+#> XOI(exper^2)  -0.0008226  0.0004059  -2.026  0.04335 *  
+#> XOcity         0.0510492  0.0692414   0.737  0.46137    
+#> imrData$IMR1   0.0551177  0.2111916   0.261  0.79423    
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 0.6674 on 422 degrees of freedom
+#> Multiple R-squared:  0.7734,	Adjusted R-squared:  0.7702 
+#> F-statistic:   240 on 6 and 422 DF,  p-value: < 2.2e-16
 ```
 
 Use only variables that affect the selection process in the selection equation. Technically, the selection equation and the equation of interest could have the same set of regressors. But it is not recommended because we should only use variables (or at least one) in the selection equation that affect the selection process, but not the wage process (i.e., instruments). Here, variable `kids` fulfill that role: women with kids may be more likely to stay home, but working moms with kids would not have their wages change.
@@ -1829,8 +1878,156 @@ Alternatively,
 
 ```r
 # ML estimation of selection model
-ml1 = selection( lfp ~ age + I( age^2 ) + kids + huswage + educ,
-                    log(wage) ~ educ + exper + I( exper^2 ) + city, data=Mroz87 ) 
+ml1 = selection(
+    selection = lfp ~ age + I(age ^ 2) + kids + huswage + educ,
+    outcome = log(wage) ~ educ + exper + I(exper ^ 2) + city,
+    data = Mroz87
+) 
+summary(ml1)
+#> --------------------------------------------
+#> Tobit 2 model (sample selection model)
+#> Maximum Likelihood estimation
+#> Newton-Raphson maximisation, 3 iterations
+#> Return code 8: successive function values within relative tolerance limit (reltol)
+#> Log-Likelihood: -914.0777 
+#> 753 observations (325 censored and 428 observed)
+#> 13 free parameters (df = 740)
+#> Probit selection equation:
+#>               Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept) -4.1484037  1.4109302  -2.940 0.003382 ** 
+#> age          0.1842132  0.0658041   2.799 0.005253 ** 
+#> I(age^2)    -0.0023925  0.0007664  -3.122 0.001868 ** 
+#> kids        -0.1488158  0.0384888  -3.866 0.000120 ***
+#> huswage     -0.0434253  0.0123229  -3.524 0.000451 ***
+#> educ         0.1255639  0.0229229   5.478 5.91e-08 ***
+#> Outcome equation:
+#>               Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept) -0.5814781  0.3052031  -1.905  0.05714 .  
+#> educ         0.1078481  0.0172998   6.234 7.63e-10 ***
+#> exper        0.0415752  0.0133269   3.120  0.00188 ** 
+#> I(exper^2)  -0.0008125  0.0003974  -2.044  0.04129 *  
+#> city         0.0522990  0.0682652   0.766  0.44385    
+#>    Error terms:
+#>       Estimate Std. Error t value Pr(>|t|)    
+#> sigma  0.66326    0.02309  28.729   <2e-16 ***
+#> rho    0.05048    0.23169   0.218    0.828    
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> --------------------------------------------
+# summary(ml1$twoStep)
+```
+
+Manual
+
+
+```r
+myprob <- probit(lfp ~ age + I( age^2 ) + kids + huswage + educ, 
+                 # x = TRUE, 
+                 # iterlim = 30, 
+                 data = Mroz87)
+summary(myprob)
+#> --------------------------------------------
+#> Probit binary choice model/Maximum Likelihood estimation
+#> Newton-Raphson maximisation, 4 iterations
+#> Return code 1: gradient close to zero (gradtol)
+#> Log-Likelihood: -482.8212 
+#> Model: Y == '1' in contrary to '0'
+#> 753 observations (325 'negative' and 428 'positive') and 6 free parameters (df = 747)
+#> Estimates:
+#>                Estimate  Std. error t value   Pr(> t)    
+#> (Intercept) -4.18146681  1.40241567 -2.9816  0.002867 ** 
+#> age          0.18608901  0.06517476  2.8552  0.004301 ** 
+#> I(age^2)    -0.00241491  0.00075857 -3.1835  0.001455 ** 
+#> kids        -0.14955977  0.03825079 -3.9100 9.230e-05 ***
+#> huswage     -0.04303635  0.01220791 -3.5253  0.000423 ***
+#> educ         0.12502818  0.02277645  5.4894 4.034e-08 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> Significance test:
+#> chi2(5) = 64.10407 (p=1.719042e-12)
+#> --------------------------------------------
+
+imr <- invMillsRatio(myprob)
+Mroz87$IMR1 <- imr$IMR1
+
+manually_est <- lm(log(wage) ~ educ + exper + I( exper^2 ) + city + IMR1,
+                   data = Mroz87, 
+                   subset = (lfp == 1))
+
+summary(manually_est)
+#> 
+#> Call:
+#> lm(formula = log(wage) ~ educ + exper + I(exper^2) + city + IMR1, 
+#>     data = Mroz87, subset = (lfp == 1))
+#> 
+#> Residuals:
+#>      Min       1Q   Median       3Q      Max 
+#> -3.09494 -0.30953  0.05341  0.36530  2.34770 
+#> 
+#> Coefficients:
+#>               Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept) -0.6143381  0.3768796  -1.630  0.10383    
+#> educ         0.1092363  0.0197062   5.543 5.24e-08 ***
+#> exper        0.0419205  0.0136176   3.078  0.00222 ** 
+#> I(exper^2)  -0.0008226  0.0004059  -2.026  0.04335 *  
+#> city         0.0510492  0.0692414   0.737  0.46137    
+#> IMR1         0.0551177  0.2111916   0.261  0.79423    
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 0.6674 on 422 degrees of freedom
+#> Multiple R-squared:  0.1582,	Adjusted R-squared:  0.1482 
+#> F-statistic: 15.86 on 5 and 422 DF,  p-value: 2.505e-14
+```
+
+Similarly,
+
+
+```r
+probit_selection <-
+    glm(lfp ~ age + I( age^2 ) + kids + huswage + educ,
+        data = Mroz87,
+        family = binomial(link = 'probit'))
+
+probit_lp <- -predict(probit_selection)
+inv_mills <- dnorm(probit_lp) / (1 - pnorm(probit_lp))
+Mroz87$inv_mills <- inv_mills
+
+
+probit_outcome <-
+    glm(
+        log(wage) ~ educ + exper + I(exper ^ 2) + city + inv_mills,
+        data = Mroz87,
+        subset = (lfp == 1)
+    )
+summary(probit_outcome)
+#> 
+#> Call:
+#> glm(formula = log(wage) ~ educ + exper + I(exper^2) + city + 
+#>     inv_mills, data = Mroz87, subset = (lfp == 1))
+#> 
+#> Deviance Residuals: 
+#>      Min        1Q    Median        3Q       Max  
+#> -3.09494  -0.30953   0.05341   0.36530   2.34770  
+#> 
+#> Coefficients:
+#>               Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept) -0.6143383  0.3768798  -1.630  0.10383    
+#> educ         0.1092363  0.0197062   5.543 5.24e-08 ***
+#> exper        0.0419205  0.0136176   3.078  0.00222 ** 
+#> I(exper^2)  -0.0008226  0.0004059  -2.026  0.04335 *  
+#> city         0.0510492  0.0692414   0.737  0.46137    
+#> inv_mills    0.0551179  0.2111918   0.261  0.79423    
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> (Dispersion parameter for gaussian family taken to be 0.4454809)
+#> 
+#>     Null deviance: 223.33  on 427  degrees of freedom
+#> Residual deviance: 187.99  on 422  degrees of freedom
+#> AIC: 876.49
+#> 
+#> Number of Fisher Scoring iterations: 2
 ```
 
 
@@ -1845,58 +2042,105 @@ cse = function(reg) {
 }
 
 # stargazer table
-stargazer(ols1, heck1, ml1,    
-          se=list(cse(ols1),NULL,NULL), 
-          title="Married women's wage regressions", type="text", 
-          df=FALSE, digits=4, selection.equation = T)
+stargazer(
+    # ols1,
+    heck1,
+    ml1,
+    # manually_est,
+    
+    se = list(cse(ols1), NULL, NULL),
+    title = "Married women's wage regressions",
+    type = "text",
+    df = FALSE,
+    digits = 4,
+    selection.equation = T
+)
 #> 
 #> Married women's wage regressions
-#> ==============================================================
-#>                                Dependent variable:            
-#>                     ------------------------------------------
-#>                     log(wage)                lfp              
-#>                        OLS         Heckman        selection   
-#>                                   selection                   
-#>                        (1)           (2)             (3)      
-#> --------------------------------------------------------------
-#> age                               0.1861***       0.1842***   
-#>                                   (0.0652)        (0.0658)    
-#>                                                               
-#> I(age2)                          -0.0024***      -0.0024***   
-#>                                   (0.0008)        (0.0008)    
-#>                                                               
-#> kids                             -0.1496***      -0.1488***   
-#>                                   (0.0383)        (0.0385)    
-#>                                                               
-#> huswage                          -0.0430***      -0.0434***   
-#>                                   (0.0122)        (0.0123)    
-#>                                                               
-#> educ                0.1057***     0.1250***       0.1256***   
-#>                      (0.0130)     (0.0228)        (0.0229)    
-#>                                                               
-#> exper               0.0411***                                 
-#>                      (0.0154)                                 
-#>                                                               
-#> I(exper2)            -0.0008*                                 
-#>                      (0.0004)                                 
-#>                                                               
-#> city                  0.0542                                  
-#>                      (0.0653)                                 
-#>                                                               
-#> Constant            -0.5308***   -4.1815***      -4.1484***   
-#>                      (0.2032)     (1.4024)        (1.4109)    
-#>                                                               
-#> --------------------------------------------------------------
-#> Observations           428           753             753      
-#> R2                    0.1581       0.1582                     
-#> Adjusted R2           0.1501       0.1482                     
-#> Log Likelihood                                    -914.0777   
-#> rho                                0.0830      0.0505 (0.2317)
-#> Inverse Mills Ratio            0.0551 (0.2099)                
-#> Residual Std. Error   0.6667                                  
-#> F Statistic         19.8561***                                
-#> ==============================================================
-#> Note:                              *p<0.1; **p<0.05; ***p<0.01
+#> ===================================================
+#>                           Dependent variable:      
+#>                     -------------------------------
+#>                                   lfp              
+#>                         Heckman        selection   
+#>                        selection                   
+#>                           (1)             (2)      
+#> ---------------------------------------------------
+#> age                    0.1861***       0.1842***   
+#>                                        (0.0658)    
+#>                                                    
+#> I(age2)                 -0.0024       -0.0024***   
+#>                                        (0.0008)    
+#>                                                    
+#> kids                  -0.1496***      -0.1488***   
+#>                                        (0.0385)    
+#>                                                    
+#> huswage                 -0.0430       -0.0434***   
+#>                                        (0.0123)    
+#>                                                    
+#> educ                    0.1250         0.1256***   
+#>                        (0.0130)        (0.0229)    
+#>                                                    
+#> Constant              -4.1815***      -4.1484***   
+#>                        (0.2032)        (1.4109)    
+#>                                                    
+#> ---------------------------------------------------
+#> Observations              753             753      
+#> R2                      0.1582                     
+#> Adjusted R2             0.1482                     
+#> Log Likelihood                         -914.0777   
+#> rho                     0.0830      0.0505 (0.2317)
+#> Inverse Mills Ratio 0.0551 (0.2099)                
+#> ===================================================
+#> Note:                   *p<0.1; **p<0.05; ***p<0.01
+
+
+stargazer(
+    ols1,
+    # heck1,
+    # ml1,
+    manually_est,
+    
+    se = list(cse(ols1), NULL, NULL),
+    title = "Married women's wage regressions",
+    type = "text",
+    df = FALSE,
+    digits = 4,
+    selection.equation = T
+)
+#> 
+#> Married women's wage regressions
+#> ================================================
+#>                         Dependent variable:     
+#>                     ----------------------------
+#>                              log(wage)          
+#>                          (1)            (2)     
+#> ------------------------------------------------
+#> educ                  0.1057***      0.1092***  
+#>                        (0.0130)      (0.0197)   
+#>                                                 
+#> exper                 0.0411***      0.0419***  
+#>                        (0.0154)      (0.0136)   
+#>                                                 
+#> I(exper2)              -0.0008*      -0.0008**  
+#>                        (0.0004)      (0.0004)   
+#>                                                 
+#> city                    0.0542        0.0510    
+#>                        (0.0653)      (0.0692)   
+#>                                                 
+#> IMR1                                  0.0551    
+#>                                      (0.2112)   
+#>                                                 
+#> Constant              -0.5308***      -0.6143   
+#>                        (0.2032)      (0.3769)   
+#>                                                 
+#> ------------------------------------------------
+#> Observations             428            428     
+#> R2                      0.1581        0.1582    
+#> Adjusted R2             0.1501        0.1482    
+#> Residual Std. Error     0.6667        0.6674    
+#> F Statistic           19.8561***    15.8635***  
+#> ================================================
+#> Note:                *p<0.1; **p<0.05; ***p<0.01
 ```
 
 Rho is an estimate of the correlation of the errors between the selection and wage equations. In the lower panel, the estimated coefficient on the inverse Mills ratio is given for the Heckman model. The fact that it is not statistically different from zero is consistent with the idea that selection bias was not a serious problem in this case.
@@ -2072,14 +2316,14 @@ summary(selection(ys~xs, list(yo1 ~ xo1, yo2 ~ xo2), iterlim=20))
 #> xo1          0.91603    0.05626   16.28   <2e-16 ***
 #> Outcome equation 2:
 #>             Estimate Std. Error t value Pr(>|t|)  
-#> (Intercept)   0.1446         NA      NA       NA  
+#> (Intercept)   0.1446        NaN     NaN      NaN  
 #> xo2           1.1196     0.5014   2.233   0.0258 *
 #>    Error terms:
 #>        Estimate Std. Error t value Pr(>|t|)    
 #> sigma1  0.67770    0.01760   38.50   <2e-16 ***
 #> sigma2  2.31432    0.07615   30.39   <2e-16 ***
-#> rho1   -0.97137         NA      NA       NA    
-#> rho2    0.17039         NA      NA       NA    
+#> rho1   -0.97137        NaN     NaN      NaN    
+#> rho2    0.17039        NaN     NaN      NaN    
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> --------------------------------------------

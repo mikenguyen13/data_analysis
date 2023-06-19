@@ -32,11 +32,13 @@
 
 -   RD can have multiple coinciding effects (i.e., joint distribution or bundled treatment), then RD effect in this case would be the joint effect.
 
--   As the running variable becomes more discrete your framework should be [Interrupted Time Series], but more granular levels you can use RD. When you have infinite data (or substantially large) the two frameworks are identical. RD is always better than [Interrupted Time Series]
+-   As the running variable becomes more discrete your framework should be [Interrupted Time Series], but for more granular levels you can use RD. When you have infinite data (or substantially large) the two frameworks are identical. RD is always better than [Interrupted Time Series]
 
--   Multiple alternative model specifications that produce consistent result are more reliable (parametric - linear regression with polynomials terms, and non-parametric - local linear regression)
+-   Multiple alternative model specifications that produce consistent results are more reliable (parametric - linear regression with polynomials terms, and non-parametric - local linear regression). This is according to [@lee2010regression], one straightforward method to ease the linearity assumption is by incorporating polynomial functions of the forcing variable. The choice of polynomial terms can be determined based on the data.
 
--   RD should be viewed more as a description of a data generating process, rather than a method or approach (similar to randomized experiment)
+    -   . According to [@gelman2019high], accounting for global high-order polynomials presents three issues: (1) imprecise estimates due to noise, (2) sensitivity to the polynomial's degree, and (3) inadequate coverage of confidence intervals. To address this, researchers should instead employ estimators that rely on local linear or quadratic polynomials or other smooth functions.
+
+-   RD should be viewed more as a description of a data generating process, rather than a method or approach (similar to a randomized experiment)
 
 -   RD is close to
 
@@ -291,7 +293,7 @@ DCdensity(x,0)
 <img src="22-regression-discontinuity_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```
-#> [1] 0.6964342
+#> [1] 0.2326443
 
 #Discontinuity
 x<-runif(1000,-1,1)
@@ -302,7 +304,7 @@ DCdensity(x,0)
 <img src="22-regression-discontinuity_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```
-#> [1] 0.009138301
+#> [1] 0.001190241
 ```
 
 @cattaneo2019 test
@@ -340,16 +342,16 @@ summary(rdd)
 #> P-values of binomial tests (H0: p=0.5).
 #> 
 #> Window Length / 2          <c     >=c    P>|T|
-#> 0.013                      11       9    0.8238
-#> 0.026                      19      15    0.6076
-#> 0.038                      29      21    0.3222
-#> 0.051                      42      26    0.0681
-#> 0.064                      44      33    0.2543
-#> 0.077                      48      45    0.8358
-#> 0.090                      55      51    0.7709
-#> 0.102                      66      59    0.5917
-#> 0.115                      74      67    0.6135
-#> 0.128                      82      71    0.4189
+#> 0.036                      28      20    0.3123
+#> 0.072                      46      39    0.5154
+#> 0.107                      68      59    0.4779
+#> 0.143                      94      79    0.2871
+#> 0.179                     122     103    0.2301
+#> 0.215                     145     130    0.3986
+#> 0.250                     163     156    0.7370
+#> 0.286                     190     176    0.4969
+#> 0.322                     214     200    0.5229
+#> 0.358                     249     218    0.1650
 
 # you have to specify your own plot (read package manual)
 ```

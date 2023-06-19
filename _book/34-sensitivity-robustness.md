@@ -198,6 +198,8 @@ knitr::kable(grid1 %>% head(10))
 |                  1|     0|           0|      0|        1|      |
 |                  1|     1|           0|      0|        1|      |
 
+
+
 ```r
 
 # Step 2: Get model expression
@@ -230,6 +232,8 @@ knitr::kable(grid2 %>% head(10))
 |                  1|     0|           0|0     |price~carat+x+y+z&#124;0&#124;0&#124;0             |
 |                  1|     1|           0|0     |price~carat+x+y+z+depth&#124;0&#124;0&#124;0       |
 
+
+
 ```r
 
 # Step 3: Estimate models
@@ -259,6 +263,8 @@ knitr::kable(grid3 %>% head(10))
 |                  1|     1|           1|0     |price~carat+x+y+z+depth+table&#124;0&#124;0&#124;0 | 10851.31|p<0.01 |   11428.58| 10274.037|
 |                  1|     0|           0|0     |price~carat+x+y+z&#124;0&#124;0&#124;0             | 10461.86|p<0.01 |   11031.84|  9891.876|
 |                  1|     1|           0|0     |price~carat+x+y+z+depth&#124;0&#124;0&#124;0       | 10808.25|p<0.01 |   11388.81| 10227.683|
+
+
 
 ```r
 
@@ -292,6 +298,8 @@ knitr::kable(coef_grid %>% head(10))
 |                  1|     1|           1|0     |price~carat+x+y+z+depth+table&#124;0&#124;0&#124;0 | 10851.31|p<0.01 |   11428.58| 10274.037|     8|
 |                  1|     0|           0|0     |price~carat+x+y+z&#124;0&#124;0&#124;0             | 10461.86|p<0.01 |   11031.84|  9891.876|     9|
 |                  1|     1|           0|0     |price~carat+x+y+z+depth&#124;0&#124;0&#124;0       | 10808.25|p<0.01 |   11388.81| 10227.683|    10|
+
+
 
 ```r
 
@@ -363,6 +371,8 @@ knitr::kable(grid1 %>% head(10))
 |                  1|     1|           0|       1|      |above_med_price~carat+x + y + z+depth+clarity       |
 |                  1|     0|           1|       1|      |above_med_price~carat+x + y + z+table+clarity       |
 |                  1|     1|           1|       1|      |above_med_price~carat+x + y + z+depth+table+clarity |
+
+
 
 ```r
 
@@ -661,7 +671,7 @@ shiny_rdf_spec_curve(ests, list("est", "lb", "ub"),
 
 -   Coefficient stability can be evident against omitted variable bias.
 
--   But coeffiicent stability alone can be misleadning, but combing with $R^2$ movement, it can become informative.
+-   But coefficient stability alone can be misleading, but combing with $R^2$ movement, it can become informative.
 
 Packages
 
@@ -683,7 +693,7 @@ o_beta(
   type  = "lm",        # model type
   data  = mtcars       # dataset
 ) 
-#> # A tibble: 10 x 2
+#> # A tibble: 10 × 2
 #>    Name                           Value
 #>    <chr>                          <dbl>
 #>  1 beta*                         -2.00 
@@ -697,5 +707,3 @@ o_beta(
 #>  9 Max R-square                   0.9  
 #> 10 delta                          1
 ```
-
-

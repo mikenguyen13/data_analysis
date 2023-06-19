@@ -795,7 +795,7 @@ $$
 \mathbf{X'\Sigma^{-1}X} & \mathbf{X'\Sigma^{-1}Z} \\
 \mathbf{Z'\Sigma^{-1}X} & \mathbf{Z'\Sigma^{-1}Z + B^{-1}}
 \end{array}
-\right]
+\right] ^{-1}
 \left[
 \begin{array}
 {c}
@@ -1386,7 +1386,7 @@ exactRLRT(sp_model)
 #> 	(p-value based on 10000 simulated values)
 #> 
 #> data:  
-#> RLRT = 6.1118, p-value = 0.0103
+#> RLRT = 6.1118, p-value = 0.0097
 ```
 
 Since the p-value is significant, we reject $H_0$
@@ -1589,7 +1589,7 @@ plot(
 
 ```r
 pulp %>% dplyr::group_by(operator) %>% dplyr::summarise(average = mean(bright))
-#> # A tibble: 4 x 2
+#> # A tibble: 4 × 2
 #>   operator average
 #>   <fct>      <dbl>
 #> 1 a           60.2
@@ -1606,8 +1606,7 @@ library(lme4)
 mixed_model <- lmer(formula = bright ~ 1 + (1 | operator), # pipe (i..e, | ) denotes random-effect terms
                     data = pulp)
 summary(mixed_model)
-#> Linear mixed model fit by REML. t-tests use Satterthwaite's method [
-#> lmerModLmerTest]
+#> Linear mixed model fit by REML ['lmerMod']
 #> Formula: bright ~ 1 + (1 | operator)
 #>    Data: pulp
 #> 
@@ -1624,10 +1623,8 @@ summary(mixed_model)
 #> Number of obs: 20, groups:  operator, 4
 #> 
 #> Fixed effects:
-#>             Estimate Std. Error      df t value Pr(>|t|)    
-#> (Intercept)  60.4000     0.1494  3.0000   404.2 3.34e-08 ***
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#>             Estimate Std. Error t value
+#> (Intercept)  60.4000     0.1494   404.2
 coef(mixed_model)
 #> $operator
 #>   (Intercept)
@@ -1690,7 +1687,7 @@ library(MCMCglmm)
 mixed_model_bayes <- MCMCglmm(bright~1,random=~operator, data=pulp, verbose=FALSE)
 summary(mixed_model_bayes)$solutions
 #>             post.mean l-95% CI u-95% CI eff.samp pMCMC
-#> (Intercept)  60.39377 60.18023 60.60114 791.6158 0.001
+#> (Intercept)  60.40297 60.17655 60.65777 750.1806 0.001
 ```
 
 this method offers the confidence interval slightly more positive than `lmer` and `lmerTest`

@@ -505,22 +505,22 @@ summary(model)
 #> 
 #> Deviance Residuals: 
 #>     Min       1Q   Median       3Q      Max  
-#> -3.6629  -1.0478  -0.0081   0.6307   3.0296  
+#> -4.0759  -1.2037  -0.0183   1.0928   3.7336  
 #> 
 #> Coefficients:
 #>             Estimate Std. Error z value Pr(>|z|)    
-#> (Intercept)  -2.6610     0.1921 -13.854  < 2e-16 ***
-#> alcgp40-79    1.1064     0.2303   4.804 1.56e-06 ***
-#> alcgp80-119   1.6656     0.2525   6.597 4.20e-11 ***
-#> alcgp120+     2.2630     0.2721   8.317  < 2e-16 ***
+#> (Intercept)  -2.5885     0.1925 -13.444  < 2e-16 ***
+#> alcgp40-79    1.2712     0.2323   5.472 4.46e-08 ***
+#> alcgp80-119   2.0545     0.2611   7.868 3.59e-15 ***
+#> alcgp120+     3.3042     0.3237  10.209  < 2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> (Dispersion parameter for binomial family taken to be 1)
 #> 
-#>     Null deviance: 227.24  on 87  degrees of freedom
-#> Residual deviance: 138.79  on 84  degrees of freedom
-#> AIC: 294.27
+#>     Null deviance: 367.95  on 87  degrees of freedom
+#> Residual deviance: 221.46  on 84  degrees of freedom
+#> AIC: 344.51
 #> 
 #> Number of Fisher Scoring iterations: 5
 ```
@@ -530,11 +530,11 @@ summary(model)
 #Coefficient Odds
 coefficients(model) %>% exp
 #> (Intercept)  alcgp40-79 alcgp80-119   alcgp120+ 
-#>  0.06987952  3.02331229  5.28860570  9.61142563
+#>  0.07512953  3.56527094  7.80261593 27.22570533
 deviance(model)/df.residual(model)
-#> [1] 1.652253
+#> [1] 2.63638
 model$aic
-#> [1] 294.27
+#> [1] 344.5109
 ```
 
 
@@ -552,27 +552,27 @@ summary(better_model)
 #> 
 #> Deviance Residuals: 
 #>     Min       1Q   Median       3Q      Max  
-#> -1.8979  -0.5592  -0.1995   0.5029   2.6250  
+#> -2.2395  -0.7186  -0.2324   0.7930   3.3538  
 #> 
 #> Coefficients:
 #>             Estimate Std. Error z value Pr(>|z|)    
-#> (Intercept)  -5.6180     1.0217  -5.499 3.82e-08 ***
-#> agegp35-44    1.5376     1.0646   1.444 0.148669    
-#> agegp45-54    2.9470     1.0217   2.884 0.003922 ** 
-#> agegp55-64    3.3116     1.0172   3.255 0.001132 ** 
-#> agegp65-74    3.5774     1.0209   3.504 0.000458 ***
-#> agegp75+      3.5858     1.0620   3.377 0.000734 ***
-#> alcgp40-79    1.1392     0.2367   4.814 1.48e-06 ***
-#> alcgp80-119   1.4951     0.2600   5.749 8.97e-09 ***
-#> alcgp120+     2.2228     0.2843   7.820 5.29e-15 ***
+#> (Intercept)  -6.1472     1.0419  -5.900 3.63e-09 ***
+#> agegp35-44    1.6311     1.0800   1.510 0.130973    
+#> agegp45-54    3.4258     1.0389   3.297 0.000976 ***
+#> agegp55-64    3.9435     1.0346   3.811 0.000138 ***
+#> agegp65-74    4.3568     1.0413   4.184 2.87e-05 ***
+#> agegp75+      4.4242     1.0914   4.054 5.04e-05 ***
+#> alcgp40-79    1.4343     0.2448   5.859 4.64e-09 ***
+#> alcgp80-119   2.0071     0.2776   7.230 4.84e-13 ***
+#> alcgp120+     3.6800     0.3763   9.778  < 2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> (Dispersion parameter for binomial family taken to be 1)
 #> 
-#>     Null deviance: 227.241  on 87  degrees of freedom
-#> Residual deviance:  64.572  on 79  degrees of freedom
-#> AIC: 230.05
+#>     Null deviance: 367.95  on 87  degrees of freedom
+#> Residual deviance: 105.88  on 79  degrees of freedom
+#> AIC: 238.94
 #> 
 #> Number of Fisher Scoring iterations: 6
 ```
@@ -580,18 +580,18 @@ summary(better_model)
 
 ```r
 better_model$aic #smaller AIC is better
-#> [1] 230.0526
+#> [1] 238.9361
 coefficients(better_model) %>% exp
 #>  (Intercept)   agegp35-44   agegp45-54   agegp55-64   agegp65-74     agegp75+ 
-#>  0.003631855  4.653273722 19.047899816 27.428640745 35.780787582 36.082010052 
+#>  0.002139482  5.109601844 30.748594216 51.596634690 78.005283850 83.448437749 
 #>   alcgp40-79  alcgp80-119    alcgp120+ 
-#>  3.124334222  4.459579378  9.233256747
+#>  4.196747169  7.441782227 39.646885126
 pchisq(
     q = model$deviance - better_model$deviance,
     df = model$df.residual - better_model$df.residual,
     lower = FALSE
 )
-#> [1] 1.354906e-14
+#> [1] 2.713923e-23
 ```
 
 
@@ -610,27 +610,27 @@ summary(Prob_better_model)
 #> 
 #> Deviance Residuals: 
 #>     Min       1Q   Median       3Q      Max  
-#> -1.8676  -0.5938  -0.1802   0.4852   2.6056  
+#> -2.1325  -0.6877  -0.1661   0.7654   3.3258  
 #> 
 #> Coefficients:
 #>             Estimate Std. Error z value Pr(>|z|)    
-#> (Intercept)  -2.9800     0.4291  -6.945 3.79e-12 ***
-#> agegp35-44    0.6991     0.4491   1.557 0.119520    
-#> agegp45-54    1.4212     0.4292   3.311 0.000929 ***
-#> agegp55-64    1.6512     0.4262   3.874 0.000107 ***
-#> agegp65-74    1.8039     0.4297   4.198 2.69e-05 ***
-#> agegp75+      1.8025     0.4613   3.908 9.32e-05 ***
-#> alcgp40-79    0.6224     0.1247   4.990 6.03e-07 ***
-#> alcgp80-119   0.8256     0.1418   5.823 5.80e-09 ***
-#> alcgp120+     1.2839     0.1596   8.043 8.77e-16 ***
+#> (Intercept)  -3.3741     0.4922  -6.855 7.13e-12 ***
+#> agegp35-44    0.8562     0.5081   1.685 0.092003 .  
+#> agegp45-54    1.7829     0.4904   3.636 0.000277 ***
+#> agegp55-64    2.1034     0.4876   4.314 1.61e-05 ***
+#> agegp65-74    2.3374     0.4930   4.741 2.13e-06 ***
+#> agegp75+      2.3694     0.5275   4.491 7.08e-06 ***
+#> alcgp40-79    0.8080     0.1330   6.076 1.23e-09 ***
+#> alcgp80-119   1.1399     0.1558   7.318 2.52e-13 ***
+#> alcgp120+     2.1204     0.2060  10.295  < 2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> (Dispersion parameter for binomial family taken to be 1)
 #> 
-#>     Null deviance: 227.241  on 87  degrees of freedom
-#> Residual deviance:  61.938  on 79  degrees of freedom
-#> AIC: 227.42
+#>     Null deviance: 367.95  on 87  degrees of freedom
+#> Residual deviance: 104.48  on 79  degrees of freedom
+#> AIC: 237.53
 #> 
 #> Number of Fisher Scoring iterations: 6
 ```
@@ -887,7 +887,7 @@ nes96$Political_Strength[nes96$PID %in% c("weakDem", "weakRep")] <-
 nes96$Political_Strength[nes96$PID %in% c("indDem", "indind", "indRep")] <-
     "Neutral"
 nes96 %>% group_by(Political_Strength) %>% summarise(Count = n())
-#> # A tibble: 3 x 2
+#> # A tibble: 3 × 2
 #>   Political_Strength Count
 #>   <chr>              <int>
 #> 1 Neutral              239

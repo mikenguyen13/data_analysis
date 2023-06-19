@@ -305,24 +305,13 @@ Model to Equation
 
 
 ```r
-# install.packages("equatiomatic")
+# install.packages("equatiomatic") # not available for R 4.2
 fit <- lm(metascore ~ budget + us_gross + year, data = movies)
 # show the theoretical model
 equatiomatic::extract_eq(fit)
-```
-
-$$
-\operatorname{metascore} = \alpha + \beta_{1}(\operatorname{budget}) + \beta_{2}(\operatorname{us\_gross}) + \beta_{3}(\operatorname{year}) + \epsilon
-$$
-
-```r
 # display the actual coefficients
 equatiomatic::extract_eq(fit, use_coefs = TRUE)
 ```
-
-$$
-\operatorname{\widehat{metascore}} = 52.06 + 0(\operatorname{budget}) + 0(\operatorname{us\_gross}) + 0.01(\operatorname{year})
-$$
 
 ## Model Comparison
 
@@ -336,33 +325,35 @@ coef_names <- c("Budget" = "log(budget)", "US Gross" = "log(us_gross)",
 export_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 ```
 
-<!--html_preserve--><table class="huxtable" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-3">
+```{=html}
+<table class="huxtable" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-3">
 <caption style="caption-side: top; text-align: center;">(#tab:unnamed-chunk-3) </caption><col><col><col><col><tr>
 <th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 1</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 2</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 3</th></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Budget</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-2.43 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-5.16 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-6.70 ***</td></tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Budget</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-2.43 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-5.16 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-6.70 ***</td></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.44)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.62)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.67)&nbsp;&nbsp;&nbsp;</td></tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.44)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.62)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.67)&nbsp;&nbsp;&nbsp;</td></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">US Gross</th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.96 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.85 ***</td></tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">US Gross</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.96 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.85 ***</td></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.51)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.48)&nbsp;&nbsp;&nbsp;</td></tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.51)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.48)&nbsp;&nbsp;&nbsp;</td></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Runtime (Hours)</th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">14.29 ***</td></tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Runtime (Hours)</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">14.29 ***</td></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(1.63)&nbsp;&nbsp;&nbsp;</td></tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(1.63)&nbsp;&nbsp;&nbsp;</td></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Constant</th><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">105.29 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">81.84 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">83.35 ***</td></tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Constant</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">105.29 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">81.84 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">83.35 ***</td></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(7.65)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(8.66)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(8.82)&nbsp;&nbsp;&nbsp;</td></tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(7.65)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(8.66)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(8.82)&nbsp;&nbsp;&nbsp;</td></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; padding: 6pt 6pt 6pt 6pt; font-weight: normal;">N</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">N</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
 <tr>
 <th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">R2</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.03&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.09&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.17&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
 <tr>
 <th colspan="4" style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Standard errors are heteroskedasticity robust.  *** p &lt; 0.001;  ** p &lt; 0.01;  * p &lt; 0.05.</th></tr>
 </table>
-<!--/html_preserve-->
+
+```
 
 Another package is `modelsummary`
 
@@ -377,9 +368,9 @@ msummary(lm_mod, vcov = c("iid","robust","HC4"))
  <thead>
   <tr>
    <th style="text-align:left;">   </th>
-   <th style="text-align:center;"> Model 1 </th>
-   <th style="text-align:center;"> Model 2 </th>
-   <th style="text-align:center;"> Model 3 </th>
+   <th style="text-align:center;">  (1) </th>
+   <th style="text-align:center;">   (2) </th>
+   <th style="text-align:center;">   (3) </th>
   </tr>
  </thead>
 <tbody>
@@ -392,44 +383,44 @@ msummary(lm_mod, vcov = c("iid","robust","HC4"))
   <tr>
    <td style="text-align:left;">  </td>
    <td style="text-align:center;"> (1.787) </td>
-   <td style="text-align:center;"> (2.286) </td>
-   <td style="text-align:center;"> (2.177) </td>
+   <td style="text-align:center;"> (1.787) </td>
+   <td style="text-align:center;"> (1.787) </td>
   </tr>
   <tr>
    <td style="text-align:left;"> wt </td>
-   <td style="text-align:center;"> -3.167 </td>
-   <td style="text-align:center;"> -3.167 </td>
-   <td style="text-align:center;"> -3.167 </td>
+   <td style="text-align:center;"> −3.167 </td>
+   <td style="text-align:center;"> −3.167 </td>
+   <td style="text-align:center;"> −3.167 </td>
   </tr>
   <tr>
    <td style="text-align:left;">  </td>
    <td style="text-align:center;"> (0.741) </td>
-   <td style="text-align:center;"> (0.833) </td>
-   <td style="text-align:center;"> (0.819) </td>
+   <td style="text-align:center;"> (0.741) </td>
+   <td style="text-align:center;"> (0.741) </td>
   </tr>
   <tr>
    <td style="text-align:left;"> hp </td>
-   <td style="text-align:center;"> -0.018 </td>
-   <td style="text-align:center;"> -0.018 </td>
-   <td style="text-align:center;"> -0.018 </td>
+   <td style="text-align:center;"> −0.018 </td>
+   <td style="text-align:center;"> −0.018 </td>
+   <td style="text-align:center;"> −0.018 </td>
   </tr>
   <tr>
    <td style="text-align:left;">  </td>
    <td style="text-align:center;"> (0.012) </td>
-   <td style="text-align:center;"> (0.010) </td>
-   <td style="text-align:center;"> (0.013) </td>
+   <td style="text-align:center;"> (0.012) </td>
+   <td style="text-align:center;"> (0.012) </td>
   </tr>
   <tr>
    <td style="text-align:left;"> cyl </td>
-   <td style="text-align:center;"> -0.942 </td>
-   <td style="text-align:center;"> -0.942 </td>
-   <td style="text-align:center;"> -0.942 </td>
+   <td style="text-align:center;"> −0.942 </td>
+   <td style="text-align:center;"> −0.942 </td>
+   <td style="text-align:center;"> −0.942 </td>
   </tr>
   <tr>
    <td style="text-align:left;box-shadow: 0px 1px">  </td>
    <td style="text-align:center;box-shadow: 0px 1px"> (0.551) </td>
-   <td style="text-align:center;box-shadow: 0px 1px"> (0.573) </td>
-   <td style="text-align:center;box-shadow: 0px 1px"> (0.572) </td>
+   <td style="text-align:center;box-shadow: 0px 1px"> (0.551) </td>
+   <td style="text-align:center;box-shadow: 0px 1px"> (0.551) </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Num.Obs. </td>
@@ -463,9 +454,9 @@ msummary(lm_mod, vcov = c("iid","robust","HC4"))
   </tr>
   <tr>
    <td style="text-align:left;"> Log.Lik. </td>
-   <td style="text-align:center;"> -72.738 </td>
-   <td style="text-align:center;"> -72.738 </td>
-   <td style="text-align:center;"> -72.738 </td>
+   <td style="text-align:center;"> −72.738 </td>
+   <td style="text-align:center;"> −72.738 </td>
+   <td style="text-align:center;"> −72.738 </td>
   </tr>
   <tr>
    <td style="text-align:left;"> F </td>
@@ -474,9 +465,15 @@ msummary(lm_mod, vcov = c("iid","robust","HC4"))
    <td style="text-align:center;"> 32.623 </td>
   </tr>
   <tr>
+   <td style="text-align:left;"> RMSE </td>
+   <td style="text-align:center;"> 2.35 </td>
+   <td style="text-align:center;"> 2.35 </td>
+   <td style="text-align:center;"> 2.35 </td>
+  </tr>
+  <tr>
    <td style="text-align:left;"> Std.Errors </td>
    <td style="text-align:center;"> IID </td>
-   <td style="text-align:center;"> Robust </td>
+   <td style="text-align:center;"> HC3 </td>
    <td style="text-align:center;"> HC4 </td>
   </tr>
 </tbody>
@@ -495,23 +492,23 @@ Another package is `stargazer`
 library("stargazer")
 stargazer(attitude)
 #> 
-#> % Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
-#> % Date and time: Thu, Jun 09, 2022 - 10:28:26 PM
+#> % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+#> % Date and time: Sat, Jun 17, 2023 - 9:23:53 PM
 #> \begin{table}[!htbp] \centering 
 #>   \caption{} 
 #>   \label{} 
-#> \begin{tabular}{@{\extracolsep{5pt}}lccccccc} 
+#> \begin{tabular}{@{\extracolsep{5pt}}lccccc} 
 #> \\[-1.8ex]\hline 
 #> \hline \\[-1.8ex] 
-#> Statistic & \multicolumn{1}{c}{N} & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{St. Dev.} & \multicolumn{1}{c}{Min} & \multicolumn{1}{c}{Pctl(25)} & \multicolumn{1}{c}{Pctl(75)} & \multicolumn{1}{c}{Max} \\ 
+#> Statistic & \multicolumn{1}{c}{N} & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{St. Dev.} & \multicolumn{1}{c}{Min} & \multicolumn{1}{c}{Max} \\ 
 #> \hline \\[-1.8ex] 
-#> rating & 30 & 64.633 & 12.173 & 40 & 58.8 & 71.8 & 85 \\ 
-#> complaints & 30 & 66.600 & 13.315 & 37 & 58.5 & 77 & 90 \\ 
-#> privileges & 30 & 53.133 & 12.235 & 30 & 45 & 62.5 & 83 \\ 
-#> learning & 30 & 56.367 & 11.737 & 34 & 47 & 66.8 & 75 \\ 
-#> raises & 30 & 64.633 & 10.397 & 43 & 58.2 & 71 & 88 \\ 
-#> critical & 30 & 74.767 & 9.895 & 49 & 69.2 & 80 & 92 \\ 
-#> advance & 30 & 42.933 & 10.289 & 25 & 35 & 47.8 & 72 \\ 
+#> rating & 30 & 64.633 & 12.173 & 40 & 85 \\ 
+#> complaints & 30 & 66.600 & 13.315 & 37 & 90 \\ 
+#> privileges & 30 & 53.133 & 12.235 & 30 & 83 \\ 
+#> learning & 30 & 56.367 & 11.737 & 34 & 75 \\ 
+#> raises & 30 & 64.633 & 10.397 & 43 & 88 \\ 
+#> critical & 30 & 74.767 & 9.895 & 49 & 92 \\ 
+#> advance & 30 & 42.933 & 10.289 & 25 & 72 \\ 
 #> \hline \\[-1.8ex] 
 #> \end{tabular} 
 #> \end{table}
@@ -532,8 +529,8 @@ stargazer(linear.1,
           title = "Results",
           align = TRUE)
 #> 
-#> % Table created by stargazer v.5.2.2 by Marek Hlavac, Harvard University. E-mail: hlavac at fas.harvard.edu
-#> % Date and time: Thu, Jun 09, 2022 - 10:28:26 PM
+#> % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
+#> % Date and time: Sat, Jun 17, 2023 - 9:23:53 PM
 #> % Requires LaTeX packages: dcolumn 
 #> \begin{table}[!htbp] \centering 
 #>   \caption{Results} 
@@ -774,3 +771,89 @@ The `ggdist` allows us to visualize uncertainty under both frequentist and Bayes
 ```r
 library(ggdist)
 ```
+
+## Visualizations and Plots
+
+American-Marketing-Association-ready theme for plots
+
+
+```r
+library(ggplot2)
+
+# check available fonts
+windowsFonts()
+#> $serif
+#> [1] "TT Times New Roman"
+#> 
+#> $sans
+#> [1] "TT Arial"
+#> 
+#> $mono
+#> [1] "TT Courier New"
+
+# for Times New Roman
+names(windowsFonts()[windowsFonts()=="TT Times New Roman"])
+#> [1] "serif"
+```
+
+
+
+```r
+# Making a theme
+amatheme = theme_bw(base_size = 20, base_family = "serif") +
+    
+    theme(
+        # remove major gridlines
+        panel.grid.major   = element_blank(),
+        
+        # remove minor gridlines
+        panel.grid.minor   = element_blank(),
+        
+        # remove panel border
+        panel.border       = element_blank(),
+        
+        line = element_line(colour = "black", size = 0.5, linetype = 1, lineend = "butt"), 
+        
+        # change font
+        text               = element_text(family = 'serif', size = 20), # This is Time New Roman
+        
+        # if you want to remove legend title
+        # legend.title     = element_blank(),
+        
+        legend.title       = element_text(size = 20, face = "bold"),
+        
+        # change font size of legend
+        legend.text        = element_text(size = 20),
+        
+        # change font size of main title
+        plot.title         = element_text(size = rel(1.2), face = "bold", hjust = 0.5),
+        
+        # add black line along axes
+        axis.line          = element_line(colour = "black"),
+        
+        # axis title
+        axis.title.x       = element_text(size = rel(1), face = "bold"),
+        axis.title.y       = element_text(size = rel(1), face = "bold"),
+        
+        # axis text size
+        axis.text.y        = element_text(size = 20),
+        axis.text.x        = element_text(size = 20)
+    )
+```
+
+Example
+
+
+```r
+library(tidyverse)
+data("mtcars")
+mtcars %>%
+    select(mpg, cyl, gear) %>%
+    ggplot(., aes(x = mpg, y = cyl, fill = gear)) + 
+    geom_point() +
+    labs(title="Some Plot") + 
+    amatheme
+```
+
+<img src="32-report_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
+

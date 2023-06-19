@@ -1,5 +1,9 @@
 # Matching Methods
 
+Matching is a process that aims to close back doors - potential sources of bias - by constructing comparison groups that are similar according to a set of matching variables. This helps to ensure that any observed differences in outcomes between the treatment and comparison groups can be more confidently attributed to the treatment itself, rather than other factors that may differ between the groups.
+
+Matching and DiD can use pre-treatment outcomes to correct for selection bias. From real world data and simulation, [@chabe2015analysis] found that matching generally underestimates the average causal effect and gets closer to the true effect with more number of pre-treatment outcomes. When selection bias is symmetric around the treatment date, DID is still consistent when implemented symmetrically (i.e., the same number of period before and after treatment). In cases where selection bias is asymmetric, the MC simulations show that Symmetric DID still performs better than Matching.
+
 **Assumption**: Observables can identify the selection into the treatment and control groups
 
 **Identification**: The exclusion restriction can be met conditional on the observables
@@ -99,7 +103,7 @@ It also helps if you have high ratio of controls to treatments.
 
 For detail summary [@Stuart_2010]
 
-Matching is defined as "any method that aims to equate (or "balance") the distribution of covariates in the treated and control groups." [@Stuart_2010, pp. 1]
+Matching is defined as "any method that aims to equate (or"balance") the distribution of covariates in the treated and control groups." [@Stuart_2010, pp. 1]
 
 Equivalently, matching is a selection on observables identifications strategy.
 
@@ -272,7 +276,7 @@ Steps:
 
     2.  Subclassification, Full Matching and Weighting
 
-        Neareast neighbor matching assign is 0 (control) or 1 (treated), while these methods use weights between 0 and 1.
+        Nearest neighbor matching assign is 0 (control) or 1 (treated), while these methods use weights between 0 and 1.
 
         1.  Subclassification: distribution into multiple subclass (e.g., 5-10)
 
@@ -322,9 +326,9 @@ Steps:
 
     2.  After Subclassification and Full Matching
 
-        1.  weighting the subclass estimates by the number of treated units in each subclass for ATT
+        1.  Weighting the subclass estimates by the number of treated units in each subclass for ATT
 
-        2.  WEighting by the overall number of individual in each subclass for ATE.
+        2.  Weighting by the overall number of individual in each subclass for ATE.
 
     3.  Variance estimation: should incorporate uncertainties in both the matching procedure (step 3) and the estimation procedure (step 4)
 
@@ -764,13 +768,31 @@ When reporting, remember to mention
 5.  number of matched, unmatched, discarded
 6.  estimation method for treatment effect.
 
+## designmatch
+
+This package includes
+
+-   `distmatch` optimal distance matching
+
+-   `bmatch` optimal bipartile matching
+
+-   `cardmatch` optimal cardinality matching
+
+-   `profmatch` optimal profile matching
+
+-   `nmatch` optimal nonbipartile matching
+
+```{r}
+library(designmatch)
+```
+
 ## MatchingFrontier
 
 As mentioned in `MatchIt`, you have to make trade-off (also known as bias-variance trade-off) between balance and sample size. An automated procedure to optimize this trade-off is implemented in `MatchingFrontier` [@King_2016], which solves this joint optimization problem.
 
 I follow `MatchingFrontier` [guide](https://projects.iq.harvard.edu/files/frontier/files/using_matchingfrontier.pdf)
 
-```{r, message=FALSE}
+```{r, message=FALSE, eval=FALSE}
 # library(devtools)
 # install_github('ChristopherLucas/MatchingFrontier')
 library(MatchingFrontier)
@@ -913,7 +935,11 @@ Other methods dominate because they try to match exactly hence
 
 -   $\pi_c = \pi_t \nrightarrow X_c = X_t$ (equal propensity scores do not necessarily lead to exact match)
 
-Do not include/control for irrelevant covariates because it leads your PSM to be more random, hence more imbalance
+Notes:
+
+-   Do not include/control for irrelevant covariates because it leads your PSM to be more random, hence more imbalance
+
+-   Do not include for [@bhattacharya2007instrumental] instrumental variable in the predictor set of a propensity score matching estimator. More generally, using variables that do not control for potential confounders, even if they are predictive of the treatment, can result in biased estimates
 
 What you left with after pruning is more important than what you start with then throw out.
 
@@ -1048,11 +1074,7 @@ mat1
 
 -   GM uses iterative checking process of propensity scores, which combines propensity scores and Mahalanobis distance.
 
-<!-- -->
-
 -   GM is arguably "superior" method than nearest neighbor or full matching in imbalanced data
-
-<!-- -->
 
 -   Use a genetic search algorithm to find weights for each covariate such that we have optimal balance.
 
@@ -1070,7 +1092,7 @@ Packages
 
 `Matching`
 
-```{r}
+```{r, eval=FALSE}
 library(Matching)
 data(lalonde)
 attach(lalonde)
@@ -1123,3 +1145,27 @@ Identification strategy:
 -   Within-unit over-time variation
 
 -   within-time across-units variation
+
+## Matching for multiple treatments
+
+In cases where you have multiple treatment groups, and you want to do matching, it's important to have the same baseline (control) group. For more details, see
+
+-   [@mccaffrey2013tutorial]
+
+-   [@lopez2017estimation]
+
+-   [@zhao2021propensity]: also for continuous treatment
+
+If you insist on using the `MatchIt` package, then see this [answer](https://stats.stackexchange.com/questions/405019/matching-with-multiple-treatments)
+
+## Matching for multi-level treatments
+
+See [@yang2016propensity]
+
+Package in R `shuyang1987/multilevelMatching` on Github
+
+## Matching for repeated treatments
+
+<https://cran.r-project.org/web/packages/twang/vignettes/iptw.pdf>
+
+package in R `twang`

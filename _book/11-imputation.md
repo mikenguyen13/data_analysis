@@ -6,12 +6,12 @@ Imputation is a statistical procedure where you replace missing data with *some 
 
 -   Item imputation = single feature value
 
-Imputation is usually seen as the illegitimate child of statistical analysis. Several reasons that contribute to this negative views could be:
+Imputation is usually seen as the illegitimate child of statistical analysis. Several reasons that contribute to these negative views could be:
 
 (1) Peopled hardly do imputation correctly (which will introduce bias to your estimates)
 (2) Imputation can only be applied to a small range of problems correctly
 
-If you have missing data on $y$ (dependent variable), you probability would not be able to do any imputation appropriately. However, if you have certain type of missing data (e.g., non-random missing data) in the $x$'s variable (independent variables), then you can still salvage your collected data points with imputation.
+If you have missing data on $y$ (dependent variable), you probably would not be able to do any imputation appropriately. However, if you have certain type of missing data (e.g., non-random missing data) in the $x$'s variable (independent variables), then you can still salvage your collected data points with imputation.
 
 We also need to talk why you would want to do imputation in the first place. If your purpose is inference/ explanation (valid statistical inference not optimal point prediction), then imputation would not offer much help [@Rubin_1996]. However, if your purpose is prediction, you would want your standard error to be reduced by including information (non-missing data) on other variables of a data point. Then imputation could be the tool that you're looking for.
 
@@ -76,15 +76,17 @@ Hence, in the case of nonignorable, the data are not MAR. Then, your parameters 
 
 -   Another name: Missing Not at Random (MNAR): there is a relationship between the propensity of a value to be missing and its values
 
-    -   For example, people with low education will be less likely to report it.\
+    -   For example, people with low education will be less likely to report it
 
 -   We need to model why the data are missing and what the likely values are.
 
--   the missing data mechanism is related to the missing values\
+-   the missing data mechanism is related to the missing values
 
--   It commonly occurs when people do not want to reveal something very personal or unpopular about themselves\
+-   It commonly occurs when people do not want to reveal something very personal or unpopular about themselves
 
 -   Complete case analysis can give highly biased results for NI missing data. If proportionally more low and moderate income individuals are left in the sample because high income people are missing, an estimate of the mean income will be lower than the actual population mean.
+
+One can use instrument that can predict the nonresponse process in outcome variable, and unrelated to the outcome of the population to correct for this missingness (but you still have to use complete cases) [@sun2018semiparametric; @tchetgen2017general]
 
 ## Solutions to Missing data
 
@@ -439,9 +441,9 @@ head(data_imp_multi)                            # First 6 rows of our multiply i
 #> 1   8   8   8   8   8   8 38  -3  6  1
 #> 2   1   1   1   1   1   1 50  -9  5  0
 #> 3   5   5   5   5   5   5 43  20  5  1
-#> 4  NA  -6  -4  -4  -1  -3  9  13  3  0
+#> 4  NA   1  -2  -4   9  -8  9  13  3  0
 #> 5  -4  -4  -4  -4  -4  -4 40 -10  6  0
-#> 6  NA  -8   5  -4   1   4 29  -6  5  1
+#> 6  NA   4   7   7   6   0 29  -6  5  1
 ```
 
 Example from [UCLA Statistical Consulting](https://stats.idre.ucla.edu/r/faq/how-do-i-perform-multiple-imputation-using-predictive-mean-matching-in-r/) [@newtest]
@@ -572,43 +574,43 @@ imp1 <- mice(anscombe, m = 5)
 ## linear regression for each imputed data set - 5 regression are run
 fitm <- with(imp1, lm(y1 ~ y4 + x1))
 summary(fitm)
-#> # A tibble: 15 x 6
+#> # A tibble: 15 × 6
 #>    term        estimate std.error statistic p.value  nobs
 #>    <chr>          <dbl>     <dbl>     <dbl>   <dbl> <int>
-#>  1 (Intercept)    6.44      1.77       3.63 0.00664    11
-#>  2 y4            -0.381     0.162     -2.35 0.0468     11
-#>  3 x1             0.458     0.101      4.56 0.00186    11
-#>  4 (Intercept)    6.17      2.02       3.06 0.0156     11
-#>  5 y4            -0.351     0.183     -1.92 0.0914     11
-#>  6 x1             0.443     0.117      3.79 0.00535    11
-#>  7 (Intercept)    6.47      2.02       3.21 0.0125     11
-#>  8 y4            -0.360     0.186     -1.93 0.0893     11
-#>  9 x1             0.430     0.114      3.77 0.00549    11
-#> 10 (Intercept)    6.51      2.63       2.48 0.0384     11
-#> 11 y4            -0.358     0.242     -1.48 0.178      11
-#> 12 x1             0.433     0.149      2.91 0.0195     11
-#> 13 (Intercept)    6.15      2.37       2.60 0.0318     11
-#> 14 y4            -0.362     0.219     -1.65 0.137      11
-#> 15 x1             0.478     0.138      3.46 0.00855    11
+#>  1 (Intercept)    8.60      2.67      3.23  0.0121     11
+#>  2 y4            -0.533     0.251    -2.12  0.0667     11
+#>  3 x1             0.334     0.155     2.16  0.0628     11
+#>  4 (Intercept)    4.19      2.93      1.43  0.190      11
+#>  5 y4            -0.213     0.273    -0.782 0.457      11
+#>  6 x1             0.510     0.167     3.05  0.0159     11
+#>  7 (Intercept)    6.51      2.35      2.77  0.0244     11
+#>  8 y4            -0.347     0.215    -1.62  0.145      11
+#>  9 x1             0.395     0.132     3.00  0.0169     11
+#> 10 (Intercept)    5.48      3.02      1.81  0.107      11
+#> 11 y4            -0.316     0.282    -1.12  0.295      11
+#> 12 x1             0.486     0.173     2.81  0.0230     11
+#> 13 (Intercept)    7.12      1.81      3.92  0.00439    11
+#> 14 y4            -0.436     0.173    -2.53  0.0355     11
+#> 15 x1             0.425     0.102     4.18  0.00308    11
 
 ## pool coefficients and standard errors across all 5 regression models
 pool(fitm)
 #> Class: mipo    m = 5 
-#>          term m   estimate       ubar            b          t dfcom       df
-#> 1 (Intercept) 5  6.3487398 4.76263432 0.0300416474 4.79868430     8 6.495687
-#> 2          y4 5 -0.3623970 0.04025189 0.0001255017 0.04040250     8 6.520908
-#> 3          x1 5  0.4485592 0.01560878 0.0003990336 0.01608762     8 6.341712
-#>           riv      lambda       fmi
-#> 1 0.007569335 0.007512471 0.2165521
-#> 2 0.003741490 0.003727544 0.2130085
-#> 3 0.030677620 0.029764516 0.2374856
+#>          term m   estimate       ubar           b           t dfcom       df
+#> 1 (Intercept) 5  6.3808015 6.72703243 2.785088109 10.06913816     8 3.902859
+#> 2          y4 5 -0.3690455 0.05860053 0.014674911  0.07621042     8 4.716160
+#> 3          x1 5  0.4301588 0.02191260 0.004980516  0.02788922     8 4.856052
+#>         riv    lambda       fmi
+#> 1 0.4968172 0.3319158 0.5254832
+#> 2 0.3005074 0.2310693 0.4303733
+#> 3 0.2727480 0.2142985 0.4143230
 
 ## output parameter estimates
 summary(pool(fitm))
 #>          term   estimate std.error statistic       df    p.value
-#> 1 (Intercept)  6.3487398 2.1905899  2.898187 6.495687 0.02504369
-#> 2          y4 -0.3623970 0.2010037 -1.802937 6.520908 0.11751237
-#> 3          x1  0.4485592 0.1268370  3.536502 6.341712 0.01119463
+#> 1 (Intercept)  6.3808015 3.1731905  2.010847 3.902859 0.11643863
+#> 2          y4 -0.3690455 0.2760624 -1.336819 4.716160 0.24213491
+#> 3          x1  0.4301588 0.1670007  2.575791 4.856052 0.05107581
 ```
 
 ##### Stochastic Imputation
@@ -988,7 +990,7 @@ How many imputation:
 
 **Usually 5**. (unless you have extremely high portion of missing, in which case you probably need to check your data again)
 
-According to Rubin, the relative efficiency of an estimate based on m imputations to infinity imputation is approximately
+According to Rubin, the relative efficiency of an estimate based on $m$ imputations to infinity imputation is approximately
 
 $$
 (1+\frac{\lambda}{m})^{-1}
@@ -1029,44 +1031,39 @@ Hmisc::impute(iris.mis$Sepal.Length, median)  # median
 Hmisc::impute(iris.mis$Sepal.Length, 0)  # replace specific number
 ```
 
-check accurary
+check accuracy
 
 
 ```r
-library(DMwR)
-actuals <- iris$Sepal.Width[is.na(iris.mis$Sepal.Width)]
-predicteds <- rep(mean(iris$Sepal.Width, na.rm=T), length(actuals))
-regr.eval(actuals, predicteds)
-#>       mae       mse      rmse      mape 
-#> 0.2870303 0.1301598 0.3607767 0.1021485
+# library(DMwR2)
+# actuals <- iris$Sepal.Width[is.na(iris.mis$Sepal.Width)]
+# predicteds <- rep(mean(iris$Sepal.Width, na.rm=T), length(actuals))
+# regr.eval(actuals, predicteds)
 ```
 
 ### KNN
 
 
 ```r
-library(DMwR)
-# iris.mis[,!names(iris.mis) %in% c("Sepal.Length")] 
-# data should be this line. But since knn cant work with 3 or less variables, we need to use at least 4 variables. 
-
-# knn is not appropriate for categorical variables
-knnOutput <-
-    knnImputation(data = iris.mis.cat, 
-                  #k = 10, 
-                  meth = "median" # could use "median" or "weighAvg"
-                  )  # should exclude the dependent variable: Sepal.Length
-anyNA(knnOutput)
-#> [1] FALSE
+# library(DMwR2)
+# # iris.mis[,!names(iris.mis) %in% c("Sepal.Length")] 
+# # data should be this line. But since knn cant work with 3 or less variables, we need to use at least 4 variables. 
+# 
+# # knn is not appropriate for categorical variables
+# knnOutput <-
+#     knnImputation(data = iris.mis.cat, 
+#                   #k = 10, 
+#                   meth = "median" # could use "median" or "weighAvg"
+#                   )  # should exclude the dependent variable: Sepal.Length
+# anyNA(knnOutput)
 ```
 
 
 ```r
-library(DMwR)
-actuals <- iris$Sepal.Width[is.na(iris.mis$Sepal.Width)]
-predicteds <- knnOutput[is.na(iris.mis$Sepal.Width), "Sepal.Width"]
-regr.eval(actuals, predicteds)
-#>       mae       mse      rmse      mape 
-#> 0.2318182 0.1038636 0.3222788 0.0823571
+# library(DMwR2)
+# actuals <- iris$Sepal.Width[is.na(iris.mis$Sepal.Width)]
+# predicteds <- knnOutput[is.na(iris.mis$Sepal.Width), "Sepal.Width"]
+# regr.eval(actuals, predicteds)
 ```
 
 Compared to mape (mean absolute percentage error) of mean imputation, we see almost always see improvements.
@@ -1281,15 +1278,15 @@ amelia_fit <- amelia(iris.mis, m=5, parallel = "multicore", noms = "Species")
 #> 
 #> -- Imputation 2 --
 #> 
-#>   1  2  3  4  5  6  7  8  9 10
+#>   1  2  3  4  5  6  7  8
 #> 
 #> -- Imputation 3 --
 #> 
-#>   1  2  3  4  5  6
+#>   1  2  3  4  5
 #> 
 #> -- Imputation 4 --
 #> 
-#>   1  2  3  4  5  6  7  8
+#>   1  2  3  4  5  6  7
 #> 
 #> -- Imputation 5 --
 #> 
@@ -1311,13 +1308,6 @@ amelia_fit <- amelia(iris.mis, m=5, parallel = "multicore", noms = "Species")
 library(missForest)
 #impute missing values, using all parameters as default values
 iris.imp <- missForest(iris.mis)
-#>   missForest iteration 1 in progress...done!
-#>   missForest iteration 2 in progress...done!
-#>   missForest iteration 3 in progress...done!
-#>   missForest iteration 4 in progress...done!
-#>   missForest iteration 5 in progress...done!
-#>   missForest iteration 6 in progress...done!
-#>   missForest iteration 7 in progress...done!
 # check imputed values
 # iris.imp$ximp
 
@@ -1327,13 +1317,13 @@ iris.imp <- missForest(iris.mis)
 # PFC (proportion of falsely classified) is used to represent error derived from imputing categorical values.
 iris.imp$OOBerror
 #>      NRMSE        PFC 
-#> 0.14004198 0.03053435
+#> 0.13631893 0.04477612
 
 #comparing actual data accuracy
 iris.err <- mixError(iris.imp$ximp, iris.mis, iris)
 iris.err
-#>      NRMSE        PFC 
-#> 0.11567322 0.05263158
+#>     NRMSE       PFC 
+#> 0.1501524 0.0625000
 ```
 
 This means categorical variables are imputed with 5% error and continuous variables are imputed with 14% error.
@@ -1387,7 +1377,7 @@ impute_arg # R-squares are for predicted missing values.
 #> 
 #> Number of NAs:
 #> Sepal.Length  Sepal.Width Petal.Length  Petal.Width      Species 
-#>           14           14           13           15           19 
+#>           11           11           13           24           16 
 #> 
 #>              type d.f.
 #> Sepal.Length    s    2
@@ -1401,25 +1391,22 @@ impute_arg # R-squares are for predicted missing values.
 #> R-squares for Predicting Non-Missing Values for Each Variable
 #> Using Last Imputations of Predictors
 #> Sepal.Length  Sepal.Width Petal.Length  Petal.Width      Species 
-#>        0.884        0.606        0.983        0.955        0.989
+#>        0.907        0.660        0.978        0.963        0.993
 
 # check imputed variable Sepal.Length
 impute_arg$imputed$Sepal.Length
 #>     [,1] [,2] [,3] [,4] [,5]
-#> 3    5.0  5.0  4.7  4.8  5.4
-#> 25   5.4  5.0  4.8  5.1  5.0
-#> 49   5.1  5.1  5.0  5.1  5.0
-#> 56   6.5  5.8  6.0  6.9  6.3
-#> 60   6.1  6.0  5.5  5.6  5.7
-#> 81   5.5  5.7  5.6  5.2  5.7
-#> 83   5.7  5.5  5.7  5.6  5.5
-#> 104  6.4  6.5  6.7  6.4  6.7
-#> 108  6.3  7.2  7.7  7.7  7.7
-#> 121  7.2  6.3  6.3  6.4  6.5
-#> 127  5.6  6.3  6.0  6.3  6.3
-#> 133  6.8  6.7  5.9  6.4  6.9
-#> 148  5.7  5.8  6.8  6.4  6.1
-#> 150  6.1  6.4  6.7  6.3  5.9
+#> 19   5.2  5.2  5.2  5.8  5.7
+#> 21   5.1  5.0  5.1  5.7  5.4
+#> 31   4.8  5.0  5.2  5.0  4.8
+#> 35   4.6  4.9  4.9  4.9  4.8
+#> 49   5.0  5.1  5.1  5.1  5.1
+#> 62   6.2  5.7  6.0  6.4  5.6
+#> 65   5.5  5.5  5.2  5.8  5.5
+#> 67   6.5  5.8  5.8  6.3  6.5
+#> 82   5.2  5.1  5.7  5.8  5.5
+#> 113  6.4  6.5  7.4  7.2  6.3
+#> 122  6.2  5.8  5.5  5.8  6.7
 ```
 
 ### mi

@@ -53,7 +53,7 @@ Types of endogeneity
 
 -   Omitted Variables Bias
 
-    -   Motivation/choice
+    -   Motivation/choiceheck
     -   Ability/talent
     -   Self-selection
 
@@ -809,7 +809,7 @@ $$
 
 1.  [Test of Endogeneity]: Is $y_{i2}$ truly endogenous (i.e., can we just use OLS instead of 2SLS)?
 
-2.  [Testing Instrument's assumptions]
+2.  [Testing Instrument's assumptions](#testing-instruments-assumptions)
 
     -   [Exogeneity] (Cannot always test "and when you can it might not be informative")
 
@@ -868,7 +868,7 @@ H_1: \theta \neq 0 && \text{  (endogenous)}
 \end{aligned}
 $$
 
-##### Testing Instrument's assumptions
+##### Testing Instrument's assumptions {#testing-instruments-assumptions}
 
 The instrumental variable must satisfy
 
@@ -944,7 +944,7 @@ low p-value means you reject the null of exogenous instruments. Hence you would 
 -   really only useful if one instrument is thought to be truly exogenous (randomly assigned). even f you do reject the null, the test does not tell you which instrument is exogenous and which is endogenous.
 
 | Result          | Implication                                                                         |
-|----------------|--------------------------------------------------------|
+|--------------------|----------------------------------------------------|
 | reject the null | you can be pretty sure there is an endogenous instrument, but don't know which one. |
 | fail to reject  | could be either (1) they are both exogenous, (2) they are both endogenous.          |
 
@@ -1436,10 +1436,12 @@ Some disciplines consider nonresponse bias and selection bias as sample selectio
 
 Assumptions: - The unobservables that affect the treatment selection and the outcome are jointly distributed as bivariate normal.
 
-Notes: - If you don't have strong exclusion restriction, identification is driven by the assumed non linearity in the functional form (through inverse Mills ratio). E.g., the estimate depend on the bivariate normal distribution of the error structure:
+Notes:
 
-    + With strong exclusion restriction for the covariate in the correction equation, the variation in this vairable can help idnetify the control for selection 
-    + With weak exclusion restriction, and the coavriate exists in both steps, it's the assumed error structure that identifies the control for selection. 
+-   If you don't have strong exclusion restriction, identification is driven by the assumed non linearity in the functional form (through inverse Mills ratio). E.g., the estimate depend on the bivariate normal distribution of the error structure:
+
+    -   With strong exclusion restriction for the covariate in the correction equation, the variation in this vairable can help idnetify the control for selection
+    -   With weak exclusion restriction, and the coavriate exists in both steps, it's the assumed error structure that identifies the control for selection.
 
 To combat Sample selection, we can
 
@@ -1562,6 +1564,8 @@ $$
 
 where $\frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)}$ is the Inverse Mills Ratio. and $\rho \sigma_\epsilon \frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)} \ge 0$
 
+A property of IMR: Its derivative is: $IMR'(x) = -x IMR(x) - IMR(x)^2$
+
 Great visualization of special cases of correlation patterns amongst data and errors by professor [Rob Hick](https://rlhick.people.wm.edu/stories/econ_407_notes_heckman.html)
 
 Note:
@@ -1581,7 +1585,7 @@ In the case of Omitted variable bias (U) and sample selection bias (S), you have
 (3) selection's probability $P(S = 1|P a_s)$ with non-parametrically based causal graphical models, the authors proposed more robust way to model misspecification regardless of the type of data-generating model, and do not require selection's probability. Hence, you can recover Q
 
 -   without external data
--   with external data\
+-   with external data
 -   causal effects with the Selection-backdoor criterion
 
 ### Tobit-2
@@ -1619,8 +1623,11 @@ library(reshape2)
 # OLS: log wage regression on LF participants only
 ols1 = lm(log(wage) ~ educ + exper + I( exper^2 ) + city, data=subset(Mroz87, lfp==1))
 # Heckman's Two-step estimation with LFP selection equation
-heck1 = heckit( lfp ~ age + I( age^2 ) + kids + huswage + educ, # the selection process, lfp = 1 if the woman is participating in the labor force 
-                 log(wage) ~ educ + exper + I( exper^2 ) + city, data=Mroz87 )
+heck1 = heckit(selection = lfp ~ age + I( age^2 ) + kids + huswage + educ, # the selection process, lfp = 1 if the woman is participating in the labor force 
+                 outcome = log(wage) ~ educ + exper + I( exper^2 ) + city, data=Mroz87 )
+
+summary(heck1$probit)
+summary(heck1$lm)
 ```
 
 Use only variables that affect the selection process in the selection equation. Technically, the selection equation and the equation of interest could have the same set of regressors. But it is not recommended because we should only use variables (or at least one) in the selection equation that affect the selection process, but not the wage process (i.e., instruments). Here, variable `kids` fulfill that role: women with kids may be more likely to stay home, but working moms with kids would not have their wages change.
@@ -1629,8 +1636,54 @@ Alternatively,
 
 ```{r}
 # ML estimation of selection model
-ml1 = selection( lfp ~ age + I( age^2 ) + kids + huswage + educ,
-                    log(wage) ~ educ + exper + I( exper^2 ) + city, data=Mroz87 ) 
+ml1 = selection(
+    selection = lfp ~ age + I(age ^ 2) + kids + huswage + educ,
+    outcome = log(wage) ~ educ + exper + I(exper ^ 2) + city,
+    data = Mroz87
+) 
+summary(ml1)
+# summary(ml1$twoStep)
+```
+
+Manual
+
+```{r}
+myprob <- probit(lfp ~ age + I( age^2 ) + kids + huswage + educ, 
+                 # x = TRUE, 
+                 # iterlim = 30, 
+                 data = Mroz87)
+summary(myprob)
+
+imr <- invMillsRatio(myprob)
+Mroz87$IMR1 <- imr$IMR1
+
+manually_est <- lm(log(wage) ~ educ + exper + I( exper^2 ) + city + IMR1,
+                   data = Mroz87, 
+                   subset = (lfp == 1))
+
+summary(manually_est)
+```
+
+Similarly,
+
+```{r}
+probit_selection <-
+    glm(lfp ~ age + I( age^2 ) + kids + huswage + educ,
+        data = Mroz87,
+        family = binomial(link = 'probit'))
+
+probit_lp <- -predict(probit_selection)
+inv_mills <- dnorm(probit_lp) / (1 - pnorm(probit_lp))
+Mroz87$inv_mills <- inv_mills
+
+
+probit_outcome <-
+    glm(
+        log(wage) ~ educ + exper + I(exper ^ 2) + city + inv_mills,
+        data = Mroz87,
+        subset = (lfp == 1)
+    )
+summary(probit_outcome)
 ```
 
 ```{r}
@@ -1644,10 +1697,34 @@ cse = function(reg) {
 }
 
 # stargazer table
-stargazer(ols1, heck1, ml1,    
-          se=list(cse(ols1),NULL,NULL), 
-          title="Married women's wage regressions", type="text", 
-          df=FALSE, digits=4, selection.equation = T)
+stargazer(
+    # ols1,
+    heck1,
+    ml1,
+    # manually_est,
+    
+    se = list(cse(ols1), NULL, NULL),
+    title = "Married women's wage regressions",
+    type = "text",
+    df = FALSE,
+    digits = 4,
+    selection.equation = T
+)
+
+
+stargazer(
+    ols1,
+    # heck1,
+    # ml1,
+    manually_est,
+    
+    se = list(cse(ols1), NULL, NULL),
+    title = "Married women's wage regressions",
+    type = "text",
+    df = FALSE,
+    digits = 4,
+    selection.equation = T
+)
 ```
 
 Rho is an estimate of the correlation of the errors between the selection and wage equations. In the lower panel, the estimated coefficient on the inverse Mills ratio is given for the Heckman model. The fact that it is not statistically different from zero is consistent with the idea that selection bias was not a serious problem in this case.

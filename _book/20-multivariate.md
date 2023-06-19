@@ -488,7 +488,7 @@ ks_tests <- map(trees, ~ ks.test(scale(.x),"pnorm"))
 ks_tests
 #> $Nitrogen
 #> 
-#> 	One-sample Kolmogorov-Smirnov test
+#> 	Asymptotic one-sample Kolmogorov-Smirnov test
 #> 
 #> data:  scale(.x)
 #> D = 0.12182, p-value = 0.8351
@@ -497,7 +497,7 @@ ks_tests
 #> 
 #> $Phosphorous
 #> 
-#> 	One-sample Kolmogorov-Smirnov test
+#> 	Asymptotic one-sample Kolmogorov-Smirnov test
 #> 
 #> data:  scale(.x)
 #> D = 0.17627, p-value = 0.3944
@@ -506,7 +506,7 @@ ks_tests
 #> 
 #> $Potassium
 #> 
-#> 	One-sample Kolmogorov-Smirnov test
+#> 	Asymptotic one-sample Kolmogorov-Smirnov test
 #> 
 #> data:  scale(.x)
 #> D = 0.10542, p-value = 0.9348
@@ -515,7 +515,7 @@ ks_tests
 #> 
 #> $Ash
 #> 
-#> 	One-sample Kolmogorov-Smirnov test
+#> 	Asymptotic one-sample Kolmogorov-Smirnov test
 #> 
 #> data:  scale(.x)
 #> D = 0.14503, p-value = 0.6449
@@ -524,7 +524,7 @@ ks_tests
 #> 
 #> $Height
 #> 
-#> 	One-sample Kolmogorov-Smirnov test
+#> 	Asymptotic one-sample Kolmogorov-Smirnov test
 #> 
 #> data:  scale(.x)
 #> D = 0.1107, p-value = 0.9076
@@ -599,7 +599,7 @@ estat_test <-
     )
 estat_test$multivariateNormality
 #>          Test Statistic p value MVN
-#> 1 E-statistic  1.091101   0.553 YES
+#> 1 E-statistic  1.091101   0.524 YES
 ```
 
 <br>
@@ -1561,7 +1561,7 @@ heart <- heart %>%
     mutate(subject = row_number()) %>%
     ungroup()
 str(heart)
-#> tibble [24 x 6] (S3: tbl_df/tbl/data.frame)
+#> tibble [24 × 6] (S3: tbl_df/tbl/data.frame)
 #>  $ drug   : chr [1:24] "ax23" "ax23" "ax23" "ax23" ...
 #>  $ y1     : int [1:24] 72 78 71 72 66 74 62 69 85 82 ...
 #>  $ y2     : int [1:24] 86 83 82 83 79 83 73 75 86 86 ...
@@ -3152,14 +3152,14 @@ factor_pca_smc
 #> Mean item complexity =  1.7
 #> Test of the hypothesis that 2 factors are sufficient.
 #> 
-#> The degrees of freedom for the null model are  10  and the objective function was  6.38 with Chi Square of  54.25
-#> The degrees of freedom for the model are 1  and the objective function was  0.34 
+#> df null model =  10  with the objective function =  6.38 with Chi Square =  54.25
+#> df of  the model are 1  and the objective function was  0.34 
 #> 
 #> The root mean square of the residuals (RMSR) is  0.01 
 #> The df corrected root mean square of the residuals is  0.03 
 #> 
-#> The harmonic number of observations is  12 with the empirical chi square  0.02  with prob <  0.88 
-#> The total number of observations was  12  with Likelihood Chi Square =  2.44  with prob <  0.12 
+#> The harmonic n.obs is  12 with the empirical chi square  0.02  with prob <  0.88 
+#> The total n.obs was  12  with Likelihood Chi Square =  2.44  with prob <  0.12 
 #> 
 #> Tucker Lewis Index of factoring reliability =  0.596
 #> RMSEA index =  0.336  and the 90 % confidence intervals are  0 0.967
@@ -3201,14 +3201,14 @@ factor_pca_smc_pro
 #> Mean item complexity =  1.1
 #> Test of the hypothesis that 2 factors are sufficient.
 #> 
-#> The degrees of freedom for the null model are  10  and the objective function was  6.38 with Chi Square of  54.25
-#> The degrees of freedom for the model are 1  and the objective function was  0.34 
+#> df null model =  10  with the objective function =  6.38 with Chi Square =  54.25
+#> df of  the model are 1  and the objective function was  0.34 
 #> 
 #> The root mean square of the residuals (RMSR) is  0.01 
 #> The df corrected root mean square of the residuals is  0.03 
 #> 
-#> The harmonic number of observations is  12 with the empirical chi square  0.02  with prob <  0.88 
-#> The total number of observations was  12  with Likelihood Chi Square =  2.44  with prob <  0.12 
+#> The harmonic n.obs is  12 with the empirical chi square  0.02  with prob <  0.88 
+#> The total n.obs was  12  with Likelihood Chi Square =  2.44  with prob <  0.12 
 #> 
 #> Tucker Lewis Index of factoring reliability =  0.596
 #> RMSEA index =  0.336  and the 90 % confidence intervals are  0 0.967
@@ -3289,14 +3289,14 @@ factor_mle_1
 #> Mean item complexity =  1
 #> Test of the hypothesis that 1 factor is sufficient.
 #> 
-#> The degrees of freedom for the null model are  10  and the objective function was  6.38 with Chi Square of  54.25
-#> The degrees of freedom for the model are 5  and the objective function was  3.14 
+#> df null model =  10  with the objective function =  6.38 with Chi Square =  54.25
+#> df of  the model are 5  and the objective function was  3.14 
 #> 
 #> The root mean square of the residuals (RMSR) is  0.41 
 #> The df corrected root mean square of the residuals is  0.57 
 #> 
-#> The harmonic number of observations is  12 with the empirical chi square  39.41  with prob <  2e-07 
-#> The total number of observations was  12  with Likelihood Chi Square =  24.56  with prob <  0.00017 
+#> The harmonic n.obs is  12 with the empirical chi square  39.41  with prob <  2e-07 
+#> The total n.obs was  12  with Likelihood Chi Square =  24.56  with prob <  0.00017 
 #> 
 #> Tucker Lewis Index of factoring reliability =  0.022
 #> RMSEA index =  0.564  and the 90 % confidence intervals are  0.374 0.841
@@ -3336,14 +3336,14 @@ factor_mle_2
 #> Mean item complexity =  1.1
 #> Test of the hypothesis that 2 factors are sufficient.
 #> 
-#> The degrees of freedom for the null model are  10  and the objective function was  6.38 with Chi Square of  54.25
-#> The degrees of freedom for the model are 1  and the objective function was  0.31 
+#> df null model =  10  with the objective function =  6.38 with Chi Square =  54.25
+#> df of  the model are 1  and the objective function was  0.31 
 #> 
 #> The root mean square of the residuals (RMSR) is  0.01 
 #> The df corrected root mean square of the residuals is  0.05 
 #> 
-#> The harmonic number of observations is  12 with the empirical chi square  0.05  with prob <  0.82 
-#> The total number of observations was  12  with Likelihood Chi Square =  2.22  with prob <  0.14 
+#> The harmonic n.obs is  12 with the empirical chi square  0.05  with prob <  0.82 
+#> The total n.obs was  12  with Likelihood Chi Square =  2.22  with prob <  0.14 
 #> 
 #> Tucker Lewis Index of factoring reliability =  0.658
 #> RMSEA index =  0.307  and the 90 % confidence intervals are  0 0.945
@@ -3383,14 +3383,14 @@ factor_mle_3
 #> Mean item complexity =  1.2
 #> Test of the hypothesis that 3 factors are sufficient.
 #> 
-#> The degrees of freedom for the null model are  10  and the objective function was  6.38 with Chi Square of  54.25
-#> The degrees of freedom for the model are -2  and the objective function was  0 
+#> df null model =  10  with the objective function =  6.38 with Chi Square =  54.25
+#> df of  the model are -2  and the objective function was  0 
 #> 
 #> The root mean square of the residuals (RMSR) is  0 
 #> The df corrected root mean square of the residuals is  NA 
 #> 
-#> The harmonic number of observations is  12 with the empirical chi square  0  with prob <  NA 
-#> The total number of observations was  12  with Likelihood Chi Square =  0  with prob <  NA 
+#> The harmonic n.obs is  12 with the empirical chi square  0  with prob <  NA 
+#> The total n.obs was  12  with Likelihood Chi Square =  0  with prob <  NA 
 #> 
 #> Tucker Lewis Index of factoring reliability =  1.318
 #> Fit based upon off diagonal values = 1
@@ -4229,15 +4229,15 @@ knn_2 <- knn(X_train, X_train, Y_train, k = 2)
 table(truth = Y_train, fitted = knn_2)
 #>             fitted
 #> truth        Clover Corn Cotton Soybeans Sugarbeets
-#>   Clover          9    0      2        0          0
+#>   Clover          8    0      2        1          0
 #>   Corn            0    6      0        1          0
-#>   Cotton          1    0      3        0          2
+#>   Cotton          0    0      4        0          2
 #>   Soybeans        0    0      0        4          2
-#>   Sugarbeets      1    0      1        1          3
+#>   Sugarbeets      0    0      1        1          4
 
 ## Accuracy
 mean(Y_train==knn_2)
-#> [1] 0.6944444
+#> [1] 0.7222222
 
 ## Performance on test data
 knn_2_test <- knn(X_train, X_test, Y_train, k = 2)
@@ -4246,28 +4246,28 @@ table(truth = Y_test, predict = knn_2_test)
 #> truth        Clover Corn Cotton Soybeans Sugarbeets
 #>   Clover          1    0      0        0          0
 #>   Corn            0    1      0        0          0
-#>   Cotton          0    0      0        0          1
+#>   Cotton          0    0      1        0          0
 #>   Soybeans        0    0      0        1          0
 #>   Sugarbeets      0    0      0        0          1
 
 ## Accuracy
 mean(Y_test==knn_2_test)
-#> [1] 0.8
+#> [1] 1
 
 ## Nearest neighbors with 3 neighbors
 knn_3 <- knn(X_train, X_train, Y_train, k = 3)
 table(truth = Y_train, fitted = knn_3)
 #>             fitted
 #> truth        Clover Corn Cotton Soybeans Sugarbeets
-#>   Clover          7    0      3        1          0
-#>   Corn            0    5      0        2          0
-#>   Cotton          1    0      3        1          1
-#>   Soybeans        0    1      0        3          2
-#>   Sugarbeets      0    0      1        2          3
+#>   Clover          8    0      1        2          0
+#>   Corn            0    4      1        2          0
+#>   Cotton          1    0      4        0          1
+#>   Soybeans        0    1      1        3          1
+#>   Sugarbeets      0    1      1        1          3
 
 ## Accuracy
 mean(Y_train==knn_3)
-#> [1] 0.5833333
+#> [1] 0.6111111
 
 ## Performance on test data
 knn_3_test <- knn(X_train, X_test, Y_train, k = 3)
@@ -4297,15 +4297,15 @@ step <- stepclass(
     method = "qda",
     improvement = 0.15
 )
-#> correctness rate: 0.45833;  in: "y1";  variables (1): y1 
+#> correctness rate: 0.40833;  in: "y1";  variables (1): y1 
 #> 
 #>  hr.elapsed min.elapsed sec.elapsed 
-#>         0.0         0.0         0.2
+#>        0.00        0.00        0.16
 
 step$process
 #>    step var varname result.pm
 #> 0 start   0      -- 0.0000000
-#> 1    in   1      y1 0.4583333
+#> 1    in   1      y1 0.4083333
 
 step$performance.measure
 #> [1] "correctness rate"

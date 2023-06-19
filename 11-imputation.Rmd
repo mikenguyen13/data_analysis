@@ -6,12 +6,12 @@ Imputation is a statistical procedure where you replace missing data with *some 
 
 -   Item imputation = single feature value
 
-Imputation is usually seen as the illegitimate child of statistical analysis. Several reasons that contribute to this negative views could be:
+Imputation is usually seen as the illegitimate child of statistical analysis. Several reasons that contribute to these negative views could be:
 
 (1) Peopled hardly do imputation correctly (which will introduce bias to your estimates)
 (2) Imputation can only be applied to a small range of problems correctly
 
-If you have missing data on $y$ (dependent variable), you probability would not be able to do any imputation appropriately. However, if you have certain type of missing data (e.g., non-random missing data) in the $x$'s variable (independent variables), then you can still salvage your collected data points with imputation.
+If you have missing data on $y$ (dependent variable), you probably would not be able to do any imputation appropriately. However, if you have certain type of missing data (e.g., non-random missing data) in the $x$'s variable (independent variables), then you can still salvage your collected data points with imputation.
 
 We also need to talk why you would want to do imputation in the first place. If your purpose is inference/ explanation (valid statistical inference not optimal point prediction), then imputation would not offer much help [@Rubin_1996]. However, if your purpose is prediction, you would want your standard error to be reduced by including information (non-missing data) on other variables of a data point. Then imputation could be the tool that you're looking for.
 
@@ -76,15 +76,17 @@ Hence, in the case of nonignorable, the data are not MAR. Then, your parameters 
 
 -   Another name: Missing Not at Random (MNAR): there is a relationship between the propensity of a value to be missing and its values
 
-    -   For example, people with low education will be less likely to report it.\
+    -   For example, people with low education will be less likely to report it
 
 -   We need to model why the data are missing and what the likely values are.
 
--   the missing data mechanism is related to the missing values\
+-   the missing data mechanism is related to the missing values
 
--   It commonly occurs when people do not want to reveal something very personal or unpopular about themselves\
+-   It commonly occurs when people do not want to reveal something very personal or unpopular about themselves
 
 -   Complete case analysis can give highly biased results for NI missing data. If proportionally more low and moderate income individuals are left in the sample because high income people are missing, an estimate of the mean income will be lower than the actual population mean.
+
+One can use instrument that can predict the nonresponse process in outcome variable, and unrelated to the outcome of the population to correct for this missingness (but you still have to use complete cases) [@sun2018semiparametric; @tchetgen2017general]
 
 ## Solutions to Missing data
 
@@ -773,7 +775,7 @@ How many imputation:
 
 **Usually 5**. (unless you have extremely high portion of missing, in which case you probably need to check your data again)
 
-According to Rubin, the relative efficiency of an estimate based on m imputations to infinity imputation is approximately
+According to Rubin, the relative efficiency of an estimate based on $m$ imputations to infinity imputation is approximately
 
 $$
 (1+\frac{\lambda}{m})^{-1}
@@ -813,36 +815,36 @@ Hmisc::impute(iris.mis$Sepal.Length, 0)  # replace specific number
 
 ```
 
-check accurary
+check accuracy
 
-```{r}
-library(DMwR)
-actuals <- iris$Sepal.Width[is.na(iris.mis$Sepal.Width)]
-predicteds <- rep(mean(iris$Sepal.Width, na.rm=T), length(actuals))
-regr.eval(actuals, predicteds)
+```{r, eval = FALSE}
+# library(DMwR2)
+# actuals <- iris$Sepal.Width[is.na(iris.mis$Sepal.Width)]
+# predicteds <- rep(mean(iris$Sepal.Width, na.rm=T), length(actuals))
+# regr.eval(actuals, predicteds)
 ```
 
 ### KNN
 
-```{r}
-library(DMwR)
-# iris.mis[,!names(iris.mis) %in% c("Sepal.Length")] 
-# data should be this line. But since knn cant work with 3 or less variables, we need to use at least 4 variables. 
-
-# knn is not appropriate for categorical variables
-knnOutput <-
-    knnImputation(data = iris.mis.cat, 
-                  #k = 10, 
-                  meth = "median" # could use "median" or "weighAvg"
-                  )  # should exclude the dependent variable: Sepal.Length
-anyNA(knnOutput)
+```{r, eval = FALSE}
+# library(DMwR2)
+# # iris.mis[,!names(iris.mis) %in% c("Sepal.Length")] 
+# # data should be this line. But since knn cant work with 3 or less variables, we need to use at least 4 variables. 
+# 
+# # knn is not appropriate for categorical variables
+# knnOutput <-
+#     knnImputation(data = iris.mis.cat, 
+#                   #k = 10, 
+#                   meth = "median" # could use "median" or "weighAvg"
+#                   )  # should exclude the dependent variable: Sepal.Length
+# anyNA(knnOutput)
 ```
 
-```{r}
-library(DMwR)
-actuals <- iris$Sepal.Width[is.na(iris.mis$Sepal.Width)]
-predicteds <- knnOutput[is.na(iris.mis$Sepal.Width), "Sepal.Width"]
-regr.eval(actuals, predicteds)
+```{r, eval = FALSE}
+# library(DMwR2)
+# actuals <- iris$Sepal.Width[is.na(iris.mis$Sepal.Width)]
+# predicteds <- knnOutput[is.na(iris.mis$Sepal.Width), "Sepal.Width"]
+# regr.eval(actuals, predicteds)
 ```
 
 Compared to mape (mean absolute percentage error) of mean imputation, we see almost always see improvements.

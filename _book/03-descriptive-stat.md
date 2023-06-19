@@ -78,10 +78,10 @@ Note:
 data = rnorm(100)
 library(e1071)
 skewness(data)
-#> [1] 0.001062268
+#> [1] -0.5355748
 
 kurtosis(data)
-#> [1] -0.6185863
+#> [1] 1.011239
 ```
 
 ## Graphical Measures
@@ -96,52 +96,22 @@ data = rnorm(100)
 
 # Histogram
 hist(data,labels = T,col="grey",breaks = 12) 
-```
-
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
-
-```r
 
 # Interactive histogram  
 pacman::p_load("highcharter")
 hchart(data) 
-```
-
-```{=html}
-<div id="htmlwidget-053ab8e9baf2f7102a7f" style="width:90%;height:480px;" class="highchart html-widget"></div>
-<script type="application/json" data-for="htmlwidget-053ab8e9baf2f7102a7f">{"x":{"hc_opts":{"chart":{"reflow":true,"zoomType":"x"},"title":{"text":null},"yAxis":{"title":{"text":null}},"credits":{"enabled":false},"exporting":{"enabled":false},"boost":{"enabled":false},"plotOptions":{"series":{"label":{"enabled":false},"turboThreshold":0},"treemap":{"layoutAlgorithm":"squarified"}},"tooltip":{"formatter":"function() { return  this.point.name + '<br/>' + this.y; }"},"series":[{"data":[{"x":-2.25,"y":2,"name":"(-2.5, -2]"},{"x":-1.75,"y":12,"name":"(-2, -1.5]"},{"x":-1.25,"y":8,"name":"(-1.5, -1]"},{"x":-0.75,"y":17,"name":"(-1, -0.5]"},{"x":-0.25,"y":16,"name":"(-0.5, 0]"},{"x":0.25,"y":14,"name":"(0, 0.5]"},{"x":0.75,"y":13,"name":"(0.5, 1]"},{"x":1.25,"y":9,"name":"(1, 1.5]"},{"x":1.75,"y":2,"name":"(1.5, 2]"},{"x":2.25,"y":4,"name":"(2, 2.5]"},{"x":2.75,"y":2,"name":"(2.5, 3]"},{"x":3.25,"y":1,"name":"(3, 3.5]"}],"type":"column","pointRange":0.5,"groupPadding":0,"pointPadding":0,"borderWidth":0}]},"theme":{"chart":{"backgroundColor":"transparent"},"colors":["#7cb5ec","#434348","#90ed7d","#f7a35c","#8085e9","#f15c80","#e4d354","#2b908f","#f45b5b","#91e8e1"]},"conf_opts":{"global":{"Date":null,"VMLRadialGradientURL":"http =//code.highcharts.com/list(version)/gfx/vml-radial-gradient.png","canvasToolsURL":"http =//code.highcharts.com/list(version)/modules/canvas-tools.js","getTimezoneOffset":null,"timezoneOffset":0,"useUTC":true},"lang":{"contextButtonTitle":"Chart context menu","decimalPoint":".","downloadCSV":"Download CSV","downloadJPEG":"Download JPEG image","downloadPDF":"Download PDF document","downloadPNG":"Download PNG image","downloadSVG":"Download SVG vector image","downloadXLS":"Download XLS","drillUpText":"◁ Back to {series.name}","exitFullscreen":"Exit from full screen","exportData":{"annotationHeader":"Annotations","categoryDatetimeHeader":"DateTime","categoryHeader":"Category"},"hideData":"Hide data table","invalidDate":null,"loading":"Loading...","months":["January","February","March","April","May","June","July","August","September","October","November","December"],"noData":"No data to display","numericSymbolMagnitude":1000,"numericSymbols":["k","M","G","T","P","E"],"printChart":"Print chart","resetZoom":"Reset zoom","resetZoomTitle":"Reset zoom level 1:1","shortMonths":["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],"shortWeekdays":["Sat","Sun","Mon","Tue","Wed","Thu","Fri"],"thousandsSep":" ","viewData":"View data table","viewFullscreen":"View in full screen","weekdays":["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]}},"type":"chart","fonts":[],"debug":false},"evals":["hc_opts.tooltip.formatter"],"jsHooks":[]}</script>
 
 # Box-and-Whisker plot
 boxplot(count ~ spray, data = InsectSprays,col = "lightgray",main="boxplot")
-```
-
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-3.png" width="90%" style="display: block; margin: auto;" />
-
-```r
 
 # Notched Boxplot
 boxplot(len~supp*dose, data=ToothGrowth, notch=TRUE,
   col=(c("gold","darkgreen")),
   main="Tooth Growth", xlab="Suppliment and Dose")
-```
-
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-4.png" width="90%" style="display: block; margin: auto;" />
-
-```r
 # If notches differ -> medians differ
 
 # Stem-and-Leaf Plots
 stem(data)
-#> 
-#>   The decimal point is at the |
-#> 
-#>   -2 | 43
-#>   -1 | 99999887776644332110000
-#>   -0 | 988877666655555544333333222210
-#>    0 | 1112333444445556678889999
-#>    1 | 0001112333467
-#>    2 | 01129
-#>    3 | 00
 
 
 # Bagplot - A 2D Boxplot Extension
@@ -149,9 +119,8 @@ pacman::p_load(aplpack)
 attach(mtcars)
 bagplot(wt,mpg, xlab="Car Weight", ylab="Miles Per Gallon",
   main="Bagplot Example")
-```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-5.png" width="90%" style="display: block; margin: auto;" />
+```
 
 Others more advanced plots
 
@@ -224,7 +193,7 @@ $$\hat{p}=\frac{\sum_{i-1}^{n}(y_i-\bar{y})(x_i-\bar{x})}{(\sum_{i=1}^{n}(y_{i}-
 ```r
 library("EnvStats")
 gofTest(data,test="ppcc")$p.value #Probability Plot Correlation Coefficient 
-#> [1] 0.2658983
+#> [1] 0.2241222
 ```
 
 ##### Shapiro-Wilk Test
@@ -240,7 +209,7 @@ where $a_1,..,a_n$ are weights computed from the covariance matrix for the order
 
 ```r
 gofTest(data,test="sw")$p.value #Shapiro-Wilk is the default.
-#> [1] 0.1875251
+#> [1] 0.1965936
 ```
 
 #### Methods based on empirical cumulative distribution function
@@ -297,7 +266,7 @@ Consult [@Stephens_1974] for more detailed transformation and critical values.
 
 ```r
 gofTest(data,test="ad")$p.value #Anderson-Darling
-#> [1] 0.4590664
+#> [1] 0.4199391
 ```
 
 ##### Kolmogorov-Smirnov Test
@@ -308,7 +277,7 @@ gofTest(data,test="ad")$p.value #Anderson-Darling
 
 ```r
 gofTest(data,test="ks")$p.value #Komogorov-Smirnov 
-#> [1] 0.6544764
+#> [1] 0.9433557
 ```
 
 ##### Cramer-von Mises Test
@@ -318,7 +287,7 @@ gofTest(data,test="ks")$p.value #Komogorov-Smirnov
 
 ```r
 gofTest(data,test="cvm")$p.value #Cramer-von Mises
-#> [1] 0.5817909
+#> [1] 0.5611566
 ```
 
 ##### Jarque--Bera Test {#jarquebera-test}
@@ -404,16 +373,16 @@ data = data.frame(A = sample(1:20, replace = TRUE, size = n),
 library(Hmisc)
 rcorr(data$A, data$B, type="pearson") 
 #>       x     y
-#> x  1.00 -0.17
-#> y -0.17  1.00
+#> x  1.00 -0.04
+#> y -0.04  1.00
 #> 
 #> n= 100 
 #> 
 #> 
 #> P
 #>   x      y     
-#> x        0.0887
-#> y 0.0887
+#> x        0.6661
+#> y 0.6661
 ```
 
 ### Spearman Correlation
@@ -423,16 +392,16 @@ rcorr(data$A, data$B, type="pearson")
 library(Hmisc)
 rcorr(data$A, data$B, type="spearman") 
 #>       x     y
-#> x  1.00 -0.17
-#> y -0.17  1.00
+#> x  1.00 -0.05
+#> y -0.05  1.00
 #> 
 #> n= 100 
 #> 
 #> 
 #> P
 #>   x      y     
-#> x        0.0895
-#> y 0.0895
+#> x        0.6067
+#> y 0.6067
 ```
 
 ## Categorical and Continuous
@@ -796,6 +765,8 @@ polychor(data$A, data$B)
 #> [1] 0.01607982
 ```
 
+
+
 ### Summary
 
 
@@ -961,7 +932,7 @@ modelsummary::datasummary_correlation(df)
   </tr>
   <tr>
    <td style="text-align:left;"> cyl </td>
-   <td style="text-align:right;"> -.85 </td>
+   <td style="text-align:right;"> −.85 </td>
    <td style="text-align:right;"> 1 </td>
    <td style="text-align:right;"> . </td>
    <td style="text-align:right;"> . </td>
@@ -975,7 +946,7 @@ modelsummary::datasummary_correlation(df)
   </tr>
   <tr>
    <td style="text-align:left;"> disp </td>
-   <td style="text-align:right;"> -.85 </td>
+   <td style="text-align:right;"> −.85 </td>
    <td style="text-align:right;"> .90 </td>
    <td style="text-align:right;"> 1 </td>
    <td style="text-align:right;"> . </td>
@@ -989,7 +960,7 @@ modelsummary::datasummary_correlation(df)
   </tr>
   <tr>
    <td style="text-align:left;"> hp </td>
-   <td style="text-align:right;"> -.78 </td>
+   <td style="text-align:right;"> −.78 </td>
    <td style="text-align:right;"> .83 </td>
    <td style="text-align:right;"> .79 </td>
    <td style="text-align:right;"> 1 </td>
@@ -1004,9 +975,9 @@ modelsummary::datasummary_correlation(df)
   <tr>
    <td style="text-align:left;"> drat </td>
    <td style="text-align:right;"> .68 </td>
-   <td style="text-align:right;"> -.70 </td>
-   <td style="text-align:right;"> -.71 </td>
-   <td style="text-align:right;"> -.45 </td>
+   <td style="text-align:right;"> −.70 </td>
+   <td style="text-align:right;"> −.71 </td>
+   <td style="text-align:right;"> −.45 </td>
    <td style="text-align:right;"> 1 </td>
    <td style="text-align:right;"> . </td>
    <td style="text-align:right;"> . </td>
@@ -1017,11 +988,11 @@ modelsummary::datasummary_correlation(df)
   </tr>
   <tr>
    <td style="text-align:left;"> wt </td>
-   <td style="text-align:right;"> -.87 </td>
+   <td style="text-align:right;"> −.87 </td>
    <td style="text-align:right;"> .78 </td>
    <td style="text-align:right;"> .89 </td>
    <td style="text-align:right;"> .66 </td>
-   <td style="text-align:right;"> -.71 </td>
+   <td style="text-align:right;"> −.71 </td>
    <td style="text-align:right;"> 1 </td>
    <td style="text-align:right;"> . </td>
    <td style="text-align:right;"> . </td>
@@ -1032,11 +1003,11 @@ modelsummary::datasummary_correlation(df)
   <tr>
    <td style="text-align:left;"> qsec </td>
    <td style="text-align:right;"> .42 </td>
-   <td style="text-align:right;"> -.59 </td>
-   <td style="text-align:right;"> -.43 </td>
-   <td style="text-align:right;"> -.71 </td>
+   <td style="text-align:right;"> −.59 </td>
+   <td style="text-align:right;"> −.43 </td>
+   <td style="text-align:right;"> −.71 </td>
    <td style="text-align:right;"> .09 </td>
-   <td style="text-align:right;"> -.17 </td>
+   <td style="text-align:right;"> −.17 </td>
    <td style="text-align:right;"> 1 </td>
    <td style="text-align:right;"> . </td>
    <td style="text-align:right;"> . </td>
@@ -1046,11 +1017,11 @@ modelsummary::datasummary_correlation(df)
   <tr>
    <td style="text-align:left;"> vs </td>
    <td style="text-align:right;"> .66 </td>
-   <td style="text-align:right;"> -.81 </td>
-   <td style="text-align:right;"> -.71 </td>
-   <td style="text-align:right;"> -.72 </td>
+   <td style="text-align:right;"> −.81 </td>
+   <td style="text-align:right;"> −.71 </td>
+   <td style="text-align:right;"> −.72 </td>
    <td style="text-align:right;"> .44 </td>
-   <td style="text-align:right;"> -.55 </td>
+   <td style="text-align:right;"> −.55 </td>
    <td style="text-align:right;"> .74 </td>
    <td style="text-align:right;"> 1 </td>
    <td style="text-align:right;"> . </td>
@@ -1060,12 +1031,12 @@ modelsummary::datasummary_correlation(df)
   <tr>
    <td style="text-align:left;"> am </td>
    <td style="text-align:right;"> .60 </td>
-   <td style="text-align:right;"> -.52 </td>
-   <td style="text-align:right;"> -.59 </td>
-   <td style="text-align:right;"> -.24 </td>
+   <td style="text-align:right;"> −.52 </td>
+   <td style="text-align:right;"> −.59 </td>
+   <td style="text-align:right;"> −.24 </td>
    <td style="text-align:right;"> .71 </td>
-   <td style="text-align:right;"> -.69 </td>
-   <td style="text-align:right;"> -.23 </td>
+   <td style="text-align:right;"> −.69 </td>
+   <td style="text-align:right;"> −.23 </td>
    <td style="text-align:right;"> .17 </td>
    <td style="text-align:right;"> 1 </td>
    <td style="text-align:right;"> . </td>
@@ -1074,12 +1045,12 @@ modelsummary::datasummary_correlation(df)
   <tr>
    <td style="text-align:left;"> gear </td>
    <td style="text-align:right;"> .48 </td>
-   <td style="text-align:right;"> -.49 </td>
-   <td style="text-align:right;"> -.56 </td>
-   <td style="text-align:right;"> -.13 </td>
+   <td style="text-align:right;"> −.49 </td>
+   <td style="text-align:right;"> −.56 </td>
+   <td style="text-align:right;"> −.13 </td>
    <td style="text-align:right;"> .70 </td>
-   <td style="text-align:right;"> -.58 </td>
-   <td style="text-align:right;"> -.21 </td>
+   <td style="text-align:right;"> −.58 </td>
+   <td style="text-align:right;"> −.21 </td>
    <td style="text-align:right;"> .21 </td>
    <td style="text-align:right;"> .79 </td>
    <td style="text-align:right;"> 1 </td>
@@ -1087,20 +1058,22 @@ modelsummary::datasummary_correlation(df)
   </tr>
   <tr>
    <td style="text-align:left;"> carb </td>
-   <td style="text-align:right;"> -.55 </td>
+   <td style="text-align:right;"> −.55 </td>
    <td style="text-align:right;"> .53 </td>
    <td style="text-align:right;"> .39 </td>
    <td style="text-align:right;"> .75 </td>
-   <td style="text-align:right;"> -.09 </td>
+   <td style="text-align:right;"> −.09 </td>
    <td style="text-align:right;"> .43 </td>
-   <td style="text-align:right;"> -.66 </td>
-   <td style="text-align:right;"> -.57 </td>
+   <td style="text-align:right;"> −.66 </td>
+   <td style="text-align:right;"> −.57 </td>
    <td style="text-align:right;"> .06 </td>
    <td style="text-align:right;"> .27 </td>
    <td style="text-align:right;"> 1 </td>
   </tr>
 </tbody>
 </table>
+
+
 
 
 ```r
@@ -1260,3 +1233,4 @@ ppsr::visualize_pps(df = iris,
 ```
 
 <img src="03-descriptive-stat_files/figure-html/unnamed-chunk-43-1.png" width="90%" style="display: block; margin: auto;" />
+

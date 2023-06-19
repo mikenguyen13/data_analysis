@@ -1,0 +1,731 @@
+# Instrumental Variables
+
+Similar to RCT, we try to introduce randomization (random assignment to treatment) to our treatment variable by using only variation in the instrument.
+
+Logic of using an instrument:
+
+-   Use only exogenous variation to see the variation in treatment (try to exclude all endogenous variation in the treatment)
+
+-   Use only exogenous variation to see the variation in outcome (try to exclude all endogenous variation in the outcome)
+
+-   See the relationship between treatment and outcome in terms of residual variations that are exogenous to omitted variables.
+
+Notes:
+
+-   Instruments can be used to remove attenuation bias in errors-in-variables.
+
+-   Be careful with the F-test and standard errors when you do 2SLS by hand (you need to correct them)
+
+Other resources:
+
+-   [Image](https://theeffectbook.net/ch-InstrumentalVariables.html)
+
+First-stage
+
+-   Always use the OLS regression in the first stage (regardless of the type of endogenous variables - e.g., continuous or discreet) (suggested by [@angrist2009mostly]. Estimates of IV can still be consistent regardless of the form of the endogenous variables (discreet vs. continuous).
+
+    -   Alternatively, we could use "biprobit" model, but this is applicable only in cases where you have both dependent and endogenous variables to be binary.
+
+-   If you still want to continue and use logit or probit models for the first stage when you have binary variables, you have a "[forbidden regression](https://www.statalist.org/forums/forum/general-stata-discussion/general/1379449-two-step-iv-method-with-binary-dependent-variable)" (also [1](https://stats.stackexchange.com/questions/125830/consistency-of-2sls-with-binary-endogenous-variable), [2](https://stats.stackexchange.com/questions/94063/probit-two-stage-least-squares-2sls/94392#94392)) (i.e., an incorrect extension of 2SLS to a nonlinear case).
+
+There are several ways to understand this problem:
+
+1.  **Identification strategy**: The identification strategy in instrumental variables analysis relies on the fact that the instrumental variable affects the outcome variable only through its effect on the endogenous variable. However, when the endogenous variable is binary, the relationship between the instrumental variable and the endogenous variable is not continuous. This means that the instrumental variable can only affect the endogenous variable in discrete jumps, rather than through a continuous change. As a result, the identification of the causal effect of the endogenous variable on the outcome variable may not be possible with probit or logit regression in the first stage.
+
+2.  **Model assumptions**: Both models assume that the error term has a specific distribution (normal or logistic), and that the probability of the binary outcome is a function of the linear combination of the regressors.
+
+    When the endogenous variable is binary, however, the distribution of the error term is not specified, as there is no continuous relationship between the endogenous variable and the outcome variable. This means that the assumptions of the probit and logit models may not hold, and the resulting estimates may not be reliable or interpretable.
+
+3.  **Issue of weak instruments**: When the instrument is weak, the variance of the inverse Mills ratio (which is used to correct for endogeneity in instrumental variables analysis) can be very large. In the case of binary endogenous variables, the inverse Mills ratio cannot be consistently estimated using probit or logit regression, and this can lead to biased and inconsistent estimates of the causal effect of the endogenous variable on the outcome variable.
+
+<br>
+
+Problems with weak instruments [@bound1995problems]:
+
+-   Weak instrumental variables can produce (finite-sample) **biased** and **inconsistent** estimates of the causal effect of an endogenous variable on an outcome variable (even in the presence of large sample size)
+
+-   In a finite sample, instrumental variables (IV) estimates can be biased in the same direction as ordinary least squares (OLS) estimates. Additionally, the bias of IV estimates approaches that of OLS estimates as the correlation (R2) between the instruments and the endogenous explanatory variable approaches zero. This means that when the correlation between the instruments and the endogenous variable is weak, the bias of the IV estimates can be similar to that of the OLS estimates.
+
+-   Weak instruments are problematic because they do not have enough variation to fully capture the variation in the endogenous variable, leading to measurement error and other sources of noise in the estimates.
+
+-   Solutions:
+
+    -   use of multiple instruments
+
+    -   use of instrumental variables with higher correlation
+
+    -   use of alternative estimation methods such as limited information maximum likelihood (LIML) or two-stage least squares (2SLS) with heteroscedasticity-robust standard errors.
+
+Instrument Validity:
+
+1.  Random assignment.
+2.  Any effect of the instrument on the outcome must be through the endogenous variable.
+
+Control function vs. 2SLS:
+
+## 
+
+## Estimation
+
+### 2SLS Estimation
+
+A special case of [IV-GMM]
+
+Examples by authors of `fixest` package
+
+```{r}
+library(fixest)
+base = iris
+names(base) = c("y", "x1", "x_endo_1", "x_inst_1", "fe")
+set.seed(2)
+base$x_inst_2 = 0.2 * base$y + 0.2 * base$x_endo_1 + rnorm(150, sd = 0.5)
+base$x_endo_2 = 0.2 * base$y - 0.2 * base$x_inst_1 + rnorm(150, sd = 0.5)
+
+# est_iv = feols(y ~ x1 | x_endo_1  ~ x_inst_1 , base)
+est_iv = feols(y ~ x1 | x_endo_1 + x_endo_2 ~ x_inst_1 + x_inst_2, base)
+est_iv
+```
+
+Default statistics
+
+1.  F-test first-stage (weak instrument test)
+2.  Wu-Hausman endogeneity test
+3.  Over-identifying restriction (Sargan) J-test
+
+```{r}
+fitstat(
+    est_iv,
+    type = c(
+        "n", "ll", "aic", "bic", "rmse", # ll means log-likelihood
+        
+        "my", # meand dependent var
+        
+        "g", # degrees of freedom used to compute the t-test
+        
+        "r2", "ar2", "wr2", "awr2", "pr2", "apr2", "wpr2", "awpr2",
+        
+        "theta", # over-dispersion parameter in Negative Binomial models
+        
+        "f", "wf", # F-tests of nullity of the coefficients
+        
+        "wald", # Wald test of joint nullity of the coefficients
+        
+        "ivf", 
+        
+        "ivf1", 
+        
+        "ivf2", 
+        
+        "ivfall",
+        
+        "ivwald", "ivwald1", "ivwald2", "ivwaldall", 
+        
+        "cd",
+        
+        "kpr"
+        
+        
+        ),
+    cluster = 'fe'
+)
+```
+
+To set default printing
+
+```{r, eval = FALSE}
+# always add second-stage Wald test
+setFixest_print(fitstat = ~ . + ivwald2)
+est_iv
+```
+
+To see results from different stages
+
+```{r, eval = FALSE}
+# first-stage
+summary(est_iv, stage = 1)
+
+# second-stage
+summary(est_iv, stage = 2)
+
+# both stages
+etable(summary(est_iv, stage = 1:2), fitstat = ~ . + ivfall + ivwaldall.p)
+etable(summary(est_iv, stage = 2:1), fitstat = ~ . + ivfall + ivwaldall.p)
+# .p means p-value, not statistic
+# `all` means IV only
+```
+
+### IV-GMM {data-link="IV-GMM"}
+
+This is a more general framework.
+
+-   [2SLS Estimation] is a special case of [IV-GMM] estimator
+
+$$
+Y = X \beta + u, u \sim (0, \Omega)
+$$
+
+where
+
+-   $X$ is a matrix of endogenous variables ($N\times k$)
+
+We will use a matrix of instruments $X$ where it has $N \times l$ dimensions (where $l \ge k$)
+
+Then, we can have a set of $l$ moments:
+
+$$
+g_i (\beta) = Z_i' u_i = Z_i' (Y_i - X_i \beta)
+$$
+
+where
+
+-   $i \in (1,N)$
+
+Each $l$ moment equation is a sample moment, which can be estimated by averaging over $N$
+
+$$
+\bar{g}(\beta) = \frac{1}{N} \sum_{i = 1}^N Z_i (Y_i - X_i \beta) = \frac{1}{N} Z'u
+$$
+
+GMM then estimate $\beta$ so that $\bar{g}(\hat{\beta}_{GMM}) = 0$
+
+When $l = k$ there is a unique solution to this system of equations (and equivalent to the IV estimator)
+
+$$
+\hat{\beta}_{IV} = (Z'X)^{-1}Z'Y
+$$
+
+When $l > k$, we have a set of $k$ instruments
+
+$$
+\hat{X} = Z(Z'Z)^{-1} Z' X = P_ZX
+$$
+
+then we can use the 2SLS estimator
+
+$$
+\begin{aligned}
+\hat{\beta}_{2SLS} &= (\hat{X}'X)^{-1} \hat{X}' Y \\
+&= (X'P_Z X)^{-1}X' P_Z Y
+\end{aligned}
+$$
+
+Differences between 2SLS and IV-GMM:
+
+-   In the 2SLS method, when there are more instruments available than what is actually needed for the estimation, to address this, a matrix is created that only includes the necessary instruments, which simplifies the calculation.
+
+-   The IV-GMM method uses all the available instruments, but applies a weighting system to prioritize the instruments that are most relevant. This approach is useful when there are more instruments than necessary, which can make the calculation more complex. The IV-GMM method uses a criterion function to weight the estimates and improve their accuracy.
+
+-   **In short, always use IV-GMM when you have overid problems**
+
+GMM estimator minimizes
+
+$$
+J (\hat{\beta}_{GMM} ) = N \bar{g}(\hat{\beta}_{GMM})' W \bar{g} (\hat{\beta}_{GMM})
+$$
+
+where $W$ is a symmetric weighting matrix $l \times l$
+
+For an overid equation, solving the set of FOCs for the IV-GMM estimator, we should have
+
+$$
+\hat{\beta}_{GMM} = (X'ZWZ' X)^{-1} X'ZWZ'Y
+$$
+
+which is identical for all $W$ matrices. The optimal $W = S^{-1}$ [@hansen1982large] where $S$ is the covariance matrix of the moment conditions to produce the most efficient estimator:
+
+$$
+S = E[Z'uu'Z] = \lim_{N \to \infty} N^{-1}[Z' \Omega Z]
+$$
+
+With a consistent estimator of $S$ from the 2SLS residuals, the feasible IV-GMM estimator can be defined as
+
+$$
+\hat{\beta}_{FEGMM} = (X'Z \hat{S}^{-1} Z' X)^{-1} X'Z \hat{S}^{-1} Z'Y
+$$
+
+In cases where $\Omega$ (i.e., the vcov of the error process $u$) satisfy all classical assumptions
+
+1.  IID
+2.  $S = \sigma^2_u I_N$
+3.  The optimal weighting matrix is proportional to the identity matrix
+
+Then, IV-GMM estimator is the standard IV (or 2SLS) estimator.
+
+For IV-GMM, you also have an additional test of overid restrictions: GMM distance (also known as Hayashi C statistic)
+
+To account for clustering, one can use code provided by this [blog](https://www.r-bloggers.com/2014/04/iv-estimates-via-gmm-with-clustering-in-r/)
+
+```{r}
+gmmcl = function(formula1, formula2, data, cluster){
+  library(plyr) ; library(gmm)
+  # create data.frame
+  data$id1 = 1:dim(data)[1]
+  formula3 = paste(as.character(formula1)[3],"id1", sep=" + ")
+  formula4 = paste(as.character(formula1)[2], formula3, sep=" ~ ")
+  formula4 = as.formula(formula4)
+  formula5 = paste(as.character(formula2)[2],"id1", sep=" + ")
+  formula6 = paste(" ~ ", formula5, sep=" ")
+  formula6 = as.formula(formula6)
+  frame1 = model.frame(formula4, data)
+  frame2 = model.frame(formula6, data)
+  dat1 = join(data, frame1, type="inner", match="first")
+  dat2 = join(dat1, frame2, type="inner", match="first")
+  
+  # matrix of instruments
+  Z1 = model.matrix(formula2, dat2)
+  
+  # step 1
+  gmm1 = gmm(formula1, formula2, data = dat2, 
+             vcov="TrueFixed", weightsMatrix = diag(dim(Z1)[2]))
+  
+  # clustering weight matrix
+  cluster = factor(dat2[,cluster])
+  u = residuals(gmm1)
+  estfun = sweep(Z1, MARGIN=1, u,'*')
+  u = apply(estfun, 2, function(x) tapply(x, cluster, sum))  
+  S = 1/(length(residuals(gmm1)))*crossprod(u)
+  
+  # step 2
+  gmm2 = gmm(formula1, formula2, data=dat2, 
+             vcov="TrueFixed", weightsMatrix = solve(S))
+  return(gmm2)
+}
+
+# generate data.frame
+n = 100
+z1 = rnorm(n)
+z2 = rnorm(n)
+x1 = z1 + z2 + rnorm(n)
+y1 = x1 + rnorm(n)
+id = 1:n
+
+data = data.frame(z1 = c(z1, z1), z2 = c(z2, z2), x1 = c(x1, x1),
+                  y1 = c(y1, y1), id = c(id, id))
+
+summary(gmmcl(y1 ~ x1, ~ z1 + z2, data = data, cluster = "id"))
+```
+
+## Assumption Testing
+
+$$
+Y = \beta_1 X_1 + \beta_2 X_2 + \epsilon
+$$
+
+where
+
+-   $X_1$ are exogenous variables
+
+-   $X_2$ are endogenous variables
+
+-   $Z$ are instrumental variables
+
+If $Z$ satisfies the relevance condition, it means $Cov(Z, X_2) \neq 0$
+
+This is important because we need this to be able to estimate $\beta_2$ where
+
+$$
+\beta_2 = \frac{Cov(Z,Y)}{Cov(Z, X_2)}
+$$
+
+If $Z$ satisfies the exogeneity condition, $E[Z\epsilon]=0$, this can achieve by
+
+-   $Z$ having no direct effect on $Y$ except through $X_2$
+
+-   In the presence of omitted variable, $Z$ is uncorrelated with this variable.
+
+If we just want to know the effect of $Z$ on $Y$ (**reduced form**) where the coefficient of $Z$ is
+
+$$
+\rho = \frac{Cov(Y, Z)}{Var(Z)}
+$$
+
+and this effect is only through $X_2$ (by the exclusion restriction assumption).
+
+We can also consistently estimate the effect of $Z$ on $X$ (**first stage**) where the the coefficient of $X_2$ is
+
+$$
+\pi = \frac{Cov(X_2, Z)}{Var(Z)}
+$$
+
+and the IV estimate is
+
+$$
+\beta_2 = \frac{Cov(Y,Z)}{Cov(X_2, Z)} = \frac{\rho}{\pi}
+$$
+
+## Relevance Assumption
+
+-   **Weak instruments**: can explain little variation in the endogenous regressor
+
+    -   Coefficient estimate of the endogenous variable will be inaccurate
+
+-   Rule of thumb:
+
+    -   Compute F-statistic in the first-stage, where it should be greater than 10.
+
+    -   use `linearHypothesis()` to see only instrument coefficients.
+
+## Exogeneity Assumption
+
+-   Wald test and Hausman test for exogeneity of $X$ assuming $Z$ is exogenous
+
+    -   People might prefer Wald test over Hausman test.
+
+-   Sargan (for 2SLS) is a simpler version of Hansen's J test (for IV-GMM)
+
+-   Modified J test (i.e., Regularized jacknife IV): can handle weak instruments and small sample size [@carrasco2022testing] (also proposed a regularized F-test to test relevance assumption that is robust to heteroskedasticity).
+
+-   New advances: endogeneity robust inference in finite sample and sensitivity analysis of inference [@kiviet2020testing]
+
+These tests that can provide evidence fo the validity of the over-identifying restrictions is not sufficient or necessary for the validity of the moment conditions (i.e., this assumption cannot be tested). [@deaton2010instruments; @parente2012cautionary]
+
+-   The over-identifying restriction can still be valid even when the instruments are correlated with the error terms, but then in this case, what you're estimating is no longer your parameters of interest.
+
+-   Rejection of the over-identifying restrictions can also be the result of **parameter heterogeneity** [@angrist2000interpretation]
+
+Why overid tests hold no value/info?
+
+-   Overidentifying restrictions are valid irrespective of the instruments' validity
+
+    -   Whenever instruments have the same motivation and are on the same scale, the estimated parameter of interests will be very close [@parente2012cautionary, p. 316]
+
+-   Overidentifying restriction are invalid when each instrument is valid
+
+    -   When the effect of your parameter of interest is heterogeneous (e.g., you have two groups with two different true effects), your first instrument can be correlated with your variable of interest only for the first group and your second interments can be correlated with your variable of interest only for the second group (i.e., each instrument is valid), and if you use each instrument, you can still identify the parameter of interest. However, if you use both of them, what you estimate is a mixture of the two groups. Hence, the overidentifying restriction will be invalid (because no single parameters can make the errors of the model orthogonal to both instruments). The result may seem confusing at first because if each subset of overidentifying restrictions is valid, the full set should also be valid. However, this interpretation is flawed because the residual's orthogonality to the instruments depends on the chosen set of instruments, and therefore the set of restrictions tested when using two sets of instruments together is not the same as the union of the sets of restrictions tested when using each set of instruments separately [@parente2012cautionary, p. 316]
+
+These tests (of overidentifying restrictions) should be used to check whether different instruments identify the same parameters of interest, not to check their validity
+
+[@hausman1983specification; @parente2012cautionary]
+
+### Wald Test
+
+Assuming that $Z$ is exogenous (a valid instrument), we want to know whether $X_2$ is exogenous
+
+1st stage:
+
+$$
+X_2 = \hat{\alpha} Z + \hat{\epsilon}
+$$
+
+2nd stage:
+
+$$
+Y = \delta_0 X_1 + \delta_1 X_2 + \delta_2 \hat{\epsilon} + u
+$$
+
+where
+
+-   $\hat{\epsilon}$ is the residuals from the 1st stage
+
+The Wald test of exogeneity assumes
+
+$$
+H_0: \delta_2 = 0 \\
+H_1: \delta_2 \neq 0
+$$
+
+If you have more than one endogenous variable with more than one instrument, $\delta_2$ is a vector of all residuals from all the first-stage equations. And the null hypothesis is that they are jointly equal 0.
+
+If you reject this hypothesis, it means that $X_2$ is **not endogenous**. Hence, for this test, we do not want to reject the null hypothesis.
+
+If the test is not sacrificially significant, we might just don't have enough information to reject the null.
+
+When you have a valid instrument $Z$, whether $X_2$ is endogenous or exogenous, your coefficient estimates of $X_2$ should still be consistent. But if $X_2$ is exogenous, then 2SLS will be inefficient (i.e., larger standard errors).
+
+Intuition:
+
+$\hat{\epsilon}$ is the supposed endogenous part of $X_2$, When we regress $Y$ on $\hat{\epsilon}$ and observe that its coefficient is not different from 0. It means that the exogenous part of $X_2$ can explain well the impact on $Y$, and there is no endogenous part.
+
+### Hausman's Test
+
+Similar to [Wald Test] and identical to [Wald Test] when we have homoskedasticity (i.e., homogeneity of variances). Because of this assumption, it's used less often than [Wald Test]
+
+### Hansen's J {#hansens-j}
+
+-   [@hansen1982large]
+
+-   J-test (over-identifying restrictions test): test whether **additional** instruments are exogenous
+
+    -   Can only be applied in cases where you have more instruments than endogenous variables
+        -   $dim(Z) > dim(X_2)$
+    -   Assume at least one instrument within $Z$ is exogenous
+
+Procedure IV-GMM:
+
+1.  Obtain the residuals of the 2SLS estimation
+2.  Regress the residuals on all instruments and exogenous variables.
+3.  Test the joint hypothesis that all coefficients of the residuals across instruments are 0 (i.e., this is true when instruments are exogenous).
+    1.  Compute $J = mF$ where $m$ is the number of instruments, and $F$ is your equation $F$ statistic (can you use `linearHypothesis()` again).
+
+    2.  If your exogeneity assumption is true, then $J \sim \chi^2_{m-k}$ where $k$ is the number of endogenous variables.
+4.  If you reject this hypothesis, it can be that
+    1.  The first sets of instruments are invalid
+
+    2.  The second sets of instruments are invalid
+
+    3.  Both sets of instruments are invalid
+
+**Note**: This test is only true when your residuals are homoskedastic.
+
+For a heteroskedasticity-robust $J$-statistic, see [@carrasco2022testing; @fan2022testing]
+
+### Sargan Test
+
+[@sargan1958estimation]
+
+Similar to [Hansen's J](#hansens-j), but it assumes homoskedasticity
+
+-   Have to be careful when sample is not collected exogenously. As such, when you have choice-based sampling design, the sampling weights have to be considered to have consistent estimates. However, even if we apply sampling weights, the tests are not suitable because the iid assumption off errors are already violated. Hence, the test is invalid in this case [@pitt2011overidentification].
+
+-   If one has heteroskedasticity in its design, the Sargan test is invalid [@pitt2011overidentification}]
+
+### Testing for Endogeneity
+
+## Negative $R^2$
+
+It's okay to have negative $R^2$ in the 2nd stage. We care more about consistent coefficient estimates.
+
+$R^2$ has no statistical meaning in instrumental variable regression or 2 or 3SLS
+
+$$
+R^2 = \frac{MSS}{TSS}
+$$
+
+where
+
+-   MSS = model sum of squares (TSS- RSS)
+-   TSS = total sum of squares ($\sum(y - \bar{y})^2$)
+-   RSS = residual sum of squares ($\sum (y - Xb)^2$)
+
+If TSS \> RSS, then we have negative RSS and negative $R^2$. Since the predicted values of the endogenous variables are different from the endogenous variables themselves, the error that is used to calculate RSS can be different from the error in the second stage, and RSS in the second stage can be less than TSS. For more information, see <https://stats.stackexchange.com/questions/420492/can-i-ignore-the-negative-r-squared-value-when-i-am-using-instrumental-variable> <https://www.stata.com/support/faqs/statistics/two-stage-least-squares/>
+
+## Treatment Intensity
+
+Two-Stage Least Squares (TSLS) can be used to estimate the average causal effect of variable treatment intensity, and it "identifies a weighted average of per-unit treatment effects along the length of a causal response function" [@angrist1995two, p. 431]. For example
+
+-   Drug dosage
+
+-   Hours of exam prep
+
+-   cigarette smoking
+
+-   years of education
+
+-   Social Media Adoption
+
+The **average causal effect** here refers to the conditional expectation of the difference in outcomes between the treated and what would have happened in the counterfactual world.
+
+Notes:
+
+-   We do not need a linearity assumption of the relationships between the dependent variable, treatment intensities, and instruments.
+
+Example
+
+In their original paper, @angrist1995two take the example of schooling effect on earnings where they have quarters of birth as the instrumental variable.
+
+For each additional year of schooling, there can be an increase in earnings, and each additional year can be heterogeneous (both in the sense that grade 9th to grade 10th is qualitatively different and one can change to a different school).
+
+$$
+Y = \gamma_0 + \gamma_1 X_1 + \rho S + \epsilon
+$$
+
+where
+
+-   $S$ is years of schooling (i.e., endogenous regressor)
+
+-   $\rho$ is the return to a year of schooling
+
+-   $X_1$ is a matrix of exogenous covariates
+
+Schooling can also be related to the exogenous variable $X_1$
+
+$$
+S = \delta_0 + X_1 \delta_1 + X_2 \delta_2 + \eta
+$$
+
+where
+
+-   $X_2$ is an exogenous instrument
+
+-   $\delta_2$ is the coefficient of the instrument
+
+by using only the fitted value in the second, the TSLS can give a consistent estimate of the effect of schooling on earning
+
+$$
+Y = \gamma_0 + X_1 \gamma-1 + \rho \hat{S} + \nu
+$$
+
+To give $\rho$ a causal interpretation,
+
+1.  We first have to have the SUTVA (stable unit treatment value assumption), where the potential outcomes of the same person with different years of schooling are independent.
+2.  When $\rho$ has a probability limit equal to a weighted average of $E[Y_j - Y_{j-1}] \forall j$
+
+Even though the first bullet point is not trivial, most of the time we don't have to defend much about it in a research article, the second bullet point is the harder one to argue and only apply to certain cases.
+
+# Control Function
+
+Also known as **two-stage residual inclusion**
+
+Resources:
+
+-   Binary outcome and binary endogenous variable application [@tchetgen2014note]
+
+    -   In rare events: we use a logistic model in the 2nd stage
+
+    -   In non-rare events: use risk ratio regression in the 2nd stage
+
+-   Application in marketing for consumer choice model [@petrin2010control]
+
+Notes
+
+-   This approach is better suited for models with nonadditive errors (e.g., discrete choice models), or binary endogenous model, binary response variable, etc.
+
+$$
+Y = g(X) + U \\
+X = \pi(Z) + V \\
+E(U |Z,V) = E(U|V) \\
+E(V|Z) = 0
+$$
+
+Under control function apporach,
+
+$$
+E(Y|Z,V) = g(X) + E(U|Z,V) \\
+= g(X) + E(U|V) \\
+= g(X) + h(V)
+$$
+
+where $h(V)$ is the control function that models the endogeneity
+
+## Linear in parameters
+
+### Linear Endogenous Variables
+
+The control function function approach is identical to the usual 2SLS estimator
+
+### Nonlinear Endogenous Variables
+
+The control function is different from the 2SLS estimator
+
+## Nonlinear in parameters
+
+The CF function is superior than the 2SLS estimator
+
+## Estimation
+
+# Simulation 
+
+```{r}
+library(fixest)
+library(tidyverse)
+library(modelsummary)
+
+# Set the seed for reproducibility
+set.seed(123)
+n = 10000
+# Generate the exogenous variable from a normal distribution
+exogenous <- rnorm(n, mean = 5, sd = 1)
+
+# Generate the omitted variable as a function of the exogenous variable
+omitted <- rnorm(n, mean = 2, sd = 1)
+
+# Generate the endogenous variable as a function of the omitted variable and the exogenous variable
+endogenous <- 5 * omitted + 2 * exogenous + rnorm(n, mean = 0, sd = 1)
+
+# nonlinear endogenous variable
+endogenous_nonlinear <- 5 * omitted^2 + 2 * exogenous + rnorm(100, mean = 0, sd = 1)
+
+unrelated <- rexp(n, rate = 1)
+
+# Generate the response variable as a function of the endogenous variable and the omitted variable
+response <- 4 +  3 * endogenous + 6 * omitted + rnorm(n, mean = 0, sd = 1)
+
+response_nonlinear <- 4 +  3 * endogenous_nonlinear + 6 * omitted + rnorm(n, mean = 0, sd = 1)
+
+response_nonlinear_para <- 4 +  3 * endogenous ^ 2 + 6 * omitted + rnorm(n, mean = 0, sd = 1)
+
+
+# Combine the variables into a data frame
+my_data <-
+    data.frame(
+        exogenous,
+        omitted,
+        endogenous,
+        response,
+        unrelated,
+        response,
+        response_nonlinear,
+        response_nonlinear_para
+    )
+
+# View the first few rows of the data frame
+# head(my_data)
+
+wo_omitted <- feols(response ~ endogenous + sw0(unrelated), data = my_data)
+w_omitted  <- feols(response ~ endogenous + omitted + unrelated, data = my_data)
+
+
+# ivreg::ivreg(response ~ endogenous + unrelated | exogenous, data = my_data)
+iv <- feols(response ~ 1 + sw0(unrelated) | endogenous ~ exogenous, data = my_data)
+
+etable(
+    wo_omitted,
+    w_omitted,
+    iv, 
+    digits = 2
+    # vcov = list("each", "iid", "hetero")
+)
+```
+
+Linear in parameter and linear in endogenous variable
+
+```{r}
+# manual
+# 2SLS
+first_stage = lm(endogenous ~ exogenous, data = my_data)
+new_data = cbind(my_data, new_endogenous = predict(first_stage, my_data))
+second_stage = lm(response ~ new_endogenous, data = new_data)
+summary(second_stage)
+
+new_data_cf = cbind(my_data, residual = resid(first_stage))
+second_stage_cf = lm(response ~ endogenous + residual, data = new_data_cf)
+summary(second_stage_cf)
+
+modelsummary(list(second_stage, second_stage_cf))
+```
+
+Nonlinear in endogenous variable
+
+```{r}
+# 2SLS
+first_stage = lm(endogenous_nonlinear ~ exogenous, data = my_data)
+
+new_data = cbind(my_data, new_endogenous_nonlinear = predict(first_stage, my_data))
+second_stage = lm(response_nonlinear ~ new_endogenous_nonlinear, data = new_data)
+summary(second_stage)
+
+new_data_cf = cbind(my_data, residual = resid(first_stage))
+second_stage_cf = lm(response_nonlinear ~ endogenous_nonlinear + residual, data = new_data_cf)
+summary(second_stage_cf)
+
+modelsummary(list(second_stage, second_stage_cf))
+```
+
+
+Nonlinear in parameters
+
+```{r}
+# 2SLS
+first_stage = lm(endogenous ~ exogenous, data = my_data)
+
+new_data = cbind(my_data, new_endogenous = predict(first_stage, my_data))
+second_stage = lm(response_nonlinear_para ~ new_endogenous, data = new_data)
+summary(second_stage)
+
+new_data_cf = cbind(my_data, residual = resid(first_stage))
+second_stage_cf = lm(response_nonlinear_para ~ endogenous_nonlinear + residual, data = new_data_cf)
+summary(second_stage_cf)
+
+modelsummary(list(second_stage, second_stage_cf))
+```
+

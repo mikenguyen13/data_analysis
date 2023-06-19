@@ -103,7 +103,7 @@ sample_iris <- iris %>%
     group_by(Species) %>%
     sample_n(5)
 sample_iris
-#> # A tibble: 15 x 5
+#> # A tibble: 15 × 5
 #> # Groups:   Species [3]
 #>    Sepal.Length Sepal.Width Petal.Length Petal.Width Species   
 #>           <dbl>       <dbl>        <dbl>       <dbl> <fct>     
@@ -128,7 +128,7 @@ sample_iris <- iris %>%
     group_by(Species) %>%
     sample_frac(size = .15)
 sample_iris
-#> # A tibble: 24 x 5
+#> # A tibble: 24 × 5
 #> # Groups:   Species [3]
 #>    Sepal.Length Sepal.Width Petal.Length Petal.Width Species   
 #>           <dbl>       <dbl>        <dbl>       <dbl> <fct>     
@@ -142,7 +142,7 @@ sample_iris
 #>  8          5.5         3.5          1.3         0.2 setosa    
 #>  9          5           2.3          3.3         1   versicolor
 #> 10          5.6         2.9          3.6         1.3 versicolor
-#> # ... with 14 more rows
+#> # ℹ 14 more rows
 ```
 
 
@@ -150,26 +150,26 @@ sample_iris
 library(sampler)
 # Stratified sample using proportional allocation without replacement
 ssamp(df=albania, n=360, strata=qarku, over=0.1)
-#> # A tibble: 395 x 45
-#>    qarku  Q_ID bashkia       BAS_ID zaz   njesiaAdministr~ COM_ID qvKod zgjedhes
-#>    <fct> <int> <fct>          <int> <fct> <fct>             <int> <fct>    <int>
-#>  1 Berat     1 Berat             11 ZAZ ~ "Berat "           1101 "\"3~      558
-#>  2 Berat     1 Berat             11 ZAZ ~ "Berat "           1101 "\"3~      815
-#>  3 Berat     1 Berat             11 ZAZ ~ "Sinje"            1108 "\"3~      419
-#>  4 Berat     1 Kucove            13 ZAZ ~ "Lumas"            1104 "\"3~      237
-#>  5 Berat     1 Kucove            13 ZAZ ~ "Kucove"           1201 "\"3~      562
-#>  6 Berat     1 Skrapar           17 ZAZ ~ "Corovode"         1303 "\"3~      829
-#>  7 Berat     1 Berat             11 ZAZ ~ "Roshnik"          1107 "\"3~      410
-#>  8 Berat     1 Ura Vajgurore     19 ZAZ ~ "Ura Vajgurore"    1110 "\"3~      708
-#>  9 Berat     1 Kucove            13 ZAZ ~ "Perondi"          1203 "\"3~      835
-#> 10 Berat     1 Kucove            13 ZAZ ~ "Kucove"           1201 "\"3~      907
-#> # ... with 385 more rows, and 36 more variables: meshkuj <int>, femra <int>,
-#> #   totalSeats <int>, vendndodhja <fct>, ambienti <fct>, totalVoters <int>,
-#> #   femVoters <int>, maleVoters <int>, unusedBallots <int>,
-#> #   damagedBallots <int>, ballotsCast <int>, invalidVotes <int>,
-#> #   validVotes <int>, lsi <int>, ps <int>, pkd <int>, sfida <int>, pr <int>,
-#> #   pd <int>, pbdksh <int>, adk <int>, psd <int>, ad <int>, frd <int>,
-#> #   pds <int>, pdiu <int>, aak <int>, mega <int>, pksh <int>, apd <int>, ...
+#> # A tibble: 395 × 45
+#>    qarku  Q_ID bashkia   BAS_ID zaz   njesiaAdministrative COM_ID qvKod zgjedhes
+#>    <fct> <int> <fct>      <int> <fct> <fct>                 <int> <fct>    <int>
+#>  1 Berat     1 Berat         11 ZAZ … "Berat "               1101 "\"3…      558
+#>  2 Berat     1 Berat         11 ZAZ … "Berat "               1101 "\"3…      815
+#>  3 Berat     1 Berat         11 ZAZ … "Sinje"                1108 "\"3…      419
+#>  4 Berat     1 Kucove        13 ZAZ … "Lumas"                1104 "\"3…      237
+#>  5 Berat     1 Kucove        13 ZAZ … "Kucove"               1201 "\"3…      562
+#>  6 Berat     1 Skrapar       17 ZAZ … "Corovode"             1303 "\"3…      829
+#>  7 Berat     1 Berat         11 ZAZ … "Roshnik"              1107 "\"3…      410
+#>  8 Berat     1 Ura Vajg…     19 ZAZ … "Ura Vajgurore"        1110 "\"3…      708
+#>  9 Berat     1 Kucove        13 ZAZ … "Perondi"              1203 "\"3…      835
+#> 10 Berat     1 Kucove        13 ZAZ … "Kucove"               1201 "\"3…      907
+#> # ℹ 385 more rows
+#> # ℹ 36 more variables: meshkuj <int>, femra <int>, totalSeats <int>,
+#> #   vendndodhja <fct>, ambienti <fct>, totalVoters <int>, femVoters <int>,
+#> #   maleVoters <int>, unusedBallots <int>, damagedBallots <int>,
+#> #   ballotsCast <int>, invalidVotes <int>, validVotes <int>, lsi <int>,
+#> #   ps <int>, pkd <int>, sfida <int>, pr <int>, pd <int>, pbdksh <int>,
+#> #   adk <int>, psd <int>, ad <int>, frd <int>, pds <int>, pdiu <int>, …
 ```
 
 Identify number of missing points by strata between sample and collected data

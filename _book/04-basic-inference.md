@@ -383,13 +383,13 @@ t.test(data, conf.level=0.95)
 #> 	One Sample t-test
 #> 
 #> data:  data
-#> t = 0.17647, df = 99, p-value = 0.8603
+#> t = 0.34812, df = 99, p-value = 0.7285
 #> alternative hypothesis: true mean is not equal to 0
 #> 95 percent confidence interval:
-#>  -0.1774126  0.2120499
+#>  -0.1523274  0.2171509
 #> sample estimates:
 #>  mean of x 
-#> 0.01731865
+#> 0.03241178
 ```
 
 $$
@@ -404,13 +404,13 @@ t.test(data, mu=30,alternative="less")
 #> 	One Sample t-test
 #> 
 #> data:  data
-#> t = -305.51, df = 99, p-value < 2.2e-16
+#> t = -321.87, df = 99, p-value < 2.2e-16
 #> alternative hypothesis: true mean is less than 30
 #> 95 percent confidence interval:
-#>       -Inf 0.1802696
+#>       -Inf 0.1870013
 #> sample estimates:
 #>  mean of x 
-#> 0.01731865
+#> 0.03241178
 ```
 
 
@@ -1233,8 +1233,7 @@ $$
 ```r
 prop.test(x=c(july.x,sept.x),n=c(july.n,sept.n),correct=F)
 #> 
-#> 	2-sample test for equality of proportions without continuity
-#> 	correction
+#> 	2-sample test for equality of proportions without continuity correction
 #> 
 #> data:  c(july.x, sept.x) out of c(july.n, sept.n)
 #> X-squared = 3.9701, df = 1, p-value = 0.04632
@@ -1514,10 +1513,7 @@ set.seed(1)
 # permutation-based tw sample test using Wasserstein metric
 twosamples::wass_test(rnorm(100), rnorm(100, mean = 1))
 #> Test Stat   P-Value 
-#> 0.8533046 0.0002500 
-#> attr(,"details")
-#>      n1      n2 n.boots 
-#>     100     100    2000
+#> 0.8533046 0.0002500
 ```
 
 ### Kolmogorov-Smirnov Test
@@ -1546,7 +1542,7 @@ lst = list(sample_1 = c(1:20), sample_2 = c(2:30), sample_3 = c(3:30))
 expand.grid(1:length(lst), 1:length(lst)) %>%
     rowwise() %>%
     mutate(KL = KL.empirical(lst[[Var1]], lst[[Var2]]))
-#> # A tibble: 9 x 3
+#> # A tibble: 9 × 3
 #> # Rowwise: 
 #>    Var1  Var2     KL
 #>   <int> <int>  <dbl>
@@ -1573,7 +1569,7 @@ Matching::ks.boot(Tr = c(0:10), Co = c(0:10))
 #> 
 #> $ks
 #> 
-#> 	Two-sample Kolmogorov-Smirnov test
+#> 	Exact two-sample Kolmogorov-Smirnov test
 #> 
 #> data:  Tr and Co
 #> D = 0, p-value = 1

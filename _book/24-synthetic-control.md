@@ -10,6 +10,8 @@ Notes
 
 -   Synthetic control method (SCM) is a generalization of the [Difference-in-differences] model
 
+-   SCM is Superior than [Matching Methods] because it not only matches on covariates (i.e., pre-treatment variables), but also outcomes.
+
 -   For a review of the method, see [@abadie2021a]
 
 -   SCMs can also be used under the Bayesian framework where we do not have to impose any restrictive priori [@kim2020]
@@ -195,8 +197,7 @@ It's recommended to use one-sided inference. And the permutation distribution is
 
 For benchmark (permutation) distribution (e.g., uniform), see [@firpo2018]
 
-<br>
-## Applications
+<br> \## Applications
 
 ### Example 1
 
@@ -799,6 +800,7 @@ Notes:
 
 
 ```r
+# right now the package is not availabe for R version 4.2
 library(microsynth)
 data("seattledmi")
 
@@ -811,121 +813,27 @@ match.out <- c("i_felony", "i_misdemea", "i_drugs", "any_crime")
 ```r
 sea1 <- microsynth(
     seattledmi,
-    idvar = "ID",
-    timevar = "time",
-    intvar = "Intervention",
-    start.pre = 1,
-    end.pre = 12,
-    end.post = 16,
-    match.out = match.out, # outcome variable will be matched on exactly
+    idvar       = "ID",
+    timevar     = "time",
+    intvar      = "Intervention",
+    start.pre   = 1,
+    end.pre     = 12,
+    end.post    = 16,
+    match.out   = match.out, # outcome variable will be matched on exactly
     match.covar = cov.var, # specify covariates will be matched on exactly
-    result.var = match.out, # used to report results
+    result.var  = match.out, # used to report results
     omnibus.var = match.out, # feature in the omnibus p-value
-    test = "lower",
-    n.cores = min(parallel::detectCores(), 2)
+    test        = "lower",
+    n.cores     = min(parallel::detectCores(), 2)
 )
 sea1
-#> 	microsynth object
-#> 
-#> Scope:
-#> 	Units:			Total: 9642	Treated: 39	Untreated: 9603
-#> 	Study Period(s):	Pre-period: 1 - 12	Post-period: 13 - 16
-#> 	Constraints:		Exact Match: 58		Minimized Distance: 0
-#> Time-variant outcomes:
-#> 	Exact Match: i_felony, i_misdemea, i_drugs, any_crime (4)
-#> 	Minimized Distance: (0)
-#> Time-invariant covariates:
-#> 	Exact Match: TotalPop, BLACK, HISPANIC, Males_1521, HOUSEHOLDS, FAMILYHOUS, FEMALE_HOU, RENTER_HOU, VACANT_HOU (9)
-#> 	Minimized Distance: (0)
-#> 
-#> Results:
-#> end.post = 16
-#>            Trt    Con Pct.Chng Linear.pVal Linear.Lower Linear.Upper
-#> i_felony    46  68.22   -32.6%      0.0109       -50.3%        -8.4%
-#> i_misdemea  45  71.80   -37.3%      0.0019       -52.8%       -16.7%
-#> i_drugs     20  23.76   -15.8%      0.2559       -46.4%        32.1%
-#> any_crime  788 986.44   -20.1%      0.0146       -32.9%        -4.9%
-#> Omnibus     --     --       --      0.0006           --           --
 summary(sea1)
-#> Weight Balance Table: 
-#> 
-#>               Targets Weighted.Control   All.scaled
-#> Intercept          39        39.000239   39.0000000
-#> TotalPop         2994      2994.051921 2384.7476665
-#> BLACK             173       173.000957  190.5224020
-#> HISPANIC          149       149.002632  159.2682016
-#> Males_1521         49        49.000000   97.3746111
-#> HOUSEHOLDS       1968      1968.033976 1113.5588052
-#> FAMILYHOUS        519       519.010767  475.1876167
-#> FEMALE_HOU        101       101.000957   81.1549471
-#> RENTER_HOU       1868      1868.020338  581.9340386
-#> VACANT_HOU        160       160.011485   98.4222153
-#> i_felony.12        14        14.000000    4.9023024
-#> i_felony.11        11        11.000239    4.6313006
-#> i_felony.10         9         9.000000    3.0740510
-#> i_felony.9          5         5.000000    3.2641568
-#> i_felony.8         20        20.000000    4.4331052
-#> i_felony.7          8         8.000000    3.7616677
-#> i_felony.6         13        13.000000    3.0012446
-#> i_felony.5         20        20.000718    3.1549471
-#> i_felony.4         10        10.000000    4.0245800
-#> i_felony.3          7         7.000000    3.3693217
-#> i_felony.2         13        13.000239    3.2803360
-#> i_felony.1         12        12.000000    3.4380834
-#> i_misdemea.12      15        15.000239    4.2470442
-#> i_misdemea.11      12        12.000000    4.6070317
-#> i_misdemea.10      12        12.000000    4.0771624
-#> i_misdemea.9       14        14.000000    3.7414437
-#> i_misdemea.8       12        12.000000    3.9679527
-#> i_misdemea.7       20        20.000000    4.2551338
-#> i_misdemea.6       16        16.000479    3.5594275
-#> i_misdemea.5       24        24.000000    3.5634723
-#> i_misdemea.4       21        21.000239    4.3360299
-#> i_misdemea.3       21        21.000000    4.3845675
-#> i_misdemea.2       14        14.000000    3.5351587
-#> i_misdemea.1       16        16.000000    4.1540137
-#> i_drugs.12         13        13.000000    1.6543248
-#> i_drugs.11          8         8.000000    1.5127567
-#> i_drugs.10          3         3.000000    1.3226509
-#> i_drugs.9           4         4.000000    0.9788426
-#> i_drugs.8           4         4.000000    1.1123211
-#> i_drugs.7          10        10.000000    1.0516490
-#> i_drugs.6           4         4.000000    1.2377100
-#> i_drugs.5           2         2.000000    1.2296204
-#> i_drugs.4           1         1.000000    1.1244555
-#> i_drugs.3           5         5.000000    1.3550093
-#> i_drugs.2          12        12.000000    1.1365899
-#> i_drugs.1           8         8.000239    1.3590541
-#> any_crime.12      272       272.001196   65.3397635
-#> any_crime.11      227       227.001675   64.2395769
-#> any_crime.10      183       183.000957   55.6929060
-#> any_crime.9       176       176.000479   53.2377100
-#> any_crime.8       228       228.000479   55.8142502
-#> any_crime.7       246       246.002393   55.8061605
-#> any_crime.6       200       200.000957   52.8291848
-#> any_crime.5       270       270.001436   50.6530803
-#> any_crime.4       250       250.000957   57.2946484
-#> any_crime.3       236       236.000957   58.8680772
-#> any_crime.2       250       250.001196   51.5429371
-#> any_crime.1       242       242.000957   55.1144991
-#> 
-#> Results: 
-#> 
-#> end.post = 16
-#>            Trt    Con Pct.Chng Linear.pVal Linear.Lower Linear.Upper
-#> i_felony    46  68.22   -32.6%      0.0109       -50.3%        -8.4%
-#> i_misdemea  45  71.80   -37.3%      0.0019       -52.8%       -16.7%
-#> i_drugs     20  23.76   -15.8%      0.2559       -46.4%        32.1%
-#> any_crime  788 986.44   -20.1%      0.0146       -32.9%        -4.9%
-#> Omnibus     --     --       --      0.0006           --           --
 ```
 
 
 ```r
 plot_microsynth(sea1)
 ```
-
-<img src="24-synthetic-control_files/figure-html/unnamed-chunk-31-1.png" width="90%" style="display: block; margin: auto;" /><img src="24-synthetic-control_files/figure-html/unnamed-chunk-31-2.png" width="90%" style="display: block; margin: auto;" /><img src="24-synthetic-control_files/figure-html/unnamed-chunk-31-3.png" width="90%" style="display: block; margin: auto;" /><img src="24-synthetic-control_files/figure-html/unnamed-chunk-31-4.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
@@ -942,4 +850,3 @@ sea2 <- microsynth(seattledmi,
 ## Synthetic Difference-in-differences
 
 reference: [@arkhangelsky2021]
-

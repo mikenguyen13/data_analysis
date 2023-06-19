@@ -1,7 +1,7 @@
 ---
 title: "A Guide on Data Analysis"
 author: "Mike Nguyen"
-date: "2022-12-11"
+date: "2023-06-18"
 header-includes:
   - \usepackage{titling}
   - \pretitle{\begin{center}
@@ -24,6 +24,7 @@ apple-touch-icon: "logo.png"
 apple-touch-icon-size: 120
 knit: "bookdown::render_book"
 site: bookdown::bookdown_site
+always_allow_html: yes
 ---
 
 # Preface {#preface .unnumbered}
@@ -72,7 +73,6 @@ It's all fun and exciting when I learned these new tools. But I have to admit th
 
 <br>
 
-
 **Some general recommendations**:
 
 -   The more you practice/habituate/condition, more line of codes that you write, more function that you memorize, I think the more you will like this journey.
@@ -103,251 +103,245 @@ It's all fun and exciting when I learned these new tools. But I have to admit th
 
 
 
-
 <br>
 
 **Code Replication**
 
-This book was built with R version 4.0.4 (2021-02-15) and the following packages:
+This book was built with R version 4.2.3 (2023-03-15 ucrt) and the following packages:
 
 
 |package      |version    |source         |
 |:------------|:----------|:--------------|
-|abind        |1.4-5      |CRAN (R 4.0.3) |
-|agridat      |1.20       |CRAN (R 4.0.5) |
-|ape          |5.6-1      |CRAN (R 4.0.5) |
-|assertthat   |0.2.1      |CRAN (R 4.0.3) |
-|backports    |1.4.1      |CRAN (R 4.0.5) |
-|bookdown     |0.24       |CRAN (R 4.0.5) |
-|boot         |1.3-28     |CRAN (R 4.0.5) |
-|broom        |0.7.12     |CRAN (R 4.0.5) |
-|bslib        |0.3.1      |CRAN (R 4.0.5) |
-|cachem       |1.0.6      |CRAN (R 4.0.5) |
-|callr        |3.7.0      |CRAN (R 4.0.5) |
-|car          |3.0-12     |CRAN (R 4.0.5) |
-|carData      |3.0-5      |CRAN (R 4.0.5) |
-|cellranger   |1.1.0      |CRAN (R 4.0.3) |
-|cli          |3.2.0      |CRAN (R 4.0.4) |
-|coda         |0.19-4     |CRAN (R 4.0.3) |
-|colorspace   |2.0-3      |CRAN (R 4.0.4) |
-|corpcor      |1.6.10     |CRAN (R 4.0.5) |
-|crayon       |1.5.0      |CRAN (R 4.0.5) |
-|cubature     |2.0.4.2    |CRAN (R 4.0.5) |
-|curl         |4.3.2      |CRAN (R 4.0.5) |
-|data.table   |1.14.2     |CRAN (R 4.0.5) |
-|DBI          |1.1.2      |CRAN (R 4.0.5) |
-|dbplyr       |2.1.1      |CRAN (R 4.0.5) |
-|desc         |1.4.0      |CRAN (R 4.0.5) |
-|devtools     |2.4.3      |CRAN (R 4.0.5) |
-|digest       |0.6.29     |CRAN (R 4.0.5) |
-|dplyr        |1.0.8      |CRAN (R 4.0.4) |
-|ellipsis     |0.3.2      |CRAN (R 4.0.5) |
-|evaluate     |0.15       |CRAN (R 4.0.4) |
-|extrafont    |0.17       |CRAN (R 4.0.3) |
-|extrafontdb  |1.0        |CRAN (R 4.0.3) |
-|fansi        |1.0.2      |CRAN (R 4.0.5) |
-|faraway      |1.0.7      |CRAN (R 4.0.3) |
-|fastmap      |1.1.0      |CRAN (R 4.0.3) |
-|forcats      |0.5.1      |CRAN (R 4.0.3) |
-|foreign      |0.8-82     |CRAN (R 4.0.5) |
-|fs           |1.5.2      |CRAN (R 4.0.5) |
-|generics     |0.1.2      |CRAN (R 4.0.5) |
-|ggplot2      |3.3.5      |CRAN (R 4.0.5) |
-|glue         |1.6.1      |CRAN (R 4.0.5) |
-|gtable       |0.3.0      |CRAN (R 4.0.3) |
-|haven        |2.4.3      |CRAN (R 4.0.5) |
-|Hmisc        |4.6-0      |CRAN (R 4.0.5) |
-|hms          |1.1.1      |CRAN (R 4.0.5) |
-|htmltools    |0.5.2      |CRAN (R 4.0.5) |
-|htmlwidgets  |1.5.4      |CRAN (R 4.0.5) |
-|httr         |1.4.2      |CRAN (R 4.0.3) |
-|investr      |1.4.0      |CRAN (R 4.0.3) |
-|jpeg         |0.1-9      |CRAN (R 4.0.5) |
-|jquerylib    |0.1.4      |CRAN (R 4.0.5) |
-|jsonlite     |1.7.3      |CRAN (R 4.0.5) |
-|kableExtra   |1.3.4      |CRAN (R 4.0.4) |
-|knitr        |1.37       |CRAN (R 4.0.5) |
-|lattice      |0.20-45    |CRAN (R 4.0.5) |
-|latticeExtra |0.6-29     |CRAN (R 4.0.3) |
-|lifecycle    |1.0.1      |CRAN (R 4.0.5) |
-|lme4         |1.1-28     |CRAN (R 4.0.4) |
-|lmerTest     |3.1-3      |CRAN (R 4.0.3) |
-|lsr          |0.5.2      |CRAN (R 4.0.5) |
-|ltm          |1.2-0      |CRAN (R 4.0.4) |
-|lubridate    |1.8.0      |CRAN (R 4.0.5) |
-|magrittr     |2.0.2      |CRAN (R 4.0.5) |
-|MASS         |7.3-55     |CRAN (R 4.0.5) |
-|matlib       |0.9.5      |CRAN (R 4.0.5) |
-|Matrix       |1.4-0      |CRAN (R 4.0.5) |
-|MCMCglmm     |2.33       |CRAN (R 4.0.5) |
-|memoise      |2.0.1      |CRAN (R 4.0.5) |
-|mgcv         |1.8-38     |CRAN (R 4.0.5) |
-|minqa        |1.2.4      |CRAN (R 4.0.3) |
-|modelr       |0.1.8      |CRAN (R 4.0.3) |
-|munsell      |0.5.0      |CRAN (R 4.0.3) |
-|nlme         |3.1-155    |CRAN (R 4.0.5) |
-|nloptr       |2.0.0      |CRAN (R 4.0.5) |
-|nlstools     |2.0-0      |CRAN (R 4.0.5) |
-|nnet         |7.3-17     |CRAN (R 4.0.5) |
-|numDeriv     |2016.8-1.1 |CRAN (R 4.0.3) |
-|openxlsx     |4.2.5      |CRAN (R 4.0.5) |
-|pbkrtest     |0.5.1      |CRAN (R 4.0.5) |
-|pillar       |1.7.0      |CRAN (R 4.0.5) |
-|pkgbuild     |1.3.1      |CRAN (R 4.0.5) |
-|pkgconfig    |2.0.3      |CRAN (R 4.0.3) |
-|pkgload      |1.2.4      |CRAN (R 4.0.5) |
-|png          |0.1-7      |CRAN (R 4.0.3) |
-|ppsr         |0.0.2      |CRAN (R 4.0.5) |
-|prettyunits  |1.1.1      |CRAN (R 4.0.3) |
-|processx     |3.5.2      |CRAN (R 4.0.5) |
-|ps           |1.6.0      |CRAN (R 4.0.5) |
-|pscl         |1.5.5      |CRAN (R 4.0.3) |
-|purrr        |0.3.4      |CRAN (R 4.0.3) |
-|R6           |2.5.1      |CRAN (R 4.0.5) |
-|RColorBrewer |1.1-2      |CRAN (R 4.0.3) |
-|Rcpp         |1.0.8      |CRAN (R 4.0.5) |
-|readr        |2.1.2      |CRAN (R 4.0.5) |
-|readxl       |1.3.1      |CRAN (R 4.0.3) |
-|remotes      |2.4.2      |CRAN (R 4.0.5) |
-|reprex       |2.0.1      |CRAN (R 4.0.5) |
-|rgl          |0.108.3    |CRAN (R 4.0.5) |
-|rio          |0.5.29     |CRAN (R 4.0.5) |
-|rlang        |1.0.1      |CRAN (R 4.0.5) |
-|RLRsim       |3.1-6      |CRAN (R 4.0.4) |
-|rmarkdown    |2.11       |CRAN (R 4.0.5) |
-|rprojroot    |2.0.2      |CRAN (R 4.0.3) |
-|rstudioapi   |0.13       |CRAN (R 4.0.3) |
-|Rttf2pt1     |1.3.10     |CRAN (R 4.0.5) |
-|rvest        |1.0.2      |CRAN (R 4.0.5) |
-|sass         |0.4.0      |CRAN (R 4.0.5) |
-|scales       |1.1.1      |CRAN (R 4.0.3) |
-|sessioninfo  |1.2.2      |CRAN (R 4.0.5) |
-|stringi      |1.7.6      |CRAN (R 4.0.5) |
-|stringr      |1.4.0      |CRAN (R 4.0.3) |
-|svglite      |2.1.0      |CRAN (R 4.0.5) |
-|systemfonts  |1.0.4      |CRAN (R 4.0.5) |
-|tensorA      |0.36.2     |CRAN (R 4.0.3) |
-|testthat     |3.1.2      |CRAN (R 4.0.5) |
-|tibble       |3.1.6      |CRAN (R 4.0.5) |
-|tidyr        |1.2.0      |CRAN (R 4.0.5) |
-|tidyselect   |1.1.2      |CRAN (R 4.0.4) |
-|tidyverse    |1.3.1      |CRAN (R 4.0.5) |
-|tzdb         |0.2.0      |CRAN (R 4.0.5) |
-|usethis      |2.1.5      |CRAN (R 4.0.5) |
-|utf8         |1.2.2      |CRAN (R 4.0.5) |
-|vctrs        |0.3.8      |CRAN (R 4.0.5) |
-|viridisLite  |0.4.0      |CRAN (R 4.0.5) |
-|webshot      |0.5.2      |CRAN (R 4.0.5) |
-|withr        |2.4.3      |CRAN (R 4.0.5) |
-|xfun         |0.29       |CRAN (R 4.0.5) |
-|xml2         |1.3.3      |CRAN (R 4.0.5) |
-|xtable       |1.8-4      |CRAN (R 4.0.3) |
-|yaml         |2.3.4      |CRAN (R 4.0.4) |
-|zip          |2.2.0      |CRAN (R 4.0.5) |
+|abind        |1.4-5      |CRAN (R 4.2.0) |
+|agridat      |NA         |NA             |
+|ape          |5.7-1      |CRAN (R 4.2.3) |
+|assertthat   |0.2.1      |CRAN (R 4.2.3) |
+|backports    |1.4.1      |CRAN (R 4.2.0) |
+|bookdown     |0.34       |CRAN (R 4.2.3) |
+|boot         |1.3-28.1   |CRAN (R 4.2.3) |
+|broom        |1.0.4      |CRAN (R 4.2.3) |
+|bslib        |0.4.2      |CRAN (R 4.2.3) |
+|cachem       |1.0.8      |CRAN (R 4.2.3) |
+|callr        |3.7.3      |CRAN (R 4.2.3) |
+|car          |3.1-2      |CRAN (R 4.2.3) |
+|carData      |3.0-5      |CRAN (R 4.2.3) |
+|cellranger   |1.1.0      |CRAN (R 4.2.3) |
+|cli          |3.6.1      |CRAN (R 4.2.3) |
+|coda         |0.19-4     |CRAN (R 4.2.3) |
+|colorspace   |2.1-0      |CRAN (R 4.2.3) |
+|corpcor      |NA         |NA             |
+|crayon       |1.5.2      |CRAN (R 4.2.3) |
+|cubature     |NA         |NA             |
+|curl         |5.0.0      |CRAN (R 4.2.3) |
+|data.table   |1.14.8     |CRAN (R 4.2.3) |
+|DBI          |1.1.3      |CRAN (R 4.2.3) |
+|dbplyr       |2.3.2      |CRAN (R 4.2.3) |
+|desc         |1.4.2      |CRAN (R 4.2.3) |
+|devtools     |2.4.5      |CRAN (R 4.2.3) |
+|digest       |0.6.31     |CRAN (R 4.2.3) |
+|dplyr        |1.1.1      |CRAN (R 4.2.3) |
+|ellipsis     |0.3.2      |CRAN (R 4.2.3) |
+|evaluate     |0.20       |CRAN (R 4.2.3) |
+|extrafont    |NA         |NA             |
+|extrafontdb  |NA         |NA             |
+|fansi        |1.0.4      |CRAN (R 4.2.3) |
+|faraway      |NA         |NA             |
+|fastmap      |1.1.1      |CRAN (R 4.2.3) |
+|forcats      |1.0.0      |CRAN (R 4.2.3) |
+|foreign      |0.8-84     |CRAN (R 4.2.3) |
+|fs           |1.6.1      |CRAN (R 4.2.3) |
+|generics     |0.1.3      |CRAN (R 4.2.3) |
+|ggplot2      |3.4.2      |CRAN (R 4.2.3) |
+|glue         |1.6.2      |CRAN (R 4.2.3) |
+|gtable       |0.3.3      |CRAN (R 4.2.3) |
+|haven        |2.5.2      |CRAN (R 4.2.3) |
+|Hmisc        |5.0-1      |CRAN (R 4.2.3) |
+|hms          |1.1.3      |CRAN (R 4.2.3) |
+|htmltools    |0.5.5      |CRAN (R 4.2.3) |
+|htmlwidgets  |1.6.2      |CRAN (R 4.2.3) |
+|httr         |1.4.5      |CRAN (R 4.2.3) |
+|investr      |NA         |NA             |
+|jpeg         |0.1-10     |CRAN (R 4.2.2) |
+|jquerylib    |0.1.4      |CRAN (R 4.2.3) |
+|jsonlite     |1.8.4      |CRAN (R 4.2.3) |
+|kableExtra   |1.3.4      |CRAN (R 4.2.3) |
+|knitr        |1.42       |CRAN (R 4.2.3) |
+|lattice      |0.20-45    |CRAN (R 4.2.3) |
+|latticeExtra |NA         |NA             |
+|lifecycle    |1.0.3      |CRAN (R 4.2.3) |
+|lme4         |1.1-32     |CRAN (R 4.2.3) |
+|lmerTest     |NA         |NA             |
+|lsr          |NA         |NA             |
+|ltm          |NA         |NA             |
+|lubridate    |1.9.2      |CRAN (R 4.2.3) |
+|magrittr     |2.0.3      |CRAN (R 4.2.3) |
+|MASS         |7.3-58.2   |CRAN (R 4.2.3) |
+|matlib       |NA         |NA             |
+|Matrix       |1.5-3      |CRAN (R 4.2.3) |
+|MCMCglmm     |NA         |NA             |
+|memoise      |2.0.1      |CRAN (R 4.2.3) |
+|mgcv         |1.8-42     |CRAN (R 4.2.3) |
+|minqa        |1.2.5      |CRAN (R 4.2.3) |
+|modelr       |0.1.11     |CRAN (R 4.2.3) |
+|munsell      |0.5.0      |CRAN (R 4.2.3) |
+|nlme         |3.1-162    |CRAN (R 4.2.3) |
+|nloptr       |2.0.3      |CRAN (R 4.2.3) |
+|nlstools     |NA         |NA             |
+|nnet         |7.3-18     |CRAN (R 4.2.3) |
+|numDeriv     |2016.8-1.1 |CRAN (R 4.2.0) |
+|openxlsx     |4.2.5.2    |CRAN (R 4.2.3) |
+|pbkrtest     |0.5.2      |CRAN (R 4.2.3) |
+|pillar       |1.9.0      |CRAN (R 4.2.3) |
+|pkgbuild     |1.4.0      |CRAN (R 4.2.3) |
+|pkgconfig    |2.0.3      |CRAN (R 4.2.3) |
+|pkgload      |1.3.2      |CRAN (R 4.2.3) |
+|png          |0.1-8      |CRAN (R 4.2.2) |
+|ppsr         |NA         |NA             |
+|prettyunits  |1.1.1      |CRAN (R 4.2.3) |
+|processx     |3.8.0      |CRAN (R 4.2.3) |
+|ps           |1.7.3      |CRAN (R 4.2.3) |
+|pscl         |NA         |NA             |
+|purrr        |1.0.1      |CRAN (R 4.2.3) |
+|R6           |2.5.1      |CRAN (R 4.2.3) |
+|RColorBrewer |1.1-3      |CRAN (R 4.2.0) |
+|Rcpp         |1.0.10     |CRAN (R 4.2.3) |
+|readr        |2.1.4      |CRAN (R 4.2.3) |
+|readxl       |1.4.2      |CRAN (R 4.2.3) |
+|remotes      |2.4.2      |CRAN (R 4.2.3) |
+|reprex       |2.0.2      |CRAN (R 4.2.3) |
+|rgl          |1.1.3      |CRAN (R 4.2.3) |
+|rio          |0.5.29     |CRAN (R 4.2.3) |
+|rlang        |1.1.0      |CRAN (R 4.2.3) |
+|RLRsim       |NA         |NA             |
+|rmarkdown    |2.21       |CRAN (R 4.2.3) |
+|rprojroot    |2.0.3      |CRAN (R 4.2.3) |
+|rstudioapi   |0.14       |CRAN (R 4.2.3) |
+|Rttf2pt1     |NA         |NA             |
+|rvest        |1.0.3      |CRAN (R 4.2.3) |
+|sass         |0.4.6      |CRAN (R 4.2.3) |
+|scales       |1.2.1      |CRAN (R 4.2.3) |
+|sessioninfo  |1.2.2      |CRAN (R 4.2.3) |
+|stringi      |1.7.12     |CRAN (R 4.2.2) |
+|stringr      |1.5.0      |CRAN (R 4.2.3) |
+|svglite      |2.1.1      |CRAN (R 4.2.3) |
+|systemfonts  |1.0.4      |CRAN (R 4.2.3) |
+|tensorA      |NA         |NA             |
+|testthat     |3.1.7      |CRAN (R 4.2.3) |
+|tibble       |3.2.1      |CRAN (R 4.2.3) |
+|tidyr        |1.3.0      |CRAN (R 4.2.3) |
+|tidyselect   |1.2.0      |CRAN (R 4.2.3) |
+|tidyverse    |2.0.0      |CRAN (R 4.2.3) |
+|tzdb         |0.3.0      |CRAN (R 4.2.3) |
+|usethis      |2.1.6      |CRAN (R 4.2.3) |
+|utf8         |1.2.3      |CRAN (R 4.2.3) |
+|vctrs        |0.6.1      |CRAN (R 4.2.3) |
+|viridisLite  |0.4.1      |CRAN (R 4.2.3) |
+|webshot      |0.5.4      |CRAN (R 4.2.3) |
+|withr        |2.5.0      |CRAN (R 4.2.3) |
+|xfun         |0.39       |CRAN (R 4.2.3) |
+|xml2         |1.3.3      |CRAN (R 4.2.3) |
+|xtable       |1.8-4      |CRAN (R 4.2.3) |
+|yaml         |2.3.7      |CRAN (R 4.2.3) |
+|zip          |2.2.2      |CRAN (R 4.2.3) |
 
 <br>
 
 
 ```
-#> - Session info ---------------------------------------------------------------
+#> ─ Session info ───────────────────────────────────────────────────────────────
 #>  setting  value
-#>  version  R version 4.0.4 (2021-02-15)
-#>  os       Windows 10 x64 (build 19043)
+#>  version  R version 4.2.3 (2023-03-15 ucrt)
+#>  os       Windows 10 x64 (build 22621)
 #>  system   x86_64, mingw32
 #>  ui       RTerm
 #>  language (EN)
-#>  collate  English_United States.1252
-#>  ctype    English_United States.1252
-#>  tz       America/Chicago
-#>  date     2022-02-21
-#>  pandoc   2.17.1.1 @ C:/Program Files/RStudio/bin/quarto/bin/ (via rmarkdown)
+#>  collate  English_United States.utf8
+#>  ctype    English_United States.utf8
+#>  tz       America/Los_Angeles
+#>  date     2023-06-17
+#>  pandoc   2.19.2 @ C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/ (via rmarkdown)
 #> 
-#> - Packages -------------------------------------------------------------------
+#> ─ Packages ───────────────────────────────────────────────────────────────────
 #>  package     * version date (UTC) lib source
-#>  assertthat    0.2.1   2019-03-21 [2] CRAN (R 4.0.3)
-#>  backports     1.4.1   2021-12-13 [1] CRAN (R 4.0.5)
-#>  bookdown      0.24    2021-09-02 [2] CRAN (R 4.0.5)
-#>  brio          1.1.3   2021-11-30 [1] CRAN (R 4.0.5)
-#>  broom         0.7.12  2022-01-28 [1] CRAN (R 4.0.5)
-#>  bslib         0.3.1   2021-10-06 [1] CRAN (R 4.0.5)
-#>  cachem        1.0.6   2021-08-19 [2] CRAN (R 4.0.5)
-#>  callr         3.7.0   2021-04-20 [2] CRAN (R 4.0.5)
-#>  cellranger    1.1.0   2016-07-27 [2] CRAN (R 4.0.3)
-#>  cli           3.2.0   2022-02-14 [1] CRAN (R 4.0.4)
-#>  codetools     0.2-18  2020-11-04 [2] CRAN (R 4.0.4)
-#>  colorspace    2.0-3   2022-02-21 [1] CRAN (R 4.0.4)
-#>  crayon        1.5.0   2022-02-14 [2] CRAN (R 4.0.5)
-#>  DBI           1.1.2   2021-12-20 [1] CRAN (R 4.0.5)
-#>  dbplyr        2.1.1   2021-04-06 [2] CRAN (R 4.0.5)
-#>  desc          1.4.0   2021-09-28 [1] CRAN (R 4.0.5)
-#>  devtools      2.4.3   2021-11-30 [1] CRAN (R 4.0.5)
-#>  digest        0.6.29  2021-12-01 [1] CRAN (R 4.0.5)
-#>  dplyr       * 1.0.8   2022-02-08 [1] CRAN (R 4.0.4)
-#>  ellipsis      0.3.2   2021-04-29 [2] CRAN (R 4.0.5)
-#>  evaluate      0.15    2022-02-18 [2] CRAN (R 4.0.4)
-#>  fansi         1.0.2   2022-01-14 [1] CRAN (R 4.0.5)
-#>  fastmap       1.1.0   2021-01-25 [2] CRAN (R 4.0.3)
-#>  forcats     * 0.5.1   2021-01-27 [2] CRAN (R 4.0.3)
-#>  fs            1.5.2   2021-12-08 [1] CRAN (R 4.0.5)
-#>  generics      0.1.2   2022-01-31 [1] CRAN (R 4.0.5)
-#>  ggplot2     * 3.3.5   2021-06-25 [2] CRAN (R 4.0.5)
-#>  glue          1.6.1   2022-01-22 [1] CRAN (R 4.0.5)
-#>  gtable        0.3.0   2019-03-25 [2] CRAN (R 4.0.3)
-#>  haven         2.4.3   2021-08-04 [2] CRAN (R 4.0.5)
-#>  highr         0.9     2021-04-16 [2] CRAN (R 4.0.5)
-#>  hms           1.1.1   2021-09-26 [1] CRAN (R 4.0.5)
-#>  htmltools     0.5.2   2021-08-25 [2] CRAN (R 4.0.5)
-#>  httr          1.4.2   2020-07-20 [2] CRAN (R 4.0.3)
-#>  jpeg        * 0.1-9   2021-07-24 [2] CRAN (R 4.0.5)
-#>  jquerylib     0.1.4   2021-04-26 [2] CRAN (R 4.0.5)
-#>  jsonlite      1.7.3   2022-01-17 [1] CRAN (R 4.0.5)
-#>  knitr         1.37    2021-12-16 [1] CRAN (R 4.0.5)
-#>  lifecycle     1.0.1   2021-09-24 [2] CRAN (R 4.0.5)
-#>  lubridate     1.8.0   2021-10-07 [1] CRAN (R 4.0.5)
-#>  magrittr      2.0.2   2022-01-26 [1] CRAN (R 4.0.5)
-#>  memoise       2.0.1   2021-11-26 [1] CRAN (R 4.0.5)
-#>  modelr        0.1.8   2020-05-19 [2] CRAN (R 4.0.3)
-#>  munsell       0.5.0   2018-06-12 [2] CRAN (R 4.0.3)
-#>  pillar        1.7.0   2022-02-01 [1] CRAN (R 4.0.5)
-#>  pkgbuild      1.3.1   2021-12-20 [1] CRAN (R 4.0.5)
-#>  pkgconfig     2.0.3   2019-09-22 [2] CRAN (R 4.0.3)
-#>  pkgload       1.2.4   2021-11-30 [1] CRAN (R 4.0.5)
-#>  prettyunits   1.1.1   2020-01-24 [2] CRAN (R 4.0.3)
-#>  processx      3.5.2   2021-04-30 [2] CRAN (R 4.0.5)
-#>  ps            1.6.0   2021-02-28 [2] CRAN (R 4.0.5)
-#>  purrr       * 0.3.4   2020-04-17 [2] CRAN (R 4.0.3)
-#>  R6            2.5.1   2021-08-19 [2] CRAN (R 4.0.5)
-#>  Rcpp          1.0.8   2022-01-13 [2] CRAN (R 4.0.5)
-#>  readr       * 2.1.2   2022-01-30 [1] CRAN (R 4.0.5)
-#>  readxl        1.3.1   2019-03-13 [2] CRAN (R 4.0.3)
-#>  remotes       2.4.2   2021-11-30 [1] CRAN (R 4.0.5)
-#>  reprex        2.0.1   2021-08-05 [2] CRAN (R 4.0.5)
-#>  rlang         1.0.1   2022-02-03 [1] CRAN (R 4.0.5)
-#>  rmarkdown     2.11    2021-09-14 [2] CRAN (R 4.0.5)
-#>  rprojroot     2.0.2   2020-11-15 [2] CRAN (R 4.0.3)
-#>  rstudioapi    0.13    2020-11-12 [2] CRAN (R 4.0.3)
-#>  rvest         1.0.2   2021-10-16 [1] CRAN (R 4.0.5)
-#>  sass          0.4.0   2021-05-12 [2] CRAN (R 4.0.5)
-#>  scales      * 1.1.1   2020-05-11 [2] CRAN (R 4.0.3)
-#>  sessioninfo   1.2.2   2021-12-06 [1] CRAN (R 4.0.5)
-#>  stringi       1.7.6   2021-11-29 [1] CRAN (R 4.0.5)
-#>  stringr     * 1.4.0   2019-02-10 [2] CRAN (R 4.0.3)
-#>  testthat      3.1.2   2022-01-20 [1] CRAN (R 4.0.5)
-#>  tibble      * 3.1.6   2021-11-07 [1] CRAN (R 4.0.5)
-#>  tidyr       * 1.2.0   2022-02-01 [1] CRAN (R 4.0.5)
-#>  tidyselect    1.1.2   2022-02-21 [1] CRAN (R 4.0.4)
-#>  tidyverse   * 1.3.1   2021-04-15 [2] CRAN (R 4.0.5)
-#>  tzdb          0.2.0   2021-10-27 [1] CRAN (R 4.0.5)
-#>  usethis       2.1.5   2021-12-09 [1] CRAN (R 4.0.5)
-#>  utf8          1.2.2   2021-07-24 [2] CRAN (R 4.0.5)
-#>  vctrs         0.3.8   2021-04-29 [2] CRAN (R 4.0.5)
-#>  withr         2.4.3   2021-11-30 [1] CRAN (R 4.0.5)
-#>  xfun          0.29    2021-12-14 [1] CRAN (R 4.0.5)
-#>  xml2          1.3.3   2021-11-30 [1] CRAN (R 4.0.5)
-#>  yaml          2.3.4   2022-02-17 [1] CRAN (R 4.0.4)
+#>  bookdown      0.34    2023-05-09 [1] CRAN (R 4.2.3)
+#>  bslib         0.4.2   2022-12-16 [1] CRAN (R 4.2.3)
+#>  cachem        1.0.8   2023-05-01 [1] CRAN (R 4.2.3)
+#>  callr         3.7.3   2022-11-02 [1] CRAN (R 4.2.3)
+#>  cli           3.6.1   2023-03-23 [1] CRAN (R 4.2.3)
+#>  codetools     0.2-19  2023-02-01 [1] CRAN (R 4.2.3)
+#>  colorspace    2.1-0   2023-01-23 [1] CRAN (R 4.2.3)
+#>  crayon        1.5.2   2022-09-29 [1] CRAN (R 4.2.3)
+#>  desc          1.4.2   2022-09-08 [1] CRAN (R 4.2.3)
+#>  devtools      2.4.5   2022-10-11 [1] CRAN (R 4.2.3)
+#>  digest        0.6.31  2022-12-11 [1] CRAN (R 4.2.3)
+#>  dplyr       * 1.1.1   2023-03-22 [1] CRAN (R 4.2.3)
+#>  ellipsis      0.3.2   2021-04-29 [1] CRAN (R 4.2.3)
+#>  evaluate      0.20    2023-01-17 [1] CRAN (R 4.2.3)
+#>  fansi         1.0.4   2023-01-22 [1] CRAN (R 4.2.3)
+#>  fastmap       1.1.1   2023-02-24 [1] CRAN (R 4.2.3)
+#>  forcats     * 1.0.0   2023-01-29 [1] CRAN (R 4.2.3)
+#>  fs            1.6.1   2023-02-06 [1] CRAN (R 4.2.3)
+#>  generics      0.1.3   2022-07-05 [1] CRAN (R 4.2.3)
+#>  ggplot2     * 3.4.2   2023-04-03 [1] CRAN (R 4.2.3)
+#>  glue          1.6.2   2022-02-24 [1] CRAN (R 4.2.3)
+#>  gtable        0.3.3   2023-03-21 [1] CRAN (R 4.2.3)
+#>  highr         0.10    2022-12-22 [1] CRAN (R 4.2.3)
+#>  hms           1.1.3   2023-03-21 [1] CRAN (R 4.2.3)
+#>  htmltools     0.5.5   2023-03-23 [1] CRAN (R 4.2.3)
+#>  htmlwidgets   1.6.2   2023-03-17 [1] CRAN (R 4.2.3)
+#>  httpuv        1.6.9   2023-02-14 [1] CRAN (R 4.2.3)
+#>  jpeg        * 0.1-10  2022-11-29 [1] CRAN (R 4.2.2)
+#>  jquerylib     0.1.4   2021-04-26 [1] CRAN (R 4.2.3)
+#>  jsonlite      1.8.4   2022-12-06 [1] CRAN (R 4.2.3)
+#>  knitr         1.42    2023-01-25 [1] CRAN (R 4.2.3)
+#>  later         1.3.0   2021-08-18 [1] CRAN (R 4.2.3)
+#>  lifecycle     1.0.3   2022-10-07 [1] CRAN (R 4.2.3)
+#>  lubridate   * 1.9.2   2023-02-10 [1] CRAN (R 4.2.3)
+#>  magrittr      2.0.3   2022-03-30 [1] CRAN (R 4.2.3)
+#>  memoise       2.0.1   2021-11-26 [1] CRAN (R 4.2.3)
+#>  mime          0.12    2021-09-28 [1] CRAN (R 4.2.0)
+#>  miniUI        0.1.1.1 2018-05-18 [1] CRAN (R 4.2.3)
+#>  munsell       0.5.0   2018-06-12 [1] CRAN (R 4.2.3)
+#>  pillar        1.9.0   2023-03-22 [1] CRAN (R 4.2.3)
+#>  pkgbuild      1.4.0   2022-11-27 [1] CRAN (R 4.2.3)
+#>  pkgconfig     2.0.3   2019-09-22 [1] CRAN (R 4.2.3)
+#>  pkgload       1.3.2   2022-11-16 [1] CRAN (R 4.2.3)
+#>  prettyunits   1.1.1   2020-01-24 [1] CRAN (R 4.2.3)
+#>  processx      3.8.0   2022-10-26 [1] CRAN (R 4.2.3)
+#>  profvis       0.3.7   2020-11-02 [1] CRAN (R 4.2.3)
+#>  promises      1.2.0.1 2021-02-11 [1] CRAN (R 4.2.3)
+#>  ps            1.7.3   2023-03-21 [1] CRAN (R 4.2.3)
+#>  purrr       * 1.0.1   2023-01-10 [1] CRAN (R 4.2.3)
+#>  R6            2.5.1   2021-08-19 [1] CRAN (R 4.2.3)
+#>  Rcpp          1.0.10  2023-01-22 [1] CRAN (R 4.2.3)
+#>  readr       * 2.1.4   2023-02-10 [1] CRAN (R 4.2.3)
+#>  remotes       2.4.2   2021-11-30 [1] CRAN (R 4.2.3)
+#>  rlang         1.1.0   2023-03-14 [1] CRAN (R 4.2.3)
+#>  rmarkdown     2.21    2023-03-26 [1] CRAN (R 4.2.3)
+#>  rprojroot     2.0.3   2022-04-02 [1] CRAN (R 4.2.3)
+#>  rstudioapi    0.14    2022-08-22 [1] CRAN (R 4.2.3)
+#>  sass          0.4.6   2023-05-03 [1] CRAN (R 4.2.3)
+#>  scales      * 1.2.1   2022-08-20 [1] CRAN (R 4.2.3)
+#>  sessioninfo   1.2.2   2021-12-06 [1] CRAN (R 4.2.3)
+#>  shiny         1.7.4   2022-12-15 [1] CRAN (R 4.2.3)
+#>  stringi       1.7.12  2023-01-11 [1] CRAN (R 4.2.2)
+#>  stringr     * 1.5.0   2022-12-02 [1] CRAN (R 4.2.3)
+#>  tibble      * 3.2.1   2023-03-20 [1] CRAN (R 4.2.3)
+#>  tidyr       * 1.3.0   2023-01-24 [1] CRAN (R 4.2.3)
+#>  tidyselect    1.2.0   2022-10-10 [1] CRAN (R 4.2.3)
+#>  tidyverse   * 2.0.0   2023-02-22 [1] CRAN (R 4.2.3)
+#>  timechange    0.2.0   2023-01-11 [1] CRAN (R 4.2.3)
+#>  tzdb          0.3.0   2022-03-28 [1] CRAN (R 4.2.3)
+#>  urlchecker    1.0.1   2021-11-30 [1] CRAN (R 4.2.3)
+#>  usethis       2.1.6   2022-05-25 [1] CRAN (R 4.2.3)
+#>  utf8          1.2.3   2023-01-31 [1] CRAN (R 4.2.3)
+#>  vctrs         0.6.1   2023-03-22 [1] CRAN (R 4.2.3)
+#>  withr         2.5.0   2022-03-03 [1] CRAN (R 4.2.3)
+#>  xfun          0.39    2023-04-20 [1] CRAN (R 4.2.3)
+#>  xtable        1.8-4   2019-04-21 [1] CRAN (R 4.2.3)
+#>  yaml          2.3.7   2023-01-23 [1] CRAN (R 4.2.3)
 #> 
-#>  [1] C:/Users/tn9k4/OneDrive - University of Missouri/Documents/R/win-library/4.0
-#>  [2] C:/Program Files/R/R-4.0.4/library
+#>  [1] C:/Program Files/R/R-4.2.3/library
 #> 
-#> ------------------------------------------------------------------------------
+#> ──────────────────────────────────────────────────────────────────────────────
 ```

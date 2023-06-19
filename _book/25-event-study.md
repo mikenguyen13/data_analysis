@@ -129,14 +129,16 @@ Events can be
 
 **Steps**:
 
-1.  Event Identification: (e.g., dividends, M&A, stock buyback, laws or regulation, privatization vs. nationalization, celebrity endorsements, name changes, or brand extensions etc.). Events must affect either cash flows or on the discount rate of firms [@sorescu2017, p. 191]
+1.  Event Identification: (e.g., dividends, M&A, stock buyback, laws or regulation, privatization vs. nationalization, celebrity endorsements, name changes, or brand extensions etc. To see the list of events in US and international, see WRDS **S&P Capital IQ Key Developments**). Events must affect either cash flows or on the discount rate of firms [@sorescu2017, p. 191]
     1.  Estimation window: Normal return expected return ($T_0 \to T_1$) (sometimes include days before to capture leakages).
 
         -   Recommendation by [@moorman2004assessing, p. 13] is to use 250 days before the event (and 45-day between the estimation window and the event window).
 
-            -   [@wiles2012] used estimation window ending 6 days before the event.
+            -   [@wiles2012] used an 90-trading-day estimation window ending 6 days before the event (this is consistent with the finance literature).
 
             -   [@gielens2008] 260 to 10 days before or 300 to 46 days before
+
+            -   [@tirunillai2012does] estimation window of 255 days and ends 46 days before the event.
 
         -   Similarly, [@mcwilliams1997a] and [@fornell2006a] 255 days ending 46 days before the event date
 
@@ -434,7 +436,11 @@ where
 
 -   Sign Test (assumes symmetry in returns)
 
--   Rank Test (allows for non-symmetry in returns)
+    -   `binom.test()`
+
+-   Wilcoxon Signed-Rank Test (allows for non-symmetry in returns)
+
+    -   Use `wilcox.test(sample)`
 
 ## Sample
 
@@ -474,7 +480,7 @@ According to [@fornell2006a], need to control:
 
 -   The difference between a sample with full observations and a sample without confounded events is negligible (non-significant).
 
--   Conclusion: excluding confounded observations may be unnecessary for short-term event studies.
+-   Conclusion: **excluding confounded observations may be unnecessary for short-term event studies.**
 
     -   Biases can stem from researchers pick and choose events to exclude
 
@@ -765,6 +771,12 @@ Notes:
 
 #### Fama-French Model
 
+Please note that there is a difference between between just taking the return versus taking the excess return as the dependent variable.
+
+The correct way is to use the excess return for firm and for market [@fama2010luck, p. 1917].
+
+-   $\alpha_i$ "is the average return left unexplained by the benchmark model" (i.e., abnormal return)
+
 ##### FF3
 
 [@fama1993]
@@ -799,9 +811,11 @@ where
 
 -   $UMD_t$ is the momentum factor (difference between high and low prior return stock portfolios) in day $t$.
 
+<br>
+
 ### Economic Model
 
-The only difference difference between CAPM and APT is that APT has multiple factors (including factors beyond the focal company)
+The only difference between CAPM and APT is that APT has multiple factors (including factors beyond the focal company)
 
 Economic models put limits on a statistical model that come from assumed behavior that is derived from theory.
 
@@ -971,68 +985,11 @@ library(eventstudies)
 # firm and date data
 data("SplitDates")
 head(SplitDates)
-#>            name       when
-#> 1          BHEL 2011-10-03
-#> 2 Bharti.Airtel 2009-07-24
-#> 3         Cipla 2004-05-11
-#> 4    Coal.India 2010-02-16
-#> 5      Dr.Reddy 2001-10-10
-#> 6     HDFC.Bank 2011-07-14
 
 # stock price data 
 data("StockPriceReturns")
 head(StockPriceReturns)
-#>            Bajaj.Auto        BHEL Bharti.Airtel      Cipla Coal.India
-#> 2010-07-01  0.5277396 -1.23694369    0.51151007 -0.7578608         NA
-#> 2010-07-02 -1.7309383 -1.66993809    0.09443763  0.4910359         NA
-#> 2010-07-05 -0.2530097 -1.28213632    0.80850304  0.1335015         NA
-#> 2010-07-06 -0.3167551  0.43342739    1.54235149  0.4437221         NA
-#> 2010-07-07 -1.2771502  0.04851144    1.84530677 -1.1577983         NA
-#> 2010-07-08 -0.2827092  0.57821252    1.66954780  1.2168128         NA
-#>              Dr.Reddy        GAIL   HDFC.Bank Hero.Motocorp Hindalco.Industries
-#> 2010-07-01 -0.8436534 -0.04282197 -0.39248572   -1.18437633          -1.0434877
-#> 2010-07-02 -0.3687345 -1.23903972  0.30627094   -0.11129386           0.7662873
-#> 2010-07-05  1.7035363  0.84206478 -0.00261373    0.05442581          -1.7501322
-#> 2010-07-06  0.5603213  0.03224593  2.38386310   -0.47599068           1.5069498
-#> 2010-07-07 -0.8760279 -1.65794555 -1.15513259   -0.54071022          -1.2600797
-#> 2010-07-08  0.3773589  2.60987530  0.33507777   -0.06748229           2.0568966
-#>            Hindustan.Unilever        HDFC      ICICI         ITC    Infosys
-#> 2010-07-01         2.00303433 -0.87769291 -2.4188100 -0.61218636 -0.7577362
-#> 2010-07-02        -1.14498019  0.01543461 -0.1546239 -0.08587377 -1.4009144
-#> 2010-07-05        -1.13945382  0.80273702  0.1070728 -0.23156582  0.5116970
-#> 2010-07-06         0.43115635  0.17166511  2.0944406  0.27120903  1.5734116
-#> 2010-07-07        -0.05613247 -1.29386927 -1.4839417 -0.25133951 -0.1975753
-#> 2010-07-08        -0.50661521  0.99453913  1.8732621  0.35037883  1.5963241
-#>            Jindal.Steel Larsen.and.Toubro Mahindra.and.Mahindra Maruti.Suzuki
-#> 2010-07-01  -1.67202312        -0.6978939            -1.5229334    -1.7145301
-#> 2010-07-02   0.27655785        -0.3129893            -2.2166575     0.6375233
-#> 2010-07-05   0.04872503         0.1174858             1.3194980    -0.9488549
-#> 2010-07-06   2.13662747         0.5408885             2.6357739    -0.2188695
-#> 2010-07-07  -0.77386800        -0.6583743            -0.8574801    -0.6631133
-#> 2010-07-08  -0.43342230         1.7974521             0.2491863     1.4965558
-#>                  NTPC       ONGC Reliance.Industries        SBI
-#> 2010-07-01  0.4009026 -1.4217526          -0.9939750 -1.7660793
-#> 2010-07-02  1.1437221  0.2516497          -0.7180857  0.1524172
-#> 2010-07-05 -1.1187189 -1.4634859          -0.0608543  0.3239422
-#> 2010-07-06  0.5982072  0.3694337           0.4485150  1.7620833
-#> 2010-07-07 -0.2737342 -1.8925444          -1.8489859 -0.3920342
-#> 2010-07-08 -0.5747860  1.4577746           0.3365809  2.2658510
-#>            Sterlite.Industries Sun.Pharmaceutical        TCS Tata.Motors
-#> 2010-07-01          -3.2309122        -1.64167399 -2.6713224  -1.9983796
-#> 2010-07-02          -2.3378487        -0.01709499  1.6476625   0.5294303
-#> 2010-07-05          -0.2181026        -0.70629234 -0.5259266  -0.2610968
-#> 2010-07-06           1.5475394         2.97136932  2.4244016   0.3848793
-#> 2010-07-07          -2.1419413        -1.54110476  0.7690576  -2.2452140
-#> 2010-07-08           3.4842433        -0.76957315  1.6881325   0.6835024
-#>             Tata.Power  Tata.Steel      Wipro
-#> 2010-07-01  0.02297530 -2.22809842 -2.5401116
-#> 2010-07-02  0.02297002 -0.02105928  2.9033238
-#> 2010-07-05 -0.15323325 -0.69745607  0.8894677
-#> 2010-07-06  0.48952216  1.75544530  1.5914780
-#> 2010-07-07 -0.67371255 -1.04745904 -0.4811354
-#> 2010-07-08  0.33742363  1.93958114  0.6325932
 class(StockPriceReturns)
-#> [1] "zoo"
 
 es <-
     eventstudy(
@@ -1049,8 +1006,6 @@ es <-
 plot(es)
 ```
 
-<img src="25-event-study_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
-
 <br>
 
 ### EventStudy
@@ -1060,8 +1015,6 @@ You have to pay for the API key. (It's \$10/month).
 
 ```r
 library(EventStudy)
-"d0cd07d0563ecb8bf4089208a7fc1435"
-#> [1] "d0cd07d0563ecb8bf4089208a7fc1435"
 ```
 
 [Example](https://cran.rstudio.com/web/packages/EventStudy/vignettes/get_started.html) by the authors of the package
@@ -1099,31 +1052,6 @@ addEMA() #Adding an Exponential Moving Average
 <img src="25-event-study_files/figure-html/unnamed-chunk-7-3.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
-quandl_api_key("LDqWhYXzVd2omw4zipN2") # or YG9fhcSZh3bFoGwCqp8U
-tiingo_api_key('0ae9bc5c495308cb1da83e8597f4a6af0665ec89')
-av_api_key("9I150NGWIYZ8OW9X")
-
-
-# Firm Data
-firmSymbols <- c("VOW.DE", "PAH3.DE", "BMW.DE")
-# firmNames <- c("VW preferred", "Audi", "Porsche Automobil Hld", "BMW", "Daimler")
-
-firmData <- firmSymbols %>%
-    tidyquant::tq_get(get = "stock.prices",from = "2014-05-01", to = "2015-12-31") %>%
-    dplyr::mutate(date = format(date, "%d.%m.%Y"))
-
-head(firmData)
-#> # A tibble: 6 x 8
-#>   symbol date        open  high   low close volume adjusted
-#>   <chr>  <chr>      <dbl> <dbl> <dbl> <dbl>  <dbl>    <dbl>
-#> 1 VOW.DE 02.05.2014  194.  194.  188   189.  67018     154.
-#> 2 VOW.DE 05.05.2014  188.  189.  185.  189.  69295     154.
-#> 3 VOW.DE 06.05.2014  189.  190.  185.  186   49051     152.
-#> 4 VOW.DE 07.05.2014  186.  187   185.  185.  52484     151.
-#> 5 VOW.DE 08.05.2014  185.  189   185.  189.  51892     154.
-#> 6 VOW.DE 09.05.2014  189.  190.  188.  188.  40368     154.
-```
 
 Reference market in Germany is DAX
 
@@ -1137,15 +1065,6 @@ indexData <- tq_get("^GDAXI", from = "2014-05-01", to = "2015-12-31") %>%
     mutate(symbol = "DAX")
 
 head(indexData)
-#> # A tibble: 6 x 8
-#>   symbol date        open  high   low close    volume adjusted
-#>   <chr>  <chr>      <dbl> <dbl> <dbl> <dbl>     <dbl>    <dbl>
-#> 1 DAX    02.05.2014 9612. 9627. 9533. 9556.  88062300    9556.
-#> 2 DAX    05.05.2014 9536. 9548. 9407. 9530.  61911600    9530.
-#> 3 DAX    06.05.2014 9570. 9572. 9440. 9468.  82062900    9468.
-#> 4 DAX    07.05.2014 9418. 9554. 9410. 9521.  92732600    9521.
-#> 5 DAX    08.05.2014 9547. 9622. 9488. 9607. 102022500    9607.
-#> 6 DAX    09.05.2014 9591. 9603. 9558. 9581.  80084100    9581.
 ```
 
 Create files
@@ -1155,46 +1074,6 @@ Create files
 -   `03_MarketData.csv`
 
 
-```r
-# Price files for firms and market
-firmData %>%
-    dplyr::select(symbol, date, adjusted) %>%
-    rio::export(file = file.path(getwd(), "data", "EventStudy", "02_firmDataPrice.csv"), col.names = F)
-
-indexData %>%
-    dplyr::select(symbol, date, adjusted) %>%
-    rio::export(file = file.path(getwd(), "data", "EventStudy", "03_marketDataPrice.csv"), col.names = F)
-
-# Volume files for firms and market
-firmData %>%
-    dplyr::select(symbol, date, volume) %>%
-    rio::export(file = file.path(getwd(), "data", "EventStudy", "02_firmDataVolume.csv"), col.names = F)
-
-indexData %>%
-    dplyr::select(symbol, date, volume) %>%
-    rio::export(file = file.path(getwd(), "data", "EventStudy", "03_marketDataVolume.csv"), col.names = F)
-
-# Request Files
-group <- c(rep("VW Group", 2), rep("Other", 1))
-
-request <- data.frame(
-    1:length(firmSymbols),
-    firmSymbols,
-    index = "DAX",
-    # event date 
-    event_date = "18.09.2015", # might be different for different firms
-    group,
-    # event window -10 to 10 
-    beginning_window = -10,
-    end_window = 10,
-    end_est_window = -11,
-    # estimation window 
-    est_window = 250 # 250 days
-) 
-
-request %>% 
-    rio::export(file = file.path(getwd(), "data", "EventStudy", "01_requestFile.csv"), col.names = F)
-```
 
 Calculating abnormal returns
 

@@ -540,8 +540,8 @@ benchmark(
     order = "relative"
 )
 #>   test replications elapsed relative
-#> 1 MASS           50    2.57    1.000
-#> 2 lme4           50    5.09    1.981
+#> 1 MASS           50    3.43     1.00
+#> 2 lme4           50    6.21     1.81
 ```
 
 In numerical integration, we can set `nAGQ > 1` to switch the method of likelihood evaluation, which might increase accuracy
@@ -586,25 +586,25 @@ summary(Bayes_cbpp)
 #>  Thinning interval  = 10
 #>  Sample size  = 1000 
 #> 
-#>  DIC: 537.9794 
+#>  DIC: 537.5268 
 #> 
 #>  G-structure:  ~herd
 #> 
 #>      post.mean  l-95% CI u-95% CI eff.samp
-#> herd   0.03526 1.068e-16   0.2099    192.2
+#> herd  0.006121 1.636e-16  0.02088      271
 #> 
 #>  R-structure:  ~units
 #> 
 #>       post.mean l-95% CI u-95% CI eff.samp
-#> units     1.113   0.2594    2.122    209.6
+#> units     1.138   0.3625    2.143    349.5
 #> 
 #>  Location effects: cbind(incidence, size - incidence) ~ period 
 #> 
 #>             post.mean l-95% CI u-95% CI eff.samp  pMCMC    
-#> (Intercept)   -1.5189  -2.1523  -0.8272    880.4 <0.001 ***
-#> period2       -1.2898  -2.4312  -0.2285    770.2  0.014 *  
-#> period3       -1.4063  -2.5974  -0.4802    628.4  0.006 ** 
-#> period4       -1.9630  -3.1921  -0.6832    583.4  0.002 ** 
+#> (Intercept)   -1.5384  -2.1512  -0.8681    874.0 <0.001 ***
+#> period2       -1.2650  -2.3351  -0.2939    749.6  0.012 *  
+#> period3       -1.4028  -2.3657  -0.1453    801.9  0.006 ** 
+#> period4       -1.9719  -3.1809  -0.6963    556.8  0.002 ** 
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -614,18 +614,18 @@ summary(Bayes_cbpp)
 
 ```r
 apply(Bayes_cbpp$VCV,2,sd) #explains less variability
-#>      herd     units 
-#> 0.1576462 0.5243751
+#>       herd      units 
+#> 0.03983352 0.52169359
 ```
 
 
 ```r
 summary(Bayes_cbpp)$solutions
 #>             post.mean  l-95% CI   u-95% CI eff.samp pMCMC
-#> (Intercept) -1.518895 -2.152272 -0.8271685 880.4320 0.001
-#> period2     -1.289808 -2.431185 -0.2284881 770.1745 0.014
-#> period3     -1.406257 -2.597370 -0.4801848 628.3784 0.006
-#> period4     -1.962962 -3.192143 -0.6831862 583.4109 0.002
+#> (Intercept) -1.538390 -2.151216 -0.8681065 874.0309 0.001
+#> period2     -1.265045 -2.335091 -0.2939023 749.6249 0.012
+#> period3     -1.402763 -2.365737 -0.1453223 801.8498 0.006
+#> period4     -1.971879 -3.180906 -0.6962504 556.7658 0.002
 ```
 
 interpret Bayesian "credible intervals" similarly to confidence intervals
@@ -1040,8 +1040,8 @@ summary(tmp)
 #> 
 #> Fixed effects:  b0 + b1 + b2 + b3 ~ 1 
 #>       Value  Std.Error   DF  t-value p-value
-#> b0 0.249386 0.12894686 6297   1.9340  0.0532
-#> b1 2.288832 0.01266805 6297 180.6776  0.0000
+#> b0 0.249386 0.12894687 6297   1.9340  0.0532
+#> b1 2.288832 0.01266804 6297 180.6776  0.0000
 #> b2 2.500497 0.05606685 6297  44.5985  0.0000
 #> b3 6.848871 0.02140677 6297 319.9395  0.0000
 #>  Correlation: 
@@ -1052,7 +1052,7 @@ summary(tmp)
 #> 
 #> Standardized Within-Group Residuals:
 #>           Min            Q1           Med            Q3           Max 
-#> -6.694575e+00 -3.081861e-01 -8.910696e-05  3.469469e-01  7.855665e+00 
+#> -6.694575e+00 -3.081861e-01 -8.904304e-05  3.469469e-01  7.855665e+00 
 #> 
 #> Number of Observations: 6636
 #> Number of Groups: 336
@@ -1061,20 +1061,20 @@ nlme::intervals(tmp)
 #> 
 #>  Fixed effects:
 #>           lower      est.     upper
-#> b0 -0.003318095 0.2493855 0.5020891
-#> b1  2.264006138 2.2888323 2.3136585
-#> b2  2.390619987 2.5004970 2.6103740
-#> b3  6.806919317 6.8488712 6.8908232
+#> b0 -0.003318061 0.2493855 0.5020892
+#> b1  2.264006036 2.2888322 2.3136584
+#> b2  2.390620340 2.5004973 2.6103743
+#> b3  6.806919342 6.8488713 6.8908232
 #> 
 #>  Random Effects:
 #>   Level: tn 
 #>            lower      est.     upper
-#> sd(u1) 0.1376080 0.1508094 0.1652772
-#> sd(u2) 0.4056135 0.4478290 0.4944382
+#> sd(u1) 0.1376084 0.1508094 0.1652768
+#> sd(u2) 0.4056209 0.4478290 0.4944291
 #> 
 #>  Within-group standard error:
 #>    lower     est.    upper 
-#> 2.187260 2.226361 2.266161
+#> 2.187258 2.226361 2.266162
 ```
 
 -   Little different from the book because of different implementation of nonlinear mixed models.
