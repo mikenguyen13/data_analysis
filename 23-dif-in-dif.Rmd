@@ -4,24 +4,24 @@
 
 Examples in marketing
 
--   [@liaukonyte2015]: TV ad on online shopping
--   [@akca2020]: aggregators for airlines business effect
--   [@pattabhiramaiah2018]: paywall affects readership
--   [@wang2018]: political ad source and message tone on vote shares and turnout using discontinuities in the level of political ads at the borders
--   [@datta2018]: streaming service on total music consumption using timing of users adoption of a music streaming service
--   [@janakiraman2018]: data breach announcement affect customer spending using timing of data breach and variation whether customer info was breached in that event
--   [@lim2020]: nutritional labels on nutritional quality for other brands in a category using variation in timing of adoption of nutritional labels across categories
--   [@guo2020]: payment disclosure laws effect on physician prescription behavior using Timing of the Massachusetts open payment law as the exogenous shock
--   [@israeli2018]: digital monitoring and enforcement on violations using enforcement of min ad price policies
--   [@ramani2019]: firms respond to foreign direct investment liberalization using India's reform in 1991.
--   [@he2022]: using Amazon policy change to examine the causal impact of fake reviews on sales, average ratings.
--   [@peukert2022]: using European General data protection Regulation, examine the impact of policy change on website usage.
+-   [@liaukonyte2015television]: TV ad on online shopping
+-   [@akca2020value]: aggregators for airlines business effect
+-   [@pattabhiramaiah2019paywalls]: paywall affects readership
+-   [@wang2018border]: political ad source and message tone on vote shares and turnout using discontinuities in the level of political ads at the borders
+-   [@datta2018changing]: streaming service on total music consumption using timing of users adoption of a music streaming service
+-   [@janakiraman2018effect]: data breach announcement affect customer spending using timing of data breach and variation whether customer info was breached in that event
+-   [@lim2020competitive]: nutritional labels on nutritional quality for other brands in a category using variation in timing of adoption of nutritional labels across categories
+-   [@guo2020let]: payment disclosure laws effect on physician prescription behavior using Timing of the Massachusetts open payment law as the exogenous shock
+-   [@israeli2018online]: digital monitoring and enforcement on violations using enforcement of min ad price policies
+-   [@ramani2019effects]: firms respond to foreign direct investment liberalization using India's reform in 1991.
+-   [@he2022market]: using Amazon policy change to examine the causal impact of fake reviews on sales, average ratings.
+-   [@peukert2022regulatory]: using European General data protection Regulation, examine the impact of policy change on website usage.
 
 Show the mechanism via
 
--   Mediation analysis: see [@habel2021]
+-   Mediation analysis: see [@habel2021variable]
 
--   Moderation analysis: see [@goldfarb2011]
+-   Moderation analysis: see [@goldfarb2011online]
 
 ## Simple Dif-n-dif
 
@@ -168,7 +168,7 @@ Notes:
 
     -   Match treatment and control based on pre-treatment observables
 
-    -   Modify SEs appropriately [@heckman1997]. It's might be easier to just use the [Doubly Robust DiD] [@sant2020doubly] where you just need either matching or regression to work in order to identify your treatment effect
+    -   Modify SEs appropriately [@heckman1997matching]. It's might be easier to just use the [Doubly Robust DiD] [@sant2020doubly] where you just need either matching or regression to work in order to identify your treatment effect
 
     -   Whereas the group fixed effects control for the group time-invariant effects, it does not control for selection bias (i.e., certain groups are more likely to be treated than others). Hence, with these backdoor open (i.e., selection bias) between (1) propensity to be treated and (2) dynamics evolution of the outcome post-treatment, matching can potential close these backdoor.
 
@@ -196,29 +196,16 @@ Notes:
 
 ```{r}
 library(foreign)
-mydata = read.dta("http://dss.princeton.edu/training/Panel101.dta")
-
-```
-
-create a dummy variable to indicate the time when the treatment started
-
-```{r}
-mydata$time = ifelse(mydata$year >= 1994, 1, 0)
-```
-
-create a dummy variable to identify the treatment group
-
-```{r}
-mydata$treated = ifelse(mydata$country == "E" |
-                            mydata$country == "F" | mydata$country == "G" ,
+mydata = read.dta("http://dss.princeton.edu/training/Panel101.dta") %>% 
+    # create a dummy variable to indicate the time when the treatment started
+    mutate(time = ifelse(year >= 1994, 1, 0)) %>% 
+    # create a dummy variable to identify the treatment group
+    mutate(treated = ifelse(country == "E" |
+                            country == "F" | country == "G" ,
                         1,
-                        0)
-```
-
-create an interaction between time and treated
-
-```{r}
-mydata$did = mydata$time * mydata$treated
+                        0)) %>% 
+    # create an interaction between time and treated
+    mutate(did = time * treated)
 ```
 
 estimate the DID estimator
@@ -232,7 +219,7 @@ The `did` coefficient is the differences-in-differences estimator. Treat has a n
 
 <br>
 
-#### Example by @card1993
+#### Example by @card1993minimum
 
 found that increase in minimum wage increases employment
 
@@ -300,7 +287,7 @@ Notes:
 
 <br>
 
-#### Example by @butcher2014
+#### Example by @butcher2014effects
 
 Theory:
 
@@ -342,19 +329,13 @@ where
 
 -   $Y_{idt}$ = grade average
 
-+--------------+-----------------------------------+----------+----------+-------------+
-|              | Intercept                         | Treat    | Post     | Treat\*Post |
-+==============+===================================+==========+==========+=============+
-| Treat Pre    | 1                                 | 1        | 0        | 0           |
-+--------------+-----------------------------------+----------+----------+-------------+
-| Treat Post   | 1                                 | 1        | 1        | 1           |
-+--------------+-----------------------------------+----------+----------+-------------+
-| Control Pre  | 1                                 | 0        | 0        | 0           |
-+--------------+-----------------------------------+----------+----------+-------------+
-| Control Post | 1                                 | 0        | 1        | 0           |
-+--------------+-----------------------------------+----------+----------+-------------+
-|              | Average for pre-control $\beta_0$ |          |          |             |
-+--------------+-----------------------------------+----------+----------+-------------+
+|              | Intercept                         | Treat | Post | Treat\*Post |
+|--------------|-----------------------------------|-------|------|-------------|
+| Treat Pre    | 1                                 | 1     | 0    | 0           |
+| Treat Post   | 1                                 | 1     | 1    | 1           |
+| Control Pre  | 1                                 | 0     | 0    | 0           |
+| Control Post | 1                                 | 0     | 1    | 0           |
+|              | Average for pre-control $\beta_0$ |       |      |             |
 
 A more general specification of the dif-n-dif is that
 
@@ -378,7 +359,7 @@ Also known as the locally efficient doubly robust DiD [@sant2020doubly]
 
 The package (not method) is rather limited application:
 
--   Use OLS (cannot handle glm)
+-   Use OLS (cannot handle `glm`)
 
 -   Canonical DiD only (cannot handle DDD).
 
@@ -419,13 +400,13 @@ summary(out)
 
 ## Two-way Fixed-effects
 
-A generalization of the dif-n-dif model is the two-way fixed-effects models where you have multiple groups and time effects. But this is not a designed-based, non-parametric causal estimator [@imai2020]
+A generalization of the dif-n-dif model is the two-way fixed-effects models where you have multiple groups and time effects. But this is not a designed-based, non-parametric causal estimator [@imai2021use]
 
 When applying TWFE to multiple groups and multiple periods, the supposedly causal coefficient is the weighted average of all two-group/two-period DiD estimators in the data where some of the weights can be negative. More specifically, the weights are proportional to group sizes and treatment indicator's variation in each pair, where units in the middle of the panel have the highest weight.
 
 The canonical/standard TWFE only works when
 
--   Effects are homogeneous across units and across time periods (i.e., no dynamic changes in the effects of treatment). See [@goodman-bacon2021; @dechaisemartin2020; @sun2021; @borusyak2021] for details.
+-   Effects are homogeneous across units and across time periods (i.e., no dynamic changes in the effects of treatment). See [@goodman2021difference; @de2020two; @sun2021estimating; @borusyak2021revisiting] for details.
 
     -   Have to argue why treatment heterogeneity is not a problem (e.g., plot treatment timing and decompose treatment coefficient using [Goodman-Bacon Decomposition]) know the percentage of observation are never treated (because as the never-treated group increases, the bias of TWFE decreases, with 80% sample to be never-treated, bias is negligible). The problem is worsen when you have long-run effects.
 
@@ -473,13 +454,13 @@ Under the following assumption, $\hat{\tau}_{OLS}$ is unbiased:
 
 1.  homogeneous treatment effect
 2.  parallel trends assumptions
-3.  linear additive effects [@imai2020]
+3.  linear additive effects [@imai2021use]
 
 Remedies for TWFE's shortcomings
 
--   [@goodman-bacon2021]: diagnostic robustness tests of the TWFE DiD and identify influential observations to the DiD estimate ([Goodman-Bacon Decomposition])
+-   [@goodman2021difference]: diagnostic robustness tests of the TWFE DiD and identify influential observations to the DiD estimate ([Goodman-Bacon Decomposition])
 
--   [@callaway2021]: 2-step estimation with a bootstrap procedure that can account for autocorrelation and clustering,
+-   [@callaway2021difference]: 2-step estimation with a bootstrap procedure that can account for autocorrelation and clustering,
 
     -   the parameters of interest are the group-time average treatment effects, where each group is defined by when it was first treated ([Multiple periods and variation in treatment timing])
 
@@ -489,19 +470,19 @@ Remedies for TWFE's shortcomings
 
     -   Package: `did`
 
--   [@sun2021]: a specialization of [@callaway2021] in the event-study context.
+-   [@sun2021estimating]: a specialization of [@callaway2021difference] in the event-study context.
 
     -   They include lags and leads in their design
 
-    -   have cohort-specific estimates (similar to group-time estimates in [@callaway2021]
+    -   have cohort-specific estimates (similar to group-time estimates in [@callaway2021difference]
 
     -   They propose the "interaction-weighted" estimator.
 
     -   Package: `fixest`
 
--   [@imai2020; @imai2021]
+-   [@imai2021use]
 
-    -   Different from [@callaway2021] because they allow units to switch in and out of treatment.
+    -   Different from [@callaway2021difference] because they allow units to switch in and out of treatment.
 
     -   Based on matching methods, to have weighted TWFE
 
@@ -587,13 +568,13 @@ To choose $\Pi$, we don't need to data, we just need possible assignments in you
 
 <br>
 
-As argued in [@imai2020] that TWFE is not a non-parametric approach, it can be subjected to incorrect model assumption (i.e., model dependence).
+As argued in [@imai2021use] that TWFE is not a non-parametric approach, it can be subjected to incorrect model assumption (i.e., model dependence).
 
--   Hence, they advocate for matching methods for time-series cross-sectional data [@imai2021]
+-   Hence, they advocate for matching methods for time-series cross-sectional data [@imai2021use]
 
 -   Use `wfe` and `PanelMatch` to apply their paper.
 
-This package is based on [@somaini2016]
+This package is based on [@somaini2016algorithm]
 
 ```{r}
 # dataset
@@ -630,17 +611,12 @@ output$aVarHat
 
 Standard errors estimation options
 
-+----------------------+---------------------------------------------------------------------------------------------+
 | Set                  | Estimation                                                                                  |
-+======================+=============================================================================================+
+|----------------------|---------------------------------------------------------------------------------------------|
 | `se = "0"`           | Assume homoskedasticity and no within group correlation or serial correlation               |
-+----------------------+---------------------------------------------------------------------------------------------+
 | `se = "1"` (default) | robust to heteroskadasticity and serial correlation [@arellano1987computing]                |
-+----------------------+---------------------------------------------------------------------------------------------+
 | `se = "2"`           | robust to heteroskedasticity, but assumes no correlation within group or serial correlation |
-+----------------------+---------------------------------------------------------------------------------------------+
 | `se = "11"`          | Aerllano SE with df correction performed by Stata xtreg [@somaini2021twfem]                 |
-+----------------------+---------------------------------------------------------------------------------------------+
 
 Alternatively, you can also do it manually or with the `plm` package, but you have to be careful with how the SEs are estimated
 
@@ -691,7 +667,7 @@ This is an extension of the DiD framework to settings where you have
 
 When treatment effects are heterogeneous across time or units, the standard [Two-way Fixed-effects] is inappropriate.
 
-Notation is consistent with `did` [package](https://cran.r-project.org/web/packages/did/vignettes/multi-period-did.html) [@callaway2021]
+Notation is consistent with `did` [package](https://cran.r-project.org/web/packages/did/vignettes/multi-period-did.html) [@callaway2021difference]
 
 -   $Y_{it}(0)$ is the potential outcome for unit $i$
 
@@ -796,9 +772,9 @@ $$
 ### Staggered Dif-n-dif
 
 -   When subjects are treated at different point in time (variation in treatment timing across units), we have to use staggered DiD (also known as DiD event study or dynamic DiD).
--   For design where a treatment is applied and units are exposed to this treatment at all time afterward, see [@athey2022]
+-   For design where a treatment is applied and units are exposed to this treatment at all time afterward, see [@athey2022design]
 
-Basic design [@stevenson2006]
+Basic design [@stevenson2006bargaining]
 
 $$
 Y_{it} = \sum_k \beta_k Treatment_{it}^k + \sum_i \eta_i  State_i \\
@@ -815,7 +791,7 @@ where
 
 In this setting, we try to show that the treatment and control groups are not statistically different (i.e., the coefficient estimates before treatment are not different from 0) to show pre-treatment parallel trends.
 
-However, this two-way fixed effects design has been criticized by [@sun2021; @callaway2021; @goodman-bacon2021]. When researchers include leads and lags of the treatment to see the long-term effects of the treatment, these leads and lags can be biased by effects from other periods, and pre-trends can falsely arise due to treatment effects heterogeneity.
+However, this two-way fixed effects design has been criticized by [@sun2021estimating; @callaway2021difference; @goodman2021difference]. When researchers include leads and lags of the treatment to see the long-term effects of the treatment, these leads and lags can be biased by effects from other periods, and pre-trends can falsely arise due to treatment effects heterogeneity.
 
 Applying the new proposed method, finance and accounting researchers find that in many cases, the causal estimates turn out to be null [@baker2022much].
 
@@ -853,15 +829,15 @@ Remedies for staggered DiD:
 
 -   Each treated cohort is compared to appropriate controls (not-yet-treated, never-treated)
 
-    -   [@goodman-bacon2021]
+    -   [@goodman2021difference]
 
-    -   [@callaway2021] consistent for average ATT. more complicated but also more flexible than [@sun2021]
+    -   [@callaway2021difference] consistent for average ATT. more complicated but also more flexible than [@sun2021estimating]
 
-        -   [@sun2021] (a special case of [@callaway2021])
+        -   [@sun2021estimating] (a special case of [@callaway2021difference])
 
     -   [@de2020two]
 
-    -   [@borusyak2017revisiting; @borusyak2021revisiting]
+    -   [@borusyak2017revisiting]
 
 -   Stacked Regression (biased but simple):
 
@@ -1110,7 +1086,7 @@ $$
 
 -   Clustered at the unit level [@deshpande2019screened]
 
-#### Example by @doleac2020
+#### Example by @doleac2020unintended
 
 -   The purpose of banning a checking box for ex-criminal was banned because we thought that it gives more access to felons
 
@@ -1184,7 +1160,7 @@ Example by [Anthony Schmidt](https://bookdown.org/aschmi11/causal_inf/difference
 
 #### Goodman-Bacon Decomposition
 
-Paper: [@goodman-bacon2021]
+Paper: [@goodman2021difference]
 
 For an excellent explanation slides by the author, [see](https://www.stata.com/meeting/chicago19/slides/chicago19_Goodman-Bacon.pdf)
 
@@ -1273,7 +1249,8 @@ When you have 2 treatments in a setting, you should always try to model both of 
 -   Could check this [answer](https://stats.stackexchange.com/questions/474533/difference-in-difference-with-two-treatment-groups-and-one-control-group-classi)
 
 $$
-Y_{it} = \alpha + \gamma_1 Treat1_{i} + \gamma_2 Treat2_{i} + \lambda Post_t  + \delta_1(Treat1_i \times Post_t) + \delta_2(Treat2_i \times Post_t) + \epsilon_{it}
+Y_{it} = \alpha + \gamma_1 Treat1_{i} + \gamma_2 Treat2_{i} + \lambda Post_t  \\
++ \delta_1(Treat1_i \times Post_t) + \delta_2(Treat2_i \times Post_t) + \epsilon_{it}
 $$
 
 [@fricke2017identification]
@@ -1289,7 +1266,6 @@ $$
 ### Endogenous Timing
 
 If the timing of units can be influenced by strategic decisions in a DID analysis, an instrumental variable approach with a control function can be used to control for endogeneity in timing.
-
 
 ```{r}
 
@@ -1327,7 +1303,7 @@ Check this [post](https://stats.stackexchange.com/questions/261218/difference-in
 
 -   **Linear additive effects** (of group/unit specific and time-specific):
 
-    -   If they are not additively interact, we have to use the weighted 2FE estimator [@imai2020]
+    -   If they are not additively interact, we have to use the weighted 2FE estimator [@imai2021use]
 
     -   Typically seen in the [Staggered Dif-n-dif]
 
@@ -1358,17 +1334,17 @@ Check this [post](https://stats.stackexchange.com/questions/261218/difference-in
 
 -   Response to event might not be immediate (can't be observed right away in the dependent variable)
 
-    -   Using lagged dependent variable $Y_{it-1}$ might be more appropriate [@blundell1998]
+    -   Using lagged dependent variable $Y_{it-1}$ might be more appropriate [@blundell1998initial]
 
 -   Other factors that affect the difference in trends between the two groups (i.e., treatment and control) will bias your estimation.
 
 -   Correlated observations within a group or time
 
--   Incidental parameters problems [@lancaster2000]: it's always better to use individual and time fixed effect.
+-   Incidental parameters problems [@lancaster2000incidental]: it's always better to use individual and time fixed effect.
 
--   When examining the effects of variation in treatment timing, we have to be careful because negative weights (per group) can be negative if there is a heterogeneity in the treatment effects over time. Example: [@athey2022][@borusyak2021][@goodman-bacon2021]. In this case you should use new estimands proposed by [@callaway2021][@dechaisemartin2020], in the `did` package. If you expect lags and leads, see [@sun2021]
+-   When examining the effects of variation in treatment timing, we have to be careful because negative weights (per group) can be negative if there is a heterogeneity in the treatment effects over time. Example: [@athey2022design][@borusyak2021revisiting][@goodman2021difference]. In this case you should use new estimands proposed by [@callaway2021difference][@de2020two], in the `did` package. If you expect lags and leads, see [@sun2021estimating]
 
--   [@gibbons2018] caution when we suspect the treatment effect and treatment variance vary across groups
+-   [@gibbons2018broken] caution when we suspect the treatment effect and treatment variance vary across groups
 
 ### Prior Parallel Trends Test
 
@@ -1399,7 +1375,7 @@ If $\beta_2 \neq 0$ statistically, possible reasons can be:
 
 -   Or the trends are so consistent, and just one period deviation can throw off the trends. Hence, statistical statistical significance.
 
-Technically, we can still salvage the research by including time fixed effects, instead of just the before-and-after time fixed effect (actually, most researchers do this mechanically anyway nowadays). However, a side effect can be that the time fixed effects can also absorb some part your treatment effect as well, especially in cases where the treatment effects vary with time (i.e., stronger or weaker over time) [@wolfers2003].
+Technically, we can still salvage the research by including time fixed effects, instead of just the before-and-after time fixed effect (actually, most researchers do this mechanically anyway nowadays). However, a side effect can be that the time fixed effects can also absorb some part your treatment effect as well, especially in cases where the treatment effects vary with time (i.e., stronger or weaker over time) [@wolfers2003business].
 
 Debate:
 
@@ -1432,7 +1408,7 @@ iplot(prior_trend)
 
 This is alarming since one of the periods is significantly different from 0, which means that our parallel trends assumption is not plausible.
 
-In cases where you might have violations of parallel trends assumption, check [@rambachan2022more]
+In cases where you might have violations of parallel trends assumption, check [@rambachan2023more]
 
 -   Impose restrictions on how different the post-treatment violations of parallel trends can be from the pre-trends.
 
@@ -1519,7 +1495,7 @@ We would like the "supposed" DiD to be insignificant.
 
 ### Rosenbaum Bounds
 
-[Rosenbaum Bounds] assess the overall sensitivity of coefficient estimates to hidden bias [@rosenbaum2002overt] without having knowledge (e.g., direction) of the bias. This method is also known as worst case analyses [@diprete20047].
+[Rosenbaum Bounds] assess the overall sensitivity of coefficient estimates to hidden bias [@rosenbaum2002overt] without having knowledge (e.g., direction) of the bias. This method is also known as worst case analyses [@diprete2004assessing].
 
 Consider the treatment assignment is based in a way that the odds of treatment of a unit and its control is different by a multiplier $\Gamma$ (where $\Gamma = 1$ mean that the odds of assignment is identical, which mean random treatment assignment).
 

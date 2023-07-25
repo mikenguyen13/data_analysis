@@ -772,7 +772,110 @@ The `ggdist` allows us to visualize uncertainty under both frequentist and Bayes
 library(ggdist)
 ```
 
+## Descriptive Tables
+
+Export APA theme
+
+
+```r
+data("mtcars")
+
+library(flextable)
+theme_apa(flextable(mtcars[1:5,1:5]))
+```
+
+Export to Latex
+
+
+```r
+print(xtable::xtable(mtcars, type = "latex"),
+      file = file.path(getwd(), "output", "mtcars_xtable.tex"))
+
+# American Economic Review style
+stargazer::stargazer(
+    mtcars,
+    title = "Testing",
+    style = "aer",
+    out = file.path(getwd(), "output", "mtcars_stargazer.tex")
+)
+
+# other styles include
+# Administrative Science Quarterly
+# Quarterly Journal of Economics
+```
+
+However, the above codes do not play well with notes. Hence, I create my own custom code that follows the AMA guidelines
+
+
+```r
+ama_tbl <- function(data, caption, label, note, output_path) {
+  library(tidyverse)
+  library(xtable)
+  # Function to determine column alignment
+  get_column_alignment <- function(data) {
+    # Start with the alignment for the header row
+    alignment <- c("l", "l")
+    
+    # Check each column
+    for (col in seq_len(ncol(data))[-1]) {
+      if (is.numeric(data[[col]])) {
+        alignment <- c(alignment, "r")  # Right alignment for numbers
+      } else {
+        alignment <- c(alignment, "c")  # Center alignment for other data
+      }
+    }
+    
+    return(alignment)
+  }
+  
+  data %>%
+    # bold + left align first column 
+    rename_with(~paste("\\multicolumn{1}{l}{\\textbf{", ., "}}"), 1) %>% 
+    # bold + center align all other columns
+    `colnames<-`(ifelse(colnames(.) != colnames(.)[1],
+                        paste("\\multicolumn{1}{c}{\\textbf{", colnames(.), "}}"),
+                        colnames(.))) %>% 
+    
+    xtable(caption = caption,
+           label = label,
+           align = get_column_alignment(data),
+           auto = TRUE) %>%
+    print(
+      include.rownames = FALSE,
+      caption.placement = "top",
+      
+      hline.after=c(-1, 0),
+      
+       # p{0.9\linewidth} sets the width of the column to 90% of the line width, and the @{} removes any extra padding around the cell.
+      
+      add.to.row = list(pos = list(nrow(data)), # Add at the bottom of the table
+                        command = c(paste0("\\hline \n \\multicolumn{",ncol(data), "}{l} {", "\n \\begin{tabular}{@{}p{0.9\\linewidth}@{}} \n","Note: ", note, "\n \\end{tabular}  } \n"))), # Add your note here
+      
+      # make sure your heading is untouched (because you manually change it above)
+      sanitize.colnames.function = identity,
+      
+      # place a the top of the page
+      table.placement = "h",
+      
+      file = output_path
+    )
+}
+```
+
+
+```r
+ama_tbl(
+    mtcars,
+    caption     = "This is caption",
+    label       = "tab:this_is_label",
+    note        = "this is note",
+    output_path = file.path(getwd(), "output", "mtcars_custom_ama.tex")
+)
+```
+
 ## Visualizations and Plots
+
+You can customize your plots based on your preferred journals. Here, I am creating a custom setting for the American Marketing Association.
 
 American-Marketing-Association-ready theme for plots
 
@@ -781,63 +884,68 @@ American-Marketing-Association-ready theme for plots
 library(ggplot2)
 
 # check available fonts
-windowsFonts()
-#> $serif
-#> [1] "TT Times New Roman"
-#> 
-#> $sans
-#> [1] "TT Arial"
-#> 
-#> $mono
-#> [1] "TT Courier New"
+# windowsFonts()
 
 # for Times New Roman
-names(windowsFonts()[windowsFonts()=="TT Times New Roman"])
-#> [1] "serif"
+# names(windowsFonts()[windowsFonts()=="TT Times New Roman"])
 ```
-
 
 
 ```r
 # Making a theme
-amatheme = theme_bw(base_size = 20, base_family = "serif") +
+amatheme = theme_bw(base_size = 14, base_family = "serif") + # This is Time New Roman
     
     theme(
         # remove major gridlines
         panel.grid.major   = element_blank(),
-        
+
         # remove minor gridlines
         panel.grid.minor   = element_blank(),
-        
+
         # remove panel border
         panel.border       = element_blank(),
-        
-        line = element_line(colour = "black", size = 0.5, linetype = 1, lineend = "butt"), 
-        
+
+        line               = element_line(),
+
         # change font
-        text               = element_text(family = 'serif', size = 20), # This is Time New Roman
-        
+        text               = element_text(),
+
         # if you want to remove legend title
         # legend.title     = element_blank(),
-        
-        legend.title       = element_text(size = 20, face = "bold"),
-        
+
+        legend.title       = element_text(size = rel(0.6), face = "bold"),
+
         # change font size of legend
-        legend.text        = element_text(size = 20),
+        legend.text        = element_text(size = rel(0.6)),
         
+        legend.background  = element_rect(color = "black"),
+        
+        # legend.margin    = margin(t = 5, l = 5, r = 5, b = 5),
+        # legend.key       = element_rect(color = NA, fill = NA),
+
         # change font size of main title
-        plot.title         = element_text(size = rel(1.2), face = "bold", hjust = 0.5),
+        plot.title         = element_text(
+            size           = rel(1.2),
+            face           = "bold",
+            hjust          = 0.5,
+            margin         = margin(b = 15)
+        ),
         
+        plot.margin        = unit(c(1, 1, 1, 1), "cm"),
+
         # add black line along axes
-        axis.line          = element_line(colour = "black"),
+        axis.line          = element_line(colour = "black", linewidth = .8),
         
+        axis.ticks         = element_line(),
+        
+
         # axis title
-        axis.title.x       = element_text(size = rel(1), face = "bold"),
-        axis.title.y       = element_text(size = rel(1), face = "bold"),
-        
+        axis.title.x       = element_text(size = rel(1.2), face = "bold"),
+        axis.title.y       = element_text(size = rel(1.2), face = "bold"),
+
         # axis text size
-        axis.text.y        = element_text(size = 20),
-        axis.text.x        = element_text(size = 20)
+        axis.text.y        = element_text(size = rel(1)),
+        axis.text.x        = element_text(size = rel(1))
     )
 ```
 
@@ -846,14 +954,80 @@ Example
 
 ```r
 library(tidyverse)
+library(ggsci)
 data("mtcars")
-mtcars %>%
+yourplot <- mtcars %>%
     select(mpg, cyl, gear) %>%
     ggplot(., aes(x = mpg, y = cyl, fill = gear)) + 
     geom_point() +
-    labs(title="Some Plot") + 
-    amatheme
+    labs(title="Some Plot") 
+
+yourplot + 
+    amatheme + 
+    # choose different color theme
+    scale_color_npg() 
 ```
 
-<img src="32-report_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="32-report_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
 
+```r
+
+yourplot + 
+    amatheme + 
+    scale_color_continuous()
+```
+
+<img src="32-report_files/figure-html/unnamed-chunk-19-2.png" width="90%" style="display: block; margin: auto;" />
+
+Other pre-specified themes
+
+
+```r
+library(ggthemes)
+
+
+# Stata theme
+yourplot +
+    theme_stata()
+```
+
+<img src="32-report_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+
+# The economist theme
+yourplot + 
+    theme_economist()
+```
+
+<img src="32-report_files/figure-html/unnamed-chunk-20-2.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+
+yourplot + 
+    theme_economist_white()
+```
+
+<img src="32-report_files/figure-html/unnamed-chunk-20-3.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+
+# Wall street journal theme
+yourplot + 
+    theme_wsj()
+```
+
+<img src="32-report_files/figure-html/unnamed-chunk-20-4.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+
+# APA theme
+yourplot +
+    jtools::theme_apa(
+        legend.font.size = 24,
+        x.font.size = 20,
+        y.font.size = 20
+    )
+```
+
+<img src="32-report_files/figure-html/unnamed-chunk-20-5.png" width="90%" style="display: block; margin: auto;" />

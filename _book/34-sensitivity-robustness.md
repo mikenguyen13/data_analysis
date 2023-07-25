@@ -8,7 +8,7 @@ Resources
 
 -   [In Stata](https://github.com/hhsievertsen/speccurve) or [speccurve](https://github.com/martin-andresen/speccurve)
 
--   [@simonsohn2020]
+-   [@simonsohn2020specification]
 
 ### starbility
 

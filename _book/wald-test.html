@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2023-06-18" />
+<meta name="date" content="2023-07-24" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -852,7 +852,8 @@ div.csl-indent {
 <li class="chapter" data-level="34.3" data-path="changes-in-an-estimate.html"><a href="changes-in-an-estimate.html"><i class="fa fa-check"></i><b>34.3</b> Changes in an estimate</a></li>
 <li class="chapter" data-level="34.4" data-path="standard-errors-2.html"><a href="standard-errors-2.html"><i class="fa fa-check"></i><b>34.4</b> Standard Errors</a></li>
 <li class="chapter" data-level="34.5" data-path="coefficient-uncertainty-and-distribution.html"><a href="coefficient-uncertainty-and-distribution.html"><i class="fa fa-check"></i><b>34.5</b> Coefficient Uncertainty and Distribution</a></li>
-<li class="chapter" data-level="34.6" data-path="visualizations-and-plots.html"><a href="visualizations-and-plots.html"><i class="fa fa-check"></i><b>34.6</b> Visualizations and Plots</a></li>
+<li class="chapter" data-level="34.6" data-path="descriptive-tables.html"><a href="descriptive-tables.html"><i class="fa fa-check"></i><b>34.6</b> Descriptive Tables</a></li>
+<li class="chapter" data-level="34.7" data-path="visualizations-and-plots.html"><a href="visualizations-and-plots.html"><i class="fa fa-check"></i><b>34.7</b> Visualizations and Plots</a></li>
 </ul></li>
 <li class="chapter" data-level="35" data-path="exploratory-data-analysis.html"><a href="exploratory-data-analysis.html"><i class="fa fa-check"></i><b>35</b> Exploratory Data Analysis</a></li>
 <li class="chapter" data-level="36" data-path="sensitivity-analysis-robustness-check.html"><a href="sensitivity-analysis-robustness-check.html"><i class="fa fa-check"></i><b>36</b> Sensitivity Analysis/ Robustness Check</a>
@@ -1098,67 +1099,67 @@ H_0: \mathbf{R}\beta -\mathbf{q}=0
 <div id="estimate-difference-in-coefficients" class="section level3 hasAnchor" number="14.2.3">
 <h3><span class="header-section-number">14.2.3</span> Estimate Difference in Coefficients<a href="wald-test.html#estimate-difference-in-coefficients" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>There is no package to estimate for the difference between two coefficients and its CI, but a simple function created by <a href="https://kzee.github.io/CoeffDiff_Demo.html">Katherine Zee</a> can be used to calculate this difference. Some modifications might be needed if you don’t use standard <code>lm</code> model in R.</p>
-<div class="sourceCode" id="cb297"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb297-1"><a href="wald-test.html#cb297-1" aria-hidden="true" tabindex="-1"></a>difftest_lm <span class="ot">&lt;-</span> <span class="cf">function</span>(x1, x2, model) {</span>
-<span id="cb297-2"><a href="wald-test.html#cb297-2" aria-hidden="true" tabindex="-1"></a>    diffest <span class="ot">&lt;-</span></span>
-<span id="cb297-3"><a href="wald-test.html#cb297-3" aria-hidden="true" tabindex="-1"></a>        <span class="fu">summary</span>(model)<span class="sc">$</span>coef[x1, <span class="st">&quot;Estimate&quot;</span>] <span class="sc">-</span> <span class="fu">summary</span>(model)<span class="sc">$</span>coef[x2, <span class="st">&quot;Estimate&quot;</span>]</span>
-<span id="cb297-4"><a href="wald-test.html#cb297-4" aria-hidden="true" tabindex="-1"></a>    vardiff <span class="ot">&lt;-</span> (<span class="fu">summary</span>(model)<span class="sc">$</span>coef[x1, <span class="st">&quot;Std. Error&quot;</span>] <span class="sc">^</span> <span class="dv">2</span> <span class="sc">+</span></span>
-<span id="cb297-5"><a href="wald-test.html#cb297-5" aria-hidden="true" tabindex="-1"></a>                    <span class="fu">summary</span>(model)<span class="sc">$</span>coef[x2, <span class="st">&quot;Std. Error&quot;</span>] <span class="sc">^</span> <span class="dv">2</span>) <span class="sc">-</span> (<span class="dv">2</span> <span class="sc">*</span> (<span class="fu">vcov</span>(model)[x1, x2]))</span>
-<span id="cb297-6"><a href="wald-test.html#cb297-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># variance of x1 + variance of x2 - 2*covariance of x1 and x2</span></span>
-<span id="cb297-7"><a href="wald-test.html#cb297-7" aria-hidden="true" tabindex="-1"></a>    diffse <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(vardiff)</span>
-<span id="cb297-8"><a href="wald-test.html#cb297-8" aria-hidden="true" tabindex="-1"></a>    tdiff <span class="ot">&lt;-</span> (diffest) <span class="sc">/</span> (diffse)</span>
-<span id="cb297-9"><a href="wald-test.html#cb297-9" aria-hidden="true" tabindex="-1"></a>    ptdiff <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">pt</span>(<span class="fu">abs</span>(tdiff), model<span class="sc">$</span>df, <span class="at">lower.tail =</span> T))</span>
-<span id="cb297-10"><a href="wald-test.html#cb297-10" aria-hidden="true" tabindex="-1"></a>    upr <span class="ot">&lt;-</span></span>
-<span id="cb297-11"><a href="wald-test.html#cb297-11" aria-hidden="true" tabindex="-1"></a>        diffest <span class="sc">+</span> <span class="fu">qt</span>(.<span class="dv">975</span>, <span class="at">df =</span> model<span class="sc">$</span>df) <span class="sc">*</span> diffse <span class="co"># will usually be very close to 1.96</span></span>
-<span id="cb297-12"><a href="wald-test.html#cb297-12" aria-hidden="true" tabindex="-1"></a>    lwr <span class="ot">&lt;-</span> diffest <span class="sc">+</span> <span class="fu">qt</span>(.<span class="dv">025</span>, <span class="at">df =</span> model<span class="sc">$</span>df) <span class="sc">*</span> diffse</span>
-<span id="cb297-13"><a href="wald-test.html#cb297-13" aria-hidden="true" tabindex="-1"></a>    df <span class="ot">&lt;-</span> model<span class="sc">$</span>df</span>
-<span id="cb297-14"><a href="wald-test.html#cb297-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(</span>
-<span id="cb297-15"><a href="wald-test.html#cb297-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">est =</span> <span class="fu">round</span>(diffest, <span class="at">digits =</span> <span class="dv">2</span>),</span>
-<span id="cb297-16"><a href="wald-test.html#cb297-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">t =</span> <span class="fu">round</span>(tdiff, <span class="at">digits =</span> <span class="dv">2</span>),</span>
-<span id="cb297-17"><a href="wald-test.html#cb297-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">p =</span> <span class="fu">round</span>(ptdiff, <span class="at">digits =</span> <span class="dv">4</span>),</span>
-<span id="cb297-18"><a href="wald-test.html#cb297-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">lwr =</span> <span class="fu">round</span>(lwr, <span class="at">digits =</span> <span class="dv">2</span>),</span>
-<span id="cb297-19"><a href="wald-test.html#cb297-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">upr =</span> <span class="fu">round</span>(upr, <span class="at">digits =</span> <span class="dv">2</span>),</span>
-<span id="cb297-20"><a href="wald-test.html#cb297-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">df =</span> df</span>
-<span id="cb297-21"><a href="wald-test.html#cb297-21" aria-hidden="true" tabindex="-1"></a>    ))</span>
-<span id="cb297-22"><a href="wald-test.html#cb297-22" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb297"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb297-1"><a href="wald-test.html#cb297-1" tabindex="-1"></a>difftest_lm <span class="ot">&lt;-</span> <span class="cf">function</span>(x1, x2, model) {</span>
+<span id="cb297-2"><a href="wald-test.html#cb297-2" tabindex="-1"></a>    diffest <span class="ot">&lt;-</span></span>
+<span id="cb297-3"><a href="wald-test.html#cb297-3" tabindex="-1"></a>        <span class="fu">summary</span>(model)<span class="sc">$</span>coef[x1, <span class="st">&quot;Estimate&quot;</span>] <span class="sc">-</span> <span class="fu">summary</span>(model)<span class="sc">$</span>coef[x2, <span class="st">&quot;Estimate&quot;</span>]</span>
+<span id="cb297-4"><a href="wald-test.html#cb297-4" tabindex="-1"></a>    vardiff <span class="ot">&lt;-</span> (<span class="fu">summary</span>(model)<span class="sc">$</span>coef[x1, <span class="st">&quot;Std. Error&quot;</span>] <span class="sc">^</span> <span class="dv">2</span> <span class="sc">+</span></span>
+<span id="cb297-5"><a href="wald-test.html#cb297-5" tabindex="-1"></a>                    <span class="fu">summary</span>(model)<span class="sc">$</span>coef[x2, <span class="st">&quot;Std. Error&quot;</span>] <span class="sc">^</span> <span class="dv">2</span>) <span class="sc">-</span> (<span class="dv">2</span> <span class="sc">*</span> (<span class="fu">vcov</span>(model)[x1, x2]))</span>
+<span id="cb297-6"><a href="wald-test.html#cb297-6" tabindex="-1"></a>    <span class="co"># variance of x1 + variance of x2 - 2*covariance of x1 and x2</span></span>
+<span id="cb297-7"><a href="wald-test.html#cb297-7" tabindex="-1"></a>    diffse <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(vardiff)</span>
+<span id="cb297-8"><a href="wald-test.html#cb297-8" tabindex="-1"></a>    tdiff <span class="ot">&lt;-</span> (diffest) <span class="sc">/</span> (diffse)</span>
+<span id="cb297-9"><a href="wald-test.html#cb297-9" tabindex="-1"></a>    ptdiff <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> (<span class="dv">1</span> <span class="sc">-</span> <span class="fu">pt</span>(<span class="fu">abs</span>(tdiff), model<span class="sc">$</span>df, <span class="at">lower.tail =</span> T))</span>
+<span id="cb297-10"><a href="wald-test.html#cb297-10" tabindex="-1"></a>    upr <span class="ot">&lt;-</span></span>
+<span id="cb297-11"><a href="wald-test.html#cb297-11" tabindex="-1"></a>        diffest <span class="sc">+</span> <span class="fu">qt</span>(.<span class="dv">975</span>, <span class="at">df =</span> model<span class="sc">$</span>df) <span class="sc">*</span> diffse <span class="co"># will usually be very close to 1.96</span></span>
+<span id="cb297-12"><a href="wald-test.html#cb297-12" tabindex="-1"></a>    lwr <span class="ot">&lt;-</span> diffest <span class="sc">+</span> <span class="fu">qt</span>(.<span class="dv">025</span>, <span class="at">df =</span> model<span class="sc">$</span>df) <span class="sc">*</span> diffse</span>
+<span id="cb297-13"><a href="wald-test.html#cb297-13" tabindex="-1"></a>    df <span class="ot">&lt;-</span> model<span class="sc">$</span>df</span>
+<span id="cb297-14"><a href="wald-test.html#cb297-14" tabindex="-1"></a>    <span class="fu">return</span>(<span class="fu">list</span>(</span>
+<span id="cb297-15"><a href="wald-test.html#cb297-15" tabindex="-1"></a>        <span class="at">est =</span> <span class="fu">round</span>(diffest, <span class="at">digits =</span> <span class="dv">2</span>),</span>
+<span id="cb297-16"><a href="wald-test.html#cb297-16" tabindex="-1"></a>        <span class="at">t =</span> <span class="fu">round</span>(tdiff, <span class="at">digits =</span> <span class="dv">2</span>),</span>
+<span id="cb297-17"><a href="wald-test.html#cb297-17" tabindex="-1"></a>        <span class="at">p =</span> <span class="fu">round</span>(ptdiff, <span class="at">digits =</span> <span class="dv">4</span>),</span>
+<span id="cb297-18"><a href="wald-test.html#cb297-18" tabindex="-1"></a>        <span class="at">lwr =</span> <span class="fu">round</span>(lwr, <span class="at">digits =</span> <span class="dv">2</span>),</span>
+<span id="cb297-19"><a href="wald-test.html#cb297-19" tabindex="-1"></a>        <span class="at">upr =</span> <span class="fu">round</span>(upr, <span class="at">digits =</span> <span class="dv">2</span>),</span>
+<span id="cb297-20"><a href="wald-test.html#cb297-20" tabindex="-1"></a>        <span class="at">df =</span> df</span>
+<span id="cb297-21"><a href="wald-test.html#cb297-21" tabindex="-1"></a>    ))</span>
+<span id="cb297-22"><a href="wald-test.html#cb297-22" tabindex="-1"></a>}</span></code></pre></div>
 </div>
 <div id="application-9" class="section level3 hasAnchor" number="14.2.4">
 <h3><span class="header-section-number">14.2.4</span> Application<a href="wald-test.html#application-9" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb298"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb298-1"><a href="wald-test.html#cb298-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;car&quot;</span>)</span>
-<span id="cb298-2"><a href="wald-test.html#cb298-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb298-3"><a href="wald-test.html#cb298-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Multiple hypothesis</span></span>
-<span id="cb298-4"><a href="wald-test.html#cb298-4" aria-hidden="true" tabindex="-1"></a>mod.davis <span class="ot">&lt;-</span> <span class="fu">lm</span>(weight <span class="sc">~</span> repwt, <span class="at">data=</span>Davis)</span>
-<span id="cb298-5"><a href="wald-test.html#cb298-5" aria-hidden="true" tabindex="-1"></a><span class="fu">linearHypothesis</span>(mod.davis, <span class="fu">c</span>(<span class="st">&quot;(Intercept) = 0&quot;</span>, <span class="st">&quot;repwt = 1&quot;</span>),<span class="at">white.adjust =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb298-6"><a href="wald-test.html#cb298-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Linear hypothesis test</span></span>
-<span id="cb298-7"><a href="wald-test.html#cb298-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb298-8"><a href="wald-test.html#cb298-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Hypothesis:</span></span>
-<span id="cb298-9"><a href="wald-test.html#cb298-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; (Intercept) = 0</span></span>
-<span id="cb298-10"><a href="wald-test.html#cb298-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; repwt = 1</span></span>
-<span id="cb298-11"><a href="wald-test.html#cb298-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb298-12"><a href="wald-test.html#cb298-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Model 1: restricted model</span></span>
-<span id="cb298-13"><a href="wald-test.html#cb298-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Model 2: weight ~ repwt</span></span>
-<span id="cb298-14"><a href="wald-test.html#cb298-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb298-15"><a href="wald-test.html#cb298-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Note: Coefficient covariance matrix supplied.</span></span>
-<span id="cb298-16"><a href="wald-test.html#cb298-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb298-17"><a href="wald-test.html#cb298-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Res.Df Df      F  Pr(&gt;F)  </span></span>
-<span id="cb298-18"><a href="wald-test.html#cb298-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1    183                    </span></span>
-<span id="cb298-19"><a href="wald-test.html#cb298-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2    181  2 3.3896 0.03588 *</span></span>
-<span id="cb298-20"><a href="wald-test.html#cb298-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb298-21"><a href="wald-test.html#cb298-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb298-22"><a href="wald-test.html#cb298-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb298-23"><a href="wald-test.html#cb298-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Linear Combination</span></span>
-<span id="cb298-24"><a href="wald-test.html#cb298-24" aria-hidden="true" tabindex="-1"></a>mod.duncan <span class="ot">&lt;-</span> <span class="fu">lm</span>(prestige <span class="sc">~</span> income <span class="sc">+</span> education, <span class="at">data=</span>Duncan)</span>
-<span id="cb298-25"><a href="wald-test.html#cb298-25" aria-hidden="true" tabindex="-1"></a><span class="fu">linearHypothesis</span>(mod.duncan, <span class="st">&quot;1*income - 1*education = 0&quot;</span>)</span>
-<span id="cb298-26"><a href="wald-test.html#cb298-26" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Linear hypothesis test</span></span>
-<span id="cb298-27"><a href="wald-test.html#cb298-27" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb298-28"><a href="wald-test.html#cb298-28" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Hypothesis:</span></span>
-<span id="cb298-29"><a href="wald-test.html#cb298-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; income - education = 0</span></span>
-<span id="cb298-30"><a href="wald-test.html#cb298-30" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb298-31"><a href="wald-test.html#cb298-31" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Model 1: restricted model</span></span>
-<span id="cb298-32"><a href="wald-test.html#cb298-32" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Model 2: prestige ~ income + education</span></span>
-<span id="cb298-33"><a href="wald-test.html#cb298-33" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb298-34"><a href="wald-test.html#cb298-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   Res.Df    RSS Df Sum of Sq      F Pr(&gt;F)</span></span>
-<span id="cb298-35"><a href="wald-test.html#cb298-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1     43 7518.9                           </span></span>
-<span id="cb298-36"><a href="wald-test.html#cb298-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2     42 7506.7  1    12.195 0.0682 0.7952</span></span></code></pre></div>
+<div class="sourceCode" id="cb298"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb298-1"><a href="wald-test.html#cb298-1" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;car&quot;</span>)</span>
+<span id="cb298-2"><a href="wald-test.html#cb298-2" tabindex="-1"></a></span>
+<span id="cb298-3"><a href="wald-test.html#cb298-3" tabindex="-1"></a><span class="co"># Multiple hypothesis</span></span>
+<span id="cb298-4"><a href="wald-test.html#cb298-4" tabindex="-1"></a>mod.davis <span class="ot">&lt;-</span> <span class="fu">lm</span>(weight <span class="sc">~</span> repwt, <span class="at">data=</span>Davis)</span>
+<span id="cb298-5"><a href="wald-test.html#cb298-5" tabindex="-1"></a><span class="fu">linearHypothesis</span>(mod.davis, <span class="fu">c</span>(<span class="st">&quot;(Intercept) = 0&quot;</span>, <span class="st">&quot;repwt = 1&quot;</span>),<span class="at">white.adjust =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb298-6"><a href="wald-test.html#cb298-6" tabindex="-1"></a><span class="co">#&gt; Linear hypothesis test</span></span>
+<span id="cb298-7"><a href="wald-test.html#cb298-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb298-8"><a href="wald-test.html#cb298-8" tabindex="-1"></a><span class="co">#&gt; Hypothesis:</span></span>
+<span id="cb298-9"><a href="wald-test.html#cb298-9" tabindex="-1"></a><span class="co">#&gt; (Intercept) = 0</span></span>
+<span id="cb298-10"><a href="wald-test.html#cb298-10" tabindex="-1"></a><span class="co">#&gt; repwt = 1</span></span>
+<span id="cb298-11"><a href="wald-test.html#cb298-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb298-12"><a href="wald-test.html#cb298-12" tabindex="-1"></a><span class="co">#&gt; Model 1: restricted model</span></span>
+<span id="cb298-13"><a href="wald-test.html#cb298-13" tabindex="-1"></a><span class="co">#&gt; Model 2: weight ~ repwt</span></span>
+<span id="cb298-14"><a href="wald-test.html#cb298-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb298-15"><a href="wald-test.html#cb298-15" tabindex="-1"></a><span class="co">#&gt; Note: Coefficient covariance matrix supplied.</span></span>
+<span id="cb298-16"><a href="wald-test.html#cb298-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb298-17"><a href="wald-test.html#cb298-17" tabindex="-1"></a><span class="co">#&gt;   Res.Df Df      F  Pr(&gt;F)  </span></span>
+<span id="cb298-18"><a href="wald-test.html#cb298-18" tabindex="-1"></a><span class="co">#&gt; 1    183                    </span></span>
+<span id="cb298-19"><a href="wald-test.html#cb298-19" tabindex="-1"></a><span class="co">#&gt; 2    181  2 3.3896 0.03588 *</span></span>
+<span id="cb298-20"><a href="wald-test.html#cb298-20" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb298-21"><a href="wald-test.html#cb298-21" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb298-22"><a href="wald-test.html#cb298-22" tabindex="-1"></a></span>
+<span id="cb298-23"><a href="wald-test.html#cb298-23" tabindex="-1"></a><span class="co"># Linear Combination</span></span>
+<span id="cb298-24"><a href="wald-test.html#cb298-24" tabindex="-1"></a>mod.duncan <span class="ot">&lt;-</span> <span class="fu">lm</span>(prestige <span class="sc">~</span> income <span class="sc">+</span> education, <span class="at">data=</span>Duncan)</span>
+<span id="cb298-25"><a href="wald-test.html#cb298-25" tabindex="-1"></a><span class="fu">linearHypothesis</span>(mod.duncan, <span class="st">&quot;1*income - 1*education = 0&quot;</span>)</span>
+<span id="cb298-26"><a href="wald-test.html#cb298-26" tabindex="-1"></a><span class="co">#&gt; Linear hypothesis test</span></span>
+<span id="cb298-27"><a href="wald-test.html#cb298-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb298-28"><a href="wald-test.html#cb298-28" tabindex="-1"></a><span class="co">#&gt; Hypothesis:</span></span>
+<span id="cb298-29"><a href="wald-test.html#cb298-29" tabindex="-1"></a><span class="co">#&gt; income - education = 0</span></span>
+<span id="cb298-30"><a href="wald-test.html#cb298-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb298-31"><a href="wald-test.html#cb298-31" tabindex="-1"></a><span class="co">#&gt; Model 1: restricted model</span></span>
+<span id="cb298-32"><a href="wald-test.html#cb298-32" tabindex="-1"></a><span class="co">#&gt; Model 2: prestige ~ income + education</span></span>
+<span id="cb298-33"><a href="wald-test.html#cb298-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb298-34"><a href="wald-test.html#cb298-34" tabindex="-1"></a><span class="co">#&gt;   Res.Df    RSS Df Sum of Sq      F Pr(&gt;F)</span></span>
+<span id="cb298-35"><a href="wald-test.html#cb298-35" tabindex="-1"></a><span class="co">#&gt; 1     43 7518.9                           </span></span>
+<span id="cb298-36"><a href="wald-test.html#cb298-36" tabindex="-1"></a><span class="co">#&gt; 2     42 7506.7  1    12.195 0.0682 0.7952</span></span></code></pre></div>
 </div>
 <div id="nonlinear-1" class="section level3 hasAnchor" number="14.2.5">
 <h3><span class="header-section-number">14.2.5</span> Nonlinear<a href="wald-test.html#nonlinear-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>

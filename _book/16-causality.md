@@ -54,7 +54,7 @@ Ladder of causation (associated with levels of cognitive ability as well):
 |                 |             | What if I had acted differently           |                                                            |
 +-----------------+-------------+-------------------------------------------+------------------------------------------------------------+
 
-Table by [@pearl2019, p. 2]
+Table by [@pearl2019seven, p. 57]
 
 You cannot define causation from probability alone
 
@@ -74,7 +74,7 @@ Note: people under econometrics might still use "Granger causality" and "vector 
 
 <br>
 
-The 7 tools for Structural Causal Model framework [@pearl2019]:
+The 7 tools for Structural Causal Model framework [@pearl2019seven]:
 
 1.  Encoding Causal Assumptions - transparency and testability (with graphical representation)
 
@@ -92,9 +92,9 @@ The 7 tools for Structural Causal Model framework [@pearl2019]:
 
     1.  d-separation
 
-    2.  Functional decomposition [@hoyer2008; @shimizu2009; @chen2012a]
+    2.  Functional decomposition [@hoyer2008nonlinear]
 
-    3.  Spontaneous local changes [@pearla]
+    3.  Spontaneous local changes [@pearl2014graphical]
 
 <br>
 
@@ -118,11 +118,15 @@ $$
 
 <br>
 
++------------------------------------------------+-------------------------------------------------+
 | Experimental Design                            | Quasi-experimental Design                       |
-|------------------------------------------------|-------------------------------------------------|
++================================================+=================================================+
 | Experimentalist                                | Observationalist                                |
++------------------------------------------------+-------------------------------------------------+
 | Experimental Data                              | Observational Data                              |
++------------------------------------------------+-------------------------------------------------+
 | Random Assignment (reduce treatment imbalance) | Random Sampling (reduce sample selection error) |
++------------------------------------------------+-------------------------------------------------+
 
 Tools in a hierarchical order
 
@@ -496,12 +500,17 @@ $\Delta_T \to 0$ when treatment and control groups are balanced (i.e., identical
 
 However, in reality, we can only readjust for observables, not unobservables.
 
++-------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 |                                                             | [Blocking][Randomized Block Designs]                                                                                                                                            | [Matching]**[Matching Methods]**                                                                                                                                                                                                              |
-|-------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Definition                                                  | Random assignment within strata based on pre-treatment observables                                                                                                              | Dropping, repeating or grouping observations to balance covariates between the treatment and control group [@rubin1973]                                                                                                                       |
++=============================================================+=================================================================================================================================================================================+===============================================================================================================================================================================================================================================+
+| Definition                                                  | Random assignment within strata based on pre-treatment observables                                                                                                              | Dropping, repeating or grouping observations to balance covariates between the treatment and control group [@rubin1973use]                                                                                                                    |
++-------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Time                                                        | Before randomization of treatments                                                                                                                                              | After randomization of treatments                                                                                                                                                                                                             |
++-------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | What if the set of covariates used to adjust is irrelevant? | Nothing happens                                                                                                                                                                 | In the worst case scenario (e.g., these variables are uncorrelated with the treatment assignment, but correlated with the post-treatment variables), matching induces bias that is greater than just using the unadjusted difference in means |
++-------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Benefits                                                    | $\Delta_{T_X}=0$ (no imbalance on observables). But we don't know its effect on unobservables imbalance (might reduce if the unobservables are correlated with the observables) | Reduce model dependence, bias, variance, mean-square error                                                                                                                                                                                    |
++-------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 ### Average Treatment Effects on the Treated and Control
 
@@ -561,11 +570,11 @@ where
 
 Instead of the middle point estimate (ATE), we can also understand the changes in the distribution the outcome variable due to the treatment.
 
-Using quantile regression and more assumptions [@abadie2002; @chernozhukov2005], we can have consistent estimate of quantile treatment effects (QTE), with which we can make inference regarding a given quantile.
+Using quantile regression and more assumptions [@abadie2002instrumental; @chernozhukov2005iv], we can have consistent estimate of quantile treatment effects (QTE), with which we can make inference regarding a given quantile.
 
 ### Mediation Effects
 
-With additional assumptions (i.e., sequential ignorability [@Imai_2010_6060; @bullock2010]), we can examine the mechanism of the treatment on the outcome.
+With additional assumptions (i.e., sequential ignorability [@imai2010general; @bullock2011mediation]), we can examine the mechanism of the treatment on the outcome.
 
 Under the causal framework,
 
@@ -577,6 +586,6 @@ More in the [Mediation] Section \@ref(mediation)
 
 ### Log-odds Treatment Effects
 
-For binary outcome variable, we might be interested in the log-odds of success. See [@freedman2008] on how to estimate a consistent causal effect.
+For binary outcome variable, we might be interested in the log-odds of success. See [@freedman2008randomization] on how to estimate a consistent causal effect.
 
-Alternatively, attributable effects [@rosenbaum2002] can also be appropriate for binary outcome.
+Alternatively, attributable effects [@rosenbaum2002attributing] can also be appropriate for binary outcome.
