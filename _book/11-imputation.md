@@ -1,6 +1,6 @@
 # Imputation (Missing Data)
 
-Imputation is a statistical procedure where you replace missing data with *some values*
+Imputation is a statistical procedure where you replace missing data with *some reasonable values*
 
 -   Unit imputation = single data point
 
@@ -163,11 +163,11 @@ c & \text{data are missing}\\
 Interpretation:
 
 -   Coefficient of D is the the difference in the expected value of Y between the group with data and the group without data on X.
--   Coefficient of X\* is the effect of the group with data on Y
+-   Coefficient of $X^*$ is the effect of the group with data on Y
 
 Disadvantages:
 
--   This method yields bias estimates of the coefficient even in the case of MCAR [@Jones_1996]
+-   This method yields biased estimates of the coefficient even in the case of MCAR [@jones1996indicator]
 
 ### Imputation
 
@@ -269,7 +269,7 @@ Two algorithms to get random draws of the regression parameters from its posteri
 -   [Data Augmentation]
 -   Sampling importance/resampling (SIR)
 
-Authors have argued for SIR superiority due to its computer time [@King_2001]
+Authors have argued for SIR superiority due to its computer time [@king2001analyzing]
 
 ###### Data Augmentation
 
@@ -446,7 +446,7 @@ head(data_imp_multi)                            # First 6 rows of our multiply i
 #> 6  NA   4   7   7   6   0 29  -6  5  1
 ```
 
-Example from [UCLA Statistical Consulting](https://stats.idre.ucla.edu/r/faq/how-do-i-perform-multiple-imputation-using-predictive-mean-matching-in-r/) [@newtest]
+Example from [UCLA Statistical Consulting](https://stats.idre.ucla.edu/r/faq/how-do-i-perform-multiple-imputation-using-predictive-mean-matching-in-r/)
 
 
 ```r
@@ -691,7 +691,7 @@ data_inc_pmm$income[data_inc_pmm$income < 0] # No values below 0
 #> numeric(0)
 ```
 
-Proof for heteroskadastic data
+Evidence for heteroskadastic data
 
 
 ```r

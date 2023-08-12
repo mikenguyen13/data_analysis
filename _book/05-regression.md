@@ -1233,7 +1233,7 @@ $$
 T^{-1}\sum_{t=1}^{T}z_t \to^p \mu
 $$
 
-If additional regulatory conditions hold [@Greene_1990], then
+If additional regulatory conditions hold [@greene1990gamma], then
 
 $$
 \sqrt{T}(\bar{z}-\mu) \to^d N(0,B)
@@ -1466,7 +1466,7 @@ where $\hat{Y}_{i(i)}$ is the prediction of the i-th response when the i-th obse
 
 #### Best Subsets Algorithm
 
--   "leap and bounds" algorithm of [@Furnival_1974] combines comparison of SSE for different subset models with control over the sequence in which the subset regression are computed.\
+-   "leap and bounds" algorithm of [@furnival2000regressions] combines comparison of SSE for different subset models with control over the sequence in which the subset regression are computed.\
 -   Guarantees finding the best m subset regressions within each subset size with less computational burden than all possible subsets.
 
 
@@ -1488,7 +1488,7 @@ Note:
 -   Instead of using exact F-values, computer packages usually specify the equivalent "significance" level. For example, SLE is the "significance" level to enter, and SLS is the "significance" level to stay. The SLE and SLS are guides rather than true tests of significance.\
 -   The choice of SLE and SLS represents a balancing of opposing tendencies. Use of large SLE values tends to result in too many predictor variables; models with small SLE tend to be under-specified resulting in $\sigma^2$ being badly overestimated.\
 -   As for choice of SLE, can choose between 0.05 and 0.5.\
--   If SLE \> SLS then a cycling pattern may occur. Although most computer packages can detect can stop when it happens. A quick fix: SLS = SLE /2 [@Bendel_1977].\
+-   If SLE \> SLS then a cycling pattern may occur. Although most computer packages can detect can stop when it happens. A quick fix: SLS = SLE /2 [@bendel1977comparison].\
 -   If SLE \< SLS then the procedure is conservative and may lead variables with low contribution to be retained.\
 -   Order of variable entry does not matter.
 
@@ -2806,7 +2806,7 @@ $$
 
 -   observations are independent and have the same density function.
 
--   Under multivariate normal assumption, ML yields consistent estimates of the means and the covariance matrix for multivariate distribution with finite fourth moments [@Little_1987]
+-   Under multivariate normal assumption, maximum likelihood yields consistent estimates of the means and the covariance matrix for multivariate distribution with finite fourth moments [@little1988test]
 
 To find the MLE, we usually differentiate the **log-likelihood** function and set it equal to 0.
 
@@ -2867,8 +2867,6 @@ $$
 
 ### Properties
 
-[@EJD_1998]
-
 (1) Consistent: estimates are approximately unbiased in large samples
 
 (2) Asymptotically efficient: approximately smaller standard errors compared to other estimator
@@ -2905,7 +2903,7 @@ but just do now know the exact parameter value.
 
 <br>
 
-The asymptotic variance of the MLE achieves the **Cramer-Rao Lower Bound**
+The asymptotic variance of the MLE achieves the **Cramer-Rao Lower Bound** [@cramer1999mathematical, @rao1992information]
 
 -   The **Cramer-Rao Lower Bound** is a lower brand for the asymptotic variance of a consistent and asymptotically normally distributed estimator.\
 -   If an estimator achieves the lower bound then it is the most efficient estimator.

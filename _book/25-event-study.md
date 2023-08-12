@@ -60,6 +60,8 @@ Previous marketing studies:
 
 -   [@wu2015sleeping]: horizontal collaboration in new product development
 
+-   [@fama1969adjustment]: stock split
+
 2.  Non-firm-initiated activities
 
 -   [@sorescu2003]: FDA approvals
@@ -98,6 +100,8 @@ Previous marketing studies:
 
 -   [@malhotra2011evaluating]: data breach
 
+-   [@bhagat1998shareholder]: litigation
+
 Potential avenues:
 
 -   Ad campaigns
@@ -113,6 +117,10 @@ Pros:
 -   Better than accounting based measures (e.g., profits) because managers can manipulate profits [@benston1985validity]
 
 -   Easy to do
+
+Fun fact:
+
+-   [@dubow2006measuring] came up with a way to gauge how 'clean' a market is. They based their measure on how much prices seemed to move in a way that suggested insider knowledge, before the release of important regulatory announcements that could affect the stock prices. Such price shifts might suggest that insider trading was occurring. Essentially, they were watching for any unusual price changes before the day of the announcement.
 
 Events can be
 
@@ -257,23 +265,23 @@ $$
 
 Compustat Data Item
 
-+---------------+--------------------------------+
-| Label         | Variable                       |
-+===============+================================+
-| `prcc_f`      | Share price                    |
-+---------------+--------------------------------+
-| `csho`        | Common shares outstanding      |
-+---------------+--------------------------------+
-| `ivst`        | short-term investments         |
-|               |                                |
-|               | (Non-operating assets)         |
-+---------------+--------------------------------+
-| `dd1`         | long-term debt due in one year |
-+---------------+--------------------------------+
-| `dltt`        | long-term debt                 |
-+---------------+--------------------------------+
-| `pstk`        | preferred stock                |
-+---------------+--------------------------------+
++----------+--------------------------------+
+| Label    | Variable                       |
++==========+================================+
+| `prcc_f` | Share price                    |
++----------+--------------------------------+
+| `csho`   | Common shares outstanding      |
++----------+--------------------------------+
+| `ivst`   | short-term investments         |
+|          |                                |
+|          | (Non-operating assets)         |
++----------+--------------------------------+
+| `dd1`    | long-term debt due in one year |
++----------+--------------------------------+
+| `dltt`   | long-term debt                 |
++----------+--------------------------------+
+| `pstk`   | preferred stock                |
++----------+--------------------------------+
 
 Since WRDS no longer maintains the S&P 500 list as of the time of this writing, I can't replicate the list used in [@skiera2017should] paper.
 
@@ -388,7 +396,7 @@ Assume
 
 -   No cross-correlation in abnormal returns.
 
-Hence, it will be specified if you suspected
+Hence, it will be misspecified if you suspected
 
 -   Heteroskedasticity
 
@@ -440,6 +448,10 @@ where
 
     -   Use `wilcox.test(sample)`
 
+-   Gen SIgn Test
+
+-   Corrado Rank Test
+
 ## Sample
 
 -   Sample can be relative small
@@ -479,6 +491,166 @@ According to [@fornell2006customer], need to control:
     -   Biases can stem from researchers pick and choose events to exclude
 
     -   As time progresses, more and more events you need to exclude which can be infeasible.
+
+To further illustrate this point, let's do a quick simulation exercise
+
+In this example, we will explore three types of events:
+
+1.  Focal events
+
+2.  Correlated events (i.e., events correlated with the focal events; the presence of correlated events can follow the presence of the focal event)
+
+3.  Uncorrelated events (i.e., events with dates that might randomly coincide with the focal events, but are not correlated with them).
+
+We have the ability to control the strength of correlation between focal and correlated events in this study, as well as the number of unrelated events we wish to examine.
+
+Let's examine the implications of including and excluding correlated and uncorrelated events on the estimates of our focal events.
+
+
+```r
+# Load required libraries
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(tidyverse)
+
+# Parameters
+n                  <- 100000         # Number of observations
+n_focal            <- round(n * 0.2) # Number of focal events
+overlap_correlated <- 0.5            # Overlapping percentage between focal and correlated events
+
+# Function to compute mean and confidence interval
+mean_ci <- function(x) {
+    m <- mean(x)
+    ci <- qt(0.975, length(x)-1) * sd(x) / sqrt(length(x)) # 95% confidence interval
+    list(mean = m, lower = m - ci, upper = m + ci)
+}
+
+# Simulate data
+set.seed(42)
+data <- tibble(
+    date       = seq.Date(from = as.Date("2010-01-01"), by = "day", length.out = n), # Date sequence
+    focal      = rep(0, n),
+    correlated = rep(0, n),
+    ab_ret     = rnorm(n)
+)
+
+
+# Define focal events
+focal_idx <- sample(1:n, n_focal)
+data$focal[focal_idx] <- 1
+
+true_effect <- 0.25
+
+# Adjust the ab_ret for the focal events to have a mean of true_effect
+data$ab_ret[focal_idx] <- data$ab_ret[focal_idx] - mean(data$ab_ret[focal_idx]) + true_effect
+
+
+
+# Determine the number of correlated events that overlap with focal and those that don't
+n_correlated_overlap <- round(length(focal_idx) * overlap_correlated)
+n_correlated_non_overlap <- n_correlated_overlap
+
+# Sample the overlapping correlated events from the focal indices
+correlated_idx <- sample(focal_idx, size = n_correlated_overlap)
+
+# Get the remaining indices that are not part of focal
+remaining_idx <- setdiff(1:n, focal_idx)
+
+# Check to ensure that we're not attempting to sample more than the available remaining indices
+if (length(remaining_idx) < n_correlated_non_overlap) {
+    stop("Not enough remaining indices for non-overlapping correlated events")
+}
+
+# Sample the non-overlapping correlated events from the remaining indices
+correlated_non_focal_idx <- sample(remaining_idx, size = n_correlated_non_overlap)
+
+# Combine the two to get all correlated indices
+all_correlated_idx <- c(correlated_idx, correlated_non_focal_idx)
+
+# Set the correlated events in the data
+data$correlated[all_correlated_idx] <- 1
+
+
+# Inflate the effect for correlated events to have a mean of 
+correlated_non_focal_idx <- setdiff(all_correlated_idx, focal_idx) # Fixing the selection of non-focal correlated events
+data$ab_ret[correlated_non_focal_idx] <- data$ab_ret[correlated_non_focal_idx] - mean(data$ab_ret[correlated_non_focal_idx]) + 1
+
+
+# Define the numbers of uncorrelated events for each scenario
+num_uncorrelated <- c(5, 10, 20, 30, 40)
+
+# Define uncorrelated events
+for (num in num_uncorrelated) {
+    for (i in 1:num) {
+        data[paste0("uncorrelated_", i)] <- 0
+        uncorrelated_idx <- sample(1:n, round(n * 0.1))
+        data[uncorrelated_idx, paste0("uncorrelated_", i)] <- 1
+    }
+}
+
+
+# Define uncorrelated columns and scenarios
+unc_cols <- paste0("uncorrelated_", 1:num_uncorrelated)
+results <- tibble(
+    Scenario = c("Include Correlated", "Correlated Effects", "Exclude Correlated", "Exclude Correlated and All Uncorrelated"),
+    MeanEffect = c(
+        mean_ci(data$ab_ret[data$focal == 1])$mean,
+        mean_ci(data$ab_ret[data$focal == 0 | data$correlated == 1])$mean,
+        mean_ci(data$ab_ret[data$focal == 1 & data$correlated == 0])$mean,
+        mean_ci(data$ab_ret[data$focal == 1 & data$correlated == 0 & rowSums(data[, paste0("uncorrelated_", 1:num_uncorrelated)]) == 0])$mean
+    ),
+    LowerCI = c(
+        mean_ci(data$ab_ret[data$focal == 1])$lower,
+        mean_ci(data$ab_ret[data$focal == 0 | data$correlated == 1])$lower,
+        mean_ci(data$ab_ret[data$focal == 1 & data$correlated == 0])$lower,
+        mean_ci(data$ab_ret[data$focal == 1 & data$correlated == 0 & rowSums(data[, paste0("uncorrelated_", 1:num_uncorrelated)]) == 0])$lower
+    ),
+    UpperCI = c(
+        mean_ci(data$ab_ret[data$focal == 1])$upper,
+        mean_ci(data$ab_ret[data$focal == 0 | data$correlated == 1])$upper,
+        mean_ci(data$ab_ret[data$focal == 1 & data$correlated == 0])$upper,
+        mean_ci(data$ab_ret[data$focal == 1 & data$correlated == 0 & rowSums(data[, paste0("uncorrelated_", 1:num_uncorrelated)]) == 0])$upper
+    )
+)
+
+# Add the scenarios for excluding 5, 10, 20, and 50 uncorrelated
+for (num in num_uncorrelated) {
+    unc_cols <- paste0("uncorrelated_", 1:num)
+    results <- results %>%
+        add_row(
+            Scenario = paste("Exclude", num, "Uncorrelated"),
+            MeanEffect = mean_ci(data$ab_ret[data$focal == 1 & data$correlated == 0 & rowSums(data[, unc_cols]) == 0])$mean,
+            LowerCI = mean_ci(data$ab_ret[data$focal == 1 & data$correlated == 0 & rowSums(data[, unc_cols]) == 0])$lower,
+            UpperCI = mean_ci(data$ab_ret[data$focal == 1 & data$correlated == 0 & rowSums(data[, unc_cols]) == 0])$upper
+        )
+}
+
+
+ggplot(results,
+       aes(
+           x = factor(Scenario, levels = Scenario),
+           y = MeanEffect,
+           ymin = LowerCI,
+           ymax = UpperCI
+       )) +
+    geom_pointrange() +
+    coord_flip() +
+    ylab("Mean Effect") +
+    xlab("Scenario") +
+    ggtitle("Mean Effect of Focal Events under Different Scenarios") +
+    geom_hline(yintercept = true_effect,
+               linetype = "dashed",
+               color = "red") 
+```
+
+<img src="25-event-study_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
+
+As depicted in the plot, the inclusion of correlated events demonstrates minimal impact on the estimation of our focal events. Conversely, excluding these correlated events can diminish our statistical power. This is true in cases of pronounced correlation.
+
+However, the consequences of excluding unrelated events are notably more significant. It becomes evident that by omitting around 40 unrelated events from our study, we lose the ability to accurately identify the true effects of the focal events. In reality and within research, we often rely on the Key Developments database, excluding over 150 events, a practice that can substantially impair our capacity to ascertain the authentic impact of the focal events.
+
+This little experiment really drives home the point -- you better have a darn good reason to exclude an event from your study (make it super convincing)!
 
 ## Biases
 
@@ -520,7 +692,9 @@ According to [@fornell2006customer], need to control:
 
 -   Two main approaches are used to measure long-term abnormal stock returns
 
-    -   [Buy and Hold Abnormal Returns (BHAR)]
+    -   [Buy and Hold Abnormal Returns (BHAR)](#buy-and-hold-abnormal-returns-bhar)
+
+    -   [Long-term Cumulative Abnormal Returns (LCARs)](#long-term-cumulative-abnormal-returns-lcars)
 
     -   [Calendar-time Portfolio Abnormal Returns (CTARs)](#calendar-time-portfolio-abnormal-returns-ctars) (Jensen's Alpha): manages cross-sectional dependence better and is less sensitive to (asset pricing) model misspecification
 
@@ -532,7 +706,7 @@ According to [@fornell2006customer], need to control:
 
 -   12 - 60 months event window: [@loughran1995new] [@brav1997myth]
 
--   Exemple: [@dutta2018robust]
+-   Example: [@dutta2018robust]
 
 
 ```r
@@ -548,13 +722,14 @@ mean(SAR)
 #> [1] 0.006870196
 ```
 
-### Buy and Hold Abnormal Returns (BHAR)
+### Buy and Hold Abnormal Returns (BHAR) {#buy-and-hold-abnormal-returns-bhar}
 
 -   Classic references: [@loughran1995new] [@barber1997firm] [@lyon1999improved]
 
 Use a portfolio of stocks that are close matches of the current firm over the same period as benchmark, and see the difference between the firm return and that of the portfolio.
 
 -   More technical note is that it measures returns from buying stocks in event-experiencing firms and shorting stocks in similar non-event firms within the same time.
+-   Because of high cross-sectional correlations, BHARs' t-stat can be inflated, but its rank order is not affected [@markovitch2008findings; @sorescu2007some]
 
 To construct the portfolio, use similar
 
@@ -569,6 +744,11 @@ Matching Procedure [@barber1997firm]:
 2.  Within these deciles, firms are further sorted into five groups (quintiles) based on their book-to-market ratios as of December of the previous year or earlier, considering possible delays in financial statement reporting.
 
 3.  Benchmark portfolios are designed to exclude firms with specific events but include all firms that can be classified into the characteristic-based portfolios.
+
+Similarly, @wiles2010stock uses the following matching procedure:
+
+1.  All firms in the same two-digit SIC code with market values of 50% to 150% of the focal firms are selected
+2.  From this list, the 10 firms with the most comparable book-to-market ratios are chosen to serve as the matched portfolio (the matched portfolio can have less than 10 firms).
 
 Calculations:
 
@@ -594,7 +774,7 @@ where as CAR is the arithmetic sum, BHAR is the geometric sum.
 
 To calculate the long-run return ($\Pi_{t=1}^T (1 + E(R_{it}))$) of the benchmark portfolio, we can:
 
-1.  In each period, each portfolio is re-balanced and then compound mean stock returns in a portfolio over a given period:
+1.  **With annual rebalance**: In each period, each portfolio is re-balanced and then compound mean stock returns in a portfolio over a given period:
 
 $$
 \Pi_{t = 1}^T (1 + E(R_{it})) = \Pi_{t}^T (1 + \sum_{i = s}^{n_t}w_{it} R_{it})
@@ -602,9 +782,51 @@ $$
 
 where $n_t$ is the number of firms in period $t$, and $w_{it}$ is (1) $1/n_t$ or (2) value-weight of firm $i$ in period $t$.
 
-To avoid the situaiton in which recent observaitons are over weighted comapred to early obseravatiosn, cross-secitonal even study usually takes equal-weight apporach, unless the inflaiton and stock market coditions can be jointly adjusted over a long horizon
+To avoid favoring recent events, in cross-sectional event studies, researchers usually treat all events equally when studying their impact on the stock market over time. This approach helps identify any abnormal changes in stock prices, especially when dealing with a series of unplanned events.
 
-Because of high cross-sectional correlations, BHARs' t-stat can be inflated, but its rank order is not affected [@markovitch2008findings; @sorescu2007some]
+Potential problems:
+
+-   Solution first: Form benchmark portfolios that will never change constituent firms [@mitchell2000managerial], because of these problems:
+
+    -   Newly public companies often perform worse than a balanced market index [@ritter1991long], and this, over time, might distort long-term return expectations due to the inclusion of these new companies (a phenomenon called "new listing bias" identified by @barber1997firm).
+
+    -   Regularly rebalancing an equal-weight portfolio can lead to overestimated long-term returns and potentially skew buy-and-hold abnormal returns (BHARs) negatively due to constant selling of winning stocks and buying of underperformers (i.e., "rebalancing bias" [@barber1997firm]).
+
+    -   Value-weight portfolios, which favor larger market cap stocks, can be viewed as an active investment strategy that keeps buying winning stocks and selling underperformers. Over time, this approach tends to positively distort BHARs.
+
+2.  **Without annual rebalance**: Compounding the returns of the securities comprising the portfolio, followed by calculating the average across all securities
+
+$$
+\Pi_{t = s}^{T} (1 + E(R_{it})) = \sum_{i=s}^{n_t} (w_{is} \Pi_{t=1}^T (1 + R_{it}))
+$$
+
+where $t$ is the investment period, $R_{it}$ is the return on security $i$, $n_i$ is the number of securities, $w_{it}$ is either $1/n_s$ or value-weight factor of security $i$ at initial period $s$. This portfolio's profits come from a simple investment where all the included stocks are given equal importance, or weighted according to their market value, as they were in a specific past period (period s). This means that it doesn't consider any stocks that were listed after this period, nor does it adjust the portfolio each month. However, one problem with this method is that the value assigned to each stock, based on its market size, needs to be corrected. This is to make sure that recent stocks don't end up having too much influence.
+
+Fortunately, on [WRDS](https://wrds-www.wharton.upenn.edu/pages/get-data/event-study-wrds/long-run-event-study-upload-you-own-events/), it will give you all types of BHAR (2x2) (equal-weighted vs. value-weighted and with annual rebalance and without annual rebalance)
+
+-   "MINWIN" is the smallest number of months a company trades after an event to be included in the study.
+
+<!-- -->
+
+-   "MAXWIN" is the most months that the study considers in its calculations.
+
+    -   Companies aren't excluded if they have less than MAXWIN months, unless they also have fewer than MINWIN months.
+
+-   The term "MONTH" signifies chosen months (typically 12, 24, or 36) used to work out BHAR.
+
+    -   If monthly returns are missing during the set period, matching portfolio returns fill in the gaps.
+
+### Long-term Cumulative Abnormal Returns (LCARs) {#long-term-cumulative-abnormal-returns-lcars}
+
+Formula for LCARs during the $(1,T)$ postevent horizon [@sorescu2007some]
+
+$$
+LCAR_{pT} = \sum_{t = 1}^{t = T} (R_{it} - R_{pt})
+$$
+
+where $R_{it}$ is the rate of return of stock $i$ in month $t$
+
+$R_{pt}$ is the rate of return on the counterfactual portfolio in month $t$
 
 ### Calendar-time Portfolio Abnormal Returns (CTARs) {#calendar-time-portfolio-abnormal-returns-ctars data-link="Portfolio method"}
 
@@ -972,7 +1194,7 @@ hh; plot(hh)
 #> 2     GNT    4.437 8.888   0.499   0.618
 ```
 
-<img src="25-event-study_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-event-study_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
 
 Example by [Ana Julia Akaishi Padula, Pedro Albuquerque (posted on LAMFO)](https://lamfo-unb.github.io/2017/08/17/Teste-de-Eventos-en/)
 
@@ -1071,19 +1293,19 @@ TWTR <- Quandl("NSE/OIL",type ="xts")
 candleChart(TWTR)
 ```
 
-<img src="25-event-study_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-event-study_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 addSMA(col="red") #Adding a Simple Moving Average
 ```
 
-<img src="25-event-study_files/figure-html/unnamed-chunk-7-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-event-study_files/figure-html/unnamed-chunk-8-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 addEMA() #Adding an Exponential Moving Average
 ```
 
-<img src="25-event-study_files/figure-html/unnamed-chunk-7-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-event-study_files/figure-html/unnamed-chunk-8-3.png" width="90%" style="display: block; margin: auto;" />
 
 
 

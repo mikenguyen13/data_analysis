@@ -45,7 +45,7 @@ compare models with different non-nested specifications
 
 #### Independent Variable
 
-should the independent variables be logged? decide between non-nested alternatives
+Should the independent variables be logged? (decide between non-nested alternatives)
 
 $$
 \begin{aligned}
@@ -160,7 +160,11 @@ However, [Breusch-Pagan test] cannot detect heteroskedasticity in non-linear for
 test heteroskedasticity would allow for a non-linear relationship by computing the F-test of total significance for the following model (assume there are three independent random variables)
 
 $$
-e_i^2=\gamma_0 + x_i \gamma_1 + x_{i2}\gamma_2 + x_{i3}\gamma_3 + x_{i1}^2\gamma_4 + x_{i2}^2\gamma_5 + x_{i3}^2\gamma_6 + (x_{i1} \times x_{i2})\gamma_7 + (x_{i1} \times x_{i3})\gamma_8 + (x_{i2} \times x_{i3})\gamma_9 + error
+\begin{aligned}
+e_i^2 &= \gamma_0 + x_i \gamma_1 + x_{i2}\gamma_2 + x_{i3}\gamma_3 \\
+&+ x_{i1}^2\gamma_4 + x_{i2}^2\gamma_5 + x_{i3}^2\gamma_6 \\
+&+ (x_{i1} \times x_{i2})\gamma_7 + (x_{i1} \times x_{i3})\gamma_8 + (x_{i2} \times x_{i3})\gamma_9 + error
+\end{aligned}
 $$
 
 A low p-value means we reject the null of homoskedasticity
@@ -168,4 +172,3 @@ A low p-value means we reject the null of homoskedasticity
 Equivalently, we can compute [LM][Lagrange Multiplier (Score)] as $LM = nR^2_{e^2}$ where the $R^2_{e^2}$ come from the regression with the squared residual as the outcome
 
 -   The [LM][Lagrange Multiplier (Score)] statistic has a [$\chi_k^2$][Chi-squared] distribution
-

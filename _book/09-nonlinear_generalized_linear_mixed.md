@@ -9,7 +9,7 @@ $$
 Y_{ij} = f(\mathbf{x_{ij} , \theta, \alpha_i}) + \epsilon_{ij}
 $$
 
-for the j-th response from cluster (or sujbect) i ($i = 1,...,n$), where
+for the j-th response from cluster (or subject) i ($i = 1,...,n$), where
 
 -   $j = 1,...,n_i$
 -   $\mathbf{\theta}$ are the fixed effects
@@ -207,7 +207,7 @@ Comments:
 
 -   Inference is only asymptotically correct due to the linearizaton
 
--   Biased estimates are likely for binomial response with small groups and worst for Bernoulli response. Similarly for Poisson models with small counts. [@Faraway_2016]
+-   Biased estimates are likely for binomial response with small groups and worst for Bernoulli response. Similarly for Poisson models with small counts. [@faraway2016extending]
 
 -   Hypothesis testing and confidence intervals also have problems.
 
@@ -280,7 +280,7 @@ X_{ijp}
 \right)
 $$
 
-Let $\mathbf{V}_i = cov(\mathbf{y}_i)$, then based on[@liang1986] GEE estimates for $\beta$ can be obtained from solving the equation:
+Let $\mathbf{V}_i = cov(\mathbf{y}_i)$, then based on[@liang1986longitudinal] GEE estimates for $\beta$ can be obtained from solving the equation:
 
 $$
 S(\beta) = \sum_{i=1}^K \frac{\partial \mathbf{\mu}_i'}{\partial \beta} \mathbf{V}^{-1}(\mathbf{y}_i - \mathbf{\mu}_i) = 0
@@ -338,7 +338,7 @@ Implementation Issues:
 
     3.  Monte Carlo integration
 
-2.  Approximate the model (based on Taylor series linearizations)
+2.  Approximate the model (based on Taylor series linearization)
 
 <br>
 
@@ -757,7 +757,7 @@ c(Deviance = round(summary(owls_glmerNB)$AICtab["deviance"], 3),
 #>          3483.616           593.000
 ```
 
-There is an improvement using negative binomial considering overdispersion
+There is an improvement using negative binomial considering over-dispersion
 
 
 ```r

@@ -51,7 +51,7 @@ $$
 
 is all measurements for subject i.
 
-[*Stage 1: (Regression Model)*]{.ul} how the response changes over time for the ith subject
+[*Stage 1: (Regression Model)*]{.underline} how the response changes over time for the i-th subject
 
 $$
 \mathbf{Y_i = Z_i \beta_i + \epsilon_i}
@@ -65,7 +65,7 @@ where
 
 We notice that there are two many $\beta$ to estimate here. Hence, this is the motivation for the second stage
 
-[*Stage 2: (Parameter Model)*]{.ul}
+[*Stage 2: (Parameter Model)*]{.underline}
 
 $$
 \mathbf{\beta_i = K_i \beta + b_i}
@@ -187,7 +187,7 @@ However, problems arise from this method:
 -   we need to account for variability when replacing $\beta_i$ with its estimate
 -   different subjects might have different number of observations.
 
-To address these problems, we can use **Linear Mixed Model [@Laird_1982]**
+To address these problems, we can use **Linear Mixed Model** [@laird1982random]
 
 Substituting stage 2 into stage 1:
 
@@ -544,14 +544,14 @@ where $\beta, \mathbf{b}_i, \mathbf{D}, \mathbf{\Sigma}_i$ we must obtain estima
 If we have
 
 -   $\hat{\beta}$ as an estimator of $\beta$
--   $\mathbf{b}_i$ as a predictor of $\mathbf{b}_i$
+-   $\hat{\mathbf{b}}_i$ as a predictor of $\mathbf{b}_i$
 
 Then,
 
 -   The population average estimate of $\mathbf{Y}_i$ is $\hat{\mathbf{Y}_i} = \mathbf{X}_i \hat{\beta}$
 -   The subject-specific prediction is $\hat{\mathbf{Y}_i} = \mathbf{X}_i \hat{\beta} + \mathbf{Z}_i \hat{b}_i$
 
-According to [@Henderson_1950], estimating equations known as the mixed model equations:
+According to [@henderson1975best], estimating equations known as the mixed model equations:
 
 $$
 \left[
@@ -1115,7 +1115,7 @@ Note:
 
 ### Corrected AIC (AICC)
 
--   developed by [@HURVICH_1989]
+-   developed by [@hurvich1989regression]
 -   correct small-sample adjustment
 -   depends on the candidate model class
 -   Only if you have fixed covariance structure, then AICC is justified, but not general covariance structure
@@ -1603,10 +1603,12 @@ pulp %>% dplyr::group_by(operator) %>% dplyr::summarise(average = mean(bright))
 
 ```r
 library(lme4)
-mixed_model <- lmer(formula = bright ~ 1 + (1 | operator), # pipe (i..e, | ) denotes random-effect terms
-                    data = pulp)
+mixed_model <-
+    lmer(formula = bright ~ 1 + (1 | operator), # pipe (i..e, | ) denotes random-effect terms
+         data = pulp)
 summary(mixed_model)
-#> Linear mixed model fit by REML ['lmerMod']
+#> Linear mixed model fit by REML. t-tests use Satterthwaite's method [
+#> lmerModLmerTest]
 #> Formula: bright ~ 1 + (1 | operator)
 #>    Data: pulp
 #> 
@@ -1623,8 +1625,10 @@ summary(mixed_model)
 #> Number of obs: 20, groups:  operator, 4
 #> 
 #> Fixed effects:
-#>             Estimate Std. Error t value
-#> (Intercept)  60.4000     0.1494   404.2
+#>             Estimate Std. Error      df t value Pr(>|t|)    
+#> (Intercept)  60.4000     0.1494  3.0000   404.2 3.34e-08 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 coef(mixed_model)
 #> $operator
 #>   (Intercept)
@@ -1657,7 +1661,7 @@ VarCorr(mixed_model) # random effects standard deviation
 #>  operator (Intercept) 0.26093 
 #>  Residual             0.32596
 re_dat = as.data.frame(VarCorr(mixed_model))
-rho = re_dat[1,'vcov']/(re_dat[1,'vcov'] + re_dat[2,'vcov']) # rho based on the above formula
+rho = re_dat[1, 'vcov'] / (re_dat[1, 'vcov'] + re_dat[2, 'vcov']) # rho based on the above formula
 rho
 #> [1] 0.3905354
 ```
@@ -1889,14 +1893,14 @@ library(latticeExtra)
 dat <- harris.wateruse
 # Compare to Schabenberger & Pierce, fig 7.23
 useOuterStrips(
-  xyplot(
-    water ~ day | species * age,
-    dat,
-    as.table = TRUE,
-    group = tree,
-    type = c('p', 'smooth'),
-    main = "harris.wateruse 2 species, 2 ages (10 trees each)"
-  )
+    xyplot(
+        water ~ day | species * age,
+        dat,
+        as.table = TRUE,
+        group = tree,
+        type = c('p', 'smooth'),
+        main = "harris.wateruse 2 species, 2 ages (10 trees each)"
+    )
 )
 ```
 
@@ -1914,13 +1918,13 @@ Plot between age and species
 
 ```r
 xyplot(
-  water ~ day | tree,
-  dat,
-  subset = age == "A2" & species == "S2",
-  as.table = TRUE,
-  type = c('p', 'smooth'),
-  ylab = "Water use profiles of individual trees",
-  main = "harris.wateruse (Age 2, Species 2)"
+    water ~ day | tree,
+    dat,
+    subset = age == "A2" & species == "S2",
+    as.table = TRUE,
+    type = c('p', 'smooth'),
+    ylab = "Water use profiles of individual trees",
+    main = "harris.wateruse (Age 2, Species 2)"
 )
 ```
 
@@ -2000,7 +2004,11 @@ summary(m1n)
 
 
 ```r
-m1lmer <- lmer(water~1+ti+ti2+(ti+ti2||tree),data = d22,na.action = na.omit)
+m1lmer <-
+    lmer(water ~ 1 + ti + ti2 + (ti + ti2 ||
+                                     tree),
+         data = d22,
+         na.action = na.omit)
 ranef(m1lmer)
 #> $tree
 #>     (Intercept) ti ti2
@@ -2033,7 +2041,9 @@ Notes:
 fixef(m1lmer)
 #> (Intercept)          ti         ti2 
 #>  -10.798799   12.346704   -2.838503
-m1l <- lmer(water ~ 1 + ti + ti2 + (1 | tree) + (0 + ti | tree) + (0 + ti2 | tree), data = d22)
+m1l <-
+    lmer(water ~ 1 + ti + ti2 + (1 |
+                                     tree) + (0 + ti | tree) + (0 + ti2 | tree), data = d22)
 ranef(m1l)
 #> $tree
 #>     (Intercept) ti ti2
@@ -2113,4 +2123,3 @@ summary(m2n)
 #> Number of Observations: 239
 #> Number of Groups: 10
 ```
-

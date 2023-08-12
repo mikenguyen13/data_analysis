@@ -122,7 +122,7 @@ $$
 H_0: \mathbf{L}\hat{\beta} = 0 
 $$
 
-where $\mathbf{L}$ is a q x p matrix with q linearly independent rows. Then
+where $\mathbf{L}$ is a $q \times p$ matrix with $q$ linearly independent rows. Then
 
 $$
 W = (\mathbf{L\hat{\beta}})'(\mathbf{L[I(\hat{\beta})]^{-1}L'})^{-1}(\mathbf{L\hat{\beta}})
@@ -311,27 +311,29 @@ plot_bin <- function(Y,
                      X,
                      bins = 100,
                      return.DF = FALSE) {
-  Y_Name <- deparse(substitute(Y))
-  X_Name <- deparse(substitute(X))
-  Binned_Plot <- data.frame(Plot_Y = Y, Plot_X = X)
-  Binned_Plot$bin <-
-    cut(Binned_Plot$Plot_X, breaks = bins) %>% as.numeric
-  Binned_Plot_summary <- Binned_Plot %>%
-    group_by(bin) %>%
-    summarise(
-      Y_ave = mean(Plot_Y),
-      X_ave = mean(Plot_X),
-      Count = n()
-    ) %>% as.data.frame
-  plot(
-    y = Binned_Plot_summary$Y_ave,
-    x = Binned_Plot_summary$X_ave,
-    ylab = Y_Name,
-    xlab = X_Name
-  )
-  if (return.DF)
-    return(Binned_Plot_summary)
+    Y_Name <- deparse(substitute(Y))
+    X_Name <- deparse(substitute(X))
+    Binned_Plot <- data.frame(Plot_Y = Y, Plot_X = X)
+    Binned_Plot$bin <-
+        cut(Binned_Plot$Plot_X, breaks = bins) %>% as.numeric
+    Binned_Plot_summary <- Binned_Plot %>%
+        group_by(bin) %>%
+        summarise(
+            Y_ave = mean(Plot_Y),
+            X_ave = mean(Plot_X),
+            Count = n()
+        ) %>% as.data.frame
+    plot(
+        y = Binned_Plot_summary$Y_ave,
+        x = Binned_Plot_summary$X_ave,
+        ylab = Y_Name,
+        xlab = X_Name
+    )
+    if (return.DF)
+        return(Binned_Plot_summary)
 }
+
+
 plot_bin(Y = Logistic_Resids,
          X = BinData$X,
          bins = 100)
@@ -901,22 +903,23 @@ visualize the political strength variable
 ```r
 library(ggplot2)
 Plot_DF <- nes96 %>%
-  mutate(Age_Grp = cut_number(age, 4)) %>%
-  group_by(Age_Grp, Political_Strength) %>%
-  summarise(count = n()) %>%
-  group_by(Age_Grp) %>%
-  mutate(etotal = sum(count), proportion = count / etotal)
+    mutate(Age_Grp = cut_number(age, 4)) %>%
+    group_by(Age_Grp, Political_Strength) %>%
+    summarise(count = n()) %>%
+    group_by(Age_Grp) %>%
+    mutate(etotal = sum(count), proportion = count / etotal)
+
 Age_Plot <- ggplot(
-  Plot_DF,
-  aes(
-    x = Age_Grp,
-    y = proportion,
-    group = Political_Strength,
-    linetype = Political_Strength,
-    color = Political_Strength
-  )
+    Plot_DF,
+    aes(
+        x        = Age_Grp,
+        y        = proportion,
+        group    = Political_Strength,
+        linetype = Political_Strength,
+        color    = Political_Strength
+    )
 ) +
-  geom_line(size = 2)
+    geom_line(size = 2)
 Age_Plot
 ```
 
@@ -998,26 +1001,29 @@ Preds <-
     object = Multinomial_Step,
     PlotData, type = "probs"
   )))
+
 plot(
-  x = Preds$age,
-  y = Preds$Neutral,
-  type = "l",
-  ylim = c(0.2, 0.6),
-  col = "black",
-  ylab = "Proportion",
-  xlab = "Age"
+  x       = Preds$age,
+  y       = Preds$Neutral,
+  type    = "l",
+  ylim    = c(0.2, 0.6),
+  col     = "black",
+  ylab    = "Proportion",
+  xlab    = "Age"
 )
-lines(x = Preds$age,
-      y = Preds$Weak,
+
+lines(x   = Preds$age,
+      y   = Preds$Weak,
       col = "blue")
-lines(x = Preds$age,
-      y = Preds$Strong,
+lines(x   = Preds$age,
+      y   = Preds$Strong,
       col = "red")
+
 legend(
   'topleft',
-  legend = c('Neutral', 'Weak', 'Strong'),
-  col = c('black', 'blue', 'red'),
-  lty = 1
+  legend  = c('Neutral', 'Weak', 'Strong'),
+  col     = c('black', 'blue', 'red'),
+  lty     = 1
 )
 ```
 
@@ -1046,14 +1052,16 @@ dat <- agridat::streibig.competition
 # Consider only the mono-species barley data (no competition from Sinapis)
 gammaDat <- subset(dat, sseeds < 1)
 gammaDat <-
-  transform(gammaDat,
-            x = bseeds,
-            y = bdwt,
-            block = factor(block))
+    transform(gammaDat,
+              x = bseeds,
+              y = bdwt,
+              block = factor(block))
 # Inverse yield looks like it will be a good fit for Gamma's inverse link
-ggplot(gammaDat, aes(x = x, y = 1 / y)) + geom_point(aes(color = block, shape =
-                                                           block)) +
-  xlab('Seeding Rate') + ylab('Inverse yield') + ggtitle('Streibig Competion - Barley only')
+ggplot(gammaDat, aes(x = x, y = 1 / y)) + 
+    geom_point(aes(color = block, shape = block)) +
+    xlab('Seeding Rate') + 
+    ylab('Inverse yield') + 
+    ggtitle('Streibig Competion - Barley only')
 ```
 
 <img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-33-1.png" width="90%" style="display: block; margin: auto;" />
@@ -1074,7 +1082,10 @@ The linear predictor is a quadratic model fit to each of the j-th blocks. A diff
 
 ```r
 # linear predictor is quadratic, with separate intercept and slope per block
-m1 <- glm(y ~ block + block*x + block*I(x^2), data=gammaDat,family=Gamma(link="inverse"))
+m1 <-
+    glm(y ~ block + block * x + block * I(x ^ 2),
+        data = gammaDat,
+        family = Gamma(link = "inverse"))
 summary(m1)
 #> 
 #> Call:
@@ -1117,9 +1128,10 @@ newdf <-
 
 newdf$pred <- predict(m1, new = newdf, type = 'response')
 
-ggplot(gammaDat, aes(x = x, y = y)) + geom_point(aes(color = block, shape =
-                                                         block)) +
-    xlab('Seeding Rate') + ylab('Inverse yield') + ggtitle('Streibig Competion - Barley only Predictions') +
+ggplot(gammaDat, aes(x = x, y = y)) + 
+    geom_point(aes(color = block, shape = block)) +
+    xlab('Seeding Rate') + ylab('Inverse yield') + 
+    ggtitle('Streibig Competion - Barley only Predictions') +
     geom_line(data = newdf, aes(
         x = x,
         y = pred,
@@ -1132,7 +1144,7 @@ ggplot(gammaDat, aes(x = x, y = y)) + geom_point(aes(color = block, shape =
 
 ## Generalization
 
-We can see that Poisson regression looks similar to logistic regression. Hence, we can generalize to a class of modeling. Thanks to [@Nelder_1972], we have the **generalized linear models** (GLMs). Estimation is generalize in these models.
+We can see that Poisson regression looks similar to logistic regression. Hence, we can generalize to a class of modeling. Thanks to @nelder1972generalized, we have the **generalized linear models** (GLMs). Estimation is generalize in these models.
 
 **Exponential Family**\
 The theory of GLMs is developed for data with distribution given y the **exponential family**.\
@@ -1679,10 +1691,6 @@ Wald test is easier to implement, but likelihood ratio test is better (especiall
 
 <br>
 
-**Example**:
-
-<br>
-
 **Normal**
 
 We have
@@ -1876,7 +1884,7 @@ $$
 ### Over-Dispersion
 
 | Random Components | $var(Y)$                  | $V(\mu)$                                     |
-|------------------------|------------------------------|--------------------------------------|
+|-------------------|------------------------|------------------------------|
 | Binomial          | $var(Y) = n \mu (1- \mu)$ | $V(\mu) = \phi n \mu(1- \mu)$ where $m_i =n$ |
 | Poisson           | $var(Y) = \mu$            | $V(\mu) = \phi \mu$                          |
 

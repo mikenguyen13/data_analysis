@@ -3,7 +3,7 @@
 -   Randomized Control Trials (RCT) or Experiments have always been and are likely to continue in the future to be the holy grail of causal inference, because of
     -   unbiased estimates
 
-    -   elimination of confounding factors on average (covariate imbalance is always possible. Hence, you want to do [Rerandomization] to achieve platinum standard set by [@tukey1993])
+    -   elimination of confounding factors on average (covariate imbalance is always possible. Hence, you want to do [Rerandomization] to achieve platinum standard set by [@tukey1993tightening])
 -   RCT means you have two group treatment (or experimental) gorp and control group. Hence, as you introduce the treatment (your exogenous variable) to the treatment group, the only expected difference in the outcomes of the two group should be due to the treatment.
 -   Subjects from the same population will be **randomly assigned** to either treatment or control group. This random assignment give us the confidence that changes in the outcome variable will be due only the treatment, not any other source (variable).
 -   It can be easier for hard science to have RCT because they can introduce the treatment, and have control environments. But it's hard for social scientists because their subjects are usually human, and some treatment can be hard to introduce, or environments are uncontrollable. Hence, social scientists have to develop different tools ([Quasi-experimental]) to recover causal inference or to recreate the treatment and control group environment.
@@ -113,17 +113,11 @@ $$
 Y_i = \alpha + \rho D_i + X_i'\gamma + \eta_i
 $$
 
-Examples in marketing:
-
--   [@gordon2019]
-
--   [@lewis2015]
-
 <br>
 
 ## Semi-random Experiment
 
-Chicago Open Enrollment Program [@cullen2005]
+Chicago Open Enrollment Program [@cullen2005impact]
 
 -   Students can apply to "choice" schools
 
@@ -264,7 +258,7 @@ Including $(X_i \theta)$ just shifts around control variables (i.e., reweighting
 
 -   Since randomization only balances baseline covariates on average, imbalance in covairates due to random chance can still happen.
 
--   In case that you have a "bad" randomization (i.e., imbalance for important baseline covariates), [@morgan2012] introduce the idea of rerandomization.
+-   In case that you have a "bad" randomization (i.e., imbalance for important baseline covariates), [@morgan2012rerandomization] introduce the idea of rerandomization.
 
 -   Rerandomization is checking balance during the randomization process (before the experiment), to eliminate bad allocation (i.e., those with unacceptable balance).
 
@@ -282,11 +276,11 @@ Including $(X_i \theta)$ just shifts around control variables (i.e., reweighting
 
 -   Alternatives include
 
-    -   Stratified randomization [@johansson2022]
+    -   Stratified randomization [@johansson2022rerandomization]
 
-    -   Matched randomization [@greevy2004; @kapelner2014]
+    -   Matched randomization [@greevy2004optimal; @kapelner2014matching]
 
-    -   Minimization [@pocock1975; @correcti1976]
+    -   Minimization [@pocock1975sequential]
 
 [![Figure from USC Schaeffer Center](images/The-Randomization-Procedure.png "Figure from USC Schaeffer Center")](https://healthpolicy.usc.edu/evidence-base/rerandomization-what-is-it-and-why-should-you-use-it-for-random-assignment/)
 
@@ -319,4 +313,4 @@ With large sample size and "pure" randomization $M \sim \chi^2_k$ where $k$ is t
 
 Then let $p_a$ be the probability of accepting a randomization. Choosing appropriate $p_a$ is a tradeoff between balance and time.
 
-Then the rule of thumb is rerandomize when $M > a$
+Then the rule of thumb is re-randomize when $M > a$

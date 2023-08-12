@@ -26,9 +26,8 @@ Power: The probability of rejecting the null hypothesis when it is actually fals
         \beta_j = \mathbf{b} \frac{s_{x_j}}{s_y}
         $$
 
-<!-- -->
-
 -   Assuming the null hypothesis is true, what is the (asymptotic) distribution of the estimator
+
 -   Two-sided
 
 $$
@@ -463,3 +462,12 @@ $$
 where v is the degree of freedom.
 
 Compare the slope of the log-likelihood of the sample estimate in relation to the slope of the log-likelihood of the hypothesized population parameter
+
+## Two One-Sided Tests (TOST) Equivalence Testing
+
+This is a good way to test whether your population effect size is within a range of practical interest (e.g., if the effect size is 0).
+
+
+```r
+library(TOSTER)
+```

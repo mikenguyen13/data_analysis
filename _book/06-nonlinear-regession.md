@@ -350,7 +350,7 @@ $$
     $$
     |\hat{\theta}^{(j+1)}-\hat{\theta}^{(j)}| < \gamma_2
     $$
-3.  "residual projection" criterion of [@Bates_1981]
+3.  "residual projection" criterion of [@bates1981relative]
 
 ### Alternative of Gauss-Newton Algorithm
 
@@ -411,8 +411,8 @@ $$
 
 where
 
--   $\mathbf{A}_j$ is a positive definite matrix\
--   $\alpha_j$ is the learning rate\
+-   $\mathbf{A}_j$ is a positive definite matrix
+-   $\alpha_j$ is the learning rate
 -   $\frac{\partial Q(\hat{\theta}^{(j)})}{\partial \theta}$is the gradient based on some objective function Q (a function of $\theta$), which is typically the SSE in nonlinear regression applications (e.g., cross-entropy for classification).
 
 Refer back to the **Modified Gauss-Newton Algorithm**, we can see it is in this form
@@ -431,7 +431,7 @@ $$
 \hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} - \alpha_j \mathbf{I}_{p \times p}\frac{\partial \mathbf{Q}(\hat{\theta}^{(j)})}{\partial \theta}
 $$
 
--   slow to converge, moves rapidly initially.\
+-   slow to converge, moves rapidly initially.
 -   could be use for starting values
 
 #### Levenberg -Marquardt
@@ -459,7 +459,7 @@ $$
 $$
 
 which contains the same term that [Gauss-Newton Algorithm], combined with one containing the second partial derivatives of f(). (methods that require the second derivatives of the objective function are known as "second-order methods".)\
-However, the last term $\frac{\partial^2f(x_i;\theta)}{\partial \theta \partial \theta'}$ can sometimes be nonsingular.
+However, the last term $\frac{\partial^2f(x_i;\theta)}{\partial \theta \partial \theta'}$ can sometimes be non-singular.
 
 #### Quasi-Newton
 
@@ -472,15 +472,15 @@ $$
 where $H_j$ is a symmetric positive definite approximation to the Hessian, which gets closer as $j \to \infty$.
 
 -   $\mathbf{H}_j$ is computed iteratively\
--   AMong first-order methods(where only first derivatives are required), this method performs best.
+-   Among first-order methods (where only first derivatives are required), this method performs best.
 
 #### Derivative Free Methods
 
--   **secant Method**: like [Gauss-Newton Algorithm], but calculates the derivatives numerically from past iterations.\
--   **Simplex Methods**\
--   **Genetic Algorithm**\
--   **Differential Evolution Algorithms**\
--   **Particle Swarm Optimization**\
+-   **secant Method**: like [Gauss-Newton Algorithm], but calculates the derivatives numerically from past iterations.
+-   **Simplex Methods**
+-   **Genetic Algorithm**
+-   **Differential Evolution Algorithms**
+-   **Particle Swarm Optimization**
 -   **Ant Colony Optimization**
 
 ### Practical Considerations
@@ -489,21 +489,21 @@ To converge, algorithm need good initial estimates.
 
 -   Starting values:
 
-    -   Prior or theoretical info\
-    -   A grid search or a graph of $SSE(\theta)$\
-    -   could also use OLS to get starting values.\
-    -   Model interpretation: if you have some idea regarding the form of the objective function, then you can try to guess the initial value.\
-    -   Expected Value Parameterization\
+    -   Prior or theoretical info
+    -   A grid search or a graph of $SSE(\theta)$
+    -   could also use OLS to get starting values.
+    -   Model interpretation: if you have some idea regarding the form of the objective function, then you can try to guess the initial value.
+    -   Expected Value Parameterization
 
 -   Constrained Parameters: (constraints on parameters like $\theta_i>a,a< \theta_i <b$)
 
     -   fit the model first to see if the converged parameter estimates satisfy the constraints.
-    -   if they dont' satisfy, then try re-parameterizing
+    -   if they don't satisfy, then try re-parameterizing
 
 #### Failure to converge
 
--   $SSE(\theta)$ may be "flat" in a neighborhood of the minimum.\
--   You can try different or "better" starting values.\
+-   $SSE(\theta)$ may be "flat" in a neighborhood of the minimum.
+-   You can try different or "better" starting values.
 -   Might suggest the model is too complex for the data, might consider simpler model.
 
 #### Convergence to a Local Minimum
@@ -701,7 +701,7 @@ lines(time, predict(logisticModel), col = "red")
 
 <img src="06-nonlinear-regession_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
 
-If can also define your own self-starting fucntion if your models are uncommon (built in `nls`)
+If can also define your own self-starting function if your models are uncommon (built in `nls`)
 
 Example is based on [@Schabenberger_2001]
 
@@ -918,7 +918,6 @@ We can implement this in the following function:
 
 
 ```r
-
 nonlinModelF <- function(predictor,soildep,b01,b11,a1,d0,d1,da){
    b02 = b01 + d0 #make 60cm parms = 30cm parms + increment
    b12 = b11 + d1
@@ -968,11 +967,11 @@ summary(Soil_full)
 
 So, the increment parameters, $d_1$,$d_2$,$d_a$ are all significantly different from 0, suggesting that we should have two models here.
 
-### Model/Estiamtion Adequcy
+### Model/Estimation Adequacy
 
-[@Bates_1980] assess nonlinearity in terms of 2 components of curvature:
+[@bates1980relative] assess nonlinearity in terms of 2 components of curvature:
 
--   **Intrinsic nonlinearity**: the degree of bending and twisting in $f(\theta)$; our estimation approach assumes that hte true function is relatively flat (planar) in the neighborhood fo $\hat{\theta}$, which would not be true if $f()$ has a lot of "bending" int he neighborhood of $\hat{\theta}$ (independent of parameterizaiton)
+-   **Intrinsic nonlinearity**: the degree of bending and twisting in $f(\theta)$; our estimation approach assumes that the true function is relatively flat (planar) in the neighborhood fo $\hat{\theta}$, which would not be true if $f()$ has a lot of "bending" in the neighborhood of $\hat{\theta}$ (independent of parameterization)
 
     -   If bad, the distribution of residuals will be seriously distorted
 
@@ -987,7 +986,7 @@ So, the increment parameters, $d_1$,$d_2$,$d_a$ are all significantly different 
 
 -   **Parameter effects nonlinearity**: degree to which curvature (nonlinearity) is affected by choice of $\theta$ (data dependent; dependent on parameterization)
 
-    -   leads to problems with inferecne on $\hat{\theta}$
+    -   leads to problems with inference on $\hat{\theta}$
     -   `rms.curve` in `MASS` can identify
     -   bootstrap-based inference can also be used
     -   Solution: try to reparaemterize.

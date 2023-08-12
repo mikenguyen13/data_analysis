@@ -24,7 +24,7 @@
 
 -   Tradeoff between efficiency and bias
 
--   Regression discontinuity is under the framework of [Instrumental Variable] argued by [@angrist1999] and a special case of the [Matching Methods] (matching at one point) argued by [@heckman1999].
+-   Regression discontinuity is under the framework of [Instrumental Variable] argued by [@angrist1999] and a special case of the [Matching Methods] (matching at one point) argued by [@heckman1999economics].
 
 -   The hard part is to find a setting that can apply, but once you find one, it's easy to apply
 
@@ -34,7 +34,7 @@
 
 -   As the running variable becomes more discrete your framework should be [Interrupted Time Series], but for more granular levels you can use RD. When you have infinite data (or substantially large) the two frameworks are identical. RD is always better than [Interrupted Time Series]
 
--   Multiple alternative model specifications that produce consistent results are more reliable (parametric - linear regression with polynomials terms, and non-parametric - local linear regression). This is according to [@lee2010regressionregression], one straightforward method to ease the linearity assumption is by incorporating polynomial functions of the forcing variable. The choice of polynomial terms can be determined based on the data.
+-   Multiple alternative model specifications that produce consistent results are more reliable (parametric - linear regression with polynomials terms, and non-parametric - local linear regression). This is according to [@lee2010regression], one straightforward method to ease the linearity assumption is by incorporating polynomial functions of the forcing variable. The choice of polynomial terms can be determined based on the data.
 
     -   . According to [@gelman2019high], accounting for global high-order polynomials presents three issues: (1) imprecise estimates due to noise, (2) sensitivity to the polynomial's degree, and (3) inadequate coverage of confidence intervals. To address this, researchers should instead employ estimators that rely on local linear or quadratic polynomials or other smooth functions.
 
@@ -52,7 +52,7 @@ There are several types of Regression Discontinuity:
 
 1.  Sharp RD: Change in treatment probability at the cutoff point is 1
 
-    -   Kink design: Instead of a discontinuity in the level of running variable, we have a discontinuity in the slope of the function (while the function/level can remain continuous) [@nielsen2010]. See [@böckerman2018] for application, and [@card2012; @card2015b] for theory.
+    -   Kink design: Instead of a discontinuity in the level of running variable, we have a discontinuity in the slope of the function (while the function/level can remain continuous) [@nielsen2010estimating]. See [@bockerman2018kink] for application, and [@card2015inference] for theory.
 
 2.  Kink RD
 
@@ -214,7 +214,7 @@ Step to estimate local polynomial regression
 
 -   Also known as clustering or density test
 
--   Formal test is McCrary sorting test [@mccrary2008] or [@cattaneo2019]
+-   Formal test is McCrary sorting test [@mccrary2008manipulation] or [@cattaneo2019practical]
 
 -   Since human subjects can manipulate the running variable to be just above or below the cutoff (assuming that the running variable is manipulable), especially when the cutoff point is known in advance for all subjects, this can result in a discontinuity in the distribution of the running variable at the cutoff (i.e., we will see "bunching" behavior right before or after the cutoff)\>
 
@@ -222,7 +222,7 @@ Step to estimate local polynomial regression
 
     -   People would like to be out of treatment if it's undesirable
 
--   [@mccrary2008] proposes a density test (i.e., a formal test for manipulation of the assignment variable).
+-   [@mccrary2008manipulation] proposes a density test (i.e., a formal test for manipulation of the assignment variable).
 
     -   $H_0$: The continuity of the density of the running variable (i.e., the covariate that underlies the assignment at the discontinuity point)
 
@@ -230,7 +230,7 @@ Step to estimate local polynomial regression
 
     -   Even though it's not a requirement that the density of the running must be continuous at the cutoff, but a discontinuity can suggest manipulations.
 
--   [@lee2009] offers a guide to know when you should warrant the manipulation
+-   [@zhang2003estimation; @lee2009training; @aronow2019note] offers a guide to know when you should warrant the manipulation
 
 -   Usually it's better to know your research design inside out so that you can suspect any manipulation attempts.
 
@@ -242,7 +242,7 @@ Step to estimate local polynomial regression
 
 -   Bunching happens when people self-select to a specific value in the range of a variable (e.g., key policy thresholds).
 
--   Review paper [@kleven2016]
+-   Review paper [@kleven2016bunching]
 
 -   **This test can only detect manipulation that changes the distribution of the running variable**. If you can choose the cutoff point or you have 2-sided manipulation, this test will fail to detect it.
 
@@ -258,7 +258,7 @@ Step to estimate local polynomial regression
 
     -   Under RD, we do not need this step because the observed and manipulation-free counterfactual distributions are assumed to be the same. RD assume there is no manipulation (i.e., assume the manipulation-free counterfactual distribution)
 
-When running variable and outcome variable are simultaneously determined, we can use a modified RDD estimator to have consistent estimate. [@bajari2011]
+When running variable and outcome variable are simultaneously determined, we can use a modified RDD estimator to have consistent estimate. [@bajari2011regression]
 
 -   **Assumptions**:
 
@@ -274,7 +274,7 @@ Steps:
 
 If we pass the bunching test, we can move on to the [Placebo Test]
 
-@mccrary2008 test
+@mccrary2008manipulation test
 
 A jump in the density at the threshold (i.e., discontinuity) hold can serve as evidence for sorting around the cutoff point
 
@@ -307,7 +307,7 @@ DCdensity(x,0)
 #> [1] 0.001190241
 ```
 
-@cattaneo2019 test
+@cattaneo2019practical test
 
 
 ```r
@@ -565,7 +565,7 @@ Cons:
 
 -   Taking observation for from the threshold (in time) can bias your estimates because of unobservables and time-series properties of the data generating process.
 
--   [@mccrary2008] test is not possible (see [Sorting/Bunching/Manipulation]) because when the density of the running (time) is uniform, you can't use the test.
+-   [@mccrary2008manipulation] test is not possible (see [Sorting/Bunching/Manipulation]) because when the density of the running (time) is uniform, you can't use the test.
 
 -   Time-varying unobservables may impact the dependent variable discontinuously
 
@@ -605,7 +605,7 @@ Biases
 
 -   Sorting and Anticipation Effects
 
-    -   Cannot run the [@mccrary2008] because the density of the time running variable is uniform
+    -   Cannot run the [@mccrary2008manipulation] because the density of the time running variable is uniform
 
     -   Can still run tests to check discontinuities in other covariates (you want no discontinuities) and discontinuities in the outcome variable at other placebo thresholds ( you don't want discontinuities)
 

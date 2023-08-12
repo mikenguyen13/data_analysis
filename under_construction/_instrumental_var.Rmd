@@ -63,7 +63,113 @@ Instrument Validity:
 
 Control function vs. 2SLS:
 
-## 
+## Framework
+
+-   $D_i \sim Bern$ Dummy Treatment
+
+-   $Y_{0i}, Y_{1i}$ potential outcomes
+
+-   $Y_i = Y_{0i} + (Y_{1i} - Y_{0i}) D_i$ observed outcome
+
+-   $Z_i \perp Y_{0i}, Y_{1i}$ Instrumental variables (and also correlate with $D_i$)
+
+Under constant-effects and linear ($Y_{1i} - Y_{0i}$ are the same for everyone)
+
+$$ \begin{aligned} Y_{0i} &= \alpha + \eta_i \\ Y_{1i} - Y_{0i} &= \rho \\ Y_i &= Y_{0i} + D_i (Y_{1i} - Y_{0i}) \\ &= \alpha + \eta_i  + D_i \rho \\ &= \alpha + \rho D_i + \eta_i \end{aligned} $$
+
+where
+
+-   $\eta_i$ is individual differences
+
+-   $\rho$ is the difference between treated outcome and untreated outcome. Here we assume they are constant for everyone
+
+However, we have a problem with OLS because $D_i$ is correlated with $\eta_i$ for each unit
+
+But $Z_i$ can come to the rescue, the causal estimate can be written as
+
+$$ \begin{aligned} \rho &= \frac{Cov( Y_i, Z_i)}{Cov(D_i, Z_i)} \\ &= \frac{Cov(Y_i, Z_i) / V(Z_i) }{Cov( D_i, Z_i) / V(Z_i)} = \frac{Reduced form}{First-stage} \\ &= \frac{E[Y_i |Z_i = 1] - E[Y_i | Z_i = 0]}{E[D_i |Z_i = 1] - E[D_i | Z_i = 0 ]} \end{aligned} $$
+
+Under heterogeneous treatment effect ($Y_{1i} - Y_{0i}$ are different for everyone) with LATE framework
+
+$Y_i(d,z)$ denotes the potential outcome for unit $i$ with treatment $D_i = d$ and instrument $Z_i = z$
+
+Observed treatment status
+
+$$ D_i = D_{0i} + Z_i (D_{1i} - D_{0i}) $$
+
+where
+
+-   $D_{1i}$ is treatment status of unit $i$ when $z_i = 1$
+
+-   $D_{0i}$ is treatment status of unit $i$ when $z_i = 0$
+
+-   $D_{1i} - D_{0i}$ is the causal effect of $Z_i$ on $D_i$
+
+Assumptions
+
+-   Independence: The instrument is randomly assigned (i.e., independent of potential outcomes and potential treatments)
+
+    -   $[\{Y_i(d,z); \forall d, z \}, D_{1i}, D_{0i} ] \Pi Z_i$
+
+    -   This assumption let the first-stage equation be the average causal effect of $Z_i$ on $D_i$
+
+    $$ \begin{aligned} E[D_i |Z_i = 1] - E[D_i | Z_i = 0] &= E[D_{1i} |Z_i = 1] - E[D_{0i} |Z_i = 0] \\ &= E[D_{1i} - D_{0i}] \end{aligned} $$
+
+    -   This assumption also is sufficient for a causal interpretation of the reduced form, where we see the effect of the instrument on the outcome.
+
+$$ E[Y_i |Z_i = 1 ] - E[Y_i|Z_i = 0] = E[Y_i (D_{1i}, Z_i = 1) - Y_i (D_{0i} , Z_i = 0)] $$
+
+-   Exclusion
+
+    -   The treatment $D_i$ fully mediates the effect of $Z_i$ on $Y_i$
+
+    $$ Y_{1i} = Y_i (1,1) = Y_i (1,0) \\  Y_{0i} = Y_i (0,1) = Y_i (0, 0) $$
+
+    -   With this assumption, the observed outcome $Y_i$ can be thought of as (assume $Y_{1i}, Y_{0i}$ already satisfy the independence assumption)
+
+    $$ \begin{aligned} Y_i &= Y_i (0, Z_i) + [Y_i (1 , Z_i) - Y_i (0, Z_i)] D_i \\ &= Y_{0i} + (Y_{1i} - Y_{0i} ) D_i \end{aligned} $$
+
+    -   This assumption let us go from reduced-form causal effects to treatment effects [@angrist1995two]
+
+-   Monotonicity: $D_{1i} > D_{0i} \forall i$
+
+    -   With this assumption, we have $E[D_{1i} - D_{0i} ] = P[D_{1i} > D_{0i}]$
+
+    -   This assumption lets us assume that there is a first stage, in which we examine the proportion of the population that $D_i$ is driven by $Z_i$
+
+With these three assumptions, we have the LATE theorem [@angrist2009mostly, 4.4.1]
+
+$$ \frac{E[Y_i | Z_i = 1] - E[Y_i | Z_i = 0]}{E[D_i |Z_i = 1] - E[D_i |Z_i = 0]} = E[Y_{1i} - Y_{0i} | D_{1i} > D_{0i}] $$
+
+LATE assumptions allow us to go back to the types of subjects we have in [Causal Inference]
+
+-   Switchers:
+
+    -   Compliers: $D_{1i} > D_{0i}$
+
+-   Non-switchers:
+
+    -   Always-takers: $D_{1i} = D_{0i} = 1$
+
+    -   Never-takers: $D_{1i} = D_{0i} = 0$
+
+[Instrumental Variables] can't say anything about non-switchers because treatment status $D_i$ has no effects on them (similar to fixed effects models).
+
+When all groups are the same, we come back to the constant-effects world.
+
+Treatment effects on the treated is a weighted average of always-takers and compliers.
+
+In the special case of IV in randomized trials, we have a compliance problem (when compliance is voluntary), where those in the treated will not always take the treatment (i.e., might be selection bias).
+
+-   Intention-to-treat analysis is valid, but contaminated by non-compliance
+
+-   IV in this case ($Z_i$ = random assignment to the treatment; $D_i$ = whether the unit actually received/took the treatment) can solve this problem.
+
+-   Without always-takers in this case, LATE = Treatment effects on the treated
+
+See proof @bloom1984accounting and examples @bloom1997benefits and @sherman1984minneapolis
+
+$$ \frac{E[Y_i |Z_i = 1] - E[Y_i |Z_i = 0]}{E[D_i |Z_i = 1]} = \frac{\text{Intention-to-treat effect}}{\text{Compliance rate}} \\ = E[Y_{1i} - Y_{0i} |D_i = 1] $$
 
 ## Estimation
 
@@ -305,7 +411,7 @@ data = data.frame(z1 = c(z1, z1), z2 = c(z2, z2), x1 = c(x1, x1),
 summary(gmmcl(y1 ~ x1, ~ z1 + z2, data = data, cluster = "id"))
 ```
 
-## Assumption Testing
+## Testing Assumptions
 
 $$
 Y = \beta_1 X_1 + \beta_2 X_2 + \epsilon
@@ -353,7 +459,7 @@ $$
 \beta_2 = \frac{Cov(Y,Z)}{Cov(X_2, Z)} = \frac{\rho}{\pi}
 $$
 
-## Relevance Assumption
+### Relevance Assumption
 
 -   **Weak instruments**: can explain little variation in the endogenous regressor
 
@@ -365,7 +471,7 @@ $$
 
     -   use `linearHypothesis()` to see only instrument coefficients.
 
-## Exogeneity Assumption
+### Exogeneity Assumption
 
 -   Wald test and Hausman test for exogeneity of $X$ assuming $Z$ is exogenous
 
@@ -397,7 +503,7 @@ These tests (of overidentifying restrictions) should be used to check whether di
 
 [@hausman1983specification; @parente2012cautionary]
 
-### Wald Test
+#### Wald Test
 
 Assuming that $Z$ is exogenous (a valid instrument), we want to know whether $X_2$ is exogenous
 
@@ -436,11 +542,11 @@ Intuition:
 
 $\hat{\epsilon}$ is the supposed endogenous part of $X_2$, When we regress $Y$ on $\hat{\epsilon}$ and observe that its coefficient is not different from 0. It means that the exogenous part of $X_2$ can explain well the impact on $Y$, and there is no endogenous part.
 
-### Hausman's Test
+#### Hausman's Test
 
 Similar to [Wald Test] and identical to [Wald Test] when we have homoskedasticity (i.e., homogeneity of variances). Because of this assumption, it's used less often than [Wald Test]
 
-### Hansen's J {#hansens-j}
+#### Hansen's J {#hansens-j}
 
 -   [@hansen1982large]
 
@@ -469,7 +575,7 @@ Procedure IV-GMM:
 
 For a heteroskedasticity-robust $J$-statistic, see [@carrasco2022testing; @fan2022testing]
 
-### Sargan Test
+#### Sargan Test
 
 [@sargan1958estimation]
 
@@ -505,11 +611,15 @@ Two-Stage Least Squares (TSLS) can be used to estimate the average causal effect
 
 -   Drug dosage
 
--   Hours of exam prep
+-   Hours of exam prep on score [@powers1984effects]
 
--   cigarette smoking
+-   cigarette smoking on birth weights [@permutt1989simultaneous]
 
 -   years of education
+
+-   Class size on test score [@angrist1999using]
+
+-   Sibship size on earning [@lavy2006new]
 
 -   Social Media Adoption
 
@@ -518,6 +628,8 @@ The **average causal effect** here refers to the conditional expectation of the 
 Notes:
 
 -   We do not need a linearity assumption of the relationships between the dependent variable, treatment intensities, and instruments.
+
+<br>
 
 Example
 
@@ -587,7 +699,7 @@ E(U |Z,V) = E(U|V) \\
 E(V|Z) = 0
 $$
 
-Under control function apporach,
+Under control function approach,
 
 $$
 E(Y|Z,V) = g(X) + E(U|Z,V) \\
@@ -613,7 +725,7 @@ The CF function is superior than the 2SLS estimator
 
 ## Estimation
 
-# Simulation 
+# Simulation
 
 ```{r}
 library(fixest)
@@ -711,7 +823,6 @@ summary(second_stage_cf)
 modelsummary(list(second_stage, second_stage_cf))
 ```
 
-
 Nonlinear in parameters
 
 ```{r}
@@ -728,4 +839,3 @@ summary(second_stage_cf)
 
 modelsummary(list(second_stage, second_stage_cf))
 ```
-

@@ -899,10 +899,10 @@ use the Lagrange multiplier test to test the presence of individual or time or b
 
 Types:
 
--   `honda`: [@Honda_1985] Default
+-   `honda`: [@honda1985testing] Default
 -   `bp`: [@Breusch_1980] for unbalanced panels
 -   `kw`: [@King_1997] unbalanced panels, and two-way effects
--   `ghm`: [@Gourieroux_1982]: two-way effects
+-   `ghm`: [@gourieroux1982likelihood]: two-way effects
 
 
 ```r
@@ -1004,7 +1004,7 @@ Here, we reject the null hypothesis that the no unobserved effects in the residu
 
 ##### Locally robust tests for random effects and serial correlation
 
--   A joint LM test for **random effects** and **serial correlation** assuming normality and homoskedasticity of the idiosyncratic errors [@Baltagi_1991][@Baltagi_1995]
+-   A joint LM test for **random effects** and **serial correlation** assuming normality and homoskedasticity of the idiosyncratic errors [@baltagi1991joint][@baltagi1995testing]
 
 
 ```r
@@ -1019,7 +1019,7 @@ pbsytest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, data=Produc, test="j")
 
 Here, we reject the null hypothesis that there is no presence of **serial correlation,** and **random effects**. But we still do not know whether it is because of serial correlation, of random effects or of both
 
-To know the departure from the null assumption, we can use [@Bera_2001]'s test for first-order serial correlation or random effects (both under normality and homoskedasticity assumption of the error).
+To know the departure from the null assumption, we can use @bera2001tests's test for first-order serial correlation or random effects (both under normality and homoskedasticity assumption of the error).
 
 BSY for serial correlation
 
@@ -1060,14 +1060,14 @@ plmtest(inv ~ value + capital, data = Grunfeld, type = "honda")
 #> alternative hypothesis: significant effects
 ```
 
-On the other hand, if you know there is no random effects, to test for serial correlation, use [@BREUSCH_1978]-[@Godfrey_1978]'s test
+On the other hand, if you know there is no random effects, to test for serial correlation, use [@breusch1978testing]-[@godfrey1978testing]'s test
 
 
 ```r
 lmtest::bgtest()
 ```
 
-If you "know" there are random effects, use [@Baltagi_1995]'s. to test for serial correlation in both AR(1) and MA(1) processes.
+If you "know" there are random effects, use [@baltagi1995testing]'s. to test for serial correlation in both AR(1) and MA(1) processes.
 
 $H_0$: Uncorrelated errors.
 
@@ -1309,10 +1309,10 @@ t(sapply(c("HC0", "HC1", "HC2", "HC3", "HC4"), function(x) sqrt(diag(vcovHC(fixe
 
 Other methods to estimate the random model:
 
--   `"swar"`: *default* [@Swamy_1972]
--   `"walhus"`: [@Wallace_1969]
--   `"amemiya"`: [@Fuller_1974]
--   `"nerlove"`" [@Nerlove_1971]
+-   `"swar"`: *default* [@swamy1972exact]
+-   `"walhus"`: [@wallace1969use]
+-   `"amemiya"`: [@amemiya1971estimation]
+-   `"nerlove"`" [@nerlove1971further]
 
 Other effects:
 
@@ -1334,7 +1334,7 @@ To call the estimation of the variance of the error components
 ercomp(Y~X, data=pdata, method = "amemiya", effect = "twoways")
 ```
 
-Check for the unbalancedness. Closer to 1 indicates balanced data [@Ahrens_1981]
+Check for the unbalancedness. Closer to 1 indicates balanced data [@ahrens1981two]
 
 
 ```r
@@ -1343,10 +1343,10 @@ punbalancedness(random)
 
 **Instrumental variable**
 
--   `"bvk"`: default [@Balestra_1987]
--   `"baltagi"`: [@Baltagi_1981]
--   `"am"` [@Amemiya_1986]
--   `"bms"`: [@Breusch_1989]
+-   `"bvk"`: default [@balestra1987full]
+-   `"baltagi"`: [@baltagi1981simultaneous]
+-   `"am"` [@amemiya1986instrumental]
+-   `"bms"`: [@breusch1989efficient]
 
 
 ```r
@@ -1747,17 +1747,17 @@ etable(feols(y1 ~ x1 + x2, fsplit = ~ species, data = base))
 
 -   `cluster`: errors are correlated within the cluster groups
 
--   `newey_west`: [@newey1987] use for time series or panel data. Errors are heteroskedastic and serially correlated.
+-   `newey_west`: [@newey1986simple] use for time series or panel data. Errors are heteroskedastic and serially correlated.
 
     -   `vcov = newey_west ~ id + period` where `id` is the subject id and `period` is time period of the panel.
 
     -   to specify lag period to consider `vcov = newey_west(2) ~ id + period` where we're considering 2 lag periods.
 
--   `driscoll_kraay` [@driscoll1998] use for panel data. Errors are cross-sectionally and serially correlated.
+-   `driscoll_kraay` [@driscoll1998consistent] use for panel data. Errors are cross-sectionally and serially correlated.
 
     -   `vcov = discoll_kraay ~ period`
 
--   `conley`: [@conley1999] for cross-section data. Errors are spatially correlated
+-   `conley`: [@conley1999gmm] for cross-section data. Errors are spatially correlated
 
     -   `vcov = conley ~ latitude + longitude`
 
