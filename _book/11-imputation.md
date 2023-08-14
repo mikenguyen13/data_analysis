@@ -177,7 +177,7 @@ Disadvantages:
 
     -   Mean imputation does not preserve the relationships among variables
     -   Mean imputation leads to An Underestimate of Standard Errors → you're making Type I errors without realizing it.
-    -   Biased estimates of variances and covariances [@Haitovsky_1968]
+    -   Biased estimates of variances and covariances [@haitovsky1968missing]
     -   In high-dimensions, mean substitution cannot account for dependence structure among features.
 
 #### Maximum Likelihood {#maximum-likelihood}

@@ -16,7 +16,7 @@ They ultimately estimate the treatment effect on the treated of attending a top 
 
 **Example**
 
-@aaronson2007
+@aaronson2007teachers
 
 Do teachers qualifications (causally) affect student test scores?
 
@@ -101,9 +101,9 @@ It also helps if you have high ratio of controls to treatments.
 
 <br>
 
-For detail summary [@Stuart_2010]
+For detail summary [@stuart2010matching]
 
-Matching is defined as "any method that aims to equate (or"balance") the distribution of covariates in the treated and control groups." [@Stuart_2010, pp. 1]
+Matching is defined as "any method that aims to equate (or"balance") the distribution of covariates in the treated and control groups." [@stuart2010matching, pp. 1]
 
 Equivalently, matching is a selection on observables identifications strategy.
 
@@ -202,7 +202,7 @@ Assumptions of matching:
 
     -   You typically satisfy this assumption when unobserved covariates correlated with observed covariates.
 
-        -   But when unobserved covariates are unrelated to the observed covariates, you can use sensitivity analysis to check your result, or use "design sensitivity" [@Heller_2009]
+        -   But when unobserved covariates are unrelated to the observed covariates, you can use sensitivity analysis to check your result, or use "design sensitivity" [@heller2009split]
 
 2.  positive probability of receiving treatment for all X
 
@@ -304,9 +304,9 @@ Steps:
 
         1.  standardized difference in means of each covariate (most common), also known as"standardized bias", "standardized difference in means".
 
-        2.  standardized difference of means of the propensity score (should be \< 0.25) [@Rubin_2001]
+        2.  standardized difference of means of the propensity score (should be \< 0.25) [@rubin2001using]
 
-        3.  ratio of the variances of the propensity score in the treated and control groups (should be between 0.5 and 2). [@Rubin_2001]
+        3.  ratio of the variances of the propensity score in the treated and control groups (should be between 0.5 and 2). [@rubin2001using]
 
         4.  For each covariate, the ratio fo the variance of the residuals orthogonal to the propensity score in the treated and control groups.
 
@@ -336,7 +336,7 @@ Steps:
 
 Notes:
 
--   With missing data, use generalized boosted models, or multiple imputation [@Qu_2009]
+-   With missing data, use generalized boosted models, or multiple imputation [@qu2009propensity]
 
 -   Violation of ignorable treatment assignment (i.e., unobservables affect treatment and outcome). control by
 
@@ -354,7 +354,7 @@ Notes:
 
     -   fest number of large standardized difference of means (\> 0.25)
 
-    -   [@Diamond_2013] automates the process
+    -   [@diamond2013genetic] automates the process
 
 -   In practice
 
@@ -414,7 +414,7 @@ $$
 
 where $e_k$ = the propensity score for individual k
 
-An advanced is Prognosis score [@Hansen_2008], but you have to know (i.e., specify) the relationship between the covariates and outcome.
+An advanced is Prognosis score [@hansen2008prognostic], but you have to know (i.e., specify) the relationship between the covariates and outcome.
 
 4.  Linear propensity score
 
@@ -424,13 +424,13 @@ $$
 
 The exact and Mahalanobis are not good in high dimensional or non normally distributed X's cases.
 
-We can combine Mahalanobis matching with propensity score calipers [@Rubin_2000]
+We can combine Mahalanobis matching with propensity score calipers [@rubin2000combining]
 
 Other advanced methods for longitudinal settings
 
--   marginal structural models [@Robins_2000]
+-   marginal structural models [@robins2000marginal]
 
--   balanced risk set matching [@Li_2001]
+-   balanced risk set matching [@li2001balanced]
 
 \
 Most matching methods are based on (ex-post)
@@ -449,7 +449,7 @@ Packages
 
 -   `MatchIt` Nonparametric preprocessing for parametric causal inference. Have nearest neighbor, Mahalanobis, caliper, exact, full, optimal, subclassification
 
--   `MatchingFrontier` optimize balance and sample size [@King_2016]
+-   `MatchingFrontier` optimize balance and sample size [@king2017balance]
 
 -   `optmatch`optimal matching with variable ratio, optimal and full matching
 
@@ -599,7 +599,7 @@ examine `treat` on `re78`
 
 -   select the target population
 
--   select variables to match/balance [@Austin_2011] [@VanderWeele_2019]
+-   select variables to match/balance [@austin2011optimal] [@vanderweele2019principles]
 
 2.  Check Initial Imbalance
 
@@ -935,7 +935,7 @@ library(designmatch)
 
 ## MatchingFrontier
 
-As mentioned in `MatchIt`, you have to make trade-off (also known as bias-variance trade-off) between balance and sample size. An automated procedure to optimize this trade-off is implemented in `MatchingFrontier` [@King_2016], which solves this joint optimization problem.
+As mentioned in `MatchIt`, you have to make trade-off (also known as bias-variance trade-off) between balance and sample size. An automated procedure to optimize this trade-off is implemented in `MatchingFrontier` [@king2017balance], which solves this joint optimization problem.
 
 I follow `MatchingFrontier` [guide](https://projects.iq.harvard.edu/files/frontier/files/using_matchingfrontier.pdf)
 
@@ -1031,7 +1031,7 @@ matched.data <- generateDataset(L1.frontier, N = 400) # take 400 units
 
 ## Propensity Scores
 
-Even though I mention the propensity scores matching method here, it is no longer recommended to use such method in research and publication [@King_2019] because it increases
+Even though I mention the propensity scores matching method here, it is no longer recommended to use such method in research and publication [@king2019propensity] because it increases
 
 -   imbalance
 
@@ -1043,7 +1043,7 @@ Even though I mention the propensity scores matching method here, it is no longe
 
 PSM tries to accomplish complete randomization while other methods try to achieve fully blocked. Hence, you probably better off use any other methods.
 
-Propensity is "the probability of receiving the treatment given the observed covariates." [@Rosenbaum_1985]
+Propensity is "the probability of receiving the treatment given the observed covariates." [@rosenbaum1985bias]
 
 Equivalently, it can to understood as the probability of being treated.
 
@@ -1147,7 +1147,7 @@ Assumptions:
 
 -   Ignorability (i.e., no omitted variable bias)
 
-More detail in [@Iacus_2012]
+More detail in [@iacus2012causal]
 
 Example by [package's authors](https://cran.r-project.org/web/packages/cem/vignettes/cem.pdf)
 
@@ -1365,7 +1365,7 @@ mb <- MatchBalance(treat~age +educ+black+ hisp+ married+ nodegr+ u74+ u75+
 
 ## Matching for time series-cross-section data
 
-Examples: [@SCHEVE_2012] and [@Acemoglu_2014]
+Examples: [@scheve2012democracy] and [@acemoglu2019democracy]
 
 Materials from Imai et al.'s [slides](https://imai.fas.harvard.edu/talk/files/polmeth18.pdf)
 

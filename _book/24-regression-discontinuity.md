@@ -654,7 +654,7 @@ marketing
 
 -   [@busse2010best]: Vehicle prices
 
--   [@busse2010bestadavis2010international]: vehicle prices
+-   [@davis2010international]: vehicle prices
 
 <br>
 

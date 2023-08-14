@@ -2,7 +2,7 @@
 
 ## Traditional
 
-[@Baron_1986] is outdated because of step 1, but we could still see the original idea.
+[@baron1986moderator] is outdated because of step 1, but we could still see the original idea.
 
 3 regressions
 
@@ -20,7 +20,7 @@ where
 
 -   $M$ = mediating variable
 
-1.  Originally, the first path from $X \to Y$ suggested by [@Baron_1986] needs to be signficaint. But there are cases that you could have indirect of $X$ on $Y$ without significant direct effect of $X$ on $Y$ (e.g., when the effect is absorbed into M, or there are two counteracting effects $M_1, M_2$ that cancel out each other effect).
+1.  Originally, the first path from $X \to Y$ suggested by [@baron1986moderator] needs to be signficaint. But there are cases that you could have indirect of $X$ on $Y$ without significant direct effect of $X$ on $Y$ (e.g., when the effect is absorbed into M, or there are two counteracting effects $M_1, M_2$ that cancel out each other effect).
 
 Mathematically,
 
@@ -63,9 +63,9 @@ $b_4$ needs to be either smaller or insignificant.
 
 4.  Examine the mediation effect (i.e., whether it is significant)
 
--   Fist approach: Sobel's test [@Sobel_1982]
+-   Fist approach: Sobel's test [@sobel1982asymptotic]
 
--   Second approach: bootstrapping [@Preacher_2004] (preferable)
+-   Second approach: bootstrapping [@preacher2004spss] (preferable)
 
 More details can be found [here](https://cran.ism.ac.jp/web/packages/mediation/vignettes/mediation-old.pdf)
 
@@ -123,7 +123,7 @@ summary(results)
 
 -   ACME = Average Causal Mediation Effects = $b_1 - b_4$ = 0.3961 - 0.0396 = 0.3565 = $b_2 \times b_3$ = 0.56102 \* 0.6355 = 0.3565
 
-Using `mediation` package suggested by [@Imai_2010] [@Imai_2010_6060]. More on details of the package can be found [here](https://cran.r-project.org/web/packages/mediation/vignettes/mediation.pdf)
+Using `mediation` package suggested by [@imai2010general] [@imai2010identification]. More on details of the package can be found [here](https://cran.r-project.org/web/packages/mediation/vignettes/mediation.pdf)
 
 2 types of Inference in this package:
 

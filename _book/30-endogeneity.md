@@ -109,7 +109,9 @@ Before we get to methods that deal with bias arises from omitted variables, we c
 
 <br>
 
-## Measurement Error
+## Endogenous Treatment
+
+### Measurement Error
 
 -   Data error can stem from
 
@@ -130,9 +132,9 @@ Usually the systematic measurement error is a bigger issue because it introduces
 -   Noise -\> regression estimate to 0
 -   Bias -\> can pull estimate to upward or downward.
 
-### Classical Measurement Errors
+#### Classical Measurement Errors
 
-#### Right-hand side
+##### Right-hand side
 
 -   Right-hand side measurement error: When the measurement is in the covariates, then we have the endogeneity problem.
 
@@ -227,7 +229,7 @@ To fix classical measurement error problem, we can
 
 <br>
 
-#### Left-hand side
+##### Left-hand side
 
 When the measurement is in the outcome variable, econometricians or causal scientists do not care because they still have an unbiased estimate of the coefficients (the zero conditional mean assumption is not violated, hence we don't have endogeneity). However, statisticians might care because it might inflate our uncertainty in the coefficient estimates (i.e., higher standard errors).
 
@@ -247,7 +249,7 @@ If we have measurement error in $Y_i$, it will pass through $\beta_1$ and go to 
 
 <br>
 
-### Non-classical Measurement Errors
+#### Non-classical Measurement Errors
 
 Relaxing the assumption that $X$ and $\epsilon$ are uncorrelated
 
@@ -271,9 +273,9 @@ where $b_{\epsilon \tilde{X}}$ is the covariance between $\tilde{X}$ and $\epsil
 
 Hence, the [Classical Measurement Errors] is just a special case of [Non-classical Measurement Errors] where $b_{\epsilon \tilde{X}} = 1 - \lambda$
 
-So when $\sigma_{X \epsilon} = 0$ ([Classical Measurement Errors]), increasing this covariance $b_{\epsilon \tilde{X}}$ increases the covariance increases the attenuation factor if more than half of the variance in $\tilde{X}$ is measurement error, and decreases the attenuation factor otherwise. This is also known as **mean reverting measurement error** [@bound1989]
+So when $\sigma_{X \epsilon} = 0$ ([Classical Measurement Errors]), increasing this covariance $b_{\epsilon \tilde{X}}$ increases the covariance increases the attenuation factor if more than half of the variance in $\tilde{X}$ is measurement error, and decreases the attenuation factor otherwise. This is also known as **mean reverting measurement error** [@bound1989measurement, @bound2001measurement]
 
-A general framework for both right-hand side and left-hand side measurement error is [@bound1994]:
+A general framework for both right-hand side and left-hand side measurement error is [@bound2001measurement]:
 
 consider the true model
 
@@ -321,9 +323,9 @@ Notes:
 
 -   There can also be measurement error in dummy variables and you can still use [Instrumental Variable] to fix it.
 
-### Solution to Measurement Errors
+#### Solution to Measurement Errors
 
-#### Correlation
+##### Correlation
 
 $$
 \begin{aligned}
@@ -478,7 +480,7 @@ testing$lower_rho
 
 <br>
 
-## Simultaneity
+### Simultaneity
 
 -   When independent variables ($X$'s) are jointly determined with the dependent variable $Y$, typically through an equilibrium mechanism, violates the second condition for causality (i.e., temporal order).
 
@@ -571,7 +573,7 @@ This is actually the general framework for instrumental variables
 
 <br>
 
-## Endogenous Treatment
+### Endogenous Treatment Solutions
 
 Using the OLS estimates as a reference point
 
@@ -597,7 +599,7 @@ summary(m1.ols)$coefficients[1:7, ]
 #> calworks     -0.05273312 0.06154758  -0.8567863  3.921191e-01
 ```
 
-### Instrumental Variable
+#### Instrumental Variable
 
 [A3a] requires $\epsilon_i$ to be uncorrelated with $\mathbf{x}_i$
 
@@ -822,7 +824,7 @@ $$
 -   Generalized Method of Moments can be more efficient than 2SLS.\
 -   In the second-stage of 2SLS, you can also use [MLE][Maximum Likelihood], but then you are making assumption on the distribution of the outcome variable, the endogenous variable, and their relationship (joint distribution).
 
-#### Testing Assumption
+##### Testing Assumptions
 
 1.  [Test of Endogeneity]: Is $y_{i2}$ truly endogenous (i.e., can we just use OLS instead of 2SLS)?
 
@@ -832,7 +834,7 @@ $$
 
     -   [Relevancy] (need to avoid "weak instruments")
 
-##### Test of Endogeneity
+###### Test of Endogeneity
 
 -   2SLS is generally so inefficient that we may prefer OLS if there is not much endogeneity
 
@@ -885,7 +887,7 @@ H_1: \theta \neq 0 && \text{  (endogenous)}
 \end{aligned}
 $$
 
-##### Testing Instrument's assumptions {#testing-instruments-assumptions}
+###### Testing Instrument's assumptions {#testing-instruments-assumptions}
 
 The instrumental variable must satisfy
 
@@ -961,7 +963,7 @@ low p-value means you reject the null of exogenous instruments. Hence you would 
 -   really only useful if one instrument is thought to be truly exogenous (randomly assigned). even f you do reject the null, the test does not tell you which instrument is exogenous and which is endogenous.
 
 | Result          | Implication                                                                         |
-|----------------------|--------------------------------------------------|
+|------------------------|-----------------------------------------------|
 | reject the null | you can be pretty sure there is an endogenous instrument, but don't know which one. |
 | fail to reject  | could be either (1) they are both exogenous, (2) they are both endogenous.          |
 
@@ -986,7 +988,7 @@ $$
 
 -   can use t-test (or F-test for over-identified models) in the first stage to determine if there is a weak instrument problem.
 
--   [@Stock_2005]: a statistical rejection of the null hypothesis in the first stage at the 5% (or even 1%) level is not enough to insure the instrument is not weak\
+-   [@stock2002testing, @stock2005asymptotic]: a statistical rejection of the null hypothesis in the first stage at the 5% (or even 1%) level is not enough to insure the instrument is not weak\
 
     -   Rule of Thumb: need a F-stat of at least 10 (or a t-stat of at least 3.2) to reject the null hypothesis that the instrument is weak.
 
@@ -1056,7 +1058,7 @@ summary(m2.2sls)$coefficients[1:7, ]
 
 <br>
 
-#### Checklist
+##### Checklist
 
 1.  Regress the dependent variable on the instrument (reduced form). Since under OLS, we have unbiased estimate, the coefficient estimate should be significant (make sure the sign makes sense)
 2.  Report F-stat on the excluded instruments. F-stat \< 10 means you have a weak instrument [@stock2002survey].
@@ -1071,7 +1073,7 @@ summary(m2.2sls)$coefficients[1:7, ]
 
 Without theory or possible explanation, you can always create a new variable that is correlated with $X$ and uncorrelated with $\epsilon$
 
-For example, we want to estimate the effect of price on quantity [@reiss2011, p. 960]
+For example, we want to estimate the effect of price on quantity [@reiss2011structural, p. 960]
 
 $$
 Q = \beta_1 P + \beta_2 X + \epsilon \\
@@ -1094,17 +1096,17 @@ Moreover, the functional form of the instrument also plays a role when choosing 
 
 IV methods even with valid instruments can still have poor sampling properties (finite sample bias, large sampling errors) [@rossi2014even]
 
-When you have a weak instrument, it's important to report it appropriately [@lee2021valid]. This problem will be exacerbated if you have multiple instruments.
+When you have a weak instrument, it's important to report it appropriately. This problem will be exacerbated if you have multiple instruments [@larcker2010use].
 
 ##### Lagged dependent variable
 
 In time series data sets, we can use lagged dependent variable as an instrument because it is not influenced by current shocks.
 
-Citations for lagged dependent variable in econ [@chetty2013],
+Citations for lagged dependent variable in econ [@chetty2014measuring],
 
 <br>
 
-### Internal instrumental variable
+#### Internal instrumental variable
 
 -   (also known as **instrument free methods**). This section is based on Raluca Gui's [guide](https://cran.r-project.org/web/packages/REndo/vignettes/REndo-introduction.pdf)
 
@@ -1112,7 +1114,7 @@ Citations for lagged dependent variable in econ [@chetty2013],
 
 -   All approaches here assume a **continuous dependent variable**
 
-#### Non-hierarchical Data (Cross-classified)
+##### Non-hierarchical Data (Cross-classified)
 
 $$
 Y_t = \beta_0 + \beta_1 P_t + \beta_2 X_t + \epsilon_t
@@ -1140,9 +1142,9 @@ where
 -   $Z_t$ is assumed to be stochastic with distribution G\
 -   $ν_t$ is assumed to have density h(·)
 
-##### Latent Instrumental Variable {#latent-instrumental-variable}
+###### Latent Instrumental Variable {#latent-instrumental-variable}
 
-[@Ebbes_2005]
+[@ebbes2005solving]
 
 assume $Z_t$ (unobserved) to be uncorrelated with $\epsilon_t$, which is similar to [Instrumental Variable]. Hence, $Z_t$ and $ν_t$ can't be identified without distributional assumptions
 
@@ -1151,7 +1153,7 @@ The distributions of $Z_t$ and $ν_t$ need to be specified such that:
 (1) endogeneity of $P_t$ is corrected\
 (2) the distribution of $P_t$ is empirically close to the integral that expresses the amount of overlap of Z as it is shifted over ν (= the convolution between $Z_t$ and $ν_t$).
 
-When the density h(·) = Normal, then G cannot be normal because the parameters would not be identified [@Ebbes_2005] .
+When the density h(·) = Normal, then G cannot be normal because the parameters would not be identified [@ebbes2005solving] .
 
 Hence,
 
@@ -1189,11 +1191,11 @@ summary(m3.liv)$coefficients[1:7,]
 
 it will return a coefficient very different from the other methods since there is only one endogenous variable.
 
-##### Joint Estimation Using Copula
+###### Joint Estimation Using Copula
 
 assume $Z_t$ (unobserved) to be uncorrelated with $\epsilon_t$, which is similar to [Instrumental Variable]. Hence, $Z_t$ and $ν_t$ can't be identified without distributional assumptions
 
-[@Park_2012] allows joint estimation of the continuous $P_t$ and $\epsilon_t$ using Gaussian copulas, where a copula is a function that maps several conditional distribution functions (CDF) into their joint CDF).
+[@park2012handling] allows joint estimation of the continuous $P_t$ and $\epsilon_t$ using Gaussian copulas, where a copula is a function that maps several conditional distribution functions (CDF) into their joint CDF).
 
 The underlying idea is that using information contained in the observed data, one selects marginal distributions for $P_t$ and $\epsilon_t$. Then, the copula model constructs a flexible multivariate joint distribution that allows a wide range of correlations between the two marginals.
 
@@ -1217,11 +1219,18 @@ Otherwise, based on Gaussian copulas, augmented OLS estimation is used.
 
 -   $K(x) = 0.75(1-x^2)I(||x||\le 1)$
 
--   $b=0.9T^{-1/5}\times min(s, IQR/1.34)$ suggested by [@Silverman_1969]
+-   $b=0.9T^{-1/5}\times min(s, IQR/1.34)$
 
     -   IQR = interquartile range
-    -   s = sample standard deviation
-    -   T = n of time periods observed in the data
+    -   $s$ = sample standard deviation
+    -   $T$ = n of time periods observed in the data
+
+
+```r
+# 1.34 comes from this
+diff(qnorm(c(0.25, 0.75)))
+#> [1] 1.34898
+```
 
 In augmented OLS and MLE, the inference procedure occurs in two stages:
 
@@ -1260,9 +1269,9 @@ we run this model with only one endogenous continuous regressor (`stratio`). Som
 -   starting values
 -   maximum number of iterations
 
-##### Higher Moments Method
+###### Higher Moments Method
 
-suggested by [@Lewbel_1997] to identify $\epsilon_t$ caused by **measurement error**.
+suggested by [@lewbel1997constructing] to identify $\epsilon_t$ caused by **measurement error**.
 
 Identification is achieved by using third moments of the data, with no restrictions on the distribution of $\epsilon_t$\
 The following instruments can be used with 2SLS estimation to obtain consistent estimates:
@@ -1311,7 +1320,7 @@ summary(m5.hetEr)$coefficients[1:7, ]
 
 recommend using this approach to create additional instruments to use with external ones for better efficiency.
 
-##### Heteroskedastic Error Approach
+###### Heteroskedastic Error Approach
 
 -   using means of variables that are uncorrelated with the product of heteroskedastic errors to identify structural parameters.
 -   This method can be use either when you don't have external instruments or you want to use additional instruments to improve the efficiency of the IV estimator [@lewbel2012using]
@@ -1338,7 +1347,7 @@ If it is zero or close to zero (i.e.,the instrument is weak), you might have imp
 -   Under homoskedasticity, the parameters of the model are unidentified.
 -   Under heteroskedasticity related to at least some elements of X, the parameters of the model are identified.
 
-#### Hierarchical Data
+##### Hierarchical Data
 
 Multiple independent assumptions involving various random components at different levels mean that any moderate correlation between some predictors and a random component or error term can result in a significant bias of the coefficients and of the variance components. [@kim2007multilevel] proposed a generalized method of moments which uses both, the between and within variations of the exogenous variables, but only assumes the within variation of the variables to be endogenous.
 
@@ -1579,7 +1588,7 @@ The omitted variable test between FE_L2 and GMM_L2 should reject the null hypoth
 
 If we assume an endogenous variable as exogenous, the RE and GMM estimators will be biased because of the wrong set of internal instrumental variables. To increase our confidence, we should compare the omitted variable tests when the variable is considered endogenous vs. exogenous to get a sense whether the variable is truly endogenous.
 
-### Proxy Variables
+#### Proxy Variables
 
 -   Can be in place of the omitted variable
 
@@ -1698,7 +1707,7 @@ legend(
 )
 ```
 
-<img src="30-endogeneity_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-endogeneity_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
 
 Hence in our observed model, we see
 
@@ -1755,7 +1764,7 @@ Great visualization of special cases of correlation patterns amongst data and er
 
 Note:
 
-[@Bareinboim_2014] is an excellent summary of cases that we can still do causal inference in case of selection bias. I'll try to summarize their idea here:
+[@bareinboim2014transportability] is an excellent summary of cases that we can still do causal inference in case of selection bias. I'll try to summarize their idea here:
 
 Let X be an action, Y be an outcome, and S be a binary indicator of entry into the data pool where (S = 1 = in the sample, S = 0 =out of sample) and Q be the conditional distribution $Q = P(y|x)$.
 
@@ -1777,7 +1786,7 @@ In the case of Omitted variable bias (U) and sample selection bias (S), you have
 also known as Heckman's standard sample selection model\
 Assumption: joint normality of the errors
 
-Data here is taken from [@Mroz_1987]'s paper.
+Data here is taken from @mroz1984sensitivity.
 
 We want to estimate the log(wage) for married women, with education, experience, experience squared, and a dummy variable for living in a big city. But we can only observe the wage for women who are working, which means a lot of married women in 1975 who were out of the labor force are unaccounted for. Hence, an OLS estimate of the wage equation would be bias due to sample selection. Since we have data on non-participants (i.e., those who are not working for pay), we can correct for the selection process.
 

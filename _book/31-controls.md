@@ -1,6 +1,6 @@
 # Controls
 
-This section follows [@cinelli2021crash] and [code](https://www.kaggle.com/code/carloscinelli/crash-course-in-good-and-bad-controls-linear-r/notebook#Model-11---Bad-Control-(overcontrol-bias))
+This section follows [@cinelli2022crash] and [code](https://www.kaggle.com/code/carloscinelli/crash-course-in-good-and-bad-controls-linear-r/notebook#Model-11---Bad-Control-(overcontrol-bias))
 
 
 ```r
@@ -1505,6 +1505,8 @@ By providing a causal diagram, deciding the appropriateness of controls are auto
 -   [Fusion](https://causalfusion.net/login)
 
 -   [DAGitty](http://dagitty.net/)
+
+Guide on how to choose confounders: @vanderweele2019principles
 
 In cases where it's hard to determine the plausibility of controls, we might need to further analysis.
 
