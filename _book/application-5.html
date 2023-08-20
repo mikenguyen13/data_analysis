@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>8.8 Application | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.34 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.35 and GitBook 2.6.7" />
 
   <meta property="og:title" content="8.8 Application | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2023-08-12" />
+<meta name="date" content="2023-08-20" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -303,7 +303,7 @@ div.csl-indent {
 </ul></li>
 <li class="chapter" data-level="5.3" data-path="weighted-least-squares.html"><a href="weighted-least-squares.html"><i class="fa fa-check"></i><b>5.3</b> Weighted Least Squares</a></li>
 <li class="chapter" data-level="5.4" data-path="generalized-least-squares.html"><a href="generalized-least-squares.html"><i class="fa fa-check"></i><b>5.4</b> Generalized Least Squares</a></li>
-<li class="chapter" data-level="5.5" data-path="feasiable-prais-winsten.html"><a href="feasiable-prais-winsten.html"><i class="fa fa-check"></i><b>5.5</b> Feasiable Prais Winsten</a></li>
+<li class="chapter" data-level="5.5" data-path="feasiable-prais-winsten.html"><a href="feasiable-prais-winsten.html"><i class="fa fa-check"></i><b>5.5</b> Feasible Prais Winsten</a></li>
 <li class="chapter" data-level="5.6" data-path="feasible-group-level-random-effects.html"><a href="feasible-group-level-random-effects.html"><i class="fa fa-check"></i><b>5.6</b> Feasible group level Random Effects</a></li>
 <li class="chapter" data-level="5.7" data-path="ridge-regression.html"><a href="ridge-regression.html"><i class="fa fa-check"></i><b>5.7</b> Ridge Regression</a></li>
 <li class="chapter" data-level="5.8" data-path="principal-component-regression.html"><a href="principal-component-regression.html"><i class="fa fa-check"></i><b>5.8</b> Principal Component Regression</a></li>
@@ -916,7 +916,7 @@ div.csl-indent {
 <ul>
 <li><p>computationally efficient</p></li>
 <li><p>user-friendly</p></li>
-<li><p>can handle nonnormal response</p></li>
+<li><p>can handle non-normal response</p></li>
 <li><p>for more detailed application, check <a href="https://arxiv.org/abs/1406.5823">Fitting Linear Mixed-Effects Models Using lme4</a></p></li>
 </ul></li>
 <li><p>Others</p>
@@ -943,99 +943,107 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}
 </ul>
 <div class="sourceCode" id="cb171"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb171-1"><a href="application-5.html#cb171-1" tabindex="-1"></a><span class="fu">data</span>(pulp, <span class="at">package =</span> <span class="st">&quot;faraway&quot;</span>)</span>
 <span id="cb171-2"><a href="application-5.html#cb171-2" tabindex="-1"></a><span class="fu">plot</span>(</span>
-<span id="cb171-3"><a href="application-5.html#cb171-3" tabindex="-1"></a>  <span class="at">y =</span> pulp<span class="sc">$</span>bright,</span>
-<span id="cb171-4"><a href="application-5.html#cb171-4" tabindex="-1"></a>  <span class="at">x =</span> pulp<span class="sc">$</span>operator,</span>
-<span id="cb171-5"><a href="application-5.html#cb171-5" tabindex="-1"></a>  <span class="at">xlab =</span> <span class="st">&quot;Operator&quot;</span>,</span>
-<span id="cb171-6"><a href="application-5.html#cb171-6" tabindex="-1"></a>  <span class="at">ylab =</span> <span class="st">&quot;Brightness&quot;</span></span>
+<span id="cb171-3"><a href="application-5.html#cb171-3" tabindex="-1"></a>    <span class="at">y    =</span> pulp<span class="sc">$</span>bright,</span>
+<span id="cb171-4"><a href="application-5.html#cb171-4" tabindex="-1"></a>    <span class="at">x    =</span> pulp<span class="sc">$</span>operator,</span>
+<span id="cb171-5"><a href="application-5.html#cb171-5" tabindex="-1"></a>    <span class="at">xlab =</span> <span class="st">&quot;Operator&quot;</span>,</span>
+<span id="cb171-6"><a href="application-5.html#cb171-6" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">&quot;Brightness&quot;</span></span>
 <span id="cb171-7"><a href="application-5.html#cb171-7" tabindex="-1"></a>)</span></code></pre></div>
 <p><img src="08-linear-mixed-models_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" /></p>
-<div class="sourceCode" id="cb172"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb172-1"><a href="application-5.html#cb172-1" tabindex="-1"></a>pulp <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">group_by</span>(operator) <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">summarise</span>(<span class="at">average =</span> <span class="fu">mean</span>(bright))</span>
-<span id="cb172-2"><a href="application-5.html#cb172-2" tabindex="-1"></a><span class="co">#&gt; # A tibble: 4 × 2</span></span>
-<span id="cb172-3"><a href="application-5.html#cb172-3" tabindex="-1"></a><span class="co">#&gt;   operator average</span></span>
-<span id="cb172-4"><a href="application-5.html#cb172-4" tabindex="-1"></a><span class="co">#&gt;   &lt;fct&gt;      &lt;dbl&gt;</span></span>
-<span id="cb172-5"><a href="application-5.html#cb172-5" tabindex="-1"></a><span class="co">#&gt; 1 a           60.2</span></span>
-<span id="cb172-6"><a href="application-5.html#cb172-6" tabindex="-1"></a><span class="co">#&gt; 2 b           60.1</span></span>
-<span id="cb172-7"><a href="application-5.html#cb172-7" tabindex="-1"></a><span class="co">#&gt; 3 c           60.6</span></span>
-<span id="cb172-8"><a href="application-5.html#cb172-8" tabindex="-1"></a><span class="co">#&gt; 4 d           60.7</span></span></code></pre></div>
+<div class="sourceCode" id="cb172"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb172-1"><a href="application-5.html#cb172-1" tabindex="-1"></a>pulp <span class="sc">%&gt;%</span> dplyr<span class="sc">::</span><span class="fu">group_by</span>(operator) <span class="sc">%&gt;%</span> </span>
+<span id="cb172-2"><a href="application-5.html#cb172-2" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">summarise</span>(<span class="at">average =</span> <span class="fu">mean</span>(bright))</span>
+<span id="cb172-3"><a href="application-5.html#cb172-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 4 × 2</span></span>
+<span id="cb172-4"><a href="application-5.html#cb172-4" tabindex="-1"></a><span class="co">#&gt;   operator average</span></span>
+<span id="cb172-5"><a href="application-5.html#cb172-5" tabindex="-1"></a><span class="co">#&gt;   &lt;fct&gt;      &lt;dbl&gt;</span></span>
+<span id="cb172-6"><a href="application-5.html#cb172-6" tabindex="-1"></a><span class="co">#&gt; 1 a           60.2</span></span>
+<span id="cb172-7"><a href="application-5.html#cb172-7" tabindex="-1"></a><span class="co">#&gt; 2 b           60.1</span></span>
+<span id="cb172-8"><a href="application-5.html#cb172-8" tabindex="-1"></a><span class="co">#&gt; 3 c           60.6</span></span>
+<span id="cb172-9"><a href="application-5.html#cb172-9" tabindex="-1"></a><span class="co">#&gt; 4 d           60.7</span></span></code></pre></div>
 <p><code>lmer</code> application</p>
 <div class="sourceCode" id="cb173"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb173-1"><a href="application-5.html#cb173-1" tabindex="-1"></a><span class="fu">library</span>(lme4)</span>
 <span id="cb173-2"><a href="application-5.html#cb173-2" tabindex="-1"></a>mixed_model <span class="ot">&lt;-</span></span>
-<span id="cb173-3"><a href="application-5.html#cb173-3" tabindex="-1"></a>    <span class="fu">lmer</span>(<span class="at">formula =</span> bright <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> operator), <span class="co"># pipe (i..e, | ) denotes random-effect terms</span></span>
-<span id="cb173-4"><a href="application-5.html#cb173-4" tabindex="-1"></a>         <span class="at">data =</span> pulp)</span>
-<span id="cb173-5"><a href="application-5.html#cb173-5" tabindex="-1"></a><span class="fu">summary</span>(mixed_model)</span>
-<span id="cb173-6"><a href="application-5.html#cb173-6" tabindex="-1"></a><span class="co">#&gt; Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [</span></span>
-<span id="cb173-7"><a href="application-5.html#cb173-7" tabindex="-1"></a><span class="co">#&gt; lmerModLmerTest]</span></span>
-<span id="cb173-8"><a href="application-5.html#cb173-8" tabindex="-1"></a><span class="co">#&gt; Formula: bright ~ 1 + (1 | operator)</span></span>
-<span id="cb173-9"><a href="application-5.html#cb173-9" tabindex="-1"></a><span class="co">#&gt;    Data: pulp</span></span>
-<span id="cb173-10"><a href="application-5.html#cb173-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb173-11"><a href="application-5.html#cb173-11" tabindex="-1"></a><span class="co">#&gt; REML criterion at convergence: 18.6</span></span>
-<span id="cb173-12"><a href="application-5.html#cb173-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb173-13"><a href="application-5.html#cb173-13" tabindex="-1"></a><span class="co">#&gt; Scaled residuals: </span></span>
-<span id="cb173-14"><a href="application-5.html#cb173-14" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
-<span id="cb173-15"><a href="application-5.html#cb173-15" tabindex="-1"></a><span class="co">#&gt; -1.4666 -0.7595 -0.1244  0.6281  1.6012 </span></span>
-<span id="cb173-16"><a href="application-5.html#cb173-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb173-17"><a href="application-5.html#cb173-17" tabindex="-1"></a><span class="co">#&gt; Random effects:</span></span>
-<span id="cb173-18"><a href="application-5.html#cb173-18" tabindex="-1"></a><span class="co">#&gt;  Groups   Name        Variance Std.Dev.</span></span>
-<span id="cb173-19"><a href="application-5.html#cb173-19" tabindex="-1"></a><span class="co">#&gt;  operator (Intercept) 0.06808  0.2609  </span></span>
-<span id="cb173-20"><a href="application-5.html#cb173-20" tabindex="-1"></a><span class="co">#&gt;  Residual             0.10625  0.3260  </span></span>
-<span id="cb173-21"><a href="application-5.html#cb173-21" tabindex="-1"></a><span class="co">#&gt; Number of obs: 20, groups:  operator, 4</span></span>
-<span id="cb173-22"><a href="application-5.html#cb173-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb173-23"><a href="application-5.html#cb173-23" tabindex="-1"></a><span class="co">#&gt; Fixed effects:</span></span>
-<span id="cb173-24"><a href="application-5.html#cb173-24" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error      df t value Pr(&gt;|t|)    </span></span>
-<span id="cb173-25"><a href="application-5.html#cb173-25" tabindex="-1"></a><span class="co">#&gt; (Intercept)  60.4000     0.1494  3.0000   404.2 3.34e-08 ***</span></span>
-<span id="cb173-26"><a href="application-5.html#cb173-26" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb173-27"><a href="application-5.html#cb173-27" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb173-28"><a href="application-5.html#cb173-28" tabindex="-1"></a><span class="fu">coef</span>(mixed_model)</span>
-<span id="cb173-29"><a href="application-5.html#cb173-29" tabindex="-1"></a><span class="co">#&gt; $operator</span></span>
-<span id="cb173-30"><a href="application-5.html#cb173-30" tabindex="-1"></a><span class="co">#&gt;   (Intercept)</span></span>
-<span id="cb173-31"><a href="application-5.html#cb173-31" tabindex="-1"></a><span class="co">#&gt; a    60.27806</span></span>
-<span id="cb173-32"><a href="application-5.html#cb173-32" tabindex="-1"></a><span class="co">#&gt; b    60.14088</span></span>
-<span id="cb173-33"><a href="application-5.html#cb173-33" tabindex="-1"></a><span class="co">#&gt; c    60.56767</span></span>
-<span id="cb173-34"><a href="application-5.html#cb173-34" tabindex="-1"></a><span class="co">#&gt; d    60.61340</span></span>
-<span id="cb173-35"><a href="application-5.html#cb173-35" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb173-36"><a href="application-5.html#cb173-36" tabindex="-1"></a><span class="co">#&gt; attr(,&quot;class&quot;)</span></span>
-<span id="cb173-37"><a href="application-5.html#cb173-37" tabindex="-1"></a><span class="co">#&gt; [1] &quot;coef.mer&quot;</span></span>
-<span id="cb173-38"><a href="application-5.html#cb173-38" tabindex="-1"></a><span class="fu">fixef</span>(mixed_model) <span class="co"># fixed effects</span></span>
-<span id="cb173-39"><a href="application-5.html#cb173-39" tabindex="-1"></a><span class="co">#&gt; (Intercept) </span></span>
-<span id="cb173-40"><a href="application-5.html#cb173-40" tabindex="-1"></a><span class="co">#&gt;        60.4</span></span>
-<span id="cb173-41"><a href="application-5.html#cb173-41" tabindex="-1"></a><span class="fu">confint</span>(mixed_model) <span class="co"># confidence interval</span></span>
-<span id="cb173-42"><a href="application-5.html#cb173-42" tabindex="-1"></a><span class="co">#&gt;                 2.5 %     97.5 %</span></span>
-<span id="cb173-43"><a href="application-5.html#cb173-43" tabindex="-1"></a><span class="co">#&gt; .sig01       0.000000  0.6178987</span></span>
-<span id="cb173-44"><a href="application-5.html#cb173-44" tabindex="-1"></a><span class="co">#&gt; .sigma       0.238912  0.4821845</span></span>
-<span id="cb173-45"><a href="application-5.html#cb173-45" tabindex="-1"></a><span class="co">#&gt; (Intercept) 60.071299 60.7287012</span></span>
-<span id="cb173-46"><a href="application-5.html#cb173-46" tabindex="-1"></a><span class="fu">ranef</span>(mixed_model) <span class="co"># random effects</span></span>
-<span id="cb173-47"><a href="application-5.html#cb173-47" tabindex="-1"></a><span class="co">#&gt; $operator</span></span>
-<span id="cb173-48"><a href="application-5.html#cb173-48" tabindex="-1"></a><span class="co">#&gt;   (Intercept)</span></span>
-<span id="cb173-49"><a href="application-5.html#cb173-49" tabindex="-1"></a><span class="co">#&gt; a  -0.1219403</span></span>
-<span id="cb173-50"><a href="application-5.html#cb173-50" tabindex="-1"></a><span class="co">#&gt; b  -0.2591231</span></span>
-<span id="cb173-51"><a href="application-5.html#cb173-51" tabindex="-1"></a><span class="co">#&gt; c   0.1676679</span></span>
-<span id="cb173-52"><a href="application-5.html#cb173-52" tabindex="-1"></a><span class="co">#&gt; d   0.2133955</span></span>
-<span id="cb173-53"><a href="application-5.html#cb173-53" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb173-54"><a href="application-5.html#cb173-54" tabindex="-1"></a><span class="co">#&gt; with conditional variances for &quot;operator&quot;</span></span>
-<span id="cb173-55"><a href="application-5.html#cb173-55" tabindex="-1"></a><span class="fu">VarCorr</span>(mixed_model) <span class="co"># random effects standard deviation</span></span>
-<span id="cb173-56"><a href="application-5.html#cb173-56" tabindex="-1"></a><span class="co">#&gt;  Groups   Name        Std.Dev.</span></span>
-<span id="cb173-57"><a href="application-5.html#cb173-57" tabindex="-1"></a><span class="co">#&gt;  operator (Intercept) 0.26093 </span></span>
-<span id="cb173-58"><a href="application-5.html#cb173-58" tabindex="-1"></a><span class="co">#&gt;  Residual             0.32596</span></span>
-<span id="cb173-59"><a href="application-5.html#cb173-59" tabindex="-1"></a>re_dat <span class="ot">=</span> <span class="fu">as.data.frame</span>(<span class="fu">VarCorr</span>(mixed_model))</span>
-<span id="cb173-60"><a href="application-5.html#cb173-60" tabindex="-1"></a>rho <span class="ot">=</span> re_dat[<span class="dv">1</span>, <span class="st">&#39;vcov&#39;</span>] <span class="sc">/</span> (re_dat[<span class="dv">1</span>, <span class="st">&#39;vcov&#39;</span>] <span class="sc">+</span> re_dat[<span class="dv">2</span>, <span class="st">&#39;vcov&#39;</span>]) <span class="co"># rho based on the above formula</span></span>
-<span id="cb173-61"><a href="application-5.html#cb173-61" tabindex="-1"></a>rho</span>
-<span id="cb173-62"><a href="application-5.html#cb173-62" tabindex="-1"></a><span class="co">#&gt; [1] 0.3905354</span></span></code></pre></div>
+<span id="cb173-3"><a href="application-5.html#cb173-3" tabindex="-1"></a>    <span class="fu">lmer</span>(</span>
+<span id="cb173-4"><a href="application-5.html#cb173-4" tabindex="-1"></a>        <span class="co"># pipe (i..e, | ) denotes random-effect terms</span></span>
+<span id="cb173-5"><a href="application-5.html#cb173-5" tabindex="-1"></a>        <span class="at">formula =</span> bright <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span>operator), </span>
+<span id="cb173-6"><a href="application-5.html#cb173-6" tabindex="-1"></a>         <span class="at">data =</span> pulp)</span>
+<span id="cb173-7"><a href="application-5.html#cb173-7" tabindex="-1"></a><span class="fu">summary</span>(mixed_model)</span>
+<span id="cb173-8"><a href="application-5.html#cb173-8" tabindex="-1"></a><span class="co">#&gt; Linear mixed model fit by REML [&#39;lmerMod&#39;]</span></span>
+<span id="cb173-9"><a href="application-5.html#cb173-9" tabindex="-1"></a><span class="co">#&gt; Formula: bright ~ 1 + (1 | operator)</span></span>
+<span id="cb173-10"><a href="application-5.html#cb173-10" tabindex="-1"></a><span class="co">#&gt;    Data: pulp</span></span>
+<span id="cb173-11"><a href="application-5.html#cb173-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb173-12"><a href="application-5.html#cb173-12" tabindex="-1"></a><span class="co">#&gt; REML criterion at convergence: 18.6</span></span>
+<span id="cb173-13"><a href="application-5.html#cb173-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb173-14"><a href="application-5.html#cb173-14" tabindex="-1"></a><span class="co">#&gt; Scaled residuals: </span></span>
+<span id="cb173-15"><a href="application-5.html#cb173-15" tabindex="-1"></a><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span id="cb173-16"><a href="application-5.html#cb173-16" tabindex="-1"></a><span class="co">#&gt; -1.4666 -0.7595 -0.1244  0.6281  1.6012 </span></span>
+<span id="cb173-17"><a href="application-5.html#cb173-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb173-18"><a href="application-5.html#cb173-18" tabindex="-1"></a><span class="co">#&gt; Random effects:</span></span>
+<span id="cb173-19"><a href="application-5.html#cb173-19" tabindex="-1"></a><span class="co">#&gt;  Groups   Name        Variance Std.Dev.</span></span>
+<span id="cb173-20"><a href="application-5.html#cb173-20" tabindex="-1"></a><span class="co">#&gt;  operator (Intercept) 0.06808  0.2609  </span></span>
+<span id="cb173-21"><a href="application-5.html#cb173-21" tabindex="-1"></a><span class="co">#&gt;  Residual             0.10625  0.3260  </span></span>
+<span id="cb173-22"><a href="application-5.html#cb173-22" tabindex="-1"></a><span class="co">#&gt; Number of obs: 20, groups:  operator, 4</span></span>
+<span id="cb173-23"><a href="application-5.html#cb173-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb173-24"><a href="application-5.html#cb173-24" tabindex="-1"></a><span class="co">#&gt; Fixed effects:</span></span>
+<span id="cb173-25"><a href="application-5.html#cb173-25" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value</span></span>
+<span id="cb173-26"><a href="application-5.html#cb173-26" tabindex="-1"></a><span class="co">#&gt; (Intercept)  60.4000     0.1494   404.2</span></span>
+<span id="cb173-27"><a href="application-5.html#cb173-27" tabindex="-1"></a><span class="fu">coef</span>(mixed_model)</span>
+<span id="cb173-28"><a href="application-5.html#cb173-28" tabindex="-1"></a><span class="co">#&gt; $operator</span></span>
+<span id="cb173-29"><a href="application-5.html#cb173-29" tabindex="-1"></a><span class="co">#&gt;   (Intercept)</span></span>
+<span id="cb173-30"><a href="application-5.html#cb173-30" tabindex="-1"></a><span class="co">#&gt; a    60.27806</span></span>
+<span id="cb173-31"><a href="application-5.html#cb173-31" tabindex="-1"></a><span class="co">#&gt; b    60.14088</span></span>
+<span id="cb173-32"><a href="application-5.html#cb173-32" tabindex="-1"></a><span class="co">#&gt; c    60.56767</span></span>
+<span id="cb173-33"><a href="application-5.html#cb173-33" tabindex="-1"></a><span class="co">#&gt; d    60.61340</span></span>
+<span id="cb173-34"><a href="application-5.html#cb173-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb173-35"><a href="application-5.html#cb173-35" tabindex="-1"></a><span class="co">#&gt; attr(,&quot;class&quot;)</span></span>
+<span id="cb173-36"><a href="application-5.html#cb173-36" tabindex="-1"></a><span class="co">#&gt; [1] &quot;coef.mer&quot;</span></span>
+<span id="cb173-37"><a href="application-5.html#cb173-37" tabindex="-1"></a><span class="fu">fixef</span>(mixed_model)   <span class="co"># fixed effects</span></span>
+<span id="cb173-38"><a href="application-5.html#cb173-38" tabindex="-1"></a><span class="co">#&gt; (Intercept) </span></span>
+<span id="cb173-39"><a href="application-5.html#cb173-39" tabindex="-1"></a><span class="co">#&gt;        60.4</span></span>
+<span id="cb173-40"><a href="application-5.html#cb173-40" tabindex="-1"></a><span class="fu">confint</span>(mixed_model) <span class="co"># confidence interval</span></span>
+<span id="cb173-41"><a href="application-5.html#cb173-41" tabindex="-1"></a><span class="co">#&gt;                 2.5 %     97.5 %</span></span>
+<span id="cb173-42"><a href="application-5.html#cb173-42" tabindex="-1"></a><span class="co">#&gt; .sig01       0.000000  0.6178987</span></span>
+<span id="cb173-43"><a href="application-5.html#cb173-43" tabindex="-1"></a><span class="co">#&gt; .sigma       0.238912  0.4821845</span></span>
+<span id="cb173-44"><a href="application-5.html#cb173-44" tabindex="-1"></a><span class="co">#&gt; (Intercept) 60.071299 60.7287012</span></span>
+<span id="cb173-45"><a href="application-5.html#cb173-45" tabindex="-1"></a><span class="fu">ranef</span>(mixed_model)   <span class="co"># random effects</span></span>
+<span id="cb173-46"><a href="application-5.html#cb173-46" tabindex="-1"></a><span class="co">#&gt; $operator</span></span>
+<span id="cb173-47"><a href="application-5.html#cb173-47" tabindex="-1"></a><span class="co">#&gt;   (Intercept)</span></span>
+<span id="cb173-48"><a href="application-5.html#cb173-48" tabindex="-1"></a><span class="co">#&gt; a  -0.1219403</span></span>
+<span id="cb173-49"><a href="application-5.html#cb173-49" tabindex="-1"></a><span class="co">#&gt; b  -0.2591231</span></span>
+<span id="cb173-50"><a href="application-5.html#cb173-50" tabindex="-1"></a><span class="co">#&gt; c   0.1676679</span></span>
+<span id="cb173-51"><a href="application-5.html#cb173-51" tabindex="-1"></a><span class="co">#&gt; d   0.2133955</span></span>
+<span id="cb173-52"><a href="application-5.html#cb173-52" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb173-53"><a href="application-5.html#cb173-53" tabindex="-1"></a><span class="co">#&gt; with conditional variances for &quot;operator&quot;</span></span>
+<span id="cb173-54"><a href="application-5.html#cb173-54" tabindex="-1"></a><span class="fu">VarCorr</span>(mixed_model) <span class="co"># random effects standard deviation</span></span>
+<span id="cb173-55"><a href="application-5.html#cb173-55" tabindex="-1"></a><span class="co">#&gt;  Groups   Name        Std.Dev.</span></span>
+<span id="cb173-56"><a href="application-5.html#cb173-56" tabindex="-1"></a><span class="co">#&gt;  operator (Intercept) 0.26093 </span></span>
+<span id="cb173-57"><a href="application-5.html#cb173-57" tabindex="-1"></a><span class="co">#&gt;  Residual             0.32596</span></span>
+<span id="cb173-58"><a href="application-5.html#cb173-58" tabindex="-1"></a>re_dat <span class="ot">=</span> <span class="fu">as.data.frame</span>(<span class="fu">VarCorr</span>(mixed_model))</span>
+<span id="cb173-59"><a href="application-5.html#cb173-59" tabindex="-1"></a></span>
+<span id="cb173-60"><a href="application-5.html#cb173-60" tabindex="-1"></a><span class="co"># rho based on the above formula</span></span>
+<span id="cb173-61"><a href="application-5.html#cb173-61" tabindex="-1"></a>rho <span class="ot">=</span> re_dat[<span class="dv">1</span>, <span class="st">&#39;vcov&#39;</span>] <span class="sc">/</span> (re_dat[<span class="dv">1</span>, <span class="st">&#39;vcov&#39;</span>] <span class="sc">+</span> re_dat[<span class="dv">2</span>, <span class="st">&#39;vcov&#39;</span>])</span>
+<span id="cb173-62"><a href="application-5.html#cb173-62" tabindex="-1"></a>rho</span>
+<span id="cb173-63"><a href="application-5.html#cb173-63" tabindex="-1"></a><span class="co">#&gt; [1] 0.3905354</span></span></code></pre></div>
 <p>To Satterthwaite approximation for the denominator df, we use <code>lmerTest</code></p>
 <div class="sourceCode" id="cb174"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb174-1"><a href="application-5.html#cb174-1" tabindex="-1"></a><span class="fu">library</span>(lmerTest)</span>
 <span id="cb174-2"><a href="application-5.html#cb174-2" tabindex="-1"></a><span class="fu">summary</span>(lmerTest<span class="sc">::</span><span class="fu">lmer</span>(bright <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> operator), pulp))<span class="sc">$</span>coefficients</span>
 <span id="cb174-3"><a href="application-5.html#cb174-3" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error df  t value     Pr(&gt;|t|)</span></span>
 <span id="cb174-4"><a href="application-5.html#cb174-4" tabindex="-1"></a><span class="co">#&gt; (Intercept)     60.4  0.1494434  3 404.1664 3.340265e-08</span></span>
-<span id="cb174-5"><a href="application-5.html#cb174-5" tabindex="-1"></a><span class="fu">confint</span>(mixed_model)[<span class="dv">3</span>,]</span>
+<span id="cb174-5"><a href="application-5.html#cb174-5" tabindex="-1"></a><span class="fu">confint</span>(mixed_model)[<span class="dv">3</span>, ]</span>
 <span id="cb174-6"><a href="application-5.html#cb174-6" tabindex="-1"></a><span class="co">#&gt;   2.5 %  97.5 % </span></span>
 <span id="cb174-7"><a href="application-5.html#cb174-7" tabindex="-1"></a><span class="co">#&gt; 60.0713 60.7287</span></span></code></pre></div>
-<p>In this example, we can see that the confidence interval computed by <code>confint</code> in <code>lmer</code> package is very close is <code>confint</code> in <code>lmerTest</code> model. <br></p>
+<p>In this example, we can see that the confidence interval computed by <code>confint</code> in <code>lmer</code> package is very close is <code>confint</code> in <code>lmerTest</code> model.</p>
 <p><code>MCMglmm</code> application</p>
 <p>under the Bayesian framework</p>
 <div class="sourceCode" id="cb175"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb175-1"><a href="application-5.html#cb175-1" tabindex="-1"></a><span class="fu">library</span>(MCMCglmm)</span>
-<span id="cb175-2"><a href="application-5.html#cb175-2" tabindex="-1"></a>mixed_model_bayes <span class="ot">&lt;-</span> <span class="fu">MCMCglmm</span>(bright<span class="sc">~</span><span class="dv">1</span>,<span class="at">random=</span><span class="sc">~</span>operator, <span class="at">data=</span>pulp, <span class="at">verbose=</span><span class="cn">FALSE</span>)</span>
-<span id="cb175-3"><a href="application-5.html#cb175-3" tabindex="-1"></a><span class="fu">summary</span>(mixed_model_bayes)<span class="sc">$</span>solutions</span>
-<span id="cb175-4"><a href="application-5.html#cb175-4" tabindex="-1"></a><span class="co">#&gt;             post.mean l-95% CI u-95% CI eff.samp pMCMC</span></span>
-<span id="cb175-5"><a href="application-5.html#cb175-5" tabindex="-1"></a><span class="co">#&gt; (Intercept)  60.40297 60.17655 60.65777 750.1806 0.001</span></span></code></pre></div>
+<span id="cb175-2"><a href="application-5.html#cb175-2" tabindex="-1"></a>mixed_model_bayes <span class="ot">&lt;-</span></span>
+<span id="cb175-3"><a href="application-5.html#cb175-3" tabindex="-1"></a>    <span class="fu">MCMCglmm</span>(</span>
+<span id="cb175-4"><a href="application-5.html#cb175-4" tabindex="-1"></a>        bright <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb175-5"><a href="application-5.html#cb175-5" tabindex="-1"></a>        <span class="at">random =</span>  <span class="sc">~</span> operator,</span>
+<span id="cb175-6"><a href="application-5.html#cb175-6" tabindex="-1"></a>        <span class="at">data =</span> pulp,</span>
+<span id="cb175-7"><a href="application-5.html#cb175-7" tabindex="-1"></a>        <span class="at">verbose =</span> <span class="cn">FALSE</span></span>
+<span id="cb175-8"><a href="application-5.html#cb175-8" tabindex="-1"></a>    )</span>
+<span id="cb175-9"><a href="application-5.html#cb175-9" tabindex="-1"></a><span class="fu">summary</span>(mixed_model_bayes)<span class="sc">$</span>solutions</span>
+<span id="cb175-10"><a href="application-5.html#cb175-10" tabindex="-1"></a><span class="co">#&gt;             post.mean l-95% CI u-95% CI eff.samp pMCMC</span></span>
+<span id="cb175-11"><a href="application-5.html#cb175-11" tabindex="-1"></a><span class="co">#&gt; (Intercept)  60.39993 60.06017 60.65108     1000 0.001</span></span></code></pre></div>
 <p>this method offers the confidence interval slightly more positive than <code>lmer</code> and <code>lmerTest</code></p>
 <div id="prediction" class="section level4 hasAnchor" number="8.8.1.1">
 <h4><span class="header-section-number">8.8.1.1</span> Prediction<a href="application-5.html#prediction" class="anchor-section" aria-label="Anchor link to header"></a></h4>
@@ -1046,15 +1054,19 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}
 <span id="cb176-5"><a href="application-5.html#cb176-5" tabindex="-1"></a><span class="co">#&gt; b  -0.2591231</span></span>
 <span id="cb176-6"><a href="application-5.html#cb176-6" tabindex="-1"></a><span class="co">#&gt; c   0.1676679</span></span>
 <span id="cb176-7"><a href="application-5.html#cb176-7" tabindex="-1"></a><span class="co">#&gt; d   0.2133955</span></span>
-<span id="cb176-8"><a href="application-5.html#cb176-8" tabindex="-1"></a><span class="fu">fixef</span>(mixed_model) <span class="sc">+</span> <span class="fu">ranef</span>(mixed_model)<span class="sc">$</span>operator <span class="co">#prediction for each categories</span></span>
-<span id="cb176-9"><a href="application-5.html#cb176-9" tabindex="-1"></a><span class="co">#&gt;   (Intercept)</span></span>
-<span id="cb176-10"><a href="application-5.html#cb176-10" tabindex="-1"></a><span class="co">#&gt; a    60.27806</span></span>
-<span id="cb176-11"><a href="application-5.html#cb176-11" tabindex="-1"></a><span class="co">#&gt; b    60.14088</span></span>
-<span id="cb176-12"><a href="application-5.html#cb176-12" tabindex="-1"></a><span class="co">#&gt; c    60.56767</span></span>
-<span id="cb176-13"><a href="application-5.html#cb176-13" tabindex="-1"></a><span class="co">#&gt; d    60.61340</span></span>
-<span id="cb176-14"><a href="application-5.html#cb176-14" tabindex="-1"></a><span class="fu">predict</span>(mixed_model, <span class="at">newdata=</span><span class="fu">data.frame</span>(<span class="at">operator=</span><span class="fu">c</span>(<span class="st">&#39;a&#39;</span>,<span class="st">&#39;b&#39;</span>,<span class="st">&#39;c&#39;</span>,<span class="st">&#39;d&#39;</span>))) <span class="co"># equivalent to the above method</span></span>
-<span id="cb176-15"><a href="application-5.html#cb176-15" tabindex="-1"></a><span class="co">#&gt;        1        2        3        4 </span></span>
-<span id="cb176-16"><a href="application-5.html#cb176-16" tabindex="-1"></a><span class="co">#&gt; 60.27806 60.14088 60.56767 60.61340</span></span></code></pre></div>
+<span id="cb176-8"><a href="application-5.html#cb176-8" tabindex="-1"></a></span>
+<span id="cb176-9"><a href="application-5.html#cb176-9" tabindex="-1"></a><span class="co"># prediction for each categories</span></span>
+<span id="cb176-10"><a href="application-5.html#cb176-10" tabindex="-1"></a><span class="fu">fixef</span>(mixed_model) <span class="sc">+</span> <span class="fu">ranef</span>(mixed_model)<span class="sc">$</span>operator </span>
+<span id="cb176-11"><a href="application-5.html#cb176-11" tabindex="-1"></a><span class="co">#&gt;   (Intercept)</span></span>
+<span id="cb176-12"><a href="application-5.html#cb176-12" tabindex="-1"></a><span class="co">#&gt; a    60.27806</span></span>
+<span id="cb176-13"><a href="application-5.html#cb176-13" tabindex="-1"></a><span class="co">#&gt; b    60.14088</span></span>
+<span id="cb176-14"><a href="application-5.html#cb176-14" tabindex="-1"></a><span class="co">#&gt; c    60.56767</span></span>
+<span id="cb176-15"><a href="application-5.html#cb176-15" tabindex="-1"></a><span class="co">#&gt; d    60.61340</span></span>
+<span id="cb176-16"><a href="application-5.html#cb176-16" tabindex="-1"></a></span>
+<span id="cb176-17"><a href="application-5.html#cb176-17" tabindex="-1"></a><span class="co"># equivalent to the above method</span></span>
+<span id="cb176-18"><a href="application-5.html#cb176-18" tabindex="-1"></a><span class="fu">predict</span>(mixed_model, <span class="at">newdata =</span> <span class="fu">data.frame</span>(<span class="at">operator =</span> <span class="fu">c</span>(<span class="st">&#39;a&#39;</span>, <span class="st">&#39;b&#39;</span>, <span class="st">&#39;c&#39;</span>, <span class="st">&#39;d&#39;</span>))) </span>
+<span id="cb176-19"><a href="application-5.html#cb176-19" tabindex="-1"></a><span class="co">#&gt;        1        2        3        4 </span></span>
+<span id="cb176-20"><a href="application-5.html#cb176-20" tabindex="-1"></a><span class="co">#&gt; 60.27806 60.14088 60.56767 60.61340</span></span></code></pre></div>
 <p>use <code>bootMer()</code> to get bootstrap-based confidence intervals for predictions.</p>
 <p>Another example using GLMM in the context of blocking</p>
 <p>Penicillin data</p>
@@ -1069,13 +1081,15 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}
 <span id="cb177-9"><a href="application-5.html#cb177-9" tabindex="-1"></a><span class="co">#&gt;                   Max.   :97</span></span>
 <span id="cb177-10"><a href="application-5.html#cb177-10" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
 <span id="cb177-11"><a href="application-5.html#cb177-11" tabindex="-1"></a><span class="fu">ggplot</span>(penicillin, <span class="fu">aes</span>(</span>
-<span id="cb177-12"><a href="application-5.html#cb177-12" tabindex="-1"></a>  <span class="at">y =</span> yield,</span>
-<span id="cb177-13"><a href="application-5.html#cb177-13" tabindex="-1"></a>  <span class="at">x =</span> treat,</span>
-<span id="cb177-14"><a href="application-5.html#cb177-14" tabindex="-1"></a>  <span class="at">shape =</span> blend,</span>
-<span id="cb177-15"><a href="application-5.html#cb177-15" tabindex="-1"></a>  <span class="at">color =</span> blend</span>
-<span id="cb177-16"><a href="application-5.html#cb177-16" tabindex="-1"></a>)) <span class="sc">+</span> <span class="co"># treatment = fixed effect, blend = random effects</span></span>
-<span id="cb177-17"><a href="application-5.html#cb177-17" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb177-18"><a href="application-5.html#cb177-18" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">&quot;Treatment&quot;</span>)</span></code></pre></div>
+<span id="cb177-12"><a href="application-5.html#cb177-12" tabindex="-1"></a>    <span class="at">y     =</span> yield,</span>
+<span id="cb177-13"><a href="application-5.html#cb177-13" tabindex="-1"></a>    <span class="at">x     =</span> treat,</span>
+<span id="cb177-14"><a href="application-5.html#cb177-14" tabindex="-1"></a>    <span class="at">shape =</span> blend,</span>
+<span id="cb177-15"><a href="application-5.html#cb177-15" tabindex="-1"></a>    <span class="at">color =</span> blend</span>
+<span id="cb177-16"><a href="application-5.html#cb177-16" tabindex="-1"></a>)) <span class="sc">+</span> </span>
+<span id="cb177-17"><a href="application-5.html#cb177-17" tabindex="-1"></a>    <span class="co"># treatment = fixed effect</span></span>
+<span id="cb177-18"><a href="application-5.html#cb177-18" tabindex="-1"></a>    <span class="co"># blend = random effects</span></span>
+<span id="cb177-19"><a href="application-5.html#cb177-19" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb177-20"><a href="application-5.html#cb177-20" tabindex="-1"></a>    <span class="fu">xlab</span>(<span class="st">&quot;Treatment&quot;</span>)</span></code></pre></div>
 <p><img src="08-linear-mixed-models_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <div class="sourceCode" id="cb178"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb178-1"><a href="application-5.html#cb178-1" tabindex="-1"></a></span>
 <span id="cb178-2"><a href="application-5.html#cb178-2" tabindex="-1"></a><span class="fu">library</span>(lmerTest) <span class="co"># for p-values</span></span>
@@ -1129,13 +1143,21 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}
 <span id="cb179-4"><a href="application-5.html#cb179-4" tabindex="-1"></a><span class="co">#&gt; treat     70  23.333     3    12  1.2389 0.3387</span></span></code></pre></div>
 <p>Since the p-value is greater than 0.05, we can’t reject the null hypothesis that there is no treatment effect.</p>
 <div class="sourceCode" id="cb180"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb180-1"><a href="application-5.html#cb180-1" tabindex="-1"></a><span class="fu">library</span>(pbkrtest)</span>
-<span id="cb180-2"><a href="application-5.html#cb180-2" tabindex="-1"></a>full_model <span class="ot">&lt;-</span> <span class="fu">lmer</span>(yield <span class="sc">~</span> treat <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> blend), penicillin, <span class="at">REML=</span><span class="cn">FALSE</span>) <span class="co">#REML is not appropriate for testing fixed effects, it should be ML</span></span>
-<span id="cb180-3"><a href="application-5.html#cb180-3" tabindex="-1"></a>null_model <span class="ot">&lt;-</span> <span class="fu">lmer</span>(yield <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> blend), penicillin, <span class="at">REML=</span><span class="cn">FALSE</span>)</span>
-<span id="cb180-4"><a href="application-5.html#cb180-4" tabindex="-1"></a><span class="fu">KRmodcomp</span>(full_model, null_model) <span class="co"># use  Kenward-Roger approximation for df</span></span>
-<span id="cb180-5"><a href="application-5.html#cb180-5" tabindex="-1"></a><span class="co">#&gt; large : yield ~ treat + (1 | blend)</span></span>
-<span id="cb180-6"><a href="application-5.html#cb180-6" tabindex="-1"></a><span class="co">#&gt; small : yield ~ 1 + (1 | blend)</span></span>
-<span id="cb180-7"><a href="application-5.html#cb180-7" tabindex="-1"></a><span class="co">#&gt;          stat     ndf     ddf F.scaling p.value</span></span>
-<span id="cb180-8"><a href="application-5.html#cb180-8" tabindex="-1"></a><span class="co">#&gt; Ftest  1.2389  3.0000 12.0000         1  0.3387</span></span></code></pre></div>
+<span id="cb180-2"><a href="application-5.html#cb180-2" tabindex="-1"></a><span class="co"># REML is not appropriate for testing fixed effects, it should be ML</span></span>
+<span id="cb180-3"><a href="application-5.html#cb180-3" tabindex="-1"></a>full_model <span class="ot">&lt;-</span></span>
+<span id="cb180-4"><a href="application-5.html#cb180-4" tabindex="-1"></a>    <span class="fu">lmer</span>(yield <span class="sc">~</span> treat <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> blend), </span>
+<span id="cb180-5"><a href="application-5.html#cb180-5" tabindex="-1"></a>         penicillin, </span>
+<span id="cb180-6"><a href="application-5.html#cb180-6" tabindex="-1"></a>         <span class="at">REML =</span> <span class="cn">FALSE</span>) </span>
+<span id="cb180-7"><a href="application-5.html#cb180-7" tabindex="-1"></a>null_model <span class="ot">&lt;-</span> <span class="fu">lmer</span>(yield <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> blend), </span>
+<span id="cb180-8"><a href="application-5.html#cb180-8" tabindex="-1"></a>                   penicillin, </span>
+<span id="cb180-9"><a href="application-5.html#cb180-9" tabindex="-1"></a>                   <span class="at">REML =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb180-10"><a href="application-5.html#cb180-10" tabindex="-1"></a></span>
+<span id="cb180-11"><a href="application-5.html#cb180-11" tabindex="-1"></a><span class="co"># use  Kenward-Roger approximation for df</span></span>
+<span id="cb180-12"><a href="application-5.html#cb180-12" tabindex="-1"></a><span class="fu">KRmodcomp</span>(full_model, null_model) </span>
+<span id="cb180-13"><a href="application-5.html#cb180-13" tabindex="-1"></a><span class="co">#&gt; large : yield ~ treat + (1 | blend)</span></span>
+<span id="cb180-14"><a href="application-5.html#cb180-14" tabindex="-1"></a><span class="co">#&gt; small : yield ~ 1 + (1 | blend)</span></span>
+<span id="cb180-15"><a href="application-5.html#cb180-15" tabindex="-1"></a><span class="co">#&gt;          stat     ndf     ddf F.scaling p.value</span></span>
+<span id="cb180-16"><a href="application-5.html#cb180-16" tabindex="-1"></a><span class="co">#&gt; Ftest  1.2389  3.0000 12.0000         1  0.3387</span></span></code></pre></div>
 <p>Since the p-value is greater than 0.05, and consistent with our previous observation, we conclude that we can’t reject the null hypothesis that there is no treatment effect.</p>
 </div>
 </div>
@@ -1147,49 +1169,53 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}
 <span id="cb181-4"><a href="application-5.html#cb181-4" tabindex="-1"></a>    <span class="at">sep =</span> <span class="st">&#39; &#39;</span>,</span>
 <span id="cb181-5"><a href="application-5.html#cb181-5" tabindex="-1"></a>    <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">&#39;Treatment&#39;</span>, <span class="st">&#39;rat&#39;</span>, <span class="st">&#39;age&#39;</span>, <span class="st">&#39;y&#39;</span>)</span>
 <span id="cb181-6"><a href="application-5.html#cb181-6" tabindex="-1"></a>)</span>
-<span id="cb181-7"><a href="application-5.html#cb181-7" tabindex="-1"></a>rats<span class="sc">$</span>t <span class="ot">&lt;-</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">+</span> (rats<span class="sc">$</span>age <span class="sc">-</span> <span class="dv">45</span>)<span class="sc">/</span><span class="dv">10</span>) <span class="co">#log transformed age</span></span></code></pre></div>
+<span id="cb181-7"><a href="application-5.html#cb181-7" tabindex="-1"></a></span>
+<span id="cb181-8"><a href="application-5.html#cb181-8" tabindex="-1"></a><span class="co"># log transformed age</span></span>
+<span id="cb181-9"><a href="application-5.html#cb181-9" tabindex="-1"></a>rats<span class="sc">$</span>t <span class="ot">&lt;-</span> <span class="fu">log</span>(<span class="dv">1</span> <span class="sc">+</span> (rats<span class="sc">$</span>age <span class="sc">-</span> <span class="dv">45</span>) <span class="sc">/</span> <span class="dv">10</span>) </span></code></pre></div>
 <p>We are interested in whether treatment effect induces changes over time.</p>
-<div class="sourceCode" id="cb182"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb182-1"><a href="application-5.html#cb182-1" tabindex="-1"></a>rat_model <span class="ot">&lt;-</span> lmerTest<span class="sc">::</span><span class="fu">lmer</span>(y<span class="sc">~</span>t<span class="sc">:</span>Treatment<span class="sc">+</span>(<span class="dv">1</span><span class="sc">|</span>rat),<span class="at">data=</span>rats) <span class="co">#treatment = fixed effect, rat = random effects</span></span>
-<span id="cb182-2"><a href="application-5.html#cb182-2" tabindex="-1"></a><span class="fu">summary</span>(rat_model)</span>
-<span id="cb182-3"><a href="application-5.html#cb182-3" tabindex="-1"></a><span class="co">#&gt; Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [</span></span>
-<span id="cb182-4"><a href="application-5.html#cb182-4" tabindex="-1"></a><span class="co">#&gt; lmerModLmerTest]</span></span>
-<span id="cb182-5"><a href="application-5.html#cb182-5" tabindex="-1"></a><span class="co">#&gt; Formula: y ~ t:Treatment + (1 | rat)</span></span>
-<span id="cb182-6"><a href="application-5.html#cb182-6" tabindex="-1"></a><span class="co">#&gt;    Data: rats</span></span>
-<span id="cb182-7"><a href="application-5.html#cb182-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb182-8"><a href="application-5.html#cb182-8" tabindex="-1"></a><span class="co">#&gt; REML criterion at convergence: 932.4</span></span>
-<span id="cb182-9"><a href="application-5.html#cb182-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb182-10"><a href="application-5.html#cb182-10" tabindex="-1"></a><span class="co">#&gt; Scaled residuals: </span></span>
-<span id="cb182-11"><a href="application-5.html#cb182-11" tabindex="-1"></a><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
-<span id="cb182-12"><a href="application-5.html#cb182-12" tabindex="-1"></a><span class="co">#&gt; -2.25574 -0.65898 -0.01163  0.58356  2.88309 </span></span>
-<span id="cb182-13"><a href="application-5.html#cb182-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb182-14"><a href="application-5.html#cb182-14" tabindex="-1"></a><span class="co">#&gt; Random effects:</span></span>
-<span id="cb182-15"><a href="application-5.html#cb182-15" tabindex="-1"></a><span class="co">#&gt;  Groups   Name        Variance Std.Dev.</span></span>
-<span id="cb182-16"><a href="application-5.html#cb182-16" tabindex="-1"></a><span class="co">#&gt;  rat      (Intercept) 3.565    1.888   </span></span>
-<span id="cb182-17"><a href="application-5.html#cb182-17" tabindex="-1"></a><span class="co">#&gt;  Residual             1.445    1.202   </span></span>
-<span id="cb182-18"><a href="application-5.html#cb182-18" tabindex="-1"></a><span class="co">#&gt; Number of obs: 252, groups:  rat, 50</span></span>
-<span id="cb182-19"><a href="application-5.html#cb182-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb182-20"><a href="application-5.html#cb182-20" tabindex="-1"></a><span class="co">#&gt; Fixed effects:</span></span>
-<span id="cb182-21"><a href="application-5.html#cb182-21" tabindex="-1"></a><span class="co">#&gt;                Estimate Std. Error       df t value Pr(&gt;|t|)    </span></span>
-<span id="cb182-22"><a href="application-5.html#cb182-22" tabindex="-1"></a><span class="co">#&gt; (Intercept)     68.6074     0.3312  89.0275  207.13   &lt;2e-16 ***</span></span>
-<span id="cb182-23"><a href="application-5.html#cb182-23" tabindex="-1"></a><span class="co">#&gt; t:Treatmentcon   7.3138     0.2808 247.2762   26.05   &lt;2e-16 ***</span></span>
-<span id="cb182-24"><a href="application-5.html#cb182-24" tabindex="-1"></a><span class="co">#&gt; t:Treatmenthig   6.8711     0.2276 247.7097   30.19   &lt;2e-16 ***</span></span>
-<span id="cb182-25"><a href="application-5.html#cb182-25" tabindex="-1"></a><span class="co">#&gt; t:Treatmentlow   7.5069     0.2252 247.5196   33.34   &lt;2e-16 ***</span></span>
-<span id="cb182-26"><a href="application-5.html#cb182-26" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb182-27"><a href="application-5.html#cb182-27" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb182-28"><a href="application-5.html#cb182-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb182-29"><a href="application-5.html#cb182-29" tabindex="-1"></a><span class="co">#&gt; Correlation of Fixed Effects:</span></span>
-<span id="cb182-30"><a href="application-5.html#cb182-30" tabindex="-1"></a><span class="co">#&gt;             (Intr) t:Trtmntc t:Trtmnth</span></span>
-<span id="cb182-31"><a href="application-5.html#cb182-31" tabindex="-1"></a><span class="co">#&gt; t:Tretmntcn -0.327                    </span></span>
-<span id="cb182-32"><a href="application-5.html#cb182-32" tabindex="-1"></a><span class="co">#&gt; t:Tretmnthg -0.340  0.111             </span></span>
-<span id="cb182-33"><a href="application-5.html#cb182-33" tabindex="-1"></a><span class="co">#&gt; t:Tretmntlw -0.351  0.115     0.119</span></span>
-<span id="cb182-34"><a href="application-5.html#cb182-34" tabindex="-1"></a><span class="fu">anova</span>(rat_model)</span>
-<span id="cb182-35"><a href="application-5.html#cb182-35" tabindex="-1"></a><span class="co">#&gt; Type III Analysis of Variance Table with Satterthwaite&#39;s method</span></span>
-<span id="cb182-36"><a href="application-5.html#cb182-36" tabindex="-1"></a><span class="co">#&gt;             Sum Sq Mean Sq NumDF  DenDF F value    Pr(&gt;F)    </span></span>
-<span id="cb182-37"><a href="application-5.html#cb182-37" tabindex="-1"></a><span class="co">#&gt; t:Treatment 3181.9  1060.6     3 223.21  734.11 &lt; 2.2e-16 ***</span></span>
-<span id="cb182-38"><a href="application-5.html#cb182-38" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb182-39"><a href="application-5.html#cb182-39" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb182"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb182-1"><a href="application-5.html#cb182-1" tabindex="-1"></a>rat_model <span class="ot">&lt;-</span></span>
+<span id="cb182-2"><a href="application-5.html#cb182-2" tabindex="-1"></a>    <span class="co"># treatment = fixed effect, rat = random effects</span></span>
+<span id="cb182-3"><a href="application-5.html#cb182-3" tabindex="-1"></a>    lmerTest<span class="sc">::</span><span class="fu">lmer</span>(y <span class="sc">~</span> t<span class="sc">:</span>Treatment <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> rat), </span>
+<span id="cb182-4"><a href="application-5.html#cb182-4" tabindex="-1"></a>                   <span class="at">data =</span> rats) </span>
+<span id="cb182-5"><a href="application-5.html#cb182-5" tabindex="-1"></a><span class="fu">summary</span>(rat_model)</span>
+<span id="cb182-6"><a href="application-5.html#cb182-6" tabindex="-1"></a><span class="co">#&gt; Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [</span></span>
+<span id="cb182-7"><a href="application-5.html#cb182-7" tabindex="-1"></a><span class="co">#&gt; lmerModLmerTest]</span></span>
+<span id="cb182-8"><a href="application-5.html#cb182-8" tabindex="-1"></a><span class="co">#&gt; Formula: y ~ t:Treatment + (1 | rat)</span></span>
+<span id="cb182-9"><a href="application-5.html#cb182-9" tabindex="-1"></a><span class="co">#&gt;    Data: rats</span></span>
+<span id="cb182-10"><a href="application-5.html#cb182-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb182-11"><a href="application-5.html#cb182-11" tabindex="-1"></a><span class="co">#&gt; REML criterion at convergence: 932.4</span></span>
+<span id="cb182-12"><a href="application-5.html#cb182-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb182-13"><a href="application-5.html#cb182-13" tabindex="-1"></a><span class="co">#&gt; Scaled residuals: </span></span>
+<span id="cb182-14"><a href="application-5.html#cb182-14" tabindex="-1"></a><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
+<span id="cb182-15"><a href="application-5.html#cb182-15" tabindex="-1"></a><span class="co">#&gt; -2.25574 -0.65898 -0.01163  0.58356  2.88309 </span></span>
+<span id="cb182-16"><a href="application-5.html#cb182-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb182-17"><a href="application-5.html#cb182-17" tabindex="-1"></a><span class="co">#&gt; Random effects:</span></span>
+<span id="cb182-18"><a href="application-5.html#cb182-18" tabindex="-1"></a><span class="co">#&gt;  Groups   Name        Variance Std.Dev.</span></span>
+<span id="cb182-19"><a href="application-5.html#cb182-19" tabindex="-1"></a><span class="co">#&gt;  rat      (Intercept) 3.565    1.888   </span></span>
+<span id="cb182-20"><a href="application-5.html#cb182-20" tabindex="-1"></a><span class="co">#&gt;  Residual             1.445    1.202   </span></span>
+<span id="cb182-21"><a href="application-5.html#cb182-21" tabindex="-1"></a><span class="co">#&gt; Number of obs: 252, groups:  rat, 50</span></span>
+<span id="cb182-22"><a href="application-5.html#cb182-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb182-23"><a href="application-5.html#cb182-23" tabindex="-1"></a><span class="co">#&gt; Fixed effects:</span></span>
+<span id="cb182-24"><a href="application-5.html#cb182-24" tabindex="-1"></a><span class="co">#&gt;                Estimate Std. Error       df t value Pr(&gt;|t|)    </span></span>
+<span id="cb182-25"><a href="application-5.html#cb182-25" tabindex="-1"></a><span class="co">#&gt; (Intercept)     68.6074     0.3312  89.0275  207.13   &lt;2e-16 ***</span></span>
+<span id="cb182-26"><a href="application-5.html#cb182-26" tabindex="-1"></a><span class="co">#&gt; t:Treatmentcon   7.3138     0.2808 247.2762   26.05   &lt;2e-16 ***</span></span>
+<span id="cb182-27"><a href="application-5.html#cb182-27" tabindex="-1"></a><span class="co">#&gt; t:Treatmenthig   6.8711     0.2276 247.7097   30.19   &lt;2e-16 ***</span></span>
+<span id="cb182-28"><a href="application-5.html#cb182-28" tabindex="-1"></a><span class="co">#&gt; t:Treatmentlow   7.5069     0.2252 247.5196   33.34   &lt;2e-16 ***</span></span>
+<span id="cb182-29"><a href="application-5.html#cb182-29" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb182-30"><a href="application-5.html#cb182-30" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb182-31"><a href="application-5.html#cb182-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb182-32"><a href="application-5.html#cb182-32" tabindex="-1"></a><span class="co">#&gt; Correlation of Fixed Effects:</span></span>
+<span id="cb182-33"><a href="application-5.html#cb182-33" tabindex="-1"></a><span class="co">#&gt;             (Intr) t:Trtmntc t:Trtmnth</span></span>
+<span id="cb182-34"><a href="application-5.html#cb182-34" tabindex="-1"></a><span class="co">#&gt; t:Tretmntcn -0.327                    </span></span>
+<span id="cb182-35"><a href="application-5.html#cb182-35" tabindex="-1"></a><span class="co">#&gt; t:Tretmnthg -0.340  0.111             </span></span>
+<span id="cb182-36"><a href="application-5.html#cb182-36" tabindex="-1"></a><span class="co">#&gt; t:Tretmntlw -0.351  0.115     0.119</span></span>
+<span id="cb182-37"><a href="application-5.html#cb182-37" tabindex="-1"></a><span class="fu">anova</span>(rat_model)</span>
+<span id="cb182-38"><a href="application-5.html#cb182-38" tabindex="-1"></a><span class="co">#&gt; Type III Analysis of Variance Table with Satterthwaite&#39;s method</span></span>
+<span id="cb182-39"><a href="application-5.html#cb182-39" tabindex="-1"></a><span class="co">#&gt;             Sum Sq Mean Sq NumDF  DenDF F value    Pr(&gt;F)    </span></span>
+<span id="cb182-40"><a href="application-5.html#cb182-40" tabindex="-1"></a><span class="co">#&gt; t:Treatment 3181.9  1060.6     3 223.21  734.11 &lt; 2.2e-16 ***</span></span>
+<span id="cb182-41"><a href="application-5.html#cb182-41" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb182-42"><a href="application-5.html#cb182-42" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
 <p>Since the p-value is significant, we can be confident concluding that there is a treatment effect</p>
-<p><br></p>
 </div>
 <div id="example-3-agridat" class="section level3 hasAnchor" number="8.8.3">
 <h3><span class="header-section-number">8.8.3</span> Example 3 (Agridat)<a href="application-5.html#example-3-agridat" class="anchor-section" aria-label="Anchor link to header"></a></h3>
@@ -1214,39 +1240,44 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}
 <div class="sourceCode" id="cb185"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb185-1"><a href="application-5.html#cb185-1" tabindex="-1"></a><span class="fu">xyplot</span>(</span>
 <span id="cb185-2"><a href="application-5.html#cb185-2" tabindex="-1"></a>    water <span class="sc">~</span> day <span class="sc">|</span> tree,</span>
 <span id="cb185-3"><a href="application-5.html#cb185-3" tabindex="-1"></a>    dat,</span>
-<span id="cb185-4"><a href="application-5.html#cb185-4" tabindex="-1"></a>    <span class="at">subset =</span> age <span class="sc">==</span> <span class="st">&quot;A2&quot;</span> <span class="sc">&amp;</span> species <span class="sc">==</span> <span class="st">&quot;S2&quot;</span>,</span>
+<span id="cb185-4"><a href="application-5.html#cb185-4" tabindex="-1"></a>    <span class="at">subset   =</span> age <span class="sc">==</span> <span class="st">&quot;A2&quot;</span> <span class="sc">&amp;</span> species <span class="sc">==</span> <span class="st">&quot;S2&quot;</span>,</span>
 <span id="cb185-5"><a href="application-5.html#cb185-5" tabindex="-1"></a>    <span class="at">as.table =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb185-6"><a href="application-5.html#cb185-6" tabindex="-1"></a>    <span class="at">type =</span> <span class="fu">c</span>(<span class="st">&#39;p&#39;</span>, <span class="st">&#39;smooth&#39;</span>),</span>
-<span id="cb185-7"><a href="application-5.html#cb185-7" tabindex="-1"></a>    <span class="at">ylab =</span> <span class="st">&quot;Water use profiles of individual trees&quot;</span>,</span>
-<span id="cb185-8"><a href="application-5.html#cb185-8" tabindex="-1"></a>    <span class="at">main =</span> <span class="st">&quot;harris.wateruse (Age 2, Species 2)&quot;</span></span>
+<span id="cb185-6"><a href="application-5.html#cb185-6" tabindex="-1"></a>    <span class="at">type     =</span> <span class="fu">c</span>(<span class="st">&#39;p&#39;</span>, <span class="st">&#39;smooth&#39;</span>),</span>
+<span id="cb185-7"><a href="application-5.html#cb185-7" tabindex="-1"></a>    <span class="at">ylab     =</span> <span class="st">&quot;Water use profiles of individual trees&quot;</span>,</span>
+<span id="cb185-8"><a href="application-5.html#cb185-8" tabindex="-1"></a>    <span class="at">main     =</span> <span class="st">&quot;harris.wateruse (Age 2, Species 2)&quot;</span></span>
 <span id="cb185-9"><a href="application-5.html#cb185-9" tabindex="-1"></a>)</span></code></pre></div>
 <p><img src="08-linear-mixed-models_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" /></p>
-<div class="sourceCode" id="cb186"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb186-1"><a href="application-5.html#cb186-1" tabindex="-1"></a><span class="co"># Rescale day for nicer output, and convergence issues, add quadratic term</span></span>
-<span id="cb186-2"><a href="application-5.html#cb186-2" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">transform</span>(dat, <span class="at">ti =</span> day <span class="sc">/</span> <span class="dv">100</span>)</span>
-<span id="cb186-3"><a href="application-5.html#cb186-3" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">transform</span>(dat, <span class="at">ti2 =</span> ti <span class="sc">*</span> ti)</span>
-<span id="cb186-4"><a href="application-5.html#cb186-4" tabindex="-1"></a><span class="co"># Start with a subgroup: age 2, species 2</span></span>
-<span id="cb186-5"><a href="application-5.html#cb186-5" tabindex="-1"></a>d22 <span class="ot">&lt;-</span> <span class="fu">droplevels</span>(<span class="fu">subset</span>(dat, age <span class="sc">==</span> <span class="st">&quot;A2&quot;</span> <span class="sc">&amp;</span> species <span class="sc">==</span> <span class="st">&quot;S2&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb186"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb186-1"><a href="application-5.html#cb186-1" tabindex="-1"></a><span class="co"># Rescale day for nicer output, </span></span>
+<span id="cb186-2"><a href="application-5.html#cb186-2" tabindex="-1"></a><span class="co"># and convergence issues, add quadratic term</span></span>
+<span id="cb186-3"><a href="application-5.html#cb186-3" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">transform</span>(dat, <span class="at">ti =</span> day <span class="sc">/</span> <span class="dv">100</span>)</span>
+<span id="cb186-4"><a href="application-5.html#cb186-4" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">transform</span>(dat, <span class="at">ti2 =</span> ti <span class="sc">*</span> ti)</span>
+<span id="cb186-5"><a href="application-5.html#cb186-5" tabindex="-1"></a><span class="co"># Start with a subgroup: age 2, species 2</span></span>
+<span id="cb186-6"><a href="application-5.html#cb186-6" tabindex="-1"></a>d22 <span class="ot">&lt;-</span> <span class="fu">droplevels</span>(<span class="fu">subset</span>(dat, age <span class="sc">==</span> <span class="st">&quot;A2&quot;</span> <span class="sc">&amp;</span> species <span class="sc">==</span> <span class="st">&quot;S2&quot;</span>))</span></code></pre></div>
 <p><code>lme</code> function from <code>nlme</code> package</p>
 <div class="sourceCode" id="cb187"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb187-1"><a href="application-5.html#cb187-1" tabindex="-1"></a><span class="fu">library</span>(nlme)</span>
-<span id="cb187-2"><a href="application-5.html#cb187-2" tabindex="-1"></a><span class="do">## We use pdDiag() to get uncorrelated random effects</span></span>
-<span id="cb187-3"><a href="application-5.html#cb187-3" tabindex="-1"></a>m1n <span class="ot">&lt;-</span> <span class="fu">lme</span>(</span>
-<span id="cb187-4"><a href="application-5.html#cb187-4" tabindex="-1"></a>    water <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> ti <span class="sc">+</span> ti2, <span class="co">#intercept, time and time-squared = fixed effects</span></span>
-<span id="cb187-5"><a href="application-5.html#cb187-5" tabindex="-1"></a>    <span class="at">data =</span> d22,</span>
-<span id="cb187-6"><a href="application-5.html#cb187-6" tabindex="-1"></a>    <span class="at">na.action =</span> na.omit,</span>
-<span id="cb187-7"><a href="application-5.html#cb187-7" tabindex="-1"></a>    <span class="at">random =</span> <span class="fu">list</span>(<span class="at">tree =</span> <span class="fu">pdDiag</span>( <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> ti <span class="sc">+</span> ti2)) <span class="co"># random intercept, time and time squared per tree = random effects</span></span>
-<span id="cb187-8"><a href="application-5.html#cb187-8" tabindex="-1"></a>)</span>
-<span id="cb187-9"><a href="application-5.html#cb187-9" tabindex="-1"></a><span class="fu">ranef</span>(m1n)</span>
-<span id="cb187-10"><a href="application-5.html#cb187-10" tabindex="-1"></a><span class="co">#&gt;     (Intercept)            ti           ti2</span></span>
-<span id="cb187-11"><a href="application-5.html#cb187-11" tabindex="-1"></a><span class="co">#&gt; T04   0.1985796  1.609864e-09  4.990101e-10</span></span>
-<span id="cb187-12"><a href="application-5.html#cb187-12" tabindex="-1"></a><span class="co">#&gt; T05   0.3492827  2.487690e-10 -4.845287e-11</span></span>
-<span id="cb187-13"><a href="application-5.html#cb187-13" tabindex="-1"></a><span class="co">#&gt; T19  -0.1978989 -7.681202e-10 -1.961453e-10</span></span>
-<span id="cb187-14"><a href="application-5.html#cb187-14" tabindex="-1"></a><span class="co">#&gt; T23   0.4519003 -3.270426e-10 -2.413583e-10</span></span>
-<span id="cb187-15"><a href="application-5.html#cb187-15" tabindex="-1"></a><span class="co">#&gt; T38  -0.6457494 -1.608770e-09 -3.298010e-10</span></span>
-<span id="cb187-16"><a href="application-5.html#cb187-16" tabindex="-1"></a><span class="co">#&gt; T40   0.3739432  3.264705e-10 -2.543109e-11</span></span>
-<span id="cb187-17"><a href="application-5.html#cb187-17" tabindex="-1"></a><span class="co">#&gt; T49   0.8620648  9.021831e-10 -5.402247e-12</span></span>
-<span id="cb187-18"><a href="application-5.html#cb187-18" tabindex="-1"></a><span class="co">#&gt; T53  -0.5655049 -8.279040e-10 -4.579291e-11</span></span>
-<span id="cb187-19"><a href="application-5.html#cb187-19" tabindex="-1"></a><span class="co">#&gt; T67  -0.4394623 -3.485113e-10  2.147434e-11</span></span>
-<span id="cb187-20"><a href="application-5.html#cb187-20" tabindex="-1"></a><span class="co">#&gt; T71  -0.3871552  7.930610e-10  3.718993e-10</span></span></code></pre></div>
+<span id="cb187-2"><a href="application-5.html#cb187-2" tabindex="-1"></a></span>
+<span id="cb187-3"><a href="application-5.html#cb187-3" tabindex="-1"></a><span class="do">## We use pdDiag() to get uncorrelated random effects</span></span>
+<span id="cb187-4"><a href="application-5.html#cb187-4" tabindex="-1"></a>m1n <span class="ot">&lt;-</span> <span class="fu">lme</span>(</span>
+<span id="cb187-5"><a href="application-5.html#cb187-5" tabindex="-1"></a>    water <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> ti <span class="sc">+</span> ti2,</span>
+<span id="cb187-6"><a href="application-5.html#cb187-6" tabindex="-1"></a>    <span class="co">#intercept, time and time-squared = fixed effects</span></span>
+<span id="cb187-7"><a href="application-5.html#cb187-7" tabindex="-1"></a>    <span class="at">data =</span> d22,</span>
+<span id="cb187-8"><a href="application-5.html#cb187-8" tabindex="-1"></a>    <span class="at">na.action =</span> na.omit,</span>
+<span id="cb187-9"><a href="application-5.html#cb187-9" tabindex="-1"></a>    <span class="at">random =</span> <span class="fu">list</span>(<span class="at">tree =</span> <span class="fu">pdDiag</span>(<span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> ti <span class="sc">+</span> ti2)) </span>
+<span id="cb187-10"><a href="application-5.html#cb187-10" tabindex="-1"></a>    <span class="co"># random intercept, time </span></span>
+<span id="cb187-11"><a href="application-5.html#cb187-11" tabindex="-1"></a>    <span class="co"># and time squared per tree = random effects</span></span>
+<span id="cb187-12"><a href="application-5.html#cb187-12" tabindex="-1"></a>)</span>
+<span id="cb187-13"><a href="application-5.html#cb187-13" tabindex="-1"></a><span class="fu">ranef</span>(m1n)</span>
+<span id="cb187-14"><a href="application-5.html#cb187-14" tabindex="-1"></a><span class="co">#&gt;     (Intercept)            ti           ti2</span></span>
+<span id="cb187-15"><a href="application-5.html#cb187-15" tabindex="-1"></a><span class="co">#&gt; T04   0.1985796  1.609864e-09  4.990101e-10</span></span>
+<span id="cb187-16"><a href="application-5.html#cb187-16" tabindex="-1"></a><span class="co">#&gt; T05   0.3492827  2.487690e-10 -4.845287e-11</span></span>
+<span id="cb187-17"><a href="application-5.html#cb187-17" tabindex="-1"></a><span class="co">#&gt; T19  -0.1978989 -7.681202e-10 -1.961453e-10</span></span>
+<span id="cb187-18"><a href="application-5.html#cb187-18" tabindex="-1"></a><span class="co">#&gt; T23   0.4519003 -3.270426e-10 -2.413583e-10</span></span>
+<span id="cb187-19"><a href="application-5.html#cb187-19" tabindex="-1"></a><span class="co">#&gt; T38  -0.6457494 -1.608770e-09 -3.298010e-10</span></span>
+<span id="cb187-20"><a href="application-5.html#cb187-20" tabindex="-1"></a><span class="co">#&gt; T40   0.3739432  3.264705e-10 -2.543109e-11</span></span>
+<span id="cb187-21"><a href="application-5.html#cb187-21" tabindex="-1"></a><span class="co">#&gt; T49   0.8620648  9.021831e-10 -5.402247e-12</span></span>
+<span id="cb187-22"><a href="application-5.html#cb187-22" tabindex="-1"></a><span class="co">#&gt; T53  -0.5655049 -8.279040e-10 -4.579291e-11</span></span>
+<span id="cb187-23"><a href="application-5.html#cb187-23" tabindex="-1"></a><span class="co">#&gt; T67  -0.4394623 -3.485113e-10  2.147434e-11</span></span>
+<span id="cb187-24"><a href="application-5.html#cb187-24" tabindex="-1"></a><span class="co">#&gt; T71  -0.3871552  7.930610e-10  3.718993e-10</span></span></code></pre></div>
 <div class="sourceCode" id="cb188"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb188-1"><a href="application-5.html#cb188-1" tabindex="-1"></a><span class="fu">fixef</span>(m1n)</span>
 <span id="cb188-2"><a href="application-5.html#cb188-2" tabindex="-1"></a><span class="co">#&gt; (Intercept)          ti         ti2 </span></span>
 <span id="cb188-3"><a href="application-5.html#cb188-3" tabindex="-1"></a><span class="co">#&gt;  -10.798799   12.346704   -2.838503</span></span>
@@ -1312,26 +1343,27 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}
 <span id="cb190-2"><a href="application-5.html#cb190-2" tabindex="-1"></a><span class="co">#&gt; (Intercept)          ti         ti2 </span></span>
 <span id="cb190-3"><a href="application-5.html#cb190-3" tabindex="-1"></a><span class="co">#&gt;  -10.798799   12.346704   -2.838503</span></span>
 <span id="cb190-4"><a href="application-5.html#cb190-4" tabindex="-1"></a>m1l <span class="ot">&lt;-</span></span>
-<span id="cb190-5"><a href="application-5.html#cb190-5" tabindex="-1"></a>    <span class="fu">lmer</span>(water <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> ti <span class="sc">+</span> ti2 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span></span>
-<span id="cb190-6"><a href="application-5.html#cb190-6" tabindex="-1"></a>                                     tree) <span class="sc">+</span> (<span class="dv">0</span> <span class="sc">+</span> ti <span class="sc">|</span> tree) <span class="sc">+</span> (<span class="dv">0</span> <span class="sc">+</span> ti2 <span class="sc">|</span> tree), <span class="at">data =</span> d22)</span>
-<span id="cb190-7"><a href="application-5.html#cb190-7" tabindex="-1"></a><span class="fu">ranef</span>(m1l)</span>
-<span id="cb190-8"><a href="application-5.html#cb190-8" tabindex="-1"></a><span class="co">#&gt; $tree</span></span>
-<span id="cb190-9"><a href="application-5.html#cb190-9" tabindex="-1"></a><span class="co">#&gt;     (Intercept) ti ti2</span></span>
-<span id="cb190-10"><a href="application-5.html#cb190-10" tabindex="-1"></a><span class="co">#&gt; T04   0.1985796  0   0</span></span>
-<span id="cb190-11"><a href="application-5.html#cb190-11" tabindex="-1"></a><span class="co">#&gt; T05   0.3492827  0   0</span></span>
-<span id="cb190-12"><a href="application-5.html#cb190-12" tabindex="-1"></a><span class="co">#&gt; T19  -0.1978989  0   0</span></span>
-<span id="cb190-13"><a href="application-5.html#cb190-13" tabindex="-1"></a><span class="co">#&gt; T23   0.4519003  0   0</span></span>
-<span id="cb190-14"><a href="application-5.html#cb190-14" tabindex="-1"></a><span class="co">#&gt; T38  -0.6457494  0   0</span></span>
-<span id="cb190-15"><a href="application-5.html#cb190-15" tabindex="-1"></a><span class="co">#&gt; T40   0.3739432  0   0</span></span>
-<span id="cb190-16"><a href="application-5.html#cb190-16" tabindex="-1"></a><span class="co">#&gt; T49   0.8620648  0   0</span></span>
-<span id="cb190-17"><a href="application-5.html#cb190-17" tabindex="-1"></a><span class="co">#&gt; T53  -0.5655049  0   0</span></span>
-<span id="cb190-18"><a href="application-5.html#cb190-18" tabindex="-1"></a><span class="co">#&gt; T67  -0.4394623  0   0</span></span>
-<span id="cb190-19"><a href="application-5.html#cb190-19" tabindex="-1"></a><span class="co">#&gt; T71  -0.3871552  0   0</span></span>
-<span id="cb190-20"><a href="application-5.html#cb190-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb190-21"><a href="application-5.html#cb190-21" tabindex="-1"></a><span class="co">#&gt; with conditional variances for &quot;tree&quot;</span></span>
-<span id="cb190-22"><a href="application-5.html#cb190-22" tabindex="-1"></a><span class="fu">fixef</span>(m1l)</span>
-<span id="cb190-23"><a href="application-5.html#cb190-23" tabindex="-1"></a><span class="co">#&gt; (Intercept)          ti         ti2 </span></span>
-<span id="cb190-24"><a href="application-5.html#cb190-24" tabindex="-1"></a><span class="co">#&gt;  -10.798799   12.346704   -2.838503</span></span></code></pre></div>
+<span id="cb190-5"><a href="application-5.html#cb190-5" tabindex="-1"></a>    <span class="fu">lmer</span>(water <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> ti <span class="sc">+</span> ti2 </span>
+<span id="cb190-6"><a href="application-5.html#cb190-6" tabindex="-1"></a>         <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> tree) <span class="sc">+</span> (<span class="dv">0</span> <span class="sc">+</span> ti <span class="sc">|</span> tree) </span>
+<span id="cb190-7"><a href="application-5.html#cb190-7" tabindex="-1"></a>         <span class="sc">+</span> (<span class="dv">0</span> <span class="sc">+</span> ti2 <span class="sc">|</span> tree), <span class="at">data =</span> d22)</span>
+<span id="cb190-8"><a href="application-5.html#cb190-8" tabindex="-1"></a><span class="fu">ranef</span>(m1l)</span>
+<span id="cb190-9"><a href="application-5.html#cb190-9" tabindex="-1"></a><span class="co">#&gt; $tree</span></span>
+<span id="cb190-10"><a href="application-5.html#cb190-10" tabindex="-1"></a><span class="co">#&gt;     (Intercept) ti ti2</span></span>
+<span id="cb190-11"><a href="application-5.html#cb190-11" tabindex="-1"></a><span class="co">#&gt; T04   0.1985796  0   0</span></span>
+<span id="cb190-12"><a href="application-5.html#cb190-12" tabindex="-1"></a><span class="co">#&gt; T05   0.3492827  0   0</span></span>
+<span id="cb190-13"><a href="application-5.html#cb190-13" tabindex="-1"></a><span class="co">#&gt; T19  -0.1978989  0   0</span></span>
+<span id="cb190-14"><a href="application-5.html#cb190-14" tabindex="-1"></a><span class="co">#&gt; T23   0.4519003  0   0</span></span>
+<span id="cb190-15"><a href="application-5.html#cb190-15" tabindex="-1"></a><span class="co">#&gt; T38  -0.6457494  0   0</span></span>
+<span id="cb190-16"><a href="application-5.html#cb190-16" tabindex="-1"></a><span class="co">#&gt; T40   0.3739432  0   0</span></span>
+<span id="cb190-17"><a href="application-5.html#cb190-17" tabindex="-1"></a><span class="co">#&gt; T49   0.8620648  0   0</span></span>
+<span id="cb190-18"><a href="application-5.html#cb190-18" tabindex="-1"></a><span class="co">#&gt; T53  -0.5655049  0   0</span></span>
+<span id="cb190-19"><a href="application-5.html#cb190-19" tabindex="-1"></a><span class="co">#&gt; T67  -0.4394623  0   0</span></span>
+<span id="cb190-20"><a href="application-5.html#cb190-20" tabindex="-1"></a><span class="co">#&gt; T71  -0.3871552  0   0</span></span>
+<span id="cb190-21"><a href="application-5.html#cb190-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb190-22"><a href="application-5.html#cb190-22" tabindex="-1"></a><span class="co">#&gt; with conditional variances for &quot;tree&quot;</span></span>
+<span id="cb190-23"><a href="application-5.html#cb190-23" tabindex="-1"></a><span class="fu">fixef</span>(m1l)</span>
+<span id="cb190-24"><a href="application-5.html#cb190-24" tabindex="-1"></a><span class="co">#&gt; (Intercept)          ti         ti2 </span></span>
+<span id="cb190-25"><a href="application-5.html#cb190-25" tabindex="-1"></a><span class="co">#&gt;  -10.798799   12.346704   -2.838503</span></span></code></pre></div>
 <p>To include structured covariance terms, we can use the following way</p>
 <div class="sourceCode" id="cb191"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb191-1"><a href="application-5.html#cb191-1" tabindex="-1"></a>m2n <span class="ot">&lt;-</span> <span class="fu">lme</span>(</span>
 <span id="cb191-2"><a href="application-5.html#cb191-2" tabindex="-1"></a>    water <span class="sc">~</span> <span class="dv">1</span> <span class="sc">+</span> ti <span class="sc">+</span> ti2,</span>

@@ -12,7 +12,7 @@ In high dimension, you always have weak to strong collinearity. Hence, your esti
 
 -   If two functions are similar in output space, you can still do prediction, but you can't do estimation because of exploded standard errors.
 
-![](images/prediction_causation.PNG){style="display: block; margin: 1em auto" width="60%"}
+![](images/prediction_causation.PNG){style="display: block; margin: 1em auto" width="90%"}
 
 (SICSS 2018 - Sendhil Mullainathan's presentation slide)
 

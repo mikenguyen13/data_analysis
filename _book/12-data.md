@@ -4,17 +4,12 @@ There are multiple ways to categorize data. For example,
 
 -   Qualitative vs. Quantitative:
 
-+--------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------+
 | Qualitative                                                                                                        | Quantitative                                                                               |
-+====================================================================================================================+============================================================================================+
+|----------------------------------------|--------------------------------|
 | in-depth interviews, documents, focus groups, case study, ethnography. open-ended questions. observations in words | experiments, observation in words, survey with closed-end questions, structured interviews |
-+--------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------+
 | language, descriptive                                                                                              | quantities, numbers                                                                        |
-+--------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------+
 | Text-based                                                                                                         | Numbers-based                                                                              |
-+--------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------+
 | Subjective                                                                                                         | Objectivity                                                                                |
-+--------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------+
 
 ## Cross-Sectional
 
@@ -38,8 +33,6 @@ Examples
 -   Dynamic Model
 
     -   $GDP_t = \beta_0 + \beta_1GDP_{t-1} - \epsilon_t$
-
-<br>
 
 [Finite Sample Properties] for [Time Series]:
 
@@ -95,8 +88,10 @@ so the true $\beta_1=0$
 We can rewrite the equation as
 
 $$
-y_t=\beta_0 + \beta_1x_t+\epsilon_t \\
-\epsilon_t = \alpha_1t + v_t
+\begin{aligned}
+y_t &=\beta_0 + \beta_1x_t+\epsilon_t \\
+\epsilon_t &= \alpha_1t + v_t
+\end{aligned}
 $$
 
 where $\beta_0 = \alpha_0$ and $\beta_1=0$. Since $x_t$ is a deterministic function of time, $\epsilon_t$ is correlated with $x_t$ and we have the usual omitted variable bias.\
@@ -104,15 +99,15 @@ Even when $y_t$ and $x_t$ are related ($\beta_1 \neq 0$) but they are both trend
 
 **Solutions to Spurious Trend**
 
-1.  Include time trend t as an additional control
+1.  Include time trend $t$ as an additional control
 
     -   consistent parameter estimates and valid inference
 
 2.  Detrend both dependent and independent variables and then regress the detrended outcome on detrended independent variables (i.e., regress residuals $\hat{u}_t$ on residuals $\hat{v}_t$)
 
-    -   Detrending is the same as partialling out in the [Frisch-Waugh-Lovell Theorem]
+    -   Detrending is the same as partialing out in the [Frisch-Waugh-Lovell Theorem]
 
-        -   Could allow for non-linear time trends by including t $t^2$, and exp(t)
+        -   Could allow for non-linear time trends by including $t$ $t^2$, and $\exp(t)$
         -   Allow for seasonality by including indicators for relevant "seasons" (quarters, months, weeks).
 
 [A3][A3 Exogeneity of Independent Variables] does not hold under:
@@ -215,8 +210,13 @@ under [A1][A1 Linearity], [A2][A2 Full rank], [A3a], and [A5a], [OLS estimator][
 
 ### Highly Persistent Data
 
-If $y_t, \mathbf{x}_t$ are not weakly dependent stationary process\
-\* $y_t$ and $y_{t-h}$ are not almost independent for large h \* [A5a] does not hold and OLS is not **consistent** and does not have a limiting distribution. \* Example + Random Walk $y_t = y_{t-1} + u_t$ + Random Walk with a drift: $y_t = \alpha+ y_{t-1} + u_t$
+If $y_t, \mathbf{x}_t$ are not weakly dependent stationary process
+
+-   $y_t$ and $y_{t-h}$ are not almost independent for large h
+
+-   [A5a] does not hold and OLS is not **consistent** and does not have a limiting distribution.
+
+-   Example + Random Walk $y_t = y_{t-1} + u_t$ + Random Walk with a drift: $y_t = \alpha+ y_{t-1} + u_t$
 
 **Solution** First difference is a stationary process
 
@@ -268,7 +268,7 @@ $$
     \Delta y_t = \alpha + \theta y_{t-1} + \delta t + v_t
     $$
 
--   allows $y_t$ to have a quadratic relationship with t
+-   allows $y_t$ to have a quadratic relationship with $t$
 -   Solution: include time trend (changes the critical values).
 
 **Adjusted Dickey-Fuller Test** $$
@@ -293,8 +293,8 @@ $$
 
 -   How to choose g:
 
-    -   For yearly data: g = 1 or 2 is likely to account for most of the correlation
-    -   For quarterly or monthly data: g should be larger (g = 4 or 8 for quarterly and g = 12 or 14 for monthly)
+    -   For yearly data: $g = 1$ or 2 is likely to account for most of the correlation
+    -   For quarterly or monthly data: g should be larger (\$g = 4\$ or 8 for quarterly and $g = 12$ or 14 for monthly)
     -   can also take integer part of $4(T/100)^{2/9}$ or integer part of $T^{1/4}$
 
 **Testing for Serial Correlation**
@@ -395,19 +395,13 @@ Panel data structure is like having n samples of time series data
 -   Between variation: variation between individuals
 -   Within variation: variation within individuals (over time).
 
-+------------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Estimate         | Formula                                                                                                                     |
-+==================+=============================================================================================================================+
+|-------------------|-----------------------------------------------------|
 | Individual mean  | $\bar{x_i}= \frac{1}{T} \sum_{t}x_{it}$                                                                                     |
-+------------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Overall mean     | $\bar{x}=\frac{1}{NT} \sum_{i} \sum_t x_{it}$                                                                               |
-+------------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Overall Variance | $s _O^2 = \frac{1}{NT-1} \sum_i \sum_t (x_{it} - \bar{x})^2$                                                                |
-+------------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Between variance | $s_B^2 = \frac{1}{N-1} \sum_i (\bar{x_i} -\bar{x})^2$                                                                       |
-+------------------+-----------------------------------------------------------------------------------------------------------------------------+
 | Within variance  | $s_W^2= \frac{1}{NT-1} \sum_i \sum_t (x_{it} - \bar{x_i})^2 = \frac{1}{NT-1} \sum_i \sum_t (x_{it} - \bar{x_i} +\bar{x})^2$ |
-+------------------+-----------------------------------------------------------------------------------------------------------------------------+
 
 **Note**: $s_O^2 \approx s_B^2 + s_W^2$
 
@@ -474,10 +468,9 @@ Hence, the OLS and RE are inconsistent/biased (because of omitted variable bias)
 
 However, FE can only fix bias due to time-invariant factors (both observables and unobservables) correlated with treatment (not time-variant factors that correlated with the treatment).
 
-The traditional FE technique is flawed when lagged dependent variables are included in the model. [@nickell1981biases] [@narayanan2013estimating] 
+The traditional FE technique is flawed when lagged dependent variables are included in the model. [@nickell1981biases] [@narayanan2013estimating]
 
-With measurement error in the independent, FE will exacerbate the errors-in-the-variables bias. 
-
+With measurement error in the independent, FE will exacerbate the errors-in-the-variables bias.
 
 ##### Demean Approach
 
@@ -525,15 +518,14 @@ $$
 
 where
 
-\begin{equation}
+$$
 c_i
 =
 \begin{cases}
 1 &\text{if observation is i} \\
 0 &\text{otherwise} \\
 \end{cases}
-\end{equation}
-
+$$
 
 -   The standard error is incorrectly calculated.
 -   the FE within transformation is controlling for any difference across individual which is allowed to correlated with observables.
@@ -558,7 +550,7 @@ $$
 
     -   Hence, with a small number of changes then the standard error for $\beta$ will explode
 
--   Status changes mean subjects change from (1) control to treatment group or (2) treatment to control group. Those who have status change, we call them **switchers**. (more on this in
+-   Status changes mean subjects change from (1) control to treatment group or (2) treatment to control group. Those who have status change, we call them **switchers**.
 
     -   Treatment effect is typically **non-directional**.
 
@@ -661,7 +653,7 @@ $$
 
 where
 
--   i = test, j = kid, m = mother, g = grandmother
+-   $i$ = test, $j$ = kid, $m$ = mother, $g$ = grandmother
 
 -   where $\gamma_g$ includes $\gamma_m$ includes $\gamma_j$
 
@@ -682,8 +674,6 @@ Common to cluster a the fixed-effect level (common correlated component)
 **Fixed effect exaggerates attenuation bias**
 
 Error rate on survey can help you fix this (plug in the number only , but not the uncertainty associated with that number).
-
-<br>
 
 ##### @babcock2010
 
@@ -841,15 +831,13 @@ $$
 
 Even in cases where the true relationship is that $\tau$ is a function of $N_j$, then our recovery method for $\lambda$ is still not affected
 
-To examine our assumption 
+To examine our assumption
 
 $$
 \hat{\tau}_j = \beta_0 + X_j \beta_1 + \epsilon_j
 $$
 
 Regressing teacher fixed-effect on teacher characteristics should give us $R^2$ close to 0, because teacher characteristics cannot predict sampling error ($\hat{\tau}$ contain sampling error)
-
-<br>
 
 ### Tests for Assumptions
 
@@ -977,8 +965,6 @@ pcdtest(inv~value+capital, data=Grunfeld, model="within")
 
     -   **conditional** test: assume you correctly specify one dependence structure, test whether the other departure is present.
 
-<br>
-
 ##### Unobserved effect test
 
 -   semi-parametric test (the test statistic $W \dot{\sim} N$ regardless of the distribution of the errors) with $H_0: \sigma^2_\mu = 0$ (i.e., no unobserved effects in the residuals), favors pooled OLS.
@@ -989,7 +975,7 @@ pcdtest(inv~value+capital, data=Grunfeld, model="within")
 
 
 ```r
-pwtest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, data=Produc)
+pwtest(log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp, data = Produc)
 #> 
 #> 	Wooldridge's test for unobserved individual effects
 #> 
@@ -1000,15 +986,15 @@ pwtest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, data=Produc)
 
 Here, we reject the null hypothesis that the no unobserved effects in the residuals. Hence, we will exclude using pooled OLS.
 
-<br>
-
 ##### Locally robust tests for random effects and serial correlation
 
 -   A joint LM test for **random effects** and **serial correlation** assuming normality and homoskedasticity of the idiosyncratic errors [@baltagi1991joint][@baltagi1995testing]
 
 
 ```r
-pbsytest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, data=Produc, test="j")
+pbsytest(log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp,
+         data = Produc,
+         test = "j")
 #> 
 #> 	Baltagi and Li AR-RE joint test
 #> 
@@ -1025,7 +1011,8 @@ BSY for serial correlation
 
 
 ```r
-pbsytest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, data=Produc)
+pbsytest(log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp,
+         data = Produc)
 #> 
 #> 	Bera, Sosa-Escudero and Yoon locally robust test
 #> 
@@ -1038,7 +1025,9 @@ BSY for random effects
 
 
 ```r
-pbsytest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, data=Produc, test="re")
+pbsytest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, 
+         data=Produc, 
+         test="re")
 #> 
 #> 	Bera, Sosa-Escudero and Yoon locally robust test (one-sided)
 #> 
@@ -1051,7 +1040,8 @@ Since BSY is only locally robust, if you "know" there is no serial correlation, 
 
 
 ```r
-plmtest(inv ~ value + capital, data = Grunfeld, type = "honda")
+plmtest(inv ~ value + capital, data = Grunfeld, 
+        type = "honda")
 #> 
 #> 	Lagrange Multiplier Test - (Honda)
 #> 
@@ -1078,8 +1068,11 @@ Note:
 
 
 ```r
-pbltest(log(gsp)~log(pcap)+log(pc)+log(emp)+unemp, 
-        data=Produc, alternative="onesided")
+pbltest(
+    log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp,
+    data = Produc,
+    alternative = "onesided"
+)
 #> 
 #> 	Baltagi and Li one-sided LM test
 #> 
@@ -1095,7 +1088,10 @@ General serial correlation tests
 
 
 ```r
-plm::pbgtest(plm::plm(inv~value+capital, data = Grunfeld, model = "within"), order = 2)
+plm::pbgtest(plm::plm(inv ~ value + capital,
+                      data = Grunfeld,
+                      model = "within"),
+             order = 2)
 #> 
 #> 	Breusch-Godfrey/Wooldridge test for serial correlation in panel models
 #> 
@@ -1153,13 +1149,10 @@ The continuum between RE (used FGLS which more assumption ) and POLS check back 
 
 -   RE does not require strict exogeneity for consistency (feedback effect between residual and covariates)
 
-+----------------------------------------+----------------------------------------------------------------------------------------+
 | Hypothesis                             | If true                                                                                |
-+========================================+========================================================================================+
+|------------------------|------------------------------------------------|
 | $H_0: Cov(c_i,\mathbf{x_{it}})=0$      | $\hat{\beta}_{RE}$ is consistent and efficient, while $\hat{\beta}_{FE}$ is consistent |
-+----------------------------------------+----------------------------------------------------------------------------------------+
 | $H_0: Cov(c_i,\mathbf{x_{it}}) \neq 0$ | $\hat{\beta}_{RE}$ is inconsistent, while $\hat{\beta}_{FE}$ is consistent             |
-+----------------------------------------+----------------------------------------------------------------------------------------+
 
 **Hausman Test**
 
@@ -1176,8 +1169,8 @@ Then,
 
 
 ```r
-gw <- plm(inv~value+capital, data=Grunfeld, model="within")
-gr <- plm(inv~value+capital, data=Grunfeld, model="random")
+gw <- plm(inv ~ value + capital, data = Grunfeld, model = "within")
+gr <- plm(inv ~ value + capital, data = Grunfeld, model = "random")
 phtest(gw, gr)
 #> 
 #> 	Hausman Test
@@ -1187,9 +1180,15 @@ phtest(gw, gr)
 #> alternative hypothesis: one model is inconsistent
 ```
 
-+-----------------------+-----------------+---------------------------------+---------------------------------+-----------------------------------------+------------------------+------------------------+-------+-------------------------------------------+
-| Violation Estimator | Basic Estimator | Instrumental variable Estimator | Variable Coefficients estimator | Generalized Method of Moments estimator | General FGLS estimator | Means groups estimator | CCEMG | Estimator for limited dependent variables |
-+-----------------------+-----------------+---------------------------------+---------------------------------+-----------------------------------------+------------------------+------------------------+-------+-------------------------------------------+
+-   Violation Estimator
+-   Basic Estimator
+-   Instrumental variable Estimator
+-   Variable Coefficients estimator
+-   Generalized Method of Moments estimator
+-   General FGLS estimator
+-   Means groups estimator
+-   CCEMG
+-   Estimator for limited dependent variables
 
 ### Summary
 
@@ -1221,7 +1220,7 @@ Based on table provided by [Ani Katchova](https://sites.google.com/site/economet
 
 ### Application
 
-#### plm package
+#### `plm` package
 
 Recommended application of `plm` can be found [here](https://cran.r-project.org/web/packages/plm/vignettes/B_plmFunction.html) and [here](https://cran.r-project.org/web/packages/plm/vignettes/C_plmModelComponents.html) by Yves Croissant
 
@@ -1238,36 +1237,39 @@ Y <- cbind(y)
 X <- cbind(x1, x2, x3)
 
 # Set data as panel data
-pdata <- pdata.frame(Panel, index=c("country","year"))
+pdata <- pdata.frame(Panel, index = c("country", "year"))
 
 # Pooled OLS estimator
-pooling <- plm(Y ~ X, data=pdata, model= "pooling")
+pooling <- plm(Y ~ X, data = pdata, model = "pooling")
 summary(pooling)
 
 # Between estimator
-between <- plm(Y ~ X, data=pdata, model= "between")
+between <- plm(Y ~ X, data = pdata, model = "between")
 summary(between)
 
 # First differences estimator
-firstdiff <- plm(Y ~ X, data=pdata, model= "fd")
+firstdiff <- plm(Y ~ X, data = pdata, model = "fd")
 summary(firstdiff)
 
 # Fixed effects or within estimator
-fixed <- plm(Y ~ X, data=pdata, model= "within")
+fixed <- plm(Y ~ X, data = pdata, model = "within")
 summary(fixed)
 
 # Random effects estimator
-random <- plm(Y ~ X, data=pdata, model= "random")
+random <- plm(Y ~ X, data = pdata, model = "random")
 summary(random)
 
 # LM test for random effects versus OLS
 # Accept Null, then OLS, Reject Null then RE
-plmtest(pooling,effect = "individual", type = c("bp")) # other type: "honda", "kw"," "ghm"; other effect : "time" "twoways"
+plmtest(pooling, effect = "individual", type = c("bp")) 
+# other type: "honda", "kw"," "ghm"; other effect : "time" "twoways"
 
 
 # B-P/LM and Pesaran CD (cross-sectional dependence) test
-pcdtest(fixed, test = c("lm")) # Breusch and Pagan's original LM statistic
-pcdtest(fixed, test = c("cd")) # Pesaran's CD statistic
+# Breusch and Pagan's original LM statistic
+pcdtest(fixed, test = c("lm")) 
+# Pesaran's CD statistic
+pcdtest(fixed, test = c("cd")) 
 
 # Serial Correlation
 pbgtest(fixed)
@@ -1289,19 +1291,31 @@ bptest(y ~ x1 + factor(country), data = pdata)
 # If there is presence of heteroskedasticity
 ## For RE model
 coeftest(random) #orginal coef
-coeftest(random, vcovHC) # Heteroskedasticity consistent coefficients
 
-t(sapply(c("HC0", "HC1", "HC2", "HC3", "HC4"), function(x) sqrt(diag(vcovHC(random, type = x))))) #show HC SE of the coef
+# Heteroskedasticity consistent coefficients
+coeftest(random, vcovHC) 
+
+t(sapply(c("HC0", "HC1", "HC2", "HC3", "HC4"), function(x)
+    sqrt(diag(
+        vcovHC(random, type = x)
+    )))) #show HC SE of the coef
 # HC0 - heteroskedasticity consistent. The default.
-# HC1,HC2, HC3 – Recommended for small samples. HC3 gives less weight to influential observations.
+# HC1,HC2, HC3 – Recommended for small samples. 
+# HC3 gives less weight to influential observations.
 # HC4 - small samples with influential observations
 # HAC - heteroskedasticity and autocorrelation consistent
 
 ## For FE model
 coeftest(fixed) # Original coefficients
 coeftest(fixed, vcovHC) # Heteroskedasticity consistent coefficients
-coeftest(fixed, vcovHC(fixed, method = "arellano")) # Heteroskedasticity consistent coefficients (Arellano)
-t(sapply(c("HC0", "HC1", "HC2", "HC3", "HC4"), function(x) sqrt(diag(vcovHC(fixed, type = x))))) #show HC SE of the coef
+
+# Heteroskedasticity consistent coefficients (Arellano)
+coeftest(fixed, vcovHC(fixed, method = "arellano")) 
+
+t(sapply(c("HC0", "HC1", "HC2", "HC3", "HC4"), function(x)
+    sqrt(diag(
+        vcovHC(fixed, type = x)
+    )))) #show HC SE of the coef
 
 ```
 
@@ -1324,14 +1338,24 @@ Other effects:
 
 
 ```r
-amemiya <- plm(Y ~ X, data=pdata, model= "random",random.method = "amemiya",effect = "twoways")
+amemiya <-
+    plm(
+        Y ~ X,
+        data = pdata,
+        model = "random",
+        random.method = "amemiya",
+        effect = "twoways"
+    )
 ```
 
 To call the estimation of the variance of the error components
 
 
 ```r
-ercomp(Y~X, data=pdata, method = "amemiya", effect = "twoways")
+ercomp(Y ~ X,
+       data = pdata,
+       method = "amemiya",
+       effect = "twoways")
 ```
 
 Check for the unbalancedness. Closer to 1 indicates balanced data [@ahrens1981two]
@@ -1350,7 +1374,14 @@ punbalancedness(random)
 
 
 ```r
-instr <- plm(Y ~ X | X_ins, data = pdata, random.method = "ht", model = "random", inst.method = "baltagi")
+instr <-
+    plm(
+        Y ~ X | X_ins,
+        data = pdata,
+        random.method = "ht",
+        model = "random",
+        inst.method = "baltagi"
+    )
 ```
 
 ##### Other Estimators
@@ -1359,8 +1390,8 @@ instr <- plm(Y ~ X | X_ins, data = pdata, random.method = "ht", model = "random"
 
 
 ```r
-fixed_pvcm <- pvcm(Y~X, data=pdata, model="within")
-random_pvcm <- pvcm(Y~X, data=pdata, model="random")
+fixed_pvcm  <- pvcm(Y ~ X, data = pdata, model = "within")
+random_pvcm <- pvcm(Y ~ X, data = pdata, model = "random")
 ```
 
 More details can be found [here](https://cran.r-project.org/web/packages/plm/vignettes/plmPackage.html)
@@ -1371,28 +1402,38 @@ Typically use in dynamic models. Example is from [plm package](https://cran.r-pr
 
 
 ```r
-z2 <- pgmm(log(emp) ~ lag(log(emp), 1)+ lag(log(wage), 0:1) +
-           lag(log(capital), 0:1) | lag(log(emp), 2:99) +
-           lag(log(wage), 2:99) + lag(log(capital), 2:99),        
-           data = EmplUK, effect = "twoways", model = "onestep", 
-           transformation = "ld")
+z2 <- pgmm(
+    log(emp) ~ lag(log(emp), 1) + lag(log(wage), 0:1) +
+        lag(log(capital), 0:1) | lag(log(emp), 2:99) +
+        lag(log(wage), 2:99) + lag(log(capital), 2:99),
+    data = EmplUK,
+    effect = "twoways",
+    model = "onestep",
+    transformation = "ld"
+)
 summary(z2, robust = TRUE)
 ```
 
 ###### General Feasible Generalized Least Squares Models
 
-Assume there is no cross-sectional correlation Robust against intragroup heteroskedasticity and serial correlation. Suited when n is much larger than T (long panel) However, inefficient under groupwise heteorskedasticity.
+Assume there is no cross-sectional correlation Robust against intragroup heteroskedasticity and serial correlation. Suited when n is much larger than T (long panel) However, inefficient under group-wise heteorskedasticity.
 
 
 ```r
 # Random Effects
-zz <- pggls(log(emp)~log(wage)+log(capital), data=EmplUK, model="pooling")
+zz <-
+    pggls(log(emp) ~ log(wage) + log(capital),
+          data = EmplUK,
+          model = "pooling")
 
 # Fixed
-zz <- pggls(log(emp)~log(wage)+log(capital), data=EmplUK, model="within")
+zz <-
+    pggls(log(emp) ~ log(wage) + log(capital),
+          data = EmplUK,
+          model = "within")
 ```
 
-#### fixest package
+#### `fixest` package
 
 Available functions
 
@@ -1422,17 +1463,20 @@ data(airquality)
 # Setting a dictionary
 setFixest_dict(
     c(
-        Ozone = "Ozone (ppb)",
+        Ozone   = "Ozone (ppb)",
         Solar.R = "Solar Radiation (Langleys)",
-        Wind = "Wind Speed (mph)",
-        Temp = "Temperature"
+        Wind    = "Wind Speed (mph)",
+        Temp    = "Temperature"
     )
 )
 
+
 # On multiple estimations: see the dedicated vignette
-est = feols(Ozone ~ Solar.R + sw0(Wind + Temp) | csw(Month, Day),
-            data = airquality,
-            cluster = ~ Day)
+est = feols(
+    Ozone ~ Solar.R + sw0(Wind + Temp) | csw(Month, Day),
+    data = airquality,
+    cluster = ~ Day
+)
 
 etable(est)
 #>                                         est.1              est.2
@@ -1524,14 +1568,15 @@ For [multiple estimation](https://cran.r-project.org/web/packages/fixest/vignett
 
 
 ```r
-# set up 
+# set up
 library(fixest)
 
-# let R know the base dataset (the biggest/ultimate dataset that includes everything in your analysis)
+# let R know the base dataset (the biggest/ultimate 
+# dataset that includes everything in your analysis)
 base = iris
 
 # rename variables
-names(base) = c("y1","y2", "x1","x2", "species")
+names(base) = c("y1", "y2", "x1", "x2", "species")
 
 res_multi = feols(
     c(y1, y2) ~ x1 + csw(x2, x2 ^ 2) |
@@ -1541,7 +1586,8 @@ res_multi = feols(
     lean = TRUE,
     vcov = "hc1" # can also clustered at the fixed effect level
 )
-# it's recommended to use vcov at estimation stage, not summary stage
+# it's recommended to use vcov at 
+# estimation stage, not summary stage
 
 summary(res_multi, "compact")
 #>         sample   fixef lhs               rhs     (Intercept)                x1
@@ -1615,7 +1661,7 @@ summary(res_multi, "compact")
 etable(res_multi[1:3],
        
        # customize the headers
-       headers = c("mod1","mod2","mod3")) 
+       headers = c("mod1", "mod2", "mod3")) 
 #>                   res_multi[1:3].1   res_multi[1:3].2    res_multi[1:3].3
 #>                               mod1               mod2                mod3
 #> Dependent Var.:                 y1                 y1                  y2
@@ -1774,8 +1820,3 @@ To let R know which SE estimation you want to use, insert `vcov = vcov_type ~ va
 To specify that R needs to use small sample correction add
 
 `ssc = ssc(adj = T, cluster.adj = T)`
-
-
-
-
-

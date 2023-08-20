@@ -41,7 +41,7 @@ best to use when you have values in a fixed interval.
 -   Variables have positively skewed distribution
 
 | Formula                                             | In case                                  |
-|----------------------------------------|--------------------------------|
+|-------------------------------|--------------------------------|
 | $x_i' = \log(x_i)$                                  | cannot work zero because `log(0) = -Inf` |
 | $x_i' = \log(x_i + 1)$                              | variables with 0                         |
 | $x_i' = \log(x_i +c)$                               |                                          |
@@ -196,8 +196,10 @@ l_dist %>% hist()
 -   Can be applied to real numbers.
 
 $$
-f(x,\theta) = \frac{\sinh^{-1} (\theta x)}{\theta} \\
-= \frac{\log(\theta x + (\theta^2 x^2 + 1)^{1/2})}{\theta}
+\begin{aligned}
+f(x,\theta) &= \frac{\sinh^{-1} (\theta x)}{\theta} \\
+&= \frac{\log(\theta x + (\theta^2 x^2 + 1)^{1/2})}{\theta}
+\end{aligned}
 $$
 
 ### Box-Cox Transformation
@@ -249,7 +251,7 @@ plot(mod)
 
 ```r
 
-bc <- boxcox(mod, lambda = seq(-3,3))
+bc <- boxcox(mod, lambda = seq(-3, 3))
 ```
 
 <img src="13-variable_transformation_files/figure-html/unnamed-chunk-6-5.png" width="90%" style="display: block; margin: auto;" />
@@ -261,7 +263,8 @@ bc$x[which(bc$y == max(bc$y))]
 #> [1] 1.242424
 
 # model with best lambda
-mod_lambda = lm(cars$speed ^ (bc$x[which(bc$y == max(bc$y))]) ~ cars$dist, data = cars)
+mod_lambda = lm(cars$speed ^ (bc$x[which(bc$y == max(bc$y))]) ~ cars$dist, 
+                data = cars)
 plot(mod_lambda)
 ```
 
@@ -345,7 +348,8 @@ boxplot(log10(bestdist$oos_preds), yaxt = "n")
 <img src="13-variable_transformation_files/figure-html/unnamed-chunk-8-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
-# axis(2, at = log10(c(.1, .5, 1, 2, 5, 10)), labels = c(.1, .5, 1, 2, 5, 10))
+# axis(2, at = log10(c(.1, .5, 1, 2, 5, 10)), 
+#      labels = c(.1, .5, 1, 2, 5, 10))
 ```
 
 ## Categorical Variables
@@ -364,7 +368,7 @@ Approaches:
 
 -   Binary encoding
 
--   BaseN encoding
+-   Base N encoding
 
 -   Frequency encoding
 

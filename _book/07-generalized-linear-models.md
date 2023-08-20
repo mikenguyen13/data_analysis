@@ -65,9 +65,11 @@ x_i' \beta = \beta_0 + \beta_1 x_i
 $$
 
 $$
-- \frac{\partial^2 \ln(L(\beta))}{\partial \beta^2_0} = \sum_{i=1}^n \frac{\exp(x'_i \beta)}{1 + \exp(x'_i \beta)} - [\frac{\exp(x_i' \beta)}{1+ \exp(x'_i \beta)}]^2 = \sum_{i=1}^n p_i (1-p_i) \\
-- \frac{\partial^2 \ln(L(\beta))}{\partial \beta^2_1} = \sum_{i=1}^n \frac{x_i^2\exp(x'_i \beta)}{1 + \exp(x'_i \beta)} - [\frac{x_i\exp(x_i' \beta)}{1+ \exp(x'_i \beta)}]^2 = \sum_{i=1}^n x_i^2p_i (1-p_i) \\
-- \frac{\partial^2 \ln(L(\beta))}{\partial \beta_0 \partial \beta_1} = \sum_{i=1}^n \frac{x_i\exp(x'_i \beta)}{1 + \exp(x'_i \beta)} - x_i[\frac{\exp(x_i' \beta)}{1+ \exp(x'_i \beta)}]^2 = \sum_{i=1}^n x_ip_i (1-p_i) \\
+\begin{aligned}
+- \frac{\partial^2 \ln(L(\beta))}{\partial \beta^2_0} &= \sum_{i=1}^n \frac{\exp(x'_i \beta)}{1 + \exp(x'_i \beta)} - [\frac{\exp(x_i' \beta)}{1+ \exp(x'_i \beta)}]^2 = \sum_{i=1}^n p_i (1-p_i) \\
+- \frac{\partial^2 \ln(L(\beta))}{\partial \beta^2_1} &= \sum_{i=1}^n \frac{x_i^2\exp(x'_i \beta)}{1 + \exp(x'_i \beta)} - [\frac{x_i\exp(x_i' \beta)}{1+ \exp(x'_i \beta)}]^2 = \sum_{i=1}^n x_i^2p_i (1-p_i) \\
+- \frac{\partial^2 \ln(L(\beta))}{\partial \beta_0 \partial \beta_1} &= \sum_{i=1}^n \frac{x_i\exp(x'_i \beta)}{1 + \exp(x'_i \beta)} - x_i[\frac{\exp(x_i' \beta)}{1+ \exp(x'_i \beta)}]^2 = \sum_{i=1}^n x_ip_i (1-p_i)
+\end{aligned}
 $$
 
 Hence,
@@ -160,8 +162,10 @@ $$
 Then,
 
 $$
-logit\{\hat{p}_{x_i +1}\} - logit\{\hat{p}_{x_i}\} = log\{odds[\hat{p}_{x_i +1}]\} - log\{odds[\hat{p}_{x_i}]\} \\
-= log(\frac{odds[\hat{p}_{x_i + 1}]}{odds[\hat{p}_{x_i}]}) = \hat{\beta}_1
+\begin{aligned}
+logit\{\hat{p}_{x_i +1}\} - logit\{\hat{p}_{x_i}\} &= log\{odds[\hat{p}_{x_i +1}]\} - log\{odds[\hat{p}_{x_i}]\} \\
+&= log(\frac{odds[\hat{p}_{x_i + 1}]}{odds[\hat{p}_{x_i}]}) = \hat{\beta}_1
+\end{aligned}
 $$
 
 and
@@ -207,8 +211,8 @@ $x \sim Unif(-0.5,2.5)$. Then $\eta = 0.5 + 0.75 x$
 
 ```r
 set.seed(23) #set seed for reproducibility
-x <- runif(1000,min = -0.5,max = 2.5)
-eta1 <- 0.5 + 0.75*x
+x <- runif(1000, min = -0.5, max = 2.5)
+eta1 <- 0.5 + 0.75 * x
 ```
 
 Passing $\eta$'s into the inverse-logit function, we get
@@ -223,8 +227,8 @@ Then, we generate $y \sim Bernoulli(p)$
 
 
 ```r
-p <- exp(eta1)/(1+exp(eta1))
-y <- rbinom(1000,1,p)
+p <- exp(eta1) / (1 + exp(eta1))
+y <- rbinom(1000, 1, p)
 BinData <- data.frame(X = x, Y = y)
 ```
 
@@ -275,15 +279,13 @@ Based on the odds ratio, when
 
 Deviance Tests
 
-$$
-H_0: \text{No variables are related to the response (i.e., model with just the intercept)} \\
-H_1: \text{at least one variable is related to the response}
-$$
+-   $H_0$: No variables are related to the response (i.e., model with just the intercept)
+-   $H_1$: At least one variable is related to the response
 
 
 ```r
-Test_Dev = Logistic_Model$null.deviance - Logistic_Model$deviance
-p_val_dev <- 1-pchisq(q = Test_Dev, df = 1)
+Test_Dev <- Logistic_Model$null.deviance - Logistic_Model$deviance
+p_val_dev <- 1 - pchisq(q = Test_Dev, df = 1)
 ```
 
 Since we see the p-value of 0, we reject the null that no variables are related to the response
@@ -294,10 +296,10 @@ Since we see the p-value of 0, we reject the null that no variables are related 
 ```r
 Logistic_Resids <- residuals(Logistic_Model, type = "deviance")
 plot(
-  y = Logistic_Resids,
-  x = BinData$X,
-  xlab = 'X',
-  ylab = 'Deviance Resids'
+    y = Logistic_Resids,
+    x = BinData$X,
+    xlab = 'X',
+    ylab = 'Deviance Resids'
 )
 ```
 
@@ -357,10 +359,10 @@ We can also look at a binned plot of the logistic prediction versus the true cat
 ```r
 NumBins <- 10
 Binned_Data <- plot_bin(
-  Y = BinData$Y,
-  X = Logistic_Predictions,
-  bins = NumBins,
-  return.DF = TRUE
+    Y = BinData$Y,
+    X = Logistic_Predictions,
+    bins = NumBins,
+    return.DF = TRUE
 )
 Binned_Data
 #>    bin     Y_ave     X_ave Count
@@ -400,20 +402,15 @@ Under the null hypothesis, $X^2_{HLL} \sim \chi^2_{J-1}$
 
 ```r
 HL_BinVals <-
-  (Binned_Data$Count * Binned_Data$Y_ave - Binned_Data$Count * Binned_Data$X_ave) ^
-  2 /
-  Binned_Data$Count * Binned_Data$X_ave * (1 - Binned_Data$X_ave)
-HLpval <-
-  pchisq(q = sum(HL_BinVals),
-         df = NumBins,
-         lower.tail = FALSE)
+    (Binned_Data$Count * Binned_Data$Y_ave - Binned_Data$Count * Binned_Data$X_ave) ^ 2 /   Binned_Data$Count * Binned_Data$X_ave * (1 - Binned_Data$X_ave)
+HLpval <- pchisq(q = sum(HL_BinVals),
+                 df = NumBins,
+                 lower.tail = FALSE)
 HLpval
 #> [1] 0.9999989
 ```
 
-Since p-value = 0.99, we do not reject the null hypothesis (i.e., the model is fitting well).
-
-<br>
+Since $p$-value = 0.99, we do not reject the null hypothesis (i.e., the model is fitting well).
 
 ## Probit Regression
 
@@ -421,11 +418,15 @@ $$
 E(Y_i) = p_i = \Phi(\mathbf{x_i'\theta})
 $$
 
-where $\Phi()$ is the CDF of a N(0,1) random variable.
+where $\Phi()$ is the CDF of a $N(0,1)$ random variable.
 
 Other models (e..g, t--distribution; log-log; I complimentary log-log)
 
-We let $Y_i = 1$ success, $Y_i =0$ no success. We assume $Y \sim Ber$ and $p_i = P(Y_i =1)$, the success probability. We consider a logistic regression with the response function $logit(p_i) = x'_i \beta$
+We let $Y_i = 1$ success, $Y_i =0$ no success.
+
+-   assume $Y \sim Ber$ and $p_i = P(Y_i =1)$, the success probability.
+
+-   consider a logistic regression with the response function $logit(p_i) = x'_i \beta$
 
 **Confusion matrix**
 
@@ -642,9 +643,11 @@ summary(Prob_better_model)
 From the Poisson distribution
 
 $$
-f(Y_i) = \frac{\mu_i^{Y_i}exp(-\mu_i)}{Y_i!}, Y_i = 0,1,.. \\
-E(Y_i) = \mu_i  \\
-var(Y_i) = \mu_i
+\begin{aligned}
+f(Y_i) &= \frac{\mu_i^{Y_i}exp(-\mu_i)}{Y_i!}, Y_i = 0,1,.. \\
+E(Y_i) &= \mu_i  \\
+var(Y_i) &= \mu_i
+\end{aligned}
 $$
 
 which is a natural distribution for counts. We can see that the variance is a function of the mean. If we let $\mu_i = f(\mathbf{x_i; \theta})$, it would be similar to [Logistic Regression] since we can choose $f()$ as $\mu_i = \mathbf{x_i'\theta}, \mu_i = \exp(\mathbf{x_i'\theta}), \mu_i = \log(\mathbf{x_i'\theta})$
@@ -847,7 +850,7 @@ which is known as **multinomial logistic** model.
 
 Note:
 
--   Softmax coding for multinomial logistic regression: rather than selecting a baseline class, we treat all K class symmetrically - equally important (no baseline).
+-   Softmax coding for multinomial logistic regression: rather than selecting a baseline class, we treat all $K$ class symmetrically - equally important (no baseline).
 
 $$
 P(Y = k | X = x) = \frac{exp(\beta_{k1} + \dots + \beta_{k_p x_p})}{\sum_{l = 1}^K exp(\beta_{l0} + \dots + \beta_{l_p x_p})}
@@ -858,8 +861,6 @@ then the log odds ratio between k-th and k'-th classes is
 $$
 \log (\frac{P(Y=k|X=x)}{P(Y = k' | X=x)}) = (\beta_{k0} - \beta_{k'0}) + \dots + (\beta_{kp} - \beta_{k'p}) x_p
 $$
-
-<br>
 
 
 ```r
@@ -1073,8 +1074,10 @@ $$
 because Gamma is non-negative as opposed to Normal. The canonical Gamma link function is the inverse (or reciprocal) link
 
 $$
-\eta_{ij} = \beta_{0j} + \beta_{1j}x_{ij} + \beta_2x_{ij}^2 \\
-Y_{ij} = \eta_{ij}^{-1}
+\begin{aligned}
+\eta_{ij} &= \beta_{0j} + \beta_{1j}x_{ij} + \beta_2x_{ij}^2 \\
+Y_{ij} &= \eta_{ij}^{-1}
+\end{aligned}
 $$
 
 The linear predictor is a quadratic model fit to each of the j-th blocks. A different model (not fitted) could be one with common slopes: `glm(y ~ x + I(x^2),…)`
@@ -1119,7 +1122,7 @@ summary(m1)
 #> Number of Fisher Scoring iterations: 5
 ```
 
-For predict new value of x
+For predict new value of $x$
 
 
 ```r
@@ -1198,9 +1201,11 @@ Example
 Normal distribution
 
 $$
-b'(\theta) = \frac{\partial b(\mu^2/2)}{\partial \mu} = \mu \\
-V(\mu) = \frac{\partial^2 (\mu^2/2)}{\partial \mu^2} = 1 \\
-\to var(Y) = a(\phi) = \sigma^2
+\begin{aligned}
+b'(\theta) &= \frac{\partial b(\mu^2/2)}{\partial \mu} = \mu \\
+V(\mu) &= \frac{\partial^2 (\mu^2/2)}{\partial \mu^2} = 1 \\
+\to var(Y) &= a(\phi) = \sigma^2
+\end{aligned}
 $$
 
 Poisson distribution
@@ -1223,8 +1228,10 @@ where
 Hence,
 
 $$
-E(Y) = \frac{\partial b(\theta)}{\partial \theta} = \exp(\theta) = \mu \\
-var(Y) = \frac{\partial^2 b(\theta)}{\partial \theta^2} = \mu
+\begin{aligned}
+E(Y) = \frac{\partial b(\theta)}{\partial \theta} = \exp(\theta) &= \mu \\
+var(Y) = \frac{\partial^2 b(\theta)}{\partial \theta^2} &= \mu
+\end{aligned}
 $$
 
 Since $\mu = E(Y) = b'(\theta)$
@@ -1310,8 +1317,10 @@ $g^{-1}(.)$ is also known as the mean function, take linear predictor output (ra
 The **identity link** is that
 
 $$
-\eta_i = g(\mu_i) = \mu_i \\
-\mu_i = g^{-1}(\eta_i) = \eta_i
+\begin{aligned}
+\eta_i &= g(\mu_i) = \mu_i \\
+\mu_i &= g^{-1}(\eta_i) = \eta_i
+\end{aligned}
 $$
 
 <img src="images/2-Table15.1-1.png" width="90%" style="display: block; margin: auto;" />
@@ -1361,10 +1370,12 @@ Inverse Gaussian random
 We have
 
 $$
-f(y_i ; \theta_i, \phi) = \exp(\frac{\theta_i y_i - b(\theta_i)}{a(\phi)}+ c(y_i, \phi)) \\
-E(Y_i) = \mu_i = b'(\theta) \\
-var(Y_i) = b''(\theta)a(\phi) = V(\mu_i)a(\phi) \\
-g(\mu_i) = \mathbf{x}_i'\beta = \eta_i
+\begin{aligned}
+f(y_i ; \theta_i, \phi) &= \exp(\frac{\theta_i y_i - b(\theta_i)}{a(\phi)}+ c(y_i, \phi)) \\
+E(Y_i) &= \mu_i = b'(\theta) \\
+var(Y_i) &= b''(\theta)a(\phi) = V(\mu_i)a(\phi) \\
+g(\mu_i) &= \mathbf{x}_i'\beta = \eta_i
+\end{aligned}
 $$
 
 If the log-likelihood for a single observation is $l_i (\beta,\phi)$. The log-likelihood for all n observations is
@@ -1407,7 +1418,7 @@ $$
 - E(\frac{\partial^2 l(\beta,\phi)}{\partial \beta_j \partial \beta_k})
 $$
 
-where $(j,k)$th element of the **Fisher information matrix** $\mathbf{I}(\beta)$
+where $(j,k)$-th element of the **Fisher information matrix** $\mathbf{I}(\beta)$
 
 Hence,
 
@@ -1420,11 +1431,13 @@ for the (j,k)th element
 If Bernoulli model with logit link function (which is the canonical link)
 
 $$
-b(\theta) = \log(1 + \exp(\theta)) = \log(1 + \exp(\mathbf{x'\beta})) \\
-a(\phi) = 1  \\
-c(y_i, \phi) = 0 \\
-E(Y) = b'(\theta) = \frac{\exp(\theta)}{1 + \exp(\theta)} = \mu = p \\
-\eta = g(\mu) = \log(\frac{\mu}{1-\mu}) = \theta = \log(\frac{p}{1-p}) = \mathbf{x'\beta} 
+\begin{aligned}
+b(\theta) &= \log(1 + \exp(\theta)) = \log(1 + \exp(\mathbf{x'\beta})) \\
+a(\phi) &= 1  \\
+c(y_i, \phi) &= 0 \\
+E(Y) = b'(\theta) &= \frac{\exp(\theta)}{1 + \exp(\theta)} = \mu = p \\
+\eta = g(\mu) &= \log(\frac{\mu}{1-\mu}) = \theta = \log(\frac{p}{1-p}) = \mathbf{x'\beta} 
+\end{aligned}
 $$
 
 For $Y_i$, i = 1,.., the log-likelihood is
@@ -1436,8 +1449,10 @@ $$
 Additionally,
 
 $$
-V(\mu_i) = \mu_i(1-\mu_i)= p_i (1-p_i) \\
-\frac{\partial \mu_i}{\partial \eta_i} = p_i(1-p_i)
+\begin{aligned}
+V(\mu_i) &= \mu_i(1-\mu_i)= p_i (1-p_i) \\
+\frac{\partial \mu_i}{\partial \eta_i} &= p_i(1-p_i)
+\end{aligned}
 $$
 
 Hence,
@@ -1513,16 +1528,16 @@ $$
 $$
 
 $$
-\mathbf{I}(\beta) = \frac{1}{a(\phi)}\mathbf{X'WX} = \frac{1}{a(\phi)}\mathbf{F'V^{-1}F} \\
+\mathbf{I}(\beta) = \frac{1}{a(\phi)}\mathbf{X'WX} = \frac{1}{a(\phi)}\mathbf{F'V^{-1}F}
 $$
 
 where
 
--   $\mathbf{X}$ is an n x p matrix of covariates
--   $\mathbf{W}$ is an n x n diagonal matrix with (i,i)th element given by $w_i$
--   $\mathbf{\Delta}$ an n x n diagonal matrix with (i,i)th element given by $\frac{\partial \eta_i}{\partial \mu_i}$
--   $\mathbf{F} = \mathbf{\frac{\partial \mu}{\partial \beta}}$ an n x p matrix with i-th row $\frac{\partial \mu_i}{\partial \beta} = (\frac{\partial \mu_i}{\partial \eta_i})\mathbf{x}'_i$
--   $\mathbf{V}$ an n x n diagonal matrix with (i,i)th element given by $V(\mu_i)$
+-   $\mathbf{X}$ is an $n \times p$ matrix of covariates
+-   $\mathbf{W}$ is an $n \times n$ diagonal matrix with $(i,i)$-th element given by $w_i$
+-   $\mathbf{\Delta}$ an $n \times n$ diagonal matrix with $(i,i)$-th element given by $\frac{\partial \eta_i}{\partial \mu_i}$
+-   $\mathbf{F} = \mathbf{\frac{\partial \mu}{\partial \beta}}$ an $n \times p$ matrix with $i$-th row $\frac{\partial \mu_i}{\partial \beta} = (\frac{\partial \mu_i}{\partial \eta_i})\mathbf{x}'_i$
+-   $\mathbf{V}$ an $n \times n$ diagonal matrix with $(i,i)$-th element given by $V(\mu_i)$
 
 Setting the derivative of the log-likelihood equal to 0, ML estimating equations are
 
@@ -1587,13 +1602,17 @@ $$
     -   The MLE is not conventional approach to estimation of $\phi$ in GLMS.
     -   For the exponential family $var(Y) =V(\mu)a(\phi)$. This implies\
         $$
-        a(\phi) = \frac{var(Y)}{V(\mu)} = \frac{E(Y- \mu)^2}{V(\mu)} \\
-        a(\hat{\phi})  = \frac{1}{n-p} \sum_{i=1}^n \frac{(y_i -\hat{\mu}_i)^2}{V(\hat{\mu})}
-        $$ where p is the dimension of $\beta$
+        \begin{aligned}
+        a(\phi) &= \frac{var(Y)}{V(\mu)} = \frac{E(Y- \mu)^2}{V(\mu)} \\
+        a(\hat{\phi})  &= \frac{1}{n-p} \sum_{i=1}^n \frac{(y_i -\hat{\mu}_i)^2}{V(\hat{\mu})}
+        \end{aligned}
+        $$ where $p$ is the dimension of $\beta$
     -   GLM with canonical link function $g(.)= (b'(.))^{-1}$\
         $$
-        g(\mu) = \theta = \eta = \mathbf{x'\beta} \\
-        \mu = g^{-1}(\eta)= b'(\eta)
+        \begin{aligned}
+        g(\mu) &= \theta = \eta = \mathbf{x'\beta} \\
+        \mu &= g^{-1}(\eta)= b'(\eta)
+        \end{aligned}
         $$
     -   so the method estimator for $a(\phi)=\phi$ is
 
@@ -1611,8 +1630,8 @@ $$
 
 where
 
--   $\mathbf{V}$ is an n x n diagonal matrix with diagonal elements given by $V(\mu_i)$
--   $\mathbf{F}$ is an n x p matrix given by $\mathbf{F} = \frac{\partial \mu}{\partial \beta}$
+-   $\mathbf{V}$ is an $n \times n$ diagonal matrix with diagonal elements given by $V(\mu_i)$
+-   $\mathbf{F}$ is an $n \times p$ matrix given by $\mathbf{F} = \frac{\partial \mu}{\partial \beta}$
 -   Both $\mathbf{V,F}$ are dependent on the mean $\mu$, and thus $\beta$. Hence, their estimates ($\mathbf{\hat{V},\hat{F}}$) depend on $\hat{\beta}$.
 
 $$
@@ -1625,7 +1644,7 @@ $$
 W = \mathbf{(L \hat{\beta}-d)'(a(\phi)L(\hat{F}'\hat{V}^{-1}\hat{F})L')^{-1}(L \hat{\beta}-d)}
 $$
 
-which follows $\chi_q^2$ distribution (asymptotically), where q is the rank of $\mathbf{L}$
+which follows $\chi_q^2$ distribution (asymptotically), where $q$ is the rank of $\mathbf{L}$
 
 In the simple case $H_0: \beta_j = 0$ gives $W = \frac{\hat{\beta}^2_j}{\hat{var}(\hat{\beta}_j)} \sim \chi^2_1$ asymptotically
 
@@ -1637,7 +1656,7 @@ $$
 
 where
 
--   q is the number of constraints used to fit the reduced model $\hat{\beta}_r$, and $\hat{\beta}_r$ is the fit under the full model.
+-   $q$ is the number of constraints used to fit the reduced model $\hat{\beta}_r$, and $\hat{\beta}_r$ is the fit under the full model.
 
 Wald test is easier to implement, but likelihood ratio test is better (especially for small samples).
 
@@ -1668,20 +1687,18 @@ Wald test is easier to implement, but likelihood ratio test is better (especiall
 
 -   $D(\mathbf{y, \hat{\mu}}) = \phi D^*(\mathbf{y, \hat{\mu}})$ = **deviance**
 
-<br>
-
 **Note**:
 
 -   in some random component distributions, we can write $a_i(\phi) = \phi m_i$, where
 
-    -   $m_i$ is some known scalar that may change with the observations. THen, the scaled deviance components are divided by $m_i$:\
+    -   $m_i$ is some known scalar that may change with the observations. Then, the scaled deviance components are divided by $m_i$:\
         $$
         D^*(\mathbf{y, \hat{\mu}}) \equiv 2\sum_{i=1}^n\{y_i (\tilde{\theta}_i^*- \hat{\theta}_i^*)- b(\tilde{\theta}_i^*) +b(\hat{\theta}_i^*)\} / (\phi m_i)  
         $$
 
--   $D^*(\mathbf{y, \hat{\mu}}) = \sum_{i=1}^n d_i$m where $d_i$ is the deviance contribution from the ith observation.
+-   $D^*(\mathbf{y, \hat{\mu}}) = \sum_{i=1}^n d_i$m where $d_i$ is the deviance contribution from the $i$-th observation.
 
--   D is used in model selection
+-   $D$ is used in model selection
 
 -   $D^*$ is used in goodness of fit tests (as it is a likelihood ratio statistic). $$
     D^*(\mathbf{y, \hat{\mu}}) = 2\{l(\mathbf{y,\tilde{\mu}})-l(\mathbf{y,\hat{\mu}})\}
@@ -1689,24 +1706,26 @@ Wald test is easier to implement, but likelihood ratio test is better (especiall
 
 -   $d_i$ are used to form **deviance residuals**
 
-<br>
-
 **Normal**
 
 We have
 
 $$
-\theta = \mu \\
-\phi = \sigma^2 \\
-b(\theta) = \frac{1}{2} \theta^2 \\
-a(\phi) = \phi
+\begin{aligned}
+\theta &= \mu \\
+\phi &= \sigma^2 \\
+b(\theta) &= \frac{1}{2} \theta^2 \\
+a(\phi) &= \phi
+\end{aligned}
 $$
 
 Hence,
 
 $$
-\tilde{\theta}_i = y_i \\
-\hat{\theta}_i = \hat{\mu}_i = g^{-1}(\hat{\eta}_i) 
+\begin{aligned}
+\tilde{\theta}_i &= y_i \\
+\hat{\theta}_i &= \hat{\mu}_i = g^{-1}(\hat{\eta}_i) 
+\end{aligned}
 $$
 
 And
@@ -1721,18 +1740,18 @@ $$
 
 which is the **residual sum of squares**
 
-<br>
-
 **Poisson**
 
 $$
-f(y) = \exp\{y\log(\mu) - \mu - \log(y!)\} \\
-\theta = \log(\mu) \\
-b(\theta) = \exp(\theta) \\
-a(\phi) = 1 \\
-\tilde{\theta}_i = \log(y_i) \\
-\hat{\theta}_i = \log(\hat{\mu}_i) \\
-\hat{\mu}_i = g^{-1}(\hat{\eta}_i)
+\begin{aligned}
+f(y) &= \exp\{y\log(\mu) - \mu - \log(y!)\} \\
+\theta &= \log(\mu) \\
+b(\theta) &= \exp(\theta) \\
+a(\phi) &= 1 \\
+\tilde{\theta}_i &= \log(y_i) \\
+\hat{\theta}_i &= \log(\hat{\mu}_i) \\
+\hat{\mu}_i &= g^{-1}(\hat{\eta}_i)
+\end{aligned}
 $$
 
 Then,
@@ -1750,8 +1769,6 @@ $$
 d_i = 2\{y_i \log(\frac{y_i}{\hat{\mu}})- (y_i - \hat{\mu}_i)\}
 $$
 
-<br>
-
 #### Analysis of Deviance
 
 The difference in deviance between a reduced and full model, where q is the difference in the number of free parameters, has an asymptotic $\chi^2_q$. The likelihood ratio test
@@ -1768,11 +1785,9 @@ $$
 \hat{\phi} = \frac{D(\mathbf{y, \hat{\mu}})}{n - p}
 $$
 
-where p = number of parameters fit.
+where $p$ = number of parameters fit.
 
 Excessive use of $\chi^2$ test could be problematic since it is asymptotic [@McCullagh_2019]
-
-<br>
 
 #### Deviance Residuals
 
@@ -1788,15 +1803,13 @@ $$
 r_{s,i} = \frac{y_i -\hat{\mu}}{\hat{\sigma}(1-h_{ii})^{1/2}}
 $$
 
-Let $\mathbf{H^{GLM} = W^{1/2}X(X'WX)^{-1}X'W^{-1/2}}$, where $\mathbf{W}$ is an n x n diagonal matrix with (i,i)th element given by $w_i$ (see [Estimation of $\beta$]). Then Standardized deviance residuals is equivalently
+Let $\mathbf{H^{GLM} = W^{1/2}X(X'WX)^{-1}X'W^{-1/2}}$, where $\mathbf{W}$ is an $n \times n$ diagonal matrix with $(i,i)$-th element given by $w_i$ (see [Estimation of $\beta$]). Then Standardized deviance residuals is equivalently
 
 $$
 r_{s, D_i} = \frac{r_{D_i}}{\{\hat{\phi}(1-h_{ii}^{glm}\}^{1/2}}
 $$
 
-where $h_{ii}^{glm}$ is the i-th diagonal of $\mathbf{H}^{GLM}$
-
-<br>
+where $h_{ii}^{glm}$ is the $i$-th diagonal of $\mathbf{H}^{GLM}$
 
 #### Pearson Chi-square Residuals
 
@@ -1821,8 +1834,6 @@ If we have the following assumptions:
 -   Multiple groups
 
 then $\frac{X^2}{\phi}$ and $D^*(\mathbf{y; \hat{\mu}})$ both follow $\chi^2_{n-p}$
-
-<br>
 
 ### Diagnostic Plots
 
@@ -1856,16 +1867,18 @@ To assess goodness of fit, we can use
 In nested model, we could use likelihood-based information measures:
 
 $$
-AIC = -2l(\mathbf{\hat{\mu}}) + 2p \\
-AICC = -2l(\mathbf{\hat{\mu}}) + 2p(\frac{n}{n-p-1}) \\
-BIC = 2l(\hat{\mu}) + p \log(n)
+\begin{aligned}
+AIC &= -2l(\mathbf{\hat{\mu}}) + 2p \\
+AICC &= -2l(\mathbf{\hat{\mu}}) + 2p(\frac{n}{n-p-1}) \\
+BIC &= 2l(\hat{\mu}) + p \log(n)
+\end{aligned}
 $$
 
 where
 
 -   $l(\hat{\mu})$ is the log-likelihood evaluated at the parameter estimates
--   p is the number of parameters
--   n is the number of observations.
+-   $p$ is the number of parameters
+-   $n$ is the number of observations.
 
 Note: you have to use the same data with the same model (i.e., same link function, same random underlying random distribution). but you can have different number of parameters.
 
@@ -1875,7 +1888,7 @@ $$
 R^2_p = 1 - \frac{l(\hat{\mu})}{l(\hat{\mu}_0)}
 $$
 
-For certain specific random components such as binary response model, we have rescaled generalized $R^2$:
+For certain specific random components such as binary response model, we have rescaled generalized $R^2$
 
 $$
 \bar{R}^2 = \frac{R^2_*}{\max(R^2_*)} = \frac{1-\exp\{-\frac{2}{n}(l(\hat{\mu}) - l(\hat{\mu}_0) \}}{1 - \exp\{\frac{2}{n}l(\hat{\mu}_0)\}}
@@ -1884,7 +1897,7 @@ $$
 ### Over-Dispersion
 
 | Random Components | $var(Y)$                  | $V(\mu)$                                     |
-|-------------------|------------------------|------------------------------|
+|-------------------|------------------------|-----------------------------|
 | Binomial          | $var(Y) = n \mu (1- \mu)$ | $V(\mu) = \phi n \mu(1- \mu)$ where $m_i =n$ |
 | Poisson           | $var(Y) = \mu$            | $V(\mu) = \phi \mu$                          |
 

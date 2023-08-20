@@ -20,18 +20,14 @@ Hence, we like to account for these correlations.
 
 Review [Two-Way Mixed Effects ANOVA]
 
-<br>
-
 We choose to model the random subject-specific effect instead of including dummy subject covariates in our model because:
 
 -   reduction in the number of parameters to estimate
 -   when you do inference, it would make more sense that you can infer from a population (i.e., random effect).
 
-<br>
-
 **LLM Motivation**
 
-In a repeated measurements analysis where $Y_{ij}$ is the response for the i-th individual measured at the j-th time,
+In a repeated measurements analysis where $Y_{ij}$ is the response for the $i$-th individual measured at the $j$-th time,
 
 $i =1,…,N$ ; $j = 1,…,n_i$
 
@@ -49,9 +45,9 @@ Y_{in_i}
 \right)
 $$
 
-is all measurements for subject i.
+is all measurements for subject $i$.
 
-[*Stage 1: (Regression Model)*]{.underline} how the response changes over time for the i-th subject
+[*Stage 1: (Regression Model)*]{.underline} how the response changes over time for the $i$-th subject
 
 $$
 \mathbf{Y_i = Z_i \beta_i + \epsilon_i}
@@ -60,7 +56,7 @@ $$
 where
 
 -   $Z_i$ is an $n_i \times q$ matrix of known covariates
--   $\beta_i$ is an unknown q x 1 vector of subjective -specific coefficients (regression coefficients different for each subject)
+-   $\beta_i$ is an unknown $q \times 1$ vector of subjective -specific coefficients (regression coefficients different for each subject)
 -   $\epsilon_i$ are the random errors (typically $\sim N(0, \sigma^2 I)$)
 
 We notice that there are two many $\beta$ to estimate here. Hence, this is the motivation for the second stage
@@ -73,8 +69,8 @@ $$
 
 where
 
--   $K_i$ is a q x p matrix of known covariates
--   $\beta$ is a p x 1 vector of unknown parameter
+-   $K_i$ is a $q \times p$ matrix of known covariates
+-   $\beta$ is a $p \times 1$ vector of unknown parameter
 -   $\mathbf{b}_i$ are independent $N(0,D)$ random variables
 
 This model explain the observed variability between subjects with respect to the subject-specific regression coefficients, $\beta_i$. We model our different coefficient ($\beta_i$) with respect to $\beta$.
@@ -102,11 +98,7 @@ Y_{i1} \\
 .\\
 Y_{in_i}
 \end{array}
-\right)
-$$
-
-$$
-\mathbf{Z}_i = 
+\right); \mathbf{Z}_i = 
 \left(
 \begin{array}
 {cc}
@@ -125,11 +117,7 @@ $$
 \beta_{1i} \\
 \beta_{2i}
 \end{array}
-\right)
-$$
-
-$$
-\epsilon_i = 
+\right); \epsilon_i = 
 \left(
 \begin{array}
 {c}
@@ -149,8 +137,10 @@ $$
 Stage 2:
 
 $$
-\beta_{1i} = \beta_0 + b_{1i} \\
-\beta_{2i} = \beta_1 L_i + \beta_2 H_i + \beta_3 C_i + b_{2i}
+\begin{aligned}
+\beta_{1i} &= \beta_0 + b_{1i} \\
+\beta_{2i} &= \beta_1 L_i + \beta_2 H_i + \beta_3 C_i + b_{2i}
+\end{aligned}
 $$
 
 where $L_i, H_i, C_i$ are indicator variables defined to 1 as the subject falls into different categories.
@@ -158,14 +148,16 @@ where $L_i, H_i, C_i$ are indicator variables defined to 1 as the subject falls 
 Subject specific intercepts do not depend upon treatment, with $\beta_0$ (the average response at the start of treatment), and $\beta_1 , \beta_2, \beta_3$ (the average time effects for each of three treatment groups).
 
 $$
-\mathbf{K}_i = \left(
+\begin{aligned}
+\mathbf{K}_i &= \left(
 \begin{array}
 {cccc}
 1 & 0 & 0 & 0 \\
 0 & L_i & H_i & C_i 
 \end{array}
-\right) \\ \beta = (\beta_0 , \beta_1, \beta_2, \beta_3)' \\ 
-\mathbf{b}_i = 
+\right) \\ 
+\beta &= (\beta_0 , \beta_1, \beta_2, \beta_3)' \\ 
+\mathbf{b}_i &= 
 \left(
 \begin{array}
 {c}
@@ -173,7 +165,8 @@ b_{1i} \\
 b_{2i} \\
 \end{array}
 \right) \\ 
-\beta_i = \mathbf{K_i \beta + b_i}
+\beta_i &= \mathbf{K_i \beta + b_i}
+\end{aligned}
 $$
 
 To get $\hat{\beta}$, we can fit the model sequentially:
@@ -213,8 +206,10 @@ where
 Equivalently, in the hierarchical form, we call **conditional** or **hierarchical** formulation of the linear mixed model
 
 $$
-\mathbf{Y}_i | \mathbf{b}_i \sim N(\mathbf{X}_i \beta+ \mathbf{Z}_i \mathbf{b}_i, \mathbf{\Sigma}_i) \\
-\mathbf{b}_i \sim N(\mathbf{0,D})
+\begin{aligned}
+\mathbf{Y}_i | \mathbf{b}_i &\sim N(\mathbf{X}_i \beta+ \mathbf{Z}_i \mathbf{b}_i, \mathbf{\Sigma}_i) \\
+\mathbf{b}_i &\sim N(\mathbf{0,D})
+\end{aligned}
 $$
 
 for $i = 1,..,N$. denote the respective functions by $f(\mathbf{Y}_i |\mathbf{b}_i)$ and $f(\mathbf{b}_i)$
@@ -222,8 +217,10 @@ for $i = 1,..,N$. denote the respective functions by $f(\mathbf{Y}_i |\mathbf{b}
 In general,
 
 $$
-f(A,B) = f(A|B)f(B) \\
-f(A) = \int f(A,B)dB = \int f(A|B) f(B) dB
+\begin{aligned}
+f(A,B) &= f(A|B)f(B) \\
+f(A) &= \int f(A,B)dB = \int f(A|B) f(B) dB
+\end{aligned}
 $$
 
 In the LMM, the marginal density of $\mathbf{Y}_i$ is
@@ -267,15 +264,22 @@ $$
 **In the hierarchical model form**
 
 $$
-\mathbf{Y}_i | \mathbf{b}_i \sim N(\mathbf{X}_i \beta + \mathbf{Z}_i \mathbf{b}_i, \mathbf{\Sigma}_i)\\
-\mathbf{b}_i \sim N(\mathbf{0,D})
+\begin{aligned}
+\mathbf{Y}_i | \mathbf{b}_i &\sim N(\mathbf{X}_i \beta + \mathbf{Z}_i \mathbf{b}_i, \mathbf{\Sigma}_i)\\
+\mathbf{b}_i &\sim N(\mathbf{0,D})
+\end{aligned}
 $$
 
 X will be in the form of
 
 $$
-\mathbf{X}_i = \mathbf{Z}_i \mathbf{K}_i \\
-= 
+\beta = (\beta_0, \beta_1, \beta_2, \beta_3)'
+$$
+
+$$
+\begin{aligned}
+\mathbf{X}_i &= \mathbf{Z}_i \mathbf{K}_i \\
+&= 
 \left[
 \begin{array}
 {cc}
@@ -293,7 +297,7 @@ $$
 0 & L_i & H_i & C_i \\
 \end{array}
 \right] \\
-=
+&=
 \left[ 
 \begin{array}
 {cccc}
@@ -302,11 +306,10 @@ $$
 . &. &. &. \\
 1 & t_{in_i}L_i & t_{in_i}H_i & T_{in_i}C_i \\
 \end{array}
-\right]
+\right]\end{aligned}
 $$
 
 $$
-\beta = (\beta_0, \beta_1, \beta_2, \beta_3)' \\
 \mathbf{b}_i = 
 \left(
 \begin{array}
@@ -315,7 +318,9 @@ b_{1i} \\
 b_{2i}
 \end{array}
 \right)
-,
+$$
+
+$$
 D = 
 \left(
 \begin{array}
@@ -327,8 +332,6 @@ d_{12} & d_{22}
 $$
 
 Assuming $\mathbf{\Sigma}_i = \sigma^2 \mathbf{I}_{n_i}$, which is called **conditional independence**, meaning the response on subject i are independent conditional on $\mathbf{b}_i$ and $\beta$
-
-<br>
 
 **In the marginal model form**
 
@@ -347,7 +350,8 @@ $$
 In this case that $n_i = 2$
 
 $$
-\mathbf{Z_iDZ_i'} = 
+\begin{aligned}
+\mathbf{Z_iDZ_i'} &= 
 \left(
 \begin{array}
 {cc}
@@ -369,7 +373,7 @@ d_{12} & d_{22}
 t_{i1} & t_{i2} 
 \end{array}
 \right) \\
-=
+&=
 \left(
 \begin{array}
 {cc}
@@ -377,6 +381,7 @@ d_{11} + 2d_{12}t_{i1} + d_{22}t_{i1}^2 & d_{11} + d_{12}(t_{i1} + t_{i2}) + d_{
 d_{11} + d_{12}(t_{i1} + t_{i2}) + d_{22} t_{i1} t_{i2} & d_{11} + 2d_{12}t_{i2} + d_{22}t_{i2}^2  
 \end{array}
 \right)
+\end{aligned}
 $$
 
 $$
@@ -393,8 +398,10 @@ If we remove the random slopes,
 -   the model is random-intercepts model. This has subject specific intercepts, but the same slopes within each treatment group.
 
 $$
-\mathbf{Y}_i | b_i \sim N(\mathbf{X}_i \beta + 1 b_i , \Sigma_i) \\
-b_i \sim N(0,d_{11})
+\begin{aligned}
+\mathbf{Y}_i | b_i &\sim N(\mathbf{X}_i \beta + 1 b_i , \Sigma_i) \\
+b_i &\sim N(0,d_{11})
+\end{aligned}
 $$
 
 The marginal model is then ($\mathbf{\Sigma}_i = \sigma^2 \mathbf{I}$)
@@ -406,8 +413,9 @@ $$
 The marginal covariance matrix is
 
 $$
-cov(\mathbf{Y}_i)  = 11'd_{11} + \sigma^2I \\
-=
+\begin{aligned}
+cov(\mathbf{Y}_i)  &= 11'd_{11} + \sigma^2I \\
+&=
 \left(
 \begin{array}
 {cccc}
@@ -417,6 +425,7 @@ d_{11} & d_{11} + \sigma^2 & d_{11} & ... \\
 d_{11} & ... & ... & d_{11} + \sigma^2
 \end{array}
 \right)
+\end{aligned}
 $$
 
 the associated correlation matrix is
@@ -581,8 +590,9 @@ $$
 where
 
 $$
+\begin{aligned}
 \mathbf{Y}
-=
+&=
 \left[
 \begin{array}
 {c}
@@ -620,7 +630,7 @@ $$
 \end{array}
 \right]
 \\
-cov(\epsilon) = \mathbf{\Sigma},
+cov(\epsilon) &= \mathbf{\Sigma},
 \mathbf{Z} = 
 \left[
 \begin{array}
@@ -641,20 +651,25 @@ cov(\epsilon) = \mathbf{\Sigma},
 0 & 0 & ... & \mathbf{D}
 \end{array}
 \right]
+\end{aligned}
 $$
 
 The model has the form
 
 $$
-\mathbf{Y = X \beta + Z b + \epsilon} \\
-\mathbf{Y} \sim N(\mathbf{X \beta, ZBZ' + \Sigma})
+\begin{aligned}
+\mathbf{Y} &= \mathbf{X \beta + Z b + \epsilon} \\
+\mathbf{Y} &\sim N(\mathbf{X \beta, ZBZ' + \Sigma})
+\end{aligned}
 $$
 
 If $\mathbf{V = ZBZ' + \Sigma}$, then the solutions to the estimating equations can be
 
 $$
-\hat{\beta} = \mathbf{(X'V^{-1}X)^{-1}X'V^{-1}Y} \\
-\hat{\mathbf{b}} = \mathbf{BZ'V^{-1}(Y-X\hat{\beta}})
+\begin{aligned}
+\hat{\beta} &= \mathbf{(X'V^{-1}X)^{-1}X'V^{-1}Y} \\
+\hat{\mathbf{b}} &= \mathbf{BZ'V^{-1}(Y-X\hat{\beta}})
+\end{aligned}
 $$
 
 The estimate $\hat{\beta}$ is a generalized least squares estimate.
@@ -662,9 +677,14 @@ The estimate $\hat{\beta}$ is a generalized least squares estimate.
 The predictor, $\hat{\mathbf{b}}$ is the best linear unbiased predictor (BLUP), for $\mathbf{b}$
 
 $$
-E(\hat{\beta}) = \beta \\
-var(\hat{\beta}) = (\mathbf{X'V^{-1}X})^{-1} \\
-E(\hat{\mathbf{b}}) = 0 \\
+\begin{aligned}
+E(\hat{\beta}) &= \beta \\
+var(\hat{\beta}) &= (\mathbf{X'V^{-1}X})^{-1} \\
+E(\hat{\mathbf{b}}) &= 0
+\end{aligned}
+$$
+
+$$
 var(\mathbf{\hat{b}-b}) = \mathbf{B-BZ'V^{-1}ZB + BZ'V^{-1}X(X'V^{-1}X)^{-1}X'V^{-1}B}
 $$
 
@@ -717,7 +737,8 @@ $$
 Maximization of $f(\mathbf{b},\epsilon)$ with respect to $\mathbf{b}$ and $\beta$ requires minimization of
 
 $$
-Q = 
+\begin{aligned}
+Q &= 
 \left[
 \begin{array}
 {c}
@@ -739,7 +760,8 @@ Q =
 \mathbf{Y - X \beta - Zb}
 \end{array}
 \right] \\
-= \mathbf{b'B^{-1}b+(Y-X \beta-Zb)'\Sigma^{-1}(Y-X \beta-Zb)}
+&= \mathbf{b'B^{-1}b+(Y-X \beta-Zb)'\Sigma^{-1}(Y-X \beta-Zb)}
+\end{aligned}
 $$
 
 Setting the derivatives of Q with respect to $\mathbf{b}$ and $\mathbf{\beta}$ to zero leads to the system of equations:
@@ -805,8 +827,6 @@ $$
 \right]
 $$
 
-<br>
-
 Equivalently,
 
 Bayes' theorem
@@ -825,8 +845,10 @@ where
 In this case
 
 $$
-\mathbf{Y} | \mathbf{b} \sim N(\mathbf{X\beta+Zb,\Sigma}) \\
-\mathbf{b} \sim N(\mathbf{0,B})
+\begin{aligned}
+\mathbf{Y} | \mathbf{b} &\sim N(\mathbf{X\beta+Zb,\Sigma}) \\
+\mathbf{b} &\sim N(\mathbf{0,B})
+\end{aligned}
 $$
 
 The posterior distribution has the form
@@ -846,8 +868,10 @@ $$
 If we have $\tilde{\mathbf{V}}$ (estimate of $\mathbf{V}$), then we can estimate:
 
 $$
-\hat{\beta} = \mathbf{(X'\tilde{V}^{-1}X)^{-1}X'\tilde{V}^{-1}Y} \\
-\hat{\mathbf{b}} = \mathbf{BZ'\tilde{V}^{-1}(Y-X\hat{\beta})}
+\begin{aligned}
+\hat{\beta} &= \mathbf{(X'\tilde{V}^{-1}X)^{-1}X'\tilde{V}^{-1}Y} \\
+\hat{\mathbf{b}} &= \mathbf{BZ'\tilde{V}^{-1}(Y-X\hat{\beta})}
+\end{aligned}
 $$
 
 where ${\mathbf{b}}$ is **EBLUP** (estimated BLUP) or **empirical Bayes estimate**
@@ -881,8 +905,6 @@ $$
 Note:
 
 -   $\hat{\theta}$ are typically negatively biased due to unaccounted fixed effects being estimated, which we could try to account for.
-
-<br>
 
 #### Restricted Maximum Likelihood (REML) {#restricted-maximum-likelihood-reml}
 
@@ -919,8 +941,6 @@ Comparison REML and MLE
 -   REML is less sensitive to outliers than MLE
 
 -   MLE is better than REML regarding model comparisons (e.g., AIC or BIC)
-
-<br>
 
 #### Estimated Generalized Least Squares
 
@@ -960,8 +980,6 @@ Hence, the fixed effects estimators for the MLE, REML, and EGLS are of the same 
 
 In case of non-iterative approach, EGLS can be appealing when $\mathbf{V}$ can be estimated without much computational burden.
 
-<br>
-
 #### Bayesian Hierarchical Models (BHM) {#bayesian-hierarchical-models-bhm}
 
 Joint distribution cane be decomposed hierarchically in terms of the product of conditional distributions and a marginal distribution
@@ -990,8 +1008,10 @@ $$
 where
 
 $$
-\mathbf{Y| \beta, b, \theta \sim N(X\beta+ Zb, \Sigma(\theta))} \\
-\mathbf{b | \theta \sim N(0, B(\theta))}
+\begin{aligned}
+\mathbf{Y| \beta, b, \theta} &\sim \mathbf{N(X\beta+ Zb, \Sigma(\theta))} \\
+\mathbf{b | \theta} &\sim \mathbf{N(0, B(\theta))}
+\end{aligned}
 $$
 
 and we also have to have prior distributions for $f(\beta), f(\theta)$
@@ -1014,8 +1034,10 @@ Bayesian Methods:
 We have
 
 $$
-\mathbf{\hat{\beta}(\theta) = \{X'V^{-1}(\theta) X\}^{-1}X'V^{-1}(\theta) Y} \\
-var(\hat{\beta}(\theta)) = \mathbf{\{X'V^{-1}(\theta) X\}^{-1}}
+\begin{aligned}
+\mathbf{\hat{\beta}(\theta)} &= \mathbf{\{X'V^{-1}(\theta) X\}^{-1}X'V^{-1}(\theta) Y} \\
+var(\hat{\beta}(\theta)) &= \mathbf{\{X'V^{-1}(\theta) X\}^{-1}}
+\end{aligned}
 $$
 
 We can use $\hat{\theta}$ in place of $\theta$ to approximate Wald test
@@ -1032,8 +1054,6 @@ $$
 
 where $W \sim \chi^2_{rank(A)}$ under $H_0$ is true. However, it does not take into account variability from using $\hat{\theta}$ in place of $\theta$, hence the standard errors are underestimated
 
-<br>
-
 #### F-test
 
 Alternatively, we can use the modified F-test, suppose we have $var(\mathbf{Y}) = \sigma^2 \mathbf{V}(\theta)$, then
@@ -1048,8 +1068,6 @@ where $F^* \sim f_{rank(A), den(df)}$ under the null hypothesis. And den(df) nee
 -   Kenward-Roger approximation
 
 Under balanced cases, the Wald and F tests are similar. But for small sample sizes, they can differ in p-values. And both can be reduced to t-test for a single $\beta$
-
-<br>
 
 #### Likelihood Ratio Test
 
@@ -1070,8 +1088,6 @@ where
 
 This method is not applicable for REML. But REML can still be used to test for covariance parameters between nested models.
 
-<br>
-
 ### Variance Components
 
 -   For ML and REML estimator, $\hat{\theta} \sim N(\theta, I(\theta))$ for large samples
@@ -1080,11 +1096,9 @@ This method is not applicable for REML. But REML can still be used to test for c
 
     -   However, the normal approximation depends largely on the true value of $\theta$. It will fail if the true value of $\theta$ is close to the boundary of the parameter space $\Theta_{\theta}$ (i.e., $\sigma^2 \approx 0$)
 
-    -   Typically works better for covariance parameter, than vairance prarmetesr.
+    -   Typically works better for covariance parameter, than variance parameters.
 
 -   The likelihood ratio tests can also be used with ML or REML estimates. However, the same problem of parameters
-
-<br>
 
 ## Information Criteria
 
@@ -1111,16 +1125,12 @@ Note:
 -   can be used for mixed model section, (e.g., selection of the covariance structure), but the sample size must be very large to have adequate comparison based on the criterion
 -   Can have a large negative bias (e.g., when sample size is small but the number of parameters is large) due to the penalty term can't approximate the bias adjustment adequately
 
-<br>
-
 ### Corrected AIC (AICC)
 
 -   developed by [@hurvich1989regression]
 -   correct small-sample adjustment
 -   depends on the candidate model class
 -   Only if you have fixed covariance structure, then AICC is justified, but not general covariance structure
-
-<br>
 
 ### Bayesian Information Criteria (BIC)
 
@@ -1132,8 +1142,6 @@ where n = number of observations.
 
 -   we prefer smaller BIC value
 -   BIC and AIC are used for both REML and MLE if we have the same mean structure. Otherwise, in general, we should prefer MLE
-
-<br>
 
 With our example presented at the beginning of [Linear Mixed Models],
 
@@ -1156,13 +1164,13 @@ Note:
 -   we have subject-specific intercepts,
 
 $$
-\mathbf{Y}_i |b_i \sim N(\mathbf{X}_i \beta + 1 b_i, \sigma^2 \mathbf{I}) \\
-b_i \sim N(0,d_{11})
+\begin{aligned}
+\mathbf{Y}_i |b_i &\sim N(\mathbf{X}_i \beta + 1 b_i, \sigma^2 \mathbf{I}) \\
+b_i &\sim N(0,d_{11})
+\end{aligned}
 $$
 
 here, we want to estimate $\beta, \sigma^2, d_{11}$ and predict $b_i$
-
-<br>
 
 ## Split-Plot Designs
 
@@ -1188,10 +1196,10 @@ $$
 
 where
 
--   i = replication (block or subject)
--   j = level of Factor A
+-   $i$ = replication (block or subject)
+-   $j$ = level of Factor A
 -   $\mu$ = overall mean
--   $\rho_i$ = variation due to the i-th block
+-   $\rho_i$ = variation due to the $i$-th block
 -   $e_{ij} \sim N(0, \sigma^2_e)$ = whole plot error
 
 If B is our factor of interest
@@ -1202,7 +1210,7 @@ $$
 
 where
 
--   $\phi_{ij}$ = variation due to the ij-th main plot
+-   $\phi_{ij}$ = variation due to the $ij$-th main plot
 -   $\beta_k$ = Factor B effect
 -   $\epsilon_{ijk} \sim N(0, \sigma^2_\epsilon)$ = subplot error
 -   $\phi_{ij} = \rho_i + \alpha_j + e_{ij}$
@@ -1215,9 +1223,9 @@ $$
 
 where
 
--   i = replicate (blocks or subjects)
--   j = level of factor A
--   k = level of factor B
+-   $i$ = replicate (blocks or subjects)
+-   $j$ = level of factor A
+-   $k$ = level of factor B
 -   $\mu$ = overall mean
 -   $\rho_i$ = effect of the block
 -   $\alpha_j$ = main effect of factor A (fixed)
@@ -1288,8 +1296,8 @@ head(irrigation, 4)
 #> 4    f2         i2      v2  38.2
 ggplot(irrigation,
        aes(
-         x = field,
-         y = yield,
+         x     = field,
+         y     = yield,
          shape = irrigation,
          color = variety
        )) +
@@ -1300,7 +1308,9 @@ ggplot(irrigation,
 
 
 ```r
-sp_model <- lmerTest::lmer(yield ~ irrigation * variety + (1 | field), irrigation)
+sp_model <-
+    lmerTest::lmer(yield ~ irrigation * variety 
+                   + (1 |field), irrigation)
 summary(sp_model)
 #> Linear mixed model fit by REML. t-tests use Satterthwaite's method [
 #> lmerModLmerTest]
@@ -1342,7 +1352,7 @@ summary(sp_model)
 #> irrgtn3:vr2  0.170 -0.120 -0.240 -0.120 -0.707  0.500       
 #> irrgtn4:vr2  0.170 -0.120 -0.120 -0.240 -0.707  0.500  0.500
 
-anova(sp_model,ddf = c("Kenward-Roger"))
+anova(sp_model, ddf = c("Kenward-Roger"))
 #> Type III Analysis of Variance Table with Kenward-Roger's method
 #>                    Sum Sq Mean Sq NumDF DenDF F value Pr(>F)
 #> irrigation         2.4545 0.81818     3     4  0.3882 0.7685
@@ -1355,7 +1365,8 @@ Since p-value of the interaction term is insignificant, we consider fitting with
 
 ```r
 library(lme4)
-sp_model_additive <- lmer(yield ~ irrigation + variety + (1 | field), irrigation)
+sp_model_additive <- lmer(yield ~ irrigation + variety 
+                          + (1 | field), irrigation)
 anova(sp_model_additive,sp_model,ddf = "Kenward-Roger")
 #> Data: irrigation
 #> Models:
@@ -1366,7 +1377,7 @@ anova(sp_model_additive,sp_model,ddf = "Kenward-Roger")
 #> sp_model            10 88.609 96.335 -34.305   68.609 1.3503  3     0.7172
 ```
 
-Since p-value of Chi-square test is insignificant, we can't reject the additive model is already sufficient. Looking at AIC and BIC, we can also see that we would prefer the additive model
+Since $p$-value of $\chi^2$ test is insignificant, we can't reject the additive model is already sufficient. Looking at AIC and BIC, we can also see that we would prefer the additive model
 
 **Random Effect Examination**
 
@@ -1377,7 +1388,8 @@ Since p-value of Chi-square test is insignificant, we can't reject the additive 
 
 
 ```r
-sp_model <- lme4::lmer(yield ~ irrigation * variety + (1 | field), irrigation)
+sp_model <- lme4::lmer(yield ~ irrigation * variety 
+                       + (1 | field), irrigation)
 library(RLRsim)
 exactRLRT(sp_model)
 #> 
@@ -1391,8 +1403,6 @@ exactRLRT(sp_model)
 
 Since the p-value is significant, we reject $H_0$
 
-<br>
-
 ## Repeated Measures in Mixed Models
 
 $$
@@ -1401,10 +1411,10 @@ $$
 
 where
 
--   i-th group (fixed)
--   j-th (repeated measure) time effect (fixed)
--   k-th subject
--   $\delta_{i(k)} \sim N(0,\sigma^2_\delta)$ (k-th subject in the i-th group) and $\epsilon_{ijk} \sim N(0,\sigma^2)$ (independent error) are random effects ($i = 1,..,n_A, j = 1,..,n_B, k = 1,...,n_i$)
+-   $i$-th group (fixed)
+-   $j$-th (repeated measure) time effect (fixed)
+-   $k$-th subject
+-   $\delta_{i(k)} \sim N(0,\sigma^2_\delta)$ (k-th subject in the $i$-th group) and $\epsilon_{ijk} \sim N(0,\sigma^2)$ (independent error) are random effects ($i = 1,..,n_A, j = 1,..,n_B, k = 1,...,n_i$)
 
 hence, the variance-covariance matrix of the repeated observations on the k-th subject of the i-th group, $\mathbf{Y}_{ik} = (Y_{i1k},..,Y_{in_Bk})'$, will be
 
@@ -1502,7 +1512,7 @@ $$
 
 where
 
--   i = 1,2 (groups)
+-   $i = 1,2$ (groups)
 -   $k = 1,…, n_i$ ( individuals)
 -   $t = (t_1,t_2,t_3,t_4)$ (times)
 -   $\beta_{2i}$ = common quadratic term
@@ -1546,7 +1556,7 @@ R Packages for mixed models
 
     -   user-friendly
 
-    -   can handle nonnormal response
+    -   can handle non-normal response
 
     -   for more detailed application, check [Fitting Linear Mixed-Effects Models Using lme4](https://arxiv.org/abs/1406.5823)
 
@@ -1578,17 +1588,18 @@ where
 ```r
 data(pulp, package = "faraway")
 plot(
-  y = pulp$bright,
-  x = pulp$operator,
-  xlab = "Operator",
-  ylab = "Brightness"
+    y    = pulp$bright,
+    x    = pulp$operator,
+    xlab = "Operator",
+    ylab = "Brightness"
 )
 ```
 
 <img src="08-linear-mixed-models_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
-pulp %>% dplyr::group_by(operator) %>% dplyr::summarise(average = mean(bright))
+pulp %>% dplyr::group_by(operator) %>% 
+    dplyr::summarise(average = mean(bright))
 #> # A tibble: 4 × 2
 #>   operator average
 #>   <fct>      <dbl>
@@ -1604,11 +1615,12 @@ pulp %>% dplyr::group_by(operator) %>% dplyr::summarise(average = mean(bright))
 ```r
 library(lme4)
 mixed_model <-
-    lmer(formula = bright ~ 1 + (1 | operator), # pipe (i..e, | ) denotes random-effect terms
+    lmer(
+        # pipe (i..e, | ) denotes random-effect terms
+        formula = bright ~ 1 + (1 |operator), 
          data = pulp)
 summary(mixed_model)
-#> Linear mixed model fit by REML. t-tests use Satterthwaite's method [
-#> lmerModLmerTest]
+#> Linear mixed model fit by REML ['lmerMod']
 #> Formula: bright ~ 1 + (1 | operator)
 #>    Data: pulp
 #> 
@@ -1625,10 +1637,8 @@ summary(mixed_model)
 #> Number of obs: 20, groups:  operator, 4
 #> 
 #> Fixed effects:
-#>             Estimate Std. Error      df t value Pr(>|t|)    
-#> (Intercept)  60.4000     0.1494  3.0000   404.2 3.34e-08 ***
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#>             Estimate Std. Error t value
+#> (Intercept)  60.4000     0.1494   404.2
 coef(mixed_model)
 #> $operator
 #>   (Intercept)
@@ -1639,7 +1649,7 @@ coef(mixed_model)
 #> 
 #> attr(,"class")
 #> [1] "coef.mer"
-fixef(mixed_model) # fixed effects
+fixef(mixed_model)   # fixed effects
 #> (Intercept) 
 #>        60.4
 confint(mixed_model) # confidence interval
@@ -1647,7 +1657,7 @@ confint(mixed_model) # confidence interval
 #> .sig01       0.000000  0.6178987
 #> .sigma       0.238912  0.4821845
 #> (Intercept) 60.071299 60.7287012
-ranef(mixed_model) # random effects
+ranef(mixed_model)   # random effects
 #> $operator
 #>   (Intercept)
 #> a  -0.1219403
@@ -1661,7 +1671,9 @@ VarCorr(mixed_model) # random effects standard deviation
 #>  operator (Intercept) 0.26093 
 #>  Residual             0.32596
 re_dat = as.data.frame(VarCorr(mixed_model))
-rho = re_dat[1, 'vcov'] / (re_dat[1, 'vcov'] + re_dat[2, 'vcov']) # rho based on the above formula
+
+# rho based on the above formula
+rho = re_dat[1, 'vcov'] / (re_dat[1, 'vcov'] + re_dat[2, 'vcov'])
 rho
 #> [1] 0.3905354
 ```
@@ -1674,12 +1686,12 @@ library(lmerTest)
 summary(lmerTest::lmer(bright ~ 1 + (1 | operator), pulp))$coefficients
 #>             Estimate Std. Error df  t value     Pr(>|t|)
 #> (Intercept)     60.4  0.1494434  3 404.1664 3.340265e-08
-confint(mixed_model)[3,]
+confint(mixed_model)[3, ]
 #>   2.5 %  97.5 % 
 #> 60.0713 60.7287
 ```
 
-In this example, we can see that the confidence interval computed by `confint` in `lmer` package is very close is `confint` in `lmerTest` model. <br>
+In this example, we can see that the confidence interval computed by `confint` in `lmer` package is very close is `confint` in `lmerTest` model.
 
 `MCMglmm` application
 
@@ -1688,10 +1700,16 @@ under the Bayesian framework
 
 ```r
 library(MCMCglmm)
-mixed_model_bayes <- MCMCglmm(bright~1,random=~operator, data=pulp, verbose=FALSE)
+mixed_model_bayes <-
+    MCMCglmm(
+        bright ~ 1,
+        random =  ~ operator,
+        data = pulp,
+        verbose = FALSE
+    )
 summary(mixed_model_bayes)$solutions
 #>             post.mean l-95% CI u-95% CI eff.samp pMCMC
-#> (Intercept)  60.40297 60.17655 60.65777 750.1806 0.001
+#> (Intercept)  60.39993 60.06017 60.65108     1000 0.001
 ```
 
 this method offers the confidence interval slightly more positive than `lmer` and `lmerTest`
@@ -1707,13 +1725,17 @@ ranef(mixed_model)$operator
 #> b  -0.2591231
 #> c   0.1676679
 #> d   0.2133955
-fixef(mixed_model) + ranef(mixed_model)$operator #prediction for each categories
+
+# prediction for each categories
+fixef(mixed_model) + ranef(mixed_model)$operator 
 #>   (Intercept)
 #> a    60.27806
 #> b    60.14088
 #> c    60.56767
 #> d    60.61340
-predict(mixed_model, newdata=data.frame(operator=c('a','b','c','d'))) # equivalent to the above method
+
+# equivalent to the above method
+predict(mixed_model, newdata = data.frame(operator = c('a', 'b', 'c', 'd'))) 
 #>        1        2        3        4 
 #> 60.27806 60.14088 60.56767 60.61340
 ```
@@ -1737,13 +1759,15 @@ summary(penicillin)
 #>                   Max.   :97
 library(ggplot2)
 ggplot(penicillin, aes(
-  y = yield,
-  x = treat,
-  shape = blend,
-  color = blend
-)) + # treatment = fixed effect, blend = random effects
-  geom_point(size = 3) +
-  xlab("Treatment")
+    y     = yield,
+    x     = treat,
+    shape = blend,
+    color = blend
+)) + 
+    # treatment = fixed effect
+    # blend = random effects
+    geom_point(size = 3) +
+    xlab("Treatment")
 ```
 
 <img src="08-linear-mixed-models_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
@@ -1811,9 +1835,17 @@ Since the p-value is greater than 0.05, we can't reject the null hypothesis that
 
 ```r
 library(pbkrtest)
-full_model <- lmer(yield ~ treat + (1 | blend), penicillin, REML=FALSE) #REML is not appropriate for testing fixed effects, it should be ML
-null_model <- lmer(yield ~ 1 + (1 | blend), penicillin, REML=FALSE)
-KRmodcomp(full_model, null_model) # use  Kenward-Roger approximation for df
+# REML is not appropriate for testing fixed effects, it should be ML
+full_model <-
+    lmer(yield ~ treat + (1 | blend), 
+         penicillin, 
+         REML = FALSE) 
+null_model <- lmer(yield ~ 1 + (1 | blend), 
+                   penicillin, 
+                   REML = FALSE)
+
+# use  Kenward-Roger approximation for df
+KRmodcomp(full_model, null_model) 
 #> large : yield ~ treat + (1 | blend)
 #> small : yield ~ 1 + (1 | blend)
 #>          stat     ndf     ddf F.scaling p.value
@@ -1832,14 +1864,19 @@ rats <- read.csv(
     sep = ' ',
     col.names = c('Treatment', 'rat', 'age', 'y')
 )
-rats$t <- log(1 + (rats$age - 45)/10) #log transformed age
+
+# log transformed age
+rats$t <- log(1 + (rats$age - 45) / 10) 
 ```
 
 We are interested in whether treatment effect induces changes over time.
 
 
 ```r
-rat_model <- lmerTest::lmer(y~t:Treatment+(1|rat),data=rats) #treatment = fixed effect, rat = random effects
+rat_model <-
+    # treatment = fixed effect, rat = random effects
+    lmerTest::lmer(y ~ t:Treatment + (1 | rat), 
+                   data = rats) 
 summary(rat_model)
 #> Linear mixed model fit by REML. t-tests use Satterthwaite's method [
 #> lmerModLmerTest]
@@ -1882,8 +1919,6 @@ anova(rat_model)
 
 Since the p-value is significant, we can be confident concluding that there is a treatment effect
 
-<br>
-
 ### Example 3 (Agridat)
 
 
@@ -1920,11 +1955,11 @@ Plot between age and species
 xyplot(
     water ~ day | tree,
     dat,
-    subset = age == "A2" & species == "S2",
+    subset   = age == "A2" & species == "S2",
     as.table = TRUE,
-    type = c('p', 'smooth'),
-    ylab = "Water use profiles of individual trees",
-    main = "harris.wateruse (Age 2, Species 2)"
+    type     = c('p', 'smooth'),
+    ylab     = "Water use profiles of individual trees",
+    main     = "harris.wateruse (Age 2, Species 2)"
 )
 ```
 
@@ -1932,7 +1967,8 @@ xyplot(
 
 
 ```r
-# Rescale day for nicer output, and convergence issues, add quadratic term
+# Rescale day for nicer output, 
+# and convergence issues, add quadratic term
 dat <- transform(dat, ti = day / 100)
 dat <- transform(dat, ti2 = ti * ti)
 # Start with a subgroup: age 2, species 2
@@ -1944,12 +1980,16 @@ d22 <- droplevels(subset(dat, age == "A2" & species == "S2"))
 
 ```r
 library(nlme)
+
 ## We use pdDiag() to get uncorrelated random effects
 m1n <- lme(
-    water ~ 1 + ti + ti2, #intercept, time and time-squared = fixed effects
+    water ~ 1 + ti + ti2,
+    #intercept, time and time-squared = fixed effects
     data = d22,
     na.action = na.omit,
-    random = list(tree = pdDiag( ~ 1 + ti + ti2)) # random intercept, time and time squared per tree = random effects
+    random = list(tree = pdDiag(~ 1 + ti + ti2)) 
+    # random intercept, time 
+    # and time squared per tree = random effects
 )
 ranef(m1n)
 #>     (Intercept)            ti           ti2
@@ -2042,8 +2082,9 @@ fixef(m1lmer)
 #> (Intercept)          ti         ti2 
 #>  -10.798799   12.346704   -2.838503
 m1l <-
-    lmer(water ~ 1 + ti + ti2 + (1 |
-                                     tree) + (0 + ti | tree) + (0 + ti2 | tree), data = d22)
+    lmer(water ~ 1 + ti + ti2 
+         + (1 | tree) + (0 + ti | tree) 
+         + (0 + ti2 | tree), data = d22)
 ranef(m1l)
 #> $tree
 #>     (Intercept) ti ti2

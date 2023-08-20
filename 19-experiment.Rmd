@@ -41,7 +41,7 @@ It's likely that $Y_{1i}$ and $Y_{0i}$ both have their own distributions (i.e., 
 $$
 \begin{aligned}
 E[Y_i | D_i = 1] - E[Y_i | D_i = 0] &= (E[Y_{1i} | D_i = 1] - E[Y_{0i}|D_i = 1] ) + (E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0]) \\
- &= (E[Y_{1i}-Y_{0i}|D_1 = 1] ) + (E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0]) \\
+&= (E[Y_{1i}-Y_{0i}|D_1 = 1] ) + (E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0]) \\
 \text{Observed difference in treatment} &= \text{Average treatment effect on the treated} + \text{Selection bias}
 \end{aligned}
 $$
@@ -60,8 +60,6 @@ E[Y_i | D_i = 1] - E[Y_i|D_i = 0] &= E[Y_{1i}|D_i = 1]-E[Y_{0i}|D_i = 0)]\\
 &= E[Y_{1i} - Y_{0i}]
 \end{aligned}
 $$
-
-<br>
 
 **Another representation under regression**
 
@@ -112,8 +110,6 @@ Say you have control variables ($X_i$), that is **uncorrelated with the treatmen
 $$
 Y_i = \alpha + \rho D_i + X_i'\gamma + \eta_i
 $$
-
-<br>
 
 ## Semi-random Experiment
 
@@ -256,7 +252,7 @@ Including $(X_i \theta)$ just shifts around control variables (i.e., reweighting
 
 ## Rerandomization
 
--   Since randomization only balances baseline covariates on average, imbalance in covairates due to random chance can still happen.
+-   Since randomization only balances baseline covariates on average, imbalance in variables due to random chance can still happen.
 
 -   In case that you have a "bad" randomization (i.e., imbalance for important baseline covariates), [@morgan2012rerandomization] introduce the idea of rerandomization.
 
@@ -284,8 +280,6 @@ Including $(X_i \theta)$ just shifts around control variables (i.e., reweighting
 
 [![Figure from USC Schaeffer Center](images/The-Randomization-Procedure.png "Figure from USC Schaeffer Center")](https://healthpolicy.usc.edu/evidence-base/rerandomization-what-is-it-and-why-should-you-use-it-for-random-assignment/)
 
-<br>
-
 Rerandomization Criterion
 
 -   Acceptable randomization is based on a function of covariate matrix $\mathbf{X}$ and vector of treatment assignments $\mathbf{W}$
@@ -303,8 +297,10 @@ $$
 Let $M$ be the multivariate distance between groups means
 
 $$
-M = (\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)' cov(\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)^{-1} (\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C) \\
-= (\frac{1}{n_T}+ \frac{1}{n_C})^{-1}(\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)' cov(\mathbf{X})^{-1}(\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)
+\begin{aligned}
+M &= (\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)' cov(\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)^{-1} (\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C) \\
+&= (\frac{1}{n_T}+ \frac{1}{n_C})^{-1}(\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)' cov(\mathbf{X})^{-1}(\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)
+\end{aligned}
 $$
 
 With large sample size and "pure" randomization $M \sim \chi^2_k$ where $k$ is the number of covariates to be balanced

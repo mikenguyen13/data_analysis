@@ -2,8 +2,6 @@
 
 ANOVA is using the same underlying mechanism as linear regression. However, the angle that ANOVA chooses to look at is slightly different from the traditional linear regression. It can be more useful in the case with **qualitative variables** and **designed experiments**.
 
-<br>
-
 Experimental Design
 
 -   **Factor**: explanatory or predictor variable to be studied in an investigation
@@ -13,8 +11,6 @@ Experimental Design
 -   **Multifactor Experiment**: more than one explanatory variable
 -   **Classification Factor**: A factor that is not under the control of the experimenter (observational data)
 -   **Experimental Factor**: assigned by the experimenter
-
-<br>
 
 Basics of experimental design:
 
@@ -48,7 +44,7 @@ Randomization may also eliminate correlations due to time and space.
 
 ## Completely Randomized Design (CRD)
 
-Treatment factor A with $a\ge2$ treatments levels. Experimental units are randomly assinged to each treatment. The number of experiemntal units in each group can be
+Treatment factor A with $a\ge2$ treatments levels. Experimental units are randomly assigned to each treatment. The number of experimental units in each group can be
 
 -   equal (balanced): n
 -   unequal (unbalanced): $n_i$ for the i-th group (i = 1,...,a).
@@ -61,13 +57,19 @@ Each has probability 1/k of being selected. Each experimental unit is measured w
 
 Treatment
 
-|             |       1        |       2        | ... |       a        |
-|:------------|:--------------:|:--------------:|:---:|:--------------:|
-|             |    $Y_{11}$    |    $Y_{21}$    | ... |    $Y_{a1}$    |
-|             |    $Y_{12}$    |      ...       | ... |      ...       |
-|             |      ...       |      ...       | ... |      ...       |
-| Sample Mean | $\bar{Y_{1.}}$ | $\bar{Y_{2.}}$ | ... | $\bar{Y_{a.}}$ |
-| Sample SD   |     $s_1$      |     $s_2$      | ... |     $s_a$      |
++-------------+----------------+----------------+------------+----------------+
+|             | 1              | 2              | ...        | a              |
++:============+:==============:+:==============:+:==========:+:==============:+
+|             | $Y_{11}$       | $Y_{21}$       | ...        | $Y_{a1}$       |
++-------------+----------------+----------------+------------+----------------+
+|             | $Y_{12}$       | ...            | ...        | ...            |
++-------------+----------------+----------------+------------+----------------+
+|             | ...            | ...            | ...        | ...            |
++-------------+----------------+----------------+------------+----------------+
+| Sample Mean | $\bar{Y_{1.}}$ | $\bar{Y_{2.}}$ | ...        | $\bar{Y_{a.}}$ |
++-------------+----------------+----------------+------------+----------------+
+| Sample SD   | $s_1$          | $s_2$          | ...        | $s_a$          |
++-------------+----------------+----------------+------------+----------------+
 
 where $\bar{Y_{i.}}=\frac{1}{n_i}\sum_{j=1}^{n_i}Y_{ij}$
 
@@ -83,25 +85,27 @@ Partitioning the Variance
 
 The total variability of the $Y_{ij}$ observation can be measured as the deviation of $Y_{ij}$ around the overall mean $\bar{Y_{..}}$: $Y_{ij} - \bar{Y_{..}}$
 
-This can be rewritten as: $$
-\begin{split}
-Y_{ij} - \bar{Y_{..}}&=Y_{ij} - \bar{Y_{..}} + \bar{Y_{i.}} - \bar{Y_{i.}} \\
-&= (\bar{Y_{i.}}-\bar{Y_{..}})+(Y_{ij}-\bar{Y_{i.}})
-\end{split}
-$$ where
-
--   the first term is the *between* treatment differences (i.e., the deviation of the treatment mean from the overall mean)\
--   the second term is *within* treatment differences (i.e., the deviation of the observation around its treatment mean)
-
-<br>
+This can be rewritten as: 
 
 $$
-\begin{split}
+\begin{aligned}
+Y_{ij} - \bar{Y_{..}}&=Y_{ij} - \bar{Y_{..}} + \bar{Y_{i.}} - \bar{Y_{i.}} \\
+&= (\bar{Y_{i.}}-\bar{Y_{..}})+(Y_{ij}-\bar{Y_{i.}})
+\end{aligned}
+$$ 
+
+where
+
+-   the first term is the *between* treatment differences (i.e., the deviation of the treatment mean from the overall mean)
+-   the second term is *within* treatment differences (i.e., the deviation of the observation around its treatment mean)
+
+$$
+\begin{aligned}
 \sum_{i}\sum_{j}(Y_{ij} - \bar{Y_{..}})^2 &=  \sum_{i}n_i(\bar{Y_{i.}}-\bar{Y_{..}})^2+\sum_{i}\sum_{j}(Y_{ij}-\bar{Y_{i.}})^2 \\
 SSTO &= SSTR + SSE \\
 total~SS &= treatment~SS + error~SS \\
 (N-1)~d.f. &= (a-1)~d.f. + (N - a) ~ d.f.
-\end{split}
+\end{aligned}
 $$
 
 we lose a d.f. for the total corrected SSTO because of the estimation of the mean ($\sum_{i}\sum_{j}(Y_{ij} - \bar{Y_{..}})=0$)\
@@ -111,15 +115,15 @@ Accordingly, $MSTR= \frac{SST}{a-1}$ and $MSR=\frac{SSE}{N-a}$
 
 **ANOVA Table**
 
-+---------------------------+---------------------------------------------+-----+------------+
-| Source of Variation       | SS                                          | df  | MS         |
-+===========================+:===========================================:+:===:+:==========:+
-| Between Treatments        | $\sum_{i}n_i (\bar{Y_{i.}}-\bar{Y_{..}})^2$ | a-1 | SSTR/(a-1) |
-+---------------------------+---------------------------------------------+-----+------------+
-| Error (within treatments) | $\sum_{i}\sum_{j}(Y_{ij}-\bar{Y_{i.}})^2$   | N-a | SSE/(N-a)  |
-+---------------------------+---------------------------------------------+-----+------------+
-| Total (corrected)         | $\sum_{i}n_i (\bar{Y_{i.}}-\bar{Y_{..}})^2$ | N-1 |            |
-+---------------------------+---------------------------------------------+-----+------------+
++---------------------------+---------------------------------------------+------------+------------+
+| Source of Variation       | SS                                          | df         | MS         |
++===========================+:===========================================:+:==========:+:==========:+
+| Between Treatments        | $\sum_{i}n_i (\bar{Y_{i.}}-\bar{Y_{..}})^2$ | a-1        | SSTR/(a-1) |
++---------------------------+---------------------------------------------+------------+------------+
+| Error (within treatments) | $\sum_{i}\sum_{j}(Y_{ij}-\bar{Y_{i.}})^2$   | N-a        | SSE/(N-a)  |
++---------------------------+---------------------------------------------+------------+------------+
+| Total (corrected)         | $\sum_{i}n_i (\bar{Y_{i.}}-\bar{Y_{..}})^2$ | N-1        |            |
++---------------------------+---------------------------------------------+------------+------------+
 
 Linear Model Explanation of ANOVA
 
@@ -131,24 +135,22 @@ $$
 
 where
 
--   $Y_{ij}$ response variable in j-th subject for the i-th treatment\
+-   $Y_{ij}$ response variable in $j$-th subject for the $i$-th treatment
 
--   $\mu_i$: parameters (fixed) representing the unknown population mean for the i-th treatment\
+-   $\mu_i$: parameters (fixed) representing the unknown population mean for the i-th treatment
 
 -   $\epsilon_{ij}$ independent $N(0,\sigma^2)$ errors
 
--   $E(Y_{ij})=\mu_i$ $var(Y_{ij})=var(\epsilon_{ij})=\sigma^2$\
+-   $E(Y_{ij})=\mu_i$ $var(Y_{ij})=var(\epsilon_{ij})=\sigma^2$
 
 -   All observations have the same variance
 
 Example:
 
-a = 3 (3 treatments) $n_1=n_2=n_3=2$
-
-<br>
+$a = 3$ (3 treatments) $n_1=n_2=n_3=2$
 
 $$
-\begin{split}
+\begin{aligned}
 \left(\begin{array}{c} 
 Y_{11}\\
 Y_{12}\\
@@ -178,20 +180,18 @@ Y_{32}\\
 \epsilon_{32} \\
 \end{array}\right)\\
 \mathbf{y} &= \mathbf{X\beta} +\mathbf{\epsilon}
-\end{split}
+\end{aligned}
 $$
 
-$X_{k,ij}=1$ if the k-th treatment is used
+$X_{k,ij}=1$ if the $k$-th treatment is used
 
 $X_{k,ij}=0$ Otherwise
 
-<br>
+**Note**: no intercept term.
 
-Note: no intercept term.
 
-```{=tex}
 \begin{equation}
-\begin{split}
+\begin{aligned}
 \mathbf{b}= \left[\begin{array}{c}
 \mu_1 \\
 \mu_2 \\
@@ -215,13 +215,12 @@ Y_3\\
 \bar{Y_2}\\
 \bar{Y_3}\\
 \end{array}\right] 
-\end{split} 
+\end{aligned} 
 (\#eq:betaorigin)
 \end{equation}
-```
-is the BLUE (best linear unbiased estimator) for $\beta=[\mu_1 \mu_2\mu_3]'$
 
-<br>
+
+is the BLUE (best linear unbiased estimator) for $\beta=[\mu_1 \mu_2\mu_3]'$
 
 $$
 E(\mathbf{b})=\beta
@@ -239,11 +238,11 @@ $$
 $var(b_i)=var(\hat{\mu_i})=\sigma^2/n_i$ where $\mathbf{b} \sim N(\beta,\sigma^2(\mathbf{X'X})^{-1})$
 
 $$
-\begin{split}
+\begin{aligned}
 MSE &= \frac{1}{N-a} \sum_{i}\sum_{j}(Y_{ij}-\bar{Y_{i.}})^2 \\
     &= \frac{1}{N-a} \sum_{i}[(n_i-1)\frac{\sum_{i}(Y_{ij}-\bar{Y_{i.}})^2}{n_i-1}] \\
     &= \frac{1}{N-a} \sum_{i}(n_i-1)s_1^2
-\end{split}
+\end{aligned}
 $$
 
 We have $E(s_i^2)=\sigma^2$
@@ -256,7 +255,7 @@ $E(MSTR)=\sigma^2+\frac{\sum_{i}n_i(\mu_i-\mu_.)^2}{a-1}$\
 where $\mu_.=\frac{\sum_{i=1}^{a}n_i\mu_i}{\sum_{i=1}^{a}n_i}$\
 If all treatment means are equals (=$\mu_.$), $E(MSTR)=\sigma^2$.
 
-Then we can use an F-test for the equality of all treatment means:
+Then we can use an $F$-test for the equality of all treatment means:
 
 $$H_0:\mu_1=\mu_2=..=\mu_a$$
 
@@ -268,31 +267,25 @@ and F near 1 support $H_0$ (upper tail test)
 
 **Equivalently**, when $H_0$ is true, $F \sim f_{(a-1,N-a)}$
 
--   If $F \leq f_{(a-1,N-a;1-\alpha)}$, we cannot reject $H_0$\
+-   If $F \leq f_{(a-1,N-a;1-\alpha)}$, we cannot reject $H_0$
 -   If $F \geq f_{(a-1,N-a;1-\alpha)}$, we reject $H_0$
 
-Note: If a = 2 (2 treatments), F-test = two sample t-test
-
-<br>
+Note: If $a = 2$ (2 treatments), $F$-test = two sample $t$-test
 
 #### Treatment Effects (Factor Effects)
 
 Besides Cell means model, we have another way to formalize one-way ANOVA: $$Y_{ij} = \mu + \tau_i + \epsilon_{ij}$$ where
 
--   $Y_{ij}$ is the j-th response for the i-th treatment\
--   $\tau_i$ i-th treatment effect\
--   $\mu$ constant component, common to all observations\
+-   $Y_{ij}$ is the $j$-th response for the $i$-th treatment
+-   $\tau_i$ is $i$-th treatment effect
+-   $\mu$ constant component, common to all observations
 -   $\epsilon_{ij}$ independent random errors \~ $N(0,\sigma^2)$
 
-<br>
+For example, $a = 3$, $n_1=n_2=n_3=2$
 
-For example, a = 3, $n_1=n_2=n_3=2$
 
-<br>
-
-```{=tex}
 \begin{equation} 
-\begin{split}
+\begin{aligned}
 \left(\begin{array}{c} 
 Y_{11}\\
 Y_{12}\\
@@ -323,11 +316,10 @@ Y_{32}\\
 \epsilon_{32} \\
 \end{array}\right)\\
 \mathbf{y} &= \mathbf{X\beta} +\mathbf{\epsilon} 
-\end{split}
+\end{aligned}
 (\#eq:unsolvable)
 \end{equation}
-```
-<br>
+
 
 However,
 
@@ -356,27 +348,21 @@ $E(Y_{ij})=\mu + \tau_i = \mu_i = mean ~ response ~ for ~ i-th ~ treatment$
 
 $\sum_{i=1}^{a}\tau_i=0$
 
-<br>
-
 implies
 
 $$
 \mu= \mu +\frac{1}{a}\sum_{i=1}^{a}(\mu+\tau_i)
 $$
 
-<br>
-
 is the average of the treatment mean (grand mean) (overall mean)
 
 $$
-\begin{split}
+\begin{aligned}
 \tau_i  &=(\mu+\tau_i) -\mu = \mu_i-\mu \\
         &= \text{treatment  mean} - \text{grand~mean} \\
         &= \text{treatment  effect}
-\end{split}
+\end{aligned}
 $$
-
-<br>
 
 $$
 \tau_a=-\tau_1-\tau_2-...-\tau_{a-1}
@@ -384,15 +370,11 @@ $$
 
 Hence, the mean for the a-th treatment is
 
-<br>
-
 $$
 \mu_a=\mu+\tau_a=\mu-\tau_1-\tau_2-...-\tau_{a-1}
 $$
 
 Hence, the model need only "a" parameters:
-
-<br>
 
 $$
 \mu,\tau_1,\tau_2,..,\tau_{a-1}
@@ -400,11 +382,9 @@ $$
 
 Equation \@ref(eq:unsolvable) becomes
 
-<br>
 
-```{=tex}
 \begin{equation}
-\begin{split}
+\begin{aligned}
 \left(\begin{array}{c} 
 Y_{11}\\
 Y_{12}\\
@@ -434,19 +414,16 @@ Y_{32}\\
 \epsilon_{32} \\
 \end{array}\right)\\
 \mathbf{y} &= \mathbf{X\beta} +\mathbf{\epsilon}
-\end{split}
+\end{aligned}
 \end{equation}
-```
-where $\beta\equiv[\mu,\tau_1,\tau_2]'$
 
-<br>
+
+where $\beta\equiv[\mu,\tau_1,\tau_2]'$
 
 Equation \@ref(eq:betaorigin) with $\sum_{i}\tau_i=0$ becomes
 
-<br>
-
 $$
-\begin{split}
+\begin{aligned}
 \mathbf{b}= \left[\begin{array}{c}
 \hat{\mu} \\
 \hat{\tau_1} \\
@@ -476,7 +453,7 @@ Y_{2.}-Y_{3.}\\
 \hat{\tau_1}\\
 \hat{\tau_2}\\
 \end{array}\right]
-\end{split}
+\end{aligned}
 $$
 
 and $\hat{\tau_3}=-\hat{\tau_1}-\hat{\tau_2}=\bar{Y_3}-\frac{1}{3} \sum_{i}\bar{Y_{i.}}$
@@ -485,12 +462,16 @@ and $\hat{\tau_3}=-\hat{\tau_1}-\hat{\tau_2}=\bar{Y_3}-\frac{1}{3} \sum_{i}\bar{
 
 In R, `lm()` uses the restriction $\tau_1=0$
 
-For the previous example, for $n_1=n_2=n_3=2$, and $\tau_1=0$. Then the treatment means can be written as:
+For the previous example, for $n_1=n_2=n_3=2$, and $\tau_1=0$.
+
+Then the treatment means can be written as:
 
 $$
-\mu_1= \mu + \tau_1 = \mu + 0 = \mu  \\
-\mu_2= \mu + \tau_2 \\
-\mu_3 = \mu + \tau_3
+\begin{aligned}
+\mu_1 &= \mu + \tau_1 = \mu + 0 = \mu  \\
+\mu_2 &= \mu + \tau_2 \\
+\mu_3 &= \mu + \tau_3
+\end{aligned}
 $$
 
 Hence, $\mu$ is the mean response for the first treatment
@@ -498,7 +479,7 @@ Hence, $\mu$ is the mean response for the first treatment
 In the matrix form,
 
 $$
-\begin{split}
+\begin{aligned}
 \left(\begin{array}{c} 
 Y_{11}\\
 Y_{12}\\
@@ -528,13 +509,13 @@ Y_{32}\\
 \epsilon_{32} \\
 \end{array}\right)\\
 \mathbf{y} &= \mathbf{X\beta} +\mathbf{\epsilon}
-\end{split}
+\end{aligned}
 $$
 
 $\beta = [\mu,\tau_2,\tau_3]'$
 
 $$
-\begin{split}
+\begin{aligned}
 \mathbf{b}= \left[\begin{array}{c}
 \hat{\mu} \\
 \hat{\tau_2} \\
@@ -559,7 +540,7 @@ Y_{3.}\\
 \bar{Y_{2.}} - \bar{Y_{1.}} \\
 \bar{Y_{3.}} - \bar{Y_{1.}}\\
 \end{array}\right]
-\end{split}
+\end{aligned}
 $$
 
 $$
@@ -578,13 +559,13 @@ E(\mathbf{b})= \beta =
 $$
 
 $$
-var(\mathbf{b}) = \sigma^2(\mathbf{X'X})^{-1} \\
-var(\hat{\mu}) = var(\bar{Y_{1.}})=\sigma^2/n_1 \\
-var(\hat{\tau_2}) = var(\bar{Y_{2.}}-\bar{Y_{1.}}) = \sigma^2/n_2 + \sigma^2/n_1 \\
-var(\hat{\tau_3}) = var(\bar{Y_{3.}}-\bar{Y_{1.}}) = \sigma^2/n_3 + \sigma^2/n_1
+\begin{aligned}
+var(\mathbf{b}) &= \sigma^2(\mathbf{X'X})^{-1} \\
+var(\hat{\mu}) &= var(\bar{Y_{1.}})=\sigma^2/n_1 \\
+var(\hat{\tau_2}) &= var(\bar{Y_{2.}}-\bar{Y_{1.}}) = \sigma^2/n_2 + \sigma^2/n_1 \\
+var(\hat{\tau_3}) &= var(\bar{Y_{3.}}-\bar{Y_{1.}}) = \sigma^2/n_3 + \sigma^2/n_1
+\end{aligned}
 $$
-
-<br>
 
 **Note** For all three parameterization, the ANOVA table is the same
 
@@ -600,29 +581,31 @@ $$
 
 **ANOVA Table**
 
-+---------------------+------------------------------------------------------------------------------+-----+--------------------+--------------------+
-| Source of Variation | SS                                                                           | df  | MS                 | F                  |
-+=====================+:============================================================================:+:===:+:==================:+:==================:+
-| Between Treatments  | $\sum_{i} n _ i (\bar { Y_ {i .} } -\bar{Y_{..}})^2 = \mathbf{Y ' (P-P_1)Y}$ | a-1 | $\frac{SSTR}{a-1}$ | $\frac{MSTR}{MSE}$ |
-+---------------------+------------------------------------------------------------------------------+-----+--------------------+--------------------+
-| Error               | $\sum_{i}\sum_{j}(Y_{ij} -\bar{Y_{i.}})^2=\mathbf{e'e}$                      | N-a | $\frac{SSE}{N-a}$  |                    |
-|                     |                                                                              |     |                    |                    |
-| (within treatments) |                                                                              |     |                    |                    |
-+---------------------+------------------------------------------------------------------------------+-----+--------------------+--------------------+
-| Total (corrected)   | $\sum_{i } n_i(\bar{Y_{i.}}-\bar{Y_{..}})^2=\mathbf{Y'Y - Y'P_1Y}$           | N-1 |                    |                    |
-+---------------------+------------------------------------------------------------------------------+-----+--------------------+--------------------+
++---------------------+------------------------------------------------------------------------------+---------+--------------------+--------------------+
+| Source of Variation | SS                                                                           | df      | MS                 | F                  |
++=====================+:============================================================================:+:=======:+:==================:+:==================:+
+| Between Treatments  | $\sum_{i} n _ i (\bar { Y_ {i .} } -\bar{Y_{..}})^2 = \mathbf{Y ' (P-P_1)Y}$ | a-1     | $\frac{SSTR}{a-1}$ | $\frac{MSTR}{MSE}$ |
++---------------------+------------------------------------------------------------------------------+---------+--------------------+--------------------+
+| Error               | $\sum_{i}\sum_{j}(Y_{ij} -\bar{Y_{i.}})^2=\mathbf{e'e}$                      | N-a     | $\frac{SSE}{N-a}$  |                    |
+|                     |                                                                              |         |                    |                    |
+| (within treatments) |                                                                              |         |                    |                    |
++---------------------+------------------------------------------------------------------------------+---------+--------------------+--------------------+
+| Total (corrected)   | $\sum_{i } n_i(\bar{Y_{i.}}-\bar{Y_{..}})^2=\mathbf{Y'Y - Y'P_1Y}$           | N-1     |                    |                    |
++---------------------+------------------------------------------------------------------------------+---------+--------------------+--------------------+
 
 where $\mathbf{P_1} = \frac{1}{n}\mathbf{J}$
 
-The F-statistic here has (a-1,N-a) degrees of freedom, which gives the same value for all three parameterization, but the hypothesis test is written a bit different:
+The $F$-statistic here has $(a-1,N-a)$ degrees of freedom, which gives the same value for all three parameterization, but the hypothesis test is written a bit different:
 
 $$
-H_0 : \mu_1 = \mu_2 = ... = \mu_a \\
-H_0 : \mu + \tau_1 = \mu + tau_2 = ... = \mu + \tau_a \\
-H_0 : \tau_1 = \tau_2 = ...= \tau_a 
+\begin{aligned}
+&H_0 : \mu_1 = \mu_2 = ... = \mu_a \\
+&H_0 : \mu + \tau_1 = \mu + \tau_2 = ... = \mu + \tau_a \\
+&H_0 : \tau_1 = \tau_2 = ...= \tau_a 
+\end{aligned}
 $$
 
-The F-test here serves as a preliminary analysis, to see if there is any difference at different factors. For more in-depth analysis, we consider different testing of treatment effects.
+The $F$-test here serves as a preliminary analysis, to see if there is any difference at different factors. For more in-depth analysis, we consider different testing of treatment effects.
 
 #### Testing of Treatment Effects
 
@@ -639,11 +622,13 @@ We have $\hat{\mu_i}=\bar{Y_{i.}}$ where
 -   $var(\bar{Y_{i}})=\sigma^2/n_i$ estimated by $s^2(\bar{Y_{i.}})=MSE / n_i$
 
 Since $\frac{\bar{Y_{i.}}-\mu_i}{s(\bar{Y_{i.}})} \sim t_{N-a}$ and the confidence interval for $\mu_i$ is $\bar{Y_{i.}} \pm t_{1-\alpha/2;N-a}s(\bar{Y_{i.}})$,\
-then we can do a t-test for the means difference with some constant c
+then we can do a t-test for the means difference with some constant $c$
 
 $$
-H_0: \mu_i = c \\
-H_1: \mu_i \neq c
+\begin{aligned}
+&H_0: \mu_i = c \\
+&H_1: \mu_i \neq c
+\end{aligned}
 $$
 
 where
@@ -687,8 +672,10 @@ $$
 Hypothesis tests:
 
 $$
-H_0: \mu_i = \mu_i' \\
-H_a: \mu_i \neq \mu_i'
+\begin{aligned}
+&H_0: \mu_i = \mu_i' \\
+&H_a: \mu_i \neq \mu_i'
+\end{aligned}
 $$
 
 can be tested by the following statistic
@@ -724,9 +711,11 @@ $$
 and $E(\hat{L}) = L$. Since the $\bar{Y}_{i.}$, i = 1,..., a are independent.
 
 $$
-var(\hat{L}) = var(\sum_{i=1}^a c_i \bar{Y}_{i.}) = \sum_{i=1}^a var(c_i \bar{Y}_i)  \\
-= \sum_{i=1}^a c_i^2 var(\bar{Y}_i) = \sum_{i=1}^a c_i^2 \sigma^2 /n_i \\
-= \sigma^2 \sum_{i=1}^{a} c_i^2 /n_i
+\begin{aligned}
+var(\hat{L}) &= var(\sum_{i=1}^a c_i \bar{Y}_{i.}) = \sum_{i=1}^a var(c_i \bar{Y}_i)  \\
+&= \sum_{i=1}^a c_i^2 var(\bar{Y}_i) = \sum_{i=1}^a c_i^2 \sigma^2 /n_i \\
+&= \sigma^2 \sum_{i=1}^{a} c_i^2 /n_i
+\end{aligned}
 $$
 
 Estimation of the variance:
@@ -752,8 +741,10 @@ $$
 Hypothesis testing
 
 $$
-H_0: L = 0 \\
-H_a: L \neq 0
+\begin{aligned}
+&H_0: L = 0 \\
+&H_a: L \neq 0
+\end{aligned}
 $$
 
 with
@@ -762,22 +753,22 @@ $$
 T = \frac{\hat{L}}{s(\hat{L})}
 $$
 
-reject H_0 if $|T| > t_{1-\alpha/2;N-a}$
+reject $H_0$ if $|T| > t_{1-\alpha/2;N-a}$
 
 ##### Linear Combination of Treatment Means
 
 just like contrast $L = \sum_{i=1}^a c_i \mu_i$ but no restrictions on the $c_i$ coefficients.
 
-Tests og a single treatment mean, two treatment means, and contrasts can all be considered form the same perspective.
+Tests on a single treatment mean, two treatment means, and contrasts can all be considered form the same perspective.
 
 $$
-H_0: \sum c_i \mu_i = c \\
-H_a: \sum c_i \mu_i \neq c 
+\begin{aligned}
+&H_0: \sum c_i \mu_i = c \\
+&H_a: \sum c_i \mu_i \neq c 
+\end{aligned}
 $$
 
-The test statistics (t-stat) can be considered equivalently as F-tests; $F = (T)^2$ where $F \sim F_{1,N-a}$. Since the numerator degrees of freedom is always 1 in these cases, we refer to them as single-degree-of-freedom tests.
-
-<br>
+The test statistics ( $t$-stat) can be considered equivalently as $F$-tests; $F = (T)^2$ where $F \sim F_{1,N-a}$. Since the numerator degrees of freedom is always 1 in these cases, we refer to them as single-degree-of-freedom tests.
 
 **Multiple Contrasts**
 
@@ -785,14 +776,12 @@ To test simultaneously $k \ge 2$ contrasts, let $T_1,...,T_k$ be the t-stat. The
 
 Limitations for comparing multiple contrasts:
 
-1.  The confidence coefficient $1-\alpha$ only applies to a particular estimate, not a series of estimates; similarly, the Type I error rate, $\alpha$, applies to a particular test, not a series of tests. Example: 3 t-tests at $\alpha = 0.05$, if tests are independent (which they are not), $0.95^3 = 0.857$ (thus $\alpha - 0.143$ not 0.05)\
+1.  The confidence coefficient $1-\alpha$ only applies to a particular estimate, not a series of estimates; similarly, the Type I error rate, $\alpha$, applies to a particular test, not a series of tests. Example: 3 $t$-tests at $\alpha = 0.05$, if tests are independent (which they are not), $0.95^3 = 0.857$ (thus $\alpha - 0.143$ not 0.05)\
 
 2.  The confidence coefficient $1-\alpha$ and significance level $\alpha$ are appropriate only if the test was not suggest by the data.
 
-    -   often, the results of an experiment suggest important (ie..g, potential significant) relationships.\
+    -   often, the results of an experiment suggest important (i.e.,..g, potential significant) relationships.
     -   the process of studying effects suggests by the data is called **data snooping**
-
-<br>
 
 Multiple Comparison Procedures:
 
@@ -805,23 +794,23 @@ Multiple Comparison Procedures:
 All pairwise comparisons of factor level means. All pairs $D = \mu_i - \mu_i'$ or all tests of the form:
 
 $$
-H_0: \mu_i -\mu_i' = 0 \\
-H_a: \mu_i - \mu_i' \neq 0
+\begin{aligned}
+&H_0: \mu_i -\mu_i' = 0 \\
+&H_a: \mu_i - \mu_i' \neq 0
+\end{aligned}
 $$
 
 -   When all sample sizes are equal ($n_1 = n_2 = ... = n_a$) then the Tukey method family confidence coefficient is exactly $1-\alpha$ and the significance level is exactly $\alpha$\
--   When the sample sizes are not equal, the family confidence coefficient is greater than $1-\alpha$ (i.e., the significance level is less than $\alpha$) so the test i**conservative**\
+-   When the sample sizes are not equal, the family confidence coefficient is greater than $1-\alpha$ (i.e., the significance level is less than $\alpha$) so the test **conservative**\
 -   Tukey considers the **studentized range distribution**. If we have $Y_1,..,Y_r$, observations from a normal distribution with mean $\alpha$ and variance $\sigma^2$. Define: $$
     w = max(Y_i) - min(Y_i)
     $$ as the range of the observations. Let $s^2$ be an estimate of $\sigma^2$ with v degrees of freedom. Then, $$
     q(r,v) = \frac{w}{s}
     $$ is called the studentized range. The distribution of q uses a special table.
 
-<br>
-
 **Notes**
 
--   when we are not interested in testing all pairwise comparison,s the confidence coefficient for the family of comparisons under consideration will be greater than $1-\alpha$ (with the significance level less than $\alpha$)\
+-   when we are not interested in testing all pairwise comparison,s the confidence coefficient for the family of comparisons under consideration will be greater than $1-\alpha$ (with the significance level less than $\alpha$)
 -   Tukey can be used for "data snooping" as long as the effects to be studied on the basis of preliminary data analysis are pairwise comparisons.
 
 ###### Scheffe
@@ -834,11 +823,13 @@ $$
 
 where $\sum_{i=1}^a c_i =0$
 
-That is, the family of all possible contrasts L or
+That is, the family of all possible contrasts $L$ or
 
 $$
-H_0: L = 0 \\
-H_a: L \neq 0
+\begin{aligned}
+&H_0: L = 0 \\
+&H_a: L \neq 0
+\end{aligned}
 $$
 
 The family confidence level for the Scheffe procedure is exactly $1-\alpha$ (i.e., significance level = $\alpha$) whether the sample sizes are equal or not.
@@ -861,8 +852,8 @@ where we reject $H_0$ at the family significance level $\alpha$ if $F > f_{(1-\a
 
 **Note**
 
--   Since applications of the Scheffe never involve all conceivable contrasts, the **finite family** confidence coefficient will be larger than $1-\alpha$, so $1-\alpha$ is a lower bound. Thus, people often consider a larger $\alpha$ (e.g., 90% confidence interval)\
--   Scheffe can be used for "data scooping" since the family of statements contains all possible contrasts.\
+-   Since applications of the Scheffe never involve all conceivable contrasts, the **finite family** confidence coefficient will be larger than $1-\alpha$, so $1-\alpha$ is a lower bound. Thus, people often consider a larger $\alpha$ (e.g., 90% confidence interval)
+-   Scheffe can be used for "data scooping" since the family of statements contains all possible contrasts.
 -   If only pairwise comparisons are to be considered, The Tukey procedure gives narrower confidence limits.
 
 ###### Bonferroni
@@ -880,8 +871,10 @@ where $B= t_{(1-\alpha/(2g);N-a)}$ and g is the number of comparisons in the fam
 Hypothesis testing
 
 $$
-H_0: L = 0 \\
-H_a: L \neq 0 
+\begin{aligned}
+&H_0: L = 0 \\
+&H_a: L \neq 0 
+\end{aligned}
 $$
 
 Let $T= \frac{\hat{L}}{s(\hat{L})}$ and reject $H_0$ if $|T|>t_{1-\alpha/(2g),N-a}$
@@ -897,7 +890,7 @@ Let $T= \frac{\hat{L}}{s(\hat{L})}$ and reject $H_0$ if $|T|>t_{1-\alpha/(2g),N-
 
 does not control for family error rate
 
-use t-stat for testing
+use $t$-stat for testing
 
 $$
 H_0: \mu_i = \mu_j
@@ -927,12 +920,12 @@ When choosing a multiple contrast method:
 
 -   Pairwise
 
-    -   Equal groups sizes: [Tukey]\
-    -   Unequal groups sizes: [Tukey], [Scheffe]\
+    -   Equal groups sizes: [Tukey]
+    -   Unequal groups sizes: [Tukey], [Scheffe]
 
 -   Not pairwise
 
-    -   with control: [Dunnett]\
+    -   with control: [Dunnett]
     -   general: [Bonferroni], [Scheffe]
 
 ### Single Factor Random Effects Model
@@ -949,7 +942,7 @@ $$
 
 where
 
--   $\mu_i \sim N(\mu, \sigma^2_{\mu})$ and independent\
+-   $\mu_i \sim N(\mu, \sigma^2_{\mu})$ and independent
 -   $\epsilon_{ij} \sim N(0,\sigma^2)$ and independent
 
 $\mu_i$ and $\epsilon_{ij}$ are mutually independent for $i =1,...,a; j = 1,...,n$
@@ -957,8 +950,10 @@ $\mu_i$ and $\epsilon_{ij}$ are mutually independent for $i =1,...,a; j = 1,...,
 With all treatment sample sizes are equal
 
 $$
-E(Y_{ij}) = E(\mu_i) = \mu \\
-var(Y_{ij}) = var(\mu_i) + var(\epsilon_i) = \sigma^2_{\mu} + \sigma^2
+\begin{aligned}
+E(Y_{ij}) &= E(\mu_i) = \mu \\
+var(Y_{ij}) &= var(\mu_i) + var(\epsilon_i) = \sigma^2_{\mu} + \sigma^2
+\end{aligned}
 $$
 
 Since $Y_{ij}$ are not independent
@@ -982,8 +977,8 @@ $$
 
 Hence,
 
--   all observations have the same variance\
--   any two observations from the same treatment have covariance $\sigma^2_{\mu}$\
+-   all observations have the same variance
+-   any two observations from the same treatment have covariance $\sigma^2_{\mu}$
 -   The correlation between any two responses from the same treatment:\
     $$
     \begin{aligned}
@@ -1002,8 +997,10 @@ $$
 which measures the proportion of total variability of $Y_{ij}$ accounted for by the variance of $\mu_i$
 
 $$
-H_0: \sigma_{\mu}^2 = 0 \\
-H_a: \sigma_{\mu}^2 \neq 0
+\begin{aligned}
+&H_0: \sigma_{\mu}^2 = 0 \\
+&H_a: \sigma_{\mu}^2 \neq 0
+\end{aligned}
 $$
 
 $H_0$ implies $\mu_i = \mu$ for all i, which can be tested by the F-test in ANOVA.
@@ -1026,7 +1023,9 @@ $$
 
 suggest we reject $H_0$.
 
-Since $F \sim F_{(a-1,a(n-1))}$ when $H_0$ holds. If $F > f_{(1-\alpha;a-1,a(n-1))}$ we reject $H_0$. If sample sizes are not equal, F-test can still be used, but the df are $a-1$ and $N-a$.
+Since $F \sim F_{(a-1,a(n-1))}$ when $H_0$ holds. If $F > f_{(1-\alpha;a-1,a(n-1))}$ we reject $H_0$.
+
+If sample sizes are not equal, $F$-test can still be used, but the df are $a-1$ and $N-a$.
 
 ##### Estimation of $\mu$
 
@@ -1061,18 +1060,22 @@ P(f_{(\alpha/2;a-1,a(n-1))}\le \frac{\frac{MSTR}{n\sigma^2_\mu+ \sigma^2}}{\frac
 $$
 
 $$
-L = \frac{1}{n}(\frac{MSTR}{MSE}(\frac{1}{f_{(1-\alpha/2;a-1,a(n-1))}})-1) \\
-U = \frac{1}{n}(\frac{MSTR}{MSE}(\frac{1}{f_{(\alpha/2;a-1,a(n-1))}})-1)
+\begin{aligned}
+L &= \frac{1}{n}(\frac{MSTR}{MSE}(\frac{1}{f_{(1-\alpha/2;a-1,a(n-1))}})-1) \\
+U &= \frac{1}{n}(\frac{MSTR}{MSE}(\frac{1}{f_{(\alpha/2;a-1,a(n-1))}})-1)
+\end{aligned}
 $$
 
 The lower and upper $(L^*,U^*)$ confidence limits for $\frac{\sigma^2_\mu}{\sigma^2_\mu + \sigma^2}$
 
 $$
-L^* = \frac{L}{1+L} \\
-U^* = \frac{U}{1+U}
+\begin{aligned}
+L^* &= \frac{L}{1+L} \\
+U^* &= \frac{U}{1+U}
+\end{aligned}
 $$
 
-If the lower limit for $\frac{\sigma^2_\mu}{\sigma^2}$ is negative, it is customary to set L = 0.
+If the lower limit for $\frac{\sigma^2_\mu}{\sigma^2}$ is negative, it is customary to set $L = 0$.
 
 ##### Estimation of $\sigma^2$
 
@@ -1173,25 +1176,23 @@ $$
 
 where
 
--   $\mu$ = constant, common to all observations\
--   $\tau_i \sim N(0,\sigma^2_\tau)$ independent (random variables)\
--   $\epsilon_{ij} \sim N(0,\sigma^2)$ independent.\
+-   $\mu$ = constant, common to all observations
+-   $\tau_i \sim N(0,\sigma^2_\tau)$ independent (random variables)
+-   $\epsilon_{ij} \sim N(0,\sigma^2)$ independent.
 -   $\tau_{i}, \epsilon_{ij}$ are independent (i=1,...,a; j =1,..,n)
 -   our model is concerned with only balanced single factor ANOVA.
 
-<br>
-
 **Diagnostics Measures**
 
--   Non-constant error variance (plots, Levene test, Hartley test).\
--   Non-independence of errors (plots, Durban-Watson test).\
--   Outliers (plots, regression methods).\
--   Non-normality of error terms (plots, Shapiro-Wilk, Anderson-Darling).\
+-   Non-constant error variance (plots, Levene test, Hartley test).
+-   Non-independence of errors (plots, Durban-Watson test).
+-   Outliers (plots, regression methods).
+-   Non-normality of error terms (plots, Shapiro-Wilk, Anderson-Darling).
 -   Omitted Variable Bias (plots)
 
 **Remedial**
 
--   [Weighted Least Squares]\
+-   [Weighted Least Squares]
 -   [Transformations]
 -   Non-parametric Procedures.
 
@@ -1199,8 +1200,8 @@ where
 
 -   Fixed effect ANOVA is relatively robust to
 
-    -   non-normality\
-    -   unequal variances when sample sizes are approximately equal; at least the F-test and multiple comparisons. However, single comparisons of treatment means are sensitive to unequal variances.\
+    -   non-normality
+    -   unequal variances when sample sizes are approximately equal; at least the F-test and multiple comparisons. However, single comparisons of treatment means are sensitive to unequal variances.
 
 -   Lack of independence can seriously affect both fixed and random effect ANVOA.
 
@@ -1209,19 +1210,19 @@ where
 The multi-factor experiment is
 
 -   more efficient
--   provides more info\
+-   provides more info
 -   gives more validity to the findings.
 
 #### Balanced
 
 Assumption:
 
--   All treatment sample sizes are equal\
+-   All treatment sample sizes are equal
 -   All treatment means are of equal importance
 
 Assume:
 
--   Factor A has `a` levels and Factor B has `b` levels. All a x b factor levels are considered.\
+-   Factor $A$ has `a` levels and Factor $B$ has `b` levels. All $a \times b$ factor levels are considered.
 -   The number of treatments for each level is n. $N = abn$ observations in the study.
 
 ##### Cell Means Model {#cell-means-model-1}
@@ -1232,16 +1233,18 @@ $$
 
 where
 
--   $\mu_{ij}$ are fixed parameters (cell means)\
--   $i = 1,...,a$ = the levels of Factor A\
--   $j = 1,...,b$ = the levels of Factor B.\
+-   $\mu_{ij}$ are fixed parameters (cell means)
+-   $i = 1,...,a$ = the levels of Factor A
+-   $j = 1,...,b$ = the levels of Factor B.
 -   $\epsilon_{ijk} \sim \text{indep } N(0,\sigma^2)$ for $i = 1,...,a$, $j = 1,..,b$ and $k = 1,..,n$
 
 And
 
 $$
-E(Y_{ijk}) = \mu_{ij} \\
-var(Y_{ijk}) = var(\epsilon_{ijk}) = \sigma^2
+\begin{aligned}
+E(Y_{ijk}) &= \mu_{ij} \\
+var(Y_{ijk}) &= var(\epsilon_{ijk}) = \sigma^2
+\end{aligned}
 $$
 
 Hence,
@@ -1259,8 +1262,10 @@ $$
 Thus,
 
 $$
-E(\mathbf{Y}) = \mathbf{X}\beta \\
-var(\mathbf{Y}) = \sigma^2 \mathbf{I}
+\begin{aligned}
+E(\mathbf{Y}) &= \mathbf{X}\beta \\
+var(\mathbf{Y}) &= \sigma^2 \mathbf{I}
+\end{aligned}
 $$
 
 **Interaction**
@@ -1271,17 +1276,17 @@ $$
 
 where
 
--   $\mu_{..} = \sum_i \sum_j \mu_{ij}/ab$ is the grand mean\
--   $\alpha_i = \mu_{i.}-\mu_{..}$ is the main effect for factor A at the i-th level\
--   $\beta_j = \mu_{.j} - \mu_{..}$ is the main effect for factor B at the j-th level\
--   $(\alpha \beta)_{ij}$ is the interaction effect when factor A is at the i-th level and factor B is at the j-th level.\
+-   $\mu_{..} = \sum_i \sum_j \mu_{ij}/ab$ is the grand mean
+-   $\alpha_i = \mu_{i.}-\mu_{..}$ is the main effect for factor $A$ at the $i$-th level
+-   $\beta_j = \mu_{.j} - \mu_{..}$ is the main effect for factor $B$ at the $j$-th level
+-   $(\alpha \beta)_{ij}$ is the interaction effect when factor $A$ is at the $i$-th level and factor $B$ is at the $j$-th level.
 -   $(\alpha \beta)_{ij} = \mu_{ij} - \mu_{i.}-\mu_{.j}+ \mu_{..}$
 
 Examine interactions:
 
--   Examine whether all $\mu_{ij}$ can be expressed as the sums $\mu_{..} + \alpha_i + \beta_j$\
--   Examine whether the difference between the mean responses for any two levels of factor B is the same for all levels of factor A.\
--   Examine whether the difference between the mean response for any two levels of factor A is the same for all levels of factor B\
+-   Examine whether all $\mu_{ij}$ can be expressed as the sums $\mu_{..} + \alpha_i + \beta_j$
+-   Examine whether the difference between the mean responses for any two levels of factor $B$ is the same for all levels of factor $A$.
+-   Examine whether the difference between the mean response for any two levels of factor $A$ is the same for all levels of factor $B$
 -   Examine whether the treatment mean curves for the different factor levels in a treatment plot are parallel.
 
 For $j = 1,...,b$
@@ -1301,33 +1306,39 @@ Similarly, $\sum_j (\alpha \beta) = 0, i = 1,...,a$ and $\sum_i \sum_j (\alpha \
 ##### Factor Effects Model
 
 $$
-\mu_{ij} = \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij} \\
-Y_{ijk} = \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ijk}
+\begin{aligned}
+\mu_{ij} &= \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij} \\
+Y_{ijk} &= \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ijk}
+\end{aligned}
 $$
 
 where
 
--   $\mu_{..}$ is a constant\
--   $\alpha_i$ are constants subject to the restriction $\sum_i \alpha_i=0$\
--   $\beta_j$ are constants subject to the restriction $\sum_j \beta_j = 0$\
--   $(\alpha \beta)_{ij}$ are constants subject to the restriction $\sum_i(\alpha \beta)_{ij} = 0$ for $j=1,...,b$ and $\sum_j(\alpha \beta)_{ij} = 0$ for $i = 1,...,a$\
+-   $\mu_{..}$ is a constant
+-   $\alpha_i$ are constants subject to the restriction $\sum_i \alpha_i=0$
+-   $\beta_j$ are constants subject to the restriction $\sum_j \beta_j = 0$
+-   $(\alpha \beta)_{ij}$ are constants subject to the restriction $\sum_i(\alpha \beta)_{ij} = 0$ for $j=1,...,b$ and $\sum_j(\alpha \beta)_{ij} = 0$ for $i = 1,...,a$
 -   $\epsilon_{ijk} \sim \text{indep } N(0,\sigma^2)$ for $k = 1,..,n$
 
 We have
 
 $$
-E(Y_{ijk}) = \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij}\\
-var(Y_{ijk}) = \sigma^2 \\
-Y_{ijk} \sim N (\mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij}, \sigma^2)
+\begin{aligned}
+E(Y_{ijk}) &= \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij}\\
+var(Y_{ijk}) &= \sigma^2 \\
+Y_{ijk} &\sim N (\mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij}, \sigma^2)
+\end{aligned}
 $$
 
 We have $1+a+b+ab$ parameters. But there are $ab$ parameters in the [Cell Means Model](#cell-means-model-1). In the [Factor Effects Model], the restrictions limit the number of parameters that can be estimated:
 
 $$
-1 \text{ for } \mu_{..} \\
-(a-1) \text{ for } \alpha_i \\
-(b-1) \text{ for } \beta_j \\
-(a-1)(b-1) \text{ for } (\alpha \beta)_{ij}
+\begin{aligned}
+1 &\text{ for } \mu_{..} \\
+(a-1) &\text{ for } \alpha_i \\
+(b-1) &\text{ for } \beta_j \\
+(a-1)(b-1) &\text{ for } (\alpha \beta)_{ij}
+\end{aligned}
 $$
 
 Hence, there are
@@ -1343,10 +1354,12 @@ We can have several restrictions when considering the model in the form $\mathbf
 One way:
 
 $$
-\alpha_a  = \alpha_1 - \alpha_2 - ... - \alpha_{a-1} \\
-\beta_b = -\beta_1 - \beta_2 - ... - \beta_{b-1} \\
-(\alpha \beta)_{ib} = -(\alpha \beta)_{i1} -(\alpha \beta)_{i2} -...-(\alpha \beta)_{i,b-1} ; i = 1,..,a \\
-(\alpha \beta)_{aj} = -(\alpha \beta)_{1j}-(\alpha \beta)_{2j} - ... -(\alpha \beta)_{a-1,j}; j = 1,..,b
+\begin{aligned}
+\alpha_a  &= \alpha_1 - \alpha_2 - ... - \alpha_{a-1} \\
+\beta_b &= -\beta_1 - \beta_2 - ... - \beta_{b-1} \\
+(\alpha \beta)_{ib} &= -(\alpha \beta)_{i1} -(\alpha \beta)_{i2} -...-(\alpha \beta)_{i,b-1} ; i = 1,..,a \\
+(\alpha \beta)_{aj}& = -(\alpha \beta)_{1j}-(\alpha \beta)_{2j} - ... -(\alpha \beta)_{a-1,j}; j = 1,..,b
+\end{aligned}
 $$
 
 We can fit the model by least squares or maximum likelihood
@@ -1361,9 +1374,11 @@ $$
 estimators
 
 $$
-\hat{\mu}_{ij}= \bar{Y}_{ij} \\
-\hat{Y}_{ijk} = \bar{Y}_{ij} \\
-e_{ijk} = Y_{ijk} - \hat{Y}_{ijk} = Y_{ijk} - \bar{Y}_{ij}
+\begin{aligned}
+\hat{\mu}_{ij} &= \bar{Y}_{ij} \\
+\hat{Y}_{ijk} &= \bar{Y}_{ij} \\
+e_{ijk} = Y_{ijk} - \hat{Y}_{ijk} &= Y_{ijk} - \bar{Y}_{ij}
+\end{aligned}
 $$
 
 **Factor Effects Model**
@@ -1375,19 +1390,23 @@ $$
 subject to the restrictions
 
 $$
-\sum_i \alpha_i = 0 \\
-\sum_j \beta_j = 0 \\
-\sum_i (\alpha \beta)_{ij} = 0 \\
-\sum_j (\alpha \beta)_{ij} = 0
+\begin{aligned}
+\sum_i \alpha_i &= 0 \\
+\sum_j \beta_j &= 0 \\
+\sum_i (\alpha \beta)_{ij} &= 0 \\
+\sum_j (\alpha \beta)_{ij} &= 0
+\end{aligned}
 $$
 
 estimators
 
 $$
-\hat{\mu}_{..} = \bar{Y}_{...} \\
-\hat{\alpha}_i = \bar{Y}_{i..} - \bar{Y}_{...} \\
-\hat{\beta}_j = \bar{Y}_{.j.}-\bar{Y}_{...} \\
-(\hat{\alpha \beta})_{ij} = \bar{Y}_{ij.} - \bar{Y}_{i..} - \bar{Y}_{.j.}+ \bar{Y}_{...}
+\begin{aligned}
+\hat{\mu}_{..} &= \bar{Y}_{...} \\
+\hat{\alpha}_i &= \bar{Y}_{i..} - \bar{Y}_{...} \\
+\hat{\beta}_j &= \bar{Y}_{.j.}-\bar{Y}_{...} \\
+(\hat{\alpha \beta})_{ij} &= \bar{Y}_{ij.} - \bar{Y}_{i..} - \bar{Y}_{.j.}+ \bar{Y}_{...}
+\end{aligned}
 $$
 
 The fitted values
@@ -1399,17 +1418,21 @@ $$
 where
 
 $$
-e_{ijk} = Y_{ijk} - \bar{Y}_{ij.} \\
-e_{ijk} \sim \text{ indep } (0,\sigma^2)
+\begin{aligned}
+e_{ijk} &= Y_{ijk} - \bar{Y}_{ij.} \\
+e_{ijk} &\sim \text{ indep } (0,\sigma^2)
+\end{aligned}
 $$
 
 and
 
 $$
-s^2_{\hat{\mu}..} = \frac{MSE}{nab} \\
-s^2_{\hat{\alpha}_i} = MSE(\frac{1}{nb} - \frac{1}{nab}) \\
-s^2_{\hat{\beta}_j} = MSE(\frac{1}{na} - \frac{1}{nab}) \\
-s^2_{(\hat{\alpha\beta})_{ij}} = MSE (\frac{1}{n} - \frac{1}{na}- \frac{1}{nb} + \frac{1}{nab})
+\begin{aligned}
+s^2_{\hat{\mu}..} &= \frac{MSE}{nab} \\
+s^2_{\hat{\alpha}_i} &= MSE(\frac{1}{nb} - \frac{1}{nab}) \\
+s^2_{\hat{\beta}_j} &= MSE(\frac{1}{na} - \frac{1}{nab}) \\
+s^2_{(\hat{\alpha\beta})_{ij}} &= MSE (\frac{1}{n} - \frac{1}{na}- \frac{1}{nb} + \frac{1}{nab})
+\end{aligned}
 $$
 
 ###### Partitioning the Total Sum of Squares
@@ -1439,7 +1462,8 @@ squaring and summing:\
 
 $$
 \begin{aligned}
-n\sum_i \sum_j (\bar{Y}_{ij.}-\bar{Y}_{...})^2 &= nb\sum_i (\bar{Y}_{i..}-\bar{Y}_{...})^2 + na \sum_j (\bar{Y}_{.j.}-\bar{Y}_{...})^2 + n \sum_i \sum_j (\bar{Y}_{ij.}-\bar{Y}_{i..}- \bar{Y}_{.j.}+ \bar{Y}_{...})^2 \\
+n\sum_i \sum_j (\bar{Y}_{ij.}-\bar{Y}_{...})^2 &= nb\sum_i (\bar{Y}_{i..}-\bar{Y}_{...})^2 + na \sum_j (\bar{Y}_{.j.}-\bar{Y}_{...})^2 \\
+&+ n \sum_i \sum_j (\bar{Y}_{ij.}-\bar{Y}_{i..}- \bar{Y}_{.j.}+ \bar{Y}_{...})^2 \\
 SSTR &= SSA + SSB + SSAB
 \end{aligned}
 $$
@@ -1447,15 +1471,17 @@ $$
 The interaction term from
 
 $$
-SSAB = SSTO - SSE - SSA - SSB \\
-SSAB = SSTR - SSA - SSB 
+\begin{aligned}
+SSAB &= SSTO - SSE - SSA - SSB \\
+SSAB &= SSTR - SSA - SSB 
+\end{aligned}
 $$
 
 where
 
--   SSA is the factor A sum of squares (measures the variability of the estimated factor A level means $\bar{Y}_{i..}$)- the more variable, the larger SSA\
--   SSB is the factor B sum of squares\
--   SSAB is the interaction sum of squares, measuring the variability of the estimated interactions.
+-   $SSA$ is the factor $A$ sum of squares (measures the variability of the estimated factor $A$ level means $\bar{Y}_{i..}$)- the more variable, the larger $SSA$
+-   $SSB$ is the factor $B$ sum of squares
+-   $SSAB$ is the interaction sum of squares, measuring the variability of the estimated interactions.
 
 ###### Partitioning the df
 
@@ -1464,14 +1490,20 @@ $N = abn$ cases and $ab$ treatments.
 For one-way ANOVA and regression, the partition has df:
 
 $$
-SS: SSTO = SSTR + SSE \\
+SS: SSTO = SSTR + SSE
+$$
+
+$$
 df: N-1 = (ab-1) + (N-ab) 
 $$
 
 we must further partition the $ab-1$ df with SSTR
 
 $$
-SSTR = SSA + SSB + SSAB \\
+SSTR = SSA + SSB + SSAB
+$$
+
+$$
 ab-1 = (a-1) + (b-1) + (a-1)(b-1) 
 $$
 
@@ -1482,18 +1514,22 @@ $$
 ###### Mean Squares
 
 $$
-MSA = \frac{SSA}{a-1}\\
-MSB = \frac{SSB}{b-1}\\
-MSAB = \frac{SSAB}{(a-1)(b-1)}
+\begin{aligned}
+MSA &= \frac{SSA}{a-1}\\
+MSB &= \frac{SSB}{b-1}\\
+MSAB &= \frac{SSAB}{(a-1)(b-1)}
+\end{aligned}
 $$
 
 The expected mean squares are
 
 $$
-E(MSE) = \sigma^2 \\
-E(MSA) = \sigma^2 + nb \frac{\sum \alpha_i^2}{a-1} = \sigma^2 + nb \frac{\sum(\sum_{i.}-\mu_{..})^2}{a-1}  \\
-E(MSB) = \sigma^2 + na \frac{\sum \beta_i^2}{b-1} = \sigma^2 + na \frac{\sum(\sum_{.j}-\mu_{..})^2}{b-1} \\
-E(MSAB) = \sigma^2 + n \frac{\sum \sum (\alpha \beta)_{ij}^2}{(a-1)(b-1)} = \sigma^2 + n \frac{\sum (\mu_{ij}- \mu_{i.}- \mu_{.j}+ \mu_{..} )^2}{(a-1)(b-1)}
+\begin{aligned}
+E(MSE) &= \sigma^2 \\
+E(MSA) &= \sigma^2 + nb \frac{\sum \alpha_i^2}{a-1} = \sigma^2 + nb \frac{\sum(\sum_{i.}-\mu_{..})^2}{a-1}  \\
+E(MSB) &= \sigma^2 + na \frac{\sum \beta_i^2}{b-1} = \sigma^2 + na \frac{\sum(\sum_{.j}-\mu_{..})^2}{b-1} \\
+E(MSAB) &= \sigma^2 + n \frac{\sum \sum (\alpha \beta)_{ij}^2}{(a-1)(b-1)} = \sigma^2 + n \frac{\sum (\mu_{ij}- \mu_{i.}- \mu_{.j}+ \mu_{..} )^2}{(a-1)(b-1)}
+\end{aligned}
 $$
 
 If there are no factor A main effects (all $\mu_{i.} = 0$ or $\alpha_i = 0$) the MSA and MSE have the same expectation; otherwise MSA \> MSE. Same for factor B, and interaction effects. which case we can examine F-statistics.
@@ -1510,8 +1546,10 @@ $$
 or
 
 $$
-H_0: \text{All}(\alpha \beta)_{ij} = 0 \\
-H_a: \text{Not all} (\alpha \beta) = 0
+\begin{aligned}
+&H_0: \text{All}(\alpha \beta)_{ij} = 0 \\
+&H_a: \text{Not all} (\alpha \beta) = 0
+\end{aligned}
 $$
 
 Let $F = \frac{MSAB}{MSE}$. When $H_0$ is true $F \sim f_{((a-1)(b-1),ab(n-1))}$. So reject $H_0$ when $F > f_{((a-1)(b-1),ab(n-1))}$
@@ -1519,32 +1557,42 @@ Let $F = \frac{MSAB}{MSE}$. When $H_0$ is true $F \sim f_{((a-1)(b-1),ab(n-1))}$
 Factor A main effects:\
 
 $$
-H_0: \mu_{1.} = \mu_{2.} = ... = \mu_{a.} \\
-H_a: \text{Not all $\mu_{i.}$ are equal}
+\begin{aligned}
+&H_0: \mu_{1.} = \mu_{2.} = ... = \mu_{a.} \\
+&H_a: \text{Not all $\mu_{i.}$ are equal}
+\end{aligned}
 $$
 
 or
 
 $$
-H_0: \alpha_1 = ... = \alpha_a = 0 \\
-H_a: \text{Not all $\alpha_i$ are equal to 0}
+\begin{aligned}
+&H_0: \alpha_1 = ... = \alpha_a = 0 \\
+&H_a: \text{Not all $\alpha_i$ are equal to 0}
+\end{aligned}
 $$
 
 $F= \frac{MSA}{MSE}$ and reject $H_0$ if $F>f_{(1-\alpha;a-1,ab(n-1))}$
 
 ###### Two-way ANOVA
 
-| Source of Variation | SS   | df         | MS                | F       |
-|---------------------|------|------------|-------------------|---------|
-| Factor A            | SSA  | a-1        | MSA = SSA/(a-1)   | MSA/MSE |
-| Factor B            | SSB  | b-1        | MSB = SSB/(b-1)   | MSB/MSE |
-| AB interactions     | SSAB | (a-1)(b-1) | MSAB = SSAB /MSE  |         |
-| Error               | SSE  | ab(n-1)    | MSE = SSE/ab(n-1) |         |
-| Total (corrected)   | SSTO | abn - 1    |                   |         |
++---------------------+------------+--------------+---------------------+------------+
+| Source of Variation | SS         | df           | MS                  | F          |
++=====================+============+==============+=====================+============+
+| Factor A            | $SSA$      | $a-1$        | $MSA = SSA/(a-1)$   | $MSA/MSE$  |
++---------------------+------------+--------------+---------------------+------------+
+| Factor B            | $SSB$      | $b-1$        | $MSB = SSB/(b-1)$   | $MSB/MSE$  |
++---------------------+------------+--------------+---------------------+------------+
+| AB interactions     | $SSAB$     | $(a-1)(b-1)$ | $MSAB = SSAB /MSE$  |            |
++---------------------+------------+--------------+---------------------+------------+
+| Error               | $SSE$      | $ab(n-1)$    | $MSE = SSE/ab(n-1)$ |            |
++---------------------+------------+--------------+---------------------+------------+
+| Total (corrected)   | $SSTO$     | $abn - 1$    |                     |            |
++---------------------+------------+--------------+---------------------+------------+
 
 Doing 2-way ANOVA means you always check interaction first, because if there are significant interactions, checking the significance of the main effects becomes moot.
 
-The main effects concern the mean responses for levels of one factor averaged over the levels of the other factor. WHen interaction is present, we can't conclude that a given factor has no effect, even if these averages are the same. It means that the effect of the factor depends on the level of the other factor.
+The main effects concern the mean responses for levels of one factor averaged over the levels of the other factor. When interaction is present, we can't conclude that a given factor has no effect, even if these averages are the same. It means that the effect of the factor depends on the level of the other factor.
 
 On the other hand, if you can establish that there is no interaction, then you can consider inference on the factor main effects, which are then said to be **additive**.\
 And we can also compare factor means like the [Single Factor Fixed Effects Model] using [Tukey], [Scheffe], [Bonferroni].
@@ -1577,8 +1625,10 @@ $$
 **Orthogonal Contrasts**
 
 $$
-L_1 = \sum c_i \mu_i, \sum c_i = 0 \\
-L_2 = \sum d_i \mu_i , \sum d_i = 0
+\begin{aligned}
+L_1 &= \sum c_i \mu_i, \sum c_i = 0 \\
+L_2 &= \sum d_i \mu_i , \sum d_i = 0
+\end{aligned}
 $$
 
 these contrasts are said to be **orthogonal** if
@@ -1634,9 +1684,9 @@ all contrasts have d.f = 1
 
 We could have unequal numbers of replications for all treatment combinations:
 
--   observational studies\
--   dropouts in designed studies\
--   larger sample sizes for inexpensive treatments\
+-   Observational studies
+-   Dropouts in designed studies
+-   Larger sample sizes for inexpensive treatments
 -   Sample sizes to match population makeup.
 
 Assume that each factor combination has at least 1 observation (no empty cells)
@@ -1650,9 +1700,11 @@ $$
 where sample sizes are: $n_{ij}$:
 
 $$
-n_{i.} = \sum_j n_{ij} \\
-n_{.j} = \sum_i n_{ij} \\
-n_T = \sum_i \sum_j n_{ij}
+\begin{aligned}
+n_{i.} &= \sum_j n_{ij} \\
+n_{.j} &= \sum_i n_{ij} \\
+n_T &= \sum_i \sum_j n_{ij}
+\end{aligned}
 $$
 
 Problem here is that
@@ -1663,10 +1715,19 @@ $$
 
 (the design is **non-orthogonal**)
 
--   For $i = 1,...,a-1,$\
-    \\begin{equation} u_i = \\begin{cases} +1 & \\text{if the obs is from the i-th level of Factor 1} \\\\ -1 & \\text{if the obs is from the a-th level of Factor 1} \\\\ 0 & \\text{otherwise} \\\\ \\end{cases} \\end{equation}
--   For $j=1,...,b-1$\
-    \\begin{equation} v_i = \\begin{cases} +1 & \\text{if the obs is from the j-th level of Factor 1} \\\\ -1 & \\text{if the obs is from the b-th level of Factor 1} \\\\ 0 & \\text{otherwise} \\\\ \\end{cases} \\end{equation}
+-   For $i = 1,...,a-1,$
+
+$$
+u_i = \begin{cases} +1 & \text{if the obs is from the i-th level of Factor 1} \\ -1 & \text{if the obs is from the a-th level of Factor 1} \\ 0 & \text{otherwise} \\ \end{cases}
+$$
+
+-   For $j=1,...,b-1$
+
+$$
+v_i = 
+\begin{cases} +1 & \text{if the obs is from the j-th level of Factor 1} \\ -1 & \text{if the obs is from the b-th level of Factor 1} \\ 0 & \text{otherwise} \\ 
+\end{cases}
+$$
 
 We can use these indicator variables as predictor variables and $\mu_{..}, \alpha_i ,\beta_j, (\alpha \beta)_{ij}$ as unknown parameters.
 
@@ -1679,15 +1740,19 @@ To test hypotheses, we use the extra sum of squares idea.
 For interaction effects
 
 $$
-H_0: all (\alpha \beta)_{ij} = 0 \\
-H_a: \text{not all }(\alpha \beta)_{ij} =0
+\begin{aligned}
+&H_0: all (\alpha \beta)_{ij} = 0 \\
+&H_a: \text{not all }(\alpha \beta)_{ij} =0
+\end{aligned}
 $$
 
 Or to test
 
 $$
-H_0: \beta_1 = \beta_2 = \beta_3 = 0 \\
-H_a: \text{not all } \beta_j = 0
+\begin{aligned}
+&H_0: \beta_1 = \beta_2 = \beta_3 = 0 \\
+&H_a: \text{not all } \beta_j = 0
+\end{aligned}
 $$
 
 **Analysis of Factor Means**
@@ -1706,10 +1771,10 @@ $$
 
 where
 
--   $\mu_{..}$: constant\
--   $\alpha_i \sim N(0,\sigma^2_{\alpha}), i = 1,..,a$ (independent)\
--   $\beta_j \sim N(0,\sigma^2_{\beta}), j = 1,..,b$ (independent)\
--   $(\alpha \beta)_{ij} \sim N(0,\sigma^2_{\alpha \beta}),i=1,...,a,j=1,..,b$ (independent)\
+-   $\mu_{..}$: constant
+-   $\alpha_i \sim N(0,\sigma^2_{\alpha}), i = 1,..,a$ (independent)
+-   $\beta_j \sim N(0,\sigma^2_{\beta}), j = 1,..,b$ (independent)
+-   $(\alpha \beta)_{ij} \sim N(0,\sigma^2_{\alpha \beta}),i=1,...,a,j=1,..,b$ (independent)
 -   $\epsilon_{ijk} \sim N(0,\sigma^2)$ (independent)
 
 All $\alpha_i, \beta_j, (\alpha \beta)_{ij}$ are pairwise independent
@@ -1717,8 +1782,10 @@ All $\alpha_i, \beta_j, (\alpha \beta)_{ij}$ are pairwise independent
 Theoretical means, variances, and covariances are
 
 $$
-E(Y_{ijk}) = \mu_{..} \\
-var(Y_{ijk}) = \sigma^2_Y= \sigma^2_\alpha + \sigma^2_\beta +  \sigma^2_{\alpha \beta} + \sigma^2 
+\begin{aligned}
+E(Y_{ijk}) &= \mu_{..} \\
+var(Y_{ijk}) &= \sigma^2_Y= \sigma^2_\alpha + \sigma^2_\beta +  \sigma^2_{\alpha \beta} + \sigma^2 
+\end{aligned}
 $$
 
 So
@@ -1726,10 +1793,12 @@ So
 $Y_{ijk} \sim N(\mu_{..},\sigma^2_\alpha + \sigma^2_\beta + \sigma^2_{\alpha \beta} + \sigma^2)$
 
 $$
-cov(Y_{ijk},Y_{ij'k'}) = \sigma^2_{\alpha}, j \neq j' \\
-cov(Y_{ijk},Y_{i'jk'}) = \sigma^2_{\beta}, i \neq i'\\
-cov(Y_{ijk},Y_{ijk'}) = \sigma^2_\alpha + \sigma^2_{\beta} + \sigma^2_{\alpha \beta}, k \neq k' \\
-cov(Y_{ijk},Y_{i'j'k'}) = , i \neq i', j \neq j'
+\begin{aligned}
+cov(Y_{ijk},Y_{ij'k'}) &= \sigma^2_{\alpha}, j \neq j' \\
+cov(Y_{ijk},Y_{i'jk'}) &= \sigma^2_{\beta}, i \neq i'\\
+cov(Y_{ijk},Y_{ijk'}) &= \sigma^2_\alpha + \sigma^2_{\beta} + \sigma^2_{\alpha \beta}, k \neq k' \\
+cov(Y_{ijk},Y_{i'j'k'}) &= , i \neq i', j \neq j'
+\end{aligned}
 $$
 
 ### Two-Way Mixed Effects ANOVA
@@ -1746,43 +1815,53 @@ $$
 
 where
 
--   $\mu_{..}$: constant\
--   $\alpha_i$: fixed effects with constraints subject to restriction $\sum \alpha_i = 0$\
--   $\beta_j \sim indep N(0,\sigma^2_\beta)$\
--   $(\alpha \beta)_{ij} \sim N(0,\frac{a-1}{a}\sigma^2_{\alpha \beta})$ subject to restriction $\sum_i (\alpha \beta)_{ij} = 0$ for all j, the variance here is written as the proportion for convenience; it makes the expected mean squares simpler (other assumed $var((\alpha \beta)_{ij}= \sigma^2_{\alpha \beta}$)\
--   $cov((\alpha \beta)_{ij},(\alpha \beta)_{i'j'}) = - \frac{1}{a} \sigma^2_{\alpha \beta}, i \neq i'$\
--   $\epsilon_{ijk}\sim indepN(0,\sigma^2)$\
+-   $\mu_{..}$: constant
+-   $\alpha_i$: fixed effects with constraints subject to restriction $\sum \alpha_i = 0$
+-   $\beta_j \sim indep N(0,\sigma^2_\beta)$
+-   $(\alpha \beta)_{ij} \sim N(0,\frac{a-1}{a}\sigma^2_{\alpha \beta})$ subject to restriction $\sum_i (\alpha \beta)_{ij} = 0$ for all j, the variance here is written as the proportion for convenience; it makes the expected mean squares simpler (other assumed $var((\alpha \beta)_{ij}= \sigma^2_{\alpha \beta}$)
+-   $cov((\alpha \beta)_{ij},(\alpha \beta)_{i'j'}) = - \frac{1}{a} \sigma^2_{\alpha \beta}, i \neq i'$
+-   $\epsilon_{ijk}\sim indepN(0,\sigma^2)$
 -   $\beta_j, (\alpha \beta)_{ij}, \epsilon_{ijk}$ are pairwise independent
 
-Two-way mixed models are written in an "unrestricted" form, with no restrictions on the interaction effects $(\alpha \beta)_{ij}$, they are pairwise independent. Let $\beta^*, (\alpha \beta)^*_{ij}$ be the unrestricted random effects, and $(\bar{\alpha \beta})_{ij}^*$ the means averaged over the fixed factor for each level of random factor B.
+Two-way mixed models are written in an "unrestricted" form, with no restrictions on the interaction effects $(\alpha \beta)_{ij}$, they are pairwise independent.
+
+Let $\beta^*, (\alpha \beta)^*_{ij}$ be the unrestricted random effects, and $(\bar{\alpha \beta})_{ij}^*$ the means averaged over the fixed factor for each level of random factor B.
 
 $$
-\beta_j = \beta_j^* + (\bar{\alpha \beta})_{ij}^* \\
-(\alpha \beta)_{ij} = (\alpha \beta)_{ij}^* - (\bar{\alpha \beta})_{ij}^*
+\begin{aligned}
+\beta_j &= \beta_j^* + (\bar{\alpha \beta})_{ij}^* \\
+(\alpha \beta)_{ij} &= (\alpha \beta)_{ij}^* - (\bar{\alpha \beta})_{ij}^*
+\end{aligned}
 $$
 
 Some consider the restricted model to be more general. but here we consider the restricted form.
 
 $$
-E(Y_{ijk}) = \mu_{..} + \alpha_i \\
-var(Y_{ijk}) = \sigma^2_\beta + \frac{a-1}{a} \sigma^2_{\alpha \beta} + \sigma^2
+\begin{aligned}
+E(Y_{ijk}) &= \mu_{..} + \alpha_i \\
+var(Y_{ijk}) &= \sigma^2_\beta + \frac{a-1}{a} \sigma^2_{\alpha \beta} + \sigma^2
+\end{aligned}
 $$
 
-Responses from the same random factor (B) level are correlated
+Responses from the same random factor $(B)$ level are correlated
 
 $$
-cov(Y_{ijk},Y_{ijk'}) = E(Y_{ijk}Y_{ijk'}) - E(Y_{ijk})E(Y_{ijk'}) \\
-= \sigma^2_\beta + \frac{a-1}{a} \sigma^2_{\alpha \beta} , k \neq k'
+\begin{aligned}
+cov(Y_{ijk},Y_{ijk'}) &= E(Y_{ijk}Y_{ijk'}) - E(Y_{ijk})E(Y_{ijk'}) \\
+&= \sigma^2_\beta + \frac{a-1}{a} \sigma^2_{\alpha \beta} , k \neq k'
+\end{aligned}
 $$
 
 Similarly,
 
 $$
-cov(Y_{ijk},Y_{i'jk'}) = \sigma^2_\beta - \frac{1}{a} \sigma^2_{\alpha\ \beta}, i \neq i' \\
-cov(Y_{ijk},Y_{i'j'k'}) = 0,  j \neq j'
+\begin{aligned}
+cov(Y_{ijk},Y_{i'jk'}) &= \sigma^2_\beta - \frac{1}{a} \sigma^2_{\alpha\ \beta}, i \neq i' \\
+cov(Y_{ijk},Y_{i'j'k'}) &= 0,  j \neq j'
+\end{aligned}
 $$
 
-Hence, you can see that the only way you don't have dependence in the Y is when they don't share the same random effect.
+Hence, you can see that the only way you don't have dependence in the $Y$ is when they don't share the same random effect.
 
 An advantage of the **restricted mixed model** is that 2 observations from the same random factor b level can be positively or negatively correlated. In the **unrestricted model**, they can only be positively correlated.
 
@@ -1805,8 +1884,10 @@ For fixed, random, and mixed models (balanced), the ANOVA table sums of squares 
 In Random ANOVA, we test
 
 $$
-H_0: \sigma^2 = 0 \\
-H_a: \sigma^2 > 0 
+\begin{aligned}
+&H_0: \sigma^2 = 0 \\
+&H_a: \sigma^2 > 0 
+\end{aligned}
 $$
 
 by considering $F= \frac{MSA}{MSAB} \sim F_{a-1;(a-1)(b-1)}$
@@ -1847,40 +1928,44 @@ Confidence intervals for variance components can be constructed (approximately) 
 **Estimation of Fixed Effects in Mixed Models**
 
 $$
-\hat{\alpha}_i = \bar{Y}_{i..} - \bar{Y}_{...} \\
-\hat{\mu}_{i.} = \bar{Y}_{...} + (\bar{Y}_{i..}- \bar{Y}_{...}) = \bar{Y}_{i..}  \\
-\sigma^2(\hat{\alpha}_i) = \frac{\sigma^2 + n \sigma^2_{\alpha \beta}}{bn} = \frac{E(MSAB)}{bn} \\
-s^2(\hat{\alpha}_i) = \frac{MSAB}{bn}
+\begin{aligned}
+\hat{\alpha}_i &= \bar{Y}_{i..} - \bar{Y}_{...} \\
+\hat{\mu}_{i.} &= \bar{Y}_{...} + (\bar{Y}_{i..}- \bar{Y}_{...}) = \bar{Y}_{i..}  \\
+\sigma^2(\hat{\alpha}_i) &= \frac{\sigma^2 + n \sigma^2_{\alpha \beta}}{bn} = \frac{E(MSAB)}{bn} \\
+s^2(\hat{\alpha}_i) &= \frac{MSAB}{bn}
+\end{aligned}
 $$
 
 Contrasts on the **Fixed Effects**
 
 $$
-L = \sum c_i \alpha_i \\
-\sum c_i = 0 \\
-\hat{L} = \sum c_i \hat{\alpha}_i \\
-\sigma^2(\hat{L}) = \sum c^2_i \sigma^2 (\hat{\alpha}_i) \\
-s^2(\hat{L}) = \frac{MSAB}{bn} \sum c^2_i
+\begin{aligned}
+L &= \sum c_i \alpha_i \\
+\sum c_i &= 0 \\
+\hat{L} &= \sum c_i \hat{\alpha}_i \\
+\sigma^2(\hat{L}) &= \sum c^2_i \sigma^2 (\hat{\alpha}_i) \\
+s^2(\hat{L}) &= \frac{MSAB}{bn} \sum c^2_i
+\end{aligned}
 $$
 
 Confidence intervals and tests can be constructed as usual
-
-<br>
 
 #### Unbalanced
 
 For a mixed model with a = 2, b = 4
 
 $$
-Y_{ijk} = \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ijk} \\
-var(\beta_j)= \sigma^2_\beta \\
-var((\alpha \beta)_{ij})= \frac{2-1}{2}\sigma^2_{\alpha \beta} = \frac{\sigma^2_{\alpha \beta}}{2} \\
-var(\epsilon_{ijk}) = \sigma^2 \\
-E(Y_{ijk}) = \mu_{..} + \alpha_i \\
-var(Y_{ijk}) = \sigma^2_{\beta} + \frac{\sigma^2_{\alpha \beta}}{2} + \sigma^2 \\
-cov(Y_{ijk},Y_{ijk'}) = \sigma^2 + \frac{\sigma^2_{\alpha \beta}}{2}, k \neq k' \\
-cov(Y_{ijk},Y_{i'jk'}) = \sigma^2_{\beta} - \frac{\sigma^2_{\alpha \beta}}{2}, i \neq i' \\
-cov(Y_{ijk},Y_{i'j'k'}) = 0, j \neq j' 
+\begin{aligned}
+Y_{ijk} &= \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ijk} \\
+var(\beta_j)&= \sigma^2_\beta \\
+var((\alpha \beta)_{ij})&= \frac{2-1}{2}\sigma^2_{\alpha \beta} = \frac{\sigma^2_{\alpha \beta}}{2} \\
+var(\epsilon_{ijk}) &= \sigma^2 \\
+E(Y_{ijk}) &= \mu_{..} + \alpha_i \\
+var(Y_{ijk}) &= \sigma^2_{\beta} + \frac{\sigma^2_{\alpha \beta}}{2} + \sigma^2 \\
+cov(Y_{ijk},Y_{ijk'}) &= \sigma^2 + \frac{\sigma^2_{\alpha \beta}}{2}, k \neq k' \\
+cov(Y_{ijk},Y_{i'jk'}) &= \sigma^2_{\beta} - \frac{\sigma^2_{\alpha \beta}}{2}, i \neq i' \\
+cov(Y_{ijk},Y_{i'j'k'}) &= 0, j \neq j' 
+\end{aligned}
 $$
 
 assume
@@ -1922,15 +2007,17 @@ Consider the one-way case:
 
 We have
 
--   $a\ge2$ treatments\
--   $n_i$ is the sample size for the ith treatment\
--   $Y_{ij}$ is the j-th observation from the ith treatment.\
--   we make **no** assumption of normality\
--   We only assume that observations on the ith treatment are a random sample from the continuous CDF $F_i$, i = 1,..,n, and are mutually independent.
+-   $a\ge2$ treatments
+-   $n_i$ is the sample size for the $i$-th treatment
+-   $Y_{ij}$ is the $j$-th observation from the $i$-th treatment.
+-   we make **no** assumption of normality
+-   We only assume that observations on the $i$-th treatment are a random sample from the continuous CDF $F_i$, i = 1,..,n, and are mutually independent.
 
 $$
-H_0: F_1 = F_2 = ... = F_a \\
-H_a: F_i < F_j \text{ for some } i \neq j
+\begin{aligned}
+&H_0: F_1 = F_2 = ... = F_a \\
+&H_a: F_i < F_j \text{ for some } i \neq j
+\end{aligned}
 $$
 
 or if distribution is from the location-scale family, $H_0: \theta_1 = \theta_2 = ... = \theta_a$)
@@ -1947,7 +2034,7 @@ or if distribution is from the location-scale family, $H_0: \theta_1 = \theta_2 
 -   Calculate the test statistic on the ranks: $$
     \chi_{KW}^2 = \frac{SSTR}{\frac{SSTO}{N-1}}
     $$ where $SSTR = \sum n_i (\bar{r}_{i.}- \bar{r}_{..})^2$ and $SSTO = \sum \sum (\bar{r}_{ij}- \bar{r}_{..})^2$
--   FOr large $n_i$ ($\ge 5$ observations) the Kruskal-Wallis statistic is approximated by a $\chi^2_{a-1}$ distribution when all the treatment means are equal. Hence, reject $H_0$ if $\chi^2_{KW} > \chi^2_{(1-\alpha;a-1)}$.\
+-   For large $n_i$ ($\ge 5$ observations) the Kruskal-Wallis statistic is approximated by a $\chi^2_{a-1}$ distribution when all the treatment means are equal. Hence, reject $H_0$ if $\chi^2_{KW} > \chi^2_{(1-\alpha;a-1)}$.\
 -   If sample sizes are small, one can exhaustively work out all possible distinct ways of assigning N ranks to the observations from a treatments and calculate the value of the KW statistic in each case ($\frac{N!}{n_1!..n_a!}$ possible combinations). Under $H_0$ all of these assignments are equally likely.
 
 ### Friedman Test
@@ -1959,15 +2046,19 @@ A distribution-free rank-based test for comparing the treatments in this setting
 Under the null hypothesis, $F_{ij}$ are identical for all treatments j separately for each block i.
 
 $$
-H_0: F_{i1} = F_{i2} = ... = F_{ir}  \text{ for all i} \\
-H_a: F_{ij} < F_{ij'} \text{ for some } j \neq j' \text{ for all } i
+\begin{aligned}
+&H_0: F_{i1} = F_{i2} = ... = F_{ir}  \text{ for all i} \\
+&H_a: F_{ij} < F_{ij'} \text{ for some } j \neq j' \text{ for all } i
+\end{aligned}
 $$
 
 For location parameter distributions, treatment effects can be tested:
 
 $$
-H_0: \tau_1 = \tau_2 = ... = \tau_r \\
-H_a: \tau_j > \tau_{j'} \text{ for some } j \neq j'
+\begin{aligned}
+&H_0: \tau_1 = \tau_2 = ... = \tau_r \\
+&H_a: \tau_j > \tau_{j'} \text{ for some } j \neq j'
+\end{aligned}
 $$
 
 **Procedure**
@@ -1977,10 +2068,12 @@ $$
     $$
     \chi^2_F = \frac{SSTR}{\frac{SSTR + SSE}{n(r-1)}}
     $$ where $$
-    SSTR = n \sum (\bar{r}_{.j}-\bar{r}_{..})^2 \\
-    SSE = \sum \sum (r_{ij} - \bar{r}_{.j})^2 \\
-    \bar{r}_{.j} = \frac{\sum_i r_{ij}}{n}\\
-    \bar{r}_{..} = \frac{r+1}{2}
+    \begin{aligned}
+    SSTR &= n \sum (\bar{r}_{.j}-\bar{r}_{..})^2 \\
+    SSE &= \sum \sum (r_{ij} - \bar{r}_{.j})^2 \\
+    \bar{r}_{.j} &= \frac{\sum_i r_{ij}}{n}\\
+    \bar{r}_{..} &= \frac{r+1}{2}
+    \end{aligned}
     $$
 
 If there is no ties, it can be rewritten as
@@ -2004,7 +2097,7 @@ $$
 P(F>f_{(1-\alpha;a-1,N-a)}|\phi) = 1 - \beta
 $$
 
-where $\phi$ is the **noncentrality parameter** (measures how unequal the treatment means $\mu_i$ are)
+where $\phi$ is the non-centrality **parameter** (measures how unequal the treatment means $\mu_i$ are)
 
 $$
 \phi = \frac{1}{\sigma}\sqrt{\frac{n}{a}\sum_i (\mu_i - \mu_.)^2} , (n_i \equiv n)
@@ -2016,7 +2109,7 @@ $$
 \mu_. = \frac{\sum \mu_i}{a}
 $$
 
-To decide on the power probabilities we use the noncetral F distribution.
+To decide on the power probabilities we use the non-central F distribution.
 
 We could use the power table directly when effects are fixed and design is balanced by using **minimum range** of factor level means for your desired differences
 
@@ -2039,40 +2132,46 @@ Notes:
 
 #### Multi-factor Studies
 
-The same noncentral F tables can be used here
+The same noncentral $F$ tables can be used here
 
 For two-factor fixed effect model
 
 Test for interactions:
 
 $$
-\phi = \frac{1}{\sigma} \sqrt{\frac{n \sum \sum (\alpha \beta_{ij})^2}{(a-1)(b-1)+1}} = \frac{1}{\sigma} \sqrt{\frac{n \sum \sum (\mu_{ij}- \mu_{i.} - \mu_{.j} + \mu_{..})^2}{(a-1)(b-1)+1}} \\
-\upsilon_1 = (a-1)(b-1) \\
-\upsilon_2 = ab(n-1)
+\begin{aligned}
+\phi &= \frac{1}{\sigma} \sqrt{\frac{n \sum \sum (\alpha \beta_{ij})^2}{(a-1)(b-1)+1}} = \frac{1}{\sigma} \sqrt{\frac{n \sum \sum (\mu_{ij}- \mu_{i.} - \mu_{.j} + \mu_{..})^2}{(a-1)(b-1)+1}} \\
+\upsilon_1 &= (a-1)(b-1) \\
+\upsilon_2 &= ab(n-1)
+\end{aligned}
 $$
 
-Test for Factor A main effects:
+Test for Factor $A$ main effects:
 
 $$
-\phi = \frac{1}{\sigma} \sqrt{\frac{nb \sum \alpha_i^2}{a}} = \frac{1}{\sigma}\sqrt{\frac{nb \sum (\mu_{i.}- \mu_{..})^2}{a}} \\
-\upsilon_1 = a-1 \\
-\upsilon_2 = ab(n-1)
+\begin{aligned}
+\phi &= \frac{1}{\sigma} \sqrt{\frac{nb \sum \alpha_i^2}{a}} = \frac{1}{\sigma}\sqrt{\frac{nb \sum (\mu_{i.}- \mu_{..})^2}{a}} \\
+\upsilon_1 &= a-1 \\
+\upsilon_2 &= ab(n-1)
+\end{aligned}
 $$
 
-Test for Factor B main effects:
+Test for Factor $B$ main effects:
 
 $$
-\phi = \frac{1}{\sigma} \sqrt{\frac{na \sum \beta_j^2}{b}} = \frac{1}{\sigma}\sqrt{\frac{na \sum (\mu_{.j}- \mu_{..})^2}{b}} \\
-\upsilon_1 = b-1 \\
-\upsilon_2 = ab(n-1)
+\begin{aligned}
+\phi &= \frac{1}{\sigma} \sqrt{\frac{na \sum \beta_j^2}{b}} = \frac{1}{\sigma}\sqrt{\frac{na \sum (\mu_{.j}- \mu_{..})^2}{b}} \\
+\upsilon_1 &= b-1 \\
+\upsilon_2 &= ab(n-1)
+\end{aligned}
 $$
 
 Procedure:
 
-1.  Specify the minimu range of Factor A means
-2.  Obtain sample sizes with r = a. The resulting sample size is bn, from which n can be obtained.
-3.  Repeat the first 2 steps for Factor B minimum range.
-4.  Choose the greater number of sample size between A and B.
+1.  Specify the minimum range of Factor $A$ means
+2.  Obtain sample sizes with $r = a$. The resulting sample size is $bn$, from which $n$ can be obtained.
+3.  Repeat the first 2 steps for Factor $B$ minimum range.
+4.  Choose the greater number of sample size between $A$ and $B$.
 
 ### Randomized Block Experiments
 
@@ -2108,18 +2207,18 @@ Benefits of **Blocking**
 Loss from **Blocking** (little to lose)
 
 -   If you don't do blocking well, you waste df on negligible block effects that could have been used to estimate $\sigma^2$
--   hence, the df for t-tests and denominator df for F-tests will be reduced without reducing MSE and small loss of power for both tests.
+-   Hence, the df for $t$-tests and denominator df for $F$-tests will be reduced without reducing MSE and small loss of power for both tests.
 
 Consider
 
 $$
-Y_{ij} = \mu_{..} + \rho_i + \tau_j + \epsilon_{ij} \\
-i = 1,2,...,n \\
-j = 1,2,..,r
+Y_{ij} = \mu_{..} + \rho_i + \tau_j + \epsilon_{ij}
 $$
 
 where
 
+-   $i = 1, 2, \dots, n$
+-   $j = 1, 2, \dots, r$
 -   $\mu_{..}$: overall mean response, averaging across all blocks and treatments
 -   $\rho_i$: block effect, average difference in response for i-th block ($\sum \rho_i =0$)
 -   $\tau_j$ treatment effect, average across blocks ($\sum \tau_j = 0$)
@@ -2134,31 +2233,37 @@ $$
 for all $i=1,..,n$ blocks
 
 $$
-\hat{\mu} = \bar{Y}_{..} \\
-\hat{\rho}_i = \bar{Y}_{i.} - \bar{Y}_{..} \\
-\hat{\tau}_j = \bar{Y}_{.j} - \bar{Y}_{..}
+\begin{aligned}
+\hat{\mu} &= \bar{Y}_{..} \\
+\hat{\rho}_i &= \bar{Y}_{i.} - \bar{Y}_{..} \\
+\hat{\tau}_j &= \bar{Y}_{.j} - \bar{Y}_{..}
+\end{aligned}
 $$
 
 Hence,
 
 $$
-\hat{Y}_{ij} = \bar{Y}_{..} + (\bar{Y}_{i.} - \bar{Y}_{..}) + (\bar{Y}_{.j}- \bar{Y}_{..}) = \bar{Y}_{i.} + \bar{Y}_{.j} - \bar{Y}_{..} \\
-e_{ij} = Y_{ij} - \hat{Y}_{ij} = Y_{ij}- \bar{Y}_{i.} - \bar{Y}_{.j} + \bar{Y}_{..}
+\begin{aligned}
+\hat{Y}_{ij} &= \bar{Y}_{..} + (\bar{Y}_{i.} - \bar{Y}_{..}) + (\bar{Y}_{.j}- \bar{Y}_{..}) = \bar{Y}_{i.} + \bar{Y}_{.j} - \bar{Y}_{..} \\
+e_{ij} &= Y_{ij} - \hat{Y}_{ij} = Y_{ij}- \bar{Y}_{i.} - \bar{Y}_{.j} + \bar{Y}_{..}
+\end{aligned}
 $$
 
 **ANOVA table**
 
-+---------------------+--------------------------------------------------------------------------------+------------+------------------------------------------+------------------------------------------+
-| Source of Variation | SS                                                                             | df         | Fixed Treatments  E(MS)                  | Random Treatments  E(MS)                 |
-+=====================+================================================================================+============+==========================================+==========================================+
-| Blocks              | $r \sum_i(\bar{Y}_{i.}-\bar{Y}_{..})^2$                                        | n - 1      | $\sigma^2 +r \frac{\sum \rho^2_i}{n-1}$  | $\sigma^2 + r \frac{\sum \rho^2_i}{n-1}$ |
-+---------------------+--------------------------------------------------------------------------------+------------+------------------------------------------+------------------------------------------+
-| Treatments          | $n\sum_ j (\bar{Y} _ {.j}-\bar{ Y}_{..})^2$                                    | r - 1      | $\sigma^2 + n \frac{\sum \tau^2_j}{r-1}$ | $\sigma^2 + n \sigma^2_\tau$             |
-+---------------------+--------------------------------------------------------------------------------+------------+------------------------------------------+------------------------------------------+
-| Error               | $\sum_i \sum _j ( Y_{ ij } - \bar { Y}_{i.} - \bar{Y}_{.j} + \bar{ Y}_{..})^2$ | (n-1)(r-1) | $\sigma^2$                               | $\sigma^2$                               |
-+---------------------+--------------------------------------------------------------------------------+------------+------------------------------------------+------------------------------------------+
-| Total               | SSTO                                                                           | nr-1       |                                          |                                          |
-+---------------------+--------------------------------------------------------------------------------+------------+------------------------------------------+------------------------------------------+
++---------------------+--------------------------------------------------------------------------------+--------------+------------------------------------------+------------------------------------------+
+| Source of Variation | SS                                                                             | df           | Fixed Treatments                         | Random Treatments                        |
+|                     |                                                                                |              |                                          |                                          |
+|                     |                                                                                |              | E(MS)                                    | E(MS)                                    |
++=====================+================================================================================+==============+==========================================+==========================================+
+| Blocks              | $r \sum_i(\bar{Y}_{i.}-\bar{Y}_{..})^2$                                        | $n - 1$      | $\sigma^2 +r \frac{\sum \rho^2_i}{n-1}$  | $\sigma^2 + r \frac{\sum \rho^2_i}{n-1}$ |
++---------------------+--------------------------------------------------------------------------------+--------------+------------------------------------------+------------------------------------------+
+| Treatments          | $n\sum_ j (\bar{Y} _ {.j}-\bar{ Y}_{..})^2$                                    | $r - 1$      | $\sigma^2 + n \frac{\sum \tau^2_j}{r-1}$ | $\sigma^2 + n \sigma^2_\tau$             |
++---------------------+--------------------------------------------------------------------------------+--------------+------------------------------------------+------------------------------------------+
+| Error               | $\sum_i \sum _j ( Y_{ ij } - \bar { Y}_{i.} - \bar{Y}_{.j} + \bar{ Y}_{..})^2$ | $(n-1)(r-1)$ | $\sigma^2$                               | $\sigma^2$                               |
++---------------------+--------------------------------------------------------------------------------+--------------+------------------------------------------+------------------------------------------+
+| Total               | $SSTO$                                                                         | $nr-1$       |                                          |                                          |
++---------------------+--------------------------------------------------------------------------------+--------------+------------------------------------------+------------------------------------------+
 
 **F-tests**
 
@@ -2211,18 +2316,25 @@ $$
 
 where
 
--   $\mu_{..}$ fixed\
--   $\rho_i$: random iid $N(0,\sigma^2_p)$\
--   $\tau_j$ fixed (or random) $\sum \tau_j = 0$\
+-   $\mu_{..}$ fixed
+-   $\rho_i$: random iid $N(0,\sigma^2_p)$
+-   $\tau_j$ fixed (or random) $\sum \tau_j = 0$
 -   $\epsilon_{ij} \sim iid N(0,\sigma^2)$
 
-\*\*Fixed Treatment&&
+**Fixed Treatment**
 
 $$
-E(Y_{ij}) = \mu_{..} + \tau_j \\
-var(Y_{ij}) = \sigma^2_{\rho} + \sigma^2 \\
-cov(Y_{ij},Y_{ij'}) = \sigma^2 , j \neq j' \text{ treatments within same block are correlated} \\
-cov(Y_{ij},Y_{i'j'}) = 0 , i \neq i' , j \neq j'
+\begin{aligned}
+E(Y_{ij}) &= \mu_{..} + \tau_j \\
+var(Y_{ij}) &= \sigma^2_{\rho} + \sigma^2
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+cov(Y_{ij},Y_{ij'}) &= \sigma^2 , j \neq j' \text{ treatments within same block are correlated} \\
+cov(Y_{ij},Y_{i'j'}) &= 0 , i \neq i' , j \neq j'
+\end{aligned}
 $$
 
 Correlation between 2 observations in the same block
@@ -2248,33 +2360,40 @@ $$
 
 where
 
--   $\mu_{..}$ constant\
--   $\rho_i \sim idd N(0,\sigma^2_{\rho})$ random\
--   $\tau_j$ fixed ($\sum \tau_j = 0$)\
--   $(\rho \tau)_{ij} \sim N(0,\frac{r-1}{r}\sigma^2_{\rho \tau})$ with $\sum_j (\rho \tau)_{ij}=0$ for all i\
--   $cov((\rho \tau)_{ij},(\rho \tau)_{ij'})= -\frac{1}{r} \sigma^2_{\rho \tau}$ for $j \neq j'$\
+-   $\mu_{..}$ constant
+-   $\rho_i \sim idd N(0,\sigma^2_{\rho})$ random
+-   $\tau_j$ fixed ($\sum \tau_j = 0$)
+-   $(\rho \tau)_{ij} \sim N(0,\frac{r-1}{r}\sigma^2_{\rho \tau})$ with $\sum_j (\rho \tau)_{ij}=0$ for all i
+-   $cov((\rho \tau)_{ij},(\rho \tau)_{ij'})= -\frac{1}{r} \sigma^2_{\rho \tau}$ for $j \neq j'$
 -   $\epsilon_{ij} \sim iid N(0,\sigma^2)$ random
 
 Note: a special case of mixed 2-factor model with 1 observation per "cell"
 
 $$
-E(Y_{ij}) = \mu_{..} + \tau_j \\
-var(Y_{ij}) = \sigma^2_\rho + \frac{r-1}{r} \sigma^2_{\rho \tau} + \sigma^2 \\
-cov(Y_{ij},Y_{ij'}) = \sigma^2_\rho - \frac{1}{r} \sigma^2_{\rho \tau}, j \neq j' \text{ obs from the same block are correlated} \\
-cov(Y_{ij},Y_{i'j'}) = 0, i \neq i', j \neq j' \text{ obs from different blocks are independent}
+\begin{aligned}
+E(Y_{ij}) &= \mu_{..} + \tau_j \\
+var(Y_{ij}) &= \sigma^2_\rho + \frac{r-1}{r} \sigma^2_{\rho \tau} + \sigma^2
+\end{aligned}
+$$
+
+$$
+\begin{aligned}
+cov(Y_{ij},Y_{ij'}) &= \sigma^2_\rho - \frac{1}{r} \sigma^2_{\rho \tau}, j \neq j' \text{ obs from the same block are correlated} \\
+cov(Y_{ij},Y_{i'j'}) &= 0, i \neq i', j \neq j' \text{ obs from different blocks are independent}
+\end{aligned}
 $$
 
 The sum of squares and degrees of freedom for interaction model are the same as those for the additive model. The difference exists only with the expected mean squares
 
-+-----------+------+------------+------------------------------------------------------------------+
-| Source    | SS   | df         | E(MS)                                                            |
-+===========+======+============+==================================================================+
-| Blocks    | SSBL | n-1        | $\sigma^2 + r \sigma^2_\rho$                                     |
-+-----------+------+------------+------------------------------------------------------------------+
-| Treatment | SSTR | r -1       | $\sigma^2 + \sigma ^2_{\rho \tau} + n \frac{\sum \tau_j^2}{r-1}$ |
-+-----------+------+------------+------------------------------------------------------------------+
-| Error     | SSE  | (n-1)(r-1) | $\sigma^2 + \sigma ^2_{\rho \tau}$                               |
-+-----------+------+------------+------------------------------------------------------------------+
++-----------+---------+--------------+------------------------------------------------------------------+
+| Source    | SS      | df           | E(MS)                                                            |
++===========+=========+==============+==================================================================+
+| Blocks    | $SSBL$  | $n-1$        | $\sigma^2 + r \sigma^2_\rho$                                     |
++-----------+---------+--------------+------------------------------------------------------------------+
+| Treatment | $SSTR$  | $r -1$       | $\sigma^2 + \sigma ^2_{\rho \tau} + n \frac{\sum \tau_j^2}{r-1}$ |
++-----------+---------+--------------+------------------------------------------------------------------+
+| Error     | $SSE$   | $(n-1)(r-1)$ | $\sigma^2 + \sigma ^2_{\rho \tau}$                               |
++-----------+---------+--------------+------------------------------------------------------------------+
 
 -   No exact test is possible for block effects when interaction is present (Not important if blocks are used primarily to reduce experimental error variability)\
 -   $E(MSE) = \sigma^2 + \sigma^2_{\rho \tau}$ the error term variance and interaction variance $\sigma^2_{\rho \tau}$. We can't estimate these components separately with this model. The two are **confounded**.\
@@ -2328,9 +2447,9 @@ $$
 SSRem = SSTO - SSBL - SSTR - SSint
 $$
 
-if D = 0 (i.e., no interactions of the type $D \rho_i \tau_j$). SSint and SSRem are independent $\chi^2_{1,rn-r-n}$.
+if $D = 0$ (i.e., no interactions of the type $D \rho_i \tau_j$). $SSint$ and $SSRem$ are independent $\chi^2_{1,rn-r-n}$.
 
-If D = 0,
+If $D = 0$,
 
 $$
 F = \frac{SSint/1}{SSRem/(rn-r-n)} \sim f_{(1-\alpha;rn-r-n)}
@@ -2339,8 +2458,10 @@ $$
 if
 
 $$
-H_0: D = 0 \text{ no interaction present} \\
-H_a: D \neq 0 \text{ interaction of form $D \rho_i \tau_j$ present}
+\begin{aligned}
+&H_0: D = 0 \text{ no interaction present} \\
+&H_a: D \neq 0 \text{ interaction of form $D \rho_i \tau_j$ present}
+\end{aligned}
 $$
 
 we reject $H_0$ if $F > f_{(1-\alpha;1,nr-r-n)}$
@@ -2348,7 +2469,7 @@ we reject $H_0$ if $F > f_{(1-\alpha;1,nr-r-n)}$
 ## Nested Designs
 
 Let $\mu_{ij}$ be the mean response when factor A is at the i-th level and factor B is at the j-th level.\
-If the factors are crossed, the jth level of B is the same for all levels of A.\
+If the factors are crossed, the $j$-th level of B is the same for all levels of A.\
 If factor B is nested within A, the j-th level of B when A is at level 1 has nothing in common with the j-th level of B when A is at level 2.
 
 Factors that can't be manipulated are designated as **classification factors**, as opposed to **experimental factors** (i.e., you assign to the experimental units).
@@ -2373,15 +2494,17 @@ $$
 
 where $\mu_{..} = \frac{\mu_{ij}}{ab} = \frac{\sum_i \mu_{i.}}{a}$ and $\sum_i \alpha_i = 0$
 
-Individual effects of B is denoted as $\beta_{j(i)}$ where $j(i)$ indicates the j-th level of factor B is nested within the it-h level of factor A
+Individual effects of $B$ is denoted as $\beta_{j(i)}$ where $j(i)$ indicates the $j$-th level of factor $B$ is nested within the it-h level of factor A
 
 $$
-\beta_{j(i)} = \mu_{ij} - \mu_{i.} \\
-= \mu_{ij} - \alpha_i - \mu_{..} \\
-\sum_j \beta_{j(i)}=0 , i = 1,...,a
+\begin{aligned}
+\beta_{j(i)} &= \mu_{ij} - \mu_{i.} \\
+&= \mu_{ij} - \alpha_i - \mu_{..} \\
+\sum_j \beta_{j(i)}&=0 , i = 1,...,a
+\end{aligned}
 $$
 
-$\beta_{j(i)}$ is the **specific effect** of the jth level of factor B nested within the ith level of factor A. Hence,
+$\beta_{j(i)}$ is the **specific effect** of the $j$-th level of factor $B$ nested within the $i$-th level of factor $A$. Hence,
 
 $$
 \mu_{ij} \equiv \mu_{..} + \alpha_i + \beta_{j(i)} \equiv \mu_{..} + (\mu_{i.} - \mu_{..}) + (\mu_{ij} - \mu_{i.})
@@ -2395,15 +2518,17 @@ $$
 
 where
 
--   $Y_{ijk}$ response for the kth treatment when factor A is at the i-th level and factor B is at hte jth level (i = 1,..,a; j = 1,..,b; k = 1,..n)\
--   $\mu_{..}$ constant\
--   $\alpha_i$ constants subject to restriction $\sum_i \alpha_i = 0$\
--   $\beta_{j(i)}$ constants subject to restriction $\sum_j \beta_{j(i)} = 0$ for all i\
+-   $Y_{ijk}$ response for the $k$-th treatment when factor $A$ is at the $i$-th level and factor $B$ is at the $j$-th level $(i = 1,..,a; j = 1,..,b; k = 1,..n)$
+-   $\mu_{..}$ constant
+-   $\alpha_i$ constants subject to restriction $\sum_i \alpha_i = 0$
+-   $\beta_{j(i)}$ constants subject to restriction $\sum_j \beta_{j(i)} = 0$ for all $i$
 -   $\epsilon_{ijk} \sim iid N(0,\sigma^2)$
 
 $$
-E(Y_{ijk}) = \mu_{..} + \alpha_i + \beta_{j(i)} \\
-var(Y_{ijk}) = \sigma^2
+\begin{aligned}
+E(Y_{ijk}) &= \mu_{..} + \alpha_i + \beta_{j(i)} \\
+var(Y_{ijk}) &= \sigma^2
+\end{aligned}
 $$
 
 there is no interaction term in a nested model
@@ -2412,48 +2537,58 @@ there is no interaction term in a nested model
 
 Least Squares and MLE estimates
 
-| Parameter       | Estimator                       |
-|-----------------|---------------------------------|
-| $\mu_{..}$      | $\bar{Y}_{...}$                 |
-| $\alpha_i$      | $\bar{Y}_{i..} - \bar{Y}_{...}$ |
-| $\beta_{j(i)}$  | $\bar{Y}_{ij.} - \bar{Y}_{i..}$ |
-| $\hat{Y}_{ijk}$ | $\bar{Y}_{ij.}$                 |
++----------------------+---------------------------------+
+| Parameter            | Estimator                       |
++======================+=================================+
+| $\mu_{..}$           | $\bar{Y}_{...}$                 |
++----------------------+---------------------------------+
+| $\alpha_i$           | $\bar{Y}_{i..} - \bar{Y}_{...}$ |
++----------------------+---------------------------------+
+| $\beta_{j(i)}$       | $\bar{Y}_{ij.} - \bar{Y}_{i..}$ |
++----------------------+---------------------------------+
+| $\hat{Y}_{ijk}$      | $\bar{Y}_{ij.}$                 |
++----------------------+---------------------------------+
 
 residual $e_{ijk} = Y_{ijk} - \bar{Y}_{ijk}$
 
 $$
 \begin{aligned}
 SSTO &= SSA + SSB(A) + SSE \\
-\sum_i \sum_j \sum_k (Y_{ijk}- \bar{Y}_{...})^2 &= bn \sum_i (\bar{Y}_{i..}- \bar{Y}_{...})^2 + n \sum_i \sum_j (\bar{Y}_{ij.}- \bar{Y}_{i..})^2 + \sum_i \sum_j \sum_k (Y_{ijk} -\bar{Y}_{ij.})^2
+\sum_i \sum_j \sum_k (Y_{ijk}- \bar{Y}_{...})^2 &= bn \sum_i (\bar{Y}_{i..}- \bar{Y}_{...})^2 + n \sum_i \sum_j (\bar{Y}_{ij.}- \bar{Y}_{i..})^2  \\
+&+ \sum_i \sum_j \sum_k (Y_{ijk} -\bar{Y}_{ij.})^2
 \end{aligned}
 $$
 
 ANOVA Table
 
-+---------------------+--------+---------+--------+---------------------------------------------------------------+
-| Source of Variation | SS     | df      | MS     | E(MS)                                                         |
-+=====================+========+=========+========+===============================================================+
-| Factor A            | SSA    | a-1     | MSA    | $\sigma^2 + bn \frac{\sum \alpha_i^2}{a-1}$                   |
-+---------------------+--------+---------+--------+---------------------------------------------------------------+
-| Factor B            | SSB(A) | a(b-1)  | MSB(A) | $\sigma^2 + n \frac{\  | | | | um \sum e ta_{i)}^ 2}{a(b-1)}$ |
-+---------------------+--------+---------+--------+---------------------------------------------------------------+
-| Error               | SSE    | ab(n-1) | MSE    | $\sigma^2$                                                    |
-+---------------------+--------+---------+--------+---------------------------------------------------------------+
-| Total               | SSTO   | abn -1  |        |                                                               |
-+---------------------+--------+---------+--------+---------------------------------------------------------------+
++---------------------+----------+-----------+----------+---------------------------------------------------------------+
+| Source of Variation | SS       | df        | MS       | E(MS)                                                         |
++=====================+==========+===========+==========+===============================================================+
+| Factor A            | $SSA$    | $a-1$     | $MSA$    | $\sigma^2 + bn \frac{\sum \alpha_i^2}{a-1}$                   |
++---------------------+----------+-----------+----------+---------------------------------------------------------------+
+| Factor B            | $SSB(A)$ | $a(b-1)$  | $MSB(A)$ | $\sigma^2 + n \frac{\  | | | | um \sum e ta_{i)}^ 2}{a(b-1)}$ |
++---------------------+----------+-----------+----------+---------------------------------------------------------------+
+| Error               | $SSE$    | $ab(n-1)$ | $MSE$    | $\sigma^2$                                                    |
++---------------------+----------+-----------+----------+---------------------------------------------------------------+
+| Total               | $SSTO$   | $abn -1$  |          |                                                               |
++---------------------+----------+-----------+----------+---------------------------------------------------------------+
 
 **Tests For Factor Effects**
 
 $$
-H_0: \text{ All } \alpha_i =0 \\
-H_a: \text{ not all } \alpha_i = 0
+\begin{aligned}
+&H_0: \text{ All } \alpha_i =0 \\
+&H_a: \text{ not all } \alpha_i = 0
+\end{aligned}
 $$
 
 $F = \frac{MSA}{MSE} \sim f_{(1-\alpha;a-1,(n-1)ab)}$ reject if $F > f$
 
 $$
-H_0: \text{ All } \beta_{j(i)} =0 \\
-H_a: \text{ not all } \beta_{j(i)} = 0
+\begin{aligned}
+&H_0: \text{ All } \beta_{j(i)} =0 \\
+&H_a: \text{ not all } \beta_{j(i)} = 0
+\end{aligned}
 $$
 
 $F = \frac{MSB(A)}{MSE} \sim f_{(1-\alpha;a(b-1),(n-1)ab)}$ reject $F>f$
@@ -2463,8 +2598,10 @@ $F = \frac{MSB(A)}{MSE} \sim f_{(1-\alpha;a(b-1),(n-1)ab)}$ reject $F>f$
 $L = \sum c_i \mu_i$ where $\sum c_i =0$
 
 $$
-\hat{L} = \sum c_i \bar{Y}_{i..} \\
-\hat{L} \pm t_{(1-\alpha/2;df)}s(\hat{L})
+\begin{aligned}
+\hat{L} &= \sum c_i \bar{Y}_{i..} \\
+\hat{L} &\pm t_{(1-\alpha/2;df)}s(\hat{L})
+\end{aligned}
 $$
 
 where $s^2(\hat{L}) = \sum c_i^2 s^2(\bar{Y}_{i..})$, where $s^2(\bar{Y}_{i..}) = \frac{MSE}{bn}, df = ab(n-1)$
@@ -2485,20 +2622,28 @@ $$
 
 **Unbalanced Nested Two-Factor Designs**
 
-If there are different number of levels of factor B for different levels of factor A, then the design is called **unbalanced**
+If there are different number of levels of factor $B$ for different levels of factor $A$, then the design is called **unbalanced**
 
 The model
 
 $$
-Y_{ijk} = \mu_{..} + \alpha_i + \beta_{j(i)} + \epsilon_{ijk} \\
-i = 1,2;j =1,..,b_i;k=1,..,n_{ij} \\
-b_1 = 3, b_2= 2, n_{11} =  n_{13} =2, n_{12}=1,n_{21} = n_{22} = 2\\
-\sum_{i=1}^2 \alpha_i =0 \\
-\sum_{j=1}^3 \beta_{j(1)} = 0 \\
-\sum_{j=1}^2 \beta_{j(2)}=0
+\begin{aligned}
+Y_{ijk} &= \mu_{..} + \alpha_i + \beta_{j(i)} + \epsilon_{ijk} \\
+\sum_{i=1}^2 \alpha_i &=0 \\
+\sum_{j=1}^3 \beta_{j(1)} &= 0 \\
+\sum_{j=1}^2 \beta_{j(2)}&=0
+\end{aligned}
 $$
 
-where $\alpha_1,\beta_{1(1)}, \beta_{2(1)}, \beta_{1(2)}$ are parameters. And constraints: $\alpha_2 = - \alpha_1, \beta_{3(1)}= - \beta_{1(1)}-\beta_{2(1)}, \beta_{2(2)}=-\beta_{1(2)}$
+where
+
+-   $i = 1,2;j =1,..,b_i;k=1,..,n_{ij}$
+
+-   $b_1 = 3, b_2= 2, n_{11} = n_{13} =2, n_{12}=1,n_{21} = n_{22} = 2$
+
+-   $\alpha_1,\beta_{1(1)}, \beta_{2(1)}, \beta_{1(2)}$ are parameters.
+
+And constraints: $\alpha_2 = - \alpha_1, \beta_{3(1)}= - \beta_{1(1)}-\beta_{2(1)}, \beta_{2(2)}=-\beta_{1(2)}$
 
 4 indicator variables
 
@@ -2510,6 +2655,7 @@ X_1 =
 -1&\text{if obs from school 2}\\
 \end{cases}
 \end{equation}
+
 
 \begin{equation}
 X_2 = 
@@ -2552,12 +2698,16 @@ $$
 If
 
 $$
-\alpha_1 \sim iid N(0,\sigma^2_\alpha) \\
-\beta_{j(i)} \sim iid N(0,\sigma^2_\beta)
+\begin{aligned}
+\alpha_1 &\sim iid N(0,\sigma^2_\alpha) \\
+\beta_{j(i)} &\sim iid N(0,\sigma^2_\beta)
+\end{aligned}
 $$
 
 +-------------+-----------------------------------------------------------------+------------------------------------------------------+
-| Mean Square | Expected Mean Squares A fixed, B random                         | Expected Mean Squares A random, B random             |
+| Mean Square | Expected Mean Squares                                           | Expected Mean Squares                                |
+|             |                                                                 |                                                      |
+|             | A fixed, B random                                               | A random, B random                                   |
 +=============+=================================================================+======================================================+
 | MSA         | $\sigma^ 2 + n \sigma^2_\beta + bn \frac{\sum \alpha_i^2}{a-1}$ | $\sigma^2 + bn \sigma^2_{\alpha} + n \sigma^2_\beta$ |
 +-------------+-----------------------------------------------------------------+------------------------------------------------------+
@@ -2566,7 +2716,7 @@ $$
 | MSE         | $\sigma^2$                                                      | $\sigma^2$                                           |
 +-------------+-----------------------------------------------------------------+------------------------------------------------------+
 
-Test Statstics
+Test Statistics
 
 | Factor A    | $\frac{MSA}{MSB(A)}$ | $\frac{MSA}{MSB(A)}$ |
 |-------------|----------------------|----------------------|
@@ -2584,32 +2734,38 @@ for $i = 1,...,r;j=1,..,n_i$
 
 where
 
--   $\mu_.$ overall mean\
--   $\tau_i$: fixed treatment effects ($\sum \tau_i =0$)\
--   $\gamma$: fixed regression coefficient effect between X and Y\
--   $X_{ij}$ covariate (not random)\
+-   $\mu_.$ overall mean
+-   $\tau_i$: fixed treatment effects ($\sum \tau_i =0$)
+-   $\gamma$: fixed regression coefficient effect between X and Y
+-   $X_{ij}$ covariate (not random)
 -   $\epsilon_{ij} \sim iid N(0,\sigma^2)$: random errors
 
 If we just use $\gamma X_{ij}$ as the regression term (rather than $\gamma(X_{ij}-\bar{X}_{..})$), then $\mu_.$ is no longer the overall mean; thus we need to centered mean.
 
 $$
-E(Y_{ij}) = \mu_. + \tau_i + \gamma(X_{ij}-\bar{X}_{..}) \\
-var(Y_{ij}) = \sigma^2
+\begin{aligned}
+E(Y_{ij}) &= \mu_. + \tau_i + \gamma(X_{ij}-\bar{X}_{..}) \\
+var(Y_{ij}) &= \sigma^2
+\end{aligned}
 $$
 
-$Y_{ij} \sim N(\mu_{ij},\sigma^2)$, where
+$Y_{ij} \sim N(\mu_{ij},\sigma^2)$,
+
+where
 
 $$
-\mu_{ij} = \mu_. + \tau_i + \gamma(X_{ij} - \bar{X}_{..}) \\
-\sum \tau_i =0 
+\begin{aligned}
+\mu_{ij} &= \mu_. + \tau_i + \gamma(X_{ij} - \bar{X}_{..}) \\
+\sum \tau_i &=0 
+\end{aligned}
 $$
 
-Thus, the mean response ($\mu_{ij}$) is a regression line with intercept $\mu_. + \tau_i$ and slope $\gamma$ for each treatment i.
+Thus, the mean response ($\mu_{ij}$) is a regression line with intercept $\mu_. + \tau_i$ and slope $\gamma$ for each treatment \$\$i.
 
 **Assumption**:
 
 -   All treatment regression lines have the same slope\
--   when treatment interact with covariate X (non-parallel slopes), covariance analysis is **not** appropriate. in which case we should use separate regression lines.
+-   when treatment interact with covariate $X$ (non-parallel slopes), covariance analysis is **not** appropriate. in which case we should use separate regression lines.
 
 More complicated regression features (e.g., quadratic, cubic) or additional covariates e.g.,
 
@@ -2628,9 +2784,17 @@ l_1 =
 -1 & \text{if case is from treatment r}\\
 0 &\text{otherwise}\\
 \end{cases}
-. \\
-. \\
-. \\
+$$
+
+$$
+.
+$$
+
+$$
+.
+$$
+
+$$
 l_{r-1} =
 \begin{cases}
 1 & \text{if case is from treatment r-1}\\
@@ -2654,13 +2818,17 @@ We could use the same diagnostic tools for this case.
 Treatment effects
 
 $$
-H_0: \tau_1 = \tau_2 = ...= 0 \\
-H_a: \text{not all } \tau_i =0
+\begin{aligned}
+&H_0: \tau_1 = \tau_2 = ...= 0 \\
+&H_a: \text{not all } \tau_i =0
+\end{aligned}
 $$
 
 $$
-\text{Full Model}: Y_{ij} = \mu_. + \tau_i + \gamma X_{ij} +\epsilon_{ij}  \\
-\text{Reduced Model}: Y_{ij} = \mu_. + \gamma X_{ij} + \epsilon_{ij}
+\begin{aligned}
+&\text{Full Model}: Y_{ij} = \mu_. + \tau_i + \gamma X_{ij} +\epsilon_{ij}  \\
+&\text{Reduced Model}: Y_{ij} = \mu_. + \gamma X_{ij} + \epsilon_{ij}
+\end{aligned}
 $$
 
 $$
@@ -2693,8 +2861,10 @@ $$
 where $\beta_1,\beta_2$: interaction coefficients.
 
 $$
-H_0: \beta_1 = \beta_2 = 0 \\
-H_a: \text{at least one} \beta \neq 0 
+\begin{aligned}
+&H_0: \beta_1 = \beta_2 = 0 \\
+&H_a: \text{at least one} \beta \neq 0 
+\end{aligned}
 $$
 
 If we can't reject $H_0$ using F-test then we have evidence that the slopes are parallel
@@ -2706,6 +2876,3 @@ The means in response after adjusting for the covariate effect
 $$
 Y_{i.}(adj) = \bar{Y}_{i.} - \hat{\gamma}(\bar{X}_{i.} - \bar{X}_{..})
 $$
-
-
-

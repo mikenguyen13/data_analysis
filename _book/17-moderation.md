@@ -57,9 +57,9 @@ Data set is from [UCLA seminar](https://stats.oarc.ucla.edu/r/seminars/interacti
 
 
 ```r
-dat <- readRDS("data/exercise.rds") %>% 
-    mutate(prog = factor(prog, labels = c("jog","swim","read"))) %>% 
-    mutate(gender = factor(gender, labels = c("male","female")))
+dat <- readRDS("data/exercise.rds") %>%
+    mutate(prog = factor(prog, labels = c("jog", "swim", "read"))) %>%
+    mutate(gender = factor(gender, labels = c("male", "female")))
 ```
 
 ### Continuous by continuous
@@ -110,10 +110,10 @@ effbr <- round(mean(dat$effort) - sd(dat$effort), 1)
 
 ```r
 # specify list of points
-mylist <- list(effort=c(effbr,effr,effar)) 
+mylist <- list(effort = c(effbr, effr, effar))
 
 # get the estimates
-emtrends(contcont, ~effort, var="hours",at=mylist)
+emtrends(contcont, ~ effort, var = "hours", at = mylist)
 #>  effort hours.trend    SE  df lower.CL upper.CL
 #>    24.5       0.261 1.352 896   -2.392     2.91
 #>    29.7       2.307 0.915 896    0.511     4.10
@@ -122,8 +122,9 @@ emtrends(contcont, ~effort, var="hours",at=mylist)
 #> Confidence level used: 0.95
 
 # plot
-mylist <- list(hours=seq(0,4,by=0.4),effort=c(effbr,effr,effar))
-emmip(contcont,effort~hours,at=mylist, CIs=TRUE)
+mylist <- list(hours = seq(0, 4, by = 0.4),
+               effort = c(effbr, effr, effar))
+emmip(contcont, effort ~ hours, at = mylist, CIs = TRUE)
 ```
 
 <img src="17-moderation_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" />
@@ -131,7 +132,13 @@ emmip(contcont,effort~hours,at=mylist, CIs=TRUE)
 ```r
 
 # statistical test for slope difference
-emtrends(contcont, pairwise ~effort, var="hours",at=mylist, adjust="none")
+emtrends(
+    contcont,
+    pairwise ~ effort,
+    var = "hours",
+    at = mylist,
+    adjust = "none"
+)
 #> $emtrends
 #>  effort hours.trend    SE  df lower.CL upper.CL
 #>    24.5       0.261 1.352 896   -2.392     2.91
@@ -159,20 +166,30 @@ For publication, we use
 library(ggplot2)
 
 # data
-(mylist                     <- list(hours=seq(0,4,by=0.4),effort=c(effbr,effr,effar)))
-#> $hours
-#>  [1] 0.0 0.4 0.8 1.2 1.6 2.0 2.4 2.8 3.2 3.6 4.0
-#> 
-#> $effort
-#> [1] 24.5 29.7 34.8
-contcontdat                 <- emmip(contcont,effort~hours,at=mylist, CIs=TRUE, plotit=FALSE)
-contcontdat$feffort         <- factor(contcontdat$effort)
-levels(contcontdat$feffort) <- c("low","med","high")
+mylist <- list(hours = seq(0, 4, by = 0.4),
+               effort = c(effbr, effr, effar))
+contcontdat <-
+    emmip(contcont,
+          effort ~ hours,
+          at = mylist,
+          CIs = TRUE,
+          plotit = FALSE)
+contcontdat$feffort <- factor(contcontdat$effort)
+levels(contcontdat$feffort) <- c("low", "med", "high")
 
 # plot
-p  <- ggplot(data = contcontdat, aes(x = hours, y = yvar, color = feffort)) +  geom_line()
-p1 <- p + geom_ribbon(aes(ymax=UCL, ymin=LCL, fill=feffort), alpha=0.4)
-p1  + labs(x="Hours", y="Weight Loss", color="Effort", fill="Effort")
+p  <-
+    ggplot(data = contcontdat, 
+           aes(x = hours, y = yvar, color = feffort)) +  
+    geom_line()
+p1 <-
+    p + 
+    geom_ribbon(aes(ymax = UCL, ymin = LCL, fill = feffort), 
+                    alpha = 0.4)
+p1  + labs(x = "Hours",
+           y = "Weight Loss",
+           color = "Effort",
+           fill = "Effort")
 ```
 
 <img src="17-moderation_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
@@ -182,7 +199,7 @@ p1  + labs(x="Hours", y="Weight Loss", color="Effort", fill="Effort")
 
 ```r
 # use Female as basline
-dat$gender <- relevel(dat$gender, ref="female") 
+dat$gender <- relevel(dat$gender, ref = "female")
 
 contcat <- lm(loss ~ hours * gender, data = dat)
 summary(contcat)
@@ -212,7 +229,7 @@ Get simple slopes by each level of the categorical moderator
 
 
 ```r
-emtrends(contcat, ~ gender, var="hours")
+emtrends(contcat, ~ gender, var = "hours")
 #>  gender hours.trend   SE  df lower.CL upper.CL
 #>  female        3.32 1.33 896    0.702     5.93
 #>  male          1.59 1.35 896   -1.063     4.25
@@ -220,7 +237,7 @@ emtrends(contcat, ~ gender, var="hours")
 #> Confidence level used: 0.95
 
 # test difference in slopes
-emtrends(contcat, pairwise ~ gender, var="hours") # which is the same as the interaction term
+emtrends(contcat, pairwise ~ gender, var = "hours")
 #> $emtrends
 #>  gender hours.trend   SE  df lower.CL upper.CL
 #>  female        3.32 1.33 896    0.702     5.93
@@ -231,18 +248,22 @@ emtrends(contcat, pairwise ~ gender, var="hours") # which is the same as the int
 #> $contrasts
 #>  contrast      estimate  SE  df t.ratio p.value
 #>  female - male     1.72 1.9 896   0.908  0.3639
+# which is the same as the interaction term
 ```
 
 
 ```r
 # plot
-(mylist <- list(hours=seq(0,4,by=0.4),gender=c("female","male")))
+(mylist <- list(
+    hours = seq(0, 4, by = 0.4),
+    gender = c("female", "male")
+))
 #> $hours
 #>  [1] 0.0 0.4 0.8 1.2 1.6 2.0 2.4 2.8 3.2 3.6 4.0
 #> 
 #> $gender
 #> [1] "female" "male"
-emmip(contcat, gender ~hours, at=mylist,CIs=TRUE)
+emmip(contcat, gender ~ hours, at = mylist, CIs = TRUE)
 ```
 
 <img src="17-moderation_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
@@ -252,8 +273,8 @@ emmip(contcat, gender ~hours, at=mylist,CIs=TRUE)
 
 ```r
 # relevel baseline
-dat$prog <- relevel(dat$prog, ref="read")
-dat$gender <- relevel(dat$gender, ref="female")
+dat$prog   <- relevel(dat$prog, ref = "read")
+dat$gender <- relevel(dat$gender, ref = "female")
 ```
 
 
@@ -291,7 +312,10 @@ Simple effects
 emcatcat <- emmeans(catcat, ~ gender*prog)
 
 # differences in predicted values
-contrast(emcatcat, "revpairwise", by = "prog", adjust = "bonferroni")
+contrast(emcatcat, 
+         "revpairwise", 
+         by = "prog", 
+         adjust = "bonferroni")
 #> prog = read:
 #>  contrast      estimate    SE  df t.ratio p.value
 #>  male - female   -0.335 0.753 894  -0.446  0.6559
@@ -318,9 +342,13 @@ Bar graph
 
 
 ```r
-catcatdat <- emmip(catcat, gender ~ prog, CIs = TRUE, plotit = FALSE)
+catcatdat <- emmip(catcat,
+                   gender ~ prog,
+                   CIs = TRUE,
+                   plotit = FALSE)
 p <-
-    ggplot(data = catcatdat, aes(x = prog, y = yvar, fill = gender)) +
+    ggplot(data = catcatdat,
+           aes(x = prog, y = yvar, fill = gender)) +
     geom_bar(stat = "identity", position = "dodge")
 
 p1 <-
@@ -349,11 +377,21 @@ install.packages("probemod")
 library(probemod)
 
 myModel <-
-    lm(loss ~ hours * gender, data = dat %>% select(loss, hours, gender))
-jnresults <- jn(myModel, dv='loss', iv='hours', mod='gender')
+    lm(loss ~ hours * gender, data = dat %>% 
+           select(loss, hours, gender))
+jnresults <- jn(myModel,
+                dv = 'loss',
+                iv = 'hours',
+                mod = 'gender')
 
 
-pickapoint(myModel, dv='loss', iv='hours', mod='gender', alpha=.01)
+pickapoint(
+    myModel,
+    dv = 'loss',
+    iv = 'hours',
+    mod = 'gender',
+    alpha = .01
+)
 
 plot(jnresults)
 ```
@@ -474,12 +512,25 @@ For continuous moderator, the three values chosen are:
 interact_plot(fiti,
               pred = Illiteracy,
               modx = Murder,
-              # centered = "none", # if you don't want the plot to mean-center
-              # modx.values = "plus-minus", # exclude the mean value of the moderator
-              # modx.values = "terciles" # split moderator's distribution into 3 groups
+              
+              # if you don't want the plot to mean-center
+              # centered = "none", 
+              
+              # exclude the mean value of the moderator
+              # modx.values = "plus-minus", 
+              
+              # split moderator's distribution into 3 groups
+              # modx.values = "terciles" 
+              
               plot.points = T, # overlay data
-              point.shape = T, # different shape for differennt levels of the moderator
-              jitter = 0.1, # if two data points are on top one another, this moves them apart by little
+              
+              
+              # different shape for differennt levels of the moderator
+              point.shape = T, 
+              
+              # if two data points are on top one another, 
+              # this moves them apart by little
+              jitter = 0.1, 
               
               # other appearance option
               x.label = "X label", 
@@ -519,7 +570,8 @@ Partial Effect Plot
 ```r
 library(ggplot2)
 data(cars)
-fitc <- lm(cty ~ year + cyl * displ + class + fl + drv, data = mpg)
+fitc <- lm(cty ~ year + cyl * displ + class + fl + drv, 
+           data = mpg)
 summ(fitc)
 ```
 
@@ -694,7 +746,8 @@ interact_plot(
     fitc,
     pred = displ,
     modx = cyl,
-    partial.residuals = TRUE, # the observed data is based on displ, cyl, and model error
+    # the observed data is based on displ, cyl, and model error
+    partial.residuals = TRUE, 
     modx.values = c(4, 5, 6, 8)
 )
 ```
@@ -708,7 +761,7 @@ Plot the lines based on the subsample (red line), and whole sample (black line)
 
 ```r
 x_2 <- runif(n = 200, min = -3, max = 3)
-w <- rbinom(n = 200, size = 1, prob = 0.5)
+w   <- rbinom(n = 200, size = 1, prob = 0.5)
 err <- rnorm(n = 200, mean = 0, sd = 4)
 y_2 <- 2.5 - x_2 ^ 2 - 5 * w + 2 * w * (x_2 ^ 2) + err
 
@@ -737,15 +790,15 @@ summ(model_2)
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> F(3,196) </td>
-   <td style="text-align:right;"> 0.73 </td>
+   <td style="text-align:right;"> 1.77 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> R² </td>
-   <td style="text-align:right;"> 0.01 </td>
+   <td style="text-align:right;"> 0.03 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Adj. R² </td>
-   <td style="text-align:right;"> -0.00 </td>
+   <td style="text-align:right;"> 0.01 </td>
   </tr>
 </tbody>
 </table> <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
@@ -761,31 +814,31 @@ summ(model_2)
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> -0.66 </td>
-   <td style="text-align:right;"> 0.50 </td>
-   <td style="text-align:right;"> -1.31 </td>
-   <td style="text-align:right;"> 0.19 </td>
+   <td style="text-align:right;"> 0.20 </td>
+   <td style="text-align:right;"> 0.45 </td>
+   <td style="text-align:right;"> 0.44 </td>
+   <td style="text-align:right;"> 0.66 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> x_2 </td>
-   <td style="text-align:right;"> -0.18 </td>
-   <td style="text-align:right;"> 0.30 </td>
-   <td style="text-align:right;"> -0.60 </td>
-   <td style="text-align:right;"> 0.55 </td>
+   <td style="text-align:right;"> 0.52 </td>
+   <td style="text-align:right;"> 0.26 </td>
+   <td style="text-align:right;"> 1.99 </td>
+   <td style="text-align:right;"> 0.05 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> w </td>
-   <td style="text-align:right;"> 0.93 </td>
-   <td style="text-align:right;"> 0.72 </td>
-   <td style="text-align:right;"> 1.28 </td>
-   <td style="text-align:right;"> 0.20 </td>
+   <td style="text-align:right;"> 0.37 </td>
+   <td style="text-align:right;"> 0.63 </td>
+   <td style="text-align:right;"> 0.59 </td>
+   <td style="text-align:right;"> 0.55 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> x_2:w </td>
-   <td style="text-align:right;"> 0.24 </td>
-   <td style="text-align:right;"> 0.42 </td>
-   <td style="text-align:right;"> 0.58 </td>
-   <td style="text-align:right;"> 0.56 </td>
+   <td style="text-align:right;"> -0.75 </td>
+   <td style="text-align:right;"> 0.36 </td>
+   <td style="text-align:right;"> -2.07 </td>
+   <td style="text-align:right;"> 0.04 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
@@ -797,7 +850,7 @@ interact_plot(
     model_2,
     pred = x_2,
     modx = w,
-    linearity.check = TRUE, 
+    linearity.check = TRUE,
     plot.points = TRUE
 )
 ```
@@ -903,15 +956,24 @@ Since Johnson-Neyman inflates the type I error (comparisons across all values of
 
 
 ```r
-sim_slopes(fiti,
-           pred = Illiteracy,
-           modx = Murder,
-           johnson_neyman = TRUE,
-           control.fdr = TRUE, # correction for type I and II
-           # cond.int = TRUE, # include conditional intecepts
-           robust = "HC3", # rubust SE
-           # centered = "none", # don't mean-centered non-focal variables
-           jnalpha = 0.05)
+sim_slopes(
+    fiti,
+    pred = Illiteracy,
+    modx = Murder,
+    johnson_neyman = TRUE,
+    control.fdr = TRUE,
+    # correction for type I and II
+    
+    # include conditional intecepts
+    # cond.int = TRUE, 
+    
+    robust = "HC3",
+    # rubust SE
+    
+    # don't mean-centered non-focal variables
+    # centered = "none",
+    jnalpha = 0.05
+)
 #> JOHNSON-NEYMAN INTERVAL 
 #> 
 #> When Murder is OUTSIDE the interval [-11.70, 8.75], the slope of Illiteracy
@@ -949,7 +1011,9 @@ For plotting, we can use `johnson_neyman`
 johnson_neyman(fiti,
                pred = Illiteracy,
                modx = Murder,
-               control.fdr = TRUE, # correction for type I and II
+               
+               # correction for type I and II
+               control.fdr = TRUE, 
                alpha = .05)
 #> JOHNSON-NEYMAN INTERVAL 
 #> 
@@ -972,7 +1036,8 @@ Note:
 
 ```r
 # fita3 <-
-#     lm(rating ~ privileges * critical * learning, data = attitude)
+#     lm(rating ~ privileges * critical * learning, 
+#        data = attitude)
 # 
 # probe_interaction(
 #     fita3,
@@ -1181,7 +1246,7 @@ mpg2["fwd"] <- "2wd"
 mpg2$fwd[mpg2$drv == "4"] <- "4wd"
 mpg2$fwd <- factor(mpg2$fwd)
 ## Drop the two cars with 5 cylinders (rest are 4, 6, or 8)
-mpg2 <- mpg2[mpg2$cyl != "5",]
+mpg2 <- mpg2[mpg2$cyl != "5", ]
 ## Fit the model
 fit3 <- lm(cty ~ cyl * fwd * auto, data = mpg2)
 

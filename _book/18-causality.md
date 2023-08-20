@@ -23,7 +23,7 @@ The conclusion we want to make from data is counterfactuals: **What would have h
 
 To teach a robot to make inference, we need inference engine
 
-![p. 12 [@Pearl_2018]](images/Figure%20I.png "Inference Engine"){style="display: block; margin: 1em auto" width="60%"}
+![p. 12 [@Pearl_2018]](images/Figure%20I.png "Inference Engine"){style="display: block; margin: 1em auto" width="90%"}
 
 Levels of cognitive ability to be a causal learner:
 
@@ -72,8 +72,6 @@ and with the help of causal diagram, now you can answer questions at the 2nd lev
 
 Note: people under econometrics might still use "Granger causality" and "vector autoregression" to use the probability language to represent causality (but it's not).
 
-<br>
-
 The 7 tools for Structural Causal Model framework [@pearl2019seven]:
 
 1.  Encoding Causal Assumptions - transparency and testability (with graphical representation)
@@ -96,11 +94,7 @@ The 7 tools for Structural Causal Model framework [@pearl2019seven]:
 
     3.  Spontaneous local changes [@pearl2014graphical]
 
-<br>
-
 [List of packages to do causal inference](https://cran.r-project.org/web/views/CausalInference.html) in R
-
-<br>
 
 Simpson's Paradox:
 
@@ -116,13 +110,15 @@ $$
 P(X=x,Y=y, Z=z) = P(X=x)P(Y=y|X=x)P(Z=z|Y=y)
 $$
 
-<br>
-
++------------------------------------------------+-------------------------------------------------+
 | Experimental Design                            | Quasi-experimental Design                       |
-|------------------------------------------------|-------------------------------------------------|
++================================================+=================================================+
 | Experimentalist                                | Observationalist                                |
++------------------------------------------------+-------------------------------------------------+
 | Experimental Data                              | Observational Data                              |
++------------------------------------------------+-------------------------------------------------+
 | Random Assignment (reduce treatment imbalance) | Random Sampling (reduce sample selection error) |
++------------------------------------------------+-------------------------------------------------+
 
 Tools in a hierarchical order
 
@@ -187,18 +183,14 @@ There are four types of subjects that we deal with:
 | Never-takers  | Not treated          | No treated         |
 | Defiers       | Not treated          | Treated            |
 
-<br>
-
 Directional Bias due to selection into treatment comes from 2 general opposite sources
 
 1.  **Mitigation-based**: select into treatment to combat a problem
 2.  **Preference-based**: select into treatment because units like that kind of treatment.
 
-<br>
-
 ## Treatment effect types
 
-This section is based on [Paul Testa's note on egap](https://egap.org/resource/10-types-of-treatment-effect-you-should-know-about/)
+This section is based on [Paul Testa's note](https://egap.org/resource/10-types-of-treatment-effect-you-should-know-about/)
 
 Terminology:
 
@@ -217,8 +209,6 @@ $$
 &= \text{Due to design + Due to modeling + Due to finite sample}
 \end{aligned}
 $$
-
-<br>
 
 ### Average Treatment Effects
 
@@ -316,8 +306,6 @@ $$
 When we encounter non-compliance (either people suppose to receive treatment don't receive it, or people suppose to be in the control group receive the treatment), treatment receipt is not independent of potential outcomes and confounders.
 
 In this case, the difference in observed means between the treatment and control groups is not [Average Treatment Effects], but [Intent-to-treat Effects] (ITT). In words, ITT is the treatment effect on those who **receive** the treatment
-
-<br>
 
 ### Local Average Treatment Effects
 
@@ -496,12 +484,17 @@ $\Delta_T \to 0$ when treatment and control groups are balanced (i.e., identical
 
 However, in reality, we can only readjust for observables, not unobservables.
 
++-------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 |                                                             | [Blocking][Randomized Block Designs]                                                                                                                                            | [Matching]**[Matching Methods]**                                                                                                                                                                                                              |
-|-------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
++=============================================================+=================================================================================================================================================================================+===============================================================================================================================================================================================================================================+
 | Definition                                                  | Random assignment within strata based on pre-treatment observables                                                                                                              | Dropping, repeating or grouping observations to balance covariates between the treatment and control group [@rubin1973use]                                                                                                                    |
++-------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Time                                                        | Before randomization of treatments                                                                                                                                              | After randomization of treatments                                                                                                                                                                                                             |
++-------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | What if the set of covariates used to adjust is irrelevant? | Nothing happens                                                                                                                                                                 | In the worst case scenario (e.g., these variables are uncorrelated with the treatment assignment, but correlated with the post-treatment variables), matching induces bias that is greater than just using the unadjusted difference in means |
++-------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Benefits                                                    | $\Delta_{T_X}=0$ (no imbalance on observables). But we don't know its effect on unobservables imbalance (might reduce if the unobservables are correlated with the observables) | Reduce model dependence, bias, variance, mean-square error                                                                                                                                                                                    |
++-------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 ### Average Treatment Effects on the Treated and Control
 

@@ -65,7 +65,7 @@ where
 Create a fictitious dataset where we know the true data generating process
 
 $$
-Outcome = 10 * time + 20 * treatment + 25 * timesincetreatment + noise
+Outcome = 10 \times time + 20 \times treatment + 25 \times timesincetreatment + noise
 $$
 
 
@@ -73,35 +73,38 @@ $$
 # number of days
 n = 365
 
-# intervention at day 
+
+# intervention at day
 interven = 200
 
 # time index from 1 to 365
 time = c(1:n)
 
-# treatment variable: before internvation = day 1 to 200, after intervention = day 201 to 365
+# treatment variable: before internvation = day 1 to 200, 
+# after intervention = day 201 to 365
 treatment = c(rep(0, interven), rep(1, n - interven))
 
 # time since treatment
 timesincetreat = c(rep(0, interven), c(1:(n - interven)))
 
-# outcome 
-outcome = 10 + 15 * time + 20 * treatment + 25 * timesincetreat + rnorm(n, mean = 0, sd = 1)
+# outcome
+outcome = 10 + 15 * time + 20 * treatment + 
+    25 * timesincetreat + rnorm(n, mean = 0, sd = 1)
 
 df = data.frame(outcome, time, treatment, timesincetreat)
 
 head(df, 10)
 #>      outcome time treatment timesincetreat
-#> 1   25.15403    1         0              0
-#> 2   39.54239    2         0              0
-#> 3   55.02046    3         0              0
-#> 4   70.21851    4         0              0
-#> 5   84.69178    5         0              0
-#> 6   98.63307    6         0              0
-#> 7  114.52445    7         0              0
-#> 8  129.47930    8         0              0
-#> 9  143.88703    9         0              0
-#> 10 160.59054   10         0              0
+#> 1   24.38105    1         0              0
+#> 2   40.16347    2         0              0
+#> 3   56.02335    3         0              0
+#> 4   69.33441    4         0              0
+#> 5   84.53200    5         0              0
+#> 6  101.20097    6         0              0
+#> 7  115.44300    7         0              0
+#> 8  130.87504    8         0              0
+#> 9  145.19716    9         0              0
+#> 10 159.96358   10         0              0
 ```
 
 Visualize
@@ -128,21 +131,21 @@ summary(ts)
 #> lm(formula = outcome ~ time + treatment + timesincetreat, data = df)
 #> 
 #> Residuals:
-#>      Min       1Q   Median       3Q      Max 
-#> -2.83371 -0.58288 -0.02394  0.58471  2.58488 
+#>     Min      1Q  Median      3Q     Max 
+#> -3.7462 -0.6645  0.0603  0.6356  2.6852 
 #> 
 #> Coefficients:
 #>                 Estimate Std. Error  t value Pr(>|t|)    
-#> (Intercept)     9.842786   0.140878    69.87   <2e-16 ***
-#> time           15.001545   0.001215 12342.02   <2e-16 ***
-#> treatment      20.034928   0.208917    95.90   <2e-16 ***
-#> timesincetreat 24.997934   0.002027 12332.76   <2e-16 ***
+#> (Intercept)    10.172442   0.141382    71.95   <2e-16 ***
+#> time           14.999105   0.001220 12296.06   <2e-16 ***
+#> treatment      20.002640   0.209664    95.40   <2e-16 ***
+#> timesincetreat 25.000104   0.002034 12289.91   <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Residual standard error: 0.9924 on 361 degrees of freedom
+#> Residual standard error: 0.996 on 361 degrees of freedom
 #> Multiple R-squared:      1,	Adjusted R-squared:      1 
-#> F-statistic: 9.681e+08 on 3 and 361 DF,  p-value: < 2.2e-16
+#> F-statistic: 9.611e+08 on 3 and 361 DF,  p-value: < 2.2e-16
 ```
 
 Interpretation
@@ -190,10 +193,17 @@ plot(
 lines(rep(1:interven), pred[1:interven], col = "blue", lwd = 3)
 
 # regression line after treatment
-lines(rep((interven+1):n), pred[(interven + 1):n], col = "blue", lwd = 3)
+lines(rep((interven + 1):n), pred[(interven + 1):n], 
+      col = "blue", lwd = 3)
 
 # regression line after treatment (counterfactual)
-lines(rep(interven:n), pred_cf[(interven): n], col = "yellow", lwd = 3, lty = 5)
+lines(
+    rep(interven:n),
+    pred_cf[(interven):n],
+    col = "yellow",
+    lwd = 3,
+    lty = 5
+)
 
 abline(v = interven, col = "red", lty = 2)
 ```
@@ -247,7 +257,7 @@ lmtest::dwtest(df$outcome ~ df$time)
 #> 	Durbin-Watson test
 #> 
 #> data:  df$outcome ~ df$time
-#> DW = 0.00037521, p-value < 2.2e-16
+#> DW = 0.00037399, p-value < 2.2e-16
 #> alternative hypothesis: true autocorrelation is greater than 0
 ```
 
@@ -257,17 +267,17 @@ A solution to this problem is to use more advanced time series analysis (e.g., A
 
 
 ```r
-forecast::auto.arima(df$outcome, xreg = as.matrix(df[, -1]))
+forecast::auto.arima(df$outcome, xreg = as.matrix(df[,-1]))
 #> Series: df$outcome 
-#> Regression with ARIMA(0,0,0) errors 
+#> Regression with ARIMA(0,0,1) errors 
 #> 
 #> Coefficients:
-#>       intercept     time  treatment  timesincetreat
-#>          9.8428  15.0015    20.0349         24.9979
-#> s.e.     0.1401   0.0012     0.2078          0.0020
+#>          ma1  intercept     time  treatment  timesincetreat
+#>       0.1287    10.1668  14.9992    19.9872         25.0001
+#> s.e.  0.0521     0.1572   0.0014     0.2328          0.0023
 #> 
-#> sigma^2 = 0.9849:  log likelihood = -513.13
-#> AIC=1036.25   AICc=1036.42   BIC=1055.75
+#> sigma^2 = 0.9784:  log likelihood = -511.42
+#> AIC=1034.84   AICc=1035.08   BIC=1058.24
 ```
 
 ## Multiple Groups
@@ -277,8 +287,11 @@ When you suspect that you might have confounding events or selection bias, you c
 The model then becomes
 
 $$
-Y = \beta_0 + \beta_1 time+ \beta_2 treatment +\beta_3 * timesincetreat + \\
-\beta_4 group + \beta_5 group * time + \beta_6 group * treatment + \beta_7 group * timesincetreat
+\begin{aligned}
+Y = \beta_0 &+ \beta_1 time+ \beta_2 treatment +\beta_3 \times timesincetreat \\
+&+\beta_4 group + \beta_5 group \times time + \beta_6 group \times treatment \\
+&+ \beta_7 group \times timesincetreat
+\end{aligned}
 $$
 
 where

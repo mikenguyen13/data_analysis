@@ -31,8 +31,10 @@ Power: The probability of rejecting the null hypothesis when it is actually fals
 -   Two-sided
 
 $$
-H_0: \beta_j = 0 \\
-H_1: \beta_j \neq 0 
+\begin{aligned}
+&H_0: \beta_j = 0 \\
+&H_1: \beta_j \neq 0 
+\end{aligned}
 $$
 
 then under the null, the OLS estimator has the following distribution
@@ -45,8 +47,10 @@ $$
 -   One-sided
 
 $$
-H_0: \beta_j\ge 0 \\
-H_1: \beta_j < 0 
+\begin{aligned}
+&H_0: \beta_j\ge 0 \\
+&H_1: \beta_j < 0 
+\end{aligned}
 $$
 
 then the hardest null value to prove is $H_0: \beta_j=0$. Then under this specific null, the OLS estimator has the following asymptotic distribution
@@ -67,9 +71,16 @@ Assume that our likelihood function for q is $L(q) = q^{30}(1-q)^{70}$ **Likelih
 
 
 ```r
-q = seq(0,1,length=100)
-L= function(q){q^30 * (1-q)^70}
-plot(q,L(q),ylab="L(q)",xlab="q",type="l")
+q = seq(0, 1, length = 100)
+L = function(q) {
+    q ^ 30 * (1 - q) ^ 70
+}
+
+plot(q,
+     L(q),
+     ylab = "L(q)",
+     xlab = "q",
+     type = "l")
 ```
 
 <img src="14-hypothesis_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
@@ -78,10 +89,16 @@ plot(q,L(q),ylab="L(q)",xlab="q",type="l")
 
 
 ```r
-q = seq(0,1,length=100)
-l= function(q){30*log(q) + 70 * log(1-q)}
-plot(q,l(q)-l(0.3),ylab="l(q) - l(qhat)",xlab="q",type="l")
-abline(v=0.2)
+q = seq(0, 1, length = 100)
+l = function(q) {
+    30 * log(q) + 70 * log(1 - q)
+}
+plot(q,
+     l(q) - l(0.3),
+     ylab = "l(q) - l(qhat)",
+     xlab = "q",
+     type = "l")
+abline(v = 0.2)
 ```
 
 <img src="14-hypothesis_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
@@ -95,8 +112,10 @@ typically, [The likelihood ratio test] (and [Lagrange Multiplier (Score)](#lagra
 ## Wald test
 
 $$
-W = (\hat{\theta}-\theta_0)'[cov(\hat{\theta})]^{-1}(\hat{\theta}-\theta_0) \\
-W \sim \chi_q^2
+\begin{aligned}
+W &= (\hat{\theta}-\theta_0)'[cov(\hat{\theta})]^{-1}(\hat{\theta}-\theta_0) \\
+W &\sim \chi_q^2
+\end{aligned}
 $$
 
 where $cov(\hat{\theta})$ is given by the inverse Fisher Information matrix evaluated at $\hat{\theta}$ and q is the rank of $cov(\hat{\theta})$, which is the number of non-redundant parameters in $\theta$
@@ -148,16 +167,17 @@ Evaluating Test Statistic: determine whether or not we reject or fail to reject 
 
 Three equivalent ways
 
-1.  Critical Value\
+1.  Critical Value
 
-2.  P-value\
+2.  P-value
 
 3.  Confidence Interval
 
-4.  Critical Value
+1.  Critical Value
 
-For a given significance level, will determine the critical value (c)\
-\* One-sided: $H_0: \beta_j \ge \beta_{j0}$
+For a given significance level, will determine the critical value $(c)$
+
+-   One-sided: $H_0: \beta_j \ge \beta_{j0}$
 
 $$
 P(T<c|H_0)=\alpha
@@ -173,7 +193,7 @@ $$
 
 Reject the null if $t>c$
 
--   TWo-sided: $H_0: \beta_j \neq \beta_{j0}$
+-   Two-sided: $H_0: \beta_j \neq \beta_{j0}$
 
 $$
 P(|T|>c|H_0)=\alpha
@@ -255,7 +275,7 @@ $$
 
 Null hypothesis is $H_0: \beta_1 = 0$ & $\beta_2=0$ can be rewritten as $H_0: \mathbf{R}\beta -\mathbf{q}=0$ where
 
--   $\mathbf{R}$ is a m x k matrix where m is the number of restrictions and k is the number of parameters. $\mathbf{q}$ is a k x 1 vector
+-   $\mathbf{R}$ is a $m \times k$ matrix where m is the number of restrictions and $k$ is the number of parameters. $\mathbf{q}$ is a $k \times 1$ vector
 -   $\mathbf{R}$ "picks up" the relevant parameters while $\mathbf{q}$ is a the null value of the parameter
 
 $$
@@ -286,18 +306,20 @@ $$
     -   if [A4][A4 Homoskedasticity] holds, both the homoskedastic and heteroskedastic versions produce valid estimator
     -   If [A4][A4 Homoskedasticity] does not hold, only the heteroskedastic version produces valid estimators.
 
--   When m = 1, there is only a single restriction, then the F-statistic is the t-statistic squared.
+-   When $m = 1$, there is only a single restriction, then the $F$-statistic is the $t$-statistic squared.
 
--   F distribution is strictly positive, check [F-Distribution] for more details.
+-   $F$ distribution is strictly positive, check [F-Distribution] for more details.
 
 ### Linear Combination
 
 Testing multiple parameters as the same time
 
 $$
-H_0: \beta_1 -\beta_2 = 0 \\
-H_0: \beta_1 - \beta_2 > 0 \\
-H_0: \beta_1 - 2*\beta_2 =0
+\begin{aligned}
+H_0&: \beta_1 -\beta_2 = 0 \\
+H_0&: \beta_1 - \beta_2 > 0 \\
+H_0&: \beta_1 - 2\times\beta_2 =0
+\end{aligned}
 $$
 
 Each is a single restriction on a function of the parameters.
@@ -325,6 +347,7 @@ There is no package to estimate for the difference between two coefficients and 
 difftest_lm <- function(x1, x2, model) {
     diffest <-
         summary(model)$coef[x1, "Estimate"] - summary(model)$coef[x2, "Estimate"]
+    
     vardiff <- (summary(model)$coef[x1, "Std. Error"] ^ 2 +
                     summary(model)$coef[x2, "Std. Error"] ^ 2) - (2 * (vcov(model)[x1, x2]))
     # variance of x1 + variance of x2 - 2*covariance of x1 and x2
@@ -332,7 +355,8 @@ difftest_lm <- function(x1, x2, model) {
     tdiff <- (diffest) / (diffse)
     ptdiff <- 2 * (1 - pt(abs(tdiff), model$df, lower.tail = T))
     upr <-
-        diffest + qt(.975, df = model$df) * diffse # will usually be very close to 1.96
+        # will usually be very close to 1.96
+        diffest + qt(.975, df = model$df) * diffse 
     lwr <- diffest + qt(.025, df = model$df) * diffse
     df <- model$df
     return(list(
@@ -409,7 +433,7 @@ $$
 \right)
 $$
 
-where the null hypothesis $H_0: \mathbf{h} (\theta) = 0$ can be tested agiasnt the 2-sided alternative with the Wald statistic
+where the null hypothesis $H_0: \mathbf{h} (\theta) = 0$ can be tested against the 2-sided alternative with the Wald statistic
 
 $$
 W = \frac{\mathbf{h(\hat{\theta})'\{H(\hat{\theta})[F(\hat{\theta})'F(\hat{\theta})]^{-1}H(\hat{\theta})'\}^{-1}h(\hat{\theta})}}{s^2q} \sim F_{q,n-p}
@@ -430,8 +454,10 @@ Alternatively,
 This test considers a ratio of two maximizations,
 
 $$
-L_r = \text{maximized value of the likelihood under $H_0$ (the reduced model)} \\
-L_f = \text{maximized value of the likelihood under $H_0 \cup H_a$ (the full model)}
+\begin{aligned}
+L_r &= \text{maximized value of the likelihood under $H_0$ (the reduced model)} \\
+L_f &= \text{maximized value of the likelihood under $H_0 \cup H_a$ (the full model)}
+\end{aligned}
 $$
 
 Then, the likelihood ratio is:
@@ -445,11 +471,13 @@ which can't exceed 1 (since $L_f$ is always at least as large as $L-r$ because $
 The likelihood ratio statistic is:
 
 $$
--2ln(\Lambda) = -2ln(L_r/L_f) = -2(l_r - l_f) \\
-\lim_{n \to \infty}(-2ln(\Lambda)) \sim \chi^2_v
+\begin{aligned}
+-2ln(\Lambda) &= -2ln(L_r/L_f) = -2(l_r - l_f) \\
+\lim_{n \to \infty}(-2ln(\Lambda)) &\sim \chi^2_v
+\end{aligned}
 $$
 
-where v is the number of parameters in the full model minus the number of parameters in the reduced model.
+where $v$ is the number of parameters in the full model minus the number of parameters in the reduced model.
 
 If $L_r$ is much smaller than $L_f$ (the likelihood ratio exceeds $\chi_{\alpha,v}^2$), then we reject he reduced model and accept the full model at $\alpha \times 100 \%$ significance level
 
@@ -459,7 +487,7 @@ $$
 t_S= \frac{S(\theta_0)^2}{I(\theta_0)} \sim \chi^2_v
 $$
 
-where v is the degree of freedom.
+where $v$ is the degree of freedom.
 
 Compare the slope of the log-likelihood of the sample estimate in relation to the slope of the log-likelihood of the hypothesized population parameter
 

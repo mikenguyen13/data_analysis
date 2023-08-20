@@ -141,7 +141,14 @@ summ(fit)
 </table>
 
 ```r
-summ(fit, scale = TRUE, vifs = TRUE, part.corr = TRUE, confint = TRUE, pvals = FALSE) #notice that scale here is TRUE
+summ(
+    fit,
+    scale = TRUE,
+    vifs = TRUE,
+    part.corr = TRUE,
+    confint = TRUE,
+    pvals = FALSE
+) # notice that scale here is TRUE
 ```
 
 <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -230,7 +237,7 @@ summ(fit, scale = TRUE, vifs = TRUE, part.corr = TRUE, confint = TRUE, pvals = F
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">
-<sup></sup> Standard errors: OLS; Continuous predictors are mean-centered and scaled by 1 s.d.</td></tr></tfoot>
+<sup></sup> Standard errors: OLS; Continuous predictors are mean-centered and scaled by 1 s.d. The outcome variable remains in its original units.</td></tr></tfoot>
 </table>
 
 ```r
@@ -419,10 +426,10 @@ msummary(lm_mod, vcov = c("iid","robust","HC4"))
    <td style="text-align:center;"> −0.942 </td>
   </tr>
   <tr>
-   <td style="text-align:left;box-shadow: 0px 1px">  </td>
-   <td style="text-align:center;box-shadow: 0px 1px"> (0.551) </td>
-   <td style="text-align:center;box-shadow: 0px 1px"> (0.573) </td>
-   <td style="text-align:center;box-shadow: 0px 1px"> (0.572) </td>
+   <td style="text-align:left;box-shadow: 0px 1.5px">  </td>
+   <td style="text-align:center;box-shadow: 0px 1.5px"> (0.551) </td>
+   <td style="text-align:center;box-shadow: 0px 1.5px"> (0.573) </td>
+   <td style="text-align:center;box-shadow: 0px 1.5px"> (0.572) </td>
   </tr>
   <tr>
    <td style="text-align:left;"> Num.Obs. </td>
@@ -497,7 +504,7 @@ library("stargazer")
 stargazer(attitude)
 #> 
 #> % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-#> % Date and time: Sat, Aug 12, 2023 - 1:09:25 PM
+#> % Date and time: Sun, Aug 20, 2023 - 3:24:03 PM
 #> \begin{table}[!htbp] \centering 
 #>   \caption{} 
 #>   \label{} 
@@ -517,10 +524,14 @@ stargazer(attitude)
 #> \end{tabular} 
 #> \end{table}
 ## 2 OLS models
-linear.1 <- lm(rating ~ complaints + privileges + learning + raises + critical,data = attitude)
-linear.2 <- lm(rating ~ complaints + privileges + learning, data = attitude)
+linear.1 <-
+    lm(rating ~ complaints + privileges + learning + raises + critical,
+       data = attitude)
+linear.2 <-
+    lm(rating ~ complaints + privileges + learning, data = attitude)
 ## create an indicator dependent variable, and run a probit model
 attitude$high.rating <- (attitude$rating > 70)
+
 probit.model <-
     glm(
         high.rating ~ learning + critical + advance,
@@ -534,7 +545,7 @@ stargazer(linear.1,
           align = TRUE)
 #> 
 #> % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-#> % Date and time: Sat, Aug 12, 2023 - 1:09:26 PM
+#> % Date and time: Sun, Aug 20, 2023 - 3:24:03 PM
 #> % Requires LaTeX packages: dcolumn 
 #> \begin{table}[!htbp] \centering 
 #>   \caption{Results} 
@@ -677,8 +688,9 @@ Correlation Table
 
 
 ```r
-correlation.matrix <- cor(attitude[,c("rating","complaints","privileges")])
-stargazer(correlation.matrix, title="Correlation Matrix")
+correlation.matrix <-
+    cor(attitude[, c("rating", "complaints", "privileges")])
+stargazer(correlation.matrix, title = "Correlation Matrix")
 ```
 
 ## Changes in an estimate
@@ -692,7 +704,12 @@ plot_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 <img src="34-report_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
-plot_summs(fit_c, robust = "HC3", coefs = coef_names, plot.distributions = TRUE)
+plot_summs(
+    fit_c,
+    robust = "HC3",
+    coefs = coef_names,
+    plot.distributions = TRUE
+)
 ```
 
 <img src="34-report_files/figure-html/unnamed-chunk-10-2.png" width="90%" style="display: block; margin: auto;" />

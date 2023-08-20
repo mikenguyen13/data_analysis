@@ -26,7 +26,7 @@ sample_n(iris_df, 10)
 
 ```r
 library(sampling)
-# set unique id number for each row 
+# set unique id number for each row
 iris_df$id = 1:nrow(iris_df)
 
 # Simple random sampling with replacement

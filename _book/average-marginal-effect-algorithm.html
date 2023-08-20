@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>15.2 Average Marginal Effect Algorithm | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.34 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.35 and GitBook 2.6.7" />
 
   <meta property="og:title" content="15.2 Average Marginal Effect Algorithm | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2023-08-12" />
+<meta name="date" content="2023-08-20" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -303,7 +303,7 @@ div.csl-indent {
 </ul></li>
 <li class="chapter" data-level="5.3" data-path="weighted-least-squares.html"><a href="weighted-least-squares.html"><i class="fa fa-check"></i><b>5.3</b> Weighted Least Squares</a></li>
 <li class="chapter" data-level="5.4" data-path="generalized-least-squares.html"><a href="generalized-least-squares.html"><i class="fa fa-check"></i><b>5.4</b> Generalized Least Squares</a></li>
-<li class="chapter" data-level="5.5" data-path="feasiable-prais-winsten.html"><a href="feasiable-prais-winsten.html"><i class="fa fa-check"></i><b>5.5</b> Feasiable Prais Winsten</a></li>
+<li class="chapter" data-level="5.5" data-path="feasiable-prais-winsten.html"><a href="feasiable-prais-winsten.html"><i class="fa fa-check"></i><b>5.5</b> Feasible Prais Winsten</a></li>
 <li class="chapter" data-level="5.6" data-path="feasible-group-level-random-effects.html"><a href="feasible-group-level-random-effects.html"><i class="fa fa-check"></i><b>5.6</b> Feasible group level Random Effects</a></li>
 <li class="chapter" data-level="5.7" data-path="ridge-regression.html"><a href="ridge-regression.html"><i class="fa fa-check"></i><b>5.7</b> Ridge Regression</a></li>
 <li class="chapter" data-level="5.8" data-path="principal-component-regression.html"><a href="principal-component-regression.html"><i class="fa fa-check"></i><b>5.8</b> Principal Component Regression</a></li>
@@ -937,37 +937,50 @@ div.csl-indent {
 </ol></li>
 <li>Average numerical derivative is <span class="math inline">\(E[\frac{\bar{Y}_{i1} - \bar{Y}_{i2}}{2h}] \approx \frac{\partial p (Y|\mathbf{X}, \beta)}{\partial X}\)</span></li>
 </ol>
-<div class="sourceCode" id="cb300"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb300-1"><a href="average-marginal-effect-algorithm.html#cb300-1" tabindex="-1"></a><span class="fu">library</span>(margins)</span>
-<span id="cb300-2"><a href="average-marginal-effect-algorithm.html#cb300-2" tabindex="-1"></a></span>
-<span id="cb300-3"><a href="average-marginal-effect-algorithm.html#cb300-3" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;mtcars&quot;</span>)</span>
-<span id="cb300-4"><a href="average-marginal-effect-algorithm.html#cb300-4" tabindex="-1"></a>mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(mpg <span class="sc">~</span> cyl <span class="sc">*</span> disp <span class="sc">*</span> hp, <span class="at">data =</span> mtcars)</span>
-<span id="cb300-5"><a href="average-marginal-effect-algorithm.html#cb300-5" tabindex="-1"></a>margins<span class="sc">::</span><span class="fu">margins</span>(mod) <span class="sc">%&gt;%</span> <span class="fu">summary</span>()</span>
-<span id="cb300-6"><a href="average-marginal-effect-algorithm.html#cb300-6" tabindex="-1"></a><span class="co">#&gt;  factor     AME     SE       z      p    lower   upper</span></span>
-<span id="cb300-7"><a href="average-marginal-effect-algorithm.html#cb300-7" tabindex="-1"></a><span class="co">#&gt;     cyl -4.0592 3.7614 -1.0792 0.2805 -11.4313  3.3130</span></span>
-<span id="cb300-8"><a href="average-marginal-effect-algorithm.html#cb300-8" tabindex="-1"></a><span class="co">#&gt;    disp -0.0350 0.0132 -2.6473 0.0081  -0.0610 -0.0091</span></span>
-<span id="cb300-9"><a href="average-marginal-effect-algorithm.html#cb300-9" tabindex="-1"></a><span class="co">#&gt;      hp -0.0284 0.0185 -1.5348 0.1248  -0.0647  0.0079</span></span>
-<span id="cb300-10"><a href="average-marginal-effect-algorithm.html#cb300-10" tabindex="-1"></a></span>
-<span id="cb300-11"><a href="average-marginal-effect-algorithm.html#cb300-11" tabindex="-1"></a><span class="co"># function for variable</span></span>
-<span id="cb300-12"><a href="average-marginal-effect-algorithm.html#cb300-12" tabindex="-1"></a>get_mae <span class="ot">&lt;-</span> <span class="cf">function</span>(mod, <span class="at">var =</span> <span class="st">&quot;disp&quot;</span>) {</span>
-<span id="cb300-13"><a href="average-marginal-effect-algorithm.html#cb300-13" tabindex="-1"></a>    data <span class="ot">=</span> mod<span class="sc">$</span>model</span>
-<span id="cb300-14"><a href="average-marginal-effect-algorithm.html#cb300-14" tabindex="-1"></a>    </span>
-<span id="cb300-15"><a href="average-marginal-effect-algorithm.html#cb300-15" tabindex="-1"></a>    pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(mod)</span>
-<span id="cb300-16"><a href="average-marginal-effect-algorithm.html#cb300-16" tabindex="-1"></a>    </span>
-<span id="cb300-17"><a href="average-marginal-effect-algorithm.html#cb300-17" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">class</span>(mod<span class="sc">$</span>model[[{{var}}]]) <span class="sc">==</span> <span class="st">&quot;numeric&quot;</span>) {</span>
-<span id="cb300-18"><a href="average-marginal-effect-algorithm.html#cb300-18" tabindex="-1"></a>        h <span class="ot">=</span> (<span class="fu">abs</span>(<span class="fu">mean</span>(mod<span class="sc">$</span>model[[var]])) <span class="sc">+</span> <span class="fl">0.01</span>) <span class="sc">*</span> <span class="fl">0.01</span></span>
-<span id="cb300-19"><a href="average-marginal-effect-algorithm.html#cb300-19" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
-<span id="cb300-20"><a href="average-marginal-effect-algorithm.html#cb300-20" tabindex="-1"></a>        h <span class="ot">=</span> <span class="dv">1</span></span>
-<span id="cb300-21"><a href="average-marginal-effect-algorithm.html#cb300-21" tabindex="-1"></a>    }</span>
-<span id="cb300-22"><a href="average-marginal-effect-algorithm.html#cb300-22" tabindex="-1"></a>    </span>
-<span id="cb300-23"><a href="average-marginal-effect-algorithm.html#cb300-23" tabindex="-1"></a>    data[[{{var}}]] <span class="ot">&lt;-</span> data[[{{var}}]] <span class="sc">-</span> h</span>
-<span id="cb300-24"><a href="average-marginal-effect-algorithm.html#cb300-24" tabindex="-1"></a>    </span>
-<span id="cb300-25"><a href="average-marginal-effect-algorithm.html#cb300-25" tabindex="-1"></a>    pred_new <span class="ot">&lt;-</span> <span class="fu">predict</span>(mod, <span class="at">newdata =</span> data)</span>
-<span id="cb300-26"><a href="average-marginal-effect-algorithm.html#cb300-26" tabindex="-1"></a>    </span>
-<span id="cb300-27"><a href="average-marginal-effect-algorithm.html#cb300-27" tabindex="-1"></a>    <span class="fu">mean</span>(pred <span class="sc">-</span> pred_new)<span class="sc">/</span>h</span>
-<span id="cb300-28"><a href="average-marginal-effect-algorithm.html#cb300-28" tabindex="-1"></a>}</span>
-<span id="cb300-29"><a href="average-marginal-effect-algorithm.html#cb300-29" tabindex="-1"></a></span>
-<span id="cb300-30"><a href="average-marginal-effect-algorithm.html#cb300-30" tabindex="-1"></a><span class="fu">get_mae</span>(mod, <span class="at">var =</span> <span class="st">&quot;disp&quot;</span>)</span>
-<span id="cb300-31"><a href="average-marginal-effect-algorithm.html#cb300-31" tabindex="-1"></a><span class="co">#&gt; [1] -0.03504546</span></span></code></pre></div>
+<div class="sourceCode" id="cb303"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb303-1"><a href="average-marginal-effect-algorithm.html#cb303-1" tabindex="-1"></a><span class="fu">library</span>(margins)</span>
+<span id="cb303-2"><a href="average-marginal-effect-algorithm.html#cb303-2" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb303-3"><a href="average-marginal-effect-algorithm.html#cb303-3" tabindex="-1"></a></span>
+<span id="cb303-4"><a href="average-marginal-effect-algorithm.html#cb303-4" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;mtcars&quot;</span>)</span>
+<span id="cb303-5"><a href="average-marginal-effect-algorithm.html#cb303-5" tabindex="-1"></a>mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(mpg <span class="sc">~</span> cyl <span class="sc">*</span> disp <span class="sc">*</span> hp, <span class="at">data =</span> mtcars)</span>
+<span id="cb303-6"><a href="average-marginal-effect-algorithm.html#cb303-6" tabindex="-1"></a>margins<span class="sc">::</span><span class="fu">margins</span>(mod) <span class="sc">%&gt;%</span> <span class="fu">summary</span>()</span>
+<span id="cb303-7"><a href="average-marginal-effect-algorithm.html#cb303-7" tabindex="-1"></a><span class="co">#&gt;  factor     AME     SE       z      p    lower   upper</span></span>
+<span id="cb303-8"><a href="average-marginal-effect-algorithm.html#cb303-8" tabindex="-1"></a><span class="co">#&gt;     cyl -4.0592 3.7614 -1.0792 0.2805 -11.4313  3.3130</span></span>
+<span id="cb303-9"><a href="average-marginal-effect-algorithm.html#cb303-9" tabindex="-1"></a><span class="co">#&gt;    disp -0.0350 0.0132 -2.6473 0.0081  -0.0610 -0.0091</span></span>
+<span id="cb303-10"><a href="average-marginal-effect-algorithm.html#cb303-10" tabindex="-1"></a><span class="co">#&gt;      hp -0.0284 0.0185 -1.5348 0.1248  -0.0647  0.0079</span></span>
+<span id="cb303-11"><a href="average-marginal-effect-algorithm.html#cb303-11" tabindex="-1"></a></span>
+<span id="cb303-12"><a href="average-marginal-effect-algorithm.html#cb303-12" tabindex="-1"></a><span class="co"># function for variable</span></span>
+<span id="cb303-13"><a href="average-marginal-effect-algorithm.html#cb303-13" tabindex="-1"></a>get_mae <span class="ot">&lt;-</span> <span class="cf">function</span>(mod, <span class="at">var =</span> <span class="st">&quot;disp&quot;</span>) {</span>
+<span id="cb303-14"><a href="average-marginal-effect-algorithm.html#cb303-14" tabindex="-1"></a>    data <span class="ot">=</span> mod<span class="sc">$</span>model</span>
+<span id="cb303-15"><a href="average-marginal-effect-algorithm.html#cb303-15" tabindex="-1"></a>    </span>
+<span id="cb303-16"><a href="average-marginal-effect-algorithm.html#cb303-16" tabindex="-1"></a>    pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(mod)</span>
+<span id="cb303-17"><a href="average-marginal-effect-algorithm.html#cb303-17" tabindex="-1"></a>    </span>
+<span id="cb303-18"><a href="average-marginal-effect-algorithm.html#cb303-18" tabindex="-1"></a>    <span class="cf">if</span> (<span class="fu">class</span>(mod<span class="sc">$</span>model[[{</span>
+<span id="cb303-19"><a href="average-marginal-effect-algorithm.html#cb303-19" tabindex="-1"></a>        {</span>
+<span id="cb303-20"><a href="average-marginal-effect-algorithm.html#cb303-20" tabindex="-1"></a>            var</span>
+<span id="cb303-21"><a href="average-marginal-effect-algorithm.html#cb303-21" tabindex="-1"></a>        }</span>
+<span id="cb303-22"><a href="average-marginal-effect-algorithm.html#cb303-22" tabindex="-1"></a>    }]]) <span class="sc">==</span> <span class="st">&quot;numeric&quot;</span>) {</span>
+<span id="cb303-23"><a href="average-marginal-effect-algorithm.html#cb303-23" tabindex="-1"></a>        h <span class="ot">=</span> (<span class="fu">abs</span>(<span class="fu">mean</span>(mod<span class="sc">$</span>model[[var]])) <span class="sc">+</span> <span class="fl">0.01</span>) <span class="sc">*</span> <span class="fl">0.01</span></span>
+<span id="cb303-24"><a href="average-marginal-effect-algorithm.html#cb303-24" tabindex="-1"></a>    } <span class="cf">else</span> {</span>
+<span id="cb303-25"><a href="average-marginal-effect-algorithm.html#cb303-25" tabindex="-1"></a>        h <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb303-26"><a href="average-marginal-effect-algorithm.html#cb303-26" tabindex="-1"></a>    }</span>
+<span id="cb303-27"><a href="average-marginal-effect-algorithm.html#cb303-27" tabindex="-1"></a>    </span>
+<span id="cb303-28"><a href="average-marginal-effect-algorithm.html#cb303-28" tabindex="-1"></a>    data[[{</span>
+<span id="cb303-29"><a href="average-marginal-effect-algorithm.html#cb303-29" tabindex="-1"></a>        {</span>
+<span id="cb303-30"><a href="average-marginal-effect-algorithm.html#cb303-30" tabindex="-1"></a>            var</span>
+<span id="cb303-31"><a href="average-marginal-effect-algorithm.html#cb303-31" tabindex="-1"></a>        }</span>
+<span id="cb303-32"><a href="average-marginal-effect-algorithm.html#cb303-32" tabindex="-1"></a>    }]] <span class="ot">&lt;-</span> data[[{</span>
+<span id="cb303-33"><a href="average-marginal-effect-algorithm.html#cb303-33" tabindex="-1"></a>{</span>
+<span id="cb303-34"><a href="average-marginal-effect-algorithm.html#cb303-34" tabindex="-1"></a>var</span>
+<span id="cb303-35"><a href="average-marginal-effect-algorithm.html#cb303-35" tabindex="-1"></a>}</span>
+<span id="cb303-36"><a href="average-marginal-effect-algorithm.html#cb303-36" tabindex="-1"></a>}]] <span class="sc">-</span> h</span>
+<span id="cb303-37"><a href="average-marginal-effect-algorithm.html#cb303-37" tabindex="-1"></a></span>
+<span id="cb303-38"><a href="average-marginal-effect-algorithm.html#cb303-38" tabindex="-1"></a>    pred_new <span class="ot">&lt;-</span> <span class="fu">predict</span>(mod, <span class="at">newdata =</span> data)</span>
+<span id="cb303-39"><a href="average-marginal-effect-algorithm.html#cb303-39" tabindex="-1"></a></span>
+<span id="cb303-40"><a href="average-marginal-effect-algorithm.html#cb303-40" tabindex="-1"></a>    <span class="fu">mean</span>(pred <span class="sc">-</span> pred_new) <span class="sc">/</span> h</span>
+<span id="cb303-41"><a href="average-marginal-effect-algorithm.html#cb303-41" tabindex="-1"></a>}</span>
+<span id="cb303-42"><a href="average-marginal-effect-algorithm.html#cb303-42" tabindex="-1"></a></span>
+<span id="cb303-43"><a href="average-marginal-effect-algorithm.html#cb303-43" tabindex="-1"></a><span class="fu">get_mae</span>(mod, <span class="at">var =</span> <span class="st">&quot;disp&quot;</span>)</span>
+<span id="cb303-44"><a href="average-marginal-effect-algorithm.html#cb303-44" tabindex="-1"></a><span class="co">#&gt; [1] -0.03504546</span></span></code></pre></div>
 </div>
             </section>
 

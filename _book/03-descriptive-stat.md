@@ -2,7 +2,7 @@
 
 When you have an area of interest that you want to research, a problem that you want to solve, a relationship that you want to investigate, theoretical and empirical processes will help you.
 
-Estimand is defined as "a quantity of scientific interest that can be calculated in the population and does not change its value depending on the data collection design used to measure it (i.e., it does not vary with sample size and survey design, or the number of nonrespondents, or follow-up efforts)." [@Rubin_1996]
+Estimand is defined as "a quantity of scientific interest that can be calculated in the population and does not change its value depending on the data collection design used to measure it (i.e., it does not vary with sample size and survey design, or the number of non-respondents, or follow-up efforts)." [@Rubin_1996]
 
 Estimands include:
 
@@ -16,29 +16,31 @@ Estimands include:
 
 There are differences between a population and a sample
 
-+------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
-| Measures of      | Category                                                                  | Population                                                                            | Sample                                                                                                               |
-+==================+===========================================================================+=======================================================================================+======================================================================================================================+
-| \-               | What is it?                                                               | Reality                                                                               | A small fraction of reality (inference)                                                                              |
-+------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
-| \-               | Characteristics described by                                              | Parameters                                                                            | Statistics                                                                                                           |
-+------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
-| Central Tendency | Mean                                                                      | $\mu = E(Y)$                                                                          | $\hat{\mu} = \overline{y}$                                                                                           |
-+------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
-| Central Tendency | Median                                                                    | 50-th percentile                                                                      | $y_{(\frac{n+1}{2})}$                                                                                                |
-+------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
-| Dispersion       | Variance                                                                  | $\sigma^2=var(Y)$  $=E(Y-\mu)^2$                                                      | $s^2=\frac{1}{n-1} \sum_{i = 1}^{n} (y_i-\overline{y})^2$  $=\frac{1}{n-1} \sum_{i = 1}^{n} (y_i^2-n\overline{y}^2)$ |
-+------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
-| Dispersion       | Coefficient of Variation                                                  | $\frac{\sigma}{\mu}$                                                                  | $\frac{s}{\overline{y}}$                                                                                             |
-+------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
-| Dispersion       | Interquartile Range                                                       | difference between 25th and 75th percentiles. Robust to outliers                      |                                                                                                                      |
-+------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
-| Shape            | Skewness  Standardized 3rd central moment (unitless)                      | $g_1=\frac{\mu_3}{\mu_2^{3/2}}$                                                       | $\hat{g_1}=\frac{m_3}{m_2sqrt(m_2)}$                                                                                 |
-+------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
-| Shape            | Central moments                                                           | $\mu=E(Y)$  $\mu_2 = \sigma^2=E(Y-\mu)^2$  $\mu_3 = E(Y-\mu)^3$  $\mu_4 = E(Y-\mu)^4$ | $m_2=\sum_{i=1}^{n}(y_1-\overline{y})^2/n$   $m_3=\sum_{i=1}^{n}(y_1-\overline{y})^3/n$                              |
-+------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
-| Shape            | Kurtosis (peakedness and tail thickness)  Standardized 4th central moment | $g_2^*=\frac{E(Y-\mu)^4}{\sigma^4}$                                                   | $\hat{g_2}=\frac{m_4}{m_2^2}-3$                                                                                      |
-+------------------+---------------------------------------------------------------------------+---------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------+
++------------------+--------------------------------------------------------------------------+----------------------------------------------------------------------------------------+------------------------------------------------------------+
+| Measures of      | Category                                                                 | Population                                                                             | Sample                                                     |
++==================+==========================================================================+========================================================================================+============================================================+
+| \-               | What is it?                                                              | Reality                                                                                | A small fraction of reality (inference)                    |
++------------------+--------------------------------------------------------------------------+----------------------------------------------------------------------------------------+------------------------------------------------------------+
+| \-               | Characteristics described by                                             | Parameters                                                                             | Statistics                                                 |
++------------------+--------------------------------------------------------------------------+----------------------------------------------------------------------------------------+------------------------------------------------------------+
+| Central Tendency | Mean                                                                     | $\mu = E(Y)$                                                                           | $\hat{\mu} = \overline{y}$                                 |
++------------------+--------------------------------------------------------------------------+----------------------------------------------------------------------------------------+------------------------------------------------------------+
+| Central Tendency | Median                                                                   | 50-th percentile                                                                       | $y_{(\frac{n+1}{2})}$                                      |
++------------------+--------------------------------------------------------------------------+----------------------------------------------------------------------------------------+------------------------------------------------------------+
+| Dispersion       | Variance                                                                 | $$\begin{aligned} \sigma^2 &= var(Y) \\ &= E(Y- \mu^2) \end{aligned}$$                 | $s^2=\frac{1}{n-1} \sum_{i = 1}^{n} (y_i-\overline{y})^2$  |
++------------------+--------------------------------------------------------------------------+----------------------------------------------------------------------------------------+------------------------------------------------------------+
+| Dispersion       | Coefficient of Variation                                                 | $\frac{\sigma}{\mu}$                                                                   | $\frac{s}{\overline{y}}$                                   |
++------------------+--------------------------------------------------------------------------+----------------------------------------------------------------------------------------+------------------------------------------------------------+
+| Dispersion       | Interquartile Range                                                      | difference between 25th and 75th percentiles. Robust to outliers                       |                                                            |
++------------------+--------------------------------------------------------------------------+----------------------------------------------------------------------------------------+------------------------------------------------------------+
+| Shape            | Skewness Standardized 3rd central moment (unitless)                      | $g_1=\frac{\mu_3}{\mu_2^{3/2}}$                                                        | $\hat{g_1}=\frac{m_3}{m_2sqrt(m_2)}$                       |
++------------------+--------------------------------------------------------------------------+----------------------------------------------------------------------------------------+------------------------------------------------------------+
+| Shape            | Central moments                                                          | $\mu=E(Y)$ $\mu_2 = \sigma^2=E(Y-\mu)^2$ $\mu_3 = E(Y-\mu)^3$ $\mu_4 = E(Y-\mu)^4$ \|  | $m_2=\sum_{i=1}^{n}(y_1-\overline{y})^2/n$                 |
+|                  |                                                                          |                                                                                        |                                                            |
+|                  |                                                                          |                                                                                        | $m_3=\sum_{i=1}^{n}(y_1-\overline{y})^3/n$                 |
++------------------+--------------------------------------------------------------------------+----------------------------------------------------------------------------------------+------------------------------------------------------------+
+| Shape            | Kurtosis (peakedness and tail thickness) Standardized 4th central moment | $g_2^*=\frac{E(Y-\mu)^4}{\sigma^4}$                                                    | $\hat{g_2}=\frac{m_4}{m_2^2}-3$                            |
++------------------+--------------------------------------------------------------------------+----------------------------------------------------------------------------------------+------------------------------------------------------------+
 
 Note:
 
@@ -56,7 +58,7 @@ Note:
 
 -   For normal distributions, $\mu_3=0$, so $g_1=0$
 
--   $\hat{g_1}$ is distributed approximately as N(0,6/n) if sample is from a normal population. (valid when n \> 150)
+-   $\hat{g_1}$ is distributed approximately as $N(0,6/n)$ if sample is from a normal population. (valid when $n > 150$)
 
     -   For large samples, inference on skewness can be based on normal tables with 95% confidence interval for $g_1$ as $\hat{g_1}\pm1.96\sqrt{6/n}$
     -   For small samples, special tables from Snedecor and Cochran 1989, Table A 19(i) or Monte Carlo test
@@ -69,7 +71,7 @@ Note:
 
 -   For a normal distribution, $g_2^*=3$. Kurtosis is often redefined as: $g_2=\frac{E(Y-\mu)^4}{\sigma^4}-3$ where the 4th central moment is estimated by $m_4=\sum_{i=1}^{n}(y_i-\overline{y})^4/n$
 
-    -   the asymptotic sampling distribution for $\hat{g_2}$ is approximately N(0,24/n) (with n \> 1000)
+    -   the asymptotic sampling distribution for $\hat{g_2}$ is approximately $N(0,24/n)$ (with $n > 1000$)
     -   large sample on kurtosis uses standard normal tables
     -   small sample uses tables by Snedecor and Cochran, 1989, Table A 19(ii) or Geary 1936
 
@@ -78,10 +80,9 @@ Note:
 data = rnorm(100)
 library(e1071)
 skewness(data)
-#> [1] -0.5355748
-
+#> [1] 0.04265524
 kurtosis(data)
-#> [1] 1.011239
+#> [1] -0.3776931
 ```
 
 ## Graphical Measures
@@ -193,7 +194,7 @@ $$\hat{p}=\frac{\sum_{i-1}^{n}(y_i-\bar{y})(x_i-\bar{x})}{(\sum_{i=1}^{n}(y_{i}-
 ```r
 library("EnvStats")
 gofTest(data,test="ppcc")$p.value #Probability Plot Correlation Coefficient 
-#> [1] 0.2241222
+#> [1] 0.6205284
 ```
 
 ##### Shapiro-Wilk Test
@@ -209,7 +210,7 @@ where $a_1,..,a_n$ are weights computed from the covariance matrix for the order
 
 ```r
 gofTest(data,test="sw")$p.value #Shapiro-Wilk is the default.
-#> [1] 0.1965936
+#> [1] 0.5488102
 ```
 
 #### Methods based on empirical cumulative distribution function
@@ -230,9 +231,7 @@ plot.ecdf(data,verticals = T, do.points=F)
 
 ##### Anderson-Darling Test
 
-[@Anderson_1952]
-
-The Anderson-Darling statistic:
+The Anderson-Darling statistic [@Anderson_1952]:
 
 $$A^2=\int_{-\infty}^{\infty}(F_n(t)=F(t))^2\frac{dF(t)}{F(t)(1-F(t))}$$
 
@@ -266,7 +265,7 @@ Consult [@Stephens_1974] for more detailed transformation and critical values.
 
 ```r
 gofTest(data,test="ad")$p.value #Anderson-Darling
-#> [1] 0.4199391
+#> [1] 0.5593503
 ```
 
 ##### Kolmogorov-Smirnov Test
@@ -277,7 +276,7 @@ gofTest(data,test="ad")$p.value #Anderson-Darling
 
 ```r
 gofTest(data,test="ks")$p.value #Komogorov-Smirnov 
-#> [1] 0.9433557
+#> [1] 0.9496145
 ```
 
 ##### Cramer-von Mises Test
@@ -287,7 +286,7 @@ gofTest(data,test="ks")$p.value #Komogorov-Smirnov
 
 ```r
 gofTest(data,test="cvm")$p.value #Cramer-von Mises
-#> [1] 0.5611566
+#> [1] 0.6239709
 ```
 
 ##### Jarque--Bera Test {#jarquebera-test}
@@ -296,7 +295,7 @@ gofTest(data,test="cvm")$p.value #Cramer-von Mises
 
 Based on the skewness and kurtosis to test normality.
 
-$JB = \frac{n}{6}(S^2+(K-3)^2/4)$ where S is the sample skewness and K is the sample kurtosis
+$JB = \frac{n}{6}(S^2+(K-3)^2/4)$ where $S$ is the sample skewness and $K$ is the sample kurtosis
 
 $S=\frac{\hat{\mu_3}}{\hat{\sigma}^3}=\frac{\sum_{i=1}^{n}(x_i-\bar{x})^3/n}{(\sum_{i=1}^{n}(x_i-\bar{x})^2/n)^\frac{3}{2}}$
 
@@ -316,43 +315,41 @@ Correlation between
 -   [Two Discrete] variables
 -   [Categorical and Continuous]
 
-+---------------+------------------------------+------------------------+
-|               | Categorical                  | Continuous             |
-+===============+==============================+========================+
-| Categorical   | [Phi coefficient]            |                        |
-|               |                              |                        |
-|               | [Cramer's V]                 |                        |
-|               |                              |                        |
-|               | [Tschuprow's T]              |                        |
-|               |                              |                        |
-|               | [Freeman's Theta]            |                        |
-|               |                              |                        |
-|               | [Epsilon-squared]            |                        |
-|               |                              |                        |
-|               | $$Goodman Kruskal's Lambda$$ |                        |
-|               |                              |                        |
-|               | [Somers' D]                  |                        |
-|               |                              |                        |
-|               | [Kendall's Tau-b]            |                        |
-|               |                              |                        |
-|               | [Yule's Q and Y]             |                        |
-|               |                              |                        |
-|               | [Tetrachoric Correlation]    |                        |
-|               |                              |                        |
-|               | [Polychoric Correlation]     |                        |
-+---------------+------------------------------+------------------------+
-| Continuous    | [Point-Biserial Correlation] | [Pearson Correlation]  |
-|               |                              |                        |
-|               | [Logistic Regression]        | [Spearman Correlation] |
-+---------------+------------------------------+------------------------+
++-----------------+----------------------------------------------------+------------------------+
+|                 | Categorical                                        | Continuous             |
++=================+====================================================+========================+
+| **Categorical** | [Phi coefficient]                                  |                        |
+|                 |                                                    |                        |
+|                 | [Cramer's V](#cramers-v)                           |                        |
+|                 |                                                    |                        |
+|                 | [Tschuprow's T](#tschuprows-t)                     |                        |
+|                 |                                                    |                        |
+|                 | [Freeman's Theta](#freemans-theta)                 |                        |
+|                 |                                                    |                        |
+|                 | [Epsilon-squared]                                  |                        |
+|                 |                                                    |                        |
+|                 | [Goodman Kruskal's Gamma](#goodman-kruskals-gamma) |                        |
+|                 |                                                    |                        |
+|                 | [Somers' D](#somers-d)                             |                        |
+|                 |                                                    |                        |
+|                 | [Kendall's Tau-b](#kendalls-tau-b)                 |                        |
+|                 |                                                    |                        |
+|                 | [Yule's Q and Y](#yules-q-and-y)                   |                        |
+|                 |                                                    |                        |
+|                 | [Tetrachoric Correlation]                          |                        |
+|                 |                                                    |                        |
+|                 | [Polychoric Correlation]                           |                        |
++-----------------+----------------------------------------------------+------------------------+
+| **Continuous**  | [Point-Biserial Correlation]                       | [Pearson Correlation]  |
+|                 |                                                    |                        |
+|                 | [Logistic Regression]                              | [Spearman Correlation] |
++-----------------+----------------------------------------------------+------------------------+
 
 Questions to keep in mind:
 
 1.  Is the relationship linear or non-linear?
 2.  If the variable is continuous, is it normal and homoskadastic?
 3.  How big is your dataset?
-
-<br>
 
 ## Two Continuous
 
@@ -372,17 +369,17 @@ data = data.frame(A = sample(1:20, replace = TRUE, size = n),
 ```r
 library(Hmisc)
 rcorr(data$A, data$B, type="pearson") 
-#>       x     y
-#> x  1.00 -0.04
-#> y -0.04  1.00
+#>     x   y
+#> x 1.0 0.1
+#> y 0.1 1.0
 #> 
 #> n= 100 
 #> 
 #> 
 #> P
 #>   x      y     
-#> x        0.6661
-#> y 0.6661
+#> x        0.3288
+#> y 0.3288
 ```
 
 ### Spearman Correlation
@@ -391,17 +388,17 @@ rcorr(data$A, data$B, type="pearson")
 ```r
 library(Hmisc)
 rcorr(data$A, data$B, type="spearman") 
-#>       x     y
-#> x  1.00 -0.05
-#> y -0.05  1.00
+#>      x    y
+#> x 1.00 0.11
+#> y 0.11 1.00
 #> 
 #> n= 100 
 #> 
 #> 
 #> P
 #>   x      y     
-#> x        0.6067
-#> y 0.6067
+#> x        0.2747
+#> y 0.2747
 ```
 
 ## Categorical and Continuous
@@ -493,7 +490,7 @@ psych::phi(dt)
 #> [1] -0.18
 ```
 
-##### Cramer's V
+##### Cramer's V {#cramers-v}
 
 -   between nominal categorical variables (no natural order)
 
@@ -541,7 +538,7 @@ DescTools::CramerV(data, conf.level = 0.95,method = "ncchisqadj")
 #> 0.3472325 0.3929964 0.4033053
 ```
 
-##### Tschuprow's T
+##### Tschuprow's T {#tschuprows-t}
 
 -   2 nominal variables
 
@@ -574,14 +571,15 @@ dt
 #>   4  6  4 10
 ```
 
-##### Freeman's Theta
+##### Freeman's Theta {#freemans-theta}
 
 -   Ordinal and nominal
 
 
 ```r
 # this package is not available for R >= 4.0.0
-rcompanion::freemanTheta(dt,group = "column" ) # because column is the grouping variable (i.e., nominal)
+rcompanion::freemanTheta(dt, group = "column") 
+# because column is the grouping variable (i.e., nominal)
 ```
 
 ##### Epsilon-squared
@@ -591,7 +589,8 @@ rcompanion::freemanTheta(dt,group = "column" ) # because column is the grouping 
 
 ```r
 # this package is not available for R >= 4.0.0
-rcompanion::epsilonSquared(dt,group = "column" ) # because column is the grouping variable (i.e., nominal)
+rcompanion::epsilonSquared(dt,group = "column" ) 
+# because column is the grouping variable (i.e., nominal)
 ```
 
 #### Two Ordinal
@@ -613,7 +612,7 @@ dt
 #>   4  6  4 10
 ```
 
-##### Goodman Kruskal's Gamma
+##### Goodman Kruskal's Gamma {#goodman-kruskals-gamma}
 
 -   2 ordinal variables
 
@@ -624,7 +623,7 @@ DescTools::GoodmanKruskalGamma(dt, conf.level = 0.95)
 #>  0.006781013 -0.229032069  0.242594095
 ```
 
-##### Somers' D
+##### Somers' D {#somers-d}
 
 -   or Somers' Delta
 
@@ -637,7 +636,7 @@ DescTools::SomersDelta(dt, conf.level = 0.95)
 #>  0.005115859 -0.172800185  0.183031903
 ```
 
-##### Kendall's Tau-b
+##### Kendall's Tau-b {#kendalls-tau-b}
 
 -   2 ordinal variables
 
@@ -648,22 +647,22 @@ DescTools::KendallTauB(dt, conf.level = 0.95)
 #>  0.004839732 -0.163472443  0.173151906
 ```
 
-##### Yule's Q and Y
+##### Yule's Q and Y {#yules-q-and-y}
 
 -   2 ordinal variables
 
-Special version (2 x 2) of the [Goodman Kruskal's Gamma] coefficient.
+Special version $(2 \times 2)$ of the [Goodman Kruskal's Gamma](#goodman-kruskals-gamma) coefficient.
 
-|            | Variable 1 |     |
-|------------|------------|-----|
-| Variable 2 | a          | b   |
-|            | c          | d   |
+|                | Variable 1 |     |
+|----------------|------------|-----|
+| **Variable 2** | a          | b   |
+|                | c          | d   |
 
 $$
 \text{Yule's Q} = \frac{ad - bc}{ad + bc}
 $$
 
-We typically use Yule's Q in practice while Yule's Y has the following relationship with Q.
+We typically use Yule's $Q$ in practice while Yule's Y has the following relationship with $Q$.
 
 $$
 \text{Yule's Y} = \frac{\sqrt{ad} - \sqrt{bc}}{\sqrt{ad} + \sqrt{bc}}
@@ -765,8 +764,6 @@ polychor(data$A, data$B)
 #> [1] 0.01607982
 ```
 
-
-
 ### Summary
 
 
@@ -774,40 +771,26 @@ polychor(data$A, data$B)
 library(tidyverse)
 
 data("mtcars")
-df = mtcars 
+df = mtcars %>%
+    dplyr::select(cyl, vs, carb)
 
-df_factor = df %>% 
-    mutate(cyl = factor(cyl), 
-           vs = factor(vs), 
-           am = factor(am), 
-           gear = factor(gear), 
-           carb = factor(carb))
+
+df_factor = df %>%
+    dplyr::mutate(
+        cyl = factor(cyl),
+        vs = factor(vs),
+        carb = factor(carb)
+    )
 # summary(df)
 str(df)
-#> 'data.frame':	32 obs. of  11 variables:
-#>  $ mpg : num  21 21 22.8 21.4 18.7 18.1 14.3 24.4 22.8 19.2 ...
+#> 'data.frame':	32 obs. of  3 variables:
 #>  $ cyl : num  6 6 4 6 8 6 8 4 4 6 ...
-#>  $ disp: num  160 160 108 258 360 ...
-#>  $ hp  : num  110 110 93 110 175 105 245 62 95 123 ...
-#>  $ drat: num  3.9 3.9 3.85 3.08 3.15 2.76 3.21 3.69 3.92 3.92 ...
-#>  $ wt  : num  2.62 2.88 2.32 3.21 3.44 ...
-#>  $ qsec: num  16.5 17 18.6 19.4 17 ...
 #>  $ vs  : num  0 0 1 1 0 1 0 1 1 1 ...
-#>  $ am  : num  1 1 1 0 0 0 0 0 0 0 ...
-#>  $ gear: num  4 4 4 3 3 3 3 4 4 4 ...
 #>  $ carb: num  4 4 1 1 2 1 4 2 2 4 ...
 str(df_factor)
-#> 'data.frame':	32 obs. of  11 variables:
-#>  $ mpg : num  21 21 22.8 21.4 18.7 18.1 14.3 24.4 22.8 19.2 ...
+#> 'data.frame':	32 obs. of  3 variables:
 #>  $ cyl : Factor w/ 3 levels "4","6","8": 2 2 1 2 3 2 3 1 1 2 ...
-#>  $ disp: num  160 160 108 258 360 ...
-#>  $ hp  : num  110 110 93 110 175 105 245 62 95 123 ...
-#>  $ drat: num  3.9 3.9 3.85 3.08 3.15 2.76 3.21 3.69 3.92 3.92 ...
-#>  $ wt  : num  2.62 2.88 2.32 3.21 3.44 ...
-#>  $ qsec: num  16.5 17 18.6 19.4 17 ...
 #>  $ vs  : Factor w/ 2 levels "0","1": 1 1 2 2 1 2 1 2 2 2 ...
-#>  $ am  : Factor w/ 2 levels "0","1": 2 2 2 1 1 1 1 1 1 1 ...
-#>  $ gear: Factor w/ 3 levels "3","4","5": 2 2 2 1 1 1 1 2 2 2 ...
 #>  $ carb: Factor w/ 6 levels "1","2","3","4",..: 4 4 1 1 2 1 4 2 2 4 ...
 ```
 
@@ -816,30 +799,10 @@ Get the correlation table for continuous variables only
 
 ```r
 cor(df)
-#>             mpg        cyl       disp         hp        drat         wt
-#> mpg   1.0000000 -0.8521620 -0.8475514 -0.7761684  0.68117191 -0.8676594
-#> cyl  -0.8521620  1.0000000  0.9020329  0.8324475 -0.69993811  0.7824958
-#> disp -0.8475514  0.9020329  1.0000000  0.7909486 -0.71021393  0.8879799
-#> hp   -0.7761684  0.8324475  0.7909486  1.0000000 -0.44875912  0.6587479
-#> drat  0.6811719 -0.6999381 -0.7102139 -0.4487591  1.00000000 -0.7124406
-#> wt   -0.8676594  0.7824958  0.8879799  0.6587479 -0.71244065  1.0000000
-#> qsec  0.4186840 -0.5912421 -0.4336979 -0.7082234  0.09120476 -0.1747159
-#> vs    0.6640389 -0.8108118 -0.7104159 -0.7230967  0.44027846 -0.5549157
-#> am    0.5998324 -0.5226070 -0.5912270 -0.2432043  0.71271113 -0.6924953
-#> gear  0.4802848 -0.4926866 -0.5555692 -0.1257043  0.69961013 -0.5832870
-#> carb -0.5509251  0.5269883  0.3949769  0.7498125 -0.09078980  0.4276059
-#>             qsec         vs          am       gear        carb
-#> mpg   0.41868403  0.6640389  0.59983243  0.4802848 -0.55092507
-#> cyl  -0.59124207 -0.8108118 -0.52260705 -0.4926866  0.52698829
-#> disp -0.43369788 -0.7104159 -0.59122704 -0.5555692  0.39497686
-#> hp   -0.70822339 -0.7230967 -0.24320426 -0.1257043  0.74981247
-#> drat  0.09120476  0.4402785  0.71271113  0.6996101 -0.09078980
-#> wt   -0.17471588 -0.5549157 -0.69249526 -0.5832870  0.42760594
-#> qsec  1.00000000  0.7445354 -0.22986086 -0.2126822 -0.65624923
-#> vs    0.74453544  1.0000000  0.16834512  0.2060233 -0.56960714
-#> am   -0.22986086  0.1683451  1.00000000  0.7940588  0.05753435
-#> gear -0.21268223  0.2060233  0.79405876  1.0000000  0.27407284
-#> carb -0.65624923 -0.5696071  0.05753435  0.2740728  1.00000000
+#>             cyl         vs       carb
+#> cyl   1.0000000 -0.8108118  0.5269883
+#> vs   -0.8108118  1.0000000 -0.5696071
+#> carb  0.5269883 -0.5696071  1.0000000
 
 # only complete obs
 # cor(df, use = "complete.obs")
@@ -850,47 +813,19 @@ Alternatively, you can also have the
 
 ```r
 Hmisc::rcorr(as.matrix(df), type = "pearson")
-#>        mpg   cyl  disp    hp  drat    wt  qsec    vs    am  gear  carb
-#> mpg   1.00 -0.85 -0.85 -0.78  0.68 -0.87  0.42  0.66  0.60  0.48 -0.55
-#> cyl  -0.85  1.00  0.90  0.83 -0.70  0.78 -0.59 -0.81 -0.52 -0.49  0.53
-#> disp -0.85  0.90  1.00  0.79 -0.71  0.89 -0.43 -0.71 -0.59 -0.56  0.39
-#> hp   -0.78  0.83  0.79  1.00 -0.45  0.66 -0.71 -0.72 -0.24 -0.13  0.75
-#> drat  0.68 -0.70 -0.71 -0.45  1.00 -0.71  0.09  0.44  0.71  0.70 -0.09
-#> wt   -0.87  0.78  0.89  0.66 -0.71  1.00 -0.17 -0.55 -0.69 -0.58  0.43
-#> qsec  0.42 -0.59 -0.43 -0.71  0.09 -0.17  1.00  0.74 -0.23 -0.21 -0.66
-#> vs    0.66 -0.81 -0.71 -0.72  0.44 -0.55  0.74  1.00  0.17  0.21 -0.57
-#> am    0.60 -0.52 -0.59 -0.24  0.71 -0.69 -0.23  0.17  1.00  0.79  0.06
-#> gear  0.48 -0.49 -0.56 -0.13  0.70 -0.58 -0.21  0.21  0.79  1.00  0.27
-#> carb -0.55  0.53  0.39  0.75 -0.09  0.43 -0.66 -0.57  0.06  0.27  1.00
+#>        cyl    vs  carb
+#> cyl   1.00 -0.81  0.53
+#> vs   -0.81  1.00 -0.57
+#> carb  0.53 -0.57  1.00
 #> 
 #> n= 32 
 #> 
 #> 
 #> P
-#>      mpg    cyl    disp   hp     drat   wt     qsec   vs     am     gear  
-#> mpg         0.0000 0.0000 0.0000 0.0000 0.0000 0.0171 0.0000 0.0003 0.0054
-#> cyl  0.0000        0.0000 0.0000 0.0000 0.0000 0.0004 0.0000 0.0022 0.0042
-#> disp 0.0000 0.0000        0.0000 0.0000 0.0000 0.0131 0.0000 0.0004 0.0010
-#> hp   0.0000 0.0000 0.0000        0.0100 0.0000 0.0000 0.0000 0.1798 0.4930
-#> drat 0.0000 0.0000 0.0000 0.0100        0.0000 0.6196 0.0117 0.0000 0.0000
-#> wt   0.0000 0.0000 0.0000 0.0000 0.0000        0.3389 0.0010 0.0000 0.0005
-#> qsec 0.0171 0.0004 0.0131 0.0000 0.6196 0.3389        0.0000 0.2057 0.2425
-#> vs   0.0000 0.0000 0.0000 0.0000 0.0117 0.0010 0.0000        0.3570 0.2579
-#> am   0.0003 0.0022 0.0004 0.1798 0.0000 0.0000 0.2057 0.3570        0.0000
-#> gear 0.0054 0.0042 0.0010 0.4930 0.0000 0.0005 0.2425 0.2579 0.0000       
-#> carb 0.0011 0.0019 0.0253 0.0000 0.6212 0.0146 0.0000 0.0007 0.7545 0.1290
-#>      carb  
-#> mpg  0.0011
-#> cyl  0.0019
-#> disp 0.0253
-#> hp   0.0000
-#> drat 0.6212
-#> wt   0.0146
-#> qsec 0.0000
-#> vs   0.0007
-#> am   0.7545
-#> gear 0.1290
-#> carb
+#>      cyl    vs     carb  
+#> cyl         0.0000 0.0019
+#> vs   0.0000        0.0007
+#> carb 0.0019 0.0007
 ```
 
 
@@ -902,172 +837,28 @@ modelsummary::datasummary_correlation(df)
  <thead>
   <tr>
    <th style="text-align:left;">   </th>
-   <th style="text-align:right;"> mpg </th>
    <th style="text-align:right;"> cyl </th>
-   <th style="text-align:right;"> disp </th>
-   <th style="text-align:right;"> hp </th>
-   <th style="text-align:right;"> drat </th>
-   <th style="text-align:right;"> wt </th>
-   <th style="text-align:right;"> qsec </th>
    <th style="text-align:right;"> vs </th>
-   <th style="text-align:right;"> am </th>
-   <th style="text-align:right;"> gear </th>
    <th style="text-align:right;"> carb </th>
   </tr>
  </thead>
 <tbody>
   <tr>
-   <td style="text-align:left;"> mpg </td>
-   <td style="text-align:right;"> 1 </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-  </tr>
-  <tr>
    <td style="text-align:left;"> cyl </td>
-   <td style="text-align:right;"> −.85 </td>
    <td style="text-align:right;"> 1 </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> disp </td>
-   <td style="text-align:right;"> −.85 </td>
-   <td style="text-align:right;"> .90 </td>
-   <td style="text-align:right;"> 1 </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> hp </td>
-   <td style="text-align:right;"> −.78 </td>
-   <td style="text-align:right;"> .83 </td>
-   <td style="text-align:right;"> .79 </td>
-   <td style="text-align:right;"> 1 </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> drat </td>
-   <td style="text-align:right;"> .68 </td>
-   <td style="text-align:right;"> −.70 </td>
-   <td style="text-align:right;"> −.71 </td>
-   <td style="text-align:right;"> −.45 </td>
-   <td style="text-align:right;"> 1 </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> wt </td>
-   <td style="text-align:right;"> −.87 </td>
-   <td style="text-align:right;"> .78 </td>
-   <td style="text-align:right;"> .89 </td>
-   <td style="text-align:right;"> .66 </td>
-   <td style="text-align:right;"> −.71 </td>
-   <td style="text-align:right;"> 1 </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> qsec </td>
-   <td style="text-align:right;"> .42 </td>
-   <td style="text-align:right;"> −.59 </td>
-   <td style="text-align:right;"> −.43 </td>
-   <td style="text-align:right;"> −.71 </td>
-   <td style="text-align:right;"> .09 </td>
-   <td style="text-align:right;"> −.17 </td>
-   <td style="text-align:right;"> 1 </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
    <td style="text-align:right;"> . </td>
    <td style="text-align:right;"> . </td>
   </tr>
   <tr>
    <td style="text-align:left;"> vs </td>
-   <td style="text-align:right;"> .66 </td>
    <td style="text-align:right;"> −.81 </td>
-   <td style="text-align:right;"> −.71 </td>
-   <td style="text-align:right;"> −.72 </td>
-   <td style="text-align:right;"> .44 </td>
-   <td style="text-align:right;"> −.55 </td>
-   <td style="text-align:right;"> .74 </td>
-   <td style="text-align:right;"> 1 </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> am </td>
-   <td style="text-align:right;"> .60 </td>
-   <td style="text-align:right;"> −.52 </td>
-   <td style="text-align:right;"> −.59 </td>
-   <td style="text-align:right;"> −.24 </td>
-   <td style="text-align:right;"> .71 </td>
-   <td style="text-align:right;"> −.69 </td>
-   <td style="text-align:right;"> −.23 </td>
-   <td style="text-align:right;"> .17 </td>
-   <td style="text-align:right;"> 1 </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> gear </td>
-   <td style="text-align:right;"> .48 </td>
-   <td style="text-align:right;"> −.49 </td>
-   <td style="text-align:right;"> −.56 </td>
-   <td style="text-align:right;"> −.13 </td>
-   <td style="text-align:right;"> .70 </td>
-   <td style="text-align:right;"> −.58 </td>
-   <td style="text-align:right;"> −.21 </td>
-   <td style="text-align:right;"> .21 </td>
-   <td style="text-align:right;"> .79 </td>
    <td style="text-align:right;"> 1 </td>
    <td style="text-align:right;"> . </td>
   </tr>
   <tr>
    <td style="text-align:left;"> carb </td>
-   <td style="text-align:right;"> −.55 </td>
    <td style="text-align:right;"> .53 </td>
-   <td style="text-align:right;"> .39 </td>
-   <td style="text-align:right;"> .75 </td>
-   <td style="text-align:right;"> −.09 </td>
-   <td style="text-align:right;"> .43 </td>
-   <td style="text-align:right;"> −.66 </td>
    <td style="text-align:right;"> −.57 </td>
-   <td style="text-align:right;"> .06 </td>
-   <td style="text-align:right;"> .27 </td>
    <td style="text-align:right;"> 1 </td>
   </tr>
 </tbody>
@@ -1082,9 +873,7 @@ ggcorrplot::ggcorrplot(cor(df))
 
 <img src="03-descriptive-stat_files/figure-html/unnamed-chunk-35-1.png" width="90%" style="display: block; margin: auto;" />
 
-<br>
-
-Different comparison between different correlation between different types of variables (i.e., continuous vs. categorical) can be problematic. Moreover, the problem of detecting non-linear vs. linear relationship/correlatiton is another one. Hence, a solution is that using mutual information from information theory (i.e., knowing one variable can reduce uncertainty about the other).
+Different comparison between different correlation between different types of variables (i.e., continuous vs. categorical) can be problematic. Moreover, the problem of detecting non-linear vs. linear relationship/correlation is another one. Hence, a solution is that using mutual information from information theory (i.e., knowing one variable can reduce uncertainty about the other).
 
 To implement mutual information, we have the following approximations
 
@@ -1092,11 +881,11 @@ $$
 \downarrow \text{prediction error} \approx \downarrow \text{uncertainty} \approx \downarrow \text{association strength}
 $$
 
-More specificlly, following the [X2Y metric](https://rviews.rstudio.com/2021/04/15/an-alternative-to-the-correlation-coefficient-that-works-for-numeric-and-categorical-variables/), we have the following steps:
+More specifically, following the [X2Y metric](https://rviews.rstudio.com/2021/04/15/an-alternative-to-the-correlation-coefficient-that-works-for-numeric-and-categorical-variables/), we have the following steps:
 
 1.  Predict $y$ without $x$ (i.e., baseline model)
 
-    1.  Averge of $y$ when $y$ is continuous
+    1.  Average of $y$ when $y$ is continuous
 
     2.  Most frequent value when $y$ is categorical
 
@@ -1124,39 +913,27 @@ The downfall of this method is that you might suffer
 
 ```r
 library(ppsr)
+
+iris <- iris %>% 
+  select(1:3)
+
 # ppsr::score_df(iris) # if you want a dataframe
-ppsr::score_matrix(iris, do_parallel = TRUE, n_cores = parallel::detectCores()/2 ) # if you want a similar correlation matrix
-#>              Sepal.Length Sepal.Width Petal.Length Petal.Width   Species
-#> Sepal.Length   1.00000000  0.04632352    0.5491398   0.4127668 0.4075487
-#> Sepal.Width    0.06790301  1.00000000    0.2376991   0.2174659 0.2012876
-#> Petal.Length   0.61608360  0.24263851    1.0000000   0.7917512 0.7904907
-#> Petal.Width    0.48735314  0.20124105    0.7437845   1.0000000 0.7561113
-#> Species        0.55918638  0.31344008    0.9167580   0.9398532 1.0000000
-ppsr::score_matrix(df, do_parallel = TRUE, n_cores = parallel::detectCores()/2 )
-#>            mpg        cyl       disp          hp       drat         wt
-#> mpg  1.0000000 0.32362397 0.25436628 0.210509478 0.20883649 0.24609235
-#> cyl  0.3861810 1.00000000 0.57917897 0.537257954 0.33458867 0.38789293
-#> disp 0.3141056 0.54883158 1.00000000 0.485122916 0.35317905 0.23669306
-#> hp   0.2311418 0.37853515 0.35542647 1.000000000 0.24544714 0.12721154
-#> drat 0.1646116 0.19540490 0.38730966 0.165537791 1.00000000 0.35076928
-#> wt   0.2075760 0.11113261 0.20447239 0.155585827 0.12978458 1.00000000
-#> qsec 0.1521642 0.10498746 0.07192679 0.134441221 0.08171630 0.05880165
-#> vs   0.2000000 0.02514286 0.02514286 0.025142857 0.06862112 0.02514286
-#> am   0.0615873 0.12825397 0.24409373 0.004444444 0.30608113 0.17742706
-#> gear 0.1785968 0.43293014 0.43554416 0.154438566 0.54542788 0.31526071
-#> carb 0.3472565 0.30798148 0.21228704 0.151523221 0.01103355 0.15957673
-#>            qsec         vs         am      gear       carb
-#> mpg  0.11030342 0.17957228 0.13297202 0.1752449 0.25426760
-#> cyl  0.32753721 0.39827893 0.13263224 0.2877488 0.20925329
-#> disp 0.31714642 0.35324790 0.23897094 0.4231630 0.15461337
-#> hp   0.33941571 0.37794795 0.03821570 0.2159412 0.24105326
-#> drat 0.16134068 0.17783324 0.30379298 0.4475122 0.03137800
-#> wt   0.09367580 0.12214824 0.24118900 0.1590473 0.14181111
-#> qsec 1.00000000 0.24973489 0.02334953 0.0000000 0.07539415
-#> vs   0.40000000 1.00000000 0.10000000 0.1251429 0.20000000
-#> am   0.15936508 0.11250000 1.00000000 0.3972789 0.00000000
-#> gear 0.04791667 0.08012053 0.30341155 1.0000000 0.01486068
-#> carb 0.21944241 0.25373093 0.00000000 0.0000000 1.00000000
+ppsr::score_matrix(iris,
+                   do_parallel = TRUE,
+                   n_cores = parallel::detectCores() / 2)
+#>              Sepal.Length Sepal.Width Petal.Length
+#> Sepal.Length   1.00000000  0.04632352    0.5491398
+#> Sepal.Width    0.06790301  1.00000000    0.2376991
+#> Petal.Length   0.61608360  0.24263851    1.0000000
+
+# if you want a similar correlation matrix
+ppsr::score_matrix(df,
+                   do_parallel = TRUE,
+                   n_cores = parallel::detectCores() / 2)
+#>             cyl        vs      carb
+#> cyl  1.00000000 0.3982789 0.2092533
+#> vs   0.02514286 1.0000000 0.2000000
+#> carb 0.30798148 0.2537309 1.0000000
 ```
 
 ### Visualization
@@ -1172,7 +949,7 @@ Alternatively,
 
 
 ```r
-PerformanceAnalytics::chart.Correlation(df, histogram = T, pch =19)
+PerformanceAnalytics::chart.Correlation(df, histogram = T, pch = 19)
 ```
 
 <img src="03-descriptive-stat_files/figure-html/unnamed-chunk-38-1.png" width="90%" style="display: block; margin: auto;" />
@@ -1188,7 +965,11 @@ More general form,
 
 
 ```r
-ppsr::visualize_pps(df = iris, do_parallel = TRUE, n_cores = parallel::detectCores()/2 )
+ppsr::visualize_pps(
+    df = iris,
+    do_parallel = TRUE,
+    n_cores = parallel::detectCores() / 2
+)
 ```
 
 <img src="03-descriptive-stat_files/figure-html/unnamed-chunk-40-1.png" width="90%" style="display: block; margin: auto;" />
@@ -1202,7 +983,7 @@ ppsr::visualize_correlations(
 
 <img src="03-descriptive-stat_files/figure-html/unnamed-chunk-41-1.png" width="90%" style="display: block; margin: auto;" />
 
-Both heatmap and correlation at the same time
+Both heat map and correlation at the same time
 
 
 ```r
@@ -1219,18 +1000,22 @@ More elaboration with `ggplot2`
 
 
 ```r
-ppsr::visualize_pps(df = iris,
-                    color_value_high = 'red', 
-                    color_value_low = 'yellow',
-                    color_text = 'black') +
-  ggplot2::theme_classic() +
-  ggplot2::theme(plot.background = ggplot2::element_rect(fill = "lightgrey")) +
-  ggplot2::theme(title = ggplot2::element_text(size = 15)) +
-  ggplot2::labs(title = 'Correlation aand Heatmap', 
-                subtitle = 'Subtitle',
-                caption = 'Caption',
-                x = 'More info')
+ppsr::visualize_pps(
+    df = iris,
+    color_value_high = 'red',
+    color_value_low = 'yellow',
+    color_text = 'black'
+) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(plot.background = 
+                       ggplot2::element_rect(fill = "lightgrey")) +
+    ggplot2::theme(title = ggplot2::element_text(size = 15)) +
+    ggplot2::labs(
+        title = 'Correlation aand Heatmap',
+        subtitle = 'Subtitle',
+        caption = 'Caption',
+        x = 'More info'
+    )
 ```
 
 <img src="03-descriptive-stat_files/figure-html/unnamed-chunk-43-1.png" width="90%" style="display: block; margin: auto;" />
-

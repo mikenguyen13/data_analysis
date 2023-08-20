@@ -4,7 +4,7 @@
 
     -   Running variable can also be time, but the argument for time to be continuous is hard to argue because usually we do not see increment of time (e.g., quarterly or annual data). Unless we have minute or hour data, then we might be able to argue for it.
 
--   Review paper [@imbens2008regression; @imbens2008regression; @lee2010regression]
+-   Review paper [@imbens2008regression; @lee2010regression]
 
 -   Other readings:
 
@@ -45,8 +45,6 @@
     -   other quasi-experimental methods in the sense that it's based on the discontinuity at a threshold
 
     -   randomized experiments in the sense that it's local randomization.
-
-<br>
 
 There are several types of Regression Discontinuity:
 
@@ -135,8 +133,6 @@ Since researchers typically care more about the internal validity, than external
 
 -   All other factors are **smooth** through the cutoff (i.e., threshold) value. (we can also test this assumption by seeing no discontinuity in other factors). If they "jump", they will bias your causal estimate
 
-<br>
-
 **Threats to RD**
 
 -   Variables (other than treatment) change discontinuously at the cutoff
@@ -148,8 +144,6 @@ Since researchers typically care more about the internal validity, than external
 -   Manipulation of the assignment variable
 
     -   At the cutoff point, check for continuity in the density of the assignment variable.
-
-<br>
 
 ## Estimation and Inference
 
@@ -196,8 +190,6 @@ Step to estimate local polynomial regression
 3.  [Placebo Tests]
 4.  [Sensitivity to Bandwidth Choice]
 
-<br>
-
 ### Balance Checks
 
 -   Also known as checking for Discontinuities in Average Covariates
@@ -205,8 +197,6 @@ Step to estimate local polynomial regression
 -   Null Hypothesis: The average effect of covariates on pseudo outcomes (i.e., those qualitatively cannot be affected by the treatment) is 0.
 
 -   If this hypothesis is rejected, you better have a good reason to why because it can cast serious doubt on your RD design.
-
-<br>
 
 ### Sorting/Bunching/Manipulation
 
@@ -264,7 +254,7 @@ When running variable and outcome variable are simultaneously determined, we can
 
     -   Manipulation is **one-sided**: People move one way (i.e., either below the threshold to above the threshold or vice versa, but not to or away the threshold), which is similar to the monotonicity assumption under instrumental variable \@ref(instrumental-variable)
 
-    -   Manipulation is **bounded** (also known as regularity assumption): so that we can use people far away from this threshold to derive at our counterfactual distribution [@blomquist2021bunching, @bertanha2021better]
+    -   Manipulation is **bounded** (also known as regularity assumption): so that we can use people far away from this threshold to derive at our counterfactual distribution [@blomquist2021bunching][@bertanha2021better]
 
 Steps:
 
@@ -293,7 +283,7 @@ DCdensity(x,0)
 <img src="24-regression-discontinuity_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```
-#> [1] 0.5730284
+#> [1] 0.3208292
 
 #Discontinuity
 x<-runif(1000,-1,1)
@@ -304,7 +294,7 @@ DCdensity(x,0)
 <img src="24-regression-discontinuity_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```
-#> [1] 0.004326087
+#> [1] 0.003623126
 ```
 
 @cattaneo2019practical test
@@ -355,8 +345,6 @@ summary(rdd)
 
 # you have to specify your own plot (read package manual)
 ```
-
-<br>
 
 ### Placebo Tests
 
@@ -423,7 +411,10 @@ Under RD, you shouldn't have to do any [Matching Methods]. Because just like whe
 
 ```r
 # find optimal bandwidth by Imbens-Kalyanaraman
-rdd::IKbandwidth(running_var, outcome_var, cutpoint = "", kernel = "triangular") # can also pick other kernels
+rdd::IKbandwidth(running_var,
+                 outcome_var,
+                 cutpoint = "",
+                 kernel = "triangular") # can also pick other kernels
 ```
 
 ## Fuzzy RD Design
@@ -466,8 +457,6 @@ Two equivalent ways to estimate
 
 2.  Second: Subset those observations that are close to $c$ and run instrumental variable $Z$
 
-<br>
-
 ## Regression Kink Design
 
 -   If the slope of the treatment intensity changes at the cutoff (instead of the level of treatment assignment), we can have regression kink design
@@ -502,8 +491,6 @@ $$
 \tau (x_1, x_2) = E[Y_{1i} - Y_{0i}|X_{1i} = x_1, X_{2i} = x]
 $$
 
-<br>
-
 ## Steps for Sharp RD
 
 1.  Graph the data by computing the average value of the outcome variable over a set of bins (large enough to see a smooth graph, and small enough to make the jump around the cutoff clear).
@@ -519,8 +506,6 @@ $$
     3.  Placebo tests
 
     4.  Varying bandwidth
-
-<br>
 
 ## Steps for Fuzzy RD
 
@@ -553,9 +538,9 @@ Notes:
 
 Pros:
 
--   can overcome cases where there is no cross-sectional variation in treatment implementation (dif-n-dif is not feasible)
+-   can overcome cases where there is no cross-sectional variation in treatment implementation (DID is not feasible)
 
-    -   There are papers that use both RDiT and DiD to (1) see the differential treatment effects across individuals/ space [@auffhammer2011clearing] or (2) compare the 2 estimates where the control group's validity is questionable [@gallego2013effect].
+    -   There are papers that use both RDiT and DID to (1) see the differential treatment effects across individuals/ space [@auffhammer2011clearing] or (2) compare the 2 estimates where the control group's validity is questionable [@gallego2013effect].
 
 -   Better than pre/post comparison because it can include flexible controls
 
@@ -614,11 +599,11 @@ Biases
 Recommendations for robustness check following [@hausman2018, p. 549]
 
 1.  Plot the raw data and residuals (after removing confounders or trend). With varying polynomial and local linear controls, inconsistent results can be a sign of time-varying treatment effects.
-2.  Using global polynomial, you could overfit, then show polynomial with different order and alternative local linear bandwidths. If the results are consistent, you're ok
+2.  Using global polynomial, you could overfit, then show polynomial with different order and alternative local linear bandwidths. If the results are consistent, you're okay
 3.  [Placebo Tests]: estimate another RD (1) on another location or subject (that did not receive the treatment) or (2) use another date.
 4.  Plot RD discontinuity on continuous controls
 5.  Donut RD to see if avoiding the selection close to the cutoff would yield better results [@barreca2011saving]
-6.  Test for auto-regression (using only pre-treatment data). If there is evidence for autoregression, include the lagged dependentvariable
+6.  Test for auto-regression (using only pre-treatment data). If there is evidence for autoregression, include the lagged dependent variable
 7.  Augmented local linear (no need to use global polynomial and avoid over-fitting)
     1.  Use full sample to exclude the effect of important predictors
 
@@ -656,8 +641,6 @@ marketing
 
 -   [@davis2010international]: vehicle prices
 
-<br>
-
 ## Evaluation of an RD
 
 -   Evidence for (either formal tests or graphs)
@@ -671,8 +654,6 @@ marketing
 -   Is there any other (unobserved) confound that could cause the discontinuous change at the cutoff (i.e., multiple forcing variables / bundling of institutions)?
 
 -   External Validity: How likely the result at the cutoff will generalize?
-
-<br>
 
 **General Model**
 
@@ -894,8 +875,11 @@ Bias in $\alpha_2$
 Under RD
 
 $$
-Y_{ist} = \beta_0 + [I(Bed \ge121)_{ist}]\beta_1 + f(Size_{ist}) \beta_2 + [f(Size_{ist}) \times I(Bed \ge 121)_{ist}] \beta_3 \\
-+ X_{it} \delta + \gamma_s + \theta_t + \epsilon_{ist}
+\begin{aligned}
+Y_{ist} &= \beta_0 + [I(Bed \ge121)_{ist}]\beta_1 + f(Size_{ist}) \beta_2\\
+&+ [f(Size_{ist}) \times I(Bed \ge 121)_{ist}] \beta_3 \\
+&+ X_{it} \delta + \gamma_s + \theta_t + \epsilon_{ist}
+\end{aligned}
 $$
 
 where
@@ -927,8 +911,11 @@ Thus, we have to use Instrument variable \@ref(instrumental-variable)
 **Stage 1:**
 
 $$
-QSW_{ist} = \alpha_0 + [I(Bed \ge121)_{ist}]\alpha_1 + f(Size_{ist}) \alpha_2 + [f(Size_{ist}) \times I(Bed \ge 121)_{ist}] \alpha_3 \\
-+ X_{it} \delta + \gamma_s + \theta_t + \epsilon_{ist}
+\begin{aligned}
+QSW_{ist} &= \alpha_0 + [I(Bed \ge121)_{ist}]\alpha_1 + f(Size_{ist}) \alpha_2\\
+&+ [f(Size_{ist}) \times I(Bed \ge 121)_{ist}] \alpha_3 \\
+&+ X_{it} \delta + \gamma_s + \theta_t + \epsilon_{ist}
+\end{aligned}
 $$
 
 (Note: you should have different fixed effects and error term - $\delta, \gamma_s, \theta_t, \epsilon_{ist}$ from the first equation, but I ran out of Greek letters)
@@ -936,8 +923,11 @@ $$
 **Stage 2:**
 
 $$
-Y_{ist} = \gamma_0 + \gamma_1 \hat{QWS}_{ist} + f(Size_{ist}) \delta_2 + [f(Size_{ist}) \times I(Bed \ge 121)] \delta_3 \\
- + X_{it} \lambda + \eta_s + \tau_t + u_{ist}
+\begin{aligned}
+Y_{ist} &= \gamma_0 + \gamma_1 \hat{QWS}_{ist} + f(Size_{ist}) \delta_2 \\
+&+ [f(Size_{ist}) \times I(Bed \ge 121)] \delta_3 \\
+&+ X_{it} \lambda + \eta_s + \tau_t + u_{ist}
+\end{aligned}
 $$
 
 -   The bigger the jump (discontinuity), the more similar the 2 coefficients ($\gamma_1 \approx \beta_1$) where $\gamma_1$ is the average treatment effect (of exposing to the policy)
@@ -949,8 +939,6 @@ $$
 -   If we have manipulable bunching, there should be decrease at 130
 
 -   Since we have limited number of mass points (at the round numbers), we should clustered standard errors by the mass point
-
-<br>
 
 ### Example 3
 

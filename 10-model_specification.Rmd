@@ -10,8 +10,8 @@ Test whether underlying assumptions hold true
 
 $$
 \begin{aligned}
-y = \beta_0 + x_1\beta_1 + x_2\beta-2 + x_3\beta_3 + \epsilon && \text{unrestricted model} \\
-y = \beta_0 + x_1\beta_1 + \epsilon && \text{restricted model}
+y &= \beta_0 + x_1\beta_1 + x_2\beta-2 + x_3\beta_3 + \epsilon & \text{unrestricted model} \\
+y &= \beta_0 + x_1\beta_1 + \epsilon & \text{restricted model}
 \end{aligned}
 $$
 
@@ -25,8 +25,11 @@ To determine which variables should be included or exclude, we could use the sam
 -   Adjusted $R^2$ tries to correct by penalizing inclusion of unnecessary variables.
 
 $$
-{R}^2 = 1 - \frac{SSR/n}{SST/n} \\
-{R}^2_{adj}= 1- \frac{SSR/(n-k)}{SST/(n-1)} = 1 - \frac{(n-1)(1-R^2)}{(n-k)}
+\begin{aligned}
+{R}^2 &= 1 - \frac{SSR/n}{SST/n} \\
+{R}^2_{adj} &= 1 - \frac{SSR/(n-k)}{SST/(n-1)} \\
+&= 1 - \frac{(n-1)(1-R^2)}{(n-k)}
+\end{aligned}
 $$
 
 -   ${R}^2_{adj}$ increases if and only if the t-statistic on the additional variable is greater than 1 in absolute value.
@@ -76,8 +79,10 @@ and evaluate the t-statistic for the null hypothesis $H_0: \gamma = 0$
 -   If fail to reject in both steps, you do not have sufficient evidence to prefer one model over the other. You can compare the $R^2_{adj}$ to choose between the two models.
 
 $$
-y = \beta_0 + ln(x)\beta_1 + \epsilon \\
-y = \beta_0 + x(\beta_1) + x^2\beta_2 + \epsilon
+\begin{aligned}
+y &= \beta_0 + ln(x)\beta_1 + \epsilon \\
+y &= \beta_0 + x(\beta_1) + x^2\beta_2 + \epsilon
+\end{aligned}
 $$
 
 -   Compare which better fits the data
@@ -89,8 +94,8 @@ $$
 
 $$
 \begin{aligned}
-y = \beta_0 + x_1\beta_1 + \epsilon && \text{level eq} \\
-ln(y) = \beta_0 + x_1\beta_1 + \epsilon && \text{log eq} \\
+y &= \beta_0 + x_1\beta_1 + \epsilon & \text{level eq} \\
+ln(y) &= \beta_0 + x_1\beta_1 + \epsilon & \text{log eq} \\
 \end{aligned}
 $$
 

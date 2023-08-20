@@ -55,16 +55,16 @@ missing $E[Y_{0i}(1)|D=1]$
 **The Average Treatment Effect on Treated (ATT)**
 
 $$
-E[Y_1(1) - Y_0(1)|D=1] \\
-= \{E[Y(1)|D=1] - E[Y(1)|D=0] \} - \{E[Y(0)|D=1] - E[Y(0)|D=0] \}
+\begin{aligned}
+E[Y_1(1) - Y_0(1)|D=1] &= \{E[Y(1)|D=1] - E[Y(1)|D=0] \} \\
+&- \{E[Y(0)|D=1] - E[Y(0)|D=0] \}
+\end{aligned}
 $$
 
 More elaboration:
 
 -   For the treatment group, we isolate the difference between being treated and not being treated. If the untreated group would have been affected in a different way, the DiD design and estimate would tell us nothing.
 -   Alternatively, because we can't observe treatment variation in the control group, we can't say anything about the treatment effect on this group.
-
-<br>
 
 **Extension**
 
@@ -146,7 +146,8 @@ od <- causaldata::organ_donations %>%
     # Treatment variable
     mutate(California = State == 'California') %>%
     # centered time variable
-    mutate(center_time = as.factor(Quarter_Num - 3))  # where 3 is the reference period (that is preceding the treatment period)
+    mutate(center_time = as.factor(Quarter_Num - 3))  
+# where 3 is the reference period precedes the treatment period
 
 class(od$California)
 #> [1] "logical"
@@ -188,8 +189,6 @@ coefplot(cali)
 
 <img src="25-dif-in-dif_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" />
 
-<br>
-
 Notes:
 
 -   [Matching Methods]
@@ -202,7 +201,7 @@ Notes:
 
     -   Be careful when matching time-varying covariates because you might encounter "regression to the mean" problem, where pre-treatment periods can have an unusually bad or good time (that is out of the ordinary), then the post-treatment period outcome can just be an artifact of the regression to the mean [@daw2018matching]. This problem is not of concern to time-invariant variables.
 
-    -   Matching and DiD can use pre-treatment outcomes to correct for selection bias. From real world data and simulation, [@chabe2015analysis] found that matching generally underestiamtes the average causal effect and gets closer to the true effect with more number of pre-treatment outcomes. When selection bias is symmetric around the treatment date, DID is still consistent when implemented symmetrically (i.e., the same number of period before and after treatment). In cases where selection bias is asymmetric, the MC simulations show that Symmetric DiD still performs better than Matching.
+    -   Matching and DiD can use pre-treatment outcomes to correct for selection bias. From real world data and simulation, [@chabe2015analysis] found that matching generally underestimates the average causal effect and gets closer to the true effect with more number of pre-treatment outcomes. When selection bias is symmetric around the treatment date, DID is still consistent when implemented symmetrically (i.e., the same number of period before and after treatment). In cases where selection bias is asymmetric, the MC simulations show that Symmetric DiD still performs better than Matching.
 
 -   It's always good to show results with and without controls because
 
@@ -216,8 +215,6 @@ Notes:
 
     2.  using cluster bootstrapped SEs.
 
-<br>
-
 ### Examples
 
 #### Example from [Princeton](https://www.princeton.edu/~otorres/DID101R.pdf)
@@ -225,14 +222,14 @@ Notes:
 
 ```r
 library(foreign)
-mydata = read.dta("http://dss.princeton.edu/training/Panel101.dta") %>% 
+mydata = read.dta("http://dss.princeton.edu/training/Panel101.dta") %>%
     # create a dummy variable to indicate the time when the treatment started
-    mutate(time = ifelse(year >= 1994, 1, 0)) %>% 
+    mutate(time = ifelse(year >= 1994, 1, 0)) %>%
     # create a dummy variable to identify the treatment group
     mutate(treated = ifelse(country == "E" |
-                            country == "F" | country == "G" ,
-                        1,
-                        0)) %>% 
+                                country == "F" | country == "G" ,
+                            1,
+                            0)) %>%
     # create an interaction between time and treated
     mutate(did = time * treated)
 ```
@@ -266,8 +263,6 @@ summary(didreg)
 ```
 
 The `did` coefficient is the differences-in-differences estimator. Treat has a negative effect
-
-<br>
 
 #### Example by @card1993minimum
 
@@ -335,8 +330,6 @@ Notes:
 
 -   Notice that we don't need before treatment the **levels of the dependent variable** to be the same (e.g., same wage average in both NJ and PA), dif-n-dif only needs **pre-trend (i.e., slope)** to be the same for the two groups.
 
-<br>
-
 #### Example by @butcher2014effects
 
 Theory:
@@ -379,13 +372,19 @@ where
 
 -   $Y_{idt}$ = grade average
 
-|              | Intercept                         | Treat | Post | Treat\*Post |
-|--------------|-----------------------------------|-------|------|-------------|
-| Treat Pre    | 1                                 | 1     | 0    | 0           |
-| Treat Post   | 1                                 | 1     | 1    | 1           |
-| Control Pre  | 1                                 | 0     | 0    | 0           |
-| Control Post | 1                                 | 0     | 1    | 0           |
-|              | Average for pre-control $\beta_0$ |       |      |             |
++--------------+-----------------------------------+----------+----------+-------------+
+|              | Intercept                         | Treat    | Post     | Treat\*Post |
++==============+===================================+==========+==========+=============+
+| Treat Pre    | 1                                 | 1        | 0        | 0           |
++--------------+-----------------------------------+----------+----------+-------------+
+| Treat Post   | 1                                 | 1        | 1        | 1           |
++--------------+-----------------------------------+----------+----------+-------------+
+| Control Pre  | 1                                 | 0        | 0        | 0           |
++--------------+-----------------------------------+----------+----------+-------------+
+| Control Post | 1                                 | 0        | 1        | 0           |
++--------------+-----------------------------------+----------+----------+-------------+
+|              | Average for pre-control $\beta_0$ |          |          |             |
++--------------+-----------------------------------+----------+----------+-------------+
 
 A more general specification of the dif-n-dif is that
 
@@ -417,7 +416,8 @@ The package (not method) is rather limited application:
 ```r
 library(DRDID)
 data("nsw_long")
-eval_lalonde_cps <- subset(nsw_long, nsw_long$treated == 0 | nsw_long$sample == 2)
+eval_lalonde_cps <-
+    subset(nsw_long, nsw_long$treated == 0 | nsw_long$sample == 2)
 head(eval_lalonde_cps)
 #>   id year treated age educ black married nodegree dwincl      re74 hisp
 #> 1  1 1975      NA  42   16     0       1        0     NA     0.000    0
@@ -466,16 +466,20 @@ summary(out)
 
 
 
-# Improved locally efficient doubly robust DiD estimator for the ATT, with panel data
+# Improved locally efficient doubly robust DiD estimator 
+# for the ATT, with panel data
 # drdid_imp_panel()
 
-# Locally efficient doubly robust DiD estimator for the ATT, with panel data
+# Locally efficient doubly robust DiD estimator for the ATT, 
+# with panel data
 # drdid_panel()
 
-# Locally efficient doubly robust DiD estimator for the ATT, with repeated cross-section data
+# Locally efficient doubly robust DiD estimator for the ATT, 
+# with repeated cross-section data
 # drdid_rc()
 
-# Improved locally efficient doubly robust DiD estimator for the ATT, with repeated cross-section data
+# Improved locally efficient doubly robust DiD estimator for the ATT, 
+# with repeated cross-section data
 # drdid_imp_rc()
 ```
 
@@ -647,8 +651,6 @@ To choose $\Pi$, we don't need to data, we just need possible assignments in you
 
 -   For generic solver, we can use nonlinear programming (e..g, BFGS algorithm)
 
-<br>
-
 As argued in [@imai2021use] that TWFE is not a non-parametric approach, it can be subjected to incorrect model assumption (i.e., model dependence).
 
 -   Hence, they advocate for matching methods for time-series cross-sectional data [@imai2021use]
@@ -691,18 +693,24 @@ output$aVarHat
 #>             [,1]
 #> [1,] 0.003396724
 
-# to save time, you can use your structure in the last output for a new set of variables
+# to save time, you can use your structure in the 
+# last output for a new set of variables
 # output2 <- xtreg2way(y, x1, struc=output$struc)
 ```
 
 Standard errors estimation options
 
++----------------------+---------------------------------------------------------------------------------------------+
 | Set                  | Estimation                                                                                  |
-|----------------------|---------------------------------------------------------------------------------------------|
++======================+=============================================================================================+
 | `se = "0"`           | Assume homoskedasticity and no within group correlation or serial correlation               |
++----------------------+---------------------------------------------------------------------------------------------+
 | `se = "1"` (default) | robust to heteroskadasticity and serial correlation [@arellano1987computing]                |
++----------------------+---------------------------------------------------------------------------------------------+
 | `se = "2"`           | robust to heteroskedasticity, but assumes no correlation within group or serial correlation |
++----------------------+---------------------------------------------------------------------------------------------+
 | `se = "11"`          | Aerllano SE with df correction performed by Stata xtreg [@somaini2021twfem]                 |
++----------------------+---------------------------------------------------------------------------------------------+
 
 Alternatively, you can also do it manually or with the `plm` package, but you have to be careful with how the SEs are estimated
 
@@ -748,8 +756,6 @@ coeftest(output4, vcov = vcovHC, type = "HC1")
 ```
 
 As you can see, differences stem from SE estimation, not the coefficient estimate.
-
-<br>
 
 ### Multiple periods and variation in treatment timing
 
@@ -861,8 +867,6 @@ $$
 \theta_C = \frac{1}{\tau-1}\sum_{t=2}^\tau \theta_C(t)
 $$
 
-<br>
-
 ### Staggered Dif-n-dif
 
 -   When subjects are treated at different point in time (variation in treatment timing across units), we have to use staggered DiD (also known as DiD event study or dynamic DiD).
@@ -871,8 +875,10 @@ $$
 Basic design [@stevenson2006bargaining]
 
 $$
-Y_{it} = \sum_k \beta_k Treatment_{it}^k + \sum_i \eta_i  State_i \\
-+ \sum_t \lambda_t Year_t + Controls_{it} + \epsilon_{it}
+\begin{aligned}
+Y_{it} &= \sum_k \beta_k Treatment_{it}^k + \sum_i \eta_i  State_i \\
+&+ \sum_t \lambda_t Year_t + Controls_{it} + \epsilon_{it}
+\end{aligned}
 $$
 
 where
@@ -897,7 +903,7 @@ Robustness Check
 
 -   **Rollout Exogeneity** (i.e., exogeneity of treatment adoption): if the treatment is randomly implemented over time (i.e., unrelated to variables that could also affect our dependent variables)
 
-    -   Evidence: Regress adoption on pre-treatment variables. And if you find evidence of correlation, include lienar trends interacted with pre-treatment variables [@hoynes2009consumption]
+    -   Evidence: Regress adoption on pre-treatment variables. And if you find evidence of correlation, include linear trends interacted with pre-treatment variables [@hoynes2009consumption]
 
 -   **No confounding events**
 
@@ -1024,6 +1030,8 @@ library(fixest)
 
 data(base_stagg)
 
+
+
 # first make the stacked datasets
 # get the treatment cohorts
 cohorts <- base_stagg %>%
@@ -1047,7 +1055,7 @@ getdata <- function(j, window) {
 }
 
 # get data stacked
-stacked_data <- map_df(cohorts, ~getdata(., window = 5)) %>%
+stacked_data <- map_df(cohorts, ~ getdata(., window = 5)) %>%
     mutate(rel_year = if_else(df == year_treated, time_to_treatment, NA_real_)) %>%
     fastDummies::dummy_cols("rel_year", ignore_na = TRUE) %>%
     mutate(across(starts_with("rel_year_"), ~ replace_na(., 0)))
@@ -1075,18 +1083,28 @@ stacked <- c(stacked[1:4], 0, stacked[5:10])
 stacked_se <- c(stacked_se[1:4], 0, stacked_se[5:10])
 
 
-cs_out <- att_gt(yname = "y",
-                 data = base_stagg,
-                 gname = "year_treated",
-                 idname = "id",
-                 # xformla = "~x1",
-                 tname = "year"
+cs_out <- att_gt(
+    yname = "y",
+    data = base_stagg,
+    gname = "year_treated",
+    idname = "id",
+    # xformla = "~x1",
+    tname = "year"
 )
-cs <- aggte(cs_out, type = "dynamic", min_e = -5, max_e = 5, bstrap = FALSE, cband = FALSE)
+cs <-
+    aggte(
+        cs_out,
+        type = "dynamic",
+        min_e = -5,
+        max_e = 5,
+        bstrap = FALSE,
+        cband = FALSE
+    )
 
 
 
-res_sa20 = feols(y ~ sunab(year_treated, year) | id + year, base_stagg)
+res_sa20 = feols(y ~ sunab(year_treated, year) |
+                     id + year, base_stagg)
 sa = tidy(res_sa20)[5:14, ] %>% pull(estimate)
 sa = c(sa[1:4], 0, sa[5:10])
 
@@ -1107,10 +1125,11 @@ compare_df_se = data.frame(
     stacked = stacked_se
 )
 
-compare_df_longer <- compare_df_est %>% 
-    pivot_longer(!period, names_to = "estimator", values_to = "est") %>% 
+compare_df_longer <- compare_df_est %>%
+    pivot_longer(!period, names_to = "estimator", values_to = "est") %>%
     
-    full_join(compare_df_se %>% pivot_longer(!period, names_to = "estimator", values_to = "se") ) %>% 
+    full_join(compare_df_se %>% 
+                  pivot_longer(!period, names_to = "estimator", values_to = "se")) %>%
     
     mutate(upper = est +  1.96 * se,
            lower = est - 1.96 * se)
@@ -1128,7 +1147,8 @@ ggplot(compare_df_longer) +
         y = est,
         group = estimator,
         col = estimator
-    ), linewidth = 1)
+    ),
+    linewidth = 1)
 ```
 
 <img src="25-dif-in-dif_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
@@ -1206,7 +1226,10 @@ $$
 But if there is no common post time, then we should use [Staggered Dif-n-dif]
 
 $$
-E_{imrt} = \alpha + \beta_1 BTB_{imt} W_{imt} + \beta_2 BTB_{mt} + \beta_3 BTB_{mt} H_{imt}+\\ \delta_m + D_{imt} \beta_5 + \lambda_{rt} + \delta_m\times f(t) \beta_7 + e_{imrt}
+\begin{aligned}
+E_{imrt} &= \alpha + \beta_1 BTB_{imt} W_{imt} + \beta_2 BTB_{mt} + \beta_3 BTB_{mt} H_{imt}\\ 
+&+ \delta_m + D_{imt} \beta_5 + \lambda_{rt} + \delta_m\times f(t) \beta_7 + e_{imrt}
+\end{aligned}
 $$
 
 where
@@ -1236,9 +1259,11 @@ E_{imrt} = \alpha + BTB_{mt} \beta_1 + \delta_m + D_{imt} \beta_5 + \lambda_{rt}
 $$
 
 $$
-E_{imrt} = \alpha + BTB_{m (t - 3t)} \theta_1 + BTB_{m(t-2)} \theta_2 + BTB_{mt} \theta_4 \\
-+ BTB_{m(t+1)}\theta_5 + BTB_{m(t+2)}\theta_6 + BTB_{m(t+3t)}\theta_7 \\
-+ [\delta_m + D_{imt}\beta_5 + \lambda_r + (\delta_m \times (f(t))\beta_7 + e_{imrt}]
+\begin{aligned}
+E_{imrt} &= \alpha + BTB_{m (t - 3t)} \theta_1 + BTB_{m(t-2)} \theta_2 + BTB_{mt} \theta_4 \\
+&+ BTB_{m(t+1)}\theta_5 + BTB_{m(t+2)}\theta_6 + BTB_{m(t+3t)}\theta_7 \\
+&+ [\delta_m + D_{imt}\beta_5 + \lambda_r + (\delta_m \times (f(t))\beta_7 + e_{imrt}]
+\end{aligned}
 $$
 
 We have to leave $BTB_{m(t-1)}\theta_3$ out for the category would not be perfect collinearity
@@ -1246,8 +1271,6 @@ We have to leave $BTB_{m(t-1)}\theta_3$ out for the category would not be perfec
 So the year before BTB ($\theta_1, \theta_2, \theta_3$) should be similar to each other (i.e., same pre-trend). Remember, we only run for places with BTB.
 
 If $\theta_2$ is statistically different from $\theta_3$ (baseline), then there could be a problem, but it could also make sense if we have pre-trend announcement.
-
-<br>
 
 Example by [Philipp Leppert](https://rpubs.com/phle/r_tutorial_difference_in_differences) replicating [Card and Krueger (1994)](https://davidcard.berkeley.edu/data_sets.html)
 
@@ -1340,8 +1363,6 @@ ggplot(df_bacon) +
 
 With time-varying controls that can identify variation within-treatment timing group, the"early vs. late" and "late vs. early" estimates collapse to just one estimate (i.e., both treated).
 
-<br>
-
 #### Chaisemartin-d'Haultfoeuille
 
 use `twowayfeweights` from [GitHub](https://github.com/shuo-zhang-ucsb/twowayfeweights) [@de2020two]
@@ -1370,13 +1391,13 @@ When you have 2 treatments in a setting, you should always try to model both of 
 -   Could check this [answer](https://stats.stackexchange.com/questions/474533/difference-in-difference-with-two-treatment-groups-and-one-control-group-classi)
 
 $$
-Y_{it} = \alpha + \gamma_1 Treat1_{i} + \gamma_2 Treat2_{i} + \lambda Post_t  \\
-+ \delta_1(Treat1_i \times Post_t) + \delta_2(Treat2_i \times Post_t) + \epsilon_{it}
+\begin{aligned}
+Y_{it} &= \alpha + \gamma_1 Treat1_{i} + \gamma_2 Treat2_{i} + \lambda Post_t  \\
+&+ \delta_1(Treat1_i \times Post_t) + \delta_2(Treat2_i \times Post_t) + \epsilon_{it}
+\end{aligned}
 $$
 
 [@fricke2017identification]
-
-<br>
 
 ### Multiple Treatments
 
@@ -1504,7 +1525,7 @@ Debate:
 
     -   In the case that we don't have similar levels ex ante between treatment and control groups, functional form assumptions matter and we need justification for our choice.
 
--   Pre-trend statistical tests: [@roth2022pretest] provides evidence that these test are usually underpowered.
+-   Pre-trend statistical tests: [@roth2022pretest] provides evidence that these test are usually under powered.
 
     -   See [PretrendsPower](https://github.com/jonathandroth/PretrendsPower) and [pretrends](https://github.com/jonathandroth/pretrends) packages for correcting this.
 
@@ -1630,8 +1651,6 @@ etable(clfe1,clfe2)
 
 We would like the "supposed" DiD to be insignificant.
 
-<br>
-
 **Robustness Check**
 
 -   Placebo DiD (if the DiD estimate $\neq 0$, parallel trend is violated, and original DiD is biased):
@@ -1651,8 +1670,6 @@ We would like the "supposed" DiD to be insignificant.
 -   Test whether other dependent variables that should be affected by the event are indeed unaffected.
 
     -   Use the same control and treatment period (DiD $\neq0$, there is a problem)
-
-<br>
 
 ### Rosenbaum Bounds
 

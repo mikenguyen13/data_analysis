@@ -58,7 +58,7 @@ Marginal effects for
 -   continuous variables are the change in $E[Y|X]$ for very small changes in $X$ (not unit changes), because it's a derivative, which is a limit when $h \to 0$
 
 |                  | Analytical derivation | Numerical derivation                                   |
-|-----------------|-----------------|---------------------------------------|
+|------------------|------------------|-------------------------------------|
 | Marginal Effects | Rules of expectations | Approximate analytical solution                        |
 | Standard Errors  | Rules of variances    | Delta method using the asymptotic errors (vcov matrix) |
 
@@ -128,6 +128,7 @@ Two-sided derivatives
 
 ```r
 library(margins)
+library(tidyverse)
 
 data("mtcars")
 mod <- lm(mpg ~ cyl * disp * hp, data = mtcars)
@@ -143,17 +144,29 @@ get_mae <- function(mod, var = "disp") {
     
     pred <- predict(mod)
     
-    if (class(mod$model[[{{var}}]]) == "numeric") {
+    if (class(mod$model[[{
+        {
+            var
+        }
+    }]]) == "numeric") {
         h = (abs(mean(mod$model[[var]])) + 0.01) * 0.01
     } else {
         h = 1
     }
     
-    data[[{{var}}]] <- data[[{{var}}]] - h
-    
+    data[[{
+        {
+            var
+        }
+    }]] <- data[[{
+{
+var
+}
+}]] - h
+
     pred_new <- predict(mod, newdata = data)
-    
-    mean(pred - pred_new)/h
+
+    mean(pred - pred_new) / h
 }
 
 get_mae(mod, var = "disp")
@@ -205,9 +218,9 @@ predictions(mod) %>% head()
 # for specific reference values
 predictions(mod, newdata = datagrid(am = 0, wt = c(2, 4)))
 #> 
-#>  Estimate Std. Error    z Pr(>|z|)     S 2.5 % 97.5 %  hp am wt
-#>      22.0       2.04 10.8   <0.001  87.4  18.0   26.0 147  0  2
-#>      16.6       1.08 15.3   <0.001 173.8  14.5   18.7 147  0  4
+#>  am wt Estimate Std. Error    z Pr(>|z|)     S 2.5 % 97.5 %  hp
+#>   0  2     22.0       2.04 10.8   <0.001  87.4  18.0   26.0 147
+#>   0  4     16.6       1.08 15.3   <0.001 173.8  14.5   18.7 147
 #> 
 #> Columns: rowid, estimate, std.error, statistic, p.value, s.value, conf.low, conf.high, mpg, hp, am, wt
 plot_cap(mod, condition = c("hp","wt"))
@@ -218,12 +231,12 @@ plot_cap(mod, condition = c("hp","wt"))
 
 ```r
 # Average Margianl Effects
-mfx <- marginaleffects(mod, variables = c("hp","wt"))
+mfx <- marginaleffects(mod, variables = c("hp", "wt"))
 summary(mfx)
 #> 
 #>  Term    Contrast Estimate Std. Error     z Pr(>|z|)   2.5 % 97.5 %
 #>    hp mean(dY/dX)  -0.0381     0.0128 -2.98  0.00291 -0.0631 -0.013
-#>    wt mean(dY/dX)  -3.9391     1.0860 -3.63  < 0.001 -6.0675 -1.811
+#>    wt mean(dY/dX)  -3.9391     1.0858 -3.63  < 0.001 -6.0672 -1.811
 #> 
 #> Columns: term, contrast, estimate, std.error, statistic, p.value, conf.low, conf.high
 
@@ -231,83 +244,78 @@ summary(mfx)
 marginaleffects::marginaleffects(mod, by = "hp", variables = "am")
 #> 
 #>  Term          Contrast  hp Estimate Std. Error      z Pr(>|z|)   S  2.5 %
-#>    am mean(1) - mean(0) 110   -0.640       1.57 -0.407    0.684 0.5  -3.73
-#>    am mean(1) - mean(0)  93    1.201       2.35  0.511    0.609 0.7  -3.40
-#>    am mean(1) - mean(0) 175   -0.416       1.56 -0.266    0.790 0.3  -3.48
-#>    am mean(1) - mean(0) 105   -2.682       2.37 -1.132    0.258 2.0  -7.32
-#>    am mean(1) - mean(0) 245    1.115       2.28  0.488    0.625 0.7  -3.36
+#>    am mean(1) - mean(0)  52    3.976       5.20  0.764    0.445 1.2  -6.22
 #>    am mean(1) - mean(0)  62   -2.774       2.51 -1.107    0.268 1.9  -7.68
+#>    am mean(1) - mean(0)  65    2.999       4.13  0.725    0.468 1.1  -5.10
+#>    am mean(1) - mean(0)  66    2.025       3.48  0.582    0.561 0.8  -4.80
+#>    am mean(1) - mean(0)  91    1.858       2.76  0.674    0.500 1.0  -3.54
+#>    am mean(1) - mean(0)  93    1.201       2.35  0.511    0.609 0.7  -3.40
 #>    am mean(1) - mean(0)  95   -1.832       1.97 -0.931    0.352 1.5  -5.69
+#>    am mean(1) - mean(0)  97    0.708       2.04  0.347    0.728 0.5  -3.28
+#>    am mean(1) - mean(0) 105   -2.682       2.37 -1.132    0.258 2.0  -7.32
+#>    am mean(1) - mean(0) 109   -0.237       1.59 -0.149    0.881 0.2  -3.35
+#>    am mean(1) - mean(0) 110   -0.640       1.57 -0.407    0.684 0.5  -3.73
+#>    am mean(1) - mean(0) 113    4.081       3.94  1.037    0.300 1.7  -3.63
 #>    am mean(1) - mean(0) 123   -2.098       2.10 -0.998    0.318 1.7  -6.22
+#>    am mean(1) - mean(0) 150   -1.429       1.90 -0.753    0.452 1.1  -5.15
+#>    am mean(1) - mean(0) 175   -0.416       1.56 -0.266    0.790 0.3  -3.48
 #>    am mean(1) - mean(0) 180   -1.381       2.47 -0.560    0.576 0.8  -6.22
 #>    am mean(1) - mean(0) 205   -2.873       6.24 -0.460    0.645 0.6 -15.11
 #>    am mean(1) - mean(0) 215   -2.534       6.95 -0.364    0.716 0.5 -16.16
 #>    am mean(1) - mean(0) 230   -1.477       7.07 -0.209    0.835 0.3 -15.34
-#>    am mean(1) - mean(0)  66    2.025       3.48  0.582    0.561 0.8  -4.80
-#>    am mean(1) - mean(0)  52    3.976       5.20  0.764    0.445 1.2  -6.22
-#>    am mean(1) - mean(0)  65    2.999       4.13  0.725    0.468 1.1  -5.10
-#>    am mean(1) - mean(0)  97    0.708       2.04  0.347    0.728 0.5  -3.28
-#>    am mean(1) - mean(0) 150   -1.429       1.90 -0.753    0.452 1.1  -5.15
-#>    am mean(1) - mean(0)  91    1.858       2.76  0.674    0.500 1.0  -3.54
-#>    am mean(1) - mean(0) 113    4.081       3.94  1.037    0.300 1.7  -3.63
+#>    am mean(1) - mean(0) 245    1.115       2.28  0.488    0.625 0.7  -3.36
 #>    am mean(1) - mean(0) 264    2.106       2.29  0.920    0.358 1.5  -2.38
 #>    am mean(1) - mean(0) 335    4.027       3.24  1.243    0.214 2.2  -2.32
-#>    am mean(1) - mean(0) 109   -0.237       1.59 -0.149    0.881 0.2  -3.35
 #>  97.5 %
-#>    2.45
-#>    5.80
-#>    2.64
-#>    1.96
-#>    5.59
+#>   14.18
 #>    2.14
+#>   11.10
+#>    8.85
+#>    7.26
+#>    5.80
 #>    2.02
+#>    4.70
+#>    1.96
+#>    2.87
+#>    2.45
+#>   11.79
 #>    2.02
+#>    2.29
+#>    2.64
 #>    3.46
 #>    9.36
 #>   11.09
 #>   12.39
-#>    8.85
-#>   14.18
-#>   11.10
-#>    4.70
-#>    2.29
-#>    7.26
-#>   11.79
+#>    5.59
 #>    6.59
 #>   10.38
-#>    2.87
 #> 
-#> Columns: term, contrast, hp, estimate, std.error, statistic, p.value, s.value, conf.low, conf.high, predicted, predicted_hi, predicted_lo
+#> Columns: term, contrast, hp, estimate, std.error, statistic, p.value, s.value, conf.low, conf.high, predicted_lo, predicted_hi, predicted
 
-# Marginal effects at representative values 
-marginaleffects::marginaleffects(mod, newdata = datagrid(am = 0, wt = c(2,4)))
+# Marginal effects at representative values
+marginaleffects::marginaleffects(mod, 
+                                 newdata = datagrid(am = 0, 
+                                                    wt = c(2, 4)))
 #> 
-#>  Term Contrast Estimate Std. Error      z Pr(>|z|)   S   2.5 %   97.5 %  hp am
-#>    hp    dY/dX  -0.0598     0.0283 -2.116   0.0344 4.9 -0.1153 -0.00441 147  0
-#>    hp    dY/dX  -0.0309     0.0187 -1.654   0.0982 3.3 -0.0676  0.00573 147  0
-#>    wt    dY/dX  -2.6762     1.4192 -1.886   0.0593 4.1 -5.4578  0.10551 147  0
-#>    wt    dY/dX  -2.6762     1.4193 -1.886   0.0594 4.1 -5.4579  0.10556 147  0
-#>    am    1 - 0   2.5465     2.7860  0.914   0.3607 1.5 -2.9139  8.00694 147  0
-#>    am    1 - 0  -2.9661     3.0381 -0.976   0.3289 1.6 -8.9207  2.98852 147  0
-#>  wt
-#>   2
-#>   4
-#>   2
-#>   4
-#>   2
-#>   4
+#>  Term Contrast am wt Estimate Std. Error      z Pr(>|z|)   S   2.5 %   97.5 %
+#>    am    1 - 0  0  2   2.5465     2.7860  0.914   0.3607 1.5 -2.9139  8.00694
+#>    am    1 - 0  0  4  -2.9661     3.0381 -0.976   0.3289 1.6 -8.9207  2.98852
+#>    hp    dY/dX  0  2  -0.0598     0.0283 -2.115   0.0344 4.9 -0.1153 -0.00439
+#>    hp    dY/dX  0  4  -0.0309     0.0187 -1.654   0.0981 3.3 -0.0676  0.00572
+#>    wt    dY/dX  0  2  -2.6762     1.4194 -1.885   0.0594 4.1 -5.4582  0.10587
+#>    wt    dY/dX  0  4  -2.6762     1.4199 -1.885   0.0595 4.1 -5.4591  0.10676
 #> 
-#> Columns: rowid, term, contrast, estimate, std.error, statistic, p.value, s.value, conf.low, conf.high, predicted, predicted_hi, predicted_lo, mpg, hp, am, wt
+#> Columns: rowid, term, contrast, estimate, std.error, statistic, p.value, s.value, conf.low, conf.high, am, wt, predicted_lo, predicted_hi, predicted, mpg, hp
 
 # Marginal Effects at the Mean
 marginaleffects::marginaleffects(mod, newdata = "mean")
 #> 
 #>  Term Contrast Estimate Std. Error      z Pr(>|z|)    S  2.5 %  97.5 %
-#>    hp    dY/dX  -0.0323    0.00956 -3.374  < 0.001 10.4 -0.051 -0.0135
-#>    wt    dY/dX  -3.7959    1.21438 -3.126  0.00177  9.1 -6.176 -1.4158
 #>    am    1 - 0  -0.8086    1.52383 -0.531  0.59568  0.7 -3.795  2.1781
+#>    hp    dY/dX  -0.0323    0.00956 -3.375  < 0.001 10.4 -0.051 -0.0135
+#>    wt    dY/dX  -3.7959    1.21310 -3.129  0.00175  9.2 -6.174 -1.4183
 #> 
-#> Columns: rowid, term, contrast, estimate, std.error, statistic, p.value, s.value, conf.low, conf.high, predicted, predicted_hi, predicted_lo, mpg, hp, wt, am
+#> Columns: rowid, term, contrast, estimate, std.error, statistic, p.value, s.value, conf.low, conf.high, predicted_lo, predicted_hi, predicted, mpg, hp, wt, am
 ```
 
 
@@ -325,8 +333,9 @@ comparisons(mod, variables = list(am = 0:1)) %>% summary()
 
 -   Marginal effects are partial derivative of the regression equation with respect to each variable in the model for each unit in the data
 
+```{=html}
 <!-- -->
-
+```
 -   Average Partial Effects: the contribution of each variable the outcome scale, conditional on the other variables involved in the link function transformation of the linear predictor
 
 -   Average Marginal Effects: the marginal contribution of each variable on the scale of the linear predictor.

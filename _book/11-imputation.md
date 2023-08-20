@@ -100,7 +100,7 @@ Advantages:
 
 -   In the case of MCAR, both the parameters estimates and its standard errors are unbiased.
 
--   In the case of MAR among independent variables (not depend on the values of dependent variables), then listwise deletion parameter estimates can still be unbiased. [@Little_1992] For example, you have a model $y=\beta_{0}+\beta_1X_1 + \beta_2X_2 +\epsilon$ if the probability of missing data on X1 is independent of Y, but dependent on the value of X1 and X2, then the model estimates are still unbiased.
+-   In the case of MAR among independent variables (not depend on the values of dependent variables), then listwise deletion parameter estimates can still be unbiased. [@Little_1992] For example, you have a model $y=\beta_{0}+\beta_1X_1 + \beta_2X_2 +\epsilon$ if the probability of missing data on $X1$ is independent of $Y$, but dependent on the value of $X1$ and $X2$, then the model estimates are still unbiased.
 
     -   The missing data mechanism the depends on the values of the independent variables are the same as stratified sampling. And stratified sampling does not bias your estimates
     -   In the case of logistic regression, if the probability of missing data on any variable depends on the value of the dependent variable, but independent of the value of the independent variables, then the listwise deletion will yield biased intercept estimate, but consistent estimates of the slope and their standard errors [@Vach_1994]. However, logistic regression will still fail if the probability of missing data is dependent on both the value of the dependent and independent variables.
@@ -140,30 +140,28 @@ Add another variable in the database to indicate whether a value is missing.
 
 Create 2 variables
 
-```{=tex}
-\begin{equation}
+$$
 D=
 \begin{cases}
 1 & \text{data on X are missing} \\
 0 & \text{otherwise}\\
 \end{cases}
-\end{equation}
-```
-```{=tex}
-\begin{equation}
+$$
+
+$$
 X^* = 
 \begin{cases}
 X & \text{data are available} \\
 c & \text{data are missing}\\
 \end{cases}
-\end{equation}
-```
-**Note**: A typical choice for c is usually the mean of X
+$$
+
+**Note**: A typical choice for $c$ is usually the mean of $X$
 
 Interpretation:
 
--   Coefficient of D is the the difference in the expected value of Y between the group with data and the group without data on X.
--   Coefficient of $X^*$ is the effect of the group with data on Y
+-   Coefficient of $D$ is the the difference in the expected value of $Y$ between the group with data and the group without data on $X$.
+-   Coefficient of $X^*$ is the effect of the group with data on $Y$
 
 Disadvantages:
 
@@ -200,8 +198,8 @@ You start your regression with your estimates based on either listwise deletion 
 
 Advantages:
 
-(1) easy to use
-(2) preserves the relationship with other variables (important if you use Factor Analysis or Linear Regression later on), but best in the case of Factor Analysis, which doesn't require standard error of individuals item.
+(1) Easy to use
+(2) Preserves the relationship with other variables (important if you use Factor Analysis or Linear Regression later on), but best in the case of Factor Analysis, which doesn't require standard error of individuals item.
 
 Disadvantages:
 
@@ -212,7 +210,7 @@ Disadvantages:
 
 Advantages
 
-(1) efficient estimates and correct standard errors.
+(1) Efficient estimates and correct standard errors.
 
 Disadvantages:
 
@@ -236,9 +234,9 @@ A drawback of MI is that it will produce slightly different estimates every time
 
 Random draws form the residual distribution of each imputed variable and add those random numbers to the imputed values.
 
-For example, if we have missing data on X, and it's MCAR, then
+For example, if we have missing data on $X$, and it's MCAR, then
 
-(1) regress X on Y ([Listwise Deletion] method) to get its residual distribution.
+(1) Regress $X$ on $Y$ ([Listwise Deletion] method) to get its residual distribution.
 
 (2) For every missing value on X, we substitute with $\tilde{x_i}=\hat{x_i} + \rho u_i$ where
 
@@ -303,7 +301,7 @@ Types of chains
 
 **Note on Non-normal or categorical data** The normal-based methods still work well, but you will need to do some transformation. For example,
 
--   If the data is skewed, then log-transform, then impute, the exponentiate to have the missing data back to its original metric.
+-   If the data is skewed, then log-transform, then impute the exponentiate to have the missing data back to its original metric.
 -   If the data is proportion, logit-transform, impute, then de-transform the missing data.
 
 If you want to impute non-linear relationship, such as interaction between 2 variables and 1 variable is categorical. You can do separate imputation for different levels of that variable separately, then combined for the final analysis.
@@ -319,7 +317,7 @@ If you want to impute non-linear relationship, such as interaction between 2 var
 -   approximate Bayesian bootstrap
 -   A randomly chosen value from an individual in the sample who has similar values on other variables. In other words, find all the sample subjects who are similar on other variables, then randomly choose one of their values on the missing variable.
 
-When we have $n_1$ cases with complete data on Y and $n_0$ cases with missing data on Y
+When we have $n_1$ cases with complete data on $Y$ and $n_0$ cases with missing data on $Y$
 
 -   Step 1: From $n_1$, take a random sample (with replacement) of $n_1$ cases
 -   Step 2: From the retrieved sample take a random sample (with replacement) of $n_0$ cases
@@ -348,12 +346,12 @@ Donor samples of "cold-deck" imputation come from a different data set.
 
 Steps:
 
-1.  Regress Y on X (matrix of covariates) for the $n_1$ (i.e., non-missing cases) to get coefficients $b$ (a $k \times 1$ vector) and residual variance estimates $s^2$
+1.  Regress $Y$ on $X$ (matrix of covariates) for the $n_1$ (i.e., non-missing cases) to get coefficients $b$ (a $k \times 1$ vector) and residual variance estimates $s^2$
 2.  Draw randomly from the posterior predictive distribution of the residual variance (assuming a noninformative prior) by calculating $\frac{(n_1-k)s^2}{\chi^2}$, where $\chi^2$ is a random draw from a $\chi^2_{n_1-k}$ and let $s^2_{[1]}$ be an i-th random draw
 3.  Randomly draw from the posterior distribution of the coefficients $b$, by drawing from $MVN(b, s^2_{[1]}(X'X)^{-1})$, where X is an $n_1 \times k$ matrix of X values. Then we have $b_{1}$
 4.  Using step 1, we can calculate standardized residuals for $n_1$ cases: $e_i = \frac{y_i - bx_i}{\sqrt{s^2(1-k/n_1)}}$
 5.  Randomly draw a sample (with replacement) of $n_0$ from the $n_1$ residuals in step 4
-6.  With $n_0$ cases, we can calculate imputed values of Y: $y_i = b_{[1]}x_i + s_{[1]}e_i$ where $e_i$ are taken from step 5, and $b_{[1]}$ taken from step 3, and $s_{[1]}$ taken from step 2.
+6.  With $n_0$ cases, we can calculate imputed values of $Y$: $y_i = b_{[1]}x_i + s_{[1]}e_i$ where $e_i$ are taken from step 5, and $b_{[1]}$ taken from step 3, and $s_{[1]}$ taken from step 2.
 7.  Repeat steps 2 through 6 except for step 4.
 
 Notes:
@@ -361,20 +359,24 @@ Notes:
 -   can be used for multiple variables where each variable is imputed using all other variables as predictor.
 -   can also be used for heteroskedasticity in imputed values.
 
-Example from [Statistics Globle](https://statisticsglobe.com/predictive-mean-matching-imputation-method/)
+Example from [Statistics Globe](https://statisticsglobe.com/predictive-mean-matching-imputation-method/)
 
 
 ```r
-set.seed(918273)                                # Seed
-N <- 3000                                       # Sample size
-y <- round(runif(N, -10, 10))                   # Target variable Y
-x1 <- y + round(runif(N, 0, 50))                # Auxiliary variable 1
-x2 <- round(y + 0.25 * x1 + rnorm(N, - 3, 15))  # Auxiliary variable 2
-x3 <- round(0.1 * x1 + rpois(N, 2))             # Auxiliary variable 3
-x4 <- as.factor(round(0.02 * y + runif(N)))     # Auxiliary variable 4 (categorical variable)
-y[rbinom(N, 1, 0.2) == 1] <- NA                 # Insert 20% missing data in Y
-data <- data.frame(y, x1, x2, x3, x4)           # Store data in dataset
-head(data)                                      # First 6 rows of our data
+set.seed(918273) # Seed
+N  <- 3000                                    # Sample size
+y  <- round(runif(N,-10, 10))                 # Target variable Y
+x1 <- y + round(runif(N, 0, 50))              # Auxiliary variable 1
+x2 <- round(y + 0.25 * x1 + rnorm(N,-3, 15))  # Auxiliary variable 2
+x3 <- round(0.1 * x1 + rpois(N, 2))           # Auxiliary variable 3
+# (categorical variable)
+x4 <- as.factor(round(0.02 * y + runif(N)))   # Auxiliary variable 4 
+
+# Insert 20% missing data in Y
+y[rbinom(N, 1, 0.2) == 1] <- NA               
+
+data <- data.frame(y, x1, x2, x3, x4)         # Store data in dataset
+head(data) # First 6 rows of our data
 #>    y x1  x2 x3 x4
 #> 1  8 38  -3  6  1
 #> 2  1 50  -9  5  0
@@ -383,10 +385,10 @@ head(data)                                      # First 6 rows of our data
 #> 5 -4 40 -10  6  0
 #> 6 NA 29  -6  5  1
 
-library("mice")                                 # Load mice package
+library("mice") # Load mice package
 
 ##### Impute data via predictive mean matching (single imputation)#####
- 
+
 imp_single <- mice(data, m = 1, method = "pmm") # Impute missing values
 #> 
 #>  iter imp variable
@@ -398,11 +400,13 @@ imp_single <- mice(data, m = 1, method = "pmm") # Impute missing values
 data_imp_single <- complete(imp_single)         # Store imputed data
 # head(data_imp_single)
 
-# SInce single imputation underestiamtes stnadard errors, we use multiple imputaiton
+# Since single imputation underestiamtes stnadard errors, 
+# we use multiple imputaiton
 
-##### Predictive mean matching (multiple imputation)#####
- 
-imp_multi <- mice(data, m = 5, method = "pmm")  # Impute missing values multiple times
+##### Predictive mean matching (multiple imputation) #####
+
+# Impute missing values multiple times
+imp_multi <- mice(data, m = 5, method = "pmm")  
 #> 
 #>  iter imp variable
 #>   1   1  y
@@ -430,13 +434,17 @@ imp_multi <- mice(data, m = 5, method = "pmm")  # Impute missing values multiple
 #>   5   3  y
 #>   5   4  y
 #>   5   5  y
-data_imp_multi_all <- complete(imp_multi,       # Store multiply imputed data
-                           "repeated",
-                           include = TRUE)
- 
-data_imp_multi <- data.frame(                   # Combine imputed Y and X1-X4 (for convenience)
-  data_imp_multi_all[ , 1:6], data[, 2:5])
-head(data_imp_multi)                            # First 6 rows of our multiply imputed data
+data_imp_multi_all <-
+    # Store multiply imputed data
+    complete(imp_multi,       
+             "repeated",
+             include = TRUE)
+
+data_imp_multi <-
+    # Combine imputed Y and X1-X4 (for convenience)
+    data.frame(data_imp_multi_all[, 1:6], data[, 2:5])
+
+head(data_imp_multi)
 #>   y.0 y.1 y.2 y.3 y.4 y.5 x1  x2 x3 x4
 #> 1   8   8   8   8   8   8 38  -3  6  1
 #> 2   1   1   1   1   1   1 50  -9  5  0
@@ -485,7 +493,7 @@ md.pattern(anscombe)
 
 ## Number of observations per patterns for all pairs of variables
 p <- md.pairs(anscombe)
-p # rr = number of observations where both pairs of values are observed
+p 
 #> $rr
 #>    x1 x2 x3 x4 y1 y2 y3 y4
 #> x1 11 11 11 11  8 11 11  8
@@ -529,15 +537,20 @@ p # rr = number of observations where both pairs of values are observed
 #> y2  0  0  0  0  0  0  0  0
 #> y3  0  0  0  0  0  0  0  0
 #> y4  0  0  0  0  1  0  0  3
-# rm = the number of observations where both variables are missing values
-# mr = the number of observations where the first variable’s value (e.g. the row variable) is observed and second (or column) variable is missing
-# mm = the number of observations where the second variable’s value (e.g. the col variable) is observed and first (or row) variable is missing
+```
 
+ * `rr` = number of observations where both pairs of values are observed
+ * `rm` = the number of observations where both variables are missing values
+ * `mr` = the number of observations where the first variable’s value (e.g. the row variable) is observed and second (or column) variable is missing
+ * `mm` = the number of observations where the second variable’s value (e.g. the col variable) is observed and first (or row) variable is missing
+
+
+```r
 ## Margin plot of y1 and y4
 marginplot(anscombe[c(5, 8)], col = c("blue", "red", "orange"))
 ```
 
-<img src="11-imputation_files/figure-html/unnamed-chunk-2-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="11-imputation_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -654,7 +667,7 @@ Single stochastic regression imputation
 
 
 ```r
-imp_inc_sri <- mice(data_inc_miss, method = "norm.nob", m = 1)
+imp_inc_sri  <- mice(data_inc_miss, method = "norm.nob", m = 1)
 #> 
 #>  iter imp variable
 #>   1   1  income
@@ -669,7 +682,7 @@ Single predictive mean matching
 
 
 ```r
-imp_inc_pmm <- mice(data_inc_miss, method = "pmm", m = 1)
+imp_inc_pmm  <- mice(data_inc_miss, method = "pmm", m = 1)
 #> 
 #>  iter imp variable
 #>   1   1  income
@@ -687,7 +700,8 @@ Stochastic regression imputation contains negative values
 data_inc_sri$income[data_inc_sri$income < 0]
 #> [1]  -66.055957  -96.980053  -28.921432   -4.175686  -54.480798  -27.207102
 #> [7] -143.603500  -80.960488
-data_inc_pmm$income[data_inc_pmm$income < 0] # No values below 0
+# No values below 0
+data_inc_pmm$income[data_inc_pmm$income < 0] 
 #> numeric(0)
 ```
 
@@ -708,7 +722,7 @@ eps <- rnorm(N, mean = 0, sd = sqrt(sigma2))
 y <- a + b * N + eps                         # Heteroscedastic variable
 x <- 30 * N + rnorm(N[length(N)], 1000, 200) # Correlated variable
  
-y[rbinom(N[length(N)], 1, 0.3) == 1] <- NA   # 30% missings
+y[rbinom(N[length(N)], 1, 0.3) == 1] <- NA   # 30% missing
  
 data_het_miss <- data.frame(y, x)
 ```
@@ -717,7 +731,7 @@ Single stochastic regression imputation
 
 
 ```r
-imp_het_sri <- mice(data_het_miss, method = "norm.nob", m = 1)
+imp_het_sri  <- mice(data_het_miss, method = "norm.nob", m = 1)
 #> 
 #>  iter imp variable
 #>   1   1  y
@@ -732,7 +746,7 @@ Single predictive mean matching
 
 
 ```r
-imp_het_pmm <- mice(data_het_miss, method = "pmm", m = 1)
+imp_het_pmm  <- mice(data_het_miss, method = "pmm", m = 1)
 #> 
 #>  iter imp variable
 #>   1   1  y
@@ -748,44 +762,72 @@ Comparison between predictive mean matching and stochastic regression imputation
 
 ```r
 par(mfrow = c(1, 2))                              # Both plots in one graphic
- 
-plot(x[!is.na(data_het_sri$y)],                   # Plot of observed values
+
+# Plot of observed values
+plot(x[!is.na(data_het_sri$y)],
      data_het_sri$y[!is.na(data_het_sri$y)],
      main = "",
-     xlab = "X", ylab = "Y")
-points(x[is.na(y)], data_het_sri$y[is.na(y)],     # Plot of missing values
+     xlab = "X",
+     ylab = "Y")
+# Plot of missing values
+points(x[is.na(y)], data_het_sri$y[is.na(y)],
        col = "red")
-title("Stochastic Regression Imputation",         # Title of plot
+
+# Title of plot
+title("Stochastic Regression Imputation",        
       line = 0.5)
-abline(lm(y ~ x, data_het_sri),                   # Regression line
+
+# Regression line
+abline(lm(y ~ x, data_het_sri),                   
        col = "#1b98e0", lwd = 2.5)
-legend("topleft",                                 # Legend
-       c("Observed Values", "Imputed Values", "Regression Y ~ X"),
-       pch = c(1, 1, NA),
-       lty = c(NA, NA, 1),
-       col = c("black", "red", "#1b98e0"))
- 
-plot(x[!is.na(data_het_pmm$y)],                   # Plot of observed values
+
+# Legend
+legend(
+  "topleft",
+  c("Observed Values", "Imputed Values", "Regression Y ~ X"),
+  pch = c(1, 1, NA),
+  lty = c(NA, NA, 1),
+  col = c("black", "red", "#1b98e0")
+)
+
+# Plot of observed values
+plot(x[!is.na(data_het_pmm$y)],
      data_het_pmm$y[!is.na(data_het_pmm$y)],
      main = "",
-     xlab = "X", ylab = "Y")
-points(x[is.na(y)], data_het_pmm$y[is.na(y)],     # Plot of missing values
+     xlab = "X",
+     ylab = "Y")
+
+
+# Plot of missing values
+points(x[is.na(y)], data_het_pmm$y[is.na(y)],
        col = "red")
-title("Predictive Mean Matching",                 # Title of plot
+
+# Title of plot
+title("Predictive Mean Matching",
       line = 0.5)
 abline(lm(y ~ x, data_het_pmm),
        col = "#1b98e0", lwd = 2.5)
-legend("topleft",                                 # Legend
-       c("Observed Values", "Imputed Values", "Regression Y ~ X"),
-       pch = c(1, 1, NA),
-       lty = c(NA, NA, 1),
-       col = c("black", "red", "#1b98e0"))
- 
-mtext("Imputation of Heteroscedastic Data",       # Main title of plot
-      side = 3, line = - 1.5, outer = TRUE, cex = 2)
+
+# Legend
+legend(
+  "topleft",
+  c("Observed Values", "Imputed Values", "Regression Y ~ X"),
+  pch = c(1, 1, NA),
+  lty = c(NA, NA, 1),
+  col = c("black", "red", "#1b98e0")
+)
+
+mtext(
+  "Imputation of Heteroscedastic Data",
+  # Main title of plot
+  side = 3,
+  line = -1.5,
+  outer = TRUE,
+  cex = 2
+)
 ```
 
-<img src="11-imputation_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="11-imputation_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" />
 
 #### Regression Imputation
 
@@ -840,10 +882,11 @@ Similar to \@ref(principal-components), we can approximate the matrix $\mathbf{X
 We consider the $M$ principal components that optimize
 
 $$
-\underset{\mathbf{A} \in R^{n \times M}, \mathbf{B} \in R^{p \times M}}{\operatorname{min}} \{ \sum_{(i,j) \in \cal{O}} (x_{ij} - \sum_{m=1}^M a_{im}b_{jm})^2 \} 
+\underset{\mathbf{A} \in \mathbb{R}^{n \times M}, \mathbf{B} \in \mathbb{R}^{p \times M}}{\operatorname{min}} \left\{ \sum_{(i,j) \in \mathcal{O}} (x_{ij} - \sum_{m=1}^M a_{im}b_{jm})^2 \right\}
 $$
 
-where $\cal{O}$ is the set of all observed pairs indices $(i,j)$, a subset of the possible $n \times p$ pairs
+
+where $\mathcal{O}$ is the set of all observed pairs indices $(i,j)$, a subset of the possible $n \times p$ pairs
 
 Once this minimization is solved,
 
@@ -860,36 +903,34 @@ Hence, we have to use iterative algorithm [@james2013 Alg 12.1]
 $$
 \tilde{x}_{ij} =
 \begin{cases}
-x_{ij} & \text{if } (i,j) \in \cal{O} \\
-\bar{x}_{j} & \text{if } (i,j) \notin \cal{O}
+x_{ij} & \text{if } (i,j) \in \mathcal{O} \\
+\bar{x}_{j} & \text{if } (i,j) \notin \mathcal{O}
 \end{cases}
 $$
 
 where $\bar{x}_j$ is the average of the observed values for the $j$th variable in the incomplete data matrix $\mathbf{X}$
 
-$\cal{O}$ indexes the observations that are observed in $\mathbf{X}$
+$\mathcal{O}$ indexes the observations that are observed in $\mathbf{X}$
 
 2.  Repeat these 3 steps until some objectives are met
 
 a\. Solve
 
 $$
-\underset{\mathbf{A} \in R^{n \times M}, \mathbf{B} \in R^{p \times M}}{\operatorname{min}} \{ \sum_{(i,j) \in \cal{O}} (x_{ij} - \sum_{m=1}^M a_{im}b_{jm})^2 \} 
+\underset{\mathbf{A} \in R^{n \times M}, \mathbf{B} \in R^{p \times M}}{\operatorname{min}} \{ \sum_{(i,j) \in \mathcal{O}} (x_{ij} - \sum_{m=1}^M a_{im}b_{jm})^2 \} 
 $$
 
 by computing the principal components of $\tilde{\mathbf{X}}$
 
-b\. For each element $(i,j) \notin \cal{O}$, set $\tilde{x}_{ij} \leftarrow \sum_{m=1}^M \hat{a}_{im}\hat{b}_{jm}$
+b\. For each element $(i,j) \notin \mathcal{O}$, set $\tilde{x}_{ij} \leftarrow \sum_{m=1}^M \hat{a}_{im}\hat{b}_{jm}$
 
 c\. Compute the objective
 
 $$
-\sum_{(i,j \in \cal{O})} (x_{ij} - \sum_{m=1}^M \hat{a}_{im} \hat{b}_{jm})^2
+\sum_{(i,j \in \mathcal{O})} (x_{ij} - \sum_{m=1}^M \hat{a}_{im} \hat{b}_{jm})^2
 $$
 
-3.  Return the estimated missing entries $\tilde{x}_{ij}, (i,j) \notin \cal{O}$
-
-<br>
+3.  Return the estimated missing entries $\tilde{x}_{ij}, (i,j) \notin \mathcal{O}$
 
 ### Other methods
 
@@ -972,9 +1013,10 @@ library(ggplot2)
 vis_miss()
 
 
-ggplot(data, aes(x, y)) + 
-    geom_miss_point() + 
-    facet_wrap(~ group)
+
+ggplot(data, aes(x, y)) +
+  geom_miss_point() +
+  facet_wrap( ~ group)
 
 gg_miss_var(data, facet = group)
 
@@ -1022,13 +1064,13 @@ iris.mis <- subset(iris.mis, select = -c(Species))
 
 ```r
 # whole data set
-e1071::impute(iris.mis, what = "mean") # replace with mean
-e1071::impute(iris.mis, what = "median") # replace with median
+e1071::impute(iris.mis, what = "mean")        # replace with mean
+e1071::impute(iris.mis, what = "median")      # replace with median
 
 # by variables
-Hmisc::impute(iris.mis$Sepal.Length, mean)  # mean
+Hmisc::impute(iris.mis$Sepal.Length, mean)    # mean
 Hmisc::impute(iris.mis$Sepal.Length, median)  # median
-Hmisc::impute(iris.mis$Sepal.Length, 0)  # replace specific number
+Hmisc::impute(iris.mis$Sepal.Length, 0)       # replace specific number
 ```
 
 check accuracy
@@ -1046,16 +1088,17 @@ check accuracy
 
 ```r
 # library(DMwR2)
-# # iris.mis[,!names(iris.mis) %in% c("Sepal.Length")] 
-# # data should be this line. But since knn cant work with 3 or less variables, we need to use at least 4 variables. 
+# # iris.mis[,!names(iris.mis) %in% c("Sepal.Length")]
+# # data should be this line. But since knn cant work with 3 or less variables, 
+# # we need to use at least 4 variables.
 # 
 # # knn is not appropriate for categorical variables
 # knnOutput <-
-#     knnImputation(data = iris.mis.cat, 
-#                   #k = 10, 
-#                   meth = "median" # could use "median" or "weighAvg"
-#                   )  # should exclude the dependent variable: Sepal.Length
-# anyNA(knnOutput)
+#   knnImputation(data = iris.mis.cat,
+#                 #k = 10,
+#                 meth = "median" # could use "median" or "weighAvg")  
+#                 # should exclude the dependent variable: Sepal.Length
+#                 anyNA(knnOutput)
 ```
 
 
@@ -1066,20 +1109,38 @@ check accuracy
 # regr.eval(actuals, predicteds)
 ```
 
-Compared to mape (mean absolute percentage error) of mean imputation, we see almost always see improvements.
+Compared to MAPE (mean absolute percentage error) of mean imputation, we see almost always see improvements.
 
 ### rpart
 
-For categorical (factor) variables, rpart can handle
+For categorical (factor) variables, `rpart` can handle
 
 
 ```r
 library(rpart)
-class_mod <- rpart(Species ~ . - Sepal.Length, data=iris.mis.cat[!is.na(iris.mis.cat$Species), ], method="class", na.action=na.omit)  # since Species is a factor, and exclude dependent variable "Sepal.Length"
+class_mod <-
+  rpart(
+    Species ~ . - Sepal.Length,
+    data = iris.mis.cat[!is.na(iris.mis.cat$Species),],
+    method = "class",
+    na.action = na.omit
+  )  # since Species is a factor, and exclude dependent variable "Sepal.Length"
 
-anova_mod <- rpart(Sepal.Width ~ . - Sepal.Length, data=iris.mis[!is.na(iris.mis$Sepal.Width), ], method="anova", na.action=na.omit)  # since Sepal.Width is numeric.
-species_pred <- predict(class_mod, iris.mis.cat[is.na(iris.mis.cat$Species), ])
-width_pred <- predict(anova_mod, iris.mis[is.na(iris.mis$Sepal.Width), ])
+anova_mod <-
+  rpart(
+    Sepal.Width ~ . - Sepal.Length,
+    data = iris.mis[!is.na(iris.mis$Sepal.Width),],
+    method = "anova",
+    na.action = na.omit
+  )  # since Sepal.Width is numeric.
+
+
+species_pred <-
+  predict(class_mod, iris.mis.cat[is.na(iris.mis.cat$Species),])
+
+
+width_pred <-
+  predict(anova_mod, iris.mis[is.na(iris.mis$Sepal.Width),])
 ```
 
 ### MICE (Multivariate Imputation via Chained Equations) {#mice-multivariate-imputation-via-chained-equations}
@@ -1100,8 +1161,8 @@ By default,
 Methods in [MICE](#mice-multivariate-imputation-via-chained-equations):
 
 -   PMM (Predictive Mean Matching) -- For numeric variables
--   logreg(Logistic Regression) -- For Binary Variables( with 2 levels)
--   polyreg(Bayesian polytomous regression) -- For Factor Variables (\>= 2 levels)
+-   `logreg`(Logistic Regression) -- For Binary Variables( with 2 levels)
+-   `polyreg` (Bayesian polytomous regression) -- For Factor Variables (\>= 2 levels)
 -   Proportional odds model (ordered, \>= 2 levels)
 
 
@@ -1114,7 +1175,7 @@ library(VIM)
 md.pattern(iris.mis)
 ```
 
-<img src="11-imputation_files/figure-html/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="11-imputation_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```
 #>     Sepal.Width Sepal.Length Petal.Length Petal.Width   
@@ -1132,10 +1193,19 @@ md.pattern(iris.mis)
 #>              11           15           15          19 60
 
 #plot the missing values
-aggr(iris.mis, col=mdc(1:2), numbers=TRUE, sortVars=TRUE, labels=names(iris.mis), cex.axis=.7, gap=3, ylab=c("Proportion of missingness","Missingness Pattern"))
+aggr(
+  iris.mis,
+  col = mdc(1:2),
+  numbers = TRUE,
+  sortVars = TRUE,
+  labels = names(iris.mis),
+  cex.axis = .7,
+  gap = 3,
+  ylab = c("Proportion of missingness", "Missingness Pattern")
+)
 ```
 
-<img src="11-imputation_files/figure-html/unnamed-chunk-18-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="11-imputation_files/figure-html/unnamed-chunk-19-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```
 #> 
@@ -1147,13 +1217,19 @@ aggr(iris.mis, col=mdc(1:2), numbers=TRUE, sortVars=TRUE, labels=names(iris.mis)
 #>   Sepal.Width 0.07333333
 
 
-mice_plot <- aggr(iris.mis, col=c('navyblue','yellow'),
-                    numbers=TRUE, sortVars=TRUE,
-                    labels=names(iris.mis), cex.axis=.7,
-                    gap=3, ylab=c("Missing data","Pattern"))
+mice_plot <- aggr(
+  iris.mis,
+  col = c('navyblue', 'yellow'),
+  numbers = TRUE,
+  sortVars = TRUE,
+  labels = names(iris.mis),
+  cex.axis = .7,
+  gap = 3,
+  ylab = c("Missing data", "Pattern")
+)
 ```
 
-<img src="11-imputation_files/figure-html/unnamed-chunk-18-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="11-imputation_files/figure-html/unnamed-chunk-19-3.png" width="90%" style="display: block; margin: auto;" />
 
 ```
 #> 
@@ -1174,7 +1250,10 @@ imputed_Data <-
         iris.mis,
         m = 5, # number of imputed datasets
         maxit = 50, # number of iterations taken to impute missing values
-        method = 'pmm', # method used in imputation. Here, we used predictive mean matching
+        method = 'pmm', # method used in imputation. 
+        # Here, we used predictive mean matching
+        
+        
         # other methods can be 
         # "pmm": Predictive mean matching
         # "midastouch" : weighted predictive mean matching
@@ -1182,7 +1261,8 @@ imputed_Data <-
         # "cart": classification and regression trees
         # "rf": random forest imputations.
         # "2lonly.pmm": Level-2 class predictive mean matching
-        # Other methods based on whether variables are (1) numeric, (2) binary, (3) ordered, (4), unordered
+        # Other methods based on whether variables are 
+        # (1) numeric, (2) binary, (3) ordered, (4), unordered
         seed = 500
     )
 ```
@@ -1206,7 +1286,7 @@ summary(imputed_Data)
 densityplot(imputed_Data)
 ```
 
-<img src="11-imputation_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="11-imputation_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 #the red (imputed values) should be similar to the blue (observed)
@@ -1228,7 +1308,9 @@ Regression model using imputed datasets
 
 ```r
 # regression model
-fit <- with(data = imputed_Data, exp = lm(Sepal.Width ~ Sepal.Length + Petal.Width)) 
+fit <-
+  with(data = imputed_Data,
+       exp = lm(Sepal.Width ~ Sepal.Length + Petal.Width))
 
 #combine results of all 5 models
 combine <- pool(fit)
@@ -1266,12 +1348,19 @@ library(Amelia)
 data("iris")
 #seed 10% missing values
 iris.mis <- prodNA(iris, noNA = 0.1)
+```
 
-# idvars – keep all ID variables and other variables which you don’t want to impute
-# noms – keep nominal variables here
+ * idvars – keep all ID variables and other variables which you don’t want to impute
+ * noms – keep nominal variables here
 
+
+```r
 #specify columns and run amelia
-amelia_fit <- amelia(iris.mis, m=5, parallel = "multicore", noms = "Species")
+amelia_fit <-
+  amelia(iris.mis,
+         m = 5,
+         parallel = "multicore",
+         noms = "Species")
 #> -- Imputation 1 --
 #> 
 #>   1  2  3  4  5  6  7  8
@@ -1310,11 +1399,14 @@ library(missForest)
 iris.imp <- missForest(iris.mis)
 # check imputed values
 # iris.imp$ximp
+```
+
+ * check imputation error
+ * NRMSE is normalized mean squared error. It is used to represent error derived from imputing continuous values.
+ * PFC (proportion of falsely classified) is used to represent error derived from imputing categorical values.
 
 
-# check imputation error
-# NRMSE is normalized mean squared error. It is used to represent error derived from imputing continuous values. 
-# PFC (proportion of falsely classified) is used to represent error derived from imputing categorical values.
+```r
 iris.imp$OOBerror
 #>      NRMSE        PFC 
 #> 0.13631893 0.04477612
@@ -1358,14 +1450,23 @@ library(Hmisc)
 iris.mis$imputed_age <- with(iris.mis, impute(Sepal.Length, mean))
 
 # impute with random value
-iris.mis$imputed_age2 <- with(iris.mis, impute(Sepal.Length, 'random'))
+iris.mis$imputed_age2 <-
+  with(iris.mis, impute(Sepal.Length, 'random'))
 
 # could also use min, max, median to impute missing value
 
 # using argImpute
-impute_arg <- aregImpute(~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width +
-Species, data = iris.mis, n.impute = 5) # argImpute() automatically identifies the variable type and treats them accordingly.
+impute_arg <-
+  # argImpute() automatically identifies the variable type 
+  # and treats them accordingly.
+  aregImpute(
+    ~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width +
+      Species,
+    data = iris.mis,
+    n.impute = 5
+  ) 
 #> Iteration 1 Iteration 2 Iteration 3 Iteration 4 Iteration 5 Iteration 6 Iteration 7 Iteration 8 
+
 impute_arg # R-squares are for predicted missing values.
 #> 
 #> Multiple Imputation using Bootstrap and PMM

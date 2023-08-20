@@ -100,9 +100,14 @@ plots = stability_plot(
     perm = perm_controls,
     base = base_controls,
     # perm_fe = perm_fe_controls,
-    # nonperm_fe = nonperm_fe_controls, # if you want to include fixed effects sequentially (not all combinations) (e.g., you want to test country or state fixed effect, not both )
+    
+    # if you want to include fixed effects sequentially (not all combinations) 
+    # (e.g., you want to test country or state fixed effect, not both )
+    # nonperm_fe = nonperm_fe_controls, 
     # fe_always = F,  # if you want to have a model without any Fixed Effects
-    sort = "asc-by-fe", # sort "asc", "desc", or by fixed effects: "asc-by-fe" or "desc-by-fe"
+    
+    # sort "asc", "desc", or by fixed effects: "asc-by-fe" or "desc-by-fe"
+    sort = "asc-by-fe", 
     
     # if you have less variables and want more aesthetics 
     # control_geom = 'circle',
@@ -126,14 +131,22 @@ plots
 ```r
 
 # add comments
-# replacement_coef_panel = plots[[1]] + 
+# replacement_coef_panel = plots[[1]] +
 #   scale_y_reverse() +
 #   theme(panel.grid.minor = element_blank()) +
-#   geom_vline(xintercept = 41, linetype = 'dashed', alpha = 0.4) +
-#   annotate(geom = 'label', x = 52, y = 30000, label = 'What a great\nspecification!', alpha = 0.75)
+#   geom_vline(xintercept = 41,
+#              linetype = 'dashed',
+#              alpha = 0.4) +
+#   annotate(
+#     geom = 'label',
+#     x = 52,
+#     y = 30000,
+#     label = 'What a great\nspecification!',
+#     alpha = 0.75
+#   )
 # 
-# combine_plots(replacement_coef_panel, 
-#               plots[[2]], 
+# combine_plots(replacement_coef_panel,
+#               plots[[2]],
 #               rel_height = 0.6)
 
 ```
@@ -351,7 +364,8 @@ grid1 = stability_plot(
 base_perm = c(base_controls, perm_controls)
 grid1$expr = apply(grid1[, 1:length(base_perm)], 1,
                    function(x)
-                       paste(base_perm[names(base_perm)[which(x == 1)]], collapse = '+'))
+                     paste(base_perm[names(base_perm)[which(x == 1)]], 
+                           collapse = '+'))
 
 # Complete formula with LHS and RHS variables
 grid1$expr = paste(lhs_var, '~', rhs_var, '+', grid1$expr, sep = '')
@@ -469,21 +483,28 @@ control_grid_logit = dfs[[2]]
 
 min_space = 0.5
 
-coef_plot = ggplot2::ggplot(coef_grid_logit, aes(x = model, y = coef, shape=p, group=p)) +
-  geom_linerange(aes(ymin = error_low, ymax = error_high), alpha=0.75) +
-  geom_point(size=5, aes(col=p, fill=p), alpha=1) +
-  viridis::scale_color_viridis(discrete = TRUE, option = "D")+
-  scale_shape_manual(values = c(15,17,18, 19)) +
+coef_plot = ggplot2::ggplot(coef_grid_logit, aes(
+  x = model,
+  y = coef,
+  shape = p,
+  group = p
+)) +
+  geom_linerange(aes(ymin = error_low, ymax = error_high), alpha = 0.75) +
+  geom_point(size = 5, aes(col = p, fill = p), alpha = 1) +
+  viridis::scale_color_viridis(discrete = TRUE, option = "D") +
+  scale_shape_manual(values = c(15, 17, 18, 19)) +
   theme_classic() +
-  geom_hline(yintercept=0, linetype='dotted') +
+  geom_hline(yintercept = 0, linetype = 'dotted') +
   ggtitle('A custom coefficient stability plot!') +
-  labs(subtitle="Error bars represent 99% confidence intervals") +
-  theme(axis.text.x = element_blank(),
-        axis.title = element_blank(),
-        axis.ticks.x = element_blank()) +
-  coord_cartesian(xlim=c(1-min_space, max(coef_grid_logit$model)+min_space), 
-                  ylim=c(-0.1, 1.6)) +
-  guides(fill=F, shape=F, col=F)
+  labs(subtitle = "Error bars represent 99% confidence intervals") +
+  theme(
+    axis.text.x = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks.x = element_blank()
+  ) +
+  coord_cartesian(xlim = c(1 - min_space, max(coef_grid_logit$model) + min_space),
+                  ylim = c(-0.1, 1.6)) +
+  guides(fill = F, shape = F, col = F)
 
 
 control_plot = ggplot(control_grid_logit) +
@@ -564,7 +585,8 @@ probit_dfs = stability_plot(
     run_to = 5
 )
 
-# We'll put the probit DFs on the left, so we need to adjust the model numbers accordingly
+# We'll put the probit DFs on the left, 
+ #so we need to adjust the model numbers accordingly
 # so the probit and logit DFs don't plot on top of one another!
 coef_grid_probit = probit_dfs[[1]] %>% 
     mutate(model = model + max(coef_grid_logit$model))

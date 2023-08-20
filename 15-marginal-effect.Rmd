@@ -58,7 +58,7 @@ Marginal effects for
 -   continuous variables are the change in $E[Y|X]$ for very small changes in $X$ (not unit changes), because it's a derivative, which is a limit when $h \to 0$
 
 |                  | Analytical derivation | Numerical derivation                                   |
-|-----------------|-----------------|---------------------------------------|
+|------------------|------------------|-------------------------------------|
 | Marginal Effects | Rules of expectations | Approximate analytical solution                        |
 | Standard Errors  | Rules of variances    | Delta method using the asymptotic errors (vcov matrix) |
 
@@ -127,6 +127,7 @@ Two-sided derivatives
 
 ```{r}
 library(margins)
+library(tidyverse)
 
 data("mtcars")
 mod <- lm(mpg ~ cyl * disp * hp, data = mtcars)
@@ -138,17 +139,29 @@ get_mae <- function(mod, var = "disp") {
     
     pred <- predict(mod)
     
-    if (class(mod$model[[{{var}}]]) == "numeric") {
+    if (class(mod$model[[{
+        {
+            var
+        }
+    }]]) == "numeric") {
         h = (abs(mean(mod$model[[var]])) + 0.01) * 0.01
     } else {
         h = 1
     }
     
-    data[[{{var}}]] <- data[[{{var}}]] - h
-    
+    data[[{
+        {
+            var
+        }
+    }]] <- data[[{
+{
+var
+}
+}]] - h
+
     pred_new <- predict(mod, newdata = data)
-    
-    mean(pred - pred_new)/h
+
+    mean(pred - pred_new) / h
 }
 
 get_mae(mod, var = "disp")
@@ -193,14 +206,16 @@ plot_cap(mod, condition = c("hp","wt"))
 
 ```{r}
 # Average Margianl Effects
-mfx <- marginaleffects(mod, variables = c("hp","wt"))
+mfx <- marginaleffects(mod, variables = c("hp", "wt"))
 summary(mfx)
 
 # Group-Average Marginal Effects
 marginaleffects::marginaleffects(mod, by = "hp", variables = "am")
 
-# Marginal effects at representative values 
-marginaleffects::marginaleffects(mod, newdata = datagrid(am = 0, wt = c(2,4)))
+# Marginal effects at representative values
+marginaleffects::marginaleffects(mod, 
+                                 newdata = datagrid(am = 0, 
+                                                    wt = c(2, 4)))
 
 # Marginal Effects at the Mean
 marginaleffects::marginaleffects(mod, newdata = "mean")
@@ -215,8 +230,9 @@ comparisons(mod, variables = list(am = 0:1)) %>% summary()
 
 -   Marginal effects are partial derivative of the regression equation with respect to each variable in the model for each unit in the data
 
+```{=html}
 <!-- -->
-
+```
 -   Average Partial Effects: the contribution of each variable the outcome scale, conditional on the other variables involved in the link function transformation of the linear predictor
 
 -   Average Marginal Effects: the marginal contribution of each variable on the scale of the linear predictor.

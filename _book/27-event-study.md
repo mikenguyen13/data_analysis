@@ -265,23 +265,23 @@ $$
 
 Compustat Data Item
 
-+----------+--------------------------------+
-| Label    | Variable                       |
-+==========+================================+
-| `prcc_f` | Share price                    |
-+----------+--------------------------------+
-| `csho`   | Common shares outstanding      |
-+----------+--------------------------------+
-| `ivst`   | short-term investments         |
-|          |                                |
-|          | (Non-operating assets)         |
-+----------+--------------------------------+
-| `dd1`    | long-term debt due in one year |
-+----------+--------------------------------+
-| `dltt`   | long-term debt                 |
-+----------+--------------------------------+
-| `pstk`   | preferred stock                |
-+----------+--------------------------------+
++-------------+--------------------------------+
+| Label       | Variable                       |
++=============+================================+
+| `prcc_f`    | Share price                    |
++-------------+--------------------------------+
+| `csho`      | Common shares outstanding      |
++-------------+--------------------------------+
+| `ivst`      | short-term investments         |
+|             |                                |
+|             | (Non-operating assets)         |
++-------------+--------------------------------+
+| `dd1`       | long-term debt due in one year |
++-------------+--------------------------------+
+| `dltt`      | long-term debt                 |
++-------------+--------------------------------+
+| `pstk`      | preferred stock                |
++-------------+--------------------------------+
 
 Since WRDS no longer maintains the S&P 500 list as of the time of this writing, I can't replicate the list used in [@skiera2017should] paper.
 
@@ -384,8 +384,10 @@ Low power to detect significance [@kothari1997measuring]
 Applying CLT
 
 $$
-t_{CAR} = \frac{\bar{CAR_{it}}}{\sigma (CAR_{it})/\sqrt{n}} \\
-t_{BHAR} = \frac{\bar{BHAR_{it}}}{\sigma (BHAR_{it})/\sqrt{n}}
+\begin{aligned}
+t_{CAR} &= \frac{\bar{CAR_{it}}}{\sigma (CAR_{it})/\sqrt{n}} \\
+t_{BHAR} &= \frac{\bar{BHAR_{it}}}{\sigma (BHAR_{it})/\sqrt{n}}
+\end{aligned}
 $$
 
 Assume
@@ -448,7 +450,7 @@ where
 
     -   Use `wilcox.test(sample)`
 
--   Gen SIgn Test
+-   Gen Sign Test
 
 -   Corrado Rank Test
 
@@ -1038,8 +1040,10 @@ The correct way is to use the excess return for firm and for market [@fama2010lu
 [@fama1993common]
 
 $$
-E(R_{it}|X_t) - r_{ft} = \alpha_i + \beta_{1i} (E(R_{mt}|X_t )- r_{ft}) \\
-+ b_{2i} SML_t + b_{3i} HML_t
+\begin{aligned}
+E(R_{it}|X_t) - r_{ft} = \alpha_i &+ \beta_{1i} (E(R_{mt}|X_t )- r_{ft}) \\
+&+ b_{2i} SML_t + b_{3i} HML_t
+\end{aligned}
 $$
 
 where
@@ -1059,15 +1063,15 @@ where
 [@carhart1997persistence]
 
 $$
-E(R_{it}|X_t) - r_{ft} = \alpha_i + \beta_{1i} (E(R_{mt}|X_t )- r_{ft}) \\
-+ b_{2i} SML_t + b_{3i} HML_t + b_{4i} UMD_t
+\begin{aligned}
+E(R_{it}|X_t) - r_{ft} = \alpha_i &+ \beta_{1i} (E(R_{mt}|X_t )- r_{ft}) \\
+&+ b_{2i} SML_t + b_{3i} HML_t + b_{4i} UMD_t
+\end{aligned}
 $$
 
 where
 
 -   $UMD_t$ is the momentum factor (difference between high and low prior return stock portfolios) in day $t$.
-
-<br>
 
 ### Economic Model
 
@@ -1261,8 +1265,6 @@ es <-
 
 plot(es)
 ```
-
-<br>
 
 ### EventStudy
 

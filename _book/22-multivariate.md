@@ -63,8 +63,6 @@ Note:
 
 -   $\mathbf{\Sigma}$ is typically required to be positive definite, which means all eigenvalues are positive, and $\mathbf{\Sigma}$ has an inverse $\mathbf{\Sigma}^{-1}$ such that $\mathbf{\Sigma}^{-1}\mathbf{\Sigma} = \mathbf{I}_{p \times p} = \mathbf{\Sigma \Sigma}^{-1}$
 
-<br>
-
 **Correlation Matrices**
 
 $$
@@ -231,8 +229,6 @@ $$
 
 where $\beta = (\beta_1,...,\beta_p)' = \mathbf{\Sigma}_{xx}^{-1} \mathbf{\Sigma}_{yx}'$ (e.g., analogous to $\mathbf{(x'x)^{-1}x'y}$ but not the same if we consider $Y_i$ and $\mathbf{x}_i$, $i = 1,..,n$ and use the empirical covariance formula: $var(Y|\mathbf{x}) = \sigma^2_Y - \mathbf{\Sigma_{yx}\Sigma^{-1}_{xx} \Sigma'_{yx}}$)
 
-<br>
-
 **Samples from Multivariate Normal Populations**
 
 A random sample of size n, $\mathbf{y}_1,.., \mathbf{y}_n$ from $N_p (\mathbf{\mu}, \mathbf{\Sigma})$. Then
@@ -249,8 +245,6 @@ A random sample of size n, $\mathbf{y}_1,.., \mathbf{y}_n$ from $N_p (\mathbf{\m
 
 -   $\bar{\mathbf{y}}$ and $\mathbf{S}$ are sufficient statistics. (All of the info in the data about $\mathbf{\mu}$ and $\mathbf{\Sigma}$ is contained in $\bar{\mathbf{y}}$ and $\mathbf{S}$ , regardless of sample size).
 
-<br>
-
 **Large Sample Properties**
 
 $\mathbf{y}_1,..., \mathbf{y}_n$ are a random sample from some population with mean $\mathbf{\mu}$ and variance-covariance matrix $\mathbf{\Sigma}$
@@ -262,8 +256,6 @@ $\mathbf{y}_1,..., \mathbf{y}_n$ are a random sample from some population with m
 -   **Multivariate Central Limit Theorem**: Similar to the univariate case, $\sqrt{n}(\bar{\mathbf{y}} - \mu) \dot{\sim} N_p (\mathbf{0,\Sigma})$ where n is large relative to p ($n \ge 25p$), which is equivalent to $\bar{\mathbf{y}} \dot{\sim} N_p (\mu, \mathbf{\Sigma}/n)$
 
 -   **Wald's Theorem**: $n(\bar{\mathbf{y}} - \mu)' \mathbf{S}^{-1} (\bar{\mathbf{y}} - \mu)$ when n is large relative to p.
-
-<br>
 
 Maximum Likelihood Estimation for MVN
 
@@ -288,8 +280,6 @@ $$
 
 using derivatives of the log of the likelihood function with respect to $\mu$ and $\mathbf{\Sigma}$
 
-<br>
-
 **Properties of MLEs**
 
 -   Invariance: If $\hat{\theta}$ is the MLE of $\theta$, then the MLE of $h(\theta)$ is $h(\hat{\theta})$ for any function h(.)
@@ -309,8 +299,6 @@ using derivatives of the log of the likelihood function with respect to $\mu$ an
     -   The statistic is: $\Lambda = \frac{\max_{H_0}l(\mathbf{\mu}, \mathbf{\Sigma|Y})}{\max l(\mu, \mathbf{\Sigma | Y})}$
 
     -   For large n, $-2 \log \Lambda \sim \chi^2_{(v)}$ where v is the number of parameters in the unrestricted space minus the number of parameters under $H_0$
-
-<br>
 
 **Test of Multivariate Normality**
 
@@ -599,10 +587,8 @@ estat_test <-
     )
 estat_test$multivariateNormality
 #>          Test Statistic p value MVN
-#> 1 E-statistic  1.091101   0.509 YES
+#> 1 E-statistic  1.091101   0.525 YES
 ```
-
-<br>
 
 ### Mean Vector Inference
 
@@ -623,8 +609,10 @@ $$
 #### **Natural Multivariate Generalization**
 
 $$
-H_0: \mathbf{\mu} = \mathbf{\mu}_0 \\
-H_a: \mathbf{\mu} \neq \mathbf{\mu}_0
+\begin{aligned}
+&H_0: \mathbf{\mu} = \mathbf{\mu}_0 \\
+&H_a: \mathbf{\mu} \neq \mathbf{\mu}_0
+\end{aligned}
 $$
 
 Define **Hotelling's** $T^2$ by
@@ -649,8 +637,6 @@ and reject the null hypothesis when $F > f_{(1-\alpha, p, n-p)}$
 
 -   The $T^2$ test can be derived as a **likelihood ratio** test of $H_0: \mu = \mu_0$
 
-<br>
-
 #### Confidence Intervals
 
 ##### Confidence Region
@@ -668,8 +654,6 @@ In case that you have 2 parameters, the confidence region is a "hyper-ellipsoid"
 In this region, it consists of all $\mathbf{\mu}_0$ vectors for which the $T^2$ test would not reject $H_0$ at significance level $\alpha$
 
 Even though the confidence region better assesses the joint knowledge concerning plausible values of $\mathbf{\mu}$ , people typically include confidence statement about the individual component means. We'd like all of the separate confidence statements to hold **simultaneously** with a specified high probability. Simultaneous confidence intervals: intervals **against** any statement being incorrect
-
-<br>
 
 ###### Simultaneous Confidence Statements
 
@@ -695,8 +679,6 @@ $$
 
 -   These types of intervals can be used for "data snooping" (like $$Scheffe$$)
 
-<br>
-
 ###### One $\mu$ at a time
 
 -   One at a time confidence intervals:
@@ -712,8 +694,6 @@ $$
 -   If we only care about $k$ simultaneous intervals, we can use "one at a time" method with the $$Bonferroni$$ correction.
 
 -   This method gets more conservative as the number of intervals $k$ increases.
-
-<br>
 
 ### General Hypothesis Testing
 
@@ -744,9 +724,11 @@ $$
 Equivalently,
 
 $$
-\mu_1 - \mu_2 = 0 \\
-\vdots \\
-\mu_{p-1} - \mu_p = 0
+\begin{aligned}
+\mu_1 - \mu_2 &= 0 \\
+&\vdots \\
+\mu_{p-1} - \mu_p &= 0
+\end{aligned}
 $$
 
 a total of $p-1$ tests. Hence, we have $\mathbf{C}$ as the $p - 1 \times p$ matrix
@@ -785,8 +767,6 @@ The value of $T^2$ is invariant to these equivalent choices of $\mathbf{C}$
 
 This is often used for **repeated measures designs**, where each subject receives each treatment once over successive periods of time (all treatments are administered to each unit).
 
-<br>
-
 Example:
 
 Let $y_{ij}$ be the response from subject i at time j for $i = 1,..,n, j = 1,...,T$. In this case, $\mathbf{y}_i = (y_{i1}, ..., y_{iT})', i = 1,...,n$ are a random sample from $N_T (\mathbf{\mu}, \mathbf{\Sigma})$
@@ -800,10 +780,12 @@ $$
 Equivalently,
 
 $$
-\mu_1 - \mu_2 = 0 \\
-\mu_2 - \mu_3 = 0 \\
-... \\
-\mu_5  - \mu_6 = 0
+\begin{aligned}
+\mu_1 - \mu_2 &= 0 \\
+\mu_2 - \mu_3 &= 0 \\
+&... \\
+\mu_5  - \mu_6 &= 0
+\end{aligned}
 $$
 
 We can test orthogonal polynomials for 4 equally spaced time points. To test for example the null hypothesis that quadratic and cubic effects are jointly equal to 0, we would define $\mathbf{C}$
@@ -826,8 +808,10 @@ Consider the analogous two sample multivariate tests.
 Example: we have data on two independent random samples, one sample from each of two populations
 
 $$
-\mathbf{y}_{1i} \sim N_p (\mathbf{\mu_1, \Sigma}) \\
-\mathbf{y}_{2j} \sim N_p (\mathbf{\mu_2, \Sigma})
+\begin{aligned}
+\mathbf{y}_{1i} &\sim N_p (\mathbf{\mu_1, \Sigma}) \\
+\mathbf{y}_{2j} &\sim N_p (\mathbf{\mu_2, \Sigma})
+\end{aligned}
 $$
 
 We **assume**
@@ -847,8 +831,10 @@ $$
 $$
 
 $$
-H_0: \mathbf{\mu}_1 = \mathbf{\mu}_2 \\
-H_a: \mathbf{\mu}_1 \neq \mathbf{\mu}_2
+\begin{aligned}
+&H_0: \mathbf{\mu}_1 = \mathbf{\mu}_2 \\
+&H_a: \mathbf{\mu}_1 \neq \mathbf{\mu}_2
+\end{aligned}
 $$
 
 At least one element of the mean vectors is different
@@ -925,15 +911,15 @@ If model assumption are not met
 
             -   $H_0: \mu_1 - \mu_2 =0$ use $(\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2)'( \frac{1}{n_1} \mathbf{S}_1 + \frac{1}{n_2}\mathbf{S}_2)^{-1}(\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2) \dot{\sim} \chi^2_{(p)}$
 
-<br>
-
 ##### Equal Covariance Matrices Tests
 
-With independent random samples from k populations of p-dimensional vectors. We compute the sample covariance matrix for each, $\mathbf{S}_i$, where $i = 1,...,k$
+With independent random samples from k populations of $p$-dimensional vectors. We compute the sample covariance matrix for each, $\mathbf{S}_i$, where $i = 1,...,k$
 
 $$
-H_0: \mathbf{\Sigma}_1 = \mathbf{\Sigma}_2 = \ldots = \mathbf{\Sigma}_k = \mathbf{\Sigma} \\
-H_a: \text{at least 2 are different}
+\begin{aligned}
+&H_0: \mathbf{\Sigma}_1 = \mathbf{\Sigma}_2 = \ldots = \mathbf{\Sigma}_k = \mathbf{\Sigma} \\
+&H_a: \text{at least 2 are different}
+\end{aligned}
 $$
 
 Assume $H_0$ is true, we would use a pooled estimate of the common covariance matrix, $\mathbf{\Sigma}$
@@ -943,8 +929,6 @@ $$
 $$
 
 with $\sum_{i=1}^k (n_i -1)$
-
-<br>
 
 ###### Bartlett's Test
 
@@ -967,8 +951,6 @@ $$
 -   Reject $H_0$ when $MC^{-1} > \chi^2_{1- \alpha, (k-1)p(p+1)/2}$
 
 -   If not all samples are from normal populations, $MC^{-1}$ has a distribution which is often shifted to the right of the nominal $\chi^2$ distribution, which means $H_0$ is often rejected even when it is true (the Type I error level is inflated). Hence, it is better to test individual normality first, or then multivariate normality before you do Bartlett's test.
-
-<br>
 
 #### Two-Sample Repeated Measurements
 
@@ -995,9 +977,11 @@ when $H_0$ is true
 If the null hypothesis $H_0: \mu_1 = \mu_2$ is rejected. A weaker hypothesis is that the profiles for the two groups are parallel.
 
 $$
-\mu_{11} - \mu_{21} = \mu_{12} - \mu_{22} \\
-\vdots \\
-\mu_{1t-1} - \mu_{2t-1} = \mu_{1t} - \mu_{2t}
+\begin{aligned}
+\mu_{11} - \mu_{21} &= \mu_{12} - \mu_{22} \\
+&\vdots \\
+\mu_{1t-1} - \mu_{2t-1} &= \mu_{1t} - \mu_{2t}
+\end{aligned}
 $$
 
 The null hypothesis matrix term is then
@@ -1027,7 +1011,8 @@ plants <- data.frame(
     y3 = c(3.4, 4.1, 1.9, 3.8, 1.7)
 )
 
-# Center the data with the hypothesized means and make a matrix
+# Center the data with 
+# the hypothesized means and make a matrix
 plants_ctr <- plants %>%
     transmute(y1_ctr = y1 - 2.85,
               y2_ctr = y2 - 15.0,
@@ -1036,7 +1021,7 @@ plants_ctr <- plants %>%
 
 # Use anova.mlm to calculate Wilks' lambda
 onesamp_fit <- anova(lm(plants_ctr ~ 1), test = "Wilks")
-onesamp_fit # can't reject the null of hypothesized vector of means
+onesamp_fit
 #> Analysis of Variance Table
 #> 
 #>             Df    Wilks approx F num Df den Df  Pr(>F)  
@@ -1045,6 +1030,8 @@ onesamp_fit # can't reject the null of hypothesized vector of means
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
+
+can't reject the null of hypothesized vector of means
 
 
 ```r
@@ -1066,15 +1053,18 @@ waste_diff <- waste %>%
               y2_diff = com_y2 - state_y2)
 # Run the test
 paired_fit <- HotellingsT2(waste_diff)
-paired_fit # value T.2 in the output corresponds to the approximate F-value in the output from anova.mlm
+# value T.2 in the output corresponds to 
+# the approximate F-value in the output from anova.mlm
+paired_fit 
 #> 
 #> 	Hotelling's one sample T2-test
 #> 
 #> data:  waste_diff
 #> T.2 = 6.1377, df1 = 2, df2 = 9, p-value = 0.02083
 #> alternative hypothesis: true location is not equal to c(0,0)
-# reject the null that the two labs' measurements are equal
 ```
+
+reject the null that the two labs' measurements are equal
 
 
 ```r
@@ -1117,7 +1107,9 @@ bart_test # fail to reject the null of equal covariances
 
 # anova.mlm
 twosamp_fit <-
-    anova(lm(cbind(Yield, Strength) ~ factor(Temp), data = steel), test = "Wilks")
+    anova(lm(cbind(Yield, Strength) ~ factor(Temp), 
+             data = steel), 
+          test = "Wilks")
 twosamp_fit
 #> Analysis of Variance Table
 #> 
@@ -1130,7 +1122,8 @@ twosamp_fit
 
 # ICSNP package
 twosamp_fit2 <-
-    HotellingsT2(cbind(steel$Yield, steel$Strength) ~ factor(steel$Temp))
+    HotellingsT2(cbind(steel$Yield, steel$Strength) ~ 
+                     factor(steel$Temp))
 twosamp_fit2
 #> 
 #> 	Hotelling's two sample T2-test
@@ -1138,9 +1131,9 @@ twosamp_fit2
 #> data:  cbind(steel$Yield, steel$Strength) by factor(steel$Temp)
 #> T.2 = 10.76, df1 = 2, df2 = 9, p-value = 0.004106
 #> alternative hypothesis: true location difference is not equal to c(0,0)
-
-# reject null. Hence, there is a difference in the means of the bivariate normal distributions 
 ```
+
+reject null. Hence, there is a difference in the means of the bivariate normal distributions
 
 ## MANOVA
 
@@ -1155,8 +1148,6 @@ Population 1: $\mathbf{y}_{11}, \mathbf{y}_{12}, \dots, \mathbf{y}_{1n_1} \sim i
 $\vdots$
 
 Population h: $\mathbf{y}_{h1}, \mathbf{y}_{h2}, \dots, \mathbf{y}_{hn_h} \sim idd N_p (\mathbf{\mu}_h, \mathbf{\Sigma})$
-
-<br>
 
 **Assumptions**
 
@@ -1339,8 +1330,10 @@ $$
 Rows of $\mathbf{Y}$ are independent (i.e., $var(\mathbf{Y}) = \mathbf{I}_n \otimes \mathbf{\Sigma}$ , an $np \times np$ matrix, where $\otimes$ is the Kronecker product).
 
 $$
-H_0: \mathbf{LBM} = 0 \\
-H_a: \mathbf{LBM} \neq 0
+\begin{aligned}
+&H_0: \mathbf{LBM} = 0 \\
+&H_a: \mathbf{LBM} \neq 0
+\end{aligned}
 $$
 
 where
@@ -1360,8 +1353,6 @@ or for the null hypothesis $H_0: \mathbf{LBM} = \mathbf{D}$
 $$
 \mathbf{H} = (\mathbf{\hat{LBM}} - \mathbf{D})'[\mathbf{X(X'X)^{-1}L}]^{-1}(\mathbf{\hat{LBM}} - \mathbf{D})
 $$
-
-<br>
 
 The general matrix of residual sums of squares and cross product
 
@@ -1403,6 +1394,7 @@ str(gpagmat)
 #>  $ y2   : int  596 473 482 527 505 693 626 663 447 588 ...
 #>  $ admit: int  1 1 1 1 1 1 1 1 1 1 ...
 
+
 ## Plot the data
 gg <- ggplot(gpagmat, aes(x = y1, y = y2)) +
     geom_text(aes(label = admit, col = as.character(admit))) +
@@ -1419,8 +1411,9 @@ summary(oneway_fit, test = "Wilks")
 #> Residuals 83                                            
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-# reject the null of equal multivariate mean vectors between the three admmission groups
 ```
+
+reject the null of equal multivariate mean vectors between the three admmission groups
 
 
 ```r
@@ -1434,12 +1427,14 @@ stress <- data.frame(
     middle = c(3, 4, 3, 7, 4, 7, 1, 2),
     final = c(6, 7, 4, 7, 6, 7, 3, 5)
 )
-
-# If independent = time with 3 levels -> univariate ANOVA (require sphericity assumption (i.e., the variances for all differences are equal))
-# If each level of indepednet time as a separate variable -> MANOVA (does not require sphericity assumption)
+```
 
 
+ * If independent = time with 3 levels -> univariate ANOVA (require sphericity assumption (i.e., the variances for all differences are equal))
+ * If each level of independent time as a separate variable -> MANOVA (does not require sphericity assumption)
 
+
+```r
 ## MANOVA
 stress_mod <- lm(cbind(begin, middle, final) ~ 1, data = stress)
 idata <-
@@ -1454,7 +1449,7 @@ repeat_fit <-
         idesign = ~ time,
         icontrasts = "contr.poly"
     )
-summary(repeat_fit) # can't reject the null hypothesis of sphericity, hence univariate ANOVA is also appropriate.
+summary(repeat_fit) 
 #> 
 #> Type III Repeated Measures MANOVA Tests:
 #> 
@@ -1530,9 +1525,12 @@ summary(repeat_fit) # can't reject the null hypothesis of sphericity, hence univ
 #> 
 #>         HF eps Pr(>F[HF])
 #> time 0.9528433 0.01611634
-# we also see linear significant time effect, but no quadratic time effect
+```
+
+can't reject the null hypothesis of sphericity, hence univariate ANOVA is also appropriate.We also see linear significant time effect, but no quadratic time effect
 
 
+```r
 ## Polynomial contrasts
 # What is the reference for the marginal means?
 ref_grid(stress_mod, mult.name = "time")
@@ -1552,6 +1550,7 @@ contrast(contr_means, method = "poly")
 ```r
 # MANOVA
 
+
 ## Read in Data
 heart <- read.table("images/heart.dat")
 names(heart) <- c("drug", "y1", "y2", "y3", "y4")
@@ -1569,7 +1568,8 @@ str(heart)
 #>  $ y4     : int [1:24] 77 82 75 69 66 77 70 70 80 84 ...
 #>  $ subject: int [1:24] 1 2 3 4 5 6 7 8 1 2 ...
 
-## Create means summary for profile plot, pivot longer for plotting with ggplot
+## Create means summary for profile plot,
+# pivot longer for plotting with ggplot
 heart_means <- heart %>%
     group_by(drug) %>%
     summarize_at(vars(starts_with("y")), mean) %>%
@@ -1585,7 +1585,7 @@ gg_profile <- ggplot(heart_means, aes(x = time, y = mean)) +
 gg_profile
 ```
 
-<img src="22-multivariate_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="22-multivariate_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
@@ -1622,7 +1622,6 @@ summary(man_fit)
 #> Roy               2  6.346509 30.145916      4     19 5.4493e-08 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-# reject the null hypothesis of no difference in means between treatments
 ```
 
 reject the null hypothesis of no difference in means between treatments
@@ -1723,7 +1722,7 @@ bww9vctrl
 #> Roy               1 0.3448644 2.184141      3     19 0.1233
 ```
 
-there is no significant difference in means between the control and bww9 drug
+there is no significant difference in means between the control and `bww9` drug
 
 
 ```r
@@ -1799,8 +1798,6 @@ axx23vrest
 
 there is a significant difference in means between ax23 drug treatment and the rest of the treatments
 
-<br>
-
 ### Profile Analysis
 
 Examine similarities between the treatment effects (between subjects), which is useful for longitudinal analysis. Null is that all treatments have the same average effect.
@@ -1831,8 +1828,6 @@ If we reject the null hypothesis that the profiles are parallel, we can test
 
 -   Are there differences within some subset of the total time points in a particular group (or groups)?
 
-<br>
-
 Example
 
 -   4 times (p = 4)
@@ -1844,9 +1839,11 @@ Example
 Are the profiles for each population identical expect for a mean shift?
 
 $$
-H_0: \mu_{11} - \mu_{21} - \mu_{12} - \mu_{22} = \dots = \mu_{1t} - \mu_{2t} \\
-\mu_{11} - \mu_{31} - \mu_{12} - \mu_{32} = \dots = \mu_{1t} - \mu_{3t} \\
-\dots
+\begin{aligned}
+H_0: \mu_{11} - \mu_{21} - \mu_{12} - \mu_{22} = &\dots = \mu_{1t} - \mu_{2t} \\
+\mu_{11} - \mu_{31} - \mu_{12} - \mu_{32} = &\dots = \mu_{1t} - \mu_{3t} \\
+&\dots
+\end{aligned}
 $$
 
 for $h-1$ equations
@@ -2040,8 +2037,6 @@ $$
 
 Different choices of $\mathbf{L}$ and $\mathbf{M}$ can yield the same result
 
-<br>
-
 #### Horizontal Profiles
 
 Given that we can't reject the null hypothesis that all $h$ profiles are the same, we can ask whether all of the elements of the common profile equal? (i.e., horizontal)
@@ -2143,8 +2138,6 @@ summary(profile_fit)
 
 ![](images/MANOVA_summary.PNG "MANOVA summary"){style="display: block; margin: 1em auto" width="90%"}
 
-<br>
-
 ## Principal Components {#principal-components}
 
 -   Unsupervised learning
@@ -2227,13 +2220,13 @@ $$
 
 ```r
 library(MASS)
-mu = as.matrix(c(5,12))
-Sigma = matrix(c(4,1,1,2),nrow = 2, byrow = T)
+mu = as.matrix(c(5, 12))
+Sigma = matrix(c(4, 1, 1, 2), nrow = 2, byrow = T)
 sim <- mvrnorm(n = 1000, mu = mu, Sigma = Sigma)
-plot(sim[,1],sim[,2])
+plot(sim[, 1], sim[, 2])
 ```
 
-<img src="22-multivariate_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="22-multivariate_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;" />
 
 Here,
 
@@ -2252,7 +2245,7 @@ Columns of $\mathbf{A}$ are the eigenvectors for the decomposition
 
 Under matrix multiplication ($\mathbf{A'\Sigma A}$ or $\mathbf{A'A}$ ), the off-diagonal elements equal to 0
 
-Multiplying data by this matrix (i.e., projecting the data onto the orthogonal axes); the distriubiton of the resulting data (i.e., "scores") is
+Multiplying data by this matrix (i.e., projecting the data onto the orthogonal axes); the distribution of the resulting data (i.e., "scores") is
 
 $$
 N_2 (\mathbf{A'\mu,A'\Sigma A}) = N_2 (\mathbf{A'\mu, \Lambda})
@@ -2282,17 +2275,24 @@ $$
 
 
 ```r
-A_matrix = matrix(c(0.9239,-0.3827,0.3827,0.9239),nrow = 2, byrow = T)
+A_matrix = matrix(c(0.9239, -0.3827, 0.3827, 0.9239),
+                  nrow = 2,
+                  byrow = T)
 t(A_matrix) %*% A_matrix
 #>          [,1]     [,2]
 #> [1,] 1.000051 0.000000
 #> [2,] 0.000000 1.000051
 
-sim1 <- mvrnorm(n = 1000, mu = t(A_matrix) %*% mu, Sigma = t(A_matrix) %*% Sigma %*% A_matrix)
-plot(sim1[,1],sim1[,2])
+sim1 <-
+    mvrnorm(
+        n = 1000,
+        mu = t(A_matrix) %*% mu,
+        Sigma = t(A_matrix) %*% Sigma %*% A_matrix
+    )
+plot(sim1[, 1], sim1[, 2])
 ```
 
-<img src="22-multivariate_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="22-multivariate_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
 
 No more dependence in the data structure, plot
 
@@ -2305,8 +2305,6 @@ Notes:
 -   Variances of $y_1$ are greater than those for any other possible projection
 
 Covariance matrix decomposition and projection onto orthogonal axes = PCA
-
-<br>
 
 ### Population Principal Components
 
@@ -2327,8 +2325,6 @@ var(x_1) + \dots + var(x_p) &= tr(\Sigma) = \lambda_1 + \dots + \lambda_p \\
 \end{aligned}
 $$
 
-<br>
-
 Data Reduction
 
 To reduce the dimension of data from p (original) to k dimensions without much "loss of information", we can use properties of the population principal components
@@ -2346,8 +2342,6 @@ $$
 -   The proportion of the total variation accounted for by the first k principal components is $\frac{\sum_{i=1}^k \lambda_i}{\sum_{i=1}^p \lambda_i}$
 
 -   Above example , we have $4.4144/(4+2) = .735$ of the total variability can be explained by the first principal component
-
-<br>
 
 ### Sample Principal Components
 
@@ -2420,7 +2414,7 @@ Issues:
 
 -   Large sample theory exists for eigenvalues and eigenvectors of sample covariance matrices if inference is necessary. But we do not do inference with PCA, we only use it as exploratory or descriptive analysis.
 
--   PC is not invariant to changes in scale (Exception: if all trait are resecaled by multiplying by the same constant, such as feet to inches).
+-   PC is not invariant to changes in scale (Exception: if all trait are rescaled by multiplying by the same constant, such as feet to inches).
 
     -   PCA based on the correlation matrix $\mathbf{R}$ is different than that based on the covariance matrix $\mathbf{\Sigma}$
 
@@ -2445,8 +2439,6 @@ Issues:
         -   Kaiser's rule: use only those PC with eigenvalues larger than 1 (applied to PCA on the correlation matrix) - ad hoc
 
         -   Compare to the eigenvalue scree plot of data to the scree plot when the data are randomized.
-
-<br>
 
 ### Application
 
@@ -2491,20 +2483,23 @@ cor(stock)
 # cov(scale(stock)) # give the same result
 
 ## PCA with covariance
-cov_pca <- prcomp(stock) # uses singular value decomposition for calculation and an N -1 divisor
-# alternatively, princomp can do PCA via spectral decomposition, but it has worse numerical accuracy
+cov_pca <- prcomp(stock) 
+# uses singular value decomposition for calculation and an N -1 divisor
+# alternatively, princomp can do PCA via spectral decomposition, 
+# but it has worse numerical accuracy
 
 # eigen values
 cov_results <- data.frame(eigen_values = cov_pca$sdev ^ 2)
 cov_results %>%
     mutate(proportion = eigen_values / sum(eigen_values),
-           cumulative = cumsum(proportion)) # first 2 PCs account for 73% variance in the data
+           cumulative = cumsum(proportion)) 
 #>   eigen_values proportion cumulative
 #> 1 0.0035953867 0.60159252  0.6015925
 #> 2 0.0007921798 0.13255027  0.7341428
 #> 3 0.0007364426 0.12322412  0.8573669
 #> 4 0.0005086686 0.08511218  0.9424791
 #> 5 0.0003437707 0.05752091  1.0000000
+# first 2 PCs account for 73% variance in the data
 
 # eigen vectors
 cov_pca$rotation # prcomp calls rotation
@@ -2537,7 +2532,8 @@ cor_results %>%
 #> 4    0.4513468 0.09026936  0.9313992
 #> 5    0.3430038 0.06860076  1.0000000
 
-# first egiven values corresponds to less variance than PCA based on the covariance matrix
+# first egiven values corresponds to less variance 
+# than PCA based on the covariance matrix
 
 # eigen vectors
 cor_pca$rotation
@@ -2547,7 +2543,8 @@ cor_pca$rotation
 #> carbide 0.4699804 -0.2605774 -0.3370355  0.6640985  0.3957247
 #> exxon   0.4216770  0.5252647 -0.5390181 -0.4728036  0.1794482
 #> texaco  0.4213291  0.5822416  0.4336029  0.3812273 -0.3874672
-# interpretation of PC2 is different from above: it is a comparison of Allied, Dupont and Carbid to Exxon and Texaco 
+# interpretation of PC2 is different from above: 
+# it is a comparison of Allied, Dupont and Carbid to Exxon and Texaco 
 ```
 
 Covid Example
@@ -2581,8 +2578,6 @@ covidpca$rotation[,1:2]
 #> prop..Black                                      -0.33333359  0.24405802
 
 
-
-
 # Variability of each principal component: pr.var
 pr.var <- covidpca$sdev ^ 2
 # Variance explained by each principal component: pve
@@ -2596,7 +2591,7 @@ plot(
 )
 ```
 
-<img src="22-multivariate_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="22-multivariate_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -2609,7 +2604,7 @@ plot(
 )
 ```
 
-<img src="22-multivariate_files/figure-html/unnamed-chunk-15-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="22-multivariate_files/figure-html/unnamed-chunk-17-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -2632,8 +2627,6 @@ mean(lm.fit$residuals ^ 2)
 MSE for the PC-based model is larger than regular regression, because models with a large degree of collinearity can still perform well.
 
 `pcr` function in `pls` can be used for fitting PC regression (it will select the optimal number of components in the model).
-
-<br>
 
 ## Factor Analysis
 
@@ -2737,13 +2730,9 @@ $$
 
 Hence, any orthogonal transformation of the factors is an equally good description of the correlations among the observed traits.
 
-<br>
-
 Let $\mathbf{y} = \mathbf{Cx}$ , where $\mathbf{C}$ is any diagonal matrix, then $\mathbf{L}_y = \mathbf{CL}_x$ and $\mathbf{\Psi}_y = \mathbf{C\Psi}_x\mathbf{C}$
 
 Hence, we can see that factor analysis is also invariant to changes in scale
-
-<br>
 
 ### Methods of Estimation
 
@@ -2787,8 +2776,6 @@ To estimate $\mathbf{L}$ and $\Psi$ , we use the expected eigenvalues and eigenv
 -   The diagonal elements of $\hat{\mathbf{L}}\hat{\mathbf{L}}' + \hat{\mathbf{\Psi}}$ are equal to the diagonal elements of $\mathbf{S}$ and $\mathbf{R}$, but the covariances may not be exactly reproduced
 
 -   We select $m$ so that the off-diagonal elements close to the values in $\mathbf{S}$ (or to make the off-diagonal elements of $\mathbf{S} - \hat{\mathbf{L}} \hat{\mathbf{L}}' + \hat{\mathbf{\Psi}}$ small)
-
-<br>
 
 #### Principal Factor Method
 
@@ -2855,8 +2842,6 @@ Notes:
 
     -   continue iterations regardless of the size of the communalities. However, results can be outside fo the parameter space.
 
-<br>
-
 #### Maximum Likelihood Method {#maximum-likelihood-method-factor-analysis}
 
 Since we need the likelihood function, we make the additional (critical) assumption that
@@ -2877,9 +2862,7 @@ Notes:
 
 -   we typically use other methods for exploratory data analysis
 
--   LIkelihood ratio tests could be used for testing hypotheses in this framework (i.e., Confirmatory Factor Analysis)
-
-<br>
+-   Likelihood ratio tests could be used for testing hypotheses in this framework (i.e., Confirmatory Factor Analysis)
 
 ### Factor Rotation
 
@@ -2917,8 +2900,6 @@ Different choices of $\gamma$ in the objective function correspond to different 
 
 6.  Harris-Kaiser (HK): non-orthogonal or oblique transformations
 
-<br>
-
 ### Estimation of Factor Scores
 
 Recall
@@ -2941,8 +2922,6 @@ $$
 & \approx (\mathbf{L}'\mathbf{\Psi}^{-1} \mathbf{L})^{-1} \mathbf{L}' \mathbf{\Psi}^{-1}(\mathbf{y}_j - \mathbf{\bar{y}})
 \end{aligned}
 $$
-
-<br>
 
 #### The Regression Method
 
@@ -2994,8 +2973,6 @@ $$
 
 where $j = 1,\dots,n$
 
-<br>
-
 ### Model Diagnostic
 
 -   Plots
@@ -3007,8 +2984,6 @@ where $j = 1,\dots,n$
 -   Use univariate tests for normality to check the factor scores
 
 -   **Confirmatory Factor Analysis**: formal testing of hypotheses about loadings, use MLE and full/reduced model testing paradigm and measures of model fit
-
-<br>
 
 ### Application
 
@@ -3080,14 +3055,14 @@ scree_gg <- ggplot(cor_results, aes(x = number, y = eigen_values)) +
 scree_gg
 ```
 
-<img src="22-multivariate_files/figure-html/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="22-multivariate_files/figure-html/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
 screeplot(cor_pca, type = 'lines')
 ```
 
-<img src="22-multivariate_files/figure-html/unnamed-chunk-16-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="22-multivariate_files/figure-html/unnamed-chunk-18-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -3250,15 +3225,16 @@ flag_gg <- ggplot(factors_df) +
         shape = y
     ), size = 2) +
     scale_x_continuous(name = "Factor 2", limits = c(-1.1, 1.1)) +
-    scale_y_continuous(name = "Factor1", limits = c(-1.1, 1.1)) + facet_wrap("Rotation",
-                                                                             labeller = labeller(Rotation = c(
-                                                                                 "1" = "Original", "2" = "Promax", "3" = "Varimax"
-                                                                             ))) +
+    scale_y_continuous(name = "Factor1", limits = c(-1.1, 1.1)) +
+    facet_wrap("Rotation", labeller = labeller(Rotation = c(
+        "1" = "Original", "2" = "Promax", "3" = "Varimax"
+    ))) +
     coord_fixed(ratio = 1) # make aspect ratio of each facet 1
+
 flag_gg
 ```
 
-<img src="22-multivariate_files/figure-html/unnamed-chunk-16-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="22-multivariate_files/figure-html/unnamed-chunk-18-3.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -3407,8 +3383,6 @@ The output info for the null hypothesis that number of factors is sufficient is 
 
 One factor is not enough, two is sufficient, and not enough data for 3 factors (df of -2 and NA for p-value). Hence, we should use 2-factor model.
 
-<br>
-
 ## Discriminant Analysis
 
 Suppose we have two or more different populations from which observations could come from. Discriminant analysis seeks to determine which of the possible population an observation comes from while making as few mistakes as possible
@@ -3421,7 +3395,7 @@ Suppose we have two or more different populations from which observations could 
 
 Notation
 
-SImilar to MANOVA, let $\mathbf{y}_{j1},\mathbf{y}_{j2},\dots, \mathbf{y}_{in_j} \sim iid f_j (\mathbf{y})$ for $j = 1,\dots, h$
+Similar to MANOVA, let $\mathbf{y}_{j1},\mathbf{y}_{j2},\dots, \mathbf{y}_{in_j} \sim iid f_j (\mathbf{y})$ for $j = 1,\dots, h$
 
 Let $f_j(\mathbf{y})$ be the density function for population j . Note that each vector $\mathbf{y}$ contain measurements on all $p$ traits
 
@@ -3435,8 +3409,6 @@ The maximum likelihood discriminant rule for assigning an observation $\mathbf{y
 Consider the likelihood for a single observation $\mathbf{y}$, which has the form $f_j (\mathbf{y})$ where j is the true population.
 
 Since $j$ is unknown, to make the likelihood as large as possible, we should choose the value j which causes $f_j (\mathbf{y})$ to be as large as possible
-
-<br>
 
 Consider a simple univariate example. Suppose we have data from one of two binomial populations.
 
@@ -3453,8 +3425,6 @@ Consider a simple univariate example. Suppose we have data from one of two binom
     -   $f(y = 7|n = 10, p = .7) = .267$ where $f(.)$ is the binomial likelihood.
 
     -   Hence, we choose the second population
-
-<br>
 
 Another example
 
@@ -3516,8 +3486,6 @@ Thus, we classify into population 1 if this is less than 0.
 
 Discriminant classification rule is linear in y in this case.
 
-<br>
-
 #### Multivariate Expansion
 
 Suppose that there are 2 populations
@@ -3563,17 +3531,13 @@ where
 
 -   $\delta^2 = (\mathbf{\mu}_1 - \mathbf{\mu}_2)' \mathbf{\Sigma}^{-1} (\mathbf{\mu}_1 - \mathbf{\mu}_2)$
 
--   $\Phi$ is the standard normal cdf
-
-<br>
+-   $\Phi$ is the standard normal CDF
 
 Suppose there are $h$ possible populations, which are distributed as $N_p (\mathbf{\mu}_p, \mathbf{\Sigma})$. Then, the maximum likelihood (linear) discriminant rule allocates $\mathbf{y}$ to population j where j minimizes the squared Mahalanobis distance
 
 $$
 (\mathbf{y} - \mathbf{\mu}_j)' \mathbf{\Sigma}^{-1} (\mathbf{y} - \mathbf{\mu}_j)
 $$
-
-<br>
 
 #### Bayes Discriminant Rules
 
@@ -3584,8 +3548,6 @@ This rule allocates an observation $\mathbf{y}$ to the population for which $\pi
 Note:
 
 -   **Maximum likelihood discriminant rule** is a special case of the **Bayes discriminant rule**, where it sets all the $\pi_j = 1/h$
-
-<br>
 
 Optimal Properties of Bayes Discriminant Rules
 
@@ -3604,8 +3566,6 @@ Optimal Properties of Bayes Discriminant Rules
 -   Bayes Discriminant Rules have the largest possible posterior probability of correct allocation with respect to the prior
 
 -   These properties show that **Bayes Discriminant rule is our best approach**.
-
-<br>
 
 Unequal Cost
 
@@ -3647,8 +3607,6 @@ $$
 
 where $c_{12}$ is the cost of assigning a member of population 2 to population 1.
 
-<br>
-
 #### Discrimination Under Estimation
 
 Suppose we know the form of the distributions for populations of interests, but we still have to estimate the parameters.
@@ -3665,15 +3623,11 @@ $$
 
 where $\hat{\theta}$ are the maximum likelihood estimates of the unknown parameters
 
-<br>
-
 For instance, we have 2 multivariate normal populations with distinct means, but common variance covariance matrix
 
 MLEs for $\mathbf{\mu}_1$ and $\mathbf{\mu}_2$ are $\mathbf{\bar{y}}_1$ and $\mathbf{\bar{y}}_2$and common $\mathbf{\Sigma}$ is $\mathbf{S}$.
 
 Thus, an estimated discriminant rule could be formed by substituting these sample values for the population values
-
-<br>
 
 #### Native Bayes
 
@@ -3702,8 +3656,6 @@ we only need to estimate the one-dimensional density function $f_{kj}$ with eith
 -   When $X_j$ is quantitative, use a kernel density estimator [Kernel Methods] ; which is a smoothed histogram
 
 -   When $X_j$ is qualitative, we count the promotion of training observations for the j-th predictor corresponding to each class.
-
-<br>
 
 #### Comparison of Classification Methods
 
@@ -3747,8 +3699,6 @@ $$
 
 where $a_k = \log (\pi_k / \pi_K)$ and $g_{kj}(x_j) = \log(\frac{f_{kj}(x_j)}{f_{Kj}(x_j)})$ which is the form of generalized additive model
 
-<br>
-
 ##### Summary
 
 -   LDA is a special case of QDA
@@ -3781,8 +3731,6 @@ From simulation:
 
 -   like linear regression, we can also introduce flexibility by including transformed features $\sqrt{X}, X^2, X^3$
 
-<br>
-
 ### Probabilities of Misclassification
 
 When the distribution are exactly known, we can determine the misclassification probabilities exactly. however, when we need to estimate the population parameters, we have to estimate the probability of misclassification
@@ -3814,8 +3762,6 @@ When the distribution are exactly known, we can determine the misclassification 
     -   This method is more reliable than the others, but also computationally intensive
 
 -   Cross-Validation
-
-<br>
 
 **Summary**
 
@@ -3875,8 +3821,6 @@ where $j = 1,\dots , h$
 
 and $\mathbf{x}$ is classified into group j if $p(j | \mathbf{x})$ is largest for $j = 1,\dots,h$ (or, $D_j^2(\mathbf{x})$ is smallest).
 
-<br>
-
 #### Assessing Classification Performance
 
 For binary classification, confusion matrix
@@ -3891,8 +3835,8 @@ For binary classification, confusion matrix
 and table 4.6 from [@james2013]
 
 | Name             | Definition | Synonyms                                      |
-|-----------------|-----------------|--------------------------------------|
-| False Pos rate   | FP/N       | Tyep I error, 1 0 SPecificity                 |
+|------------------|------------------|-------------------------------------|
+| False Pos rate   | FP/N       | Type I error, 1 0 Specificity                 |
 | True Pos. rate   | TP/P       | 1 - Type II error, power, sensitivity, recall |
 | Pos Pred. value  | TP/P\*     | Precision, 1 - false discovery promotion      |
 | Neg. Pred. value | TN/N\*     |                                               |
@@ -3906,8 +3850,6 @@ x-axis = false positive rate
 as we change the threshold rate for classifying an observation as from 0 to 1
 
 AUC (area under the ROC) ideally would equal to 1, a bad classifier would have AUC = 0.5 (pure chance)
-
-<br>
 
 ### Unknown Populations/ Nonparametric Discrimination
 
@@ -3961,8 +3903,6 @@ But since we do not know for sure, we might choose several different values and 
 
 Moreover, you also have to decide whether to use different kernel smoothness for different populations, which is similar to the individual and pooled covariances in the classical methodology.
 
-<br>
-
 #### Nearest Neighbor Methods
 
 The nearest neighbor (also known as k-nearest neighbor) method performs the classification of a new observation vector based on the group membership of its nearest neighbors. In practice, we find
@@ -3971,26 +3911,26 @@ $$
 d_{ij}^2 (\mathbf{x}, \mathbf{x}_i) = (\mathbf{x}, \mathbf{x}_i) V_j^{-1}(\mathbf{x}, \mathbf{x}_i)
 $$
 
-which is the distance between the vector $\mathbf{x}$ and the i-th observation in group j
+which is the distance between the vector $\mathbf{x}$ and the $i$-th observation in group $j$
 
 We consider different choices for $\mathbf{V}_j$
 
 For example,
 
 $$
-\mathbf{V}_j = \mathbf{S}_p \\
-\mathbf{V}_j = \mathbf{S}_j \\
-\mathbf{V}_j = \mathbf{I} \\
-\mathbf{V}_j = diag (\mathbf{S}_p)
+\begin{aligned}
+\mathbf{V}_j &= \mathbf{S}_p \\
+\mathbf{V}_j &= \mathbf{S}_j \\
+\mathbf{V}_j &= \mathbf{I} \\
+\mathbf{V}_j &= diag (\mathbf{S}_p)
+\end{aligned}
 $$
 
-We find the $k$ observations that are closest to $\mathbf{x}$ (where users pick k). Then we classify into the most common population, weighted by the prior.
-
-<br>
+We find the $k$ observations that are closest to $\mathbf{x}$ (where users pick $k$). Then we classify into the most common population, weighted by the prior.
 
 #### Modern Discriminant Methods
 
-Note:
+**Note**:
 
 Logistic regression (with or without random effects) is a flexible model-based procedure for classification between two populations.
 
@@ -4004,8 +3944,6 @@ The machine learning and pattern recognition are growing with strong focus on no
 
 -   multiplayer perceptrons (neural networks)
 
-<br>
-
 The general framework
 
 $$
@@ -4018,13 +3956,11 @@ where
 
 -   $m$ nonlinear basis functions $\phi_l$, each of which has $n_m$ parameters given by $\theta_l = \{ \theta_{lk}: k = 1, \dots , n_m \}$
 
-We assign $\mathbf{x}$ to the j-th population if $g_j(\mathbf{x})$ is the maximum for all $j = 1,\dots, h$
+We assign $\mathbf{x}$ to the $j$-th population if $g_j(\mathbf{x})$ is the maximum for all $j = 1,\dots, h$
 
 Development usually focuses on the choice and estimation of the basis functions, $\phi_l$ and the estimation of the weights $w_{jl}$
 
 More details can be found [@webb2011statistical]
-
-<br>
 
 ### Application
 
@@ -4130,11 +4066,12 @@ head(crops_post)
 #> 4 0.09546233  FALSE
 #> 5 0.03980738  FALSE
 #> 6 0.10109590   TRUE
-# posterior shows that posterior of corn membershp is much higher than the prior
+# posterior shows that posterior of corn membership is much higher than the prior
 
 ## LOOCV
 # leave-one-out cross validation for linear discriminant analysis
-# cannot run the prdecit function using the object with CV = TRUE because it returns the wihtin sample predictions
+# cannot run the predict function using the object with CV = TRUE 
+# because it returns the within sample predictions
 lda_cv <- lda(crop ~ y1 + y2 + y3 + y4,
               data = crops, CV = TRUE)
 # Contingency table
@@ -4231,15 +4168,15 @@ knn_2 <- knn(X_train, X_train, Y_train, k = 2)
 table(truth = Y_train, fitted = knn_2)
 #>             fitted
 #> truth        Clover Corn Cotton Soybeans Sugarbeets
-#>   Clover          8    0      2        1          0
-#>   Corn            0    7      0        0          0
-#>   Cotton          0    0      4        0          2
-#>   Soybeans        0    0      0        5          1
-#>   Sugarbeets      1    0      0        2          3
+#>   Clover          8    0      3        0          0
+#>   Corn            0    5      0        2          0
+#>   Cotton          0    0      3        0          3
+#>   Soybeans        0    0      0        4          2
+#>   Sugarbeets      0    0      2        1          3
 
 ## Accuracy
 mean(Y_train==knn_2)
-#> [1] 0.75
+#> [1] 0.6388889
 
 ## Performance on test data
 knn_2_test <- knn(X_train, X_test, Y_train, k = 2)
@@ -4261,15 +4198,15 @@ knn_3 <- knn(X_train, X_train, Y_train, k = 3)
 table(truth = Y_train, fitted = knn_3)
 #>             fitted
 #> truth        Clover Corn Cotton Soybeans Sugarbeets
-#>   Clover          9    0      1        1          0
-#>   Corn            0    5      1        1          0
+#>   Clover          6    0      2        3          0
+#>   Corn            0    6      0        1          0
 #>   Cotton          1    0      4        1          0
-#>   Soybeans        0    1      1        3          1
-#>   Sugarbeets      0    1      0        1          4
+#>   Soybeans        1    1      0        3          1
+#>   Sugarbeets      0    0      0        2          4
 
 ## Accuracy
 mean(Y_train==knn_3)
-#> [1] 0.6944444
+#> [1] 0.6388889
 
 ## Performance on test data
 knn_3_test <- knn(X_train, X_test, Y_train, k = 3)
@@ -4299,15 +4236,15 @@ step <- stepclass(
     method = "qda",
     improvement = 0.15
 )
-#> correctness rate: 0.475;  in: "y1";  variables (1): y1 
+#> correctness rate: 0.45833;  in: "y1";  variables (1): y1 
 #> 
 #>  hr.elapsed min.elapsed sec.elapsed 
-#>        0.00        0.00        0.16
+#>        0.00        0.00        0.14
 
 step$process
 #>    step var varname result.pm
-#> 0 start   0      --     0.000
-#> 1    in   1      y1     0.475
+#> 0 start   0      -- 0.0000000
+#> 1    in   1      y1 0.4583333
 
 step$performance.measure
 #> [1] "correctness rate"
@@ -4341,7 +4278,7 @@ table(truth = test.iris$Species, prediction = pred.lda$class)
 plot(iris.model)
 ```
 
-<img src="22-multivariate_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="22-multivariate_files/figure-html/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -4370,7 +4307,7 @@ train <- t(train) #each column is an observation
 image(matrix(train[, 1], nrow = 28), main = 'Example image, unrotated')
 ```
 
-<img src="22-multivariate_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="22-multivariate_files/figure-html/unnamed-chunk-25-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 

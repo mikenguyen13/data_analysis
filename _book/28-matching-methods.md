@@ -12,7 +12,7 @@ Matching and DiD can use pre-treatment outcomes to correct for selection bias. F
 
 Effect of college quality on earnings
 
-They ultimately estimate the treatment effect on the treated of attending a top (high ACT) versus bottom (low ACT) quartile college
+-   They ultimately estimate the treatment effect on the treated of attending a top (high ACT) versus bottom (low ACT) quartile college
 
 **Example**
 
@@ -49,7 +49,10 @@ Step 3:
 Find schools that look like they are putting students in class randomly (or as good as random) + we run step 2
 
 $$
-Y_{isjt} = Y_{isj(t-1)} \lambda + X_{it} \alpha_1 +Z_{jt} \alpha_{21}+ (Z_{jt} \times D_i)\alpha_{22}+ \gamma_5 + u_{isjt}
+\begin{aligned}
+Y_{isjt} = Y_{isj(t-1)} \lambda &+ X_{it} \alpha_1 +Z_{jt} \alpha_{21} \\
+&+ (Z_{jt} \times D_i)\alpha_{22}+ \gamma_5 + u_{isjt}
+\end{aligned}
 $$
 
 -   $D_{it}$ is an element of $X_{it}$
@@ -69,8 +72,6 @@ $H_0:$ $\alpha_{22} = 0$ test for effect heterogeneity whether the effect of tea
 -   For low poverty is $\alpha_{21}$
 
 -   For high poverty effect is $\alpha_{21} + \alpha_{22}$
-
-<br>
 
 Matching is **selection on observables** and only works if you have good observables.
 
@@ -99,8 +100,6 @@ Relative to [OLS][Ordinary Least Squares]
 
 It also helps if you have high ratio of controls to treatments.
 
-<br>
-
 For detail summary [@stuart2010matching]
 
 Matching is defined as "any method that aims to equate (or"balance") the distribution of covariates in the treated and control groups." [@stuart2010matching, pp. 1]
@@ -112,9 +111,11 @@ Equivalently, matching is a selection on observables identifications strategy.
 Unconditionally, consider
 
 $$
-E(Y_i^T | T) - E(Y_i^C |C) + E(Y_i^C | T) - E(Y_i^C | T) \\
-= E(Y_i^T - Y_i^C | T) + [E(Y_i^C | T) - E(Y_i^C |C)] \\
-= E(Y_i^T - Y_i^C | T) + \text{selection bias}
+\begin{aligned}
+E(Y_i^T | T) - E(Y_i^C |C) &+ E(Y_i^C | T) - E(Y_i^C | T) \\
+= E(Y_i^T - Y_i^C | T) &+ [E(Y_i^C | T) - E(Y_i^C |C)] \\
+= E(Y_i^T - Y_i^C | T) &+ \text{selection bias}
+\end{aligned}
 $$
 
 where $E(Y_i^T - Y_i^C | T)$ is the causal inference that we want to know.
@@ -138,8 +139,6 @@ $$
 $$
 
 Since there is no closed-form solution for the standard error of the average treatment effect, we have to use bootstrapping to get standard error.
-
-<br>
 
 Professor Gary King advocates instead of using the word "matching", we should use "**pruning**" (i.e., deleting observations). It is a preprocessing step where it prunes nonmatches to make control variables less important in your analysis.
 
@@ -183,8 +182,6 @@ Matching is used when
 Hence, we can only observe one outcome of a unit (either treated or control), we can think of this problem as missing data as well. Thus, this section is closely related to [Imputation (Missing Data)]
 
 In observational studies, we cannot randomize the treatment effect. Subjects select their own treatments, which could introduce selection bias (i.e., systematic differences between group differences that confound the effects of response variable differences).
-
-<br>
 
 Matching is used to
 
@@ -270,7 +267,7 @@ Steps:
 
         2.  Optimal matching: considers global distance measure
 
-        3.  Ratio matching: to combat increase bias and reduced variation when you have k:1 matching, one can use approximations by Rubin and Thomas (1996).
+        3.  Ratio matching: to combat increase bias and reduced variation when you have k:1 matching, one can use approximations by @rubin1996matching.
 
         4.  With or without replacement: with replacement is typically better, but one needs to account for dependent in the matched sample when doing later analysis (can use frequency weights to combat).
 
@@ -331,8 +328,6 @@ Steps:
         2.  Weighting by the overall number of individual in each subclass for ATE.
 
     3.  Variance estimation: should incorporate uncertainties in both the matching procedure (step 3) and the estimation procedure (step 4)
-
-<br>
 
 Notes:
 
@@ -463,8 +458,6 @@ Packages
 
 -   `PanelMatch` based on [Imai, Kim, and Wang (2018)](https://imai.fas.harvard.edu/research/files/tscs.pdf)
 
-<br>
-
 +--------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------+
 | Matching                                                                                                     | Regression                                                        |
 +==============================================================================================================+===================================================================+
@@ -485,16 +478,15 @@ Packages
 
 However, the problem of **omitted variables** (i.e., those that affect both the outcome and whether observation was treated) - unobserved confounders is still present in matching methods.
 
-<br>
-
-Difference between matching and regression following Jorn-Ste§en Pischke's [lecture](https://econ.lse.ac.uk/staff/spischke/ec533/regression%20vs%20matching.pdf)
+Difference between matching and regression following Pischke's [lecture](https://econ.lse.ac.uk/staff/spischke/ec533/regression%20vs%20matching.pdf)
 
 Suppose we want to estimate the effect of treatment on the treated
 
 $$
 \begin{aligned}
 \delta_{TOT} &= E[ Y_{1i} - Y_{0i} | D_i = 1 ] \\
-&= E\{E[Y_{1i} | X_i, D_i = 1] - E[Y_{0i}|X_i, D_i = 1]|D_i = 1\} && \text{law of itereated expectations}
+&= E\{E[Y_{1i} | X_i, D_i = 1] \\
+& - E[Y_{0i}|X_i, D_i = 1]|D_i = 1\} && \text{law of itereated expectations}
 \end{aligned}
 $$
 
@@ -607,7 +599,8 @@ examine `treat` on `re78`
 ```r
 # No matching; constructing a pre-match matchit object
 m.out0 <- matchit(
-    formula(treat ~ age + educ + race + married + nodegree + re74 + re75, env = lalonde),
+    formula(treat ~ age + educ + race 
+            + married + nodegree + re74 + re75, env = lalonde),
     data = data.frame(lalonde),
     method = NULL,
     # assess balance before matching
@@ -624,12 +617,10 @@ summary(m.out0)
 
 ```r
 # 1:1 NN PS matching w/o replacement
-m.out1 <- matchit(
-    treat ~ age + educ, #+ race + married + nodegree + re74 + re75,
-    data = lalonde,
-    method = "nearest",
-    distance = "glm"
-)
+m.out1 <- matchit(treat ~ age + educ,
+                  data = lalonde,
+                  method = "nearest",
+                  distance = "glm")
 m.out1
 #> A matchit object
 #>  - method: 1:1 nearest neighbor matching without replacement
@@ -682,7 +673,7 @@ plot(
     m.out1,
     type = "qq",
     interactive = FALSE,
-    which.xs = c("age")#, "married", "re75")
+    which.xs = c("age")
 )
 ```
 
@@ -693,7 +684,7 @@ Try Full Match (i.e., every treated matches with one control, and every control 
 
 ```r
 # Full matching on a probit PS
-m.out2 <- matchit(treat ~ age + educ, # + race + married + nodegree + re74 + re75, 
+m.out2 <- matchit(treat ~ age + educ, 
                   data = lalonde,
                   method = "full", 
                   distance = "glm", 
@@ -749,7 +740,7 @@ Exact Matching
 # Full matching on a probit PS
 m.out3 <-
     matchit(
-        treat ~ age + educ, # + race + married + nodegree + re74 + re75,
+        treat ~ age + educ,
         data = lalonde,
         method = "exact"
     )
@@ -766,7 +757,7 @@ Subclassfication
 
 ```r
 m.out4 <- matchit(
-    treat ~ age + educ, # + race + married + nodegree + re74 + re75,
+    treat ~ age + educ, 
     data = lalonde,
     method = "subclass"
 )
@@ -781,7 +772,7 @@ m.out4
 
 # Or you can use in conjunction with "nearest"
 m.out4 <- matchit(
-    treat ~ age + educ, # + race + married +  nodegree + re74 + re75,
+    treat ~ age + educ,
     data = lalonde,
     method = "nearest",
     option = "subclass"
@@ -801,7 +792,7 @@ Optimal Matching
 
 ```r
 m.out5 <- matchit(
-    treat ~ age + educ, # + race + married + nodegree + re74 + re75,
+    treat ~ age + educ, 
     data = lalonde,
     method = "optimal",
     ratio = 2
@@ -821,7 +812,7 @@ Genetic Matching
 
 ```r
 m.out6 <- matchit(
-    treat ~ age + educ, # + race + married + nodegree + re74 + re75,
+    treat ~ age + educ, 
     data = lalonde,
     method = "genetic"
 )
@@ -865,7 +856,7 @@ library("lmtest") #coeftest
 library("sandwich") #vcovCL
 
 # imbalance matched dataset
-fit1 <- lm(re78 ~ treat + age + educ , #+ race + married + nodegree + re74 + re75, 
+fit1 <- lm(re78 ~ treat + age + educ ,
            data = m.data1, 
            weights = weights)
 
@@ -889,7 +880,7 @@ coeftest(fit1, vcov. = vcovCL, cluster = ~subclass)
 # balance matched dataset 
 m.data2 <- match.data(m.out2)
 
-fit2 <- lm(re78 ~ treat + age + educ , #+ race + married + nodegree + re74 + re75, 
+fit2 <- lm(re78 ~ treat + age + educ , 
            data = m.data2, weights = weights)
 
 coeftest(fit2, vcov. = vcovCL, cluster = ~subclass)
@@ -946,7 +937,8 @@ I follow `MatchingFrontier` [guide](https://projects.iq.harvard.edu/files/fronti
 library(MatchingFrontier)
 data("lalonde")
 # choose var to match on
-match.on <- colnames(lalonde)[!(colnames(lalonde) %in% c('re78', 'treat'))]
+match.on <-
+    colnames(lalonde)[!(colnames(lalonde) %in% c('re78', 'treat'))]
 match.on
 
 # Mahanlanobis frontier (default)
@@ -974,7 +966,8 @@ L1.frontier
 
 # Set base form
 my.form <-
-    as.formula(re78 ~ treat + age + black + education + hispanic + married + nodegree + re74 + re75)
+    as.formula(re78 ~ treat + age + black + education 
+               + hispanic + married + nodegree + re74 + re75)
 
 # Estimate effects for the mahalanobis frontier
 mahal.estimates <-
@@ -1025,8 +1018,8 @@ parallelPlot(
 )
 
 # export matched dataset
-matched.data <- generateDataset(L1.frontier, N = 400) # take 400 units
-
+# take 400 units
+matched.data <- generateDataset(L1.frontier, N = 400) 
 ```
 
 ## Propensity Scores
@@ -1099,8 +1092,6 @@ Diagnostics:
 
 -   can't use c-stat or stepwise because those model fit stat do not apply
 
-<br>
-
 ## Mahalanobis Distance
 
 Approximates fully blocked experiment
@@ -1117,17 +1108,15 @@ Prune unused control units, and prune matches if distance \> caliper
 
 Steps from Gray King's [slides](https://www.youtube.com/watch?v=rBv39pK1iEs&ab_channel=MethodsColloquium) International Methods Colloquium talk 2015
 
--   Temporarily coarsen X
+-   Temporarily coarsen $X$
 
--   Apply exact matching to the coarsened X, C(X)
+-   Apply exact matching to the coarsened $X, C(X)$
 
-    -   sort observation into strata, each with unique values of C(X)
+    -   sort observation into strata, each with unique values of $C(X)$
 
     -   prune stratum with 0 treated or 0 control units
 
 -   Pass on original (uncoarsened) units except those pruned
-
-<br>
 
 Properties:
 
@@ -1216,7 +1205,7 @@ imbalance(group=Le$treated, data=Le[vars]) # L1 = 0.902
 #> u75           0.0000
 #> q1                NA
 
-# drop other variables that are not pre-treatmentt matching variables
+# drop other variables that are not pre - treatmentt matching variables
 todrop <- c("treated", "re78")
 imbalance(group=Le$treated, data=Le, drop=todrop)
 #> 
@@ -1255,7 +1244,13 @@ automated coarsening
 
 
 ```r
-mat <- cem(treatment = "treated", data = Le, drop = "re78",keep.all=TRUE)
+mat <-
+    cem(
+        treatment = "treated",
+        data = Le,
+        drop = "re78",
+        keep.all = TRUE
+    )
 #> 
 #> Using 'treated'='1' as baseline group
 mat
@@ -1275,16 +1270,28 @@ coarsening by explicit user choice
 levels(Le$q1) # grouping option
 #> [1] "agree"             "disagree"          "neutral"          
 #> [4] "no opinion"        "strongly agree"    "strongly disagree"
-q1.grp <- list(c("strongly agree", "agree"), c("neutral", "no opinion"), c("strongly disagree","disagree")) # if you want ordered categories
+q1.grp <-
+    list(
+        c("strongly agree", "agree"),
+        c("neutral", "no opinion"),
+        c("strongly disagree", "disagree")
+    ) # if you want ordered categories
 
-# continuous variables 
+# continuous variables
 table(Le$education)
 #> 
 #>   3   4   5   6   7   8   9  10  11  12  13  14  15 
 #>   1   5   4   6  12  55 106 146 173 113  19   9   1
 educut <- c(0, 6.5, 8.5, 12.5, 17)  # use cutpoints
 
-mat1 <- cem(treatment = "treated", data = Le, drop = "re78", cutpoints = list(education=educut), grouping=list(q1=q1.grp))
+mat1 <-
+    cem(
+        treatment = "treated",
+        data = Le,
+        drop = "re78",
+        cutpoints = list(education = educut),
+        grouping = list(q1 = q1.grp)
+    )
 #> 
 #> Using 'treated'='1' as baseline group
 mat1
@@ -1312,7 +1319,7 @@ mat1
 
     -   balance can be based on
 
-        -   paired t-tests (dichotomous variables)
+        -   paired $t$-tests (dichotomous variables)
 
         -   Kolmogorov-Smirnov (multinomial and continuous)
 
@@ -1330,8 +1337,18 @@ attach(lalonde)
 X = cbind(age, educ, black, hisp, married, nodegr, u74, u75, re75, re74)
 
 #The covariates we want to obtain balance on
-BalanceMat <- cbind(age, educ, black, hisp, married, nodegr, u74, u75, re75, re74,
-                    I(re74*re75))
+BalanceMat <-
+    cbind(age,
+          educ,
+          black,
+          hisp,
+          married,
+          nodegr,
+          u74,
+          u75,
+          re75,
+          re74,
+          I(re74 * re75))
 
 #
 #Let's call GenMatch() to find the optimal weight to give each
@@ -1341,8 +1358,17 @@ BalanceMat <- cbind(age, educ, black, hisp, married, nodegr, u74, u75, re75, re7
 #option. This is *WAY* too small for actual problems.
 #For details see http://sekhon.berkeley.edu/papers/MatchingJSS.pdf.
 #
-genout <- GenMatch(Tr=treat, X=X, BalanceMatrix=BalanceMat, estimand="ATE", M=1,
-                   pop.size=16, max.generations=10, wait.generations=1)
+genout <-
+    GenMatch(
+        Tr = treat,
+        X = X,
+        BalanceMatrix = BalanceMat,
+        estimand = "ATE",
+        M = 1,
+        pop.size = 16,
+        max.generations = 10,
+        wait.generations = 1
+    )
 
 #The outcome variable
 Y=re78/1000
@@ -1351,15 +1377,26 @@ Y=re78/1000
 # Now that GenMatch() has found the optimal weights, let's estimate
 # our causal effect of interest using those weights
 #
-mout <- Match(Y=Y, Tr=treat, X=X, estimand="ATE", Weight.matrix=genout)
+mout <-
+    Match(
+        Y = Y,
+        Tr = treat,
+        X = X,
+        estimand = "ATE",
+        Weight.matrix = genout
+    )
 summary(mout)
 
 #                        
 #Let's determine if balance has actually been obtained on the variables of interest
 #                        
-mb <- MatchBalance(treat~age +educ+black+ hisp+ married+ nodegr+ u74+ u75+
-                   re75+ re74+ I(re74*re75),
-                   match.out=mout, nboots=500)
+mb <-
+    MatchBalance(
+        treat ~ age + educ + black + hisp + married + nodegr 
+        + u74 + u75 + re75 + re74 + I(re74 * re75),
+        match.out = mout,
+        nboots = 500
+    )
 
 ```
 
@@ -1367,7 +1404,7 @@ mb <- MatchBalance(treat~age +educ+black+ hisp+ married+ nodegr+ u74+ u75+
 
 Examples: [@scheve2012democracy] and [@acemoglu2019democracy]
 
-Materials from Imai et al.'s [slides](https://imai.fas.harvard.edu/talk/files/polmeth18.pdf)
+Materials from Imai's [slides](https://imai.fas.harvard.edu/talk/files/polmeth18.pdf)
 
 Identification strategy:
 

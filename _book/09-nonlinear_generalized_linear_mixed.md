@@ -40,8 +40,10 @@ $$
 The transformation of this mean will give us the desired linear model to model both the fixed and random effects.
 
 $$
-E(y_i |\alpha) = \mu_i \\
-g(\mu_i) = \mathbf{x_i' \beta + z'_i \alpha}
+\begin{aligned}
+E(y_i |\alpha) &= \mu_i \\
+g(\mu_i) &= \mathbf{x_i' \beta + z'_i \alpha}
+\end{aligned}
 $$
 
 where $g()$ is a known link function and $\mu_i$ is the conditional mean. We can see similarity to [GLM](#generalized-linear-models)
@@ -59,13 +61,15 @@ Moreover, law of large number applies to fixed effects so that you know it is a 
 Hence, we can show NLMM is a special case of the GLMM
 
 $$
-\mathbf{Y}_i = \mathbf{f}(\mathbf{x}_i, \mathbf{\theta, \alpha}_i) + \mathbf{\epsilon}_i \\
-\mathbf{Y}_i = \mathbf{g}^{-1} (\mathbf{x}_i' \beta + \mathbf{z}_i' \mathbf{\alpha}_i) + \mathbf{\epsilon}_i
+\begin{aligned}
+\mathbf{Y}_i &= \mathbf{f}(\mathbf{x}_i, \mathbf{\theta, \alpha}_i) + \mathbf{\epsilon}_i \\
+\mathbf{Y}_i &= \mathbf{g}^{-1} (\mathbf{x}_i' \beta + \mathbf{z}_i' \mathbf{\alpha}_i) + \mathbf{\epsilon}_i
+\end{aligned}
 $$
 
 where the inverse link function corresponds to a nonlinear transformation of the fixed and random effects.
 
-Note:
+**Note**:
 
 -   we can't derive the analytical formulation of the marginal distribution because nonlinear combination of normal variables is not normally distributed, even in the case of additive error ($e_i$) and random effects ($\alpha_i$) are both normal.
 
@@ -87,8 +91,6 @@ $$
 
 which is the moment generating function of $\alpha$ evaluated at $\mathbf{z}_i$
 
-<br>
-
 **Marginal variance** of $y_i$
 
 $$
@@ -100,8 +102,6 @@ var(y_i) &= var_\alpha (E(y_i | \alpha)) + E_\alpha (var(y_i | \alpha)) \\
 $$
 
 Without specific assumption about $g()$ and/or the conditional distribution of $\mathbf{y}$, this is the most simplified version.
-
-<br>
 
 **Marginal covariance of** $\mathbf{y}$
 
@@ -119,7 +119,9 @@ $$
 
 Example:
 
-Repeated measurements on the subjects. Let $y_{ij}$ be the j-th count taken on the i-th subject.
+Repeated measurements on the subjects.
+
+Let $y_{ij}$ be the j-th count taken on the $i$-th subject.
 
 then, the model is $y_{ij} | \mathbf{\alpha} \sim \text{indep } Pois(\mu_{ij})$. Here
 
@@ -130,8 +132,6 @@ $$
 where $\alpha_i \sim iid N(0,\sigma^2_{\alpha})$
 
 which is a log-link with a random patient effect.
-
-<br>
 
 ## Estimation
 
@@ -169,8 +169,6 @@ One way to obtain the marginal inference is to numerically integrate out the ran
 
 When the dimension of $\mathbf{\alpha}$ is relatively low, this is easy. But when the dimension of $\alpha$ is high, additional approximation is required.
 
-<br>
-
 ### Estimation by Linearization {#estimation-by-linearization}
 
 Idea: Linearized version of the response (known as working response, or pseudo-response) called $\tilde{y}_i$ and then the conditional mean is
@@ -197,7 +195,7 @@ where
 
 -   $\eta_i = g(\mu_i)$ is the linear predictor
 
--   k = iteration of the optimization algorithm
+-   $k$ = iteration of the optimization algorithm
 
 The algorithm updates $\tilde{y}_i$ after each linear mixed model fit using $E(\tilde{y}_i | \alpha)$ and $var(\tilde{y}_i | \alpha)$
 
@@ -210,8 +208,6 @@ Comments:
 -   Biased estimates are likely for binomial response with small groups and worst for Bernoulli response. Similarly for Poisson models with small counts. [@faraway2016extending]
 
 -   Hypothesis testing and confidence intervals also have problems.
-
-<br>
 
 #### Generalized Estimating Equations
 
@@ -238,7 +234,7 @@ We typically define $\mathbf{V} = \mathbf{I}$. Solutions to unbiased estimating 
 
 In practice, we assume a covariance structure, and then do a logistic regression, and calculate its large sample variance
 
-Let $y_{ij} , j = 1,..,n_i, i = 1,..,K$ be the j-th measurement on the i-th subject.
+Let $y_{ij} , j = 1,..,n_i, i = 1,..,K$ be the j-th measurement on the $i$-th subject.
 
 $$
 \mathbf{y}_i = 
@@ -326,8 +322,6 @@ Implementation Issues:
 
 -   Difficult to fit computationally
 
-<br>
-
 2 types of estimation approaches:
 
 1.  Approximate the objective function (marginal likelihood) through integral approximation
@@ -340,8 +334,6 @@ Implementation Issues:
 
 2.  Approximate the model (based on Taylor series linearization)
 
-<br>
-
 Packages in R
 
 -   GLMM: `MASS:glmmPQL` `lme4::glmer` `glmmTMB`
@@ -349,8 +341,6 @@ Packages in R
 -   NLMM: `nlme::nlme`; `lme4::nlmer` `brms::brm`
 
 -   Bayesian: `MCMCglmm` ; `brms:brm`
-
-<br>
 
 Example: Non-Gaussian Repeated measurements
 
@@ -397,9 +387,9 @@ library(MASS)
 pql_cbpp <-
     glmmPQL(
         cbind(incidence, size - incidence) ~ period,
-        random = ~ 1 | herd,
-        data = cbpp,
-        family = binomial(link = "logit"),
+        random  = ~ 1 | herd,
+        data    = cbpp,
+        family  = binomial(link = "logit"),
         verbose = F
     )
 summary(pql_cbpp)
@@ -473,7 +463,8 @@ Con:
 library(lme4)
 numint_cbpp <-
     glmer(
-        cbind(incidence, size - incidence) ~ period + (1 | herd),
+        cbind(incidence, size - incidence) ~ 
+            period + (1 | herd),
         data = cbpp,
         family = binomial(link = "logit")
     )
@@ -540,8 +531,8 @@ benchmark(
     order = "relative"
 )
 #>   test replications elapsed relative
-#> 1 MASS           50    3.43     1.00
-#> 2 lme4           50    6.21     1.81
+#> 1 MASS           50    3.08    1.000
+#> 2 lme4           50    5.85    1.899
 ```
 
 In numerical integration, we can set `nAGQ > 1` to switch the method of likelihood evaluation, which might increase accuracy
@@ -556,7 +547,8 @@ numint_cbpp_GH <-
         family = binomial(link = "logit"),
         nAGQ = 20
     )
-summary(numint_cbpp_GH)$coefficients[, 1] - summary(numint_cbpp)$coefficients[, 1]
+summary(numint_cbpp_GH)$coefficients[, 1] - 
+    summary(numint_cbpp)$coefficients[, 1]
 #>   (Intercept)       period2       period3       period4 
 #> -0.0008808634  0.0005160912  0.0004066218  0.0002644629
 ```
@@ -575,9 +567,9 @@ library(MCMCglmm)
 Bayes_cbpp <-
     MCMCglmm(
         cbind(incidence, size - incidence) ~ period,
-        random = ~ herd,
-        data = cbpp,
-        family = "multinomial2",
+        random  = ~ herd,
+        data    = cbpp,
+        family  = "multinomial2",
         verbose = FALSE
     )
 summary(Bayes_cbpp)
@@ -586,25 +578,25 @@ summary(Bayes_cbpp)
 #>  Thinning interval  = 10
 #>  Sample size  = 1000 
 #> 
-#>  DIC: 537.5268 
+#>  DIC: 538.0694 
 #> 
 #>  G-structure:  ~herd
 #> 
 #>      post.mean  l-95% CI u-95% CI eff.samp
-#> herd  0.006121 1.636e-16  0.02088      271
+#> herd  0.004578 6.783e-17 0.002851    85.37
 #> 
 #>  R-structure:  ~units
 #> 
 #>       post.mean l-95% CI u-95% CI eff.samp
-#> units     1.138   0.3625    2.143    349.5
+#> units     1.126   0.3247    2.185      330
 #> 
 #>  Location effects: cbind(incidence, size - incidence) ~ period 
 #> 
 #>             post.mean l-95% CI u-95% CI eff.samp  pMCMC    
-#> (Intercept)   -1.5384  -2.1512  -0.8681    874.0 <0.001 ***
-#> period2       -1.2650  -2.3351  -0.2939    749.6  0.012 *  
-#> period3       -1.4028  -2.3657  -0.1453    801.9  0.006 ** 
-#> period4       -1.9719  -3.1809  -0.6963    556.8  0.002 ** 
+#> (Intercept)   -1.5272  -2.2485  -0.9162    874.4 <0.001 ***
+#> period2       -1.2675  -2.3409  -0.2818    787.8  0.016 *  
+#> period3       -1.3918  -2.4656  -0.2885    794.7  0.008 ** 
+#> period4       -1.9793  -3.2274  -0.7202    543.6 <0.001 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -613,19 +605,20 @@ summary(Bayes_cbpp)
 
 
 ```r
-apply(Bayes_cbpp$VCV,2,sd) #explains less variability
+# explains less variability
+apply(Bayes_cbpp$VCV,2,sd)
 #>       herd      units 
-#> 0.03983352 0.52169359
+#> 0.03398695 0.52020658
 ```
 
 
 ```r
 summary(Bayes_cbpp)$solutions
 #>             post.mean  l-95% CI   u-95% CI eff.samp pMCMC
-#> (Intercept) -1.538390 -2.151216 -0.8681065 874.0309 0.001
-#> period2     -1.265045 -2.335091 -0.2939023 749.6249 0.012
-#> period3     -1.402763 -2.365737 -0.1453223 801.8498 0.006
-#> period4     -1.971879 -3.180906 -0.6962504 556.7658 0.002
+#> (Intercept) -1.527151 -2.248474 -0.9161505 874.3496 0.001
+#> period2     -1.267495 -2.340923 -0.2817737 787.7803 0.016
+#> period3     -1.391824 -2.465594 -0.2884851 794.6943 0.008
+#> period4     -1.979331 -3.227431 -0.7202222 543.6454 0.001
 ```
 
 interpret Bayesian "credible intervals" similarly to confidence intervals
@@ -662,12 +655,12 @@ Bayes_cbpp2 <-
     MCMCglmm(
         cbind(incidence, size - incidence) ~ period,
         random = ~ herd,
-        data = cbpp,
+        data   = cbpp,
         family = "multinomial2",
-        nitt = 20000,
+        nitt   = 20000,
         burnin = 10000,
-        prior = list(G = list(list(
-            V = 1, nu = .1
+        prior  = list(G = list(list(
+            V  = 1, nu = .1
         ))),
         verbose = FALSE
     )
@@ -682,8 +675,6 @@ To change the shape of priors, in `MCMCglmm` use:
 
 -   `nu` controls for the concentration around V (default = 0)
 
-<br>
-
 ### Count (Owl Data)
 
 
@@ -691,7 +682,8 @@ To change the shape of priors, in `MCMCglmm` use:
 library(glmmTMB)
 library(dplyr)
 data(Owls, package = "glmmTMB")
-Owls <- Owls %>% rename(Ncalls = SiblingNegotiation)
+Owls <- Owls %>% 
+    rename(Ncalls = SiblingNegotiation)
 ```
 
 In a typical Poisson model, $\lambda$ (Poisson mean), is model as $\log(\lambda) = \mathbf{x'\beta}$ But if the response is the rate (e.g., counts per BroodSize), we could model it as $\log(\lambda / b) = \mathbf{x'\beta}$ , equivalently $\log(\lambda) = \log(b) + \mathbf{x'\beta}$ where $b$ is BroodSize. Hence, we "offset" the mean by the log of this variable.
@@ -700,7 +692,8 @@ In a typical Poisson model, $\lambda$ (Poisson mean), is model as $\log(\lambda)
 ```r
 owls_glmer <-
     glmer(
-        Ncalls ~ offset(log(BroodSize)) + FoodTreatment * SexParent +
+        Ncalls ~ offset(log(BroodSize)) 
+        + FoodTreatment * SexParent +
             (1 | Nest),
         family = poisson,
         data = Owls
@@ -749,8 +742,10 @@ summary(owls_glmer)
 ```r
 # Negative binomial model
 owls_glmerNB <-
-    glmer.nb(Ncalls ~ offset(log(BroodSize)) + FoodTreatment * SexParent
+    glmer.nb(Ncalls ~ offset(log(BroodSize)) 
+             + FoodTreatment * SexParent
              + (1 | Nest), data = Owls)
+
 c(Deviance = round(summary(owls_glmerNB)$AICtab["deviance"], 3),
   df = summary(owls_glmerNB)$AICtab["df.resid"])
 #> Deviance.deviance       df.df.resid 
@@ -786,8 +781,7 @@ owls_glmm_zi <-
         Ncalls ~ FoodTreatment * SexParent + offset(log(BroodSize)) +
             (1 | Nest),
         ziformula =  ~ 1,
-        family = nbinom2(link
-                         = "log"),
+        family = nbinom2(link = "log"),
         data = Owls
     )
 # Scale Arrival time to use as a covariate for zero-inflation parameter
@@ -797,8 +791,7 @@ owls_glmm_zi_cov <- glmmTMB(
         offset(log(BroodSize)) +
         (1 | Nest),
     ziformula =  ~ ArrivalTime,
-    family = nbinom2(link
-                     = "log"),
+    family = nbinom2(link = "log"),
     data = Owls
 )
 as.matrix(anova(owls_glmm, owls_glmm_zi))
@@ -808,7 +801,7 @@ as.matrix(anova(owls_glmm, owls_glmm_zi))
 #>                Pr(>Chisq)
 #> owls_glmm              NA
 #> owls_glmm_zi 4.592983e-16
-as.matrix(anova(owls_glmm_zi,owls_glmm_zi_cov))
+as.matrix(anova(owls_glmm_zi, owls_glmm_zi_cov))
 #>                  Df      AIC      BIC    logLik deviance    Chisq Chi Df
 #> owls_glmm_zi      7 3431.646 3462.413 -1708.823 3417.646       NA     NA
 #> owls_glmm_zi_cov  8 3422.532 3457.694 -1703.266 3406.532 11.11411      1
@@ -870,6 +863,7 @@ library(spaMM)
 data(gotway.hessianfly)
 dat <- gotway.hessianfly
 dat$prop <- dat$y / dat$n
+
 ggplot(dat, aes(x = lat, y = long, fill = prop)) +
     geom_tile() +
     scale_fill_gradient(low = 'white', high = 'black') +
@@ -888,9 +882,9 @@ ggplot(dat, aes(x = lat, y = long, fill = prop)) +
 flymodel <-
     glmer(
         cbind(y, n - y) ~ gen + (1 | block),
-        data = dat,
+        data   = dat,
         family = binomial,
-        nAGQ = 5
+        nAGQ   = 5
     )
 summary(flymodel)
 #> Generalized linear mixed model fit by maximum likelihood (Adaptive
@@ -940,9 +934,9 @@ Equivalently, we can use `MCMCglmm` , for a Bayesian approach
 library(coda)
 Bayes_flymodel <- MCMCglmm(
     cbind(y, n - y) ~ gen ,
-    random = ~ block,
-    data = dat,
-    family = "multinomial2",
+    random  = ~ block,
+    data    = dat,
+    family  = "multinomial2",
     verbose = FALSE
 )
 plot(Bayes_flymodel$Sol[, 1], main = dimnames(Bayes_flymodel$Sol)[[2]][1])
@@ -952,7 +946,7 @@ plot(Bayes_flymodel$Sol[, 1], main = dimnames(Bayes_flymodel$Sol)[[2]][1])
 
 
 ```r
-autocorr.plot(Bayes_flymodel$Sol[,1],main=dimnames(Bayes_flymodel$Sol)[[2]][1])
+autocorr.plot(Bayes_flymodel$Sol[, 1], main = dimnames(Bayes_flymodel$Sol)[[2]][1])
 ```
 
 <img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
@@ -962,7 +956,8 @@ autocorr.plot(Bayes_flymodel$Sol[,1],main=dimnames(Bayes_flymodel$Sol)[[2]][1])
 
 ```r
 dat2 <- read.table("images/YellowPoplarData_r.txt")
-names(dat2) <- c('tn', 'k', 'dbh', 'totht', 'dob', 'ht', 'maxd', 'cumv')
+names(dat2) <- c('tn', 'k', 'dbh', 'totht',
+                 'dob', 'ht', 'maxd', 'cumv')
 dat2$t <- dat2$dob / dat2$dbh
 dat2$r <- 1 - dat2$dob / dat2$totht
 ```
@@ -986,7 +981,9 @@ dat2 <- dat2 %>% group_by(tn) %>% mutate(
         totht < 140 & totht >= 120 ~ 'i: 120-150',
     )
 )
-ggplot(dat2, aes(x = r, y = cumv)) + geom_point(size = 0.5) + facet_wrap(vars(z))
+ggplot(dat2, aes(x = r, y = cumv)) + 
+    geom_point(size = 0.5) + 
+    facet_wrap(vars(z))
 ```
 
 <img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
@@ -1008,11 +1005,13 @@ where
 library(nlme)
 tmp <-
     nlme(
-        cumv ~ (b0 + (b1 + u1) * (dbh * dbh * totht / 1000)) * (exp(-(b2 + u2) *
-                                                                        (t / 1000) * exp(b3 * t))),
+        cumv ~ (b0 + (b1 + u1) *
+                    (dbh * dbh * totht / 1000)) *
+            (exp(-(b2 + u2) * (t / 1000) * exp(b3 * t))), 
         data = dat2,
         fixed = b0 + b1 + b2 + b3 ~ 1,
-        # 1 on the right hand side of the formula indicates a single fixed effects for the corresponding parameters
+        # 1 on the right hand side of the formula indicates 
+        # a single fixed effects for the corresponding parameters
         random = list(pdDiag(u1 + u2 ~ 1)),
         #uncorrelated random effects
         groups = ~ tn,
@@ -1094,54 +1093,96 @@ nlmmfn <- function(fixed,rand,dbh,totht,t){
 }
 
 
+
 #Tree 1
-pred1 <- data.frame(seq(1,24,length.out=100))
+pred1 <- data.frame(seq(1, 24, length.out = 100))
 names(pred1) <- 'dob'
 pred1$tn <- 1
-pred1$dbh <- unique(dat2[dat2$tn==1,]$dbh)
-pred1$t <- pred1$dob/pred1$dbh
-pred1$totht <- unique(dat2[dat2$tn==1,]$totht)
-pred1$r <- 1-pred1$dob/pred1$totht
+pred1$dbh <- unique(dat2[dat2$tn == 1, ]$dbh)
+pred1$t <- pred1$dob / pred1$dbh
+pred1$totht <- unique(dat2[dat2$tn == 1, ]$totht)
+pred1$r <- 1 - pred1$dob / pred1$totht
 
 
-pred1$test <- predict(tmp,pred1)
-pred1$testno <- nlmmfn(fixed=tmp$coefficients$fixed, rand = c(0,0),pred1$dbh,pred1$totht,pred1$t)
+pred1$test <- predict(tmp, pred1)
+pred1$testno <-
+    nlmmfn(
+        fixed = tmp$coefficients$fixed,
+        rand = c(0, 0),
+        pred1$dbh,
+        pred1$totht,
+        pred1$t
+    )
 
-p1 <- ggplot(pred1)+geom_line(aes(x=r,y=test,color='with random'))+geom_line(aes(x=r,y=testno,color='No random'))+labs(colour = "") + geom_point(data=dat2[dat2$tn==1,],aes(x=r,y=cumv)) +ggtitle('Tree 1')+ theme(legend.position = "none")
+p1 <-
+    ggplot(pred1) + 
+    geom_line(aes(x = r, y = test, color = 'with random')) +
+    geom_line(aes(x = r, y = testno, color = 'No random')) + 
+    labs(colour = "") + 
+    geom_point(data = dat2[dat2$tn == 1, ], aes(x = r, y = cumv)) + 
+    ggtitle('Tree 1') + theme(legend.position = "none")
 
 
 #Tree 151
-pred151 <- data.frame(seq(1,21,length.out=100))
+pred151        <- data.frame(seq(1, 21, length.out = 100))
 names(pred151) <- 'dob'
-pred151$tn <- 151
-pred151$dbh <- unique(dat2[dat2$tn==151,]$dbh)
-pred151$t <- pred151$dob/pred151$dbh
-pred151$totht <- unique(dat2[dat2$tn==151,]$totht)
-pred151$r <- 1-pred151$dob/pred151$totht
+pred151$tn     <- 151
+pred151$dbh    <- unique(dat2[dat2$tn == 151, ]$dbh)
+pred151$t      <- pred151$dob / pred151$dbh
+pred151$totht  <- unique(dat2[dat2$tn == 151, ]$totht)
+pred151$r      <- 1 - pred151$dob / pred151$totht
 
 
-pred151$test <- predict(tmp,pred151)
-pred151$testno <- nlmmfn(fixed=tmp$coefficients$fixed, rand = c(0,0),pred151$dbh,pred151$totht,pred151$t)
+pred151$test <- predict(tmp, pred151)
+pred151$testno <-
+    nlmmfn(
+        fixed = tmp$coefficients$fixed,
+        rand = c(0, 0),
+        pred151$dbh,
+        pred151$totht,
+        pred151$t
+    )
 
-p2 <- ggplot(pred151)+geom_line(aes(x=r,y=test,color='with random'))+geom_line(aes(x=r,y=testno,color='No random'))+labs(colour = "") + geom_point(data=dat2[dat2$tn==151,],aes(x=r,y=cumv)) + ggtitle('Tree 151')+ theme(legend.position = "none")
+p2 <-
+    ggplot(pred151) + 
+    geom_line(aes(x = r, y = test, color = 'with random')) +
+    geom_line(aes(x = r, y = testno, color = 'No random')) + 
+    labs(colour = "") + 
+    geom_point(data = dat2[dat2$tn == 151,], aes(x = r, y = cumv)) + 
+    ggtitle('Tree 151') + 
+    theme(legend.position = "none")
 
 
 #Tree 279
-pred279 <- data.frame(seq(1,9,length.out=100))
+pred279        <- data.frame(seq(1, 9, length.out = 100))
 names(pred279) <- 'dob'
-pred279$tn <- 279
-pred279$dbh <- unique(dat2[dat2$tn==279,]$dbh)
-pred279$t <- pred279$dob/pred279$dbh
-pred279$totht <- unique(dat2[dat2$tn==279,]$totht)
-pred279$r <- 1-pred279$dob/pred279$totht
+pred279$tn     <- 279
+pred279$dbh    <- unique(dat2[dat2$tn == 279, ]$dbh)
+pred279$t      <- pred279$dob / pred279$dbh
+pred279$totht  <- unique(dat2[dat2$tn == 279, ]$totht)
+pred279$r      <- 1 - pred279$dob / pred279$totht
 
 
-pred279$test <- predict(tmp,pred279)
-pred279$testno <- nlmmfn(fixed=tmp$coefficients$fixed, rand = c(0,0),pred279$dbh,pred279$totht,pred279$t)
+pred279$test <- predict(tmp, pred279)
+pred279$testno <-
+    nlmmfn(
+        fixed = tmp$coefficients$fixed,
+        rand = c(0, 0),
+        pred279$dbh,
+        pred279$totht,
+        pred279$t
+    )
 
-p3 <- ggplot(pred279)+geom_line(aes(x=r,y=test,color='with random'))+geom_line(aes(x=r,y=testno,color='No random'))+labs(colour = "") + geom_point(data=dat2[dat2$tn==279,],aes(x=r,y=cumv)) + ggtitle('Tree 279')+ theme(legend.position = "none")
+p3 <-
+    ggplot(pred279) + 
+    geom_line(aes(x = r, y = test, color = 'with random')) +
+    geom_line(aes(x = r, y = testno, color = 'No random')) + 
+    labs(colour = "") + 
+    geom_point(data = dat2[dat2$tn == 279, ], aes(x = r, y = cumv)) + 
+    ggtitle('Tree 279') + 
+    theme(legend.position = "none")
 
-plot_grid(p1,p2,p3)
+plot_grid(p1, p2, p3)
 ```
 
 <img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-26-1.png" width="90%" style="display: block; margin: auto;" />

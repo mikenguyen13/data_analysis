@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>25.1 Simple Dif-n-dif | A Guide on Data Analysis</title>
   <meta name="description" content="This is a guide on how to conduct data analysis in the field of data science, statistics, or machine learning." />
-  <meta name="generator" content="bookdown 0.34 and GitBook 2.6.7" />
+  <meta name="generator" content="bookdown 0.35 and GitBook 2.6.7" />
 
   <meta property="og:title" content="25.1 Simple Dif-n-dif | A Guide on Data Analysis" />
   <meta property="og:type" content="book" />
@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2023-08-12" />
+<meta name="date" content="2023-08-20" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -303,7 +303,7 @@ div.csl-indent {
 </ul></li>
 <li class="chapter" data-level="5.3" data-path="weighted-least-squares.html"><a href="weighted-least-squares.html"><i class="fa fa-check"></i><b>5.3</b> Weighted Least Squares</a></li>
 <li class="chapter" data-level="5.4" data-path="generalized-least-squares.html"><a href="generalized-least-squares.html"><i class="fa fa-check"></i><b>5.4</b> Generalized Least Squares</a></li>
-<li class="chapter" data-level="5.5" data-path="feasiable-prais-winsten.html"><a href="feasiable-prais-winsten.html"><i class="fa fa-check"></i><b>5.5</b> Feasiable Prais Winsten</a></li>
+<li class="chapter" data-level="5.5" data-path="feasiable-prais-winsten.html"><a href="feasiable-prais-winsten.html"><i class="fa fa-check"></i><b>5.5</b> Feasible Prais Winsten</a></li>
 <li class="chapter" data-level="5.6" data-path="feasible-group-level-random-effects.html"><a href="feasible-group-level-random-effects.html"><i class="fa fa-check"></i><b>5.6</b> Feasible group level Random Effects</a></li>
 <li class="chapter" data-level="5.7" data-path="ridge-regression.html"><a href="ridge-regression.html"><i class="fa fa-check"></i><b>5.7</b> Ridge Regression</a></li>
 <li class="chapter" data-level="5.8" data-path="principal-component-regression.html"><a href="principal-component-regression.html"><i class="fa fa-check"></i><b>5.8</b> Principal Component Regression</a></li>
@@ -944,15 +944,16 @@ div.csl-indent {
 <p>missing <span class="math inline">\(E[Y_{0i}(1)|D=1]\)</span></p>
 <p><strong>The Average Treatment Effect on Treated (ATT)</strong></p>
 <p><span class="math display">\[
-E[Y_1(1) - Y_0(1)|D=1] \\
-= \{E[Y(1)|D=1] - E[Y(1)|D=0] \} - \{E[Y(0)|D=1] - E[Y(0)|D=0] \}
+\begin{aligned}
+E[Y_1(1) - Y_0(1)|D=1] &amp;= \{E[Y(1)|D=1] - E[Y(1)|D=0] \} \\
+&amp;- \{E[Y(0)|D=1] - E[Y(0)|D=0] \}
+\end{aligned}
 \]</span></p>
 <p>More elaboration:</p>
 <ul>
 <li>For the treatment group, we isolate the difference between being treated and not being treated. If the untreated group would have been affected in a different way, the DiD design and estimate would tell us nothing.</li>
 <li>Alternatively, because we can’t observe treatment variation in the control group, we can’t say anything about the treatment effect on this group.</li>
 </ul>
-<p><br></p>
 <p><strong>Extension</strong></p>
 <ol style="list-style-type: decimal">
 <li><strong>More than 2 groups</strong> (multiple treatments and multiple controls), and more than 2 period (pre and post)</li>
@@ -1036,50 +1037,50 @@ Y &amp;= \alpha_0 + \alpha_1 Group + \alpha_2 Time  \\
 <li>You can now examine the trend in post-treatment coefficients (i.e., increasing or decreasing)</li>
 </ul></li>
 </ol>
-<div class="sourceCode" id="cb404"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb404-1"><a href="simple-dif-n-dif.html#cb404-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb404-2"><a href="simple-dif-n-dif.html#cb404-2" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
-<span id="cb404-3"><a href="simple-dif-n-dif.html#cb404-3" tabindex="-1"></a></span>
-<span id="cb404-4"><a href="simple-dif-n-dif.html#cb404-4" tabindex="-1"></a>od <span class="ot">&lt;-</span> causaldata<span class="sc">::</span>organ_donations <span class="sc">%&gt;%</span></span>
-<span id="cb404-5"><a href="simple-dif-n-dif.html#cb404-5" tabindex="-1"></a>    </span>
-<span id="cb404-6"><a href="simple-dif-n-dif.html#cb404-6" tabindex="-1"></a>    <span class="co"># Treatment variable</span></span>
-<span id="cb404-7"><a href="simple-dif-n-dif.html#cb404-7" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">California =</span> State <span class="sc">==</span> <span class="st">&#39;California&#39;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb404-8"><a href="simple-dif-n-dif.html#cb404-8" tabindex="-1"></a>    <span class="co"># centered time variable</span></span>
-<span id="cb404-9"><a href="simple-dif-n-dif.html#cb404-9" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">center_time =</span> <span class="fu">as.factor</span>(Quarter_Num <span class="sc">-</span> <span class="dv">3</span>))  <span class="co"># where 3 is the reference period (that is preceding the treatment period)</span></span>
-<span id="cb404-10"><a href="simple-dif-n-dif.html#cb404-10" tabindex="-1"></a></span>
-<span id="cb404-11"><a href="simple-dif-n-dif.html#cb404-11" tabindex="-1"></a><span class="fu">class</span>(od<span class="sc">$</span>California)</span>
-<span id="cb404-12"><a href="simple-dif-n-dif.html#cb404-12" tabindex="-1"></a><span class="co">#&gt; [1] &quot;logical&quot;</span></span>
-<span id="cb404-13"><a href="simple-dif-n-dif.html#cb404-13" tabindex="-1"></a><span class="fu">class</span>(od<span class="sc">$</span>State)</span>
-<span id="cb404-14"><a href="simple-dif-n-dif.html#cb404-14" tabindex="-1"></a><span class="co">#&gt; [1] &quot;character&quot;</span></span>
-<span id="cb404-15"><a href="simple-dif-n-dif.html#cb404-15" tabindex="-1"></a></span>
-<span id="cb404-16"><a href="simple-dif-n-dif.html#cb404-16" tabindex="-1"></a>cali <span class="ot">&lt;-</span> <span class="fu">feols</span>(Rate <span class="sc">~</span> <span class="fu">i</span>(center_time, California, <span class="at">ref =</span> <span class="dv">0</span>) <span class="sc">|</span></span>
-<span id="cb404-17"><a href="simple-dif-n-dif.html#cb404-17" tabindex="-1"></a>                  State <span class="sc">+</span> center_time,</span>
-<span id="cb404-18"><a href="simple-dif-n-dif.html#cb404-18" tabindex="-1"></a>              <span class="at">data =</span> od)</span>
-<span id="cb404-19"><a href="simple-dif-n-dif.html#cb404-19" tabindex="-1"></a></span>
-<span id="cb404-20"><a href="simple-dif-n-dif.html#cb404-20" tabindex="-1"></a><span class="fu">etable</span>(cali)</span>
-<span id="cb404-21"><a href="simple-dif-n-dif.html#cb404-21" tabindex="-1"></a><span class="co">#&gt;                                              cali</span></span>
-<span id="cb404-22"><a href="simple-dif-n-dif.html#cb404-22" tabindex="-1"></a><span class="co">#&gt; Dependent Var.:                              Rate</span></span>
-<span id="cb404-23"><a href="simple-dif-n-dif.html#cb404-23" tabindex="-1"></a><span class="co">#&gt;                                                  </span></span>
-<span id="cb404-24"><a href="simple-dif-n-dif.html#cb404-24" tabindex="-1"></a><span class="co">#&gt; California x center_time = -2    -0.0029 (0.0051)</span></span>
-<span id="cb404-25"><a href="simple-dif-n-dif.html#cb404-25" tabindex="-1"></a><span class="co">#&gt; California x center_time = -1   0.0063** (0.0023)</span></span>
-<span id="cb404-26"><a href="simple-dif-n-dif.html#cb404-26" tabindex="-1"></a><span class="co">#&gt; California x center_time = 1  -0.0216*** (0.0050)</span></span>
-<span id="cb404-27"><a href="simple-dif-n-dif.html#cb404-27" tabindex="-1"></a><span class="co">#&gt; California x center_time = 2  -0.0203*** (0.0045)</span></span>
-<span id="cb404-28"><a href="simple-dif-n-dif.html#cb404-28" tabindex="-1"></a><span class="co">#&gt; California x center_time = 3    -0.0222* (0.0100)</span></span>
-<span id="cb404-29"><a href="simple-dif-n-dif.html#cb404-29" tabindex="-1"></a><span class="co">#&gt; Fixed-Effects:                -------------------</span></span>
-<span id="cb404-30"><a href="simple-dif-n-dif.html#cb404-30" tabindex="-1"></a><span class="co">#&gt; State                                         Yes</span></span>
-<span id="cb404-31"><a href="simple-dif-n-dif.html#cb404-31" tabindex="-1"></a><span class="co">#&gt; center_time                                   Yes</span></span>
-<span id="cb404-32"><a href="simple-dif-n-dif.html#cb404-32" tabindex="-1"></a><span class="co">#&gt; _____________________________ ___________________</span></span>
-<span id="cb404-33"><a href="simple-dif-n-dif.html#cb404-33" tabindex="-1"></a><span class="co">#&gt; S.E.: Clustered                         by: State</span></span>
-<span id="cb404-34"><a href="simple-dif-n-dif.html#cb404-34" tabindex="-1"></a><span class="co">#&gt; Observations                                  162</span></span>
-<span id="cb404-35"><a href="simple-dif-n-dif.html#cb404-35" tabindex="-1"></a><span class="co">#&gt; R2                                        0.97934</span></span>
-<span id="cb404-36"><a href="simple-dif-n-dif.html#cb404-36" tabindex="-1"></a><span class="co">#&gt; Within R2                                 0.00979</span></span>
-<span id="cb404-37"><a href="simple-dif-n-dif.html#cb404-37" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb404-38"><a href="simple-dif-n-dif.html#cb404-38" tabindex="-1"></a><span class="co">#&gt; Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb404-39"><a href="simple-dif-n-dif.html#cb404-39" tabindex="-1"></a></span>
-<span id="cb404-40"><a href="simple-dif-n-dif.html#cb404-40" tabindex="-1"></a><span class="fu">iplot</span>(cali, <span class="at">pt.join =</span> T)</span></code></pre></div>
+<div class="sourceCode" id="cb409"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb409-1"><a href="simple-dif-n-dif.html#cb409-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb409-2"><a href="simple-dif-n-dif.html#cb409-2" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
+<span id="cb409-3"><a href="simple-dif-n-dif.html#cb409-3" tabindex="-1"></a></span>
+<span id="cb409-4"><a href="simple-dif-n-dif.html#cb409-4" tabindex="-1"></a>od <span class="ot">&lt;-</span> causaldata<span class="sc">::</span>organ_donations <span class="sc">%&gt;%</span></span>
+<span id="cb409-5"><a href="simple-dif-n-dif.html#cb409-5" tabindex="-1"></a>    </span>
+<span id="cb409-6"><a href="simple-dif-n-dif.html#cb409-6" tabindex="-1"></a>    <span class="co"># Treatment variable</span></span>
+<span id="cb409-7"><a href="simple-dif-n-dif.html#cb409-7" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">California =</span> State <span class="sc">==</span> <span class="st">&#39;California&#39;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb409-8"><a href="simple-dif-n-dif.html#cb409-8" tabindex="-1"></a>    <span class="co"># centered time variable</span></span>
+<span id="cb409-9"><a href="simple-dif-n-dif.html#cb409-9" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">center_time =</span> <span class="fu">as.factor</span>(Quarter_Num <span class="sc">-</span> <span class="dv">3</span>))  </span>
+<span id="cb409-10"><a href="simple-dif-n-dif.html#cb409-10" tabindex="-1"></a><span class="co"># where 3 is the reference period precedes the treatment period</span></span>
+<span id="cb409-11"><a href="simple-dif-n-dif.html#cb409-11" tabindex="-1"></a></span>
+<span id="cb409-12"><a href="simple-dif-n-dif.html#cb409-12" tabindex="-1"></a><span class="fu">class</span>(od<span class="sc">$</span>California)</span>
+<span id="cb409-13"><a href="simple-dif-n-dif.html#cb409-13" tabindex="-1"></a><span class="co">#&gt; [1] &quot;logical&quot;</span></span>
+<span id="cb409-14"><a href="simple-dif-n-dif.html#cb409-14" tabindex="-1"></a><span class="fu">class</span>(od<span class="sc">$</span>State)</span>
+<span id="cb409-15"><a href="simple-dif-n-dif.html#cb409-15" tabindex="-1"></a><span class="co">#&gt; [1] &quot;character&quot;</span></span>
+<span id="cb409-16"><a href="simple-dif-n-dif.html#cb409-16" tabindex="-1"></a></span>
+<span id="cb409-17"><a href="simple-dif-n-dif.html#cb409-17" tabindex="-1"></a>cali <span class="ot">&lt;-</span> <span class="fu">feols</span>(Rate <span class="sc">~</span> <span class="fu">i</span>(center_time, California, <span class="at">ref =</span> <span class="dv">0</span>) <span class="sc">|</span></span>
+<span id="cb409-18"><a href="simple-dif-n-dif.html#cb409-18" tabindex="-1"></a>                  State <span class="sc">+</span> center_time,</span>
+<span id="cb409-19"><a href="simple-dif-n-dif.html#cb409-19" tabindex="-1"></a>              <span class="at">data =</span> od)</span>
+<span id="cb409-20"><a href="simple-dif-n-dif.html#cb409-20" tabindex="-1"></a></span>
+<span id="cb409-21"><a href="simple-dif-n-dif.html#cb409-21" tabindex="-1"></a><span class="fu">etable</span>(cali)</span>
+<span id="cb409-22"><a href="simple-dif-n-dif.html#cb409-22" tabindex="-1"></a><span class="co">#&gt;                                              cali</span></span>
+<span id="cb409-23"><a href="simple-dif-n-dif.html#cb409-23" tabindex="-1"></a><span class="co">#&gt; Dependent Var.:                              Rate</span></span>
+<span id="cb409-24"><a href="simple-dif-n-dif.html#cb409-24" tabindex="-1"></a><span class="co">#&gt;                                                  </span></span>
+<span id="cb409-25"><a href="simple-dif-n-dif.html#cb409-25" tabindex="-1"></a><span class="co">#&gt; California x center_time = -2    -0.0029 (0.0051)</span></span>
+<span id="cb409-26"><a href="simple-dif-n-dif.html#cb409-26" tabindex="-1"></a><span class="co">#&gt; California x center_time = -1   0.0063** (0.0023)</span></span>
+<span id="cb409-27"><a href="simple-dif-n-dif.html#cb409-27" tabindex="-1"></a><span class="co">#&gt; California x center_time = 1  -0.0216*** (0.0050)</span></span>
+<span id="cb409-28"><a href="simple-dif-n-dif.html#cb409-28" tabindex="-1"></a><span class="co">#&gt; California x center_time = 2  -0.0203*** (0.0045)</span></span>
+<span id="cb409-29"><a href="simple-dif-n-dif.html#cb409-29" tabindex="-1"></a><span class="co">#&gt; California x center_time = 3    -0.0222* (0.0100)</span></span>
+<span id="cb409-30"><a href="simple-dif-n-dif.html#cb409-30" tabindex="-1"></a><span class="co">#&gt; Fixed-Effects:                -------------------</span></span>
+<span id="cb409-31"><a href="simple-dif-n-dif.html#cb409-31" tabindex="-1"></a><span class="co">#&gt; State                                         Yes</span></span>
+<span id="cb409-32"><a href="simple-dif-n-dif.html#cb409-32" tabindex="-1"></a><span class="co">#&gt; center_time                                   Yes</span></span>
+<span id="cb409-33"><a href="simple-dif-n-dif.html#cb409-33" tabindex="-1"></a><span class="co">#&gt; _____________________________ ___________________</span></span>
+<span id="cb409-34"><a href="simple-dif-n-dif.html#cb409-34" tabindex="-1"></a><span class="co">#&gt; S.E.: Clustered                         by: State</span></span>
+<span id="cb409-35"><a href="simple-dif-n-dif.html#cb409-35" tabindex="-1"></a><span class="co">#&gt; Observations                                  162</span></span>
+<span id="cb409-36"><a href="simple-dif-n-dif.html#cb409-36" tabindex="-1"></a><span class="co">#&gt; R2                                        0.97934</span></span>
+<span id="cb409-37"><a href="simple-dif-n-dif.html#cb409-37" tabindex="-1"></a><span class="co">#&gt; Within R2                                 0.00979</span></span>
+<span id="cb409-38"><a href="simple-dif-n-dif.html#cb409-38" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb409-39"><a href="simple-dif-n-dif.html#cb409-39" tabindex="-1"></a><span class="co">#&gt; Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb409-40"><a href="simple-dif-n-dif.html#cb409-40" tabindex="-1"></a></span>
+<span id="cb409-41"><a href="simple-dif-n-dif.html#cb409-41" tabindex="-1"></a><span class="fu">iplot</span>(cali, <span class="at">pt.join =</span> T)</span></code></pre></div>
 <p><img src="25-dif-in-dif_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" /></p>
-<div class="sourceCode" id="cb405"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb405-1"><a href="simple-dif-n-dif.html#cb405-1" tabindex="-1"></a><span class="fu">coefplot</span>(cali)</span></code></pre></div>
+<div class="sourceCode" id="cb410"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb410-1"><a href="simple-dif-n-dif.html#cb410-1" tabindex="-1"></a><span class="fu">coefplot</span>(cali)</span></code></pre></div>
 <p><img src="25-dif-in-dif_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" /></p>
-<p><br></p>
 <p>Notes:</p>
 <ul>
 <li><p><a href="matching-methods.html#matching-methods">Matching Methods</a></p>
@@ -1088,7 +1089,7 @@ Y &amp;= \alpha_0 + \alpha_1 Group + \alpha_2 Time  \\
 <li><p>Modify SEs appropriately <span class="citation">(<a href="#ref-heckman1997matching">James J. Heckman, Ichimura, and Todd 1997</a>)</span>. It’s might be easier to just use the <a href="simple-dif-n-dif.html#doubly-robust-did">Doubly Robust DiD</a> <span class="citation">(<a href="#ref-sant2020doubly">Sant’Anna and Zhao 2020</a>)</span> where you just need either matching or regression to work in order to identify your treatment effect</p></li>
 <li><p>Whereas the group fixed effects control for the group time-invariant effects, it does not control for selection bias (i.e., certain groups are more likely to be treated than others). Hence, with these backdoor open (i.e., selection bias) between (1) propensity to be treated and (2) dynamics evolution of the outcome post-treatment, matching can potential close these backdoor.</p></li>
 <li><p>Be careful when matching time-varying covariates because you might encounter “regression to the mean” problem, where pre-treatment periods can have an unusually bad or good time (that is out of the ordinary), then the post-treatment period outcome can just be an artifact of the regression to the mean <span class="citation">(<a href="#ref-daw2018matching">Daw and Hatfield 2018</a>)</span>. This problem is not of concern to time-invariant variables.</p></li>
-<li><p>Matching and DiD can use pre-treatment outcomes to correct for selection bias. From real world data and simulation, <span class="citation">(<a href="#ref-chabe2015analysis">Chabé-Ferret 2015</a>)</span> found that matching generally underestiamtes the average causal effect and gets closer to the true effect with more number of pre-treatment outcomes. When selection bias is symmetric around the treatment date, DID is still consistent when implemented symmetrically (i.e., the same number of period before and after treatment). In cases where selection bias is asymmetric, the MC simulations show that Symmetric DiD still performs better than Matching.</p></li>
+<li><p>Matching and DiD can use pre-treatment outcomes to correct for selection bias. From real world data and simulation, <span class="citation">(<a href="#ref-chabe2015analysis">Chabé-Ferret 2015</a>)</span> found that matching generally underestimates the average causal effect and gets closer to the true effect with more number of pre-treatment outcomes. When selection bias is symmetric around the treatment date, DID is still consistent when implemented symmetrically (i.e., the same number of period before and after treatment). In cases where selection bias is asymmetric, the MC simulations show that Symmetric DiD still performs better than Matching.</p></li>
 </ul></li>
 <li><p>It’s always good to show results with and without controls because</p>
 <ul>
@@ -1101,47 +1102,45 @@ Y &amp;= \alpha_0 + \alpha_1 Group + \alpha_2 Time  \\
 <li><p>using cluster bootstrapped SEs.</p></li>
 </ol></li>
 </ul>
-<p><br></p>
 <div id="examples" class="section level3 hasAnchor" number="25.1.1">
 <h3><span class="header-section-number">25.1.1</span> Examples<a href="simple-dif-n-dif.html#examples" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <div id="example-from-princeton" class="section level4 hasAnchor" number="25.1.1.1">
 <h4><span class="header-section-number">25.1.1.1</span> Example from <a href="https://www.princeton.edu/~otorres/DID101R.pdf">Princeton</a><a href="simple-dif-n-dif.html#example-from-princeton" class="anchor-section" aria-label="Anchor link to header"></a></h4>
-<div class="sourceCode" id="cb406"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb406-1"><a href="simple-dif-n-dif.html#cb406-1" tabindex="-1"></a><span class="fu">library</span>(foreign)</span>
-<span id="cb406-2"><a href="simple-dif-n-dif.html#cb406-2" tabindex="-1"></a>mydata <span class="ot">=</span> <span class="fu">read.dta</span>(<span class="st">&quot;http://dss.princeton.edu/training/Panel101.dta&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb406-3"><a href="simple-dif-n-dif.html#cb406-3" tabindex="-1"></a>    <span class="co"># create a dummy variable to indicate the time when the treatment started</span></span>
-<span id="cb406-4"><a href="simple-dif-n-dif.html#cb406-4" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">time =</span> <span class="fu">ifelse</span>(year <span class="sc">&gt;=</span> <span class="dv">1994</span>, <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb406-5"><a href="simple-dif-n-dif.html#cb406-5" tabindex="-1"></a>    <span class="co"># create a dummy variable to identify the treatment group</span></span>
-<span id="cb406-6"><a href="simple-dif-n-dif.html#cb406-6" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">treated =</span> <span class="fu">ifelse</span>(country <span class="sc">==</span> <span class="st">&quot;E&quot;</span> <span class="sc">|</span></span>
-<span id="cb406-7"><a href="simple-dif-n-dif.html#cb406-7" tabindex="-1"></a>                            country <span class="sc">==</span> <span class="st">&quot;F&quot;</span> <span class="sc">|</span> country <span class="sc">==</span> <span class="st">&quot;G&quot;</span> ,</span>
-<span id="cb406-8"><a href="simple-dif-n-dif.html#cb406-8" tabindex="-1"></a>                        <span class="dv">1</span>,</span>
-<span id="cb406-9"><a href="simple-dif-n-dif.html#cb406-9" tabindex="-1"></a>                        <span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb406-10"><a href="simple-dif-n-dif.html#cb406-10" tabindex="-1"></a>    <span class="co"># create an interaction between time and treated</span></span>
-<span id="cb406-11"><a href="simple-dif-n-dif.html#cb406-11" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">did =</span> time <span class="sc">*</span> treated)</span></code></pre></div>
+<div class="sourceCode" id="cb411"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb411-1"><a href="simple-dif-n-dif.html#cb411-1" tabindex="-1"></a><span class="fu">library</span>(foreign)</span>
+<span id="cb411-2"><a href="simple-dif-n-dif.html#cb411-2" tabindex="-1"></a>mydata <span class="ot">=</span> <span class="fu">read.dta</span>(<span class="st">&quot;http://dss.princeton.edu/training/Panel101.dta&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb411-3"><a href="simple-dif-n-dif.html#cb411-3" tabindex="-1"></a>    <span class="co"># create a dummy variable to indicate the time when the treatment started</span></span>
+<span id="cb411-4"><a href="simple-dif-n-dif.html#cb411-4" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">time =</span> <span class="fu">ifelse</span>(year <span class="sc">&gt;=</span> <span class="dv">1994</span>, <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb411-5"><a href="simple-dif-n-dif.html#cb411-5" tabindex="-1"></a>    <span class="co"># create a dummy variable to identify the treatment group</span></span>
+<span id="cb411-6"><a href="simple-dif-n-dif.html#cb411-6" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">treated =</span> <span class="fu">ifelse</span>(country <span class="sc">==</span> <span class="st">&quot;E&quot;</span> <span class="sc">|</span></span>
+<span id="cb411-7"><a href="simple-dif-n-dif.html#cb411-7" tabindex="-1"></a>                                country <span class="sc">==</span> <span class="st">&quot;F&quot;</span> <span class="sc">|</span> country <span class="sc">==</span> <span class="st">&quot;G&quot;</span> ,</span>
+<span id="cb411-8"><a href="simple-dif-n-dif.html#cb411-8" tabindex="-1"></a>                            <span class="dv">1</span>,</span>
+<span id="cb411-9"><a href="simple-dif-n-dif.html#cb411-9" tabindex="-1"></a>                            <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb411-10"><a href="simple-dif-n-dif.html#cb411-10" tabindex="-1"></a>    <span class="co"># create an interaction between time and treated</span></span>
+<span id="cb411-11"><a href="simple-dif-n-dif.html#cb411-11" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">did =</span> time <span class="sc">*</span> treated)</span></code></pre></div>
 <p>estimate the DID estimator</p>
-<div class="sourceCode" id="cb407"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb407-1"><a href="simple-dif-n-dif.html#cb407-1" tabindex="-1"></a>didreg <span class="ot">=</span> <span class="fu">lm</span>(y <span class="sc">~</span> treated <span class="sc">+</span> time <span class="sc">+</span> did, <span class="at">data =</span> mydata)</span>
-<span id="cb407-2"><a href="simple-dif-n-dif.html#cb407-2" tabindex="-1"></a><span class="fu">summary</span>(didreg)</span>
-<span id="cb407-3"><a href="simple-dif-n-dif.html#cb407-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb407-4"><a href="simple-dif-n-dif.html#cb407-4" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb407-5"><a href="simple-dif-n-dif.html#cb407-5" tabindex="-1"></a><span class="co">#&gt; lm(formula = y ~ treated + time + did, data = mydata)</span></span>
-<span id="cb407-6"><a href="simple-dif-n-dif.html#cb407-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb407-7"><a href="simple-dif-n-dif.html#cb407-7" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
-<span id="cb407-8"><a href="simple-dif-n-dif.html#cb407-8" tabindex="-1"></a><span class="co">#&gt;        Min         1Q     Median         3Q        Max </span></span>
-<span id="cb407-9"><a href="simple-dif-n-dif.html#cb407-9" tabindex="-1"></a><span class="co">#&gt; -9.768e+09 -1.623e+09  1.167e+08  1.393e+09  6.807e+09 </span></span>
-<span id="cb407-10"><a href="simple-dif-n-dif.html#cb407-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb407-11"><a href="simple-dif-n-dif.html#cb407-11" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb407-12"><a href="simple-dif-n-dif.html#cb407-12" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error t value Pr(&gt;|t|)  </span></span>
-<span id="cb407-13"><a href="simple-dif-n-dif.html#cb407-13" tabindex="-1"></a><span class="co">#&gt; (Intercept)  3.581e+08  7.382e+08   0.485   0.6292  </span></span>
-<span id="cb407-14"><a href="simple-dif-n-dif.html#cb407-14" tabindex="-1"></a><span class="co">#&gt; treated      1.776e+09  1.128e+09   1.575   0.1200  </span></span>
-<span id="cb407-15"><a href="simple-dif-n-dif.html#cb407-15" tabindex="-1"></a><span class="co">#&gt; time         2.289e+09  9.530e+08   2.402   0.0191 *</span></span>
-<span id="cb407-16"><a href="simple-dif-n-dif.html#cb407-16" tabindex="-1"></a><span class="co">#&gt; did         -2.520e+09  1.456e+09  -1.731   0.0882 .</span></span>
-<span id="cb407-17"><a href="simple-dif-n-dif.html#cb407-17" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb407-18"><a href="simple-dif-n-dif.html#cb407-18" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb407-19"><a href="simple-dif-n-dif.html#cb407-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb407-20"><a href="simple-dif-n-dif.html#cb407-20" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 2.953e+09 on 66 degrees of freedom</span></span>
-<span id="cb407-21"><a href="simple-dif-n-dif.html#cb407-21" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.08273,    Adjusted R-squared:  0.04104 </span></span>
-<span id="cb407-22"><a href="simple-dif-n-dif.html#cb407-22" tabindex="-1"></a><span class="co">#&gt; F-statistic: 1.984 on 3 and 66 DF,  p-value: 0.1249</span></span></code></pre></div>
+<div class="sourceCode" id="cb412"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb412-1"><a href="simple-dif-n-dif.html#cb412-1" tabindex="-1"></a>didreg <span class="ot">=</span> <span class="fu">lm</span>(y <span class="sc">~</span> treated <span class="sc">+</span> time <span class="sc">+</span> did, <span class="at">data =</span> mydata)</span>
+<span id="cb412-2"><a href="simple-dif-n-dif.html#cb412-2" tabindex="-1"></a><span class="fu">summary</span>(didreg)</span>
+<span id="cb412-3"><a href="simple-dif-n-dif.html#cb412-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb412-4"><a href="simple-dif-n-dif.html#cb412-4" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb412-5"><a href="simple-dif-n-dif.html#cb412-5" tabindex="-1"></a><span class="co">#&gt; lm(formula = y ~ treated + time + did, data = mydata)</span></span>
+<span id="cb412-6"><a href="simple-dif-n-dif.html#cb412-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb412-7"><a href="simple-dif-n-dif.html#cb412-7" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
+<span id="cb412-8"><a href="simple-dif-n-dif.html#cb412-8" tabindex="-1"></a><span class="co">#&gt;        Min         1Q     Median         3Q        Max </span></span>
+<span id="cb412-9"><a href="simple-dif-n-dif.html#cb412-9" tabindex="-1"></a><span class="co">#&gt; -9.768e+09 -1.623e+09  1.167e+08  1.393e+09  6.807e+09 </span></span>
+<span id="cb412-10"><a href="simple-dif-n-dif.html#cb412-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb412-11"><a href="simple-dif-n-dif.html#cb412-11" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb412-12"><a href="simple-dif-n-dif.html#cb412-12" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error t value Pr(&gt;|t|)  </span></span>
+<span id="cb412-13"><a href="simple-dif-n-dif.html#cb412-13" tabindex="-1"></a><span class="co">#&gt; (Intercept)  3.581e+08  7.382e+08   0.485   0.6292  </span></span>
+<span id="cb412-14"><a href="simple-dif-n-dif.html#cb412-14" tabindex="-1"></a><span class="co">#&gt; treated      1.776e+09  1.128e+09   1.575   0.1200  </span></span>
+<span id="cb412-15"><a href="simple-dif-n-dif.html#cb412-15" tabindex="-1"></a><span class="co">#&gt; time         2.289e+09  9.530e+08   2.402   0.0191 *</span></span>
+<span id="cb412-16"><a href="simple-dif-n-dif.html#cb412-16" tabindex="-1"></a><span class="co">#&gt; did         -2.520e+09  1.456e+09  -1.731   0.0882 .</span></span>
+<span id="cb412-17"><a href="simple-dif-n-dif.html#cb412-17" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb412-18"><a href="simple-dif-n-dif.html#cb412-18" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb412-19"><a href="simple-dif-n-dif.html#cb412-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb412-20"><a href="simple-dif-n-dif.html#cb412-20" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 2.953e+09 on 66 degrees of freedom</span></span>
+<span id="cb412-21"><a href="simple-dif-n-dif.html#cb412-21" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.08273,    Adjusted R-squared:  0.04104 </span></span>
+<span id="cb412-22"><a href="simple-dif-n-dif.html#cb412-22" tabindex="-1"></a><span class="co">#&gt; F-statistic: 1.984 on 3 and 66 DF,  p-value: 0.1249</span></span></code></pre></div>
 <p>The <code>did</code> coefficient is the differences-in-differences estimator. Treat has a negative effect</p>
-<p><br></p>
 </div>
 <div id="example-by-card1993minimum" class="section level4 hasAnchor" number="25.1.1.2">
 <h4><span class="header-section-number">25.1.1.2</span> Example by <span class="citation">Card and Krueger (<a href="#ref-card1993minimum">1993</a>)</span><a href="simple-dif-n-dif.html#example-by-card1993minimum" class="anchor-section" aria-label="Anchor link to header"></a></h4>
@@ -1223,7 +1222,6 @@ Y_{jt} = \beta_0 + NJ_j \beta_1 + POST_t \beta_2 + (NJ_j \times POST_t)\beta_3+ 
 <li><p>However, we can’t never be certain; we just try to find evidence consistent with our theory so that dif-n-dif can work.</p></li>
 <li><p>Notice that we don’t need before treatment the <strong>levels of the dependent variable</strong> to be the same (e.g., same wage average in both NJ and PA), dif-n-dif only needs <strong>pre-trend (i.e., slope)</strong> to be the same for the two groups.</p></li>
 </ul>
-<p><br></p>
 </div>
 <div id="example-by-butcher2014effects" class="section level4 hasAnchor" number="25.1.1.3">
 <h4><span class="header-section-number">25.1.1.3</span> Example by <span class="citation">Butcher, McEwan, and Weerapana (<a href="#ref-butcher2014effects">2014</a>)</span><a href="simple-dif-n-dif.html#example-by-butcher2014effects" class="anchor-section" aria-label="Anchor link to header"></a></h4>
@@ -1259,13 +1257,13 @@ Y_{idt} = \beta_0 + POST_t \beta_1 + Treat_d \beta_2 + (POST_t \times Treat_d)\b
 <ul>
 <li><span class="math inline">\(Y_{idt}\)</span> = grade average</li>
 </ul>
-<table>
+<table style="width:97%;">
 <colgroup>
-<col width="18%" />
-<col width="46%" />
-<col width="9%" />
-<col width="8%" />
-<col width="17%" />
+<col width="16%" />
+<col width="40%" />
+<col width="12%" />
+<col width="12%" />
+<col width="15%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -1335,68 +1333,73 @@ Y_{idt} = \alpha_0 + (POST_t \times Treat_d) \alpha_1 + \theta_d + \delta_t + X_
 <li><p>Use OLS (cannot handle <code>glm</code>)</p></li>
 <li><p>Canonical DiD only (cannot handle DDD).</p></li>
 </ul>
-<div class="sourceCode" id="cb408"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb408-1"><a href="simple-dif-n-dif.html#cb408-1" tabindex="-1"></a><span class="fu">library</span>(DRDID)</span>
-<span id="cb408-2"><a href="simple-dif-n-dif.html#cb408-2" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;nsw_long&quot;</span>)</span>
-<span id="cb408-3"><a href="simple-dif-n-dif.html#cb408-3" tabindex="-1"></a>eval_lalonde_cps <span class="ot">&lt;-</span> <span class="fu">subset</span>(nsw_long, nsw_long<span class="sc">$</span>treated <span class="sc">==</span> <span class="dv">0</span> <span class="sc">|</span> nsw_long<span class="sc">$</span>sample <span class="sc">==</span> <span class="dv">2</span>)</span>
-<span id="cb408-4"><a href="simple-dif-n-dif.html#cb408-4" tabindex="-1"></a><span class="fu">head</span>(eval_lalonde_cps)</span>
-<span id="cb408-5"><a href="simple-dif-n-dif.html#cb408-5" tabindex="-1"></a><span class="co">#&gt;   id year treated age educ black married nodegree dwincl      re74 hisp</span></span>
-<span id="cb408-6"><a href="simple-dif-n-dif.html#cb408-6" tabindex="-1"></a><span class="co">#&gt; 1  1 1975      NA  42   16     0       1        0     NA     0.000    0</span></span>
-<span id="cb408-7"><a href="simple-dif-n-dif.html#cb408-7" tabindex="-1"></a><span class="co">#&gt; 2  1 1978      NA  42   16     0       1        0     NA     0.000    0</span></span>
-<span id="cb408-8"><a href="simple-dif-n-dif.html#cb408-8" tabindex="-1"></a><span class="co">#&gt; 3  2 1975      NA  20   13     0       0        0     NA  2366.794    0</span></span>
-<span id="cb408-9"><a href="simple-dif-n-dif.html#cb408-9" tabindex="-1"></a><span class="co">#&gt; 4  2 1978      NA  20   13     0       0        0     NA  2366.794    0</span></span>
-<span id="cb408-10"><a href="simple-dif-n-dif.html#cb408-10" tabindex="-1"></a><span class="co">#&gt; 5  3 1975      NA  37   12     0       1        0     NA 25862.322    0</span></span>
-<span id="cb408-11"><a href="simple-dif-n-dif.html#cb408-11" tabindex="-1"></a><span class="co">#&gt; 6  3 1978      NA  37   12     0       1        0     NA 25862.322    0</span></span>
-<span id="cb408-12"><a href="simple-dif-n-dif.html#cb408-12" tabindex="-1"></a><span class="co">#&gt;   early_ra sample experimental         re</span></span>
-<span id="cb408-13"><a href="simple-dif-n-dif.html#cb408-13" tabindex="-1"></a><span class="co">#&gt; 1       NA      2            0     0.0000</span></span>
-<span id="cb408-14"><a href="simple-dif-n-dif.html#cb408-14" tabindex="-1"></a><span class="co">#&gt; 2       NA      2            0   100.4854</span></span>
-<span id="cb408-15"><a href="simple-dif-n-dif.html#cb408-15" tabindex="-1"></a><span class="co">#&gt; 3       NA      2            0  3317.4678</span></span>
-<span id="cb408-16"><a href="simple-dif-n-dif.html#cb408-16" tabindex="-1"></a><span class="co">#&gt; 4       NA      2            0  4793.7451</span></span>
-<span id="cb408-17"><a href="simple-dif-n-dif.html#cb408-17" tabindex="-1"></a><span class="co">#&gt; 5       NA      2            0 22781.8555</span></span>
-<span id="cb408-18"><a href="simple-dif-n-dif.html#cb408-18" tabindex="-1"></a><span class="co">#&gt; 6       NA      2            0 25564.6699</span></span>
-<span id="cb408-19"><a href="simple-dif-n-dif.html#cb408-19" tabindex="-1"></a></span>
-<span id="cb408-20"><a href="simple-dif-n-dif.html#cb408-20" tabindex="-1"></a></span>
-<span id="cb408-21"><a href="simple-dif-n-dif.html#cb408-21" tabindex="-1"></a><span class="co"># locally efficient doubly robust DiD Estimators for the ATT</span></span>
-<span id="cb408-22"><a href="simple-dif-n-dif.html#cb408-22" tabindex="-1"></a>out <span class="ot">&lt;-</span></span>
-<span id="cb408-23"><a href="simple-dif-n-dif.html#cb408-23" tabindex="-1"></a>    <span class="fu">drdid</span>(</span>
-<span id="cb408-24"><a href="simple-dif-n-dif.html#cb408-24" tabindex="-1"></a>        <span class="at">yname =</span> <span class="st">&quot;re&quot;</span>,</span>
-<span id="cb408-25"><a href="simple-dif-n-dif.html#cb408-25" tabindex="-1"></a>        <span class="at">tname =</span> <span class="st">&quot;year&quot;</span>,</span>
-<span id="cb408-26"><a href="simple-dif-n-dif.html#cb408-26" tabindex="-1"></a>        <span class="at">idname =</span> <span class="st">&quot;id&quot;</span>,</span>
-<span id="cb408-27"><a href="simple-dif-n-dif.html#cb408-27" tabindex="-1"></a>        <span class="at">dname =</span> <span class="st">&quot;experimental&quot;</span>,</span>
-<span id="cb408-28"><a href="simple-dif-n-dif.html#cb408-28" tabindex="-1"></a>        <span class="at">xformla =</span> <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> black <span class="sc">+</span> married <span class="sc">+</span> nodegree <span class="sc">+</span> hisp <span class="sc">+</span> re74,</span>
-<span id="cb408-29"><a href="simple-dif-n-dif.html#cb408-29" tabindex="-1"></a>        <span class="at">data =</span> eval_lalonde_cps,</span>
-<span id="cb408-30"><a href="simple-dif-n-dif.html#cb408-30" tabindex="-1"></a>        <span class="at">panel =</span> <span class="cn">TRUE</span></span>
-<span id="cb408-31"><a href="simple-dif-n-dif.html#cb408-31" tabindex="-1"></a>    )</span>
-<span id="cb408-32"><a href="simple-dif-n-dif.html#cb408-32" tabindex="-1"></a><span class="fu">summary</span>(out)</span>
-<span id="cb408-33"><a href="simple-dif-n-dif.html#cb408-33" tabindex="-1"></a><span class="co">#&gt;  Call:</span></span>
-<span id="cb408-34"><a href="simple-dif-n-dif.html#cb408-34" tabindex="-1"></a><span class="co">#&gt; drdid(yname = &quot;re&quot;, tname = &quot;year&quot;, idname = &quot;id&quot;, dname = &quot;experimental&quot;, </span></span>
-<span id="cb408-35"><a href="simple-dif-n-dif.html#cb408-35" tabindex="-1"></a><span class="co">#&gt;     xformla = ~age + educ + black + married + nodegree + hisp + </span></span>
-<span id="cb408-36"><a href="simple-dif-n-dif.html#cb408-36" tabindex="-1"></a><span class="co">#&gt;         re74, data = eval_lalonde_cps, panel = TRUE)</span></span>
-<span id="cb408-37"><a href="simple-dif-n-dif.html#cb408-37" tabindex="-1"></a><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span id="cb408-38"><a href="simple-dif-n-dif.html#cb408-38" tabindex="-1"></a><span class="co">#&gt;  Further improved locally efficient DR DID estimator for the ATT:</span></span>
-<span id="cb408-39"><a href="simple-dif-n-dif.html#cb408-39" tabindex="-1"></a><span class="co">#&gt;  </span></span>
-<span id="cb408-40"><a href="simple-dif-n-dif.html#cb408-40" tabindex="-1"></a><span class="co">#&gt;    ATT     Std. Error  t value    Pr(&gt;|t|)  [95% Conf. Interval] </span></span>
-<span id="cb408-41"><a href="simple-dif-n-dif.html#cb408-41" tabindex="-1"></a><span class="co">#&gt; -901.2703   393.6247   -2.2897     0.022    -1672.7747  -129.766 </span></span>
-<span id="cb408-42"><a href="simple-dif-n-dif.html#cb408-42" tabindex="-1"></a><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span id="cb408-43"><a href="simple-dif-n-dif.html#cb408-43" tabindex="-1"></a><span class="co">#&gt;  Estimator based on panel data.</span></span>
-<span id="cb408-44"><a href="simple-dif-n-dif.html#cb408-44" tabindex="-1"></a><span class="co">#&gt;  Outcome regression est. method: weighted least squares.</span></span>
-<span id="cb408-45"><a href="simple-dif-n-dif.html#cb408-45" tabindex="-1"></a><span class="co">#&gt;  Propensity score est. method: inverse prob. tilting.</span></span>
-<span id="cb408-46"><a href="simple-dif-n-dif.html#cb408-46" tabindex="-1"></a><span class="co">#&gt;  Analytical standard error.</span></span>
-<span id="cb408-47"><a href="simple-dif-n-dif.html#cb408-47" tabindex="-1"></a><span class="co">#&gt; ------------------------------------------------------------------</span></span>
-<span id="cb408-48"><a href="simple-dif-n-dif.html#cb408-48" tabindex="-1"></a><span class="co">#&gt;  See Sant&#39;Anna and Zhao (2020) for details.</span></span>
-<span id="cb408-49"><a href="simple-dif-n-dif.html#cb408-49" tabindex="-1"></a></span>
-<span id="cb408-50"><a href="simple-dif-n-dif.html#cb408-50" tabindex="-1"></a></span>
-<span id="cb408-51"><a href="simple-dif-n-dif.html#cb408-51" tabindex="-1"></a></span>
-<span id="cb408-52"><a href="simple-dif-n-dif.html#cb408-52" tabindex="-1"></a><span class="co"># Improved locally efficient doubly robust DiD estimator for the ATT, with panel data</span></span>
-<span id="cb408-53"><a href="simple-dif-n-dif.html#cb408-53" tabindex="-1"></a><span class="co"># drdid_imp_panel()</span></span>
-<span id="cb408-54"><a href="simple-dif-n-dif.html#cb408-54" tabindex="-1"></a></span>
-<span id="cb408-55"><a href="simple-dif-n-dif.html#cb408-55" tabindex="-1"></a><span class="co"># Locally efficient doubly robust DiD estimator for the ATT, with panel data</span></span>
-<span id="cb408-56"><a href="simple-dif-n-dif.html#cb408-56" tabindex="-1"></a><span class="co"># drdid_panel()</span></span>
-<span id="cb408-57"><a href="simple-dif-n-dif.html#cb408-57" tabindex="-1"></a></span>
-<span id="cb408-58"><a href="simple-dif-n-dif.html#cb408-58" tabindex="-1"></a><span class="co"># Locally efficient doubly robust DiD estimator for the ATT, with repeated cross-section data</span></span>
-<span id="cb408-59"><a href="simple-dif-n-dif.html#cb408-59" tabindex="-1"></a><span class="co"># drdid_rc()</span></span>
-<span id="cb408-60"><a href="simple-dif-n-dif.html#cb408-60" tabindex="-1"></a></span>
-<span id="cb408-61"><a href="simple-dif-n-dif.html#cb408-61" tabindex="-1"></a><span class="co"># Improved locally efficient doubly robust DiD estimator for the ATT, with repeated cross-section data</span></span>
-<span id="cb408-62"><a href="simple-dif-n-dif.html#cb408-62" tabindex="-1"></a><span class="co"># drdid_imp_rc()</span></span></code></pre></div>
+<div class="sourceCode" id="cb413"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb413-1"><a href="simple-dif-n-dif.html#cb413-1" tabindex="-1"></a><span class="fu">library</span>(DRDID)</span>
+<span id="cb413-2"><a href="simple-dif-n-dif.html#cb413-2" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;nsw_long&quot;</span>)</span>
+<span id="cb413-3"><a href="simple-dif-n-dif.html#cb413-3" tabindex="-1"></a>eval_lalonde_cps <span class="ot">&lt;-</span></span>
+<span id="cb413-4"><a href="simple-dif-n-dif.html#cb413-4" tabindex="-1"></a>    <span class="fu">subset</span>(nsw_long, nsw_long<span class="sc">$</span>treated <span class="sc">==</span> <span class="dv">0</span> <span class="sc">|</span> nsw_long<span class="sc">$</span>sample <span class="sc">==</span> <span class="dv">2</span>)</span>
+<span id="cb413-5"><a href="simple-dif-n-dif.html#cb413-5" tabindex="-1"></a><span class="fu">head</span>(eval_lalonde_cps)</span>
+<span id="cb413-6"><a href="simple-dif-n-dif.html#cb413-6" tabindex="-1"></a><span class="co">#&gt;   id year treated age educ black married nodegree dwincl      re74 hisp</span></span>
+<span id="cb413-7"><a href="simple-dif-n-dif.html#cb413-7" tabindex="-1"></a><span class="co">#&gt; 1  1 1975      NA  42   16     0       1        0     NA     0.000    0</span></span>
+<span id="cb413-8"><a href="simple-dif-n-dif.html#cb413-8" tabindex="-1"></a><span class="co">#&gt; 2  1 1978      NA  42   16     0       1        0     NA     0.000    0</span></span>
+<span id="cb413-9"><a href="simple-dif-n-dif.html#cb413-9" tabindex="-1"></a><span class="co">#&gt; 3  2 1975      NA  20   13     0       0        0     NA  2366.794    0</span></span>
+<span id="cb413-10"><a href="simple-dif-n-dif.html#cb413-10" tabindex="-1"></a><span class="co">#&gt; 4  2 1978      NA  20   13     0       0        0     NA  2366.794    0</span></span>
+<span id="cb413-11"><a href="simple-dif-n-dif.html#cb413-11" tabindex="-1"></a><span class="co">#&gt; 5  3 1975      NA  37   12     0       1        0     NA 25862.322    0</span></span>
+<span id="cb413-12"><a href="simple-dif-n-dif.html#cb413-12" tabindex="-1"></a><span class="co">#&gt; 6  3 1978      NA  37   12     0       1        0     NA 25862.322    0</span></span>
+<span id="cb413-13"><a href="simple-dif-n-dif.html#cb413-13" tabindex="-1"></a><span class="co">#&gt;   early_ra sample experimental         re</span></span>
+<span id="cb413-14"><a href="simple-dif-n-dif.html#cb413-14" tabindex="-1"></a><span class="co">#&gt; 1       NA      2            0     0.0000</span></span>
+<span id="cb413-15"><a href="simple-dif-n-dif.html#cb413-15" tabindex="-1"></a><span class="co">#&gt; 2       NA      2            0   100.4854</span></span>
+<span id="cb413-16"><a href="simple-dif-n-dif.html#cb413-16" tabindex="-1"></a><span class="co">#&gt; 3       NA      2            0  3317.4678</span></span>
+<span id="cb413-17"><a href="simple-dif-n-dif.html#cb413-17" tabindex="-1"></a><span class="co">#&gt; 4       NA      2            0  4793.7451</span></span>
+<span id="cb413-18"><a href="simple-dif-n-dif.html#cb413-18" tabindex="-1"></a><span class="co">#&gt; 5       NA      2            0 22781.8555</span></span>
+<span id="cb413-19"><a href="simple-dif-n-dif.html#cb413-19" tabindex="-1"></a><span class="co">#&gt; 6       NA      2            0 25564.6699</span></span>
+<span id="cb413-20"><a href="simple-dif-n-dif.html#cb413-20" tabindex="-1"></a></span>
+<span id="cb413-21"><a href="simple-dif-n-dif.html#cb413-21" tabindex="-1"></a></span>
+<span id="cb413-22"><a href="simple-dif-n-dif.html#cb413-22" tabindex="-1"></a><span class="co"># locally efficient doubly robust DiD Estimators for the ATT</span></span>
+<span id="cb413-23"><a href="simple-dif-n-dif.html#cb413-23" tabindex="-1"></a>out <span class="ot">&lt;-</span></span>
+<span id="cb413-24"><a href="simple-dif-n-dif.html#cb413-24" tabindex="-1"></a>    <span class="fu">drdid</span>(</span>
+<span id="cb413-25"><a href="simple-dif-n-dif.html#cb413-25" tabindex="-1"></a>        <span class="at">yname =</span> <span class="st">&quot;re&quot;</span>,</span>
+<span id="cb413-26"><a href="simple-dif-n-dif.html#cb413-26" tabindex="-1"></a>        <span class="at">tname =</span> <span class="st">&quot;year&quot;</span>,</span>
+<span id="cb413-27"><a href="simple-dif-n-dif.html#cb413-27" tabindex="-1"></a>        <span class="at">idname =</span> <span class="st">&quot;id&quot;</span>,</span>
+<span id="cb413-28"><a href="simple-dif-n-dif.html#cb413-28" tabindex="-1"></a>        <span class="at">dname =</span> <span class="st">&quot;experimental&quot;</span>,</span>
+<span id="cb413-29"><a href="simple-dif-n-dif.html#cb413-29" tabindex="-1"></a>        <span class="at">xformla =</span> <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> black <span class="sc">+</span> married <span class="sc">+</span> nodegree <span class="sc">+</span> hisp <span class="sc">+</span> re74,</span>
+<span id="cb413-30"><a href="simple-dif-n-dif.html#cb413-30" tabindex="-1"></a>        <span class="at">data =</span> eval_lalonde_cps,</span>
+<span id="cb413-31"><a href="simple-dif-n-dif.html#cb413-31" tabindex="-1"></a>        <span class="at">panel =</span> <span class="cn">TRUE</span></span>
+<span id="cb413-32"><a href="simple-dif-n-dif.html#cb413-32" tabindex="-1"></a>    )</span>
+<span id="cb413-33"><a href="simple-dif-n-dif.html#cb413-33" tabindex="-1"></a><span class="fu">summary</span>(out)</span>
+<span id="cb413-34"><a href="simple-dif-n-dif.html#cb413-34" tabindex="-1"></a><span class="co">#&gt;  Call:</span></span>
+<span id="cb413-35"><a href="simple-dif-n-dif.html#cb413-35" tabindex="-1"></a><span class="co">#&gt; drdid(yname = &quot;re&quot;, tname = &quot;year&quot;, idname = &quot;id&quot;, dname = &quot;experimental&quot;, </span></span>
+<span id="cb413-36"><a href="simple-dif-n-dif.html#cb413-36" tabindex="-1"></a><span class="co">#&gt;     xformla = ~age + educ + black + married + nodegree + hisp + </span></span>
+<span id="cb413-37"><a href="simple-dif-n-dif.html#cb413-37" tabindex="-1"></a><span class="co">#&gt;         re74, data = eval_lalonde_cps, panel = TRUE)</span></span>
+<span id="cb413-38"><a href="simple-dif-n-dif.html#cb413-38" tabindex="-1"></a><span class="co">#&gt; ------------------------------------------------------------------</span></span>
+<span id="cb413-39"><a href="simple-dif-n-dif.html#cb413-39" tabindex="-1"></a><span class="co">#&gt;  Further improved locally efficient DR DID estimator for the ATT:</span></span>
+<span id="cb413-40"><a href="simple-dif-n-dif.html#cb413-40" tabindex="-1"></a><span class="co">#&gt;  </span></span>
+<span id="cb413-41"><a href="simple-dif-n-dif.html#cb413-41" tabindex="-1"></a><span class="co">#&gt;    ATT     Std. Error  t value    Pr(&gt;|t|)  [95% Conf. Interval] </span></span>
+<span id="cb413-42"><a href="simple-dif-n-dif.html#cb413-42" tabindex="-1"></a><span class="co">#&gt; -901.2703   393.6247   -2.2897     0.022    -1672.7747  -129.766 </span></span>
+<span id="cb413-43"><a href="simple-dif-n-dif.html#cb413-43" tabindex="-1"></a><span class="co">#&gt; ------------------------------------------------------------------</span></span>
+<span id="cb413-44"><a href="simple-dif-n-dif.html#cb413-44" tabindex="-1"></a><span class="co">#&gt;  Estimator based on panel data.</span></span>
+<span id="cb413-45"><a href="simple-dif-n-dif.html#cb413-45" tabindex="-1"></a><span class="co">#&gt;  Outcome regression est. method: weighted least squares.</span></span>
+<span id="cb413-46"><a href="simple-dif-n-dif.html#cb413-46" tabindex="-1"></a><span class="co">#&gt;  Propensity score est. method: inverse prob. tilting.</span></span>
+<span id="cb413-47"><a href="simple-dif-n-dif.html#cb413-47" tabindex="-1"></a><span class="co">#&gt;  Analytical standard error.</span></span>
+<span id="cb413-48"><a href="simple-dif-n-dif.html#cb413-48" tabindex="-1"></a><span class="co">#&gt; ------------------------------------------------------------------</span></span>
+<span id="cb413-49"><a href="simple-dif-n-dif.html#cb413-49" tabindex="-1"></a><span class="co">#&gt;  See Sant&#39;Anna and Zhao (2020) for details.</span></span>
+<span id="cb413-50"><a href="simple-dif-n-dif.html#cb413-50" tabindex="-1"></a></span>
+<span id="cb413-51"><a href="simple-dif-n-dif.html#cb413-51" tabindex="-1"></a></span>
+<span id="cb413-52"><a href="simple-dif-n-dif.html#cb413-52" tabindex="-1"></a></span>
+<span id="cb413-53"><a href="simple-dif-n-dif.html#cb413-53" tabindex="-1"></a><span class="co"># Improved locally efficient doubly robust DiD estimator </span></span>
+<span id="cb413-54"><a href="simple-dif-n-dif.html#cb413-54" tabindex="-1"></a><span class="co"># for the ATT, with panel data</span></span>
+<span id="cb413-55"><a href="simple-dif-n-dif.html#cb413-55" tabindex="-1"></a><span class="co"># drdid_imp_panel()</span></span>
+<span id="cb413-56"><a href="simple-dif-n-dif.html#cb413-56" tabindex="-1"></a></span>
+<span id="cb413-57"><a href="simple-dif-n-dif.html#cb413-57" tabindex="-1"></a><span class="co"># Locally efficient doubly robust DiD estimator for the ATT, </span></span>
+<span id="cb413-58"><a href="simple-dif-n-dif.html#cb413-58" tabindex="-1"></a><span class="co"># with panel data</span></span>
+<span id="cb413-59"><a href="simple-dif-n-dif.html#cb413-59" tabindex="-1"></a><span class="co"># drdid_panel()</span></span>
+<span id="cb413-60"><a href="simple-dif-n-dif.html#cb413-60" tabindex="-1"></a></span>
+<span id="cb413-61"><a href="simple-dif-n-dif.html#cb413-61" tabindex="-1"></a><span class="co"># Locally efficient doubly robust DiD estimator for the ATT, </span></span>
+<span id="cb413-62"><a href="simple-dif-n-dif.html#cb413-62" tabindex="-1"></a><span class="co"># with repeated cross-section data</span></span>
+<span id="cb413-63"><a href="simple-dif-n-dif.html#cb413-63" tabindex="-1"></a><span class="co"># drdid_rc()</span></span>
+<span id="cb413-64"><a href="simple-dif-n-dif.html#cb413-64" tabindex="-1"></a></span>
+<span id="cb413-65"><a href="simple-dif-n-dif.html#cb413-65" tabindex="-1"></a><span class="co"># Improved locally efficient doubly robust DiD estimator for the ATT, </span></span>
+<span id="cb413-66"><a href="simple-dif-n-dif.html#cb413-66" tabindex="-1"></a><span class="co"># with repeated cross-section data</span></span>
+<span id="cb413-67"><a href="simple-dif-n-dif.html#cb413-67" tabindex="-1"></a><span class="co"># drdid_imp_rc()</span></span></code></pre></div>
 </div>
 </div>
 <h3>References<a href="references.html#references" class="anchor-section" aria-label="Anchor link to header"></a></h3>

@@ -65,27 +65,30 @@ where
 Create a fictitious dataset where we know the true data generating process
 
 $$
-Outcome = 10 * time + 20 * treatment + 25 * timesincetreatment + noise
+Outcome = 10 \times time + 20 \times treatment + 25 \times timesincetreatment + noise
 $$
 
 ```{r}
 # number of days
 n = 365
 
-# intervention at day 
+
+# intervention at day
 interven = 200
 
 # time index from 1 to 365
 time = c(1:n)
 
-# treatment variable: before internvation = day 1 to 200, after intervention = day 201 to 365
+# treatment variable: before internvation = day 1 to 200, 
+# after intervention = day 201 to 365
 treatment = c(rep(0, interven), rep(1, n - interven))
 
 # time since treatment
 timesincetreat = c(rep(0, interven), c(1:(n - interven)))
 
-# outcome 
-outcome = 10 + 15 * time + 20 * treatment + 25 * timesincetreat + rnorm(n, mean = 0, sd = 1)
+# outcome
+outcome = 10 + 15 * time + 20 * treatment + 
+    25 * timesincetreat + rnorm(n, mean = 0, sd = 1)
 
 df = data.frame(outcome, time, treatment, timesincetreat)
 
@@ -153,10 +156,17 @@ plot(
 lines(rep(1:interven), pred[1:interven], col = "blue", lwd = 3)
 
 # regression line after treatment
-lines(rep((interven+1):n), pred[(interven + 1):n], col = "blue", lwd = 3)
+lines(rep((interven + 1):n), pred[(interven + 1):n], 
+      col = "blue", lwd = 3)
 
 # regression line after treatment (counterfactual)
-lines(rep(interven:n), pred_cf[(interven): n], col = "yellow", lwd = 3, lty = 5)
+lines(
+    rep(interven:n),
+    pred_cf[(interven):n],
+    col = "yellow",
+    lwd = 3,
+    lty = 5
+)
 
 abline(v = interven, col = "red", lty = 2)
 
@@ -203,7 +213,7 @@ From the p-value, we know that there is autocorrelation in the time series
 A solution to this problem is to use more advanced time series analysis (e.g., ARIMA - coming up in the book) to adjust for seasonality and other dependency.
 
 ```{r}
-forecast::auto.arima(df$outcome, xreg = as.matrix(df[, -1]))
+forecast::auto.arima(df$outcome, xreg = as.matrix(df[,-1]))
 ```
 
 ## Multiple Groups
@@ -213,8 +223,11 @@ When you suspect that you might have confounding events or selection bias, you c
 The model then becomes
 
 $$
-Y = \beta_0 + \beta_1 time+ \beta_2 treatment +\beta_3 * timesincetreat + \\
-\beta_4 group + \beta_5 group * time + \beta_6 group * treatment + \beta_7 group * timesincetreat
+\begin{aligned}
+Y = \beta_0 &+ \beta_1 time+ \beta_2 treatment +\beta_3 \times timesincetreat \\
+&+\beta_4 group + \beta_5 group \times time + \beta_6 group \times treatment \\
+&+ \beta_7 group \times timesincetreat
+\end{aligned}
 $$
 
 where

@@ -7,7 +7,7 @@
 <title>Chapter 11 Imputation (Missing Data) | A Guide on Data Analysis</title>
 <meta name="author" content="Mike Nguyen">
 <meta name="description" content="Imputation is a statistical procedure where you replace missing data with some reasonable values Unit imputation = single data point Item imputation = single feature value Imputation is usually...">
-<meta name="generator" content="bookdown 0.34 with bs4_book()">
+<meta name="generator" content="bookdown 0.35 with bs4_book()">
 <meta property="og:title" content="Chapter 11 Imputation (Missing Data) | A Guide on Data Analysis">
 <meta property="og:type" content="book">
 <meta property="og:url" content="https://bookdown.org/mike/data_analysis/imputation-missing-data.html">
@@ -19,7 +19,7 @@
 <meta name="twitter:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
-<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.5.0/transition.js"></script><script src="libs/bs3compat-0.5.0/tabs.js"></script><script src="libs/bs3compat-0.5.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.5.1/transition.js"></script><script src="libs/bs3compat-0.5.1/tabs.js"></script><script src="libs/bs3compat-0.5.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
 <script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/kePrint-0.0.1/kePrint.js"></script><link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet">
 <!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script><script>
       window.dataLayer = window.dataLayer || [];
@@ -236,7 +236,7 @@ P(Y_{missing}|Y,X)= P(Y_{missing}|X)
 <li><p>Can be applied to any statistical test (SEM, multi-level regression, etc.)</p></li>
 <li><p>In the case of MCAR, both the parameters estimates and its standard errors are unbiased.</p></li>
 <li>
-<p>In the case of MAR among independent variables (not depend on the values of dependent variables), then listwise deletion parameter estimates can still be unbiased. <span class="citation">(<a href="references.html#ref-Little_1992">Little 1992</a>)</span> For example, you have a model <span class="math inline">\(y=\beta_{0}+\beta_1X_1 + \beta_2X_2 +\epsilon\)</span> if the probability of missing data on X1 is independent of Y, but dependent on the value of X1 and X2, then the model estimates are still unbiased.</p>
+<p>In the case of MAR among independent variables (not depend on the values of dependent variables), then listwise deletion parameter estimates can still be unbiased. <span class="citation">(<a href="references.html#ref-Little_1992">Little 1992</a>)</span> For example, you have a model <span class="math inline">\(y=\beta_{0}+\beta_1X_1 + \beta_2X_2 +\epsilon\)</span> if the probability of missing data on <span class="math inline">\(X1\)</span> is independent of <span class="math inline">\(Y\)</span>, but dependent on the value of <span class="math inline">\(X1\)</span> and <span class="math inline">\(X2\)</span>, then the model estimates are still unbiased.</p>
 <ul>
 <li>The missing data mechanism the depends on the values of the independent variables are the same as stratified sampling. And stratified sampling does not bias your estimates</li>
 <li>In the case of logistic regression, if the probability of missing data on any variable depends on the value of the dependent variable, but independent of the value of the independent variables, then the listwise deletion will yield biased intercept estimate, but consistent estimates of the slope and their standard errors <span class="citation">(<a href="references.html#ref-Vach_1994">Vach and Vach 1994</a>)</span>. However, logistic regression will still fail if the probability of missing data is dependent on both the value of the dependent and independent variables.</li>
@@ -281,25 +281,26 @@ P(Y_{missing}|Y,X)= P(Y_{missing}|X)
 <p>Also known as Missing Indicator Method or Proxy Variable</p>
 <p>Add another variable in the database to indicate whether a value is missing.</p>
 <p>Create 2 variables</p>
-<span class="math display">\[\begin{equation}
+<p><span class="math display">\[
 D=
 \begin{cases}
 1 &amp; \text{data on X are missing} \\
 0 &amp; \text{otherwise}\\
 \end{cases}
-\end{equation}\]</span>
-<span class="math display">\[\begin{equation}
+\]</span></p>
+<p><span class="math display">\[
 X^* =
 \begin{cases}
 X &amp; \text{data are available} \\
 c &amp; \text{data are missing}\\
 \end{cases}
-\end{equation}\]</span>
-<p><strong>Note</strong>: A typical choice for c is usually the mean of X</p>
+\]</span></p>
+<p><strong>Note</strong>: A typical choice for <span class="math inline">\(c\)</span> is usually the mean of <span class="math inline">\(X\)</span></p>
 <p>Interpretation:</p>
 <ul>
-<li>Coefficient of D is the the difference in the expected value of Y between the group with data and the group without data on X.</li>
-<li>Coefficient of <span class="math inline">\(X^*\)</span> is the effect of the group with data on Y</li>
+<li>Coefficient of <span class="math inline">\(D\)</span> is the the difference in the expected value of <span class="math inline">\(Y\)</span> between the group with data and the group without data on <span class="math inline">\(X\)</span>.</li>
+<li>Coefficient of <span class="math inline">\(X^*\)</span> is the effect of the group with data on <span class="math inline">\(Y\)</span>
+</li>
 </ul>
 <p>Disadvantages:</p>
 <ul>
@@ -348,8 +349,8 @@ c &amp; \text{data are missing}\\
 <p>You start your regression with your estimates based on either listwise deletion or pairwise deletion. After regressing missing variables on available variables, you obtain a regression model. Plug the missing data back into the original model, with modified variances and covariances For example, if you have missing data on <span class="math inline">\(X_{ij}\)</span> you would regress it on available data of <span class="math inline">\(X_{i(j)}\)</span>, then plug the expected value of <span class="math inline">\(X_{ij}\)</span> back with its <span class="math inline">\(X_{ij}^2\)</span> turn into <span class="math inline">\(X_{ij}^2 + s_{j(j)}^2\)</span> where <span class="math inline">\(s_{j(j)}^2\)</span> stands for the residual variance from regressing <span class="math inline">\(X_{ij}\)</span> on <span class="math inline">\(X_{i(j)}\)</span> With the new estimated model, you rerun the process until the estimates converge.</p>
 <p>Advantages:</p>
 <ol style="list-style-type: decimal">
-<li>easy to use</li>
-<li>preserves the relationship with other variables (important if you use Factor Analysis or Linear Regression later on), but best in the case of Factor Analysis, which doesn’t require standard error of individuals item.</li>
+<li>Easy to use</li>
+<li>Preserves the relationship with other variables (important if you use Factor Analysis or Linear Regression later on), but best in the case of Factor Analysis, which doesn’t require standard error of individuals item.</li>
 </ol>
 <p>Disadvantages:</p>
 <ol style="list-style-type: decimal">
@@ -363,7 +364,7 @@ c &amp; \text{data are missing}\\
 </h5>
 <p>Advantages</p>
 <ol style="list-style-type: decimal">
-<li>efficient estimates and correct standard errors.</li>
+<li>Efficient estimates and correct standard errors.</li>
 </ol>
 <p>Disadvantages:</p>
 <ol style="list-style-type: decimal">
@@ -389,9 +390,9 @@ c &amp; \text{data are missing}\\
 <span class="header-section-number">11.2.4.3.1</span> Single Random Imputation<a class="anchor" aria-label="anchor" href="#single-random-imputation"><i class="fas fa-link"></i></a>
 </h5>
 <p>Random draws form the residual distribution of each imputed variable and add those random numbers to the imputed values.</p>
-<p>For example, if we have missing data on X, and it’s MCAR, then</p>
+<p>For example, if we have missing data on <span class="math inline">\(X\)</span>, and it’s MCAR, then</p>
 <ol style="list-style-type: decimal">
-<li><p>regress X on Y (<a href="imputation-missing-data.html#listwise-deletion">Listwise Deletion</a> method) to get its residual distribution.</p></li>
+<li><p>Regress <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span> (<a href="imputation-missing-data.html#listwise-deletion">Listwise Deletion</a> method) to get its residual distribution.</p></li>
 <li>
 <p>For every missing value on X, we substitute with <span class="math inline">\(\tilde{x_i}=\hat{x_i} + \rho u_i\)</span> where</p>
 <ul>
@@ -462,7 +463,7 @@ SE(\bar{r})=\sqrt{\frac{1}{M}\sum_{k}s_k^2+ (1+\frac{1}{M})(\frac{1}{M-1})\sum_{
 </ol>
 <p><strong>Note on Non-normal or categorical data</strong> The normal-based methods still work well, but you will need to do some transformation. For example,</p>
 <ul>
-<li>If the data is skewed, then log-transform, then impute, the exponentiate to have the missing data back to its original metric.</li>
+<li>If the data is skewed, then log-transform, then impute the exponentiate to have the missing data back to its original metric.</li>
 <li>If the data is proportion, logit-transform, impute, then de-transform the missing data.</li>
 </ul>
 <p>If you want to impute non-linear relationship, such as interaction between 2 variables and 1 variable is categorical. You can do separate imputation for different levels of that variable separately, then combined for the final analysis.</p>
@@ -486,7 +487,7 @@ SE(\bar{r})=\sqrt{\frac{1}{M}\sum_{k}s_k^2+ (1+\frac{1}{M})(\frac{1}{M-1})\sum_{
 <li>approximate Bayesian bootstrap</li>
 <li>A randomly chosen value from an individual in the sample who has similar values on other variables. In other words, find all the sample subjects who are similar on other variables, then randomly choose one of their values on the missing variable.</li>
 </ul>
-<p>When we have <span class="math inline">\(n_1\)</span> cases with complete data on Y and <span class="math inline">\(n_0\)</span> cases with missing data on Y</p>
+<p>When we have <span class="math inline">\(n_1\)</span> cases with complete data on <span class="math inline">\(Y\)</span> and <span class="math inline">\(n_0\)</span> cases with missing data on <span class="math inline">\(Y\)</span></p>
 <ul>
 <li>Step 1: From <span class="math inline">\(n_1\)</span>, take a random sample (with replacement) of <span class="math inline">\(n_1\)</span> cases</li>
 <li>Step 2: From the retrieved sample take a random sample (with replacement) of <span class="math inline">\(n_0\)</span> cases</li>
@@ -520,7 +521,7 @@ SE(\bar{r})=\sqrt{\frac{1}{M}\sum_{k}s_k^2+ (1+\frac{1}{M})(\frac{1}{M-1})\sum_{
 </h5>
 <p>Steps:</p>
 <ol style="list-style-type: decimal">
-<li>Regress Y on X (matrix of covariates) for the <span class="math inline">\(n_1\)</span> (i.e., non-missing cases) to get coefficients <span class="math inline">\(b\)</span> (a <span class="math inline">\(k \times 1\)</span> vector) and residual variance estimates <span class="math inline">\(s^2\)</span>
+<li>Regress <span class="math inline">\(Y\)</span> on <span class="math inline">\(X\)</span> (matrix of covariates) for the <span class="math inline">\(n_1\)</span> (i.e., non-missing cases) to get coefficients <span class="math inline">\(b\)</span> (a <span class="math inline">\(k \times 1\)</span> vector) and residual variance estimates <span class="math inline">\(s^2\)</span>
 </li>
 <li>Draw randomly from the posterior predictive distribution of the residual variance (assuming a noninformative prior) by calculating <span class="math inline">\(\frac{(n_1-k)s^2}{\chi^2}\)</span>, where <span class="math inline">\(\chi^2\)</span> is a random draw from a <span class="math inline">\(\chi^2_{n_1-k}\)</span> and let <span class="math inline">\(s^2_{[1]}\)</span> be an i-th random draw</li>
 <li>Randomly draw from the posterior distribution of the coefficients <span class="math inline">\(b\)</span>, by drawing from <span class="math inline">\(MVN(b, s^2_{[1]}(X'X)^{-1})\)</span>, where X is an <span class="math inline">\(n_1 \times k\)</span> matrix of X values. Then we have <span class="math inline">\(b_{1}\)</span>
@@ -528,7 +529,7 @@ SE(\bar{r})=\sqrt{\frac{1}{M}\sum_{k}s_k^2+ (1+\frac{1}{M})(\frac{1}{M-1})\sum_{
 <li>Using step 1, we can calculate standardized residuals for <span class="math inline">\(n_1\)</span> cases: <span class="math inline">\(e_i = \frac{y_i - bx_i}{\sqrt{s^2(1-k/n_1)}}\)</span>
 </li>
 <li>Randomly draw a sample (with replacement) of <span class="math inline">\(n_0\)</span> from the <span class="math inline">\(n_1\)</span> residuals in step 4</li>
-<li>With <span class="math inline">\(n_0\)</span> cases, we can calculate imputed values of Y: <span class="math inline">\(y_i = b_{[1]}x_i + s_{[1]}e_i\)</span> where <span class="math inline">\(e_i\)</span> are taken from step 5, and <span class="math inline">\(b_{[1]}\)</span> taken from step 3, and <span class="math inline">\(s_{[1]}\)</span> taken from step 2.</li>
+<li>With <span class="math inline">\(n_0\)</span> cases, we can calculate imputed values of <span class="math inline">\(Y\)</span>: <span class="math inline">\(y_i = b_{[1]}x_i + s_{[1]}e_i\)</span> where <span class="math inline">\(e_i\)</span> are taken from step 5, and <span class="math inline">\(b_{[1]}\)</span> taken from step 3, and <span class="math inline">\(s_{[1]}\)</span> taken from step 2.</li>
 <li>Repeat steps 2 through 6 except for step 4.</li>
 </ol>
 <p>Notes:</p>
@@ -536,18 +537,22 @@ SE(\bar{r})=\sqrt{\frac{1}{M}\sum_{k}s_k^2+ (1+\frac{1}{M})(\frac{1}{M-1})\sum_{
 <li>can be used for multiple variables where each variable is imputed using all other variables as predictor.</li>
 <li>can also be used for heteroskedasticity in imputed values.</li>
 </ul>
-<p>Example from <a href="https://statisticsglobe.com/predictive-mean-matching-imputation-method/">Statistics Globle</a></p>
+<p>Example from <a href="https://statisticsglobe.com/predictive-mean-matching-imputation-method/">Statistics Globe</a></p>
 <div class="sourceCode" id="cb218"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">918273</span><span class="op">)</span>                                <span class="co"># Seed</span></span>
-<span><span class="va">N</span> <span class="op">&lt;-</span> <span class="fl">3000</span>                                       <span class="co"># Sample size</span></span>
-<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">N</span>, <span class="op">-</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span>                   <span class="co"># Target variable Y</span></span>
-<span><span class="va">x1</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">0</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span>                <span class="co"># Auxiliary variable 1</span></span>
-<span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">y</span> <span class="op">+</span> <span class="fl">0.25</span> <span class="op">*</span> <span class="va">x1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">N</span>, <span class="op">-</span> <span class="fl">3</span>, <span class="fl">15</span><span class="op">)</span><span class="op">)</span>  <span class="co"># Auxiliary variable 2</span></span>
-<span><span class="va">x3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">0.1</span> <span class="op">*</span> <span class="va">x1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html">rpois</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>             <span class="co"># Auxiliary variable 3</span></span>
-<span><span class="va">x4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">0.02</span> <span class="op">*</span> <span class="va">y</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">N</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>     <span class="co"># Auxiliary variable 4 (categorical variable)</span></span>
-<span><span class="va">y</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">rbinom</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">1</span>, <span class="fl">0.2</span><span class="op">)</span> <span class="op">==</span> <span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span>                 <span class="co"># Insert 20% missing data in Y</span></span>
-<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">x1</span>, <span class="va">x2</span>, <span class="va">x3</span>, <span class="va">x4</span><span class="op">)</span>           <span class="co"># Store data in dataset</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span>                                      <span class="co"># First 6 rows of our data</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">918273</span><span class="op">)</span> <span class="co"># Seed</span></span>
+<span><span class="va">N</span>  <span class="op">&lt;-</span> <span class="fl">3000</span>                                    <span class="co"># Sample size</span></span>
+<span><span class="va">y</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">N</span>,<span class="op">-</span><span class="fl">10</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span>                 <span class="co"># Target variable Y</span></span>
+<span><span class="va">x1</span> <span class="op">&lt;-</span> <span class="va">y</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">0</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span>              <span class="co"># Auxiliary variable 1</span></span>
+<span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">y</span> <span class="op">+</span> <span class="fl">0.25</span> <span class="op">*</span> <span class="va">x1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">N</span>,<span class="op">-</span><span class="fl">3</span>, <span class="fl">15</span><span class="op">)</span><span class="op">)</span>  <span class="co"># Auxiliary variable 2</span></span>
+<span><span class="va">x3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">0.1</span> <span class="op">*</span> <span class="va">x1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html">rpois</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>           <span class="co"># Auxiliary variable 3</span></span>
+<span><span class="co"># (categorical variable)</span></span>
+<span><span class="va">x4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fl">0.02</span> <span class="op">*</span> <span class="va">y</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">N</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>   <span class="co"># Auxiliary variable 4 </span></span>
+<span></span>
+<span><span class="co"># Insert 20% missing data in Y</span></span>
+<span><span class="va">y</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">rbinom</a></span><span class="op">(</span><span class="va">N</span>, <span class="fl">1</span>, <span class="fl">0.2</span><span class="op">)</span> <span class="op">==</span> <span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span>               </span>
+<span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">x1</span>, <span class="va">x2</span>, <span class="va">x3</span>, <span class="va">x4</span><span class="op">)</span>         <span class="co"># Store data in dataset</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span> <span class="co"># First 6 rows of our data</span></span>
 <span><span class="co">#&gt;    y x1  x2 x3 x4</span></span>
 <span><span class="co">#&gt; 1  8 38  -3  6  1</span></span>
 <span><span class="co">#&gt; 2  1 50  -9  5  0</span></span>
@@ -556,10 +561,10 @@ SE(\bar{r})=\sqrt{\frac{1}{M}\sum_{k}s_k^2+ (1+\frac{1}{M})(\frac{1}{M-1})\sum_{
 <span><span class="co">#&gt; 5 -4 40 -10  6  0</span></span>
 <span><span class="co">#&gt; 6 NA 29  -6  5  1</span></span>
 <span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/amices/mice">"mice"</a></span><span class="op">)</span>                                 <span class="co"># Load mice package</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/amices/mice">"mice"</a></span><span class="op">)</span> <span class="co"># Load mice package</span></span>
 <span></span>
 <span><span class="co">##### Impute data via predictive mean matching (single imputation)#####</span></span>
-<span> </span>
+<span></span>
 <span><span class="va">imp_single</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://amices.org/mice/reference/mice.html">mice</a></span><span class="op">(</span><span class="va">data</span>, m <span class="op">=</span> <span class="fl">1</span>, method <span class="op">=</span> <span class="st">"pmm"</span><span class="op">)</span> <span class="co"># Impute missing values</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  iter imp variable</span></span>
@@ -571,11 +576,13 @@ SE(\bar{r})=\sqrt{\frac{1}{M}\sum_{k}s_k^2+ (1+\frac{1}{M})(\frac{1}{M-1})\sum_{
 <span><span class="va">data_imp_single</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/complete.html">complete</a></span><span class="op">(</span><span class="va">imp_single</span><span class="op">)</span>         <span class="co"># Store imputed data</span></span>
 <span><span class="co"># head(data_imp_single)</span></span>
 <span></span>
-<span><span class="co"># SInce single imputation underestiamtes stnadard errors, we use multiple imputaiton</span></span>
+<span><span class="co"># Since single imputation underestiamtes stnadard errors, </span></span>
+<span><span class="co"># we use multiple imputaiton</span></span>
 <span></span>
-<span><span class="co">##### Predictive mean matching (multiple imputation)#####</span></span>
-<span> </span>
-<span><span class="va">imp_multi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://amices.org/mice/reference/mice.html">mice</a></span><span class="op">(</span><span class="va">data</span>, m <span class="op">=</span> <span class="fl">5</span>, method <span class="op">=</span> <span class="st">"pmm"</span><span class="op">)</span>  <span class="co"># Impute missing values multiple times</span></span>
+<span><span class="co">##### Predictive mean matching (multiple imputation) #####</span></span>
+<span></span>
+<span><span class="co"># Impute missing values multiple times</span></span>
+<span><span class="va">imp_multi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://amices.org/mice/reference/mice.html">mice</a></span><span class="op">(</span><span class="va">data</span>, m <span class="op">=</span> <span class="fl">5</span>, method <span class="op">=</span> <span class="st">"pmm"</span><span class="op">)</span>  </span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  iter imp variable</span></span>
 <span><span class="co">#&gt;   1   1  y</span></span>
@@ -603,13 +610,17 @@ SE(\bar{r})=\sqrt{\frac{1}{M}\sum_{k}s_k^2+ (1+\frac{1}{M})(\frac{1}{M-1})\sum_{
 <span><span class="co">#&gt;   5   3  y</span></span>
 <span><span class="co">#&gt;   5   4  y</span></span>
 <span><span class="co">#&gt;   5   5  y</span></span>
-<span><span class="va">data_imp_multi_all</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/complete.html">complete</a></span><span class="op">(</span><span class="va">imp_multi</span>,       <span class="co"># Store multiply imputed data</span></span>
-<span>                           <span class="st">"repeated"</span>,</span>
-<span>                           include <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
-<span> </span>
-<span><span class="va">data_imp_multi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>                   <span class="co"># Combine imputed Y and X1-X4 (for convenience)</span></span>
-<span>  <span class="va">data_imp_multi_all</span><span class="op">[</span> , <span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>, <span class="va">data</span><span class="op">[</span>, <span class="fl">2</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">data_imp_multi</span><span class="op">)</span>                            <span class="co"># First 6 rows of our multiply imputed data</span></span>
+<span><span class="va">data_imp_multi_all</span> <span class="op">&lt;-</span></span>
+<span>    <span class="co"># Store multiply imputed data</span></span>
+<span>    <span class="fu"><a href="https://tidyr.tidyverse.org/reference/complete.html">complete</a></span><span class="op">(</span><span class="va">imp_multi</span>,       </span>
+<span>             <span class="st">"repeated"</span>,</span>
+<span>             include <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">data_imp_multi</span> <span class="op">&lt;-</span></span>
+<span>    <span class="co"># Combine imputed Y and X1-X4 (for convenience)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">data_imp_multi_all</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">]</span>, <span class="va">data</span><span class="op">[</span>, <span class="fl">2</span><span class="op">:</span><span class="fl">5</span><span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">data_imp_multi</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   y.0 y.1 y.2 y.3 y.4 y.5 x1  x2 x3 x4</span></span>
 <span><span class="co">#&gt; 1   8   8   8   8   8   8 38  -3  6  1</span></span>
 <span><span class="co">#&gt; 2   1   1   1   1   1   1 50  -9  5  0</span></span>
@@ -621,7 +632,7 @@ SE(\bar{r})=\sqrt{\frac{1}{M}\sum_{k}s_k^2+ (1+\frac{1}{M})(\frac{1}{M-1})\sum_{
 <div class="sourceCode" id="cb219"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/amices/mice">mice</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/statistikat/VIM">VIM</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://lattice.r-forge.r-project.org/">lattice</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lattice.r-forge.r-project.org/">lattice</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="co">## set observations to NA</span></span>
 <span><span class="va">anscombe</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html">within</a></span><span class="op">(</span><span class="va">anscombe</span>, <span class="op">{</span></span>
@@ -650,7 +661,7 @@ SE(\bar{r})=\sqrt{\frac{1}{M}\sum_{k}s_k^2+ (1+\frac{1}{M})(\frac{1}{M-1})\sum_{
 
 ## Number of observations per patterns for all pairs of variables
 p &lt;- md.pairs(anscombe)
-p # rr = number of observations where both pairs of values are observed
+p 
 #&gt; $rr
 #&gt;    x1 x2 x3 x4 y1 y2 y3 y4
 #&gt; x1 11 11 11 11  8 11 11  8
@@ -693,15 +704,22 @@ p # rr = number of observations where both pairs of values are observed
 #&gt; y1  0  0  0  0  3  0  0  1
 #&gt; y2  0  0  0  0  0  0  0  0
 #&gt; y3  0  0  0  0  0  0  0  0
-#&gt; y4  0  0  0  0  1  0  0  3
-# rm = the number of observations where both variables are missing values
-# mr = the number of observations where the first variable’s value (e.g. the row variable) is observed and second (or column) variable is missing
-# mm = the number of observations where the second variable’s value (e.g. the col variable) is observed and first (or row) variable is missing
-
-## Margin plot of y1 and y4
-marginplot(anscombe[c(5, 8)], col = c("blue", "red", "orange"))</code></pre>
-<div class="inline-figure"><img src="11-imputation_files/figure-html/unnamed-chunk-2-2.png" width="90%" style="display: block; margin: auto;"></div>
+#&gt; y4  0  0  0  0  1  0  0  3</code></pre>
+<ul>
+<li>
+<code>rr</code> = number of observations where both pairs of values are observed</li>
+<li>
+<code>rm</code> = the number of observations where both variables are missing values</li>
+<li>
+<code>mr</code> = the number of observations where the first variable’s value (e.g. the row variable) is observed and second (or column) variable is missing</li>
+<li>
+<code>mm</code> = the number of observations where the second variable’s value (e.g. the col variable) is observed and first (or row) variable is missing</li>
+</ul>
 <div class="sourceCode" id="cb221"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">## Margin plot of y1 and y4</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/VIM/man/marginplot.html">marginplot</a></span><span class="op">(</span><span class="va">anscombe</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">8</span><span class="op">)</span><span class="op">]</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"blue"</span>, <span class="st">"red"</span>, <span class="st">"orange"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="11-imputation_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb222"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co">## 5 imputations for all missing values</span></span>
 <span><span class="va">imp1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://amices.org/mice/reference/mice.html">mice</a></span><span class="op">(</span><span class="va">anscombe</span>, m <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
@@ -793,7 +811,7 @@ marginplot(anscombe[c(5, 8)], col = c("blue", "red", "orange"))</code></pre>
 </ul>
 <p><strong>Note</strong><br>
 Multiple Imputation usually based on some form of stochastic regression imputation.</p>
-<div class="sourceCode" id="cb222"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb223"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Income data</span></span>
 <span> </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">91919</span><span class="op">)</span>                              <span class="co"># Set seed</span></span>
@@ -809,8 +827,8 @@ Multiple Imputation usually based on some form of stochastic regression imputati
 <span> </span>
 <span><span class="va">data_inc_miss</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">income</span>, <span class="va">x1</span>, <span class="va">x2</span><span class="op">)</span></span></code></pre></div>
 <p>Single stochastic regression imputation</p>
-<div class="sourceCode" id="cb223"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">imp_inc_sri</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://amices.org/mice/reference/mice.html">mice</a></span><span class="op">(</span><span class="va">data_inc_miss</span>, method <span class="op">=</span> <span class="st">"norm.nob"</span>, m <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb224"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">imp_inc_sri</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://amices.org/mice/reference/mice.html">mice</a></span><span class="op">(</span><span class="va">data_inc_miss</span>, method <span class="op">=</span> <span class="st">"norm.nob"</span>, m <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  iter imp variable</span></span>
 <span><span class="co">#&gt;   1   1  income</span></span>
@@ -820,8 +838,8 @@ Multiple Imputation usually based on some form of stochastic regression imputati
 <span><span class="co">#&gt;   5   1  income</span></span>
 <span><span class="va">data_inc_sri</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/complete.html">complete</a></span><span class="op">(</span><span class="va">imp_inc_sri</span><span class="op">)</span></span></code></pre></div>
 <p>Single predictive mean matching</p>
-<div class="sourceCode" id="cb224"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">imp_inc_pmm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://amices.org/mice/reference/mice.html">mice</a></span><span class="op">(</span><span class="va">data_inc_miss</span>, method <span class="op">=</span> <span class="st">"pmm"</span>, m <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb225"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">imp_inc_pmm</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://amices.org/mice/reference/mice.html">mice</a></span><span class="op">(</span><span class="va">data_inc_miss</span>, method <span class="op">=</span> <span class="st">"pmm"</span>, m <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  iter imp variable</span></span>
 <span><span class="co">#&gt;   1   1  income</span></span>
@@ -831,14 +849,15 @@ Multiple Imputation usually based on some form of stochastic regression imputati
 <span><span class="co">#&gt;   5   1  income</span></span>
 <span><span class="va">data_inc_pmm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/complete.html">complete</a></span><span class="op">(</span><span class="va">imp_inc_pmm</span><span class="op">)</span></span></code></pre></div>
 <p>Stochastic regression imputation contains negative values</p>
-<div class="sourceCode" id="cb225"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb226"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">data_inc_sri</span><span class="op">$</span><span class="va">income</span><span class="op">[</span><span class="va">data_inc_sri</span><span class="op">$</span><span class="va">income</span> <span class="op">&lt;</span> <span class="fl">0</span><span class="op">]</span></span>
 <span><span class="co">#&gt; [1]  -66.055957  -96.980053  -28.921432   -4.175686  -54.480798  -27.207102</span></span>
 <span><span class="co">#&gt; [7] -143.603500  -80.960488</span></span>
-<span><span class="va">data_inc_pmm</span><span class="op">$</span><span class="va">income</span><span class="op">[</span><span class="va">data_inc_pmm</span><span class="op">$</span><span class="va">income</span> <span class="op">&lt;</span> <span class="fl">0</span><span class="op">]</span> <span class="co"># No values below 0</span></span>
+<span><span class="co"># No values below 0</span></span>
+<span><span class="va">data_inc_pmm</span><span class="op">$</span><span class="va">income</span><span class="op">[</span><span class="va">data_inc_pmm</span><span class="op">$</span><span class="va">income</span> <span class="op">&lt;</span> <span class="fl">0</span><span class="op">]</span> </span>
 <span><span class="co">#&gt; numeric(0)</span></span></code></pre></div>
 <p>Evidence for heteroskadastic data</p>
-<div class="sourceCode" id="cb226"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb227"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Heteroscedastic data</span></span>
 <span> </span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">654654</span><span class="op">)</span>                             <span class="co"># Set seed</span></span>
@@ -852,12 +871,12 @@ Multiple Imputation usually based on some form of stochastic regression imputati
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">a</span> <span class="op">+</span> <span class="va">b</span> <span class="op">*</span> <span class="va">N</span> <span class="op">+</span> <span class="va">eps</span>                         <span class="co"># Heteroscedastic variable</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fl">30</span> <span class="op">*</span> <span class="va">N</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">N</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">N</span><span class="op">)</span><span class="op">]</span>, <span class="fl">1000</span>, <span class="fl">200</span><span class="op">)</span> <span class="co"># Correlated variable</span></span>
 <span> </span>
-<span><span class="va">y</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">rbinom</a></span><span class="op">(</span><span class="va">N</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">N</span><span class="op">)</span><span class="op">]</span>, <span class="fl">1</span>, <span class="fl">0.3</span><span class="op">)</span> <span class="op">==</span> <span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span>   <span class="co"># 30% missings</span></span>
+<span><span class="va">y</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">rbinom</a></span><span class="op">(</span><span class="va">N</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">N</span><span class="op">)</span><span class="op">]</span>, <span class="fl">1</span>, <span class="fl">0.3</span><span class="op">)</span> <span class="op">==</span> <span class="fl">1</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="cn">NA</span>   <span class="co"># 30% missing</span></span>
 <span> </span>
 <span><span class="va">data_het_miss</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">x</span><span class="op">)</span></span></code></pre></div>
 <p>Single stochastic regression imputation</p>
-<div class="sourceCode" id="cb227"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">imp_het_sri</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://amices.org/mice/reference/mice.html">mice</a></span><span class="op">(</span><span class="va">data_het_miss</span>, method <span class="op">=</span> <span class="st">"norm.nob"</span>, m <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb228"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">imp_het_sri</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://amices.org/mice/reference/mice.html">mice</a></span><span class="op">(</span><span class="va">data_het_miss</span>, method <span class="op">=</span> <span class="st">"norm.nob"</span>, m <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  iter imp variable</span></span>
 <span><span class="co">#&gt;   1   1  y</span></span>
@@ -867,8 +886,8 @@ Multiple Imputation usually based on some form of stochastic regression imputati
 <span><span class="co">#&gt;   5   1  y</span></span>
 <span><span class="va">data_het_sri</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/complete.html">complete</a></span><span class="op">(</span><span class="va">imp_het_sri</span><span class="op">)</span></span></code></pre></div>
 <p>Single predictive mean matching</p>
-<div class="sourceCode" id="cb228"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">imp_het_pmm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://amices.org/mice/reference/mice.html">mice</a></span><span class="op">(</span><span class="va">data_het_miss</span>, method <span class="op">=</span> <span class="st">"pmm"</span>, m <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<div class="sourceCode" id="cb229"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">imp_het_pmm</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://amices.org/mice/reference/mice.html">mice</a></span><span class="op">(</span><span class="va">data_het_miss</span>, method <span class="op">=</span> <span class="st">"pmm"</span>, m <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  iter imp variable</span></span>
 <span><span class="co">#&gt;   1   1  y</span></span>
@@ -878,44 +897,72 @@ Multiple Imputation usually based on some form of stochastic regression imputati
 <span><span class="co">#&gt;   5   1  y</span></span>
 <span><span class="va">data_het_pmm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/complete.html">complete</a></span><span class="op">(</span><span class="va">imp_het_pmm</span><span class="op">)</span></span></code></pre></div>
 <p>Comparison between predictive mean matching and stochastic regression imputation</p>
-<div class="sourceCode" id="cb229"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb230"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>                              <span class="co"># Both plots in one graphic</span></span>
-<span> </span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">data_het_sri</span><span class="op">$</span><span class="va">y</span><span class="op">)</span><span class="op">]</span>,                   <span class="co"># Plot of observed values</span></span>
+<span></span>
+<span><span class="co"># Plot of observed values</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">data_het_sri</span><span class="op">$</span><span class="va">y</span><span class="op">)</span><span class="op">]</span>,</span>
 <span>     <span class="va">data_het_sri</span><span class="op">$</span><span class="va">y</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">data_het_sri</span><span class="op">$</span><span class="va">y</span><span class="op">)</span><span class="op">]</span>,</span>
 <span>     main <span class="op">=</span> <span class="st">""</span>,</span>
-<span>     xlab <span class="op">=</span> <span class="st">"X"</span>, ylab <span class="op">=</span> <span class="st">"Y"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html">points</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">]</span>, <span class="va">data_het_sri</span><span class="op">$</span><span class="va">y</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">]</span>,     <span class="co"># Plot of missing values</span></span>
+<span>     xlab <span class="op">=</span> <span class="st">"X"</span>,</span>
+<span>     ylab <span class="op">=</span> <span class="st">"Y"</span><span class="op">)</span></span>
+<span><span class="co"># Plot of missing values</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html">points</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">]</span>, <span class="va">data_het_sri</span><span class="op">$</span><span class="va">y</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">]</span>,</span>
 <span>       col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/title.html">title</a></span><span class="op">(</span><span class="st">"Stochastic Regression Imputation"</span>,         <span class="co"># Title of plot</span></span>
+<span></span>
+<span><span class="co"># Title of plot</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/title.html">title</a></span><span class="op">(</span><span class="st">"Stochastic Regression Imputation"</span>,        </span>
 <span>      line <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html">abline</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, <span class="va">data_het_sri</span><span class="op">)</span>,                   <span class="co"># Regression line</span></span>
+<span></span>
+<span><span class="co"># Regression line</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html">abline</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, <span class="va">data_het_sri</span><span class="op">)</span>,                   </span>
 <span>       col <span class="op">=</span> <span class="st">"#1b98e0"</span>, lwd <span class="op">=</span> <span class="fl">2.5</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span><span class="st">"topleft"</span>,                                 <span class="co"># Legend</span></span>
-<span>       <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Observed Values"</span>, <span class="st">"Imputed Values"</span>, <span class="st">"Regression Y ~ X"</span><span class="op">)</span>,</span>
-<span>       pch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
-<span>       lty <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="cn">NA</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>       col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"black"</span>, <span class="st">"red"</span>, <span class="st">"#1b98e0"</span><span class="op">)</span><span class="op">)</span></span>
-<span> </span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">data_het_pmm</span><span class="op">$</span><span class="va">y</span><span class="op">)</span><span class="op">]</span>,                   <span class="co"># Plot of observed values</span></span>
+<span></span>
+<span><span class="co"># Legend</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span></span>
+<span>  <span class="st">"topleft"</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Observed Values"</span>, <span class="st">"Imputed Values"</span>, <span class="st">"Regression Y ~ X"</span><span class="op">)</span>,</span>
+<span>  pch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
+<span>  lty <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="cn">NA</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"black"</span>, <span class="st">"red"</span>, <span class="st">"#1b98e0"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Plot of observed values</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">data_het_pmm</span><span class="op">$</span><span class="va">y</span><span class="op">)</span><span class="op">]</span>,</span>
 <span>     <span class="va">data_het_pmm</span><span class="op">$</span><span class="va">y</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">data_het_pmm</span><span class="op">$</span><span class="va">y</span><span class="op">)</span><span class="op">]</span>,</span>
 <span>     main <span class="op">=</span> <span class="st">""</span>,</span>
-<span>     xlab <span class="op">=</span> <span class="st">"X"</span>, ylab <span class="op">=</span> <span class="st">"Y"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html">points</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">]</span>, <span class="va">data_het_pmm</span><span class="op">$</span><span class="va">y</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">]</span>,     <span class="co"># Plot of missing values</span></span>
+<span>     xlab <span class="op">=</span> <span class="st">"X"</span>,</span>
+<span>     ylab <span class="op">=</span> <span class="st">"Y"</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># Plot of missing values</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/points.html">points</a></span><span class="op">(</span><span class="va">x</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">]</span>, <span class="va">data_het_pmm</span><span class="op">$</span><span class="va">y</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">y</span><span class="op">)</span><span class="op">]</span>,</span>
 <span>       col <span class="op">=</span> <span class="st">"red"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/title.html">title</a></span><span class="op">(</span><span class="st">"Predictive Mean Matching"</span>,                 <span class="co"># Title of plot</span></span>
+<span></span>
+<span><span class="co"># Title of plot</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/title.html">title</a></span><span class="op">(</span><span class="st">"Predictive Mean Matching"</span>,</span>
 <span>      line <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/abline.html">abline</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, <span class="va">data_het_pmm</span><span class="op">)</span>,</span>
 <span>       col <span class="op">=</span> <span class="st">"#1b98e0"</span>, lwd <span class="op">=</span> <span class="fl">2.5</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span><span class="st">"topleft"</span>,                                 <span class="co"># Legend</span></span>
-<span>       <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Observed Values"</span>, <span class="st">"Imputed Values"</span>, <span class="st">"Regression Y ~ X"</span><span class="op">)</span>,</span>
-<span>       pch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
-<span>       lty <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="cn">NA</span>, <span class="fl">1</span><span class="op">)</span>,</span>
-<span>       col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"black"</span>, <span class="st">"red"</span>, <span class="st">"#1b98e0"</span><span class="op">)</span><span class="op">)</span></span>
-<span> </span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/mtext.html">mtext</a></span><span class="op">(</span><span class="st">"Imputation of Heteroscedastic Data"</span>,       <span class="co"># Main title of plot</span></span>
-<span>      side <span class="op">=</span> <span class="fl">3</span>, line <span class="op">=</span> <span class="op">-</span> <span class="fl">1.5</span>, outer <span class="op">=</span> <span class="cn">TRUE</span>, cex <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="11-imputation_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;"></div>
+<span></span>
+<span><span class="co"># Legend</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/legend.html">legend</a></span><span class="op">(</span></span>
+<span>  <span class="st">"topleft"</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Observed Values"</span>, <span class="st">"Imputed Values"</span>, <span class="st">"Regression Y ~ X"</span><span class="op">)</span>,</span>
+<span>  pch <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
+<span>  lty <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="cn">NA</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"black"</span>, <span class="st">"red"</span>, <span class="st">"#1b98e0"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/mtext.html">mtext</a></span><span class="op">(</span></span>
+<span>  <span class="st">"Imputation of Heteroscedastic Data"</span>,</span>
+<span>  <span class="co"># Main title of plot</span></span>
+<span>  side <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  line <span class="op">=</span> <span class="op">-</span><span class="fl">1.5</span>,</span>
+<span>  outer <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  cex <span class="op">=</span> <span class="fl">2</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="11-imputation_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;"></div>
 </div>
 </div>
 <div id="regression-imputation" class="section level4" number="11.2.4.5">
@@ -988,9 +1035,9 @@ This is an example of neighbor-based imputation (K-nearest neighbor).</p>
 <p>Similar to <a href="multivariate-methods.html#principal-components">22.2</a>, we can approximate the matrix <span class="math inline">\(\mathbf{X}\)</span> in terms of its leading PCs.</p>
 <p>We consider the <span class="math inline">\(M\)</span> principal components that optimize</p>
 <p><span class="math display">\[
-\underset{\mathbf{A} \in R^{n \times M}, \mathbf{B} \in R^{p \times M}}{\operatorname{min}} \{ \sum_{(i,j) \in \cal{O}} (x_{ij} - \sum_{m=1}^M a_{im}b_{jm})^2 \}
+\underset{\mathbf{A} \in \mathbb{R}^{n \times M}, \mathbf{B} \in \mathbb{R}^{p \times M}}{\operatorname{min}} \left\{ \sum_{(i,j) \in \mathcal{O}} (x_{ij} - \sum_{m=1}^M a_{im}b_{jm})^2 \right\}
 \]</span></p>
-<p>where <span class="math inline">\(\cal{O}\)</span> is the set of all observed pairs indices <span class="math inline">\((i,j)\)</span>, a subset of the possible <span class="math inline">\(n \times p\)</span> pairs</p>
+<p>where <span class="math inline">\(\mathcal{O}\)</span> is the set of all observed pairs indices <span class="math inline">\((i,j)\)</span>, a subset of the possible <span class="math inline">\(n \times p\)</span> pairs</p>
 <p>Once this minimization is solved,</p>
 <ul>
 <li><p>One can impute a missing observation, <span class="math inline">\(x_{ij}\)</span>, with <span class="math inline">\(\hat{x}_{ij} = \sum_{m=1}^M \hat{a}_{im}\hat{b}_{jm}\)</span> where <span class="math inline">\(\hat{a}_{im}, \hat{b}_{jm}\)</span> are the <span class="math inline">\((i,m)\)</span> and <span class="math inline">\((j.m)\)</span> elements, respectively, of the matrices <span class="math inline">\(\hat{\mathbf{A}}\)</span> and <span class="math inline">\(\hat{\mathbf{B}}\)</span> from the minimization, and</p></li>
@@ -1004,30 +1051,29 @@ This is an example of neighbor-based imputation (K-nearest neighbor).</p>
 <p><span class="math display">\[
 \tilde{x}_{ij} =
 \begin{cases}
-x_{ij} &amp; \text{if } (i,j) \in \cal{O} \\
-\bar{x}_{j} &amp; \text{if } (i,j) \notin \cal{O}
+x_{ij} &amp; \text{if } (i,j) \in \mathcal{O} \\
+\bar{x}_{j} &amp; \text{if } (i,j) \notin \mathcal{O}
 \end{cases}
 \]</span></p>
 <p>where <span class="math inline">\(\bar{x}_j\)</span> is the average of the observed values for the <span class="math inline">\(j\)</span>th variable in the incomplete data matrix <span class="math inline">\(\mathbf{X}\)</span></p>
-<p><span class="math inline">\(\cal{O}\)</span> indexes the observations that are observed in <span class="math inline">\(\mathbf{X}\)</span></p>
+<p><span class="math inline">\(\mathcal{O}\)</span> indexes the observations that are observed in <span class="math inline">\(\mathbf{X}\)</span></p>
 <ol start="2" style="list-style-type: decimal">
 <li>Repeat these 3 steps until some objectives are met</li>
 </ol>
 <p>a. Solve</p>
 <p><span class="math display">\[
-\underset{\mathbf{A} \in R^{n \times M}, \mathbf{B} \in R^{p \times M}}{\operatorname{min}} \{ \sum_{(i,j) \in \cal{O}} (x_{ij} - \sum_{m=1}^M a_{im}b_{jm})^2 \}
+\underset{\mathbf{A} \in R^{n \times M}, \mathbf{B} \in R^{p \times M}}{\operatorname{min}} \{ \sum_{(i,j) \in \mathcal{O}} (x_{ij} - \sum_{m=1}^M a_{im}b_{jm})^2 \}
 \]</span></p>
 <p>by computing the principal components of <span class="math inline">\(\tilde{\mathbf{X}}\)</span></p>
-<p>b. For each element <span class="math inline">\((i,j) \notin \cal{O}\)</span>, set <span class="math inline">\(\tilde{x}_{ij} \leftarrow \sum_{m=1}^M \hat{a}_{im}\hat{b}_{jm}\)</span></p>
+<p>b. For each element <span class="math inline">\((i,j) \notin \mathcal{O}\)</span>, set <span class="math inline">\(\tilde{x}_{ij} \leftarrow \sum_{m=1}^M \hat{a}_{im}\hat{b}_{jm}\)</span></p>
 <p>c. Compute the objective</p>
 <p><span class="math display">\[
-\sum_{(i,j \in \cal{O})} (x_{ij} - \sum_{m=1}^M \hat{a}_{im} \hat{b}_{jm})^2
+\sum_{(i,j \in \mathcal{O})} (x_{ij} - \sum_{m=1}^M \hat{a}_{im} \hat{b}_{jm})^2
 \]</span></p>
 <ol start="3" style="list-style-type: decimal">
-<li>Return the estimated missing entries <span class="math inline">\(\tilde{x}_{ij}, (i,j) \notin \cal{O}\)</span>
+<li>Return the estimated missing entries <span class="math inline">\(\tilde{x}_{ij}, (i,j) \notin \mathcal{O}\)</span>
 </li>
 </ol>
-<p><br></p>
 </div>
 </div>
 <div id="other-methods" class="section level3" number="11.2.5">
@@ -1108,16 +1154,17 @@ x_{ij} &amp; \text{if } (i,j) \in \cal{O} \\
 <h2>
 <span class="header-section-number">11.6</span> Application<a class="anchor" aria-label="anchor" href="#application-7"><i class="fas fa-link"></i></a>
 </h2>
-<div class="sourceCode" id="cb230"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb231"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://docs.ropensci.org/visdat/">visdat</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/njtierney/naniar">naniar</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://docs.ropensci.org/visdat/reference/vis_miss.html">vis_miss</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span></span>
-<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>    <span class="fu"><a href="https://rdrr.io/pkg/naniar/man/geom_miss_point.html">geom_miss_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span><span class="op">~</span> <span class="va">group</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/naniar/man/geom_miss_point.html">geom_miss_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html">facet_wrap</a></span><span class="op">(</span> <span class="op">~</span> <span class="va">group</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/naniar/man/gg_miss_var.html">gg_miss_var</a></span><span class="op">(</span><span class="va">data</span>, facet <span class="op">=</span> <span class="va">group</span><span class="op">)</span></span>
 <span></span>
@@ -1134,7 +1181,7 @@ x_{ij} &amp; \text{if } (i,j) \in \cal{O} \\
 <p>where <span class="math inline">\(\lambda\)</span> is the rate of missing data</p>
 <p>Example 50% of missing data means an estimate based on 5 imputation has standard deviation that is only 5% wider compared to an estimate based on infinity imputation<br>
 (<span class="math inline">\(\sqrt{1+0.5/5}=1.049\)</span>)</p>
-<div class="sourceCode" id="cb231"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb232"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.r-project.org">missForest</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">#load data</span></span>
@@ -1151,17 +1198,17 @@ x_{ij} &amp; \text{if } (i,j) \in \cal{O} \\
 <h3>
 <span class="header-section-number">11.6.1</span> Imputation with mean / median / mode<a class="anchor" aria-label="anchor" href="#imputation-with-mean-median-mode"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb232"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb233"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># whole data set</span></span>
-<span><span class="fu">e1071</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/e1071/man/impute.html">impute</a></span><span class="op">(</span><span class="va">iris.mis</span>, what <span class="op">=</span> <span class="st">"mean"</span><span class="op">)</span> <span class="co"># replace with mean</span></span>
-<span><span class="fu">e1071</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/e1071/man/impute.html">impute</a></span><span class="op">(</span><span class="va">iris.mis</span>, what <span class="op">=</span> <span class="st">"median"</span><span class="op">)</span> <span class="co"># replace with median</span></span>
+<span><span class="fu">e1071</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/e1071/man/impute.html">impute</a></span><span class="op">(</span><span class="va">iris.mis</span>, what <span class="op">=</span> <span class="st">"mean"</span><span class="op">)</span>        <span class="co"># replace with mean</span></span>
+<span><span class="fu">e1071</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/e1071/man/impute.html">impute</a></span><span class="op">(</span><span class="va">iris.mis</span>, what <span class="op">=</span> <span class="st">"median"</span><span class="op">)</span>      <span class="co"># replace with median</span></span>
 <span></span>
 <span><span class="co"># by variables</span></span>
-<span><span class="fu">Hmisc</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Hmisc/man/impute.html">impute</a></span><span class="op">(</span><span class="va">iris.mis</span><span class="op">$</span><span class="va">Sepal.Length</span>, <span class="va">mean</span><span class="op">)</span>  <span class="co"># mean</span></span>
+<span><span class="fu">Hmisc</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Hmisc/man/impute.html">impute</a></span><span class="op">(</span><span class="va">iris.mis</span><span class="op">$</span><span class="va">Sepal.Length</span>, <span class="va">mean</span><span class="op">)</span>    <span class="co"># mean</span></span>
 <span><span class="fu">Hmisc</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Hmisc/man/impute.html">impute</a></span><span class="op">(</span><span class="va">iris.mis</span><span class="op">$</span><span class="va">Sepal.Length</span>, <span class="va">median</span><span class="op">)</span>  <span class="co"># median</span></span>
-<span><span class="fu">Hmisc</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Hmisc/man/impute.html">impute</a></span><span class="op">(</span><span class="va">iris.mis</span><span class="op">$</span><span class="va">Sepal.Length</span>, <span class="fl">0</span><span class="op">)</span>  <span class="co"># replace specific number</span></span></code></pre></div>
+<span><span class="fu">Hmisc</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/Hmisc/man/impute.html">impute</a></span><span class="op">(</span><span class="va">iris.mis</span><span class="op">$</span><span class="va">Sepal.Length</span>, <span class="fl">0</span><span class="op">)</span>       <span class="co"># replace specific number</span></span></code></pre></div>
 <p>check accuracy</p>
-<div class="sourceCode" id="cb233"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb234"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># library(DMwR2)</span></span>
 <span><span class="co"># actuals &lt;- iris$Sepal.Width[is.na(iris.mis$Sepal.Width)]</span></span>
 <span><span class="co"># predicteds &lt;- rep(mean(iris$Sepal.Width, na.rm=T), length(actuals))</span></span>
@@ -1171,37 +1218,56 @@ x_{ij} &amp; \text{if } (i,j) \in \cal{O} \\
 <h3>
 <span class="header-section-number">11.6.2</span> KNN<a class="anchor" aria-label="anchor" href="#knn"><i class="fas fa-link"></i></a>
 </h3>
-<div class="sourceCode" id="cb234"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb235"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># library(DMwR2)</span></span>
-<span><span class="co"># # iris.mis[,!names(iris.mis) %in% c("Sepal.Length")] </span></span>
-<span><span class="co"># # data should be this line. But since knn cant work with 3 or less variables, we need to use at least 4 variables. </span></span>
+<span><span class="co"># # iris.mis[,!names(iris.mis) %in% c("Sepal.Length")]</span></span>
+<span><span class="co"># # data should be this line. But since knn cant work with 3 or less variables, </span></span>
+<span><span class="co"># # we need to use at least 4 variables.</span></span>
 <span><span class="co"># </span></span>
 <span><span class="co"># # knn is not appropriate for categorical variables</span></span>
 <span><span class="co"># knnOutput &lt;-</span></span>
-<span><span class="co">#     knnImputation(data = iris.mis.cat, </span></span>
-<span><span class="co">#                   #k = 10, </span></span>
-<span><span class="co">#                   meth = "median" # could use "median" or "weighAvg"</span></span>
-<span><span class="co">#                   )  # should exclude the dependent variable: Sepal.Length</span></span>
-<span><span class="co"># anyNA(knnOutput)</span></span></code></pre></div>
-<div class="sourceCode" id="cb235"><pre class="downlit sourceCode r">
+<span><span class="co">#   knnImputation(data = iris.mis.cat,</span></span>
+<span><span class="co">#                 #k = 10,</span></span>
+<span><span class="co">#                 meth = "median" # could use "median" or "weighAvg")  </span></span>
+<span><span class="co">#                 # should exclude the dependent variable: Sepal.Length</span></span>
+<span><span class="co">#                 anyNA(knnOutput)</span></span></code></pre></div>
+<div class="sourceCode" id="cb236"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># library(DMwR2)</span></span>
 <span><span class="co"># actuals &lt;- iris$Sepal.Width[is.na(iris.mis$Sepal.Width)]</span></span>
 <span><span class="co"># predicteds &lt;- knnOutput[is.na(iris.mis$Sepal.Width), "Sepal.Width"]</span></span>
 <span><span class="co"># regr.eval(actuals, predicteds)</span></span></code></pre></div>
-<p>Compared to mape (mean absolute percentage error) of mean imputation, we see almost always see improvements.</p>
+<p>Compared to MAPE (mean absolute percentage error) of mean imputation, we see almost always see improvements.</p>
 </div>
 <div id="rpart" class="section level3" number="11.6.3">
 <h3>
 <span class="header-section-number">11.6.3</span> rpart<a class="anchor" aria-label="anchor" href="#rpart"><i class="fas fa-link"></i></a>
 </h3>
-<p>For categorical (factor) variables, rpart can handle</p>
-<div class="sourceCode" id="cb236"><pre class="downlit sourceCode r">
+<p>For categorical (factor) variables, <code>rpart</code> can handle</p>
+<div class="sourceCode" id="cb237"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bethatkinson/rpart">rpart</a></span><span class="op">)</span></span>
-<span><span class="va">class_mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/rpart/man/rpart.html">rpart</a></span><span class="op">(</span><span class="va">Species</span> <span class="op">~</span> <span class="va">.</span> <span class="op">-</span> <span class="va">Sepal.Length</span>, data<span class="op">=</span><span class="va">iris.mis.cat</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">iris.mis.cat</span><span class="op">$</span><span class="va">Species</span><span class="op">)</span>, <span class="op">]</span>, method<span class="op">=</span><span class="st">"class"</span>, na.action<span class="op">=</span><span class="va">na.omit</span><span class="op">)</span>  <span class="co"># since Species is a factor, and exclude dependent variable "Sepal.Length"</span></span>
+<span><span class="va">class_mod</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/rpart/man/rpart.html">rpart</a></span><span class="op">(</span></span>
+<span>    <span class="va">Species</span> <span class="op">~</span> <span class="va">.</span> <span class="op">-</span> <span class="va">Sepal.Length</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">iris.mis.cat</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">iris.mis.cat</span><span class="op">$</span><span class="va">Species</span><span class="op">)</span>,<span class="op">]</span>,</span>
+<span>    method <span class="op">=</span> <span class="st">"class"</span>,</span>
+<span>    na.action <span class="op">=</span> <span class="va">na.omit</span></span>
+<span>  <span class="op">)</span>  <span class="co"># since Species is a factor, and exclude dependent variable "Sepal.Length"</span></span>
 <span></span>
-<span><span class="va">anova_mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/rpart/man/rpart.html">rpart</a></span><span class="op">(</span><span class="va">Sepal.Width</span> <span class="op">~</span> <span class="va">.</span> <span class="op">-</span> <span class="va">Sepal.Length</span>, data<span class="op">=</span><span class="va">iris.mis</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">iris.mis</span><span class="op">$</span><span class="va">Sepal.Width</span><span class="op">)</span>, <span class="op">]</span>, method<span class="op">=</span><span class="st">"anova"</span>, na.action<span class="op">=</span><span class="va">na.omit</span><span class="op">)</span>  <span class="co"># since Sepal.Width is numeric.</span></span>
-<span><span class="va">species_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">class_mod</span>, <span class="va">iris.mis.cat</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">iris.mis.cat</span><span class="op">$</span><span class="va">Species</span><span class="op">)</span>, <span class="op">]</span><span class="op">)</span></span>
-<span><span class="va">width_pred</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">anova_mod</span>, <span class="va">iris.mis</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">iris.mis</span><span class="op">$</span><span class="va">Sepal.Width</span><span class="op">)</span>, <span class="op">]</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">anova_mod</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/rpart/man/rpart.html">rpart</a></span><span class="op">(</span></span>
+<span>    <span class="va">Sepal.Width</span> <span class="op">~</span> <span class="va">.</span> <span class="op">-</span> <span class="va">Sepal.Length</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">iris.mis</span><span class="op">[</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">iris.mis</span><span class="op">$</span><span class="va">Sepal.Width</span><span class="op">)</span>,<span class="op">]</span>,</span>
+<span>    method <span class="op">=</span> <span class="st">"anova"</span>,</span>
+<span>    na.action <span class="op">=</span> <span class="va">na.omit</span></span>
+<span>  <span class="op">)</span>  <span class="co"># since Sepal.Width is numeric.</span></span>
+<span></span>
+<span></span>
+<span><span class="va">species_pred</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">class_mod</span>, <span class="va">iris.mis.cat</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">iris.mis.cat</span><span class="op">$</span><span class="va">Species</span><span class="op">)</span>,<span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="va">width_pred</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">anova_mod</span>, <span class="va">iris.mis</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html">is.na</a></span><span class="op">(</span><span class="va">iris.mis</span><span class="op">$</span><span class="va">Sepal.Width</span><span class="op">)</span>,<span class="op">]</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div id="mice-multivariate-imputation-via-chained-equations" class="section level3" number="11.6.4">
 <h3>
@@ -1221,18 +1287,20 @@ x_{ij} &amp; \text{if } (i,j) \in \cal{O} \\
 <p>Methods in <a href="imputation-missing-data.html#mice-multivariate-imputation-via-chained-equations">MICE</a>:</p>
 <ul>
 <li>PMM (Predictive Mean Matching) – For numeric variables</li>
-<li>logreg(Logistic Regression) – For Binary Variables( with 2 levels)</li>
-<li>polyreg(Bayesian polytomous regression) – For Factor Variables (&gt;= 2 levels)</li>
+<li>
+<code>logreg</code>(Logistic Regression) – For Binary Variables( with 2 levels)</li>
+<li>
+<code>polyreg</code> (Bayesian polytomous regression) – For Factor Variables (&gt;= 2 levels)</li>
 <li>Proportional odds model (ordered, &gt;= 2 levels)</li>
 </ul>
-<div class="sourceCode" id="cb237"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb238"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># load package</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/amices/mice">mice</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/statistikat/VIM">VIM</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># check missing values</span></span>
 <span><span class="fu"><a href="https://amices.org/mice/reference/md.pattern.html">md.pattern</a></span><span class="op">(</span><span class="va">iris.mis</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="11-imputation_files/figure-html/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="11-imputation_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;"></div>
 <pre><code>#&gt;     Sepal.Width Sepal.Length Petal.Length Petal.Width   
 #&gt; 100           1            1            1           1  0
 #&gt; 15            1            1            1           0  1
@@ -1248,8 +1316,17 @@ x_{ij} &amp; \text{if } (i,j) \in \cal{O} \\
 #&gt;              11           15           15          19 60
 
 #plot the missing values
-aggr(iris.mis, col=mdc(1:2), numbers=TRUE, sortVars=TRUE, labels=names(iris.mis), cex.axis=.7, gap=3, ylab=c("Proportion of missingness","Missingness Pattern"))</code></pre>
-<div class="inline-figure"><img src="11-imputation_files/figure-html/unnamed-chunk-18-2.png" width="90%" style="display: block; margin: auto;"></div>
+aggr(
+  iris.mis,
+  col = mdc(1:2),
+  numbers = TRUE,
+  sortVars = TRUE,
+  labels = names(iris.mis),
+  cex.axis = .7,
+  gap = 3,
+  ylab = c("Proportion of missingness", "Missingness Pattern")
+)</code></pre>
+<div class="inline-figure"><img src="11-imputation_files/figure-html/unnamed-chunk-19-2.png" width="90%" style="display: block; margin: auto;"></div>
 <pre><code>#&gt; 
 #&gt;  Variables sorted by number of missings: 
 #&gt;      Variable      Count
@@ -1259,11 +1336,17 @@ aggr(iris.mis, col=mdc(1:2), numbers=TRUE, sortVars=TRUE, labels=names(iris.mis)
 #&gt;   Sepal.Width 0.07333333
 
 
-mice_plot &lt;- aggr(iris.mis, col=c('navyblue','yellow'),
-                    numbers=TRUE, sortVars=TRUE,
-                    labels=names(iris.mis), cex.axis=.7,
-                    gap=3, ylab=c("Missing data","Pattern"))</code></pre>
-<div class="inline-figure"><img src="11-imputation_files/figure-html/unnamed-chunk-18-3.png" width="90%" style="display: block; margin: auto;"></div>
+mice_plot &lt;- aggr(
+  iris.mis,
+  col = c('navyblue', 'yellow'),
+  numbers = TRUE,
+  sortVars = TRUE,
+  labels = names(iris.mis),
+  cex.axis = .7,
+  gap = 3,
+  ylab = c("Missing data", "Pattern")
+)</code></pre>
+<div class="inline-figure"><img src="11-imputation_files/figure-html/unnamed-chunk-19-3.png" width="90%" style="display: block; margin: auto;"></div>
 <pre><code>#&gt; 
 #&gt;  Variables sorted by number of missings: 
 #&gt;      Variable      Count
@@ -1272,13 +1355,16 @@ mice_plot &lt;- aggr(iris.mis, col=c('navyblue','yellow'),
 #&gt;  Petal.Length 0.10000000
 #&gt;   Sepal.Width 0.07333333</code></pre>
 <p>Impute Data</p>
-<div class="sourceCode" id="cb241"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb242"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">imputed_Data</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu"><a href="https://amices.org/mice/reference/mice.html">mice</a></span><span class="op">(</span></span>
 <span>        <span class="va">iris.mis</span>,</span>
 <span>        m <span class="op">=</span> <span class="fl">5</span>, <span class="co"># number of imputed datasets</span></span>
 <span>        maxit <span class="op">=</span> <span class="fl">50</span>, <span class="co"># number of iterations taken to impute missing values</span></span>
-<span>        method <span class="op">=</span> <span class="st">'pmm'</span>, <span class="co"># method used in imputation. Here, we used predictive mean matching</span></span>
+<span>        method <span class="op">=</span> <span class="st">'pmm'</span>, <span class="co"># method used in imputation. </span></span>
+<span>        <span class="co"># Here, we used predictive mean matching</span></span>
+<span>        </span>
+<span>        </span>
 <span>        <span class="co"># other methods can be </span></span>
 <span>        <span class="co"># "pmm": Predictive mean matching</span></span>
 <span>        <span class="co"># "midastouch" : weighted predictive mean matching</span></span>
@@ -1286,10 +1372,11 @@ mice_plot &lt;- aggr(iris.mis, col=c('navyblue','yellow'),
 <span>        <span class="co"># "cart": classification and regression trees</span></span>
 <span>        <span class="co"># "rf": random forest imputations.</span></span>
 <span>        <span class="co"># "2lonly.pmm": Level-2 class predictive mean matching</span></span>
-<span>        <span class="co"># Other methods based on whether variables are (1) numeric, (2) binary, (3) ordered, (4), unordered</span></span>
+<span>        <span class="co"># Other methods based on whether variables are </span></span>
+<span>        <span class="co"># (1) numeric, (2) binary, (3) ordered, (4), unordered</span></span>
 <span>        seed <span class="op">=</span> <span class="fl">500</span></span>
 <span>    <span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb242"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb243"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">imputed_Data</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Class: mids</span></span>
 <span><span class="co">#&gt; Number of multiple imputations:  5 </span></span>
@@ -1305,20 +1392,22 @@ mice_plot &lt;- aggr(iris.mis, col=c('navyblue','yellow'),
 <span></span>
 <span><span class="co">#make a density plot</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/lattice/man/histogram.html">densityplot</a></span><span class="op">(</span><span class="va">imputed_Data</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="11-imputation_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb243"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="11-imputation_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb244"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#the red (imputed values) should be similar to the blue (observed)</span></span></code></pre></div>
 <p>Check imputed dataset</p>
-<div class="sourceCode" id="cb244"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb245"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># 1st dataset </span></span>
 <span><span class="va">completeData</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tidyr.tidyverse.org/reference/complete.html">complete</a></span><span class="op">(</span><span class="va">imputed_Data</span>,<span class="fl">1</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># 2nd dataset</span></span>
 <span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/complete.html">complete</a></span><span class="op">(</span><span class="va">imputed_Data</span>,<span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 <p>Regression model using imputed datasets</p>
-<div class="sourceCode" id="cb245"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb246"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># regression model</span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/with.html">with</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">imputed_Data</span>, exp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">Sepal.Width</span> <span class="op">~</span> <span class="va">Sepal.Length</span> <span class="op">+</span> <span class="va">Petal.Width</span><span class="op">)</span><span class="op">)</span> </span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/with.html">with</a></span><span class="op">(</span>data <span class="op">=</span> <span class="va">imputed_Data</span>,</span>
+<span>       exp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">Sepal.Width</span> <span class="op">~</span> <span class="va">Sepal.Length</span> <span class="op">+</span> <span class="va">Petal.Width</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co">#combine results of all 5 models</span></span>
 <span><span class="va">combine</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://amices.org/mice/reference/pool.html">pool</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
@@ -1353,17 +1442,22 @@ mice_plot &lt;- aggr(iris.mis, col=c('navyblue','yellow'),
 <li>MICE can handle different types of variables while the variables in MVN need to be normally distributed or transformed to approximate normality.</li>
 <li>MICE can manage imputation of variables defined on a subset of data whereas MVN cannot.</li>
 </ul>
-<div class="sourceCode" id="cb246"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb247"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://gking.harvard.edu/amelia">Amelia</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"iris"</span><span class="op">)</span></span>
 <span><span class="co">#seed 10% missing values</span></span>
-<span><span class="va">iris.mis</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/missForest/man/prodNA.html">prodNA</a></span><span class="op">(</span><span class="va">iris</span>, noNA <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># idvars – keep all ID variables and other variables which you don’t want to impute</span></span>
-<span><span class="co"># noms – keep nominal variables here</span></span>
-<span></span>
-<span><span class="co">#specify columns and run amelia</span></span>
-<span><span class="va">amelia_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Amelia/man/amelia.html">amelia</a></span><span class="op">(</span><span class="va">iris.mis</span>, m<span class="op">=</span><span class="fl">5</span>, parallel <span class="op">=</span> <span class="st">"multicore"</span>, noms <span class="op">=</span> <span class="st">"Species"</span><span class="op">)</span></span>
+<span><span class="va">iris.mis</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/missForest/man/prodNA.html">prodNA</a></span><span class="op">(</span><span class="va">iris</span>, noNA <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span></code></pre></div>
+<ul>
+<li>idvars – keep all ID variables and other variables which you don’t want to impute</li>
+<li>noms – keep nominal variables here</li>
+</ul>
+<div class="sourceCode" id="cb248"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co">#specify columns and run amelia</span></span>
+<span><span class="va">amelia_fit</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/Amelia/man/amelia.html">amelia</a></span><span class="op">(</span><span class="va">iris.mis</span>,</span>
+<span>         m <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>         parallel <span class="op">=</span> <span class="st">"multicore"</span>,</span>
+<span>         noms <span class="op">=</span> <span class="st">"Species"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; -- Imputation 1 --</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;   1  2  3  4  5  6  7  8</span></span>
@@ -1397,18 +1491,19 @@ mice_plot &lt;- aggr(iris.mis, col=c('navyblue','yellow'),
 <li>It yields out of bag imputation error estimate. Moreover, it provides high level of control on imputation process.</li>
 <li>Since bagging works well on categorical variable too, we don’t need to remove them here.</li>
 </ul>
-<div class="sourceCode" id="cb247"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb249"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.r-project.org">missForest</a></span><span class="op">)</span></span>
 <span><span class="co">#impute missing values, using all parameters as default values</span></span>
 <span><span class="va">iris.imp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/missForest/man/missForest.html">missForest</a></span><span class="op">(</span><span class="va">iris.mis</span><span class="op">)</span></span>
 <span><span class="co"># check imputed values</span></span>
-<span><span class="co"># iris.imp$ximp</span></span>
-<span></span>
-<span></span>
-<span><span class="co"># check imputation error</span></span>
-<span><span class="co"># NRMSE is normalized mean squared error. It is used to represent error derived from imputing continuous values. </span></span>
-<span><span class="co"># PFC (proportion of falsely classified) is used to represent error derived from imputing categorical values.</span></span>
-<span><span class="va">iris.imp</span><span class="op">$</span><span class="va">OOBerror</span></span>
+<span><span class="co"># iris.imp$ximp</span></span></code></pre></div>
+<ul>
+<li>check imputation error</li>
+<li>NRMSE is normalized mean squared error. It is used to represent error derived from imputing continuous values.</li>
+<li>PFC (proportion of falsely classified) is used to represent error derived from imputing categorical values.</li>
+</ul>
+<div class="sourceCode" id="cb250"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">iris.imp</span><span class="op">$</span><span class="va">OOBerror</span></span>
 <span><span class="co">#&gt;      NRMSE        PFC </span></span>
 <span><span class="co">#&gt; 0.13631893 0.04477612</span></span>
 <span></span>
@@ -1454,67 +1549,76 @@ mice_plot &lt;- aggr(iris.mis, col=c('navyblue','yellow'),
 <ul>
 <li>linearity in the variables being predicted.</li>
 </ul>
-<div class="sourceCode" id="cb248"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb248-1"><a href="imputation-missing-data.html#cb248-1" tabindex="-1"></a><span class="fu">library</span>(Hmisc)</span>
-<span id="cb248-2"><a href="imputation-missing-data.html#cb248-2" tabindex="-1"></a><span class="co"># impute with mean value</span></span>
-<span id="cb248-3"><a href="imputation-missing-data.html#cb248-3" tabindex="-1"></a>iris.mis<span class="sc">$</span>imputed_age <span class="ot">&lt;-</span> <span class="fu">with</span>(iris.mis, <span class="fu">impute</span>(Sepal.Length, mean))</span>
-<span id="cb248-4"><a href="imputation-missing-data.html#cb248-4" tabindex="-1"></a></span>
-<span id="cb248-5"><a href="imputation-missing-data.html#cb248-5" tabindex="-1"></a><span class="co"># impute with random value</span></span>
-<span id="cb248-6"><a href="imputation-missing-data.html#cb248-6" tabindex="-1"></a>iris.mis<span class="sc">$</span>imputed_age2 <span class="ot">&lt;-</span> <span class="fu">with</span>(iris.mis, <span class="fu">impute</span>(Sepal.Length, <span class="st">'random'</span>))</span>
-<span id="cb248-7"><a href="imputation-missing-data.html#cb248-7" tabindex="-1"></a></span>
-<span id="cb248-8"><a href="imputation-missing-data.html#cb248-8" tabindex="-1"></a><span class="co"># could also use min, max, median to impute missing value</span></span>
-<span id="cb248-9"><a href="imputation-missing-data.html#cb248-9" tabindex="-1"></a></span>
-<span id="cb248-10"><a href="imputation-missing-data.html#cb248-10" tabindex="-1"></a><span class="co"># using argImpute</span></span>
-<span id="cb248-11"><a href="imputation-missing-data.html#cb248-11" tabindex="-1"></a>impute_arg <span class="ot">&lt;-</span> <span class="fu">aregImpute</span>(<span class="sc">~</span> Sepal.Length <span class="sc">+</span> Sepal.Width <span class="sc">+</span> Petal.Length <span class="sc">+</span> Petal.Width <span class="sc">+</span></span>
-<span id="cb248-12"><a href="imputation-missing-data.html#cb248-12" tabindex="-1"></a>Species, <span class="at">data =</span> iris.mis, <span class="at">n.impute =</span> <span class="dv">5</span>) <span class="co"># argImpute() automatically identifies the variable type and treats them accordingly.</span></span>
-<span id="cb248-13"><a href="imputation-missing-data.html#cb248-13" tabindex="-1"></a><span class="co">#&gt; Iteration 1 </span></span>
-<span id="cb248-14"><a href="imputation-missing-data.html#cb248-14" tabindex="-1"></a>Iteration <span class="dv">2</span> </span>
-<span id="cb248-15"><a href="imputation-missing-data.html#cb248-15" tabindex="-1"></a>Iteration <span class="dv">3</span> </span>
-<span id="cb248-16"><a href="imputation-missing-data.html#cb248-16" tabindex="-1"></a>Iteration <span class="dv">4</span> </span>
-<span id="cb248-17"><a href="imputation-missing-data.html#cb248-17" tabindex="-1"></a>Iteration <span class="dv">5</span> </span>
-<span id="cb248-18"><a href="imputation-missing-data.html#cb248-18" tabindex="-1"></a>Iteration <span class="dv">6</span> </span>
-<span id="cb248-19"><a href="imputation-missing-data.html#cb248-19" tabindex="-1"></a>Iteration <span class="dv">7</span> </span>
-<span id="cb248-20"><a href="imputation-missing-data.html#cb248-20" tabindex="-1"></a>Iteration <span class="dv">8</span> </span>
-<span id="cb248-21"><a href="imputation-missing-data.html#cb248-21" tabindex="-1"></a>impute_arg <span class="co"># R-squares are for predicted missing values.</span></span>
-<span id="cb248-22"><a href="imputation-missing-data.html#cb248-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb248-23"><a href="imputation-missing-data.html#cb248-23" tabindex="-1"></a><span class="co">#&gt; Multiple Imputation using Bootstrap and PMM</span></span>
-<span id="cb248-24"><a href="imputation-missing-data.html#cb248-24" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb248-25"><a href="imputation-missing-data.html#cb248-25" tabindex="-1"></a><span class="co">#&gt; aregImpute(formula = ~Sepal.Length + Sepal.Width + Petal.Length + </span></span>
-<span id="cb248-26"><a href="imputation-missing-data.html#cb248-26" tabindex="-1"></a><span class="co">#&gt;     Petal.Width + Species, data = iris.mis, n.impute = 5)</span></span>
-<span id="cb248-27"><a href="imputation-missing-data.html#cb248-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb248-28"><a href="imputation-missing-data.html#cb248-28" tabindex="-1"></a><span class="co">#&gt; n: 150   p: 5    Imputations: 5      nk: 3 </span></span>
-<span id="cb248-29"><a href="imputation-missing-data.html#cb248-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb248-30"><a href="imputation-missing-data.html#cb248-30" tabindex="-1"></a><span class="co">#&gt; Number of NAs:</span></span>
-<span id="cb248-31"><a href="imputation-missing-data.html#cb248-31" tabindex="-1"></a><span class="co">#&gt; Sepal.Length  Sepal.Width Petal.Length  Petal.Width      Species </span></span>
-<span id="cb248-32"><a href="imputation-missing-data.html#cb248-32" tabindex="-1"></a><span class="co">#&gt;           11           11           13           24           16 </span></span>
-<span id="cb248-33"><a href="imputation-missing-data.html#cb248-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb248-34"><a href="imputation-missing-data.html#cb248-34" tabindex="-1"></a><span class="co">#&gt;              type d.f.</span></span>
-<span id="cb248-35"><a href="imputation-missing-data.html#cb248-35" tabindex="-1"></a><span class="co">#&gt; Sepal.Length    s    2</span></span>
-<span id="cb248-36"><a href="imputation-missing-data.html#cb248-36" tabindex="-1"></a><span class="co">#&gt; Sepal.Width     s    2</span></span>
-<span id="cb248-37"><a href="imputation-missing-data.html#cb248-37" tabindex="-1"></a><span class="co">#&gt; Petal.Length    s    2</span></span>
-<span id="cb248-38"><a href="imputation-missing-data.html#cb248-38" tabindex="-1"></a><span class="co">#&gt; Petal.Width     s    2</span></span>
-<span id="cb248-39"><a href="imputation-missing-data.html#cb248-39" tabindex="-1"></a><span class="co">#&gt; Species         c    2</span></span>
-<span id="cb248-40"><a href="imputation-missing-data.html#cb248-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb248-41"><a href="imputation-missing-data.html#cb248-41" tabindex="-1"></a><span class="co">#&gt; Transformation of Target Variables Forced to be Linear</span></span>
-<span id="cb248-42"><a href="imputation-missing-data.html#cb248-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb248-43"><a href="imputation-missing-data.html#cb248-43" tabindex="-1"></a><span class="co">#&gt; R-squares for Predicting Non-Missing Values for Each Variable</span></span>
-<span id="cb248-44"><a href="imputation-missing-data.html#cb248-44" tabindex="-1"></a><span class="co">#&gt; Using Last Imputations of Predictors</span></span>
-<span id="cb248-45"><a href="imputation-missing-data.html#cb248-45" tabindex="-1"></a><span class="co">#&gt; Sepal.Length  Sepal.Width Petal.Length  Petal.Width      Species </span></span>
-<span id="cb248-46"><a href="imputation-missing-data.html#cb248-46" tabindex="-1"></a><span class="co">#&gt;        0.907        0.660        0.978        0.963        0.993</span></span>
-<span id="cb248-47"><a href="imputation-missing-data.html#cb248-47" tabindex="-1"></a></span>
-<span id="cb248-48"><a href="imputation-missing-data.html#cb248-48" tabindex="-1"></a><span class="co"># check imputed variable Sepal.Length</span></span>
-<span id="cb248-49"><a href="imputation-missing-data.html#cb248-49" tabindex="-1"></a>impute_arg<span class="sc">$</span>imputed<span class="sc">$</span>Sepal.Length</span>
-<span id="cb248-50"><a href="imputation-missing-data.html#cb248-50" tabindex="-1"></a><span class="co">#&gt;     [,1] [,2] [,3] [,4] [,5]</span></span>
-<span id="cb248-51"><a href="imputation-missing-data.html#cb248-51" tabindex="-1"></a><span class="co">#&gt; 19   5.2  5.2  5.2  5.8  5.7</span></span>
-<span id="cb248-52"><a href="imputation-missing-data.html#cb248-52" tabindex="-1"></a><span class="co">#&gt; 21   5.1  5.0  5.1  5.7  5.4</span></span>
-<span id="cb248-53"><a href="imputation-missing-data.html#cb248-53" tabindex="-1"></a><span class="co">#&gt; 31   4.8  5.0  5.2  5.0  4.8</span></span>
-<span id="cb248-54"><a href="imputation-missing-data.html#cb248-54" tabindex="-1"></a><span class="co">#&gt; 35   4.6  4.9  4.9  4.9  4.8</span></span>
-<span id="cb248-55"><a href="imputation-missing-data.html#cb248-55" tabindex="-1"></a><span class="co">#&gt; 49   5.0  5.1  5.1  5.1  5.1</span></span>
-<span id="cb248-56"><a href="imputation-missing-data.html#cb248-56" tabindex="-1"></a><span class="co">#&gt; 62   6.2  5.7  6.0  6.4  5.6</span></span>
-<span id="cb248-57"><a href="imputation-missing-data.html#cb248-57" tabindex="-1"></a><span class="co">#&gt; 65   5.5  5.5  5.2  5.8  5.5</span></span>
-<span id="cb248-58"><a href="imputation-missing-data.html#cb248-58" tabindex="-1"></a><span class="co">#&gt; 67   6.5  5.8  5.8  6.3  6.5</span></span>
-<span id="cb248-59"><a href="imputation-missing-data.html#cb248-59" tabindex="-1"></a><span class="co">#&gt; 82   5.2  5.1  5.7  5.8  5.5</span></span>
-<span id="cb248-60"><a href="imputation-missing-data.html#cb248-60" tabindex="-1"></a><span class="co">#&gt; 113  6.4  6.5  7.4  7.2  6.3</span></span>
-<span id="cb248-61"><a href="imputation-missing-data.html#cb248-61" tabindex="-1"></a><span class="co">#&gt; 122  6.2  5.8  5.5  5.8  6.7</span></span></code></pre></div>
+<div class="sourceCode" id="cb251"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb251-1"><a href="imputation-missing-data.html#cb251-1" tabindex="-1"></a><span class="fu">library</span>(Hmisc)</span>
+<span id="cb251-2"><a href="imputation-missing-data.html#cb251-2" tabindex="-1"></a><span class="co"># impute with mean value</span></span>
+<span id="cb251-3"><a href="imputation-missing-data.html#cb251-3" tabindex="-1"></a>iris.mis<span class="sc">$</span>imputed_age <span class="ot">&lt;-</span> <span class="fu">with</span>(iris.mis, <span class="fu">impute</span>(Sepal.Length, mean))</span>
+<span id="cb251-4"><a href="imputation-missing-data.html#cb251-4" tabindex="-1"></a></span>
+<span id="cb251-5"><a href="imputation-missing-data.html#cb251-5" tabindex="-1"></a><span class="co"># impute with random value</span></span>
+<span id="cb251-6"><a href="imputation-missing-data.html#cb251-6" tabindex="-1"></a>iris.mis<span class="sc">$</span>imputed_age2 <span class="ot">&lt;-</span></span>
+<span id="cb251-7"><a href="imputation-missing-data.html#cb251-7" tabindex="-1"></a>  <span class="fu">with</span>(iris.mis, <span class="fu">impute</span>(Sepal.Length, <span class="st">'random'</span>))</span>
+<span id="cb251-8"><a href="imputation-missing-data.html#cb251-8" tabindex="-1"></a></span>
+<span id="cb251-9"><a href="imputation-missing-data.html#cb251-9" tabindex="-1"></a><span class="co"># could also use min, max, median to impute missing value</span></span>
+<span id="cb251-10"><a href="imputation-missing-data.html#cb251-10" tabindex="-1"></a></span>
+<span id="cb251-11"><a href="imputation-missing-data.html#cb251-11" tabindex="-1"></a><span class="co"># using argImpute</span></span>
+<span id="cb251-12"><a href="imputation-missing-data.html#cb251-12" tabindex="-1"></a>impute_arg <span class="ot">&lt;-</span></span>
+<span id="cb251-13"><a href="imputation-missing-data.html#cb251-13" tabindex="-1"></a>  <span class="co"># argImpute() automatically identifies the variable type </span></span>
+<span id="cb251-14"><a href="imputation-missing-data.html#cb251-14" tabindex="-1"></a>  <span class="co"># and treats them accordingly.</span></span>
+<span id="cb251-15"><a href="imputation-missing-data.html#cb251-15" tabindex="-1"></a>  <span class="fu">aregImpute</span>(</span>
+<span id="cb251-16"><a href="imputation-missing-data.html#cb251-16" tabindex="-1"></a>    <span class="sc">~</span> Sepal.Length <span class="sc">+</span> Sepal.Width <span class="sc">+</span> Petal.Length <span class="sc">+</span> Petal.Width <span class="sc">+</span></span>
+<span id="cb251-17"><a href="imputation-missing-data.html#cb251-17" tabindex="-1"></a>      Species,</span>
+<span id="cb251-18"><a href="imputation-missing-data.html#cb251-18" tabindex="-1"></a>    <span class="at">data =</span> iris.mis,</span>
+<span id="cb251-19"><a href="imputation-missing-data.html#cb251-19" tabindex="-1"></a>    <span class="at">n.impute =</span> <span class="dv">5</span></span>
+<span id="cb251-20"><a href="imputation-missing-data.html#cb251-20" tabindex="-1"></a>  ) </span>
+<span id="cb251-21"><a href="imputation-missing-data.html#cb251-21" tabindex="-1"></a><span class="co">#&gt; Iteration 1 </span></span>
+<span id="cb251-22"><a href="imputation-missing-data.html#cb251-22" tabindex="-1"></a>Iteration <span class="dv">2</span> </span>
+<span id="cb251-23"><a href="imputation-missing-data.html#cb251-23" tabindex="-1"></a>Iteration <span class="dv">3</span> </span>
+<span id="cb251-24"><a href="imputation-missing-data.html#cb251-24" tabindex="-1"></a>Iteration <span class="dv">4</span> </span>
+<span id="cb251-25"><a href="imputation-missing-data.html#cb251-25" tabindex="-1"></a>Iteration <span class="dv">5</span> </span>
+<span id="cb251-26"><a href="imputation-missing-data.html#cb251-26" tabindex="-1"></a>Iteration <span class="dv">6</span> </span>
+<span id="cb251-27"><a href="imputation-missing-data.html#cb251-27" tabindex="-1"></a>Iteration <span class="dv">7</span> </span>
+<span id="cb251-28"><a href="imputation-missing-data.html#cb251-28" tabindex="-1"></a>Iteration <span class="dv">8</span> </span>
+<span id="cb251-29"><a href="imputation-missing-data.html#cb251-29" tabindex="-1"></a></span>
+<span id="cb251-30"><a href="imputation-missing-data.html#cb251-30" tabindex="-1"></a>impute_arg <span class="co"># R-squares are for predicted missing values.</span></span>
+<span id="cb251-31"><a href="imputation-missing-data.html#cb251-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb251-32"><a href="imputation-missing-data.html#cb251-32" tabindex="-1"></a><span class="co">#&gt; Multiple Imputation using Bootstrap and PMM</span></span>
+<span id="cb251-33"><a href="imputation-missing-data.html#cb251-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb251-34"><a href="imputation-missing-data.html#cb251-34" tabindex="-1"></a><span class="co">#&gt; aregImpute(formula = ~Sepal.Length + Sepal.Width + Petal.Length + </span></span>
+<span id="cb251-35"><a href="imputation-missing-data.html#cb251-35" tabindex="-1"></a><span class="co">#&gt;     Petal.Width + Species, data = iris.mis, n.impute = 5)</span></span>
+<span id="cb251-36"><a href="imputation-missing-data.html#cb251-36" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb251-37"><a href="imputation-missing-data.html#cb251-37" tabindex="-1"></a><span class="co">#&gt; n: 150   p: 5    Imputations: 5      nk: 3 </span></span>
+<span id="cb251-38"><a href="imputation-missing-data.html#cb251-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb251-39"><a href="imputation-missing-data.html#cb251-39" tabindex="-1"></a><span class="co">#&gt; Number of NAs:</span></span>
+<span id="cb251-40"><a href="imputation-missing-data.html#cb251-40" tabindex="-1"></a><span class="co">#&gt; Sepal.Length  Sepal.Width Petal.Length  Petal.Width      Species </span></span>
+<span id="cb251-41"><a href="imputation-missing-data.html#cb251-41" tabindex="-1"></a><span class="co">#&gt;           11           11           13           24           16 </span></span>
+<span id="cb251-42"><a href="imputation-missing-data.html#cb251-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb251-43"><a href="imputation-missing-data.html#cb251-43" tabindex="-1"></a><span class="co">#&gt;              type d.f.</span></span>
+<span id="cb251-44"><a href="imputation-missing-data.html#cb251-44" tabindex="-1"></a><span class="co">#&gt; Sepal.Length    s    2</span></span>
+<span id="cb251-45"><a href="imputation-missing-data.html#cb251-45" tabindex="-1"></a><span class="co">#&gt; Sepal.Width     s    2</span></span>
+<span id="cb251-46"><a href="imputation-missing-data.html#cb251-46" tabindex="-1"></a><span class="co">#&gt; Petal.Length    s    2</span></span>
+<span id="cb251-47"><a href="imputation-missing-data.html#cb251-47" tabindex="-1"></a><span class="co">#&gt; Petal.Width     s    2</span></span>
+<span id="cb251-48"><a href="imputation-missing-data.html#cb251-48" tabindex="-1"></a><span class="co">#&gt; Species         c    2</span></span>
+<span id="cb251-49"><a href="imputation-missing-data.html#cb251-49" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb251-50"><a href="imputation-missing-data.html#cb251-50" tabindex="-1"></a><span class="co">#&gt; Transformation of Target Variables Forced to be Linear</span></span>
+<span id="cb251-51"><a href="imputation-missing-data.html#cb251-51" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb251-52"><a href="imputation-missing-data.html#cb251-52" tabindex="-1"></a><span class="co">#&gt; R-squares for Predicting Non-Missing Values for Each Variable</span></span>
+<span id="cb251-53"><a href="imputation-missing-data.html#cb251-53" tabindex="-1"></a><span class="co">#&gt; Using Last Imputations of Predictors</span></span>
+<span id="cb251-54"><a href="imputation-missing-data.html#cb251-54" tabindex="-1"></a><span class="co">#&gt; Sepal.Length  Sepal.Width Petal.Length  Petal.Width      Species </span></span>
+<span id="cb251-55"><a href="imputation-missing-data.html#cb251-55" tabindex="-1"></a><span class="co">#&gt;        0.907        0.660        0.978        0.963        0.993</span></span>
+<span id="cb251-56"><a href="imputation-missing-data.html#cb251-56" tabindex="-1"></a></span>
+<span id="cb251-57"><a href="imputation-missing-data.html#cb251-57" tabindex="-1"></a><span class="co"># check imputed variable Sepal.Length</span></span>
+<span id="cb251-58"><a href="imputation-missing-data.html#cb251-58" tabindex="-1"></a>impute_arg<span class="sc">$</span>imputed<span class="sc">$</span>Sepal.Length</span>
+<span id="cb251-59"><a href="imputation-missing-data.html#cb251-59" tabindex="-1"></a><span class="co">#&gt;     [,1] [,2] [,3] [,4] [,5]</span></span>
+<span id="cb251-60"><a href="imputation-missing-data.html#cb251-60" tabindex="-1"></a><span class="co">#&gt; 19   5.2  5.2  5.2  5.8  5.7</span></span>
+<span id="cb251-61"><a href="imputation-missing-data.html#cb251-61" tabindex="-1"></a><span class="co">#&gt; 21   5.1  5.0  5.1  5.7  5.4</span></span>
+<span id="cb251-62"><a href="imputation-missing-data.html#cb251-62" tabindex="-1"></a><span class="co">#&gt; 31   4.8  5.0  5.2  5.0  4.8</span></span>
+<span id="cb251-63"><a href="imputation-missing-data.html#cb251-63" tabindex="-1"></a><span class="co">#&gt; 35   4.6  4.9  4.9  4.9  4.8</span></span>
+<span id="cb251-64"><a href="imputation-missing-data.html#cb251-64" tabindex="-1"></a><span class="co">#&gt; 49   5.0  5.1  5.1  5.1  5.1</span></span>
+<span id="cb251-65"><a href="imputation-missing-data.html#cb251-65" tabindex="-1"></a><span class="co">#&gt; 62   6.2  5.7  6.0  6.4  5.6</span></span>
+<span id="cb251-66"><a href="imputation-missing-data.html#cb251-66" tabindex="-1"></a><span class="co">#&gt; 65   5.5  5.5  5.2  5.8  5.5</span></span>
+<span id="cb251-67"><a href="imputation-missing-data.html#cb251-67" tabindex="-1"></a><span class="co">#&gt; 67   6.5  5.8  5.8  6.3  6.5</span></span>
+<span id="cb251-68"><a href="imputation-missing-data.html#cb251-68" tabindex="-1"></a><span class="co">#&gt; 82   5.2  5.1  5.7  5.8  5.5</span></span>
+<span id="cb251-69"><a href="imputation-missing-data.html#cb251-69" tabindex="-1"></a><span class="co">#&gt; 113  6.4  6.5  7.4  7.2  6.3</span></span>
+<span id="cb251-70"><a href="imputation-missing-data.html#cb251-70" tabindex="-1"></a><span class="co">#&gt; 122  6.2  5.8  5.5  5.8  6.7</span></span></code></pre></div>
 </div>
 <div id="mi" class="section level3" number="11.6.8">
 <h3>
@@ -1526,7 +1630,7 @@ mice_plot &lt;- aggr(iris.mis, col=c('navyblue','yellow'),
 <li>automatically detects irregularities in data (e.g., high collinearity among variables).</li>
 <li>adds noise to imputation process to solve the problem of additive constraints.</li>
 </ol>
-<div class="sourceCode" id="cb249"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb252"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.stat.columbia.edu/~gelman/">mi</a></span><span class="op">)</span></span>
 <span><span class="co"># default values of parameters</span></span>
 <span><span class="co"># 1. rand.imp.method as “bootstrap”</span></span>
@@ -1599,7 +1703,7 @@ mice_plot &lt;- aggr(iris.mis, col=c('navyblue','yellow'),
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2023-08-12.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2023-08-20.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">
