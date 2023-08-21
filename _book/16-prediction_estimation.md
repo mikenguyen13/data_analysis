@@ -12,13 +12,11 @@ In high dimension, you always have weak to strong collinearity. Hence, your esti
 
 -   If two functions are similar in output space, you can still do prediction, but you can't do estimation because of exploded standard errors.
 
-![](images/prediction_causation.PNG){style="display: block; margin: 1em auto" width="90%"}
+![](images/prediction_causation.PNG){style="display: block; margin: 1em auto" width="600" height="350"}
 
 (SICSS 2018 - Sendhil Mullainathan's presentation slide)
 
 Selective Labels Problem ([The Selective Labels Problem: Evaluating Algorithmic Predictions in the Presence of Unobservables](https://cs.stanford.edu/~jure/pubs/contraction-kdd17.pdf))
-
-<br>
 
 Recall Linear Regression \@ref(linear-regression) OLS estimates
 

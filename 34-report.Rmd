@@ -35,8 +35,6 @@ Structure
 
     -   How to correct those in the future
 
-<br>
-
 This chapter is based on the `jtools` package. More information can be found [here.](https://www.rdocumentation.org/packages/jtools/versions/2.1.0)
 
 ## One summary table

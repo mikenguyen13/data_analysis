@@ -103,7 +103,7 @@ abline(v = 0.2)
 
 <img src="14-hypothesis_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
 
-![](images/nested_tests.jpg){style="display: block; margin: 1em auto" width="90%"}
+![](images/nested_tests.jpg){style="display: block; margin: 1em auto" width="600" height="400"}
 
 Figure from[@fox1997applied]
 
@@ -173,7 +173,7 @@ Three equivalent ways
 
 3.  Confidence Interval
 
-1.  Critical Value
+4.  Critical Value
 
 For a given significance level, will determine the critical value $(c)$
 

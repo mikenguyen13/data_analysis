@@ -278,7 +278,7 @@ Including $(X_i \theta)$ just shifts around control variables (i.e., reweighting
 
     -   Minimization [@pocock1975sequential]
 
-[![Figure from USC Schaeffer Center](images/The-Randomization-Procedure.png "Figure from USC Schaeffer Center")](https://healthpolicy.usc.edu/evidence-base/rerandomization-what-is-it-and-why-should-you-use-it-for-random-assignment/)
+[![Figure from USC Schaeffer Center](images/The-Randomization-Procedure.png "Figure from USC Schaeffer Center"){width="600" height="500"}](https://healthpolicy.usc.edu/evidence-base/rerandomization-what-is-it-and-why-should-you-use-it-for-random-assignment/)
 
 Rerandomization Criterion
 

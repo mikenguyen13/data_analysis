@@ -41,7 +41,7 @@ best to use when you have values in a fixed interval.
 -   Variables have positively skewed distribution
 
 | Formula                                             | In case                                  |
-|-------------------------------|--------------------------------|
+|----------------------------------------|--------------------------------|
 | $x_i' = \log(x_i)$                                  | cannot work zero because `log(0) = -Inf` |
 | $x_i' = \log(x_i + 1)$                              | variables with 0                         |
 | $x_i' = \log(x_i +c)$                               |                                          |

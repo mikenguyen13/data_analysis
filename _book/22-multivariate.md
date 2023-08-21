@@ -1429,9 +1429,8 @@ stress <- data.frame(
 )
 ```
 
-
- * If independent = time with 3 levels -> univariate ANOVA (require sphericity assumption (i.e., the variances for all differences are equal))
- * If each level of independent time as a separate variable -> MANOVA (does not require sphericity assumption)
+-   If independent = time with 3 levels -\> univariate ANOVA (require sphericity assumption (i.e., the variances for all differences are equal))
+-   If each level of independent time as a separate variable -\> MANOVA (does not require sphericity assumption)
 
 
 ```r
@@ -2136,7 +2135,7 @@ summary(profile_fit)
 
 ### Summary
 
-![](images/MANOVA_summary.PNG "MANOVA summary"){style="display: block; margin: 1em auto" width="90%"}
+![](images/MANOVA_summary.PNG "MANOVA summary"){style="display: block; margin: 1em auto" width="600" height="400"}
 
 ## Principal Components {#principal-components}
 
@@ -3835,7 +3834,7 @@ For binary classification, confusion matrix
 and table 4.6 from [@james2013]
 
 | Name             | Definition | Synonyms                                      |
-|------------------|------------------|-------------------------------------|
+|------------------|------------------|-----------------------------------|
 | False Pos rate   | FP/N       | Type I error, 1 0 Specificity                 |
 | True Pos. rate   | TP/P       | 1 - Type II error, power, sensitivity, recall |
 | Pos Pred. value  | TP/P\*     | Precision, 1 - false discovery promotion      |

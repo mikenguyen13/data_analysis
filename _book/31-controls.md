@@ -1530,4 +1530,4 @@ library(sensemakr)
 
 In simple cases, we can follow the simple rules of thumb provided by @steinmetz2022meta (p. 614, Fig 2)
 
-![](images/control_var_decision.png){width="90%"}
+![](images/control_var_decision.png){width="600" height="400"}

@@ -1193,4 +1193,4 @@ teal line = tree-specific predictions with random effects
 
 ## Summary
 
-![](images/umbrella_of_models.PNG){style="display: block; margin: 1em auto" width="100%"}
+![](images/umbrella_of_models.PNG){width="600" height="400"}

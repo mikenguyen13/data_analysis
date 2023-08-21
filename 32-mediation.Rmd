@@ -51,7 +51,7 @@ $$
 $b_4$ needs to be either smaller or insignificant.
 
 | The effect of $X$ on $Y$                           | then, $M$ ... mediates between $X$ and $Y$ |
-|----------------------------------|---------------------------------|
+|---------------------------------------|---------------------------------|
 | completely disappear ($b_4$ insignificant)         | Fully (i.e., full mediation)               |
 | partially disappear ($b_4$ smaller than in step 1) | Partially (i.e., partial mediation)        |
 

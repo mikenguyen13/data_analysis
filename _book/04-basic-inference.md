@@ -137,14 +137,14 @@ and $s/\sqrt{n}$ is the standard error of $\bar{y}$
 If the experiment were repeated many times, $100(1-\alpha) \%$ of these intervals would contain $\mu$
 
 |                                                         | Confidence Interval $100(1-\alpha)%$              | Sample Sizes Confidence $\alpha$, Error $d$     | Hypothesis Testing Test Statistic           |
-|------------------|------------------|------------------|------------------|
+|--------------------|------------------|------------------|------------------|
 | When $\sigma^2$ is known, X is normal (or $n \ge 25$)   | $\bar{X} \pm z_{\alpha/2}\frac{\sigma}{\sqrt{n}}$ | $n \approx \frac{z_{\alpha/2}^2 \sigma^2}{d^2}$ | $z = \frac{\bar{X}-\mu_0}{\sigma/\sqrt{n}}$ |
 | When $\sigma^2$ is unknown, X is normal (or $n \ge 25$) | $\bar{X} \pm t_{\alpha/2}\frac{s}{\sqrt{n}}$      | $n \approx \frac{z_{\alpha/2}^2 s^2}{d^2}$      | $t = \frac{\bar{X}-\mu_0}{s/\sqrt{n}}$      |
 
 #### For Difference of Means ($\mu_1-\mu_2$), Independent Samples
 
 |                                                       | $100(1-\alpha)%$ Confidence Interval                                                         | Hypothesis Testing Test Statistic                                                                       |                                                                                                                                                        |
-|-------------|-----------------------|------------------|------------------|
+|----------------|----------------|-----------------|------------------------|
 | When $\sigma^2$ is known                              | $\bar{X}_1 - \bar{X}_2 \pm z_{\alpha/2}\sqrt{\frac{\sigma^2_1}{n_1}+\frac{\sigma^2_2}{n_2}}$ | $z= \frac{(\bar{X}_1-\bar{X}_2)-(\mu_1-\mu_2)_0}{\sqrt{\frac{\sigma^2_1}{n_1}+\frac{\sigma^2_2}{n_2}}}$ |                                                                                                                                                        |
 | When $\sigma^2$ is unknown, Variances Assumed EQUAL   | $\bar{X}_1 - \bar{X}_2 \pm t_{\alpha/2}\sqrt{s^2_p(\frac{1}{n_1}+\frac{1}{n_2})}$            | $t = \frac{(\bar{X}_1-\bar{X}_2)-(\mu_1-\mu_2)_0}{\sqrt{s^2_p(\frac{1}{n_1}+\frac{1}{n_2})}}$           | Pooled Variance: $s_p^2 = \frac{(n_1 -1)s^2_1 - (n_2-1)s^2_2}{n_1 + n_2 -2}$ Degrees of Freedom: $\gamma = n_1 + n_2 -2$                               |
 | When $\sigma^2$ is unknown, Variances Assumed UNEQUAL | $\bar{X}_1 - \bar{X}_2 \pm t_{\alpha/2}\sqrt{(\frac{s^2_1}{n_1}+\frac{s^2_2}{n_2})}$         | $t = \frac{(\bar{X}_1-\bar{X}_2)-(\mu_1-\mu_2)_0}{\sqrt{(\frac{s^2_1}{n_1}+\frac{s^2_2}{n_2})}}$        | Degrees of Freedom: $\gamma = \frac{(\frac{s_1^2}{n_1}+\frac{s^2_2}{n_2})^2}{\frac{(\frac{s_1^2}{n_1})^2}{n_1-1}+\frac{(\frac{s_2^2}{n_2})^2}{n_2-1}}$ |
@@ -241,9 +241,9 @@ $$
 
 ### Single Proportion (p)
 
-| Confidence Interval $100(1-\alpha)%$                          | Sample Sizes Confidence $\alpha$, Error d (prior estimate for $\hat{p}$)  | (No prior estimate for $\hat{p}$)       | Hypothesis Testing Test Statistic                     |
-|------------------|------------------|------------------|------------------|
-| $\hat{p} \pm z_{\alpha/2}\sqrt{\frac{\hat{p}(1-\hat{p})}{n}}$ | $n \approx \frac{z_{\alpha/2}^2 \hat{p}(1-\hat{p})}{d^2}$                 | $n \approx \frac{z_{\alpha/2}^2}{4d^2}$ | $z = \frac{\hat{p}-p_0}{\sqrt{\frac{p_0(1-p_0)}{n}}}$ |
+| Confidence Interval $100(1-\alpha)%$                          | Sample Sizes Confidence $\alpha$, Error d (prior estimate for $\hat{p}$) | (No prior estimate for $\hat{p}$)       | Hypothesis Testing Test Statistic                     |
+|------------------|---------------------|-----------------|-----------------|
+| $\hat{p} \pm z_{\alpha/2}\sqrt{\frac{\hat{p}(1-\hat{p})}{n}}$ | $n \approx \frac{z_{\alpha/2}^2 \hat{p}(1-\hat{p})}{d^2}$                | $n \approx \frac{z_{\alpha/2}^2}{4d^2}$ | $z = \frac{\hat{p}-p_0}{\sqrt{\frac{p_0(1-p_0)}{n}}}$ |
 
 ### Power
 
@@ -621,18 +621,18 @@ we reject $H_0$ if $|t| > t_{n_y + n_x -2;\alpha/2}$
 **Assumptions**
 
 1.  Two samples are independent\
-    1. Scatter plots\
-    2. [Correlation coefficient (if normal)][Correlation Coefficient with Normal Probability Plots]
+    1.  Scatter plots\
+    2.  [Correlation coefficient (if normal)][Correlation Coefficient with Normal Probability Plots]
 2.  Independence of observation in each sample\
-    1. Test for serial correlation\
+    1.  Test for serial correlation\
 3.  For each sample, homogeneity of variance\
-    1. Scatter plots\
-    2. Formal tests\
+    1.  Scatter plots\
+    2.  Formal tests\
 4.  [Normality][Normality Assessment]\
 5.  Equality of variances (homogeneity of variance between samples)\
-    1. [F-test]\
-    2. Barlett test\
-    3. [Modified Levene Test]
+    1.  [F-test]\
+    2.  Barlett test\
+    3.  [Modified Levene Test]
 
 To compare 2 normal $\sigma^2_y \neq \sigma^2_x$, we use the test statistic:
 
@@ -695,7 +695,7 @@ Where $F>f_{n_y -1,n_x -1,\alpha/2}$ and $F<f_{n_y -1,n_x -1,1-\alpha/2}$ are th
 
 -   This test depends heavily on the assumption Normality.\
 -   In particular, it could give to many significant results when observations come from long-tailed distributions (i.e., positive kurtosis).\
--   If we cannot find support for [normality][Normality Assessment], then we can use nonparametric tests such as the [Modified Levene Test (Brown-Forsythe Test)]
+-   If we cannot find support for [normality][Normality Assessment], then we can use nonparametric tests such as the [Modified Levene Test (Brown-Forsythe Test)](#modified-levene-test-brown-forsythe-test)
 
 
 ```r
@@ -717,7 +717,7 @@ var.test(irisVe,irisVi)
 #>          0.5184243
 ```
 
-#### Modified Levene Test (Brown-Forsythe Test)
+#### Modified Levene Test (Brown-Forsythe Test) {#modified-levene-test-brown-forsythe-test}
 
 -   considers averages of absolute deviations rather than squared deviations. Hence, less sensitive to long-tailed distributions.\
 -   This test is still good for normal data

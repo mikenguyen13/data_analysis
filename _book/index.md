@@ -33,8 +33,6 @@ always_allow_html: yes
 
 <img src="images/cover.jpg" class="cover" width="250" height="328"/> This guide is an attempt to streamline and demystify the data analysis process. By no means this is the ultimate guide, or I am a great source of knowledge, or I claim myself to be a statistician/ econometrician, but I am a strong proponent of learning by teaching, and doing. Hence, this is more like a learning experience for both you and me. This book is completely free. My target audiences are those who have little to no experience in statistics and data science to those that have some interests in these fields and want to dive deeper and have a more holistic method. Even though my substantive domain of interest is marketing, this book can be used for other disciplines that use scientific methods or data analysis.
 
-
-
 <img src="logo.png" width="25%" style="display: block; margin: auto;" />
 
 More books by the author can be found [here](https://mikenguyen.netlify.app/books/written_books/):
@@ -69,7 +67,7 @@ But to laymen, these are known as:
 
 It's all fun and exciting when I learned these new tools. But I have to admit that I hardly retain any of these new ideas. However, writing down from the beginning till the end of a data analysis process is the solution that I came up with. Accordingly, let's dive right in.
 
-<img src="images/meme.jpg" width="90%" style="display: block; margin: auto;" />
+![](images/meme.jpg){width="600" height="500"}
 
 
 
@@ -98,8 +96,6 @@ It's all fun and exciting when I learned these new tools. But I have to admit th
 -   Computer Science
 -   Numerical Analysis
 -   Database Management
-
-
 
 
 
@@ -244,8 +240,6 @@ This book was built with R version 4.2.3 (2023-03-15 ucrt) and the following pac
 |xtable       |1.8-4      |CRAN (R 4.2.3) |
 |yaml         |2.3.7      |CRAN (R 4.2.3) |
 |zip          |2.3.0      |CRAN (R 4.2.3) |
-
-
 
 
 

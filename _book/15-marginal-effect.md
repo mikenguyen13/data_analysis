@@ -58,7 +58,7 @@ Marginal effects for
 -   continuous variables are the change in $E[Y|X]$ for very small changes in $X$ (not unit changes), because it's a derivative, which is a limit when $h \to 0$
 
 |                  | Analytical derivation | Numerical derivation                                   |
-|------------------|------------------|-------------------------------------|
+|-----------------|-----------------|---------------------------------------|
 | Marginal Effects | Rules of expectations | Approximate analytical solution                        |
 | Standard Errors  | Rules of variances    | Delta method using the asymptotic errors (vcov matrix) |
 
@@ -333,9 +333,8 @@ comparisons(mod, variables = list(am = 0:1)) %>% summary()
 
 -   Marginal effects are partial derivative of the regression equation with respect to each variable in the model for each unit in the data
 
-```{=html}
 <!-- -->
-```
+
 -   Average Partial Effects: the contribution of each variable the outcome scale, conditional on the other variables involved in the link function transformation of the linear predictor
 
 -   Average Marginal Effects: the marginal contribution of each variable on the scale of the linear predictor.

@@ -23,7 +23,7 @@ The conclusion we want to make from data is counterfactuals: **What would have h
 
 To teach a robot to make inference, we need inference engine
 
-![p. 12 [@Pearl_2018]](images/Figure%20I.png "Inference Engine"){style="display: block; margin: 1em auto" width="90%"}
+![p. 12 [@Pearl_2018]](images/Figure%20I.png "Inference Engine"){style="display: block; margin: 1em auto" width="600" height="400"}
 
 Levels of cognitive ability to be a causal learner:
 
@@ -313,7 +313,7 @@ Instead of estimating the treatment effects of those who **receive** the treatme
 
 -   Using random treatment assignment as an instrument, we can recover the effect of treatment on compliers.
 
-![](images/iv_late.PNG){width="100%"}
+![](images/iv_late.PNG){width="600" height="360"}
 
 -   As the percent of compliers increases, [Intent-to-treat Effects] and [Local Average Treatment Effects] converge
 

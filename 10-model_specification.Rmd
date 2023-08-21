@@ -103,8 +103,6 @@ $$
 -   In the log model, the larger in y is, the effect of x is stronger (i.e., one unit change in $x_1$ could increase y from 1 to $1+\beta_1$ or from 100 to 100+100x$\beta_1$)
 -   Cannot compare $R^2$ or $R^2_{adj}$ because the outcomes are complement different, the scaling is different (SST is different)
 
-<br>
-
 We need to "un-transform" the $ln(y)$ back to the same scale as y and then compare,
 
 1.  Estimate the model in the log equation to obtain the predicted outcome $\hat{ln(y)}$
