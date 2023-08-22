@@ -1,7 +1,7 @@
 ---
 title: "A Guide on Data Analysis"
 author: "Mike Nguyen"
-date: "2023-08-21"
+date: "2023-08-22"
 header-includes:
   - \usepackage{titling}
   - \pretitle{\begin{center}
@@ -35,12 +35,31 @@ always_allow_html: yes
 
 <img src="images/cover.jpg" class="cover" width="250" height="328"/> This guide is an attempt to streamline and demystify the data analysis process. By no means this is the ultimate guide, or I am a great source of knowledge, or I claim myself to be a statistician/ econometrician, but I am a strong proponent of learning by teaching, and doing. Hence, this is more like a learning experience for both you and me. This book is completely free. My target audiences are those who have little to no experience in statistics and data science to those that have some interests in these fields and want to dive deeper and have a more holistic method. Even though my substantive domain of interest is marketing, this book can be used for other disciplines that use scientific methods or data analysis.
 
-
 ::: {style="text-align:center"}
 ![](logo.png){width="300" height="300"}
 :::
 
 
+
+## How to cite this book {.unnumbered}
+
+**1. APA (7th edition):**
+
+Nguyen, M. (2020). *A Guide on Data Analysis*. Bookdown. [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
+
+**2. MLA (8th edition):**
+
+Nguyen, Mike. *A Guide on Data Analysis*. Bookdown, 2020. [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
+
+**3. Chicago (17th edition):**
+
+Nguyen, Mike. 2020. *A Guide on Data Analysis*. Bookdown. [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
+
+**4. Harvard:**
+
+Nguyen, M. (2020) *A Guide on Data Analysis*. Bookdown. Available at: [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
+
+## More books {.unnumbered}
 
 More books by the author can be found [here](https://mikenguyen.netlify.app/books/written_books/):
 
