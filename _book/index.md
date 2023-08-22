@@ -1,7 +1,7 @@
 ---
 title: "A Guide on Data Analysis"
 author: "Mike Nguyen"
-date: "2023-08-20"
+date: "2023-08-21"
 header-includes:
   - \usepackage{titling}
   - \pretitle{\begin{center}
@@ -31,9 +31,16 @@ always_allow_html: yes
 
 
 
+
+
 <img src="images/cover.jpg" class="cover" width="250" height="328"/> This guide is an attempt to streamline and demystify the data analysis process. By no means this is the ultimate guide, or I am a great source of knowledge, or I claim myself to be a statistician/ econometrician, but I am a strong proponent of learning by teaching, and doing. Hence, this is more like a learning experience for both you and me. This book is completely free. My target audiences are those who have little to no experience in statistics and data science to those that have some interests in these fields and want to dive deeper and have a more holistic method. Even though my substantive domain of interest is marketing, this book can be used for other disciplines that use scientific methods or data analysis.
 
-<img src="logo.png" width="25%" style="display: block; margin: auto;" />
+
+::: {style="text-align:center"}
+![](logo.png){width="300" height="300"}
+:::
+
+
 
 More books by the author can be found [here](https://mikenguyen.netlify.app/books/written_books/):
 
@@ -67,7 +74,9 @@ But to laymen, these are known as:
 
 It's all fun and exciting when I learned these new tools. But I have to admit that I hardly retain any of these new ideas. However, writing down from the beginning till the end of a data analysis process is the solution that I came up with. Accordingly, let's dive right in.
 
-![](images/meme.jpg){width="600" height="500"}
+::: {style="text-align:center"}
+![](images/meme.jpg){width="450" height="350"}
+:::
 
 
 
@@ -255,7 +264,7 @@ This book was built with R version 4.2.3 (2023-03-15 ucrt) and the following pac
 #>  collate  English_United States.utf8
 #>  ctype    English_United States.utf8
 #>  tz       America/Los_Angeles
-#>  date     2023-08-20
+#>  date     2023-08-21
 #>  pandoc   3.1.1 @ C:/Program Files/RStudio/resources/app/bin/quarto/bin/tools/ (via rmarkdown)
 #> 
 #> ─ Packages ───────────────────────────────────────────────────────────────────

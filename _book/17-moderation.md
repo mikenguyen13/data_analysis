@@ -790,11 +790,11 @@ summ(model_2)
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> F(3,196) </td>
-   <td style="text-align:right;"> 1.77 </td>
+   <td style="text-align:right;"> 1.57 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> R² </td>
-   <td style="text-align:right;"> 0.03 </td>
+   <td style="text-align:right;"> 0.02 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> Adj. R² </td>
@@ -814,31 +814,31 @@ summ(model_2)
 <tbody>
   <tr>
    <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.20 </td>
-   <td style="text-align:right;"> 0.45 </td>
-   <td style="text-align:right;"> 0.44 </td>
-   <td style="text-align:right;"> 0.66 </td>
+   <td style="text-align:right;"> -1.12 </td>
+   <td style="text-align:right;"> 0.50 </td>
+   <td style="text-align:right;"> -2.27 </td>
+   <td style="text-align:right;"> 0.02 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> x_2 </td>
-   <td style="text-align:right;"> 0.52 </td>
-   <td style="text-align:right;"> 0.26 </td>
-   <td style="text-align:right;"> 1.99 </td>
-   <td style="text-align:right;"> 0.05 </td>
+   <td style="text-align:right;"> 0.28 </td>
+   <td style="text-align:right;"> 0.27 </td>
+   <td style="text-align:right;"> 1.04 </td>
+   <td style="text-align:right;"> 0.30 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> w </td>
-   <td style="text-align:right;"> 0.37 </td>
-   <td style="text-align:right;"> 0.63 </td>
-   <td style="text-align:right;"> 0.59 </td>
-   <td style="text-align:right;"> 0.55 </td>
+   <td style="text-align:right;"> 1.42 </td>
+   <td style="text-align:right;"> 0.71 </td>
+   <td style="text-align:right;"> 2.00 </td>
+   <td style="text-align:right;"> 0.05 </td>
   </tr>
   <tr>
    <td style="text-align:left;font-weight: bold;"> x_2:w </td>
-   <td style="text-align:right;"> -0.75 </td>
-   <td style="text-align:right;"> 0.36 </td>
-   <td style="text-align:right;"> -2.07 </td>
-   <td style="text-align:right;"> 0.04 </td>
+   <td style="text-align:right;"> -0.23 </td>
+   <td style="text-align:right;"> 0.40 </td>
+   <td style="text-align:right;"> -0.58 </td>
+   <td style="text-align:right;"> 0.56 </td>
   </tr>
 </tbody>
 <tfoot><tr><td style="padding: 0; " colspan="100%">

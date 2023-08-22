@@ -98,10 +98,10 @@ summary(results)
 #> Nonparametric Bootstrap Confidence Intervals with the Percentile Method
 #> 
 #>                Estimate 95% CI Lower 95% CI Upper p-value    
-#> ACME             0.3565       0.2206         0.54  <2e-16 ***
-#> ADE              0.0396      -0.1729         0.27    0.81    
-#> Total Effect     0.3961       0.1686         0.62  <2e-16 ***
-#> Prop. Mediated   0.9000       0.4924         1.93  <2e-16 ***
+#> ACME             0.3565       0.2020         0.52  <2e-16 ***
+#> ADE              0.0396      -0.1839         0.29     0.7    
+#> Total Effect     0.3961       0.1709         0.66  <2e-16 ***
+#> Prop. Mediated   0.9000       0.5063         1.95  <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 

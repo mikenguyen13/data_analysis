@@ -283,7 +283,7 @@ DCdensity(x,0)
 <img src="24-regression-discontinuity_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```
-#> [1] 0.3208292
+#> [1] 0.6126802
 
 #Discontinuity
 x<-runif(1000,-1,1)
@@ -294,7 +294,7 @@ DCdensity(x,0)
 <img src="24-regression-discontinuity_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```
-#> [1] 0.003623126
+#> [1] 0.0008519227
 ```
 
 @cattaneo2019practical test

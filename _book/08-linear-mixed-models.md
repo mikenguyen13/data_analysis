@@ -1398,7 +1398,7 @@ exactRLRT(sp_model)
 #> 	(p-value based on 10000 simulated values)
 #> 
 #> data:  
-#> RLRT = 6.1118, p-value = 0.0097
+#> RLRT = 6.1118, p-value = 0.0087
 ```
 
 Since the p-value is significant, we reject $H_0$
@@ -1709,7 +1709,7 @@ mixed_model_bayes <-
     )
 summary(mixed_model_bayes)$solutions
 #>             post.mean l-95% CI u-95% CI eff.samp pMCMC
-#> (Intercept)  60.39993 60.06017 60.65108     1000 0.001
+#> (Intercept)  60.40449  60.2055 60.66595     1000 0.001
 ```
 
 this method offers the confidence interval slightly more positive than `lmer` and `lmerTest`

@@ -1,6 +1,8 @@
 # Linear Regression
 
-![](images/econometrics.PNG){width="600" height="250"}
+::: {style="text-align:center"}
+![](images/econometrics.PNG){width="450" height="200"}
+:::
 
 -   Estimating parameters -\> parametric (finite parameters)
 -   Estimating functions -\> non-parametric
@@ -879,7 +881,7 @@ $$
 where $H_1 = \frac{1}{n} J = 1'(1'1)1$
 
 | Source     | SS                                    | df      | MS           | F          |
-|--------------|----------------|--------------|--------------|--------------|
+|---------------|---------------|---------------|---------------|---------------|
 | Regression | $SSR = \mathbf{y' (H-\frac{1}{n}J)y}$ | $p - 1$ | $SSR/(p-1)$  | $MSR /MSE$ |
 | Error      | $SSE = \mathbf{y'(I - H)y}$           | $n - p$ | $SSE /(n-p)$ |            |
 | Total      | $\mathbf{y'y - y'Jy/n}$               | $n -1$  |              |            |
@@ -976,7 +978,7 @@ With A3 (Exogeneity of Independent), linearity can be restrictive
 ##### Log Model
 
 | Model       | Form                                         | Interpretation of $\beta$             | In words                                                              |
-|-----------------|------------------|-----------------|--------------------|
+|------------------|------------------|------------------|-------------------|
 | Level-Level | $y =\beta_0+\beta_1x+\epsilon$               | $\Delta y = \beta_1 \Delta x$         | A unit change in $x$ will result in $\beta_1$ unit change in $y$      |
 | Log-Level   | $ln(y) = \beta_0 + \beta_1x + \epsilon$      | $\% \Delta y=100 \beta_1 \Delta x$    | A unit change in $x$ result in 100 $\beta_1$ % change in $y$          |
 | Level-Log   | $y = \beta _0 + \beta_1 ln (x) + \epsilon$   | $\Delta y = (\beta_1/ 100)\%\Delta x$ | One percent change in $x$ result in $\beta_1/100$ units change in $y$ |
@@ -1418,7 +1420,7 @@ $$
 **Hierarchy of OLS Assumptions**
 
 | Identification Data Description | Unbiasedness Consistency  | [Gauss- Markov](#gauss-%20markov-theorem) (BLUE) Asymptotic Inference (z and Chi-squared) | Classical LM (BUE) Small-sample Inference (t and F) |
-|-----------------|-----------------|---------------------|-------------------|
+|------------------|------------------|--------------------|------------------|
 | Variation in $\mathbf{X}$       | Variation in $\mathbf{X}$ | Variation in $\mathbf{X}$                                                                 | Variation in $\mathbf{X}$                           |
 |                                 | Random Sampling           | Random Sampling                                                                           | Random Sampling                                     |
 |                                 | Linearity in Parameters   | Linearity in Parameters                                                                   | Linearity in Parameters                             |

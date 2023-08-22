@@ -80,9 +80,9 @@ Note:
 data = rnorm(100)
 library(e1071)
 skewness(data)
-#> [1] 0.04265524
+#> [1] -0.2046225
 kurtosis(data)
-#> [1] -0.3776931
+#> [1] -0.6313715
 ```
 
 ## Graphical Measures
@@ -194,7 +194,7 @@ $$\hat{p}=\frac{\sum_{i-1}^{n}(y_i-\bar{y})(x_i-\bar{x})}{(\sum_{i=1}^{n}(y_{i}-
 ```r
 library("EnvStats")
 gofTest(data,test="ppcc")$p.value #Probability Plot Correlation Coefficient 
-#> [1] 0.6205284
+#> [1] 0.383608
 ```
 
 ##### Shapiro-Wilk Test
@@ -210,7 +210,7 @@ where $a_1,..,a_n$ are weights computed from the covariance matrix for the order
 
 ```r
 gofTest(data,test="sw")$p.value #Shapiro-Wilk is the default.
-#> [1] 0.5488102
+#> [1] 0.3132036
 ```
 
 #### Methods based on empirical cumulative distribution function
@@ -265,7 +265,7 @@ Consult [@Stephens_1974] for more detailed transformation and critical values.
 
 ```r
 gofTest(data,test="ad")$p.value #Anderson-Darling
-#> [1] 0.5593503
+#> [1] 0.1961768
 ```
 
 ##### Kolmogorov-Smirnov Test
@@ -276,7 +276,7 @@ gofTest(data,test="ad")$p.value #Anderson-Darling
 
 ```r
 gofTest(data,test="ks")$p.value #Komogorov-Smirnov 
-#> [1] 0.9496145
+#> [1] 0.6694967
 ```
 
 ##### Cramer-von Mises Test
@@ -286,7 +286,7 @@ gofTest(data,test="ks")$p.value #Komogorov-Smirnov
 
 ```r
 gofTest(data,test="cvm")$p.value #Cramer-von Mises
-#> [1] 0.6239709
+#> [1] 0.1820569
 ```
 
 ##### Jarque--Bera Test {#jarquebera-test}
@@ -369,17 +369,17 @@ data = data.frame(A = sample(1:20, replace = TRUE, size = n),
 ```r
 library(Hmisc)
 rcorr(data$A, data$B, type="pearson") 
-#>     x   y
-#> x 1.0 0.1
-#> y 0.1 1.0
+#>      x    y
+#> x 1.00 0.17
+#> y 0.17 1.00
 #> 
 #> n= 100 
 #> 
 #> 
 #> P
 #>   x      y     
-#> x        0.3288
-#> y 0.3288
+#> x        0.0878
+#> y 0.0878
 ```
 
 ### Spearman Correlation
@@ -389,16 +389,16 @@ rcorr(data$A, data$B, type="pearson")
 library(Hmisc)
 rcorr(data$A, data$B, type="spearman") 
 #>      x    y
-#> x 1.00 0.11
-#> y 0.11 1.00
+#> x 1.00 0.18
+#> y 0.18 1.00
 #> 
 #> n= 100 
 #> 
 #> 
 #> P
-#>   x      y     
-#> x        0.2747
-#> y 0.2747
+#>   x    y   
+#> x      0.08
+#> y 0.08
 ```
 
 ## Categorical and Continuous

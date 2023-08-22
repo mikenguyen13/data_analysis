@@ -587,7 +587,7 @@ estat_test <-
     )
 estat_test$multivariateNormality
 #>          Test Statistic p value MVN
-#> 1 E-statistic  1.091101   0.525 YES
+#> 1 E-statistic  1.091101   0.532 YES
 ```
 
 ### Mean Vector Inference
@@ -4167,15 +4167,15 @@ knn_2 <- knn(X_train, X_train, Y_train, k = 2)
 table(truth = Y_train, fitted = knn_2)
 #>             fitted
 #> truth        Clover Corn Cotton Soybeans Sugarbeets
-#>   Clover          8    0      3        0          0
-#>   Corn            0    5      0        2          0
-#>   Cotton          0    0      3        0          3
+#>   Clover          7    0      2        1          1
+#>   Corn            0    7      0        0          0
+#>   Cotton          0    0      4        0          2
 #>   Soybeans        0    0      0        4          2
-#>   Sugarbeets      0    0      2        1          3
+#>   Sugarbeets      1    0      2        0          3
 
 ## Accuracy
 mean(Y_train==knn_2)
-#> [1] 0.6388889
+#> [1] 0.6944444
 
 ## Performance on test data
 knn_2_test <- knn(X_train, X_test, Y_train, k = 2)
@@ -4197,10 +4197,10 @@ knn_3 <- knn(X_train, X_train, Y_train, k = 3)
 table(truth = Y_train, fitted = knn_3)
 #>             fitted
 #> truth        Clover Corn Cotton Soybeans Sugarbeets
-#>   Clover          6    0      2        3          0
-#>   Corn            0    6      0        1          0
-#>   Cotton          1    0      4        1          0
-#>   Soybeans        1    1      0        3          1
+#>   Clover          8    0      1        1          1
+#>   Corn            0    4      1        2          0
+#>   Cotton          1    1      3        0          1
+#>   Soybeans        0    1      1        4          0
 #>   Sugarbeets      0    0      0        2          4
 
 ## Accuracy
@@ -4235,15 +4235,15 @@ step <- stepclass(
     method = "qda",
     improvement = 0.15
 )
-#> correctness rate: 0.45833;  in: "y1";  variables (1): y1 
+#> correctness rate: 0.45;  in: "y1";  variables (1): y1 
 #> 
 #>  hr.elapsed min.elapsed sec.elapsed 
-#>        0.00        0.00        0.14
+#>        0.00        0.00        0.16
 
 step$process
 #>    step var varname result.pm
-#> 0 start   0      -- 0.0000000
-#> 1    in   1      y1 0.4583333
+#> 0 start   0      --      0.00
+#> 1    in   1      y1      0.45
 
 step$performance.measure
 #> [1] "correctness rate"
