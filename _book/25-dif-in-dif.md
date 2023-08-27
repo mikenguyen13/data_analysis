@@ -491,7 +491,7 @@ When applying TWFE to multiple groups and multiple periods, the supposedly causa
 
 The canonical/standard TWFE only works when
 
--   Effects are homogeneous across units and across time periods (i.e., no dynamic changes in the effects of treatment). See [@goodman2021difference; @de2020two; @sun2021estimating; @borusyak2021revisiting] for details.
+-   Effects are homogeneous across units and across time periods (i.e., no dynamic changes in the effects of treatment). See [@goodman2021difference; @de2020two; @sun2021estimating; @borusyak2021revisiting] for details. Relatedly, it relies on the assumption of **linear additive effects** [@imai2021use]
 
     -   Have to argue why treatment heterogeneity is not a problem (e.g., plot treatment timing and decompose treatment coefficient using [Goodman-Bacon Decomposition]) know the percentage of observation are never treated (because as the never-treated group increases, the bias of TWFE decreases, with 80% sample to be never-treated, bias is negligible). The problem is worsen when you have long-run effects.
 
@@ -541,7 +541,7 @@ Under the following assumption, $\hat{\tau}_{OLS}$ is unbiased:
 2.  parallel trends assumptions
 3.  linear additive effects [@imai2021use]
 
-Remedies for TWFE's shortcomings
+**Remedies for TWFE's shortcomings**
 
 -   [@goodman2021difference]: diagnostic robustness tests of the TWFE DiD and identify influential observations to the DiD estimate ([Goodman-Bacon Decomposition])
 
@@ -1363,6 +1363,777 @@ ggplot(df_bacon) +
 
 With time-varying controls that can identify variation within-treatment timing group, the"early vs. late" and "late vs. early" estimates collapse to just one estimate (i.e., both treated).
 
+#### DID with in and out treatment condition
+
+@imai2021use
+
+This case generalizes the staggered adoption setting, allowing units to vary in treatment over time. For $N$ units across $T$ time periods (with potentially unbalanced panels), let $X_{it}$ represent treatment and $Y_{it}$ the outcome for unit $i$ at time $t$. We use the two-way linear fixed effects model:
+
+$$
+Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
+$$
+
+for $i = 1, \dots, N$ and $t = 1, \dots, T$. Here, $\alpha_i$ and $\gamma_t$ are unit and time fixed effects. They capture time-invariant unit-specific and unit-invariant time-specific unobserved confounders, respectively. We can express these as $\alpha_i = h(\mathbf{U}_i)$ and $\gamma_t = f(\mathbf{V}_t)$, with $\mathbf{U}_i$ and $\mathbf{V}_t$ being the confounders. The model doesn't assume a specific form for $h(.)$ and $f(.)$, but that they're additive and separable given binary treatment.
+
+The least squares estimate of $\beta$ leverages the covariance in outcome and treatment [@imai2021use, p. 406]. Specifically, it uses the within-unit and within-time variations. Many researchers prefer the two fixed effects (2FE) estimator because it adjusts for both types of unobserved confounders without specific functional-form assumptions, but this is wrong [@imai2019should]. We do need functional-form assumption (i.e., linearity assumption) for the 2FE to work [@imai2021use, p. 406]
+
+-   **Two-Way Matching Estimator**:
+
+    -   It can lead to mismatches; units with the same treatment status get matched when estimating counterfactual outcomes.
+
+    -   Observations need to be matched with opposite treatment status for correct causal effects estimation.
+
+    -   Mismatches can cause attenuation bias.
+
+    -   The 2FE estimator adjusts for this bias using the factor $K$, which represents the net proportion of proper matches between observations with opposite treatment status.
+
+-   **Weighting in 2FE**:
+
+    -   Observation $(i,t)$ is weighted based on how often it acts as a control unit.
+
+    -   The weighted 2FE estimator still has mismatches, but fewer than the standard 2FE estimator.
+
+    -   Adjustments are made based on observations that neither belong to the same unit nor the same time period as the matched observation.
+
+    -   This means there are challenges in adjusting for unit-specific and time-specific unobserved confounders under the two-way fixed effect framework.
+
+-   **Equivalence & Assumptions**:
+
+    -   Equivalence between the 2FE estimator and the DID estimator is dependent on the linearity assumption.
+
+    -   The multi-period DiD estimator is described as an average of two-time-period, two-group DiD estimators applied during changes from control to treatment.
+
+-   **Comparison with DiD**:
+
+    -   In simple settings (two time periods, treatment given to one group in the second period), the standard nonparametric DiD estimator equals the 2FE estimator.
+
+    -   This doesn't hold in multi-period DiD designs where units change treatment status multiple times at different intervals.
+
+    -   Contrary to popular belief, the unweighted 2FE estimator isn't generally equivalent to the multi-period DiD estimator.
+
+    -   While the multi-period DiD can be equivalent to the weighted 2FE, some control observations may have negative regression weights.
+
+-   **Conclusion**:
+
+    -   Justifying the 2FE estimator as the DID estimator isn't warranted without imposing the linearity assumption.
+
+**Application [@imai2021matching]**
+
+-   **Matching Methods**:
+
+    -   Enhance the validity of causal inference.
+
+    -   Reduce model dependence and provide intuitive diagnostics [@ho2007matching]
+
+    -   Rarely utilized in analyzing time series cross-sectional data.
+
+    -   The proposed matching estimators are more robust than the standard two-way fixed effects estimator, which can be biased if mis-specified
+
+    -   Better than synthetic controls (e.g., [@xu2017generalized]) because it needs less data to achieve good performance and and adapt the the context of unit switching treatment status multiple times.
+
+-   Notes:
+
+    -   Potential carryover effects (treatment may have a long-term effect), leading to post-treatment bias.
+
+-   **Proposed Approach**:
+
+    1.  Treated observations are matched with control observations from other units in the same time period with the same treatment history up to a specified number of lags.
+
+    2.  Standard matching and weighting techniques are employed to further refine the matched set.
+
+    3.  Apply a DiD estimator to adjust for time trend.
+
+    4.  The goal is to have treated and matched control observations with similar covariate values.
+
+-   **Assessment**:
+
+    -   The quality of matches is evaluated through covariate balancing.
+
+-   **Estimation**:
+
+    -   Both short-term and long-term average treatment effects on the treated (ATT) are estimated.
+
+
+```r
+library(PanelMatch)
+```
+
+**Treatment Variation plot**
+
+-   Visualize the variation of the treatment across space and time
+
+-   Aids in discerning whether the treatment fluctuates adequately over time and units or if the variation is primarily clustered in a subset of data.
+
+
+```r
+DisplayTreatment(
+    unit.id = "wbcode2",
+    time.id = "year",
+    legend.position = "none",
+    xlab = "year",
+    ylab = "Country Code",
+    treatment = "dem",
+    
+    hide.x.tick.label = TRUE, hide.y.tick.label = TRUE, 
+    # dense.plot = TRUE,
+    data = dem
+)
+```
+
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;" />
+
+1.  Select $F$ (i.e., the number of leads - time periods after treatment). Driven by what authors are interested in estimating:
+
+-   $F = 0$ is the contemporaneous effect (short-term effect)
+
+-   $F = n$ is the the treatment effect on the outcome two time periods after the treatment. (cumulative or long-term effect)
+
+2.  Select $L$ (number of lags to adjust).
+
+-   Driven by the identification assumption.
+
+-   Balances bias-variance tradeoff.
+
+-   Higher $L$ values increase credibility but reduce efficiency by limiting potential matches.
+
+**Model assumption**:
+
+-   No spillover effect assumed.
+
+-   Carryover effect allowed up to $L$ periods.
+
+-   Potential outcome for a unit depends neither on others' treatment status nor on its past treatment after $L$ periods.
+
+After defining causal quantity with parameters $L$ and $F$.
+
+-   Focus on the average treatment effect of treatment status change.
+-   $\delta(F,L)$ is the average causal effect of treatment change (ATT), $F$ periods post-treatment, considering treatment history up to $L$ periods.
+-   Causal quantity considers potential future treatment reversals, meaning treatment could revert to control before outcome measurement.
+
+Also possible to estimate the average treatment effect of treatment reversal on the reversed (ART).
+
+Choose $L,F$ based on specific needs.
+
+-   A large $L$ value:
+
+    -   Increases the credibility of the limited carryover effect assumption.
+
+    -   Allows more past treatments (up to $t−L$) to influence the outcome $Y_{i,t+F}$.
+
+    -   Might reduce the number of matches and lead to less precise estimates.
+
+-   Selecting an appropriate number of lags
+
+    -   Researchers should base this choice on substantive knowledge.
+
+    -   Sensitivity of empirical results to this choice should be examined.
+
+-   The choice of $F$ should be:
+
+    -   Substantively motivated.
+
+    -   Decides whether the interest lies in short-term or long-term causal effects.
+
+    -   A large $F$ value can complicate causal effect interpretation, especially if many units switch treatment status during the $F$ lead time period.
+
+**Identification Assumption**
+
+-   Parallel trend assumption conditioned on treatment, outcome (excluding immediate lag), and covariate histories.
+
+-   Doesn't require strong unconfoundedness assumption.
+
+-   Cannot account for unobserved time-varying confounders.
+
+-   Essential to examine outcome time trends.
+
+    -   Check if they're parallel between treated and matched control units using pre-treatment data
+
+-   **Constructing the Matched Sets**:
+
+    -   For each treated observation, create matched control units with identical treatment history from $t−L$ to $t−1$.
+
+    -   Matching based on treatment history helps control for carryover effects.
+
+    -   Past treatments often act as major confounders, but this method can correct for it.
+
+    -   Exact matching on time period adjusts for time-specific unobserved confounders.
+
+    -   Unlike staggered adoption methods, units can change treatment status multiple times.
+
+    -   Matched set allows treatment switching in and out of treatment
+
+-   **Refining the Matched Sets**:
+
+    -   Initially, matched sets adjust only for treatment history.
+
+    -   Parallel trend assumption requires adjustments for other confounders like past outcomes and covariates.
+
+    -   Matching methods:
+
+        -   Match each treated observation with up to $J$ control units.
+
+        -   Distance measures like Mahalanobis distance or propensity score can be used.
+
+        -   Match based on estimated propensity score, considering pretreatment covariates.
+
+        -   Refined matched set selects most similar control units based on observed confounders.
+
+    -   Weighting methods:
+
+        -   Assign weight to each control unit in a matched set.
+
+        -   Weights prioritize more similar units.
+
+        -   Inverse propensity score weighting method can be applied.
+
+        -   Weighting is a more generalized method than matching.
+
+**The Difference-in-Differences Estimator**:
+
+-   Using refined matched sets, the ATT (Average Treatment Effect on the Treated) of policy change is estimated.
+
+-   For each treated observation, estimate the counterfactual outcome using the weighted average of control units in the refined set.
+
+-   The DiD estimate of the ATT is computed for each treated observation, then averaged across all such observations.
+
+-   For noncontemporaneous treatment effects where $F > 0$:
+
+    -   The ATT doesn't specify future treatment sequence.
+
+    -   Matched control units might have units receiving treatment between time $t$ and $t + F$.
+
+    -   Some treated units could return to control conditions between these times.
+
+**Checking Covariate Balance**:
+
+-   The proposed methodology offers the advantage of checking covariate balance between treated and matched control observations.
+
+-   This check helps to see if treated and matched control observations are comparable with respect to observed confounders.
+
+-   Once matched sets are refined, covariate balance examination becomes straightforward.
+
+-   Examine the mean difference of each covariate between a treated observation and its matched controls for each pretreatment time period.
+
+-   Standardize this difference using the standard deviation of each covariate across all treated observations in the dataset.
+
+-   Aggregate this covariate balance measure across all treated observations for each covariate and pretreatment time period.
+
+-   Examine balance for lagged outcome variables over multiple pretreatment periods and time-varying covariates.
+
+    -   This helps evaluate the validity of the parallel trend assumption underlying the proposed DiD estimator.
+
+**\
+Relations with Linear Fixed Effects Regression Estimators**:
+
+-   The standard DiD estimator is equivalent to the linear two-way fixed effects regression estimator when:
+
+    -   Only two time periods exist.
+
+    -   Treatment is given to some units exclusively in the second period.
+
+-   This equivalence doesn't extend to multiperiod DiD designs, where:
+
+    -   More than two time periods are considered.
+
+    -   Units might receive treatment multiple times.
+
+-   Despite this, many researchers relate the use of the two-way fixed effects estimator to the DiD design.
+
+**Standard Error Calculation**:
+
+-   Approach:
+
+    -   Condition on the weights implied by the matching process.
+
+    -   These weights denote how often an observation is utilized in matching [@imbens2015causal]
+
+-   Context:
+
+    -   Analogous to the conditional variance seen in regression models.
+
+    -   Resulting standard errors don't factor in uncertainties around the matching procedure.
+
+    -   They can be viewed as a measure of uncertainty conditional upon the matching process [@ho2007matching].
+
+**Key Findings**:
+
+-   Even in conditions favoring OLS, the proposed matching estimator displayed higher robustness to omitted relevant lags than the linear regression model with fixed effects.
+
+-   The robustness offered by matching came at a cost - reduced statistical power.
+
+-   This emphasizes the classic statistical tradeoff between bias (where matching has an advantage) and variance (where regression models might be more efficient).
+
+**Data Requirements**
+
+-   The treatment variable is binary:
+
+    -   0 signifies "assignment" to control.
+
+    -   1 signifies assignment to treatment.
+
+-   Variables identifying units in the data must be: Numeric or integer.
+
+-   Variables identifying time periods should be: Consecutive numeric/integer data.
+
+-   Data format requirement: Must be provided as a standard `data.frame` object.
+
+Basic functions:
+
+1.  Utilize treatment histories to create matching sets of treated and control units.
+
+2.  Refine these matched sets by determining weights for each control unit in the set.
+
+    -   Units with higher weights have a larger influence during estimations.
+
+**Matching on Treatment History**:
+
+-   Goal is to match units transitioning from untreated to treated status with control units that have similar past treatment histories.
+
+-   Setting the Quantity of Interest (`qoi =`)
+
+    -   `att` average treatment effect on treated units
+
+    -   `atc` average treatment effect of treatment on the control units
+
+    -   `art` average effect of treatment reversal for units that experience treatment reversal
+
+    -   `ate` average treatment effect
+
+
+```r
+# All examples follow the package's vignette
+# Create the matched sets
+PM.results.none <-
+    PanelMatch(
+        lag = 4,
+        time.id = "year",
+        unit.id = "wbcode2",
+        treatment = "dem",
+        refinement.method = "none",
+        data = dem,
+        match.missing = TRUE,
+        size.match = 5,
+        qoi = "att",
+        outcome.var = "y",
+        lead = 0:4,
+        forbid.treatment.reversal = FALSE,
+        use.diagonal.variance.matrix = TRUE
+    )
+
+# visualize the treated unit and matched controls
+DisplayTreatment(
+    unit.id = "wbcode2",
+    time.id = "year",
+    legend.position = "none",
+    xlab = "year",
+    ylab = "Country Code",
+    treatment = "dem",
+    data = dem,
+    matched.set = PM.results.none$att[1],
+    # highlight the particular set
+    show.set.only = TRUE
+)
+```
+
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
+
+Control units and the treated unit have identical treatment histories over the lag window (1988-1991)
+
+
+```r
+DisplayTreatment(
+    unit.id = "wbcode2",
+    time.id = "year",
+    legend.position = "none",
+    xlab = "year",
+    ylab = "Country Code",
+    treatment = "dem",
+    data = dem,
+    matched.set = PM.results.none$att[2],
+    # highlight the particular set
+    show.set.only = TRUE
+)
+```
+
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;" />
+
+This set is more limited than the first one, but we can still see that we have exact past histories.
+
+-   **Refining Matched Sets**
+
+    -   Refinement involves assigning weights to control units.
+
+    -   Users must:
+
+        1.  Specify a method for calculating unit similarity/distance.
+
+        2.  Choose variables for similarity/distance calculations.
+
+-   **Select a Refinement Method**
+
+    -   Users determine the refinement method via the **`refinement.method`** argument.
+
+    -   Options include:
+
+        -   `mahalanobis`
+
+        -   `ps.match`
+
+        -   `CBPS.match`
+
+        -   `ps.weight`
+
+        -   `CBPS.weight`
+
+        -   `ps.msm.weight`
+
+        -   `CBPS.msm.weight`
+
+        -   `none`
+
+    -   Methods with "match" in the name and mahalanobis will assign equal weights to similar control units.
+
+    -   "Weighting" methods give higher weights to control units more similar to treated units.
+
+-   **Variable Selection**
+
+    -   Users need to define which covariates will be used through the **`covs.formula`** argument, a one-sided formula object.
+
+    -   Variables on the right side of the formula are used for calculations.
+
+    -   "Lagged" versions of variables can be included using the format: **`I(lag(name.of.var, 0:n))`**.
+
+-   **Understanding PanelMatch and matched.set objects**
+
+    -   The **PanelMatch function** returns a **PanelMatch object**.
+
+    -   The most crucial element within the PanelMatch object is the **matched.set object**.
+
+    -   Within the PanelMatch object, the matched.set object will have names like att, art, or atc.
+
+    -   If **`qoi = ate`**, there will be two matched.set objects: att and atc.
+
+-   **Matched.set Object Details**
+
+    -   matched.set is a named list with added attributes.
+
+    -   Attributes include:
+
+        -   Lag
+
+        -   Names of treatment
+
+        -   Unit and time variables
+
+    -   Each list entry represents a matched set of treated and control units.
+
+    -   Naming follows a structure: **`[id variable].[time variable]`**.
+
+    -   Each list element is a vector of control unit ids that match the treated unit mentioned in the element name.
+
+    -   Since it's a matching method, weights are only given to the **`size.match`** most similar control units based on distance calculations.
+
+
+```r
+# PanelMatch without any refinement
+PM.results.none <-
+    PanelMatch(
+        lag = 4,
+        time.id = "year",
+        unit.id = "wbcode2",
+        treatment = "dem",
+        refinement.method = "none",
+        data = dem,
+        match.missing = TRUE,
+        size.match = 5,
+        qoi = "att",
+        outcome.var = "y",
+        lead = 0:4,
+        forbid.treatment.reversal = FALSE,
+        use.diagonal.variance.matrix = TRUE
+    )
+
+# Extract the matched.set object
+msets.none <- PM.results.none$att
+
+# PanelMatch with refinement
+PM.results.maha <-
+    PanelMatch(
+        lag = 4,
+        time.id = "year",
+        unit.id = "wbcode2",
+        treatment = "dem",
+        refinement.method = "mahalanobis", # use Mahalanobis distance
+        data = dem,
+        match.missing = TRUE,
+        covs.formula = ~ tradewb,
+        size.match = 5,
+        qoi = "att" ,
+        outcome.var = "y",
+        lead = 0:4,
+        forbid.treatment.reversal = FALSE,
+        use.diagonal.variance.matrix = TRUE
+    )
+msets.maha <- PM.results.maha$att
+```
+
+
+```r
+# these 2 should be identical because weights are not shown
+msets.none |> head()
+#>   wbcode2 year matched.set.size
+#> 1       4 1992               74
+#> 2       4 1997                2
+#> 3       6 1973               63
+#> 4       6 1983               73
+#> 5       7 1991               81
+#> 6       7 1998                1
+msets.maha |> head()
+#>   wbcode2 year matched.set.size
+#> 1       4 1992               74
+#> 2       4 1997                2
+#> 3       6 1973               63
+#> 4       6 1983               73
+#> 5       7 1991               81
+#> 6       7 1998                1
+# summary(msets.none)
+# summary(msets.maha)
+```
+
+**Visualizing Matched Sets with the plot method**
+
+-   Users can visualize the distribution of the matched set sizes.
+
+-   A red line, by default, indicates the count of matched sets where treated units had no matching control units (i.e., empty matched sets).
+
+-   Plot adjustments can be made using **`graphics::plot`**.
+
+
+```r
+plot(msets.none)
+```
+
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
+
+**Comparing Methods of Refinement**
+
+-   Users are encouraged to:
+
+    -   Use substantive knowledge for experimentation and evaluation.
+
+    -   Consider the following when configuring PanelMatch:
+
+        1.  The number of matched sets.
+
+        2.  The number of controls matched to each treated unit.
+
+        3.  Achieving covariate balance.
+
+    -   **Note**: Large numbers of small matched sets can lead to larger standard errors during the estimation stage.
+
+    -   Covariates that aren't well balanced can lead to undesirable comparisons between treated and control units.
+
+    -   Aspects to consider include:
+
+        -   Refinement method.
+
+        -   Variables for weight calculation.
+
+        -   Size of the lag window.
+
+        -   Procedures for addressing missing data (refer to **`match.missing`** and **`listwise.delete`** arguments).
+
+        -   Maximum size of matched sets (for matching methods).
+
+-   **Supportive Features:**
+
+    -   **`print`**, **`plot`**, and **`summary`** methods assist in understanding matched sets and their sizes.
+
+    -   **`get_covariate_balance`** helps evaluate covariate balance:
+
+        -   Lower values in the covariate balance calculations are preferred.
+
+
+```r
+PM.results.none <-
+    PanelMatch(
+        lag = 4,
+        time.id = "year",
+        unit.id = "wbcode2",
+        treatment = "dem",
+        refinement.method = "none",
+        data = dem,
+        match.missing = TRUE,
+        size.match = 5,
+        qoi = "att",
+        outcome.var = "y",
+        lead = 0:4,
+        forbid.treatment.reversal = FALSE,
+        use.diagonal.variance.matrix = TRUE
+    )
+PM.results.maha <-
+    PanelMatch(
+        lag = 4,
+        time.id = "year",
+        unit.id = "wbcode2",
+        treatment = "dem",
+        refinement.method = "mahalanobis",
+        data = dem,
+        match.missing = TRUE,
+        covs.formula = ~ I(lag(tradewb, 1:4)) + I(lag(y, 1:4)),
+        size.match = 5,
+        qoi = "att",
+        outcome.var = "y",
+        lead = 0:4,
+        forbid.treatment.reversal = FALSE,
+        use.diagonal.variance.matrix = TRUE
+    )
+
+# listwise deletion used for missing data
+PM.results.listwise <-
+    PanelMatch(
+        lag = 4,
+        time.id = "year",
+        unit.id = "wbcode2",
+        treatment = "dem",
+        refinement.method = "mahalanobis",
+        data = dem,
+        match.missing = FALSE,
+        listwise.delete = TRUE,
+        covs.formula = ~ I(lag(tradewb, 1:4)) + I(lag(y, 1:4)),
+        size.match = 5,
+        qoi = "att",
+        outcome.var = "y",
+        lead = 0:4,
+        forbid.treatment.reversal = FALSE,
+        use.diagonal.variance.matrix = TRUE
+    )
+
+# propensity score based weighting method
+PM.results.ps.weight <-
+    PanelMatch(
+        lag = 4,
+        time.id = "year",
+        unit.id = "wbcode2",
+        treatment = "dem",
+        refinement.method = "ps.weight",
+        data = dem,
+        match.missing = FALSE,
+        listwise.delete = TRUE,
+        covs.formula = ~ I(lag(tradewb, 1:4)) + I(lag(y, 1:4)),
+        size.match = 5,
+        qoi = "att",
+        outcome.var = "y",
+        lead = 0:4,
+        forbid.treatment.reversal = FALSE
+    )
+
+get_covariate_balance(
+    PM.results.none$att,
+    data = dem,
+    covariates = c("tradewb", "y"),
+    plot = FALSE
+)
+#>         tradewb            y
+#> t_4 -0.07245466  0.291871990
+#> t_3 -0.20930129  0.208654876
+#> t_2 -0.24425207  0.107736647
+#> t_1 -0.10806125 -0.004950238
+
+get_covariate_balance(
+    PM.results.maha$att,
+    data = dem,
+    covariates = c("tradewb", "y"),
+    plot = FALSE
+)
+#>         tradewb          y
+#> t_4  0.04558637 0.09701606
+#> t_3 -0.03312750 0.10844046
+#> t_2 -0.01396793 0.08890753
+#> t_1  0.10474894 0.06618865
+
+
+get_covariate_balance(
+    PM.results.listwise$att,
+    data = dem,
+    covariates = c("tradewb", "y"),
+    plot = FALSE
+)
+#>         tradewb          y
+#> t_4  0.05634922 0.05223623
+#> t_3 -0.01104797 0.05217896
+#> t_2  0.01411473 0.03094133
+#> t_1  0.06850180 0.02092209
+
+get_covariate_balance(
+    PM.results.ps.weight$att,
+    data = dem,
+    covariates = c("tradewb", "y"),
+    plot = FALSE
+)
+#>         tradewb          y
+#> t_4 0.014362590 0.04035905
+#> t_3 0.005529734 0.04188731
+#> t_2 0.009410044 0.04195008
+#> t_1 0.027907540 0.03975173
+```
+
+**get_covariate_balance Function Options:**
+
+-   Allows for the generation of plots displaying covariate balance using **`plot = TRUE`**.
+
+-   Plots can be customized using arguments typically used with the base R **`plot`** method.
+
+-   Option to set **`use.equal.weights = TRUE`** for:
+
+    -   Obtaining the balance of unrefined sets.
+
+    -   Facilitating understanding of the refinement's impact.
+
+
+```r
+# Use equal weights
+get_covariate_balance(
+    PM.results.ps.weight$att,
+    data = dem,
+    use.equal.weights = TRUE,
+    covariates = c("tradewb", "y"),
+    plot = TRUE,
+    # visualize by setting plot to TRUE
+    ylim = c(-1, 1)
+)
+```
+
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+
+# Compare covariate balance to refined sets
+# See large improvement in balance
+get_covariate_balance(
+    PM.results.ps.weight$att,
+    data = dem,
+    covariates = c("tradewb", "y"),
+    plot = TRUE,
+    # visualize by setting plot to TRUE
+    ylim = c(-1, 1)
+)
+```
+
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-21-2.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+
+balance_scatter(
+    matched_set_list = list(PM.results.maha$att,
+                            PM.results.ps.weight$att),
+    data = dem,
+    covariates = c("y", "tradewb")
+)
+```
+
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-21-3.png" width="90%" style="display: block; margin: auto;" />
+
 #### Chaisemartin-d'Haultfoeuille
 
 use `twowayfeweights` from [GitHub](https://github.com/shuo-zhang-ucsb/twowayfeweights) [@de2020two]
@@ -1551,7 +2322,7 @@ od |>
     geom_line()
 ```
 
-<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -1563,13 +2334,13 @@ prior_trend <- feols(Rate ~ i(Quarter_Num, California) | State + Quarter,
 coefplot(prior_trend)
 ```
 
-<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-14-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-23-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 iplot(prior_trend)
 ```
 
-<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-14-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-23-3.png" width="90%" style="display: block; margin: auto;" />
 
 This is alarming since one of the periods is significantly different from 0, which means that our parallel trends assumption is not plausible.
 

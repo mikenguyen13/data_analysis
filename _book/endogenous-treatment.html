@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2023-08-22" />
+<meta name="date" content="2023-08-26" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -1143,65 +1143,65 @@ P(\rho) \propto (1 - \rho^2)^c
 </ol>
 <p>Applying this Bayesian correction can give them a better estimate of the correlation between the two.</p>
 <p>To implement this calculation in R, see below</p>
-<div class="sourceCode" id="cb503"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb503-1"><a href="endogenous-treatment.html#cb503-1" tabindex="-1"></a>n_new              <span class="ot">&lt;-</span> <span class="dv">200</span></span>
-<span id="cb503-2"><a href="endogenous-treatment.html#cb503-2" tabindex="-1"></a>r_new              <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
-<span id="cb503-3"><a href="endogenous-treatment.html#cb503-3" tabindex="-1"></a>alpha              <span class="ot">&lt;-</span> <span class="fl">0.05</span></span>
-<span id="cb503-4"><a href="endogenous-treatment.html#cb503-4" tabindex="-1"></a></span>
-<span id="cb503-5"><a href="endogenous-treatment.html#cb503-5" tabindex="-1"></a>update_correlation <span class="ot">&lt;-</span> <span class="cf">function</span>(n_new, r_new, alpha) {</span>
-<span id="cb503-6"><a href="endogenous-treatment.html#cb503-6" tabindex="-1"></a>    n_meta             <span class="ot">&lt;-</span> <span class="dv">50205</span></span>
-<span id="cb503-7"><a href="endogenous-treatment.html#cb503-7" tabindex="-1"></a>    r_meta             <span class="ot">&lt;-</span> <span class="fl">0.2765</span></span>
-<span id="cb503-8"><a href="endogenous-treatment.html#cb503-8" tabindex="-1"></a>    </span>
-<span id="cb503-9"><a href="endogenous-treatment.html#cb503-9" tabindex="-1"></a>    <span class="co"># Variance</span></span>
-<span id="cb503-10"><a href="endogenous-treatment.html#cb503-10" tabindex="-1"></a>    var_xi         <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> (n_new <span class="sc">+</span> n_meta)</span>
-<span id="cb503-11"><a href="endogenous-treatment.html#cb503-11" tabindex="-1"></a>    <span class="fu">format</span>(var_xi, <span class="at">scientific =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb503-12"><a href="endogenous-treatment.html#cb503-12" tabindex="-1"></a>    </span>
-<span id="cb503-13"><a href="endogenous-treatment.html#cb503-13" tabindex="-1"></a>    <span class="co"># mean</span></span>
-<span id="cb503-14"><a href="endogenous-treatment.html#cb503-14" tabindex="-1"></a>    mu_xi          <span class="ot">&lt;-</span> var_xi <span class="sc">*</span> (n_meta <span class="sc">*</span> <span class="fu">atanh</span>(r_meta) <span class="sc">+</span> n_new <span class="sc">*</span> (<span class="fu">atanh</span>(r_new)))</span>
-<span id="cb503-15"><a href="endogenous-treatment.html#cb503-15" tabindex="-1"></a>    <span class="fu">format</span>(mu_xi, <span class="at">scientific  =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb503-16"><a href="endogenous-treatment.html#cb503-16" tabindex="-1"></a>    </span>
-<span id="cb503-17"><a href="endogenous-treatment.html#cb503-17" tabindex="-1"></a>    <span class="co"># confidence interval</span></span>
-<span id="cb503-18"><a href="endogenous-treatment.html#cb503-18" tabindex="-1"></a>    upper_xi       <span class="ot">&lt;-</span> mu_xi <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(var_xi)</span>
-<span id="cb503-19"><a href="endogenous-treatment.html#cb503-19" tabindex="-1"></a>    lower_xi       <span class="ot">&lt;-</span> mu_xi <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(var_xi)</span>
-<span id="cb503-20"><a href="endogenous-treatment.html#cb503-20" tabindex="-1"></a>    </span>
-<span id="cb503-21"><a href="endogenous-treatment.html#cb503-21" tabindex="-1"></a>    <span class="co"># rho</span></span>
-<span id="cb503-22"><a href="endogenous-treatment.html#cb503-22" tabindex="-1"></a>    mean_rho       <span class="ot">&lt;-</span> <span class="fu">tanh</span>(mu_xi)</span>
-<span id="cb503-23"><a href="endogenous-treatment.html#cb503-23" tabindex="-1"></a>    upper_rho      <span class="ot">&lt;-</span> <span class="fu">tanh</span>(upper_xi)</span>
-<span id="cb503-24"><a href="endogenous-treatment.html#cb503-24" tabindex="-1"></a>    lower_rho      <span class="ot">&lt;-</span> <span class="fu">tanh</span>(lower_xi)</span>
-<span id="cb503-25"><a href="endogenous-treatment.html#cb503-25" tabindex="-1"></a>    </span>
-<span id="cb503-26"><a href="endogenous-treatment.html#cb503-26" tabindex="-1"></a>    <span class="co"># return a list</span></span>
-<span id="cb503-27"><a href="endogenous-treatment.html#cb503-27" tabindex="-1"></a>    <span class="fu">return</span>(</span>
-<span id="cb503-28"><a href="endogenous-treatment.html#cb503-28" tabindex="-1"></a>        <span class="fu">list</span>(</span>
-<span id="cb503-29"><a href="endogenous-treatment.html#cb503-29" tabindex="-1"></a>            <span class="st">&quot;mu_xi&quot;</span> <span class="ot">=</span> mu_xi,</span>
-<span id="cb503-30"><a href="endogenous-treatment.html#cb503-30" tabindex="-1"></a>            <span class="st">&quot;var_xi&quot;</span> <span class="ot">=</span> var_xi,</span>
-<span id="cb503-31"><a href="endogenous-treatment.html#cb503-31" tabindex="-1"></a>            <span class="st">&quot;upper_xi&quot;</span> <span class="ot">=</span> upper_xi,</span>
-<span id="cb503-32"><a href="endogenous-treatment.html#cb503-32" tabindex="-1"></a>            <span class="st">&quot;lower_xi&quot;</span> <span class="ot">=</span> lower_xi,</span>
-<span id="cb503-33"><a href="endogenous-treatment.html#cb503-33" tabindex="-1"></a>            <span class="st">&quot;mean_rho&quot;</span> <span class="ot">=</span> mean_rho,</span>
-<span id="cb503-34"><a href="endogenous-treatment.html#cb503-34" tabindex="-1"></a>            <span class="st">&quot;upper_rho&quot;</span> <span class="ot">=</span> upper_rho,</span>
-<span id="cb503-35"><a href="endogenous-treatment.html#cb503-35" tabindex="-1"></a>            <span class="st">&quot;lower_rho&quot;</span> <span class="ot">=</span> lower_rho</span>
-<span id="cb503-36"><a href="endogenous-treatment.html#cb503-36" tabindex="-1"></a>        )</span>
-<span id="cb503-37"><a href="endogenous-treatment.html#cb503-37" tabindex="-1"></a>    )</span>
-<span id="cb503-38"><a href="endogenous-treatment.html#cb503-38" tabindex="-1"></a>}</span>
-<span id="cb503-39"><a href="endogenous-treatment.html#cb503-39" tabindex="-1"></a></span>
-<span id="cb503-40"><a href="endogenous-treatment.html#cb503-40" tabindex="-1"></a></span>
-<span id="cb503-41"><a href="endogenous-treatment.html#cb503-41" tabindex="-1"></a></span>
-<span id="cb503-42"><a href="endogenous-treatment.html#cb503-42" tabindex="-1"></a></span>
-<span id="cb503-43"><a href="endogenous-treatment.html#cb503-43" tabindex="-1"></a><span class="co"># Old confidence interval</span></span>
-<span id="cb503-44"><a href="endogenous-treatment.html#cb503-44" tabindex="-1"></a>r_new <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>n_new)</span>
-<span id="cb503-45"><a href="endogenous-treatment.html#cb503-45" tabindex="-1"></a><span class="co">#&gt; [1] 0.6385904</span></span>
-<span id="cb503-46"><a href="endogenous-treatment.html#cb503-46" tabindex="-1"></a>r_new <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>n_new)</span>
-<span id="cb503-47"><a href="endogenous-treatment.html#cb503-47" tabindex="-1"></a><span class="co">#&gt; [1] 0.3614096</span></span>
-<span id="cb503-48"><a href="endogenous-treatment.html#cb503-48" tabindex="-1"></a></span>
-<span id="cb503-49"><a href="endogenous-treatment.html#cb503-49" tabindex="-1"></a>testing <span class="ot">=</span> <span class="fu">update_correlation</span>(<span class="at">n_new =</span> n_new, <span class="at">r_new =</span> r_new, <span class="at">alpha =</span> alpha)</span>
-<span id="cb503-50"><a href="endogenous-treatment.html#cb503-50" tabindex="-1"></a></span>
-<span id="cb503-51"><a href="endogenous-treatment.html#cb503-51" tabindex="-1"></a><span class="co"># Updated rho</span></span>
-<span id="cb503-52"><a href="endogenous-treatment.html#cb503-52" tabindex="-1"></a>testing<span class="sc">$</span>mean_rho</span>
-<span id="cb503-53"><a href="endogenous-treatment.html#cb503-53" tabindex="-1"></a><span class="co">#&gt; [1] 0.2774723</span></span>
-<span id="cb503-54"><a href="endogenous-treatment.html#cb503-54" tabindex="-1"></a></span>
-<span id="cb503-55"><a href="endogenous-treatment.html#cb503-55" tabindex="-1"></a><span class="co"># Updated confidence interval</span></span>
-<span id="cb503-56"><a href="endogenous-treatment.html#cb503-56" tabindex="-1"></a>testing<span class="sc">$</span>upper_rho</span>
-<span id="cb503-57"><a href="endogenous-treatment.html#cb503-57" tabindex="-1"></a><span class="co">#&gt; [1] 0.2855105</span></span>
-<span id="cb503-58"><a href="endogenous-treatment.html#cb503-58" tabindex="-1"></a>testing<span class="sc">$</span>lower_rho</span>
-<span id="cb503-59"><a href="endogenous-treatment.html#cb503-59" tabindex="-1"></a><span class="co">#&gt; [1] 0.2693952</span></span></code></pre></div>
+<div class="sourceCode" id="cb514"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb514-1"><a href="endogenous-treatment.html#cb514-1" tabindex="-1"></a>n_new              <span class="ot">&lt;-</span> <span class="dv">200</span></span>
+<span id="cb514-2"><a href="endogenous-treatment.html#cb514-2" tabindex="-1"></a>r_new              <span class="ot">&lt;-</span> <span class="fl">0.5</span></span>
+<span id="cb514-3"><a href="endogenous-treatment.html#cb514-3" tabindex="-1"></a>alpha              <span class="ot">&lt;-</span> <span class="fl">0.05</span></span>
+<span id="cb514-4"><a href="endogenous-treatment.html#cb514-4" tabindex="-1"></a></span>
+<span id="cb514-5"><a href="endogenous-treatment.html#cb514-5" tabindex="-1"></a>update_correlation <span class="ot">&lt;-</span> <span class="cf">function</span>(n_new, r_new, alpha) {</span>
+<span id="cb514-6"><a href="endogenous-treatment.html#cb514-6" tabindex="-1"></a>    n_meta             <span class="ot">&lt;-</span> <span class="dv">50205</span></span>
+<span id="cb514-7"><a href="endogenous-treatment.html#cb514-7" tabindex="-1"></a>    r_meta             <span class="ot">&lt;-</span> <span class="fl">0.2765</span></span>
+<span id="cb514-8"><a href="endogenous-treatment.html#cb514-8" tabindex="-1"></a>    </span>
+<span id="cb514-9"><a href="endogenous-treatment.html#cb514-9" tabindex="-1"></a>    <span class="co"># Variance</span></span>
+<span id="cb514-10"><a href="endogenous-treatment.html#cb514-10" tabindex="-1"></a>    var_xi         <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">/</span> (n_new <span class="sc">+</span> n_meta)</span>
+<span id="cb514-11"><a href="endogenous-treatment.html#cb514-11" tabindex="-1"></a>    <span class="fu">format</span>(var_xi, <span class="at">scientific =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb514-12"><a href="endogenous-treatment.html#cb514-12" tabindex="-1"></a>    </span>
+<span id="cb514-13"><a href="endogenous-treatment.html#cb514-13" tabindex="-1"></a>    <span class="co"># mean</span></span>
+<span id="cb514-14"><a href="endogenous-treatment.html#cb514-14" tabindex="-1"></a>    mu_xi          <span class="ot">&lt;-</span> var_xi <span class="sc">*</span> (n_meta <span class="sc">*</span> <span class="fu">atanh</span>(r_meta) <span class="sc">+</span> n_new <span class="sc">*</span> (<span class="fu">atanh</span>(r_new)))</span>
+<span id="cb514-15"><a href="endogenous-treatment.html#cb514-15" tabindex="-1"></a>    <span class="fu">format</span>(mu_xi, <span class="at">scientific  =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb514-16"><a href="endogenous-treatment.html#cb514-16" tabindex="-1"></a>    </span>
+<span id="cb514-17"><a href="endogenous-treatment.html#cb514-17" tabindex="-1"></a>    <span class="co"># confidence interval</span></span>
+<span id="cb514-18"><a href="endogenous-treatment.html#cb514-18" tabindex="-1"></a>    upper_xi       <span class="ot">&lt;-</span> mu_xi <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(var_xi)</span>
+<span id="cb514-19"><a href="endogenous-treatment.html#cb514-19" tabindex="-1"></a>    lower_xi       <span class="ot">&lt;-</span> mu_xi <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(var_xi)</span>
+<span id="cb514-20"><a href="endogenous-treatment.html#cb514-20" tabindex="-1"></a>    </span>
+<span id="cb514-21"><a href="endogenous-treatment.html#cb514-21" tabindex="-1"></a>    <span class="co"># rho</span></span>
+<span id="cb514-22"><a href="endogenous-treatment.html#cb514-22" tabindex="-1"></a>    mean_rho       <span class="ot">&lt;-</span> <span class="fu">tanh</span>(mu_xi)</span>
+<span id="cb514-23"><a href="endogenous-treatment.html#cb514-23" tabindex="-1"></a>    upper_rho      <span class="ot">&lt;-</span> <span class="fu">tanh</span>(upper_xi)</span>
+<span id="cb514-24"><a href="endogenous-treatment.html#cb514-24" tabindex="-1"></a>    lower_rho      <span class="ot">&lt;-</span> <span class="fu">tanh</span>(lower_xi)</span>
+<span id="cb514-25"><a href="endogenous-treatment.html#cb514-25" tabindex="-1"></a>    </span>
+<span id="cb514-26"><a href="endogenous-treatment.html#cb514-26" tabindex="-1"></a>    <span class="co"># return a list</span></span>
+<span id="cb514-27"><a href="endogenous-treatment.html#cb514-27" tabindex="-1"></a>    <span class="fu">return</span>(</span>
+<span id="cb514-28"><a href="endogenous-treatment.html#cb514-28" tabindex="-1"></a>        <span class="fu">list</span>(</span>
+<span id="cb514-29"><a href="endogenous-treatment.html#cb514-29" tabindex="-1"></a>            <span class="st">&quot;mu_xi&quot;</span> <span class="ot">=</span> mu_xi,</span>
+<span id="cb514-30"><a href="endogenous-treatment.html#cb514-30" tabindex="-1"></a>            <span class="st">&quot;var_xi&quot;</span> <span class="ot">=</span> var_xi,</span>
+<span id="cb514-31"><a href="endogenous-treatment.html#cb514-31" tabindex="-1"></a>            <span class="st">&quot;upper_xi&quot;</span> <span class="ot">=</span> upper_xi,</span>
+<span id="cb514-32"><a href="endogenous-treatment.html#cb514-32" tabindex="-1"></a>            <span class="st">&quot;lower_xi&quot;</span> <span class="ot">=</span> lower_xi,</span>
+<span id="cb514-33"><a href="endogenous-treatment.html#cb514-33" tabindex="-1"></a>            <span class="st">&quot;mean_rho&quot;</span> <span class="ot">=</span> mean_rho,</span>
+<span id="cb514-34"><a href="endogenous-treatment.html#cb514-34" tabindex="-1"></a>            <span class="st">&quot;upper_rho&quot;</span> <span class="ot">=</span> upper_rho,</span>
+<span id="cb514-35"><a href="endogenous-treatment.html#cb514-35" tabindex="-1"></a>            <span class="st">&quot;lower_rho&quot;</span> <span class="ot">=</span> lower_rho</span>
+<span id="cb514-36"><a href="endogenous-treatment.html#cb514-36" tabindex="-1"></a>        )</span>
+<span id="cb514-37"><a href="endogenous-treatment.html#cb514-37" tabindex="-1"></a>    )</span>
+<span id="cb514-38"><a href="endogenous-treatment.html#cb514-38" tabindex="-1"></a>}</span>
+<span id="cb514-39"><a href="endogenous-treatment.html#cb514-39" tabindex="-1"></a></span>
+<span id="cb514-40"><a href="endogenous-treatment.html#cb514-40" tabindex="-1"></a></span>
+<span id="cb514-41"><a href="endogenous-treatment.html#cb514-41" tabindex="-1"></a></span>
+<span id="cb514-42"><a href="endogenous-treatment.html#cb514-42" tabindex="-1"></a></span>
+<span id="cb514-43"><a href="endogenous-treatment.html#cb514-43" tabindex="-1"></a><span class="co"># Old confidence interval</span></span>
+<span id="cb514-44"><a href="endogenous-treatment.html#cb514-44" tabindex="-1"></a>r_new <span class="sc">+</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>n_new)</span>
+<span id="cb514-45"><a href="endogenous-treatment.html#cb514-45" tabindex="-1"></a><span class="co">#&gt; [1] 0.6385904</span></span>
+<span id="cb514-46"><a href="endogenous-treatment.html#cb514-46" tabindex="-1"></a>r_new <span class="sc">-</span> <span class="fu">qnorm</span>(<span class="dv">1</span> <span class="sc">-</span> alpha <span class="sc">/</span> <span class="dv">2</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="dv">1</span><span class="sc">/</span>n_new)</span>
+<span id="cb514-47"><a href="endogenous-treatment.html#cb514-47" tabindex="-1"></a><span class="co">#&gt; [1] 0.3614096</span></span>
+<span id="cb514-48"><a href="endogenous-treatment.html#cb514-48" tabindex="-1"></a></span>
+<span id="cb514-49"><a href="endogenous-treatment.html#cb514-49" tabindex="-1"></a>testing <span class="ot">=</span> <span class="fu">update_correlation</span>(<span class="at">n_new =</span> n_new, <span class="at">r_new =</span> r_new, <span class="at">alpha =</span> alpha)</span>
+<span id="cb514-50"><a href="endogenous-treatment.html#cb514-50" tabindex="-1"></a></span>
+<span id="cb514-51"><a href="endogenous-treatment.html#cb514-51" tabindex="-1"></a><span class="co"># Updated rho</span></span>
+<span id="cb514-52"><a href="endogenous-treatment.html#cb514-52" tabindex="-1"></a>testing<span class="sc">$</span>mean_rho</span>
+<span id="cb514-53"><a href="endogenous-treatment.html#cb514-53" tabindex="-1"></a><span class="co">#&gt; [1] 0.2774723</span></span>
+<span id="cb514-54"><a href="endogenous-treatment.html#cb514-54" tabindex="-1"></a></span>
+<span id="cb514-55"><a href="endogenous-treatment.html#cb514-55" tabindex="-1"></a><span class="co"># Updated confidence interval</span></span>
+<span id="cb514-56"><a href="endogenous-treatment.html#cb514-56" tabindex="-1"></a>testing<span class="sc">$</span>upper_rho</span>
+<span id="cb514-57"><a href="endogenous-treatment.html#cb514-57" tabindex="-1"></a><span class="co">#&gt; [1] 0.2855105</span></span>
+<span id="cb514-58"><a href="endogenous-treatment.html#cb514-58" tabindex="-1"></a>testing<span class="sc">$</span>lower_rho</span>
+<span id="cb514-59"><a href="endogenous-treatment.html#cb514-59" tabindex="-1"></a><span class="co">#&gt; [1] 0.2693952</span></span></code></pre></div>
 </div>
 </div>
 </div>
@@ -1285,25 +1285,25 @@ K - k \ge m - 1
 <div id="endogenous-treatment-solutions" class="section level3 hasAnchor" number="30.1.3">
 <h3><span class="header-section-number">30.1.3</span> Endogenous Treatment Solutions<a href="endogenous-treatment.html#endogenous-treatment-solutions" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Using the OLS estimates as a reference point</p>
-<div class="sourceCode" id="cb504"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb504-1"><a href="endogenous-treatment.html#cb504-1" tabindex="-1"></a><span class="fu">library</span>(AER)</span>
-<span id="cb504-2"><a href="endogenous-treatment.html#cb504-2" tabindex="-1"></a><span class="fu">library</span>(REndo)</span>
-<span id="cb504-3"><a href="endogenous-treatment.html#cb504-3" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">421</span>)</span>
-<span id="cb504-4"><a href="endogenous-treatment.html#cb504-4" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;CASchools&quot;</span>)</span>
-<span id="cb504-5"><a href="endogenous-treatment.html#cb504-5" tabindex="-1"></a>school <span class="ot">&lt;-</span> CASchools</span>
-<span id="cb504-6"><a href="endogenous-treatment.html#cb504-6" tabindex="-1"></a>school<span class="sc">$</span>stratio <span class="ot">&lt;-</span> <span class="fu">with</span>(CASchools, students <span class="sc">/</span> teachers)</span>
-<span id="cb504-7"><a href="endogenous-treatment.html#cb504-7" tabindex="-1"></a>m1.ols <span class="ot">&lt;-</span></span>
-<span id="cb504-8"><a href="endogenous-treatment.html#cb504-8" tabindex="-1"></a>    <span class="fu">lm</span>(read <span class="sc">~</span> stratio <span class="sc">+</span> english <span class="sc">+</span> lunch </span>
-<span id="cb504-9"><a href="endogenous-treatment.html#cb504-9" tabindex="-1"></a>       <span class="sc">+</span> grades <span class="sc">+</span> income <span class="sc">+</span> calworks <span class="sc">+</span> county,</span>
-<span id="cb504-10"><a href="endogenous-treatment.html#cb504-10" tabindex="-1"></a>       <span class="at">data =</span> school)</span>
-<span id="cb504-11"><a href="endogenous-treatment.html#cb504-11" tabindex="-1"></a><span class="fu">summary</span>(m1.ols)<span class="sc">$</span>coefficients[<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>,]</span>
-<span id="cb504-12"><a href="endogenous-treatment.html#cb504-12" tabindex="-1"></a><span class="co">#&gt;                 Estimate Std. Error     t value      Pr(&gt;|t|)</span></span>
-<span id="cb504-13"><a href="endogenous-treatment.html#cb504-13" tabindex="-1"></a><span class="co">#&gt; (Intercept) 683.45305948 9.56214469  71.4748711 3.011667e-218</span></span>
-<span id="cb504-14"><a href="endogenous-treatment.html#cb504-14" tabindex="-1"></a><span class="co">#&gt; stratio      -0.30035544 0.25797023  -1.1643027  2.450536e-01</span></span>
-<span id="cb504-15"><a href="endogenous-treatment.html#cb504-15" tabindex="-1"></a><span class="co">#&gt; english      -0.20550107 0.03765408  -5.4576041  8.871666e-08</span></span>
-<span id="cb504-16"><a href="endogenous-treatment.html#cb504-16" tabindex="-1"></a><span class="co">#&gt; lunch        -0.38684059 0.03700982 -10.4523759  1.427370e-22</span></span>
-<span id="cb504-17"><a href="endogenous-treatment.html#cb504-17" tabindex="-1"></a><span class="co">#&gt; gradesKK-08  -1.91291321 1.35865394  -1.4079474  1.599886e-01</span></span>
-<span id="cb504-18"><a href="endogenous-treatment.html#cb504-18" tabindex="-1"></a><span class="co">#&gt; income        0.71615378 0.09832843   7.2832829  1.986712e-12</span></span>
-<span id="cb504-19"><a href="endogenous-treatment.html#cb504-19" tabindex="-1"></a><span class="co">#&gt; calworks     -0.05273312 0.06154758  -0.8567863  3.921191e-01</span></span></code></pre></div>
+<div class="sourceCode" id="cb515"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb515-1"><a href="endogenous-treatment.html#cb515-1" tabindex="-1"></a><span class="fu">library</span>(AER)</span>
+<span id="cb515-2"><a href="endogenous-treatment.html#cb515-2" tabindex="-1"></a><span class="fu">library</span>(REndo)</span>
+<span id="cb515-3"><a href="endogenous-treatment.html#cb515-3" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">421</span>)</span>
+<span id="cb515-4"><a href="endogenous-treatment.html#cb515-4" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;CASchools&quot;</span>)</span>
+<span id="cb515-5"><a href="endogenous-treatment.html#cb515-5" tabindex="-1"></a>school <span class="ot">&lt;-</span> CASchools</span>
+<span id="cb515-6"><a href="endogenous-treatment.html#cb515-6" tabindex="-1"></a>school<span class="sc">$</span>stratio <span class="ot">&lt;-</span> <span class="fu">with</span>(CASchools, students <span class="sc">/</span> teachers)</span>
+<span id="cb515-7"><a href="endogenous-treatment.html#cb515-7" tabindex="-1"></a>m1.ols <span class="ot">&lt;-</span></span>
+<span id="cb515-8"><a href="endogenous-treatment.html#cb515-8" tabindex="-1"></a>    <span class="fu">lm</span>(read <span class="sc">~</span> stratio <span class="sc">+</span> english <span class="sc">+</span> lunch </span>
+<span id="cb515-9"><a href="endogenous-treatment.html#cb515-9" tabindex="-1"></a>       <span class="sc">+</span> grades <span class="sc">+</span> income <span class="sc">+</span> calworks <span class="sc">+</span> county,</span>
+<span id="cb515-10"><a href="endogenous-treatment.html#cb515-10" tabindex="-1"></a>       <span class="at">data =</span> school)</span>
+<span id="cb515-11"><a href="endogenous-treatment.html#cb515-11" tabindex="-1"></a><span class="fu">summary</span>(m1.ols)<span class="sc">$</span>coefficients[<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>,]</span>
+<span id="cb515-12"><a href="endogenous-treatment.html#cb515-12" tabindex="-1"></a><span class="co">#&gt;                 Estimate Std. Error     t value      Pr(&gt;|t|)</span></span>
+<span id="cb515-13"><a href="endogenous-treatment.html#cb515-13" tabindex="-1"></a><span class="co">#&gt; (Intercept) 683.45305948 9.56214469  71.4748711 3.011667e-218</span></span>
+<span id="cb515-14"><a href="endogenous-treatment.html#cb515-14" tabindex="-1"></a><span class="co">#&gt; stratio      -0.30035544 0.25797023  -1.1643027  2.450536e-01</span></span>
+<span id="cb515-15"><a href="endogenous-treatment.html#cb515-15" tabindex="-1"></a><span class="co">#&gt; english      -0.20550107 0.03765408  -5.4576041  8.871666e-08</span></span>
+<span id="cb515-16"><a href="endogenous-treatment.html#cb515-16" tabindex="-1"></a><span class="co">#&gt; lunch        -0.38684059 0.03700982 -10.4523759  1.427370e-22</span></span>
+<span id="cb515-17"><a href="endogenous-treatment.html#cb515-17" tabindex="-1"></a><span class="co">#&gt; gradesKK-08  -1.91291321 1.35865394  -1.4079474  1.599886e-01</span></span>
+<span id="cb515-18"><a href="endogenous-treatment.html#cb515-18" tabindex="-1"></a><span class="co">#&gt; income        0.71615378 0.09832843   7.2832829  1.986712e-12</span></span>
+<span id="cb515-19"><a href="endogenous-treatment.html#cb515-19" tabindex="-1"></a><span class="co">#&gt; calworks     -0.05273312 0.06154758  -0.8567863  3.921191e-01</span></span></code></pre></div>
 <div id="instrumental-variable" class="section level4 hasAnchor" number="30.1.3.1">
 <h4><span class="header-section-number">30.1.3.1</span> Instrumental Variable<a href="endogenous-treatment.html#instrumental-variable" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p><a href="ordinary-least-squares.html#a3a">A3a</a> requires <span class="math inline">\(\epsilon_i\)</span> to be uncorrelated with <span class="math inline">\(\mathbf{x}_i\)</span></p>
@@ -1715,24 +1715,24 @@ E(y_{i2}&#39;\epsilon_i) = 0
 </ul>
 <p>Application</p>
 <p>Expenditure as observed instrument</p>
-<div class="sourceCode" id="cb506"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb506-1"><a href="endogenous-treatment.html#cb506-1" tabindex="-1"></a>m2<span class="fl">.2</span>sls <span class="ot">&lt;-</span></span>
-<span id="cb506-2"><a href="endogenous-treatment.html#cb506-2" tabindex="-1"></a>    <span class="fu">ivreg</span>(</span>
-<span id="cb506-3"><a href="endogenous-treatment.html#cb506-3" tabindex="-1"></a>        read <span class="sc">~</span> stratio <span class="sc">+</span> english <span class="sc">+</span> lunch </span>
-<span id="cb506-4"><a href="endogenous-treatment.html#cb506-4" tabindex="-1"></a>        <span class="sc">+</span> grades <span class="sc">+</span> income <span class="sc">+</span> calworks <span class="sc">+</span> county <span class="sc">|</span></span>
-<span id="cb506-5"><a href="endogenous-treatment.html#cb506-5" tabindex="-1"></a>            </span>
-<span id="cb506-6"><a href="endogenous-treatment.html#cb506-6" tabindex="-1"></a>            expenditure <span class="sc">+</span> english <span class="sc">+</span> lunch </span>
-<span id="cb506-7"><a href="endogenous-treatment.html#cb506-7" tabindex="-1"></a>        <span class="sc">+</span> grades <span class="sc">+</span> income <span class="sc">+</span> calworks <span class="sc">+</span> county ,</span>
-<span id="cb506-8"><a href="endogenous-treatment.html#cb506-8" tabindex="-1"></a>        <span class="at">data =</span> school</span>
-<span id="cb506-9"><a href="endogenous-treatment.html#cb506-9" tabindex="-1"></a>    )</span>
-<span id="cb506-10"><a href="endogenous-treatment.html#cb506-10" tabindex="-1"></a><span class="fu">summary</span>(m2<span class="fl">.2</span>sls)<span class="sc">$</span>coefficients[<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>,]</span>
-<span id="cb506-11"><a href="endogenous-treatment.html#cb506-11" tabindex="-1"></a><span class="co">#&gt;                 Estimate  Std. Error     t value      Pr(&gt;|t|)</span></span>
-<span id="cb506-12"><a href="endogenous-treatment.html#cb506-12" tabindex="-1"></a><span class="co">#&gt; (Intercept) 700.47891593 13.58064436  51.5792106 8.950497e-171</span></span>
-<span id="cb506-13"><a href="endogenous-treatment.html#cb506-13" tabindex="-1"></a><span class="co">#&gt; stratio      -1.13674002  0.53533638  -2.1234126  3.438427e-02</span></span>
-<span id="cb506-14"><a href="endogenous-treatment.html#cb506-14" tabindex="-1"></a><span class="co">#&gt; english      -0.21396934  0.03847833  -5.5607753  5.162571e-08</span></span>
-<span id="cb506-15"><a href="endogenous-treatment.html#cb506-15" tabindex="-1"></a><span class="co">#&gt; lunch        -0.39384225  0.03773637 -10.4366757  1.621794e-22</span></span>
-<span id="cb506-16"><a href="endogenous-treatment.html#cb506-16" tabindex="-1"></a><span class="co">#&gt; gradesKK-08  -1.89227865  1.37791820  -1.3732881  1.704966e-01</span></span>
-<span id="cb506-17"><a href="endogenous-treatment.html#cb506-17" tabindex="-1"></a><span class="co">#&gt; income        0.62487986  0.11199008   5.5797785  4.668490e-08</span></span>
-<span id="cb506-18"><a href="endogenous-treatment.html#cb506-18" tabindex="-1"></a><span class="co">#&gt; calworks     -0.04950501  0.06244410  -0.7927892  4.284101e-01</span></span></code></pre></div>
+<div class="sourceCode" id="cb517"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb517-1"><a href="endogenous-treatment.html#cb517-1" tabindex="-1"></a>m2<span class="fl">.2</span>sls <span class="ot">&lt;-</span></span>
+<span id="cb517-2"><a href="endogenous-treatment.html#cb517-2" tabindex="-1"></a>    <span class="fu">ivreg</span>(</span>
+<span id="cb517-3"><a href="endogenous-treatment.html#cb517-3" tabindex="-1"></a>        read <span class="sc">~</span> stratio <span class="sc">+</span> english <span class="sc">+</span> lunch </span>
+<span id="cb517-4"><a href="endogenous-treatment.html#cb517-4" tabindex="-1"></a>        <span class="sc">+</span> grades <span class="sc">+</span> income <span class="sc">+</span> calworks <span class="sc">+</span> county <span class="sc">|</span></span>
+<span id="cb517-5"><a href="endogenous-treatment.html#cb517-5" tabindex="-1"></a>            </span>
+<span id="cb517-6"><a href="endogenous-treatment.html#cb517-6" tabindex="-1"></a>            expenditure <span class="sc">+</span> english <span class="sc">+</span> lunch </span>
+<span id="cb517-7"><a href="endogenous-treatment.html#cb517-7" tabindex="-1"></a>        <span class="sc">+</span> grades <span class="sc">+</span> income <span class="sc">+</span> calworks <span class="sc">+</span> county ,</span>
+<span id="cb517-8"><a href="endogenous-treatment.html#cb517-8" tabindex="-1"></a>        <span class="at">data =</span> school</span>
+<span id="cb517-9"><a href="endogenous-treatment.html#cb517-9" tabindex="-1"></a>    )</span>
+<span id="cb517-10"><a href="endogenous-treatment.html#cb517-10" tabindex="-1"></a><span class="fu">summary</span>(m2<span class="fl">.2</span>sls)<span class="sc">$</span>coefficients[<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>,]</span>
+<span id="cb517-11"><a href="endogenous-treatment.html#cb517-11" tabindex="-1"></a><span class="co">#&gt;                 Estimate  Std. Error     t value      Pr(&gt;|t|)</span></span>
+<span id="cb517-12"><a href="endogenous-treatment.html#cb517-12" tabindex="-1"></a><span class="co">#&gt; (Intercept) 700.47891593 13.58064436  51.5792106 8.950497e-171</span></span>
+<span id="cb517-13"><a href="endogenous-treatment.html#cb517-13" tabindex="-1"></a><span class="co">#&gt; stratio      -1.13674002  0.53533638  -2.1234126  3.438427e-02</span></span>
+<span id="cb517-14"><a href="endogenous-treatment.html#cb517-14" tabindex="-1"></a><span class="co">#&gt; english      -0.21396934  0.03847833  -5.5607753  5.162571e-08</span></span>
+<span id="cb517-15"><a href="endogenous-treatment.html#cb517-15" tabindex="-1"></a><span class="co">#&gt; lunch        -0.39384225  0.03773637 -10.4366757  1.621794e-22</span></span>
+<span id="cb517-16"><a href="endogenous-treatment.html#cb517-16" tabindex="-1"></a><span class="co">#&gt; gradesKK-08  -1.89227865  1.37791820  -1.3732881  1.704966e-01</span></span>
+<span id="cb517-17"><a href="endogenous-treatment.html#cb517-17" tabindex="-1"></a><span class="co">#&gt; income        0.62487986  0.11199008   5.5797785  4.668490e-08</span></span>
+<span id="cb517-18"><a href="endogenous-treatment.html#cb517-18" tabindex="-1"></a><span class="co">#&gt; calworks     -0.04950501  0.06244410  -0.7927892  4.284101e-01</span></span></code></pre></div>
 </div>
 </div>
 <div id="checklist" class="section level5 hasAnchor" number="30.1.3.1.2">
@@ -1837,16 +1837,16 @@ P_t = \gamma Z_t + v_t
 <li>If <span class="math inline">\(Z_t\)</span> is continuous, the model is unidentified</li>
 <li>If <span class="math inline">\(P_t \sim N\)</span>, you have inefficient estimates.</li>
 </ul>
-<div class="sourceCode" id="cb507"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb507-1"><a href="endogenous-treatment.html#cb507-1" tabindex="-1"></a>m3.liv <span class="ot">&lt;-</span> <span class="fu">latentIV</span>(read <span class="sc">~</span> stratio, <span class="at">data =</span> school)</span>
-<span id="cb507-2"><a href="endogenous-treatment.html#cb507-2" tabindex="-1"></a><span class="fu">summary</span>(m3.liv)<span class="sc">$</span>coefficients[<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>, ]</span>
-<span id="cb507-3"><a href="endogenous-treatment.html#cb507-3" tabindex="-1"></a><span class="co">#&gt;                   Estimate    Std. Error       z-score     Pr(&gt;|z|)</span></span>
-<span id="cb507-4"><a href="endogenous-treatment.html#cb507-4" tabindex="-1"></a><span class="co">#&gt; (Intercept)   6.996014e+02  2.686186e+02  2.604441e+00 9.529597e-03</span></span>
-<span id="cb507-5"><a href="endogenous-treatment.html#cb507-5" tabindex="-1"></a><span class="co">#&gt; stratio      -2.272673e+00  1.367757e+01 -1.661605e-01 8.681108e-01</span></span>
-<span id="cb507-6"><a href="endogenous-treatment.html#cb507-6" tabindex="-1"></a><span class="co">#&gt; pi1          -4.896363e+01  5.526907e-08 -8.859139e+08 0.000000e+00</span></span>
-<span id="cb507-7"><a href="endogenous-treatment.html#cb507-7" tabindex="-1"></a><span class="co">#&gt; pi2           1.963920e+01  9.225351e-02  2.128830e+02 0.000000e+00</span></span>
-<span id="cb507-8"><a href="endogenous-treatment.html#cb507-8" tabindex="-1"></a><span class="co">#&gt; theta5       6.939432e-152 3.354672e-160  2.068587e+08 0.000000e+00</span></span>
-<span id="cb507-9"><a href="endogenous-treatment.html#cb507-9" tabindex="-1"></a><span class="co">#&gt; theta6        3.787512e+02  4.249457e+01  8.912932e+00 1.541524e-17</span></span>
-<span id="cb507-10"><a href="endogenous-treatment.html#cb507-10" tabindex="-1"></a><span class="co">#&gt; theta7       -1.227543e+00  4.885276e+01 -2.512741e-02 9.799653e-01</span></span></code></pre></div>
+<div class="sourceCode" id="cb518"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb518-1"><a href="endogenous-treatment.html#cb518-1" tabindex="-1"></a>m3.liv <span class="ot">&lt;-</span> <span class="fu">latentIV</span>(read <span class="sc">~</span> stratio, <span class="at">data =</span> school)</span>
+<span id="cb518-2"><a href="endogenous-treatment.html#cb518-2" tabindex="-1"></a><span class="fu">summary</span>(m3.liv)<span class="sc">$</span>coefficients[<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>, ]</span>
+<span id="cb518-3"><a href="endogenous-treatment.html#cb518-3" tabindex="-1"></a><span class="co">#&gt;                   Estimate    Std. Error       z-score     Pr(&gt;|z|)</span></span>
+<span id="cb518-4"><a href="endogenous-treatment.html#cb518-4" tabindex="-1"></a><span class="co">#&gt; (Intercept)   6.996014e+02  2.686186e+02  2.604441e+00 9.529597e-03</span></span>
+<span id="cb518-5"><a href="endogenous-treatment.html#cb518-5" tabindex="-1"></a><span class="co">#&gt; stratio      -2.272673e+00  1.367757e+01 -1.661605e-01 8.681108e-01</span></span>
+<span id="cb518-6"><a href="endogenous-treatment.html#cb518-6" tabindex="-1"></a><span class="co">#&gt; pi1          -4.896363e+01  5.526907e-08 -8.859139e+08 0.000000e+00</span></span>
+<span id="cb518-7"><a href="endogenous-treatment.html#cb518-7" tabindex="-1"></a><span class="co">#&gt; pi2           1.963920e+01  9.225351e-02  2.128830e+02 0.000000e+00</span></span>
+<span id="cb518-8"><a href="endogenous-treatment.html#cb518-8" tabindex="-1"></a><span class="co">#&gt; theta5       6.939432e-152 3.354672e-160  2.068587e+08 0.000000e+00</span></span>
+<span id="cb518-9"><a href="endogenous-treatment.html#cb518-9" tabindex="-1"></a><span class="co">#&gt; theta6        3.787512e+02  4.249457e+01  8.912932e+00 1.541524e-17</span></span>
+<span id="cb518-10"><a href="endogenous-treatment.html#cb518-10" tabindex="-1"></a><span class="co">#&gt; theta7       -1.227543e+00  4.885276e+01 -2.512741e-02 9.799653e-01</span></span></code></pre></div>
 <p>it will return a coefficient very different from the other methods since there is only one endogenous variable.</p>
 </div>
 <div id="joint-estimation-using-copula" class="section level6 hasAnchor" number="30.1.3.3.1.2">
@@ -1874,35 +1874,35 @@ Otherwise, based on Gaussian copulas, augmented OLS estimation is used.</p>
 <li><span class="math inline">\(T\)</span> = n of time periods observed in the data</li>
 </ul></li>
 </ul>
-<div class="sourceCode" id="cb508"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb508-1"><a href="endogenous-treatment.html#cb508-1" tabindex="-1"></a><span class="co"># 1.34 comes from this</span></span>
-<span id="cb508-2"><a href="endogenous-treatment.html#cb508-2" tabindex="-1"></a><span class="fu">diff</span>(<span class="fu">qnorm</span>(<span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.75</span>)))</span>
-<span id="cb508-3"><a href="endogenous-treatment.html#cb508-3" tabindex="-1"></a><span class="co">#&gt; [1] 1.34898</span></span></code></pre></div>
+<div class="sourceCode" id="cb519"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb519-1"><a href="endogenous-treatment.html#cb519-1" tabindex="-1"></a><span class="co"># 1.34 comes from this</span></span>
+<span id="cb519-2"><a href="endogenous-treatment.html#cb519-2" tabindex="-1"></a><span class="fu">diff</span>(<span class="fu">qnorm</span>(<span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.75</span>)))</span>
+<span id="cb519-3"><a href="endogenous-treatment.html#cb519-3" tabindex="-1"></a><span class="co">#&gt; [1] 1.34898</span></span></code></pre></div>
 <p>In augmented OLS and MLE, the inference procedure occurs in two stages:</p>
 <p>(1): the empirical distribution of <span class="math inline">\(P_t\)</span> is computed<br />
 (2) used in it constructing the likelihood function)<br />
 Hence, the standard errors would not be correct.</p>
 <p>So we use the sampling distributions (from bootstrapping) to get standard errors and the variance-covariance matrix. Since the distribution of the bootstrapped parameters is highly skewed, we report the percentile confidence intervals is preferable.</p>
-<div class="sourceCode" id="cb509"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb509-1"><a href="endogenous-treatment.html#cb509-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">110</span>)</span>
-<span id="cb509-2"><a href="endogenous-treatment.html#cb509-2" tabindex="-1"></a>m4.cc <span class="ot">&lt;-</span></span>
-<span id="cb509-3"><a href="endogenous-treatment.html#cb509-3" tabindex="-1"></a>    <span class="fu">copulaCorrection</span>(</span>
-<span id="cb509-4"><a href="endogenous-treatment.html#cb509-4" tabindex="-1"></a>        read <span class="sc">~</span> stratio <span class="sc">+</span> english <span class="sc">+</span> lunch <span class="sc">+</span> calworks <span class="sc">+</span></span>
-<span id="cb509-5"><a href="endogenous-treatment.html#cb509-5" tabindex="-1"></a>            grades <span class="sc">+</span> income <span class="sc">+</span> county <span class="sc">|</span></span>
-<span id="cb509-6"><a href="endogenous-treatment.html#cb509-6" tabindex="-1"></a>            <span class="fu">continuous</span>(stratio),</span>
-<span id="cb509-7"><a href="endogenous-treatment.html#cb509-7" tabindex="-1"></a>        <span class="at">data =</span> school,</span>
-<span id="cb509-8"><a href="endogenous-treatment.html#cb509-8" tabindex="-1"></a>        <span class="at">optimx.args =</span> <span class="fu">list</span>(<span class="at">method =</span> <span class="fu">c</span>(<span class="st">&quot;Nelder-Mead&quot;</span>), </span>
-<span id="cb509-9"><a href="endogenous-treatment.html#cb509-9" tabindex="-1"></a>                           <span class="at">itnmax =</span> <span class="dv">60000</span>),</span>
-<span id="cb509-10"><a href="endogenous-treatment.html#cb509-10" tabindex="-1"></a>        <span class="at">num.boots =</span> <span class="dv">2</span>,</span>
-<span id="cb509-11"><a href="endogenous-treatment.html#cb509-11" tabindex="-1"></a>        <span class="at">verbose =</span> <span class="cn">FALSE</span></span>
-<span id="cb509-12"><a href="endogenous-treatment.html#cb509-12" tabindex="-1"></a>    )</span>
-<span id="cb509-13"><a href="endogenous-treatment.html#cb509-13" tabindex="-1"></a><span class="fu">summary</span>(m4.cc)<span class="sc">$</span>coefficients[<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>,]</span>
-<span id="cb509-14"><a href="endogenous-treatment.html#cb509-14" tabindex="-1"></a><span class="co">#&gt;             Point Estimate   Boots SE Lower Boots CI (95%) Upper Boots CI (95%)</span></span>
-<span id="cb509-15"><a href="endogenous-treatment.html#cb509-15" tabindex="-1"></a><span class="co">#&gt; (Intercept)   683.06900891 2.80554212                   NA                   NA</span></span>
-<span id="cb509-16"><a href="endogenous-treatment.html#cb509-16" tabindex="-1"></a><span class="co">#&gt; stratio        -0.32434608 0.02075999                   NA                   NA</span></span>
-<span id="cb509-17"><a href="endogenous-treatment.html#cb509-17" tabindex="-1"></a><span class="co">#&gt; english        -0.21576110 0.01450666                   NA                   NA</span></span>
-<span id="cb509-18"><a href="endogenous-treatment.html#cb509-18" tabindex="-1"></a><span class="co">#&gt; lunch          -0.37087664 0.01902052                   NA                   NA</span></span>
-<span id="cb509-19"><a href="endogenous-treatment.html#cb509-19" tabindex="-1"></a><span class="co">#&gt; calworks       -0.05569058 0.02076781                   NA                   NA</span></span>
-<span id="cb509-20"><a href="endogenous-treatment.html#cb509-20" tabindex="-1"></a><span class="co">#&gt; gradesKK-08    -1.92286128 0.25684614                   NA                   NA</span></span>
-<span id="cb509-21"><a href="endogenous-treatment.html#cb509-21" tabindex="-1"></a><span class="co">#&gt; income          0.73595353 0.04725700                   NA                   NA</span></span></code></pre></div>
+<div class="sourceCode" id="cb520"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb520-1"><a href="endogenous-treatment.html#cb520-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">110</span>)</span>
+<span id="cb520-2"><a href="endogenous-treatment.html#cb520-2" tabindex="-1"></a>m4.cc <span class="ot">&lt;-</span></span>
+<span id="cb520-3"><a href="endogenous-treatment.html#cb520-3" tabindex="-1"></a>    <span class="fu">copulaCorrection</span>(</span>
+<span id="cb520-4"><a href="endogenous-treatment.html#cb520-4" tabindex="-1"></a>        read <span class="sc">~</span> stratio <span class="sc">+</span> english <span class="sc">+</span> lunch <span class="sc">+</span> calworks <span class="sc">+</span></span>
+<span id="cb520-5"><a href="endogenous-treatment.html#cb520-5" tabindex="-1"></a>            grades <span class="sc">+</span> income <span class="sc">+</span> county <span class="sc">|</span></span>
+<span id="cb520-6"><a href="endogenous-treatment.html#cb520-6" tabindex="-1"></a>            <span class="fu">continuous</span>(stratio),</span>
+<span id="cb520-7"><a href="endogenous-treatment.html#cb520-7" tabindex="-1"></a>        <span class="at">data =</span> school,</span>
+<span id="cb520-8"><a href="endogenous-treatment.html#cb520-8" tabindex="-1"></a>        <span class="at">optimx.args =</span> <span class="fu">list</span>(<span class="at">method =</span> <span class="fu">c</span>(<span class="st">&quot;Nelder-Mead&quot;</span>), </span>
+<span id="cb520-9"><a href="endogenous-treatment.html#cb520-9" tabindex="-1"></a>                           <span class="at">itnmax =</span> <span class="dv">60000</span>),</span>
+<span id="cb520-10"><a href="endogenous-treatment.html#cb520-10" tabindex="-1"></a>        <span class="at">num.boots =</span> <span class="dv">2</span>,</span>
+<span id="cb520-11"><a href="endogenous-treatment.html#cb520-11" tabindex="-1"></a>        <span class="at">verbose =</span> <span class="cn">FALSE</span></span>
+<span id="cb520-12"><a href="endogenous-treatment.html#cb520-12" tabindex="-1"></a>    )</span>
+<span id="cb520-13"><a href="endogenous-treatment.html#cb520-13" tabindex="-1"></a><span class="fu">summary</span>(m4.cc)<span class="sc">$</span>coefficients[<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>,]</span>
+<span id="cb520-14"><a href="endogenous-treatment.html#cb520-14" tabindex="-1"></a><span class="co">#&gt;             Point Estimate   Boots SE Lower Boots CI (95%) Upper Boots CI (95%)</span></span>
+<span id="cb520-15"><a href="endogenous-treatment.html#cb520-15" tabindex="-1"></a><span class="co">#&gt; (Intercept)   683.06900891 2.80554212                   NA                   NA</span></span>
+<span id="cb520-16"><a href="endogenous-treatment.html#cb520-16" tabindex="-1"></a><span class="co">#&gt; stratio        -0.32434608 0.02075999                   NA                   NA</span></span>
+<span id="cb520-17"><a href="endogenous-treatment.html#cb520-17" tabindex="-1"></a><span class="co">#&gt; english        -0.21576110 0.01450666                   NA                   NA</span></span>
+<span id="cb520-18"><a href="endogenous-treatment.html#cb520-18" tabindex="-1"></a><span class="co">#&gt; lunch          -0.37087664 0.01902052                   NA                   NA</span></span>
+<span id="cb520-19"><a href="endogenous-treatment.html#cb520-19" tabindex="-1"></a><span class="co">#&gt; calworks       -0.05569058 0.02076781                   NA                   NA</span></span>
+<span id="cb520-20"><a href="endogenous-treatment.html#cb520-20" tabindex="-1"></a><span class="co">#&gt; gradesKK-08    -1.92286128 0.25684614                   NA                   NA</span></span>
+<span id="cb520-21"><a href="endogenous-treatment.html#cb520-21" tabindex="-1"></a><span class="co">#&gt; income          0.73595353 0.04725700                   NA                   NA</span></span></code></pre></div>
 <p>we run this model with only one endogenous continuous regressor (<code>stratio</code>). Sometimes, the code will not converge, in which case you can use different</p>
 <ul>
 <li>optimization algorithm</li>
@@ -1933,23 +1933,23 @@ q_{6t} &amp;=  (Y_t - \bar{Y})^2 \\
 <p><span class="math inline">\(q_{5t}, q_{6t}\)</span> can be used only when the measurement and <span class="math inline">\(\epsilon_t\)</span> are symmetrically distributed. The rest of the instruments does not require any distributional assumptions for <span class="math inline">\(\epsilon_t\)</span>.</p>
 <p>Since the regressors <span class="math inline">\(G(X) = X\)</span> are included as instruments, <span class="math inline">\(G(X)\)</span> can’t be a linear function of X in <span class="math inline">\(q_{1t}\)</span></p>
 <p>Since this method has very strong assumptions, <a href="endogenous-treatment.html#higher-moments-method">Higher Moments Method</a> should only be used in case of overidentification</p>
-<div class="sourceCode" id="cb510"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb510-1"><a href="endogenous-treatment.html#cb510-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">111</span>)</span>
-<span id="cb510-2"><a href="endogenous-treatment.html#cb510-2" tabindex="-1"></a>m5.hetEr <span class="ot">&lt;-</span></span>
-<span id="cb510-3"><a href="endogenous-treatment.html#cb510-3" tabindex="-1"></a>    <span class="fu">hetErrorsIV</span>(</span>
-<span id="cb510-4"><a href="endogenous-treatment.html#cb510-4" tabindex="-1"></a>        read <span class="sc">~</span> stratio <span class="sc">+</span> english <span class="sc">+</span> lunch <span class="sc">+</span> calworks <span class="sc">+</span> income <span class="sc">+</span></span>
-<span id="cb510-5"><a href="endogenous-treatment.html#cb510-5" tabindex="-1"></a>            grades <span class="sc">+</span> county <span class="sc">|</span></span>
-<span id="cb510-6"><a href="endogenous-treatment.html#cb510-6" tabindex="-1"></a>            stratio <span class="sc">|</span> <span class="fu">IIV</span>(income, english),</span>
-<span id="cb510-7"><a href="endogenous-treatment.html#cb510-7" tabindex="-1"></a>        <span class="at">data =</span> school</span>
-<span id="cb510-8"><a href="endogenous-treatment.html#cb510-8" tabindex="-1"></a>    )</span>
-<span id="cb510-9"><a href="endogenous-treatment.html#cb510-9" tabindex="-1"></a><span class="fu">summary</span>(m5.hetEr)<span class="sc">$</span>coefficients[<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>,]</span>
-<span id="cb510-10"><a href="endogenous-treatment.html#cb510-10" tabindex="-1"></a><span class="co">#&gt;                 Estimate  Std. Error    t value     Pr(&gt;|t|)</span></span>
-<span id="cb510-11"><a href="endogenous-treatment.html#cb510-11" tabindex="-1"></a><span class="co">#&gt; (Intercept) 662.78791557 27.90173069 23.7543657 2.380436e-76</span></span>
-<span id="cb510-12"><a href="endogenous-treatment.html#cb510-12" tabindex="-1"></a><span class="co">#&gt; stratio       0.71480686  1.31077325  0.5453322 5.858545e-01</span></span>
-<span id="cb510-13"><a href="endogenous-treatment.html#cb510-13" tabindex="-1"></a><span class="co">#&gt; english      -0.19522271  0.04057527 -4.8113717 2.188618e-06</span></span>
-<span id="cb510-14"><a href="endogenous-treatment.html#cb510-14" tabindex="-1"></a><span class="co">#&gt; lunch        -0.37834232  0.03927793 -9.6324402 9.760809e-20</span></span>
-<span id="cb510-15"><a href="endogenous-treatment.html#cb510-15" tabindex="-1"></a><span class="co">#&gt; calworks     -0.05665126  0.06302095 -0.8989273 3.692776e-01</span></span>
-<span id="cb510-16"><a href="endogenous-treatment.html#cb510-16" tabindex="-1"></a><span class="co">#&gt; income        0.82693755  0.17236557  4.7975797 2.335271e-06</span></span>
-<span id="cb510-17"><a href="endogenous-treatment.html#cb510-17" tabindex="-1"></a><span class="co">#&gt; gradesKK-08  -1.93795843  1.38723186 -1.3969968 1.632541e-01</span></span></code></pre></div>
+<div class="sourceCode" id="cb521"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb521-1"><a href="endogenous-treatment.html#cb521-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">111</span>)</span>
+<span id="cb521-2"><a href="endogenous-treatment.html#cb521-2" tabindex="-1"></a>m5.hetEr <span class="ot">&lt;-</span></span>
+<span id="cb521-3"><a href="endogenous-treatment.html#cb521-3" tabindex="-1"></a>    <span class="fu">hetErrorsIV</span>(</span>
+<span id="cb521-4"><a href="endogenous-treatment.html#cb521-4" tabindex="-1"></a>        read <span class="sc">~</span> stratio <span class="sc">+</span> english <span class="sc">+</span> lunch <span class="sc">+</span> calworks <span class="sc">+</span> income <span class="sc">+</span></span>
+<span id="cb521-5"><a href="endogenous-treatment.html#cb521-5" tabindex="-1"></a>            grades <span class="sc">+</span> county <span class="sc">|</span></span>
+<span id="cb521-6"><a href="endogenous-treatment.html#cb521-6" tabindex="-1"></a>            stratio <span class="sc">|</span> <span class="fu">IIV</span>(income, english),</span>
+<span id="cb521-7"><a href="endogenous-treatment.html#cb521-7" tabindex="-1"></a>        <span class="at">data =</span> school</span>
+<span id="cb521-8"><a href="endogenous-treatment.html#cb521-8" tabindex="-1"></a>    )</span>
+<span id="cb521-9"><a href="endogenous-treatment.html#cb521-9" tabindex="-1"></a><span class="fu">summary</span>(m5.hetEr)<span class="sc">$</span>coefficients[<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>,]</span>
+<span id="cb521-10"><a href="endogenous-treatment.html#cb521-10" tabindex="-1"></a><span class="co">#&gt;                 Estimate  Std. Error    t value     Pr(&gt;|t|)</span></span>
+<span id="cb521-11"><a href="endogenous-treatment.html#cb521-11" tabindex="-1"></a><span class="co">#&gt; (Intercept) 662.78791557 27.90173069 23.7543657 2.380436e-76</span></span>
+<span id="cb521-12"><a href="endogenous-treatment.html#cb521-12" tabindex="-1"></a><span class="co">#&gt; stratio       0.71480686  1.31077325  0.5453322 5.858545e-01</span></span>
+<span id="cb521-13"><a href="endogenous-treatment.html#cb521-13" tabindex="-1"></a><span class="co">#&gt; english      -0.19522271  0.04057527 -4.8113717 2.188618e-06</span></span>
+<span id="cb521-14"><a href="endogenous-treatment.html#cb521-14" tabindex="-1"></a><span class="co">#&gt; lunch        -0.37834232  0.03927793 -9.6324402 9.760809e-20</span></span>
+<span id="cb521-15"><a href="endogenous-treatment.html#cb521-15" tabindex="-1"></a><span class="co">#&gt; calworks     -0.05665126  0.06302095 -0.8989273 3.692776e-01</span></span>
+<span id="cb521-16"><a href="endogenous-treatment.html#cb521-16" tabindex="-1"></a><span class="co">#&gt; income        0.82693755  0.17236557  4.7975797 2.335271e-06</span></span>
+<span id="cb521-17"><a href="endogenous-treatment.html#cb521-17" tabindex="-1"></a><span class="co">#&gt; gradesKK-08  -1.93795843  1.38723186 -1.3969968 1.632541e-01</span></span></code></pre></div>
 <p>recommend using this approach to create additional instruments to use with external ones for better efficiency.</p>
 </div>
 <div id="heteroskedastic-error-approach" class="section level6 hasAnchor" number="30.1.3.3.1.4">
@@ -2008,21 +2008,21 @@ Y_{cst} &amp;= Z_{cst}^1 \beta_{cs}^1 + X_{cst}^1 \beta_1 + \epsilon_{cst}^1 \\
 <li>When all variables are assumed endogenous, it equals the fixed effects estimator</li>
 <li>also use omitted variable test (based on the Hausman-test <span class="citation">(<a href="#ref-hausman1978specification">J. A. Hausman 1978</a>)</span> for panel data), which allows the comparison of a robust estimator and an estimator that is efficient under the null hypothesis of no omitted variables or the comparison of two robust estimators at different levels.</li>
 </ul>
-<div class="sourceCode" id="cb511"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb511-1"><a href="endogenous-treatment.html#cb511-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">113</span>)</span>
-<span id="cb511-2"><a href="endogenous-treatment.html#cb511-2" tabindex="-1"></a>school<span class="sc">$</span>gr08 <span class="ot">&lt;-</span> school<span class="sc">$</span>grades <span class="sc">==</span> <span class="st">&quot;KK-06&quot;</span></span>
-<span id="cb511-3"><a href="endogenous-treatment.html#cb511-3" tabindex="-1"></a>m7.multilevel <span class="ot">&lt;-</span></span>
-<span id="cb511-4"><a href="endogenous-treatment.html#cb511-4" tabindex="-1"></a>    <span class="fu">multilevelIV</span>(read <span class="sc">~</span> stratio <span class="sc">+</span> english <span class="sc">+</span> lunch <span class="sc">+</span> income <span class="sc">+</span> gr08 <span class="sc">+</span></span>
-<span id="cb511-5"><a href="endogenous-treatment.html#cb511-5" tabindex="-1"></a>                     calworks <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> county) <span class="sc">|</span> <span class="fu">endo</span>(stratio),</span>
-<span id="cb511-6"><a href="endogenous-treatment.html#cb511-6" tabindex="-1"></a>                 <span class="at">data =</span> school)</span>
-<span id="cb511-7"><a href="endogenous-treatment.html#cb511-7" tabindex="-1"></a><span class="fu">summary</span>(m7.multilevel)<span class="sc">$</span>coefficients[<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>,]</span>
-<span id="cb511-8"><a href="endogenous-treatment.html#cb511-8" tabindex="-1"></a><span class="co">#&gt;                Estimate Std. Error     z-score     Pr(&gt;|z|)</span></span>
-<span id="cb511-9"><a href="endogenous-treatment.html#cb511-9" tabindex="-1"></a><span class="co">#&gt; (Intercept) 675.8228656 5.58008680 121.1133248 0.000000e+00</span></span>
-<span id="cb511-10"><a href="endogenous-treatment.html#cb511-10" tabindex="-1"></a><span class="co">#&gt; stratio      -0.4956054 0.23922638  -2.0717005 3.829339e-02</span></span>
-<span id="cb511-11"><a href="endogenous-treatment.html#cb511-11" tabindex="-1"></a><span class="co">#&gt; english      -0.2599777 0.03413530  -7.6160948 2.614656e-14</span></span>
-<span id="cb511-12"><a href="endogenous-treatment.html#cb511-12" tabindex="-1"></a><span class="co">#&gt; lunch        -0.3692954 0.03560210 -10.3728537 3.295342e-25</span></span>
-<span id="cb511-13"><a href="endogenous-treatment.html#cb511-13" tabindex="-1"></a><span class="co">#&gt; income        0.6723141 0.08862012   7.5864728 3.287314e-14</span></span>
-<span id="cb511-14"><a href="endogenous-treatment.html#cb511-14" tabindex="-1"></a><span class="co">#&gt; gr08TRUE      2.1590333 1.28167222   1.6845440 9.207658e-02</span></span>
-<span id="cb511-15"><a href="endogenous-treatment.html#cb511-15" tabindex="-1"></a><span class="co">#&gt; calworks     -0.0570633 0.05711701  -0.9990596 3.177658e-01</span></span></code></pre></div>
+<div class="sourceCode" id="cb522"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb522-1"><a href="endogenous-treatment.html#cb522-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">113</span>)</span>
+<span id="cb522-2"><a href="endogenous-treatment.html#cb522-2" tabindex="-1"></a>school<span class="sc">$</span>gr08 <span class="ot">&lt;-</span> school<span class="sc">$</span>grades <span class="sc">==</span> <span class="st">&quot;KK-06&quot;</span></span>
+<span id="cb522-3"><a href="endogenous-treatment.html#cb522-3" tabindex="-1"></a>m7.multilevel <span class="ot">&lt;-</span></span>
+<span id="cb522-4"><a href="endogenous-treatment.html#cb522-4" tabindex="-1"></a>    <span class="fu">multilevelIV</span>(read <span class="sc">~</span> stratio <span class="sc">+</span> english <span class="sc">+</span> lunch <span class="sc">+</span> income <span class="sc">+</span> gr08 <span class="sc">+</span></span>
+<span id="cb522-5"><a href="endogenous-treatment.html#cb522-5" tabindex="-1"></a>                     calworks <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> county) <span class="sc">|</span> <span class="fu">endo</span>(stratio),</span>
+<span id="cb522-6"><a href="endogenous-treatment.html#cb522-6" tabindex="-1"></a>                 <span class="at">data =</span> school)</span>
+<span id="cb522-7"><a href="endogenous-treatment.html#cb522-7" tabindex="-1"></a><span class="fu">summary</span>(m7.multilevel)<span class="sc">$</span>coefficients[<span class="dv">1</span><span class="sc">:</span><span class="dv">7</span>,]</span>
+<span id="cb522-8"><a href="endogenous-treatment.html#cb522-8" tabindex="-1"></a><span class="co">#&gt;                Estimate Std. Error     z-score     Pr(&gt;|z|)</span></span>
+<span id="cb522-9"><a href="endogenous-treatment.html#cb522-9" tabindex="-1"></a><span class="co">#&gt; (Intercept) 675.8228656 5.58008680 121.1133248 0.000000e+00</span></span>
+<span id="cb522-10"><a href="endogenous-treatment.html#cb522-10" tabindex="-1"></a><span class="co">#&gt; stratio      -0.4956054 0.23922638  -2.0717005 3.829339e-02</span></span>
+<span id="cb522-11"><a href="endogenous-treatment.html#cb522-11" tabindex="-1"></a><span class="co">#&gt; english      -0.2599777 0.03413530  -7.6160948 2.614656e-14</span></span>
+<span id="cb522-12"><a href="endogenous-treatment.html#cb522-12" tabindex="-1"></a><span class="co">#&gt; lunch        -0.3692954 0.03560210 -10.3728537 3.295342e-25</span></span>
+<span id="cb522-13"><a href="endogenous-treatment.html#cb522-13" tabindex="-1"></a><span class="co">#&gt; income        0.6723141 0.08862012   7.5864728 3.287314e-14</span></span>
+<span id="cb522-14"><a href="endogenous-treatment.html#cb522-14" tabindex="-1"></a><span class="co">#&gt; gr08TRUE      2.1590333 1.28167222   1.6845440 9.207658e-02</span></span>
+<span id="cb522-15"><a href="endogenous-treatment.html#cb522-15" tabindex="-1"></a><span class="co">#&gt; calworks     -0.0570633 0.05711701  -0.9990596 3.177658e-01</span></span></code></pre></div>
 <p>Another example using simulated data</p>
 <ul>
 <li>level-1 regressors: <span class="math inline">\(X_{11}, X_{12}, X_{13}, X_{14}, X_{15}\)</span>, where <span class="math inline">\(X_{15}\)</span> is correlated with the level-2 error (i.e., endogenous).<br />
@@ -2038,63 +2038,63 @@ Y_{cst} &amp;= Z_{cst}^1 \beta_{cs}^1 + X_{cst}^1 \beta_1 + \epsilon_{cst}^1 \\
 <li>Because of the efficiency, the random effects estimator is preferable if you think there is no omitted. variables</li>
 <li>The robust estimator would be preferable if you think there is omitted variables.</li>
 </ul>
-<div class="sourceCode" id="cb512"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb512-1"><a href="endogenous-treatment.html#cb512-1" tabindex="-1"></a><span class="fu">data</span>(dataMultilevelIV)</span>
-<span id="cb512-2"><a href="endogenous-treatment.html#cb512-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">114</span>)</span>
-<span id="cb512-3"><a href="endogenous-treatment.html#cb512-3" tabindex="-1"></a>formula1 <span class="ot">&lt;-</span></span>
-<span id="cb512-4"><a href="endogenous-treatment.html#cb512-4" tabindex="-1"></a>    y <span class="sc">~</span> X11 <span class="sc">+</span> X12 <span class="sc">+</span> X13 <span class="sc">+</span> X14 <span class="sc">+</span> X15 <span class="sc">+</span> X21 <span class="sc">+</span> X22 <span class="sc">+</span> X23 <span class="sc">+</span> X24 <span class="sc">+</span></span>
-<span id="cb512-5"><a href="endogenous-treatment.html#cb512-5" tabindex="-1"></a>    X31 <span class="sc">+</span> X32 <span class="sc">+</span> X33 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> CID) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> SID) <span class="sc">|</span> <span class="fu">endo</span>(X15)</span>
-<span id="cb512-6"><a href="endogenous-treatment.html#cb512-6" tabindex="-1"></a>m8.multilevel <span class="ot">&lt;-</span></span>
-<span id="cb512-7"><a href="endogenous-treatment.html#cb512-7" tabindex="-1"></a>    <span class="fu">multilevelIV</span>(<span class="at">formula =</span> formula1, <span class="at">data =</span> dataMultilevelIV)</span>
-<span id="cb512-8"><a href="endogenous-treatment.html#cb512-8" tabindex="-1"></a><span class="fu">coef</span>(m8.multilevel)</span>
-<span id="cb512-9"><a href="endogenous-treatment.html#cb512-9" tabindex="-1"></a><span class="co">#&gt;                    REF     FE_L2      FE_L3     GMM_L2     GMM_L3</span></span>
-<span id="cb512-10"><a href="endogenous-treatment.html#cb512-10" tabindex="-1"></a><span class="co">#&gt; (Intercept) 64.3640774  0.000000  0.0000000 64.6642061 64.3644220</span></span>
-<span id="cb512-11"><a href="endogenous-treatment.html#cb512-11" tabindex="-1"></a><span class="co">#&gt; X11          3.0356390  3.047931  3.0353448  3.0356094  3.0356389</span></span>
-<span id="cb512-12"><a href="endogenous-treatment.html#cb512-12" tabindex="-1"></a><span class="co">#&gt; X12          9.0005462  8.996679  8.9999438  8.9966073  9.0005417</span></span>
-<span id="cb512-13"><a href="endogenous-treatment.html#cb512-13" tabindex="-1"></a><span class="co">#&gt; X13         -2.0082559 -2.000106 -2.0090020 -2.0215816 -2.0082712</span></span>
-<span id="cb512-14"><a href="endogenous-treatment.html#cb512-14" tabindex="-1"></a><span class="co">#&gt; X14          1.9809907  2.001761  1.9803275  1.9849995  1.9809953</span></span>
-<span id="cb512-15"><a href="endogenous-treatment.html#cb512-15" tabindex="-1"></a><span class="co">#&gt; X15         -0.5739658 -1.036909 -0.5745241 -1.0344864 -0.5744947</span></span>
-<span id="cb512-16"><a href="endogenous-treatment.html#cb512-16" tabindex="-1"></a><span class="co">#&gt; X21         -2.2423675  0.000000 -2.2319682 -2.2172859 -2.2423387</span></span>
-<span id="cb512-17"><a href="endogenous-treatment.html#cb512-17" tabindex="-1"></a><span class="co">#&gt; X22         -3.2658889  0.000000 -2.9345899 -3.3146849 -3.2659449</span></span>
-<span id="cb512-18"><a href="endogenous-treatment.html#cb512-18" tabindex="-1"></a><span class="co">#&gt; X23         -2.8332479  0.000000 -2.8060569 -2.8581647 -2.8332765</span></span>
-<span id="cb512-19"><a href="endogenous-treatment.html#cb512-19" tabindex="-1"></a><span class="co">#&gt; X24          5.0696401  0.000000  5.0895430  5.0183704  5.0695812</span></span>
-<span id="cb512-20"><a href="endogenous-treatment.html#cb512-20" tabindex="-1"></a><span class="co">#&gt; X31          2.0770536  0.000000  0.0000000  2.0710383  2.0770467</span></span>
-<span id="cb512-21"><a href="endogenous-treatment.html#cb512-21" tabindex="-1"></a><span class="co">#&gt; X32          0.4540926  0.000000  0.0000000  0.4571712  0.4540962</span></span>
-<span id="cb512-22"><a href="endogenous-treatment.html#cb512-22" tabindex="-1"></a><span class="co">#&gt; X33          0.0991915  0.000000  0.0000000  0.0980949  0.0991902</span></span></code></pre></div>
-<div class="sourceCode" id="cb513"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb513-1"><a href="endogenous-treatment.html#cb513-1" tabindex="-1"></a><span class="fu">summary</span>(m8.multilevel, <span class="st">&quot;REF&quot;</span>)</span>
-<span id="cb513-2"><a href="endogenous-treatment.html#cb513-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb513-3"><a href="endogenous-treatment.html#cb513-3" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb513-4"><a href="endogenous-treatment.html#cb513-4" tabindex="-1"></a><span class="co">#&gt; multilevelIV(formula = formula1, data = dataMultilevelIV)</span></span>
-<span id="cb513-5"><a href="endogenous-treatment.html#cb513-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb513-6"><a href="endogenous-treatment.html#cb513-6" tabindex="-1"></a><span class="co">#&gt; Number of levels: 3</span></span>
-<span id="cb513-7"><a href="endogenous-treatment.html#cb513-7" tabindex="-1"></a><span class="co">#&gt; Number of observations: 2767</span></span>
-<span id="cb513-8"><a href="endogenous-treatment.html#cb513-8" tabindex="-1"></a><span class="co">#&gt; Number of groups: L2(CID): 1347  L3(SID): 40</span></span>
-<span id="cb513-9"><a href="endogenous-treatment.html#cb513-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb513-10"><a href="endogenous-treatment.html#cb513-10" tabindex="-1"></a><span class="co">#&gt; Coefficients for model REF:</span></span>
-<span id="cb513-11"><a href="endogenous-treatment.html#cb513-11" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error z-score Pr(&gt;|z|)    </span></span>
-<span id="cb513-12"><a href="endogenous-treatment.html#cb513-12" tabindex="-1"></a><span class="co">#&gt; (Intercept) 64.36408    6.45959   9.964   &lt;2e-16 ***</span></span>
-<span id="cb513-13"><a href="endogenous-treatment.html#cb513-13" tabindex="-1"></a><span class="co">#&gt; X11          3.03564    0.02763 109.863   &lt;2e-16 ***</span></span>
-<span id="cb513-14"><a href="endogenous-treatment.html#cb513-14" tabindex="-1"></a><span class="co">#&gt; X12          9.00055    0.02608 345.152   &lt;2e-16 ***</span></span>
-<span id="cb513-15"><a href="endogenous-treatment.html#cb513-15" tabindex="-1"></a><span class="co">#&gt; X13         -2.00826    0.02521 -79.668   &lt;2e-16 ***</span></span>
-<span id="cb513-16"><a href="endogenous-treatment.html#cb513-16" tabindex="-1"></a><span class="co">#&gt; X14          1.98099    0.02639  75.079   &lt;2e-16 ***</span></span>
-<span id="cb513-17"><a href="endogenous-treatment.html#cb513-17" tabindex="-1"></a><span class="co">#&gt; X15         -0.57397    0.01980 -28.987   &lt;2e-16 ***</span></span>
-<span id="cb513-18"><a href="endogenous-treatment.html#cb513-18" tabindex="-1"></a><span class="co">#&gt; X21         -2.24237    0.18661 -12.016   &lt;2e-16 ***</span></span>
-<span id="cb513-19"><a href="endogenous-treatment.html#cb513-19" tabindex="-1"></a><span class="co">#&gt; X22         -3.26589    0.38703  -8.438   &lt;2e-16 ***</span></span>
-<span id="cb513-20"><a href="endogenous-treatment.html#cb513-20" tabindex="-1"></a><span class="co">#&gt; X23         -2.83325    0.10330 -27.427   &lt;2e-16 ***</span></span>
-<span id="cb513-21"><a href="endogenous-treatment.html#cb513-21" tabindex="-1"></a><span class="co">#&gt; X24          5.06964    0.07322  69.240   &lt;2e-16 ***</span></span>
-<span id="cb513-22"><a href="endogenous-treatment.html#cb513-22" tabindex="-1"></a><span class="co">#&gt; X31          2.07705    0.08935  23.246   &lt;2e-16 ***</span></span>
-<span id="cb513-23"><a href="endogenous-treatment.html#cb513-23" tabindex="-1"></a><span class="co">#&gt; X32          0.45409    0.19116   2.375   0.0175 *  </span></span>
-<span id="cb513-24"><a href="endogenous-treatment.html#cb513-24" tabindex="-1"></a><span class="co">#&gt; X33          0.09919    0.04153   2.388   0.0169 *  </span></span>
-<span id="cb513-25"><a href="endogenous-treatment.html#cb513-25" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb513-26"><a href="endogenous-treatment.html#cb513-26" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb513-27"><a href="endogenous-treatment.html#cb513-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb513-28"><a href="endogenous-treatment.html#cb513-28" tabindex="-1"></a><span class="co">#&gt; Omitted variable tests for model REF:</span></span>
-<span id="cb513-29"><a href="endogenous-treatment.html#cb513-29" tabindex="-1"></a><span class="co">#&gt;               df   Chisq  p-value    </span></span>
-<span id="cb513-30"><a href="endogenous-treatment.html#cb513-30" tabindex="-1"></a><span class="co">#&gt; GMM_L2_vs_REF  7  161.14  &lt; 2e-16 ***</span></span>
-<span id="cb513-31"><a href="endogenous-treatment.html#cb513-31" tabindex="-1"></a><span class="co">#&gt; GMM_L3_vs_REF 13 -829.75 1.000000    </span></span>
-<span id="cb513-32"><a href="endogenous-treatment.html#cb513-32" tabindex="-1"></a><span class="co">#&gt; FE_L2_vs_REF  13   40.00 0.000138 ***</span></span>
-<span id="cb513-33"><a href="endogenous-treatment.html#cb513-33" tabindex="-1"></a><span class="co">#&gt; FE_L3_vs_REF  13   39.99 0.000139 ***</span></span>
-<span id="cb513-34"><a href="endogenous-treatment.html#cb513-34" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb513-35"><a href="endogenous-treatment.html#cb513-35" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb523"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb523-1"><a href="endogenous-treatment.html#cb523-1" tabindex="-1"></a><span class="fu">data</span>(dataMultilevelIV)</span>
+<span id="cb523-2"><a href="endogenous-treatment.html#cb523-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">114</span>)</span>
+<span id="cb523-3"><a href="endogenous-treatment.html#cb523-3" tabindex="-1"></a>formula1 <span class="ot">&lt;-</span></span>
+<span id="cb523-4"><a href="endogenous-treatment.html#cb523-4" tabindex="-1"></a>    y <span class="sc">~</span> X11 <span class="sc">+</span> X12 <span class="sc">+</span> X13 <span class="sc">+</span> X14 <span class="sc">+</span> X15 <span class="sc">+</span> X21 <span class="sc">+</span> X22 <span class="sc">+</span> X23 <span class="sc">+</span> X24 <span class="sc">+</span></span>
+<span id="cb523-5"><a href="endogenous-treatment.html#cb523-5" tabindex="-1"></a>    X31 <span class="sc">+</span> X32 <span class="sc">+</span> X33 <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> CID) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> SID) <span class="sc">|</span> <span class="fu">endo</span>(X15)</span>
+<span id="cb523-6"><a href="endogenous-treatment.html#cb523-6" tabindex="-1"></a>m8.multilevel <span class="ot">&lt;-</span></span>
+<span id="cb523-7"><a href="endogenous-treatment.html#cb523-7" tabindex="-1"></a>    <span class="fu">multilevelIV</span>(<span class="at">formula =</span> formula1, <span class="at">data =</span> dataMultilevelIV)</span>
+<span id="cb523-8"><a href="endogenous-treatment.html#cb523-8" tabindex="-1"></a><span class="fu">coef</span>(m8.multilevel)</span>
+<span id="cb523-9"><a href="endogenous-treatment.html#cb523-9" tabindex="-1"></a><span class="co">#&gt;                    REF     FE_L2      FE_L3     GMM_L2     GMM_L3</span></span>
+<span id="cb523-10"><a href="endogenous-treatment.html#cb523-10" tabindex="-1"></a><span class="co">#&gt; (Intercept) 64.3640774  0.000000  0.0000000 64.6642061 64.3644220</span></span>
+<span id="cb523-11"><a href="endogenous-treatment.html#cb523-11" tabindex="-1"></a><span class="co">#&gt; X11          3.0356390  3.047931  3.0353448  3.0356094  3.0356389</span></span>
+<span id="cb523-12"><a href="endogenous-treatment.html#cb523-12" tabindex="-1"></a><span class="co">#&gt; X12          9.0005462  8.996679  8.9999438  8.9966073  9.0005417</span></span>
+<span id="cb523-13"><a href="endogenous-treatment.html#cb523-13" tabindex="-1"></a><span class="co">#&gt; X13         -2.0082559 -2.000106 -2.0090020 -2.0215816 -2.0082712</span></span>
+<span id="cb523-14"><a href="endogenous-treatment.html#cb523-14" tabindex="-1"></a><span class="co">#&gt; X14          1.9809907  2.001761  1.9803275  1.9849995  1.9809953</span></span>
+<span id="cb523-15"><a href="endogenous-treatment.html#cb523-15" tabindex="-1"></a><span class="co">#&gt; X15         -0.5739658 -1.036909 -0.5745241 -1.0344864 -0.5744947</span></span>
+<span id="cb523-16"><a href="endogenous-treatment.html#cb523-16" tabindex="-1"></a><span class="co">#&gt; X21         -2.2423675  0.000000 -2.2319682 -2.2172859 -2.2423387</span></span>
+<span id="cb523-17"><a href="endogenous-treatment.html#cb523-17" tabindex="-1"></a><span class="co">#&gt; X22         -3.2658889  0.000000 -2.9345899 -3.3146849 -3.2659449</span></span>
+<span id="cb523-18"><a href="endogenous-treatment.html#cb523-18" tabindex="-1"></a><span class="co">#&gt; X23         -2.8332479  0.000000 -2.8060569 -2.8581647 -2.8332765</span></span>
+<span id="cb523-19"><a href="endogenous-treatment.html#cb523-19" tabindex="-1"></a><span class="co">#&gt; X24          5.0696401  0.000000  5.0895430  5.0183704  5.0695812</span></span>
+<span id="cb523-20"><a href="endogenous-treatment.html#cb523-20" tabindex="-1"></a><span class="co">#&gt; X31          2.0770536  0.000000  0.0000000  2.0710383  2.0770467</span></span>
+<span id="cb523-21"><a href="endogenous-treatment.html#cb523-21" tabindex="-1"></a><span class="co">#&gt; X32          0.4540926  0.000000  0.0000000  0.4571712  0.4540962</span></span>
+<span id="cb523-22"><a href="endogenous-treatment.html#cb523-22" tabindex="-1"></a><span class="co">#&gt; X33          0.0991915  0.000000  0.0000000  0.0980949  0.0991902</span></span></code></pre></div>
+<div class="sourceCode" id="cb524"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb524-1"><a href="endogenous-treatment.html#cb524-1" tabindex="-1"></a><span class="fu">summary</span>(m8.multilevel, <span class="st">&quot;REF&quot;</span>)</span>
+<span id="cb524-2"><a href="endogenous-treatment.html#cb524-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb524-3"><a href="endogenous-treatment.html#cb524-3" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb524-4"><a href="endogenous-treatment.html#cb524-4" tabindex="-1"></a><span class="co">#&gt; multilevelIV(formula = formula1, data = dataMultilevelIV)</span></span>
+<span id="cb524-5"><a href="endogenous-treatment.html#cb524-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb524-6"><a href="endogenous-treatment.html#cb524-6" tabindex="-1"></a><span class="co">#&gt; Number of levels: 3</span></span>
+<span id="cb524-7"><a href="endogenous-treatment.html#cb524-7" tabindex="-1"></a><span class="co">#&gt; Number of observations: 2767</span></span>
+<span id="cb524-8"><a href="endogenous-treatment.html#cb524-8" tabindex="-1"></a><span class="co">#&gt; Number of groups: L2(CID): 1347  L3(SID): 40</span></span>
+<span id="cb524-9"><a href="endogenous-treatment.html#cb524-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb524-10"><a href="endogenous-treatment.html#cb524-10" tabindex="-1"></a><span class="co">#&gt; Coefficients for model REF:</span></span>
+<span id="cb524-11"><a href="endogenous-treatment.html#cb524-11" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error z-score Pr(&gt;|z|)    </span></span>
+<span id="cb524-12"><a href="endogenous-treatment.html#cb524-12" tabindex="-1"></a><span class="co">#&gt; (Intercept) 64.36408    6.45959   9.964   &lt;2e-16 ***</span></span>
+<span id="cb524-13"><a href="endogenous-treatment.html#cb524-13" tabindex="-1"></a><span class="co">#&gt; X11          3.03564    0.02763 109.863   &lt;2e-16 ***</span></span>
+<span id="cb524-14"><a href="endogenous-treatment.html#cb524-14" tabindex="-1"></a><span class="co">#&gt; X12          9.00055    0.02608 345.152   &lt;2e-16 ***</span></span>
+<span id="cb524-15"><a href="endogenous-treatment.html#cb524-15" tabindex="-1"></a><span class="co">#&gt; X13         -2.00826    0.02521 -79.668   &lt;2e-16 ***</span></span>
+<span id="cb524-16"><a href="endogenous-treatment.html#cb524-16" tabindex="-1"></a><span class="co">#&gt; X14          1.98099    0.02639  75.079   &lt;2e-16 ***</span></span>
+<span id="cb524-17"><a href="endogenous-treatment.html#cb524-17" tabindex="-1"></a><span class="co">#&gt; X15         -0.57397    0.01980 -28.987   &lt;2e-16 ***</span></span>
+<span id="cb524-18"><a href="endogenous-treatment.html#cb524-18" tabindex="-1"></a><span class="co">#&gt; X21         -2.24237    0.18661 -12.016   &lt;2e-16 ***</span></span>
+<span id="cb524-19"><a href="endogenous-treatment.html#cb524-19" tabindex="-1"></a><span class="co">#&gt; X22         -3.26589    0.38703  -8.438   &lt;2e-16 ***</span></span>
+<span id="cb524-20"><a href="endogenous-treatment.html#cb524-20" tabindex="-1"></a><span class="co">#&gt; X23         -2.83325    0.10330 -27.427   &lt;2e-16 ***</span></span>
+<span id="cb524-21"><a href="endogenous-treatment.html#cb524-21" tabindex="-1"></a><span class="co">#&gt; X24          5.06964    0.07322  69.240   &lt;2e-16 ***</span></span>
+<span id="cb524-22"><a href="endogenous-treatment.html#cb524-22" tabindex="-1"></a><span class="co">#&gt; X31          2.07705    0.08935  23.246   &lt;2e-16 ***</span></span>
+<span id="cb524-23"><a href="endogenous-treatment.html#cb524-23" tabindex="-1"></a><span class="co">#&gt; X32          0.45409    0.19116   2.375   0.0175 *  </span></span>
+<span id="cb524-24"><a href="endogenous-treatment.html#cb524-24" tabindex="-1"></a><span class="co">#&gt; X33          0.09919    0.04153   2.388   0.0169 *  </span></span>
+<span id="cb524-25"><a href="endogenous-treatment.html#cb524-25" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb524-26"><a href="endogenous-treatment.html#cb524-26" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb524-27"><a href="endogenous-treatment.html#cb524-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb524-28"><a href="endogenous-treatment.html#cb524-28" tabindex="-1"></a><span class="co">#&gt; Omitted variable tests for model REF:</span></span>
+<span id="cb524-29"><a href="endogenous-treatment.html#cb524-29" tabindex="-1"></a><span class="co">#&gt;               df   Chisq  p-value    </span></span>
+<span id="cb524-30"><a href="endogenous-treatment.html#cb524-30" tabindex="-1"></a><span class="co">#&gt; GMM_L2_vs_REF  7  161.14  &lt; 2e-16 ***</span></span>
+<span id="cb524-31"><a href="endogenous-treatment.html#cb524-31" tabindex="-1"></a><span class="co">#&gt; GMM_L3_vs_REF 13 -829.75 1.000000    </span></span>
+<span id="cb524-32"><a href="endogenous-treatment.html#cb524-32" tabindex="-1"></a><span class="co">#&gt; FE_L2_vs_REF  13   40.00 0.000138 ***</span></span>
+<span id="cb524-33"><a href="endogenous-treatment.html#cb524-33" tabindex="-1"></a><span class="co">#&gt; FE_L3_vs_REF  13   39.99 0.000139 ***</span></span>
+<span id="cb524-34"><a href="endogenous-treatment.html#cb524-34" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb524-35"><a href="endogenous-treatment.html#cb524-35" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
 <p>True <span class="math inline">\(\beta_{X_{15}} =-1\)</span>. We can see that some estimators are bias because <span class="math inline">\(X_{15}\)</span> is correlated with the level-two error, to which only FE_L2 and GMM_L2 are robust</p>
 <p>To select the appropriate estimator, we use the omitted variable test.</p>
 <p>In a three-level setting, we can have different estimator comparisons:</p>
@@ -2119,79 +2119,79 @@ Y_{cst} &amp;= Z_{cst}^1 \beta_{cs}^1 + X_{cst}^1 \beta_1 + \epsilon_{cst}^1 \\
 <li><code>GMM_L2</code> vs. <code>GMM_L3</code></li>
 </ul></li>
 </ul>
-<div class="sourceCode" id="cb514"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb514-1"><a href="endogenous-treatment.html#cb514-1" tabindex="-1"></a><span class="fu">summary</span>(m8.multilevel, <span class="st">&quot;REF&quot;</span>)</span>
-<span id="cb514-2"><a href="endogenous-treatment.html#cb514-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb514-3"><a href="endogenous-treatment.html#cb514-3" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb514-4"><a href="endogenous-treatment.html#cb514-4" tabindex="-1"></a><span class="co">#&gt; multilevelIV(formula = formula1, data = dataMultilevelIV)</span></span>
-<span id="cb514-5"><a href="endogenous-treatment.html#cb514-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb514-6"><a href="endogenous-treatment.html#cb514-6" tabindex="-1"></a><span class="co">#&gt; Number of levels: 3</span></span>
-<span id="cb514-7"><a href="endogenous-treatment.html#cb514-7" tabindex="-1"></a><span class="co">#&gt; Number of observations: 2767</span></span>
-<span id="cb514-8"><a href="endogenous-treatment.html#cb514-8" tabindex="-1"></a><span class="co">#&gt; Number of groups: L2(CID): 1347  L3(SID): 40</span></span>
-<span id="cb514-9"><a href="endogenous-treatment.html#cb514-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb514-10"><a href="endogenous-treatment.html#cb514-10" tabindex="-1"></a><span class="co">#&gt; Coefficients for model REF:</span></span>
-<span id="cb514-11"><a href="endogenous-treatment.html#cb514-11" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error z-score Pr(&gt;|z|)    </span></span>
-<span id="cb514-12"><a href="endogenous-treatment.html#cb514-12" tabindex="-1"></a><span class="co">#&gt; (Intercept) 64.36408    6.45959   9.964   &lt;2e-16 ***</span></span>
-<span id="cb514-13"><a href="endogenous-treatment.html#cb514-13" tabindex="-1"></a><span class="co">#&gt; X11          3.03564    0.02763 109.863   &lt;2e-16 ***</span></span>
-<span id="cb514-14"><a href="endogenous-treatment.html#cb514-14" tabindex="-1"></a><span class="co">#&gt; X12          9.00055    0.02608 345.152   &lt;2e-16 ***</span></span>
-<span id="cb514-15"><a href="endogenous-treatment.html#cb514-15" tabindex="-1"></a><span class="co">#&gt; X13         -2.00826    0.02521 -79.668   &lt;2e-16 ***</span></span>
-<span id="cb514-16"><a href="endogenous-treatment.html#cb514-16" tabindex="-1"></a><span class="co">#&gt; X14          1.98099    0.02639  75.079   &lt;2e-16 ***</span></span>
-<span id="cb514-17"><a href="endogenous-treatment.html#cb514-17" tabindex="-1"></a><span class="co">#&gt; X15         -0.57397    0.01980 -28.987   &lt;2e-16 ***</span></span>
-<span id="cb514-18"><a href="endogenous-treatment.html#cb514-18" tabindex="-1"></a><span class="co">#&gt; X21         -2.24237    0.18661 -12.016   &lt;2e-16 ***</span></span>
-<span id="cb514-19"><a href="endogenous-treatment.html#cb514-19" tabindex="-1"></a><span class="co">#&gt; X22         -3.26589    0.38703  -8.438   &lt;2e-16 ***</span></span>
-<span id="cb514-20"><a href="endogenous-treatment.html#cb514-20" tabindex="-1"></a><span class="co">#&gt; X23         -2.83325    0.10330 -27.427   &lt;2e-16 ***</span></span>
-<span id="cb514-21"><a href="endogenous-treatment.html#cb514-21" tabindex="-1"></a><span class="co">#&gt; X24          5.06964    0.07322  69.240   &lt;2e-16 ***</span></span>
-<span id="cb514-22"><a href="endogenous-treatment.html#cb514-22" tabindex="-1"></a><span class="co">#&gt; X31          2.07705    0.08935  23.246   &lt;2e-16 ***</span></span>
-<span id="cb514-23"><a href="endogenous-treatment.html#cb514-23" tabindex="-1"></a><span class="co">#&gt; X32          0.45409    0.19116   2.375   0.0175 *  </span></span>
-<span id="cb514-24"><a href="endogenous-treatment.html#cb514-24" tabindex="-1"></a><span class="co">#&gt; X33          0.09919    0.04153   2.388   0.0169 *  </span></span>
-<span id="cb514-25"><a href="endogenous-treatment.html#cb514-25" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb514-26"><a href="endogenous-treatment.html#cb514-26" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb514-27"><a href="endogenous-treatment.html#cb514-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb514-28"><a href="endogenous-treatment.html#cb514-28" tabindex="-1"></a><span class="co">#&gt; Omitted variable tests for model REF:</span></span>
-<span id="cb514-29"><a href="endogenous-treatment.html#cb514-29" tabindex="-1"></a><span class="co">#&gt;               df   Chisq  p-value    </span></span>
-<span id="cb514-30"><a href="endogenous-treatment.html#cb514-30" tabindex="-1"></a><span class="co">#&gt; GMM_L2_vs_REF  7  161.14  &lt; 2e-16 ***</span></span>
-<span id="cb514-31"><a href="endogenous-treatment.html#cb514-31" tabindex="-1"></a><span class="co">#&gt; GMM_L3_vs_REF 13 -829.75 1.000000    </span></span>
-<span id="cb514-32"><a href="endogenous-treatment.html#cb514-32" tabindex="-1"></a><span class="co">#&gt; FE_L2_vs_REF  13   40.00 0.000138 ***</span></span>
-<span id="cb514-33"><a href="endogenous-treatment.html#cb514-33" tabindex="-1"></a><span class="co">#&gt; FE_L3_vs_REF  13   39.99 0.000139 ***</span></span>
-<span id="cb514-34"><a href="endogenous-treatment.html#cb514-34" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb514-35"><a href="endogenous-treatment.html#cb514-35" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb514-36"><a href="endogenous-treatment.html#cb514-36" tabindex="-1"></a><span class="co"># compare REF with all the other estimators. Testing REF (the most efficient estimator) against FE_L2 (the most robust estimator), equivalently we are testing simultaneously for level-2 and level-3 omitted effects. </span></span></code></pre></div>
+<div class="sourceCode" id="cb525"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb525-1"><a href="endogenous-treatment.html#cb525-1" tabindex="-1"></a><span class="fu">summary</span>(m8.multilevel, <span class="st">&quot;REF&quot;</span>)</span>
+<span id="cb525-2"><a href="endogenous-treatment.html#cb525-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb525-3"><a href="endogenous-treatment.html#cb525-3" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb525-4"><a href="endogenous-treatment.html#cb525-4" tabindex="-1"></a><span class="co">#&gt; multilevelIV(formula = formula1, data = dataMultilevelIV)</span></span>
+<span id="cb525-5"><a href="endogenous-treatment.html#cb525-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb525-6"><a href="endogenous-treatment.html#cb525-6" tabindex="-1"></a><span class="co">#&gt; Number of levels: 3</span></span>
+<span id="cb525-7"><a href="endogenous-treatment.html#cb525-7" tabindex="-1"></a><span class="co">#&gt; Number of observations: 2767</span></span>
+<span id="cb525-8"><a href="endogenous-treatment.html#cb525-8" tabindex="-1"></a><span class="co">#&gt; Number of groups: L2(CID): 1347  L3(SID): 40</span></span>
+<span id="cb525-9"><a href="endogenous-treatment.html#cb525-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb525-10"><a href="endogenous-treatment.html#cb525-10" tabindex="-1"></a><span class="co">#&gt; Coefficients for model REF:</span></span>
+<span id="cb525-11"><a href="endogenous-treatment.html#cb525-11" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error z-score Pr(&gt;|z|)    </span></span>
+<span id="cb525-12"><a href="endogenous-treatment.html#cb525-12" tabindex="-1"></a><span class="co">#&gt; (Intercept) 64.36408    6.45959   9.964   &lt;2e-16 ***</span></span>
+<span id="cb525-13"><a href="endogenous-treatment.html#cb525-13" tabindex="-1"></a><span class="co">#&gt; X11          3.03564    0.02763 109.863   &lt;2e-16 ***</span></span>
+<span id="cb525-14"><a href="endogenous-treatment.html#cb525-14" tabindex="-1"></a><span class="co">#&gt; X12          9.00055    0.02608 345.152   &lt;2e-16 ***</span></span>
+<span id="cb525-15"><a href="endogenous-treatment.html#cb525-15" tabindex="-1"></a><span class="co">#&gt; X13         -2.00826    0.02521 -79.668   &lt;2e-16 ***</span></span>
+<span id="cb525-16"><a href="endogenous-treatment.html#cb525-16" tabindex="-1"></a><span class="co">#&gt; X14          1.98099    0.02639  75.079   &lt;2e-16 ***</span></span>
+<span id="cb525-17"><a href="endogenous-treatment.html#cb525-17" tabindex="-1"></a><span class="co">#&gt; X15         -0.57397    0.01980 -28.987   &lt;2e-16 ***</span></span>
+<span id="cb525-18"><a href="endogenous-treatment.html#cb525-18" tabindex="-1"></a><span class="co">#&gt; X21         -2.24237    0.18661 -12.016   &lt;2e-16 ***</span></span>
+<span id="cb525-19"><a href="endogenous-treatment.html#cb525-19" tabindex="-1"></a><span class="co">#&gt; X22         -3.26589    0.38703  -8.438   &lt;2e-16 ***</span></span>
+<span id="cb525-20"><a href="endogenous-treatment.html#cb525-20" tabindex="-1"></a><span class="co">#&gt; X23         -2.83325    0.10330 -27.427   &lt;2e-16 ***</span></span>
+<span id="cb525-21"><a href="endogenous-treatment.html#cb525-21" tabindex="-1"></a><span class="co">#&gt; X24          5.06964    0.07322  69.240   &lt;2e-16 ***</span></span>
+<span id="cb525-22"><a href="endogenous-treatment.html#cb525-22" tabindex="-1"></a><span class="co">#&gt; X31          2.07705    0.08935  23.246   &lt;2e-16 ***</span></span>
+<span id="cb525-23"><a href="endogenous-treatment.html#cb525-23" tabindex="-1"></a><span class="co">#&gt; X32          0.45409    0.19116   2.375   0.0175 *  </span></span>
+<span id="cb525-24"><a href="endogenous-treatment.html#cb525-24" tabindex="-1"></a><span class="co">#&gt; X33          0.09919    0.04153   2.388   0.0169 *  </span></span>
+<span id="cb525-25"><a href="endogenous-treatment.html#cb525-25" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb525-26"><a href="endogenous-treatment.html#cb525-26" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb525-27"><a href="endogenous-treatment.html#cb525-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb525-28"><a href="endogenous-treatment.html#cb525-28" tabindex="-1"></a><span class="co">#&gt; Omitted variable tests for model REF:</span></span>
+<span id="cb525-29"><a href="endogenous-treatment.html#cb525-29" tabindex="-1"></a><span class="co">#&gt;               df   Chisq  p-value    </span></span>
+<span id="cb525-30"><a href="endogenous-treatment.html#cb525-30" tabindex="-1"></a><span class="co">#&gt; GMM_L2_vs_REF  7  161.14  &lt; 2e-16 ***</span></span>
+<span id="cb525-31"><a href="endogenous-treatment.html#cb525-31" tabindex="-1"></a><span class="co">#&gt; GMM_L3_vs_REF 13 -829.75 1.000000    </span></span>
+<span id="cb525-32"><a href="endogenous-treatment.html#cb525-32" tabindex="-1"></a><span class="co">#&gt; FE_L2_vs_REF  13   40.00 0.000138 ***</span></span>
+<span id="cb525-33"><a href="endogenous-treatment.html#cb525-33" tabindex="-1"></a><span class="co">#&gt; FE_L3_vs_REF  13   39.99 0.000139 ***</span></span>
+<span id="cb525-34"><a href="endogenous-treatment.html#cb525-34" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb525-35"><a href="endogenous-treatment.html#cb525-35" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb525-36"><a href="endogenous-treatment.html#cb525-36" tabindex="-1"></a><span class="co"># compare REF with all the other estimators. Testing REF (the most efficient estimator) against FE_L2 (the most robust estimator), equivalently we are testing simultaneously for level-2 and level-3 omitted effects. </span></span></code></pre></div>
 <p>Since the null hypothesis is rejected (p = 0.000139), there is bias in the random effects estimator.</p>
 <p>To test for level-2 omitted effects (regardless of level-3 omitted effects), we compare FE_L2 versus FE_L3</p>
-<div class="sourceCode" id="cb515"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb515-1"><a href="endogenous-treatment.html#cb515-1" tabindex="-1"></a><span class="fu">summary</span>(m8.multilevel,<span class="st">&quot;FE_L2&quot;</span>)</span>
-<span id="cb515-2"><a href="endogenous-treatment.html#cb515-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb515-3"><a href="endogenous-treatment.html#cb515-3" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb515-4"><a href="endogenous-treatment.html#cb515-4" tabindex="-1"></a><span class="co">#&gt; multilevelIV(formula = formula1, data = dataMultilevelIV)</span></span>
-<span id="cb515-5"><a href="endogenous-treatment.html#cb515-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb515-6"><a href="endogenous-treatment.html#cb515-6" tabindex="-1"></a><span class="co">#&gt; Number of levels: 3</span></span>
-<span id="cb515-7"><a href="endogenous-treatment.html#cb515-7" tabindex="-1"></a><span class="co">#&gt; Number of observations: 2767</span></span>
-<span id="cb515-8"><a href="endogenous-treatment.html#cb515-8" tabindex="-1"></a><span class="co">#&gt; Number of groups: L2(CID): 1347  L3(SID): 40</span></span>
-<span id="cb515-9"><a href="endogenous-treatment.html#cb515-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb515-10"><a href="endogenous-treatment.html#cb515-10" tabindex="-1"></a><span class="co">#&gt; Coefficients for model FE_L2:</span></span>
-<span id="cb515-11"><a href="endogenous-treatment.html#cb515-11" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error z-score Pr(&gt;|z|)    </span></span>
-<span id="cb515-12"><a href="endogenous-treatment.html#cb515-12" tabindex="-1"></a><span class="co">#&gt; (Intercept)  0.000e+00  1.373e-18    0.00        1    </span></span>
-<span id="cb515-13"><a href="endogenous-treatment.html#cb515-13" tabindex="-1"></a><span class="co">#&gt; X11          3.048e+00  3.193e-02   95.47   &lt;2e-16 ***</span></span>
-<span id="cb515-14"><a href="endogenous-treatment.html#cb515-14" tabindex="-1"></a><span class="co">#&gt; X12          8.997e+00  3.377e-02  266.43   &lt;2e-16 ***</span></span>
-<span id="cb515-15"><a href="endogenous-treatment.html#cb515-15" tabindex="-1"></a><span class="co">#&gt; X13         -2.000e+00  3.211e-02  -62.29   &lt;2e-16 ***</span></span>
-<span id="cb515-16"><a href="endogenous-treatment.html#cb515-16" tabindex="-1"></a><span class="co">#&gt; X14          2.002e+00  3.437e-02   58.24   &lt;2e-16 ***</span></span>
-<span id="cb515-17"><a href="endogenous-treatment.html#cb515-17" tabindex="-1"></a><span class="co">#&gt; X15         -1.037e+00  3.301e-02  -31.41   &lt;2e-16 ***</span></span>
-<span id="cb515-18"><a href="endogenous-treatment.html#cb515-18" tabindex="-1"></a><span class="co">#&gt; X21          0.000e+00  1.881e-18    0.00        1    </span></span>
-<span id="cb515-19"><a href="endogenous-treatment.html#cb515-19" tabindex="-1"></a><span class="co">#&gt; X22          0.000e+00  1.060e-18    0.00        1    </span></span>
-<span id="cb515-20"><a href="endogenous-treatment.html#cb515-20" tabindex="-1"></a><span class="co">#&gt; X23          0.000e+00  1.782e-18    0.00        1    </span></span>
-<span id="cb515-21"><a href="endogenous-treatment.html#cb515-21" tabindex="-1"></a><span class="co">#&gt; X24          0.000e+00  7.536e-18    0.00        1    </span></span>
-<span id="cb515-22"><a href="endogenous-treatment.html#cb515-22" tabindex="-1"></a><span class="co">#&gt; X31          0.000e+00  2.747e-17    0.00        1    </span></span>
-<span id="cb515-23"><a href="endogenous-treatment.html#cb515-23" tabindex="-1"></a><span class="co">#&gt; X32          0.000e+00  2.679e-17    0.00        1    </span></span>
-<span id="cb515-24"><a href="endogenous-treatment.html#cb515-24" tabindex="-1"></a><span class="co">#&gt; X33          0.000e+00  1.210e-16    0.00        1    </span></span>
-<span id="cb515-25"><a href="endogenous-treatment.html#cb515-25" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb515-26"><a href="endogenous-treatment.html#cb515-26" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb515-27"><a href="endogenous-treatment.html#cb515-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb515-28"><a href="endogenous-treatment.html#cb515-28" tabindex="-1"></a><span class="co">#&gt; Omitted variable tests for model FE_L2:</span></span>
-<span id="cb515-29"><a href="endogenous-treatment.html#cb515-29" tabindex="-1"></a><span class="co">#&gt;                 df Chisq  p-value    </span></span>
-<span id="cb515-30"><a href="endogenous-treatment.html#cb515-30" tabindex="-1"></a><span class="co">#&gt; FE_L2_vs_REF    13 40.00 0.000138 ***</span></span>
-<span id="cb515-31"><a href="endogenous-treatment.html#cb515-31" tabindex="-1"></a><span class="co">#&gt; FE_L2_vs_FE_L3   9 38.95 1.18e-05 ***</span></span>
-<span id="cb515-32"><a href="endogenous-treatment.html#cb515-32" tabindex="-1"></a><span class="co">#&gt; FE_L2_vs_GMM_L2 12 40.00 7.20e-05 ***</span></span>
-<span id="cb515-33"><a href="endogenous-treatment.html#cb515-33" tabindex="-1"></a><span class="co">#&gt; FE_L2_vs_GMM_L3 13 40.00 0.000138 ***</span></span>
-<span id="cb515-34"><a href="endogenous-treatment.html#cb515-34" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb515-35"><a href="endogenous-treatment.html#cb515-35" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb526"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb526-1"><a href="endogenous-treatment.html#cb526-1" tabindex="-1"></a><span class="fu">summary</span>(m8.multilevel,<span class="st">&quot;FE_L2&quot;</span>)</span>
+<span id="cb526-2"><a href="endogenous-treatment.html#cb526-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb526-3"><a href="endogenous-treatment.html#cb526-3" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb526-4"><a href="endogenous-treatment.html#cb526-4" tabindex="-1"></a><span class="co">#&gt; multilevelIV(formula = formula1, data = dataMultilevelIV)</span></span>
+<span id="cb526-5"><a href="endogenous-treatment.html#cb526-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb526-6"><a href="endogenous-treatment.html#cb526-6" tabindex="-1"></a><span class="co">#&gt; Number of levels: 3</span></span>
+<span id="cb526-7"><a href="endogenous-treatment.html#cb526-7" tabindex="-1"></a><span class="co">#&gt; Number of observations: 2767</span></span>
+<span id="cb526-8"><a href="endogenous-treatment.html#cb526-8" tabindex="-1"></a><span class="co">#&gt; Number of groups: L2(CID): 1347  L3(SID): 40</span></span>
+<span id="cb526-9"><a href="endogenous-treatment.html#cb526-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb526-10"><a href="endogenous-treatment.html#cb526-10" tabindex="-1"></a><span class="co">#&gt; Coefficients for model FE_L2:</span></span>
+<span id="cb526-11"><a href="endogenous-treatment.html#cb526-11" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error z-score Pr(&gt;|z|)    </span></span>
+<span id="cb526-12"><a href="endogenous-treatment.html#cb526-12" tabindex="-1"></a><span class="co">#&gt; (Intercept)  0.000e+00  1.373e-18    0.00        1    </span></span>
+<span id="cb526-13"><a href="endogenous-treatment.html#cb526-13" tabindex="-1"></a><span class="co">#&gt; X11          3.048e+00  3.193e-02   95.47   &lt;2e-16 ***</span></span>
+<span id="cb526-14"><a href="endogenous-treatment.html#cb526-14" tabindex="-1"></a><span class="co">#&gt; X12          8.997e+00  3.377e-02  266.43   &lt;2e-16 ***</span></span>
+<span id="cb526-15"><a href="endogenous-treatment.html#cb526-15" tabindex="-1"></a><span class="co">#&gt; X13         -2.000e+00  3.211e-02  -62.29   &lt;2e-16 ***</span></span>
+<span id="cb526-16"><a href="endogenous-treatment.html#cb526-16" tabindex="-1"></a><span class="co">#&gt; X14          2.002e+00  3.437e-02   58.24   &lt;2e-16 ***</span></span>
+<span id="cb526-17"><a href="endogenous-treatment.html#cb526-17" tabindex="-1"></a><span class="co">#&gt; X15         -1.037e+00  3.301e-02  -31.41   &lt;2e-16 ***</span></span>
+<span id="cb526-18"><a href="endogenous-treatment.html#cb526-18" tabindex="-1"></a><span class="co">#&gt; X21          0.000e+00  1.881e-18    0.00        1    </span></span>
+<span id="cb526-19"><a href="endogenous-treatment.html#cb526-19" tabindex="-1"></a><span class="co">#&gt; X22          0.000e+00  1.060e-18    0.00        1    </span></span>
+<span id="cb526-20"><a href="endogenous-treatment.html#cb526-20" tabindex="-1"></a><span class="co">#&gt; X23          0.000e+00  1.782e-18    0.00        1    </span></span>
+<span id="cb526-21"><a href="endogenous-treatment.html#cb526-21" tabindex="-1"></a><span class="co">#&gt; X24          0.000e+00  7.536e-18    0.00        1    </span></span>
+<span id="cb526-22"><a href="endogenous-treatment.html#cb526-22" tabindex="-1"></a><span class="co">#&gt; X31          0.000e+00  2.747e-17    0.00        1    </span></span>
+<span id="cb526-23"><a href="endogenous-treatment.html#cb526-23" tabindex="-1"></a><span class="co">#&gt; X32          0.000e+00  2.679e-17    0.00        1    </span></span>
+<span id="cb526-24"><a href="endogenous-treatment.html#cb526-24" tabindex="-1"></a><span class="co">#&gt; X33          0.000e+00  1.210e-16    0.00        1    </span></span>
+<span id="cb526-25"><a href="endogenous-treatment.html#cb526-25" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb526-26"><a href="endogenous-treatment.html#cb526-26" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb526-27"><a href="endogenous-treatment.html#cb526-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb526-28"><a href="endogenous-treatment.html#cb526-28" tabindex="-1"></a><span class="co">#&gt; Omitted variable tests for model FE_L2:</span></span>
+<span id="cb526-29"><a href="endogenous-treatment.html#cb526-29" tabindex="-1"></a><span class="co">#&gt;                 df Chisq  p-value    </span></span>
+<span id="cb526-30"><a href="endogenous-treatment.html#cb526-30" tabindex="-1"></a><span class="co">#&gt; FE_L2_vs_REF    13 40.00 0.000138 ***</span></span>
+<span id="cb526-31"><a href="endogenous-treatment.html#cb526-31" tabindex="-1"></a><span class="co">#&gt; FE_L2_vs_FE_L3   9 38.95 1.18e-05 ***</span></span>
+<span id="cb526-32"><a href="endogenous-treatment.html#cb526-32" tabindex="-1"></a><span class="co">#&gt; FE_L2_vs_GMM_L2 12 40.00 7.20e-05 ***</span></span>
+<span id="cb526-33"><a href="endogenous-treatment.html#cb526-33" tabindex="-1"></a><span class="co">#&gt; FE_L2_vs_GMM_L3 13 40.00 0.000138 ***</span></span>
+<span id="cb526-34"><a href="endogenous-treatment.html#cb526-34" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb526-35"><a href="endogenous-treatment.html#cb526-35" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
 <p>The null hypothesis of no omitted level-2 effects is rejected (<span class="math inline">\(p = 3.92e − 05\)</span>). Hence, there are omitted effects at level-two. We should use FE_L2 which is consistent with the underlying data that we generated (level-2 error correlated with <span class="math inline">\(X_15\)</span>, which leads to biased FE_L3 coefficients.</p>
 <p>The omitted variable test between FE_L2 and GMM_L2 should reject the null hypothesis of no omitted level-2 effects (p-value is 0).</p>
 <p>If we assume an endogenous variable as exogenous, the RE and GMM estimators will be biased because of the wrong set of internal instrumental variables. To increase our confidence, we should compare the omitted variable tests when the variable is considered endogenous vs. exogenous to get a sense whether the variable is truly endogenous.</p>

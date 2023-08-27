@@ -707,7 +707,7 @@ Y_{idt} = \alpha_0 + (POST_t \times Treat_d) \alpha_1 + \theta_d + \delta_t + X_
 <p>The canonical/standard TWFE only works when</p>
 <ul>
 <li>
-<p>Effects are homogeneous across units and across time periods (i.e., no dynamic changes in the effects of treatment). See <span class="citation">(<a href="references.html#ref-goodman2021difference">Goodman-Bacon 2021</a>; <a href="references.html#ref-de2020two">De Chaisemartin and d’Haultfoeuille 2020</a>; <a href="references.html#ref-sun2021estimating">L. Sun and Abraham 2021</a>; <a href="references.html#ref-borusyak2021revisiting">Borusyak, Jaravel, and Spiess 2021</a>)</span> for details.</p>
+<p>Effects are homogeneous across units and across time periods (i.e., no dynamic changes in the effects of treatment). See <span class="citation">(<a href="references.html#ref-goodman2021difference">Goodman-Bacon 2021</a>; <a href="references.html#ref-de2020two">De Chaisemartin and d’Haultfoeuille 2020</a>; <a href="references.html#ref-sun2021estimating">L. Sun and Abraham 2021</a>; <a href="references.html#ref-borusyak2021revisiting">Borusyak, Jaravel, and Spiess 2021</a>)</span> for details. Relatedly, it relies on the assumption of <strong>linear additive effects</strong> <span class="citation">(<a href="references.html#ref-imai2021use">Imai and Kim 2021</a>)</span></p>
 <ul>
 <li><p>Have to argue why treatment heterogeneity is not a problem (e.g., plot treatment timing and decompose treatment coefficient using <a href="difference-in-differences.html#goodman-bacon-decomposition">Goodman-Bacon Decomposition</a>) know the percentage of observation are never treated (because as the never-treated group increases, the bias of TWFE decreases, with 80% sample to be never-treated, bias is negligible). The problem is worsen when you have long-run effects.</p></li>
 <li><p>Need to manually drop two relative time periods if everyone is eventually treated (to avoid multicollinearity). Programs might do this randomly and if it chooses to drop a post-treatment period, it will create biases. The choice usually -1, and -2 periods.</p></li>
@@ -753,7 +753,7 @@ Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it}
 <li>linear additive effects <span class="citation">(<a href="references.html#ref-imai2021use">Imai and Kim 2021</a>)</span>
 </li>
 </ol>
-<p>Remedies for TWFE’s shortcomings</p>
+<p><strong>Remedies for TWFE’s shortcomings</strong></p>
 <ul>
 <li><p><span class="citation">(<a href="references.html#ref-goodman2021difference">Goodman-Bacon 2021</a>)</span>: diagnostic robustness tests of the TWFE DiD and identify influential observations to the DiD estimate (<a href="difference-in-differences.html#goodman-bacon-decomposition">Goodman-Bacon Decomposition</a>)</p></li>
 <li>
@@ -1539,27 +1539,753 @@ E_{imrt} &amp;= \alpha + BTB_{m (t - 3t)} \theta_1 + BTB_{m(t-2)} \theta_2 + BTB
 <div class="inline-figure"><img src="25-dif-in-dif_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p>With time-varying controls that can identify variation within-treatment timing group, the”early vs. late” and “late vs. early” estimates collapse to just one estimate (i.e., both treated).</p>
 </div>
-<div id="chaisemartin-dhaultfoeuille" class="section level4" number="25.2.2.4">
+<div id="did-with-in-and-out-treatment-condition" class="section level4" number="25.2.2.4">
 <h4>
-<span class="header-section-number">25.2.2.4</span> Chaisemartin-d’Haultfoeuille<a class="anchor" aria-label="anchor" href="#chaisemartin-dhaultfoeuille"><i class="fas fa-link"></i></a>
+<span class="header-section-number">25.2.2.4</span> DID with in and out treatment condition<a class="anchor" aria-label="anchor" href="#did-with-in-and-out-treatment-condition"><i class="fas fa-link"></i></a>
+</h4>
+<p><span class="citation">Imai and Kim (<a href="references.html#ref-imai2021use">2021</a>)</span></p>
+<p>This case generalizes the staggered adoption setting, allowing units to vary in treatment over time. For <span class="math inline">\(N\)</span> units across <span class="math inline">\(T\)</span> time periods (with potentially unbalanced panels), let <span class="math inline">\(X_{it}\)</span> represent treatment and <span class="math inline">\(Y_{it}\)</span> the outcome for unit <span class="math inline">\(i\)</span> at time <span class="math inline">\(t\)</span>. We use the two-way linear fixed effects model:</p>
+<p><span class="math display">\[
+Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
+\]</span></p>
+<p>for <span class="math inline">\(i = 1, \dots, N\)</span> and <span class="math inline">\(t = 1, \dots, T\)</span>. Here, <span class="math inline">\(\alpha_i\)</span> and <span class="math inline">\(\gamma_t\)</span> are unit and time fixed effects. They capture time-invariant unit-specific and unit-invariant time-specific unobserved confounders, respectively. We can express these as <span class="math inline">\(\alpha_i = h(\mathbf{U}_i)\)</span> and <span class="math inline">\(\gamma_t = f(\mathbf{V}_t)\)</span>, with <span class="math inline">\(\mathbf{U}_i\)</span> and <span class="math inline">\(\mathbf{V}_t\)</span> being the confounders. The model doesn’t assume a specific form for <span class="math inline">\(h(.)\)</span> and <span class="math inline">\(f(.)\)</span>, but that they’re additive and separable given binary treatment.</p>
+<p>The least squares estimate of <span class="math inline">\(\beta\)</span> leverages the covariance in outcome and treatment <span class="citation">(<a href="references.html#ref-imai2021use">Imai and Kim 2021, 406</a>)</span>. Specifically, it uses the within-unit and within-time variations. Many researchers prefer the two fixed effects (2FE) estimator because it adjusts for both types of unobserved confounders without specific functional-form assumptions, but this is wrong <span class="citation">(<a href="references.html#ref-imai2019should">Imai and Kim 2019</a>)</span>. We do need functional-form assumption (i.e., linearity assumption) for the 2FE to work <span class="citation">(<a href="references.html#ref-imai2021use">Imai and Kim 2021, 406</a>)</span></p>
+<ul>
+<li>
+<p><strong>Two-Way Matching Estimator</strong>:</p>
+<ul>
+<li><p>It can lead to mismatches; units with the same treatment status get matched when estimating counterfactual outcomes.</p></li>
+<li><p>Observations need to be matched with opposite treatment status for correct causal effects estimation.</p></li>
+<li><p>Mismatches can cause attenuation bias.</p></li>
+<li><p>The 2FE estimator adjusts for this bias using the factor <span class="math inline">\(K\)</span>, which represents the net proportion of proper matches between observations with opposite treatment status.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Weighting in 2FE</strong>:</p>
+<ul>
+<li><p>Observation <span class="math inline">\((i,t)\)</span> is weighted based on how often it acts as a control unit.</p></li>
+<li><p>The weighted 2FE estimator still has mismatches, but fewer than the standard 2FE estimator.</p></li>
+<li><p>Adjustments are made based on observations that neither belong to the same unit nor the same time period as the matched observation.</p></li>
+<li><p>This means there are challenges in adjusting for unit-specific and time-specific unobserved confounders under the two-way fixed effect framework.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Equivalence &amp; Assumptions</strong>:</p>
+<ul>
+<li><p>Equivalence between the 2FE estimator and the DID estimator is dependent on the linearity assumption.</p></li>
+<li><p>The multi-period DiD estimator is described as an average of two-time-period, two-group DiD estimators applied during changes from control to treatment.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Comparison with DiD</strong>:</p>
+<ul>
+<li><p>In simple settings (two time periods, treatment given to one group in the second period), the standard nonparametric DiD estimator equals the 2FE estimator.</p></li>
+<li><p>This doesn’t hold in multi-period DiD designs where units change treatment status multiple times at different intervals.</p></li>
+<li><p>Contrary to popular belief, the unweighted 2FE estimator isn’t generally equivalent to the multi-period DiD estimator.</p></li>
+<li><p>While the multi-period DiD can be equivalent to the weighted 2FE, some control observations may have negative regression weights.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Conclusion</strong>:</p>
+<ul>
+<li>Justifying the 2FE estimator as the DID estimator isn’t warranted without imposing the linearity assumption.</li>
+</ul>
+</li>
+</ul>
+<p><strong>Application <span class="citation">(<a href="references.html#ref-imai2021matching">Imai, Kim, and Wang 2021</a>)</span></strong></p>
+<ul>
+<li>
+<p><strong>Matching Methods</strong>:</p>
+<ul>
+<li><p>Enhance the validity of causal inference.</p></li>
+<li><p>Reduce model dependence and provide intuitive diagnostics <span class="citation">(<a href="references.html#ref-ho2007matching">Ho et al. 2007</a>)</span></p></li>
+<li><p>Rarely utilized in analyzing time series cross-sectional data.</p></li>
+<li><p>The proposed matching estimators are more robust than the standard two-way fixed effects estimator, which can be biased if mis-specified</p></li>
+<li><p>Better than synthetic controls (e.g., <span class="citation">(<a href="references.html#ref-xu2017generalized">Xu 2017</a>)</span>) because it needs less data to achieve good performance and and adapt the the context of unit switching treatment status multiple times.</p></li>
+</ul>
+</li>
+<li>
+<p>Notes:</p>
+<ul>
+<li>Potential carryover effects (treatment may have a long-term effect), leading to post-treatment bias.</li>
+</ul>
+</li>
+<li>
+<p><strong>Proposed Approach</strong>:</p>
+<ol style="list-style-type: decimal">
+<li><p>Treated observations are matched with control observations from other units in the same time period with the same treatment history up to a specified number of lags.</p></li>
+<li><p>Standard matching and weighting techniques are employed to further refine the matched set.</p></li>
+<li><p>Apply a DiD estimator to adjust for time trend.</p></li>
+<li><p>The goal is to have treated and matched control observations with similar covariate values.</p></li>
+</ol>
+</li>
+<li>
+<p><strong>Assessment</strong>:</p>
+<ul>
+<li>The quality of matches is evaluated through covariate balancing.</li>
+</ul>
+</li>
+<li>
+<p><strong>Estimation</strong>:</p>
+<ul>
+<li>Both short-term and long-term average treatment effects on the treated (ATT) are estimated.</li>
+</ul>
+</li>
+</ul>
+<div class="sourceCode" id="cb422"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">PanelMatch</span><span class="op">)</span></span></code></pre></div>
+<p><strong>Treatment Variation plot</strong></p>
+<ul>
+<li><p>Visualize the variation of the treatment across space and time</p></li>
+<li><p>Aids in discerning whether the treatment fluctuates adequately over time and units or if the variation is primarily clustered in a subset of data.</p></li>
+</ul>
+<div class="sourceCode" id="cb423"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/DisplayTreatment.html">DisplayTreatment</a></span><span class="op">(</span></span>
+<span>    unit.id <span class="op">=</span> <span class="st">"wbcode2"</span>,</span>
+<span>    time.id <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>    legend.position <span class="op">=</span> <span class="st">"none"</span>,</span>
+<span>    xlab <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>    ylab <span class="op">=</span> <span class="st">"Country Code"</span>,</span>
+<span>    treatment <span class="op">=</span> <span class="st">"dem"</span>,</span>
+<span>    </span>
+<span>    hide.x.tick.label <span class="op">=</span> <span class="cn">TRUE</span>, hide.y.tick.label <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>    <span class="co"># dense.plot = TRUE,</span></span>
+<span>    data <span class="op">=</span> <span class="va">dem</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="25-dif-in-dif_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;"></div>
+<ol style="list-style-type: decimal">
+<li>Select <span class="math inline">\(F\)</span> (i.e., the number of leads - time periods after treatment). Driven by what authors are interested in estimating:</li>
+</ol>
+<ul>
+<li><p><span class="math inline">\(F = 0\)</span> is the contemporaneous effect (short-term effect)</p></li>
+<li><p><span class="math inline">\(F = n\)</span> is the the treatment effect on the outcome two time periods after the treatment. (cumulative or long-term effect)</p></li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>Select <span class="math inline">\(L\)</span> (number of lags to adjust).</li>
+</ol>
+<ul>
+<li><p>Driven by the identification assumption.</p></li>
+<li><p>Balances bias-variance tradeoff.</p></li>
+<li><p>Higher <span class="math inline">\(L\)</span> values increase credibility but reduce efficiency by limiting potential matches.</p></li>
+</ul>
+<p><strong>Model assumption</strong>:</p>
+<ul>
+<li><p>No spillover effect assumed.</p></li>
+<li><p>Carryover effect allowed up to <span class="math inline">\(L\)</span> periods.</p></li>
+<li><p>Potential outcome for a unit depends neither on others’ treatment status nor on its past treatment after <span class="math inline">\(L\)</span> periods.</p></li>
+</ul>
+<p>After defining causal quantity with parameters <span class="math inline">\(L\)</span> and <span class="math inline">\(F\)</span>.</p>
+<ul>
+<li>Focus on the average treatment effect of treatment status change.</li>
+<li>
+<span class="math inline">\(\delta(F,L)\)</span> is the average causal effect of treatment change (ATT), <span class="math inline">\(F\)</span> periods post-treatment, considering treatment history up to <span class="math inline">\(L\)</span> periods.</li>
+<li>Causal quantity considers potential future treatment reversals, meaning treatment could revert to control before outcome measurement.</li>
+</ul>
+<p>Also possible to estimate the average treatment effect of treatment reversal on the reversed (ART).</p>
+<p>Choose <span class="math inline">\(L,F\)</span> based on specific needs.</p>
+<ul>
+<li>
+<p>A large <span class="math inline">\(L\)</span> value:</p>
+<ul>
+<li><p>Increases the credibility of the limited carryover effect assumption.</p></li>
+<li><p>Allows more past treatments (up to <span class="math inline">\(t−L\)</span>) to influence the outcome <span class="math inline">\(Y_{i,t+F}\)</span>.</p></li>
+<li><p>Might reduce the number of matches and lead to less precise estimates.</p></li>
+</ul>
+</li>
+<li>
+<p>Selecting an appropriate number of lags</p>
+<ul>
+<li><p>Researchers should base this choice on substantive knowledge.</p></li>
+<li><p>Sensitivity of empirical results to this choice should be examined.</p></li>
+</ul>
+</li>
+<li>
+<p>The choice of <span class="math inline">\(F\)</span> should be:</p>
+<ul>
+<li><p>Substantively motivated.</p></li>
+<li><p>Decides whether the interest lies in short-term or long-term causal effects.</p></li>
+<li><p>A large <span class="math inline">\(F\)</span> value can complicate causal effect interpretation, especially if many units switch treatment status during the <span class="math inline">\(F\)</span> lead time period.</p></li>
+</ul>
+</li>
+</ul>
+<p><strong>Identification Assumption</strong></p>
+<ul>
+<li><p>Parallel trend assumption conditioned on treatment, outcome (excluding immediate lag), and covariate histories.</p></li>
+<li><p>Doesn’t require strong unconfoundedness assumption.</p></li>
+<li><p>Cannot account for unobserved time-varying confounders.</p></li>
+<li>
+<p>Essential to examine outcome time trends.</p>
+<ul>
+<li>Check if they’re parallel between treated and matched control units using pre-treatment data</li>
+</ul>
+</li>
+<li>
+<p><strong>Constructing the Matched Sets</strong>:</p>
+<ul>
+<li><p>For each treated observation, create matched control units with identical treatment history from <span class="math inline">\(t−L\)</span> to <span class="math inline">\(t−1\)</span>.</p></li>
+<li><p>Matching based on treatment history helps control for carryover effects.</p></li>
+<li><p>Past treatments often act as major confounders, but this method can correct for it.</p></li>
+<li><p>Exact matching on time period adjusts for time-specific unobserved confounders.</p></li>
+<li><p>Unlike staggered adoption methods, units can change treatment status multiple times.</p></li>
+<li><p>Matched set allows treatment switching in and out of treatment</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Refining the Matched Sets</strong>:</p>
+<ul>
+<li><p>Initially, matched sets adjust only for treatment history.</p></li>
+<li><p>Parallel trend assumption requires adjustments for other confounders like past outcomes and covariates.</p></li>
+<li>
+<p>Matching methods:</p>
+<ul>
+<li><p>Match each treated observation with up to <span class="math inline">\(J\)</span> control units.</p></li>
+<li><p>Distance measures like Mahalanobis distance or propensity score can be used.</p></li>
+<li><p>Match based on estimated propensity score, considering pretreatment covariates.</p></li>
+<li><p>Refined matched set selects most similar control units based on observed confounders.</p></li>
+</ul>
+</li>
+<li>
+<p>Weighting methods:</p>
+<ul>
+<li><p>Assign weight to each control unit in a matched set.</p></li>
+<li><p>Weights prioritize more similar units.</p></li>
+<li><p>Inverse propensity score weighting method can be applied.</p></li>
+<li><p>Weighting is a more generalized method than matching.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p><strong>The Difference-in-Differences Estimator</strong>:</p>
+<ul>
+<li><p>Using refined matched sets, the ATT (Average Treatment Effect on the Treated) of policy change is estimated.</p></li>
+<li><p>For each treated observation, estimate the counterfactual outcome using the weighted average of control units in the refined set.</p></li>
+<li><p>The DiD estimate of the ATT is computed for each treated observation, then averaged across all such observations.</p></li>
+<li>
+<p>For noncontemporaneous treatment effects where <span class="math inline">\(F &gt; 0\)</span>:</p>
+<ul>
+<li><p>The ATT doesn’t specify future treatment sequence.</p></li>
+<li><p>Matched control units might have units receiving treatment between time <span class="math inline">\(t\)</span> and <span class="math inline">\(t + F\)</span>.</p></li>
+<li><p>Some treated units could return to control conditions between these times.</p></li>
+</ul>
+</li>
+</ul>
+<p><strong>Checking Covariate Balance</strong>:</p>
+<ul>
+<li><p>The proposed methodology offers the advantage of checking covariate balance between treated and matched control observations.</p></li>
+<li><p>This check helps to see if treated and matched control observations are comparable with respect to observed confounders.</p></li>
+<li><p>Once matched sets are refined, covariate balance examination becomes straightforward.</p></li>
+<li><p>Examine the mean difference of each covariate between a treated observation and its matched controls for each pretreatment time period.</p></li>
+<li><p>Standardize this difference using the standard deviation of each covariate across all treated observations in the dataset.</p></li>
+<li><p>Aggregate this covariate balance measure across all treated observations for each covariate and pretreatment time period.</p></li>
+<li>
+<p>Examine balance for lagged outcome variables over multiple pretreatment periods and time-varying covariates.</p>
+<ul>
+<li>This helps evaluate the validity of the parallel trend assumption underlying the proposed DiD estimator.</li>
+</ul>
+</li>
+</ul>
+<p><strong><br>
+Relations with Linear Fixed Effects Regression Estimators</strong>:</p>
+<ul>
+<li>
+<p>The standard DiD estimator is equivalent to the linear two-way fixed effects regression estimator when:</p>
+<ul>
+<li><p>Only two time periods exist.</p></li>
+<li><p>Treatment is given to some units exclusively in the second period.</p></li>
+</ul>
+</li>
+<li>
+<p>This equivalence doesn’t extend to multiperiod DiD designs, where:</p>
+<ul>
+<li><p>More than two time periods are considered.</p></li>
+<li><p>Units might receive treatment multiple times.</p></li>
+</ul>
+</li>
+<li><p>Despite this, many researchers relate the use of the two-way fixed effects estimator to the DiD design.</p></li>
+</ul>
+<p><strong>Standard Error Calculation</strong>:</p>
+<ul>
+<li>
+<p>Approach:</p>
+<ul>
+<li><p>Condition on the weights implied by the matching process.</p></li>
+<li><p>These weights denote how often an observation is utilized in matching <span class="citation">(<a href="references.html#ref-imbens2015causal">G. W. Imbens and Rubin 2015</a>)</span></p></li>
+</ul>
+</li>
+<li>
+<p>Context:</p>
+<ul>
+<li><p>Analogous to the conditional variance seen in regression models.</p></li>
+<li><p>Resulting standard errors don’t factor in uncertainties around the matching procedure.</p></li>
+<li><p>They can be viewed as a measure of uncertainty conditional upon the matching process <span class="citation">(<a href="references.html#ref-ho2007matching">Ho et al. 2007</a>)</span>.</p></li>
+</ul>
+</li>
+</ul>
+<p><strong>Key Findings</strong>:</p>
+<ul>
+<li><p>Even in conditions favoring OLS, the proposed matching estimator displayed higher robustness to omitted relevant lags than the linear regression model with fixed effects.</p></li>
+<li><p>The robustness offered by matching came at a cost - reduced statistical power.</p></li>
+<li><p>This emphasizes the classic statistical tradeoff between bias (where matching has an advantage) and variance (where regression models might be more efficient).</p></li>
+</ul>
+<p><strong>Data Requirements</strong></p>
+<ul>
+<li>
+<p>The treatment variable is binary:</p>
+<ul>
+<li><p>0 signifies “assignment” to control.</p></li>
+<li><p>1 signifies assignment to treatment.</p></li>
+</ul>
+</li>
+<li><p>Variables identifying units in the data must be: Numeric or integer.</p></li>
+<li><p>Variables identifying time periods should be: Consecutive numeric/integer data.</p></li>
+<li><p>Data format requirement: Must be provided as a standard <code>data.frame</code> object.</p></li>
+</ul>
+<p>Basic functions:</p>
+<ol style="list-style-type: decimal">
+<li><p>Utilize treatment histories to create matching sets of treated and control units.</p></li>
+<li>
+<p>Refine these matched sets by determining weights for each control unit in the set.</p>
+<ul>
+<li>Units with higher weights have a larger influence during estimations.</li>
+</ul>
+</li>
+</ol>
+<p><strong>Matching on Treatment History</strong>:</p>
+<ul>
+<li><p>Goal is to match units transitioning from untreated to treated status with control units that have similar past treatment histories.</p></li>
+<li>
+<p>Setting the Quantity of Interest (<code>qoi =</code>)</p>
+<ul>
+<li><p><code>att</code> average treatment effect on treated units</p></li>
+<li><p><code>atc</code> average treatment effect of treatment on the control units</p></li>
+<li><p><code>art</code> average effect of treatment reversal for units that experience treatment reversal</p></li>
+<li><p><code>ate</code> average treatment effect</p></li>
+</ul>
+</li>
+</ul>
+<div class="sourceCode" id="cb424"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># All examples follow the package's vignette</span></span>
+<span><span class="co"># Create the matched sets</span></span>
+<span><span class="va">PM.results.none</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/PanelMatch.html">PanelMatch</a></span><span class="op">(</span></span>
+<span>        lag <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>        time.id <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>        unit.id <span class="op">=</span> <span class="st">"wbcode2"</span>,</span>
+<span>        treatment <span class="op">=</span> <span class="st">"dem"</span>,</span>
+<span>        refinement.method <span class="op">=</span> <span class="st">"none"</span>,</span>
+<span>        data <span class="op">=</span> <span class="va">dem</span>,</span>
+<span>        match.missing <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>        size.match <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>        qoi <span class="op">=</span> <span class="st">"att"</span>,</span>
+<span>        outcome.var <span class="op">=</span> <span class="st">"y"</span>,</span>
+<span>        lead <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>,</span>
+<span>        forbid.treatment.reversal <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>        use.diagonal.variance.matrix <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># visualize the treated unit and matched controls</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/DisplayTreatment.html">DisplayTreatment</a></span><span class="op">(</span></span>
+<span>    unit.id <span class="op">=</span> <span class="st">"wbcode2"</span>,</span>
+<span>    time.id <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>    legend.position <span class="op">=</span> <span class="st">"none"</span>,</span>
+<span>    xlab <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>    ylab <span class="op">=</span> <span class="st">"Country Code"</span>,</span>
+<span>    treatment <span class="op">=</span> <span class="st">"dem"</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">dem</span>,</span>
+<span>    matched.set <span class="op">=</span> <span class="va">PM.results.none</span><span class="op">$</span><span class="va">att</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>    <span class="co"># highlight the particular set</span></span>
+<span>    show.set.only <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="25-dif-in-dif_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;"></div>
+<p>Control units and the treated unit have identical treatment histories over the lag window (1988-1991)</p>
+<div class="sourceCode" id="cb425"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/DisplayTreatment.html">DisplayTreatment</a></span><span class="op">(</span></span>
+<span>    unit.id <span class="op">=</span> <span class="st">"wbcode2"</span>,</span>
+<span>    time.id <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>    legend.position <span class="op">=</span> <span class="st">"none"</span>,</span>
+<span>    xlab <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>    ylab <span class="op">=</span> <span class="st">"Country Code"</span>,</span>
+<span>    treatment <span class="op">=</span> <span class="st">"dem"</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">dem</span>,</span>
+<span>    matched.set <span class="op">=</span> <span class="va">PM.results.none</span><span class="op">$</span><span class="va">att</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>,</span>
+<span>    <span class="co"># highlight the particular set</span></span>
+<span>    show.set.only <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="25-dif-in-dif_files/figure-html/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;"></div>
+<p>This set is more limited than the first one, but we can still see that we have exact past histories.</p>
+<ul>
+<li>
+<p><strong>Refining Matched Sets</strong></p>
+<ul>
+<li><p>Refinement involves assigning weights to control units.</p></li>
+<li>
+<p>Users must:</p>
+<ol style="list-style-type: decimal">
+<li><p>Specify a method for calculating unit similarity/distance.</p></li>
+<li><p>Choose variables for similarity/distance calculations.</p></li>
+</ol>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Select a Refinement Method</strong></p>
+<ul>
+<li><p>Users determine the refinement method via the <strong><code>refinement.method</code></strong> argument.</p></li>
+<li>
+<p>Options include:</p>
+<ul>
+<li><p><code>mahalanobis</code></p></li>
+<li><p><code>ps.match</code></p></li>
+<li><p><code>CBPS.match</code></p></li>
+<li><p><code>ps.weight</code></p></li>
+<li><p><code>CBPS.weight</code></p></li>
+<li><p><code>ps.msm.weight</code></p></li>
+<li><p><code>CBPS.msm.weight</code></p></li>
+<li><p><code>none</code></p></li>
+</ul>
+</li>
+<li><p>Methods with “match” in the name and mahalanobis will assign equal weights to similar control units.</p></li>
+<li><p>“Weighting” methods give higher weights to control units more similar to treated units.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Variable Selection</strong></p>
+<ul>
+<li><p>Users need to define which covariates will be used through the <strong><code>covs.formula</code></strong> argument, a one-sided formula object.</p></li>
+<li><p>Variables on the right side of the formula are used for calculations.</p></li>
+<li><p>“Lagged” versions of variables can be included using the format: <strong><code>I(lag(name.of.var, 0:n))</code></strong>.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Understanding PanelMatch and matched.set objects</strong></p>
+<ul>
+<li><p>The <strong>PanelMatch function</strong> returns a <strong>PanelMatch object</strong>.</p></li>
+<li><p>The most crucial element within the PanelMatch object is the <strong>matched.set object</strong>.</p></li>
+<li><p>Within the PanelMatch object, the matched.set object will have names like att, art, or atc.</p></li>
+<li><p>If <strong><code>qoi = ate</code></strong>, there will be two matched.set objects: att and atc.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Matched.set Object Details</strong></p>
+<ul>
+<li><p>matched.set is a named list with added attributes.</p></li>
+<li>
+<p>Attributes include:</p>
+<ul>
+<li><p>Lag</p></li>
+<li><p>Names of treatment</p></li>
+<li><p>Unit and time variables</p></li>
+</ul>
+</li>
+<li><p>Each list entry represents a matched set of treated and control units.</p></li>
+<li><p>Naming follows a structure: <strong><code>[id variable].[time variable]</code></strong>.</p></li>
+<li><p>Each list element is a vector of control unit ids that match the treated unit mentioned in the element name.</p></li>
+<li><p>Since it’s a matching method, weights are only given to the <strong><code>size.match</code></strong> most similar control units based on distance calculations.</p></li>
+</ul>
+</li>
+</ul>
+<div class="sourceCode" id="cb426"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># PanelMatch without any refinement</span></span>
+<span><span class="va">PM.results.none</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/PanelMatch.html">PanelMatch</a></span><span class="op">(</span></span>
+<span>        lag <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>        time.id <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>        unit.id <span class="op">=</span> <span class="st">"wbcode2"</span>,</span>
+<span>        treatment <span class="op">=</span> <span class="st">"dem"</span>,</span>
+<span>        refinement.method <span class="op">=</span> <span class="st">"none"</span>,</span>
+<span>        data <span class="op">=</span> <span class="va">dem</span>,</span>
+<span>        match.missing <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>        size.match <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>        qoi <span class="op">=</span> <span class="st">"att"</span>,</span>
+<span>        outcome.var <span class="op">=</span> <span class="st">"y"</span>,</span>
+<span>        lead <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>,</span>
+<span>        forbid.treatment.reversal <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>        use.diagonal.variance.matrix <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Extract the matched.set object</span></span>
+<span><span class="va">msets.none</span> <span class="op">&lt;-</span> <span class="va">PM.results.none</span><span class="op">$</span><span class="va">att</span></span>
+<span></span>
+<span><span class="co"># PanelMatch with refinement</span></span>
+<span><span class="va">PM.results.maha</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/PanelMatch.html">PanelMatch</a></span><span class="op">(</span></span>
+<span>        lag <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>        time.id <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>        unit.id <span class="op">=</span> <span class="st">"wbcode2"</span>,</span>
+<span>        treatment <span class="op">=</span> <span class="st">"dem"</span>,</span>
+<span>        refinement.method <span class="op">=</span> <span class="st">"mahalanobis"</span>, <span class="co"># use Mahalanobis distance</span></span>
+<span>        data <span class="op">=</span> <span class="va">dem</span>,</span>
+<span>        match.missing <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>        covs.formula <span class="op">=</span> <span class="op">~</span> <span class="va">tradewb</span>,</span>
+<span>        size.match <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>        qoi <span class="op">=</span> <span class="st">"att"</span> ,</span>
+<span>        outcome.var <span class="op">=</span> <span class="st">"y"</span>,</span>
+<span>        lead <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>,</span>
+<span>        forbid.treatment.reversal <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>        use.diagonal.variance.matrix <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="va">msets.maha</span> <span class="op">&lt;-</span> <span class="va">PM.results.maha</span><span class="op">$</span><span class="va">att</span></span></code></pre></div>
+<div class="sourceCode" id="cb427"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># these 2 should be identical because weights are not shown</span></span>
+<span><span class="va">msets.none</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   wbcode2 year matched.set.size</span></span>
+<span><span class="co">#&gt; 1       4 1992               74</span></span>
+<span><span class="co">#&gt; 2       4 1997                2</span></span>
+<span><span class="co">#&gt; 3       6 1973               63</span></span>
+<span><span class="co">#&gt; 4       6 1983               73</span></span>
+<span><span class="co">#&gt; 5       7 1991               81</span></span>
+<span><span class="co">#&gt; 6       7 1998                1</span></span>
+<span><span class="va">msets.maha</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   wbcode2 year matched.set.size</span></span>
+<span><span class="co">#&gt; 1       4 1992               74</span></span>
+<span><span class="co">#&gt; 2       4 1997                2</span></span>
+<span><span class="co">#&gt; 3       6 1973               63</span></span>
+<span><span class="co">#&gt; 4       6 1983               73</span></span>
+<span><span class="co">#&gt; 5       7 1991               81</span></span>
+<span><span class="co">#&gt; 6       7 1998                1</span></span>
+<span><span class="co"># summary(msets.none)</span></span>
+<span><span class="co"># summary(msets.maha)</span></span></code></pre></div>
+<p><strong>Visualizing Matched Sets with the plot method</strong></p>
+<ul>
+<li><p>Users can visualize the distribution of the matched set sizes.</p></li>
+<li><p>A red line, by default, indicates the count of matched sets where treated units had no matching control units (i.e., empty matched sets).</p></li>
+<li><p>Plot adjustments can be made using <strong><code><a href="https://rdrr.io/r/graphics/plot.default.html">graphics::plot</a></code></strong>.</p></li>
+</ul>
+<div class="sourceCode" id="cb428"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">msets.none</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="25-dif-in-dif_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;"></div>
+<p><strong>Comparing Methods of Refinement</strong></p>
+<ul>
+<li>
+<p>Users are encouraged to:</p>
+<ul>
+<li><p>Use substantive knowledge for experimentation and evaluation.</p></li>
+<li>
+<p>Consider the following when configuring PanelMatch:</p>
+<ol style="list-style-type: decimal">
+<li><p>The number of matched sets.</p></li>
+<li><p>The number of controls matched to each treated unit.</p></li>
+<li><p>Achieving covariate balance.</p></li>
+</ol>
+</li>
+<li><p><strong>Note</strong>: Large numbers of small matched sets can lead to larger standard errors during the estimation stage.</p></li>
+<li><p>Covariates that aren’t well balanced can lead to undesirable comparisons between treated and control units.</p></li>
+<li>
+<p>Aspects to consider include:</p>
+<ul>
+<li><p>Refinement method.</p></li>
+<li><p>Variables for weight calculation.</p></li>
+<li><p>Size of the lag window.</p></li>
+<li><p>Procedures for addressing missing data (refer to <strong><code>match.missing</code></strong> and <strong><code>listwise.delete</code></strong> arguments).</p></li>
+<li><p>Maximum size of matched sets (for matching methods).</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Supportive Features:</strong></p>
+<ul>
+<li><p><strong><code>print</code></strong>, <strong><code>plot</code></strong>, and <strong><code>summary</code></strong> methods assist in understanding matched sets and their sizes.</p></li>
+<li>
+<p><strong><code>get_covariate_balance</code></strong> helps evaluate covariate balance:</p>
+<ul>
+<li>Lower values in the covariate balance calculations are preferred.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="sourceCode" id="cb429"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">PM.results.none</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/PanelMatch.html">PanelMatch</a></span><span class="op">(</span></span>
+<span>        lag <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>        time.id <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>        unit.id <span class="op">=</span> <span class="st">"wbcode2"</span>,</span>
+<span>        treatment <span class="op">=</span> <span class="st">"dem"</span>,</span>
+<span>        refinement.method <span class="op">=</span> <span class="st">"none"</span>,</span>
+<span>        data <span class="op">=</span> <span class="va">dem</span>,</span>
+<span>        match.missing <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>        size.match <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>        qoi <span class="op">=</span> <span class="st">"att"</span>,</span>
+<span>        outcome.var <span class="op">=</span> <span class="st">"y"</span>,</span>
+<span>        lead <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>,</span>
+<span>        forbid.treatment.reversal <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>        use.diagonal.variance.matrix <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="va">PM.results.maha</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/PanelMatch.html">PanelMatch</a></span><span class="op">(</span></span>
+<span>        lag <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>        time.id <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>        unit.id <span class="op">=</span> <span class="st">"wbcode2"</span>,</span>
+<span>        treatment <span class="op">=</span> <span class="st">"dem"</span>,</span>
+<span>        refinement.method <span class="op">=</span> <span class="st">"mahalanobis"</span>,</span>
+<span>        data <span class="op">=</span> <span class="va">dem</span>,</span>
+<span>        match.missing <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>        covs.formula <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html">I</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html">lag</a></span><span class="op">(</span><span class="va">tradewb</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html">I</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html">lag</a></span><span class="op">(</span><span class="va">y</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>        size.match <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>        qoi <span class="op">=</span> <span class="st">"att"</span>,</span>
+<span>        outcome.var <span class="op">=</span> <span class="st">"y"</span>,</span>
+<span>        lead <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>,</span>
+<span>        forbid.treatment.reversal <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>        use.diagonal.variance.matrix <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># listwise deletion used for missing data</span></span>
+<span><span class="va">PM.results.listwise</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/PanelMatch.html">PanelMatch</a></span><span class="op">(</span></span>
+<span>        lag <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>        time.id <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>        unit.id <span class="op">=</span> <span class="st">"wbcode2"</span>,</span>
+<span>        treatment <span class="op">=</span> <span class="st">"dem"</span>,</span>
+<span>        refinement.method <span class="op">=</span> <span class="st">"mahalanobis"</span>,</span>
+<span>        data <span class="op">=</span> <span class="va">dem</span>,</span>
+<span>        match.missing <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>        listwise.delete <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>        covs.formula <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html">I</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html">lag</a></span><span class="op">(</span><span class="va">tradewb</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html">I</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html">lag</a></span><span class="op">(</span><span class="va">y</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>        size.match <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>        qoi <span class="op">=</span> <span class="st">"att"</span>,</span>
+<span>        outcome.var <span class="op">=</span> <span class="st">"y"</span>,</span>
+<span>        lead <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>,</span>
+<span>        forbid.treatment.reversal <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>        use.diagonal.variance.matrix <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># propensity score based weighting method</span></span>
+<span><span class="va">PM.results.ps.weight</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/PanelMatch.html">PanelMatch</a></span><span class="op">(</span></span>
+<span>        lag <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>        time.id <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>        unit.id <span class="op">=</span> <span class="st">"wbcode2"</span>,</span>
+<span>        treatment <span class="op">=</span> <span class="st">"dem"</span>,</span>
+<span>        refinement.method <span class="op">=</span> <span class="st">"ps.weight"</span>,</span>
+<span>        data <span class="op">=</span> <span class="va">dem</span>,</span>
+<span>        match.missing <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>        listwise.delete <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>        covs.formula <span class="op">=</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html">I</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html">lag</a></span><span class="op">(</span><span class="va">tradewb</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html">I</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html">lag</a></span><span class="op">(</span><span class="va">y</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>        size.match <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>        qoi <span class="op">=</span> <span class="st">"att"</span>,</span>
+<span>        outcome.var <span class="op">=</span> <span class="st">"y"</span>,</span>
+<span>        lead <span class="op">=</span> <span class="fl">0</span><span class="op">:</span><span class="fl">4</span>,</span>
+<span>        forbid.treatment.reversal <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>    <span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/get_covariate_balance.html">get_covariate_balance</a></span><span class="op">(</span></span>
+<span>    <span class="va">PM.results.none</span><span class="op">$</span><span class="va">att</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">dem</span>,</span>
+<span>    covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"tradewb"</span>, <span class="st">"y"</span><span class="op">)</span>,</span>
+<span>    plot <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;         tradewb            y</span></span>
+<span><span class="co">#&gt; t_4 -0.07245466  0.291871990</span></span>
+<span><span class="co">#&gt; t_3 -0.20930129  0.208654876</span></span>
+<span><span class="co">#&gt; t_2 -0.24425207  0.107736647</span></span>
+<span><span class="co">#&gt; t_1 -0.10806125 -0.004950238</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/get_covariate_balance.html">get_covariate_balance</a></span><span class="op">(</span></span>
+<span>    <span class="va">PM.results.maha</span><span class="op">$</span><span class="va">att</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">dem</span>,</span>
+<span>    covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"tradewb"</span>, <span class="st">"y"</span><span class="op">)</span>,</span>
+<span>    plot <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;         tradewb          y</span></span>
+<span><span class="co">#&gt; t_4  0.04558637 0.09701606</span></span>
+<span><span class="co">#&gt; t_3 -0.03312750 0.10844046</span></span>
+<span><span class="co">#&gt; t_2 -0.01396793 0.08890753</span></span>
+<span><span class="co">#&gt; t_1  0.10474894 0.06618865</span></span>
+<span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/get_covariate_balance.html">get_covariate_balance</a></span><span class="op">(</span></span>
+<span>    <span class="va">PM.results.listwise</span><span class="op">$</span><span class="va">att</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">dem</span>,</span>
+<span>    covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"tradewb"</span>, <span class="st">"y"</span><span class="op">)</span>,</span>
+<span>    plot <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;         tradewb          y</span></span>
+<span><span class="co">#&gt; t_4  0.05634922 0.05223623</span></span>
+<span><span class="co">#&gt; t_3 -0.01104797 0.05217896</span></span>
+<span><span class="co">#&gt; t_2  0.01411473 0.03094133</span></span>
+<span><span class="co">#&gt; t_1  0.06850180 0.02092209</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/get_covariate_balance.html">get_covariate_balance</a></span><span class="op">(</span></span>
+<span>    <span class="va">PM.results.ps.weight</span><span class="op">$</span><span class="va">att</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">dem</span>,</span>
+<span>    covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"tradewb"</span>, <span class="st">"y"</span><span class="op">)</span>,</span>
+<span>    plot <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;         tradewb          y</span></span>
+<span><span class="co">#&gt; t_4 0.014362590 0.04035905</span></span>
+<span><span class="co">#&gt; t_3 0.005529734 0.04188731</span></span>
+<span><span class="co">#&gt; t_2 0.009410044 0.04195008</span></span>
+<span><span class="co">#&gt; t_1 0.027907540 0.03975173</span></span></code></pre></div>
+<p><strong>get_covariate_balance Function Options:</strong></p>
+<ul>
+<li><p>Allows for the generation of plots displaying covariate balance using <strong><code>plot = TRUE</code></strong>.</p></li>
+<li><p>Plots can be customized using arguments typically used with the base R <strong><code>plot</code></strong> method.</p></li>
+<li>
+<p>Option to set <strong><code>use.equal.weights = TRUE</code></strong> for:</p>
+<ul>
+<li><p>Obtaining the balance of unrefined sets.</p></li>
+<li><p>Facilitating understanding of the refinement’s impact.</p></li>
+</ul>
+</li>
+</ul>
+<div class="sourceCode" id="cb430"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Use equal weights</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/get_covariate_balance.html">get_covariate_balance</a></span><span class="op">(</span></span>
+<span>    <span class="va">PM.results.ps.weight</span><span class="op">$</span><span class="va">att</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">dem</span>,</span>
+<span>    use.equal.weights <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"tradewb"</span>, <span class="st">"y"</span><span class="op">)</span>,</span>
+<span>    plot <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    <span class="co"># visualize by setting plot to TRUE</span></span>
+<span>    ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="25-dif-in-dif_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb431"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co"># Compare covariate balance to refined sets</span></span>
+<span><span class="co"># See large improvement in balance</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/get_covariate_balance.html">get_covariate_balance</a></span><span class="op">(</span></span>
+<span>    <span class="va">PM.results.ps.weight</span><span class="op">$</span><span class="va">att</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">dem</span>,</span>
+<span>    covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"tradewb"</span>, <span class="st">"y"</span><span class="op">)</span>,</span>
+<span>    plot <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>    <span class="co"># visualize by setting plot to TRUE</span></span>
+<span>    ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="25-dif-in-dif_files/figure-html/unnamed-chunk-21-2.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb432"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/balance_scatter.html">balance_scatter</a></span><span class="op">(</span></span>
+<span>    matched_set_list <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">PM.results.maha</span><span class="op">$</span><span class="va">att</span>,</span>
+<span>                            <span class="va">PM.results.ps.weight</span><span class="op">$</span><span class="va">att</span><span class="op">)</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">dem</span>,</span>
+<span>    covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"y"</span>, <span class="st">"tradewb"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="25-dif-in-dif_files/figure-html/unnamed-chunk-21-3.png" width="90%" style="display: block; margin: auto;"></div>
+</div>
+<div id="chaisemartin-dhaultfoeuille" class="section level4" number="25.2.2.5">
+<h4>
+<span class="header-section-number">25.2.2.5</span> Chaisemartin-d’Haultfoeuille<a class="anchor" aria-label="anchor" href="#chaisemartin-dhaultfoeuille"><i class="fas fa-link"></i></a>
 </h4>
 <p>use <code>twowayfeweights</code> from <a href="https://github.com/shuo-zhang-ucsb/twowayfeweights">GitHub</a> <span class="citation">(<a href="references.html#ref-de2020two">De Chaisemartin and d’Haultfoeuille 2020</a>)</span></p>
 </div>
-<div id="didimputation" class="section level4" number="25.2.2.5">
+<div id="didimputation" class="section level4" number="25.2.2.6">
 <h4>
-<span class="header-section-number">25.2.2.5</span> didimputation<a class="anchor" aria-label="anchor" href="#didimputation"><i class="fas fa-link"></i></a>
+<span class="header-section-number">25.2.2.6</span> didimputation<a class="anchor" aria-label="anchor" href="#didimputation"><i class="fas fa-link"></i></a>
 </h4>
 <p>use <code>didimputation</code> from <a href="https://github.com/kylebutts/didimputation">GitHub</a></p>
 </div>
-<div id="staggered" class="section level4" number="25.2.2.6">
+<div id="staggered" class="section level4" number="25.2.2.7">
 <h4>
-<span class="header-section-number">25.2.2.6</span> staggered<a class="anchor" aria-label="anchor" href="#staggered"><i class="fas fa-link"></i></a>
+<span class="header-section-number">25.2.2.7</span> staggered<a class="anchor" aria-label="anchor" href="#staggered"><i class="fas fa-link"></i></a>
 </h4>
 <p><code>staggered</code> <a href="https://github.com/jonathandroth/staggered">package</a></p>
 </div>
-<div id="wooldridges-solution" class="section level4" number="25.2.2.7">
+<div id="wooldridges-solution" class="section level4" number="25.2.2.8">
 <h4>
-<span class="header-section-number">25.2.2.7</span> Wooldridge’s Solution<a class="anchor" aria-label="anchor" href="#wooldridges-solution"><i class="fas fa-link"></i></a>
+<span class="header-section-number">25.2.2.8</span> Wooldridge’s Solution<a class="anchor" aria-label="anchor" href="#wooldridges-solution"><i class="fas fa-link"></i></a>
 </h4>
 <p>use <a href="https://grantmcdermott.com/etwfe/">etwfe</a>(Extended two-way Fixed Effects) <span class="citation">(<a href="references.html#ref-wooldridge2022simple">Wooldridge 2022</a>)</span></p>
 </div>
@@ -1748,7 +2474,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 T\times G + \epsilon
 </ul>
 </li>
 </ul>
-<div class="sourceCode" id="cb422"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb433"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="va">od</span> <span class="op">&lt;-</span> <span class="fu">causaldata</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/causaldata/man/organ_donations.html">organ_donations</a></span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
@@ -1767,8 +2493,8 @@ Y = \alpha_g + \beta_1 T + \beta_2 T\times G + \epsilon
 <span>    </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Quarter_Num</span>, y <span class="op">=</span> <span class="va">Rate</span>, color <span class="op">=</span> <span class="va">California</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="25-dif-in-dif_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb423"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="25-dif-in-dif_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb434"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span></span>
 <span><span class="co"># but it's also important to use statistical test</span></span>
@@ -1776,10 +2502,10 @@ Y = \alpha_g + \beta_1 T + \beta_2 T\times G + \epsilon
 <span>               data <span class="op">=</span> <span class="va">od</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/coefplot.html">coefplot</a></span><span class="op">(</span><span class="va">prior_trend</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="25-dif-in-dif_files/figure-html/unnamed-chunk-14-2.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb424"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="25-dif-in-dif_files/figure-html/unnamed-chunk-23-2.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb435"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/coefplot.html">iplot</a></span><span class="op">(</span><span class="va">prior_trend</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="25-dif-in-dif_files/figure-html/unnamed-chunk-14-3.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="25-dif-in-dif_files/figure-html/unnamed-chunk-23-3.png" width="90%" style="display: block; margin: auto;"></div>
 <p>This is alarming since one of the periods is significantly different from 0, which means that our parallel trends assumption is not plausible.</p>
 <p>In cases where you might have violations of parallel trends assumption, check <span class="citation">(<a href="references.html#ref-rambachan2023more">Rambachan and Roth 2023</a>)</span></p>
 <ul>
@@ -1787,7 +2513,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 T\times G + \epsilon
 <li><p>Partial identification of causal parameter</p></li>
 <li><p>A type of sensitivity analysis</p></li>
 </ul>
-<div class="sourceCode" id="cb425"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb436"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># https://github.com/asheshrambachan/HonestDiD</span></span>
 <span><span class="co"># install.packages("HonestDiD")</span></span></code></pre></div>
 <p>Alternatively, <span class="citation">Ban and Kedagni (<a href="references.html#ref-ban2022generalized">2022</a>)</span> propose a method that with an information set (i.e., pre-treatment covariates), and an assumption on the selection bias in the post-treatment period (i.e., lies within the convex hull of all selection biases), they can still identify a set of ATT, and with stricter assumption on selection bias from the policymakers perspective, they can also have a point estimate.</p>
@@ -1815,7 +2541,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 T\times G + \epsilon
 </li>
 </ul>
 <p><a href="https://theeffectbook.net/ch-DifferenceinDifference.html">Code by theeffectbook.net</a></p>
-<div class="sourceCode" id="cb426"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb437"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="va">od</span> <span class="op">&lt;-</span> <span class="fu">causaldata</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/causaldata/man/organ_donations.html">organ_donations</a></span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
@@ -1949,7 +2675,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 T\times G + \epsilon
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2023-08-22.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2023-08-26.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

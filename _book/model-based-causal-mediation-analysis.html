@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2023-08-22" />
+<meta name="date" content="2023-08-26" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -917,141 +917,141 @@ div.csl-indent {
 <p><code>mediation</code> can accommodate almost all types of model for both mediator model and outcome model except Censored mediator model.</p>
 <p>The update here is that estimation of ACME does not rely on product or difference of coefficients (see <a href="traditional.html#example-1-mediation-traditional">32.1.1</a> ,</p>
 <p>which requires very strict assumption: (1) linear regression models of mediator and outcome, (2) <span class="math inline">\(T_i\)</span> and <span class="math inline">\(M_i\)</span> effects are additive and no interaction</p>
-<div class="sourceCode" id="cb579"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb579-1"><a href="model-based-causal-mediation-analysis.html#cb579-1" tabindex="-1"></a><span class="fu">library</span>(mediation)</span>
-<span id="cb579-2"><a href="model-based-causal-mediation-analysis.html#cb579-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2014</span>)</span>
-<span id="cb579-3"><a href="model-based-causal-mediation-analysis.html#cb579-3" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;framing&quot;</span>, <span class="at">package =</span> <span class="st">&quot;mediation&quot;</span>)</span>
-<span id="cb579-4"><a href="model-based-causal-mediation-analysis.html#cb579-4" tabindex="-1"></a></span>
-<span id="cb579-5"><a href="model-based-causal-mediation-analysis.html#cb579-5" tabindex="-1"></a>med.fit <span class="ot">&lt;-</span></span>
-<span id="cb579-6"><a href="model-based-causal-mediation-analysis.html#cb579-6" tabindex="-1"></a>    <span class="fu">lm</span>(emo <span class="sc">~</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ <span class="sc">+</span> gender <span class="sc">+</span> income, <span class="at">data =</span> framing)</span>
-<span id="cb579-7"><a href="model-based-causal-mediation-analysis.html#cb579-7" tabindex="-1"></a>out.fit <span class="ot">&lt;-</span></span>
-<span id="cb579-8"><a href="model-based-causal-mediation-analysis.html#cb579-8" tabindex="-1"></a>    <span class="fu">glm</span>(</span>
-<span id="cb579-9"><a href="model-based-causal-mediation-analysis.html#cb579-9" tabindex="-1"></a>        cong_mesg <span class="sc">~</span> emo <span class="sc">+</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ <span class="sc">+</span> gender <span class="sc">+</span> income,</span>
-<span id="cb579-10"><a href="model-based-causal-mediation-analysis.html#cb579-10" tabindex="-1"></a>        <span class="at">data =</span> framing,</span>
-<span id="cb579-11"><a href="model-based-causal-mediation-analysis.html#cb579-11" tabindex="-1"></a>        <span class="at">family =</span> <span class="fu">binomial</span>(<span class="st">&quot;probit&quot;</span>)</span>
-<span id="cb579-12"><a href="model-based-causal-mediation-analysis.html#cb579-12" tabindex="-1"></a>    )</span>
-<span id="cb579-13"><a href="model-based-causal-mediation-analysis.html#cb579-13" tabindex="-1"></a></span>
-<span id="cb579-14"><a href="model-based-causal-mediation-analysis.html#cb579-14" tabindex="-1"></a><span class="co"># Quasi-Bayesian Monte Carlo </span></span>
-<span id="cb579-15"><a href="model-based-causal-mediation-analysis.html#cb579-15" tabindex="-1"></a>med.out <span class="ot">&lt;-</span></span>
-<span id="cb579-16"><a href="model-based-causal-mediation-analysis.html#cb579-16" tabindex="-1"></a>    <span class="fu">mediate</span>(</span>
-<span id="cb579-17"><a href="model-based-causal-mediation-analysis.html#cb579-17" tabindex="-1"></a>        med.fit,</span>
-<span id="cb579-18"><a href="model-based-causal-mediation-analysis.html#cb579-18" tabindex="-1"></a>        out.fit,</span>
-<span id="cb579-19"><a href="model-based-causal-mediation-analysis.html#cb579-19" tabindex="-1"></a>        <span class="at">treat =</span> <span class="st">&quot;treat&quot;</span>,</span>
-<span id="cb579-20"><a href="model-based-causal-mediation-analysis.html#cb579-20" tabindex="-1"></a>        <span class="at">mediator =</span> <span class="st">&quot;emo&quot;</span>,</span>
-<span id="cb579-21"><a href="model-based-causal-mediation-analysis.html#cb579-21" tabindex="-1"></a>        <span class="at">robustSE =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb579-22"><a href="model-based-causal-mediation-analysis.html#cb579-22" tabindex="-1"></a>        <span class="at">sims =</span> <span class="dv">1000</span> <span class="co"># should be 10000 in practice</span></span>
-<span id="cb579-23"><a href="model-based-causal-mediation-analysis.html#cb579-23" tabindex="-1"></a>    )</span>
-<span id="cb579-24"><a href="model-based-causal-mediation-analysis.html#cb579-24" tabindex="-1"></a><span class="fu">summary</span>(med.out)</span>
-<span id="cb579-25"><a href="model-based-causal-mediation-analysis.html#cb579-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb579-26"><a href="model-based-causal-mediation-analysis.html#cb579-26" tabindex="-1"></a><span class="co">#&gt; Causal Mediation Analysis </span></span>
-<span id="cb579-27"><a href="model-based-causal-mediation-analysis.html#cb579-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb579-28"><a href="model-based-causal-mediation-analysis.html#cb579-28" tabindex="-1"></a><span class="co">#&gt; Quasi-Bayesian Confidence Intervals</span></span>
-<span id="cb579-29"><a href="model-based-causal-mediation-analysis.html#cb579-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb579-30"><a href="model-based-causal-mediation-analysis.html#cb579-30" tabindex="-1"></a><span class="co">#&gt;                          Estimate 95% CI Lower 95% CI Upper p-value    </span></span>
-<span id="cb579-31"><a href="model-based-causal-mediation-analysis.html#cb579-31" tabindex="-1"></a><span class="co">#&gt; ACME (control)             0.0826       0.0356         0.14  &lt;2e-16 ***</span></span>
-<span id="cb579-32"><a href="model-based-causal-mediation-analysis.html#cb579-32" tabindex="-1"></a><span class="co">#&gt; ACME (treated)             0.0831       0.0348         0.14  &lt;2e-16 ***</span></span>
-<span id="cb579-33"><a href="model-based-causal-mediation-analysis.html#cb579-33" tabindex="-1"></a><span class="co">#&gt; ADE (control)              0.0137      -0.0967         0.13    0.82    </span></span>
-<span id="cb579-34"><a href="model-based-causal-mediation-analysis.html#cb579-34" tabindex="-1"></a><span class="co">#&gt; ADE (treated)              0.0142      -0.1101         0.14    0.82    </span></span>
-<span id="cb579-35"><a href="model-based-causal-mediation-analysis.html#cb579-35" tabindex="-1"></a><span class="co">#&gt; Total Effect               0.0968      -0.0290         0.23    0.14    </span></span>
-<span id="cb579-36"><a href="model-based-causal-mediation-analysis.html#cb579-36" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (control)   0.7706      -6.3968         4.70    0.14    </span></span>
-<span id="cb579-37"><a href="model-based-causal-mediation-analysis.html#cb579-37" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (treated)   0.7938      -5.7506         4.52    0.14    </span></span>
-<span id="cb579-38"><a href="model-based-causal-mediation-analysis.html#cb579-38" tabindex="-1"></a><span class="co">#&gt; ACME (average)             0.0829       0.0351         0.14  &lt;2e-16 ***</span></span>
-<span id="cb579-39"><a href="model-based-causal-mediation-analysis.html#cb579-39" tabindex="-1"></a><span class="co">#&gt; ADE (average)              0.0140      -0.1047         0.13    0.82    </span></span>
-<span id="cb579-40"><a href="model-based-causal-mediation-analysis.html#cb579-40" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (average)   0.7822      -6.0737         4.61    0.14    </span></span>
-<span id="cb579-41"><a href="model-based-causal-mediation-analysis.html#cb579-41" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb579-42"><a href="model-based-causal-mediation-analysis.html#cb579-42" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb579-43"><a href="model-based-causal-mediation-analysis.html#cb579-43" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb579-44"><a href="model-based-causal-mediation-analysis.html#cb579-44" tabindex="-1"></a><span class="co">#&gt; Sample Size Used: 265 </span></span>
-<span id="cb579-45"><a href="model-based-causal-mediation-analysis.html#cb579-45" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb579-46"><a href="model-based-causal-mediation-analysis.html#cb579-46" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb579-47"><a href="model-based-causal-mediation-analysis.html#cb579-47" tabindex="-1"></a><span class="co">#&gt; Simulations: 1000</span></span></code></pre></div>
+<div class="sourceCode" id="cb590"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb590-1"><a href="model-based-causal-mediation-analysis.html#cb590-1" tabindex="-1"></a><span class="fu">library</span>(mediation)</span>
+<span id="cb590-2"><a href="model-based-causal-mediation-analysis.html#cb590-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2014</span>)</span>
+<span id="cb590-3"><a href="model-based-causal-mediation-analysis.html#cb590-3" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;framing&quot;</span>, <span class="at">package =</span> <span class="st">&quot;mediation&quot;</span>)</span>
+<span id="cb590-4"><a href="model-based-causal-mediation-analysis.html#cb590-4" tabindex="-1"></a></span>
+<span id="cb590-5"><a href="model-based-causal-mediation-analysis.html#cb590-5" tabindex="-1"></a>med.fit <span class="ot">&lt;-</span></span>
+<span id="cb590-6"><a href="model-based-causal-mediation-analysis.html#cb590-6" tabindex="-1"></a>    <span class="fu">lm</span>(emo <span class="sc">~</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ <span class="sc">+</span> gender <span class="sc">+</span> income, <span class="at">data =</span> framing)</span>
+<span id="cb590-7"><a href="model-based-causal-mediation-analysis.html#cb590-7" tabindex="-1"></a>out.fit <span class="ot">&lt;-</span></span>
+<span id="cb590-8"><a href="model-based-causal-mediation-analysis.html#cb590-8" tabindex="-1"></a>    <span class="fu">glm</span>(</span>
+<span id="cb590-9"><a href="model-based-causal-mediation-analysis.html#cb590-9" tabindex="-1"></a>        cong_mesg <span class="sc">~</span> emo <span class="sc">+</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ <span class="sc">+</span> gender <span class="sc">+</span> income,</span>
+<span id="cb590-10"><a href="model-based-causal-mediation-analysis.html#cb590-10" tabindex="-1"></a>        <span class="at">data =</span> framing,</span>
+<span id="cb590-11"><a href="model-based-causal-mediation-analysis.html#cb590-11" tabindex="-1"></a>        <span class="at">family =</span> <span class="fu">binomial</span>(<span class="st">&quot;probit&quot;</span>)</span>
+<span id="cb590-12"><a href="model-based-causal-mediation-analysis.html#cb590-12" tabindex="-1"></a>    )</span>
+<span id="cb590-13"><a href="model-based-causal-mediation-analysis.html#cb590-13" tabindex="-1"></a></span>
+<span id="cb590-14"><a href="model-based-causal-mediation-analysis.html#cb590-14" tabindex="-1"></a><span class="co"># Quasi-Bayesian Monte Carlo </span></span>
+<span id="cb590-15"><a href="model-based-causal-mediation-analysis.html#cb590-15" tabindex="-1"></a>med.out <span class="ot">&lt;-</span></span>
+<span id="cb590-16"><a href="model-based-causal-mediation-analysis.html#cb590-16" tabindex="-1"></a>    <span class="fu">mediate</span>(</span>
+<span id="cb590-17"><a href="model-based-causal-mediation-analysis.html#cb590-17" tabindex="-1"></a>        med.fit,</span>
+<span id="cb590-18"><a href="model-based-causal-mediation-analysis.html#cb590-18" tabindex="-1"></a>        out.fit,</span>
+<span id="cb590-19"><a href="model-based-causal-mediation-analysis.html#cb590-19" tabindex="-1"></a>        <span class="at">treat =</span> <span class="st">&quot;treat&quot;</span>,</span>
+<span id="cb590-20"><a href="model-based-causal-mediation-analysis.html#cb590-20" tabindex="-1"></a>        <span class="at">mediator =</span> <span class="st">&quot;emo&quot;</span>,</span>
+<span id="cb590-21"><a href="model-based-causal-mediation-analysis.html#cb590-21" tabindex="-1"></a>        <span class="at">robustSE =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb590-22"><a href="model-based-causal-mediation-analysis.html#cb590-22" tabindex="-1"></a>        <span class="at">sims =</span> <span class="dv">1000</span> <span class="co"># should be 10000 in practice</span></span>
+<span id="cb590-23"><a href="model-based-causal-mediation-analysis.html#cb590-23" tabindex="-1"></a>    )</span>
+<span id="cb590-24"><a href="model-based-causal-mediation-analysis.html#cb590-24" tabindex="-1"></a><span class="fu">summary</span>(med.out)</span>
+<span id="cb590-25"><a href="model-based-causal-mediation-analysis.html#cb590-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb590-26"><a href="model-based-causal-mediation-analysis.html#cb590-26" tabindex="-1"></a><span class="co">#&gt; Causal Mediation Analysis </span></span>
+<span id="cb590-27"><a href="model-based-causal-mediation-analysis.html#cb590-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb590-28"><a href="model-based-causal-mediation-analysis.html#cb590-28" tabindex="-1"></a><span class="co">#&gt; Quasi-Bayesian Confidence Intervals</span></span>
+<span id="cb590-29"><a href="model-based-causal-mediation-analysis.html#cb590-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb590-30"><a href="model-based-causal-mediation-analysis.html#cb590-30" tabindex="-1"></a><span class="co">#&gt;                          Estimate 95% CI Lower 95% CI Upper p-value    </span></span>
+<span id="cb590-31"><a href="model-based-causal-mediation-analysis.html#cb590-31" tabindex="-1"></a><span class="co">#&gt; ACME (control)             0.0826       0.0356         0.14  &lt;2e-16 ***</span></span>
+<span id="cb590-32"><a href="model-based-causal-mediation-analysis.html#cb590-32" tabindex="-1"></a><span class="co">#&gt; ACME (treated)             0.0831       0.0348         0.14  &lt;2e-16 ***</span></span>
+<span id="cb590-33"><a href="model-based-causal-mediation-analysis.html#cb590-33" tabindex="-1"></a><span class="co">#&gt; ADE (control)              0.0137      -0.0967         0.13    0.82    </span></span>
+<span id="cb590-34"><a href="model-based-causal-mediation-analysis.html#cb590-34" tabindex="-1"></a><span class="co">#&gt; ADE (treated)              0.0142      -0.1101         0.14    0.82    </span></span>
+<span id="cb590-35"><a href="model-based-causal-mediation-analysis.html#cb590-35" tabindex="-1"></a><span class="co">#&gt; Total Effect               0.0968      -0.0290         0.23    0.14    </span></span>
+<span id="cb590-36"><a href="model-based-causal-mediation-analysis.html#cb590-36" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (control)   0.7706      -6.3968         4.70    0.14    </span></span>
+<span id="cb590-37"><a href="model-based-causal-mediation-analysis.html#cb590-37" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (treated)   0.7938      -5.7506         4.52    0.14    </span></span>
+<span id="cb590-38"><a href="model-based-causal-mediation-analysis.html#cb590-38" tabindex="-1"></a><span class="co">#&gt; ACME (average)             0.0829       0.0351         0.14  &lt;2e-16 ***</span></span>
+<span id="cb590-39"><a href="model-based-causal-mediation-analysis.html#cb590-39" tabindex="-1"></a><span class="co">#&gt; ADE (average)              0.0140      -0.1047         0.13    0.82    </span></span>
+<span id="cb590-40"><a href="model-based-causal-mediation-analysis.html#cb590-40" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (average)   0.7822      -6.0737         4.61    0.14    </span></span>
+<span id="cb590-41"><a href="model-based-causal-mediation-analysis.html#cb590-41" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb590-42"><a href="model-based-causal-mediation-analysis.html#cb590-42" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb590-43"><a href="model-based-causal-mediation-analysis.html#cb590-43" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb590-44"><a href="model-based-causal-mediation-analysis.html#cb590-44" tabindex="-1"></a><span class="co">#&gt; Sample Size Used: 265 </span></span>
+<span id="cb590-45"><a href="model-based-causal-mediation-analysis.html#cb590-45" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb590-46"><a href="model-based-causal-mediation-analysis.html#cb590-46" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb590-47"><a href="model-based-causal-mediation-analysis.html#cb590-47" tabindex="-1"></a><span class="co">#&gt; Simulations: 1000</span></span></code></pre></div>
 <p>Nonparametric bootstrap version</p>
-<div class="sourceCode" id="cb580"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb580-1"><a href="model-based-causal-mediation-analysis.html#cb580-1" tabindex="-1"></a>med.out <span class="ot">&lt;-</span></span>
-<span id="cb580-2"><a href="model-based-causal-mediation-analysis.html#cb580-2" tabindex="-1"></a>    <span class="fu">mediate</span>(</span>
-<span id="cb580-3"><a href="model-based-causal-mediation-analysis.html#cb580-3" tabindex="-1"></a>        med.fit,</span>
-<span id="cb580-4"><a href="model-based-causal-mediation-analysis.html#cb580-4" tabindex="-1"></a>        out.fit,</span>
-<span id="cb580-5"><a href="model-based-causal-mediation-analysis.html#cb580-5" tabindex="-1"></a>        <span class="at">boot =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb580-6"><a href="model-based-causal-mediation-analysis.html#cb580-6" tabindex="-1"></a>        <span class="at">treat =</span> <span class="st">&quot;treat&quot;</span>,</span>
-<span id="cb580-7"><a href="model-based-causal-mediation-analysis.html#cb580-7" tabindex="-1"></a>        <span class="at">mediator =</span> <span class="st">&quot;emo&quot;</span>,</span>
-<span id="cb580-8"><a href="model-based-causal-mediation-analysis.html#cb580-8" tabindex="-1"></a>        <span class="at">sims =</span> <span class="dv">1000</span>, <span class="co"># should be 10000 in practice</span></span>
-<span id="cb580-9"><a href="model-based-causal-mediation-analysis.html#cb580-9" tabindex="-1"></a>        <span class="at">boot.ci.type =</span> <span class="st">&quot;bca&quot;</span> <span class="co"># bias-corrected and accelerated intervals</span></span>
-<span id="cb580-10"><a href="model-based-causal-mediation-analysis.html#cb580-10" tabindex="-1"></a>    )</span>
-<span id="cb580-11"><a href="model-based-causal-mediation-analysis.html#cb580-11" tabindex="-1"></a><span class="fu">summary</span>(med.out)</span>
-<span id="cb580-12"><a href="model-based-causal-mediation-analysis.html#cb580-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb580-13"><a href="model-based-causal-mediation-analysis.html#cb580-13" tabindex="-1"></a><span class="co">#&gt; Causal Mediation Analysis </span></span>
-<span id="cb580-14"><a href="model-based-causal-mediation-analysis.html#cb580-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb580-15"><a href="model-based-causal-mediation-analysis.html#cb580-15" tabindex="-1"></a><span class="co">#&gt; Nonparametric Bootstrap Confidence Intervals with the BCa Method</span></span>
-<span id="cb580-16"><a href="model-based-causal-mediation-analysis.html#cb580-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb580-17"><a href="model-based-causal-mediation-analysis.html#cb580-17" tabindex="-1"></a><span class="co">#&gt;                          Estimate 95% CI Lower 95% CI Upper p-value   </span></span>
-<span id="cb580-18"><a href="model-based-causal-mediation-analysis.html#cb580-18" tabindex="-1"></a><span class="co">#&gt; ACME (control)             0.0833       0.0386         0.15   0.002 **</span></span>
-<span id="cb580-19"><a href="model-based-causal-mediation-analysis.html#cb580-19" tabindex="-1"></a><span class="co">#&gt; ACME (treated)             0.0844       0.0374         0.15   0.002 **</span></span>
-<span id="cb580-20"><a href="model-based-causal-mediation-analysis.html#cb580-20" tabindex="-1"></a><span class="co">#&gt; ADE (control)              0.0114      -0.0875         0.13   0.792   </span></span>
-<span id="cb580-21"><a href="model-based-causal-mediation-analysis.html#cb580-21" tabindex="-1"></a><span class="co">#&gt; ADE (treated)              0.0125      -0.1033         0.14   0.792   </span></span>
-<span id="cb580-22"><a href="model-based-causal-mediation-analysis.html#cb580-22" tabindex="-1"></a><span class="co">#&gt; Total Effect               0.0958      -0.0291         0.23   0.124   </span></span>
-<span id="cb580-23"><a href="model-based-causal-mediation-analysis.html#cb580-23" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (control)   0.8696     -97.4552         1.00   0.126   </span></span>
-<span id="cb580-24"><a href="model-based-causal-mediation-analysis.html#cb580-24" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (treated)   0.8806     -82.9081         1.02   0.126   </span></span>
-<span id="cb580-25"><a href="model-based-causal-mediation-analysis.html#cb580-25" tabindex="-1"></a><span class="co">#&gt; ACME (average)             0.0839       0.0381         0.15   0.002 **</span></span>
-<span id="cb580-26"><a href="model-based-causal-mediation-analysis.html#cb580-26" tabindex="-1"></a><span class="co">#&gt; ADE (average)              0.0120      -0.0961         0.14   0.792   </span></span>
-<span id="cb580-27"><a href="model-based-causal-mediation-analysis.html#cb580-27" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (average)   0.8751     -90.6217         1.01   0.126   </span></span>
-<span id="cb580-28"><a href="model-based-causal-mediation-analysis.html#cb580-28" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb580-29"><a href="model-based-causal-mediation-analysis.html#cb580-29" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb580-30"><a href="model-based-causal-mediation-analysis.html#cb580-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb580-31"><a href="model-based-causal-mediation-analysis.html#cb580-31" tabindex="-1"></a><span class="co">#&gt; Sample Size Used: 265 </span></span>
-<span id="cb580-32"><a href="model-based-causal-mediation-analysis.html#cb580-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb580-33"><a href="model-based-causal-mediation-analysis.html#cb580-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb580-34"><a href="model-based-causal-mediation-analysis.html#cb580-34" tabindex="-1"></a><span class="co">#&gt; Simulations: 1000</span></span></code></pre></div>
+<div class="sourceCode" id="cb591"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb591-1"><a href="model-based-causal-mediation-analysis.html#cb591-1" tabindex="-1"></a>med.out <span class="ot">&lt;-</span></span>
+<span id="cb591-2"><a href="model-based-causal-mediation-analysis.html#cb591-2" tabindex="-1"></a>    <span class="fu">mediate</span>(</span>
+<span id="cb591-3"><a href="model-based-causal-mediation-analysis.html#cb591-3" tabindex="-1"></a>        med.fit,</span>
+<span id="cb591-4"><a href="model-based-causal-mediation-analysis.html#cb591-4" tabindex="-1"></a>        out.fit,</span>
+<span id="cb591-5"><a href="model-based-causal-mediation-analysis.html#cb591-5" tabindex="-1"></a>        <span class="at">boot =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb591-6"><a href="model-based-causal-mediation-analysis.html#cb591-6" tabindex="-1"></a>        <span class="at">treat =</span> <span class="st">&quot;treat&quot;</span>,</span>
+<span id="cb591-7"><a href="model-based-causal-mediation-analysis.html#cb591-7" tabindex="-1"></a>        <span class="at">mediator =</span> <span class="st">&quot;emo&quot;</span>,</span>
+<span id="cb591-8"><a href="model-based-causal-mediation-analysis.html#cb591-8" tabindex="-1"></a>        <span class="at">sims =</span> <span class="dv">1000</span>, <span class="co"># should be 10000 in practice</span></span>
+<span id="cb591-9"><a href="model-based-causal-mediation-analysis.html#cb591-9" tabindex="-1"></a>        <span class="at">boot.ci.type =</span> <span class="st">&quot;bca&quot;</span> <span class="co"># bias-corrected and accelerated intervals</span></span>
+<span id="cb591-10"><a href="model-based-causal-mediation-analysis.html#cb591-10" tabindex="-1"></a>    )</span>
+<span id="cb591-11"><a href="model-based-causal-mediation-analysis.html#cb591-11" tabindex="-1"></a><span class="fu">summary</span>(med.out)</span>
+<span id="cb591-12"><a href="model-based-causal-mediation-analysis.html#cb591-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb591-13"><a href="model-based-causal-mediation-analysis.html#cb591-13" tabindex="-1"></a><span class="co">#&gt; Causal Mediation Analysis </span></span>
+<span id="cb591-14"><a href="model-based-causal-mediation-analysis.html#cb591-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb591-15"><a href="model-based-causal-mediation-analysis.html#cb591-15" tabindex="-1"></a><span class="co">#&gt; Nonparametric Bootstrap Confidence Intervals with the BCa Method</span></span>
+<span id="cb591-16"><a href="model-based-causal-mediation-analysis.html#cb591-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb591-17"><a href="model-based-causal-mediation-analysis.html#cb591-17" tabindex="-1"></a><span class="co">#&gt;                          Estimate 95% CI Lower 95% CI Upper p-value   </span></span>
+<span id="cb591-18"><a href="model-based-causal-mediation-analysis.html#cb591-18" tabindex="-1"></a><span class="co">#&gt; ACME (control)             0.0833       0.0386         0.15   0.002 **</span></span>
+<span id="cb591-19"><a href="model-based-causal-mediation-analysis.html#cb591-19" tabindex="-1"></a><span class="co">#&gt; ACME (treated)             0.0844       0.0374         0.15   0.002 **</span></span>
+<span id="cb591-20"><a href="model-based-causal-mediation-analysis.html#cb591-20" tabindex="-1"></a><span class="co">#&gt; ADE (control)              0.0114      -0.0875         0.13   0.792   </span></span>
+<span id="cb591-21"><a href="model-based-causal-mediation-analysis.html#cb591-21" tabindex="-1"></a><span class="co">#&gt; ADE (treated)              0.0125      -0.1033         0.14   0.792   </span></span>
+<span id="cb591-22"><a href="model-based-causal-mediation-analysis.html#cb591-22" tabindex="-1"></a><span class="co">#&gt; Total Effect               0.0958      -0.0291         0.23   0.124   </span></span>
+<span id="cb591-23"><a href="model-based-causal-mediation-analysis.html#cb591-23" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (control)   0.8696     -97.4552         1.00   0.126   </span></span>
+<span id="cb591-24"><a href="model-based-causal-mediation-analysis.html#cb591-24" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (treated)   0.8806     -82.9081         1.02   0.126   </span></span>
+<span id="cb591-25"><a href="model-based-causal-mediation-analysis.html#cb591-25" tabindex="-1"></a><span class="co">#&gt; ACME (average)             0.0839       0.0381         0.15   0.002 **</span></span>
+<span id="cb591-26"><a href="model-based-causal-mediation-analysis.html#cb591-26" tabindex="-1"></a><span class="co">#&gt; ADE (average)              0.0120      -0.0961         0.14   0.792   </span></span>
+<span id="cb591-27"><a href="model-based-causal-mediation-analysis.html#cb591-27" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (average)   0.8751     -90.6217         1.01   0.126   </span></span>
+<span id="cb591-28"><a href="model-based-causal-mediation-analysis.html#cb591-28" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb591-29"><a href="model-based-causal-mediation-analysis.html#cb591-29" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb591-30"><a href="model-based-causal-mediation-analysis.html#cb591-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb591-31"><a href="model-based-causal-mediation-analysis.html#cb591-31" tabindex="-1"></a><span class="co">#&gt; Sample Size Used: 265 </span></span>
+<span id="cb591-32"><a href="model-based-causal-mediation-analysis.html#cb591-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb591-33"><a href="model-based-causal-mediation-analysis.html#cb591-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb591-34"><a href="model-based-causal-mediation-analysis.html#cb591-34" tabindex="-1"></a><span class="co">#&gt; Simulations: 1000</span></span></code></pre></div>
 <p>If theoretically understanding suggests that there is treatment and mediator interaction</p>
-<div class="sourceCode" id="cb581"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb581-1"><a href="model-based-causal-mediation-analysis.html#cb581-1" tabindex="-1"></a>med.fit <span class="ot">&lt;-</span></span>
-<span id="cb581-2"><a href="model-based-causal-mediation-analysis.html#cb581-2" tabindex="-1"></a>    <span class="fu">lm</span>(emo <span class="sc">~</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ <span class="sc">+</span> gender <span class="sc">+</span> income, <span class="at">data =</span> framing)</span>
-<span id="cb581-3"><a href="model-based-causal-mediation-analysis.html#cb581-3" tabindex="-1"></a>out.fit <span class="ot">&lt;-</span></span>
-<span id="cb581-4"><a href="model-based-causal-mediation-analysis.html#cb581-4" tabindex="-1"></a>    <span class="fu">glm</span>(</span>
-<span id="cb581-5"><a href="model-based-causal-mediation-analysis.html#cb581-5" tabindex="-1"></a>        cong_mesg <span class="sc">~</span> emo <span class="sc">*</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ <span class="sc">+</span> gender <span class="sc">+</span> income,</span>
-<span id="cb581-6"><a href="model-based-causal-mediation-analysis.html#cb581-6" tabindex="-1"></a>        <span class="at">data =</span> framing,</span>
-<span id="cb581-7"><a href="model-based-causal-mediation-analysis.html#cb581-7" tabindex="-1"></a>        <span class="at">family =</span> <span class="fu">binomial</span>(<span class="st">&quot;probit&quot;</span>)</span>
-<span id="cb581-8"><a href="model-based-causal-mediation-analysis.html#cb581-8" tabindex="-1"></a>    )</span>
-<span id="cb581-9"><a href="model-based-causal-mediation-analysis.html#cb581-9" tabindex="-1"></a>med.out <span class="ot">&lt;-</span></span>
-<span id="cb581-10"><a href="model-based-causal-mediation-analysis.html#cb581-10" tabindex="-1"></a>    <span class="fu">mediate</span>(</span>
-<span id="cb581-11"><a href="model-based-causal-mediation-analysis.html#cb581-11" tabindex="-1"></a>        med.fit,</span>
-<span id="cb581-12"><a href="model-based-causal-mediation-analysis.html#cb581-12" tabindex="-1"></a>        out.fit,</span>
-<span id="cb581-13"><a href="model-based-causal-mediation-analysis.html#cb581-13" tabindex="-1"></a>        <span class="at">treat =</span> <span class="st">&quot;treat&quot;</span>,</span>
-<span id="cb581-14"><a href="model-based-causal-mediation-analysis.html#cb581-14" tabindex="-1"></a>        <span class="at">mediator =</span> <span class="st">&quot;emo&quot;</span>,</span>
-<span id="cb581-15"><a href="model-based-causal-mediation-analysis.html#cb581-15" tabindex="-1"></a>        <span class="at">robustSE =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb581-16"><a href="model-based-causal-mediation-analysis.html#cb581-16" tabindex="-1"></a>        <span class="at">sims =</span> <span class="dv">100</span></span>
-<span id="cb581-17"><a href="model-based-causal-mediation-analysis.html#cb581-17" tabindex="-1"></a>    )</span>
-<span id="cb581-18"><a href="model-based-causal-mediation-analysis.html#cb581-18" tabindex="-1"></a><span class="fu">summary</span>(med.out)</span>
-<span id="cb581-19"><a href="model-based-causal-mediation-analysis.html#cb581-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb581-20"><a href="model-based-causal-mediation-analysis.html#cb581-20" tabindex="-1"></a><span class="co">#&gt; Causal Mediation Analysis </span></span>
-<span id="cb581-21"><a href="model-based-causal-mediation-analysis.html#cb581-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb581-22"><a href="model-based-causal-mediation-analysis.html#cb581-22" tabindex="-1"></a><span class="co">#&gt; Quasi-Bayesian Confidence Intervals</span></span>
-<span id="cb581-23"><a href="model-based-causal-mediation-analysis.html#cb581-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb581-24"><a href="model-based-causal-mediation-analysis.html#cb581-24" tabindex="-1"></a><span class="co">#&gt;                           Estimate 95% CI Lower 95% CI Upper p-value    </span></span>
-<span id="cb581-25"><a href="model-based-causal-mediation-analysis.html#cb581-25" tabindex="-1"></a><span class="co">#&gt; ACME (control)            0.079925     0.035230         0.14  &lt;2e-16 ***</span></span>
-<span id="cb581-26"><a href="model-based-causal-mediation-analysis.html#cb581-26" tabindex="-1"></a><span class="co">#&gt; ACME (treated)            0.097504     0.045279         0.17  &lt;2e-16 ***</span></span>
-<span id="cb581-27"><a href="model-based-causal-mediation-analysis.html#cb581-27" tabindex="-1"></a><span class="co">#&gt; ADE (control)            -0.000865    -0.107228         0.11    0.98    </span></span>
-<span id="cb581-28"><a href="model-based-causal-mediation-analysis.html#cb581-28" tabindex="-1"></a><span class="co">#&gt; ADE (treated)             0.016714    -0.121163         0.14    0.76    </span></span>
-<span id="cb581-29"><a href="model-based-causal-mediation-analysis.html#cb581-29" tabindex="-1"></a><span class="co">#&gt; Total Effect              0.096640    -0.046523         0.23    0.26    </span></span>
-<span id="cb581-30"><a href="model-based-causal-mediation-analysis.html#cb581-30" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (control)  0.672278    -5.266859         3.40    0.26    </span></span>
-<span id="cb581-31"><a href="model-based-causal-mediation-analysis.html#cb581-31" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (treated)  0.860650    -6.754965         3.60    0.26    </span></span>
-<span id="cb581-32"><a href="model-based-causal-mediation-analysis.html#cb581-32" tabindex="-1"></a><span class="co">#&gt; ACME (average)            0.088715     0.040207         0.15  &lt;2e-16 ***</span></span>
-<span id="cb581-33"><a href="model-based-causal-mediation-analysis.html#cb581-33" tabindex="-1"></a><span class="co">#&gt; ADE (average)             0.007925    -0.111833         0.14    0.88    </span></span>
-<span id="cb581-34"><a href="model-based-causal-mediation-analysis.html#cb581-34" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (average)  0.766464    -5.848496         3.43    0.26    </span></span>
-<span id="cb581-35"><a href="model-based-causal-mediation-analysis.html#cb581-35" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb581-36"><a href="model-based-causal-mediation-analysis.html#cb581-36" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb581-37"><a href="model-based-causal-mediation-analysis.html#cb581-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb581-38"><a href="model-based-causal-mediation-analysis.html#cb581-38" tabindex="-1"></a><span class="co">#&gt; Sample Size Used: 265 </span></span>
-<span id="cb581-39"><a href="model-based-causal-mediation-analysis.html#cb581-39" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb581-40"><a href="model-based-causal-mediation-analysis.html#cb581-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb581-41"><a href="model-based-causal-mediation-analysis.html#cb581-41" tabindex="-1"></a><span class="co">#&gt; Simulations: 100</span></span>
-<span id="cb581-42"><a href="model-based-causal-mediation-analysis.html#cb581-42" tabindex="-1"></a></span>
-<span id="cb581-43"><a href="model-based-causal-mediation-analysis.html#cb581-43" tabindex="-1"></a><span class="fu">test.TMint</span>(med.out, <span class="at">conf.level =</span> .<span class="dv">95</span>) <span class="co"># test treatment-mediator interaction effect </span></span>
-<span id="cb581-44"><a href="model-based-causal-mediation-analysis.html#cb581-44" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb581-45"><a href="model-based-causal-mediation-analysis.html#cb581-45" tabindex="-1"></a><span class="co">#&gt;  Test of ACME(1) - ACME(0) = 0</span></span>
-<span id="cb581-46"><a href="model-based-causal-mediation-analysis.html#cb581-46" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb581-47"><a href="model-based-causal-mediation-analysis.html#cb581-47" tabindex="-1"></a><span class="co">#&gt; data:  estimates from med.out</span></span>
-<span id="cb581-48"><a href="model-based-causal-mediation-analysis.html#cb581-48" tabindex="-1"></a><span class="co">#&gt; ACME(1) - ACME(0) = 0.017579, p-value = 0.44</span></span>
-<span id="cb581-49"><a href="model-based-causal-mediation-analysis.html#cb581-49" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: true ACME(1) - ACME(0) is not equal to 0</span></span>
-<span id="cb581-50"><a href="model-based-causal-mediation-analysis.html#cb581-50" tabindex="-1"></a><span class="co">#&gt; 95 percent confidence interval:</span></span>
-<span id="cb581-51"><a href="model-based-causal-mediation-analysis.html#cb581-51" tabindex="-1"></a><span class="co">#&gt;  -0.02676143  0.06257828</span></span></code></pre></div>
-<div class="sourceCode" id="cb582"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb582-1"><a href="model-based-causal-mediation-analysis.html#cb582-1" tabindex="-1"></a><span class="fu">plot</span>(med.out)</span></code></pre></div>
+<div class="sourceCode" id="cb592"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb592-1"><a href="model-based-causal-mediation-analysis.html#cb592-1" tabindex="-1"></a>med.fit <span class="ot">&lt;-</span></span>
+<span id="cb592-2"><a href="model-based-causal-mediation-analysis.html#cb592-2" tabindex="-1"></a>    <span class="fu">lm</span>(emo <span class="sc">~</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ <span class="sc">+</span> gender <span class="sc">+</span> income, <span class="at">data =</span> framing)</span>
+<span id="cb592-3"><a href="model-based-causal-mediation-analysis.html#cb592-3" tabindex="-1"></a>out.fit <span class="ot">&lt;-</span></span>
+<span id="cb592-4"><a href="model-based-causal-mediation-analysis.html#cb592-4" tabindex="-1"></a>    <span class="fu">glm</span>(</span>
+<span id="cb592-5"><a href="model-based-causal-mediation-analysis.html#cb592-5" tabindex="-1"></a>        cong_mesg <span class="sc">~</span> emo <span class="sc">*</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ <span class="sc">+</span> gender <span class="sc">+</span> income,</span>
+<span id="cb592-6"><a href="model-based-causal-mediation-analysis.html#cb592-6" tabindex="-1"></a>        <span class="at">data =</span> framing,</span>
+<span id="cb592-7"><a href="model-based-causal-mediation-analysis.html#cb592-7" tabindex="-1"></a>        <span class="at">family =</span> <span class="fu">binomial</span>(<span class="st">&quot;probit&quot;</span>)</span>
+<span id="cb592-8"><a href="model-based-causal-mediation-analysis.html#cb592-8" tabindex="-1"></a>    )</span>
+<span id="cb592-9"><a href="model-based-causal-mediation-analysis.html#cb592-9" tabindex="-1"></a>med.out <span class="ot">&lt;-</span></span>
+<span id="cb592-10"><a href="model-based-causal-mediation-analysis.html#cb592-10" tabindex="-1"></a>    <span class="fu">mediate</span>(</span>
+<span id="cb592-11"><a href="model-based-causal-mediation-analysis.html#cb592-11" tabindex="-1"></a>        med.fit,</span>
+<span id="cb592-12"><a href="model-based-causal-mediation-analysis.html#cb592-12" tabindex="-1"></a>        out.fit,</span>
+<span id="cb592-13"><a href="model-based-causal-mediation-analysis.html#cb592-13" tabindex="-1"></a>        <span class="at">treat =</span> <span class="st">&quot;treat&quot;</span>,</span>
+<span id="cb592-14"><a href="model-based-causal-mediation-analysis.html#cb592-14" tabindex="-1"></a>        <span class="at">mediator =</span> <span class="st">&quot;emo&quot;</span>,</span>
+<span id="cb592-15"><a href="model-based-causal-mediation-analysis.html#cb592-15" tabindex="-1"></a>        <span class="at">robustSE =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb592-16"><a href="model-based-causal-mediation-analysis.html#cb592-16" tabindex="-1"></a>        <span class="at">sims =</span> <span class="dv">100</span></span>
+<span id="cb592-17"><a href="model-based-causal-mediation-analysis.html#cb592-17" tabindex="-1"></a>    )</span>
+<span id="cb592-18"><a href="model-based-causal-mediation-analysis.html#cb592-18" tabindex="-1"></a><span class="fu">summary</span>(med.out)</span>
+<span id="cb592-19"><a href="model-based-causal-mediation-analysis.html#cb592-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb592-20"><a href="model-based-causal-mediation-analysis.html#cb592-20" tabindex="-1"></a><span class="co">#&gt; Causal Mediation Analysis </span></span>
+<span id="cb592-21"><a href="model-based-causal-mediation-analysis.html#cb592-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb592-22"><a href="model-based-causal-mediation-analysis.html#cb592-22" tabindex="-1"></a><span class="co">#&gt; Quasi-Bayesian Confidence Intervals</span></span>
+<span id="cb592-23"><a href="model-based-causal-mediation-analysis.html#cb592-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb592-24"><a href="model-based-causal-mediation-analysis.html#cb592-24" tabindex="-1"></a><span class="co">#&gt;                           Estimate 95% CI Lower 95% CI Upper p-value    </span></span>
+<span id="cb592-25"><a href="model-based-causal-mediation-analysis.html#cb592-25" tabindex="-1"></a><span class="co">#&gt; ACME (control)            0.079925     0.035230         0.14  &lt;2e-16 ***</span></span>
+<span id="cb592-26"><a href="model-based-causal-mediation-analysis.html#cb592-26" tabindex="-1"></a><span class="co">#&gt; ACME (treated)            0.097504     0.045279         0.17  &lt;2e-16 ***</span></span>
+<span id="cb592-27"><a href="model-based-causal-mediation-analysis.html#cb592-27" tabindex="-1"></a><span class="co">#&gt; ADE (control)            -0.000865    -0.107228         0.11    0.98    </span></span>
+<span id="cb592-28"><a href="model-based-causal-mediation-analysis.html#cb592-28" tabindex="-1"></a><span class="co">#&gt; ADE (treated)             0.016714    -0.121163         0.14    0.76    </span></span>
+<span id="cb592-29"><a href="model-based-causal-mediation-analysis.html#cb592-29" tabindex="-1"></a><span class="co">#&gt; Total Effect              0.096640    -0.046523         0.23    0.26    </span></span>
+<span id="cb592-30"><a href="model-based-causal-mediation-analysis.html#cb592-30" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (control)  0.672278    -5.266859         3.40    0.26    </span></span>
+<span id="cb592-31"><a href="model-based-causal-mediation-analysis.html#cb592-31" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (treated)  0.860650    -6.754965         3.60    0.26    </span></span>
+<span id="cb592-32"><a href="model-based-causal-mediation-analysis.html#cb592-32" tabindex="-1"></a><span class="co">#&gt; ACME (average)            0.088715     0.040207         0.15  &lt;2e-16 ***</span></span>
+<span id="cb592-33"><a href="model-based-causal-mediation-analysis.html#cb592-33" tabindex="-1"></a><span class="co">#&gt; ADE (average)             0.007925    -0.111833         0.14    0.88    </span></span>
+<span id="cb592-34"><a href="model-based-causal-mediation-analysis.html#cb592-34" tabindex="-1"></a><span class="co">#&gt; Prop. Mediated (average)  0.766464    -5.848496         3.43    0.26    </span></span>
+<span id="cb592-35"><a href="model-based-causal-mediation-analysis.html#cb592-35" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb592-36"><a href="model-based-causal-mediation-analysis.html#cb592-36" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb592-37"><a href="model-based-causal-mediation-analysis.html#cb592-37" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb592-38"><a href="model-based-causal-mediation-analysis.html#cb592-38" tabindex="-1"></a><span class="co">#&gt; Sample Size Used: 265 </span></span>
+<span id="cb592-39"><a href="model-based-causal-mediation-analysis.html#cb592-39" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb592-40"><a href="model-based-causal-mediation-analysis.html#cb592-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb592-41"><a href="model-based-causal-mediation-analysis.html#cb592-41" tabindex="-1"></a><span class="co">#&gt; Simulations: 100</span></span>
+<span id="cb592-42"><a href="model-based-causal-mediation-analysis.html#cb592-42" tabindex="-1"></a></span>
+<span id="cb592-43"><a href="model-based-causal-mediation-analysis.html#cb592-43" tabindex="-1"></a><span class="fu">test.TMint</span>(med.out, <span class="at">conf.level =</span> .<span class="dv">95</span>) <span class="co"># test treatment-mediator interaction effect </span></span>
+<span id="cb592-44"><a href="model-based-causal-mediation-analysis.html#cb592-44" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb592-45"><a href="model-based-causal-mediation-analysis.html#cb592-45" tabindex="-1"></a><span class="co">#&gt;  Test of ACME(1) - ACME(0) = 0</span></span>
+<span id="cb592-46"><a href="model-based-causal-mediation-analysis.html#cb592-46" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb592-47"><a href="model-based-causal-mediation-analysis.html#cb592-47" tabindex="-1"></a><span class="co">#&gt; data:  estimates from med.out</span></span>
+<span id="cb592-48"><a href="model-based-causal-mediation-analysis.html#cb592-48" tabindex="-1"></a><span class="co">#&gt; ACME(1) - ACME(0) = 0.017579, p-value = 0.44</span></span>
+<span id="cb592-49"><a href="model-based-causal-mediation-analysis.html#cb592-49" tabindex="-1"></a><span class="co">#&gt; alternative hypothesis: true ACME(1) - ACME(0) is not equal to 0</span></span>
+<span id="cb592-50"><a href="model-based-causal-mediation-analysis.html#cb592-50" tabindex="-1"></a><span class="co">#&gt; 95 percent confidence interval:</span></span>
+<span id="cb592-51"><a href="model-based-causal-mediation-analysis.html#cb592-51" tabindex="-1"></a><span class="co">#&gt;  -0.02676143  0.06257828</span></span></code></pre></div>
+<div class="sourceCode" id="cb593"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb593-1"><a href="model-based-causal-mediation-analysis.html#cb593-1" tabindex="-1"></a><span class="fu">plot</span>(med.out)</span></code></pre></div>
 <p><img src="32-mediation_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p><code>mediation</code> can be used in conjunction with any of your imputation packages.</p>
 <p>And it can also handle <strong>mediated moderation</strong> or <strong>non-binary treatment variables</strong>, or <strong>multi-level data</strong></p>
@@ -1061,59 +1061,59 @@ div.csl-indent {
 <li><p><span class="math inline">\(\rho\)</span> = correlation between the residuals of the mediator and outcome regressions.</p></li>
 <li><p>If <span class="math inline">\(\rho\)</span> is significant, we have evidence for violation of sequential ignorability (i.e., there is unobserved pre-treatment confounders).</p></li>
 </ul>
-<div class="sourceCode" id="cb583"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb583-1"><a href="model-based-causal-mediation-analysis.html#cb583-1" tabindex="-1"></a>med.fit <span class="ot">&lt;-</span></span>
-<span id="cb583-2"><a href="model-based-causal-mediation-analysis.html#cb583-2" tabindex="-1"></a>    <span class="fu">lm</span>(emo <span class="sc">~</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ <span class="sc">+</span> gender <span class="sc">+</span> income, <span class="at">data =</span> framing)</span>
-<span id="cb583-3"><a href="model-based-causal-mediation-analysis.html#cb583-3" tabindex="-1"></a>out.fit <span class="ot">&lt;-</span></span>
-<span id="cb583-4"><a href="model-based-causal-mediation-analysis.html#cb583-4" tabindex="-1"></a>    <span class="fu">glm</span>(</span>
-<span id="cb583-5"><a href="model-based-causal-mediation-analysis.html#cb583-5" tabindex="-1"></a>        cong_mesg <span class="sc">~</span> emo <span class="sc">+</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ <span class="sc">+</span> gender <span class="sc">+</span> income,</span>
-<span id="cb583-6"><a href="model-based-causal-mediation-analysis.html#cb583-6" tabindex="-1"></a>        <span class="at">data =</span> framing,</span>
-<span id="cb583-7"><a href="model-based-causal-mediation-analysis.html#cb583-7" tabindex="-1"></a>        <span class="at">family =</span> <span class="fu">binomial</span>(<span class="st">&quot;probit&quot;</span>)</span>
-<span id="cb583-8"><a href="model-based-causal-mediation-analysis.html#cb583-8" tabindex="-1"></a>    )</span>
-<span id="cb583-9"><a href="model-based-causal-mediation-analysis.html#cb583-9" tabindex="-1"></a>med.out <span class="ot">&lt;-</span></span>
-<span id="cb583-10"><a href="model-based-causal-mediation-analysis.html#cb583-10" tabindex="-1"></a>    <span class="fu">mediate</span>(</span>
-<span id="cb583-11"><a href="model-based-causal-mediation-analysis.html#cb583-11" tabindex="-1"></a>        med.fit,</span>
-<span id="cb583-12"><a href="model-based-causal-mediation-analysis.html#cb583-12" tabindex="-1"></a>        out.fit,</span>
-<span id="cb583-13"><a href="model-based-causal-mediation-analysis.html#cb583-13" tabindex="-1"></a>        <span class="at">treat =</span> <span class="st">&quot;treat&quot;</span>,</span>
-<span id="cb583-14"><a href="model-based-causal-mediation-analysis.html#cb583-14" tabindex="-1"></a>        <span class="at">mediator =</span> <span class="st">&quot;emo&quot;</span>,</span>
-<span id="cb583-15"><a href="model-based-causal-mediation-analysis.html#cb583-15" tabindex="-1"></a>        <span class="at">robustSE =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb583-16"><a href="model-based-causal-mediation-analysis.html#cb583-16" tabindex="-1"></a>        <span class="at">sims =</span> <span class="dv">100</span></span>
-<span id="cb583-17"><a href="model-based-causal-mediation-analysis.html#cb583-17" tabindex="-1"></a>    )</span>
-<span id="cb583-18"><a href="model-based-causal-mediation-analysis.html#cb583-18" tabindex="-1"></a>sens.out <span class="ot">&lt;-</span></span>
-<span id="cb583-19"><a href="model-based-causal-mediation-analysis.html#cb583-19" tabindex="-1"></a>    <span class="fu">medsens</span>(med.out,</span>
-<span id="cb583-20"><a href="model-based-causal-mediation-analysis.html#cb583-20" tabindex="-1"></a>            <span class="at">rho.by =</span> <span class="fl">0.1</span>, <span class="co"># \rho varies from -0.9 to 0.9 by 0.1</span></span>
-<span id="cb583-21"><a href="model-based-causal-mediation-analysis.html#cb583-21" tabindex="-1"></a>            <span class="at">effect.type =</span> <span class="st">&quot;indirect&quot;</span>, <span class="co"># sensitivity on ACME</span></span>
-<span id="cb583-22"><a href="model-based-causal-mediation-analysis.html#cb583-22" tabindex="-1"></a>            <span class="co"># effect.type = &quot;direct&quot;, # sensitivity on ADE</span></span>
-<span id="cb583-23"><a href="model-based-causal-mediation-analysis.html#cb583-23" tabindex="-1"></a>            <span class="co"># effect.type = &quot;both&quot;, # sensitivity on ACME and ADE</span></span>
-<span id="cb583-24"><a href="model-based-causal-mediation-analysis.html#cb583-24" tabindex="-1"></a>            <span class="at">sims =</span> <span class="dv">100</span>)</span>
-<span id="cb583-25"><a href="model-based-causal-mediation-analysis.html#cb583-25" tabindex="-1"></a><span class="fu">summary</span>(sens.out)</span>
-<span id="cb583-26"><a href="model-based-causal-mediation-analysis.html#cb583-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb583-27"><a href="model-based-causal-mediation-analysis.html#cb583-27" tabindex="-1"></a><span class="co">#&gt; Mediation Sensitivity Analysis: Average Mediation Effect</span></span>
-<span id="cb583-28"><a href="model-based-causal-mediation-analysis.html#cb583-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb583-29"><a href="model-based-causal-mediation-analysis.html#cb583-29" tabindex="-1"></a><span class="co">#&gt; Sensitivity Region: ACME for Control Group</span></span>
-<span id="cb583-30"><a href="model-based-causal-mediation-analysis.html#cb583-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb583-31"><a href="model-based-causal-mediation-analysis.html#cb583-31" tabindex="-1"></a><span class="co">#&gt;      Rho ACME(control) 95% CI Lower 95% CI Upper R^2_M*R^2_Y* R^2_M~R^2_Y~</span></span>
-<span id="cb583-32"><a href="model-based-causal-mediation-analysis.html#cb583-32" tabindex="-1"></a><span class="co">#&gt; [1,] 0.3        0.0061      -0.0070       0.0163         0.09       0.0493</span></span>
-<span id="cb583-33"><a href="model-based-causal-mediation-analysis.html#cb583-33" tabindex="-1"></a><span class="co">#&gt; [2,] 0.4       -0.0081      -0.0254       0.0043         0.16       0.0877</span></span>
-<span id="cb583-34"><a href="model-based-causal-mediation-analysis.html#cb583-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb583-35"><a href="model-based-causal-mediation-analysis.html#cb583-35" tabindex="-1"></a><span class="co">#&gt; Rho at which ACME for Control Group = 0: 0.3</span></span>
-<span id="cb583-36"><a href="model-based-causal-mediation-analysis.html#cb583-36" tabindex="-1"></a><span class="co">#&gt; R^2_M*R^2_Y* at which ACME for Control Group = 0: 0.09</span></span>
-<span id="cb583-37"><a href="model-based-causal-mediation-analysis.html#cb583-37" tabindex="-1"></a><span class="co">#&gt; R^2_M~R^2_Y~ at which ACME for Control Group = 0: 0.0493 </span></span>
-<span id="cb583-38"><a href="model-based-causal-mediation-analysis.html#cb583-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb583-39"><a href="model-based-causal-mediation-analysis.html#cb583-39" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb583-40"><a href="model-based-causal-mediation-analysis.html#cb583-40" tabindex="-1"></a><span class="co">#&gt; Sensitivity Region: ACME for Treatment Group</span></span>
-<span id="cb583-41"><a href="model-based-causal-mediation-analysis.html#cb583-41" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb583-42"><a href="model-based-causal-mediation-analysis.html#cb583-42" tabindex="-1"></a><span class="co">#&gt;      Rho ACME(treated) 95% CI Lower 95% CI Upper R^2_M*R^2_Y* R^2_M~R^2_Y~</span></span>
-<span id="cb583-43"><a href="model-based-causal-mediation-analysis.html#cb583-43" tabindex="-1"></a><span class="co">#&gt; [1,] 0.3        0.0069      -0.0085       0.0197         0.09       0.0493</span></span>
-<span id="cb583-44"><a href="model-based-causal-mediation-analysis.html#cb583-44" tabindex="-1"></a><span class="co">#&gt; [2,] 0.4       -0.0099      -0.0304       0.0054         0.16       0.0877</span></span>
-<span id="cb583-45"><a href="model-based-causal-mediation-analysis.html#cb583-45" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb583-46"><a href="model-based-causal-mediation-analysis.html#cb583-46" tabindex="-1"></a><span class="co">#&gt; Rho at which ACME for Treatment Group = 0: 0.3</span></span>
-<span id="cb583-47"><a href="model-based-causal-mediation-analysis.html#cb583-47" tabindex="-1"></a><span class="co">#&gt; R^2_M*R^2_Y* at which ACME for Treatment Group = 0: 0.09</span></span>
-<span id="cb583-48"><a href="model-based-causal-mediation-analysis.html#cb583-48" tabindex="-1"></a><span class="co">#&gt; R^2_M~R^2_Y~ at which ACME for Treatment Group = 0: 0.0493</span></span></code></pre></div>
-<div class="sourceCode" id="cb584"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb584-1"><a href="model-based-causal-mediation-analysis.html#cb584-1" tabindex="-1"></a><span class="fu">plot</span>(sens.out, <span class="at">sens.par =</span> <span class="st">&quot;rho&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Anxiety&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.2</span>, <span class="fl">0.2</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb594"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb594-1"><a href="model-based-causal-mediation-analysis.html#cb594-1" tabindex="-1"></a>med.fit <span class="ot">&lt;-</span></span>
+<span id="cb594-2"><a href="model-based-causal-mediation-analysis.html#cb594-2" tabindex="-1"></a>    <span class="fu">lm</span>(emo <span class="sc">~</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ <span class="sc">+</span> gender <span class="sc">+</span> income, <span class="at">data =</span> framing)</span>
+<span id="cb594-3"><a href="model-based-causal-mediation-analysis.html#cb594-3" tabindex="-1"></a>out.fit <span class="ot">&lt;-</span></span>
+<span id="cb594-4"><a href="model-based-causal-mediation-analysis.html#cb594-4" tabindex="-1"></a>    <span class="fu">glm</span>(</span>
+<span id="cb594-5"><a href="model-based-causal-mediation-analysis.html#cb594-5" tabindex="-1"></a>        cong_mesg <span class="sc">~</span> emo <span class="sc">+</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ <span class="sc">+</span> gender <span class="sc">+</span> income,</span>
+<span id="cb594-6"><a href="model-based-causal-mediation-analysis.html#cb594-6" tabindex="-1"></a>        <span class="at">data =</span> framing,</span>
+<span id="cb594-7"><a href="model-based-causal-mediation-analysis.html#cb594-7" tabindex="-1"></a>        <span class="at">family =</span> <span class="fu">binomial</span>(<span class="st">&quot;probit&quot;</span>)</span>
+<span id="cb594-8"><a href="model-based-causal-mediation-analysis.html#cb594-8" tabindex="-1"></a>    )</span>
+<span id="cb594-9"><a href="model-based-causal-mediation-analysis.html#cb594-9" tabindex="-1"></a>med.out <span class="ot">&lt;-</span></span>
+<span id="cb594-10"><a href="model-based-causal-mediation-analysis.html#cb594-10" tabindex="-1"></a>    <span class="fu">mediate</span>(</span>
+<span id="cb594-11"><a href="model-based-causal-mediation-analysis.html#cb594-11" tabindex="-1"></a>        med.fit,</span>
+<span id="cb594-12"><a href="model-based-causal-mediation-analysis.html#cb594-12" tabindex="-1"></a>        out.fit,</span>
+<span id="cb594-13"><a href="model-based-causal-mediation-analysis.html#cb594-13" tabindex="-1"></a>        <span class="at">treat =</span> <span class="st">&quot;treat&quot;</span>,</span>
+<span id="cb594-14"><a href="model-based-causal-mediation-analysis.html#cb594-14" tabindex="-1"></a>        <span class="at">mediator =</span> <span class="st">&quot;emo&quot;</span>,</span>
+<span id="cb594-15"><a href="model-based-causal-mediation-analysis.html#cb594-15" tabindex="-1"></a>        <span class="at">robustSE =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb594-16"><a href="model-based-causal-mediation-analysis.html#cb594-16" tabindex="-1"></a>        <span class="at">sims =</span> <span class="dv">100</span></span>
+<span id="cb594-17"><a href="model-based-causal-mediation-analysis.html#cb594-17" tabindex="-1"></a>    )</span>
+<span id="cb594-18"><a href="model-based-causal-mediation-analysis.html#cb594-18" tabindex="-1"></a>sens.out <span class="ot">&lt;-</span></span>
+<span id="cb594-19"><a href="model-based-causal-mediation-analysis.html#cb594-19" tabindex="-1"></a>    <span class="fu">medsens</span>(med.out,</span>
+<span id="cb594-20"><a href="model-based-causal-mediation-analysis.html#cb594-20" tabindex="-1"></a>            <span class="at">rho.by =</span> <span class="fl">0.1</span>, <span class="co"># \rho varies from -0.9 to 0.9 by 0.1</span></span>
+<span id="cb594-21"><a href="model-based-causal-mediation-analysis.html#cb594-21" tabindex="-1"></a>            <span class="at">effect.type =</span> <span class="st">&quot;indirect&quot;</span>, <span class="co"># sensitivity on ACME</span></span>
+<span id="cb594-22"><a href="model-based-causal-mediation-analysis.html#cb594-22" tabindex="-1"></a>            <span class="co"># effect.type = &quot;direct&quot;, # sensitivity on ADE</span></span>
+<span id="cb594-23"><a href="model-based-causal-mediation-analysis.html#cb594-23" tabindex="-1"></a>            <span class="co"># effect.type = &quot;both&quot;, # sensitivity on ACME and ADE</span></span>
+<span id="cb594-24"><a href="model-based-causal-mediation-analysis.html#cb594-24" tabindex="-1"></a>            <span class="at">sims =</span> <span class="dv">100</span>)</span>
+<span id="cb594-25"><a href="model-based-causal-mediation-analysis.html#cb594-25" tabindex="-1"></a><span class="fu">summary</span>(sens.out)</span>
+<span id="cb594-26"><a href="model-based-causal-mediation-analysis.html#cb594-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb594-27"><a href="model-based-causal-mediation-analysis.html#cb594-27" tabindex="-1"></a><span class="co">#&gt; Mediation Sensitivity Analysis: Average Mediation Effect</span></span>
+<span id="cb594-28"><a href="model-based-causal-mediation-analysis.html#cb594-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb594-29"><a href="model-based-causal-mediation-analysis.html#cb594-29" tabindex="-1"></a><span class="co">#&gt; Sensitivity Region: ACME for Control Group</span></span>
+<span id="cb594-30"><a href="model-based-causal-mediation-analysis.html#cb594-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb594-31"><a href="model-based-causal-mediation-analysis.html#cb594-31" tabindex="-1"></a><span class="co">#&gt;      Rho ACME(control) 95% CI Lower 95% CI Upper R^2_M*R^2_Y* R^2_M~R^2_Y~</span></span>
+<span id="cb594-32"><a href="model-based-causal-mediation-analysis.html#cb594-32" tabindex="-1"></a><span class="co">#&gt; [1,] 0.3        0.0061      -0.0070       0.0163         0.09       0.0493</span></span>
+<span id="cb594-33"><a href="model-based-causal-mediation-analysis.html#cb594-33" tabindex="-1"></a><span class="co">#&gt; [2,] 0.4       -0.0081      -0.0254       0.0043         0.16       0.0877</span></span>
+<span id="cb594-34"><a href="model-based-causal-mediation-analysis.html#cb594-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb594-35"><a href="model-based-causal-mediation-analysis.html#cb594-35" tabindex="-1"></a><span class="co">#&gt; Rho at which ACME for Control Group = 0: 0.3</span></span>
+<span id="cb594-36"><a href="model-based-causal-mediation-analysis.html#cb594-36" tabindex="-1"></a><span class="co">#&gt; R^2_M*R^2_Y* at which ACME for Control Group = 0: 0.09</span></span>
+<span id="cb594-37"><a href="model-based-causal-mediation-analysis.html#cb594-37" tabindex="-1"></a><span class="co">#&gt; R^2_M~R^2_Y~ at which ACME for Control Group = 0: 0.0493 </span></span>
+<span id="cb594-38"><a href="model-based-causal-mediation-analysis.html#cb594-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb594-39"><a href="model-based-causal-mediation-analysis.html#cb594-39" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb594-40"><a href="model-based-causal-mediation-analysis.html#cb594-40" tabindex="-1"></a><span class="co">#&gt; Sensitivity Region: ACME for Treatment Group</span></span>
+<span id="cb594-41"><a href="model-based-causal-mediation-analysis.html#cb594-41" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb594-42"><a href="model-based-causal-mediation-analysis.html#cb594-42" tabindex="-1"></a><span class="co">#&gt;      Rho ACME(treated) 95% CI Lower 95% CI Upper R^2_M*R^2_Y* R^2_M~R^2_Y~</span></span>
+<span id="cb594-43"><a href="model-based-causal-mediation-analysis.html#cb594-43" tabindex="-1"></a><span class="co">#&gt; [1,] 0.3        0.0069      -0.0085       0.0197         0.09       0.0493</span></span>
+<span id="cb594-44"><a href="model-based-causal-mediation-analysis.html#cb594-44" tabindex="-1"></a><span class="co">#&gt; [2,] 0.4       -0.0099      -0.0304       0.0054         0.16       0.0877</span></span>
+<span id="cb594-45"><a href="model-based-causal-mediation-analysis.html#cb594-45" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb594-46"><a href="model-based-causal-mediation-analysis.html#cb594-46" tabindex="-1"></a><span class="co">#&gt; Rho at which ACME for Treatment Group = 0: 0.3</span></span>
+<span id="cb594-47"><a href="model-based-causal-mediation-analysis.html#cb594-47" tabindex="-1"></a><span class="co">#&gt; R^2_M*R^2_Y* at which ACME for Treatment Group = 0: 0.09</span></span>
+<span id="cb594-48"><a href="model-based-causal-mediation-analysis.html#cb594-48" tabindex="-1"></a><span class="co">#&gt; R^2_M~R^2_Y~ at which ACME for Treatment Group = 0: 0.0493</span></span></code></pre></div>
+<div class="sourceCode" id="cb595"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb595-1"><a href="model-based-causal-mediation-analysis.html#cb595-1" tabindex="-1"></a><span class="fu">plot</span>(sens.out, <span class="at">sens.par =</span> <span class="st">&quot;rho&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Anxiety&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.2</span>, <span class="fl">0.2</span>))</span></code></pre></div>
 <p><img src="32-mediation_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" /><img src="32-mediation_files/figure-html/unnamed-chunk-7-2.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>ACME confidence intervals contains 0 when <span class="math inline">\(\rho \in (0.3,0.4)\)</span></p>
 <p>Alternatively, using <span class="math inline">\(R^2\)</span> interpretation, we need to specify the direction of confounder that affects the mediator and outcome variables in <code>plot</code> using <code>sign.prod = "positive"</code> (i.e., same direction) or <code>sign.prod = "negative"</code> (i.e., opposite direction).</p>
-<div class="sourceCode" id="cb585"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb585-1"><a href="model-based-causal-mediation-analysis.html#cb585-1" tabindex="-1"></a><span class="fu">plot</span>(sens.out, <span class="at">sens.par =</span> <span class="st">&quot;R2&quot;</span>, <span class="at">r.type =</span> <span class="st">&quot;total&quot;</span>, <span class="at">sign.prod =</span> <span class="st">&quot;positive&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb596"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb596-1"><a href="model-based-causal-mediation-analysis.html#cb596-1" tabindex="-1"></a><span class="fu">plot</span>(sens.out, <span class="at">sens.par =</span> <span class="st">&quot;R2&quot;</span>, <span class="at">r.type =</span> <span class="st">&quot;total&quot;</span>, <span class="at">sign.prod =</span> <span class="st">&quot;positive&quot;</span>)</span></code></pre></div>
 <p><img src="32-mediation_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" /><img src="32-mediation_files/figure-html/unnamed-chunk-8-2.png" width="90%" style="display: block; margin: auto;" /></p>
 
 </div>

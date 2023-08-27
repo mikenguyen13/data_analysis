@@ -1,7 +1,7 @@
 ---
 title: "A Guide on Data Analysis"
 author: "Mike Nguyen"
-date: "2023-08-22"
+date: "2023-08-26"
 header-includes:
   - \usepackage{titling}
   - \pretitle{\begin{center}
@@ -43,21 +43,23 @@ always_allow_html: yes
 
 ## How to cite this book {.unnumbered}
 
-**1. APA (7th edition):**
-
-Nguyen, M. (2020). *A Guide on Data Analysis*. Bookdown. [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
-
-**2. MLA (8th edition):**
-
-Nguyen, Mike. *A Guide on Data Analysis*. Bookdown, 2020. [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
-
-**3. Chicago (17th edition):**
-
-Nguyen, Mike. 2020. *A Guide on Data Analysis*. Bookdown. [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
-
-**4. Harvard:**
-
-Nguyen, M. (2020) *A Guide on Data Analysis*. Bookdown. Available at: [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
+> **1. APA (7th edition):**
+>
+> Nguyen, M. (2020). *A Guide on Data Analysis*. Bookdown.
+>
+> [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
+>
+> **2. MLA (8th edition):**
+>
+> Nguyen, Mike. *A Guide on Data Analysis*. Bookdown, 2020. [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
+>
+> **3. Chicago (17th edition):**
+>
+> Nguyen, Mike. 2020. *A Guide on Data Analysis*. Bookdown. [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
+>
+> **4. Harvard:**
+>
+> Nguyen, M. (2020) *A Guide on Data Analysis*. Bookdown. Available at: [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
 
 ## More books {.unnumbered}
 

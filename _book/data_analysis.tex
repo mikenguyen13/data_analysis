@@ -138,7 +138,7 @@
 
 \title{A Guide on Data Analysis}
 \author{Mike Nguyen}
-\date{2023-08-22}
+\date{2023-08-26}
 
 \begin{document}
 \maketitle
@@ -159,9 +159,12 @@ This guide is an attempt to streamline and demystify the data analysis process. 
 \section*{How to cite this book}\label{how-to-cite-this-book}}
 \addcontentsline{toc}{section}{How to cite this book}
 
+\begin{quote}
 \textbf{1. APA (7th edition):}
 
-Nguyen, M. (2020). \emph{A Guide on Data Analysis}. Bookdown. \href{https://bookdown.org/mike/data_analysis/}{\textbf{https://bookdown.org/mike/data\_analysis/}}
+Nguyen, M. (2020). \emph{A Guide on Data Analysis}. Bookdown.
+
+\href{https://bookdown.org/mike/data_analysis/}{\textbf{https://bookdown.org/mike/data\_analysis/}}
 
 \textbf{2. MLA (8th edition):}
 
@@ -174,6 +177,7 @@ Nguyen, Mike. 2020. \emph{A Guide on Data Analysis}. Bookdown. \href{https://boo
 \textbf{4. Harvard:}
 
 Nguyen, M. (2020) \emph{A Guide on Data Analysis}. Bookdown. Available at: \href{https://bookdown.org/mike/data_analysis/}{\textbf{https://bookdown.org/mike/data\_analysis/}}
+\end{quote}
 
 \hypertarget{more-books}{%
 \section*{More books}\label{more-books}}
@@ -38725,7 +38729,7 @@ The canonical/standard TWFE only works when
 
 \begin{itemize}
 \item
-  Effects are homogeneous across units and across time periods (i.e., no dynamic changes in the effects of treatment). See \citep{goodman2021difference, de2020two, sun2021estimating, borusyak2021revisiting} for details.
+  Effects are homogeneous across units and across time periods (i.e., no dynamic changes in the effects of treatment). See \citep{goodman2021difference, de2020two, sun2021estimating, borusyak2021revisiting} for details. Relatedly, it relies on the assumption of \textbf{linear additive effects} \citep{imai2021use}
 
   \begin{itemize}
   \item
@@ -38799,7 +38803,7 @@ Under the following assumption, \(\hat{\tau}_{OLS}\) is unbiased:
   linear additive effects \citep{imai2021use}
 \end{enumerate}
 
-Remedies for TWFE's shortcomings
+\textbf{Remedies for TWFE's shortcomings}
 
 \begin{itemize}
 \item
@@ -39857,6 +39861,1003 @@ Hence, naive TWFE fixed effect equals the weighted average of the Bacon decompos
 
 With time-varying controls that can identify variation within-treatment timing group, the''early vs.~late'' and ``late vs.~early'' estimates collapse to just one estimate (i.e., both treated).
 
+\hypertarget{did-with-in-and-out-treatment-condition}{%
+\subsubsection{DID with in and out treatment condition}\label{did-with-in-and-out-treatment-condition}}
+
+\citet{imai2021use}
+
+This case generalizes the staggered adoption setting, allowing units to vary in treatment over time. For \(N\) units across \(T\) time periods (with potentially unbalanced panels), let \(X_{it}\) represent treatment and \(Y_{it}\) the outcome for unit \(i\) at time \(t\). We use the two-way linear fixed effects model:
+
+\[
+Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
+\]
+
+for \(i = 1, \dots, N\) and \(t = 1, \dots, T\). Here, \(\alpha_i\) and \(\gamma_t\) are unit and time fixed effects. They capture time-invariant unit-specific and unit-invariant time-specific unobserved confounders, respectively. We can express these as \(\alpha_i = h(\mathbf{U}_i)\) and \(\gamma_t = f(\mathbf{V}_t)\), with \(\mathbf{U}_i\) and \(\mathbf{V}_t\) being the confounders. The model doesn't assume a specific form for \(h(.)\) and \(f(.)\), but that they're additive and separable given binary treatment.
+
+The least squares estimate of \(\beta\) leverages the covariance in outcome and treatment \citep[p.~406]{imai2021use}. Specifically, it uses the within-unit and within-time variations. Many researchers prefer the two fixed effects (2FE) estimator because it adjusts for both types of unobserved confounders without specific functional-form assumptions, but this is wrong \citep{imai2019should}. We do need functional-form assumption (i.e., linearity assumption) for the 2FE to work \citep[p.~406]{imai2021use}
+
+\begin{itemize}
+\item
+  \textbf{Two-Way Matching Estimator}:
+
+  \begin{itemize}
+  \item
+    It can lead to mismatches; units with the same treatment status get matched when estimating counterfactual outcomes.
+  \item
+    Observations need to be matched with opposite treatment status for correct causal effects estimation.
+  \item
+    Mismatches can cause attenuation bias.
+  \item
+    The 2FE estimator adjusts for this bias using the factor \(K\), which represents the net proportion of proper matches between observations with opposite treatment status.
+  \end{itemize}
+\item
+  \textbf{Weighting in 2FE}:
+
+  \begin{itemize}
+  \item
+    Observation \((i,t)\) is weighted based on how often it acts as a control unit.
+  \item
+    The weighted 2FE estimator still has mismatches, but fewer than the standard 2FE estimator.
+  \item
+    Adjustments are made based on observations that neither belong to the same unit nor the same time period as the matched observation.
+  \item
+    This means there are challenges in adjusting for unit-specific and time-specific unobserved confounders under the two-way fixed effect framework.
+  \end{itemize}
+\item
+  \textbf{Equivalence \& Assumptions}:
+
+  \begin{itemize}
+  \item
+    Equivalence between the 2FE estimator and the DID estimator is dependent on the linearity assumption.
+  \item
+    The multi-period DiD estimator is described as an average of two-time-period, two-group DiD estimators applied during changes from control to treatment.
+  \end{itemize}
+\item
+  \textbf{Comparison with DiD}:
+
+  \begin{itemize}
+  \item
+    In simple settings (two time periods, treatment given to one group in the second period), the standard nonparametric DiD estimator equals the 2FE estimator.
+  \item
+    This doesn't hold in multi-period DiD designs where units change treatment status multiple times at different intervals.
+  \item
+    Contrary to popular belief, the unweighted 2FE estimator isn't generally equivalent to the multi-period DiD estimator.
+  \item
+    While the multi-period DiD can be equivalent to the weighted 2FE, some control observations may have negative regression weights.
+  \end{itemize}
+\item
+  \textbf{Conclusion}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Justifying the 2FE estimator as the DID estimator isn't warranted without imposing the linearity assumption.
+  \end{itemize}
+\end{itemize}
+
+\textbf{Application \citep{imai2021matching}}
+
+\begin{itemize}
+\item
+  \textbf{Matching Methods}:
+
+  \begin{itemize}
+  \item
+    Enhance the validity of causal inference.
+  \item
+    Reduce model dependence and provide intuitive diagnostics \citep{ho2007matching}
+  \item
+    Rarely utilized in analyzing time series cross-sectional data.
+  \item
+    The proposed matching estimators are more robust than the standard two-way fixed effects estimator, which can be biased if mis-specified
+  \item
+    Better than synthetic controls (e.g., \citep{xu2017generalized}) because it needs less data to achieve good performance and and adapt the the context of unit switching treatment status multiple times.
+  \end{itemize}
+\item
+  Notes:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Potential carryover effects (treatment may have a long-term effect), leading to post-treatment bias.
+  \end{itemize}
+\item
+  \textbf{Proposed Approach}:
+
+  \begin{enumerate}
+  \def\labelenumi{\arabic{enumi}.}
+  \item
+    Treated observations are matched with control observations from other units in the same time period with the same treatment history up to a specified number of lags.
+  \item
+    Standard matching and weighting techniques are employed to further refine the matched set.
+  \item
+    Apply a DiD estimator to adjust for time trend.
+  \item
+    The goal is to have treated and matched control observations with similar covariate values.
+  \end{enumerate}
+\item
+  \textbf{Assessment}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The quality of matches is evaluated through covariate balancing.
+  \end{itemize}
+\item
+  \textbf{Estimation}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Both short-term and long-term average treatment effects on the treated (ATT) are estimated.
+  \end{itemize}
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(PanelMatch)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Treatment Variation plot}
+
+\begin{itemize}
+\item
+  Visualize the variation of the treatment across space and time
+\item
+  Aids in discerning whether the treatment fluctuates adequately over time and units or if the variation is primarily clustered in a subset of data.
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{DisplayTreatment}\NormalTok{(}
+    \AttributeTok{unit.id =} \StringTok{"wbcode2"}\NormalTok{,}
+    \AttributeTok{time.id =} \StringTok{"year"}\NormalTok{,}
+    \AttributeTok{legend.position =} \StringTok{"none"}\NormalTok{,}
+    \AttributeTok{xlab =} \StringTok{"year"}\NormalTok{,}
+    \AttributeTok{ylab =} \StringTok{"Country Code"}\NormalTok{,}
+    \AttributeTok{treatment =} \StringTok{"dem"}\NormalTok{,}
+    
+    \AttributeTok{hide.x.tick.label =} \ConstantTok{TRUE}\NormalTok{, }\AttributeTok{hide.y.tick.label =} \ConstantTok{TRUE}\NormalTok{, }
+    \CommentTok{\# dense.plot = TRUE,}
+    \AttributeTok{data =}\NormalTok{ dem}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{25-dif-in-dif_files/figure-latex/unnamed-chunk-14-1} \end{center}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Select \(F\) (i.e., the number of leads - time periods after treatment). Driven by what authors are interested in estimating:
+\end{enumerate}
+
+\begin{itemize}
+\item
+  \(F = 0\) is the contemporaneous effect (short-term effect)
+\item
+  \(F = n\) is the the treatment effect on the outcome two time periods after the treatment. (cumulative or long-term effect)
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  Select \(L\) (number of lags to adjust).
+\end{enumerate}
+
+\begin{itemize}
+\item
+  Driven by the identification assumption.
+\item
+  Balances bias-variance tradeoff.
+\item
+  Higher \(L\) values increase credibility but reduce efficiency by limiting potential matches.
+\end{itemize}
+
+\textbf{Model assumption}:
+
+\begin{itemize}
+\item
+  No spillover effect assumed.
+\item
+  Carryover effect allowed up to \(L\) periods.
+\item
+  Potential outcome for a unit depends neither on others' treatment status nor on its past treatment after \(L\) periods.
+\end{itemize}
+
+After defining causal quantity with parameters \(L\) and \(F\).
+
+\begin{itemize}
+\tightlist
+\item
+  Focus on the average treatment effect of treatment status change.
+\item
+  \(\delta(F,L)\) is the average causal effect of treatment change (ATT), \(F\) periods post-treatment, considering treatment history up to \(L\) periods.
+\item
+  Causal quantity considers potential future treatment reversals, meaning treatment could revert to control before outcome measurement.
+\end{itemize}
+
+Also possible to estimate the average treatment effect of treatment reversal on the reversed (ART).
+
+Choose \(L,F\) based on specific needs.
+
+\begin{itemize}
+\item
+  A large \(L\) value:
+
+  \begin{itemize}
+  \item
+    Increases the credibility of the limited carryover effect assumption.
+  \item
+    Allows more past treatments (up to \(t−L\)) to influence the outcome \(Y_{i,t+F}\).
+  \item
+    Might reduce the number of matches and lead to less precise estimates.
+  \end{itemize}
+\item
+  Selecting an appropriate number of lags
+
+  \begin{itemize}
+  \item
+    Researchers should base this choice on substantive knowledge.
+  \item
+    Sensitivity of empirical results to this choice should be examined.
+  \end{itemize}
+\item
+  The choice of \(F\) should be:
+
+  \begin{itemize}
+  \item
+    Substantively motivated.
+  \item
+    Decides whether the interest lies in short-term or long-term causal effects.
+  \item
+    A large \(F\) value can complicate causal effect interpretation, especially if many units switch treatment status during the \(F\) lead time period.
+  \end{itemize}
+\end{itemize}
+
+\textbf{Identification Assumption}
+
+\begin{itemize}
+\item
+  Parallel trend assumption conditioned on treatment, outcome (excluding immediate lag), and covariate histories.
+\item
+  Doesn't require strong unconfoundedness assumption.
+\item
+  Cannot account for unobserved time-varying confounders.
+\item
+  Essential to examine outcome time trends.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Check if they're parallel between treated and matched control units using pre-treatment data
+  \end{itemize}
+\item
+  \textbf{Constructing the Matched Sets}:
+
+  \begin{itemize}
+  \item
+    For each treated observation, create matched control units with identical treatment history from \(t−L\) to \(t−1\).
+  \item
+    Matching based on treatment history helps control for carryover effects.
+  \item
+    Past treatments often act as major confounders, but this method can correct for it.
+  \item
+    Exact matching on time period adjusts for time-specific unobserved confounders.
+  \item
+    Unlike staggered adoption methods, units can change treatment status multiple times.
+  \item
+    Matched set allows treatment switching in and out of treatment
+  \end{itemize}
+\item
+  \textbf{Refining the Matched Sets}:
+
+  \begin{itemize}
+  \item
+    Initially, matched sets adjust only for treatment history.
+  \item
+    Parallel trend assumption requires adjustments for other confounders like past outcomes and covariates.
+  \item
+    Matching methods:
+
+    \begin{itemize}
+    \item
+      Match each treated observation with up to \(J\) control units.
+    \item
+      Distance measures like Mahalanobis distance or propensity score can be used.
+    \item
+      Match based on estimated propensity score, considering pretreatment covariates.
+    \item
+      Refined matched set selects most similar control units based on observed confounders.
+    \end{itemize}
+  \item
+    Weighting methods:
+
+    \begin{itemize}
+    \item
+      Assign weight to each control unit in a matched set.
+    \item
+      Weights prioritize more similar units.
+    \item
+      Inverse propensity score weighting method can be applied.
+    \item
+      Weighting is a more generalized method than matching.
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\textbf{The Difference-in-Differences Estimator}:
+
+\begin{itemize}
+\item
+  Using refined matched sets, the ATT (Average Treatment Effect on the Treated) of policy change is estimated.
+\item
+  For each treated observation, estimate the counterfactual outcome using the weighted average of control units in the refined set.
+\item
+  The DiD estimate of the ATT is computed for each treated observation, then averaged across all such observations.
+\item
+  For noncontemporaneous treatment effects where \(F > 0\):
+
+  \begin{itemize}
+  \item
+    The ATT doesn't specify future treatment sequence.
+  \item
+    Matched control units might have units receiving treatment between time \(t\) and \(t + F\).
+  \item
+    Some treated units could return to control conditions between these times.
+  \end{itemize}
+\end{itemize}
+
+\textbf{Checking Covariate Balance}:
+
+\begin{itemize}
+\item
+  The proposed methodology offers the advantage of checking covariate balance between treated and matched control observations.
+\item
+  This check helps to see if treated and matched control observations are comparable with respect to observed confounders.
+\item
+  Once matched sets are refined, covariate balance examination becomes straightforward.
+\item
+  Examine the mean difference of each covariate between a treated observation and its matched controls for each pretreatment time period.
+\item
+  Standardize this difference using the standard deviation of each covariate across all treated observations in the dataset.
+\item
+  Aggregate this covariate balance measure across all treated observations for each covariate and pretreatment time period.
+\item
+  Examine balance for lagged outcome variables over multiple pretreatment periods and time-varying covariates.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    This helps evaluate the validity of the parallel trend assumption underlying the proposed DiD estimator.
+  \end{itemize}
+\end{itemize}
+
+\textbf{\hfill\break
+Relations with Linear Fixed Effects Regression Estimators}:
+
+\begin{itemize}
+\item
+  The standard DiD estimator is equivalent to the linear two-way fixed effects regression estimator when:
+
+  \begin{itemize}
+  \item
+    Only two time periods exist.
+  \item
+    Treatment is given to some units exclusively in the second period.
+  \end{itemize}
+\item
+  This equivalence doesn't extend to multiperiod DiD designs, where:
+
+  \begin{itemize}
+  \item
+    More than two time periods are considered.
+  \item
+    Units might receive treatment multiple times.
+  \end{itemize}
+\item
+  Despite this, many researchers relate the use of the two-way fixed effects estimator to the DiD design.
+\end{itemize}
+
+\textbf{Standard Error Calculation}:
+
+\begin{itemize}
+\item
+  Approach:
+
+  \begin{itemize}
+  \item
+    Condition on the weights implied by the matching process.
+  \item
+    These weights denote how often an observation is utilized in matching \citep{imbens2015causal}
+  \end{itemize}
+\item
+  Context:
+
+  \begin{itemize}
+  \item
+    Analogous to the conditional variance seen in regression models.
+  \item
+    Resulting standard errors don't factor in uncertainties around the matching procedure.
+  \item
+    They can be viewed as a measure of uncertainty conditional upon the matching process \citep{ho2007matching}.
+  \end{itemize}
+\end{itemize}
+
+\textbf{Key Findings}:
+
+\begin{itemize}
+\item
+  Even in conditions favoring OLS, the proposed matching estimator displayed higher robustness to omitted relevant lags than the linear regression model with fixed effects.
+\item
+  The robustness offered by matching came at a cost - reduced statistical power.
+\item
+  This emphasizes the classic statistical tradeoff between bias (where matching has an advantage) and variance (where regression models might be more efficient).
+\end{itemize}
+
+\textbf{Data Requirements}
+
+\begin{itemize}
+\item
+  The treatment variable is binary:
+
+  \begin{itemize}
+  \item
+    0 signifies ``assignment'' to control.
+  \item
+    1 signifies assignment to treatment.
+  \end{itemize}
+\item
+  Variables identifying units in the data must be: Numeric or integer.
+\item
+  Variables identifying time periods should be: Consecutive numeric/integer data.
+\item
+  Data format requirement: Must be provided as a standard \texttt{data.frame} object.
+\end{itemize}
+
+Basic functions:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  Utilize treatment histories to create matching sets of treated and control units.
+\item
+  Refine these matched sets by determining weights for each control unit in the set.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Units with higher weights have a larger influence during estimations.
+  \end{itemize}
+\end{enumerate}
+
+\textbf{Matching on Treatment History}:
+
+\begin{itemize}
+\item
+  Goal is to match units transitioning from untreated to treated status with control units that have similar past treatment histories.
+\item
+  Setting the Quantity of Interest (\texttt{qoi\ =})
+
+  \begin{itemize}
+  \item
+    \texttt{att} average treatment effect on treated units
+  \item
+    \texttt{atc} average treatment effect of treatment on the control units
+  \item
+    \texttt{art} average effect of treatment reversal for units that experience treatment reversal
+  \item
+    \texttt{ate} average treatment effect
+  \end{itemize}
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# All examples follow the package\textquotesingle{}s vignette}
+\CommentTok{\# Create the matched sets}
+\NormalTok{PM.results.none }\OtherTok{\textless{}{-}}
+    \FunctionTok{PanelMatch}\NormalTok{(}
+        \AttributeTok{lag =} \DecValTok{4}\NormalTok{,}
+        \AttributeTok{time.id =} \StringTok{"year"}\NormalTok{,}
+        \AttributeTok{unit.id =} \StringTok{"wbcode2"}\NormalTok{,}
+        \AttributeTok{treatment =} \StringTok{"dem"}\NormalTok{,}
+        \AttributeTok{refinement.method =} \StringTok{"none"}\NormalTok{,}
+        \AttributeTok{data =}\NormalTok{ dem,}
+        \AttributeTok{match.missing =} \ConstantTok{TRUE}\NormalTok{,}
+        \AttributeTok{size.match =} \DecValTok{5}\NormalTok{,}
+        \AttributeTok{qoi =} \StringTok{"att"}\NormalTok{,}
+        \AttributeTok{outcome.var =} \StringTok{"y"}\NormalTok{,}
+        \AttributeTok{lead =} \DecValTok{0}\SpecialCharTok{:}\DecValTok{4}\NormalTok{,}
+        \AttributeTok{forbid.treatment.reversal =} \ConstantTok{FALSE}\NormalTok{,}
+        \AttributeTok{use.diagonal.variance.matrix =} \ConstantTok{TRUE}
+\NormalTok{    )}
+
+\CommentTok{\# visualize the treated unit and matched controls}
+\FunctionTok{DisplayTreatment}\NormalTok{(}
+    \AttributeTok{unit.id =} \StringTok{"wbcode2"}\NormalTok{,}
+    \AttributeTok{time.id =} \StringTok{"year"}\NormalTok{,}
+    \AttributeTok{legend.position =} \StringTok{"none"}\NormalTok{,}
+    \AttributeTok{xlab =} \StringTok{"year"}\NormalTok{,}
+    \AttributeTok{ylab =} \StringTok{"Country Code"}\NormalTok{,}
+    \AttributeTok{treatment =} \StringTok{"dem"}\NormalTok{,}
+    \AttributeTok{data =}\NormalTok{ dem,}
+    \AttributeTok{matched.set =}\NormalTok{ PM.results.none}\SpecialCharTok{$}\NormalTok{att[}\DecValTok{1}\NormalTok{],}
+    \CommentTok{\# highlight the particular set}
+    \AttributeTok{show.set.only =} \ConstantTok{TRUE}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{25-dif-in-dif_files/figure-latex/unnamed-chunk-15-1} \end{center}
+
+Control units and the treated unit have identical treatment histories over the lag window (1988-1991)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{DisplayTreatment}\NormalTok{(}
+    \AttributeTok{unit.id =} \StringTok{"wbcode2"}\NormalTok{,}
+    \AttributeTok{time.id =} \StringTok{"year"}\NormalTok{,}
+    \AttributeTok{legend.position =} \StringTok{"none"}\NormalTok{,}
+    \AttributeTok{xlab =} \StringTok{"year"}\NormalTok{,}
+    \AttributeTok{ylab =} \StringTok{"Country Code"}\NormalTok{,}
+    \AttributeTok{treatment =} \StringTok{"dem"}\NormalTok{,}
+    \AttributeTok{data =}\NormalTok{ dem,}
+    \AttributeTok{matched.set =}\NormalTok{ PM.results.none}\SpecialCharTok{$}\NormalTok{att[}\DecValTok{2}\NormalTok{],}
+    \CommentTok{\# highlight the particular set}
+    \AttributeTok{show.set.only =} \ConstantTok{TRUE}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{25-dif-in-dif_files/figure-latex/unnamed-chunk-16-1} \end{center}
+
+This set is more limited than the first one, but we can still see that we have exact past histories.
+
+\begin{itemize}
+\item
+  \textbf{Refining Matched Sets}
+
+  \begin{itemize}
+  \item
+    Refinement involves assigning weights to control units.
+  \item
+    Users must:
+
+    \begin{enumerate}
+    \def\labelenumi{\arabic{enumi}.}
+    \item
+      Specify a method for calculating unit similarity/distance.
+    \item
+      Choose variables for similarity/distance calculations.
+    \end{enumerate}
+  \end{itemize}
+\item
+  \textbf{Select a Refinement Method}
+
+  \begin{itemize}
+  \item
+    Users determine the refinement method via the \textbf{\texttt{refinement.method}} argument.
+  \item
+    Options include:
+
+    \begin{itemize}
+    \item
+      \texttt{mahalanobis}
+    \item
+      \texttt{ps.match}
+    \item
+      \texttt{CBPS.match}
+    \item
+      \texttt{ps.weight}
+    \item
+      \texttt{CBPS.weight}
+    \item
+      \texttt{ps.msm.weight}
+    \item
+      \texttt{CBPS.msm.weight}
+    \item
+      \texttt{none}
+    \end{itemize}
+  \item
+    Methods with ``match'' in the name and mahalanobis will assign equal weights to similar control units.
+  \item
+    ``Weighting'' methods give higher weights to control units more similar to treated units.
+  \end{itemize}
+\item
+  \textbf{Variable Selection}
+
+  \begin{itemize}
+  \item
+    Users need to define which covariates will be used through the \textbf{\texttt{covs.formula}} argument, a one-sided formula object.
+  \item
+    Variables on the right side of the formula are used for calculations.
+  \item
+    ``Lagged'' versions of variables can be included using the format: \textbf{\texttt{I(lag(name.of.var,\ 0:n))}}.
+  \end{itemize}
+\item
+  \textbf{Understanding PanelMatch and matched.set objects}
+
+  \begin{itemize}
+  \item
+    The \textbf{PanelMatch function} returns a \textbf{PanelMatch object}.
+  \item
+    The most crucial element within the PanelMatch object is the \textbf{matched.set object}.
+  \item
+    Within the PanelMatch object, the matched.set object will have names like att, art, or atc.
+  \item
+    If \textbf{\texttt{qoi\ =\ ate}}, there will be two matched.set objects: att and atc.
+  \end{itemize}
+\item
+  \textbf{Matched.set Object Details}
+
+  \begin{itemize}
+  \item
+    matched.set is a named list with added attributes.
+  \item
+    Attributes include:
+
+    \begin{itemize}
+    \item
+      Lag
+    \item
+      Names of treatment
+    \item
+      Unit and time variables
+    \end{itemize}
+  \item
+    Each list entry represents a matched set of treated and control units.
+  \item
+    Naming follows a structure: \textbf{\texttt{{[}id\ variable{]}.{[}time\ variable{]}}}.
+  \item
+    Each list element is a vector of control unit ids that match the treated unit mentioned in the element name.
+  \item
+    Since it's a matching method, weights are only given to the \textbf{\texttt{size.match}} most similar control units based on distance calculations.
+  \end{itemize}
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# PanelMatch without any refinement}
+\NormalTok{PM.results.none }\OtherTok{\textless{}{-}}
+    \FunctionTok{PanelMatch}\NormalTok{(}
+        \AttributeTok{lag =} \DecValTok{4}\NormalTok{,}
+        \AttributeTok{time.id =} \StringTok{"year"}\NormalTok{,}
+        \AttributeTok{unit.id =} \StringTok{"wbcode2"}\NormalTok{,}
+        \AttributeTok{treatment =} \StringTok{"dem"}\NormalTok{,}
+        \AttributeTok{refinement.method =} \StringTok{"none"}\NormalTok{,}
+        \AttributeTok{data =}\NormalTok{ dem,}
+        \AttributeTok{match.missing =} \ConstantTok{TRUE}\NormalTok{,}
+        \AttributeTok{size.match =} \DecValTok{5}\NormalTok{,}
+        \AttributeTok{qoi =} \StringTok{"att"}\NormalTok{,}
+        \AttributeTok{outcome.var =} \StringTok{"y"}\NormalTok{,}
+        \AttributeTok{lead =} \DecValTok{0}\SpecialCharTok{:}\DecValTok{4}\NormalTok{,}
+        \AttributeTok{forbid.treatment.reversal =} \ConstantTok{FALSE}\NormalTok{,}
+        \AttributeTok{use.diagonal.variance.matrix =} \ConstantTok{TRUE}
+\NormalTok{    )}
+
+\CommentTok{\# Extract the matched.set object}
+\NormalTok{msets.none }\OtherTok{\textless{}{-}}\NormalTok{ PM.results.none}\SpecialCharTok{$}\NormalTok{att}
+
+\CommentTok{\# PanelMatch with refinement}
+\NormalTok{PM.results.maha }\OtherTok{\textless{}{-}}
+    \FunctionTok{PanelMatch}\NormalTok{(}
+        \AttributeTok{lag =} \DecValTok{4}\NormalTok{,}
+        \AttributeTok{time.id =} \StringTok{"year"}\NormalTok{,}
+        \AttributeTok{unit.id =} \StringTok{"wbcode2"}\NormalTok{,}
+        \AttributeTok{treatment =} \StringTok{"dem"}\NormalTok{,}
+        \AttributeTok{refinement.method =} \StringTok{"mahalanobis"}\NormalTok{, }\CommentTok{\# use Mahalanobis distance}
+        \AttributeTok{data =}\NormalTok{ dem,}
+        \AttributeTok{match.missing =} \ConstantTok{TRUE}\NormalTok{,}
+        \AttributeTok{covs.formula =} \SpecialCharTok{\textasciitilde{}}\NormalTok{ tradewb,}
+        \AttributeTok{size.match =} \DecValTok{5}\NormalTok{,}
+        \AttributeTok{qoi =} \StringTok{"att"}\NormalTok{ ,}
+        \AttributeTok{outcome.var =} \StringTok{"y"}\NormalTok{,}
+        \AttributeTok{lead =} \DecValTok{0}\SpecialCharTok{:}\DecValTok{4}\NormalTok{,}
+        \AttributeTok{forbid.treatment.reversal =} \ConstantTok{FALSE}\NormalTok{,}
+        \AttributeTok{use.diagonal.variance.matrix =} \ConstantTok{TRUE}
+\NormalTok{    )}
+\NormalTok{msets.maha }\OtherTok{\textless{}{-}}\NormalTok{ PM.results.maha}\SpecialCharTok{$}\NormalTok{att}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# these 2 should be identical because weights are not shown}
+\NormalTok{msets.none }\SpecialCharTok{|\textgreater{}} \FunctionTok{head}\NormalTok{()}
+\CommentTok{\#\textgreater{}   wbcode2 year matched.set.size}
+\CommentTok{\#\textgreater{} 1       4 1992               74}
+\CommentTok{\#\textgreater{} 2       4 1997                2}
+\CommentTok{\#\textgreater{} 3       6 1973               63}
+\CommentTok{\#\textgreater{} 4       6 1983               73}
+\CommentTok{\#\textgreater{} 5       7 1991               81}
+\CommentTok{\#\textgreater{} 6       7 1998                1}
+\NormalTok{msets.maha }\SpecialCharTok{|\textgreater{}} \FunctionTok{head}\NormalTok{()}
+\CommentTok{\#\textgreater{}   wbcode2 year matched.set.size}
+\CommentTok{\#\textgreater{} 1       4 1992               74}
+\CommentTok{\#\textgreater{} 2       4 1997                2}
+\CommentTok{\#\textgreater{} 3       6 1973               63}
+\CommentTok{\#\textgreater{} 4       6 1983               73}
+\CommentTok{\#\textgreater{} 5       7 1991               81}
+\CommentTok{\#\textgreater{} 6       7 1998                1}
+\CommentTok{\# summary(msets.none)}
+\CommentTok{\# summary(msets.maha)}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Visualizing Matched Sets with the plot method}
+
+\begin{itemize}
+\item
+  Users can visualize the distribution of the matched set sizes.
+\item
+  A red line, by default, indicates the count of matched sets where treated units had no matching control units (i.e., empty matched sets).
+\item
+  Plot adjustments can be made using \textbf{\texttt{graphics::plot}}.
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot}\NormalTok{(msets.none)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{25-dif-in-dif_files/figure-latex/unnamed-chunk-19-1} \end{center}
+
+\textbf{Comparing Methods of Refinement}
+
+\begin{itemize}
+\item
+  Users are encouraged to:
+
+  \begin{itemize}
+  \item
+    Use substantive knowledge for experimentation and evaluation.
+  \item
+    Consider the following when configuring PanelMatch:
+
+    \begin{enumerate}
+    \def\labelenumi{\arabic{enumi}.}
+    \item
+      The number of matched sets.
+    \item
+      The number of controls matched to each treated unit.
+    \item
+      Achieving covariate balance.
+    \end{enumerate}
+  \item
+    \textbf{Note}: Large numbers of small matched sets can lead to larger standard errors during the estimation stage.
+  \item
+    Covariates that aren't well balanced can lead to undesirable comparisons between treated and control units.
+  \item
+    Aspects to consider include:
+
+    \begin{itemize}
+    \item
+      Refinement method.
+    \item
+      Variables for weight calculation.
+    \item
+      Size of the lag window.
+    \item
+      Procedures for addressing missing data (refer to \textbf{\texttt{match.missing}} and \textbf{\texttt{listwise.delete}} arguments).
+    \item
+      Maximum size of matched sets (for matching methods).
+    \end{itemize}
+  \end{itemize}
+\item
+  \textbf{Supportive Features:}
+
+  \begin{itemize}
+  \item
+    \textbf{\texttt{print}}, \textbf{\texttt{plot}}, and \textbf{\texttt{summary}} methods assist in understanding matched sets and their sizes.
+  \item
+    \textbf{\texttt{get\_covariate\_balance}} helps evaluate covariate balance:
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Lower values in the covariate balance calculations are preferred.
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{PM.results.none }\OtherTok{\textless{}{-}}
+    \FunctionTok{PanelMatch}\NormalTok{(}
+        \AttributeTok{lag =} \DecValTok{4}\NormalTok{,}
+        \AttributeTok{time.id =} \StringTok{"year"}\NormalTok{,}
+        \AttributeTok{unit.id =} \StringTok{"wbcode2"}\NormalTok{,}
+        \AttributeTok{treatment =} \StringTok{"dem"}\NormalTok{,}
+        \AttributeTok{refinement.method =} \StringTok{"none"}\NormalTok{,}
+        \AttributeTok{data =}\NormalTok{ dem,}
+        \AttributeTok{match.missing =} \ConstantTok{TRUE}\NormalTok{,}
+        \AttributeTok{size.match =} \DecValTok{5}\NormalTok{,}
+        \AttributeTok{qoi =} \StringTok{"att"}\NormalTok{,}
+        \AttributeTok{outcome.var =} \StringTok{"y"}\NormalTok{,}
+        \AttributeTok{lead =} \DecValTok{0}\SpecialCharTok{:}\DecValTok{4}\NormalTok{,}
+        \AttributeTok{forbid.treatment.reversal =} \ConstantTok{FALSE}\NormalTok{,}
+        \AttributeTok{use.diagonal.variance.matrix =} \ConstantTok{TRUE}
+\NormalTok{    )}
+\NormalTok{PM.results.maha }\OtherTok{\textless{}{-}}
+    \FunctionTok{PanelMatch}\NormalTok{(}
+        \AttributeTok{lag =} \DecValTok{4}\NormalTok{,}
+        \AttributeTok{time.id =} \StringTok{"year"}\NormalTok{,}
+        \AttributeTok{unit.id =} \StringTok{"wbcode2"}\NormalTok{,}
+        \AttributeTok{treatment =} \StringTok{"dem"}\NormalTok{,}
+        \AttributeTok{refinement.method =} \StringTok{"mahalanobis"}\NormalTok{,}
+        \AttributeTok{data =}\NormalTok{ dem,}
+        \AttributeTok{match.missing =} \ConstantTok{TRUE}\NormalTok{,}
+        \AttributeTok{covs.formula =} \SpecialCharTok{\textasciitilde{}} \FunctionTok{I}\NormalTok{(}\FunctionTok{lag}\NormalTok{(tradewb, }\DecValTok{1}\SpecialCharTok{:}\DecValTok{4}\NormalTok{)) }\SpecialCharTok{+} \FunctionTok{I}\NormalTok{(}\FunctionTok{lag}\NormalTok{(y, }\DecValTok{1}\SpecialCharTok{:}\DecValTok{4}\NormalTok{)),}
+        \AttributeTok{size.match =} \DecValTok{5}\NormalTok{,}
+        \AttributeTok{qoi =} \StringTok{"att"}\NormalTok{,}
+        \AttributeTok{outcome.var =} \StringTok{"y"}\NormalTok{,}
+        \AttributeTok{lead =} \DecValTok{0}\SpecialCharTok{:}\DecValTok{4}\NormalTok{,}
+        \AttributeTok{forbid.treatment.reversal =} \ConstantTok{FALSE}\NormalTok{,}
+        \AttributeTok{use.diagonal.variance.matrix =} \ConstantTok{TRUE}
+\NormalTok{    )}
+
+\CommentTok{\# listwise deletion used for missing data}
+\NormalTok{PM.results.listwise }\OtherTok{\textless{}{-}}
+    \FunctionTok{PanelMatch}\NormalTok{(}
+        \AttributeTok{lag =} \DecValTok{4}\NormalTok{,}
+        \AttributeTok{time.id =} \StringTok{"year"}\NormalTok{,}
+        \AttributeTok{unit.id =} \StringTok{"wbcode2"}\NormalTok{,}
+        \AttributeTok{treatment =} \StringTok{"dem"}\NormalTok{,}
+        \AttributeTok{refinement.method =} \StringTok{"mahalanobis"}\NormalTok{,}
+        \AttributeTok{data =}\NormalTok{ dem,}
+        \AttributeTok{match.missing =} \ConstantTok{FALSE}\NormalTok{,}
+        \AttributeTok{listwise.delete =} \ConstantTok{TRUE}\NormalTok{,}
+        \AttributeTok{covs.formula =} \SpecialCharTok{\textasciitilde{}} \FunctionTok{I}\NormalTok{(}\FunctionTok{lag}\NormalTok{(tradewb, }\DecValTok{1}\SpecialCharTok{:}\DecValTok{4}\NormalTok{)) }\SpecialCharTok{+} \FunctionTok{I}\NormalTok{(}\FunctionTok{lag}\NormalTok{(y, }\DecValTok{1}\SpecialCharTok{:}\DecValTok{4}\NormalTok{)),}
+        \AttributeTok{size.match =} \DecValTok{5}\NormalTok{,}
+        \AttributeTok{qoi =} \StringTok{"att"}\NormalTok{,}
+        \AttributeTok{outcome.var =} \StringTok{"y"}\NormalTok{,}
+        \AttributeTok{lead =} \DecValTok{0}\SpecialCharTok{:}\DecValTok{4}\NormalTok{,}
+        \AttributeTok{forbid.treatment.reversal =} \ConstantTok{FALSE}\NormalTok{,}
+        \AttributeTok{use.diagonal.variance.matrix =} \ConstantTok{TRUE}
+\NormalTok{    )}
+
+\CommentTok{\# propensity score based weighting method}
+\NormalTok{PM.results.ps.weight }\OtherTok{\textless{}{-}}
+    \FunctionTok{PanelMatch}\NormalTok{(}
+        \AttributeTok{lag =} \DecValTok{4}\NormalTok{,}
+        \AttributeTok{time.id =} \StringTok{"year"}\NormalTok{,}
+        \AttributeTok{unit.id =} \StringTok{"wbcode2"}\NormalTok{,}
+        \AttributeTok{treatment =} \StringTok{"dem"}\NormalTok{,}
+        \AttributeTok{refinement.method =} \StringTok{"ps.weight"}\NormalTok{,}
+        \AttributeTok{data =}\NormalTok{ dem,}
+        \AttributeTok{match.missing =} \ConstantTok{FALSE}\NormalTok{,}
+        \AttributeTok{listwise.delete =} \ConstantTok{TRUE}\NormalTok{,}
+        \AttributeTok{covs.formula =} \SpecialCharTok{\textasciitilde{}} \FunctionTok{I}\NormalTok{(}\FunctionTok{lag}\NormalTok{(tradewb, }\DecValTok{1}\SpecialCharTok{:}\DecValTok{4}\NormalTok{)) }\SpecialCharTok{+} \FunctionTok{I}\NormalTok{(}\FunctionTok{lag}\NormalTok{(y, }\DecValTok{1}\SpecialCharTok{:}\DecValTok{4}\NormalTok{)),}
+        \AttributeTok{size.match =} \DecValTok{5}\NormalTok{,}
+        \AttributeTok{qoi =} \StringTok{"att"}\NormalTok{,}
+        \AttributeTok{outcome.var =} \StringTok{"y"}\NormalTok{,}
+        \AttributeTok{lead =} \DecValTok{0}\SpecialCharTok{:}\DecValTok{4}\NormalTok{,}
+        \AttributeTok{forbid.treatment.reversal =} \ConstantTok{FALSE}
+\NormalTok{    )}
+
+\FunctionTok{get\_covariate\_balance}\NormalTok{(}
+\NormalTok{    PM.results.none}\SpecialCharTok{$}\NormalTok{att,}
+    \AttributeTok{data =}\NormalTok{ dem,}
+    \AttributeTok{covariates =} \FunctionTok{c}\NormalTok{(}\StringTok{"tradewb"}\NormalTok{, }\StringTok{"y"}\NormalTok{),}
+    \AttributeTok{plot =} \ConstantTok{FALSE}
+\NormalTok{)}
+\CommentTok{\#\textgreater{}         tradewb            y}
+\CommentTok{\#\textgreater{} t\_4 {-}0.07245466  0.291871990}
+\CommentTok{\#\textgreater{} t\_3 {-}0.20930129  0.208654876}
+\CommentTok{\#\textgreater{} t\_2 {-}0.24425207  0.107736647}
+\CommentTok{\#\textgreater{} t\_1 {-}0.10806125 {-}0.004950238}
+
+\FunctionTok{get\_covariate\_balance}\NormalTok{(}
+\NormalTok{    PM.results.maha}\SpecialCharTok{$}\NormalTok{att,}
+    \AttributeTok{data =}\NormalTok{ dem,}
+    \AttributeTok{covariates =} \FunctionTok{c}\NormalTok{(}\StringTok{"tradewb"}\NormalTok{, }\StringTok{"y"}\NormalTok{),}
+    \AttributeTok{plot =} \ConstantTok{FALSE}
+\NormalTok{)}
+\CommentTok{\#\textgreater{}         tradewb          y}
+\CommentTok{\#\textgreater{} t\_4  0.04558637 0.09701606}
+\CommentTok{\#\textgreater{} t\_3 {-}0.03312750 0.10844046}
+\CommentTok{\#\textgreater{} t\_2 {-}0.01396793 0.08890753}
+\CommentTok{\#\textgreater{} t\_1  0.10474894 0.06618865}
+
+
+\FunctionTok{get\_covariate\_balance}\NormalTok{(}
+\NormalTok{    PM.results.listwise}\SpecialCharTok{$}\NormalTok{att,}
+    \AttributeTok{data =}\NormalTok{ dem,}
+    \AttributeTok{covariates =} \FunctionTok{c}\NormalTok{(}\StringTok{"tradewb"}\NormalTok{, }\StringTok{"y"}\NormalTok{),}
+    \AttributeTok{plot =} \ConstantTok{FALSE}
+\NormalTok{)}
+\CommentTok{\#\textgreater{}         tradewb          y}
+\CommentTok{\#\textgreater{} t\_4  0.05634922 0.05223623}
+\CommentTok{\#\textgreater{} t\_3 {-}0.01104797 0.05217896}
+\CommentTok{\#\textgreater{} t\_2  0.01411473 0.03094133}
+\CommentTok{\#\textgreater{} t\_1  0.06850180 0.02092209}
+
+\FunctionTok{get\_covariate\_balance}\NormalTok{(}
+\NormalTok{    PM.results.ps.weight}\SpecialCharTok{$}\NormalTok{att,}
+    \AttributeTok{data =}\NormalTok{ dem,}
+    \AttributeTok{covariates =} \FunctionTok{c}\NormalTok{(}\StringTok{"tradewb"}\NormalTok{, }\StringTok{"y"}\NormalTok{),}
+    \AttributeTok{plot =} \ConstantTok{FALSE}
+\NormalTok{)}
+\CommentTok{\#\textgreater{}         tradewb          y}
+\CommentTok{\#\textgreater{} t\_4 0.014362590 0.04035905}
+\CommentTok{\#\textgreater{} t\_3 0.005529734 0.04188731}
+\CommentTok{\#\textgreater{} t\_2 0.009410044 0.04195008}
+\CommentTok{\#\textgreater{} t\_1 0.027907540 0.03975173}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{get\_covariate\_balance Function Options:}
+
+\begin{itemize}
+\item
+  Allows for the generation of plots displaying covariate balance using \textbf{\texttt{plot\ =\ TRUE}}.
+\item
+  Plots can be customized using arguments typically used with the base R \textbf{\texttt{plot}} method.
+\item
+  Option to set \textbf{\texttt{use.equal.weights\ =\ TRUE}} for:
+
+  \begin{itemize}
+  \item
+    Obtaining the balance of unrefined sets.
+  \item
+    Facilitating understanding of the refinement's impact.
+  \end{itemize}
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Use equal weights}
+\FunctionTok{get\_covariate\_balance}\NormalTok{(}
+\NormalTok{    PM.results.ps.weight}\SpecialCharTok{$}\NormalTok{att,}
+    \AttributeTok{data =}\NormalTok{ dem,}
+    \AttributeTok{use.equal.weights =} \ConstantTok{TRUE}\NormalTok{,}
+    \AttributeTok{covariates =} \FunctionTok{c}\NormalTok{(}\StringTok{"tradewb"}\NormalTok{, }\StringTok{"y"}\NormalTok{),}
+    \AttributeTok{plot =} \ConstantTok{TRUE}\NormalTok{,}
+    \CommentTok{\# visualize by setting plot to TRUE}
+    \AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{)}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{25-dif-in-dif_files/figure-latex/unnamed-chunk-21-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\CommentTok{\# Compare covariate balance to refined sets}
+\CommentTok{\# See large improvement in balance}
+\FunctionTok{get\_covariate\_balance}\NormalTok{(}
+\NormalTok{    PM.results.ps.weight}\SpecialCharTok{$}\NormalTok{att,}
+    \AttributeTok{data =}\NormalTok{ dem,}
+    \AttributeTok{covariates =} \FunctionTok{c}\NormalTok{(}\StringTok{"tradewb"}\NormalTok{, }\StringTok{"y"}\NormalTok{),}
+    \AttributeTok{plot =} \ConstantTok{TRUE}\NormalTok{,}
+    \CommentTok{\# visualize by setting plot to TRUE}
+    \AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{)}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{25-dif-in-dif_files/figure-latex/unnamed-chunk-21-2} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\FunctionTok{balance\_scatter}\NormalTok{(}
+    \AttributeTok{matched\_set\_list =} \FunctionTok{list}\NormalTok{(PM.results.maha}\SpecialCharTok{$}\NormalTok{att,}
+\NormalTok{                            PM.results.ps.weight}\SpecialCharTok{$}\NormalTok{att),}
+    \AttributeTok{data =}\NormalTok{ dem,}
+    \AttributeTok{covariates =} \FunctionTok{c}\NormalTok{(}\StringTok{"y"}\NormalTok{, }\StringTok{"tradewb"}\NormalTok{)}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{25-dif-in-dif_files/figure-latex/unnamed-chunk-21-3} \end{center}
+
 \hypertarget{chaisemartin-dhaultfoeuille}{%
 \subsubsection{Chaisemartin-d'Haultfoeuille}\label{chaisemartin-dhaultfoeuille}}
 
@@ -40130,7 +41131,7 @@ Debate:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{25-dif-in-dif_files/figure-latex/unnamed-chunk-14-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{25-dif-in-dif_files/figure-latex/unnamed-chunk-23-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -40144,7 +41145,7 @@ Debate:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{25-dif-in-dif_files/figure-latex/unnamed-chunk-14-2} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{25-dif-in-dif_files/figure-latex/unnamed-chunk-23-2} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -40152,7 +41153,7 @@ Debate:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{25-dif-in-dif_files/figure-latex/unnamed-chunk-14-3} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{25-dif-in-dif_files/figure-latex/unnamed-chunk-23-3} \end{center}
 
 This is alarming since one of the periods is significantly different from 0, which means that our parallel trends assumption is not plausible.
 
