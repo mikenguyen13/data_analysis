@@ -351,7 +351,7 @@ Questions to keep in mind:
 2.  If the variable is continuous, is it normal and homoskadastic?
 3.  How big is your dataset?
 
-## Two Continuous
+### Two Continuous
 
 
 ```r
@@ -361,7 +361,7 @@ data = data.frame(A = sample(1:20, replace = TRUE, size = n),
                   B = sample(1:30, replace = TRUE, size = n))
 ```
 
-### Pearson Correlation
+#### Pearson Correlation
 
 -   Good with linear relationship
 
@@ -382,7 +382,7 @@ rcorr(data$A, data$B, type="pearson")
 #> y 0.0878
 ```
 
-### Spearman Correlation
+#### Spearman Correlation
 
 
 ```r
@@ -401,9 +401,9 @@ rcorr(data$A, data$B, type="spearman")
 #> y 0.08
 ```
 
-## Categorical and Continuous
+### Categorical and Continuous
 
-### Point-Biserial Correlation
+#### Point-Biserial Correlation
 
 Similar to the Pearson correlation coefficient, the point-biserial correlation coefficient is between -1 and 1 where:
 
@@ -441,13 +441,13 @@ ltm::biserial.cor(y,x, use = c("all.obs"), level = 2)
 #> [1] 0.2181635
 ```
 
-### Logistic Regression
+#### Logistic Regression
 
 See \@ref(logistic-regression)
 
-## Two Discrete
+### Two Discrete
 
-### Distance Metrics
+#### Distance Metrics
 
 Some consider distance is not a correlation metric because it isn't unit independent (i.e., if you scale the distance, the metrics will change), but it's still a useful proxy. Distance metrics are more likely to be used for similarity measure.
 
@@ -471,11 +471,11 @@ Some consider distance is not a correlation metric because it isn't unit indepen
 
 -   Mean-Absolute Error
 
-### Statistical Metrics
+#### Statistical Metrics
 
-#### Chi-squared test
+##### Chi-squared test
 
-##### Phi coefficient
+###### Phi coefficient
 
 -   2 binary
 
@@ -490,7 +490,7 @@ psych::phi(dt)
 #> [1] -0.18
 ```
 
-##### Cramer's V {#cramers-v}
+###### Cramer's V {#cramers-v}
 
 -   between nominal categorical variables (no natural order)
 
@@ -538,7 +538,7 @@ DescTools::CramerV(data, conf.level = 0.95,method = "ncchisqadj")
 #> 0.3472325 0.3929964 0.4033053
 ```
 
-##### Tschuprow's T {#tschuprows-t}
+###### Tschuprow's T {#tschuprows-t}
 
 -   2 nominal variables
 
@@ -548,11 +548,11 @@ DescTools::TschuprowT(data)
 #> [1] 0.1100808
 ```
 
-### Ordinal Association (Rank correlation)
+#### Ordinal Association (Rank correlation)
 
 -   Good with non-linear relationship
 
-#### Ordinal and Nominal
+##### Ordinal and Nominal
 
 
 ```r
@@ -571,7 +571,7 @@ dt
 #>   4  6  4 10
 ```
 
-##### Freeman's Theta {#freemans-theta}
+###### Freeman's Theta {#freemans-theta}
 
 -   Ordinal and nominal
 
@@ -582,7 +582,7 @@ rcompanion::freemanTheta(dt, group = "column")
 # because column is the grouping variable (i.e., nominal)
 ```
 
-##### Epsilon-squared
+###### Epsilon-squared
 
 -   Ordinal and nominal
 
@@ -593,7 +593,7 @@ rcompanion::epsilonSquared(dt,group = "column" )
 # because column is the grouping variable (i.e., nominal)
 ```
 
-#### Two Ordinal
+##### Two Ordinal
 
 
 ```r
@@ -612,7 +612,7 @@ dt
 #>   4  6  4 10
 ```
 
-##### Goodman Kruskal's Gamma {#goodman-kruskals-gamma}
+###### Goodman Kruskal's Gamma {#goodman-kruskals-gamma}
 
 -   2 ordinal variables
 
@@ -623,7 +623,7 @@ DescTools::GoodmanKruskalGamma(dt, conf.level = 0.95)
 #>  0.006781013 -0.229032069  0.242594095
 ```
 
-##### Somers' D {#somers-d}
+###### Somers' D {#somers-d}
 
 -   or Somers' Delta
 
@@ -636,7 +636,7 @@ DescTools::SomersDelta(dt, conf.level = 0.95)
 #>  0.005115859 -0.172800185  0.183031903
 ```
 
-##### Kendall's Tau-b {#kendalls-tau-b}
+###### Kendall's Tau-b {#kendalls-tau-b}
 
 -   2 ordinal variables
 
@@ -647,7 +647,7 @@ DescTools::KendallTauB(dt, conf.level = 0.95)
 #>  0.004839732 -0.163472443  0.173151906
 ```
 
-##### Yule's Q and Y {#yules-q-and-y}
+###### Yule's Q and Y {#yules-q-and-y}
 
 -   2 ordinal variables
 
@@ -692,7 +692,7 @@ DescTools::YuleQ(dt)
 #> [1] -0.07778669
 ```
 
-##### Tetrachoric Correlation
+###### Tetrachoric Correlation
 
 -   is a special case of [Polychoric Correlation] when both variables are binary
 
@@ -735,7 +735,7 @@ tetrachoric(data)
 #> -0.15  0.13
 ```
 
-##### Polychoric Correlation
+###### Polychoric Correlation
 
 -   between ordinal categorical variables (natural order).
 -   Assumption: Ordinal variable is a discrete representation of a latent normally distributed continuous variable. (Income = low, normal, high).
@@ -764,7 +764,7 @@ polychor(data$A, data$B)
 #> [1] 0.01607982
 ```
 
-### Summary
+## Summary
 
 
 ```r

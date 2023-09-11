@@ -217,6 +217,66 @@ Notes:
 
 ### Examples
 
+#### Example by @doleac2020unintended
+
+-   The purpose of banning a checking box for ex-criminal was banned because we thought that it gives more access to felons
+
+-   Even if we ban the box, employers wouldn't just change their behaviors. But then the unintended consequence is that employers statistically discriminate based on race
+
+3 types of ban the box
+
+1.  Public employer only
+2.  Private employer with government contract
+3.  All employers
+
+Main identification strategy
+
+-   If any county in the Metropolitan Statistical Area (MSA) adopts ban the box, it means the whole MSA is treated. Or if the state adopts "ban the ban," every county is treated
+
+Under [Simple Dif-n-dif]
+
+$$ Y_{it} = \beta_0 + \beta_1 Post_t + \beta_2 treat_i + \beta_2 (Post_t \times Treat_i) + \epsilon_{it} $$
+
+But if there is no common post time, then we should use [Staggered Dif-n-dif]
+
+$$ \begin{aligned} E_{imrt} &= \alpha + \beta_1 BTB_{imt} W_{imt} + \beta_2 BTB_{mt} + \beta_3 BTB_{mt} H_{imt}\\  &+ \delta_m + D_{imt} \beta_5 + \lambda_{rt} + \delta_m\times f(t) \beta_7 + e_{imrt} \end{aligned} $$
+
+where
+
+-   $i$ = person; $m$ = MSA; $r$ = region (US regions e.g., Midwest) ; $r$ = region; $t$ = year
+
+-   $W$ = White; $B$ = Black; $H$ = Hispanic
+
+-   $\beta_1 BTB_{imt} W_{imt} + \beta_2 BTB_{mt} + \beta_3 BTB_{mt} H_{imt}$ are the 3 dif-n-dif variables ($BTB$ = "ban the box")
+
+-   $\delta_m$ = dummy for MSI
+
+-   $D_{imt}$ = control for people
+
+-   $\lambda_{rt}$ = region by time fixed effect
+
+-   $\delta_m \times f(t)$ = linear time trend within MSA (but we should not need this if we have good pre-trend)
+
+If we put $\lambda_r - \lambda_t$ (separately) we will more broad fixed effect, while $\lambda_{rt}$ will give us deeper and narrower fixed effect.
+
+Before running this model, we have to drop all other races. And $\beta_1, \beta_2, \beta_3$ are not collinear because there are all interaction terms with $BTB_{mt}$
+
+If we just want to estimate the model for black men, we will modify it to be
+
+$$ E_{imrt} = \alpha + BTB_{mt} \beta_1 + \delta_m + D_{imt} \beta_5 + \lambda_{rt} + (\delta_m \times f(t)) \beta_7 + e_{imrt} $$
+
+$$ \begin{aligned} E_{imrt} &= \alpha + BTB_{m (t - 3t)} \theta_1 + BTB_{m(t-2)} \theta_2 + BTB_{mt} \theta_4 \\ &+ BTB_{m(t+1)}\theta_5 + BTB_{m(t+2)}\theta_6 + BTB_{m(t+3t)}\theta_7 \\ &+ [\delta_m + D_{imt}\beta_5 + \lambda_r + (\delta_m \times (f(t))\beta_7 + e_{imrt}] \end{aligned} $$
+
+We have to leave $BTB_{m(t-1)}\theta_3$ out for the category would not be perfect collinearity
+
+So the year before BTB ($\theta_1, \theta_2, \theta_3$) should be similar to each other (i.e., same pre-trend). Remember, we only run for places with BTB.
+
+If $\theta_2$ is statistically different from $\theta_3$ (baseline), then there could be a problem, but it could also make sense if we have pre-trend announcement.
+
+Example by [Philipp Leppert](https://rpubs.com/phle/r_tutorial_difference_in_differences) replicating [Card and Krueger (1994)](https://davidcard.berkeley.edu/data_sets.html)
+
+Example by [Anthony Schmidt](https://bookdown.org/aschmi11/causal_inf/difference-in-differences.html)
+
 #### Example from [Princeton](https://www.princeton.edu/~otorres/DID101R.pdf)
 
 
@@ -491,7 +551,7 @@ When applying TWFE to multiple groups and multiple periods, the supposedly causa
 
 The canonical/standard TWFE only works when
 
--   Effects are homogeneous across units and across time periods (i.e., no dynamic changes in the effects of treatment). See [@goodman2021difference; @de2020two; @sun2021estimating; @borusyak2021revisiting] for details. Relatedly, it relies on the assumption of **linear additive effects** [@imai2021use]
+-   Effects are homogeneous across units and across time periods (i.e., no dynamic changes in the effects of treatment). See [@goodman2021difference; @de2020two; @sun2021estimating; @borusyak2021revisiting] for details. Similarly, it relies on the assumption of **linear additive effects** [@imai2021use]
 
     -   Have to argue why treatment heterogeneity is not a problem (e.g., plot treatment timing and decompose treatment coefficient using [Goodman-Bacon Decomposition]) know the percentage of observation are never treated (because as the never-treated group increases, the bias of TWFE decreases, with 80% sample to be never-treated, bias is negligible). The problem is worsen when you have long-run effects.
 
@@ -963,13 +1023,13 @@ where
 
 Steps
 
-1.  Choose [Event Window]
-2.  Enumerate [Sub-experiments]
-3.  Define [Inclusion Criteria]
-4.  [Stack Data]
-5.  Specify [Estimating Equation]
+1.  Choose Event Window
+2.  Enumerate Sub-experiments
+3.  Define Inclusion Criteria
+4.  Stack Data
+5.  Specify Estimating Equation
 
-##### Event Window
+**Event Window**
 
 Let
 
@@ -979,7 +1039,7 @@ Let
 
 By setting a common event window for the analysis, we essentially exclude all those events that do not meet this criteria.
 
-##### Sub-experiments
+**Sub-experiments**
 
 Let $T_1$ be the earliest period in the dataset
 
@@ -1001,7 +1061,7 @@ Let $d = 1, \dots, D$ be the index column of the sub-experiments in $\Omega_A$
 
 and $\omega_d$ be the event date of the d-th sub-experiment (e.g., $\omega_1$ = adoption date of the 1st experiment)
 
-##### Inclusion Criteria
+**Inclusion Criteria**
 
 1.  Valid treated Units
     -   Within sub-experiment $d$, all treated units have the same adoption date
@@ -1153,9 +1213,9 @@ ggplot(compare_df_longer) +
 
 <img src="25-dif-in-dif_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
 
-##### Stack Data
+**Stack Data**
 
-##### Estimating Equation
+Estimating Equation
 
 $$
 Y_{itd} = \beta_0 + \beta_1 + T_{id} + \beta_2 + P_{td} + \beta_3 (T_{id} \times P_{td}) + \epsilon_{itd}
@@ -1175,9 +1235,9 @@ $$
 
 $\beta_3$ averages all the time-varying effects into a single number (can't see the time-varying effects)
 
-##### Stacked Event Study
+**Stacked Event Study**
 
-Let $YSE_{td} = t - \omega_d$ be the "time since event" variable in sub-experiment d
+Let $YSE_{td} = t - \omega_d$ be the "time since event" variable in sub-experiment $d$
 
 Then, $YSE_{td} = -\kappa_a, \dots, 0, \dots, \kappa_b$ in every sub-experiment
 
@@ -1189,92 +1249,15 @@ $$
 
 -   Different set of event study coefficients in each sub-experiment
 
--   
-
 $$
 Y_{itd} = \sum_{j = -\kappa_a}^{\kappa_b} \beta_j \times 1(TSE_{td} = j) + \sum_{m = -\kappa_a}^{\kappa_b} \delta_j (T_{id} \times 1 (TSE_{td} = j)) + \theta_{id} + \epsilon_{itd}
 $$
 
-##### Clustering
+**Clustering**
 
 -   Clustered at the unit x sub-experiment level [@cengiz2019effect]
 
 -   Clustered at the unit level [@deshpande2019screened]
-
-#### Example by @doleac2020unintended
-
--   The purpose of banning a checking box for ex-criminal was banned because we thought that it gives more access to felons
-
--   Even if we ban the box, employers wouldn't just change their behaviors. But then the unintended consequence is that employers statistically discriminate based on race
-
-3 types of ban the box
-
-1.  Public employer only
-2.  Private employer with government contract
-3.  All employers
-
-Main identification strategy
-
--   If any county in the Metropolitan Statistical Area (MSA) adopts ban the box, it means the whole MSA is treated. Or if the state adopts "ban the ban," every county is treated
-
-Under [Simple Dif-n-dif]
-
-$$
-Y_{it} = \beta_0 + \beta_1 Post_t + \beta_2 treat_i + \beta_2 (Post_t \times Treat_i) + \epsilon_{it}
-$$
-
-But if there is no common post time, then we should use [Staggered Dif-n-dif]
-
-$$
-\begin{aligned}
-E_{imrt} &= \alpha + \beta_1 BTB_{imt} W_{imt} + \beta_2 BTB_{mt} + \beta_3 BTB_{mt} H_{imt}\\ 
-&+ \delta_m + D_{imt} \beta_5 + \lambda_{rt} + \delta_m\times f(t) \beta_7 + e_{imrt}
-\end{aligned}
-$$
-
-where
-
--   $i$ = person; $m$ = MSA; $r$ = region (US regions e.g., Midwest) ; $r$ = region; $t$ = year
-
--   $W$ = White; $B$ = Black; $H$ = Hispanic
-
--   $\beta_1 BTB_{imt} W_{imt} + \beta_2 BTB_{mt} + \beta_3 BTB_{mt} H_{imt}$ are the 3 dif-n-dif variables ($BTB$ = "ban the box")
-
--   $\delta_m$ = dummy for MSI
-
--   $D_{imt}$ = control for people
-
--   $\lambda_{rt}$ = region by time fixed effect
-
--   $\delta_m \times f(t)$ = linear time trend within MSA (but we should not need this if we have good pre-trend)
-
-If we put $\lambda_r - \lambda_t$ (separately) we will more broad fixed effect, while $\lambda_{rt}$ will give us deeper and narrower fixed effect.
-
-Before running this model, we have to drop all other races. And $\beta_1, \beta_2, \beta_3$ are not collinear because there are all interaction terms with $BTB_{mt}$
-
-If we just want to estimate the model for black men, we will modify it to be
-
-$$
-E_{imrt} = \alpha + BTB_{mt} \beta_1 + \delta_m + D_{imt} \beta_5 + \lambda_{rt} + (\delta_m \times f(t)) \beta_7 + e_{imrt}
-$$
-
-$$
-\begin{aligned}
-E_{imrt} &= \alpha + BTB_{m (t - 3t)} \theta_1 + BTB_{m(t-2)} \theta_2 + BTB_{mt} \theta_4 \\
-&+ BTB_{m(t+1)}\theta_5 + BTB_{m(t+2)}\theta_6 + BTB_{m(t+3t)}\theta_7 \\
-&+ [\delta_m + D_{imt}\beta_5 + \lambda_r + (\delta_m \times (f(t))\beta_7 + e_{imrt}]
-\end{aligned}
-$$
-
-We have to leave $BTB_{m(t-1)}\theta_3$ out for the category would not be perfect collinearity
-
-So the year before BTB ($\theta_1, \theta_2, \theta_3$) should be similar to each other (i.e., same pre-trend). Remember, we only run for places with BTB.
-
-If $\theta_2$ is statistically different from $\theta_3$ (baseline), then there could be a problem, but it could also make sense if we have pre-trend announcement.
-
-Example by [Philipp Leppert](https://rpubs.com/phle/r_tutorial_difference_in_differences) replicating [Card and Krueger (1994)](https://davidcard.berkeley.edu/data_sets.html)
-
-Example by [Anthony Schmidt](https://bookdown.org/aschmi11/causal_inf/difference-in-differences.html)
 
 #### Goodman-Bacon Decomposition
 
@@ -1622,8 +1605,7 @@ Choose $L,F$ based on specific needs.
 
     -   This helps evaluate the validity of the parallel trend assumption underlying the proposed DiD estimator.
 
-**\
-Relations with Linear Fixed Effects Regression Estimators**:
+**Relations with Linear Fixed Effects Regression Estimators**:
 
 -   The standard DiD estimator is equivalent to the linear two-way fixed effects regression estimator when:
 
@@ -1791,7 +1773,7 @@ This set is more limited than the first one, but we can still see that we have e
 
         -   `none`
 
-    -   Methods with "match" in the name and mahalanobis will assign equal weights to similar control units.
+    -   Methods with "match" in the name and Mahalanobis will assign equal weights to similar control units.
 
     -   "Weighting" methods give higher weights to control units more similar to treated units.
 
@@ -1803,13 +1785,13 @@ This set is more limited than the first one, but we can still see that we have e
 
     -   "Lagged" versions of variables can be included using the format: **`I(lag(name.of.var, 0:n))`**.
 
--   **Understanding PanelMatch and matched.set objects**
+-   **Understanding `PanelMatch` and `matched.set` objects**
 
-    -   The **PanelMatch function** returns a **PanelMatch object**.
+    -   The **`PanelMatch` function** returns a **`PanelMatch` object**.
 
-    -   The most crucial element within the PanelMatch object is the **matched.set object**.
+    -   The most crucial element within the `PanelMatch` object is the **matched.set object**.
 
-    -   Within the PanelMatch object, the matched.set object will have names like att, art, or atc.
+    -   Within the `PanelMatch` object, the matched.set object will have names like att, art, or atc.
 
     -   If **`qoi = ate`**, there will be two matched.set objects: att and atc.
 
@@ -1921,7 +1903,7 @@ plot(msets.none)
 
     -   Use substantive knowledge for experimentation and evaluation.
 
-    -   Consider the following when configuring PanelMatch:
+    -   Consider the following when configuring `PanelMatch`:
 
         1.  The number of matched sets.
 
@@ -2134,6 +2116,687 @@ balance_scatter(
 
 <img src="25-dif-in-dif_files/figure-html/unnamed-chunk-21-3.png" width="90%" style="display: block; margin: auto;" />
 
+**`PanelEstimate`**
+
+-   **Standard Error Calculation Methods**
+
+    -   There are different methods available:
+
+        -   **Bootstrap** (default method with 1000 iterations).
+
+        -   **Conditional**: Assumes independence across units, but not time.
+
+        -   **Unconditional**: Doesn't make assumptions of independence across units or time.
+
+    -   For **`qoi`** values set to `att`, `art`, or `atc` [@imai2021matching]:
+
+        -   You can use analytical methods for calculating standard errors, which include both "conditional" and "unconditional" methods.
+
+
+```r
+PE.results <- PanelEstimate(
+    sets = PM.results.ps.weight,
+    data = dem,
+    se.method = "bootstrap",
+    number.iterations = 1000,
+    confidence.level = .95
+)
+
+# point estimates
+PE.results[["estimates"]]
+#>       t+0       t+1       t+2       t+3       t+4 
+#> 0.2609565 0.9630847 1.2851017 1.7370930 1.4871846
+
+# standard errors
+PE.results[["standard.error"]]
+#>       t+0       t+1       t+2       t+3       t+4 
+#> 0.6166251 1.0504656 1.4373638 1.8325026 2.2398552
+
+
+# use conditional method
+PE.results <- PanelEstimate(
+    sets = PM.results.ps.weight,
+    data = dem,
+    se.method = "conditional",
+    confidence.level = .95
+)
+
+# point estimates
+PE.results[["estimates"]]
+#>       t+0       t+1       t+2       t+3       t+4 
+#> 0.2609565 0.9630847 1.2851017 1.7370930 1.4871846
+
+# standard errors
+PE.results[["standard.error"]]
+#>       t+0       t+1       t+2       t+3       t+4 
+#> 0.4844805 0.8170604 1.1171942 1.4116879 1.7172143
+
+summary(PE.results)
+#> Weighted Difference-in-Differences with Propensity Score
+#> Matches created with 4 lags
+#> 
+#> Standard errors computed with conditional  method
+#> 
+#> Estimate of Average Treatment Effect on the Treated (ATT) by Period:
+#> $summary
+#>      estimate std.error       2.5%    97.5%
+#> t+0 0.2609565 0.4844805 -0.6886078 1.210521
+#> t+1 0.9630847 0.8170604 -0.6383243 2.564494
+#> t+2 1.2851017 1.1171942 -0.9045586 3.474762
+#> t+3 1.7370930 1.4116879 -1.0297644 4.503950
+#> t+4 1.4871846 1.7172143 -1.8784937 4.852863
+#> 
+#> $lag
+#> [1] 4
+#> 
+#> $qoi
+#> [1] "att"
+
+plot(PE.results)
+```
+
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
+
+**Moderating Variables**
+
+
+```r
+# moderating variable
+dem$moderator <- 0
+dem$moderator <- ifelse(dem$wbcode2 > 100, 1, 2)
+
+PM.results <-
+    PanelMatch(
+        lag = 4,
+        time.id = "year",
+        unit.id = "wbcode2",
+        treatment = "dem",
+        refinement.method = "mahalanobis",
+        data = dem,
+        match.missing = TRUE,
+        covs.formula = ~ I(lag(tradewb, 1:4)) + I(lag(y, 1:4)),
+        # lags
+        size.match = 5,
+        qoi = "att",
+        outcome.var = "y",
+        lead = 0:4,
+        forbid.treatment.reversal = FALSE,
+        use.diagonal.variance.matrix = TRUE
+    )
+PE.results <-
+    PanelEstimate(sets = PM.results,
+                  data = dem,
+                  moderator = "moderator")
+
+# Each element in the list corresponds to a level in the moderator
+plot(PE.results[[1]])
+```
+
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+
+plot(PE.results[[2]])
+```
+
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-23-2.png" width="90%" style="display: block; margin: auto;" />
+
+To write up for journal submission, you can follow the following report:
+
+In this study, closely aligned with the research by [@acemoglu2019democracy], two key effects of democracy on economic growth are estimated: the impact of democratization and that of authoritarian reversal. The treatment variable, $X_{it}$, is defined to be one if country $i$ is democratic in year $t$, and zero otherwise.
+
+The Average Treatment Effect for the Treated (ATT) under democratization is formulated as follows:
+
+$$
+\begin{aligned}
+\delta(F, L) &= \mathbb{E} \left\{ Y_{i, t + F} (X_{it} = 1, X_{i, t - 1} = 0, \{X_{i,t-l}\}_{l=2}^L) \right. \\
+&\left. - Y_{i, t + F} (X_{it} = 0, X_{i, t - 1} = 0, \{X_{i,t-l}\}_{l=2}^L) | X_{it} = 1, X_{i, t - 1} = 0 \right\}
+\end{aligned}
+$$
+
+In this framework, the treated observations are countries that transition from an authoritarian regime $X_{it-1} = 0$ to a democratic one $X_{it} = 1$. The variable $F$ represents the number of leads, denoting the time periods following the treatment, and $L$ signifies the number of lags, indicating the time periods preceding the treatment.
+
+The ATT under authoritarian reversal is given by:
+
+$$
+\begin{aligned}
+&\mathbb{E} \left[ Y_{i, t + F} (X_{it} = 0, X_{i, t - 1} = 1, \{ X_{i, t - l}\}_{l=2}^L ) \right. \\
+&\left. - Y_{i, t + F} (X_{it} = 1, X_{it-1} = 1, \{X_{i, t - l} \}_{l=2}^L ) | X_{it} = 0, X_{i, t - 1} = 1 \right]
+\end{aligned}
+$$
+
+The ATT is calculated conditioning on 4 years of lags ($L = 4$) and up to 4 years following the policy change $F = 1, 2, 3, 4$. Matched sets for each treated observation are constructed based on its treatment history, with the number of matched control units generally decreasing when considering a 4-year treatment history as compared to a 1-year history.
+
+To enhance the quality of matched sets, methods such as Mahalanobis distance matching, propensity score matching, and propensity score weighting are utilized. These approaches enable us to evaluate the effectiveness of each refinement method. In the process of matching, we employ both up-to-five and up-to-ten matching to investigate how sensitive our empirical results are to the maximum number of allowed matches. For more information on the refinement process, please see the Web Appendix
+
+> The Mahalanobis distance is expressed through a specific formula. We aim to pair each treated unit with a maximum of $J$ control units, permitting replacement, denoted as $| \mathcal{M}_{it} \le J|$. The average Mahalanobis distance between a treated and each control unit over time is computed as:
+>
+> $$ S_{it} (i') = \frac{1}{L} \sum_{l = 1}^L \sqrt{(\mathbf{V}_{i, t - l} - \mathbf{V}_{i', t -l})^T \mathbf{\Sigma}_{i, t - l}^{-1} (\mathbf{V}_{i, t - l} - \mathbf{V}_{i', t -l})} $$
+>
+> For a matched control unit $i' \in \mathcal{M}_{it}$, $\mathbf{V}_{it'}$ represents the time-varying covariates to adjust for, and $\mathbf{\Sigma}_{it'}$ is the sample covariance matrix for $\mathbf{V}_{it'}$. Essentially, we calculate a standardized distance using time-varying covariates and average this across different time intervals.
+>
+> In the context of propensity score matching, we employ a logistic regression model with balanced covariates to derive the propensity score. Defined as the conditional likelihood of treatment given pre-treatment covariates [@rosenbaum1983central], the propensity score is estimated by first creating a data subset comprised of all treated and their matched control units from the same year. This logistic regression model is then fitted as follows:
+>
+> $$ \begin{aligned} & e_{it} (\{\mathbf{U}_{i, t - l} \}^L_{l = 1}) \\ &= Pr(X_{it} = 1| \mathbf{U}_{i, t -1}, \ldots, \mathbf{U}_{i, t - L}) \\ &= \frac{1}{1 = \exp(- \sum_{l = 1}^L \beta_l^T \mathbf{U}_{i, t - l})} \end{aligned} $$
+>
+> Given this model, the estimated propensity score for all treated and matched control units is then computed. This enables the adjustment for lagged covariates via matching on the calculated propensity score, resulting in the following distance measure:
+>
+> $$ S_{it} (i') = | \text{logit} \{ \hat{e}_{it} (\{ \mathbf{U}_{i, t - l}\}^L_{l = 1})\} - \text{logit} \{ \hat{e}_{i't}( \{ \mathbf{U}_{i', t - l} \}^L_{l = 1})\} | $$
+>
+> Here, $\hat{e}_{i't} (\{ \mathbf{U}_{i, t - l}\}^L_{l = 1})$ represents the estimated propensity score for each matched control unit $i' \in \mathcal{M}_{it}$.
+>
+> Once the distance measure $S_{it} (i')$ has been determined for all control units in the original matched set, we fine-tune this set by selecting up to $J$ closest control units, which meet a researcher-defined caliper constraint $C$. All other control units receive zero weight. This results in a refined matched set for each treated unit $(i, t)$:
+>
+> $$ \mathcal{M}_{it}^* = \{i' : i' \in \mathcal{M}_{it}, S_{it} (i') < C, S_{it} \le S_{it}^{(J)}\} $$
+>
+> $S_{it}^{(J)}$ is the $J$th smallest distance among the control units in the original set $\mathcal{M}_{it}$.
+>
+> For further refinement using weighting, a weight is assigned to each control unit $i'$ in a matched set corresponding to a treated unit $(i, t)$, with greater weight accorded to more similar units. We utilize inverse propensity score weighting, based on the propensity score model mentioned earlier:
+>
+> $$ w_{it}^{i'} \propto \frac{\hat{e}_{i't} (\{ \mathbf{U}_{i, t-l} \}^L_{l = 1} )}{1 - \hat{e}_{i't} (\{ \mathbf{U}_{i, t-l} \}^L_{l = 1} )} $$
+>
+> In this model, $\sum_{i' \in \mathcal{M}_{it}} w_{it}^{i'} = 1$ and $w_{it}^{i'} = 0$ for $i' \notin \mathcal{M}_{it}$. The model is fitted to the complete sample of treated and matched control units.
+
+> Checking Covariate Balance 
+> A distinct advantage of the proposed methodology over regression methods is the ability it offers researchers to inspect the covariate balance between treated and matched control observations. This facilitates the evaluation of whether treated and matched control observations are comparable regarding observed confounders. To investigate the mean difference of each covariate (e.g., $V_{it'j}$, representing the $j$-th variable in $\mathbf{V}_{it'}$) between the treated observation and its matched control observation at each pre-treatment time period (i.e., $t' < t$), we further standardize this difference. For any given pretreatment time period, we adjust by the standard deviation of each covariate across all treated observations in the dataset. Thus, the mean difference is quantified in terms of standard deviation units. Formally, for each treated observation $(i,t)$ where $D_{it} = 1$, we define the covariate balance for variable $j$ at the pretreatment time period $t - l$ as: 
+> \begin{equation}
+> B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{i', t-l,j}}{\sqrt{\frac{1}{N_1 - 1} \sum_{i'=1}^N \sum_{t' = L+1}^{T-F}D_{i't'}(V_{i', t'-l, j} - \bar{V}_{t' - l, j})^2}}
+> \label{eq:covbalance}
+> \end{equation} 
+> where $N_1 = \sum_{i'= 1}^N \sum_{t' = L+1}^{T-F} D_{i't'}$ denotes the total number of treated observations and $\bar{V}_{t-l,j} = \sum_{i=1}^N D_{i,t-l,j}/N$. We then aggregate this covariate balance measure across all treated observations for each covariate and pre-treatment time period: 
+> \begin{equation}
+> \bar{B}(j, l) = \frac{1}{N_1} \sum_{i=1}^N \sum_{t = L+ 1}^{T-F}D_{it} B_{it}(j,l)
+> \label{eq:aggbalance}
+> \end{equation} 
+> Lastly, we evaluate the balance of lagged outcome variables over several pre-treatment periods and that of time-varying covariates. This examination aids in assessing the validity of the parallel trend assumption integral to the DiD estimator justification.
+
+In Figure \@ref(fig:balancescatter), we demonstrate the enhancement of covariate balance thank to the refinement of matched sets. Each scatter plot contrasts the absolute standardized mean difference, as detailed in Equation \@ref(eq:aggbalance), before (horizontal axis) and after (vertical axis) this refinement. Points below the 45-degree line indicate an improved standardized mean balance for certain time-varying covariates post-refinement. The majority of variables benefit from this refinement process. Notably, the propensity score weighting (bottom panel) shows the most significant improvement, whereas Mahalanobis matching (top panel) yields a more modest improvement.
+
+
+```r
+library(PanelMatch)
+library(causalverse)
+
+runPanelMatch <- function(method, lag, size.match=NULL, qoi="att") {
+    
+    # Default parameters for PanelMatch
+    common.args <- list(
+        lag = lag,
+        time.id = "year",
+        unit.id = "wbcode2",
+        treatment = "dem",
+        data = dem,
+        covs.formula = ~ I(lag(tradewb, 1:4)) + I(lag(y, 1:4)),
+        qoi = qoi,
+        outcome.var = "y",
+        lead = 0:4,
+        forbid.treatment.reversal = FALSE,
+        size.match = size.match  # setting size.match here for all methods
+    )
+    
+    if(method == "mahalanobis") {
+        common.args$refinement.method <- "mahalanobis"
+        common.args$match.missing <- TRUE
+        common.args$use.diagonal.variance.matrix <- TRUE
+    } else if(method == "ps.match") {
+        common.args$refinement.method <- "ps.match"
+        common.args$match.missing <- FALSE
+        common.args$listwise.delete <- TRUE
+    } else if(method == "ps.weight") {
+        common.args$refinement.method <- "ps.weight"
+        common.args$match.missing <- FALSE
+        common.args$listwise.delete <- TRUE
+    }
+    
+    return(do.call(PanelMatch, common.args))
+}
+
+methods <- c("mahalanobis", "ps.match", "ps.weight")
+lags <- c(1, 4)
+sizes <- c(5, 10)
+
+res_pm <- list()
+
+for(method in methods) {
+    for(lag in lags) {
+        for(size in sizes) {
+            name <- paste0(method, ".", lag, "lag.", size, "m")
+            res_pm[[name]] <- runPanelMatch(method, lag, size)
+        }
+    }
+}
+
+# Now, you can access res_pm using res_pm[["mahalanobis.1lag.5m"]] etc.
+
+# for treatment reversal
+res_pm_rev <- list()
+
+for(method in methods) {
+    for(lag in lags) {
+        for(size in sizes) {
+            name <- paste0(method, ".", lag, "lag.", size, "m")
+            res_pm_rev[[name]] <- runPanelMatch(method, lag, size, qoi = "art")
+        }
+    }
+}
+```
+
+
+```r
+library(gridExtra)
+
+# Updated plotting function
+create_balance_plot <- function(method, lag, sizes, res_pm, dem) {
+    matched_set_lists <- lapply(sizes, function(size) {
+        res_pm[[paste0(method, ".", lag, "lag.", size, "m")]]$att
+    })
+    
+    return(balance_scatter_custom(
+        matched_set_list = matched_set_lists,
+        legend.title = "Possible Matches",
+        set.names = as.character(sizes),
+        legend.position = c(0.2,0.8),
+        
+        # for compiled plot, you don't need x,y, or main labs
+        x.axis.label = "",
+        y.axis.label = "",
+        main = "",
+        data = dem,
+        dot.size = 5,
+        # show.legend = F,
+        them_use = causalverse::ama_theme(base_size = 32),
+        covariates = c("y", "tradewb")
+    ))
+}
+
+plots <- list()
+
+for (method in methods) {
+  for (lag in lags) {
+    plots[[paste0(method, ".", lag, "lag")]] <-
+      create_balance_plot(method, lag, sizes, res_pm, dem)
+  }
+}
+
+# # Arranging plots in a 3x2 grid
+# grid.arrange(plots[["mahalanobis.1lag"]],
+#              plots[["mahalanobis.4lag"]],
+#              plots[["ps.match.1lag"]],
+#              plots[["ps.match.4lag"]],
+#              plots[["ps.weight.1lag"]],
+#              plots[["ps.weight.4lag"]],
+#              ncol=2, nrow=3)
+
+
+# Standardized Mean Difference of Covariates
+library(gridExtra)
+library(grid)
+
+# Create column and row labels using textGrob
+col_labels <- c("1-year Lag", "4-year Lag")
+row_labels <- c("Maha Matching", "PS Matching", "PS Weigthing")
+
+major.axes.fontsize = 40
+minor.axes.fontsize = 30
+
+png(file.path(getwd(), "images", "did_balance_scatter.png"), width=1200, height=1000)
+
+# Create a list-of-lists, where each inner list represents a row
+grid_list <- list(
+    list(
+        nullGrob(),
+        textGrob(col_labels[1], gp = gpar(fontsize = minor.axes.fontsize)),
+        textGrob(col_labels[2], gp = gpar(fontsize = minor.axes.fontsize))
+    ),
+    
+    list(textGrob(
+        row_labels[1], gp = gpar(fontsize = minor.axes.fontsize), rot = 90
+    ), plots[["mahalanobis.1lag"]], plots[["mahalanobis.4lag"]]),
+    
+    list(textGrob(
+        row_labels[2], gp = gpar(fontsize = minor.axes.fontsize), rot = 90
+    ), plots[["ps.match.1lag"]], plots[["ps.match.4lag"]]),
+    
+    list(textGrob(
+        row_labels[3], gp = gpar(fontsize = minor.axes.fontsize), rot = 90
+    ), plots[["ps.weight.1lag"]], plots[["ps.weight.4lag"]])
+)
+
+# "Flatten" the list-of-lists into a single list of grobs
+grobs <- do.call(c, grid_list)
+
+grid.arrange(
+  grobs = grobs,
+  ncol = 3,
+  nrow = 4,
+  widths = c(0.15, 0.42, 0.42),
+  heights = c(0.15, 0.28, 0.28, 0.28)
+)
+
+grid.text(
+  "Before Refinement",
+  x = 0.5,
+  y = 0.03,
+  gp = gpar(fontsize = major.axes.fontsize)
+)
+grid.text(
+  "After Refinement",
+  x = 0.03,
+  y = 0.5,
+  rot = 90,
+  gp = gpar(fontsize = major.axes.fontsize)
+)
+dev.off()
+#> png 
+#>   2
+```
+
+
+```r
+library(knitr)
+include_graphics(file.path(getwd(), "images", "did_balance_scatter.png"))
+```
+
+<div class="figure" style="text-align: center">
+<img src="images/did_balance_scatter.png" alt="Variable Balance After Matched Set Refinement" width="100%" />
+<p class="caption">(\#fig:balancescatter)Variable Balance After Matched Set Refinement</p>
+</div>
+
+Note: Scatter plots display the standardized mean difference of each covariate $j$ and lag year $l$ as defined in Equation \@ref(eq:aggbalance) before (x-axis) and after (y-axis) matched set refinement. Each plot includes varying numbers of possible matches for each matching method. Rows represent different matching/weighting methods, while columns indicate adjustments for various lag lengths.
+
+
+
+```r
+# Step 1: Define configurations
+configurations <- list(
+    list(refinement.method = "none", qoi = "att"),
+    list(refinement.method = "none", qoi = "art"),
+    list(refinement.method = "mahalanobis", qoi = "att"),
+    list(refinement.method = "mahalanobis", qoi = "art"),
+    list(refinement.method = "ps.match", qoi = "att"),
+    list(refinement.method = "ps.match", qoi = "art"),
+    list(refinement.method = "ps.weight", qoi = "att"),
+    list(refinement.method = "ps.weight", qoi = "art")
+)
+
+# Step 2: Use lapply or loop to generate results
+results <- lapply(configurations, function(config) {
+    PanelMatch(
+        lag                       = 4,
+        time.id                   = "year",
+        unit.id                   = "wbcode2",
+        treatment                 = "dem",
+        data                      = dem,
+        match.missing             = FALSE,
+        listwise.delete           = TRUE,
+        size.match                = 5,
+        outcome.var               = "y",
+        lead                      = 0:4,
+        forbid.treatment.reversal = FALSE,
+        refinement.method         = config$refinement.method,
+        covs.formula              = ~ I(lag(tradewb, 1:4)) + I(lag(y, 1:4)),
+        qoi                       = config$qoi
+    )
+})
+
+
+# Step 3: Get covariate balance and plot
+plots <- mapply(function(result, config) {
+    df <- get_covariate_balance(
+        if(config$qoi == "att") result$att else result$art, 
+        data = dem, 
+        covariates = c("tradewb", "y"), 
+        plot = F
+    )
+    causalverse::plot_covariate_balance_pretrend(df, main = "")
+}, results, configurations, SIMPLIFY = FALSE)
+
+# Set names for plots
+names(plots) <- sapply(configurations, function(config) {
+    paste(config$qoi, config$refinement.method, sep = ".")
+})
+
+
+library(gridExtra)
+library(grid)
+
+# Column and row labels
+col_labels <-
+  c("None",
+    "Mahalanobis",
+    "Propensity Score Matching",
+    "Propensity Score Weighting")
+row_labels <- c("ATT", "ART")
+
+# Specify your desired fontsize for labels
+minor.axes.fontsize <- 16
+major.axes.fontsize <- 20
+
+# Create a list-of-lists, where each inner list represents a row
+grid_list <- list(
+  list(
+    nullGrob(),
+    textGrob(col_labels[1], gp = gpar(fontsize = minor.axes.fontsize)),
+    textGrob(col_labels[2], gp = gpar(fontsize = minor.axes.fontsize)),
+    textGrob(col_labels[3], gp = gpar(fontsize = minor.axes.fontsize)),
+    textGrob(col_labels[4], gp = gpar(fontsize = minor.axes.fontsize))
+  ),
+  
+  list(
+    textGrob(row_labels[1], gp = gpar(fontsize = minor.axes.fontsize), rot = 90),
+    plots$att.none,
+    plots$att.mahalanobis,
+    plots$att.ps.match,
+    plots$att.ps.weight
+  ),
+  
+  list(
+    textGrob(row_labels[2], gp = gpar(fontsize = minor.axes.fontsize), rot = 90),
+    plots$art.none,
+    plots$art.mahalanobis,
+    plots$art.ps.match,
+    plots$art.ps.weight
+  )
+)
+
+# "Flatten" the list-of-lists into a single list of grobs
+grobs <- do.call(c, grid_list)
+
+# Arrange your plots with text labels
+grid.arrange(
+  grobs   = grobs,
+  ncol    = 5,
+  nrow    = 3,
+  widths  = c(0.1, 0.225, 0.225, 0.225, 0.225),
+  heights = c(0.1, 0.45, 0.45)
+)
+
+# Add main x and y axis titles
+grid.text(
+  "Refinement Methods",
+  x  = 0.5,
+  y  = 0.01,
+  gp = gpar(fontsize = major.axes.fontsize)
+)
+grid.text(
+  "Quantities of Interest",
+  x   = 0.02,
+  y   = 0.5,
+  rot = 90,
+  gp  = gpar(fontsize = major.axes.fontsize)
+)
+```
+
+<div class="figure" style="text-align: center">
+<img src="25-dif-in-dif_files/figure-html/balancepretreat-1.png" alt="Variable Balance in Pre-Treatment Period" width="90%" />
+<p class="caption">(\#fig:balancepretreat)Variable Balance in Pre-Treatment Period</p>
+</div>
+
+Note: Each graph displays the standardized mean difference, as outlined in Equation \@ref(eq:aggbalance), plotted on the vertical axis across a pre-treatment duration of four years represented on the horizontal axis. The leftmost column illustrates the balance prior to refinement, while the subsequent three columns depict the covariate balance post the application of distinct refinement techniques. Each individual line signifies the balance of a specific variable during the pre-treatment phase.
+
+In Figure \@ref(fig:balancepretreat), we observe a marked improvement in covariate balance due to the implemented matching procedures during the pre-treatment period. Our analysis prioritizes methods that adjust for time-varying covariates over a span of four years preceding the treatment initiation. The two rows delineate the standardized mean balance for both treatment modalities, with individual lines representing the balance for each covariate.
+
+Across all scenarios, the refinement attributed to matched sets significantly enhances balance. Notably, using propensity score weighting considerably mitigates imbalances in confounders. While some degree of imbalance remains evident in the Mahalanobis distance and propensity score matching techniques, the standardized mean difference for the lagged outcome remains stable throughout the pre-treatment phase. This consistency lends credence to the validity of the proposed DiD estimator.
+
+**Estimation Results**
+
+We now detail the estimated ATTs derived from the matching techniques. Figure XXX offers visual representations of the impacts of treatment initiation (upper panel) and treatment reversal (lower panel) on the outcome variable for a duration of 5 years post-transition, specifically, (F = 0, 1, ..., 4). Across the five methods (columns), it becomes evident that the point estimates of effects associated with treatment initiation consistently approximate zero over the 5-year window. In contrast, the estimated outcomes of treatment reversal are notably negative and maintain statistical significance through all refinement techniques during the initial year of transition and the 1 to 4 years that follow, provided treatment reversal is permissible. These effects are notably pronounced, pointing to an estimated reduction of roughly XXX in the outcome variable.
+
+Collectively, our findings indicate that the transition into the treated state from its absence doesn't invariably lead to a heightened outcome. Instead, the transition from the treated state back to its absence exerts a considerable negative effect on the outcome variable in both the short and intermediate terms. Hence, the positive effect of the treatment (if we were to use traditional DiD) is actually driven by the negative effect of treatment reversal. 
+
+
+```r
+# Step 1: Apply PanelEstimate function
+
+# Initialize an empty list to store results
+res_est <- vector("list", length(res_pm))
+
+# Iterate over each element in res_pm
+for (i in 1:length(res_pm)) {
+  res_est[[i]] <- PanelEstimate(
+    res_pm[[i]],
+    data = dem,
+    se.method = "bootstrap",
+    number.iterations = 1000,
+    confidence.level = .95
+  )
+  # Transfer the name of the current element to the res_est list
+  names(res_est)[i] <- names(res_pm)[i]
+}
+
+# Step 2: Apply plot_PanelEstimate function
+
+# Initialize an empty list to store plot results
+res_est_plot <- vector("list", length(res_est))
+
+# Iterate over each element in res_est
+for (i in 1:length(res_est)) {
+    res_est_plot[[i]] <-
+        plot_PanelEstimate(res_est[[i]],
+                           main = "",
+                           theme_use = causalverse::ama_theme(base_size = 14))
+    # Transfer the name of the current element to the res_est_plot list
+    names(res_est_plot)[i] <- names(res_est)[i]
+}
+```
+
+
+
+```r
+# Step 1: Apply PanelEstimate function for res_pm_rev
+
+# Initialize an empty list to store results
+res_est_rev <- vector("list", length(res_pm_rev))
+
+# Iterate over each element in res_pm_rev
+for (i in 1:length(res_pm_rev)) {
+  res_est_rev[[i]] <- PanelEstimate(
+    res_pm_rev[[i]],
+    data = dem,
+    se.method = "bootstrap",
+    number.iterations = 1000,
+    confidence.level = .95
+  )
+  # Transfer the name of the current element to the res_est_rev list
+  names(res_est_rev)[i] <- names(res_pm_rev)[i]
+}
+
+# Step 2: Apply plot_PanelEstimate function for res_est_rev
+
+# Initialize an empty list to store plot results
+res_est_plot_rev <- vector("list", length(res_est_rev))
+
+# Iterate over each element in res_est_rev
+for (i in 1:length(res_est_rev)) {
+    res_est_plot_rev[[i]] <-
+        plot_PanelEstimate(res_est_rev[[i]],
+                           main = "",
+                           theme_use = causalverse::ama_theme(base_size = 14))
+  # Transfer the name of the current element to the res_est_plot_rev list
+  names(res_est_plot_rev)[i] <- names(res_est_rev)[i]
+}
+```
+
+
+
+```r
+library(gridExtra)
+library(grid)
+
+# Column and row labels
+col_labels <- c("Mahalanobis 5m", 
+                "Mahalanobis 10m", 
+                "PS Matching 5m", 
+                "PS Matching 10m", 
+                "PS Weighting 5m")
+
+row_labels <- c("ATT", "ART")
+
+# Specify your desired fontsize for labels
+minor.axes.fontsize <- 16
+major.axes.fontsize <- 20
+
+# Create a list-of-lists, where each inner list represents a row
+grid_list <- list(
+  list(
+    nullGrob(),
+    textGrob(col_labels[1], gp = gpar(fontsize = minor.axes.fontsize)),
+    textGrob(col_labels[2], gp = gpar(fontsize = minor.axes.fontsize)),
+    textGrob(col_labels[3], gp = gpar(fontsize = minor.axes.fontsize)),
+    textGrob(col_labels[4], gp = gpar(fontsize = minor.axes.fontsize)),
+    textGrob(col_labels[5], gp = gpar(fontsize = minor.axes.fontsize))
+  ),
+  
+  list(
+    textGrob(row_labels[1], gp = gpar(fontsize = minor.axes.fontsize), rot = 90),
+    res_est_plot$mahalanobis.1lag.5m,
+    res_est_plot$mahalanobis.1lag.10m,
+    res_est_plot$ps.match.1lag.5m,
+    res_est_plot$ps.match.1lag.10m,
+    res_est_plot$ps.weight.1lag.5m
+  ),
+  
+  list(
+    textGrob(row_labels[2], gp = gpar(fontsize = minor.axes.fontsize), rot = 90),
+    res_est_plot_rev$mahalanobis.1lag.5m,
+    res_est_plot_rev$mahalanobis.1lag.10m,
+    res_est_plot_rev$ps.match.1lag.5m,
+    res_est_plot_rev$ps.match.1lag.10m,
+    res_est_plot_rev$ps.weight.1lag.5m
+  )
+)
+
+# "Flatten" the list-of-lists into a single list of grobs
+grobs <- do.call(c, grid_list)
+
+# Arrange your plots with text labels
+grid.arrange(
+  grobs   = grobs,
+  ncol    = 6,
+  nrow    = 3,
+  widths  = c(0.1, 0.18, 0.18, 0.18, 0.18, 0.18),
+  heights = c(0.1, 0.45, 0.45)
+)
+
+# Add main x and y axis titles
+grid.text(
+  "Methods",
+  x  = 0.5,
+  y  = 0.02,
+  gp = gpar(fontsize = major.axes.fontsize)
+)
+grid.text(
+  "",
+  x   = 0.02,
+  y   = 0.5,
+  rot = 90,
+  gp  = gpar(fontsize = major.axes.fontsize)
+)
+```
+
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-28-1.png" width="90%" style="display: block; margin: auto;" />
+
+
 #### Chaisemartin-d'Haultfoeuille
 
 use `twowayfeweights` from [GitHub](https://github.com/shuo-zhang-ucsb/twowayfeweights) [@de2020two]
@@ -2310,6 +2973,22 @@ od <- causaldata::organ_donations %>%
     # Treatment variable
     mutate(California = State == 'California')
 
+# use my package
+causalverse::plot_par_trends(
+    data = od,
+    metrics_and_names = list("Rate" = "Rate"),
+    treatment_status_var = "California",
+    time_var = list(Quarter_Num = "Time"),
+    display_CI = F
+)
+#> [[1]]
+```
+
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-30-1.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+
+# do it manually
 # always good but plot the dependent out
 od |>
     # group by treatment status and time
@@ -2322,7 +3001,7 @@ od |>
     geom_line()
 ```
 
-<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-30-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -2334,13 +3013,13 @@ prior_trend <- feols(Rate ~ i(Quarter_Num, California) | State + Quarter,
 coefplot(prior_trend)
 ```
 
-<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-23-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-30-3.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 iplot(prior_trend)
 ```
 
-<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-23-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-30-4.png" width="90%" style="display: block; margin: auto;" />
 
 This is alarming since one of the periods is significantly different from 0, which means that our parallel trends assumption is not plausible.
 
@@ -2438,13 +3117,13 @@ We would like the "supposed" DiD to be insignificant.
 
 -   Higher-order polynomial time trend (to relax linearity assumption)
 
--   Test whether other dependent variables that should be affected by the event are indeed unaffected.
+-   Test whether other dependent variables that should not be affected by the event are indeed unaffected.
 
     -   Use the same control and treatment period (DiD $\neq0$, there is a problem)
 
 ### Rosenbaum Bounds
 
-[Rosenbaum Bounds] assess the overall sensitivity of coefficient estimates to hidden bias [@rosenbaum2002overt] without having knowledge (e.g., direction) of the bias. This method is also known as worst case analyses [@diprete2004assessing].
+[Rosenbaum Bounds] assess the overall sensitivity of coefficient estimates to hidden bias [@rosenbaum2002overt] without having knowledge (e.g., direction) of the bias. This method is also known as **worst case analyses** [@diprete2004assessing].
 
 Consider the treatment assignment is based in a way that the odds of treatment of a unit and its control is different by a multiplier $\Gamma$ (where $\Gamma = 1$ mean that the odds of assignment is identical, which mean random treatment assignment).
 
