@@ -38,8 +38,6 @@ There are several ways to understand this problem:
 
 3.  **Issue of weak instruments**: When the instrument is weak, the variance of the inverse Mills ratio (which is used to correct for endogeneity in instrumental variables analysis) can be very large. In the case of binary endogenous variables, the inverse Mills ratio cannot be consistently estimated using probit or logit regression, and this can lead to biased and inconsistent estimates of the causal effect of the endogenous variable on the outcome variable.
 
-<br>
-
 Problems with weak instruments [@bound1995problems]:
 
 -   Weak instrumental variables can produce (finite-sample) **biased** and **inconsistent** estimates of the causal effect of an endogenous variable on an outcome variable (even in the presence of large sample size)
@@ -411,6 +409,248 @@ data = data.frame(z1 = c(z1, z1), z2 = c(z2, z2), x1 = c(x1, x1),
 summary(gmmcl(y1 ~ x1, ~ z1 + z2, data = data, cluster = "id"))
 ```
 
+## Inference
+
+### AR approach
+
+**Validity of Anderson-Rubin Test** (notated as AR) [@anderson1949estimation]:
+
+-   Gives accurate results even under non-normal and homoskedastic errors [@staiger1997instrumental].
+
+-   Maintains validity across diverse error structures [@stock2000gmm].
+
+-   Minimizes type II error among several alternative tests, in cases of:
+
+    -   Homoskedastic errors [@andrews2006optimal, @moreira2009tests].
+
+    -   Generalized for heteroskedastic, clustered, and autocorrelated errors [@moreira2019optimal].
+
+**Common Practices & Challenges**:
+
+-   The t-ratio test is preferred by many researchers but has its pitfalls:
+
+    -   Known to over-reject (equivalently, under-cover confidence intervals), especially with weak instruments [@lee2022valid, @nelson1990distribution, @bound1995problems, @dufour1997some].
+
+-   To address this:
+
+    -   The first-stage F-statistic is used as an indicator of weak instruments.
+
+    -   [@staiger1997instrumental, @stock2005testing] provided a framework to understand and correct these **distortions**.
+
+    -   Distortions persist even in single instrument cases, seen in:
+
+        -   Randomized trials with imperfect compliance [@imbens1994identification].
+
+        -   Fuzzy regression discontinuity designs [@lee2010regression].
+
+        -   Fuzzy regression kink designs [@card2015inference].
+
+**Misinterpretations**:
+
+-   Common errors in application:
+
+-   Using a rule-of-thumb F-stat threshold of 10 instead of referring to @stock2005testing.
+
+-   Mislabeling intervals such as $\hat{\beta} \pm 1.96 \times \hat{se}(\hat{\beta})$ as 95% confidence intervals (when passed the $F>10$ rule of thumb). @staiger1997instrumental clarified that such intervals actually represent 85% confidence when using $F > 16.38$ from @stock2005testing
+
+-   Pretesting for weak instruments might exacerbate over-rejection of the t-ratio test mentioned above [@hall1996judging].
+
+-   Selective model specification (i.e., dropping certain specification) based on F-statistics also leads to significant **distortions** [@andrews2019weak].
+
+```{r}
+library(ivDiag)
+
+# AR test (robust to weak instruments)
+# example by the package's authors
+ivDiag::AR_test(
+    data = rueda,
+    Y = "e_vote_buying",
+    # treatment
+    D = "lm_pob_mesa",
+    # instruments
+    Z = "lz_pob_mesa_f",
+    controls = c("lpopulation", "lpotencial"),
+    cl = "muni_code",
+    CI = FALSE
+)
+
+g <- ivDiag::ivDiag(
+    data = rueda,
+    Y = "e_vote_buying",
+    D = "lm_pob_mesa",
+    Z = "lz_pob_mesa_f",
+    controls = c("lpopulation", "lpotencial"),
+    cl = "muni_code",
+    cores = 4,
+    bootstrap = FALSE
+)
+g$AR
+ivDiag::plot_coef(g)
+
+```
+
+### tF Procedure
+
+[@lee2022valid] proposes a new method that is aligned better with traditional econometric training than AR, where it is called the tF procedure. It incorporates both the 1st-stage F-stat and the 2SLS t-ratio.
+
+**tF Procedure**:
+
+-   Adjusts the t-ratio based on the first-stage F-statistic.
+
+-   Rather than a fixed pretesting threshold, it applies an adjustment factor to 2SLS standard errors.
+
+-   Adjustment factors are provided for 95% and 99% confidence levels.
+
+**Advantages of the tF Procedure**:
+
+1.  **Smooth Adjustment**:
+
+    -   Gives usable finite confidence intervals for smaller F statistic values.
+
+    -   95% confidence is applicable for $F > 3.84$, aligning with AR's bounded 95% confidence intervals.
+
+2.  **Clear Confidence Levels**:
+
+    -   These levels incorporate effects of basing inference on the first-stage F.
+
+    -   Mirrors AR or other zero distortion procedures.
+
+3.  **Robustness**:
+
+    -   Robust against common error structures (e.g., heteroskedasticity or clustering).
+
+    -   No further adjustments are necessary as long as robust variance estimators are consistently used (same robust variance estimator used for the 1st-stage as for the IV estimate).
+
+4.  **Comparison to AR**:
+
+    -   Surprisingly, with $F > 3.84$, AR's expected interval length is infinite, while tF's is finite (i.e., better).
+
+5.  **Applicability**:
+
+    -   The tF adjustment can re-evaluate published studies if the first-stage F-statistic is available.
+
+    -   Original data access is not needed.
+
+**Impacts in Applied Research**:
+
+-   @lee2022valid examined recent single-instrument specification studies from the American Economic Review (AER).
+
+-   Observations:
+
+    -   For at least 25% of the studied specifications, using tF increased confidence interval lengths by:
+
+        -   49% (5% significance level).
+
+        -   136% (1% significance level).
+
+    -   For specifications with $F > 10$ and $t > 1.96$, about 25% became statistically insignificant at the 5% level when adjusted using tF.
+
+    -   Conclusion: tF adjustments could greatly influence inferences in research employing t-ratio inferences.
+
+Notation
+
+-   $Y = X \beta + W \gamma + u$
+-   $X = Z \pi + W \xi + \nu$
+
+where
+
+-   $W$: Additional covariates, possibly including an intercept term.
+-   $X$: variable of interest
+-   $Z$: instruments
+
+Key Statistics:
+
+-   $t$-ratio for the instrumental variable estimator: $\hat{t} = \frac{\hat{\beta} - \beta_0}{\sqrt{\hat{V}_N (\hat{\beta})}}$
+
+-   $t$-ratio for the first-stage coefficient: $\hat{f} = \frac{\hat{\pi}}{\sqrt{\hat{V}_N (\hat{\pi})}}$
+
+-   $\hat{F} = \hat{f}^2$
+
+where
+
+-   $\hat{\beta}$: Instrumental variable estimator.
+-   $\hat{V}_N (\hat{\beta})$: Estimated variance of $\hat{\beta}$, possibly robust to deal with non-iid errors.
+-   $\hat{t}$: $t$-ratio under the null hypothesis.
+-   $\hat{f}$: $t$-ratio under the null hypothesis of $\pi=0$.
+
+Traditional T-ratio Inference:
+
+-   In large samples, $\hat{t}^2 \to^d t^2$
+-   Standard normal critical values are ±1.96 for 5% significance level testing.
+
+Distortions in Inference in the case of IV:
+
+-   Use of a standard normal can lead to distorted inferences even in large samples.
+    -   Despite large samples, t-distribution might not be normal.
+-   But magnitude of this distortion can be quantified.
+    -   @stock2005testing provides a formula for Wald test statistics using 2SLS.
+    -   $t^2$ formula allows for quantification of inference distortions.
+    -   In the just-identified case with one endogenous regressor $t^2 = f + t_{AR} + \rho f t_{AR}$ [@stock2005testing]
+        -   $\hat{f} \to^d f$ and $\bar{f} = \frac{\pi}{\sqrt{\frac{1}{N} AV(\hat{\pi})}}$ and $AV(\hat{\pi})$ is the asymptotic variance of $\hat{\pi}$
+        -   $t_{AR}$ is a standard normal with $AR = t^2_{AR}$
+        -   $\rho$ (degree of endogeneity) is the correlation of $Zu$ and $Z \nu$ (when data are homoskedastic, $\rho$ is the correlation between $u$ and $\nu$)
+
+Implications of $t^2$ formula:
+
+-   Varies rejection rates depending on $\rho$ value.
+    -   $\rho \in (0,0.5]$ (low) the t-ratio rejects at a probability below the nominal 0.05 rate
+    -   $\rho = 0.8$ (high) the rejection rate can be $0.13$
+-   In short, incorrect test size when relying solely on $t^2$ (based on traditional econometric understanding)
+
+To correct for this, one can
+
+1.  Estimate the usually 2SLS standard errors
+2.  Multiply the SE by the adjustment factor based on the observed first-stage $\hat{F}$ stat
+3.  One can go back to the traditional hypothesis by using either the t-ratio of confidence intervals
+
+@lee2022valid call this adjusted SE as "0.05 tF SE".
+
+```{r}
+library(ivDiag)
+g <- ivDiag::ivDiag(
+    data = rueda,
+    Y = "e_vote_buying",
+    D = "lm_pob_mesa",
+    Z = "lz_pob_mesa_f",
+    controls = c("lpopulation", "lpotencial"),
+    cl = "muni_code",
+    cores = 4,
+    bootstrap = FALSE
+)
+g$tF
+```
+
+```{r}
+# example in fixest package
+library(fixest)
+library(tidyverse)
+base = iris
+names(base) = c("y", "x1", "x_endo_1", "x_inst_1", "fe")
+set.seed(2)
+base$x_inst_2 = 0.2 * base$y + 0.2 * base$x_endo_1 + rnorm(150, sd = 0.5)
+base$x_endo_2 = 0.2 * base$y - 0.2 * base$x_inst_1 + rnorm(150, sd = 0.5)
+
+est_iv = feols(y ~ x1 | x_endo_1 + x_endo_2 ~ x_inst_1 + x_inst_2, base)
+est_iv
+
+res_est_iv <- est_iv$coeftable |> 
+    rownames_to_column()
+
+
+coef_of_interest <-
+    res_est_iv[res_est_iv$rowname == "fit_x_endo_1", "Estimate"]
+se_of_interest <-
+    res_est_iv[res_est_iv$rowname == "fit_x_endo_1", "Std. Error"]
+fstat_1st <- fitstat(est_iv, type = "ivf1")[[1]]$stat
+
+# To get the correct SE based on 1st-stage F-stat
+tF(coef = coef_of_interest, se = se_of_interest, Fstat = fstat_1st)
+```
+
+### AK approach
+
+[@angrist2023one]
+
 ## Testing Assumptions
 
 $$
@@ -629,8 +869,6 @@ Notes:
 
 -   We do not need a linearity assumption of the relationships between the dependent variable, treatment intensities, and instruments.
 
-<br>
-
 Example
 
 In their original paper, @angrist1995two take the example of schooling effect on earnings where they have quarters of birth as the instrumental variable.
@@ -674,7 +912,7 @@ To give $\rho$ a causal interpretation,
 
 Even though the first bullet point is not trivial, most of the time we don't have to defend much about it in a research article, the second bullet point is the harder one to argue and only apply to certain cases.
 
-# Control Function
+## Control Function
 
 Also known as **two-stage residual inclusion**
 
@@ -709,9 +947,9 @@ $$
 
 where $h(V)$ is the control function that models the endogeneity
 
-## Linear in parameters
+### Linear in parameters
 
-### Linear Endogenous Variables
+#### Linear Endogenous Variables
 
 The control function function approach is identical to the usual 2SLS estimator
 
@@ -719,13 +957,13 @@ The control function function approach is identical to the usual 2SLS estimator
 
 The control function is different from the 2SLS estimator
 
-## Nonlinear in parameters
+### Nonlinear in parameters
 
 The CF function is superior than the 2SLS estimator
 
-## Estimation
+### Estimation
 
-# Simulation
+### Simulation
 
 ```{r}
 library(fixest)
@@ -839,3 +1077,7 @@ summary(second_stage_cf)
 
 modelsummary(list(second_stage, second_stage_cf))
 ```
+
+## Application in Marketing
+
+### Peer-based IV

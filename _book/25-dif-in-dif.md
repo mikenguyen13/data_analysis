@@ -1339,7 +1339,8 @@ ggplot(df_bacon) +
         color = type
     ) +
     labs(x = "Weight", y = "Estimate", shape = "Type") +
-    geom_point()
+    geom_point() +
+    causalverse::ama_theme()
 ```
 
 <img src="25-dif-in-dif_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
@@ -2106,6 +2107,7 @@ get_covariate_balance(
 
 ```r
 
+
 balance_scatter(
     matched_set_list = list(PM.results.maha$att,
                             PM.results.ps.weight$att),
@@ -2135,11 +2137,11 @@ balance_scatter(
 
 ```r
 PE.results <- PanelEstimate(
-    sets = PM.results.ps.weight,
-    data = dem,
-    se.method = "bootstrap",
+    sets              = PM.results.ps.weight,
+    data              = dem,
+    se.method         = "bootstrap",
     number.iterations = 1000,
-    confidence.level = .95
+    confidence.level  = .95
 )
 
 # point estimates
@@ -2155,9 +2157,9 @@ PE.results[["standard.error"]]
 
 # use conditional method
 PE.results <- PanelEstimate(
-    sets = PM.results.ps.weight,
-    data = dem,
-    se.method = "conditional",
+    sets             = PM.results.ps.weight,
+    data             = dem,
+    se.method        = "conditional",
     confidence.level = .95
 )
 
@@ -2207,25 +2209,24 @@ dem$moderator <- ifelse(dem$wbcode2 > 100, 1, 2)
 
 PM.results <-
     PanelMatch(
-        lag = 4,
-        time.id = "year",
-        unit.id = "wbcode2",
-        treatment = "dem",
-        refinement.method = "mahalanobis",
-        data = dem,
-        match.missing = TRUE,
-        covs.formula = ~ I(lag(tradewb, 1:4)) + I(lag(y, 1:4)),
-        # lags
-        size.match = 5,
-        qoi = "att",
-        outcome.var = "y",
-        lead = 0:4,
-        forbid.treatment.reversal = FALSE,
+        lag                          = 4,
+        time.id                      = "year",
+        unit.id                      = "wbcode2",
+        treatment                    = "dem",
+        refinement.method            = "mahalanobis",
+        data                         = dem,
+        match.missing                = TRUE,
+        covs.formula                 = ~ I(lag(tradewb, 1:4)) + I(lag(y, 1:4)),
+        size.match                   = 5,
+        qoi                          = "att",
+        outcome.var                  = "y",
+        lead                         = 0:4,
+        forbid.treatment.reversal    = FALSE,
         use.diagonal.variance.matrix = TRUE
     )
 PE.results <-
-    PanelEstimate(sets = PM.results,
-                  data = dem,
+    PanelEstimate(sets      = PM.results,
+                  data      = dem,
                   moderator = "moderator")
 
 # Each element in the list corresponds to a level in the moderator
@@ -2354,7 +2355,12 @@ runPanelMatch <- function(method, lag, size.match=NULL, qoi="att") {
 methods <- c("mahalanobis", "ps.match", "ps.weight")
 lags <- c(1, 4)
 sizes <- c(5, 10)
+```
 
+You can either do it sequentailly 
+
+
+```r
 res_pm <- list()
 
 for(method in methods) {
@@ -2381,6 +2387,72 @@ for(method in methods) {
 }
 ```
 
+or in parallel
+
+
+```r
+library(foreach)
+library(doParallel)
+registerDoParallel(cores = 4)
+# Initialize an empty list to store results
+res_pm <- list()
+
+# Replace nested for-loops with foreach
+results <-
+  foreach(
+    method = methods,
+    .combine = 'c',
+    .multicombine = TRUE,
+    .packages = c("PanelMatch", "causalverse")
+  ) %dopar% {
+    tmp <- list()
+    for (lag in lags) {
+      for (size in sizes) {
+        name <- paste0(method, ".", lag, "lag.", size, "m")
+        tmp[[name]] <- runPanelMatch(method, lag, size)
+      }
+    }
+    tmp
+  }
+
+# Collate results
+for (name in names(results)) {
+  res_pm[[name]] <- results[[name]]
+}
+
+# Treatment reversal
+# Initialize an empty list to store results
+res_pm_rev <- list()
+
+# Replace nested for-loops with foreach
+results_rev <-
+  foreach(
+    method = methods,
+    .combine = 'c',
+    .multicombine = TRUE,
+    .packages = c("PanelMatch", "causalverse")
+  ) %dopar% {
+    tmp <- list()
+    for (lag in lags) {
+      for (size in sizes) {
+        name <- paste0(method, ".", lag, "lag.", size, "m")
+        tmp[[name]] <-
+          runPanelMatch(method, lag, size, qoi = "art")
+      }
+    }
+    tmp
+  }
+
+# Collate results
+for (name in names(results_rev)) {
+  res_pm_rev[[name]] <- results_rev[[name]]
+}
+
+
+stopImplicitCluster()
+```
+
+
 
 ```r
 library(gridExtra)
@@ -2391,31 +2463,33 @@ create_balance_plot <- function(method, lag, sizes, res_pm, dem) {
         res_pm[[paste0(method, ".", lag, "lag.", size, "m")]]$att
     })
     
-    return(balance_scatter_custom(
-        matched_set_list = matched_set_lists,
-        legend.title = "Possible Matches",
-        set.names = as.character(sizes),
-        legend.position = c(0.2,0.8),
-        
-        # for compiled plot, you don't need x,y, or main labs
-        x.axis.label = "",
-        y.axis.label = "",
-        main = "",
-        data = dem,
-        dot.size = 5,
-        # show.legend = F,
-        them_use = causalverse::ama_theme(base_size = 32),
-        covariates = c("y", "tradewb")
-    ))
+    return(
+        balance_scatter_custom(
+            matched_set_list = matched_set_lists,
+            legend.title = "Possible Matches",
+            set.names = as.character(sizes),
+            legend.position = c(0.2, 0.8),
+            
+            # for compiled plot, you don't need x,y, or main labs
+            x.axis.label = "",
+            y.axis.label = "",
+            main = "",
+            data = dem,
+            dot.size = 5,
+            # show.legend = F,
+            them_use = causalverse::ama_theme(base_size = 32),
+            covariates = c("y", "tradewb")
+        )
+    )
 }
 
 plots <- list()
 
 for (method in methods) {
-  for (lag in lags) {
-    plots[[paste0(method, ".", lag, "lag")]] <-
-      create_balance_plot(method, lag, sizes, res_pm, dem)
-  }
+    for (lag in lags) {
+        plots[[paste0(method, ".", lag, "lag")]] <-
+            create_balance_plot(method, lag, sizes, res_pm, dem)
+    }
 }
 
 # # Arranging plots in a 3x2 grid
@@ -2439,7 +2513,11 @@ row_labels <- c("Maha Matching", "PS Matching", "PS Weigthing")
 major.axes.fontsize = 40
 minor.axes.fontsize = 30
 
-png(file.path(getwd(), "images", "did_balance_scatter.png"), width=1200, height=1000)
+png(
+    file.path(getwd(), "images", "did_balance_scatter.png"),
+    width = 1200,
+    height = 1000
+)
 
 # Create a list-of-lists, where each inner list represents a row
 grid_list <- list(
@@ -2450,15 +2528,21 @@ grid_list <- list(
     ),
     
     list(textGrob(
-        row_labels[1], gp = gpar(fontsize = minor.axes.fontsize), rot = 90
+        row_labels[1],
+        gp = gpar(fontsize = minor.axes.fontsize),
+        rot = 90
     ), plots[["mahalanobis.1lag"]], plots[["mahalanobis.4lag"]]),
     
     list(textGrob(
-        row_labels[2], gp = gpar(fontsize = minor.axes.fontsize), rot = 90
+        row_labels[2],
+        gp = gpar(fontsize = minor.axes.fontsize),
+        rot = 90
     ), plots[["ps.match.1lag"]], plots[["ps.match.4lag"]]),
     
     list(textGrob(
-        row_labels[3], gp = gpar(fontsize = minor.axes.fontsize), rot = 90
+        row_labels[3],
+        gp = gpar(fontsize = minor.axes.fontsize),
+        rot = 90
     ), plots[["ps.weight.1lag"]], plots[["ps.weight.4lag"]])
 )
 
@@ -2466,25 +2550,25 @@ grid_list <- list(
 grobs <- do.call(c, grid_list)
 
 grid.arrange(
-  grobs = grobs,
-  ncol = 3,
-  nrow = 4,
-  widths = c(0.15, 0.42, 0.42),
-  heights = c(0.15, 0.28, 0.28, 0.28)
+    grobs = grobs,
+    ncol = 3,
+    nrow = 4,
+    widths = c(0.15, 0.42, 0.42),
+    heights = c(0.15, 0.28, 0.28, 0.28)
 )
 
 grid.text(
-  "Before Refinement",
-  x = 0.5,
-  y = 0.03,
-  gp = gpar(fontsize = major.axes.fontsize)
+    "Before Refinement",
+    x = 0.5,
+    y = 0.03,
+    gp = gpar(fontsize = major.axes.fontsize)
 )
 grid.text(
-  "After Refinement",
-  x = 0.03,
-  y = 0.5,
-  rot = 90,
-  gp = gpar(fontsize = major.axes.fontsize)
+    "After Refinement",
+    x = 0.03,
+    y = 0.5,
+    rot = 90,
+    gp = gpar(fontsize = major.axes.fontsize)
 )
 dev.off()
 #> png 
@@ -2492,15 +2576,6 @@ dev.off()
 ```
 
 
-```r
-library(knitr)
-include_graphics(file.path(getwd(), "images", "did_balance_scatter.png"))
-```
-
-<div class="figure" style="text-align: center">
-<img src="images/did_balance_scatter.png" alt="Variable Balance After Matched Set Refinement" width="100%" />
-<p class="caption">(\#fig:balancescatter)Variable Balance After Matched Set Refinement</p>
-</div>
 
 Note: Scatter plots display the standardized mean difference of each covariate $j$ and lag year $l$ as defined in Equation \@ref(eq:aggbalance) before (x-axis) and after (y-axis) matched set refinement. Each plot includes varying numbers of possible matches for each matching method. Rows represent different matching/weighting methods, while columns indicate adjustments for various lag lengths.
 
@@ -2539,64 +2614,80 @@ results <- lapply(configurations, function(config) {
     )
 })
 
-
 # Step 3: Get covariate balance and plot
 plots <- mapply(function(result, config) {
     df <- get_covariate_balance(
-        if(config$qoi == "att") result$att else result$art, 
-        data = dem, 
-        covariates = c("tradewb", "y"), 
+        if (config$qoi == "att")
+            result$att
+        else
+            result$art,
+        data = dem,
+        covariates = c("tradewb", "y"),
         plot = F
     )
-    causalverse::plot_covariate_balance_pretrend(df, main = "")
+    causalverse::plot_covariate_balance_pretrend(df, main = "", show_legend = F)
 }, results, configurations, SIMPLIFY = FALSE)
 
 # Set names for plots
 names(plots) <- sapply(configurations, function(config) {
     paste(config$qoi, config$refinement.method, sep = ".")
 })
+```
+
+To export
 
 
+```r
 library(gridExtra)
 library(grid)
 
 # Column and row labels
 col_labels <-
-  c("None",
-    "Mahalanobis",
-    "Propensity Score Matching",
-    "Propensity Score Weighting")
+    c("None",
+      "Mahalanobis",
+      "Propensity Score Matching",
+      "Propensity Score Weighting")
 row_labels <- c("ATT", "ART")
 
 # Specify your desired fontsize for labels
 minor.axes.fontsize <- 16
 major.axes.fontsize <- 20
 
+png(file.path(getwd(), "images", "p_covariate_balance.png"), width=1200, height=1000)
+
 # Create a list-of-lists, where each inner list represents a row
 grid_list <- list(
-  list(
-    nullGrob(),
-    textGrob(col_labels[1], gp = gpar(fontsize = minor.axes.fontsize)),
-    textGrob(col_labels[2], gp = gpar(fontsize = minor.axes.fontsize)),
-    textGrob(col_labels[3], gp = gpar(fontsize = minor.axes.fontsize)),
-    textGrob(col_labels[4], gp = gpar(fontsize = minor.axes.fontsize))
-  ),
-  
-  list(
-    textGrob(row_labels[1], gp = gpar(fontsize = minor.axes.fontsize), rot = 90),
-    plots$att.none,
-    plots$att.mahalanobis,
-    plots$att.ps.match,
-    plots$att.ps.weight
-  ),
-  
-  list(
-    textGrob(row_labels[2], gp = gpar(fontsize = minor.axes.fontsize), rot = 90),
-    plots$art.none,
-    plots$art.mahalanobis,
-    plots$art.ps.match,
-    plots$art.ps.weight
-  )
+    list(
+        nullGrob(),
+        textGrob(col_labels[1], gp = gpar(fontsize = minor.axes.fontsize)),
+        textGrob(col_labels[2], gp = gpar(fontsize = minor.axes.fontsize)),
+        textGrob(col_labels[3], gp = gpar(fontsize = minor.axes.fontsize)),
+        textGrob(col_labels[4], gp = gpar(fontsize = minor.axes.fontsize))
+    ),
+    
+    list(
+        textGrob(
+            row_labels[1],
+            gp = gpar(fontsize = minor.axes.fontsize),
+            rot = 90
+        ),
+        plots$att.none,
+        plots$att.mahalanobis,
+        plots$att.ps.match,
+        plots$att.ps.weight
+    ),
+    
+    list(
+        textGrob(
+            row_labels[2],
+            gp = gpar(fontsize = minor.axes.fontsize),
+            rot = 90
+        ),
+        plots$art.none,
+        plots$art.mahalanobis,
+        plots$art.ps.match,
+        plots$art.ps.weight
+    )
 )
 
 # "Flatten" the list-of-lists into a single list of grobs
@@ -2604,35 +2695,41 @@ grobs <- do.call(c, grid_list)
 
 # Arrange your plots with text labels
 grid.arrange(
-  grobs   = grobs,
-  ncol    = 5,
-  nrow    = 3,
-  widths  = c(0.1, 0.225, 0.225, 0.225, 0.225),
-  heights = c(0.1, 0.45, 0.45)
+    grobs   = grobs,
+    ncol    = 5,
+    nrow    = 3,
+    widths  = c(0.1, 0.225, 0.225, 0.225, 0.225),
+    heights = c(0.1, 0.45, 0.45)
 )
 
 # Add main x and y axis titles
 grid.text(
-  "Refinement Methods",
-  x  = 0.5,
-  y  = 0.01,
-  gp = gpar(fontsize = major.axes.fontsize)
+    "Refinement Methods",
+    x  = 0.5,
+    y  = 0.01,
+    gp = gpar(fontsize = major.axes.fontsize)
 )
 grid.text(
-  "Quantities of Interest",
-  x   = 0.02,
-  y   = 0.5,
-  rot = 90,
-  gp  = gpar(fontsize = major.axes.fontsize)
+    "Quantities of Interest",
+    x   = 0.02,
+    y   = 0.5,
+    rot = 90,
+    gp  = gpar(fontsize = major.axes.fontsize)
 )
+
+dev.off()
 ```
 
-<div class="figure" style="text-align: center">
-<img src="25-dif-in-dif_files/figure-html/balancepretreat-1.png" alt="Variable Balance in Pre-Treatment Period" width="90%" />
-<p class="caption">(\#fig:balancepretreat)Variable Balance in Pre-Treatment Period</p>
-</div>
 
-Note: Each graph displays the standardized mean difference, as outlined in Equation \@ref(eq:aggbalance), plotted on the vertical axis across a pre-treatment duration of four years represented on the horizontal axis. The leftmost column illustrates the balance prior to refinement, while the subsequent three columns depict the covariate balance post the application of distinct refinement techniques. Each individual line signifies the balance of a specific variable during the pre-treatment phase.
+```r
+library(knitr)
+include_graphics(file.path(getwd(), "images", "p_covariate_balance.png"))
+```
+
+<img src="images/p_covariate_balance.png" width="90%" style="display: block; margin: auto;" />
+
+
+Note: Each graph displays the standardized mean difference, as outlined in Equation \@ref(eq:aggbalance), plotted on the vertical axis across a pre-treatment duration of four years represented on the horizontal axis. The leftmost column illustrates the balance prior to refinement, while the subsequent three columns depict the covariate balance post the application of distinct refinement techniques. Each individual line signifies the balance of a specific variable during the pre-treatment phase.The red line is tradewb and blue line is the lagged outcome variable. 
 
 In Figure \@ref(fig:balancepretreat), we observe a marked improvement in covariate balance due to the implemented matching procedures during the pre-treatment period. Our analysis prioritizes methods that adjust for time-varying covariates over a span of four years preceding the treatment initiation. The two rows delineate the standardized mean balance for both treatment modalities, with individual lines representing the balance for each covariate.
 
@@ -2640,12 +2737,13 @@ Across all scenarios, the refinement attributed to matched sets significantly en
 
 **Estimation Results**
 
-We now detail the estimated ATTs derived from the matching techniques. Figure XXX offers visual representations of the impacts of treatment initiation (upper panel) and treatment reversal (lower panel) on the outcome variable for a duration of 5 years post-transition, specifically, (F = 0, 1, ..., 4). Across the five methods (columns), it becomes evident that the point estimates of effects associated with treatment initiation consistently approximate zero over the 5-year window. In contrast, the estimated outcomes of treatment reversal are notably negative and maintain statistical significance through all refinement techniques during the initial year of transition and the 1 to 4 years that follow, provided treatment reversal is permissible. These effects are notably pronounced, pointing to an estimated reduction of roughly XXX in the outcome variable.
+We now detail the estimated ATTs derived from the matching techniques. Figure below offers visual representations of the impacts of treatment initiation (upper panel) and treatment reversal (lower panel) on the outcome variable for a duration of 5 years post-transition, specifically, (F = 0, 1, ..., 4). Across the five methods (columns), it becomes evident that the point estimates of effects associated with treatment initiation consistently approximate zero over the 5-year window. In contrast, the estimated outcomes of treatment reversal are notably negative and maintain statistical significance through all refinement techniques during the initial year of transition and the 1 to 4 years that follow, provided treatment reversal is permissible. These effects are notably pronounced, pointing to an estimated reduction of roughly X\% in the outcome variable.
 
-Collectively, our findings indicate that the transition into the treated state from its absence doesn't invariably lead to a heightened outcome. Instead, the transition from the treated state back to its absence exerts a considerable negative effect on the outcome variable in both the short and intermediate terms. Hence, the positive effect of the treatment (if we were to use traditional DiD) is actually driven by the negative effect of treatment reversal. 
+Collectively, these findings indicate that the transition into the treated state from its absence doesn't invariably lead to a heightened outcome. Instead, the transition from the treated state back to its absence exerts a considerable negative effect on the outcome variable in both the short and intermediate terms. Hence, the positive effect of the treatment (if we were to use traditional DiD) is actually driven by the negative effect of treatment reversal. 
 
 
 ```r
+# sequential
 # Step 1: Apply PanelEstimate function
 
 # Initialize an empty list to store results
@@ -2678,11 +2776,11 @@ for (i in 1:length(res_est)) {
     # Transfer the name of the current element to the res_est_plot list
     names(res_est_plot)[i] <- names(res_est)[i]
 }
-```
+
+# check results
+# res_est_plot$mahalanobis.1lag.5m
 
 
-
-```r
 # Step 1: Apply PanelEstimate function for res_pm_rev
 
 # Initialize an empty list to store results
@@ -2718,6 +2816,84 @@ for (i in 1:length(res_est_rev)) {
 ```
 
 
+```r
+# parallel
+library(doParallel)
+library(foreach)
+
+# Detect the number of cores to use for parallel processing
+num_cores <- 4
+
+# Register the parallel backend
+cl <- makeCluster(num_cores)
+registerDoParallel(cl)
+
+# Step 1: Apply PanelEstimate function in parallel
+res_est <-
+    foreach(i = 1:length(res_pm), .packages = "PanelMatch") %dopar% {
+        PanelEstimate(
+            res_pm[[i]],
+            data = dem,
+            se.method = "bootstrap",
+            number.iterations = 1000,
+            confidence.level = .95
+        )
+    }
+
+# Transfer names from res_pm to res_est
+names(res_est) <- names(res_pm)
+
+# Step 2: Apply plot_PanelEstimate function in parallel
+res_est_plot <-
+    foreach(
+        i = 1:length(res_est),
+        .packages = c("PanelMatch", "causalverse", "ggplot2")
+    ) %dopar% {
+        plot_PanelEstimate(res_est[[i]],
+                           main = "",
+                           theme_use = causalverse::ama_theme(base_size = 10))
+    }
+
+# Transfer names from res_est to res_est_plot
+names(res_est_plot) <- names(res_est)
+
+
+
+# Step 1: Apply PanelEstimate function for res_pm_rev in parallel
+res_est_rev <-
+    foreach(i = 1:length(res_pm_rev), .packages = "PanelMatch") %dopar% {
+        PanelEstimate(
+            res_pm_rev[[i]],
+            data = dem,
+            se.method = "bootstrap",
+            number.iterations = 1000,
+            confidence.level = .95
+        )
+    }
+
+# Transfer names from res_pm_rev to res_est_rev
+names(res_est_rev) <- names(res_pm_rev)
+
+# Step 2: Apply plot_PanelEstimate function for res_est_rev in parallel
+res_est_plot_rev <-
+    foreach(
+        i = 1:length(res_est_rev),
+        .packages = c("PanelMatch", "causalverse", "ggplot2")
+    ) %dopar% {
+        plot_PanelEstimate(res_est_rev[[i]],
+                           main = "",
+                           theme_use = causalverse::ama_theme(base_size = 10))
+    }
+
+# Transfer names from res_est_rev to res_est_plot_rev
+names(res_est_plot_rev) <- names(res_est_rev)
+
+# Stop the cluster
+stopCluster(cl)
+```
+
+To export
+
 
 ```r
 library(gridExtra)
@@ -2735,6 +2911,8 @@ row_labels <- c("ATT", "ART")
 # Specify your desired fontsize for labels
 minor.axes.fontsize <- 16
 major.axes.fontsize <- 20
+
+png(file.path(getwd(), "images", "p_did_est_in_n_out.png"), width=1200, height=1000)
 
 # Create a list-of-lists, where each inner list represents a row
 grid_list <- list(
@@ -2792,9 +2970,18 @@ grid.text(
   rot = 90,
   gp  = gpar(fontsize = major.axes.fontsize)
 )
+
+dev.off()
+#> png 
+#>   2
 ```
 
-<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-28-1.png" width="90%" style="display: block; margin: auto;" />
+```r
+library(knitr)
+include_graphics(file.path(getwd(), "images", "p_did_est_in_n_out.png"))
+```
+
+<img src="images/p_did_est_in_n_out.png" width="90%" style="display: block; margin: auto;" />
 
 
 #### Chaisemartin-d'Haultfoeuille
@@ -2984,7 +3171,7 @@ causalverse::plot_par_trends(
 #> [[1]]
 ```
 
-<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-30-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-35-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -3001,7 +3188,7 @@ od |>
     geom_line()
 ```
 
-<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-30-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-35-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -3013,13 +3200,13 @@ prior_trend <- feols(Rate ~ i(Quarter_Num, California) | State + Quarter,
 coefplot(prior_trend)
 ```
 
-<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-30-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-35-3.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 iplot(prior_trend)
 ```
 
-<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-30-4.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-dif-in-dif_files/figure-html/unnamed-chunk-35-4.png" width="90%" style="display: block; margin: auto;" />
 
 This is alarming since one of the periods is significantly different from 0, which means that our parallel trends assumption is not plausible.
 

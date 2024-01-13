@@ -1,0 +1,316 @@
+---
+title: "Turjeman and Feinberg 2023 Replication Code"
+author: "Dana Turjeman"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(here)
+library(dplyr)
+library(foreach)
+library(tidyr)
+library(ggplot2)
+set.seed(123)
+```
+
+```{r setting_working_dir}
+setwd(here()) # If you opened this file from the desired location, you should be set to that location.
+knitr::opts_knit$set(root.dir = here())
+print(getwd())
+```
+
+```{r variables_definitions}
+dv_names = c("deleted_photos",
+             "searches",
+             "sent_messages")
+dv_names_strings = c("Deleted Photos",
+                     "Searches",
+                     "Sent Messages")
+dv_names_short_strings = c("Ph", "Se", "Me")
+dv_names_converter = cbind.data.frame(dv_names, dv_names_strings, dv_names_short_strings)
+
+combine_null = function(a, b){NULL}
+breach_time = 26 # This is just to have week 0 in the week of the announcement, but actually the breach happened at the end of week 26, beginning of week 27
+after_breach_time = 3 # three weeks after the breach
+num_covariates = 6
+
+```
+
+```{r}
+theme_set(theme_bw())
+
+theme_update(panel.grid.major = element_blank(), 
+             text=element_text(size=12,  family="serif"))
+
+library(ggthemes)
+# Fill
+scale_fill_colorblind7 = function(.ColorList = 2L:8L, ...){
+  scale_fill_discrete(..., type = colorblind_pal()(8)[.ColorList])
+}
+
+# Color
+scale_color_colorblind7 = function(.ColorList = 2L:8L, ...){
+  scale_color_discrete(..., type = colorblind_pal()(8)[.ColorList])
+}
+```
+
+
+# Synthetic Data Reading from File
+
+
+```{r}
+for(dv_name in dv_names){
+  file_name = paste0(dv_name, "_deidentified_sample.csv")
+  assign(x = paste0(dv_name, "_data"), value = read.csv(file_name))
+}
+
+```
+
+# Creating Temporal Causal Inference Plots
+
+## Creating Temporal Causal Inference Data
+
+```{r}
+#Want to recreate temporal causal inference? If not, it'll be read from file
+create_timeline = TRUE
+
+if(create_timeline){
+  summary_timeline = foreach(dv_name = dv_names, .inorder = TRUE, .combine = rbind.data.frame) %do% {
+    all_cohorts = get(paste(dv_name, "_data", sep = ""))
+    #attach(all_cohorts, warn.conflicts = FALSE)
+    timeline = data.frame()
+    # Create a table of: cohort, membership_age_in_breach, age, Married = 1-married, Private = 1-has_public_photo, membership_age, num_activities
+    # where each row is an individual-membership_age tuple.
+    
+    
+    for(j in min(all_cohorts$join_week):max(all_cohorts$join_week)){
+      membership_age_in_breach = max(all_cohorts[which(all_cohorts$join_week == j), "membership_age_in_breach"])
+      cols = (num_covariates + j + 1):(num_covariates + breach_time + after_breach_time + 1)
+      
+      #Take only the weekly activities and not the covariates and the weeks prior to joining.
+      x = all_cohorts[which(all_cohorts$join_week == j), cols]
+      
+      #Rename them to the week from joining the website
+      colnames(x) = 0:(ncol(x)-1)
+      x_new = x %>% 
+        mutate_all(as.numeric) %>% 
+        gather(key = "membership_age", value = "num_activities", convert = TRUE)
+      timeline = rbind.data.frame(timeline, cbind.data.frame(cohort = j, membership_age_in_breach, x_new))
+    }
+    
+    # Summarizes per cohort 
+    summary_timeline_temp = timeline %>% 
+      #mutate(membership_age = membership_age) %>%
+      group_by(cohort, membership_age) %>% 
+      dplyr::summarize(#activities = mean(as.numeric(num_activities)), 
+        num_active = sum(num_activities > 0), 
+        num_users = n(), 
+        membership_age_in_breach = max(membership_age_in_breach))
+    cbind.data.frame(summary_timeline_temp, activity_name = as.factor(dv_name))
+    
+  }
+  
+  levels(summary_timeline$activity_name) = dv_names_strings
+  write.csv(x = summary_timeline, file = "summary_timeline.csv", row.names = FALSE)
+} else { 
+  summary_timeline = read.csv(file = "summary_timeline.csv")
+}
+```
+
+```{r}
+limit_cohort = breach_time - 3 # the maximum possible for TCF due to the minimum number of weeks needed for estimation of treatment effect.
+summary_timeline = summary_timeline %>% filter(cohort <= limit_cohort)
+plot_1 = ggplot(data = summary_timeline) + 
+  aes(x = (membership_age + cohort) - breach_time, y = num_active/num_users) +
+  
+  aes(group = cohort) + 
+  aes(col = (cohort-breach_time)) +
+  scale_x_continuous(breaks = seq(from = -1*breach_time, to = 3, by = 1)) +
+  facet_grid(rows = vars(activity_name), scales = "free")+ 
+  theme(legend.position = "none")+ 
+  labs(x = "Weeks from breach") +
+  labs(y = "Active Users") + 
+  labs(title = "Percent of Active Users") + 
+  labs(colour = "Cohort join week") + 
+  geom_vline(xintercept = 0) +
+  geom_line()
+plot(plot_1)
+```
+
+
+```{r, warning=FALSE, message=FALSE}
+tci_all = data.frame()
+for(current_treatment_cohort in 3:max(summary_timeline$cohort)){
+  max_mem_age = as.numeric(summary_timeline %>% 
+                             filter(cohort == current_treatment_cohort) %>% 
+                             summarize(max_mem_age = max(membership_age)))
+  treatment_cohort_data = 
+    summary_timeline %>% 
+    filter(cohort == current_treatment_cohort) %>% 
+    group_by(activity_name, membership_age) %>%  
+    summarize(#avg_activities = mean(activities), 
+      avg_num_active_users = mean(num_active),
+      avg_percent_active = mean(sum(num_active)/sum(num_users)), 
+      total_num_users = sum(num_users)) %>% 
+    mutate(treatment_cohort = current_treatment_cohort,
+           group_type = "Treatment", max_mem_age = max_mem_age) %>% 
+    select(#avg_activities, 
+      avg_num_active_users, 
+      avg_percent_active, 
+      total_num_users, 
+      treatment_cohort, 
+      group_type, 
+      membership_age, 
+      activity_name, 
+      max_mem_age)
+  
+  tci = summary_timeline %>% 
+    filter(cohort < current_treatment_cohort & cohort >= (current_treatment_cohort - 5)) %>% 
+    filter(membership_age <= membership_age_in_breach) %>% 
+    group_by(activity_name, membership_age) %>%  
+    summarize(#avg_activities = mean(activities),
+      avg_num_active_users = mean(num_active),
+      avg_percent_active = mean(sum(num_active)/sum(num_users)), 
+      total_num_users = sum(num_users)) %>% 
+    mutate(treatment_cohort = current_treatment_cohort,
+           group_type = "Control", max_mem_age = max_mem_age) %>% 
+    select(#avg_activities, 
+      avg_num_active_users, 
+      avg_percent_active, 
+      total_num_users, 
+      treatment_cohort, 
+      group_type, 
+      membership_age, 
+      activity_name, 
+      max_mem_age)
+  tci_all = rbind.data.frame(tci, treatment_cohort_data, tci_all)
+}
+
+tci_all = as.data.frame(tci_all)
+
+min_week = -3 # change to -23 if want all timeline
+# plotting the percent of active users per group.
+# this means that the % of active users of all control groups will be averaged, and separately also treatment groups. 
+# since cohorts are of different timelines at the time of the breach, this means averaging across people of different membership ages.
+percent_active_per_group = tci_all %>% 
+  filter((membership_age - breach_time + treatment_cohort) >= min_week & 
+           (membership_age - breach_time + treatment_cohort) <= 3) %>% 
+  group_by(activity_name, group_type, time_from = (membership_age - breach_time + treatment_cohort)) %>% 
+  #Note: in the final stretch after acceptance I found out we did the mean and not the weighted mean across cohorts.
+  # while weighted mean may be more suitable here, I decided to leave it with a regular mean across cohorts.
+  # The results don't change much, and in any case it is just the TCI plots and not the main results of the paper,
+  # which were computed based on the individual level anyways. If you'd like to plot the graphs with weighted means,
+  # please uncomment the following line and comment the one after it.
+  #summarize(avg_avg = weighted.mean(x = avg_percent_active, w = total_num_users))
+  summarize(avg_avg = mean(x = avg_percent_active))
+```
+
+```{r}
+plot_tci = function(min_week){
+  ggplot(data = tci_all %>% 
+           filter((membership_age - breach_time + treatment_cohort) >= min_week & 
+                    (membership_age - breach_time + treatment_cohort) <= 3)) + 
+    aes(x = (membership_age - breach_time + treatment_cohort), 
+        y = avg_percent_active) +
+    aes(linetype = as.factor(group_type), col = as.factor(breach_time-treatment_cohort)) + 
+    scale_x_continuous(breaks = seq(from = -1*breach_time, to = 3, by = 1), limits = c(min_week,3)) +
+    facet_grid(rows = vars(activity_name), scales = "free_y")+ 
+    theme(legend.position = c(0.92,0.92), legend.background = element_blank(), legend.title = element_blank())+ 
+    guides(col = "none") +
+    labs(x = "Weeks from treatment") +
+    labs(y = "Average percent of active users") + 
+    labs(title = "Percent of Active Users per Group") + 
+    labs(colour = "Membership age\nat treatment") + 
+    labs(linetype = "Group") +
+    geom_vline(xintercept = 0) +
+    geom_line() +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 4), 
+                       labels = scales::percent_format(accuracy = 1))#, limits = c(0,NA))
+}
+
+
+plot(plot_tci(-23)) # all timeline
+plot(plot_tci(-3)) # only 3 weeks before the breach
+```
+
+```{r}
+percent_active_per_group |> 
+  rio::export(file.path(getwd(), "percent_active_per_group.csv"))
+```
+
+
+```{r}
+Figure_4 = ggplot(data = percent_active_per_group) + 
+  aes(x = time_from, 
+      y = avg_avg) + 
+  aes(linetype = as.factor(group_type)) + #, col = as.factor(treatment_cohort)) + 
+  scale_x_continuous(breaks = seq(from = -1*breach_time, to= 3, by = 1), 
+                     limits = c(min_week,3)) +
+  labs(x = "Weeks from treatment") +
+  labs(y = "Average percent of active users") + 
+  labs(title = "Percent of Active Users per Group") + 
+  labs(linetype = "Group") + 
+  #labs(fill = "") +
+  labs(color = "Counterfactual estimated with:") + 
+  geom_vline(xintercept = 0) +
+  scale_linetype_manual(values=c("dotted", "solid"))+
+  geom_line(linewidth = 0.75) +
+  
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1), expand = expansion(mult = c(0.2, 0.2)))+
+  facet_grid(rows = vars(activity_name), scales = "free_y")+
+  #theme_bw() +
+  scale_color_colorblind7() + #+.ColorList = c(1,2,3,4,6,7,8)) +
+  theme(legend.position = "bottom", 
+        legend.background = element_blank(), 
+        #legend.title = element_blank(), 
+        legend.box = "vertical", 
+        legend.margin = margin(),
+        #legend.title = "Estimated with:",
+        legend.box.background = element_blank()) 
+Figure_4
+```
+
+```{r}
+# Granger Test for Causality
+# Can be found on file RDRobust Regression Discontinuity.Rmd
+# Kolmogorov Smirnov Test on TCI data - I also ran it on the file above, 
+# but since I want to visualize it in similar way, 
+# here's the data prep to fit TCI data (X_all is basically TCI data but less clean in it's shape)
+ks.data = (tci_all 
+           %>% filter(membership_age <= (max_mem_age-3)) #this means it's before the treatment
+           %>% group_by(treatment_cohort, group_type, activity_name)
+           %>% mutate(percent_active_sum = cumsum(avg_percent_active)) 
+           %>% mutate(percent = percent_active_sum/max(percent_active_sum))
+           %>% mutate(time_from_treatment = (membership_age - breach_time + treatment_cohort))
+           %>% ungroup())
+
+min_week = -23
+ks_plot = ggplot(data = ks.data
+                 , mapping = aes(x = time_from_treatment, 
+                                 y = percent)) +#, 
+  #linetype = as.factor(group_type), 
+  #colour = as.factor(treatment_cohort))) +
+  geom_line() + 
+  facet_wrap(facets = ~ activity_name, ncol = 1, scales = "free_y") +
+  aes(linetype = as.factor(group_type), col = as.factor(treatment_cohort)) + 
+  scale_x_continuous(breaks = seq(from = -1*breach_time, to = 0, by = 1), limits = c(min_week,0)) +
+  #facet_grid(rows = vars(activity_name), scales = "free_y")+ 
+  theme(legend.position = c(0.10,0.92), legend.background = element_blank(), legend.title = element_blank())+ 
+  guides(col = "none") +
+  labs(x = "Weeks from treatment") +
+  labs(y = "Cumulative average percent of active users") + 
+  labs(title = "Cumulative Percent of Active Users per Group") + 
+  labs(colour = "Membership age\nat treatment") + 
+  labs(linetype = "Group") +
+  geom_vline(xintercept = 0) +
+  geom_line() +
+  scale_y_continuous(breaks = scales::pretty_breaks(n = 4), labels = scales::percent_format(accuracy = 1))#, limits = c(0,NA))
+
+
+plot(ks_plot)
+
+```
+
+

@@ -1,7 +1,7 @@
 ---
 title: "A Guide on Data Analysis"
 author: "Mike Nguyen"
-date: "2023-09-10"
+date: "2024-01-12"
 header-includes:
   - \usepackage{titling}
   - \pretitle{\begin{center}
@@ -60,6 +60,17 @@ always_allow_html: yes
 > **4. Harvard:**
 >
 > Nguyen, M. (2020) *A Guide on Data Analysis*. Bookdown. Available at: [**https://bookdown.org/mike/data_analysis/**](https://bookdown.org/mike/data_analysis/)
+
+
+```r
+@book{nguyen2020guide,
+  title={A Guide on Data Analysis},
+  author={Nguyen, Mike},
+  year={2020},
+  publisher={Bookdown},
+  url={https://bookdown.org/mike/data_analysis/}
+}
+```
 
 ## More books {.unnumbered}
 
@@ -301,6 +312,7 @@ This book was built with R version 4.2.3 (2023-03-15 ucrt) and the following pac
 #>  desc          1.4.2   2022-09-08 [1] CRAN (R 4.2.3)
 #>  devtools      2.4.5   2022-10-11 [1] CRAN (R 4.2.3)
 #>  digest        0.6.31  2022-12-11 [1] CRAN (R 4.2.3)
+#>  downlit       0.4.3   2023-06-29 [1] CRAN (R 4.2.3)
 #>  dplyr       * 1.1.2   2023-04-20 [1] CRAN (R 4.2.3)
 #>  ellipsis      0.3.2   2021-04-29 [1] CRAN (R 4.2.3)
 #>  evaluate      0.21    2023-05-05 [1] CRAN (R 4.2.3)
@@ -365,6 +377,7 @@ This book was built with R version 4.2.3 (2023-03-15 ucrt) and the following pac
 #>  vctrs         0.6.3   2023-06-14 [1] CRAN (R 4.2.3)
 #>  withr         2.5.0   2022-03-03 [1] CRAN (R 4.2.3)
 #>  xfun          0.39    2023-04-20 [1] CRAN (R 4.2.3)
+#>  xml2          1.3.5   2023-07-06 [1] CRAN (R 4.2.3)
 #>  xtable        1.8-4   2019-04-21 [1] CRAN (R 4.2.3)
 #>  yaml          2.3.7   2023-01-23 [1] CRAN (R 4.2.3)
 #> 

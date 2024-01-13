@@ -1,0 +1,414 @@
+# Spatio Temporal
+
+## Temporal
+
+-   **Temporal Causal Inference**:
+
+    -   Match groups based on when they were exposed to an event with control groups from earlier periods.
+
+    -   This helps account for outcome trajectories in both individual and temporal behavior.
+
+    -   Was proposed by @turjeman2023data
+
+-   **Temporal Causal Forests (TCF)**:
+
+    -   An extension of Causal Forests, allowing for insights on both average and individual-level effects.
+
+    -   Offers understanding related to demographic factors and associated variables.
+
+-   **Challenges with Exogenous Shocks**:
+
+    -   Responses to unexpected, external events (like public incidents, recalls, etc.) require methodological attention.
+
+    -   Traditional methods like A/B testing, RCTs, or test markets are used to measure reactions to controlled changes, where you have an obvious control groups.
+
+    -   After a widely-known external event, it's challenging to find a group unaware (unaffected) of it to act as a control.
+
+    -   Those unaware of significant events might not represent the broader population (i.e., not good control anyway).
+
+-   **Observable Behavioral Changes**:
+
+    -   Changes in behavior can emerge for various reasons, not only due to the external event.
+
+    -   To gauge the true impact of the event, it's essential to compare current behavior with what would have occurred without the event, whille accounting for
+
+        -   heterogeneity across individuals
+
+        -   heterogeneity in their reactions to the event
+
+-   Possible solutions in this case include:
+
+    -   DID: but have to assume no spillover, good control groups.
+
+    -   Bayesian or Generalized Synthetic Control or Regression Discontinuity when you have somewhat similar control group, but not good enough.
+
+Identification strategy
+
+1.  [Temporal Causal Inference]
+2.  [Temporal Causal Forests]
+
+Caveat:
+
+-   Similar to other matching/non-parametric methods, one needs to have lots of data to have stable results.
+
+### Temporal Causal Inference
+
+**Objective**: Assess the impact of a significant event on participant behavior.
+
+**Challenge**: No distinct control group due to simultaneous awareness of the event.
+
+**Participant Variability**:
+
+-   Participants were at different stages (tenures) of their engagement when informed.
+
+-   Behavioral patterns differ over time, with varied trajectories.
+
+**Temporal Causal Inference**:
+
+-   With a large sample, it's possible to match trajectories across subgroups.
+
+-   Compare the behavior of newer participants to those who engaged earlier.
+
+-   Earlier participants (control group) have more exposure before the event.
+
+-   Newer participants (treated group) experienced the event earlier in their engagement.
+
+**Procedure**:
+
+-   **Treated Cohort Definition**: Let $H_T$ represent the group of participants who joined $T$ time units before the event occurred.
+
+    -   For this group, observations span $T + 3$ time units, with the last 3 units post-event.
+
+-   **Control Group Creation** $H_T^C$:
+
+    -   Consider groups $H_1, \dots, H_{T-1}$ as those who joined before $H_T$
+
+    -   From these groups, track their activity since their first adoption until the event or until $T+3$ time units since adoption (whichever comes first).
+
+    -   The time of "non-exposure" is $T$ and subsequent time units (pre-event) assist in predicting the expected behavior of the treated group had the event not transpired.
+
+-   **Important Consideration**:
+
+    -   All control group members were also influenced by the event.
+
+    -   However, the impact happened later in their engagement duration.
+
+```{r, collapse=TRUE}
+# Create the base sequence for tenure
+tenure <- seq(0, 100, length.out = 100)
+
+# Define a function to generate a cohort data.frame
+generate_cohort <- function(name, start_time, mean, sd) {
+    value <- dnorm(tenure, mean = mean, sd = sd)
+    time <- seq(start_time, start_time + 99, by = 1)
+    data.frame(
+        tenure = tenure,
+        cohort = name,
+        time = time,
+        value = value
+    )
+}
+
+# Create several cohorts with varied mean and sd
+cohorts <- list(
+    generate_cohort("Cohort 1", 1, 47, 15),
+    generate_cohort("Cohort 2", 10, 48, 17),
+    generate_cohort("Cohort 3", 20, 52, 20),
+    generate_cohort("Cohort 4", 30, 53, 18),
+    generate_cohort("treatment", 40, 50, 16)
+)
+
+
+# Combine the cohorts to form the final dataset
+final_dataset <- do.call(rbind, cohorts)
+
+# Checking the first few rows of the dataset
+head(final_dataset)
+
+
+library(ggplot2)
+library(patchwork)
+
+# Plot with time on x-axis
+plot_time <-
+    ggplot(final_dataset, aes(x = time, y = value, color = cohort)) +
+    geom_line() +
+    geom_vline(aes(xintercept = 40),
+               linetype = "dashed",
+               color = "black") +  # When treatment starts
+    geom_vline(aes(xintercept = 40 + 50),
+               linetype = "dashed",
+               color = "black") +  # 50 periods after treatment starts
+    annotate(
+        "text",
+        x = 40,
+        y = max(final_dataset$value) * 0.8,
+        label = "Treatment cohort adoption",
+        angle = 90,
+        vjust = 2
+    ) +
+    annotate(
+        "text",
+        x = 40 + 50,
+        y = max(final_dataset$value) * 0.8,
+        label = "Event occurs",
+        angle = 90,
+        vjust = 2
+    ) +
+    labs(title = "Value vs. Time", x = "Time", y = "Value") +
+    causalverse::ama_theme()
+
+# Plot with tenure on x-axis
+treatment_start_tenure <- 0
+event_occurs_tenure <- treatment_start_tenure + 50
+
+plot_tenure <-
+    ggplot(final_dataset, aes(x = tenure, y = value, color = cohort)) +
+    geom_line() +
+    geom_vline(
+        aes(xintercept = treatment_start_tenure),
+        linetype = "dashed",
+        color = "black"
+    ) +
+    geom_vline(aes(xintercept = event_occurs_tenure),
+               linetype = "dashed",
+               color = "black") +
+    annotate(
+        "text",
+        x = treatment_start_tenure,
+        y = max(final_dataset$value) * 0.8,
+        label = "Treatment cohort adoption",
+        angle = 90,
+        vjust = 2
+    ) +
+    annotate(
+        "text",
+        x = event_occurs_tenure,
+        y = max(final_dataset$value) * 0.8,
+        label = "Event occurs for treated cohort",
+        angle = 90,
+        vjust = 2
+    ) +
+    labs(title = "Value vs. Tenure", x = "Tenure", y = "Value") +
+    causalverse::ama_theme()
+
+# Overlay plot_time on top of plot_tenure
+final_plot <- plot_time / plot_tenure
+
+# Display the final plot
+final_plot
+```
+
+-   **Upper Panel**:
+
+    -   Displays behavior over time for one treatment group and three prior groups.
+
+-   **Lower Panel**:
+
+    -   Indicates that the groups are similar, but the control group hadn't faced the event.
+
+    -   The x-axis represents tenure, not actual calender time.
+
+    -   For the control group, data is utilized up to the event or within the available timeline of the treated group.
+
+**Note**: In this section, we utilize data and portions of the code from the original paper by [@turjeman2023data] to showcase the application of this method. For detailed information, please refer to the original paper.
+
+-   **Grouping Strategy**:
+
+    -   For each group that engaged within a set timeframe before a major event:
+
+        -   Another group from a slightly earlier timeframe is used for comparison.
+
+    -   Many groups play dual roles, sometimes as controls and other times as the treated. Only a few at the start and end of the timeframe don't switch roles.
+
+It's always beneficial to include "model-free evidence" in your analysis, which entails showing the simple average of your dependent variable for both the treated and control groups.
+
+For instance, using the dataset for the dependent variables from [@turjeman2023data], we can observe a difference between the treated and control groups post-treatment.
+
+```{r}
+percent_active_per_group <-
+    rio::import(file.path(
+        getwd(),
+        "data",
+        "mksc.2019.0208",
+        "percent_active_per_group.csv"
+    ))
+
+head(percent_active_per_group)
+
+ggplot(data = percent_active_per_group, aes(
+    x = time_from,
+    y = avg_avg,
+    linetype = as.factor(group_type)
+)) +
+    geom_line(linewidth = 0.75) +
+    geom_vline(xintercept = 0) +
+    scale_x_continuous(breaks = seq(
+        from = -1 * breach_time,
+        to = 3,
+        by = 1
+    ),
+    limits = c(-3, 3)) +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1),
+                       expand = expansion(mult = c(0.2, 0.2))) +
+    scale_linetype_manual(values = c("dotted", "solid")) +
+    labs(
+        x = "Weeks from treatment",
+        y = "Average percent of active users",
+        title = "Percent of Active Users per Group",
+        linetype = "Group"
+    ) +
+    facet_grid(rows = vars(activity_name), scales = "free_y") +
+    causalverse::ama_theme()
+```
+
+-   **Potential Outcomes Framework**:
+
+    -   Focuses on two quantities for any given subject:
+
+        -   Outcome without the event ($Y_i(0)$).
+
+        -   Outcome with the event ($Y_i(1)$).
+
+    -   Only one of these outcomes can be observed, so the unobserved (counterfactual) outcome must be estimated, denoted as either $\hat{Y}_i(0)$ or $\hat{Y}_i(1)$.
+
+    -   We also estimate the probability of exposure to the event, denoted as $\hat{w}_i \in (0,1)$
+
+-   **Temporal Causal Inference (TCI)**:
+
+    -   Useful when all subjects are affected by the event (e.g., publicly announced events)
+
+-   **Key Assumptions in Temporal Causal Inference (same as any other causal inference methods)**:
+
+    1.  **Stable Unit Treatment Value Assumption (SUTVA)**: Assumes no interference between units.
+
+    2.  **Conditional Independence Assumption**: Treatment assignment is independent of potential outcomes.
+
+    3.  **Overlap Assumption**: Each subject has a positive probability of receiving treatment.
+
+    4.  **Exogeneity of Covariates Assumption**: Assumes no omitted variable bias.
+
+**Stable Unit Treatment Value Assumption (SUTVA)**
+
+The SUTVA assumption comprises two main conditions:
+
+1.  **No Interference Between Units (Cox 1958)**:
+
+    -   Each unit's treatment assignment should not affect the outcome of another unit.
+
+    -   If one unit (e.g., individual, organization) experiences a shock, their exposure shouldn't impact any other unit's outcome.
+
+    -   Through Temporal Causal Inference (TCI), assignments to treatment or control groups are based on temporal factors. Since outcomes don't coincide in real-world time, units in different groups (treatment and control) aren't influenced by each other's treatment status. Specifically, for every unit set $\{i, j\}, Y_i(1) \perp Y_j(0)$
+
+    -   However, after an exogenous shock, one treated unit's behavior might impact another's, yielding potential interference such as $Y_i(1) \perp Y_j(1)$ for only some treated units.
+
+    -   **Addressing Potential Interference**:
+
+        -   To ensure more accurate results, advanced methodologies like Causal Forests can be employed to match unit trajectories based on their temporal attributes and other relevant factors.
+
+    -   **Comparing Temporal Causal Inference (TCI) with Staggered Differences-in-Differences (DiD)**:
+
+        -   While staggered DiD is useful for estimating treatment effects when treatments occur at different times across various entities
+
+        -   TCI focuses on the temporal aspect of when units are exposed to treatments or conditions.
+
+2.  **No Hidden Versions of Treatments**
+
+-   Assumption:
+    -   Outcome representation for any unit: $Y_i = Y_i(1) W_i + Y_i(0)(1-W_i)$
+    -   If treated: observed outcome = $Y_i(1)$
+    -   If control: observed outcome = $Y_i(0)$
+    -   Only the treatment affects the outcome.
+-   Challenges:
+    -   Hard to test in many scenarios outside well-conducted randomized control trials.
+    -   Potential for unobserved events or conditions to influence unit behavior.
+    -   Examples: Environmental changes, policy shifts, or specific events that might impact the outcome $Y_i(1)$ aside from the primary treatment.
+-   Temporal Causal Inference (TCI) Advantages:
+    -   Incorporates multiple "control cohorts" joining at distinct times.
+    -   Minimizes the influence of unrelated events on $Y_i(0)$.
+    -   External factors get averaged out across all control cohorts.
+    -   Empirical support: No significant pre-treatment behavioral differences between control and treatment groups (i.e., Pre-treatment Parallel Trends).
+-   Precision Enhancement:
+    -   Use of methodologies like Causal Forests.
+    -   Matches individual units to a representative ensemble from the control group.
+
+**Conditional Independence (or Ignorability) (extended to Unconfoundedness) Assumption**
+
+-   Assumption Overview: Assignment to control/treatment groups is random given $X$:
+    -   $P(W_i|X_i, Y(0), Y(1)) = P(W_i|X_i, Y_{obs})$
+-   Extended Assumption (Unconfoundedness): No need to control for $Y_{obs}$:
+    -   $P(W_i|X_i, Y(0), Y(1)) = P(W_i |X_i, Y_{obs})$
+-   Exogenous Shock Considerations:
+    -   Affected all units.
+    -   Individuals have different tenure, thus affected at different points in their journey.
+    -   Potential confounding effects due to unobserved factors. (TCI) limitations:
+        -   Might not fully account for confounding due to unit join-time (i.e., tenure starting time) and the outcome variable.
+-   Validation of Control and Treatment Group Similarity:
+    -   Parallel trend assumption verified using Granger Test (temporal relatedness):
+        -   Bi-directional test checks if control group's time series predicts that of the treatment group and vice versa.
+        -   Should find the series statistically indistinguishable in pre-treatment phase.
+    -   Kolmogorov-Smirnov Test to compare time-lines:
+        -   Assesses if control and treatment groups differ in their time-line prior to treatment.
+        -   Should find suggest timelines are comparable between groups.
+-   Further Refinements:
+    -   Even with parallel trends confirmed, users might have varied timelines.
+        -   Temporal Causal Forests
+
+**Overlap Assumption (or Common Support Assumption)**
+
+-   Assumption Overview: Propensities to be treated lie strictly between 0 and 1:
+    -   $0 < P(W_i =1 |X_i = x) \equiv \hat{w}(x) <1$
+-   Implications in TCI:
+    -   Every unit had a propensity to be treated at any given time during their tenure.
+    -   Ultimately, all users were treated.
+-   Validation of Assumption:
+    -   Assumption further validated by observing estimated $\tilde{w}(x)$ - the propensity to be treated. This was estimated using Local Linear Forests [@friedberg2020local] and as a byproduct of causal forests.
+
+**Exogeneity of Covariates Assumption**
+
+-   Assumption Overview: Covariates are not affected by the treatment:
+    -   $X_i(1) = X_i(1)$
+-   Consideration of Exogenous Shock:
+    -   The exogenous event should be unforeseen.
+    -   Even if some unit anticipated the event, this is likely consistent across both control and treatment groups. Thus, TCI should effectively control for this, and it shouldn't interfere with treatment effect identification.
+
+### Temporal Causal Forests
+
+We introduce two changes to the orignal Causal forest method. theses changes are both internal and eternal to the esitmation of the treatmne effect, and were found, in [@turjeman2023data] to provide the best resutls in tersm of RMSE and ability to recover heterogenous treatmne effects ,both in synehtic data and on placebo tests on our dataset. These changes are
+
+1.  In msot cases, cases, the use of the causla ofrset is to generat egorups that are equiblaentl in both their prpoonsity ot be tretaed, an etheir expected outcome, given the coarites. we choose the parameters X_i to inldue the tiem trend. this leverage sthe traditional causla forests framework to group users based on their pattern of activiites throughout time, resulting in groups withint the control and treatment groups that are relatively homogenous in respect to their tiem trend. In other words, TCF allows us to assess indivuidal treatment effects by estiamting a coutnerfacutla time trend of their activities. Thefore, TCF allos treatment and control groups to be comapred while verifying that the users have realtively similar time trends before the breach annoucenment (i.e., the treatment).
+2.  In order to imporve causal forests, we also ran as robustness an anlaysis where estiamte its "nuisance parameters" (to be explicated later) usign LCoal lienar orrection, via local lienar forest [@friedberg2020local] further describe below. However, in the main analyses, where we estiamte all cohorts jointly, this estimation was not feasible due to the unequal length of itmlines.
+
+Construction and Estiamtion - Temporal Causal forests
+
+THe TCF methodlogy consists of sequential applciation of four non-parametric forest-based methods: random forets, caulsal forsts, gneralized random forests and lcoal lineear forets, eah building atop its predecssoars. We now briefly explian the basic ompoennts, omitting wiedlyl knwon detials from the core random forests literature:
+
+a\. random forrst is a superivsed machinee learnign methdo aimed aesitmating predcition $\hat{\mu}(x)$ for a vector of vaoraites $X_i =x$. The esitmation can be seen as an "ensemble method'\< by taking the average of all regression/deicsion trees. Each diecsiion tre is built by splitting the data into two leaves, in a greddy way, to minize the sum-of-suqared error between the observed and predcited outcomes: consider a parent node $P$ with $n_P$ observations, $(X_{i1}, Y_{i1}, \dots, (X_{in_P}, Y_{inP})$ . For each candidate pair of child code, $\{C_1, C_2\}$, let $\hat{Y}_1, \hat{Y}_2$ be the coresspodnign mean of $Y$ in that leaf. The chosen pair of child nodes will be those that minminze:
+
+$$
+\sum_{i: X_i \in C_1} (Y_i - \bar{Y}_1)^2 + \sum_{i:X_i \in C_2}(Y_i - \bar{Y}_2)^2
+$$
+
+Specically, we present here "Honest Forests": for each tree $b\in \{1, \dots, B\}$, where $B$ is the number of trees in the forest, draw a subsample $S_b$, referred to as the training sample, in the size of half of the poulation (the size can be tuned). Grow the regression tree by recusrively splitting so that the error function (to be defined for each problem spearatley) will be optimzied. After trianing the forest for each user with set of covarites $x$ not in $S_b$, make out-of-bag predictiosn on the response variable $\hat{\mu}(x)$
+
+$$
+\hat{\mu}(x) = \frac{1}{B} \sum_{b = 1}^B \sum_{i = 1}^N Y_i \frac{}{}
+$$
+
+where $L_b(x)$ is the leaf of the b-th tree, to which the set of covariates x corrpesond. [@wager2018estimation] showed that using random forest with "honesty" - that is, by using B trees, where the training set is randomly chosen for each - on ecan dervie the asymptotic ditribution of the response variables, thus allowign us to get both mean and variance of idnvidual estiamtes. in the sequel, we assume the "honest" property, and remove notaiton of $S_b$ for simpliciyt.
+
+b\. Generalized random forests. Whereas random forets can be seen as an ensemble method - average of predcitiosn made by idnvidual trees - @athey2019estimating propose that it can be seen as an adaptive kernel method, in a generalzied random forest:
+
+$$
+\hat{\mu}_{grf}(x) = \sum_{i = 1}^N \alpha_i (x) \times Y_i
+$$
+
+$$
+\alpha_i(x) = \frac{1}{B} \sum_{b = 1}^B \alpha_{b_i}(x)
+$$
+
+$$
+\alpha_{b_i} (x) = \concat
+$$
+
+## Both Spatial and Temporal

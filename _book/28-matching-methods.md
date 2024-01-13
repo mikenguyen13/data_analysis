@@ -427,7 +427,6 @@ Other advanced methods for longitudinal settings
 
 -   balanced risk set matching [@li2001balanced]
 
-\
 Most matching methods are based on (ex-post)
 
 -   propensity score
@@ -928,7 +927,7 @@ library(designmatch)
 
 As mentioned in `MatchIt`, you have to make trade-off (also known as bias-variance trade-off) between balance and sample size. An automated procedure to optimize this trade-off is implemented in `MatchingFrontier` [@king2017balance], which solves this joint optimization problem.
 
-I follow `MatchingFrontier` [guide](https://projects.iq.harvard.edu/files/frontier/files/using_matchingfrontier.pdf)
+Following `MatchingFrontier` [guide](https://projects.iq.harvard.edu/files/frontier/files/using_matchingfrontier.pdf)
 
 
 ```r
@@ -1411,6 +1410,8 @@ Identification strategy:
 -   Within-unit over-time variation
 
 -   within-time across-units variation
+
+See [DID with in and out treatment condition] for details of this method
 
 ## Matching for multiple treatments
 

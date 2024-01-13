@@ -308,3 +308,7 @@ With large sample size and "pure" randomization $M \sim \chi^2_k$ where $k$ is t
 Then let $p_a$ be the probability of accepting a randomization. Choosing appropriate $p_a$ is a tradeoff between balance and time.
 
 Then the rule of thumb is re-randomize when $M > a$
+
+## Two-Stage Randomized Experiments with Interference and Noncompliance
+
+[@imai2021causal]

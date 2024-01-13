@@ -128,21 +128,23 @@ Tools in a hierarchical order
 
     1.  [Regression Discontinuity] Tier 1A
 
-    2.  [Difference-In-Differences] Tier 2
+    2.  [Synthetic Difference-in-Differences]: Tier 2
 
-    3.  [Synthetic Control] Tier 2A
+    3.  [Difference-In-Differences] Tier 2A
 
-    4.  [Event Studies] Tier 2B
+    4.  [Synthetic Control] Tier 2A
 
-    5.  Fixed Effects Estimator \@ref(fixed-effects-estimator): Tier 3
+    5.  [Event Studies] Tier 2B
 
-    6.  [Endogenous Treatment]: mostly [Instrumental Variable]: Tier 3A
+    6.  Fixed Effects Estimator \@ref(fixed-effects-estimator): Tier 3
 
-    7.  [Matching Methods] Tier 4
+    7.  [Endogenous Treatment]: mostly [Instrumental Variable]: Tier 3A
 
-    8.  [Interrupted Time Series] Tier 4A
+    8.  [Matching Methods] Tier 4
 
-    9.  Endogenous Sample Selection \@ref(endogenous-sample-selection): mostly Heckman's correction
+    9.  [Interrupted Time Series] Tier 4A
+
+    10. Endogenous Sample Selection \@ref(endogenous-sample-selection): mostly Heckman's correction
 
 Internal vs. External Validity
 
