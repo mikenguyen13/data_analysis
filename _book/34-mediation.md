@@ -1,8 +1,8 @@
 # Mediation
 
-## Traditional
+## Traditional Approach
 
-[@baron1986moderator] is outdated because of step 1, but we could still see the original idea.
+@baron1986moderator is outdated because of step 1, but we could still see the original idea.
 
 3 regressions
 
@@ -14,13 +14,60 @@
 
 where
 
--   $X$ = independent variable
+-   $X$ = independent (causal) variable
 
--   $Y$ = dependent variable
+-   $Y$ = dependent (outcome) variable
 
 -   $M$ = mediating variable
 
-1.  Originally, the first path from $X \to Y$ suggested by [@baron1986moderator] needs to be significant. But there are cases that you could have indirect of $X$ on $Y$ without significant direct effect of $X$ on $Y$ (e.g., when the effect is absorbed into M, or there are two counteracting effects $M_1, M_2$ that cancel out each other effect).
+**Note**: Originally, the first path from $X \to Y$ suggested by [@baron1986moderator] needs to be significant. But there are cases in which you could have indirect of $X$ on $Y$ without significant direct effect of $X$ on $Y$ (e.g., when the effect is absorbed into M, or there are two counteracting effects $M_1, M_2$ that cancel out each other effect).
+
+![Unmediated model](images/mediation/direct_mod.png){width="90%"}
+
+where $c$ is the **total effect**
+
+![](images/mediation/full_mod.png){width="90%"}
+
+where
+
+-   $c'$ = **direct effect** (effect of $X$ on $Y$ after accounting for the indirect path)
+
+-   $ab$ = **indirect effect**
+
+Hence,
+
+$$
+\begin{aligned}
+\text{total effect} &= \text{direct effect} + \text{indirect effect} \\
+c &= c' + ab
+\end{aligned}
+$$
+
+However, this simple equation does not only hold in cases of
+
+1.  Models with latent variables
+2.  Logistic models (only approximately). Hence, you can only calculate $c$ as the total effect of $c' + ab$
+3.  Multi-level models [@bauer2006conceptualizing]
+
+To measure mediation (i.e., indirect effect),
+
+1.  $1 - \frac{c'}{c}$ highly unstable [@mackinnon1995simulation], especially in cases that $c$ is small (not re\* recommended)
+2.  **Product method**: $a\times b$
+3.  **Difference method**: $c- c'$
+
+For linear models, we have the following assumptions:
+
+1.  [Confounding]:
+
+    1.  No unmeasured confound between $X-Y$, $X-M$ and $M-Y$ relationships.
+
+    2.  $X \not\rightarrow C$ where $C$ is a confounder between $M-Y$ relationship
+
+2.  [Reliability]: No errors in measurement of $M$ (also known as reliability assumption) (can consider errors-in-variables models)
+
+3.  [Direction]: Causal Direction: measurement $M \to Y$, not $Y \to M$
+
+4.  [Interaction]: No $X\times M$ interaction: $b$ does not depend on the levels of $X$ (testable)
 
 Mathematically,
 
@@ -50,18 +97,370 @@ $$
 
 $b_4$ needs to be either smaller or insignificant.
 
-| The effect of $X$ on $Y$                           | then, $M$ ... mediates between $X$ and $Y$ |
-|---------------------------------------|---------------------------------|
-| completely disappear ($b_4$ insignificant)         | Fully (i.e., full mediation)               |
-| partially disappear ($b_4$ smaller than in step 1) | Partially (i.e., partial mediation)        |
+| The effect of $X$ on $Y$                    | then, $M$ ... mediates between $X$ and $Y$ |
+|------------------------------------|------------------------------------|
+| completely disappear ($b_4$ insignificant)  | Fully (i.e., full mediation)               |
+| partially disappear ($b_4 < b_1$ in step 1) | Partially (i.e., partial mediation)        |
 
 4.  Examine the mediation effect (i.e., whether it is significant)
 
--   Fist approach: Sobel's test [@sobel1982asymptotic]
+-   [Sobel Test] [@sobel1982asymptotic]
 
--   Second approach: bootstrapping [@preacher2004spss] (preferable)
+-   [Joint Significance Test]
 
-More details can be found [here](https://cran.ism.ac.jp/web/packages/mediation/vignettes/mediation-old.pdf)
+-   [Bootstrapping] [@preacher2004spss, @shrout2002mediation] (preferable)
+
+**Notes**:
+
+-   Proximal mediation ($a > b$) can lead to multicollinearity and reduce statistical power, whereas distal mediation ($b > a$) is preferred for maximizing test power.
+
+-   The ideal balance for maximizing power in mediation analysis involves slightly distal mediators (i.e., path $b$ is somewhat larger than path $a$) [@hoyle1999statistical].
+
+-   Tests for direct effects (c and c\') have lower power compared to the indirect effect (ab), making it possible for ab to be significant while c is not, even in cases where there seems to be complete mediation but no statistical evidence of a direct cause-effect relationship between X and Y without considering M [@kenny2014power].
+
+-   The testing of $ab$ offers a power advantage over $c’$ because it effectively combines two tests. However, claims of complete mediation based solely on the non-significance of $c’$ should be approached with caution, emphasizing the need for sufficient sample size and power, especially in assessing partial mediation. Or one should never make complete mediation claim [@hayes2013relative]
+
+### Assumptions
+
+#### Direction
+
+-   Quick fix but not convincing: Measure $X$ before $M$ and $Y$ to prevent $M$ or $Y$ causing $X$; measure $M$ before $Y$ to avoid $Y$ causing $M$.
+
+-   $Y$ may cause $M$ in a feedback model.
+
+    -   Assuming $c' =0$ (full mediation) allows for estimating models with reciprocal causal effects between $M$ and $Y$ via IV estimation.
+
+    -   @smith1982beliefs proposes treating both $M$ and $Y$ as outcomes with potential to mediate each other, requiring distinct instrumental variables for each that do not affect the other.
+
+#### Interaction
+
+-   When M interact with X to affect Y, M is both a mediator and a mediator [@baron1986moderator].
+
+-   Interaction between $XM$ should always be estimated.
+
+-   For the interpretation of this interaction, see [@vanderweele2015explanation]
+
+#### Reliability
+
+-   When mediator contains measurement errors, $b, c'$ are biased. Possible fix: mediator = latent variable (but loss of power) [@ledgerwood2011trade]
+
+    -   $b$ is attenuated (closer to 0)
+
+    -   $c'$ is
+
+        -   overestimated when $ab >0$
+
+        -   underestiamted when $ab<0$
+
+-   When treatment contains measurement errors, $a,b$ are biased
+
+    -   $a$ is attenuated
+
+    -   $b$ is
+
+        -   overestimated when $ac'>0$
+
+        -   underestimated when $ac' <0$
+
+-   When outcome contains measurement errors,
+
+    -   If unstandardized, no bias
+
+    -   If standardized, attenuation bias
+
+#### Confounding
+
+-   Omitted variable bias can happen to any pair of relationships
+
+-   To deal with this problem, one can either use
+
+    -   [Design Strategies]
+
+    -   [Statistical Strategies]
+
+##### Design Strategies
+
+-   **Randomization** of treatment variable. If possible, also mediator
+
+-   **Control** for the confounder (but still only for measureable observables)
+
+##### Statistical Strategies
+
+-   **Instrumental** **variable** on treatment
+
+    -   Specifically for confounder affecting the $M-Y$ pair, front-door adjustment is possible when there is a variable that completely mediates the effect of the mediator on the outcome and is unaffected by the confounder.
+
+-   **Weighting** methods (e.g., inverse propensity) See [Heiss](https://www.andrewheiss.com/blog/2020/12/01/ipw-binary-continuous/) for R code
+
+    -   Need strong ignorability assumption (i.e.., all confounders are included and measured without error [@westfall2016statistically]). Not fixable, but can be examined with robustness checks.
+
+### Indirect Effect Tests
+
+#### Sobel Test
+
+-   developed by @sobel1982asymptotic
+
+-   also known as the **delta method**
+
+-   not recommend because it assumes the indirect effect $b$ has a normal distribution when it's not [@mackinnon1995simulation].
+
+-   Mediation can occur even if direct and indirect effects oppose each other, termed "inconsistent mediation" [@mackinnon2007mediation]. This is when the mediator acts as a suppressor variable.
+
+Standard Error
+
+$$
+\sqrt{\hat{b}^2 s_{\hat{a}} + \hat{a}^2 s_{b}^2}
+$$
+
+The test of the indirect effect is
+
+$$
+z = \frac{\hat{ab}}{\sqrt{\hat{b}^2 s_{\hat{a}} + \hat{a}^2 s_{b}^2}}
+$$
+
+Disadvantages
+
+-   Assume $a$ and $b$ are independent.
+
+-   Assume $ab$ is normally distributed.
+
+-   Does not work well for small sample sizes.
+
+-   Power of the test is low and the test is conservative as compared to [Bootstrapping].
+
+#### Joint Significance Test
+
+-   Effective for determining if the indirect effect is nonzero (by testing whether $a$ and $b$ are both statistically significant), assumes $a \perp b$.
+
+-   It's recommended to use it with other tests and has similar performance to a [Bootstrapping] test [@hayes2013relative].
+
+-   The test's accuracy can be affected by heteroscedasticity [@fossum2023use] but not by non-normality.
+
+-   Although helpful in computing power for the test of the indirect effect, it doesn't provide a confidence interval for the effect.
+
+#### Bootstrapping
+
+-   First used by @bollen1990direct
+
+-   It allows for the calculation of confidence intervals, p-values, etc.
+
+-   It does not require $a \perp b$ and corrects for bias in the bootstrapped distribution.
+
+-   It can handle non-normality (in the sampling distribution of the indirect effect), complex models, and small samples.
+
+-   Concerns exist about the bias-corrected bootstrapping being too liberal [@fritz2012explanation]. Hence, current recommendations favor percentile bootstrap without bias correction for better Type I error rates [@tibbe2022correcting].
+
+-   A special case of bootstrapping is a proposed by where you don't need access to raw data to generate resampling, you only need $a, b, var(a), var(b), cov(a,b)$ (which can be taken from lots of primary studies)
+
+
+```r
+result <-
+    causalverse::med_ind(
+        a = 0.5,
+        b = 0.7,
+        var_a = 0.04,
+        var_b = 0.05,
+        cov_ab = 0.01
+    )
+result$plot
+```
+
+<img src="34-mediation_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
+
+##### With Instrument
+
+
+```r
+library(DiagrammeR)
+grViz("
+digraph {
+  graph []
+  node [shape = plaintext]
+    X [label = 'Treatment']
+    Y [label = 'Outcome']
+  edge [minlen = 2]
+    X->Y
+  { rank = same; X; Y }
+}
+")
+
+grViz("
+digraph {
+  graph []
+  node [shape = plaintext]
+    X [label ='Treatment', shape = box]
+    Y [label ='Outcome', shape = box]
+    M [label ='Mediator', shape = box]
+    IV [label ='Instrument', shape = box]
+  edge [minlen = 2]
+    IV->X
+    X->M  
+    M->Y 
+    X->Y 
+  { rank = same; X; Y; M }
+}
+")
+```
+
+
+```r
+library(mediation)
+data("boundsdata")
+library(fixest)
+
+# Total Effect
+out1 <- feols(out ~ ttt, data = boundsdata)
+
+# Indirect Effect
+out2 <- feols(med ~ ttt, data = boundsdata)
+
+# Direct and Indirect Effect
+out3 <- feols(out ~ med + ttt, data = boundsdata)
+
+# Proportion Test
+# To what extent is the effect of the treatment mediated by the mediator?
+coef(out2)['ttt'] * coef(out3)['med'] / coef(out1)['ttt'] * 100
+#>      ttt 
+#> 68.63609
+
+
+# Sobel Test
+bda::mediation.test(boundsdata$med, boundsdata$ttt, boundsdata$out) |> 
+    tibble::rownames_to_column() |> 
+    causalverse::nice_tab(2)
+#>   rowname Sobel Aroian Goodman
+#> 1 z.value  4.05   4.03    4.07
+#> 2 p.value  0.00   0.00    0.00
+```
+
+
+```r
+# Mediation Analysis using boot
+library(boot)
+set.seed(1)
+mediation_fn <- function(data, i){
+    # sample the dataset
+    df <- data[i,]
+    
+    
+    a_path <- feols(med ~ ttt, data = df)
+    a <- coef(a_path)['ttt']
+    
+    b_path <-  feols(out ~ med + ttt, data = df)
+    b <- coef(b_path)['med']
+    
+    cp <- coef(b_path)['ttt']
+    
+    # indirect effect
+    ind_ef <- a*b
+    total_ef <- a*b + cp
+    return(c(ind_ef, total_ef))
+    
+}
+
+boot_med <- boot(boundsdata, mediation_fn, R = 100, parallel = "multicore", ncpus = 2)
+boot_med 
+#> 
+#> ORDINARY NONPARAMETRIC BOOTSTRAP
+#> 
+#> 
+#> Call:
+#> boot(data = boundsdata, statistic = mediation_fn, R = 100, parallel = "multicore", 
+#>     ncpus = 2)
+#> 
+#> 
+#> Bootstrap Statistics :
+#>       original        bias    std. error
+#> t1* 0.04112035  0.0006346725 0.009539903
+#> t2* 0.05991068 -0.0004462572 0.029556611
+
+summary(boot_med) |> 
+    causalverse::nice_tab()
+#>     R original bootBias bootSE bootMed
+#> 1 100     0.04        0   0.01    0.04
+#> 2 100     0.06        0   0.03    0.06
+
+# confidence intervals (percentile is always recommended)
+boot.ci(boot_med, type = c("norm", "perc"))
+#> BOOTSTRAP CONFIDENCE INTERVAL CALCULATIONS
+#> Based on 100 bootstrap replicates
+#> 
+#> CALL : 
+#> boot.ci(boot.out = boot_med, type = c("norm", "perc"))
+#> 
+#> Intervals : 
+#> Level      Normal             Percentile     
+#> 95%   ( 0.0218,  0.0592 )   ( 0.0249,  0.0623 )  
+#> Calculations and Intervals on Original Scale
+#> Some percentile intervals may be unstable
+
+# point estimates (Indirect, and Total Effects)
+colMeans(boot_med$t)
+#> [1] 0.04175502 0.05946442
+```
+
+Alternatively, one can use the `robmed` package
+
+
+```r
+library(robmed)
+```
+
+Power test or use [app](https://davidakenny.shinyapps.io/MedPower/)
+
+
+```r
+library(pwr2ppl)
+
+# indirect path ab power
+medjs(
+    # X on M (path a)
+    rx1m1 = .3,
+    # correlation between X and Y (path c')
+    rx1y  = .1,
+    # correlation between M and Y (path b)
+    rym1  = .3,
+    # sample size
+    n     = 100,
+    alpha = 0.05,
+    # number of mediators
+    mvars = 1,
+    # should use 10000
+    rep   = 1000
+)
+```
+
+### Multiple Mediations
+
+The most general package to handle multiple cases is `manymome`
+
+See [vignette](https://cran.r-project.org/web/packages/manymome/vignettes/med_lm.html) for an example
+
+
+```r
+library(manymome)
+```
+
+#### Multiple Mediators
+
+-   [Notes](https://openresearchsoftware.metajnl.com/articles/10.5334/jors.160)
+
+-   [Vignette](https://cran.r-project.org/web/packages/mma/vignettes/MMAvignette.html)
+
+-   [Package](https://cran.r-project.org/web/packages/mma/mma.pdf)
+
+
+```r
+library(mma)
+```
+
+#### Multiple Treatments
+
+[@hayes2014statistical]
+
+Code in [Process](https://core.ecu.edu/wuenschk/MV/multReg/Mediation_Multicategorical.pdf)
+
+## Causal Inference Approach
 
 ### Example 1 {#example-1-mediation-traditional}
 
@@ -74,12 +473,70 @@ myData <-
 
 # Step 1 (no longer necessary)
 model.0 <- lm(Y ~ X, myData)
+summary(model.0)
+#> 
+#> Call:
+#> lm(formula = Y ~ X, data = myData)
+#> 
+#> Residuals:
+#>     Min      1Q  Median      3Q     Max 
+#> -5.0262 -1.2340 -0.3282  1.5583  5.1622 
+#> 
+#> Coefficients:
+#>             Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)   2.8572     0.6932   4.122 7.88e-05 ***
+#> X             0.3961     0.1112   3.564 0.000567 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 1.929 on 98 degrees of freedom
+#> Multiple R-squared:  0.1147,	Adjusted R-squared:  0.1057 
+#> F-statistic:  12.7 on 1 and 98 DF,  p-value: 0.0005671
 
 # Step 2
 model.M <- lm(M ~ X, myData)
+summary(model.M)
+#> 
+#> Call:
+#> lm(formula = M ~ X, data = myData)
+#> 
+#> Residuals:
+#>     Min      1Q  Median      3Q     Max 
+#> -4.3046 -0.8656  0.1344  1.1344  4.6954 
+#> 
+#> Coefficients:
+#>             Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)  1.49952    0.58920   2.545   0.0125 *  
+#> X            0.56102    0.09448   5.938 4.39e-08 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 1.639 on 98 degrees of freedom
+#> Multiple R-squared:  0.2646,	Adjusted R-squared:  0.2571 
+#> F-statistic: 35.26 on 1 and 98 DF,  p-value: 4.391e-08
 
 # Step 3
 model.Y <- lm(Y ~ X + M, myData)
+summary(model.Y)
+#> 
+#> Call:
+#> lm(formula = Y ~ X + M, data = myData)
+#> 
+#> Residuals:
+#>     Min      1Q  Median      3Q     Max 
+#> -3.7631 -1.2393  0.0308  1.0832  4.0055 
+#> 
+#> Coefficients:
+#>             Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)   1.9043     0.6055   3.145   0.0022 ** 
+#> X             0.0396     0.1096   0.361   0.7187    
+#> M             0.6355     0.1005   6.321 7.92e-09 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 1.631 on 97 degrees of freedom
+#> Multiple R-squared:  0.373,	Adjusted R-squared:  0.3601 
+#> F-statistic: 28.85 on 2 and 97 DF,  p-value: 1.471e-10
 
 # Step 4 (boostrapping)
 library(mediation)
@@ -98,10 +555,10 @@ summary(results)
 #> Nonparametric Bootstrap Confidence Intervals with the Percentile Method
 #> 
 #>                Estimate 95% CI Lower 95% CI Upper p-value    
-#> ACME             0.3565       0.2153         0.53  <2e-16 ***
-#> ADE              0.0396      -0.1993         0.32    0.71    
-#> Total Effect     0.3961       0.1838         0.68  <2e-16 ***
-#> Prop. Mediated   0.9000       0.4781         1.86  <2e-16 ***
+#> ACME             0.3565       0.2315         0.51  <2e-16 ***
+#> ADE              0.0396      -0.1817         0.28     0.8    
+#> Total Effect     0.3961       0.1821         0.64  <2e-16 ***
+#> Prop. Mediated   0.9000       0.5226         1.83  <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -117,7 +574,7 @@ summary(results)
 
 -   ACME = Average Causal Mediation Effects = $b_1 - b_4$ = 0.3961 - 0.0396 = 0.3565 = $b_2 \times b_3$ = 0.56102 \* 0.6355 = 0.3565
 
-Using `mediation` package suggested by [@imai2010general] [@imai2010identification]. More on details of the package can be found [here](https://cran.r-project.org/web/packages/mediation/vignettes/mediation.pdf)
+Using `mediation` package suggested by [@imai2010general, @imai2010identification]. More details of the package can be found [here](https://cran.r-project.org/web/packages/mediation/vignettes/mediation.pdf)
 
 2 types of Inference in this package:
 
@@ -173,7 +630,9 @@ My understanding is that until the moment I write this note, there is **no way t
 
 ## Model-based causal mediation analysis
 
-I only put my understanding of model-based causal mediation analysis because I do not encounter design-based. Maybe in the future when I have to use it, I will start reading on it.
+Other resources:
+
+-   [here](https://cran.ism.ac.jp/web/packages/mediation/vignettes/mediation-old.pdf)
 
 Fit 2 models
 
@@ -210,7 +669,7 @@ med.out <-
         treat = "treat",
         mediator = "emo",
         robustSE = TRUE,
-        sims = 1000 # should be 10000 in practice
+        sims = 100 # should be 10000 in practice
     )
 summary(med.out)
 #> 
@@ -219,23 +678,23 @@ summary(med.out)
 #> Quasi-Bayesian Confidence Intervals
 #> 
 #>                          Estimate 95% CI Lower 95% CI Upper p-value    
-#> ACME (control)             0.0826       0.0356         0.14  <2e-16 ***
-#> ACME (treated)             0.0831       0.0348         0.14  <2e-16 ***
-#> ADE (control)              0.0137      -0.0967         0.13    0.82    
-#> ADE (treated)              0.0142      -0.1101         0.14    0.82    
-#> Total Effect               0.0968      -0.0290         0.23    0.14    
-#> Prop. Mediated (control)   0.7706      -6.3968         4.70    0.14    
-#> Prop. Mediated (treated)   0.7938      -5.7506         4.52    0.14    
-#> ACME (average)             0.0829       0.0351         0.14  <2e-16 ***
-#> ADE (average)              0.0140      -0.1047         0.13    0.82    
-#> Prop. Mediated (average)   0.7822      -6.0737         4.61    0.14    
+#> ACME (control)             0.0791       0.0351         0.15  <2e-16 ***
+#> ACME (treated)             0.0804       0.0367         0.16  <2e-16 ***
+#> ADE (control)              0.0206      -0.0976         0.12    0.70    
+#> ADE (treated)              0.0218      -0.1053         0.12    0.70    
+#> Total Effect               0.1009      -0.0497         0.23    0.14    
+#> Prop. Mediated (control)   0.6946      -6.3109         3.68    0.14    
+#> Prop. Mediated (treated)   0.7118      -5.7936         3.50    0.14    
+#> ACME (average)             0.0798       0.0359         0.15  <2e-16 ***
+#> ADE (average)              0.0212      -0.1014         0.12    0.70    
+#> Prop. Mediated (average)   0.7032      -6.0523         3.59    0.14    
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> Sample Size Used: 265 
 #> 
 #> 
-#> Simulations: 1000
+#> Simulations: 100
 ```
 
 Nonparametric bootstrap version
@@ -249,7 +708,7 @@ med.out <-
         boot = TRUE,
         treat = "treat",
         mediator = "emo",
-        sims = 1000, # should be 10000 in practice
+        sims = 100, # should be 10000 in practice
         boot.ci.type = "bca" # bias-corrected and accelerated intervals
     )
 summary(med.out)
@@ -258,24 +717,24 @@ summary(med.out)
 #> 
 #> Nonparametric Bootstrap Confidence Intervals with the BCa Method
 #> 
-#>                          Estimate 95% CI Lower 95% CI Upper p-value   
-#> ACME (control)             0.0833       0.0386         0.15   0.002 **
-#> ACME (treated)             0.0844       0.0374         0.15   0.002 **
-#> ADE (control)              0.0114      -0.0875         0.13   0.792   
-#> ADE (treated)              0.0125      -0.1033         0.14   0.792   
-#> Total Effect               0.0958      -0.0291         0.23   0.124   
-#> Prop. Mediated (control)   0.8696     -97.4552         1.00   0.126   
-#> Prop. Mediated (treated)   0.8806     -82.9081         1.02   0.126   
-#> ACME (average)             0.0839       0.0381         0.15   0.002 **
-#> ADE (average)              0.0120      -0.0961         0.14   0.792   
-#> Prop. Mediated (average)   0.8751     -90.6217         1.01   0.126   
+#>                          Estimate 95% CI Lower 95% CI Upper p-value    
+#> ACME (control)             0.0848       0.0424         0.14  <2e-16 ***
+#> ACME (treated)             0.0858       0.0410         0.14  <2e-16 ***
+#> ADE (control)              0.0117      -0.0726         0.13    0.58    
+#> ADE (treated)              0.0127      -0.0784         0.14    0.58    
+#> Total Effect               0.0975       0.0122         0.25    0.06 .  
+#> Prop. Mediated (control)   0.8698       1.7460       151.20    0.06 .  
+#> Prop. Mediated (treated)   0.8804       1.6879       138.91    0.06 .  
+#> ACME (average)             0.0853       0.0434         0.14  <2e-16 ***
+#> ADE (average)              0.0122      -0.0756         0.14    0.58    
+#> Prop. Mediated (average)   0.8751       1.7170       145.05    0.06 .  
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
 #> Sample Size Used: 265 
 #> 
 #> 
-#> Simulations: 1000
+#> Simulations: 100
 ```
 
 If theoretically understanding suggests that there is treatment and mediator interaction
@@ -340,7 +799,7 @@ test.TMint(med.out, conf.level = .95) # test treatment-mediator interaction effe
 plot(med.out)
 ```
 
-<img src="34-mediation_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="34-mediation_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
 
 `mediation` can be used in conjunction with any of your imputation packages.
 
@@ -411,8 +870,6 @@ summary(sens.out)
 plot(sens.out, sens.par = "rho", main = "Anxiety", ylim = c(-0.2, 0.2))
 ```
 
-<img src="34-mediation_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" /><img src="34-mediation_files/figure-html/unnamed-chunk-7-2.png" width="90%" style="display: block; margin: auto;" />
-
 ACME confidence intervals contains 0 when $\rho \in (0.3,0.4)$
 
 Alternatively, using $R^2$ interpretation, we need to specify the direction of confounder that affects the mediator and outcome variables in `plot` using `sign.prod = "positive"` (i.e., same direction) or `sign.prod = "negative"` (i.e., opposite direction).
@@ -421,5 +878,3 @@ Alternatively, using $R^2$ interpretation, we need to specify the direction of c
 ```r
 plot(sens.out, sens.par = "R2", r.type = "total", sign.prod = "positive")
 ```
-
-<img src="34-mediation_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" /><img src="34-mediation_files/figure-html/unnamed-chunk-8-2.png" width="90%" style="display: block; margin: auto;" />

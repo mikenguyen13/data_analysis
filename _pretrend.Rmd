@@ -1,0 +1,78 @@
+# Correction for Endogenous Policy Adoption in Panel Data Models
+
+This section delves into a method for addressing endogenous policy adoption in panel data models. It highlights the use of an unaffected covariate to refine causal inference, particularly adjusting for pre-trends.
+
+## Building Upon Classical Models
+
+The approach expands on classical measurement error models and panel data analysis, traditionally rooted in strict exogeneity. Unlike standard methods that impose covariance restrictions across equations for identifying latent factors, this method achieves identification by ensuring the policy variable's strict exogeneity relative to the measurement error in $x_{it}$, requiring only a single covariate.
+
+## Alternative Approaches for Policy Endogeneity
+
+Addressing policy endogeneity in linear panel data models can be approached in several ways:
+
+1.  **Instrumental Variables**: Searching for an instrumental variable to account for policy changes.
+2.  **Unaffected Covariate**: Identifying a covariate that relates to confounds but remains unaffected by the policy, necessitating the policy's strict exogeneity with respect to errors in $x_{it}$.
+3.  **Dynamic Restrictions**: Imposing restrictions on the relationship between $x_{it}$ and $\eta_{it}$, such as using $x_{it}$ lags as instruments. This approach requires serially uncorrelated measurement errors or a known error correlation structure.
+4.  **Time-Series Analysis**: Investigating the time-series characteristics of $\eta_{it}$.
+
+## Study Objectives and Methods
+
+The primary goal is to identify the causal impact of a policy in linear panel event studies, even when confounds affect both the outcome and the policy variable. By employing covariates that are only related to the policy through these confounds, the policy's effect is estimated using Two-Stage Least Squares (2SLS), which remains valid in the presence of endogeneity-induced pre-event trends.
+
+### Evidence Examination Methods
+
+1.  **Pre-Trends Outcome Plot**: Differences in outcomes between treated and control groups prior to event adoption may indicate a lack of strict exogeneity in policy adoption.
+2.  **Formal Statistical Test**: A test to determine if pre-trends are non-zero, acknowledging the limitations highlighted by @freyaldenhoven2019pre in statistical power.
+
+### Assumptions and Context
+
+-   **Objective**: Estimating the causal effect ($\beta$) of the policy variable $z_{it}$ on outcome $y_{it}$.
+-   **Model Framework**: A linear panel data model with units $i$ over time $t$.
+-   **Primary Concern**: The exogeneity of $z_{it}$ due to time-varying unobservables $\eta_{it}$.
+-   **Case Study Context**: $y_{it}$ represents youth employment, and $z_{it}$ signifies a post-minimum wage increase indicator.
+-   **Confounder**: An unobserved factor, $\eta_{it}$, indicative of labor demand.
+-   **Economic Considerations**: The temporal alignment of minimum wage increases with economic upturns.
+
+### Instrumental Variable Approach
+
+To rectify endogenous policy adoption, an instrumental variable is utilized. The true causal model, inclusive of the unobservable $\eta_{it}$, is presented as:
+
+$$ y_{it} = \beta z_{it} + \gamma \eta_{it} + \epsilon_{it} $$
+
+Assuming strict exogeneity of the policy:
+
+$$ E(\epsilon_{it} | \eta_{it}, z_{it}) = 0 $$
+
+The relationship between the instrument and the unobservable is:
+
+$$ E(x_{it} | \eta_{it}) = \lambda \eta_{it} $$
+
+While $x_{it}$ is often used as a control variable, this approach is only valid if $x_{it}$ perfectly proxies for $\eta_{it}$. An alternative method involves using the adjusted dependent variable $y_{it} - x_{it}$, which is effective only if the confounder's effects are parallel between the outcome and covariate, and the post-event behavior of the confounder can be inferred from its pre-event trend.
+
+### Practitioner's Challenge
+
+The primary challenge for practitioners is to identify a covariate $x_{it}$ that is related to the confound $\eta_{it}$ but remains unaffected by the policy $z_{it}$. This task is akin to finding a suitable control variable but without the need for $x_{it}$ to perfectly proxy for $\eta_{it}$.
+
+## Identifying Assumptions
+
+1.  Orthongoanlity conditions (i.e., Exclusion conditions)
+2.  Rank COnsiditons (i.e., Relevance conditions).
+
+```{r}
+library(eventstudyr)
+
+results <- EventStudy(estimator = "OLS",
+                      data = example_data,
+                      outcomevar = "y_jump_m",
+                      policyvar = "z",
+                      idvar = "id",
+                      timevar = "t",
+                      post = 3,
+                      pre = 0)
+
+results$output
+
+EventStudyPlot(estimates = results,
+               xtitle = "Event time",
+               ytitle = "Coefficient")
+```

@@ -120,6 +120,12 @@ $$
 | Random Assignment (reduce treatment imbalance) | Random Sampling (reduce sample selection error) |
 +------------------------------------------------+-------------------------------------------------+
 
+Criticisms of quasi-experimental versus experimental designs:
+
+-   Quasi-experimental methods don't approximate well experimental results. For example,
+
+    -   @lalonde1986evaluating shows [Matching Methods], [Difference-in-differences], [Tobit-2] (Heckman-type) can't approximate the experimental estimates.
+
 Tools in a hierarchical order
 
 1.  [Experimental Design]: Randomized Control Trials (Gold standard): Tier 1
@@ -128,7 +134,7 @@ Tools in a hierarchical order
 
     1.  [Regression Discontinuity] Tier 1A
 
-    2.  [Synthetic Difference-in-Differences]: Tier 2
+    2.  
 
     3.  [Difference-In-Differences] Tier 2A
 

@@ -41,7 +41,7 @@ It's likely that $Y_{1i}$ and $Y_{0i}$ both have their own distributions (i.e., 
 $$
 \begin{aligned}
 E[Y_i | D_i = 1] - E[Y_i | D_i = 0] &= (E[Y_{1i} | D_i = 1] - E[Y_{0i}|D_i = 1] ) + (E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0]) \\
-&= (E[Y_{1i}-Y_{0i}|D_1 = 1] ) + (E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0]) \\
+&= (E[Y_{1i}-Y_{0i}|D_i = 1] ) + (E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0]) \\
 \text{Observed difference in treatment} &= \text{Average treatment effect on the treated} + \text{Selection bias}
 \end{aligned}
 $$

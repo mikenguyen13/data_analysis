@@ -52,13 +52,13 @@ also known as weighted double-differencing estimators
 
     -   Very much similar to augmented SC estimator by [@ben2021augmented; @arkhangelsky2021synthetic, p. 4112]
 
-To apply to staggered adoption settings using the SDID estimator (see examples in @arkhangelsky2021synthetic, p. 4115), we can:
+Ideal case to use SDID estimator is when
 
-1.  Apply the SDID estimator repeatedly, once for every adoption date.
+-   $N_{ctr} \approx T_{pre}$
 
-2.  Using @ben2022synthetic 's method, form matrices for each adoption date. Apply SDID and average based on treated unit/time-period fractions.
+-   Small $T_{post}$
 
-3.  Create multiple samples by splitting the data up by time periods. Each sample should have a consistent adoption date.
+-   $N_{tr} <\sqrt{N_{ctr}}$
 
 ------------------------------------------------------------------------
 
@@ -118,15 +118,15 @@ $$
 
 where $\hat{\delta}_t = \frac{1}{N_t} \sum_{i = N_c + 1}^N \hat{\delta}_i$
 
-+------------+-------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+
-| Method     | Sample Weight                                         | Adjusted outcomes ($\hat{\delta}_i$)                                                                        | Interpretation                                                                   |
-+============+=======================================================+=============================================================================================================+==================================================================================+
-| SC         | $\hat{w}^{sc} = \min_{w \in R}l_{unit}(w)$            | $\frac{1}{T_{post}} \sum_{t = T_{pre} + 1}^T Y_{it}$                                                        | Unweighted treatment period averages                                             |
-+------------+-------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+
-| DID        | $\hat{w}_i^{did} = N_c^{-1}$                          | $\frac{1}{T_{post}} \sum_{t = T_{pre}+ 1}^T Y_{it} - \frac{1}{T_{pre}} \sum_{t = 1}^{T_{pre}}Y_{it}$        | Unweighted differences between average treatment period and pretreatment outcome |
-+------------+-------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+
-| SDID       | $(\hat{w}_0, \hat{w}^{sdid}) = \min l_{unit}(w_0, w)$ | $\frac{1}{T_{post}} \sum_{t = T_{pre} + 1}^T Y_{it} - \sum_{t = 1}^{T_{pre}} \hat{\lambda}_t^{sdid} Y_{it}$ | Weighted differences between average treatment period and pretreatment outcome   |
-+------------+-------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+
++--------+-------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+
+| Method | Sample Weight                                         | Adjusted outcomes ($\hat{\delta}_i$)                                                                        | Interpretation                                                                   |
++========+=======================================================+=============================================================================================================+==================================================================================+
+| SC     | $\hat{w}^{sc} = \min_{w \in R}l_{unit}(w)$            | $\frac{1}{T_{post}} \sum_{t = T_{pre} + 1}^T Y_{it}$                                                        | Unweighted treatment period averages                                             |
++--------+-------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+
+| DID    | $\hat{w}_i^{did} = N_c^{-1}$                          | $\frac{1}{T_{post}} \sum_{t = T_{pre}+ 1}^T Y_{it} - \frac{1}{T_{pre}} \sum_{t = 1}^{T_{pre}}Y_{it}$        | Unweighted differences between average treatment period and pretreatment outcome |
++--------+-------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+
+| SDID   | $(\hat{w}_0, \hat{w}^{sdid}) = \min l_{unit}(w_0, w)$ | $\frac{1}{T_{post}} \sum_{t = T_{pre} + 1}^T Y_{it} - \sum_{t = 1}^{T_{pre}} \hat{\lambda}_t^{sdid} Y_{it}$ | Weighted differences between average treatment period and pretreatment outcome   |
++--------+-------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+
 
 -   The SDID estimator uses weights:
 
@@ -474,7 +474,28 @@ causalverse::process_panel_estimate(results_selected)
 
 ### Staggered Adoption
 
-Using the second approach to apply to staggered adoption settings using the SDID estimator [@ben2022synthetic].
+To apply to staggered adoption settings using the SDID estimator (see examples in @arkhangelsky2021synthetic, p. 4115 similar to @ben2022synthetic), we can:
+
+1.  Apply the SDID estimator repeatedly, once for every adoption date.
+
+2.  Using @ben2022synthetic 's method, form matrices for each adoption date. Apply SDID and average based on treated unit/time-period fractions.
+
+3.  Create multiple samples by splitting the data up by time periods. Each sample should have a consistent adoption date.
+
+For a formal note on this special case, see @porreca2022synthetic. It compares the outcomes from using SynthDiD with those from other estimators:
+
+-   Two-Way Fixed Effects (TWFE),
+
+-   The group time average treatment effect estimator from @callaway2021difference,
+
+-   The partially pooled synthetic control method estimator from @ben2021augmented, in a staggered treatment adoption context.
+
+```{=html}
+<!-- -->
+```
+-   The findings reveal that SynthDiD produces a different estimate of the average treatment effect compared to the other methods.
+
+    -   Simulation results suggest that these differences could be due to the SynthDiD's data generating process assumption (a latent factor model) aligning more closely with the actual data than the additive fixed effects model assumed by traditional DiD methods.
 
 To explore heterogeneity of treatment effect, we can do subgroup analysis [@berman2022value, p. 1092]
 

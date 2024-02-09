@@ -5,15 +5,15 @@
 Examples in marketing
 
 -   [@liaukonyte2015television]: TV ad on online shopping
--   [@akca2020value]: aggregators for airlines business effect
--   [@pattabhiramaiah2019paywalls]: paywall affects readership
 -   [@wang2018border]: political ad source and message tone on vote shares and turnout using discontinuities in the level of political ads at the borders
 -   [@datta2018changing]: streaming service on total music consumption using timing of users adoption of a music streaming service
 -   [@janakiraman2018effect]: data breach announcement affect customer spending using timing of data breach and variation whether customer info was breached in that event
--   [@lim2020competitive]: nutritional labels on nutritional quality for other brands in a category using variation in timing of adoption of nutritional labels across categories
--   [@guo2020let]: payment disclosure laws effect on physician prescription behavior using Timing of the Massachusetts open payment law as the exogenous shock
 -   [@israeli2018online]: digital monitoring and enforcement on violations using enforcement of min ad price policies
 -   [@ramani2019effects]: firms respond to foreign direct investment liberalization using India's reform in 1991.
+-   [@pattabhiramaiah2019paywalls]: paywall affects readership
+-   [@akca2020value]: aggregators for airlines business effect
+-   [@lim2020competitive]: nutritional labels on nutritional quality for other brands in a category using variation in timing of adoption of nutritional labels across categories
+-   [@guo2020let]: payment disclosure laws effect on physician prescription behavior using Timing of the Massachusetts open payment law as the exogenous shock
 -   [@he2022market]: using Amazon policy change to examine the causal impact of fake reviews on sales, average ratings.
 -   [@peukert2022regulatory]: using European General data protection Regulation, examine the impact of policy change on website usage.
 
@@ -22,6 +22,77 @@ Show the mechanism via
 -   Mediation analysis: see [@habel2021variable]
 
 -   Moderation analysis: see [@goldfarb2011online]
+
+## Visualization
+
+
+```r
+library(panelView)
+library(fixest)
+library(tidyverse)
+base_stagg <- fixest::base_stagg |>
+    # treatment status
+    mutate(treat_stat = if_else(time_to_treatment < 0, 0, 1)) |> 
+    select(id, year, treat_stat, y)
+
+head(base_stagg)
+#>   id year treat_stat           y
+#> 2 90    1          0  0.01722971
+#> 3 89    1          0 -4.58084528
+#> 4 88    1          0  2.73817174
+#> 5 87    1          0 -0.65103066
+#> 6 86    1          0 -5.33381664
+#> 7 85    1          0  0.49562631
+
+panelView::panelview(
+    y ~ treat_stat,
+    data = base_stagg,
+    index = c("id", "year"),
+    xlab = "Year",
+    ylab = "Unit",
+    display.all = F,
+    gridOff = T,
+    by.timing = T
+)
+```
+
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+
+# alternatively specification
+panelView::panelview(
+    Y = "y",
+    D = "treat_stat",
+    data = base_stagg,
+    index = c("id", "year"),
+    xlab = "Year",
+    ylab = "Unit",
+    display.all = F,
+    gridOff = T,
+    by.timing = T
+)
+```
+
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+
+# Average outcomes for each cohort
+panelView::panelview(
+    data = base_stagg, 
+    Y = "y",
+    D = "treat_stat",
+    index = c("id", "year"),
+    by.timing = T,
+    display.all = F,
+    type = "outcome", 
+    by.cohort = T
+)
+#> Number of unique treatment histories: 10
+```
+
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-1-3.png" width="90%" style="display: block; margin: auto;" />
 
 ## Simple Dif-n-dif
 
@@ -181,13 +252,13 @@ etable(cali)
 iplot(cali, pt.join = T)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 coefplot(cali)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-2-2.png" width="90%" style="display: block; margin: auto;" />
 
 Notes:
 
@@ -432,13 +503,19 @@ where
 
 -   $Y_{idt}$ = grade average
 
-|              | Intercept                         | Treat | Post | Treat\*Post |
-|--------------|-----------------------------------|-------|------|-------------|
-| Treat Pre    | 1                                 | 1     | 0    | 0           |
-| Treat Post   | 1                                 | 1     | 1    | 1           |
-| Control Pre  | 1                                 | 0     | 0    | 0           |
-| Control Post | 1                                 | 0     | 1    | 0           |
-|              | Average for pre-control $\beta_0$ |       |      |             |
++--------------+-----------------------------------+----------+----------+-------------+
+|              | Intercept                         | Treat    | Post     | Treat\*Post |
++==============+===================================+==========+==========+=============+
+| Treat Pre    | 1                                 | 1        | 0        | 0           |
++--------------+-----------------------------------+----------+----------+-------------+
+| Treat Post   | 1                                 | 1        | 1        | 1           |
++--------------+-----------------------------------+----------+----------+-------------+
+| Control Pre  | 1                                 | 0        | 0        | 0           |
++--------------+-----------------------------------+----------+----------+-------------+
+| Control Post | 1                                 | 0        | 1        | 0           |
++--------------+-----------------------------------+----------+----------+-------------+
+|              | Average for pre-control $\beta_0$ |          |          |             |
++--------------+-----------------------------------+----------+----------+-------------+
 
 A more general specification of the dif-n-dif is that
 
@@ -453,89 +530,6 @@ where
 -   $\alpha_1$ should be equivalent to $\beta_3$ (if your model assumptions are correct)
 
 Under causal inference, $R^2$ is not so important.
-
-### Doubly Robust DiD
-
-Also known as the locally efficient doubly robust DiD [@sant2020doubly]
-
-[Code example by the authors](https://psantanna.com/DRDID/index.html)
-
-The package (not method) is rather limited application:
-
--   Use OLS (cannot handle `glm`)
-
--   Canonical DiD only (cannot handle DDD).
-
-
-```r
-library(DRDID)
-data("nsw_long")
-eval_lalonde_cps <-
-    subset(nsw_long, nsw_long$treated == 0 | nsw_long$sample == 2)
-head(eval_lalonde_cps)
-#>   id year treated age educ black married nodegree dwincl      re74 hisp
-#> 1  1 1975      NA  42   16     0       1        0     NA     0.000    0
-#> 2  1 1978      NA  42   16     0       1        0     NA     0.000    0
-#> 3  2 1975      NA  20   13     0       0        0     NA  2366.794    0
-#> 4  2 1978      NA  20   13     0       0        0     NA  2366.794    0
-#> 5  3 1975      NA  37   12     0       1        0     NA 25862.322    0
-#> 6  3 1978      NA  37   12     0       1        0     NA 25862.322    0
-#>   early_ra sample experimental         re
-#> 1       NA      2            0     0.0000
-#> 2       NA      2            0   100.4854
-#> 3       NA      2            0  3317.4678
-#> 4       NA      2            0  4793.7451
-#> 5       NA      2            0 22781.8555
-#> 6       NA      2            0 25564.6699
-
-
-# locally efficient doubly robust DiD Estimators for the ATT
-out <-
-    drdid(
-        yname = "re",
-        tname = "year",
-        idname = "id",
-        dname = "experimental",
-        xformla = ~ age + educ + black + married + nodegree + hisp + re74,
-        data = eval_lalonde_cps,
-        panel = TRUE
-    )
-summary(out)
-#>  Call:
-#> drdid(yname = "re", tname = "year", idname = "id", dname = "experimental", 
-#>     xformla = ~age + educ + black + married + nodegree + hisp + 
-#>         re74, data = eval_lalonde_cps, panel = TRUE)
-#> ------------------------------------------------------------------
-#>  Further improved locally efficient DR DID estimator for the ATT:
-#>  
-#>    ATT     Std. Error  t value    Pr(>|t|)  [95% Conf. Interval] 
-#> -901.2703   393.6247   -2.2897     0.022    -1672.7747  -129.766 
-#> ------------------------------------------------------------------
-#>  Estimator based on panel data.
-#>  Outcome regression est. method: weighted least squares.
-#>  Propensity score est. method: inverse prob. tilting.
-#>  Analytical standard error.
-#> ------------------------------------------------------------------
-#>  See Sant'Anna and Zhao (2020) for details.
-
-
-
-# Improved locally efficient doubly robust DiD estimator 
-# for the ATT, with panel data
-# drdid_imp_panel()
-
-# Locally efficient doubly robust DiD estimator for the ATT, 
-# with panel data
-# drdid_panel()
-
-# Locally efficient doubly robust DiD estimator for the ATT, 
-# with repeated cross-section data
-# drdid_rc()
-
-# Improved locally efficient doubly robust DiD estimator for the ATT, 
-# with repeated cross-section data
-# drdid_imp_rc()
-```
 
 ## One Difference
 
@@ -587,6 +581,8 @@ Within this setting, TWFE works because, using the baseline (e.g., control units
 -   Bad for
 
     -   Newly treated vs. already treated (because already treated cannot serve as the potential outcome for the newly treated).
+    -   Strict exogeneity (i.e., time-varying confounders, feedback from past outcome to treatment) [@imai2019should]
+    -   Specific functional forms (i.e., treatment effect homogeneity and no carryover effects or anticipation effects) [@imai2019should]
 
 Note: Notation for this section is consistent with [@arkhangelsky2021double]
 
@@ -651,6 +647,8 @@ Under the following assumption, $\hat{\tau}_{OLS}$ is unbiased:
 -   [@gardner2022two]: two-stage DiD
 
     -   `did2s`
+
+-   In cases with an unaffected unit (i.e., never-treated), using the exposure-adjusted difference-in-differences estimators can recover the average treatment effect [@de2020two]. However, if you want to see the treatment effect heterogeneity (in cases where the true heterogeneous treatment effects vary by the exposure rate), exposure-adjusted did still fails [@sun2022linear].
 
 -   [@arkhangelsky2021double]: see below
 
@@ -775,12 +773,17 @@ output$aVarHat
 
 Standard errors estimation options
 
++----------------------+---------------------------------------------------------------------------------------------+
 | Set                  | Estimation                                                                                  |
-|----------------------|---------------------------------------------------------------------------------------------|
++======================+=============================================================================================+
 | `se = "0"`           | Assume homoskedasticity and no within group correlation or serial correlation               |
++----------------------+---------------------------------------------------------------------------------------------+
 | `se = "1"` (default) | robust to heteroskadasticity and serial correlation [@arellano1987computing]                |
++----------------------+---------------------------------------------------------------------------------------------+
 | `se = "2"`           | robust to heteroskedasticity, but assumes no correlation within group or serial correlation |
++----------------------+---------------------------------------------------------------------------------------------+
 | `se = "11"`          | Aerllano SE with df correction performed by Stata xtreg [@somaini2021twfem]                 |
++----------------------+---------------------------------------------------------------------------------------------+
 
 Alternatively, you can also do it manually or with the `plm` package, but you have to be careful with how the SEs are estimated
 
@@ -827,7 +830,7 @@ coeftest(output4, vcov = vcovHC, type = "HC1")
 
 As you can see, differences stem from SE estimation, not the coefficient estimate.
 
-### Multiple periods and variation in treatment timing
+## Multiple periods and variation in treatment timing
 
 This is an extension of the DiD framework to settings where you have
 
@@ -937,7 +940,7 @@ $$
 \theta_C = \frac{1}{\tau-1}\sum_{t=2}^\tau \theta_C(t)
 $$
 
-### Staggered Dif-n-dif
+## Staggered Dif-n-dif
 
 -   When subjects are treated at different point in time (variation in treatment timing across units), we have to use staggered DiD (also known as DiD event study or dynamic DiD).
 -   For design where a treatment is applied and units are exposed to this treatment at all time afterward, see [@athey2022design]
@@ -1017,7 +1020,7 @@ Remedies for staggered DiD:
 
     -   [@deshpande2019screened]
 
-#### Stacked DID
+### Stacked DID
 
 Notations following [these slides](https://scholarworks.iu.edu/dspace/bitstream/handle/2022/26875/2021-10-22_wim_wing_did_slides.pdf?sequence=1&isAllowed=y)
 
@@ -1269,7 +1272,7 @@ $$
 
 -   Clustered at the unit level [@deshpande2019screened]
 
-#### Goodman-Bacon Decomposition
+### Goodman-Bacon Decomposition
 
 Paper: [@goodman2021difference]
 
@@ -1357,7 +1360,9 @@ ggplot(df_bacon) +
 
 With time-varying controls that can identify variation within-treatment timing group, the"early vs. late" and "late vs. early" estimates collapse to just one estimate (i.e., both treated).
 
-#### DID with in and out treatment condition
+### DID with in and out treatment condition
+
+#### Panel Match
 
 @imai2021use
 
@@ -1694,6 +1699,7 @@ Basic functions:
 
 
 ```r
+library(PanelMatch)
 # All examples follow the package's vignette
 # Create the matched sets
 PM.results.none <-
@@ -2982,25 +2988,296 @@ library(knitr)
 include_graphics(file.path(getwd(), "images", "p_did_est_in_n_out.png"))
 ```
 
-#### Chaisemartin-d'Haultfoeuille
+#### Counterfactual Estimators
+
+-   Also known as **imputation approach**
+-   This class of estimator consider observation treatment as missing data. Models are built using data from the control units to impute conterfactuals for the treated observations.
+-   It's called counterfactual estimators because they predict outcomes as if the treated observations had not received the treatment.
+-   Advantages:
+    -   Avoids negative weights and biases by not using treated observations for modeling and applying uniform weights.
+    -   Supports various models, including those that may relax strict exogeneity assumptions.
+-   Methods including
+    -   Fixed-effects conterfactual estimator (FEct) (DiD is a special case):
+        -   Based on the [Two-way Fixed-effects], where assumes linear additive functional form of unobservables based on unit and time FEs. But FEct fixes the improper weighting of TWFE by comparing within each matched pair (where each pair is the treated observation and its predicted counterfactual that is the weighted sum of all untreated observations).
+    -   Interactive Fixed Effects conterfactual estimator (IFEct) [@gobillon2016regional][@xu2017generalized]:
+        -   When we suspect unobserved time-varying confounder, FEct fails. Instead, IFEct uses the factor-augmented models to relax the strict exogeneity assumption where the effects of unobservables can be decomposed to unit FE + time FE + unit x time FE.
+        -   Generalized Synthetic Controls are a subset of IFEct when treatments don't revert.
+    -   Matrix completion (MC) [@athey2021matrix]:
+        -   Generalization of factor-augmented models. Different from IFEct which uses hard impute, MC uses soft impute to regularize the singular values when decomposing the residual matrix.
+        -   Only when latent factors (of unobservables) are strong and sparse, IFEct outperforms MC.
+    -   [Synthetic Controls] (case studies)
+
+**Identifying Assumptions**:
+
+1.  **Function Form**: Additive separability of observables, unobservables, and idiosyncratic error term.
+    -   Hence, these models are scale dependent [@athey2006identification] (e.g., log-transform outcome can invadiate this assumption).
+2.  **Strict Exogeneity**: Conditional on observables and unobservables, potential outcomes are independent of treatment assignment (i.e., baseline quasi-randomization)
+    -   In DiD, where unobservables = unit + time FEs, this assumption is the parallel trends assumption
+3.  **Low-dimensional Decomposition (Feasibility Assumption)**: Unobservable effects can be decomposed in low-dimension.
+    -   For the case that $U_{it} = f_t \times \lambda_i$ where $f_t$ = common time trend (time FE), and $\lambda_i$ = unit heterogeneity (unit FE). If $U_{it} = f_t \times \lambda_i$ , DiD can satisfy this assumption. But this assumption is weaker than that of DID, and allows us to control for unobservables based on data.
+
+**Estimation Procedure**:
+
+1.  Using all control observations, estimate the functions of both observable and unobservable variables (relying on Assumptions 1 and 3).
+2.  Predict the counterfactual outcomes for each treated unit using the obtained functions.
+3.  Calculate the difference in treatment effect for each treated individual.
+4.  By averaging over all treated individuals, you can obtain the Average Treatment Effect on the Treated (ATT).
+
+Notes:
+
+-   Use jackknife when number of treated units is small [@liu2022practical, p.166].
+
+##### Imputation Method
+
+[@liu2022practical] can still accounts for treatment reversals and heterogeneous treatment effects.
+
+
+```r
+library(fect)
+
+PanelMatch::dem
+
+model.fect <-
+    fect(
+        Y = "y",
+        D = "dem",
+        X = "tradewb",
+        data = na.omit(PanelMatch::dem),
+        method = "fe",
+        index = c("wbcode2", "year"),
+        se = TRUE,
+        parallel = TRUE,
+        seed = 1234,
+        # twfe
+        force = "two-way"
+    )
+print(model.fect$est.avg)
+
+plot(model.fect)
+
+plot(model.fect, stats = "F.p")
+```
+
+F-test $H_0$: residual averages in the pre-treatment periods = 0
+
+To see treatment reversal effects
+
+
+```r
+plot(model.fect, stats = "F.p", type = 'exit')
+```
+
+##### Placebo Test
+
+By selecting a part of the data and excluding observations within a specified range to improve the model fitting, we then evaluate whether the estimated Average Treatment Effect (ATT) within this range significantly differs from zero. This approach helps us analyze the periods before treatment.
+
+If this test fails, either the functional form or strict exogeneity assumption is problematic.
+
+
+```r
+out.fect.p <-
+    fect(
+        Y = "y",
+        D = "dem",
+        X = "tradewb",
+        data = na.omit(PanelMatch::dem),
+        method = "fe",
+        index = c("wbcode2", "year"),
+        se = TRUE,
+        placeboTest = TRUE,
+        # using 3 periods
+        placebo.period = c(-2, 0)
+    )
+plot(out.fect.p, proportion = 0.1, stats = "placebo.p")
+```
+
+##### (No) Carryover Effects Test
+
+The placebo test can be adapted to assess carryover effects by masking several post-treatment periods instead of pre-treatment ones. If no carryover effects are present, the average prediction error should approximate zero. For the carryover test, set `carryoverTest = TRUE`. Specify a post-treatment period range in carryover.period to exclude observations for model fitting, then evaluate if the estimated ATT significantly deviates from zero.
+
+Even if we have carryover effects, in most cases of the staggered adoption setting, researchers are interested in the cumulative effects, or aggregated treatment effects, so it's okay.
+
+
+```r
+out.fect.c <-
+    fect(
+        Y = "y",
+        D = "dem",
+        X = "tradewb",
+        data = na.omit(PanelMatch::dem),
+        method = "fe",
+        index = c("wbcode2", "year"),
+        se = TRUE,
+        carryoverTest = TRUE,
+        # how many periods of carryover
+        carryover.period = c(1, 3)
+    )
+plot(out.fect.c,  stats = "carryover.p")
+```
+
+We have evidence of carryover effects.
+
+### Chaisemartin-d'Haultfoeuille
 
 use `twowayfeweights` from [GitHub](https://github.com/shuo-zhang-ucsb/twowayfeweights) [@de2020two]
 
-#### didimputation
+-   Average instant treatment effect of changes in the treatment
+
+    -   This relaxes the no-carryover-effect assumption.
+
+-   Drawbacks:
+
+    -   Cannot observe treatment effects that manifest over time.
+
+### didimputation
 
 use `didimputation` from [GitHub](https://github.com/kylebutts/didimputation)
 
-#### staggered
+### staggered
 
 `staggered` [package](https://github.com/jonathandroth/staggered)
 
-#### Wooldridge's Solution
+### Wooldridge's Solution
 
 use [etwfe](https://grantmcdermott.com/etwfe/)(Extended two-way Fixed Effects) [@wooldridge2022simple]
 
 ### Two-stage DiD
 
 [Example](https://cran.r-project.org/web/packages/did2s/vignettes/Two-Stage-Difference-in-Differences.html) from CRAN
+
+Also known as the imputation method [@borusyak2021revisiting] or two-stage DiD [@gardner2022two]
+
+
+```r
+library(fect)
+library(fixest)
+library(tidyverse)
+
+base_stagg <- fixest::base_stagg |>
+    # treatment status
+    mutate(treat_stat = if_else(time_to_treatment < 0, 0, 1))
+
+res_fect <-
+    fect(
+        y ~ treat_stat,
+        data = base_stagg,
+        index = c("id", "year"),
+        method = 'fe',
+        se = TRUE
+    )
+print(res_fect$est.avg)
+#>         ATT.avg     S.E.  CI.lower  CI.upper   p.value
+#> [1,] -0.7455638 0.554365 -1.832099 0.3409716 0.1786585
+res_fect$est.att |> 
+    as.data.frame() |> 
+    causalverse::nice_tab()
+#>      ATT S.E. CI.lower CI.upper p.value count
+#> 1   1.56 1.03    -0.46     3.58    0.13     5
+#> 2  -0.73 0.62    -1.95     0.50    0.24    10
+#> 3   0.00 0.40    -0.78     0.77    0.99    15
+#> 4  -0.20 0.50    -1.18     0.78    0.68    20
+#> 5  -0.57 0.43    -1.42     0.28    0.19    25
+#> 6   0.10 0.23    -0.36     0.56    0.66    30
+#> 7  -0.09 0.30    -0.68     0.50    0.76    35
+#> 8   0.34 0.27    -0.18     0.86    0.20    40
+#> 9   0.10 0.28    -0.44     0.64    0.73    45
+#> 10 -4.95 0.54    -6.00    -3.89    0.00    45
+#> 11 -3.01 0.51    -4.01    -2.01    0.00    40
+#> 12 -2.05 0.51    -3.04    -1.06    0.00    35
+#> 13  0.01 0.50    -0.98     0.99    0.99    30
+#> 14  1.33 0.69    -0.01     2.68    0.05    25
+#> 15  2.36 0.79     0.82     3.91    0.00    20
+#> 16  5.57 0.96     3.69     7.46    0.00    15
+#> 17  4.29 1.56     1.24     7.34    0.01    10
+#> 18  7.95 0.99     6.01     9.89    0.00     5
+
+plot(res_fect)
+```
+
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-38-1.png" width="90%" style="display: block; margin: auto;" />
+
+### Doubly Robust DiD
+
+Also known as the locally efficient doubly robust DiD [@sant2020doubly]
+
+[Code example by the authors](https://psantanna.com/DRDID/index.html)
+
+The package (not method) is rather limited application:
+
+-   Use OLS (cannot handle `glm`)
+
+-   Canonical DiD only (cannot handle DDD).
+
+
+```r
+library(DRDID)
+data("nsw_long")
+eval_lalonde_cps <-
+    subset(nsw_long, nsw_long$treated == 0 | nsw_long$sample == 2)
+head(eval_lalonde_cps)
+#>   id year treated age educ black married nodegree dwincl      re74 hisp
+#> 1  1 1975      NA  42   16     0       1        0     NA     0.000    0
+#> 2  1 1978      NA  42   16     0       1        0     NA     0.000    0
+#> 3  2 1975      NA  20   13     0       0        0     NA  2366.794    0
+#> 4  2 1978      NA  20   13     0       0        0     NA  2366.794    0
+#> 5  3 1975      NA  37   12     0       1        0     NA 25862.322    0
+#> 6  3 1978      NA  37   12     0       1        0     NA 25862.322    0
+#>   early_ra sample experimental         re
+#> 1       NA      2            0     0.0000
+#> 2       NA      2            0   100.4854
+#> 3       NA      2            0  3317.4678
+#> 4       NA      2            0  4793.7451
+#> 5       NA      2            0 22781.8555
+#> 6       NA      2            0 25564.6699
+
+
+# locally efficient doubly robust DiD Estimators for the ATT
+out <-
+    drdid(
+        yname = "re",
+        tname = "year",
+        idname = "id",
+        dname = "experimental",
+        xformla = ~ age + educ + black + married + nodegree + hisp + re74,
+        data = eval_lalonde_cps,
+        panel = TRUE
+    )
+summary(out)
+#>  Call:
+#> drdid(yname = "re", tname = "year", idname = "id", dname = "experimental", 
+#>     xformla = ~age + educ + black + married + nodegree + hisp + 
+#>         re74, data = eval_lalonde_cps, panel = TRUE)
+#> ------------------------------------------------------------------
+#>  Further improved locally efficient DR DID estimator for the ATT:
+#>  
+#>    ATT     Std. Error  t value    Pr(>|t|)  [95% Conf. Interval] 
+#> -901.2703   393.6247   -2.2897     0.022    -1672.7747  -129.766 
+#> ------------------------------------------------------------------
+#>  Estimator based on panel data.
+#>  Outcome regression est. method: weighted least squares.
+#>  Propensity score est. method: inverse prob. tilting.
+#>  Analytical standard error.
+#> ------------------------------------------------------------------
+#>  See Sant'Anna and Zhao (2020) for details.
+
+
+
+# Improved locally efficient doubly robust DiD estimator 
+# for the ATT, with panel data
+# drdid_imp_panel()
+
+# Locally efficient doubly robust DiD estimator for the ATT, 
+# with panel data
+# drdid_panel()
+
+# Locally efficient doubly robust DiD estimator for the ATT, 
+# with repeated cross-section data
+# drdid_rc()
+
+# Improved locally efficient doubly robust DiD estimator for the ATT, 
+# with repeated cross-section data
+# drdid_imp_rc()
+```
 
 ### Multiple Treatment groups
 
@@ -3020,15 +3297,13 @@ $$
 
 ### Multiple Treatments
 
-[@de2022two] [video](https://www.youtube.com/watch?v=UHeJoc27qEM&ab_channel=TaylorWright) [code](https://drive.google.com/file/d/156Fu73avBvvV_H64wePm7eW04V0jEG3K/view)
+[@de2023two] [video](https://www.youtube.com/watch?v=UHeJoc27qEM&ab_channel=TaylorWright) [code](https://drive.google.com/file/d/156Fu73avBvvV_H64wePm7eW04V0jEG3K/view)
 
 ## Assumption Violation
 
 ### Endogenous Timing
 
 If the timing of units can be influenced by strategic decisions in a DID analysis, an instrumental variable approach with a control function can be used to control for endogeneity in timing.
-
-
 
 ### Questionable Counterfactuals
 
@@ -3169,7 +3444,7 @@ causalverse::plot_par_trends(
 #> [[1]]
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-35-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-40-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -3186,7 +3461,7 @@ od |>
     geom_line()
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-35-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-40-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -3198,13 +3473,13 @@ prior_trend <- feols(Rate ~ i(Quarter_Num, California) | State + Quarter,
 coefplot(prior_trend)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-35-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-40-3.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 iplot(prior_trend)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-35-4.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-40-4.png" width="90%" style="display: block; margin: auto;" />
 
 This is alarming since one of the periods is significantly different from 0, which means that our parallel trends assumption is not plausible.
 
