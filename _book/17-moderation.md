@@ -41,6 +41,8 @@ Three types of interactions:
 2.  [Continuous by categorical]
 3.  [Categorical by categorical]
 
+When interpreting the three-way interactions, one can use the slope difference test [@dawson2006probing]
+
 ## emmeans package
 
 

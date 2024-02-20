@@ -19,7 +19,7 @@ Examples in marketing
 
 Show the mechanism via
 
--   Mediation analysis: see [@habel2021variable]
+-   [Mediation Under DiD] analysis: see [@habel2021variable]
 
 -   Moderation analysis: see [@goldfarb2011online]
 
@@ -32,7 +32,7 @@ library(fixest)
 library(tidyverse)
 base_stagg <- fixest::base_stagg |>
     # treatment status
-    mutate(treat_stat = if_else(time_to_treatment < 0, 0, 1)) |> 
+    dplyr::mutate(treat_stat = dplyr::if_else(time_to_treatment < 0, 0, 1)) |> 
     select(id, year, treat_stat, y)
 
 head(base_stagg)
@@ -215,9 +215,9 @@ library(fixest)
 od <- causaldata::organ_donations %>%
     
     # Treatment variable
-    mutate(California = State == 'California') %>%
+    dplyr::mutate(California = State == 'California') %>%
     # centered time variable
-    mutate(center_time = as.factor(Quarter_Num - 3))  
+    dplyr::mutate(center_time = as.factor(Quarter_Num - 3))  
 # where 3 is the reference period precedes the treatment period
 
 class(od$California)
@@ -260,7 +260,7 @@ coefplot(cali)
 
 <img src="26-dif-in-dif_files/figure-html/unnamed-chunk-2-2.png" width="90%" style="display: block; margin: auto;" />
 
-Notes:
+## Notes
 
 -   [Matching Methods]
 
@@ -280,15 +280,30 @@ Notes:
 
     -   If the controls are dynamic across group and across, then your parallel trends assumption is not plausible.
 
--   SEs are typically clustered within groups, but this approach can make our SEs too small, that leads to overconfidence in our estimates. Hence, @bertrand2004much suggest either
+-   Under causal inference, $R^2$ is not so important.
 
-    1.  aggregating data to just one pre-treatment and one post-treatment period per group
+## Standard Errors
 
-    2.  using cluster bootstrapped SEs.
+Serial correlation is a big problem in DiD because [@bertrand2004much]
 
-### Examples
+1.  DiD often uses long time series
+2.  Outcomes are often highly positively serially correlated
+3.  Minimal variation in the treatment variable over time within a group (e.g., state).
 
-#### Example by @doleac2020unintended
+To overcome this problem:
+
+-   Using parametric correction (standard AR correction) is not good.
+-   Using nonparametric (e.g., **block bootstrap**- keep all obs from the same group such as state together) is good when number of groups is large.
+-   Remove time series dimension (i.e., aggregate data into 2 periods: pre and post). This still works with small number of groups (See [@donald2007inference] for more notes on small-sample aggregation).
+-   Empirical and arbitrary variance-covariance matrix corrections work only in large samples.
+
+## Examples
+
+Example by [Philipp Leppert](https://rpubs.com/phle/r_tutorial_difference_in_differences) replicating [Card and Krueger (1994)](https://davidcard.berkeley.edu/data_sets.html)
+
+Example by [Anthony Schmidt](https://bookdown.org/aschmi11/causal_inf/difference-in-differences.html)
+
+### Example by @doleac2020unintended
 
 -   The purpose of banning a checking box for ex-criminal was banned because we thought that it gives more access to felons
 
@@ -344,25 +359,21 @@ So the year before BTB ($\theta_1, \theta_2, \theta_3$) should be similar to eac
 
 If $\theta_2$ is statistically different from $\theta_3$ (baseline), then there could be a problem, but it could also make sense if we have pre-trend announcement.
 
-Example by [Philipp Leppert](https://rpubs.com/phle/r_tutorial_difference_in_differences) replicating [Card and Krueger (1994)](https://davidcard.berkeley.edu/data_sets.html)
-
-Example by [Anthony Schmidt](https://bookdown.org/aschmi11/causal_inf/difference-in-differences.html)
-
-#### Example from [Princeton](https://www.princeton.edu/~otorres/DID101R.pdf)
+### Example from [Princeton](https://www.princeton.edu/~otorres/DID101R.pdf)
 
 
 ```r
 library(foreign)
 mydata = read.dta("http://dss.princeton.edu/training/Panel101.dta") %>%
     # create a dummy variable to indicate the time when the treatment started
-    mutate(time = ifelse(year >= 1994, 1, 0)) %>%
+    dplyr::mutate(time = ifelse(year >= 1994, 1, 0)) %>%
     # create a dummy variable to identify the treatment group
-    mutate(treated = ifelse(country == "E" |
+    dplyr::mutate(treated = ifelse(country == "E" |
                                 country == "F" | country == "G" ,
                             1,
                             0)) %>%
     # create an interaction between time and treated
-    mutate(did = time * treated)
+    dplyr::mutate(did = time * treated)
 ```
 
 estimate the DID estimator
@@ -395,7 +406,7 @@ summary(didreg)
 
 The `did` coefficient is the differences-in-differences estimator. Treat has a negative effect
 
-#### Example by @card1993minimum
+### Example by @card1993minimum
 
 found that increase in minimum wage increases employment
 
@@ -437,9 +448,9 @@ where
 
 -   $j$ = restaurant
 
--   $NJ$ = dummy where 1 = NJ, and 0 = PA
+-   $NJ$ = dummy where $1 = NJ$, and $0 = PA$
 
--   $POST$ = dummy where 1 = post, and 0 = pre
+-   $POST$ = dummy where $1 = post$, and $0 = pre$
 
 Notes:
 
@@ -461,7 +472,7 @@ Notes:
 
 -   Notice that we don't need before treatment the **levels of the dependent variable** to be the same (e.g., same wage average in both NJ and PA), dif-n-dif only needs **pre-trend (i.e., slope)** to be the same for the two groups.
 
-#### Example by @butcher2014effects
+### Example by @butcher2014effects
 
 Theory:
 
@@ -528,8 +539,6 @@ where
 -   $(\theta_d + \delta_t)$ richer , more df than $Treat_d \beta_2 + Post_t \beta_1$ (because fixed effects subsume Post and treat)
 
 -   $\alpha_1$ should be equivalent to $\beta_3$ (if your model assumptions are correct)
-
-Under causal inference, $R^2$ is not so important.
 
 ## One Difference
 
@@ -942,6 +951,20 @@ $$
 
 ## Staggered Dif-n-dif
 
+Recommendations by @baker2022much
+
+-   TWFE DiD regressions are suitable for single treatment periods or when treatment effects are homogeneous, provided there's a solid rationale for effect homogeneity.
+
+-   For TWFE staggered DiD, researchers should evaluate bias risks, plot treatment timings to check for variations, and use decompositions like @goodman2021difference when possible. If decompositions aren't feasible (e.g., unbalanced panel), the percentage of never-treated units can indicate bias severity. Expected treatment effect variability should also be discussed.
+
+-   In TWFE staggered DiD event studies, avoid binning time periods without evidence of uniform effects. Use full relative-time indicators, justify reference periods, and be wary of multicollinearity causing bias.
+
+-   To address treatment timing and bias concerns, use alternative estimators like stacked regressions, @sun2021estimating, @callaway2021difference, or separate regressions for each event with "clean" controls.
+
+-   Justify the selection of comparison groups (not-yet treated, last treated, never treated) and ensure the parallel-trends assumption holds, especially when anticipating no effects for certain groups.
+
+Notes:
+
 -   When subjects are treated at different point in time (variation in treatment timing across units), we have to use staggered DiD (also known as DiD event study or dynamic DiD).
 -   For design where a treatment is applied and units are exposed to this treatment at all time afterward, see [@athey2022design]
 
@@ -964,7 +987,7 @@ where
 
 In this setting, we try to show that the treatment and control groups are not statistically different (i.e., the coefficient estimates before treatment are not different from 0) to show pre-treatment parallel trends.
 
-However, this two-way fixed effects design has been criticized by [@sun2021estimating; @callaway2021difference; @goodman2021difference]. When researchers include leads and lags of the treatment to see the long-term effects of the treatment, these leads and lags can be biased by effects from other periods, and pre-trends can falsely arise due to treatment effects heterogeneity.
+However, this two-way fixed effects design has been criticized by @sun2021estimating; @callaway2021difference; @goodman2021difference. When researchers include leads and lags of the treatment to see the long-term effects of the treatment, these leads and lags can be biased by effects from other periods, and pre-trends can falsely arise due to treatment effects heterogeneity.
 
 Applying the new proposed method, finance and accounting researchers find that in many cases, the causal estimates turn out to be null [@baker2022much].
 
@@ -977,6 +1000,9 @@ Robustness Check
 -   **Rollout Exogeneity** (i.e., exogeneity of treatment adoption): if the treatment is randomly implemented over time (i.e., unrelated to variables that could also affect our dependent variables)
 
     -   Evidence: Regress adoption on pre-treatment variables. And if you find evidence of correlation, include linear trends interacted with pre-treatment variables [@hoynes2009consumption]
+    -   Evidence: [@deshpande2019screened, p. 223]
+        -   Treatment is random: Regress treatment status at the unit level to all pre-treatment observables. If you have some that are predictive of treatment status, you might have to argue why it's not a worry. At best, you want this.
+        -   Treatment timing is random: Conditional on treatment, regress timing of the treatment on pre-treatment observables. At least, you want this.
 
 -   **No confounding events**
 
@@ -1103,8 +1129,6 @@ library(fixest)
 
 data(base_stagg)
 
-
-
 # first make the stacked datasets
 # get the treatment cohorts
 cohorts <- base_stagg %>%
@@ -1221,7 +1245,8 @@ ggplot(compare_df_longer) +
         group = estimator,
         col = estimator
     ),
-    linewidth = 1)
+    linewidth = 1) + 
+    causalverse::ama_theme()
 ```
 
 <img src="26-dif-in-dif_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
@@ -1231,14 +1256,14 @@ ggplot(compare_df_longer) +
 Estimating Equation
 
 $$
-Y_{itd} = \beta_0 + \beta_1 + T_{id} + \beta_2 + P_{td} + \beta_3 (T_{id} \times P_{td}) + \epsilon_{itd}
+Y_{itd} = \beta_0 + \beta_1 T_{id} + \beta_2 P_{td} + \beta_3 (T_{id} \times P_{td}) + \epsilon_{itd}
 $$
 
 where
 
--   $T_{id}$ = 1 if unit $i$ is treated in sub-experiment d, 0 if control
+-   $T_{id}$ = 1 if unit $i$ is treated in sub-experiment $d$, 0 if control
 
--   $P_{td}$ = 1 if it's the period after the treatment in sub-experiment d
+-   $P_{td}$ = 1 if it's the period after the treatment in sub-experiment $d$
 
 Equivalently,
 
@@ -3029,7 +3054,15 @@ Notes:
 
 ##### Imputation Method
 
-[@liu2022practical] can still accounts for treatment reversals and heterogeneous treatment effects.
+@liu2022practical can also account for treatment reversals and heterogeneous treatment effects.
+
+Other imputation estimators include
+
+-   @gardner2022two
+
+-   @borusyak2021revisiting
+
+-   @RePEc:arx:papers:2301.11358
 
 
 ```r
@@ -3117,6 +3150,96 @@ plot(out.fect.c,  stats = "carryover.p")
 
 We have evidence of carryover effects.
 
+### @gardner2022two and @borusyak2021revisiting
+
+-   Estimate the time and unit fixed effects separately
+
+-   Known as the imputation method [@borusyak2021revisiting] or two-stage DiD [@gardner2022two]
+
+
+```r
+# remotes::install_github("kylebutts/did2s")
+library(did2s)
+library(ggplot2)
+library(fixest)
+library(tidyverse)
+data(base_stagg)
+
+
+est <- did2s(
+    data = base_stagg |> mutate(treat = if_else(time_to_treatment >= 0, 1, 0)), 
+    yname = "y",
+    first_stage = ~x1 | id + year, 
+    second_stage = ~i(time_to_treatment, ref = c(-1, -1000)),
+    treatment = "treat" ,
+    cluster_var = "id"
+)
+
+fixest::esttable(est)
+#>                                       est
+#> Dependent Var.:                         y
+#>                                          
+#> time_to_treatment = -9  0.3518** (0.1332)
+#> time_to_treatment = -8  -0.3130* (0.1213)
+#> time_to_treatment = -7    0.0894 (0.2367)
+#> time_to_treatment = -6    0.0312 (0.2176)
+#> time_to_treatment = -5   -0.2079 (0.1519)
+#> time_to_treatment = -4   -0.1152 (0.1438)
+#> time_to_treatment = -3   -0.0127 (0.1483)
+#> time_to_treatment = -2    0.1503 (0.1440)
+#> time_to_treatment = 0  -5.139*** (0.3680)
+#> time_to_treatment = 1  -3.480*** (0.3784)
+#> time_to_treatment = 2  -2.021*** (0.3055)
+#> time_to_treatment = 3   -0.6965. (0.3947)
+#> time_to_treatment = 4    1.070** (0.3501)
+#> time_to_treatment = 5   2.173*** (0.4456)
+#> time_to_treatment = 6   4.449*** (0.3680)
+#> time_to_treatment = 7   4.864*** (0.3698)
+#> time_to_treatment = 8   6.187*** (0.2702)
+#> ______________________ __________________
+#> S.E. type                          Custom
+#> Observations                          950
+#> R2                                0.62486
+#> Adj. R2                           0.61843
+#> ---
+#> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+fixest::iplot(
+    est,
+    main = "Event study",
+    xlab = "Time to treatment",
+    ref.line = -1
+)
+```
+
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-38-1.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+
+coefplot(est)
+```
+
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-38-2.png" width="90%" style="display: block; margin: auto;" />
+
+
+```r
+mult_est <- did2s::event_study(
+  data = base_stagg |> mutate(year_treated = if_else(year_treated == 10000, 0, year_treated)),
+  gname = "year_treated",
+  idname = "id",
+  tname = "year",
+  yname = "y",
+  estimator = "all"
+)
+#> Error in purrr::map(., function(y) { : ℹ In index: 1.
+#> ℹ With name: y.
+#> Caused by error in `.subset2()`:
+#> ! no such index at level 1
+did2s::plot_event_study(mult_est)
+```
+
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-39-1.png" width="90%" style="display: block; margin: auto;" />
+
 ### Chaisemartin-d'Haultfoeuille
 
 use `twowayfeweights` from [GitHub](https://github.com/shuo-zhang-ucsb/twowayfeweights) [@de2020two]
@@ -3133,68 +3256,217 @@ use `twowayfeweights` from [GitHub](https://github.com/shuo-zhang-ucsb/twowayfew
 
 use `didimputation` from [GitHub](https://github.com/kylebutts/didimputation)
 
-### staggered
 
-`staggered` [package](https://github.com/jonathandroth/staggered)
+```r
+# devtools::install_github("kylebutts/didimputation")
+library(didimputation)
+library(fixest)
+data("base_stagg")
 
-### Wooldridge's Solution
+# did_imputation(
+#     data = base_stagg,
+#     yname = "y",
+#     gname = "year_treated",
+#     tname = "year",
+#     idname = "id",
+#     horizon = T, 
+#     pretrends = -9:-1
+# )
 
-use [etwfe](https://grantmcdermott.com/etwfe/)(Extended two-way Fixed Effects) [@wooldridge2022simple]
+```
 
-### Two-stage DiD
+### @callaway2021difference {#callaway2021difference}
 
-[Example](https://cran.r-project.org/web/packages/did2s/vignettes/Two-Stage-Difference-in-Differences.html) from CRAN
+-   `staggered` [package](https://github.com/jonathandroth/staggered)
 
-Also known as the imputation method [@borusyak2021revisiting] or two-stage DiD [@gardner2022two]
+-   Group-time average treatment effect
 
 
 ```r
-library(fect)
+library(staggered) 
 library(fixest)
-library(tidyverse)
+data("base_stagg")
 
-base_stagg <- fixest::base_stagg |>
-    # treatment status
-    mutate(treat_stat = if_else(time_to_treatment < 0, 0, 1))
+# simple weighted average
+staggered(
+    df = base_stagg,
+    i = "id",
+    t = "year",
+    g = "year_treated",
+    y = "y",
+    estimand = "simple"
+)
+#>     estimate        se se_neyman
+#> 1 -0.7110941 0.2211943 0.2214245
 
-res_fect <-
-    fect(
-        y ~ treat_stat,
-        data = base_stagg,
-        index = c("id", "year"),
-        method = 'fe',
-        se = TRUE
-    )
-print(res_fect$est.avg)
-#>         ATT.avg     S.E.  CI.lower  CI.upper   p.value
-#> [1,] -0.7455638 0.554365 -1.832099 0.3409716 0.1786585
-res_fect$est.att |> 
-    as.data.frame() |> 
-    causalverse::nice_tab()
-#>      ATT S.E. CI.lower CI.upper p.value count
-#> 1   1.56 1.03    -0.46     3.58    0.13     5
-#> 2  -0.73 0.62    -1.95     0.50    0.24    10
-#> 3   0.00 0.40    -0.78     0.77    0.99    15
-#> 4  -0.20 0.50    -1.18     0.78    0.68    20
-#> 5  -0.57 0.43    -1.42     0.28    0.19    25
-#> 6   0.10 0.23    -0.36     0.56    0.66    30
-#> 7  -0.09 0.30    -0.68     0.50    0.76    35
-#> 8   0.34 0.27    -0.18     0.86    0.20    40
-#> 9   0.10 0.28    -0.44     0.64    0.73    45
-#> 10 -4.95 0.54    -6.00    -3.89    0.00    45
-#> 11 -3.01 0.51    -4.01    -2.01    0.00    40
-#> 12 -2.05 0.51    -3.04    -1.06    0.00    35
-#> 13  0.01 0.50    -0.98     0.99    0.99    30
-#> 14  1.33 0.69    -0.01     2.68    0.05    25
-#> 15  2.36 0.79     0.82     3.91    0.00    20
-#> 16  5.57 0.96     3.69     7.46    0.00    15
-#> 17  4.29 1.56     1.24     7.34    0.01    10
-#> 18  7.95 0.99     6.01     9.89    0.00     5
+# cohort weighted average
+staggered(
+    df = base_stagg,
+    i = "id",
+    t = "year",
+    g = "year_treated",
+    y = "y",
+    estimand = "cohort"
+)
+#>    estimate        se se_neyman
+#> 1 -2.724242 0.2701093 0.2701745
 
-plot(res_fect)
+# calendar weighted average
+staggered(
+    df = base_stagg,
+    i = "id",
+    t = "year",
+    g = "year_treated",
+    y = "y",
+    estimand = "calendar"
+)
+#>     estimate        se se_neyman
+#> 1 -0.5861831 0.1768297 0.1770729
+
+res <- staggered(
+    df = base_stagg,
+    i = "id",
+    t = "year",
+    g = "year_treated",
+    y = "y",
+    estimand = "eventstudy", 
+    eventTime = -9:8
+)
+head(res)
+#>      estimate        se se_neyman eventTime
+#> 1  0.20418779 0.1045821 0.1045821        -9
+#> 2 -0.06215104 0.1669703 0.1670886        -8
+#> 3  0.02744671 0.1413273 0.1420377        -7
+#> 4 -0.02131747 0.2203695 0.2206338        -6
+#> 5 -0.30690897 0.2015697 0.2036412        -5
+#> 6  0.05594029 0.1908101 0.1921745        -4
+
+
+ggplot(
+    res |> mutate(
+        ymin_ptwise = estimate + 1.96 * se,
+        ymax_ptwise = estimate - 1.96 * se
+    ),
+    aes(x = eventTime, y = estimate)
+) +
+    geom_pointrange(aes(ymin = ymin_ptwise, ymax = ymax_ptwise)) +
+    geom_hline(yintercept = 0) +
+    xlab("Event Time") +
+    ylab("Estimate") +
+    causalverse::ama_theme()
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-38-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-41-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+```r
+# Callaway and Sant'Anna estimator for the simple weighted average
+staggered_cs(
+    df = base_stagg,
+    i = "id",
+    t = "year",
+    g = "year_treated",
+    y = "y",
+    estimand = "simple"
+)
+#>     estimate        se se_neyman
+#> 1 -0.7994889 0.4484987 0.4486122
+
+# Sun and Abraham estimator for the simple weighted average
+staggered_sa(
+    df = base_stagg,
+    i = "id",
+    t = "year",
+    g = "year_treated",
+    y = "y",
+    estimand = "simple"
+)
+#>     estimate        se se_neyman
+#> 1 -0.7551901 0.4407818 0.4409525
+```
+
+Fisher's Randomization Test (i.e., permutation test)
+
+$H_0$: $TE = 0$
+
+
+```r
+staggered(
+    df = base_stagg,
+    i = "id",
+    t = "year",
+    g = "year_treated",
+    y = "y",
+    estimand = "simple",
+    compute_fisher = T,
+    num_fisher_permutations = 100
+)
+#>     estimate        se se_neyman fisher_pval fisher_pval_se_neyman
+#> 1 -0.7110941 0.2211943 0.2214245           0                     0
+#>   num_fisher_permutations
+#> 1                     100
+```
+
+### @sun2021estimating
+
+This paper utilizes the Cohort Average Treatment Effects on the Treated (CATT), which measures the cohort-specific average difference in outcomes relative to those never treated, offering a more detailed analysis than @goodman2021difference. In scenarios lacking a never-treated group, this method designates the last cohort to be treated as the control group.
+
+-   @callaway2021difference explores group-time average treatment effects, employing cohorts that have not yet been treated as controls, and permits conditioning on time-varying covariates.
+
+-   @athey2022design examines the treatment effect in relation to the counterfactual outcome of the always-treated group, diverging from the conventional focus on the never-treated.
+
+-   @borusyak2021revisiting presumes a uniform treatment effect across cohorts, effectively simplifying CATT to ATT.
+
+Identifying Assumptions:
+
+1.  **Parallel Trends**: Baseline outcomes follow parallel trends across cohorts before treatment.
+
+2.  **No Anticipatory Behavior**: There is no effect of the treatment during pre-treatment periods, indicating that outcomes are not influenced by the anticipation of treatment.
+
+3.  **Treatment Effect Homogeneity**: The treatment effect is consistent across cohorts for each relative period, meaning the CATT mirrors the ATT.
+
+**Application**
+
+can use `fixest` in r with `sunab` function
+
+
+```r
+library(fixest)
+data("base_stagg")
+res_sa20 = feols(y ~ x1 + sunab(year_treated, year) | id + year, base_stagg)
+iplot(res_sa20)
+```
+
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-44-1.png" width="90%" style="display: block; margin: auto;" />
+
+Using the same syntax as `fixest`
+
+
+```r
+# devtools::install_github("kylebutts/fwlplot")
+library(fwlplot)
+fwl_plot(y ~ x1, data = base_stagg)
+```
+
+<img src="26-dif-in-dif_files/figure-html/plot residuals-1.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+
+fwl_plot(y ~ x1 | id + year, data = base_stagg, n_sample = 100)
+```
+
+<img src="26-dif-in-dif_files/figure-html/plot residuals-2.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+
+fwl_plot(y ~ x1 | id + year, data = base_stagg, n_sample = 100, fsplit = ~ treated)
+```
+
+<img src="26-dif-in-dif_files/figure-html/plot residuals-3.png" width="90%" style="display: block; margin: auto;" />
+
+### @wooldridge2022simple
+
+use [etwfe](https://grantmcdermott.com/etwfe/)(Extended two-way Fixed Effects) [@wooldridge2022simple]
 
 ### Doubly Robust DiD
 
@@ -3376,7 +3648,7 @@ Check this [post](https://stats.stackexchange.com/questions/261218/difference-in
 
 -   Incidental parameters problems [@lancaster2000incidental]: it's always better to use individual and time fixed effect.
 
--   When examining the effects of variation in treatment timing, we have to be careful because negative weights (per group) can be negative if there is a heterogeneity in the treatment effects over time. Example: [@athey2022design][@borusyak2021revisiting][@goodman2021difference]. In this case you should use new estimands proposed by [@callaway2021difference][@de2020two], in the `did` package. If you expect lags and leads, see [@sun2021estimating]
+-   When examining the effects of variation in treatment timing, we have to be careful because negative weights (per group) can be negative if there is a heterogeneity in the treatment effects over time. Example: [@athey2022design][@borusyak2021revisiting][@goodman2021difference]. In this case you should use new estimands proposed by [\@callaway2021difference](#callaway2021difference)[@de2020two], in the `did` package. If you expect lags and leads, see [@sun2021estimating]
 
 -   [@gibbons2018broken] caution when we suspect the treatment effect and treatment variance vary across groups
 
@@ -3431,7 +3703,7 @@ od <- causaldata::organ_donations %>%
     # Use only pre-treatment data
     filter(Quarter_Num <= 3) %>% 
     # Treatment variable
-    mutate(California = State == 'California')
+    dplyr::mutate(California = State == 'California')
 
 # use my package
 causalverse::plot_par_trends(
@@ -3444,7 +3716,7 @@ causalverse::plot_par_trends(
 #> [[1]]
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-40-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-46-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -3452,34 +3724,35 @@ causalverse::plot_par_trends(
 # always good but plot the dependent out
 od |>
     # group by treatment status and time
-    group_by(California, Quarter) |>
-    summarize_all(mean) |>
-    ungroup() |>
+    dplyr::group_by(California, Quarter) |>
+    dplyr::summarize_all(mean) |>
+    dplyr::ungroup() |>
     # view()
     
-    ggplot(aes(x = Quarter_Num, y = Rate, color = California)) +
-    geom_line()
+    ggplot2::ggplot(aes(x = Quarter_Num, y = Rate, color = California)) +
+    ggplot2::geom_line() +
+    causalverse::ama_theme()
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-40-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-46-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
 
 # but it's also important to use statistical test
-prior_trend <- feols(Rate ~ i(Quarter_Num, California) | State + Quarter,
+prior_trend <- fixest::feols(Rate ~ i(Quarter_Num, California) | State + Quarter,
                data = od)
 
-coefplot(prior_trend)
+fixest::coefplot(prior_trend, grid = F)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-40-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-46-3.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
-iplot(prior_trend)
+fixest::iplot(prior_trend, grid = F)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-40-4.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-46-4.png" width="90%" style="display: block; margin: auto;" />
 
 This is alarming since one of the periods is significantly different from 0, which means that our parallel trends assumption is not plausible.
 
@@ -3494,7 +3767,8 @@ In cases where you might have violations of parallel trends assumption, check [@
 
 ```r
 # https://github.com/asheshrambachan/HonestDiD
-# install.packages("HonestDiD")
+# remotes::install_github("asheshrambachan/HonestDiD")
+# library(HonestDiD)
 ```
 
 Alternatively, @ban2022generalized propose a method that with an information set (i.e., pre-treatment covariates), and an assumption on the selection bias in the post-treatment period (i.e., lies within the convex hull of all selection biases), they can still identify a set of ATT, and with stricter assumption on selection bias from the policymakers perspective, they can also have a point estimate.
@@ -3525,10 +3799,10 @@ library(tidyverse)
 library(fixest)
 od <- causaldata::organ_donations %>%
     # Use only pre-treatment data
-    filter(Quarter_Num <= 3) %>% 
-
-# Create fake treatment variables
-    mutate(
+    dplyr::filter(Quarter_Num <= 3) %>%
+    
+    # Create fake treatment variables
+    dplyr::mutate(
         FakeTreat1 = State == 'California' &
             Quarter %in% c('Q12011', 'Q22011'),
         FakeTreat2 = State == 'California' &
@@ -3536,12 +3810,12 @@ od <- causaldata::organ_donations %>%
     )
 
 
-clfe1 <- feols(Rate ~ FakeTreat1 | State + Quarter,
+clfe1 <- fixest::feols(Rate ~ FakeTreat1 | State + Quarter,
                data = od)
-clfe2 <- feols(Rate ~ FakeTreat2 | State + Quarter,
+clfe2 <- fixest::feols(Rate ~ FakeTreat2 | State + Quarter,
                data = od)
 
-etable(clfe1,clfe2)
+fixest::etable(clfe1,clfe2)
 #>                           clfe1            clfe2
 #> Dependent Var.:            Rate             Rate
 #>                                                 

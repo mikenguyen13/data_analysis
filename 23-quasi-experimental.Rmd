@@ -38,9 +38,9 @@ Typical robustness check: recommended by [@goldfarb2022conducting]
 
 Showing the mechanism:
 
--   Mediation analysis
+-   [Mediation] analysis
 
--   Moderation analysis
+-   [Moderation] analysis
 
     -   Estimate the model separately (for different groups)
 
@@ -52,7 +52,7 @@ External Validity:
 
 -   Explain the limitation of the design.
 
--   Use quasi-experimental results in conjunction with structural models: see [@anderson2015growth] [@einav2010beyond][@chung2014bonuses]
+-   Use quasi-experimental results in conjunction with structural models: see [@anderson2015growth; @einav2010beyond; @chung2014bonuses]
 
 Limitation
 

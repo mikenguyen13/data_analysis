@@ -138,7 +138,7 @@
 
 \title{A Guide on Data Analysis}
 \author{Mike Nguyen}
-\date{2024-02-08}
+\date{2024-02-20}
 
 \begin{document}
 \maketitle
@@ -25436,6 +25436,8 @@ Three types of interactions:
   \protect\hyperlink{categorical-by-categorical}{Categorical by categorical}
 \end{enumerate}
 
+When interpreting the three-way interactions, one can use the slope difference test \citep{dawson2006probing}
+
 \hypertarget{emmeans-package}{%
 \section{emmeans package}\label{emmeans-package}}
 
@@ -36779,9 +36781,9 @@ Showing the mechanism:
 
 \begin{itemize}
 \item
-  Mediation analysis
+  \protect\hyperlink{mediation}{Mediation} analysis
 \item
-  Moderation analysis
+  \protect\hyperlink{moderation}{Moderation} analysis
 
   \begin{itemize}
   \item
@@ -36799,7 +36801,7 @@ External Validity:
 \item
   Explain the limitation of the design.
 \item
-  Use quasi-experimental results in conjunction with structural models: see \citep{anderson2015growth} {[}\citet{einav2010beyond}{]}\citep{chung2014bonuses}
+  Use quasi-experimental results in conjunction with structural models: see \citep{anderson2015growth, einav2010beyond, chung2014bonuses}
 \end{itemize}
 
 Limitation
@@ -39053,7 +39055,7 @@ Show the mechanism via
 
 \begin{itemize}
 \item
-  Mediation analysis: see \citep{habel2021variable}
+  \protect\hyperlink{mediation-under-did}{Mediation Under DiD} analysis: see \citep{habel2021variable}
 \item
   Moderation analysis: see \citep{goldfarb2011online}
 \end{itemize}
@@ -39068,7 +39070,7 @@ Show the mechanism via
 \FunctionTok{library}\NormalTok{(tidyverse)}
 \NormalTok{base\_stagg }\OtherTok{\textless{}{-}}\NormalTok{ fixest}\SpecialCharTok{::}\NormalTok{base\_stagg }\SpecialCharTok{|\textgreater{}}
     \CommentTok{\# treatment status}
-    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{treat\_stat =} \FunctionTok{if\_else}\NormalTok{(time\_to\_treatment }\SpecialCharTok{\textless{}} \DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{)) }\SpecialCharTok{|\textgreater{}} 
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{mutate}\NormalTok{(}\AttributeTok{treat\_stat =}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{if\_else}\NormalTok{(time\_to\_treatment }\SpecialCharTok{\textless{}} \DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{)) }\SpecialCharTok{|\textgreater{}} 
     \FunctionTok{select}\NormalTok{(id, year, treat\_stat, y)}
 
 \FunctionTok{head}\NormalTok{(base\_stagg)}
@@ -39321,9 +39323,9 @@ Goal:
 \NormalTok{od }\OtherTok{\textless{}{-}}\NormalTok{ causaldata}\SpecialCharTok{::}\NormalTok{organ\_donations }\SpecialCharTok{\%\textgreater{}\%}
     
     \CommentTok{\# Treatment variable}
-    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{California =}\NormalTok{ State }\SpecialCharTok{==} \StringTok{\textquotesingle{}California\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{mutate}\NormalTok{(}\AttributeTok{California =}\NormalTok{ State }\SpecialCharTok{==} \StringTok{\textquotesingle{}California\textquotesingle{}}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
     \CommentTok{\# centered time variable}
-    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{center\_time =} \FunctionTok{as.factor}\NormalTok{(Quarter\_Num }\SpecialCharTok{{-}} \DecValTok{3}\NormalTok{))  }
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{mutate}\NormalTok{(}\AttributeTok{center\_time =} \FunctionTok{as.factor}\NormalTok{(Quarter\_Num }\SpecialCharTok{{-}} \DecValTok{3}\NormalTok{))  }
 \CommentTok{\# where 3 is the reference period precedes the treatment period}
 
 \FunctionTok{class}\NormalTok{(od}\SpecialCharTok{$}\NormalTok{California)}
@@ -39369,7 +39371,8 @@ Goal:
 
 \begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-2-2} \end{center}
 
-Notes:
+\hypertarget{notes}{%
+\section{Notes}\label{notes}}
 
 \begin{itemize}
 \item
@@ -39397,22 +39400,48 @@ Notes:
     If the controls are dynamic across group and across, then your parallel trends assumption is not plausible.
   \end{itemize}
 \item
-  SEs are typically clustered within groups, but this approach can make our SEs too small, that leads to overconfidence in our estimates. Hence, \citet{bertrand2004much} suggest either
+  Under causal inference, \(R^2\) is not so important.
+\end{itemize}
 
-  \begin{enumerate}
-  \def\labelenumi{\arabic{enumi}.}
-  \item
-    aggregating data to just one pre-treatment and one post-treatment period per group
-  \item
-    using cluster bootstrapped SEs.
-  \end{enumerate}
+\hypertarget{standard-errors-2}{%
+\section{Standard Errors}\label{standard-errors-2}}
+
+Serial correlation is a big problem in DiD because \citep{bertrand2004much}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  DiD often uses long time series
+\item
+  Outcomes are often highly positively serially correlated
+\item
+  Minimal variation in the treatment variable over time within a group (e.g., state).
+\end{enumerate}
+
+To overcome this problem:
+
+\begin{itemize}
+\tightlist
+\item
+  Using parametric correction (standard AR correction) is not good.
+\item
+  Using nonparametric (e.g., \textbf{block bootstrap}- keep all obs from the same group such as state together) is good when number of groups is large.
+\item
+  Remove time series dimension (i.e., aggregate data into 2 periods: pre and post). This still works with small number of groups (See \citep{donald2007inference} for more notes on small-sample aggregation).
+\item
+  Empirical and arbitrary variance-covariance matrix corrections work only in large samples.
 \end{itemize}
 
 \hypertarget{examples}{%
-\subsection{Examples}\label{examples}}
+\section{Examples}\label{examples}}
+
+Example by \href{https://rpubs.com/phle/r_tutorial_difference_in_differences}{Philipp Leppert} replicating \href{https://davidcard.berkeley.edu/data_sets.html}{Card and Krueger (1994)}
+
+Example by \href{https://bookdown.org/aschmi11/causal_inf/difference-in-differences.html}{Anthony Schmidt}
 
 \hypertarget{example-by-doleac2020unintended}{%
-\subsubsection{\texorpdfstring{Example by \citet{doleac2020unintended}}{Example by @doleac2020unintended}}\label{example-by-doleac2020unintended}}
+\subsection{\texorpdfstring{Example by \citet{doleac2020unintended}}{Example by @doleac2020unintended}}\label{example-by-doleac2020unintended}}
 
 \begin{itemize}
 \item
@@ -39485,26 +39514,22 @@ So the year before BTB (\(\theta_1, \theta_2, \theta_3\)) should be similar to e
 
 If \(\theta_2\) is statistically different from \(\theta_3\) (baseline), then there could be a problem, but it could also make sense if we have pre-trend announcement.
 
-Example by \href{https://rpubs.com/phle/r_tutorial_difference_in_differences}{Philipp Leppert} replicating \href{https://davidcard.berkeley.edu/data_sets.html}{Card and Krueger (1994)}
-
-Example by \href{https://bookdown.org/aschmi11/causal_inf/difference-in-differences.html}{Anthony Schmidt}
-
 \hypertarget{example-from-princeton}{%
-\subsubsection{\texorpdfstring{Example from \href{https://www.princeton.edu/~otorres/DID101R.pdf}{Princeton}}{Example from Princeton}}\label{example-from-princeton}}
+\subsection{\texorpdfstring{Example from \href{https://www.princeton.edu/~otorres/DID101R.pdf}{Princeton}}{Example from Princeton}}\label{example-from-princeton}}
 
 \begin{Shaded}
 \begin{Highlighting}[]
 \FunctionTok{library}\NormalTok{(foreign)}
 \NormalTok{mydata }\OtherTok{=} \FunctionTok{read.dta}\NormalTok{(}\StringTok{"http://dss.princeton.edu/training/Panel101.dta"}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
     \CommentTok{\# create a dummy variable to indicate the time when the treatment started}
-    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{time =} \FunctionTok{ifelse}\NormalTok{(year }\SpecialCharTok{\textgreater{}=} \DecValTok{1994}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{)) }\SpecialCharTok{\%\textgreater{}\%}
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{mutate}\NormalTok{(}\AttributeTok{time =} \FunctionTok{ifelse}\NormalTok{(year }\SpecialCharTok{\textgreater{}=} \DecValTok{1994}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{)) }\SpecialCharTok{\%\textgreater{}\%}
     \CommentTok{\# create a dummy variable to identify the treatment group}
-    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{treated =} \FunctionTok{ifelse}\NormalTok{(country }\SpecialCharTok{==} \StringTok{"E"} \SpecialCharTok{|}
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{mutate}\NormalTok{(}\AttributeTok{treated =} \FunctionTok{ifelse}\NormalTok{(country }\SpecialCharTok{==} \StringTok{"E"} \SpecialCharTok{|}
 \NormalTok{                                country }\SpecialCharTok{==} \StringTok{"F"} \SpecialCharTok{|}\NormalTok{ country }\SpecialCharTok{==} \StringTok{"G"}\NormalTok{ ,}
                             \DecValTok{1}\NormalTok{,}
                             \DecValTok{0}\NormalTok{)) }\SpecialCharTok{\%\textgreater{}\%}
     \CommentTok{\# create an interaction between time and treated}
-    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{did =}\NormalTok{ time }\SpecialCharTok{*}\NormalTok{ treated)}
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{mutate}\NormalTok{(}\AttributeTok{did =}\NormalTok{ time }\SpecialCharTok{*}\NormalTok{ treated)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -39540,7 +39565,7 @@ estimate the DID estimator
 The \texttt{did} coefficient is the differences-in-differences estimator. Treat has a negative effect
 
 \hypertarget{example-by-card1993minimum}{%
-\subsubsection{\texorpdfstring{Example by \citet{card1993minimum}}{Example by @card1993minimum}}\label{example-by-card1993minimum}}
+\subsection{\texorpdfstring{Example by \citet{card1993minimum}}{Example by @card1993minimum}}\label{example-by-card1993minimum}}
 
 found that increase in minimum wage increases employment
 
@@ -39602,9 +39627,9 @@ where
 \item
   \(j\) = restaurant
 \item
-  \(NJ\) = dummy where 1 = NJ, and 0 = PA
+  \(NJ\) = dummy where \(1 = NJ\), and \(0 = PA\)
 \item
-  \(POST\) = dummy where 1 = post, and 0 = pre
+  \(POST\) = dummy where \(1 = post\), and \(0 = pre\)
 \end{itemize}
 
 Notes:
@@ -39634,7 +39659,7 @@ Notes:
 \end{itemize}
 
 \hypertarget{example-by-butcher2014effects}{%
-\subsubsection{\texorpdfstring{Example by \citet{butcher2014effects}}{Example by @butcher2014effects}}\label{example-by-butcher2014effects}}
+\subsection{\texorpdfstring{Example by \citet{butcher2014effects}}{Example by @butcher2014effects}}\label{example-by-butcher2014effects}}
 
 Theory:
 
@@ -39734,8 +39759,6 @@ where
 \item
   \(\alpha_1\) should be equivalent to \(\beta_3\) (if your model assumptions are correct)
 \end{itemize}
-
-Under causal inference, \(R^2\) is not so important.
 
 \hypertarget{one-difference}{%
 \section{One Difference}\label{one-difference}}
@@ -40305,6 +40328,23 @@ Possible parameters of interest are:
 \hypertarget{staggered-dif-n-dif}{%
 \section{Staggered Dif-n-dif}\label{staggered-dif-n-dif}}
 
+Recommendations by \citet{baker2022much}
+
+\begin{itemize}
+\item
+  TWFE DiD regressions are suitable for single treatment periods or when treatment effects are homogeneous, provided there's a solid rationale for effect homogeneity.
+\item
+  For TWFE staggered DiD, researchers should evaluate bias risks, plot treatment timings to check for variations, and use decompositions like \citet{goodman2021difference} when possible. If decompositions aren't feasible (e.g., unbalanced panel), the percentage of never-treated units can indicate bias severity. Expected treatment effect variability should also be discussed.
+\item
+  In TWFE staggered DiD event studies, avoid binning time periods without evidence of uniform effects. Use full relative-time indicators, justify reference periods, and be wary of multicollinearity causing bias.
+\item
+  To address treatment timing and bias concerns, use alternative estimators like stacked regressions, \citet{sun2021estimating}, \citet{callaway2021difference}, or separate regressions for each event with ``clean'' controls.
+\item
+  Justify the selection of comparison groups (not-yet treated, last treated, never treated) and ensure the parallel-trends assumption holds, especially when anticipating no effects for certain groups.
+\end{itemize}
+
+Notes:
+
 \begin{itemize}
 \tightlist
 \item
@@ -40335,7 +40375,7 @@ where
 
 In this setting, we try to show that the treatment and control groups are not statistically different (i.e., the coefficient estimates before treatment are not different from 0) to show pre-treatment parallel trends.
 
-However, this two-way fixed effects design has been criticized by \citep{sun2021estimating, callaway2021difference, goodman2021difference}. When researchers include leads and lags of the treatment to see the long-term effects of the treatment, these leads and lags can be biased by effects from other periods, and pre-trends can falsely arise due to treatment effects heterogeneity.
+However, this two-way fixed effects design has been criticized by \citet{sun2021estimating}; \citet{callaway2021difference}; \citet{goodman2021difference}. When researchers include leads and lags of the treatment to see the long-term effects of the treatment, these leads and lags can be biased by effects from other periods, and pre-trends can falsely arise due to treatment effects heterogeneity.
 
 Applying the new proposed method, finance and accounting researchers find that in many cases, the causal estimates turn out to be null \citep{baker2022much}.
 
@@ -40357,6 +40397,16 @@ Robustness Check
   \tightlist
   \item
     Evidence: Regress adoption on pre-treatment variables. And if you find evidence of correlation, include linear trends interacted with pre-treatment variables \citep{hoynes2009consumption}
+  \item
+    Evidence: \citep[p.~223]{deshpande2019screened}
+
+    \begin{itemize}
+    \tightlist
+    \item
+      Treatment is random: Regress treatment status at the unit level to all pre-treatment observables. If you have some that are predictive of treatment status, you might have to argue why it's not a worry. At best, you want this.
+    \item
+      Treatment timing is random: Conditional on treatment, regress timing of the treatment on pre-treatment observables. At least, you want this.
+    \end{itemize}
   \end{itemize}
 \item
   \textbf{No confounding events}
@@ -40545,8 +40595,6 @@ and \(\omega_d\) be the event date of the d-th sub-experiment (e.g., \(\omega_1\
 
 \FunctionTok{data}\NormalTok{(base\_stagg)}
 
-
-
 \CommentTok{\# first make the stacked datasets}
 \CommentTok{\# get the treatment cohorts}
 \NormalTok{cohorts }\OtherTok{\textless{}{-}}\NormalTok{ base\_stagg }\SpecialCharTok{\%\textgreater{}\%}
@@ -40663,7 +40711,8 @@ and \(\omega_d\) be the event date of the d-th sub-experiment (e.g., \(\omega_1\
         \AttributeTok{group =}\NormalTok{ estimator,}
         \AttributeTok{col =}\NormalTok{ estimator}
 \NormalTok{    ),}
-    \AttributeTok{linewidth =} \DecValTok{1}\NormalTok{)}
+    \AttributeTok{linewidth =} \DecValTok{1}\NormalTok{) }\SpecialCharTok{+} 
+\NormalTok{    causalverse}\SpecialCharTok{::}\FunctionTok{ama\_theme}\NormalTok{()}
 \end{Highlighting}
 \end{Shaded}
 
@@ -40674,16 +40723,16 @@ and \(\omega_d\) be the event date of the d-th sub-experiment (e.g., \(\omega_1\
 Estimating Equation
 
 \[
-Y_{itd} = \beta_0 + \beta_1 + T_{id} + \beta_2 + P_{td} + \beta_3 (T_{id} \times P_{td}) + \epsilon_{itd}
+Y_{itd} = \beta_0 + \beta_1 T_{id} + \beta_2 P_{td} + \beta_3 (T_{id} \times P_{td}) + \epsilon_{itd}
 \]
 
 where
 
 \begin{itemize}
 \item
-  \(T_{id}\) = 1 if unit \(i\) is treated in sub-experiment d, 0 if control
+  \(T_{id}\) = 1 if unit \(i\) is treated in sub-experiment \(d\), 0 if control
 \item
-  \(P_{td}\) = 1 if it's the period after the treatment in sub-experiment d
+  \(P_{td}\) = 1 if it's the period after the treatment in sub-experiment \(d\)
 \end{itemize}
 
 Equivalently,
@@ -42821,7 +42870,18 @@ Notes:
 \hypertarget{imputation-method}{%
 \paragraph{Imputation Method}\label{imputation-method}}
 
-\citep{liu2022practical} can still accounts for treatment reversals and heterogeneous treatment effects.
+\citet{liu2022practical} can also account for treatment reversals and heterogeneous treatment effects.
+
+Other imputation estimators include
+
+\begin{itemize}
+\item
+  \citet{gardner2022two}
+\item
+  \citet{borusyak2021revisiting}
+\item
+  \citet{RePEc:arx:papers:2301.11358}
+\end{itemize}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -42915,6 +42975,104 @@ Even if we have carryover effects, in most cases of the staggered adoption setti
 
 We have evidence of carryover effects.
 
+\hypertarget{gardner2022two-and-borusyak2021revisiting}{%
+\subsection{\texorpdfstring{\citet{gardner2022two} and \citet{borusyak2021revisiting}}{@gardner2022two and @borusyak2021revisiting}}\label{gardner2022two-and-borusyak2021revisiting}}
+
+\begin{itemize}
+\item
+  Estimate the time and unit fixed effects separately
+\item
+  Known as the imputation method \citep{borusyak2021revisiting} or two-stage DiD \citep{gardner2022two}
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# remotes::install\_github("kylebutts/did2s")}
+\FunctionTok{library}\NormalTok{(did2s)}
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\FunctionTok{library}\NormalTok{(fixest)}
+\FunctionTok{library}\NormalTok{(tidyverse)}
+\FunctionTok{data}\NormalTok{(base\_stagg)}
+
+
+\NormalTok{est }\OtherTok{\textless{}{-}} \FunctionTok{did2s}\NormalTok{(}
+    \AttributeTok{data =}\NormalTok{ base\_stagg }\SpecialCharTok{|\textgreater{}} \FunctionTok{mutate}\NormalTok{(}\AttributeTok{treat =} \FunctionTok{if\_else}\NormalTok{(time\_to\_treatment }\SpecialCharTok{\textgreater{}=} \DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{)), }
+    \AttributeTok{yname =} \StringTok{"y"}\NormalTok{,}
+    \AttributeTok{first\_stage =} \SpecialCharTok{\textasciitilde{}}\NormalTok{x1 }\SpecialCharTok{|}\NormalTok{ id }\SpecialCharTok{+}\NormalTok{ year, }
+    \AttributeTok{second\_stage =} \SpecialCharTok{\textasciitilde{}}\FunctionTok{i}\NormalTok{(time\_to\_treatment, }\AttributeTok{ref =} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, }\SpecialCharTok{{-}}\DecValTok{1000}\NormalTok{)),}
+    \AttributeTok{treatment =} \StringTok{"treat"}\NormalTok{ ,}
+    \AttributeTok{cluster\_var =} \StringTok{"id"}
+\NormalTok{)}
+
+\NormalTok{fixest}\SpecialCharTok{::}\FunctionTok{esttable}\NormalTok{(est)}
+\CommentTok{\#\textgreater{}                                       est}
+\CommentTok{\#\textgreater{} Dependent Var.:                         y}
+\CommentTok{\#\textgreater{}                                          }
+\CommentTok{\#\textgreater{} time\_to\_treatment = {-}9  0.3518** (0.1332)}
+\CommentTok{\#\textgreater{} time\_to\_treatment = {-}8  {-}0.3130* (0.1213)}
+\CommentTok{\#\textgreater{} time\_to\_treatment = {-}7    0.0894 (0.2367)}
+\CommentTok{\#\textgreater{} time\_to\_treatment = {-}6    0.0312 (0.2176)}
+\CommentTok{\#\textgreater{} time\_to\_treatment = {-}5   {-}0.2079 (0.1519)}
+\CommentTok{\#\textgreater{} time\_to\_treatment = {-}4   {-}0.1152 (0.1438)}
+\CommentTok{\#\textgreater{} time\_to\_treatment = {-}3   {-}0.0127 (0.1483)}
+\CommentTok{\#\textgreater{} time\_to\_treatment = {-}2    0.1503 (0.1440)}
+\CommentTok{\#\textgreater{} time\_to\_treatment = 0  {-}5.139*** (0.3680)}
+\CommentTok{\#\textgreater{} time\_to\_treatment = 1  {-}3.480*** (0.3784)}
+\CommentTok{\#\textgreater{} time\_to\_treatment = 2  {-}2.021*** (0.3055)}
+\CommentTok{\#\textgreater{} time\_to\_treatment = 3   {-}0.6965. (0.3947)}
+\CommentTok{\#\textgreater{} time\_to\_treatment = 4    1.070** (0.3501)}
+\CommentTok{\#\textgreater{} time\_to\_treatment = 5   2.173*** (0.4456)}
+\CommentTok{\#\textgreater{} time\_to\_treatment = 6   4.449*** (0.3680)}
+\CommentTok{\#\textgreater{} time\_to\_treatment = 7   4.864*** (0.3698)}
+\CommentTok{\#\textgreater{} time\_to\_treatment = 8   6.187*** (0.2702)}
+\CommentTok{\#\textgreater{} \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_}
+\CommentTok{\#\textgreater{} S.E. type                          Custom}
+\CommentTok{\#\textgreater{} Observations                          950}
+\CommentTok{\#\textgreater{} R2                                0.62486}
+\CommentTok{\#\textgreater{} Adj. R2                           0.61843}
+\CommentTok{\#\textgreater{} {-}{-}{-}}
+\CommentTok{\#\textgreater{} Signif. codes: 0 \textquotesingle{}***\textquotesingle{} 0.001 \textquotesingle{}**\textquotesingle{} 0.01 \textquotesingle{}*\textquotesingle{} 0.05 \textquotesingle{}.\textquotesingle{} 0.1 \textquotesingle{} \textquotesingle{} 1}
+
+\NormalTok{fixest}\SpecialCharTok{::}\FunctionTok{iplot}\NormalTok{(}
+\NormalTok{    est,}
+    \AttributeTok{main =} \StringTok{"Event study"}\NormalTok{,}
+    \AttributeTok{xlab =} \StringTok{"Time to treatment"}\NormalTok{,}
+    \AttributeTok{ref.line =} \SpecialCharTok{{-}}\DecValTok{1}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-38-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\FunctionTok{coefplot}\NormalTok{(est)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-38-2} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mult\_est }\OtherTok{\textless{}{-}}\NormalTok{ did2s}\SpecialCharTok{::}\FunctionTok{event\_study}\NormalTok{(}
+  \AttributeTok{data =}\NormalTok{ base\_stagg }\SpecialCharTok{|\textgreater{}} \FunctionTok{mutate}\NormalTok{(}\AttributeTok{year\_treated =} \FunctionTok{if\_else}\NormalTok{(year\_treated }\SpecialCharTok{==} \DecValTok{10000}\NormalTok{, }\DecValTok{0}\NormalTok{, year\_treated)),}
+  \AttributeTok{gname =} \StringTok{"year\_treated"}\NormalTok{,}
+  \AttributeTok{idname =} \StringTok{"id"}\NormalTok{,}
+  \AttributeTok{tname =} \StringTok{"year"}\NormalTok{,}
+  \AttributeTok{yname =} \StringTok{"y"}\NormalTok{,}
+  \AttributeTok{estimator =} \StringTok{"all"}
+\NormalTok{)}
+\CommentTok{\#\textgreater{} Error in purrr::map(., function(y) \{ : i In index: 1.}
+\CommentTok{\#\textgreater{} i With name: y.}
+\CommentTok{\#\textgreater{} Caused by error in \textasciigrave{}.subset2()\textasciigrave{}:}
+\CommentTok{\#\textgreater{} ! no such index at level 1}
+\NormalTok{did2s}\SpecialCharTok{::}\FunctionTok{plot\_event\_study}\NormalTok{(mult\_est)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-39-1} \end{center}
+
 \hypertarget{chaisemartin-dhaultfoeuille}{%
 \subsection{Chaisemartin-d'Haultfoeuille}\label{chaisemartin-dhaultfoeuille}}
 
@@ -42944,72 +43102,239 @@ use \texttt{twowayfeweights} from \href{https://github.com/shuo-zhang-ucsb/twowa
 
 use \texttt{didimputation} from \href{https://github.com/kylebutts/didimputation}{GitHub}
 
-\hypertarget{staggered}{%
-\subsection{staggered}\label{staggered}}
-
-\texttt{staggered} \href{https://github.com/jonathandroth/staggered}{package}
-
-\hypertarget{wooldridges-solution}{%
-\subsection{Wooldridge's Solution}\label{wooldridges-solution}}
-
-use \href{https://grantmcdermott.com/etwfe/}{etwfe}(Extended two-way Fixed Effects) \citep{wooldridge2022simple}
-
-\hypertarget{two-stage-did}{%
-\subsection{Two-stage DiD}\label{two-stage-did}}
-
-\href{https://cran.r-project.org/web/packages/did2s/vignettes/Two-Stage-Difference-in-Differences.html}{Example} from CRAN
-
-Also known as the imputation method \citep{borusyak2021revisiting} or two-stage DiD \citep{gardner2022two}
-
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{library}\NormalTok{(fect)}
+\CommentTok{\# devtools::install\_github("kylebutts/didimputation")}
+\FunctionTok{library}\NormalTok{(didimputation)}
 \FunctionTok{library}\NormalTok{(fixest)}
-\FunctionTok{library}\NormalTok{(tidyverse)}
+\FunctionTok{data}\NormalTok{(}\StringTok{"base\_stagg"}\NormalTok{)}
 
-\NormalTok{base\_stagg }\OtherTok{\textless{}{-}}\NormalTok{ fixest}\SpecialCharTok{::}\NormalTok{base\_stagg }\SpecialCharTok{|\textgreater{}}
-    \CommentTok{\# treatment status}
-    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{treat\_stat =} \FunctionTok{if\_else}\NormalTok{(time\_to\_treatment }\SpecialCharTok{\textless{}} \DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{))}
-
-\NormalTok{res\_fect }\OtherTok{\textless{}{-}}
-    \FunctionTok{fect}\NormalTok{(}
-\NormalTok{        y }\SpecialCharTok{\textasciitilde{}}\NormalTok{ treat\_stat,}
-        \AttributeTok{data =}\NormalTok{ base\_stagg,}
-        \AttributeTok{index =} \FunctionTok{c}\NormalTok{(}\StringTok{"id"}\NormalTok{, }\StringTok{"year"}\NormalTok{),}
-        \AttributeTok{method =} \StringTok{\textquotesingle{}fe\textquotesingle{}}\NormalTok{,}
-        \AttributeTok{se =} \ConstantTok{TRUE}
-\NormalTok{    )}
-\FunctionTok{print}\NormalTok{(res\_fect}\SpecialCharTok{$}\NormalTok{est.avg)}
-\CommentTok{\#\textgreater{}         ATT.avg      S.E.  CI.lower  CI.upper   p.value}
-\CommentTok{\#\textgreater{} [1,] {-}0.7455638 0.6004228 {-}1.922371 0.4312432 0.2143357}
-\NormalTok{res\_fect}\SpecialCharTok{$}\NormalTok{est.att }\SpecialCharTok{|\textgreater{}} 
-    \FunctionTok{as.data.frame}\NormalTok{() }\SpecialCharTok{|\textgreater{}} 
-\NormalTok{    causalverse}\SpecialCharTok{::}\FunctionTok{nice\_tab}\NormalTok{()}
-\CommentTok{\#\textgreater{}      ATT S.E. CI.lower CI.upper p.value count}
-\CommentTok{\#\textgreater{} 1   1.56 0.88    {-}0.17     3.28    0.08     5}
-\CommentTok{\#\textgreater{} 2  {-}0.73 0.68    {-}2.06     0.61    0.28    10}
-\CommentTok{\#\textgreater{} 3   0.00 0.40    {-}0.79     0.79    0.99    15}
-\CommentTok{\#\textgreater{} 4  {-}0.20 0.45    {-}1.09     0.69    0.65    20}
-\CommentTok{\#\textgreater{} 5  {-}0.57 0.42    {-}1.39     0.25    0.17    25}
-\CommentTok{\#\textgreater{} 6   0.10 0.26    {-}0.40     0.61    0.69    30}
-\CommentTok{\#\textgreater{} 7  {-}0.09 0.32    {-}0.71     0.53    0.77    35}
-\CommentTok{\#\textgreater{} 8   0.34 0.25    {-}0.14     0.83    0.17    40}
-\CommentTok{\#\textgreater{} 9   0.10 0.26    {-}0.41     0.60    0.71    45}
-\CommentTok{\#\textgreater{} 10 {-}4.95 0.51    {-}5.94    {-}3.95    0.00    45}
-\CommentTok{\#\textgreater{} 11 {-}3.01 0.54    {-}4.07    {-}1.95    0.00    40}
-\CommentTok{\#\textgreater{} 12 {-}2.05 0.52    {-}3.08    {-}1.02    0.00    35}
-\CommentTok{\#\textgreater{} 13  0.01 0.51    {-}1.00     1.01    0.99    30}
-\CommentTok{\#\textgreater{} 14  1.33 0.68     0.00     2.67    0.05    25}
-\CommentTok{\#\textgreater{} 15  2.36 0.71     0.97     3.76    0.00    20}
-\CommentTok{\#\textgreater{} 16  5.57 0.96     3.70     7.45    0.00    15}
-\CommentTok{\#\textgreater{} 17  4.29 1.42     1.51     7.06    0.00    10}
-\CommentTok{\#\textgreater{} 18  7.95 0.96     6.08     9.83    0.00     5}
-
-\FunctionTok{plot}\NormalTok{(res\_fect)}
+\CommentTok{\# did\_imputation(}
+\CommentTok{\#     data = base\_stagg,}
+\CommentTok{\#     yname = "y",}
+\CommentTok{\#     gname = "year\_treated",}
+\CommentTok{\#     tname = "year",}
+\CommentTok{\#     idname = "id",}
+\CommentTok{\#     horizon = T, }
+\CommentTok{\#     pretrends = {-}9:{-}1}
+\CommentTok{\# )}
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-38-1} \end{center}
+\hypertarget{callaway2021difference}{%
+\subsection{\texorpdfstring{\citet{callaway2021difference}}{@callaway2021difference}}\label{callaway2021difference}}
+
+\begin{itemize}
+\item
+  \texttt{staggered} \href{https://github.com/jonathandroth/staggered}{package}
+\item
+  Group-time average treatment effect
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(staggered) }
+\FunctionTok{library}\NormalTok{(fixest)}
+\FunctionTok{data}\NormalTok{(}\StringTok{"base\_stagg"}\NormalTok{)}
+
+\CommentTok{\# simple weighted average}
+\FunctionTok{staggered}\NormalTok{(}
+    \AttributeTok{df =}\NormalTok{ base\_stagg,}
+    \AttributeTok{i =} \StringTok{"id"}\NormalTok{,}
+    \AttributeTok{t =} \StringTok{"year"}\NormalTok{,}
+    \AttributeTok{g =} \StringTok{"year\_treated"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"y"}\NormalTok{,}
+    \AttributeTok{estimand =} \StringTok{"simple"}
+\NormalTok{)}
+\CommentTok{\#\textgreater{}     estimate        se se\_neyman}
+\CommentTok{\#\textgreater{} 1 {-}0.7110941 0.2211943 0.2214245}
+
+\CommentTok{\# cohort weighted average}
+\FunctionTok{staggered}\NormalTok{(}
+    \AttributeTok{df =}\NormalTok{ base\_stagg,}
+    \AttributeTok{i =} \StringTok{"id"}\NormalTok{,}
+    \AttributeTok{t =} \StringTok{"year"}\NormalTok{,}
+    \AttributeTok{g =} \StringTok{"year\_treated"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"y"}\NormalTok{,}
+    \AttributeTok{estimand =} \StringTok{"cohort"}
+\NormalTok{)}
+\CommentTok{\#\textgreater{}    estimate        se se\_neyman}
+\CommentTok{\#\textgreater{} 1 {-}2.724242 0.2701093 0.2701745}
+
+\CommentTok{\# calendar weighted average}
+\FunctionTok{staggered}\NormalTok{(}
+    \AttributeTok{df =}\NormalTok{ base\_stagg,}
+    \AttributeTok{i =} \StringTok{"id"}\NormalTok{,}
+    \AttributeTok{t =} \StringTok{"year"}\NormalTok{,}
+    \AttributeTok{g =} \StringTok{"year\_treated"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"y"}\NormalTok{,}
+    \AttributeTok{estimand =} \StringTok{"calendar"}
+\NormalTok{)}
+\CommentTok{\#\textgreater{}     estimate        se se\_neyman}
+\CommentTok{\#\textgreater{} 1 {-}0.5861831 0.1768297 0.1770729}
+
+\NormalTok{res }\OtherTok{\textless{}{-}} \FunctionTok{staggered}\NormalTok{(}
+    \AttributeTok{df =}\NormalTok{ base\_stagg,}
+    \AttributeTok{i =} \StringTok{"id"}\NormalTok{,}
+    \AttributeTok{t =} \StringTok{"year"}\NormalTok{,}
+    \AttributeTok{g =} \StringTok{"year\_treated"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"y"}\NormalTok{,}
+    \AttributeTok{estimand =} \StringTok{"eventstudy"}\NormalTok{, }
+    \AttributeTok{eventTime =} \SpecialCharTok{{-}}\DecValTok{9}\SpecialCharTok{:}\DecValTok{8}
+\NormalTok{)}
+\FunctionTok{head}\NormalTok{(res)}
+\CommentTok{\#\textgreater{}      estimate        se se\_neyman eventTime}
+\CommentTok{\#\textgreater{} 1  0.20418779 0.1045821 0.1045821        {-}9}
+\CommentTok{\#\textgreater{} 2 {-}0.06215104 0.1669703 0.1670886        {-}8}
+\CommentTok{\#\textgreater{} 3  0.02744671 0.1413273 0.1420377        {-}7}
+\CommentTok{\#\textgreater{} 4 {-}0.02131747 0.2203695 0.2206338        {-}6}
+\CommentTok{\#\textgreater{} 5 {-}0.30690897 0.2015697 0.2036412        {-}5}
+\CommentTok{\#\textgreater{} 6  0.05594029 0.1908101 0.1921745        {-}4}
+
+
+\FunctionTok{ggplot}\NormalTok{(}
+\NormalTok{    res }\SpecialCharTok{|\textgreater{}} \FunctionTok{mutate}\NormalTok{(}
+        \AttributeTok{ymin\_ptwise =}\NormalTok{ estimate }\SpecialCharTok{+} \FloatTok{1.96} \SpecialCharTok{*}\NormalTok{ se,}
+        \AttributeTok{ymax\_ptwise =}\NormalTok{ estimate }\SpecialCharTok{{-}} \FloatTok{1.96} \SpecialCharTok{*}\NormalTok{ se}
+\NormalTok{    ),}
+    \FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ eventTime, }\AttributeTok{y =}\NormalTok{ estimate)}
+\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{geom\_pointrange}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{ymin =}\NormalTok{ ymin\_ptwise, }\AttributeTok{ymax =}\NormalTok{ ymax\_ptwise)) }\SpecialCharTok{+}
+    \FunctionTok{geom\_hline}\NormalTok{(}\AttributeTok{yintercept =} \DecValTok{0}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{xlab}\NormalTok{(}\StringTok{"Event Time"}\NormalTok{) }\SpecialCharTok{+}
+    \FunctionTok{ylab}\NormalTok{(}\StringTok{"Estimate"}\NormalTok{) }\SpecialCharTok{+}
+\NormalTok{    causalverse}\SpecialCharTok{::}\FunctionTok{ama\_theme}\NormalTok{()}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-41-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Callaway and Sant\textquotesingle{}Anna estimator for the simple weighted average}
+\FunctionTok{staggered\_cs}\NormalTok{(}
+    \AttributeTok{df =}\NormalTok{ base\_stagg,}
+    \AttributeTok{i =} \StringTok{"id"}\NormalTok{,}
+    \AttributeTok{t =} \StringTok{"year"}\NormalTok{,}
+    \AttributeTok{g =} \StringTok{"year\_treated"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"y"}\NormalTok{,}
+    \AttributeTok{estimand =} \StringTok{"simple"}
+\NormalTok{)}
+\CommentTok{\#\textgreater{}     estimate        se se\_neyman}
+\CommentTok{\#\textgreater{} 1 {-}0.7994889 0.4484987 0.4486122}
+
+\CommentTok{\# Sun and Abraham estimator for the simple weighted average}
+\FunctionTok{staggered\_sa}\NormalTok{(}
+    \AttributeTok{df =}\NormalTok{ base\_stagg,}
+    \AttributeTok{i =} \StringTok{"id"}\NormalTok{,}
+    \AttributeTok{t =} \StringTok{"year"}\NormalTok{,}
+    \AttributeTok{g =} \StringTok{"year\_treated"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"y"}\NormalTok{,}
+    \AttributeTok{estimand =} \StringTok{"simple"}
+\NormalTok{)}
+\CommentTok{\#\textgreater{}     estimate        se se\_neyman}
+\CommentTok{\#\textgreater{} 1 {-}0.7551901 0.4407818 0.4409525}
+\end{Highlighting}
+\end{Shaded}
+
+Fisher's Randomization Test (i.e., permutation test)
+
+\(H_0\): \(TE = 0\)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{staggered}\NormalTok{(}
+    \AttributeTok{df =}\NormalTok{ base\_stagg,}
+    \AttributeTok{i =} \StringTok{"id"}\NormalTok{,}
+    \AttributeTok{t =} \StringTok{"year"}\NormalTok{,}
+    \AttributeTok{g =} \StringTok{"year\_treated"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"y"}\NormalTok{,}
+    \AttributeTok{estimand =} \StringTok{"simple"}\NormalTok{,}
+    \AttributeTok{compute\_fisher =}\NormalTok{ T,}
+    \AttributeTok{num\_fisher\_permutations =} \DecValTok{100}
+\NormalTok{)}
+\CommentTok{\#\textgreater{}     estimate        se se\_neyman fisher\_pval fisher\_pval\_se\_neyman}
+\CommentTok{\#\textgreater{} 1 {-}0.7110941 0.2211943 0.2214245           0                     0}
+\CommentTok{\#\textgreater{}   num\_fisher\_permutations}
+\CommentTok{\#\textgreater{} 1                     100}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{sun2021estimating}{%
+\subsection{\texorpdfstring{\citet{sun2021estimating}}{@sun2021estimating}}\label{sun2021estimating}}
+
+This paper utilizes the Cohort Average Treatment Effects on the Treated (CATT), which measures the cohort-specific average difference in outcomes relative to those never treated, offering a more detailed analysis than \citet{goodman2021difference}. In scenarios lacking a never-treated group, this method designates the last cohort to be treated as the control group.
+
+\begin{itemize}
+\item
+  \citet{callaway2021difference} explores group-time average treatment effects, employing cohorts that have not yet been treated as controls, and permits conditioning on time-varying covariates.
+\item
+  \citet{athey2022design} examines the treatment effect in relation to the counterfactual outcome of the always-treated group, diverging from the conventional focus on the never-treated.
+\item
+  \citet{borusyak2021revisiting} presumes a uniform treatment effect across cohorts, effectively simplifying CATT to ATT.
+\end{itemize}
+
+Identifying Assumptions:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{Parallel Trends}: Baseline outcomes follow parallel trends across cohorts before treatment.
+\item
+  \textbf{No Anticipatory Behavior}: There is no effect of the treatment during pre-treatment periods, indicating that outcomes are not influenced by the anticipation of treatment.
+\item
+  \textbf{Treatment Effect Homogeneity}: The treatment effect is consistent across cohorts for each relative period, meaning the CATT mirrors the ATT.
+\end{enumerate}
+
+\textbf{Application}
+
+can use \texttt{fixest} in r with \texttt{sunab} function
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(fixest)}
+\FunctionTok{data}\NormalTok{(}\StringTok{"base\_stagg"}\NormalTok{)}
+\NormalTok{res\_sa20 }\OtherTok{=} \FunctionTok{feols}\NormalTok{(y }\SpecialCharTok{\textasciitilde{}}\NormalTok{ x1 }\SpecialCharTok{+} \FunctionTok{sunab}\NormalTok{(year\_treated, year) }\SpecialCharTok{|}\NormalTok{ id }\SpecialCharTok{+}\NormalTok{ year, base\_stagg)}
+\FunctionTok{iplot}\NormalTok{(res\_sa20)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-44-1} \end{center}
+
+Using the same syntax as \texttt{fixest}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# devtools::install\_github("kylebutts/fwlplot")}
+\FunctionTok{library}\NormalTok{(fwlplot)}
+\FunctionTok{fwl\_plot}\NormalTok{(y }\SpecialCharTok{\textasciitilde{}}\NormalTok{ x1, }\AttributeTok{data =}\NormalTok{ base\_stagg)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/plot residuals-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\FunctionTok{fwl\_plot}\NormalTok{(y }\SpecialCharTok{\textasciitilde{}}\NormalTok{ x1 }\SpecialCharTok{|}\NormalTok{ id }\SpecialCharTok{+}\NormalTok{ year, }\AttributeTok{data =}\NormalTok{ base\_stagg, }\AttributeTok{n\_sample =} \DecValTok{100}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/plot residuals-2} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\FunctionTok{fwl\_plot}\NormalTok{(y }\SpecialCharTok{\textasciitilde{}}\NormalTok{ x1 }\SpecialCharTok{|}\NormalTok{ id }\SpecialCharTok{+}\NormalTok{ year, }\AttributeTok{data =}\NormalTok{ base\_stagg, }\AttributeTok{n\_sample =} \DecValTok{100}\NormalTok{, }\AttributeTok{fsplit =} \SpecialCharTok{\textasciitilde{}}\NormalTok{ treated)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/plot residuals-3} \end{center}
+
+\hypertarget{wooldridge2022simple}{%
+\subsection{\texorpdfstring{\citet{wooldridge2022simple}}{@wooldridge2022simple}}\label{wooldridge2022simple}}
+
+use \href{https://grantmcdermott.com/etwfe/}{etwfe}(Extended two-way Fixed Effects) \citep{wooldridge2022simple}
 
 \hypertarget{doubly-robust-did}{%
 \subsection{Doubly Robust DiD}\label{doubly-robust-did}}
@@ -43253,7 +43578,7 @@ Check this \href{https://stats.stackexchange.com/questions/261218/difference-in-
 \item
   Incidental parameters problems \citep{lancaster2000incidental}: it's always better to use individual and time fixed effect.
 \item
-  When examining the effects of variation in treatment timing, we have to be careful because negative weights (per group) can be negative if there is a heterogeneity in the treatment effects over time. Example: {[}\citet{athey2022design}{]}\citep{borusyak2021revisiting}\citep{goodman2021difference}. In this case you should use new estimands proposed by {[}\citet{callaway2021difference}{]}\citep{de2020two}, in the \texttt{did} package. If you expect lags and leads, see \citep{sun2021estimating}
+  When examining the effects of variation in treatment timing, we have to be careful because negative weights (per group) can be negative if there is a heterogeneity in the treatment effects over time. Example: {[}\citet{athey2022design}{]}\citep{borusyak2021revisiting}\citep{goodman2021difference}. In this case you should use new estimands proposed by \protect\hyperlink{callaway2021difference}{@callaway2021difference}\citep{de2020two}, in the \texttt{did} package. If you expect lags and leads, see \citep{sun2021estimating}
 \item
   \citep{gibbons2018broken} caution when we suspect the treatment effect and treatment variance vary across groups
 \end{itemize}
@@ -43332,7 +43657,7 @@ Debate:
     \CommentTok{\# Use only pre{-}treatment data}
     \FunctionTok{filter}\NormalTok{(Quarter\_Num }\SpecialCharTok{\textless{}=} \DecValTok{3}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
     \CommentTok{\# Treatment variable}
-    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{California =}\NormalTok{ State }\SpecialCharTok{==} \StringTok{\textquotesingle{}California\textquotesingle{}}\NormalTok{)}
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{mutate}\NormalTok{(}\AttributeTok{California =}\NormalTok{ State }\SpecialCharTok{==} \StringTok{\textquotesingle{}California\textquotesingle{}}\NormalTok{)}
 
 \CommentTok{\# use my package}
 \NormalTok{causalverse}\SpecialCharTok{::}\FunctionTok{plot\_par\_trends}\NormalTok{(}
@@ -43346,7 +43671,7 @@ Debate:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-40-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-46-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -43355,39 +43680,40 @@ Debate:
 \CommentTok{\# always good but plot the dependent out}
 \NormalTok{od }\SpecialCharTok{|\textgreater{}}
     \CommentTok{\# group by treatment status and time}
-    \FunctionTok{group\_by}\NormalTok{(California, Quarter) }\SpecialCharTok{|\textgreater{}}
-    \FunctionTok{summarize\_all}\NormalTok{(mean) }\SpecialCharTok{|\textgreater{}}
-    \FunctionTok{ungroup}\NormalTok{() }\SpecialCharTok{|\textgreater{}}
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{group\_by}\NormalTok{(California, Quarter) }\SpecialCharTok{|\textgreater{}}
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{summarize\_all}\NormalTok{(mean) }\SpecialCharTok{|\textgreater{}}
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{ungroup}\NormalTok{() }\SpecialCharTok{|\textgreater{}}
     \CommentTok{\# view()}
     
-    \FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Quarter\_Num, }\AttributeTok{y =}\NormalTok{ Rate, }\AttributeTok{color =}\NormalTok{ California)) }\SpecialCharTok{+}
-    \FunctionTok{geom\_line}\NormalTok{()}
+\NormalTok{    ggplot2}\SpecialCharTok{::}\FunctionTok{ggplot}\NormalTok{(}\FunctionTok{aes}\NormalTok{(}\AttributeTok{x =}\NormalTok{ Quarter\_Num, }\AttributeTok{y =}\NormalTok{ Rate, }\AttributeTok{color =}\NormalTok{ California)) }\SpecialCharTok{+}
+\NormalTok{    ggplot2}\SpecialCharTok{::}\FunctionTok{geom\_line}\NormalTok{() }\SpecialCharTok{+}
+\NormalTok{    causalverse}\SpecialCharTok{::}\FunctionTok{ama\_theme}\NormalTok{()}
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-40-2} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-46-2} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
 
 
 \CommentTok{\# but it\textquotesingle{}s also important to use statistical test}
-\NormalTok{prior\_trend }\OtherTok{\textless{}{-}} \FunctionTok{feols}\NormalTok{(Rate }\SpecialCharTok{\textasciitilde{}} \FunctionTok{i}\NormalTok{(Quarter\_Num, California) }\SpecialCharTok{|}\NormalTok{ State }\SpecialCharTok{+}\NormalTok{ Quarter,}
+\NormalTok{prior\_trend }\OtherTok{\textless{}{-}}\NormalTok{ fixest}\SpecialCharTok{::}\FunctionTok{feols}\NormalTok{(Rate }\SpecialCharTok{\textasciitilde{}} \FunctionTok{i}\NormalTok{(Quarter\_Num, California) }\SpecialCharTok{|}\NormalTok{ State }\SpecialCharTok{+}\NormalTok{ Quarter,}
                \AttributeTok{data =}\NormalTok{ od)}
 
-\FunctionTok{coefplot}\NormalTok{(prior\_trend)}
+\NormalTok{fixest}\SpecialCharTok{::}\FunctionTok{coefplot}\NormalTok{(prior\_trend, }\AttributeTok{grid =}\NormalTok{ F)}
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-40-3} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-46-3} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\FunctionTok{iplot}\NormalTok{(prior\_trend)}
+\NormalTok{fixest}\SpecialCharTok{::}\FunctionTok{iplot}\NormalTok{(prior\_trend, }\AttributeTok{grid =}\NormalTok{ F)}
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-40-4} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-46-4} \end{center}
 
 This is alarming since one of the periods is significantly different from 0, which means that our parallel trends assumption is not plausible.
 
@@ -43405,7 +43731,8 @@ In cases where you might have violations of parallel trends assumption, check \c
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{\# https://github.com/asheshrambachan/HonestDiD}
-\CommentTok{\# install.packages("HonestDiD")}
+\CommentTok{\# remotes::install\_github("asheshrambachan/HonestDiD")}
+\CommentTok{\# library(HonestDiD)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -43455,10 +43782,10 @@ Alternatively,
 \FunctionTok{library}\NormalTok{(fixest)}
 \NormalTok{od }\OtherTok{\textless{}{-}}\NormalTok{ causaldata}\SpecialCharTok{::}\NormalTok{organ\_donations }\SpecialCharTok{\%\textgreater{}\%}
     \CommentTok{\# Use only pre{-}treatment data}
-    \FunctionTok{filter}\NormalTok{(Quarter\_Num }\SpecialCharTok{\textless{}=} \DecValTok{3}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%} 
-
-\CommentTok{\# Create fake treatment variables}
-    \FunctionTok{mutate}\NormalTok{(}
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{filter}\NormalTok{(Quarter\_Num }\SpecialCharTok{\textless{}=} \DecValTok{3}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
+    
+    \CommentTok{\# Create fake treatment variables}
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{mutate}\NormalTok{(}
         \AttributeTok{FakeTreat1 =}\NormalTok{ State }\SpecialCharTok{==} \StringTok{\textquotesingle{}California\textquotesingle{}} \SpecialCharTok{\&}
 \NormalTok{            Quarter }\SpecialCharTok{\%in\%} \FunctionTok{c}\NormalTok{(}\StringTok{\textquotesingle{}Q12011\textquotesingle{}}\NormalTok{, }\StringTok{\textquotesingle{}Q22011\textquotesingle{}}\NormalTok{),}
         \AttributeTok{FakeTreat2 =}\NormalTok{ State }\SpecialCharTok{==} \StringTok{\textquotesingle{}California\textquotesingle{}} \SpecialCharTok{\&}
@@ -43466,12 +43793,12 @@ Alternatively,
 \NormalTok{    )}
 
 
-\NormalTok{clfe1 }\OtherTok{\textless{}{-}} \FunctionTok{feols}\NormalTok{(Rate }\SpecialCharTok{\textasciitilde{}}\NormalTok{ FakeTreat1 }\SpecialCharTok{|}\NormalTok{ State }\SpecialCharTok{+}\NormalTok{ Quarter,}
+\NormalTok{clfe1 }\OtherTok{\textless{}{-}}\NormalTok{ fixest}\SpecialCharTok{::}\FunctionTok{feols}\NormalTok{(Rate }\SpecialCharTok{\textasciitilde{}}\NormalTok{ FakeTreat1 }\SpecialCharTok{|}\NormalTok{ State }\SpecialCharTok{+}\NormalTok{ Quarter,}
                \AttributeTok{data =}\NormalTok{ od)}
-\NormalTok{clfe2 }\OtherTok{\textless{}{-}} \FunctionTok{feols}\NormalTok{(Rate }\SpecialCharTok{\textasciitilde{}}\NormalTok{ FakeTreat2 }\SpecialCharTok{|}\NormalTok{ State }\SpecialCharTok{+}\NormalTok{ Quarter,}
+\NormalTok{clfe2 }\OtherTok{\textless{}{-}}\NormalTok{ fixest}\SpecialCharTok{::}\FunctionTok{feols}\NormalTok{(Rate }\SpecialCharTok{\textasciitilde{}}\NormalTok{ FakeTreat2 }\SpecialCharTok{|}\NormalTok{ State }\SpecialCharTok{+}\NormalTok{ Quarter,}
                \AttributeTok{data =}\NormalTok{ od)}
 
-\FunctionTok{etable}\NormalTok{(clfe1,clfe2)}
+\NormalTok{fixest}\SpecialCharTok{::}\FunctionTok{etable}\NormalTok{(clfe1,clfe2)}
 \CommentTok{\#\textgreater{}                           clfe1            clfe2}
 \CommentTok{\#\textgreater{} Dependent Var.:            Rate             Rate}
 \CommentTok{\#\textgreater{}                                                 }
@@ -57105,8 +57432,8 @@ Correlation Table
 
 \begin{center}\includegraphics[width=0.9\linewidth]{36-report_files/figure-latex/unnamed-chunk-10-2} \end{center}
 
-\hypertarget{standard-errors-2}{%
-\section{Standard Errors}\label{standard-errors-2}}
+\hypertarget{standard-errors-3}{%
+\section{Standard Errors}\label{standard-errors-3}}
 
 \texttt{sandwich} \href{cran.r-project.org/web/packages/sandwich/vignettes/sandwich-CL.pdf}{vignette}
 
