@@ -24,7 +24,7 @@
 
 -   Tradeoff between efficiency and bias
 
--   Regression discontinuity is under the framework of [Instrumental Variable] argued by [@angrist1999using] and a special case of the [Matching Methods] (matching at one point) argued by [@heckman1999economics].
+-   Regression discontinuity is under the framework of [Instrumental Variable] (structural IV) argued by [@angrist1999using] and a special case of the [Matching Methods] (matching at one point) argued by [@heckman1999economics].
 
 -   The hard part is to find a setting that can apply, but once you find one, it's easy to apply
 

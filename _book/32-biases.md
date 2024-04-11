@@ -2,7 +2,7 @@
 
 In econometrics, the main objective is often to uncover causal relationships. However, coefficient estimates can be affected by various biases. Here's a list of common biases that can affect coefficient estimates:
 
-What we've covered so far (see [Linear Regression] and s[Endogeneity]):
+What we've covered so far (see [Linear Regression] and [Endogeneity]):
 
 1.  **Omitted Variable Bias (OVB)**:
 
@@ -48,7 +48,7 @@ What we've covered so far (see [Linear Regression] and s[Endogeneity]):
 
 In this section, we will mention other biases that you may encounter when conducting your research
 
-10. [Aggregation Bias]:
+10. 
 
 -   Introduced when data are aggregated, and analysis is conducted at this aggregate level rather than the individual level.
 
@@ -56,7 +56,7 @@ In this section, we will mention other biases that you may encounter when conduc
 
 -   Arises when the sample only includes "survivors" or those who "passed" a certain threshold. Common in finance where only funds or firms that "survive" are analyzed.
 
-12. [**Publication Bias**]:
+12. 
 
 -   Not a bias in econometric estimation per se, but relevant in the context of empirical studies. It refers to the tendency for journals to publish only significant or positive results, leading to an overrepresentation of such results in the literature.
 
@@ -66,7 +66,7 @@ Aggregation bias, also known as ecological fallacy, refers to the error introduc
 
 When the relationship between variables is different at the aggregate level than at the individual level, aggregation bias can result. The bias arises when inferences about individual behaviors are made based on aggregate data.
 
-**Example**: Suppose we have data on individuals\' incomes and their personal consumption. At the individual level, it's possible that as income rises, consumption also rises. However, when we aggregate the data to, say, a neighborhood level, neighborhoods with diverse income levels might all have similar average consumptions due to other unobserved factors.
+**Example**: Suppose we have data on individuals' incomes and their personal consumption. At the individual level, it's possible that as income rises, consumption also rises. However, when we aggregate the data to, say, a neighborhood level, neighborhoods with diverse income levels might all have similar average consumption due to other unobserved factors.
 
 **Step 1**: Create individual level data
 
@@ -184,8 +184,6 @@ From these plots, you can see the relationship at the individual level, with eac
 
 3.  **Omitted Variable Bias (see [Endogeneity])**: When you aggregate data, you lose information. If the loss of this information results in omitting important predictors that are correlated with both the independent and dependent variables, it can introduce omitted variable bias.
 
-4.  [**Simpson's Paradox**]: This is a special case of aggregation bias where a trend appears in several different groups of data but disappears or reverses when these groups are combined.
-
 ### Simpson's Paradox
 
 Simpson's Paradox, also known as the Yule-Simpson effect, is a phenomenon in probability and statistics where a trend that appears in different groups of data disappears or reverses when the groups are combined. It's a striking example of how aggregated data can sometimes provide a misleading representation of the actual situation.
@@ -228,7 +226,7 @@ Simpson's Paradox can arise due to:
 
 Simpson's Paradox highlights the dangers of interpreting aggregated data without considering potential underlying sub-group structures. It underscores the importance of disaggregating data and being aware of the context in which it's analyzed.
 
-**Relation to [Aggregation Bias]**
+**Relation to [Aggregation Bias]()**
 
 In the most extreme case, aggregation bias can reverse the coefficient sign of the relationship of interest (i.e., Simpson's Paradox).
 
@@ -579,6 +577,8 @@ The plot might show that the "True Avg Effect" is around zero, while the "Publis
 
 3.  **Publish All Results**: Journals and researchers should make an effort to publish negative or null results. Some journals, known as "null result journals", specialize in this.
 
-4.  **Funnel Plots and Egger\'s Test**: In meta-analyses, these are methods to visually and statistically detect publication bias.
+4.  **Funnel Plots and Egger's Test**: In meta-analyses, these are methods to visually and statistically detect publication bias.
 
 5.  **Use of Preprints**: Promote the use of preprint servers where researchers can upload studies before they're peer-reviewed, ensuring that results are available regardless of eventual publication status.
+
+6.  **p-curve analysis**: addresses publication bias and p-hacking by analyzing the distribution of p-values below 0.05 in research studies. It posits that a right-skewed distribution of these p-values indicates a true effect, whereas a left-skewed distribution suggests p-hacking and no true underlying effect. The method includes a "half-curve" test to counteract extensive p-hacking [@simonsohn2014p, @simonsohn2014pa, @simonsohn2015better].

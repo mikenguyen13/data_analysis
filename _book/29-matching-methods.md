@@ -569,7 +569,9 @@ the difference between the regression and matching estimand is the weights they 
 
 The goal of matching is to produce covariate balance (i.e., distributions of covariates in treatment and control groups are approximately similar as they would be in a successful randomized experiment).
 
-## MatchIt
+## Selection on Observables
+
+### MatchIt
 
 Procedure typically involves (proposed by [Noah Freifer](https://cran.r-project.org/web/packages/MatchIt/vignettes/MatchIt.html) using `MatchIt`)
 
@@ -906,7 +908,7 @@ When reporting, remember to mention
 5.  number of matched, unmatched, discarded
 6.  estimation method for treatment effect.
 
-## designmatch
+### designmatch
 
 This package includes
 
@@ -925,7 +927,7 @@ This package includes
 library(designmatch)
 ```
 
-## MatchingFrontier
+### MatchingFrontier
 
 As mentioned in `MatchIt`, you have to make trade-off (also known as bias-variance trade-off) between balance and sample size. An automated procedure to optimize this trade-off is implemented in `MatchingFrontier` [@king2017balance], which solves this joint optimization problem.
 
@@ -1023,7 +1025,7 @@ parallelPlot(
 matched.data <- generateDataset(L1.frontier, N = 400) 
 ```
 
-## Propensity Scores
+### Propensity Scores
 
 Even though I mention the propensity scores matching method here, it is no longer recommended to use such method in research and publication [@king2019propensity] because it increases
 
@@ -1103,7 +1105,11 @@ Diagnostics:
 
 -   can't use c-stat or stepwise because those model fit stat do not apply
 
-## Mahalanobis Distance
+#### Look Ahead Propensity Score Matching
+
+-   [@bapna2018monetizing]
+
+### Mahalanobis Distance
 
 Approximates fully blocked experiment
 
@@ -1115,7 +1121,7 @@ In application we use Euclidean distance.
 
 Prune unused control units, and prune matches if distance \> caliper
 
-## Coarsened Exact Matching
+### Coarsened Exact Matching
 
 Steps from Gray King's [slides](https://www.youtube.com/watch?v=rBv39pK1iEs&ab_channel=MethodsColloquium) International Methods Colloquium talk 2015
 
@@ -1316,7 +1322,7 @@ mat1
 
 -   `cem` can also handle some missingness.
 
-## Genetic Matching
+### Genetic Matching
 
 -   GM uses iterative checking process of propensity scores, which combines propensity scores and Mahalanobis distance.
 
@@ -1411,7 +1417,7 @@ mb <-
 
 ```
 
-## Entropy Balancing
+### Entropy Balancing
 
 [@hainmueller2012entropy]
 
@@ -1423,7 +1429,7 @@ mb <-
 
 -   Entropy balancing improves balance across all included covariate moments and removes the need for repetitive balance checking and iterative model searching.
 
-## Matching for time series-cross-section data
+### Matching for time series-cross-section data
 
 Examples: [@scheve2012democracy] and [@acemoglu2019democracy]
 
@@ -1435,7 +1441,7 @@ Identification strategy:
 
 See [DID with in and out treatment condition] for details of this method
 
-## Matching for multiple treatments
+### Matching for multiple treatments
 
 In cases where you have multiple treatment groups, and you want to do matching, it's important to have the same baseline (control) group. For more details, see
 
@@ -1447,14 +1453,390 @@ In cases where you have multiple treatment groups, and you want to do matching, 
 
 If you insist on using the `MatchIt` package, then see this [answer](https://stats.stackexchange.com/questions/405019/matching-with-multiple-treatments)
 
-## Matching for multi-level treatments
+### Matching for multi-level treatments
 
 See [@yang2016propensity]
 
 Package in R `shuyang1987/multilevelMatching` on Github
 
-## Matching for repeated treatments
+### Matching for repeated treatments
 
 <https://cran.r-project.org/web/packages/twang/vignettes/iptw.pdf>
 
 package in R `twang`
+
+## Selection on Unobservables
+
+There are several ways one can deal with selection on unobservables:
+
+1.  
+
+2.  [Endogenous Sample Selection] (i.e., Heckman-style correction): examine the $\lambda$ term to see whether it's significant (sign of endogenous selection)
+
+3.  [Relative Correlation Restrictions]
+
+4.  [Coefficient-stability Bounds]
+
+### Rosenbaum Bounds
+
+Examples in marketing
+
+-   [@oestreicher2013content]: A range of 1.5 to 1.8 is important for the effect of the level of community participation of users on their willingness to pay for premium services.
+
+-   [@sun2013ad]: A factor of 1.5 is essential for understanding the relationship between the launch of an ad revenue-sharing program and the popularity of content.
+
+-   [@manchanda2015social]: A factor of 1.6 is required for the social dollar effect to be nullified.
+
+-   [@sudhir2015peter]: A factor of 1.9 is needed for IT adoption to impact labor productivity, and 2.2 for IT adoption to affect floor productivity.
+
+-   [@proserpio2017]: A factor of 2 is necessary for the firm's use of management responses to influence online reputation.
+
+-   [@zhang2022makes]: A factor of 1.55 is critical for the acquisition of verified images to drive demand for Airbnb properties.
+
+-   [@chae2023paywall]: A factor of 27 (not a typo) is significant in how paywall suspensions affect subsequent subscription decisions.
+
+General
+
+-   [Matching] is favored for estimating treatment effects in observational data, offering advantages over regression methods because
+
+    -   It reduces reliance on functional form assumptions.
+
+    -   Assumes all selection-influencing covariates are observable; estimates are unbiased if no unobserved confounders are missed.
+
+-   Concerns arise when potentially relevant covariates are unmeasured.
+
+    -   [Rosenbaum Bounds](examine%20departure%20from%20assumption%20of%20free%20hidden%20bias%20due%20to%20unobservables.) assess the overall sensitivity of coefficient estimates to hidden bias [@rosenbaum2002overt] without having knowledge (e.g., direction) of the bias. Because the unboservables that cause hidden bias have to both affect selection into treatment by a factor of $\Gamma$ and predictive of outcome, this method is also known as **worst case analyses** [@diprete2004assessing].
+
+-   Can't provide precise bounds on estimates of treatment effects (see [Relative Correlation Restrictions])
+
+-   Typically, we show both p-value and H-L point estimate for each level of gamma $\Gamma$
+
+With random treatment assignment, we can use the non-parametric test (Wilcoxon signed rank test) to see if there is treatment effect.
+
+Without random treatment assignment (i.e., observational data), we cannot use this test. With [Matching] on observables, we can use this test if we believe there are no unmeasured confounders. And this is where @rosenbaum2002attributing can come in to talk about the believability of this notion.
+
+In layman's terms, consider that the treatment assignment is based on a method where the odds of treatment for a unit and its control differ by a multiplier $\Gamma$
+
+-   For example, $\Gamma = 1$ means that the odds of assignment are identical, indicating random treatment assignment.
+-   Another example, $\Gamma = 2$, in the same matched pair, one unit is twice as likely to receive the treatment (due to unobservables).
+-   Since we can't know $\Gamma$ with certainty, we run sensitivity analysis to see if the results change with different values of $\Gamma$
+-   This bias is the product of an unobservable that influences both treatment selection and outcome by a factor $\Gamma$ (omitted variable bias)
+
+In technical terms,
+
+-   **Treatment Assignment and Probability**:
+    -   Consider unit $j$ with a probability $\pi_j$ of receiving the treatment, and unit $i$ with $\pi_i$.
+    -   Ideally, after matching, if there's no hidden bias, we'd have $\pi_i = \pi_j$.
+    -   However, observing $\pi_i \neq \pi_j$ raises questions about potential biases affecting our inference. This is evaluated using the odds ratio.
+-   **Odds Ratio and Hidden Bias**:
+    -   The odds of treatment for a unit $j$ is defined as $\frac{\pi_j}{1 - \pi_j}$.
+    -   The odds ratio between two matched units $i$ and $j$ is constrained by $\frac{1}{\Gamma} \le \frac{\pi_i / (1- \pi_i)}{\pi_j/ (1- \pi_j)} \le \Gamma$.
+        -   If $\Gamma = 1$, it implies an absence of hidden bias.
+        -   If $\Gamma = 2$, the odds of receiving treatment could differ by up to a factor of 2 between the two units.
+-   **Sensitivity Analysis Using Gamma**:
+    -   The value of $\Gamma$ helps measure the potential departure from a bias-free study.
+    -   Sensitivity analysis involves varying $\Gamma$ to examine how inferences might change with the presence of hidden biases.
+-   **Incorporating Unobserved Covariates**:
+    -   Consider a scenario where unit $i$ has observed covariates $x_i$ and an unobserved covariate $u_i$, that both affect the outcome.
+    -   A logistic regression model could link the odds of assignment to these covariates: $\log(\frac{\pi_i}{1 - \pi_i}) = \kappa x_i + \gamma u_i$, where $\gamma$ represents the impact of the unobserved covariate.
+-   **Steps for Sensitivity Analysis** (We could create a table of different levels of $\Gamma$ to assess how the magnitude of biases can affect our evidence of the treatment effect (estimate):
+    1.  Select a range of values for $\Gamma$ (e.g., $1 \to 2$).
+    2.  Assess how the p-value or the magnitude of the treatment effect [@hodges2011estimates] (for more details, see [@hollander2013nonparametric]) changes with varying $\Gamma$ values.
+    3.  Employ specific randomization tests based on the type of outcome to establish bounds on inferences.
+        -   report the minimum value of $\Gamma$ at which the treatment treat is nullified (i.e., become insignificant). And the literature's rules of thumb is that if $\Gamma > 2$, then we have strong evidence for our treatment effect is robust to large biases [@proserpio2017online]
+
+Notes:
+
+-   If we have treatment assignment is clustered (e.g., within school, within state) we need to adjust the bounds for clustered treatment assignment [@hansen2014clustered] (similar to clustered standard errors).
+
+Packages
+
+-   `rbounds` [@keele2010overview]
+
+-   `sensitivitymv` [@rosenbaum2015two]
+
+Since we typically assess our estimate sensitivity to unboservables after matching, we first do some matching.
+
+
+```r
+library(MatchIt)
+library(Matching)
+data("lalonde")
+
+matched <- MatchIt::matchit(
+    treat ~ age + educ,
+    data = lalonde,
+    method = "nearest"
+)
+summary(matched)
+#> 
+#> Call:
+#> MatchIt::matchit(formula = treat ~ age + educ, data = lalonde, 
+#>     method = "nearest")
+#> 
+#> Summary of Balance for All Data:
+#>          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
+#> distance        0.4203        0.4125          0.1689     1.2900    0.0431
+#> age            25.8162       25.0538          0.1066     1.0278    0.0254
+#> educ           10.3459       10.0885          0.1281     1.5513    0.0287
+#>          eCDF Max
+#> distance   0.1251
+#> age        0.0652
+#> educ       0.1265
+#> 
+#> Summary of Balance for Matched Data:
+#>          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
+#> distance        0.4203        0.4179          0.0520     1.1691    0.0105
+#> age            25.8162       25.5081          0.0431     1.1518    0.0148
+#> educ           10.3459       10.2811          0.0323     1.5138    0.0224
+#>          eCDF Max Std. Pair Dist.
+#> distance   0.0595          0.0598
+#> age        0.0486          0.5628
+#> educ       0.0757          0.3602
+#> 
+#> Sample Sizes:
+#>           Control Treated
+#> All           260     185
+#> Matched       185     185
+#> Unmatched      75       0
+#> Discarded       0       0
+matched_data <- match.data(matched)
+
+treatment_group <- subset(matched_data, treat == 1)
+control_group <- subset(matched_data, treat == 0)
+
+
+library(rbounds)
+
+# p-value sensitivity 
+psens_res <-
+    psens(treatment_group$re78,
+          control_group$re78,
+          Gamma = 2,
+          GammaInc = .1)
+
+psens_res
+#> 
+#>  Rosenbaum Sensitivity Test for Wilcoxon Signed Rank P-Value 
+#>  
+#> Unconfounded estimate ....  0.0058 
+#> 
+#>  Gamma Lower bound Upper bound
+#>    1.0      0.0058      0.0058
+#>    1.1      0.0011      0.0235
+#>    1.2      0.0002      0.0668
+#>    1.3      0.0000      0.1458
+#>    1.4      0.0000      0.2599
+#>    1.5      0.0000      0.3967
+#>    1.6      0.0000      0.5378
+#>    1.7      0.0000      0.6664
+#>    1.8      0.0000      0.7723
+#>    1.9      0.0000      0.8523
+#>    2.0      0.0000      0.9085
+#> 
+#>  Note: Gamma is Odds of Differential Assignment To
+#>  Treatment Due to Unobserved Factors 
+#> 
+
+# Hodges-Lehmann point estimate sensitivity
+# median difference between treatment and control
+hlsens_res <-
+    hlsens(treatment_group$re78,
+           control_group$re78,
+           Gamma = 2,
+           GammaInc = .1)
+hlsens_res
+#> 
+#>  Rosenbaum Sensitivity Test for Hodges-Lehmann Point Estimate 
+#>  
+#> Unconfounded estimate ....  1745.843 
+#> 
+#>  Gamma Lower bound Upper bound
+#>    1.0 1745.800000      1745.8
+#>    1.1 1139.100000      1865.6
+#>    1.2  830.840000      2160.9
+#>    1.3  533.740000      2462.4
+#>    1.4  259.940000      2793.8
+#>    1.5   -0.056912      3059.3
+#>    1.6 -144.960000      3297.8
+#>    1.7 -380.560000      3535.7
+#>    1.8 -554.360000      3751.0
+#>    1.9 -716.360000      4012.1
+#>    2.0 -918.760000      4224.3
+#> 
+#>  Note: Gamma is Odds of Differential Assignment To
+#>  Treatment Due to Unobserved Factors 
+#> 
+```
+
+For multiple control group matching
+
+
+```r
+library(Matching)
+library(MatchIt)
+
+n_ratio <- 2
+matched <- MatchIt::matchit(treat ~ age + educ ,
+                   method = "nearest", ratio = n_ratio)
+summary(matched)
+matched_data <- match.data(matched)
+
+mcontrol_res <- rbounds::mcontrol(
+    y          = matched_data$re78,
+    grp.id     = matched_data$subclass,
+    treat.id   = matched_data$treat,
+    group.size = n_ratio + 1,
+    Gamma      = 2.5,
+    GammaInc   = .1
+)
+
+mcontrol_res
+```
+
+`sensitivitymw` is faster than `sensitivitymw`. But `sensitivitymw` can match where matched sets can have differing numbers of controls [@rosenbaum2015two].
+
+
+```r
+library(sensitivitymv)
+data(lead150)
+head(lead150)
+#>      [,1] [,2] [,3] [,4] [,5] [,6]
+#> [1,] 1.40 1.23 2.24 0.96 1.90 1.14
+#> [2,] 0.63 0.99 0.87 1.90 0.67 1.40
+#> [3,] 1.98 0.82 0.66 0.58 1.00 1.30
+#> [4,] 1.45 0.53 1.43 1.70 0.85 1.50
+#> [5,] 1.60 1.70 0.63 1.05 1.08 0.92
+#> [6,] 1.13 0.31 0.71 1.10 0.86 1.14
+senmv(lead150,gamma=2,trim=2)
+#> $pval
+#> [1] 0.02665519
+#> 
+#> $deviate
+#> [1] 1.932398
+#> 
+#> $statistic
+#> [1] 27.97564
+#> 
+#> $expectation
+#> [1] 18.0064
+#> 
+#> $variance
+#> [1] 26.61524
+
+library(sensitivitymw)
+senmw(lead150,gamma=2,trim=2)
+#> $pval
+#> [1] 0.02665519
+#> 
+#> $deviate
+#> [1] 1.932398
+#> 
+#> $statistic
+#> [1] 27.97564
+#> 
+#> $expectation
+#> [1] 18.0064
+#> 
+#> $variance
+#> [1] 26.61524
+```
+
+### Relative Correlation Restrictions
+
+Examples in marketing
+
+-   [@manchanda2015social]: 3.23 for social dollar effect to be nullified
+
+-   [@chae2023paywall]: 6.69 (i.e., how much stronger the selection on unobservables has to be compared to the selection on observables to negate the result) for paywall suspensions affect subsequent subscription decisions
+
+-   [@sun2013ad]
+
+General
+
+-   Proposed by @altonji2005selection
+
+-   Generalized by @krauth2016bounding
+
+-   Estimate bounds of the treatment effects due to unobserved selection.
+
+$$
+Y_i = X_i \beta  + C_i \gamma + \epsilon_i
+$$
+
+where
+
+-   $\beta$ is the effect of interest
+
+-   $C_i$ is the control variable
+
+-   Using OLS, $cor(X_i, \epsilon_i) = 0$
+
+Under RCR analysis, we assume
+
+$$
+cor(X_i, \epsilon_i) = \lambda cor(X_i, C_i \gamma)
+$$
+
+where $\lambda \in (\lambda_l, \lambda_h)$
+
+Choice of $\lambda$
+
+-   Strong assumption of no omitted variable bias (small
+
+-   If $\lambda = 0$, then $cor(X_i, \epsilon_i) = 0$
+
+-   If $\lambda = 1$, then $cor(X_i, \epsilon_i) = cor(X_i, C_i \gamma)$
+
+-   We typically examine $\lambda \in (0, 1)$
+
+-   
+
+
+```r
+# remotes::install_github("bvkrauth/rcr/r/rcrbounds")
+library(rcrbounds)
+# rcrbounds::install_rcrpy()
+data("ChickWeight")
+
+rcr_res <-
+    rcrbounds::rcr(weight ~ Time |
+                       Diet, ChickWeight, rc_range = c(0, 10))
+rcr_res
+#> 
+#> Call:
+#> rcrbounds::rcr(formula = weight ~ Time | Diet, data = ChickWeight, 
+#>     rc_range = c(0, 10))
+#> 
+#> Coefficients:
+#>     rcInf effectInf       rc0   effectL   effectH 
+#> 34.676505 71.989336 34.741955  7.447713  8.750492
+summary(rcr_res)
+#> 
+#> Call:
+#> rcrbounds::rcr(formula = weight ~ Time | Diet, data = ChickWeight, 
+#>     rc_range = c(0, 10))
+#> 
+#> Coefficients:
+#>            Estimate  Std. Error    t value      Pr(>|t|)
+#> rcInf     34.676505  50.1295005  0.6917385  4.891016e-01
+#> effectInf 71.989336 112.5711682  0.6395007  5.224973e-01
+#> rc0       34.741955  58.7169195  0.5916856  5.540611e-01
+#> effectL    7.447713   2.4276246  3.0679014  2.155677e-03
+#> effectH    8.750492   0.2607671 33.5567355 7.180405e-247
+#> ---
+#> conservative confidence interval:
+#>          2.5  %  97.5  %
+#> effect 2.689656 9.261586
+
+# hypothesis test for the coefficient
+rcrbounds::effect_test(rcr_res, h0 = 0)
+#> [1] 0.001234233
+plot(rcr_res)
+```
+
+<img src="29-matching-methods_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
+
+### Coefficient-stability Bounds
+
+-   Developed by @oster2019unobservable

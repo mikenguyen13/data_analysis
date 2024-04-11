@@ -282,6 +282,95 @@ coefplot(cali)
 
 -   Under causal inference, $R^2$ is not so important.
 
+For count data, one can use the fixed-effects Poisson pseudo-maximum likelihood estimator (PPML) [@athey2006identification, @puhani2012treatment] (For applied papers, see @burtch2018can in management and @he2021end in marketing). This also allows for robust standard errors under over-dispersion [@wooldridge1999quasi].
+
+-   This estimator outperforms a log OLS when data have many 0s[@silva2011further], since log-OLS can produce biased estimates [@o2010not] under heteroskedascity [@silva2006log].
+
+-   For those thinking of negative binomial with fixed effects, there isn't an estimator right now [@allison20027].
+
+For [Zero-valued Outcomes], we have to distinguish the treatment effect on the intensive (outcome: 10 to 11) vs. extensive margins (outcome: 0 to 1), and we can't readily interpret the treatment coefficient of log-transformed outcome regression as percentage change [@chen2023logs]. Alternatively, we can either focus on
+
+-   **Proportional treatment effects**: $\theta_{ATT\%} = \frac{E(Y_{it}(1) | D_i = 1, Post_t = 1) - E(Y_{it}(0) |D_i = 1, Post_t = 1)}{E(Y_{it}(0) | D_i = 1 , Post_t = 1}$ (i.e., percentage change in treated group's average post-treatment outcome). Instead of relying on the parallel trends assumption in levels, we could also rely on parallel trends assumption in ratio [@wooldridge2023simple].
+
+    -   We can use Poisson QMLE to estimate the treatment effect: $Y_{it} = \exp(\beta_0 + D_i \times \beta_1 Post_t + \beta_2 D_i + \beta_3 Post_t + X_{it}) \epsilon_{it}$ and $\hat{\theta}_{ATT \%} = \exp(\hat{\beta}_1-1)$.
+
+    -   To examine the parallel trends assumption in ratio holds, we can also estimate a dynamic version of the Poisson QMLE: $Y_{it} = \exp(\lambda_t + \beta_2 D_i + \sum_{r \neq -1} \beta_r D_i \times (RelativeTime_t = r)$, we would expect $\exp(\hat{\beta_r}) - 1 = 0$ for $r < 0$.
+
+    -   Even if we see the plot of these coefficients are 0, we still should run sensitivity analysis [@rambachan2023more] to examine violation of this assumption (see [Prior Parallel Trends Test]).
+
+-   **Log Effects with Calibrated Extensive-margin value**: due to problem with the mean value interpretation of the proportional treatment effects with outcomes that are heavy-tailed, we might be interested in the extensive margin effect. Then, we can explicit model how much weight we put on the intensive vs. extensive margin [@chen2023logs, p. 39].
+
+
+```r
+set.seed(123) # For reproducibility
+
+n <- 500 # Number of observations per group (treated and control)
+# Generating IDs for a panel setup
+ID <- rep(1:n, times = 2)
+
+# Defining groups and periods
+Group <- rep(c("Control", "Treated"), each = n)
+Time <- rep(c("Before", "After"), times = n)
+Treatment <- ifelse(Group == "Treated", 1, 0)
+Post <- ifelse(Time == "After", 1, 0)
+
+# Step 1: Generate baseline outcomes with a zero-inflated model
+lambda <- 20 # Average rate of occurrence
+zero_inflation <- 0.5 # Proportion of zeros
+Y_baseline <- ifelse(runif(2*n) < zero_inflation, 0, rpois(2*n, lambda))
+
+# Step 2: Apply DiD treatment effect on the treated group in the post-treatment period
+Treatment_Effect <- Treatment * Post
+Y_treatment <- ifelse(Treatment_Effect == 1, rpois(n, lambda = 2), 0)
+
+# Incorporating a simple time trend, ensuring outcomes are non-negative
+Time_Trend <- ifelse(Time == "After", rpois(2*n, lambda = 1), 0)
+
+# Step 3: Combine to get the observed outcomes
+Y_observed <- Y_baseline + Y_treatment + Time_Trend
+
+# Ensure no negative outcomes after the time trend
+Y_observed <- ifelse(Y_observed < 0, 0, Y_observed)
+
+# Create the final dataset
+data <- data.frame(ID = ID, Treatment = Treatment, Period = Post, Outcome = Y_observed)
+
+# Viewing the first few rows of the dataset
+head(data)
+#>   ID Treatment Period Outcome
+#> 1  1         0      0       0
+#> 2  2         0      1      25
+#> 3  3         0      0       0
+#> 4  4         0      1      20
+#> 5  5         0      0      19
+#> 6  6         0      1       0
+```
+
+
+```r
+library(fixest)
+res_pois <-
+    fepois(Outcome ~ Treatment + Period + Treatment * Period,
+           data = data,
+           vcov = "hetero")
+etable(res_pois)
+#>                             res_pois
+#> Dependent Var.:              Outcome
+#>                                     
+#> Constant           2.249*** (0.0717)
+#> Treatment           0.1743. (0.0932)
+#> Period               0.0662 (0.0960)
+#> Treatment x Period   0.0314 (0.1249)
+#> __________________ _________________
+#> S.E. type          Heteroskeda.-rob.
+#> Observations                   1,000
+#> Squared Cor.                 0.01148
+#> Pseudo R2                    0.00746
+#> BIC                         15,636.8
+#> ---
+#> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
 ## Standard Errors
 
 Serial correlation is a big problem in DiD because [@bertrand2004much]
@@ -968,7 +1057,7 @@ Notes:
 -   When subjects are treated at different point in time (variation in treatment timing across units), we have to use staggered DiD (also known as DiD event study or dynamic DiD).
 -   For design where a treatment is applied and units are exposed to this treatment at all time afterward, see [@athey2022design]
 
-Basic design [@stevenson2006bargaining]
+For example, basic design [@stevenson2006bargaining]
 
 $$
 \begin{aligned}
@@ -985,6 +1074,40 @@ where
 
 -   To avoid collinearity, the period right before treatment is usually chosen to drop.
 
+The more general form of TWFE [@sun2021estimating]:
+
+First, define the relative period bin indicator as
+
+$$
+D_{it}^l = \mathbf{1}(t - E_i = l)
+$$
+
+where it's an indicator function of unit $i$ being $l$ periods from its first treatment at time $t$
+
+1.  **Static** specificaiton
+
+$$
+Y_{it} = \alpha_i + \lambda_t + \mu_g \sum_{l \ge0} D_{it}^l + \epsilon_{it}
+$$
+
+where
+
+-   $\alpha_i$ is the the unit FE
+
+-   $\lambda_t$ is the time FE
+
+-   $\mu_g$ is the coefficient of interest $g = [0,T)$
+
+-   we exclude all periods before first adoption.
+
+2.  **Dynamic** specification
+
+$$
+Y_{it} = \alpha_i + \lambda_t + \sum_{\substack{l = -K \\ l \neq -1}}^{L} \mu_l D_{it}^l + \epsilon_{it}
+$$
+
+where we have to exclude some relative peridos to avoid multicollinearity problem (e.g., either period right before treatment, or the treatment period).
+
 In this setting, we try to show that the treatment and control groups are not statistically different (i.e., the coefficient estimates before treatment are not different from 0) to show pre-treatment parallel trends.
 
 However, this two-way fixed effects design has been criticized by @sun2021estimating; @callaway2021difference; @goodman2021difference. When researchers include leads and lags of the treatment to see the long-term effects of the treatment, these leads and lags can be biased by effects from other periods, and pre-trends can falsely arise due to treatment effects heterogeneity.
@@ -995,7 +1118,7 @@ Robustness Check
 
 -   The **triple-difference strategy** involves examining the interaction between the **treatment variable** and **the probability of being affected by the program**, and the group-level participation rate. The identification assumption is that there are no differential trends between high and low participation groups in early versus late implementing countries.
 
-**Assumptions**
+### Assumptions
 
 -   **Rollout Exogeneity** (i.e., exogeneity of treatment adoption): if the treatment is randomly implemented over time (i.e., unrelated to variables that could also affect our dependent variables)
 
@@ -1024,7 +1147,7 @@ Robustness Check
 
     -   Effect Additivity
 
-Remedies for staggered DiD:
+Remedies for staggered DiD [@baker2022much]:
 
 -   Each treated cohort is compared to appropriate controls (not-yet-treated, never-treated)
 
@@ -1036,9 +1159,9 @@ Remedies for staggered DiD:
 
     -   [@de2020two]
 
-    -   [@borusyak2017revisiting]
+    -   [@borusyak2021revisiting]
 
--   Stacked Regression (biased but simple):
+-   [Stacked DID] (biased but simple):
 
     -   [@gormley2011growing]
 
@@ -1249,7 +1372,7 @@ ggplot(compare_df_longer) +
     causalverse::ama_theme()
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" />
 
 **Stack Data**
 
@@ -1316,8 +1439,8 @@ Code from `bacondecomp` vignette
 library(bacondecomp)
 library(tidyverse)
 data("castle")
-castle <- castle %>% 
-    select(l_homicide, post, state, year)
+castle <- bacondecomp::castle %>% 
+    dplyr::select("l_homicide", "post", "state", "year")
 head(castle)
 #>   l_homicide post   state year
 #> 1   2.027356    0 Alabama 2000
@@ -1349,7 +1472,7 @@ Two-way Fixed effect estimate
 
 ```r
 library(broom)
-fit_tw <- lm(l_homicide ~ post + factor(state) + factor(year), 
+fit_tw <- lm(l_homicide ~ post + factor(state) + factor(year),
              data = bacondecomp::castle)
 head(tidy(fit_tw))
 #> # A tibble: 6 × 5
@@ -1381,7 +1504,7 @@ ggplot(df_bacon) +
     causalverse::ama_theme()
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;" />
 
 With time-varying controls that can identify variation within-treatment timing group, the"early vs. late" and "late vs. early" estimates collapse to just one estimate (i.e., both treated).
 
@@ -1504,7 +1627,7 @@ DisplayTreatment(
 )
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;" />
 
 1.  Select $F$ (i.e., the number of leads - time periods after treatment). Driven by what authors are interested in estimating:
 
@@ -1759,7 +1882,7 @@ DisplayTreatment(
 )
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" />
 
 Control units and the treated unit have identical treatment histories over the lag window (1988-1991)
 
@@ -1779,7 +1902,7 @@ DisplayTreatment(
 )
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;" />
 
 This set is more limited than the first one, but we can still see that we have exact past histories.
 
@@ -1937,7 +2060,7 @@ msets.maha |> head()
 plot(msets.none)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
 
 **Comparing Methods of Refinement**
 
@@ -2128,7 +2251,7 @@ get_covariate_balance(
 )
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -2144,7 +2267,7 @@ get_covariate_balance(
 )
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-21-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-23-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -2157,7 +2280,7 @@ balance_scatter(
 )
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-21-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-23-3.png" width="90%" style="display: block; margin: auto;" />
 
 **`PanelEstimate`**
 
@@ -2193,7 +2316,7 @@ PE.results[["estimates"]]
 # standard errors
 PE.results[["standard.error"]]
 #>       t+0       t+1       t+2       t+3       t+4 
-#> 0.6089145 1.0465362 1.4004193 1.7646397 2.2089610
+#> 0.6399349 1.0304938 1.3825265 1.7625951 2.1672629
 
 
 # use conditional method
@@ -2238,7 +2361,7 @@ summary(PE.results)
 plot(PE.results)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
 
 **Moderating Variables**
 
@@ -2274,14 +2397,14 @@ PE.results <-
 plot(PE.results[[1]])
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-25-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
 plot(PE.results[[2]])
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-23-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-25-2.png" width="90%" style="display: block; margin: auto;" />
 
 To write up for journal submission, you can follow the following report:
 
@@ -3015,7 +3138,7 @@ include_graphics(file.path(getwd(), "images", "p_did_est_in_n_out.png"))
 
 #### Counterfactual Estimators
 
--   Also known as **imputation approach**
+-   Also known as **imputation approach** [@liu2022practical]
 -   This class of estimator consider observation treatment as missing data. Models are built using data from the control units to impute conterfactuals for the treated observations.
 -   It's called counterfactual estimators because they predict outcomes as if the treated observations had not received the treatment.
 -   Advantages:
@@ -3024,10 +3147,10 @@ include_graphics(file.path(getwd(), "images", "p_did_est_in_n_out.png"))
 -   Methods including
     -   Fixed-effects conterfactual estimator (FEct) (DiD is a special case):
         -   Based on the [Two-way Fixed-effects], where assumes linear additive functional form of unobservables based on unit and time FEs. But FEct fixes the improper weighting of TWFE by comparing within each matched pair (where each pair is the treated observation and its predicted counterfactual that is the weighted sum of all untreated observations).
-    -   Interactive Fixed Effects conterfactual estimator (IFEct) [@gobillon2016regional][@xu2017generalized]:
+    -   Interactive Fixed Effects conterfactual estimator (IFEct) [@gobillon2016regional, @xu2017generalized]:
         -   When we suspect unobserved time-varying confounder, FEct fails. Instead, IFEct uses the factor-augmented models to relax the strict exogeneity assumption where the effects of unobservables can be decomposed to unit FE + time FE + unit x time FE.
         -   Generalized Synthetic Controls are a subset of IFEct when treatments don't revert.
-    -   Matrix completion (MC) [@athey2021matrix]:
+    -   [Matrix completion] (MC) [@athey2021matrix]:
         -   Generalization of factor-augmented models. Different from IFEct which uses hard impute, MC uses soft impute to regularize the singular values when decomposing the residual matrix.
         -   Only when latent factors (of unobservables) are strong and sparse, IFEct outperforms MC.
     -   [Synthetic Controls] (case studies)
@@ -3058,9 +3181,7 @@ Notes:
 
 Other imputation estimators include
 
--   @gardner2022two
-
--   @borusyak2021revisiting
+-   [\@gardner2022two and \@borusyak2021revisiting]
 
 -   @RePEc:arx:papers:2301.11358
 
@@ -3150,6 +3271,167 @@ plot(out.fect.c,  stats = "carryover.p")
 
 We have evidence of carryover effects.
 
+#### Matrix Completion
+
+To estimate average causal effects in panel data with units exposed to treatment intermittently, two literatures are pivotal:
+
+-   **Unconfoundedness** [@imbens2015causal]: Imputes missing potential control outcomes for treated units using observed outcomes from similar control units in previous periods.
+
+-   **Synthetic Control** [@abadie2010synthetic]: Imputes missing control outcomes for treated units using weighted averages from control units, matching lagged outcomes between treated and control units.
+
+Both exploit missing potential outcomes under different assumptions:
+
+-   Unconfoundedness assumes time patterns are stable across units.
+
+-   Synthetic control assumes unit patterns are stable over time.
+
+Once regularization is applied, both approaches are applicable in similar settings [@athey2021matrix].
+
+**Matrix Completion** method, nesting both, is based on matrix factorization, focusing on imputing missing matrix elements assuming:
+
+1.  Complete matrix = low-rank matrix + noise.
+2.  Missingness is completely at random.
+
+It's distinguished by not imposing factorization restrictions but utilizing regularization to define the estimator, particularly effective with the nuclear norm as a regularizer for complex missing patterns [@athey2021matrix].
+
+Contributions of @athey2021matrix matrix completion include:
+
+1.  Recognizing structured missing patterns allowing time correlation, enabling staggered adoption.
+2.  Modifying estimators for unregularized unit and time fixed effects.
+3.  Performing well across various $T$ and $N$ sizes, unlike unconfoundedness and synthetic control, which falter when $T >> N$ or $N >> T$, respectively.
+
+Identifying Assumptions:
+
+1.  SUTVA: Potential outcomes indexed only by the unit's contemporaneous treatment.
+2.  No dynamic effects (it's okay under staggered adoption, it gives a different interpretation of estimand).
+
+Setup:
+
+-   $Y_{it}(0)$ and $Y_{it}(1)$ represent potential outcomes of $Y_{it}$.
+-   $W_{it}$ is a binary treatment indicator.
+
+Aim to estimate the average effect for the treated:
+
+$$
+\tau = \frac{\sum_{(i,t): W_{it} = 1}[Y_{it}(1) - Y_{it}(0)]}{\sum_{i,t}W_{it}}
+$$
+
+We observe all relevant values for $Y_{it}(1)$
+
+We want to impute missing entries in the $Y(0)$ matrix for treated units with $W_{it} = 1$.
+
+Define $\mathcal{M}$ as the set of pairs of indices $(i,t)$, where $i \in N$ and $t \in T$, corresponding to missing entries with $W_{it} = 1$; $\mathcal{O}$ as the set of pairs of indices corresponding to observed entries in $Y(0)$ with $W_{it} = 0$.
+
+Data is conceptualized as two $N \times T$ matrices, one incomplete and one complete:
+
+$$
+Y = \begin{pmatrix}
+Y_{11} & Y_{12} & ? & \cdots & Y_{1T} \\
+? & ? & Y_{23} & \cdots & ? \\
+Y_{31} & ? & Y_{33} & \cdots & ? \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+Y_{N1} & ? & Y_{N3} & \cdots & ?
+\end{pmatrix},
+$$
+
+and
+
+$$
+W = \begin{pmatrix}
+0 & 0 & 1 & \cdots & 0 \\
+1 & 1 & 0 & \cdots & 1 \\
+0 & 1 & 0 & \cdots & 1 \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+0 & 1 & 0 & \cdots & 1
+\end{pmatrix},
+$$
+
+where
+
+$$
+W_{it} =
+\begin{cases}
+1 & \text{if } (i,t) \in \mathcal{M}, \\
+0 & \text{if } (i,t) \in \mathcal{O},
+\end{cases}
+$$
+
+is an indicator for the event that the corresponding component of $Y$, that is $Y_{it}$, is missing.
+
+Patterns of missing data in $\mathbf{Y}$:
+
+-   Block (treatment) structure with 2 special cases
+
+    -   Single-treated-period block structure [@imbens2015causal]
+
+    -   Single-treated-unit block structure [@abadie2010synthetic]
+
+-   Staggered Adoption
+
+Shape of matrix $\mathbf{Y}$:
+
+-   Thin ($N >> T$)
+
+-   Fat ($T >> N$)
+
+-   Square ($N \approx T$)
+
+Combinations of patterns of missingness and shape create different literatures:
+
+-   Horizontal Regression = Thin matrix + single-treated-period block (focusing on cross-section correlation patterns)
+
+-   Vertical Regression = Fat matrix + single-treated-unit block (focusing on time-series correlation patterns)
+
+-   TWFE = Square matrix
+
+To combine, we can exploit both stable patterns over time, and across units (e.g., TWFE, interactive FEs or matrix completion).
+
+For the same factor model
+
+$$
+\mathbf{Y = UV}^T + \mathbf{\epsilon}
+$$
+
+where $\mathbf{U}$ is $N \times R$ and $\mathbf{V}$ is $T\times R$
+
+The interactive FE literature focuses on a fixed number of factors $R$ in $\mathbf{U, V}$, while matrix completion focuses on impute $\mathbf{Y}$ using some forms regularization (e.g., nuclear norm).
+
+-   We can also estimate the number of factors $R$ [@bai2002determining, @moon2015linear]
+
+To use the nuclear norm minimization estimator, we must add a penalty term to regularize the objective function. However, before doing so, we need to explicitly estimate the time ($\lambda_t$) and unit ($\mu_i$) fixed effects implicitly embedded in the missing data matrix to reduce the bias of the regularization term.
+
+[Specifically](https://bookdown.org/stanfordgsbsilab/ml-ci-tutorial/matrix-completion-methods.html),
+
+$$
+Y_{it}  =L_{it} + \sum_{p = 1}^P \sum_{q= 1}^Q X_{ip} H_{pq}Z_{qt} + \mu_i + \lambda_t + V_{it} \beta + \epsilon_{it}
+$$
+
+where
+
+-   $X_{ip}$ is a matrix of $p$ variables for unit $i$
+
+-   $Z_{qt}$ is a matrix of $q$ variables for time $t$
+
+-   $V_{it}$ is a matrix of time-varying variables.
+
+Lasso-type $l_1$ norm ($||H|| = \sum_{p = 1}^p \sum_{q = 1}^Q |H_{pq}|$) is used to shrink $H \to 0$
+
+There are several options to regularize $L$:
+
+1.  Frobenius (i.e., Ridge): not informative since it imputes missing values as 0.
+2.  Nuclear Norm (i.e., Lasso): computationally feasible (using SOFT-IMPUTE algorithm [@Mazumder2010SpectralRA]).
+3.  Rank (i.e., Subset selection): not computationally feasible
+
+This methods allows to
+
+-   use more covariates
+
+-   leverage data from treated units (can be used when treatment effect is constant and pattern of missing is not complex).
+
+-   have autocorrelated errors
+
+-   have weighted loss function (i.e., take into account the probability of outcomes for a unit being missing)
+
 ### @gardner2022two and @borusyak2021revisiting
 
 -   Estimate the time and unit fixed effects separately
@@ -3167,10 +3449,10 @@ data(base_stagg)
 
 
 est <- did2s(
-    data = base_stagg |> mutate(treat = if_else(time_to_treatment >= 0, 1, 0)), 
+    data = base_stagg |> mutate(treat = if_else(time_to_treatment >= 0, 1, 0)),
     yname = "y",
-    first_stage = ~x1 | id + year, 
-    second_stage = ~i(time_to_treatment, ref = c(-1, -1000)),
+    first_stage = ~ x1 | id + year,
+    second_stage = ~ i(time_to_treatment, ref = c(-1,-1000)),
     treatment = "treat" ,
     cluster_var = "id"
 )
@@ -3212,24 +3494,25 @@ fixest::iplot(
 )
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-38-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-40-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
 coefplot(est)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-38-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-40-2.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
 mult_est <- did2s::event_study(
-  data = base_stagg |> mutate(year_treated = if_else(year_treated == 10000, 0, year_treated)),
-  gname = "year_treated",
-  idname = "id",
-  tname = "year",
-  yname = "y",
-  estimator = "all"
+    data = fixest::base_stagg |>
+        dplyr::mutate(year_treated = dplyr::if_else(year_treated == 10000, 0, year_treated)),
+    gname = "year_treated",
+    idname = "id",
+    tname = "year",
+    yname = "y",
+    estimator = "all"
 )
 #> Error in purrr::map(., function(y) { : ℹ In index: 1.
 #> ℹ With name: y.
@@ -3238,9 +3521,28 @@ mult_est <- did2s::event_study(
 did2s::plot_event_study(mult_est)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-39-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-41-1.png" width="90%" style="display: block; margin: auto;" />
 
-### Chaisemartin-d'Haultfoeuille
+@borusyak2021revisiting `didimputation`
+
+This version is currently not working
+
+
+```r
+library(didimputation)
+library(fixest)
+data("base_stagg")
+
+did_imputation(
+    data = base_stagg,
+    yname = "y",
+    gname = "year_treated",
+    tname = "year",
+    idname = "id"
+)
+```
+
+### @de2020two
 
 use `twowayfeweights` from [GitHub](https://github.com/shuo-zhang-ucsb/twowayfeweights) [@de2020two]
 
@@ -3252,27 +3554,88 @@ use `twowayfeweights` from [GitHub](https://github.com/shuo-zhang-ucsb/twowayfew
 
     -   Cannot observe treatment effects that manifest over time.
 
-### didimputation
-
-use `didimputation` from [GitHub](https://github.com/kylebutts/didimputation)
+There still isn't a good package for this estimator.
 
 
 ```r
-# devtools::install_github("kylebutts/didimputation")
-library(didimputation)
+# remotes::install_github("shuo-zhang-ucsb/did_multiplegt") 
+library(DIDmultiplegt)
 library(fixest)
+library(tidyverse)
+
 data("base_stagg")
 
-# did_imputation(
-#     data = base_stagg,
-#     yname = "y",
-#     gname = "year_treated",
-#     tname = "year",
-#     idname = "id",
-#     horizon = T, 
-#     pretrends = -9:-1
-# )
+res <-
+    did_multiplegt(
+        df = base_stagg |>
+            dplyr::mutate(treatment = dplyr::if_else(time_to_treatment < 0, 0, 1)),
+        Y        = "y",
+        G        = "year_treated",
+        T        = "year",
+        D        = "treatment",
+        controls = "x1",
+        # brep     = 20, # getting SE will take forever
+        placebo  = 5,
+        dynamic  = 5, 
+        average_effect = "simple"
+    )
 
+head(res)
+#> $effect
+#> treatment 
+#> -5.214207 
+#> 
+#> $N_effect
+#> [1] 675
+#> 
+#> $N_switchers_effect
+#> [1] 45
+#> 
+#> $dynamic_1
+#> [1] -3.63556
+#> 
+#> $N_dynamic_1
+#> [1] 580
+#> 
+#> $N_switchers_effect_1
+#> [1] 40
+```
+
+I don't recommend the `TwoWayFEWeights` since it only gives the aggregated average treatment effect over all post-treatment periods, but not for each period.
+
+
+```r
+library(TwoWayFEWeights)
+
+res <- twowayfeweights(
+    data = base_stagg |> dplyr::mutate(treatment = dplyr::if_else(time_to_treatment < 0, 0, 1)),
+    Y = "y",
+    G = "year_treated",
+    T = "year",
+    D = "treatment", 
+    summary_measures = T
+)
+
+print(res)
+#> Under the common trends assumption, beta estimates a weighted sum of 45 ATTs.
+#> 41 ATTs receive a positive weight, and 4 receive a negative weight.
+#> 
+#> ────────────────────────────────────────── 
+#> Treat. var: treatment    ATTs    Σ weights 
+#> ────────────────────────────────────────── 
+#> Positive weights           41       1.0238 
+#> Negative weights            4      -0.0238 
+#> ────────────────────────────────────────── 
+#> Total                      45            1 
+#> ──────────────────────────────────────────
+#> 
+#> Summary Measures:
+#>   TWFE Coefficient (β_fe): -3.4676
+#>   min σ(Δ) compatible with β_fe and Δ_TR = 0: 4.8357
+#>   min σ(Δ) compatible with β_fe and Δ_TR of a different sign: 36.1549
+#>   Reference: Corollary 1, de Chaisemartin, C and D'Haultfoeuille, X (2020a)
+#> 
+#> The development of this package was funded by the European Union (ERC, REALLYCREDIBLE,GA N. 101043899).
 ```
 
 ### @callaway2021difference {#callaway2021difference}
@@ -3356,7 +3719,7 @@ ggplot(
     causalverse::ama_theme()
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-41-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-45-1.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
@@ -3411,19 +3774,63 @@ staggered(
 
 This paper utilizes the Cohort Average Treatment Effects on the Treated (CATT), which measures the cohort-specific average difference in outcomes relative to those never treated, offering a more detailed analysis than @goodman2021difference. In scenarios lacking a never-treated group, this method designates the last cohort to be treated as the control group.
 
+Parameter of interest is the cohort-specific ATT $l$ periods from intital treatment period $e$
+
+$$
+CATT = E[Y_{i, e + I} - Y_{i, e + I}^\infty|E_i = e]
+$$
+
+This paper uses an **interaction-weighted estimator** in a panel data setting, where the original paper @gibbons2018broken used the same idea in a cross-sectional setting.
+
 -   @callaway2021difference explores group-time average treatment effects, employing cohorts that have not yet been treated as controls, and permits conditioning on time-varying covariates.
 
 -   @athey2022design examines the treatment effect in relation to the counterfactual outcome of the always-treated group, diverging from the conventional focus on the never-treated.
 
 -   @borusyak2021revisiting presumes a uniform treatment effect across cohorts, effectively simplifying CATT to ATT.
 
-Identifying Assumptions:
+Identifying Assumptions for dynamic TWFE:
 
 1.  **Parallel Trends**: Baseline outcomes follow parallel trends across cohorts before treatment.
 
+    -   This gives us all CATT (including own, included bins, and excluded bins)
+
 2.  **No Anticipatory Behavior**: There is no effect of the treatment during pre-treatment periods, indicating that outcomes are not influenced by the anticipation of treatment.
 
-3.  **Treatment Effect Homogeneity**: The treatment effect is consistent across cohorts for each relative period, meaning the CATT mirrors the ATT.
+3.  **Treatment Effect Homogeneity**: The treatment effect is consistent across cohorts for each relative period. Each adoption cohort should have the same path of treatment effects. In other words, the trajectory of each treatment cohort is similar. Compare to other designs:
+
+    1.  @athey2022design assume heterogeneity of treatment effects vary over adoption cohorts, but not over time.
+
+    2.  @borusyak2021revisiting assume heterogeneity of treatment effects vary over time, but not over adoption cohorts.
+
+    3.  @callaway2021difference assume heterogeneity of treatment effects vary over time and across cohorts.
+
+    4.  @de2023two assume heterogeneity of treatment effects vary across groups and over time.
+
+    5.  @goodman2021difference assume heterogeneity either "vary across units but not over time" or "vary over time but not across units".
+
+    6.  @sun2021estimating allows for treatment effect heterogeneity across units and time.
+
+Sources of Heterogeneous Treatment Effects
+
+-   Adoption cohorts can differ based on certain covariates. Similarly, composition of units within each adoption cohort is different.
+
+-   The response to treatment varies among cohorts if units self-select their initial treatment timing based on anticipated treatment effects. However, this self-selection is still compatible with the parallel trends assumption. This is true if units choose based on an evaluation of baseline outcomes - that is, if baseline outcomes are similar (following parallel trends), then we might not see selection into treatment based on the evaluation of the baseline outcome.
+
+-   Treatment effects can vary across cohorts due to calendar time-varying effects, such as changes in economic conditions.
+
+Notes:
+
+-   If you do TWFE, you actually have to drop 2 terms to avoid multicollinearity:
+
+    -   Period right before treatment (this one was known before this paper)
+
+    -   Drop or bin or trim a distant lag period (this one was clarified by the paper). The reason is before of the multicollinearity in the linear relationship between TWFE and the relative period indicators.
+
+-   Contamination of the treatment effect estimates from excluded periods is a type of "normalization". To avoid this, we have to assume that all pre-treatment periods have the same CATT.
+
+    -   @sun2021estimating estimation method gives reasonable weights to CATT (i..e, weights that sum to 1, and are non negative). They estimate the weighted average of CATT where the weights are shares of cohorts that experience at least $l$ periods after to treatment, normalized by the size of total periods $g$.
+
+-   Aggregation of CATT is similar to that of @callaway2021difference
 
 **Application**
 
@@ -3437,7 +3844,128 @@ res_sa20 = feols(y ~ x1 + sunab(year_treated, year) | id + year, base_stagg)
 iplot(res_sa20)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-44-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-48-1.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+
+summary(res_sa20, agg = "att")
+#> OLS estimation, Dep. Var.: y
+#> Observations: 950 
+#> Fixed-effects: id: 95,  year: 10
+#> Standard-errors: Clustered (id) 
+#>      Estimate Std. Error  t value  Pr(>|t|)    
+#> x1   0.994678   0.018378 54.12293 < 2.2e-16 ***
+#> ATT -1.133749   0.205070 -5.52858 2.882e-07 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> RMSE: 0.921817     Adj. R2: 0.887984
+#>                  Within R2: 0.876406
+
+
+summary(res_sa20, agg = c("att" = "year::[^-]")) 
+#> OLS estimation, Dep. Var.: y
+#> Observations: 950 
+#> Fixed-effects: id: 95,  year: 10
+#> Standard-errors: Clustered (id) 
+#>                      Estimate Std. Error   t value   Pr(>|t|)    
+#> x1                   0.994678   0.018378 54.122928  < 2.2e-16 ***
+#> year::-9:cohort::10  0.351766   0.359073  0.979649 3.2977e-01    
+#> year::-8:cohort::9   0.033914   0.471437  0.071937 9.4281e-01    
+#> year::-8:cohort::10 -0.191932   0.352896 -0.543876 5.8781e-01    
+#> year::-7:cohort::8  -0.589387   0.736910 -0.799809 4.2584e-01    
+#> year::-7:cohort::9   0.872995   0.493427  1.769249 8.0096e-02 .  
+#> year::-7:cohort::10  0.019512   0.603411  0.032336 9.7427e-01    
+#> year::-6:cohort::7  -0.042147   0.865736 -0.048683 9.6127e-01    
+#> year::-6:cohort::8  -0.657571   0.573257 -1.147078 2.5426e-01    
+#> year::-6:cohort::9   0.877743   0.533331  1.645775 1.0315e-01    
+#> year::-6:cohort::10 -0.403635   0.347412 -1.161832 2.4825e-01    
+#> year::-5:cohort::6  -0.658034   0.913407 -0.720418 4.7306e-01    
+#> year::-5:cohort::7  -0.316974   0.697939 -0.454158 6.5076e-01    
+#> year::-5:cohort::8  -0.238213   0.469744 -0.507113 6.1326e-01    
+#> year::-5:cohort::9   0.301477   0.604201  0.498968 6.1897e-01    
+#> year::-5:cohort::10 -0.564801   0.463214 -1.219308 2.2578e-01    
+#> year::-4:cohort::5  -0.983453   0.634492 -1.549984 1.2451e-01    
+#> year::-4:cohort::6   0.360407   0.858316  0.419900 6.7552e-01    
+#> year::-4:cohort::7  -0.430610   0.661356 -0.651102 5.1657e-01    
+#> year::-4:cohort::8  -0.895195   0.374901 -2.387816 1.8949e-02 *  
+#> year::-4:cohort::9  -0.392478   0.439547 -0.892914 3.7418e-01    
+#> year::-4:cohort::10  0.519001   0.597880  0.868069 3.8757e-01    
+#> year::-3:cohort::4   0.591288   0.680169  0.869324 3.8688e-01    
+#> year::-3:cohort::5  -1.000650   0.971741 -1.029749 3.0577e-01    
+#> year::-3:cohort::6   0.072188   0.652641  0.110609 9.1216e-01    
+#> year::-3:cohort::7  -0.836820   0.804275 -1.040465 3.0079e-01    
+#> year::-3:cohort::8  -0.783148   0.701312 -1.116691 2.6697e-01    
+#> year::-3:cohort::9   0.811285   0.564470  1.437251 1.5397e-01    
+#> year::-3:cohort::10  0.527203   0.320051  1.647250 1.0285e-01    
+#> year::-2:cohort::3   0.036941   0.673771  0.054828 9.5639e-01    
+#> year::-2:cohort::4   0.832250   0.859544  0.968246 3.3541e-01    
+#> year::-2:cohort::5  -1.574086   0.525563 -2.995051 3.5076e-03 ** 
+#> year::-2:cohort::6   0.311758   0.832095  0.374666 7.0875e-01    
+#> year::-2:cohort::7  -0.558631   0.871993 -0.640638 5.2332e-01    
+#> year::-2:cohort::8   0.429591   0.305270  1.407250 1.6265e-01    
+#> year::-2:cohort::9   1.201899   0.819186  1.467188 1.4566e-01    
+#> year::-2:cohort::10 -0.002429   0.682087 -0.003562 9.9717e-01    
+#> att                 -1.133749   0.205070 -5.528584 2.8820e-07 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> RMSE: 0.921817     Adj. R2: 0.887984
+#>                  Within R2: 0.876406
+
+# alternatively
+summary(res_sa20, agg = c("att" = "year::[012345678]")) |> 
+    etable(digits = 2)
+#>                         summary(res_..
+#> Dependent Var.:                      y
+#>                                       
+#> x1                      0.99*** (0.02)
+#> year = -9 x cohort = 10    0.35 (0.36)
+#> year = -8 x cohort = 9     0.03 (0.47)
+#> year = -8 x cohort = 10   -0.19 (0.35)
+#> year = -7 x cohort = 8    -0.59 (0.74)
+#> year = -7 x cohort = 9    0.87. (0.49)
+#> year = -7 x cohort = 10    0.02 (0.60)
+#> year = -6 x cohort = 7    -0.04 (0.87)
+#> year = -6 x cohort = 8    -0.66 (0.57)
+#> year = -6 x cohort = 9     0.88 (0.53)
+#> year = -6 x cohort = 10   -0.40 (0.35)
+#> year = -5 x cohort = 6    -0.66 (0.91)
+#> year = -5 x cohort = 7    -0.32 (0.70)
+#> year = -5 x cohort = 8    -0.24 (0.47)
+#> year = -5 x cohort = 9     0.30 (0.60)
+#> year = -5 x cohort = 10   -0.56 (0.46)
+#> year = -4 x cohort = 5    -0.98 (0.63)
+#> year = -4 x cohort = 6     0.36 (0.86)
+#> year = -4 x cohort = 7    -0.43 (0.66)
+#> year = -4 x cohort = 8   -0.90* (0.37)
+#> year = -4 x cohort = 9    -0.39 (0.44)
+#> year = -4 x cohort = 10    0.52 (0.60)
+#> year = -3 x cohort = 4     0.59 (0.68)
+#> year = -3 x cohort = 5     -1.0 (0.97)
+#> year = -3 x cohort = 6     0.07 (0.65)
+#> year = -3 x cohort = 7    -0.84 (0.80)
+#> year = -3 x cohort = 8    -0.78 (0.70)
+#> year = -3 x cohort = 9     0.81 (0.56)
+#> year = -3 x cohort = 10    0.53 (0.32)
+#> year = -2 x cohort = 3     0.04 (0.67)
+#> year = -2 x cohort = 4     0.83 (0.86)
+#> year = -2 x cohort = 5   -1.6** (0.53)
+#> year = -2 x cohort = 6     0.31 (0.83)
+#> year = -2 x cohort = 7    -0.56 (0.87)
+#> year = -2 x cohort = 8     0.43 (0.31)
+#> year = -2 x cohort = 9      1.2 (0.82)
+#> year = -2 x cohort = 10  -0.002 (0.68)
+#> att                     -1.1*** (0.21)
+#> Fixed-Effects:          --------------
+#> id                                 Yes
+#> year                               Yes
+#> _______________________ ______________
+#> S.E.: Clustered                 by: id
+#> Observations                       950
+#> R2                             0.90982
+#> Within R2                      0.87641
+#> ---
+#> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
 
 Using the same syntax as `fixest`
 
@@ -3551,7 +4079,7 @@ summary(out)
 # drdid_imp_rc()
 ```
 
-### Multiple Treatment groups
+## Multiple Treatment
 
 When you have 2 treatments in a setting, you should always try to model both of them under one regression to see whether they are significantly different.
 
@@ -3566,8 +4094,6 @@ Y_{it} &= \alpha + \gamma_1 Treat1_{i} + \gamma_2 Treat2_{i} + \lambda Post_t  \
 $$
 
 [@fricke2017identification]
-
-### Multiple Treatments
 
 [@de2023two] [video](https://www.youtube.com/watch?v=UHeJoc27qEM&ab_channel=TaylorWright) [code](https://drive.google.com/file/d/156Fu73avBvvV_H64wePm7eW04V0jEG3K/view)
 
@@ -3695,6 +4221,10 @@ Debate:
 
     -   See [PretrendsPower](https://github.com/jonathandroth/PretrendsPower) and [pretrends](https://github.com/jonathandroth/pretrends) packages for correcting this.
 
+-   Parallel trends assumption is specific to both the transformation and units of the outcome [@roth2023parallel]
+
+    -   See falsification test ($H_0$: parallel trends is insensitive to functional form).
+
 
 ```r
 library(tidyverse)
@@ -3716,7 +4246,7 @@ causalverse::plot_par_trends(
 #> [[1]]
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-46-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-50-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -3734,7 +4264,7 @@ od |>
     causalverse::ama_theme()
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-46-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-50-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -3746,13 +4276,13 @@ prior_trend <- fixest::feols(Rate ~ i(Quarter_Num, California) | State + Quarter
 fixest::coefplot(prior_trend, grid = F)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-46-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-50-3.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 fixest::iplot(prior_trend, grid = F)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-46-4.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-50-4.png" width="90%" style="display: block; margin: auto;" />
 
 This is alarming since one of the periods is significantly different from 0, which means that our parallel trends assumption is not plausible.
 
@@ -3762,7 +4292,7 @@ In cases where you might have violations of parallel trends assumption, check [@
 
 -   Partial identification of causal parameter
 
--   A type of sensitivity analysis
+-   Sensitivity analysis
 
 
 ```r
@@ -3797,6 +4327,7 @@ Alternatively,
 ```r
 library(tidyverse)
 library(fixest)
+
 od <- causaldata::organ_donations %>%
     # Use only pre-treatment data
     dplyr::filter(Quarter_Num <= 3) %>%
@@ -3854,27 +4385,3 @@ We would like the "supposed" DiD to be insignificant.
 -   Test whether other dependent variables that should not be affected by the event are indeed unaffected.
 
     -   Use the same control and treatment period (DiD $\neq0$, there is a problem)
-
-### Rosenbaum Bounds
-
-[Rosenbaum Bounds] assess the overall sensitivity of coefficient estimates to hidden bias [@rosenbaum2002overt] without having knowledge (e.g., direction) of the bias. This method is also known as **worst case analyses** [@diprete2004assessing].
-
-Consider the treatment assignment is based in a way that the odds of treatment of a unit and its control is different by a multiplier $\Gamma$ (where $\Gamma = 1$ mean that the odds of assignment is identical, which mean random treatment assignment).
-
--   This bias is the product of an unobservable that influences both treatment selection and outcome by a factor $\Gamma$ (omitted variable bias)
-
-Using this technique, we may estimate the upper limit of the p-value for the treatment effect while assuming selection on unobservables of magnitude $\Gamma$.
-
-Usually, we would create a table of different levels of $\Gamma$ to assess how the magnitude of biases can affect our evidence of the treatment effect (estimate).
-
-If we have treatment assignment is clustered (e.g., within school, within state) we need to adjust the bounds for clustered treatment assignment [@hansen2014clustered] (similar to clustered standard errors)
-
-Then, we can report the minimum value of $\Gamma$ at which the treatment treat is nullified (i.e., become insignificant). And the literature's rules of thumb is that if $\Gamma > 2$, then we have strong evidence for our treatment effect is robust to large biases [@proserpio2017online]
-
-Packages
-
--   `rbounds` [@keele2010overview]
-
--   `sensitivitymv` [@rosenbaum2015two]
-
--   `sensitivitymw` [@rosenbaum2015two]

@@ -6,14 +6,139 @@
 
 -   <https://www.sciencedirect.com/science/article/pii/S0304407622000781>
 
+-   Observations can be grouped into clusters, with model errors being uncorrelated across clusters but correlated within each cluster.
+
+-   Neglecting to account for within-cluster error correlation can lead to significantly underestimated standard errors, misleadingly narrow confidence intervals, inflated t-statistics, and artificially low p-values.
+
+-   The necessity to control for within-cluster error correlation escalates with:
+
+    -   An increase in the magnitude of within-cluster error correlation.
+
+    -   A rise in the within-cluster correlation of regressors.
+
+    -   A growth in the number of observations within each cluster.
+
+-   Cluster-robust standard errors do not necessitate a specific model for within-cluster error correlation.
+
+-   They require an additional assumption that the number of clusters (not just the number of observations) must approach infinity for the method to be valid.
+
+-   The definition of "few" clusters is context-dependent, typically ranging from less than 20 to less than 50 clusters in balanced scenarios, posing a significant challenge in statistical analysis.
+
+-   Clustered errors generally lead to:
+
+    -   A decrease in the precision of the estimated coefficients ($\hat{\beta}$).
+    -   A bias in the conventional estimator for the variance of $\hat{\beta}$ ($\hat{V}(\hat{\beta})$), typically underestimating the true variance.
+
+-   Robust standard errors can be smaller than conventional standard errors because
+
+    -   The small sample bias
+
+    -   higher sampling variance
+
+-   Rule of thumb (to be conservative) is to select the max value of either conventional or robust standard errors. Could use the formal test by @yang2005combining
+
+-   Effect sample sizes are usually closer to the number of clusters (due to aggregation) than to the number of units.
+
+**History**
+
+-   A recent approach to handling clustered errors involves estimating the regression model with minimal or no within-cluster error correlation control and then obtaining "cluster-robust" standard errors post-estimation.
+
+-   This method was proposed by @white2014asymptotic for OLS with a multivariate dependent variable, suitable for balanced clusters.
+
+-   @liang1986longitudinal extended the approach to linear and nonlinear models.
+
+-   @arellano1987computing applied it for the fixed effects estimator in linear panel models.
+
+Terminologies:
+
+-   Heteroskedasticity robust standard errors [@white1980] (usually called: robust SE) $\hat{V}_{het}(\hat{\beta})$
+
+-   Heteroskedastic- and autocorrelation-consistent (HAC) standard errors [@newey1986simple]
+
+-   Heteroskedastic- and cluster-robust (usually called cluster-robust SE) $\hat{V}_{clu}(\hat{\beta})$
+
+Typically, the cluster-robust variance estimator $\hat{V}_{clu}(\hat{\beta})$ exceeds the heteroskedasticity robust variance estimator $\hat{V}_{het}(\hat{\beta})$ due to the inclusion of additional terms when $i \neq j$. The magnitude of increase is larger under the following conditions:
+
+1.  The more positively associated are the regressors across observations within the same cluster.
+2.  The more correlated are the errors among observations within the same cluster.
+3.  The greater the number of observations within the same cluster.
+
+Takeaways
+
+1.  **Loss of Efficiency in OLS**: There can be a significant loss of efficiency in OLS estimation if errors are correlated within a cluster rather than being completely uncorrelated. Intuitively, if errors are positively correlated within a cluster, then an additional observation in the cluster does not provide a completely independent piece of new information.
+
+2.  **Underestimated Standard Errors**: Failure to account for within-cluster error correlation can result in the use of standard errors that are too small, leading to overly narrow confidence intervals, overly large t-statistics, and the overrejection of true null hypotheses.
+
+3.  **Cluster-Robust Standard Errors**: Obtaining cluster-robust standard errors is straightforward, though it relies on the assumption that the number of clusters approaches infinity.
+
+Additionally, it is worth noting that cluster-robust standard errors can, in some circumstances, be smaller than default standard errors:
+
+-   **Negative Correlation in Errors**: In rare cases, errors may be negatively correlated, most likely when the number of clusters equals 2.
+
+-   **Heteroskedastic-Robust**: Cluster-robust standard errors are also heteroskedastic-robust. White's heteroskedastic-robust standard errors in practice can sometimes be larger and sometimes smaller than the default.
+
+-   **Modest Clustering Effect**: If clustering has a modest effect, such that cluster-robust and default standard errors are similar on average, cluster-robust may be smaller due to noise. However, when cluster-robust standard errors are smaller, they are usually not much smaller than the default. Conversely, in other applications, they can be significantly larger.
+
+**Guiding principles of what to cluster over:**
+
+1.  **Correlation Within Clusters**: Whenever there is reason to believe that both the regressors and the errors might be correlated within a cluster, clustering should be considered in a broad enough manner to account for that correlation. Conversely, if it's believed that either the regressors or the errors are likely to be uncorrelated within a potential group, then clustering within that group may not be necessary.
+
+2.  **Size and Number of Clusters**: The cluster-robust variance estimator $\hat{V}_{cluster}(\hat{\beta})$ is an average over clusters that approximates the true variance $V(\hat{\beta})$ more closely as the size of the clusters increases. However, defining very large clusters such that there are only a few to average over can result in $\hat{V}_{cluster}(\hat{\beta})$ being a poor estimate of $V(\hat{\beta})$.
+
+These two principles mirror the bias-variance tradeoff in statistical analysis:
+
+-   **Bias-Variance Tradeoff**: Large and fewer clusters tend to exhibit less bias but more variability. There is no universal solution to this tradeoff, and formal testing for the optimal level of clustering is not available. The consensus among researchers is to err on the side of caution to avoid bias by favoring larger and more aggregated clusters when possible, including considerations for the potential problem of having too few clusters.
+
+-   **When Cluster-Robust Standard Errors May Not Be Necessary**: There are scenarios where the use of cluster-robust standard errors might not be strictly needed. However, even in these instances, it is advisable to calculate cluster-robust standard errors and compare them with the default standard errors. Significant differences between the two indicate a preference for using cluster-robust standard errors to ensure more accurate and reliable results.
+
 # Standard Error Corrections
 
 -   Clustered Standard Errors
 
-    -   Use clustered standard errors to correct for serial correlation within the group (Bertrand, Duflo, and Mullainathan, 2004).
+    -   Use clustered standard errors to correct for serial correlation within the group [@bertrand2004much].
 
 -   Problematic if few clusters (5 - 30).
 
     -   Cluster bootstrap methods perform well in cases with as few as six clusters [@cameron2008bootstrap]. This can also applied to clusters of years (i.e., if you have too few years).
 
--   When one cluster is fully nested within another, it's best to cluster at the higher level for more conservative standard errors [@cameron2011robust ].
+-   When one cluster is fully nested within another, it's best to cluster at the higher level for more conservative standard errors [@cameron2011robust].
+
+-   Using least squares estimators [@barrios2012clustering]: Under random random assignment for the variable of interest, with relatively equal sized clusters, accounting for nonzero covariances at the cluster level (disregarding correlations between clusters and differences in within-cluster correlations), still yields valid inference. Without random assignment, disregarding these two general structures can lead to biased estimates.
+
+    -   Now we have to cluster if you have spatial correlations. Say if you have policy adoption across states, but states that adopt the same policy are close by regions, one needs to check for spatial correlations. This paper also uses a Mentel-type test for this problem (p. 586).
+
+-   When you have measurement errors that correlate within clusters, you should cluster at those measurement errors to correct them
+
+-   Solutions when you don't have enough clusters
+
+    -   You have to use the permutation test [@bertrand2002much]
+
+    -   Jackknife bootstrap
+
+    -   Ibragimov-Mueller [@bloom2013does]
+
+Besides clustering, we can always do permutation test [@bertrand2002much]
+
+Within groups, correlations in the random errors can occur. And if we were to estimate SEs assuming iid, we assume that we have more information from each additional observation, then we supposedly have. Technically, the variation/information that an observation within a group bring is only marginal to a completely iid observation. In short, correlation within groups can lead to underestimation in SE.
+
+Moulton factor [@moulton1986random, @moulton1990illustration] measures overestimation in precision when ignoring intra-class correlation ($\rho$):
+
+$$
+\frac{V_{true}(\hat{\beta})}{V_{OLS}(\hat{\beta})} = 1 + (n -1)\rho
+$$
+
+where
+
+-   $V_{OLS}$ is the OLS variance
+
+-   $V_{true}$ = the true sampling variance
+
+-   $n$ = sample size within each group (equal-sized groups)
+
+-   $\rho$ = intra-class correlation coefficient
+
+**Solutions**:
+
+1.  Parametric (unlikely): if you know the true intra-class correlations, you can specify it
+2.  Cluster SEs
+3.  Aggregation: Average to the group levels.

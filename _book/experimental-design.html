@@ -228,9 +228,158 @@ E[\eta_i |D_i = 1] -E[\eta_i |D_i = 0] = E[Y_{0i} |D_i = 1] -E[Y_{0i}|D_i = 0]
 <p><span class="math display">\[
 Y_i = \alpha + \rho D_i + X_i'\gamma + \eta_i
 \]</span></p>
-<div id="semi-random-experiment" class="section level2" number="19.1">
+<div id="notes" class="section level2" number="19.1">
 <h2>
-<span class="header-section-number">19.1</span> Semi-random Experiment<a class="anchor" aria-label="anchor" href="#semi-random-experiment"><i class="fas fa-link"></i></a>
+<span class="header-section-number">19.1</span> Notes<a class="anchor" aria-label="anchor" href="#notes"><i class="fas fa-link"></i></a>
+</h2>
+<p>For outcomes with 0s, we can’t use log-like transformation, because it’s sensitive to outcome unit <span class="citation">(<a href="references.html#ref-chen2023logs">J. Chen and Roth 2023</a>)</span>. For info on this issue, check [Zero-valued Outcomes]. We should use:</p>
+<ul>
+<li><p><strong>Percentage changes in the Average</strong>: by using Poisson QMLE, we can interpret the coefficients of the effect of treatment on the treated group relative to the mean of the control group.</p></li>
+<li>
+<p><strong>Extensive vs. Intensive Margins</strong>: Distinguish the treatment effect on the intensive (outcome: 10 to 11) vs. extensive margins (outcome: 0 to 1).</p>
+<ul>
+<li>To get the bounds for the intensive-margin, use <span class="citation">Lee (<a href="references.html#ref-lee2009training">2009</a>)</span> (assuming that treatment has a monotonic effect on outcome)</li>
+</ul>
+</li>
+</ul>
+<div class="sourceCode" id="cb351"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span> <span class="co"># For reproducibility</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1000</span> <span class="co"># Number of observations</span></span>
+<span><span class="va">p_treatment</span> <span class="op">&lt;-</span> <span class="fl">0.5</span> <span class="co"># Probability of being treated</span></span>
+<span></span>
+<span><span class="co"># Step 1: Generate the treatment variable D</span></span>
+<span><span class="va">D</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">rbinom</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">1</span>, <span class="va">p_treatment</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Step 2: Generate potential outcomes</span></span>
+<span><span class="co"># Untreated potential outcome (mostly zeroes)</span></span>
+<span><span class="va">Y0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">0.3</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Treated potential outcome (shifting both the probability of being positive - extensive margin and its magnitude - intensive margin)</span></span>
+<span><span class="va">Y1</span> <span class="op">&lt;-</span> <span class="va">Y0</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, mean <span class="op">=</span> <span class="fl">2</span>, sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">0.7</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Step 3: Combine effects based on treatment</span></span>
+<span><span class="va">Y_observed</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">D</span><span class="op">)</span> <span class="op">*</span> <span class="va">Y0</span> <span class="op">+</span> <span class="va">D</span> <span class="op">*</span> <span class="va">Y1</span></span>
+<span></span>
+<span><span class="co"># Add explicit zeroes to model situations with no effect</span></span>
+<span><span class="va">Y_observed</span><span class="op">[</span><span class="va">Y_observed</span> <span class="op">&lt;</span> <span class="fl">0</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
+<span></span>
+<span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>        ID <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">n</span>,</span>
+<span>        Treatment <span class="op">=</span> <span class="va">D</span>,</span>
+<span>        Outcome <span class="op">=</span> <span class="va">Y_observed</span>,</span>
+<span>        X <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span>    <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="co"># whether outcome is positive</span></span>
+<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>positive <span class="op">=</span> <span class="va">Outcome</span> <span class="op">&gt;</span> <span class="fl">0</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Viewing the first few rows of the dataset</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   ID Treatment   Outcome          X positive</span></span>
+<span><span class="co">#&gt; 1  1         0 0.0000000  1.4783345    FALSE</span></span>
+<span><span class="co">#&gt; 2  2         1 2.2369379 -1.4067867     TRUE</span></span>
+<span><span class="co">#&gt; 3  3         0 0.0000000 -1.8839721    FALSE</span></span>
+<span><span class="co">#&gt; 4  4         1 3.2192276 -0.2773662     TRUE</span></span>
+<span><span class="co">#&gt; 5  5         1 0.6649693  0.4304278     TRUE</span></span>
+<span><span class="co">#&gt; 6  6         0 0.0000000 -0.1287867    FALSE</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html">hist</a></span><span class="op">(</span><span class="va">data</span><span class="op">$</span><span class="va">Outcome</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="19-experiment_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;"></div>
+<ul>
+<li><strong>Percentage changes in the Average</strong></li>
+</ul>
+<div class="sourceCode" id="cb352"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
+<span><span class="va">res_pois</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://lrberge.github.io/fixest/reference/feglm.html">fepois</a></span><span class="op">(</span></span>
+<span>        fml <span class="op">=</span> <span class="va">Outcome</span> <span class="op">~</span> <span class="va">Treatment</span> <span class="op">+</span> <span class="va">X</span>,</span>
+<span>        data <span class="op">=</span> <span class="va">data</span>, </span>
+<span>        vcov <span class="op">=</span> <span class="st">"hetero"</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/etable.html">etable</a></span><span class="op">(</span><span class="va">res_pois</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                           res_pois</span></span>
+<span><span class="co">#&gt; Dependent Var.:            Outcome</span></span>
+<span><span class="co">#&gt;                                   </span></span>
+<span><span class="co">#&gt; Constant        -2.223*** (0.1440)</span></span>
+<span><span class="co">#&gt; Treatment        2.579*** (0.1494)</span></span>
+<span><span class="co">#&gt; X                  0.0235 (0.0406)</span></span>
+<span><span class="co">#&gt; _______________ __________________</span></span>
+<span><span class="co">#&gt; S.E. type       Heteroskedas.-rob.</span></span>
+<span><span class="co">#&gt; Observations                 1,000</span></span>
+<span><span class="co">#&gt; Squared Cor.               0.33857</span></span>
+<span><span class="co">#&gt; Pseudo R2                  0.26145</span></span>
+<span><span class="co">#&gt; BIC                        1,927.9</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
+<p>To calculate the proportional effect</p>
+<div class="sourceCode" id="cb353"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># proportional effect</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coefficients</a></span><span class="op">(</span><span class="va">res_pois</span><span class="op">)</span><span class="op">[</span><span class="st">"Treatment"</span><span class="op">]</span><span class="op">)</span> <span class="op">-</span> <span class="fl">1</span></span>
+<span><span class="co">#&gt; Treatment </span></span>
+<span><span class="co">#&gt;  12.17757</span></span>
+<span></span>
+<span><span class="co"># SE</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coefficients</a></span><span class="op">(</span><span class="va">res_pois</span><span class="op">)</span><span class="op">[</span><span class="st">"Treatment"</span><span class="op">]</span><span class="op">)</span> <span class="op">*</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span><span class="va">res_pois</span><span class="op">$</span><span class="va">cov.scaled</span><span class="op">[</span><span class="st">"Treatment"</span>, <span class="st">"Treatment"</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Treatment </span></span>
+<span><span class="co">#&gt;  1.968684</span></span></code></pre></div>
+<p>Hence, we conclude that the treatment effect is 1215% higher for the treated group as compared to the control group.</p>
+<ul>
+<li><strong>Extensive vs. Intensive Margins</strong></li>
+</ul>
+<p>Here, we can estimate the intensive-margin treatment effect (i.e., the treatment effect for “always-takers”).</p>
+<div class="sourceCode" id="cb354"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/lee_bounds.html">lee_bounds</a></span><span class="op">(</span></span>
+<span>    df <span class="op">=</span> <span class="va">data</span>,</span>
+<span>    d <span class="op">=</span> <span class="st">"Treatment"</span>,</span>
+<span>    m <span class="op">=</span> <span class="st">"positive"</span>,</span>
+<span>    y <span class="op">=</span> <span class="st">"Outcome"</span>,</span>
+<span>    numdraws <span class="op">=</span> <span class="fl">10</span></span>
+<span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/nice_tab.html">nice_tab</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
+<span><span class="co">#&gt;          term estimate std.error</span></span>
+<span><span class="co">#&gt; 1 Lower bound    -0.22      0.09</span></span>
+<span><span class="co">#&gt; 2 Upper bound     2.77      0.14</span></span></code></pre></div>
+<p>Since in this case, the bounds contains 0, we can’t say much about the intensive margin for always-takers.</p>
+<p>If we aim to examine the sensitivity of always-takers, we should consider scenarios where the average outcome of compliers are <span class="math inline">\(100 \times c\%\)</span> lower or higher than that of always-takers.</p>
+<p>We assume that <span class="math inline">\(E(Y(1)|Complier) = (1-c)E(Y(1)|Always-taker)\)</span></p>
+<div class="sourceCode" id="cb355"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">c_values</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.1</span>, <span class="fl">.5</span>, <span class="fl">.7</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">combined_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html">bind_rows</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">lapply</a></span><span class="op">(</span><span class="va">c_values</span>, <span class="kw">function</span><span class="op">(</span><span class="va">c</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">res</span> <span class="op">&lt;-</span> <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/lee_bounds.html">lee_bounds</a></span><span class="op">(</span></span>
+<span>        df <span class="op">=</span> <span class="va">data</span>,</span>
+<span>        d <span class="op">=</span> <span class="st">"Treatment"</span>,</span>
+<span>        m <span class="op">=</span> <span class="st">"positive"</span>,</span>
+<span>        y <span class="op">=</span> <span class="st">"Outcome"</span>,</span>
+<span>        numdraws <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>        c_at_ratio <span class="op">=</span> <span class="va">c</span></span>
+<span>    <span class="op">)</span></span>
+<span>    </span>
+<span>    <span class="va">res</span><span class="op">$</span><span class="va">c_value</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="va">c</span><span class="op">)</span></span>
+<span>    <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">combined_res</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">c_value</span>, <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html">everything</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/nice_tab.html">nice_tab</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   c_value           term estimate std.error</span></span>
+<span><span class="co">#&gt; 1     0.1 Point estimate     6.60      0.71</span></span>
+<span><span class="co">#&gt; 2     0.5 Point estimate     2.54      0.13</span></span>
+<span><span class="co">#&gt; 3     0.7 Point estimate     1.82      0.08</span></span></code></pre></div>
+<ul>
+<li><p>If we assume <span class="math inline">\(c = 0.1\)</span> (i.e., under treatment, compliers would have an outcome equal to 10% of the outcome of always-takers), then the intensive-margin effect for always-takers is 6.6 more in the unit of the outcome.</p></li>
+<li><p>If we assume <span class="math inline">\(c = 0.5\)</span> (i.e., under treatment, compliers would have an outcome equal to 50% of the outcome of always-takers), then the intensive-margin effect for always-takers is 2.54 more in the unit of the outcome.</p></li>
+</ul>
+</div>
+<div id="semi-random-experiment" class="section level2" number="19.2">
+<h2>
+<span class="header-section-number">19.2</span> Semi-random Experiment<a class="anchor" aria-label="anchor" href="#semi-random-experiment"><i class="fas fa-link"></i></a>
 </h2>
 <p>Chicago Open Enrollment Program <span class="citation">(<a href="references.html#ref-cullen2005impact">Cullen, Jacob, and Levitt 2005</a>)</span></p>
 <ul>
@@ -266,10 +415,10 @@ Y_i = \alpha + \rho D_i + X_i'\gamma + \eta_i
 <div class="inline-table"><table class="table table-sm">
 <colgroup>
 <col width="20%">
-<col width="20%">
-<col width="20%">
-<col width="20%">
-<col width="20%">
+<col width="18%">
+<col width="21%">
+<col width="21%">
+<col width="17%">
 </colgroup>
 <thead><tr class="header">
 <th>Number students</th>
@@ -306,10 +455,10 @@ Y_i = \alpha + \rho D_i + X_i'\gamma + \eta_i
 <div class="inline-table"><table class="table table-sm">
 <colgroup>
 <col width="20%">
-<col width="20%">
-<col width="20%">
-<col width="20%">
-<col width="20%">
+<col width="18%">
+<col width="21%">
+<col width="21%">
+<col width="17%">
 </colgroup>
 <thead><tr class="header">
 <th>Number students</th>
@@ -400,9 +549,9 @@ E(\lambda) &amp;\neq E(\lambda_1) &amp;&amp; \text{because choosing a lottery is
 \]</span></p>
 <p>Including <span class="math inline">\((X_i \theta)\)</span> just shifts around control variables (i.e., reweighting of lottery), which would not affect your treatment effect <span class="math inline">\(E(\delta)\)</span></p>
 </div>
-<div id="rerandomization" class="section level2" number="19.2">
+<div id="rerandomization" class="section level2" number="19.3">
 <h2>
-<span class="header-section-number">19.2</span> Rerandomization<a class="anchor" aria-label="anchor" href="#rerandomization"><i class="fas fa-link"></i></a>
+<span class="header-section-number">19.3</span> Rerandomization<a class="anchor" aria-label="anchor" href="#rerandomization"><i class="fas fa-link"></i></a>
 </h2>
 <ul>
 <li><p>Since randomization only balances baseline covariates on average, imbalance in variables due to random chance can still happen.</p></li>
@@ -459,9 +608,9 @@ M &amp;= (\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)' cov(\bar{\mathbf{X}}_T - \ba
 <p>Then let <span class="math inline">\(p_a\)</span> be the probability of accepting a randomization. Choosing appropriate <span class="math inline">\(p_a\)</span> is a tradeoff between balance and time.</p>
 <p>Then the rule of thumb is re-randomize when <span class="math inline">\(M &gt; a\)</span></p>
 </div>
-<div id="two-stage-randomized-experiments-with-interference-and-noncompliance" class="section level2" number="19.3">
+<div id="two-stage-randomized-experiments-with-interference-and-noncompliance" class="section level2" number="19.4">
 <h2>
-<span class="header-section-number">19.3</span> Two-Stage Randomized Experiments with Interference and Noncompliance<a class="anchor" aria-label="anchor" href="#two-stage-randomized-experiments-with-interference-and-noncompliance"><i class="fas fa-link"></i></a>
+<span class="header-section-number">19.4</span> Two-Stage Randomized Experiments with Interference and Noncompliance<a class="anchor" aria-label="anchor" href="#two-stage-randomized-experiments-with-interference-and-noncompliance"><i class="fas fa-link"></i></a>
 </h2>
 <p><span class="citation">(<a href="references.html#ref-imai2021causal">Imai, Jiang, and Malani 2021</a>)</span></p>
 
@@ -474,9 +623,10 @@ M &amp;= (\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)' cov(\bar{\mathbf{X}}_T - \ba
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
 <li><a class="nav-link" href="#experimental-design"><span class="header-section-number">19</span> Experimental Design</a></li>
-<li><a class="nav-link" href="#semi-random-experiment"><span class="header-section-number">19.1</span> Semi-random Experiment</a></li>
-<li><a class="nav-link" href="#rerandomization"><span class="header-section-number">19.2</span> Rerandomization</a></li>
-<li><a class="nav-link" href="#two-stage-randomized-experiments-with-interference-and-noncompliance"><span class="header-section-number">19.3</span> Two-Stage Randomized Experiments with Interference and Noncompliance</a></li>
+<li><a class="nav-link" href="#notes"><span class="header-section-number">19.1</span> Notes</a></li>
+<li><a class="nav-link" href="#semi-random-experiment"><span class="header-section-number">19.2</span> Semi-random Experiment</a></li>
+<li><a class="nav-link" href="#rerandomization"><span class="header-section-number">19.3</span> Rerandomization</a></li>
+<li><a class="nav-link" href="#two-stage-randomized-experiments-with-interference-and-noncompliance"><span class="header-section-number">19.4</span> Two-Stage Randomized Experiments with Interference and Noncompliance</a></li>
 </ul>
 
       <div class="book-extra">
@@ -494,7 +644,7 @@ M &amp;= (\bar{\mathbf{X}}_T - \bar{\mathbf{X}}_C)' cov(\bar{\mathbf{X}}_T - \ba
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2024-02-20.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2024-04-11.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

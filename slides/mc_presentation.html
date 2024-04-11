@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.353">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>mc_presentation</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="mc_presentation_files/libs/clipboard/clipboard.min.js"></script>
+<script src="mc_presentation_files/libs/quarto-html/quarto.js"></script>
+<script src="mc_presentation_files/libs/quarto-html/popper.min.js"></script>
+<script src="mc_presentation_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="mc_presentation_files/libs/quarto-html/anchor.min.js"></script>
+<link href="mc_presentation_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="mc_presentation_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="mc_presentation_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="mc_presentation_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="mc_presentation_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">mc_presentation</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="matrix-completion" class="level1">
+<h1>Matrix Completion</h1>
+<p>To estimate average causal effects in panel data with units exposed to treatment intermittently, two literatures are pivotal:</p>
+<ul>
+<li><p><strong>Unconfoundedness</strong> <span class="citation" data-cites="imbens2015causal">[@imbens2015causal]</span>: Imputes missing potential control outcomes for treated units using observed outcomes from similar control units in previous periods.</p></li>
+<li><p><strong>Synthetic Control</strong> <span class="citation" data-cites="abadie2010synthetic">[@abadie2010synthetic]</span>: Imputes missing control outcomes for treated units using weighted averages from control units, matching lagged outcomes between treated and control units.</p></li>
+</ul>
+<p>Both exploit missing potential outcomes under different assumptions:</p>
+<ul>
+<li><p>Unconfoundedness assumes time patterns are stable across units.</p></li>
+<li><p>Synthetic control assumes unit patterns are stable over time.</p></li>
+</ul>
+<p>Once regularization is applied, both approaches are applicable in similar settings <span class="citation" data-cites="athey2021matrix">[@athey2021matrix]</span>. <strong>Matrix Completion</strong> method, nesting both, is based on matrix factorization with an objective function grounded in the Frobenius norm, focusing on imputing missing matrix elements assuming:</p>
+<ol type="1">
+<li>Complete matrix = low-rank matrix + noise.</li>
+<li>Missingness is completely at random.</li>
+</ol>
+<p>It’s distinguished by not imposing factorization restrictions but utilizing regularization to define the estimator, particularly effective with the nuclear norm as a regularizer for complex missing patterns <span class="citation" data-cites="athey2021matrix">[@athey2021matrix]</span>.</p>
+<p>Contributions of <span class="citation" data-cites="athey2021matrix">@athey2021matrix</span> matrix completion include:</p>
+<ol type="1">
+<li>Recognizing structured missing patterns allowing time correlation, enabling staggered adoption.</li>
+<li>Modifying estimators for unregularized unit and time fixed effects.</li>
+<li>Performing well across various <span class="math inline">\(T\)</span> and <span class="math inline">\(N\)</span> sizes, unlike unconfoundedness and synthetic control, which falter when <span class="math inline">\(T &gt;&gt; N\)</span> or <span class="math inline">\(N &gt;&gt; T\)</span>, respectively.</li>
+</ol>
+<p>Identifying Assumptions:</p>
+<ol type="1">
+<li>SUTVA: Potential outcomes indexed only by the unit’s contemporaneous treatment.</li>
+<li>No dynamic effects (it’s okay under staggered adoption, it gives a different interpretation of estimand).</li>
+</ol>
+<p>Setup:</p>
+<ul>
+<li><span class="math inline">\(Y_{it}(0)\)</span> and <span class="math inline">\(Y_{it}(1)\)</span> represent potential outcomes of <span class="math inline">\(Y_{it}\)</span>.</li>
+<li><span class="math inline">\(W_{it}\)</span> is a binary treatment indicator.</li>
+<li><span class="math inline">\(X\)</span> is a matrix of unit-specific covariates.</li>
+<li><span class="math inline">\(Z\)</span> represents time-specific covariates.</li>
+<li><span class="math inline">\(V_{it}\)</span> includes time-varying covariates.</li>
+</ul>
+<p>Aim to estimate the average effect for the treated:</p>
+<p><span class="math display">\[ \tau = \frac{\sum_{(i,t): W_{it} = 1}[Y_{it}(1) - Y_{it}(0)]}{\sum_{i,t}W_{it}} \]</span></p>
+<p>We observe all relevant values for <span class="math inline">\(Y_{it}(1)\)</span></p>
+<p>We want to impute missing entries in the <span class="math inline">\(Y(0)\)</span> matrix for treated units with <span class="math inline">\(W_{it} = 1\)</span>.</p>
+<p>Define <span class="math inline">\(\mathcal{M}\)</span> as the set of pairs of indices <span class="math inline">\((i,t)\)</span>, where <span class="math inline">\(i \in N\)</span> and <span class="math inline">\(t \in T\)</span>, corresponding to missing entries with <span class="math inline">\(W_{it} = 1\)</span>; <span class="math inline">\(\mathcal{O}\)</span> as the set of pairs of indices corresponding to observed entries in <span class="math inline">\(Y(0)\)</span> with <span class="math inline">\(W_{it} = 0\)</span>.</p>
+<p>Data is conceptualized as two <span class="math inline">\(N \times T\)</span> matrices, one incomplete and one complete:</p>
+<p><span class="math display">\[ Y = \begin{pmatrix} Y_{11} &amp; Y_{12} &amp; ? &amp; \cdots &amp; Y_{1T} \\ ? &amp; ? &amp; Y_{23} &amp; \cdots &amp; ? \\ Y_{31} &amp; ? &amp; Y_{33} &amp; \cdots &amp; ? \\ \vdots &amp; \vdots &amp; \vdots &amp; \ddots &amp; \vdots \\ Y_{N1} &amp; ? &amp; Y_{N3} &amp; \cdots &amp; ? \end{pmatrix}, \]</span></p>
+<p>and</p>
+<p><span class="math display">\[ W = \begin{pmatrix} 0 &amp; 0 &amp; 1 &amp; \cdots &amp; 0 \\ 1 &amp; 1 &amp; 0 &amp; \cdots &amp; 1 \\ 0 &amp; 1 &amp; 0 &amp; \cdots &amp; 1 \\ \vdots &amp; \vdots &amp; \vdots &amp; \ddots &amp; \vdots \\ 0 &amp; 1 &amp; 0 &amp; \cdots &amp; 1 \end{pmatrix}, \]</span></p>
+<p>where</p>
+<p><span class="math display">\[ W_{it} = \begin{cases} 1 &amp; \text{if } (i,t) \in \mathcal{M}, \\ 0 &amp; \text{if } (i,t) \in \mathcal{O}, \end{cases} \]</span></p>
+<p>is an indicator for the event that the corresponding component of <span class="math inline">\(Y\)</span>, that is <span class="math inline">\(Y_{it}\)</span>, is missing.</p>
+<p>Patterns of missing data in <span class="math inline">\(\mathbf{Y}\)</span>:</p>
+<ul>
+<li><p>Block (treatment) structure with 2 special cases</p>
+<ul>
+<li><p>Single-treated-period block structure <span class="citation" data-cites="imbens2015causal">[@imbens2015causal]</span></p></li>
+<li><p>Single-treated-unit block structure <span class="citation" data-cites="abadie2010synthetic">[@abadie2010synthetic]</span></p></li>
+</ul></li>
+<li><p>Staggered Adoption</p></li>
+</ul>
+<p>Shape of matrix <span class="math inline">\(\mathbf{Y}\)</span>:</p>
+<ul>
+<li><p>Thin (<span class="math inline">\(N &gt;&gt; T\)</span>)</p></li>
+<li><p>Fat (<span class="math inline">\(T &gt;&gt; N\)</span>)</p></li>
+<li><p>Square (<span class="math inline">\(N \approx T\)</span>)</p></li>
+</ul>
+<p>Combinations of patterns of missingness and shape create different literatures:</p>
+<ul>
+<li><p>Horizontal Regression = Thin matrix + single-treated-period block (focusing on cross-section correlation patterns)</p></li>
+<li><p>Vertical Regression = Fat matrix + single-treated-unit block (focusing on time-series correlation patterns)</p></li>
+<li><p>TWFE = Square matrix</p></li>
+</ul>
+<p>To combine, we can exploit both stable patterns over time, and across units (e.g., TWFE, interactive FEs or matrix completion).</p>
+<p>For the same factor model</p>
+<p><span class="math display">\[ \mathbf{Y = UV}^T + \mathbf{\epsilon} \]</span></p>
+<p>where <span class="math inline">\(\mathbf{U}\)</span> is <span class="math inline">\(N \times R\)</span> and <span class="math inline">\(\mathbf{V}\)</span> is <span class="math inline">\(T\times R\)</span></p>
+<p>The interactive FE literature focuses on a fixed number of factors <span class="math inline">\(R\)</span> in <span class="math inline">\(\mathbf{U, V}\)</span>, while matrix completion focuses on impute <span class="math inline">\(\mathbf{Y}\)</span> using some forms regularization (e.g., nuclear norm).</p>
+<ul>
+<li>We can also estiamte the number of factors <span class="math inline">\(R\)</span> <span class="citation" data-cites="bai2002determining">[@bai2002determining, @moon2015linear]</span></li>
+</ul>
+<p>To use the nuclear norm minimization estimator, we must add a penalty term to regularize the objective function. However, before doing so, we need to explicitly estimate the time (<span class="math inline">\(\lambda_t\)</span>) and unit (<span class="math inline">\(\mu_i\)</span>) fixed effects implicitly embedded in the missing data matrix to reduce the bias of the regularization term.</p>
+<p><a href="https://bookdown.org/stanfordgsbsilab/ml-ci-tutorial/matrix-completion-methods.html">Specifically</a>,</p>
+<p><span class="math display">\[ Y_{it}  =L_{it} + \sum_{p = 1}^P \sum_{q= 1}^Q X_{ip} H_{pq}Z_{qt} + \mu_i + \lambda_t + V_{it} \beta + \epsilon_{it} \]</span></p>
+<p>where</p>
+<ul>
+<li><p><span class="math inline">\(X_{ip}\)</span> is a matrix of <span class="math inline">\(p\)</span> variables for unit <span class="math inline">\(i\)</span></p></li>
+<li><p><span class="math inline">\(Z_{qt}\)</span> is a matrix of <span class="math inline">\(q\)</span> variables for time <span class="math inline">\(t\)</span></p></li>
+<li><p><span class="math inline">\(V_{it}\)</span> is a matrix of time-varying variables.</p></li>
+</ul>
+<p>Lasso-type <span class="math inline">\(l_1\)</span> norm (<span class="math inline">\(||H|| = \sum_{p = 1}^p \sum_{q = 1}^Q |H_{pq}|\)</span>) is used shrink <span class="math inline">\(H \to 0\)</span></p>
+<p>There are several options to regularize <span class="math inline">\(L\)</span>:</p>
+<ol type="1">
+<li>Frobenius (i.e., Ridge): not informative since it imputes missing values as 0.</li>
+<li>Nuclear Norm (i.e., Lasso): computationally feasible (using SOFT-IMPUTE algorithm <span class="citation" data-cites="Mazumder2010SpectralRA">[@Mazumder2010SpectralRA]</span>).</li>
+<li>Rank (i.e., Subset selection): not computationally feasible</li>
+</ol>
+<p>This methods allows to</p>
+<ul>
+<li><p>use more covariates</p></li>
+<li><p>leverage data from treated units (can be used when treatment effect is constant and pattern of missing is not complex).</p></li>
+<li><p>have autocorrelated errors</p></li>
+<li><p>have weighted loss function (i.e., take into account the probability of outcomes for a unit being missing)</p></li>
+</ul>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

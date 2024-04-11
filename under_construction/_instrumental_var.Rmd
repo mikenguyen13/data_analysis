@@ -16,6 +16,22 @@ Notes:
 
 -   Be careful with the F-test and standard errors when you do 2SLS by hand (you need to correct them)
 
+-   For [Zero-valued Outcomes], we can't directly interpret the treatment coefficient of log-transformed outcome regression as percentage change [@chen2023logs]. To have percentage change interpretation, we can either do:
+
+    -   Proportional LATE: estimate $\theta_{ATE\%}$ for those who are compliers under the instrument. To estimate proportional LATE,
+
+        1.  Regress $Y_i = \beta D_i + X_i + \epsilon_i$ using 2SLS with an instrument on $D_i$, where $\beta$ is interpreted as the LATE in levels of the control group's mean for compliers.
+
+        2.  Get estimate of the control complier mean by regressing with same 2SLS regression [@abadie2002instrumental] where the final outcome is $-(D_i - 1)Y_i$ , we refer to the new new estimated effect of $D_i$ as $\beta_{cc}$
+
+        3.  The $\theta_{ATE \%}$ for compliers that are induced by the instrument is $\hat{\beta}/\hat{\beta}_{cc}$, where it can be interpreted directly as the percentage change for compliers that are induced by the instrument under treatment as compared to under control.
+
+        4.  SE can be obtained by non-parametric bootstrap.
+
+        5.  For specific case that the instrument is binary, $\theta$ of the intensive margin for compliers can be directly obtained by Poisson IV regression (`ivpoisson` in Stata).
+
+    -   @lee2009training bounds: we can get bounds for the average treatment effect in logs for compliers who have positive outcome regardless of treatment status (i.e., intensive-margin effect). This requires a monotonicity assumption for compliers where they should still have positive outcome regardless of treatment status.
+
 Other resources:
 
 -   [Image](https://theeffectbook.net/ch-InstrumentalVariables.html)
@@ -45,6 +61,12 @@ Problems with weak instruments [@bound1995problems]:
 -   In a finite sample, instrumental variables (IV) estimates can be biased in the same direction as ordinary least squares (OLS) estimates. Additionally, the bias of IV estimates approaches that of OLS estimates as the correlation (R2) between the instruments and the endogenous explanatory variable approaches zero. This means that when the correlation between the instruments and the endogenous variable is weak, the bias of the IV estimates can be similar to that of the OLS estimates.
 
 -   Weak instruments are problematic because they do not have enough variation to fully capture the variation in the endogenous variable, leading to measurement error and other sources of noise in the estimates.
+
+-   Using weak instruments can produce large standard errors and low t-ratio. And when the feedback (reverse causality) is strong, the bias in IV is even greater than that of OLS [@nelson1988distribution].
+
+-   Using lagged dependent variables as instruments for current values depends on serial correlations, typically low [@nelson1988distribution].
+
+-   Using multiple covariates to artificially increase the first-stage $R^2$ does not solve this weak instrument problem [@nelson1988distribution].
 
 -   Solutions:
 
@@ -103,9 +125,9 @@ where
 
 -   $D_{1i} - D_{0i}$ is the causal effect of $Z_i$ on $D_i$
 
-Assumptions
+**Assumptions**
 
--   Independence: The instrument is randomly assigned (i.e., independent of potential outcomes and potential treatments)
+-   [***Independence***]{.underline}: The instrument is randomly assigned (i.e., independent of potential outcomes and potential treatments)
 
     -   $[\{Y_i(d,z); \forall d, z \}, D_{1i}, D_{0i} ] \Pi Z_i$
 
@@ -117,7 +139,7 @@ Assumptions
 
 $$ E[Y_i |Z_i = 1 ] - E[Y_i|Z_i = 0] = E[Y_i (D_{1i}, Z_i = 1) - Y_i (D_{0i} , Z_i = 0)] $$
 
--   Exclusion
+-   [***Exclusion***]{.underline} (i.e., existence of instruments [@imbens1994identification]
 
     -   The treatment $D_i$ fully mediates the effect of $Z_i$ on $Y_i$
 
@@ -129,11 +151,17 @@ $$ E[Y_i |Z_i = 1 ] - E[Y_i|Z_i = 0] = E[Y_i (D_{1i}, Z_i = 1) - Y_i (D_{0i} , Z
 
     -   This assumption let us go from reduced-form causal effects to treatment effects [@angrist1995two]
 
--   Monotonicity: $D_{1i} > D_{0i} \forall i$
+-   [***Monotonicity***]{.underline}: $D_{1i} > D_{0i} \forall i$
 
     -   With this assumption, we have $E[D_{1i} - D_{0i} ] = P[D_{1i} > D_{0i}]$
 
     -   This assumption lets us assume that there is a first stage, in which we examine the proportion of the population that $D_i$ is driven by $Z_i$
+
+    -   This assumption is used to solve to problem of the shifts between participation status back to non-participation status.
+
+        -   Alternatively, one can solve the same problem by assuming constant (homogeneous) treatment effect [@imbens1994identification], but this is rather restrictive.
+
+        -   A third solution is the assumption that there exists a value of the instrument, where the probability of participation conditional on that value is 0 [@heckman1990varieties, @angrist1991sources].
 
 With these three assumptions, we have the LATE theorem [@angrist2009mostly, 4.4.1]
 
@@ -159,9 +187,13 @@ Treatment effects on the treated is a weighted average of always-takers and comp
 
 In the special case of IV in randomized trials, we have a compliance problem (when compliance is voluntary), where those in the treated will not always take the treatment (i.e., might be selection bias).
 
--   Intention-to-treat analysis is valid, but contaminated by non-compliance
+-   **Intention-to-treat analysis** is valid, but contaminated by non-compliance
 
 -   IV in this case ($Z_i$ = random assignment to the treatment; $D_i$ = whether the unit actually received/took the treatment) can solve this problem.
+
+-   Under certain assumptions (i.e., SUTVA, random assignment, exclusion restriction, no defiers, and monotinicity), this analysis can give causal interpreation of LATE because it's the average causal effect for the compliers only.
+
+    -   Without these assumptions, it's a ratio of intention-to-treat.
 
 -   Without always-takers in this case, LATE = Treatment effects on the treated
 
@@ -710,6 +742,55 @@ $$
     -   Compute F-statistic in the first-stage, where it should be greater than 10.
 
     -   use `linearHypothesis()` to see only instrument coefficients.
+
+#### Cragg-Donald
+
+[@cragg1993testing]
+
+Similar to the first-stage F-statistic
+
+```{r}
+library(cragg)
+library(AER) # for dataaset
+data("WeakInstrument")
+
+cragg_donald(
+    # control variables
+    X = ~ 1, 
+    # endogeneous variables
+    D = ~ x, 
+    # instrument variables 
+    Z = ~ z, 
+    data = WeakInstrument
+)
+```
+
+Large CD statistic implies that the instruments are strong, but not in our case here. But to judge it against some critical value, we have to look at [Stock-Yogo]
+
+#### Stock-Yogo
+
+@stock2002testing set the critical values such that the bias is less then 10% (default)
+
+$H_0:$ Instruments are weak
+
+$H_1:$ Instruments are not weak
+
+```{r}
+library(cragg)
+library(AER) # for dataaset
+data("WeakInstrument")
+stock_yogo_test(
+    # control variables
+    X = ~ 1, 
+    # endogeneous variables
+    D = ~ x, 
+    # instrument variables 
+    Z = ~ z, 
+    data = WeakInstrument
+)
+```
+
+The CD statistic should be bigger than the set critical value to be considered strong instruments.
 
 ### Exogeneity Assumption
 

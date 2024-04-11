@@ -138,7 +138,7 @@
 
 \title{A Guide on Data Analysis}
 \author{Mike Nguyen}
-\date{2024-02-20}
+\date{2024-04-11}
 
 \begin{document}
 \maketitle
@@ -19168,6 +19168,17 @@ The probability of missing data on a variable is unrelated to the value of it or
   The missing data are just a random subset of the data.
 \end{itemize}
 
+Methods include:
+
+\begin{itemize}
+\item
+  Universal singular value thresholding \citep{chatterjee2015matrix} (can only recover the mean, not the whole true distribution).
+\item
+  Softimputet: \citep{hastie2015matrix} (doesn't work well under ``Limited'' -missing not at random).
+\item
+  Synthetic nearest neighbor \citep{agarwal2023causal} (still work okay under missing not at random). Available on GitHub: \href{https://github.com/deshen24/syntheticNN}{syntheticNN}
+\end{itemize}
+
 \hypertarget{missing-at-random-mar}{%
 \subsection{Missing at Random (MAR)}\label{missing-at-random-mar}}
 
@@ -25317,59 +25328,86 @@ This package can only give the marginal effect for each variable in the \texttt{
 \hypertarget{prediction-and-estimation}{%
 \chapter{Prediction and Estimation}\label{prediction-and-estimation}}
 
-Prediction and Estimation (Inference) have been the two fundamental pillars in statistics.
+Prediction and Estimation (or Causal Inference) serve distinct roles in understanding and modeling data.
+
+\hypertarget{prediction-1}{%
+\section{Prediction}\label{prediction-1}}
 
 \begin{itemize}
 \item
-  You cannot have both. You can either have high prediction or high estimation.
+  \textbf{Definition}: Prediction, denoted as \(\hat{y}\), is about creating an algorithm for predicting the outcome variable \(y\) from predictors \(x\).
+\item
+  \textbf{Goal}: The primary goal is loss minimization, aiming for model accuracy on unseen data:
+
+  \[
+  \hat{f} \approx \min E_{(y,x)} L(f(x), y)
+  \]
+\item
+  \textbf{Applications in Economics}:
 
   \begin{itemize}
+  \tightlist
   \item
-    In prediction, you minimize the loss function.
+    Measure variables.
   \item
-    In estimation, you try to best fit the data. Because the goal of estimation is to best fit the data, you always run the risk of not predicting well.
+    Embed prediction tasks within parameter estimation or treatment effects.
+  \item
+    Control for observed confounders.
   \end{itemize}
 \end{itemize}
 
-In high dimension, you always have weak to strong collinearity. Hence, your estimation can be undesirable. And you can't pick which one variable to stay in the model, but all these troubles would not affect your prediction. In Plateau problem
+\hypertarget{parameter-estimation}{%
+\section{Parameter Estimation}\label{parameter-estimation}}
 
 \begin{itemize}
-\tightlist
 \item
-  If two functions are similar in output space, you can still do prediction, but you can't do estimation because of exploded standard errors.
+  \textbf{Definition}: Parameter estimation, represented by \(\hat{\beta}\), focuses on estimating the relationship between \(y\) and \(x\).
+\item
+  \textbf{Goal}: The aim is consistency, ensuring that models perform well on the training data:
+
+  \[
+  E[\hat{f}] = f
+  \]
+\item
+  \textbf{Challenges}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    High-dimensional spaces can lead to covariance among variables and multicollinearity.
+  \item
+    This leads to the bias-variance tradeoff \citep{hastie2009elements}.
+  \end{itemize}
 \end{itemize}
 
-\includegraphics[width=6.25in,height=3.64583in]{images/prediction_causation.PNG}
+\hypertarget{causation-versus-prediction}{%
+\section{Causation versus Prediction}\label{causation-versus-prediction}}
 
-(SICSS 2018 - Sendhil Mullainathan's presentation slide)
+Understanding the relationship between causation and prediction is crucial in statistical modeling.
 
-Selective Labels Problem (\href{https://cs.stanford.edu/~jure/pubs/contraction-kdd17.pdf}{The Selective Labels Problem: Evaluating Algorithmic Predictions in the Presence of Unobservables})
+Let \(Y\) be an outcome variable dependent on \(X\), and our aim is to manipulate \(X\) to maximize a payoff function \(\pi(X, Y)\) \citep{kleinberg2015prediction}. The decision on \(X\) hinges on:
 
-Recall Linear Regression \ref{linear-regression} OLS estimates
-
-\[
+\[ 
 \begin{aligned}
-\hat{\beta}_{OLS} &= (\mathbf{X}'\mathbf{X})^{-1}(\mathbf{X}'\mathbf{Y}) \\
-&= (\mathbf{X}'\mathbf{X})^{-1}(\mathbf{X}'(\mathbf{X \beta}+ \epsilon)) \\
-&= (\mathbf{X}'\mathbf{X})^{-1} (\mathbf{X}'\mathbf{X}) \beta + (\mathbf{X}'\mathbf{X})^{-1}(\mathbf{X}'\epsilon) \\
-\hat{\beta}_{OLS} & \to \beta + (\mathbf{X}'\mathbf{X})^{-1}(\mathbf{X}'\epsilon)
+\frac{d\pi(X, Y)}{d X} &= \frac{\partial \pi}{\partial X} (Y) + \frac{\partial \pi}{\partial Y} \frac{\partial Y}{\partial X} \\
+&= \frac{\partial \pi}{\partial X} \text{(Prediction)} + \frac{\partial \pi}{\partial Y} \text{(Causation)} 
 \end{aligned}
 \]
 
-Hence, OLS estimates will be unbiased (i.e., get rid of \((\mathbf{X}'\mathbf{X})^{-1}(\mathbf{X}'\epsilon)\)) if we have the following 2 conditions:
+Empirical work is essential for estimating the derivatives in this equation:
 
-\begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
-\tightlist
+\begin{itemize}
 \item
-  \(E(\epsilon|\mathbf{X}) = 0\) With an intercept, we can usually solve this problem
+  \(\frac{\partial Y}{\partial X}\) is required for causal inference to determine \(X\)'s effect on \(Y\),
 \item
-  \(Cov(\mathbf{X}, \epsilon) = 0\)
-\end{enumerate}
+  \(\frac{\partial \pi}{\partial X}\) is required for prediction of \(Y\).
+\end{itemize}
 
-Problem with estimation usually stems from the second condition.
-
-Tools to combat this problem can be found in causal inference \ref{causal-inference}
+\begin{figure}
+\centering
+\includegraphics[width=6.25in,height=3.64583in]{images/prediction_causation.PNG}
+\caption{(SICSS 2018 - Sendhil Mullainathan's presentation slide)}
+\end{figure}
 
 \hypertarget{moderation}{%
 \chapter{Moderation}\label{moderation}}
@@ -27475,7 +27513,7 @@ However, in reality, we can only readjust for observables, not unobservables.
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
 \protect\hyperlink{randomized-block-designs}{Blocking}
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
-{[}Matching{]}\textbf{\protect\hyperlink{matching-methods}{Matching Methods}}
+\textbf{\protect\hyperlink{matching-methods}{Matching Methods}}
 \end{minipage} \\
 \midrule\noalign{}
 \endhead
@@ -27718,6 +27756,194 @@ Say you have control variables (\(X_i\)), that is \textbf{uncorrelated with the 
 Y_i = \alpha + \rho D_i + X_i'\gamma + \eta_i
 \]
 
+\hypertarget{notes}{%
+\section{Notes}\label{notes}}
+
+For outcomes with 0s, we can't use log-like transformation, because it's sensitive to outcome unit \citep{chen2023logs}. For info on this issue, check {[}Zero-valued Outcomes{]}. We should use:
+
+\begin{itemize}
+\item
+  \textbf{Percentage changes in the Average}: by using Poisson QMLE, we can interpret the coefficients of the effect of treatment on the treated group relative to the mean of the control group.
+\item
+  \textbf{Extensive vs.~Intensive Margins}: Distinguish the treatment effect on the intensive (outcome: 10 to 11) vs.~extensive margins (outcome: 0 to 1).
+
+  \begin{itemize}
+  \tightlist
+  \item
+    To get the bounds for the intensive-margin, use \citet{lee2009training} (assuming that treatment has a monotonic effect on outcome)
+  \end{itemize}
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{123}\NormalTok{) }\CommentTok{\# For reproducibility}
+\FunctionTok{library}\NormalTok{(tidyverse)}
+
+\NormalTok{n }\OtherTok{\textless{}{-}} \DecValTok{1000} \CommentTok{\# Number of observations}
+\NormalTok{p\_treatment }\OtherTok{\textless{}{-}} \FloatTok{0.5} \CommentTok{\# Probability of being treated}
+
+\CommentTok{\# Step 1: Generate the treatment variable D}
+\NormalTok{D }\OtherTok{\textless{}{-}} \FunctionTok{rbinom}\NormalTok{(n, }\DecValTok{1}\NormalTok{, p\_treatment)}
+
+\CommentTok{\# Step 2: Generate potential outcomes}
+\CommentTok{\# Untreated potential outcome (mostly zeroes)}
+\NormalTok{Y0 }\OtherTok{\textless{}{-}} \FunctionTok{rnorm}\NormalTok{(n, }\AttributeTok{mean =} \DecValTok{0}\NormalTok{, }\AttributeTok{sd =} \DecValTok{1}\NormalTok{) }\SpecialCharTok{*}\NormalTok{ (}\FunctionTok{runif}\NormalTok{(n) }\SpecialCharTok{\textless{}} \FloatTok{0.3}\NormalTok{)}
+
+\CommentTok{\# Treated potential outcome (shifting both the probability of being positive {-} extensive margin and its magnitude {-} intensive margin)}
+\NormalTok{Y1 }\OtherTok{\textless{}{-}}\NormalTok{ Y0 }\SpecialCharTok{+} \FunctionTok{rnorm}\NormalTok{(n, }\AttributeTok{mean =} \DecValTok{2}\NormalTok{, }\AttributeTok{sd =} \DecValTok{1}\NormalTok{) }\SpecialCharTok{*}\NormalTok{ (}\FunctionTok{runif}\NormalTok{(n) }\SpecialCharTok{\textless{}} \FloatTok{0.7}\NormalTok{)}
+
+\CommentTok{\# Step 3: Combine effects based on treatment}
+\NormalTok{Y\_observed }\OtherTok{\textless{}{-}}\NormalTok{ (}\DecValTok{1} \SpecialCharTok{{-}}\NormalTok{ D) }\SpecialCharTok{*}\NormalTok{ Y0 }\SpecialCharTok{+}\NormalTok{ D }\SpecialCharTok{*}\NormalTok{ Y1}
+
+\CommentTok{\# Add explicit zeroes to model situations with no effect}
+\NormalTok{Y\_observed[Y\_observed }\SpecialCharTok{\textless{}} \DecValTok{0}\NormalTok{] }\OtherTok{\textless{}{-}} \DecValTok{0}
+
+
+\NormalTok{data }\OtherTok{\textless{}{-}}
+    \FunctionTok{data.frame}\NormalTok{(}
+        \AttributeTok{ID =} \DecValTok{1}\SpecialCharTok{:}\NormalTok{n,}
+        \AttributeTok{Treatment =}\NormalTok{ D,}
+        \AttributeTok{Outcome =}\NormalTok{ Y\_observed,}
+        \AttributeTok{X =} \FunctionTok{rnorm}\NormalTok{(n)}
+\NormalTok{    ) }\SpecialCharTok{|\textgreater{}}
+    \CommentTok{\# whether outcome is positive}
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{mutate}\NormalTok{(}\AttributeTok{positive =}\NormalTok{ Outcome }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{)}
+
+\CommentTok{\# Viewing the first few rows of the dataset}
+\FunctionTok{head}\NormalTok{(data)}
+\CommentTok{\#\textgreater{}   ID Treatment   Outcome          X positive}
+\CommentTok{\#\textgreater{} 1  1         0 0.0000000  1.4783345    FALSE}
+\CommentTok{\#\textgreater{} 2  2         1 2.2369379 {-}1.4067867     TRUE}
+\CommentTok{\#\textgreater{} 3  3         0 0.0000000 {-}1.8839721    FALSE}
+\CommentTok{\#\textgreater{} 4  4         1 3.2192276 {-}0.2773662     TRUE}
+\CommentTok{\#\textgreater{} 5  5         1 0.6649693  0.4304278     TRUE}
+\CommentTok{\#\textgreater{} 6  6         0 0.0000000 {-}0.1287867    FALSE}
+
+\FunctionTok{hist}\NormalTok{(data}\SpecialCharTok{$}\NormalTok{Outcome)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{19-experiment_files/figure-latex/unnamed-chunk-1-1} \end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Percentage changes in the Average}
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(fixest)}
+\NormalTok{res\_pois }\OtherTok{\textless{}{-}}
+    \FunctionTok{fepois}\NormalTok{(}
+        \AttributeTok{fml =}\NormalTok{ Outcome }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Treatment }\SpecialCharTok{+}\NormalTok{ X,}
+        \AttributeTok{data =}\NormalTok{ data, }
+        \AttributeTok{vcov =} \StringTok{"hetero"}
+\NormalTok{    )}
+\FunctionTok{etable}\NormalTok{(res\_pois)}
+\CommentTok{\#\textgreater{}                           res\_pois}
+\CommentTok{\#\textgreater{} Dependent Var.:            Outcome}
+\CommentTok{\#\textgreater{}                                   }
+\CommentTok{\#\textgreater{} Constant        {-}2.223*** (0.1440)}
+\CommentTok{\#\textgreater{} Treatment        2.579*** (0.1494)}
+\CommentTok{\#\textgreater{} X                  0.0235 (0.0406)}
+\CommentTok{\#\textgreater{} \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_}
+\CommentTok{\#\textgreater{} S.E. type       Heteroskedas.{-}rob.}
+\CommentTok{\#\textgreater{} Observations                 1,000}
+\CommentTok{\#\textgreater{} Squared Cor.               0.33857}
+\CommentTok{\#\textgreater{} Pseudo R2                  0.26145}
+\CommentTok{\#\textgreater{} BIC                        1,927.9}
+\CommentTok{\#\textgreater{} {-}{-}{-}}
+\CommentTok{\#\textgreater{} Signif. codes: 0 \textquotesingle{}***\textquotesingle{} 0.001 \textquotesingle{}**\textquotesingle{} 0.01 \textquotesingle{}*\textquotesingle{} 0.05 \textquotesingle{}.\textquotesingle{} 0.1 \textquotesingle{} \textquotesingle{} 1}
+\end{Highlighting}
+\end{Shaded}
+
+To calculate the proportional effect
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# proportional effect}
+\FunctionTok{exp}\NormalTok{(}\FunctionTok{coefficients}\NormalTok{(res\_pois)[}\StringTok{"Treatment"}\NormalTok{]) }\SpecialCharTok{{-}} \DecValTok{1}
+\CommentTok{\#\textgreater{} Treatment }
+\CommentTok{\#\textgreater{}  12.17757}
+
+\CommentTok{\# SE}
+\FunctionTok{exp}\NormalTok{(}\FunctionTok{coefficients}\NormalTok{(res\_pois)[}\StringTok{"Treatment"}\NormalTok{]) }\SpecialCharTok{*}
+    \FunctionTok{sqrt}\NormalTok{(res\_pois}\SpecialCharTok{$}\NormalTok{cov.scaled[}\StringTok{"Treatment"}\NormalTok{, }\StringTok{"Treatment"}\NormalTok{])}
+\CommentTok{\#\textgreater{} Treatment }
+\CommentTok{\#\textgreater{}  1.968684}
+\end{Highlighting}
+\end{Shaded}
+
+Hence, we conclude that the treatment effect is 1215\% higher for the treated group as compared to the control group.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Extensive vs.~Intensive Margins}
+\end{itemize}
+
+Here, we can estimate the intensive-margin treatment effect (i.e., the treatment effect for ``always-takers'').
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{res }\OtherTok{\textless{}{-}}\NormalTok{ causalverse}\SpecialCharTok{::}\FunctionTok{lee\_bounds}\NormalTok{(}
+    \AttributeTok{df =}\NormalTok{ data,}
+    \AttributeTok{d =} \StringTok{"Treatment"}\NormalTok{,}
+    \AttributeTok{m =} \StringTok{"positive"}\NormalTok{,}
+    \AttributeTok{y =} \StringTok{"Outcome"}\NormalTok{,}
+    \AttributeTok{numdraws =} \DecValTok{10}
+\NormalTok{) }\SpecialCharTok{|\textgreater{}} 
+\NormalTok{    causalverse}\SpecialCharTok{::}\FunctionTok{nice\_tab}\NormalTok{(}\DecValTok{2}\NormalTok{)}
+\FunctionTok{print}\NormalTok{(res)}
+\CommentTok{\#\textgreater{}          term estimate std.error}
+\CommentTok{\#\textgreater{} 1 Lower bound    {-}0.22      0.09}
+\CommentTok{\#\textgreater{} 2 Upper bound     2.77      0.14}
+\end{Highlighting}
+\end{Shaded}
+
+Since in this case, the bounds contains 0, we can't say much about the intensive margin for always-takers.
+
+If we aim to examine the sensitivity of always-takers, we should consider scenarios where the average outcome of compliers are \(100 \times c\%\) lower or higher than that of always-takers.
+
+We assume that \(E(Y(1)|Complier) = (1-c)E(Y(1)|Always-taker)\)
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\NormalTok{c\_values }\OtherTok{=} \FunctionTok{c}\NormalTok{(.}\DecValTok{1}\NormalTok{, .}\DecValTok{5}\NormalTok{, .}\DecValTok{7}\NormalTok{)}
+
+\NormalTok{combined\_res }\OtherTok{\textless{}{-}} \FunctionTok{bind\_rows}\NormalTok{(}\FunctionTok{lapply}\NormalTok{(c\_values, }\ControlFlowTok{function}\NormalTok{(c) \{}
+\NormalTok{    res }\OtherTok{\textless{}{-}}\NormalTok{ causalverse}\SpecialCharTok{::}\FunctionTok{lee\_bounds}\NormalTok{(}
+        \AttributeTok{df =}\NormalTok{ data,}
+        \AttributeTok{d =} \StringTok{"Treatment"}\NormalTok{,}
+        \AttributeTok{m =} \StringTok{"positive"}\NormalTok{,}
+        \AttributeTok{y =} \StringTok{"Outcome"}\NormalTok{,}
+        \AttributeTok{numdraws =} \DecValTok{10}\NormalTok{,}
+        \AttributeTok{c\_at\_ratio =}\NormalTok{ c}
+\NormalTok{    )}
+    
+\NormalTok{    res}\SpecialCharTok{$}\NormalTok{c\_value }\OtherTok{\textless{}{-}} \FunctionTok{as.character}\NormalTok{(c)}
+    \FunctionTok{return}\NormalTok{(res)}
+\NormalTok{\}))}
+
+\NormalTok{combined\_res }\SpecialCharTok{|\textgreater{}} 
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(c\_value, }\FunctionTok{everything}\NormalTok{()) }\SpecialCharTok{|\textgreater{}} 
+\NormalTok{    causalverse}\SpecialCharTok{::}\FunctionTok{nice\_tab}\NormalTok{()}
+\CommentTok{\#\textgreater{}   c\_value           term estimate std.error}
+\CommentTok{\#\textgreater{} 1     0.1 Point estimate     6.60      0.71}
+\CommentTok{\#\textgreater{} 2     0.5 Point estimate     2.54      0.13}
+\CommentTok{\#\textgreater{} 3     0.7 Point estimate     1.82      0.08}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{itemize}
+\item
+  If we assume \(c = 0.1\) (i.e., under treatment, compliers would have an outcome equal to 10\% of the outcome of always-takers), then the intensive-margin effect for always-takers is 6.6 more in the unit of the outcome.
+\item
+  If we assume \(c = 0.5\) (i.e., under treatment, compliers would have an outcome equal to 50\% of the outcome of always-takers), then the intensive-margin effect for always-takers is 2.54 more in the unit of the outcome.
+\end{itemize}
+
 \hypertarget{semi-random-experiment}{%
 \section{Semi-random Experiment}\label{semi-random-experiment}}
 
@@ -27776,11 +28002,11 @@ Say that we have
 \textbf{10 win}
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}@{}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2073}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1829}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2195}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2195}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1707}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 Number students
@@ -27805,11 +28031,11 @@ Total effect
 \textbf{10 lose}
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2000}}@{}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2073}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1829}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2195}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.2195}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1707}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 Number students
@@ -36857,7 +37083,7 @@ Limitation
 \item
   Tradeoff between efficiency and bias
 \item
-  Regression discontinuity is under the framework of \protect\hyperlink{instrumental-variable}{Instrumental Variable} argued by \citep{angrist1999using} and a special case of the \protect\hyperlink{matching-methods}{Matching Methods} (matching at one point) argued by \citep{heckman1999economics}.
+  Regression discontinuity is under the framework of \protect\hyperlink{instrumental-variable}{Instrumental Variable} (structural IV) argued by \citep{angrist1999using} and a special case of the \protect\hyperlink{matching-methods}{Matching Methods} (matching at one point) argued by \citep{heckman1999economics}.
 \item
   The hard part is to find a setting that can apply, but once you find one, it's easy to apply
 \item
@@ -38233,10 +38459,10 @@ Better than SC estimator because \(\tau^{sc}\) lacks unit fixed effete and time 
 \]
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1119}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2413}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2867}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3531}}@{}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.1107}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2429}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2893}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3571}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
@@ -38265,10 +38491,10 @@ Alternatively, think of our parameter of interest as:
 where \(\hat{\delta}_t = \frac{1}{N_t} \sum_{i = N_c + 1}^N \hat{\delta}_i\)
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.0346}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2154}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.4231}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3192}}@{}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.0315}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.2165}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.4291}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 6\tabcolsep) * \real{0.3228}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 Method
@@ -39371,8 +39597,8 @@ Goal:
 
 \begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-2-2} \end{center}
 
-\hypertarget{notes}{%
-\section{Notes}\label{notes}}
+\hypertarget{notes-1}{%
+\section{Notes}\label{notes-1}}
 
 \begin{itemize}
 \item
@@ -39402,6 +39628,106 @@ Goal:
 \item
   Under causal inference, \(R^2\) is not so important.
 \end{itemize}
+
+For count data, one can use the fixed-effects Poisson pseudo-maximum likelihood estimator (PPML) \citep[\citet{puhani2012treatment}]{athey2006identification} (For applied papers, see \citet{burtch2018can} in management and \citet{he2021end} in marketing). This also allows for robust standard errors under over-dispersion \citep{wooldridge1999quasi}.
+
+\begin{itemize}
+\item
+  This estimator outperforms a log OLS when data have many 0s\citep{silva2011further}, since log-OLS can produce biased estimates \citep{o2010not} under heteroskedascity \citep{silva2006log}.
+\item
+  For those thinking of negative binomial with fixed effects, there isn't an estimator right now \citep{allison20027}.
+\end{itemize}
+
+For {[}Zero-valued Outcomes{]}, we have to distinguish the treatment effect on the intensive (outcome: 10 to 11) vs.~extensive margins (outcome: 0 to 1), and we can't readily interpret the treatment coefficient of log-transformed outcome regression as percentage change \citep{chen2023logs}. Alternatively, we can either focus on
+
+\begin{itemize}
+\item
+  \textbf{Proportional treatment effects}: \(\theta_{ATT\%} = \frac{E(Y_{it}(1) | D_i = 1, Post_t = 1) - E(Y_{it}(0) |D_i = 1, Post_t = 1)}{E(Y_{it}(0) | D_i = 1 , Post_t = 1}\) (i.e., percentage change in treated group's average post-treatment outcome). Instead of relying on the parallel trends assumption in levels, we could also rely on parallel trends assumption in ratio \citep{wooldridge2023simple}.
+
+  \begin{itemize}
+  \item
+    We can use Poisson QMLE to estimate the treatment effect: \(Y_{it} = \exp(\beta_0 + D_i \times \beta_1 Post_t + \beta_2 D_i + \beta_3 Post_t + X_{it}) \epsilon_{it}\) and \(\hat{\theta}_{ATT \%} = \exp(\hat{\beta}_1-1)\).
+  \item
+    To examine the parallel trends assumption in ratio holds, we can also estimate a dynamic version of the Poisson QMLE: \(Y_{it} = \exp(\lambda_t + \beta_2 D_i + \sum_{r \neq -1} \beta_r D_i \times (RelativeTime_t = r)\), we would expect \(\exp(\hat{\beta_r}) - 1 = 0\) for \(r < 0\).
+  \item
+    Even if we see the plot of these coefficients are 0, we still should run sensitivity analysis \citep{rambachan2023more} to examine violation of this assumption (see \protect\hyperlink{prior-parallel-trends-test}{Prior Parallel Trends Test}).
+  \end{itemize}
+\item
+  \textbf{Log Effects with Calibrated Extensive-margin value}: due to problem with the mean value interpretation of the proportional treatment effects with outcomes that are heavy-tailed, we might be interested in the extensive margin effect. Then, we can explicit model how much weight we put on the intensive vs.~extensive margin \citep[p.~39]{chen2023logs}.
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{123}\NormalTok{) }\CommentTok{\# For reproducibility}
+
+\NormalTok{n }\OtherTok{\textless{}{-}} \DecValTok{500} \CommentTok{\# Number of observations per group (treated and control)}
+\CommentTok{\# Generating IDs for a panel setup}
+\NormalTok{ID }\OtherTok{\textless{}{-}} \FunctionTok{rep}\NormalTok{(}\DecValTok{1}\SpecialCharTok{:}\NormalTok{n, }\AttributeTok{times =} \DecValTok{2}\NormalTok{)}
+
+\CommentTok{\# Defining groups and periods}
+\NormalTok{Group }\OtherTok{\textless{}{-}} \FunctionTok{rep}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\StringTok{"Control"}\NormalTok{, }\StringTok{"Treated"}\NormalTok{), }\AttributeTok{each =}\NormalTok{ n)}
+\NormalTok{Time }\OtherTok{\textless{}{-}} \FunctionTok{rep}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\StringTok{"Before"}\NormalTok{, }\StringTok{"After"}\NormalTok{), }\AttributeTok{times =}\NormalTok{ n)}
+\NormalTok{Treatment }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(Group }\SpecialCharTok{==} \StringTok{"Treated"}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{)}
+\NormalTok{Post }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(Time }\SpecialCharTok{==} \StringTok{"After"}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{)}
+
+\CommentTok{\# Step 1: Generate baseline outcomes with a zero{-}inflated model}
+\NormalTok{lambda }\OtherTok{\textless{}{-}} \DecValTok{20} \CommentTok{\# Average rate of occurrence}
+\NormalTok{zero\_inflation }\OtherTok{\textless{}{-}} \FloatTok{0.5} \CommentTok{\# Proportion of zeros}
+\NormalTok{Y\_baseline }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(}\FunctionTok{runif}\NormalTok{(}\DecValTok{2}\SpecialCharTok{*}\NormalTok{n) }\SpecialCharTok{\textless{}}\NormalTok{ zero\_inflation, }\DecValTok{0}\NormalTok{, }\FunctionTok{rpois}\NormalTok{(}\DecValTok{2}\SpecialCharTok{*}\NormalTok{n, lambda))}
+
+\CommentTok{\# Step 2: Apply DiD treatment effect on the treated group in the post{-}treatment period}
+\NormalTok{Treatment\_Effect }\OtherTok{\textless{}{-}}\NormalTok{ Treatment }\SpecialCharTok{*}\NormalTok{ Post}
+\NormalTok{Y\_treatment }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(Treatment\_Effect }\SpecialCharTok{==} \DecValTok{1}\NormalTok{, }\FunctionTok{rpois}\NormalTok{(n, }\AttributeTok{lambda =} \DecValTok{2}\NormalTok{), }\DecValTok{0}\NormalTok{)}
+
+\CommentTok{\# Incorporating a simple time trend, ensuring outcomes are non{-}negative}
+\NormalTok{Time\_Trend }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(Time }\SpecialCharTok{==} \StringTok{"After"}\NormalTok{, }\FunctionTok{rpois}\NormalTok{(}\DecValTok{2}\SpecialCharTok{*}\NormalTok{n, }\AttributeTok{lambda =} \DecValTok{1}\NormalTok{), }\DecValTok{0}\NormalTok{)}
+
+\CommentTok{\# Step 3: Combine to get the observed outcomes}
+\NormalTok{Y\_observed }\OtherTok{\textless{}{-}}\NormalTok{ Y\_baseline }\SpecialCharTok{+}\NormalTok{ Y\_treatment }\SpecialCharTok{+}\NormalTok{ Time\_Trend}
+
+\CommentTok{\# Ensure no negative outcomes after the time trend}
+\NormalTok{Y\_observed }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(Y\_observed }\SpecialCharTok{\textless{}} \DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{, Y\_observed)}
+
+\CommentTok{\# Create the final dataset}
+\NormalTok{data }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{ID =}\NormalTok{ ID, }\AttributeTok{Treatment =}\NormalTok{ Treatment, }\AttributeTok{Period =}\NormalTok{ Post, }\AttributeTok{Outcome =}\NormalTok{ Y\_observed)}
+
+\CommentTok{\# Viewing the first few rows of the dataset}
+\FunctionTok{head}\NormalTok{(data)}
+\CommentTok{\#\textgreater{}   ID Treatment Period Outcome}
+\CommentTok{\#\textgreater{} 1  1         0      0       0}
+\CommentTok{\#\textgreater{} 2  2         0      1      25}
+\CommentTok{\#\textgreater{} 3  3         0      0       0}
+\CommentTok{\#\textgreater{} 4  4         0      1      20}
+\CommentTok{\#\textgreater{} 5  5         0      0      19}
+\CommentTok{\#\textgreater{} 6  6         0      1       0}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(fixest)}
+\NormalTok{res\_pois }\OtherTok{\textless{}{-}}
+    \FunctionTok{fepois}\NormalTok{(Outcome }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Treatment }\SpecialCharTok{+}\NormalTok{ Period }\SpecialCharTok{+}\NormalTok{ Treatment }\SpecialCharTok{*}\NormalTok{ Period,}
+           \AttributeTok{data =}\NormalTok{ data,}
+           \AttributeTok{vcov =} \StringTok{"hetero"}\NormalTok{)}
+\FunctionTok{etable}\NormalTok{(res\_pois)}
+\CommentTok{\#\textgreater{}                             res\_pois}
+\CommentTok{\#\textgreater{} Dependent Var.:              Outcome}
+\CommentTok{\#\textgreater{}                                     }
+\CommentTok{\#\textgreater{} Constant           2.249*** (0.0717)}
+\CommentTok{\#\textgreater{} Treatment           0.1743. (0.0932)}
+\CommentTok{\#\textgreater{} Period               0.0662 (0.0960)}
+\CommentTok{\#\textgreater{} Treatment x Period   0.0314 (0.1249)}
+\CommentTok{\#\textgreater{} \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_}
+\CommentTok{\#\textgreater{} S.E. type          Heteroskeda.{-}rob.}
+\CommentTok{\#\textgreater{} Observations                   1,000}
+\CommentTok{\#\textgreater{} Squared Cor.                 0.01148}
+\CommentTok{\#\textgreater{} Pseudo R2                    0.00746}
+\CommentTok{\#\textgreater{} BIC                         15,636.8}
+\CommentTok{\#\textgreater{} {-}{-}{-}}
+\CommentTok{\#\textgreater{} Signif. codes: 0 \textquotesingle{}***\textquotesingle{} 0.001 \textquotesingle{}**\textquotesingle{} 0.01 \textquotesingle{}*\textquotesingle{} 0.05 \textquotesingle{}.\textquotesingle{} 0.1 \textquotesingle{} \textquotesingle{} 1}
+\end{Highlighting}
+\end{Shaded}
 
 \hypertarget{standard-errors-2}{%
 \section{Standard Errors}\label{standard-errors-2}}
@@ -40353,7 +40679,7 @@ Notes:
   For design where a treatment is applied and units are exposed to this treatment at all time afterward, see \citep{athey2022design}
 \end{itemize}
 
-Basic design \citep{stevenson2006bargaining}
+For example, basic design \citep{stevenson2006bargaining}
 
 \[
 \begin{aligned}
@@ -40373,6 +40699,54 @@ where
   To avoid collinearity, the period right before treatment is usually chosen to drop.
 \end{itemize}
 
+The more general form of TWFE \citep{sun2021estimating}:
+
+First, define the relative period bin indicator as
+
+\[
+D_{it}^l = \mathbf{1}(t - E_i = l)
+\]
+
+where it's an indicator function of unit \(i\) being \(l\) periods from its first treatment at time \(t\)
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Static} specificaiton
+\end{enumerate}
+
+\[
+Y_{it} = \alpha_i + \lambda_t + \mu_g \sum_{l \ge0} D_{it}^l + \epsilon_{it}
+\]
+
+where
+
+\begin{itemize}
+\item
+  \(\alpha_i\) is the the unit FE
+\item
+  \(\lambda_t\) is the time FE
+\item
+  \(\mu_g\) is the coefficient of interest \(g = [0,T)\)
+\item
+  we exclude all periods before first adoption.
+\end{itemize}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  \textbf{Dynamic} specification
+\end{enumerate}
+
+\[
+Y_{it} = \alpha_i + \lambda_t + \sum_{\substack{l = -K \\ l \neq -1}}^{L} \mu_l D_{it}^l + \epsilon_{it}
+\]
+
+where we have to exclude some relative peridos to avoid multicollinearity problem (e.g., either period right before treatment, or the treatment period).
+
 In this setting, we try to show that the treatment and control groups are not statistically different (i.e., the coefficient estimates before treatment are not different from 0) to show pre-treatment parallel trends.
 
 However, this two-way fixed effects design has been criticized by \citet{sun2021estimating}; \citet{callaway2021difference}; \citet{goodman2021difference}. When researchers include leads and lags of the treatment to see the long-term effects of the treatment, these leads and lags can be biased by effects from other periods, and pre-trends can falsely arise due to treatment effects heterogeneity.
@@ -40387,7 +40761,8 @@ Robustness Check
   The \textbf{triple-difference strategy} involves examining the interaction between the \textbf{treatment variable} and \textbf{the probability of being affected by the program}, and the group-level participation rate. The identification assumption is that there are no differential trends between high and low participation groups in early versus late implementing countries.
 \end{itemize}
 
-\textbf{Assumptions}
+\hypertarget{assumptions-2}{%
+\subsection{Assumptions}\label{assumptions-2}}
 
 \begin{itemize}
 \item
@@ -40436,7 +40811,7 @@ Robustness Check
   \end{itemize}
 \end{itemize}
 
-Remedies for staggered DiD:
+Remedies for staggered DiD \citep{baker2022much}:
 
 \begin{itemize}
 \item
@@ -40456,10 +40831,10 @@ Remedies for staggered DiD:
   \item
     \citep{de2020two}
   \item
-    \citep{borusyak2017revisiting}
+    \citep{borusyak2021revisiting}
   \end{itemize}
 \item
-  Stacked Regression (biased but simple):
+  \protect\hyperlink{stacked-did}{Stacked DID} (biased but simple):
 
   \begin{itemize}
   \item
@@ -40716,7 +41091,7 @@ and \(\omega_d\) be the event date of the d-th sub-experiment (e.g., \(\omega_1\
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-9-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-11-1} \end{center}
 
 \textbf{Stack Data}
 
@@ -40797,8 +41172,8 @@ Code from \texttt{bacondecomp} vignette
 \FunctionTok{library}\NormalTok{(bacondecomp)}
 \FunctionTok{library}\NormalTok{(tidyverse)}
 \FunctionTok{data}\NormalTok{(}\StringTok{"castle"}\NormalTok{)}
-\NormalTok{castle }\OtherTok{\textless{}{-}}\NormalTok{ castle }\SpecialCharTok{\%\textgreater{}\%} 
-    \FunctionTok{select}\NormalTok{(l\_homicide, post, state, year)}
+\NormalTok{castle }\OtherTok{\textless{}{-}}\NormalTok{ bacondecomp}\SpecialCharTok{::}\NormalTok{castle }\SpecialCharTok{\%\textgreater{}\%} 
+\NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{select}\NormalTok{(}\StringTok{"l\_homicide"}\NormalTok{, }\StringTok{"post"}\NormalTok{, }\StringTok{"state"}\NormalTok{, }\StringTok{"year"}\NormalTok{)}
 \FunctionTok{head}\NormalTok{(castle)}
 \CommentTok{\#\textgreater{}   l\_homicide post   state year}
 \CommentTok{\#\textgreater{} 1   2.027356    0 Alabama 2000}
@@ -40831,7 +41206,7 @@ Two-way Fixed effect estimate
 \begin{Shaded}
 \begin{Highlighting}[]
 \FunctionTok{library}\NormalTok{(broom)}
-\NormalTok{fit\_tw }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(l\_homicide }\SpecialCharTok{\textasciitilde{}}\NormalTok{ post }\SpecialCharTok{+} \FunctionTok{factor}\NormalTok{(state) }\SpecialCharTok{+} \FunctionTok{factor}\NormalTok{(year), }
+\NormalTok{fit\_tw }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(l\_homicide }\SpecialCharTok{\textasciitilde{}}\NormalTok{ post }\SpecialCharTok{+} \FunctionTok{factor}\NormalTok{(state) }\SpecialCharTok{+} \FunctionTok{factor}\NormalTok{(year),}
              \AttributeTok{data =}\NormalTok{ bacondecomp}\SpecialCharTok{::}\NormalTok{castle)}
 \FunctionTok{head}\NormalTok{(}\FunctionTok{tidy}\NormalTok{(fit\_tw))}
 \CommentTok{\#\textgreater{} \# A tibble: 6 x 5}
@@ -40865,7 +41240,7 @@ Hence, naive TWFE fixed effect equals the weighted average of the Bacon decompos
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-12-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-14-1} \end{center}
 
 With time-varying controls that can identify variation within-treatment timing group, the''early vs.~late'' and ``late vs.~early'' estimates collapse to just one estimate (i.e., both treated).
 
@@ -41036,7 +41411,7 @@ The least squares estimate of \(\beta\) leverages the covariance in outcome and 
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-14-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-16-1} \end{center}
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -41403,7 +41778,7 @@ Basic functions:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-15-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-17-1} \end{center}
 
 Control units and the treated unit have identical treatment histories over the lag window (1988-1991)
 
@@ -41424,7 +41799,7 @@ Control units and the treated unit have identical treatment histories over the l
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-16-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-18-1} \end{center}
 
 This set is more limited than the first one, but we can still see that we have exact past histories.
 
@@ -41616,7 +41991,7 @@ This set is more limited than the first one, but we can still see that we have e
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-19-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-21-1} \end{center}
 
 \textbf{Comparing Methods of Refinement}
 
@@ -41835,7 +42210,7 @@ This set is more limited than the first one, but we can still see that we have e
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-21-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-23-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -41853,7 +42228,7 @@ This set is more limited than the first one, but we can still see that we have e
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-21-2} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-23-2} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -41868,7 +42243,7 @@ This set is more limited than the first one, but we can still see that we have e
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-21-3} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-23-3} \end{center}
 
 \textbf{\texttt{PanelEstimate}}
 
@@ -41917,7 +42292,7 @@ This set is more limited than the first one, but we can still see that we have e
 \CommentTok{\# standard errors}
 \NormalTok{PE.results[[}\StringTok{"standard.error"}\NormalTok{]]}
 \CommentTok{\#\textgreater{}       t+0       t+1       t+2       t+3       t+4 }
-\CommentTok{\#\textgreater{} 0.6512004 1.0719451 1.4529810 1.8020579 2.2214071}
+\CommentTok{\#\textgreater{} 0.6399349 1.0304938 1.3825265 1.7625951 2.1672629}
 
 
 \CommentTok{\# use conditional method}
@@ -41963,7 +42338,7 @@ This set is more limited than the first one, but we can still see that we have e
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-22-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-24-1} \end{center}
 
 \textbf{Moderating Variables}
 
@@ -42000,7 +42375,7 @@ This set is more limited than the first one, but we can still see that we have e
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-23-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-25-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -42009,7 +42384,7 @@ This set is more limited than the first one, but we can still see that we have e
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-23-2} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-25-2} \end{center}
 
 To write up for journal submission, you can follow the following report:
 
@@ -42760,7 +43135,7 @@ To export
 \begin{itemize}
 \tightlist
 \item
-  Also known as \textbf{imputation approach}
+  Also known as \textbf{imputation approach} \citep{liu2022practical}
 \item
   This class of estimator consider observation treatment as missing data. Models are built using data from the control units to impute conterfactuals for the treated observations.
 \item
@@ -42789,7 +43164,7 @@ To export
       Based on the \protect\hyperlink{two-way-fixed-effects}{Two-way Fixed-effects}, where assumes linear additive functional form of unobservables based on unit and time FEs. But FEct fixes the improper weighting of TWFE by comparing within each matched pair (where each pair is the treated observation and its predicted counterfactual that is the weighted sum of all untreated observations).
     \end{itemize}
   \item
-    Interactive Fixed Effects conterfactual estimator (IFEct) {[}\citet{gobillon2016regional}{]}\citep{xu2017generalized}:
+    Interactive Fixed Effects conterfactual estimator (IFEct) \citep[\citet{xu2017generalized}]{gobillon2016regional}:
 
     \begin{itemize}
     \tightlist
@@ -42799,7 +43174,7 @@ To export
       Generalized Synthetic Controls are a subset of IFEct when treatments don't revert.
     \end{itemize}
   \item
-    Matrix completion (MC) \citep{athey2021matrix}:
+    \protect\hyperlink{matrix-completion}{Matrix completion} (MC) \citep{athey2021matrix}:
 
     \begin{itemize}
     \tightlist
@@ -42876,9 +43251,7 @@ Other imputation estimators include
 
 \begin{itemize}
 \item
-  \citet{gardner2022two}
-\item
-  \citet{borusyak2021revisiting}
+  {[}@gardner2022two and @borusyak2021revisiting{]}
 \item
   \citet{RePEc:arx:papers:2301.11358}
 \end{itemize}
@@ -42975,6 +43348,227 @@ Even if we have carryover effects, in most cases of the staggered adoption setti
 
 We have evidence of carryover effects.
 
+\hypertarget{matrix-completion-1}{%
+\subsubsection{Matrix Completion}\label{matrix-completion-1}}
+
+To estimate average causal effects in panel data with units exposed to treatment intermittently, two literatures are pivotal:
+
+\begin{itemize}
+\item
+  \textbf{Unconfoundedness} \citep{imbens2015causal}: Imputes missing potential control outcomes for treated units using observed outcomes from similar control units in previous periods.
+\item
+  \textbf{Synthetic Control} \citep{abadie2010synthetic}: Imputes missing control outcomes for treated units using weighted averages from control units, matching lagged outcomes between treated and control units.
+\end{itemize}
+
+Both exploit missing potential outcomes under different assumptions:
+
+\begin{itemize}
+\item
+  Unconfoundedness assumes time patterns are stable across units.
+\item
+  Synthetic control assumes unit patterns are stable over time.
+\end{itemize}
+
+Once regularization is applied, both approaches are applicable in similar settings \citep{athey2021matrix}.
+
+\textbf{Matrix Completion} method, nesting both, is based on matrix factorization, focusing on imputing missing matrix elements assuming:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Complete matrix = low-rank matrix + noise.
+\item
+  Missingness is completely at random.
+\end{enumerate}
+
+It's distinguished by not imposing factorization restrictions but utilizing regularization to define the estimator, particularly effective with the nuclear norm as a regularizer for complex missing patterns \citep{athey2021matrix}.
+
+Contributions of \citet{athey2021matrix} matrix completion include:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Recognizing structured missing patterns allowing time correlation, enabling staggered adoption.
+\item
+  Modifying estimators for unregularized unit and time fixed effects.
+\item
+  Performing well across various \(T\) and \(N\) sizes, unlike unconfoundedness and synthetic control, which falter when \(T >> N\) or \(N >> T\), respectively.
+\end{enumerate}
+
+Identifying Assumptions:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  SUTVA: Potential outcomes indexed only by the unit's contemporaneous treatment.
+\item
+  No dynamic effects (it's okay under staggered adoption, it gives a different interpretation of estimand).
+\end{enumerate}
+
+Setup:
+
+\begin{itemize}
+\tightlist
+\item
+  \(Y_{it}(0)\) and \(Y_{it}(1)\) represent potential outcomes of \(Y_{it}\).
+\item
+  \(W_{it}\) is a binary treatment indicator.
+\end{itemize}
+
+Aim to estimate the average effect for the treated:
+
+\[
+\tau = \frac{\sum_{(i,t): W_{it} = 1}[Y_{it}(1) - Y_{it}(0)]}{\sum_{i,t}W_{it}}
+\]
+
+We observe all relevant values for \(Y_{it}(1)\)
+
+We want to impute missing entries in the \(Y(0)\) matrix for treated units with \(W_{it} = 1\).
+
+Define \(\mathcal{M}\) as the set of pairs of indices \((i,t)\), where \(i \in N\) and \(t \in T\), corresponding to missing entries with \(W_{it} = 1\); \(\mathcal{O}\) as the set of pairs of indices corresponding to observed entries in \(Y(0)\) with \(W_{it} = 0\).
+
+Data is conceptualized as two \(N \times T\) matrices, one incomplete and one complete:
+
+\[
+Y = \begin{pmatrix}
+Y_{11} & Y_{12} & ? & \cdots & Y_{1T} \\
+? & ? & Y_{23} & \cdots & ? \\
+Y_{31} & ? & Y_{33} & \cdots & ? \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+Y_{N1} & ? & Y_{N3} & \cdots & ?
+\end{pmatrix},
+\]
+
+and
+
+\[
+W = \begin{pmatrix}
+0 & 0 & 1 & \cdots & 0 \\
+1 & 1 & 0 & \cdots & 1 \\
+0 & 1 & 0 & \cdots & 1 \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+0 & 1 & 0 & \cdots & 1
+\end{pmatrix},
+\]
+
+where
+
+\[
+W_{it} =
+\begin{cases}
+1 & \text{if } (i,t) \in \mathcal{M}, \\
+0 & \text{if } (i,t) \in \mathcal{O},
+\end{cases}
+\]
+
+is an indicator for the event that the corresponding component of \(Y\), that is \(Y_{it}\), is missing.
+
+Patterns of missing data in \(\mathbf{Y}\):
+
+\begin{itemize}
+\item
+  Block (treatment) structure with 2 special cases
+
+  \begin{itemize}
+  \item
+    Single-treated-period block structure \citep{imbens2015causal}
+  \item
+    Single-treated-unit block structure \citep{abadie2010synthetic}
+  \end{itemize}
+\item
+  Staggered Adoption
+\end{itemize}
+
+Shape of matrix \(\mathbf{Y}\):
+
+\begin{itemize}
+\item
+  Thin (\(N >> T\))
+\item
+  Fat (\(T >> N\))
+\item
+  Square (\(N \approx T\))
+\end{itemize}
+
+Combinations of patterns of missingness and shape create different literatures:
+
+\begin{itemize}
+\item
+  Horizontal Regression = Thin matrix + single-treated-period block (focusing on cross-section correlation patterns)
+\item
+  Vertical Regression = Fat matrix + single-treated-unit block (focusing on time-series correlation patterns)
+\item
+  TWFE = Square matrix
+\end{itemize}
+
+To combine, we can exploit both stable patterns over time, and across units (e.g., TWFE, interactive FEs or matrix completion).
+
+For the same factor model
+
+\[
+\mathbf{Y = UV}^T + \mathbf{\epsilon}
+\]
+
+where \(\mathbf{U}\) is \(N \times R\) and \(\mathbf{V}\) is \(T\times R\)
+
+The interactive FE literature focuses on a fixed number of factors \(R\) in \(\mathbf{U, V}\), while matrix completion focuses on impute \(\mathbf{Y}\) using some forms regularization (e.g., nuclear norm).
+
+\begin{itemize}
+\tightlist
+\item
+  We can also estimate the number of factors \(R\) \citep[\citet{moon2015linear}]{bai2002determining}
+\end{itemize}
+
+To use the nuclear norm minimization estimator, we must add a penalty term to regularize the objective function. However, before doing so, we need to explicitly estimate the time (\(\lambda_t\)) and unit (\(\mu_i\)) fixed effects implicitly embedded in the missing data matrix to reduce the bias of the regularization term.
+
+\href{https://bookdown.org/stanfordgsbsilab/ml-ci-tutorial/matrix-completion-methods.html}{Specifically},
+
+\[
+Y_{it}  =L_{it} + \sum_{p = 1}^P \sum_{q= 1}^Q X_{ip} H_{pq}Z_{qt} + \mu_i + \lambda_t + V_{it} \beta + \epsilon_{it}
+\]
+
+where
+
+\begin{itemize}
+\item
+  \(X_{ip}\) is a matrix of \(p\) variables for unit \(i\)
+\item
+  \(Z_{qt}\) is a matrix of \(q\) variables for time \(t\)
+\item
+  \(V_{it}\) is a matrix of time-varying variables.
+\end{itemize}
+
+Lasso-type \(l_1\) norm (\(||H|| = \sum_{p = 1}^p \sum_{q = 1}^Q |H_{pq}|\)) is used to shrink \(H \to 0\)
+
+There are several options to regularize \(L\):
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Frobenius (i.e., Ridge): not informative since it imputes missing values as 0.
+\item
+  Nuclear Norm (i.e., Lasso): computationally feasible (using SOFT-IMPUTE algorithm \citep{Mazumder2010SpectralRA}).
+\item
+  Rank (i.e., Subset selection): not computationally feasible
+\end{enumerate}
+
+This methods allows to
+
+\begin{itemize}
+\item
+  use more covariates
+\item
+  leverage data from treated units (can be used when treatment effect is constant and pattern of missing is not complex).
+\item
+  have autocorrelated errors
+\item
+  have weighted loss function (i.e., take into account the probability of outcomes for a unit being missing)
+\end{itemize}
+
 \hypertarget{gardner2022two-and-borusyak2021revisiting}{%
 \subsection{\texorpdfstring{\citet{gardner2022two} and \citet{borusyak2021revisiting}}{@gardner2022two and @borusyak2021revisiting}}\label{gardner2022two-and-borusyak2021revisiting}}
 
@@ -42996,10 +43590,10 @@ We have evidence of carryover effects.
 
 
 \NormalTok{est }\OtherTok{\textless{}{-}} \FunctionTok{did2s}\NormalTok{(}
-    \AttributeTok{data =}\NormalTok{ base\_stagg }\SpecialCharTok{|\textgreater{}} \FunctionTok{mutate}\NormalTok{(}\AttributeTok{treat =} \FunctionTok{if\_else}\NormalTok{(time\_to\_treatment }\SpecialCharTok{\textgreater{}=} \DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{)), }
+    \AttributeTok{data =}\NormalTok{ base\_stagg }\SpecialCharTok{|\textgreater{}} \FunctionTok{mutate}\NormalTok{(}\AttributeTok{treat =} \FunctionTok{if\_else}\NormalTok{(time\_to\_treatment }\SpecialCharTok{\textgreater{}=} \DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{)),}
     \AttributeTok{yname =} \StringTok{"y"}\NormalTok{,}
-    \AttributeTok{first\_stage =} \SpecialCharTok{\textasciitilde{}}\NormalTok{x1 }\SpecialCharTok{|}\NormalTok{ id }\SpecialCharTok{+}\NormalTok{ year, }
-    \AttributeTok{second\_stage =} \SpecialCharTok{\textasciitilde{}}\FunctionTok{i}\NormalTok{(time\_to\_treatment, }\AttributeTok{ref =} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, }\SpecialCharTok{{-}}\DecValTok{1000}\NormalTok{)),}
+    \AttributeTok{first\_stage =} \SpecialCharTok{\textasciitilde{}}\NormalTok{ x1 }\SpecialCharTok{|}\NormalTok{ id }\SpecialCharTok{+}\NormalTok{ year,}
+    \AttributeTok{second\_stage =} \SpecialCharTok{\textasciitilde{}} \FunctionTok{i}\NormalTok{(time\_to\_treatment, }\AttributeTok{ref =} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{,}\SpecialCharTok{{-}}\DecValTok{1000}\NormalTok{)),}
     \AttributeTok{treatment =} \StringTok{"treat"}\NormalTok{ ,}
     \AttributeTok{cluster\_var =} \StringTok{"id"}
 \NormalTok{)}
@@ -43042,7 +43636,7 @@ We have evidence of carryover effects.
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-38-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-40-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -43051,17 +43645,18 @@ We have evidence of carryover effects.
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-38-2} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-40-2} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{mult\_est }\OtherTok{\textless{}{-}}\NormalTok{ did2s}\SpecialCharTok{::}\FunctionTok{event\_study}\NormalTok{(}
-  \AttributeTok{data =}\NormalTok{ base\_stagg }\SpecialCharTok{|\textgreater{}} \FunctionTok{mutate}\NormalTok{(}\AttributeTok{year\_treated =} \FunctionTok{if\_else}\NormalTok{(year\_treated }\SpecialCharTok{==} \DecValTok{10000}\NormalTok{, }\DecValTok{0}\NormalTok{, year\_treated)),}
-  \AttributeTok{gname =} \StringTok{"year\_treated"}\NormalTok{,}
-  \AttributeTok{idname =} \StringTok{"id"}\NormalTok{,}
-  \AttributeTok{tname =} \StringTok{"year"}\NormalTok{,}
-  \AttributeTok{yname =} \StringTok{"y"}\NormalTok{,}
-  \AttributeTok{estimator =} \StringTok{"all"}
+    \AttributeTok{data =}\NormalTok{ fixest}\SpecialCharTok{::}\NormalTok{base\_stagg }\SpecialCharTok{|\textgreater{}}
+\NormalTok{        dplyr}\SpecialCharTok{::}\FunctionTok{mutate}\NormalTok{(}\AttributeTok{year\_treated =}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{if\_else}\NormalTok{(year\_treated }\SpecialCharTok{==} \DecValTok{10000}\NormalTok{, }\DecValTok{0}\NormalTok{, year\_treated)),}
+    \AttributeTok{gname =} \StringTok{"year\_treated"}\NormalTok{,}
+    \AttributeTok{idname =} \StringTok{"id"}\NormalTok{,}
+    \AttributeTok{tname =} \StringTok{"year"}\NormalTok{,}
+    \AttributeTok{yname =} \StringTok{"y"}\NormalTok{,}
+    \AttributeTok{estimator =} \StringTok{"all"}
 \NormalTok{)}
 \CommentTok{\#\textgreater{} Error in purrr::map(., function(y) \{ : i In index: 1.}
 \CommentTok{\#\textgreater{} i With name: y.}
@@ -43071,10 +43666,30 @@ We have evidence of carryover effects.
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-39-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-41-1} \end{center}
 
-\hypertarget{chaisemartin-dhaultfoeuille}{%
-\subsection{Chaisemartin-d'Haultfoeuille}\label{chaisemartin-dhaultfoeuille}}
+\citet{borusyak2021revisiting} \texttt{didimputation}
+
+This version is currently not working
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(didimputation)}
+\FunctionTok{library}\NormalTok{(fixest)}
+\FunctionTok{data}\NormalTok{(}\StringTok{"base\_stagg"}\NormalTok{)}
+
+\FunctionTok{did\_imputation}\NormalTok{(}
+    \AttributeTok{data =}\NormalTok{ base\_stagg,}
+    \AttributeTok{yname =} \StringTok{"y"}\NormalTok{,}
+    \AttributeTok{gname =} \StringTok{"year\_treated"}\NormalTok{,}
+    \AttributeTok{tname =} \StringTok{"year"}\NormalTok{,}
+    \AttributeTok{idname =} \StringTok{"id"}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{de2020two}{%
+\subsection{\texorpdfstring{\citet{de2020two}}{@de2020two}}\label{de2020two}}
 
 use \texttt{twowayfeweights} from \href{https://github.com/shuo-zhang-ucsb/twowayfeweights}{GitHub} \citep{de2020two}
 
@@ -43097,27 +43712,89 @@ use \texttt{twowayfeweights} from \href{https://github.com/shuo-zhang-ucsb/twowa
   \end{itemize}
 \end{itemize}
 
-\hypertarget{didimputation}{%
-\subsection{didimputation}\label{didimputation}}
-
-use \texttt{didimputation} from \href{https://github.com/kylebutts/didimputation}{GitHub}
+There still isn't a good package for this estimator.
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{\# devtools::install\_github("kylebutts/didimputation")}
-\FunctionTok{library}\NormalTok{(didimputation)}
+\CommentTok{\# remotes::install\_github("shuo{-}zhang{-}ucsb/did\_multiplegt") }
+\FunctionTok{library}\NormalTok{(DIDmultiplegt)}
 \FunctionTok{library}\NormalTok{(fixest)}
+\FunctionTok{library}\NormalTok{(tidyverse)}
+
 \FunctionTok{data}\NormalTok{(}\StringTok{"base\_stagg"}\NormalTok{)}
 
-\CommentTok{\# did\_imputation(}
-\CommentTok{\#     data = base\_stagg,}
-\CommentTok{\#     yname = "y",}
-\CommentTok{\#     gname = "year\_treated",}
-\CommentTok{\#     tname = "year",}
-\CommentTok{\#     idname = "id",}
-\CommentTok{\#     horizon = T, }
-\CommentTok{\#     pretrends = {-}9:{-}1}
-\CommentTok{\# )}
+\NormalTok{res }\OtherTok{\textless{}{-}}
+    \FunctionTok{did\_multiplegt}\NormalTok{(}
+        \AttributeTok{df =}\NormalTok{ base\_stagg }\SpecialCharTok{|\textgreater{}}
+\NormalTok{            dplyr}\SpecialCharTok{::}\FunctionTok{mutate}\NormalTok{(}\AttributeTok{treatment =}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{if\_else}\NormalTok{(time\_to\_treatment }\SpecialCharTok{\textless{}} \DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{)),}
+        \AttributeTok{Y        =} \StringTok{"y"}\NormalTok{,}
+        \AttributeTok{G        =} \StringTok{"year\_treated"}\NormalTok{,}
+        \AttributeTok{T        =} \StringTok{"year"}\NormalTok{,}
+        \AttributeTok{D        =} \StringTok{"treatment"}\NormalTok{,}
+        \AttributeTok{controls =} \StringTok{"x1"}\NormalTok{,}
+        \CommentTok{\# brep     = 20, \# getting SE will take forever}
+        \AttributeTok{placebo  =} \DecValTok{5}\NormalTok{,}
+        \AttributeTok{dynamic  =} \DecValTok{5}\NormalTok{, }
+        \AttributeTok{average\_effect =} \StringTok{"simple"}
+\NormalTok{    )}
+
+\FunctionTok{head}\NormalTok{(res)}
+\CommentTok{\#\textgreater{} $effect}
+\CommentTok{\#\textgreater{} treatment }
+\CommentTok{\#\textgreater{} {-}5.214207 }
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $N\_effect}
+\CommentTok{\#\textgreater{} [1] 675}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $N\_switchers\_effect}
+\CommentTok{\#\textgreater{} [1] 45}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $dynamic\_1}
+\CommentTok{\#\textgreater{} [1] {-}3.63556}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $N\_dynamic\_1}
+\CommentTok{\#\textgreater{} [1] 580}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $N\_switchers\_effect\_1}
+\CommentTok{\#\textgreater{} [1] 40}
+\end{Highlighting}
+\end{Shaded}
+
+I don't recommend the \texttt{TwoWayFEWeights} since it only gives the aggregated average treatment effect over all post-treatment periods, but not for each period.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(TwoWayFEWeights)}
+
+\NormalTok{res }\OtherTok{\textless{}{-}} \FunctionTok{twowayfeweights}\NormalTok{(}
+    \AttributeTok{data =}\NormalTok{ base\_stagg }\SpecialCharTok{|\textgreater{}}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{mutate}\NormalTok{(}\AttributeTok{treatment =}\NormalTok{ dplyr}\SpecialCharTok{::}\FunctionTok{if\_else}\NormalTok{(time\_to\_treatment }\SpecialCharTok{\textless{}} \DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{)),}
+    \AttributeTok{Y =} \StringTok{"y"}\NormalTok{,}
+    \AttributeTok{G =} \StringTok{"year\_treated"}\NormalTok{,}
+    \AttributeTok{T =} \StringTok{"year"}\NormalTok{,}
+    \AttributeTok{D =} \StringTok{"treatment"}\NormalTok{, }
+    \AttributeTok{summary\_measures =}\NormalTok{ T}
+\NormalTok{)}
+
+\FunctionTok{print}\NormalTok{(res)}
+\CommentTok{\#\textgreater{} Under the common trends assumption, beta estimates a weighted sum of 45 ATTs.}
+\CommentTok{\#\textgreater{} 41 ATTs receive a positive weight, and 4 receive a negative weight.}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-} }
+\CommentTok{\#\textgreater{} Treat. var: treatment    ATTs    Σ weights }
+\CommentTok{\#\textgreater{} {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-} }
+\CommentTok{\#\textgreater{} Positive weights           41       1.0238 }
+\CommentTok{\#\textgreater{} Negative weights            4      {-}0.0238 }
+\CommentTok{\#\textgreater{} {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-} }
+\CommentTok{\#\textgreater{} Total                      45            1 }
+\CommentTok{\#\textgreater{} {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} Summary Measures:}
+\CommentTok{\#\textgreater{}   TWFE Coefficient (β\_fe): {-}3.4676}
+\CommentTok{\#\textgreater{}   min σ(Δ) compatible with β\_fe and Δ\_TR = 0: 4.8357}
+\CommentTok{\#\textgreater{}   min σ(Δ) compatible with β\_fe and Δ\_TR of a different sign: 36.1549}
+\CommentTok{\#\textgreater{}   Reference: Corollary 1, de Chaisemartin, C and D\textquotesingle{}Haultfoeuille, X (2020a)}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} The development of this package was funded by the European Union (ERC, REALLYCREDIBLE,GA N. 101043899).}
 \end{Highlighting}
 \end{Shaded}
 
@@ -43207,7 +43884,7 @@ use \texttt{didimputation} from \href{https://github.com/kylebutts/didimputation
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-41-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-45-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -43265,6 +43942,14 @@ Fisher's Randomization Test (i.e., permutation test)
 
 This paper utilizes the Cohort Average Treatment Effects on the Treated (CATT), which measures the cohort-specific average difference in outcomes relative to those never treated, offering a more detailed analysis than \citet{goodman2021difference}. In scenarios lacking a never-treated group, this method designates the last cohort to be treated as the control group.
 
+Parameter of interest is the cohort-specific ATT \(l\) periods from intital treatment period \(e\)
+
+\[
+CATT = E[Y_{i, e + I} - Y_{i, e + I}^\infty|E_i = e]
+\]
+
+This paper uses an \textbf{interaction-weighted estimator} in a panel data setting, where the original paper \citet{gibbons2018broken} used the same idea in a cross-sectional setting.
+
 \begin{itemize}
 \item
   \citet{callaway2021difference} explores group-time average treatment effects, employing cohorts that have not yet been treated as controls, and permits conditioning on time-varying covariates.
@@ -43274,17 +43959,74 @@ This paper utilizes the Cohort Average Treatment Effects on the Treated (CATT), 
   \citet{borusyak2021revisiting} presumes a uniform treatment effect across cohorts, effectively simplifying CATT to ATT.
 \end{itemize}
 
-Identifying Assumptions:
+Identifying Assumptions for dynamic TWFE:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
 \item
   \textbf{Parallel Trends}: Baseline outcomes follow parallel trends across cohorts before treatment.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    This gives us all CATT (including own, included bins, and excluded bins)
+  \end{itemize}
 \item
   \textbf{No Anticipatory Behavior}: There is no effect of the treatment during pre-treatment periods, indicating that outcomes are not influenced by the anticipation of treatment.
 \item
-  \textbf{Treatment Effect Homogeneity}: The treatment effect is consistent across cohorts for each relative period, meaning the CATT mirrors the ATT.
+  \textbf{Treatment Effect Homogeneity}: The treatment effect is consistent across cohorts for each relative period. Each adoption cohort should have the same path of treatment effects. In other words, the trajectory of each treatment cohort is similar. Compare to other designs:
+
+  \begin{enumerate}
+  \def\labelenumii{\arabic{enumii}.}
+  \item
+    \citet{athey2022design} assume heterogeneity of treatment effects vary over adoption cohorts, but not over time.
+  \item
+    \citet{borusyak2021revisiting} assume heterogeneity of treatment effects vary over time, but not over adoption cohorts.
+  \item
+    \citet{callaway2021difference} assume heterogeneity of treatment effects vary over time and across cohorts.
+  \item
+    \citet{de2023two} assume heterogeneity of treatment effects vary across groups and over time.
+  \item
+    \citet{goodman2021difference} assume heterogeneity either ``vary across units but not over time'' or ``vary over time but not across units''.
+  \item
+    \citet{sun2021estimating} allows for treatment effect heterogeneity across units and time.
+  \end{enumerate}
 \end{enumerate}
+
+Sources of Heterogeneous Treatment Effects
+
+\begin{itemize}
+\item
+  Adoption cohorts can differ based on certain covariates. Similarly, composition of units within each adoption cohort is different.
+\item
+  The response to treatment varies among cohorts if units self-select their initial treatment timing based on anticipated treatment effects. However, this self-selection is still compatible with the parallel trends assumption. This is true if units choose based on an evaluation of baseline outcomes - that is, if baseline outcomes are similar (following parallel trends), then we might not see selection into treatment based on the evaluation of the baseline outcome.
+\item
+  Treatment effects can vary across cohorts due to calendar time-varying effects, such as changes in economic conditions.
+\end{itemize}
+
+Notes:
+
+\begin{itemize}
+\item
+  If you do TWFE, you actually have to drop 2 terms to avoid multicollinearity:
+
+  \begin{itemize}
+  \item
+    Period right before treatment (this one was known before this paper)
+  \item
+    Drop or bin or trim a distant lag period (this one was clarified by the paper). The reason is before of the multicollinearity in the linear relationship between TWFE and the relative period indicators.
+  \end{itemize}
+\item
+  Contamination of the treatment effect estimates from excluded periods is a type of ``normalization''. To avoid this, we have to assume that all pre-treatment periods have the same CATT.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \citet{sun2021estimating} estimation method gives reasonable weights to CATT (i..e, weights that sum to 1, and are non negative). They estimate the weighted average of CATT where the weights are shares of cohorts that experience at least \(l\) periods after to treatment, normalized by the size of total periods \(g\).
+  \end{itemize}
+\item
+  Aggregation of CATT is similar to that of \citet{callaway2021difference}
+\end{itemize}
 
 \textbf{Application}
 
@@ -43299,7 +44041,130 @@ can use \texttt{fixest} in r with \texttt{sunab} function
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-44-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-48-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\FunctionTok{summary}\NormalTok{(res\_sa20, }\AttributeTok{agg =} \StringTok{"att"}\NormalTok{)}
+\CommentTok{\#\textgreater{} OLS estimation, Dep. Var.: y}
+\CommentTok{\#\textgreater{} Observations: 950 }
+\CommentTok{\#\textgreater{} Fixed{-}effects: id: 95,  year: 10}
+\CommentTok{\#\textgreater{} Standard{-}errors: Clustered (id) }
+\CommentTok{\#\textgreater{}      Estimate Std. Error  t value  Pr(\textgreater{}|t|)    }
+\CommentTok{\#\textgreater{} x1   0.994678   0.018378 54.12293 \textless{} 2.2e{-}16 ***}
+\CommentTok{\#\textgreater{} ATT {-}1.133749   0.205070 {-}5.52858 2.882e{-}07 ***}
+\CommentTok{\#\textgreater{} {-}{-}{-}}
+\CommentTok{\#\textgreater{} Signif. codes:  0 \textquotesingle{}***\textquotesingle{} 0.001 \textquotesingle{}**\textquotesingle{} 0.01 \textquotesingle{}*\textquotesingle{} 0.05 \textquotesingle{}.\textquotesingle{} 0.1 \textquotesingle{} \textquotesingle{} 1}
+\CommentTok{\#\textgreater{} RMSE: 0.921817     Adj. R2: 0.887984}
+\CommentTok{\#\textgreater{}                  Within R2: 0.876406}
+
+
+\FunctionTok{summary}\NormalTok{(res\_sa20, }\AttributeTok{agg =} \FunctionTok{c}\NormalTok{(}\StringTok{"att"} \OtherTok{=} \StringTok{"year::[\^{}{-}]"}\NormalTok{)) }
+\CommentTok{\#\textgreater{} OLS estimation, Dep. Var.: y}
+\CommentTok{\#\textgreater{} Observations: 950 }
+\CommentTok{\#\textgreater{} Fixed{-}effects: id: 95,  year: 10}
+\CommentTok{\#\textgreater{} Standard{-}errors: Clustered (id) }
+\CommentTok{\#\textgreater{}                      Estimate Std. Error   t value   Pr(\textgreater{}|t|)    }
+\CommentTok{\#\textgreater{} x1                   0.994678   0.018378 54.122928  \textless{} 2.2e{-}16 ***}
+\CommentTok{\#\textgreater{} year::{-}9:cohort::10  0.351766   0.359073  0.979649 3.2977e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}8:cohort::9   0.033914   0.471437  0.071937 9.4281e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}8:cohort::10 {-}0.191932   0.352896 {-}0.543876 5.8781e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}7:cohort::8  {-}0.589387   0.736910 {-}0.799809 4.2584e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}7:cohort::9   0.872995   0.493427  1.769249 8.0096e{-}02 .  }
+\CommentTok{\#\textgreater{} year::{-}7:cohort::10  0.019512   0.603411  0.032336 9.7427e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}6:cohort::7  {-}0.042147   0.865736 {-}0.048683 9.6127e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}6:cohort::8  {-}0.657571   0.573257 {-}1.147078 2.5426e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}6:cohort::9   0.877743   0.533331  1.645775 1.0315e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}6:cohort::10 {-}0.403635   0.347412 {-}1.161832 2.4825e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}5:cohort::6  {-}0.658034   0.913407 {-}0.720418 4.7306e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}5:cohort::7  {-}0.316974   0.697939 {-}0.454158 6.5076e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}5:cohort::8  {-}0.238213   0.469744 {-}0.507113 6.1326e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}5:cohort::9   0.301477   0.604201  0.498968 6.1897e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}5:cohort::10 {-}0.564801   0.463214 {-}1.219308 2.2578e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}4:cohort::5  {-}0.983453   0.634492 {-}1.549984 1.2451e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}4:cohort::6   0.360407   0.858316  0.419900 6.7552e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}4:cohort::7  {-}0.430610   0.661356 {-}0.651102 5.1657e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}4:cohort::8  {-}0.895195   0.374901 {-}2.387816 1.8949e{-}02 *  }
+\CommentTok{\#\textgreater{} year::{-}4:cohort::9  {-}0.392478   0.439547 {-}0.892914 3.7418e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}4:cohort::10  0.519001   0.597880  0.868069 3.8757e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}3:cohort::4   0.591288   0.680169  0.869324 3.8688e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}3:cohort::5  {-}1.000650   0.971741 {-}1.029749 3.0577e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}3:cohort::6   0.072188   0.652641  0.110609 9.1216e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}3:cohort::7  {-}0.836820   0.804275 {-}1.040465 3.0079e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}3:cohort::8  {-}0.783148   0.701312 {-}1.116691 2.6697e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}3:cohort::9   0.811285   0.564470  1.437251 1.5397e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}3:cohort::10  0.527203   0.320051  1.647250 1.0285e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}2:cohort::3   0.036941   0.673771  0.054828 9.5639e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}2:cohort::4   0.832250   0.859544  0.968246 3.3541e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}2:cohort::5  {-}1.574086   0.525563 {-}2.995051 3.5076e{-}03 ** }
+\CommentTok{\#\textgreater{} year::{-}2:cohort::6   0.311758   0.832095  0.374666 7.0875e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}2:cohort::7  {-}0.558631   0.871993 {-}0.640638 5.2332e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}2:cohort::8   0.429591   0.305270  1.407250 1.6265e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}2:cohort::9   1.201899   0.819186  1.467188 1.4566e{-}01    }
+\CommentTok{\#\textgreater{} year::{-}2:cohort::10 {-}0.002429   0.682087 {-}0.003562 9.9717e{-}01    }
+\CommentTok{\#\textgreater{} att                 {-}1.133749   0.205070 {-}5.528584 2.8820e{-}07 ***}
+\CommentTok{\#\textgreater{} {-}{-}{-}}
+\CommentTok{\#\textgreater{} Signif. codes:  0 \textquotesingle{}***\textquotesingle{} 0.001 \textquotesingle{}**\textquotesingle{} 0.01 \textquotesingle{}*\textquotesingle{} 0.05 \textquotesingle{}.\textquotesingle{} 0.1 \textquotesingle{} \textquotesingle{} 1}
+\CommentTok{\#\textgreater{} RMSE: 0.921817     Adj. R2: 0.887984}
+\CommentTok{\#\textgreater{}                  Within R2: 0.876406}
+
+\CommentTok{\# alternatively}
+\FunctionTok{summary}\NormalTok{(res\_sa20, }\AttributeTok{agg =} \FunctionTok{c}\NormalTok{(}\StringTok{"att"} \OtherTok{=} \StringTok{"year::[012345678]"}\NormalTok{)) }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{etable}\NormalTok{(}\AttributeTok{digits =} \DecValTok{2}\NormalTok{)}
+\CommentTok{\#\textgreater{}                         summary(res\_..}
+\CommentTok{\#\textgreater{} Dependent Var.:                      y}
+\CommentTok{\#\textgreater{}                                       }
+\CommentTok{\#\textgreater{} x1                      0.99*** (0.02)}
+\CommentTok{\#\textgreater{} year = {-}9 x cohort = 10    0.35 (0.36)}
+\CommentTok{\#\textgreater{} year = {-}8 x cohort = 9     0.03 (0.47)}
+\CommentTok{\#\textgreater{} year = {-}8 x cohort = 10   {-}0.19 (0.35)}
+\CommentTok{\#\textgreater{} year = {-}7 x cohort = 8    {-}0.59 (0.74)}
+\CommentTok{\#\textgreater{} year = {-}7 x cohort = 9    0.87. (0.49)}
+\CommentTok{\#\textgreater{} year = {-}7 x cohort = 10    0.02 (0.60)}
+\CommentTok{\#\textgreater{} year = {-}6 x cohort = 7    {-}0.04 (0.87)}
+\CommentTok{\#\textgreater{} year = {-}6 x cohort = 8    {-}0.66 (0.57)}
+\CommentTok{\#\textgreater{} year = {-}6 x cohort = 9     0.88 (0.53)}
+\CommentTok{\#\textgreater{} year = {-}6 x cohort = 10   {-}0.40 (0.35)}
+\CommentTok{\#\textgreater{} year = {-}5 x cohort = 6    {-}0.66 (0.91)}
+\CommentTok{\#\textgreater{} year = {-}5 x cohort = 7    {-}0.32 (0.70)}
+\CommentTok{\#\textgreater{} year = {-}5 x cohort = 8    {-}0.24 (0.47)}
+\CommentTok{\#\textgreater{} year = {-}5 x cohort = 9     0.30 (0.60)}
+\CommentTok{\#\textgreater{} year = {-}5 x cohort = 10   {-}0.56 (0.46)}
+\CommentTok{\#\textgreater{} year = {-}4 x cohort = 5    {-}0.98 (0.63)}
+\CommentTok{\#\textgreater{} year = {-}4 x cohort = 6     0.36 (0.86)}
+\CommentTok{\#\textgreater{} year = {-}4 x cohort = 7    {-}0.43 (0.66)}
+\CommentTok{\#\textgreater{} year = {-}4 x cohort = 8   {-}0.90* (0.37)}
+\CommentTok{\#\textgreater{} year = {-}4 x cohort = 9    {-}0.39 (0.44)}
+\CommentTok{\#\textgreater{} year = {-}4 x cohort = 10    0.52 (0.60)}
+\CommentTok{\#\textgreater{} year = {-}3 x cohort = 4     0.59 (0.68)}
+\CommentTok{\#\textgreater{} year = {-}3 x cohort = 5     {-}1.0 (0.97)}
+\CommentTok{\#\textgreater{} year = {-}3 x cohort = 6     0.07 (0.65)}
+\CommentTok{\#\textgreater{} year = {-}3 x cohort = 7    {-}0.84 (0.80)}
+\CommentTok{\#\textgreater{} year = {-}3 x cohort = 8    {-}0.78 (0.70)}
+\CommentTok{\#\textgreater{} year = {-}3 x cohort = 9     0.81 (0.56)}
+\CommentTok{\#\textgreater{} year = {-}3 x cohort = 10    0.53 (0.32)}
+\CommentTok{\#\textgreater{} year = {-}2 x cohort = 3     0.04 (0.67)}
+\CommentTok{\#\textgreater{} year = {-}2 x cohort = 4     0.83 (0.86)}
+\CommentTok{\#\textgreater{} year = {-}2 x cohort = 5   {-}1.6** (0.53)}
+\CommentTok{\#\textgreater{} year = {-}2 x cohort = 6     0.31 (0.83)}
+\CommentTok{\#\textgreater{} year = {-}2 x cohort = 7    {-}0.56 (0.87)}
+\CommentTok{\#\textgreater{} year = {-}2 x cohort = 8     0.43 (0.31)}
+\CommentTok{\#\textgreater{} year = {-}2 x cohort = 9      1.2 (0.82)}
+\CommentTok{\#\textgreater{} year = {-}2 x cohort = 10  {-}0.002 (0.68)}
+\CommentTok{\#\textgreater{} att                     {-}1.1*** (0.21)}
+\CommentTok{\#\textgreater{} Fixed{-}Effects:          {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}}
+\CommentTok{\#\textgreater{} id                                 Yes}
+\CommentTok{\#\textgreater{} year                               Yes}
+\CommentTok{\#\textgreater{} \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ \_\_\_\_\_\_\_\_\_\_\_\_\_\_}
+\CommentTok{\#\textgreater{} S.E.: Clustered                 by: id}
+\CommentTok{\#\textgreater{} Observations                       950}
+\CommentTok{\#\textgreater{} R2                             0.90982}
+\CommentTok{\#\textgreater{} Within R2                      0.87641}
+\CommentTok{\#\textgreater{} {-}{-}{-}}
+\CommentTok{\#\textgreater{} Signif. codes: 0 \textquotesingle{}***\textquotesingle{} 0.001 \textquotesingle{}**\textquotesingle{} 0.01 \textquotesingle{}*\textquotesingle{} 0.05 \textquotesingle{}.\textquotesingle{} 0.1 \textquotesingle{} \textquotesingle{} 1}
+\end{Highlighting}
+\end{Shaded}
 
 Using the same syntax as \texttt{fixest}
 
@@ -43424,8 +44289,8 @@ The package (not method) is rather limited application:
 \end{Highlighting}
 \end{Shaded}
 
-\hypertarget{multiple-treatment-groups}{%
-\subsection{Multiple Treatment groups}\label{multiple-treatment-groups}}
+\hypertarget{multiple-treatment}{%
+\section{Multiple Treatment}\label{multiple-treatment}}
 
 When you have 2 treatments in a setting, you should always try to model both of them under one regression to see whether they are significantly different.
 
@@ -43445,9 +44310,6 @@ Y_{it} &= \alpha + \gamma_1 Treat1_{i} + \gamma_2 Treat2_{i} + \lambda Post_t  \
 \]
 
 \citep{fricke2017identification}
-
-\hypertarget{multiple-treatments}{%
-\subsection{Multiple Treatments}\label{multiple-treatments}}
 
 \citep{de2023two} \href{https://www.youtube.com/watch?v=UHeJoc27qEM\&ab_channel=TaylorWright}{video} \href{https://drive.google.com/file/d/156Fu73avBvvV_H64wePm7eW04V0jEG3K/view}{code}
 
@@ -43469,8 +44331,8 @@ In situations where the control units may not serve as a reliable counterfactual
 
 Check this \href{https://stats.stackexchange.com/questions/261218/difference-in-difference-model-with-mediators-estimating-the-effect-of-differen}{post}
 
-\hypertarget{assumptions-2}{%
-\section{Assumptions}\label{assumptions-2}}
+\hypertarget{assumptions-3}{%
+\section{Assumptions}\label{assumptions-3}}
 
 \begin{itemize}
 \item
@@ -43647,6 +44509,14 @@ Debate:
   \item
     See \href{https://github.com/jonathandroth/PretrendsPower}{PretrendsPower} and \href{https://github.com/jonathandroth/pretrends}{pretrends} packages for correcting this.
   \end{itemize}
+\item
+  Parallel trends assumption is specific to both the transformation and units of the outcome \citep{roth2023parallel}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    See falsification test (\(H_0\): parallel trends is insensitive to functional form).
+  \end{itemize}
 \end{itemize}
 
 \begin{Shaded}
@@ -43671,7 +44541,7 @@ Debate:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-46-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-50-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -43691,7 +44561,7 @@ Debate:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-46-2} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-50-2} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -43705,7 +44575,7 @@ Debate:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-46-3} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-50-3} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -43713,7 +44583,7 @@ Debate:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-46-4} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-50-4} \end{center}
 
 This is alarming since one of the periods is significantly different from 0, which means that our parallel trends assumption is not plausible.
 
@@ -43725,7 +44595,7 @@ In cases where you might have violations of parallel trends assumption, check \c
 \item
   Partial identification of causal parameter
 \item
-  A type of sensitivity analysis
+  Sensitivity analysis
 \end{itemize}
 
 \begin{Shaded}
@@ -43780,6 +44650,7 @@ Alternatively,
 \begin{Highlighting}[]
 \FunctionTok{library}\NormalTok{(tidyverse)}
 \FunctionTok{library}\NormalTok{(fixest)}
+
 \NormalTok{od }\OtherTok{\textless{}{-}}\NormalTok{ causaldata}\SpecialCharTok{::}\NormalTok{organ\_donations }\SpecialCharTok{\%\textgreater{}\%}
     \CommentTok{\# Use only pre{-}treatment data}
 \NormalTok{    dplyr}\SpecialCharTok{::}\FunctionTok{filter}\NormalTok{(Quarter\_Num }\SpecialCharTok{\textless{}=} \DecValTok{3}\NormalTok{) }\SpecialCharTok{\%\textgreater{}\%}
@@ -43847,38 +44718,6 @@ We would like the ``supposed'' DiD to be insignificant.
   \item
     Use the same control and treatment period (DiD \(\neq0\), there is a problem)
   \end{itemize}
-\end{itemize}
-
-\hypertarget{rosenbaum-bounds}{%
-\subsection{Rosenbaum Bounds}\label{rosenbaum-bounds}}
-
-\protect\hyperlink{rosenbaum-bounds}{Rosenbaum Bounds} assess the overall sensitivity of coefficient estimates to hidden bias \citep{rosenbaum2002overt} without having knowledge (e.g., direction) of the bias. This method is also known as \textbf{worst case analyses} \citep{diprete2004assessing}.
-
-Consider the treatment assignment is based in a way that the odds of treatment of a unit and its control is different by a multiplier \(\Gamma\) (where \(\Gamma = 1\) mean that the odds of assignment is identical, which mean random treatment assignment).
-
-\begin{itemize}
-\tightlist
-\item
-  This bias is the product of an unobservable that influences both treatment selection and outcome by a factor \(\Gamma\) (omitted variable bias)
-\end{itemize}
-
-Using this technique, we may estimate the upper limit of the p-value for the treatment effect while assuming selection on unobservables of magnitude \(\Gamma\).
-
-Usually, we would create a table of different levels of \(\Gamma\) to assess how the magnitude of biases can affect our evidence of the treatment effect (estimate).
-
-If we have treatment assignment is clustered (e.g., within school, within state) we need to adjust the bounds for clustered treatment assignment \citep{hansen2014clustered} (similar to clustered standard errors)
-
-Then, we can report the minimum value of \(\Gamma\) at which the treatment treat is nullified (i.e., become insignificant). And the literature's rules of thumb is that if \(\Gamma > 2\), then we have strong evidence for our treatment effect is robust to large biases \citep{proserpio2017online}
-
-Packages
-
-\begin{itemize}
-\item
-  \texttt{rbounds} \citep{keele2010overview}
-\item
-  \texttt{sensitivitymv} \citep{rosenbaum2015two}
-\item
-  \texttt{sensitivitymw} \citep{rosenbaum2015two}
 \end{itemize}
 
 \hypertarget{synthetic-control}{%
@@ -47553,8 +48392,11 @@ the variance of \(D_i\) in the covariate cell & This weight is largest in cells 
 
 The goal of matching is to produce covariate balance (i.e., distributions of covariates in treatment and control groups are approximately similar as they would be in a successful randomized experiment).
 
+\hypertarget{selection-on-observables}{%
+\section{Selection on Observables}\label{selection-on-observables}}
+
 \hypertarget{matchit}{%
-\section{MatchIt}\label{matchit}}
+\subsection{MatchIt}\label{matchit}}
 
 Procedure typically involves (proposed by \href{https://cran.r-project.org/web/packages/MatchIt/vignettes/MatchIt.html}{Noah Freifer} using \texttt{MatchIt})
 
@@ -47956,7 +48798,7 @@ When reporting, remember to mention
 \end{enumerate}
 
 \hypertarget{designmatch}{%
-\section{designmatch}\label{designmatch}}
+\subsection{designmatch}\label{designmatch}}
 
 This package includes
 
@@ -47980,7 +48822,7 @@ This package includes
 \end{Shaded}
 
 \hypertarget{matchingfrontier}{%
-\section{MatchingFrontier}\label{matchingfrontier}}
+\subsection{MatchingFrontier}\label{matchingfrontier}}
 
 As mentioned in \texttt{MatchIt}, you have to make trade-off (also known as bias-variance trade-off) between balance and sample size. An automated procedure to optimize this trade-off is implemented in \texttt{MatchingFrontier} \citep{king2017balance}, which solves this joint optimization problem.
 
@@ -48080,7 +48922,7 @@ Following \texttt{MatchingFrontier} \href{https://projects.iq.harvard.edu/files/
 \end{Shaded}
 
 \hypertarget{propensity-scores}{%
-\section{Propensity Scores}\label{propensity-scores}}
+\subsection{Propensity Scores}\label{propensity-scores}}
 
 Even though I mention the propensity scores matching method here, it is no longer recommended to use such method in research and publication \citep{king2019propensity} because it increases
 
@@ -48187,8 +49029,17 @@ Diagnostics:
   can't use c-stat or stepwise because those model fit stat do not apply
 \end{itemize}
 
+\hypertarget{look-ahead-propensity-score-matching}{%
+\subsubsection{Look Ahead Propensity Score Matching}\label{look-ahead-propensity-score-matching}}
+
+\begin{itemize}
+\tightlist
+\item
+  \citep{bapna2018monetizing}
+\end{itemize}
+
 \hypertarget{mahalanobis-distance}{%
-\section{Mahalanobis Distance}\label{mahalanobis-distance}}
+\subsection{Mahalanobis Distance}\label{mahalanobis-distance}}
 
 Approximates fully blocked experiment
 
@@ -48201,7 +49052,7 @@ In application we use Euclidean distance.
 Prune unused control units, and prune matches if distance \textgreater{} caliper
 
 \hypertarget{coarsened-exact-matching}{%
-\section{Coarsened Exact Matching}\label{coarsened-exact-matching}}
+\subsection{Coarsened Exact Matching}\label{coarsened-exact-matching}}
 
 Steps from Gray King's \href{https://www.youtube.com/watch?v=rBv39pK1iEs\&ab_channel=MethodsColloquium}{slides} International Methods Colloquium talk 2015
 
@@ -48426,7 +49277,7 @@ coarsening by explicit user choice
 \end{itemize}
 
 \hypertarget{genetic-matching}{%
-\section{Genetic Matching}\label{genetic-matching}}
+\subsection{Genetic Matching}\label{genetic-matching}}
 
 \begin{itemize}
 \item
@@ -48531,7 +49382,7 @@ Packages
 \end{Shaded}
 
 \hypertarget{entropy-balancing}{%
-\section{Entropy Balancing}\label{entropy-balancing}}
+\subsection{Entropy Balancing}\label{entropy-balancing}}
 
 \citep{hainmueller2012entropy}
 
@@ -48547,7 +49398,7 @@ Packages
 \end{itemize}
 
 \hypertarget{matching-for-time-series-cross-section-data}{%
-\section{Matching for time series-cross-section data}\label{matching-for-time-series-cross-section-data}}
+\subsection{Matching for time series-cross-section data}\label{matching-for-time-series-cross-section-data}}
 
 Examples: \citep{scheve2012democracy} and \citep{acemoglu2019democracy}
 
@@ -48563,7 +49414,7 @@ Identification strategy:
 See \protect\hyperlink{did-with-in-and-out-treatment-condition}{DID with in and out treatment condition} for details of this method
 
 \hypertarget{matching-for-multiple-treatments}{%
-\section{Matching for multiple treatments}\label{matching-for-multiple-treatments}}
+\subsection{Matching for multiple treatments}\label{matching-for-multiple-treatments}}
 
 In cases where you have multiple treatment groups, and you want to do matching, it's important to have the same baseline (control) group. For more details, see
 
@@ -48579,18 +49430,499 @@ In cases where you have multiple treatment groups, and you want to do matching, 
 If you insist on using the \texttt{MatchIt} package, then see this \href{https://stats.stackexchange.com/questions/405019/matching-with-multiple-treatments}{answer}
 
 \hypertarget{matching-for-multi-level-treatments}{%
-\section{Matching for multi-level treatments}\label{matching-for-multi-level-treatments}}
+\subsection{Matching for multi-level treatments}\label{matching-for-multi-level-treatments}}
 
 See \citep{yang2016propensity}
 
 Package in R \texttt{shuyang1987/multilevelMatching} on Github
 
 \hypertarget{matching-for-repeated-treatments}{%
-\section{Matching for repeated treatments}\label{matching-for-repeated-treatments}}
+\subsection{Matching for repeated treatments}\label{matching-for-repeated-treatments}}
 
 \url{https://cran.r-project.org/web/packages/twang/vignettes/iptw.pdf}
 
 package in R \texttt{twang}
+
+\hypertarget{selection-on-unobservables}{%
+\section{Selection on Unobservables}\label{selection-on-unobservables}}
+
+There are several ways one can deal with selection on unobservables:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+\item
+  \protect\hyperlink{endogenous-sample-selection}{Endogenous Sample Selection} (i.e., Heckman-style correction): examine the \(\lambda\) term to see whether it's significant (sign of endogenous selection)
+\item
+  \protect\hyperlink{relative-correlation-restrictions}{Relative Correlation Restrictions}
+\item
+  \protect\hyperlink{coefficient-stability-bounds}{Coefficient-stability Bounds}
+\end{enumerate}
+
+\hypertarget{rosenbaum-bounds}{%
+\subsection{Rosenbaum Bounds}\label{rosenbaum-bounds}}
+
+Examples in marketing
+
+\begin{itemize}
+\item
+  \citep{oestreicher2013content}: A range of 1.5 to 1.8 is important for the effect of the level of community participation of users on their willingness to pay for premium services.
+\item
+  \citep{sun2013ad}: A factor of 1.5 is essential for understanding the relationship between the launch of an ad revenue-sharing program and the popularity of content.
+\item
+  \citep{manchanda2015social}: A factor of 1.6 is required for the social dollar effect to be nullified.
+\item
+  \citep{sudhir2015peter}: A factor of 1.9 is needed for IT adoption to impact labor productivity, and 2.2 for IT adoption to affect floor productivity.
+\item
+  \citep{proserpio2017}: A factor of 2 is necessary for the firm's use of management responses to influence online reputation.
+\item
+  \citep{zhang2022makes}: A factor of 1.55 is critical for the acquisition of verified images to drive demand for Airbnb properties.
+\item
+  \citep{chae2023paywall}: A factor of 27 (not a typo) is significant in how paywall suspensions affect subsequent subscription decisions.
+\end{itemize}
+
+General
+
+\begin{itemize}
+\item
+  {[}Matching{]} is favored for estimating treatment effects in observational data, offering advantages over regression methods because
+
+  \begin{itemize}
+  \item
+    It reduces reliance on functional form assumptions.
+  \item
+    Assumes all selection-influencing covariates are observable; estimates are unbiased if no unobserved confounders are missed.
+  \end{itemize}
+\item
+  Concerns arise when potentially relevant covariates are unmeasured.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \href{examine\%20departure\%20from\%20assumption\%20of\%20free\%20hidden\%20bias\%20due\%20to\%20unobservables.}{Rosenbaum Bounds} assess the overall sensitivity of coefficient estimates to hidden bias \citep{rosenbaum2002overt} without having knowledge (e.g., direction) of the bias. Because the unboservables that cause hidden bias have to both affect selection into treatment by a factor of \(\Gamma\) and predictive of outcome, this method is also known as \textbf{worst case analyses} \citep{diprete2004assessing}.
+  \end{itemize}
+\item
+  Can't provide precise bounds on estimates of treatment effects (see \protect\hyperlink{relative-correlation-restrictions}{Relative Correlation Restrictions})
+\item
+  Typically, we show both p-value and H-L point estimate for each level of gamma \(\Gamma\)
+\end{itemize}
+
+With random treatment assignment, we can use the non-parametric test (Wilcoxon signed rank test) to see if there is treatment effect.
+
+Without random treatment assignment (i.e., observational data), we cannot use this test. With {[}Matching{]} on observables, we can use this test if we believe there are no unmeasured confounders. And this is where \citet{rosenbaum2002attributing} can come in to talk about the believability of this notion.
+
+In layman's terms, consider that the treatment assignment is based on a method where the odds of treatment for a unit and its control differ by a multiplier \(\Gamma\)
+
+\begin{itemize}
+\tightlist
+\item
+  For example, \(\Gamma = 1\) means that the odds of assignment are identical, indicating random treatment assignment.
+\item
+  Another example, \(\Gamma = 2\), in the same matched pair, one unit is twice as likely to receive the treatment (due to unobservables).
+\item
+  Since we can't know \(\Gamma\) with certainty, we run sensitivity analysis to see if the results change with different values of \(\Gamma\)
+\item
+  This bias is the product of an unobservable that influences both treatment selection and outcome by a factor \(\Gamma\) (omitted variable bias)
+\end{itemize}
+
+In technical terms,
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Treatment Assignment and Probability}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Consider unit \(j\) with a probability \(\pi_j\) of receiving the treatment, and unit \(i\) with \(\pi_i\).
+  \item
+    Ideally, after matching, if there's no hidden bias, we'd have \(\pi_i = \pi_j\).
+  \item
+    However, observing \(\pi_i \neq \pi_j\) raises questions about potential biases affecting our inference. This is evaluated using the odds ratio.
+  \end{itemize}
+\item
+  \textbf{Odds Ratio and Hidden Bias}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The odds of treatment for a unit \(j\) is defined as \(\frac{\pi_j}{1 - \pi_j}\).
+  \item
+    The odds ratio between two matched units \(i\) and \(j\) is constrained by \(\frac{1}{\Gamma} \le \frac{\pi_i / (1- \pi_i)}{\pi_j/ (1- \pi_j)} \le \Gamma\).
+
+    \begin{itemize}
+    \tightlist
+    \item
+      If \(\Gamma = 1\), it implies an absence of hidden bias.
+    \item
+      If \(\Gamma = 2\), the odds of receiving treatment could differ by up to a factor of 2 between the two units.
+    \end{itemize}
+  \end{itemize}
+\item
+  \textbf{Sensitivity Analysis Using Gamma}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The value of \(\Gamma\) helps measure the potential departure from a bias-free study.
+  \item
+    Sensitivity analysis involves varying \(\Gamma\) to examine how inferences might change with the presence of hidden biases.
+  \end{itemize}
+\item
+  \textbf{Incorporating Unobserved Covariates}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Consider a scenario where unit \(i\) has observed covariates \(x_i\) and an unobserved covariate \(u_i\), that both affect the outcome.
+  \item
+    A logistic regression model could link the odds of assignment to these covariates: \(\log(\frac{\pi_i}{1 - \pi_i}) = \kappa x_i + \gamma u_i\), where \(\gamma\) represents the impact of the unobserved covariate.
+  \end{itemize}
+\item
+  \textbf{Steps for Sensitivity Analysis} (We could create a table of different levels of \(\Gamma\) to assess how the magnitude of biases can affect our evidence of the treatment effect (estimate):
+
+  \begin{enumerate}
+  \def\labelenumi{\arabic{enumi}.}
+  \tightlist
+  \item
+    Select a range of values for \(\Gamma\) (e.g., \(1 \to 2\)).
+  \item
+    Assess how the p-value or the magnitude of the treatment effect \citep{hodges2011estimates} (for more details, see \citep{hollander2013nonparametric}) changes with varying \(\Gamma\) values.
+  \item
+    Employ specific randomization tests based on the type of outcome to establish bounds on inferences.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      report the minimum value of \(\Gamma\) at which the treatment treat is nullified (i.e., become insignificant). And the literature's rules of thumb is that if \(\Gamma > 2\), then we have strong evidence for our treatment effect is robust to large biases \citep{proserpio2017online}
+    \end{itemize}
+  \end{enumerate}
+\end{itemize}
+
+Notes:
+
+\begin{itemize}
+\tightlist
+\item
+  If we have treatment assignment is clustered (e.g., within school, within state) we need to adjust the bounds for clustered treatment assignment \citep{hansen2014clustered} (similar to clustered standard errors).
+\end{itemize}
+
+Packages
+
+\begin{itemize}
+\item
+  \texttt{rbounds} \citep{keele2010overview}
+\item
+  \texttt{sensitivitymv} \citep{rosenbaum2015two}
+\end{itemize}
+
+Since we typically assess our estimate sensitivity to unboservables after matching, we first do some matching.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(MatchIt)}
+\FunctionTok{library}\NormalTok{(Matching)}
+\FunctionTok{data}\NormalTok{(}\StringTok{"lalonde"}\NormalTok{)}
+
+\NormalTok{matched }\OtherTok{\textless{}{-}}\NormalTok{ MatchIt}\SpecialCharTok{::}\FunctionTok{matchit}\NormalTok{(}
+\NormalTok{    treat }\SpecialCharTok{\textasciitilde{}}\NormalTok{ age }\SpecialCharTok{+}\NormalTok{ educ,}
+    \AttributeTok{data =}\NormalTok{ lalonde,}
+    \AttributeTok{method =} \StringTok{"nearest"}
+\NormalTok{)}
+\FunctionTok{summary}\NormalTok{(matched)}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} Call:}
+\CommentTok{\#\textgreater{} MatchIt::matchit(formula = treat \textasciitilde{} age + educ, data = lalonde, }
+\CommentTok{\#\textgreater{}     method = "nearest")}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} Summary of Balance for All Data:}
+\CommentTok{\#\textgreater{}          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean}
+\CommentTok{\#\textgreater{} distance        0.4203        0.4125          0.1689     1.2900    0.0431}
+\CommentTok{\#\textgreater{} age            25.8162       25.0538          0.1066     1.0278    0.0254}
+\CommentTok{\#\textgreater{} educ           10.3459       10.0885          0.1281     1.5513    0.0287}
+\CommentTok{\#\textgreater{}          eCDF Max}
+\CommentTok{\#\textgreater{} distance   0.1251}
+\CommentTok{\#\textgreater{} age        0.0652}
+\CommentTok{\#\textgreater{} educ       0.1265}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} Summary of Balance for Matched Data:}
+\CommentTok{\#\textgreater{}          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean}
+\CommentTok{\#\textgreater{} distance        0.4203        0.4179          0.0520     1.1691    0.0105}
+\CommentTok{\#\textgreater{} age            25.8162       25.5081          0.0431     1.1518    0.0148}
+\CommentTok{\#\textgreater{} educ           10.3459       10.2811          0.0323     1.5138    0.0224}
+\CommentTok{\#\textgreater{}          eCDF Max Std. Pair Dist.}
+\CommentTok{\#\textgreater{} distance   0.0595          0.0598}
+\CommentTok{\#\textgreater{} age        0.0486          0.5628}
+\CommentTok{\#\textgreater{} educ       0.0757          0.3602}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} Sample Sizes:}
+\CommentTok{\#\textgreater{}           Control Treated}
+\CommentTok{\#\textgreater{} All           260     185}
+\CommentTok{\#\textgreater{} Matched       185     185}
+\CommentTok{\#\textgreater{} Unmatched      75       0}
+\CommentTok{\#\textgreater{} Discarded       0       0}
+\NormalTok{matched\_data }\OtherTok{\textless{}{-}} \FunctionTok{match.data}\NormalTok{(matched)}
+
+\NormalTok{treatment\_group }\OtherTok{\textless{}{-}} \FunctionTok{subset}\NormalTok{(matched\_data, treat }\SpecialCharTok{==} \DecValTok{1}\NormalTok{)}
+\NormalTok{control\_group }\OtherTok{\textless{}{-}} \FunctionTok{subset}\NormalTok{(matched\_data, treat }\SpecialCharTok{==} \DecValTok{0}\NormalTok{)}
+
+
+\FunctionTok{library}\NormalTok{(rbounds)}
+
+\CommentTok{\# p{-}value sensitivity }
+\NormalTok{psens\_res }\OtherTok{\textless{}{-}}
+    \FunctionTok{psens}\NormalTok{(treatment\_group}\SpecialCharTok{$}\NormalTok{re78,}
+\NormalTok{          control\_group}\SpecialCharTok{$}\NormalTok{re78,}
+          \AttributeTok{Gamma =} \DecValTok{2}\NormalTok{,}
+          \AttributeTok{GammaInc =}\NormalTok{ .}\DecValTok{1}\NormalTok{)}
+
+\NormalTok{psens\_res}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{}  Rosenbaum Sensitivity Test for Wilcoxon Signed Rank P{-}Value }
+\CommentTok{\#\textgreater{}  }
+\CommentTok{\#\textgreater{} Unconfounded estimate ....  0.0058 }
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{}  Gamma Lower bound Upper bound}
+\CommentTok{\#\textgreater{}    1.0      0.0058      0.0058}
+\CommentTok{\#\textgreater{}    1.1      0.0011      0.0235}
+\CommentTok{\#\textgreater{}    1.2      0.0002      0.0668}
+\CommentTok{\#\textgreater{}    1.3      0.0000      0.1458}
+\CommentTok{\#\textgreater{}    1.4      0.0000      0.2599}
+\CommentTok{\#\textgreater{}    1.5      0.0000      0.3967}
+\CommentTok{\#\textgreater{}    1.6      0.0000      0.5378}
+\CommentTok{\#\textgreater{}    1.7      0.0000      0.6664}
+\CommentTok{\#\textgreater{}    1.8      0.0000      0.7723}
+\CommentTok{\#\textgreater{}    1.9      0.0000      0.8523}
+\CommentTok{\#\textgreater{}    2.0      0.0000      0.9085}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{}  Note: Gamma is Odds of Differential Assignment To}
+\CommentTok{\#\textgreater{}  Treatment Due to Unobserved Factors }
+\CommentTok{\#\textgreater{} }
+
+\CommentTok{\# Hodges{-}Lehmann point estimate sensitivity}
+\CommentTok{\# median difference between treatment and control}
+\NormalTok{hlsens\_res }\OtherTok{\textless{}{-}}
+    \FunctionTok{hlsens}\NormalTok{(treatment\_group}\SpecialCharTok{$}\NormalTok{re78,}
+\NormalTok{           control\_group}\SpecialCharTok{$}\NormalTok{re78,}
+           \AttributeTok{Gamma =} \DecValTok{2}\NormalTok{,}
+           \AttributeTok{GammaInc =}\NormalTok{ .}\DecValTok{1}\NormalTok{)}
+\NormalTok{hlsens\_res}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{}  Rosenbaum Sensitivity Test for Hodges{-}Lehmann Point Estimate }
+\CommentTok{\#\textgreater{}  }
+\CommentTok{\#\textgreater{} Unconfounded estimate ....  1745.843 }
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{}  Gamma Lower bound Upper bound}
+\CommentTok{\#\textgreater{}    1.0 1745.800000      1745.8}
+\CommentTok{\#\textgreater{}    1.1 1139.100000      1865.6}
+\CommentTok{\#\textgreater{}    1.2  830.840000      2160.9}
+\CommentTok{\#\textgreater{}    1.3  533.740000      2462.4}
+\CommentTok{\#\textgreater{}    1.4  259.940000      2793.8}
+\CommentTok{\#\textgreater{}    1.5   {-}0.056912      3059.3}
+\CommentTok{\#\textgreater{}    1.6 {-}144.960000      3297.8}
+\CommentTok{\#\textgreater{}    1.7 {-}380.560000      3535.7}
+\CommentTok{\#\textgreater{}    1.8 {-}554.360000      3751.0}
+\CommentTok{\#\textgreater{}    1.9 {-}716.360000      4012.1}
+\CommentTok{\#\textgreater{}    2.0 {-}918.760000      4224.3}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{}  Note: Gamma is Odds of Differential Assignment To}
+\CommentTok{\#\textgreater{}  Treatment Due to Unobserved Factors }
+\CommentTok{\#\textgreater{} }
+\end{Highlighting}
+\end{Shaded}
+
+For multiple control group matching
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(Matching)}
+\FunctionTok{library}\NormalTok{(MatchIt)}
+
+\NormalTok{n\_ratio }\OtherTok{\textless{}{-}} \DecValTok{2}
+\NormalTok{matched }\OtherTok{\textless{}{-}}\NormalTok{ MatchIt}\SpecialCharTok{::}\FunctionTok{matchit}\NormalTok{(treat }\SpecialCharTok{\textasciitilde{}}\NormalTok{ age }\SpecialCharTok{+}\NormalTok{ educ ,}
+                   \AttributeTok{method =} \StringTok{"nearest"}\NormalTok{, }\AttributeTok{ratio =}\NormalTok{ n\_ratio)}
+\FunctionTok{summary}\NormalTok{(matched)}
+\NormalTok{matched\_data }\OtherTok{\textless{}{-}} \FunctionTok{match.data}\NormalTok{(matched)}
+
+\NormalTok{mcontrol\_res }\OtherTok{\textless{}{-}}\NormalTok{ rbounds}\SpecialCharTok{::}\FunctionTok{mcontrol}\NormalTok{(}
+    \AttributeTok{y          =}\NormalTok{ matched\_data}\SpecialCharTok{$}\NormalTok{re78,}
+    \AttributeTok{grp.id     =}\NormalTok{ matched\_data}\SpecialCharTok{$}\NormalTok{subclass,}
+    \AttributeTok{treat.id   =}\NormalTok{ matched\_data}\SpecialCharTok{$}\NormalTok{treat,}
+    \AttributeTok{group.size =}\NormalTok{ n\_ratio }\SpecialCharTok{+} \DecValTok{1}\NormalTok{,}
+    \AttributeTok{Gamma      =} \FloatTok{2.5}\NormalTok{,}
+    \AttributeTok{GammaInc   =}\NormalTok{ .}\DecValTok{1}
+\NormalTok{)}
+
+\NormalTok{mcontrol\_res}
+\end{Highlighting}
+\end{Shaded}
+
+\texttt{sensitivitymw} is faster than \texttt{sensitivitymw}. But \texttt{sensitivitymw} can match where matched sets can have differing numbers of controls \citep{rosenbaum2015two}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(sensitivitymv)}
+\FunctionTok{data}\NormalTok{(lead150)}
+\FunctionTok{head}\NormalTok{(lead150)}
+\CommentTok{\#\textgreater{}      [,1] [,2] [,3] [,4] [,5] [,6]}
+\CommentTok{\#\textgreater{} [1,] 1.40 1.23 2.24 0.96 1.90 1.14}
+\CommentTok{\#\textgreater{} [2,] 0.63 0.99 0.87 1.90 0.67 1.40}
+\CommentTok{\#\textgreater{} [3,] 1.98 0.82 0.66 0.58 1.00 1.30}
+\CommentTok{\#\textgreater{} [4,] 1.45 0.53 1.43 1.70 0.85 1.50}
+\CommentTok{\#\textgreater{} [5,] 1.60 1.70 0.63 1.05 1.08 0.92}
+\CommentTok{\#\textgreater{} [6,] 1.13 0.31 0.71 1.10 0.86 1.14}
+\FunctionTok{senmv}\NormalTok{(lead150,}\AttributeTok{gamma=}\DecValTok{2}\NormalTok{,}\AttributeTok{trim=}\DecValTok{2}\NormalTok{)}
+\CommentTok{\#\textgreater{} $pval}
+\CommentTok{\#\textgreater{} [1] 0.02665519}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $deviate}
+\CommentTok{\#\textgreater{} [1] 1.932398}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $statistic}
+\CommentTok{\#\textgreater{} [1] 27.97564}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $expectation}
+\CommentTok{\#\textgreater{} [1] 18.0064}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $variance}
+\CommentTok{\#\textgreater{} [1] 26.61524}
+
+\FunctionTok{library}\NormalTok{(sensitivitymw)}
+\FunctionTok{senmw}\NormalTok{(lead150,}\AttributeTok{gamma=}\DecValTok{2}\NormalTok{,}\AttributeTok{trim=}\DecValTok{2}\NormalTok{)}
+\CommentTok{\#\textgreater{} $pval}
+\CommentTok{\#\textgreater{} [1] 0.02665519}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $deviate}
+\CommentTok{\#\textgreater{} [1] 1.932398}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $statistic}
+\CommentTok{\#\textgreater{} [1] 27.97564}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $expectation}
+\CommentTok{\#\textgreater{} [1] 18.0064}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $variance}
+\CommentTok{\#\textgreater{} [1] 26.61524}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{relative-correlation-restrictions}{%
+\subsection{Relative Correlation Restrictions}\label{relative-correlation-restrictions}}
+
+Examples in marketing
+
+\begin{itemize}
+\item
+  \citep{manchanda2015social}: 3.23 for social dollar effect to be nullified
+\item
+  \citep{chae2023paywall}: 6.69 (i.e., how much stronger the selection on unobservables has to be compared to the selection on observables to negate the result) for paywall suspensions affect subsequent subscription decisions
+\item
+  \citep{sun2013ad}
+\end{itemize}
+
+General
+
+\begin{itemize}
+\item
+  Proposed by \citet{altonji2005selection}
+\item
+  Generalized by \citet{krauth2016bounding}
+\item
+  Estimate bounds of the treatment effects due to unobserved selection.
+\end{itemize}
+
+\[
+Y_i = X_i \beta  + C_i \gamma + \epsilon_i
+\]
+
+where
+
+\begin{itemize}
+\item
+  \(\beta\) is the effect of interest
+\item
+  \(C_i\) is the control variable
+\item
+  Using OLS, \(cor(X_i, \epsilon_i) = 0\)
+\end{itemize}
+
+Under RCR analysis, we assume
+
+\[
+cor(X_i, \epsilon_i) = \lambda cor(X_i, C_i \gamma)
+\]
+
+where \(\lambda \in (\lambda_l, \lambda_h)\)
+
+Choice of \(\lambda\)
+
+\begin{itemize}
+\item
+  Strong assumption of no omitted variable bias (small
+\item
+  If \(\lambda = 0\), then \(cor(X_i, \epsilon_i) = 0\)
+\item
+  If \(\lambda = 1\), then \(cor(X_i, \epsilon_i) = cor(X_i, C_i \gamma)\)
+\item
+  We typically examine \(\lambda \in (0, 1)\)
+\item
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# remotes::install\_github("bvkrauth/rcr/r/rcrbounds")}
+\FunctionTok{library}\NormalTok{(rcrbounds)}
+\CommentTok{\# rcrbounds::install\_rcrpy()}
+\FunctionTok{data}\NormalTok{(}\StringTok{"ChickWeight"}\NormalTok{)}
+
+\NormalTok{rcr\_res }\OtherTok{\textless{}{-}}
+\NormalTok{    rcrbounds}\SpecialCharTok{::}\FunctionTok{rcr}\NormalTok{(weight }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Time }\SpecialCharTok{|}
+\NormalTok{                       Diet, ChickWeight, }\AttributeTok{rc\_range =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{10}\NormalTok{))}
+\NormalTok{rcr\_res}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} Call:}
+\CommentTok{\#\textgreater{} rcrbounds::rcr(formula = weight \textasciitilde{} Time | Diet, data = ChickWeight, }
+\CommentTok{\#\textgreater{}     rc\_range = c(0, 10))}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} Coefficients:}
+\CommentTok{\#\textgreater{}     rcInf effectInf       rc0   effectL   effectH }
+\CommentTok{\#\textgreater{} 34.676505 71.989336 34.741955  7.447713  8.750492}
+\FunctionTok{summary}\NormalTok{(rcr\_res)}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} Call:}
+\CommentTok{\#\textgreater{} rcrbounds::rcr(formula = weight \textasciitilde{} Time | Diet, data = ChickWeight, }
+\CommentTok{\#\textgreater{}     rc\_range = c(0, 10))}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} Coefficients:}
+\CommentTok{\#\textgreater{}            Estimate  Std. Error    t value      Pr(\textgreater{}|t|)}
+\CommentTok{\#\textgreater{} rcInf     34.676505  50.1295005  0.6917385  4.891016e{-}01}
+\CommentTok{\#\textgreater{} effectInf 71.989336 112.5711682  0.6395007  5.224973e{-}01}
+\CommentTok{\#\textgreater{} rc0       34.741955  58.7169195  0.5916856  5.540611e{-}01}
+\CommentTok{\#\textgreater{} effectL    7.447713   2.4276246  3.0679014  2.155677e{-}03}
+\CommentTok{\#\textgreater{} effectH    8.750492   0.2607671 33.5567355 7.180405e{-}247}
+\CommentTok{\#\textgreater{} {-}{-}{-}}
+\CommentTok{\#\textgreater{} conservative confidence interval:}
+\CommentTok{\#\textgreater{}          2.5  \%  97.5  \%}
+\CommentTok{\#\textgreater{} effect 2.689656 9.261586}
+
+\CommentTok{\# hypothesis test for the coefficient}
+\NormalTok{rcrbounds}\SpecialCharTok{::}\FunctionTok{effect\_test}\NormalTok{(rcr\_res, }\AttributeTok{h0 =} \DecValTok{0}\NormalTok{)}
+\CommentTok{\#\textgreater{} [1] 0.001234233}
+\FunctionTok{plot}\NormalTok{(rcr\_res)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{29-matching-methods_files/figure-latex/unnamed-chunk-23-1} \end{center}
+
+\hypertarget{coefficient-stability-bounds}{%
+\subsection{Coefficient-stability Bounds}\label{coefficient-stability-bounds}}
+
+\begin{itemize}
+\tightlist
+\item
+  Developed by \citet{oster2019unobservable}
+\end{itemize}
 
 \hypertarget{interrupted-time-series}{%
 \chapter{Interrupted Time Series}\label{interrupted-time-series}}
@@ -51865,7 +53197,7 @@ The log-likelihood function of the models might not be globally concave. Hence, 
 
 In econometrics, the main objective is often to uncover causal relationships. However, coefficient estimates can be affected by various biases. Here's a list of common biases that can affect coefficient estimates:
 
-What we've covered so far (see \protect\hyperlink{linear-regression}{Linear Regression} and s\protect\hyperlink{endogeneity}{Endogeneity}):
+What we've covered so far (see \protect\hyperlink{linear-regression}{Linear Regression} and \protect\hyperlink{endogeneity}{Endogeneity}):
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -52000,7 +53332,7 @@ Aggregation bias, also known as ecological fallacy, refers to the error introduc
 
 When the relationship between variables is different at the aggregate level than at the individual level, aggregation bias can result. The bias arises when inferences about individual behaviors are made based on aggregate data.
 
-\textbf{Example}: Suppose we have data on individuals\textquotesingle{} incomes and their personal consumption. At the individual level, it's possible that as income rises, consumption also rises. However, when we aggregate the data to, say, a neighborhood level, neighborhoods with diverse income levels might all have similar average consumptions due to other unobserved factors.
+\textbf{Example}: Suppose we have data on individuals' incomes and their personal consumption. At the individual level, it's possible that as income rises, consumption also rises. However, when we aggregate the data to, say, a neighborhood level, neighborhoods with diverse income levels might all have similar average consumption due to other unobserved factors.
 
 \textbf{Step 1}: Create individual level data
 
@@ -52123,7 +53455,6 @@ From these plots, you can see the relationship at the individual level, with eac
   \textbf{\protect\hyperlink{measurement-error}{Measurement Error}}: Aggregation can introduce or amplify measurement errors. For instance, if you aggregate noisy measures, the aggregate might not accurately represent any underlying signal.
 \item
   \textbf{Omitted Variable Bias (see \protect\hyperlink{endogeneity}{Endogeneity})}: When you aggregate data, you lose information. If the loss of this information results in omitting important predictors that are correlated with both the independent and dependent variables, it can introduce omitted variable bias.
-\item
 \end{enumerate}
 
 \hypertarget{simpsons-paradox}{%
@@ -52567,9 +53898,11 @@ The plot might show that the ``True Avg Effect'' is around zero, while the ``Pub
 \item
   \textbf{Publish All Results}: Journals and researchers should make an effort to publish negative or null results. Some journals, known as ``null result journals'', specialize in this.
 \item
-  \textbf{Funnel Plots and Egger\textquotesingle s Test}: In meta-analyses, these are methods to visually and statistically detect publication bias.
+  \textbf{Funnel Plots and Egger's Test}: In meta-analyses, these are methods to visually and statistically detect publication bias.
 \item
   \textbf{Use of Preprints}: Promote the use of preprint servers where researchers can upload studies before they're peer-reviewed, ensuring that results are available regardless of eventual publication status.
+\item
+  \textbf{p-curve analysis}: addresses publication bias and p-hacking by analyzing the distribution of p-values below 0.05 in research studies. It posits that a right-skewed distribution of these p-values indicates a true effect, whereas a left-skewed distribution suggests p-hacking and no true underlying effect. The method includes a ``half-curve'' test to counteract extensive p-hacking \citep[\citet{simonsohn2014pa}, \citet{simonsohn2015better}]{simonsohn2014p}.
 \end{enumerate}
 
 \hypertarget{controls}{%
@@ -55799,8 +57132,8 @@ partially disappear (\(b_4 < b_1\) in step 1) & Partially (i.e., partial mediati
   The testing of \(ab\) offers a power advantage over \(c’\) because it effectively combines two tests. However, claims of complete mediation based solely on the non-significance of \(c’\) should be approached with caution, emphasizing the need for sufficient sample size and power, especially in assessing partial mediation. Or one should never make complete mediation claim \citep{hayes2013relative}
 \end{itemize}
 
-\hypertarget{assumptions-3}{%
-\subsection{Assumptions}\label{assumptions-3}}
+\hypertarget{assumptions-4}{%
+\subsection{Assumptions}\label{assumptions-4}}
 
 \hypertarget{direction}{%
 \subsubsection{Direction}\label{direction}}
@@ -56217,8 +57550,8 @@ See \href{https://cran.r-project.org/web/packages/manymome/vignettes/med_lm.html
 \end{Highlighting}
 \end{Shaded}
 
-\hypertarget{multiple-treatments-1}{%
-\subsubsection{Multiple Treatments}\label{multiple-treatments-1}}
+\hypertarget{multiple-treatments}{%
+\subsubsection{Multiple Treatments}\label{multiple-treatments}}
 
 \citep{hayes2014statistical}
 

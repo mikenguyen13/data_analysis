@@ -1,0 +1,223 @@
+# Special Variables
+
+Binary endogenous regressors with binary and nonnegative outcomes. Solutions (instead of focusing on structural parameters, we can focus on the causal treatment effects because without additional assumptions, the latent-index models cannot identify the effect of treatment on the treated. With exogenous treatment, LATE can be identified):
+
+-   Two-stage least squares
+-   Multiplicative models for conditional means
+-   Linear approximation of nonlinear causal models
+-   Models for distribution effects
+-   Quantile regression with an endogenous binary regressor
+
+## Limited Dependent Variables
+
+-   Binary
+-   Limited support: non-negative or with mass point at 0
+
+If nonlinearity in the relationship between covariates and dependent variable is important, we can incorporate into models for conditional means using semi-parametric estimators:
+
+1.  Multiplicative model that can be estimated using a simple nonlinear IV estimator [@mullahy1997instrumental].
+2.  Flexible nonlinear approximation of the causal response function of interest [@abadie1999semiparametric].
+
+Notes
+
+1.  Always use the first-stage linear probability model even though the endogenous variables are not continuous, because if you use other models such as Tobit or Probit, the second-stage estimates will be inconsistent [@angrist2001estimation, p. 8].
+2.  Since 2SLS does not give a linear approximation in general, Abadie introduced a causal IV estimator that does have this property [@abadie2000semiparametric].
+
+Can't use OLS with log-linear model [@silva2006log] because the transformed errors correlate with the variables.
+
+-   A quick fix is to use Poisson pseudo-ML
+
+> under heteroskedasticity, the parameters of loglinearized models estimated by OLS lead to biased estimates of the true elasticities [@silva2006log]
+
+[@martinez2013log]
+
+-   The PPML (and FGLS) estimator is less sensitive to heteroscedasticity than other estimators.
+
+-   The GPML estimator shows the lowest bias for outcomes without zero values.
+
+### Non-negative Outcomes
+
+#### Zero-valued Outcomes
+
+When using log-transform [@chen2023logs]
+
+-   Researchers often estimate the average treatment effect (ATE) in logs, $E[\log(Y(1)) - \log(Y(0))]$, because it approximates percentage changes in outcomes.
+
+-   The ATE in logs is not well-defined when the outcome, $Y$, can be zero, posing a practical challenge in many economic studies.
+
+-   Common alternatives for estimating ATE when $Y$ can be zero include
+
+    -   $\log(1 + Y)$ [@williams1937use]
+
+    -   $\log(c + y)$
+
+    -   $arcsinh(Y) = \log(\sqrt{1 + Y^2} + Y)$, which are well-defined at zero and behave similarly to $log(Y)$ for large $Y$ values [@bellemare2020elasticities]
+
+    -   $arcsinh(\sqrt{Y})$
+
+    -   $\frac{arcsinh(Y \gamma)}{\gamma}$ where $\gamma$ is estimated where $\frac{arcsinh(Y \gamma)}{\gamma} \sim N(0,1) |X$ [@mackinnon1990transforming]
+
+-   These alternative transformations, while well-defined at zero, should not be interpreted as percentage effects. This is because a true percentage effect should not depend on the baseline units of the outcome (e.g., dollars), a logical requirement that these transformations do not meet.
+
+-   ATE for transformations resembling $\log(y)$ but defined at zero ( $\log(1 + y)$ and $arcsinh(y)$ ), is highly sensitive to the units of measurement for $y$.
+
+    -   Continuous, increasing functions $m(·)$ that mimic $\log(y)$ for large $y$ values (i.e., $m(y)/\log(y) \to 1$ as $y \to \infty$) exhibit this sensitivity. Such transformations cannot be interpreted as percentage effects due to their dependence on y's units, contradicting the inherent unit-invariance of percentage calculations.
+
+-   The issue arises significantly when treatment affects the extensive margin (the probability of $y$ being zero with and without treatment differs), allowing the ATE magnitude for $m(Y)$ to vary extensively with the outcome's scale. This happens regardless of whether the 0s come from (either intentional choices of agents, or idiosyncratic reasons).
+
+    -   This happens when the treatment affects the probability that the outcome is zero (i.e., existence of the extensive margin)
+
+    -   The t-stat for log-like transformed $Y$ is close to that of the extensive-margin effect.
+
+    -   If one is confident that there is no extensive-margin effect, to recover the ATE, we can simply drop units with 0 values in outcome.
+
+    -   To evaluate the extensive-margin effect, simply run the same regression but transform the outcome to 1 if it's greater than 0.
+
+-   This sensitivity challenges the interpretation of ATE as a percentage effect, especially in cases where treatment shifts outcomes from zero to a positive value (but extremely hard to justify)
+
+-   @chen2023logs show that any ATE definable with zero-valued outcomes inherently assigns a value to changes along the extensive margin, and this value is influenced by $y$'s units.
+
+-   Treatment effects on outcomes that are only positive due to treatment become significantly larger or smaller depending on the scaling factor applied to $y$, demonstrating that ATE for $m(Y)$ can essentially be manipulated by changing $y$'s units.
+
+-   Rescaling $y$'s units by a factor $a > 0$ alters the ATE for log-like transformations $m(Y)$ by approximately $\log(a)$ times the treatment effect on the extensive margin, indicating the need for sensitivity analyses regarding units of measurement in estimating ATE.
+
+    -   In the case of $\log(c + Y)$, $c$ is $a$
+
+-   In scenarios with zero-valued outcomes, it's impossible to define a treatment effect parameter that simultaneously satisfies three criteria:
+
+    -   Being an average of individual-level treatment effects.
+
+    -   Invariance to outcome's unit rescaling.
+
+    -   Point identification from potential outcomes' marginal distributions.
+
+-   Reasons (goals) why researchers focus on treatment effects for log-transformed outcomes (instead of ATE in levels):
+
+    -   Percentage interpretation (i.e., [Interpretable units]): Utilizing scale-invariant parameters (e.g., percentage of the control mean, or normalized parameter $Y$) for meaningful comparisons.
+
+    -   Capture concave social preferences over the outcome: Emphasizing the relative importance of the intensive versus the extensive margin in social welfare or decision-making.
+
+    -   Separately understand the intensive-margin effect, forgo point identification (from the marginal distributions), and aim for the partially identified parameter (e.g., the effect in logs for units with positive outcomes under intensive and extensive margin treatments).
+
+##### Interpretable Units
+
+1.  [Normalizing the ATE in Levels]
+2.  [Normalizing Other Functionals]
+3.  [Normalizing Outcomes]
+
+###### Normalizing the ATE in Levels
+
+$$
+\theta_{ATE \%} = \frac{E[Y(1) - Y(0)]}{E[Y(0)]}
+$$
+
+where the ATE is a percentage change in levels of the control means (i.e., percentage change in the average outcome between treatment and control groups). This parameter is **not** the average of of percentage changes in terms of individual levels.
+
+To estimate $\theta_{ATE \%}$, we can simply use *Poisson quasi-maximum likelihood* to estimate
+
+$$
+Y = \exp(\alpha + \beta D)
+$$
+
+where $D$ = random assignment of treatment and
+
+$$
+\exp(\beta) - 1= \frac{E(Y(1))}{E(Y(0))} - 1= \theta_{ATE\%}
+$$
+
+$\theta_{ATE\%}$ is a function of both the intensive and extensive margins.
+
+Pros:
+
+-   Point identified
+
+-   Scale invariant
+
+-   Intuitive percentage interpretation
+
+Cons:
+
+-   can't distinguish between the extensive-margin change (0 to 1) vs. intensive-margin change (100 to 101)
+
+-   ATE in levels does not have diminishing returns
+
+###### Normalizing Other Functionals
+
+$$
+\theta_{Median\%} = \frac{Median (Y(1)) - Median (Y(0))}{Median (Y(0))}
+$$
+
+where this quantile treatment effect is normalized by the median the controls assuming that $Median(Y(0)) > 0$
+
+This parameter should be of interested if we care about median unit's change.
+
+###### Normalizing Outcomes
+
+Transform outcomes such that the ATE has a percentage interpretation. For example,
+
+-   $\tilde{Y} = Y/X$ rescaled outcome (e.g., sales/advertising)
+
+-   $\tilde{Y} = F_{Y^*}(Y)$, where $F_{Y^*}$ is the CDF of some reference random variable $Y^*$ (e.g., $\tilde{Y}$ is a person's rank in an income distribution). Hence, $\tilde{Y}$ is the percentile of a unit in the reference distribution, and ATE for $\tilde{Y}$ is the average change in rank.
+
+-   $\tilde{Y} = 1[Y\ge y]$ (e.g., median split to have probability of a unit with outcome greater than $y$).
+
+##### Capture Decreasing Returns
+
+-   Decreasing marginal utility.
+
+-   This approach requires an explicit stand of the weight between intensive and extensive margins. Hence, it's hard to defend your choice of the trade-off between these two margins.
+
+##### Understand the Intensive and Extensive Margins
+
+$$
+\theta_{Intensive} = E[\log(Y(1)) - \log(Y(0)) | Y(1) >0, Y(0) > 0]
+$$
+
+is the ATE in logs (scale-invariant, but not point identified) for those with a positive outcome regardless of their treatment status.
+
+-   With monotonicity assumption (i.e., even though these units already have positive outcomes, they would have higher positive outcomes with treatment), bounds are this parameter can be estimated [@lee2009training].
+
+    -   We can also measure the extensive-margin effect.
+
+    -   To have point identification, we need additional assumptions on the joint distribution of the potential outcomes [@zhang2008evaluating, @zhang2009likelihood].
+
+    -   This is different from the two-part models where the marginal effects from the two-part models is the sum of $\theta_{Intensive}$ and the selection term. [@mullahy2023transform]
+
+-   Without monotonicity assumption [@zhang2003estimation].
+
+#### Count Data
+
+Procedure by @cameron1986econometric
+
+Models for count data
+
+1.  OLS
+2.  Normal
+3.  Poisson
+4.  Negbin I
+5.  Negbin II
+6.  Random-effects negative binomial
+7.  Ordinal Probit
+
+Estimators for count data
+
+1.  ML
+2.  QGPML (Quasi-generalized pseudo-maximum-likelihood)
+3.  PML (Pseudo maximum likelihood)
+
+Tests for Poisson Model
+
+1.  Score tests
+2.  Over dispersion tests
+    1.  Overdispersion: use negative binomial
+    2.  Underdispersion: Binomial or truncated Poisson
+3.  Wald tests
+4.  Likelihood ratio test
+
+## Interaction Terms in Nonlinear Models
+
+@ai2003interaction
+
+-   To interpret the interaction effect in nonlinear models, we can't use the coefficient on the interaction term, but we have to use cross derivative or cross difference.
+
+-   Authors propose an estimator for the interaction effect (cross-difference) for nonlinear model (available in Stata [@norton2004computing]).

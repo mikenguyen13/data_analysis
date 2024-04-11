@@ -111,6 +111,170 @@ $$
 Y_i = \alpha + \rho D_i + X_i'\gamma + \eta_i
 $$
 
+## Notes
+
+For outcomes with 0s, we can't use log-like transformation, because it's sensitive to outcome unit [@chen2023logs]. For info on this issue, check [Zero-valued Outcomes]. We should use:
+
+-   **Percentage changes in the Average**: by using Poisson QMLE, we can interpret the coefficients of the effect of treatment on the treated group relative to the mean of the control group.
+
+-   **Extensive vs. Intensive Margins**: Distinguish the treatment effect on the intensive (outcome: 10 to 11) vs. extensive margins (outcome: 0 to 1).
+
+    -   To get the bounds for the intensive-margin, use @lee2009training (assuming that treatment has a monotonic effect on outcome)
+
+
+```r
+set.seed(123) # For reproducibility
+library(tidyverse)
+
+n <- 1000 # Number of observations
+p_treatment <- 0.5 # Probability of being treated
+
+# Step 1: Generate the treatment variable D
+D <- rbinom(n, 1, p_treatment)
+
+# Step 2: Generate potential outcomes
+# Untreated potential outcome (mostly zeroes)
+Y0 <- rnorm(n, mean = 0, sd = 1) * (runif(n) < 0.3)
+
+# Treated potential outcome (shifting both the probability of being positive - extensive margin and its magnitude - intensive margin)
+Y1 <- Y0 + rnorm(n, mean = 2, sd = 1) * (runif(n) < 0.7)
+
+# Step 3: Combine effects based on treatment
+Y_observed <- (1 - D) * Y0 + D * Y1
+
+# Add explicit zeroes to model situations with no effect
+Y_observed[Y_observed < 0] <- 0
+
+
+data <-
+    data.frame(
+        ID = 1:n,
+        Treatment = D,
+        Outcome = Y_observed,
+        X = rnorm(n)
+    ) |>
+    # whether outcome is positive
+    dplyr::mutate(positive = Outcome > 0)
+
+# Viewing the first few rows of the dataset
+head(data)
+#>   ID Treatment   Outcome          X positive
+#> 1  1         0 0.0000000  1.4783345    FALSE
+#> 2  2         1 2.2369379 -1.4067867     TRUE
+#> 3  3         0 0.0000000 -1.8839721    FALSE
+#> 4  4         1 3.2192276 -0.2773662     TRUE
+#> 5  5         1 0.6649693  0.4304278     TRUE
+#> 6  6         0 0.0000000 -0.1287867    FALSE
+
+hist(data$Outcome)
+```
+
+<img src="19-experiment_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
+
+-   **Percentage changes in the Average**
+
+
+```r
+library(fixest)
+res_pois <-
+    fepois(
+        fml = Outcome ~ Treatment + X,
+        data = data, 
+        vcov = "hetero"
+    )
+etable(res_pois)
+#>                           res_pois
+#> Dependent Var.:            Outcome
+#>                                   
+#> Constant        -2.223*** (0.1440)
+#> Treatment        2.579*** (0.1494)
+#> X                  0.0235 (0.0406)
+#> _______________ __________________
+#> S.E. type       Heteroskedas.-rob.
+#> Observations                 1,000
+#> Squared Cor.               0.33857
+#> Pseudo R2                  0.26145
+#> BIC                        1,927.9
+#> ---
+#> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+To calculate the proportional effect
+
+
+```r
+# proportional effect
+exp(coefficients(res_pois)["Treatment"]) - 1
+#> Treatment 
+#>  12.17757
+
+# SE
+exp(coefficients(res_pois)["Treatment"]) *
+    sqrt(res_pois$cov.scaled["Treatment", "Treatment"])
+#> Treatment 
+#>  1.968684
+```
+
+Hence, we conclude that the treatment effect is 1215% higher for the treated group as compared to the control group.
+
+-   **Extensive vs. Intensive Margins**
+
+Here, we can estimate the intensive-margin treatment effect (i.e., the treatment effect for "always-takers").
+
+
+```r
+res <- causalverse::lee_bounds(
+    df = data,
+    d = "Treatment",
+    m = "positive",
+    y = "Outcome",
+    numdraws = 10
+) |> 
+    causalverse::nice_tab(2)
+print(res)
+#>          term estimate std.error
+#> 1 Lower bound    -0.22      0.09
+#> 2 Upper bound     2.77      0.14
+```
+
+Since in this case, the bounds contains 0, we can't say much about the intensive margin for always-takers.
+
+If we aim to examine the sensitivity of always-takers, we should consider scenarios where the average outcome of compliers are $100 \times c\%$ lower or higher than that of always-takers.
+
+We assume that $E(Y(1)|Complier) = (1-c)E(Y(1)|Always-taker)$
+
+
+```r
+set.seed(1)
+c_values = c(.1, .5, .7)
+
+combined_res <- bind_rows(lapply(c_values, function(c) {
+    res <- causalverse::lee_bounds(
+        df = data,
+        d = "Treatment",
+        m = "positive",
+        y = "Outcome",
+        numdraws = 10,
+        c_at_ratio = c
+    )
+    
+    res$c_value <- as.character(c)
+    return(res)
+}))
+
+combined_res |> 
+    dplyr::select(c_value, everything()) |> 
+    causalverse::nice_tab()
+#>   c_value           term estimate std.error
+#> 1     0.1 Point estimate     6.60      0.71
+#> 2     0.5 Point estimate     2.54      0.13
+#> 3     0.7 Point estimate     1.82      0.08
+```
+
+-   If we assume $c = 0.1$ (i.e., under treatment, compliers would have an outcome equal to 10% of the outcome of always-takers), then the intensive-margin effect for always-takers is 6.6 more in the unit of the outcome.
+
+-   If we assume $c = 0.5$ (i.e., under treatment, compliers would have an outcome equal to 50% of the outcome of always-takers), then the intensive-margin effect for always-takers is 2.54 more in the unit of the outcome.
+
 ## Semi-random Experiment
 
 Chicago Open Enrollment Program [@cullen2005impact]
@@ -162,7 +326,7 @@ Say that we have
 **10 win**
 
 | Number students | Type          | Selection effect | Treatment effect | Total effect |
-|---------------|---------------|---------------|---------------|---------------|
+|-----------------|---------------|------------------|------------------|--------------|
 | 1               | Always Takers | +0.2             | +1               | +1.2         |
 | 2               | Compliers     | 0                | +1               | +1           |
 | 7               | Never Takers  | -0.1             | 0                | -0.1         |
@@ -170,7 +334,7 @@ Say that we have
 **10 lose**
 
 | Number students | Type          | Selection effect | Treatment effect | Total effect |
-|---------------|---------------|---------------|---------------|---------------|
+|-----------------|---------------|------------------|------------------|--------------|
 | 1               | Always Takers | +0.2             | +1               | +1.2         |
 | 2               | Compliers     | 0                | 0                | 0            |
 | 7               | Never Takers  | -0.1             | 0                | -0.1         |
