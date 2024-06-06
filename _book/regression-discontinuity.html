@@ -401,7 +401,7 @@ D_i = 0 \text{ if } X_i &lt; C
 <p>If we pass the bunching test, we can move on to the <a href="difference-in-differences.html#placebo-test">Placebo Test</a></p>
 <p><span class="citation">McCrary (<a href="references.html#ref-mccrary2008manipulation">2008</a>)</span> test</p>
 <p>A jump in the density at the threshold (i.e., discontinuity) hold can serve as evidence for sorting around the cutoff point</p>
-<div class="sourceCode" id="cb407"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb409"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">rdd</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># you only need the runing variable and the cutoff point</span></span>
@@ -420,7 +420,7 @@ DCdensity(x,0)</code></pre>
 <div class="inline-figure"><img src="24-regression-discontinuity_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;"></div>
 <pre><code>#&gt; [1] 0.0008519227</code></pre>
 <p><span class="citation">Cattaneo, Idrobo, and Titiunik (<a href="references.html#ref-cattaneo2019practical">2019</a>)</span> test</p>
-<div class="sourceCode" id="cb410"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb412"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">rddensity</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Example by the package's authors</span></span>
@@ -522,12 +522,385 @@ Z_i = \alpha_0 + \alpha_1 f(x_i) + [I(x_i \ge c)] \alpha_2 + [f(x_i) \times I(x_
 <li><p>Then, we need to see how sensitive our results will be dependent on the choice of bandwidth.</p></li>
 <li><p>In some cases, the best bandwidth for testing covariates may not be the best bandwidth for treating them, but it may be close.</p></li>
 </ul>
-<div class="sourceCode" id="cb411"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb413"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># find optimal bandwidth by Imbens-Kalyanaraman</span></span>
 <span><span class="fu">rdd</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rdd/man/IKbandwidth.html">IKbandwidth</a></span><span class="op">(</span><span class="va">running_var</span>,</span>
 <span>                 <span class="va">outcome_var</span>,</span>
 <span>                 cutpoint <span class="op">=</span> <span class="st">""</span>,</span>
 <span>                 kernel <span class="op">=</span> <span class="st">"triangular"</span><span class="op">)</span> <span class="co"># can also pick other kernels</span></span></code></pre></div>
+</div>
+<div id="manipulation-robust-regression-discontinuity-bounds" class="section level3" number="24.2.5">
+<h3>
+<span class="header-section-number">24.2.5</span> Manipulation Robust Regression Discontinuity Bounds<a class="anchor" aria-label="anchor" href="#manipulation-robust-regression-discontinuity-bounds"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>
+<p><span class="citation">McCrary (<a href="references.html#ref-mccrary2008manipulation">2008</a>)</span> linked density jumps at cutoffs in RD studies to potential manipulation.</p>
+<ul>
+<li><p>If no jump is detected, researchers proceed with RD analysis; if detected, they halt using the cutoff for inference.</p></li>
+<li>
+<p>Some studies use the “doughnut-hole” method, excluding near-cutoff observations and extrapolating, which contradicts RD principles.</p>
+<ul>
+<li><p>False negative could be due to a small sample size and can lead to biased estimates, as units near the cutoff may still differ in unobserved ways.</p></li>
+<li><p>Even correct rejections of no manipulation may overlook that the data can still be informative despite modest manipulation.</p></li>
+<li><p><span class="citation">Gerard, Rokkanen, and Rothe (<a href="references.html#ref-gerard2020bounds">2020</a>)</span> introduces a systematic approach to handle potentially manipulated variables in RD designs, addressing both concerns.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>The model introduces two types of unobservable units in RD designs:</p>
+<ul>
+<li><p><strong>always-assigned</strong> units, which are always on one side of the cutoff,</p></li>
+<li>
+<p><strong>potentially-assigned</strong> units, which fit traditional RD assumptions.</p>
+<ul>
+<li>The standard RD model is a subset of this broader model, which assumes no always-assigned units.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>Identifying assumption: manipulation occurs through one-sided selection.</p></li>
+<li><p>The approach does not make a binary decision on manipulation in RD designs but assesses its extent and worst-case impact.</p></li>
+</ul>
+<p>Two steps are used:</p>
+<ol style="list-style-type: decimal">
+<li>Determining the proportion of always-assigned units using the discontinuity at the cutoff</li>
+<li>Bounding treatment effects based on the most extreme feasible outcomes for these units.</li>
+</ol>
+<ul>
+<li><p>For sharp RD designs, bounds are established by trimming extreme outcomes near the cutoff; for fuzzy designs, the process involves more complex adjustments due to additional model constraints.</p></li>
+<li><p>Extensions of the study use covariate information and economic behavior assumptions to refine these bounds and identify covariate distributions among unit types at the cutoff.</p></li>
+</ul>
+<p><strong>Setup</strong></p>
+<p>Independent data points <span class="math inline">\((X_i, Y_i, D_i)\)</span>, where <span class="math inline">\(X_i\)</span> is the running variable, <span class="math inline">\(Y_i\)</span> is the outcome, and <span class="math inline">\(D_i\)</span> indicates treatment status (1 if treated, 0 otherwise). Treatment is assigned based on <span class="math inline">\(X_i \geq c\)</span>.</p>
+<p>The design is <em>sharp</em> if <span class="math inline">\(D_i = I(X_i \geq c)\)</span> and <em>fuzzy</em> otherwise.</p>
+<p>The population is divided into:</p>
+<ul>
+<li><p><strong>Potentially-assigned units</strong> (<span class="math inline">\(M_i = 0\)</span>): Follow the standard RD framework, with potential outcomes <span class="math inline">\(Y_i(d)\)</span> and potential treatment states <span class="math inline">\(D_i(x)\)</span>.</p></li>
+<li><p><strong>Always-assigned units</strong> (<span class="math inline">\(M_i = 1\)</span>): These units do not require potential outcomes or states, and always have <span class="math inline">\(X_i\)</span> values beyond the cutoff.</p></li>
+</ul>
+<p><strong>Assumptions</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Local Independence and Continuity</strong>:
+<ul>
+<li><span class="math inline">\(P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0)\)</span></li>
+<li>No defiers: <span class="math inline">\(P(D^+ \geq D^-|X = c, M = 0) = 1\)</span>
+</li>
+<li>Continuity in potential outcomes and states at <span class="math inline">\(c\)</span>.</li>
+<li>
+<span class="math inline">\(F_{X|M=0}(x)\)</span> is differentiable at <span class="math inline">\(c\)</span>, with a positive derivative.</li>
+</ul>
+</li>
+<li>
+<strong>Smoothness of the Running Variable among Potentially-Assigned Units</strong>:
+<ul>
+<li>The derivative of <span class="math inline">\(F_{X|M=0}(x)\)</span> is continuous at <span class="math inline">\(c\)</span>.</li>
+</ul>
+</li>
+<li>
+<strong>Restrictions on Always-Assigned Units</strong>:
+<ul>
+<li>
+<span class="math inline">\(P(X \geq c|M = 1) = 1\)</span> and <span class="math inline">\(F_{X|M=1}(x)\)</span> is right-differentiable (or left-differentiable) at <span class="math inline">\(c\)</span>.</li>
+<li>This (local) one-sided manipulation assumption allows identification of the proportion of always-assigned units among all units close to the cutoff.</li>
+</ul>
+</li>
+</ol>
+<p>When always-assigned unit exist, the RD design is fuzzy because we have</p>
+<ol style="list-style-type: decimal">
+<li>Treated and untreated units among the potentially-assigned (below and above the cutoff)</li>
+<li>Always-assigned units (above the cutoff).</li>
+</ol>
+<p>Causal Effects of Interest</p>
+<p>causal effects among potentially-assigned units:</p>
+<p><span class="math display">\[
+\Gamma = E[Y(1) - Y(0) | X = c, D^+ &gt; D^-, M = 0]
+\]</span></p>
+<p>This parameter represents the local average treatment effect (LATE) for the subgroup of “compliers”—units that receive treatment if and only if their running variable <span class="math inline">\(X_i\)</span> exceeds a certain cutoff.</p>
+<p>The parameter <span class="math inline">\(\Gamma\)</span> captures the causal effect of changes in the cutoff level on treatment status among potentially-assigned compliers.</p>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="42%">
+<col width="57%">
+</colgroup>
+<thead><tr class="header">
+<th>RD designs with a manipulated running variable</th>
+<th>
+<strong>“Doughnut-Hole” RD Designs</strong>:</th>
+</tr></thead>
+<tbody><tr class="odd">
+<td><ul>
+<li>Focuses on actual observations at the cutoff, not hypothetical true values.</li>
+<li>Provides a direct and observable estimate of causal effects, without reliance on hypothetical constructs.</li>
+</ul></td>
+<td><ul>
+<li>Exclude observations around the cutoff and use extrapolation from the trends outside this excluded range to infer causal effects at the cutoff</li>
+<li>Assumes a hypothetical population existing in a counterfactual scenario without manipulation.</li>
+<li>Requires strong assumptions about the nature of manipulation and the minimal impact of extrapolation biases.</li>
+</ul></td>
+</tr></tbody>
+</table></div>
+<p>Identification of <span class="math inline">\(\tau\)</span> in RD Designs</p>
+<ul>
+<li><p>Identification challenges arise due to the inability to distinguish always-assigned from potentially-assigned units, thus Γ is not point identified. We establish sharp bounds on Γ</p></li>
+<li><p>These bounds are supported by the stochastic dominance of the potential outcome CDFs over observed distributions.</p></li>
+</ul>
+<p>Unit Types and Notation:</p>
+<ul>
+<li>
+<span class="math inline">\(C_0\)</span>: Potentially-assigned compliers.</li>
+<li>
+<span class="math inline">\(A_0\)</span>: Potentially-assigned always-takers.</li>
+<li>
+<span class="math inline">\(N_0\)</span>: Potentially-assigned never-takers.</li>
+<li>
+<span class="math inline">\(T_1\)</span>: Always-assigned treated units.</li>
+<li>
+<span class="math inline">\(U_1\)</span>: Always-assigned untreated units.</li>
+</ul>
+<p>The measure <span class="math inline">\(\tau\)</span> , representing the proportion of always-assigned units near the cutoff, is point identified by the discontinuity in the observed running variable density <span class="math inline">\(f_X\)</span> at the cutoff</p>
+<p>Sharp RD:</p>
+<ul>
+<li><p>Units to the left of the cutoff are potentially assigned units. The distribution of their observed outcomes (<span class="math inline">\(Y\)</span>) are the outcomes <span class="math inline">\(Y(0)\)</span> of potentially-assigned compliers (<span class="math inline">\(C_0\)</span>) at the cutoff.</p></li>
+<li><p>To determine the bounds on the treatment effect (<span class="math inline">\(\Gamma\)</span>), we need to assess the distribution of treated outcomes (<span class="math inline">\(Y(1)\)</span>) for the same potentially-assigned compliers at the cutoff.</p></li>
+<li><p>Information regarding the treated outcomes (<span class="math inline">\(Y(1)\)</span>) comes exclusively from the subpopulation of treated units, which includes both potentially-assigned compliers (<span class="math inline">\(C_0\)</span>) and those always assigned units (<span class="math inline">\(T_1\)</span>).</p></li>
+<li><p>With <span class="math inline">\(\tau\)</span> point identified, we can estimate sharp bounds on <span class="math inline">\(\Gamma\)</span>.</p></li>
+</ul>
+<p>Fuzzy RD:</p>
+<div class="inline-table"><table class="table table-sm">
+<caption>Note: Table on page 848 <span class="citation">(<a href="references.html#ref-gerard2020bounds">Gerard, Rokkanen, and Rothe 2020</a>)</span>
+</caption>
+<thead><tr class="header">
+<th>Subpopulation</th>
+<th>Types of units</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(X = c^+, D = 1\)</span></td>
+<td><span class="math inline">\(C_0, A_0, T_1\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(X = c^-, D = 1\)</span></td>
+<td><span class="math inline">\(A_0\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(X= c^+, D = 0\)</span></td>
+<td><span class="math inline">\(N_0, U_1\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(X = c^-, D = 0\)</span></td>
+<td><span class="math inline">\(C_0, N_0\)</span></td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><p><strong>Unit Types and Combinations</strong>: There are five distinct unit types and four combinations of treatment assignments and decisions relevant to the analysis. These distinctions are important because they affect how potential outcomes are analyzed and bounded.</p></li>
+<li><p><strong>Outcome Distributions</strong>: The analysis involves estimating the distribution of potential outcomes (both treated and untreated) among potentially-assigned compliers at the cutoff.</p></li>
+<li>
+<p><strong>Three-Step Process</strong>:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Potential Outcomes Under Treatment</strong>: Bounds on the distribution of treated outcomes are determined using data from treated units.</p></li>
+<li><p><strong>Potential Outcomes Under Non-Treatment</strong>: Bounds on the distribution of untreated outcomes are derived using data from untreated units.</p></li>
+<li><p><strong>Bounds on Parameters of Interest</strong>: Using the bounds from the first two steps, sharp upper and lower bounds on the local average treatment effect are derived.</p></li>
+</ol>
+</li>
+<li><p><strong>Extreme Value Consideration</strong>: The bounds for treatment effects are based on “extreme” scenarios under worst-case assumptions about the distribution of potential outcomes, making them sharp but empirically relevant within the data constraints.</p></li>
+</ul>
+<p>Extensions:</p>
+<ul>
+<li><p><strong>Quantile Treatment Effects</strong>: alternative to average effects by focusing on different quantiles of the outcome distribution, which are less affected by extreme values.</p></li>
+<li><p><strong>Applicability to Discrete Outcomes</strong></p></li>
+<li><p><strong>Behavioral Assumptions Impact</strong>: Assuming a high likelihood of treatment among always-assigned units can narrow the bounds of treatment effects by refining the analysis of potential outcomes.</p></li>
+<li><p><strong>Utilization of Covariates</strong>: Incorporating covariates measured prior to treatment can refine the bounds on treatment effects and help target policies by identifying covariate distributions among different unit types.</p></li>
+</ul>
+<p><strong>Notes</strong>:</p>
+<ul>
+<li>
+<p>Quantile Treatment Effects (QTEs): QTE bounds are less sensitive to the tails of the outcome distribution, making them tighter than ATE bounds.</p>
+<ul>
+<li><p>Inference on ATEs is sensitive to the extent of manipulation, with confidence intervals widening significantly with small degrees of assumed manipulation.</p></li>
+<li><p>Inference on QTEs is less affected by manipulation, remaining meaningful even with larger degrees of manipulation.</p></li>
+</ul>
+</li>
+<li><p>Alternative Inference Strategy when manipulation is believed to be unlikely. Try different hypothetical values of <span class="math inline">\(\tau\)</span></p></li>
+</ul>
+<div class="sourceCode" id="cb414"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html">install_github</a></span><span class="op">(</span><span class="st">"francoisgerard/rdbounds/R"</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb415"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://renkun-ken.github.io/formattable/">formattable</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://r-datatable.com">data.table</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.nber.org/papers/w22892">rdbounds</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/rdbounds/man/rdbounds_sampledata.html">rdbounds_sampledata</a></span><span class="op">(</span><span class="fl">10000</span>, covs <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "True tau: 0.117999815082062"</span></span>
+<span><span class="co">#&gt; [1] "True treatment effect on potentially-assigned: 2"</span></span>
+<span><span class="co">#&gt; [1] "True treatment effect on right side of cutoff: 2.35399944524618"</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span></span>
+<span><span class="co">#&gt;            x        y treatment</span></span>
+<span><span class="co">#&gt; 1 -1.2532616 3.489563         0</span></span>
+<span><span class="co">#&gt; 2 -0.5146925 3.365232         0</span></span>
+<span><span class="co">#&gt; 3  3.4853777 6.193533         0</span></span>
+<span><span class="co">#&gt; 4  0.1576616 8.820440         1</span></span>
+<span><span class="co">#&gt; 5  0.2890962 4.791972         0</span></span>
+<span><span class="co">#&gt; 6  3.8350019 7.316907         0</span></span>
+<span></span>
+<span><span class="va">rdbounds_est</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/rdbounds/man/rdbounds.html">rdbounds</a></span><span class="op">(</span></span>
+<span>        y <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">y</span>,</span>
+<span>        x <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">x</span>,</span>
+<span>        <span class="co"># covs = as.factor(df$cov),</span></span>
+<span>        treatment <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">treatment</span>,</span>
+<span>        c <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>        discrete_x <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>        discrete_y <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>        bwsx <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.2</span>, <span class="fl">.5</span><span class="op">)</span>,</span>
+<span>        bwy <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>        </span>
+<span>        <span class="co"># for median effect use </span></span>
+<span>        <span class="co"># type = "qte", </span></span>
+<span>        <span class="co"># percentiles = .5, </span></span>
+<span>        </span>
+<span>        kernel <span class="op">=</span> <span class="st">"epanechnikov"</span>,</span>
+<span>        orders <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>        evaluation_ys <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">15</span>, by <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>        refinement_A <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>        refinement_B <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>        right_effects <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>        yextremes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">15</span><span class="op">)</span>,</span>
+<span>        num_bootstraps <span class="op">=</span> <span class="fl">5</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.04209"</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:12:33 Estimating CDFs for point estimates"</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:12:33 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:12:35 Estimating CDFs with nudged tau (tau_star)"</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:12:35 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:12:38 Beginning parallelized output by bootstrap.."</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:12:42 Computing Confidence Intervals"</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:12:51 Time taken:0.3 minutes"</span></span></code></pre></div>
+<div class="sourceCode" id="cb416"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/rdbounds/man/rdbounds_summary.html">rdbounds_summary</a></span><span class="op">(</span><span class="va">rdbounds_est</span>, title_prefix <span class="op">=</span> <span class="st">"Sample Data Results"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Time taken: 0.3 minutes"</span></span>
+<span><span class="co">#&gt; [1] "Sample size: 10000"</span></span>
+<span><span class="co">#&gt; [1] "Local Average Treatment Effect:"</span></span>
+<span><span class="co">#&gt; $tau_hat</span></span>
+<span><span class="co">#&gt; [1] 0.04209028</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $tau_hat_CI</span></span>
+<span><span class="co">#&gt; [1] 0.1671043 0.7765031</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $takeup_increase</span></span>
+<span><span class="co">#&gt; [1] 0.7521208</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $takeup_increase_CI</span></span>
+<span><span class="co">#&gt; [1] 0.7065353 0.7977063</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_SRD_naive</span></span>
+<span><span class="co">#&gt; [1] 1.770963</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_SRD_naive_CI</span></span>
+<span><span class="co">#&gt; [1] 1.541314 2.000612</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_SRD_bounds</span></span>
+<span><span class="co">#&gt; [1] 1.569194 1.912681</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_SRD_CI</span></span>
+<span><span class="co">#&gt; [1] -0.1188634  3.5319468</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_SRD_covs_bounds</span></span>
+<span><span class="co">#&gt; [1] NA NA</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_SRD_covs_CI</span></span>
+<span><span class="co">#&gt; [1] NA NA</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_FRD_naive</span></span>
+<span><span class="co">#&gt; [1] 2.356601</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_FRD_naive_CI</span></span>
+<span><span class="co">#&gt; [1] 1.995430 2.717772</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_FRD_bounds</span></span>
+<span><span class="co">#&gt; [1] 1.980883 2.362344</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_FRD_CI</span></span>
+<span><span class="co">#&gt; [1] -0.6950823  4.6112538</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_FRD_bounds_refinementA</span></span>
+<span><span class="co">#&gt; [1] 1.980883 2.357499</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_FRD_refinementA_CI</span></span>
+<span><span class="co">#&gt; [1] -0.6950823  4.6112538</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_FRD_bounds_refinementB</span></span>
+<span><span class="co">#&gt; [1] 1.980883 2.351411</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_FRD_refinementB_CI</span></span>
+<span><span class="co">#&gt; [1] -0.6152215  4.2390830</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_FRD_covs_bounds</span></span>
+<span><span class="co">#&gt; [1] NA NA</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_FRD_covs_CI</span></span>
+<span><span class="co">#&gt; [1] NA NA</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_SRD_CIs_manipulation</span></span>
+<span><span class="co">#&gt; [1] NA NA</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_FRD_CIs_manipulation</span></span>
+<span><span class="co">#&gt; [1] NA NA</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_SRD_right_bounds</span></span>
+<span><span class="co">#&gt; [1] 1.376392 2.007746</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_SRD_right_CI</span></span>
+<span><span class="co">#&gt; [1] -5.036752  5.889137</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_FRD_right_bounds</span></span>
+<span><span class="co">#&gt; [1] 1.721121 2.511504</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $TE_FRD_right_CI</span></span>
+<span><span class="co">#&gt; [1] -6.663269  7.414185</span></span></code></pre></div>
+<div class="sourceCode" id="cb417"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rdbounds_est_tau</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/rdbounds/man/rdbounds.html">rdbounds</a></span><span class="op">(</span></span>
+<span>        y <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">y</span>,</span>
+<span>        x <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">x</span>,</span>
+<span>        <span class="co"># covs = as.factor(df$cov),</span></span>
+<span>        treatment <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">treatment</span>,</span>
+<span>        c <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>        discrete_x <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>        discrete_y <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>        bwsx <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.2</span>, <span class="fl">.5</span><span class="op">)</span>,</span>
+<span>        bwy <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>        kernel <span class="op">=</span> <span class="st">"epanechnikov"</span>,</span>
+<span>        orders <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>        evaluation_ys <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span>from <span class="op">=</span> <span class="fl">0</span>, to <span class="op">=</span> <span class="fl">15</span>, by <span class="op">=</span> <span class="fl">1</span><span class="op">)</span>,</span>
+<span>        refinement_A <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>        refinement_B <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>        right_effects <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>        potential_taus <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">.025</span>, <span class="fl">.05</span>, <span class="fl">.1</span>, <span class="fl">.2</span><span class="op">)</span>,</span>
+<span>        yextremes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">15</span><span class="op">)</span>,</span>
+<span>        num_bootstraps <span class="op">=</span> <span class="fl">5</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.04209"</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:12:52 Estimating CDFs for point estimates"</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:12:52 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:12:53 Estimating CDFs with nudged tau (tau_star)"</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:12:53 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:12:56 Beginning parallelized output by bootstrap.."</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:13:02 Estimating CDFs with fixed tau value of: 0.025"</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:13:02 Estimating CDFs with fixed tau value of: 0.05"</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:13:02 Estimating CDFs with fixed tau value of: 0.1"</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:13:02 Estimating CDFs with fixed tau value of: 0.2"</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:13:03 Beginning parallelized output by bootstrap x fixed tau.."</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:13:09 Computing Confidence Intervals"</span></span>
+<span><span class="co">#&gt; [1] "2024-05-13 19:13:19 Time taken:0.46 minutes"</span></span></code></pre></div>
+<div class="sourceCode" id="cb418"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/plot_rd_aa_share.html">plot_rd_aa_share</a></span><span class="op">(</span><span class="va">rdbounds_est_tau</span><span class="op">)</span> <span class="co"># For SRD (default)</span></span></code></pre></div>
+<div class="inline-figure"><img src="24-regression-discontinuity_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb419"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># causalverse::plot_rd_aa_share(rdbounds_est_tau, rd_type = "FRD")  # For FRD</span></span></code></pre></div>
 </div>
 </div>
 <div id="fuzzy-rd-design" class="section level2" number="24.3">
@@ -914,7 +1287,7 @@ X_i =
 0, W_i &lt; c
 \end{cases}
 \]</span></p>
-<div class="sourceCode" id="cb412"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb420"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co">#cutoff point = 3.5</span></span>
 <span><span class="va">GPA</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">1000</span>, <span class="fl">0</span>, <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="va">future_success</span> <span class="op">&lt;-</span> <span class="fl">10</span> <span class="op">+</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">GPA</span> <span class="op">+</span> <span class="fl">10</span> <span class="op">*</span> <span class="op">(</span><span class="va">GPA</span> <span class="op">&gt;=</span> <span class="fl">3.5</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">1000</span><span class="op">)</span></span>
@@ -923,15 +1296,15 @@ X_i =
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://qua.st/rddtools/">rddtools</a></span><span class="op">)</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/rddtools/man/rdd_data.html">rdd_data</a></span><span class="op">(</span><span class="va">future_success</span>, <span class="va">GPA</span>, cutpoint <span class="op">=</span> <span class="fl">3.5</span><span class="op">)</span></span>
 <span><span class="co"># plot the dataset</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span></span>
 <span>    <span class="va">data</span>,</span>
 <span>    col <span class="op">=</span>  <span class="st">"red"</span>,</span>
 <span>    cex <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>    xlab <span class="op">=</span>  <span class="st">"GPA"</span>,</span>
 <span>    ylab <span class="op">=</span>  <span class="st">"future_success"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="24-regression-discontinuity_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb413"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="24-regression-discontinuity_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb421"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># estimate the sharp RDD model</span></span>
 <span><span class="va">rdd_mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/rddtools/man/rdd_reg_lm.html">rdd_reg_lm</a></span><span class="op">(</span>rdd_object <span class="op">=</span> <span class="va">data</span>, slope <span class="op">=</span>  <span class="st">"same"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">rdd_mod</span><span class="op">)</span></span>
@@ -941,29 +1314,29 @@ X_i =
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Residuals:</span></span>
 <span><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
-<span><span class="co">#&gt; -2.93235 -0.66786 -0.00799  0.69991  3.01768 </span></span>
+<span><span class="co">#&gt; -2.90364 -0.70348  0.00278  0.66828  3.00603 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Coefficients:</span></span>
 <span><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
-<span><span class="co">#&gt; (Intercept) 17.08582    0.07178  238.03   &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; D            9.95513    0.11848   84.03   &lt;2e-16 ***</span></span>
-<span><span class="co">#&gt; x            2.01615    0.03546   56.85   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; (Intercept) 16.90704    0.06637  254.75   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; D           10.09058    0.11063   91.21   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; x            1.97078    0.03281   60.06   &lt;2e-16 ***</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Residual standard error: 1.046 on 997 degrees of freedom</span></span>
-<span><span class="co">#&gt; Multiple R-squared:  0.9617, Adjusted R-squared:  0.9616 </span></span>
-<span><span class="co">#&gt; F-statistic: 1.253e+04 on 2 and 997 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
-<div class="sourceCode" id="cb414"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; Residual standard error: 0.9908 on 997 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.9654, Adjusted R-squared:  0.9654 </span></span>
+<span><span class="co">#&gt; F-statistic: 1.392e+04 on 2 and 997 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
+<div class="sourceCode" id="cb422"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># plot the RDD model along with binned observations</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span></span>
 <span>    <span class="va">rdd_mod</span>,</span>
 <span>    cex <span class="op">=</span> <span class="fl">0.1</span>,</span>
 <span>    col <span class="op">=</span>  <span class="st">"red"</span>,</span>
 <span>    xlab <span class="op">=</span>  <span class="st">"GPA"</span>,</span>
 <span>    ylab <span class="op">=</span>  <span class="st">"future_success"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="24-regression-discontinuity_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="24-regression-discontinuity_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;"></div>
 </div>
 <div id="example-2" class="section level3" number="24.11.2">
 <h3>
@@ -1079,6 +1452,7 @@ Y_{ist} &amp;= \gamma_0 + \gamma_1 \hat{QWS}_{ist} + f(Size_{ist}) \delta_2 \\
 <li><a class="nav-link" href="#sortingbunchingmanipulation"><span class="header-section-number">24.2.2</span> Sorting/Bunching/Manipulation</a></li>
 <li><a class="nav-link" href="#placebo-tests"><span class="header-section-number">24.2.3</span> Placebo Tests</a></li>
 <li><a class="nav-link" href="#sensitivity-to-bandwidth-choice"><span class="header-section-number">24.2.4</span> Sensitivity to Bandwidth Choice</a></li>
+<li><a class="nav-link" href="#manipulation-robust-regression-discontinuity-bounds"><span class="header-section-number">24.2.5</span> Manipulation Robust Regression Discontinuity Bounds</a></li>
 </ul>
 </li>
 <li><a class="nav-link" href="#fuzzy-rd-design"><span class="header-section-number">24.3</span> Fuzzy RD Design</a></li>
@@ -1114,7 +1488,7 @@ Y_{ist} &amp;= \gamma_0 + \gamma_1 \hat{QWS}_{ist} + f(Size_{ist}) \delta_2 \\
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2024-04-11.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2024-06-06.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

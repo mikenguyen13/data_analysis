@@ -138,7 +138,7 @@
 
 \title{A Guide on Data Analysis}
 \author{Mike Nguyen}
-\date{2024-04-11}
+\date{2024-06-06}
 
 \begin{document}
 \maketitle
@@ -27062,22 +27062,23 @@ Tools in a hierarchical order
   \begin{enumerate}
   \def\labelenumii{\arabic{enumii}.}
   \item
-    \protect\hyperlink{regression-discontinuity}{Regression Discontinuity} Tier 1A
+    \protect\hyperlink{regression-discontinuity}{Regression Discontinuity}
   \item
+    \protect\hyperlink{synthetic-difference-in-differences}{Synthetic Difference-in-Differences}
   \item
-    \protect\hyperlink{difference-in-differences}{Difference-In-Differences} Tier 2A
+    \protect\hyperlink{difference-in-differences}{Difference-In-Differences}
   \item
-    \protect\hyperlink{synthetic-control}{Synthetic Control} Tier 2A
+    \protect\hyperlink{synthetic-control}{Synthetic Control}
   \item
-    \protect\hyperlink{event-studies}{Event Studies} Tier 2B
+    \protect\hyperlink{event-studies}{Event Studies}
   \item
-    Fixed Effects Estimator \ref{fixed-effects-estimator}: Tier 3
+    Fixed Effects Estimator \ref{fixed-effects-estimator}
   \item
-    \protect\hyperlink{endogenous-treatment}{Endogenous Treatment}: mostly \protect\hyperlink{instrumental-variable}{Instrumental Variable}: Tier 3A
+    \protect\hyperlink{endogenous-treatment}{Endogenous Treatment}: mostly \protect\hyperlink{instrumental-variable}{Instrumental Variable}
   \item
-    \protect\hyperlink{matching-methods}{Matching Methods} Tier 4
+    \protect\hyperlink{matching-methods}{Matching Methods}
   \item
-    \protect\hyperlink{interrupted-time-series}{Interrupted Time Series} Tier 4A
+    \protect\hyperlink{interrupted-time-series}{Interrupted Time Series}
   \item
     Endogenous Sample Selection \ref{endogenous-sample-selection}: mostly Heckman's correction
   \end{enumerate}
@@ -36951,7 +36952,7 @@ we can use both PCA for dimension reduction in discriminant analysis
 
 In most cases, it means that you have pre- and post-intervention data.
 
-A great resource for causal inference is \href{https://mixtape.scunning.com/introduction.html}{Causal Inference Mixtape}, especially if you like to read about the history of causal inference as a field as well (codes for Stata, R, and Python).
+Great resources for causal inference include \href{https://mixtape.scunning.com/introduction.html}{Causal Inference Mixtape} and \href{https://christinecai.github.io/PublicGoods/applied_micro_methods.pdf}{Recent Advances in Micro}, especially if you like to read about the history of causal inference as a field as well (codes for Stata, R, and Python).
 
 Libraries in R:
 
@@ -37042,6 +37043,147 @@ Limitation
 \item
   What you do to address it? And maybe how future research can do to address it.
 \end{enumerate}
+
+\hypertarget{natural-experiments}{%
+\section{Natural Experiments}\label{natural-experiments}}
+
+Reusing the same natural experiments for research, particularly when employing identical methods to determine the treatment effect in a given setting, can pose problems for hypothesis testing.
+
+Simulations show that when \(N_{\text{Outcome}} >> N_{\text{True effect}}\), more than 50\% of statistically significant findings may be false positives \citep[p.2331]{heath2023reusing}.
+
+\textbf{Solutions:}
+
+\begin{itemize}
+\item
+  Bonferroni correction
+\item
+  \citet{romano2005stepwise} and \citet{romano2016efficient} correction: recommended
+\item
+  \citet{benjamini2001control} correction
+\item
+  Alternatively, refer to the rules of thumb from Table AI \citep[p.2356]{heath2023reusing}.
+\end{itemize}
+
+When applying multiple testing corrections, we can either use (but they will give similar results anyway \citep[p.2335]{heath2023reusing}):
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\item
+  \textbf{Chronological Sequencing}: Outcomes are ordered by the date they were first reported, with multiple testing corrections applied in this sequence. This method progressively raises the statistical significance threshold as more outcomes are reviewed over time.
+\item
+  \textbf{Best Foot Forward Policy}: Outcomes are ordered from most to least likely to be rejected based on experimental data. Used primarily in clinical trials, this approach gives priority to intended treatment effects, which are subjected to less stringent statistical requirements. New outcomes are added to the sequence as they are linked to the primary treatment effect.
+\end{enumerate}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Romano{-}Wolf correction}
+\FunctionTok{library}\NormalTok{(fixest)}
+\FunctionTok{library}\NormalTok{(wildrwolf)}
+
+\FunctionTok{head}\NormalTok{(iris)}
+\CommentTok{\#\textgreater{}   Sepal.Length Sepal.Width Petal.Length Petal.Width Species}
+\CommentTok{\#\textgreater{} 1          5.1         3.5          1.4         0.2  setosa}
+\CommentTok{\#\textgreater{} 2          4.9         3.0          1.4         0.2  setosa}
+\CommentTok{\#\textgreater{} 3          4.7         3.2          1.3         0.2  setosa}
+\CommentTok{\#\textgreater{} 4          4.6         3.1          1.5         0.2  setosa}
+\CommentTok{\#\textgreater{} 5          5.0         3.6          1.4         0.2  setosa}
+\CommentTok{\#\textgreater{} 6          5.4         3.9          1.7         0.4  setosa}
+
+\NormalTok{fit1 }\OtherTok{\textless{}{-}} \FunctionTok{feols}\NormalTok{(Sepal.Width }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Sepal.Length , }\AttributeTok{data =}\NormalTok{ iris)}
+\NormalTok{fit2 }\OtherTok{\textless{}{-}} \FunctionTok{feols}\NormalTok{(Petal.Length }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Sepal.Length, }\AttributeTok{data =}\NormalTok{ iris)}
+\NormalTok{fit3 }\OtherTok{\textless{}{-}} \FunctionTok{feols}\NormalTok{(Petal.Width }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Sepal.Length, }\AttributeTok{data =}\NormalTok{ iris)}
+
+\NormalTok{res }\OtherTok{\textless{}{-}} \FunctionTok{rwolf}\NormalTok{(}
+  \AttributeTok{models =} \FunctionTok{list}\NormalTok{(fit1, fit2, fit3), }
+  \AttributeTok{param =} \StringTok{"Sepal.Length"}\NormalTok{,  }
+  \AttributeTok{B =} \DecValTok{500}
+\NormalTok{)}
+\CommentTok{\#\textgreater{} }
+  \SpecialCharTok{|}                                                                            
+  \ErrorTok{|}                                                                      \ErrorTok{|}   \DecValTok{0}\NormalTok{\%}
+  \SpecialCharTok{|}                                                                            
+  \ErrorTok{|=======================}                                               \ErrorTok{|}  \DecValTok{33}\NormalTok{\%}
+  \SpecialCharTok{|}                                                                            
+  \ErrorTok{|===============================================}                       \ErrorTok{|}  \DecValTok{67}\NormalTok{\%}
+  \SpecialCharTok{|}                                                                            
+  \ErrorTok{|======================================================================|} \DecValTok{100}\NormalTok{\%}
+
+\NormalTok{res}
+\CommentTok{\#\textgreater{}   model   Estimate Std. Error   t value     Pr(\textgreater{}|t|) RW Pr(\textgreater{}|t|)}
+\CommentTok{\#\textgreater{} 1     1 {-}0.0618848 0.04296699 {-}1.440287    0.1518983 0.131736527}
+\CommentTok{\#\textgreater{} 2     2   1.858433 0.08585565  21.64602 1.038667e{-}47 0.001996008}
+\CommentTok{\#\textgreater{} 3     3  0.7529176 0.04353017  17.29645 2.325498e{-}37 0.001996008}
+\end{Highlighting}
+\end{Shaded}
+
+For all other tests, one can use \texttt{multtest::mt.rawp2adjp} which includes:
+
+\begin{itemize}
+\tightlist
+\item
+  Bonferroni
+\item
+  \citet{holm1979simple}
+\item
+  \citet{vsidak1967rectangular}
+\item
+  \citet{hochberg1988sharper}
+\item
+  \citet{benjamini1995controlling}
+\item
+  \citet{benjamini2001control}
+\item
+  Adaptive \citet{benjamini2000adaptive}
+\item
+  Two-stage \citet{benjamini2006adaptive}
+\end{itemize}
+
+Permutation adjusted p-values for simple multiple testing procedures
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# BiocManager::install("multtest")}
+\FunctionTok{library}\NormalTok{(multtest)}
+
+\NormalTok{procs }\OtherTok{\textless{}{-}}
+    \FunctionTok{c}\NormalTok{(}\StringTok{"Bonferroni"}\NormalTok{,}
+      \StringTok{"Holm"}\NormalTok{,}
+      \StringTok{"Hochberg"}\NormalTok{,}
+      \StringTok{"SidakSS"}\NormalTok{,}
+      \StringTok{"SidakSD"}\NormalTok{,}
+      \StringTok{"BH"}\NormalTok{,}
+      \StringTok{"BY"}\NormalTok{,}
+      \StringTok{"ABH"}\NormalTok{,}
+      \StringTok{"TSBH"}\NormalTok{)}
+
+\FunctionTok{mt.rawp2adjp}\NormalTok{(}
+    \CommentTok{\# p{-}values}
+    \FunctionTok{runif}\NormalTok{(}\DecValTok{10}\NormalTok{),}
+\NormalTok{    procs) }\SpecialCharTok{|\textgreater{}}\NormalTok{ causalverse}\SpecialCharTok{::}\FunctionTok{nice\_tab}\NormalTok{()}
+\CommentTok{\#\textgreater{}    adjp.rawp adjp.Bonferroni adjp.Holm adjp.Hochberg adjp.SidakSS adjp.SidakSD}
+\CommentTok{\#\textgreater{} 1       0.12               1         1          0.75         0.72         0.72}
+\CommentTok{\#\textgreater{} 2       0.22               1         1          0.75         0.92         0.89}
+\CommentTok{\#\textgreater{} 3       0.24               1         1          0.75         0.94         0.89}
+\CommentTok{\#\textgreater{} 4       0.29               1         1          0.75         0.97         0.91}
+\CommentTok{\#\textgreater{} 5       0.36               1         1          0.75         0.99         0.93}
+\CommentTok{\#\textgreater{} 6       0.38               1         1          0.75         0.99         0.93}
+\CommentTok{\#\textgreater{} 7       0.44               1         1          0.75         1.00         0.93}
+\CommentTok{\#\textgreater{} 8       0.59               1         1          0.75         1.00         0.93}
+\CommentTok{\#\textgreater{} 9       0.65               1         1          0.75         1.00         0.93}
+\CommentTok{\#\textgreater{} 10      0.75               1         1          0.75         1.00         0.93}
+\CommentTok{\#\textgreater{}    adjp.BH adjp.BY adjp.ABH adjp.TSBH\_0.05 index h0.ABH h0.TSBH}
+\CommentTok{\#\textgreater{} 1     0.63       1     0.63           0.63     2     10      10}
+\CommentTok{\#\textgreater{} 2     0.63       1     0.63           0.63     6     10      10}
+\CommentTok{\#\textgreater{} 3     0.63       1     0.63           0.63     8     10      10}
+\CommentTok{\#\textgreater{} 4     0.63       1     0.63           0.63     3     10      10}
+\CommentTok{\#\textgreater{} 5     0.63       1     0.63           0.63    10     10      10}
+\CommentTok{\#\textgreater{} 6     0.63       1     0.63           0.63     1     10      10}
+\CommentTok{\#\textgreater{} 7     0.63       1     0.63           0.63     7     10      10}
+\CommentTok{\#\textgreater{} 8     0.72       1     0.72           0.72     9     10      10}
+\CommentTok{\#\textgreater{} 9     0.72       1     0.72           0.72     5     10      10}
+\CommentTok{\#\textgreater{} 10    0.75       1     0.75           0.75     4     10      10}
+\end{Highlighting}
+\end{Shaded}
 
 \hypertarget{regression-discontinuity}{%
 \chapter{Regression Discontinuity}\label{regression-discontinuity}}
@@ -37617,6 +37759,488 @@ Under RD, you shouldn't have to do any \protect\hyperlink{matching-methods}{Matc
 \end{Highlighting}
 \end{Shaded}
 
+\hypertarget{manipulation-robust-regression-discontinuity-bounds}{%
+\subsection{Manipulation Robust Regression Discontinuity Bounds}\label{manipulation-robust-regression-discontinuity-bounds}}
+
+\begin{itemize}
+\item
+  \citet{mccrary2008manipulation} linked density jumps at cutoffs in RD studies to potential manipulation.
+
+  \begin{itemize}
+  \item
+    If no jump is detected, researchers proceed with RD analysis; if detected, they halt using the cutoff for inference.
+  \item
+    Some studies use the ``doughnut-hole'' method, excluding near-cutoff observations and extrapolating, which contradicts RD principles.
+
+    \begin{itemize}
+    \item
+      False negative could be due to a small sample size and can lead to biased estimates, as units near the cutoff may still differ in unobserved ways.
+    \item
+      Even correct rejections of no manipulation may overlook that the data can still be informative despite modest manipulation.
+    \item
+      \citet{gerard2020bounds} introduces a systematic approach to handle potentially manipulated variables in RD designs, addressing both concerns.
+    \end{itemize}
+  \end{itemize}
+\item
+  The model introduces two types of unobservable units in RD designs:
+
+  \begin{itemize}
+  \item
+    \textbf{always-assigned} units, which are always on one side of the cutoff,
+  \item
+    \textbf{potentially-assigned} units, which fit traditional RD assumptions.
+
+    \begin{itemize}
+    \tightlist
+    \item
+      The standard RD model is a subset of this broader model, which assumes no always-assigned units.
+    \end{itemize}
+  \end{itemize}
+\item
+  Identifying assumption: manipulation occurs through one-sided selection.
+\item
+  The approach does not make a binary decision on manipulation in RD designs but assesses its extent and worst-case impact.
+\end{itemize}
+
+Two steps are used:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Determining the proportion of always-assigned units using the discontinuity at the cutoff
+\item
+  Bounding treatment effects based on the most extreme feasible outcomes for these units.
+\end{enumerate}
+
+\begin{itemize}
+\item
+  For sharp RD designs, bounds are established by trimming extreme outcomes near the cutoff; for fuzzy designs, the process involves more complex adjustments due to additional model constraints.
+\item
+  Extensions of the study use covariate information and economic behavior assumptions to refine these bounds and identify covariate distributions among unit types at the cutoff.
+\end{itemize}
+
+\textbf{Setup}
+
+Independent data points \((X_i, Y_i, D_i)\), where \(X_i\) is the running variable, \(Y_i\) is the outcome, and \(D_i\) indicates treatment status (1 if treated, 0 otherwise). Treatment is assigned based on \(X_i \geq c\).
+
+The design is \emph{sharp} if \(D_i = I(X_i \geq c)\) and \emph{fuzzy} otherwise.
+
+The population is divided into:
+
+\begin{itemize}
+\item
+  \textbf{Potentially-assigned units} (\(M_i = 0\)): Follow the standard RD framework, with potential outcomes \(Y_i(d)\) and potential treatment states \(D_i(x)\).
+\item
+  \textbf{Always-assigned units} (\(M_i = 1\)): These units do not require potential outcomes or states, and always have \(X_i\) values beyond the cutoff.
+\end{itemize}
+
+\textbf{Assumptions}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Local Independence and Continuity}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \(P(D = 1|X = c^+, M = 0) > P(D = 1|X = c^-, M = 0)\)
+  \item
+    No defiers: \(P(D^+ \geq D^-|X = c, M = 0) = 1\)
+  \item
+    Continuity in potential outcomes and states at \(c\).
+  \item
+    \(F_{X|M=0}(x)\) is differentiable at \(c\), with a positive derivative.
+  \end{itemize}
+\item
+  \textbf{Smoothness of the Running Variable among Potentially-Assigned Units}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The derivative of \(F_{X|M=0}(x)\) is continuous at \(c\).
+  \end{itemize}
+\item
+  \textbf{Restrictions on Always-Assigned Units}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \(P(X \geq c|M = 1) = 1\) and \(F_{X|M=1}(x)\) is right-differentiable (or left-differentiable) at \(c\).
+  \item
+    This (local) one-sided manipulation assumption allows identification of the proportion of always-assigned units among all units close to the cutoff.
+  \end{itemize}
+\end{enumerate}
+
+When always-assigned unit exist, the RD design is fuzzy because we have
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Treated and untreated units among the potentially-assigned (below and above the cutoff)
+\item
+  Always-assigned units (above the cutoff).
+\end{enumerate}
+
+Causal Effects of Interest
+
+causal effects among potentially-assigned units:
+
+\[
+\Gamma = E[Y(1) - Y(0) | X = c, D^+ > D^-, M = 0]
+\]
+
+This parameter represents the local average treatment effect (LATE) for the subgroup of ``compliers''---units that receive treatment if and only if their running variable \(X_i\) exceeds a certain cutoff.
+
+The parameter \(\Gamma\) captures the causal effect of changes in the cutoff level on treatment status among potentially-assigned compliers.
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.4291}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.5709}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+RD designs with a manipulated running variable
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{``Doughnut-Hole'' RD Designs}:
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\begin{minipage}[t]{\linewidth}\raggedright
+\begin{itemize}
+\tightlist
+\item
+  Focuses on actual observations at the cutoff, not hypothetical true values.
+\item
+  Provides a direct and observable estimate of causal effects, without reliance on hypothetical constructs.
+\end{itemize}
+\end{minipage} & \begin{minipage}[t]{\linewidth}\raggedright
+\begin{itemize}
+\tightlist
+\item
+  Exclude observations around the cutoff and use extrapolation from the trends outside this excluded range to infer causal effects at the cutoff
+\item
+  Assumes a hypothetical population existing in a counterfactual scenario without manipulation.
+\item
+  Requires strong assumptions about the nature of manipulation and the minimal impact of extrapolation biases.
+\end{itemize}
+\end{minipage} \\
+\end{longtable}
+
+Identification of \(\tau\) in RD Designs
+
+\begin{itemize}
+\item
+  Identification challenges arise due to the inability to distinguish always-assigned from potentially-assigned units, thus Γ is not point identified. We establish sharp bounds on Γ
+\item
+  These bounds are supported by the stochastic dominance of the potential outcome CDFs over observed distributions.
+\end{itemize}
+
+Unit Types and Notation:
+
+\begin{itemize}
+\tightlist
+\item
+  \(C_0\): Potentially-assigned compliers.
+\item
+  \(A_0\): Potentially-assigned always-takers.
+\item
+  \(N_0\): Potentially-assigned never-takers.
+\item
+  \(T_1\): Always-assigned treated units.
+\item
+  \(U_1\): Always-assigned untreated units.
+\end{itemize}
+
+The measure \(\tau\) , representing the proportion of always-assigned units near the cutoff, is point identified by the discontinuity in the observed running variable density \(f_X\) at the cutoff
+
+Sharp RD:
+
+\begin{itemize}
+\item
+  Units to the left of the cutoff are potentially assigned units. The distribution of their observed outcomes (\(Y\)) are the outcomes \(Y(0)\) of potentially-assigned compliers (\(C_0\)) at the cutoff.
+\item
+  To determine the bounds on the treatment effect (\(\Gamma\)), we need to assess the distribution of treated outcomes (\(Y(1)\)) for the same potentially-assigned compliers at the cutoff.
+\item
+  Information regarding the treated outcomes (\(Y(1)\)) comes exclusively from the subpopulation of treated units, which includes both potentially-assigned compliers (\(C_0\)) and those always assigned units (\(T_1\)).
+\item
+  With \(\tau\) point identified, we can estimate sharp bounds on \(\Gamma\).
+\end{itemize}
+
+Fuzzy RD:
+
+\begin{longtable}[]{@{}ll@{}}
+\caption{Note: Table on page 848 \citep{gerard2020bounds}}\tabularnewline
+\toprule\noalign{}
+Subpopulation & Types of units \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+Subpopulation & Types of units \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\(X = c^+, D = 1\) & \(C_0, A_0, T_1\) \\
+\(X = c^-, D = 1\) & \(A_0\) \\
+\(X= c^+, D = 0\) & \(N_0, U_1\) \\
+\(X = c^-, D = 0\) & \(C_0, N_0\) \\
+\end{longtable}
+
+\begin{itemize}
+\item
+  \textbf{Unit Types and Combinations}: There are five distinct unit types and four combinations of treatment assignments and decisions relevant to the analysis. These distinctions are important because they affect how potential outcomes are analyzed and bounded.
+\item
+  \textbf{Outcome Distributions}: The analysis involves estimating the distribution of potential outcomes (both treated and untreated) among potentially-assigned compliers at the cutoff.
+\item
+  \textbf{Three-Step Process}:
+
+  \begin{enumerate}
+  \def\labelenumi{\arabic{enumi}.}
+  \item
+    \textbf{Potential Outcomes Under Treatment}: Bounds on the distribution of treated outcomes are determined using data from treated units.
+  \item
+    \textbf{Potential Outcomes Under Non-Treatment}: Bounds on the distribution of untreated outcomes are derived using data from untreated units.
+  \item
+    \textbf{Bounds on Parameters of Interest}: Using the bounds from the first two steps, sharp upper and lower bounds on the local average treatment effect are derived.
+  \end{enumerate}
+\item
+  \textbf{Extreme Value Consideration}: The bounds for treatment effects are based on ``extreme'' scenarios under worst-case assumptions about the distribution of potential outcomes, making them sharp but empirically relevant within the data constraints.
+\end{itemize}
+
+Extensions:
+
+\begin{itemize}
+\item
+  \textbf{Quantile Treatment Effects}: alternative to average effects by focusing on different quantiles of the outcome distribution, which are less affected by extreme values.
+\item
+  \textbf{Applicability to Discrete Outcomes}
+\item
+  \textbf{Behavioral Assumptions Impact}: Assuming a high likelihood of treatment among always-assigned units can narrow the bounds of treatment effects by refining the analysis of potential outcomes.
+\item
+  \textbf{Utilization of Covariates}: Incorporating covariates measured prior to treatment can refine the bounds on treatment effects and help target policies by identifying covariate distributions among different unit types.
+\end{itemize}
+
+\textbf{Notes}:
+
+\begin{itemize}
+\item
+  Quantile Treatment Effects (QTEs): QTE bounds are less sensitive to the tails of the outcome distribution, making them tighter than ATE bounds.
+
+  \begin{itemize}
+  \item
+    Inference on ATEs is sensitive to the extent of manipulation, with confidence intervals widening significantly with small degrees of assumed manipulation.
+  \item
+    Inference on QTEs is less affected by manipulation, remaining meaningful even with larger degrees of manipulation.
+  \end{itemize}
+\item
+  Alternative Inference Strategy when manipulation is believed to be unlikely. Try different hypothetical values of \(\tau\)
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{devtools}\SpecialCharTok{::}\FunctionTok{install\_github}\NormalTok{(}\StringTok{"francoisgerard/rdbounds/R"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(formattable)}
+\FunctionTok{library}\NormalTok{(data.table)}
+\FunctionTok{library}\NormalTok{(rdbounds)}
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{123}\NormalTok{)}
+\NormalTok{df }\OtherTok{\textless{}{-}} \FunctionTok{rdbounds\_sampledata}\NormalTok{(}\DecValTok{10000}\NormalTok{, }\AttributeTok{covs =} \ConstantTok{FALSE}\NormalTok{)}
+\CommentTok{\#\textgreater{} [1] "True tau: 0.117999815082062"}
+\CommentTok{\#\textgreater{} [1] "True treatment effect on potentially{-}assigned: 2"}
+\CommentTok{\#\textgreater{} [1] "True treatment effect on right side of cutoff: 2.35399944524618"}
+\FunctionTok{head}\NormalTok{(df)}
+\CommentTok{\#\textgreater{}            x        y treatment}
+\CommentTok{\#\textgreater{} 1 {-}1.2532616 3.489563         0}
+\CommentTok{\#\textgreater{} 2 {-}0.5146925 3.365232         0}
+\CommentTok{\#\textgreater{} 3  3.4853777 6.193533         0}
+\CommentTok{\#\textgreater{} 4  0.1576616 8.820440         1}
+\CommentTok{\#\textgreater{} 5  0.2890962 4.791972         0}
+\CommentTok{\#\textgreater{} 6  3.8350019 7.316907         0}
+
+\NormalTok{rdbounds\_est }\OtherTok{\textless{}{-}}
+    \FunctionTok{rdbounds}\NormalTok{(}
+        \AttributeTok{y =}\NormalTok{ df}\SpecialCharTok{$}\NormalTok{y,}
+        \AttributeTok{x =}\NormalTok{ df}\SpecialCharTok{$}\NormalTok{x,}
+        \CommentTok{\# covs = as.factor(df$cov),}
+        \AttributeTok{treatment =}\NormalTok{ df}\SpecialCharTok{$}\NormalTok{treatment,}
+        \AttributeTok{c =} \DecValTok{0}\NormalTok{,}
+        \AttributeTok{discrete\_x =} \ConstantTok{FALSE}\NormalTok{,}
+        \AttributeTok{discrete\_y =} \ConstantTok{FALSE}\NormalTok{,}
+        \AttributeTok{bwsx =} \FunctionTok{c}\NormalTok{(.}\DecValTok{2}\NormalTok{, .}\DecValTok{5}\NormalTok{),}
+        \AttributeTok{bwy =} \DecValTok{1}\NormalTok{,}
+        
+        \CommentTok{\# for median effect use }
+        \CommentTok{\# type = "qte", }
+        \CommentTok{\# percentiles = .5, }
+        
+        \AttributeTok{kernel =} \StringTok{"epanechnikov"}\NormalTok{,}
+        \AttributeTok{orders =} \DecValTok{1}\NormalTok{,}
+        \AttributeTok{evaluation\_ys =} \FunctionTok{seq}\NormalTok{(}\AttributeTok{from =} \DecValTok{0}\NormalTok{, }\AttributeTok{to =} \DecValTok{15}\NormalTok{, }\AttributeTok{by =} \DecValTok{1}\NormalTok{),}
+        \AttributeTok{refinement\_A =} \ConstantTok{TRUE}\NormalTok{,}
+        \AttributeTok{refinement\_B =} \ConstantTok{TRUE}\NormalTok{,}
+        \AttributeTok{right\_effects =} \ConstantTok{TRUE}\NormalTok{,}
+        \AttributeTok{yextremes =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{15}\NormalTok{),}
+        \AttributeTok{num\_bootstraps =} \DecValTok{5}
+\NormalTok{    )}
+\CommentTok{\#\textgreater{} [1] "The proportion of always{-}assigned units just to the right of the cutoff is estimated to be 0.04209"}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:14 Estimating CDFs for point estimates"}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:14 .....Estimating CDFs for units just to the right of the cutoff"}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:16 Estimating CDFs with nudged tau (tau\_star)"}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:16 .....Estimating CDFs for units just to the right of the cutoff"}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:18 Beginning parallelized output by bootstrap.."}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:24 Computing Confidence Intervals"}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:33 Time taken:0.32 minutes"}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{rdbounds\_summary}\NormalTok{(rdbounds\_est, }\AttributeTok{title\_prefix =} \StringTok{"Sample Data Results"}\NormalTok{)}
+\CommentTok{\#\textgreater{} [1] "Time taken: 0.32 minutes"}
+\CommentTok{\#\textgreater{} [1] "Sample size: 10000"}
+\CommentTok{\#\textgreater{} [1] "Local Average Treatment Effect:"}
+\CommentTok{\#\textgreater{} $tau\_hat}
+\CommentTok{\#\textgreater{} [1] 0.04209028}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $tau\_hat\_CI}
+\CommentTok{\#\textgreater{} [1] 0.1671043 0.7765031}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $takeup\_increase}
+\CommentTok{\#\textgreater{} [1] 0.7521208}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $takeup\_increase\_CI}
+\CommentTok{\#\textgreater{} [1] 0.7065353 0.7977063}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_SRD\_naive}
+\CommentTok{\#\textgreater{} [1] 1.770963}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_SRD\_naive\_CI}
+\CommentTok{\#\textgreater{} [1] 1.541314 2.000612}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_SRD\_bounds}
+\CommentTok{\#\textgreater{} [1] 1.569194 1.912681}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_SRD\_CI}
+\CommentTok{\#\textgreater{} [1] {-}0.1188634  3.5319468}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_SRD\_covs\_bounds}
+\CommentTok{\#\textgreater{} [1] NA NA}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_SRD\_covs\_CI}
+\CommentTok{\#\textgreater{} [1] NA NA}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_FRD\_naive}
+\CommentTok{\#\textgreater{} [1] 2.356601}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_FRD\_naive\_CI}
+\CommentTok{\#\textgreater{} [1] 1.995430 2.717772}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_FRD\_bounds}
+\CommentTok{\#\textgreater{} [1] 1.980883 2.362344}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_FRD\_CI}
+\CommentTok{\#\textgreater{} [1] {-}0.6950823  4.6112538}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_FRD\_bounds\_refinementA}
+\CommentTok{\#\textgreater{} [1] 1.980883 2.357499}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_FRD\_refinementA\_CI}
+\CommentTok{\#\textgreater{} [1] {-}0.6950823  4.6112538}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_FRD\_bounds\_refinementB}
+\CommentTok{\#\textgreater{} [1] 1.980883 2.351411}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_FRD\_refinementB\_CI}
+\CommentTok{\#\textgreater{} [1] {-}0.6152215  4.2390830}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_FRD\_covs\_bounds}
+\CommentTok{\#\textgreater{} [1] NA NA}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_FRD\_covs\_CI}
+\CommentTok{\#\textgreater{} [1] NA NA}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_SRD\_CIs\_manipulation}
+\CommentTok{\#\textgreater{} [1] NA NA}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_FRD\_CIs\_manipulation}
+\CommentTok{\#\textgreater{} [1] NA NA}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_SRD\_right\_bounds}
+\CommentTok{\#\textgreater{} [1] 1.376392 2.007746}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_SRD\_right\_CI}
+\CommentTok{\#\textgreater{} [1] {-}5.036752  5.889137}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_FRD\_right\_bounds}
+\CommentTok{\#\textgreater{} [1] 1.721121 2.511504}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{} $TE\_FRD\_right\_CI}
+\CommentTok{\#\textgreater{} [1] {-}6.663269  7.414185}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{rdbounds\_est\_tau }\OtherTok{\textless{}{-}}
+    \FunctionTok{rdbounds}\NormalTok{(}
+        \AttributeTok{y =}\NormalTok{ df}\SpecialCharTok{$}\NormalTok{y,}
+        \AttributeTok{x =}\NormalTok{ df}\SpecialCharTok{$}\NormalTok{x,}
+        \CommentTok{\# covs = as.factor(df$cov),}
+        \AttributeTok{treatment =}\NormalTok{ df}\SpecialCharTok{$}\NormalTok{treatment,}
+        \AttributeTok{c =} \DecValTok{0}\NormalTok{,}
+        \AttributeTok{discrete\_x =} \ConstantTok{FALSE}\NormalTok{,}
+        \AttributeTok{discrete\_y =} \ConstantTok{FALSE}\NormalTok{,}
+        \AttributeTok{bwsx =} \FunctionTok{c}\NormalTok{(.}\DecValTok{2}\NormalTok{, .}\DecValTok{5}\NormalTok{),}
+        \AttributeTok{bwy =} \DecValTok{1}\NormalTok{,}
+        \AttributeTok{kernel =} \StringTok{"epanechnikov"}\NormalTok{,}
+        \AttributeTok{orders =} \DecValTok{1}\NormalTok{,}
+        \AttributeTok{evaluation\_ys =} \FunctionTok{seq}\NormalTok{(}\AttributeTok{from =} \DecValTok{0}\NormalTok{, }\AttributeTok{to =} \DecValTok{15}\NormalTok{, }\AttributeTok{by =} \DecValTok{1}\NormalTok{),}
+        \AttributeTok{refinement\_A =} \ConstantTok{TRUE}\NormalTok{,}
+        \AttributeTok{refinement\_B =} \ConstantTok{TRUE}\NormalTok{,}
+        \AttributeTok{right\_effects =} \ConstantTok{TRUE}\NormalTok{,}
+        \AttributeTok{potential\_taus =} \FunctionTok{c}\NormalTok{(.}\DecValTok{025}\NormalTok{, .}\DecValTok{05}\NormalTok{, .}\DecValTok{1}\NormalTok{, .}\DecValTok{2}\NormalTok{),}
+        \AttributeTok{yextremes =} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{15}\NormalTok{),}
+        \AttributeTok{num\_bootstraps =} \DecValTok{5}
+\NormalTok{    )}
+\CommentTok{\#\textgreater{} [1] "The proportion of always{-}assigned units just to the right of the cutoff is estimated to be 0.04209"}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:34 Estimating CDFs for point estimates"}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:34 .....Estimating CDFs for units just to the right of the cutoff"}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:35 Estimating CDFs with nudged tau (tau\_star)"}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:35 .....Estimating CDFs for units just to the right of the cutoff"}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:38 Beginning parallelized output by bootstrap.."}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:44 Estimating CDFs with fixed tau value of: 0.025"}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:44 Estimating CDFs with fixed tau value of: 0.05"}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:44 Estimating CDFs with fixed tau value of: 0.1"}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:44 Estimating CDFs with fixed tau value of: 0.2"}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:45 Beginning parallelized output by bootstrap x fixed tau.."}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:26:49 Computing Confidence Intervals"}
+\CommentTok{\#\textgreater{} [1] "2024{-}05{-}13 19:27:00 Time taken:0.43 minutes"}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{causalverse}\SpecialCharTok{::}\FunctionTok{plot\_rd\_aa\_share}\NormalTok{(rdbounds\_est\_tau) }\CommentTok{\# For SRD (default)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{24-regression-discontinuity_files/figure-latex/unnamed-chunk-8-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# causalverse::plot\_rd\_aa\_share(rdbounds\_est\_tau, rd\_type = "FRD")  \# For FRD}
+\end{Highlighting}
+\end{Shaded}
+
 \hypertarget{fuzzy-rd-design}{%
 \section{Fuzzy RD Design}\label{fuzzy-rd-design}}
 
@@ -38136,7 +38760,7 @@ X_i =
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{24-regression-discontinuity_files/figure-latex/unnamed-chunk-4-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{24-regression-discontinuity_files/figure-latex/unnamed-chunk-9-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -38149,19 +38773,19 @@ X_i =
 \CommentTok{\#\textgreater{} }
 \CommentTok{\#\textgreater{} Residuals:}
 \CommentTok{\#\textgreater{}      Min       1Q   Median       3Q      Max }
-\CommentTok{\#\textgreater{} {-}2.93235 {-}0.66786 {-}0.00799  0.69991  3.01768 }
+\CommentTok{\#\textgreater{} {-}2.90364 {-}0.70348  0.00278  0.66828  3.00603 }
 \CommentTok{\#\textgreater{} }
 \CommentTok{\#\textgreater{} Coefficients:}
 \CommentTok{\#\textgreater{}             Estimate Std. Error t value Pr(\textgreater{}|t|)    }
-\CommentTok{\#\textgreater{} (Intercept) 17.08582    0.07178  238.03   \textless{}2e{-}16 ***}
-\CommentTok{\#\textgreater{} D            9.95513    0.11848   84.03   \textless{}2e{-}16 ***}
-\CommentTok{\#\textgreater{} x            2.01615    0.03546   56.85   \textless{}2e{-}16 ***}
+\CommentTok{\#\textgreater{} (Intercept) 16.90704    0.06637  254.75   \textless{}2e{-}16 ***}
+\CommentTok{\#\textgreater{} D           10.09058    0.11063   91.21   \textless{}2e{-}16 ***}
+\CommentTok{\#\textgreater{} x            1.97078    0.03281   60.06   \textless{}2e{-}16 ***}
 \CommentTok{\#\textgreater{} {-}{-}{-}}
 \CommentTok{\#\textgreater{} Signif. codes:  0 \textquotesingle{}***\textquotesingle{} 0.001 \textquotesingle{}**\textquotesingle{} 0.01 \textquotesingle{}*\textquotesingle{} 0.05 \textquotesingle{}.\textquotesingle{} 0.1 \textquotesingle{} \textquotesingle{} 1}
 \CommentTok{\#\textgreater{} }
-\CommentTok{\#\textgreater{} Residual standard error: 1.046 on 997 degrees of freedom}
-\CommentTok{\#\textgreater{} Multiple R{-}squared:  0.9617, Adjusted R{-}squared:  0.9616 }
-\CommentTok{\#\textgreater{} F{-}statistic: 1.253e+04 on 2 and 997 DF,  p{-}value: \textless{} 2.2e{-}16}
+\CommentTok{\#\textgreater{} Residual standard error: 0.9908 on 997 degrees of freedom}
+\CommentTok{\#\textgreater{} Multiple R{-}squared:  0.9654, Adjusted R{-}squared:  0.9654 }
+\CommentTok{\#\textgreater{} F{-}statistic: 1.392e+04 on 2 and 997 DF,  p{-}value: \textless{} 2.2e{-}16}
 \end{Highlighting}
 \end{Shaded}
 
@@ -38178,7 +38802,7 @@ X_i =
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{24-regression-discontinuity_files/figure-latex/unnamed-chunk-6-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{24-regression-discontinuity_files/figure-latex/unnamed-chunk-11-1} \end{center}
 
 \hypertarget{example-2}{%
 \subsection{Example 2}\label{example-2}}
@@ -39277,6 +39901,17 @@ Examples in marketing
   \citep{peukert2022regulatory}: using European General data protection Regulation, examine the impact of policy change on website usage.
 \end{itemize}
 
+Examples in econ:
+
+\begin{itemize}
+\item
+  \citep{rosenzweig2000natural}
+\item
+  \citep{angrist2001instrumental}
+\item
+  \citep{fuchs2016natural}: macro
+\end{itemize}
+
 Show the mechanism via
 
 \begin{itemize}
@@ -39656,6 +40291,13 @@ For {[}Zero-valued Outcomes{]}, we have to distinguish the treatment effect on t
   \textbf{Log Effects with Calibrated Extensive-margin value}: due to problem with the mean value interpretation of the proportional treatment effects with outcomes that are heavy-tailed, we might be interested in the extensive margin effect. Then, we can explicit model how much weight we put on the intensive vs.~extensive margin \citep[p.~39]{chen2023logs}.
 \end{itemize}
 
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Proportional treatment effects}
+\end{enumerate}
+
 \begin{Shaded}
 \begin{Highlighting}[]
 \FunctionTok{set.seed}\NormalTok{(}\DecValTok{123}\NormalTok{) }\CommentTok{\# For reproducibility}
@@ -39673,14 +40315,16 @@ For {[}Zero-valued Outcomes{]}, we have to distinguish the treatment effect on t
 \CommentTok{\# Step 1: Generate baseline outcomes with a zero{-}inflated model}
 \NormalTok{lambda }\OtherTok{\textless{}{-}} \DecValTok{20} \CommentTok{\# Average rate of occurrence}
 \NormalTok{zero\_inflation }\OtherTok{\textless{}{-}} \FloatTok{0.5} \CommentTok{\# Proportion of zeros}
-\NormalTok{Y\_baseline }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(}\FunctionTok{runif}\NormalTok{(}\DecValTok{2}\SpecialCharTok{*}\NormalTok{n) }\SpecialCharTok{\textless{}}\NormalTok{ zero\_inflation, }\DecValTok{0}\NormalTok{, }\FunctionTok{rpois}\NormalTok{(}\DecValTok{2}\SpecialCharTok{*}\NormalTok{n, lambda))}
+\NormalTok{Y\_baseline }\OtherTok{\textless{}{-}}
+    \FunctionTok{ifelse}\NormalTok{(}\FunctionTok{runif}\NormalTok{(}\DecValTok{2} \SpecialCharTok{*}\NormalTok{ n) }\SpecialCharTok{\textless{}}\NormalTok{ zero\_inflation, }\DecValTok{0}\NormalTok{, }\FunctionTok{rpois}\NormalTok{(}\DecValTok{2} \SpecialCharTok{*}\NormalTok{ n, lambda))}
 
 \CommentTok{\# Step 2: Apply DiD treatment effect on the treated group in the post{-}treatment period}
 \NormalTok{Treatment\_Effect }\OtherTok{\textless{}{-}}\NormalTok{ Treatment }\SpecialCharTok{*}\NormalTok{ Post}
-\NormalTok{Y\_treatment }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(Treatment\_Effect }\SpecialCharTok{==} \DecValTok{1}\NormalTok{, }\FunctionTok{rpois}\NormalTok{(n, }\AttributeTok{lambda =} \DecValTok{2}\NormalTok{), }\DecValTok{0}\NormalTok{)}
+\NormalTok{Y\_treatment }\OtherTok{\textless{}{-}}
+    \FunctionTok{ifelse}\NormalTok{(Treatment\_Effect }\SpecialCharTok{==} \DecValTok{1}\NormalTok{, }\FunctionTok{rpois}\NormalTok{(n, }\AttributeTok{lambda =} \DecValTok{2}\NormalTok{), }\DecValTok{0}\NormalTok{)}
 
 \CommentTok{\# Incorporating a simple time trend, ensuring outcomes are non{-}negative}
-\NormalTok{Time\_Trend }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(Time }\SpecialCharTok{==} \StringTok{"After"}\NormalTok{, }\FunctionTok{rpois}\NormalTok{(}\DecValTok{2}\SpecialCharTok{*}\NormalTok{n, }\AttributeTok{lambda =} \DecValTok{1}\NormalTok{), }\DecValTok{0}\NormalTok{)}
+\NormalTok{Time\_Trend }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(Time }\SpecialCharTok{==} \StringTok{"After"}\NormalTok{, }\FunctionTok{rpois}\NormalTok{(}\DecValTok{2} \SpecialCharTok{*}\NormalTok{ n, }\AttributeTok{lambda =} \DecValTok{1}\NormalTok{), }\DecValTok{0}\NormalTok{)}
 
 \CommentTok{\# Step 3: Combine to get the observed outcomes}
 \NormalTok{Y\_observed }\OtherTok{\textless{}{-}}\NormalTok{ Y\_baseline }\SpecialCharTok{+}\NormalTok{ Y\_treatment }\SpecialCharTok{+}\NormalTok{ Time\_Trend}
@@ -39689,7 +40333,13 @@ For {[}Zero-valued Outcomes{]}, we have to distinguish the treatment effect on t
 \NormalTok{Y\_observed }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(Y\_observed }\SpecialCharTok{\textless{}} \DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{, Y\_observed)}
 
 \CommentTok{\# Create the final dataset}
-\NormalTok{data }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}\AttributeTok{ID =}\NormalTok{ ID, }\AttributeTok{Treatment =}\NormalTok{ Treatment, }\AttributeTok{Period =}\NormalTok{ Post, }\AttributeTok{Outcome =}\NormalTok{ Y\_observed)}
+\NormalTok{data }\OtherTok{\textless{}{-}}
+    \FunctionTok{data.frame}\NormalTok{(}
+        \AttributeTok{ID =}\NormalTok{ ID,}
+        \AttributeTok{Treatment =}\NormalTok{ Treatment,}
+        \AttributeTok{Period =}\NormalTok{ Post,}
+        \AttributeTok{Outcome =}\NormalTok{ Y\_observed}
+\NormalTok{    )}
 
 \CommentTok{\# Viewing the first few rows of the dataset}
 \FunctionTok{head}\NormalTok{(data)}
@@ -39726,8 +40376,227 @@ For {[}Zero-valued Outcomes{]}, we have to distinguish the treatment effect on t
 \CommentTok{\#\textgreater{} BIC                         15,636.8}
 \CommentTok{\#\textgreater{} {-}{-}{-}}
 \CommentTok{\#\textgreater{} Signif. codes: 0 \textquotesingle{}***\textquotesingle{} 0.001 \textquotesingle{}**\textquotesingle{} 0.01 \textquotesingle{}*\textquotesingle{} 0.05 \textquotesingle{}.\textquotesingle{} 0.1 \textquotesingle{} \textquotesingle{} 1}
+
+\CommentTok{\# Average percentage change}
+\FunctionTok{exp}\NormalTok{(}\FunctionTok{coefficients}\NormalTok{(res\_pois)[}\StringTok{"Treatment:Period"}\NormalTok{]) }\SpecialCharTok{{-}} \DecValTok{1}
+\CommentTok{\#\textgreater{} Treatment:Period }
+\CommentTok{\#\textgreater{}       0.03191643}
+
+\CommentTok{\# SE using delta method}
+\FunctionTok{exp}\NormalTok{(}\FunctionTok{coefficients}\NormalTok{(res\_pois)[}\StringTok{"Treatment:Period"}\NormalTok{]) }\SpecialCharTok{*}
+    \FunctionTok{sqrt}\NormalTok{(res\_pois}\SpecialCharTok{$}\NormalTok{cov.scaled[}\StringTok{"Treatment:Period"}\NormalTok{, }\StringTok{"Treatment:Period"}\NormalTok{])}
+\CommentTok{\#\textgreater{} Treatment:Period }
+\CommentTok{\#\textgreater{}        0.1288596}
 \end{Highlighting}
 \end{Shaded}
+
+In this example, the DID coefficient is not significant. However, say that it's significant, we can interpret the coefficient as 3 percent increase in posttreatment period due to the treatment.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(fixest)}
+
+\NormalTok{base\_did\_log0 }\OtherTok{\textless{}{-}}\NormalTok{ base\_did }\SpecialCharTok{|\textgreater{}} 
+    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{y =} \FunctionTok{if\_else}\NormalTok{(y }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{, y, }\DecValTok{0}\NormalTok{))}
+
+\NormalTok{res\_pois\_es }\OtherTok{\textless{}{-}}
+    \FunctionTok{fepois}\NormalTok{(y }\SpecialCharTok{\textasciitilde{}}\NormalTok{ x1 }\SpecialCharTok{+} \FunctionTok{i}\NormalTok{(period, treat, }\DecValTok{5}\NormalTok{) }\SpecialCharTok{|}\NormalTok{ id }\SpecialCharTok{+}\NormalTok{ period,}
+           \AttributeTok{data =}\NormalTok{ base\_did\_log0,}
+           \AttributeTok{vcov =} \StringTok{"hetero"}\NormalTok{)}
+
+\FunctionTok{etable}\NormalTok{(res\_pois\_es)}
+\CommentTok{\#\textgreater{}                            res\_pois\_es}
+\CommentTok{\#\textgreater{} Dependent Var.:                      y}
+\CommentTok{\#\textgreater{}                                       }
+\CommentTok{\#\textgreater{} x1                  0.1895*** (0.0108)}
+\CommentTok{\#\textgreater{} treat x period = 1    {-}0.2769 (0.3545)}
+\CommentTok{\#\textgreater{} treat x period = 2    {-}0.2699 (0.3533)}
+\CommentTok{\#\textgreater{} treat x period = 3     0.1737 (0.3520)}
+\CommentTok{\#\textgreater{} treat x period = 4    {-}0.2381 (0.3249)}
+\CommentTok{\#\textgreater{} treat x period = 6     0.3724 (0.3086)}
+\CommentTok{\#\textgreater{} treat x period = 7    0.7739* (0.3117)}
+\CommentTok{\#\textgreater{} treat x period = 8    0.5028. (0.2962)}
+\CommentTok{\#\textgreater{} treat x period = 9   0.9746** (0.3092)}
+\CommentTok{\#\textgreater{} treat x period = 10  1.310*** (0.3193)}
+\CommentTok{\#\textgreater{} Fixed{-}Effects:      {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}}
+\CommentTok{\#\textgreater{} id                                 Yes}
+\CommentTok{\#\textgreater{} period                             Yes}
+\CommentTok{\#\textgreater{} \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_}
+\CommentTok{\#\textgreater{} S.E. type           Heteroskedas.{-}rob.}
+\CommentTok{\#\textgreater{} Observations                     1,080}
+\CommentTok{\#\textgreater{} Squared Cor.                   0.51131}
+\CommentTok{\#\textgreater{} Pseudo R2                      0.34836}
+\CommentTok{\#\textgreater{} BIC                            5,868.8}
+\CommentTok{\#\textgreater{} {-}{-}{-}}
+\CommentTok{\#\textgreater{} Signif. codes: 0 \textquotesingle{}***\textquotesingle{} 0.001 \textquotesingle{}**\textquotesingle{} 0.01 \textquotesingle{}*\textquotesingle{} 0.05 \textquotesingle{}.\textquotesingle{} 0.1 \textquotesingle{} \textquotesingle{} 1}
+\FunctionTok{iplot}\NormalTok{(res\_pois\_es)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/estiamte teh proprortion treatment effects for event-study form-1} \end{center}
+
+This parallel trend is the ``ratio'' version as in \citet{wooldridge2023simple} :
+
+\[
+\frac{E(Y_{it}(0) |D_i = 1, Post_t = 1)}{E(Y_{it}(0) |D_i = 1, Post_t = 0)} = \frac{E(Y_{it}(0) |D_i = 0, Post_t = 1)}{E(Y_{it}(0) |D_i =0, Post_t = 0)}
+\]
+
+which means without treatment, the average percentage change in the mean outcome for treated group is identical to that of the control group.
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\setcounter{enumi}{1}
+\tightlist
+\item
+  \textbf{Log Effects with Calibrated Extensive-margin value}
+\end{enumerate}
+
+If we want to study the treatment effect on a concave transformation of the outcome that is less influenced by those in the distribution's tail, then we can perform this analysis.
+
+Steps:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Normalize the outcomes such that 1 represents the minimum non-zero and positve value (i.e., divide the outcome by its minimum non-zero and positive value).
+\item
+  Estimate the treatment effects for the new outcome
+\end{enumerate}
+
+\[
+m(y) =
+\begin{cases}
+\log(y) & \text{for } y >0 \\
+-x & \text{for } y = 0
+\end{cases}
+\]
+
+The choice of \(x\) depends on what the researcher is interested in:
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.0733}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.9267}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Value of \(x\)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Interest
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\(x = 0\) & The treatment effect in logs where all zero-valued outcomes are set to equal the minimum non-zero value (i.e., we exclude the extensive-margin change between 0 and \(y_{min}\) ) \\
+\(x>0\) & Setting the change between 0 and \(y_{min}\) to be valued as the equivalent of a \(x\) log point change along the intensive margin. \\
+\end{longtable}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(fixest)}
+\NormalTok{base\_did\_log0\_cali }\OtherTok{\textless{}{-}}\NormalTok{ base\_did\_log0 }\SpecialCharTok{|\textgreater{}} 
+    \CommentTok{\# get min }
+    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{min\_y =} \FunctionTok{min}\NormalTok{(y[y }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{])) }\SpecialCharTok{|\textgreater{}} 
+    
+    \CommentTok{\# normalized the outcome }
+    \FunctionTok{mutate}\NormalTok{(}\AttributeTok{y\_norm =}\NormalTok{ y }\SpecialCharTok{/}\NormalTok{ min\_y)}
+
+\NormalTok{my\_regression }\OtherTok{\textless{}{-}}
+    \ControlFlowTok{function}\NormalTok{(x) \{}
+\NormalTok{        base\_did\_log0\_cali }\OtherTok{\textless{}{-}}
+\NormalTok{            base\_did\_log0\_cali }\SpecialCharTok{\%\textgreater{}\%} \FunctionTok{mutate}\NormalTok{(}\AttributeTok{my =} \FunctionTok{ifelse}\NormalTok{(y\_norm }\SpecialCharTok{==} \DecValTok{0}\NormalTok{,}\SpecialCharTok{{-}}\NormalTok{x,}
+                                                      \FunctionTok{log}\NormalTok{(y\_norm)))}
+\NormalTok{        my\_reg }\OtherTok{\textless{}{-}}
+            \FunctionTok{feols}\NormalTok{(}
+                \AttributeTok{fml =}\NormalTok{ my }\SpecialCharTok{\textasciitilde{}}\NormalTok{ x1 }\SpecialCharTok{+} \FunctionTok{i}\NormalTok{(period, treat, }\DecValTok{5}\NormalTok{) }\SpecialCharTok{|}\NormalTok{ id }\SpecialCharTok{+}\NormalTok{ period,}
+                \AttributeTok{data =}\NormalTok{ base\_did\_log0\_cali,}
+                \AttributeTok{vcov =} \StringTok{"hetero"}
+\NormalTok{            )}
+        
+        \FunctionTok{return}\NormalTok{(my\_reg)}
+\NormalTok{    \}}
+
+\NormalTok{xvec }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{, .}\DecValTok{1}\NormalTok{, .}\DecValTok{5}\NormalTok{, }\DecValTok{1}\NormalTok{, }\DecValTok{3}\NormalTok{)}
+\NormalTok{reg\_list }\OtherTok{\textless{}{-}}\NormalTok{ purrr}\SpecialCharTok{::}\FunctionTok{map}\NormalTok{(}\AttributeTok{.x =}\NormalTok{ xvec, }\AttributeTok{.f =}\NormalTok{ my\_regression)}
+
+
+\FunctionTok{iplot}\NormalTok{(reg\_list, }
+      \AttributeTok{pt.col =}  \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(xvec),}
+      \AttributeTok{pt.pch =} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(xvec))}
+\FunctionTok{legend}\NormalTok{(}\StringTok{"topleft"}\NormalTok{, }
+       \AttributeTok{col =} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(xvec),}
+       \AttributeTok{pch =} \DecValTok{1}\SpecialCharTok{:}\FunctionTok{length}\NormalTok{(xvec),}
+       \AttributeTok{legend =} \FunctionTok{as.character}\NormalTok{(xvec))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-3-1} \end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+
+\FunctionTok{etable}\NormalTok{(}
+\NormalTok{    reg\_list,}
+    \AttributeTok{headers =} \FunctionTok{list}\NormalTok{(}\StringTok{"Extensive{-}margin value (x)"} \OtherTok{=} \FunctionTok{as.character}\NormalTok{(xvec)),}
+    \AttributeTok{digits =} \DecValTok{2}\NormalTok{,}
+    \AttributeTok{digits.stats =} \DecValTok{2}
+\NormalTok{)}
+\CommentTok{\#\textgreater{}                                   model 1        model 2        model 3}
+\CommentTok{\#\textgreater{} Extensive{-}margin value (x)              0            0.1            0.5}
+\CommentTok{\#\textgreater{} Dependent Var.:                        my             my             my}
+\CommentTok{\#\textgreater{}                                                                        }
+\CommentTok{\#\textgreater{} x1                         0.43*** (0.02) 0.44*** (0.02) 0.46*** (0.03)}
+\CommentTok{\#\textgreater{} treat x period = 1           {-}0.92 (0.67)   {-}0.94 (0.69)    {-}1.0 (0.73)}
+\CommentTok{\#\textgreater{} treat x period = 2           {-}0.41 (0.66)   {-}0.42 (0.67)   {-}0.43 (0.71)}
+\CommentTok{\#\textgreater{} treat x period = 3           {-}0.34 (0.67)   {-}0.35 (0.68)   {-}0.38 (0.73)}
+\CommentTok{\#\textgreater{} treat x period = 4            {-}1.0 (0.67)    {-}1.0 (0.68)    {-}1.1 (0.73)}
+\CommentTok{\#\textgreater{} treat x period = 6            0.44 (0.66)    0.44 (0.67)    0.45 (0.72)}
+\CommentTok{\#\textgreater{} treat x period = 7            1.1. (0.64)    1.1. (0.65)    1.2. (0.70)}
+\CommentTok{\#\textgreater{} treat x period = 8            1.1. (0.64)    1.1. (0.65)     1.1 (0.69)}
+\CommentTok{\#\textgreater{} treat x period = 9           1.7** (0.65)   1.7** (0.66)    1.8* (0.70)}
+\CommentTok{\#\textgreater{} treat x period = 10         2.4*** (0.62)  2.4*** (0.63)  2.5*** (0.68)}
+\CommentTok{\#\textgreater{} Fixed{-}Effects:             {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-} {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-} {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}}
+\CommentTok{\#\textgreater{} id                                    Yes            Yes            Yes}
+\CommentTok{\#\textgreater{} period                                Yes            Yes            Yes}
+\CommentTok{\#\textgreater{} \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ \_\_\_\_\_\_\_\_\_\_\_\_\_\_ \_\_\_\_\_\_\_\_\_\_\_\_\_\_ \_\_\_\_\_\_\_\_\_\_\_\_\_\_}
+\CommentTok{\#\textgreater{} S.E. type                  Heterosk.{-}rob. Heterosk.{-}rob. Heterosk.{-}rob.}
+\CommentTok{\#\textgreater{} Observations                        1,080          1,080          1,080}
+\CommentTok{\#\textgreater{} R2                                   0.43           0.43           0.43}
+\CommentTok{\#\textgreater{} Within R2                            0.26           0.26           0.25}
+\CommentTok{\#\textgreater{} }
+\CommentTok{\#\textgreater{}                                   model 4        model 5}
+\CommentTok{\#\textgreater{} Extensive{-}margin value (x)              1              3}
+\CommentTok{\#\textgreater{} Dependent Var.:                        my             my}
+\CommentTok{\#\textgreater{}                                                         }
+\CommentTok{\#\textgreater{} x1                         0.49*** (0.03) 0.62*** (0.04)}
+\CommentTok{\#\textgreater{} treat x period = 1            {-}1.1 (0.79)     {-}1.5 (1.0)}
+\CommentTok{\#\textgreater{} treat x period = 2           {-}0.44 (0.77)   {-}0.51 (0.99)}
+\CommentTok{\#\textgreater{} treat x period = 3           {-}0.43 (0.78)    {-}0.60 (1.0)}
+\CommentTok{\#\textgreater{} treat x period = 4            {-}1.2 (0.78)     {-}1.5 (1.0)}
+\CommentTok{\#\textgreater{} treat x period = 6            0.45 (0.77)     0.46 (1.0)}
+\CommentTok{\#\textgreater{} treat x period = 7             1.2 (0.75)     1.3 (0.97)}
+\CommentTok{\#\textgreater{} treat x period = 8             1.2 (0.74)     1.3 (0.96)}
+\CommentTok{\#\textgreater{} treat x period = 9            1.8* (0.75)    2.1* (0.97)}
+\CommentTok{\#\textgreater{} treat x period = 10         2.7*** (0.73)  3.2*** (0.94)}
+\CommentTok{\#\textgreater{} Fixed{-}Effects:             {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-} {-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}{-}}
+\CommentTok{\#\textgreater{} id                                    Yes            Yes}
+\CommentTok{\#\textgreater{} period                                Yes            Yes}
+\CommentTok{\#\textgreater{} \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_ \_\_\_\_\_\_\_\_\_\_\_\_\_\_ \_\_\_\_\_\_\_\_\_\_\_\_\_\_}
+\CommentTok{\#\textgreater{} S.E. type                  Heterosk.{-}rob. Heterosk.{-}rob.}
+\CommentTok{\#\textgreater{} Observations                        1,080          1,080}
+\CommentTok{\#\textgreater{} R2                                   0.42           0.41}
+\CommentTok{\#\textgreater{} Within R2                            0.25           0.24}
+\CommentTok{\#\textgreater{} {-}{-}{-}}
+\CommentTok{\#\textgreater{} Signif. codes: 0 \textquotesingle{}***\textquotesingle{} 0.001 \textquotesingle{}**\textquotesingle{} 0.01 \textquotesingle{}*\textquotesingle{} 0.05 \textquotesingle{}.\textquotesingle{} 0.1 \textquotesingle{} \textquotesingle{} 1}
+\end{Highlighting}
+\end{Shaded}
+
+We have the dynamic treatment effects for different hypothesized extensive-margin value of \(x \in (0, .1, .5, 1, 3, 5)\)
+
+The first column is when the zero-valued outcome equal to \(y_{min, y>0}\) (i.e., there is no different between the minimum outcome and zero outcome - \(x = 0\))
+
+For this particular example, as the extensive margin increases, we see an increase in the effect magnitude. The second column is when we assume an extensive-margin change from 0 to \(y_{min, y >0}\) is equivalent to a 10 (i.e., \(0.1 \times 100\)) log point change along the intensive margin.
 
 \hypertarget{standard-errors-2}{%
 \section{Standard Errors}\label{standard-errors-2}}
@@ -40044,11 +40913,11 @@ where
 \end{itemize}
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1667}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.4000}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1222}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1222}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1556}}@{}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1867}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.4667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.0933}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.0800}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 8\tabcolsep) * \real{0.1733}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
@@ -40411,8 +41280,8 @@ This package is based on \citep{somaini2016algorithm}
 Standard errors estimation options
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.1966}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.8034}}@{}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.1913}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.8087}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 Set
@@ -41091,7 +41960,7 @@ and \(\omega_d\) be the event date of the d-th sub-experiment (e.g., \(\omega_1\
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-11-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-10-1} \end{center}
 
 \textbf{Stack Data}
 
@@ -41240,7 +42109,7 @@ Hence, naive TWFE fixed effect equals the weighted average of the Bacon decompos
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-14-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-13-1} \end{center}
 
 With time-varying controls that can identify variation within-treatment timing group, the''early vs.~late'' and ``late vs.~early'' estimates collapse to just one estimate (i.e., both treated).
 
@@ -41411,7 +42280,7 @@ The least squares estimate of \(\beta\) leverages the covariance in outcome and 
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-16-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-15-1} \end{center}
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -41778,7 +42647,7 @@ Basic functions:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-17-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-16-1} \end{center}
 
 Control units and the treated unit have identical treatment histories over the lag window (1988-1991)
 
@@ -41799,7 +42668,7 @@ Control units and the treated unit have identical treatment histories over the l
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-18-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-17-1} \end{center}
 
 This set is more limited than the first one, but we can still see that we have exact past histories.
 
@@ -41991,7 +42860,7 @@ This set is more limited than the first one, but we can still see that we have e
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-21-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-20-1} \end{center}
 
 \textbf{Comparing Methods of Refinement}
 
@@ -42210,7 +43079,7 @@ This set is more limited than the first one, but we can still see that we have e
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-23-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-22-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -42228,7 +43097,7 @@ This set is more limited than the first one, but we can still see that we have e
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-23-2} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-22-2} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -42243,7 +43112,7 @@ This set is more limited than the first one, but we can still see that we have e
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-23-3} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-22-3} \end{center}
 
 \textbf{\texttt{PanelEstimate}}
 
@@ -42338,7 +43207,7 @@ This set is more limited than the first one, but we can still see that we have e
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-24-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-23-1} \end{center}
 
 \textbf{Moderating Variables}
 
@@ -42375,7 +43244,7 @@ This set is more limited than the first one, but we can still see that we have e
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-25-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-24-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -42384,7 +43253,7 @@ This set is more limited than the first one, but we can still see that we have e
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-25-2} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-24-2} \end{center}
 
 To write up for journal submission, you can follow the following report:
 
@@ -43556,7 +44425,7 @@ There are several options to regularize \(L\):
   Rank (i.e., Subset selection): not computationally feasible
 \end{enumerate}
 
-This methods allows to
+This method allows to
 
 \begin{itemize}
 \item
@@ -43636,7 +44505,7 @@ This methods allows to
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-40-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-39-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -43645,7 +44514,7 @@ This methods allows to
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-40-2} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-39-2} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -43666,7 +44535,7 @@ This methods allows to
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-41-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-40-1} \end{center}
 
 \citet{borusyak2021revisiting} \texttt{didimputation}
 
@@ -43884,7 +44753,7 @@ I don't recommend the \texttt{TwoWayFEWeights} since it only gives the aggregate
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-45-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-44-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -44041,7 +44910,7 @@ can use \texttt{fixest} in r with \texttt{sunab} function
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-48-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-47-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -44541,7 +45410,7 @@ Debate:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-50-1} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-49-1} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -44561,7 +45430,7 @@ Debate:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-50-2} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-49-2} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -44575,7 +45444,7 @@ Debate:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-50-3} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-49-3} \end{center}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -44583,7 +45452,7 @@ Debate:
 \end{Highlighting}
 \end{Shaded}
 
-\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-50-4} \end{center}
+\begin{center}\includegraphics[width=0.9\linewidth]{26-dif-in-dif_files/figure-latex/unnamed-chunk-49-4} \end{center}
 
 This is alarming since one of the periods is significantly different from 0, which means that our parallel trends assumption is not plausible.
 
@@ -51533,8 +52402,8 @@ low p-value means you reject the null of exogenous instruments. Hence you would 
 \end{itemize}
 
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.2769}}
-  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.7231}}@{}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 2\tabcolsep) * \real{0.8333}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 Result
@@ -52305,7 +53174,7 @@ where \(\epsilon\) is uncorrelated with education and IQ test.
 
 \begin{itemize}
 \item
-  Also known as sample selection or self-selection problem
+  Also known as sample selection or self-selection problem or incidental truncation.
 \item
   The omitted variable is how people were selected into the sample
 \end{itemize}
@@ -52333,11 +53202,36 @@ Assumptions: - The unobservables that affect the treatment selection and the out
   \item
     With strong exclusion restriction for the covariate in the correction equation, the variation in this variable can help identify the control for selection
   \item
-    With weak exclusion restriction, and the variable exists in both steps, it's the assumed error structure that identifies the control for selection.
+    With weak exclusion restriction, and the variable exists in both steps, it's the assumed error structure that identifies the control for selection \citep{heckman2004using}.
   \end{itemize}
+\item
+  In management, \citet{wolfolds2019misaccounting} found that papers should have valid exclusion conditions, because without these, simulations show that results using the Heckman method are less reliable than those obtained with OLS.
+\item
+  There are differences between Heckman Sample Selection vs.~Heckman-type correction
 \end{itemize}
 
-To combat {[}Sample Selection{]}, we can
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.0700}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.3625}}
+  >{\raggedright\arraybackslash}p{(\columnwidth - 4\tabcolsep) * \real{0.5675}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Heckman Sample Selection Model}
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+\textbf{Heckman-Type Corrections}
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+When & Only observes one sample (treated), addressing selection bias directly. & Two samples are observed (treated and untreated), known as the control function approach. \\
+Model & Probit & OLS (even for dummy endogenous variable) \\
+Integration of 1st stage & Also include a term (called Inverse Mills ratio) besides the endogenous variable. & Decompose the endogenous variable to get the part that is uncorrelated with the error terms of the outcome equation. Either use the predicted endogenous variable directly or include the residual from the first-stage equation. \\
+Advantages and Assumptions & Provides a direct test for endogeneity via the coefficient of the inverse Mills ratio but requires the assumption of joint normality of errors. & Does not require the assumption of joint normality, but can't test for endogeneity directly. \\
+\end{longtable}
+
+To deal with {[}Sample Selection{]}, we can
 
 \begin{itemize}
 \tightlist

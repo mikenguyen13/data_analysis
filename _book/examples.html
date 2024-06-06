@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2024-04-11" />
+<meta name="date" content="2024-06-06" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -659,7 +659,10 @@ div.csl-indent {
 </ul></li>
 </ul></li>
 <li class="part"><span><b>B. QUASI-EXPERIMENTAL DESIGN</b></span></li>
-<li class="chapter" data-level="23" data-path="quasi-experimental.html"><a href="quasi-experimental.html"><i class="fa fa-check"></i><b>23</b> Quasi-experimental</a></li>
+<li class="chapter" data-level="23" data-path="quasi-experimental.html"><a href="quasi-experimental.html"><i class="fa fa-check"></i><b>23</b> Quasi-experimental</a>
+<ul>
+<li class="chapter" data-level="23.1" data-path="natural-experiments.html"><a href="natural-experiments.html"><i class="fa fa-check"></i><b>23.1</b> Natural Experiments</a></li>
+</ul></li>
 <li class="chapter" data-level="24" data-path="regression-discontinuity.html"><a href="regression-discontinuity.html"><i class="fa fa-check"></i><b>24</b> Regression Discontinuity</a>
 <ul>
 <li class="chapter" data-level="24.1" data-path="estimation-and-inference.html"><a href="estimation-and-inference.html"><i class="fa fa-check"></i><b>24.1</b> Estimation and Inference</a>
@@ -673,6 +676,7 @@ div.csl-indent {
 <li class="chapter" data-level="24.2.2" data-path="specification-checks.html"><a href="specification-checks.html#sortingbunchingmanipulation"><i class="fa fa-check"></i><b>24.2.2</b> Sorting/Bunching/Manipulation</a></li>
 <li class="chapter" data-level="24.2.3" data-path="specification-checks.html"><a href="specification-checks.html#placebo-tests"><i class="fa fa-check"></i><b>24.2.3</b> Placebo Tests</a></li>
 <li class="chapter" data-level="24.2.4" data-path="specification-checks.html"><a href="specification-checks.html#sensitivity-to-bandwidth-choice"><i class="fa fa-check"></i><b>24.2.4</b> Sensitivity to Bandwidth Choice</a></li>
+<li class="chapter" data-level="24.2.5" data-path="specification-checks.html"><a href="specification-checks.html#manipulation-robust-regression-discontinuity-bounds"><i class="fa fa-check"></i><b>24.2.5</b> Manipulation Robust Regression Discontinuity Bounds</a></li>
 </ul></li>
 <li class="chapter" data-level="24.3" data-path="fuzzy-rd-design.html"><a href="fuzzy-rd-design.html"><i class="fa fa-check"></i><b>24.3</b> Fuzzy RD Design</a></li>
 <li class="chapter" data-level="24.4" data-path="regression-kink-design.html"><a href="regression-kink-design.html"><i class="fa fa-check"></i><b>24.4</b> Regression Kink Design</a></li>
@@ -1016,40 +1020,40 @@ div.csl-indent {
 </div>
 <div id="example-from-princeton" class="section level3 hasAnchor" number="26.5.2">
 <h3><span class="header-section-number">26.5.2</span> Example from <a href="https://www.princeton.edu/~otorres/DID101R.pdf">Princeton</a><a href="examples.html#example-from-princeton" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb427"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb427-1"><a href="examples.html#cb427-1" tabindex="-1"></a><span class="fu">library</span>(foreign)</span>
-<span id="cb427-2"><a href="examples.html#cb427-2" tabindex="-1"></a>mydata <span class="ot">=</span> <span class="fu">read.dta</span>(<span class="st">&quot;http://dss.princeton.edu/training/Panel101.dta&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb427-3"><a href="examples.html#cb427-3" tabindex="-1"></a>    <span class="co"># create a dummy variable to indicate the time when the treatment started</span></span>
-<span id="cb427-4"><a href="examples.html#cb427-4" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">time =</span> <span class="fu">ifelse</span>(year <span class="sc">&gt;=</span> <span class="dv">1994</span>, <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb427-5"><a href="examples.html#cb427-5" tabindex="-1"></a>    <span class="co"># create a dummy variable to identify the treatment group</span></span>
-<span id="cb427-6"><a href="examples.html#cb427-6" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">treated =</span> <span class="fu">ifelse</span>(country <span class="sc">==</span> <span class="st">&quot;E&quot;</span> <span class="sc">|</span></span>
-<span id="cb427-7"><a href="examples.html#cb427-7" tabindex="-1"></a>                                country <span class="sc">==</span> <span class="st">&quot;F&quot;</span> <span class="sc">|</span> country <span class="sc">==</span> <span class="st">&quot;G&quot;</span> ,</span>
-<span id="cb427-8"><a href="examples.html#cb427-8" tabindex="-1"></a>                            <span class="dv">1</span>,</span>
-<span id="cb427-9"><a href="examples.html#cb427-9" tabindex="-1"></a>                            <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb427-10"><a href="examples.html#cb427-10" tabindex="-1"></a>    <span class="co"># create an interaction between time and treated</span></span>
-<span id="cb427-11"><a href="examples.html#cb427-11" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">did =</span> time <span class="sc">*</span> treated)</span></code></pre></div>
+<div class="sourceCode" id="cb438"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb438-1"><a href="examples.html#cb438-1" tabindex="-1"></a><span class="fu">library</span>(foreign)</span>
+<span id="cb438-2"><a href="examples.html#cb438-2" tabindex="-1"></a>mydata <span class="ot">=</span> <span class="fu">read.dta</span>(<span class="st">&quot;http://dss.princeton.edu/training/Panel101.dta&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb438-3"><a href="examples.html#cb438-3" tabindex="-1"></a>    <span class="co"># create a dummy variable to indicate the time when the treatment started</span></span>
+<span id="cb438-4"><a href="examples.html#cb438-4" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">time =</span> <span class="fu">ifelse</span>(year <span class="sc">&gt;=</span> <span class="dv">1994</span>, <span class="dv">1</span>, <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb438-5"><a href="examples.html#cb438-5" tabindex="-1"></a>    <span class="co"># create a dummy variable to identify the treatment group</span></span>
+<span id="cb438-6"><a href="examples.html#cb438-6" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">treated =</span> <span class="fu">ifelse</span>(country <span class="sc">==</span> <span class="st">&quot;E&quot;</span> <span class="sc">|</span></span>
+<span id="cb438-7"><a href="examples.html#cb438-7" tabindex="-1"></a>                                country <span class="sc">==</span> <span class="st">&quot;F&quot;</span> <span class="sc">|</span> country <span class="sc">==</span> <span class="st">&quot;G&quot;</span> ,</span>
+<span id="cb438-8"><a href="examples.html#cb438-8" tabindex="-1"></a>                            <span class="dv">1</span>,</span>
+<span id="cb438-9"><a href="examples.html#cb438-9" tabindex="-1"></a>                            <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb438-10"><a href="examples.html#cb438-10" tabindex="-1"></a>    <span class="co"># create an interaction between time and treated</span></span>
+<span id="cb438-11"><a href="examples.html#cb438-11" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">did =</span> time <span class="sc">*</span> treated)</span></code></pre></div>
 <p>estimate the DID estimator</p>
-<div class="sourceCode" id="cb428"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb428-1"><a href="examples.html#cb428-1" tabindex="-1"></a>didreg <span class="ot">=</span> <span class="fu">lm</span>(y <span class="sc">~</span> treated <span class="sc">+</span> time <span class="sc">+</span> did, <span class="at">data =</span> mydata)</span>
-<span id="cb428-2"><a href="examples.html#cb428-2" tabindex="-1"></a><span class="fu">summary</span>(didreg)</span>
-<span id="cb428-3"><a href="examples.html#cb428-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb428-4"><a href="examples.html#cb428-4" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb428-5"><a href="examples.html#cb428-5" tabindex="-1"></a><span class="co">#&gt; lm(formula = y ~ treated + time + did, data = mydata)</span></span>
-<span id="cb428-6"><a href="examples.html#cb428-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb428-7"><a href="examples.html#cb428-7" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
-<span id="cb428-8"><a href="examples.html#cb428-8" tabindex="-1"></a><span class="co">#&gt;        Min         1Q     Median         3Q        Max </span></span>
-<span id="cb428-9"><a href="examples.html#cb428-9" tabindex="-1"></a><span class="co">#&gt; -9.768e+09 -1.623e+09  1.167e+08  1.393e+09  6.807e+09 </span></span>
-<span id="cb428-10"><a href="examples.html#cb428-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb428-11"><a href="examples.html#cb428-11" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
-<span id="cb428-12"><a href="examples.html#cb428-12" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error t value Pr(&gt;|t|)  </span></span>
-<span id="cb428-13"><a href="examples.html#cb428-13" tabindex="-1"></a><span class="co">#&gt; (Intercept)  3.581e+08  7.382e+08   0.485   0.6292  </span></span>
-<span id="cb428-14"><a href="examples.html#cb428-14" tabindex="-1"></a><span class="co">#&gt; treated      1.776e+09  1.128e+09   1.575   0.1200  </span></span>
-<span id="cb428-15"><a href="examples.html#cb428-15" tabindex="-1"></a><span class="co">#&gt; time         2.289e+09  9.530e+08   2.402   0.0191 *</span></span>
-<span id="cb428-16"><a href="examples.html#cb428-16" tabindex="-1"></a><span class="co">#&gt; did         -2.520e+09  1.456e+09  -1.731   0.0882 .</span></span>
-<span id="cb428-17"><a href="examples.html#cb428-17" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb428-18"><a href="examples.html#cb428-18" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb428-19"><a href="examples.html#cb428-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb428-20"><a href="examples.html#cb428-20" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 2.953e+09 on 66 degrees of freedom</span></span>
-<span id="cb428-21"><a href="examples.html#cb428-21" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.08273,    Adjusted R-squared:  0.04104 </span></span>
-<span id="cb428-22"><a href="examples.html#cb428-22" tabindex="-1"></a><span class="co">#&gt; F-statistic: 1.984 on 3 and 66 DF,  p-value: 0.1249</span></span></code></pre></div>
+<div class="sourceCode" id="cb439"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb439-1"><a href="examples.html#cb439-1" tabindex="-1"></a>didreg <span class="ot">=</span> <span class="fu">lm</span>(y <span class="sc">~</span> treated <span class="sc">+</span> time <span class="sc">+</span> did, <span class="at">data =</span> mydata)</span>
+<span id="cb439-2"><a href="examples.html#cb439-2" tabindex="-1"></a><span class="fu">summary</span>(didreg)</span>
+<span id="cb439-3"><a href="examples.html#cb439-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb439-4"><a href="examples.html#cb439-4" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb439-5"><a href="examples.html#cb439-5" tabindex="-1"></a><span class="co">#&gt; lm(formula = y ~ treated + time + did, data = mydata)</span></span>
+<span id="cb439-6"><a href="examples.html#cb439-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb439-7"><a href="examples.html#cb439-7" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
+<span id="cb439-8"><a href="examples.html#cb439-8" tabindex="-1"></a><span class="co">#&gt;        Min         1Q     Median         3Q        Max </span></span>
+<span id="cb439-9"><a href="examples.html#cb439-9" tabindex="-1"></a><span class="co">#&gt; -9.768e+09 -1.623e+09  1.167e+08  1.393e+09  6.807e+09 </span></span>
+<span id="cb439-10"><a href="examples.html#cb439-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb439-11"><a href="examples.html#cb439-11" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb439-12"><a href="examples.html#cb439-12" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error t value Pr(&gt;|t|)  </span></span>
+<span id="cb439-13"><a href="examples.html#cb439-13" tabindex="-1"></a><span class="co">#&gt; (Intercept)  3.581e+08  7.382e+08   0.485   0.6292  </span></span>
+<span id="cb439-14"><a href="examples.html#cb439-14" tabindex="-1"></a><span class="co">#&gt; treated      1.776e+09  1.128e+09   1.575   0.1200  </span></span>
+<span id="cb439-15"><a href="examples.html#cb439-15" tabindex="-1"></a><span class="co">#&gt; time         2.289e+09  9.530e+08   2.402   0.0191 *</span></span>
+<span id="cb439-16"><a href="examples.html#cb439-16" tabindex="-1"></a><span class="co">#&gt; did         -2.520e+09  1.456e+09  -1.731   0.0882 .</span></span>
+<span id="cb439-17"><a href="examples.html#cb439-17" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb439-18"><a href="examples.html#cb439-18" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb439-19"><a href="examples.html#cb439-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb439-20"><a href="examples.html#cb439-20" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 2.953e+09 on 66 degrees of freedom</span></span>
+<span id="cb439-21"><a href="examples.html#cb439-21" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.08273,    Adjusted R-squared:  0.04104 </span></span>
+<span id="cb439-22"><a href="examples.html#cb439-22" tabindex="-1"></a><span class="co">#&gt; F-statistic: 1.984 on 3 and 66 DF,  p-value: 0.1249</span></span></code></pre></div>
 <p>The <code>did</code> coefficient is the differences-in-differences estimator. Treat has a negative effect</p>
 </div>
 <div id="example-by-card1993minimum" class="section level3 hasAnchor" number="26.5.3">
@@ -1167,13 +1171,13 @@ Y_{idt} = \beta_0 + POST_t \beta_1 + Treat_d \beta_2 + (POST_t \times Treat_d)\b
 <ul>
 <li><span class="math inline">\(Y_{idt}\)</span> = grade average</li>
 </ul>
-<table style="width:97%;">
+<table>
 <colgroup>
-<col width="16%" />
-<col width="40%" />
-<col width="12%" />
-<col width="12%" />
-<col width="15%" />
+<col width="18%" />
+<col width="46%" />
+<col width="9%" />
+<col width="8%" />
+<col width="17%" />
 </colgroup>
 <thead>
 <tr class="header">

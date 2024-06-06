@@ -1,0 +1,142 @@
+
+> Sys.getenv("R_HISTSIZE")
+[1] ""
+
+> Sys.setenv(R_HISTSIZE = 10000)
+
+> #DATA PREP
+> #-----------------------------------------------------------------
+>   dat<-read.csv(pathData)
+
+>   dat$days_without_formal_job24<-dat$days_without_formal_job
+
+>   dat$days_without_formal_job24[dat$days_without_formal_job24>=731]<-731
+
+>   dat$days_without_formal_job6<-dat$days_without_formal_job24
+
+>   dat$days_without_formal_job6[dat$days_without_formal_job24>=(365.5/2)]<-(365.5/2)
+
+>   #Code missing Y observations as censoring point
+>   dat$days_without_formal_job24[is.na(dat$days_without_formal_job24)]=731
+
+>   dat$days_without_formal_job6[is.na(dat$days_without_formal_job6)]=365.5/2
+
+>   #Now no missing observations to worry about
+>   print(sum(is.na(dat$days_without_formal_job6))+sum(is.na(dat$days_without_formal_job24))+sum(is.na .... [TRUNCATED] 
+[1] 0
+
+> #TREATMENT EFFECT ESTIMATION
+> #-----------------------------------------------------------------
+>   discrete_y<-TRUE
+
+>   bwy<-50
+
+>   parallelize<-TRUE
+
+>   num_bootstraps<-500
+
+>   num_tau_pairs<-50
+
+>   potential_taus<-c(.025,.05, 0.06369131,.1,.2)
+
+>   progressFile<-paste0(pathOutput, "progress_file.txt")
+
+>   cat(strftime(Sys.time(),"%Y-%m-%d %H:%M:%S"), "  Starting estimation \n", file=progressFile, append=FALSE)
+
+>   print("Outcome censored at 6 months:")
+[1] "Outcome censored at 6 months:"
+
+>   print("------------------------------------------------")
+[1] "------------------------------------------------"
+
+>   rdbounds_est6<-rdbounds(y=dat$days_without_formal_job6,x=dat$dist_cut, c=0, treatment=dat$treatment, bwsx=30, discrete_y=discrete_y, bwy=bwy,kerne .... [TRUNCATED] 
+[1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.06369"
+[1] "2020-03-17 13:45:12 Estimating CDFs for point estimates"
+[1] "2020-03-17 13:49:29 Estimating CDFs with nudged tau (tau_star)"
+[1] "2020-03-17 13:50:03 Beginning parallelized output by bootstrap.."
+[1] "2020-03-17 15:36:21 Estimating CDFs with fixed tau value of: 0.025"
+[1] "2020-03-17 15:36:22 Estimating CDFs with fixed tau value of: 0.05"
+[1] "2020-03-17 15:36:23 Estimating CDFs with fixed tau value of: 0.06369131"
+[1] "2020-03-17 15:36:23 Estimating CDFs with fixed tau value of: 0.1"
+[1] "2020-03-17 15:36:23 Estimating CDFs with fixed tau value of: 0.2"
+[1] "2020-03-17 15:36:44 Beginning parallelized output by bootstrap x fixed tau.."
+[1] "2020-03-17 15:39:00 Computing Confidence Intervals"
+[1] "2020-03-17 15:39:36 Time taken:124.23 minutes"
+
+>   rdbounds_export(rdbounds_est6,paste0(pathOutput,"rdbounds6"), view_it=FALSE)
+
+>   print("Outcome censored at 24 months:")
+[1] "Outcome censored at 24 months:"
+
+>   print("------------------------------------------------")
+[1] "------------------------------------------------"
+
+>   rdbounds_est24<-rdbounds(y=dat$days_without_formal_job24,x=dat$dist_cut, c=0, treatment=dat$treatment, bwsx=30, discrete_y=discrete_y, bwy=bwy,ker .... [TRUNCATED] 
+[1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.06369"
+[1] "2020-03-17 15:46:38 Estimating CDFs for point estimates"
+[1] "2020-03-17 15:51:10 Estimating CDFs with nudged tau (tau_star)"
+[1] "2020-03-17 15:51:27 Beginning parallelized output by bootstrap.."
+[1] "2020-03-18 00:46:33 Estimating CDFs with fixed tau value of: 0.025"
+[1] "2020-03-18 00:46:34 Estimating CDFs with fixed tau value of: 0.05"
+[1] "2020-03-18 00:46:34 Estimating CDFs with fixed tau value of: 0.06369131"
+[1] "2020-03-18 00:46:35 Estimating CDFs with fixed tau value of: 0.1"
+[1] "2020-03-18 00:46:35 Estimating CDFs with fixed tau value of: 0.2"
+[1] "2020-03-18 00:46:56 Beginning parallelized output by bootstrap x fixed tau.."
+[1] "2020-03-18 00:51:17 Computing Confidence Intervals"
+[1] "2020-03-18 00:52:31 Time taken:552.91 minutes"
+
+>   rdbounds_export(rdbounds_est24,paste0(pathOutput,"rdbounds24"), view_it=FALSE)
+
+> #CHARACTERISTICS OF POTENTIALLY AND ALWAYS ASSIGNED UNITS
+> #-----------------------------------------------------------------
+>   
+> W<-Kh(30,"tria ..." ... [TRUNCATED] 
+
+> dist_cut=dat$dist_cut
+
+> get_characteristics<-function(characteristics, kernel, order, h, discrete_x, dist_cut, dat){
++   tau_hat<-compute_tau_tilde(x=dist_cut, kernel, orde .... [TRUNCATED] 
+
+> dat$high_school<-dat$educ>=11
+
+> dat$prime_age<-dat$age>=36
+
+> characteristics<-c("male","age","educ","tenure","logwage","rrate","commerce","construction","industry","services","microfirm")
+
+> char_means_point<-get_characteristics(characteristics=characteristics,kernel="triangular", order=1, h=30, discrete_x=TRUE, dist_cut=dat$dist_cut, da .... [TRUNCATED] 
+
+> B<-num_bootstraps
+
+> alpha<-.05
+
+> r<-qnorm(1-alpha/2)
+
+> n<-length(dist_cut)
+
+> resample_indices <- lapply(1:B, function(b) sample(1:n, replace = T))
+
+> char_means_bs<-lapply(1:B, function(b) get_characteristics(characteristics=characteristics,kernel="triangular", order=1, h=30, discrete_x=TRUE, dist .... [TRUNCATED] 
+
+> sd_diff_w<-unlist(lapply(characteristics, function(var){sd(unlist(lapply(1:B, function(b) char_means_bs[[b]]$diff[char_means_bs[[b]]$variable==var]) .... [TRUNCATED] 
+
+> sd_potentially_w<-unlist(lapply(characteristics, function(var){sd(unlist(lapply(1:B, function(b) char_means_bs[[b]]$potentially_assigned[char_means_ .... [TRUNCATED] 
+
+> sd_always_w<-unlist(lapply(characteristics, function(var){sd(unlist(lapply(1:B, function(b) char_means_bs[[b]]$always_assigned[char_means_bs[[b]]$va .... [TRUNCATED] 
+
+> char_means<-char_means_point
+
+> char_means$diff_lowerCI<-char_means$diff-r*sd_diff_w
+
+> char_means$diff_upperCI<-char_means$diff+r*sd_diff_w
+
+> char_means$potentially_lowerCI<-char_means$potentially_assigned-r*sd_potentially_w
+
+> char_means$potentially_upperCI<-char_means$potentially_assigned+r*sd_potentially_w
+
+> char_means$always_lowerCI<-char_means$always_assigned-r*sd_always_w
+
+> char_means$always_upperCI<-char_means$always_assigned+r*sd_always_w
+
+> write.csv(as.matrix(char_means), quote=FALSE, row.names=F, paste0(pathOutput,"mean_characteristics.csv"))
+
+> sink()

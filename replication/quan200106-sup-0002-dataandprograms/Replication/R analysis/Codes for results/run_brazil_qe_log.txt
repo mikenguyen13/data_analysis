@@ -1,0 +1,562 @@
+Copy pasted from RStudio, after running all three versions (bw 30, 10, 50)  ~LG
+
+
+R version 3.5.1 (2018-07-02) -- "Feather Spray"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Workspace loaded from C:/Users/Len/Dropbox/Research/__Existing/RDManipulation/Final results for paper/feb 2020/.RData]
+
+> source('C:/Users/Len/Dropbox/Research/__Existing/RDManipulation/Final results for paper/feb 2020/run_brazil_qe.R', echo=TRUE)
+
+> library(data.table)
+data.table 1.11.8  Latest news: r-datatable.com
+
+> library(formattable)
+
+> set.seed(519)
+
+> rootPath<-"C:/Users/Len/Dropbox/Research/__Existing/RDManipulation/Final results for paper/feb 2020"
+
+> pathData<-paste0(rootPath,'/data_grr_QE_reg.csv')
+
+> pathOutput<-paste0(rootPath,"/results/")
+
+> #Load the rdbounds function
+> debugSource(paste0(rootPath,'/rdboundsv1.01_qe.R'), echo=TRUE)
+
+> #Create sink log file
+> sink(paste0(pathOutput,"rdbounds_r_output.txt"), append=FALSE, split=TRUE)
+
+> Sys.getenv("R_HISTSIZE")
+[1] ""
+
+> Sys.setenv(R_HISTSIZE = 10000)
+
+> #DATA PREP
+> #-----------------------------------------------------------------
+>   dat<-read.csv(pathData)
+
+>   dat$days_without_formal_job24<-dat$days_without_formal_job
+
+>   dat$days_without_formal_job24[dat$days_without_formal_job24>=731]<-731
+
+>   dat$days_without_formal_job6<-dat$days_without_formal_job24
+
+>   dat$days_without_formal_job6[dat$days_without_formal_job24>=(365.5/2)]<-(365.5/2)
+
+>   #Code missing Y observations as censoring point
+>   dat$days_without_formal_job24[is.na(dat$days_without_formal_job24)]=731
+
+>   dat$days_without_formal_job6[is.na(dat$days_without_formal_job6)]=365.5/2
+
+>   #Now no missing observations to worry about
+>   print(sum(is.na(dat$days_without_formal_job6))+sum(is.na(dat$days_without_formal_job24))+sum(is.na .... [TRUNCATED] 
+[1] 0
+
+> #TREATMENT EFFECT ESTIMATION
+> #-----------------------------------------------------------------
+>   discrete_y<-TRUE
+
+>   bwy<-50
+
+>   parallelize<-TRUE
+
+>   num_bootstraps<-500
+
+>   num_tau_pairs<-50
+
+>   potential_taus<-c(.025,.05, 0.06369131,.1,.2)
+
+>   progressFile<-paste0(pathOutput, "progress_file.txt")
+
+>   cat(strftime(Sys.time(),"%Y-%m-%d %H:%M:%S"), "  Starting estimation \n", file=progressFile, append=FALSE)
+
+>   print("Outcome censored at 6 months:")
+[1] "Outcome censored at 6 months:"
+
+>   print("------------------------------------------------")
+[1] "------------------------------------------------"
+
+>   rdbounds_est6<-rdbounds(y=dat$days_without_formal_job6,x=dat$dist_cut, c=0, treatment=dat$treatment, bwsx=30, discrete_y=discrete_y, bwy=bwy,kerne .... [TRUNCATED] 
+[1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.06369"
+[1] "2020-03-17 13:45:12 Estimating CDFs for point estimates"
+[1] "2020-03-17 13:49:29 Estimating CDFs with nudged tau (tau_star)"
+[1] "2020-03-17 13:50:03 Beginning parallelized output by bootstrap.."
+[1] "2020-03-17 15:36:21 Estimating CDFs with fixed tau value of: 0.025"
+[1] "2020-03-17 15:36:22 Estimating CDFs with fixed tau value of: 0.05"
+[1] "2020-03-17 15:36:23 Estimating CDFs with fixed tau value of: 0.06369131"
+[1] "2020-03-17 15:36:23 Estimating CDFs with fixed tau value of: 0.1"
+[1] "2020-03-17 15:36:23 Estimating CDFs with fixed tau value of: 0.2"
+[1] "2020-03-17 15:36:44 Beginning parallelized output by bootstrap x fixed tau.."
+[1] "2020-03-17 15:39:00 Computing Confidence Intervals"
+[1] "2020-03-17 15:39:36 Time taken:124.23 minutes"
+
+>   rdbounds_export(rdbounds_est6,paste0(pathOutput,"rdbounds6"), view_it=FALSE)
+
+>   print("Outcome censored at 24 months:")
+[1] "Outcome censored at 24 months:"
+
+>   print("------------------------------------------------")
+[1] "------------------------------------------------"
+
+>   rdbounds_est24<-rdbounds(y=dat$days_without_formal_job24,x=dat$dist_cut, c=0, treatment=dat$treatment, bwsx=30, discrete_y=discrete_y, bwy=bwy,ker .... [TRUNCATED] 
+[1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.06369"
+[1] "2020-03-17 15:46:38 Estimating CDFs for point estimates"
+Warning in estimateCDFs(inputs = CDFinputs$inputs, tau_hat = tau_hat, y = y,  :
+  For tau=estimated: the integral of stilde(y)=s(y)*(1-tau0) is small enough to shrink the identified set of (tau0, tau1) pairs (see paper for definitions).
+[1] "2020-03-17 15:51:10 Estimating CDFs with nudged tau (tau_star)"
+[1] "2020-03-17 15:51:27 Beginning parallelized output by bootstrap.."
+[1] "2020-03-18 00:46:33 Estimating CDFs with fixed tau value of: 0.025"
+[1] "2020-03-18 00:46:34 Estimating CDFs with fixed tau value of: 0.05"
+[1] "2020-03-18 00:46:34 Estimating CDFs with fixed tau value of: 0.06369131"
+[1] "2020-03-18 00:46:35 Estimating CDFs with fixed tau value of: 0.1"
+[1] "2020-03-18 00:46:35 Estimating CDFs with fixed tau value of: 0.2"
+[1] "2020-03-18 00:46:56 Beginning parallelized output by bootstrap x fixed tau.."
+Warning in CIs_estimate(CDFinputs = CDFinputs, parallelize = parallelize,  :
+  There were supressed warnings from parellized bootstrap runs (or warningFile already had contents before rdbounds was run). Here they are: 2020-03-18 00:47:28   Warning from bootstrap: 84, tau=0.025: the function G(y) (see paper for definition) should be a CDF, but is not completely monotonic (at least 2% would need to be reordered). Values have been monotonized, but this could be evidence against the model. 
+2020-03-18 00:47:28   Warning from bootstrap: 84, tau=0.05: the function G(y) (see paper for definition) should be a CDF, but is not completely monotonic (at least 2% would need to be reordered). Values have been monotonized, but this could be evidence against the model. 
+2020-03-18 00:47:29   Warning from bootstrap: 84, tau=0.06369131: the function G(y) (see paper for definition) should be a CDF, but is not completely monotonic (at least 2% would need to be reordered). Values have been monotonized, but this could be evidence against the model. 
+2020-03-18 00:47:29   Warning fr [... truncated]
+[1] "2020-03-18 00:51:17 Computing Confidence Intervals"
+[1] "2020-03-18 00:52:31 Time taken:552.91 minutes"
+
+>   rdbounds_export(rdbounds_est24,paste0(pathOutput,"rdbounds24"), view_it=FALSE)
+
+> #CHARACTERISTICS OF POTENTIALLY AND ALWAYS ASSIGNED UNITS
+> #-----------------------------------------------------------------
+>   
+> W<-Kh(30,"tria ..." ... [TRUNCATED] 
+
+> dist_cut=dat$dist_cut
+
+> get_characteristics<-function(characteristics, kernel, order, h, discrete_x, dist_cut, dat){
++   tau_hat<-compute_tau_tilde(x=dist_cut, kernel, orde .... [TRUNCATED] 
+
+> dat$high_school<-dat$educ>=11
+
+> dat$prime_age<-dat$age>=36
+
+> characteristics<-c("male","age","educ","tenure","logwage","rrate","commerce","construction","industry","services","microfirm")
+
+> char_means_point<-get_characteristics(characteristics=characteristics,kernel="triangular", order=1, h=30, discrete_x=TRUE, dist_cut=dat$dist_cut, da .... [TRUNCATED] 
+
+> B<-num_bootstraps
+
+> alpha<-.05
+
+> r<-qnorm(1-alpha/2)
+
+> n<-length(dist_cut)
+
+> resample_indices <- lapply(1:B, function(b) sample(1:n, replace = T))
+
+> char_means_bs<-lapply(1:B, function(b) get_characteristics(characteristics=characteristics,kernel="triangular", order=1, h=30, discrete_x=TRUE, dist .... [TRUNCATED] 
+
+> sd_diff_w<-unlist(lapply(characteristics, function(var){sd(unlist(lapply(1:B, function(b) char_means_bs[[b]]$diff[char_means_bs[[b]]$variable==var]) .... [TRUNCATED] 
+
+> sd_potentially_w<-unlist(lapply(characteristics, function(var){sd(unlist(lapply(1:B, function(b) char_means_bs[[b]]$potentially_assigned[char_means_ .... [TRUNCATED] 
+
+> sd_always_w<-unlist(lapply(characteristics, function(var){sd(unlist(lapply(1:B, function(b) char_means_bs[[b]]$always_assigned[char_means_bs[[b]]$va .... [TRUNCATED] 
+
+> char_means<-char_means_point
+
+> char_means$diff_lowerCI<-char_means$diff-r*sd_diff_w
+
+> char_means$diff_upperCI<-char_means$diff+r*sd_diff_w
+
+> char_means$potentially_lowerCI<-char_means$potentially_assigned-r*sd_potentially_w
+
+> char_means$potentially_upperCI<-char_means$potentially_assigned+r*sd_potentially_w
+
+> char_means$always_lowerCI<-char_means$always_assigned-r*sd_always_w
+
+> char_means$always_upperCI<-char_means$always_assigned+r*sd_always_w
+
+> write.csv(as.matrix(char_means), quote=FALSE, row.names=F, paste0(pathOutput,"mean_characteristics.csv"))
+
+> sink()
+
+> #Make sure all connections are closed:
+> sink.reset <- function(){
++   for(i in seq_len(sink.number())){
++     sink(NULL)
++   }
++ }
+
+> sink.reset()
+> library(data.table)
+> library(formattable)
+> 
+> set.seed(519)
+> 
+> rootPath<-"C:/Users/Len/Dropbox/Research/__Existing/RDManipulation/Final results for paper/feb 2020"
+> 
+> pathData<-paste0(rootPath,'/data_grr_QE_reg.csv')
+> pathOutput<-paste0(rootPath,"/results/bw10/")
+> source('C:/Users/Len/Dropbox/Research/__Existing/RDManipulation/Final results for paper/feb 2020/run_brazil_qe_bw10.R', echo=TRUE)
+
+> library(data.table)
+
+> library(formattable)
+
+> set.seed(519)
+
+> rootPath<-"C:/Users/Len/Dropbox/Research/__Existing/RDManipulation/Final results for paper/feb 2020"
+
+> pathData<-paste0(rootPath,'/data_grr_QE_reg.csv')
+
+> pathOutput<-paste0(rootPath,"/results/bw10/")
+
+> #Load the rdbounds function
+> debugSource(paste0(rootPath,'/rdboundsv1.01_qe.R'), echo=TRUE)
+
+> #Create sink log file
+> sink(paste0(pathOutput,"rdbounds_r_output.txt"), append=FALSE, split=TRUE)
+
+> Sys.getenv("R_HISTSIZE")
+[1] "10000"
+
+> Sys.setenv(R_HISTSIZE = 10000)
+
+> #DATA PREP
+> #-----------------------------------------------------------------
+>   dat<-read.csv(pathData)
+
+>   dat$days_without_formal_job24<-dat$days_without_formal_job
+
+>   dat$days_without_formal_job24[dat$days_without_formal_job24>=731]<-731
+
+>   dat$days_without_formal_job6<-dat$days_without_formal_job24
+
+>   dat$days_without_formal_job6[dat$days_without_formal_job24>=(365.5/2)]<-(365.5/2)
+
+>   #Code missing Y observations as censoring point
+>   dat$days_without_formal_job24[is.na(dat$days_without_formal_job24)]=731
+
+>   dat$days_without_formal_job6[is.na(dat$days_without_formal_job6)]=365.5/2
+
+>   #Now no missing observations to worry about
+>   print(sum(is.na(dat$days_without_formal_job6))+sum(is.na(dat$days_without_formal_job24))+sum(is.na .... [TRUNCATED] 
+[1] 0
+
+> #TREATMENT EFFECT ESTIMATION
+> #-----------------------------------------------------------------
+>   discrete_y<-TRUE
+
+>   bwy<-50
+
+>   parallelize<-TRUE
+
+>   num_bootstraps<-500
+
+>   num_tau_pairs<-50
+
+>   potential_taus<-c(.025,.05, 0.06369131,.1,.2)
+
+>   progressFile<-paste0(pathOutput, "progress_file.txt")
+
+>   cat(strftime(Sys.time(),"%Y-%m-%d %H:%M:%S"), "  Starting estimation \n", file=progressFile, append=FALSE)
+
+>   print("Outcome censored at 6 months:")
+[1] "Outcome censored at 6 months:"
+
+>   print("------------------------------------------------")
+[1] "------------------------------------------------"
+
+>   rdbounds_est6<-rdbounds(y=dat$days_without_formal_job6,x=dat$dist_cut, c=0, treatment=dat$treatment, bwsx=10, discrete_y=discrete_y, bwy=bwy,kerne .... [TRUNCATED] 
+[1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.06881"
+[1] "2020-03-18 01:07:18 Estimating CDFs for point estimates"
+Warning in estimateCDFs(inputs = CDFinputs$inputs, tau_hat = tau_hat, y = y,  :
+  For tau=estimated: the integral of stilde(y)=s(y)*(1-tau0) is small enough to shrink the identified set of (tau0, tau1) pairs (see paper for definitions).
+[1] "2020-03-18 01:09:00 Estimating CDFs with nudged tau (tau_star)"
+[1] "2020-03-18 01:09:16 Beginning parallelized output by bootstrap.."
+[1] "2020-03-18 02:29:07 Estimating CDFs with fixed tau value of: 0.025"
+[1] "2020-03-18 02:29:08 Estimating CDFs with fixed tau value of: 0.05"
+[1] "2020-03-18 02:29:08 Estimating CDFs with fixed tau value of: 0.06369131"
+[1] "2020-03-18 02:29:09 Estimating CDFs with fixed tau value of: 0.1"
+[1] "2020-03-18 02:29:09 Estimating CDFs with fixed tau value of: 0.2"
+[1] "2020-03-18 02:29:38 Beginning parallelized output by bootstrap x fixed tau.."
+Warning in CIs_estimate(CDFinputs = CDFinputs, parallelize = parallelize,  :
+  There were supressed warnings from parellized bootstrap runs (or warningFile already had contents before rdbounds was run). Here they are: 2020-03-18 02:29:45   Warning from bootstrap: 1, tau=0.025: the estimated identified set for tau0 is null. This occurs when s(y)*(1-tau0) (see paper for definition) integrates to less than 1-tau0L. This bootstrap sample will be ignored for fuzzy bounds. 
+2020-03-18 02:29:48   Warning from bootstrap: 3, tau=0.025: the estimated identified set for tau0 is null. This occurs when s(y)*(1-tau0) (see paper for definition) integrates to less than 1-tau0L. This bootstrap sample will be ignored for fuzzy bounds. 
+2020-03-18 02:29:50   Warning from bootstrap: 4, tau=0.025: the estimated identified set for tau0 is null. This occurs when s(y)*(1-tau0) (see paper for definition) integrates to less than 1-tau0L. This bootstrap sample will be ignored for fuzzy bounds. 
+2020-03-18 02:29:53   Warning from bootstrap: 73, tau=0.025: the function G(y) (see paper for [... truncated]
+[1] "2020-03-18 02:32:35 Computing Confidence Intervals"
+[1] "2020-03-18 02:33:19 Time taken:89.92 minutes"
+
+>   rdbounds_export(rdbounds_est6,paste0(pathOutput,"rdbounds6"), view_it=FALSE)
+
+>   print("Outcome censored at 24 months:")
+[1] "Outcome censored at 24 months:"
+
+>   print("------------------------------------------------")
+[1] "------------------------------------------------"
+
+>   rdbounds_est24<-rdbounds(y=dat$days_without_formal_job24,x=dat$dist_cut, c=0, treatment=dat$treatment, bwsx=10, discrete_y=discrete_y, bwy=bwy,ker .... [TRUNCATED] 
+[1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.06881"
+[1] "2020-03-18 02:38:40 Estimating CDFs for point estimates"
+Warning in estimateCDFs(inputs = CDFinputs$inputs, tau_hat = tau_hat, y = y,  :
+  For tau=estimated: the integral of stilde(y)=s(y)*(1-tau0) is small enough to shrink the identified set of (tau0, tau1) pairs (see paper for definitions).
+[1] "2020-03-18 02:42:13 Estimating CDFs with nudged tau (tau_star)"
+[1] "2020-03-18 02:42:35 Beginning parallelized output by bootstrap.."
+[1] "2020-03-18 08:10:07 Estimating CDFs with fixed tau value of: 0.025"
+[1] "2020-03-18 08:10:08 Estimating CDFs with fixed tau value of: 0.05"
+[1] "2020-03-18 08:10:08 Estimating CDFs with fixed tau value of: 0.06369131"
+[1] "2020-03-18 08:10:09 Estimating CDFs with fixed tau value of: 0.1"
+[1] "2020-03-18 08:10:10 Estimating CDFs with fixed tau value of: 0.2"
+[1] "2020-03-18 08:10:39 Beginning parallelized output by bootstrap x fixed tau.."
+Warning in CIs_estimate(CDFinputs = CDFinputs, parallelize = parallelize,  :
+  There were supressed warnings from parellized bootstrap runs (or warningFile already had contents before rdbounds was run). Here they are: 2020-03-18 08:10:44   Warning from bootstrap: 1, tau=0.025: the estimated identified set for tau0 is null. This occurs when s(y)*(1-tau0) (see paper for definition) integrates to less than 1-tau0L. This bootstrap sample will be ignored for fuzzy bounds. 
+2020-03-18 08:10:44   Warning from bootstrap: 1, tau=0.05: the function G(y) (see paper for definition) should be a CDF, but is not completely monotonic (at least 2% would need to be reordered). Values have been monotonized, but this could be evidence against the model. 
+2020-03-18 08:10:44   Warning from bootstrap: 1, tau=0.06369131: the function G(y) (see paper for definition) should be a CDF, but is not completely monotonic (at least 2% would need to be reordered). Values have been monotonized, but this could be evidence against the model. 
+2020-03-18 08:10:45   Warning from bootstrap: 1, tau= [... truncated]
+[1] "2020-03-18 08:13:25 Computing Confidence Intervals"
+[1] "2020-03-18 08:14:46 Time taken:341.44 minutes"
+
+>   rdbounds_export(rdbounds_est24,paste0(pathOutput,"rdbounds24"), view_it=FALSE)
+
+> #CHARACTERISTICS OF POTENTIALLY AND ALWAYS ASSIGNED UNITS
+> #-----------------------------------------------------------------
+>   
+> W<-Kh(10,"tria ..." ... [TRUNCATED] 
+
+> dist_cut=dat$dist_cut
+
+> get_characteristics<-function(characteristics, kernel, order, h, discrete_x, dist_cut, dat){
++   tau_hat<-compute_tau_tilde(x=dist_cut, kernel, orde .... [TRUNCATED] 
+
+> dat$high_school<-dat$educ>=11
+
+> dat$prime_age<-dat$age>=36
+
+> characteristics<-c("male","age","educ","tenure","logwage","rrate","commerce","construction","industry","services","microfirm")
+
+> char_means_point<-get_characteristics(characteristics=characteristics,kernel="triangular", order=1, h=10, discrete_x=TRUE, dist_cut=dat$dist_cut, da .... [TRUNCATED] 
+
+> B<-num_bootstraps
+
+> alpha<-.05
+
+> r<-qnorm(1-alpha/2)
+
+> n<-length(dist_cut)
+
+> resample_indices <- lapply(1:B, function(b) sample(1:n, replace = T))
+
+> char_means_bs<-lapply(1:B, function(b) get_characteristics(characteristics=characteristics,kernel="triangular", order=1, h=10, discrete_x=TRUE, dist .... [TRUNCATED] 
+
+> sd_diff_w<-unlist(lapply(characteristics, function(var){sd(unlist(lapply(1:B, function(b) char_means_bs[[b]]$diff[char_means_bs[[b]]$variable==var]) .... [TRUNCATED] 
+
+> sd_potentially_w<-unlist(lapply(characteristics, function(var){sd(unlist(lapply(1:B, function(b) char_means_bs[[b]]$potentially_assigned[char_means_ .... [TRUNCATED] 
+
+> sd_always_w<-unlist(lapply(characteristics, function(var){sd(unlist(lapply(1:B, function(b) char_means_bs[[b]]$always_assigned[char_means_bs[[b]]$va .... [TRUNCATED] 
+
+> char_means<-char_means_point
+
+> char_means$diff_lowerCI<-char_means$diff-r*sd_diff_w
+
+> char_means$diff_upperCI<-char_means$diff+r*sd_diff_w
+
+> char_means$potentially_lowerCI<-char_means$potentially_assigned-r*sd_potentially_w
+
+> char_means$potentially_upperCI<-char_means$potentially_assigned+r*sd_potentially_w
+
+> char_means$always_lowerCI<-char_means$always_assigned-r*sd_always_w
+
+> char_means$always_upperCI<-char_means$always_assigned+r*sd_always_w
+
+> write.csv(as.matrix(char_means), quote=FALSE, row.names=F, paste0(pathOutput,"mean_characteristics.csv"))
+
+> sink()
+
+> #Make sure all connections are closed:
+> sink.reset <- function(){
++   for(i in seq_len(sink.number())){
++     sink(NULL)
++   }
++ }
+
+> sink.reset()
+> source('C:/Users/Len/Dropbox/Research/__Existing/RDManipulation/Final results for paper/feb 2020/run_brazil_qe_bw50.R', echo=TRUE)
+
+> library(data.table)
+
+> library(formattable)
+
+> set.seed(519)
+
+> rootPath<-"C:/Users/Len/Dropbox/Research/__Existing/RDManipulation/Final results for paper/feb 2020"
+
+> pathData<-paste0(rootPath,'/data_grr_QE_reg.csv')
+
+> pathOutput<-paste0(rootPath,"/results/bw50/")
+
+> #Load the rdbounds function
+> debugSource(paste0(rootPath,'/rdboundsv1.01_qe.R'), echo=TRUE)
+
+> #Create sink log file
+> sink(paste0(pathOutput,"rdbounds_r_output.txt"), append=FALSE, split=TRUE)
+
+> Sys.getenv("R_HISTSIZE")
+[1] "10000"
+
+> Sys.setenv(R_HISTSIZE = 10000)
+
+> #DATA PREP
+> #-----------------------------------------------------------------
+>   dat<-read.csv(pathData)
+
+>   dat$days_without_formal_job24<-dat$days_without_formal_job
+
+>   dat$days_without_formal_job24[dat$days_without_formal_job24>=731]<-731
+
+>   dat$days_without_formal_job6<-dat$days_without_formal_job24
+
+>   dat$days_without_formal_job6[dat$days_without_formal_job24>=(365.5/2)]<-(365.5/2)
+
+>   #Code missing Y observations as censoring point
+>   dat$days_without_formal_job24[is.na(dat$days_without_formal_job24)]=731
+
+>   dat$days_without_formal_job6[is.na(dat$days_without_formal_job6)]=365.5/2
+
+>   #Now no missing observations to worry about
+>   print(sum(is.na(dat$days_without_formal_job6))+sum(is.na(dat$days_without_formal_job24))+sum(is.na .... [TRUNCATED] 
+[1] 0
+
+> #TREATMENT EFFECT ESTIMATION
+> #-----------------------------------------------------------------
+>   discrete_y<-TRUE
+
+>   bwy<-50
+
+>   parallelize<-TRUE
+
+>   num_bootstraps<-500
+
+>   num_tau_pairs<-50
+
+>   potential_taus<-c(.025,.05, 0.06369131,.1,.2)
+
+>   progressFile<-paste0(pathOutput, "progress_file.txt")
+
+>   cat(strftime(Sys.time(),"%Y-%m-%d %H:%M:%S"), "  Starting estimation \n", file=progressFile, append=FALSE)
+
+>   print("Outcome censored at 6 months:")
+[1] "Outcome censored at 6 months:"
+
+>   print("------------------------------------------------")
+[1] "------------------------------------------------"
+
+>   rdbounds_est6<-rdbounds(y=dat$days_without_formal_job6,x=dat$dist_cut, c=0, treatment=dat$treatment, bwsx=50, discrete_y=discrete_y, bwy=bwy,kerne .... [TRUNCATED] 
+[1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.0844"
+[1] "2020-03-18 08:30:03 Estimating CDFs for point estimates"
+[1] "2020-03-18 08:32:12 Estimating CDFs with nudged tau (tau_star)"
+[1] "2020-03-18 08:32:34 Beginning parallelized output by bootstrap.."
+[1] "2020-03-18 10:12:10 Estimating CDFs with fixed tau value of: 0.025"
+[1] "2020-03-18 10:12:13 Estimating CDFs with fixed tau value of: 0.05"
+[1] "2020-03-18 10:12:13 Estimating CDFs with fixed tau value of: 0.06369131"
+[1] "2020-03-18 10:12:14 Estimating CDFs with fixed tau value of: 0.1"
+[1] "2020-03-18 10:12:14 Estimating CDFs with fixed tau value of: 0.2"
+[1] "2020-03-18 10:12:43 Beginning parallelized output by bootstrap x fixed tau.."
+[1] "2020-03-18 10:16:20 Computing Confidence Intervals"
+[1] "2020-03-18 10:17:46 Time taken:113.1 minutes"
+
+>   rdbounds_export(rdbounds_est6,paste0(pathOutput,"rdbounds6"), view_it=FALSE)
+
+>   print("Outcome censored at 24 months:")
+[1] "Outcome censored at 24 months:"
+
+>   print("------------------------------------------------")
+[1] "------------------------------------------------"
+
+>   rdbounds_est24<-rdbounds(y=dat$days_without_formal_job24,x=dat$dist_cut, c=0, treatment=dat$treatment, bwsx=50, discrete_y=discrete_y, bwy=bwy,ker .... [TRUNCATED] 
+[1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.0844"
+[1] "2020-03-18 10:22:55 Estimating CDFs for point estimates"
+[1] "2020-03-18 10:27:16 Estimating CDFs with nudged tau (tau_star)"
+[1] "2020-03-18 10:27:34 Beginning parallelized output by bootstrap.."
+[1] "2020-03-18 16:03:35 Estimating CDFs with fixed tau value of: 0.025"
+[1] "2020-03-18 16:03:36 Estimating CDFs with fixed tau value of: 0.05"
+[1] "2020-03-18 16:03:37 Estimating CDFs with fixed tau value of: 0.06369131"
+[1] "2020-03-18 16:03:37 Estimating CDFs with fixed tau value of: 0.1"
+[1] "2020-03-18 16:03:38 Estimating CDFs with fixed tau value of: 0.2"
+[1] "2020-03-18 16:04:00 Beginning parallelized output by bootstrap x fixed tau.."
+[1] "2020-03-18 16:06:58 Computing Confidence Intervals"
+[1] "2020-03-18 16:08:36 Time taken:350.82 minutes"
+
+>   rdbounds_export(rdbounds_est24,paste0(pathOutput,"rdbounds24"), view_it=FALSE)
+
+> #CHARACTERISTICS OF POTENTIALLY AND ALWAYS ASSIGNED UNITS
+> #-----------------------------------------------------------------
+>   
+> W<-Kh(50,"tria ..." ... [TRUNCATED] 
+
+> dist_cut=dat$dist_cut
+
+> get_characteristics<-function(characteristics, kernel, order, h, discrete_x, dist_cut, dat){
++   tau_hat<-compute_tau_tilde(x=dist_cut, kernel, orde .... [TRUNCATED] 
+
+> dat$high_school<-dat$educ>=11
+
+> dat$prime_age<-dat$age>=36
+
+> characteristics<-c("male","age","educ","tenure","logwage","rrate","commerce","construction","industry","services","microfirm")
+
+> char_means_point<-get_characteristics(characteristics=characteristics,kernel="triangular", order=1, h=50, discrete_x=TRUE, dist_cut=dat$dist_cut, da .... [TRUNCATED] 
+
+> B<-num_bootstraps
+
+> alpha<-.05
+
+> r<-qnorm(1-alpha/2)
+
+> n<-length(dist_cut)
+
+> resample_indices <- lapply(1:B, function(b) sample(1:n, replace = T))
+
+> char_means_bs<-lapply(1:B, function(b) get_characteristics(characteristics=characteristics,kernel="triangular", order=1, h=50, discrete_x=TRUE, dist .... [TRUNCATED] 
+
+> sd_diff_w<-unlist(lapply(characteristics, function(var){sd(unlist(lapply(1:B, function(b) char_means_bs[[b]]$diff[char_means_bs[[b]]$variable==var]) .... [TRUNCATED] 
+
+> sd_potentially_w<-unlist(lapply(characteristics, function(var){sd(unlist(lapply(1:B, function(b) char_means_bs[[b]]$potentially_assigned[char_means_ .... [TRUNCATED] 
+
+> sd_always_w<-unlist(lapply(characteristics, function(var){sd(unlist(lapply(1:B, function(b) char_means_bs[[b]]$always_assigned[char_means_bs[[b]]$va .... [TRUNCATED] 
+
+> char_means<-char_means_point
+
+> char_means$diff_lowerCI<-char_means$diff-r*sd_diff_w
+
+> char_means$diff_upperCI<-char_means$diff+r*sd_diff_w
+
+> char_means$potentially_lowerCI<-char_means$potentially_assigned-r*sd_potentially_w
+
+> char_means$potentially_upperCI<-char_means$potentially_assigned+r*sd_potentially_w
+
+> char_means$always_lowerCI<-char_means$always_assigned-r*sd_always_w
+
+> char_means$always_upperCI<-char_means$always_assigned+r*sd_always_w
+
+> write.csv(as.matrix(char_means), quote=FALSE, row.names=F, paste0(pathOutput,"mean_characteristics.csv"))
+
+> sink()
+
+> #Make sure all connections are closed:
+> sink.reset <- function(){
++   for(i in seq_len(sink.number())){
++     sink(NULL)
++   }
++ }
+
+> sink.reset()

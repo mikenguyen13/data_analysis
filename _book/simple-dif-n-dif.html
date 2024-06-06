@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2024-04-11" />
+<meta name="date" content="2024-06-06" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -659,7 +659,10 @@ div.csl-indent {
 </ul></li>
 </ul></li>
 <li class="part"><span><b>B. QUASI-EXPERIMENTAL DESIGN</b></span></li>
-<li class="chapter" data-level="23" data-path="quasi-experimental.html"><a href="quasi-experimental.html"><i class="fa fa-check"></i><b>23</b> Quasi-experimental</a></li>
+<li class="chapter" data-level="23" data-path="quasi-experimental.html"><a href="quasi-experimental.html"><i class="fa fa-check"></i><b>23</b> Quasi-experimental</a>
+<ul>
+<li class="chapter" data-level="23.1" data-path="natural-experiments.html"><a href="natural-experiments.html"><i class="fa fa-check"></i><b>23.1</b> Natural Experiments</a></li>
+</ul></li>
 <li class="chapter" data-level="24" data-path="regression-discontinuity.html"><a href="regression-discontinuity.html"><i class="fa fa-check"></i><b>24</b> Regression Discontinuity</a>
 <ul>
 <li class="chapter" data-level="24.1" data-path="estimation-and-inference.html"><a href="estimation-and-inference.html"><i class="fa fa-check"></i><b>24.1</b> Estimation and Inference</a>
@@ -673,6 +676,7 @@ div.csl-indent {
 <li class="chapter" data-level="24.2.2" data-path="specification-checks.html"><a href="specification-checks.html#sortingbunchingmanipulation"><i class="fa fa-check"></i><b>24.2.2</b> Sorting/Bunching/Manipulation</a></li>
 <li class="chapter" data-level="24.2.3" data-path="specification-checks.html"><a href="specification-checks.html#placebo-tests"><i class="fa fa-check"></i><b>24.2.3</b> Placebo Tests</a></li>
 <li class="chapter" data-level="24.2.4" data-path="specification-checks.html"><a href="specification-checks.html#sensitivity-to-bandwidth-choice"><i class="fa fa-check"></i><b>24.2.4</b> Sensitivity to Bandwidth Choice</a></li>
+<li class="chapter" data-level="24.2.5" data-path="specification-checks.html"><a href="specification-checks.html#manipulation-robust-regression-discontinuity-bounds"><i class="fa fa-check"></i><b>24.2.5</b> Manipulation Robust Regression Discontinuity Bounds</a></li>
 </ul></li>
 <li class="chapter" data-level="24.3" data-path="fuzzy-rd-design.html"><a href="fuzzy-rd-design.html"><i class="fa fa-check"></i><b>24.3</b> Fuzzy RD Design</a></li>
 <li class="chapter" data-level="24.4" data-path="regression-kink-design.html"><a href="regression-kink-design.html"><i class="fa fa-check"></i><b>24.4</b> Regression Kink Design</a></li>
@@ -1106,49 +1110,49 @@ Y &amp;= \alpha_0 + \alpha_1 Group + \alpha_2 Time  \\
 <li>You can now examine the trend in post-treatment coefficients (i.e., increasing or decreasing)</li>
 </ul></li>
 </ol>
-<div class="sourceCode" id="cb423"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb423-1"><a href="simple-dif-n-dif.html#cb423-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb423-2"><a href="simple-dif-n-dif.html#cb423-2" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
-<span id="cb423-3"><a href="simple-dif-n-dif.html#cb423-3" tabindex="-1"></a></span>
-<span id="cb423-4"><a href="simple-dif-n-dif.html#cb423-4" tabindex="-1"></a>od <span class="ot">&lt;-</span> causaldata<span class="sc">::</span>organ_donations <span class="sc">%&gt;%</span></span>
-<span id="cb423-5"><a href="simple-dif-n-dif.html#cb423-5" tabindex="-1"></a>    </span>
-<span id="cb423-6"><a href="simple-dif-n-dif.html#cb423-6" tabindex="-1"></a>    <span class="co"># Treatment variable</span></span>
-<span id="cb423-7"><a href="simple-dif-n-dif.html#cb423-7" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">California =</span> State <span class="sc">==</span> <span class="st">&#39;California&#39;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb423-8"><a href="simple-dif-n-dif.html#cb423-8" tabindex="-1"></a>    <span class="co"># centered time variable</span></span>
-<span id="cb423-9"><a href="simple-dif-n-dif.html#cb423-9" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">center_time =</span> <span class="fu">as.factor</span>(Quarter_Num <span class="sc">-</span> <span class="dv">3</span>))  </span>
-<span id="cb423-10"><a href="simple-dif-n-dif.html#cb423-10" tabindex="-1"></a><span class="co"># where 3 is the reference period precedes the treatment period</span></span>
-<span id="cb423-11"><a href="simple-dif-n-dif.html#cb423-11" tabindex="-1"></a></span>
-<span id="cb423-12"><a href="simple-dif-n-dif.html#cb423-12" tabindex="-1"></a><span class="fu">class</span>(od<span class="sc">$</span>California)</span>
-<span id="cb423-13"><a href="simple-dif-n-dif.html#cb423-13" tabindex="-1"></a><span class="co">#&gt; [1] &quot;logical&quot;</span></span>
-<span id="cb423-14"><a href="simple-dif-n-dif.html#cb423-14" tabindex="-1"></a><span class="fu">class</span>(od<span class="sc">$</span>State)</span>
-<span id="cb423-15"><a href="simple-dif-n-dif.html#cb423-15" tabindex="-1"></a><span class="co">#&gt; [1] &quot;character&quot;</span></span>
-<span id="cb423-16"><a href="simple-dif-n-dif.html#cb423-16" tabindex="-1"></a></span>
-<span id="cb423-17"><a href="simple-dif-n-dif.html#cb423-17" tabindex="-1"></a>cali <span class="ot">&lt;-</span> <span class="fu">feols</span>(Rate <span class="sc">~</span> <span class="fu">i</span>(center_time, California, <span class="at">ref =</span> <span class="dv">0</span>) <span class="sc">|</span></span>
-<span id="cb423-18"><a href="simple-dif-n-dif.html#cb423-18" tabindex="-1"></a>                  State <span class="sc">+</span> center_time,</span>
-<span id="cb423-19"><a href="simple-dif-n-dif.html#cb423-19" tabindex="-1"></a>              <span class="at">data =</span> od)</span>
-<span id="cb423-20"><a href="simple-dif-n-dif.html#cb423-20" tabindex="-1"></a></span>
-<span id="cb423-21"><a href="simple-dif-n-dif.html#cb423-21" tabindex="-1"></a><span class="fu">etable</span>(cali)</span>
-<span id="cb423-22"><a href="simple-dif-n-dif.html#cb423-22" tabindex="-1"></a><span class="co">#&gt;                                              cali</span></span>
-<span id="cb423-23"><a href="simple-dif-n-dif.html#cb423-23" tabindex="-1"></a><span class="co">#&gt; Dependent Var.:                              Rate</span></span>
-<span id="cb423-24"><a href="simple-dif-n-dif.html#cb423-24" tabindex="-1"></a><span class="co">#&gt;                                                  </span></span>
-<span id="cb423-25"><a href="simple-dif-n-dif.html#cb423-25" tabindex="-1"></a><span class="co">#&gt; California x center_time = -2    -0.0029 (0.0051)</span></span>
-<span id="cb423-26"><a href="simple-dif-n-dif.html#cb423-26" tabindex="-1"></a><span class="co">#&gt; California x center_time = -1   0.0063** (0.0023)</span></span>
-<span id="cb423-27"><a href="simple-dif-n-dif.html#cb423-27" tabindex="-1"></a><span class="co">#&gt; California x center_time = 1  -0.0216*** (0.0050)</span></span>
-<span id="cb423-28"><a href="simple-dif-n-dif.html#cb423-28" tabindex="-1"></a><span class="co">#&gt; California x center_time = 2  -0.0203*** (0.0045)</span></span>
-<span id="cb423-29"><a href="simple-dif-n-dif.html#cb423-29" tabindex="-1"></a><span class="co">#&gt; California x center_time = 3    -0.0222* (0.0100)</span></span>
-<span id="cb423-30"><a href="simple-dif-n-dif.html#cb423-30" tabindex="-1"></a><span class="co">#&gt; Fixed-Effects:                -------------------</span></span>
-<span id="cb423-31"><a href="simple-dif-n-dif.html#cb423-31" tabindex="-1"></a><span class="co">#&gt; State                                         Yes</span></span>
-<span id="cb423-32"><a href="simple-dif-n-dif.html#cb423-32" tabindex="-1"></a><span class="co">#&gt; center_time                                   Yes</span></span>
-<span id="cb423-33"><a href="simple-dif-n-dif.html#cb423-33" tabindex="-1"></a><span class="co">#&gt; _____________________________ ___________________</span></span>
-<span id="cb423-34"><a href="simple-dif-n-dif.html#cb423-34" tabindex="-1"></a><span class="co">#&gt; S.E.: Clustered                         by: State</span></span>
-<span id="cb423-35"><a href="simple-dif-n-dif.html#cb423-35" tabindex="-1"></a><span class="co">#&gt; Observations                                  162</span></span>
-<span id="cb423-36"><a href="simple-dif-n-dif.html#cb423-36" tabindex="-1"></a><span class="co">#&gt; R2                                        0.97934</span></span>
-<span id="cb423-37"><a href="simple-dif-n-dif.html#cb423-37" tabindex="-1"></a><span class="co">#&gt; Within R2                                 0.00979</span></span>
-<span id="cb423-38"><a href="simple-dif-n-dif.html#cb423-38" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb423-39"><a href="simple-dif-n-dif.html#cb423-39" tabindex="-1"></a><span class="co">#&gt; Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
-<span id="cb423-40"><a href="simple-dif-n-dif.html#cb423-40" tabindex="-1"></a></span>
-<span id="cb423-41"><a href="simple-dif-n-dif.html#cb423-41" tabindex="-1"></a><span class="fu">iplot</span>(cali, <span class="at">pt.join =</span> T)</span></code></pre></div>
+<div class="sourceCode" id="cb431"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb431-1"><a href="simple-dif-n-dif.html#cb431-1" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb431-2"><a href="simple-dif-n-dif.html#cb431-2" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
+<span id="cb431-3"><a href="simple-dif-n-dif.html#cb431-3" tabindex="-1"></a></span>
+<span id="cb431-4"><a href="simple-dif-n-dif.html#cb431-4" tabindex="-1"></a>od <span class="ot">&lt;-</span> causaldata<span class="sc">::</span>organ_donations <span class="sc">%&gt;%</span></span>
+<span id="cb431-5"><a href="simple-dif-n-dif.html#cb431-5" tabindex="-1"></a>    </span>
+<span id="cb431-6"><a href="simple-dif-n-dif.html#cb431-6" tabindex="-1"></a>    <span class="co"># Treatment variable</span></span>
+<span id="cb431-7"><a href="simple-dif-n-dif.html#cb431-7" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">California =</span> State <span class="sc">==</span> <span class="st">&#39;California&#39;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb431-8"><a href="simple-dif-n-dif.html#cb431-8" tabindex="-1"></a>    <span class="co"># centered time variable</span></span>
+<span id="cb431-9"><a href="simple-dif-n-dif.html#cb431-9" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">center_time =</span> <span class="fu">as.factor</span>(Quarter_Num <span class="sc">-</span> <span class="dv">3</span>))  </span>
+<span id="cb431-10"><a href="simple-dif-n-dif.html#cb431-10" tabindex="-1"></a><span class="co"># where 3 is the reference period precedes the treatment period</span></span>
+<span id="cb431-11"><a href="simple-dif-n-dif.html#cb431-11" tabindex="-1"></a></span>
+<span id="cb431-12"><a href="simple-dif-n-dif.html#cb431-12" tabindex="-1"></a><span class="fu">class</span>(od<span class="sc">$</span>California)</span>
+<span id="cb431-13"><a href="simple-dif-n-dif.html#cb431-13" tabindex="-1"></a><span class="co">#&gt; [1] &quot;logical&quot;</span></span>
+<span id="cb431-14"><a href="simple-dif-n-dif.html#cb431-14" tabindex="-1"></a><span class="fu">class</span>(od<span class="sc">$</span>State)</span>
+<span id="cb431-15"><a href="simple-dif-n-dif.html#cb431-15" tabindex="-1"></a><span class="co">#&gt; [1] &quot;character&quot;</span></span>
+<span id="cb431-16"><a href="simple-dif-n-dif.html#cb431-16" tabindex="-1"></a></span>
+<span id="cb431-17"><a href="simple-dif-n-dif.html#cb431-17" tabindex="-1"></a>cali <span class="ot">&lt;-</span> <span class="fu">feols</span>(Rate <span class="sc">~</span> <span class="fu">i</span>(center_time, California, <span class="at">ref =</span> <span class="dv">0</span>) <span class="sc">|</span></span>
+<span id="cb431-18"><a href="simple-dif-n-dif.html#cb431-18" tabindex="-1"></a>                  State <span class="sc">+</span> center_time,</span>
+<span id="cb431-19"><a href="simple-dif-n-dif.html#cb431-19" tabindex="-1"></a>              <span class="at">data =</span> od)</span>
+<span id="cb431-20"><a href="simple-dif-n-dif.html#cb431-20" tabindex="-1"></a></span>
+<span id="cb431-21"><a href="simple-dif-n-dif.html#cb431-21" tabindex="-1"></a><span class="fu">etable</span>(cali)</span>
+<span id="cb431-22"><a href="simple-dif-n-dif.html#cb431-22" tabindex="-1"></a><span class="co">#&gt;                                              cali</span></span>
+<span id="cb431-23"><a href="simple-dif-n-dif.html#cb431-23" tabindex="-1"></a><span class="co">#&gt; Dependent Var.:                              Rate</span></span>
+<span id="cb431-24"><a href="simple-dif-n-dif.html#cb431-24" tabindex="-1"></a><span class="co">#&gt;                                                  </span></span>
+<span id="cb431-25"><a href="simple-dif-n-dif.html#cb431-25" tabindex="-1"></a><span class="co">#&gt; California x center_time = -2    -0.0029 (0.0051)</span></span>
+<span id="cb431-26"><a href="simple-dif-n-dif.html#cb431-26" tabindex="-1"></a><span class="co">#&gt; California x center_time = -1   0.0063** (0.0023)</span></span>
+<span id="cb431-27"><a href="simple-dif-n-dif.html#cb431-27" tabindex="-1"></a><span class="co">#&gt; California x center_time = 1  -0.0216*** (0.0050)</span></span>
+<span id="cb431-28"><a href="simple-dif-n-dif.html#cb431-28" tabindex="-1"></a><span class="co">#&gt; California x center_time = 2  -0.0203*** (0.0045)</span></span>
+<span id="cb431-29"><a href="simple-dif-n-dif.html#cb431-29" tabindex="-1"></a><span class="co">#&gt; California x center_time = 3    -0.0222* (0.0100)</span></span>
+<span id="cb431-30"><a href="simple-dif-n-dif.html#cb431-30" tabindex="-1"></a><span class="co">#&gt; Fixed-Effects:                -------------------</span></span>
+<span id="cb431-31"><a href="simple-dif-n-dif.html#cb431-31" tabindex="-1"></a><span class="co">#&gt; State                                         Yes</span></span>
+<span id="cb431-32"><a href="simple-dif-n-dif.html#cb431-32" tabindex="-1"></a><span class="co">#&gt; center_time                                   Yes</span></span>
+<span id="cb431-33"><a href="simple-dif-n-dif.html#cb431-33" tabindex="-1"></a><span class="co">#&gt; _____________________________ ___________________</span></span>
+<span id="cb431-34"><a href="simple-dif-n-dif.html#cb431-34" tabindex="-1"></a><span class="co">#&gt; S.E.: Clustered                         by: State</span></span>
+<span id="cb431-35"><a href="simple-dif-n-dif.html#cb431-35" tabindex="-1"></a><span class="co">#&gt; Observations                                  162</span></span>
+<span id="cb431-36"><a href="simple-dif-n-dif.html#cb431-36" tabindex="-1"></a><span class="co">#&gt; R2                                        0.97934</span></span>
+<span id="cb431-37"><a href="simple-dif-n-dif.html#cb431-37" tabindex="-1"></a><span class="co">#&gt; Within R2                                 0.00979</span></span>
+<span id="cb431-38"><a href="simple-dif-n-dif.html#cb431-38" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb431-39"><a href="simple-dif-n-dif.html#cb431-39" tabindex="-1"></a><span class="co">#&gt; Signif. codes: 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb431-40"><a href="simple-dif-n-dif.html#cb431-40" tabindex="-1"></a></span>
+<span id="cb431-41"><a href="simple-dif-n-dif.html#cb431-41" tabindex="-1"></a><span class="fu">iplot</span>(cali, <span class="at">pt.join =</span> T)</span></code></pre></div>
 <p><img src="26-dif-in-dif_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" /></p>
-<div class="sourceCode" id="cb424"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb424-1"><a href="simple-dif-n-dif.html#cb424-1" tabindex="-1"></a><span class="fu">coefplot</span>(cali)</span></code></pre></div>
+<div class="sourceCode" id="cb432"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb432-1"><a href="simple-dif-n-dif.html#cb432-1" tabindex="-1"></a><span class="fu">coefplot</span>(cali)</span></code></pre></div>
 <p><img src="26-dif-in-dif_files/figure-html/unnamed-chunk-2-2.png" width="90%" style="display: block; margin: auto;" /></p>
 </div>
             </section>

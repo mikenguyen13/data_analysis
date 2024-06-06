@@ -17,6 +17,14 @@ Examples in marketing
 -   [@he2022market]: using Amazon policy change to examine the causal impact of fake reviews on sales, average ratings.
 -   [@peukert2022regulatory]: using European General data protection Regulation, examine the impact of policy change on website usage.
 
+Examples in econ:
+
+-   [@rosenzweig2000natural]
+
+-   [@angrist2001instrumental]
+
+-   [@fuchs2016natural]: macro
+
 Show the mechanism via
 
 -   [Mediation Under DiD] analysis: see [@habel2021variable]
@@ -300,6 +308,8 @@ For [Zero-valued Outcomes], we have to distinguish the treatment effect on the i
 
 -   **Log Effects with Calibrated Extensive-margin value**: due to problem with the mean value interpretation of the proportional treatment effects with outcomes that are heavy-tailed, we might be interested in the extensive margin effect. Then, we can explicit model how much weight we put on the intensive vs. extensive margin [@chen2023logs, p. 39].
 
+1.  **Proportional treatment effects**
+
 
 ```r
 set.seed(123) # For reproducibility
@@ -317,14 +327,16 @@ Post <- ifelse(Time == "After", 1, 0)
 # Step 1: Generate baseline outcomes with a zero-inflated model
 lambda <- 20 # Average rate of occurrence
 zero_inflation <- 0.5 # Proportion of zeros
-Y_baseline <- ifelse(runif(2*n) < zero_inflation, 0, rpois(2*n, lambda))
+Y_baseline <-
+    ifelse(runif(2 * n) < zero_inflation, 0, rpois(2 * n, lambda))
 
 # Step 2: Apply DiD treatment effect on the treated group in the post-treatment period
 Treatment_Effect <- Treatment * Post
-Y_treatment <- ifelse(Treatment_Effect == 1, rpois(n, lambda = 2), 0)
+Y_treatment <-
+    ifelse(Treatment_Effect == 1, rpois(n, lambda = 2), 0)
 
 # Incorporating a simple time trend, ensuring outcomes are non-negative
-Time_Trend <- ifelse(Time == "After", rpois(2*n, lambda = 1), 0)
+Time_Trend <- ifelse(Time == "After", rpois(2 * n, lambda = 1), 0)
 
 # Step 3: Combine to get the observed outcomes
 Y_observed <- Y_baseline + Y_treatment + Time_Trend
@@ -333,7 +345,13 @@ Y_observed <- Y_baseline + Y_treatment + Time_Trend
 Y_observed <- ifelse(Y_observed < 0, 0, Y_observed)
 
 # Create the final dataset
-data <- data.frame(ID = ID, Treatment = Treatment, Period = Post, Outcome = Y_observed)
+data <-
+    data.frame(
+        ID = ID,
+        Treatment = Treatment,
+        Period = Post,
+        Outcome = Y_observed
+    )
 
 # Viewing the first few rows of the dataset
 head(data)
@@ -369,7 +387,198 @@ etable(res_pois)
 #> BIC                         15,636.8
 #> ---
 #> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+# Average percentage change
+exp(coefficients(res_pois)["Treatment:Period"]) - 1
+#> Treatment:Period 
+#>       0.03191643
+
+# SE using delta method
+exp(coefficients(res_pois)["Treatment:Period"]) *
+    sqrt(res_pois$cov.scaled["Treatment:Period", "Treatment:Period"])
+#> Treatment:Period 
+#>        0.1288596
 ```
+
+In this example, the DID coefficient is not significant. However, say that it's significant, we can interpret the coefficient as 3 percent increase in posttreatment period due to the treatment.
+
+
+```r
+library(fixest)
+
+base_did_log0 <- base_did |> 
+    mutate(y = if_else(y > 0, y, 0))
+
+res_pois_es <-
+    fepois(y ~ x1 + i(period, treat, 5) | id + period,
+           data = base_did_log0,
+           vcov = "hetero")
+
+etable(res_pois_es)
+#>                            res_pois_es
+#> Dependent Var.:                      y
+#>                                       
+#> x1                  0.1895*** (0.0108)
+#> treat x period = 1    -0.2769 (0.3545)
+#> treat x period = 2    -0.2699 (0.3533)
+#> treat x period = 3     0.1737 (0.3520)
+#> treat x period = 4    -0.2381 (0.3249)
+#> treat x period = 6     0.3724 (0.3086)
+#> treat x period = 7    0.7739* (0.3117)
+#> treat x period = 8    0.5028. (0.2962)
+#> treat x period = 9   0.9746** (0.3092)
+#> treat x period = 10  1.310*** (0.3193)
+#> Fixed-Effects:      ------------------
+#> id                                 Yes
+#> period                             Yes
+#> ___________________ __________________
+#> S.E. type           Heteroskedas.-rob.
+#> Observations                     1,080
+#> Squared Cor.                   0.51131
+#> Pseudo R2                      0.34836
+#> BIC                            5,868.8
+#> ---
+#> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+iplot(res_pois_es)
+```
+
+<img src="26-dif-in-dif_files/figure-html/estiamte teh proprortion treatment effects for event-study form-1.png" width="90%" style="display: block; margin: auto;" />
+
+This parallel trend is the "ratio" version as in @wooldridge2023simple :
+
+$$
+\frac{E(Y_{it}(0) |D_i = 1, Post_t = 1)}{E(Y_{it}(0) |D_i = 1, Post_t = 0)} = \frac{E(Y_{it}(0) |D_i = 0, Post_t = 1)}{E(Y_{it}(0) |D_i =0, Post_t = 0)}
+$$
+
+which means without treatment, the average percentage change in the mean outcome for treated group is identical to that of the control group.
+
+2.  **Log Effects with Calibrated Extensive-margin value**
+
+If we want to study the treatment effect on a concave transformation of the outcome that is less influenced by those in the distribution's tail, then we can perform this analysis.
+
+Steps:
+
+1.  Normalize the outcomes such that 1 represents the minimum non-zero and positve value (i.e., divide the outcome by its minimum non-zero and positive value).
+2.  Estimate the treatment effects for the new outcome
+
+$$
+m(y) =
+\begin{cases}
+\log(y) & \text{for } y >0 \\
+-x & \text{for } y = 0
+\end{cases}
+$$
+
+The choice of $x$ depends on what the researcher is interested in:
+
+| Value of $x$ | Interest                                                                                                                                                                        |
+|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| $x = 0$      | The treatment effect in logs where all zero-valued outcomes are set to equal the minimum non-zero value (i.e., we exclude the extensive-margin change between 0 and $y_{min}$ ) |
+| $x>0$        | Setting the change between 0 and $y_{min}$ to be valued as the equivalent of a $x$ log point change along the intensive margin.                                                 |
+
+
+```r
+library(fixest)
+base_did_log0_cali <- base_did_log0 |> 
+    # get min 
+    mutate(min_y = min(y[y > 0])) |> 
+    
+    # normalized the outcome 
+    mutate(y_norm = y / min_y)
+
+my_regression <-
+    function(x) {
+        base_did_log0_cali <-
+            base_did_log0_cali %>% mutate(my = ifelse(y_norm == 0,-x,
+                                                      log(y_norm)))
+        my_reg <-
+            feols(
+                fml = my ~ x1 + i(period, treat, 5) | id + period,
+                data = base_did_log0_cali,
+                vcov = "hetero"
+            )
+        
+        return(my_reg)
+    }
+
+xvec <- c(0, .1, .5, 1, 3)
+reg_list <- purrr::map(.x = xvec, .f = my_regression)
+
+
+iplot(reg_list, 
+      pt.col =  1:length(xvec),
+      pt.pch = 1:length(xvec))
+legend("topleft", 
+       col = 1:length(xvec),
+       pch = 1:length(xvec),
+       legend = as.character(xvec))
+```
+
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+
+
+etable(
+    reg_list,
+    headers = list("Extensive-margin value (x)" = as.character(xvec)),
+    digits = 2,
+    digits.stats = 2
+)
+#>                                   model 1        model 2        model 3
+#> Extensive-margin value (x)              0            0.1            0.5
+#> Dependent Var.:                        my             my             my
+#>                                                                        
+#> x1                         0.43*** (0.02) 0.44*** (0.02) 0.46*** (0.03)
+#> treat x period = 1           -0.92 (0.67)   -0.94 (0.69)    -1.0 (0.73)
+#> treat x period = 2           -0.41 (0.66)   -0.42 (0.67)   -0.43 (0.71)
+#> treat x period = 3           -0.34 (0.67)   -0.35 (0.68)   -0.38 (0.73)
+#> treat x period = 4            -1.0 (0.67)    -1.0 (0.68)    -1.1 (0.73)
+#> treat x period = 6            0.44 (0.66)    0.44 (0.67)    0.45 (0.72)
+#> treat x period = 7            1.1. (0.64)    1.1. (0.65)    1.2. (0.70)
+#> treat x period = 8            1.1. (0.64)    1.1. (0.65)     1.1 (0.69)
+#> treat x period = 9           1.7** (0.65)   1.7** (0.66)    1.8* (0.70)
+#> treat x period = 10         2.4*** (0.62)  2.4*** (0.63)  2.5*** (0.68)
+#> Fixed-Effects:             -------------- -------------- --------------
+#> id                                    Yes            Yes            Yes
+#> period                                Yes            Yes            Yes
+#> __________________________ ______________ ______________ ______________
+#> S.E. type                  Heterosk.-rob. Heterosk.-rob. Heterosk.-rob.
+#> Observations                        1,080          1,080          1,080
+#> R2                                   0.43           0.43           0.43
+#> Within R2                            0.26           0.26           0.25
+#> 
+#>                                   model 4        model 5
+#> Extensive-margin value (x)              1              3
+#> Dependent Var.:                        my             my
+#>                                                         
+#> x1                         0.49*** (0.03) 0.62*** (0.04)
+#> treat x period = 1            -1.1 (0.79)     -1.5 (1.0)
+#> treat x period = 2           -0.44 (0.77)   -0.51 (0.99)
+#> treat x period = 3           -0.43 (0.78)    -0.60 (1.0)
+#> treat x period = 4            -1.2 (0.78)     -1.5 (1.0)
+#> treat x period = 6            0.45 (0.77)     0.46 (1.0)
+#> treat x period = 7             1.2 (0.75)     1.3 (0.97)
+#> treat x period = 8             1.2 (0.74)     1.3 (0.96)
+#> treat x period = 9            1.8* (0.75)    2.1* (0.97)
+#> treat x period = 10         2.7*** (0.73)  3.2*** (0.94)
+#> Fixed-Effects:             -------------- --------------
+#> id                                    Yes            Yes
+#> period                                Yes            Yes
+#> __________________________ ______________ ______________
+#> S.E. type                  Heterosk.-rob. Heterosk.-rob.
+#> Observations                        1,080          1,080
+#> R2                                   0.42           0.41
+#> Within R2                            0.25           0.24
+#> ---
+#> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+We have the dynamic treatment effects for different hypothesized extensive-margin value of $x \in (0, .1, .5, 1, 3, 5)$
+
+The first column is when the zero-valued outcome equal to $y_{min, y>0}$ (i.e., there is no different between the minimum outcome and zero outcome - $x = 0$)
+
+For this particular example, as the extensive margin increases, we see an increase in the effect magnitude. The second column is when we assume an extensive-margin change from 0 to $y_{min, y >0}$ is equivalent to a 10 (i.e., $0.1 \times 100$) log point change along the intensive margin.
 
 ## Standard Errors
 
@@ -603,19 +812,13 @@ where
 
 -   $Y_{idt}$ = grade average
 
-+--------------+-----------------------------------+----------+----------+-------------+
-|              | Intercept                         | Treat    | Post     | Treat\*Post |
-+==============+===================================+==========+==========+=============+
-| Treat Pre    | 1                                 | 1        | 0        | 0           |
-+--------------+-----------------------------------+----------+----------+-------------+
-| Treat Post   | 1                                 | 1        | 1        | 1           |
-+--------------+-----------------------------------+----------+----------+-------------+
-| Control Pre  | 1                                 | 0        | 0        | 0           |
-+--------------+-----------------------------------+----------+----------+-------------+
-| Control Post | 1                                 | 0        | 1        | 0           |
-+--------------+-----------------------------------+----------+----------+-------------+
-|              | Average for pre-control $\beta_0$ |          |          |             |
-+--------------+-----------------------------------+----------+----------+-------------+
+|              | Intercept                         | Treat | Post | Treat\*Post |
+|--------------|-----------------------------------|-------|------|-------------|
+| Treat Pre    | 1                                 | 1     | 0    | 0           |
+| Treat Post   | 1                                 | 1     | 1    | 1           |
+| Control Pre  | 1                                 | 0     | 0    | 0           |
+| Control Post | 1                                 | 0     | 1    | 0           |
+|              | Average for pre-control $\beta_0$ |       |      |             |
 
 A more general specification of the dif-n-dif is that
 
@@ -871,17 +1074,12 @@ output$aVarHat
 
 Standard errors estimation options
 
-+----------------------+---------------------------------------------------------------------------------------------+
 | Set                  | Estimation                                                                                  |
-+======================+=============================================================================================+
+|----------------------|---------------------------------------------------------------------------------------------|
 | `se = "0"`           | Assume homoskedasticity and no within group correlation or serial correlation               |
-+----------------------+---------------------------------------------------------------------------------------------+
 | `se = "1"` (default) | robust to heteroskadasticity and serial correlation [@arellano1987computing]                |
-+----------------------+---------------------------------------------------------------------------------------------+
 | `se = "2"`           | robust to heteroskedasticity, but assumes no correlation within group or serial correlation |
-+----------------------+---------------------------------------------------------------------------------------------+
 | `se = "11"`          | Aerllano SE with df correction performed by Stata xtreg [@somaini2021twfem]                 |
-+----------------------+---------------------------------------------------------------------------------------------+
 
 Alternatively, you can also do it manually or with the `plm` package, but you have to be careful with how the SEs are estimated
 
@@ -1372,7 +1570,7 @@ ggplot(compare_df_longer) +
     causalverse::ama_theme()
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
 
 **Stack Data**
 
@@ -1504,7 +1702,7 @@ ggplot(df_bacon) +
     causalverse::ama_theme()
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
 
 With time-varying controls that can identify variation within-treatment timing group, the"early vs. late" and "late vs. early" estimates collapse to just one estimate (i.e., both treated).
 
@@ -1627,7 +1825,7 @@ DisplayTreatment(
 )
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
 
 1.  Select $F$ (i.e., the number of leads - time periods after treatment). Driven by what authors are interested in estimating:
 
@@ -1882,7 +2080,7 @@ DisplayTreatment(
 )
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;" />
 
 Control units and the treated unit have identical treatment histories over the lag window (1988-1991)
 
@@ -1902,7 +2100,7 @@ DisplayTreatment(
 )
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" />
 
 This set is more limited than the first one, but we can still see that we have exact past histories.
 
@@ -2060,7 +2258,7 @@ msets.maha |> head()
 plot(msets.none)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
 
 **Comparing Methods of Refinement**
 
@@ -2251,7 +2449,7 @@ get_covariate_balance(
 )
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -2267,7 +2465,7 @@ get_covariate_balance(
 )
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-23-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-22-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -2280,7 +2478,7 @@ balance_scatter(
 )
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-23-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-22-3.png" width="90%" style="display: block; margin: auto;" />
 
 **`PanelEstimate`**
 
@@ -2361,7 +2559,7 @@ summary(PE.results)
 plot(PE.results)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
 
 **Moderating Variables**
 
@@ -2397,14 +2595,14 @@ PE.results <-
 plot(PE.results[[1]])
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-25-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
 plot(PE.results[[2]])
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-25-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-24-2.png" width="90%" style="display: block; margin: auto;" />
 
 To write up for journal submission, you can follow the following report:
 
@@ -3422,7 +3620,7 @@ There are several options to regularize $L$:
 2.  Nuclear Norm (i.e., Lasso): computationally feasible (using SOFT-IMPUTE algorithm [@Mazumder2010SpectralRA]).
 3.  Rank (i.e., Subset selection): not computationally feasible
 
-This methods allows to
+This method allows to
 
 -   use more covariates
 
@@ -3494,14 +3692,14 @@ fixest::iplot(
 )
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-40-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-39-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
 coefplot(est)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-40-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-39-2.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
@@ -3521,7 +3719,7 @@ mult_est <- did2s::event_study(
 did2s::plot_event_study(mult_est)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-41-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-40-1.png" width="90%" style="display: block; margin: auto;" />
 
 @borusyak2021revisiting `didimputation`
 
@@ -3719,7 +3917,7 @@ ggplot(
     causalverse::ama_theme()
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-45-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-44-1.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
@@ -3844,7 +4042,7 @@ res_sa20 = feols(y ~ x1 + sunab(year_treated, year) | id + year, base_stagg)
 iplot(res_sa20)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-48-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-47-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -4246,7 +4444,7 @@ causalverse::plot_par_trends(
 #> [[1]]
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-50-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-49-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -4264,7 +4462,7 @@ od |>
     causalverse::ama_theme()
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-50-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-49-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -4276,13 +4474,13 @@ prior_trend <- fixest::feols(Rate ~ i(Quarter_Num, California) | State + Quarter
 fixest::coefplot(prior_trend, grid = F)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-50-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-49-3.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 fixest::iplot(prior_trend, grid = F)
 ```
 
-<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-50-4.png" width="90%" style="display: block; margin: auto;" />
+<img src="26-dif-in-dif_files/figure-html/unnamed-chunk-49-4.png" width="90%" style="display: block; margin: auto;" />
 
 This is alarming since one of the periods is significantly different from 0, which means that our parallel trends assumption is not plausible.
 

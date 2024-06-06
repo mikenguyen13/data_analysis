@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2024-04-11" />
+<meta name="date" content="2024-06-06" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -659,7 +659,10 @@ div.csl-indent {
 </ul></li>
 </ul></li>
 <li class="part"><span><b>B. QUASI-EXPERIMENTAL DESIGN</b></span></li>
-<li class="chapter" data-level="23" data-path="quasi-experimental.html"><a href="quasi-experimental.html"><i class="fa fa-check"></i><b>23</b> Quasi-experimental</a></li>
+<li class="chapter" data-level="23" data-path="quasi-experimental.html"><a href="quasi-experimental.html"><i class="fa fa-check"></i><b>23</b> Quasi-experimental</a>
+<ul>
+<li class="chapter" data-level="23.1" data-path="natural-experiments.html"><a href="natural-experiments.html"><i class="fa fa-check"></i><b>23.1</b> Natural Experiments</a></li>
+</ul></li>
 <li class="chapter" data-level="24" data-path="regression-discontinuity.html"><a href="regression-discontinuity.html"><i class="fa fa-check"></i><b>24</b> Regression Discontinuity</a>
 <ul>
 <li class="chapter" data-level="24.1" data-path="estimation-and-inference.html"><a href="estimation-and-inference.html"><i class="fa fa-check"></i><b>24.1</b> Estimation and Inference</a>
@@ -673,6 +676,7 @@ div.csl-indent {
 <li class="chapter" data-level="24.2.2" data-path="specification-checks.html"><a href="specification-checks.html#sortingbunchingmanipulation"><i class="fa fa-check"></i><b>24.2.2</b> Sorting/Bunching/Manipulation</a></li>
 <li class="chapter" data-level="24.2.3" data-path="specification-checks.html"><a href="specification-checks.html#placebo-tests"><i class="fa fa-check"></i><b>24.2.3</b> Placebo Tests</a></li>
 <li class="chapter" data-level="24.2.4" data-path="specification-checks.html"><a href="specification-checks.html#sensitivity-to-bandwidth-choice"><i class="fa fa-check"></i><b>24.2.4</b> Sensitivity to Bandwidth Choice</a></li>
+<li class="chapter" data-level="24.2.5" data-path="specification-checks.html"><a href="specification-checks.html#manipulation-robust-regression-discontinuity-bounds"><i class="fa fa-check"></i><b>24.2.5</b> Manipulation Robust Regression Discontinuity Bounds</a></li>
 </ul></li>
 <li class="chapter" data-level="24.3" data-path="fuzzy-rd-design.html"><a href="fuzzy-rd-design.html"><i class="fa fa-check"></i><b>24.3</b> Fuzzy RD Design</a></li>
 <li class="chapter" data-level="24.4" data-path="regression-kink-design.html"><a href="regression-kink-design.html"><i class="fa fa-check"></i><b>24.4</b> Regression Kink Design</a></li>
@@ -982,8 +986,8 @@ div.csl-indent {
 <li>checking (balance)</li>
 <li>estimating the treatment effect</li>
 </ol>
-<div class="sourceCode" id="cb535"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb535-1"><a href="selection-on-observables.html#cb535-1" tabindex="-1"></a><span class="fu">library</span>(MatchIt)</span>
-<span id="cb535-2"><a href="selection-on-observables.html#cb535-2" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;lalonde&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb546"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb546-1"><a href="selection-on-observables.html#cb546-1" tabindex="-1"></a><span class="fu">library</span>(MatchIt)</span>
+<span id="cb546-2"><a href="selection-on-observables.html#cb546-2" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;lalonde&quot;</span>)</span></code></pre></div>
 <p>examine <code>treat</code> on <code>re78</code></p>
 <ol style="list-style-type: decimal">
 <li>Planning</li>
@@ -996,247 +1000,247 @@ div.csl-indent {
 <ol start="2" style="list-style-type: decimal">
 <li>Check Initial Imbalance</li>
 </ol>
-<div class="sourceCode" id="cb536"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb536-1"><a href="selection-on-observables.html#cb536-1" tabindex="-1"></a><span class="co"># No matching; constructing a pre-match matchit object</span></span>
-<span id="cb536-2"><a href="selection-on-observables.html#cb536-2" tabindex="-1"></a>m.out0 <span class="ot">&lt;-</span> <span class="fu">matchit</span>(</span>
-<span id="cb536-3"><a href="selection-on-observables.html#cb536-3" tabindex="-1"></a>    <span class="fu">formula</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> race </span>
-<span id="cb536-4"><a href="selection-on-observables.html#cb536-4" tabindex="-1"></a>            <span class="sc">+</span> married <span class="sc">+</span> nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75, <span class="at">env =</span> lalonde),</span>
-<span id="cb536-5"><a href="selection-on-observables.html#cb536-5" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">data.frame</span>(lalonde),</span>
-<span id="cb536-6"><a href="selection-on-observables.html#cb536-6" tabindex="-1"></a>    <span class="at">method =</span> <span class="cn">NULL</span>,</span>
-<span id="cb536-7"><a href="selection-on-observables.html#cb536-7" tabindex="-1"></a>    <span class="co"># assess balance before matching</span></span>
-<span id="cb536-8"><a href="selection-on-observables.html#cb536-8" tabindex="-1"></a>    <span class="at">distance =</span> <span class="st">&quot;glm&quot;</span> <span class="co"># logistic regression</span></span>
-<span id="cb536-9"><a href="selection-on-observables.html#cb536-9" tabindex="-1"></a>)</span>
-<span id="cb536-10"><a href="selection-on-observables.html#cb536-10" tabindex="-1"></a></span>
-<span id="cb536-11"><a href="selection-on-observables.html#cb536-11" tabindex="-1"></a><span class="co"># Checking balance prior to matching</span></span>
-<span id="cb536-12"><a href="selection-on-observables.html#cb536-12" tabindex="-1"></a><span class="fu">summary</span>(m.out0)</span></code></pre></div>
+<div class="sourceCode" id="cb547"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb547-1"><a href="selection-on-observables.html#cb547-1" tabindex="-1"></a><span class="co"># No matching; constructing a pre-match matchit object</span></span>
+<span id="cb547-2"><a href="selection-on-observables.html#cb547-2" tabindex="-1"></a>m.out0 <span class="ot">&lt;-</span> <span class="fu">matchit</span>(</span>
+<span id="cb547-3"><a href="selection-on-observables.html#cb547-3" tabindex="-1"></a>    <span class="fu">formula</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> race </span>
+<span id="cb547-4"><a href="selection-on-observables.html#cb547-4" tabindex="-1"></a>            <span class="sc">+</span> married <span class="sc">+</span> nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75, <span class="at">env =</span> lalonde),</span>
+<span id="cb547-5"><a href="selection-on-observables.html#cb547-5" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">data.frame</span>(lalonde),</span>
+<span id="cb547-6"><a href="selection-on-observables.html#cb547-6" tabindex="-1"></a>    <span class="at">method =</span> <span class="cn">NULL</span>,</span>
+<span id="cb547-7"><a href="selection-on-observables.html#cb547-7" tabindex="-1"></a>    <span class="co"># assess balance before matching</span></span>
+<span id="cb547-8"><a href="selection-on-observables.html#cb547-8" tabindex="-1"></a>    <span class="at">distance =</span> <span class="st">&quot;glm&quot;</span> <span class="co"># logistic regression</span></span>
+<span id="cb547-9"><a href="selection-on-observables.html#cb547-9" tabindex="-1"></a>)</span>
+<span id="cb547-10"><a href="selection-on-observables.html#cb547-10" tabindex="-1"></a></span>
+<span id="cb547-11"><a href="selection-on-observables.html#cb547-11" tabindex="-1"></a><span class="co"># Checking balance prior to matching</span></span>
+<span id="cb547-12"><a href="selection-on-observables.html#cb547-12" tabindex="-1"></a><span class="fu">summary</span>(m.out0)</span></code></pre></div>
 <ol start="3" style="list-style-type: decimal">
 <li>Matching</li>
 </ol>
-<div class="sourceCode" id="cb537"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb537-1"><a href="selection-on-observables.html#cb537-1" tabindex="-1"></a><span class="co"># 1:1 NN PS matching w/o replacement</span></span>
-<span id="cb537-2"><a href="selection-on-observables.html#cb537-2" tabindex="-1"></a>m.out1 <span class="ot">&lt;-</span> <span class="fu">matchit</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ,</span>
-<span id="cb537-3"><a href="selection-on-observables.html#cb537-3" tabindex="-1"></a>                  <span class="at">data =</span> lalonde,</span>
-<span id="cb537-4"><a href="selection-on-observables.html#cb537-4" tabindex="-1"></a>                  <span class="at">method =</span> <span class="st">&quot;nearest&quot;</span>,</span>
-<span id="cb537-5"><a href="selection-on-observables.html#cb537-5" tabindex="-1"></a>                  <span class="at">distance =</span> <span class="st">&quot;glm&quot;</span>)</span>
-<span id="cb537-6"><a href="selection-on-observables.html#cb537-6" tabindex="-1"></a>m.out1</span>
-<span id="cb537-7"><a href="selection-on-observables.html#cb537-7" tabindex="-1"></a><span class="co">#&gt; A matchit object</span></span>
-<span id="cb537-8"><a href="selection-on-observables.html#cb537-8" tabindex="-1"></a><span class="co">#&gt;  - method: 1:1 nearest neighbor matching without replacement</span></span>
-<span id="cb537-9"><a href="selection-on-observables.html#cb537-9" tabindex="-1"></a><span class="co">#&gt;  - distance: Propensity score</span></span>
-<span id="cb537-10"><a href="selection-on-observables.html#cb537-10" tabindex="-1"></a><span class="co">#&gt;              - estimated with logistic regression</span></span>
-<span id="cb537-11"><a href="selection-on-observables.html#cb537-11" tabindex="-1"></a><span class="co">#&gt;  - number of obs.: 614 (original), 370 (matched)</span></span>
-<span id="cb537-12"><a href="selection-on-observables.html#cb537-12" tabindex="-1"></a><span class="co">#&gt;  - target estimand: ATT</span></span>
-<span id="cb537-13"><a href="selection-on-observables.html#cb537-13" tabindex="-1"></a><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
+<div class="sourceCode" id="cb548"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb548-1"><a href="selection-on-observables.html#cb548-1" tabindex="-1"></a><span class="co"># 1:1 NN PS matching w/o replacement</span></span>
+<span id="cb548-2"><a href="selection-on-observables.html#cb548-2" tabindex="-1"></a>m.out1 <span class="ot">&lt;-</span> <span class="fu">matchit</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ,</span>
+<span id="cb548-3"><a href="selection-on-observables.html#cb548-3" tabindex="-1"></a>                  <span class="at">data =</span> lalonde,</span>
+<span id="cb548-4"><a href="selection-on-observables.html#cb548-4" tabindex="-1"></a>                  <span class="at">method =</span> <span class="st">&quot;nearest&quot;</span>,</span>
+<span id="cb548-5"><a href="selection-on-observables.html#cb548-5" tabindex="-1"></a>                  <span class="at">distance =</span> <span class="st">&quot;glm&quot;</span>)</span>
+<span id="cb548-6"><a href="selection-on-observables.html#cb548-6" tabindex="-1"></a>m.out1</span>
+<span id="cb548-7"><a href="selection-on-observables.html#cb548-7" tabindex="-1"></a><span class="co">#&gt; A matchit object</span></span>
+<span id="cb548-8"><a href="selection-on-observables.html#cb548-8" tabindex="-1"></a><span class="co">#&gt;  - method: 1:1 nearest neighbor matching without replacement</span></span>
+<span id="cb548-9"><a href="selection-on-observables.html#cb548-9" tabindex="-1"></a><span class="co">#&gt;  - distance: Propensity score</span></span>
+<span id="cb548-10"><a href="selection-on-observables.html#cb548-10" tabindex="-1"></a><span class="co">#&gt;              - estimated with logistic regression</span></span>
+<span id="cb548-11"><a href="selection-on-observables.html#cb548-11" tabindex="-1"></a><span class="co">#&gt;  - number of obs.: 614 (original), 370 (matched)</span></span>
+<span id="cb548-12"><a href="selection-on-observables.html#cb548-12" tabindex="-1"></a><span class="co">#&gt;  - target estimand: ATT</span></span>
+<span id="cb548-13"><a href="selection-on-observables.html#cb548-13" tabindex="-1"></a><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
 <ol start="4" style="list-style-type: decimal">
 <li>Check balance</li>
 </ol>
 <p>Sometimes you have to make trade-off between balance and sample size.</p>
-<div class="sourceCode" id="cb538"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb538-1"><a href="selection-on-observables.html#cb538-1" tabindex="-1"></a><span class="co"># Checking balance after NN matching</span></span>
-<span id="cb538-2"><a href="selection-on-observables.html#cb538-2" tabindex="-1"></a><span class="fu">summary</span>(m.out1, <span class="at">un =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb538-3"><a href="selection-on-observables.html#cb538-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb538-4"><a href="selection-on-observables.html#cb538-4" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb538-5"><a href="selection-on-observables.html#cb538-5" tabindex="-1"></a><span class="co">#&gt; matchit(formula = treat ~ age + educ, data = lalonde, method = &quot;nearest&quot;, </span></span>
-<span id="cb538-6"><a href="selection-on-observables.html#cb538-6" tabindex="-1"></a><span class="co">#&gt;     distance = &quot;glm&quot;)</span></span>
-<span id="cb538-7"><a href="selection-on-observables.html#cb538-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb538-8"><a href="selection-on-observables.html#cb538-8" tabindex="-1"></a><span class="co">#&gt; Summary of Balance for Matched Data:</span></span>
-<span id="cb538-9"><a href="selection-on-observables.html#cb538-9" tabindex="-1"></a><span class="co">#&gt;          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean</span></span>
-<span id="cb538-10"><a href="selection-on-observables.html#cb538-10" tabindex="-1"></a><span class="co">#&gt; distance        0.3080        0.3077          0.0094     0.9963    0.0033</span></span>
-<span id="cb538-11"><a href="selection-on-observables.html#cb538-11" tabindex="-1"></a><span class="co">#&gt; age            25.8162       25.8649         -0.0068     1.0300    0.0050</span></span>
-<span id="cb538-12"><a href="selection-on-observables.html#cb538-12" tabindex="-1"></a><span class="co">#&gt; educ           10.3459       10.2865          0.0296     0.5886    0.0253</span></span>
-<span id="cb538-13"><a href="selection-on-observables.html#cb538-13" tabindex="-1"></a><span class="co">#&gt;          eCDF Max Std. Pair Dist.</span></span>
-<span id="cb538-14"><a href="selection-on-observables.html#cb538-14" tabindex="-1"></a><span class="co">#&gt; distance   0.0432          0.0146</span></span>
-<span id="cb538-15"><a href="selection-on-observables.html#cb538-15" tabindex="-1"></a><span class="co">#&gt; age        0.0162          0.0597</span></span>
-<span id="cb538-16"><a href="selection-on-observables.html#cb538-16" tabindex="-1"></a><span class="co">#&gt; educ       0.1189          0.8146</span></span>
-<span id="cb538-17"><a href="selection-on-observables.html#cb538-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb538-18"><a href="selection-on-observables.html#cb538-18" tabindex="-1"></a><span class="co">#&gt; Sample Sizes:</span></span>
-<span id="cb538-19"><a href="selection-on-observables.html#cb538-19" tabindex="-1"></a><span class="co">#&gt;           Control Treated</span></span>
-<span id="cb538-20"><a href="selection-on-observables.html#cb538-20" tabindex="-1"></a><span class="co">#&gt; All           429     185</span></span>
-<span id="cb538-21"><a href="selection-on-observables.html#cb538-21" tabindex="-1"></a><span class="co">#&gt; Matched       185     185</span></span>
-<span id="cb538-22"><a href="selection-on-observables.html#cb538-22" tabindex="-1"></a><span class="co">#&gt; Unmatched     244       0</span></span>
-<span id="cb538-23"><a href="selection-on-observables.html#cb538-23" tabindex="-1"></a><span class="co">#&gt; Discarded       0       0</span></span>
-<span id="cb538-24"><a href="selection-on-observables.html#cb538-24" tabindex="-1"></a></span>
-<span id="cb538-25"><a href="selection-on-observables.html#cb538-25" tabindex="-1"></a><span class="co"># examine visually</span></span>
-<span id="cb538-26"><a href="selection-on-observables.html#cb538-26" tabindex="-1"></a><span class="fu">plot</span>(m.out1, <span class="at">type =</span> <span class="st">&quot;jitter&quot;</span>, <span class="at">interactive =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb549"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb549-1"><a href="selection-on-observables.html#cb549-1" tabindex="-1"></a><span class="co"># Checking balance after NN matching</span></span>
+<span id="cb549-2"><a href="selection-on-observables.html#cb549-2" tabindex="-1"></a><span class="fu">summary</span>(m.out1, <span class="at">un =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb549-3"><a href="selection-on-observables.html#cb549-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb549-4"><a href="selection-on-observables.html#cb549-4" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb549-5"><a href="selection-on-observables.html#cb549-5" tabindex="-1"></a><span class="co">#&gt; matchit(formula = treat ~ age + educ, data = lalonde, method = &quot;nearest&quot;, </span></span>
+<span id="cb549-6"><a href="selection-on-observables.html#cb549-6" tabindex="-1"></a><span class="co">#&gt;     distance = &quot;glm&quot;)</span></span>
+<span id="cb549-7"><a href="selection-on-observables.html#cb549-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb549-8"><a href="selection-on-observables.html#cb549-8" tabindex="-1"></a><span class="co">#&gt; Summary of Balance for Matched Data:</span></span>
+<span id="cb549-9"><a href="selection-on-observables.html#cb549-9" tabindex="-1"></a><span class="co">#&gt;          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean</span></span>
+<span id="cb549-10"><a href="selection-on-observables.html#cb549-10" tabindex="-1"></a><span class="co">#&gt; distance        0.3080        0.3077          0.0094     0.9963    0.0033</span></span>
+<span id="cb549-11"><a href="selection-on-observables.html#cb549-11" tabindex="-1"></a><span class="co">#&gt; age            25.8162       25.8649         -0.0068     1.0300    0.0050</span></span>
+<span id="cb549-12"><a href="selection-on-observables.html#cb549-12" tabindex="-1"></a><span class="co">#&gt; educ           10.3459       10.2865          0.0296     0.5886    0.0253</span></span>
+<span id="cb549-13"><a href="selection-on-observables.html#cb549-13" tabindex="-1"></a><span class="co">#&gt;          eCDF Max Std. Pair Dist.</span></span>
+<span id="cb549-14"><a href="selection-on-observables.html#cb549-14" tabindex="-1"></a><span class="co">#&gt; distance   0.0432          0.0146</span></span>
+<span id="cb549-15"><a href="selection-on-observables.html#cb549-15" tabindex="-1"></a><span class="co">#&gt; age        0.0162          0.0597</span></span>
+<span id="cb549-16"><a href="selection-on-observables.html#cb549-16" tabindex="-1"></a><span class="co">#&gt; educ       0.1189          0.8146</span></span>
+<span id="cb549-17"><a href="selection-on-observables.html#cb549-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb549-18"><a href="selection-on-observables.html#cb549-18" tabindex="-1"></a><span class="co">#&gt; Sample Sizes:</span></span>
+<span id="cb549-19"><a href="selection-on-observables.html#cb549-19" tabindex="-1"></a><span class="co">#&gt;           Control Treated</span></span>
+<span id="cb549-20"><a href="selection-on-observables.html#cb549-20" tabindex="-1"></a><span class="co">#&gt; All           429     185</span></span>
+<span id="cb549-21"><a href="selection-on-observables.html#cb549-21" tabindex="-1"></a><span class="co">#&gt; Matched       185     185</span></span>
+<span id="cb549-22"><a href="selection-on-observables.html#cb549-22" tabindex="-1"></a><span class="co">#&gt; Unmatched     244       0</span></span>
+<span id="cb549-23"><a href="selection-on-observables.html#cb549-23" tabindex="-1"></a><span class="co">#&gt; Discarded       0       0</span></span>
+<span id="cb549-24"><a href="selection-on-observables.html#cb549-24" tabindex="-1"></a></span>
+<span id="cb549-25"><a href="selection-on-observables.html#cb549-25" tabindex="-1"></a><span class="co"># examine visually</span></span>
+<span id="cb549-26"><a href="selection-on-observables.html#cb549-26" tabindex="-1"></a><span class="fu">plot</span>(m.out1, <span class="at">type =</span> <span class="st">&quot;jitter&quot;</span>, <span class="at">interactive =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
 <p><img src="29-matching-methods_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" /></p>
-<div class="sourceCode" id="cb539"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb539-1"><a href="selection-on-observables.html#cb539-1" tabindex="-1"></a></span>
-<span id="cb539-2"><a href="selection-on-observables.html#cb539-2" tabindex="-1"></a><span class="fu">plot</span>(</span>
-<span id="cb539-3"><a href="selection-on-observables.html#cb539-3" tabindex="-1"></a>    m.out1,</span>
-<span id="cb539-4"><a href="selection-on-observables.html#cb539-4" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">&quot;qq&quot;</span>,</span>
-<span id="cb539-5"><a href="selection-on-observables.html#cb539-5" tabindex="-1"></a>    <span class="at">interactive =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb539-6"><a href="selection-on-observables.html#cb539-6" tabindex="-1"></a>    <span class="at">which.xs =</span> <span class="fu">c</span>(<span class="st">&quot;age&quot;</span>)</span>
-<span id="cb539-7"><a href="selection-on-observables.html#cb539-7" tabindex="-1"></a>)</span></code></pre></div>
+<div class="sourceCode" id="cb550"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb550-1"><a href="selection-on-observables.html#cb550-1" tabindex="-1"></a></span>
+<span id="cb550-2"><a href="selection-on-observables.html#cb550-2" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb550-3"><a href="selection-on-observables.html#cb550-3" tabindex="-1"></a>    m.out1,</span>
+<span id="cb550-4"><a href="selection-on-observables.html#cb550-4" tabindex="-1"></a>    <span class="at">type =</span> <span class="st">&quot;qq&quot;</span>,</span>
+<span id="cb550-5"><a href="selection-on-observables.html#cb550-5" tabindex="-1"></a>    <span class="at">interactive =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb550-6"><a href="selection-on-observables.html#cb550-6" tabindex="-1"></a>    <span class="at">which.xs =</span> <span class="fu">c</span>(<span class="st">&quot;age&quot;</span>)</span>
+<span id="cb550-7"><a href="selection-on-observables.html#cb550-7" tabindex="-1"></a>)</span></code></pre></div>
 <p><img src="29-matching-methods_files/figure-html/unnamed-chunk-4-2.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>Try Full Match (i.e., every treated matches with one control, and every control with one treated).</p>
-<div class="sourceCode" id="cb540"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb540-1"><a href="selection-on-observables.html#cb540-1" tabindex="-1"></a><span class="co"># Full matching on a probit PS</span></span>
-<span id="cb540-2"><a href="selection-on-observables.html#cb540-2" tabindex="-1"></a>m.out2 <span class="ot">&lt;-</span> <span class="fu">matchit</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ, </span>
-<span id="cb540-3"><a href="selection-on-observables.html#cb540-3" tabindex="-1"></a>                  <span class="at">data =</span> lalonde,</span>
-<span id="cb540-4"><a href="selection-on-observables.html#cb540-4" tabindex="-1"></a>                  <span class="at">method =</span> <span class="st">&quot;full&quot;</span>, </span>
-<span id="cb540-5"><a href="selection-on-observables.html#cb540-5" tabindex="-1"></a>                  <span class="at">distance =</span> <span class="st">&quot;glm&quot;</span>, </span>
-<span id="cb540-6"><a href="selection-on-observables.html#cb540-6" tabindex="-1"></a>                  <span class="at">link =</span> <span class="st">&quot;probit&quot;</span>)</span>
-<span id="cb540-7"><a href="selection-on-observables.html#cb540-7" tabindex="-1"></a>m.out2</span>
-<span id="cb540-8"><a href="selection-on-observables.html#cb540-8" tabindex="-1"></a><span class="co">#&gt; A matchit object</span></span>
-<span id="cb540-9"><a href="selection-on-observables.html#cb540-9" tabindex="-1"></a><span class="co">#&gt;  - method: Optimal full matching</span></span>
-<span id="cb540-10"><a href="selection-on-observables.html#cb540-10" tabindex="-1"></a><span class="co">#&gt;  - distance: Propensity score</span></span>
-<span id="cb540-11"><a href="selection-on-observables.html#cb540-11" tabindex="-1"></a><span class="co">#&gt;              - estimated with probit regression</span></span>
-<span id="cb540-12"><a href="selection-on-observables.html#cb540-12" tabindex="-1"></a><span class="co">#&gt;  - number of obs.: 614 (original), 614 (matched)</span></span>
-<span id="cb540-13"><a href="selection-on-observables.html#cb540-13" tabindex="-1"></a><span class="co">#&gt;  - target estimand: ATT</span></span>
-<span id="cb540-14"><a href="selection-on-observables.html#cb540-14" tabindex="-1"></a><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
+<div class="sourceCode" id="cb551"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb551-1"><a href="selection-on-observables.html#cb551-1" tabindex="-1"></a><span class="co"># Full matching on a probit PS</span></span>
+<span id="cb551-2"><a href="selection-on-observables.html#cb551-2" tabindex="-1"></a>m.out2 <span class="ot">&lt;-</span> <span class="fu">matchit</span>(treat <span class="sc">~</span> age <span class="sc">+</span> educ, </span>
+<span id="cb551-3"><a href="selection-on-observables.html#cb551-3" tabindex="-1"></a>                  <span class="at">data =</span> lalonde,</span>
+<span id="cb551-4"><a href="selection-on-observables.html#cb551-4" tabindex="-1"></a>                  <span class="at">method =</span> <span class="st">&quot;full&quot;</span>, </span>
+<span id="cb551-5"><a href="selection-on-observables.html#cb551-5" tabindex="-1"></a>                  <span class="at">distance =</span> <span class="st">&quot;glm&quot;</span>, </span>
+<span id="cb551-6"><a href="selection-on-observables.html#cb551-6" tabindex="-1"></a>                  <span class="at">link =</span> <span class="st">&quot;probit&quot;</span>)</span>
+<span id="cb551-7"><a href="selection-on-observables.html#cb551-7" tabindex="-1"></a>m.out2</span>
+<span id="cb551-8"><a href="selection-on-observables.html#cb551-8" tabindex="-1"></a><span class="co">#&gt; A matchit object</span></span>
+<span id="cb551-9"><a href="selection-on-observables.html#cb551-9" tabindex="-1"></a><span class="co">#&gt;  - method: Optimal full matching</span></span>
+<span id="cb551-10"><a href="selection-on-observables.html#cb551-10" tabindex="-1"></a><span class="co">#&gt;  - distance: Propensity score</span></span>
+<span id="cb551-11"><a href="selection-on-observables.html#cb551-11" tabindex="-1"></a><span class="co">#&gt;              - estimated with probit regression</span></span>
+<span id="cb551-12"><a href="selection-on-observables.html#cb551-12" tabindex="-1"></a><span class="co">#&gt;  - number of obs.: 614 (original), 614 (matched)</span></span>
+<span id="cb551-13"><a href="selection-on-observables.html#cb551-13" tabindex="-1"></a><span class="co">#&gt;  - target estimand: ATT</span></span>
+<span id="cb551-14"><a href="selection-on-observables.html#cb551-14" tabindex="-1"></a><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
 <p>Checking balance again</p>
-<div class="sourceCode" id="cb541"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb541-1"><a href="selection-on-observables.html#cb541-1" tabindex="-1"></a><span class="co"># Checking balance after full matching</span></span>
-<span id="cb541-2"><a href="selection-on-observables.html#cb541-2" tabindex="-1"></a><span class="fu">summary</span>(m.out2, <span class="at">un =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb541-3"><a href="selection-on-observables.html#cb541-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb541-4"><a href="selection-on-observables.html#cb541-4" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
-<span id="cb541-5"><a href="selection-on-observables.html#cb541-5" tabindex="-1"></a><span class="co">#&gt; matchit(formula = treat ~ age + educ, data = lalonde, method = &quot;full&quot;, </span></span>
-<span id="cb541-6"><a href="selection-on-observables.html#cb541-6" tabindex="-1"></a><span class="co">#&gt;     distance = &quot;glm&quot;, link = &quot;probit&quot;)</span></span>
-<span id="cb541-7"><a href="selection-on-observables.html#cb541-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb541-8"><a href="selection-on-observables.html#cb541-8" tabindex="-1"></a><span class="co">#&gt; Summary of Balance for Matched Data:</span></span>
-<span id="cb541-9"><a href="selection-on-observables.html#cb541-9" tabindex="-1"></a><span class="co">#&gt;          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean</span></span>
-<span id="cb541-10"><a href="selection-on-observables.html#cb541-10" tabindex="-1"></a><span class="co">#&gt; distance        0.3082        0.3081          0.0023     0.9815    0.0028</span></span>
-<span id="cb541-11"><a href="selection-on-observables.html#cb541-11" tabindex="-1"></a><span class="co">#&gt; age            25.8162       25.8035          0.0018     0.9825    0.0062</span></span>
-<span id="cb541-12"><a href="selection-on-observables.html#cb541-12" tabindex="-1"></a><span class="co">#&gt; educ           10.3459       10.2315          0.0569     0.4390    0.0481</span></span>
-<span id="cb541-13"><a href="selection-on-observables.html#cb541-13" tabindex="-1"></a><span class="co">#&gt;          eCDF Max Std. Pair Dist.</span></span>
-<span id="cb541-14"><a href="selection-on-observables.html#cb541-14" tabindex="-1"></a><span class="co">#&gt; distance   0.0270          0.0382</span></span>
-<span id="cb541-15"><a href="selection-on-observables.html#cb541-15" tabindex="-1"></a><span class="co">#&gt; age        0.0249          0.1110</span></span>
-<span id="cb541-16"><a href="selection-on-observables.html#cb541-16" tabindex="-1"></a><span class="co">#&gt; educ       0.1300          0.9805</span></span>
-<span id="cb541-17"><a href="selection-on-observables.html#cb541-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb541-18"><a href="selection-on-observables.html#cb541-18" tabindex="-1"></a><span class="co">#&gt; Sample Sizes:</span></span>
-<span id="cb541-19"><a href="selection-on-observables.html#cb541-19" tabindex="-1"></a><span class="co">#&gt;               Control Treated</span></span>
-<span id="cb541-20"><a href="selection-on-observables.html#cb541-20" tabindex="-1"></a><span class="co">#&gt; All            429.       185</span></span>
-<span id="cb541-21"><a href="selection-on-observables.html#cb541-21" tabindex="-1"></a><span class="co">#&gt; Matched (ESS)  145.23     185</span></span>
-<span id="cb541-22"><a href="selection-on-observables.html#cb541-22" tabindex="-1"></a><span class="co">#&gt; Matched        429.       185</span></span>
-<span id="cb541-23"><a href="selection-on-observables.html#cb541-23" tabindex="-1"></a><span class="co">#&gt; Unmatched        0.         0</span></span>
-<span id="cb541-24"><a href="selection-on-observables.html#cb541-24" tabindex="-1"></a><span class="co">#&gt; Discarded        0.         0</span></span>
-<span id="cb541-25"><a href="selection-on-observables.html#cb541-25" tabindex="-1"></a></span>
-<span id="cb541-26"><a href="selection-on-observables.html#cb541-26" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">summary</span>(m.out2))</span></code></pre></div>
+<div class="sourceCode" id="cb552"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb552-1"><a href="selection-on-observables.html#cb552-1" tabindex="-1"></a><span class="co"># Checking balance after full matching</span></span>
+<span id="cb552-2"><a href="selection-on-observables.html#cb552-2" tabindex="-1"></a><span class="fu">summary</span>(m.out2, <span class="at">un =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb552-3"><a href="selection-on-observables.html#cb552-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb552-4"><a href="selection-on-observables.html#cb552-4" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb552-5"><a href="selection-on-observables.html#cb552-5" tabindex="-1"></a><span class="co">#&gt; matchit(formula = treat ~ age + educ, data = lalonde, method = &quot;full&quot;, </span></span>
+<span id="cb552-6"><a href="selection-on-observables.html#cb552-6" tabindex="-1"></a><span class="co">#&gt;     distance = &quot;glm&quot;, link = &quot;probit&quot;)</span></span>
+<span id="cb552-7"><a href="selection-on-observables.html#cb552-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb552-8"><a href="selection-on-observables.html#cb552-8" tabindex="-1"></a><span class="co">#&gt; Summary of Balance for Matched Data:</span></span>
+<span id="cb552-9"><a href="selection-on-observables.html#cb552-9" tabindex="-1"></a><span class="co">#&gt;          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean</span></span>
+<span id="cb552-10"><a href="selection-on-observables.html#cb552-10" tabindex="-1"></a><span class="co">#&gt; distance        0.3082        0.3081          0.0023     0.9815    0.0028</span></span>
+<span id="cb552-11"><a href="selection-on-observables.html#cb552-11" tabindex="-1"></a><span class="co">#&gt; age            25.8162       25.8035          0.0018     0.9825    0.0062</span></span>
+<span id="cb552-12"><a href="selection-on-observables.html#cb552-12" tabindex="-1"></a><span class="co">#&gt; educ           10.3459       10.2315          0.0569     0.4390    0.0481</span></span>
+<span id="cb552-13"><a href="selection-on-observables.html#cb552-13" tabindex="-1"></a><span class="co">#&gt;          eCDF Max Std. Pair Dist.</span></span>
+<span id="cb552-14"><a href="selection-on-observables.html#cb552-14" tabindex="-1"></a><span class="co">#&gt; distance   0.0270          0.0382</span></span>
+<span id="cb552-15"><a href="selection-on-observables.html#cb552-15" tabindex="-1"></a><span class="co">#&gt; age        0.0249          0.1110</span></span>
+<span id="cb552-16"><a href="selection-on-observables.html#cb552-16" tabindex="-1"></a><span class="co">#&gt; educ       0.1300          0.9805</span></span>
+<span id="cb552-17"><a href="selection-on-observables.html#cb552-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb552-18"><a href="selection-on-observables.html#cb552-18" tabindex="-1"></a><span class="co">#&gt; Sample Sizes:</span></span>
+<span id="cb552-19"><a href="selection-on-observables.html#cb552-19" tabindex="-1"></a><span class="co">#&gt;               Control Treated</span></span>
+<span id="cb552-20"><a href="selection-on-observables.html#cb552-20" tabindex="-1"></a><span class="co">#&gt; All            429.       185</span></span>
+<span id="cb552-21"><a href="selection-on-observables.html#cb552-21" tabindex="-1"></a><span class="co">#&gt; Matched (ESS)  145.23     185</span></span>
+<span id="cb552-22"><a href="selection-on-observables.html#cb552-22" tabindex="-1"></a><span class="co">#&gt; Matched        429.       185</span></span>
+<span id="cb552-23"><a href="selection-on-observables.html#cb552-23" tabindex="-1"></a><span class="co">#&gt; Unmatched        0.         0</span></span>
+<span id="cb552-24"><a href="selection-on-observables.html#cb552-24" tabindex="-1"></a><span class="co">#&gt; Discarded        0.         0</span></span>
+<span id="cb552-25"><a href="selection-on-observables.html#cb552-25" tabindex="-1"></a></span>
+<span id="cb552-26"><a href="selection-on-observables.html#cb552-26" tabindex="-1"></a><span class="fu">plot</span>(<span class="fu">summary</span>(m.out2))</span></code></pre></div>
 <p><img src="29-matching-methods_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>Exact Matching</p>
-<div class="sourceCode" id="cb542"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb542-1"><a href="selection-on-observables.html#cb542-1" tabindex="-1"></a><span class="co"># Full matching on a probit PS</span></span>
-<span id="cb542-2"><a href="selection-on-observables.html#cb542-2" tabindex="-1"></a>m.out3 <span class="ot">&lt;-</span></span>
-<span id="cb542-3"><a href="selection-on-observables.html#cb542-3" tabindex="-1"></a>    <span class="fu">matchit</span>(</span>
-<span id="cb542-4"><a href="selection-on-observables.html#cb542-4" tabindex="-1"></a>        treat <span class="sc">~</span> age <span class="sc">+</span> educ,</span>
-<span id="cb542-5"><a href="selection-on-observables.html#cb542-5" tabindex="-1"></a>        <span class="at">data =</span> lalonde,</span>
-<span id="cb542-6"><a href="selection-on-observables.html#cb542-6" tabindex="-1"></a>        <span class="at">method =</span> <span class="st">&quot;exact&quot;</span></span>
-<span id="cb542-7"><a href="selection-on-observables.html#cb542-7" tabindex="-1"></a>    )</span>
-<span id="cb542-8"><a href="selection-on-observables.html#cb542-8" tabindex="-1"></a>m.out3</span>
-<span id="cb542-9"><a href="selection-on-observables.html#cb542-9" tabindex="-1"></a><span class="co">#&gt; A matchit object</span></span>
-<span id="cb542-10"><a href="selection-on-observables.html#cb542-10" tabindex="-1"></a><span class="co">#&gt;  - method: Exact matching</span></span>
-<span id="cb542-11"><a href="selection-on-observables.html#cb542-11" tabindex="-1"></a><span class="co">#&gt;  - number of obs.: 614 (original), 332 (matched)</span></span>
-<span id="cb542-12"><a href="selection-on-observables.html#cb542-12" tabindex="-1"></a><span class="co">#&gt;  - target estimand: ATT</span></span>
-<span id="cb542-13"><a href="selection-on-observables.html#cb542-13" tabindex="-1"></a><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
+<div class="sourceCode" id="cb553"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb553-1"><a href="selection-on-observables.html#cb553-1" tabindex="-1"></a><span class="co"># Full matching on a probit PS</span></span>
+<span id="cb553-2"><a href="selection-on-observables.html#cb553-2" tabindex="-1"></a>m.out3 <span class="ot">&lt;-</span></span>
+<span id="cb553-3"><a href="selection-on-observables.html#cb553-3" tabindex="-1"></a>    <span class="fu">matchit</span>(</span>
+<span id="cb553-4"><a href="selection-on-observables.html#cb553-4" tabindex="-1"></a>        treat <span class="sc">~</span> age <span class="sc">+</span> educ,</span>
+<span id="cb553-5"><a href="selection-on-observables.html#cb553-5" tabindex="-1"></a>        <span class="at">data =</span> lalonde,</span>
+<span id="cb553-6"><a href="selection-on-observables.html#cb553-6" tabindex="-1"></a>        <span class="at">method =</span> <span class="st">&quot;exact&quot;</span></span>
+<span id="cb553-7"><a href="selection-on-observables.html#cb553-7" tabindex="-1"></a>    )</span>
+<span id="cb553-8"><a href="selection-on-observables.html#cb553-8" tabindex="-1"></a>m.out3</span>
+<span id="cb553-9"><a href="selection-on-observables.html#cb553-9" tabindex="-1"></a><span class="co">#&gt; A matchit object</span></span>
+<span id="cb553-10"><a href="selection-on-observables.html#cb553-10" tabindex="-1"></a><span class="co">#&gt;  - method: Exact matching</span></span>
+<span id="cb553-11"><a href="selection-on-observables.html#cb553-11" tabindex="-1"></a><span class="co">#&gt;  - number of obs.: 614 (original), 332 (matched)</span></span>
+<span id="cb553-12"><a href="selection-on-observables.html#cb553-12" tabindex="-1"></a><span class="co">#&gt;  - target estimand: ATT</span></span>
+<span id="cb553-13"><a href="selection-on-observables.html#cb553-13" tabindex="-1"></a><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
 <p>Subclassfication</p>
-<div class="sourceCode" id="cb543"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb543-1"><a href="selection-on-observables.html#cb543-1" tabindex="-1"></a>m.out4 <span class="ot">&lt;-</span> <span class="fu">matchit</span>(</span>
-<span id="cb543-2"><a href="selection-on-observables.html#cb543-2" tabindex="-1"></a>    treat <span class="sc">~</span> age <span class="sc">+</span> educ, </span>
-<span id="cb543-3"><a href="selection-on-observables.html#cb543-3" tabindex="-1"></a>    <span class="at">data =</span> lalonde,</span>
-<span id="cb543-4"><a href="selection-on-observables.html#cb543-4" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">&quot;subclass&quot;</span></span>
-<span id="cb543-5"><a href="selection-on-observables.html#cb543-5" tabindex="-1"></a>)</span>
-<span id="cb543-6"><a href="selection-on-observables.html#cb543-6" tabindex="-1"></a>m.out4</span>
-<span id="cb543-7"><a href="selection-on-observables.html#cb543-7" tabindex="-1"></a><span class="co">#&gt; A matchit object</span></span>
-<span id="cb543-8"><a href="selection-on-observables.html#cb543-8" tabindex="-1"></a><span class="co">#&gt;  - method: Subclassification (6 subclasses)</span></span>
-<span id="cb543-9"><a href="selection-on-observables.html#cb543-9" tabindex="-1"></a><span class="co">#&gt;  - distance: Propensity score</span></span>
-<span id="cb543-10"><a href="selection-on-observables.html#cb543-10" tabindex="-1"></a><span class="co">#&gt;              - estimated with logistic regression</span></span>
-<span id="cb543-11"><a href="selection-on-observables.html#cb543-11" tabindex="-1"></a><span class="co">#&gt;  - number of obs.: 614 (original), 614 (matched)</span></span>
-<span id="cb543-12"><a href="selection-on-observables.html#cb543-12" tabindex="-1"></a><span class="co">#&gt;  - target estimand: ATT</span></span>
-<span id="cb543-13"><a href="selection-on-observables.html#cb543-13" tabindex="-1"></a><span class="co">#&gt;  - covariates: age, educ</span></span>
-<span id="cb543-14"><a href="selection-on-observables.html#cb543-14" tabindex="-1"></a></span>
-<span id="cb543-15"><a href="selection-on-observables.html#cb543-15" tabindex="-1"></a><span class="co"># Or you can use in conjunction with &quot;nearest&quot;</span></span>
-<span id="cb543-16"><a href="selection-on-observables.html#cb543-16" tabindex="-1"></a>m.out4 <span class="ot">&lt;-</span> <span class="fu">matchit</span>(</span>
-<span id="cb543-17"><a href="selection-on-observables.html#cb543-17" tabindex="-1"></a>    treat <span class="sc">~</span> age <span class="sc">+</span> educ,</span>
-<span id="cb543-18"><a href="selection-on-observables.html#cb543-18" tabindex="-1"></a>    <span class="at">data =</span> lalonde,</span>
-<span id="cb543-19"><a href="selection-on-observables.html#cb543-19" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">&quot;nearest&quot;</span>,</span>
-<span id="cb543-20"><a href="selection-on-observables.html#cb543-20" tabindex="-1"></a>    <span class="at">option =</span> <span class="st">&quot;subclass&quot;</span></span>
-<span id="cb543-21"><a href="selection-on-observables.html#cb543-21" tabindex="-1"></a>)</span>
-<span id="cb543-22"><a href="selection-on-observables.html#cb543-22" tabindex="-1"></a>m.out4</span>
-<span id="cb543-23"><a href="selection-on-observables.html#cb543-23" tabindex="-1"></a><span class="co">#&gt; A matchit object</span></span>
-<span id="cb543-24"><a href="selection-on-observables.html#cb543-24" tabindex="-1"></a><span class="co">#&gt;  - method: 1:1 nearest neighbor matching without replacement</span></span>
-<span id="cb543-25"><a href="selection-on-observables.html#cb543-25" tabindex="-1"></a><span class="co">#&gt;  - distance: Propensity score</span></span>
-<span id="cb543-26"><a href="selection-on-observables.html#cb543-26" tabindex="-1"></a><span class="co">#&gt;              - estimated with logistic regression</span></span>
-<span id="cb543-27"><a href="selection-on-observables.html#cb543-27" tabindex="-1"></a><span class="co">#&gt;  - number of obs.: 614 (original), 370 (matched)</span></span>
-<span id="cb543-28"><a href="selection-on-observables.html#cb543-28" tabindex="-1"></a><span class="co">#&gt;  - target estimand: ATT</span></span>
-<span id="cb543-29"><a href="selection-on-observables.html#cb543-29" tabindex="-1"></a><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
+<div class="sourceCode" id="cb554"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb554-1"><a href="selection-on-observables.html#cb554-1" tabindex="-1"></a>m.out4 <span class="ot">&lt;-</span> <span class="fu">matchit</span>(</span>
+<span id="cb554-2"><a href="selection-on-observables.html#cb554-2" tabindex="-1"></a>    treat <span class="sc">~</span> age <span class="sc">+</span> educ, </span>
+<span id="cb554-3"><a href="selection-on-observables.html#cb554-3" tabindex="-1"></a>    <span class="at">data =</span> lalonde,</span>
+<span id="cb554-4"><a href="selection-on-observables.html#cb554-4" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">&quot;subclass&quot;</span></span>
+<span id="cb554-5"><a href="selection-on-observables.html#cb554-5" tabindex="-1"></a>)</span>
+<span id="cb554-6"><a href="selection-on-observables.html#cb554-6" tabindex="-1"></a>m.out4</span>
+<span id="cb554-7"><a href="selection-on-observables.html#cb554-7" tabindex="-1"></a><span class="co">#&gt; A matchit object</span></span>
+<span id="cb554-8"><a href="selection-on-observables.html#cb554-8" tabindex="-1"></a><span class="co">#&gt;  - method: Subclassification (6 subclasses)</span></span>
+<span id="cb554-9"><a href="selection-on-observables.html#cb554-9" tabindex="-1"></a><span class="co">#&gt;  - distance: Propensity score</span></span>
+<span id="cb554-10"><a href="selection-on-observables.html#cb554-10" tabindex="-1"></a><span class="co">#&gt;              - estimated with logistic regression</span></span>
+<span id="cb554-11"><a href="selection-on-observables.html#cb554-11" tabindex="-1"></a><span class="co">#&gt;  - number of obs.: 614 (original), 614 (matched)</span></span>
+<span id="cb554-12"><a href="selection-on-observables.html#cb554-12" tabindex="-1"></a><span class="co">#&gt;  - target estimand: ATT</span></span>
+<span id="cb554-13"><a href="selection-on-observables.html#cb554-13" tabindex="-1"></a><span class="co">#&gt;  - covariates: age, educ</span></span>
+<span id="cb554-14"><a href="selection-on-observables.html#cb554-14" tabindex="-1"></a></span>
+<span id="cb554-15"><a href="selection-on-observables.html#cb554-15" tabindex="-1"></a><span class="co"># Or you can use in conjunction with &quot;nearest&quot;</span></span>
+<span id="cb554-16"><a href="selection-on-observables.html#cb554-16" tabindex="-1"></a>m.out4 <span class="ot">&lt;-</span> <span class="fu">matchit</span>(</span>
+<span id="cb554-17"><a href="selection-on-observables.html#cb554-17" tabindex="-1"></a>    treat <span class="sc">~</span> age <span class="sc">+</span> educ,</span>
+<span id="cb554-18"><a href="selection-on-observables.html#cb554-18" tabindex="-1"></a>    <span class="at">data =</span> lalonde,</span>
+<span id="cb554-19"><a href="selection-on-observables.html#cb554-19" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">&quot;nearest&quot;</span>,</span>
+<span id="cb554-20"><a href="selection-on-observables.html#cb554-20" tabindex="-1"></a>    <span class="at">option =</span> <span class="st">&quot;subclass&quot;</span></span>
+<span id="cb554-21"><a href="selection-on-observables.html#cb554-21" tabindex="-1"></a>)</span>
+<span id="cb554-22"><a href="selection-on-observables.html#cb554-22" tabindex="-1"></a>m.out4</span>
+<span id="cb554-23"><a href="selection-on-observables.html#cb554-23" tabindex="-1"></a><span class="co">#&gt; A matchit object</span></span>
+<span id="cb554-24"><a href="selection-on-observables.html#cb554-24" tabindex="-1"></a><span class="co">#&gt;  - method: 1:1 nearest neighbor matching without replacement</span></span>
+<span id="cb554-25"><a href="selection-on-observables.html#cb554-25" tabindex="-1"></a><span class="co">#&gt;  - distance: Propensity score</span></span>
+<span id="cb554-26"><a href="selection-on-observables.html#cb554-26" tabindex="-1"></a><span class="co">#&gt;              - estimated with logistic regression</span></span>
+<span id="cb554-27"><a href="selection-on-observables.html#cb554-27" tabindex="-1"></a><span class="co">#&gt;  - number of obs.: 614 (original), 370 (matched)</span></span>
+<span id="cb554-28"><a href="selection-on-observables.html#cb554-28" tabindex="-1"></a><span class="co">#&gt;  - target estimand: ATT</span></span>
+<span id="cb554-29"><a href="selection-on-observables.html#cb554-29" tabindex="-1"></a><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
 <p>Optimal Matching</p>
-<div class="sourceCode" id="cb544"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb544-1"><a href="selection-on-observables.html#cb544-1" tabindex="-1"></a>m.out5 <span class="ot">&lt;-</span> <span class="fu">matchit</span>(</span>
-<span id="cb544-2"><a href="selection-on-observables.html#cb544-2" tabindex="-1"></a>    treat <span class="sc">~</span> age <span class="sc">+</span> educ, </span>
-<span id="cb544-3"><a href="selection-on-observables.html#cb544-3" tabindex="-1"></a>    <span class="at">data =</span> lalonde,</span>
-<span id="cb544-4"><a href="selection-on-observables.html#cb544-4" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">&quot;optimal&quot;</span>,</span>
-<span id="cb544-5"><a href="selection-on-observables.html#cb544-5" tabindex="-1"></a>    <span class="at">ratio =</span> <span class="dv">2</span></span>
-<span id="cb544-6"><a href="selection-on-observables.html#cb544-6" tabindex="-1"></a>)</span>
-<span id="cb544-7"><a href="selection-on-observables.html#cb544-7" tabindex="-1"></a>m.out5</span>
-<span id="cb544-8"><a href="selection-on-observables.html#cb544-8" tabindex="-1"></a><span class="co">#&gt; A matchit object</span></span>
-<span id="cb544-9"><a href="selection-on-observables.html#cb544-9" tabindex="-1"></a><span class="co">#&gt;  - method: 2:1 optimal pair matching</span></span>
-<span id="cb544-10"><a href="selection-on-observables.html#cb544-10" tabindex="-1"></a><span class="co">#&gt;  - distance: Propensity score</span></span>
-<span id="cb544-11"><a href="selection-on-observables.html#cb544-11" tabindex="-1"></a><span class="co">#&gt;              - estimated with logistic regression</span></span>
-<span id="cb544-12"><a href="selection-on-observables.html#cb544-12" tabindex="-1"></a><span class="co">#&gt;  - number of obs.: 614 (original), 555 (matched)</span></span>
-<span id="cb544-13"><a href="selection-on-observables.html#cb544-13" tabindex="-1"></a><span class="co">#&gt;  - target estimand: ATT</span></span>
-<span id="cb544-14"><a href="selection-on-observables.html#cb544-14" tabindex="-1"></a><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
+<div class="sourceCode" id="cb555"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb555-1"><a href="selection-on-observables.html#cb555-1" tabindex="-1"></a>m.out5 <span class="ot">&lt;-</span> <span class="fu">matchit</span>(</span>
+<span id="cb555-2"><a href="selection-on-observables.html#cb555-2" tabindex="-1"></a>    treat <span class="sc">~</span> age <span class="sc">+</span> educ, </span>
+<span id="cb555-3"><a href="selection-on-observables.html#cb555-3" tabindex="-1"></a>    <span class="at">data =</span> lalonde,</span>
+<span id="cb555-4"><a href="selection-on-observables.html#cb555-4" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">&quot;optimal&quot;</span>,</span>
+<span id="cb555-5"><a href="selection-on-observables.html#cb555-5" tabindex="-1"></a>    <span class="at">ratio =</span> <span class="dv">2</span></span>
+<span id="cb555-6"><a href="selection-on-observables.html#cb555-6" tabindex="-1"></a>)</span>
+<span id="cb555-7"><a href="selection-on-observables.html#cb555-7" tabindex="-1"></a>m.out5</span>
+<span id="cb555-8"><a href="selection-on-observables.html#cb555-8" tabindex="-1"></a><span class="co">#&gt; A matchit object</span></span>
+<span id="cb555-9"><a href="selection-on-observables.html#cb555-9" tabindex="-1"></a><span class="co">#&gt;  - method: 2:1 optimal pair matching</span></span>
+<span id="cb555-10"><a href="selection-on-observables.html#cb555-10" tabindex="-1"></a><span class="co">#&gt;  - distance: Propensity score</span></span>
+<span id="cb555-11"><a href="selection-on-observables.html#cb555-11" tabindex="-1"></a><span class="co">#&gt;              - estimated with logistic regression</span></span>
+<span id="cb555-12"><a href="selection-on-observables.html#cb555-12" tabindex="-1"></a><span class="co">#&gt;  - number of obs.: 614 (original), 555 (matched)</span></span>
+<span id="cb555-13"><a href="selection-on-observables.html#cb555-13" tabindex="-1"></a><span class="co">#&gt;  - target estimand: ATT</span></span>
+<span id="cb555-14"><a href="selection-on-observables.html#cb555-14" tabindex="-1"></a><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
 <p>Genetic Matching</p>
-<div class="sourceCode" id="cb545"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb545-1"><a href="selection-on-observables.html#cb545-1" tabindex="-1"></a>m.out6 <span class="ot">&lt;-</span> <span class="fu">matchit</span>(</span>
-<span id="cb545-2"><a href="selection-on-observables.html#cb545-2" tabindex="-1"></a>    treat <span class="sc">~</span> age <span class="sc">+</span> educ, </span>
-<span id="cb545-3"><a href="selection-on-observables.html#cb545-3" tabindex="-1"></a>    <span class="at">data =</span> lalonde,</span>
-<span id="cb545-4"><a href="selection-on-observables.html#cb545-4" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">&quot;genetic&quot;</span></span>
-<span id="cb545-5"><a href="selection-on-observables.html#cb545-5" tabindex="-1"></a>)</span>
-<span id="cb545-6"><a href="selection-on-observables.html#cb545-6" tabindex="-1"></a>m.out6</span>
-<span id="cb545-7"><a href="selection-on-observables.html#cb545-7" tabindex="-1"></a><span class="co">#&gt; A matchit object</span></span>
-<span id="cb545-8"><a href="selection-on-observables.html#cb545-8" tabindex="-1"></a><span class="co">#&gt;  - method: 1:1 genetic matching without replacement</span></span>
-<span id="cb545-9"><a href="selection-on-observables.html#cb545-9" tabindex="-1"></a><span class="co">#&gt;  - distance: Propensity score</span></span>
-<span id="cb545-10"><a href="selection-on-observables.html#cb545-10" tabindex="-1"></a><span class="co">#&gt;              - estimated with logistic regression</span></span>
-<span id="cb545-11"><a href="selection-on-observables.html#cb545-11" tabindex="-1"></a><span class="co">#&gt;  - number of obs.: 614 (original), 370 (matched)</span></span>
-<span id="cb545-12"><a href="selection-on-observables.html#cb545-12" tabindex="-1"></a><span class="co">#&gt;  - target estimand: ATT</span></span>
-<span id="cb545-13"><a href="selection-on-observables.html#cb545-13" tabindex="-1"></a><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
+<div class="sourceCode" id="cb556"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb556-1"><a href="selection-on-observables.html#cb556-1" tabindex="-1"></a>m.out6 <span class="ot">&lt;-</span> <span class="fu">matchit</span>(</span>
+<span id="cb556-2"><a href="selection-on-observables.html#cb556-2" tabindex="-1"></a>    treat <span class="sc">~</span> age <span class="sc">+</span> educ, </span>
+<span id="cb556-3"><a href="selection-on-observables.html#cb556-3" tabindex="-1"></a>    <span class="at">data =</span> lalonde,</span>
+<span id="cb556-4"><a href="selection-on-observables.html#cb556-4" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">&quot;genetic&quot;</span></span>
+<span id="cb556-5"><a href="selection-on-observables.html#cb556-5" tabindex="-1"></a>)</span>
+<span id="cb556-6"><a href="selection-on-observables.html#cb556-6" tabindex="-1"></a>m.out6</span>
+<span id="cb556-7"><a href="selection-on-observables.html#cb556-7" tabindex="-1"></a><span class="co">#&gt; A matchit object</span></span>
+<span id="cb556-8"><a href="selection-on-observables.html#cb556-8" tabindex="-1"></a><span class="co">#&gt;  - method: 1:1 genetic matching without replacement</span></span>
+<span id="cb556-9"><a href="selection-on-observables.html#cb556-9" tabindex="-1"></a><span class="co">#&gt;  - distance: Propensity score</span></span>
+<span id="cb556-10"><a href="selection-on-observables.html#cb556-10" tabindex="-1"></a><span class="co">#&gt;              - estimated with logistic regression</span></span>
+<span id="cb556-11"><a href="selection-on-observables.html#cb556-11" tabindex="-1"></a><span class="co">#&gt;  - number of obs.: 614 (original), 370 (matched)</span></span>
+<span id="cb556-12"><a href="selection-on-observables.html#cb556-12" tabindex="-1"></a><span class="co">#&gt;  - target estimand: ATT</span></span>
+<span id="cb556-13"><a href="selection-on-observables.html#cb556-13" tabindex="-1"></a><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
 <ol start="4" style="list-style-type: decimal">
 <li>Estimating the Treatment Effect</li>
 </ol>
-<div class="sourceCode" id="cb546"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb546-1"><a href="selection-on-observables.html#cb546-1" tabindex="-1"></a><span class="co"># get matched data</span></span>
-<span id="cb546-2"><a href="selection-on-observables.html#cb546-2" tabindex="-1"></a>m.data1 <span class="ot">&lt;-</span> <span class="fu">match.data</span>(m.out1)</span>
-<span id="cb546-3"><a href="selection-on-observables.html#cb546-3" tabindex="-1"></a></span>
-<span id="cb546-4"><a href="selection-on-observables.html#cb546-4" tabindex="-1"></a><span class="fu">head</span>(m.data1)</span>
-<span id="cb546-5"><a href="selection-on-observables.html#cb546-5" tabindex="-1"></a><span class="co">#&gt;      treat age educ   race married nodegree re74 re75       re78  distance</span></span>
-<span id="cb546-6"><a href="selection-on-observables.html#cb546-6" tabindex="-1"></a><span class="co">#&gt; NSW1     1  37   11  black       1        1    0    0  9930.0460 0.2536942</span></span>
-<span id="cb546-7"><a href="selection-on-observables.html#cb546-7" tabindex="-1"></a><span class="co">#&gt; NSW2     1  22    9 hispan       0        1    0    0  3595.8940 0.3245468</span></span>
-<span id="cb546-8"><a href="selection-on-observables.html#cb546-8" tabindex="-1"></a><span class="co">#&gt; NSW3     1  30   12  black       0        0    0    0 24909.4500 0.2881139</span></span>
-<span id="cb546-9"><a href="selection-on-observables.html#cb546-9" tabindex="-1"></a><span class="co">#&gt; NSW4     1  27   11  black       0        1    0    0  7506.1460 0.3016672</span></span>
-<span id="cb546-10"><a href="selection-on-observables.html#cb546-10" tabindex="-1"></a><span class="co">#&gt; NSW5     1  33    8  black       0        1    0    0   289.7899 0.2683025</span></span>
-<span id="cb546-11"><a href="selection-on-observables.html#cb546-11" tabindex="-1"></a><span class="co">#&gt; NSW6     1  22    9  black       0        1    0    0  4056.4940 0.3245468</span></span>
-<span id="cb546-12"><a href="selection-on-observables.html#cb546-12" tabindex="-1"></a><span class="co">#&gt;      weights subclass</span></span>
-<span id="cb546-13"><a href="selection-on-observables.html#cb546-13" tabindex="-1"></a><span class="co">#&gt; NSW1       1        1</span></span>
-<span id="cb546-14"><a href="selection-on-observables.html#cb546-14" tabindex="-1"></a><span class="co">#&gt; NSW2       1       98</span></span>
-<span id="cb546-15"><a href="selection-on-observables.html#cb546-15" tabindex="-1"></a><span class="co">#&gt; NSW3       1      109</span></span>
-<span id="cb546-16"><a href="selection-on-observables.html#cb546-16" tabindex="-1"></a><span class="co">#&gt; NSW4       1      120</span></span>
-<span id="cb546-17"><a href="selection-on-observables.html#cb546-17" tabindex="-1"></a><span class="co">#&gt; NSW5       1      131</span></span>
-<span id="cb546-18"><a href="selection-on-observables.html#cb546-18" tabindex="-1"></a><span class="co">#&gt; NSW6       1      142</span></span></code></pre></div>
-<div class="sourceCode" id="cb547"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb547-1"><a href="selection-on-observables.html#cb547-1" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;lmtest&quot;</span>) <span class="co">#coeftest</span></span>
-<span id="cb547-2"><a href="selection-on-observables.html#cb547-2" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;sandwich&quot;</span>) <span class="co">#vcovCL</span></span>
-<span id="cb547-3"><a href="selection-on-observables.html#cb547-3" tabindex="-1"></a></span>
-<span id="cb547-4"><a href="selection-on-observables.html#cb547-4" tabindex="-1"></a><span class="co"># imbalance matched dataset</span></span>
-<span id="cb547-5"><a href="selection-on-observables.html#cb547-5" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(re78 <span class="sc">~</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ ,</span>
-<span id="cb547-6"><a href="selection-on-observables.html#cb547-6" tabindex="-1"></a>           <span class="at">data =</span> m.data1, </span>
-<span id="cb547-7"><a href="selection-on-observables.html#cb547-7" tabindex="-1"></a>           <span class="at">weights =</span> weights)</span>
-<span id="cb547-8"><a href="selection-on-observables.html#cb547-8" tabindex="-1"></a></span>
-<span id="cb547-9"><a href="selection-on-observables.html#cb547-9" tabindex="-1"></a><span class="fu">coeftest</span>(fit1, <span class="at">vcov. =</span> vcovCL, <span class="at">cluster =</span> <span class="sc">~</span>subclass)</span>
-<span id="cb547-10"><a href="selection-on-observables.html#cb547-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb547-11"><a href="selection-on-observables.html#cb547-11" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
-<span id="cb547-12"><a href="selection-on-observables.html#cb547-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb547-13"><a href="selection-on-observables.html#cb547-13" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error t value Pr(&gt;|t|)   </span></span>
-<span id="cb547-14"><a href="selection-on-observables.html#cb547-14" tabindex="-1"></a><span class="co">#&gt; (Intercept)  -174.902   2445.013 -0.0715 0.943012   </span></span>
-<span id="cb547-15"><a href="selection-on-observables.html#cb547-15" tabindex="-1"></a><span class="co">#&gt; treat       -1139.085    780.399 -1.4596 0.145253   </span></span>
-<span id="cb547-16"><a href="selection-on-observables.html#cb547-16" tabindex="-1"></a><span class="co">#&gt; age           153.133     55.317  2.7683 0.005922 **</span></span>
-<span id="cb547-17"><a href="selection-on-observables.html#cb547-17" tabindex="-1"></a><span class="co">#&gt; educ          358.577    163.860  2.1883 0.029278 * </span></span>
-<span id="cb547-18"><a href="selection-on-observables.html#cb547-18" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb547-19"><a href="selection-on-observables.html#cb547-19" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb557"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb557-1"><a href="selection-on-observables.html#cb557-1" tabindex="-1"></a><span class="co"># get matched data</span></span>
+<span id="cb557-2"><a href="selection-on-observables.html#cb557-2" tabindex="-1"></a>m.data1 <span class="ot">&lt;-</span> <span class="fu">match.data</span>(m.out1)</span>
+<span id="cb557-3"><a href="selection-on-observables.html#cb557-3" tabindex="-1"></a></span>
+<span id="cb557-4"><a href="selection-on-observables.html#cb557-4" tabindex="-1"></a><span class="fu">head</span>(m.data1)</span>
+<span id="cb557-5"><a href="selection-on-observables.html#cb557-5" tabindex="-1"></a><span class="co">#&gt;      treat age educ   race married nodegree re74 re75       re78  distance</span></span>
+<span id="cb557-6"><a href="selection-on-observables.html#cb557-6" tabindex="-1"></a><span class="co">#&gt; NSW1     1  37   11  black       1        1    0    0  9930.0460 0.2536942</span></span>
+<span id="cb557-7"><a href="selection-on-observables.html#cb557-7" tabindex="-1"></a><span class="co">#&gt; NSW2     1  22    9 hispan       0        1    0    0  3595.8940 0.3245468</span></span>
+<span id="cb557-8"><a href="selection-on-observables.html#cb557-8" tabindex="-1"></a><span class="co">#&gt; NSW3     1  30   12  black       0        0    0    0 24909.4500 0.2881139</span></span>
+<span id="cb557-9"><a href="selection-on-observables.html#cb557-9" tabindex="-1"></a><span class="co">#&gt; NSW4     1  27   11  black       0        1    0    0  7506.1460 0.3016672</span></span>
+<span id="cb557-10"><a href="selection-on-observables.html#cb557-10" tabindex="-1"></a><span class="co">#&gt; NSW5     1  33    8  black       0        1    0    0   289.7899 0.2683025</span></span>
+<span id="cb557-11"><a href="selection-on-observables.html#cb557-11" tabindex="-1"></a><span class="co">#&gt; NSW6     1  22    9  black       0        1    0    0  4056.4940 0.3245468</span></span>
+<span id="cb557-12"><a href="selection-on-observables.html#cb557-12" tabindex="-1"></a><span class="co">#&gt;      weights subclass</span></span>
+<span id="cb557-13"><a href="selection-on-observables.html#cb557-13" tabindex="-1"></a><span class="co">#&gt; NSW1       1        1</span></span>
+<span id="cb557-14"><a href="selection-on-observables.html#cb557-14" tabindex="-1"></a><span class="co">#&gt; NSW2       1       98</span></span>
+<span id="cb557-15"><a href="selection-on-observables.html#cb557-15" tabindex="-1"></a><span class="co">#&gt; NSW3       1      109</span></span>
+<span id="cb557-16"><a href="selection-on-observables.html#cb557-16" tabindex="-1"></a><span class="co">#&gt; NSW4       1      120</span></span>
+<span id="cb557-17"><a href="selection-on-observables.html#cb557-17" tabindex="-1"></a><span class="co">#&gt; NSW5       1      131</span></span>
+<span id="cb557-18"><a href="selection-on-observables.html#cb557-18" tabindex="-1"></a><span class="co">#&gt; NSW6       1      142</span></span></code></pre></div>
+<div class="sourceCode" id="cb558"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb558-1"><a href="selection-on-observables.html#cb558-1" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;lmtest&quot;</span>) <span class="co">#coeftest</span></span>
+<span id="cb558-2"><a href="selection-on-observables.html#cb558-2" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;sandwich&quot;</span>) <span class="co">#vcovCL</span></span>
+<span id="cb558-3"><a href="selection-on-observables.html#cb558-3" tabindex="-1"></a></span>
+<span id="cb558-4"><a href="selection-on-observables.html#cb558-4" tabindex="-1"></a><span class="co"># imbalance matched dataset</span></span>
+<span id="cb558-5"><a href="selection-on-observables.html#cb558-5" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(re78 <span class="sc">~</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ ,</span>
+<span id="cb558-6"><a href="selection-on-observables.html#cb558-6" tabindex="-1"></a>           <span class="at">data =</span> m.data1, </span>
+<span id="cb558-7"><a href="selection-on-observables.html#cb558-7" tabindex="-1"></a>           <span class="at">weights =</span> weights)</span>
+<span id="cb558-8"><a href="selection-on-observables.html#cb558-8" tabindex="-1"></a></span>
+<span id="cb558-9"><a href="selection-on-observables.html#cb558-9" tabindex="-1"></a><span class="fu">coeftest</span>(fit1, <span class="at">vcov. =</span> vcovCL, <span class="at">cluster =</span> <span class="sc">~</span>subclass)</span>
+<span id="cb558-10"><a href="selection-on-observables.html#cb558-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb558-11"><a href="selection-on-observables.html#cb558-11" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
+<span id="cb558-12"><a href="selection-on-observables.html#cb558-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb558-13"><a href="selection-on-observables.html#cb558-13" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error t value Pr(&gt;|t|)   </span></span>
+<span id="cb558-14"><a href="selection-on-observables.html#cb558-14" tabindex="-1"></a><span class="co">#&gt; (Intercept)  -174.902   2445.013 -0.0715 0.943012   </span></span>
+<span id="cb558-15"><a href="selection-on-observables.html#cb558-15" tabindex="-1"></a><span class="co">#&gt; treat       -1139.085    780.399 -1.4596 0.145253   </span></span>
+<span id="cb558-16"><a href="selection-on-observables.html#cb558-16" tabindex="-1"></a><span class="co">#&gt; age           153.133     55.317  2.7683 0.005922 **</span></span>
+<span id="cb558-17"><a href="selection-on-observables.html#cb558-17" tabindex="-1"></a><span class="co">#&gt; educ          358.577    163.860  2.1883 0.029278 * </span></span>
+<span id="cb558-18"><a href="selection-on-observables.html#cb558-18" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb558-19"><a href="selection-on-observables.html#cb558-19" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
 <p><code>treat</code> coefficient = estimated ATT</p>
-<div class="sourceCode" id="cb548"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb548-1"><a href="selection-on-observables.html#cb548-1" tabindex="-1"></a><span class="co"># balance matched dataset </span></span>
-<span id="cb548-2"><a href="selection-on-observables.html#cb548-2" tabindex="-1"></a>m.data2 <span class="ot">&lt;-</span> <span class="fu">match.data</span>(m.out2)</span>
-<span id="cb548-3"><a href="selection-on-observables.html#cb548-3" tabindex="-1"></a></span>
-<span id="cb548-4"><a href="selection-on-observables.html#cb548-4" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(re78 <span class="sc">~</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ , </span>
-<span id="cb548-5"><a href="selection-on-observables.html#cb548-5" tabindex="-1"></a>           <span class="at">data =</span> m.data2, <span class="at">weights =</span> weights)</span>
-<span id="cb548-6"><a href="selection-on-observables.html#cb548-6" tabindex="-1"></a></span>
-<span id="cb548-7"><a href="selection-on-observables.html#cb548-7" tabindex="-1"></a><span class="fu">coeftest</span>(fit2, <span class="at">vcov. =</span> vcovCL, <span class="at">cluster =</span> <span class="sc">~</span>subclass)</span>
-<span id="cb548-8"><a href="selection-on-observables.html#cb548-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb548-9"><a href="selection-on-observables.html#cb548-9" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
-<span id="cb548-10"><a href="selection-on-observables.html#cb548-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb548-11"><a href="selection-on-observables.html#cb548-11" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)  </span></span>
-<span id="cb548-12"><a href="selection-on-observables.html#cb548-12" tabindex="-1"></a><span class="co">#&gt; (Intercept) 2151.952   3141.152  0.6851  0.49355  </span></span>
-<span id="cb548-13"><a href="selection-on-observables.html#cb548-13" tabindex="-1"></a><span class="co">#&gt; treat       -725.184    703.297 -1.0311  0.30289  </span></span>
-<span id="cb548-14"><a href="selection-on-observables.html#cb548-14" tabindex="-1"></a><span class="co">#&gt; age          120.260     53.933  2.2298  0.02612 *</span></span>
-<span id="cb548-15"><a href="selection-on-observables.html#cb548-15" tabindex="-1"></a><span class="co">#&gt; educ         175.693    241.694  0.7269  0.46755  </span></span>
-<span id="cb548-16"><a href="selection-on-observables.html#cb548-16" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
-<span id="cb548-17"><a href="selection-on-observables.html#cb548-17" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
+<div class="sourceCode" id="cb559"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb559-1"><a href="selection-on-observables.html#cb559-1" tabindex="-1"></a><span class="co"># balance matched dataset </span></span>
+<span id="cb559-2"><a href="selection-on-observables.html#cb559-2" tabindex="-1"></a>m.data2 <span class="ot">&lt;-</span> <span class="fu">match.data</span>(m.out2)</span>
+<span id="cb559-3"><a href="selection-on-observables.html#cb559-3" tabindex="-1"></a></span>
+<span id="cb559-4"><a href="selection-on-observables.html#cb559-4" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(re78 <span class="sc">~</span> treat <span class="sc">+</span> age <span class="sc">+</span> educ , </span>
+<span id="cb559-5"><a href="selection-on-observables.html#cb559-5" tabindex="-1"></a>           <span class="at">data =</span> m.data2, <span class="at">weights =</span> weights)</span>
+<span id="cb559-6"><a href="selection-on-observables.html#cb559-6" tabindex="-1"></a></span>
+<span id="cb559-7"><a href="selection-on-observables.html#cb559-7" tabindex="-1"></a><span class="fu">coeftest</span>(fit2, <span class="at">vcov. =</span> vcovCL, <span class="at">cluster =</span> <span class="sc">~</span>subclass)</span>
+<span id="cb559-8"><a href="selection-on-observables.html#cb559-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb559-9"><a href="selection-on-observables.html#cb559-9" tabindex="-1"></a><span class="co">#&gt; t test of coefficients:</span></span>
+<span id="cb559-10"><a href="selection-on-observables.html#cb559-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb559-11"><a href="selection-on-observables.html#cb559-11" tabindex="-1"></a><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)  </span></span>
+<span id="cb559-12"><a href="selection-on-observables.html#cb559-12" tabindex="-1"></a><span class="co">#&gt; (Intercept) 2151.952   3141.152  0.6851  0.49355  </span></span>
+<span id="cb559-13"><a href="selection-on-observables.html#cb559-13" tabindex="-1"></a><span class="co">#&gt; treat       -725.184    703.297 -1.0311  0.30289  </span></span>
+<span id="cb559-14"><a href="selection-on-observables.html#cb559-14" tabindex="-1"></a><span class="co">#&gt; age          120.260     53.933  2.2298  0.02612 *</span></span>
+<span id="cb559-15"><a href="selection-on-observables.html#cb559-15" tabindex="-1"></a><span class="co">#&gt; educ         175.693    241.694  0.7269  0.46755  </span></span>
+<span id="cb559-16"><a href="selection-on-observables.html#cb559-16" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb559-17"><a href="selection-on-observables.html#cb559-17" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span></code></pre></div>
 <p>When reporting, remember to mention</p>
 <ol style="list-style-type: decimal">
 <li>the matching specification (method, and additional options)</li>
@@ -1257,100 +1261,100 @@ div.csl-indent {
 <li><p><code>profmatch</code> optimal profile matching</p></li>
 <li><p><code>nmatch</code> optimal nonbipartile matching</p></li>
 </ul>
-<div class="sourceCode" id="cb549"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb549-1"><a href="selection-on-observables.html#cb549-1" tabindex="-1"></a><span class="fu">library</span>(designmatch)</span></code></pre></div>
+<div class="sourceCode" id="cb560"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb560-1"><a href="selection-on-observables.html#cb560-1" tabindex="-1"></a><span class="fu">library</span>(designmatch)</span></code></pre></div>
 </div>
 <div id="matchingfrontier" class="section level3 hasAnchor" number="29.1.3">
 <h3><span class="header-section-number">29.1.3</span> MatchingFrontier<a href="selection-on-observables.html#matchingfrontier" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>As mentioned in <code>MatchIt</code>, you have to make trade-off (also known as bias-variance trade-off) between balance and sample size. An automated procedure to optimize this trade-off is implemented in <code>MatchingFrontier</code> <span class="citation">(<a href="#ref-king2017balance">G. King, Lucas, and Nielsen 2017</a>)</span>, which solves this joint optimization problem.</p>
 <p>Following <code>MatchingFrontier</code> <a href="https://projects.iq.harvard.edu/files/frontier/files/using_matchingfrontier.pdf">guide</a></p>
-<div class="sourceCode" id="cb550"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb550-1"><a href="selection-on-observables.html#cb550-1" tabindex="-1"></a><span class="co"># library(devtools)</span></span>
-<span id="cb550-2"><a href="selection-on-observables.html#cb550-2" tabindex="-1"></a><span class="co"># install_github(&#39;ChristopherLucas/MatchingFrontier&#39;)</span></span>
-<span id="cb550-3"><a href="selection-on-observables.html#cb550-3" tabindex="-1"></a><span class="fu">library</span>(MatchingFrontier)</span>
-<span id="cb550-4"><a href="selection-on-observables.html#cb550-4" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;lalonde&quot;</span>)</span>
-<span id="cb550-5"><a href="selection-on-observables.html#cb550-5" tabindex="-1"></a><span class="co"># choose var to match on</span></span>
-<span id="cb550-6"><a href="selection-on-observables.html#cb550-6" tabindex="-1"></a>match.on <span class="ot">&lt;-</span></span>
-<span id="cb550-7"><a href="selection-on-observables.html#cb550-7" tabindex="-1"></a>    <span class="fu">colnames</span>(lalonde)[<span class="sc">!</span>(<span class="fu">colnames</span>(lalonde) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&#39;re78&#39;</span>, <span class="st">&#39;treat&#39;</span>))]</span>
-<span id="cb550-8"><a href="selection-on-observables.html#cb550-8" tabindex="-1"></a>match.on</span>
-<span id="cb550-9"><a href="selection-on-observables.html#cb550-9" tabindex="-1"></a></span>
-<span id="cb550-10"><a href="selection-on-observables.html#cb550-10" tabindex="-1"></a><span class="co"># Mahanlanobis frontier (default)</span></span>
-<span id="cb550-11"><a href="selection-on-observables.html#cb550-11" tabindex="-1"></a>mahal.frontier <span class="ot">&lt;-</span></span>
-<span id="cb550-12"><a href="selection-on-observables.html#cb550-12" tabindex="-1"></a>    <span class="fu">makeFrontier</span>(</span>
-<span id="cb550-13"><a href="selection-on-observables.html#cb550-13" tabindex="-1"></a>        <span class="at">dataset =</span> lalonde,</span>
-<span id="cb550-14"><a href="selection-on-observables.html#cb550-14" tabindex="-1"></a>        <span class="at">treatment =</span> <span class="st">&quot;treat&quot;</span>,</span>
-<span id="cb550-15"><a href="selection-on-observables.html#cb550-15" tabindex="-1"></a>        <span class="at">match.on =</span> match.on</span>
-<span id="cb550-16"><a href="selection-on-observables.html#cb550-16" tabindex="-1"></a>    )</span>
-<span id="cb550-17"><a href="selection-on-observables.html#cb550-17" tabindex="-1"></a>mahal.frontier</span>
-<span id="cb550-18"><a href="selection-on-observables.html#cb550-18" tabindex="-1"></a></span>
-<span id="cb550-19"><a href="selection-on-observables.html#cb550-19" tabindex="-1"></a><span class="co"># L1 frontier</span></span>
-<span id="cb550-20"><a href="selection-on-observables.html#cb550-20" tabindex="-1"></a>L1.frontier <span class="ot">&lt;-</span></span>
-<span id="cb550-21"><a href="selection-on-observables.html#cb550-21" tabindex="-1"></a>    <span class="fu">makeFrontier</span>(</span>
-<span id="cb550-22"><a href="selection-on-observables.html#cb550-22" tabindex="-1"></a>        <span class="at">dataset =</span> lalonde,</span>
-<span id="cb550-23"><a href="selection-on-observables.html#cb550-23" tabindex="-1"></a>        <span class="at">treatment =</span> <span class="st">&#39;treat&#39;</span>,</span>
-<span id="cb550-24"><a href="selection-on-observables.html#cb550-24" tabindex="-1"></a>        <span class="at">match.on =</span> match.on,</span>
-<span id="cb550-25"><a href="selection-on-observables.html#cb550-25" tabindex="-1"></a>        <span class="at">QOI =</span> <span class="st">&#39;SATT&#39;</span>,</span>
-<span id="cb550-26"><a href="selection-on-observables.html#cb550-26" tabindex="-1"></a>        <span class="at">metric =</span> <span class="st">&#39;L1&#39;</span>,</span>
-<span id="cb550-27"><a href="selection-on-observables.html#cb550-27" tabindex="-1"></a>        <span class="at">ratio =</span> <span class="st">&#39;fixed&#39;</span></span>
-<span id="cb550-28"><a href="selection-on-observables.html#cb550-28" tabindex="-1"></a>    )</span>
-<span id="cb550-29"><a href="selection-on-observables.html#cb550-29" tabindex="-1"></a>L1.frontier</span>
-<span id="cb550-30"><a href="selection-on-observables.html#cb550-30" tabindex="-1"></a></span>
-<span id="cb550-31"><a href="selection-on-observables.html#cb550-31" tabindex="-1"></a><span class="co"># estimate effects along the frontier</span></span>
-<span id="cb550-32"><a href="selection-on-observables.html#cb550-32" tabindex="-1"></a></span>
-<span id="cb550-33"><a href="selection-on-observables.html#cb550-33" tabindex="-1"></a><span class="co"># Set base form</span></span>
-<span id="cb550-34"><a href="selection-on-observables.html#cb550-34" tabindex="-1"></a>my.form <span class="ot">&lt;-</span></span>
-<span id="cb550-35"><a href="selection-on-observables.html#cb550-35" tabindex="-1"></a>    <span class="fu">as.formula</span>(re78 <span class="sc">~</span> treat <span class="sc">+</span> age <span class="sc">+</span> black <span class="sc">+</span> education </span>
-<span id="cb550-36"><a href="selection-on-observables.html#cb550-36" tabindex="-1"></a>               <span class="sc">+</span> hispanic <span class="sc">+</span> married <span class="sc">+</span> nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75)</span>
-<span id="cb550-37"><a href="selection-on-observables.html#cb550-37" tabindex="-1"></a></span>
-<span id="cb550-38"><a href="selection-on-observables.html#cb550-38" tabindex="-1"></a><span class="co"># Estimate effects for the mahalanobis frontier</span></span>
-<span id="cb550-39"><a href="selection-on-observables.html#cb550-39" tabindex="-1"></a>mahal.estimates <span class="ot">&lt;-</span></span>
-<span id="cb550-40"><a href="selection-on-observables.html#cb550-40" tabindex="-1"></a>    <span class="fu">estimateEffects</span>(</span>
-<span id="cb550-41"><a href="selection-on-observables.html#cb550-41" tabindex="-1"></a>        mahal.frontier,</span>
-<span id="cb550-42"><a href="selection-on-observables.html#cb550-42" tabindex="-1"></a>        <span class="st">&#39;re78 ~ treat&#39;</span>,</span>
-<span id="cb550-43"><a href="selection-on-observables.html#cb550-43" tabindex="-1"></a>        <span class="at">mod.dependence.formula =</span> my.form,</span>
-<span id="cb550-44"><a href="selection-on-observables.html#cb550-44" tabindex="-1"></a>        <span class="at">continuous.vars =</span> <span class="fu">c</span>(<span class="st">&#39;age&#39;</span>, <span class="st">&#39;education&#39;</span>, <span class="st">&#39;re74&#39;</span>, <span class="st">&#39;re75&#39;</span>),</span>
-<span id="cb550-45"><a href="selection-on-observables.html#cb550-45" tabindex="-1"></a>        <span class="at">prop.estimated =</span> .<span class="dv">1</span>,</span>
-<span id="cb550-46"><a href="selection-on-observables.html#cb550-46" tabindex="-1"></a>        <span class="at">means.as.cutpoints =</span> <span class="cn">TRUE</span></span>
-<span id="cb550-47"><a href="selection-on-observables.html#cb550-47" tabindex="-1"></a>    )</span>
-<span id="cb550-48"><a href="selection-on-observables.html#cb550-48" tabindex="-1"></a></span>
-<span id="cb550-49"><a href="selection-on-observables.html#cb550-49" tabindex="-1"></a><span class="co"># Estimate effects for the L1 frontier</span></span>
-<span id="cb550-50"><a href="selection-on-observables.html#cb550-50" tabindex="-1"></a>L1.estimates <span class="ot">&lt;-</span></span>
-<span id="cb550-51"><a href="selection-on-observables.html#cb550-51" tabindex="-1"></a>    <span class="fu">estimateEffects</span>(</span>
-<span id="cb550-52"><a href="selection-on-observables.html#cb550-52" tabindex="-1"></a>        L1.frontier,</span>
-<span id="cb550-53"><a href="selection-on-observables.html#cb550-53" tabindex="-1"></a>        <span class="st">&#39;re78 ~ treat&#39;</span>,</span>
-<span id="cb550-54"><a href="selection-on-observables.html#cb550-54" tabindex="-1"></a>        <span class="at">mod.dependence.formula =</span> my.form,</span>
-<span id="cb550-55"><a href="selection-on-observables.html#cb550-55" tabindex="-1"></a>        <span class="at">continuous.vars =</span> <span class="fu">c</span>(<span class="st">&#39;age&#39;</span>, <span class="st">&#39;education&#39;</span>, <span class="st">&#39;re74&#39;</span>, <span class="st">&#39;re75&#39;</span>),</span>
-<span id="cb550-56"><a href="selection-on-observables.html#cb550-56" tabindex="-1"></a>        <span class="at">prop.estimated =</span> .<span class="dv">1</span>,</span>
-<span id="cb550-57"><a href="selection-on-observables.html#cb550-57" tabindex="-1"></a>        <span class="at">means.as.cutpoints =</span> <span class="cn">TRUE</span></span>
-<span id="cb550-58"><a href="selection-on-observables.html#cb550-58" tabindex="-1"></a>    )</span>
-<span id="cb550-59"><a href="selection-on-observables.html#cb550-59" tabindex="-1"></a></span>
-<span id="cb550-60"><a href="selection-on-observables.html#cb550-60" tabindex="-1"></a><span class="co"># Plot covariates means </span></span>
-<span id="cb550-61"><a href="selection-on-observables.html#cb550-61" tabindex="-1"></a><span class="co"># plotPrunedMeans()</span></span>
-<span id="cb550-62"><a href="selection-on-observables.html#cb550-62" tabindex="-1"></a></span>
-<span id="cb550-63"><a href="selection-on-observables.html#cb550-63" tabindex="-1"></a></span>
-<span id="cb550-64"><a href="selection-on-observables.html#cb550-64" tabindex="-1"></a><span class="co"># Plot estimates (deprecated)</span></span>
-<span id="cb550-65"><a href="selection-on-observables.html#cb550-65" tabindex="-1"></a><span class="co"># plotEstimates(</span></span>
-<span id="cb550-66"><a href="selection-on-observables.html#cb550-66" tabindex="-1"></a><span class="co">#     L1.estimates,</span></span>
-<span id="cb550-67"><a href="selection-on-observables.html#cb550-67" tabindex="-1"></a><span class="co">#     ylim = c(-10000, 3000),</span></span>
-<span id="cb550-68"><a href="selection-on-observables.html#cb550-68" tabindex="-1"></a><span class="co">#     cex.lab = 1.4,</span></span>
-<span id="cb550-69"><a href="selection-on-observables.html#cb550-69" tabindex="-1"></a><span class="co">#     cex.axis = 1.4,</span></span>
-<span id="cb550-70"><a href="selection-on-observables.html#cb550-70" tabindex="-1"></a><span class="co">#     panel.first = grid(NULL, NULL, lwd = 2,)</span></span>
-<span id="cb550-71"><a href="selection-on-observables.html#cb550-71" tabindex="-1"></a><span class="co"># )</span></span>
-<span id="cb550-72"><a href="selection-on-observables.html#cb550-72" tabindex="-1"></a></span>
-<span id="cb550-73"><a href="selection-on-observables.html#cb550-73" tabindex="-1"></a><span class="co"># Plot estimates</span></span>
-<span id="cb550-74"><a href="selection-on-observables.html#cb550-74" tabindex="-1"></a><span class="fu">plotMeans</span>(L1.frontier)</span>
-<span id="cb550-75"><a href="selection-on-observables.html#cb550-75" tabindex="-1"></a></span>
-<span id="cb550-76"><a href="selection-on-observables.html#cb550-76" tabindex="-1"></a></span>
-<span id="cb550-77"><a href="selection-on-observables.html#cb550-77" tabindex="-1"></a><span class="co"># parallel plot</span></span>
-<span id="cb550-78"><a href="selection-on-observables.html#cb550-78" tabindex="-1"></a><span class="fu">parallelPlot</span>(</span>
-<span id="cb550-79"><a href="selection-on-observables.html#cb550-79" tabindex="-1"></a>    L1.frontier,</span>
-<span id="cb550-80"><a href="selection-on-observables.html#cb550-80" tabindex="-1"></a>    <span class="at">N =</span> <span class="dv">400</span>,</span>
-<span id="cb550-81"><a href="selection-on-observables.html#cb550-81" tabindex="-1"></a>    <span class="at">variables =</span> <span class="fu">c</span>(<span class="st">&#39;age&#39;</span>, <span class="st">&#39;re74&#39;</span>, <span class="st">&#39;re75&#39;</span>, <span class="st">&#39;black&#39;</span>),</span>
-<span id="cb550-82"><a href="selection-on-observables.html#cb550-82" tabindex="-1"></a>    <span class="at">treated.col =</span> <span class="st">&#39;blue&#39;</span>,</span>
-<span id="cb550-83"><a href="selection-on-observables.html#cb550-83" tabindex="-1"></a>    <span class="at">control.col =</span> <span class="st">&#39;gray&#39;</span></span>
-<span id="cb550-84"><a href="selection-on-observables.html#cb550-84" tabindex="-1"></a>)</span>
-<span id="cb550-85"><a href="selection-on-observables.html#cb550-85" tabindex="-1"></a></span>
-<span id="cb550-86"><a href="selection-on-observables.html#cb550-86" tabindex="-1"></a><span class="co"># export matched dataset</span></span>
-<span id="cb550-87"><a href="selection-on-observables.html#cb550-87" tabindex="-1"></a><span class="co"># take 400 units</span></span>
-<span id="cb550-88"><a href="selection-on-observables.html#cb550-88" tabindex="-1"></a>matched.data <span class="ot">&lt;-</span> <span class="fu">generateDataset</span>(L1.frontier, <span class="at">N =</span> <span class="dv">400</span>) </span></code></pre></div>
+<div class="sourceCode" id="cb561"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb561-1"><a href="selection-on-observables.html#cb561-1" tabindex="-1"></a><span class="co"># library(devtools)</span></span>
+<span id="cb561-2"><a href="selection-on-observables.html#cb561-2" tabindex="-1"></a><span class="co"># install_github(&#39;ChristopherLucas/MatchingFrontier&#39;)</span></span>
+<span id="cb561-3"><a href="selection-on-observables.html#cb561-3" tabindex="-1"></a><span class="fu">library</span>(MatchingFrontier)</span>
+<span id="cb561-4"><a href="selection-on-observables.html#cb561-4" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;lalonde&quot;</span>)</span>
+<span id="cb561-5"><a href="selection-on-observables.html#cb561-5" tabindex="-1"></a><span class="co"># choose var to match on</span></span>
+<span id="cb561-6"><a href="selection-on-observables.html#cb561-6" tabindex="-1"></a>match.on <span class="ot">&lt;-</span></span>
+<span id="cb561-7"><a href="selection-on-observables.html#cb561-7" tabindex="-1"></a>    <span class="fu">colnames</span>(lalonde)[<span class="sc">!</span>(<span class="fu">colnames</span>(lalonde) <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&#39;re78&#39;</span>, <span class="st">&#39;treat&#39;</span>))]</span>
+<span id="cb561-8"><a href="selection-on-observables.html#cb561-8" tabindex="-1"></a>match.on</span>
+<span id="cb561-9"><a href="selection-on-observables.html#cb561-9" tabindex="-1"></a></span>
+<span id="cb561-10"><a href="selection-on-observables.html#cb561-10" tabindex="-1"></a><span class="co"># Mahanlanobis frontier (default)</span></span>
+<span id="cb561-11"><a href="selection-on-observables.html#cb561-11" tabindex="-1"></a>mahal.frontier <span class="ot">&lt;-</span></span>
+<span id="cb561-12"><a href="selection-on-observables.html#cb561-12" tabindex="-1"></a>    <span class="fu">makeFrontier</span>(</span>
+<span id="cb561-13"><a href="selection-on-observables.html#cb561-13" tabindex="-1"></a>        <span class="at">dataset =</span> lalonde,</span>
+<span id="cb561-14"><a href="selection-on-observables.html#cb561-14" tabindex="-1"></a>        <span class="at">treatment =</span> <span class="st">&quot;treat&quot;</span>,</span>
+<span id="cb561-15"><a href="selection-on-observables.html#cb561-15" tabindex="-1"></a>        <span class="at">match.on =</span> match.on</span>
+<span id="cb561-16"><a href="selection-on-observables.html#cb561-16" tabindex="-1"></a>    )</span>
+<span id="cb561-17"><a href="selection-on-observables.html#cb561-17" tabindex="-1"></a>mahal.frontier</span>
+<span id="cb561-18"><a href="selection-on-observables.html#cb561-18" tabindex="-1"></a></span>
+<span id="cb561-19"><a href="selection-on-observables.html#cb561-19" tabindex="-1"></a><span class="co"># L1 frontier</span></span>
+<span id="cb561-20"><a href="selection-on-observables.html#cb561-20" tabindex="-1"></a>L1.frontier <span class="ot">&lt;-</span></span>
+<span id="cb561-21"><a href="selection-on-observables.html#cb561-21" tabindex="-1"></a>    <span class="fu">makeFrontier</span>(</span>
+<span id="cb561-22"><a href="selection-on-observables.html#cb561-22" tabindex="-1"></a>        <span class="at">dataset =</span> lalonde,</span>
+<span id="cb561-23"><a href="selection-on-observables.html#cb561-23" tabindex="-1"></a>        <span class="at">treatment =</span> <span class="st">&#39;treat&#39;</span>,</span>
+<span id="cb561-24"><a href="selection-on-observables.html#cb561-24" tabindex="-1"></a>        <span class="at">match.on =</span> match.on,</span>
+<span id="cb561-25"><a href="selection-on-observables.html#cb561-25" tabindex="-1"></a>        <span class="at">QOI =</span> <span class="st">&#39;SATT&#39;</span>,</span>
+<span id="cb561-26"><a href="selection-on-observables.html#cb561-26" tabindex="-1"></a>        <span class="at">metric =</span> <span class="st">&#39;L1&#39;</span>,</span>
+<span id="cb561-27"><a href="selection-on-observables.html#cb561-27" tabindex="-1"></a>        <span class="at">ratio =</span> <span class="st">&#39;fixed&#39;</span></span>
+<span id="cb561-28"><a href="selection-on-observables.html#cb561-28" tabindex="-1"></a>    )</span>
+<span id="cb561-29"><a href="selection-on-observables.html#cb561-29" tabindex="-1"></a>L1.frontier</span>
+<span id="cb561-30"><a href="selection-on-observables.html#cb561-30" tabindex="-1"></a></span>
+<span id="cb561-31"><a href="selection-on-observables.html#cb561-31" tabindex="-1"></a><span class="co"># estimate effects along the frontier</span></span>
+<span id="cb561-32"><a href="selection-on-observables.html#cb561-32" tabindex="-1"></a></span>
+<span id="cb561-33"><a href="selection-on-observables.html#cb561-33" tabindex="-1"></a><span class="co"># Set base form</span></span>
+<span id="cb561-34"><a href="selection-on-observables.html#cb561-34" tabindex="-1"></a>my.form <span class="ot">&lt;-</span></span>
+<span id="cb561-35"><a href="selection-on-observables.html#cb561-35" tabindex="-1"></a>    <span class="fu">as.formula</span>(re78 <span class="sc">~</span> treat <span class="sc">+</span> age <span class="sc">+</span> black <span class="sc">+</span> education </span>
+<span id="cb561-36"><a href="selection-on-observables.html#cb561-36" tabindex="-1"></a>               <span class="sc">+</span> hispanic <span class="sc">+</span> married <span class="sc">+</span> nodegree <span class="sc">+</span> re74 <span class="sc">+</span> re75)</span>
+<span id="cb561-37"><a href="selection-on-observables.html#cb561-37" tabindex="-1"></a></span>
+<span id="cb561-38"><a href="selection-on-observables.html#cb561-38" tabindex="-1"></a><span class="co"># Estimate effects for the mahalanobis frontier</span></span>
+<span id="cb561-39"><a href="selection-on-observables.html#cb561-39" tabindex="-1"></a>mahal.estimates <span class="ot">&lt;-</span></span>
+<span id="cb561-40"><a href="selection-on-observables.html#cb561-40" tabindex="-1"></a>    <span class="fu">estimateEffects</span>(</span>
+<span id="cb561-41"><a href="selection-on-observables.html#cb561-41" tabindex="-1"></a>        mahal.frontier,</span>
+<span id="cb561-42"><a href="selection-on-observables.html#cb561-42" tabindex="-1"></a>        <span class="st">&#39;re78 ~ treat&#39;</span>,</span>
+<span id="cb561-43"><a href="selection-on-observables.html#cb561-43" tabindex="-1"></a>        <span class="at">mod.dependence.formula =</span> my.form,</span>
+<span id="cb561-44"><a href="selection-on-observables.html#cb561-44" tabindex="-1"></a>        <span class="at">continuous.vars =</span> <span class="fu">c</span>(<span class="st">&#39;age&#39;</span>, <span class="st">&#39;education&#39;</span>, <span class="st">&#39;re74&#39;</span>, <span class="st">&#39;re75&#39;</span>),</span>
+<span id="cb561-45"><a href="selection-on-observables.html#cb561-45" tabindex="-1"></a>        <span class="at">prop.estimated =</span> .<span class="dv">1</span>,</span>
+<span id="cb561-46"><a href="selection-on-observables.html#cb561-46" tabindex="-1"></a>        <span class="at">means.as.cutpoints =</span> <span class="cn">TRUE</span></span>
+<span id="cb561-47"><a href="selection-on-observables.html#cb561-47" tabindex="-1"></a>    )</span>
+<span id="cb561-48"><a href="selection-on-observables.html#cb561-48" tabindex="-1"></a></span>
+<span id="cb561-49"><a href="selection-on-observables.html#cb561-49" tabindex="-1"></a><span class="co"># Estimate effects for the L1 frontier</span></span>
+<span id="cb561-50"><a href="selection-on-observables.html#cb561-50" tabindex="-1"></a>L1.estimates <span class="ot">&lt;-</span></span>
+<span id="cb561-51"><a href="selection-on-observables.html#cb561-51" tabindex="-1"></a>    <span class="fu">estimateEffects</span>(</span>
+<span id="cb561-52"><a href="selection-on-observables.html#cb561-52" tabindex="-1"></a>        L1.frontier,</span>
+<span id="cb561-53"><a href="selection-on-observables.html#cb561-53" tabindex="-1"></a>        <span class="st">&#39;re78 ~ treat&#39;</span>,</span>
+<span id="cb561-54"><a href="selection-on-observables.html#cb561-54" tabindex="-1"></a>        <span class="at">mod.dependence.formula =</span> my.form,</span>
+<span id="cb561-55"><a href="selection-on-observables.html#cb561-55" tabindex="-1"></a>        <span class="at">continuous.vars =</span> <span class="fu">c</span>(<span class="st">&#39;age&#39;</span>, <span class="st">&#39;education&#39;</span>, <span class="st">&#39;re74&#39;</span>, <span class="st">&#39;re75&#39;</span>),</span>
+<span id="cb561-56"><a href="selection-on-observables.html#cb561-56" tabindex="-1"></a>        <span class="at">prop.estimated =</span> .<span class="dv">1</span>,</span>
+<span id="cb561-57"><a href="selection-on-observables.html#cb561-57" tabindex="-1"></a>        <span class="at">means.as.cutpoints =</span> <span class="cn">TRUE</span></span>
+<span id="cb561-58"><a href="selection-on-observables.html#cb561-58" tabindex="-1"></a>    )</span>
+<span id="cb561-59"><a href="selection-on-observables.html#cb561-59" tabindex="-1"></a></span>
+<span id="cb561-60"><a href="selection-on-observables.html#cb561-60" tabindex="-1"></a><span class="co"># Plot covariates means </span></span>
+<span id="cb561-61"><a href="selection-on-observables.html#cb561-61" tabindex="-1"></a><span class="co"># plotPrunedMeans()</span></span>
+<span id="cb561-62"><a href="selection-on-observables.html#cb561-62" tabindex="-1"></a></span>
+<span id="cb561-63"><a href="selection-on-observables.html#cb561-63" tabindex="-1"></a></span>
+<span id="cb561-64"><a href="selection-on-observables.html#cb561-64" tabindex="-1"></a><span class="co"># Plot estimates (deprecated)</span></span>
+<span id="cb561-65"><a href="selection-on-observables.html#cb561-65" tabindex="-1"></a><span class="co"># plotEstimates(</span></span>
+<span id="cb561-66"><a href="selection-on-observables.html#cb561-66" tabindex="-1"></a><span class="co">#     L1.estimates,</span></span>
+<span id="cb561-67"><a href="selection-on-observables.html#cb561-67" tabindex="-1"></a><span class="co">#     ylim = c(-10000, 3000),</span></span>
+<span id="cb561-68"><a href="selection-on-observables.html#cb561-68" tabindex="-1"></a><span class="co">#     cex.lab = 1.4,</span></span>
+<span id="cb561-69"><a href="selection-on-observables.html#cb561-69" tabindex="-1"></a><span class="co">#     cex.axis = 1.4,</span></span>
+<span id="cb561-70"><a href="selection-on-observables.html#cb561-70" tabindex="-1"></a><span class="co">#     panel.first = grid(NULL, NULL, lwd = 2,)</span></span>
+<span id="cb561-71"><a href="selection-on-observables.html#cb561-71" tabindex="-1"></a><span class="co"># )</span></span>
+<span id="cb561-72"><a href="selection-on-observables.html#cb561-72" tabindex="-1"></a></span>
+<span id="cb561-73"><a href="selection-on-observables.html#cb561-73" tabindex="-1"></a><span class="co"># Plot estimates</span></span>
+<span id="cb561-74"><a href="selection-on-observables.html#cb561-74" tabindex="-1"></a><span class="fu">plotMeans</span>(L1.frontier)</span>
+<span id="cb561-75"><a href="selection-on-observables.html#cb561-75" tabindex="-1"></a></span>
+<span id="cb561-76"><a href="selection-on-observables.html#cb561-76" tabindex="-1"></a></span>
+<span id="cb561-77"><a href="selection-on-observables.html#cb561-77" tabindex="-1"></a><span class="co"># parallel plot</span></span>
+<span id="cb561-78"><a href="selection-on-observables.html#cb561-78" tabindex="-1"></a><span class="fu">parallelPlot</span>(</span>
+<span id="cb561-79"><a href="selection-on-observables.html#cb561-79" tabindex="-1"></a>    L1.frontier,</span>
+<span id="cb561-80"><a href="selection-on-observables.html#cb561-80" tabindex="-1"></a>    <span class="at">N =</span> <span class="dv">400</span>,</span>
+<span id="cb561-81"><a href="selection-on-observables.html#cb561-81" tabindex="-1"></a>    <span class="at">variables =</span> <span class="fu">c</span>(<span class="st">&#39;age&#39;</span>, <span class="st">&#39;re74&#39;</span>, <span class="st">&#39;re75&#39;</span>, <span class="st">&#39;black&#39;</span>),</span>
+<span id="cb561-82"><a href="selection-on-observables.html#cb561-82" tabindex="-1"></a>    <span class="at">treated.col =</span> <span class="st">&#39;blue&#39;</span>,</span>
+<span id="cb561-83"><a href="selection-on-observables.html#cb561-83" tabindex="-1"></a>    <span class="at">control.col =</span> <span class="st">&#39;gray&#39;</span></span>
+<span id="cb561-84"><a href="selection-on-observables.html#cb561-84" tabindex="-1"></a>)</span>
+<span id="cb561-85"><a href="selection-on-observables.html#cb561-85" tabindex="-1"></a></span>
+<span id="cb561-86"><a href="selection-on-observables.html#cb561-86" tabindex="-1"></a><span class="co"># export matched dataset</span></span>
+<span id="cb561-87"><a href="selection-on-observables.html#cb561-87" tabindex="-1"></a><span class="co"># take 400 units</span></span>
+<span id="cb561-88"><a href="selection-on-observables.html#cb561-88" tabindex="-1"></a>matched.data <span class="ot">&lt;-</span> <span class="fu">generateDataset</span>(L1.frontier, <span class="at">N =</span> <span class="dv">400</span>) </span></code></pre></div>
 </div>
 <div id="propensity-scores" class="section level3 hasAnchor" number="29.1.4">
 <h3><span class="header-section-number">29.1.4</span> Propensity Scores<a href="selection-on-observables.html#propensity-scores" class="anchor-section" aria-label="Anchor link to header"></a></h3>
@@ -1456,153 +1460,153 @@ e_i (X_i) = P(T_i = 1 | X_i)
 </ul>
 <p>More detail in <span class="citation">(<a href="#ref-iacus2012causal">Iacus, King, and Porro 2012</a>)</span></p>
 <p>Example by <a href="https://cran.r-project.org/web/packages/cem/vignettes/cem.pdf">package’s authors</a></p>
-<div class="sourceCode" id="cb551"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb551-1"><a href="selection-on-observables.html#cb551-1" tabindex="-1"></a><span class="fu">library</span>(cem)</span>
-<span id="cb551-2"><a href="selection-on-observables.html#cb551-2" tabindex="-1"></a><span class="fu">data</span>(LeLonde)</span>
-<span id="cb551-3"><a href="selection-on-observables.html#cb551-3" tabindex="-1"></a></span>
-<span id="cb551-4"><a href="selection-on-observables.html#cb551-4" tabindex="-1"></a>Le <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">na.omit</span>(LeLonde)) <span class="co"># remove missing data</span></span>
-<span id="cb551-5"><a href="selection-on-observables.html#cb551-5" tabindex="-1"></a><span class="co"># treated and control groups</span></span>
-<span id="cb551-6"><a href="selection-on-observables.html#cb551-6" tabindex="-1"></a>tr <span class="ot">&lt;-</span> <span class="fu">which</span>(Le<span class="sc">$</span>treated<span class="sc">==</span><span class="dv">1</span>)</span>
-<span id="cb551-7"><a href="selection-on-observables.html#cb551-7" tabindex="-1"></a>ct <span class="ot">&lt;-</span> <span class="fu">which</span>(Le<span class="sc">$</span>treated<span class="sc">==</span><span class="dv">0</span>)</span>
-<span id="cb551-8"><a href="selection-on-observables.html#cb551-8" tabindex="-1"></a>ntr <span class="ot">&lt;-</span> <span class="fu">length</span>(tr)</span>
-<span id="cb551-9"><a href="selection-on-observables.html#cb551-9" tabindex="-1"></a>nct <span class="ot">&lt;-</span> <span class="fu">length</span>(ct)</span>
-<span id="cb551-10"><a href="selection-on-observables.html#cb551-10" tabindex="-1"></a></span>
-<span id="cb551-11"><a href="selection-on-observables.html#cb551-11" tabindex="-1"></a><span class="co"># unadjusted, biased difference in means</span></span>
-<span id="cb551-12"><a href="selection-on-observables.html#cb551-12" tabindex="-1"></a><span class="fu">mean</span>(Le<span class="sc">$</span>re78[tr]) <span class="sc">-</span> <span class="fu">mean</span>(Le<span class="sc">$</span>re78[ct])</span>
-<span id="cb551-13"><a href="selection-on-observables.html#cb551-13" tabindex="-1"></a><span class="co">#&gt; [1] 759.0479</span></span>
-<span id="cb551-14"><a href="selection-on-observables.html#cb551-14" tabindex="-1"></a></span>
-<span id="cb551-15"><a href="selection-on-observables.html#cb551-15" tabindex="-1"></a><span class="co"># pre-treatment covariates</span></span>
-<span id="cb551-16"><a href="selection-on-observables.html#cb551-16" tabindex="-1"></a>vars <span class="ot">&lt;-</span></span>
-<span id="cb551-17"><a href="selection-on-observables.html#cb551-17" tabindex="-1"></a>    <span class="fu">c</span>(</span>
-<span id="cb551-18"><a href="selection-on-observables.html#cb551-18" tabindex="-1"></a>        <span class="st">&quot;age&quot;</span>,</span>
-<span id="cb551-19"><a href="selection-on-observables.html#cb551-19" tabindex="-1"></a>        <span class="st">&quot;education&quot;</span>,</span>
-<span id="cb551-20"><a href="selection-on-observables.html#cb551-20" tabindex="-1"></a>        <span class="st">&quot;black&quot;</span>,</span>
-<span id="cb551-21"><a href="selection-on-observables.html#cb551-21" tabindex="-1"></a>        <span class="st">&quot;married&quot;</span>,</span>
-<span id="cb551-22"><a href="selection-on-observables.html#cb551-22" tabindex="-1"></a>        <span class="st">&quot;nodegree&quot;</span>,</span>
-<span id="cb551-23"><a href="selection-on-observables.html#cb551-23" tabindex="-1"></a>        <span class="st">&quot;re74&quot;</span>,</span>
-<span id="cb551-24"><a href="selection-on-observables.html#cb551-24" tabindex="-1"></a>        <span class="st">&quot;re75&quot;</span>,</span>
-<span id="cb551-25"><a href="selection-on-observables.html#cb551-25" tabindex="-1"></a>        <span class="st">&quot;hispanic&quot;</span>,</span>
-<span id="cb551-26"><a href="selection-on-observables.html#cb551-26" tabindex="-1"></a>        <span class="st">&quot;u74&quot;</span>,</span>
-<span id="cb551-27"><a href="selection-on-observables.html#cb551-27" tabindex="-1"></a>        <span class="st">&quot;u75&quot;</span>,</span>
-<span id="cb551-28"><a href="selection-on-observables.html#cb551-28" tabindex="-1"></a>        <span class="st">&quot;q1&quot;</span></span>
-<span id="cb551-29"><a href="selection-on-observables.html#cb551-29" tabindex="-1"></a>    )</span>
-<span id="cb551-30"><a href="selection-on-observables.html#cb551-30" tabindex="-1"></a></span>
-<span id="cb551-31"><a href="selection-on-observables.html#cb551-31" tabindex="-1"></a><span class="co"># overall imbalance statistics</span></span>
-<span id="cb551-32"><a href="selection-on-observables.html#cb551-32" tabindex="-1"></a><span class="fu">imbalance</span>(<span class="at">group=</span>Le<span class="sc">$</span>treated, <span class="at">data=</span>Le[vars]) <span class="co"># L1 = 0.902</span></span>
-<span id="cb551-33"><a href="selection-on-observables.html#cb551-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb551-34"><a href="selection-on-observables.html#cb551-34" tabindex="-1"></a><span class="co">#&gt; Multivariate Imbalance Measure: L1=0.902</span></span>
-<span id="cb551-35"><a href="selection-on-observables.html#cb551-35" tabindex="-1"></a><span class="co">#&gt; Percentage of local common support: LCS=5.8%</span></span>
-<span id="cb551-36"><a href="selection-on-observables.html#cb551-36" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb551-37"><a href="selection-on-observables.html#cb551-37" tabindex="-1"></a><span class="co">#&gt; Univariate Imbalance Measures:</span></span>
-<span id="cb551-38"><a href="selection-on-observables.html#cb551-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb551-39"><a href="selection-on-observables.html#cb551-39" tabindex="-1"></a><span class="co">#&gt;               statistic   type           L1 min 25%      50%       75%</span></span>
-<span id="cb551-40"><a href="selection-on-observables.html#cb551-40" tabindex="-1"></a><span class="co">#&gt; age        -0.252373042 (diff) 5.102041e-03   0   0   0.0000   -1.0000</span></span>
-<span id="cb551-41"><a href="selection-on-observables.html#cb551-41" tabindex="-1"></a><span class="co">#&gt; education   0.153634710 (diff) 8.463851e-02   1   0   1.0000    1.0000</span></span>
-<span id="cb551-42"><a href="selection-on-observables.html#cb551-42" tabindex="-1"></a><span class="co">#&gt; black      -0.010322734 (diff) 1.032273e-02   0   0   0.0000    0.0000</span></span>
-<span id="cb551-43"><a href="selection-on-observables.html#cb551-43" tabindex="-1"></a><span class="co">#&gt; married    -0.009551495 (diff) 9.551495e-03   0   0   0.0000    0.0000</span></span>
-<span id="cb551-44"><a href="selection-on-observables.html#cb551-44" tabindex="-1"></a><span class="co">#&gt; nodegree   -0.081217371 (diff) 8.121737e-02   0  -1   0.0000    0.0000</span></span>
-<span id="cb551-45"><a href="selection-on-observables.html#cb551-45" tabindex="-1"></a><span class="co">#&gt; re74      -18.160446880 (diff) 5.551115e-17   0   0 284.0715  806.3452</span></span>
-<span id="cb551-46"><a href="selection-on-observables.html#cb551-46" tabindex="-1"></a><span class="co">#&gt; re75      101.501761679 (diff) 5.551115e-17   0   0 485.6310 1238.4114</span></span>
-<span id="cb551-47"><a href="selection-on-observables.html#cb551-47" tabindex="-1"></a><span class="co">#&gt; hispanic   -0.010144756 (diff) 1.014476e-02   0   0   0.0000    0.0000</span></span>
-<span id="cb551-48"><a href="selection-on-observables.html#cb551-48" tabindex="-1"></a><span class="co">#&gt; u74        -0.045582186 (diff) 4.558219e-02   0   0   0.0000    0.0000</span></span>
-<span id="cb551-49"><a href="selection-on-observables.html#cb551-49" tabindex="-1"></a><span class="co">#&gt; u75        -0.065555292 (diff) 6.555529e-02   0   0   0.0000    0.0000</span></span>
-<span id="cb551-50"><a href="selection-on-observables.html#cb551-50" tabindex="-1"></a><span class="co">#&gt; q1          7.494021189 (Chi2) 1.067078e-01  NA  NA       NA        NA</span></span>
-<span id="cb551-51"><a href="selection-on-observables.html#cb551-51" tabindex="-1"></a><span class="co">#&gt;                  max</span></span>
-<span id="cb551-52"><a href="selection-on-observables.html#cb551-52" tabindex="-1"></a><span class="co">#&gt; age          -6.0000</span></span>
-<span id="cb551-53"><a href="selection-on-observables.html#cb551-53" tabindex="-1"></a><span class="co">#&gt; education     1.0000</span></span>
-<span id="cb551-54"><a href="selection-on-observables.html#cb551-54" tabindex="-1"></a><span class="co">#&gt; black         0.0000</span></span>
-<span id="cb551-55"><a href="selection-on-observables.html#cb551-55" tabindex="-1"></a><span class="co">#&gt; married       0.0000</span></span>
-<span id="cb551-56"><a href="selection-on-observables.html#cb551-56" tabindex="-1"></a><span class="co">#&gt; nodegree      0.0000</span></span>
-<span id="cb551-57"><a href="selection-on-observables.html#cb551-57" tabindex="-1"></a><span class="co">#&gt; re74      -2139.0195</span></span>
-<span id="cb551-58"><a href="selection-on-observables.html#cb551-58" tabindex="-1"></a><span class="co">#&gt; re75        490.3945</span></span>
-<span id="cb551-59"><a href="selection-on-observables.html#cb551-59" tabindex="-1"></a><span class="co">#&gt; hispanic      0.0000</span></span>
-<span id="cb551-60"><a href="selection-on-observables.html#cb551-60" tabindex="-1"></a><span class="co">#&gt; u74           0.0000</span></span>
-<span id="cb551-61"><a href="selection-on-observables.html#cb551-61" tabindex="-1"></a><span class="co">#&gt; u75           0.0000</span></span>
-<span id="cb551-62"><a href="selection-on-observables.html#cb551-62" tabindex="-1"></a><span class="co">#&gt; q1                NA</span></span>
-<span id="cb551-63"><a href="selection-on-observables.html#cb551-63" tabindex="-1"></a></span>
-<span id="cb551-64"><a href="selection-on-observables.html#cb551-64" tabindex="-1"></a><span class="co"># drop other variables that are not pre - treatmentt matching variables</span></span>
-<span id="cb551-65"><a href="selection-on-observables.html#cb551-65" tabindex="-1"></a>todrop <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;treated&quot;</span>, <span class="st">&quot;re78&quot;</span>)</span>
-<span id="cb551-66"><a href="selection-on-observables.html#cb551-66" tabindex="-1"></a><span class="fu">imbalance</span>(<span class="at">group=</span>Le<span class="sc">$</span>treated, <span class="at">data=</span>Le, <span class="at">drop=</span>todrop)</span>
-<span id="cb551-67"><a href="selection-on-observables.html#cb551-67" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb551-68"><a href="selection-on-observables.html#cb551-68" tabindex="-1"></a><span class="co">#&gt; Multivariate Imbalance Measure: L1=0.902</span></span>
-<span id="cb551-69"><a href="selection-on-observables.html#cb551-69" tabindex="-1"></a><span class="co">#&gt; Percentage of local common support: LCS=5.8%</span></span>
-<span id="cb551-70"><a href="selection-on-observables.html#cb551-70" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb551-71"><a href="selection-on-observables.html#cb551-71" tabindex="-1"></a><span class="co">#&gt; Univariate Imbalance Measures:</span></span>
-<span id="cb551-72"><a href="selection-on-observables.html#cb551-72" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb551-73"><a href="selection-on-observables.html#cb551-73" tabindex="-1"></a><span class="co">#&gt;               statistic   type           L1 min 25%      50%       75%</span></span>
-<span id="cb551-74"><a href="selection-on-observables.html#cb551-74" tabindex="-1"></a><span class="co">#&gt; age        -0.252373042 (diff) 5.102041e-03   0   0   0.0000   -1.0000</span></span>
-<span id="cb551-75"><a href="selection-on-observables.html#cb551-75" tabindex="-1"></a><span class="co">#&gt; education   0.153634710 (diff) 8.463851e-02   1   0   1.0000    1.0000</span></span>
-<span id="cb551-76"><a href="selection-on-observables.html#cb551-76" tabindex="-1"></a><span class="co">#&gt; black      -0.010322734 (diff) 1.032273e-02   0   0   0.0000    0.0000</span></span>
-<span id="cb551-77"><a href="selection-on-observables.html#cb551-77" tabindex="-1"></a><span class="co">#&gt; married    -0.009551495 (diff) 9.551495e-03   0   0   0.0000    0.0000</span></span>
-<span id="cb551-78"><a href="selection-on-observables.html#cb551-78" tabindex="-1"></a><span class="co">#&gt; nodegree   -0.081217371 (diff) 8.121737e-02   0  -1   0.0000    0.0000</span></span>
-<span id="cb551-79"><a href="selection-on-observables.html#cb551-79" tabindex="-1"></a><span class="co">#&gt; re74      -18.160446880 (diff) 5.551115e-17   0   0 284.0715  806.3452</span></span>
-<span id="cb551-80"><a href="selection-on-observables.html#cb551-80" tabindex="-1"></a><span class="co">#&gt; re75      101.501761679 (diff) 5.551115e-17   0   0 485.6310 1238.4114</span></span>
-<span id="cb551-81"><a href="selection-on-observables.html#cb551-81" tabindex="-1"></a><span class="co">#&gt; hispanic   -0.010144756 (diff) 1.014476e-02   0   0   0.0000    0.0000</span></span>
-<span id="cb551-82"><a href="selection-on-observables.html#cb551-82" tabindex="-1"></a><span class="co">#&gt; u74        -0.045582186 (diff) 4.558219e-02   0   0   0.0000    0.0000</span></span>
-<span id="cb551-83"><a href="selection-on-observables.html#cb551-83" tabindex="-1"></a><span class="co">#&gt; u75        -0.065555292 (diff) 6.555529e-02   0   0   0.0000    0.0000</span></span>
-<span id="cb551-84"><a href="selection-on-observables.html#cb551-84" tabindex="-1"></a><span class="co">#&gt; q1          7.494021189 (Chi2) 1.067078e-01  NA  NA       NA        NA</span></span>
-<span id="cb551-85"><a href="selection-on-observables.html#cb551-85" tabindex="-1"></a><span class="co">#&gt;                  max</span></span>
-<span id="cb551-86"><a href="selection-on-observables.html#cb551-86" tabindex="-1"></a><span class="co">#&gt; age          -6.0000</span></span>
-<span id="cb551-87"><a href="selection-on-observables.html#cb551-87" tabindex="-1"></a><span class="co">#&gt; education     1.0000</span></span>
-<span id="cb551-88"><a href="selection-on-observables.html#cb551-88" tabindex="-1"></a><span class="co">#&gt; black         0.0000</span></span>
-<span id="cb551-89"><a href="selection-on-observables.html#cb551-89" tabindex="-1"></a><span class="co">#&gt; married       0.0000</span></span>
-<span id="cb551-90"><a href="selection-on-observables.html#cb551-90" tabindex="-1"></a><span class="co">#&gt; nodegree      0.0000</span></span>
-<span id="cb551-91"><a href="selection-on-observables.html#cb551-91" tabindex="-1"></a><span class="co">#&gt; re74      -2139.0195</span></span>
-<span id="cb551-92"><a href="selection-on-observables.html#cb551-92" tabindex="-1"></a><span class="co">#&gt; re75        490.3945</span></span>
-<span id="cb551-93"><a href="selection-on-observables.html#cb551-93" tabindex="-1"></a><span class="co">#&gt; hispanic      0.0000</span></span>
-<span id="cb551-94"><a href="selection-on-observables.html#cb551-94" tabindex="-1"></a><span class="co">#&gt; u74           0.0000</span></span>
-<span id="cb551-95"><a href="selection-on-observables.html#cb551-95" tabindex="-1"></a><span class="co">#&gt; u75           0.0000</span></span>
-<span id="cb551-96"><a href="selection-on-observables.html#cb551-96" tabindex="-1"></a><span class="co">#&gt; q1                NA</span></span></code></pre></div>
+<div class="sourceCode" id="cb562"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb562-1"><a href="selection-on-observables.html#cb562-1" tabindex="-1"></a><span class="fu">library</span>(cem)</span>
+<span id="cb562-2"><a href="selection-on-observables.html#cb562-2" tabindex="-1"></a><span class="fu">data</span>(LeLonde)</span>
+<span id="cb562-3"><a href="selection-on-observables.html#cb562-3" tabindex="-1"></a></span>
+<span id="cb562-4"><a href="selection-on-observables.html#cb562-4" tabindex="-1"></a>Le <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">na.omit</span>(LeLonde)) <span class="co"># remove missing data</span></span>
+<span id="cb562-5"><a href="selection-on-observables.html#cb562-5" tabindex="-1"></a><span class="co"># treated and control groups</span></span>
+<span id="cb562-6"><a href="selection-on-observables.html#cb562-6" tabindex="-1"></a>tr <span class="ot">&lt;-</span> <span class="fu">which</span>(Le<span class="sc">$</span>treated<span class="sc">==</span><span class="dv">1</span>)</span>
+<span id="cb562-7"><a href="selection-on-observables.html#cb562-7" tabindex="-1"></a>ct <span class="ot">&lt;-</span> <span class="fu">which</span>(Le<span class="sc">$</span>treated<span class="sc">==</span><span class="dv">0</span>)</span>
+<span id="cb562-8"><a href="selection-on-observables.html#cb562-8" tabindex="-1"></a>ntr <span class="ot">&lt;-</span> <span class="fu">length</span>(tr)</span>
+<span id="cb562-9"><a href="selection-on-observables.html#cb562-9" tabindex="-1"></a>nct <span class="ot">&lt;-</span> <span class="fu">length</span>(ct)</span>
+<span id="cb562-10"><a href="selection-on-observables.html#cb562-10" tabindex="-1"></a></span>
+<span id="cb562-11"><a href="selection-on-observables.html#cb562-11" tabindex="-1"></a><span class="co"># unadjusted, biased difference in means</span></span>
+<span id="cb562-12"><a href="selection-on-observables.html#cb562-12" tabindex="-1"></a><span class="fu">mean</span>(Le<span class="sc">$</span>re78[tr]) <span class="sc">-</span> <span class="fu">mean</span>(Le<span class="sc">$</span>re78[ct])</span>
+<span id="cb562-13"><a href="selection-on-observables.html#cb562-13" tabindex="-1"></a><span class="co">#&gt; [1] 759.0479</span></span>
+<span id="cb562-14"><a href="selection-on-observables.html#cb562-14" tabindex="-1"></a></span>
+<span id="cb562-15"><a href="selection-on-observables.html#cb562-15" tabindex="-1"></a><span class="co"># pre-treatment covariates</span></span>
+<span id="cb562-16"><a href="selection-on-observables.html#cb562-16" tabindex="-1"></a>vars <span class="ot">&lt;-</span></span>
+<span id="cb562-17"><a href="selection-on-observables.html#cb562-17" tabindex="-1"></a>    <span class="fu">c</span>(</span>
+<span id="cb562-18"><a href="selection-on-observables.html#cb562-18" tabindex="-1"></a>        <span class="st">&quot;age&quot;</span>,</span>
+<span id="cb562-19"><a href="selection-on-observables.html#cb562-19" tabindex="-1"></a>        <span class="st">&quot;education&quot;</span>,</span>
+<span id="cb562-20"><a href="selection-on-observables.html#cb562-20" tabindex="-1"></a>        <span class="st">&quot;black&quot;</span>,</span>
+<span id="cb562-21"><a href="selection-on-observables.html#cb562-21" tabindex="-1"></a>        <span class="st">&quot;married&quot;</span>,</span>
+<span id="cb562-22"><a href="selection-on-observables.html#cb562-22" tabindex="-1"></a>        <span class="st">&quot;nodegree&quot;</span>,</span>
+<span id="cb562-23"><a href="selection-on-observables.html#cb562-23" tabindex="-1"></a>        <span class="st">&quot;re74&quot;</span>,</span>
+<span id="cb562-24"><a href="selection-on-observables.html#cb562-24" tabindex="-1"></a>        <span class="st">&quot;re75&quot;</span>,</span>
+<span id="cb562-25"><a href="selection-on-observables.html#cb562-25" tabindex="-1"></a>        <span class="st">&quot;hispanic&quot;</span>,</span>
+<span id="cb562-26"><a href="selection-on-observables.html#cb562-26" tabindex="-1"></a>        <span class="st">&quot;u74&quot;</span>,</span>
+<span id="cb562-27"><a href="selection-on-observables.html#cb562-27" tabindex="-1"></a>        <span class="st">&quot;u75&quot;</span>,</span>
+<span id="cb562-28"><a href="selection-on-observables.html#cb562-28" tabindex="-1"></a>        <span class="st">&quot;q1&quot;</span></span>
+<span id="cb562-29"><a href="selection-on-observables.html#cb562-29" tabindex="-1"></a>    )</span>
+<span id="cb562-30"><a href="selection-on-observables.html#cb562-30" tabindex="-1"></a></span>
+<span id="cb562-31"><a href="selection-on-observables.html#cb562-31" tabindex="-1"></a><span class="co"># overall imbalance statistics</span></span>
+<span id="cb562-32"><a href="selection-on-observables.html#cb562-32" tabindex="-1"></a><span class="fu">imbalance</span>(<span class="at">group=</span>Le<span class="sc">$</span>treated, <span class="at">data=</span>Le[vars]) <span class="co"># L1 = 0.902</span></span>
+<span id="cb562-33"><a href="selection-on-observables.html#cb562-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb562-34"><a href="selection-on-observables.html#cb562-34" tabindex="-1"></a><span class="co">#&gt; Multivariate Imbalance Measure: L1=0.902</span></span>
+<span id="cb562-35"><a href="selection-on-observables.html#cb562-35" tabindex="-1"></a><span class="co">#&gt; Percentage of local common support: LCS=5.8%</span></span>
+<span id="cb562-36"><a href="selection-on-observables.html#cb562-36" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb562-37"><a href="selection-on-observables.html#cb562-37" tabindex="-1"></a><span class="co">#&gt; Univariate Imbalance Measures:</span></span>
+<span id="cb562-38"><a href="selection-on-observables.html#cb562-38" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb562-39"><a href="selection-on-observables.html#cb562-39" tabindex="-1"></a><span class="co">#&gt;               statistic   type           L1 min 25%      50%       75%</span></span>
+<span id="cb562-40"><a href="selection-on-observables.html#cb562-40" tabindex="-1"></a><span class="co">#&gt; age        -0.252373042 (diff) 5.102041e-03   0   0   0.0000   -1.0000</span></span>
+<span id="cb562-41"><a href="selection-on-observables.html#cb562-41" tabindex="-1"></a><span class="co">#&gt; education   0.153634710 (diff) 8.463851e-02   1   0   1.0000    1.0000</span></span>
+<span id="cb562-42"><a href="selection-on-observables.html#cb562-42" tabindex="-1"></a><span class="co">#&gt; black      -0.010322734 (diff) 1.032273e-02   0   0   0.0000    0.0000</span></span>
+<span id="cb562-43"><a href="selection-on-observables.html#cb562-43" tabindex="-1"></a><span class="co">#&gt; married    -0.009551495 (diff) 9.551495e-03   0   0   0.0000    0.0000</span></span>
+<span id="cb562-44"><a href="selection-on-observables.html#cb562-44" tabindex="-1"></a><span class="co">#&gt; nodegree   -0.081217371 (diff) 8.121737e-02   0  -1   0.0000    0.0000</span></span>
+<span id="cb562-45"><a href="selection-on-observables.html#cb562-45" tabindex="-1"></a><span class="co">#&gt; re74      -18.160446880 (diff) 5.551115e-17   0   0 284.0715  806.3452</span></span>
+<span id="cb562-46"><a href="selection-on-observables.html#cb562-46" tabindex="-1"></a><span class="co">#&gt; re75      101.501761679 (diff) 5.551115e-17   0   0 485.6310 1238.4114</span></span>
+<span id="cb562-47"><a href="selection-on-observables.html#cb562-47" tabindex="-1"></a><span class="co">#&gt; hispanic   -0.010144756 (diff) 1.014476e-02   0   0   0.0000    0.0000</span></span>
+<span id="cb562-48"><a href="selection-on-observables.html#cb562-48" tabindex="-1"></a><span class="co">#&gt; u74        -0.045582186 (diff) 4.558219e-02   0   0   0.0000    0.0000</span></span>
+<span id="cb562-49"><a href="selection-on-observables.html#cb562-49" tabindex="-1"></a><span class="co">#&gt; u75        -0.065555292 (diff) 6.555529e-02   0   0   0.0000    0.0000</span></span>
+<span id="cb562-50"><a href="selection-on-observables.html#cb562-50" tabindex="-1"></a><span class="co">#&gt; q1          7.494021189 (Chi2) 1.067078e-01  NA  NA       NA        NA</span></span>
+<span id="cb562-51"><a href="selection-on-observables.html#cb562-51" tabindex="-1"></a><span class="co">#&gt;                  max</span></span>
+<span id="cb562-52"><a href="selection-on-observables.html#cb562-52" tabindex="-1"></a><span class="co">#&gt; age          -6.0000</span></span>
+<span id="cb562-53"><a href="selection-on-observables.html#cb562-53" tabindex="-1"></a><span class="co">#&gt; education     1.0000</span></span>
+<span id="cb562-54"><a href="selection-on-observables.html#cb562-54" tabindex="-1"></a><span class="co">#&gt; black         0.0000</span></span>
+<span id="cb562-55"><a href="selection-on-observables.html#cb562-55" tabindex="-1"></a><span class="co">#&gt; married       0.0000</span></span>
+<span id="cb562-56"><a href="selection-on-observables.html#cb562-56" tabindex="-1"></a><span class="co">#&gt; nodegree      0.0000</span></span>
+<span id="cb562-57"><a href="selection-on-observables.html#cb562-57" tabindex="-1"></a><span class="co">#&gt; re74      -2139.0195</span></span>
+<span id="cb562-58"><a href="selection-on-observables.html#cb562-58" tabindex="-1"></a><span class="co">#&gt; re75        490.3945</span></span>
+<span id="cb562-59"><a href="selection-on-observables.html#cb562-59" tabindex="-1"></a><span class="co">#&gt; hispanic      0.0000</span></span>
+<span id="cb562-60"><a href="selection-on-observables.html#cb562-60" tabindex="-1"></a><span class="co">#&gt; u74           0.0000</span></span>
+<span id="cb562-61"><a href="selection-on-observables.html#cb562-61" tabindex="-1"></a><span class="co">#&gt; u75           0.0000</span></span>
+<span id="cb562-62"><a href="selection-on-observables.html#cb562-62" tabindex="-1"></a><span class="co">#&gt; q1                NA</span></span>
+<span id="cb562-63"><a href="selection-on-observables.html#cb562-63" tabindex="-1"></a></span>
+<span id="cb562-64"><a href="selection-on-observables.html#cb562-64" tabindex="-1"></a><span class="co"># drop other variables that are not pre - treatmentt matching variables</span></span>
+<span id="cb562-65"><a href="selection-on-observables.html#cb562-65" tabindex="-1"></a>todrop <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;treated&quot;</span>, <span class="st">&quot;re78&quot;</span>)</span>
+<span id="cb562-66"><a href="selection-on-observables.html#cb562-66" tabindex="-1"></a><span class="fu">imbalance</span>(<span class="at">group=</span>Le<span class="sc">$</span>treated, <span class="at">data=</span>Le, <span class="at">drop=</span>todrop)</span>
+<span id="cb562-67"><a href="selection-on-observables.html#cb562-67" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb562-68"><a href="selection-on-observables.html#cb562-68" tabindex="-1"></a><span class="co">#&gt; Multivariate Imbalance Measure: L1=0.902</span></span>
+<span id="cb562-69"><a href="selection-on-observables.html#cb562-69" tabindex="-1"></a><span class="co">#&gt; Percentage of local common support: LCS=5.8%</span></span>
+<span id="cb562-70"><a href="selection-on-observables.html#cb562-70" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb562-71"><a href="selection-on-observables.html#cb562-71" tabindex="-1"></a><span class="co">#&gt; Univariate Imbalance Measures:</span></span>
+<span id="cb562-72"><a href="selection-on-observables.html#cb562-72" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb562-73"><a href="selection-on-observables.html#cb562-73" tabindex="-1"></a><span class="co">#&gt;               statistic   type           L1 min 25%      50%       75%</span></span>
+<span id="cb562-74"><a href="selection-on-observables.html#cb562-74" tabindex="-1"></a><span class="co">#&gt; age        -0.252373042 (diff) 5.102041e-03   0   0   0.0000   -1.0000</span></span>
+<span id="cb562-75"><a href="selection-on-observables.html#cb562-75" tabindex="-1"></a><span class="co">#&gt; education   0.153634710 (diff) 8.463851e-02   1   0   1.0000    1.0000</span></span>
+<span id="cb562-76"><a href="selection-on-observables.html#cb562-76" tabindex="-1"></a><span class="co">#&gt; black      -0.010322734 (diff) 1.032273e-02   0   0   0.0000    0.0000</span></span>
+<span id="cb562-77"><a href="selection-on-observables.html#cb562-77" tabindex="-1"></a><span class="co">#&gt; married    -0.009551495 (diff) 9.551495e-03   0   0   0.0000    0.0000</span></span>
+<span id="cb562-78"><a href="selection-on-observables.html#cb562-78" tabindex="-1"></a><span class="co">#&gt; nodegree   -0.081217371 (diff) 8.121737e-02   0  -1   0.0000    0.0000</span></span>
+<span id="cb562-79"><a href="selection-on-observables.html#cb562-79" tabindex="-1"></a><span class="co">#&gt; re74      -18.160446880 (diff) 5.551115e-17   0   0 284.0715  806.3452</span></span>
+<span id="cb562-80"><a href="selection-on-observables.html#cb562-80" tabindex="-1"></a><span class="co">#&gt; re75      101.501761679 (diff) 5.551115e-17   0   0 485.6310 1238.4114</span></span>
+<span id="cb562-81"><a href="selection-on-observables.html#cb562-81" tabindex="-1"></a><span class="co">#&gt; hispanic   -0.010144756 (diff) 1.014476e-02   0   0   0.0000    0.0000</span></span>
+<span id="cb562-82"><a href="selection-on-observables.html#cb562-82" tabindex="-1"></a><span class="co">#&gt; u74        -0.045582186 (diff) 4.558219e-02   0   0   0.0000    0.0000</span></span>
+<span id="cb562-83"><a href="selection-on-observables.html#cb562-83" tabindex="-1"></a><span class="co">#&gt; u75        -0.065555292 (diff) 6.555529e-02   0   0   0.0000    0.0000</span></span>
+<span id="cb562-84"><a href="selection-on-observables.html#cb562-84" tabindex="-1"></a><span class="co">#&gt; q1          7.494021189 (Chi2) 1.067078e-01  NA  NA       NA        NA</span></span>
+<span id="cb562-85"><a href="selection-on-observables.html#cb562-85" tabindex="-1"></a><span class="co">#&gt;                  max</span></span>
+<span id="cb562-86"><a href="selection-on-observables.html#cb562-86" tabindex="-1"></a><span class="co">#&gt; age          -6.0000</span></span>
+<span id="cb562-87"><a href="selection-on-observables.html#cb562-87" tabindex="-1"></a><span class="co">#&gt; education     1.0000</span></span>
+<span id="cb562-88"><a href="selection-on-observables.html#cb562-88" tabindex="-1"></a><span class="co">#&gt; black         0.0000</span></span>
+<span id="cb562-89"><a href="selection-on-observables.html#cb562-89" tabindex="-1"></a><span class="co">#&gt; married       0.0000</span></span>
+<span id="cb562-90"><a href="selection-on-observables.html#cb562-90" tabindex="-1"></a><span class="co">#&gt; nodegree      0.0000</span></span>
+<span id="cb562-91"><a href="selection-on-observables.html#cb562-91" tabindex="-1"></a><span class="co">#&gt; re74      -2139.0195</span></span>
+<span id="cb562-92"><a href="selection-on-observables.html#cb562-92" tabindex="-1"></a><span class="co">#&gt; re75        490.3945</span></span>
+<span id="cb562-93"><a href="selection-on-observables.html#cb562-93" tabindex="-1"></a><span class="co">#&gt; hispanic      0.0000</span></span>
+<span id="cb562-94"><a href="selection-on-observables.html#cb562-94" tabindex="-1"></a><span class="co">#&gt; u74           0.0000</span></span>
+<span id="cb562-95"><a href="selection-on-observables.html#cb562-95" tabindex="-1"></a><span class="co">#&gt; u75           0.0000</span></span>
+<span id="cb562-96"><a href="selection-on-observables.html#cb562-96" tabindex="-1"></a><span class="co">#&gt; q1                NA</span></span></code></pre></div>
 <p>automated coarsening</p>
-<div class="sourceCode" id="cb552"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb552-1"><a href="selection-on-observables.html#cb552-1" tabindex="-1"></a>mat <span class="ot">&lt;-</span></span>
-<span id="cb552-2"><a href="selection-on-observables.html#cb552-2" tabindex="-1"></a>    <span class="fu">cem</span>(</span>
-<span id="cb552-3"><a href="selection-on-observables.html#cb552-3" tabindex="-1"></a>        <span class="at">treatment =</span> <span class="st">&quot;treated&quot;</span>,</span>
-<span id="cb552-4"><a href="selection-on-observables.html#cb552-4" tabindex="-1"></a>        <span class="at">data =</span> Le,</span>
-<span id="cb552-5"><a href="selection-on-observables.html#cb552-5" tabindex="-1"></a>        <span class="at">drop =</span> <span class="st">&quot;re78&quot;</span>,</span>
-<span id="cb552-6"><a href="selection-on-observables.html#cb552-6" tabindex="-1"></a>        <span class="at">keep.all =</span> <span class="cn">TRUE</span></span>
-<span id="cb552-7"><a href="selection-on-observables.html#cb552-7" tabindex="-1"></a>    )</span>
-<span id="cb552-8"><a href="selection-on-observables.html#cb552-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb552-9"><a href="selection-on-observables.html#cb552-9" tabindex="-1"></a><span class="co">#&gt; Using &#39;treated&#39;=&#39;1&#39; as baseline group</span></span>
-<span id="cb552-10"><a href="selection-on-observables.html#cb552-10" tabindex="-1"></a>mat</span>
-<span id="cb552-11"><a href="selection-on-observables.html#cb552-11" tabindex="-1"></a><span class="co">#&gt;            G0  G1</span></span>
-<span id="cb552-12"><a href="selection-on-observables.html#cb552-12" tabindex="-1"></a><span class="co">#&gt; All       392 258</span></span>
-<span id="cb552-13"><a href="selection-on-observables.html#cb552-13" tabindex="-1"></a><span class="co">#&gt; Matched    95  84</span></span>
-<span id="cb552-14"><a href="selection-on-observables.html#cb552-14" tabindex="-1"></a><span class="co">#&gt; Unmatched 297 174</span></span>
-<span id="cb552-15"><a href="selection-on-observables.html#cb552-15" tabindex="-1"></a></span>
-<span id="cb552-16"><a href="selection-on-observables.html#cb552-16" tabindex="-1"></a><span class="co"># mat$w</span></span></code></pre></div>
+<div class="sourceCode" id="cb563"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb563-1"><a href="selection-on-observables.html#cb563-1" tabindex="-1"></a>mat <span class="ot">&lt;-</span></span>
+<span id="cb563-2"><a href="selection-on-observables.html#cb563-2" tabindex="-1"></a>    <span class="fu">cem</span>(</span>
+<span id="cb563-3"><a href="selection-on-observables.html#cb563-3" tabindex="-1"></a>        <span class="at">treatment =</span> <span class="st">&quot;treated&quot;</span>,</span>
+<span id="cb563-4"><a href="selection-on-observables.html#cb563-4" tabindex="-1"></a>        <span class="at">data =</span> Le,</span>
+<span id="cb563-5"><a href="selection-on-observables.html#cb563-5" tabindex="-1"></a>        <span class="at">drop =</span> <span class="st">&quot;re78&quot;</span>,</span>
+<span id="cb563-6"><a href="selection-on-observables.html#cb563-6" tabindex="-1"></a>        <span class="at">keep.all =</span> <span class="cn">TRUE</span></span>
+<span id="cb563-7"><a href="selection-on-observables.html#cb563-7" tabindex="-1"></a>    )</span>
+<span id="cb563-8"><a href="selection-on-observables.html#cb563-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb563-9"><a href="selection-on-observables.html#cb563-9" tabindex="-1"></a><span class="co">#&gt; Using &#39;treated&#39;=&#39;1&#39; as baseline group</span></span>
+<span id="cb563-10"><a href="selection-on-observables.html#cb563-10" tabindex="-1"></a>mat</span>
+<span id="cb563-11"><a href="selection-on-observables.html#cb563-11" tabindex="-1"></a><span class="co">#&gt;            G0  G1</span></span>
+<span id="cb563-12"><a href="selection-on-observables.html#cb563-12" tabindex="-1"></a><span class="co">#&gt; All       392 258</span></span>
+<span id="cb563-13"><a href="selection-on-observables.html#cb563-13" tabindex="-1"></a><span class="co">#&gt; Matched    95  84</span></span>
+<span id="cb563-14"><a href="selection-on-observables.html#cb563-14" tabindex="-1"></a><span class="co">#&gt; Unmatched 297 174</span></span>
+<span id="cb563-15"><a href="selection-on-observables.html#cb563-15" tabindex="-1"></a></span>
+<span id="cb563-16"><a href="selection-on-observables.html#cb563-16" tabindex="-1"></a><span class="co"># mat$w</span></span></code></pre></div>
 <p>coarsening by explicit user choice</p>
-<div class="sourceCode" id="cb553"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb553-1"><a href="selection-on-observables.html#cb553-1" tabindex="-1"></a><span class="co"># categorial variables</span></span>
-<span id="cb553-2"><a href="selection-on-observables.html#cb553-2" tabindex="-1"></a><span class="fu">levels</span>(Le<span class="sc">$</span>q1) <span class="co"># grouping option</span></span>
-<span id="cb553-3"><a href="selection-on-observables.html#cb553-3" tabindex="-1"></a><span class="co">#&gt; [1] &quot;agree&quot;             &quot;disagree&quot;          &quot;neutral&quot;          </span></span>
-<span id="cb553-4"><a href="selection-on-observables.html#cb553-4" tabindex="-1"></a><span class="co">#&gt; [4] &quot;no opinion&quot;        &quot;strongly agree&quot;    &quot;strongly disagree&quot;</span></span>
-<span id="cb553-5"><a href="selection-on-observables.html#cb553-5" tabindex="-1"></a>q1.grp <span class="ot">&lt;-</span></span>
-<span id="cb553-6"><a href="selection-on-observables.html#cb553-6" tabindex="-1"></a>    <span class="fu">list</span>(</span>
-<span id="cb553-7"><a href="selection-on-observables.html#cb553-7" tabindex="-1"></a>        <span class="fu">c</span>(<span class="st">&quot;strongly agree&quot;</span>, <span class="st">&quot;agree&quot;</span>),</span>
-<span id="cb553-8"><a href="selection-on-observables.html#cb553-8" tabindex="-1"></a>        <span class="fu">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;no opinion&quot;</span>),</span>
-<span id="cb553-9"><a href="selection-on-observables.html#cb553-9" tabindex="-1"></a>        <span class="fu">c</span>(<span class="st">&quot;strongly disagree&quot;</span>, <span class="st">&quot;disagree&quot;</span>)</span>
-<span id="cb553-10"><a href="selection-on-observables.html#cb553-10" tabindex="-1"></a>    ) <span class="co"># if you want ordered categories</span></span>
-<span id="cb553-11"><a href="selection-on-observables.html#cb553-11" tabindex="-1"></a></span>
-<span id="cb553-12"><a href="selection-on-observables.html#cb553-12" tabindex="-1"></a><span class="co"># continuous variables</span></span>
-<span id="cb553-13"><a href="selection-on-observables.html#cb553-13" tabindex="-1"></a><span class="fu">table</span>(Le<span class="sc">$</span>education)</span>
-<span id="cb553-14"><a href="selection-on-observables.html#cb553-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb553-15"><a href="selection-on-observables.html#cb553-15" tabindex="-1"></a><span class="co">#&gt;   3   4   5   6   7   8   9  10  11  12  13  14  15 </span></span>
-<span id="cb553-16"><a href="selection-on-observables.html#cb553-16" tabindex="-1"></a><span class="co">#&gt;   1   5   4   6  12  55 106 146 173 113  19   9   1</span></span>
-<span id="cb553-17"><a href="selection-on-observables.html#cb553-17" tabindex="-1"></a>educut <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">6.5</span>, <span class="fl">8.5</span>, <span class="fl">12.5</span>, <span class="dv">17</span>)  <span class="co"># use cutpoints</span></span>
-<span id="cb553-18"><a href="selection-on-observables.html#cb553-18" tabindex="-1"></a></span>
-<span id="cb553-19"><a href="selection-on-observables.html#cb553-19" tabindex="-1"></a>mat1 <span class="ot">&lt;-</span></span>
-<span id="cb553-20"><a href="selection-on-observables.html#cb553-20" tabindex="-1"></a>    <span class="fu">cem</span>(</span>
-<span id="cb553-21"><a href="selection-on-observables.html#cb553-21" tabindex="-1"></a>        <span class="at">treatment =</span> <span class="st">&quot;treated&quot;</span>,</span>
-<span id="cb553-22"><a href="selection-on-observables.html#cb553-22" tabindex="-1"></a>        <span class="at">data =</span> Le,</span>
-<span id="cb553-23"><a href="selection-on-observables.html#cb553-23" tabindex="-1"></a>        <span class="at">drop =</span> <span class="st">&quot;re78&quot;</span>,</span>
-<span id="cb553-24"><a href="selection-on-observables.html#cb553-24" tabindex="-1"></a>        <span class="at">cutpoints =</span> <span class="fu">list</span>(<span class="at">education =</span> educut),</span>
-<span id="cb553-25"><a href="selection-on-observables.html#cb553-25" tabindex="-1"></a>        <span class="at">grouping =</span> <span class="fu">list</span>(<span class="at">q1 =</span> q1.grp)</span>
-<span id="cb553-26"><a href="selection-on-observables.html#cb553-26" tabindex="-1"></a>    )</span>
-<span id="cb553-27"><a href="selection-on-observables.html#cb553-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb553-28"><a href="selection-on-observables.html#cb553-28" tabindex="-1"></a><span class="co">#&gt; Using &#39;treated&#39;=&#39;1&#39; as baseline group</span></span>
-<span id="cb553-29"><a href="selection-on-observables.html#cb553-29" tabindex="-1"></a>mat1</span>
-<span id="cb553-30"><a href="selection-on-observables.html#cb553-30" tabindex="-1"></a><span class="co">#&gt;            G0  G1</span></span>
-<span id="cb553-31"><a href="selection-on-observables.html#cb553-31" tabindex="-1"></a><span class="co">#&gt; All       392 258</span></span>
-<span id="cb553-32"><a href="selection-on-observables.html#cb553-32" tabindex="-1"></a><span class="co">#&gt; Matched   158 115</span></span>
-<span id="cb553-33"><a href="selection-on-observables.html#cb553-33" tabindex="-1"></a><span class="co">#&gt; Unmatched 234 143</span></span></code></pre></div>
+<div class="sourceCode" id="cb564"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb564-1"><a href="selection-on-observables.html#cb564-1" tabindex="-1"></a><span class="co"># categorial variables</span></span>
+<span id="cb564-2"><a href="selection-on-observables.html#cb564-2" tabindex="-1"></a><span class="fu">levels</span>(Le<span class="sc">$</span>q1) <span class="co"># grouping option</span></span>
+<span id="cb564-3"><a href="selection-on-observables.html#cb564-3" tabindex="-1"></a><span class="co">#&gt; [1] &quot;agree&quot;             &quot;disagree&quot;          &quot;neutral&quot;          </span></span>
+<span id="cb564-4"><a href="selection-on-observables.html#cb564-4" tabindex="-1"></a><span class="co">#&gt; [4] &quot;no opinion&quot;        &quot;strongly agree&quot;    &quot;strongly disagree&quot;</span></span>
+<span id="cb564-5"><a href="selection-on-observables.html#cb564-5" tabindex="-1"></a>q1.grp <span class="ot">&lt;-</span></span>
+<span id="cb564-6"><a href="selection-on-observables.html#cb564-6" tabindex="-1"></a>    <span class="fu">list</span>(</span>
+<span id="cb564-7"><a href="selection-on-observables.html#cb564-7" tabindex="-1"></a>        <span class="fu">c</span>(<span class="st">&quot;strongly agree&quot;</span>, <span class="st">&quot;agree&quot;</span>),</span>
+<span id="cb564-8"><a href="selection-on-observables.html#cb564-8" tabindex="-1"></a>        <span class="fu">c</span>(<span class="st">&quot;neutral&quot;</span>, <span class="st">&quot;no opinion&quot;</span>),</span>
+<span id="cb564-9"><a href="selection-on-observables.html#cb564-9" tabindex="-1"></a>        <span class="fu">c</span>(<span class="st">&quot;strongly disagree&quot;</span>, <span class="st">&quot;disagree&quot;</span>)</span>
+<span id="cb564-10"><a href="selection-on-observables.html#cb564-10" tabindex="-1"></a>    ) <span class="co"># if you want ordered categories</span></span>
+<span id="cb564-11"><a href="selection-on-observables.html#cb564-11" tabindex="-1"></a></span>
+<span id="cb564-12"><a href="selection-on-observables.html#cb564-12" tabindex="-1"></a><span class="co"># continuous variables</span></span>
+<span id="cb564-13"><a href="selection-on-observables.html#cb564-13" tabindex="-1"></a><span class="fu">table</span>(Le<span class="sc">$</span>education)</span>
+<span id="cb564-14"><a href="selection-on-observables.html#cb564-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb564-15"><a href="selection-on-observables.html#cb564-15" tabindex="-1"></a><span class="co">#&gt;   3   4   5   6   7   8   9  10  11  12  13  14  15 </span></span>
+<span id="cb564-16"><a href="selection-on-observables.html#cb564-16" tabindex="-1"></a><span class="co">#&gt;   1   5   4   6  12  55 106 146 173 113  19   9   1</span></span>
+<span id="cb564-17"><a href="selection-on-observables.html#cb564-17" tabindex="-1"></a>educut <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">6.5</span>, <span class="fl">8.5</span>, <span class="fl">12.5</span>, <span class="dv">17</span>)  <span class="co"># use cutpoints</span></span>
+<span id="cb564-18"><a href="selection-on-observables.html#cb564-18" tabindex="-1"></a></span>
+<span id="cb564-19"><a href="selection-on-observables.html#cb564-19" tabindex="-1"></a>mat1 <span class="ot">&lt;-</span></span>
+<span id="cb564-20"><a href="selection-on-observables.html#cb564-20" tabindex="-1"></a>    <span class="fu">cem</span>(</span>
+<span id="cb564-21"><a href="selection-on-observables.html#cb564-21" tabindex="-1"></a>        <span class="at">treatment =</span> <span class="st">&quot;treated&quot;</span>,</span>
+<span id="cb564-22"><a href="selection-on-observables.html#cb564-22" tabindex="-1"></a>        <span class="at">data =</span> Le,</span>
+<span id="cb564-23"><a href="selection-on-observables.html#cb564-23" tabindex="-1"></a>        <span class="at">drop =</span> <span class="st">&quot;re78&quot;</span>,</span>
+<span id="cb564-24"><a href="selection-on-observables.html#cb564-24" tabindex="-1"></a>        <span class="at">cutpoints =</span> <span class="fu">list</span>(<span class="at">education =</span> educut),</span>
+<span id="cb564-25"><a href="selection-on-observables.html#cb564-25" tabindex="-1"></a>        <span class="at">grouping =</span> <span class="fu">list</span>(<span class="at">q1 =</span> q1.grp)</span>
+<span id="cb564-26"><a href="selection-on-observables.html#cb564-26" tabindex="-1"></a>    )</span>
+<span id="cb564-27"><a href="selection-on-observables.html#cb564-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb564-28"><a href="selection-on-observables.html#cb564-28" tabindex="-1"></a><span class="co">#&gt; Using &#39;treated&#39;=&#39;1&#39; as baseline group</span></span>
+<span id="cb564-29"><a href="selection-on-observables.html#cb564-29" tabindex="-1"></a>mat1</span>
+<span id="cb564-30"><a href="selection-on-observables.html#cb564-30" tabindex="-1"></a><span class="co">#&gt;            G0  G1</span></span>
+<span id="cb564-31"><a href="selection-on-observables.html#cb564-31" tabindex="-1"></a><span class="co">#&gt; All       392 258</span></span>
+<span id="cb564-32"><a href="selection-on-observables.html#cb564-32" tabindex="-1"></a><span class="co">#&gt; Matched   158 115</span></span>
+<span id="cb564-33"><a href="selection-on-observables.html#cb564-33" tabindex="-1"></a><span class="co">#&gt; Unmatched 234 143</span></span></code></pre></div>
 <ul>
 <li><p>Can also use progressive coarsening method to control the number of matches.</p></li>
 <li><p><code>cem</code> can also handle some missingness.</p></li>
@@ -1626,74 +1630,74 @@ e_i (X_i) = P(T_i = 1 | X_i)
 </ul>
 <p>Packages</p>
 <p><code>Matching</code></p>
-<div class="sourceCode" id="cb554"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb554-1"><a href="selection-on-observables.html#cb554-1" tabindex="-1"></a><span class="fu">library</span>(Matching)</span>
-<span id="cb554-2"><a href="selection-on-observables.html#cb554-2" tabindex="-1"></a><span class="fu">data</span>(lalonde)</span>
-<span id="cb554-3"><a href="selection-on-observables.html#cb554-3" tabindex="-1"></a><span class="fu">attach</span>(lalonde)</span>
-<span id="cb554-4"><a href="selection-on-observables.html#cb554-4" tabindex="-1"></a></span>
-<span id="cb554-5"><a href="selection-on-observables.html#cb554-5" tabindex="-1"></a><span class="co">#The covariates we want to match on</span></span>
-<span id="cb554-6"><a href="selection-on-observables.html#cb554-6" tabindex="-1"></a>X <span class="ot">=</span> <span class="fu">cbind</span>(age, educ, black, hisp, married, nodegr, u74, u75, re75, re74)</span>
-<span id="cb554-7"><a href="selection-on-observables.html#cb554-7" tabindex="-1"></a></span>
-<span id="cb554-8"><a href="selection-on-observables.html#cb554-8" tabindex="-1"></a><span class="co">#The covariates we want to obtain balance on</span></span>
-<span id="cb554-9"><a href="selection-on-observables.html#cb554-9" tabindex="-1"></a>BalanceMat <span class="ot">&lt;-</span></span>
-<span id="cb554-10"><a href="selection-on-observables.html#cb554-10" tabindex="-1"></a>    <span class="fu">cbind</span>(age,</span>
-<span id="cb554-11"><a href="selection-on-observables.html#cb554-11" tabindex="-1"></a>          educ,</span>
-<span id="cb554-12"><a href="selection-on-observables.html#cb554-12" tabindex="-1"></a>          black,</span>
-<span id="cb554-13"><a href="selection-on-observables.html#cb554-13" tabindex="-1"></a>          hisp,</span>
-<span id="cb554-14"><a href="selection-on-observables.html#cb554-14" tabindex="-1"></a>          married,</span>
-<span id="cb554-15"><a href="selection-on-observables.html#cb554-15" tabindex="-1"></a>          nodegr,</span>
-<span id="cb554-16"><a href="selection-on-observables.html#cb554-16" tabindex="-1"></a>          u74,</span>
-<span id="cb554-17"><a href="selection-on-observables.html#cb554-17" tabindex="-1"></a>          u75,</span>
-<span id="cb554-18"><a href="selection-on-observables.html#cb554-18" tabindex="-1"></a>          re75,</span>
-<span id="cb554-19"><a href="selection-on-observables.html#cb554-19" tabindex="-1"></a>          re74,</span>
-<span id="cb554-20"><a href="selection-on-observables.html#cb554-20" tabindex="-1"></a>          <span class="fu">I</span>(re74 <span class="sc">*</span> re75))</span>
-<span id="cb554-21"><a href="selection-on-observables.html#cb554-21" tabindex="-1"></a></span>
-<span id="cb554-22"><a href="selection-on-observables.html#cb554-22" tabindex="-1"></a><span class="co">#</span></span>
-<span id="cb554-23"><a href="selection-on-observables.html#cb554-23" tabindex="-1"></a><span class="co">#Let&#39;s call GenMatch() to find the optimal weight to give each</span></span>
-<span id="cb554-24"><a href="selection-on-observables.html#cb554-24" tabindex="-1"></a><span class="co">#covariate in &#39;X&#39; so as we have achieved balance on the covariates in</span></span>
-<span id="cb554-25"><a href="selection-on-observables.html#cb554-25" tabindex="-1"></a><span class="co">#&#39;BalanceMat&#39;. This is only an example so we want GenMatch to be quick</span></span>
-<span id="cb554-26"><a href="selection-on-observables.html#cb554-26" tabindex="-1"></a><span class="co">#so the population size has been set to be only 16 via the &#39;pop.size&#39;</span></span>
-<span id="cb554-27"><a href="selection-on-observables.html#cb554-27" tabindex="-1"></a><span class="co">#option. This is *WAY* too small for actual problems.</span></span>
-<span id="cb554-28"><a href="selection-on-observables.html#cb554-28" tabindex="-1"></a><span class="co">#For details see http://sekhon.berkeley.edu/papers/MatchingJSS.pdf.</span></span>
-<span id="cb554-29"><a href="selection-on-observables.html#cb554-29" tabindex="-1"></a><span class="co">#</span></span>
-<span id="cb554-30"><a href="selection-on-observables.html#cb554-30" tabindex="-1"></a>genout <span class="ot">&lt;-</span></span>
-<span id="cb554-31"><a href="selection-on-observables.html#cb554-31" tabindex="-1"></a>    <span class="fu">GenMatch</span>(</span>
-<span id="cb554-32"><a href="selection-on-observables.html#cb554-32" tabindex="-1"></a>        <span class="at">Tr =</span> treat,</span>
-<span id="cb554-33"><a href="selection-on-observables.html#cb554-33" tabindex="-1"></a>        <span class="at">X =</span> X,</span>
-<span id="cb554-34"><a href="selection-on-observables.html#cb554-34" tabindex="-1"></a>        <span class="at">BalanceMatrix =</span> BalanceMat,</span>
-<span id="cb554-35"><a href="selection-on-observables.html#cb554-35" tabindex="-1"></a>        <span class="at">estimand =</span> <span class="st">&quot;ATE&quot;</span>,</span>
-<span id="cb554-36"><a href="selection-on-observables.html#cb554-36" tabindex="-1"></a>        <span class="at">M =</span> <span class="dv">1</span>,</span>
-<span id="cb554-37"><a href="selection-on-observables.html#cb554-37" tabindex="-1"></a>        <span class="at">pop.size =</span> <span class="dv">16</span>,</span>
-<span id="cb554-38"><a href="selection-on-observables.html#cb554-38" tabindex="-1"></a>        <span class="at">max.generations =</span> <span class="dv">10</span>,</span>
-<span id="cb554-39"><a href="selection-on-observables.html#cb554-39" tabindex="-1"></a>        <span class="at">wait.generations =</span> <span class="dv">1</span></span>
-<span id="cb554-40"><a href="selection-on-observables.html#cb554-40" tabindex="-1"></a>    )</span>
-<span id="cb554-41"><a href="selection-on-observables.html#cb554-41" tabindex="-1"></a></span>
-<span id="cb554-42"><a href="selection-on-observables.html#cb554-42" tabindex="-1"></a><span class="co">#The outcome variable</span></span>
-<span id="cb554-43"><a href="selection-on-observables.html#cb554-43" tabindex="-1"></a>Y<span class="ot">=</span>re78<span class="sc">/</span><span class="dv">1000</span></span>
-<span id="cb554-44"><a href="selection-on-observables.html#cb554-44" tabindex="-1"></a></span>
-<span id="cb554-45"><a href="selection-on-observables.html#cb554-45" tabindex="-1"></a><span class="co">#</span></span>
-<span id="cb554-46"><a href="selection-on-observables.html#cb554-46" tabindex="-1"></a><span class="co"># Now that GenMatch() has found the optimal weights, let&#39;s estimate</span></span>
-<span id="cb554-47"><a href="selection-on-observables.html#cb554-47" tabindex="-1"></a><span class="co"># our causal effect of interest using those weights</span></span>
-<span id="cb554-48"><a href="selection-on-observables.html#cb554-48" tabindex="-1"></a><span class="co">#</span></span>
-<span id="cb554-49"><a href="selection-on-observables.html#cb554-49" tabindex="-1"></a>mout <span class="ot">&lt;-</span></span>
-<span id="cb554-50"><a href="selection-on-observables.html#cb554-50" tabindex="-1"></a>    <span class="fu">Match</span>(</span>
-<span id="cb554-51"><a href="selection-on-observables.html#cb554-51" tabindex="-1"></a>        <span class="at">Y =</span> Y,</span>
-<span id="cb554-52"><a href="selection-on-observables.html#cb554-52" tabindex="-1"></a>        <span class="at">Tr =</span> treat,</span>
-<span id="cb554-53"><a href="selection-on-observables.html#cb554-53" tabindex="-1"></a>        <span class="at">X =</span> X,</span>
-<span id="cb554-54"><a href="selection-on-observables.html#cb554-54" tabindex="-1"></a>        <span class="at">estimand =</span> <span class="st">&quot;ATE&quot;</span>,</span>
-<span id="cb554-55"><a href="selection-on-observables.html#cb554-55" tabindex="-1"></a>        <span class="at">Weight.matrix =</span> genout</span>
-<span id="cb554-56"><a href="selection-on-observables.html#cb554-56" tabindex="-1"></a>    )</span>
-<span id="cb554-57"><a href="selection-on-observables.html#cb554-57" tabindex="-1"></a><span class="fu">summary</span>(mout)</span>
-<span id="cb554-58"><a href="selection-on-observables.html#cb554-58" tabindex="-1"></a></span>
-<span id="cb554-59"><a href="selection-on-observables.html#cb554-59" tabindex="-1"></a><span class="co">#                        </span></span>
-<span id="cb554-60"><a href="selection-on-observables.html#cb554-60" tabindex="-1"></a><span class="co">#Let&#39;s determine if balance has actually been obtained on the variables of interest</span></span>
-<span id="cb554-61"><a href="selection-on-observables.html#cb554-61" tabindex="-1"></a><span class="co">#                        </span></span>
-<span id="cb554-62"><a href="selection-on-observables.html#cb554-62" tabindex="-1"></a>mb <span class="ot">&lt;-</span></span>
-<span id="cb554-63"><a href="selection-on-observables.html#cb554-63" tabindex="-1"></a>    <span class="fu">MatchBalance</span>(</span>
-<span id="cb554-64"><a href="selection-on-observables.html#cb554-64" tabindex="-1"></a>        treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> black <span class="sc">+</span> hisp <span class="sc">+</span> married <span class="sc">+</span> nodegr </span>
-<span id="cb554-65"><a href="selection-on-observables.html#cb554-65" tabindex="-1"></a>        <span class="sc">+</span> u74 <span class="sc">+</span> u75 <span class="sc">+</span> re75 <span class="sc">+</span> re74 <span class="sc">+</span> <span class="fu">I</span>(re74 <span class="sc">*</span> re75),</span>
-<span id="cb554-66"><a href="selection-on-observables.html#cb554-66" tabindex="-1"></a>        <span class="at">match.out =</span> mout,</span>
-<span id="cb554-67"><a href="selection-on-observables.html#cb554-67" tabindex="-1"></a>        <span class="at">nboots =</span> <span class="dv">500</span></span>
-<span id="cb554-68"><a href="selection-on-observables.html#cb554-68" tabindex="-1"></a>    )</span></code></pre></div>
+<div class="sourceCode" id="cb565"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb565-1"><a href="selection-on-observables.html#cb565-1" tabindex="-1"></a><span class="fu">library</span>(Matching)</span>
+<span id="cb565-2"><a href="selection-on-observables.html#cb565-2" tabindex="-1"></a><span class="fu">data</span>(lalonde)</span>
+<span id="cb565-3"><a href="selection-on-observables.html#cb565-3" tabindex="-1"></a><span class="fu">attach</span>(lalonde)</span>
+<span id="cb565-4"><a href="selection-on-observables.html#cb565-4" tabindex="-1"></a></span>
+<span id="cb565-5"><a href="selection-on-observables.html#cb565-5" tabindex="-1"></a><span class="co">#The covariates we want to match on</span></span>
+<span id="cb565-6"><a href="selection-on-observables.html#cb565-6" tabindex="-1"></a>X <span class="ot">=</span> <span class="fu">cbind</span>(age, educ, black, hisp, married, nodegr, u74, u75, re75, re74)</span>
+<span id="cb565-7"><a href="selection-on-observables.html#cb565-7" tabindex="-1"></a></span>
+<span id="cb565-8"><a href="selection-on-observables.html#cb565-8" tabindex="-1"></a><span class="co">#The covariates we want to obtain balance on</span></span>
+<span id="cb565-9"><a href="selection-on-observables.html#cb565-9" tabindex="-1"></a>BalanceMat <span class="ot">&lt;-</span></span>
+<span id="cb565-10"><a href="selection-on-observables.html#cb565-10" tabindex="-1"></a>    <span class="fu">cbind</span>(age,</span>
+<span id="cb565-11"><a href="selection-on-observables.html#cb565-11" tabindex="-1"></a>          educ,</span>
+<span id="cb565-12"><a href="selection-on-observables.html#cb565-12" tabindex="-1"></a>          black,</span>
+<span id="cb565-13"><a href="selection-on-observables.html#cb565-13" tabindex="-1"></a>          hisp,</span>
+<span id="cb565-14"><a href="selection-on-observables.html#cb565-14" tabindex="-1"></a>          married,</span>
+<span id="cb565-15"><a href="selection-on-observables.html#cb565-15" tabindex="-1"></a>          nodegr,</span>
+<span id="cb565-16"><a href="selection-on-observables.html#cb565-16" tabindex="-1"></a>          u74,</span>
+<span id="cb565-17"><a href="selection-on-observables.html#cb565-17" tabindex="-1"></a>          u75,</span>
+<span id="cb565-18"><a href="selection-on-observables.html#cb565-18" tabindex="-1"></a>          re75,</span>
+<span id="cb565-19"><a href="selection-on-observables.html#cb565-19" tabindex="-1"></a>          re74,</span>
+<span id="cb565-20"><a href="selection-on-observables.html#cb565-20" tabindex="-1"></a>          <span class="fu">I</span>(re74 <span class="sc">*</span> re75))</span>
+<span id="cb565-21"><a href="selection-on-observables.html#cb565-21" tabindex="-1"></a></span>
+<span id="cb565-22"><a href="selection-on-observables.html#cb565-22" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb565-23"><a href="selection-on-observables.html#cb565-23" tabindex="-1"></a><span class="co">#Let&#39;s call GenMatch() to find the optimal weight to give each</span></span>
+<span id="cb565-24"><a href="selection-on-observables.html#cb565-24" tabindex="-1"></a><span class="co">#covariate in &#39;X&#39; so as we have achieved balance on the covariates in</span></span>
+<span id="cb565-25"><a href="selection-on-observables.html#cb565-25" tabindex="-1"></a><span class="co">#&#39;BalanceMat&#39;. This is only an example so we want GenMatch to be quick</span></span>
+<span id="cb565-26"><a href="selection-on-observables.html#cb565-26" tabindex="-1"></a><span class="co">#so the population size has been set to be only 16 via the &#39;pop.size&#39;</span></span>
+<span id="cb565-27"><a href="selection-on-observables.html#cb565-27" tabindex="-1"></a><span class="co">#option. This is *WAY* too small for actual problems.</span></span>
+<span id="cb565-28"><a href="selection-on-observables.html#cb565-28" tabindex="-1"></a><span class="co">#For details see http://sekhon.berkeley.edu/papers/MatchingJSS.pdf.</span></span>
+<span id="cb565-29"><a href="selection-on-observables.html#cb565-29" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb565-30"><a href="selection-on-observables.html#cb565-30" tabindex="-1"></a>genout <span class="ot">&lt;-</span></span>
+<span id="cb565-31"><a href="selection-on-observables.html#cb565-31" tabindex="-1"></a>    <span class="fu">GenMatch</span>(</span>
+<span id="cb565-32"><a href="selection-on-observables.html#cb565-32" tabindex="-1"></a>        <span class="at">Tr =</span> treat,</span>
+<span id="cb565-33"><a href="selection-on-observables.html#cb565-33" tabindex="-1"></a>        <span class="at">X =</span> X,</span>
+<span id="cb565-34"><a href="selection-on-observables.html#cb565-34" tabindex="-1"></a>        <span class="at">BalanceMatrix =</span> BalanceMat,</span>
+<span id="cb565-35"><a href="selection-on-observables.html#cb565-35" tabindex="-1"></a>        <span class="at">estimand =</span> <span class="st">&quot;ATE&quot;</span>,</span>
+<span id="cb565-36"><a href="selection-on-observables.html#cb565-36" tabindex="-1"></a>        <span class="at">M =</span> <span class="dv">1</span>,</span>
+<span id="cb565-37"><a href="selection-on-observables.html#cb565-37" tabindex="-1"></a>        <span class="at">pop.size =</span> <span class="dv">16</span>,</span>
+<span id="cb565-38"><a href="selection-on-observables.html#cb565-38" tabindex="-1"></a>        <span class="at">max.generations =</span> <span class="dv">10</span>,</span>
+<span id="cb565-39"><a href="selection-on-observables.html#cb565-39" tabindex="-1"></a>        <span class="at">wait.generations =</span> <span class="dv">1</span></span>
+<span id="cb565-40"><a href="selection-on-observables.html#cb565-40" tabindex="-1"></a>    )</span>
+<span id="cb565-41"><a href="selection-on-observables.html#cb565-41" tabindex="-1"></a></span>
+<span id="cb565-42"><a href="selection-on-observables.html#cb565-42" tabindex="-1"></a><span class="co">#The outcome variable</span></span>
+<span id="cb565-43"><a href="selection-on-observables.html#cb565-43" tabindex="-1"></a>Y<span class="ot">=</span>re78<span class="sc">/</span><span class="dv">1000</span></span>
+<span id="cb565-44"><a href="selection-on-observables.html#cb565-44" tabindex="-1"></a></span>
+<span id="cb565-45"><a href="selection-on-observables.html#cb565-45" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb565-46"><a href="selection-on-observables.html#cb565-46" tabindex="-1"></a><span class="co"># Now that GenMatch() has found the optimal weights, let&#39;s estimate</span></span>
+<span id="cb565-47"><a href="selection-on-observables.html#cb565-47" tabindex="-1"></a><span class="co"># our causal effect of interest using those weights</span></span>
+<span id="cb565-48"><a href="selection-on-observables.html#cb565-48" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb565-49"><a href="selection-on-observables.html#cb565-49" tabindex="-1"></a>mout <span class="ot">&lt;-</span></span>
+<span id="cb565-50"><a href="selection-on-observables.html#cb565-50" tabindex="-1"></a>    <span class="fu">Match</span>(</span>
+<span id="cb565-51"><a href="selection-on-observables.html#cb565-51" tabindex="-1"></a>        <span class="at">Y =</span> Y,</span>
+<span id="cb565-52"><a href="selection-on-observables.html#cb565-52" tabindex="-1"></a>        <span class="at">Tr =</span> treat,</span>
+<span id="cb565-53"><a href="selection-on-observables.html#cb565-53" tabindex="-1"></a>        <span class="at">X =</span> X,</span>
+<span id="cb565-54"><a href="selection-on-observables.html#cb565-54" tabindex="-1"></a>        <span class="at">estimand =</span> <span class="st">&quot;ATE&quot;</span>,</span>
+<span id="cb565-55"><a href="selection-on-observables.html#cb565-55" tabindex="-1"></a>        <span class="at">Weight.matrix =</span> genout</span>
+<span id="cb565-56"><a href="selection-on-observables.html#cb565-56" tabindex="-1"></a>    )</span>
+<span id="cb565-57"><a href="selection-on-observables.html#cb565-57" tabindex="-1"></a><span class="fu">summary</span>(mout)</span>
+<span id="cb565-58"><a href="selection-on-observables.html#cb565-58" tabindex="-1"></a></span>
+<span id="cb565-59"><a href="selection-on-observables.html#cb565-59" tabindex="-1"></a><span class="co">#                        </span></span>
+<span id="cb565-60"><a href="selection-on-observables.html#cb565-60" tabindex="-1"></a><span class="co">#Let&#39;s determine if balance has actually been obtained on the variables of interest</span></span>
+<span id="cb565-61"><a href="selection-on-observables.html#cb565-61" tabindex="-1"></a><span class="co">#                        </span></span>
+<span id="cb565-62"><a href="selection-on-observables.html#cb565-62" tabindex="-1"></a>mb <span class="ot">&lt;-</span></span>
+<span id="cb565-63"><a href="selection-on-observables.html#cb565-63" tabindex="-1"></a>    <span class="fu">MatchBalance</span>(</span>
+<span id="cb565-64"><a href="selection-on-observables.html#cb565-64" tabindex="-1"></a>        treat <span class="sc">~</span> age <span class="sc">+</span> educ <span class="sc">+</span> black <span class="sc">+</span> hisp <span class="sc">+</span> married <span class="sc">+</span> nodegr </span>
+<span id="cb565-65"><a href="selection-on-observables.html#cb565-65" tabindex="-1"></a>        <span class="sc">+</span> u74 <span class="sc">+</span> u75 <span class="sc">+</span> re75 <span class="sc">+</span> re74 <span class="sc">+</span> <span class="fu">I</span>(re74 <span class="sc">*</span> re75),</span>
+<span id="cb565-66"><a href="selection-on-observables.html#cb565-66" tabindex="-1"></a>        <span class="at">match.out =</span> mout,</span>
+<span id="cb565-67"><a href="selection-on-observables.html#cb565-67" tabindex="-1"></a>        <span class="at">nboots =</span> <span class="dv">500</span></span>
+<span id="cb565-68"><a href="selection-on-observables.html#cb565-68" tabindex="-1"></a>    )</span></code></pre></div>
 </div>
 <div id="entropy-balancing" class="section level3 hasAnchor" number="29.1.8">
 <h3><span class="header-section-number">29.1.8</span> Entropy Balancing<a href="selection-on-observables.html#entropy-balancing" class="anchor-section" aria-label="Anchor link to header"></a></h3>

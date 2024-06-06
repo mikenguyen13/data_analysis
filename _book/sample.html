@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2024-04-11" />
+<meta name="date" content="2024-06-06" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -659,7 +659,10 @@ div.csl-indent {
 </ul></li>
 </ul></li>
 <li class="part"><span><b>B. QUASI-EXPERIMENTAL DESIGN</b></span></li>
-<li class="chapter" data-level="23" data-path="quasi-experimental.html"><a href="quasi-experimental.html"><i class="fa fa-check"></i><b>23</b> Quasi-experimental</a></li>
+<li class="chapter" data-level="23" data-path="quasi-experimental.html"><a href="quasi-experimental.html"><i class="fa fa-check"></i><b>23</b> Quasi-experimental</a>
+<ul>
+<li class="chapter" data-level="23.1" data-path="natural-experiments.html"><a href="natural-experiments.html"><i class="fa fa-check"></i><b>23.1</b> Natural Experiments</a></li>
+</ul></li>
 <li class="chapter" data-level="24" data-path="regression-discontinuity.html"><a href="regression-discontinuity.html"><i class="fa fa-check"></i><b>24</b> Regression Discontinuity</a>
 <ul>
 <li class="chapter" data-level="24.1" data-path="estimation-and-inference.html"><a href="estimation-and-inference.html"><i class="fa fa-check"></i><b>24.1</b> Estimation and Inference</a>
@@ -673,6 +676,7 @@ div.csl-indent {
 <li class="chapter" data-level="24.2.2" data-path="specification-checks.html"><a href="specification-checks.html#sortingbunchingmanipulation"><i class="fa fa-check"></i><b>24.2.2</b> Sorting/Bunching/Manipulation</a></li>
 <li class="chapter" data-level="24.2.3" data-path="specification-checks.html"><a href="specification-checks.html#placebo-tests"><i class="fa fa-check"></i><b>24.2.3</b> Placebo Tests</a></li>
 <li class="chapter" data-level="24.2.4" data-path="specification-checks.html"><a href="specification-checks.html#sensitivity-to-bandwidth-choice"><i class="fa fa-check"></i><b>24.2.4</b> Sensitivity to Bandwidth Choice</a></li>
+<li class="chapter" data-level="24.2.5" data-path="specification-checks.html"><a href="specification-checks.html#manipulation-robust-regression-discontinuity-bounds"><i class="fa fa-check"></i><b>24.2.5</b> Manipulation Robust Regression Discontinuity Bounds</a></li>
 </ul></li>
 <li class="chapter" data-level="24.3" data-path="fuzzy-rd-design.html"><a href="fuzzy-rd-design.html"><i class="fa fa-check"></i><b>24.3</b> Fuzzy RD Design</a></li>
 <li class="chapter" data-level="24.4" data-path="regression-kink-design.html"><a href="regression-kink-design.html"><i class="fa fa-check"></i><b>24.4</b> Regression Kink Design</a></li>
@@ -1016,140 +1020,140 @@ div.csl-indent {
 </ol>
 <p>We have the ability to control the strength of correlation between focal and correlated events in this study, as well as the number of unrelated events we wish to examine.</p>
 <p>Let’s examine the implications of including and excluding correlated and uncorrelated events on the estimates of our focal events.</p>
-<div class="sourceCode" id="cb522"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb522-1"><a href="sample.html#cb522-1" tabindex="-1"></a><span class="co"># Load required libraries</span></span>
-<span id="cb522-2"><a href="sample.html#cb522-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb522-3"><a href="sample.html#cb522-3" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb522-4"><a href="sample.html#cb522-4" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
-<span id="cb522-5"><a href="sample.html#cb522-5" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb522-6"><a href="sample.html#cb522-6" tabindex="-1"></a></span>
-<span id="cb522-7"><a href="sample.html#cb522-7" tabindex="-1"></a><span class="co"># Parameters</span></span>
-<span id="cb522-8"><a href="sample.html#cb522-8" tabindex="-1"></a>n                  <span class="ot">&lt;-</span> <span class="dv">100000</span>         <span class="co"># Number of observations</span></span>
-<span id="cb522-9"><a href="sample.html#cb522-9" tabindex="-1"></a>n_focal            <span class="ot">&lt;-</span> <span class="fu">round</span>(n <span class="sc">*</span> <span class="fl">0.2</span>) <span class="co"># Number of focal events</span></span>
-<span id="cb522-10"><a href="sample.html#cb522-10" tabindex="-1"></a>overlap_correlated <span class="ot">&lt;-</span> <span class="fl">0.5</span>            <span class="co"># Overlapping percentage between focal and correlated events</span></span>
-<span id="cb522-11"><a href="sample.html#cb522-11" tabindex="-1"></a></span>
-<span id="cb522-12"><a href="sample.html#cb522-12" tabindex="-1"></a><span class="co"># Function to compute mean and confidence interval</span></span>
-<span id="cb522-13"><a href="sample.html#cb522-13" tabindex="-1"></a>mean_ci <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
-<span id="cb522-14"><a href="sample.html#cb522-14" tabindex="-1"></a>    m <span class="ot">&lt;-</span> <span class="fu">mean</span>(x)</span>
-<span id="cb522-15"><a href="sample.html#cb522-15" tabindex="-1"></a>    ci <span class="ot">&lt;-</span> <span class="fu">qt</span>(<span class="fl">0.975</span>, <span class="fu">length</span>(x)<span class="sc">-</span><span class="dv">1</span>) <span class="sc">*</span> <span class="fu">sd</span>(x) <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">length</span>(x)) <span class="co"># 95% confidence interval</span></span>
-<span id="cb522-16"><a href="sample.html#cb522-16" tabindex="-1"></a>    <span class="fu">list</span>(<span class="at">mean =</span> m, <span class="at">lower =</span> m <span class="sc">-</span> ci, <span class="at">upper =</span> m <span class="sc">+</span> ci)</span>
-<span id="cb522-17"><a href="sample.html#cb522-17" tabindex="-1"></a>}</span>
-<span id="cb522-18"><a href="sample.html#cb522-18" tabindex="-1"></a></span>
-<span id="cb522-19"><a href="sample.html#cb522-19" tabindex="-1"></a><span class="co"># Simulate data</span></span>
-<span id="cb522-20"><a href="sample.html#cb522-20" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb522-21"><a href="sample.html#cb522-21" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb522-22"><a href="sample.html#cb522-22" tabindex="-1"></a>    <span class="at">date       =</span> <span class="fu">seq.Date</span>(<span class="at">from =</span> <span class="fu">as.Date</span>(<span class="st">&quot;2010-01-01&quot;</span>), <span class="at">by =</span> <span class="st">&quot;day&quot;</span>, <span class="at">length.out =</span> n), <span class="co"># Date sequence</span></span>
-<span id="cb522-23"><a href="sample.html#cb522-23" tabindex="-1"></a>    <span class="at">focal      =</span> <span class="fu">rep</span>(<span class="dv">0</span>, n),</span>
-<span id="cb522-24"><a href="sample.html#cb522-24" tabindex="-1"></a>    <span class="at">correlated =</span> <span class="fu">rep</span>(<span class="dv">0</span>, n),</span>
-<span id="cb522-25"><a href="sample.html#cb522-25" tabindex="-1"></a>    <span class="at">ab_ret     =</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb522-26"><a href="sample.html#cb522-26" tabindex="-1"></a>)</span>
-<span id="cb522-27"><a href="sample.html#cb522-27" tabindex="-1"></a></span>
-<span id="cb522-28"><a href="sample.html#cb522-28" tabindex="-1"></a></span>
-<span id="cb522-29"><a href="sample.html#cb522-29" tabindex="-1"></a><span class="co"># Define focal events</span></span>
-<span id="cb522-30"><a href="sample.html#cb522-30" tabindex="-1"></a>focal_idx <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>n, n_focal)</span>
-<span id="cb522-31"><a href="sample.html#cb522-31" tabindex="-1"></a>data<span class="sc">$</span>focal[focal_idx] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb522-32"><a href="sample.html#cb522-32" tabindex="-1"></a></span>
-<span id="cb522-33"><a href="sample.html#cb522-33" tabindex="-1"></a>true_effect <span class="ot">&lt;-</span> <span class="fl">0.25</span></span>
-<span id="cb522-34"><a href="sample.html#cb522-34" tabindex="-1"></a></span>
-<span id="cb522-35"><a href="sample.html#cb522-35" tabindex="-1"></a><span class="co"># Adjust the ab_ret for the focal events to have a mean of true_effect</span></span>
-<span id="cb522-36"><a href="sample.html#cb522-36" tabindex="-1"></a>data<span class="sc">$</span>ab_ret[focal_idx] <span class="ot">&lt;-</span> data<span class="sc">$</span>ab_ret[focal_idx] <span class="sc">-</span> <span class="fu">mean</span>(data<span class="sc">$</span>ab_ret[focal_idx]) <span class="sc">+</span> true_effect</span>
-<span id="cb522-37"><a href="sample.html#cb522-37" tabindex="-1"></a></span>
-<span id="cb522-38"><a href="sample.html#cb522-38" tabindex="-1"></a></span>
-<span id="cb522-39"><a href="sample.html#cb522-39" tabindex="-1"></a></span>
-<span id="cb522-40"><a href="sample.html#cb522-40" tabindex="-1"></a><span class="co"># Determine the number of correlated events that overlap with focal and those that don&#39;t</span></span>
-<span id="cb522-41"><a href="sample.html#cb522-41" tabindex="-1"></a>n_correlated_overlap <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">length</span>(focal_idx) <span class="sc">*</span> overlap_correlated)</span>
-<span id="cb522-42"><a href="sample.html#cb522-42" tabindex="-1"></a>n_correlated_non_overlap <span class="ot">&lt;-</span> n_correlated_overlap</span>
-<span id="cb522-43"><a href="sample.html#cb522-43" tabindex="-1"></a></span>
-<span id="cb522-44"><a href="sample.html#cb522-44" tabindex="-1"></a><span class="co"># Sample the overlapping correlated events from the focal indices</span></span>
-<span id="cb522-45"><a href="sample.html#cb522-45" tabindex="-1"></a>correlated_idx <span class="ot">&lt;-</span> <span class="fu">sample</span>(focal_idx, <span class="at">size =</span> n_correlated_overlap)</span>
-<span id="cb522-46"><a href="sample.html#cb522-46" tabindex="-1"></a></span>
-<span id="cb522-47"><a href="sample.html#cb522-47" tabindex="-1"></a><span class="co"># Get the remaining indices that are not part of focal</span></span>
-<span id="cb522-48"><a href="sample.html#cb522-48" tabindex="-1"></a>remaining_idx <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(<span class="dv">1</span><span class="sc">:</span>n, focal_idx)</span>
-<span id="cb522-49"><a href="sample.html#cb522-49" tabindex="-1"></a></span>
-<span id="cb522-50"><a href="sample.html#cb522-50" tabindex="-1"></a><span class="co"># Check to ensure that we&#39;re not attempting to sample more than the available remaining indices</span></span>
-<span id="cb522-51"><a href="sample.html#cb522-51" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(remaining_idx) <span class="sc">&lt;</span> n_correlated_non_overlap) {</span>
-<span id="cb522-52"><a href="sample.html#cb522-52" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;Not enough remaining indices for non-overlapping correlated events&quot;</span>)</span>
-<span id="cb522-53"><a href="sample.html#cb522-53" tabindex="-1"></a>}</span>
-<span id="cb522-54"><a href="sample.html#cb522-54" tabindex="-1"></a></span>
-<span id="cb522-55"><a href="sample.html#cb522-55" tabindex="-1"></a><span class="co"># Sample the non-overlapping correlated events from the remaining indices</span></span>
-<span id="cb522-56"><a href="sample.html#cb522-56" tabindex="-1"></a>correlated_non_focal_idx <span class="ot">&lt;-</span> <span class="fu">sample</span>(remaining_idx, <span class="at">size =</span> n_correlated_non_overlap)</span>
-<span id="cb522-57"><a href="sample.html#cb522-57" tabindex="-1"></a></span>
-<span id="cb522-58"><a href="sample.html#cb522-58" tabindex="-1"></a><span class="co"># Combine the two to get all correlated indices</span></span>
-<span id="cb522-59"><a href="sample.html#cb522-59" tabindex="-1"></a>all_correlated_idx <span class="ot">&lt;-</span> <span class="fu">c</span>(correlated_idx, correlated_non_focal_idx)</span>
-<span id="cb522-60"><a href="sample.html#cb522-60" tabindex="-1"></a></span>
-<span id="cb522-61"><a href="sample.html#cb522-61" tabindex="-1"></a><span class="co"># Set the correlated events in the data</span></span>
-<span id="cb522-62"><a href="sample.html#cb522-62" tabindex="-1"></a>data<span class="sc">$</span>correlated[all_correlated_idx] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb522-63"><a href="sample.html#cb522-63" tabindex="-1"></a></span>
-<span id="cb522-64"><a href="sample.html#cb522-64" tabindex="-1"></a></span>
-<span id="cb522-65"><a href="sample.html#cb522-65" tabindex="-1"></a><span class="co"># Inflate the effect for correlated events to have a mean of </span></span>
-<span id="cb522-66"><a href="sample.html#cb522-66" tabindex="-1"></a>correlated_non_focal_idx <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(all_correlated_idx, focal_idx) <span class="co"># Fixing the selection of non-focal correlated events</span></span>
-<span id="cb522-67"><a href="sample.html#cb522-67" tabindex="-1"></a>data<span class="sc">$</span>ab_ret[correlated_non_focal_idx] <span class="ot">&lt;-</span> data<span class="sc">$</span>ab_ret[correlated_non_focal_idx] <span class="sc">-</span> <span class="fu">mean</span>(data<span class="sc">$</span>ab_ret[correlated_non_focal_idx]) <span class="sc">+</span> <span class="dv">1</span></span>
-<span id="cb522-68"><a href="sample.html#cb522-68" tabindex="-1"></a></span>
-<span id="cb522-69"><a href="sample.html#cb522-69" tabindex="-1"></a></span>
-<span id="cb522-70"><a href="sample.html#cb522-70" tabindex="-1"></a><span class="co"># Define the numbers of uncorrelated events for each scenario</span></span>
-<span id="cb522-71"><a href="sample.html#cb522-71" tabindex="-1"></a>num_uncorrelated <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">30</span>, <span class="dv">40</span>)</span>
-<span id="cb522-72"><a href="sample.html#cb522-72" tabindex="-1"></a></span>
-<span id="cb522-73"><a href="sample.html#cb522-73" tabindex="-1"></a><span class="co"># Define uncorrelated events</span></span>
-<span id="cb522-74"><a href="sample.html#cb522-74" tabindex="-1"></a><span class="cf">for</span> (num <span class="cf">in</span> num_uncorrelated) {</span>
-<span id="cb522-75"><a href="sample.html#cb522-75" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>num) {</span>
-<span id="cb522-76"><a href="sample.html#cb522-76" tabindex="-1"></a>        data[<span class="fu">paste0</span>(<span class="st">&quot;uncorrelated_&quot;</span>, i)] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
-<span id="cb522-77"><a href="sample.html#cb522-77" tabindex="-1"></a>        uncorrelated_idx <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>n, <span class="fu">round</span>(n <span class="sc">*</span> <span class="fl">0.1</span>))</span>
-<span id="cb522-78"><a href="sample.html#cb522-78" tabindex="-1"></a>        data[uncorrelated_idx, <span class="fu">paste0</span>(<span class="st">&quot;uncorrelated_&quot;</span>, i)] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb522-79"><a href="sample.html#cb522-79" tabindex="-1"></a>    }</span>
-<span id="cb522-80"><a href="sample.html#cb522-80" tabindex="-1"></a>}</span>
-<span id="cb522-81"><a href="sample.html#cb522-81" tabindex="-1"></a></span>
-<span id="cb522-82"><a href="sample.html#cb522-82" tabindex="-1"></a></span>
-<span id="cb522-83"><a href="sample.html#cb522-83" tabindex="-1"></a><span class="co"># Define uncorrelated columns and scenarios</span></span>
-<span id="cb522-84"><a href="sample.html#cb522-84" tabindex="-1"></a>unc_cols <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;uncorrelated_&quot;</span>, <span class="dv">1</span><span class="sc">:</span>num_uncorrelated)</span>
-<span id="cb522-85"><a href="sample.html#cb522-85" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb522-86"><a href="sample.html#cb522-86" tabindex="-1"></a>    <span class="at">Scenario =</span> <span class="fu">c</span>(<span class="st">&quot;Include Correlated&quot;</span>, <span class="st">&quot;Correlated Effects&quot;</span>, <span class="st">&quot;Exclude Correlated&quot;</span>, <span class="st">&quot;Exclude Correlated and All Uncorrelated&quot;</span>),</span>
-<span id="cb522-87"><a href="sample.html#cb522-87" tabindex="-1"></a>    <span class="at">MeanEffect =</span> <span class="fu">c</span>(</span>
-<span id="cb522-88"><a href="sample.html#cb522-88" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span>])<span class="sc">$</span>mean,</span>
-<span id="cb522-89"><a href="sample.html#cb522-89" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">0</span> <span class="sc">|</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">1</span>])<span class="sc">$</span>mean,</span>
-<span id="cb522-90"><a href="sample.html#cb522-90" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>mean,</span>
-<span id="cb522-91"><a href="sample.html#cb522-91" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> <span class="fu">rowSums</span>(data[, <span class="fu">paste0</span>(<span class="st">&quot;uncorrelated_&quot;</span>, <span class="dv">1</span><span class="sc">:</span>num_uncorrelated)]) <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>mean</span>
-<span id="cb522-92"><a href="sample.html#cb522-92" tabindex="-1"></a>    ),</span>
-<span id="cb522-93"><a href="sample.html#cb522-93" tabindex="-1"></a>    <span class="at">LowerCI =</span> <span class="fu">c</span>(</span>
-<span id="cb522-94"><a href="sample.html#cb522-94" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span>])<span class="sc">$</span>lower,</span>
-<span id="cb522-95"><a href="sample.html#cb522-95" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">0</span> <span class="sc">|</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">1</span>])<span class="sc">$</span>lower,</span>
-<span id="cb522-96"><a href="sample.html#cb522-96" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>lower,</span>
-<span id="cb522-97"><a href="sample.html#cb522-97" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> <span class="fu">rowSums</span>(data[, <span class="fu">paste0</span>(<span class="st">&quot;uncorrelated_&quot;</span>, <span class="dv">1</span><span class="sc">:</span>num_uncorrelated)]) <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>lower</span>
-<span id="cb522-98"><a href="sample.html#cb522-98" tabindex="-1"></a>    ),</span>
-<span id="cb522-99"><a href="sample.html#cb522-99" tabindex="-1"></a>    <span class="at">UpperCI =</span> <span class="fu">c</span>(</span>
-<span id="cb522-100"><a href="sample.html#cb522-100" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span>])<span class="sc">$</span>upper,</span>
-<span id="cb522-101"><a href="sample.html#cb522-101" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">0</span> <span class="sc">|</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">1</span>])<span class="sc">$</span>upper,</span>
-<span id="cb522-102"><a href="sample.html#cb522-102" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>upper,</span>
-<span id="cb522-103"><a href="sample.html#cb522-103" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> <span class="fu">rowSums</span>(data[, <span class="fu">paste0</span>(<span class="st">&quot;uncorrelated_&quot;</span>, <span class="dv">1</span><span class="sc">:</span>num_uncorrelated)]) <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>upper</span>
-<span id="cb522-104"><a href="sample.html#cb522-104" tabindex="-1"></a>    )</span>
-<span id="cb522-105"><a href="sample.html#cb522-105" tabindex="-1"></a>)</span>
-<span id="cb522-106"><a href="sample.html#cb522-106" tabindex="-1"></a></span>
-<span id="cb522-107"><a href="sample.html#cb522-107" tabindex="-1"></a><span class="co"># Add the scenarios for excluding 5, 10, 20, and 50 uncorrelated</span></span>
-<span id="cb522-108"><a href="sample.html#cb522-108" tabindex="-1"></a><span class="cf">for</span> (num <span class="cf">in</span> num_uncorrelated) {</span>
-<span id="cb522-109"><a href="sample.html#cb522-109" tabindex="-1"></a>    unc_cols <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;uncorrelated_&quot;</span>, <span class="dv">1</span><span class="sc">:</span>num)</span>
-<span id="cb522-110"><a href="sample.html#cb522-110" tabindex="-1"></a>    results <span class="ot">&lt;-</span> results <span class="sc">%&gt;%</span></span>
-<span id="cb522-111"><a href="sample.html#cb522-111" tabindex="-1"></a>        <span class="fu">add_row</span>(</span>
-<span id="cb522-112"><a href="sample.html#cb522-112" tabindex="-1"></a>            <span class="at">Scenario =</span> <span class="fu">paste</span>(<span class="st">&quot;Exclude&quot;</span>, num, <span class="st">&quot;Uncorrelated&quot;</span>),</span>
-<span id="cb522-113"><a href="sample.html#cb522-113" tabindex="-1"></a>            <span class="at">MeanEffect =</span> <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> <span class="fu">rowSums</span>(data[, unc_cols]) <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>mean,</span>
-<span id="cb522-114"><a href="sample.html#cb522-114" tabindex="-1"></a>            <span class="at">LowerCI =</span> <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> <span class="fu">rowSums</span>(data[, unc_cols]) <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>lower,</span>
-<span id="cb522-115"><a href="sample.html#cb522-115" tabindex="-1"></a>            <span class="at">UpperCI =</span> <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> <span class="fu">rowSums</span>(data[, unc_cols]) <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>upper</span>
-<span id="cb522-116"><a href="sample.html#cb522-116" tabindex="-1"></a>        )</span>
-<span id="cb522-117"><a href="sample.html#cb522-117" tabindex="-1"></a>}</span>
-<span id="cb522-118"><a href="sample.html#cb522-118" tabindex="-1"></a></span>
-<span id="cb522-119"><a href="sample.html#cb522-119" tabindex="-1"></a></span>
-<span id="cb522-120"><a href="sample.html#cb522-120" tabindex="-1"></a><span class="fu">ggplot</span>(results,</span>
-<span id="cb522-121"><a href="sample.html#cb522-121" tabindex="-1"></a>       <span class="fu">aes</span>(</span>
-<span id="cb522-122"><a href="sample.html#cb522-122" tabindex="-1"></a>           <span class="at">x =</span> <span class="fu">factor</span>(Scenario, <span class="at">levels =</span> Scenario),</span>
-<span id="cb522-123"><a href="sample.html#cb522-123" tabindex="-1"></a>           <span class="at">y =</span> MeanEffect,</span>
-<span id="cb522-124"><a href="sample.html#cb522-124" tabindex="-1"></a>           <span class="at">ymin =</span> LowerCI,</span>
-<span id="cb522-125"><a href="sample.html#cb522-125" tabindex="-1"></a>           <span class="at">ymax =</span> UpperCI</span>
-<span id="cb522-126"><a href="sample.html#cb522-126" tabindex="-1"></a>       )) <span class="sc">+</span></span>
-<span id="cb522-127"><a href="sample.html#cb522-127" tabindex="-1"></a>    <span class="fu">geom_pointrange</span>() <span class="sc">+</span></span>
-<span id="cb522-128"><a href="sample.html#cb522-128" tabindex="-1"></a>    <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
-<span id="cb522-129"><a href="sample.html#cb522-129" tabindex="-1"></a>    <span class="fu">ylab</span>(<span class="st">&quot;Mean Effect&quot;</span>) <span class="sc">+</span></span>
-<span id="cb522-130"><a href="sample.html#cb522-130" tabindex="-1"></a>    <span class="fu">xlab</span>(<span class="st">&quot;Scenario&quot;</span>) <span class="sc">+</span></span>
-<span id="cb522-131"><a href="sample.html#cb522-131" tabindex="-1"></a>    <span class="fu">ggtitle</span>(<span class="st">&quot;Mean Effect of Focal Events under Different Scenarios&quot;</span>) <span class="sc">+</span></span>
-<span id="cb522-132"><a href="sample.html#cb522-132" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> true_effect,</span>
-<span id="cb522-133"><a href="sample.html#cb522-133" tabindex="-1"></a>               <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>,</span>
-<span id="cb522-134"><a href="sample.html#cb522-134" tabindex="-1"></a>               <span class="at">color =</span> <span class="st">&quot;red&quot;</span>) </span></code></pre></div>
+<div class="sourceCode" id="cb533"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb533-1"><a href="sample.html#cb533-1" tabindex="-1"></a><span class="co"># Load required libraries</span></span>
+<span id="cb533-2"><a href="sample.html#cb533-2" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb533-3"><a href="sample.html#cb533-3" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb533-4"><a href="sample.html#cb533-4" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb533-5"><a href="sample.html#cb533-5" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb533-6"><a href="sample.html#cb533-6" tabindex="-1"></a></span>
+<span id="cb533-7"><a href="sample.html#cb533-7" tabindex="-1"></a><span class="co"># Parameters</span></span>
+<span id="cb533-8"><a href="sample.html#cb533-8" tabindex="-1"></a>n                  <span class="ot">&lt;-</span> <span class="dv">100000</span>         <span class="co"># Number of observations</span></span>
+<span id="cb533-9"><a href="sample.html#cb533-9" tabindex="-1"></a>n_focal            <span class="ot">&lt;-</span> <span class="fu">round</span>(n <span class="sc">*</span> <span class="fl">0.2</span>) <span class="co"># Number of focal events</span></span>
+<span id="cb533-10"><a href="sample.html#cb533-10" tabindex="-1"></a>overlap_correlated <span class="ot">&lt;-</span> <span class="fl">0.5</span>            <span class="co"># Overlapping percentage between focal and correlated events</span></span>
+<span id="cb533-11"><a href="sample.html#cb533-11" tabindex="-1"></a></span>
+<span id="cb533-12"><a href="sample.html#cb533-12" tabindex="-1"></a><span class="co"># Function to compute mean and confidence interval</span></span>
+<span id="cb533-13"><a href="sample.html#cb533-13" tabindex="-1"></a>mean_ci <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb533-14"><a href="sample.html#cb533-14" tabindex="-1"></a>    m <span class="ot">&lt;-</span> <span class="fu">mean</span>(x)</span>
+<span id="cb533-15"><a href="sample.html#cb533-15" tabindex="-1"></a>    ci <span class="ot">&lt;-</span> <span class="fu">qt</span>(<span class="fl">0.975</span>, <span class="fu">length</span>(x)<span class="sc">-</span><span class="dv">1</span>) <span class="sc">*</span> <span class="fu">sd</span>(x) <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">length</span>(x)) <span class="co"># 95% confidence interval</span></span>
+<span id="cb533-16"><a href="sample.html#cb533-16" tabindex="-1"></a>    <span class="fu">list</span>(<span class="at">mean =</span> m, <span class="at">lower =</span> m <span class="sc">-</span> ci, <span class="at">upper =</span> m <span class="sc">+</span> ci)</span>
+<span id="cb533-17"><a href="sample.html#cb533-17" tabindex="-1"></a>}</span>
+<span id="cb533-18"><a href="sample.html#cb533-18" tabindex="-1"></a></span>
+<span id="cb533-19"><a href="sample.html#cb533-19" tabindex="-1"></a><span class="co"># Simulate data</span></span>
+<span id="cb533-20"><a href="sample.html#cb533-20" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb533-21"><a href="sample.html#cb533-21" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb533-22"><a href="sample.html#cb533-22" tabindex="-1"></a>    <span class="at">date       =</span> <span class="fu">seq.Date</span>(<span class="at">from =</span> <span class="fu">as.Date</span>(<span class="st">&quot;2010-01-01&quot;</span>), <span class="at">by =</span> <span class="st">&quot;day&quot;</span>, <span class="at">length.out =</span> n), <span class="co"># Date sequence</span></span>
+<span id="cb533-23"><a href="sample.html#cb533-23" tabindex="-1"></a>    <span class="at">focal      =</span> <span class="fu">rep</span>(<span class="dv">0</span>, n),</span>
+<span id="cb533-24"><a href="sample.html#cb533-24" tabindex="-1"></a>    <span class="at">correlated =</span> <span class="fu">rep</span>(<span class="dv">0</span>, n),</span>
+<span id="cb533-25"><a href="sample.html#cb533-25" tabindex="-1"></a>    <span class="at">ab_ret     =</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb533-26"><a href="sample.html#cb533-26" tabindex="-1"></a>)</span>
+<span id="cb533-27"><a href="sample.html#cb533-27" tabindex="-1"></a></span>
+<span id="cb533-28"><a href="sample.html#cb533-28" tabindex="-1"></a></span>
+<span id="cb533-29"><a href="sample.html#cb533-29" tabindex="-1"></a><span class="co"># Define focal events</span></span>
+<span id="cb533-30"><a href="sample.html#cb533-30" tabindex="-1"></a>focal_idx <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>n, n_focal)</span>
+<span id="cb533-31"><a href="sample.html#cb533-31" tabindex="-1"></a>data<span class="sc">$</span>focal[focal_idx] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb533-32"><a href="sample.html#cb533-32" tabindex="-1"></a></span>
+<span id="cb533-33"><a href="sample.html#cb533-33" tabindex="-1"></a>true_effect <span class="ot">&lt;-</span> <span class="fl">0.25</span></span>
+<span id="cb533-34"><a href="sample.html#cb533-34" tabindex="-1"></a></span>
+<span id="cb533-35"><a href="sample.html#cb533-35" tabindex="-1"></a><span class="co"># Adjust the ab_ret for the focal events to have a mean of true_effect</span></span>
+<span id="cb533-36"><a href="sample.html#cb533-36" tabindex="-1"></a>data<span class="sc">$</span>ab_ret[focal_idx] <span class="ot">&lt;-</span> data<span class="sc">$</span>ab_ret[focal_idx] <span class="sc">-</span> <span class="fu">mean</span>(data<span class="sc">$</span>ab_ret[focal_idx]) <span class="sc">+</span> true_effect</span>
+<span id="cb533-37"><a href="sample.html#cb533-37" tabindex="-1"></a></span>
+<span id="cb533-38"><a href="sample.html#cb533-38" tabindex="-1"></a></span>
+<span id="cb533-39"><a href="sample.html#cb533-39" tabindex="-1"></a></span>
+<span id="cb533-40"><a href="sample.html#cb533-40" tabindex="-1"></a><span class="co"># Determine the number of correlated events that overlap with focal and those that don&#39;t</span></span>
+<span id="cb533-41"><a href="sample.html#cb533-41" tabindex="-1"></a>n_correlated_overlap <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">length</span>(focal_idx) <span class="sc">*</span> overlap_correlated)</span>
+<span id="cb533-42"><a href="sample.html#cb533-42" tabindex="-1"></a>n_correlated_non_overlap <span class="ot">&lt;-</span> n_correlated_overlap</span>
+<span id="cb533-43"><a href="sample.html#cb533-43" tabindex="-1"></a></span>
+<span id="cb533-44"><a href="sample.html#cb533-44" tabindex="-1"></a><span class="co"># Sample the overlapping correlated events from the focal indices</span></span>
+<span id="cb533-45"><a href="sample.html#cb533-45" tabindex="-1"></a>correlated_idx <span class="ot">&lt;-</span> <span class="fu">sample</span>(focal_idx, <span class="at">size =</span> n_correlated_overlap)</span>
+<span id="cb533-46"><a href="sample.html#cb533-46" tabindex="-1"></a></span>
+<span id="cb533-47"><a href="sample.html#cb533-47" tabindex="-1"></a><span class="co"># Get the remaining indices that are not part of focal</span></span>
+<span id="cb533-48"><a href="sample.html#cb533-48" tabindex="-1"></a>remaining_idx <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(<span class="dv">1</span><span class="sc">:</span>n, focal_idx)</span>
+<span id="cb533-49"><a href="sample.html#cb533-49" tabindex="-1"></a></span>
+<span id="cb533-50"><a href="sample.html#cb533-50" tabindex="-1"></a><span class="co"># Check to ensure that we&#39;re not attempting to sample more than the available remaining indices</span></span>
+<span id="cb533-51"><a href="sample.html#cb533-51" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(remaining_idx) <span class="sc">&lt;</span> n_correlated_non_overlap) {</span>
+<span id="cb533-52"><a href="sample.html#cb533-52" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;Not enough remaining indices for non-overlapping correlated events&quot;</span>)</span>
+<span id="cb533-53"><a href="sample.html#cb533-53" tabindex="-1"></a>}</span>
+<span id="cb533-54"><a href="sample.html#cb533-54" tabindex="-1"></a></span>
+<span id="cb533-55"><a href="sample.html#cb533-55" tabindex="-1"></a><span class="co"># Sample the non-overlapping correlated events from the remaining indices</span></span>
+<span id="cb533-56"><a href="sample.html#cb533-56" tabindex="-1"></a>correlated_non_focal_idx <span class="ot">&lt;-</span> <span class="fu">sample</span>(remaining_idx, <span class="at">size =</span> n_correlated_non_overlap)</span>
+<span id="cb533-57"><a href="sample.html#cb533-57" tabindex="-1"></a></span>
+<span id="cb533-58"><a href="sample.html#cb533-58" tabindex="-1"></a><span class="co"># Combine the two to get all correlated indices</span></span>
+<span id="cb533-59"><a href="sample.html#cb533-59" tabindex="-1"></a>all_correlated_idx <span class="ot">&lt;-</span> <span class="fu">c</span>(correlated_idx, correlated_non_focal_idx)</span>
+<span id="cb533-60"><a href="sample.html#cb533-60" tabindex="-1"></a></span>
+<span id="cb533-61"><a href="sample.html#cb533-61" tabindex="-1"></a><span class="co"># Set the correlated events in the data</span></span>
+<span id="cb533-62"><a href="sample.html#cb533-62" tabindex="-1"></a>data<span class="sc">$</span>correlated[all_correlated_idx] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb533-63"><a href="sample.html#cb533-63" tabindex="-1"></a></span>
+<span id="cb533-64"><a href="sample.html#cb533-64" tabindex="-1"></a></span>
+<span id="cb533-65"><a href="sample.html#cb533-65" tabindex="-1"></a><span class="co"># Inflate the effect for correlated events to have a mean of </span></span>
+<span id="cb533-66"><a href="sample.html#cb533-66" tabindex="-1"></a>correlated_non_focal_idx <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(all_correlated_idx, focal_idx) <span class="co"># Fixing the selection of non-focal correlated events</span></span>
+<span id="cb533-67"><a href="sample.html#cb533-67" tabindex="-1"></a>data<span class="sc">$</span>ab_ret[correlated_non_focal_idx] <span class="ot">&lt;-</span> data<span class="sc">$</span>ab_ret[correlated_non_focal_idx] <span class="sc">-</span> <span class="fu">mean</span>(data<span class="sc">$</span>ab_ret[correlated_non_focal_idx]) <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb533-68"><a href="sample.html#cb533-68" tabindex="-1"></a></span>
+<span id="cb533-69"><a href="sample.html#cb533-69" tabindex="-1"></a></span>
+<span id="cb533-70"><a href="sample.html#cb533-70" tabindex="-1"></a><span class="co"># Define the numbers of uncorrelated events for each scenario</span></span>
+<span id="cb533-71"><a href="sample.html#cb533-71" tabindex="-1"></a>num_uncorrelated <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">30</span>, <span class="dv">40</span>)</span>
+<span id="cb533-72"><a href="sample.html#cb533-72" tabindex="-1"></a></span>
+<span id="cb533-73"><a href="sample.html#cb533-73" tabindex="-1"></a><span class="co"># Define uncorrelated events</span></span>
+<span id="cb533-74"><a href="sample.html#cb533-74" tabindex="-1"></a><span class="cf">for</span> (num <span class="cf">in</span> num_uncorrelated) {</span>
+<span id="cb533-75"><a href="sample.html#cb533-75" tabindex="-1"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>num) {</span>
+<span id="cb533-76"><a href="sample.html#cb533-76" tabindex="-1"></a>        data[<span class="fu">paste0</span>(<span class="st">&quot;uncorrelated_&quot;</span>, i)] <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb533-77"><a href="sample.html#cb533-77" tabindex="-1"></a>        uncorrelated_idx <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>n, <span class="fu">round</span>(n <span class="sc">*</span> <span class="fl">0.1</span>))</span>
+<span id="cb533-78"><a href="sample.html#cb533-78" tabindex="-1"></a>        data[uncorrelated_idx, <span class="fu">paste0</span>(<span class="st">&quot;uncorrelated_&quot;</span>, i)] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb533-79"><a href="sample.html#cb533-79" tabindex="-1"></a>    }</span>
+<span id="cb533-80"><a href="sample.html#cb533-80" tabindex="-1"></a>}</span>
+<span id="cb533-81"><a href="sample.html#cb533-81" tabindex="-1"></a></span>
+<span id="cb533-82"><a href="sample.html#cb533-82" tabindex="-1"></a></span>
+<span id="cb533-83"><a href="sample.html#cb533-83" tabindex="-1"></a><span class="co"># Define uncorrelated columns and scenarios</span></span>
+<span id="cb533-84"><a href="sample.html#cb533-84" tabindex="-1"></a>unc_cols <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;uncorrelated_&quot;</span>, <span class="dv">1</span><span class="sc">:</span>num_uncorrelated)</span>
+<span id="cb533-85"><a href="sample.html#cb533-85" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb533-86"><a href="sample.html#cb533-86" tabindex="-1"></a>    <span class="at">Scenario =</span> <span class="fu">c</span>(<span class="st">&quot;Include Correlated&quot;</span>, <span class="st">&quot;Correlated Effects&quot;</span>, <span class="st">&quot;Exclude Correlated&quot;</span>, <span class="st">&quot;Exclude Correlated and All Uncorrelated&quot;</span>),</span>
+<span id="cb533-87"><a href="sample.html#cb533-87" tabindex="-1"></a>    <span class="at">MeanEffect =</span> <span class="fu">c</span>(</span>
+<span id="cb533-88"><a href="sample.html#cb533-88" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span>])<span class="sc">$</span>mean,</span>
+<span id="cb533-89"><a href="sample.html#cb533-89" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">0</span> <span class="sc">|</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">1</span>])<span class="sc">$</span>mean,</span>
+<span id="cb533-90"><a href="sample.html#cb533-90" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>mean,</span>
+<span id="cb533-91"><a href="sample.html#cb533-91" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> <span class="fu">rowSums</span>(data[, <span class="fu">paste0</span>(<span class="st">&quot;uncorrelated_&quot;</span>, <span class="dv">1</span><span class="sc">:</span>num_uncorrelated)]) <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>mean</span>
+<span id="cb533-92"><a href="sample.html#cb533-92" tabindex="-1"></a>    ),</span>
+<span id="cb533-93"><a href="sample.html#cb533-93" tabindex="-1"></a>    <span class="at">LowerCI =</span> <span class="fu">c</span>(</span>
+<span id="cb533-94"><a href="sample.html#cb533-94" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span>])<span class="sc">$</span>lower,</span>
+<span id="cb533-95"><a href="sample.html#cb533-95" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">0</span> <span class="sc">|</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">1</span>])<span class="sc">$</span>lower,</span>
+<span id="cb533-96"><a href="sample.html#cb533-96" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>lower,</span>
+<span id="cb533-97"><a href="sample.html#cb533-97" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> <span class="fu">rowSums</span>(data[, <span class="fu">paste0</span>(<span class="st">&quot;uncorrelated_&quot;</span>, <span class="dv">1</span><span class="sc">:</span>num_uncorrelated)]) <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>lower</span>
+<span id="cb533-98"><a href="sample.html#cb533-98" tabindex="-1"></a>    ),</span>
+<span id="cb533-99"><a href="sample.html#cb533-99" tabindex="-1"></a>    <span class="at">UpperCI =</span> <span class="fu">c</span>(</span>
+<span id="cb533-100"><a href="sample.html#cb533-100" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span>])<span class="sc">$</span>upper,</span>
+<span id="cb533-101"><a href="sample.html#cb533-101" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">0</span> <span class="sc">|</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">1</span>])<span class="sc">$</span>upper,</span>
+<span id="cb533-102"><a href="sample.html#cb533-102" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>upper,</span>
+<span id="cb533-103"><a href="sample.html#cb533-103" tabindex="-1"></a>        <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> <span class="fu">rowSums</span>(data[, <span class="fu">paste0</span>(<span class="st">&quot;uncorrelated_&quot;</span>, <span class="dv">1</span><span class="sc">:</span>num_uncorrelated)]) <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>upper</span>
+<span id="cb533-104"><a href="sample.html#cb533-104" tabindex="-1"></a>    )</span>
+<span id="cb533-105"><a href="sample.html#cb533-105" tabindex="-1"></a>)</span>
+<span id="cb533-106"><a href="sample.html#cb533-106" tabindex="-1"></a></span>
+<span id="cb533-107"><a href="sample.html#cb533-107" tabindex="-1"></a><span class="co"># Add the scenarios for excluding 5, 10, 20, and 50 uncorrelated</span></span>
+<span id="cb533-108"><a href="sample.html#cb533-108" tabindex="-1"></a><span class="cf">for</span> (num <span class="cf">in</span> num_uncorrelated) {</span>
+<span id="cb533-109"><a href="sample.html#cb533-109" tabindex="-1"></a>    unc_cols <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&quot;uncorrelated_&quot;</span>, <span class="dv">1</span><span class="sc">:</span>num)</span>
+<span id="cb533-110"><a href="sample.html#cb533-110" tabindex="-1"></a>    results <span class="ot">&lt;-</span> results <span class="sc">%&gt;%</span></span>
+<span id="cb533-111"><a href="sample.html#cb533-111" tabindex="-1"></a>        <span class="fu">add_row</span>(</span>
+<span id="cb533-112"><a href="sample.html#cb533-112" tabindex="-1"></a>            <span class="at">Scenario =</span> <span class="fu">paste</span>(<span class="st">&quot;Exclude&quot;</span>, num, <span class="st">&quot;Uncorrelated&quot;</span>),</span>
+<span id="cb533-113"><a href="sample.html#cb533-113" tabindex="-1"></a>            <span class="at">MeanEffect =</span> <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> <span class="fu">rowSums</span>(data[, unc_cols]) <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>mean,</span>
+<span id="cb533-114"><a href="sample.html#cb533-114" tabindex="-1"></a>            <span class="at">LowerCI =</span> <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> <span class="fu">rowSums</span>(data[, unc_cols]) <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>lower,</span>
+<span id="cb533-115"><a href="sample.html#cb533-115" tabindex="-1"></a>            <span class="at">UpperCI =</span> <span class="fu">mean_ci</span>(data<span class="sc">$</span>ab_ret[data<span class="sc">$</span>focal <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> data<span class="sc">$</span>correlated <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> <span class="fu">rowSums</span>(data[, unc_cols]) <span class="sc">==</span> <span class="dv">0</span>])<span class="sc">$</span>upper</span>
+<span id="cb533-116"><a href="sample.html#cb533-116" tabindex="-1"></a>        )</span>
+<span id="cb533-117"><a href="sample.html#cb533-117" tabindex="-1"></a>}</span>
+<span id="cb533-118"><a href="sample.html#cb533-118" tabindex="-1"></a></span>
+<span id="cb533-119"><a href="sample.html#cb533-119" tabindex="-1"></a></span>
+<span id="cb533-120"><a href="sample.html#cb533-120" tabindex="-1"></a><span class="fu">ggplot</span>(results,</span>
+<span id="cb533-121"><a href="sample.html#cb533-121" tabindex="-1"></a>       <span class="fu">aes</span>(</span>
+<span id="cb533-122"><a href="sample.html#cb533-122" tabindex="-1"></a>           <span class="at">x =</span> <span class="fu">factor</span>(Scenario, <span class="at">levels =</span> Scenario),</span>
+<span id="cb533-123"><a href="sample.html#cb533-123" tabindex="-1"></a>           <span class="at">y =</span> MeanEffect,</span>
+<span id="cb533-124"><a href="sample.html#cb533-124" tabindex="-1"></a>           <span class="at">ymin =</span> LowerCI,</span>
+<span id="cb533-125"><a href="sample.html#cb533-125" tabindex="-1"></a>           <span class="at">ymax =</span> UpperCI</span>
+<span id="cb533-126"><a href="sample.html#cb533-126" tabindex="-1"></a>       )) <span class="sc">+</span></span>
+<span id="cb533-127"><a href="sample.html#cb533-127" tabindex="-1"></a>    <span class="fu">geom_pointrange</span>() <span class="sc">+</span></span>
+<span id="cb533-128"><a href="sample.html#cb533-128" tabindex="-1"></a>    <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb533-129"><a href="sample.html#cb533-129" tabindex="-1"></a>    <span class="fu">ylab</span>(<span class="st">&quot;Mean Effect&quot;</span>) <span class="sc">+</span></span>
+<span id="cb533-130"><a href="sample.html#cb533-130" tabindex="-1"></a>    <span class="fu">xlab</span>(<span class="st">&quot;Scenario&quot;</span>) <span class="sc">+</span></span>
+<span id="cb533-131"><a href="sample.html#cb533-131" tabindex="-1"></a>    <span class="fu">ggtitle</span>(<span class="st">&quot;Mean Effect of Focal Events under Different Scenarios&quot;</span>) <span class="sc">+</span></span>
+<span id="cb533-132"><a href="sample.html#cb533-132" tabindex="-1"></a>    <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> true_effect,</span>
+<span id="cb533-133"><a href="sample.html#cb533-133" tabindex="-1"></a>               <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>,</span>
+<span id="cb533-134"><a href="sample.html#cb533-134" tabindex="-1"></a>               <span class="at">color =</span> <span class="st">&quot;red&quot;</span>) </span></code></pre></div>
 <p><img src="28-event-study_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>As depicted in the plot, the inclusion of correlated events demonstrates minimal impact on the estimation of our focal events. Conversely, excluding these correlated events can diminish our statistical power. This is true in cases of pronounced correlation.</p>
 <p>However, the consequences of excluding unrelated events are notably more significant. It becomes evident that by omitting around 40 unrelated events from our study, we lose the ability to accurately identify the true effects of the focal events. In reality and within research, we often rely on the Key Developments database, excluding over 150 events, a practice that can substantially impair our capacity to ascertain the authentic impact of the focal events.</p>

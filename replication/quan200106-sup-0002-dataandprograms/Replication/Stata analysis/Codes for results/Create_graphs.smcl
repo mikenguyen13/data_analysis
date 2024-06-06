@@ -1,0 +1,398 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}/Users/francoisgerard/Dropbox/Manipulation_Bounds/Empirical_application/Replication_files/Replication/Stata analysis/Codes for results/Create_graphs.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}24 Apr 2020, 15:45:30
+{txt}
+{com}. 
+. ********************************
+. **** B) Create graphs for Figure 2 and Figure 6
+. ********************************
+. 
+. insheet using "data_grr_QE_reg.csv", clear comma names
+{txt}(22 vars, 169,575 obs)
+
+{com}. 
+. ***aggregate variables by day
+. egen sample_size=count(dist_cut)
+{txt}
+{com}. egen N_dist_cut=count(dist_cut), by(dist_cut)
+{txt}
+{com}. replace N_dist_cut=N_dist_cut/sample_size
+{txt}(169,575 real changes made)
+
+{com}. egen application_dist_cut=mean(application), by(dist_cut)
+{txt}
+{com}. egen takeup_dist_cut=mean(treatment), by(dist_cut)
+{txt}
+{com}. egen benefit_duration_dist_cut=mean(benefit_duration), by(dist_cut)
+{txt}
+{com}. egen duration_censored_dist_cut=mean(duration_censored), by(dist_cut)
+{txt}
+{com}. egen tag_dist_cut=tag(dist_cut)
+{txt}
+{com}. foreach covariate in male age educ tenure logwage rrate commerce construction industry services largefirm mediumfirm microfirm {c -(}
+{txt}  2{com}.         egen `covariate'_dist_cut=mean(`covariate'), by(dist_cut)
+{txt}  3{com}. {c )-}
+{txt}
+{com}. 
+. 
+. ***create graphs for Figure 2
+. twoway(scatter N_dist_cut dist_cut, mcolor(gs7))(lpoly N_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly N_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black)) graphregion(color(white)) title("A. Density", color(black)) ytitle(Share of observations, size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/density", replace
+{res}{txt}(file Stata analysis/Graphs/density.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/density.png", as(png) replace
+{txt}(file Stata analysis/Graphs/density.png written in PNG format)
+
+{com}. 
+. twoway(scatter rrate_dist_cut dist_cut, mcolor(gs7))(lpoly rrate_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly rrate_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))  graphregion(color(white)) title("B. Statutory UI replacement rate", color(black)) ytitle(Statutory UI replacement rate, size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/statutoryUIrrate", replace
+{res}{txt}(file Stata analysis/Graphs/statutoryUIrrate.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/statutoryUIrrate.png", as(png) replace
+{txt}(file Stata analysis/Graphs/statutoryUIrrate.png written in PNG format)
+
+{com}. 
+. twoway(scatter application_dist_cut dist_cut, mcolor(gs7))(lpoly application_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly application_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))  graphregion(color(white)) title("C. Share applying for UI", color(black)) ytitle(Share applying for UI, size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/application", replace
+{res}{txt}(file Stata analysis/Graphs/application.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/application.png", as(png) replace
+{txt}(file Stata analysis/Graphs/application.png written in PNG format)
+
+{com}. 
+. twoway(scatter takeup_dist_cut dist_cut, mcolor(gs7))(lpoly takeup_dist_cut dist_cut if dist_cut<0,  lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly takeup_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))   graphregion(color(white)) title("D. Share drawing some UI benefits (takeup)", color(black)) ytitle(Share drawing some UI benefits, size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/takeup", replace
+{res}{txt}(file Stata analysis/Graphs/takeup.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/takeup.png", as(png) replace
+{txt}(file Stata analysis/Graphs/takeup.png written in PNG format)
+
+{com}. sum takeup_dist_cut if dist_cut==0
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+takeup_dis~t {c |}{res}      1,847    .7152138           0   .7152138   .7152138
+{txt}
+{com}.  
+. twoway(scatter benefit_duration_dist_cut dist_cut, mcolor(gs7))(lpoly benefit_duration_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly benefit_duration_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))   graphregion(color(white)) title("E. Average benefit duration", color(black)) ytitle(Average benefit duration (in months), size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/benefit_duration", replace
+{res}{txt}(file Stata analysis/Graphs/benefit_duration.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/benefit_duration.png", as(png) replace
+{txt}(file Stata analysis/Graphs/benefit_duration.png written in PNG format)
+
+{com}. sum benefit_duration_dist_cut if dist_cut==0
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+benefit_du~t {c |}{res}      1,847    3.017325           0   3.017325   3.017325
+{txt}
+{com}. 
+. twoway(scatter duration_censored_dist_cut dist_cut, mcolor(gs7))(lpoly duration_censored_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly duration_censored_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))  graphregion(color(white)) title("F. Duration without a formal job (censored at two years)", color(black)) ytitle(Duration without a formal job (in days), size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/duration_censored", replace
+{res}{txt}(file Stata analysis/Graphs/duration_censored.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/duration_censored.png", as(png) replace
+{txt}(file Stata analysis/Graphs/duration_censored.png written in PNG format)
+
+{com}. sum benefit_duration_dist_cut if dist_cut==-1
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+benefit_du~t {c |}{res}      1,600       .0625           0      .0625      .0625
+{txt}
+{com}. sum benefit_duration_dist_cut if dist_cut==0
+
+{txt}    Variable {c |}        Obs        Mean    Std. Dev.       Min        Max
+{hline 13}{c +}{hline 57}
+benefit_du~t {c |}{res}      1,847    3.017325           0   3.017325   3.017325
+{txt}
+{com}. 
+. 
+. ***create graphs for Figure 6
+. twoway(scatter male_dist_cut dist_cut, mcolor(gs7))(lpoly male_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly male_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))  graphregion(color(white)) title("Share male", color(black)) ytitle(Share male, size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/male", replace
+{res}{txt}(file Stata analysis/Graphs/male.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/male.png", as(png) replace
+{txt}(file Stata analysis/Graphs/male.png written in PNG format)
+
+{com}. 
+. twoway(scatter age_dist_cut dist_cut, mcolor(gs7))(lpoly age_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly age_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))  graphregion(color(white)) title("Age", color(black)) ytitle(Age (in years), size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/age", replace
+{res}{txt}(file Stata analysis/Graphs/age.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/age.png", as(png) replace
+{txt}(file Stata analysis/Graphs/age.png written in PNG format)
+
+{com}. 
+. twoway(scatter educ_dist_cut dist_cut, mcolor(gs7))(lpoly educ_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly educ_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))  graphregion(color(white)) title("Years of education", color(black)) ytitle(Years of education, size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/educ", replace
+{res}{txt}(file Stata analysis/Graphs/educ.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/educ.png", as(png) replace
+{txt}(file Stata analysis/Graphs/educ.png written in PNG format)
+
+{com}. 
+. twoway(scatter tenure_dist_cut dist_cut, mcolor(gs7))(lpoly tenure_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly tenure_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))  graphregion(color(white)) title("Tenure in the lost job", color(black)) ytitle(Tenure in the lost job (in months), size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/tenure", replace
+{res}{txt}(file Stata analysis/Graphs/tenure.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/tenure.png", as(png) replace
+{txt}(file Stata analysis/Graphs/tenure.png written in PNG format)
+
+{com}. 
+. twoway(scatter logwage_dist_cut dist_cut, mcolor(gs7))(lpoly logwage_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly logwage_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))  graphregion(color(white)) title("Log wage in the lost job", color(black)) ytitle(Log wage in the lost job (reais), size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/logwage", replace
+{res}{txt}(file Stata analysis/Graphs/logwage.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/logwage.png", as(png) replace
+{txt}(file Stata analysis/Graphs/logwage.png written in PNG format)
+
+{com}. 
+. twoway(scatter rrate_dist_cut dist_cut, mcolor(gs7))(lpoly rrate_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly rrate_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))  graphregion(color(white)) title("Statutory UI replacement rate", color(black)) ytitle(Statutory UI replacement rate, size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/rrate", replace
+{res}{txt}(file Stata analysis/Graphs/rrate.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/rrate.png", as(png) replace
+{txt}(file Stata analysis/Graphs/rrate.png written in PNG format)
+
+{com}. 
+. twoway(scatter commerce_dist_cut dist_cut, mcolor(gs7))(lpoly commerce_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly commerce_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))  graphregion(color(white)) title("Share from commercial sector", color(black)) ytitle(Share from commercial sector, size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/commerce", replace
+{res}{txt}(file Stata analysis/Graphs/commerce.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/commerce.png", as(png) replace
+{txt}(file Stata analysis/Graphs/commerce.png written in PNG format)
+
+{com}. 
+. twoway(scatter construction_dist_cut dist_cut, mcolor(gs7))(lpoly construction_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly construction_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))  graphregion(color(white)) title("Share from construction sector", color(black)) ytitle(Share from construction sector, size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/construction", replace
+{res}{txt}(file Stata analysis/Graphs/construction.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/construction.png", as(png) replace
+{txt}(file Stata analysis/Graphs/construction.png written in PNG format)
+
+{com}. 
+. twoway(scatter industry_dist_cut dist_cut, mcolor(gs7))(lpoly industry_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly industry_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))  graphregion(color(white)) title("Share from industrial sector", color(black)) ytitle(Share from industrial sector, size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/industry", replace
+{res}{txt}(file Stata analysis/Graphs/industry.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/industry.png", as(png) replace
+{txt}(file Stata analysis/Graphs/industry.png written in PNG format)
+
+{com}. 
+. twoway(scatter services_dist_cut dist_cut, mcolor(gs7))(lpoly services_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly services_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))  graphregion(color(white)) title("Share from service sector", color(black)) ytitle(Share from service sector, size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/services", replace
+{res}{txt}(file Stata analysis/Graphs/services.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/services.png", as(png) replace
+{txt}(file Stata analysis/Graphs/services.png written in PNG format)
+
+{com}. 
+. twoway(scatter largefirm_dist_cut dist_cut, mcolor(gs7))(lpoly largefirm_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly largefirm_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))  graphregion(color(white)) title("Share from large firms", color(black)) ytitle(Share from large firms, size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/largefirm", replace
+{res}{txt}(file Stata analysis/Graphs/largefirm.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/largefirm.png", as(png) replace
+{txt}(file Stata analysis/Graphs/largefirm.png written in PNG format)
+
+{com}. 
+. twoway(scatter mediumfirm_dist_cut dist_cut, mcolor(gs7))(lpoly mediumfirm_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly mediumfirm_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))  graphregion(color(white)) title("Share from medium-size firms", color(black)) ytitle(Share from medium-size firms, size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/mediumfirm", replace
+{res}{txt}(file Stata analysis/Graphs/mediumfirm.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/mediumfirm.png", as(png) replace
+{txt}(file Stata analysis/Graphs/mediumfirm.png written in PNG format)
+
+{com}. 
+. twoway(scatter microfirm_dist_cut dist_cut, mcolor(gs7))(lpoly microfirm_dist_cut dist_cut if dist_cut<0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1))(lpoly microfirm_dist_cut dist_cut if dist_cut>=0, lcolor(black) lw(thick) kernel(triangle) bwidth(30) degree(1)) if tag_dist_cut==1 & dist_cut>=-50  & dist_cut<=50, xline(0, lcolor(black))  graphregion(color(white)) title("Share from small firms", color(black)) ytitle(Share from small firms, size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Difference in days between layoff and eligibility dates, size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/microfirm", replace
+{res}{txt}(file Stata analysis/Graphs/microfirm.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/microfirm.png", as(png) replace
+{txt}(file Stata analysis/Graphs/microfirm.png written in PNG format)
+
+{com}. 
+. 
+. ********************************
+. **** C) Create graphs for Figure 4
+. ********************************
+. count if dist_cut>=-30 & dist_cut<30
+  {res}102,791
+{txt}
+{com}. histogram duration_censored if dist_cut>=0 & dist_cut<30, color(black) fintensity(inten60) percent  graphregion(color(white)) title("Right of the eligibility cutoff", color(black)) ytitle(Percent of observations, size(medlarge)) xscale(range(0 750)) xlabel(0(50)750, labsize(medlarge)) ylabel(0(5)30, labsize(medlarge)) xtitle("Duration without a formal job (censored at 24 months)", size(medlarge)) legend(off)
+{txt}(bin={res}47{txt}, start={res}0{txt}, width={res}15.553191{txt})
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/duration_censored_hist_right", replace
+{res}{txt}(file Stata analysis/Graphs/duration_censored_hist_right.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/duration_censored_hist_right.png", as(png) replace
+{txt}(file Stata analysis/Graphs/duration_censored_hist_right.png written in PNG format)
+
+{com}. 
+. histogram duration_censored if dist_cut<0 & dist_cut>=-30, color(black) fintensity(inten60) percent  graphregion(color(white)) title("Left of the eligibility cutoff", color(black)) ytitle(Percent of observations, size(medlarge)) xscale(range(0 750)) xlabel(0(50)750, labsize(medlarge)) ylabel(0(5)30, labsize(medlarge)) xtitle("Duration without a formal job (censored at 24 months)", size(medlarge)) legend(off)
+{txt}(bin={res}46{txt}, start={res}0{txt}, width={res}15.891304{txt})
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/duration_censored_hist_left", replace
+{res}{txt}(file Stata analysis/Graphs/duration_censored_hist_left.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/duration_censored_hist_left.png", as(png) replace
+{txt}(file Stata analysis/Graphs/duration_censored_hist_left.png written in PNG format)
+
+{com}. 
+. 
+. ********************************
+. **** D) Create graphs for Figure 5
+. ********************************
+. sort avg_w_mw
+{txt}
+{com}. twoway(line uibenefit avg_w_mw, lcolor(black) lw(thick)) if dist_cut>=-50  & dist_cut<=50 & avg_w_mw>=1 & avg_w_mw<=6,  xline(1.25 1.65 2.75, lcolor(black) lpattern(longdash)) graphregion(color(white)) ytitle(Benefit amount (in minimum wage), size(medlarge)) xlabel(, labsize(medlarge)) ylabel(, labsize(medlarge)) xtitle(Average wage in the 3 months prior to layoff (in minimum wage), size(medlarge)) legend(off)
+{res}{txt}
+{com}. graph save "Stata analysis/Graphs/UIbenefit_schedule", replace
+{res}{txt}(file Stata analysis/Graphs/UIbenefit_schedule.gph saved)
+
+{com}. graph export "Stata analysis/Graphs/UIbenefit_schedule.png", as(png) replace
+{txt}(file Stata analysis/Graphs/UIbenefit_schedule.png written in PNG format)
+
+{com}. 
+{txt}end of do-file
+
+{com}. use "/Volumes/Encrypted drive/emily/myscratch/RAIS2/2010/2010a_1done.dta", clear
+
+. tab reas_sep
+
+   {txt}reas_sep {c |}      Freq.     Percent        Cum.
+{hline 12}{c +}{hline 35}
+         10 {c |}{res}     65,232        1.39        1.39
+{txt}         11 {c |}{res}  2,597,409       55.15       56.53
+{txt}         12 {c |}{res}    876,943       18.62       75.15
+{txt}         13 {c |}{res}     10,284        0.22       75.37
+{txt}         14 {c |}{res}    816,149       17.33       92.70
+{txt}         15 {c |}{res}     35,279        0.75       93.45
+{txt}         16 {c |}{res}    279,545        5.94       99.38
+{txt}         17 {c |}{res}      1,193        0.03       99.41
+{txt}         18 {c |}{res}        269        0.01       99.41
+{txt}         19 {c |}{res}     13,205        0.28       99.70
+{txt}         20 {c |}{res}        343        0.01       99.70
+{txt}         21 {c |}{res}         35        0.00       99.70
+{txt}         22 {c |}{res}      7,469        0.16       99.86
+{txt}         24 {c |}{res}      1,713        0.04       99.90
+{txt}         25 {c |}{res}        355        0.01       99.91
+{txt}         26 {c |}{res}        683        0.01       99.92
+{txt}         27 {c |}{res}        264        0.01       99.93
+{txt}         28 {c |}{res}      2,390        0.05       99.98
+{txt}         30 {c |}{res}        471        0.01       99.99
+{txt}         32 {c |}{res}        530        0.01      100.00
+{txt}        210 {c |}{res}        101        0.00      100.00
+{txt}{hline 12}{c +}{hline 35}
+      Total {c |}{res}  4,709,862      100.00
+
+{com}. tab empl_31dec
+
+ {txt}empl_31dec {c |}      Freq.     Percent        Cum.
+{hline 12}{c +}{hline 35}
+          0 {c |}{res}  4,710,062      100.00      100.00
+{txt}{hline 12}{c +}{hline 35}
+      Total {c |}{res}  4,710,062      100.00
+
+{com}. use "/Volumes/Encrypted drive/emily/myscratch/RAIS2/2010/2010b_1done.dta"
+
+. tab empl_31dec
+
+ {txt}empl_31dec {c |}      Freq.     Percent        Cum.
+{hline 12}{c +}{hline 35}
+          1 {c |}{res}  4,586,777      100.00      100.00
+{txt}{hline 12}{c +}{hline 35}
+      Total {c |}{res}  4,586,777      100.00
+
+{com}. tab reas_sep
+
+   {txt}reas_sep {c |}      Freq.     Percent        Cum.
+{hline 12}{c +}{hline 35}
+          0 {c |}{res}  4,583,361       99.93       99.93
+{txt}         23 {c |}{res}      2,492        0.05       99.98
+{txt}         29 {c |}{res}        378        0.01       99.99
+{txt}         80 {c |}{res}        546        0.01      100.00
+{txt}{hline 12}{c +}{hline 35}
+      Total {c |}{res}  4,586,777      100.00
+
+{com}. tab hire_type
+
+  {txt}hire_type {c |}      Freq.     Percent        Cum.
+{hline 12}{c +}{hline 35}
+          1 {c |}{res}    363,892        7.93        7.93
+{txt}          2 {c |}{res}  1,037,025       22.61       30.54
+{txt}          3 {c |}{res}      5,424        0.12       30.66
+{txt}          4 {c |}{res}     82,760        1.80       32.47
+{txt}          5 {c |}{res}      1,706        0.04       32.50
+{txt}          6 {c |}{res}        538        0.01       32.51
+{txt}          8 {c |}{res}  3,095,175       67.48       99.99
+{txt}         10 {c |}{res}        119        0.00      100.00
+{txt}         11 {c |}{res}        138        0.00      100.00
+{txt}{hline 12}{c +}{hline 35}
+      Total {c |}{res}  4,586,777      100.00
+
+{com}. use "/Volumes/Encrypted drive/emily/myscratch/RAIS2/2010/2010c_1done.dta"
+
+. tab empl_31dec
+
+ {txt}empl_31dec {c |}      Freq.     Percent        Cum.
+{hline 12}{c +}{hline 35}
+          1 {c |}{res}  4,594,252      100.00      100.00
+{txt}{hline 12}{c +}{hline 35}
+      Total {c |}{res}  4,594,252      100.00
+
+{com}. tab reas_sep
+
+   {txt}reas_sep {c |}      Freq.     Percent        Cum.
+{hline 12}{c +}{hline 35}
+          0 {c |}{res}  4,579,532       99.68       99.68
+{txt}         23 {c |}{res}     13,751        0.30       99.98
+{txt}         29 {c |}{res}        297        0.01       99.99
+{txt}         80 {c |}{res}        672        0.01      100.00
+{txt}{hline 12}{c +}{hline 35}
+      Total {c |}{res}  4,594,252      100.00
+
+{com}. tab hire_type
+
+  {txt}hire_type {c |}      Freq.     Percent        Cum.
+{hline 12}{c +}{hline 35}
+          1 {c |}{res}    258,648        5.63        5.63
+{txt}          2 {c |}{res}  1,324,370       28.83       34.46
+{txt}          3 {c |}{res}      8,058        0.18       34.63
+{txt}          4 {c |}{res}     85,727        1.87       36.50
+{txt}          5 {c |}{res}      2,047        0.04       36.54
+{txt}          6 {c |}{res}        127        0.00       36.55
+{txt}          7 {c |}{res}          3        0.00       36.55
+{txt}          8 {c |}{res}  2,915,251       63.45      100.00
+{txt}         10 {c |}{res}          3        0.00      100.00
+{txt}         11 {c |}{res}         18        0.00      100.00
+{txt}{hline 12}{c +}{hline 35}
+      Total {c |}{res}  4,594,252      100.00
+
+{com}. clear
+
+. 

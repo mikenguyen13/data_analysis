@@ -2,7 +2,7 @@
 
 In most cases, it means that you have pre- and post-intervention data.
 
-A great resource for causal inference is [Causal Inference Mixtape](https://mixtape.scunning.com/introduction.html), especially if you like to read about the history of causal inference as a field as well (codes for Stata, R, and Python).
+Great resources for causal inference include [Causal Inference Mixtape](https://mixtape.scunning.com/introduction.html) and [Recent Advances in Micro](https://christinecai.github.io/PublicGoods/applied_micro_methods.pdf), especially if you like to read about the history of causal inference as a field as well (codes for Stata, R, and Python).
 
 Libraries in R:
 
@@ -59,3 +59,79 @@ Limitation
 1.  What is your identifying assumptions or identification strategy
 2.  What are threats to the validity of your assumptions?
 3.  What you do to address it? And maybe how future research can do to address it.
+
+## Natural Experiments
+
+Reusing the same natural experiments for research, particularly when employing identical methods to determine the treatment effect in a given setting, can pose problems for hypothesis testing.
+
+Simulations show that when $N_{\text{Outcome}} >> N_{\text{True effect}}$, more than 50% of statistically significant findings may be false positives [@heath2023reusing, p.2331].
+
+**Solutions:**
+
+-   Bonferroni correction
+
+-   @romano2005stepwise and @romano2016efficient correction: recommended
+
+-   @benjamini2001control correction
+
+-   Alternatively, refer to the rules of thumb from Table AI [@heath2023reusing, p.2356].
+
+When applying multiple testing corrections, we can either use (but they will give similar results anyway [@heath2023reusing, p.2335]):
+
+1.  **Chronological Sequencing**: Outcomes are ordered by the date they were first reported, with multiple testing corrections applied in this sequence. This method progressively raises the statistical significance threshold as more outcomes are reviewed over time.
+
+2.  **Best Foot Forward Policy**: Outcomes are ordered from most to least likely to be rejected based on experimental data. Used primarily in clinical trials, this approach gives priority to intended treatment effects, which are subjected to less stringent statistical requirements. New outcomes are added to the sequence as they are linked to the primary treatment effect.
+
+```{r, warning=FALSE}
+# Romano-Wolf correction
+library(fixest)
+library(wildrwolf)
+
+head(iris)
+
+fit1 <- feols(Sepal.Width ~ Sepal.Length , data = iris)
+fit2 <- feols(Petal.Length ~ Sepal.Length, data = iris)
+fit3 <- feols(Petal.Width ~ Sepal.Length, data = iris)
+
+res <- rwolf(
+  models = list(fit1, fit2, fit3), 
+  param = "Sepal.Length",  
+  B = 500
+)
+
+res
+```
+
+For all other tests, one can use `multtest::mt.rawp2adjp` which includes:
+
+-   Bonferroni
+-   @holm1979simple
+-   @vsidak1967rectangular
+-   @hochberg1988sharper
+-   @benjamini1995controlling
+-   @benjamini2001control
+-   Adaptive @benjamini2000adaptive
+-   Two-stage @benjamini2006adaptive
+
+Permutation adjusted p-values for simple multiple testing procedures
+
+```{r}
+# BiocManager::install("multtest")
+library(multtest)
+
+procs <-
+    c("Bonferroni",
+      "Holm",
+      "Hochberg",
+      "SidakSS",
+      "SidakSD",
+      "BH",
+      "BY",
+      "ABH",
+      "TSBH")
+
+mt.rawp2adjp(
+    # p-values
+    runif(10),
+    procs) |> causalverse::nice_tab()
+```

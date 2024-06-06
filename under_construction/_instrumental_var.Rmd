@@ -1,6 +1,6 @@
 # Instrumental Variables
 
-Similar to RCT, we try to introduce randomization (random assignment to treatment) to our treatment variable by using only variation in the instrument.
+Similar to [RCT][Experimental Design], we try to introduce randomization (random assignment to treatment) to our treatment variable by using only variation in the instrument.
 
 Logic of using an instrument:
 
@@ -10,13 +10,13 @@ Logic of using an instrument:
 
 -   See the relationship between treatment and outcome in terms of residual variations that are exogenous to omitted variables.
 
-Notes:
+**Notes**:
 
 -   Instruments can be used to remove attenuation bias in errors-in-variables.
 
--   Be careful with the F-test and standard errors when you do 2SLS by hand (you need to correct them)
+-   Be careful with the F-test and standard errors when you do 2SLS by hand (you need to correct them).
 
--   For [Zero-valued Outcomes], we can't directly interpret the treatment coefficient of log-transformed outcome regression as percentage change [@chen2023logs]. To have percentage change interpretation, we can either do:
+-   For [Zero-valued Outcomes], we can't directly interpret the treatment coefficient of log-transformed outcome regression as percentage change [@chen2023logs]. We have to distinguish the treatment effect on the intensive (outcome: 10 to 11) vs. extensive margins (outcome: 0 to 1), and we can't readily interpret the treatment coefficient of log-transformed outcome regression as percentage change. To have percentage change interpretation, we can either do:
 
     -   Proportional LATE: estimate $\theta_{ATE\%}$ for those who are compliers under the instrument. To estimate proportional LATE,
 
@@ -32,11 +32,7 @@ Notes:
 
     -   @lee2009training bounds: we can get bounds for the average treatment effect in logs for compliers who have positive outcome regardless of treatment status (i.e., intensive-margin effect). This requires a monotonicity assumption for compliers where they should still have positive outcome regardless of treatment status.
 
-Other resources:
-
--   [Image](https://theeffectbook.net/ch-InstrumentalVariables.html)
-
-First-stage
+Notes on First-stage:
 
 -   Always use the OLS regression in the first stage (regardless of the type of endogenous variables - e.g., continuous or discreet) (suggested by [@angrist2009mostly]. Estimates of IV can still be consistent regardless of the form of the endogenous variables (discreet vs. continuous).
 
@@ -234,31 +230,31 @@ fitstat(
     type = c(
         "n", "ll", "aic", "bic", "rmse", # ll means log-likelihood
         
-        "my", # meand dependent var
-        
+        "my", # mean dependent var
+
         "g", # degrees of freedom used to compute the t-test
-        
+
         "r2", "ar2", "wr2", "awr2", "pr2", "apr2", "wpr2", "awpr2",
-        
+
         "theta", # over-dispersion parameter in Negative Binomial models
-        
+
         "f", "wf", # F-tests of nullity of the coefficients
-        
+
         "wald", # Wald test of joint nullity of the coefficients
+
+        "ivf",
         
-        "ivf", 
-        
-        "ivf1", 
-        
-        "ivf2", 
-        
+        "ivf1",
+
+        "ivf2",
+
         "ivfall",
         
-        "ivwald", "ivwald1", "ivwald2", "ivwaldall", 
+        "ivwald", "ivwald1", "ivwald2", "ivwaldall",
+
+        "cd"
         
-        "cd",
-        
-        "kpr"
+        # "kpr"
         
         
         ),
@@ -391,57 +387,95 @@ For IV-GMM, you also have an additional test of overid restrictions: GMM distanc
 
 To account for clustering, one can use code provided by this [blog](https://www.r-bloggers.com/2014/04/iv-estimates-via-gmm-with-clustering-in-r/)
 
-```{r}
-gmmcl = function(formula1, formula2, data, cluster){
-  library(plyr) ; library(gmm)
-  # create data.frame
-  data$id1 = 1:dim(data)[1]
-  formula3 = paste(as.character(formula1)[3],"id1", sep=" + ")
-  formula4 = paste(as.character(formula1)[2], formula3, sep=" ~ ")
-  formula4 = as.formula(formula4)
-  formula5 = paste(as.character(formula2)[2],"id1", sep=" + ")
-  formula6 = paste(" ~ ", formula5, sep=" ")
-  formula6 = as.formula(formula6)
-  frame1 = model.frame(formula4, data)
-  frame2 = model.frame(formula6, data)
-  dat1 = join(data, frame1, type="inner", match="first")
-  dat2 = join(dat1, frame2, type="inner", match="first")
-  
-  # matrix of instruments
-  Z1 = model.matrix(formula2, dat2)
-  
-  # step 1
-  gmm1 = gmm(formula1, formula2, data = dat2, 
-             vcov="TrueFixed", weightsMatrix = diag(dim(Z1)[2]))
-  
-  # clustering weight matrix
-  cluster = factor(dat2[,cluster])
-  u = residuals(gmm1)
-  estfun = sweep(Z1, MARGIN=1, u,'*')
-  u = apply(estfun, 2, function(x) tapply(x, cluster, sum))  
-  S = 1/(length(residuals(gmm1)))*crossprod(u)
-  
-  # step 2
-  gmm2 = gmm(formula1, formula2, data=dat2, 
-             vcov="TrueFixed", weightsMatrix = solve(S))
-  return(gmm2)
-}
-
-# generate data.frame
-n = 100
-z1 = rnorm(n)
-z2 = rnorm(n)
-x1 = z1 + z2 + rnorm(n)
-y1 = x1 + rnorm(n)
-id = 1:n
-
-data = data.frame(z1 = c(z1, z1), z2 = c(z2, z2), x1 = c(x1, x1),
-                  y1 = c(y1, y1), id = c(id, id))
-
-summary(gmmcl(y1 ~ x1, ~ z1 + z2, data = data, cluster = "id"))
-```
-
 ## Inference
+
+Under just-identified instrument variable model, we have
+
+$$
+Y = \beta X + u
+$$
+
+where $corr(u, Z) = 0$ (relevant assumption) and $corr(Z,X) \neq 0$ (exogenous assumption)
+
+The t-ratio approach to construct the 95 CIs is
+
+$$
+\hat{\beta} \pm 1.96 \sqrt{\hat{V}_N(\hat{\beta})}
+$$
+
+But this is wrong, and has been long recognized by those who understand the "weak instruments" problem [@staiger1997instrumental, @dufour1997some]
+
+To test the null hypothesis of $\beta = \beta_0$ [@lee2022valid] $$ \frac{(\hat{\beta} - \beta_0)^2}{\hat{V}_N(\hat{\beta})} = \hat{t}^2 = \hat{t}^2_{AR} \times \frac{1}{1 - \hat{\rho} \frac{\hat{t}_{AR}}{\hat{f}} + \frac{\hat{t}^2_{AR}}{\hat{f}^2}} $$ where $\hat{t}_{AR}^2 \sim \chi^2(1)$ (even with weak instruments) [@anderson1949estimation]
+
+$$
+\hat{t}_{AR} = \frac{\hat{\pi}(\hat{\beta} - \beta_0)}{\sqrt{\hat{V}_N (\hat{\pi} (\hat{\beta} - \beta_0))}} \sim N(0,1)
+$$
+
+where
+
+-   $\hat{f} = \frac{\hat{\pi}}{\sqrt{\hat{V}_N(\hat{\pi})}}\sim N$
+
+-   $\hat{\pi}$ = 1st-stage coefficient
+
+-   $\hat{\rho} = COV(Zv, Zu)$ = correlation between the 1st-stage residual and an estimate of $u$
+
+Even in large samples, $\hat{t}^2 \neq \hat{t}^2_{AR}$ because the right-hand term does not have a degenerate distribution. Thus, the normal t critical values wouldn't work.
+
+The t-ratios does not match that of standard normal, but it matches the proposed density by @staiger1997instrumental and @stock2005testing .
+
+The deviation between $\hat{t}^2 , \hat{t}^2_{AR}$ depends on
+
+1.  $\pi$ (i.e., correlation between the instrument and the endogenous variable)
+2.  $E(F)$ (i.e., strength of the first-stage)
+3.  Magnitude of $|\rho|$ (i.e., degree of endogeneity)
+
+Hence, we can think of several scenarios:
+
+1.  **Worst case**: Very weak first stage ($\pi = 0$) and high degree of endogeneity ($|\rho |= 1$).
+
+-   The interval $\hat{\beta} \pm 1.96 \times SE$ does not contain the true parameter $\beta$.
+
+-   A 5 percent significance test under these conditions will incorrectly reject the null hypothesis ($\beta = \beta_0$) 100% of the time.
+
+2.  **Best case**: No endogeneity ($\rho =0$) or very large $\hat{f}$ (very strong first-stage)
+
+-   The interval $\hat{\beta} \pm 1.96 \times SD$ accurately contains $\beta$ at least 95% of the time.
+
+3.  **Intermediate case**: The performance of the interval lies between the two extremes.
+
+**Solutions**: To have valid inference of $\hat{\beta} \pm 1.96 \times SE$ using t-ratio ($\hat{t}^2 \approx \hat{t}^2_{AR}$), we can either
+
+1.  Assume our problem away
+    1.  Assume $E(F) > 142.6$ [@lee2022valid] (Not much of an assumption since we can observe first-stage F-stat empirically).
+    2.  Assume $|\rho| < 0.565$ [@angrist2024one, @lee2022valid], but this defeats our motivation to use IV in the first place because we think there is a strong endogeneity bias, that's why we are trying to correct for it (circular argument).
+2.  Deal with it head on
+    1.  [AR approach] [@anderson1949estimation]
+    2.  [tF Procedure] [@lee2022valid]
+    3.  [AK approach] [@angrist2023one]
+
+**Common Practices & Challenges**:
+
+-   The t-ratio test is preferred by many researchers but has its pitfalls:
+
+    -   Known to over-reject (equivalently, under-cover confidence intervals), especially with weak instruments [@lee2022valid, @nelson1990distribution, @bound1995problems, @dufour1997some].
+
+-   To address this:
+
+    -   The first-stage F-statistic is used as an indicator of weak instruments.
+
+    -   [@staiger1997instrumental, @stock2005testing] provided a framework to understand and correct these **distortions**.
+
+**Misinterpretations**:
+
+-   Common errors in application:
+
+    -   Using a rule-of-thumb F-stat threshold of 10 instead of referring to @stock2005testing.
+
+    -   Mislabeling intervals such as $\hat{\beta} \pm 1.96 \times \hat{se}(\hat{\beta})$ as 95% confidence intervals (when passed the $F>10$ rule of thumb). @staiger1997instrumental clarified that such intervals actually represent 85% confidence when using $F > 16.38$ from @stock2005testing
+
+-   Pretesting for weak instruments might exacerbate over-rejection of the t-ratio test mentioned above [@hall1996judging].
+
+-   Selective model specification (i.e., dropping certain specification) based on F-statistics also leads to significant **distortions** [@andrews2019weak].
 
 ### AR approach
 
@@ -456,38 +490,6 @@ summary(gmmcl(y1 ~ x1, ~ z1 + z2, data = data, cluster = "id"))
     -   Homoskedastic errors [@andrews2006optimal, @moreira2009tests].
 
     -   Generalized for heteroskedastic, clustered, and autocorrelated errors [@moreira2019optimal].
-
-**Common Practices & Challenges**:
-
--   The t-ratio test is preferred by many researchers but has its pitfalls:
-
-    -   Known to over-reject (equivalently, under-cover confidence intervals), especially with weak instruments [@lee2022valid, @nelson1990distribution, @bound1995problems, @dufour1997some].
-
--   To address this:
-
-    -   The first-stage F-statistic is used as an indicator of weak instruments.
-
-    -   [@staiger1997instrumental, @stock2005testing] provided a framework to understand and correct these **distortions**.
-
-    -   Distortions persist even in single instrument cases, seen in:
-
-        -   Randomized trials with imperfect compliance [@imbens1994identification].
-
-        -   Fuzzy regression discontinuity designs [@lee2010regression].
-
-        -   Fuzzy regression kink designs [@card2015inference].
-
-**Misinterpretations**:
-
--   Common errors in application:
-
--   Using a rule-of-thumb F-stat threshold of 10 instead of referring to @stock2005testing.
-
--   Mislabeling intervals such as $\hat{\beta} \pm 1.96 \times \hat{se}(\hat{\beta})$ as 95% confidence intervals (when passed the $F>10$ rule of thumb). @staiger1997instrumental clarified that such intervals actually represent 85% confidence when using $F > 16.38$ from @stock2005testing
-
--   Pretesting for weak instruments might exacerbate over-rejection of the t-ratio test mentioned above [@hall1996judging].
-
--   Selective model specification (i.e., dropping certain specification) based on F-statistics also leads to significant **distortions** [@andrews2019weak].
 
 ```{r}
 library(ivDiag)
@@ -518,12 +520,19 @@ g <- ivDiag::ivDiag(
 )
 g$AR
 ivDiag::plot_coef(g)
-
 ```
 
 ### tF Procedure
 
-[@lee2022valid] proposes a new method that is aligned better with traditional econometric training than AR, where it is called the tF procedure. It incorporates both the 1st-stage F-stat and the 2SLS t-ratio.
+@lee2022valid propose a new method that is aligned better with traditional econometric training than AR, where it is called the tF procedure. It incorporates both the 1st-stage F-stat and the 2SLS $t$-value. This method is applicable to single instrumental variable (i.e., just-identified model), including
+
+-   Randomized trials with imperfect compliance [@imbens1994identification].
+
+-   Fuzzy [Regression Discontinuity] designs [@lee2010regression].
+
+-   Fuzzy regression kink designs [@card2015inference].
+
+See @andrews2019weak for a comparison between [AR approach] and [tF Procedure].
 
 **tF Procedure**:
 
@@ -549,7 +558,7 @@ ivDiag::plot_coef(g)
 
 3.  **Robustness**:
 
-    -   Robust against common error structures (e.g., heteroskedasticity or clustering).
+    -   Robust against common error structures (e.g., heteroskedasticity or clustering and/or autocorrelated errors).
 
     -   No further adjustments are necessary as long as robust variance estimators are consistently used (same robust variance estimator used for the 1st-stage as for the IV estimate).
 
@@ -605,10 +614,10 @@ where
 -   $\hat{t}$: $t$-ratio under the null hypothesis.
 -   $\hat{f}$: $t$-ratio under the null hypothesis of $\pi=0$.
 
-Traditional T-ratio Inference:
+Traditional $t$ Inference:
 
 -   In large samples, $\hat{t}^2 \to^d t^2$
--   Standard normal critical values are ±1.96 for 5% significance level testing.
+-   Standard normal critical values are $\pm 1.96$ for 5% significance level testing.
 
 Distortions in Inference in the case of IV:
 
@@ -625,7 +634,7 @@ Distortions in Inference in the case of IV:
 Implications of $t^2$ formula:
 
 -   Varies rejection rates depending on $\rho$ value.
-    -   $\rho \in (0,0.5]$ (low) the t-ratio rejects at a probability below the nominal 0.05 rate
+    -   $\rho \in (0,0.5]$ (low) the t-ratio rejects at a probability below the nominal $0.05$ rate
     -   $\rho = 0.8$ (high) the rejection rate can be $0.13$
 -   In short, incorrect test size when relying solely on $t^2$ (based on traditional econometric understanding)
 
@@ -675,8 +684,14 @@ se_of_interest <-
     res_est_iv[res_est_iv$rowname == "fit_x_endo_1", "Std. Error"]
 fstat_1st <- fitstat(est_iv, type = "ivf1")[[1]]$stat
 
-# To get the correct SE based on 1st-stage F-stat
-tF(coef = coef_of_interest, se = se_of_interest, Fstat = fstat_1st)
+# To get the correct SE based on 1st-stage F-stat (This result is similar without adjustment since F is large)
+# the results are the new CIS and p.value
+tF(coef = coef_of_interest, se = se_of_interest, Fstat = fstat_1st) |> 
+    causalverse::nice_tab(5)
+
+# We can try to see a different 1st-stage F-stat and how it changes the results
+tF(coef = coef_of_interest, se = se_of_interest, Fstat = 2) |> 
+    causalverse::nice_tab(5)
 ```
 
 ### AK approach
@@ -735,13 +750,88 @@ $$
 
 -   **Weak instruments**: can explain little variation in the endogenous regressor
 
-    -   Coefficient estimate of the endogenous variable will be inaccurate
+    -   Coefficient estimate of the endogenous variable will be inaccurate.
+    -   For cases where weak instruments are unavoidable, @moreira2003conditional proposes the conditional likelihood ratio test for robust inference. This test is considered approximately optimal for weak instrument scenarios [@andrews2008efficient; @andrews2008exactly].
 
 -   Rule of thumb:
 
-    -   Compute F-statistic in the first-stage, where it should be greater than 10.
+    -   Compute F-statistic in the first-stage, where it should be greater than 10. But this is discouraged now by @lee2022valid
 
     -   use `linearHypothesis()` to see only instrument coefficients.
+
+**First-Stage F-Test**
+
+In the context of a two-stage least squares (2SLS) setup where you are estimating the equation:
+
+$$
+Y = X \beta + \epsilon
+$$
+
+and $X$ is endogenous, you typically estimate a first-stage regression of:
+
+$$
+X = Z \pi + u
+$$
+
+where 𝑍Z is the instrument.
+
+The first-stage F-test evaluates the joint significance of the instruments in this first stage:
+
+$$
+F = \frac{(SSR_r - SSR_{ur})/q}{SSR_{ur}/ (n - k - 1)}
+$$
+
+where:
+
+-   $SSR_r$ is the sum of squared residuals from the restricted model (no instruments, just the constant).
+
+-   $SSR_{ur}$ is the sum of squared residuals from the unrestricted model (with instruments).
+
+-   $q$ is the number of instruments excluded from the main equation.
+
+-   $n$ is the number of observations.
+
+-   $k$ is the number of explanatory variables excluding the instruments.
+
+**Cragg-Donald Test**
+
+The Cragg-Donald statistic is essentially the same as the Wald statistic of the joint significance of the instruments in the first stage, and it's used specifically when you have multiple endogenous regressors. It's calculated as:
+
+$$
+CD = n \times (R_{ur}^2 - R_r^2)
+$$
+
+where:
+
+-   $R_{ur}^2$ and $R_r^2$ are the R-squared values from the unrestricted and restricted models respectively.
+
+-   $n$ is the number of observations.
+
+For one endogenous variable, the Cragg-Donald test results should align closely with those from Stock and Yogo. The Anderson canonical correlation test, a likelihood ratio test, also works under similar conditions, contrasting with Cragg-Donald's Wald statistic approach. Both are valid with one endogenous variable and at least one instrument.
+
+**Stock-Yogo Weak IV Test**
+
+The Stock-Yogo test does not directly compute a statistic like the F-test or Cragg-Donald, but rather uses pre-computed critical values to assess the strength of instruments. It often uses the eigenvalues derived from the concentration matrix:
+
+$$
+S = \frac{1}{n} (Z' X) (X'Z)
+$$
+
+where $Z$ is the matrix of instruments and $X$ is the matrix of endogenous regressors.
+
+Stock and Yogo provide critical values for different scenarios (bias, size distortion) for a given number of instruments and endogenous regressors, based on the smallest eigenvalue of $S$. The test compares these eigenvalues against critical values that correspond to thresholds of permissible bias or size distortion in a 2SLS estimator.
+
+-   **Critical Values and Test Conditions**: The critical values derived by Stock and Yogo depend on the level of acceptable bias, the number of endogenous regressors, and the number of instruments. For example, with a 5% maximum acceptable bias, one endogenous variable, and three instruments, the critical value for a sufficient first stage F-statistic is 13.91. Note that this framework requires at least two overidentifying degree of freedom.
+
+**Comparison**
+
+| **Test**                    | **Description**                                                     | **Focus**                                                                  | **Usage**                                                                                                                                               |
+|-----------------------------|---------------------------------------------------------------------|----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **First-Stage F-Test**      | Evaluates the joint significance of instruments in the first stage. | Predictive power of instruments for the endogenous variable.               | Simplest and most direct test, widely used especially with a single endogenous variable. Rule of thumb: F \< 10 suggests weak instruments.              |
+| **Cragg-Donald Test**       | Wald statistic for joint significance of instruments.               | Joint strength of multiple instruments with multiple endogenous variables. | More appropriate in complex IV setups with multiple endogenous variables. Compares statistic against critical values for assessing instrument strength. |
+| **Stock-Yogo Weak IV Test** | Compares test statistic to pre-determined critical values.          | Minimizing size distortions and bias from weak instruments.                | Theoretical evaluation of instrument strength, ensuring the reliability of 2SLS estimates against specific thresholds of bias or size distortion.       |
+
+All the mentioned tests (Stock Yogo, Cragg-Donald, Anderson canonical correlation test) assume errors are independently and identically distributed. If this assumption is violated, the Kleinbergen-Paap test is robust against violations of the iid assumption and can be applied even with a single endogenous variable and instrument, provided the model is properly identified [@baum2021ivreg2h].
 
 #### Cragg-Donald
 
@@ -749,7 +839,7 @@ $$
 
 Similar to the first-stage F-statistic
 
-```{r}
+```{r, message=FALSE}
 library(cragg)
 library(AER) # for dataaset
 data("WeakInstrument")
@@ -775,17 +865,18 @@ $H_0:$ Instruments are weak
 
 $H_1:$ Instruments are not weak
 
-```{r}
+```{r, eval = FALSE}
 library(cragg)
 library(AER) # for dataaset
 data("WeakInstrument")
 stock_yogo_test(
     # control variables
-    X = ~ 1, 
+    X = ~ 1,
     # endogeneous variables
-    D = ~ x, 
-    # instrument variables 
-    Z = ~ z, 
+    D = ~ x,
+    # instrument variables
+    Z = ~ z,
+    size_bias = "bias",
     data = WeakInstrument
 )
 ```
@@ -934,9 +1025,9 @@ Two-Stage Least Squares (TSLS) can be used to estimate the average causal effect
 
 -   Hours of exam prep on score [@powers1984effects]
 
--   cigarette smoking on birth weights [@permutt1989simultaneous]
+-   Cigarette smoking on birth weights [@permutt1989simultaneous]
 
--   years of education
+-   Years of education
 
 -   Class size on test score [@angrist1999using]
 
@@ -1159,6 +1250,6 @@ summary(second_stage_cf)
 modelsummary(list(second_stage, second_stage_cf))
 ```
 
-## Application in Marketing
+<!-- ## Application in Marketing -->
 
-### Peer-based IV
+<!-- ### Peer-based IV -->

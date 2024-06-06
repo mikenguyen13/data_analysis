@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2024-04-11" />
+<meta name="date" content="2024-06-06" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -659,7 +659,10 @@ div.csl-indent {
 </ul></li>
 </ul></li>
 <li class="part"><span><b>B. QUASI-EXPERIMENTAL DESIGN</b></span></li>
-<li class="chapter" data-level="23" data-path="quasi-experimental.html"><a href="quasi-experimental.html"><i class="fa fa-check"></i><b>23</b> Quasi-experimental</a></li>
+<li class="chapter" data-level="23" data-path="quasi-experimental.html"><a href="quasi-experimental.html"><i class="fa fa-check"></i><b>23</b> Quasi-experimental</a>
+<ul>
+<li class="chapter" data-level="23.1" data-path="natural-experiments.html"><a href="natural-experiments.html"><i class="fa fa-check"></i><b>23.1</b> Natural Experiments</a></li>
+</ul></li>
 <li class="chapter" data-level="24" data-path="regression-discontinuity.html"><a href="regression-discontinuity.html"><i class="fa fa-check"></i><b>24</b> Regression Discontinuity</a>
 <ul>
 <li class="chapter" data-level="24.1" data-path="estimation-and-inference.html"><a href="estimation-and-inference.html"><i class="fa fa-check"></i><b>24.1</b> Estimation and Inference</a>
@@ -673,6 +676,7 @@ div.csl-indent {
 <li class="chapter" data-level="24.2.2" data-path="specification-checks.html"><a href="specification-checks.html#sortingbunchingmanipulation"><i class="fa fa-check"></i><b>24.2.2</b> Sorting/Bunching/Manipulation</a></li>
 <li class="chapter" data-level="24.2.3" data-path="specification-checks.html"><a href="specification-checks.html#placebo-tests"><i class="fa fa-check"></i><b>24.2.3</b> Placebo Tests</a></li>
 <li class="chapter" data-level="24.2.4" data-path="specification-checks.html"><a href="specification-checks.html#sensitivity-to-bandwidth-choice"><i class="fa fa-check"></i><b>24.2.4</b> Sensitivity to Bandwidth Choice</a></li>
+<li class="chapter" data-level="24.2.5" data-path="specification-checks.html"><a href="specification-checks.html#manipulation-robust-regression-discontinuity-bounds"><i class="fa fa-check"></i><b>24.2.5</b> Manipulation Robust Regression Discontinuity Bounds</a></li>
 </ul></li>
 <li class="chapter" data-level="24.3" data-path="fuzzy-rd-design.html"><a href="fuzzy-rd-design.html"><i class="fa fa-check"></i><b>24.3</b> Fuzzy RD Design</a></li>
 <li class="chapter" data-level="24.4" data-path="regression-kink-design.html"><a href="regression-kink-design.html"><i class="fa fa-check"></i><b>24.4</b> Regression Kink Design</a></li>
@@ -981,66 +985,66 @@ div.csl-indent {
 <li><p><strong>Confirmation Bias</strong>: Like survivorship bias, publication bias can reinforce confirmation bias. Researchers might only find and cite studies that confirm their beliefs, overlooking the unpublished studies that might contradict them.</p></li>
 </ol>
 <p>Let’s simulate an experiment on a new treatment. We’ll assume that the treatment has no effect, but due to random variation, some studies will show significant positive or negative effects.</p>
-<div class="sourceCode" id="cb599"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb599-1"><a href="publication-bias.html#cb599-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
-<span id="cb599-2"><a href="publication-bias.html#cb599-2" tabindex="-1"></a></span>
-<span id="cb599-3"><a href="publication-bias.html#cb599-3" tabindex="-1"></a><span class="co"># Number of studies</span></span>
-<span id="cb599-4"><a href="publication-bias.html#cb599-4" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb599-5"><a href="publication-bias.html#cb599-5" tabindex="-1"></a></span>
-<span id="cb599-6"><a href="publication-bias.html#cb599-6" tabindex="-1"></a><span class="co"># Assuming no real effect (effect size = 0)</span></span>
-<span id="cb599-7"><a href="publication-bias.html#cb599-7" tabindex="-1"></a>true_effect <span class="ot">&lt;-</span> <span class="dv">0</span></span>
-<span id="cb599-8"><a href="publication-bias.html#cb599-8" tabindex="-1"></a></span>
-<span id="cb599-9"><a href="publication-bias.html#cb599-9" tabindex="-1"></a><span class="co"># Random variation in results</span></span>
-<span id="cb599-10"><a href="publication-bias.html#cb599-10" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> true_effect, <span class="at">sd =</span> <span class="dv">1</span>)</span>
-<span id="cb599-11"><a href="publication-bias.html#cb599-11" tabindex="-1"></a></span>
-<span id="cb599-12"><a href="publication-bias.html#cb599-12" tabindex="-1"></a><span class="co"># Only &quot;significant&quot; results get published </span></span>
-<span id="cb599-13"><a href="publication-bias.html#cb599-13" tabindex="-1"></a><span class="co"># (arbitrarily defining significant as abs(effect) &gt; 1.5)</span></span>
-<span id="cb599-14"><a href="publication-bias.html#cb599-14" tabindex="-1"></a>published_results <span class="ot">&lt;-</span> results[<span class="fu">abs</span>(results) <span class="sc">&gt;</span> <span class="fl">1.5</span>]</span>
-<span id="cb599-15"><a href="publication-bias.html#cb599-15" tabindex="-1"></a></span>
-<span id="cb599-16"><a href="publication-bias.html#cb599-16" tabindex="-1"></a><span class="co"># Average effect for all studies vs. published studies</span></span>
-<span id="cb599-17"><a href="publication-bias.html#cb599-17" tabindex="-1"></a>true_avg_effect <span class="ot">&lt;-</span> <span class="fu">mean</span>(results)</span>
-<span id="cb599-18"><a href="publication-bias.html#cb599-18" tabindex="-1"></a>published_avg_effect <span class="ot">&lt;-</span> <span class="fu">mean</span>(published_results)</span>
-<span id="cb599-19"><a href="publication-bias.html#cb599-19" tabindex="-1"></a></span>
-<span id="cb599-20"><a href="publication-bias.html#cb599-20" tabindex="-1"></a>true_avg_effect</span>
-<span id="cb599-21"><a href="publication-bias.html#cb599-21" tabindex="-1"></a><span class="co">#&gt; [1] 0.03251482</span></span>
-<span id="cb599-22"><a href="publication-bias.html#cb599-22" tabindex="-1"></a>published_avg_effect</span>
-<span id="cb599-23"><a href="publication-bias.html#cb599-23" tabindex="-1"></a><span class="co">#&gt; [1] -0.3819601</span></span></code></pre></div>
+<div class="sourceCode" id="cb610"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb610-1"><a href="publication-bias.html#cb610-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb610-2"><a href="publication-bias.html#cb610-2" tabindex="-1"></a></span>
+<span id="cb610-3"><a href="publication-bias.html#cb610-3" tabindex="-1"></a><span class="co"># Number of studies</span></span>
+<span id="cb610-4"><a href="publication-bias.html#cb610-4" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb610-5"><a href="publication-bias.html#cb610-5" tabindex="-1"></a></span>
+<span id="cb610-6"><a href="publication-bias.html#cb610-6" tabindex="-1"></a><span class="co"># Assuming no real effect (effect size = 0)</span></span>
+<span id="cb610-7"><a href="publication-bias.html#cb610-7" tabindex="-1"></a>true_effect <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb610-8"><a href="publication-bias.html#cb610-8" tabindex="-1"></a></span>
+<span id="cb610-9"><a href="publication-bias.html#cb610-9" tabindex="-1"></a><span class="co"># Random variation in results</span></span>
+<span id="cb610-10"><a href="publication-bias.html#cb610-10" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n, <span class="at">mean =</span> true_effect, <span class="at">sd =</span> <span class="dv">1</span>)</span>
+<span id="cb610-11"><a href="publication-bias.html#cb610-11" tabindex="-1"></a></span>
+<span id="cb610-12"><a href="publication-bias.html#cb610-12" tabindex="-1"></a><span class="co"># Only &quot;significant&quot; results get published </span></span>
+<span id="cb610-13"><a href="publication-bias.html#cb610-13" tabindex="-1"></a><span class="co"># (arbitrarily defining significant as abs(effect) &gt; 1.5)</span></span>
+<span id="cb610-14"><a href="publication-bias.html#cb610-14" tabindex="-1"></a>published_results <span class="ot">&lt;-</span> results[<span class="fu">abs</span>(results) <span class="sc">&gt;</span> <span class="fl">1.5</span>]</span>
+<span id="cb610-15"><a href="publication-bias.html#cb610-15" tabindex="-1"></a></span>
+<span id="cb610-16"><a href="publication-bias.html#cb610-16" tabindex="-1"></a><span class="co"># Average effect for all studies vs. published studies</span></span>
+<span id="cb610-17"><a href="publication-bias.html#cb610-17" tabindex="-1"></a>true_avg_effect <span class="ot">&lt;-</span> <span class="fu">mean</span>(results)</span>
+<span id="cb610-18"><a href="publication-bias.html#cb610-18" tabindex="-1"></a>published_avg_effect <span class="ot">&lt;-</span> <span class="fu">mean</span>(published_results)</span>
+<span id="cb610-19"><a href="publication-bias.html#cb610-19" tabindex="-1"></a></span>
+<span id="cb610-20"><a href="publication-bias.html#cb610-20" tabindex="-1"></a>true_avg_effect</span>
+<span id="cb610-21"><a href="publication-bias.html#cb610-21" tabindex="-1"></a><span class="co">#&gt; [1] 0.03251482</span></span>
+<span id="cb610-22"><a href="publication-bias.html#cb610-22" tabindex="-1"></a>published_avg_effect</span>
+<span id="cb610-23"><a href="publication-bias.html#cb610-23" tabindex="-1"></a><span class="co">#&gt; [1] -0.3819601</span></span></code></pre></div>
 <p>Using a histogram to visualize the distribution of study results, highlighting the “published” studies.</p>
-<div class="sourceCode" id="cb600"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb600-1"><a href="publication-bias.html#cb600-1" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb600-2"><a href="publication-bias.html#cb600-2" tabindex="-1"></a></span>
-<span id="cb600-3"><a href="publication-bias.html#cb600-3" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(results)</span>
-<span id="cb600-4"><a href="publication-bias.html#cb600-4" tabindex="-1"></a></span>
-<span id="cb600-5"><a href="publication-bias.html#cb600-5" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> results)) <span class="sc">+</span></span>
-<span id="cb600-6"><a href="publication-bias.html#cb600-6" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(</span>
-<span id="cb600-7"><a href="publication-bias.html#cb600-7" tabindex="-1"></a>    <span class="at">binwidth =</span> <span class="fl">0.2</span>,</span>
-<span id="cb600-8"><a href="publication-bias.html#cb600-8" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">&quot;grey&quot;</span>,</span>
-<span id="cb600-9"><a href="publication-bias.html#cb600-9" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">&quot;black&quot;</span>,</span>
-<span id="cb600-10"><a href="publication-bias.html#cb600-10" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.7</span></span>
-<span id="cb600-11"><a href="publication-bias.html#cb600-11" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb600-12"><a href="publication-bias.html#cb600-12" tabindex="-1"></a>  <span class="fu">geom_vline</span>(</span>
-<span id="cb600-13"><a href="publication-bias.html#cb600-13" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">xintercept =</span> true_avg_effect,</span>
-<span id="cb600-14"><a href="publication-bias.html#cb600-14" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;True Avg Effect&quot;</span>),</span>
-<span id="cb600-15"><a href="publication-bias.html#cb600-15" tabindex="-1"></a>    <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>,</span>
-<span id="cb600-16"><a href="publication-bias.html#cb600-16" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">1</span></span>
-<span id="cb600-17"><a href="publication-bias.html#cb600-17" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb600-18"><a href="publication-bias.html#cb600-18" tabindex="-1"></a>  <span class="fu">geom_vline</span>(</span>
-<span id="cb600-19"><a href="publication-bias.html#cb600-19" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">xintercept =</span> published_avg_effect,</span>
-<span id="cb600-20"><a href="publication-bias.html#cb600-20" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;Published Avg Effect&quot;</span>),</span>
-<span id="cb600-21"><a href="publication-bias.html#cb600-21" tabindex="-1"></a>    <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>,</span>
-<span id="cb600-22"><a href="publication-bias.html#cb600-22" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">1</span></span>
-<span id="cb600-23"><a href="publication-bias.html#cb600-23" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb600-24"><a href="publication-bias.html#cb600-24" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(</span>
-<span id="cb600-25"><a href="publication-bias.html#cb600-25" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(</span>
-<span id="cb600-26"><a href="publication-bias.html#cb600-26" tabindex="-1"></a>      <span class="st">&quot;True Avg Effect&quot;</span> <span class="ot">=</span> <span class="st">&quot;blue&quot;</span>,</span>
-<span id="cb600-27"><a href="publication-bias.html#cb600-27" tabindex="-1"></a>      <span class="st">&quot;Published Avg Effect&quot;</span> <span class="ot">=</span> <span class="st">&quot;red&quot;</span></span>
-<span id="cb600-28"><a href="publication-bias.html#cb600-28" tabindex="-1"></a>    ),</span>
-<span id="cb600-29"><a href="publication-bias.html#cb600-29" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">&quot;Effect Type&quot;</span></span>
-<span id="cb600-30"><a href="publication-bias.html#cb600-30" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb600-31"><a href="publication-bias.html#cb600-31" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Distribution of Study Results&quot;</span>,</span>
-<span id="cb600-32"><a href="publication-bias.html#cb600-32" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;Effect Size&quot;</span>,</span>
-<span id="cb600-33"><a href="publication-bias.html#cb600-33" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Number of Studies&quot;</span>) <span class="sc">+</span></span>
-<span id="cb600-34"><a href="publication-bias.html#cb600-34" tabindex="-1"></a>  causalverse<span class="sc">::</span><span class="fu">ama_theme</span>()</span>
-<span id="cb600-35"><a href="publication-bias.html#cb600-35" tabindex="-1"></a></span>
-<span id="cb600-36"><a href="publication-bias.html#cb600-36" tabindex="-1"></a><span class="fu">print</span>(p)</span></code></pre></div>
+<div class="sourceCode" id="cb611"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb611-1"><a href="publication-bias.html#cb611-1" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb611-2"><a href="publication-bias.html#cb611-2" tabindex="-1"></a></span>
+<span id="cb611-3"><a href="publication-bias.html#cb611-3" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(results)</span>
+<span id="cb611-4"><a href="publication-bias.html#cb611-4" tabindex="-1"></a></span>
+<span id="cb611-5"><a href="publication-bias.html#cb611-5" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(df, <span class="fu">aes</span>(<span class="at">x =</span> results)) <span class="sc">+</span></span>
+<span id="cb611-6"><a href="publication-bias.html#cb611-6" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(</span>
+<span id="cb611-7"><a href="publication-bias.html#cb611-7" tabindex="-1"></a>    <span class="at">binwidth =</span> <span class="fl">0.2</span>,</span>
+<span id="cb611-8"><a href="publication-bias.html#cb611-8" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">&quot;grey&quot;</span>,</span>
+<span id="cb611-9"><a href="publication-bias.html#cb611-9" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">&quot;black&quot;</span>,</span>
+<span id="cb611-10"><a href="publication-bias.html#cb611-10" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fl">0.7</span></span>
+<span id="cb611-11"><a href="publication-bias.html#cb611-11" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb611-12"><a href="publication-bias.html#cb611-12" tabindex="-1"></a>  <span class="fu">geom_vline</span>(</span>
+<span id="cb611-13"><a href="publication-bias.html#cb611-13" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">xintercept =</span> true_avg_effect,</span>
+<span id="cb611-14"><a href="publication-bias.html#cb611-14" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;True Avg Effect&quot;</span>),</span>
+<span id="cb611-15"><a href="publication-bias.html#cb611-15" tabindex="-1"></a>    <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>,</span>
+<span id="cb611-16"><a href="publication-bias.html#cb611-16" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">1</span></span>
+<span id="cb611-17"><a href="publication-bias.html#cb611-17" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb611-18"><a href="publication-bias.html#cb611-18" tabindex="-1"></a>  <span class="fu">geom_vline</span>(</span>
+<span id="cb611-19"><a href="publication-bias.html#cb611-19" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">xintercept =</span> published_avg_effect,</span>
+<span id="cb611-20"><a href="publication-bias.html#cb611-20" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">&quot;Published Avg Effect&quot;</span>),</span>
+<span id="cb611-21"><a href="publication-bias.html#cb611-21" tabindex="-1"></a>    <span class="at">linetype =</span> <span class="st">&quot;dashed&quot;</span>,</span>
+<span id="cb611-22"><a href="publication-bias.html#cb611-22" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">1</span></span>
+<span id="cb611-23"><a href="publication-bias.html#cb611-23" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb611-24"><a href="publication-bias.html#cb611-24" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(</span>
+<span id="cb611-25"><a href="publication-bias.html#cb611-25" tabindex="-1"></a>    <span class="at">values =</span> <span class="fu">c</span>(</span>
+<span id="cb611-26"><a href="publication-bias.html#cb611-26" tabindex="-1"></a>      <span class="st">&quot;True Avg Effect&quot;</span> <span class="ot">=</span> <span class="st">&quot;blue&quot;</span>,</span>
+<span id="cb611-27"><a href="publication-bias.html#cb611-27" tabindex="-1"></a>      <span class="st">&quot;Published Avg Effect&quot;</span> <span class="ot">=</span> <span class="st">&quot;red&quot;</span></span>
+<span id="cb611-28"><a href="publication-bias.html#cb611-28" tabindex="-1"></a>    ),</span>
+<span id="cb611-29"><a href="publication-bias.html#cb611-29" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">&quot;Effect Type&quot;</span></span>
+<span id="cb611-30"><a href="publication-bias.html#cb611-30" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb611-31"><a href="publication-bias.html#cb611-31" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;Distribution of Study Results&quot;</span>,</span>
+<span id="cb611-32"><a href="publication-bias.html#cb611-32" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">&quot;Effect Size&quot;</span>,</span>
+<span id="cb611-33"><a href="publication-bias.html#cb611-33" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">&quot;Number of Studies&quot;</span>) <span class="sc">+</span></span>
+<span id="cb611-34"><a href="publication-bias.html#cb611-34" tabindex="-1"></a>  causalverse<span class="sc">::</span><span class="fu">ama_theme</span>()</span>
+<span id="cb611-35"><a href="publication-bias.html#cb611-35" tabindex="-1"></a></span>
+<span id="cb611-36"><a href="publication-bias.html#cb611-36" tabindex="-1"></a><span class="fu">print</span>(p)</span></code></pre></div>
 <p><img src="32-biases_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>The plot might show that the “True Avg Effect” is around zero, while the “Published Avg Effect” is likely higher or lower, depending on which studies happen to have significant results in the simulation.</p>
 <p><strong>Remedies</strong>:</p>

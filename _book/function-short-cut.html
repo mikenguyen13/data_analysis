@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2024-04-11" />
+<meta name="date" content="2024-06-06" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -659,7 +659,10 @@ div.csl-indent {
 </ul></li>
 </ul></li>
 <li class="part"><span><b>B. QUASI-EXPERIMENTAL DESIGN</b></span></li>
-<li class="chapter" data-level="23" data-path="quasi-experimental.html"><a href="quasi-experimental.html"><i class="fa fa-check"></i><b>23</b> Quasi-experimental</a></li>
+<li class="chapter" data-level="23" data-path="quasi-experimental.html"><a href="quasi-experimental.html"><i class="fa fa-check"></i><b>23</b> Quasi-experimental</a>
+<ul>
+<li class="chapter" data-level="23.1" data-path="natural-experiments.html"><a href="natural-experiments.html"><i class="fa fa-check"></i><b>23.1</b> Natural Experiments</a></li>
+</ul></li>
 <li class="chapter" data-level="24" data-path="regression-discontinuity.html"><a href="regression-discontinuity.html"><i class="fa fa-check"></i><b>24</b> Regression Discontinuity</a>
 <ul>
 <li class="chapter" data-level="24.1" data-path="estimation-and-inference.html"><a href="estimation-and-inference.html"><i class="fa fa-check"></i><b>24.1</b> Estimation and Inference</a>
@@ -673,6 +676,7 @@ div.csl-indent {
 <li class="chapter" data-level="24.2.2" data-path="specification-checks.html"><a href="specification-checks.html#sortingbunchingmanipulation"><i class="fa fa-check"></i><b>24.2.2</b> Sorting/Bunching/Manipulation</a></li>
 <li class="chapter" data-level="24.2.3" data-path="specification-checks.html"><a href="specification-checks.html#placebo-tests"><i class="fa fa-check"></i><b>24.2.3</b> Placebo Tests</a></li>
 <li class="chapter" data-level="24.2.4" data-path="specification-checks.html"><a href="specification-checks.html#sensitivity-to-bandwidth-choice"><i class="fa fa-check"></i><b>24.2.4</b> Sensitivity to Bandwidth Choice</a></li>
+<li class="chapter" data-level="24.2.5" data-path="specification-checks.html"><a href="specification-checks.html#manipulation-robust-regression-discontinuity-bounds"><i class="fa fa-check"></i><b>24.2.5</b> Manipulation Robust Regression Discontinuity Bounds</a></li>
 </ul></li>
 <li class="chapter" data-level="24.3" data-path="fuzzy-rd-design.html"><a href="fuzzy-rd-design.html"><i class="fa fa-check"></i><b>24.3</b> Fuzzy RD Design</a></li>
 <li class="chapter" data-level="24.4" data-path="regression-kink-design.html"><a href="regression-kink-design.html"><i class="fa fa-check"></i><b>24.4</b> Regression Kink Design</a></li>
@@ -993,47 +997,47 @@ apply multiple function to multiple variables:<code>map2</code><br />
 </ul></li>
 <li>Passing Data-variables through arguments</li>
 </ul>
-<div class="sourceCode" id="cb728"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb728-1"><a href="function-short-cut.html#cb728-1" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;dplyr&quot;</span>)</span>
-<span id="cb728-2"><a href="function-short-cut.html#cb728-2" tabindex="-1"></a>mean_by <span class="ot">&lt;-</span> <span class="cf">function</span>(data,by,var){</span>
-<span id="cb728-3"><a href="function-short-cut.html#cb728-3" tabindex="-1"></a>    data <span class="sc">%&gt;%</span></span>
-<span id="cb728-4"><a href="function-short-cut.html#cb728-4" tabindex="-1"></a>        <span class="fu">group_by</span>({{{by}}}) <span class="sc">%&gt;%</span></span>
-<span id="cb728-5"><a href="function-short-cut.html#cb728-5" tabindex="-1"></a>        <span class="fu">summarise</span>(<span class="st">&quot;{{var}}&quot;</span><span class="sc">:=</span><span class="fu">mean</span>({{var}})) <span class="co"># new name for each var will be created by tunnel data-var inside strings</span></span>
-<span id="cb728-6"><a href="function-short-cut.html#cb728-6" tabindex="-1"></a>}</span>
-<span id="cb728-7"><a href="function-short-cut.html#cb728-7" tabindex="-1"></a></span>
-<span id="cb728-8"><a href="function-short-cut.html#cb728-8" tabindex="-1"></a>mean_by <span class="ot">&lt;-</span> <span class="cf">function</span>(data,by,var){</span>
-<span id="cb728-9"><a href="function-short-cut.html#cb728-9" tabindex="-1"></a>    data <span class="sc">%&gt;%</span></span>
-<span id="cb728-10"><a href="function-short-cut.html#cb728-10" tabindex="-1"></a>        <span class="fu">group_by</span>({{{by}}}) <span class="sc">%&gt;%</span></span>
-<span id="cb728-11"><a href="function-short-cut.html#cb728-11" tabindex="-1"></a>        <span class="fu">summarise</span>(<span class="st">&quot;{var}&quot;</span><span class="sc">:=</span><span class="fu">mean</span>({{var}})) <span class="co"># use single {} to glue the string, but hard to reuse code in functions</span></span>
-<span id="cb728-12"><a href="function-short-cut.html#cb728-12" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb739"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb739-1"><a href="function-short-cut.html#cb739-1" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;dplyr&quot;</span>)</span>
+<span id="cb739-2"><a href="function-short-cut.html#cb739-2" tabindex="-1"></a>mean_by <span class="ot">&lt;-</span> <span class="cf">function</span>(data,by,var){</span>
+<span id="cb739-3"><a href="function-short-cut.html#cb739-3" tabindex="-1"></a>    data <span class="sc">%&gt;%</span></span>
+<span id="cb739-4"><a href="function-short-cut.html#cb739-4" tabindex="-1"></a>        <span class="fu">group_by</span>({{{by}}}) <span class="sc">%&gt;%</span></span>
+<span id="cb739-5"><a href="function-short-cut.html#cb739-5" tabindex="-1"></a>        <span class="fu">summarise</span>(<span class="st">&quot;{{var}}&quot;</span><span class="sc">:=</span><span class="fu">mean</span>({{var}})) <span class="co"># new name for each var will be created by tunnel data-var inside strings</span></span>
+<span id="cb739-6"><a href="function-short-cut.html#cb739-6" tabindex="-1"></a>}</span>
+<span id="cb739-7"><a href="function-short-cut.html#cb739-7" tabindex="-1"></a></span>
+<span id="cb739-8"><a href="function-short-cut.html#cb739-8" tabindex="-1"></a>mean_by <span class="ot">&lt;-</span> <span class="cf">function</span>(data,by,var){</span>
+<span id="cb739-9"><a href="function-short-cut.html#cb739-9" tabindex="-1"></a>    data <span class="sc">%&gt;%</span></span>
+<span id="cb739-10"><a href="function-short-cut.html#cb739-10" tabindex="-1"></a>        <span class="fu">group_by</span>({{{by}}}) <span class="sc">%&gt;%</span></span>
+<span id="cb739-11"><a href="function-short-cut.html#cb739-11" tabindex="-1"></a>        <span class="fu">summarise</span>(<span class="st">&quot;{var}&quot;</span><span class="sc">:=</span><span class="fu">mean</span>({{var}})) <span class="co"># use single {} to glue the string, but hard to reuse code in functions</span></span>
+<span id="cb739-12"><a href="function-short-cut.html#cb739-12" tabindex="-1"></a>}</span></code></pre></div>
 <ul>
 <li>Trouble with selection:<br />
 </li>
 </ul>
-<div class="sourceCode" id="cb729"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb729-1"><a href="function-short-cut.html#cb729-1" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;purrr&quot;</span>)</span>
-<span id="cb729-2"><a href="function-short-cut.html#cb729-2" tabindex="-1"></a>name <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;mass&quot;</span>,<span class="st">&quot;height&quot;</span>)</span>
-<span id="cb729-3"><a href="function-short-cut.html#cb729-3" tabindex="-1"></a>starwars <span class="sc">%&gt;%</span> <span class="fu">select</span>(name) <span class="co"># Data-var. Here you are referring to variable named &quot;name&quot;</span></span>
-<span id="cb729-4"><a href="function-short-cut.html#cb729-4" tabindex="-1"></a></span>
-<span id="cb729-5"><a href="function-short-cut.html#cb729-5" tabindex="-1"></a>starwars <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="fu">all_of</span>((name))) <span class="co"># use all_of() to disambiguate when </span></span>
-<span id="cb729-6"><a href="function-short-cut.html#cb729-6" tabindex="-1"></a></span>
-<span id="cb729-7"><a href="function-short-cut.html#cb729-7" tabindex="-1"></a>averages <span class="ot">&lt;-</span> <span class="cf">function</span>(data,vars){ <span class="co"># take character vectors with all_of()</span></span>
-<span id="cb729-8"><a href="function-short-cut.html#cb729-8" tabindex="-1"></a>    data <span class="sc">%&gt;%</span></span>
-<span id="cb729-9"><a href="function-short-cut.html#cb729-9" tabindex="-1"></a>        <span class="fu">select</span>(<span class="fu">all_of</span>(vars)) <span class="sc">%&gt;%</span></span>
-<span id="cb729-10"><a href="function-short-cut.html#cb729-10" tabindex="-1"></a>        <span class="fu">map_dbl</span>(mean,<span class="at">na.rm=</span><span class="cn">TRUE</span>)</span>
-<span id="cb729-11"><a href="function-short-cut.html#cb729-11" tabindex="-1"></a>} </span>
-<span id="cb729-12"><a href="function-short-cut.html#cb729-12" tabindex="-1"></a></span>
-<span id="cb729-13"><a href="function-short-cut.html#cb729-13" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;Sepal.Length&quot;</span>,<span class="st">&quot;Petal.Length&quot;</span>)</span>
-<span id="cb729-14"><a href="function-short-cut.html#cb729-14" tabindex="-1"></a>iris <span class="sc">%&gt;%</span> <span class="fu">averages</span>(x)</span>
-<span id="cb729-15"><a href="function-short-cut.html#cb729-15" tabindex="-1"></a></span>
-<span id="cb729-16"><a href="function-short-cut.html#cb729-16" tabindex="-1"></a></span>
-<span id="cb729-17"><a href="function-short-cut.html#cb729-17" tabindex="-1"></a><span class="co"># Another way</span></span>
-<span id="cb729-18"><a href="function-short-cut.html#cb729-18" tabindex="-1"></a>averages <span class="ot">&lt;-</span> <span class="cf">function</span>(data,vars){ <span class="co"># Tunnel selectiosn with {{}}</span></span>
-<span id="cb729-19"><a href="function-short-cut.html#cb729-19" tabindex="-1"></a>    data <span class="sc">%&gt;%</span></span>
-<span id="cb729-20"><a href="function-short-cut.html#cb729-20" tabindex="-1"></a>        <span class="fu">select</span>({{vars}}) <span class="sc">%&gt;%</span></span>
-<span id="cb729-21"><a href="function-short-cut.html#cb729-21" tabindex="-1"></a>        <span class="fu">map_dbl</span>(mean,<span class="at">na.rm=</span><span class="cn">TRUE</span>)</span>
-<span id="cb729-22"><a href="function-short-cut.html#cb729-22" tabindex="-1"></a>} </span>
-<span id="cb729-23"><a href="function-short-cut.html#cb729-23" tabindex="-1"></a></span>
-<span id="cb729-24"><a href="function-short-cut.html#cb729-24" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;Sepal.Length&quot;</span>,<span class="st">&quot;Petal.Length&quot;</span>)</span>
-<span id="cb729-25"><a href="function-short-cut.html#cb729-25" tabindex="-1"></a>iris <span class="sc">%&gt;%</span> <span class="fu">averages</span>(x)</span></code></pre></div>
+<div class="sourceCode" id="cb740"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb740-1"><a href="function-short-cut.html#cb740-1" tabindex="-1"></a><span class="fu">library</span>(<span class="st">&quot;purrr&quot;</span>)</span>
+<span id="cb740-2"><a href="function-short-cut.html#cb740-2" tabindex="-1"></a>name <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;mass&quot;</span>,<span class="st">&quot;height&quot;</span>)</span>
+<span id="cb740-3"><a href="function-short-cut.html#cb740-3" tabindex="-1"></a>starwars <span class="sc">%&gt;%</span> <span class="fu">select</span>(name) <span class="co"># Data-var. Here you are referring to variable named &quot;name&quot;</span></span>
+<span id="cb740-4"><a href="function-short-cut.html#cb740-4" tabindex="-1"></a></span>
+<span id="cb740-5"><a href="function-short-cut.html#cb740-5" tabindex="-1"></a>starwars <span class="sc">%&gt;%</span> <span class="fu">select</span>(<span class="fu">all_of</span>((name))) <span class="co"># use all_of() to disambiguate when </span></span>
+<span id="cb740-6"><a href="function-short-cut.html#cb740-6" tabindex="-1"></a></span>
+<span id="cb740-7"><a href="function-short-cut.html#cb740-7" tabindex="-1"></a>averages <span class="ot">&lt;-</span> <span class="cf">function</span>(data,vars){ <span class="co"># take character vectors with all_of()</span></span>
+<span id="cb740-8"><a href="function-short-cut.html#cb740-8" tabindex="-1"></a>    data <span class="sc">%&gt;%</span></span>
+<span id="cb740-9"><a href="function-short-cut.html#cb740-9" tabindex="-1"></a>        <span class="fu">select</span>(<span class="fu">all_of</span>(vars)) <span class="sc">%&gt;%</span></span>
+<span id="cb740-10"><a href="function-short-cut.html#cb740-10" tabindex="-1"></a>        <span class="fu">map_dbl</span>(mean,<span class="at">na.rm=</span><span class="cn">TRUE</span>)</span>
+<span id="cb740-11"><a href="function-short-cut.html#cb740-11" tabindex="-1"></a>} </span>
+<span id="cb740-12"><a href="function-short-cut.html#cb740-12" tabindex="-1"></a></span>
+<span id="cb740-13"><a href="function-short-cut.html#cb740-13" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;Sepal.Length&quot;</span>,<span class="st">&quot;Petal.Length&quot;</span>)</span>
+<span id="cb740-14"><a href="function-short-cut.html#cb740-14" tabindex="-1"></a>iris <span class="sc">%&gt;%</span> <span class="fu">averages</span>(x)</span>
+<span id="cb740-15"><a href="function-short-cut.html#cb740-15" tabindex="-1"></a></span>
+<span id="cb740-16"><a href="function-short-cut.html#cb740-16" tabindex="-1"></a></span>
+<span id="cb740-17"><a href="function-short-cut.html#cb740-17" tabindex="-1"></a><span class="co"># Another way</span></span>
+<span id="cb740-18"><a href="function-short-cut.html#cb740-18" tabindex="-1"></a>averages <span class="ot">&lt;-</span> <span class="cf">function</span>(data,vars){ <span class="co"># Tunnel selectiosn with {{}}</span></span>
+<span id="cb740-19"><a href="function-short-cut.html#cb740-19" tabindex="-1"></a>    data <span class="sc">%&gt;%</span></span>
+<span id="cb740-20"><a href="function-short-cut.html#cb740-20" tabindex="-1"></a>        <span class="fu">select</span>({{vars}}) <span class="sc">%&gt;%</span></span>
+<span id="cb740-21"><a href="function-short-cut.html#cb740-21" tabindex="-1"></a>        <span class="fu">map_dbl</span>(mean,<span class="at">na.rm=</span><span class="cn">TRUE</span>)</span>
+<span id="cb740-22"><a href="function-short-cut.html#cb740-22" tabindex="-1"></a>} </span>
+<span id="cb740-23"><a href="function-short-cut.html#cb740-23" tabindex="-1"></a></span>
+<span id="cb740-24"><a href="function-short-cut.html#cb740-24" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;Sepal.Length&quot;</span>,<span class="st">&quot;Petal.Length&quot;</span>)</span>
+<span id="cb740-25"><a href="function-short-cut.html#cb740-25" tabindex="-1"></a>iris <span class="sc">%&gt;%</span> <span class="fu">averages</span>(x)</span></code></pre></div>
 </div>
             </section>
 

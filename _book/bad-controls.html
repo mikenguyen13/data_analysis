@@ -23,7 +23,7 @@
 <meta name="author" content="Mike Nguyen" />
 
 
-<meta name="date" content="2024-04-11" />
+<meta name="date" content="2024-06-06" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -659,7 +659,10 @@ div.csl-indent {
 </ul></li>
 </ul></li>
 <li class="part"><span><b>B. QUASI-EXPERIMENTAL DESIGN</b></span></li>
-<li class="chapter" data-level="23" data-path="quasi-experimental.html"><a href="quasi-experimental.html"><i class="fa fa-check"></i><b>23</b> Quasi-experimental</a></li>
+<li class="chapter" data-level="23" data-path="quasi-experimental.html"><a href="quasi-experimental.html"><i class="fa fa-check"></i><b>23</b> Quasi-experimental</a>
+<ul>
+<li class="chapter" data-level="23.1" data-path="natural-experiments.html"><a href="natural-experiments.html"><i class="fa fa-check"></i><b>23.1</b> Natural Experiments</a></li>
+</ul></li>
 <li class="chapter" data-level="24" data-path="regression-discontinuity.html"><a href="regression-discontinuity.html"><i class="fa fa-check"></i><b>24</b> Regression Discontinuity</a>
 <ul>
 <li class="chapter" data-level="24.1" data-path="estimation-and-inference.html"><a href="estimation-and-inference.html"><i class="fa fa-check"></i><b>24.1</b> Estimation and Inference</a>
@@ -673,6 +676,7 @@ div.csl-indent {
 <li class="chapter" data-level="24.2.2" data-path="specification-checks.html"><a href="specification-checks.html#sortingbunchingmanipulation"><i class="fa fa-check"></i><b>24.2.2</b> Sorting/Bunching/Manipulation</a></li>
 <li class="chapter" data-level="24.2.3" data-path="specification-checks.html"><a href="specification-checks.html#placebo-tests"><i class="fa fa-check"></i><b>24.2.3</b> Placebo Tests</a></li>
 <li class="chapter" data-level="24.2.4" data-path="specification-checks.html"><a href="specification-checks.html#sensitivity-to-bandwidth-choice"><i class="fa fa-check"></i><b>24.2.4</b> Sensitivity to Bandwidth Choice</a></li>
+<li class="chapter" data-level="24.2.5" data-path="specification-checks.html"><a href="specification-checks.html#manipulation-robust-regression-discontinuity-bounds"><i class="fa fa-check"></i><b>24.2.5</b> Manipulation Robust Regression Discontinuity Bounds</a></li>
 </ul></li>
 <li class="chapter" data-level="24.3" data-path="fuzzy-rd-design.html"><a href="fuzzy-rd-design.html"><i class="fa fa-check"></i><b>24.3</b> Fuzzy RD Design</a></li>
 <li class="chapter" data-level="24.4" data-path="regression-kink-design.html"><a href="regression-kink-design.html"><i class="fa fa-check"></i><b>24.4</b> Regression Kink Design</a></li>
@@ -978,48 +982,48 @@ div.csl-indent {
 <p>Traditional textbooks <span class="citation">(<a href="#ref-imbens2015causal">G. W. Imbens and Rubin 2015</a>; <a href="#ref-angrist2009mostly">Angrist and Pischke 2009</a>)</span> consider <span class="math inline">\(Z\)</span> as a good control because it’s a pre-treatment variable, where it correlates with the treatment and the outcome.</p>
 <p>This is most prevalent in <a href="matching-methods.html#matching-methods">Matching Methods</a>, where we are recommended to include all “pre-treatment” variables.</p>
 <p>However, it is a bad control because it opens the back-door path <span class="math inline">\(Z \leftarrow U_1 \to Z \leftarrow U_2 \to Y\)</span></p>
-<div class="sourceCode" id="cb602"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb602-1"><a href="bad-controls.html#cb602-1" tabindex="-1"></a><span class="co"># cleans workspace</span></span>
-<span id="cb602-2"><a href="bad-controls.html#cb602-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
-<span id="cb602-3"><a href="bad-controls.html#cb602-3" tabindex="-1"></a></span>
-<span id="cb602-4"><a href="bad-controls.html#cb602-4" tabindex="-1"></a><span class="co"># DAG</span></span>
-<span id="cb602-5"><a href="bad-controls.html#cb602-5" tabindex="-1"></a></span>
-<span id="cb602-6"><a href="bad-controls.html#cb602-6" tabindex="-1"></a><span class="do">## specify edges</span></span>
-<span id="cb602-7"><a href="bad-controls.html#cb602-7" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;y; u1-&gt;x; u1-&gt;z; u2-&gt;z; u2-&gt;y}&quot;</span>)</span>
-<span id="cb602-8"><a href="bad-controls.html#cb602-8" tabindex="-1"></a></span>
-<span id="cb602-9"><a href="bad-controls.html#cb602-9" tabindex="-1"></a><span class="co"># set u as latent</span></span>
-<span id="cb602-10"><a href="bad-controls.html#cb602-10" tabindex="-1"></a><span class="fu">latents</span>(model) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;u1&quot;</span>, <span class="st">&quot;u2&quot;</span>)</span>
-<span id="cb602-11"><a href="bad-controls.html#cb602-11" tabindex="-1"></a></span>
-<span id="cb602-12"><a href="bad-controls.html#cb602-12" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
-<span id="cb602-13"><a href="bad-controls.html#cb602-13" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(<span class="at">x =</span> <span class="fu">c</span>(</span>
-<span id="cb602-14"><a href="bad-controls.html#cb602-14" tabindex="-1"></a>    <span class="at">x =</span> <span class="dv">1</span>,</span>
-<span id="cb602-15"><a href="bad-controls.html#cb602-15" tabindex="-1"></a>    <span class="at">u1 =</span> <span class="dv">1</span>,</span>
-<span id="cb602-16"><a href="bad-controls.html#cb602-16" tabindex="-1"></a>    <span class="at">z =</span> <span class="dv">2</span>,</span>
-<span id="cb602-17"><a href="bad-controls.html#cb602-17" tabindex="-1"></a>    <span class="at">u2 =</span> <span class="dv">3</span>,</span>
-<span id="cb602-18"><a href="bad-controls.html#cb602-18" tabindex="-1"></a>    <span class="at">y =</span> <span class="dv">3</span></span>
-<span id="cb602-19"><a href="bad-controls.html#cb602-19" tabindex="-1"></a>),</span>
-<span id="cb602-20"><a href="bad-controls.html#cb602-20" tabindex="-1"></a><span class="at">y =</span> <span class="fu">c</span>(</span>
-<span id="cb602-21"><a href="bad-controls.html#cb602-21" tabindex="-1"></a>    <span class="at">x =</span> <span class="dv">1</span>,</span>
-<span id="cb602-22"><a href="bad-controls.html#cb602-22" tabindex="-1"></a>    <span class="at">u1 =</span> <span class="dv">2</span>,</span>
-<span id="cb602-23"><a href="bad-controls.html#cb602-23" tabindex="-1"></a>    <span class="at">z =</span> <span class="fl">1.5</span>,</span>
-<span id="cb602-24"><a href="bad-controls.html#cb602-24" tabindex="-1"></a>    <span class="at">u2 =</span> <span class="dv">2</span>,</span>
-<span id="cb602-25"><a href="bad-controls.html#cb602-25" tabindex="-1"></a>    <span class="at">y =</span> <span class="dv">1</span></span>
-<span id="cb602-26"><a href="bad-controls.html#cb602-26" tabindex="-1"></a>))</span>
-<span id="cb602-27"><a href="bad-controls.html#cb602-27" tabindex="-1"></a></span>
-<span id="cb602-28"><a href="bad-controls.html#cb602-28" tabindex="-1"></a><span class="do">## ggplot</span></span>
-<span id="cb602-29"><a href="bad-controls.html#cb602-29" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb613"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb613-1"><a href="bad-controls.html#cb613-1" tabindex="-1"></a><span class="co"># cleans workspace</span></span>
+<span id="cb613-2"><a href="bad-controls.html#cb613-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
+<span id="cb613-3"><a href="bad-controls.html#cb613-3" tabindex="-1"></a></span>
+<span id="cb613-4"><a href="bad-controls.html#cb613-4" tabindex="-1"></a><span class="co"># DAG</span></span>
+<span id="cb613-5"><a href="bad-controls.html#cb613-5" tabindex="-1"></a></span>
+<span id="cb613-6"><a href="bad-controls.html#cb613-6" tabindex="-1"></a><span class="do">## specify edges</span></span>
+<span id="cb613-7"><a href="bad-controls.html#cb613-7" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;y; u1-&gt;x; u1-&gt;z; u2-&gt;z; u2-&gt;y}&quot;</span>)</span>
+<span id="cb613-8"><a href="bad-controls.html#cb613-8" tabindex="-1"></a></span>
+<span id="cb613-9"><a href="bad-controls.html#cb613-9" tabindex="-1"></a><span class="co"># set u as latent</span></span>
+<span id="cb613-10"><a href="bad-controls.html#cb613-10" tabindex="-1"></a><span class="fu">latents</span>(model) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;u1&quot;</span>, <span class="st">&quot;u2&quot;</span>)</span>
+<span id="cb613-11"><a href="bad-controls.html#cb613-11" tabindex="-1"></a></span>
+<span id="cb613-12"><a href="bad-controls.html#cb613-12" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
+<span id="cb613-13"><a href="bad-controls.html#cb613-13" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(<span class="at">x =</span> <span class="fu">c</span>(</span>
+<span id="cb613-14"><a href="bad-controls.html#cb613-14" tabindex="-1"></a>    <span class="at">x =</span> <span class="dv">1</span>,</span>
+<span id="cb613-15"><a href="bad-controls.html#cb613-15" tabindex="-1"></a>    <span class="at">u1 =</span> <span class="dv">1</span>,</span>
+<span id="cb613-16"><a href="bad-controls.html#cb613-16" tabindex="-1"></a>    <span class="at">z =</span> <span class="dv">2</span>,</span>
+<span id="cb613-17"><a href="bad-controls.html#cb613-17" tabindex="-1"></a>    <span class="at">u2 =</span> <span class="dv">3</span>,</span>
+<span id="cb613-18"><a href="bad-controls.html#cb613-18" tabindex="-1"></a>    <span class="at">y =</span> <span class="dv">3</span></span>
+<span id="cb613-19"><a href="bad-controls.html#cb613-19" tabindex="-1"></a>),</span>
+<span id="cb613-20"><a href="bad-controls.html#cb613-20" tabindex="-1"></a><span class="at">y =</span> <span class="fu">c</span>(</span>
+<span id="cb613-21"><a href="bad-controls.html#cb613-21" tabindex="-1"></a>    <span class="at">x =</span> <span class="dv">1</span>,</span>
+<span id="cb613-22"><a href="bad-controls.html#cb613-22" tabindex="-1"></a>    <span class="at">u1 =</span> <span class="dv">2</span>,</span>
+<span id="cb613-23"><a href="bad-controls.html#cb613-23" tabindex="-1"></a>    <span class="at">z =</span> <span class="fl">1.5</span>,</span>
+<span id="cb613-24"><a href="bad-controls.html#cb613-24" tabindex="-1"></a>    <span class="at">u2 =</span> <span class="dv">2</span>,</span>
+<span id="cb613-25"><a href="bad-controls.html#cb613-25" tabindex="-1"></a>    <span class="at">y =</span> <span class="dv">1</span></span>
+<span id="cb613-26"><a href="bad-controls.html#cb613-26" tabindex="-1"></a>))</span>
+<span id="cb613-27"><a href="bad-controls.html#cb613-27" tabindex="-1"></a></span>
+<span id="cb613-28"><a href="bad-controls.html#cb613-28" tabindex="-1"></a><span class="do">## ggplot</span></span>
+<span id="cb613-29"><a href="bad-controls.html#cb613-29" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
 <p><img src="33-controls_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>Even though <span class="math inline">\(Z\)</span> can correlate with both <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> very well, it’s not a confounder.</p>
 <p>Controlling for <span class="math inline">\(Z\)</span> can bias the <span class="math inline">\(X \to Y\)</span> estimate, because it opens the colliding path <span class="math inline">\(X \leftarrow U_1 \rightarrow Z \leftarrow U_2 \leftarrow Y\)</span></p>
-<div class="sourceCode" id="cb603"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb603-1"><a href="bad-controls.html#cb603-1" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
-<span id="cb603-2"><a href="bad-controls.html#cb603-2" tabindex="-1"></a>u1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb603-3"><a href="bad-controls.html#cb603-3" tabindex="-1"></a>u2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb603-4"><a href="bad-controls.html#cb603-4" tabindex="-1"></a>z <span class="ot">&lt;-</span> u1 <span class="sc">+</span> u2 <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb603-5"><a href="bad-controls.html#cb603-5" tabindex="-1"></a>x <span class="ot">&lt;-</span> u1 <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb603-6"><a href="bad-controls.html#cb603-6" tabindex="-1"></a>causal_coef <span class="ot">&lt;-</span> <span class="dv">2</span></span>
-<span id="cb603-7"><a href="bad-controls.html#cb603-7" tabindex="-1"></a>y <span class="ot">&lt;-</span> causal_coef <span class="sc">*</span> x <span class="sc">-</span> <span class="dv">4</span><span class="sc">*</span>u2 <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb603-8"><a href="bad-controls.html#cb603-8" tabindex="-1"></a></span>
-<span id="cb603-9"><a href="bad-controls.html#cb603-9" tabindex="-1"></a></span>
-<span id="cb603-10"><a href="bad-controls.html#cb603-10" tabindex="-1"></a>jtools<span class="sc">::</span><span class="fu">export_summs</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x), <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> z))</span></code></pre></div>
+<div class="sourceCode" id="cb614"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb614-1"><a href="bad-controls.html#cb614-1" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
+<span id="cb614-2"><a href="bad-controls.html#cb614-2" tabindex="-1"></a>u1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb614-3"><a href="bad-controls.html#cb614-3" tabindex="-1"></a>u2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb614-4"><a href="bad-controls.html#cb614-4" tabindex="-1"></a>z <span class="ot">&lt;-</span> u1 <span class="sc">+</span> u2 <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb614-5"><a href="bad-controls.html#cb614-5" tabindex="-1"></a>x <span class="ot">&lt;-</span> u1 <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb614-6"><a href="bad-controls.html#cb614-6" tabindex="-1"></a>causal_coef <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb614-7"><a href="bad-controls.html#cb614-7" tabindex="-1"></a>y <span class="ot">&lt;-</span> causal_coef <span class="sc">*</span> x <span class="sc">-</span> <span class="dv">4</span><span class="sc">*</span>u2 <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb614-8"><a href="bad-controls.html#cb614-8" tabindex="-1"></a></span>
+<span id="cb614-9"><a href="bad-controls.html#cb614-9" tabindex="-1"></a></span>
+<span id="cb614-10"><a href="bad-controls.html#cb614-10" tabindex="-1"></a>jtools<span class="sc">::</span><span class="fu">export_summs</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x), <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> z))</span></code></pre></div>
 <table class="huxtable" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-3">
 <caption style="caption-side: top; text-align: center;"><span id="tab:unnamed-chunk-3">Table 33.1: </span> </caption><col><col><col><tr>
 <th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 1</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 2</th></tr>
@@ -1044,24 +1048,24 @@ div.csl-indent {
 </table>
 
 <p>Another worse variation is</p>
-<div class="sourceCode" id="cb604"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb604-1"><a href="bad-controls.html#cb604-1" tabindex="-1"></a><span class="co"># cleans workspace</span></span>
-<span id="cb604-2"><a href="bad-controls.html#cb604-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
-<span id="cb604-3"><a href="bad-controls.html#cb604-3" tabindex="-1"></a></span>
-<span id="cb604-4"><a href="bad-controls.html#cb604-4" tabindex="-1"></a><span class="co"># DAG</span></span>
-<span id="cb604-5"><a href="bad-controls.html#cb604-5" tabindex="-1"></a></span>
-<span id="cb604-6"><a href="bad-controls.html#cb604-6" tabindex="-1"></a><span class="do">## specify edges</span></span>
-<span id="cb604-7"><a href="bad-controls.html#cb604-7" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;y; u1-&gt;x; u1-&gt;z; u2-&gt;z; u2-&gt;y; z-&gt;y}&quot;</span>)</span>
-<span id="cb604-8"><a href="bad-controls.html#cb604-8" tabindex="-1"></a></span>
-<span id="cb604-9"><a href="bad-controls.html#cb604-9" tabindex="-1"></a><span class="co"># set u as latent</span></span>
-<span id="cb604-10"><a href="bad-controls.html#cb604-10" tabindex="-1"></a><span class="fu">latents</span>(model) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;u1&quot;</span>, <span class="st">&quot;u2&quot;</span>)</span>
-<span id="cb604-11"><a href="bad-controls.html#cb604-11" tabindex="-1"></a></span>
-<span id="cb604-12"><a href="bad-controls.html#cb604-12" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
-<span id="cb604-13"><a href="bad-controls.html#cb604-13" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(</span>
-<span id="cb604-14"><a href="bad-controls.html#cb604-14" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">u1=</span><span class="dv">1</span>, <span class="at">z=</span><span class="dv">2</span>, <span class="at">u2=</span><span class="dv">3</span>, <span class="at">y=</span><span class="dv">3</span>),</span>
-<span id="cb604-15"><a href="bad-controls.html#cb604-15" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">u1=</span><span class="dv">2</span>, <span class="at">z=</span><span class="fl">1.5</span>, <span class="at">u2=</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">1</span>))</span>
-<span id="cb604-16"><a href="bad-controls.html#cb604-16" tabindex="-1"></a></span>
-<span id="cb604-17"><a href="bad-controls.html#cb604-17" tabindex="-1"></a><span class="do">## ggplot</span></span>
-<span id="cb604-18"><a href="bad-controls.html#cb604-18" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb615"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb615-1"><a href="bad-controls.html#cb615-1" tabindex="-1"></a><span class="co"># cleans workspace</span></span>
+<span id="cb615-2"><a href="bad-controls.html#cb615-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
+<span id="cb615-3"><a href="bad-controls.html#cb615-3" tabindex="-1"></a></span>
+<span id="cb615-4"><a href="bad-controls.html#cb615-4" tabindex="-1"></a><span class="co"># DAG</span></span>
+<span id="cb615-5"><a href="bad-controls.html#cb615-5" tabindex="-1"></a></span>
+<span id="cb615-6"><a href="bad-controls.html#cb615-6" tabindex="-1"></a><span class="do">## specify edges</span></span>
+<span id="cb615-7"><a href="bad-controls.html#cb615-7" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;y; u1-&gt;x; u1-&gt;z; u2-&gt;z; u2-&gt;y; z-&gt;y}&quot;</span>)</span>
+<span id="cb615-8"><a href="bad-controls.html#cb615-8" tabindex="-1"></a></span>
+<span id="cb615-9"><a href="bad-controls.html#cb615-9" tabindex="-1"></a><span class="co"># set u as latent</span></span>
+<span id="cb615-10"><a href="bad-controls.html#cb615-10" tabindex="-1"></a><span class="fu">latents</span>(model) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;u1&quot;</span>, <span class="st">&quot;u2&quot;</span>)</span>
+<span id="cb615-11"><a href="bad-controls.html#cb615-11" tabindex="-1"></a></span>
+<span id="cb615-12"><a href="bad-controls.html#cb615-12" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
+<span id="cb615-13"><a href="bad-controls.html#cb615-13" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(</span>
+<span id="cb615-14"><a href="bad-controls.html#cb615-14" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">u1=</span><span class="dv">1</span>, <span class="at">z=</span><span class="dv">2</span>, <span class="at">u2=</span><span class="dv">3</span>, <span class="at">y=</span><span class="dv">3</span>),</span>
+<span id="cb615-15"><a href="bad-controls.html#cb615-15" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">u1=</span><span class="dv">2</span>, <span class="at">z=</span><span class="fl">1.5</span>, <span class="at">u2=</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">1</span>))</span>
+<span id="cb615-16"><a href="bad-controls.html#cb615-16" tabindex="-1"></a></span>
+<span id="cb615-17"><a href="bad-controls.html#cb615-17" tabindex="-1"></a><span class="do">## ggplot</span></span>
+<span id="cb615-18"><a href="bad-controls.html#cb615-18" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
 <p><img src="33-controls_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>You can’t do much in this case.</p>
 <ul>
@@ -1077,33 +1081,33 @@ div.csl-indent {
 </div>
 <div id="bias-amplification" class="section level3 hasAnchor" number="33.1.2">
 <h3><span class="header-section-number">33.1.2</span> Bias Amplification<a href="bad-controls.html#bias-amplification" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb605"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb605-1"><a href="bad-controls.html#cb605-1" tabindex="-1"></a><span class="co"># cleans workspace</span></span>
-<span id="cb605-2"><a href="bad-controls.html#cb605-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
-<span id="cb605-3"><a href="bad-controls.html#cb605-3" tabindex="-1"></a></span>
-<span id="cb605-4"><a href="bad-controls.html#cb605-4" tabindex="-1"></a><span class="co"># DAG</span></span>
-<span id="cb605-5"><a href="bad-controls.html#cb605-5" tabindex="-1"></a></span>
-<span id="cb605-6"><a href="bad-controls.html#cb605-6" tabindex="-1"></a><span class="do">## specify edges</span></span>
-<span id="cb605-7"><a href="bad-controls.html#cb605-7" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;y; u-&gt;x; u-&gt;y; z-&gt;x}&quot;</span>)</span>
-<span id="cb605-8"><a href="bad-controls.html#cb605-8" tabindex="-1"></a></span>
-<span id="cb605-9"><a href="bad-controls.html#cb605-9" tabindex="-1"></a><span class="co"># set u as latent</span></span>
-<span id="cb605-10"><a href="bad-controls.html#cb605-10" tabindex="-1"></a><span class="fu">latents</span>(model) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;u&quot;</span>)</span>
-<span id="cb605-11"><a href="bad-controls.html#cb605-11" tabindex="-1"></a></span>
-<span id="cb605-12"><a href="bad-controls.html#cb605-12" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
-<span id="cb605-13"><a href="bad-controls.html#cb605-13" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(</span>
-<span id="cb605-14"><a href="bad-controls.html#cb605-14" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(<span class="at">z=</span><span class="dv">1</span>, <span class="at">x=</span><span class="dv">2</span>, <span class="at">u=</span><span class="dv">3</span>, <span class="at">y=</span><span class="dv">4</span>),</span>
-<span id="cb605-15"><a href="bad-controls.html#cb605-15" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="at">z=</span><span class="dv">1</span>, <span class="at">x=</span><span class="dv">1</span>, <span class="at">u=</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">1</span>))</span>
-<span id="cb605-16"><a href="bad-controls.html#cb605-16" tabindex="-1"></a></span>
-<span id="cb605-17"><a href="bad-controls.html#cb605-17" tabindex="-1"></a><span class="do">## ggplot</span></span>
-<span id="cb605-18"><a href="bad-controls.html#cb605-18" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb616"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb616-1"><a href="bad-controls.html#cb616-1" tabindex="-1"></a><span class="co"># cleans workspace</span></span>
+<span id="cb616-2"><a href="bad-controls.html#cb616-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
+<span id="cb616-3"><a href="bad-controls.html#cb616-3" tabindex="-1"></a></span>
+<span id="cb616-4"><a href="bad-controls.html#cb616-4" tabindex="-1"></a><span class="co"># DAG</span></span>
+<span id="cb616-5"><a href="bad-controls.html#cb616-5" tabindex="-1"></a></span>
+<span id="cb616-6"><a href="bad-controls.html#cb616-6" tabindex="-1"></a><span class="do">## specify edges</span></span>
+<span id="cb616-7"><a href="bad-controls.html#cb616-7" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;y; u-&gt;x; u-&gt;y; z-&gt;x}&quot;</span>)</span>
+<span id="cb616-8"><a href="bad-controls.html#cb616-8" tabindex="-1"></a></span>
+<span id="cb616-9"><a href="bad-controls.html#cb616-9" tabindex="-1"></a><span class="co"># set u as latent</span></span>
+<span id="cb616-10"><a href="bad-controls.html#cb616-10" tabindex="-1"></a><span class="fu">latents</span>(model) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;u&quot;</span>)</span>
+<span id="cb616-11"><a href="bad-controls.html#cb616-11" tabindex="-1"></a></span>
+<span id="cb616-12"><a href="bad-controls.html#cb616-12" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
+<span id="cb616-13"><a href="bad-controls.html#cb616-13" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(</span>
+<span id="cb616-14"><a href="bad-controls.html#cb616-14" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(<span class="at">z=</span><span class="dv">1</span>, <span class="at">x=</span><span class="dv">2</span>, <span class="at">u=</span><span class="dv">3</span>, <span class="at">y=</span><span class="dv">4</span>),</span>
+<span id="cb616-15"><a href="bad-controls.html#cb616-15" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="at">z=</span><span class="dv">1</span>, <span class="at">x=</span><span class="dv">1</span>, <span class="at">u=</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">1</span>))</span>
+<span id="cb616-16"><a href="bad-controls.html#cb616-16" tabindex="-1"></a></span>
+<span id="cb616-17"><a href="bad-controls.html#cb616-17" tabindex="-1"></a><span class="do">## ggplot</span></span>
+<span id="cb616-18"><a href="bad-controls.html#cb616-18" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
 <p><img src="33-controls_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>Controlling for Z amplifies the omitted variable bias</p>
-<div class="sourceCode" id="cb606"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb606-1"><a href="bad-controls.html#cb606-1" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
-<span id="cb606-2"><a href="bad-controls.html#cb606-2" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb606-3"><a href="bad-controls.html#cb606-3" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb606-4"><a href="bad-controls.html#cb606-4" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>z <span class="sc">+</span> u <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb606-5"><a href="bad-controls.html#cb606-5" tabindex="-1"></a>y <span class="ot">&lt;-</span> x <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span>u <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb606-6"><a href="bad-controls.html#cb606-6" tabindex="-1"></a></span>
-<span id="cb606-7"><a href="bad-controls.html#cb606-7" tabindex="-1"></a>jtools<span class="sc">::</span><span class="fu">export_summs</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x), <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> z))</span></code></pre></div>
+<div class="sourceCode" id="cb617"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb617-1"><a href="bad-controls.html#cb617-1" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
+<span id="cb617-2"><a href="bad-controls.html#cb617-2" tabindex="-1"></a>z <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb617-3"><a href="bad-controls.html#cb617-3" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb617-4"><a href="bad-controls.html#cb617-4" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>z <span class="sc">+</span> u <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb617-5"><a href="bad-controls.html#cb617-5" tabindex="-1"></a>y <span class="ot">&lt;-</span> x <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span>u <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb617-6"><a href="bad-controls.html#cb617-6" tabindex="-1"></a></span>
+<span id="cb617-7"><a href="bad-controls.html#cb617-7" tabindex="-1"></a>jtools<span class="sc">::</span><span class="fu">export_summs</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x), <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> z))</span></code></pre></div>
 <table class="huxtable" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-6">
 <caption style="caption-side: top; text-align: center;"><span id="tab:unnamed-chunk-6">Table 33.2: </span> </caption><col><col><col><tr>
 <th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 1</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 2</th></tr>
@@ -1131,30 +1135,30 @@ div.csl-indent {
 <div id="overcontrol-bias" class="section level3 hasAnchor" number="33.1.3">
 <h3><span class="header-section-number">33.1.3</span> Overcontrol bias<a href="bad-controls.html#overcontrol-bias" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Sometimes, this is similar to controlling for variables that are proxy of the dependent variable.</p>
-<div class="sourceCode" id="cb607"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb607-1"><a href="bad-controls.html#cb607-1" tabindex="-1"></a><span class="co"># cleans workspace</span></span>
-<span id="cb607-2"><a href="bad-controls.html#cb607-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
-<span id="cb607-3"><a href="bad-controls.html#cb607-3" tabindex="-1"></a></span>
-<span id="cb607-4"><a href="bad-controls.html#cb607-4" tabindex="-1"></a><span class="co"># DAG</span></span>
-<span id="cb607-5"><a href="bad-controls.html#cb607-5" tabindex="-1"></a></span>
-<span id="cb607-6"><a href="bad-controls.html#cb607-6" tabindex="-1"></a><span class="do">## specify edges</span></span>
-<span id="cb607-7"><a href="bad-controls.html#cb607-7" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;z; z-&gt;y}&quot;</span>)</span>
-<span id="cb607-8"><a href="bad-controls.html#cb607-8" tabindex="-1"></a></span>
-<span id="cb607-9"><a href="bad-controls.html#cb607-9" tabindex="-1"></a></span>
-<span id="cb607-10"><a href="bad-controls.html#cb607-10" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
-<span id="cb607-11"><a href="bad-controls.html#cb607-11" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(</span>
-<span id="cb607-12"><a href="bad-controls.html#cb607-12" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">z=</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">3</span>),</span>
-<span id="cb607-13"><a href="bad-controls.html#cb607-13" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">z=</span><span class="dv">1</span>, <span class="at">y=</span><span class="dv">1</span>))</span>
-<span id="cb607-14"><a href="bad-controls.html#cb607-14" tabindex="-1"></a></span>
-<span id="cb607-15"><a href="bad-controls.html#cb607-15" tabindex="-1"></a><span class="do">## ggplot</span></span>
-<span id="cb607-16"><a href="bad-controls.html#cb607-16" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb618"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb618-1"><a href="bad-controls.html#cb618-1" tabindex="-1"></a><span class="co"># cleans workspace</span></span>
+<span id="cb618-2"><a href="bad-controls.html#cb618-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
+<span id="cb618-3"><a href="bad-controls.html#cb618-3" tabindex="-1"></a></span>
+<span id="cb618-4"><a href="bad-controls.html#cb618-4" tabindex="-1"></a><span class="co"># DAG</span></span>
+<span id="cb618-5"><a href="bad-controls.html#cb618-5" tabindex="-1"></a></span>
+<span id="cb618-6"><a href="bad-controls.html#cb618-6" tabindex="-1"></a><span class="do">## specify edges</span></span>
+<span id="cb618-7"><a href="bad-controls.html#cb618-7" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;z; z-&gt;y}&quot;</span>)</span>
+<span id="cb618-8"><a href="bad-controls.html#cb618-8" tabindex="-1"></a></span>
+<span id="cb618-9"><a href="bad-controls.html#cb618-9" tabindex="-1"></a></span>
+<span id="cb618-10"><a href="bad-controls.html#cb618-10" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
+<span id="cb618-11"><a href="bad-controls.html#cb618-11" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(</span>
+<span id="cb618-12"><a href="bad-controls.html#cb618-12" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">z=</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">3</span>),</span>
+<span id="cb618-13"><a href="bad-controls.html#cb618-13" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">z=</span><span class="dv">1</span>, <span class="at">y=</span><span class="dv">1</span>))</span>
+<span id="cb618-14"><a href="bad-controls.html#cb618-14" tabindex="-1"></a></span>
+<span id="cb618-15"><a href="bad-controls.html#cb618-15" tabindex="-1"></a><span class="do">## ggplot</span></span>
+<span id="cb618-16"><a href="bad-controls.html#cb618-16" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
 <p><img src="33-controls_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>If X is a proxy for Z (i.e., a mediator between Z and Y), controlling for Z is bad</p>
-<div class="sourceCode" id="cb608"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb608-1"><a href="bad-controls.html#cb608-1" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
-<span id="cb608-2"><a href="bad-controls.html#cb608-2" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb608-3"><a href="bad-controls.html#cb608-3" tabindex="-1"></a>z <span class="ot">&lt;-</span> x <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb608-4"><a href="bad-controls.html#cb608-4" tabindex="-1"></a>y <span class="ot">&lt;-</span> z <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb608-5"><a href="bad-controls.html#cb608-5" tabindex="-1"></a></span>
-<span id="cb608-6"><a href="bad-controls.html#cb608-6" tabindex="-1"></a>jtools<span class="sc">::</span><span class="fu">export_summs</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x), <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> z))</span></code></pre></div>
+<div class="sourceCode" id="cb619"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb619-1"><a href="bad-controls.html#cb619-1" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
+<span id="cb619-2"><a href="bad-controls.html#cb619-2" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb619-3"><a href="bad-controls.html#cb619-3" tabindex="-1"></a>z <span class="ot">&lt;-</span> x <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb619-4"><a href="bad-controls.html#cb619-4" tabindex="-1"></a>y <span class="ot">&lt;-</span> z <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb619-5"><a href="bad-controls.html#cb619-5" tabindex="-1"></a></span>
+<span id="cb619-6"><a href="bad-controls.html#cb619-6" tabindex="-1"></a>jtools<span class="sc">::</span><span class="fu">export_summs</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x), <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> z))</span></code></pre></div>
 <table class="huxtable" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-8">
 <caption style="caption-side: top; text-align: center;"><span id="tab:unnamed-chunk-8">Table 33.3: </span> </caption><col><col><col><tr>
 <th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 1</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 2</th></tr>
@@ -1180,31 +1184,31 @@ div.csl-indent {
 
 <p>Now you see that <span class="math inline">\(Z\)</span> is significant, which is technically true, but we are interested in the causal coefficient of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span>.</p>
 <p>Another setting for overcontrol bias is</p>
-<div class="sourceCode" id="cb609"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb609-1"><a href="bad-controls.html#cb609-1" tabindex="-1"></a><span class="co"># cleans workspace</span></span>
-<span id="cb609-2"><a href="bad-controls.html#cb609-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
-<span id="cb609-3"><a href="bad-controls.html#cb609-3" tabindex="-1"></a></span>
-<span id="cb609-4"><a href="bad-controls.html#cb609-4" tabindex="-1"></a><span class="co"># DAG</span></span>
-<span id="cb609-5"><a href="bad-controls.html#cb609-5" tabindex="-1"></a></span>
-<span id="cb609-6"><a href="bad-controls.html#cb609-6" tabindex="-1"></a><span class="do">## specify edges</span></span>
-<span id="cb609-7"><a href="bad-controls.html#cb609-7" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;m; m-&gt;z; m-&gt;y}&quot;</span>)</span>
-<span id="cb609-8"><a href="bad-controls.html#cb609-8" tabindex="-1"></a></span>
-<span id="cb609-9"><a href="bad-controls.html#cb609-9" tabindex="-1"></a></span>
-<span id="cb609-10"><a href="bad-controls.html#cb609-10" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
-<span id="cb609-11"><a href="bad-controls.html#cb609-11" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(</span>
-<span id="cb609-12"><a href="bad-controls.html#cb609-12" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">m=</span><span class="dv">2</span>, <span class="at">z=</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">3</span>),</span>
-<span id="cb609-13"><a href="bad-controls.html#cb609-13" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">2</span>, <span class="at">m=</span><span class="dv">2</span>, <span class="at">z=</span><span class="dv">1</span>, <span class="at">y=</span><span class="dv">2</span>))</span>
-<span id="cb609-14"><a href="bad-controls.html#cb609-14" tabindex="-1"></a></span>
-<span id="cb609-15"><a href="bad-controls.html#cb609-15" tabindex="-1"></a><span class="do">## ggplot</span></span>
-<span id="cb609-16"><a href="bad-controls.html#cb609-16" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb620"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb620-1"><a href="bad-controls.html#cb620-1" tabindex="-1"></a><span class="co"># cleans workspace</span></span>
+<span id="cb620-2"><a href="bad-controls.html#cb620-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
+<span id="cb620-3"><a href="bad-controls.html#cb620-3" tabindex="-1"></a></span>
+<span id="cb620-4"><a href="bad-controls.html#cb620-4" tabindex="-1"></a><span class="co"># DAG</span></span>
+<span id="cb620-5"><a href="bad-controls.html#cb620-5" tabindex="-1"></a></span>
+<span id="cb620-6"><a href="bad-controls.html#cb620-6" tabindex="-1"></a><span class="do">## specify edges</span></span>
+<span id="cb620-7"><a href="bad-controls.html#cb620-7" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;m; m-&gt;z; m-&gt;y}&quot;</span>)</span>
+<span id="cb620-8"><a href="bad-controls.html#cb620-8" tabindex="-1"></a></span>
+<span id="cb620-9"><a href="bad-controls.html#cb620-9" tabindex="-1"></a></span>
+<span id="cb620-10"><a href="bad-controls.html#cb620-10" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
+<span id="cb620-11"><a href="bad-controls.html#cb620-11" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(</span>
+<span id="cb620-12"><a href="bad-controls.html#cb620-12" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">m=</span><span class="dv">2</span>, <span class="at">z=</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">3</span>),</span>
+<span id="cb620-13"><a href="bad-controls.html#cb620-13" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">2</span>, <span class="at">m=</span><span class="dv">2</span>, <span class="at">z=</span><span class="dv">1</span>, <span class="at">y=</span><span class="dv">2</span>))</span>
+<span id="cb620-14"><a href="bad-controls.html#cb620-14" tabindex="-1"></a></span>
+<span id="cb620-15"><a href="bad-controls.html#cb620-15" tabindex="-1"></a><span class="do">## ggplot</span></span>
+<span id="cb620-16"><a href="bad-controls.html#cb620-16" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
 <p><img src="33-controls_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" /></p>
-<div class="sourceCode" id="cb610"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb610-1"><a href="bad-controls.html#cb610-1" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
-<span id="cb610-2"><a href="bad-controls.html#cb610-2" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb610-3"><a href="bad-controls.html#cb610-3" tabindex="-1"></a>m <span class="ot">&lt;-</span> x <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb610-4"><a href="bad-controls.html#cb610-4" tabindex="-1"></a>z <span class="ot">&lt;-</span> m <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb610-5"><a href="bad-controls.html#cb610-5" tabindex="-1"></a>y <span class="ot">&lt;-</span> m <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb610-6"><a href="bad-controls.html#cb610-6" tabindex="-1"></a></span>
-<span id="cb610-7"><a href="bad-controls.html#cb610-7" tabindex="-1"></a></span>
-<span id="cb610-8"><a href="bad-controls.html#cb610-8" tabindex="-1"></a>jtools<span class="sc">::</span><span class="fu">export_summs</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x), <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> z))</span></code></pre></div>
+<div class="sourceCode" id="cb621"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb621-1"><a href="bad-controls.html#cb621-1" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
+<span id="cb621-2"><a href="bad-controls.html#cb621-2" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb621-3"><a href="bad-controls.html#cb621-3" tabindex="-1"></a>m <span class="ot">&lt;-</span> x <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb621-4"><a href="bad-controls.html#cb621-4" tabindex="-1"></a>z <span class="ot">&lt;-</span> m <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb621-5"><a href="bad-controls.html#cb621-5" tabindex="-1"></a>y <span class="ot">&lt;-</span> m <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb621-6"><a href="bad-controls.html#cb621-6" tabindex="-1"></a></span>
+<span id="cb621-7"><a href="bad-controls.html#cb621-7" tabindex="-1"></a></span>
+<span id="cb621-8"><a href="bad-controls.html#cb621-8" tabindex="-1"></a>jtools<span class="sc">::</span><span class="fu">export_summs</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x), <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> z))</span></code></pre></div>
 <table class="huxtable" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-10">
 <caption style="caption-side: top; text-align: center;"><span id="tab:unnamed-chunk-10">Table 33.4: </span> </caption><col><col><col><tr>
 <th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 1</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 2</th></tr>
@@ -1229,33 +1233,33 @@ div.csl-indent {
 </table>
 
 <p>Another setting for this bias is</p>
-<div class="sourceCode" id="cb611"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb611-1"><a href="bad-controls.html#cb611-1" tabindex="-1"></a><span class="co"># cleans workspace</span></span>
-<span id="cb611-2"><a href="bad-controls.html#cb611-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
-<span id="cb611-3"><a href="bad-controls.html#cb611-3" tabindex="-1"></a></span>
-<span id="cb611-4"><a href="bad-controls.html#cb611-4" tabindex="-1"></a><span class="co"># DAG</span></span>
-<span id="cb611-5"><a href="bad-controls.html#cb611-5" tabindex="-1"></a></span>
-<span id="cb611-6"><a href="bad-controls.html#cb611-6" tabindex="-1"></a><span class="do">## specify edges</span></span>
-<span id="cb611-7"><a href="bad-controls.html#cb611-7" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;z; z-&gt;y; u-&gt;z; u-&gt;y}&quot;</span>)</span>
-<span id="cb611-8"><a href="bad-controls.html#cb611-8" tabindex="-1"></a></span>
-<span id="cb611-9"><a href="bad-controls.html#cb611-9" tabindex="-1"></a><span class="co"># set u as latent</span></span>
-<span id="cb611-10"><a href="bad-controls.html#cb611-10" tabindex="-1"></a><span class="fu">latents</span>(model) <span class="ot">&lt;-</span> <span class="st">&quot;u&quot;</span></span>
-<span id="cb611-11"><a href="bad-controls.html#cb611-11" tabindex="-1"></a></span>
-<span id="cb611-12"><a href="bad-controls.html#cb611-12" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
-<span id="cb611-13"><a href="bad-controls.html#cb611-13" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(</span>
-<span id="cb611-14"><a href="bad-controls.html#cb611-14" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">z=</span><span class="dv">2</span>, <span class="at">u=</span><span class="dv">3</span>, <span class="at">y=</span><span class="dv">4</span>),</span>
-<span id="cb611-15"><a href="bad-controls.html#cb611-15" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">z=</span><span class="dv">1</span>, <span class="at">u=</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">1</span>))</span>
-<span id="cb611-16"><a href="bad-controls.html#cb611-16" tabindex="-1"></a></span>
-<span id="cb611-17"><a href="bad-controls.html#cb611-17" tabindex="-1"></a><span class="do">## ggplot</span></span>
-<span id="cb611-18"><a href="bad-controls.html#cb611-18" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb622"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb622-1"><a href="bad-controls.html#cb622-1" tabindex="-1"></a><span class="co"># cleans workspace</span></span>
+<span id="cb622-2"><a href="bad-controls.html#cb622-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
+<span id="cb622-3"><a href="bad-controls.html#cb622-3" tabindex="-1"></a></span>
+<span id="cb622-4"><a href="bad-controls.html#cb622-4" tabindex="-1"></a><span class="co"># DAG</span></span>
+<span id="cb622-5"><a href="bad-controls.html#cb622-5" tabindex="-1"></a></span>
+<span id="cb622-6"><a href="bad-controls.html#cb622-6" tabindex="-1"></a><span class="do">## specify edges</span></span>
+<span id="cb622-7"><a href="bad-controls.html#cb622-7" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;z; z-&gt;y; u-&gt;z; u-&gt;y}&quot;</span>)</span>
+<span id="cb622-8"><a href="bad-controls.html#cb622-8" tabindex="-1"></a></span>
+<span id="cb622-9"><a href="bad-controls.html#cb622-9" tabindex="-1"></a><span class="co"># set u as latent</span></span>
+<span id="cb622-10"><a href="bad-controls.html#cb622-10" tabindex="-1"></a><span class="fu">latents</span>(model) <span class="ot">&lt;-</span> <span class="st">&quot;u&quot;</span></span>
+<span id="cb622-11"><a href="bad-controls.html#cb622-11" tabindex="-1"></a></span>
+<span id="cb622-12"><a href="bad-controls.html#cb622-12" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
+<span id="cb622-13"><a href="bad-controls.html#cb622-13" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(</span>
+<span id="cb622-14"><a href="bad-controls.html#cb622-14" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">z=</span><span class="dv">2</span>, <span class="at">u=</span><span class="dv">3</span>, <span class="at">y=</span><span class="dv">4</span>),</span>
+<span id="cb622-15"><a href="bad-controls.html#cb622-15" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">z=</span><span class="dv">1</span>, <span class="at">u=</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">1</span>))</span>
+<span id="cb622-16"><a href="bad-controls.html#cb622-16" tabindex="-1"></a></span>
+<span id="cb622-17"><a href="bad-controls.html#cb622-17" tabindex="-1"></a><span class="do">## ggplot</span></span>
+<span id="cb622-18"><a href="bad-controls.html#cb622-18" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
 <p><img src="33-controls_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" /></p>
-<div class="sourceCode" id="cb612"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb612-1"><a href="bad-controls.html#cb612-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
-<span id="cb612-2"><a href="bad-controls.html#cb612-2" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
-<span id="cb612-3"><a href="bad-controls.html#cb612-3" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb612-4"><a href="bad-controls.html#cb612-4" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb612-5"><a href="bad-controls.html#cb612-5" tabindex="-1"></a>z <span class="ot">&lt;-</span> x <span class="sc">+</span> u <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb612-6"><a href="bad-controls.html#cb612-6" tabindex="-1"></a>y <span class="ot">&lt;-</span> z <span class="sc">+</span> u <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb612-7"><a href="bad-controls.html#cb612-7" tabindex="-1"></a></span>
-<span id="cb612-8"><a href="bad-controls.html#cb612-8" tabindex="-1"></a>jtools<span class="sc">::</span><span class="fu">export_summs</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x), <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> z))</span></code></pre></div>
+<div class="sourceCode" id="cb623"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb623-1"><a href="bad-controls.html#cb623-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
+<span id="cb623-2"><a href="bad-controls.html#cb623-2" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
+<span id="cb623-3"><a href="bad-controls.html#cb623-3" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb623-4"><a href="bad-controls.html#cb623-4" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb623-5"><a href="bad-controls.html#cb623-5" tabindex="-1"></a>z <span class="ot">&lt;-</span> x <span class="sc">+</span> u <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb623-6"><a href="bad-controls.html#cb623-6" tabindex="-1"></a>y <span class="ot">&lt;-</span> z <span class="sc">+</span> u <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb623-7"><a href="bad-controls.html#cb623-7" tabindex="-1"></a></span>
+<span id="cb623-8"><a href="bad-controls.html#cb623-8" tabindex="-1"></a>jtools<span class="sc">::</span><span class="fu">export_summs</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x), <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> z))</span></code></pre></div>
 <table class="huxtable" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-12">
 <caption style="caption-side: top; text-align: center;"><span id="tab:unnamed-chunk-12">Table 33.5: </span> </caption><col><col><col><tr>
 <th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 1</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 2</th></tr>
@@ -1285,32 +1289,32 @@ div.csl-indent {
 <div id="selection-bias" class="section level3 hasAnchor" number="33.1.4">
 <h3><span class="header-section-number">33.1.4</span> Selection Bias<a href="bad-controls.html#selection-bias" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Also known as “collider stratification bias”</p>
-<div class="sourceCode" id="cb613"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb613-1"><a href="bad-controls.html#cb613-1" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
-<span id="cb613-2"><a href="bad-controls.html#cb613-2" tabindex="-1"></a></span>
-<span id="cb613-3"><a href="bad-controls.html#cb613-3" tabindex="-1"></a><span class="co"># DAG</span></span>
-<span id="cb613-4"><a href="bad-controls.html#cb613-4" tabindex="-1"></a></span>
-<span id="cb613-5"><a href="bad-controls.html#cb613-5" tabindex="-1"></a><span class="do">## specify edges</span></span>
-<span id="cb613-6"><a href="bad-controls.html#cb613-6" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;y; x-&gt;z; u-&gt;z;u-&gt;y}&quot;</span>)</span>
-<span id="cb613-7"><a href="bad-controls.html#cb613-7" tabindex="-1"></a></span>
-<span id="cb613-8"><a href="bad-controls.html#cb613-8" tabindex="-1"></a><span class="co"># set u as latent</span></span>
-<span id="cb613-9"><a href="bad-controls.html#cb613-9" tabindex="-1"></a><span class="fu">latents</span>(model) <span class="ot">&lt;-</span> <span class="st">&quot;u&quot;</span></span>
-<span id="cb613-10"><a href="bad-controls.html#cb613-10" tabindex="-1"></a></span>
-<span id="cb613-11"><a href="bad-controls.html#cb613-11" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
-<span id="cb613-12"><a href="bad-controls.html#cb613-12" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(</span>
-<span id="cb613-13"><a href="bad-controls.html#cb613-13" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">z=</span><span class="dv">2</span>, <span class="at">u=</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">3</span>),</span>
-<span id="cb613-14"><a href="bad-controls.html#cb613-14" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">3</span>, <span class="at">z=</span><span class="dv">2</span>, <span class="at">u=</span><span class="dv">4</span>, <span class="at">y=</span><span class="dv">3</span>))</span>
-<span id="cb613-15"><a href="bad-controls.html#cb613-15" tabindex="-1"></a></span>
-<span id="cb613-16"><a href="bad-controls.html#cb613-16" tabindex="-1"></a><span class="do">## ggplot</span></span>
-<span id="cb613-17"><a href="bad-controls.html#cb613-17" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb624"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb624-1"><a href="bad-controls.html#cb624-1" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
+<span id="cb624-2"><a href="bad-controls.html#cb624-2" tabindex="-1"></a></span>
+<span id="cb624-3"><a href="bad-controls.html#cb624-3" tabindex="-1"></a><span class="co"># DAG</span></span>
+<span id="cb624-4"><a href="bad-controls.html#cb624-4" tabindex="-1"></a></span>
+<span id="cb624-5"><a href="bad-controls.html#cb624-5" tabindex="-1"></a><span class="do">## specify edges</span></span>
+<span id="cb624-6"><a href="bad-controls.html#cb624-6" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;y; x-&gt;z; u-&gt;z;u-&gt;y}&quot;</span>)</span>
+<span id="cb624-7"><a href="bad-controls.html#cb624-7" tabindex="-1"></a></span>
+<span id="cb624-8"><a href="bad-controls.html#cb624-8" tabindex="-1"></a><span class="co"># set u as latent</span></span>
+<span id="cb624-9"><a href="bad-controls.html#cb624-9" tabindex="-1"></a><span class="fu">latents</span>(model) <span class="ot">&lt;-</span> <span class="st">&quot;u&quot;</span></span>
+<span id="cb624-10"><a href="bad-controls.html#cb624-10" tabindex="-1"></a></span>
+<span id="cb624-11"><a href="bad-controls.html#cb624-11" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
+<span id="cb624-12"><a href="bad-controls.html#cb624-12" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(</span>
+<span id="cb624-13"><a href="bad-controls.html#cb624-13" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">z=</span><span class="dv">2</span>, <span class="at">u=</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">3</span>),</span>
+<span id="cb624-14"><a href="bad-controls.html#cb624-14" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">3</span>, <span class="at">z=</span><span class="dv">2</span>, <span class="at">u=</span><span class="dv">4</span>, <span class="at">y=</span><span class="dv">3</span>))</span>
+<span id="cb624-15"><a href="bad-controls.html#cb624-15" tabindex="-1"></a></span>
+<span id="cb624-16"><a href="bad-controls.html#cb624-16" tabindex="-1"></a><span class="do">## ggplot</span></span>
+<span id="cb624-17"><a href="bad-controls.html#cb624-17" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
 <p><img src="33-controls_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>Adjusting <span class="math inline">\(Z\)</span> opens the colliding path <span class="math inline">\(X \to Z \leftarrow U \to Y\)</span></p>
-<div class="sourceCode" id="cb614"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb614-1"><a href="bad-controls.html#cb614-1" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
-<span id="cb614-2"><a href="bad-controls.html#cb614-2" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb614-3"><a href="bad-controls.html#cb614-3" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb614-4"><a href="bad-controls.html#cb614-4" tabindex="-1"></a>z <span class="ot">&lt;-</span> x <span class="sc">+</span> u <span class="sc">+</span>  <span class="fu">rnorm</span>(n)</span>
-<span id="cb614-5"><a href="bad-controls.html#cb614-5" tabindex="-1"></a>y <span class="ot">&lt;-</span> x <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span>u <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb614-6"><a href="bad-controls.html#cb614-6" tabindex="-1"></a></span>
-<span id="cb614-7"><a href="bad-controls.html#cb614-7" tabindex="-1"></a>jtools<span class="sc">::</span><span class="fu">export_summs</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x), <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> z))</span></code></pre></div>
+<div class="sourceCode" id="cb625"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb625-1"><a href="bad-controls.html#cb625-1" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
+<span id="cb625-2"><a href="bad-controls.html#cb625-2" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb625-3"><a href="bad-controls.html#cb625-3" tabindex="-1"></a>u <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb625-4"><a href="bad-controls.html#cb625-4" tabindex="-1"></a>z <span class="ot">&lt;-</span> x <span class="sc">+</span> u <span class="sc">+</span>  <span class="fu">rnorm</span>(n)</span>
+<span id="cb625-5"><a href="bad-controls.html#cb625-5" tabindex="-1"></a>y <span class="ot">&lt;-</span> x <span class="sc">+</span> <span class="dv">2</span><span class="sc">*</span>u <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb625-6"><a href="bad-controls.html#cb625-6" tabindex="-1"></a></span>
+<span id="cb625-7"><a href="bad-controls.html#cb625-7" tabindex="-1"></a>jtools<span class="sc">::</span><span class="fu">export_summs</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x), <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> z))</span></code></pre></div>
 <table class="huxtable" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-14">
 <caption style="caption-side: top; text-align: center;"><span id="tab:unnamed-chunk-14">Table 33.6: </span> </caption><col><col><col><tr>
 <th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 1</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 2</th></tr>
@@ -1335,28 +1339,28 @@ div.csl-indent {
 </table>
 
 <p>Another setting is</p>
-<div class="sourceCode" id="cb615"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb615-1"><a href="bad-controls.html#cb615-1" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
-<span id="cb615-2"><a href="bad-controls.html#cb615-2" tabindex="-1"></a></span>
-<span id="cb615-3"><a href="bad-controls.html#cb615-3" tabindex="-1"></a><span class="co"># DAG</span></span>
-<span id="cb615-4"><a href="bad-controls.html#cb615-4" tabindex="-1"></a></span>
-<span id="cb615-5"><a href="bad-controls.html#cb615-5" tabindex="-1"></a><span class="do">## specify edges</span></span>
-<span id="cb615-6"><a href="bad-controls.html#cb615-6" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;y; x-&gt;z; y-&gt;z}&quot;</span>)</span>
-<span id="cb615-7"><a href="bad-controls.html#cb615-7" tabindex="-1"></a></span>
-<span id="cb615-8"><a href="bad-controls.html#cb615-8" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
-<span id="cb615-9"><a href="bad-controls.html#cb615-9" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(</span>
-<span id="cb615-10"><a href="bad-controls.html#cb615-10" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">z=</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">3</span>),</span>
-<span id="cb615-11"><a href="bad-controls.html#cb615-11" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">2</span>, <span class="at">z=</span><span class="dv">1</span>, <span class="at">y=</span><span class="dv">2</span>))</span>
-<span id="cb615-12"><a href="bad-controls.html#cb615-12" tabindex="-1"></a></span>
-<span id="cb615-13"><a href="bad-controls.html#cb615-13" tabindex="-1"></a><span class="do">## ggplot</span></span>
-<span id="cb615-14"><a href="bad-controls.html#cb615-14" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb626"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb626-1"><a href="bad-controls.html#cb626-1" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
+<span id="cb626-2"><a href="bad-controls.html#cb626-2" tabindex="-1"></a></span>
+<span id="cb626-3"><a href="bad-controls.html#cb626-3" tabindex="-1"></a><span class="co"># DAG</span></span>
+<span id="cb626-4"><a href="bad-controls.html#cb626-4" tabindex="-1"></a></span>
+<span id="cb626-5"><a href="bad-controls.html#cb626-5" tabindex="-1"></a><span class="do">## specify edges</span></span>
+<span id="cb626-6"><a href="bad-controls.html#cb626-6" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;y; x-&gt;z; y-&gt;z}&quot;</span>)</span>
+<span id="cb626-7"><a href="bad-controls.html#cb626-7" tabindex="-1"></a></span>
+<span id="cb626-8"><a href="bad-controls.html#cb626-8" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
+<span id="cb626-9"><a href="bad-controls.html#cb626-9" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(</span>
+<span id="cb626-10"><a href="bad-controls.html#cb626-10" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">z=</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">3</span>),</span>
+<span id="cb626-11"><a href="bad-controls.html#cb626-11" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">2</span>, <span class="at">z=</span><span class="dv">1</span>, <span class="at">y=</span><span class="dv">2</span>))</span>
+<span id="cb626-12"><a href="bad-controls.html#cb626-12" tabindex="-1"></a></span>
+<span id="cb626-13"><a href="bad-controls.html#cb626-13" tabindex="-1"></a><span class="do">## ggplot</span></span>
+<span id="cb626-14"><a href="bad-controls.html#cb626-14" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
 <p><img src="33-controls_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>Controlling <span class="math inline">\(Z\)</span> opens the colliding path <span class="math inline">\(X \to Z \leftarrow Y\)</span></p>
-<div class="sourceCode" id="cb616"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb616-1"><a href="bad-controls.html#cb616-1" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
-<span id="cb616-2"><a href="bad-controls.html#cb616-2" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb616-3"><a href="bad-controls.html#cb616-3" tabindex="-1"></a>y <span class="ot">&lt;-</span> x <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb616-4"><a href="bad-controls.html#cb616-4" tabindex="-1"></a>z <span class="ot">&lt;-</span> x <span class="sc">+</span> y <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb616-5"><a href="bad-controls.html#cb616-5" tabindex="-1"></a></span>
-<span id="cb616-6"><a href="bad-controls.html#cb616-6" tabindex="-1"></a>jtools<span class="sc">::</span><span class="fu">export_summs</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x), <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> z))</span></code></pre></div>
+<div class="sourceCode" id="cb627"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb627-1"><a href="bad-controls.html#cb627-1" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
+<span id="cb627-2"><a href="bad-controls.html#cb627-2" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb627-3"><a href="bad-controls.html#cb627-3" tabindex="-1"></a>y <span class="ot">&lt;-</span> x <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb627-4"><a href="bad-controls.html#cb627-4" tabindex="-1"></a>z <span class="ot">&lt;-</span> x <span class="sc">+</span> y <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb627-5"><a href="bad-controls.html#cb627-5" tabindex="-1"></a></span>
+<span id="cb627-6"><a href="bad-controls.html#cb627-6" tabindex="-1"></a>jtools<span class="sc">::</span><span class="fu">export_summs</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x), <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> z))</span></code></pre></div>
 <table class="huxtable" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-16">
 <caption style="caption-side: top; text-align: center;"><span id="tab:unnamed-chunk-16">Table 33.7: </span> </caption><col><col><col><tr>
 <th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 1</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 2</th></tr>
@@ -1383,29 +1387,29 @@ div.csl-indent {
 </div>
 <div id="case-control-bias" class="section level3 hasAnchor" number="33.1.5">
 <h3><span class="header-section-number">33.1.5</span> Case-control Bias<a href="bad-controls.html#case-control-bias" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div class="sourceCode" id="cb617"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb617-1"><a href="bad-controls.html#cb617-1" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
-<span id="cb617-2"><a href="bad-controls.html#cb617-2" tabindex="-1"></a></span>
-<span id="cb617-3"><a href="bad-controls.html#cb617-3" tabindex="-1"></a><span class="co"># DAG</span></span>
-<span id="cb617-4"><a href="bad-controls.html#cb617-4" tabindex="-1"></a></span>
-<span id="cb617-5"><a href="bad-controls.html#cb617-5" tabindex="-1"></a><span class="do">## specify edges</span></span>
-<span id="cb617-6"><a href="bad-controls.html#cb617-6" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;y; y-&gt;z}&quot;</span>)</span>
-<span id="cb617-7"><a href="bad-controls.html#cb617-7" tabindex="-1"></a></span>
-<span id="cb617-8"><a href="bad-controls.html#cb617-8" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
-<span id="cb617-9"><a href="bad-controls.html#cb617-9" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(</span>
-<span id="cb617-10"><a href="bad-controls.html#cb617-10" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">z=</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">3</span>),</span>
-<span id="cb617-11"><a href="bad-controls.html#cb617-11" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">2</span>, <span class="at">z=</span><span class="dv">1</span>, <span class="at">y=</span><span class="dv">2</span>))</span>
-<span id="cb617-12"><a href="bad-controls.html#cb617-12" tabindex="-1"></a></span>
-<span id="cb617-13"><a href="bad-controls.html#cb617-13" tabindex="-1"></a><span class="do">## ggplot</span></span>
-<span id="cb617-14"><a href="bad-controls.html#cb617-14" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
+<div class="sourceCode" id="cb628"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb628-1"><a href="bad-controls.html#cb628-1" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
+<span id="cb628-2"><a href="bad-controls.html#cb628-2" tabindex="-1"></a></span>
+<span id="cb628-3"><a href="bad-controls.html#cb628-3" tabindex="-1"></a><span class="co"># DAG</span></span>
+<span id="cb628-4"><a href="bad-controls.html#cb628-4" tabindex="-1"></a></span>
+<span id="cb628-5"><a href="bad-controls.html#cb628-5" tabindex="-1"></a><span class="do">## specify edges</span></span>
+<span id="cb628-6"><a href="bad-controls.html#cb628-6" tabindex="-1"></a>model <span class="ot">&lt;-</span> <span class="fu">dagitty</span>(<span class="st">&quot;dag{x-&gt;y; y-&gt;z}&quot;</span>)</span>
+<span id="cb628-7"><a href="bad-controls.html#cb628-7" tabindex="-1"></a></span>
+<span id="cb628-8"><a href="bad-controls.html#cb628-8" tabindex="-1"></a><span class="do">## coordinates for plotting</span></span>
+<span id="cb628-9"><a href="bad-controls.html#cb628-9" tabindex="-1"></a><span class="fu">coordinates</span>(model) <span class="ot">&lt;-</span>  <span class="fu">list</span>(</span>
+<span id="cb628-10"><a href="bad-controls.html#cb628-10" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">1</span>, <span class="at">z=</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">3</span>),</span>
+<span id="cb628-11"><a href="bad-controls.html#cb628-11" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">c</span>(<span class="at">x=</span><span class="dv">2</span>, <span class="at">z=</span><span class="dv">1</span>, <span class="at">y=</span><span class="dv">2</span>))</span>
+<span id="cb628-12"><a href="bad-controls.html#cb628-12" tabindex="-1"></a></span>
+<span id="cb628-13"><a href="bad-controls.html#cb628-13" tabindex="-1"></a><span class="do">## ggplot</span></span>
+<span id="cb628-14"><a href="bad-controls.html#cb628-14" tabindex="-1"></a><span class="fu">ggdag</span>(model) <span class="sc">+</span> <span class="fu">theme_dag</span>()</span></code></pre></div>
 <p><img src="33-controls_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" /></p>
 <p>Controlling <span class="math inline">\(Z\)</span> opens a virtual collider (a descendant of a collider).</p>
 <p>However, if <span class="math inline">\(X\)</span> truly has no causal effect on <span class="math inline">\(Y\)</span>. Then, controlling for <span class="math inline">\(Z\)</span> is valid for testing whether the effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span> is 0 because X is d-separated from <span class="math inline">\(Y\)</span> regardless of adjusting for <span class="math inline">\(Z\)</span></p>
-<div class="sourceCode" id="cb618"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb618-1"><a href="bad-controls.html#cb618-1" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
-<span id="cb618-2"><a href="bad-controls.html#cb618-2" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb618-3"><a href="bad-controls.html#cb618-3" tabindex="-1"></a>y <span class="ot">&lt;-</span> x <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb618-4"><a href="bad-controls.html#cb618-4" tabindex="-1"></a>z <span class="ot">&lt;-</span> y <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb618-5"><a href="bad-controls.html#cb618-5" tabindex="-1"></a></span>
-<span id="cb618-6"><a href="bad-controls.html#cb618-6" tabindex="-1"></a>jtools<span class="sc">::</span><span class="fu">export_summs</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x), <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> z))</span></code></pre></div>
+<div class="sourceCode" id="cb629"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb629-1"><a href="bad-controls.html#cb629-1" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fl">1e4</span></span>
+<span id="cb629-2"><a href="bad-controls.html#cb629-2" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb629-3"><a href="bad-controls.html#cb629-3" tabindex="-1"></a>y <span class="ot">&lt;-</span> x <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb629-4"><a href="bad-controls.html#cb629-4" tabindex="-1"></a>z <span class="ot">&lt;-</span> y <span class="sc">+</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb629-5"><a href="bad-controls.html#cb629-5" tabindex="-1"></a></span>
+<span id="cb629-6"><a href="bad-controls.html#cb629-6" tabindex="-1"></a>jtools<span class="sc">::</span><span class="fu">export_summs</span>(<span class="fu">lm</span>(y <span class="sc">~</span> x), <span class="fu">lm</span>(y <span class="sc">~</span> x <span class="sc">+</span> z))</span></code></pre></div>
 <table class="huxtable" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-18">
 <caption style="caption-side: top; text-align: center;"><span id="tab:unnamed-chunk-18">Table 33.8: </span> </caption><col><col><col><tr>
 <th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 1</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 2</th></tr>

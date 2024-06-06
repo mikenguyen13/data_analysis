@@ -132,23 +132,23 @@ Tools in a hierarchical order
 
 2.  [Quasi-experimental]
 
-    1.  [Regression Discontinuity] Tier 1A
+    1.  [Regression Discontinuity]
 
-    2.  
+    2.  [Synthetic Difference-in-Differences]
 
-    3.  [Difference-In-Differences] Tier 2A
+    3.  [Difference-In-Differences]
 
-    4.  [Synthetic Control] Tier 2A
+    4.  [Synthetic Control]
 
-    5.  [Event Studies] Tier 2B
+    5.  [Event Studies]
 
-    6.  Fixed Effects Estimator \@ref(fixed-effects-estimator): Tier 3
+    6.  Fixed Effects Estimator \@ref(fixed-effects-estimator)
 
-    7.  [Endogenous Treatment]: mostly [Instrumental Variable]: Tier 3A
+    7.  [Endogenous Treatment]: mostly [Instrumental Variable]
 
-    8.  [Matching Methods] Tier 4
+    8.  [Matching Methods]
 
-    9.  [Interrupted Time Series] Tier 4A
+    9.  [Interrupted Time Series]
 
     10. Endogenous Sample Selection \@ref(endogenous-sample-selection): mostly Heckman's correction
 

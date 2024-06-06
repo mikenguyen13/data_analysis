@@ -417,6 +417,355 @@ rdd::IKbandwidth(running_var,
                  kernel = "triangular") # can also pick other kernels
 ```
 
+### Manipulation Robust Regression Discontinuity Bounds
+
+-   @mccrary2008manipulation linked density jumps at cutoffs in RD studies to potential manipulation.
+
+    -   If no jump is detected, researchers proceed with RD analysis; if detected, they halt using the cutoff for inference.
+
+    -   Some studies use the "doughnut-hole" method, excluding near-cutoff observations and extrapolating, which contradicts RD principles.
+
+        -   False negative could be due to a small sample size and can lead to biased estimates, as units near the cutoff may still differ in unobserved ways.
+
+        -   Even correct rejections of no manipulation may overlook that the data can still be informative despite modest manipulation.
+
+        -   @gerard2020bounds introduces a systematic approach to handle potentially manipulated variables in RD designs, addressing both concerns.
+
+-   The model introduces two types of unobservable units in RD designs:
+
+    -   **always-assigned** units, which are always on one side of the cutoff,
+
+    -   **potentially-assigned** units, which fit traditional RD assumptions.
+
+        -   The standard RD model is a subset of this broader model, which assumes no always-assigned units.
+
+-   Identifying assumption: manipulation occurs through one-sided selection.
+
+-   The approach does not make a binary decision on manipulation in RD designs but assesses its extent and worst-case impact.
+
+Two steps are used:
+
+1.  Determining the proportion of always-assigned units using the discontinuity at the cutoff
+2.  Bounding treatment effects based on the most extreme feasible outcomes for these units.
+
+-   For sharp RD designs, bounds are established by trimming extreme outcomes near the cutoff; for fuzzy designs, the process involves more complex adjustments due to additional model constraints.
+
+-   Extensions of the study use covariate information and economic behavior assumptions to refine these bounds and identify covariate distributions among unit types at the cutoff.
+
+**Setup**
+
+Independent data points $(X_i, Y_i, D_i)$, where $X_i$ is the running variable, $Y_i$ is the outcome, and $D_i$ indicates treatment status (1 if treated, 0 otherwise). Treatment is assigned based on $X_i \geq c$.
+
+The design is *sharp* if $D_i = I(X_i \geq c)$ and *fuzzy* otherwise.
+
+The population is divided into:
+
+-   **Potentially-assigned units** ($M_i = 0$): Follow the standard RD framework, with potential outcomes $Y_i(d)$ and potential treatment states $D_i(x)$.
+
+-   **Always-assigned units** ($M_i = 1$): These units do not require potential outcomes or states, and always have $X_i$ values beyond the cutoff.
+
+**Assumptions**
+
+1.  **Local Independence and Continuity**:
+    -   $P(D = 1|X = c^+, M = 0) > P(D = 1|X = c^-, M = 0)$
+    -   No defiers: $P(D^+ \geq D^-|X = c, M = 0) = 1$
+    -   Continuity in potential outcomes and states at $c$.
+    -   $F_{X|M=0}(x)$ is differentiable at $c$, with a positive derivative.
+2.  **Smoothness of the Running Variable among Potentially-Assigned Units**:
+    -   The derivative of $F_{X|M=0}(x)$ is continuous at $c$.
+3.  **Restrictions on Always-Assigned Units**:
+    -   $P(X \geq c|M = 1) = 1$ and $F_{X|M=1}(x)$ is right-differentiable (or left-differentiable) at $c$.
+    -   This (local) one-sided manipulation assumption allows identification of the proportion of always-assigned units among all units close to the cutoff.
+
+When always-assigned unit exist, the RD design is fuzzy because we have
+
+1.  Treated and untreated units among the potentially-assigned (below and above the cutoff)
+2.  Always-assigned units (above the cutoff).
+
+Causal Effects of Interest
+
+causal effects among potentially-assigned units:
+
+$$
+\Gamma = E[Y(1) - Y(0) | X = c, D^+ > D^-, M = 0]
+$$
+
+This parameter represents the local average treatment effect (LATE) for the subgroup of "compliers"---units that receive treatment if and only if their running variable $X_i$ exceeds a certain cutoff.
+
+The parameter $\Gamma$ captures the causal effect of changes in the cutoff level on treatment status among potentially-assigned compliers.
+
++---------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------+
+| RD designs with a manipulated running variable                                                                | **"Doughnut-Hole" RD Designs**:                                                                                                                    |
++===============================================================================================================+====================================================================================================================================================+
+| -   Focuses on actual observations at the cutoff, not hypothetical true values.                               | -   Exclude observations around the cutoff and use extrapolation from the trends outside this excluded range to infer causal effects at the cutoff |
+| -   Provides a direct and observable estimate of causal effects, without reliance on hypothetical constructs. | -   Assumes a hypothetical population existing in a counterfactual scenario without manipulation.                                                  |
+|                                                                                                               | -   Requires strong assumptions about the nature of manipulation and the minimal impact of extrapolation biases.                                   |
++---------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------------------------------------------------------+
+
+Identification of $\tau$ in RD Designs
+
+-   Identification challenges arise due to the inability to distinguish always-assigned from potentially-assigned units, thus Γ is not point identified. We establish sharp bounds on Γ
+
+-   These bounds are supported by the stochastic dominance of the potential outcome CDFs over observed distributions.
+
+Unit Types and Notation:
+
+-   $C_0$: Potentially-assigned compliers.
+-   $A_0$: Potentially-assigned always-takers.
+-   $N_0$: Potentially-assigned never-takers.
+-   $T_1$: Always-assigned treated units.
+-   $U_1$: Always-assigned untreated units.
+
+The measure $\tau$ , representing the proportion of always-assigned units near the cutoff, is point identified by the discontinuity in the observed running variable density $f_X$ at the cutoff
+
+Sharp RD:
+
+-   Units to the left of the cutoff are potentially assigned units. The distribution of their observed outcomes ($Y$) are the outcomes $Y(0)$ of potentially-assigned compliers ($C_0$) at the cutoff.
+
+-   To determine the bounds on the treatment effect ($\Gamma$), we need to assess the distribution of treated outcomes ($Y(1)$) for the same potentially-assigned compliers at the cutoff.
+
+-   Information regarding the treated outcomes ($Y(1)$) comes exclusively from the subpopulation of treated units, which includes both potentially-assigned compliers ($C_0$) and those always assigned units ($T_1$).
+
+-   With $\tau$ point identified, we can estimate sharp bounds on $\Gamma$.
+
+Fuzzy RD:
+
+| Subpopulation    | Types of units  |
+|------------------|-----------------|
+| $X = c^+, D = 1$ | $C_0, A_0, T_1$ |
+| $X = c^-, D = 1$ | $A_0$           |
+| $X= c^+, D = 0$  | $N_0, U_1$      |
+| $X = c^-, D = 0$ | $C_0, N_0$      |
+
+: Note: Table on page 848 [@gerard2020bounds]
+
+-   **Unit Types and Combinations**: There are five distinct unit types and four combinations of treatment assignments and decisions relevant to the analysis. These distinctions are important because they affect how potential outcomes are analyzed and bounded.
+
+-   **Outcome Distributions**: The analysis involves estimating the distribution of potential outcomes (both treated and untreated) among potentially-assigned compliers at the cutoff.
+
+-   **Three-Step Process**:
+
+    1.  **Potential Outcomes Under Treatment**: Bounds on the distribution of treated outcomes are determined using data from treated units.
+
+    2.  **Potential Outcomes Under Non-Treatment**: Bounds on the distribution of untreated outcomes are derived using data from untreated units.
+
+    3.  **Bounds on Parameters of Interest**: Using the bounds from the first two steps, sharp upper and lower bounds on the local average treatment effect are derived.
+
+-   **Extreme Value Consideration**: The bounds for treatment effects are based on "extreme" scenarios under worst-case assumptions about the distribution of potential outcomes, making them sharp but empirically relevant within the data constraints.
+
+Extensions:
+
+-   **Quantile Treatment Effects**: alternative to average effects by focusing on different quantiles of the outcome distribution, which are less affected by extreme values.
+
+-   **Applicability to Discrete Outcomes**
+
+-   **Behavioral Assumptions Impact**: Assuming a high likelihood of treatment among always-assigned units can narrow the bounds of treatment effects by refining the analysis of potential outcomes.
+
+-   **Utilization of Covariates**: Incorporating covariates measured prior to treatment can refine the bounds on treatment effects and help target policies by identifying covariate distributions among different unit types.
+
+**Notes**:
+
+-   Quantile Treatment Effects (QTEs): QTE bounds are less sensitive to the tails of the outcome distribution, making them tighter than ATE bounds.
+
+    -   Inference on ATEs is sensitive to the extent of manipulation, with confidence intervals widening significantly with small degrees of assumed manipulation.
+
+    -   Inference on QTEs is less affected by manipulation, remaining meaningful even with larger degrees of manipulation.
+
+-   Alternative Inference Strategy when manipulation is believed to be unlikely. Try different hypothetical values of $\tau$
+
+
+```r
+devtools::install_github("francoisgerard/rdbounds/R")
+```
+
+
+```r
+library(formattable)
+library(data.table)
+library(rdbounds)
+set.seed(123)
+df <- rdbounds_sampledata(10000, covs = FALSE)
+#> [1] "True tau: 0.117999815082062"
+#> [1] "True treatment effect on potentially-assigned: 2"
+#> [1] "True treatment effect on right side of cutoff: 2.35399944524618"
+head(df)
+#>            x        y treatment
+#> 1 -1.2532616 3.489563         0
+#> 2 -0.5146925 3.365232         0
+#> 3  3.4853777 6.193533         0
+#> 4  0.1576616 8.820440         1
+#> 5  0.2890962 4.791972         0
+#> 6  3.8350019 7.316907         0
+
+rdbounds_est <-
+    rdbounds(
+        y = df$y,
+        x = df$x,
+        # covs = as.factor(df$cov),
+        treatment = df$treatment,
+        c = 0,
+        discrete_x = FALSE,
+        discrete_y = FALSE,
+        bwsx = c(.2, .5),
+        bwy = 1,
+        
+        # for median effect use 
+        # type = "qte", 
+        # percentiles = .5, 
+        
+        kernel = "epanechnikov",
+        orders = 1,
+        evaluation_ys = seq(from = 0, to = 15, by = 1),
+        refinement_A = TRUE,
+        refinement_B = TRUE,
+        right_effects = TRUE,
+        yextremes = c(0, 15),
+        num_bootstraps = 5
+    )
+#> [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.04209"
+#> [1] "2024-05-13 19:12:33 Estimating CDFs for point estimates"
+#> [1] "2024-05-13 19:12:33 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2024-05-13 19:12:35 Estimating CDFs with nudged tau (tau_star)"
+#> [1] "2024-05-13 19:12:35 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2024-05-13 19:12:38 Beginning parallelized output by bootstrap.."
+#> [1] "2024-05-13 19:12:42 Computing Confidence Intervals"
+#> [1] "2024-05-13 19:12:51 Time taken:0.3 minutes"
+```
+
+
+```r
+rdbounds_summary(rdbounds_est, title_prefix = "Sample Data Results")
+#> [1] "Time taken: 0.3 minutes"
+#> [1] "Sample size: 10000"
+#> [1] "Local Average Treatment Effect:"
+#> $tau_hat
+#> [1] 0.04209028
+#> 
+#> $tau_hat_CI
+#> [1] 0.1671043 0.7765031
+#> 
+#> $takeup_increase
+#> [1] 0.7521208
+#> 
+#> $takeup_increase_CI
+#> [1] 0.7065353 0.7977063
+#> 
+#> $TE_SRD_naive
+#> [1] 1.770963
+#> 
+#> $TE_SRD_naive_CI
+#> [1] 1.541314 2.000612
+#> 
+#> $TE_SRD_bounds
+#> [1] 1.569194 1.912681
+#> 
+#> $TE_SRD_CI
+#> [1] -0.1188634  3.5319468
+#> 
+#> $TE_SRD_covs_bounds
+#> [1] NA NA
+#> 
+#> $TE_SRD_covs_CI
+#> [1] NA NA
+#> 
+#> $TE_FRD_naive
+#> [1] 2.356601
+#> 
+#> $TE_FRD_naive_CI
+#> [1] 1.995430 2.717772
+#> 
+#> $TE_FRD_bounds
+#> [1] 1.980883 2.362344
+#> 
+#> $TE_FRD_CI
+#> [1] -0.6950823  4.6112538
+#> 
+#> $TE_FRD_bounds_refinementA
+#> [1] 1.980883 2.357499
+#> 
+#> $TE_FRD_refinementA_CI
+#> [1] -0.6950823  4.6112538
+#> 
+#> $TE_FRD_bounds_refinementB
+#> [1] 1.980883 2.351411
+#> 
+#> $TE_FRD_refinementB_CI
+#> [1] -0.6152215  4.2390830
+#> 
+#> $TE_FRD_covs_bounds
+#> [1] NA NA
+#> 
+#> $TE_FRD_covs_CI
+#> [1] NA NA
+#> 
+#> $TE_SRD_CIs_manipulation
+#> [1] NA NA
+#> 
+#> $TE_FRD_CIs_manipulation
+#> [1] NA NA
+#> 
+#> $TE_SRD_right_bounds
+#> [1] 1.376392 2.007746
+#> 
+#> $TE_SRD_right_CI
+#> [1] -5.036752  5.889137
+#> 
+#> $TE_FRD_right_bounds
+#> [1] 1.721121 2.511504
+#> 
+#> $TE_FRD_right_CI
+#> [1] -6.663269  7.414185
+```
+
+
+```r
+rdbounds_est_tau <-
+    rdbounds(
+        y = df$y,
+        x = df$x,
+        # covs = as.factor(df$cov),
+        treatment = df$treatment,
+        c = 0,
+        discrete_x = FALSE,
+        discrete_y = FALSE,
+        bwsx = c(.2, .5),
+        bwy = 1,
+        kernel = "epanechnikov",
+        orders = 1,
+        evaluation_ys = seq(from = 0, to = 15, by = 1),
+        refinement_A = TRUE,
+        refinement_B = TRUE,
+        right_effects = TRUE,
+        potential_taus = c(.025, .05, .1, .2),
+        yextremes = c(0, 15),
+        num_bootstraps = 5
+    )
+#> [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.04209"
+#> [1] "2024-05-13 19:12:52 Estimating CDFs for point estimates"
+#> [1] "2024-05-13 19:12:52 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2024-05-13 19:12:53 Estimating CDFs with nudged tau (tau_star)"
+#> [1] "2024-05-13 19:12:53 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2024-05-13 19:12:56 Beginning parallelized output by bootstrap.."
+#> [1] "2024-05-13 19:13:02 Estimating CDFs with fixed tau value of: 0.025"
+#> [1] "2024-05-13 19:13:02 Estimating CDFs with fixed tau value of: 0.05"
+#> [1] "2024-05-13 19:13:02 Estimating CDFs with fixed tau value of: 0.1"
+#> [1] "2024-05-13 19:13:02 Estimating CDFs with fixed tau value of: 0.2"
+#> [1] "2024-05-13 19:13:03 Beginning parallelized output by bootstrap x fixed tau.."
+#> [1] "2024-05-13 19:13:09 Computing Confidence Intervals"
+#> [1] "2024-05-13 19:13:19 Time taken:0.46 minutes"
+```
+
+
+```r
+causalverse::plot_rd_aa_share(rdbounds_est_tau) # For SRD (default)
+```
+
+<img src="24-regression-discontinuity_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" />
+
+```r
+# causalverse::plot_rd_aa_share(rdbounds_est_tau, rd_type = "FRD")  # For FRD
+```
+
 ## Fuzzy RD Design
 
 When you have cutoff that does not perfectly determine treatment, but creates a discontinuity in the likelihood of receiving the treatment, you need another instrument
@@ -796,7 +1145,7 @@ plot(
 )
 ```
 
-<img src="24-regression-discontinuity_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="24-regression-discontinuity_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
 
 
 ```r
@@ -809,19 +1158,19 @@ summary(rdd_mod)
 #> 
 #> Residuals:
 #>      Min       1Q   Median       3Q      Max 
-#> -2.93235 -0.66786 -0.00799  0.69991  3.01768 
+#> -2.90364 -0.70348  0.00278  0.66828  3.00603 
 #> 
 #> Coefficients:
 #>             Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept) 17.08582    0.07178  238.03   <2e-16 ***
-#> D            9.95513    0.11848   84.03   <2e-16 ***
-#> x            2.01615    0.03546   56.85   <2e-16 ***
+#> (Intercept) 16.90704    0.06637  254.75   <2e-16 ***
+#> D           10.09058    0.11063   91.21   <2e-16 ***
+#> x            1.97078    0.03281   60.06   <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Residual standard error: 1.046 on 997 degrees of freedom
-#> Multiple R-squared:  0.9617,	Adjusted R-squared:  0.9616 
-#> F-statistic: 1.253e+04 on 2 and 997 DF,  p-value: < 2.2e-16
+#> Residual standard error: 0.9908 on 997 degrees of freedom
+#> Multiple R-squared:  0.9654,	Adjusted R-squared:  0.9654 
+#> F-statistic: 1.392e+04 on 2 and 997 DF,  p-value: < 2.2e-16
 ```
 
 
@@ -836,7 +1185,7 @@ plot(
 )
 ```
 
-<img src="24-regression-discontinuity_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="24-regression-discontinuity_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" />
 
 ### Example 2
 
