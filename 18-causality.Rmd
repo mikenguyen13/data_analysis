@@ -144,7 +144,7 @@ Tools in a hierarchical order
 
     6.  Fixed Effects Estimator \@ref(fixed-effects-estimator)
 
-    7.  [Endogenous Treatment]: mostly [Instrumental Variable]
+    7.  [Endogenous Treatment]: mostly [Instrumental Variables]
 
     8.  [Matching Methods]
 
@@ -154,9 +154,9 @@ Tools in a hierarchical order
 
 Internal vs. External Validity
 
--   Internal Validity: Economists and applied scientists mostly care about
+-   Internal Validity: Economists and applied scientists largely care about.
 
--   External Validity: Localness might affect your external validity
+-   External Validity: Localness might affect your external validity.
 
 For many economic policies, there is a difference between **treatment** and **intention to treat**.
 

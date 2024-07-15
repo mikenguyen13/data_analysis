@@ -31,6 +31,20 @@ Show the mechanism via
 
 -   Moderation analysis: see [@goldfarb2011online]
 
+Steps to trust DID:
+
+1.  Visualize the treatment rollout (e.g., `panelView`).
+
+2.  Document the number of treated units in each cohort (e.g., control and treated).
+
+3.  Visualize the trajectory of average outcomes across cohorts (if you have multiple periods).
+
+4.  [Parallel Trends](#prior-parallel-trends-test) Conduct an event-study analysis with and without covariates.
+
+5.  For the case with covariates, check for overlap in covariates between treated and control groups to ensure control group validity (e.g., if the control is relatively small than the treated group, you might not have overlap, and you have to make extrapolation).
+
+6.  Conduct sensitivity analysis for parallel trend violations (e.g., `honestDiD`).
+
 ## Visualization
 
 
@@ -304,7 +318,7 @@ For [Zero-valued Outcomes], we have to distinguish the treatment effect on the i
 
     -   To examine the parallel trends assumption in ratio holds, we can also estimate a dynamic version of the Poisson QMLE: $Y_{it} = \exp(\lambda_t + \beta_2 D_i + \sum_{r \neq -1} \beta_r D_i \times (RelativeTime_t = r)$, we would expect $\exp(\hat{\beta_r}) - 1 = 0$ for $r < 0$.
 
-    -   Even if we see the plot of these coefficients are 0, we still should run sensitivity analysis [@rambachan2023more] to examine violation of this assumption (see [Prior Parallel Trends Test]).
+    -   Even if we see the plot of these coefficients are 0, we still should run sensitivity analysis [@rambachan2023more] to examine violation of this assumption (see [Prior Parallel Trends Test](#prior-parallel-trends-test)).
 
 -   **Log Effects with Calibrated Extensive-margin value**: due to problem with the mean value interpretation of the proportional treatment effects with outcomes that are heavy-tailed, we might be interested in the extensive margin effect. Then, we can explicit model how much weight we put on the intensive vs. extensive margin [@chen2023logs, p. 39].
 
@@ -471,10 +485,13 @@ $$
 
 The choice of $x$ depends on what the researcher is interested in:
 
++--------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Value of $x$ | Interest                                                                                                                                                                        |
-|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
++==============+=================================================================================================================================================================================+
 | $x = 0$      | The treatment effect in logs where all zero-valued outcomes are set to equal the minimum non-zero value (i.e., we exclude the extensive-margin change between 0 and $y_{min}$ ) |
++--------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | $x>0$        | Setting the change between 0 and $y_{min}$ to be valued as the equivalent of a $x$ log point change along the intensive margin.                                                 |
++--------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 
 ```r
@@ -812,13 +829,19 @@ where
 
 -   $Y_{idt}$ = grade average
 
-|              | Intercept                         | Treat | Post | Treat\*Post |
-|--------------|-----------------------------------|-------|------|-------------|
-| Treat Pre    | 1                                 | 1     | 0    | 0           |
-| Treat Post   | 1                                 | 1     | 1    | 1           |
-| Control Pre  | 1                                 | 0     | 0    | 0           |
-| Control Post | 1                                 | 0     | 1    | 0           |
-|              | Average for pre-control $\beta_0$ |       |      |             |
++--------------+-----------------------------------+----------+----------+-------------+
+|              | Intercept                         | Treat    | Post     | Treat\*Post |
++==============+===================================+==========+==========+=============+
+| Treat Pre    | 1                                 | 1        | 0        | 0           |
++--------------+-----------------------------------+----------+----------+-------------+
+| Treat Post   | 1                                 | 1        | 1        | 1           |
++--------------+-----------------------------------+----------+----------+-------------+
+| Control Pre  | 1                                 | 0        | 0        | 0           |
++--------------+-----------------------------------+----------+----------+-------------+
+| Control Post | 1                                 | 0        | 1        | 0           |
++--------------+-----------------------------------+----------+----------+-------------+
+|              | Average for pre-control $\beta_0$ |          |          |             |
++--------------+-----------------------------------+----------+----------+-------------+
 
 A more general specification of the dif-n-dif is that
 
@@ -1074,12 +1097,17 @@ output$aVarHat
 
 Standard errors estimation options
 
++----------------------+---------------------------------------------------------------------------------------------+
 | Set                  | Estimation                                                                                  |
-|----------------------|---------------------------------------------------------------------------------------------|
++======================+=============================================================================================+
 | `se = "0"`           | Assume homoskedasticity and no within group correlation or serial correlation               |
++----------------------+---------------------------------------------------------------------------------------------+
 | `se = "1"` (default) | robust to heteroskadasticity and serial correlation [@arellano1987computing]                |
++----------------------+---------------------------------------------------------------------------------------------+
 | `se = "2"`           | robust to heteroskedasticity, but assumes no correlation within group or serial correlation |
++----------------------+---------------------------------------------------------------------------------------------+
 | `se = "11"`          | Aerllano SE with df correction performed by Stata xtreg [@somaini2021twfem]                 |
++----------------------+---------------------------------------------------------------------------------------------+
 
 Alternatively, you can also do it manually or with the `plm` package, but you have to be careful with how the SEs are estimated
 
@@ -1238,6 +1266,8 @@ $$
 
 ## Staggered Dif-n-dif
 
+See @wing2024designing checklist.
+
 Recommendations by @baker2022much
 
 -   TWFE DiD regressions are suitable for single treatment periods or when treatment effects are homogeneous, provided there's a solid rationale for effect homogeneity.
@@ -1282,7 +1312,7 @@ $$
 
 where it's an indicator function of unit $i$ being $l$ periods from its first treatment at time $t$
 
-1.  **Static** specificaiton
+1.  **Static** specification
 
 $$
 Y_{it} = \alpha_i + \lambda_t + \mu_g \sum_{l \ge0} D_{it}^l + \epsilon_{it}
@@ -1304,7 +1334,7 @@ $$
 Y_{it} = \alpha_i + \lambda_t + \sum_{\substack{l = -K \\ l \neq -1}}^{L} \mu_l D_{it}^l + \epsilon_{it}
 $$
 
-where we have to exclude some relative peridos to avoid multicollinearity problem (e.g., either period right before treatment, or the treatment period).
+where we have to exclude some relative periods to avoid multicollinearity problem (e.g., either period right before treatment, or the treatment period).
 
 In this setting, we try to show that the treatment and control groups are not statistically different (i.e., the coefficient estimates before treatment are not different from 0) to show pre-treatment parallel trends.
 
@@ -1312,11 +1342,7 @@ However, this two-way fixed effects design has been criticized by @sun2021estima
 
 Applying the new proposed method, finance and accounting researchers find that in many cases, the causal estimates turn out to be null [@baker2022much].
 
-Robustness Check
-
--   The **triple-difference strategy** involves examining the interaction between the **treatment variable** and **the probability of being affected by the program**, and the group-level participation rate. The identification assumption is that there are no differential trends between high and low participation groups in early versus late implementing countries.
-
-### Assumptions
+**Assumptions of Staggered DID**
 
 -   **Rollout Exogeneity** (i.e., exogeneity of treatment adoption): if the treatment is randomly implemented over time (i.e., unrelated to variables that could also affect our dependent variables)
 
@@ -3972,7 +3998,7 @@ staggered(
 
 This paper utilizes the Cohort Average Treatment Effects on the Treated (CATT), which measures the cohort-specific average difference in outcomes relative to those never treated, offering a more detailed analysis than @goodman2021difference. In scenarios lacking a never-treated group, this method designates the last cohort to be treated as the control group.
 
-Parameter of interest is the cohort-specific ATT $l$ periods from intital treatment period $e$
+Parameter of interest is the cohort-specific ATT $l$ periods from int ital treatment period $e$
 
 $$
 CATT = E[Y_{i, e + I} - Y_{i, e + I}^\infty|E_i = e]
@@ -4295,16 +4321,6 @@ $$
 
 [@de2023two] [video](https://www.youtube.com/watch?v=UHeJoc27qEM&ab_channel=TaylorWright) [code](https://drive.google.com/file/d/156Fu73avBvvV_H64wePm7eW04V0jEG3K/view)
 
-## Assumption Violation
-
-### Endogenous Timing
-
-If the timing of units can be influenced by strategic decisions in a DID analysis, an instrumental variable approach with a control function can be used to control for endogeneity in timing.
-
-### Questionable Counterfactuals
-
-In situations where the control units may not serve as a reliable counterfactual for the treated units, matching methods such as propensity score matching or generalized random forest can be utilized. Additional methods can be found in [Matching Methods].
-
 ## Mediation Under DiD
 
 Check this [post](https://stats.stackexchange.com/questions/261218/difference-in-difference-model-with-mediators-estimating-the-effect-of-differen)
@@ -4329,7 +4345,7 @@ Check this [post](https://stats.stackexchange.com/questions/261218/difference-in
 
         -   [Placebo test]
 
-        -   [Prior Parallel Trends Test]
+        -   [Prior Parallel Trends Test](#prior-parallel-trends-test)
 
 -   **Linear additive effects** (of group/unit specific and time-specific):
 
@@ -4376,7 +4392,7 @@ Check this [post](https://stats.stackexchange.com/questions/261218/difference-in
 
 -   [@gibbons2018broken] caution when we suspect the treatment effect and treatment variance vary across groups
 
-### Prior Parallel Trends Test
+### Prior Parallel Trends Test {#prior-parallel-trends-test}
 
 1.  Plot the average outcomes over time for both treatment and control group before and after the treatment in time.
 2.  Statistical test for difference in trends (**using data from before the treatment period**)
@@ -4564,13 +4580,23 @@ fixest::etable(clfe1,clfe2)
 
 We would like the "supposed" DiD to be insignificant.
 
-**Robustness Check**
+### Assumption Violations
+
+1.  Endogenous Timing
+
+If the timing of units can be influenced by strategic decisions in a DID analysis, an instrumental variable approach with a control function can be used to control for endogeneity in timing.
+
+2.  Questionable Counterfactuals
+
+In situations where the control units may not serve as a reliable counterfactual for the treated units, matching methods such as propensity score matching or generalized random forest can be utilized. Additional methods can be found in [Matching Methods].
+
+### Robustness Checks
 
 -   Placebo DiD (if the DiD estimate $\neq 0$, parallel trend is violated, and original DiD is biased):
 
     -   Group: Use fake treatment groups: A population that was **not** affect by the treatment
 
-    -   Time: Redo the DiD analysis for period before the treatment (expected treatment effect is 0) (e..g, for previous year or period).
+    -   Time: Redo the DiD analysis for period before the treatment (expected treatment effect is 0) (e.g., for previous year or period).
 
 -   Possible alternative control group: Expected results should be similar
 
@@ -4583,3 +4609,5 @@ We would like the "supposed" DiD to be insignificant.
 -   Test whether other dependent variables that should not be affected by the event are indeed unaffected.
 
     -   Use the same control and treatment period (DiD $\neq0$, there is a problem)
+
+-   The **triple-difference strategy** involves examining the interaction between the **treatment variable** and **the probability of being affected by the program**, and the group-level participation rate. The identification assumption is that there are no differential trends between high and low participation groups in early versus late implementing countries.

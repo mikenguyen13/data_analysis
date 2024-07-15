@@ -1,0 +1,165 @@
+# Replication and Synthetic Data
+
+Access to comprehensive data is pivotal for replication, especially in the realm of social sciences. Yet, often the data are inaccessible, making replication a challenge [@king1995replication]. This chapter dives into the nuances of replication, the exceptions to its norms, and the significance of synthetic data.
+
+## The Replication Standard
+
+Replicability in research ensures:
+
+-   Credibility and comprehension of empirical studies.
+-   Continuity and progression in the discipline.
+-   Enhanced readership and academic citations.
+
+For a research to be replicable, the "replication standard" is vital: it entails providing all requisite information for replication by third parties. While quantitative research can, to some extent, offer clear data, qualitative studies pose complexities due to data depth.
+
+### Solutions for Empirical Replication
+
+1.  **Role of Individual Authors**:
+    -   Authors need to vouch for the replication standard for enhancing their work's credibility.
+    -   Archives like the Inter-University Consortium for Political and Social Research (ICPSR) serve as depositories for replication datasets.
+2.  **Creation of a Replication Data Set**:
+    -   A public data set, consisting of both original and relevant complementary data, can serve replication purposes.
+3.  **Professional Data Archives**:
+    -   Organizations like ICPSR provide solutions to data storage and accessibility problems.
+4.  **Educational Implications**:
+    -   Replication can be an excellent educational tool, and many programs now emphasize its importance.
+
+### Free Data Repositories
+
+1.  **Zenodo**: Hosted by CERN, it provides a place for researchers to deposit datasets. It's not subject-specific, so it caters to various disciplines.
+
+2.  **figshare**: Allows researchers to upload, share, and cite their datasets.
+
+3.  **Dryad**: Primarily for datasets associated with published articles in the biological and medical sciences.
+
+4.  **OpenICPSR**: A public-facing version of the Inter-University Consortium for Political and Social Research (ICPSR) where researchers can deposit data without any cost.
+
+5.  **Harvard Dataverse**: Hosted by Harvard University, this is an open-source repository software application dedicated to archiving, sharing, and citing research data.
+
+6.  **Mendeley Data**: A multidisciplinary, free-to-use open access data repository where researchers can upload and share their datasets.
+
+7.  **Open Science Framework (OSF)**: Offers both a platform for conducting research and a place to deposit datasets.
+
+8.  **PubMed Central**: Specific to life sciences, but it's an open repository for journal articles, preprints, and datasets.
+
+9.  **Registry of Research Data Repositories (re3data)**: While not a repository itself, it provides a global registry of research data repositories from various academic disciplines.
+
+10. **SocArXiv**: An open archive for the social sciences.
+
+11. **EarthArXiv**: A preprints archive for earth science.
+
+12. **Protein Data Bank (PDB)**: For 3D structures of large biological molecules.
+
+13. **Gene Expression Omnibus (GEO)**: A public functional genomics data repository.
+
+14. **The Language Archive (TLA)**: Dedicated to data on languages worldwide, especially endangered languages.
+
+15. **B2SHARE**: A platform for storing and sharing research data sets in various disciplines, especially from European research projects.
+
+### Exceptions to Replication
+
+Some exceptions to the replication standard are:
+
+1.  **Confidentiality**: Sometimes data, even fragmented, is too sensitive to share.
+2.  **Proprietary Data**: Data sets owned by entities might restrict dissemination, but usually, parts of such data can still be shared.
+3.  **Rights of First Publication**: Embargos might be set, but the essential data used in a study should be accessible.
+
+## Synthetic Data: An Overview
+
+Synthetic data, modeling real data while ensuring anonymity, is becoming pivotal in research. While promising, it has its own complexities and should be approached with caution.
+
+### Benefits
+
+-   Privacy preservation.
+-   Data fairness and augmentation.
+-   Acceleration in research.
+
+### Concerns
+
+-   Misconceptions about inherent privacy.
+-   Challenges with data outliers.
+-   Models relying solely on synthetic data can pose risks.
+
+### Further Insights on Synthetic Data
+
+Synthetic data bridges the model-centric and data-centric perspectives, making it an essential tool in modern research. Analogously, it's like viewing the Mona Lisa's replica, with the real painting stored securely.
+
+Future projects, such as utilizing the R's diamonds dataset for synthetic data generation, hold promise in demonstrating the vast potentials of this technology.
+
+For a deeper dive into synthetic data and its applications, refer to [@jordon2022synthetic].
+
+## Application
+
+The easiest way to create synthetic data is to use the `synthpop` package. Alternatively, you can do it [manually](https://towardsdatascience.com/creating-synthetic-data-3774391c851d)
+
+```{r}
+library(synthpop)
+library(tidyverse)
+library(performance)
+
+# library(effectsize)
+# library(see)
+# library(patchwork)
+# library(knitr)
+# library(kableExtra)
+
+head(iris)
+
+synthpop::codebook.syn(iris)
+
+syn_df <- syn(iris, seed = 3)
+
+# check for replciated uniques
+replicated.uniques(syn_df, iris)
+
+
+# remove replicated uniques and adds a FAKE_DATA label 
+# (in case a person can see his or own data in 
+# the replicated data by chance)
+
+syn_df_sdc <- sdc(syn_df, iris, 
+                  label = "FAKE_DATA",
+                  rm.replicated.uniques = T)
+```
+
+```{r, message=FALSE, warning=FALSE}
+iris |> 
+    GGally::ggpairs()
+
+syn_df$syn |> 
+    GGally::ggpairs()
+```
+
+```{r}
+lm_ori <- lm(Sepal.Length ~ Sepal.Width + Petal.Length , data = iris)
+# performance::check_model(lm_ori)
+summary(lm_ori)
+
+lm_syn <- lm(Sepal.Length ~ Sepal.Width + Petal.Length , data = syn_df$syn)
+# performance::check_model(lm_syn)
+summary(lm_syn)
+```
+
+Open data can be assessed for its utility in two distinct ways:
+
+1.  **General Utility**: This refers to the broad resemblances within the dataset, allowing for preliminary data exploration.
+
+2.  **Specific Utility**: This focuses on the comparability of models derived from synthetic and original datasets, emphasizing analytical reproducibility.
+
+For General utility
+
+```{r, eval = FALSE}
+compare(syn_df, iris)
+```
+
+Specific utility
+
+```{r}
+# just like regular lm, but for synthetic data
+lm_syn <- lm.synds(Sepal.Length ~ Sepal.Width + Petal.Length , data = syn_df)
+compare(lm_syn, iris)
+
+# summary(lm_syn)
+```
+
+You basically want your lack-of-fit test to be non-significant.

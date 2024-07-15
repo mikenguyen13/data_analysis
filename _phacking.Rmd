@@ -1,0 +1,243 @@
+# P-hacking/Selective Reporting and Publication Bias
+
+Terminologies:
+
+-   **Unconditional Power**: Refers to the long-run frequency of statistically significant results without conditioning on a true effect (i.e., in cases where the null effect is true).
+-   **Discovery Rate**: The relative frequency of finding statistically significant results, without distinguishing between true and false discoveries (e.g., if 100 studies produce X statistically significant results, the discovery rate is X%).
+-   **Selection Bias**: The process that favors the publication of statistically significant results, leading to a higher percentage of statistically significant results in the published literature compared to all conducted studies, also known as publication bias.
+-   **Observed Discovery Rate (ODR)**: The percentage of statistically significant results in an observed set of studies (e.g., if 100 published studies have X statistically significant results, the ODR is X%). The ODR is higher than the true discovery rate when selection bias is present.
+-   **Expected Discovery Rate (EDR)**: refers to the mean power before selection for significance, representing the expected relative frequency of statistically significant results from all conducted studies, both significant and non-significant.
+-   **Expected Replication Rate (ERR)**: The mean power after selection for significance, reflecting the predicted success rate of exact replication studies based on the power of statistically significant studies. The ERR is the same idea as @miller2009probability "aggregate replication probability".
+
+Tools for Bias Detection
+
+-   [stat.io](https://stat.io)
+-   [pubpeer.com](https://pubpeer.com)
+-   Funnel plots
+-   Hedge's g forest plots
+-   P-curve
+-   Z-curve
+-   Meta-analysis of observed powers
+-   Carlisle-Stouffer-Fisher method
+-   GRIM - Granularity-Related Inconsistency of Means
+-   TIVA - Test of Insufficient Variance
+-   CORVIDS - Complete Recovery of Values in Diophantine Systems
+-   SPRITE - Sample Parameter Reconstruction via Iterative Techniques
+
+History
+
+-   @ioannidis2005most claimed many published significant results are false.
+
+-   @jager2014estimate estimated 14% of significant results are false positives, based on actual data from 5,322 p-values (even lower than what @ioannidis2005most anticipated).
+
+    -   proposed a selection model to fit the distribution of significant p-values:
+
+        -   **H0 Population**: p-values follow a flat (uniform) distribution.
+
+        -   **H1 Population**: p-values follow a beta distribution.
+
+-   @schimmack2021most
+
+    -   **Jager and Leek's Model**: Estimates the false discovery rate using two populations---one where the null hypothesis (H0) is true and one where the alternative hypothesis (H1) is true.
+
+        -   **Model Limitations**: Difficulty in distinguishing between studies with true H0 and those with true H1 but low statistical power; issues with small effect sizes complicate clear distinctions.
+
+    -   **Alternative Approach**: Suggest estimating the false discovery risk instead of the rate, providing a worst-case scenario for false-positive results based on statistical power.
+
+    -   @schimmack2021most found: Improved methods show lower false discovery risks, with an estimate of 13% for medical journals, supporting @jager2014estimate findings and countering @ioannidis2005most objections.
+
+    -   @schi enhancement over @jager2014estimate: Using a mixture of beta distributions offers a closer fit to observed p-values.
+
+    -   Converting p-values to z-scores and modeling them with truncated normal distributions (after taking absolute values) provides an alternative method.
+
+        -   **Absolute Z-scores**: Handle two-sided p-values.
+
+        -   **Folded Normal Mixtures**: Model z-scores with truncated folded normal distributions.
+
+    -   The weights of the mixture components calculate the **average power after selection** (i.e., estimates the replication rate of significant studies).
+
+    -   To estimate the **expected discovery rate (EDR)**:
+
+        -   **EDR**: Derived from the power of studies before selection, estimating the proportion of significant results.
+
+        -   **False Discovery Risk**: Transformed from EDR, with robust confidence intervals.
+
+## p-curve
+
+-   The first part of a p-curve analysis is a p-curve plot, a histogram of significant p-values placed into five bins: 0 to .01, .01 to .02, .02 to .03, .03 to .04, and .04 to .05.
+
+-   A right-skewed distribution (more p-values between 0 and .01 than .04 and .05) indicates true effects with moderate to high power.
+
+-   A flat or reversed distribution suggests data lack evidential value, consistent with the null hypothesis.
+
+-   Main limitation: difficulty in evaluating ambiguous cases.
+
+-   To aid interpretation, p-curve provides statistical tests of evidential value, including a significance test against the null hypothesis that all significant p-values are false positives.
+
+-   Rejection of this null hypothesis ($\alpha < .05$) indicates some results are not false positives.
+
+-   However, this test does not inform about effect sizes; a right-skewed p-curve with significant p-values might indicate either cases that are drastically different:
+
+    -   Weak evidence with many false positives.
+    -   Strong evidence with few false positives.
+
+-   To address this, the p-curve app estimates mean unconditional power, considering heterogeneous studies [@brunner2020estimating].
+
+Steps to do p-curve:
+
+1.  Have selection rules for studies
+2.  Create a p-curve disclosure table
+
+## z-curve 1.0
+
+**P-Curve and Z-Curve Plots**:
+
+-   **Similarity**: Both analyses include a plot of the data.
+
+-   **Key Differences**:
+
+    -   **Conversion to Z-Scores**: Z-curve converts p-values into z-scores using the inverse normal distribution formula: $z = qnorm(1 - p/2)$
+
+    -   **Inclusion of All P-Values**: Z-curve plots both significant and non-significant p-values.
+
+    -   **Resolution**: Z-curve has a finer resolution compared to p-curve. While p-curve bins all z-scores from 2.58 to infinity into one bin ($p < .01$), z-curve utilizes the distribution information of z-scores up to $z = 6$). Those greater than 6 are assigned a power of 1.
+
+-   **Misinterpretation of** [p-curve]:
+
+    -   Right-skewed distributions are often misinterpreted as a lack of publication bias or questionable research practices (e.g., @rusz2020reward).
+
+    -   Misinterpretation of p-curve plots can be avoided by inspecting z-curve plots.
+
+## z-curve 2.0
+
+-   **Z-Curve Development**:
+
+    -   @brunner2020estimating developed z-curve, a method for estimating the expected replication rate (ERR).
+
+    -   **Expected Replication Rate (ERR)**: The predicted success rate of exact replication studies based on the mean power after selection for significance.
+
+-   **Introduction of Z-Curve 2.0**:
+
+    -   **Main Extension**:
+
+        -   **Expected Discovery Rate (EDR)**: Estimates the proportion that reported statistically significant results constitute from all conducted statistical tests.
+
+        -   **Use of EDR**: Detects and quantifies the amount of selection bias by comparing the EDR to the observed discovery rate (ODR; observed proportion of statistically significant results).
+
+-   **Additional Analyses**:
+
+    -   **Bootstrapped Confidence Intervals**: Examined performance in simulation studies.
+
+    -   **Robust Confidence Intervals**: Created robust confidence intervals with good coverage across a wide range of scenarios to provide information about the uncertainty in EDR and ERR estimates.
+
+Let $\epsilon$ be the power of a study (We stay faithful to @bartovs2022z notation).
+
+-   $\epsilon_1$ = power of a study in one direction
+
+-   $\epsilon_2$ = power of a study regardless of the direction.
+
+Expected Discovery Rate is
+
+$$
+\epsilon_2 = \frac{\sum_{k = 1}^K \epsilon_{2,k}}{K}
+$$
+
+which is the mean power of K studies regardless of outcome direction.
+
+Expected Replication Rate is
+
+$$
+\frac{\sum_{k = 1}^K \epsilon_{2,k} \times \epsilon_{1,k}}{\sum_{k = 1}^K \epsilon_{2,k}}
+$$
+
+which is the weighted mean power.
+
+## Detecting p-hacking
+
+@elliott2022detecting consider the problem of testing the null hypothesis of no p-hacking against the alternative hypothesis of p-hacking.
+
+### Sufficient Conditions for Non-Increasing p-Curve
+
+Under general sufficient conditions, for any distribution of true effects, the p-curve is non-increasing and continuous in the absence of p-hacking. Specifically, the p-curve constructed from a finite aggregation of different tests, satisfying the assumptions of Theorem 1, is continuously differentiable and non-increasing. These tests retain power even when p-hacking does not violate non-increasingness.
+
+Complete monotonicity introduces additional constraints that enhance the power of statistical tests for detecting p-hacking. However, not all tests produce completely monotonic p-curves. For instance, tests based on $\chi^2$ distributions with more than two degrees of freedom (e.g., Wald tests) may fail to exhibit complete monotonicity.
+
+Theorem 3 provides useful bounds in cases where p-hacking fails to induce an increasing p-curve. This situation can arise when all researchers p-hack, merely shifting the mass of the p-curve to the left without creating humps. An example is when researchers conduct multiple independent analyses and report the smallest p-value, such as during specification searches across independent subsamples or datasets.
+
+### Testing Hypotheses for P-Hacking
+
+#### Tests for Non-Increasingness of the p-Curve
+
+$$ 
+H_0: g \text{ is non-increasing } \\
+H_1: g \text{ is not non-increasing} 
+$$
+
+where $g$ is the density of the p-curve
+
+Tests for this hypothesis:
+
+-   Binomial test (e.g., @simonsohn2014p)
+
+-   Fisher's test
+
+-   **Histogram-Based Tests**: apply the conditional $\chi^2$ test of @cox2023simple
+
+-   **LCM Test**: Based on the concavity of the CDF of p-values. Under the null hypothesis, the CDF of p-values is concave. These tests based on the least concave majorant (LCM) of the empirical CDF of p-values, $\hat{G}$, and its LCM, $M\hat{G}$, with the test statistic $T = \sqrt{n} \|M\hat{G} - \hat{G}\|_\infty$.
+
+#### Tests for Continuity
+
+Theorem 1 demonstrates that the p-curve is continuous in the absence of p-hacking. Testing for continuity at significance thresholds $\alpha$, such as $\alpha = 0.05$, provides an alternative to tests for non-increasingness.
+
+$$ 
+\begin{aligned}
+H_0&: \lim_{p \uparrow \alpha} g(p) = \lim_{p \downarrow \alpha} g(p) \\
+H_1&: \lim_{p \uparrow \alpha} g(p) \neq \lim_{p \downarrow \alpha} g(p) 
+\end{aligned}
+$$
+
+To estimate densities at the boundary $\alpha$, we use local linear density estimators to avoid boundary bias and apply the density discontinuity test of @cattaneo2020simple, which incorporates data-driven bandwidth selection.
+
+#### Tests for K-Monotonicity and Upper Bounds
+
+Theorem 2 shows that p-curves based on t-tests are completely monotone. Theorem 3 establishes upper bounds on the p-curves and their derivatives, enabling the development of tests based on these restrictions.
+
+<!-- A function $\xi$ is K-monotone on an interval $\mathcal{I}$ if: -->
+
+<!-- $$ 0 \leq (-1)^k \xi^{(k)}(x) $$ -->
+
+<!-- for every $x \in \mathcal{I}$ and for all $k = 0, 1, \ldots, K$, where $\xi^{(k)}$ is the $k$-th derivative of $\xi$. By definition, a completely monotone function is K-monotone for all $k$. -->
+
+<!-- Null hypothesis: -->
+
+<!-- $$ H_0: g_s \text{ is K-monotone and } (-1)^k g_s^{(k)} \leq B_s^{(k)} \text{ for } k = 0, 1, \ldots, K $$ -->
+
+<!-- where $s = 1$ for one-sided t-tests, $s = 2$ for two-sided t-tests, and $B_s^{(k)}$ is defined in Theorem 3. -->
+
+<!-- $H_0$ implies constraints on population proportions $\pi = (\pi_1, \ldots, \pi_J)'$, which can be expressed as: -->
+
+<!-- $$ H_0: A\pi_{-J} \leq b $$ -->
+
+<!-- where $\pi_{-J} = (\pi_1, \ldots, \pi_{J-1})'$. -->
+
+<!-- The proportions $\pi_{-J}$ are estimated using sample proportions $\hat{\pi}_{-J}$ -->
+
+<!-- This estimator is $\sqrt{n}$-consistent and asymptotically normal with mean $\pi_{-J}$ and a non-singular (if all proportions are positive) covariance matrix $\Omega = \text{diag}\{\pi_1, \ldots, \pi_{J-1}\} - \pi_{-J}\pi_{-J}'$. -->
+
+<!-- The null hypothesis is tested by comparing: -->
+
+<!-- $$ T = \inf_{q: Aq \leq b} n(\hat{\pi}_{-J} - q)'\hat{\Omega}^{-1}(\hat{\pi}_{-J} - q) $$ -->
+
+<!-- to the critical value from a $\chi^2$ distribution with rank($\hat{A}$) degrees of freedom, where $\hat{A}$ is the matrix formed by the rows of $A$ corresponding to active inequalities. -->
+
+## Application
+
+Data from @brodeur2016star
+
+Focus on p-values smaller than 0.15 and consider the following tests:
+
+-   **Binomial Test**: Conducted on the interval $[0.04, 0.05]$.
+-   **Fisher's Test**.
+-   **Histogram-Based Tests**: For non-increasingness and 2-monotonicity (CS1, CS2B).
+-   **LCM Test**.
+-   **Density Discontinuity Test**: At $0.05$.

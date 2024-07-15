@@ -111,6 +111,10 @@ $$
 Y_i = \alpha + \rho D_i + X_i'\gamma + \eta_i
 $$
 
+Examples:
+
+-   @bertrand2004emily randomly assign race to a job application to study the effect of race on callbacks.
+
 ## Notes
 
 For outcomes with 0s, we can't use log-like transformation, because it's sensitive to outcome unit [@chen2023logs]. For info on this issue, check [Zero-valued Outcomes]. We should use:

@@ -1,0 +1,496 @@
+# Report
+
+Structure
+
+-   Exploratory analysis
+
+    -   plots
+    -   preliminary results
+    -   interesting structure/features in the data
+    -   outliers
+
+-   Model
+
+    -   Assumptions
+    -   Why this model/ How is this model the best one?
+    -   Consideration: interactions, collinearity, dependence
+
+-   Model Fit
+
+    -   How well does it fit?
+
+    -   Are the model assumptions met?
+
+        -   Residual analysis
+
+-   Inference/ Prediction
+
+    -   Are there different way to support your inference?
+
+-   Conclusion
+
+    -   Recommendation
+
+    -   Limitation of the analysis
+
+    -   How to correct those in the future
+
+This chapter is based on the `jtools` package. More information can be found [here.](https://www.rdocumentation.org/packages/jtools/versions/2.1.0)
+
+## One summary table
+
+Packages for reporting:
+
+Summary Statistics Table:
+
+-   [qwraps2](https://cran.r-project.org/web/packages/qwraps2/vignettes/summary-statistics.html)
+-   [vtable](https://cran.r-project.org/web/packages/vtable/vignettes/sumtable.html)
+-   [gtsummary](http://www.danieldsjoberg.com/gtsummary/)
+-   [apaTables](https://cran.r-project.org/web/packages/apaTables/apaTables.pdf)
+-   [stargazer](https://cran.r-project.org/web/packages/stargazer/vignettes/stargazer.pdf)
+
+Regression Table
+
+-   [gtsummary](http://www.danieldsjoberg.com/gtsummary/)
+-   [sjPlot,sjmisc, sjlabelled](https://cran.r-project.org/web/packages/sjPlot/vignettes/tab_model_estimates.html)
+-   [stargazer](https://cran.r-project.org/web/packages/stargazer/vignettes/stargazer.pdf): recommended ([Example](https://www.jakeruss.com/cheatsheets/stargazer/))
+-   [modelsummary](https://github.com/vincentarelbundock/modelsummary#a-simple-example)
+
+```{r}
+library(jtools)
+data(movies)
+fit <- lm(metascore ~ budget + us_gross + year, data = movies)
+summ(fit)
+summ(
+    fit,
+    scale = TRUE,
+    vifs = TRUE,
+    part.corr = TRUE,
+    confint = TRUE,
+    pvals = FALSE
+) # notice that scale here is TRUE
+
+#obtain clsuter-robust SE
+data("PetersenCL", package = "sandwich")
+fit2 <- lm(y ~ x, data = PetersenCL)
+summ(fit2, robust = "HC3", cluster = "firm") 
+```
+
+Model to Equation
+
+```{r, eval = FALSE}
+# install.packages("equatiomatic") # not available for R 4.2
+fit <- lm(metascore ~ budget + us_gross + year, data = movies)
+# show the theoretical model
+equatiomatic::extract_eq(fit)
+# display the actual coefficients
+equatiomatic::extract_eq(fit, use_coefs = TRUE)
+```
+
+## Model Comparison
+
+```{r}
+fit <- lm(metascore ~ log(budget), data = movies)
+fit_b <- lm(metascore ~ log(budget) + log(us_gross), data = movies)
+fit_c <- lm(metascore ~ log(budget) + log(us_gross) + runtime, data = movies)
+coef_names <- c("Budget" = "log(budget)", "US Gross" = "log(us_gross)",
+                "Runtime (Hours)" = "runtime", "Constant" = "(Intercept)")
+export_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
+```
+
+Another package is `modelsummary`
+
+```{r}
+library(modelsummary)
+lm_mod <- lm(mpg ~ wt + hp + cyl, mtcars)
+msummary(lm_mod, vcov = c("iid","robust","HC4"))
+modelplot(lm_mod, vcov = c("iid","robust","HC4"))
+```
+
+Another package is `stargazer`
+
+```{r}
+library("stargazer")
+stargazer(attitude)
+## 2 OLS models
+linear.1 <-
+    lm(rating ~ complaints + privileges + learning + raises + critical,
+       data = attitude)
+linear.2 <-
+    lm(rating ~ complaints + privileges + learning, data = attitude)
+## create an indicator dependent variable, and run a probit model
+attitude$high.rating <- (attitude$rating > 70)
+
+probit.model <-
+    glm(
+        high.rating ~ learning + critical + advance,
+        data = attitude,
+        family = binomial(link = "probit")
+    )
+stargazer(linear.1,
+          linear.2,
+          probit.model,
+          title = "Results",
+          align = TRUE)
+```
+
+```{r eval = FALSE}
+# Latex
+stargazer(
+    linear.1,
+    linear.2,
+    probit.model,
+    title = "Regression Results",
+    align = TRUE,
+    dep.var.labels = c("Overall Rating", "High Rating"),
+    covariate.labels = c(
+        "Handling of Complaints",
+        "No Special Privileges",
+        "Opportunity to Learn",
+        "Performance-Based Raises",
+        "Too Critical",
+        "Advancement"
+    ),
+    omit.stat = c("LL", "ser", "f"),
+    no.space = TRUE
+)
+```
+
+```{r}
+# ASCII text output
+stargazer(
+    linear.1,
+    linear.2,
+    type = "text",
+    title = "Regression Results",
+    dep.var.labels = c("Overall Rating", "High Rating"),
+    covariate.labels = c(
+        "Handling of Complaints",
+        "No Special Privileges",
+        "Opportunity to Learn",
+        "Performance-Based Raises",
+        "Too Critical",
+        "Advancement"
+    ),
+    omit.stat = c("LL", "ser", "f"),
+    ci = TRUE,
+    ci.level = 0.90,
+    single.row = TRUE
+)
+```
+
+```{r eval = FALSE}
+stargazer(
+    linear.1,
+    linear.2,
+    probit.model,
+    title = "Regression Results",
+    align = TRUE,
+    dep.var.labels = c("Overall Rating", "High Rating"),
+    covariate.labels = c(
+        "Handling of Complaints",
+        "No Special Privileges",
+        "Opportunity to Learn",
+        "Performance-Based Raises",
+        "Too Critical",
+        "Advancement"
+    ),
+    omit.stat = c("LL", "ser", "f"),
+    no.space = TRUE
+)
+```
+
+Correlation Table
+
+```{r eval = FALSE}
+correlation.matrix <-
+    cor(attitude[, c("rating", "complaints", "privileges")])
+stargazer(correlation.matrix, title = "Correlation Matrix")
+```
+
+## Changes in an estimate
+
+```{r}
+coef_names <- coef_names[1:3] # Dropping intercept for plots
+plot_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
+plot_summs(
+    fit_c,
+    robust = "HC3",
+    coefs = coef_names,
+    plot.distributions = TRUE
+)
+```
+
+## Standard Errors
+
+`sandwich` [vignette](cran.r-project.org/web/packages/sandwich/vignettes/sandwich-CL.pdf)
+
++------------+------------+------------------------------------------------------------------------------------------+--------------------------+
+| Type       | Applicable | Usage                                                                                    | Reference                |
++============+============+==========================================================================================+==========================+
+| `const`    |            | Assume constant variances                                                                |                          |
++------------+------------+------------------------------------------------------------------------------------------+--------------------------+
+| `HC` `HC0` | `vcovCL`   | Heterogeneity                                                                            | [@white1980]             |
+|            |            |                                                                                          |                          |
+|            |            | White's estimator                                                                        |                          |
+|            |            |                                                                                          |                          |
+|            |            | All other heterogeneity SE methods are derivatives of this.                              |                          |
+|            |            |                                                                                          |                          |
+|            |            | No small sample bias adjustment                                                          |                          |
++------------+------------+------------------------------------------------------------------------------------------+--------------------------+
+| `HC1`      | `vcovCL`   | Uses a degrees of freedom-based correction                                               | [@mackinnon1985some]     |
+|            |            |                                                                                          |                          |
+|            |            | When the number of clusters is small, `HC2` and `HC3` are better [@cameron2008bootstrap] |                          |
++------------+------------+------------------------------------------------------------------------------------------+--------------------------+
+| `HC2`      | `vcovCL`   | Better with the linear model, but still applicable for [Generalized Linear Models]       |                          |
+|            |            |                                                                                          |                          |
+|            |            | Needs a hat (weighted) matrix                                                            |                          |
++------------+------------+------------------------------------------------------------------------------------------+--------------------------+
+| `HC3`      | `vcovCL`   | Better with the linear model, but still applicable for [Generalized Linear Models]       |                          |
+|            |            |                                                                                          |                          |
+|            |            | Needs a hat (weighted) matrix                                                            |                          |
++------------+------------+------------------------------------------------------------------------------------------+--------------------------+
+| `HC4`      | `vcovHC`   |                                                                                          | [@cribari2004asymptotic] |
++------------+------------+------------------------------------------------------------------------------------------+--------------------------+
+| `HC4m`     | `vcovHC`   |                                                                                          | [@cribari2007inference]  |
++------------+------------+------------------------------------------------------------------------------------------+--------------------------+
+| `HC5`      | `vcovHC`   |                                                                                          | [@cribari2011new]        |
++------------+------------+------------------------------------------------------------------------------------------+--------------------------+
+
+```{r}
+data(cars)
+model <- lm(speed ~ dist, data = cars)
+summary(model)
+lmtest::coeftest(model, vcov. = sandwich::vcovHC(model, type = "HC1"))
+```
+
+## Coefficient Uncertainty and Distribution
+
+The `ggdist` allows us to visualize uncertainty under both frequentist and Bayesian frameworks
+
+```{r, eval=FALSE}
+library(ggdist)
+```
+
+## Descriptive Tables
+
+Export APA theme
+
+```{r, eval = FALSE}
+data("mtcars")
+
+library(flextable)
+theme_apa(flextable(mtcars[1:5,1:5]))
+```
+
+Export to Latex
+
+```{r, eval=FALSE}
+print(xtable::xtable(mtcars, type = "latex"),
+      file = file.path(getwd(), "output", "mtcars_xtable.tex"))
+
+# American Economic Review style
+stargazer::stargazer(
+    mtcars,
+    title = "Testing",
+    style = "aer",
+    out = file.path(getwd(), "output", "mtcars_stargazer.tex")
+)
+
+# other styles include
+# Administrative Science Quarterly
+# Quarterly Journal of Economics
+```
+
+However, the above codes do not play well with notes. Hence, I create my own custom code that follows the AMA guidelines
+
+```{r, eval = FALSE}
+ama_tbl <- function(data, caption, label, note, output_path) {
+  library(tidyverse)
+  library(xtable)
+  # Function to determine column alignment
+  get_column_alignment <- function(data) {
+    # Start with the alignment for the header row
+    alignment <- c("l", "l")
+    
+    # Check each column
+    for (col in seq_len(ncol(data))[-1]) {
+      if (is.numeric(data[[col]])) {
+        alignment <- c(alignment, "r")  # Right alignment for numbers
+      } else {
+        alignment <- c(alignment, "c")  # Center alignment for other data
+      }
+    }
+    
+    return(alignment)
+  }
+  
+  data %>%
+    # bold + left align first column 
+    rename_with(~paste("\\multicolumn{1}{l}{\\textbf{", ., "}}"), 1) %>% 
+    # bold + center align all other columns
+    `colnames<-`(ifelse(colnames(.) != colnames(.)[1],
+                        paste("\\multicolumn{1}{c}{\\textbf{", colnames(.), "}}"),
+                        colnames(.))) %>% 
+    
+    xtable(caption = caption,
+           label = label,
+           align = get_column_alignment(data),
+           auto = TRUE) %>%
+    print(
+      include.rownames = FALSE,
+      caption.placement = "top",
+      
+      hline.after=c(-1, 0),
+      
+       # p{0.9\linewidth} sets the width of the column to 90% of the line width, and the @{} removes any extra padding around the cell.
+      
+      add.to.row = list(pos = list(nrow(data)), # Add at the bottom of the table
+                        command = c(paste0("\\hline \n \\multicolumn{",ncol(data), "}{l} {", "\n \\begin{tabular}{@{}p{0.9\\linewidth}@{}} \n","Note: ", note, "\n \\end{tabular}  } \n"))), # Add your note here
+      
+      # make sure your heading is untouched (because you manually change it above)
+      sanitize.colnames.function = identity,
+      
+      # place a the top of the page
+      table.placement = "h",
+      
+      file = output_path
+    )
+}
+```
+
+```{r, eval = FALSE}
+ama_tbl(
+    mtcars,
+    caption     = "This is caption",
+    label       = "tab:this_is_label",
+    note        = "this is note",
+    output_path = file.path(getwd(), "output", "mtcars_custom_ama.tex")
+)
+```
+
+## Visualizations and Plots
+
+You can customize your plots based on your preferred journals. Here, I am creating a custom setting for the American Marketing Association.
+
+American-Marketing-Association-ready theme for plots
+
+```{r}
+library(ggplot2)
+
+# check available fonts
+# windowsFonts()
+
+# for Times New Roman
+# names(windowsFonts()[windowsFonts()=="TT Times New Roman"])
+```
+
+```{r}
+# Making a theme
+amatheme = theme_bw(base_size = 14, base_family = "serif") + # This is Time New Roman
+    
+    theme(
+        # remove major gridlines
+        panel.grid.major   = element_blank(),
+
+        # remove minor gridlines
+        panel.grid.minor   = element_blank(),
+
+        # remove panel border
+        panel.border       = element_blank(),
+
+        line               = element_line(),
+
+        # change font
+        text               = element_text(),
+
+        # if you want to remove legend title
+        # legend.title     = element_blank(),
+
+        legend.title       = element_text(size = rel(0.6), face = "bold"),
+
+        # change font size of legend
+        legend.text        = element_text(size = rel(0.6)),
+        
+        legend.background  = element_rect(color = "black"),
+        
+        # legend.margin    = margin(t = 5, l = 5, r = 5, b = 5),
+        # legend.key       = element_rect(color = NA, fill = NA),
+
+        # change font size of main title
+        plot.title         = element_text(
+            size           = rel(1.2),
+            face           = "bold",
+            hjust          = 0.5,
+            margin         = margin(b = 15)
+        ),
+        
+        plot.margin        = unit(c(1, 1, 1, 1), "cm"),
+
+        # add black line along axes
+        axis.line          = element_line(colour = "black", linewidth = .8),
+        
+        axis.ticks         = element_line(),
+        
+
+        # axis title
+        axis.title.x       = element_text(size = rel(1.2), face = "bold"),
+        axis.title.y       = element_text(size = rel(1.2), face = "bold"),
+
+        # axis text size
+        axis.text.y        = element_text(size = rel(1)),
+        axis.text.x        = element_text(size = rel(1))
+    )
+```
+
+Example
+
+```{r}
+library(tidyverse)
+library(ggsci)
+data("mtcars")
+yourplot <- mtcars %>%
+    select(mpg, cyl, gear) %>%
+    ggplot(., aes(x = mpg, y = cyl, fill = gear)) + 
+    geom_point() +
+    labs(title="Some Plot") 
+
+yourplot + 
+    amatheme + 
+    # choose different color theme
+    scale_color_npg() 
+
+yourplot + 
+    amatheme + 
+    scale_color_continuous()
+```
+
+Other pre-specified themes
+
+```{r}
+library(ggthemes)
+
+
+# Stata theme
+yourplot +
+    theme_stata()
+
+# The economist theme
+yourplot + 
+    theme_economist()
+
+yourplot + 
+    theme_economist_white()
+
+# Wall street journal theme
+yourplot + 
+    theme_wsj()
+
+# APA theme
+yourplot +
+    jtools::theme_apa(
+        legend.font.size = 24,
+        x.font.size = 20,
+        y.font.size = 20
+    )
+```
