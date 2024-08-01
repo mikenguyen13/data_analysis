@@ -52,6 +52,8 @@ For the general case of $\log(x_i + c)$, choosing a constant is rather tricky.
 
 The choice of the constant is critically important, especially when you want to do inference. It can dramatically change your model fit (see [@ekwaru2018overlooked] for the independent variable case).
 
+@chen2023logs show that in causal inference problem, $\log$ transformation of values with meaningful 0 is problematic. But there are solutions for each approach (e.g., DID, IV).
+
 However, assuming that you do not have 0s because of
 
 -   Censoring
@@ -158,6 +160,29 @@ as_dist$x.t %>% hist()
 ```
 
 <img src="13-variable_transformation_files/figure-html/unnamed-chunk-4-2.png" width="90%" style="display: block; margin: auto;" />
+
+$$
+arcsinh(Y) = \log(\sqrt{1 + Y^2} + Y)
+$$
+
+| Paper                  | Interpretation |
+|------------------------|----------------|
+| @azoulay2019does       | Elasticity     |
+| @faber2019tourism      | Percentage     |
+| @hjort2019arrival      | Percentage     |
+| @johnson2020regulation | Percentage     |
+| @beerli2021abolition   | Percentage     |
+| @norris2021effects     | Percentage     |
+| @berkouwer2022credit   | Percentage     |
+| @cabral2022demand      | Elasticity     |
+| @carranza2022job       | Percentage     |
+| @mirenda2022economic   | Percentage     |
+
+For a simple regression model, $Y = \beta X$
+
+When both $Y$ and $X$ are transformed, the coefficient estimate represents elasticity, indicating the percentage change in $Y$ for a 1% change in $X$.
+
+When only $Y$ is in transformed and $X$ is in raw form, the coefficient estimate represents the percentage change in $Y$ for a one-unit change in $X$.
 
 ### Lambert W x F Transformation
 

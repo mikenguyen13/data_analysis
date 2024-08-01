@@ -199,7 +199,7 @@ Residual properties
 
 -   Least Squares estimation does not require assumptions of normality.
 -   However, to do inference on the parameters, we need distributional assumptions.
--   Inference on $\beta_0,\beta_1$ and $Y_h$ are not extremely sensitive to moderate departures from normality, especially if the sample size is large
+-   Inference on $\beta_0,\beta_1$ and $Y_h$ are not extremely sensitive to moderate departures from normality, especially if the sample size is large.
 -   Inference on $Y_{pred}$ is very sensitive to the normality assumptions.
 
 **Normal Error Regression Model**
@@ -1420,7 +1420,7 @@ $$
 **Hierarchy of OLS Assumptions**
 
 | Identification Data Description | Unbiasedness Consistency  | [Gauss- Markov](#gauss-%20markov-theorem) (BLUE) Asymptotic Inference (z and Chi-squared) | Classical LM (BUE) Small-sample Inference (t and F) |
-|------------------|------------------|--------------------|------------------|
+|------------------|------------------|-------------------|------------------|
 | Variation in $\mathbf{X}$       | Variation in $\mathbf{X}$ | Variation in $\mathbf{X}$                                                                 | Variation in $\mathbf{X}$                           |
 |                                 | Random Sampling           | Random Sampling                                                                           | Random Sampling                                     |
 |                                 | Linearity in Parameters   | Linearity in Parameters                                                                   | Linearity in Parameters                             |
@@ -1919,6 +1919,30 @@ Sources of variation
 $$
 VIF = \frac{1}{1-R_1^2} 
 $$
+
+-   **Multicollinearity and VIF:**
+
+    -   High VIFs with indicator variables are normal and not problematic.
+
+    -   VIF is generally not useful for detecting multicollinearity concerns in models with fixed effects.
+
+-   **Overemphasis on Multicollinearity:**
+
+    -   Multicollinearity inflates standard errors and widens confidence intervals but does not bias results.
+
+    -   If key variables have narrow confidence intervals, multicollinearity is not an issue.
+
+-   **Goldberger's Insight** [@goldberger1991course]**:**
+
+    -   Multicollinearity is akin to small sample size ("micronumerosity").
+
+    -   Large standard errors are expected with highly correlated independent variables.
+
+-   **Practical Implications:**
+
+    -   Evaluate whether confidence intervals for key variables are sufficiently narrow.
+
+    -   If not, the study is inconclusive, and a larger dataset or redesigned study is needed.
 
 #### Standard Errors
 

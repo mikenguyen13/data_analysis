@@ -868,18 +868,15 @@ sea2 <- microsynth(
 )
 ```
 
-## Synthetic Difference-in-differences
-
-reference: [@arkhangelsky2021synthetic]
 
 ## Augmented Synthetic Control Method
 
-package: `augsynth` \* [@ben2021augmented]
+package: `augsynth` [@ben2021augmented]
 
 ## Synthetic Controls with Staggered Adoption
 
-references: \* <https://ebenmichael.github.io/assets/research/jamboree.pdf> \* [@ben2022synthetic] package: `augsynth`
+references: <https://ebenmichael.github.io/assets/research/jamboree.pdf> [@ben2022synthetic] package: `augsynth`
 
 ## Generalized Synthetic Control
 
-reference: \* [@xu2017generalized]
+reference: [@xu2017generalized]
