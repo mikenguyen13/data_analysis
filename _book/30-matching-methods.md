@@ -668,7 +668,9 @@ summary(m.out1, un = FALSE)
 plot(m.out1, type = "jitter", interactive = FALSE)
 ```
 
-<img src="30-matching-methods_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{30-matching-methods_files/figure-latex/unnamed-chunk-4-1} \end{center}
 
 ```r
 
@@ -680,7 +682,9 @@ plot(
 )
 ```
 
-<img src="30-matching-methods_files/figure-html/unnamed-chunk-4-2.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{30-matching-methods_files/figure-latex/unnamed-chunk-4-2} \end{center}
 
 Try Full Match (i.e., every treated matches with one control, and every control with one treated).
 
@@ -734,7 +738,9 @@ summary(m.out2, un = FALSE)
 plot(summary(m.out2))
 ```
 
-<img src="30-matching-methods_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{30-matching-methods_files/figure-latex/unnamed-chunk-6-1} \end{center}
 
 Exact Matching
 
@@ -1835,7 +1841,9 @@ rcrbounds::effect_test(rcr_res, h0 = 0)
 plot(rcr_res)
 ```
 
-<img src="30-matching-methods_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{30-matching-methods_files/figure-latex/unnamed-chunk-23-1} \end{center}
 
 ### Coefficient-stability Bounds
 

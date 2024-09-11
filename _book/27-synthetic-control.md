@@ -15,7 +15,7 @@ Notes
 
 -   For a review of the method, see [@abadie2021using]
 
--   SCMs can also be used under the Bayesian framework where we do not have to impose any restrictive priori [@kim2020bayesian]
+-   SCMs can also be used under the Bayesian framework ([Bayesian Synthetic Control]) where we do not have to impose any restrictive priori [@kim2020bayesian]
 
 -   Different from [Matching Methods] because SCMs match on the pre-treatment outcomes in each period while [Matching Methods] match on the number of covariates.
 
@@ -332,7 +332,9 @@ abline(v   = 15,
        lty = 2)
 ```
 
-<img src="27-synthetic-control_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{27-synthetic-control_files/figure-latex/unnamed-chunk-6-1} \end{center}
 
 Gaps plot:
 
@@ -350,7 +352,9 @@ abline(v   = 15,
        lty = 2)
 ```
 
-<img src="27-synthetic-control_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{27-synthetic-control_files/figure-latex/unnamed-chunk-7-1} \end{center}
 
 Alternatively, `gsynth` provides options to estimate iterative fixed effects, and handle multiple treated units at tat time.
 
@@ -389,21 +393,27 @@ gsynth.out <- gsynth(
 plot(gsynth.out)
 ```
 
-<img src="27-synthetic-control_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{27-synthetic-control_files/figure-latex/unnamed-chunk-9-1} \end{center}
 
 
 ```r
 plot(gsynth.out, type = "counterfactual")
 ```
 
-<img src="27-synthetic-control_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{27-synthetic-control_files/figure-latex/unnamed-chunk-10-1} \end{center}
 
 
 ```r
 plot(gsynth.out, type = "counterfactual", raw = "all") 
 ```
 
-<img src="27-synthetic-control_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{27-synthetic-control_files/figure-latex/unnamed-chunk-11-1} \end{center}
 
 ```r
 # shows estimations for the control cases
@@ -588,7 +598,9 @@ path.plot(
 )
 ```
 
-<img src="27-synthetic-control_files/figure-html/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{27-synthetic-control_files/figure-latex/unnamed-chunk-18-1} \end{center}
 
 
 ```r
@@ -602,7 +614,9 @@ gaps.plot(
 )
 ```
 
-<img src="27-synthetic-control_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{27-synthetic-control_files/figure-latex/unnamed-chunk-19-1} \end{center}
 
 Doubly Robust Difference-in-Differences
 
@@ -763,7 +777,9 @@ path.plot(
 )
 ```
 
-<img src="27-synthetic-control_files/figure-html/unnamed-chunk-27-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{27-synthetic-control_files/figure-latex/unnamed-chunk-27-1} \end{center}
 
 
 ```r
@@ -777,7 +793,9 @@ gaps.plot(
 )
 ```
 
-<img src="27-synthetic-control_files/figure-html/unnamed-chunk-28-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{27-synthetic-control_files/figure-latex/unnamed-chunk-28-1} \end{center}
 
 You could also run placebo tests
 
@@ -868,15 +886,22 @@ sea2 <- microsynth(
 )
 ```
 
-
 ## Augmented Synthetic Control Method
 
 package: `augsynth` [@ben2021augmented]
 
-## Synthetic Controls with Staggered Adoption
+## Synthetic Control with Staggered Adoption
 
 references: <https://ebenmichael.github.io/assets/research/jamboree.pdf> [@ben2022synthetic] package: `augsynth`
+
+## Bayesian Synthetic Control
+
+@kim2020bayesian
+
+@pang2022bayesian
 
 ## Generalized Synthetic Control
 
 reference: [@xu2017generalized]
+
+-   Bootstrap procedure here is biased [@li2023statistical]. Hence, we need to follow @li2023statistical in terms of SEs estimation.

@@ -265,7 +265,9 @@ result <-
 result$plot
 ```
 
-<img src="34-mediation_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{34-mediation_files/figure-latex/unnamed-chunk-1-1} \end{center}
 
 ##### With Instrument
 
@@ -765,16 +767,16 @@ summary(med.out)
 #> Quasi-Bayesian Confidence Intervals
 #> 
 #>                           Estimate 95% CI Lower 95% CI Upper p-value    
-#> ACME (control)            0.079925     0.035230         0.14  <2e-16 ***
-#> ACME (treated)            0.097504     0.045279         0.17  <2e-16 ***
-#> ADE (control)            -0.000865    -0.107228         0.11    0.98    
-#> ADE (treated)             0.016714    -0.121163         0.14    0.76    
-#> Total Effect              0.096640    -0.046523         0.23    0.26    
-#> Prop. Mediated (control)  0.672278    -5.266859         3.40    0.26    
-#> Prop. Mediated (treated)  0.860650    -6.754965         3.60    0.26    
-#> ACME (average)            0.088715     0.040207         0.15  <2e-16 ***
-#> ADE (average)             0.007925    -0.111833         0.14    0.88    
-#> Prop. Mediated (average)  0.766464    -5.848496         3.43    0.26    
+#> ACME (control)             0.07417      0.02401         0.14  <2e-16 ***
+#> ACME (treated)             0.09496      0.02702         0.16  <2e-16 ***
+#> ADE (control)             -0.01353     -0.11855         0.11    0.76    
+#> ADE (treated)              0.00726     -0.11007         0.11    0.90    
+#> Total Effect               0.08143     -0.05646         0.19    0.26    
+#> Prop. Mediated (control)   0.64510    -14.31243         3.13    0.26    
+#> Prop. Mediated (treated)   0.98006    -17.83202         4.01    0.26    
+#> ACME (average)             0.08457      0.02738         0.15  <2e-16 ***
+#> ADE (average)             -0.00314     -0.11457         0.12    1.00    
+#> Prop. Mediated (average)   0.81258    -16.07223         3.55    0.26    
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -788,10 +790,10 @@ test.TMint(med.out, conf.level = .95) # test treatment-mediator interaction effe
 #> 	Test of ACME(1) - ACME(0) = 0
 #> 
 #> data:  estimates from med.out
-#> ACME(1) - ACME(0) = 0.017579, p-value = 0.44
+#> ACME(1) - ACME(0) = 0.020796, p-value = 0.3
 #> alternative hypothesis: true ACME(1) - ACME(0) is not equal to 0
 #> 95 percent confidence interval:
-#>  -0.02676143  0.06257828
+#>  -0.01757310  0.07110837
 ```
 
 
@@ -799,7 +801,9 @@ test.TMint(med.out, conf.level = .95) # test treatment-mediator interaction effe
 plot(med.out)
 ```
 
-<img src="34-mediation_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{34-mediation_files/figure-latex/unnamed-chunk-13-1} \end{center}
 
 `mediation` can be used in conjunction with any of your imputation packages.
 
@@ -846,8 +850,8 @@ summary(sens.out)
 #> Sensitivity Region: ACME for Control Group
 #> 
 #>      Rho ACME(control) 95% CI Lower 95% CI Upper R^2_M*R^2_Y* R^2_M~R^2_Y~
-#> [1,] 0.3        0.0061      -0.0070       0.0163         0.09       0.0493
-#> [2,] 0.4       -0.0081      -0.0254       0.0043         0.16       0.0877
+#> [1,] 0.3        0.0062      -0.0073       0.0188         0.09       0.0493
+#> [2,] 0.4       -0.0084      -0.0238       0.0017         0.16       0.0877
 #> 
 #> Rho at which ACME for Control Group = 0: 0.3
 #> R^2_M*R^2_Y* at which ACME for Control Group = 0: 0.09
@@ -857,8 +861,8 @@ summary(sens.out)
 #> Sensitivity Region: ACME for Treatment Group
 #> 
 #>      Rho ACME(treated) 95% CI Lower 95% CI Upper R^2_M*R^2_Y* R^2_M~R^2_Y~
-#> [1,] 0.3        0.0069      -0.0085       0.0197         0.09       0.0493
-#> [2,] 0.4       -0.0099      -0.0304       0.0054         0.16       0.0877
+#> [1,] 0.3        0.0071      -0.0092       0.0213         0.09       0.0493
+#> [2,] 0.4       -0.0101      -0.0295       0.0023         0.16       0.0877
 #> 
 #> Rho at which ACME for Treatment Group = 0: 0.3
 #> R^2_M*R^2_Y* at which ACME for Treatment Group = 0: 0.09

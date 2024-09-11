@@ -170,7 +170,9 @@ p2 <- ggplot(aggregate_data, aes(x = income, y = consumption)) +
 gridExtra::grid.arrange(grobs = list(p1, p2), ncol = 2)
 ```
 
-<img src="33-biases_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{33-biases_files/figure-latex/unnamed-chunk-3-1} \end{center}
 
 From these plots, you can see the relationship at the individual level, with each neighborhood being colored differently in the first plot. The second plot shows the aggregate data, where each point now represents a whole neighborhood.
 
@@ -393,7 +395,9 @@ p3 <-
 gridExtra::grid.arrange(grobs = list(p1, p2, p3), ncol = 1)
 ```
 
-<img src="33-biases_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{33-biases_files/figure-latex/unnamed-chunk-5-1} \end{center}
 
 ## Contamination Bias
 
@@ -472,7 +476,9 @@ p <- ggplot(df, aes(x = earnings)) +
 print(p)
 ```
 
-<img src="33-biases_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{33-biases_files/figure-latex/unnamed-chunk-7-1} \end{center}
 
 In the plot, the "True Avg" might be lower than the "Survivor Avg", indicating that by only looking at the survivors, we overestimate the average earnings.
 
@@ -571,7 +577,9 @@ p <- ggplot(df, aes(x = results)) +
 print(p)
 ```
 
-<img src="33-biases_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{33-biases_files/figure-latex/unnamed-chunk-9-1} \end{center}
 
 The plot might show that the "True Avg Effect" is around zero, while the "Published Avg Effect" is likely higher or lower, depending on which studies happen to have significant results in the simulation.
 

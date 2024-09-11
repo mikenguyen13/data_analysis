@@ -95,16 +95,16 @@ df = data.frame(outcome, time, treatment, timesincetreat)
 
 head(df, 10)
 #>      outcome time treatment timesincetreat
-#> 1   25.72923    1         0              0
-#> 2   40.39083    2         0              0
-#> 3   55.59909    3         0              0
-#> 4   71.08415    4         0              0
-#> 5   84.07780    5         0              0
-#> 6   99.76302    6         0              0
-#> 7  115.22459    7         0              0
-#> 8  130.76440    8         0              0
-#> 9  144.72916    9         0              0
-#> 10 158.72890   10         0              0
+#> 1   25.63491    1         0              0
+#> 2   40.96409    2         0              0
+#> 3   55.07205    3         0              0
+#> 4   70.59040    4         0              0
+#> 5   84.64772    5         0              0
+#> 6   99.90750    6         0              0
+#> 7  114.88262    7         0              0
+#> 8  129.18464    8         0              0
+#> 9  145.03044    9         0              0
+#> 10 161.96847   10         0              0
 ```
 
 Visualize
@@ -121,7 +121,9 @@ ts <- lm(outcome ~ time + treatment + timesincetreat, data = df)
 lines(df$time, ts$fitted.values, col = "red")
 ```
 
-<img src="30-interrupted-time-series_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{30-interrupted-time-series_files/figure-latex/unnamed-chunk-2-1} \end{center}
 
 
 ```r
@@ -131,21 +133,21 @@ summary(ts)
 #> lm(formula = outcome ~ time + treatment + timesincetreat, data = df)
 #> 
 #> Residuals:
-#>     Min      1Q  Median      3Q     Max 
-#> -2.8340 -0.6319 -0.0062  0.6244  3.4592 
+#>      Min       1Q   Median       3Q      Max 
+#> -2.39154 -0.56425 -0.05071  0.65465  2.72381 
 #> 
 #> Coefficients:
 #>                 Estimate Std. Error  t value Pr(>|t|)    
-#> (Intercept)     9.984342   0.143963    69.35   <2e-16 ***
-#> time           15.001229   0.001242 12077.30   <2e-16 ***
-#> treatment      19.912325   0.213492    93.27   <2e-16 ***
-#> timesincetreat 24.997796   0.002071 12068.43   <2e-16 ***
+#> (Intercept)     9.881227   0.137363    71.94   <2e-16 ***
+#> time           14.999826   0.001185 12656.45   <2e-16 ***
+#> treatment      20.409779   0.203703   100.19   <2e-16 ***
+#> timesincetreat 24.997499   0.001976 12648.18   <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Residual standard error: 1.014 on 361 degrees of freedom
+#> Residual standard error: 0.9677 on 361 degrees of freedom
 #> Multiple R-squared:      1,	Adjusted R-squared:      1 
-#> F-statistic: 9.27e+08 on 3 and 361 DF,  p-value: < 2.2e-16
+#> F-statistic: 1.018e+09 on 3 and 361 DF,  p-value: < 2.2e-16
 ```
 
 Interpretation
@@ -208,7 +210,9 @@ lines(
 abline(v = interven, col = "red", lty = 2)
 ```
 
-<img src="30-interrupted-time-series_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{30-interrupted-time-series_files/figure-latex/unnamed-chunk-4-1} \end{center}
 
 Possible threats to the validity of interrupted time series analysis [@baicker2019testing]
 
@@ -236,7 +240,9 @@ simple_ts <- lm(outcome ~ time, data = df)
 plot(resid(simple_ts))
 ```
 
-<img src="30-interrupted-time-series_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{30-interrupted-time-series_files/figure-latex/unnamed-chunk-5-1} \end{center}
 
 ```r
 
@@ -244,7 +250,9 @@ plot(resid(simple_ts))
 acf(resid(simple_ts))
 ```
 
-<img src="30-interrupted-time-series_files/figure-html/unnamed-chunk-5-2.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{30-interrupted-time-series_files/figure-latex/unnamed-chunk-5-2} \end{center}
 
 This is not the best example since I created this dataset. But when residuals do have autocorrelation, you should not see any patterns (i.e., points should be randomly distributed on the plot)
 
@@ -257,7 +265,7 @@ lmtest::dwtest(df$outcome ~ df$time)
 #> 	Durbin-Watson test
 #> 
 #> data:  df$outcome ~ df$time
-#> DW = 0.00037609, p-value < 2.2e-16
+#> DW = 0.00037532, p-value < 2.2e-16
 #> alternative hypothesis: true autocorrelation is greater than 0
 ```
 
@@ -269,15 +277,15 @@ A solution to this problem is to use more advanced time series analysis (e.g., A
 ```r
 forecast::auto.arima(df$outcome, xreg = as.matrix(df[,-1]))
 #> Series: df$outcome 
-#> Regression with ARIMA(0,0,0) errors 
+#> Regression with ARIMA(0,0,1) errors 
 #> 
 #> Coefficients:
-#>       intercept     time  treatment  timesincetreat
-#>          9.9843  15.0012    19.9123         24.9978
-#> s.e.     0.1432   0.0012     0.2123          0.0021
+#>           ma1  intercept     time  treatment  timesincetreat
+#>       -0.0794     9.8817  14.9998    20.4170         24.9975
+#> s.e.   0.0533     0.1255   0.0011     0.1864          0.0018
 #> 
-#> sigma^2 = 1.029:  log likelihood = -521.03
-#> AIC=1052.07   AICc=1052.23   BIC=1071.57
+#> sigma^2 = 0.9332:  log likelihood = -502.78
+#> AIC=1017.56   AICc=1017.79   BIC=1040.95
 ```
 
 ## Multiple Groups

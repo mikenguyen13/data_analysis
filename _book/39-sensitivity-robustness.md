@@ -126,7 +126,9 @@ plots = stability_plot(
 plots
 ```
 
-<img src="39-sensitivity-robustness_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{39-sensitivity-robustness_files/figure-latex/unnamed-chunk-3-1} \end{center}
 
 ```r
 
@@ -197,19 +199,31 @@ knitr::kable(grid1 %>% head(10))
 ```
 
 
-
-| Diamond dimensions| Depth| Table width| Cut FE| Color FE|np_fe |
-|------------------:|-----:|-----------:|------:|--------:|:-----|
-|                  1|     0|           0|      0|        0|      |
-|                  1|     1|           0|      0|        0|      |
-|                  1|     0|           1|      0|        0|      |
-|                  1|     1|           1|      0|        0|      |
-|                  1|     0|           0|      1|        0|      |
-|                  1|     1|           0|      1|        0|      |
-|                  1|     0|           1|      1|        0|      |
-|                  1|     1|           1|      1|        0|      |
-|                  1|     0|           0|      0|        1|      |
-|                  1|     1|           0|      0|        1|      |
+\begin{tabular}{r|r|r|r|r|l}
+\hline
+Diamond dimensions & Depth & Table width & Cut FE & Color FE & np\_fe\\
+\hline
+1 & 0 & 0 & 0 & 0 & \\
+\hline
+1 & 1 & 0 & 0 & 0 & \\
+\hline
+1 & 0 & 1 & 0 & 0 & \\
+\hline
+1 & 1 & 1 & 0 & 0 & \\
+\hline
+1 & 0 & 0 & 1 & 0 & \\
+\hline
+1 & 1 & 0 & 1 & 0 & \\
+\hline
+1 & 0 & 1 & 1 & 0 & \\
+\hline
+1 & 1 & 1 & 1 & 0 & \\
+\hline
+1 & 0 & 0 & 0 & 1 & \\
+\hline
+1 & 1 & 0 & 0 & 1 & \\
+\hline
+\end{tabular}
 
 
 
@@ -231,19 +245,31 @@ knitr::kable(grid2 %>% head(10))
 ```
 
 
-
-| Diamond dimensions| Depth| Table width|np_fe |expr                                               |
-|------------------:|-----:|-----------:|:-----|:--------------------------------------------------|
-|                  1|     0|           0|0     |price~carat+x+y+z&#124;0&#124;0&#124;0             |
-|                  1|     1|           0|0     |price~carat+x+y+z+depth&#124;0&#124;0&#124;0       |
-|                  1|     0|           1|0     |price~carat+x+y+z+table&#124;0&#124;0&#124;0       |
-|                  1|     1|           1|0     |price~carat+x+y+z+depth+table&#124;0&#124;0&#124;0 |
-|                  1|     0|           0|0     |price~carat+x+y+z&#124;0&#124;0&#124;0             |
-|                  1|     1|           0|0     |price~carat+x+y+z+depth&#124;0&#124;0&#124;0       |
-|                  1|     0|           1|0     |price~carat+x+y+z+table&#124;0&#124;0&#124;0       |
-|                  1|     1|           1|0     |price~carat+x+y+z+depth+table&#124;0&#124;0&#124;0 |
-|                  1|     0|           0|0     |price~carat+x+y+z&#124;0&#124;0&#124;0             |
-|                  1|     1|           0|0     |price~carat+x+y+z+depth&#124;0&#124;0&#124;0       |
+\begin{tabular}{r|r|r|l|l}
+\hline
+Diamond dimensions & Depth & Table width & np\_fe & expr\\
+\hline
+1 & 0 & 0 & 0 & price\textasciitilde{}carat+x+y+z|0|0|0\\
+\hline
+1 & 1 & 0 & 0 & price\textasciitilde{}carat+x+y+z+depth|0|0|0\\
+\hline
+1 & 0 & 1 & 0 & price\textasciitilde{}carat+x+y+z+table|0|0|0\\
+\hline
+1 & 1 & 1 & 0 & price\textasciitilde{}carat+x+y+z+depth+table|0|0|0\\
+\hline
+1 & 0 & 0 & 0 & price\textasciitilde{}carat+x+y+z|0|0|0\\
+\hline
+1 & 1 & 0 & 0 & price\textasciitilde{}carat+x+y+z+depth|0|0|0\\
+\hline
+1 & 0 & 1 & 0 & price\textasciitilde{}carat+x+y+z+table|0|0|0\\
+\hline
+1 & 1 & 1 & 0 & price\textasciitilde{}carat+x+y+z+depth+table|0|0|0\\
+\hline
+1 & 0 & 0 & 0 & price\textasciitilde{}carat+x+y+z|0|0|0\\
+\hline
+1 & 1 & 0 & 0 & price\textasciitilde{}carat+x+y+z+depth|0|0|0\\
+\hline
+\end{tabular}
 
 
 
@@ -263,19 +289,31 @@ knitr::kable(grid3 %>% head(10))
 ```
 
 
-
-| Diamond dimensions| Depth| Table width|np_fe |expr                                               |     coef|p      | error_high| error_low|
-|------------------:|-----:|-----------:|:-----|:--------------------------------------------------|--------:|:------|----------:|---------:|
-|                  1|     0|           0|0     |price~carat+x+y+z&#124;0&#124;0&#124;0             | 10461.86|p<0.01 |   11031.84|  9891.876|
-|                  1|     1|           0|0     |price~carat+x+y+z+depth&#124;0&#124;0&#124;0       | 10808.25|p<0.01 |   11388.81| 10227.683|
-|                  1|     0|           1|0     |price~carat+x+y+z+table&#124;0&#124;0&#124;0       | 10423.42|p<0.01 |   10992.00|  9854.849|
-|                  1|     1|           1|0     |price~carat+x+y+z+depth+table&#124;0&#124;0&#124;0 | 10851.31|p<0.01 |   11428.58| 10274.037|
-|                  1|     0|           0|0     |price~carat+x+y+z&#124;0&#124;0&#124;0             | 10461.86|p<0.01 |   11031.84|  9891.876|
-|                  1|     1|           0|0     |price~carat+x+y+z+depth&#124;0&#124;0&#124;0       | 10808.25|p<0.01 |   11388.81| 10227.683|
-|                  1|     0|           1|0     |price~carat+x+y+z+table&#124;0&#124;0&#124;0       | 10423.42|p<0.01 |   10992.00|  9854.849|
-|                  1|     1|           1|0     |price~carat+x+y+z+depth+table&#124;0&#124;0&#124;0 | 10851.31|p<0.01 |   11428.58| 10274.037|
-|                  1|     0|           0|0     |price~carat+x+y+z&#124;0&#124;0&#124;0             | 10461.86|p<0.01 |   11031.84|  9891.876|
-|                  1|     1|           0|0     |price~carat+x+y+z+depth&#124;0&#124;0&#124;0       | 10808.25|p<0.01 |   11388.81| 10227.683|
+\begin{tabular}{r|r|r|l|l|r|l|r|r}
+\hline
+Diamond dimensions & Depth & Table width & np\_fe & expr & coef & p & error\_high & error\_low\\
+\hline
+1 & 0 & 0 & 0 & price\textasciitilde{}carat+x+y+z|0|0|0 & 10461.86 & p<0.01 & 11031.84 & 9891.876\\
+\hline
+1 & 1 & 0 & 0 & price\textasciitilde{}carat+x+y+z+depth|0|0|0 & 10808.25 & p<0.01 & 11388.81 & 10227.683\\
+\hline
+1 & 0 & 1 & 0 & price\textasciitilde{}carat+x+y+z+table|0|0|0 & 10423.42 & p<0.01 & 10992.00 & 9854.849\\
+\hline
+1 & 1 & 1 & 0 & price\textasciitilde{}carat+x+y+z+depth+table|0|0|0 & 10851.31 & p<0.01 & 11428.58 & 10274.037\\
+\hline
+1 & 0 & 0 & 0 & price\textasciitilde{}carat+x+y+z|0|0|0 & 10461.86 & p<0.01 & 11031.84 & 9891.876\\
+\hline
+1 & 1 & 0 & 0 & price\textasciitilde{}carat+x+y+z+depth|0|0|0 & 10808.25 & p<0.01 & 11388.81 & 10227.683\\
+\hline
+1 & 0 & 1 & 0 & price\textasciitilde{}carat+x+y+z+table|0|0|0 & 10423.42 & p<0.01 & 10992.00 & 9854.849\\
+\hline
+1 & 1 & 1 & 0 & price\textasciitilde{}carat+x+y+z+depth+table|0|0|0 & 10851.31 & p<0.01 & 11428.58 & 10274.037\\
+\hline
+1 & 0 & 0 & 0 & price\textasciitilde{}carat+x+y+z|0|0|0 & 10461.86 & p<0.01 & 11031.84 & 9891.876\\
+\hline
+1 & 1 & 0 & 0 & price\textasciitilde{}carat+x+y+z+depth|0|0|0 & 10808.25 & p<0.01 & 11388.81 & 10227.683\\
+\hline
+\end{tabular}
 
 
 
@@ -298,19 +336,31 @@ knitr::kable(coef_grid %>% head(10))
 ```
 
 
-
-| Diamond dimensions| Depth| Table width|np_fe |expr                                               |     coef|p      | error_high| error_low| model|
-|------------------:|-----:|-----------:|:-----|:--------------------------------------------------|--------:|:------|----------:|---------:|-----:|
-|                  1|     0|           0|0     |price~carat+x+y+z&#124;0&#124;0&#124;0             | 10461.86|p<0.01 |   11031.84|  9891.876|     1|
-|                  1|     1|           0|0     |price~carat+x+y+z+depth&#124;0&#124;0&#124;0       | 10808.25|p<0.01 |   11388.81| 10227.683|     2|
-|                  1|     0|           1|0     |price~carat+x+y+z+table&#124;0&#124;0&#124;0       | 10423.42|p<0.01 |   10992.00|  9854.849|     3|
-|                  1|     1|           1|0     |price~carat+x+y+z+depth+table&#124;0&#124;0&#124;0 | 10851.31|p<0.01 |   11428.58| 10274.037|     4|
-|                  1|     0|           0|0     |price~carat+x+y+z&#124;0&#124;0&#124;0             | 10461.86|p<0.01 |   11031.84|  9891.876|     5|
-|                  1|     1|           0|0     |price~carat+x+y+z+depth&#124;0&#124;0&#124;0       | 10808.25|p<0.01 |   11388.81| 10227.683|     6|
-|                  1|     0|           1|0     |price~carat+x+y+z+table&#124;0&#124;0&#124;0       | 10423.42|p<0.01 |   10992.00|  9854.849|     7|
-|                  1|     1|           1|0     |price~carat+x+y+z+depth+table&#124;0&#124;0&#124;0 | 10851.31|p<0.01 |   11428.58| 10274.037|     8|
-|                  1|     0|           0|0     |price~carat+x+y+z&#124;0&#124;0&#124;0             | 10461.86|p<0.01 |   11031.84|  9891.876|     9|
-|                  1|     1|           0|0     |price~carat+x+y+z+depth&#124;0&#124;0&#124;0       | 10808.25|p<0.01 |   11388.81| 10227.683|    10|
+\begin{tabular}{r|r|r|l|l|r|l|r|r|r}
+\hline
+Diamond dimensions & Depth & Table width & np\_fe & expr & coef & p & error\_high & error\_low & model\\
+\hline
+1 & 0 & 0 & 0 & price\textasciitilde{}carat+x+y+z|0|0|0 & 10461.86 & p<0.01 & 11031.84 & 9891.876 & 1\\
+\hline
+1 & 1 & 0 & 0 & price\textasciitilde{}carat+x+y+z+depth|0|0|0 & 10808.25 & p<0.01 & 11388.81 & 10227.683 & 2\\
+\hline
+1 & 0 & 1 & 0 & price\textasciitilde{}carat+x+y+z+table|0|0|0 & 10423.42 & p<0.01 & 10992.00 & 9854.849 & 3\\
+\hline
+1 & 1 & 1 & 0 & price\textasciitilde{}carat+x+y+z+depth+table|0|0|0 & 10851.31 & p<0.01 & 11428.58 & 10274.037 & 4\\
+\hline
+1 & 0 & 0 & 0 & price\textasciitilde{}carat+x+y+z|0|0|0 & 10461.86 & p<0.01 & 11031.84 & 9891.876 & 5\\
+\hline
+1 & 1 & 0 & 0 & price\textasciitilde{}carat+x+y+z+depth|0|0|0 & 10808.25 & p<0.01 & 11388.81 & 10227.683 & 6\\
+\hline
+1 & 0 & 1 & 0 & price\textasciitilde{}carat+x+y+z+table|0|0|0 & 10423.42 & p<0.01 & 10992.00 & 9854.849 & 7\\
+\hline
+1 & 1 & 1 & 0 & price\textasciitilde{}carat+x+y+z+depth+table|0|0|0 & 10851.31 & p<0.01 & 11428.58 & 10274.037 & 8\\
+\hline
+1 & 0 & 0 & 0 & price\textasciitilde{}carat+x+y+z|0|0|0 & 10461.86 & p<0.01 & 11031.84 & 9891.876 & 9\\
+\hline
+1 & 1 & 0 & 0 & price\textasciitilde{}carat+x+y+z+depth|0|0|0 & 10808.25 & p<0.01 & 11388.81 & 10227.683 & 10\\
+\hline
+\end{tabular}
 
 
 
@@ -334,7 +384,9 @@ stability_plot(data = diamonds,
                run_to = 7)
 ```
 
-<img src="39-sensitivity-robustness_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{39-sensitivity-robustness_files/figure-latex/unnamed-chunk-4-1} \end{center}
 
 In step 2, we can modify to use other function (e.g., `glm`)
 
@@ -374,17 +426,27 @@ knitr::kable(grid1 %>% head(10))
 ```
 
 
-
-| Diamond dimensions| Depth| Table width| Clarity|np_fe |expr                                                |
-|------------------:|-----:|-----------:|-------:|:-----|:---------------------------------------------------|
-|                  1|     0|           0|       0|      |above_med_price~carat+x + y + z                     |
-|                  1|     1|           0|       0|      |above_med_price~carat+x + y + z+depth               |
-|                  1|     0|           1|       0|      |above_med_price~carat+x + y + z+table               |
-|                  1|     1|           1|       0|      |above_med_price~carat+x + y + z+depth+table         |
-|                  1|     0|           0|       1|      |above_med_price~carat+x + y + z+clarity             |
-|                  1|     1|           0|       1|      |above_med_price~carat+x + y + z+depth+clarity       |
-|                  1|     0|           1|       1|      |above_med_price~carat+x + y + z+table+clarity       |
-|                  1|     1|           1|       1|      |above_med_price~carat+x + y + z+depth+table+clarity |
+\begin{tabular}{r|r|r|r|l|l}
+\hline
+Diamond dimensions & Depth & Table width & Clarity & np\_fe & expr\\
+\hline
+1 & 0 & 0 & 0 &  & above\_med\_price\textasciitilde{}carat+x + y + z\\
+\hline
+1 & 1 & 0 & 0 &  & above\_med\_price\textasciitilde{}carat+x + y + z+depth\\
+\hline
+1 & 0 & 1 & 0 &  & above\_med\_price\textasciitilde{}carat+x + y + z+table\\
+\hline
+1 & 1 & 1 & 0 &  & above\_med\_price\textasciitilde{}carat+x + y + z+depth+table\\
+\hline
+1 & 0 & 0 & 1 &  & above\_med\_price\textasciitilde{}carat+x + y + z+clarity\\
+\hline
+1 & 1 & 0 & 1 &  & above\_med\_price\textasciitilde{}carat+x + y + z+depth+clarity\\
+\hline
+1 & 0 & 1 & 1 &  & above\_med\_price\textasciitilde{}carat+x + y + z+table+clarity\\
+\hline
+1 & 1 & 1 & 1 &  & above\_med\_price\textasciitilde{}carat+x + y + z+depth+table+clarity\\
+\hline
+\end{tabular}
 
 
 
@@ -414,7 +476,9 @@ stability_plot(grid = grid1,
                run_from=3)
 ```
 
-<img src="39-sensitivity-robustness_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{39-sensitivity-robustness_files/figure-latex/unnamed-chunk-5-1} \end{center}
 
 For getting other specification (e.g., different CI)
 
@@ -460,7 +524,9 @@ stability_plot(grid = grid1,
                run_from = 3)
 ```
 
-<img src="39-sensitivity-robustness_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{39-sensitivity-robustness_files/figure-latex/unnamed-chunk-6-1} \end{center}
 
 To get your customized plot
 
@@ -528,7 +594,9 @@ cowplot::plot_grid(coef_plot, control_plot, rel_heights=c(1,0.5),
                    align='v', ncol=1, axis='b')
 ```
 
-<img src="39-sensitivity-robustness_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{39-sensitivity-robustness_files/figure-latex/unnamed-chunk-7-1} \end{center}
 
 To get different model specification (e.g., probit vs. logit)
 
@@ -647,7 +715,9 @@ cowplot::plot_grid(
 )
 ```
 
-<img src="39-sensitivity-robustness_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{39-sensitivity-robustness_files/figure-latex/unnamed-chunk-8-1} \end{center}
 
 ### rdfanalysis
 
@@ -669,7 +739,9 @@ load(url("https://joachim-gassen.github.io/data/rdf_ests.RData"))
 plot_rdf_spec_curve(ests, "est", "lb", "ub") 
 ```
 
-<img src="39-sensitivity-robustness_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{39-sensitivity-robustness_files/figure-latex/unnamed-chunk-10-1} \end{center}
 
 Shiny app for readers to explore
 
@@ -715,7 +787,7 @@ o_beta(
   type  = "lm",        # model type
   data  = mtcars       # dataset
 ) 
-#> # A tibble: 10 × 2
+#> # A tibble: 10 x 2
 #>    Name                           Value
 #>    <chr>                          <dbl>
 #>  1 beta*                         -2.00 

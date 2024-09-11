@@ -265,7 +265,9 @@ result <-
 result$plot
 ```
 
-<img src="35-mediation_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{35-mediation_files/figure-latex/unnamed-chunk-1-1} \end{center}
 
 ##### With Instrument
 
@@ -799,7 +801,9 @@ test.TMint(med.out, conf.level = .95) # test treatment-mediator interaction effe
 plot(med.out)
 ```
 
-<img src="35-mediation_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{35-mediation_files/figure-latex/unnamed-chunk-13-1} \end{center}
 
 `mediation` can be used in conjunction with any of your imputation packages.
 

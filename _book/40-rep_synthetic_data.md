@@ -180,7 +180,9 @@ iris |>
     GGally::ggpairs()
 ```
 
-<img src="40-rep_synthetic_data_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{40-rep_synthetic_data_files/figure-latex/unnamed-chunk-2-1} \end{center}
 
 ```r
 
@@ -188,7 +190,9 @@ syn_df$syn |>
     GGally::ggpairs()
 ```
 
-<img src="40-rep_synthetic_data_files/figure-html/unnamed-chunk-2-2.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{40-rep_synthetic_data_files/figure-latex/unnamed-chunk-2-2} \end{center}
 
 
 ```r
@@ -281,7 +285,9 @@ compare(lm_syn, iris)
 #> Confidence interval plot:
 ```
 
-<img src="40-rep_synthetic_data_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{40-rep_synthetic_data_files/figure-latex/unnamed-chunk-5-1} \end{center}
 
 ```r
 

@@ -323,7 +323,9 @@ max(df_leverage_effect$le)
 hist(df_leverage_effect$le)
 ```
 
-<img src="28-event-study_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{28-event-study_files/figure-latex/unnamed-chunk-1-1} \end{center}
 
 ```r
 
@@ -343,7 +345,9 @@ df_leverage_effect %>%
     hist()
 ```
 
-<img src="28-event-study_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{28-event-study_files/figure-latex/unnamed-chunk-1-2} \end{center}
 
 ### Economic significance
 
@@ -646,7 +650,9 @@ ggplot(results,
                color = "red") 
 ```
 
-<img src="28-event-study_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{28-event-study_files/figure-latex/unnamed-chunk-2-1} \end{center}
 
 As depicted in the plot, the inclusion of correlated events demonstrates minimal impact on the estimation of our focal events. Conversely, excluding these correlated events can diminish our statistical power. This is true in cases of pronounced correlation.
 
@@ -1198,7 +1204,9 @@ hh; plot(hh)
 #> 2     GNT    4.437 8.888   0.499   0.618
 ```
 
-<img src="28-event-study_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{28-event-study_files/figure-latex/unnamed-chunk-4-1} \end{center}
 
 Example by [Ana Julia Akaishi Padula, Pedro Albuquerque (posted on LAMFO)](https://lamfo-unb.github.io/2017/08/17/Teste-de-Eventos-en/)
 
@@ -1295,19 +1303,25 @@ TWTR <- Quandl("NSE/OIL",type ="xts")
 candleChart(TWTR)
 ```
 
-<img src="28-event-study_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{28-event-study_files/figure-latex/unnamed-chunk-8-1} \end{center}
 
 ```r
 addSMA(col="red") #Adding a Simple Moving Average
 ```
 
-<img src="28-event-study_files/figure-html/unnamed-chunk-8-2.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{28-event-study_files/figure-latex/unnamed-chunk-8-2} \end{center}
 
 ```r
 addEMA() #Adding an Exponential Moving Average
 ```
 
-<img src="28-event-study_files/figure-html/unnamed-chunk-8-3.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{28-event-study_files/figure-latex/unnamed-chunk-8-3} \end{center}
 
 
 

@@ -589,7 +589,9 @@ g$AR
 ivDiag::plot_coef(g)
 ```
 
-<img src="29-instrumental_var_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{29-instrumental_var_files/figure-latex/unnamed-chunk-5-1} \end{center}
 
 ### tF Procedure
 
@@ -920,7 +922,7 @@ Stock and Yogo provide critical values for different scenarios (bias, size disto
 **Comparison**
 
 | **Test**                    | **Description**                                                     | **Focus**                                                                  | **Usage**                                                                                                                                               |
-|------------------|------------------|------------------|--------------------|
+|------------------|------------------|------------------|-------------------|
 | **First-Stage F-Test**      | Evaluates the joint significance of instruments in the first stage. | Predictive power of instruments for the endogenous variable.               | Simplest and most direct test, widely used especially with a single endogenous variable. Rule of thumb: F \< 10 suggests weak instruments.              |
 | **Cragg-Donald Test**       | Wald statistic for joint significance of instruments.               | Joint strength of multiple instruments with multiple endogenous variables. | More appropriate in complex IV setups with multiple endogenous variables. Compares statistic against critical values for assessing instrument strength. |
 | **Stock-Yogo Weak IV Test** | Compares test statistic to pre-determined critical values.          | Minimizing size distortions and bias from weak instruments.                | Theoretical evaluation of instrument strength, ensuring the reliability of 2SLS estimates against specific thresholds of bias or size distortion.       |
@@ -1359,17 +1361,15 @@ where $h(V)$ is the control function that models the endogeneity
 
 1.  Linear in parameters
 
-```{=html}
 <!-- -->
-```
+
 a.  Linear Endogenous Variables:
     -   The control function function approach is identical to the usual 2SLS estimator
 b.  Nonlinear Endogenous Variables:
     -   The control function is different from the 2SLS estimator
 
-```{=html}
 <!-- -->
-```
+
 2.  Nonlinear in parameters:
     -   The CF function is superior than the 2SLS estimator
 
@@ -1520,97 +1520,32 @@ summary(second_stage_cf)
 modelsummary(list(second_stage, second_stage_cf))
 ```
 
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:center;">  (1) </th>
-   <th style="text-align:center;">   (2) </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;"> (Intercept) </td>
-   <td style="text-align:center;"> 15.674 </td>
-   <td style="text-align:center;"> 15.674 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:center;"> (2.082) </td>
-   <td style="text-align:center;"> (0.149) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> new_endogenous </td>
-   <td style="text-align:center;"> 3.014 </td>
-   <td style="text-align:center;">  </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:center;"> (0.104) </td>
-   <td style="text-align:center;">  </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> endogenous </td>
-   <td style="text-align:center;">  </td>
-   <td style="text-align:center;"> 3.014 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:center;">  </td>
-   <td style="text-align:center;"> (0.007) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> residual </td>
-   <td style="text-align:center;">  </td>
-   <td style="text-align:center;"> 1.141 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;box-shadow: 0px 1.5px">  </td>
-   <td style="text-align:center;box-shadow: 0px 1.5px">  </td>
-   <td style="text-align:center;box-shadow: 0px 1.5px"> (0.008) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Num.Obs. </td>
-   <td style="text-align:center;"> 10000 </td>
-   <td style="text-align:center;"> 10000 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> R2 </td>
-   <td style="text-align:center;"> 0.078 </td>
-   <td style="text-align:center;"> 0.995 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> R2 Adj. </td>
-   <td style="text-align:center;"> 0.078 </td>
-   <td style="text-align:center;"> 0.995 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> AIC </td>
-   <td style="text-align:center;"> 89520.9 </td>
-   <td style="text-align:center;"> 36826.8 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> BIC </td>
-   <td style="text-align:center;"> 89542.5 </td>
-   <td style="text-align:center;"> 36855.6 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Log.Lik. </td>
-   <td style="text-align:center;"> −44757.438 </td>
-   <td style="text-align:center;"> −18409.377 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> F </td>
-   <td style="text-align:center;"> 842.424 </td>
-   <td style="text-align:center;"> 1048263.304 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> RMSE </td>
-   <td style="text-align:center;"> 21.26 </td>
-   <td style="text-align:center;"> 1.53 </td>
-  </tr>
-</tbody>
-</table>
+\begin{table}
+\centering
+\begin{tabular}[t]{lcc}
+\toprule
+  & (1) & (2)\\
+\midrule
+(Intercept) & \num{15.674} & \num{15.674}\\
+ & (\num{2.082}) & (\num{0.149})\\
+new\_endogenous & \num{3.014} & \\
+ & (\num{0.104}) & \\
+endogenous &  & \num{3.014}\\
+ &  & (\num{0.007})\\
+residual &  & \num{1.141}\\
+ &  & (\num{0.008})\\
+\midrule
+Num.Obs. & \num{10000} & \num{10000}\\
+R2 & \num{0.078} & \num{0.995}\\
+R2 Adj. & \num{0.078} & \num{0.995}\\
+AIC & \num{89520.9} & \num{36826.8}\\
+BIC & \num{89542.5} & \num{36855.6}\\
+Log.Lik. & \num{-44757.438} & \num{-18409.377}\\
+F & \num{842.424} & \num{1048263.304}\\
+RMSE & \num{21.26} & \num{1.53}\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 
 
@@ -1670,97 +1605,32 @@ summary(second_stage_cf)
 modelsummary(list(second_stage, second_stage_cf))
 ```
 
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:center;">  (1) </th>
-   <th style="text-align:center;">   (2) </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;"> (Intercept) </td>
-   <td style="text-align:center;"> 15.339 </td>
-   <td style="text-align:center;"> 15.339 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:center;"> (11.817) </td>
-   <td style="text-align:center;"> (0.385) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> new_endogenous_nonlinear </td>
-   <td style="text-align:center;"> 3.017 </td>
-   <td style="text-align:center;">  </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:center;"> (0.338) </td>
-   <td style="text-align:center;">  </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> endogenous_nonlinear </td>
-   <td style="text-align:center;">  </td>
-   <td style="text-align:center;"> 3.017 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:center;">  </td>
-   <td style="text-align:center;"> (0.011) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> residual </td>
-   <td style="text-align:center;">  </td>
-   <td style="text-align:center;"> 0.249 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;box-shadow: 0px 1.5px">  </td>
-   <td style="text-align:center;box-shadow: 0px 1.5px">  </td>
-   <td style="text-align:center;box-shadow: 0px 1.5px"> (0.011) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Num.Obs. </td>
-   <td style="text-align:center;"> 10000 </td>
-   <td style="text-align:center;"> 10000 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> R2 </td>
-   <td style="text-align:center;"> 0.008 </td>
-   <td style="text-align:center;"> 0.999 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> R2 Adj. </td>
-   <td style="text-align:center;"> 0.008 </td>
-   <td style="text-align:center;"> 0.999 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> AIC </td>
-   <td style="text-align:center;"> 113211.6 </td>
-   <td style="text-align:center;"> 44709.6 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> BIC </td>
-   <td style="text-align:center;"> 113233.2 </td>
-   <td style="text-align:center;"> 44738.4 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Log.Lik. </td>
-   <td style="text-align:center;"> −56602.782 </td>
-   <td style="text-align:center;"> −22350.801 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> F </td>
-   <td style="text-align:center;"> 79.887 </td>
-   <td style="text-align:center;"> 4752573.052 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> RMSE </td>
-   <td style="text-align:center;"> 69.50 </td>
-   <td style="text-align:center;"> 2.26 </td>
-  </tr>
-</tbody>
-</table>
+\begin{table}
+\centering
+\begin{tabular}[t]{lcc}
+\toprule
+  & (1) & (2)\\
+\midrule
+(Intercept) & \num{15.339} & \num{15.339}\\
+ & (\num{11.817}) & (\num{0.385})\\
+new\_endogenous\_nonlinear & \num{3.017} & \\
+ & (\num{0.338}) & \\
+endogenous\_nonlinear &  & \num{3.017}\\
+ &  & \vphantom{1} (\num{0.011})\\
+residual &  & \num{0.249}\\
+ &  & (\num{0.011})\\
+\midrule
+Num.Obs. & \num{10000} & \num{10000}\\
+R2 & \num{0.008} & \num{0.999}\\
+R2 Adj. & \num{0.008} & \num{0.999}\\
+AIC & \num{113211.6} & \num{44709.6}\\
+BIC & \num{113233.2} & \num{44738.4}\\
+Log.Lik. & \num{-56602.782} & \num{-22350.801}\\
+F & \num{79.887} & \num{4752573.052}\\
+RMSE & \num{69.50} & \num{2.26}\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 
 
@@ -1820,100 +1690,39 @@ summary(second_stage_cf)
 modelsummary(list(second_stage, second_stage_cf))
 ```
 
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:center;">  (1) </th>
-   <th style="text-align:center;">   (2) </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;"> (Intercept) </td>
-   <td style="text-align:center;"> −1089.943 </td>
-   <td style="text-align:center;"> 678.159 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:center;"> (61.706) </td>
-   <td style="text-align:center;"> (9.918) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> new_endogenous </td>
-   <td style="text-align:center;"> 119.829 </td>
-   <td style="text-align:center;">  </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:center;"> (3.078) </td>
-   <td style="text-align:center;">  </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> endogenous_nonlinear </td>
-   <td style="text-align:center;">  </td>
-   <td style="text-align:center;"> 17.788 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:center;">  </td>
-   <td style="text-align:center;"> (0.276) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> residual </td>
-   <td style="text-align:center;">  </td>
-   <td style="text-align:center;"> 52.502 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;box-shadow: 0px 1.5px">  </td>
-   <td style="text-align:center;box-shadow: 0px 1.5px">  </td>
-   <td style="text-align:center;box-shadow: 0px 1.5px"> (1.155) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Num.Obs. </td>
-   <td style="text-align:center;"> 10000 </td>
-   <td style="text-align:center;"> 10000 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> R2 </td>
-   <td style="text-align:center;"> 0.132 </td>
-   <td style="text-align:center;"> 0.882 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> R2 Adj. </td>
-   <td style="text-align:center;"> 0.132 </td>
-   <td style="text-align:center;"> 0.882 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> AIC </td>
-   <td style="text-align:center;"> 157302.4 </td>
-   <td style="text-align:center;"> 137311.3 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> BIC </td>
-   <td style="text-align:center;"> 157324.1 </td>
-   <td style="text-align:center;"> 137340.1 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Log.Lik. </td>
-   <td style="text-align:center;"> −78648.225 </td>
-   <td style="text-align:center;"> −68651.628 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> F </td>
-   <td style="text-align:center;"> 1515.642 </td>
-   <td style="text-align:center;"> 37505.777 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> RMSE </td>
-   <td style="text-align:center;"> 630.10 </td>
-   <td style="text-align:center;"> 231.88 </td>
-  </tr>
-</tbody>
-</table>
+\begin{table}
+\centering
+\begin{tabular}[t]{lcc}
+\toprule
+  & (1) & (2)\\
+\midrule
+(Intercept) & \num{-1089.943} & \num{678.159}\\
+ & (\num{61.706}) & (\num{9.918})\\
+new\_endogenous & \num{119.829} & \\
+ & (\num{3.078}) & \\
+endogenous\_nonlinear &  & \num{17.788}\\
+ &  & (\num{0.276})\\
+residual &  & \num{52.502}\\
+ &  & (\num{1.155})\\
+\midrule
+Num.Obs. & \num{10000} & \num{10000}\\
+R2 & \num{0.132} & \num{0.882}\\
+R2 Adj. & \num{0.132} & \num{0.882}\\
+AIC & \num{157302.4} & \num{137311.3}\\
+BIC & \num{157324.1} & \num{137340.1}\\
+Log.Lik. & \num{-78648.225} & \num{-68651.628}\\
+F & \num{1515.642} & \num{37505.777}\\
+RMSE & \num{630.10} & \num{231.88}\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 
 
 <!-- ## Application in Marketing -->
 
 <!-- ### Peer-based IV -->
+
+## New Advances
+
+-   Combine ML and IV [@singh2020machine]

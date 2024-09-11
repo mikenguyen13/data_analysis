@@ -917,7 +917,7 @@ low p-value means you reject the null of exogenous instruments. Hence you would 
 -   really only useful if one instrument is thought to be truly exogenous (randomly assigned). even f you do reject the null, the test does not tell you which instrument is exogenous and which is endogenous.
 
 | Result          | Implication                                                                         |
-|----------------|--------------------------------------------------------|
+|-----------------|-------------------------------------------------------------------------------------|
 | reject the null | you can be pretty sure there is an endogenous instrument, but don't know which one. |
 | fail to reject  | could be either (1) they are both exogenous, (2) they are both endogenous.          |
 
@@ -1486,7 +1486,7 @@ Assumptions: - The unobservables that affect the treatment selection and the out
 -   There are differences between Heckman Sample Selection vs. Heckman-type correction
 
 |                            | **Heckman Sample Selection Model**                                                                                                              | **Heckman-Type Corrections**                                                                                                                                                                                                      |
-|--------------|----------------------|------------------------------------|
+|----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | When                       | Only observes one sample (treated), addressing selection bias directly.                                                                         | Two samples are observed (treated and untreated), known as the control function approach.                                                                                                                                         |
 | Model                      | Probit                                                                                                                                          | OLS (even for dummy endogenous variable)                                                                                                                                                                                          |
 | Integration of 1st stage   | Also include a term (called Inverse Mills ratio) besides the endogenous variable.                                                               | Decompose the endogenous variable to get the part that is uncorrelated with the error terms of the outcome equation. Either use the predicted endogenous variable directly or include the residual from the first-stage equation. |
@@ -1565,7 +1565,9 @@ legend(
 )
 ```
 
-<img src="31-endogeneity_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{31-endogeneity_files/figure-latex/unnamed-chunk-12-1} \end{center}
 
 Hence in our observed model, we see
 

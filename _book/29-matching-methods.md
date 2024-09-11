@@ -668,7 +668,9 @@ summary(m.out1, un = FALSE)
 plot(m.out1, type = "jitter", interactive = FALSE)
 ```
 
-<img src="29-matching-methods_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{29-matching-methods_files/figure-latex/unnamed-chunk-4-1} \end{center}
 
 ```r
 
@@ -680,7 +682,9 @@ plot(
 )
 ```
 
-<img src="29-matching-methods_files/figure-html/unnamed-chunk-4-2.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{29-matching-methods_files/figure-latex/unnamed-chunk-4-2} \end{center}
 
 Try Full Match (i.e., every treated matches with one control, and every control with one treated).
 
@@ -734,7 +738,9 @@ summary(m.out2, un = FALSE)
 plot(summary(m.out2))
 ```
 
-<img src="29-matching-methods_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{29-matching-methods_files/figure-latex/unnamed-chunk-6-1} \end{center}
 
 Exact Matching
 
@@ -1326,6 +1332,8 @@ mat1
 
 -   GM uses iterative checking process of propensity scores, which combines propensity scores and Mahalanobis distance.
 
+    -   GenMatch [@diamond2013genetic]
+
 -   GM is arguably "superior" method than nearest neighbor or full matching in imbalanced data
 
 -   Use a genetic search algorithm to find weights for each covariate such that we have optimal balance.
@@ -1429,6 +1437,24 @@ mb <-
 
 -   Entropy balancing improves balance across all included covariate moments and removes the need for repetitive balance checking and iterative model searching.
 
+### Matching for high-dimensional data
+
+One could reduce the number of dimensions using methods such as:
+
+-   Lasso [@gordon2019comparison]
+
+-   Penalized logistic regression [@eckles2021bias]
+
+-   PCA (Principal Component Analysis)
+
+-   Locality Preserving Projections (LPP) [@li2016matching]
+
+-   Random projection
+
+-   Autoencoders [@ramachandra2018deep]
+
+Additionally, one could jointly does dimension reduction while balancing the distributions of the control and treated groups [@yao2018representation].
+
 ### Matching for time series-cross-section data
 
 Examples: [@scheve2012democracy] and [@acemoglu2019democracy]
@@ -1469,7 +1495,7 @@ package in R `twang`
 
 There are several ways one can deal with selection on unobservables:
 
-1.  
+1.  [Rosenbaum Bounds]
 
 2.  [Endogenous Sample Selection] (i.e., Heckman-style correction): examine the $\lambda$ term to see whether it's significant (sign of endogenous selection)
 
@@ -1497,7 +1523,7 @@ Examples in marketing
 
 General
 
--   [Matching] is favored for estimating treatment effects in observational data, offering advantages over regression methods because
+-   [Matching Methods] are favored for estimating treatment effects in observational data, offering advantages over regression methods because
 
     -   It reduces reliance on functional form assumptions.
 
@@ -1513,7 +1539,7 @@ General
 
 With random treatment assignment, we can use the non-parametric test (Wilcoxon signed rank test) to see if there is treatment effect.
 
-Without random treatment assignment (i.e., observational data), we cannot use this test. With [Matching] on observables, we can use this test if we believe there are no unmeasured confounders. And this is where @rosenbaum2002attributing can come in to talk about the believability of this notion.
+Without random treatment assignment (i.e., observational data), we cannot use this test. With [Selection on Observables], we can use this test if we believe there are no unmeasured confounders. And this is where @rosenbaum2002attributing can come in to talk about the believability of this notion.
 
 In layman's terms, consider that the treatment assignment is based on a method where the odds of treatment for a unit and its control differ by a multiplier $\Gamma$
 
@@ -1790,8 +1816,6 @@ Choice of $\lambda$
 
 -   We typically examine $\lambda \in (0, 1)$
 
--   
-
 
 ```r
 # remotes::install_github("bvkrauth/rcr/r/rcrbounds")
@@ -1835,8 +1859,15 @@ rcrbounds::effect_test(rcr_res, h0 = 0)
 plot(rcr_res)
 ```
 
-<img src="29-matching-methods_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{29-matching-methods_files/figure-latex/unnamed-chunk-23-1} \end{center}
 
 ### Coefficient-stability Bounds
 
 -   Developed by @oster2019unobservable
+-   Assess robustness to omitted variable bias by observing:
+    1.  Changes in the coefficient of interest
+
+    2.  Shifts in model $R^2$
+-   Refer @masten2022effect for reverse sign problem.

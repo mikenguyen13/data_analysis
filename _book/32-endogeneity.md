@@ -1574,7 +1574,9 @@ legend(
 )
 ```
 
-<img src="32-endogeneity_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{32-endogeneity_files/figure-latex/unnamed-chunk-12-1} \end{center}
 
 Hence in our observed model, we see
 

@@ -3497,6 +3497,10 @@ We have evidence of carryover effects.
 
 #### Matrix Completion
 
+Applications in marketing:
+
+-   @bronnenberg2020consumer
+
 To estimate average causal effects in panel data with units exposed to treatment intermittently, two literatures are pivotal:
 
 -   **Unconfoundedness** [@imbens2015causal]: Imputes missing potential control outcomes for treated units using observed outcomes from similar control units in previous periods.
@@ -4303,7 +4307,23 @@ summary(out)
 # drdid_imp_rc()
 ```
 
-## Multiple Treatment
+### Augmented/Forward DID
+
+-   DID Methods for Limited Pre-Treatment Periods:
+
++--------------------+---------------------------------------------------------+-----------------------------------------------------------------------------------------+
+| **Method**         | **Scenario**                                            | **Approach**                                                                            |
++====================+=========================================================+=========================================================================================+
+| **Augmented DID**  | Treatment outcome is outside the range of control units | Constructs the treatment counterfactual using a scaled average of control units         |
+|                    |                                                         |                                                                                         |
+| [@li2023augmented] |                                                         |                                                                                         |
++--------------------+---------------------------------------------------------+-----------------------------------------------------------------------------------------+
+| **Forward DID**    | Treatment outcome is within the range of control units  | Uses a forward selection algorithm to choose relevant control units before applying DID |
+|                    |                                                         |                                                                                         |
+| [@li2024frontiers] |                                                         |                                                                                         |
++--------------------+---------------------------------------------------------+-----------------------------------------------------------------------------------------+
+
+## Multiple Treatments
 
 When you have 2 treatments in a setting, you should always try to model both of them under one regression to see whether they are significantly different.
 

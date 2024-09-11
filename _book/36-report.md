@@ -64,79 +64,42 @@ fit <- lm(metascore ~ budget + us_gross + year, data = movies)
 summ(fit)
 ```
 
-<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 831 (10 missing obs. deleted) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
-   <td style="text-align:right;"> metascore </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Type </td>
-   <td style="text-align:right;"> OLS linear regression </td>
-  </tr>
-</tbody>
-</table> <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> F(3,827) </td>
-   <td style="text-align:right;"> 26.23 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> R² </td>
-   <td style="text-align:right;"> 0.09 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Adj. R² </td>
-   <td style="text-align:right;"> 0.08 </td>
-  </tr>
-</tbody>
-</table> <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:right;"> Est. </th>
-   <th style="text-align:right;"> S.E. </th>
-   <th style="text-align:right;"> t val. </th>
-   <th style="text-align:right;"> p </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 52.06 </td>
-   <td style="text-align:right;"> 139.67 </td>
-   <td style="text-align:right;"> 0.37 </td>
-   <td style="text-align:right;"> 0.71 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> budget </td>
-   <td style="text-align:right;"> -0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> -5.89 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> us_gross </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 7.61 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> year </td>
-   <td style="text-align:right;"> 0.01 </td>
-   <td style="text-align:right;"> 0.07 </td>
-   <td style="text-align:right;"> 0.08 </td>
-   <td style="text-align:right;"> 0.94 </td>
-  </tr>
-</tbody>
-<tfoot><tr><td style="padding: 0; " colspan="100%">
-<sup></sup> Standard errors: OLS</td></tr></tfoot>
-</table>
+\begin{table}[!h]
+\centering
+\begin{tabular}{lr}
+\toprule
+\cellcolor{gray!6}{Observations} & \cellcolor{gray!6}{831 (10 missing obs. deleted)}\\
+Dependent variable & metascore\\
+\cellcolor{gray!6}{Type} & \cellcolor{gray!6}{OLS linear regression}\\
+\bottomrule
+\end{tabular}
+\end{table} \begin{table}[!h]
+\centering
+\begin{tabular}{lr}
+\toprule
+\cellcolor{gray!6}{F(3,827)} & \cellcolor{gray!6}{26.23}\\
+R² & 0.09\\
+\cellcolor{gray!6}{Adj. R²} & \cellcolor{gray!6}{0.08}\\
+\bottomrule
+\end{tabular}
+\end{table} \begin{table}[!h]
+\centering
+\begin{threeparttable}
+\begin{tabular}{lrrrr}
+\toprule
+  & Est. & S.E. & t val. & p\\
+\midrule
+\cellcolor{gray!6}{(Intercept)} & \cellcolor{gray!6}{52.06} & \cellcolor{gray!6}{139.67} & \cellcolor{gray!6}{0.37} & \cellcolor{gray!6}{0.71}\\
+budget & -0.00 & 0.00 & -5.89 & 0.00\\
+\cellcolor{gray!6}{us\_gross} & \cellcolor{gray!6}{0.00} & \cellcolor{gray!6}{0.00} & \cellcolor{gray!6}{7.61} & \cellcolor{gray!6}{0.00}\\
+year & 0.01 & 0.07 & 0.08 & 0.94\\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\item Standard errors: OLS
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
 
 ```r
 summ(
@@ -149,94 +112,42 @@ summ(
 ) # notice that scale here is TRUE
 ```
 
-<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 831 (10 missing obs. deleted) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
-   <td style="text-align:right;"> metascore </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Type </td>
-   <td style="text-align:right;"> OLS linear regression </td>
-  </tr>
-</tbody>
-</table> <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> F(3,827) </td>
-   <td style="text-align:right;"> 26.23 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> R² </td>
-   <td style="text-align:right;"> 0.09 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Adj. R² </td>
-   <td style="text-align:right;"> 0.08 </td>
-  </tr>
-</tbody>
-</table> <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:right;"> Est. </th>
-   <th style="text-align:right;"> 2.5% </th>
-   <th style="text-align:right;"> 97.5% </th>
-   <th style="text-align:right;"> t val. </th>
-   <th style="text-align:right;"> VIF </th>
-   <th style="text-align:right;"> partial.r </th>
-   <th style="text-align:right;"> part.r </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 63.01 </td>
-   <td style="text-align:right;"> 61.91 </td>
-   <td style="text-align:right;"> 64.11 </td>
-   <td style="text-align:right;"> 112.23 </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-   <td style="text-align:right;"> NA </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> budget </td>
-   <td style="text-align:right;"> -3.78 </td>
-   <td style="text-align:right;"> -5.05 </td>
-   <td style="text-align:right;"> -2.52 </td>
-   <td style="text-align:right;"> -5.89 </td>
-   <td style="text-align:right;"> 1.31 </td>
-   <td style="text-align:right;"> -0.20 </td>
-   <td style="text-align:right;"> -0.20 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> us_gross </td>
-   <td style="text-align:right;"> 5.28 </td>
-   <td style="text-align:right;"> 3.92 </td>
-   <td style="text-align:right;"> 6.64 </td>
-   <td style="text-align:right;"> 7.61 </td>
-   <td style="text-align:right;"> 1.52 </td>
-   <td style="text-align:right;"> 0.26 </td>
-   <td style="text-align:right;"> 0.25 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> year </td>
-   <td style="text-align:right;"> 0.05 </td>
-   <td style="text-align:right;"> -1.18 </td>
-   <td style="text-align:right;"> 1.28 </td>
-   <td style="text-align:right;"> 0.08 </td>
-   <td style="text-align:right;"> 1.24 </td>
-   <td style="text-align:right;"> 0.00 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-</tbody>
-<tfoot><tr><td style="padding: 0; " colspan="100%">
-<sup></sup> Standard errors: OLS; Continuous predictors are mean-centered and scaled by 1 s.d. The outcome variable remains in its original units.</td></tr></tfoot>
-</table>
+\begin{table}[!h]
+\centering
+\begin{tabular}{lr}
+\toprule
+\cellcolor{gray!6}{Observations} & \cellcolor{gray!6}{831 (10 missing obs. deleted)}\\
+Dependent variable & metascore\\
+\cellcolor{gray!6}{Type} & \cellcolor{gray!6}{OLS linear regression}\\
+\bottomrule
+\end{tabular}
+\end{table} \begin{table}[!h]
+\centering
+\begin{tabular}{lr}
+\toprule
+\cellcolor{gray!6}{F(3,827)} & \cellcolor{gray!6}{26.23}\\
+R² & 0.09\\
+\cellcolor{gray!6}{Adj. R²} & \cellcolor{gray!6}{0.08}\\
+\bottomrule
+\end{tabular}
+\end{table} \begin{table}[!h]
+\centering
+\begin{threeparttable}
+\begin{tabular}{lrrrrrrr}
+\toprule
+  & Est. & 2.5\% & 97.5\% & t val. & VIF & partial.r & part.r\\
+\midrule
+\cellcolor{gray!6}{(Intercept)} & \cellcolor{gray!6}{63.01} & \cellcolor{gray!6}{61.91} & \cellcolor{gray!6}{64.11} & \cellcolor{gray!6}{112.23} & \cellcolor{gray!6}{NA} & \cellcolor{gray!6}{NA} & \cellcolor{gray!6}{NA}\\
+budget & -3.78 & -5.05 & -2.52 & -5.89 & 1.31 & -0.20 & -0.20\\
+\cellcolor{gray!6}{us\_gross} & \cellcolor{gray!6}{5.28} & \cellcolor{gray!6}{3.92} & \cellcolor{gray!6}{6.64} & \cellcolor{gray!6}{7.61} & \cellcolor{gray!6}{1.52} & \cellcolor{gray!6}{0.26} & \cellcolor{gray!6}{0.25}\\
+year & 0.05 & -1.18 & 1.28 & 0.08 & 1.24 & 0.00 & 0.00\\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\item Standard errors: OLS; Continuous predictors are mean-centered and scaled by 1 s.d. The outcome variable remains in its original units.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
 
 ```r
 
@@ -246,65 +157,40 @@ fit2 <- lm(y ~ x, data = PetersenCL)
 summ(fit2, robust = "HC3", cluster = "firm") 
 ```
 
-<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Observations </td>
-   <td style="text-align:right;"> 5000 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
-   <td style="text-align:right;"> y </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Type </td>
-   <td style="text-align:right;"> OLS linear regression </td>
-  </tr>
-</tbody>
-</table> <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> F(1,4998) </td>
-   <td style="text-align:right;"> 1310.74 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> R² </td>
-   <td style="text-align:right;"> 0.21 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> Adj. R² </td>
-   <td style="text-align:right;"> 0.21 </td>
-  </tr>
-</tbody>
-</table> <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:right;"> Est. </th>
-   <th style="text-align:right;"> S.E. </th>
-   <th style="text-align:right;"> t val. </th>
-   <th style="text-align:right;"> p </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
-   <td style="text-align:right;"> 0.03 </td>
-   <td style="text-align:right;"> 0.07 </td>
-   <td style="text-align:right;"> 0.44 </td>
-   <td style="text-align:right;"> 0.66 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;font-weight: bold;"> x </td>
-   <td style="text-align:right;"> 1.03 </td>
-   <td style="text-align:right;"> 0.05 </td>
-   <td style="text-align:right;"> 20.36 </td>
-   <td style="text-align:right;"> 0.00 </td>
-  </tr>
-</tbody>
-<tfoot><tr><td style="padding: 0; " colspan="100%">
-<sup></sup> Standard errors: Cluster-robust, type = HC3</td></tr></tfoot>
-</table>
+\begin{table}[!h]
+\centering
+\begin{tabular}{lr}
+\toprule
+\cellcolor{gray!6}{Observations} & \cellcolor{gray!6}{5000}\\
+Dependent variable & y\\
+\cellcolor{gray!6}{Type} & \cellcolor{gray!6}{OLS linear regression}\\
+\bottomrule
+\end{tabular}
+\end{table} \begin{table}[!h]
+\centering
+\begin{tabular}{lr}
+\toprule
+\cellcolor{gray!6}{F(1,4998)} & \cellcolor{gray!6}{1310.74}\\
+R² & 0.21\\
+\cellcolor{gray!6}{Adj. R²} & \cellcolor{gray!6}{0.21}\\
+\bottomrule
+\end{tabular}
+\end{table} \begin{table}[!h]
+\centering
+\begin{threeparttable}
+\begin{tabular}{lrrrr}
+\toprule
+  & Est. & S.E. & t val. & p\\
+\midrule
+\cellcolor{gray!6}{(Intercept)} & \cellcolor{gray!6}{0.03} & \cellcolor{gray!6}{0.07} & \cellcolor{gray!6}{0.44} & \cellcolor{gray!6}{0.66}\\
+x & 1.03 & 0.05 & 20.36 & 0.00\\
+\bottomrule
+\end{tabular}
+\begin{tablenotes}
+\item Standard errors: Cluster-robust, type = HC3
+\end{tablenotes}
+\end{threeparttable}
+\end{table}
 
 Model to Equation
 
@@ -331,35 +217,137 @@ export_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 ```
 
 
-```{=html}
-<table class="huxtable" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-3">
-<caption style="caption-side: top; text-align: center;">(#tab:unnamed-chunk-3) </caption><col><col><col><col><tr>
-<th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 1</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 2</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 3</th></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Budget</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-2.43 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-5.16 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-6.70 ***</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.44)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.62)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.67)&nbsp;&nbsp;&nbsp;</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">US Gross</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.96 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.85 ***</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.51)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(0.48)&nbsp;&nbsp;&nbsp;</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Runtime (Hours)</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">14.29 ***</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(1.63)&nbsp;&nbsp;&nbsp;</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Constant</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">105.29 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">81.84 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">83.35 ***</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(7.65)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(8.66)&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">(8.82)&nbsp;&nbsp;&nbsp;</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">N</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">831&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">R2</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.03&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.09&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.17&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
-<tr>
-<th colspan="4" style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Standard errors are heteroskedasticity robust.  *** p &lt; 0.001;  ** p &lt; 0.01;  * p &lt; 0.05.</th></tr>
-</table>
 
+```{=latex}
+ 
+  \providecommand{\huxb}[2]{\arrayrulecolor[RGB]{#1}\global\arrayrulewidth=#2pt}
+  \providecommand{\huxvb}[2]{\color[RGB]{#1}\vrule width #2pt}
+  \providecommand{\huxtpad}[1]{\rule{0pt}{#1}}
+  \providecommand{\huxbpad}[1]{\rule[-#1]{0pt}{#1}}
+
+\begin{table}[ht]
+\begin{centerbox}
+\begin{threeparttable}
+\captionsetup{justification=centering,singlelinecheck=off}
+\caption{(\#tab:unnamed-chunk-3) }
+ \setlength{\tabcolsep}{0pt}
+\begin{tabular}{l l l l}
+
+
+\hhline{>{\huxb{0, 0, 0}{0.8}}->{\huxb{0, 0, 0}{0.8}}->{\huxb{0, 0, 0}{0.8}}->{\huxb{0, 0, 0}{0.8}}-}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\huxvb{0, 0, 0}{0}}c!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\centering \hspace{6pt}  \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{c!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\centering \hspace{6pt} Model 1 \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{c!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\centering \hspace{6pt} Model 2 \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{c!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\centering \hspace{6pt} Model 3 \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{>{\huxb{255, 255, 255}{0.4}}->{\huxb{0, 0, 0}{0.4}}->{\huxb{0, 0, 0}{0.4}}->{\huxb{0, 0, 0}{0.4}}-}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\huxvb{0, 0, 0}{0}}l!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedright \hspace{6pt} Budget \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} -2.43 *** \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} -5.16 *** \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} -6.70 *** \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\huxvb{0, 0, 0}{0}}l!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedright \hspace{6pt}  \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} (0.44)\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} (0.62)\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} (0.67)\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\huxvb{0, 0, 0}{0}}l!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedright \hspace{6pt} US Gross \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} \hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 3.96 *** \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 3.85 *** \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\huxvb{0, 0, 0}{0}}l!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedright \hspace{6pt}  \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} \hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} (0.51)\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} (0.48)\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\huxvb{0, 0, 0}{0}}l!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedright \hspace{6pt} Runtime (Hours) \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} \hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} \hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 14.29 *** \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\huxvb{0, 0, 0}{0}}l!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedright \hspace{6pt}  \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} \hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} \hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} (1.63)\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\huxvb{0, 0, 0}{0}}l!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedright \hspace{6pt} Constant \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 105.29 *** \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 81.84 *** \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 83.35 *** \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\huxvb{0, 0, 0}{0}}l!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedright \hspace{6pt}  \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} (7.65)\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} (8.66)\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} (8.82)\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{>{\huxb{255, 255, 255}{0.4}}->{\huxb{0, 0, 0}{0.4}}->{\huxb{0, 0, 0}{0.4}}->{\huxb{0, 0, 0}{0.4}}-}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\huxvb{0, 0, 0}{0}}l!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedright \hspace{6pt} N \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 831\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 831\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 831\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+
+\multicolumn{1}{!{\huxvb{0, 0, 0}{0}}l!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedright \hspace{6pt} R2 \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 0.03\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 0.09\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} &
+\multicolumn{1}{r!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedleft \hspace{6pt} 0.17\hphantom{0}\hphantom{0}\hphantom{0}\hphantom{0} \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{>{\huxb{0, 0, 0}{0.8}}->{\huxb{0, 0, 0}{0.8}}->{\huxb{0, 0, 0}{0.8}}->{\huxb{0, 0, 0}{0.8}}-}
+\arrayrulecolor{black}
+
+\multicolumn{4}{!{\huxvb{0, 0, 0}{0}}l!{\huxvb{0, 0, 0}{0}}}{\huxtpad{6pt + 1em}\raggedright \hspace{6pt} Standard errors are heteroskedasticity robust.  *** p $<$ 0.001;  ** p $<$ 0.01;  * p $<$ 0.05. \hspace{6pt}\huxbpad{6pt}} \tabularnewline[-0.5pt]
+
+
+\hhline{}
+\arrayrulecolor{black}
+\end{tabular}
+\end{threeparttable}\par\end{centerbox}
+
+\end{table}
+ 
 ```
+
 
 
 Another package is `modelsummary`
@@ -371,120 +359,33 @@ lm_mod <- lm(mpg ~ wt + hp + cyl, mtcars)
 msummary(lm_mod, vcov = c("iid","robust","HC4"))
 ```
 
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:center;">  (1) </th>
-   <th style="text-align:center;">   (2) </th>
-   <th style="text-align:center;">   (3) </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;"> (Intercept) </td>
-   <td style="text-align:center;"> 38.752 </td>
-   <td style="text-align:center;"> 38.752 </td>
-   <td style="text-align:center;"> 38.752 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:center;"> (1.787) </td>
-   <td style="text-align:center;"> (2.286) </td>
-   <td style="text-align:center;"> (2.177) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> wt </td>
-   <td style="text-align:center;"> −3.167 </td>
-   <td style="text-align:center;"> −3.167 </td>
-   <td style="text-align:center;"> −3.167 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:center;"> (0.741) </td>
-   <td style="text-align:center;"> (0.833) </td>
-   <td style="text-align:center;"> (0.819) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> hp </td>
-   <td style="text-align:center;"> −0.018 </td>
-   <td style="text-align:center;"> −0.018 </td>
-   <td style="text-align:center;"> −0.018 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:center;"> (0.012) </td>
-   <td style="text-align:center;"> (0.010) </td>
-   <td style="text-align:center;"> (0.013) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> cyl </td>
-   <td style="text-align:center;"> −0.942 </td>
-   <td style="text-align:center;"> −0.942 </td>
-   <td style="text-align:center;"> −0.942 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;box-shadow: 0px 1.5px">  </td>
-   <td style="text-align:center;box-shadow: 0px 1.5px"> (0.551) </td>
-   <td style="text-align:center;box-shadow: 0px 1.5px"> (0.573) </td>
-   <td style="text-align:center;box-shadow: 0px 1.5px"> (0.572) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Num.Obs. </td>
-   <td style="text-align:center;"> 32 </td>
-   <td style="text-align:center;"> 32 </td>
-   <td style="text-align:center;"> 32 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> R2 </td>
-   <td style="text-align:center;"> 0.843 </td>
-   <td style="text-align:center;"> 0.843 </td>
-   <td style="text-align:center;"> 0.843 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> R2 Adj. </td>
-   <td style="text-align:center;"> 0.826 </td>
-   <td style="text-align:center;"> 0.826 </td>
-   <td style="text-align:center;"> 0.826 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> AIC </td>
-   <td style="text-align:center;"> 155.5 </td>
-   <td style="text-align:center;"> 155.5 </td>
-   <td style="text-align:center;"> 155.5 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> BIC </td>
-   <td style="text-align:center;"> 162.8 </td>
-   <td style="text-align:center;"> 162.8 </td>
-   <td style="text-align:center;"> 162.8 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Log.Lik. </td>
-   <td style="text-align:center;"> −72.738 </td>
-   <td style="text-align:center;"> −72.738 </td>
-   <td style="text-align:center;"> −72.738 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> F </td>
-   <td style="text-align:center;"> 50.171 </td>
-   <td style="text-align:center;"> 31.065 </td>
-   <td style="text-align:center;"> 32.623 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> RMSE </td>
-   <td style="text-align:center;"> 2.35 </td>
-   <td style="text-align:center;"> 2.35 </td>
-   <td style="text-align:center;"> 2.35 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Std.Errors </td>
-   <td style="text-align:center;"> IID </td>
-   <td style="text-align:center;"> HC3 </td>
-   <td style="text-align:center;"> HC4 </td>
-  </tr>
-</tbody>
-</table>
+\begin{table}
+\centering
+\begin{tabular}[t]{lccc}
+\toprule
+  & (1) & (2) & (3)\\
+\midrule
+(Intercept) & \num{38.752} & \num{38.752} & \num{38.752}\\
+ & (\num{1.787}) & (\num{2.286}) & (\num{2.177})\\
+wt & \num{-3.167} & \num{-3.167} & \num{-3.167}\\
+ & (\num{0.741}) & (\num{0.833}) & (\num{0.819})\\
+hp & \num{-0.018} & \num{-0.018} & \num{-0.018}\\
+ & (\num{0.012}) & (\num{0.010}) & (\num{0.013})\\
+cyl & \num{-0.942} & \num{-0.942} & \num{-0.942}\\
+ & (\num{0.551}) & (\num{0.573}) & (\num{0.572})\\
+\midrule
+Num.Obs. & \num{32} & \num{32} & \num{32}\\
+R2 & \num{0.843} & \num{0.843} & \num{0.843}\\
+R2 Adj. & \num{0.826} & \num{0.826} & \num{0.826}\\
+AIC & \num{155.5} & \num{155.5} & \num{155.5}\\
+BIC & \num{162.8} & \num{162.8} & \num{162.8}\\
+Log.Lik. & \num{-72.738} & \num{-72.738} & \num{-72.738}\\
+F & \num{50.171} & \num{31.065} & \num{32.623}\\
+RMSE & \num{2.35} & \num{2.35} & \num{2.35}\\
+Std.Errors & IID & HC3 & HC4\\
+\bottomrule
+\end{tabular}
+\end{table}
 
 
 
@@ -492,7 +393,9 @@ msummary(lm_mod, vcov = c("iid","robust","HC4"))
 modelplot(lm_mod, vcov = c("iid","robust","HC4"))
 ```
 
-<img src="36-report_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{36-report_files/figure-latex/unnamed-chunk-4-1} \end{center}
 
 Another package is `stargazer`
 
@@ -502,7 +405,7 @@ library("stargazer")
 stargazer(attitude)
 #> 
 #> % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-#> % Date and time: Fri, Jan 12, 2024 - 3:21:54 PM
+#> % Date and time: Fri, Jan 12, 2024 - 5:16:27 PM
 #> \begin{table}[!htbp] \centering 
 #>   \caption{} 
 #>   \label{} 
@@ -543,7 +446,7 @@ stargazer(linear.1,
           align = TRUE)
 #> 
 #> % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-#> % Date and time: Fri, Jan 12, 2024 - 3:21:54 PM
+#> % Date and time: Fri, Jan 12, 2024 - 5:16:27 PM
 #> % Requires LaTeX packages: dcolumn 
 #> \begin{table}[!htbp] \centering 
 #>   \caption{Results} 
@@ -699,7 +602,9 @@ coef_names <- coef_names[1:3] # Dropping intercept for plots
 plot_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 ```
 
-<img src="36-report_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{36-report_files/figure-latex/unnamed-chunk-10-1} \end{center}
 
 ```r
 plot_summs(
@@ -710,7 +615,9 @@ plot_summs(
 )
 ```
 
-<img src="36-report_files/figure-html/unnamed-chunk-10-2.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{36-report_files/figure-latex/unnamed-chunk-10-2} \end{center}
 
 ## Standard Errors
 
@@ -987,7 +894,9 @@ yourplot +
     scale_color_npg() 
 ```
 
-<img src="36-report_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{36-report_files/figure-latex/unnamed-chunk-19-1} \end{center}
 
 ```r
 
@@ -996,7 +905,9 @@ yourplot +
     scale_color_continuous()
 ```
 
-<img src="36-report_files/figure-html/unnamed-chunk-19-2.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{36-report_files/figure-latex/unnamed-chunk-19-2} \end{center}
 
 Other pre-specified themes
 
@@ -1010,7 +921,9 @@ yourplot +
     theme_stata()
 ```
 
-<img src="36-report_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{36-report_files/figure-latex/unnamed-chunk-20-1} \end{center}
 
 ```r
 
@@ -1019,7 +932,9 @@ yourplot +
     theme_economist()
 ```
 
-<img src="36-report_files/figure-html/unnamed-chunk-20-2.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{36-report_files/figure-latex/unnamed-chunk-20-2} \end{center}
 
 ```r
 
@@ -1027,7 +942,9 @@ yourplot +
     theme_economist_white()
 ```
 
-<img src="36-report_files/figure-html/unnamed-chunk-20-3.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{36-report_files/figure-latex/unnamed-chunk-20-3} \end{center}
 
 ```r
 
@@ -1036,7 +953,9 @@ yourplot +
     theme_wsj()
 ```
 
-<img src="36-report_files/figure-html/unnamed-chunk-20-4.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{36-report_files/figure-latex/unnamed-chunk-20-4} \end{center}
 
 ```r
 
@@ -1049,4 +968,6 @@ yourplot +
     )
 ```
 
-<img src="36-report_files/figure-html/unnamed-chunk-20-5.png" width="90%" style="display: block; margin: auto;" />
+
+
+\begin{center}\includegraphics[width=0.9\linewidth]{36-report_files/figure-latex/unnamed-chunk-20-5} \end{center}
