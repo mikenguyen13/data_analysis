@@ -3,7 +3,7 @@
 [Extended Manual by R](https://cran.r-project.org/doc/manuals/r-release/R-data.html)
 
 | Format                                                | Typical Extension       | Import Package                                                  | Export Package                                                  | Installed by Default |
-|:-------------|:-------------|:---------------|:---------------|:-------------|
+|:--------------|:--------------|:--------------|:--------------|:--------------|
 | Comma-separated data                                  | .csv                    | [**data.table**](https://cran.r-project.org/package=data.table) | [**data.table**](https://cran.r-project.org/package=data.table) | Yes                  |
 | Pipe-separated data                                   | .psv                    | [**data.table**](https://cran.r-project.org/package=data.table) | [**data.table**](https://cran.r-project.org/package=data.table) | Yes                  |
 | Tab-separated data                                    | .tsv                    | [**data.table**](https://cran.r-project.org/package=data.table) | [**data.table**](https://cran.r-project.org/package=data.table) | Yes                  |
@@ -124,57 +124,62 @@ To convert between data file types
 convert("data.dta", "data.sav")
 ```
 
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
 ### Large size
 
-Use R on a cluster
+#### Cloud Computing: Using AWS for Big Data
+Amazon Web Service (AWS): Compute resources can be rented at approximately \$1/hr. Use AWS to process large datasets without overwhelming your local machine.
 
--   Amazon Web Service (AWS): \$1/hr
+#### Importing Large Files as Chunks
 
-Import files as chunks
-
+##### Using Base R
 ```{r, eval = FALSE}
-file_in    <- file("in.csv","r")
-chunk_size <- 100000 # choose the best size for you
-x          <- readLines(file_in, n=chunk_size)
+file_in <- file("in.csv", "r")  # Open a connection to the file
+chunk_size <- 100000            # Define chunk size
+x <- readLines(file_in, n = chunk_size)  # Read data in chunks
+close(file_in)                  # Close the file connection
 ```
 
-`data.table` method
-
+##### Using the `data.table` Package
 ```{r, eval = FALSE}
-require(data.table)
-mydata = fread("in.csv", header = T)
+library(data.table)
+mydata <- fread("in.csv", header = TRUE)  # Fast and memory-efficient
 ```
 
-`ff` package: this method does not allow you to pass connections
-
+##### Using the `ff` Package
 ```{r, eval = FALSE}
-library("ff")
+library(ff)
 x <- read.csv.ffdf(
-    file = "file.csv",
-    nrow = 10,
-    header = TRUE,
-    VERBOSE = TRUE,
-    first.rows = 10000,
-    next.rows = 50000,
-    colClasses = NA
+  file = "file.csv",
+  nrow = 10,          # Total rows
+  header = TRUE,      # Include headers
+  VERBOSE = TRUE,     # Display progress
+  first.rows = 10000, # Initial chunk
+  next.rows = 50000,  # Subsequent chunks
+  colClasses = NA
 )
 ```
 
-`bigmemory` package
-
+##### Using the `bigmemory` Package
 ```{r, eval = FALSE}
-my_data <- read.big.matrix('in.csv', header = T)
+library(bigmemory)
+my_data <- read.big.matrix('in.csv', header = TRUE)
 ```
 
-`sqldf` package
-
+##### Using the `sqldf` Package
 ```{r, eval = FALSE}
 library(sqldf)
 my_data <- read.csv.sql('in.csv')
 
+# Example: Filtering during import
 iris2 <- read.csv.sql("iris.csv", 
-    sql = "select * from file where Species = 'setosa' ")
+    sql = "SELECT * FROM file WHERE Species = 'setosa'")
 ```
+
+##### Using the `RMySQL` Package
 
 ```{r}
 library(RMySQL)
@@ -206,192 +211,227 @@ tbl %>%
 dbDisconnect(con)
 ```
 
-`arrow` package
-
+##### Using the `arrow` Package
 ```{r, eval = FALSE}
-library("arrow")
-read_csv_arrow()
+library(arrow)
+data <- read_csv_arrow("file.csv")
 ```
 
-`vroom` package
-
+##### Using the `vroom` Package
 ```{r, eval = FALSE}
 library(vroom)
-spec(vroom(file_path))
+
+# Import a compressed CSV file
 compressed <- vroom_example("mtcars.csv.zip")
-vroom(compressed)
+data <- vroom(compressed)
 ```
 
-`data.table` package
+##### Using the `data.table` Package
 
 ```{r, eval = FALSE}
 s = fread("sample.csv")
 ```
 
-Comparisons regarding storage space
+##### Comparisons Regarding Storage Space
 
 ```{r, eval = FALSE}
 test = ff::read.csv.ffdf(file = "")
-object.size(test) # worst
+object.size(test) # Highest memory usage
 
 test1 = data.table::fread(file = "")
-object.size(test1) # best
+object.size(test1) # Lowest memory usage
 
-test2 = readr::read_csv(""))
-object.size(test2) # 2nd
+test2 = readr::read_csv(file = "")
+object.size(test2) # Second lowest memory usage
 
-test3 = vroom(file = "")
-object.size(test3) # equal to read_csv
+test3 = vroom::vroom(file = "")
+object.size(test3) # Similar to read_csv
 ```
 
-To work with big data, you can convert it to `csv.gz` , but since typically, R would require you to load the whole data then export it. With data greater than 10 GB, we have to do it sequentially. Even though `read.csv` is much slower than `readr::read_csv` , we still have to use it because it can pass connection, and it allows you to loop sequentially. On the other, because currently `readr::read_csv` does not have the `skip` function, and even if we can use the skip, we still have to read and skip lines in previous loop.
+To work with large datasets, you can compress them into `csv.gz` format. However, typically, R requires loading the entire dataset before exporting it, which can be impractical for data over 10 GB. In such cases, processing the data sequentially becomes necessary. Although `read.csv` is slower compared to `readr::read_csv`, it can handle connections and allows for sequential looping, making it useful for large files.
 
-For example, say you `read_csv(, n_max = 100, skip =0)` and then `read_csv(, n_max = 200, skip = 100)` you actually have to read again the first 100 rows. However, `read.csv` without specifying anything, will continue at the 100 mark.
+Currently, `readr::read_csv` does not support the `skip` argument efficiently for large data. Even if you specify `skip`, the function reads all preceding lines again. For instance, if you run `read_csv(file, n_max = 100, skip = 0)` followed by `read_csv(file, n_max = 200, skip = 100)`, the first 100 rows are re-read. In contrast, `read.csv` can continue from where it left off without re-reading previous rows.
 
-Notice, sometimes you might have error looking like this
+If you encounter an error such as:
 
-"Error in (function (con, what, n = 1L, size = NA_integer\_, signed = TRUE, : can only read from a binary connection"
+"Error in (function (con, what, n = 1L, size = NA_integer\_, signed = TRUE): can only read from a binary connection",
 
-then you can change it instead of `r` in the connection into `rb` . Even though an author of the package suggested that `file` should be able to recognize the appropriate form, so far I did not prevail.
+you can modify the connection mode from `"r"` to `"rb"` (read binary). Although the `file` function is designed to detect the appropriate format automatically, this workaround can help resolve the issue when it does not behave as expected.
+
+#### Sequential Processing for Large Data
+
+```{r, eval = FALSE}
+# Open file for sequential reading
+file_conn <- file("file.csv", open = "r")
+while (TRUE) {
+  # Read a chunk of data
+  data_chunk <- read.csv(file_conn, nrows = 1000)
+  if (nrow(data_chunk) == 0) break  # Stop if no more rows
+  # Process the chunk here
+}
+close(file_conn)  # Close connection
+```
 
 ## Data Manipulation
 
 ```{r}
-# load packages
+# Load required packages
 library(tidyverse)
 library(lubridate)
 
+# -----------------------------
+# Data Structures in R
+# -----------------------------
 
+# Create vectors
 x <- c(1, 4, 23, 4, 45)
 n <- c(1, 3, 5)
 g <- c("M", "M", "F")
+
+# Create a data frame
 df <- data.frame(n, g)
-df
-str(df)
+df  # View the data frame
+str(df)  # Check its structure
 
-#Similarly
+# Using tibble for cleaner outputs
 df <- tibble(n, g)
-df
+df  # View the tibble
 str(df)
 
-# list form
+# Create a list
 lst <- list(x, n, g, df)
-lst
+lst  # Display the list
 
-# Or
+# Name list elements
 lst2 <- list(num = x, size = n, sex = g, data = df)
-lst2
+lst2  # Named list elements are easier to reference
 
-# Or
-lst3 <- list(x = c(1, 3, 5, 7),
-             y = c(2, 2, 2, 4, 5, 5, 5, 6),
-             z = c(22, 3, 3, 3, 5, 10))
+# Another list example with numeric vectors
+lst3 <- list(
+  x = c(1, 3, 5, 7),
+  y = c(2, 2, 2, 4, 5, 5, 5, 6),
+  z = c(22, 3, 3, 3, 5, 10)
+)
 lst3
 
-# find the means of x, y, z.
-
-# can do one at a time
+# Find means of list elements
+# One at a time
 mean(lst3$x)
 mean(lst3$y)
 mean(lst3$z)
 
-# list apply
+# Using lapply to calculate means
 lapply(lst3, mean)
 
-# OR
+# Simplified output with sapply
 sapply(lst3, mean)
 
-# Or, tidyverse function map() 
+# Tidyverse alternative: map() function
 map(lst3, mean)
 
-# The tidyverse requires a modified map function called map_dbl()
+# Tidyverse with numeric output: map_dbl()
 map_dbl(lst3, mean)
 
+# -----------------------------
+# Binding Data Frames
+# -----------------------------
 
-# Binding 
+# Create tibbles for demonstration
 dat01 <- tibble(x = 1:5, y = 5:1)
-dat01
-dat02 <- tibble(x = 10:16, y = x/2)
-dat02
-dat03 <- tibble(z = runif(5)) # 5 random numbers from interval (0,1)
-dat03
+dat02 <- tibble(x = 10:16, y = x / 2)
+dat03 <- tibble(z = runif(5))  # 5 random numbers from (0, 1)
 
-# row binding
+# Row binding
 bind_rows(dat01, dat02, dat01)
 
-# use ".id" argument to create a new column 
-# that contains an identifier for the original data.
+# Add a new identifier column with .id
 bind_rows(dat01, dat02, .id = "id")
 
-# with name
+# Use named inputs for better identification
 bind_rows("dat01" = dat01, "dat02" = dat02, .id = "id")
 
-# bind_rows() also works on lists of data frames
+# Bind a list of data frames
 list01 <- list("dat01" = dat01, "dat02" = dat02)
-list01
-bind_rows(list01)
 bind_rows(list01, .id = "source")
 
-# The extended example below demonstrates how this can be very handy.
-
-# column binding
+# Column binding
 bind_cols(dat01, dat03)
 
+# -----------------------------
+# String Manipulation
+# -----------------------------
 
-# Regular expressions -----------------------------------------------------
 names <- c("Ford, MS", "Jones, PhD", "Martin, Phd", "Huck, MA, MLS")
 
-# pattern: first comma and everything after it
+# Remove everything after the first comma
 str_remove(names, pattern = ", [[:print:]]+")
 
-# [[:print:]]+ = one or more printable characters
+# Explanation: [[:print:]]+ matches one or more printable characters
 
+# -----------------------------
+# Reshaping Data
+# -----------------------------
 
-# Reshaping ---------------------------------------------------------------
+# Wide format data
+wide <- data.frame(
+  name = c("Clay", "Garrett", "Addison"),
+  test1 = c(78, 93, 90),
+  test2 = c(87, 91, 97),
+  test3 = c(88, 99, 91)
+)
 
-# Example of a wide data frame. Notice each person has multiple test scores
-# that span columns.
-wide <- data.frame(name=c("Clay","Garrett","Addison"), 
-                   test1=c(78, 93, 90), 
-                   test2=c(87, 91, 97),
-                   test3=c(88, 99, 91))
-wide
+# Long format data
+long <- data.frame(
+  name = rep(c("Clay", "Garrett", "Addison"), each = 3),
+  test = rep(1:3, 3),
+  score = c(78, 87, 88, 93, 91, 99, 90, 97, 91)
+)
 
-# Example of a long data frame. This is the same data as above, but in long
-# format. We have one row per person per test.
-long <- data.frame(name=rep(c("Clay","Garrett","Addison"),each=3),
-                   test=rep(1:3, 3),
-                   score=c(78, 87, 88, 93, 91, 99, 90, 97, 91))
-long
+# Summary statistics
+aggregate(score ~ name, data = long, mean)  # Mean score per student
+aggregate(score ~ test, data = long, mean)  # Mean score per test
 
-# mean score per student
-aggregate(score ~ name, data = long, mean)
-aggregate(score ~ test, data = long, mean)
+# Line plot of scores over tests
+ggplot(long,
+       aes(
+           x = factor(test),
+           y = score,
+           color = name,
+           group = name
+       )) +
+    geom_point() +
+    geom_line() +
+    xlab("Test") +
+    ggtitle("Test Scores by Student")
 
-# line plot of scores over test, grouped by name
-ggplot(long, aes(x = factor(test), y = score, color = name, group = name)) +
-  geom_point() +
-  geom_line() +
-  xlab("Test")
-
-
-#### reshape wide to long
+# Reshape wide to long
 pivot_longer(wide, test1:test3, names_to = "test", values_to = "score")
 
-# Or
-pivot_longer(wide, -name, names_to = "test", values_to = "score")
+# Use names_prefix to clean column names
+pivot_longer(
+    wide,
+    -name,
+    names_to = "test",
+    values_to = "score",
+    names_prefix = "test"
+)
 
-# drop "test" from the test column with names_prefix argument
-pivot_longer(wide, -name, names_to = "test", values_to = "score", 
-             names_prefix = "test")
+# Reshape long to wide with explicit id_cols argument
+pivot_wider(
+  long,
+  id_cols = name, 
+  names_from = test,
+  values_from = score
+)
 
-#### reshape long to wide 
-pivot_wider(long, name, names_from = test, values_from = score)
-
-# using the names_prefix argument lets us prepend text to the column names.
-pivot_wider(long, name, names_from = test, values_from = score,
-            names_prefix = "test")
-
+# Add a prefix to the resulting columns
+pivot_wider(
+  long,
+  id_cols = name,  
+  names_from = test,
+  values_from = score,
+  names_prefix = "test"
+)
 ```
 
 The verbs of data manipulation
@@ -421,27 +461,30 @@ Tunneling
 
 ```{r}
 library(tidyverse)
+# -----------------------------
+# Writing Functions with {{ }}
+# -----------------------------
 
-get_mean <- function(data, group_var, var_to_mean){
-    data %>% 
-        group_by({{group_var}}) %>% 
-        summarize(mean = mean({{var_to_mean}}))
+# Define a custom function using {{ }}
+get_mean <- function(data, group_var, var_to_mean) {
+  data %>%
+    group_by({{group_var}}) %>%
+    summarize(mean = mean({{var_to_mean}}, na.rm = TRUE))
 }
 
+# Apply the function
 data("mtcars")
-head(mtcars)
+mtcars %>%
+  get_mean(group_var = cyl, var_to_mean = mpg)
 
-mtcars %>% 
-    get_mean(group_var = cyl, var_to_mean = mpg)
-
-# to change the resulting variable name dynamically, 
-# you can use the glue interpolation (i.e., `{{`) and Walrus operator (`:=`)
-get_mean <- function(data, group_var, var_to_mean, prefix = "mean_of"){
-    data %>% 
-        group_by({{group_var}}) %>% 
-        summarize("{prefix}_{{var_to_mean}}" := mean({{var_to_mean}}))
+# Dynamically name the resulting variable
+get_mean <- function(data, group_var, var_to_mean, prefix = "mean_of") {
+  data %>%
+    group_by({{group_var}}) %>%
+    summarize("{prefix}_{{var_to_mean}}" := mean({{var_to_mean}}, na.rm = TRUE))
 }
 
-mtcars %>% 
-    get_mean(group_var = cyl, var_to_mean = mpg)
+# Apply the modified function
+mtcars %>%
+  get_mean(group_var = cyl, var_to_mean = mpg)
 ```

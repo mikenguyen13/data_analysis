@@ -457,7 +457,14 @@ library(MASS)  # for mvrnorm
 library(lavaan)
 
 # Function to generate synthetic data with correctly correlated errors for mediators
-generate_data <- function(n = 10000, a1 = 0.5, a2 = -0.35, b1 = 0.7, b2 = 0.48, corr = TRUE, correlation_value = 0.7) {
+generate_data <-
+  function(n = 10000,
+           a1 = 0.5,
+           a2 = -0.35,
+           b1 = 0.7,
+           b2 = 0.48,
+           corr = TRUE,
+           correlation_value = 0.7) {
     set.seed(12345)
     X <- rnorm(n)
     
