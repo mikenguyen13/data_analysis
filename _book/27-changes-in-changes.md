@@ -391,7 +391,7 @@ plot(jt.mdid)
 On top of the distributional DiD assumption, we need **copula stability** assumption (i.e., If, before the treatment, the units with the highest outcomes were improving the most, we would expect to see them improving the most in the current period too.) for these models:
 
 | **Aspect**                      | **QDiD**                       | **CiC**                          |
-|------------------------|-----------------------|-------------------------|
+|---------------------------------|--------------------------------|----------------------------------|
 | **Treatment of Time and Group** | Symmetric                      | Asymmetric                       |
 | **QTET Computation**            | Not inherently scale-invariant | Outcome Variable Scale-Invariant |
 
