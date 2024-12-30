@@ -104,11 +104,15 @@ There are differences between a population and a sample:
         -   @snedecor1989statistical, Table A 19(ii)
         -   @geary1936moments
 
++-------------------------+-------------------+----------------------------------------------------+
 | **Kurtosis Value**      | **Tail Behavior** | **Comparison to Normal Distribution**              |
-|-------------------------|-------------------|----------------------------------------------------|
++=========================+===================+====================================================+
 | $g_2 > 0$ (Leptokurtic) | Heavier Tails     | Examples: $t$-distributions                        |
++-------------------------+-------------------+----------------------------------------------------+
 | $g_2 < 0$ (Platykurtic) | Lighter Tails     | Examples: Uniform or certain bounded distributions |
++-------------------------+-------------------+----------------------------------------------------+
 | $g_2 = 0$ (Mesokurtic)  | Normal Tails      | Exactly matches the normal distribution            |
++-------------------------+-------------------+----------------------------------------------------+
 
 
 ```r
@@ -130,6 +134,47 @@ cat("Kurtosis:", kurtosis_value, "\n")
 ```
 
 ## Graphical Measures
+
+The following table summarizes key graphical measures along with guidance on when and why to use each. More detailed explanations, visual examples, and sample code will be discussed after this table.
+
++---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
+| **Graph Type**            | **When to Use**                                                                          | **Why It\'s Useful**                                                               |
++===========================+==========================================================================================+====================================================================================+
+| **Histogram**             | \- Exploring the distribution (shape, center, spread) of a single continuous variable    | \- Quickly identifies frequency, modes, skewness, and potential outliers \         |
+|                           |                                                                                          | - Provides an overview of data \"shape\"                                           |
++---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
+| **Box-and-Whisker Plot**  | \- Comparing the same continuous variable across multiple categories \                   | \- Shows distribution at a glance (median, quartiles) \                            |
+|                           | - Identifying median, IQR, and outliers                                                  | - Highlights outliers and potential group differences                              |
++---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
+| **Stem-and-Leaf Plot**    | \- Small, single-variable datasets where you want a textual yet visual distribution view | \- Reveals the distribution while preserving actual data values \                  |
+|                           |                                                                                          | - Easy to spot clusters and gaps for small datasets                                |
++---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
+| **Notched Boxplot**       | \- Similar to a standard boxplot but with confidence intervals around the median         | \- If notches don\'t overlap, it suggests the medians differ significantly \       |
+|                           |                                                                                          | - Helps clarify whether differences in medians are likely meaningful               |
++---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
+| **Bagplot (2D Boxplot)**  | \- Bivariate data where you want a 2D \"boxplot\"-style overview \                       | \- Depicts both central region (\"bag\") and potential outliers \                  |
+|                           | - Identifying outliers in two-dimensional space                                          | - Ideal for discovering clusters or unusual points in two continuous variables     |
++---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
+| **Boxplot Matrix**        | \- Multiple continuous variables that you want to compare side-by-side                   | \- Quickly compares distributions of many variables simultaneously \               |
+|                           |                                                                                          | - Helpful for spotting differences in median, spread, and outliers                 |
++---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
+| **Violin Plot**           | \- Same use case as boxplot but you want *more detail* on the distribution\'s shape      | \- Combines boxplot features with a density plot \                                 |
+|                           |                                                                                          | - Shows where data are concentrated or sparse within each category                 |
++---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
+| **Scatterplot**           | \- Two continuous variables to check for relationships, trends, or outliers              | \- Visualizes correlation or non-linear patterns \                                 |
+|                           |                                                                                          | - Aids in identifying clusters or extreme values                                   |
++---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
+| **Pairwise Scatterplots** | \- Initial exploration of *several* variables at once                                    | \- Enables a quick scan of relationships between *all* variable pairs \            |
+|                           |                                                                                          | - Useful for identifying multivariate patterns or potential correlation structures |
++---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
+
+**Tips for Selecting the Right Plot:**
+
+-   **Focus on Your Question**: Are you comparing groups, investigating correlations, or just exploring the overall shape of the data?
+
+-   **Match the Plot to Your Data Type**: Continuous vs. categorical data often dictates your choice of chart.
+
+-   **Mind the Data Size**: Some plots become cluttered or lose clarity with very large datasets (e.g., stem-and-leaf), while others may be less informative with very few data points.
 
 ### Shape
 
@@ -494,12 +539,17 @@ Properties of the ECDF
 
 Let's consider a sample dataset $\{3, 7, 7, 10, 15\}$. The ECDF at different values of $x$ is calculated as:
 
-| $x$      | $\mathbb{I}(X_i \leq x)$ for each $X_i$ | Count $\leq x$ | ECDF $F_n(x)$ |
-|----------|-----------------------------------------|----------------|---------------|
-| $x = 5$  | $\{1, 0, 0, 0, 0\}$                     | 1              | $1/5 = 0.2$   |
-| $x = 7$  | $\{1, 1, 1, 0, 0\}$                     | 3              | $3/5 = 0.6$   |
-| $x = 12$ | $\{1, 1, 1, 1, 0\}$                     | 4              | $4/5 = 0.8$   |
-| $x = 15$ | $\{1, 1, 1, 1, 1\}$                     | 5              | $5/5 = 1.0$   |
++------------+-----------------------------------------+----------------+---------------+
+| $x$        | $\mathbb{I}(X_i \leq x)$ for each $X_i$ | Count $\leq x$ | ECDF $F_n(x)$ |
++============+=========================================+================+===============+
+| $x = 5$    | $\{1, 0, 0, 0, 0\}$                     | 1              | $1/5 = 0.2$   |
++------------+-----------------------------------------+----------------+---------------+
+| $x = 7$    | $\{1, 1, 1, 0, 0\}$                     | 3              | $3/5 = 0.6$   |
++------------+-----------------------------------------+----------------+---------------+
+| $x = 12$   | $\{1, 1, 1, 1, 0\}$                     | 4              | $4/5 = 0.8$   |
++------------+-----------------------------------------+----------------+---------------+
+| $x = 15$   | $\{1, 1, 1, 1, 1\}$                     | 5              | $5/5 = 1.0$   |
++------------+-----------------------------------------+----------------+---------------+
 
 Applications of the ECDF
 
@@ -1153,12 +1203,17 @@ cat("Distance Correlation (dCor):", distance_corr, "\n")
 
 #### Summary Table of Correlation Methods
 
++--------------------------+--------------------------------+---------------------------+-----------------------------+-------------------------+-------------------------------------+
 | Method                   | Formula/Approach               | Detects Relationship Type | Assumptions                 | Sensitivity to Outliers | Use Case                            |
-|--------------------------|--------------------------------|---------------------------|-----------------------------|-------------------------|-------------------------------------|
++==========================+================================+===========================+=============================+=========================+=====================================+
 | **Pearson**              | Linear covariance              | Linear                    | Normality, homoscedasticity | High                    | Linear relationships.               |
++--------------------------+--------------------------------+---------------------------+-----------------------------+-------------------------+-------------------------------------+
 | **Spearman**             | Ranks and monotonicity formula | Monotonic                 | None                        | Moderate                | Monotonic, non-linear data.         |
++--------------------------+--------------------------------+---------------------------+-----------------------------+-------------------------+-------------------------------------+
 | **Kendall's Tau**        | Concordance/discordance ratio  | Monotonic                 | None                        | Low                     | Small datasets, robust to outliers. |
++--------------------------+--------------------------------+---------------------------+-----------------------------+-------------------------+-------------------------------------+
 | **Distance Correlation** | Distance-based variance        | Linear and non-linear     | None                        | Low                     | Complex, non-linear relationships.  |
++--------------------------+--------------------------------+---------------------------+-----------------------------+-------------------------+-------------------------------------+
 
 ### Categorical and Continuous
 
@@ -1324,12 +1379,17 @@ ggplot(data, aes(x = x, y = predicted)) +
 
 #### Summary Table of Methods (Between Categorical and Continuous)
 
++--------------------------------+---------------------------------------+------------------------------------+----------------------------------------+
 | Method                         | Type of Variable Relationship         | Key Assumptions                    | Use Case                               |
-|--------------------------------|---------------------------------------|------------------------------------|----------------------------------------|
++================================+=======================================+====================================+========================================+
 | **Point-Biserial Correlation** | Binary Categorical vs Continuous      | Linear, normality (continuous)     | Assess linear association.             |
++--------------------------------+---------------------------------------+------------------------------------+----------------------------------------+
 | **Logistic Regression**        | Continuous → Binary Categorical       | Logit-linear relationship          | Predict probability of binary outcome. |
++--------------------------------+---------------------------------------+------------------------------------+----------------------------------------+
 | **ANOVA**                      | Multi-level Categorical vs Continuous | Normality, homogeneity of variance | Compare means across groups.           |
++--------------------------------+---------------------------------------+------------------------------------+----------------------------------------+
 | **T-Test**                     | Binary Categorical vs Continuous      | Normality, equal variance          | Compare means between two groups.      |
++--------------------------------+---------------------------------------+------------------------------------+----------------------------------------+
 
 ### Two Discrete
 
@@ -2027,19 +2087,31 @@ cat("Polychoric Correlation:", polychoric_corr, "\n")
 #> Polychoric Correlation: 0.1908334
 ```
 
++-----------------------------+-----------------------------------+------------------------------------------------+
 | Metric                      | Variable Types                    | Use Case                                       |
-|-----------------------------|-----------------------------------|------------------------------------------------|
++=============================+===================================+================================================+
 | **Spearman's Correlation**  | Ordinal vs. Ordinal               | Non-linear, monotonic relationships.           |
++-----------------------------+-----------------------------------+------------------------------------------------+
 | **Kendall's Tau**           | Ordinal vs. Ordinal               | Non-linear, monotonic relationships with ties. |
++-----------------------------+-----------------------------------+------------------------------------------------+
 | **Gamma Statistic**         | Ordinal vs. Ordinal               | Handles data with many ties effectively.       |
++-----------------------------+-----------------------------------+------------------------------------------------+
 | **Freeman's Theta**         | Ordinal vs. Nominal               | Mixed data types (ordinal and nominal).        |
++-----------------------------+-----------------------------------+------------------------------------------------+
 | **Epsilon-Squared**         | Ordinal vs. Nominal               | Variance explained by nominal groups.          |
++-----------------------------+-----------------------------------+------------------------------------------------+
 | **Goodman-Kruskal's Gamma** | Ordinal vs. Ordinal               | Strong association; ignores ties.              |
++-----------------------------+-----------------------------------+------------------------------------------------+
 | **Somers' D**               | Ordinal Predictor and Response    | Asymmetric association.                        |
++-----------------------------+-----------------------------------+------------------------------------------------+
 | **Kendall's Tau-b**         | Ordinal vs. Ordinal               | Adjusts for ties in data.                      |
++-----------------------------+-----------------------------------+------------------------------------------------+
 | **Yule's Q**                | Binary Ordinal vs. Binary Ordinal | Special case for 2x2 tables.                   |
++-----------------------------+-----------------------------------+------------------------------------------------+
 | **Tetrachoric Correlation** | Binary vs. Binary                 | Binary ordinal variables.                      |
++-----------------------------+-----------------------------------+------------------------------------------------+
 | **Polychoric Correlation**  | Ordinal vs. Ordinal               | Continuous latent structure.                   |
++-----------------------------+-----------------------------------+------------------------------------------------+
 
 ### General Approach to Bivariate Statistics
 

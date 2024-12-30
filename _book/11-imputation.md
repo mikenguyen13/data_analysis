@@ -1577,30 +1577,6 @@ The eigen-decomposition used in standard principal component analysis is not app
 
 Single imputation techniques are straightforward and accessible, but they often underestimate uncertainty and fail to fully leverage relationships among variables. These limitations make them less ideal for rigorous analyses compared to multiple imputation or model-based approaches.
 
-### Advanced Imputation Techniques
-
-#### Expectation-Maximization (EM) Algorithm
-
-#### Maximum Likelihood Estimation (MLE)
-
-#### Bayesian Methods:
-
-```         
--   Multiple Imputation by Bayesian Inference
-
--   Fully Conditional Specification (FCS)
-```
-
-#### Nonparametric Approaches:
-
-```         
--   K-Nearest Neighbors (KNN) Imputation
-
--   Kernel Density Estimation
-
--   Local Regression Smoothing
-```
-
 ### Machine Learning and Modern Approaches
 
 #### Tree-Based Methods
@@ -2141,7 +2117,7 @@ The increasing use of streaming data in business and technology requires real-ti
 This section demonstrates how to visualize missing data and handle it using different imputation techniques.
 
 | **Package**    | **Algorithm**                                            | **Cont Var** | **Cate Var**                 | **Diagnostics**                   | **Complexity Handling**                | **Best Use Case**                          | **Limitations**                                     |
-|---------|---------|---------|---------|---------|---------|---------|---------|
+|---------|---------|---------|---------|----------|----------|---------|---------|
 | **missForest** | Random Forest                                            | Yes          | Yes                          | Out-of-bag error (NRMSE, PFC)     | Handles complex interactions           | Mixed data types with complex interactions | May overfit with small datasets                     |
 | **Hmisc**      | Additive Regression, Bootstrap, Predictive Mean Matching | Yes          | Yes                          | $R^2$ for imputed values          | Basic to intermediate complexity       | Simple datasets with low complexity        | Limited to simple imputation methods                |
 | **mi**         | Bayesian Regression                                      | Yes          | Yes                          | Graphical diagnostics,convergence | Detects issues like collinearity       | Datasets with irregularities               | Computationally intensive for large data            |
@@ -2202,7 +2178,7 @@ $$
 
 where $\lambda$ is the rate of missing data.
 
-For example, with 50% missing data (\$\\lambda = 0.5\$), the standard deviation of an estimate based on 5 imputations is only about 5% wider than that from infinite imputations:
+For example, with 50% missing data ($\lambda = 0.5$), the standard deviation of an estimate based on 5 imputations is only about 5% wider than that from infinite imputations:
 
 $$
 \sqrt{1 + \frac{0.5}{5}} = 1.049

@@ -3,7 +3,7 @@
 ### Number Sets
 
 | Notation     | Denotes          | Examples                                                |
-|-------------------|----------------------|-------------------------------|
+|---------------|---------------|------------------------------------------|
 | $\emptyset$  | Empty set        | No members                                              |
 | $\mathbb{N}$ | Natural numbers  | $\{1, 2, \ldots\}$                                      |
 | $\mathbb{Z}$ | Integers         | $\{\ldots, -1, 0, 1, \ldots\}$                          |
@@ -315,7 +315,7 @@ $$
 #### Summary: Properties of Convergence
 
 | Convergence in Probability                                                                                         | Convergence in Distribution                                                                                             |
-|-------------------------------------|-----------------------------------|
+|-----------------------------------|-------------------------------------|
 | Slutsky's Theorem: For a continuous $g(\cdot)$, if $plim(\theta_n) = \theta$, then $plim(g(\theta_n)) = g(\theta)$ | Continuous Mapping Theorem: For a continuous $g(\cdot)$, if $X_n \xrightarrow{d} X$, then $g(X_n) \xrightarrow{d} g(X)$ |
 | If $\gamma_n \xrightarrow{p} \gamma$, then:                                                                        | If $Y_n \xrightarrow{d} c$, then:                                                                                       |
 | $plim(\theta_n + \gamma_n) = \theta + \gamma$                                                                      | $X_n + Y_n \xrightarrow{d} X + c$                                                                                       |
@@ -337,23 +337,56 @@ The **likelihood** describes the degree to which the observed data supports a pa
 -   The exact value of the likelihood is **not meaningful**; only relative comparisons matter.
 -   Likelihood is **informative** when comparing parameter values, helping identify which values of $\theta$ are more plausible given the data.
 
-For a single observation $Y=y$, the likelihood function is:
+For a single observation $Y = y$, the likelihood function is defined as:
 
 $$
-L(\theta_0; y) = P(Y = y | \theta = \theta_0) = f_Y(y; \theta_0)
+L(\theta_0; y) = P(Y = y \mid \theta = \theta_0) = f_Y(y; \theta_0),
 $$
+
+where $f_Y(y; \theta_0)$ is the probability density (or mass) function of $Y$ for the parameter $\theta_0$.
+
+**Key Insight**: The likelihood tells us how plausible $\theta$ is, given the data we observed. It is **not a probability**, but it is proportional to the probability of observing the data under a given parameter value.
+
+**Example**: Suppose $Y$ follows a binomial distribution with $n=10$ trials and probability of success $p$:
+
+$$
+P(Y = y \mid p) = \binom{10}{y} p^y (1-p)^{10-y}.
+$$
+
+For $y=7$ observed successes, the likelihood function becomes:
+
+$$
+L(p; y=7) = \binom{10}{7} p^7 (1-p)^3.
+$$
+
+We can use this to compare how well different values of $p$ explain the observed data.
 
 ------------------------------------------------------------------------
 
 #### Likelihood Ratio
 
-The **likelihood ratio** compares the relative likelihood of two parameter values $\theta_0$ and $\theta_1$ given the data:
+The **likelihood ratio** compares the relative likelihood of two parameter values $\theta_0$ and $\theta_1$ given the observed data:
 
 $$
-\frac{L(\theta_0; y)}{L(\theta_1; y)}
+\text{Likelihood Ratio} = \frac{L(\theta_0; y)}{L(\theta_1; y)}.
 $$
 
-A likelihood ratio greater than 1 implies that $\theta_0$ is more likely than $\theta_1$, given the observed data.
+-   A likelihood ratio greater than 1 implies that $\theta_0$ is more likely than $\theta_1$, given the observed data.
+-   Likelihood ratios are widely used in hypothesis testing and model comparison to evaluate the evidence against a null hypothesis.
+
+**Example**: For the binomial example above, consider $p_0 = 0.7$ and $p_1 = 0.5$. The likelihood ratio is:
+
+$$
+\frac{L(p_0; y=7)}{L(p_1; y=7)} = \frac{\binom{10}{7} (0.7)^7 (0.3)^3}{\binom{10}{7} (0.5)^7 (0.5)^3}.
+$$
+
+This simplifies to:
+
+$$
+\frac{(0.7)^7 (0.3)^3}{(0.5)^7 (0.5)^3}.
+$$
+
+The likelihood ratio quantifies how much more likely $p_0$ is compared to $p_1$ given the observed data.
 
 ------------------------------------------------------------------------
 
@@ -368,26 +401,47 @@ $$
 For a sample of size $n$, assuming independence among observations:
 
 $$
-L(\theta) = \prod_{i=1}^{n} f_i(y_i; \theta).
+L(\theta) = \prod_{i=1}^{n} f_Y(y_i; \theta).
 $$
 
 Taking the natural logarithm of the likelihood gives the **log-likelihood function**:
 
 $$
-l(\theta) = \sum_{i=1}^{n} \log f_i(y_i; \theta).
+l(\theta) = \sum_{i=1}^{n} \log f_Y(y_i; \theta).
 $$
 
-The log-likelihood function is particularly useful in optimization problems, as logarithms convert products into sums, simplifying computation.
+**Why Log-Likelihood?**
+
+-   The log-likelihood simplifies computation by turning products into sums.
+-   It is particularly useful for optimization, as many numerical methods (e.g., gradient-based algorithms) perform better with sums than products.
+
+**Example**: For $Y_1, Y_2, \dots, Y_n$ i.i.d. observations from a normal distribution $N(\mu, \sigma^2)$, the likelihood is:
+
+$$
+L(\mu, \sigma^2) = \prod_{i=1}^n \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(y_i - \mu)^2}{2\sigma^2}\right).
+$$
+
+The log-likelihood is:
+
+$$
+l(\mu, \sigma^2) = -\frac{n}{2} \log(2\pi\sigma^2) - \frac{1}{2\sigma^2} \sum_{i=1}^n (y_i - \mu)^2.
+$$
 
 ------------------------------------------------------------------------
 
 #### Sufficient Statistics
 
-A statistic $T(y)$ is **sufficient** for a parameter $\theta$ if it summarizes all the information in the data about $\theta$. Formally, by the **Factorization Theorem**, $T(y)$ is sufficient for $\theta$ if:
+A **sufficient statistic** $T(y)$ is a summary of the data that retains all information about a parameter $\theta$. It allows us to focus on this condensed statistic without losing any inferential power regarding $\theta$.
 
-$$
-L(\theta; y) = c(y) L^*(\theta; T(y)),
-$$
+**Formal Definition:**
+
+A statistic $T(y)$ is sufficient for a parameter $\theta$ if the conditional probability distribution of the data $y$, given $T(y)$ and $\theta$, does not depend on $\theta$. Mathematically:
+
+$$ P(Y = y \mid T(y), \theta) = P(Y = y \mid T(y)). $$
+
+Alternatively, by the **Factorization Theorem**, $T(y)$ is sufficient if the likelihood can be written as:
+
+$$ L(\theta; y) = c(y) L^*(\theta; T(y)), $$
 
 where:
 
@@ -396,13 +450,42 @@ where:
 
 In other words, the likelihood function can be rewritten in terms of $T(y)$ alone, without loss of information about $\theta$.
 
-**Example**:
+**Why Sufficient Statistics Matter:**
 
-For a sample of i.i.d. observations $Y_1, Y_2, \dots, Y_n$ from a normal distribution $N(\mu, \sigma^2)$:
+-   They allow us to simplify the analysis by reducing the data without losing inferential power.
+-   Many inferential procedures (e.g., Maximum Likelihood Estimation, Bayesian methods) are simplified by working with sufficient statistics.
 
--   The sample mean $\bar{Y}$ is sufficient for $\mu$.
+**Example:**
 
--   The sufficient statistic conveys all the information about $\mu$ contained in the data.
+Consider a sample of i.i.d. observations $Y_1, Y_2, \dots, Y_n$ from a normal distribution $N(\mu, \sigma^2)$. Here:
+
+1.  The sample mean $\bar{Y} = \frac{1}{n} \sum_{i=1}^n Y_i$ is sufficient for $\mu$.
+2.  The sample variance $S^2 = \frac{1}{n-1} \sum_{i=1}^n (Y_i - \bar{Y})^2$ is sufficient for $\sigma^2$.
+
+**Verification:** The joint density of $y_1, y_2, \dots, y_n$ can be factored as:
+
+$$
+f(y_1, \dots, y_n; \mu, \sigma^2) = \underbrace{\frac{1}{(2\pi\sigma^2)^{n/2}} \exp\left(-\frac{1}{2\sigma^2} \sum_{i=1}^n (y_i - \bar{y})^2\right)}_{L^*(\mu, \sigma^2; \bar{y}, s^2)}
+\cdot \underbrace{\text{[independent of $\mu$, $\sigma^2$]}}_{c(y)}.
+$$
+
+This shows $\bar{Y}$ and $S^2$ are sufficient.
+
+------------------------------------------------------------------------
+
+**Usage of Sufficient Statistics**
+
+1.  **Maximum Likelihood Estimation (MLE):** In MLE, sufficient statistics simplify the optimization problem by reducing the data without losing information.
+
+    Example: In the normal distribution case, $\mu$ can be estimated using the sufficient statistic $\bar{Y}$: $$
+    \hat{\mu}_{MLE} = \bar{Y}.
+    $$
+
+2.  **Bayesian Inference:** In Bayesian analysis, the posterior distribution depends on the sufficient statistic rather than the entire data set. For the normal case: $$
+    P(\mu \mid \bar{Y}) \propto P(\mu) L(\mu; \bar{Y}).
+    $$
+
+3.  **Data Compression:** In practice, sufficient statistics reduce the complexity of data storage and analysis by condensing all relevant information into a smaller representation.
 
 ------------------------------------------------------------------------
 
@@ -411,6 +494,19 @@ For a sample of i.i.d. observations $Y_1, Y_2, \dots, Y_n$ from a normal distrib
 Parameters that are not of direct interest in the analysis but are necessary to model the data are called **nuisance parameters**.
 
 **Profile Likelihood**: To handle nuisance parameters, replace them with their maximum likelihood estimates (MLEs) in the likelihood function, creating a **profile likelihood** for the parameter of interest.
+
+**Example of Profile Likelihood**:
+
+In a regression model with parameters $\beta$ (coefficients) and $\sigma^2$ (error variance), $\sigma^2$ is often a nuisance parameter. The profile likelihood for $\beta$ is obtained by substituting the MLE of $\sigma^2$ into the likelihood:
+
+$$
+L_p(\beta) = L(\beta, \hat{\sigma}^2),
+$$
+
+where $\hat{\sigma}^2$ is the MLE of $\sigma^2$ given $\beta$.
+
+This simplifies the problem to focus only on the parameter of interest, $\beta$.
+
 
 ------------------------------------------------------------------------
 
