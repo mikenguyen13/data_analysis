@@ -9,6 +9,9 @@ This chapter serves as a concise review of fundamental concepts in [Matrix Theor
 
 If you are confident in your understanding of these topics, you can proceed directly to the [Descriptive Statistics] section to begin exploring applied data analysis.
 
+
+![](images/Famous-internet-meme-displaying-the-relation-between-statistics-Machine-Learning-and.png)
+
 ## Matrix Theory
 
 Matrix $A$ represents the original matrix. It's a 2x2 matrix with elements $a_{ij}$, where $i$ represents the row and $j$ represents the column.
@@ -349,7 +352,204 @@ Optimization is the process of finding the minimum or maximum of a function. The
         -   Negative definite Hessian: All eigenvalues are negative.
         -   Indefinite Hessian: Eigenvalues have mixed signs.
 
+### Cholesky Decomposition
+
+In statistical analysis and numerical linear algebra, decomposing matrices into more tractable forms is crucial for efficient computation. One such important factorization is the **Cholesky Decomposition**. It applies to **Hermitian** (in the complex case) or **symmetric** (in the real case), **positive-definite** matrices.
+
+Given an $n \times n$ positive-definite matrix $A$, the Cholesky Decomposition states:
+
+$$
+A = L L^{*},
+$$
+
+where:
+
+-   $L$ is a lower-triangular matrix with strictly positive diagonal entries.
+-   $L^{*}$ denotes the *conjugate transpose* of $L$ (simply the transpose $L^{T}$ for real matrices).
+
+Cholesky Decomposition is both computationally efficient and numerically stable, making it a go-to technique for many applications---particularly in statistics where we deal extensively with covariance matrices, linear systems, and probability distributions.
+
+Before diving into how we compute a Cholesky Decomposition, we need to clarify what it means for a matrix to be *positive-definite*. For a real symmetric matrix $A$:
+
+-   $A$ is *positive-definite* if for every nonzero vector $x$, we have $$
+    x^T A \, x > 0.
+    $$
+-   Alternatively, you can characterize positive-definiteness by noting that all eigenvalues of $A$ are strictly positive.
+
+Many important matrices in statistics---particularly *covariance* or *precision* matrices---are both symmetric and positive-definite.
+
+------------------------------------------------------------------------
+
+#### Existence
+
+A real $n \times n$ matrix $A$ that is symmetric and positive-definite always admits a Cholesky Decomposition $A = L L^T$. This theorem guarantees that for any covariance matrix in statistics---assuming it is valid (i.e., positive-definite)---we can decompose it via Cholesky.
+
+#### Uniqueness
+
+If we additionally require that the diagonal entries of $L$ are *strictly positive*, then $L$ is *unique*. That is, no other lower-triangular matrix with strictly positive diagonal entries will produce the same factorization. This uniqueness is helpful for ensuring consistent numerical outputs in software implementations.
+
+#### Constructing the Cholesky Factor $L$
+
+Given a real, symmetric, positive-definite matrix $A \in \mathbb{R}^{n \times n}$, we want to find the lower-triangular matrix $L$ such that $A = LL^T$. One way to do this is by using a simple step-by-step procedure (often part of standard linear algebra libraries):
+
+1.  **Initialize** $L$ to be an $n \times n$ zero matrix.
+2.  **Iterate** through the rows $i = 1, 2, \dots, n$:
+    1.  For each row $i$, compute $$
+        L_{ii} = \sqrt{A_{ii} - \sum_{k=1}^{i-1} L_{ik}^2}.
+        $$
+    2.  For each column $j = i+1, i+2, \dots, n$: $$
+        L_{ji} = \frac{1}{L_{ii}}
+                  \Bigl(A_{ji} - \sum_{k=1}^{i-1} L_{jk} L_{ik}\Bigr).
+        $$
+    3.  All other entries of $L$ remain zero or are computed in subsequent steps.
+3.  **Result**: $L$ is lower-triangular, and $L^T$ is its transpose.
+
+Cholesky Decomposition is roughly half the computational cost of a more general LU Decomposition. Specifically, it requires on the order of $\frac{1}{3} n^3$ floating-point operations (flops), making it significantly more efficient in practice than other decompositions for positive-definite systems.
+
+------------------------------------------------------------------------
+
+#### Illustrative Example
+
+Consider a small $3 \times 3$ positive-definite matrix:
+
+$$
+A = 
+\begin{pmatrix}
+4 & 2 & 4 \\
+2 & 5 & 6 \\
+4 & 6 & 20
+\end{pmatrix}.
+$$
+
+We claim $A$ is positive-definite (one could check by calculating principal minors or verifying $x^T A x > 0$ for all $x \neq 0$). We find $L$ step-by-step:
+
+1.  **Compute** $L_{11}$:\
+    $$
+    L_{11} = \sqrt{A_{11}} = \sqrt{4} = 2.
+    $$
+2.  **Compute** $L_{21}$ and $L_{31}$:
+    -   $L_{21} = \frac{A_{21}}{L_{11}} = \frac{2}{2} = 1.$\
+    -   $L_{31} = \frac{A_{31}}{L_{11}} = \frac{4}{2} = 2.$
+3.  **Compute** $L_{22}$:\
+    $$
+    L_{22} = \sqrt{A_{22} - L_{21}^2} 
+            = \sqrt{5 - 1^2}
+            = \sqrt{4} = 2.
+    $$
+4.  **Compute** $L_{32}$:\
+    $$
+    L_{32} = \frac{A_{32} - L_{31} L_{21}}{L_{22}}
+            = \frac{6 - (2)(1)}{2}
+            = \frac{4}{2} = 2.
+    $$
+5.  **Compute** $L_{33}$:\
+    $$
+    L_{33} = \sqrt{A_{33} - (L_{31}^2 + L_{32}^2)}
+            = \sqrt{20 - (2^2 + 2^2)}
+            = \sqrt{20 - 8}
+            = \sqrt{12}
+            = 2\sqrt{3}.
+    $$
+
+Thus, 
+
+$$
+L = 
+\begin{pmatrix}
+2 & 0 & 0 \\
+1 & 2 & 0 \\
+2 & 2 & 2\sqrt{3}
+\end{pmatrix}.
+$$
+
+One can verify $L L^T = A$.
+
+------------------------------------------------------------------------
+
+#### Applications in Statistics
+
+##### Solving Linear Systems
+
+A common statistical problem is solving $A x = b$ for $x$. For instance, in regression or in computing Bayesian posterior modes, we often need to solve linear equations with covariance or precision matrices. With $A = LL^T$:
+
+1.  **Forward Substitution**: Solve $L \, y = b$.
+2.  **Backward Substitution**: Solve $L^T x = y$.
+
+This two-step process is more stable and efficient than directly inverting $A$ (which is typically discouraged due to numerical issues).
+
+##### Generating Correlated Random Vectors
+
+In simulation-based statistics (e.g., Monte Carlo methods), we often need to generate random draws from a **multivariate normal** distribution $\mathcal{N}(\mu, \Sigma)$, where $\Sigma$ is the covariance matrix. The steps are:
+
+1.  Generate a vector $z \sim \mathcal{N}(0, I)$ of independent standard normal variables.
+2.  Compute $x = \mu + Lz$, where $\Sigma = LL^T$.
+
+Then $x$ has the desired covariance structure $\Sigma$. This technique is widely used in Bayesian statistics (e.g., MCMC sampling) and financial modeling (e.g., portfolio simulations).
+
+##### Gaussian Processes and Kriging
+
+In Gaussian Process modeling (common in spatial statistics, machine learning, and geostatistics), we frequently work with large covariance matrices that describe the correlations between observed data points:
+
+$$
+\Sigma = 
+\begin{pmatrix}
+k(x_1, x_1) & k(x_1, x_2) & \cdots & k(x_1, x_n) \\
+k(x_2, x_1) & k(x_2, x_2) & \cdots & k(x_2, x_n) \\
+\vdots      & \vdots      & \ddots & \vdots      \\
+k(x_n, x_1) & k(x_n, x_2) & \cdots & k(x_n, x_n)
+\end{pmatrix},
+$$
+
+where $k(\cdot, \cdot)$ is a covariance (kernel) function. We may need to invert or factorize $\Sigma$ repeatedly to evaluate the log-likelihood:
+
+$$
+\log \mathcal{L}(\theta) \sim 
+- \tfrac{1}{2} \bigl( y - m(\theta) \bigr)^T \Sigma^{-1} \bigl( y - m(\theta) \bigr) 
+- \tfrac{1}{2} \log \bigl| \Sigma \bigr|,
+$$
+
+where $m(\theta)$ is the mean function and $\theta$ are parameters. Using the Cholesky factor $L$ of $\Sigma$ helps:
+
+-   $\Sigma^{-1}$ can be implied by solving systems with $L$ instead of explicitly computing the inverse.
+-   $\log|\Sigma|$ can be computed as $2 \sum_{i=1}^n \log L_{ii}$.
+
+Hence, Cholesky Decomposition becomes the backbone of Gaussian Process computations.
+
+##### Bayesian Inference with Covariance Matrices
+
+Many Bayesian models---especially hierarchical models---assume a multivariate normal prior on parameters. Cholesky Decomposition is used to:
+
+-   Sample from these priors or from posterior distributions.
+-   Regularize large covariance matrices.
+-   Speed up Markov Chain Monte Carlo (MCMC) computations by factorizing covariance structures.
+
+------------------------------------------------------------------------
+
+#### Other Notes
+
+1.  Numerical Stability Considerations
+
+Cholesky Decomposition is considered more stable than a general LU Decomposition when applied to positive-definite matrices. Since no row or column pivots are required, rounding errors can be smaller. Of course, in practice, software implementations can vary, and extremely ill-conditioned matrices can still pose numerical challenges.
+
+2.  Why We *Don't* Usually Compute $\mathbf{A}^{-1}$
+
+It is common in statistics (especially in older texts) to see formulas involving $\Sigma^{-1}$. However, computing an inverse explicitly is often discouraged because:
+
+-   It is numerically less stable.
+-   It requires more computations.
+-   Many tasks that *appear* to need $\Sigma^{-1}$ can be done more efficiently by solving systems via the Cholesky factor $L$.
+
+Hence, "**solve, don't invert**" is a common mantra. If you see an expression like $\Sigma^{-1} b$, you can use the Cholesky factors $L$ and $L^T$ to solve $\Sigma x = b$ by forward and backward substitution, bypassing the direct inverse calculation.
+
+3.  Further Variants and Extensions
+
+-   **Incomplete Cholesky**: Sometimes used in iterative solvers where a full Cholesky factorization is too expensive, especially for large sparse systems.
+-   **LDL\^T Decomposition**: A variant that avoids taking square roots; used for positive *semi*-definite or indefinite systems, but with caution about pivoting strategies.
+
+
 ## Probability Theory
+
+![](images/meme-stat.jpg){width="80%"}
 
 ### Axioms and Theorems of Probability
 
@@ -417,11 +617,51 @@ $$
     E[g(X)] \leq g(E[X]).
     $$
 
-#### Law of Iterated Expectations
+Jensen's inequality provides a useful way to demonstrate why the standard error calculated using the sample standard deviation ($s$) as a proxy for the population standard deviation ($\sigma$) is a biased estimator.
 
-The **law of iterated expectations** states: $$
-E[Y] = E[E[Y|X]].
+-   The population standard deviation $\sigma$ is defined as: $$
+    \sigma = \sqrt{\mathbb{E}[(X - \mu)^2]},
+    $$ where $\mu = \mathbb{E}[X]$ is the population mean.
+
+-   The sample standard deviation $s$ is given by: $$
+    s = \sqrt{\frac{1}{n-1} \sum_{i=1}^n (X_i - \bar{X})^2},
+    $$ where $\bar{X}$ is the sample mean.
+
+-   When $s$ is used as an estimator for $\sigma$, the expectation involves the square root function, which is concave.
+
+**Applying Jensen's Inequality**
+
+The standard error formula involves the square root: $$
+\sqrt{\mathbb{E}[s^2]}.
 $$
+
+However, because the square root function is concave, Jensen's inequality implies: $$
+\sqrt{\mathbb{E}[s^2]} \leq \mathbb{E}[\sqrt{s^2}] = \mathbb{E}[s].
+$$
+
+This inequality shows that the expected value of $s$ (the sample standard deviation) systematically underestimates the population standard deviation $\sigma$.
+
+**Quantifying the Bias**
+
+The bias arises because: $$
+\mathbb{E}[s] \neq \sigma.
+$$
+
+To correct this bias, we note that the sample standard deviation is related to the population standard deviation by: $$
+\mathbb{E}[s] = \sigma \cdot \sqrt{\frac{n-1}{n}},
+$$ where $n$ is the sample size. This bias decreases as $n$ increases, and the estimator becomes asymptotically unbiased.
+
+By leveraging Jensen's inequality, we observe that the concavity of the square root function ensures that $s$ is a biased estimator of $\sigma$, systematically underestimating the population standard deviation.
+
+#### Law of Iterated Expectation
+
+The **Law of Iterated Expectation** states that for random variables $X$ and $Y$:
+
+$$
+E(X) = E(E(X|Y)).
+$$
+
+This means the expected value of $X$ can be obtained by first calculating the conditional expectation $E(X|Y)$ and then taking the expectation of this quantity over the distribution of $Y$.
 
 #### Correlation and Independence
 
@@ -921,7 +1161,9 @@ $$
 f_{X|Y}(x|y) = \frac{f(x, y)}{f_Y(y)}
 $$
 
-If $X$ and $Y$ are independent: $$
+If $X$ and $Y$ are independent: 
+
+$$
 f_{X|Y}(x|y) = f_X(x).
 $$
 
@@ -929,7 +1171,7 @@ $$
 
 #### Discrete Distributions
 
-##### Bernoulli Distribution
+##### Bernoulli Distribution {#bernoulli-distribution}
 
 A random variable $X$ follows a Bernoulli distribution, denoted as $X \sim \text{Bernoulli}(p)$, if it represents a single trial with:
 

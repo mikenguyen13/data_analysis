@@ -82,7 +82,7 @@
 <li><a class="" href="basic-statistical-inference.html"><span class="header-section-number">4</span> Basic Statistical Inference</a></li>
 <li class="book-part">II. REGRESSION</li>
 <li><a class="" href="linear-regression.html"><span class="header-section-number">5</span> Linear Regression</a></li>
-<li><a class="" href="non-linear-regression.html"><span class="header-section-number">6</span> Non-linear Regression</a></li>
+<li><a class="" href="non-linear-regression.html"><span class="header-section-number">6</span> Non-Linear Regression</a></li>
 <li><a class="" href="generalized-linear-models.html"><span class="header-section-number">7</span> Generalized Linear Models</a></li>
 <li><a class="" href="linear-mixed-models.html"><span class="header-section-number">8</span> Linear Mixed Models</a></li>
 <li><a class="" href="nonlinear-and-generalized-linear-mixed-models.html"><span class="header-section-number">9</span> Nonlinear and Generalized Linear Mixed Models</a></li>
@@ -141,6 +141,7 @@
 </h1>
 <p>This chapter serves as a concise review of fundamental concepts in <a href="prerequisites.html#matrix-theory">Matrix Theory</a> and <a href="prerequisites.html#probability-theory">Probability Theory</a>.</p>
 <p>If you are confident in your understanding of these topics, you can proceed directly to the <a href="descriptive-statistics.html#descriptive-statistics">Descriptive Statistics</a> section to begin exploring applied data analysis.</p>
+<div class="inline-figure"><img src="images/Famous-internet-meme-displaying-the-relation-between-statistics-Machine-Learning-and.png"></div>
 <div id="matrix-theory" class="section level2" number="2.1">
 <h2>
 <span class="header-section-number">2.1</span> Matrix Theory<a class="anchor" aria-label="anchor" href="#matrix-theory"><i class="fas fa-link"></i></a>
@@ -544,11 +545,246 @@ x_1^2 + x_2^2 \geq 0.
 </li>
 </ol>
 </div>
+<div id="cholesky-decomposition" class="section level3" number="2.1.6">
+<h3>
+<span class="header-section-number">2.1.6</span> Cholesky Decomposition<a class="anchor" aria-label="anchor" href="#cholesky-decomposition"><i class="fas fa-link"></i></a>
+</h3>
+<p>In statistical analysis and numerical linear algebra, decomposing matrices into more tractable forms is crucial for efficient computation. One such important factorization is the <strong>Cholesky Decomposition</strong>. It applies to <strong>Hermitian</strong> (in the complex case) or <strong>symmetric</strong> (in the real case), <strong>positive-definite</strong> matrices.</p>
+<p>Given an <span class="math inline">\(n \times n\)</span> positive-definite matrix <span class="math inline">\(A\)</span>, the Cholesky Decomposition states:</p>
+<p><span class="math display">\[
+A = L L^{*},
+\]</span></p>
+<p>where:</p>
+<ul>
+<li>
+<span class="math inline">\(L\)</span> is a lower-triangular matrix with strictly positive diagonal entries.</li>
+<li>
+<span class="math inline">\(L^{*}\)</span> denotes the <em>conjugate transpose</em> of <span class="math inline">\(L\)</span> (simply the transpose <span class="math inline">\(L^{T}\)</span> for real matrices).</li>
+</ul>
+<p>Cholesky Decomposition is both computationally efficient and numerically stable, making it a go-to technique for many applications—particularly in statistics where we deal extensively with covariance matrices, linear systems, and probability distributions.</p>
+<p>Before diving into how we compute a Cholesky Decomposition, we need to clarify what it means for a matrix to be <em>positive-definite</em>. For a real symmetric matrix <span class="math inline">\(A\)</span>:</p>
+<ul>
+<li>
+<span class="math inline">\(A\)</span> is <em>positive-definite</em> if for every nonzero vector <span class="math inline">\(x\)</span>, we have <span class="math display">\[
+x^T A \, x &gt; 0.
+\]</span>
+</li>
+<li>Alternatively, you can characterize positive-definiteness by noting that all eigenvalues of <span class="math inline">\(A\)</span> are strictly positive.</li>
+</ul>
+<p>Many important matrices in statistics—particularly <em>covariance</em> or <em>precision</em> matrices—are both symmetric and positive-definite.</p>
+<hr>
+<div id="existence" class="section level4" number="2.1.6.1">
+<h4>
+<span class="header-section-number">2.1.6.1</span> Existence<a class="anchor" aria-label="anchor" href="#existence"><i class="fas fa-link"></i></a>
+</h4>
+<p>A real <span class="math inline">\(n \times n\)</span> matrix <span class="math inline">\(A\)</span> that is symmetric and positive-definite always admits a Cholesky Decomposition <span class="math inline">\(A = L L^T\)</span>. This theorem guarantees that for any covariance matrix in statistics—assuming it is valid (i.e., positive-definite)—we can decompose it via Cholesky.</p>
+</div>
+<div id="uniqueness" class="section level4" number="2.1.6.2">
+<h4>
+<span class="header-section-number">2.1.6.2</span> Uniqueness<a class="anchor" aria-label="anchor" href="#uniqueness"><i class="fas fa-link"></i></a>
+</h4>
+<p>If we additionally require that the diagonal entries of <span class="math inline">\(L\)</span> are <em>strictly positive</em>, then <span class="math inline">\(L\)</span> is <em>unique</em>. That is, no other lower-triangular matrix with strictly positive diagonal entries will produce the same factorization. This uniqueness is helpful for ensuring consistent numerical outputs in software implementations.</p>
+</div>
+<div id="constructing-the-cholesky-factor-l" class="section level4" number="2.1.6.3">
+<h4>
+<span class="header-section-number">2.1.6.3</span> Constructing the Cholesky Factor <span class="math inline">\(L\)</span><a class="anchor" aria-label="anchor" href="#constructing-the-cholesky-factor-l"><i class="fas fa-link"></i></a>
+</h4>
+<p>Given a real, symmetric, positive-definite matrix <span class="math inline">\(A \in \mathbb{R}^{n \times n}\)</span>, we want to find the lower-triangular matrix <span class="math inline">\(L\)</span> such that <span class="math inline">\(A = LL^T\)</span>. One way to do this is by using a simple step-by-step procedure (often part of standard linear algebra libraries):</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Initialize</strong> <span class="math inline">\(L\)</span> to be an <span class="math inline">\(n \times n\)</span> zero matrix.</li>
+<li>
+<strong>Iterate</strong> through the rows <span class="math inline">\(i = 1, 2, \dots, n\)</span>:
+<ol style="list-style-type: decimal">
+<li>For each row <span class="math inline">\(i\)</span>, compute <span class="math display">\[
+L_{ii} = \sqrt{A_{ii} - \sum_{k=1}^{i-1} L_{ik}^2}.
+\]</span>
+</li>
+<li>For each column <span class="math inline">\(j = i+1, i+2, \dots, n\)</span>: <span class="math display">\[
+L_{ji} = \frac{1}{L_{ii}}
+          \Bigl(A_{ji} - \sum_{k=1}^{i-1} L_{jk} L_{ik}\Bigr).
+\]</span>
+</li>
+<li>All other entries of <span class="math inline">\(L\)</span> remain zero or are computed in subsequent steps.</li>
+</ol>
+</li>
+<li>
+<strong>Result</strong>: <span class="math inline">\(L\)</span> is lower-triangular, and <span class="math inline">\(L^T\)</span> is its transpose.</li>
+</ol>
+<p>Cholesky Decomposition is roughly half the computational cost of a more general LU Decomposition. Specifically, it requires on the order of <span class="math inline">\(\frac{1}{3} n^3\)</span> floating-point operations (flops), making it significantly more efficient in practice than other decompositions for positive-definite systems.</p>
+<hr>
+</div>
+<div id="illustrative-example" class="section level4" number="2.1.6.4">
+<h4>
+<span class="header-section-number">2.1.6.4</span> Illustrative Example<a class="anchor" aria-label="anchor" href="#illustrative-example"><i class="fas fa-link"></i></a>
+</h4>
+<p>Consider a small <span class="math inline">\(3 \times 3\)</span> positive-definite matrix:</p>
+<p><span class="math display">\[
+A =
+\begin{pmatrix}
+4 &amp; 2 &amp; 4 \\
+2 &amp; 5 &amp; 6 \\
+4 &amp; 6 &amp; 20
+\end{pmatrix}.
+\]</span></p>
+<p>We claim <span class="math inline">\(A\)</span> is positive-definite (one could check by calculating principal minors or verifying <span class="math inline">\(x^T A x &gt; 0\)</span> for all <span class="math inline">\(x \neq 0\)</span>). We find <span class="math inline">\(L\)</span> step-by-step:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Compute</strong> <span class="math inline">\(L_{11}\)</span>:<br><span class="math display">\[
+L_{11} = \sqrt{A_{11}} = \sqrt{4} = 2.
+\]</span>
+</li>
+<li>
+<strong>Compute</strong> <span class="math inline">\(L_{21}\)</span> and <span class="math inline">\(L_{31}\)</span>:
+<ul>
+<li>
+<span class="math inline">\(L_{21} = \frac{A_{21}}{L_{11}} = \frac{2}{2} = 1.\)</span><br>
+</li>
+<li><span class="math inline">\(L_{31} = \frac{A_{31}}{L_{11}} = \frac{4}{2} = 2.\)</span></li>
+</ul>
+</li>
+<li>
+<strong>Compute</strong> <span class="math inline">\(L_{22}\)</span>:<br><span class="math display">\[
+L_{22} = \sqrt{A_{22} - L_{21}^2}
+        = \sqrt{5 - 1^2}
+        = \sqrt{4} = 2.
+\]</span>
+</li>
+<li>
+<strong>Compute</strong> <span class="math inline">\(L_{32}\)</span>:<br><span class="math display">\[
+L_{32} = \frac{A_{32} - L_{31} L_{21}}{L_{22}}
+        = \frac{6 - (2)(1)}{2}
+        = \frac{4}{2} = 2.
+\]</span>
+</li>
+<li>
+<strong>Compute</strong> <span class="math inline">\(L_{33}\)</span>:<br><span class="math display">\[
+L_{33} = \sqrt{A_{33} - (L_{31}^2 + L_{32}^2)}
+        = \sqrt{20 - (2^2 + 2^2)}
+        = \sqrt{20 - 8}
+        = \sqrt{12}
+        = 2\sqrt{3}.
+\]</span>
+</li>
+</ol>
+<p>Thus,</p>
+<p><span class="math display">\[
+L =
+\begin{pmatrix}
+2 &amp; 0 &amp; 0 \\
+1 &amp; 2 &amp; 0 \\
+2 &amp; 2 &amp; 2\sqrt{3}
+\end{pmatrix}.
+\]</span></p>
+<p>One can verify <span class="math inline">\(L L^T = A\)</span>.</p>
+<hr>
+</div>
+<div id="applications-in-statistics" class="section level4" number="2.1.6.5">
+<h4>
+<span class="header-section-number">2.1.6.5</span> Applications in Statistics<a class="anchor" aria-label="anchor" href="#applications-in-statistics"><i class="fas fa-link"></i></a>
+</h4>
+<div id="solving-linear-systems" class="section level5" number="2.1.6.5.1">
+<h5>
+<span class="header-section-number">2.1.6.5.1</span> Solving Linear Systems<a class="anchor" aria-label="anchor" href="#solving-linear-systems"><i class="fas fa-link"></i></a>
+</h5>
+<p>A common statistical problem is solving <span class="math inline">\(A x = b\)</span> for <span class="math inline">\(x\)</span>. For instance, in regression or in computing Bayesian posterior modes, we often need to solve linear equations with covariance or precision matrices. With <span class="math inline">\(A = LL^T\)</span>:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Forward Substitution</strong>: Solve <span class="math inline">\(L \, y = b\)</span>.</li>
+<li>
+<strong>Backward Substitution</strong>: Solve <span class="math inline">\(L^T x = y\)</span>.</li>
+</ol>
+<p>This two-step process is more stable and efficient than directly inverting <span class="math inline">\(A\)</span> (which is typically discouraged due to numerical issues).</p>
+</div>
+<div id="generating-correlated-random-vectors" class="section level5" number="2.1.6.5.2">
+<h5>
+<span class="header-section-number">2.1.6.5.2</span> Generating Correlated Random Vectors<a class="anchor" aria-label="anchor" href="#generating-correlated-random-vectors"><i class="fas fa-link"></i></a>
+</h5>
+<p>In simulation-based statistics (e.g., Monte Carlo methods), we often need to generate random draws from a <strong>multivariate normal</strong> distribution <span class="math inline">\(\mathcal{N}(\mu, \Sigma)\)</span>, where <span class="math inline">\(\Sigma\)</span> is the covariance matrix. The steps are:</p>
+<ol style="list-style-type: decimal">
+<li>Generate a vector <span class="math inline">\(z \sim \mathcal{N}(0, I)\)</span> of independent standard normal variables.</li>
+<li>Compute <span class="math inline">\(x = \mu + Lz\)</span>, where <span class="math inline">\(\Sigma = LL^T\)</span>.</li>
+</ol>
+<p>Then <span class="math inline">\(x\)</span> has the desired covariance structure <span class="math inline">\(\Sigma\)</span>. This technique is widely used in Bayesian statistics (e.g., MCMC sampling) and financial modeling (e.g., portfolio simulations).</p>
+</div>
+<div id="gaussian-processes-and-kriging" class="section level5" number="2.1.6.5.3">
+<h5>
+<span class="header-section-number">2.1.6.5.3</span> Gaussian Processes and Kriging<a class="anchor" aria-label="anchor" href="#gaussian-processes-and-kriging"><i class="fas fa-link"></i></a>
+</h5>
+<p>In Gaussian Process modeling (common in spatial statistics, machine learning, and geostatistics), we frequently work with large covariance matrices that describe the correlations between observed data points:</p>
+<p><span class="math display">\[
+\Sigma =
+\begin{pmatrix}
+k(x_1, x_1) &amp; k(x_1, x_2) &amp; \cdots &amp; k(x_1, x_n) \\
+k(x_2, x_1) &amp; k(x_2, x_2) &amp; \cdots &amp; k(x_2, x_n) \\
+\vdots      &amp; \vdots      &amp; \ddots &amp; \vdots      \\
+k(x_n, x_1) &amp; k(x_n, x_2) &amp; \cdots &amp; k(x_n, x_n)
+\end{pmatrix},
+\]</span></p>
+<p>where <span class="math inline">\(k(\cdot, \cdot)\)</span> is a covariance (kernel) function. We may need to invert or factorize <span class="math inline">\(\Sigma\)</span> repeatedly to evaluate the log-likelihood:</p>
+<p><span class="math display">\[
+\log \mathcal{L}(\theta) \sim
+- \tfrac{1}{2} \bigl( y - m(\theta) \bigr)^T \Sigma^{-1} \bigl( y - m(\theta) \bigr)
+- \tfrac{1}{2} \log \bigl| \Sigma \bigr|,
+\]</span></p>
+<p>where <span class="math inline">\(m(\theta)\)</span> is the mean function and <span class="math inline">\(\theta\)</span> are parameters. Using the Cholesky factor <span class="math inline">\(L\)</span> of <span class="math inline">\(\Sigma\)</span> helps:</p>
+<ul>
+<li>
+<span class="math inline">\(\Sigma^{-1}\)</span> can be implied by solving systems with <span class="math inline">\(L\)</span> instead of explicitly computing the inverse.</li>
+<li>
+<span class="math inline">\(\log|\Sigma|\)</span> can be computed as <span class="math inline">\(2 \sum_{i=1}^n \log L_{ii}\)</span>.</li>
+</ul>
+<p>Hence, Cholesky Decomposition becomes the backbone of Gaussian Process computations.</p>
+</div>
+<div id="bayesian-inference-with-covariance-matrices" class="section level5" number="2.1.6.5.4">
+<h5>
+<span class="header-section-number">2.1.6.5.4</span> Bayesian Inference with Covariance Matrices<a class="anchor" aria-label="anchor" href="#bayesian-inference-with-covariance-matrices"><i class="fas fa-link"></i></a>
+</h5>
+<p>Many Bayesian models—especially hierarchical models—assume a multivariate normal prior on parameters. Cholesky Decomposition is used to:</p>
+<ul>
+<li>Sample from these priors or from posterior distributions.</li>
+<li>Regularize large covariance matrices.</li>
+<li>Speed up Markov Chain Monte Carlo (MCMC) computations by factorizing covariance structures.</li>
+</ul>
+<hr>
+</div>
+</div>
+<div id="other-notes" class="section level4" number="2.1.6.6">
+<h4>
+<span class="header-section-number">2.1.6.6</span> Other Notes<a class="anchor" aria-label="anchor" href="#other-notes"><i class="fas fa-link"></i></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li>Numerical Stability Considerations</li>
+</ol>
+<p>Cholesky Decomposition is considered more stable than a general LU Decomposition when applied to positive-definite matrices. Since no row or column pivots are required, rounding errors can be smaller. Of course, in practice, software implementations can vary, and extremely ill-conditioned matrices can still pose numerical challenges.</p>
+<ol start="2" style="list-style-type: decimal">
+<li>Why We <em>Don’t</em> Usually Compute <span class="math inline">\(\mathbf{A}^{-1}\)</span>
+</li>
+</ol>
+<p>It is common in statistics (especially in older texts) to see formulas involving <span class="math inline">\(\Sigma^{-1}\)</span>. However, computing an inverse explicitly is often discouraged because:</p>
+<ul>
+<li>It is numerically less stable.</li>
+<li>It requires more computations.</li>
+<li>Many tasks that <em>appear</em> to need <span class="math inline">\(\Sigma^{-1}\)</span> can be done more efficiently by solving systems via the Cholesky factor <span class="math inline">\(L\)</span>.</li>
+</ul>
+<p>Hence, “<strong>solve, don’t invert</strong>” is a common mantra. If you see an expression like <span class="math inline">\(\Sigma^{-1} b\)</span>, you can use the Cholesky factors <span class="math inline">\(L\)</span> and <span class="math inline">\(L^T\)</span> to solve <span class="math inline">\(\Sigma x = b\)</span> by forward and backward substitution, bypassing the direct inverse calculation.</p>
+<ol start="3" style="list-style-type: decimal">
+<li>Further Variants and Extensions</li>
+</ol>
+<ul>
+<li>
+<strong>Incomplete Cholesky</strong>: Sometimes used in iterative solvers where a full Cholesky factorization is too expensive, especially for large sparse systems.</li>
+<li>
+<strong>LDL^T Decomposition</strong>: A variant that avoids taking square roots; used for positive <em>semi</em>-definite or indefinite systems, but with caution about pivoting strategies.</li>
+</ul>
+</div>
+</div>
 </div>
 <div id="probability-theory" class="section level2" number="2.2">
 <h2>
 <span class="header-section-number">2.2</span> Probability Theory<a class="anchor" aria-label="anchor" href="#probability-theory"><i class="fas fa-link"></i></a>
 </h2>
+<div class="inline-figure"><img src="images/meme-stat.jpg" style="width:80.0%"></div>
 <div id="axioms-and-theorems-of-probability" class="section level3" number="2.2.1">
 <h3>
 <span class="header-section-number">2.2.1</span> Axioms and Theorems of Probability<a class="anchor" aria-label="anchor" href="#axioms-and-theorems-of-probability"><i class="fas fa-link"></i></a>
@@ -622,14 +858,42 @@ E[g(X)] \geq g(E[X])
 E[g(X)] \leq g(E[X]).
 \]</span></p></li>
 </ul>
-</div>
-<div id="law-of-iterated-expectations" class="section level4" number="2.2.1.6">
-<h4>
-<span class="header-section-number">2.2.1.6</span> Law of Iterated Expectations<a class="anchor" aria-label="anchor" href="#law-of-iterated-expectations"><i class="fas fa-link"></i></a>
-</h4>
-<p>The <strong>law of iterated expectations</strong> states: <span class="math display">\[
-E[Y] = E[E[Y|X]].
+<p>Jensen’s inequality provides a useful way to demonstrate why the standard error calculated using the sample standard deviation (<span class="math inline">\(s\)</span>) as a proxy for the population standard deviation (<span class="math inline">\(\sigma\)</span>) is a biased estimator.</p>
+<ul>
+<li><p>The population standard deviation <span class="math inline">\(\sigma\)</span> is defined as: <span class="math display">\[
+\sigma = \sqrt{\mathbb{E}[(X - \mu)^2]},
+\]</span> where <span class="math inline">\(\mu = \mathbb{E}[X]\)</span> is the population mean.</p></li>
+<li><p>The sample standard deviation <span class="math inline">\(s\)</span> is given by: <span class="math display">\[
+s = \sqrt{\frac{1}{n-1} \sum_{i=1}^n (X_i - \bar{X})^2},
+\]</span> where <span class="math inline">\(\bar{X}\)</span> is the sample mean.</p></li>
+<li><p>When <span class="math inline">\(s\)</span> is used as an estimator for <span class="math inline">\(\sigma\)</span>, the expectation involves the square root function, which is concave.</p></li>
+</ul>
+<p><strong>Applying Jensen’s Inequality</strong></p>
+<p>The standard error formula involves the square root: <span class="math display">\[
+\sqrt{\mathbb{E}[s^2]}.
 \]</span></p>
+<p>However, because the square root function is concave, Jensen’s inequality implies: <span class="math display">\[
+\sqrt{\mathbb{E}[s^2]} \leq \mathbb{E}[\sqrt{s^2}] = \mathbb{E}[s].
+\]</span></p>
+<p>This inequality shows that the expected value of <span class="math inline">\(s\)</span> (the sample standard deviation) systematically underestimates the population standard deviation <span class="math inline">\(\sigma\)</span>.</p>
+<p><strong>Quantifying the Bias</strong></p>
+<p>The bias arises because: <span class="math display">\[
+\mathbb{E}[s] \neq \sigma.
+\]</span></p>
+<p>To correct this bias, we note that the sample standard deviation is related to the population standard deviation by: <span class="math display">\[
+\mathbb{E}[s] = \sigma \cdot \sqrt{\frac{n-1}{n}},
+\]</span> where <span class="math inline">\(n\)</span> is the sample size. This bias decreases as <span class="math inline">\(n\)</span> increases, and the estimator becomes asymptotically unbiased.</p>
+<p>By leveraging Jensen’s inequality, we observe that the concavity of the square root function ensures that <span class="math inline">\(s\)</span> is a biased estimator of <span class="math inline">\(\sigma\)</span>, systematically underestimating the population standard deviation.</p>
+</div>
+<div id="law-of-iterated-expectation" class="section level4" number="2.2.1.6">
+<h4>
+<span class="header-section-number">2.2.1.6</span> Law of Iterated Expectation<a class="anchor" aria-label="anchor" href="#law-of-iterated-expectation"><i class="fas fa-link"></i></a>
+</h4>
+<p>The <strong>Law of Iterated Expectation</strong> states that for random variables <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>:</p>
+<p><span class="math display">\[
+E(X) = E(E(X|Y)).
+\]</span></p>
+<p>This means the expected value of <span class="math inline">\(X\)</span> can be obtained by first calculating the conditional expectation <span class="math inline">\(E(X|Y)\)</span> and then taking the expectation of this quantity over the distribution of <span class="math inline">\(Y\)</span>.</p>
 </div>
 <div id="correlation-and-independence" class="section level4" number="2.2.1.7">
 <h4>
@@ -1291,7 +1555,8 @@ E[(X-\mu_X)(Y-\mu_Y)] &amp; E[(Y-\mu_Y)^2]
 <p><span class="math display">\[
 f_{X|Y}(x|y) = \frac{f(x, y)}{f_Y(y)}
 \]</span></p>
-<p>If <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> are independent: <span class="math display">\[
+<p>If <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> are independent:</p>
+<p><span class="math display">\[
 f_{X|Y}(x|y) = f_X(x).
 \]</span></p>
 <hr>
@@ -2398,23 +2663,13 @@ P\left(\lim_{n \to \infty} \bar{X}_n = \mu\right) = 1.
 <hr>
 </div>
 </div>
-<div id="law-of-iterated-expectation" class="section level3" number="2.3.5">
+<div id="convergence" class="section level3" number="2.3.5">
 <h3>
-<span class="header-section-number">2.3.5</span> Law of Iterated Expectation<a class="anchor" aria-label="anchor" href="#law-of-iterated-expectation"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.3.5</span> Convergence<a class="anchor" aria-label="anchor" href="#convergence"><i class="fas fa-link"></i></a>
 </h3>
-<p>The <strong>Law of Iterated Expectation</strong> states that for random variables <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>:</p>
-<p><span class="math display">\[
-E(X) = E(E(X|Y)).
-\]</span></p>
-<p>This means the expected value of <span class="math inline">\(X\)</span> can be obtained by first calculating the conditional expectation <span class="math inline">\(E(X|Y)\)</span> and then taking the expectation of this quantity over the distribution of <span class="math inline">\(Y\)</span>.</p>
-</div>
-<div id="convergence" class="section level3" number="2.3.6">
-<h3>
-<span class="header-section-number">2.3.6</span> Convergence<a class="anchor" aria-label="anchor" href="#convergence"><i class="fas fa-link"></i></a>
-</h3>
-<div id="convergence-in-probability" class="section level4" number="2.3.6.1">
+<div id="convergence-in-probability" class="section level4" number="2.3.5.1">
 <h4>
-<span class="header-section-number">2.3.6.1</span> Convergence in Probability<a class="anchor" aria-label="anchor" href="#convergence-in-probability"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.3.5.1</span> Convergence in Probability<a class="anchor" aria-label="anchor" href="#convergence-in-probability"><i class="fas fa-link"></i></a>
 </h4>
 <p>As <span class="math inline">\(n \rightarrow \infty\)</span>, an estimator (random variable) <span class="math inline">\(\theta_n\)</span> is said to converge in probability to a constant <span class="math inline">\(c\)</span> if:</p>
 <p><span class="math display">\[
@@ -2448,9 +2703,9 @@ plim(g(\theta_n)) = g(\theta)
 </ol>
 <hr>
 </div>
-<div id="convergence-in-distribution" class="section level4" number="2.3.6.2">
+<div id="convergence-in-distribution" class="section level4" number="2.3.5.2">
 <h4>
-<span class="header-section-number">2.3.6.2</span> Convergence in Distribution<a class="anchor" aria-label="anchor" href="#convergence-in-distribution"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.3.5.2</span> Convergence in Distribution<a class="anchor" aria-label="anchor" href="#convergence-in-distribution"><i class="fas fa-link"></i></a>
 </h4>
 <p>As <span class="math inline">\(n \rightarrow \infty\)</span>, the distribution of a random variable <span class="math inline">\(X_n\)</span> may converge to another (“fixed”) distribution. Formally, <span class="math inline">\(X_n\)</span> with CDF <span class="math inline">\(F_n(x)\)</span> converges in distribution to <span class="math inline">\(X\)</span> with CDF <span class="math inline">\(F(x)\)</span> if:</p>
 <p><span class="math display">\[
@@ -2498,9 +2753,9 @@ g(X_n) \xrightarrow{d} g(X).
 </ol>
 <hr>
 </div>
-<div id="summary-properties-of-convergence" class="section level4" number="2.3.6.3">
+<div id="summary-properties-of-convergence" class="section level4" number="2.3.5.3">
 <h4>
-<span class="header-section-number">2.3.6.3</span> Summary: Properties of Convergence<a class="anchor" aria-label="anchor" href="#summary-properties-of-convergence"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.3.5.3</span> Summary: Properties of Convergence<a class="anchor" aria-label="anchor" href="#summary-properties-of-convergence"><i class="fas fa-link"></i></a>
 </h4>
 <div class="inline-table"><table class="table table-sm">
 <colgroup>
@@ -2546,13 +2801,13 @@ g(X_n) \xrightarrow{d} g(X).
 </ul>
 </div>
 </div>
-<div id="sufficient-statistics-and-likelihood" class="section level3" number="2.3.7">
+<div id="sufficient-statistics-and-likelihood" class="section level3" number="2.3.6">
 <h3>
-<span class="header-section-number">2.3.7</span> Sufficient Statistics and Likelihood<a class="anchor" aria-label="anchor" href="#sufficient-statistics-and-likelihood"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.3.6</span> Sufficient Statistics and Likelihood<a class="anchor" aria-label="anchor" href="#sufficient-statistics-and-likelihood"><i class="fas fa-link"></i></a>
 </h3>
-<div id="likelihood" class="section level4" number="2.3.7.1">
+<div id="likelihood" class="section level4" number="2.3.6.1">
 <h4>
-<span class="header-section-number">2.3.7.1</span> Likelihood<a class="anchor" aria-label="anchor" href="#likelihood"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.3.6.1</span> Likelihood<a class="anchor" aria-label="anchor" href="#likelihood"><i class="fas fa-link"></i></a>
 </h4>
 <p>The <strong>likelihood</strong> describes the degree to which the observed data supports a particular value of a parameter <span class="math inline">\(\theta\)</span>.</p>
 <ul>
@@ -2576,9 +2831,9 @@ L(p; y=7) = \binom{10}{7} p^7 (1-p)^3.
 <p>We can use this to compare how well different values of <span class="math inline">\(p\)</span> explain the observed data.</p>
 <hr>
 </div>
-<div id="likelihood-ratio" class="section level4" number="2.3.7.2">
+<div id="likelihood-ratio" class="section level4" number="2.3.6.2">
 <h4>
-<span class="header-section-number">2.3.7.2</span> Likelihood Ratio<a class="anchor" aria-label="anchor" href="#likelihood-ratio"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.3.6.2</span> Likelihood Ratio<a class="anchor" aria-label="anchor" href="#likelihood-ratio"><i class="fas fa-link"></i></a>
 </h4>
 <p>The <strong>likelihood ratio</strong> compares the relative likelihood of two parameter values <span class="math inline">\(\theta_0\)</span> and <span class="math inline">\(\theta_1\)</span> given the observed data:</p>
 <p><span class="math display">\[
@@ -2599,9 +2854,9 @@ L(p; y=7) = \binom{10}{7} p^7 (1-p)^3.
 <p>The likelihood ratio quantifies how much more likely <span class="math inline">\(p_0\)</span> is compared to <span class="math inline">\(p_1\)</span> given the observed data.</p>
 <hr>
 </div>
-<div id="likelihood-function" class="section level4" number="2.3.7.3">
+<div id="likelihood-function" class="section level4" number="2.3.6.3">
 <h4>
-<span class="header-section-number">2.3.7.3</span> Likelihood Function<a class="anchor" aria-label="anchor" href="#likelihood-function"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.3.6.3</span> Likelihood Function<a class="anchor" aria-label="anchor" href="#likelihood-function"><i class="fas fa-link"></i></a>
 </h4>
 <p>For a given sample, the likelihood for all possible values of <span class="math inline">\(\theta\)</span> forms the <strong>likelihood function</strong>:</p>
 <p><span class="math display">\[
@@ -2630,9 +2885,9 @@ l(\mu, \sigma^2) = -\frac{n}{2} \log(2\pi\sigma^2) - \frac{1}{2\sigma^2} \sum_{i
 \]</span></p>
 <hr>
 </div>
-<div id="sufficient-statistics" class="section level4" number="2.3.7.4">
+<div id="sufficient-statistics" class="section level4" number="2.3.6.4">
 <h4>
-<span class="header-section-number">2.3.7.4</span> Sufficient Statistics<a class="anchor" aria-label="anchor" href="#sufficient-statistics"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.3.6.4</span> Sufficient Statistics<a class="anchor" aria-label="anchor" href="#sufficient-statistics"><i class="fas fa-link"></i></a>
 </h4>
 <p>A <strong>sufficient statistic</strong> <span class="math inline">\(T(y)\)</span> is a summary of the data that retains all information about a parameter <span class="math inline">\(\theta\)</span>. It allows us to focus on this condensed statistic without losing any inferential power regarding <span class="math inline">\(\theta\)</span>.</p>
 <p><strong>Formal Definition:</strong></p>
@@ -2681,9 +2936,9 @@ P(\mu \mid \bar{Y}) \propto P(\mu) L(\mu; \bar{Y}).
 </ol>
 <hr>
 </div>
-<div id="nuisance-parameters" class="section level4" number="2.3.7.5">
+<div id="nuisance-parameters" class="section level4" number="2.3.6.5">
 <h4>
-<span class="header-section-number">2.3.7.5</span> Nuisance Parameters<a class="anchor" aria-label="anchor" href="#nuisance-parameters"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.3.6.5</span> Nuisance Parameters<a class="anchor" aria-label="anchor" href="#nuisance-parameters"><i class="fas fa-link"></i></a>
 </h4>
 <p>Parameters that are not of direct interest in the analysis but are necessary to model the data are called <strong>nuisance parameters</strong>.</p>
 <p><strong>Profile Likelihood</strong>: To handle nuisance parameters, replace them with their maximum likelihood estimates (MLEs) in the likelihood function, creating a <strong>profile likelihood</strong> for the parameter of interest.</p>
@@ -2697,14 +2952,14 @@ L_p(\beta) = L(\beta, \hat{\sigma}^2),
 <hr>
 </div>
 </div>
-<div id="parameter-transformations" class="section level3" number="2.3.8">
+<div id="parameter-transformations" class="section level3" number="2.3.7">
 <h3>
-<span class="header-section-number">2.3.8</span> Parameter Transformations<a class="anchor" aria-label="anchor" href="#parameter-transformations"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.3.7</span> Parameter Transformations<a class="anchor" aria-label="anchor" href="#parameter-transformations"><i class="fas fa-link"></i></a>
 </h3>
 <p>Transformations of parameters are often used to improve interpretability or statistical properties of models.</p>
-<div id="log-odds-transformation" class="section level4" number="2.3.8.1">
+<div id="log-odds-transformation" class="section level4" number="2.3.7.1">
 <h4>
-<span class="header-section-number">2.3.8.1</span> Log-Odds Transformation<a class="anchor" aria-label="anchor" href="#log-odds-transformation"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.3.7.1</span> Log-Odds Transformation<a class="anchor" aria-label="anchor" href="#log-odds-transformation"><i class="fas fa-link"></i></a>
 </h4>
 <p>The <strong>log-odds transformation</strong> is commonly used in logistic regression and binary classification problems. It transforms probabilities (which are bounded between 0 and 1) to the real line:</p>
 <p><span class="math display">\[
@@ -2713,9 +2968,9 @@ L_p(\beta) = L(\beta, \hat{\sigma}^2),
 <p>where <span class="math inline">\(\theta\)</span> represents a probability (e.g., the success probability in a Bernoulli trial).</p>
 <hr>
 </div>
-<div id="general-parameter-transformations" class="section level4" number="2.3.8.2">
+<div id="general-parameter-transformations" class="section level4" number="2.3.7.2">
 <h4>
-<span class="header-section-number">2.3.8.2</span> General Parameter Transformations<a class="anchor" aria-label="anchor" href="#general-parameter-transformations"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.3.7.2</span> General Parameter Transformations<a class="anchor" aria-label="anchor" href="#general-parameter-transformations"><i class="fas fa-link"></i></a>
 </h4>
 <p>For a parameter <span class="math inline">\(\theta\)</span> and a transformation <span class="math inline">\(g(\cdot)\)</span>:</p>
 <ul>
@@ -2731,9 +2986,9 @@ L_p(\beta) = L(\beta, \hat{\sigma}^2),
 <p><strong>Jacobian Adjustment for Transformations</strong>: If transforming a parameter in Bayesian inference, the Jacobian of the transformation must be included to ensure proper posterior scaling.</p>
 <hr>
 </div>
-<div id="applications-of-parameter-transformations" class="section level4" number="2.3.8.3">
+<div id="applications-of-parameter-transformations" class="section level4" number="2.3.7.3">
 <h4>
-<span class="header-section-number">2.3.8.3</span> Applications of Parameter Transformations<a class="anchor" aria-label="anchor" href="#applications-of-parameter-transformations"><i class="fas fa-link"></i></a>
+<span class="header-section-number">2.3.7.3</span> Applications of Parameter Transformations<a class="anchor" aria-label="anchor" href="#applications-of-parameter-transformations"><i class="fas fa-link"></i></a>
 </h4>
 <ol style="list-style-type: decimal">
 <li>
@@ -3740,6 +3995,7 @@ L_p(\beta) = L(\beta, \hat{\sigma}^2),
 <li><a class="nav-link" href="#definiteness-of-a-matrix"><span class="header-section-number">2.1.3</span> Definiteness of a Matrix</a></li>
 <li><a class="nav-link" href="#matrix-calculus"><span class="header-section-number">2.1.4</span> Matrix Calculus</a></li>
 <li><a class="nav-link" href="#optimization-in-scalar-and-vector-spaces"><span class="header-section-number">2.1.5</span> Optimization in Scalar and Vector Spaces</a></li>
+<li><a class="nav-link" href="#cholesky-decomposition"><span class="header-section-number">2.1.6</span> Cholesky Decomposition</a></li>
 </ul>
 </li>
 <li>
@@ -3760,10 +4016,9 @@ L_p(\beta) = L(\beta, \hat{\sigma}^2),
 <li><a class="nav-link" href="#summation-notation-and-series"><span class="header-section-number">2.3.2</span> Summation Notation and Series</a></li>
 <li><a class="nav-link" href="#taylor-expansion"><span class="header-section-number">2.3.3</span> Taylor Expansion</a></li>
 <li><a class="nav-link" href="#law-of-large-numbers"><span class="header-section-number">2.3.4</span> Law of Large Numbers</a></li>
-<li><a class="nav-link" href="#law-of-iterated-expectation"><span class="header-section-number">2.3.5</span> Law of Iterated Expectation</a></li>
-<li><a class="nav-link" href="#convergence"><span class="header-section-number">2.3.6</span> Convergence</a></li>
-<li><a class="nav-link" href="#sufficient-statistics-and-likelihood"><span class="header-section-number">2.3.7</span> Sufficient Statistics and Likelihood</a></li>
-<li><a class="nav-link" href="#parameter-transformations"><span class="header-section-number">2.3.8</span> Parameter Transformations</a></li>
+<li><a class="nav-link" href="#convergence"><span class="header-section-number">2.3.5</span> Convergence</a></li>
+<li><a class="nav-link" href="#sufficient-statistics-and-likelihood"><span class="header-section-number">2.3.6</span> Sufficient Statistics and Likelihood</a></li>
+<li><a class="nav-link" href="#parameter-transformations"><span class="header-section-number">2.3.7</span> Parameter Transformations</a></li>
 </ul>
 </li>
 <li>
@@ -3794,7 +4049,7 @@ L_p(\beta) = L(\beta, \hat{\sigma}^2),
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2024-12-28.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-01-20.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

@@ -1,0 +1,132 @@
+# Restricted Maximum Likelihood (REML)
+
+Restricted Maximum Likelihood (REML) is a method of estimating variance components in mixed-effects models. Unlike Maximum Likelihood Estimation (MLE), which estimates all parameters simultaneously, REML focuses specifically on the variance components, avoiding the bias that can occur with MLE in small samples.
+
+------------------------------------------------------------------------
+
+## Motivation for REML
+
+### Limitations of MLE in Variance Component Estimation
+
+When using MLE to estimate variance components, the likelihood function includes fixed effects. This can introduce bias in the estimation of variance components, especially in small samples, because MLE does not account for the uncertainty in estimating fixed effects.
+
+REML addresses this issue by basing the likelihood on a subset of the data---specifically, the linear combinations of the observed data that are independent of the fixed effects. By "removing" the influence of fixed effects, REML provides unbiased estimates of the variance components.
+
+------------------------------------------------------------------------
+
+## Theoretical Foundations of REML
+
+### Likelihood Function in REML
+
+Let the general mixed-effects model be:
+
+$$
+y = X\beta + Zb + \epsilon,
+$$
+
+where: - $y$: vector of observations, - $X$: design matrix for fixed effects, - $\beta$: vector of fixed-effect coefficients, - $Z$: design matrix for random effects, - $b$: vector of random effects, with $b \sim N(0, G)$, - $\epsilon$: vector of residuals, with $\epsilon \sim N(0, R)$.
+
+The combined random effects and residuals give the total covariance matrix:
+
+$$
+Var(y) = V = ZGZ' + R.
+$$
+
+### Marginal Likelihood vs. Restricted Likelihood
+
+1.  **Marginal Likelihood (MLE)**:
+    -   MLE maximizes the joint likelihood of all parameters, including $\beta$ and variance components (e.g., in $G$ and $R$).
+
+    -   This is expressed as:
+
+        $$
+        L(\theta) = \frac{1}{(2\pi)^{n/2} |V|^{1/2}} \exp\left(-\frac{1}{2}(y - X\beta)'V^{-1}(y - X\beta)\right),
+        $$
+
+        where $\theta$ represents all parameters, including $\beta$.
+2.  **Restricted Likelihood (REML)**:
+    -   REML maximizes the likelihood of a subset of the data that is independent of $\beta$.
+
+    -   This involves transforming $y$ into $y_\perp$, a vector of residual contrasts that are orthogonal to the fixed effects:
+
+        $$
+        y_\perp = M'y, \quad \text{where } M \text{ is a contrast matrix such that } MX = 0.
+        $$
+
+    -   The restricted likelihood becomes:
+
+        $$
+        L_{REML}(\theta) = \frac{1}{(2\pi)^{(n-p)/2} |V_\perp|^{1/2}} \exp\left(-\frac{1}{2}y_\perp'V_\perp^{-1}y_\perp\right),
+        $$
+
+        where $V_\perp$ is the covariance matrix of $y_\perp$ and $p$ is the number of fixed effects.
+
+### Key Idea
+
+By focusing on $y_\perp$, REML avoids the bias in variance component estimates caused by estimating fixed effects $\beta$.
+
+------------------------------------------------------------------------
+
+## Properties of REML
+
+1.  **Unbiased Variance Component Estimates**:
+    -   REML produces unbiased estimates of variance components by accounting for the degrees of freedom used to estimate fixed effects.
+2.  **Invariance to Fixed Effects**:
+    -   The restricted likelihood is constructed to be independent of the fixed effects $\beta$.
+3.  **Asymptotic Normality**:
+    -   REML estimates are consistent and asymptotically normal under standard regularity conditions.
+4.  **Efficiency**:
+    -   While REML estimates variance components efficiently, it does not maximize the joint likelihood of all parameters, so $\beta$ estimates are slightly less efficient compared to MLE.
+
+------------------------------------------------------------------------
+
+## Advantages of REML
+
+-   **Corrects Bias**: REML adjusts for the bias in variance component estimation caused by the estimation of fixed effects.
+-   **Preferred in Mixed Models**: REML is particularly suited for linear mixed-effects models where accurate variance component estimates are critical.
+
+------------------------------------------------------------------------
+
+## Steps for REML Estimation
+
+1.  **Define the Model**:
+    -   Specify the mixed-effects model, including fixed effects, random effects, and the structure of $G$ and $R$.
+2.  **Transform the Data**:
+    -   Transform $y$ into $y_\perp$, ensuring the fixed effects are removed from the likelihood.
+3.  **Maximize the Restricted Likelihood**:
+    -   Solve for the variance components by maximizing $L_{REML}(\theta)$.
+4.  **Estimate Fixed Effects**:
+    -   With variance components estimated, compute $\beta$ using Generalized Least Squares (GLS):
+
+        $$
+        \hat{\beta} = (X'V^{-1}X)^{-1}X'V^{-1}y.
+        $$
+
+------------------------------------------------------------------------
+
+## Applications of REML
+
+REML is primarily used in the following scenarios:
+
+1.  **Linear Mixed-Effects Models**:
+    -   Common in longitudinal and hierarchical data, such as repeated measures or nested data structures.
+2.  **Variance Component Estimation**:
+    -   Used in models where partitioning variance into components (e.g., between-group and within-group variance) is essential, such as:
+        -   Genetics: Heritability estimation.
+        -   Education: School effects on student performance.
+3.  **Random Effects Models**:
+    -   Applied in meta-analysis and other contexts where random effects capture unexplained heterogeneity.
+
+------------------------------------------------------------------------
+
+## Practical Considerations
+
+1.  **Sample Size**:
+    -   REML is most advantageous in small to moderate samples, where bias correction for variance components is significant.
+2.  **Software**:
+    -   REML estimation is implemented in various statistical software, such as:
+        -   **R**: `lme4` package (`lmer()` function), `nlme` package.
+        -   **Python**: `statsmodels` package.
+3.  **Comparison with MLE**:
+    -   In large samples, the difference between REML and MLE estimates becomes negligible.
+    -   MLE may be preferred for likelihood-based model comparison (e.g., likelihood ratio tests), as REML does not yield a full likelihood.
