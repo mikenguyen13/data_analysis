@@ -85,7 +85,7 @@ $$
 \sum_{i=1}^{n} \big(Y_i - f(\mathbf{x}_i, \theta)\big)^2
 $$
 
-The variance of residuals is estimated as:
+Let $\hat{\theta}$ be the minimizer, the variance of residuals is estimated as:
 
 $$
 s^2 = \hat{\sigma}^2_{\epsilon} = \frac{\sum_{i=1}^{n} \big(Y_i - f(\mathbf{x}_i, \hat{\theta})\big)^2}{n - p}
@@ -93,20 +93,38 @@ $$
 
 where $p$ is the number of parameters in $\mathbf{\theta}$, and $n$ is the number of observations.
 
-### Linear Function of the Parameters
+------------------------------------------------------------------------
 
-If we assume $\epsilon_i \sim N(0, \sigma^2)$, the asymptotic distribution of the parameter estimates $\hat{\theta}$ can be expressed as:
+**Asymptotic Distribution** of $\hat{\theta}$
+
+Under regularity conditions---most notably that $\epsilon_i \sim N(0, \sigma^2)$ or that $n$ is sufficiently large for a central-limit-type argument---the parameter estimates $\hat{\theta}$ have the following asymptotic normal distribution:
 
 $$
 \hat{\theta} \sim AN(\mathbf{\theta}, \sigma^2[\mathbf{F}(\theta)'\mathbf{F}(\theta)]^{-1})
 $$
 
-where:
+where
 
--   $AN$ stands for asymptotic normality.
--   $\mathbf{F}(\theta)$ is the Jacobian matrix of partial derivatives of $f(\mathbf{x}_i, \theta)$ with respect to $\mathbf{\theta}$, evaluated at $\hat{\theta}$.
+-   $AN$ stands for "asymptotic normality."
+-   $\mathbf{F}(\theta)$ is the $n \times p$ Jacobian matrix of partial derivatives of $f(\mathbf{x}_i, \theta)$ with respect to $\mathbf{\theta}$, evaluated at $\hat{\theta}$. Specifically,
+
+$$
+\mathbf{F}(\theta) = \begin{pmatrix}
+\frac{\partial f(\mathbf{x}_1, \boldsymbol{\theta})}{\partial \theta_1} & \cdots & \frac{\partial f(\mathbf{x}_1, \boldsymbol{\theta})}{\partial \theta_p} \\
+\vdots & \ddots & \vdots \\
+\frac{\partial f(\mathbf{x}_n, \boldsymbol{\theta})}{\partial \theta_1} & \cdots & \frac{\partial f(\mathbf{x}_n, \boldsymbol{\theta})}{\partial \theta_p}
+\end{pmatrix}
+$$
 
 Asymptotic normality means that as the sample size $n$ becomes large, the sampling distribution of $\hat{\theta}$ approaches a normal distribution, which enables inference on the parameters.
+
+### Linear Functions of the Parameters
+
+A "linear function of the parameters" refers to a quantity that can be written as $\mathbf{a}'\boldsymbol{\theta}$, where $\mathbf{a}$ is some (constant) contrast vector. Common examples include:
+
+-   A single parameter $\theta_j$ (using a vector $\mathbf{a}$ with 1 in the $j$-th position and 0 elsewhere).
+
+-   Differences, sums, or other contrasts, e.g. $\theta_1 - \theta_2$.
 
 Suppose we are interested in a linear combination of the parameters, such as $\theta_1 - \theta_2$. Define the contrast vector $\mathbf{a}$ as:
 
@@ -114,7 +132,7 @@ $$
 \mathbf{a} = (0, 1, -1)'
 $$
 
-We then consider inference for $\mathbf{a'\theta}$. Using rules for the expectation and variance of a linear combination of a random vector $\mathbf{Z}$:
+We then consider inference for $\mathbf{a'\theta}$ ($\mathbf{a}$ can be $p$-dimensional vector). Using rules for the expectation and variance of a linear combination of a random vector $\mathbf{Z}$:
 
 $$
 \begin{aligned}
@@ -123,24 +141,37 @@ E(\mathbf{a'Z}) &= \mathbf{a'}E(\mathbf{Z}) \\
 \end{aligned}
 $$
 
-Applying this to $\mathbf{a'\hat{\theta}}$, we have:
+We have
+
+$$
+\begin{aligned}
+E(\mathbf{a'\hat{\theta}}) &= \mathbf{a'}E(\hat{\theta}) \approx \mathbf{a}' \theta \\
+\text{Var}(\mathbf{a'} \hat{\theta}) &= \mathbf{a'} \text{Var}(\hat{\theta}) \mathbf{a} \approx \sigma^2 \mathbf{a'[\mathbf{F}(\theta)'\mathbf{F}(\theta)]^{-1}a}
+\end{aligned}
+$$
+
+Hence,
 
 $$
 \mathbf{a'\hat{\theta}} \sim AN\big(\mathbf{a'\theta}, \sigma^2 \mathbf{a'[\mathbf{F}(\theta)'\mathbf{F}(\theta)]^{-1}a}\big)
 $$
 
-This indicates that $\mathbf{a'\hat{\theta}}$ is asymptotically independent of $s^2$ (to order $1/n$).
+------------------------------------------------------------------------
 
-Using the $t$-distribution, a $100(1-\alpha)\%$ confidence interval for $\mathbf{a'\theta}$ is given by:
+Confidence Intervals for Linear Contrasts
+
+Since $\mathbf{a'\hat{\theta}}$ is asymptotically independent of $s^2$ (up to order $O1/n$), a two-sided $100(1-\alpha)\%$ confidence interval for $\mathbf{a'\theta}$ is given by:
 
 $$
 \mathbf{a'\theta} \pm t_{(1-\alpha/2, n-p)} s \sqrt{\mathbf{a'[\mathbf{F}(\hat{\theta})'\mathbf{F}(\hat{\theta})]^{-1}a}}
 $$
 
-where:
+where
 
 -   $t_{(1-\alpha/2, n-p)}$ is the critical value of the $t$-distribution with $n - p$ degrees of freedom.
--   $s$ is the estimated standard deviation of residuals.
+-   $s = \sqrt{\hat{\sigma^2}_\epsilon}$ is the estimated standard deviation of residuals.
+
+**Special Case**: A Single Parameter $\theta_j$
 
 If we focus on a single parameter $\theta_j$, let $\mathbf{a'} = (0, \dots, 1, \dots, 0)$ (with 1 at the $j$-th position). Then, the confidence interval for $\theta_j$ becomes:
 
@@ -150,7 +181,11 @@ $$
 
 where $\hat{c}^j$ is the $j$-th diagonal element of $[\mathbf{F}(\hat{\theta})'\mathbf{F}(\hat{\theta})]^{-1}$.
 
+------------------------------------------------------------------------
+
 ### Nonlinear Functions of Parameters
+
+In many cases, we are interested in nonlinear functions of $\boldsymbol{\theta}$. Let $h(\boldsymbol{\theta})$ be such a function (e.g., a ratio of parameters, a difference of exponentials, etc.).
 
 When $h(\theta)$ is a nonlinear function of the parameters, we can use a **Taylor series expansion** about $\theta$ to approximate $h(\hat{\theta})$:
 
@@ -158,27 +193,24 @@ $$
 h(\hat{\theta}) \approx h(\theta) + \mathbf{h}' [\hat{\theta} - \theta]
 $$
 
-where:
+where
 
--   $\mathbf{h} = \left( \frac{\partial h}{\partial \theta_1}, \frac{\partial h}{\partial \theta_2}, \dots, \frac{\partial h}{\partial \theta_p} \right)'$ is the gradient of $h(\theta)$.
+-   $\mathbf{h} = \left( \frac{\partial h}{\partial \theta_1}, \frac{\partial h}{\partial \theta_2}, \dots, \frac{\partial h}{\partial \theta_p} \right)'$ is the gradient vector of partial derivatives.
 
 **Key Approximations:**
 
-1.  **Expectation and Variance of** $\hat{\theta}$: $$
+1.  **Expectation and Variance of** $\hat{\theta}$ (using the asymptotic normality of $\hat{\theta}$: $$
     \begin{aligned}
     E(\hat{\theta}) &\approx \theta, \\
     \text{Var}(\hat{\theta}) &\approx \sigma^2 [\mathbf{F}(\theta)' \mathbf{F}(\theta)]^{-1}.
     \end{aligned}
     $$
 
-2.  **Expectation and Variance of** $h(\hat{\theta})$: $$
+2.  **Expectation and Variance of** $h(\hat{\theta})$ (properties of expectation and variance of (approximately) linear transformations): $$
     \begin{aligned}
     E(h(\hat{\theta})) &\approx h(\theta), \\
     \text{Var}(h(\hat{\theta})) &\approx \sigma^2 \mathbf{h}'[\mathbf{F}(\theta)' \mathbf{F}(\theta)]^{-1} \mathbf{h}.
-    \end{aligned}
-    $$
-
-**Approximate Distribution:**
+    \end{aligned}$$
 
 Combining these results, we find:
 
@@ -226,15 +258,11 @@ To compute a **prediction interval** for a new observation $Y_0$ at $x = x_0$:
     \end{aligned}
     $$
 
-Approximate Distribution of Prediction Error:
-
-The error $Y_0 - \hat{Y}_0$ follows an asymptotic normal distribution:
+Hence, the prediction error $Y_0 - \hat{Y}_0$ follows an asymptotic normal distribution:
 
 $$
 Y_0 - \hat{Y}_0 \sim AN\big(0, \sigma^2 \big(1 + \mathbf{f}_0(\theta)' [\mathbf{F}(\theta)' \mathbf{F}(\theta)]^{-1} \mathbf{f}_0(\theta)\big)\big).
 $$
-
-Prediction Interval for $Y_0$:
 
 A $100(1-\alpha)\%$ prediction interval for $Y_0$ is:
 
@@ -242,7 +270,11 @@ $$
 \hat{Y}_0 \pm t_{(1-\alpha/2, n-p)} s \sqrt{1 + \mathbf{f}_0(\hat{\theta})' [\mathbf{F}(\hat{\theta})' \mathbf{F}(\hat{\theta})]^{-1} \mathbf{f}_0(\hat{\theta})}.
 $$
 
-The confidence interval for the mean response $E(Y_i)$ (different from a prediction interval) can be obtained similarly, but without including the variance of $\epsilon_0$ in the calculation. Specifically, for the mean response:
+where we substitute $\hat{\theta}$ into $\mathbf{f}_0$ and $\mathbf{F}$. Recall $s$ is the estiamte of $\sigma$.
+
+------------------------------------------------------------------------
+
+Sometimes we want a confidence interval for $E(Y_i)$ (i.e., the mean response at $x_0$), rather than a prediction interval for an individual future observation. In that case, the variance term for the random error $\epsilon_0$ is not included. Hence, the formula is the same but without the "+1":
 
 $$
 E(Y_0) \approx f(x_0; \theta),
@@ -253,6 +285,12 @@ and the confidence interval is:
 $$
 f(x_0, \hat{\theta}) \pm t_{(1-\alpha/2, n-p)} s \sqrt{\mathbf{f}_0(\hat{\theta})' [\mathbf{F}(\hat{\theta})' \mathbf{F}(\hat{\theta})]^{-1} \mathbf{f}_0(\hat{\theta})}.
 $$
+
+Summary
+
+-   [Linear Functions of the Parameters]: A function $f(x, \theta)$ is linear in $\theta$ if it can be written in the form $$f(x, \theta) = \theta_1 g_1(x) + \theta_2 g_2(x) + \dots + \theta_p g_p(x)$$ where $g_j(x)$ do not depend on $\theta$. In this case, the Jacobian $\mathbf{F}(\theta)$ does not depend on $\theta$ itself (only on $x_i$), and exact formulas often match what is familiar from linear regression.
+
+-   [Nonlinear Functions of Parameters]: If $f(x, \theta)$ depends on $\theta$ in a nonlinear way (e.g., $\theta_1 e^{\theta_2 x}, \beta_1/\beta_2$ or more complicated expressions), $\mathbf{F}(\theta)$ depends on $\theta$. Estimation generally requires iterative numerical methods (e.g., Gauss--Newton, Levenberg--Marquardt), and the asymptotic results rely on evaluating partial derivatives at $\hat{\theta}$. Nevertheless, the final inference formulas---confidence intervals, prediction intervals---have a similar form, thanks to the asymptotic normality arguments.
 
 ------------------------------------------------------------------------
 
@@ -272,14 +310,14 @@ $$
 
 However, these equations are inherently non-linear and, in most cases, cannot be solved analytically. As a result, various estimation techniques are employed to approximate solutions efficiently. These approaches include:
 
--   [Iterative Optimization] -- Methods that refine estimates through successive iterations to minimize error.
+-   [Iterative Optimization](#iterative-optimization-nonlinear-regression) -- Methods that refine estimates through successive iterations to minimize error.
 -   [Derivative-Free] Methods -- Techniques that do not rely on gradient information, useful for complex or non-smooth functions.
--   [Stochastic Heuristic] -- Algorithms that incorporate randomness, such as genetic algorithms or simulated annealing, to explore solution spaces.
--   [Linearization]-- Approximating non-linear models with linear ones to enable analytical or numerical solutions.
--   [Hybrid] Approaches -- Combining multiple methods to leverage their respective strengths for improved estimation.
+-   [Stochastic Heuristic](#stochastic-heuristic-nolinear-regression) -- Algorithms that incorporate randomness, such as genetic algorithms or simulated annealing, to explore solution spaces.
+-   [Linearization](#linearization-nonlinear-regression-optimization)-- Approximating non-linear models with linear ones to enable analytical or numerical solutions.
+-   [Hybrid](#hybrid-nonlinear-regression-optimization) Approaches -- Combining multiple methods to leverage their respective strengths for improved estimation.
 
 | **Category**                                                                                                                                  | **Method**                                                                         | **Best For**                                       | **Derivative?** | **Optimization** | **Comp. Cost** |
-|:-----------|:-----------|:-----------|:-----------|:-----------|:-----------|
+|:---------------------|:----------|:---------|:---------|:---------|:---------|
 | [Iterative Optimization](#iterative-optimization-nonlinear-regression)                                                                        | [Steepest Descent (Gradient Descent)](#steepest-descent)                           | Simple problems, slow convergence                  | Yes             | Local            | Low            |
 | **Iterative Optimization**                                                                                                                    | [Gauss-Newton Algorithm]                                                           | Faster than GD, ignores exact second-order info    | Yes             | Local            | Medium         |
 | **Iterative Optimization**                                                                                                                    | [Levenberg-Marquardt Algorithm](#levenberg-marquardt)                              | Balances GN & GD, robust                           | Yes             | Local            | Medium         |
@@ -758,7 +796,7 @@ Characteristics of Steepest Descent
 Comparison with Gauss-Newton
 
 | Method               | Update Rule                                                                        | Advantages                              | Disadvantages                              |
-|------------------|-------------------|------------------|------------------|
+|---------------|----------------------------|---------------|---------------|
 | **Steepest Descent** | $\hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} - \alpha_j \mathbf{I} \nabla Q(\theta)$ | Simple, requires only first derivatives | Slow convergence, sensitive to $\alpha_j$  |
 | **Gauss-Newton**     | $\hat{\theta}^{(j+1)} = \hat{\theta}^{(j)} - \mathbf{H}^{-1} \nabla Q(\theta)$     | Uses curvature, faster near solution    | Requires Jacobian computation, may diverge |
 
@@ -1507,8 +1545,9 @@ trust_region_reflective <-
             
             # Apply trust-region constraint
             if (sqrt(sum(delta_full ^ 2)) > delta_j) {
+                # Scale step
                 delta <-
-                    (delta_j / sqrt(sum(delta_full ^ 2))) * delta_full  # Scale step
+                    (delta_j / sqrt(sum(delta_full ^ 2))) * delta_full  
             } else {
                 delta <- delta_full
             }
@@ -1686,15 +1725,16 @@ secant_method_improved <-
             
             # Prevent division by zero
             if (sum(abs(delta_F)) < 1e-8) {
-                cat("Gradient difference is too small, stopping optimization.\n")
+                cat("Gradient diff is too small, stopping optimization.\n")
                 break
             }
             
             # Ensure correct dimensions for Broyden update
             numerator <-
                 (delta_theta - B_inv %*% delta_F) %*% t(delta_theta)
+            # Convert scalar to numeric
             denominator <-
-                as.numeric(t(delta_theta) %*% delta_F)  # Convert scalar to numeric
+                as.numeric(t(delta_theta) %*% delta_F)  
             
             # Updated inverse Jacobian approximation
             B_inv <-
@@ -1704,7 +1744,8 @@ secant_method_improved <-
             theta_next <- theta_curr - alpha * B_inv %*% F_curr
             
             # Line search: Reduce step size if SSE increases
-            while (sse(as.vector(theta_next), x, y) > sse(as.vector(theta_curr), x, y)) {
+            while (sse(as.vector(theta_next), x, y) > sse(as.vector(theta_curr), 
+                                                          x, y)) {
                 alpha <- alpha * step_reduction_factor
                 theta_next <- theta_curr - alpha * B_inv %*% F_curr
                 
@@ -3720,7 +3761,7 @@ newton_method <-
             # Ensure Hessian is invertible
             if (is.na(det(hessian_reg)) ||
                 det(hessian_reg) < 1e-10) {
-                message("Singular Hessian encountered; increasing regularization.")
+                message("Singular Hessian found; increasing regularization.")
                 lambda <- lambda * 10  # Increase regularization
                 next
             }
@@ -5073,10 +5114,6 @@ To explore available self-starting models in R, use:
 
 ```r
 apropos("^SS")
-#>  [1] "ss"           "SSasymp"      "SSasympOff"   "SSasympOrig"  "SSbiexp"     
-#>  [6] "SSD"          "sse"          "sse_complex"  "sse_df"       "sse_final"   
-#> [11] "sse_logistic" "sse_values"   "SSfol"        "SSfpl"        "SSgompertz"  
-#> [16] "SSlogis"      "SSmicmen"     "SSout"        "SSweibull"
 ```
 
 This command lists functions with names starting with `SS`, which typically denote self-starting functions for nonlinear regression.
@@ -5276,7 +5313,7 @@ $$
     -   **Bayesian Methods**
 
 | Issue                              | Description                                        | Solution                                       |
-|--------------------|---------------------------|-------------------------|
+|-------------------|---------------------------|-------------------------|
 | **Intrinsic Nonlinearity**         | Function curvature independent of parameterization | Bayesian estimation, Taylor expansion          |
 | **Parameter-Effects Nonlinearity** | Curvature influenced by parameterization           | Reparameterization, bootstrap                  |
 | **Collinearity**                   | High correlation among predictors                  | Reparameterization, condition number check     |

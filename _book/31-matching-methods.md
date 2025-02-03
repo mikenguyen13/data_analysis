@@ -1105,6 +1105,12 @@ Diagnostics:
 
 -   can't use c-stat or stepwise because those model fit stat do not apply
 
+Application
+
+-   Finance:
+
+    -   @hirtle2020impact examine the impact of bank supervision on risk, profitability, and growth, using a matched sample approach to show that increased supervisory attention leads to less risky loan portfolios and reduced volatility without compromising profitability or growth.
+
 #### Look Ahead Propensity Score Matching
 
 -   [@bapna2018monetizing]

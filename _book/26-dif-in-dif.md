@@ -296,6 +296,8 @@ coefplot(cali)
 
     -   Matching and DiD can use pre-treatment outcomes to correct for selection bias. From real world data and simulation, [@chabe2015analysis] found that matching generally underestimates the average causal effect and gets closer to the true effect with more number of pre-treatment outcomes. When selection bias is symmetric around the treatment date, DID is still consistent when implemented symmetrically (i.e., the same number of period before and after treatment). In cases where selection bias is asymmetric, the MC simulations show that Symmetric DiD still performs better than Matching.
 
+    -   Forward DID is a simple algo that helps choose control units [@li2024frontiers].
+
 -   It's always good to show results with and without controls because
 
     -   If the controls are fixed within group or within time, then those should be absorbed under those fixed effects
@@ -485,10 +487,13 @@ $$
 
 The choice of $x$ depends on what the researcher is interested in:
 
++--------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Value of $x$ | Interest                                                                                                                                                                        |
-|--------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
++==============+=================================================================================================================================================================================+
 | $x = 0$      | The treatment effect in logs where all zero-valued outcomes are set to equal the minimum non-zero value (i.e., we exclude the extensive-margin change between 0 and $y_{min}$ ) |
++--------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | $x>0$        | Setting the change between 0 and $y_{min}$ to be valued as the equivalent of a $x$ log point change along the intensive margin.                                                 |
++--------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 
 ```r
@@ -826,13 +831,19 @@ where
 
 -   $Y_{idt}$ = grade average
 
-|              | Intercept                         | Treat | Post | Treat\*Post |
-|--------------|-----------------------------------|-------|------|-------------|
-| Treat Pre    | 1                                 | 1     | 0    | 0           |
-| Treat Post   | 1                                 | 1     | 1    | 1           |
-| Control Pre  | 1                                 | 0     | 0    | 0           |
-| Control Post | 1                                 | 0     | 1    | 0           |
-|              | Average for pre-control $\beta_0$ |       |      |             |
++--------------+-----------------------------------+----------+----------+-------------+
+|              | Intercept                         | Treat    | Post     | Treat\*Post |
++==============+===================================+==========+==========+=============+
+| Treat Pre    | 1                                 | 1        | 0        | 0           |
++--------------+-----------------------------------+----------+----------+-------------+
+| Treat Post   | 1                                 | 1        | 1        | 1           |
++--------------+-----------------------------------+----------+----------+-------------+
+| Control Pre  | 1                                 | 0        | 0        | 0           |
++--------------+-----------------------------------+----------+----------+-------------+
+| Control Post | 1                                 | 0        | 1        | 0           |
++--------------+-----------------------------------+----------+----------+-------------+
+|              | Average for pre-control $\beta_0$ |          |          |             |
++--------------+-----------------------------------+----------+----------+-------------+
 
 A more general specification of the dif-n-dif is that
 
@@ -1088,12 +1099,17 @@ output$aVarHat
 
 Standard errors estimation options
 
++----------------------+---------------------------------------------------------------------------------------------+
 | Set                  | Estimation                                                                                  |
-|----------------------|---------------------------------------------------------------------------------------------|
++======================+=============================================================================================+
 | `se = "0"`           | Assume homoskedasticity and no within group correlation or serial correlation               |
++----------------------+---------------------------------------------------------------------------------------------+
 | `se = "1"` (default) | robust to heteroskadasticity and serial correlation [@arellano1987computing]                |
++----------------------+---------------------------------------------------------------------------------------------+
 | `se = "2"`           | robust to heteroskedasticity, but assumes no correlation within group or serial correlation |
++----------------------+---------------------------------------------------------------------------------------------+
 | `se = "11"`          | Aerllano SE with df correction performed by Stata xtreg [@somaini2021twfem]                 |
++----------------------+---------------------------------------------------------------------------------------------+
 
 Alternatively, you can also do it manually or with the `plm` package, but you have to be careful with how the SEs are estimated
 

@@ -1,0 +1,192 @@
+## Instrumental Variables
+
+
+### 1. Endogeneity Problems and Their Common Structure
+
+In empirical work, we often face **endogeneity**, meaning that at least one explanatory variable in a regression model is correlated with the unobserved disturbances (error terms). There are several pathways by which endogeneity arises:
+
+1.  **Omitted Variable Bias (OVB)**: Certain unobserved determinants of the outcome are correlated with the regressor of interest.
+
+2.  **Self-Selection or Sample Selection**: The sample or the treatment status is not randomly determined but depends on factors also related to the outcome's error term.
+
+3.  **Measurement Error**: A regressor is measured with noise; the mismatch between the true variable and the measured one induces correlation with the error term.
+
+4.  **Simultaneity**: The outcome and the regressor are jointly determined (e.g., supply and demand in a market).
+
+Despite their different stories, *all* these issues can be viewed as a failure of the classical exogeneity assumption, E[ε∣x]=0\mathrm{E}[\varepsilon \mid x] = 0E[ε∣x]=0. When endogeneity is present, standard Ordinary Least Squares (OLS) is generally biased and inconsistent. A major econometric toolkit for dealing with endogeneity is **Instrumental Variables (IV)**.
+
+### 2. The Instrumental Variables (IV) Setup
+
+Suppose we have a structural equation
+
+yi=β0+β1xi+εi,y_i = \beta\_0 + \beta\_1 x_i + \varepsilon\_i,yi​=β0​+β1​xi​+εi​,
+
+where εi\varepsilon\_iεi​ is correlated with xix_ixi​. An **instrument** (or set of instruments) ziz_izi​ is a variable (or variables) satisfying:
+
+1.  **Relevance**: ziz_izi​ is correlated with xix_ixi​, i.e., Cov(zi,xi)≠0\mathrm{Cov}(z_i, x_i) \neq 0Cov(zi​,xi​)=0.
+
+2.  **Exogeneity**: ziz_izi​ is uncorrelated with εi\varepsilon\_iεi​, i.e., E[zi εi]=0\mathrm{E}[z_i,\varepsilon\_i] = 0E[zi​εi​]=0.
+
+Under these assumptions, an IV estimator can provide consistent estimates of β1\beta\_1β1​. The most classical IV estimator in linear models is **Two-Stage Least Squares (2SLS)**:
+
+1.  **First Stage**: Regress xix_ixi​ on ziz_izi​ and any other exogenous controls, obtaining fitted values x\^i\hat{x}\_ix\^i​.
+
+2.  **Second Stage**: Regress yiy_iyi​ on x\^i\hat{x}\_ix\^i​ (and the other exogenous controls). The OLS coefficient on x\^i\hat{x}\_ix\^i​ is the 2SLS estimator β\^12SLS\hat{\beta}\_1\^{2SLS}β\^​12SLS​.
+
+Because x\^i\hat{x}\_ix\^i​ is constructed only from ziz_izi​ and exogenous variables, x\^i\hat{x}\_ix\^i​ is no longer correlated with εi\varepsilon\_iεi​, yielding consistent estimation of β1\beta\_1β1​.
+
+### 3. The Control Function (CF) Perspective
+
+#### 3.1 A Unifying View of CF and IV
+
+An alternative to 2SLS is the **Control Function (CF) approach**, which is "inherently an instrumental variables method" [@wooldridge2015control]. The CF approach can often be more flexible, especially in non-linear settings or when additional structure can be imposed on the reduced forms.
+
+In the simplest linear case with a single endogenous variable:
+
+1.  **Reduced Form for** xix_ixi​:
+
+    xi=π0+π1zi+ui,x_i = \pi\_0 + \pi\_1 z_i + u_i,xi​=π0​+π1​zi​+ui​,
+
+    where ziz_izi​ is the instrument and uiu_iui​ is a reduced-form error. We estimate this equation (for instance, by OLS) and obtain residuals u^i=xi−x^i\hat{u}\_i = x_i - \hat{x}\_iu\^i​=xi​−x\^i​.
+
+2.  **Structural Equation with Residual "Control"**:
+
+    yi  =  β0+β1xi+γ u\^i+ηi.y_i ;=; \beta\_0 + \beta\_1 x_i + \gamma ,\hat{u}\_i + \eta\_i.yi​=β0​+β1​xi​+γu\^i​+ηi​.
+
+    By including u\^i\hat{u}\_iu\^i​ in the outcome equation, we control for the component of xix_ixi​ correlated with the original error εi\varepsilon\_iεi​. Under suitable conditions, the coefficient β1\beta\_1β1​ from this regression is numerically identical to 2SLS. In other words, *in the linear constant-coefficient model with a linear first stage*, **the CF approach coincides with 2SLS** for estimating β1\beta\_1β1​.
+
+However, there are **subtle yet important differences** in perspective:
+
+-   The CF formulation explicitly places u\^i\hat{u}\_iu\^i​ in the structural equation, offering a straightforward way to **test for endogeneity**. Specifically, if γ=0\gamma = 0γ=0, then xix_ixi​ is actually exogenous, and OLS would suffice. This forms the basis of a robust **Hausman-type test** comparing OLS and IV (or, equivalently, testing whether γ=0\gamma=0γ=0 in the CF equation).
+
+-   The CF framework can naturally be extended to situations where xix_ixi​ is discrete, or the outcome is non-linear, or multiple endogenous terms appear in complicated functional forms.
+
+Because CF "residual augmentation" can leverage additional information about the distribution or structure of the endogenous variable, it can sometimes be **more efficient** than a purely robust IV approach, but it may require stronger assumptions (for instance, distributional assumptions or functional form restrictions).
+
+### 4. Beyond the Basic Model
+
+Endogeneity can arise not only from omitted variables but also from other sources such as **self-selection** or **measurement error**. Instrumental variables and control functions can often handle these scenarios with suitable modifications.
+
+#### 4.1 Self-Selection and Sample Selection
+
+In **sample selection** models, we only observe yiy_iyi​ for certain units, often because of non-random selection. A common example is the **Heckman selection model**:
+
+-   **Selection equation** (probit):
+
+    di∗=α0+α1zi+νi,di={1if di∗\>0,0otherwise,d_i\^\* = \alpha\_0 + \alpha\_1 z_i + \nu\_i,\quad d_i =
+
+    ```{=tex}
+    \begin{cases} 1 & \text{if } d_i^* > 0,\\ 0 & \text{otherwise}, \end{cases}
+    ```
+    di∗​=α0​+α1​zi​+νi​,di​={10​if di∗​\>0,otherwise,​
+
+    where di=1d_i=1di​=1 indicates that yiy_iyi​ is observed.
+
+-   **Outcome equation** (observed if di=1d_i=1di​=1):
+
+    yi=β0+β1xi+εi.y_i = \beta\_0 + \beta\_1 x_i + \varepsilon\_i.yi​=β0​+β1​xi​+εi​.
+
+If νi\nu\_iνi​ and εi\varepsilon\_iεi​ are correlated, OLS on the selected sample is inconsistent. Heckman's two-step procedure can be viewed as a special case of the CF approach:
+
+1.  Estimate a probit for did_idi​.
+
+2.  Compute the so-called **inverse Mills ratio** λ\^i\hat{\lambda}\_iλ\^i​.
+
+3.  Include λ\^i\hat{\lambda}\_iλ\^i​ in the outcome equation to "control" for selection.
+
+This λ\^i\hat{\lambda}\_iλ\^i​ is precisely a form of *generalized residual*---the hallmark of a CF strategy. By including λ\^i\hat{\lambda}\_iλ\^i​, one purges the correlation between εi\varepsilon\_iεi​ and the selection process.
+
+#### 4.2 Measurement Error
+
+When xix_ixi​ is measured with noise, it is often correlated with the regression error. In a linear model,
+
+xi(true)=xi(obs)+(measurement error),x_i\^\text{(true)} = x_i\^\text{(obs)} + \text{(measurement error)},xi(true)​=xi(obs)​+(measurement error),
+
+and one typically needs an instrument (something correlated with xi(true)x_i\^\text{(true)}xi(true)​ but not with the measurement error). Again, IV or CF methods can be adapted to correct for measurement-error-induced endogeneity. The essential structure---finding a variable uncorrelated with the error term---remains the same.
+
+### 5. Non-Linear Models, Generalized Residuals, and Efficiency
+
+While 2SLS is a workhorse in *linear* models, plugging fitted values (as in 2SLS) into a *non-linear* structural equation can be **inconsistent** unless strict assumptions are met. The CF approach extends more gracefully to such non-linear contexts:
+
+-   **Binary or fractional endogenous variables**: Instead of simply running a linear first stage, one might run a probit or logistic regression to model xix_ixi​. The CF then includes *generalized residuals* (functions of the probit or logit residuals) in the main non-linear outcome equation.
+
+-   **Multiple non-linear transformations of** xix_ixi​: If the structural equation contains terms like ln⁡(xi)\ln(x_i)ln(xi​), xi2x_i\^2xi2​, or interactions with other variables, a naive "plug-in" of fitted values from a linear first stage can fail. A CF formulation more explicitly captures the correlation structure by including an appropriate residual function of xix_ixi​.
+
+These CF-based strategies are often **less robust** (in the sense that they rely on more assumptions about the distribution of xix_ixi​ or the error structure) than a fully "non-parametric IV" approach. However, they can be **much more efficient** if the assumptions are correct. As [\@wooldridge2015control] notes, *CF methods require fewer assumptions than full maximum likelihood but may use enough structure to improve upon a purely robust IV approach*.
+
+### 6. Advantages of the Control Function Perspective
+
+Even in the basic linear constant-coefficient setup---where CF and 2SLS coincide for point estimation---the CF approach offers additional benefits:
+
+1.  **Simple Hausman Test for Endogeneity**.\
+    By including the first-stage residual u\^i\hat{u}\_iu\^i​ in the structural equation, one can test γ=0\gamma = 0γ=0. If γ\gammaγ is not significantly different from zero, xix_ixi​ may be treated as exogenous. This is effectively the classic **Hausman (1978) test**, but it is straightforward to make robust to heteroskedasticity or clustering.
+
+2.  **Potential Gains in Efficiency When Exploiting Additional Structure**.\
+    If one "knows" that xix_ixi​ has certain discrete or limited properties (e.g., xix_ixi​ is binary) or that the reduced form is non-linear, the CF approach can exploit that to yield more precise estimates compared to the standard IV that uses linear instruments alone.
+
+3.  **Flexibility in Modeling Multiple or Nonlinear Endogenous Terms**.\
+    In complicated settings (e.g., polynomials or interactions in xix_ixi​), 2SLS demands instruments for each of these transformations, while a carefully specified CF approach can remain more parsimonious.
+
+### 7. Interaction of the Residual with the Endogenous Variable: Correlated Random Coefficients
+
+A noteworthy extension is when the **effect** of the endogenous regressor on yiy_iyi​ can vary across individuals, possibly in ways correlated with xix_ixi​. This arises in **correlated random coefficient (CRC) models**, where one writes:
+
+yi=β0i+β1ixi+εi,y_i = \beta\*{0i} +\* \beta{1i} x_i + \varepsilon\_i,yi​=β0i​+β1i​xi​+εi​,
+
+allowing β1i\beta\_{1i}β1i​ to vary with unobserved characteristics that also affect selection into xix_ixi​. A common way to capture this within a CF framework is to include not only u\^i\hat{u}\_iu\^i​ but also its interaction with xix_ixi​ in the structural equation:
+
+yi=β0+β1xi+γ1 u^i+γ2 (xi×u^i)+ηi.y_i = \beta\_0 + \beta\_1 x_i + \gamma\_1 ,\hat{u}\_i + \gamma\_2 ,(x_i \times \hat{u}\_i) + \eta\_i.yi​=β0​+β1​xi​+γ1​u\^i​+γ2​(xi​×u\^i​)+ηi​.
+
+-   If γ2≠0\gamma\_2 \neq 0γ2​=0, that suggests the "treatment effect" or slope for xix_ixi​ depends on the unobserved components driving xix_ixi​.
+
+-   Testing whether both γ1\gamma\_1γ1​ and γ2\gamma\_2γ2​ are jointly zero amounts to testing whether xix_ixi​ is truly exogenous *and* has a constant effect.
+
+However, caution is needed with standard errors:
+
+-   The presence of a first-stage residual u\^i\hat{u}\_iu\^i​ introduces **estimation error** in u\^i\hat{u}\_iu\^i​.
+
+-   Typically, a **bootstrap** or a *two-step covariance correction* (e.g., Murphy--Topel or similar) is used to obtain valid standard errors for all coefficients, including the interaction term.
+
+-   One helpful note is that the joint test (γ1=0,γ2=0)(\gamma\_1=0, \gamma\_2=0)(γ1​=0,γ2​=0) can often be done in a standard linear regression package if done jointly, though for individual coefficients a bootstrap or asymptotic correction is recommended.
+
+### 8. Combining Control Functions with Chamberlain--Mundlak Devices
+
+A related extension appears in **panel data** with unobserved time-constant heterogeneity (often called "individual effects"). The **Chamberlain--Mundlak device** is a strategy to model how these individual effects might correlate with the means of the time-varying regressors. Symbolically, if αi\alpha\_iαi​ is the individual-specific effect, one posits
+
+αi=δ0+δ1xˉi+(maybe other means)+ζi,\alpha\_i = \delta\_0 + \delta\_1 \bar{x}\_i + \text{(maybe other means)} + \zeta\_i,αi​=δ0​+δ1​xˉi​+(maybe other means)+ζi​,
+
+where xˉi\bar{x}*ixˉi​ is the time average of xitx*{it}xit​. Including xˉi\bar{x}*ixˉi​ in the model can effectively remove bias from correlation between αi*\alpha\*iαi​ and xitx\*{it}xit​. **When** xitx{it}xit​ itself is also endogenous, one can combine the Chamberlain--Mundlak approach with a control function method:
+
+1.  Specify a first-stage for xitx\_{it}xit​ that includes time-varying instruments or other structures (perhaps also including xˉi\bar{x}\_ixˉi​).
+
+2.  Obtain the residual (or generalized residual) from that first-stage.
+
+3.  Include both xˉi\bar{x}*ixˉi​ (to handle the correlated random effect) and the CF residual (to handle endogeneity) in the structural equation for yity*{it}yit​.
+
+This integration of CF and Chamberlain--Mundlak helps disentangle *time-invariant unobserved heterogeneity* from *contemporaneous endogeneity* in panel data, in a relatively direct way.
+
+### 9. Estimating Standard Errors
+
+When implementing multi-step procedures (be they 2SLS, CF, or extended CF approaches), care is needed with **standard errors** because the second-stage regression includes estimated quantities (like u\^i\hat{u}\_iu\^i​). Several strategies exist:
+
+-   **Analytical (Asymptotic) Variance Formulas**: If the steps are relatively simple (e.g., linear first-stage, linear second-stage), one can derive closed-form robust variance estimators. Software implementations of IV often do this automatically.
+
+-   **Bootstrapping**: A popular, conceptually straightforward approach is to resample the data (clusters or individuals if there is clustering) and re-run the entire multi-step procedure, obtaining empirical standard errors that incorporate the first-stage estimation noise.
+
+-   **Murphy--Topel** or other "two-step" corrections: In more complex models (e.g., sample selection or correlated random coefficient models), there are well-known formula-based approaches for combining the information from each step's estimated covariance matrix.
+
+In practice, **bootstrapping** is often the most direct way to ensure correct inference in complex CF models, especially when the second stage includes interactions of the residuals with other variables.
+
+### 10. Parametric, Semi-Parametric, and Non-Parametric Approaches
+
+A final distinction is whether the first-stage (and possibly the structural equation) is treated as:
+
+-   **Parametric**: For instance, a linear or probit model for xix_ixi​.
+
+-   **Semi-parametric**: Some flexible functional forms or partial linear models.
+
+-   **Non-parametric**: Minimizing assumptions on how instruments relate to xix_ixi​.
+
+A purely **non-parametric IV** approach is the most "robust" but can be data-hungry and less efficient. Parametric or semi-parametric CF approaches can drastically reduce the dimensionality and exploit structure (for example, that xix_ixi​ is binary or the error terms are normal), often increasing **precision** but at the cost of additional assumptions.
+
+As [\@wooldridge2015control] emphasizes, *the ability of CF methods to incorporate such structure is precisely their advantage*---they can lead to more efficient estimates and simpler tests for exogeneity or functional form, provided the assumptions hold. On the other hand, a mismatch between the assumed parametric model and reality can lead to biased results, so the trade-off between robustness and efficiency is an important practical consideration.

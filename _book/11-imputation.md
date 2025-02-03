@@ -110,11 +110,11 @@ Missing data affects virtually all fields:
 
 Missing data refers to the absence of values for some variables in a dataset. The mechanisms underlying missingness significantly impact the validity of statistical analyses and the choice of handling methods. These mechanisms are classified into three categories:
 
-1.  [Missing Completely at Random (MCAR)]: Missingness occurs entirely by chance and is unrelated to any observed or unobserved variables. In this case, the likelihood of a value being missing is the same for all observations. For example, if survey respondents fail to answer a question because of an unrelated technical glitch, the data may be classified as MCAR.
+-   [Missing Completely at Random](#missing-completely-at-random-mcar) (MCAR): The probability of missingness is independent of both observed and unobserved data. In other words, the missing data occur entirely at random and are unrelated to any values in the dataset.
 
-2.  [Missing at Random (MAR)]: Missingness is systematically related to observed variables but not to the missing values themselves. This means the probability of missing data can be explained using other observed information in the dataset. For instance, if younger participants are more likely to skip a specific survey question, but age is recorded, the missingness is MAR.
+-   [Missing at Random](#missing-at-random-mar) (MAR): The probability of missingness is related to the observed data but not to the missing data itself. This means that, after controlling for observed variables, the missingness is random.
 
-3.  [Missing Not at Random (MNAR)](#missing-not-at-random-mnar): Missingness depends on unobserved variables or the missing values themselves.
+-   [Missing Not at Random](#missing-not-at-random-mnar) (MNAR): The probability of missingness depends on unobserved data or the missing values themselves. In this case, the missingness is related to the very information that is missing, making it the most challenging type to handle in analysis.
 
 #### Missing Completely at Random (MCAR) {#missing-completely-at-random-mcar}
 
@@ -2117,7 +2117,7 @@ The increasing use of streaming data in business and technology requires real-ti
 This section demonstrates how to visualize missing data and handle it using different imputation techniques.
 
 | **Package**    | **Algorithm**                                            | **Cont Var** | **Cate Var**                 | **Diagnostics**                   | **Complexity Handling**                | **Best Use Case**                          | **Limitations**                                     |
-|---------|---------|---------|---------|----------|----------|---------|---------|
+|---------|---------|---------|---------|---------|---------|---------|---------|
 | **missForest** | Random Forest                                            | Yes          | Yes                          | Out-of-bag error (NRMSE, PFC)     | Handles complex interactions           | Mixed data types with complex interactions | May overfit with small datasets                     |
 | **Hmisc**      | Additive Regression, Bootstrap, Predictive Mean Matching | Yes          | Yes                          | $R^2$ for imputed values          | Basic to intermediate complexity       | Simple datasets with low complexity        | Limited to simple imputation methods                |
 | **mi**         | Bayesian Regression                                      | Yes          | Yes                          | Graphical diagnostics,convergence | Detects issues like collinearity       | Datasets with irregularities               | Computationally intensive for large data            |

@@ -990,9 +990,9 @@ stock_yogo_test(
 
 The CD statistic should be bigger than the set critical value to be considered strong instruments.
 
-#### Anderson-Rubin 
+#### Anderson-Rubin
 
-#### Stock-Wright 
+#### Stock-Wright
 
 ### Exogeneity Assumption
 
@@ -1259,7 +1259,7 @@ where
 -   TSS = total sum of squares ($\sum(y - \bar{y})^2$)
 -   RSS = residual sum of squares ($\sum (y - Xb)^2$)
 
-If $TSS > RSS$, then we have negative RSS and negative $R^2$. Since the predicted values of the endogenous variables are different from the endogenous variables themselves, the error that is used to calculate RSS can be different from the error in the second stage, and RSS in the second stage can be less than TSS. For more information, see [here](https://stats.stackexchange.com/questions/420492/can-i-ignore-the-negative-r-squared-value-when-i-am-using-instrumental-variable%20https://www.stata.com/support/faqs/statistics/two-stage-least-squares/).
+If $TSS > RSS$, then we have negative RSS and negative $R^2$. Since the predicted values of the endogenous variables are different from the endogenous variables themselves, the error that is used to calculate RSS can be different from the error in the second stage, and RSS in the second stage can be less than TSS.
 
 ## Treatment Intensity
 
@@ -1371,10 +1371,7 @@ a.  Linear Endogenous Variables:
     -   The control function function approach is identical to the usual 2SLS estimator
 b.  Nonlinear Endogenous Variables:
     -   The control function is different from the 2SLS estimator
-
-<!-- -->
-
-2.  Nonlinear in parameters:
+c.  Nonlinear in parameters:
     -   The CF function is superior than the 2SLS estimator
 
 ### Simulation

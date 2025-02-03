@@ -1,7 +1,7 @@
 ---
 title: "A Guide on Data Analysis"
 author: "Mike Nguyen"
-date: "2025-01-20"
+date: "2025-02-03"
 header-includes:
   - \usepackage{titling}
   - \pretitle{\begin{center}
@@ -149,7 +149,7 @@ By adopting these strategies, you can tailor your learning experience and maximi
 
 **Code Replication**
 
-This book was built with R version 4.2.3 (2023-03-15 ucrt) and the following packages:
+This book was built with R version 4.4.2 (2024-10-31 ucrt) and the following packages:
 
 
 

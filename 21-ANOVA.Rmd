@@ -1,4 +1,4 @@
-# Analysis of Variance (ANOVA)
+# Analysis of Variance (ANOVA) {#sec-analysis-of-variance-anova}
 
 ANOVA is using the same underlying mechanism as linear regression. However, the angle that ANOVA chooses to look at is slightly different from the traditional linear regression. It can be more useful in the case with **qualitative variables** and **designed experiments**.
 

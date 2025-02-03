@@ -480,3 +480,17 @@ Then the rule of thumb is re-randomize when $M > a$
 ## Two-Stage Randomized Experiments with Interference and Noncompliance
 
 [@imai2021causal]
+
+## A/B Testing Caution
+
+@braun2025where
+
+-   Marketers use online advertising platforms to test user responses to different ad content.
+
+-   Platforms' experimentation tools deliver ads to different, dynamically optimized mixes of users, leading to nonrandom exposure.
+
+-   This "divergent delivery" confounds ad content effects with algorithmic targeting, skewing A/B test results.
+
+-   Algorithmic targeting, user heterogeneity, and data aggregation distort the magnitude and direction of A/B test results.
+
+-   Platforms have little incentive to help experimenters isolate ad content effects from proprietary targeting mechanisms.

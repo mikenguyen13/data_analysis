@@ -1,220 +1,321 @@
-# Linear Mixed Models
+# Linear Mixed Models {#sec-linear-mixed-models}
 
 ## Dependent Data
 
-Forms of dependent data:
+In many real-world applications, observations are not independent but exhibit **correlations** due to shared characteristics. Below are common forms of dependent data:
 
--   Multivariate measurements on different individuals: (e.g., a person's blood pressure, fat, etc are correlated)
--   Clustered measurements: (e.g., blood pressure measurements of people in the same family can be correlated).
--   Repeated measurements: (e.g., measurement of cholesterol over time can be correlated) "If data are collected repeatedly on experimental material to which treatments were applied initially, the data is a repeated measure." [@Schabenberger_2001]
--   Longitudinal data: (e.g., individual's cholesterol tracked over time are correlated): "data collected repeatedly over time in an observational study are termed longitudinal." [@Schabenberger_2001]
--   Spatial data: (e.g., measurement of individuals living in the same neighborhood are correlated)
+-   **Multivariate measurements on individuals**: Multiple attributes measured on the same person may be correlated (e.g., blood pressure, cholesterol, and BMI).
+-   **Clustered measurements**: Individuals within a shared environment (e.g., families, schools, hospitals) often exhibit correlated responses.
+-   **Repeated measurements**: When the same individual is measured multiple times, correlations arise naturally.
+    -   *Example*: Tracking cholesterol levels of a person over time.
+    -   If these repeated measurements follow an experimental design where treatments were applied initially, they are referred to as repeated measures [@Schabenberger_2001].
+-   **Longitudinal data**: Repeated measurements taken over time in an observational study are known as longitudinal data [@Schabenberger_2001].
+-   **Spatial data**: Measurements taken from individuals in nearby locations (e.g., residents of the same neighborhood) often exhibit spatial correlation.
 
-Hence, we like to account for these correlations.
+Since standard linear regression assumes independent observations, these correlations violate its assumptions. Thus, [Linear Mixed Models](#sec-linear-mixed-models) (LMMs) provide a framework to account for these dependencies.
 
-**Linear Mixed Model** (LMM), also known as **Mixed Linear Model** has 2 components:
+A [Linear Mixed Model](#sec-linear-mixed-models) (also called a **Mixed Linear Model**) consists of two components:
 
--   **Fixed effect** (e.g, gender, age, diet, time)
+-   **Fixed effects**: Parameters associated with variables that have the same effect across all observations (e.g., gender, age, diet, time).
+-   **Random effects**: Individual-specific variations or correlation structures (e.g., subject-specific effects, spatial correlations), leading to dependent (correlated) errors.
 
--   **Random effects** representing individual variation or auto correlation/spatial effects that imply **dependent (correlated) errors**
+A key advantage of LMMs is that they model random subject-specific effects, rather than including individual dummy variables. This provides:
 
-Review [Two-Way Mixed Effects ANOVA]
+-   A reduction in the number of parameters to estimate, avoiding overfitting.
+-   A framework for inference on a population level, rather than restricting conclusions to observed individuals.
 
-We choose to model the random subject-specific effect instead of including dummy subject covariates in our model because:
+### Motivation: A Repeated Measurements Example
 
--   reduction in the number of parameters to estimate
--   when you do inference, it would make more sense that you can infer from a population (i.e., random effect).
+Consider a scenario where we analyze **repeated measurements** of a response variable $Y_{ij}$ for the $i$-th subject at time $j$:
 
-**LLM Motivation**
+-   $i = 1, \dots, N$ (subjects)
+-   $j = 1, \dots, n_i$ (measurements per subject)
 
-In a repeated measurements analysis where $Y_{ij}$ is the response for the $i$-th individual measured at the $j$-th time,
-
-$i =1,…,N$ ; $j = 1,…,n_i$
+We define the response vector for subject $i$ as:
 
 $$
 \mathbf{Y}_i = 
-\left(
-\begin{array}
-{c}
+\begin{bmatrix}
 Y_{i1} \\
-. \\
-.\\
-.\\
+Y_{i2} \\
+\vdots \\
 Y_{in_i}
-\end{array}
-\right)
+\end{bmatrix}
 $$
 
-is all measurements for subject $i$.
+To model this data, we use a two-stage hierarchical approach:
 
-[*Stage 1: (Regression Model)*]{.underline} how the response changes over time for the $i$-th subject
+#### Stage 1: Regression Model (Within-Subject Variation) {#sec-stage-1-regression-model-(within-subject-variation}
 
-$$
-\mathbf{Y_i = Z_i \beta_i + \epsilon_i}
-$$
-
-where
-
--   $Z_i$ is an $n_i \times q$ matrix of known covariates
--   $\beta_i$ is an unknown $q \times 1$ vector of subjective -specific coefficients (regression coefficients different for each subject)
--   $\epsilon_i$ are the random errors (typically $\sim N(0, \sigma^2 I)$)
-
-We notice that there are two many $\beta$ to estimate here. Hence, this is the motivation for the second stage
-
-[*Stage 2: (Parameter Model)*]{.underline}
+We first model how the response changes over time for each subject:
 
 $$
-\mathbf{\beta_i = K_i \beta + b_i}
+\mathbf{Y}_i = Z_i \beta_i + \epsilon_i
 $$
 
-where
+where:
 
--   $K_i$ is a $q \times p$ matrix of known covariates
--   $\beta$ is a $p \times 1$ vector of unknown parameter
--   $\mathbf{b}_i$ are independent $N(0,D)$ random variables
+-   $Z_i$ is an $n_i \times q$ matrix of known covariates (e.g., time, treatment).
+-   $\beta_i$ is a $q \times 1$ vector of subject-specific regression coefficients.
+-   $\epsilon_i$ represents random errors, often assumed to follow $\epsilon_i \sim N(0, \sigma^2 I)$.
 
-This model explain the observed variability between subjects with respect to the subject-specific regression coefficients, $\beta_i$. We model our different coefficient ($\beta_i$) with respect to $\beta$.
+At this stage, each individual has their own unique regression coefficients $\beta_i$. However, estimating a separate $\beta_i$ for each subject is impractical when $N$ is large. Thus, we introduce a [second stage](#sec-stage-2-parameter-model-(between-subject-variation) to impose structure on $\beta_i$.
 
-Example:
+#### Stage 2: Parameter Model (Between-Subject Variation) {#sec-stage-2-parameter-model-(between-subject-variation}
 
-Stage 1:
-
-$$
-Y_{ij} = \beta_{1i} + \beta_{2i}t_{ij} + \epsilon_{ij}
-$$
-
-where
-
--   $j = 1,..,n_i$
-
-In the matrix notation,
+We assume that the subject-specific coefficients $\beta_i$ arise from a common population distribution:
 
 $$
-\mathbf{Y_i} = 
-\left(
-\begin{array}
-{c}
+\beta_i = K_i \beta + b_i
+$$
+
+where:
+
+-   $K_i$ is a $q \times p$ matrix of known covariates.
+-   $\beta$ is a $p \times 1$ vector of global parameters (fixed effects).
+-   $\mathbf{b}_i$ are random effects, assumed to follow $\mathbf{b}_i \sim N(0, D)$.
+
+Thus, each individual's regression coefficients $\beta_i$ are modeled as deviations from a population-level mean $\beta$, with subject-specific variations $b_i$. This hierarchical structure enables:
+
+-   Borrowing of strength: Individual estimates $\beta_i$ are informed by the overall population distribution.
+-   Improved generalization: The model captures both fixed and random variability efficiently.
+
+The full [Linear Mixed Model](#sec-linear-mixed-models) can then be written as:
+
+$$
+\mathbf{Y}_i = Z_i K_i \beta + Z_i b_i + \epsilon_i
+$$
+
+where:
+
+-   $Z_i K_i \beta$ represents the **fixed effects** component.
+-   $Z_i b_i$ represents the **random effects** component.
+-   $\epsilon_i$ represents the residual errors.
+
+This formulation accounts for both **within-subject correlations** (via random effects) and **between-subject variability** (via fixed effects), making it a powerful tool for analyzing dependent data.
+
+------------------------------------------------------------------------
+
+### Example: Linear Mixed Model for Repeated Measurements
+
+#### Stage 1: Subject-Specific Model {#sec-stage-1-subject-specific-model-lmm-example}
+
+The first stage models the response variable $Y_{ij}$ for subject $i$ at time $t_{ij}$:
+
+$$
+Y_{ij} = \beta_{1i} + \beta_{2i} t_{ij} + \epsilon_{ij}
+$$
+
+where:
+
+-   $j = 1, \dots, n_i$ represents different time points for subject $i$.
+-   $\beta_{1i}$ is the subject-specific intercept (baseline response for subject $i$).
+-   $\beta_{2i}$ is the subject-specific slope (rate of change over time).
+-   $\epsilon_{ij} \sim N(0, \sigma^2)$ are independent errors.
+
+In matrix notation, the model is written as:
+
+$$
+\mathbf{Y}_i = 
+\begin{bmatrix}
 Y_{i1} \\
-.\\
+Y_{i2} \\
+\vdots \\
 Y_{in_i}
-\end{array}
-\right); \mathbf{Z}_i = 
-\left(
-\begin{array}
-{cc}
+\end{bmatrix}, 
+\quad
+\mathbf{Z}_i = 
+\begin{bmatrix}
 1 & t_{i1} \\
-. & . \\
+1 & t_{i2} \\
+\vdots & \vdots \\
 1 & t_{in_i} 
-\end{array}
-\right)
+\end{bmatrix},
 $$
 
 $$
 \beta_i =
-\left(
-\begin{array}
-{c}
+\begin{bmatrix}
 \beta_{1i} \\
 \beta_{2i}
-\end{array}
-\right); \epsilon_i = 
-\left(
-\begin{array}
-{c}
+\end{bmatrix}, 
+\quad
+\epsilon_i = 
+\begin{bmatrix}
 \epsilon_{i1} \\
-. \\
+\epsilon_{i2} \\
+\vdots \\
 \epsilon_{in_i}
-\end{array}
-\right)
+\end{bmatrix}.
 $$
 
-Thus,
+Thus, the model can be rewritten as:
 
 $$
-\mathbf{Y_i = Z_i \beta_i + \epsilon_i}
+\mathbf{Y_i = Z_i \beta_i + \epsilon_i}.
 $$
 
-Stage 2:
+------------------------------------------------------------------------
+
+#### Stage 2: Population-Level Model {#sec-stage-2-population-level-model-lmm-example}
+
+Since estimating a separate $\beta_{1i}$ and $\beta_{2i}$ for each subject is impractical, we assume they follow a population distribution:
 
 $$
 \begin{aligned}
-\beta_{1i} &= \beta_0 + b_{1i} \\
-\beta_{2i} &= \beta_1 L_i + \beta_2 H_i + \beta_3 C_i + b_{2i}
+\beta_{1i} &= \beta_0 + b_{1i}, \\
+\beta_{2i} &= \beta_1 L_i + \beta_2 H_i + \beta_3 C_i + b_{2i}.
 \end{aligned}
 $$
 
-where $L_i, H_i, C_i$ are indicator variables defined to 1 as the subject falls into different categories.
+where:
 
-Subject specific intercepts do not depend upon treatment, with $\beta_0$ (the average response at the start of treatment), and $\beta_1 , \beta_2, \beta_3$ (the average time effects for each of three treatment groups).
+-   $L_i, H_i, C_i$ are indicator variables for treatment groups:
+    -   $L_i = 1$ if the subject belongs to treatment group 1, else 0.
+    -   $H_i = 1$ if the subject belongs to treatment group 2, else 0.
+    -   $C_i = 1$ if the subject belongs to treatment group 3, else 0.
+-   $\beta_0$ represents the average baseline response across all subjects.
+-   $\beta_1, \beta_2, \beta_3$ are the average time effects for the respective treatment groups.
+-   $b_{1i}, b_{2i}$ are random effects representing subject-specific deviations.
+
+This structure implies that while the intercept $\beta_{1i}$ varies randomly across subjects, the slope $\beta_{2i}$ depends both on treatment and random subject-specific deviations.
+
+In matrix form, this is:
 
 $$
 \begin{aligned}
-\mathbf{K}_i &= \left(
-\begin{array}
-{cccc}
+\mathbf{K}_i &= 
+\begin{bmatrix}
 1 & 0 & 0 & 0 \\
 0 & L_i & H_i & C_i 
-\end{array}
-\right) \\ 
-\beta &= (\beta_0 , \beta_1, \beta_2, \beta_3)' \\ 
+\end{bmatrix}, \\ 
+\beta &= 
+\begin{bmatrix}
+\beta_0 \\
+\beta_1 \\
+\beta_2 \\
+\beta_3
+\end{bmatrix}, \\ 
 \mathbf{b}_i &= 
-\left(
-\begin{array}
-{c}
+\begin{bmatrix}
 b_{1i} \\
-b_{2i} \\
-\end{array}
-\right) \\ 
-\beta_i &= \mathbf{K_i \beta + b_i}
+b_{2i}
+\end{bmatrix}, \\ 
+\beta_i &= \mathbf{K_i \beta + b_i}.
 \end{aligned}
 $$
 
-To get $\hat{\beta}$, we can fit the model sequentially:
+------------------------------------------------------------------------
 
-1.  Estimate $\hat{\beta_i}$ in the first stage
-2.  Estimate $\hat{\beta}$ in the second stage by replacing $\beta_i$ with $\hat{\beta}_i$
+#### Final Mixed Model Formulation
 
-However, problems arise from this method:
-
--   information is lost by summarizing the vector $\mathbf{Y}_i$ solely by $\hat{\beta}_i$
--   we need to account for variability when replacing $\beta_i$ with its estimate
--   different subjects might have different number of observations.
-
-To address these problems, we can use **Linear Mixed Model** [@laird1982random]
-
-Substituting stage 2 into stage 1:
+Substituting [Stage 2](#sec-stage-2-population-level-model-lmm-example) into [Stage 1](#sec-stage-1-subject-specific-model-lmm-example), we obtain the full mixed model:
 
 $$
-\mathbf{Y}_i = \mathbf{Z}_i \mathbf{K}_i \beta + \mathbf{Z}_i \mathbf{b}_i + \mathbf{\epsilon}_i
+\mathbf{Y}_i = \mathbf{Z}_i (\mathbf{K}_i \beta + \mathbf{b}_i) + \epsilon_i.
 $$
 
-Let $\mathbf{X}_i = \mathbf{Z}_i \mathbf{K}_i$ be an $n_i \times p$ matrix . Then, the LMM is
+Expanding:
 
 $$
-\mathbf{Y}_i = \mathbf{X}_i \beta + \mathbf{Z}_i \mathbf{b}_i + \mathbf{\epsilon}_i
+\mathbf{Y}_i = \mathbf{Z}_i \mathbf{K}_i \beta + \mathbf{Z}_i \mathbf{b}_i + \epsilon_i.
 $$
 
-where
+Interpretation:
 
--   $i = 1,..,N$
--   $\beta$ are the fixed effects, which are common to all subjects
--   $\mathbf{b}_i$ are the subject specific random effects. $\mathbf{b}_i \sim N_q (\mathbf{0,D})$
--   $\mathbf{\epsilon}_i \sim N_{n_i}(\mathbf{0,\Sigma_i})$
--   $\mathbf{b}_i$ and $\epsilon_i$ are independent
--   $\mathbf{Z}_{i(n_i \times q})$ and $\mathbf{X}_{i(n_i \times p})$ are matrices of known covariates.
+-   $\mathbf{Z}_i \mathbf{K}_i \beta$ represents the **fixed effects** (population-level trends).
+-   $\mathbf{Z}_i \mathbf{b}_i$ represents the **random effects** (subject-specific variations).
+-   $\epsilon_i$ represents the **residual errors**.
 
-Equivalently, in the hierarchical form, we call **conditional** or **hierarchical** formulation of the linear mixed model
+**Assumptions**:
+
+-   Random effects: $\mathbf{b}_i \sim N(0, D)$, where $D$ is the variance-covariance matrix.
+-   Residual errors: $\epsilon_i \sim N(0, \sigma^2 I)$.
+-   Independence: $\mathbf{b}_i$ and $\epsilon_i$ are independent.
+
+------------------------------------------------------------------------
+
+To estimate $\hat{\beta}$, one might consider a sequential approach:
+
+1.  Estimate $\hat{\beta}_i$ for each subject in the first stage.
+2.  Estimate $\hat{\beta}$ in the second stage by replacing $\beta_i$ with $\hat{\beta}_i$.
+
+However, this method introduces several problems:
+
+-   Loss of information: Summarizing $\mathbf{Y}_i$ solely by $\hat{\beta}_i$ discards valuable within-subject variability.
+-   Ignoring uncertainty: Treating estimated values $\hat{\beta}_i$ as known values leads to underestimated variability.
+-   Unequal sample sizes: Subjects may have different numbers of observations ($n_i$), which affects variance estimation.
+
+To address these issues, we adopt the [Linear Mixed Model](#sec-linear-mixed-models) (LMM) framework [@laird1982random].
+
+------------------------------------------------------------------------
+
+#### Reformulating the Linear Mixed Model
+
+Substituting [Stage 2](#sec-stage-2-parameter-model-(between-subject-variation) into [Stage 1](#sec-stage-2-parameter-model-(between-subject-variation), we obtain:
+
+$$
+\mathbf{Y}_i = \mathbf{Z}_i \mathbf{K}_i \beta + \mathbf{Z}_i \mathbf{b}_i + \mathbf{\epsilon}_i.
+$$
+
+Defining $\mathbf{X}_i = \mathbf{Z}_i \mathbf{K}_i$ as an $n_i \times p$ matrix of covariates, we rewrite the model as:
+
+$$
+\mathbf{Y}_i = \mathbf{X}_i \beta + \mathbf{Z}_i \mathbf{b}_i + \mathbf{\epsilon}_i.
+$$
+
+where:
+
+-   $i = 1, \dots, N$ (subjects).
+
+-   $\beta$ are **fixed effects**, common to all subjects.
+
+-   $\mathbf{b}_i$ are **subject-specific random effects**, assumed to follow:
+
+    $$
+    \mathbf{b}_i \sim N_q(\mathbf{0,D}).
+    $$
+
+-   $\mathbf{\epsilon}_i$ represents residual errors:
+
+    $$
+    \mathbf{\epsilon}_i \sim N_{n_i}(\mathbf{0,\Sigma_i}).
+    $$
+
+-   Independence assumption: $\mathbf{b}_i$ and $\mathbf{\epsilon}_i$ are independent.
+
+-   Dimension notation:
+
+    -   $\mathbf{Z}_i$ is an $n_i \times q$ matrix of known covariates for random effects.
+    -   $\mathbf{X}_i$ is an $n_i \times p$ matrix of known covariates for fixed effects.
+
+------------------------------------------------------------------------
+
+#### Hierarchical (Conditional) Formulation
+
+Rewriting the LMM in **hierarchical form**:
 
 $$
 \begin{aligned}
-\mathbf{Y}_i | \mathbf{b}_i &\sim N(\mathbf{X}_i \beta+ \mathbf{Z}_i \mathbf{b}_i, \mathbf{\Sigma}_i) \\
-\mathbf{b}_i &\sim N(\mathbf{0,D})
+\mathbf{Y}_i | \mathbf{b}_i &\sim N(\mathbf{X}_i \beta+ \mathbf{Z}_i \mathbf{b}_i, \mathbf{\Sigma}_i), \\
+\mathbf{b}_i &\sim N(\mathbf{0,D}).
 \end{aligned}
 $$
 
-for $i = 1,..,N$. denote the respective functions by $f(\mathbf{Y}_i |\mathbf{b}_i)$ and $f(\mathbf{b}_i)$
+where:
 
-In general,
+-   The first equation states that, given the subject-specific random effects $\mathbf{b}_i$, the response follows a normal distribution with mean $\mathbf{X}_i \beta+ \mathbf{Z}_i \mathbf{b}_i$ and covariance $\mathbf{\Sigma}_i$.
+-   The second equation states that the random effects $\mathbf{b}_i$ follow a **multivariate normal** distribution with mean zero and covariance $D$.
+
+We denote the respective probability density functions as:
+
+$$
+f(\mathbf{Y}_i |\mathbf{b}_i) \quad \text{and} \quad f(\mathbf{b}_i).
+$$
+
+------------------------------------------------------------------------
+
+Using the general **marginalization formula**:
 
 $$
 \begin{aligned}
@@ -223,45 +324,67 @@ f(A) &= \int f(A,B)dB = \int f(A|B) f(B) dB
 \end{aligned}
 $$
 
-In the LMM, the marginal density of $\mathbf{Y}_i$ is
+we obtain the **marginal density** of $\mathbf{Y}_i$:
 
 $$
-f(\mathbf{Y}_i) = \int f(\mathbf{Y}_i | \mathbf{b}_i) f(\mathbf{b}_i) d\mathbf{b}_i
+f(\mathbf{Y}_i) = \int f(\mathbf{Y}_i | \mathbf{b}_i) f(\mathbf{b}_i) d\mathbf{b}_i.
 $$
 
-which can be shown
+Solving this integral, we obtain:
 
 $$
-\mathbf{Y}_i \sim N(\mathbf{X_i \beta, Z_i DZ'_i + \Sigma_i})
+\mathbf{Y}_i \sim N(\mathbf{X_i \beta}, \mathbf{Z_i D Z_i'} + \mathbf{\Sigma_i}).
 $$
 
-This is the **marginal** formulation of the linear mixed model
+Interpretation:
 
-Notes:
+-   **Mean structure:** The expectation remains $\mathbf{X}_i \beta$, the fixed effects.
 
-We no longer have $Z_i b_i$ in the mean, but add error in the variance (marginal dependence in Y). kinda of averaging out the common effect. Technically, we shouldn't call it averaging the error b (adding it to the variance covariance matrix), it should be called adding random effect
+-   **Variance structure:** The covariance now incorporates random effect variability:
 
-Continue with our example
+    $$
+    \mathbf{Z_i D Z_i'} + \mathbf{\Sigma_i}.
+    $$
+
+    This shows that the random effects contribute additional correlation between observations.
+
+> 🔹 **Key Takeaway:**\
+> The marginal formulation of LMM no longer includes $Z_i b_i$ in the mean, but instead incorporates it into the covariance structure, introducing marginal dependence in $\mathbf{Y}_i$.
+
+Technically, rather than "averaging out" the random effect $b_i$, we add its contribution to the variance-covariance matrix.
+
+------------------------------------------------------------------------
+
+Continue with the example:
 
 $$
-Y_{ij} = (\beta_0 + b_{1i}) + (\beta_1L_i + \beta_2 H_i + \beta_3 C_i + b_{2i})t_{ij} + \epsilon_{ij}
+Y_{ij} = (\beta_0 + b_{1i}) + (\beta_1L_i + \beta_2 H_i + \beta_3 C_i + b_{2i})t_{ij} + \epsilon_{ij}.
 $$
 
-for each treatment group
+For each treatment group:
 
 $$
-Y_{ik}= 
+Y_{ij} =
 \begin{cases}
-\beta_0 + b_{1i} + (\beta_1 + \ b_{2i})t_{ij} + \epsilon_{ij} & L \\
-\beta_0 + b_{1i} + (\beta_2 + \ b_{2i})t_{ij} + \epsilon_{ij} & H\\
-\beta_0 + b_{1i} + (\beta_3 + \ b_{2i})t_{ij} + \epsilon_{ij} & C
+\beta_0 + b_{1i} + (\beta_1 + b_{2i}) t_{ij} + \epsilon_{ij}, & L_i = 1 \\
+\beta_0 + b_{1i} + (\beta_2 + b_{2i}) t_{ij} + \epsilon_{ij}, & H_i = 1 \\
+\beta_0 + b_{1i} + (\beta_3 + b_{2i}) t_{ij} + \epsilon_{ij}, & C_i = 1.
 \end{cases}
 $$
 
--   Intercepts and slopes are all subject specific
--   Different treatment groups have different slops, but the same intercept.
+Interpretation:
 
-**In the hierarchical model form**
+-   **Intercepts and slopes are subject-specific**: Each subject has their own baseline response and rate of change.
+-   **Treatment groups affect slopes, but not intercepts**:
+    -   $\beta_0$ is the common intercept across groups.
+    -   Slopes differ by treatment: $\beta_1$ for $L$, $\beta_2$ for $H$, $\beta_3$ for $C$.
+-   **Random effects** introduce within-subject correlation:
+    -   $b_{1i}$ allows individual variation in baseline response.
+    -   $b_{2i}$ allows subject-specific deviations in slopes.
+
+------------------------------------------------------------------------
+
+In the **hierarchical model form**, we again express the LMM as:
 
 $$
 \begin{aligned}
@@ -270,476 +393,739 @@ $$
 \end{aligned}
 $$
 
-X will be in the form of
+where:
+
+-   $\mathbf{X}_i$ and $\mathbf{Z}_i$ are design matrices for **fixed** and **random** effects, respectively.
+-   $\mathbf{b}_i$ represents **subject-specific random effects**.
+-   $\mathbf{\Sigma}_i$ is the **residual error covariance matrix**.
+-   $\mathbf{D}$ is the **random effects covariance matrix**.
+
+The fixed-effects parameter vector is:
 
 $$
-\beta = (\beta_0, \beta_1, \beta_2, \beta_3)'
+\beta = (\beta_0, \beta_1, \beta_2, \beta_3)'.
 $$
 
+From the model structure, we define:
+
 $$
-\begin{aligned}
-\mathbf{X}_i &= \mathbf{Z}_i \mathbf{K}_i \\
-&= 
-\left[
-\begin{array}
-{cc}
+\mathbf{X}_i = \mathbf{Z}_i \mathbf{K}_i.
+$$
+
+Expanding,
+
+$$
+\mathbf{Z}_i =
+\begin{bmatrix}
 1 & t_{i1} \\
 1 & t_{i2} \\
-. & . \\
+\vdots & \vdots \\
 1 & t_{in_i}
-\end{array}
-\right]
-\times
-\left[
-\begin{array}
-{cccc}
+\end{bmatrix},
+\quad
+\mathbf{K}_i =
+\begin{bmatrix}
 1 & 0 & 0 & 0 \\
-0 & L_i & H_i & C_i \\
-\end{array}
-\right] \\
-&=
-\left[ 
-\begin{array}
-{cccc}
-1 & t_{i1}L_i & t_{i1}H_i & T_{i1}C_i \\
-1 & t_{i2}L_i & t_{i2}H_i & T_{i2}C_i \\
-. &. &. &. \\
-1 & t_{in_i}L_i & t_{in_i}H_i & T_{in_i}C_i \\
-\end{array}
-\right]\end{aligned}
+0 & L_i & H_i & C_i
+\end{bmatrix}.
 $$
 
+Multiplying:
+
 $$
-\mathbf{b}_i = 
-\left(
-\begin{array}
-{c}
+\mathbf{X}_i =
+\begin{bmatrix}
+1 & t_{i1}L_i & t_{i1}H_i & t_{i1}C_i \\
+1 & t_{i2}L_i & t_{i2}H_i & t_{i2}C_i \\
+\vdots & \vdots & \vdots & \vdots \\
+1 & t_{in_i}L_i & t_{in_i}H_i & t_{in_i}C_i
+\end{bmatrix}.
+$$
+
+The random effects vector is:
+
+$$
+\mathbf{b}_i =
+\begin{bmatrix}
 b_{1i} \\
 b_{2i}
-\end{array}
-\right)
+\end{bmatrix}.
 $$
 
-$$
-D = 
-\left(
-\begin{array}
-{cc}
-d_{11} & d_{12}\\
-d_{12} & d_{22}
-\end{array}
-\right)
-$$
-
-Assuming $\mathbf{\Sigma}_i = \sigma^2 \mathbf{I}_{n_i}$, which is called **conditional independence**, meaning the response on subject i are independent conditional on $\mathbf{b}_i$ and $\beta$
-
-**In the marginal model form**
+The covariance matrix $\mathbf{D}$ for random effects is:
 
 $$
-Y_{ij} = \beta_0 + \beta_1 L_i t_{ij} + \beta_2 H_i t_{ij} + \beta_3 C_i t_{ij} + \eta_{ij}
-$$
-
-where $\eta_i \sim N(\mathbf{0},\mathbf{Z}_i\mathbf{DZ}_i'+ \mathbf{\Sigma}_i)$
-
-Equivalently,
-
-$$
-\mathbf{Y_i \sim N(X_i \beta, Z_i DZ_i' + \Sigma_i})
-$$
-
-In this case that $n_i = 2$
-
-$$
-\begin{aligned}
-\mathbf{Z_iDZ_i'} &= 
-\left(
-\begin{array}
-{cc}
-1 & t_{i1} \\
-1 & t_{i2} 
-\end{array}
-\right)
-\left(
-\begin{array}
-{cc}
+\mathbf{D} =
+\begin{bmatrix}
 d_{11} & d_{12} \\
-d_{12} & d_{22} 
-\end{array}
-\right)
-\left(
-\begin{array}
-{cc}
+d_{12} & d_{22}
+\end{bmatrix}.
+$$
+
+We assume **conditional independence**:
+
+$$
+\mathbf{\Sigma}_i = \sigma^2 \mathbf{I}_{n_i}.
+$$
+
+This means that, **given the random effects** $\mathbf{b}_i$ and $\beta$, the responses for subject $i$ are independent.
+
+------------------------------------------------------------------------
+
+To derive the **marginal model**, we integrate out the random effects $\mathbf{b}_i$. This leads to:
+
+$$
+Y_{ij} = \beta_0 + \beta_1 L_i t_{ij} + \beta_2 H_i t_{ij} + \beta_3 C_i t_{ij} + \eta_{ij},
+$$
+
+where:
+
+$$
+\eta_i \sim N(\mathbf{0}, \mathbf{Z}_i \mathbf{D} \mathbf{Z}_i' + \mathbf{\Sigma}_i).
+$$
+
+Thus, the full marginal model is:
+
+$$
+\mathbf{Y_i} \sim N(\mathbf{X}_i \beta, \mathbf{Z}_i \mathbf{D} \mathbf{Z}_i' + \mathbf{\Sigma}_i).
+$$
+
+------------------------------------------------------------------------
+
+Example: Case Where $n_i = 2$
+
+For a subject with **two observations**, we compute:
+
+$$
+\mathbf{Z}_i =
+\begin{bmatrix}
+1 & t_{i1} \\
+1 & t_{i2}
+\end{bmatrix}.
+$$
+
+Then:
+
+$$
+\mathbf{Z}_i \mathbf{D} \mathbf{Z}_i' =
+\begin{bmatrix}
+1 & t_{i1} \\
+1 & t_{i2}
+\end{bmatrix}
+\begin{bmatrix}
+d_{11} & d_{12} \\
+d_{12} & d_{22}
+\end{bmatrix}
+\begin{bmatrix}
 1 & 1 \\
-t_{i1} & t_{i2} 
-\end{array}
-\right) \\
-&=
-\left(
-\begin{array}
-{cc}
-d_{11} + 2d_{12}t_{i1} + d_{22}t_{i1}^2 & d_{11} + d_{12}(t_{i1} + t_{i2}) + d_{22}t_{i1}t_{i2} \\
-d_{11} + d_{12}(t_{i1} + t_{i2}) + d_{22} t_{i1} t_{i2} & d_{11} + 2d_{12}t_{i2} + d_{22}t_{i2}^2  
-\end{array}
-\right)
-\end{aligned}
+t_{i1} & t_{i2}
+\end{bmatrix}.
 $$
 
+Expanding the multiplication:
+
 $$
-var(Y_{i1}) = d_{11} + 2d_{12}t_{i1} + d_{22} t_{i1}^2 + \sigma^2
+\mathbf{Z}_i \mathbf{D} \mathbf{Z}_i' =
+\begin{bmatrix}
+d_{11} + 2d_{12}t_{i1} + d_{22} t_{i1}^2 & d_{11} + d_{12}(t_{i1} + t_{i2}) + d_{22}t_{i1}t_{i2} \\
+d_{11} + d_{12}(t_{i1} + t_{i2}) + d_{22}t_{i1}t_{i2} & d_{11} + 2d_{12}t_{i2} + d_{22} t_{i2}^2
+\end{bmatrix}.
 $$
 
-On top of correlation in the errors, the marginal implies that the variance function of the response is quadratic over time, with positive curvature $d_{22}$
+Finally, incorporating the residual variance:
 
-### Random-Intercepts Model
+$$
+\text{Var}(Y_{i1}) = d_{11} + 2d_{12}t_{i1} + d_{22} t_{i1}^2 + \sigma^2.
+$$
 
-If we remove the random slopes,
+Interpretation of the Marginal Model
 
--   the assumption is that all variability in subject-specific slopes can be attributed to treatment differences
--   the model is random-intercepts model. This has subject specific intercepts, but the same slopes within each treatment group.
+1.  **Correlation in the Errors**:
+    -   The off-diagonal elements of $\mathbf{Z}_i \mathbf{D} \mathbf{Z}_i'$ introduce **correlation** between observations within the same subject.
+    -   This accounts for the fact that repeated measurements on the same individual are not independent.
+2.  **Variance Structure**:
+    -   The variance function of $Y_{ij}$ is quadratic in time:
+
+        $$
+        \text{Var}(Y_{ij}) = d_{11} + 2d_{12}t_{ij} + d_{22}t_{ij}^2 + \sigma^2.
+        $$
+
+    -   The curvature of this variance function is determined by $d_{22}$.
+
+    -   If $d_{22} > 0$, variance increases over time.
+
+> 🔹 **Key Takeaway**:\
+> In the hierarchical model, random effects contribute to the mean structure.\
+> In the marginal model, they affect the covariance structure, leading to heteroskedasticity (changing variance over time) and correlation between repeated measures.
+
+------------------------------------------------------------------------
+
+### Random-Intercepts Model {#sec-random-intercepts-model-lmm}
+
+The [Random-Intercepts Model]() is obtained by **removing random slopes**, meaning:
+
+-   All subject-specific variability in slopes is attributed only to treatment differences.
+-   The model allows each subject to have their own intercept, but within each treatment group, all subjects share the same slope.
+
+The hierarchical (conditional) model is:
 
 $$
 \begin{aligned}
-\mathbf{Y}_i | b_i &\sim N(\mathbf{X}_i \beta + 1 b_i , \Sigma_i) \\
-b_i &\sim N(0,d_{11})
+\mathbf{Y}_i | b_i &\sim N(\mathbf{X}_i \beta + 1 b_i, \mathbf{\Sigma}_i), \\
+b_i &\sim N(0, d_{11}).
 \end{aligned}
 $$
 
-The marginal model is then ($\mathbf{\Sigma}_i = \sigma^2 \mathbf{I}$)
+where:
+
+-   $b_i$ is the **random intercept** for subject $i$, assumed to follow $N(0, d_{11})$.
+-   $\mathbf{X}_i$ contains the **fixed effects**, which include treatment and time.
+-   $\mathbf{\Sigma}_i$ represents **residual variance**, typically assumed to be $\sigma^2 \mathbf{I}$ (independent errors).
+
+Since there are no **random slopes**, the only source of **subject-specific variability** is the intercept.
+
+Integrating out $b_i$ and assuming conditional independence $\mathbf{\Sigma}_i = \sigma^2 \mathbf{I}_{n_i}$, the **marginal distribution** of $\mathbf{Y}_i$ is:
 
 $$
-\mathbf{Y}_i \sim N(\mathbf{X}_i \beta, 11'd_{11} + \sigma^2 \mathbf{I})
+\mathbf{Y}_i \sim N(\mathbf{X}_i \beta, 11'd_{11} + \sigma^2 \mathbf{I}).
 $$
 
-The marginal covariance matrix is
+The **marginal covariance matrix** is:
 
 $$
 \begin{aligned}
-cov(\mathbf{Y}_i)  &= 11'd_{11} + \sigma^2I \\
+\text{Cov}(\mathbf{Y}_i) &= 11'd_{11} + \sigma^2 I \\
 &=
-\left(
-\begin{array}
-{cccc}
-d_{11}+ \sigma^2 & d_{11} & ... & d_{11} \\
-d_{11} & d_{11} + \sigma^2 & d_{11} & ... \\
-. & . & . & . \\
-d_{11} & ... & ... & d_{11} + \sigma^2
-\end{array}
-\right)
+\begin{bmatrix}
+d_{11} + \sigma^2 & d_{11} & d_{11} & \dots & d_{11} \\
+d_{11} & d_{11} + \sigma^2 & d_{11} & \dots & d_{11} \\
+d_{11} & d_{11} & d_{11} + \sigma^2 & \dots & d_{11} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+d_{11} & d_{11} & d_{11} & \dots & d_{11} + \sigma^2
+\end{bmatrix}.
 \end{aligned}
 $$
 
-the associated correlation matrix is
+The **correlation matrix** is obtained by standardizing the covariance matrix:
 
 $$
-corr(\mathbf{Y}_i) = 
-\left(
-\begin{array}
-{cccc}
-1 & \rho & ... & \rho \\
-\rho & 1 & \rho & ... \\
-. & . & . & . \\
-\rho & ... & ... & 1 \\
-\end{array}
-\right)
+\text{Corr}(\mathbf{Y}_i) =
+\begin{bmatrix}
+1 & \rho & \rho & \dots & \rho \\
+\rho & 1 & \rho & \dots & \rho \\
+\rho & \rho & 1 & \dots & \rho \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+\rho & \rho & \rho & \dots & 1
+\end{bmatrix},
 $$
 
-where $\rho \equiv \frac{d_{11}}{d_{11} + \sigma^2}$
-
-Thu, we have
-
--   constant variance over time
--   equal, positive correlation between any two measurements from the same subject
--   a covariance structure that is called **compound symmetry**, and $\rho$ is called the **intra-class correlation**
--   that when $\rho$ is large, the **inter-subject variability** ($d_{11}$) is large relative to the intra-subject variability ($\sigma^2$)
-
-### Covariance Models
-
-If the conditional independence assumption, ($\mathbf{\Sigma_i= \sigma^2 I_{n_i}}$). Consider, $\epsilon_i = \epsilon_{(1)i} + \epsilon_{(2)i}$, where
-
--   $\epsilon_{(1)i}$ is a "serial correlation" component. That is, part of the individual's profile is a response to time-varying stochastic processes.
--   $\epsilon_{(2)i}$ is the measurement error component, and is independent of $\epsilon_{(1)i}$
-
-Then
+where:
 
 $$
-\mathbf{Y_i = X_i \beta + Z_i b_i + \epsilon_{(1)i} + \epsilon_{(2)i}}
+\rho = \frac{d_{11}}{d_{11} + \sigma^2}.
+$$
+
+This **correlation structure** is known as **compound symmetry**, meaning:
+
+-   **Constant variance**: $\text{Var}(Y_{ij}) = d_{11} + \sigma^2$ for all $j$.
+-   **Equal correlation**: $\text{Corr}(Y_{ij}, Y_{ik}) = \rho$ for all $j \neq k$.
+-   **Positive correlation**: Any two observations from the same subject are equally correlated.
+
+Interpretation of $\rho$ (Intra-Class Correlation)
+
+-   $\rho$ is called the intra-class correlation coefficient (ICC).
+
+-   It measures the proportion of total variability that is due to between-subject variability:
+
+    $$
+    \rho = \frac{\text{Between-Subject Variance}}{\text{Total Variance}} = \frac{d_{11}}{d_{11} + \sigma^2}.
+    $$
+
+-   If $\rho$ is large:
+
+    -   The inter-subject variability ($d_{11}$) is large relative to the intra-subject variability ($\sigma^2$).
+    -   This means subjects differ substantially in their intercepts.
+    -   Responses from the same subject are highly correlated.
+
+-   If $\rho$ is small:
+
+    -   The residual error variance dominates, meaning individual differences in intercepts are small.
+    -   Measurements from the same subject are weakly correlated.
+
+------------------------------------------------------------------------
+
+Summary of the Random-Intercepts Model
+
++--------------------------------------+------------------------------------------------------------------------+
+| Feature                              | Explanation                                                            |
++======================================+========================================================================+
+| **Intercepts**                       | Random, subject-specific ($b_i$)                                       |
++--------------------------------------+------------------------------------------------------------------------+
+| **Slopes**                           | Fixed within each treatment group                                      |
++--------------------------------------+------------------------------------------------------------------------+
+| **Covariance Structure**             | **Compound symmetry** (constant variance, equal correlation)           |
++--------------------------------------+------------------------------------------------------------------------+
+| **Intra-Class Correlation (**$\rho$) | Measures **between-subject variability** relative to total variability |
++--------------------------------------+------------------------------------------------------------------------+
+| **Interpretation**                   | Large $\rho$ → Strong subject-level differences,                       |
+|                                      |                                                                        |
+|                                      | Small $\rho$ → Mostly residual noise                                   |
++--------------------------------------+------------------------------------------------------------------------+
+
+------------------------------------------------------------------------
+
+### Covariance Models in Linear Mixed Models
+
+Previously, we assumed that the **within-subject errors** are **conditionally independent**, meaning:
+
+$$
+\mathbf{\Sigma}_i = \sigma^2 \mathbf{I}_{n_i}.
+$$
+
+However, real-world data often exhibit **correlated errors**, particularly in **longitudinal studies** where observations over time are influenced by underlying stochastic processes.
+
+To model this dependence, we decompose the error term into two components:
+
+$$
+\epsilon_i = \epsilon_{(1)i} + \epsilon_{(2)i},
+$$
+
+where:
+
+-   $\epsilon_{(1)i}$ (Serial Correlation Component):
+    -   Represents subject-specific response to time-varying stochastic processes.
+    -   Captures dependency across observations for the same subject.
+-   $\epsilon_{(2)i}$ (Measurement Error Component):
+    -   Represents pure measurement error, assumed independent of $\epsilon_{(1)i}$.
+
+Thus, the full LMM formulation becomes:
+
+$$
+\mathbf{Y_i} = \mathbf{X_i \beta} + \mathbf{Z_i b_i} + \mathbf{\epsilon_{(1)i}} + \mathbf{\epsilon_{(2)i}}.
+$$
+
+where:
+
+-   Random effects: $\mathbf{b_i} \sim N(\mathbf{0, D})$.
+-   Measurement errors: $\epsilon_{(2)i} \sim N(\mathbf{0, \sigma^2 I_{n_i}})$.
+-   Serial correlation errors: $\epsilon_{(1)i} \sim N(\mathbf{0, \tau^2 H_i})$.
+-   Independence assumption: $\mathbf{b}_i$ and $\epsilon_i$ are mutually independent.
+
+------------------------------------------------------------------------
+
+To model the correlation structure of the **serial correlation component** $\epsilon_{(1)i}$, we define the $n_i \times n_i$ correlation (or covariance) matrix $\mathbf{H}_i$.
+
+The $(j,k)$th element of $\mathbf{H}_i$ is denoted as:
+
+$$
+h_{ijk} = g(t_{ij}, t_{ik}),
+$$
+
+where:
+
+-   $h_{ijk}$ represents the covariance (or correlation) between time points $t_{ij}$ and $t_{ik}$.
+
+-   $g(t_{ij}, t_{ik})$ is a decreasing function that defines the correlation between time points $t_{ij}$ and $t_{ik}$.
+
+-   Typically, we assume that this function depends only on the time difference (stationarity assumption):
+
+    $$
+    h_{ijk} = g(|t_{ij} - t_{ik}|)
+    $$
+
+    meaning that the correlation only depends on the absolute time lag.
+
+-   To be a valid correlation matrix, we require:
+
+    $$
+    g(0) = 1.
+    $$
+
+    This ensures that each observation has a perfect correlation with itself.
+
+------------------------------------------------------------------------
+
+**Common Choices** for $g(|t_{ij} - t_{ik}|)$
+
+Several functions can be used to define the **decay in correlation** as time differences increase.
+
+**1. Exponential Correlation (Continuous-Time AR(1))**
+
+$$
+g(|t_{ij} - t_{ik}|) = \exp(-\phi |t_{ij} - t_{ik}|)
+$$
+
+-   **Decay rate:** Controlled by $\phi > 0$.
+-   **Interpretation:**
+    -   Observations closer in time are more correlated.
+    -   The correlation decreases exponentially as time separation increases.
+-   **Use case:** Often used in biological and economic time-series models.
+
+------------------------------------------------------------------------
+
+**2. Gaussian Correlation (Squared Exponential Kernel)**
+
+$$
+g(|t_{ij} - t_{ik}|) = \exp(-\phi (t_{ij} - t_{ik})^2)
+$$
+
+-   **Decay rate:** Faster than exponential.
+-   **Interpretation:**
+    -   If $\phi$ is large, correlation drops sharply as time separation increases.
+    -   Produces smooth correlation structures.
+-   **Use case:** Used in spatial statistics and machine learning (Gaussian processes).
+
+------------------------------------------------------------------------
+
+**3. Autoregressive (AR(1)) Correlation**
+
+A **First-Order Autoregressive Model (AR(1))** assumes that the value at time $t$ depends on its previous value:
+
+$$
+\alpha_t = \phi \alpha_{t-1} + \eta_t,
 $$
 
 where
 
--   $\mathbf{b_i} \sim N(\mathbf{0,D})$
+-   $\eta_t \sim \text{i.i.d. } N(0, \sigma^2_\eta)$ (white noise process).
 
--   $\epsilon_{(2)i} \sim N(\mathbf{0,\sigma^2 I_{n_i}})$
+-   $\phi$ is the **autocorrelation coefficient**.
 
--   $\epsilon_{(1)i} \sim N(\mathbf{0,\tau^2H_i})$
+Then, the covariance between two observations at different times is:
 
--   $\mathbf{b}_i$ and $\epsilon_i$ are mutually independent
+$$ \text{Cov}(\alpha_t, \alpha_{t+h}) = \frac{\sigma^2_\eta \phi^{|h|}}{1 - \phi^2}. $$
 
-To model the structure of the $n_i \times n_i$ correlation (or covariance ) matrix $\mathbf{H}_i$. Let the (j,k)th element of $\mathbf{H}_i$ be $h_{ijk}= g(t_{ij}t_{ik})$. that is a function of the times $t_{ij}$ and $t_{ik}$ , which is assumed to be some function of the "distance' between the times.
+Thus, the **correlation** between time points $t$ and $t+h$ is:
+
+$$ \text{Corr}(\alpha_t, \alpha_{t+h}) = \phi^{|h|}. $$
+
+For a sequence of $T$ time points, the resulting **Toeplitz correlation matrix** is:
+
+$$ \text{Corr}(\alpha_T) = \begin{bmatrix} 1 & \phi^1 & \phi^2 & \dots & \phi^{T-1} \\ \phi^1 & 1 & \phi^1 & \dots & \phi^{T-2} \\ \phi^2 & \phi^1 & 1 & \dots & \phi^{T-3} \\ \vdots & \vdots & \vdots & \ddots & \vdots \\ \phi^{T-1} & \phi^{T-2} & \phi^{T-3} & \dots & 1 \end{bmatrix}. $$
+
+-   **Decay rate:** $\phi$ controls how fast correlation decreases.
+-   **Use case:**
+    -   Common in **time series models**.
+    -   Appropriate when **observations are equally spaced in time**.
+
+Properties of the AR(1) Structure:
+
+-   Correlation decreases with time lag:
+    -   Observations closer in time are more correlated.
+    -   Decay rate is controlled by $\phi$.
+-   Toeplitz structure:
+    -   The covariance matrix exhibits a banded diagonal pattern.
+    -   Useful in longitudinal and time-series data.
+-   Applicability:
+    -   Small $\phi$ ($\approx 0$) → Weak autocorrelation (errors are mostly independent).
+    -   Large $\phi$ ($\approx 1$) → Strong autocorrelation (highly dependent observations).
+
+------------------------------------------------------------------------
+
+### Covariance Structures in Mixed Models
+
+| Structure                          | Covariance Function $g(|t_{ij} - t_{ik}|)$  | Decay Behavior    | Correlation Matrix Pattern | Key Properties                                                    | Common Use Cases                               |
+|------------------------------------|---------------------------------------------|-------------------|----------------------------|-------------------------------------------------------------------|------------------------------------------------|
+| **Compound Symmetry**              | Constant: $g(|t_{ij} - t_{ik}|) = \rho$     | No decay          | Constant off-diagonal      | Equal correlation across all time points (homogeneous)            | Random-intercepts model, repeated measures     |
+| **AR(1) (Autoregressive)**         | $\phi^{|t_{ij} - t_{ik}|}$                  | Exponential decay | Toeplitz (banded diagonal) | Strong correlation for nearby observations, weak for distant ones | Time series, longitudinal data                 |
+| **Exponential**                    | $\exp(-\phi |t_{ij} - t_{ik}|)$             | Smooth decay      | Spatially continuous       | Models continuous correlation decline over time/space             | Growth curves, ecological models               |
+| **Gaussian (Squared Exponential)** | $\exp(-\phi (t_{ij} - t_{ik})^2)$           | Rapid decay       | Spatially continuous       | Smooth decay but stronger locality effect                         | Spatial processes, geostatistics               |
+| **Toeplitz**                       | Varies by lag, $g(|t_{ij} - t_{ik}|) = c_h$ | General pattern   | General symmetric matrix   | Arbitrary structure, allows irregular spacing                     | Irregular time points, flexible spatial models |
+| **Unstructured**                   | Fully parameterized, no constraints         | No fixed pattern  | General symmetric matrix   | Allows any correlation pattern, but many parameters               | Small datasets with unknown correlation        |
+| **Banded**                         | Zero correlation beyond a certain lag       | Abrupt cutoff     | Banded diagonal            | Assumes only close observations are correlated                    | Large datasets, high-dimensional time series   |
+| **Spatial Power**                  | $\phi^{|s_{ij} - s_{ik}|}$                  | Exponential decay | Distance-based structure   | Used when correlation depends on spatial distance                 | Spatial statistics, environmental data         |
+| **Matérn Covariance**              | Function of $|t_{ij} - t_{ik}|^\nu$         | Flexible decay    | Spatially continuous       | Generalization of Gaussian and exponential structures             | Geostatistics, spatiotemporal models           |
+
+------------------------------------------------------------------------
+
+**Choosing the Right Covariance Structure**
+
+| Scenario                                 | Recommended Structure  |
+|------------------------------------------|------------------------|
+| Repeated measures with equal correlation | Compound Symmetry      |
+| Longitudinal data with time dependence   | AR(1), Toeplitz        |
+| Continuous-time process                  | Exponential, Gaussian  |
+| Spatial correlation                      | Spatial Power, Matérn  |
+| Irregularly spaced time points           | Toeplitz, Unstructured |
+| High-dimensional data                    | Banded, AR(1)          |
+
+------------------------------------------------------------------------
+
+## Estimation in Linear Mixed Models
+
+The general [Linear Mixed Model](#sec-linear-mixed-models) is:
+
+$$ \mathbf{Y}_i = \mathbf{X}_i \beta + \mathbf{Z}_i \mathbf{b}_i + \epsilon_i, $$
+
+where:
+
+-   $\beta$: Fixed effects (parameters shared across subjects).
+-   $\mathbf{b}_i$: Random effects (subject-specific deviations).
+-   $\mathbf{X}_i$: Design matrix for fixed effects.
+-   $\mathbf{Z}_i$: Design matrix for random effects.
+-   $\mathbf{D}$: Covariance matrix of the random effects.
+-   $\mathbf{\Sigma}_i$: Covariance matrix of the residual errors.
+
+Since $\beta$, $\mathbf{b}_i$, $\mathbf{D}$, and $\mathbf{\Sigma}_i$ are **unknown**, they must be **estimated** from data.
+
+-   $\beta, \mathbf{D}, \mathbf{\Sigma}_i$ are **fixed parameters** → must be **estimated**.
+-   $\mathbf{b}_i$ is a **random variable** → must be **predicted** (not estimated). In other words, random thing/variable can't be estimated.
+
+Thus, we define:
+
+-   **Estimator of** $\beta$: $\hat{\beta}$ (fixed effect estimation).
+-   **Predictor of** $\mathbf{b}_i$: $\hat{\mathbf{b}}_i$ (random effect prediction).
+
+Then:
+
+-   The **population-level estimate** of $\mathbf{Y}_i$ is:
+
+    $$
+    \hat{\mathbf{Y}}_i = \mathbf{X}_i \hat{\beta}.
+    $$
+
+-   The **subject-specific prediction** is:
+
+    $$
+    \hat{\mathbf{Y}}_i = \mathbf{X}_i \hat{\beta} + \mathbf{Z}_i \hat{\mathbf{b}}_i.
+    $$
+
+For all $N$ subjects, we stack the equations into the Mixed Model Equations [@henderson1975best]:
 
 $$
-h_{ijk} = g(|t_{ij}-t_{ik}|)
+\mathbf{Y} = \mathbf{X} \beta + \mathbf{Z} \mathbf{b} + \epsilon.
 $$
 
-for some decreasing function $g(.)$ with $g(0)=1$ (for correlation matrices).
-
-Examples of this type of function:
-
--   Exponential function: $g(|t_{ij}-t_{ik}|) = \exp(-\phi|t_{ij} - t_{ik}|)$
--   Gaussian function: $g(|t_{ij} - t_{ik}|) = \exp(-\phi(t_{ij} - t_{ik})^2)$
-
-Similar structures could also be used for $\mathbf{D}$ matrix (of $\mathbf{b}$)
-
-Example: Autoregressive Covariance Structure
-
-A first order Autoregressive Model (AR(1)) has the form
+and
 
 $$
-\alpha_t = \phi \alpha_{t-1} + \eta_t
+\mathbf{Y} \sim N(\mathbf{X \beta, ZBZ' + \Sigma})
 $$
 
-where $\eta_t \sim iid N (0,\sigma^2_\eta)$
-
-Then, the covariance between two observations is
+where:
 
 $$
-cov(\alpha_t, \alpha_{t+h}) = \frac{\sigma^2_\eta \phi^{|h|}}{1- \phi^2}
+\mathbf{Y} =
+\begin{bmatrix}
+\mathbf{y}_1 \\
+\vdots \\
+\mathbf{y}_N
+\end{bmatrix},
+\quad
+\mathbf{X} =
+\begin{bmatrix}
+\mathbf{X}_1 \\
+\vdots \\
+\mathbf{X}_N
+\end{bmatrix},
+\quad
+\mathbf{b} =
+\begin{bmatrix}
+\mathbf{b}_1 \\
+\vdots \\
+\mathbf{b}_N
+\end{bmatrix},
+\quad\mathbf{\epsilon} =    \begin{bmatrix}\mathbf{\epsilon}_1 \\\vdots \\\mathbf{\epsilon}_N\end{bmatrix}.
 $$
 
-for $h = 0, \pm 1, \pm 2, ...; |\phi|<1$
-
-Hence,
+The covariance structure is:
 
 $$
-corr(\alpha_t, \alpha_{t+h}) = \phi^{|h|}
+\text{Cov}(\mathbf{b}) = \mathbf{B}, \quad \text{Cov}(\epsilon) = \mathbf{\Sigma}, \quad \text{Cov}(\mathbf{b}, \epsilon) = 0.
 $$
 
-If we let $\alpha_T = (\alpha_1,...\alpha_T)'$, then
+Expanding $\mathbf{Z}$ and $\mathbf{B}$ as block diagonal matrices:
 
 $$
-corr(\alpha_T) = 
+\mathbf{Z} =
+\begin{bmatrix}
+\mathbf{Z}_1 & 0 & \dots & 0 \\
+0 & \mathbf{Z}_2 & \dots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \dots & \mathbf{Z}_N
+\end{bmatrix},
+\quad
+\mathbf{B} =
+\begin{bmatrix}
+\mathbf{D} & 0 & \dots & 0 \\
+0 & \mathbf{D} & \dots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \dots & \mathbf{D}
+\end{bmatrix}.
+$$
+
+The best linear unbiased estimator (BLUE) for $\beta$ and the best linear unbiased predictor (BLUP) for $\mathbf{b}$ are obtained by solving [@henderson1975best]:
+
+$$
 \left[
-\begin{array}
-{ccccc}
-1 & \phi^1 & \phi^2 & ... & \phi^2 \\
-\phi^1 & 1 & \phi^1 & ... & \phi^{T-1} \\
-\phi^2 & \phi^1 & 1 & ... & \phi^{T-2} \\
-. & . & . & . &. \\
-\phi^T & \phi^{T-1} & \phi^{T-2} & ... & 1
-\end{array}
-\right]
-$$
-
-Notes:
-
--   The correlation decreases as time lag increases
--   This matrix structure is known as a **Toeplitz** structure
--   More complicated covariance structures are possible, which is critical component of spatial random effects models and time series models.
--   Often, we don't need both random effects $\mathbf{b}$ and $\epsilon_{(1)i}$
-
-More in the [Time Series] section
-
-## Estimation
-
-$$
-\mathbf{Y}_i = \mathbf{X}_i \beta + \mathbf{Z}_i \mathbf{b}_i + \epsilon_i
-$$
-
-where $\beta, \mathbf{b}_i, \mathbf{D}, \mathbf{\Sigma}_i$ we must obtain estimation from the data
-
--   $\mathbf{\beta}, \mathbf{D}, \mathbf{\Sigma}_i$ are unknown, but fixed, parameters, and must be estimated from the data
--   $\mathbf{b}_i$ is a random variable. Thus, we can't estimate these values, but we can predict them. (i.e., you can't estimate a random thing).
-
-If we have
-
--   $\hat{\beta}$ as an estimator of $\beta$
--   $\hat{\mathbf{b}}_i$ as a predictor of $\mathbf{b}_i$
-
-Then,
-
--   The population average estimate of $\mathbf{Y}_i$ is $\hat{\mathbf{Y}_i} = \mathbf{X}_i \hat{\beta}$
--   The subject-specific prediction is $\hat{\mathbf{Y}_i} = \mathbf{X}_i \hat{\beta} + \mathbf{Z}_i \hat{b}_i$
-
-According to [@henderson1975best], estimating equations known as the mixed model equations:
-
-$$
-\left[
-\begin{array}
-{c}
+\begin{array}{c}
 \hat{\beta} \\
 \hat{\mathbf{b}}
 \end{array}
 \right]
 =
 \left[
-\begin{array}
-{cc}
-\mathbf{X'\Sigma^{-1}X} & \mathbf{X'\Sigma^{-1}Z} \\
-\mathbf{Z'\Sigma^{-1}X} & \mathbf{Z'\Sigma^{-1}Z +B^{-1}}
-\end{array}
-\right]
-\left[
-\begin{array}
-{cc}
-\mathbf{X'\Sigma^{-1}Y} \\
-\mathbf{Z'\Sigma^{-1}Y}
-\end{array}
-\right]
-$$
-
-where
-
-$$
-\begin{aligned}
-\mathbf{Y}
-&=
-\left[
-\begin{array}
-{c}
-\mathbf{y}_1 \\
-. \\
-\mathbf{y}_N
-\end{array}
-\right] ;
-\mathbf{X}
-=
-\left[
-\begin{array}
-{c}
-\mathbf{X}_1 \\
-. \\
-\mathbf{X}_N
-\end{array}
-\right];
-\mathbf{b} = 
-\left[
-\begin{array}
-{c}
-\mathbf{b}_1 \\
-. \\
-\mathbf{b}_N
-\end{array}
-\right] ;
-\epsilon = 
-\left[
-\begin{array}
-{c}
-\epsilon_1 \\
-. \\
-\epsilon_N
-\end{array}
-\right]
-\\
-cov(\epsilon) &= \mathbf{\Sigma},
-\mathbf{Z} = 
-\left[
-\begin{array}
-{cccc}
-\mathbf{Z}_1 & 0 &  ... & 0 \\
-0 & \mathbf{Z}_2 & ... & 0 \\
-. & . & . & . \\
-0 & 0 & ... & \mathbf{Z}_n
-\end{array}
-\right],
-\mathbf{B} =
-\left[
-\begin{array}
-{cccc}
-\mathbf{D} & 0 & ... & 0 \\
-0 & \mathbf{D} & ... & 0 \\
-. & . & . & . \\
-0 & 0 & ... & \mathbf{D}
-\end{array}
-\right]
-\end{aligned}
-$$
-
-The model has the form
-
-$$
-\begin{aligned}
-\mathbf{Y} &= \mathbf{X \beta + Z b + \epsilon} \\
-\mathbf{Y} &\sim N(\mathbf{X \beta, ZBZ' + \Sigma})
-\end{aligned}
-$$
-
-If $\mathbf{V = ZBZ' + \Sigma}$, then the solutions to the estimating equations can be
-
-$$
-\begin{aligned}
-\hat{\beta} &= \mathbf{(X'V^{-1}X)^{-1}X'V^{-1}Y} \\
-\hat{\mathbf{b}} &= \mathbf{BZ'V^{-1}(Y-X\hat{\beta}})
-\end{aligned}
-$$
-
-The estimate $\hat{\beta}$ is a generalized least squares estimate.
-
-The predictor, $\hat{\mathbf{b}}$ is the best linear unbiased predictor (BLUP), for $\mathbf{b}$
-
-$$
-\begin{aligned}
-E(\hat{\beta}) &= \beta \\
-var(\hat{\beta}) &= (\mathbf{X'V^{-1}X})^{-1} \\
-E(\hat{\mathbf{b}}) &= 0
-\end{aligned}
-$$
-
-$$
-var(\mathbf{\hat{b}-b}) = \mathbf{B-BZ'V^{-1}ZB + BZ'V^{-1}X(X'V^{-1}X)^{-1}X'V^{-1}B}
-$$
-
-The variance here is the variance of the prediction error (mean squared prediction error, MSPE), which is more meaningful than $var(\hat{\mathbf{b}})$, since MSPE accounts for both variance and bias in the prediction.
-
-To derive the mixed model equations, consider
-
-$$
-\mathbf{\epsilon = Y - X\beta - Zb}
-$$
-
-Let $T = \sum_{i=1}^N n_i$ be the total number of observations (i.e., the length of $\mathbf{Y},\epsilon$) and $Nq$ the length of $\mathbf{b}$. The joint distribution of $\mathbf{b, \epsilon}$ is
-
-$$
-f(\mathbf{b,\epsilon})= \frac{1}{(2\pi)^{(T+ Nq)/2}}
-\left|
-\begin{array}
-{cc}
-\mathbf{B} & 0 \\
-0 & \mathbf{\Sigma}
-\end{array}
-\right| ^{-1/2}
-\exp
-\left(
--\frac{1}{2}
-\left[
-\begin{array}
-{c}
-\mathbf{b} \\
-\mathbf{Y - X \beta - Zb}
-\end{array}
-\right]'
-\left[
-\begin{array}
-{cc}
-\mathbf{B} & 0 \\
-0 & \mathbf{\Sigma}
+\begin{array}{cc}
+\mathbf{X' \Sigma^{-1} X} & \mathbf{X' \Sigma^{-1} Z} \\
+\mathbf{Z' \Sigma^{-1} X} & \mathbf{Z' \Sigma^{-1} Z + B^{-1}}
 \end{array}
 \right]^{-1}
 \left[
-\begin{array}
-{c}
-\mathbf{b} \\
-\mathbf{Y - X \beta - Zb}
+\begin{array}{c}
+\mathbf{X' \Sigma^{-1} Y} \\
+\mathbf{Z' \Sigma^{-1} Y}
 \end{array}
-\right]
-\right)
+\right].
 $$
 
-Maximization of $f(\mathbf{b},\epsilon)$ with respect to $\mathbf{b}$ and $\beta$ requires minimization of
+where:
+
+-   $\hat{\beta}$ is the [Generalized Least Squares] estimator for $\beta$.
+-   $\hat{\mathbf{b}}$ is the BLUP for $\mathbf{b}$.
+
+If we define:
+
+$$
+\mathbf{V} = \mathbf{Z B Z'} + \mathbf{\Sigma}.
+$$
+
+Then, the solutions to the **Mixed Model Equations** are:
 
 $$
 \begin{aligned}
-Q &= 
+\hat{\beta} &= (\mathbf{X'V^{-1}X})^{-1} \mathbf{X'V^{-1}Y}, \\
+\hat{\mathbf{b}} &= \mathbf{BZ'V^{-1}(Y - X\hat{\beta})}.
+\end{aligned}
+$$
+
+where:
+
+-   $\hat{\beta}$ is obtained using [Generalized Least Squares].
+-   $\hat{\mathbf{b}}$ is a [Weighted Least Squares] predictor, where weights come from $\mathbf{B}$ and $\mathbf{V}$.
+
+------------------------------------------------------------------------
+
+**Properties of the Estimators**
+
+For $\hat{\beta}$:
+
+$$
+E(\hat{\beta}) = \beta, \quad \text{Var}(\hat{\beta}) = (\mathbf{X'V^{-1}X})^{-1}.
+$$
+
+For $\hat{\mathbf{b}}$:
+
+$$
+E(\hat{\mathbf{b}}) = 0.
+$$
+
+The **variance of the prediction error** (Mean Squared Prediction Error, MSPE) is:
+
+$$
+\text{Var}(\hat{\mathbf{b}} - \mathbf{b}) =
+\mathbf{B - BZ'V^{-1}ZB + BZ'V^{-1}X (X'V^{-1}X)^{-1} X'V^{-1}B}.
+$$
+
+> 🔹 **Key Insight:**\
+> Mean Squared Prediction Error is more meaningful than $\text{Var}(\hat{\mathbf{b}})$ alone, since it accounts for both variance and bias in prediction.
+
+------------------------------------------------------------------------
+
+### Interpretation of the Mixed Model Equations
+
+The system:
+
+$$
 \left[
+\begin{array}{cc}
+\mathbf{X'\Sigma^{-1}X} & \mathbf{X'\Sigma^{-1}Z} \\
+\mathbf{Z'\Sigma^{-1}X} & \mathbf{Z'\Sigma^{-1}Z + B^{-1}}
+\end{array}
+\right]
+\left[
+\begin{array}{c}
+\beta \\
+\mathbf{b}
+\end{array}
+\right]
+= 
+\left[
+\begin{array}{c}
+\mathbf{X'\Sigma^{-1}Y} \\
+\mathbf{Z'\Sigma^{-1}Y}
+\end{array}
+\right].
+$$
+
+can be understood as:
+
+1.  Fixed Effects Estimation ($\hat{\beta}$)
+    -   Uses [Generalized Least Squares].
+    -   Adjusted for both random effects and correlated errors.
+2.  Random Effects Prediction ($\hat{\mathbf{b}}$)
+    -   Computed using the BLUP formula.
+    -   Shrinks subject-specific estimates toward the population mean.
+
+------------------------------------------------------------------------
+
+| **Component**                           | **Equation**                                                       | **Interpretation**                                 |
+|-----------------------------------------|--------------------------------------------------------------------|----------------------------------------------------|
+| **Fixed effects (**$\hat{\beta}$)       | $(\mathbf{X'V^{-1}X})^{-1} \mathbf{X'V^{-1}Y}$                     | [Generalized Least Squares] estimator              |
+| **Random effects (**$\hat{\mathbf{b}}$) | $\mathbf{BZ'V^{-1}(Y - X\hat{\beta})}$                             | Best Linear Unbiased Predictor (BLUP)              |
+| **Variance of** $\hat{\beta}$           | $(\mathbf{X'V^{-1}X})^{-1}$                                        | Accounts for uncertainty in fixed effect estimates |
+| **Variance of prediction error**        | $\mathbf{B - BZ'V^{-1}ZB + BZ'V^{-1}X (X'V^{-1}X)^{-1} X'V^{-1}B}$ | Includes both variance and bias in prediction      |
+
+------------------------------------------------------------------------
+
+### Derivation of the Mixed Model Equations
+
+To derive the **Mixed Model Equations**, consider:
+
+$$
+\mathbf{\epsilon} = \mathbf{Y} - \mathbf{X \beta} - \mathbf{Z b}.
+$$
+
+Define:
+
+-   $T = \sum_{i=1}^N n_i$ → **Total number of observations**.
+-   $Nq$ → **Total number of random effects**.
+
+The **joint distribution** of $(\mathbf{b}, \mathbf{\epsilon})$ is:
+
+$$
+\begin{aligned}
+f(\mathbf{b}, \epsilon) &= \frac{1}{(2\pi)^{(T+Nq)/2}}
+\left|
+\begin{array}{cc}
+\mathbf{B} & 0 \\
+0 & \mathbf{\Sigma}
+\end{array} 
+\right|^{-1/2} \\
+&
+\exp
+\left(
+-\frac{1}{2}
+\begin{bmatrix}
+\mathbf{b} \\
+\mathbf{Y - X \beta - Zb}
+\end{bmatrix}'
+\begin{bmatrix}
+\mathbf{B} & 0 \\
+0 & \mathbf{\Sigma}
+\end{bmatrix}^{-1}
+\begin{bmatrix}
+\mathbf{b} \\
+\mathbf{Y - X \beta - Zb}
+\end{bmatrix}
+\right).
+\end{aligned}
+$$
+
+Maximizing $f(\mathbf{b},\epsilon)$ with respect to $\mathbf{b}$ and $\beta$ requires **minimization** of:
+
+$$
+\begin{aligned}
+Q &= \left[
 \begin{array}
 {c}
 \mathbf{b} \\
@@ -760,11 +1146,11 @@ Q &=
 \mathbf{Y - X \beta - Zb}
 \end{array}
 \right] \\
-&= \mathbf{b'B^{-1}b+(Y-X \beta-Zb)'\Sigma^{-1}(Y-X \beta-Zb)}
+&=\mathbf{b' B^{-1} b} + (\mathbf{Y - X \beta - Z b})' \mathbf{\Sigma^{-1}} (\mathbf{Y - X \beta - Z b}).
 \end{aligned}
 $$
 
-Setting the derivatives of Q with respect to $\mathbf{b}$ and $\mathbf{\beta}$ to zero leads to the system of equations:
+Setting the derivatives of $Q$ with respect to $\mathbf{b}$ and $\mathbf{\beta}$ to zero leads to the system of equations:
 
 $$
 \begin{aligned}
@@ -827,872 +1213,1690 @@ $$
 \right]
 $$
 
-Equivalently,
+------------------------------------------------------------------------
 
-Bayes' theorem
+### Bayesian Interpretation of Linear Mixed Models
 
-$$
-f(\mathbf{b}| \mathbf{Y}) = \frac{f(\mathbf{Y}|\mathbf{b})f(\mathbf{b})}{\int f(\mathbf{Y}|\mathbf{b})f(\mathbf{b}) d\mathbf{b}}
-$$
-
-where
-
--   $f(\mathbf{Y}|\mathbf{b})$ is the "likelihood"
--   $f(\mathbf{b})$ is the prior
--   the denominator is the "normalizing constant"
--   $f(\mathbf{b}|\mathbf{Y})$ is the posterior distribution
-
-In this case
+In a **Bayesian framework**, the posterior distribution of the **random effects** $\mathbf{b}$ given the observed data $\mathbf{Y}$ is derived using **Bayes' theorem**:
 
 $$
-\begin{aligned}
-\mathbf{Y} | \mathbf{b} &\sim N(\mathbf{X\beta+Zb,\Sigma}) \\
-\mathbf{b} &\sim N(\mathbf{0,B})
-\end{aligned}
+f(\mathbf{b}| \mathbf{Y}) = \frac{f(\mathbf{Y}|\mathbf{b})f(\mathbf{b})}{\int f(\mathbf{Y}|\mathbf{b})f(\mathbf{b}) d\mathbf{b}}.
 $$
 
-The posterior distribution has the form
+where:
 
-$$
-\mathbf{b}|\mathbf{Y} \sim N(\mathbf{BZ'V^{-1}(Y-X\beta),(Z'\Sigma^{-1}Z + B^{-1})^{-1}})
-$$
+-   $f(\mathbf{Y}|\mathbf{b})$ is the likelihood function, describing how the data are generated given the random effects.
+-   $f(\mathbf{b})$ is the prior distribution of the random effects.
+-   The denominator $\int f(\mathbf{Y}|\mathbf{b}) f(\mathbf{b}) d\mathbf{b}$ is the normalizing constant that ensures the posterior integrates to 1.
+-   $f(\mathbf{b}|\mathbf{Y})$ is the posterior distribution, which updates our belief about $\mathbf{b}$ given the observed data $\mathbf{Y}$.
 
-Hence, the best predictor (based on squared error loss)
+------------------------------------------------------------------------
 
-$$
-E(\mathbf{b}|\mathbf{Y}) = \mathbf{BZ'V^{-1}(Y-X\beta)}
-$$
-
-### Estimating $\mathbf{V}$
-
-If we have $\tilde{\mathbf{V}}$ (estimate of $\mathbf{V}$), then we can estimate:
+In the [Linear Mixed Model](#sec-linear-mixed-models), we assume:
 
 $$
 \begin{aligned}
-\hat{\beta} &= \mathbf{(X'\tilde{V}^{-1}X)^{-1}X'\tilde{V}^{-1}Y} \\
-\hat{\mathbf{b}} &= \mathbf{BZ'\tilde{V}^{-1}(Y-X\hat{\beta})}
+\mathbf{Y} | \mathbf{b} &\sim N(\mathbf{X\beta+Zb, \Sigma}), \\
+\mathbf{b} &\sim N(\mathbf{0, B}).
 \end{aligned}
 $$
 
-where ${\mathbf{b}}$ is **EBLUP** (estimated BLUP) or **empirical Bayes estimate**
+This means:
 
-Note:
+-   Likelihood: Given $\mathbf{b}$, the data $\mathbf{Y}$ follows a multivariate normal distribution with mean $\mathbf{X\beta+Zb}$ and covariance $\mathbf{\Sigma}$.
+-   Prior for $\mathbf{b}$: The random effects are assumed to follow a multivariate normal distribution with mean 0 and covariance $\mathbf{B}$.
 
--   $\hat{var}(\hat{\beta})$ is a consistent estimator of $var(\hat{\beta})$ if $\tilde{\mathbf{V}}$ is a consistent estimator of $\mathbf{V}$
--   However, $\hat{var}(\hat{\beta})$ is biased since the variability arises from estimating $\mathbf{V}$ is not accounted for in the estimate.
--   Hence, $\hat{var}(\hat{\beta})$ underestimates the true variability
-
-Ways to estimate $\mathbf{V}$
-
--   [Maximum Likelihood Estimation (MLE)](#maximum-likelihood-estimation-mle)
--   [Restricted Maximum Likelihood (REML)](#restricted-maximum-likelihood-reml)
--   [Estimated Generalized Least Squares]
--   [Bayesian Hierarchical Models (BHM)](#bayesian-hierarchical-models-bhm)
-
-#### Maximum Likelihood Estimation (MLE) {#maximum-likelihood-estimation-mle}
-
-Grouping unknown parameters in $\Sigma$ and $B$ under a parameter vector $\theta$. Under MLE, $\hat{\theta}$ and $\hat{\beta}$ maximize the likelihood $\mathbf{y} \sim N(\mathbf{X\beta, V(\theta))}$. Synonymously, $-2\log L(\mathbf{y;\theta,\beta})$:
+By applying **Bayes' theorem**, the posterior distribution of $\mathbf{b}$ given $\mathbf{Y}$ is:
 
 $$
--2l(\mathbf{\beta,\theta,y}) = \log |\mathbf{V(\theta)}| + \mathbf{(y-X\beta)'V(\theta)^{-1}(y-X\beta)} + N \log(2\pi)
+\mathbf{b} | \mathbf{Y} \sim N(\mathbf{BZ'V^{-1}(Y - X\beta)}, (\mathbf{Z'\Sigma^{-1}Z} + \mathbf{B^{-1}})^{-1}).
 $$
 
--   Step 1: Replace $\beta$ with its maximum likelihood (where $\theta$ is known $\hat{\beta}= (\mathbf{X'V(\theta)^{-1}X)^{-1}X'V(\theta)^{-1}y}$
--   Step 2: Minimize the above equation with respect to $\theta$ to get the estimator $\hat{\theta}_{MLE}$
--   Step 3: Substitute $\hat{\theta}_{MLE}$ back to get $\hat{\beta}_{MLE} = (\mathbf{X'V(\theta_{MLE})^{-1}X)^{-1}X'V(\theta_{MLE})^{-1}y}$
--   Step 4: Get $\hat{\mathbf{b}}_{MLE} = \mathbf{B(\hat{\theta}_{MLE})Z'V(\hat{\theta}_{MLE})^{-1}(y-X\hat{\beta}_{MLE})}$
+where:
 
-Note:
+-   Mean: $\mathbf{BZ'V^{-1}(Y - X\beta)}$
+    -   This is the BLUP.
+    -   It represents the expected value of $\mathbf{b}$ given $\mathbf{Y}$ under squared-error loss.
+-   Covariance: $(\mathbf{Z'\Sigma^{-1}Z} + \mathbf{B^{-1}})^{-1}$
+    -   This posterior variance accounts for both prior uncertainty ($\mathbf{B}$) and data uncertainty ($\mathbf{\Sigma}$).
 
--   $\hat{\theta}$ are typically negatively biased due to unaccounted fixed effects being estimated, which we could try to account for.
-
-#### Restricted Maximum Likelihood (REML) {#restricted-maximum-likelihood-reml}
-
-REML accounts for the number of estimated mean parameters by adjusting the objective function. Specifically, the likelihood of linear combination of the elements of $\mathbf{y}$ is accounted for.
-
-We have $\mathbf{K'y}$, where $\mathbf{K}$ is any $N \times (N - p)$ full-rank contrast matrix, which has columns orthogonal to the $\mathbf{X}$ matrix (that is $\mathbf{K'X} = 0$). Then,
+Thus, the Bayesian posterior mean of $\mathbf{b}$ coincides with the BLUP predictor:
 
 $$
-\mathbf{K'y} \sim N(0,\mathbf{K'V(\theta)K})
+E(\mathbf{b}|\mathbf{Y}) = \mathbf{BZ'V^{-1}(Y-X\beta)}.
 $$
 
-where $\beta$ is no longer in the distribution
+------------------------------------------------------------------------
 
-We can proceed to maximize this likelihood for the contrasts to get $\hat{\theta}_{REML}$, which does not depend on the choice of $\mathbf{K}$. And $\hat{\beta}$ are based on $\hat{\theta}$
+**Interpretation of the Posterior Distribution**
 
-Comparison REML and MLE
+1.  Posterior Mean as a Shrinkage Estimator (BLUP)
+    -   The expectation $E(\mathbf{b}|\mathbf{Y})$ shrinks individual estimates toward the population mean.
+    -   Subjects with less data or more variability will have estimates closer to zero.
+    -   This is similar to [Ridge Regression] in penalized estimation.
+2.  Posterior Variance Quantifies Uncertainty
+    -   The matrix $(\mathbf{Z'\Sigma^{-1}Z} + \mathbf{B^{-1}})^{-1}$ captures the remaining uncertainty in $\mathbf{b}$ after seeing $\mathbf{Y}$.
+    -   If $\mathbf{Z'\Sigma^{-1}Z}$ is large, the data provide strong information about $\mathbf{b}$, reducing posterior variance.
+    -   If $\mathbf{B^{-1}}$ dominates, prior information heavily influences estimates.
+3.  Connection to Bayesian Inference
+    -   The random effects $\mathbf{b}$ follow a Gaussian posterior due to conjugacy.
+    -   This is analogous to Bayesian hierarchical models, where random effects are latent variables estimated from data.
 
--   Both methods are based upon the likelihood principle, and have desired properties for the estimates:
+| **Step**                  | **Equation**                                                                                                   | **Interpretation**                  |
+|---------------------------|----------------------------------------------------------------------------------------------------------------|-------------------------------------|
+| **Likelihood**            | $\mathbf{Y} | \mathbf{b} \sim N(\mathbf{X\beta+Zb, \Sigma})$                                                   | Data given random effects           |
+| **Prior**                 | $\mathbf{b} \sim N(\mathbf{0, B})$                                                                             | Random effects distribution         |
+| **Posterior**             | $\mathbf{b}|\mathbf{Y} \sim N(\mathbf{BZ'V^{-1}(Y-X\beta)}, (\mathbf{Z'\Sigma^{-1}Z} + \mathbf{B^{-1}})^{-1})$ | Updated belief about $\mathbf{b}$   |
+| **Posterior Mean (BLUP)** | $E(\mathbf{b}|\mathbf{Y}) = \mathbf{BZ'V^{-1}(Y-X\beta)}$                                                      | Best predictor (squared error loss) |
+| **Posterior Variance**    | $(\mathbf{Z'\Sigma^{-1}Z} + \mathbf{B^{-1}})^{-1}$                                                             | Uncertainty in predictions          |
 
-    -   consistency
+### Estimating the Variance-Covariance Matrix
 
-    -   asymptotic normality
-
-    -   efficiency
-
--   ML estimation provides estimates for fixed effects, while REML can't
-
--   In balanced models, REML is identical to ANOVA
-
--   REML accounts for df for the fixed effects int eh model, which is important when $\mathbf{X}$ is large relative to the sample size
-
--   Changing $\mathbf{\beta}$ has no effect on the REML estimates of $\theta$
-
--   REML is less sensitive to outliers than MLE
-
--   MLE is better than REML regarding model comparisons (e.g., AIC or BIC)
-
-#### Estimated Generalized Least Squares
-
-MLE and REML rely upon the Gaussian assumption. To overcome this issue, EGLS uses the first and second moments.
-
-$$
-\mathbf{Y}_i = \mathbf{X}_i \beta + \mathbf{Z}_i \mathbf{b}_i + \epsilon_i
-$$
-
-where
-
--   $\epsilon_i \sim (\mathbf{0,\Sigma_i})$
--   $\mathbf{b}_i \sim (\mathbf{0,D})$
--   $cov(\epsilon_i, \mathbf{b}_i) = 0$
-
-Then the EGLS estimator is
+If we have an estimate $\tilde{\mathbf{V}}$ for $\mathbf{V}$, we can estimate the fixed and random effects as:
 
 $$
 \begin{aligned}
-\hat{\beta}_{GLS} &= \{\sum_{i=1}^n \mathbf{X'_iV_i(\theta)^{-1}X_i}  \}^{-1} \sum_{i=1}^n \mathbf{X'_iV_i(\theta)^{-1}Y_i} \\
-&=\{\mathbf{X'V(\theta)^{-1}X} \}^{-1} \mathbf{X'V(\theta)^{-1}Y}
+\hat{\beta} &= \mathbf{(X'\tilde{V}^{-1}X)^{-1}X'\tilde{V}^{-1}Y}, \\
+\hat{\mathbf{b}} &= \mathbf{B Z' \tilde{V}^{-1} (Y - X \hat{\beta})}.
 \end{aligned}
 $$
 
-depends on the first two moments
+where:
 
--   $E(\mathbf{Y}_i) = \mathbf{X}_i \beta$
--   $var(\mathbf{Y}_i)= \mathbf{V}_i$
+-   $\hat{\beta}$ is the estimated fixed effects.
+-   $\hat{\mathbf{b}}$ is the Empirical Best Linear Unbiased Predictor (EBLUP), also called the Empirical Bayes estimate of $\mathbf{b}$.
 
-EGLS use $\hat{\mathbf{V}}$ for $\mathbf{V(\theta)}$
+Properties of $\hat{\beta}$ and Variance Estimation
+
+-   **Consistency**: $\hat{\text{Var}}(\hat{\beta})$ is a consistent estimator of $\text{Var}(\hat{\beta})$ if $\tilde{\mathbf{V}}$ is a consistent estimator of $\mathbf{V}$.
+-   **Bias** **Issue**: $\hat{\text{Var}}(\hat{\beta})$ is biased because it does not account for the uncertainty in estimating $\mathbf{V}$.
+-   **Implication**: This means that $\hat{\text{Var}}(\hat{\beta})$ underestimates the true variability.
+
+To estimate $\mathbf{V}$, several approaches can be used:
+
+-   [Maximum Likelihood Estimation](#sec-maximum-likelihood-estimation-lmm) (MLE)
+-   [Restricted Maximum Likelihood](#restricted-maximum-likelihood-lmm) (REML)
+-   [Estimated Generalized Least Squares](#sec-estimated-generalized-least-squares-lmm) (EGLS)
+-   [Bayesian Hierarchical Models](#sec-bayesian-hierarchical-models-lmm) (BHM)
+
+------------------------------------------------------------------------
+
+#### Maximum Likelihood Estimation {#sec-maximum-likelihood-estimation-lmm}
+
+MLE finds parameter estimates by maximizing the likelihood function.
+
+Define a parameter vector $\theta$ that includes all unknown variance components in $\mathbf{\Sigma}$ and $\mathbf{B}$. Then, we assume:
 
 $$
-\hat{\beta}_{EGLS} = \{ \mathbf{X'\hat{V}^{-1}X} \}^{-1} \mathbf{X'\hat{V}^{-1}Y}
+\mathbf{Y} \sim N(\mathbf{X\beta}, \mathbf{V}(\theta)).
 $$
 
-Hence, the fixed effects estimators for the MLE, REML, and EGLS are of the same form, except for the estimate of $\mathbf{V}$
-
-In case of non-iterative approach, EGLS can be appealing when $\mathbf{V}$ can be estimated without much computational burden.
-
-#### Bayesian Hierarchical Models (BHM) {#bayesian-hierarchical-models-bhm}
-
-Joint distribution cane be decomposed hierarchically in terms of the product of conditional distributions and a marginal distribution
+The log-likelihood function (ignoring constant terms) is:
 
 $$
-f(A,B,C) = f(A|B,C) f(B|C)f(C)
+-2\log L(\mathbf{y}; \theta, \beta) =
+\log |\mathbf{V}(\theta)| + (\mathbf{Y - X\beta})' \mathbf{V}(\theta)^{-1} (\mathbf{Y - X\beta}).
 $$
 
-Applying to estimate $\mathbf{V}$
+**Steps for MLE Estimation**
+
+1.  Estimate $\hat{\beta}$, assuming $\theta$ is known:
+
+    $$
+    \hat{\beta}_{MLE} = (\mathbf{X'V(\theta)^{-1}X})^{-1} \mathbf{X'V(\theta)^{-1}Y}.
+    $$
+
+2.  Obtain $\hat{\theta}_{MLE}$ by maximizing the log-likelihood:
+
+    $$
+    \hat{\theta}_{MLE} = \arg\max_{\theta} -2\log L(\mathbf{y}; \theta, \beta).
+    $$
+
+3.  Substitute $\hat{\theta}_{MLE}$ to get updated estimates:
+
+    $$
+    \hat{\beta}_{MLE} = (\mathbf{X'V(\hat{\theta}_{MLE})^{-1}X})^{-1} \mathbf{X'V(\hat{\theta}_{MLE})^{-1}Y}.
+    $$
+
+4.  Predict random effects:
+
+    $$
+    \hat{\mathbf{b}}_{MLE} = \mathbf{B}(\hat{\theta}_{MLE}) \mathbf{Z'V}(\hat{\theta}_{MLE})^{-1} (\mathbf{Y - X \hat{\beta}_{MLE}}).
+    $$
+
+Key Observations about MLE
+
+-   MLE tends to underestimate $\theta$ because it does not account for the estimation of fixed effects.
+-   Bias in variance estimates can be corrected using REML.
+
+#### Restricted Maximum Likelihood {#restricted-maximum-likelihood-lmm}
+
+Restricted Maximum Likelihood (REML) is an estimation method that improves upon [Maximum Likelihood Estimation](#sec-maximum-likelihood-estimation-lmm) by accounting for the loss of degrees of freedom due to the estimation of fixed effects.
+
+Unlike MLE, which estimates both fixed effects ($\beta$) and variance components ($\theta$) simultaneously, REML focuses on estimating variance components by considering linear combinations of the data that are independent of the fixed effects.
+
+Consider the [Linear Mixed Model](#sec-linear-mixed-models):
+
+$$
+\mathbf{y} = \mathbf{X} \beta + \mathbf{Z} \mathbf{b} + \epsilon,
+$$
+
+where:
+
+-   $\mathbf{y}$: Response vector of length $N$
+-   $\mathbf{X}$: Design matrix for fixed effects ($N \times p$)
+-   $\beta$: Fixed effects parameter vector ($p \times 1$)
+-   $\mathbf{Z}$: Design matrix for random effects
+-   $\mathbf{b} \sim N(\mathbf{0, D})$: Random effects
+-   $\epsilon \sim N(\mathbf{0, \Sigma})$: Residual errors
+
+The marginal distribution of $\mathbf{y}$ is:
+
+$$
+\mathbf{y} \sim N(\mathbf{X} \beta, \mathbf{V}(\theta)),
+$$
+
+where:
+
+$$
+\mathbf{V}(\theta) = \mathbf{Z D Z'} + \mathbf{\Sigma}.
+$$
+
+To eliminate dependence on $\beta$, consider linear transformations of $\mathbf{y}$ that are orthogonal to the fixed effects.
+
+Let $\mathbf{K}$ be a full-rank contrast matrix of size $N \times (N - p)$ such that:
+
+$$
+\mathbf{K}' \mathbf{X} = 0.
+$$
+
+Then, we consider the transformed data:
+
+$$
+\mathbf{K}' \mathbf{y} \sim N(\mathbf{0}, \mathbf{K}' \mathbf{V}(\theta) \mathbf{K}).
+$$
+
+-   This transformation removes $\beta$ from the likelihood, focusing solely on the variance components $\theta$.
+-   Importantly, the choice of $\mathbf{K}$ does not affect the final REML estimates.
+
+The REML log-likelihood is:
+
+$$
+-2 \log L_{REML}(\theta) = \log |\mathbf{K}' \mathbf{V}(\theta) \mathbf{K}| + \mathbf{y}' \mathbf{K} (\mathbf{K}' \mathbf{V}(\theta) \mathbf{K})^{-1} \mathbf{K}' \mathbf{y}.
+$$
+
+An equivalent form of the REML log-likelihood, avoiding explicit use of $\mathbf{K}$, is:
+
+$$
+-2 \log L_{REML}(\theta) = \log |\mathbf{V}(\theta)| + \log |\mathbf{X}' \mathbf{V}(\theta)^{-1} \mathbf{X}| + (\mathbf{y} - \mathbf{X} \hat{\beta})' \mathbf{V}(\theta)^{-1} (\mathbf{y} - \mathbf{X} \hat{\beta}),
+$$
+
+where:
+
+$$
+\hat{\beta} = (\mathbf{X}' \mathbf{V}(\theta)^{-1} \mathbf{X})^{-1} \mathbf{X}' \mathbf{V}(\theta)^{-1} \mathbf{y}.
+$$
+
+This form highlights how REML adjusts for the estimation of fixed effects via the second term $\log |\mathbf{X}' \mathbf{V}^{-1} \mathbf{X}|$.
+
+**Steps for REML Estimation**
+
+1.  Transform the data using $\mathbf{K}' \mathbf{y}$ to remove $\beta$ from the likelihood.
+
+2.  Maximize the restricted likelihood to estimate $\hat{\theta}_{REML}$.
+
+3.  Estimate fixed effects using:
+
+    $$
+    \hat{\beta}_{REML} = (\mathbf{X}' \mathbf{V}(\hat{\theta}_{REML})^{-1} \mathbf{X})^{-1} \mathbf{X}' \mathbf{V}(\hat{\theta}_{REML})^{-1} \mathbf{y}.
+    $$
+
+| Criterion                       | MLE                                                  | REML                                                |
+|---------------------------------|------------------------------------------------------|-----------------------------------------------------|
+| Approach                        | Maximizes full likelihood                            | Maximizes likelihood of contrasts (removes $\beta$) |
+| Estimates Fixed Effects?        | Yes                                                  | No (focuses on variance components)                 |
+| Bias in Variance Estimates      | Biased (underestimates variance components)          | Unbiased (corrects for loss of degrees of freedom)  |
+| Effect of Changing $\mathbf{X}$ | Affects variance estimates                           | No effect on variance estimates                     |
+| Consistency                     | Yes                                                  | Yes                                                 |
+| Asymptotic Normality            | Yes                                                  | Yes                                                 |
+| Efficiency                      | Efficient under normality                            | More efficient for variance components              |
+| Model Comparison (AIC/BIC)      | Suitable for comparing different fixed-effect models | Not suitable (penalizes fixed effects differently)  |
+| Performance in Small Samples    | Sensitive to small sample bias                       | More robust to small sample bias                    |
+| Handling Outliers               | More sensitive                                       | Less sensitive                                      |
+| Equivalent to ANOVA?            | No                                                   | Yes, in balanced designs                            |
+
+: Comparison of REML and MLE
+
+------------------------------------------------------------------------
+
+#### Estimated Generalized Least Squares {#sec-estimated-generalized-least-squares-lmm}
+
+MLE and REML rely on the Gaussian assumption, which may not always hold.\
+EGLS provides an alternative by relying only on the first two moments (mean and variance).
+
+The LMM framework is:
+
+$$
+\mathbf{Y}_i = \mathbf{X}_i \beta + \mathbf{Z}_i \mathbf{b}_i + \epsilon_i.
+$$
+
+where:
+
+-   Random effects: $\mathbf{b}_i \sim N(\mathbf{0, D})$.
+-   Residual errors: $\epsilon_i \sim N(\mathbf{0, \Sigma_i})$.
+-   Independence assumption: $\text{Cov}(\epsilon_i, \mathbf{b}_i) = 0$.
+
+Thus, the first two moments are:
+
+$$
+E(\mathbf{Y}_i) = \mathbf{X}_i \beta, \quad \text{Var}(\mathbf{Y}_i) = \mathbf{V}_i.
+$$
+
+The EGLS estimator is:
+
+$$
+\hat{\beta}_{GLS} = \left\{ \sum_{i=1}^n \mathbf{X'_iV_i(\theta)^{-1}X_i}  \right\}^{-1} 
+\sum_{i=1}^n \mathbf{X'_iV_i(\theta)^{-1}Y_i}.
+$$
+
+Writing in matrix form:
+
+$$
+\hat{\beta}_{GLS} = \left\{ \mathbf{X'V(\theta)^{-1}X} \right\}^{-1} \mathbf{X'V(\theta)^{-1}Y}.
+$$
+
+Since $\mathbf{V}(\theta)$ is unknown, we estimate it as $\hat{\mathbf{V}}$, leading to the EGLS estimator:
+
+$$
+\hat{\beta}_{EGLS} = \left\{ \mathbf{X'\hat{V}^{-1}X} \right\}^{-1} \mathbf{X'\hat{V}^{-1}Y}.
+$$
+
+Key Insights about EGLS
+
+-   Computational Simplicity:
+    -   EGLS does not require iterative maximization of a likelihood function, making it computationally attractive.
+-   Same Form as MLE/REML:
+    -   The fixed effects estimators for MLE, REML, and EGLS have the same form, differing only in how $\mathbf{V}$ is estimated.
+-   Robust to Non-Gaussian Data:
+    -   Since it only depends on first and second moments, it can handle cases where MLE and REML struggle with non-normality.
+
+When to Use EGLS?
+
+-   When the normality assumption for MLE/REML is questionable.
+-   When $\mathbf{V}$ can be estimated efficiently without requiring complex optimization.
+-   In non-iterative approaches, where computational simplicity is a priority.
+
+------------------------------------------------------------------------
+
+#### Bayesian Hierarchical Models {#sec-bayesian-hierarchical-models-lmm}
+
+Bayesian methods offer a fully probabilistic framework to estimate $\mathbf{V}$ by incorporating prior distributions.
+
+The joint distribution can be decomposed hierarchically:
+
+$$
+f(A, B, C) = f(A | B, C) f(B | C) f(C).
+$$
+
+Applying this to LMMs:
 
 $$
 \begin{aligned}
-f(\mathbf{Y, \beta, b, \theta}) &= f(\mathbf{Y|\beta,b, \theta})f(\mathbf{b|\theta,\beta})f(\mathbf{\beta|\theta})f(\mathbf{\theta}) & \text{based on probability decomposition} \\
-&= f(\mathbf{Y|\beta,b, \theta})f(\mathbf{b|\theta})f(\mathbf{\beta})f(\mathbf{\theta}) & \text{based on simplifying modeling assumptions}
+f(\mathbf{Y, \beta, b, \theta}) &= f(\mathbf{Y | \beta, b, \theta}) f(\mathbf{b | \theta, \beta}) f(\mathbf{\beta | \theta}) f(\mathbf{\theta}) \\
+&= f(\mathbf{Y | \beta, b, \theta}) f(\mathbf{b | \theta}) f(\mathbf{\beta}) f(\mathbf{\theta}).
 \end{aligned}
 $$
 
-elaborate on the second equality, if we assume conditional independence (e.g., given $\theta$, no additional info about $\mathbf{b}$ is given by knowing $\beta$), then we can simply from the first equality
+where:
 
-Using Bayes' rule
+-   The first equality follows from probability decomposition.
+-   The second equality assumes conditional independence, meaning:
+    -   Given $\theta$, no additional information about $\mathbf{b}$ is obtained from knowing $\beta$.
+
+Using Bayes' theorem, the posterior distribution is:
 
 $$
-f(\mathbf{\beta, b, \theta|Y}) \propto f(\mathbf{Y|\beta,b, \theta})f(\mathbf{b|\theta})f(\mathbf{\beta})f(\mathbf{\theta})
+f(\mathbf{\beta, b, \theta | Y}) \propto f(\mathbf{Y | \beta, b, \theta}) f(\mathbf{b | \theta}) f(\mathbf{\beta}) f(\mathbf{\theta}).
 $$
 
-where
+where:
 
 $$
 \begin{aligned}
-\mathbf{Y| \beta, b, \theta} &\sim \mathbf{N(X\beta+ Zb, \Sigma(\theta))} \\
-\mathbf{b | \theta} &\sim \mathbf{N(0, B(\theta))}
+\mathbf{Y | \beta, b, \theta} &\sim N(\mathbf{X\beta + Zb}, \mathbf{\Sigma(\theta)}), \\
+\mathbf{b | \theta} &\sim N(\mathbf{0, B(\theta)}).
 \end{aligned}
 $$
 
-and we also have to have prior distributions for $f(\beta), f(\theta)$
+To complete the Bayesian model, we specify prior distributions:
 
-With normalizing constant, we can obtain the posterior distribution. Typically, we can't get analytical solution right away. Hence, we can use Markov Chain Monte Carlo (MCMC) to obtain samples from the posterior distribution.
+-   $f(\beta)$: Prior on fixed effects.
+-   $f(\theta)$: Prior on variance components.
 
-Bayesian Methods:
+Since analytical solutions are generally unavailable, we use Markov Chain Monte Carlo (MCMC) to sample from the posterior:
 
--   account for the uncertainty in parameters estimates and accommodate the propagation of that uncertainty through the model
--   can adjust prior information (i.e., priori) in parameters
--   Can extend beyond Gaussian distributions
--   but hard to implement algorithms and might have problem converging
+-   Gibbs sampling (if conjugate priors are used).
+-   Hamiltonian Monte Carlo (HMC) (for complex models).
 
-## Inference
+**Advantages**
 
-### Parameters $\beta$
+1.  Accounts for Parameter Uncertainty
+    -   Unlike MLE/REML, Bayesian methods propagate uncertainty in variance component estimation.
+2.  Flexible Model Specification
+    -   Can incorporate prior knowledge via informative priors.
+    -   Extends naturally beyond Gaussian assumptions (e.g., Student-$t$ distributions for heavy-tailed errors).
+3.  Robustness in Small Samples
+    -   Bayesian methods can stabilize variance estimation in small datasets where MLE/REML are unreliable.
 
-#### Wald test {#wald-test-GLMM}
+**Challenges**
 
-We have
+1.  Computational Complexity
+    -   Requires MCMC algorithms, which can be computationally expensive.
+2.  Convergence Issues
+    -   MCMC chains must be checked for convergence (e.g., using R-hat diagnostic).
+3.  Choice of Priors
+    -   Poorly chosen priors can bias estimates or slow down convergence.
 
-$$
-\begin{aligned}
-\mathbf{\hat{\beta}(\theta)} &= \mathbf{\{X'V^{-1}(\theta) X\}^{-1}X'V^{-1}(\theta) Y} \\
-var(\hat{\beta}(\theta)) &= \mathbf{\{X'V^{-1}(\theta) X\}^{-1}}
-\end{aligned}
-$$
+------------------------------------------------------------------------
 
-We can use $\hat{\theta}$ in place of $\theta$ to approximate Wald test
+Comparison of Estimation Methods for $\mathbf{V}$
 
-$$
-H_0: \mathbf{A \beta =d} 
-$$
+| Method                                                  | Assumptions       | Computational Cost  | Handles Non-Normality? | Best Use Case                              |
+|---------------------------------------------------------|-------------------|---------------------|------------------------|--------------------------------------------|
+| [MLE](#sec-maximum-likelihood-estimation-lmm)           | Gaussian errors   | High (iterative)    | ❌ No                  | Model selection (AIC/BIC)                  |
+| [REML](#sec-estimated-generalized-least-squares-lmm)    | Gaussian errors   | High (iterative)    | ❌ No                  | Variance estimation                        |
+| [EGLS](#sec-estimated-generalized-least-squares-lmm)    | First two moments | Low (non-iterative) | ✅ Yes                 | Large-scale models with correlated errors  |
+| [Bayesian](#sec-bayesian-hierarchical-models-lmm) (BHM) | Probabilistic     | Very High (MCMC)    | ✅ Yes                 | Small samples, prior information available |
 
-With
+## Inference in Linear Mixed Models
 
-$$
-W = \mathbf{(A\hat{\beta} - d)'[A(X'\hat{V}^{-1}X)^{-1}A']^{-1}(A\hat{\beta} - d)}
-$$
+### Inference for Fixed Effects ($\beta$)
 
-where $W \sim \chi^2_{rank(A)}$ under $H_0$ is true. However, it does not take into account variability from using $\hat{\theta}$ in place of $\theta$, hence the standard errors are underestimated
+The goal is to test hypotheses about the fixed effects parameters $\beta$ using various statistical tests:
 
-#### F-test
+-   [Wald Test](#wald-test-lmm)
 
-Alternatively, we can use the modified F-test, suppose we have $var(\mathbf{Y}) = \sigma^2 \mathbf{V}(\theta)$, then
+-   [F-Test](#sec-f-test-lmm)
 
-$$
-F^* = \frac{\mathbf{(A\hat{\beta} - d)'[A(X'\hat{V}^{-1}X)^{-1}A']^{-1}(A\hat{\beta} - d)}}{\hat{\sigma}^2 \text{rank}(A)}
-$$
+-   [Likelihood Ratio Test](#sec-likelihood-ratio-test-lmm)
 
-where $F^* \sim f_{rank(A), den(df)}$ under the null hypothesis. And den(df) needs to be approximated from the data by either:
+------------------------------------------------------------------------
 
--   Satterthwaite method
--   Kenward-Roger approximation
+#### Wald Test {#wald-test-lmm}
 
-Under balanced cases, the Wald and F tests are similar. But for small sample sizes, they can differ in p-values. And both can be reduced to t-test for a single $\beta$
+The Wald test assesses whether certain linear combinations of fixed effects are equal to specified values.
 
-#### Likelihood Ratio Test
-
-$$
-H_0: \beta \in \Theta_{\beta,0}
-$$
-
-where $\Theta_{\beta, 0}$ is a subspace of the parameter space, $\Theta_{\beta}$ of the fixed effects $\beta$ . Then
+Given:
 
 $$
--2\log \lambda_N = -2\log\{\frac{\hat{L}_{ML,0}}{\hat{L}_{ML}}\}
+\hat{\beta}(\theta) = \left( \mathbf{X}' \mathbf{V}^{-1}(\theta) \mathbf{X} \right)^{-1} \mathbf{X}' \mathbf{V}^{-1}(\theta) \mathbf{Y},
 $$
 
-where
-
--   $\hat{L}_{ML,0}$ , $\hat{L}_{ML}$ are the maximized likelihood obtained from maximizing over $\Theta_{\beta,0}$ and $\Theta_{\beta}$
--   $-2 \log \lambda_N \dot{\sim} \chi^2_{df}$ where df is the difference in the dimension (i.e., number of parameters) of $\Theta_{\beta,0}$ and $\Theta_{\beta}$
-
-This method is not applicable for REML. But REML can still be used to test for covariance parameters between nested models.
-
-### Variance Components
-
--   For ML and REML estimator, $\hat{\theta} \sim N(\theta, I(\theta))$ for large samples
-
--   Wald test in variance components is analogous to the fixed effects case (see \@ref(wald-test-GLMM) )
-
-    -   However, the normal approximation depends largely on the true value of $\theta$. It will fail if the true value of $\theta$ is close to the boundary of the parameter space $\Theta_{\theta}$ (i.e., $\sigma^2 \approx 0$)
-
-    -   Typically works better for covariance parameter, than variance parameters.
-
--   The likelihood ratio tests can also be used with ML or REML estimates. However, the same problem of parameters
-
-## Information Criteria
-
--   account for the likelihood and the number of parameters to assess model comparison.
-
-### Akaike's Information Criteria (AIC)
-
-Derived as an estimator of the expected Kullback discrepancy between the true model and a fitted candidate model
+and its variance:
 
 $$
-AIC = -2l(\hat{\theta}, \hat{\beta}) + 2q
+\text{Var}(\hat{\beta}(\theta)) = \left( \mathbf{X}' \mathbf{V}^{-1}(\theta) \mathbf{X} \right)^{-1}.
 $$
 
-where
+In practice, we substitute $\hat{\theta}$ (the estimate of $\theta$) to obtain:
 
--   $l(\hat{\theta}, \hat{\beta})$ is the log-likelihood
--   q = the effective number of parameters; total of fixed and those associated with random effects (variance/covariance; those not estimated to be on a boundary constraint)
+-   Hypotheses:
 
-Note:
+    $$
+    H_0: \mathbf{A \beta} = \mathbf{d}
+    $$
 
--   In comparing models that differ in their random effects, this method is not advised to due the inability to get the correct number of effective parameters).
--   We prefer smaller AIC values.
--   If your program uses $l-q$ then we prefer larger AIC values (but rarely).
--   can be used for mixed model section, (e.g., selection of the covariance structure), but the sample size must be very large to have adequate comparison based on the criterion
--   Can have a large negative bias (e.g., when sample size is small but the number of parameters is large) due to the penalty term can't approximate the bias adjustment adequately
+    where:
 
-### Corrected AIC (AICC)
+    -   $\mathbf{A}$ is a contrast matrix specifying linear combinations of $\beta$.
+    -   $\mathbf{d}$ is a constant vector representing the null hypothesis values.
 
--   developed by [@hurvich1989regression]
--   correct small-sample adjustment
--   depends on the candidate model class
--   Only if you have fixed covariance structure, then AICC is justified, but not general covariance structure
+-   Wald Test Statistic:
 
-### Bayesian Information Criteria (BIC)
+    $$
+    W = (\mathbf{A} \hat{\beta} - \mathbf{d})' \left[ \mathbf{A} \left( \mathbf{X}' \hat{\mathbf{V}}^{-1} \mathbf{X} \right)^{-1} \mathbf{A}' \right]^{-1} (\mathbf{A} \hat{\beta} - \mathbf{d}).
+    $$
+
+-   Distribution under $H_0$:
+
+    $$
+    W \sim \chi^2_{\text{rank}(\mathbf{A})}.
+    $$
+
+**Caution with Wald Test:**
+
+-   Underestimation of Variance:\
+    The Wald test ignores the variability from estimating $\hat{\theta}$, leading to underestimated standard errors and potentially inflated Type I error rates.
+-   Small Sample Issues:\
+    Less reliable in small samples or when variance components are near boundary values (e.g., variances close to zero).
+
+------------------------------------------------------------------------
+
+#### F-Test {#sec-f-test-lmm}
+
+An alternative to the Wald test, the F-test adjusts for the estimation of $\sigma^2$ and provides better performance in small samples.
+
+Assume:
 
 $$
-BIC = -2l(\hat{\theta}, \hat{\beta}) + q \log n
+\text{Var}(\mathbf{Y}) = \sigma^2 \mathbf{V}(\theta).
 $$
 
-where n = number of observations.
-
--   we prefer smaller BIC value
--   BIC and AIC are used for both REML and MLE if we have the same mean structure. Otherwise, in general, we should prefer MLE
-
-With our example presented at the beginning of [Linear Mixed Models],
+The F-statistic is:
 
 $$
-Y_{ik}= 
+F^* = \frac{(\mathbf{A} \hat{\beta} - \mathbf{d})' \left[ \mathbf{A} \left( \mathbf{X}' \hat{\mathbf{V}}^{-1} \mathbf{X} \right)^{-1} \mathbf{A}' \right]^{-1} (\mathbf{A} \hat{\beta} - \mathbf{d})}{\hat{\sigma}^2 \, \text{rank}(\mathbf{A})}.
+$$
+
+-   Distribution under $H_0$:
+
+    $$
+    F^* \sim F_{\text{rank}(\mathbf{A}), \, \text{df}_{\text{denominator}}}.
+    $$
+
+-   Approximating Denominator Degrees of Freedom:
+
+    -   Satterthwaite approximation
+    -   Kenward-Roger approximation (provides bias-corrected standard errors)
+
+F-Test Advantages:
+
+-   More accurate in small samples compared to the Wald test.
+-   Adjusts for variance estimation, reducing bias in hypothesis testing.
+
+Wald Test vs. F-Test:
+
+| Criterion                | Wald Test                             | F-Test                            |
+|--------------------------|---------------------------------------|-----------------------------------|
+| Small Sample Performance | Poor (can inflate Type I error)       | Better control of Type I error    |
+| Variance Estimation      | Ignores variability in $\hat{\theta}$ | Adjusts using $\hat{\sigma}^2$    |
+| Reduction to t-test      | Yes (for single $\beta$)              | Yes (when rank($\mathbf{A}$) = 1) |
+
+------------------------------------------------------------------------
+
+#### Likelihood Ratio Test {#sec-likelihood-ratio-test-lmm}
+
+The Likelihood Ratio Test (LRT) compares the fit of nested models:
+
+-   Null Hypothesis:
+
+    $$
+    H_0: \beta \in \Theta_{\beta,0}
+    $$
+
+    where $\Theta_{\beta,0}$ is a subset of the full parameter space $\Theta_{\beta}$.
+
+-   Test Statistic:
+
+    $$
+    -2 \log \lambda = -2 \log \left( \frac{\hat{L}_{ML,0}}{\hat{L}_{ML}} \right),
+    $$
+
+    where:
+
+    -   $\hat{L}_{ML,0}$ = Maximized likelihood under $H_0$ (restricted model)
+    -   $\hat{L}_{ML}$ = Maximized likelihood under the alternative (full model)
+
+-   Distribution under $H_0$:
+
+    $$
+    -2 \log \lambda \sim \chi^2_{df}
+    $$
+
+    where $df = \dim(\Theta_{\beta}) - \dim(\Theta_{\beta,0})$ (the difference in the number of parameters).
+
+**Important Notes:**
+
+-   LRT is applicable only for [ML](#sec-maximum-likelihood-estimation-lmm) estimates (not [REML](#restricted-maximum-likelihood-lmm)) when comparing models with different fixed effects.
+-   REML-based LRT can be used for comparing models that differ in random effects (variance components), but not fixed effects.
+
+------------------------------------------------------------------------
+
+### Inference for Variance Components ($\theta$)
+
+For ML and REML estimators:
+
+$$
+\hat{\theta} \sim N(\theta, I(\theta)^{-1}),
+$$
+
+where $I(\theta)$ is the [Fisher Information Matrix].
+
+This normal approximation holds well for large samples, enabling Wald-type tests and confidence intervals.
+
+------------------------------------------------------------------------
+
+#### Wald Test for Variance Components
+
+The Wald test for variance components follows the same structure as for [fixed effects](#wald-test-lmm):
+
+-   Test Statistic:
+
+    $$
+    W = \frac{(\hat{\theta} - \theta_0)^2}{\widehat{\text{Var}}(\hat{\theta})}.
+    $$
+
+-   Distribution under $H_0$:
+
+    $$
+    W \sim \chi^2_1.
+    $$
+
+Limitations of Wald Test for Variance Components:
+
+-   Boundary Issues: The normal approximation fails when the true variance component is near zero (boundary of the parameter space).
+-   Less reliable for variance parameters than for covariance parameters.
+
+------------------------------------------------------------------------
+
+#### Likelihood Ratio Test for Variance Components
+
+LRT can also be applied to variance components:
+
+-   Test Statistic:
+
+    $$
+    -2 \log \lambda = -2 \log \left( \frac{\hat{L}_{REML,0}}{\hat{L}_{REML}} \right).
+    $$
+
+-   Distribution under $H_0$:
+
+    -   Not always $\chi^2$-distributed when variance components are on the boundary (e.g., testing if $\sigma^2 = 0$).
+    -   May require mixture distributions or adjusted critical values.
+
+| Test            | Best For                       | Strengths                           | Limitations                                      |
+|-----------------|--------------------------------|-------------------------------------|--------------------------------------------------|
+| Wald Test       | Fixed effects ($\beta$)        | Simple, widely used                 | Underestimates variance, biased in small samples |
+| F-Test          | Fixed effects ($\beta$)        | Better in small samples, adjusts df | Requires approximation for degrees of freedom    |
+| LRT (ML)        | Fixed effects, nested models   | Powerful, widely used               | Not valid for REML with fixed effects            |
+| LRT (REML)      | Variance components            | Robust for random effects           | Boundary issues when variances are near zero     |
+| Wald (Variance) | Variance components ($\theta$) | Simple extension of Wald test       | Fails near parameter space boundaries            |
+
+## Information Criteria for Model Selection
+
+Information Criteria are statistical tools used to compare competing models by balancing model fit (likelihood) with model complexity (number of parameters).\
+They help in identifying the most parsimonious model that adequately explains the data without overfitting.
+
+The three most commonly used criteria are:
+
+-   [Akaike Information Criterion](#sec-akaike-information-criterion-lmm) (AIC)
+-   [Corrected Akaike Information Criterion](#sec-corrected-aic-lmm) (AICc)
+-   [Bayesian Information Criterion](#sec-bayesian-information-criterion-lmm) (BIC)
+
+------------------------------------------------------------------------
+
+### Akaike Information Criterion {#sec-akaike-information-criterion-lmm}
+
+The Akaike Information Criterion is derived from the Kullback-Leibler divergence, which measures the difference between the true data-generating process and the fitted model.
+
+**AIC Formula**:
+
+$$
+AIC = -2 \, l(\hat{\theta}, \hat{\beta}) + 2q
+$$
+
+where:
+
+-   $l(\hat{\theta}, \hat{\beta})$: The maximized log-likelihood of the model, evaluated at the estimates $\hat{\theta}$ (variance components) and $\hat{\beta}$ (fixed effects).
+-   $q$: The effective number of parameters, including:
+    -   The number of fixed effects.
+    -   The number of variance-covariance parameters (random effects).
+    -   Excludes parameters constrained to boundary values (e.g., variances estimated as zero).
+
+**Key Points About AIC**
+
+-   Model Selection Rule:
+    -   Lower AIC indicates a better model.
+    -   Occasionally, software may report AIC as $l - q$, in which case higher AIC is better (rare).
+-   Comparing Random Effects Models:
+    -   Not recommended when comparing models with different random effects because it's difficult to accurately count the effective number of parameters.
+-   Sample Size Considerations:
+    -   Requires large sample sizes for reliable comparisons.
+    -   In small samples, AIC tends to favor more complex models due to insufficient penalty for model complexity.
+-   Potential Bias:
+    -   Can be negatively biased (i.e., favoring overly complex models) when the sample size is small relative to the number of parameters.
+
+When to Use AIC:
+
+-   Comparing models with the same random effects structure but different fixed effects.
+-   Selecting covariance structures in mixed models when the sample size is large.
+
+------------------------------------------------------------------------
+
+### Corrected AIC {#sec-corrected-aic-lmm}
+
+The Corrected AIC (AICc) addresses the bias in AIC for small sample sizes. It was developed by [@hurvich1989regression].
+
+**AICc Formula**:
+
+$$
+AICc = AIC + \frac{2q(q + 1)}{n - q - 1}
+$$
+
+where:
+
+-   $n$: The sample size.
+-   $q$: The number of estimated parameters.
+
+**Key Points About AICc**
+
+-   Small Sample Correction:
+    -   Provides a stronger penalty for model complexity when the sample size is small.
+-   Applicability:
+    -   Valid when comparing models with fixed covariance structures.
+    -   Not recommended for models with general covariance structures due to difficulties in bias correction.
+-   Model Selection Rule:
+    -   Lower AICc indicates a better model.
+
+When to Use AICc:
+
+-   Small sample sizes ($n/q$ ratio is low).
+-   Models with fixed random effects or simple covariance structures.
+
+------------------------------------------------------------------------
+
+### Bayesian Information Criterion {#sec-bayesian-information-criterion-lmm}
+
+The Bayesian Information Criterion is derived from a Bayesian framework and incorporates a stronger penalty for model complexity compared to AIC.
+
+**BIC Formula**
+
+$$
+BIC = -2 \, l(\hat{\theta}, \hat{\beta}) + q \log(n)
+$$
+
+where:
+
+-   $n$: The number of observations.
+-   $q$: The number of effective parameters.
+-   $l(\hat{\theta}, \hat{\beta})$: The maximized log-likelihood.
+
+**Key Points About BIC**
+
+-   Model Selection Rule:
+    -   Lower BIC indicates a better model.
+-   Stronger Penalty:
+    -   The penalty term $q \log(n)$ grows with sample size, leading BIC to favor simpler models more than AIC.
+-   Applicability to MLE and REML:
+    -   BIC can be used with both MLE and REML, but:
+        -   Use MLE when comparing models with different fixed effects.
+        -   Use REML when comparing models with different random effects (same fixed effects).
+-   Consistency:
+    -   BIC is consistent, meaning that as the sample size increases, it will select the true model with probability 1 (if the true model is among the candidates).
+
+When to Use BIC:
+
+-   Large sample sizes where model simplicity is prioritized.
+-   Model selection for hypothesis testing (due to its connection to Bayesian inference).
+
+------------------------------------------------------------------------
+
+**Comparison of AIC, AICc, and BIC**
+
+| **Criterion** | **Formula**                       | **Penalty Term**           | **Best For**                                         | **Model Selection Rule** |
+|---------------|-----------------------------------|----------------------------|------------------------------------------------------|--------------------------|
+| **AIC**       | $-2l + 2q$                        | $2q$                       | General model comparison (large $n$)                 | Lower is better          |
+| **AICc**      | $AIC + \frac{2q(q+1)}{n - q - 1}$ | Adjusted for small samples | Small sample sizes, simple random effects            | Lower is better          |
+| **BIC**       | $-2l + q \log(n)$                 | $q \log(n)$                | Large samples, model selection in hypothesis testing | Lower is better          |
+
+**Key Takeaways**
+
+1.  AIC is suitable for large datasets and general model comparisons but may favor overly complex models in small samples.
+2.  AICc corrects AIC's bias in small sample sizes.
+3.  BIC favors simpler models, especially as the sample size increases, making it suitable for hypothesis testing and situations where parsimony is essential.
+4.  Use MLE for comparing models with different fixed effects, and REML when comparing models with different random effects (same fixed effects).
+5.  When comparing random effects structures, AIC and BIC may not be reliable due to difficulty in counting effective parameters accurately.
+
+------------------------------------------------------------------------
+
+### Practical Example with Linear Mixed Models
+
+Consider the [Linear Mixed Model](#sec-linear-mixed-models):
+
+$$
+Y_{ik} = 
 \begin{cases}
-\beta_0 + b_{1i} + (\beta_1 + \ b_{2i})t_{ij} + \epsilon_{ij} & L \\
-\beta_0 + b_{1i} + (\beta_2 + \ b_{2i})t_{ij} + \epsilon_{ij} & H\\
-\beta_0 + b_{1i} + (\beta_3 + \ b_{2i})t_{ij} + \epsilon_{ij} & C
+\beta_0 + b_{1i} + (\beta_1 + b_{2i}) t_{ij} + \epsilon_{ij} & L \\
+\beta_0 + b_{1i} + (\beta_2 + b_{2i}) t_{ij} + \epsilon_{ij} & H \\
+\beta_0 + b_{1i} + (\beta_3 + b_{2i}) t_{ij} + \epsilon_{ij} & C
 \end{cases}
 $$
 
-where
+where:
 
--   $i = 1,..,N$
--   $j = 1,..,n_i$ (measures at time $t_{ij}$)
-
-Note:
-
--   we have subject-specific intercepts,
+-   $i = 1, \dots, N$ (subjects)
+-   $j = 1, \dots, n_i$ (repeated measures at time $t_{ij}$)
 
 $$
 \begin{aligned}
-\mathbf{Y}_i |b_i &\sim N(\mathbf{X}_i \beta + 1 b_i, \sigma^2 \mathbf{I}) \\
-b_i &\sim N(0,d_{11})
+\mathbf{Y}_i | b_i &\sim N(\mathbf{X}_i \beta + \mathbf{1} b_i, \sigma^2 \mathbf{I}) \\
+b_i &\sim N(0, d_{11})
 \end{aligned}
 $$
 
-here, we want to estimate $\beta, \sigma^2, d_{11}$ and predict $b_i$
+We aim to **estimate**:
+
+-   **Fixed effects**: $\beta$
+-   **Variance components**: $\sigma^2$, $d_{11}$
+-   **Random effects**: Predict $b_i$
+
+When comparing models (e.g., different random slopes or covariance structures), we can compute:
+
+-   **AIC**: Penalizes model complexity with $2q$.
+-   **BIC**: Stronger penalty via $q \log(n)$, favoring simpler models.
+-   **AICc**: Adjusted AIC for small sample sizes.
+
+```{r}
+# Practical Example with Linear Mixed Models in R
+
+
+# Load required libraries
+library(lme4)     # For fitting linear mixed-effects models
+library(MuMIn)    # For calculating AICc
+library(dplyr)    # For data manipulation
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Simulate Data
+N <- 50             # Number of subjects
+n_i <- 5            # Number of repeated measures per subject
+t_ij <- rep(1:n_i, N)  # Time points
+
+# Treatment groups (L, H, C)
+treatment <- rep(c("L", "H", "C"), length.out = N)
+group <- factor(rep(treatment, each = n_i))
+
+# Simulate random effects
+b1_i <- rnorm(N, mean = 0, sd = 2)    # Random intercepts
+b2_i <- rnorm(N, mean = 0, sd = 1)    # Random slopes
+
+# Fixed effects
+beta_0 <- 5
+beta_1 <- 0.5
+beta_2 <- 1
+beta_3 <- 1.5
+
+# Generate response variable Y based on the specified model
+Y <- numeric(N * n_i)
+subject_id <- rep(1:N, each = n_i)
+
+for (i in 1:N) {
+    for (j in 1:n_i) {
+        idx <- (i - 1) * n_i + j
+        time <- t_ij[idx]
+        
+        # Treatment-specific model
+        if (group[idx] == "L") {
+            Y[idx] <-
+                beta_0 + b1_i[i] + (beta_1 + b2_i[i]) * time + rnorm(1, 0, 1)
+        } else if (group[idx] == "H") {
+            Y[idx] <-
+                beta_0 + b1_i[i] + (beta_2 + b2_i[i]) * time + rnorm(1, 0, 1)
+        } else {
+            Y[idx] <-
+                beta_0 + b1_i[i] + (beta_3 + b2_i[i]) * time + rnorm(1, 0, 1)
+        }
+    }
+}
+
+# Combine into a data frame
+data <- data.frame(
+    Y = Y,
+    time = t_ij,
+    group = group,
+    subject = factor(subject_id)
+)
+
+# Fit Linear Mixed Models
+# Model 1: Random Intercepts Only
+model1 <-
+    lmer(Y ~ time * group + (1 | subject), data = data, REML = FALSE)
+
+# Model 2: Random Intercepts and Random Slopes
+model2 <-
+    lmer(Y ~ time * group + (1 + time |
+                                 subject),
+         data = data,
+         REML = FALSE)
+
+# Model 3: Simpler Model (No Interaction)
+model3 <-
+    lmer(Y ~ time + group + (1 | subject), data = data, REML = FALSE)
+
+# Extract Information Criteria
+results <- data.frame(
+    Model = c(
+        "Random Intercepts",
+        "Random Intercepts + Slopes",
+        "No Interaction"
+    ),
+    AIC = c(AIC(model1), AIC(model2), AIC(model3)),
+    BIC = c(BIC(model1), BIC(model2), BIC(model3)),
+    AICc = c(AICc(model1), AICc(model2), AICc(model3))
+)
+
+# Display the results
+print(results)
+```
+
+**Interpretation of Results:**
+
+-   Model 2 (with random intercepts and slopes) has the lowest AIC, BIC, and AICc, indicating the best fit among the models.
+
+-   Model 1 (random intercepts only) performs worse, suggesting that allowing random slopes improves model fit.
+
+-   Model 3 (simpler fixed effects without interaction) has the highest AIC/BIC/AICc, indicating poor fit compared to Models 1 and 2.
+
+**Model Selection Criteria:**
+
+| **Criterion** | **Best Model** | **Reason**                                     |
+|---------------|----------------|------------------------------------------------|
+| **AIC**       | Model 2        | Best trade-off between fit and complexity      |
+| **BIC**       | Model 2        | Stronger penalty for complexity, still favored |
+| **AICc**      | Model 2        | Adjusted for small samples, Model 2 still best |
 
 ## Split-Plot Designs
 
--   Typically used in the case that you have two factors where one needs much larger units than the other.
+Split-plot designs are commonly used in experimental settings where there are **two or more factors**, and at least one of them requires **larger experimental units** compared to the other(s). This situation often arises in agricultural, industrial, and business experiments where certain treatments are harder or more expensive to apply.
 
-Example:
+**Key Characteristics**
 
-A: 3 levels (large units)
+-   Two factors with different experimental unit requirements:
+    -   Factor A (Whole-plot factor): Requires large experimental units (e.g., different fields, production batches).
+    -   Factor B (Sub-plot factor): Can be applied to smaller units within the larger experimental units (e.g., plots within fields, products within batches).
+-   Blocking: The experiment is typically divided into blocks (or replicates) to account for variability. However, unlike [Randomized Block Designs], the randomization process in split-plot designs occurs at two levels:
+    -   Whole-plot randomization: Factor A is randomized across large units within each block.
+    -   Sub-plot randomization: Factor B is randomized within each whole plot.
 
-B: 2 levels (small units)
+------------------------------------------------------------------------
 
--   A and B levels are randomized into 4 blocks.
--   But it differs from [Randomized Block Designs]. In each block, both have one of the 6 (3x2) treatment combinations. But [Randomized Block Designs] assign in each block randomly, while split-plot does not randomize this step.
--   Moreover, because A needs to be applied in large units, factor A is applied only once in each block while B can be applied multiple times.
+### Example Setup
 
-Hence, we have our model
+-   **Factor A:** 3 levels (applied to large units).
+-   **Factor B:** 2 levels (applied within the large units).
+-   **4 Blocks (replicates):** Each containing all combinations of A and B.
 
-If A is our factor of interest
+Unlike in [Randomized Block Designs], the randomization of Factor A is **restricted** due to the larger unit size. Factor A is applied **once per block**, while Factor B can be applied **multiple times within each block**.
+
+------------------------------------------------------------------------
+
+### Statistical Model for Split-Plot Designs
+
+1.  When Factor A is the Primary Focus (Whole-Plot Analysis)
 
 $$
 Y_{ij} = \mu + \rho_i + \alpha_j + e_{ij}
 $$
 
-where
+Where:
 
--   $i$ = replication (block or subject)
--   $j$ = level of Factor A
--   $\mu$ = overall mean
--   $\rho_i$ = variation due to the $i$-th block
--   $e_{ij} \sim N(0, \sigma^2_e)$ = whole plot error
+-   $Y_{ij}$ = Response for the $j$-th level of factor A in the $i$-th block.
 
-If B is our factor of interest
+-   $\mu$ = Overall mean.
+
+-   $\rho_i$ = Random effect of the $i$-th block ($\rho_i \sim N(0, \sigma^2_{\rho})$).
+
+-   $\alpha_j$ = Fixed effect of factor A (main effect).
+
+-   $e_{ij} \sim N(0, \sigma^2_{e})$ = Whole-plot error (random), representing the variability within blocks due to factor A.
+
+2.  When Factor B is the Primary Focus (Sub-Plot Analysis)
 
 $$
 Y_{ijk} = \mu + \phi_{ij} + \beta_k + \epsilon_{ijk}
 $$
 
-where
+Where:
 
--   $\phi_{ij}$ = variation due to the $ij$-th main plot
--   $\beta_k$ = Factor B effect
--   $\epsilon_{ijk} \sim N(0, \sigma^2_\epsilon)$ = subplot error
--   $\phi_{ij} = \rho_i + \alpha_j + e_{ij}$
+-   $Y_{ijk}$ = Response for the $k$-th level of factor B within the $j$-th level of factor A and $i$-th block.
 
-Together, the split-plot model
+-   $\phi_{ij}$ = Combined effect of block and factor A: $$
+      \phi_{ij} = \rho_i + \alpha_j + e_{ij}
+      $$
+
+-   $\beta_k$ = Fixed effect of factor B (main effect).
+
+-   $\epsilon_{ijk} \sim N(0, \sigma^2_{\epsilon})$ = Sub-plot error (random), capturing variability within whole plots.
+
+3.  Full Split-Plot Model (Including Interaction)
 
 $$
 Y_{ijk} = \mu + \rho_i + \alpha_j + e_{ij} + \beta_k + (\alpha \beta)_{jk} + \epsilon_{ijk}
 $$
 
-where
+Where:
 
--   $i$ = replicate (blocks or subjects)
--   $j$ = level of factor A
--   $k$ = level of factor B
--   $\mu$ = overall mean
--   $\rho_i$ = effect of the block
--   $\alpha_j$ = main effect of factor A (fixed)
--   $e_{ij} = (\rho \alpha)_{ij}$ = block by factor A interaction (the whole plot error, random)
--   $\beta_k$ = main effect of factor B (fixed)
--   $(\alpha \beta)_{jk}$ = interaction between factors A and B (fixed)
--   $\epsilon_{ijk}$ = subplot error (random)
+-   $i$ = Block (replication). - $j$ = Level of factor A (whole-plot factor).
 
-We can approach sub-plot analysis based on
+-   $k$ = Level of factor B (sub-plot factor).
 
--   the ANOVA perspective
+-   $\mu$ = Overall mean.
 
-    -   Whole plot comparisons
+-   $\rho_i$ = Random effect of the $i$-th block.
 
-        -   Compare factor A to the whole plot error (i.e., $\alpha_j$ to $e_{ij}$)
+-   $\alpha_j$ = Fixed main effect of factor A.
 
-        -   Compare the block to the whole plot error (i.e., $\rho_i$ to $e_{ij}$)
+-   $e_{ij} \sim N(0, \sigma^2_{e})$ = Whole-plot error (random).
 
-    -   Sub-plot comparisons:
+-   $\beta_k$ = Fixed main effect of factor B.
 
-        -   Compare factor B to the subplot error ($\beta$ to $\epsilon_{ijk}$)
+-   $(\alpha \beta)_{jk}$ = Fixed interaction effect between factors A and B.
 
-        -   Compare the AB interaction to the subplot error ($(\alpha \beta)_{jk}$ to $\epsilon_{ijk}$)
+-   $\epsilon_{ijk} \sim N(0, \sigma^2_{\epsilon})$ = Sub-plot error (random).
 
--   the mixed model perspective
+------------------------------------------------------------------------
+
+### Approaches to Analyzing Split-Plot Designs
+
+1.  [ANOVA](#sec-analysis-of-variance-anova) Perspective
+
+Whole-Plot Comparisons:
+
+-   Factor A vs. Whole-Plot Error:\
+    Compare the variation due to factor A ($\alpha_j$) against the whole-plot error ($e_{ij}$).
+-   Blocks vs. Whole-Plot Error:\
+    Compare the variation due to blocks ($\rho_i$) against the whole-plot error ($e_{ij}$).
+
+Sub-Plot Comparisons:
+
+-   Factor B vs. Sub-Plot Error:\
+    Compare the variation due to factor B ($\beta_k$) against the sub-plot error ($\epsilon_{ijk}$).
+-   Interaction (A × B) vs. Sub-Plot Error:\
+    Compare the interaction effect ($(\alpha \beta)_{jk}$) against the sub-plot error ($\epsilon_{ijk}$).
+
+2.  **Mixed Model Perspective**
+
+A more flexible approach is to treat split-plot designs using mixed-effects models, which can handle both fixed and random effects explicitly:
 
 $$
 \mathbf{Y = X \beta + Zb + \epsilon}
 $$
 
-### Application
+Where:
 
-#### Example 1
+-   $\mathbf{Y}$ = Vector of observed responses.
+
+-   $\mathbf{X}$ = Design matrix for fixed effects (e.g., factors A, B, and their interaction).
+
+-   $\boldsymbol{\beta}$ = Vector of fixed-effect coefficients (e.g., $\mu$, $\alpha_j$, $\beta_k$, $(\alpha \beta)_{jk}$).
+
+-   $\mathbf{Z}$ = Design matrix for random effects (e.g., blocks and whole-plot errors).
+
+-   $\mathbf{b}$ = Vector of random-effect coefficients (e.g., $\rho_i$, $e_{ij}$).
+
+-   $\boldsymbol{\epsilon}$ = Vector of residuals (sub-plot error).
+
+Mixed models are particularly useful when:
+
+-   There are **unbalanced designs** (missing data).
+
+-   You need to account for **complex correlation structures** within the data.
+
+### Application: Split-Plot Design
+
+Consider an agricultural experiment designed to study the effects of irrigation and crop variety on yield. This scenario is well-suited for a split-plot design because irrigation treatments are applied to large plots (fields), while different crop varieties are planted within these plots.
+
+#### Model Specification
+
+The linear mixed-effects model is defined as:
 
 $$
 y_{ijk} = \mu + i_i + v_j + (iv)_{ij} + f_k + \epsilon_{ijk}
 $$
 
-where
+Where:
 
--   $y_{ijk}$ = observed yield
--   $\mu$ = overall average yield
--   $i_i$ = irrigation effect
--   $v_j$ = variety effect
--   $(iv)_{ij}$ = irrigation by variety interaction
--   $f_k$ = random field (block) effect
--   $\epsilon_{ijk}$ = residual
--   because variety-field combination is only observed once, we can't have the random interaction effects between variety and field
+-   $y_{ijk}$ = Observed yield for the $i$-th irrigation, $j$-th variety, in the $k$-th field.
+
+-   $\mu$ = Overall mean yield.
+
+-   $i_i$ = Fixed effect of the $i$-th irrigation level.
+
+-   $v_j$ = Fixed effect of the $j$-th crop variety.
+
+-   $(iv)_{ij}$ = Interaction effect between irrigation and variety (fixed).
+
+-   $f_k \sim N(0, \sigma^2_f)$ = Random effect of field (captures variability between fields).
+
+-   $\epsilon_{ijk} \sim N(0, \sigma^2_\epsilon)$ = Residual error.
+
+**Note:**\
+Since each variety-field combination is observed only once, we cannot model a random interaction between variety and field.
+
+------------------------------------------------------------------------
+
+#### Data Exploration
 
 ```{r}
 library(ggplot2)
-data(irrigation, package = "faraway")
+data(irrigation, package = "faraway")  # Load the dataset
+
+# Summary statistics and preview
 summary(irrigation)
 head(irrigation, 4)
+
+# Exploratory plot: Yield by field, colored by variety and shaped by irrigation
 ggplot(irrigation,
        aes(
-         x     = field,
-         y     = yield,
-         shape = irrigation,
-         color = variety
+           x     = field,
+           y     = yield,
+           shape = irrigation,
+           color = variety
        )) +
-  geom_point(size = 3)
-
+    geom_point(size = 3) +
+    labs(title = "Yield by Field, Irrigation, and Variety",
+         x = "Field",
+         y = "Yield") +
+    theme_minimal()
 ```
+
+This plot helps visualize how yield varies across fields, under different irrigation treatments, and for different varieties.
+
+#### Fitting the Initial Mixed-Effects Model
+
+We fit a mixed-effects model where:
+
+-   Irrigation and variety (and their interaction) are fixed effects.
+
+-   Field is modeled as a random effect to account for variability between fields.
 
 ```{r}
+library(lmerTest)  # Provides p-values for lmer models
+
+# Full model with interaction term
 sp_model <-
-    lmerTest::lmer(yield ~ irrigation * variety 
-                   + (1 |field), irrigation)
+    lmer(yield ~ irrigation * variety + (1 | field), data = irrigation)
 summary(sp_model)
 
-anova(sp_model, ddf = c("Kenward-Roger"))
+# ANOVA table using Kenward-Roger approximation for accurate p-values
+anova(sp_model, ddf = "Kenward-Roger")
 ```
 
-Since p-value of the interaction term is insignificant, we consider fitting without it.
+-   Check the p-value of the interaction term (`irrigation:variety`).
+
+    -   If insignificant, this suggests no strong evidence of an interaction effect, and we may simplify the model by removing it.
+
+#### Model Simplification: Testing for Additivity
+
+We compare the **full model** (with interaction) to an **additive model** (without interaction):
 
 ```{r}
 library(lme4)
-sp_model_additive <- lmer(yield ~ irrigation + variety 
-                          + (1 | field), irrigation)
-anova(sp_model_additive,sp_model,ddf = "Kenward-Roger")
+
+# Additive model (no interaction)
+sp_model_additive <- lmer(yield ~ irrigation + variety + (1 | field), data = irrigation)
+
+# Likelihood ratio test comparing the two models
+anova(sp_model_additive, sp_model, ddf = "Kenward-Roger")
 ```
 
-Since $p$-value of $\chi^2$ test is insignificant, we can't reject the additive model is already sufficient. Looking at AIC and BIC, we can also see that we would prefer the additive model
+-   **Hypotheses:**
 
-**Random Effect Examination**
+    -   $H_0$: The **additive model** (without interaction) fits the data adequately.
 
-`exactRLRT` test
+    -   $H_a$: The **interaction model** provides a significantly better fit.
 
--   $H_0$: Var(random effect) (i.e., $\sigma^2$)= 0
--   $H_a$: Var(random effect) (i.e., $\sigma^2$) \> 0
+-   **Interpretation:**
+
+    -   If the p-value is insignificant, we fail to reject $H_0$, meaning the simpler additive model is sufficient.
+
+    -   Check AIC and BIC: Lower values indicate a better-fitting model, supporting the use of the additive model if consistent with the hypothesis test.
+
+#### Assessing the Random Effect: Exact Restricted Likelihood Ratio Test
+
+To verify whether the random field effect is necessary, we conduct an exact RLRT:
+
+-   Hypotheses:
+
+    -   $H_0$: $\sigma^2_f = 0$ (no variability between fields; random effect is unnecessary).
+
+    -   $H_a$: $\sigma^2_f > 0$ (random field effect is significant).
 
 ```{r}
-sp_model <- lme4::lmer(yield ~ irrigation * variety 
-                       + (1 | field), irrigation)
 library(RLRsim)
+
+# RLRT for the random effect of field
 exactRLRT(sp_model)
 ```
 
-Since the p-value is significant, we reject $H_0$
+**Interpretation:**
+
+-   If the p-value is significant, we reject $H_0$, confirming that the random field effect is essential.
+
+-   A significant random effect implies substantial variability between fields that must be accounted for in the model.
 
 ## Repeated Measures in Mixed Models
 
-$$
-Y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \delta_{i(k)}+ \epsilon_{ijk}
-$$
+Repeated measures data arise when **multiple observations** are collected from the **same subjects** over time or under different conditions. This introduces **correlation** between observations from the same subject, which must be accounted for in the statistical model.
 
-where
+Mixed-effects models are particularly effective for repeated measures because they allow us to model both **fixed effects** (e.g., treatment, time) and **random effects** (e.g., subject-specific variability).
 
--   $i$-th group (fixed)
--   $j$-th (repeated measure) time effect (fixed)
--   $k$-th subject
--   $\delta_{i(k)} \sim N(0,\sigma^2_\delta)$ (k-th subject in the $i$-th group) and $\epsilon_{ijk} \sim N(0,\sigma^2)$ (independent error) are random effects ($i = 1,..,n_A, j = 1,..,n_B, k = 1,...,n_i$)
-
-hence, the variance-covariance matrix of the repeated observations on the k-th subject of the i-th group, $\mathbf{Y}_{ik} = (Y_{i1k},..,Y_{in_Bk})'$, will be
+The general form of a mixed-effects model for repeated measures is:
 
 $$
-\begin{aligned}
-\mathbf{\Sigma}_{subject} &=
-\left(
-\begin{array}
-{cccc}
-\sigma^2_\delta + \sigma^2 & \sigma^2_\delta & ... & \sigma^2_\delta \\
-\sigma^2_\delta & \sigma^2_\delta +\sigma^2 & ... & \sigma^2_\delta \\
-. & . & . & . \\
-\sigma^2_\delta & \sigma^2_\delta & ... & \sigma^2_\delta + \sigma^2 \\
-\end{array}
-\right) \\
-&= (\sigma^2_\delta + \sigma^2)
-\left(
-\begin{array}
-{cccc}
-1 & \rho & ... & \rho \\
-\rho & 1 & ... & \rho \\
-. & . & . & . \\
-\rho & \rho & ... & 1 \\
-\end{array}
-\right) 
-& \text{product of a scalar and a correlation matrix}
-\end{aligned}
+Y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \delta_{i(k)} + \epsilon_{ijk}
 $$
 
-where $\rho = \frac{\sigma^2_\delta}{\sigma^2_\delta + \sigma^2}$, which is the compound symmetry structure that we discussed in [Random-Intercepts Model]
+Where:
 
-But if you only have repeated measurements on the subject over time, AR(1) structure might be more appropriate
+-   $Y_{ijk}$ = Response for the $i$-th group, $j$-th time point, and $k$-th subject.
 
-Mixed model for a repeated measure
+-   $\mu$ = Overall mean.
 
-$$
-Y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ijk}
-$$
+-   $\alpha_i$ = Fixed effect of the $i$-th group (e.g., treatment group).
 
-where
+-   $\beta_j$ = Fixed effect of the $j$-th time point (repeated measure effect).
 
--   $\epsilon_{ijk}$ combines random error of both the whole and subplots.
+-   $(\alpha \beta)_{ij}$ = Interaction effect between group and time (fixed).
 
-In general,
+-   $\delta_{i(k)} \sim N(0, \sigma^2_\delta)$ = Random effect of the $k$-th subject within the $i$-th group (captures subject-specific deviations).
 
-$$
-\mathbf{Y = X \beta + \epsilon}
-$$
+-   $\epsilon_{ijk} \sim N(0, \sigma^2)$ = Residual error (independent across observations).
 
-where
+Here, $i = 1, \dots, n_A$ (number of groups), $j = 1, \dots, n_B$ (number of repeated measures), and $k = 1, \dots, n_i$ (number of subjects in group $i$).
 
--   $\epsilon \sim N(0, \sigma^2 \mathbf{\Sigma})$ where $\mathbf{\Sigma}$ is block diagonal if the random error covariance is the same for each subject
+------------------------------------------------------------------------
 
-The variance covariance matrix with AR(1) structure is
+The **variance-covariance matrix** of the repeated observations for the $k$-th subject in the $i$-th group is given by:
 
 $$
-\mathbf{\Sigma}_{subject} =
+\mathbf{Y}_{ik} = 
+\begin{pmatrix}
+Y_{i1k} \\
+Y_{i2k} \\
+\vdots \\
+Y_{in_Bk}
+\end{pmatrix}
+$$
+
+1.  Compound Symmetry (CS) Structure
+
+Under the **compound symmetry** assumption (common in [random-intercepts models](#sec-random-intercepts-model-lmm)), the covariance matrix is:
+
+$$
+\mathbf{\Sigma}_{\text{subject}} =
+\begin{pmatrix}
+\sigma^2_\delta + \sigma^2 & \sigma^2_\delta & \cdots & \sigma^2_\delta \\
+\sigma^2_\delta & \sigma^2_\delta + \sigma^2 & \cdots & \sigma^2_\delta \\
+\vdots & \vdots & \ddots & \vdots \\
+\sigma^2_\delta & \sigma^2_\delta & \cdots & \sigma^2_\delta + \sigma^2
+\end{pmatrix}
+$$
+
+This matrix can be rewritten as:
+
+$$
+\mathbf{\Sigma}_{\text{subject}} = (\sigma^2_\delta + \sigma^2)
+\begin{pmatrix}
+1 & \rho & \cdots & \rho \\
+\rho & 1 & \cdots & \rho \\
+\vdots & \vdots & \ddots & \vdots \\
+\rho & \rho & \cdots & 1
+\end{pmatrix}
+$$
+
+Where:
+
+-   $\sigma^2_\delta$ = Variance due to subject-specific random effects.
+
+-   $\sigma^2$ = Residual variance.
+
+-   $\rho = \frac{\sigma^2_\delta}{\sigma^2_\delta + \sigma^2}$ = Intra-class correlation coefficient (ICC).
+
+Key Points:
+
+-   Compound Symmetry Structure is the product of a scalar and a correlation matrix.
+
+-   The correlation between any two repeated measures from the same subject is constant ($\rho$).
+
+-   This structure assumes equal correlation across time points, which may not hold if measurements are collected over time.
+
+*Refer to [Random-Intercepts Model](#sec-random-intercepts-model-lmm) for a detailed discussion of compound symmetry.*
+
+------------------------------------------------------------------------
+
+2.  Autoregressive (AR(1)) Structure
+
+If repeated measures are collected over time, it may be more appropriate to assume an autoregressive correlation structure, where correlations decay as the time gap increases.
+
+The AR(1) variance-covariance matrix is:
+
+$$
+\mathbf{\Sigma}_{\text{subject}} =
 \sigma^2
-\left(
-\begin{array}
-{ccccc}
-1  & \rho & \rho^2 & ... & \rho^{n_B-1} \\
-\rho & 1 & \rho & ... & \rho^{n_B-2} \\
-. & . & . & . & . \\
-\rho^{n_B-1} & \rho^{n_B-2} & \rho^{n_B-3} & ... & 1 \\
-\end{array}
-\right)
+\begin{pmatrix}
+1 & \rho & \rho^2 & \cdots & \rho^{n_B-1} \\
+\rho & 1 & \rho & \cdots & \rho^{n_B-2} \\
+\rho^2 & \rho & 1 & \cdots & \rho^{n_B-3} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+\rho^{n_B-1} & \rho^{n_B-2} & \rho^{n_B-3} & \cdots & 1
+\end{pmatrix}
 $$
 
-Hence, the mixed model for a repeated measure can be written as
+Where:
+
+-   $\sigma^2$ = Residual variance.
+
+-   $\rho$ = Autoregressive parameter ($|\rho| < 1$), representing the correlation between consecutive time points.
+
+**Key Characteristics**:
+
+-   Correlations decrease exponentially as the time lag increases.
+
+-   Appropriate for longitudinal data where temporal proximity influences correlation.
+
+------------------------------------------------------------------------
+
+In matrix notation, the mixed model can be written as:
 
 $$
-Y_{ijk} = \mu + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ijk}
+\mathbf{Y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\epsilon}
 $$
 
-where
+Where:
 
--   $\epsilon_{ijk}$ = random error of whole and subplots
+-   $\mathbf{Y}$ = Vector of observed responses.
 
-Generally,
+-   $\mathbf{X}$ = Design matrix for fixed effects (e.g., group, time, interaction).
 
-$$
-\mathbf{Y = X \beta + \epsilon} 
-$$
+-   $\boldsymbol{\beta}$ = Vector of fixed-effect coefficients.
 
-where $\epsilon \sim N(0, \mathbf{\sigma^2 \Sigma})$ and $\Sigma$ = block diagonal if the random error covariance is the same for each subject.
+-   $\boldsymbol{\epsilon} \sim N(0, \sigma^2 \mathbf{\Sigma})$ = Random error vector.
+
+-   $\mathbf{\Sigma}$ = Variance-covariance matrix of residuals:
+
+    -   Block diagonal structure if the covariance structure is identical for each subject.
+    -   Within each block (subject), the structure can be compound symmetry, AR(1), or another suitable structure depending on the data.
+
+------------------------------------------------------------------------
+
+**Choosing the Right Covariance Structure**
+
+-   Compound Symmetry:
+    -   Suitable when correlations are constant across repeated measures (e.g., in randomized controlled trials).
+    -   Simple and interpretable but may be too restrictive for longitudinal data.
+-   Autoregressive (AR(1)):
+    -   Best when measurements are taken over equally spaced time intervals and correlations decay over time.
+    -   Assumes stronger correlation for adjacent time points.
+-   Unstructured (UN):
+    -   Allows different variances and covariances for each time point.
+    -   Provides maximum flexibility but requires more parameters and larger sample sizes.
+
+Model selection criteria (AIC, BIC, likelihood ratio tests) can help determine the most appropriate covariance structure.
+
+------------------------------------------------------------------------
 
 ## Unbalanced or Unequally Spaced Data
 
-Consider the model
+In many real-world applications, data are **unbalanced** (i.e., different numbers of observations per subject) or **unequally spaced** over time. This is common in longitudinal studies, clinical trials, and business analytics where subjects may be observed at irregular intervals or miss certain time points.
+
+Mixed-effects models are flexible enough to handle such data structures, especially when we carefully model the **variance-covariance structure** of repeated measurements.
+
+Consider the following mixed-effects model:
 
 $$
-Y_{ikt} = \beta_0 + \beta_{0i} + \beta_{1}t + \beta_{1i}t + \beta_{2} t^2 + \beta_{2i} t^2 + \epsilon_{ikt}
+Y_{ikt} = \beta_0 + \beta_{0i} + \beta_{1} t + \beta_{1i} t + \beta_{2} t^2 + \beta_{2i} t^2 + \epsilon_{ikt}
 $$
 
-where
+Where:
 
--   $i = 1,2$ (groups)
--   $k = 1,…, n_i$ ( individuals)
--   $t = (t_1,t_2,t_3,t_4)$ (times)
--   $\beta_{2i}$ = common quadratic term
--   $\beta_{1i}$ = common linear time trends
--   $\beta_{0i}$ = common intercepts
+-   $Y_{ikt}$ = Response for the $k$-th subject in the $i$-th group at time $t$.
 
-Then, we assume the variance-covariance matrix of the repeated measurements collected on a particular subject over time has the form
+-   $i = 1, 2$ = Groups (e.g., treatment vs. control).
+
+-   $k = 1, \dots, n_i$ = Individuals within group $i$.
+
+-   $t = (t_1, t_2, t_3, t_4)$ = Time points (which may be unequally spaced).
+
+Model Components:
+
+-   **Fixed Effects:**
+    -   $\beta_0$ = Overall intercept (baseline).
+    -   $\beta_1$ = Common linear time trend.
+    -   $\beta_2$ = Common quadratic time trend.
+-   **Random Effects:**
+    -   $\beta_{0i}$ = Random intercept for group $i$ (captures group-specific baseline variation).
+    -   $\beta_{1i}$ = Random slope for time in group $i$ (captures group-specific linear trends).
+    -   $\beta_{2i}$ = Random quadratic effect for group $i$ (captures group-specific curvature over time).
+-   **Residual Error:**
+    -   $\epsilon_{ikt} \sim N(0, \sigma^2)$ = Measurement error, assumed independent of the random effects.
+
+------------------------------------------------------------------------
+
+### Variance-Covariance Structure: Power Model
+
+Since observations are taken at unequally spaced time points, we cannot rely on simple structures like compound symmetry or AR(1). Instead, we use a power covariance model, which allows the correlation to depend on the distance between time points.
+
+The variance-covariance matrix of the repeated measurements for subject $k$ in group $i$ is:
 
 $$
 \mathbf{\Sigma}_{ik} = \sigma^2
-\left(
-\begin{array}
-{cccc}
-1 & \rho^{t_2-t_1} & \rho^{t_3-t_1} & \rho^{t_4-t_1} \\
-\rho^{t_2-t_1} & 1 & \rho^{t_3-t_2} & \rho^{t_4-t_2} \\
-\rho^{t_3-t_1} & \rho^{t_3-t_2} & 1 & \rho^{t_4-t_3} \\
-\rho^{t_4-t_1} & \rho^{t_4-t_2} & \rho^{t_4-t_3} & 1
-\end{array}
-\right)
+\begin{pmatrix}
+1 & \rho^{|t_2 - t_1|} & \rho^{|t_3 - t_1|} & \rho^{|t_4 - t_1|} \\
+\rho^{|t_2 - t_1|} & 1 & \rho^{|t_3 - t_2|} & \rho^{|t_4 - t_2|} \\
+\rho^{|t_3 - t_1|} & \rho^{|t_3 - t_2|} & 1 & \rho^{|t_4 - t_3|} \\
+\rho^{|t_4 - t_1|} & \rho^{|t_4 - t_2|} & \rho^{|t_4 - t_3|} & 1
+\end{pmatrix}
 $$
 
-which is called "power" covariance model
+Where:
 
-We can consider $\beta_{2i} , \beta_{1i}, \beta_{0i}$ accordingly to see whether these terms are needed in the final model
+-   $\sigma^2$ = Residual variance.
 
-## Application
+-   $\rho$ = Correlation parameter ($0 < |\rho| < 1$), controlling how correlation decays with increasing time gaps.
 
-R Packages for mixed models
+-   $|t_j - t_i|$ = Absolute time difference between measurements at times $t_i$ and $t_j$.
+
+**Key Characteristics**:
+
+-   The correlation between observations decreases as the time difference increases, similar to AR(1), but flexible enough to handle unequal time intervals.
+-   This structure is sometimes referred to as a continuous-time autoregressive model or power covariance model.
+
+------------------------------------------------------------------------
+
+After fitting the full model, we can evaluate whether all terms are necessary, focusing on the random effects:
+
+-   $\beta_{0i}$ (Random Intercepts):\
+    Is there significant baseline variability between groups?
+
+-   $\beta_{1i}$ (Random Slopes for Time):\
+    Do groups exhibit different linear trends over time?
+
+-   $\beta_{2i}$ (Random Quadratic Terms):\
+    Is there group-specific curvature in the response over time?
+
+Model Comparison Approach:
+
+1.  **Fit the Full Model:**\
+    Includes all random effects.
+
+2.  **Fit Reduced Models:**\
+    Systematically remove random effects (e.g., quadratic terms) to create simpler models.
+
+3.  **Compare Models Using:**
+
+    -   **Likelihood Ratio Tests (LRT):**\
+        Test whether the more complex model significantly improves fit.
+
+    -   **Information Criteria (AIC, BIC):**\
+        Lower values indicate a better trade-off between fit and complexity.
+
+4.  **Assess Random Effects:**
+
+    -   Use the **exactRLRT** test to determine if random effects are significant.
+    -   Check variance estimates: if the variance of a random effect is near zero, it may not be necessary.
+
+------------------------------------------------------------------------
+
+In matrix notation, the model can be written as:
+
+$$
+\mathbf{Y} = \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \mathbf{b} + \boldsymbol{\epsilon}
+$$
+
+Where:
+
+-   $\mathbf{Y}$ = Vector of observed responses.
+
+-   $\mathbf{X}$ = Design matrix for fixed effects (intercept, time, time², and group interactions).
+
+-   $\boldsymbol{\beta}$ = Vector of fixed-effect coefficients.
+
+-   $\mathbf{Z}$ = Design matrix for random effects (random intercepts, slopes, etc.).
+
+-   $\mathbf{b} \sim N(0, \mathbf{G})$ = Vector of random effects with covariance matrix $\mathbf{G}$.
+
+-   $\boldsymbol{\epsilon} \sim N(0, \mathbf{R})$ = Vector of residual errors with covariance matrix $\mathbf{R}$, where $\mathbf{R}$ follows the power covariance structure.
+
+------------------------------------------------------------------------
+
+## Application: Mixed Models in Practice
+
+Several R packages are available for fitting mixed-effects models, each with unique strengths:
 
 -   `nlme`
-
-    -   has nested structure
-
-    -   flexible for complex design
-
-    -   not user-friendly
-
+    -   Supports nested and crossed random effects.
+    -   Flexible for complex covariance structures.
+    -   Less intuitive syntax compared to `lme4`.
 -   `lme4`
+    -   Computationally efficient and widely used.
+    -   User-friendly formula syntax.
+    -   Can handle non-normal responses (e.g., GLMMs).
+    -   For detailed documentation, refer to @bates2014fittinglinearmixedeffectsmodels.
+-   Others:
+    -   Bayesian Mixed Models: `MCMCglmm`, `brms`.
+    -   Genetics/Plant Breeding: `ASReml`.
 
-    -   computationally efficient
+------------------------------------------------------------------------
 
-    -   user-friendly
+### Example 1: Pulp Brightness Analysis
 
-    -   can handle non-normal response
+#### Model Specification
 
-    -   for more detailed application, check [Fitting Linear Mixed-Effects Models Using lme4](https://arxiv.org/abs/1406.5823)
-
--   Others
-
-    -   Bayesian setting: `MCMCglmm`, `brms`
-
-    -   For genetics: `ASReml`
-
-### Example 1 (Pulps)
-
-Model:
+We start with a [random-intercepts model](#sec-random-intercepts-model-lmm) for pulp brightness:
 
 $$
 y_{ij} = \mu + \alpha_i + \epsilon_{ij}
 $$
 
-where
+Where:
 
--   $i = 1,..,a$ groups for random effect $\alpha_i$
--   $j = 1,...,n$ individuals in each group
--   $\alpha_i \sim N(0, \sigma^2_\alpha)$ is random effects
--   $\epsilon_{ij} \sim N(0, \sigma^2_\epsilon)$ is random effects
--   Imply compound symmetry model where the intraclass correlation coefficient is: $\rho = \frac{\sigma^2_\alpha}{\sigma^2_\alpha + \sigma^2_\epsilon}$
--   If factor $a$ does not explain much variation, low correlation within the levels: $\sigma^2_\alpha \to 0$ then $\rho \to 0$
--   If factor $a$ explain much variation, high correlation within the levels $\sigma^2_\alpha \to \infty$ hence, $\rho \to 1$
+-   $i = 1, \dots, a$ = Groups for random effect $\alpha_i$.
+
+-   $j = 1, \dots, n$ = Observations per group.
+
+-   $\mu$ = Overall mean brightness (fixed effect).
+
+-   $\alpha_i \sim N(0, \sigma^2_\alpha)$ = Group-specific random effect.
+
+-   $\epsilon_{ij} \sim N(0, \sigma^2_\epsilon)$ = Residual error.
+
+This implies a compound symmetry structure, where the intraclass correlation coefficient is:
+
+$$
+\rho = \frac{\sigma^2_\alpha}{\sigma^2_\alpha + \sigma^2_\epsilon}
+$$
+
+-   If $\sigma^2_\alpha \to 0$: Low correlation within groups ($\rho \to 0$) (i.e., when factor $a$ doesn't explain much variation).
+-   If $\sigma^2_\alpha \to \infty$: High correlation within groups ($\rho \to 1$).
+
+#### Data Exploration
 
 ```{r}
 data(pulp, package = "faraway")
-plot(
-    y    = pulp$bright,
-    x    = pulp$operator,
-    xlab = "Operator",
-    ylab = "Brightness"
-)
-pulp %>% dplyr::group_by(operator) %>% 
-    dplyr::summarise(average = mean(bright))
+library(ggplot2)
+library(dplyr)
 
+# Visualize brightness by operator
+ggplot(pulp, aes(x = operator, y = bright)) +
+    geom_boxplot(fill = "lightblue") +
+    labs(title = "Pulp Brightness by Operator",
+         x = "Operator",
+         y = "Brightness") +
+    theme_minimal()
+
+# Group-wise summary
+pulp %>%
+    group_by(operator) %>%
+    summarise(average_brightness = mean(bright), .groups = 'drop')
 ```
 
-`lmer` application
+#### Fitting the Mixed Model with `lme4`
 
 ```{r}
 library(lme4)
-mixed_model <-
-    lmer(
-        # pipe (i..e, | ) denotes random-effect terms
-        formula = bright ~ 1 + (1 |operator), 
-         data = pulp)
-summary(mixed_model)
-coef(mixed_model)
-fixef(mixed_model)   # fixed effects
-confint(mixed_model) # confidence interval
-ranef(mixed_model)   # random effects
-VarCorr(mixed_model) # random effects standard deviation
-re_dat = as.data.frame(VarCorr(mixed_model))
 
-# rho based on the above formula
-rho = re_dat[1, 'vcov'] / (re_dat[1, 'vcov'] + re_dat[2, 'vcov'])
+# Random intercepts model: operator as a random effect
+mixed_model <- lmer(bright ~ 1 + (1 | operator), data = pulp)
+
+# Model summary
+summary(mixed_model)
+
+# Fixed effects (overall mean)
+fixef(mixed_model)
+
+# Random effects (BLUPs)
+ranef(mixed_model)
+
+# Variance components
+VarCorr(mixed_model)
+re_dat <- as.data.frame(VarCorr(mixed_model))
+
+# Intraclass Correlation Coefficient
+rho <- re_dat[1, 'vcov'] / (re_dat[1, 'vcov'] + re_dat[2, 'vcov'])
 rho
 ```
 
-To Satterthwaite approximation for the denominator df, we use `lmerTest`
+#### Inference with `lmerTest`
+
+To obtain p-values for fixed effects using Satterthwaite's approximation:
 
 ```{r}
 library(lmerTest)
-summary(lmerTest::lmer(bright ~ 1 + (1 | operator), pulp))$coefficients
-confint(mixed_model)[3, ]
+
+# Model with p-values
+summary(lmer(bright ~ 1 + (1 | operator), data = pulp))$coefficients
+
+# Confidence interval for the fixed effect
+confint(mixed_model)[3,]
 ```
 
-In this example, we can see that the confidence interval computed by `confint` in `lmer` package is very close is `confint` in `lmerTest` model.
+In this example, we can see that the confidence interval computed by `confint` from the `lme4` package is very close to the one computed by `confint` from the `lmerTest` package.
 
-`MCMglmm` application
-
-under the Bayesian framework
+#### Bayesian Mixed Model with `MCMCglmm`
 
 ```{r}
 library(MCMCglmm)
-mixed_model_bayes <-
-    MCMCglmm(
-        bright ~ 1,
-        random =  ~ operator,
-        data = pulp,
-        verbose = FALSE
-    )
+
+# Bayesian mixed model
+mixed_model_bayes <- MCMCglmm(
+  bright ~ 1,
+  random = ~ operator,
+  data = pulp,
+  verbose = FALSE
+)
+
+# Posterior summaries
 summary(mixed_model_bayes)$solutions
 ```
 
-this method offers the confidence interval slightly more positive than `lmer` and `lmerTest`
+Bayesian credible intervals may differ slightly from frequentist confidence intervals due to prior assumptions.
 
-#### Prediction
+#### Predictions
 
 ```{r}
-# random effects prediction (BLUPs)
+# Random effects predictions (BLUPs)
 ranef(mixed_model)$operator
 
-# prediction for each categories
-fixef(mixed_model) + ranef(mixed_model)$operator 
+# Predictions per operator
+fixef(mixed_model) + ranef(mixed_model)$operator
 
-# equivalent to the above method
-predict(mixed_model, newdata = data.frame(operator = c('a', 'b', 'c', 'd'))) 
-
+# Equivalent using predict()
+predict(mixed_model, newdata = data.frame(operator = c('a', 'b', 'c', 'd')))
 ```
 
-use `bootMer()` to get bootstrap-based confidence intervals for predictions.
+For **bootstrap confidence intervals**, use:
 
-Another example using GLMM in the context of blocking
+```{r}
+bootMer(mixed_model, FUN = fixef, nsim = 100)
+```
 
-Penicillin data
+### Example 2: Penicillin Yield (GLMM with Blocking)
 
 ```{r}
 data(penicillin, package = "faraway")
-summary(penicillin)
 library(ggplot2)
-ggplot(penicillin, aes(
-    y     = yield,
-    x     = treat,
-    shape = blend,
-    color = blend
-)) + 
-    # treatment = fixed effect
-    # blend = random effects
-    geom_point(size = 3) +
-    xlab("Treatment")
 
-library(lmerTest) # for p-values
-mixed_model <- lmerTest::lmer(yield ~ treat + (1 | blend),
-                              data = penicillin)
+# Visualize yield by treatment and blend
+ggplot(penicillin, aes(y = yield, x = treat, shape = blend, color = blend)) +
+  geom_point(size = 3) +
+  labs(title = "Penicillin Yield by Treatment and Blend") +
+  theme_minimal()
+
+# Mixed model: blend as random effect, treatment as fixed
+mixed_model <- lmer(yield ~ treat + (1 | blend), data = penicillin)
 summary(mixed_model)
 
-#The BLUPs for the each blend
+# BLUPs for each blend
 ranef(mixed_model)$blend
 ```
 
-Examine treatment effect
+Testing for Treatment Effect
 
 ```{r}
-anova(mixed_model) # p-value based on lmerTest
+# ANOVA for fixed effects
+anova(mixed_model)
 ```
 
-Since the p-value is greater than 0.05, we can't reject the null hypothesis that there is no treatment effect.
+Since the $p$-value $> .05$, we fail to reject the null hypothesis (no treatment effect).
+
+Model Comparison with Kenward-Roger Approximation
 
 ```{r}
 library(pbkrtest)
-# REML is not appropriate for testing fixed effects, it should be ML
-full_model <-
-    lmer(yield ~ treat + (1 | blend), 
-         penicillin, 
-         REML = FALSE) 
-null_model <- lmer(yield ~ 1 + (1 | blend), 
-                   penicillin, 
-                   REML = FALSE)
 
-# use  Kenward-Roger approximation for df
-KRmodcomp(full_model, null_model) 
+# Full model vs. null model
+full_model <-
+    lmer(yield ~ treat + (1 | blend), penicillin, REML = FALSE)
+null_model <-
+    lmer(yield ~ 1 + (1 | blend), penicillin, REML = FALSE)
+
+# Kenward-Roger approximation
+KRmodcomp(full_model, null_model)
 ```
 
-Since the p-value is greater than 0.05, and consistent with our previous observation, we conclude that we can't reject the null hypothesis that there is no treatment effect.
+The results are consistent with the earlier ANOVA: **no significant treatment effect**.
 
-### Example 2 (Rats)
+### Example 3: Growth in Rats Over Time
 
 ```{r}
 rats <- read.csv(
     "images/rats.dat",
-    header = F,
+    header = FALSE,
     sep = ' ',
     col.names = c('Treatment', 'rat', 'age', 'y')
 )
 
-# log transformed age
-rats$t <- log(1 + (rats$age - 45) / 10) 
+# Log-transformed time variable
+rats$t <- log(1 + (rats$age - 45) / 10)
 ```
 
-We are interested in whether treatment effect induces changes over time.
+Model Fitting
 
 ```{r}
-rat_model <-
-    # treatment = fixed effect, rat = random effects
-    lmerTest::lmer(y ~ t:Treatment + (1 | rat), 
-                   data = rats) 
+# Treatment as fixed effect, random intercepts for rats
+rat_model <- lmer(y ~ t:Treatment + (1 | rat), data = rats)
 summary(rat_model)
 anova(rat_model)
 ```
 
-Since the p-value is significant, we can be confident concluding that there is a treatment effect
+Since the **p-value is significant**, we conclude that the **treatment effect varies over time**.
 
-### Example 3 (Agridat)
+### Example 4: Tree Water Use (Agridat)
 
 ```{r}
 library(agridat)
-library(latticeExtra)
 dat <- harris.wateruse
-# Compare to Schabenberger & Pierce, fig 7.23
+
+# Visualizing water use by species and age
+library(latticeExtra)
 useOuterStrips(
-    xyplot(
-        water ~ day | species * age,
-        dat,
-        as.table = TRUE,
-        group = tree,
-        type = c('p', 'smooth'),
-        main = "harris.wateruse 2 species, 2 ages (10 trees each)"
-    )
+  xyplot(water ~ day | species * age, 
+         dat, group = tree,
+         type = c('p', 'smooth'), 
+         main = "harris.wateruse 2 species, 2 ages (10 trees each)",
+         as.table = TRUE)
 )
 ```
 
-Remove outliers
+Remove outlier
 
 ```{r}
 dat <- subset(dat, day!=268)
 ```
 
-Plot between age and species
+Plot between water use and day for one age and species group
 
 ```{r}
 xyplot(
@@ -1707,15 +2911,16 @@ xyplot(
 ```
 
 ```{r}
-# Rescale day for nicer output, 
-# and convergence issues, add quadratic term
+# Rescale day for nicer output, and convergence issues
 dat <- transform(dat, ti = day / 100)
+# add quadratic term
 dat <- transform(dat, ti2 = ti * ti)
+
 # Start with a subgroup: age 2, species 2
 d22 <- droplevels(subset(dat, age == "A2" & species == "S2"))
 ```
 
-`lme` function from `nlme` package
+Fitting with `nlme` using `lme`
 
 ```{r}
 library(nlme)
@@ -1730,39 +2935,51 @@ m1n <- lme(
     # random intercept, time 
     # and time squared per tree = random effects
 )
-ranef(m1n)
-```
 
-```{r}
-fixef(m1n)
+# for all trees
+# m1n <- lme(
+#   water ~ 1 + ti + ti2,
+#   random = list(tree = pdDiag(~ 1 + ti + ti2)),
+#   data = dat,
+#   na.action = na.omit
+# )
+
 summary(m1n)
 
+ranef(m1n)
+
+fixef(m1n)
 ```
 
-`lmer` function from `lme4` package
+Fitting with `lme4` using `lmer`
 
 ```{r}
+library(lme4)
+
 m1lmer <-
     lmer(water ~ 1 + ti + ti2 + (ti + ti2 ||
                                      tree),
          data = d22,
          na.action = na.omit)
+
+# for all trees
+# m1lmer <- lmer(water ~ 1 + ti + ti2 + (ti + ti2 || tree),
+#                data = dat, na.action = na.omit)
+
+# summary(m1lmer)
 ranef(m1lmer)
 
+fixef(m1lmer)
 ```
 
 Notes:
 
--   `||` double pipes= uncorrelated random effects
-
+-   `||` double pipes = uncorrelated random effects
 -   To remove the intercept term:
-
     -   `(0+ti|tree)`
-
     -   `(ti-1|tree)`
 
 ```{r}
-fixef(m1lmer)
 m1l <-
     lmer(water ~ 1 + ti + ti2 
          + (1 | tree) + (0 + ti | tree) 
@@ -1771,7 +2988,7 @@ ranef(m1l)
 fixef(m1l)
 ```
 
-To include structured covariance terms, we can use the following way
+Adding Correlation Structure
 
 ```{r}
 m2n <- lme(
@@ -1781,7 +2998,27 @@ m2n <- lme(
     cor = corExp(form =  ~ day | tree),
     na.action = na.omit
 )
+
+# for all trees
+# m2n <- lme(
+#   water ~ 1 + ti + ti2,
+#   random = ~ 1 | tree,
+#   cor = corExp(form = ~ day | tree),
+#   data = dat,
+#   na.action = na.omit
+# )
+
+summary(m2n)
 ranef(m2n)
 fixef(m2n)
-summary(m2n)
 ```
+
+**Key Takeaways**
+
+-   `lme4` is preferred for general mixed models due to efficiency and simplicity.
+
+-   `nlme` is powerful for complex correlation structures and nested designs.
+
+-   Bayesian models (e.g., `MCMCglmm`) offer flexible inference under uncertainty.
+
+-   Always consider model diagnostics and random effects structure carefully.

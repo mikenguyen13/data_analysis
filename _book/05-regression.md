@@ -3919,11 +3919,7 @@ This distinction highlights the utility of asymptotic properties in providing ro
 
 ##### Normality of Errors
 
-Ensuring the normality of errors is a critical assumption in many regression models. Deviations from this assumption can impact inference and model interpretation. Diagnostics for assessing normality include:
-
--   
-
--   [Methods Based on Empirical Cumulative Distribution Function]: The ECDF of residuals can be compared to the cumulative distribution function (CDF) of the standard normal distribution.
+Ensuring the normality of errors is a critical assumption in many regression models. Deviations from this assumption can impact inference and model interpretation. For diagnoses assessing normality, see [Normality Assessment].
 
 Plots are invaluable for visual inspection of normality. One common approach is the Q-Q plot, which compares the quantiles of the residuals against those of a standard normal distribution:
 
