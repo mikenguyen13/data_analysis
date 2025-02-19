@@ -2293,7 +2293,7 @@ Practical Notes
 -   Use Type I SS (Sequential SS) when:
     -   Interested in understanding the incremental contribution of predictors based on a specific order of entry (e.g., stepwise regression).
 
-#### OLS Assumptions
+#### OLS Assumptions {#ols-assumptions}
 
 -   [A1 Linearity](#a1-linearity)
 -   [A2 Full Rank](#a2-full-rank)
@@ -2529,7 +2529,7 @@ Practical Considerations
 -   Checking Random Sampling:
     -   While true randomness cannot always be verified, exploratory analysis of the residuals (e.g., for patterns or autocorrelation) can help detect violations.
 
-###### A5a: Stationarity in Stochastic Processes
+###### A5a: Stationarity in Stochastic Processes {#A5a-stationarity-in-stochastic-processes}
 
 A stochastic process $\{x_t\}_{t=1}^T$ is stationary if, for every collection of time indices $\{t_1, t_2, \dots, t_m\}$, the joint distribution of:
 
@@ -2840,7 +2840,7 @@ Properties:
 
 ------------------------------------------------------------------------
 
-###### A5a: Stationarity and Weak Dependence in Time Series
+###### A5a: Stationarity and Weak Dependence in Time Series {#A5a-stationarity-and-weak-dependence-in-time-series}
 
 For time series data, the set $\{y_t, x_{t1}, \dots, x_{tk-1}\}$, where $t = 1, \dots, T$, must satisfy the conditions of **stationarity** and **weak dependence**. These properties are essential to ensure the consistency and efficiency of estimators in time-series regression models.
 
@@ -2969,7 +2969,7 @@ This table summarizes the hierarchical nature of assumptions required to derive 
 
 #### Theorems
 
-##### Frisch--Waugh--Lovell Theorem
+##### Frisch--Waugh--Lovell Theorem {#Frisch–Waugh–Lovell Theorem}
 
 The Frisch--Waugh--Lovell (FWL) Theorem is a fundamental result in linear regression that allows for a deeper understanding of how coefficients are computed in a multiple regression setting [@lovell2008simple]. Informally, it states:
 
@@ -5786,7 +5786,7 @@ If the assumptions about $\boldsymbol{\Omega}$ are incorrect or infeasible, use 
 
 ------------------------------------------------------------------------
 
-### Weighted Least Squares
+### Weighted Least Squares {#weighted-least-squares}
 
 In the presence of heteroskedasticity, the errors $\epsilon_i$ have non-constant variance $Var(\epsilon_i|\mathbf{x}_i) = \sigma_i^2$. This violates the Gauss-Markov assumption of homoskedasticity, leading to inefficient OLS estimates.
 

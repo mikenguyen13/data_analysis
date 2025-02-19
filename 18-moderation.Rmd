@@ -1,0 +1,729 @@
+# Moderation
+
+Moderation analysis examines how the relationship between an independent variable ($X$) and a dependent variable ($Y$) changes depending on a third variable, the *moderator* ($M$). In regression terms, moderation is represented as an interaction effect.
+
+## Types of Moderation Analyses
+
+There are two primary approaches to analyzing moderation:
+
+1\. Spotlight Analysis
+
+-   Also known as **Simple Slopes Analysis**.
+-   Examines the effect of $X$ on $Y$ at specific values of $M$ (e.g., mean, $\pm 1$ SD, percentiles).
+-   Typically used for categorical or discretized moderators.
+
+2\. Floodlight Analysis
+
+-   Extends spotlight analysis to examine moderation across the entire range of $M$.
+-   Based on [Johnson-Neyman Intervals], identifying values of $M$ where the effect of $X$ on $Y$ is statistically significant.
+-   Useful when the moderator is continuous and no specific cutoffs are predefined.
+
+## Key Terminology
+
+-   **Main Effect**: The effect of an independent variable without considering interactions.
+-   **Interaction Effect**: The combined effect of $X$ and $M$ on $Y$.
+-   **Simple Slope**: The slope of $X$ on $Y$ at a specific value of $M$ (used when $M$ is continuous).
+-   **Simple Effect**: The effect of $X$ on $Y$ at a particular level of $M$ when $X$ is categorical.
+
+## Moderation Model
+
+A typical moderation model is represented as:
+
+$$
+Y = \beta_0 + \beta_1 X + \beta_2 M + \beta_3 X \times M + \varepsilon
+$$
+
+where:
+
+-   $\beta_0$: Intercept
+
+-   $\beta_1$: Main effect of $X$
+
+-   $\beta_2$: Main effect of $M$
+
+-   $\beta_3$: Interaction effect of $X$ and $M$
+
+If $\beta_3$ is significant, it suggests that the effect of $X$ on $Y$ depends on $M$.
+
+## Types of Interactions
+
+1.  **Continuous by Continuous**: Both $X$ and $M$ are continuous (e.g., age moderating the effect of income on spending).
+2.  **Continuous by Categorical**: $X$ is continuous, and $M$ is categorical (e.g., gender moderating the effect of education on salary).
+3.  **Categorical by Categorical**: Both $X$ and $M$ are categorical (e.g., the effect of a training program on performance, moderated by job role).
+
+## Three-Way Interactions
+
+For models with a second moderator ($W$), we examine:
+
+$$
+\begin{aligned}
+Y &= \beta_0 + \beta_1 X + \beta_2 M + \beta_3 W 
++ \beta_4 X \times M \\
+&+ \beta_5 X \times W + \beta_6 M \times W + \beta_7 X \times M \times W + \varepsilon
+\end{aligned}
+$$
+
+-   To interpret three-way interactions, the **slope difference test** can be used [@dawson2006probing].
+
+## Additional Resources
+
+-   **Bayesian ANOVA models**: `BANOVAL` package allows floodlight analysis.
+-   **Structural Equation Modeling**: `cSEM` package includes `doFloodlightAnalysis`.
+
+For more details, refer to [@spiller2013].
+
+## Application
+
+### `emmeans` Package
+
+The `emmeans` package (Estimated Marginal Means) is a powerful tool for post-hoc analysis of linear models, enabling researchers to explore interaction effects through simple slopes and estimated marginal means.
+
+To install and load the package:
+
+```{r, eval=FALSE}
+install.packages("emmeans")
+```
+
+The dataset used in this section is sourced from the [UCLA Statistical Consulting Group](https://stats.oarc.ucla.edu/r/seminars/interactions-r/), where:
+
+-   `gender` (male, female) and `prog` (exercise program: jogging, swimming, reading) are categorical variables.
+
+-   `loss` represents weight loss, and `hours` and `effort` are continuous predictors.
+
+```{r}
+library(tidyverse)
+dat <- readRDS("data/exercise.rds") %>%
+    mutate(prog = factor(prog, labels = c("jog", "swim", "read"))) %>%
+    mutate(gender = factor(gender, labels = c("male", "female")))
+```
+
+#### Continuous by Continuous Interaction
+
+We begin with an interaction model between two continuous variables: `hours` (exercise duration) and `effort` (self-reported effort level).
+
+```{r}
+contcont <- lm(loss ~ hours * effort, data = dat)
+summary(contcont)
+
+```
+
+##### Simple Slopes Analysis (Spotlight Analysis)
+
+Following @aiken2005interaction, the spotlight analysis examines the effect of `hours` on `loss` at three levels of `effort`:
+
+-   Mean of `effort` plus one standard deviation
+
+-   Mean of `effort`
+
+-   Mean of `effort` minus one standard deviation
+
+```{r}
+library(emmeans)
+effar <- round(mean(dat$effort) + sd(dat$effort), 1)
+effr  <- round(mean(dat$effort), 1)
+effbr <- round(mean(dat$effort) - sd(dat$effort), 1)
+
+
+
+# Define values for estimation
+mylist <- list(effort = c(effbr, effr, effar))
+
+# Compute simple slopes
+emtrends(contcont, ~ effort, var = "hours", at = mylist)
+
+# Visualization of the interaction
+mylist <- list(hours = seq(0, 4, by = 0.4),
+               effort = c(effbr, effr, effar))
+emmip(contcont, effort ~ hours, at = mylist, CIs = TRUE)
+
+# Test statistical differences in slopes
+emtrends(
+    contcont,
+    pairwise ~ effort,
+    var = "hours",
+    at = mylist,
+    adjust = "none"
+)
+```
+
+The three p-values obtained above correspond to the interaction term in the regression model.
+
+For a professional figure, we refine the visualization using `ggplot2`:
+
+```{r}
+library(ggplot2)
+
+# Prepare data for plotting
+mylist <- list(hours = seq(0, 4, by = 0.4),
+               effort = c(effbr, effr, effar))
+contcontdat <-
+    emmip(contcont,
+          effort ~ hours,
+          at = mylist,
+          CIs = TRUE,
+          plotit = FALSE)
+
+# Convert effort levels to factors
+contcontdat$feffort <- factor(contcontdat$effort)
+levels(contcontdat$feffort) <- c("low", "medium", "high")
+
+# Generate plot
+p  <-
+    ggplot(data = contcontdat,
+           aes(x = hours, y = yvar, color = feffort)) +
+    geom_line()
+
+p1 <-
+    p +
+    geom_ribbon(aes(ymax = UCL, ymin = LCL, fill = feffort),
+                alpha = 0.4)
+
+p1  + labs(x = "Exercise Hours",
+           y = "Weight Loss",
+           color = "Effort",
+           fill = "Effort Level")
+
+```
+
+#### Continuous by Categorical Interaction
+
+Next, we examine an interaction where `hours` (continuous) interacts with `gender` (categorical). We set "Female" as the reference category:
+
+```{r}
+dat$gender <- relevel(dat$gender, ref = "female")
+contcat <- lm(loss ~ hours * gender, data = dat)
+summary(contcat)
+
+```
+
+Simple Slopes by Gender
+
+```{r}
+# Compute simple slopes for each gender
+emtrends(contcat, ~ gender, var = "hours")
+
+# Test slope differences
+emtrends(contcat, pairwise ~ gender, var = "hours")
+```
+
+Since this test is equivalent to the interaction term in the regression model, a significant result confirms a moderating effect of `gender`.
+
+```{r}
+mylist <- list(hours = seq(0, 4, by = 0.4),
+               gender = c("female", "male"))
+emmip(contcat, gender ~ hours, at = mylist, CIs = TRUE)
+
+```
+
+#### Categorical by Categorical Interaction
+
+Now, we examine the interaction between two categorical variables: `gender` (male, female) and `prog` (exercise program). We set "Read" as the reference category for `prog` and "Female" for `gender`:
+
+```{r}
+dat$prog   <- relevel(dat$prog, ref = "read")
+dat$gender <- relevel(dat$gender, ref = "female")
+
+catcat <- lm(loss ~ gender * prog, data = dat)
+summary(catcat)
+
+```
+
+Simple Effects and Contrast Analysis
+
+```{r}
+# Estimated marginal means for all combinations of gender and program
+emcatcat <- emmeans(catcat, ~ gender * prog)
+
+# Compare effects of gender within each program
+contrast(emcatcat, "revpairwise", by = "prog", adjust = "bonferroni")
+
+```
+
+```{r}
+emmip(catcat, prog ~ gender, CIs = TRUE)
+
+```
+
+For a more intuitive presentation, we use a bar graph with error bars
+
+```{r}
+# Prepare data
+catcatdat <- emmip(catcat,
+                   gender ~ prog,
+                   CIs = TRUE,
+                   plotit = FALSE)
+
+# Generate plot
+p <-
+    ggplot(data = catcatdat,
+           aes(x = prog, y = yvar, fill = gender)) +
+    geom_bar(stat = "identity", position = "dodge")
+
+p1 <-
+    p + geom_errorbar(
+        position = position_dodge(.9),
+        width = .25,
+        aes(ymax = UCL, ymin = LCL),
+        alpha = 0.3
+    )
+
+p1  + labs(x = "Exercise Program",
+           y = "Weight Loss",
+           fill = "Gender")
+```
+
+### `probemod` Package
+
+The `probemod` package is designed for moderation analysis, particularly focusing on **Johnson-Neyman intervals** and **simple slopes analysis**. However, **this package is not recommended** due to known issues with subscript handling and formatting errors in some outputs.
+
+```{r, eval=FALSE}
+install.packages("probemod", dependencies = T)
+```
+
+The **Johnson-Neyman technique** identifies values of the moderator (`gender`) where the effect of the independent variable (`hours`) on the dependent variable (`loss`) is statistically significant. This method is particularly useful when the moderator is continuous but can also be applied to categorical moderators.
+
+Example: J-N Analysis in a `loss ~ hours * gender` Model
+
+```{r, eval = FALSE}
+library(probemod)
+
+myModel <-
+    lm(loss ~ hours * gender, data = dat %>% 
+           select(loss, hours, gender))
+
+jnresults <- jn(myModel,
+                dv = 'loss',
+                iv = 'hours',
+                mod = 'gender')
+
+```
+
+The `jn()` function computes Johnson-Neyman intervals, highlighting the values of `gender` at which the relationship between `hours` and `loss` is statistically significant.
+
+The **Pick-a-Point** method tests the simple effect of `hours` at specific values of `gender`, akin to spotlight analysis.
+
+```{r, eval = FALSE}
+pickapoint(
+    myModel,
+    dv = 'loss',
+    iv = 'hours',
+    mod = 'gender',
+    alpha = .01
+)
+
+plot(jnresults)
+```
+
+### `interactions` Package
+
+The `interactions` package is a **recommended** tool for visualizing and interpreting interaction effects in regression models. It provides user-friendly functions for **interaction plots**, **simple slopes analysis**, and **Johnson-Neyman intervals**, making it an excellent choice for moderation analysis.
+
+```{r, eval=FALSE}
+install.packages("interactions")
+```
+
+#### Continuous by Continuous Interaction
+
+This section covers interactions where at least one of the two variables is continuous.
+
+Example: Interaction Between `Illiteracy` and `Murder`
+
+We use the `state.x77` dataset to explore how **Illiteracy Rate** and **Murder Rate** interact to predict **Income** across U.S. states.
+
+```{r}
+states <- as.data.frame(state.x77)
+fiti <- lm(Income ~ Illiteracy * Murder + `HS Grad`, data = states)
+summary(fiti)
+```
+
+For continuous moderators, the standard values chosen for visualization are:
+
+-   **Mean + 1 SD**
+
+-   **Mean**
+
+-   **Mean - 1 SD**
+
+The `interact_plot()` function provides an easy way to visualize these effects.
+
+```{r}
+library(interactions)
+interact_plot(fiti,
+              pred = Illiteracy,
+              modx = Murder,
+              
+              # Disable automatic mean-centering
+              centered = "none", 
+              
+              # Exclude the mean value of the moderator
+              # modx.values = "plus-minus", 
+              
+              # Divide the moderator's distribution into three groups
+              # modx.values = "terciles", 
+              
+              plot.points = TRUE, # Overlay raw data
+              
+              # Different shapes for different levels of the moderator
+              point.shape = TRUE, 
+              
+              # Jittering to prevent overplotting
+              jitter = 0.1, 
+              
+              # Custom appearance
+              x.label = "Illiteracy Rate (%)", 
+              y.label = "Income ($)", 
+              main.title = "Interaction Between Illiteracy and Murder Rate",
+              legend.main = "Murder Rate Levels",
+              colors = "blue",
+              
+              # Confidence bands
+              interval = TRUE, 
+              int.width = 0.9, 
+              robust = TRUE # Use robust standard errors
+              ) 
+```
+
+If the model includes **weights**, they can be incorporated into the visualization
+
+```{r}
+fiti <- lm(Income ~ Illiteracy * Murder,
+           data = states,
+           weights = Population)
+
+interact_plot(fiti,
+              pred = Illiteracy,
+              modx = Murder,
+              plot.points = TRUE)
+
+```
+
+A **partial effect plot** shows how the effect of one variable changes across different levels of another variable while controlling for other predictors.
+
+```{r}
+library(ggplot2)
+data(cars)
+
+fitc <- lm(cty ~ year + cyl * displ + class + fl + drv, 
+           data = mpg)
+summary(fitc)
+
+interact_plot(
+    fitc,
+    pred = displ,
+    modx = cyl,
+    
+    # Show observed data as partial residuals
+    partial.residuals = TRUE, 
+    
+    # Specify moderator values manually
+    modx.values = c(4, 5, 6, 8)
+)
+```
+
+To check whether an interaction is **truly linear**, we can compare fitted lines based on:
+
+-   **The whole sample** (black line)
+
+-   **Subsamples** based on the moderator (red line)
+
+```{r}
+# Generate synthetic data
+x_2 <- runif(n = 200, min = -3, max = 3)
+w   <- rbinom(n = 200, size = 1, prob = 0.5)
+err <- rnorm(n = 200, mean = 0, sd = 4)
+y_2 <- 2.5 - x_2 ^ 2 - 5 * w + 2 * w * (x_2 ^ 2) + err
+
+data_2 <- as.data.frame(cbind(x_2, y_2, w))
+
+# Fit interaction model
+model_2 <- lm(y_2 ~ x_2 * w, data = data_2)
+summary(model_2)
+
+# Linearity check plot
+interact_plot(
+    model_2,
+    pred = x_2,
+    modx = w,
+    linearity.check = TRUE,
+    plot.points = TRUE
+)
+
+```
+
+##### Simple Slopes Analysis
+
+A **simple slopes analysis** examines the **conditional effect** of an independent variable ($X$) at specific levels of the moderator ($M$).
+
+How `sim_slopes()` Works:
+
+-   **Continuous moderators**: Analyzes effects at the **mean** and **±1 SD**.
+
+-   **Categorical moderators**: Uses all factor levels.
+
+-   **Mean-centers all variables** except the predictor of interest.
+
+Example: Continuous by Continuous Interaction
+
+```{r}
+sim_slopes(fiti,
+           pred = Illiteracy,
+           modx = Murder,
+           johnson_neyman = FALSE)
+```
+
+We can also visualize the simple slopes
+
+```{r}
+# Store results
+ss <- sim_slopes(fiti,
+                 pred = Illiteracy,
+                 modx = Murder,
+                 modx.values = c(0, 5, 10))
+
+# Plot the slopes
+plot(ss)
+
+```
+
+For publication-quality results, we convert the simple slopes analysis into a table using `huxtable`.
+
+```{r}
+library(huxtable)
+
+ss <- sim_slopes(fiti,
+                 pred = Illiteracy,
+                 modx = Murder,
+                 modx.values = c(0, 5, 10))
+
+# Convert to a formatted table
+as_huxtable(ss)
+
+```
+
+##### Johnson-Neyman Intervals
+
+The **Johnson-Neyman technique** identifies the range of the moderator ($M$) where the effect of the predictor ($X$) on the dependent variable ($Y$) is statistically significant. This approach is useful when the moderator is continuous, allowing us to determine where an effect exists rather than arbitrarily choosing values.
+
+Although the J-N approach has been widely used [@johnson1936tests], it has known **inflated Type I error rates** [@bauer2005probing]. A correction method was proposed by [@esarey2018marginal] to address these issues.
+
+Since J-N performs multiple comparisons across all values of the moderator, it **inflates Type I error**. To control for this, we use [False Discovery Rate] correction.
+
+Example: Johnson-Neyman Analysis
+
+```{r}
+sim_slopes(
+    fiti,
+    pred = Illiteracy,
+    modx = Murder,
+    johnson_neyman = TRUE,
+    control.fdr = TRUE,  # Correction for Type I and II errors
+    
+    # Include conditional intercepts
+    # cond.int = TRUE, 
+    
+    robust = "HC3",  # Use robust SE
+    
+    # Don't mean-center non-focal variables
+    # centered = "none",
+    
+    jnalpha = 0.05  # Significance level
+)
+```
+
+To visualize the J-N intervals
+
+```{r}
+johnson_neyman(fiti,
+               pred = Illiteracy,
+               modx = Murder,
+               control.fdr = TRUE, # Corrects for Type I error
+               alpha = .05)
+
+```
+
+-   The y-axis represents the conditional slope of the predictor ($X$).
+
+<!-- -->
+
+-   The x-axis represents the values of the moderator ($M$).
+
+-   The shaded region represents the range where the effect of $X$ on $Y$ is statistically significant.
+
+##### Three-Way Interactions
+
+In three-way interactions, the effect of $X$ on $Y$ depends on **two moderators** ($M_1$ and $M_2$). This allows for a more nuanced understanding of moderation effects.
+
+Example: 3-Way Interaction Visualization
+
+```{r}
+library(jtools)
+# Convert 'cyl' to factor
+mtcars$cyl <- factor(mtcars$cyl,
+                     labels = c("4 cylinder", "6 cylinder", "8 cylinder"))
+
+# Fit the model
+fitc3 <- lm(mpg ~ hp * wt * cyl, data = mtcars)
+
+# Plot interaction
+interact_plot(fitc3,
+              pred = hp,
+              modx = wt,
+              mod2 = cyl) +
+    theme_apa(legend.pos = "bottomright")
+
+```
+
+##### Johnson-Neyman for Three-Way Interaction
+
+The Johnson-Neyman technique can also be applied in a **three-way interaction context**
+
+```{r}
+library(survey)
+data(api)
+
+# Define survey design
+dstrat <- svydesign(
+    id = ~ 1,
+    strata = ~ stype,
+    weights = ~ pw,
+    data = apistrat,
+    fpc = ~ fpc
+)
+
+# Fit 3-way interaction model
+regmodel3 <-
+    survey::svyglm(api00 ~ avg.ed * growth * enroll, design = dstrat)
+
+# Johnson-Neyman analysis with visualization
+sim_slopes(
+    regmodel3,
+    pred = growth,
+    modx = avg.ed,
+    mod2 = enroll,
+    jnplot = TRUE
+)
+
+```
+
+To present the results in a **publication-ready format**, we generate tables and plots
+
+```{r}
+ss3 <-
+    sim_slopes(regmodel3,
+               pred = growth,
+               modx = avg.ed,
+               mod2 = enroll)
+
+# Plot results
+plot(ss3)
+
+# Convert results into a formatted table
+library(huxtable)
+as_huxtable(ss3)
+
+```
+
+#### Categorical Interactions
+
+Interactions between categorical predictors can be visualized using **categorical plots**.
+
+Example: Interaction Between `cyl`, `fwd`, and `auto`
+
+```{r}
+library(ggplot2)
+
+# Convert variables to factors
+mpg2 <- mpg %>%
+    mutate(cyl = factor(cyl))
+
+mpg2["auto"] <- "auto"
+mpg2$auto[mpg2$trans %in% c("manual(m5)", "manual(m6)")] <- "manual"
+mpg2$auto <- factor(mpg2$auto)
+
+mpg2["fwd"] <- "2wd"
+mpg2$fwd[mpg2$drv == "4"] <- "4wd"
+mpg2$fwd <- factor(mpg2$fwd)
+
+# Drop cars with 5 cylinders (since most have 4, 6, or 8)
+mpg2 <- mpg2[mpg2$cyl != "5",]
+
+# Fit the model
+fit3 <- lm(cty ~ cyl * fwd * auto, data = mpg2)
+
+library(jtools) # For summ()
+summ(fit3)
+
+```
+
+```{r}
+cat_plot(fit3,
+         pred = cyl,
+         modx = fwd,
+         plot.points = TRUE)
+
+```
+
+Line Plot for Categorical Interaction
+
+```{r}
+cat_plot(
+    fit3,
+    pred = cyl,
+    modx = fwd,
+    geom = "line",
+    point.shape = TRUE,
+    vary.lty = TRUE
+)
+
+```
+
+Bar Plot Representation
+
+```{r}
+cat_plot(
+    fit3,
+    pred = cyl,
+    modx = fwd,
+    geom = "bar",
+    interval = TRUE,
+    plot.points = TRUE
+)
+
+```
+
+### `interactionR` Package
+
+The `interactionR` package is designed for publication-quality reporting of interaction effects, particularly in epidemiology and social sciences. It provides tools for computing interaction measures, confidence intervals, and statistical inference following well-established methodologies.
+
+Key Features:
+
+-   Publication-Ready Interaction Analysis
+-   Confidence intervals calculated using:
+    -   Delta method [@hosmer1992confidence]
+    -   Variance recovery ("mover") method [@zou2008estimation]
+    -   Bootstrapping [@assmann1996confidence]
+-   Standardized reporting guidelines based on [@knol2012recommendations].
+
+```{r, eval=FALSE}
+install.packages("interactionR", dependencies = T)
+```
+
+### `sjPlot` Package
+
+The `sjPlot` package is highly recommended for publication-quality visualizations of interaction effects. It provides enhanced aesthetics and customizable interaction plots suitable for academic journals.
+
+**More details:** [sjPlot interaction visualization](https://strengejacke.github.io/sjPlot/articles/plot_interactions.html)
+
+```{r, eval = FALSE}
+install.packages("sjPlot")
+```
+
+### Summary of Moderation Analysis Packages
+
+| **Package**    | **Purpose**                              | **Key Features**                                                             | **Recommended?**                    |
+|----------------|------------------------------------------|------------------------------------------------------------------------------|-------------------------------------|
+| `emmeans`      | Estimated marginal means & simple slopes | Computes simple slopes, spotlight analysis, floodlight analysis (J-N method) | ✅ Yes                              |
+| `probemod`     | Johnson-Neyman technique                 | Tests moderator significance ranges                                          | ❌ No (Subscript issues)            |
+| `interactions` | Interaction visualization                | Produces robust, customizable interaction plots                              | ✅ Yes                              |
+| `interactionR` | Epidemiological interaction measures     | Computes RERI, AP, SI for additive scale interactions                        | ✅ Yes (for public health research) |
+| `sjPlot`       | Publication-quality interaction plots    | Highly customizable, ideal for academic papers                               | ✅ Highly Recommended               |

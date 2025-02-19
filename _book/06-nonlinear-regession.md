@@ -1,4 +1,4 @@
-# Non-Linear Regression
+# Non-Linear Regression {#non-linear-regression}
 
 
 

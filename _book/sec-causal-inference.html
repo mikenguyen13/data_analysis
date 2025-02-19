@@ -1,0 +1,2066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 21 Causal Inference | A Guide on Data Analysis</title>
+<meta name="author" content="Mike Nguyen">
+<meta name="description" content="Throughout our journey into statistical concepts, we’ve uncovered patterns, relationships, and trends in data. But now, we arrive at one of the most profound questions in all of research and...">
+<meta name="generator" content="bookdown 0.35 with bs4_book()">
+<meta property="og:title" content="Chapter 21 Causal Inference | A Guide on Data Analysis">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://bookdown.org/mike/data_analysis/sec-causal-inference.html">
+<meta property="og:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<meta property="og:description" content="Throughout our journey into statistical concepts, we’ve uncovered patterns, relationships, and trends in data. But now, we arrive at one of the most profound questions in all of research and...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 21 Causal Inference | A Guide on Data Analysis">
+<meta name="twitter:description" content="Throughout our journey into statistical concepts, we’ve uncovered patterns, relationships, and trends in data. But now, we arrive at one of the most profound questions in all of research and...">
+<meta name="twitter:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.6.1/transition.js"></script><script src="libs/bs3compat-0.6.1/tabs.js"></script><script src="libs/bs3compat-0.6.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/kePrint-0.0.1/kePrint.js"></script><link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+<!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script><script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-DMNX2X65HQ');
+    </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">A Guide on Data Analysis</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Preface</a></li>
+<li><a class="" href="introduction.html"><span class="header-section-number">1</span> Introduction</a></li>
+<li><a class="" href="prerequisites.html"><span class="header-section-number">2</span> Prerequisites</a></li>
+<li class="book-part">I. BASIC</li>
+<li><a class="" href="descriptive-statistics.html"><span class="header-section-number">3</span> Descriptive Statistics</a></li>
+<li><a class="" href="basic-statistical-inference.html"><span class="header-section-number">4</span> Basic Statistical Inference</a></li>
+<li class="book-part">II. REGRESSION</li>
+<li><a class="" href="linear-regression.html"><span class="header-section-number">5</span> Linear Regression</a></li>
+<li><a class="" href="non-linear-regression.html"><span class="header-section-number">6</span> Non-Linear Regression</a></li>
+<li><a class="" href="generalized-linear-models.html"><span class="header-section-number">7</span> Generalized Linear Models</a></li>
+<li><a class="" href="sec-linear-mixed-models.html"><span class="header-section-number">8</span> Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonlinear-and-generalized-linear-mixed-models.html"><span class="header-section-number">9</span> Nonlinear and Generalized Linear Mixed Models</a></li>
+<li><a class="" href="nonparametric-regression.html"><span class="header-section-number">10</span> Nonparametric Regression</a></li>
+<li class="book-part">III. RAMIFICATIONS</li>
+<li><a class="" href="data.html"><span class="header-section-number">11</span> Data</a></li>
+<li><a class="" href="variable-transformation.html"><span class="header-section-number">12</span> Variable Transformation</a></li>
+<li><a class="" href="imputation-missing-data.html"><span class="header-section-number">13</span> Imputation (Missing Data)</a></li>
+<li><a class="" href="model-specification-tests.html"><span class="header-section-number">14</span> Model Specification Tests</a></li>
+<li><a class="" href="variable-selection.html"><span class="header-section-number">15</span> Variable Selection</a></li>
+<li><a class="" href="hypothesis-testing.html"><span class="header-section-number">16</span> Hypothesis Testing</a></li>
+<li><a class="" href="sec-marginal-effects.html"><span class="header-section-number">17</span> Marginal Effects</a></li>
+<li><a class="" href="moderation.html"><span class="header-section-number">18</span> Moderation</a></li>
+<li><a class="" href="mediation.html"><span class="header-section-number">19</span> Mediation</a></li>
+<li><a class="" href="prediction-and-estimation.html"><span class="header-section-number">20</span> Prediction and Estimation</a></li>
+<li class="book-part">IV. CAUSAL INFERENCE</li>
+<li><a class="active" href="sec-causal-inference.html"><span class="header-section-number">21</span> Causal Inference</a></li>
+<li class="book-part">A. EXPERIMENTAL DESIGN</li>
+<li><a class="" href="experimental-design.html"><span class="header-section-number">22</span> Experimental Design</a></li>
+<li><a class="" href="sampling.html"><span class="header-section-number">23</span> Sampling</a></li>
+<li><a class="" href="sec-analysis-of-variance-anova.html"><span class="header-section-number">24</span> Analysis of Variance</a></li>
+<li><a class="" href="multivariate-methods.html"><span class="header-section-number">25</span> Multivariate Methods</a></li>
+<li class="book-part">B. QUASI-EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-quasi-experimental.html"><span class="header-section-number">26</span> Quasi-experimental</a></li>
+<li><a class="" href="regression-discontinuity.html"><span class="header-section-number">27</span> Regression Discontinuity</a></li>
+<li><a class="" href="synthetic-difference-in-differences.html"><span class="header-section-number">28</span> Synthetic Difference-in-Differences</a></li>
+<li><a class="" href="difference-in-differences.html"><span class="header-section-number">29</span> Difference-in-differences</a></li>
+<li><a class="" href="changes-in-changes.html"><span class="header-section-number">30</span> Changes-in-Changes</a></li>
+<li><a class="" href="synthetic-control.html"><span class="header-section-number">31</span> Synthetic Control</a></li>
+<li><a class="" href="event-studies.html"><span class="header-section-number">32</span> Event Studies</a></li>
+<li><a class="" href="instrumental-variables.html"><span class="header-section-number">33</span> Instrumental Variables</a></li>
+<li><a class="" href="matching-methods.html"><span class="header-section-number">34</span> Matching Methods</a></li>
+<li><a class="" href="interrupted-time-series.html"><span class="header-section-number">35</span> Interrupted Time Series</a></li>
+<li class="book-part">C. OTHER CONCERNS</li>
+<li><a class="" href="endogeneity.html"><span class="header-section-number">36</span> Endogeneity</a></li>
+<li><a class="" href="other-biases.html"><span class="header-section-number">37</span> Other Biases</a></li>
+<li><a class="" href="controls.html"><span class="header-section-number">38</span> Controls</a></li>
+<li><a class="" href="directed-acyclic-graph.html"><span class="header-section-number">39</span> Directed Acyclic Graph</a></li>
+<li class="book-part">V. MISCELLANEOUS</li>
+<li><a class="" href="report.html"><span class="header-section-number">40</span> Report</a></li>
+<li><a class="" href="exploratory-data-analysis.html"><span class="header-section-number">41</span> Exploratory Data Analysis</a></li>
+<li><a class="" href="sensitivity-analysis-robustness-check.html"><span class="header-section-number">42</span> Sensitivity Analysis/ Robustness Check</a></li>
+<li><a class="" href="replication-and-synthetic-data.html"><span class="header-section-number">43</span> Replication and Synthetic Data</a></li>
+<li class="book-part">APPENDIX</li>
+<li><a class="" href="appendix.html"><span class="header-section-number">A</span> Appendix</a></li>
+<li><a class="" href="bookdown-cheat-sheet.html"><span class="header-section-number">B</span> Bookdown cheat sheet</a></li>
+<li><a class="" href="references.html">References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/mikenguyen13/data_analysis">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="sec-causal-inference" class="section level1" number="21">
+<h1>
+<span class="header-section-number">21</span> Causal Inference<a class="anchor" aria-label="anchor" href="#sec-causal-inference"><i class="fas fa-link"></i></a>
+</h1>
+<p>Throughout our journey into statistical concepts, we’ve uncovered patterns, relationships, and trends in data. But now, we arrive at one of the most profound questions in all of research and decision-making: <strong>What truly causes what?</strong></p>
+<p>We’ve all heard the phrase—<em>correlation is not causation.</em></p>
+<blockquote>
+<p><em>Correlation is not causation.</em></p>
+</blockquote>
+<p>Just because two things move together doesn’t mean one is pulling the strings of the other. Ice cream sales and drowning incidents both rise in the summer, but ice cream isn’t to blame.</p>
+<p>But what exactly <em>is</em> causation? Let’s explore.</p>
+<p>One of the most insightful books on this topic is <em>The Book of Why</em> by Judea Pearl <span class="citation">(<a href="references.html#ref-Pearl_2018">Pearl and Mackenzie 2018</a>)</span>, which explains the nuances of causal reasoning beautifully. Below is a concise summary of key ideas from Pearl’s work, supplemented with insights from econometrics and statistics.</p>
+<p>Understanding causal relationships is essential in research, particularly in fields like economics, finance, marketing, and medicine. While statistical methods have traditionally focused on associational reasoning, causal inference allows us to answer <strong>what-if questions</strong> and make decisions based on interventions.</p>
+<p>However, one must be aware of the limitations of statistical methods. As discussed throughout this book, relying solely on data without incorporating domain expertise can lead to misleading conclusions. To establish causality, we often need expert judgment, prior research, and rigorous experimental design.</p>
+<hr>
+<p>You may have come across amusing examples of <strong>spurious correlations</strong>—such as the famous <a href="http://www.tylervigen.com/spurious-correlations">Tyler Vigen collection</a>, which shows absurd relationships (e.g., “the number of Nicholas Cage movies correlates with drowning accidents”). These highlight the danger of mistaking correlation for causation.</p>
+<p>Historically, one of the earliest attempts to infer causation using <strong>regression analysis</strong> was by <span class="citation">Yule (<a href="references.html#ref-yule1899">1899</a>)</span>, who investigated the effect of relief policies on poverty. Unfortunately, his analysis suggested that relief policies increased poverty—a misleading conclusion due to unaccounted confounders.</p>
+<hr>
+<p>For a long time, statistics was largely a <strong>causality-free discipline</strong>. The field only began addressing causation in the 1920s, when Sewall Wright introduced <strong>path analysis</strong>, a graphical approach to representing causal relationships. However, it wasn’t until Judea Pearl’s <strong>Causal Revolution</strong> (1990s) that we gained a formal calculus for causation.</p>
+<p>Pearl’s framework introduced two key innovations:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Causal Diagrams</strong> (Directed Acyclic Graphs) – A graphical representation of cause-and-effect relationships.</li>
+<li>
+<strong>A Symbolic Language</strong>: The Do-Operator (<span class="math inline">\(do(X)\)</span>) – A mathematical notation for interventions.</li>
+</ol>
+<hr>
+<p>Traditional statistics deals with <strong>conditional probabilities</strong>:</p>
+<p><span class="math display">\[
+P(Y | X)
+\]</span></p>
+<p>This formula tells us the probability of event <span class="math inline">\(Y\)</span> occurring given that event <span class="math inline">\(X\)</span> has occurred. In the context of observed data, <span class="math inline">\(P(Y \mid X)\)</span> reflects the association between <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>, showing how likely <span class="math inline">\(Y\)</span> is when <span class="math inline">\(X\)</span> happens.</p>
+<p>However, causal inference requires a different concept:</p>
+<p><span class="math display">\[
+P(Y | do(X))
+\]</span></p>
+<p>which describes what happens when we <strong>actively intervene</strong> and set <span class="math inline">\(X\)</span>. The crucial distinction is:</p>
+<p><span class="math display">\[
+P(Y | X) \neq P(Y | do(X))
+\]</span></p>
+<p>in general, because <strong>passively observing</strong> <span class="math inline">\(X\)</span> is not the same as <strong>actively manipulating</strong> it.</p>
+<p>To make causal claims, we need to answer <strong>counterfactual questions</strong>:</p>
+<blockquote>
+<p><em>What would have happened if we had NOT done</em> <span class="math inline">\(X\)</span>?</p>
+</blockquote>
+<p>This concept is essential in fields like policy evaluation, medicine, and business decision-making.</p>
+<hr>
+<p>To build intelligent systems that can reason causally, we need <strong>an inference engine</strong>:</p>
+<div class="float">
+<img src="images/Figure%20I.png" title="Inference Engine" style="display: block; margin: 1em auto" width="600" height="400" alt="p. 12 (Pearl and Mackenzie 2018)"><div class="figcaption">p. 12 <span class="citation">(<a href="references.html#ref-Pearl_2018">Pearl and Mackenzie 2018</a>)</span>
+</div>
+</div>
+<p>Pearl outlines <strong>three levels of cognitive ability</strong> required for causal learning:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Seeing</strong> – Observing associations in data.</li>
+<li>
+<strong>Doing</strong> – Understanding interventions and predicting their outcomes.</li>
+<li>
+<strong>Imagining</strong> – Reasoning about counterfactuals.</li>
+</ol>
+<p>These levels correspond to <a href="sec-causal-inference.html#sec-the-ladder-of-causation">The Ladder of Causation</a>.</p>
+<div id="sec-the-ladder-of-causation" class="section level2" number="21.1">
+<h2>
+<span class="header-section-number">21.1</span> The Ladder of Causation<a class="anchor" aria-label="anchor" href="#sec-the-ladder-of-causation"><i class="fas fa-link"></i></a>
+</h2>
+<p>Pearl’s <em>Ladder of Causation</em> describes <strong>three hierarchical levels of causal reasoning</strong>:</p>
+<div class="inline-table"><table style="width:99%;" class="table table-sm">
+<colgroup>
+<col width="13%">
+<col width="9%">
+<col width="36%">
+<col width="39%">
+</colgroup>
+<thead><tr class="header">
+<th><strong>Level</strong></th>
+<th><strong>Activity</strong></th>
+<th><strong>Questions Answered</strong></th>
+<th><strong>Examples</strong></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>Association</strong></td>
+<td><em>Seeing</em></td>
+<td>What is? How does seeing <span class="math inline">\(X\)</span> change my belief in <span class="math inline">\(Y\)</span>?</td>
+<td>What does a symptom tell me about a disease?</td>
+</tr>
+<tr class="even">
+<td><strong>Intervention</strong></td>
+<td><em>Doing</em></td>
+<td>What if? What happens if I intervene and change <span class="math inline">\(X\)</span>?</td>
+<td>If I study more, will my test score improve?</td>
+</tr>
+<tr class="odd">
+<td><strong>Counterfactuals</strong></td>
+<td><em>Imagining</em></td>
+<td>Why? What would have happened if <span class="math inline">\(X\)</span> had been different?</td>
+<td>If I had quit smoking a year ago, would I be healthier today?</td>
+</tr>
+</tbody>
+</table></div>
+<p><em>(Adapted from <span class="citation">(<a href="references.html#ref-pearl2019seven">Pearl 2019</a>)</span>, p. 57)</em></p>
+<p>Each level requires more cognitive ability and data. Classical statistics operates at Level 1 (association), while causal inference enables us to reach Levels 2 and 3.</p>
+</div>
+<div id="the-formal-notation-of-causality" class="section level2" number="21.2">
+<h2>
+<span class="header-section-number">21.2</span> The Formal Notation of Causality<a class="anchor" aria-label="anchor" href="#the-formal-notation-of-causality"><i class="fas fa-link"></i></a>
+</h2>
+<p>A common mistake is defining causation using probability:</p>
+<p><span class="math display">\[
+X \text{ causes } Y \text{ if } P(Y | X) &gt; P(Y).
+\]</span></p>
+<p>Seeing <span class="math inline">\(X\)</span> (1st level) <strong>doesn’t mean</strong> the probability of Y increases.</p>
+<p>It could be either that</p>
+<ol style="list-style-type: decimal">
+<li>
+<span class="math inline">\(X\)</span> causes Y, or</li>
+<li>
+<span class="math inline">\(Z\)</span> affects both <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>. We might be able use <strong>control variables</strong> - <span class="math inline">\(P(Y|X, Z = z) &gt; P(Y|Z = z)\)</span>. But then the question becomes
+<ol style="list-style-type: decimal">
+<li>How to choose <span class="math inline">\(Z\)</span>?</li>
+<li>Did you choose enough <span class="math inline">\(Z\)</span>?</li>
+<li>Did you choose the right <span class="math inline">\(Z\)</span>?</li>
+</ol>
+</li>
+</ol>
+<p>Hence, the previous statement is incorrect. The correct causal statement is:</p>
+<p><span class="math display">\[
+P(Y | do(X)) &gt; P(Y).
+\]</span></p>
+<p>With <strong>causal diagrams</strong> and <strong>do-calculus</strong>, we can formally express interventions and answer questions at the 2nd level (Intervention).</p>
+</div>
+<div id="the-7-tools-of-structural-causal-models" class="section level2" number="21.3">
+<h2>
+<span class="header-section-number">21.3</span> The 7 Tools of Structural Causal Models<a class="anchor" aria-label="anchor" href="#the-7-tools-of-structural-causal-models"><i class="fas fa-link"></i></a>
+</h2>
+<p>Pearl’s <em>Structural Causal Model (SCM)</em> framework provides tools for causal inference <span class="citation">(<a href="references.html#ref-pearl2019seven">Pearl 2019</a>)</span>:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Encoding Causal Assumptions</strong> – Using <strong>causal graphs</strong> for transparency and testability.</li>
+<li>
+<strong>Do-Calculus</strong> – Controlling for confounding using the <strong>backdoor criterion</strong>.</li>
+<li>
+<strong>Algorithmization of Counterfactuals</strong> – Modeling “what if?” scenarios.</li>
+<li>
+<strong>Mediation Analysis</strong> – Understanding direct vs. indirect effects.</li>
+<li>
+<strong>External Validity &amp; Adaptability</strong> – Addressing selection bias and domain adaptation.</li>
+<li>
+<strong>Handling Missing Data</strong> – Using causal methods to infer missing information.</li>
+<li>
+<strong>Causal Discovery</strong> – Learning causal relationships from data using:
+<ul>
+<li><strong>d-separation</strong></li>
+<li>
+<strong>Functional decomposition</strong> <span class="citation">(<a href="references.html#ref-hoyer2008nonlinear">Hoyer et al. 2008</a>)</span>
+</li>
+<li>
+<strong>Spontaneous local changes</strong> <span class="citation">(<a href="references.html#ref-pearl2014graphical">Pearl 2014</a>)</span>
+</li>
+</ul>
+</li>
+</ol>
+</div>
+<div id="simpsons-paradox" class="section level2" number="21.4">
+<h2>
+<span class="header-section-number">21.4</span> Simpson’s Paradox<a class="anchor" aria-label="anchor" href="#simpsons-paradox"><i class="fas fa-link"></i></a>
+</h2>
+<p>Simpson’s Paradox is one of the most striking examples of <strong>why causality matters</strong> and why simple statistical associations can be misleading.</p>
+<div id="what-is-simpsons-paradox" class="section level3" number="21.4.1">
+<h3>
+<span class="header-section-number">21.4.1</span> What is Simpson’s Paradox?<a class="anchor" aria-label="anchor" href="#what-is-simpsons-paradox"><i class="fas fa-link"></i></a>
+</h3>
+<p>At its core, Simpson’s Paradox occurs when:</p>
+<blockquote>
+<p>A trend observed in an overall population <strong>reverses</strong> when the population is divided into subgroups.</p>
+</blockquote>
+<p>This means that <strong>statistical associations in raw data can be misleading</strong> if important confounding variables are ignored.</p>
+</div>
+<div id="why-is-this-important" class="section level3" number="21.4.2">
+<h3>
+<span class="header-section-number">21.4.2</span> Why is this Important?<a class="anchor" aria-label="anchor" href="#why-is-this-important"><i class="fas fa-link"></i></a>
+</h3>
+<p>Understanding Simpson’s Paradox is critical in causal inference because:</p>
+<ol style="list-style-type: decimal">
+<li>It highlights the danger of naive data analysis – Just looking at overall trends can lead to incorrect conclusions.</li>
+<li>It emphasizes the importance of confounding variables – We must control for relevant factors before making causal claims.</li>
+<li>It demonstrates why causal reasoning is necessary – Simply relying on statistical associations (<span class="math inline">\(P(Y | X)\)</span>) without considering structural relationships can lead to paradoxical results.</li>
+</ol>
+</div>
+<div id="comparison-between-simpsons-paradox-and-omitted-variable-bias" class="section level3" number="21.4.3">
+<h3>
+<span class="header-section-number">21.4.3</span> Comparison between Simpson’s Paradox and Omitted Variable Bias<a class="anchor" aria-label="anchor" href="#comparison-between-simpsons-paradox-and-omitted-variable-bias"><i class="fas fa-link"></i></a>
+</h3>
+<p>Simpson’s Paradox occurs when a trend in an overall dataset <strong>reverses</strong> when broken into subgroups. This happens due to <strong>data aggregation issues</strong>, where differences in subgroup sizes distort the overall trend.</p>
+<p>While this often resembles <strong>omitted variable bias (OVB)</strong>—where missing confounders lead to misleading conclusions—Simpson’s Paradox is not just a causal inference problem. It is a <strong>mathematical phenomenon</strong> that can arise purely from <strong>improper weighting of data</strong>, even in descriptive statistics.</p>
+<p><strong>Similarities Between Simpson’s Paradox and OVB</strong>:</p>
+<ol style="list-style-type: decimal">
+<li>Both involve a missing variable:</li>
+</ol>
+<ul>
+<li><p>In Simpson’s Paradox, a key confounding variable (e.g., customer segment) is hidden in the aggregate data, leading to misleading conclusions.</p></li>
+<li><p>In OVB, a relevant variable (e.g., seasonality) is missing from the regression model, causing bias.</p></li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>Both distort causal conclusions:</li>
+</ol>
+<ul>
+<li><p>OVB biases effect estimates by failing to control for confounding.</p></li>
+<li><p>Simpson’s Paradox flips statistical relationships when controlling for a confounder.</p></li>
+</ul>
+<p><strong>Differences Between Simpson’s Paradox and OVB</strong>:</p>
+<ol style="list-style-type: decimal">
+<li>Not all OVB cases show Simpson’s Paradox:</li>
+</ol>
+<ul>
+<li><p>OVB generally causes bias, but it doesn’t always create a reversal of trends.</p></li>
+<li><p>Example: If seasonality increases both ad spend and sales, omitting it inflates the ad spend → sales relationship but does not necessarily reverse it.</p></li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>Simpson’s Paradox can occur even without causal inference:</li>
+</ol>
+<ul>
+<li><p>Simpson’s Paradox is a mathematical/statistical phenomenon that can arise even in purely observational data, not just causal inference.</p></li>
+<li><p>It results from data weighting issues, even if causality is not considered.</p></li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li>OVB is a model specification issue; Simpson’s Paradox is a data aggregation issue:</li>
+</ol>
+<ul>
+<li><p>OVB occurs in regression models when we fail to include relevant predictors.</p></li>
+<li><p>Simpson’s Paradox arises from incorrect data aggregation when groups are not properly analyzed separately.</p></li>
+</ul>
+<p><strong>The Right Way to Think About It</strong></p>
+<ul>
+<li><p>Simpson’s Paradox is often <em>caused</em> by omitted variable bias, but they are not the same thing.</p></li>
+<li><p>OVB is a problem in causal inference models; Simpson’s Paradox is a problem in raw data interpretation.</p></li>
+</ul>
+<p><strong>How to Fix These Issues?</strong></p>
+<ul>
+<li><p>For OVB: Use causal diagrams, add control variables, and use regression adjustments.</p></li>
+<li><p>For Simpson’s Paradox: Always analyze subgroup-level trends before making conclusions based on aggregate data.</p></li>
+<li><p>Bottom line: Simpson’s Paradox is often <em>caused</em> by omitted variable bias, but it is not just OVB—it is a fundamental issue of misleading data aggregation.</p></li>
+</ul>
+</div>
+<div id="illustrating-simpsons-paradox-marketing-campaign-success-rates" class="section level3" number="21.4.4">
+<h3>
+<span class="header-section-number">21.4.4</span> Illustrating Simpson’s Paradox: Marketing Campaign Success Rates<a class="anchor" aria-label="anchor" href="#illustrating-simpsons-paradox-marketing-campaign-success-rates"><i class="fas fa-link"></i></a>
+</h3>
+<p>Let’s explore this paradox using a practical business example.</p>
+<div id="scenario-marketing-campaign-performance" class="section level4" number="21.4.4.1">
+<h4>
+<span class="header-section-number">21.4.4.1</span> Scenario: Marketing Campaign Performance<a class="anchor" aria-label="anchor" href="#scenario-marketing-campaign-performance"><i class="fas fa-link"></i></a>
+</h4>
+<p>Imagine a company running two marketing campaigns, Campaign A and Campaign B, to attract new customers. We analyze which campaign has a higher conversion rate.</p>
+</div>
+<div id="step-1-creating-the-data" class="section level4" number="21.4.4.2">
+<h4>
+<span class="header-section-number">21.4.4.2</span> Step 1: Creating the Data<a class="anchor" aria-label="anchor" href="#step-1-creating-the-data"><i class="fas fa-link"></i></a>
+</h4>
+<p>We will simulate conversion rates for two different customer segments: <strong>High-Value</strong> customers (who typically convert at a higher rate) and <strong>Low-Value</strong> customers (who convert at a lower rate).</p>
+<div class="sourceCode" id="cb651"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Load necessary libraries</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Create a dataset where:</span></span>
+<span><span class="co">#  - B is better than A in each individual segment.</span></span>
+<span><span class="co">#  - A turns out better when we look at the overall (aggregated) data.</span></span>
+<span></span>
+<span><span class="va">marketing_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>  Campaign <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"B"</span><span class="op">)</span>,</span>
+<span>  Segment  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"High-Value"</span>, <span class="st">"Low-Value"</span>, <span class="st">"High-Value"</span>, <span class="st">"Low-Value"</span><span class="op">)</span>,</span>
+<span>  Visitors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">500</span>, <span class="fl">2000</span>, <span class="fl">300</span>, <span class="fl">3000</span><span class="op">)</span>,    <span class="co"># total visitors in each segment</span></span>
+<span>  Conversions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">290</span>, <span class="fl">170</span>, <span class="fl">180</span>, <span class="fl">270</span><span class="op">)</span>   <span class="co"># successful conversions</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Compute segment-level conversion rate</span></span>
+<span><span class="va">marketing_data</span> <span class="op">&lt;-</span> <span class="va">marketing_data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>Conversion_Rate <span class="op">=</span> <span class="va">Conversions</span> <span class="op">/</span> <span class="va">Visitors</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Print the data</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="va">marketing_data</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   Campaign    Segment Visitors Conversions Conversion_Rate</span></span>
+<span><span class="co">#&gt; 1        A High-Value      500         290           0.580</span></span>
+<span><span class="co">#&gt; 2        A  Low-Value     2000         170           0.085</span></span>
+<span><span class="co">#&gt; 3        B High-Value      300         180           0.600</span></span>
+<span><span class="co">#&gt; 4        B  Low-Value     3000         270           0.090</span></span></code></pre></div>
+<p>Interpreting This Data</p>
+<ul>
+<li><p><strong>Campaign B</strong> in the High-Value segment: <span class="math inline">\(\frac{180}{300} = 60\%\)</span></p></li>
+<li>
+<p><strong>Campaign A</strong> in the High-Value segment: <span class="math inline">\(\frac{290}{500} = 58\%\)</span></p>
+<p>=&gt; B is better in the High-Value segment (60% vs 58%).</p>
+</li>
+<li><p><strong>Campaign B</strong> in the Low-Value segment: <span class="math inline">\(\frac{270}{3000} = 9\%\)</span></p></li>
+<li>
+<p><strong>Campaign A</strong> in the Low-Value segment: <span class="math inline">\(\frac{170}{2000} = 8.5\%\)</span></p>
+<p>=&gt; B is better in the Low-Value segment (9% vs 8.5%).</p>
+</li>
+</ul>
+<p>Thus, <strong>B</strong> outperforms <strong>A</strong> in each <strong>individual</strong> segment.</p>
+</div>
+<div id="step-2-aggregating-data-ignoring-customer-segments" class="section level4" number="21.4.4.3">
+<h4>
+<span class="header-section-number">21.4.4.3</span> Step 2: Aggregating Data (Ignoring Customer Segments)<a class="anchor" aria-label="anchor" href="#step-2-aggregating-data-ignoring-customer-segments"><i class="fas fa-link"></i></a>
+</h4>
+<p>Now, let’s calculate the overall conversion rate for each campaign without considering customer segments.</p>
+<div class="sourceCode" id="cb652"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Compute overall conversion rates for each campaign</span></span>
+<span><span class="va">overall_rates</span> <span class="op">&lt;-</span> <span class="va">marketing_data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">Campaign</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarise</a></span><span class="op">(</span></span>
+<span>    Total_Visitors     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">Visitors</span><span class="op">)</span>,</span>
+<span>    Total_Conversions  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">Conversions</span><span class="op">)</span>,</span>
+<span>    Overall_Conversion_Rate <span class="op">=</span> <span class="va">Total_Conversions</span> <span class="op">/</span> <span class="va">Total_Visitors</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Print overall conversion rates</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="va">overall_rates</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # A tibble: 2 × 4</span></span>
+<span><span class="co">#&gt;   Campaign Total_Visitors Total_Conversions Overall_Conversion_Rate</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;             &lt;dbl&gt;             &lt;dbl&gt;                   &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1 A                  2500               460                   0.184</span></span>
+<span><span class="co">#&gt; 2 B                  3300               450                   0.136</span></span></code></pre></div>
+</div>
+<div id="step-3-observing-simpsons-paradox" class="section level4" number="21.4.4.4">
+<h4>
+<span class="header-section-number">21.4.4.4</span> Step 3: Observing Simpson’s Paradox<a class="anchor" aria-label="anchor" href="#step-3-observing-simpsons-paradox"><i class="fas fa-link"></i></a>
+</h4>
+<p>Let’s determine which campaign appears to have a higher conversion rate.</p>
+<div class="sourceCode" id="cb653"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Identify the campaign with the higher overall conversion rate</span></span>
+<span><span class="va">best_campaign_overall</span> <span class="op">&lt;-</span> <span class="va">overall_rates</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html">filter</a></span><span class="op">(</span><span class="va">Overall_Conversion_Rate</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span><span class="op">(</span><span class="va">Overall_Conversion_Rate</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">Campaign</span>, <span class="va">Overall_Conversion_Rate</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="va">best_campaign_overall</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # A tibble: 1 × 2</span></span>
+<span><span class="co">#&gt;   Campaign Overall_Conversion_Rate</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;                      &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1 B                          0.268</span></span></code></pre></div>
+<p>Even though <strong>Campaign B</strong> is <strong>better</strong> in each <strong>segment</strong>, you should see that <strong>Campaign A</strong> has a <strong>higher</strong> aggregated (overall) conversion rate!</p>
+</div>
+<div id="step-4-conversion-rates-within-customer-segments" class="section level4" number="21.4.4.5">
+<h4>
+<span class="header-section-number">21.4.4.5</span> Step 4: Conversion Rates Within Customer Segments<a class="anchor" aria-label="anchor" href="#step-4-conversion-rates-within-customer-segments"><i class="fas fa-link"></i></a>
+</h4>
+<p>We now analyze the conversion rates separately for high-value and low-value customers.</p>
+<div class="sourceCode" id="cb654"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Compute conversion rates by customer segment</span></span>
+<span><span class="va">by_segment</span> <span class="op">&lt;-</span> <span class="va">marketing_data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">Campaign</span>, <span class="va">Segment</span>, <span class="va">Conversion_Rate</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html">arrange</a></span><span class="op">(</span><span class="va">Segment</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="va">by_segment</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   Campaign    Segment Conversion_Rate</span></span>
+<span><span class="co">#&gt; 1        A High-Value           0.580</span></span>
+<span><span class="co">#&gt; 2        B High-Value           0.600</span></span>
+<span><span class="co">#&gt; 3        A  Low-Value           0.085</span></span>
+<span><span class="co">#&gt; 4        B  Low-Value           0.090</span></span></code></pre></div>
+<ul>
+<li><p>In <strong>High-Value</strong>, B &gt; A.</p></li>
+<li><p>In <strong>Low-Value</strong>, B &gt; A.</p></li>
+</ul>
+<p>Yet, overall, A &gt; B.</p>
+<p>This <strong>reversal</strong> is the hallmark of <strong>Simpson’s Paradox</strong>.</p>
+</div>
+<div id="step-5-visualizing-the-paradox" class="section level4" number="21.4.4.6">
+<h4>
+<span class="header-section-number">21.4.4.6</span> Step 5: Visualizing the Paradox<a class="anchor" aria-label="anchor" href="#step-5-visualizing-the-paradox"><i class="fas fa-link"></i></a>
+</h4>
+<p>To make this clearer, let’s visualize the results.</p>
+<div class="sourceCode" id="cb655"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Plot conversion rates by campaign and segment</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">marketing_data</span>,</span>
+<span>       <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Segment</span>,</span>
+<span>           y <span class="op">=</span> <span class="va">Conversion_Rate</span>,</span>
+<span>           fill <span class="op">=</span> <span class="va">Campaign</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html">geom_bar</a></span><span class="op">(</span>stat <span class="op">=</span> <span class="st">"identity"</span>, position <span class="op">=</span> <span class="st">"dodge"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span></span>
+<span>    title <span class="op">=</span> <span class="st">"Simpson’s Paradox in Marketing"</span>,</span>
+<span>    x     <span class="op">=</span> <span class="st">"Customer Segment"</span>,</span>
+<span>    y     <span class="op">=</span> <span class="st">"Conversion Rate"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="21-causality_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;"></div>
+<p>This bar chart reveals that for <strong>both</strong> segments, B’s bar is taller (i.e., B’s conversion rate is higher). If you only examined segment-level data, you would conclude that B is the superior campaign.</p>
+<p>However, if you aggregate the data (ignore segments), you get the opposite conclusion — that <strong>A</strong> is better overall.</p>
+</div>
+</div>
+<div id="why-does-this-happen" class="section level3" number="21.4.5">
+<h3>
+<span class="header-section-number">21.4.5</span> Why Does This Happen?<a class="anchor" aria-label="anchor" href="#why-does-this-happen"><i class="fas fa-link"></i></a>
+</h3>
+<p>This paradox arises because of a <strong>confounding variable</strong> — in this case, the <strong>distribution of visitors</strong> across segments.</p>
+<ul>
+<li><p><strong>Campaign A</strong> has <strong>more</strong> of its traffic in the High-Value segment (where conversions are generally high).</p></li>
+<li><p><strong>Campaign B</strong> has <strong>many</strong> of its visitors in the Low-Value segment.</p></li>
+</ul>
+<p>Because the <strong>volume</strong> of Low-Value visitors in B is extremely large (3000 vs. 2000 for A), it weighs down B’s <strong>overall</strong> average more, allowing A’s overall rate to exceed B’s.</p>
+</div>
+<div id="how-does-causal-inference-solve-this" class="section level3" number="21.4.6">
+<h3>
+<span class="header-section-number">21.4.6</span> How Does Causal Inference Solve This?<a class="anchor" aria-label="anchor" href="#how-does-causal-inference-solve-this"><i class="fas fa-link"></i></a>
+</h3>
+<p>To avoid Simpson’s Paradox, we need to move beyond association and use causal analysis:</p>
+<ol style="list-style-type: decimal">
+<li>
+<p><strong>Use causal diagrams (DAGs) to model relationships</strong></p>
+<ul>
+<li><p>The marketing campaign choice is confounded by customer segment.</p></li>
+<li><p>We must control for the confounding variable.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Use stratification or regression adjustment</strong></p>
+<ul>
+<li><p>Instead of comparing raw conversion rates, we should compare rates within each customer segment.</p></li>
+<li><p>This ensures that confounding factors do not distort results.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Use the do-operator</strong> to simulate interventions</p>
+<ul>
+<li><p>Instead of asking <span class="math inline">\(P(\text{Conversion} \mid \text{Campaign})\)</span>, ask: <span class="math inline">\(P(\text{Conversion} \mid do(\text{Campaign}))\)</span></p></li>
+<li><p>This estimates what would happen if we randomly assigned campaigns (removing confounding bias).</p></li>
+</ul>
+</li>
+</ol>
+</div>
+<div id="correcting-simpsons-paradox-with-regression-adjustment" class="section level3" number="21.4.7">
+<h3>
+<span class="header-section-number">21.4.7</span> Correcting Simpson’s Paradox with Regression Adjustment<a class="anchor" aria-label="anchor" href="#correcting-simpsons-paradox-with-regression-adjustment"><i class="fas fa-link"></i></a>
+</h3>
+<p>Let’s adjust for the confounding variable using <strong>logistic regression</strong>.</p>
+<div class="sourceCode" id="cb656"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Logistic regression adjusting for the Segment</span></span>
+<span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/glm.html">glm</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/cbind.html">cbind</a></span><span class="op">(</span><span class="va">Conversions</span>, <span class="va">Visitors</span> <span class="op">-</span> <span class="va">Conversions</span><span class="op">)</span> <span class="op">~</span> <span class="va">Campaign</span> <span class="op">+</span> <span class="va">Segment</span>,</span>
+<span>  family <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/family.html">binomial</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  data   <span class="op">=</span> <span class="va">marketing_data</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; glm(formula = cbind(Conversions, Visitors - Conversions) ~ Campaign + </span></span>
+<span><span class="co">#&gt;     Segment, family = binomial(), data = marketing_data)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;                  Estimate Std. Error z value Pr(&gt;|z|)    </span></span>
+<span><span class="co">#&gt; (Intercept)       0.32783    0.07839   4.182 2.89e-05 ***</span></span>
+<span><span class="co">#&gt; CampaignB         0.06910    0.08439   0.819    0.413    </span></span>
+<span><span class="co">#&gt; SegmentLow-Value -2.70806    0.08982 -30.151  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; (Dispersion parameter for binomial family taken to be 1)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     Null deviance: 977.473003  on 3  degrees of freedom</span></span>
+<span><span class="co">#&gt; Residual deviance:   0.012337  on 1  degrees of freedom</span></span>
+<span><span class="co">#&gt; AIC: 32.998</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Number of Fisher Scoring iterations: 3</span></span></code></pre></div>
+<p>This model includes both <strong>Campaign</strong> and <strong>Segment</strong> as predictors, giving a clearer picture of the <em>true effect</em> of each campaign on conversion, <strong>after</strong> controlling for differences in segment composition.</p>
+</div>
+<div id="key-takeaways-3" class="section level3" number="21.4.8">
+<h3>
+<span class="header-section-number">21.4.8</span> Key Takeaways<a class="anchor" aria-label="anchor" href="#key-takeaways-3"><i class="fas fa-link"></i></a>
+</h3>
+<ol style="list-style-type: decimal">
+<li>
+<p><strong>Simpson’s Paradox demonstrates why causal inference is essential.</strong></p>
+<ul>
+<li><p>Aggregated statistics can be misleading due to hidden confounding.</p></li>
+<li><p>Breaking data into subgroups can reverse conclusions.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Causal reasoning helps identify and correct paradoxes.</strong></p>
+<ul>
+<li>Using causal graphs, do-calculus, and adjustment techniques, we can find the true causal effect.</li>
+</ul>
+</li>
+<li>
+<p><strong>Naïve data analysis can lead to bad business decisions.</strong></p>
+<ul>
+<li>If a company allocated more budget to Campaign B based on overall conversion rates, it might be investing in the wrong strategy!</li>
+</ul>
+</li>
+</ol>
+</div>
+</div>
+<div id="additional-resources-1" class="section level2" number="21.5">
+<h2>
+<span class="header-section-number">21.5</span> Additional Resources<a class="anchor" aria-label="anchor" href="#additional-resources-1"><i class="fas fa-link"></i></a>
+</h2>
+<p>To explore causal inference in R, check out the <a href="https://cran.r-project.org/web/views/CausalInference.html">CRAN Task View for Causal Inference</a>:</p>
+<p>For further reading:</p>
+<ul>
+<li>
+<em>The Book of Why</em> – Judea Pearl <span class="citation">(<a href="references.html#ref-Pearl_2018">Pearl and Mackenzie 2018</a>)</span>
+</li>
+<li>
+<em>Causal Inference in Statistics: A Primer</em> – Pearl, Glymour, Jewell</li>
+<li>
+<em>Causality: Models, Reasoning, and Inference</em> – Judea Pearl</li>
+</ul>
+</div>
+<div id="experimental-vs.-quasi-experimental-designs" class="section level2" number="21.6">
+<h2>
+<span class="header-section-number">21.6</span> Experimental vs. Quasi-Experimental Designs<a class="anchor" aria-label="anchor" href="#experimental-vs.-quasi-experimental-designs"><i class="fas fa-link"></i></a>
+</h2>
+<p>Experimental and quasi-experimental designs differ in their approach to causal inference. The table below summarizes key distinctions:</p>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="49%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th><strong>Experimental Design</strong></th>
+<th><strong>Quasi-Experimental Design</strong></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Conducted by an experimentalist</td>
+<td>Conducted by an observationalist</td>
+</tr>
+<tr class="even">
+<td>Uses experimental data</td>
+<td>Uses observational data</td>
+</tr>
+<tr class="odd">
+<td>Random assignment reduces treatment imbalance</td>
+<td>Random sampling reduces sample selection error</td>
+</tr>
+</tbody>
+</table></div>
+<div id="criticisms-of-quasi-experimental-designs" class="section level3" number="21.6.1">
+<h3>
+<span class="header-section-number">21.6.1</span> Criticisms of Quasi-Experimental Designs<a class="anchor" aria-label="anchor" href="#criticisms-of-quasi-experimental-designs"><i class="fas fa-link"></i></a>
+</h3>
+<p>Quasi-experimental methods do not always approximate experimental results accurately. For instance, <span class="citation">LaLonde (<a href="references.html#ref-lalonde1986evaluating">1986</a>)</span> demonstrates that commonly used methods such as:</p>
+<ul>
+<li><a href="matching-methods.html#matching-methods">Matching Methods</a></li>
+<li><a href="difference-in-differences.html#difference-in-differences">Difference-in-differences</a></li>
+<li>
+<a href="endogeneity.html#tobit-2">Tobit-2</a> (Heckman-type models)</li>
+</ul>
+<p>often fail to replicate experimental estimates reliably.</p>
+<hr>
+</div>
+</div>
+<div id="hierarchical-ordering-of-causal-tools" class="section level2" number="21.7">
+<h2>
+<span class="header-section-number">21.7</span> Hierarchical Ordering of Causal Tools<a class="anchor" aria-label="anchor" href="#hierarchical-ordering-of-causal-tools"><i class="fas fa-link"></i></a>
+</h2>
+<p>Causal inference tools can be categorized based on their methodological rigor, with <strong>randomized controlled trials (RCTs)</strong> considered the gold standard.</p>
+<ol style="list-style-type: decimal">
+<li><p><a href="Randomized%20Control%20Trials" title="Gold standard">Experimental Design</a>: Randomized Control Trials (Gold standard)</p></li>
+<li>
+<p><a href="sec-quasi-experimental.html#sec-quasi-experimental">Quasi-experimental</a></p>
+<ol style="list-style-type: decimal">
+<li><p><a href="regression-discontinuity.html#regression-discontinuity">Regression Discontinuity</a></p></li>
+<li><p><a href="synthetic-difference-in-differences.html#synthetic-difference-in-differences">Synthetic Difference-in-Differences</a></p></li>
+<li><p><a href="difference-in-differences.html#difference-in-differences">Difference-In-Differences</a></p></li>
+<li><p><a href="synthetic-control.html#synthetic-control">Synthetic Control</a></p></li>
+<li><p><a href="event-studies.html#event-studies">Event Studies</a></p></li>
+<li><p><a href="sec-fixed-effects-estimator">Fixed Effects Estimator</a></p></li>
+<li><p><a href="endogeneity.html#endogenous-treatment">Endogenous Treatment</a>: mostly <a href="instrumental-variables.html#instrumental-variables">Instrumental Variables</a></p></li>
+<li><p><a href="matching-methods.html#matching-methods">Matching Methods</a></p></li>
+<li><p><a href="interrupted-time-series.html#interrupted-time-series">Interrupted Time Series</a></p></li>
+<li><p><a href="endogeneity.html#endogenous-sample-selection">Endogenous Sample Selection</a></p></li>
+</ol>
+</li>
+</ol>
+<hr>
+</div>
+<div id="types-of-validity-in-research" class="section level2" number="21.8">
+<h2>
+<span class="header-section-number">21.8</span> Types of Validity in Research<a class="anchor" aria-label="anchor" href="#types-of-validity-in-research"><i class="fas fa-link"></i></a>
+</h2>
+<p>Validity in research includes:</p>
+<ol style="list-style-type: decimal">
+<li><p><a href="sec-causal-inference.html#sec-measurement-validity">Measurement Validity</a> (e.g., construct, content, criterion, face validity)</p></li>
+<li><p><a href="sec-causal-inference.html#sec-internal-validity">Internal Validity</a></p></li>
+<li><p><a href="sec-causal-inference.html#sec-external-validity">External Validity</a></p></li>
+<li><p><a href="sec-causal-inference.html#sec-ecological-validity">Ecological Validity</a></p></li>
+<li><p><a href="sec-causal-inference.html#sec-statistical-conclusion-validity">Statistical Conclusion Validity</a></p></li>
+</ol>
+<p>By examining these, you can ensure that your study’s measurements are accurate, your findings are reliably causal, and your conclusions generalize to broader contexts.</p>
+<div id="sec-measurement-validity" class="section level3" number="21.8.1">
+<h3>
+<span class="header-section-number">21.8.1</span> Measurement Validity<a class="anchor" aria-label="anchor" href="#sec-measurement-validity"><i class="fas fa-link"></i></a>
+</h3>
+<p><strong>Measurement validity</strong> pertains to whether the instrument or method you use truly measures what it’s intended to measure. Within this umbrella, there are several sub-types:</p>
+<div id="face-validity" class="section level4" number="21.8.1.1">
+<h4>
+<span class="header-section-number">21.8.1.1</span> Face Validity<a class="anchor" aria-label="anchor" href="#face-validity"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li><p><strong>Definition</strong>: The extent to which a measurement or test <em>appears</em> to measure what it is supposed to measure, at face value (i.e., does it “look” right to experts or users?).</p></li>
+<li><p><strong>Importance</strong>: While often considered a less rigorous form of validity, it’s useful for ensuring the test or instrument is intuitively acceptable to stakeholders, participants, or experts in the field.</p></li>
+<li><p><strong>Example</strong>: A questionnaire measuring “anxiety” that has questions about nervousness, worries, and stress has good face validity because it obviously seems to address anxiety.</p></li>
+</ul>
+</div>
+<div id="content-validity" class="section level4" number="21.8.1.2">
+<h4>
+<span class="header-section-number">21.8.1.2</span> Content Validity<a class="anchor" aria-label="anchor" href="#content-validity"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li><p><strong>Definition</strong>: The extent to which a test or measurement covers <em>all</em> relevant facets of the construct it aims to measure.</p></li>
+<li><p><strong>Importance</strong>: Especially critical in fields like education or psychological testing, where you want to ensure the entire domain of a subject/construct is properly sampled.</p></li>
+<li><p><strong>Example</strong>: A math test that includes questions on algebra, geometry, and calculus might have high content validity for a comprehensive math skill assessment. If it only tested algebra, the content validity would be low.</p></li>
+</ul>
+</div>
+</div>
+<div id="sec-construct-validity" class="section level3" number="21.8.2">
+<h3>
+<span class="header-section-number">21.8.2</span> Construct Validity<a class="anchor" aria-label="anchor" href="#sec-construct-validity"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li><p><strong>Definition</strong>: The degree to which a test or measurement tool accurately represents the theoretical construct it intends to measure (e.g., intelligence, motivation, self-esteem).</p></li>
+<li>
+<p><strong>Types of Evidence</strong>:</p>
+<ul>
+<li><p><strong>Convergent Validity</strong>: Demonstrated when measures that are supposed to be related (theoretically) are observed to correlate.</p></li>
+<li><p><strong>Discriminant (Divergent) Validity</strong>: Demonstrated when measures that are supposed to be unrelated theoretically do not correlate.</p></li>
+</ul>
+</li>
+<li><p><strong>Example</strong>: A new questionnaire on “job satisfaction” should correlate with other established job satisfaction questionnaires (convergent validity) but should not correlate strongly with unrelated constructs like “physical health” (discriminant validity).</p></li>
+</ul>
+</div>
+<div id="sec-criterion-validity" class="section level3" number="21.8.3">
+<h3>
+<span class="header-section-number">21.8.3</span> Criterion Validity<a class="anchor" aria-label="anchor" href="#sec-criterion-validity"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li><p><strong>Definition</strong>: The extent to which the measurement predicts or correlates with an outcome criterion. In other words, do scores on the measure relate to an external standard or “criterion”?</p></li>
+<li>
+<p><strong>Types</strong>:</p>
+<ul>
+<li><p><strong>Predictive Validity</strong>: The measure predicts a future outcome (e.g., an entrance exam predicting college success).</p></li>
+<li><p><strong>Concurrent Validity</strong>: The measure correlates with an existing, accepted measure taken at the same time (e.g., a new depression scale compared with a gold-standard clinical interview).</p></li>
+</ul>
+</li>
+<li><p><strong>Example</strong>: A new test of driving skills has high criterion validity if people who score highly perform better on actual road tests (predictive validity).</p></li>
+</ul>
+</div>
+<div id="sec-internal-validity" class="section level3" number="21.8.4">
+<h3>
+<span class="header-section-number">21.8.4</span> Internal Validity<a class="anchor" aria-label="anchor" href="#sec-internal-validity"><i class="fas fa-link"></i></a>
+</h3>
+<p><strong>Internal validity</strong> refers to the extent to which a study can establish a <em>cause-and-effect</em> relationship. High internal validity means you can be confident that the observed effects are due to the treatment or intervention itself and not due to confounding factors or alternative explanations. This is the validity that economists and applied scientists largely care about.</p>
+<div id="major-threats-to-internal-validity" class="section level4" number="21.8.4.1">
+<h4>
+<span class="header-section-number">21.8.4.1</span> Major Threats to Internal Validity<a class="anchor" aria-label="anchor" href="#major-threats-to-internal-validity"><i class="fas fa-link"></i></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li><p><strong>Selection Bias</strong>: Systematic differences between groups that exist before the treatment is applied.</p></li>
+<li><p><strong>History Effects</strong>: External events occurring during the study can affect outcomes (e.g., economic downturn during a job-training study).</p></li>
+<li><p><strong>Maturation</strong>: Participants might change over time simply due to aging, learning, fatigue, etc., independent of the treatment.</p></li>
+<li><p><strong>Testing Effects</strong>: Taking a test more than once can influence participants’ responses (practice effect).</p></li>
+<li><p><strong>Instrumentation</strong>: Changes in the measurement instrument or the observers can lead to inconsistencies in data collection.</p></li>
+<li><p><strong>Regression to the Mean</strong>: Extreme pre-test scores tend to move closer to the average on subsequent tests.</p></li>
+<li><p><strong>Attrition (Mortality)</strong>: Participants dropping out of the study in ways that are systematically related to the treatment or outcomes.</p></li>
+</ol>
+</div>
+<div id="strategies-to-improve-internal-validity" class="section level4" number="21.8.4.2">
+<h4>
+<span class="header-section-number">21.8.4.2</span> Strategies to Improve Internal Validity<a class="anchor" aria-label="anchor" href="#strategies-to-improve-internal-validity"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li><p><strong>Random Assignment</strong>: Ensures that, on average, groups are equivalent on both known and unknown variables.</p></li>
+<li><p><strong>Control Groups</strong>: Provide a baseline for comparison to isolate the effect of the intervention.</p></li>
+<li><p><strong>Blinding (Single-, Double-, or Triple-blind)</strong>: Reduces biases from participants, researchers, or analysts.</p></li>
+<li><p><strong>Standardized Procedures and Protocols</strong>: Minimizes variability in how interventions or measurements are administered.</p></li>
+<li><p><strong>Matching or Stratification</strong>: When randomization is not possible, matching participants on key characteristics can reduce selection bias.</p></li>
+<li><p><strong>Pretest-Posttest Designs</strong>: Compare participant performance before and after the intervention (though watch for testing effects).</p></li>
+</ul>
+</div>
+</div>
+<div id="sec-external-validity" class="section level3" number="21.8.5">
+<h3>
+<span class="header-section-number">21.8.5</span> External Validity<a class="anchor" aria-label="anchor" href="#sec-external-validity"><i class="fas fa-link"></i></a>
+</h3>
+<p><strong>External validity</strong> addresses the generalizability of the findings beyond the specific context of the study. A study with high external validity can be applied to other populations, settings, or times. On the other hand, localness can affect external validity.</p>
+<div id="subtypes-or-related-concepts-of-external-validity" class="section level4" number="21.8.5.1">
+<h4>
+<span class="header-section-number">21.8.5.1</span> Subtypes (or Related Concepts) of External Validity<a class="anchor" aria-label="anchor" href="#subtypes-or-related-concepts-of-external-validity"><i class="fas fa-link"></i></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li><p><strong>Population Validity</strong>: The degree to which study findings can be generalized to the larger population from which the sample was drawn.</p></li>
+<li><p><strong>Ecological Validity</strong> (sometimes considered separately): Whether findings obtained in controlled conditions can be applied to real-world settings.</p></li>
+<li><p><strong>Temporal Validity</strong>: Whether the results of the study hold true over time. Changing societal norms, technologies, or economic conditions might render findings obsolete.</p></li>
+</ol>
+</div>
+<div id="threats-to-external-validity" class="section level4" number="21.8.5.2">
+<h4>
+<span class="header-section-number">21.8.5.2</span> Threats to External Validity<a class="anchor" aria-label="anchor" href="#threats-to-external-validity"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li><p><strong>Unrepresentative Samples</strong>: If the sample does not reflect the wider population (in demographics, culture, etc.), generalization is limited.</p></li>
+<li><p><strong>Artificial Research Environments</strong>: Highly controlled lab settings may not capture real-world complexities.</p></li>
+<li><p><strong>Treatment-Setting Interaction</strong>: The effect of the treatment might depend on the unique conditions of the setting (e.g., a particular school, hospital, or region).</p></li>
+<li><p><strong>Treatment-Selection Interaction</strong>: Certain characteristics of the selected participants might interact with the treatment (e.g., results from a specialized population do not apply to the general public).</p></li>
+</ul>
+</div>
+<div id="strategies-to-improve-external-validity" class="section level4" number="21.8.5.3">
+<h4>
+<span class="header-section-number">21.8.5.3</span> Strategies to Improve External Validity<a class="anchor" aria-label="anchor" href="#strategies-to-improve-external-validity"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li><p><strong>Use of Diverse and Representative Samples</strong>: Recruit participants that mirror the larger population.</p></li>
+<li><p><strong>Field Studies and Naturalistic Settings</strong>: Conduct experiments in real-world environments rather than artificial labs.</p></li>
+<li><p><strong>Replication in Multiple Contexts</strong>: Replicate the study across different settings, geographic locations, and populations.</p></li>
+<li><p><strong>Longitudinal Studies</strong>: Evaluate whether relationships hold over extended periods.</p></li>
+</ul>
+</div>
+</div>
+<div id="sec-ecological-validity" class="section level3" number="21.8.6">
+<h3>
+<span class="header-section-number">21.8.6</span> Ecological Validity<a class="anchor" aria-label="anchor" href="#sec-ecological-validity"><i class="fas fa-link"></i></a>
+</h3>
+<p><strong>Ecological validity</strong> is often discussed as a subcategory of external validity. It specifically focuses on the <em>realism</em> of the study environment and tasks:</p>
+<ul>
+<li><p><strong>Definition</strong>: The degree to which study findings can be generalized to the real-life settings where people actually live, work, and interact.</p></li>
+<li><p><strong>Key Idea</strong>: Even if a lab experiment shows a particular behavior, do people behave the same way in their daily lives with everyday distractions, social pressures, and contextual factors?</p></li>
+</ul>
+<div id="enhancing-ecological-validity" class="section level4" number="21.8.6.1">
+<h4>
+<span class="header-section-number">21.8.6.1</span> Enhancing Ecological Validity<a class="anchor" aria-label="anchor" href="#enhancing-ecological-validity"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li><p><strong>Naturalistic Observation</strong>: Conduct observations or experiments in participants’ usual environments.</p></li>
+<li><p><strong>Realistic Tasks</strong>: Use tasks that closely mimic real-world challenges or behaviors.</p></li>
+<li><p><strong>Minimal Interference</strong>: Researchers strive to reduce the artificiality of the setting, allowing participants to behave as naturally as possible.</p></li>
+</ul>
+</div>
+</div>
+<div id="sec-statistical-conclusion-validity" class="section level3" number="21.8.7">
+<h3>
+<span class="header-section-number">21.8.7</span> Statistical Conclusion Validity<a class="anchor" aria-label="anchor" href="#sec-statistical-conclusion-validity"><i class="fas fa-link"></i></a>
+</h3>
+<p>Though often discussed alongside internal validity, <strong>statistical conclusion validity</strong> focuses on whether the statistical tests used in a study are appropriate, powerful enough, and applied correctly.</p>
+<div id="threats-to-statistical-conclusion-validity" class="section level4" number="21.8.7.1">
+<h4>
+<span class="header-section-number">21.8.7.1</span> Threats to Statistical Conclusion Validity<a class="anchor" aria-label="anchor" href="#threats-to-statistical-conclusion-validity"><i class="fas fa-link"></i></a>
+</h4>
+<ol style="list-style-type: decimal">
+<li><p><strong>Low Statistical Power</strong>: If the sample size is too small, the study may fail to detect a real effect (Type II error).</p></li>
+<li><p><strong>Violations of Statistical Assumptions</strong>: Incorrect application of statistical tests can lead to spurious conclusions (e.g., using parametric tests with non-normal data without appropriate adjustments).</p></li>
+<li><p><strong>Fishing and Error Rate Problem</strong>: Running many statistical tests without correction increases the chance of a Type I error (finding a false positive).</p></li>
+<li><p><strong>Reliability of Measures</strong>: If the measurement instruments are unreliable, statistical correlations or differences may be undervalued or overstated.</p></li>
+</ol>
+</div>
+<div id="improving-statistical-conclusion-validity" class="section level4" number="21.8.7.2">
+<h4>
+<span class="header-section-number">21.8.7.2</span> Improving Statistical Conclusion Validity<a class="anchor" aria-label="anchor" href="#improving-statistical-conclusion-validity"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li><p><strong>Adequate Sample Size</strong>: Conduct a power analysis to determine the necessary size to detect meaningful effects.</p></li>
+<li><p><strong>Appropriate Statistical Techniques</strong>: Ensure your chosen analysis matches the nature of the data and research question.</p></li>
+<li><p><strong>Multiple Testing Corrections</strong>: Use methods like Bonferroni or false discovery rate corrections when conducting multiple comparisons.</p></li>
+<li><p><strong>High-Quality Measurements</strong>: Use reliable and valid measures to reduce measurement error.</p></li>
+</ul>
+</div>
+</div>
+<div id="putting-it-all-together" class="section level3" number="21.8.8">
+<h3>
+<span class="header-section-number">21.8.8</span> Putting It All Together<a class="anchor" aria-label="anchor" href="#putting-it-all-together"><i class="fas fa-link"></i></a>
+</h3>
+<ol style="list-style-type: decimal">
+<li><p><strong>Face Validity</strong>: Does it look like it measures what it should?</p></li>
+<li><p><strong>Content Validity</strong>: Does it cover all facets of the construct?</p></li>
+<li><p><strong>Construct Validity</strong>: Does it truly reflect the theoretical concept?</p></li>
+<li><p><strong>Criterion Validity</strong>: Does it correlate with or predict other relevant outcomes?</p></li>
+<li><p><strong>Internal Validity</strong>: Is the relationship between treatment and outcome truly causal?</p></li>
+<li><p><strong>External Validity</strong>: Can findings be generalized to other populations, settings, and times?</p></li>
+<li><p><strong>Ecological Validity</strong>: Are the findings applicable to real-world scenarios?</p></li>
+<li><p><strong>Statistical Conclusion Validity</strong>: Are the statistical inferences correct and robust?</p></li>
+</ol>
+<p>Researchers typically need to strike a balance among these different validities:</p>
+<ul>
+<li><p>A <strong>highly controlled lab study</strong> might excel in internal validity but might have limited external and ecological validity.</p></li>
+<li><p>A <strong>broad, naturalistic field study</strong> might have stronger external or ecological validity but weaker internal validity due to less control over confounding variables.</p></li>
+</ul>
+<p><strong>No single study</strong> can maximize all validity types simultaneously, so replication, triangulation (using multiple methods), and transparent reporting are crucial strategies to bolster overall credibility.</p>
+<hr>
+</div>
+</div>
+<div id="types-of-subjects-in-a-treatment-setting" class="section level2" number="21.9">
+<h2>
+<span class="header-section-number">21.9</span> Types of Subjects in a Treatment Setting<a class="anchor" aria-label="anchor" href="#types-of-subjects-in-a-treatment-setting"><i class="fas fa-link"></i></a>
+</h2>
+<p>When conducting causal inference, particularly in randomized experiments or quasi-experimental settings, individuals in the study can be classified into four distinct groups based on their response to treatment assignment. These groups differ in how they react when they are assigned to receive or not receive treatment.</p>
+<div id="non-switchers" class="section level3" number="21.9.1">
+<h3>
+<span class="header-section-number">21.9.1</span> Non-Switchers<a class="anchor" aria-label="anchor" href="#non-switchers"><i class="fas fa-link"></i></a>
+</h3>
+<p>Non-switchers are individuals whose treatment status does not change regardless of whether they are assigned to the treatment or control group. These individuals do not provide useful causal information because their behavior remains unchanged. They are further divided into:</p>
+<ul>
+<li>
+<strong>Always-Takers</strong>: These individuals will <strong>always receive</strong> the treatment, even if they are assigned to the control group.</li>
+<li>
+<strong>Never-Takers</strong>: These individuals will <strong>never receive</strong> the treatment, even if they are assigned to the treatment group.</li>
+</ul>
+<p>Since their behavior is independent of the assignment, always-takers and never-takers do not contribute to identifying causal effects in standard randomized experiments. Instead, their presence can introduce bias in treatment effect estimation, particularly in <strong>intention-to-treat analysis</strong>.</p>
+</div>
+<div id="switchers" class="section level3" number="21.9.2">
+<h3>
+<span class="header-section-number">21.9.2</span> Switchers<a class="anchor" aria-label="anchor" href="#switchers"><i class="fas fa-link"></i></a>
+</h3>
+<p>Switchers are individuals whose treatment status <strong>depends on the assignment</strong>. These individuals are the primary focus of causal inference because they provide meaningful information about the effect of treatment. They are classified into:</p>
+<ul>
+<li>
+<strong>Compliers</strong>: Individuals who follow the assigned treatment protocol.
+<ul>
+<li>If assigned to the treatment group, they <strong>accept and receive</strong> the treatment.</li>
+<li>If assigned to the control group, they <strong>do not receive</strong> the treatment.</li>
+<li>
+<strong>Why are compliers important?</strong>
+<ul>
+<li>They are the only group for whom treatment assignment affects actual treatment receipt.</li>
+<li>Causal effect estimates (such as the local average treatment effect, LATE) are typically identified using compliers.</li>
+<li>If the dataset only contains compliers, then the intention-to-treat effect (ITT) is equal to the treatment effect.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<strong>Defiers</strong>: Individuals who do the <strong>opposite</strong> of what they are assigned.
+<ul>
+<li>If assigned to the treatment group, they <strong>refuse the treatment</strong>.</li>
+<li>If assigned to the control group, they <strong>seek out and receive</strong> the treatment anyway.</li>
+<li>
+<strong>Why are defiers typically ignored?</strong>
+<ul>
+<li>In most studies, defiers are assumed to be a small or negligible group.</li>
+<li>Standard causal inference frameworks assume <strong>monotonicity</strong>, meaning no one behaves as a defier.</li>
+<li>If defiers exist in large numbers, estimating causal effects becomes significantly more complex.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div id="classification-of-individuals-based-on-treatment-assignment" class="section level3" number="21.9.3">
+<h3>
+<span class="header-section-number">21.9.3</span> Classification of Individuals Based on Treatment Assignment<a class="anchor" aria-label="anchor" href="#classification-of-individuals-based-on-treatment-assignment"><i class="fas fa-link"></i></a>
+</h3>
+<p>The following table summarizes how different types of individuals respond to treatment and control assignments:</p>
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
+<th></th>
+<th>Treatment Assignment</th>
+<th>Control Assignment</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>Compliers</strong></td>
+<td>Treated</td>
+<td>Not Treated</td>
+</tr>
+<tr class="even">
+<td><strong>Always-Takers</strong></td>
+<td>Treated</td>
+<td>Treated</td>
+</tr>
+<tr class="odd">
+<td><strong>Never-Takers</strong></td>
+<td>Not Treated</td>
+<td>Not Treated</td>
+</tr>
+<tr class="even">
+<td><strong>Defiers</strong></td>
+<td>Not Treated</td>
+<td>Treated</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Key Takeaways:</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Compliers</strong> are the only group that allows us to estimate causal effects using <strong>randomized or quasi-experimental designs</strong>.</li>
+<li>
+<strong>Always-Takers and Never-Takers</strong> do not provide meaningful variation in treatment status, making them less useful for causal inference.</li>
+<li>
+<strong>Defiers</strong> typically violate the assumption of monotonicity, and their presence complicates causal estimation.</li>
+<li>If a dataset consists <strong>only of compliers</strong>, the <strong>intention-to-treat effect</strong> will be equal to the <strong>treatment effect</strong>.</li>
+</ol>
+<p>By correctly identifying and accounting for these different subject types, researchers can ensure more accurate causal inference and minimize biases in estimating treatment effects.</p>
+<hr>
+</div>
+</div>
+<div id="types-of-treatment-effects" class="section level2" number="21.10">
+<h2>
+<span class="header-section-number">21.10</span> Types of Treatment Effects<a class="anchor" aria-label="anchor" href="#types-of-treatment-effects"><i class="fas fa-link"></i></a>
+</h2>
+<p>When evaluating the causal impact of an intervention, different estimands (quantities of interest) can be used to measure treatment effects, depending on the study design and assumptions about compliance.</p>
+<p><strong>Terminology:</strong></p>
+<ul>
+<li>
+<strong>Estimands</strong>: The causal effect parameters we seek to measure.</li>
+<li>
+<strong>Estimators</strong>: The statistical procedures used to estimate those parameters.</li>
+<li>
+<strong>Sources of Bias</strong> <span class="citation">(<a href="references.html#ref-keele2025so">Keele and Grieve 2025</a>)</span>:</li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+&amp;\text{Estimator - True Causal Effect} \\
+&amp;= \underbrace{\textbf{Hidden bias}}_{\text{Due to design}}
++ \underbrace{\textbf{Misspecification bias}}_{\text{Due to modeling}}
++\underbrace{\textbf{Statistical noise}}_{\text{Due to finite sample}}
+\end{aligned}
+\]</span></p>
+<hr>
+<div id="sec-average-treatment-effect" class="section level3" number="21.10.1">
+<h3>
+<span class="header-section-number">21.10.1</span> Average Treatment Effect<a class="anchor" aria-label="anchor" href="#sec-average-treatment-effect"><i class="fas fa-link"></i></a>
+</h3>
+<p>The <strong>Average Treatment Effect (ATE)</strong> is the expected difference in outcomes between individuals who receive treatment and those who do not.</p>
+<p><strong>Definition</strong></p>
+<p>Let:</p>
+<ul>
+<li><p><span class="math inline">\(Y_i(1)\)</span> be the outcome of individual <span class="math inline">\(i\)</span> under treatment.</p></li>
+<li><p><span class="math inline">\(Y_i(0)\)</span> be the outcome of individual <span class="math inline">\(i\)</span> under control.</p></li>
+</ul>
+<p>The <strong>individual treatment effect</strong> is:</p>
+<p><span class="math display">\[
+\tau_i = Y_i(1) - Y_i(0)
+\]</span></p>
+<p>Since we cannot observe both <span class="math inline">\(Y_i(1)\)</span> and <span class="math inline">\(Y_i(0)\)</span> for the same individual (a fundamental problem in causal inference), we estimate the <strong>ATE</strong> across a population:</p>
+<p><span class="math display">\[
+ATE = E[Y(1)] - E[Y(0)]
+\]</span></p>
+<p><strong>Identification Under Randomization</strong></p>
+<p>If treatment assignment is <strong>randomized</strong> (under <a href="experimental-design.html#experimental-design">Experimental Design</a>), then the <strong>observed</strong> difference in means between treatment and control groups provides an <strong>unbiased estimator</strong> of ATE:</p>
+<p><span class="math display">\[
+ATE = \frac{1}{N} \sum_{i=1}^{N} \tau_i = \frac{\sum_1^N Y_i(1)}{N} - \frac{\sum_i^N Y_i(0)}{N}
+\]</span></p>
+<p>With <strong>randomization</strong>, we assume:</p>
+<p><span class="math display">\[
+E[Y(1) | D = 1] = E[Y(1) | D = 0] = E[Y(1)]
+\]</span></p>
+<p><span class="math display">\[
+E[Y(0) | D = 1] = E[Y(0) | D = 0] = E[Y(0)]
+\]</span></p>
+<p>Thus, the <strong>difference in observed means</strong> between treated and control groups provides an <strong>unbiased estimate</strong> of ATE.</p>
+<p><span class="math display">\[
+ATE = E[Y(1)] - E[Y(0)]
+\]</span></p>
+<hr>
+<p>Alternatively, we can express the <strong>potential outcomes framework</strong> in a regression form, which allows us to connect causal inference concepts with standard regression analysis.</p>
+<p>Instead of writing treatment effects as potential outcomes, we can define the observed outcome <span class="math inline">\(Y_i\)</span> in terms of a regression equation:</p>
+<p><span class="math display">\[
+Y_i = Y_i(0)  + [Y_i (1) - Y_i(0)] D_i
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><p><span class="math inline">\(Y_i(0)\)</span> is the outcome if individual <span class="math inline">\(i\)</span> <strong>does not</strong> receive treatment.</p></li>
+<li><p><span class="math inline">\(Y_i(1)\)</span> is the outcome if individual <span class="math inline">\(i\)</span> <strong>does</strong> receive treatment.</p></li>
+<li><p><span class="math inline">\(D_i\)</span> is a binary indicator for treatment assignment:</p></li>
+<li><p><span class="math inline">\(D_i = 1\)</span> if individual <span class="math inline">\(i\)</span> receives treatment.</p></li>
+<li><p><span class="math inline">\(D_i = 0\)</span> if individual <span class="math inline">\(i\)</span> is in the control group.</p></li>
+</ul>
+<p>We can redefine this equation using regression notation:</p>
+<p><span class="math display">\[
+Y_i = \beta_{0i} + \beta_{1i} D_i
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><p><span class="math inline">\(\beta_{0i} = Y_i(0)\)</span> represents the <strong>baseline (control group) outcome</strong>.</p></li>
+<li><p><span class="math inline">\(\beta_{1i} = Y_i(1) - Y_i(0)\)</span> represents the <strong>individual treatment effect</strong>.</p></li>
+</ul>
+<p>Thus, in an ideal setting, <strong>the coefficient on</strong> <span class="math inline">\(D_i\)</span> in a regression gives us the treatment effect.</p>
+<hr>
+<p>In observational studies, treatment assignment <span class="math inline">\(D_i\)</span> is often <strong>not random</strong>, leading to <strong>endogeneity</strong>. This means that the error term in the regression equation might be correlated with <span class="math inline">\(D_i\)</span>, violating one of the key assumptions of the <a href="linear-regression.html#ordinary-least-squares">Ordinary Least Squares</a> estimator.</p>
+<p>To formalize this issue, we can express the outcome equation as:</p>
+<p><span class="math display">\[
+\begin{aligned}
+Y_i &amp;= \beta_{0i} + \beta_{1i} D_i \\
+&amp;= ( \bar{\beta}_{0} + \epsilon_{0i} ) + (\bar{\beta}_{1} + \epsilon_{1i} )D_i \\
+&amp;=  \bar{\beta}_{0} + \epsilon_{0i} + \bar{\beta}_{1} D_i + \epsilon_{1i} D_i
+\end{aligned}
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><p><span class="math inline">\(\bar{\beta}_{0}\)</span> is the average baseline outcome.</p></li>
+<li><p><span class="math inline">\(\bar{\beta}_{1}\)</span> is the average treatment effect.</p></li>
+<li><p><span class="math inline">\(\epsilon_{0i}\)</span> captures individual-specific deviations in control group outcomes.</p></li>
+<li><p><span class="math inline">\(\epsilon_{1i}\)</span> captures heterogeneous treatment effects.</p></li>
+</ul>
+<p>If treatment assignment is truly <strong>random</strong>, then:</p>
+<p><span class="math display">\[
+E[\epsilon_{0i}] = E[\epsilon_{1i}] = 0
+\]</span></p>
+<p>which ensures:</p>
+<ul>
+<li><p><strong>No selection bias</strong>: <span class="math inline">\(D_i \perp \epsilon_{0i}\)</span> (i.e., treatment assignment is independent of the baseline error).</p></li>
+<li><p><strong>Treatment effect is independent of assignment</strong>: <span class="math inline">\(D_i \perp \epsilon_{1i}\)</span>.</p></li>
+</ul>
+<p>However, in observational studies, these assumptions often <strong>fail</strong>. This leads to:</p>
+<ul>
+<li>
+<strong>Selection bias</strong>: If individuals self-select into treatment based on unobserved characteristics, then <span class="math inline">\(D_i\)</span> correlates with <span class="math inline">\(\epsilon_{0i}\)</span>.</li>
+<li>
+<strong>Heterogeneous treatment effects</strong>: If the treatment effect itself varies across individuals, then <span class="math inline">\(D_i\)</span> correlates with <span class="math inline">\(\epsilon_{1i}\)</span>.</li>
+</ul>
+<p>These issues violate the exogeneity assumption in OLS regression, leading to biased estimates of <span class="math inline">\(\beta_1\)</span>.</p>
+<hr>
+<p>When estimating treatment effects using OLS regression, we need to be aware of potential estimation issues.</p>
+<ol style="list-style-type: decimal">
+<li><strong>OLS Estimator and Difference-in-Means</strong></li>
+</ol>
+<p>Under <strong>random assignment</strong>, the OLS estimator for <span class="math inline">\(\beta_1\)</span> simplifies to the <strong>difference in means estimator</strong>:</p>
+<p><span class="math display">\[
+\hat{\beta}_1^{OLS} = \bar{Y}_{\text{treated}} - \bar{Y}_{\text{control}}
+\]</span></p>
+<p>which is an <strong>unbiased estimator</strong> of the <a href="sec-causal-inference.html#sec-average-treatment-effect">Average Treatment Effect</a>.</p>
+<p>However, when treatment assignment is <strong>not random</strong>, OLS estimates may be biased due to unobserved confounders.</p>
+<ol start="2" style="list-style-type: decimal">
+<li><strong>Heteroskedasticity and Robust Standard Errors</strong></li>
+</ol>
+<p>If treatment effects vary across individuals (i.e., <strong>treatment effect heterogeneity</strong>), the error term contains an interaction:</p>
+<p><span class="math display">\[
+\epsilon_i = \epsilon_{0i} + D_i \epsilon_{1i}
+\]</span></p>
+<p>which leads to <strong>heteroskedasticity</strong> (i.e., the variance of errors depends on <span class="math inline">\(D_i\)</span> and possibly on covariates <span class="math inline">\(X_i\)</span>).</p>
+<p>To address this, we use <strong>heteroskedasticity-robust standard errors</strong>, which ensure valid inference even when variance is not constant across observations.</p>
+<hr>
+</div>
+<div id="sec-conditional-average-treatment-effect-" class="section level3" number="21.10.2">
+<h3>
+<span class="header-section-number">21.10.2</span> Conditional Average Treatment Effect<a class="anchor" aria-label="anchor" href="#sec-conditional-average-treatment-effect-"><i class="fas fa-link"></i></a>
+</h3>
+<p>Treatment effects may <strong>vary across different subgroups</strong> in a population. The <strong>Conditional Average Treatment Effect (CATE)</strong> captures heterogeneity in treatment effects across subpopulations.</p>
+<p><strong>Definition</strong></p>
+<p>For a subgroup characterized by covariates <span class="math inline">\(X_i\)</span>:</p>
+<p><span class="math display">\[
+CATE = E[Y(1) - Y(0) | X_i]
+\]</span></p>
+<p><strong>Why is CATE Useful?</strong></p>
+<ul>
+<li>
+<strong>Heterogeneous Treatment Effects</strong>: Certain groups may benefit more from treatment than others.</li>
+<li>
+<strong>Policy Targeting</strong>: Understanding who benefits the most allows for better resource allocation.</li>
+</ul>
+<p><strong>Example</strong></p>
+<ul>
+<li>Policy Intervention: A job training program may have different effects on younger vs. older workers.</li>
+<li>Medical Treatments: Drug effectiveness may differ by gender, age, or genetic factors.</li>
+</ul>
+<p>Estimating CATE allows policymakers and researchers to <strong>identify who benefits most</strong> from an intervention.</p>
+<hr>
+</div>
+<div id="sec-intention-to-treat-effect" class="section level3" number="21.10.3">
+<h3>
+<span class="header-section-number">21.10.3</span> Intention-to-Treat Effect<a class="anchor" aria-label="anchor" href="#sec-intention-to-treat-effect"><i class="fas fa-link"></i></a>
+</h3>
+<p>A key issue in empirical research is <strong>non-compliance</strong>, where individuals do not always follow their assigned treatment (i.e., either people who are supposed to receive treatment don’t receive it, or people who are supposed to be in the control group receive the treatment). The <strong>Intention-to-Treat (ITT) effect</strong> measures the impact of offering treatment, regardless of whether individuals actually receive it.</p>
+<p><strong>Definition</strong></p>
+<p>The <strong>ITT effect</strong> is the observed difference in means between groups <strong>assigned</strong> to treatment and control:</p>
+<p><span class="math display">\[
+ITT = E[Y | D = 1] - E[Y | D = 0]
+\]</span></p>
+<p><strong>Why Use ITT?</strong></p>
+<ul>
+<li>
+<strong>Policy Evaluation</strong>: ITT reflects the <strong>real-world effectiveness</strong> of an intervention, accounting for incomplete take-up.</li>
+<li>
+<strong>Randomized Trials</strong>: ITT preserves <strong>randomization</strong>, even when compliance is imperfect.</li>
+</ul>
+<p><strong>Example: Vaccination</strong></p>
+<ul>
+<li>A government <strong>offers a vaccine</strong> (ITT), but not everyone actually takes it.</li>
+<li>The <strong>true treatment effect</strong> depends on those who <strong>receive</strong> the vaccine, which differs from the effect measured under ITT.</li>
+</ul>
+<p>Since non-compliance is common in real-world settings, ITT effects are often smaller than true treatment effects. In this case, the difference in observed means between the treatment and control groups is not [Average Treatment Effects], but <a href="sec-causal-inference.html#sec-intention-to-treat-effect">Intention-to-Treat Effect</a>.</p>
+<hr>
+</div>
+<div id="sec-local-average-treatment-effects" class="section level3" number="21.10.4">
+<h3>
+<span class="header-section-number">21.10.4</span> Local Average Treatment Effects<a class="anchor" aria-label="anchor" href="#sec-local-average-treatment-effects"><i class="fas fa-link"></i></a>
+</h3>
+<p>In many empirical settings, not all individuals assigned to treatment actually receive it (<strong>non-compliance</strong>). Instead of estimating the treatment effect for everyone assigned to treatment (i.e., <a href="sec-causal-inference.html#sec-intention-to-treat-effect">Intention-to-Treat Effects</a>), we often want to estimate the effect of treatment on those who actually <strong>comply</strong> with their assignment.</p>
+<p>This is known as the <a href="sec-causal-inference.html#sec-local-average-treatment-effects">Local Average Treatment Effect</a>, also referred to as the <strong>Complier Average Causal Effect (CACE)</strong>.</p>
+<ul>
+<li>LATE is the treatment effect for the <strong>subgroup of compliers</strong>—those who take the treatment <strong>if and only if</strong> assigned to it.</li>
+<li>Unlike <a href="sec-causal-inference.html#sec-conditional-average-treatment-effect-">Conditional Average Treatment Effects</a>, which describes heterogeneity across observable subgroups, <strong>LATE focuses on compliance behavior</strong>.</li>
+<li>We typically recover LATE using <a href="instrumental-variables.html#instrumental-variables">Instrumental Variables</a>, leveraging random treatment assignment as an instrument.</li>
+</ul>
+<hr>
+<div id="estimating-late-using-instrumental-variables" class="section level4" number="21.10.4.1">
+<h4>
+<span class="header-section-number">21.10.4.1</span> Estimating LATE Using Instrumental Variables<a class="anchor" aria-label="anchor" href="#estimating-late-using-instrumental-variables"><i class="fas fa-link"></i></a>
+</h4>
+<p>Instrumental variable estimation allows us to isolate the effect of treatment on <strong>compliers</strong> by using <strong>random treatment assignment as an instrument for actual treatment receipt</strong>.</p>
+<div class="inline-figure"><img src="images/iv_late.PNG" style="width:100.0%"></div>
+<p>From an instrumental variables perspective, LATE is estimated as:</p>
+<p><span class="math display">\[
+LATE = \frac{ITT}{\text{Share of Compliers}}
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><p><strong>ITT (Intention-to-Treat Effect)</strong> is the effect of being <strong>assigned</strong> to treatment.</p></li>
+<li><p><strong>Share of Compliers</strong> is the proportion of individuals who <strong>actually take</strong> the treatment when assigned to it.</p></li>
+</ul>
+</div>
+<div id="key-properties-of-late" class="section level4" number="21.10.4.2">
+<h4>
+<span class="header-section-number">21.10.4.2</span> Key Properties of LATE<a class="anchor" aria-label="anchor" href="#key-properties-of-late"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li>As the proportion of compliers increases, <a href="sec-causal-inference.html#sec-local-average-treatment-effects">LATE</a> converges to <a href="sec-causal-inference.html#sec-intention-to-treat-effect">ITT</a>.</li>
+<li>
+<a href="sec-causal-inference.html#sec-local-average-treatment-effects">LATE</a> is always larger than <a href="sec-causal-inference.html#sec-intention-to-treat-effect">ITT</a>, since <a href="sec-causal-inference.html#sec-intention-to-treat-effect">ITT</a> averages over both compliers and non-compliers.</li>
+<li>Standard error rule of thumb:
+<ul>
+<li>
+<p>The standard error of <a href="sec-causal-inference.html#sec-local-average-treatment-effects">LATE</a> is given by:</p>
+<p><span class="math display">\[
+SE(LATE) = \frac{SE(ITT)}{\text{Share of Compliers}}
+\]</span></p>
+</li>
+</ul>
+</li>
+<li>LATE can also be estimated using a pure placebo group <span class="citation">(<a href="references.html#ref-gerber2010">Gerber et al. 2010</a>)</span>.</li>
+<li>Partial compliance is difficult to study</li>
+<li>The IV/2SLS estimator is biased in small samples, requiring Bayesian methods for correction <span class="citation">(<a href="references.html#ref-long2010">Long, Little, and Lin 2010</a>; <a href="references.html#ref-jin2009">Jin and Rubin 2009</a>, <a href="references.html#ref-jin2008">2008</a>)</span>.</li>
+</ul>
+<hr>
+</div>
+<div id="one-sided-noncompliance" class="section level4" number="21.10.4.3">
+<h4>
+<span class="header-section-number">21.10.4.3</span> One-Sided Noncompliance<a class="anchor" aria-label="anchor" href="#one-sided-noncompliance"><i class="fas fa-link"></i></a>
+</h4>
+<p>One-sided noncompliance occurs when we observe <strong>only compliers and never-takers</strong> in the sample (i.e., no always-takers).</p>
+<p><strong>Key assumptions:</strong></p>
+<ul>
+<li><p><strong>Exclusion Restriction (Excludability)</strong>: Never-takers have the <strong>same outcomes</strong> regardless of assignment (i.e., treatment has no effect on them because they never receive it).</p></li>
+<li><p><strong>Random Assignment Ensures Balance</strong>: The number of never-takers is expected to be <strong>equal</strong> in the treatment and control groups.</p></li>
+</ul>
+<p>Estimation of LATE under one-sided noncompliance:</p>
+<p><span class="math display">\[
+LATE = \frac{ITT}{\text{Share of Compliers}}
+\]</span></p>
+<p>Since the never-takers do not receive treatment, this simplifies estimation.</p>
+<hr>
+</div>
+<div id="two-sided-noncompliance" class="section level4" number="21.10.4.4">
+<h4>
+<span class="header-section-number">21.10.4.4</span> Two-Sided Noncompliance<a class="anchor" aria-label="anchor" href="#two-sided-noncompliance"><i class="fas fa-link"></i></a>
+</h4>
+<p>Two-sided noncompliance occurs when we observe <strong>compliers, never-takers, and always-takers</strong> in the sample.</p>
+<p><strong>Key assumptions:</strong></p>
+<ul>
+<li><p><strong>Exclusion Restriction (Excludability)</strong>: Never-takers and always-takers have the same outcome <strong>regardless of treatment assignment</strong>.</p></li>
+<li>
+<p><strong>Monotonicity Assumption</strong> (No Defiers):</p>
+<ul>
+<li><p>There are <strong>no defiers</strong>, meaning no individuals systematically <strong>avoid treatment when assigned</strong> to it.</p></li>
+<li><p>This assumption is standard in practical studies.</p></li>
+</ul>
+</li>
+</ul>
+<p>Estimation of LATE under two-sided noncompliance:</p>
+<p><span class="math display">\[
+LATE = \frac{ITT}{\text{Share of Compliers}}
+\]</span></p>
+<ul>
+<li>Since always-takers receive treatment regardless of assignment, their presence does not bias LATE as long as monotonicity holds.</li>
+<li>In practice, monotonicity is often reasonable, as defiers are rare.</li>
+</ul>
+<div class="inline-table"><table style="width:99%;" class="table table-sm">
+<colgroup>
+<col width="25%">
+<col width="18%">
+<col width="33%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th><strong>Scenario</strong></th>
+<th><strong>What it Measures</strong></th>
+<th><strong>When to Use It?</strong></th>
+<th><strong>Key Assumptions</strong></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><a href="sec-causal-inference.html#sec-intention-to-treat-effect">Intention-to-Treat</a></td>
+<td>Effect of being assigned to treatment</td>
+<td>Policy impact with non-compliance</td>
+<td>None (preserves randomization)</td>
+</tr>
+<tr class="even">
+<td><a href="sec-causal-inference.html#sec-local-average-treatment-effects">LATE</a></td>
+<td>Effect on <strong>compliers only</strong>
+</td>
+<td>When we care about <strong>actual treatment effect</strong> rather than assignment</td>
+<td>Excludability, Monotonicity (No Defiers)</td>
+</tr>
+</tbody>
+</table></div>
+<hr>
+</div>
+</div>
+<div id="population-vs.-sample-average-treatment-effects" class="section level3" number="21.10.5">
+<h3>
+<span class="header-section-number">21.10.5</span> Population vs. Sample Average Treatment Effects<a class="anchor" aria-label="anchor" href="#population-vs.-sample-average-treatment-effects"><i class="fas fa-link"></i></a>
+</h3>
+<p>In experimental and observational studies, we often estimate the <strong>Sample Average Treatment Effect (SATE)</strong> using a finite sample. However, the <strong>Population Average Treatment Effect (PATE)</strong> is the parameter of interest when making broader generalizations.</p>
+<p><strong>Key Issue:</strong><br>
+SATE <strong>does not necessarily equal</strong> PATE due to <strong>sample selection bias and treatment imbalance</strong>.</p>
+<p>See <span class="citation">(<a href="references.html#ref-imai2008">Imai, King, and Stuart 2008</a>)</span> for an in-depth discussion on when SATE diverges from PATE.</p>
+<hr>
+<p>Consider a <strong>finite population</strong> of size <span class="math inline">\(N\)</span> from which we observe a sample of size <span class="math inline">\(n\)</span> (<span class="math inline">\(N \gg n\)</span>). Half of the sample receives treatment, and half is assigned to control.</p>
+<p>Define the following indicators:</p>
+<ul>
+<li>
+<strong>Sampling Indicator</strong>:<br><span class="math display">\[
+  I_i =
+  \begin{cases}
+  1, &amp; \text{if unit } i \text{ is in the sample} \\
+  0, &amp; \text{otherwise}
+  \end{cases}
+  \]</span>
+</li>
+<li>
+<strong>Treatment Assignment Indicator</strong>:<br><span class="math display">\[
+T_i =
+\begin{cases}
+1, &amp; \text{if unit } i \text{ is in the treatment group} \\
+0, &amp; \text{if unit } i \text{ is in the control group}
+\end{cases}
+\]</span>
+</li>
+</ul>
+<!-- --><ul>
+<li><p><strong>Potential Outcomes Framework</strong>:<br><span class="math display">\[
+Y_i =
+\begin{cases}
+Y_i(1), &amp; \text{if } T_i = 1 \text{ (Treated)} \\
+Y_i(0), &amp; \text{if } T_i = 0 \text{ (Control)}
+\end{cases}
+\]</span></p></li>
+<li>
+<p><strong>Observed Outcome</strong>:<br>
+Since we can never observe both potential outcomes for the same unit, the observed outcome is:</p>
+<p><span class="math display">\[
+Y_i | I_i = 1 = T_i Y_i(1) + (1 - T_i) Y_i(0)
+\]</span></p>
+</li>
+<li>
+<p><strong>True Individual Treatment Effect</strong>:<br>
+The individual-level treatment effect is:</p>
+<p><span class="math display">\[
+TE_i = Y_i(1) - Y_i(0)
+\]</span></p>
+</li>
+</ul>
+<p>However, since we observe only one of <span class="math inline">\(Y_i(1)\)</span> or <span class="math inline">\(Y_i(0)\)</span>, <span class="math inline">\(TE_i\)</span> is never directly observed.</p>
+<div id="definitions-of-sate-and-pate" class="section level4" number="21.10.5.1">
+<h4>
+<span class="header-section-number">21.10.5.1</span> Definitions of SATE and PATE<a class="anchor" aria-label="anchor" href="#definitions-of-sate-and-pate"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li><p><strong>Sample Average Treatment Effect (SATE):</strong> <span class="math display">\[
+SATE = \frac{1}{n} \sum_{i \in \{I_i = 1\}} TE_i
+\]</span> SATE is the <strong>average treatment effect within the sample</strong>.</p></li>
+<li><p><strong>Population Average Treatment Effect (PATE):</strong> <span class="math display">\[
+PATE = \frac{1}{N} \sum_{i=1}^N TE_i
+\]</span> PATE represents the <strong>true treatment effect across the entire population</strong>.</p></li>
+</ul>
+<p>Since we observe only a subset of the population, SATE <strong>may not equal</strong> PATE.</p>
+<hr>
+</div>
+<div id="decomposing-estimation-error" class="section level4" number="21.10.5.2">
+<h4>
+<span class="header-section-number">21.10.5.2</span> Decomposing Estimation Error<a class="anchor" aria-label="anchor" href="#decomposing-estimation-error"><i class="fas fa-link"></i></a>
+</h4>
+<p>The baseline estimator for SATE and PATE is the <strong>difference in observed means</strong>:</p>
+<p><span class="math display">\[
+\begin{aligned}
+D &amp;= \frac{1}{n/2} \sum_{i \in (I_i = 1, T_i = 1)} Y_i - \frac{1}{n/2} \sum_{i \in (I_i = 1 , T_i = 0)} Y_i \\
+&amp;= \text{(Mean of Treated Group)} - \text{(Mean of Control Group)}
+\end{aligned}
+\]</span></p>
+<p>Define <span class="math inline">\(\Delta\)</span> as the estimation error (i.e., deviation from the truth), under an additive model:</p>
+<p><span class="math display">\[
+Y_i(t) = g_t(X_i) + h_t(U_i)
+\]</span></p>
+<p>The estimation error is decomposed into</p>
+<p><span class="math display">\[
+\begin{aligned}
+PATE - D = \Delta &amp;= \Delta_S + \Delta_T \\
+&amp;= (PATE - SATE) + (SATE - D)\\
+&amp;= \text{Sample Selection Bias} + \text{Treatment Imbalance} \\
+&amp;= (\Delta_{S_X} + \Delta_{S_U}) + (\Delta_{T_X} + \Delta_{T_U}) \\
+&amp;= (\text{Selection on Observables} + \text{Selection on Unobservables}) \\
+&amp;+ (\text{Treatment Imbalance in Observables} + \text{Treatment Imbalance in Unobservables})
+\end{aligned}
+\]</span></p>
+<p>To further illustrate this, we begin by explicitly defining how the total discrepancy <span class="math inline">\(PATE - D\)</span> separates into different components.</p>
+<p><strong>Step 1</strong>: From <span class="math inline">\(PATE - D\)</span> to <span class="math inline">\(\Delta_S + \Delta_T\)</span></p>
+<p><span class="math display">\[
+\underbrace{PATE - D}_{\Delta}
+\;=\;
+\underbrace{(PATE - SATE)}_{\Delta_S}
+\; +\;
+\underbrace{(SATE - D)}_{\Delta_T}.
+\]</span></p>
+<ul>
+<li>
+<span class="math inline">\(PATE - D\)</span>: The total discrepancy between the true population treatment effect and the estimate <span class="math inline">\(D\)</span>.</li>
+<li>
+<span class="math inline">\(\Delta_S = PATE - SATE\)</span>: Sample Selection Bias – how much the sample ATE differs from the population ATE.</li>
+<li>
+<span class="math inline">\(\Delta_T = SATE - D\)</span>: Treatment Imbalance – how much the estimated treatment effect deviates from the sample ATE.</li>
+</ul>
+<p><strong>Step 2</strong>: Breaking Bias into Observables and Unobservables</p>
+<p>Each bias term can be decomposed into observed (<span class="math inline">\(X\)</span>) and unobserved (<span class="math inline">\(U\)</span>) factors:</p>
+<p><span class="math display">\[
+\Delta_S
+= \underbrace{\Delta_{S_X}}_{\text{Selection on Observables}}
++ \underbrace{\Delta_{S_U}}_{\text{Selection on Unobservables}}
+\]</span></p>
+<p><span class="math display">\[
+\Delta_T
+= \underbrace{\Delta_{T_X}}_{\text{Treatment Imbalance in Observables}}
++ \underbrace{\Delta_{T_U}}_{\text{Treatment Imbalance in Unobservables}}
+\]</span></p>
+<p>Thus, the final expression:</p>
+<p><span class="math display">\[
+\begin{aligned}
+PATE - D &amp;= \underbrace{(PATE - SATE)}_{\Delta_S:\,\text{Sample Selection Bias}}
+\;+\;
+\underbrace{(SATE - D)}_{\Delta_T:\,\text{Treatment Imbalance}} \\
+&amp;= \underbrace{(\Delta_{S_X} + \Delta_{S_U})}_{\text{Selection on }X + \text{ Selection on }U}
+\;+\;
+\underbrace{(\Delta_{T_X} + \Delta_{T_U})}_{\text{Imbalance in }X + \text{ Imbalance in }U}.
+\end{aligned}
+\]</span></p>
+<p>This decomposition clarifies the sources of error in estimating the true effect, distinguishing between <strong>sample representativeness</strong> (selection bias) and <strong>treatment assignment differences</strong> (treatment imbalance), and further separating these into <strong>observable</strong> and <strong>unobservable</strong> components.</p>
+<div id="sample-selection-bias-delta_s" class="section level5" number="21.10.5.2.1">
+<h5>
+<span class="header-section-number">21.10.5.2.1</span> Sample Selection Bias ( <span class="math inline">\(\Delta_S\)</span> )<a class="anchor" aria-label="anchor" href="#sample-selection-bias-delta_s"><i class="fas fa-link"></i></a>
+</h5>
+<p>Also called <strong>sample selection error</strong>, this arises when the sample <strong>is not representative of the population</strong>.</p>
+<p><span class="math display">\[
+\Delta_S = PATE - SATE = \frac{N - n}{N}(NATE - SATE)
+\]</span></p>
+<p>where:</p>
+<ul>
+<li>NATE (Non-Sample Average Treatment Effect) is the average treatment effect for the part of the population not included in the sample:</li>
+</ul>
+<p><span class="math display">\[
+NATE = \sum_{i\in (I_i = 0)} \frac{TE_i}{N-n}
+\]</span></p>
+<p>To eliminate sample selection bias (<span class="math inline">\(\Delta_S = 0\)</span>):</p>
+<ol style="list-style-type: decimal">
+<li>Redefine the sample as the entire population (<span class="math inline">\(N = n\)</span>).</li>
+<li>Ensure <span class="math inline">\(NATE = SATE\)</span> (e.g., treatment effects must be homogeneous across sampled and non-sampled units).</li>
+</ol>
+<p>However, when treatment effects vary across individuals, random sampling only warrants sample selection bias but does not sample eliminate error.</p>
+</div>
+<div id="treatment-imbalance-error-delta_t" class="section level5" number="21.10.5.2.2">
+<h5>
+<span class="header-section-number">21.10.5.2.2</span> Treatment Imbalance Error ( <span class="math inline">\(\Delta_T\)</span> )<a class="anchor" aria-label="anchor" href="#treatment-imbalance-error-delta_t"><i class="fas fa-link"></i></a>
+</h5>
+<p>Also called <strong>treatment imbalance bias</strong>, this occurs when <strong>the empirical distribution of treated and control units differs</strong>.</p>
+<p><span class="math display">\[
+\Delta_T = SATE - D
+\]</span></p>
+<p><strong>Key insight</strong>:<br><span class="math inline">\(\Delta_T \to 0\)</span> when the treatment and control groups are balanced across both observables (<span class="math inline">\(X\)</span>) and unobservables (<span class="math inline">\(U\)</span>).</p>
+<p>Since we cannot directly adjust for unobservables, imbalance correction methods focus on observables.</p>
+<hr>
+</div>
+</div>
+<div id="adjusting-for-observable-treatment-imbalance" class="section level4" number="21.10.5.3">
+<h4>
+<span class="header-section-number">21.10.5.3</span> Adjusting for (Observable) Treatment Imbalance<a class="anchor" aria-label="anchor" href="#adjusting-for-observable-treatment-imbalance"><i class="fas fa-link"></i></a>
+</h4>
+<p>However, in real-world studies:</p>
+<ul>
+<li><p>We can only adjust for observables <span class="math inline">\(X\)</span>, not unobservables <span class="math inline">\(U\)</span>.</p></li>
+<li><p>Residual imbalance in unobservables may still introduce bias after adjustment.</p></li>
+</ul>
+<p>To address treatment imbalance, researchers commonly use:</p>
+<ol style="list-style-type: decimal">
+<li><a href="sec-analysis-of-variance-anova.html#randomized-block-designs">Blocking</a></li>
+<li><a href="matching-methods.html#matching-methods">Matching Methods</a></li>
+</ol>
+<hr>
+<div class="inline-table"><table style="width:100%;" class="table table-sm">
+<colgroup>
+<col width="13%">
+<col width="32%">
+<col width="53%">
+</colgroup>
+<thead><tr class="header">
+<th><strong>Method</strong></th>
+<th><strong><a href="sec-analysis-of-variance-anova.html#randomized-block-designs">Blocking</a></strong></th>
+<th><strong><a href="matching-methods.html#matching-methods">Matching Methods</a></strong></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>Definition</strong></td>
+<td>Random assignment within predefined strata based on pre-treatment covariates.</td>
+<td>Dropping, repeating, or grouping observations to balance covariates between treated and control groups <span class="citation">(<a href="references.html#ref-rubin1973use">Rubin 1973</a>)</span>.</td>
+</tr>
+<tr class="even">
+<td><strong>When Applied?</strong></td>
+<td>Before treatment assignment (in experimental designs).</td>
+<td>After treatment assignment (in observational studies).</td>
+</tr>
+<tr class="odd">
+<td><strong>Effectiveness</strong></td>
+<td>Ensures exact balance within strata but may require large sample sizes for fine stratification.</td>
+<td>Can improve balance, but risk of increasing bias if covariates are poorly chosen.</td>
+</tr>
+<tr class="even">
+<td><strong>What If Covariates Are Irrelevant?</strong></td>
+<td>No effect on treatment estimates.</td>
+<td>Worst-case scenario: If matching is done on covariates uncorrelated with treatment but correlated with outcomes, it may increase bias instead of reducing it.</td>
+</tr>
+<tr class="odd">
+<td><strong>Benefits</strong></td>
+<td>
+<p>Eliminates imbalance in observables (<span class="math inline">\(\Delta_{T_X} = 0\)</span>).</p>
+<p>Effect on unobservables is uncertain (may help if unobservables correlate with observables).</p>
+</td>
+<td>
+<p>Reduces model dependence, bias, variance, and mean-squared error (MSE).</p>
+<p>Matching only balances observables, and its effect on unobservables is unknown.</p>
+</td>
+</tr>
+</tbody>
+</table></div>
+<hr>
+</div>
+</div>
+<div id="average-treatment-effects-on-the-treated-and-control" class="section level3" number="21.10.6">
+<h3>
+<span class="header-section-number">21.10.6</span> Average Treatment Effects on the Treated and Control<a class="anchor" aria-label="anchor" href="#average-treatment-effects-on-the-treated-and-control"><i class="fas fa-link"></i></a>
+</h3>
+<p>In many empirical studies, researchers are interested in how treatment affects <strong>specific subpopulations</strong> rather than the entire population. Two commonly used treatment effect measures are:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Average Treatment Effect on the Treated</strong> (ATT): The effect of treatment on individuals who actually received treatment.</li>
+<li>
+<strong>Average Treatment Effect on the Control</strong> (ATC): The effect treatment would have had on individuals who were not treated.</li>
+</ol>
+<p>Understanding the distinction between ATT, ATC, and ATE is crucial for determining <a href="sec-causal-inference.html#sec-external-validity">external validity</a> and for designing targeted policies.</p>
+<hr>
+<div id="sec-average-treatment-effect-on-the-treated" class="section level4" number="21.10.6.1">
+<h4>
+<span class="header-section-number">21.10.6.1</span> Average Treatment Effect on the Treated<a class="anchor" aria-label="anchor" href="#sec-average-treatment-effect-on-the-treated"><i class="fas fa-link"></i></a>
+</h4>
+<p>The <strong>ATT</strong> measures the expected treatment effect <strong>only for those who were actually treated</strong>:</p>
+<p><span class="math display">\[
+\begin{aligned}
+ATT &amp;= E[Y_i(1) - Y_i(0) | D_i = 1] \\
+&amp;= E[Y_i(1) | D_i = 1] - E[Y_i(0) | D_i = 1]
+\end{aligned}
+\]</span></p>
+<p><strong>Key Interpretation:</strong></p>
+<ul>
+<li><p>ATT tells us how much better (or worse) off treated individuals are compared to their hypothetical counterfactual outcome (had they not been treated).</p></li>
+<li><p>It is useful for evaluating the effectiveness of interventions on those who self-select into treatment.</p></li>
+</ul>
+</div>
+<div id="sec-average-treatment-effect-on-the-control" class="section level4" number="21.10.6.2">
+<h4>
+<span class="header-section-number">21.10.6.2</span> Average Treatment Effect on the Control<a class="anchor" aria-label="anchor" href="#sec-average-treatment-effect-on-the-control"><i class="fas fa-link"></i></a>
+</h4>
+<p>The <strong>ATC</strong> measures the expected treatment effect <strong>only for those who were not treated</strong>:</p>
+<p><span class="math display">\[
+\begin{aligned}
+ATC &amp;= E[Y_i(1) - Y_i(0) | D_i = 0] \\
+&amp;= E[Y_i(1) | D_i = 0] - E[Y_i(0) | D_i = 0]
+\end{aligned}
+\]</span></p>
+<p><strong>Key Interpretation:</strong></p>
+<ul>
+<li><p>ATC answers the question: “What would have been the effect of treatment if it had been given to those who were not treated?”</p></li>
+<li><p>It is important for understanding how an intervention might generalize to untreated populations.</p></li>
+</ul>
+</div>
+<div id="relationship-between-att-atc-and-ate" class="section level4" number="21.10.6.3">
+<h4>
+<span class="header-section-number">21.10.6.3</span> Relationship Between ATT, ATC, and ATE<a class="anchor" aria-label="anchor" href="#relationship-between-att-atc-and-ate"><i class="fas fa-link"></i></a>
+</h4>
+<p>Under <strong>random assignment and full compliance</strong>, we have:</p>
+<p><span class="math display">\[
+ATE = ATT = ATC
+\]</span></p>
+<p><strong>Why?</strong></p>
+<ul>
+<li><p>Randomization ensures that treated and untreated groups are statistically identical before treatment.</p></li>
+<li><p>Thus, treatment effects are the same across groups, leading to ATT = ATC = ATE.</p></li>
+</ul>
+<p>However, in observational settings, selection bias and treatment heterogeneity may cause ATT and ATC to diverge from ATE.</p>
+<hr>
+</div>
+<div id="sec-sample-average-treatment-effect-on-the-treated" class="section level4" number="21.10.6.4">
+<h4>
+<span class="header-section-number">21.10.6.4</span> Sample Average Treatment Effect on the Treated<a class="anchor" aria-label="anchor" href="#sec-sample-average-treatment-effect-on-the-treated"><i class="fas fa-link"></i></a>
+</h4>
+<p>The <strong>Sample ATT (SATT)</strong> is the empirical estimate of ATT in a finite sample:</p>
+<p><span class="math display">\[
+SATT = \frac{1}{n} \sum_{i \in D_i = 1} TE_i
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><p><span class="math inline">\(TE_i = Y_i(1) - Y_i(0)\)</span> is the treatment effect for unit <span class="math inline">\(i\)</span>.</p></li>
+<li><p><span class="math inline">\(n\)</span> is the number of treated units in the sample.</p></li>
+<li><p>The summation is taken only over treated units in the sample.</p></li>
+</ul>
+</div>
+<div id="sec-population-average-treatment-effect-on-the-treated" class="section level4" number="21.10.6.5">
+<h4>
+<span class="header-section-number">21.10.6.5</span> Population Average Treatment Effect on the Treated<a class="anchor" aria-label="anchor" href="#sec-population-average-treatment-effect-on-the-treated"><i class="fas fa-link"></i></a>
+</h4>
+<p>The <strong>Population ATT (PATT)</strong> generalizes ATT to the entire treated population:</p>
+<p><span class="math display">\[
+PATT = \frac{1}{N} \sum_{i \in D_i = 1} TE_i
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><p><span class="math inline">\(TE_i = Y_i(1) - Y_i(0)\)</span> is the treatment effect for unit <span class="math inline">\(i\)</span>.</p></li>
+<li><p><span class="math inline">\(N\)</span> is the total number of treated units in the population.</p></li>
+<li><p>The summation is taken over all treated individuals in the population.</p></li>
+</ul>
+<p>If the sample is <strong>randomly drawn</strong>, then <span class="math inline">\(SATT \approx PATT\)</span>, but if the sample is <strong>not representative</strong>, <span class="math inline">\(SATT\)</span> may <strong>overestimate or underestimate</strong> <span class="math inline">\(PATT\)</span>.</p>
+<hr>
+</div>
+<div id="when-att-and-atc-diverge-from-ate" class="section level4" number="21.10.6.6">
+<h4>
+<span class="header-section-number">21.10.6.6</span> When ATT and ATC Diverge from ATE<a class="anchor" aria-label="anchor" href="#when-att-and-atc-diverge-from-ate"><i class="fas fa-link"></i></a>
+</h4>
+<p>In real-world studies, ATT and ATC often <strong>differ from ATE</strong> due to <strong>treatment effect heterogeneity</strong> and <strong>selection bias</strong>.</p>
+<div id="selection-bias-in-att" class="section level5" number="21.10.6.6.1">
+<h5>
+<span class="header-section-number">21.10.6.6.1</span> Selection Bias in ATT<a class="anchor" aria-label="anchor" href="#selection-bias-in-att"><i class="fas fa-link"></i></a>
+</h5>
+<p>If individuals <strong>self-select</strong> into treatment, then the treated group may be <strong>systematically different</strong> from the control group.</p>
+<ul>
+<li>
+<strong>Example</strong>:
+<ul>
+<li>Suppose a job training program is voluntary.</li>
+<li>Individuals who enroll might be more motivated or have better skills than those who do not.</li>
+<li>As a result, the treatment effect (ATT) may not generalize to the untreated group (ATC).</li>
+</ul>
+</li>
+</ul>
+<p>This implies:</p>
+<p><span class="math display">\[
+ATT \neq ATC
+\]</span></p>
+<p>unless treatment assignment is random.</p>
+</div>
+<div id="treatment-effect-heterogeneity" class="section level5" number="21.10.6.6.2">
+<h5>
+<span class="header-section-number">21.10.6.6.2</span> Treatment Effect Heterogeneity<a class="anchor" aria-label="anchor" href="#treatment-effect-heterogeneity"><i class="fas fa-link"></i></a>
+</h5>
+<p>If <strong>treatment effects vary</strong> across individuals, then:</p>
+<ul>
+<li>ATT may be larger or smaller than ATE, depending on how treatment effects differ across subgroups.</li>
+<li>ATC may be larger or smaller than ATT, if the untreated group would have responded differently to treatment.</li>
+</ul>
+<p><strong>Example:</strong></p>
+<ul>
+<li><p>A scholarship program may be more beneficial for students from lower-income families than for students from wealthier backgrounds.</p></li>
+<li><p>If lower-income students are more likely to apply for the scholarship, then ATT &gt; ATE.</p></li>
+<li><p>However, if wealthier students (who did not receive the scholarship) would have benefited less from it, then ATC &lt; ATE.</p></li>
+</ul>
+<p>Thus, we may observe:</p>
+<p><span class="math display">\[
+ATE \neq ATT \neq ATC
+\]</span></p>
+<hr>
+<div class="inline-table"><table style="width:99%;" class="table table-sm">
+<colgroup>
+<col width="19%">
+<col width="29%">
+<col width="30%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th><strong>Treatment Effect</strong></th>
+<th><strong>Definition</strong></th>
+<th><strong>Use Case</strong></th>
+<th><strong>Potential Issues</strong></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>ATE (Average Treatment Effect)</strong></td>
+<td>Effect on <strong>randomly selected individuals</strong>
+</td>
+<td>Policy decisions applicable to entire population</td>
+<td>Requires full randomization</td>
+</tr>
+<tr class="even">
+<td><strong>ATT (Average Treatment on Treated)</strong></td>
+<td>Effect on <strong>those who received treatment</strong>
+</td>
+<td>Evaluating effectiveness of interventions for targeted groups</td>
+<td>Selection bias if treatment is voluntary</td>
+</tr>
+<tr class="odd">
+<td><strong>ATC (Average Treatment on Control)</strong></td>
+<td>Effect <strong>if treatment were given to untreated individuals</strong>
+</td>
+<td>Predicting treatment effects for new populations</td>
+<td>May not be generalizable</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div id="sec-quantile-average-treatment-effects" class="section level3" number="21.10.7">
+<h3>
+<span class="header-section-number">21.10.7</span> Quantile Average Treatment Effects<a class="anchor" aria-label="anchor" href="#sec-quantile-average-treatment-effects"><i class="fas fa-link"></i></a>
+</h3>
+<p>Instead of focusing on the mean effect (<a href="sec-causal-inference.html#sec-average-treatment-effect">ATE</a>), Quantile Treatment Effects (QTE) help us understand how treatment shifts the entire distribution of an outcome variable.</p>
+<p>The Quantile Treatment Effect at quantile <span class="math inline">\(\tau\)</span> is defined as:</p>
+<p><span class="math display">\[
+QTE_{\tau} = Q_{\tau} (Y_1) - Q_{\tau} (Y_0)
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><p><span class="math inline">\(Q_{\tau} (Y_1)\)</span> is the <span class="math inline">\(\tau\)</span>-th quantile of the outcome distribution <strong>under treatment</strong>.</p></li>
+<li><p><span class="math inline">\(Q_{\tau} (Y_0)\)</span> is the <span class="math inline">\(\tau\)</span>-th quantile of the outcome distribution <strong>under control</strong>.</p></li>
+</ul>
+<p><strong>When to Use QTE?</strong></p>
+<ul>
+<li>
+<strong>Heterogeneous Treatment Effects</strong>: If treatment effects differ across individuals, ATE may be misleading.</li>
+<li>
+<strong>Policy Targeting</strong>: Policymakers may care more about low-income individuals (e.g., bottom 25%) rather than the average effect.</li>
+<li>
+<strong>Distributional Changes</strong>: QTE allows us to assess whether treatment increases inequality (e.g., benefits the rich more than the poor).</li>
+</ul>
+<p><strong>Estimation of QTE</strong></p>
+<p>QTE can be estimated using:</p>
+<ul>
+<li><p><strong>Quantile Regression</strong>: Extends linear regression to estimate effects at different quantiles.</p></li>
+<li><p><strong><a href="instrumental-variables.html#instrumental-variables">Instrumental Variables</a> for QTE</strong>: Requires additional assumptions to estimate causal effects in the presence of endogeneity <span class="citation">(<a href="references.html#ref-abadie2002instrumental">Abadie, Angrist, and Imbens 2002</a>; <a href="references.html#ref-chernozhukov2005iv">Chernozhukov and Hansen 2005</a>)</span>.</p></li>
+</ul>
+<p><strong>Example: Wage Policy Impact</strong></p>
+<ul>
+<li>Suppose a minimum wage increase is introduced.</li>
+<li>The ATE might show a small positive effect on earnings.</li>
+<li>However, QTE might reveal:
+<ul>
+<li>No effect at the bottom quantiles (for workers who lose jobs).</li>
+<li>A positive effect at the median.</li>
+<li>A strong positive effect at the top quantiles (for experienced workers who benefit the most).</li>
+</ul>
+</li>
+</ul>
+<p>Thus, QTE provides a more detailed view of the treatment effect across the entire income distribution.</p>
+<hr>
+</div>
+<div id="sec-log-odds-treatment-effects-for-binary-outcomes" class="section level3" number="21.10.8">
+<h3>
+<span class="header-section-number">21.10.8</span> Log-Odds Treatment Effects for Binary Outcomes<a class="anchor" aria-label="anchor" href="#sec-log-odds-treatment-effects-for-binary-outcomes"><i class="fas fa-link"></i></a>
+</h3>
+<p>When the <strong>outcome variable is binary</strong> (e.g., success/failure, employed/unemployed, survived/died), it is often useful to measure the treatment effect in <strong>log-odds form</strong>.</p>
+<p>For a binary outcome <span class="math inline">\(Y\)</span>, define the <strong>probability of success</strong> as:</p>
+<p><span class="math display">\[
+P(Y = 1 | D = d)
+\]</span></p>
+<p>The <strong>log-odds of success</strong> under treatment and control are:</p>
+<p><span class="math display">\[
+\text{Log-odds}(Y | D = 1) = \log \left( \frac{P(Y = 1 | D = 1)}{1 - P(Y = 1 | D = 1)} \right)
+\]</span></p>
+<p><span class="math display">\[
+\text{Log-odds}(Y | D = 0) = \log \left( \frac{P(Y = 1 | D = 0)}{1 - P(Y = 1 | D = 0)} \right)
+\]</span></p>
+<p>The <strong>Log-Odds Treatment Effect (LOTE)</strong> is then:</p>
+<p><span class="math display">\[
+LOTE = \text{Log-odds}(Y | D = 1) - \text{Log-odds}(Y | D = 0)
+\]</span></p>
+<p>This captures how treatment <strong>affects the relative likelihood</strong> of success in a nonlinear way.</p>
+<p><strong>When to Use Log-Odds Treatment Effects?</strong></p>
+<ul>
+<li>
+<strong>Binary Outcomes</strong>: When the treatment outcome is 0 or 1 (e.g., employed/unemployed).</li>
+<li>
+<strong>Nonlinear Treatment Effects</strong>: Log-odds help handle situations where effects are multiplicative rather than additive.</li>
+<li>
+<strong>Rare Events</strong>: Useful in cases where the outcome probability is very small or very large.</li>
+</ul>
+<p><strong>Estimation of Log-Odds Treatment Effects</strong></p>
+<ul>
+<li><p><strong>Logistic Regression with Treatment Indicator</strong>: <span class="math display">\[
+\log \left( \frac{P(Y = 1 | D = 1)}{1 - P(Y = 1 | D = 1)} \right) = \beta_0 + \beta_1 D
+\]</span> where <span class="math inline">\(\beta_1\)</span> represents the <strong>log-odds treatment effect</strong>.</p></li>
+<li><p><strong>Randomization-Based Estimation</strong>: <span class="citation">Freedman (<a href="references.html#ref-freedman2008randomization">2008</a>)</span> provides a framework for randomized trials that ensures consistent estimation.</p></li>
+<li><p><strong>Attributable Effects</strong>: Alternative methods, such as those in <span class="citation">(<a href="references.html#ref-rosenbaum2002attributing">Rosenbaum 2002</a>)</span>, estimate the proportion of cases attributable to the treatment.</p></li>
+</ul>
+<hr>
+</div>
+<div id="summary-table-treatment-effect-estimands" class="section level3" number="21.10.9">
+<h3>
+<span class="header-section-number">21.10.9</span> Summary Table: Treatment Effect Estimands<a class="anchor" aria-label="anchor" href="#summary-table-treatment-effect-estimands"><i class="fas fa-link"></i></a>
+</h3>
+<div class="inline-table"><table style="width:99%;" class="table table-sm">
+<colgroup>
+<col width="20%">
+<col width="22%">
+<col width="18%">
+<col width="20%">
+<col width="17%">
+</colgroup>
+<thead><tr class="header">
+<th><strong>Treatment Effect</strong></th>
+<th><strong>Definition</strong></th>
+<th><strong>Use Case</strong></th>
+<th><strong>Key Assumptions</strong></th>
+<th><strong>When It Differs from ATE?</strong></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><a href="sec-causal-inference.html#sec-average-treatment-effect">Average Treatment Effect</a></td>
+<td>The expected treatment effect for a randomly chosen individual in the population.</td>
+<td>General policy evaluation; measures the overall impact.</td>
+<td>Randomization or strong ignorability (treatment assignment independent of potential outcomes).</td>
+<td>-</td>
+</tr>
+<tr class="even">
+<td><a href="sec-causal-inference.html#sec-conditional-average-treatment-effect-">Conditional Average Treatment Effect</a></td>
+<td>The treatment effect for a specific subgroup of the population, conditional on covariates <span class="math inline">\(X\)</span>.</td>
+<td>Identifies heterogeneous effects; useful for targeted interventions.</td>
+<td>Treatment effect heterogeneity must exist.</td>
+<td>Differs when treatment effects vary across subgroups.</td>
+</tr>
+<tr class="odd">
+<td><a href="sec-causal-inference.html#sec-intention-to-treat-effect">Intention-to-Treat Effect</a></td>
+<td>The effect of being assigned to treatment, regardless of actual compliance.</td>
+<td>Policy evaluations where non-compliance exists.</td>
+<td>Randomized treatment assignment ensures unbiased estimation.</td>
+<td>Lower than ATE when not all assigned individuals comply.</td>
+</tr>
+<tr class="even">
+<td><a href="sec-causal-inference.html#sec-local-average-treatment-effects">Local Average Treatment Effect</a></td>
+<td>The effect of treatment only on compliers—those who take the treatment if and only if assigned to it.</td>
+<td>When compliance is imperfect, LATE isolates the effect for compliers.</td>
+<td>Monotonicity (no defiers); instrument only affects the outcome through treatment.</td>
+<td>Differs from ATE when compliance is selective.</td>
+</tr>
+<tr class="odd">
+<td><a href="sec-causal-inference.html#sec-average-treatment-effect-on-the-treated">Average Treatment Effect on the Treated</a></td>
+<td>The effect of treatment on those who actually received the treatment.</td>
+<td>Used when assessing effectiveness of a treatment for those who self-select into it.</td>
+<td>No unmeasured confounders within the treated group.</td>
+<td>Differs when treatment selection is not random.</td>
+</tr>
+<tr class="even">
+<td><a href="sec-causal-inference.html#sec-average-treatment-effect-on-the-control">Average Treatment Effect on the Control</a></td>
+<td>The effect the treatment would have had on individuals who were not treated.</td>
+<td>Predicts the effect of expanding a program to the untreated population.</td>
+<td>No unmeasured confounders within the control group.</td>
+<td>Differs when treatment effects are heterogeneous.</td>
+</tr>
+<tr class="odd">
+<td><a href="sec-causal-inference.html#sec-sample-average-treatment-effect-on-the-treated">Sample Average Treatment Effect</a></td>
+<td>The estimated treatment effect in the sample.</td>
+<td>Used when evaluating treatment within a specific sample.</td>
+<td>Sample must be representative of the population for external validity.</td>
+<td>Differs when the sample is not representative of the population.</td>
+</tr>
+<tr class="even">
+<td><a href="sec-causal-inference.html#sec-population-average-treatment-effect-on-the-treated">Population Average Treatment Effect</a></td>
+<td>The expected treatment effect for the entire population.</td>
+<td>Policy design and large-scale decision-making.</td>
+<td>Requires that sample selection is random.</td>
+<td>Differs when sample selection bias exists.</td>
+</tr>
+<tr class="odd">
+<td><a href="sec-causal-inference.html#sec-quantile-average-treatment-effects">Quantile Treatment Effect</a></td>
+<td>The treatment effect at a specific percentile of the outcome distribution.</td>
+<td>Understanding distributional effects rather than mean effects.</td>
+<td>Rank preservation or monotonicity assumptions may be needed.</td>
+<td>Differs when treatment effects vary across outcome quantiles.</td>
+</tr>
+<tr class="even">
+<td><a href="sec-causal-inference.html#sec-log-odds-treatment-effects-for-binary-outcomes">Log-Odds Treatment Effect</a></td>
+<td>The effect of treatment on binary outcomes, expressed in log-odds.</td>
+<td>Used when outcomes are dichotomous (e.g., employed/unemployed, survived/died).</td>
+<td>Logistic model assumptions must hold.</td>
+<td>Differs when treatment effects are nonlinear or outcome probabilities are low.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+
+
+
+<div class="chapter-nav">
+<div class="prev"><a href="prediction-and-estimation.html"><span class="header-section-number">20</span> Prediction and Estimation</a></div>
+<div class="next"><a href="experimental-design.html"><span class="header-section-number">22</span> Experimental Design</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sec-causal-inference"><span class="header-section-number">21</span> Causal Inference</a></li>
+<li><a class="nav-link" href="#sec-the-ladder-of-causation"><span class="header-section-number">21.1</span> The Ladder of Causation</a></li>
+<li><a class="nav-link" href="#the-formal-notation-of-causality"><span class="header-section-number">21.2</span> The Formal Notation of Causality</a></li>
+<li><a class="nav-link" href="#the-7-tools-of-structural-causal-models"><span class="header-section-number">21.3</span> The 7 Tools of Structural Causal Models</a></li>
+<li>
+<a class="nav-link" href="#simpsons-paradox"><span class="header-section-number">21.4</span> Simpson’s Paradox</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#what-is-simpsons-paradox"><span class="header-section-number">21.4.1</span> What is Simpson’s Paradox?</a></li>
+<li><a class="nav-link" href="#why-is-this-important"><span class="header-section-number">21.4.2</span> Why is this Important?</a></li>
+<li><a class="nav-link" href="#comparison-between-simpsons-paradox-and-omitted-variable-bias"><span class="header-section-number">21.4.3</span> Comparison between Simpson’s Paradox and Omitted Variable Bias</a></li>
+<li><a class="nav-link" href="#illustrating-simpsons-paradox-marketing-campaign-success-rates"><span class="header-section-number">21.4.4</span> Illustrating Simpson’s Paradox: Marketing Campaign Success Rates</a></li>
+<li><a class="nav-link" href="#why-does-this-happen"><span class="header-section-number">21.4.5</span> Why Does This Happen?</a></li>
+<li><a class="nav-link" href="#how-does-causal-inference-solve-this"><span class="header-section-number">21.4.6</span> How Does Causal Inference Solve This?</a></li>
+<li><a class="nav-link" href="#correcting-simpsons-paradox-with-regression-adjustment"><span class="header-section-number">21.4.7</span> Correcting Simpson’s Paradox with Regression Adjustment</a></li>
+<li><a class="nav-link" href="#key-takeaways-3"><span class="header-section-number">21.4.8</span> Key Takeaways</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#additional-resources-1"><span class="header-section-number">21.5</span> Additional Resources</a></li>
+<li>
+<a class="nav-link" href="#experimental-vs.-quasi-experimental-designs"><span class="header-section-number">21.6</span> Experimental vs. Quasi-Experimental Designs</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#criticisms-of-quasi-experimental-designs"><span class="header-section-number">21.6.1</span> Criticisms of Quasi-Experimental Designs</a></li></ul>
+</li>
+<li><a class="nav-link" href="#hierarchical-ordering-of-causal-tools"><span class="header-section-number">21.7</span> Hierarchical Ordering of Causal Tools</a></li>
+<li>
+<a class="nav-link" href="#types-of-validity-in-research"><span class="header-section-number">21.8</span> Types of Validity in Research</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sec-measurement-validity"><span class="header-section-number">21.8.1</span> Measurement Validity</a></li>
+<li><a class="nav-link" href="#sec-construct-validity"><span class="header-section-number">21.8.2</span> Construct Validity</a></li>
+<li><a class="nav-link" href="#sec-criterion-validity"><span class="header-section-number">21.8.3</span> Criterion Validity</a></li>
+<li><a class="nav-link" href="#sec-internal-validity"><span class="header-section-number">21.8.4</span> Internal Validity</a></li>
+<li><a class="nav-link" href="#sec-external-validity"><span class="header-section-number">21.8.5</span> External Validity</a></li>
+<li><a class="nav-link" href="#sec-ecological-validity"><span class="header-section-number">21.8.6</span> Ecological Validity</a></li>
+<li><a class="nav-link" href="#sec-statistical-conclusion-validity"><span class="header-section-number">21.8.7</span> Statistical Conclusion Validity</a></li>
+<li><a class="nav-link" href="#putting-it-all-together"><span class="header-section-number">21.8.8</span> Putting It All Together</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#types-of-subjects-in-a-treatment-setting"><span class="header-section-number">21.9</span> Types of Subjects in a Treatment Setting</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#non-switchers"><span class="header-section-number">21.9.1</span> Non-Switchers</a></li>
+<li><a class="nav-link" href="#switchers"><span class="header-section-number">21.9.2</span> Switchers</a></li>
+<li><a class="nav-link" href="#classification-of-individuals-based-on-treatment-assignment"><span class="header-section-number">21.9.3</span> Classification of Individuals Based on Treatment Assignment</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#types-of-treatment-effects"><span class="header-section-number">21.10</span> Types of Treatment Effects</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sec-average-treatment-effect"><span class="header-section-number">21.10.1</span> Average Treatment Effect</a></li>
+<li><a class="nav-link" href="#sec-conditional-average-treatment-effect-"><span class="header-section-number">21.10.2</span> Conditional Average Treatment Effect</a></li>
+<li><a class="nav-link" href="#sec-intention-to-treat-effect"><span class="header-section-number">21.10.3</span> Intention-to-Treat Effect</a></li>
+<li><a class="nav-link" href="#sec-local-average-treatment-effects"><span class="header-section-number">21.10.4</span> Local Average Treatment Effects</a></li>
+<li><a class="nav-link" href="#population-vs.-sample-average-treatment-effects"><span class="header-section-number">21.10.5</span> Population vs. Sample Average Treatment Effects</a></li>
+<li><a class="nav-link" href="#average-treatment-effects-on-the-treated-and-control"><span class="header-section-number">21.10.6</span> Average Treatment Effects on the Treated and Control</a></li>
+<li><a class="nav-link" href="#sec-quantile-average-treatment-effects"><span class="header-section-number">21.10.7</span> Quantile Average Treatment Effects</a></li>
+<li><a class="nav-link" href="#sec-log-odds-treatment-effects-for-binary-outcomes"><span class="header-section-number">21.10.8</span> Log-Odds Treatment Effects for Binary Outcomes</a></li>
+<li><a class="nav-link" href="#summary-table-treatment-effect-estimands"><span class="header-section-number">21.10.9</span> Summary Table: Treatment Effect Estimands</a></li>
+</ul>
+</li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/mikenguyen13/data_analysis/blob/main/21-causality.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/mikenguyen13/data_analysis/edit/main/21-causality.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+</div>
+  
+
+  
+
+</div>
+ <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-02-18.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

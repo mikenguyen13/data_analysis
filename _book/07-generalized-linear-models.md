@@ -297,7 +297,7 @@ $$
 **Comparing Likelihood Ratio and Wald Tests**
 
 | Test                                                         | Best Used When...                                                                                                  |
-|-------------------------|----------------------------------------------|
+|--------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
 | [Likelihood Ratio Test](#sec-likelihood-ratio-test-logistic) | More accurate in small samples, providing better control of error rates. Recommended when sample sizes are small.  |
 | [Wald Test](#sec-wald-test-logistic)                         | Easier to compute but may be inaccurate in small samples. Recommended when computational efficiency is a priority. |
 
@@ -2086,7 +2086,7 @@ summary(NegBinom_Mod)
 #### Key Differences: Quasi-Poisson vs. Negative Binomial
 
 | Feature                                   | Quasi-Poisson            | Negative Binomial |
-|----------------------------------|---------------------|------------------|
+|-------------------------------------------|--------------------------|-------------------|
 | **Handles Overdispersion?**               | ✅ Yes                   | ✅ Yes            |
 | **Uses a Full Probability Distribution?** | ❌ No                    | ✅ Yes            |
 | **MLE-Based?**                            | ❌ No (quasi-likelihood) | ✅ Yes            |
@@ -3388,7 +3388,7 @@ This means that the unification GLMs provide for estimating $\beta$ does not ext
     $$
 
 | Approach              | Description                                                      | Pros                         | Cons                                                          |
-|---------------|----------------------|---------------|---------------------|
+|-----------------------|------------------------------------------------------------------|------------------------------|---------------------------------------------------------------|
 | **MLE**               | Estimates $\phi$ by maximizing the likelihood function           | Theoretically optimal        | Computationally complex, lacks a general closed-form solution |
 | **Moment Estimation** | Uses a bias-corrected $\chi^2$ method based on residual variance | Simpler, widely used in GLMs | Not as efficient as MLE                                       |
 
@@ -3471,7 +3471,7 @@ where:
 ------------------------------------------------------------------------
 
 | Test                      | Pros                                                 | Cons                                          |
-|------------------|-----------------------------|-------------------------|
+|---------------------------|------------------------------------------------------|-----------------------------------------------|
 | **Wald Test**             | Easy to compute, does not require fitting two models | May perform poorly in small samples           |
 | **Likelihood Ratio Test** | More accurate, especially for small samples          | Requires fitting both full and reduced models |
 
@@ -3871,7 +3871,7 @@ Over-dispersion occurs when the observed variance exceeds what the assumed model
 **Variance Assumptions for Common Random Components**
 
 | Random Component | Standard Assumption ($\text{var}(Y)$) | Alternative Model Allowing Over-Dispersion ($V(\mu)$) |
-|----------------|-----------------------|---------------------------------|
+|------------------|---------------------------------------|-------------------------------------------------------|
 | **Binomial**     | $n \mu (1- \mu)$                      | $\phi n \mu (1- \mu)$, where $m_i = n$                |
 | **Poisson**      | $\mu$                                 | $\phi \mu$                                            |
 

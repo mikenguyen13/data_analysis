@@ -1,0 +1,2677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 15 Variable Selection | A Guide on Data Analysis</title>
+<meta name="author" content="Mike Nguyen">
+<meta name="description" content="Imagine you’re a detective standing before a pinboard covered in clues—some are glaringly obvious, while others might be red herrings. Your mission? To pick which pieces of evidence will crack the...">
+<meta name="generator" content="bookdown 0.35 with bs4_book()">
+<meta property="og:title" content="Chapter 15 Variable Selection | A Guide on Data Analysis">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://bookdown.org/mike/data_analysis/variable-selection.html">
+<meta property="og:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<meta property="og:description" content="Imagine you’re a detective standing before a pinboard covered in clues—some are glaringly obvious, while others might be red herrings. Your mission? To pick which pieces of evidence will crack the...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 15 Variable Selection | A Guide on Data Analysis">
+<meta name="twitter:description" content="Imagine you’re a detective standing before a pinboard covered in clues—some are glaringly obvious, while others might be red herrings. Your mission? To pick which pieces of evidence will crack the...">
+<meta name="twitter:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.6.1/transition.js"></script><script src="libs/bs3compat-0.6.1/tabs.js"></script><script src="libs/bs3compat-0.6.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/kePrint-0.0.1/kePrint.js"></script><link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+<!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script><script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-DMNX2X65HQ');
+    </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">A Guide on Data Analysis</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Preface</a></li>
+<li><a class="" href="introduction.html"><span class="header-section-number">1</span> Introduction</a></li>
+<li><a class="" href="prerequisites.html"><span class="header-section-number">2</span> Prerequisites</a></li>
+<li class="book-part">I. BASIC</li>
+<li><a class="" href="descriptive-statistics.html"><span class="header-section-number">3</span> Descriptive Statistics</a></li>
+<li><a class="" href="basic-statistical-inference.html"><span class="header-section-number">4</span> Basic Statistical Inference</a></li>
+<li class="book-part">II. REGRESSION</li>
+<li><a class="" href="linear-regression.html"><span class="header-section-number">5</span> Linear Regression</a></li>
+<li><a class="" href="non-linear-regression.html"><span class="header-section-number">6</span> Non-Linear Regression</a></li>
+<li><a class="" href="generalized-linear-models.html"><span class="header-section-number">7</span> Generalized Linear Models</a></li>
+<li><a class="" href="sec-linear-mixed-models.html"><span class="header-section-number">8</span> Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonlinear-and-generalized-linear-mixed-models.html"><span class="header-section-number">9</span> Nonlinear and Generalized Linear Mixed Models</a></li>
+<li><a class="" href="nonparametric-regression.html"><span class="header-section-number">10</span> Nonparametric Regression</a></li>
+<li class="book-part">III. RAMIFICATIONS</li>
+<li><a class="" href="data.html"><span class="header-section-number">11</span> Data</a></li>
+<li><a class="" href="variable-transformation.html"><span class="header-section-number">12</span> Variable Transformation</a></li>
+<li><a class="" href="imputation-missing-data.html"><span class="header-section-number">13</span> Imputation (Missing Data)</a></li>
+<li><a class="" href="model-specification-tests.html"><span class="header-section-number">14</span> Model Specification Tests</a></li>
+<li><a class="active" href="variable-selection.html"><span class="header-section-number">15</span> Variable Selection</a></li>
+<li><a class="" href="hypothesis-testing.html"><span class="header-section-number">16</span> Hypothesis Testing</a></li>
+<li><a class="" href="sec-marginal-effects.html"><span class="header-section-number">17</span> Marginal Effects</a></li>
+<li><a class="" href="moderation.html"><span class="header-section-number">18</span> Moderation</a></li>
+<li><a class="" href="mediation.html"><span class="header-section-number">19</span> Mediation</a></li>
+<li><a class="" href="prediction-and-estimation.html"><span class="header-section-number">20</span> Prediction and Estimation</a></li>
+<li class="book-part">IV. CAUSAL INFERENCE</li>
+<li><a class="" href="sec-causal-inference.html"><span class="header-section-number">21</span> Causal Inference</a></li>
+<li class="book-part">A. EXPERIMENTAL DESIGN</li>
+<li><a class="" href="experimental-design.html"><span class="header-section-number">22</span> Experimental Design</a></li>
+<li><a class="" href="sampling.html"><span class="header-section-number">23</span> Sampling</a></li>
+<li><a class="" href="sec-analysis-of-variance-anova.html"><span class="header-section-number">24</span> Analysis of Variance</a></li>
+<li><a class="" href="multivariate-methods.html"><span class="header-section-number">25</span> Multivariate Methods</a></li>
+<li class="book-part">B. QUASI-EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-quasi-experimental.html"><span class="header-section-number">26</span> Quasi-experimental</a></li>
+<li><a class="" href="regression-discontinuity.html"><span class="header-section-number">27</span> Regression Discontinuity</a></li>
+<li><a class="" href="synthetic-difference-in-differences.html"><span class="header-section-number">28</span> Synthetic Difference-in-Differences</a></li>
+<li><a class="" href="difference-in-differences.html"><span class="header-section-number">29</span> Difference-in-differences</a></li>
+<li><a class="" href="changes-in-changes.html"><span class="header-section-number">30</span> Changes-in-Changes</a></li>
+<li><a class="" href="synthetic-control.html"><span class="header-section-number">31</span> Synthetic Control</a></li>
+<li><a class="" href="event-studies.html"><span class="header-section-number">32</span> Event Studies</a></li>
+<li><a class="" href="instrumental-variables.html"><span class="header-section-number">33</span> Instrumental Variables</a></li>
+<li><a class="" href="matching-methods.html"><span class="header-section-number">34</span> Matching Methods</a></li>
+<li><a class="" href="interrupted-time-series.html"><span class="header-section-number">35</span> Interrupted Time Series</a></li>
+<li class="book-part">C. OTHER CONCERNS</li>
+<li><a class="" href="endogeneity.html"><span class="header-section-number">36</span> Endogeneity</a></li>
+<li><a class="" href="other-biases.html"><span class="header-section-number">37</span> Other Biases</a></li>
+<li><a class="" href="controls.html"><span class="header-section-number">38</span> Controls</a></li>
+<li><a class="" href="directed-acyclic-graph.html"><span class="header-section-number">39</span> Directed Acyclic Graph</a></li>
+<li class="book-part">V. MISCELLANEOUS</li>
+<li><a class="" href="report.html"><span class="header-section-number">40</span> Report</a></li>
+<li><a class="" href="exploratory-data-analysis.html"><span class="header-section-number">41</span> Exploratory Data Analysis</a></li>
+<li><a class="" href="sensitivity-analysis-robustness-check.html"><span class="header-section-number">42</span> Sensitivity Analysis/ Robustness Check</a></li>
+<li><a class="" href="replication-and-synthetic-data.html"><span class="header-section-number">43</span> Replication and Synthetic Data</a></li>
+<li class="book-part">APPENDIX</li>
+<li><a class="" href="appendix.html"><span class="header-section-number">A</span> Appendix</a></li>
+<li><a class="" href="bookdown-cheat-sheet.html"><span class="header-section-number">B</span> Bookdown cheat sheet</a></li>
+<li><a class="" href="references.html">References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/mikenguyen13/data_analysis">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="variable-selection" class="section level1" number="15">
+<h1>
+<span class="header-section-number">15</span> Variable Selection<a class="anchor" aria-label="anchor" href="#variable-selection"><i class="fas fa-link"></i></a>
+</h1>
+<p>Imagine you’re a detective standing before a pinboard covered in clues—some are glaringly obvious, while others might be red herrings. Your mission? To pick which pieces of evidence will crack the case. This is the essence of variable selection in statistics: deciding which variables best uncover the story behind your data. Far from a mechanical chore, it’s a high-stakes balancing act blending analytical goals, domain insights, data realities, and computational feasibility.</p>
+<p>Why Does Variable Selection Matter?</p>
+<ul>
+<li><p><strong>Focus and Clarity</strong>: Models cluttered with unnecessary variables can obscure the real relationships or patterns in your data. By identifying the variables that truly drive your results, you sharpen your model’s focus and interpretability.</p></li>
+<li><p><strong>Efficiency and Performance</strong>: Too many variables can lead to overfitting—fitting the quirks of a single dataset rather than underlying trends. Streamlined models often run faster and generalize better.</p></li>
+<li><p><strong>Practical Constraints</strong>: In many real-world scenarios, data collection or processing costs money, time, and effort. Prioritizing the most meaningful variables becomes not just a statistical concern, but a strategic one.</p></li>
+</ul>
+<p><strong>Key Influences on Variable Selection</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<p><strong>Objectives or Goals</strong></p>
+<ul>
+<li><p><em>Prediction vs. Inference</em>: Are you trying to forecast future outcomes or explain why certain events happen? Prediction-focused models might include as many relevant features as possible for accuracy, whereas inference-driven models often strive for parsimony and clearer relationships.</p></li>
+<li><p><em>Balance</em>: Some analyses blend both objectives, requiring careful negotiation between complexity (to maximize predictive ability) and simplicity (to maintain interpretability).</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Previously Acquired Expertise</strong></p>
+<ul>
+<li><p><em>Domain Knowledge</em>: Whether you’re analyzing financial trends or studying medical records, familiarity with the subject can reveal which variables are naturally linked to the phenomenon.</p></li>
+<li><p><em>Subtle Clues</em>: Experts can uncover hidden confounders—variables that outwardly seem irrelevant yet dramatically influence results.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Availability and Quality of Data</strong></p>
+<ul>
+<li><p><em>Completeness</em>: Missing data or sparse measurements can force you to discard or transform variables. Sometimes the ideal variable simply isn’t present in your dataset.</p></li>
+<li><p><em>Reliability</em>: A variable riddled with measurement errors or inconsistencies may do more harm than good.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Computational Resources and Software</strong></p>
+<ul>
+<li><p><em>Toolset Capabilities</em>: Some statistical techniques or advanced machine learning methods thrive on large sets of variables, while others become unwieldy.</p></li>
+<li><p><em>Time and Memory Constraints</em>: Even the most sophisticated algorithms can choke on too much data if hardware resources are limited.</p></li>
+</ul>
+</li>
+</ol>
+<p>Selecting the right subset of variables enhances model interpretability, reduces computational cost, and prevents overfitting. Broadly, variable selection methods fall into three categories:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Filter Methods</strong>: Use statistical properties of the data to select features before modeling.
+<ol style="list-style-type: decimal">
+<li>Information Criteria-Based Selection
+<ol style="list-style-type: decimal">
+<li><a href="variable-selection.html#akaike-information-criterion-aic">Akaike Information Criterion (AIC)</a></li>
+<li><a href="variable-selection.html#bayesian-information-criterion-bic">Bayesian Information Criterion (BIC)</a></li>
+<li><a href="variable-selection.html#mallowss-c-statistic">Mallows’s C Statistic</a></li>
+<li><a href="variable-selection.html#hannan-quinn-criterion-hqc">Hannan-Quinn Criterion (HQC)</a></li>
+<li><a href="variable-selection.html#minimum-description-length-mdl">Minimum Description Length (MDL)</a></li>
+<li>Adjusted <span class="math inline">\(R^2\)</span>
+</li>
+<li><a href="variable-selection.html#prediction-error-sum-of-squares-press">Prediction Error Sum of Squares (PRESS)</a></li>
+</ol>
+</li>
+<li>Univariate Selection Methods</li>
+<li>Correlation-Based Feature Selection</li>
+<li>Variance Thresholding</li>
+</ol>
+</li>
+<li>
+<strong>Wrapper Methods</strong>: Evaluate different subsets of features based on model performance.
+<ol style="list-style-type: decimal">
+<li>Exhaustive Search (Best Subsets Algorithm)</li>
+<li><a href="variable-selection.html#best-subsets-algorithm-1">Best Subsets Algorithm</a></li>
+<li>
+<a href="variable-selection.html#stepwise-selection-methods-1">Stepwise Selection Methods</a>
+<ol style="list-style-type: decimal">
+<li><a href="variable-selection.html#forward-selection">Forward Selection</a></li>
+<li><a href="variable-selection.html#backward-elimination">Backward Elimination</a></li>
+<li><a href="variable-selection.html#stepwise-both-directions-selection">Stepwise (Both Directions) Selection</a></li>
+</ol>
+</li>
+<li><a href="variable-selection.html#branch-and-bound-algorithm-1">Branch-and-Bound Algorithm</a></li>
+<li><a href="#recursive-feature-elimination-rfe">Recursive Feature Elimination</a></li>
+</ol>
+</li>
+<li>
+<strong>Embedded Methods</strong>: Perform feature selection as part of the model training process.
+<ol style="list-style-type: decimal">
+<li>
+<a href="linear-regression.html#lasso-regression">Lasso Regression</a> (L1 Regularization)</li>
+<li>
+<a href="linear-regression.html#ridge-regression">Ridge Regression</a> (L2 Regularization)</li>
+<li>
+<a href="linear-regression.html#elastic-net">Elastic Net</a> (Combination of L1 and L2)</li>
+<li>Tree-Based Feature Importance</li>
+<li><a href="variable-selection.html#genetic-algorithms-1">Genetic Algorithms</a></li>
+</ol>
+</li>
+</ol>
+<div class="inline-table"><table class="table table-sm">
+<caption>Throughout this chapter, let <span class="math inline">\(P\)</span> denote the number of potential predictor variables (<span class="math inline">\(X_1, X_2, \dots, X_{P-1}\)</span>).</caption>
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="25%">
+<col width="25%">
+</colgroup>
+<thead><tr class="header">
+<th>Method Category</th>
+<th>Examples</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>Filter</strong></td>
+<td>AIC, BIC, Mutual Info, CFS</td>
+<td>Fast, scalable, model-agnostic</td>
+<td>Ignores feature interactions</td>
+</tr>
+<tr class="even">
+<td><strong>Wrapper</strong></td>
+<td>Stepwise Selection, RFE</td>
+<td>Finds optimal feature subsets</td>
+<td>Computationally expensive</td>
+</tr>
+<tr class="odd">
+<td><strong>Embedded</strong></td>
+<td>Lasso, Decision Trees</td>
+<td>Model-aware, balances efficiency</td>
+<td>Selection tied to specific models</td>
+</tr>
+</tbody>
+</table></div>
+<hr>
+<div id="sec-filter-methods" class="section level2" number="15.1">
+<h2>
+<span class="header-section-number">15.1</span> Filter Methods (Statistical Criteria, Model-Agnostic)<a class="anchor" aria-label="anchor" href="#sec-filter-methods"><i class="fas fa-link"></i></a>
+</h2>
+<div id="information-criteria-based-selection" class="section level3" number="15.1.1">
+<h3>
+<span class="header-section-number">15.1.1</span> Information Criteria-Based Selection<a class="anchor" aria-label="anchor" href="#information-criteria-based-selection"><i class="fas fa-link"></i></a>
+</h3>
+<div id="mallowss-c-statistic" class="section level4" number="15.1.1.1">
+<h4>
+<span class="header-section-number">15.1.1.1</span> Mallows’s C Statistic<a class="anchor" aria-label="anchor" href="#mallowss-c-statistic"><i class="fas fa-link"></i></a>
+</h4>
+<p>The <span class="math inline">\(C_p\)</span> statistic (Mallows, 1973, <em>Technometrics</em>, 15, 661-675) <span class="citation">(<a href="references.html#ref-mallows1995more">Mallows 1995</a>)</span> is a criterion used to evaluate the predictive ability of a fitted model. It balances model complexity and goodness-of-fit.</p>
+<p>For a model with <span class="math inline">\(p\)</span> parameters, let <span class="math inline">\(\hat{Y}_{ip}\)</span> be the predicted value of <span class="math inline">\(Y_i\)</span>. The <strong>total standardized mean square error of prediction</strong> is:</p>
+<p><span class="math display">\[
+\Gamma_p = \frac{\sum_{i=1}^n E(\hat{Y}_{ip} - E(Y_i))^2}{\sigma^2}
+\]</span></p>
+<p>Expanding <span class="math inline">\(\Gamma_p\)</span>:</p>
+<p><span class="math display">\[
+\Gamma_p = \frac{\sum_{i=1}^n [E(\hat{Y}_{ip}) - E(Y_i)]^2 + \sum_{i=1}^n \text{Var}(\hat{Y}_{ip})}{\sigma^2}
+\]</span></p>
+<ul>
+<li>The <strong>first term</strong> in the numerator represents the squared bias.</li>
+<li>The <strong>second term</strong> represents the prediction variance.</li>
+</ul>
+<p><strong>Key Insights</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<p><strong>Bias-Variance Tradeoff</strong>:</p>
+<ul>
+<li>The <strong>bias</strong> decreases as more variables are added to the model.</li>
+<li>If the <strong>full model</strong> (<span class="math inline">\(p = P\)</span>) is assumed to be the true model, <span class="math inline">\(E(\hat{Y}_{ip}) - E(Y_i) = 0\)</span>, implying no bias.</li>
+<li>The <strong>prediction variance</strong> increases as more variables are added: <span class="math inline">\(\sum \text{Var}(\hat{Y}_{ip}) = p \sigma^2\)</span>.</li>
+<li>Therefore, the optimal model balances bias and variance by minimizing <span class="math inline">\(\Gamma_p\)</span>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Estimating</strong> <span class="math inline">\(\Gamma_p\)</span>: Since <span class="math inline">\(\Gamma_p\)</span> depends on unknown parameters (e.g., <span class="math inline">\(\beta\)</span>), we use an estimate:</p>
+<p><span class="math display">\[
+C_p = \frac{SSE_p}{\hat{\sigma}^2} - (n - 2p)
+\]</span></p>
+<ul>
+<li>
+<span class="math inline">\(SSE_p\)</span>: Sum of squared errors for the model with <span class="math inline">\(p\)</span> predictors.</li>
+<li>
+<span class="math inline">\(\hat{\sigma}^2\)</span>: Mean squared error (MSE) of the full model with all <span class="math inline">\(P-1\)</span> predictors.</li>
+</ul>
+</li>
+<li>
+<p><strong>Properties of</strong> <span class="math inline">\(C_p\)</span>:</p>
+<ul>
+<li>As more variables are added, <span class="math inline">\(SSE_p\)</span> decreases, but the penalty term <span class="math inline">\(2p\)</span> increases.</li>
+<li>When there is no bias, <span class="math inline">\(E(C_p) \approx p\)</span>. Hence, good models have <span class="math inline">\(C_p\)</span> values close to <span class="math inline">\(p\)</span>.</li>
+</ul>
+</li>
+<li>
+<p><strong>Model Selection Criteria</strong>:</p>
+<ul>
+<li>
+<strong>Prediction-focused models</strong>: Consider models with <span class="math inline">\(C_p \leq p\)</span>.</li>
+<li>
+<strong>Parameter estimation-focused models</strong>: Consider models with <span class="math inline">\(C_p \leq 2p - (P - 1)\)</span> to avoid excess bias.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<div class="sourceCode" id="cb547"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Simulated data</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
+<span><span class="va">x1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">5</span> <span class="op">+</span> <span class="fl">3</span><span class="op">*</span><span class="va">x1</span> <span class="op">-</span> <span class="fl">2</span><span class="op">*</span><span class="va">x2</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, sd<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Full model and candidate models</span></span>
+<span><span class="va">full_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span><span class="op">)</span></span>
+<span><span class="va">model_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span><span class="op">)</span></span>
+<span><span class="va">model_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Extract SSE and calculate Cp</span></span>
+<span><span class="va">calculate_cp</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">model</span>, <span class="va">full_model_sse</span>, <span class="va">full_model_mse</span>, <span class="va">n</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">sse</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">residuals</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span>
+<span>  <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coefficients</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">cp</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">sse</span> <span class="op">/</span> <span class="va">full_model_mse</span><span class="op">)</span> <span class="op">-</span> <span class="op">(</span><span class="va">n</span> <span class="op">-</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">p</span><span class="op">)</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">cp</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># Full model statistics</span></span>
+<span><span class="va">full_model_sse</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">residuals</a></span><span class="op">(</span><span class="va">full_model</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">full_model_mse</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html">mean</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">residuals</a></span><span class="op">(</span><span class="va">full_model</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Cp values for each model</span></span>
+<span><span class="va">cp_1</span> <span class="op">&lt;-</span> <span class="fu">calculate_cp</span><span class="op">(</span><span class="va">model_1</span>, <span class="va">full_model_sse</span>, <span class="va">full_model_mse</span>, <span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">cp_2</span> <span class="op">&lt;-</span> <span class="fu">calculate_cp</span><span class="op">(</span><span class="va">model_2</span>, <span class="va">full_model_sse</span>, <span class="va">full_model_mse</span>, <span class="va">n</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"C_p values:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; C_p values:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 1 (y ~ x1):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">cp_1</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 1 (y ~ x1): 83.64</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 2 (y ~ x1 + x2):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">cp_2</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 2 (y ~ x1 + x2): 6.27</span></span></code></pre></div>
+<p>For Mallows’s <span class="math inline">\(C_p\)</span> criterion, <strong>lower values</strong> are preferred. Specifically:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Ideal Value</strong>: When the model is a good fit and has the correct number of predictors, <span class="math inline">\(C_p\)</span> should be close to the number of predictors <span class="math inline">\(p\)</span> plus 1 (i.e., <span class="math inline">\(p + 1\)</span>).</p></li>
+<li><p><strong>Model Comparison</strong>: Among competing models, you generally prefer the one with the smallest <span class="math inline">\(C_p\)</span>, as long as it is close to <span class="math inline">\(p + 1\)</span>.</p></li>
+<li><p><strong>Overfitting Indicator</strong>: If <span class="math inline">\(C_p\)</span> is significantly lower than <span class="math inline">\(p + 1\)</span>, it may suggest overfitting.</p></li>
+<li><p><strong>Underfitting Indicator</strong>: If <span class="math inline">\(C_p\)</span> is much higher than <span class="math inline">\(p + 1\)</span>, it suggests the model is underfitting the data and missing important predictors.</p></li>
+</ol>
+</div>
+<div id="akaike-information-criterion-aic" class="section level4" number="15.1.1.2">
+<h4>
+<span class="header-section-number">15.1.1.2</span> Akaike Information Criterion (AIC)<a class="anchor" aria-label="anchor" href="#akaike-information-criterion-aic"><i class="fas fa-link"></i></a>
+</h4>
+<p>The <strong>Akaike Information Criterion (AIC)</strong> is a widely used model selection metric that evaluates the tradeoff between model fit and complexity. It was introduced by Hirotugu Akaike and is rooted in information theory, measuring the relative quality of statistical models for a given dataset.</p>
+<p>For a model with <span class="math inline">\(p\)</span> parameters, the AIC is given by:</p>
+<p><span class="math display">\[
+AIC = n \ln\left(\frac{SSE_p}{n}\right) + 2p
+\]</span></p>
+<p>Where:</p>
+<ul>
+<li><p><span class="math inline">\(n\)</span> is the number of observations.</p></li>
+<li><p><span class="math inline">\(SSE_p\)</span> is the sum of squared errors for a model with <span class="math inline">\(p\)</span> parameters.</p></li>
+</ul>
+<p><strong>Key Insights</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Components of AIC</strong>:
+<ul>
+<li>The <strong>first term</strong> (<span class="math inline">\(n \ln(SSE_p / n)\)</span>): Reflects the goodness-of-fit of the model. It decreases as <span class="math inline">\(SSE_p\)</span> decreases, meaning the model better explains the data.</li>
+<li>The <strong>second term</strong> (<span class="math inline">\(2p\)</span>): Represents a penalty for model complexity. It increases with the number of parameters to discourage overfitting.</li>
+</ul>
+</li>
+<li>
+<strong>Model Selection Principle</strong>:
+<ul>
+<li>Smaller AIC values indicate a better balance between fit and complexity.</li>
+<li>Adding parameters generally reduces <span class="math inline">\(SSE_p\)</span>, but increases the penalty term (<span class="math inline">\(2p\)</span>). If AIC increases when a parameter is added, that parameter is likely unnecessary.</li>
+</ul>
+</li>
+<li>
+<strong>Tradeoff</strong>:
+<ul>
+<li>AIC emphasizes the tradeoff between:
+<ul>
+<li>
+<strong>Precision of fit</strong>: Reducing the error in explaining the data.</li>
+<li>
+<strong>Parsimony</strong>: Avoiding unnecessary parameters to maintain model simplicity.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<strong>Comparative Criterion</strong>:
+<ul>
+<li>AIC does not provide an absolute measure of model quality; instead, it compares relative performance. The model with the lowest AIC is preferred.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<div class="sourceCode" id="cb548"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Simulated data</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
+<span><span class="va">x1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">5</span> <span class="op">+</span> <span class="fl">3</span><span class="op">*</span><span class="va">x1</span> <span class="op">-</span> <span class="fl">2</span><span class="op">*</span><span class="va">x2</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, sd<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Candidate models</span></span>
+<span><span class="va">model_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span><span class="op">)</span></span>
+<span><span class="va">model_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span><span class="op">)</span></span>
+<span><span class="va">model_3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Function to manually compute AIC</span></span>
+<span><span class="va">calculate_aic</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">model</span>, <span class="va">n</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">sse</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">residuals</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span>
+<span>  <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coefficients</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">aic</span> <span class="op">&lt;-</span> <span class="va">n</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">sse</span> <span class="op">/</span> <span class="va">n</span><span class="op">)</span> <span class="op">+</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">p</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">aic</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># Calculate AIC for each model</span></span>
+<span><span class="va">aic_1</span> <span class="op">&lt;-</span> <span class="fu">calculate_aic</span><span class="op">(</span><span class="va">model_1</span>, <span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">aic_2</span> <span class="op">&lt;-</span> <span class="fu">calculate_aic</span><span class="op">(</span><span class="va">model_2</span>, <span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">aic_3</span> <span class="op">&lt;-</span> <span class="fu">calculate_aic</span><span class="op">(</span><span class="va">model_3</span>, <span class="va">n</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"AIC values:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; AIC values:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 1 (y ~ x1):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">aic_1</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 1 (y ~ x1): 207.17</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 2 (y ~ x1 + x2):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">aic_2</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 2 (y ~ x1 + x2): 150.87</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 3 (y ~ x1 + x2 + x3):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">aic_3</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 3 (y ~ x1 + x2 + x3): 152.59</span></span></code></pre></div>
+<p>Interpretation</p>
+<ul>
+<li>
+<p>Compare the AIC values across models:</p>
+<ul>
+<li><p>A smaller AIC indicates a model with a better balance between fit and complexity.</p></li>
+<li><p>If the AIC increases when moving from one model to another (e.g., from Model 2 to Model 3), the additional parameter(s) in the larger model may not be justified.</p></li>
+</ul>
+</li>
+</ul>
+<p>Advantages:</p>
+<ul>
+<li><p>Simple to compute and widely applicable.</p></li>
+<li><p>Penalizes overfitting, encouraging parsimonious models.</p></li>
+</ul>
+<p>Limitations:</p>
+<ul>
+<li><p>Assumes the model errors are normally distributed and independent.</p></li>
+<li><p>Does not evaluate absolute model fit, only relative performance.</p></li>
+<li><p>Sensitive to sample size; for smaller samples, consider using the corrected version, AICc.</p></li>
+</ul>
+<p><strong>Corrected AIC (AICc)</strong></p>
+<p>For small sample sizes (<span class="math inline">\(n / p \leq 40\)</span>), the corrected AIC, <span class="math inline">\(AICc\)</span>, adjusts for the sample size:</p>
+<p><span class="math display">\[
+AICc = AIC + \frac{2p(p+1)}{n-p-1}
+\]</span></p>
+<p>This adjustment prevents over-penalizing models with more parameters when <span class="math inline">\(n\)</span> is small.</p>
+</div>
+<div id="bayesian-information-criterion-bic" class="section level4" number="15.1.1.3">
+<h4>
+<span class="header-section-number">15.1.1.3</span> Bayesian Information Criterion (BIC)<a class="anchor" aria-label="anchor" href="#bayesian-information-criterion-bic"><i class="fas fa-link"></i></a>
+</h4>
+<p>The <strong>Bayesian Information Criterion (BIC)</strong>, also known as Schwarz Criterion, is another popular metric for model selection. It extends the concept of AIC by introducing a stronger penalty for model complexity, particularly when the number of observations is large. BIC is grounded in Bayesian probability theory and provides a framework for selecting the most plausible model among a set of candidates.</p>
+<p>For a model with <span class="math inline">\(p\)</span> parameters, the BIC is defined as:</p>
+<p><span class="math display">\[
+BIC = n \ln\left(\frac{SSE_p}{n}\right) + p \ln(n)
+\]</span></p>
+<p>Where:</p>
+<ul>
+<li><p><span class="math inline">\(n\)</span> is the number of observations.</p></li>
+<li><p><span class="math inline">\(SSE_p\)</span> is the sum of squared errors for the model with <span class="math inline">\(p\)</span> parameters.</p></li>
+<li><p><span class="math inline">\(p\)</span> is the number of parameters, including the intercept.</p></li>
+</ul>
+<p><strong>Key Insights</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Components of BIC</strong>:
+<ul>
+<li>The <strong>first term</strong> (<span class="math inline">\(n \ln(SSE_p / n)\)</span>): Measures the goodness-of-fit, similar to AIC. It decreases as <span class="math inline">\(SSE_p\)</span> decreases, indicating a better fit to the data.</li>
+<li>The <strong>second term</strong> (<span class="math inline">\(p \ln(n)\)</span>): Penalizes model complexity. Unlike AIC’s penalty (<span class="math inline">\(2p\)</span>), the penalty in BIC increases with <span class="math inline">\(\ln(n)\)</span>, making it more sensitive to the number of observations.</li>
+</ul>
+</li>
+<li>
+<strong>Model Selection Principle</strong>:
+<ul>
+<li>Smaller BIC values indicate a better model.</li>
+<li>Adding parameters reduces <span class="math inline">\(SSE_p\)</span>, but the penalty term <span class="math inline">\(p \ln(n)\)</span> grows more rapidly than AIC’s <span class="math inline">\(2p\)</span> for large <span class="math inline">\(n\)</span>. This makes BIC more conservative than AIC in selecting models with additional parameters.</li>
+</ul>
+</li>
+<li>
+<strong>Tradeoff</strong>:
+<ul>
+<li>Like AIC, BIC balances:
+<ul>
+<li>
+<strong>Precision of fit</strong>: Capturing the underlying structure in the data.</li>
+<li>
+<strong>Parsimony</strong>: Avoiding overfitting by discouraging unnecessary parameters.</li>
+</ul>
+</li>
+<li>BIC tends to favor simpler models compared to AIC, particularly when <span class="math inline">\(n\)</span> is large.</li>
+</ul>
+</li>
+<li>
+<strong>Comparative Criterion</strong>:
+<ul>
+<li>BIC, like AIC, is used to compare models. The model with the smallest BIC is preferred.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<div class="sourceCode" id="cb549"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Function to manually compute BIC</span></span>
+<span><span class="va">calculate_bic</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">model</span>, <span class="va">n</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">sse</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">residuals</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span>
+<span>  <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coefficients</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">bic</span> <span class="op">&lt;-</span> <span class="va">n</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">sse</span> <span class="op">/</span> <span class="va">n</span><span class="op">)</span> <span class="op">+</span> <span class="va">p</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">bic</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># Calculate BIC for each model</span></span>
+<span><span class="va">bic_1</span> <span class="op">&lt;-</span> <span class="fu">calculate_bic</span><span class="op">(</span><span class="va">model_1</span>, <span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">bic_2</span> <span class="op">&lt;-</span> <span class="fu">calculate_bic</span><span class="op">(</span><span class="va">model_2</span>, <span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">bic_3</span> <span class="op">&lt;-</span> <span class="fu">calculate_bic</span><span class="op">(</span><span class="va">model_3</span>, <span class="va">n</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"BIC values:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; BIC values:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 1 (y ~ x1):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">bic_1</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 1 (y ~ x1): 212.38</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 2 (y ~ x1 + x2):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">bic_2</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 2 (y ~ x1 + x2): 158.68</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 3 (y ~ x1 + x2 + x3):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">bic_3</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 3 (y ~ x1 + x2 + x3): 163.01</span></span></code></pre></div>
+<p>Interpretation</p>
+<ul>
+<li>
+<p>Compare the BIC values across models:</p>
+<ul>
+<li><p>Smaller BIC values suggest a better model.</p></li>
+<li><p>If BIC increases when moving to a larger model, the added complexity may not justify the reduction in <span class="math inline">\(SSE_p\)</span>.</p></li>
+</ul>
+</li>
+</ul>
+<p><strong>Comparison with AIC</strong></p>
+<div class="inline-table"><table style="width:100%;" class="table table-sm">
+<colgroup>
+<col width="24%">
+<col width="24%">
+<col width="26%">
+<col width="24%">
+</colgroup>
+<thead><tr class="header">
+<th>Criterion</th>
+<th>Penalty Term</th>
+<th>Sensitivity to Sample Size</th>
+<th>Preferred Model Selection</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>AIC</strong></td>
+<td><span class="math inline">\(2p\)</span></td>
+<td>Less sensitive</td>
+<td>More parameters</td>
+</tr>
+<tr class="even">
+<td><strong>BIC</strong></td>
+<td><span class="math inline">\(p \ln(n)\)</span></td>
+<td>More sensitive</td>
+<td>Simpler models</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><p>BIC generally prefers simpler models than AIC, especially when <span class="math inline">\(n\)</span> is large.</p></li>
+<li><p>In small datasets, AIC may perform better because BIC’s penalty grows significantly with <span class="math inline">\(\ln(n)\)</span>.</p></li>
+</ul>
+<p>Advantages:</p>
+<ul>
+<li><p>Strong penalty for complexity makes it robust against overfitting.</p></li>
+<li><p>Incorporates sample size explicitly, favoring simpler models as $n$ grows.</p></li>
+<li><p>Easy to compute and interpret.</p></li>
+</ul>
+<p>Limitations:</p>
+<ul>
+<li><p>Assumes model errors are normally distributed and independent.</p></li>
+<li><p>May underfit in smaller datasets where the penalty term dominates.</p></li>
+<li><p>Like AIC, BIC is not an absolute measure of model quality but a relative one.</p></li>
+</ul>
+</div>
+<div id="hannan-quinn-criterion-hqc" class="section level4" number="15.1.1.4">
+<h4>
+<span class="header-section-number">15.1.1.4</span> Hannan-Quinn Criterion (HQC)<a class="anchor" aria-label="anchor" href="#hannan-quinn-criterion-hqc"><i class="fas fa-link"></i></a>
+</h4>
+<p>The <strong>Hannan-Quinn Criterion (HQC)</strong> is a statistical metric for model selection, similar to AIC and BIC. It evaluates the tradeoff between model fit and complexity, offering a middle ground between the conservative penalty of BIC and the less stringent penalty of AIC. HQC is especially useful in time-series modeling and situations where large datasets are involved.</p>
+<p>The HQC for a model with <span class="math inline">\(p\)</span> parameters is defined as:</p>
+<p><span class="math display">\[
+HQC = n \ln\left(\frac{SSE_p}{n}\right) + 2p \ln(\ln(n))
+\]</span></p>
+<p>Where:</p>
+<ul>
+<li><p><span class="math inline">\(n\)</span>: Number of observations.</p></li>
+<li><p><span class="math inline">\(SSE_p\)</span>: Sum of Squared Errors for the model with <span class="math inline">\(p\)</span> predictors.</p></li>
+<li><p><span class="math inline">\(p\)</span>: Number of parameters, including the intercept.</p></li>
+</ul>
+<hr>
+<p><strong>Key Insights</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Components</strong>:
+<ul>
+<li>The <strong>first term</strong> (<span class="math inline">\(n \ln(SSE_p / n)\)</span>): Measures the goodness-of-fit, similar to AIC and BIC. Smaller SSE indicates a better fit.</li>
+<li>The <strong>second term</strong> (<span class="math inline">\(2p \ln(\ln(n))\)</span>): Penalizes model complexity. The penalty grows logarithmically with the sample size, similar to BIC but less severe.</li>
+</ul>
+</li>
+<li>
+<strong>Model Selection Principle</strong>:
+<ul>
+<li>Smaller HQC values indicate a better balance between model fit and complexity.</li>
+<li>Models with lower HQC are preferred.</li>
+</ul>
+</li>
+<li>
+<strong>Penalty Comparison</strong>:
+<ul>
+<li>HQC’s penalty lies between that of AIC and BIC:
+<ul>
+<li>AIC: <span class="math inline">\(2p\)</span> (less conservative, favors complex models).</li>
+<li>BIC: <span class="math inline">\(p \ln(n)\)</span> (more conservative, favors simpler models).</li>
+<li>HQC: <span class="math inline">\(2p \ln(\ln(n))\)</span> (balances AIC and BIC).</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<strong>Use Case</strong>:
+<ul>
+<li>HQC is particularly suited for large datasets or time-series models where overfitting is a concern, but BIC may overly penalize model complexity.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<div class="sourceCode" id="cb550"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Simulated data</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
+<span><span class="va">x1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">5</span> <span class="op">+</span> <span class="fl">3</span><span class="op">*</span><span class="va">x1</span> <span class="op">-</span> <span class="fl">2</span><span class="op">*</span><span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, sd<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Prepare models</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">x1</span>, <span class="va">x2</span>, <span class="va">x3</span>, <span class="va">x4</span><span class="op">)</span></span>
+<span><span class="va">model_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span>, data <span class="op">=</span> <span class="va">data</span><span class="op">)</span></span>
+<span><span class="va">model_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>, data <span class="op">=</span> <span class="va">data</span><span class="op">)</span></span>
+<span><span class="va">model_3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span>, data <span class="op">=</span> <span class="va">data</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Function to calculate HQC</span></span>
+<span><span class="va">calculate_hqc</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">model</span>, <span class="va">n</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">sse</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">residuals</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span>
+<span>  <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coefficients</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">hqc</span> <span class="op">&lt;-</span> <span class="va">n</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">sse</span> <span class="op">/</span> <span class="va">n</span><span class="op">)</span> <span class="op">+</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">p</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">hqc</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># Calculate HQC for each model</span></span>
+<span><span class="va">hqc_1</span> <span class="op">&lt;-</span> <span class="fu">calculate_hqc</span><span class="op">(</span><span class="va">model_1</span>, <span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">hqc_2</span> <span class="op">&lt;-</span> <span class="fu">calculate_hqc</span><span class="op">(</span><span class="va">model_2</span>, <span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">hqc_3</span> <span class="op">&lt;-</span> <span class="fu">calculate_hqc</span><span class="op">(</span><span class="va">model_3</span>, <span class="va">n</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"HQC values:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; HQC values:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 1 (y ~ x1):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">hqc_1</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 1 (y ~ x1): 226.86</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 2 (y ~ x1 + x2):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">hqc_2</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 2 (y ~ x1 + x2): 156.44</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 3 (y ~ x1 + x2 + x3):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">hqc_3</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 3 (y ~ x1 + x2 + x3): 141.62</span></span></code></pre></div>
+<p>Interpretation</p>
+<ol style="list-style-type: decimal">
+<li>
+<p><strong>Comparing HQC Values</strong>:</p>
+<ul>
+<li><p>Smaller HQC values indicate a better balance between goodness-of-fit and parsimony.</p></li>
+<li><p>Select the model with the smallest HQC.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Tradeoffs</strong>:</p>
+<ul>
+<li><p>HQC balances fit and complexity more conservatively than AIC but less so than BIC.</p></li>
+<li><p>It is particularly useful when overfitting is a concern but avoiding overly simplistic models is also important.</p></li>
+</ul>
+</li>
+</ol>
+<p>Comparison with Other Criteria</p>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="25%">
+<col width="25%">
+<col width="25%">
+<col width="25%">
+</colgroup>
+<thead><tr class="header">
+<th>Criterion</th>
+<th>Penalty Term</th>
+<th>Sensitivity to Sample Size</th>
+<th>Preferred Model Selection</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>AIC</strong></td>
+<td><span class="math inline">\(2p\)</span></td>
+<td>Low</td>
+<td>Favors more complex models</td>
+</tr>
+<tr class="even">
+<td><strong>BIC</strong></td>
+<td><span class="math inline">\(p \ln(n)\)</span></td>
+<td>High</td>
+<td>Favors simpler models</td>
+</tr>
+<tr class="odd">
+<td><strong>HQC</strong></td>
+<td><span class="math inline">\(2p \ln(\ln(n))\)</span></td>
+<td>Moderate</td>
+<td>Balances fit and parsimony</td>
+</tr>
+</tbody>
+</table></div>
+<p>Advantages:</p>
+<ul>
+<li><p>Less sensitive to sample size than BIC, avoiding excessive penalization for large datasets.</p></li>
+<li><p>Provides a balanced approach to model selection, reducing the risk of overfitting while avoiding overly simplistic models.</p></li>
+<li><p>Particularly useful in time-series analysis.</p></li>
+</ul>
+<p>Limitations:</p>
+<ul>
+<li><p>Like AIC and BIC, assumes model errors are normally distributed and independent.</p></li>
+<li><p>HQC is not as widely implemented in statistical software, requiring custom calculations.</p></li>
+</ul>
+<p>Practical Considerations</p>
+<ul>
+<li>
+<p><strong>When to use HQC?</strong></p>
+<ul>
+<li><p>When both AIC and BIC provide conflicting recommendations.</p></li>
+<li><p>For large datasets or time-series models where BIC may overly penalize complexity.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>When to use AIC or BIC?</strong></p>
+<ul>
+<li><p>AIC for smaller datasets or when the goal is prediction.</p></li>
+<li><p>BIC for large datasets or when parsimony is critical.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div id="minimum-description-length-mdl" class="section level4" number="15.1.1.5">
+<h4>
+<span class="header-section-number">15.1.1.5</span> Minimum Description Length (MDL)<a class="anchor" aria-label="anchor" href="#minimum-description-length-mdl"><i class="fas fa-link"></i></a>
+</h4>
+<p>The <strong>Minimum Description Length (MDL)</strong> principle is a model selection framework rooted in information theory. It balances model complexity and goodness-of-fit by seeking the model that minimizes the total length of encoding the data and the model itself. MDL is a generalization of other model selection criteria like AIC and BIC but offers a more theoretical foundation.</p>
+<hr>
+<p><strong>Theoretical Foundation</strong></p>
+<p>MDL is based on the idea that the best model is the one that compresses the data most efficiently. It represents a tradeoff between:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Model Complexity</strong>: The cost of describing the model, including the number of parameters.</li>
+<li>
+<strong>Data Fit</strong>: The cost of describing the data given the model.</li>
+</ol>
+<p>The total description length is expressed as:</p>
+<p><span class="math display">\[
+L(M, D) = L(M) + L(D | M)
+\]</span></p>
+<p>Where:</p>
+<ul>
+<li><p><span class="math inline">\(L(M)\)</span>: The length of encoding the model (complexity of the model).</p></li>
+<li><p><span class="math inline">\(L(D | M)\)</span>: The length of encoding the data given the model (fit to the data).</p></li>
+</ul>
+<p><strong>Key Insights</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Model Complexity (</strong><span class="math inline">\(L(M)\)</span>):
+<ul>
+<li>More complex models require longer descriptions, as they involve more parameters.</li>
+<li>Simpler models are favored unless the added complexity significantly improves the fit.</li>
+</ul>
+</li>
+<li>
+<strong>Data Fit (</strong><span class="math inline">\(L(D | M)\)</span>):
+<ul>
+<li>Measures how well the model explains the data.</li>
+<li>Poorly fitting models require more bits to describe the residual error.</li>
+</ul>
+</li>
+<li>
+<strong>Tradeoff</strong>:
+<ul>
+<li>MDL balances these two components, selecting the model that minimizes the total description length.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<p>Connection to Other Criteria</p>
+<ul>
+<li>
+<p>MDL is closely related to BIC. In fact, the BIC criterion can be derived as an approximation of MDL for certain statistical models:</p>
+<p><span class="math display">\[
+BIC = n \ln(SSE_p / n) + p \ln(n)
+\]</span></p>
+</li>
+<li><p>However, MDL is more flexible and does not rely on specific assumptions about the error distribution.</p></li>
+</ul>
+<hr>
+<p>Practical Use Cases</p>
+<ul>
+<li><p><strong>Time-Series Modeling</strong>: MDL is particularly effective for selecting models in time-series data, where overfitting is common.</p></li>
+<li><p><strong>Machine Learning</strong>: MDL is used in regularization techniques and decision tree pruning to prevent overfitting.</p></li>
+<li><p><strong>Signal Processing</strong>: In applications such as compression and coding, MDL directly guides optimal model selection.</p></li>
+</ul>
+<hr>
+<div class="sourceCode" id="cb551"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Simulated data</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
+<span><span class="va">x1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">5</span> <span class="op">+</span> <span class="fl">3</span><span class="op">*</span><span class="va">x1</span> <span class="op">-</span> <span class="fl">2</span><span class="op">*</span><span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, sd<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Prepare models</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">x1</span>, <span class="va">x2</span>, <span class="va">x3</span><span class="op">)</span></span>
+<span><span class="va">model_1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span>, data <span class="op">=</span> <span class="va">data</span><span class="op">)</span></span>
+<span><span class="va">model_2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span>, data <span class="op">=</span> <span class="va">data</span><span class="op">)</span></span>
+<span><span class="va">model_3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">+</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span>, data <span class="op">=</span> <span class="va">data</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Function to calculate MDL</span></span>
+<span><span class="va">calculate_mdl</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">model</span>, <span class="va">n</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">sse</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">residuals</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span>
+<span>  <span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coefficients</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">mdl</span> <span class="op">&lt;-</span> <span class="va">p</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">+</span> <span class="va">n</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html">log</a></span><span class="op">(</span><span class="va">sse</span> <span class="op">/</span> <span class="va">n</span><span class="op">)</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">mdl</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># Calculate MDL for each model</span></span>
+<span><span class="va">mdl_1</span> <span class="op">&lt;-</span> <span class="fu">calculate_mdl</span><span class="op">(</span><span class="va">model_1</span>, <span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">mdl_2</span> <span class="op">&lt;-</span> <span class="fu">calculate_mdl</span><span class="op">(</span><span class="va">model_2</span>, <span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">mdl_3</span> <span class="op">&lt;-</span> <span class="fu">calculate_mdl</span><span class="op">(</span><span class="va">model_3</span>, <span class="va">n</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"MDL values:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; MDL values:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 1 (y ~ x1):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">mdl_1</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 1 (y ~ x1): 219.87</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 2 (y ~ x1 + x2):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">mdl_2</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 2 (y ~ x1 + x2): 173.42</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 3 (y ~ x1 + x2 + x3):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">mdl_3</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 3 (y ~ x1 + x2 + x3): 163.01</span></span></code></pre></div>
+<p>Interpretation</p>
+<ol style="list-style-type: decimal">
+<li>
+<p><strong>Choosing the Best Model</strong>:</p>
+<ul>
+<li>The model with the smallest MDL value is preferred, as it achieves the best tradeoff between fit and complexity.</li>
+</ul>
+</li>
+<li>
+<p><strong>Practical Implications</strong>:</p>
+<ul>
+<li>MDL discourages overfitting by penalizing complex models that do not significantly improve data fit.</li>
+</ul>
+</li>
+</ol>
+<p>Advantages:</p>
+<ul>
+<li><p>Theoretically grounded in information theory.</p></li>
+<li><p>Offers a natural framework for balancing complexity and fit.</p></li>
+<li><p>Flexible and can be applied across various modeling frameworks.</p></li>
+</ul>
+<p>Limitations:</p>
+<ul>
+<li><p>Computationally intensive, especially for non-linear models.</p></li>
+<li><p>Requires careful formulation of $L(M)$ and $L(D | M)$ for non-standard models.</p></li>
+<li><p>Less common in standard statistical software compared to AIC or BIC.</p></li>
+</ul>
+</div>
+<div id="prediction-error-sum-of-squares-press" class="section level4" number="15.1.1.6">
+<h4>
+<span class="header-section-number">15.1.1.6</span> Prediction Error Sum of Squares (PRESS)<a class="anchor" aria-label="anchor" href="#prediction-error-sum-of-squares-press"><i class="fas fa-link"></i></a>
+</h4>
+<p>The <strong>Prediction Error Sum of Squares (PRESS)</strong> statistic measures the predictive ability of a model by evaluating how well it performs on data not used in fitting the model. PRESS is particularly useful for assessing model validity and identifying overfitting.</p>
+<p>The PRESS statistic for a model with <span class="math inline">\(p\)</span> parameters is defined as:</p>
+<p><span class="math display">\[
+PRESS_p = \sum_{i=1}^{n} (Y_i - \hat{Y}_{i(i)})^2
+\]</span></p>
+<p>Where:</p>
+<ul>
+<li><p><span class="math inline">\(\hat{Y}_{i(i)}\)</span> is the prediction of the <span class="math inline">\(i\)</span>-th response when the <span class="math inline">\(i\)</span>-th observation is <strong>omitted</strong> during model fitting.</p></li>
+<li><p><span class="math inline">\(Y_i\)</span> is the observed response for the <span class="math inline">\(i\)</span>-th observation.</p></li>
+</ul>
+<hr>
+<p><strong>Key Insights</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Leave-One-Out Cross-Validation (LOOCV)</strong>:
+<ul>
+<li>PRESS is computed by excluding each observation one at a time and predicting its response using the remaining data.</li>
+<li>This process evaluates the model’s generalizability and reduces overfitting.</li>
+</ul>
+</li>
+<li>
+<strong>Model Selection Principle</strong>:
+<ul>
+<li>Smaller values of <span class="math inline">\(PRESS_p\)</span> indicate better predictive performance.</li>
+<li>A small <span class="math inline">\(PRESS_p\)</span> suggests that the model captures the underlying structure of the data without overfitting.</li>
+</ul>
+</li>
+<li>
+<strong>Computational Complexity</strong>:
+<ul>
+<li>Computing <span class="math inline">\(\hat{Y}_{i(i)}\)</span> for each observation can be computationally intensive for models with large <span class="math inline">\(p\)</span> or datasets with many observations.</li>
+<li>Alternative approximations (e.g., using leverage values) can simplify computations.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<div class="sourceCode" id="cb552"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Function to compute PRESS</span></span>
+<span><span class="va">calculate_press</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">model</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">residuals</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">residuals</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span></span>
+<span>  <span class="va">h</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.influence.html">lm.influence</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span><span class="op">$</span><span class="va">hat</span> <span class="co"># leverage values</span></span>
+<span>  <span class="va">press</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="op">(</span><span class="va">residuals</span> <span class="op">/</span> <span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="va">h</span><span class="op">)</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="co"># PRESS formula using leverage</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">press</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># Calculate PRESS for each model</span></span>
+<span><span class="va">press_1</span> <span class="op">&lt;-</span> <span class="fu">calculate_press</span><span class="op">(</span><span class="va">model_1</span><span class="op">)</span></span>
+<span><span class="va">press_2</span> <span class="op">&lt;-</span> <span class="fu">calculate_press</span><span class="op">(</span><span class="va">model_2</span><span class="op">)</span></span>
+<span><span class="va">press_3</span> <span class="op">&lt;-</span> <span class="fu">calculate_press</span><span class="op">(</span><span class="va">model_3</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"PRESS values:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; PRESS values:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 1 (y ~ x1):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">press_1</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 1 (y ~ x1): 854.36</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 2 (y ~ x1 + x2):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">press_2</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 2 (y ~ x1 + x2): 524.56</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Model 3 (y ~ x1 + x2 + x3):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="va">press_3</span>, <span class="fl">2</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Model 3 (y ~ x1 + x2 + x3): 460</span></span></code></pre></div>
+<p>Interpretation</p>
+<ul>
+<li>
+<p>Compare the PRESS values across models:</p>
+<ul>
+<li><p>Models with smaller PRESS values are preferred as they exhibit better predictive ability.</p></li>
+<li><p>A large PRESS value indicates potential overfitting or poor model generalizability.</p></li>
+</ul>
+</li>
+</ul>
+<p>Advantages:</p>
+<ul>
+<li><p>Provides an unbiased measure of predictive performance.</p></li>
+<li><p>Helps identify overfitting by simulating the model’s performance on unseen data.</p></li>
+</ul>
+<p>Limitations:</p>
+<ul>
+<li><p>Computationally intensive for large datasets or models with many predictors.</p></li>
+<li><p>Sensitive to influential observations; high-leverage points can disproportionately affect results.</p></li>
+</ul>
+<p><strong>Alternative Approaches</strong></p>
+<p>To address the computational challenges of PRESS, alternative methods can be employed:</p>
+<ul>
+<li><p><strong>Approximation using leverage values</strong>: As shown in the example, leverage values simplify the calculation of <span class="math inline">\(\hat{Y}_{i(i)}\)</span>.</p></li>
+<li><p><strong>K-Fold Cross-Validation</strong>: Dividing the dataset into <span class="math inline">\(k\)</span> folds reduces computational burden compared to LOOCV while still providing robust estimates.</p></li>
+</ul>
+<hr>
+</div>
+</div>
+<div id="univariate-selection-methods" class="section level3" number="15.1.2">
+<h3>
+<span class="header-section-number">15.1.2</span> Univariate Selection Methods<a class="anchor" aria-label="anchor" href="#univariate-selection-methods"><i class="fas fa-link"></i></a>
+</h3>
+<p>Univariate selection methods evaluate individual variables in isolation to determine their relationship with the target variable. These methods are often categorized under <a href="variable-selection.html#sec-filter-methods">filter methods</a>, as they do not involve any predictive model but instead rely on statistical significance and information-theoretic measures.</p>
+<p>Univariate selection is particularly useful for:</p>
+<ul>
+<li><p><strong>Preprocessing large datasets</strong> by eliminating irrelevant features.</p></li>
+<li><p><strong>Reducing dimensionality</strong> before applying more complex feature selection techniques.</p></li>
+<li><p><strong>Improving interpretability</strong> by identifying the most relevant features.</p></li>
+</ul>
+<p>The two main categories of univariate selection methods are:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Statistical Tests</strong>: Evaluate the significance of relationships between individual features and the target variable.</li>
+<li>
+<strong>Information-Theoretic Measures</strong>: Assess the dependency between variables based on information gain and mutual information.</li>
+</ol>
+<hr>
+<div id="statistical-tests" class="section level4" number="15.1.2.1">
+<h4>
+<span class="header-section-number">15.1.2.1</span> Statistical Tests<a class="anchor" aria-label="anchor" href="#statistical-tests"><i class="fas fa-link"></i></a>
+</h4>
+<p>Statistical tests assess the significance of relationships between individual predictors and the target variable. The choice of test depends on the type of data:</p>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="25%">
+<col width="37%">
+<col width="37%">
+</colgroup>
+<thead><tr class="header">
+<th><strong>Test</strong></th>
+<th><strong>Used For</strong></th>
+<th><strong>Example Use Case</strong></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>Chi-Square Test</strong></td>
+<td>Categorical predictors vs. Categorical target</td>
+<td>Checking if gender affects purchase behavior</td>
+</tr>
+<tr class="even">
+<td><strong>ANOVA (Analysis of Variance)</strong></td>
+<td>Continuous predictors vs. Categorical target</td>
+<td>Testing if different income groups have varying spending habits</td>
+</tr>
+<tr class="odd">
+<td><strong>Correlation Coefficients</strong></td>
+<td>Continuous predictors vs. Continuous target</td>
+<td>Measuring the relationship between advertising spend and sales</td>
+</tr>
+</tbody>
+</table></div>
+<p>Check out <a href="descriptive-statistics.html#descriptive-statistics">Descriptive Statistics</a> and <a href="basic-statistical-inference.html#basic-statistical-inference">Basic Statistical Inference</a> for more details.</p>
+</div>
+<div id="information-theoretic-measures" class="section level4" number="15.1.2.2">
+<h4>
+<span class="header-section-number">15.1.2.2</span> Information-Theoretic Measures<a class="anchor" aria-label="anchor" href="#information-theoretic-measures"><i class="fas fa-link"></i></a>
+</h4>
+<p>Information-theoretic measures assess variable relevance based on how much information they provide about the target.</p>
+<div id="information-gain" class="section level5" number="15.1.2.2.1">
+<h5>
+<span class="header-section-number">15.1.2.2.1</span> Information Gain<a class="anchor" aria-label="anchor" href="#information-gain"><i class="fas fa-link"></i></a>
+</h5>
+<p>Information Gain (IG) measures the reduction in uncertainty about the target variable when a predictor is known. It is used extensively in decision trees.</p>
+<p><strong>Formula:</strong> <span class="math display">\[
+IG = H(Y) - H(Y | X)
+\]</span> Where:</p>
+<ul>
+<li><p><span class="math inline">\(H(Y)\)</span> = Entropy of target variable</p></li>
+<li><p><span class="math inline">\(H(Y | X)\)</span> = Conditional entropy of target given predictor</p></li>
+</ul>
+<p>A higher IG indicates a more informative variable.</p>
+<div class="sourceCode" id="cb553"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Load Library</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/larskotthoff/fselector">FSelector</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Example: Computing Information Gain</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">iris</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/FSelector/man/information.gain.html">information.gain</a></span><span class="op">(</span><span class="va">Species</span> <span class="op">~</span> <span class="va">.</span>, <span class="va">iris</span><span class="op">)</span></span>
+<span><span class="co">#&gt;              attr_importance</span></span>
+<span><span class="co">#&gt; Sepal.Length       0.4521286</span></span>
+<span><span class="co">#&gt; Sepal.Width        0.2672750</span></span>
+<span><span class="co">#&gt; Petal.Length       0.9402853</span></span>
+<span><span class="co">#&gt; Petal.Width        0.9554360</span></span></code></pre></div>
+</div>
+<div id="mutual-information" class="section level5" number="15.1.2.2.2">
+<h5>
+<span class="header-section-number">15.1.2.2.2</span> Mutual Information<a class="anchor" aria-label="anchor" href="#mutual-information"><i class="fas fa-link"></i></a>
+</h5>
+<p>Mutual Information (MI) quantifies how much knowing one variable reduces uncertainty about another. Unlike correlation, it captures both linear and non-linear relationships.</p>
+<ul>
+<li><p><strong>Pros</strong>: Captures non-linear relationships, robust to outliers.</p></li>
+<li><p><strong>Cons</strong>: More computationally intensive than correlation.</p></li>
+</ul>
+<p><strong>Formula:</strong> <span class="math display">\[
+MI(X, Y) = \sum_{x,y} P(x, y) \log \frac{P(x, y)}{P(x) P(y)}
+\]</span> Where:</p>
+<ul>
+<li><p><span class="math inline">\(P(x,y)\)</span> = Joint probability distribution of <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>.</p></li>
+<li><p><span class="math inline">\(P(x)\)</span>, <span class="math inline">\(P(y)\)</span> = Marginal probability distributions.</p></li>
+</ul>
+<div class="sourceCode" id="cb554"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Load Library</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://homepage.meyerp.com/software">infotheo</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Compute Mutual Information Between Two Features</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">100</span>, replace<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5</span>, <span class="fl">100</span>, replace<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/infotheo/man/mutinformation.html">mutinformation</a></span><span class="op">(</span><span class="va">X</span>, <span class="va">Y</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.06852247</span></span></code></pre></div>
+<ul>
+<li><p>Since <code>X</code> and <code>Y</code> are independently sampled, we expect them to have no mutual dependence.</p></li>
+<li><p>The MI value should be close to 0, indicating that knowing <code>X</code> provides almost no information about <code>Y</code>, and vice versa.</p></li>
+<li><p>If the MI value is significantly greater than 0, it could be due to random fluctuations, especially in small samples.</p></li>
+</ul>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="20%">
+<col width="20%">
+<col width="20%">
+<col width="20%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th>Method</th>
+<th>Type</th>
+<th>Suitable For</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>Chi-Square Test</strong></td>
+<td>Statistical Test</td>
+<td>Categorical vs. Categorical</td>
+<td>Simple, interpretable</td>
+<td>Requires large sample sizes</td>
+</tr>
+<tr class="even">
+<td><strong>ANOVA</strong></td>
+<td>Statistical Test</td>
+<td>Continuous vs. Categorical</td>
+<td>Handles multiple groups</td>
+<td>Assumes normality</td>
+</tr>
+<tr class="odd">
+<td><strong>Correlation</strong></td>
+<td>Statistical Test</td>
+<td>Continuous vs. Continuous</td>
+<td>Easy to compute</td>
+<td>Only captures linear relations</td>
+</tr>
+<tr class="even">
+<td><strong>Information Gain</strong></td>
+<td>Information-Based</td>
+<td>Any Variable Type</td>
+<td>Good for decision trees</td>
+<td>Requires computation of entropy</td>
+</tr>
+<tr class="odd">
+<td><strong>Mutual Information</strong></td>
+<td>Information-Based</td>
+<td>Any Variable Type</td>
+<td>Captures non-linear dependencies</td>
+<td>More computationally expensive</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+</div>
+<div id="correlation-based-feature-selection" class="section level3" number="15.1.3">
+<h3>
+<span class="header-section-number">15.1.3</span> Correlation-Based Feature Selection<a class="anchor" aria-label="anchor" href="#correlation-based-feature-selection"><i class="fas fa-link"></i></a>
+</h3>
+<p>Evaluates features based on their correlation with the target and redundancy with other features. Check out <a href="descriptive-statistics.html#descriptive-statistics">Descriptive Statistics</a> and <a href="basic-statistical-inference.html#basic-statistical-inference">Basic Statistical Inference</a> for more details.</p>
+</div>
+<div id="variance-thresholding" class="section level3" number="15.1.4">
+<h3>
+<span class="header-section-number">15.1.4</span> Variance Thresholding<a class="anchor" aria-label="anchor" href="#variance-thresholding"><i class="fas fa-link"></i></a>
+</h3>
+<p>Variance Thresholding is a simple yet effective <a href="variable-selection.html#sec-filter-methods">filter method</a> used for feature selection. It removes features with <strong>low variance</strong>, assuming that low-variance features contribute little to model prediction. This technique is particularly useful when:</p>
+<ul>
+<li>
+<strong>Handling high-dimensional datasets</strong> where many features contain little useful information.</li>
+<li>
+<strong>Reducing computational complexity</strong> by removing uninformative features.</li>
+<li>
+<strong>Avoiding overfitting</strong> by eliminating features that are nearly constant across samples.</li>
+</ul>
+<p>This method is most effective when dealing with <strong>binary features</strong> (e.g., categorical variables encoded as 0s and 1s) and <strong>numerical features</strong> with low variance.</p>
+<hr>
+<p><strong>Variance</strong> measures the <strong>spread</strong> of a feature’s values. A feature with <strong>low variance</strong> contains nearly the same value for all observations, making it less useful for predictive modeling.</p>
+<p>For a feature <span class="math inline">\(X\)</span>, variance is calculated as:</p>
+<p><span class="math display">\[
+Var(X) = \frac{1}{n} \sum_{i=1}^{n} (X_i - \bar{X})^2
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><p><span class="math inline">\(X_i\)</span> is an individual observation,</p></li>
+<li><p><span class="math inline">\(\bar{X}\)</span> is the mean of <span class="math inline">\(X\)</span>,</p></li>
+<li><p><span class="math inline">\(n\)</span> is the number of observations.</p></li>
+</ul>
+<p>Example: Features with Low and High Variance</p>
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
+<th>Feature</th>
+<th>Sample Values</th>
+<th>Variance</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>Low Variance</strong></td>
+<td>0, 0, 0, 1, 0, 0, 0, 0, 0, 0</td>
+<td>0.04</td>
+</tr>
+<tr class="even">
+<td><strong>High Variance</strong></td>
+<td>3, 7, 1, 9, 2, 8, 6, 4, 5, 0</td>
+<td>7.25</td>
+</tr>
+</tbody>
+</table></div>
+<hr>
+<div id="identifying-low-variance-features" class="section level4" number="15.1.4.1">
+<h4>
+<span class="header-section-number">15.1.4.1</span> Identifying Low-Variance Features<a class="anchor" aria-label="anchor" href="#identifying-low-variance-features"><i class="fas fa-link"></i></a>
+</h4>
+<p>A <strong>variance threshold</strong> is set to remove features below a certain variance level. The default threshold is <strong>0</strong>, which removes features with a single constant value across all samples.</p>
+<div class="sourceCode" id="cb555"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Load necessary library</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/topepo/caret/">caret</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Generate synthetic dataset</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>  Feature1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">50</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">50</span><span class="op">)</span><span class="op">)</span>, <span class="co"># Low variance</span></span>
+<span>  Feature2 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">100</span>, mean<span class="op">=</span><span class="fl">10</span>, sd<span class="op">=</span><span class="fl">1</span><span class="op">)</span>, <span class="co"># High variance</span></span>
+<span>  Feature3 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">100</span>, min<span class="op">=</span><span class="fl">5</span>, max<span class="op">=</span><span class="fl">15</span><span class="op">)</span>, <span class="co"># Moderate variance</span></span>
+<span>  Feature4 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">95</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span>  <span class="co"># Almost constant</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># Compute Variance of Features</span></span>
+<span><span class="va">variances</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">data</span>, <span class="fl">2</span>, <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/cor.html">var</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="va">variances</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  Feature1  Feature2  Feature3  Feature4 </span></span>
+<span><span class="co">#&gt; 0.2525253 0.8332328 8.6631461 0.0479798</span></span>
+<span></span>
+<span><span class="co"># Set threshold and remove low-variance features</span></span>
+<span><span class="va">threshold</span> <span class="op">&lt;-</span> <span class="fl">0.1</span></span>
+<span><span class="va">selected_features</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">variances</span><span class="op">[</span><span class="va">variances</span> <span class="op">&gt;</span> <span class="va">threshold</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">filtered_data</span> <span class="op">&lt;-</span> <span class="va">data</span><span class="op">[</span>, <span class="va">selected_features</span><span class="op">]</span></span>
+<span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="va">selected_features</span><span class="op">)</span>  <span class="co"># Remaining features after filtering</span></span>
+<span><span class="co">#&gt; [1] "Feature1" "Feature2" "Feature3"</span></span></code></pre></div>
+</div>
+<div id="handling-binary-categorical-features" class="section level4" number="15.1.4.2">
+<h4>
+<span class="header-section-number">15.1.4.2</span> Handling Binary Categorical Features<a class="anchor" aria-label="anchor" href="#handling-binary-categorical-features"><i class="fas fa-link"></i></a>
+</h4>
+<p>For <strong>binary features</strong> (0/1 values), variance is computed as: <span class="math display">\[
+Var(X) = p(1 - p)
+\]</span> where <span class="math inline">\(p\)</span> is the proportion of <strong>ones</strong>.</p>
+<ul>
+<li><p>If <span class="math inline">\(p \approx 0\)</span> or <span class="math inline">\(p \approx 1\)</span>, variance is <strong>low</strong>, meaning the feature is almost constant.</p></li>
+<li><p>If <span class="math inline">\(p = 0.5\)</span>, variance is <strong>highest</strong>, meaning equal distribution of 0s and 1s.</p></li>
+</ul>
+<div class="sourceCode" id="cb556"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Binary feature dataset</span></span>
+<span><span class="va">binary_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>  Feature_A <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">98</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span>, <span class="co"># Low variance (almost all 0s)</span></span>
+<span>  Feature_B <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">1</span>, <span class="fl">100</span>, replace<span class="op">=</span><span class="cn">TRUE</span><span class="op">)</span> <span class="co"># Higher variance</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Compute variance for binary features</span></span>
+<span><span class="va">binary_variances</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">binary_data</span>, <span class="fl">2</span>, <span class="fu">stats</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/r/stats/cor.html">var</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="va">binary_variances</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  Feature_A  Feature_B </span></span>
+<span><span class="co">#&gt; 0.01979798 0.24757576</span></span>
+<span></span>
+<span><span class="co"># Apply threshold (removing features with variance &lt; 0.01)</span></span>
+<span><span class="va">threshold</span> <span class="op">&lt;-</span> <span class="fl">0.01</span></span>
+<span><span class="va">filtered_binary</span> <span class="op">&lt;-</span> <span class="va">binary_data</span><span class="op">[</span>, <span class="va">binary_variances</span> <span class="op">&gt;</span> <span class="va">threshold</span><span class="op">]</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">filtered_binary</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Feature_A" "Feature_B"</span></span></code></pre></div>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="22%">
+<col width="37%">
+<col width="40%">
+</colgroup>
+<thead><tr class="header">
+<th><strong>Aspect</strong></th>
+<th><strong>Pros</strong></th>
+<th><strong>Cons</strong></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>Efficiency</strong></td>
+<td>Fast and computationally cheap</td>
+<td>May remove useful features</td>
+</tr>
+<tr class="even">
+<td><strong>Interpretability</strong></td>
+<td>Simple to understand and implement</td>
+<td>Ignores correlation with target</td>
+</tr>
+<tr class="odd">
+<td><strong>Applicability</strong></td>
+<td>Works well for removing constant or near-constant features</td>
+<td>Not useful for detecting redundant but high-variance features</td>
+</tr>
+</tbody>
+</table></div>
+<hr>
+</div>
+</div>
+</div>
+<div id="wrapper-methods-model-based-subset-evaluation" class="section level2" number="15.2">
+<h2>
+<span class="header-section-number">15.2</span> Wrapper Methods (Model-Based Subset Evaluation)<a class="anchor" aria-label="anchor" href="#wrapper-methods-model-based-subset-evaluation"><i class="fas fa-link"></i></a>
+</h2>
+<div id="best-subsets-algorithm-1" class="section level3" number="15.2.1">
+<h3>
+<span class="header-section-number">15.2.1</span> Best Subsets Algorithm<a class="anchor" aria-label="anchor" href="#best-subsets-algorithm-1"><i class="fas fa-link"></i></a>
+</h3>
+<p>The <strong>Best Subsets Algorithm</strong> is a systematic method for selecting the best combination of predictors. Unlike exhaustive search, which evaluates all possible subsets of predictors, this algorithm efficiently narrows the search space while guaranteeing the identification of the best subset for each size.</p>
+<ul>
+<li>The algorithm is based on the <strong>“leap and bounds”</strong> method introduced by <span class="citation">(<a href="references.html#ref-furnival2000regressions">Furnival and Wilson 2000</a>)</span>.</li>
+<li>It combines:
+<ul>
+<li>
+<strong>Comparison of SSE</strong>: Evaluates models by their Sum of Squared Errors.</li>
+<li>
+<strong>Control over sequence</strong>: Optimizes the order in which subset models are computed.</li>
+</ul>
+</li>
+<li>
+<strong>Guarantees</strong>: Finds the best <span class="math inline">\(m\)</span> subset models within each subset size while reducing computational burden compared to evaluating all possible subsets.</li>
+</ul>
+<hr>
+<p><strong>Key Features</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Subset Comparison</strong>:
+<ul>
+<li>The algorithm ranks subsets based on a criterion such as <span class="math inline">\(R^2\)</span>, adjusted <span class="math inline">\(R^2\)</span>, AIC, or BIC.</li>
+<li>It evaluates models of varying sizes, starting from 1 predictor to <span class="math inline">\(p\)</span> predictors.</li>
+</ul>
+</li>
+<li>
+<strong>Efficiency</strong>:
+<ul>
+<li>By leveraging “leap and bounds,” the algorithm avoids evaluating subsets unlikely to yield the best results.</li>
+<li>This reduces the computational cost significantly compared to evaluating <span class="math inline">\(2^p\)</span> subsets in exhaustive search.</li>
+</ul>
+</li>
+<li>
+<strong>Output</strong>:
+<ul>
+<li>Produces the best subsets for each model size, which can be compared using criteria like AIC, BIC, or PRESS.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<div class="sourceCode" id="cb557"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Load the leaps package</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st">"leaps"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Simulated data</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
+<span><span class="va">x1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">5</span> <span class="op">+</span> <span class="fl">3</span><span class="op">*</span><span class="va">x1</span> <span class="op">-</span> <span class="fl">2</span><span class="op">*</span><span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, sd<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Prepare data for best subsets model</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">x1</span>, <span class="va">x2</span>, <span class="va">x3</span>, <span class="va">x4</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Perform best subsets model</span></span>
+<span><span class="va">best_subsets</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/leaps/man/regsubsets.html">regsubsets</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">data</span>, nvmax <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Summarize results</span></span>
+<span><span class="va">best_summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">best_subsets</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display model selection metrics</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Best Subsets Summary:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Best Subsets Summary:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Adjusted R^2:\n"</span>, <span class="va">best_summary</span><span class="op">$</span><span class="va">adjr2</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Adjusted R^2:</span></span>
+<span><span class="co">#&gt;  0.3651194 0.69237 0.7400424 0.7374724</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Cp:\n"</span>, <span class="va">best_summary</span><span class="op">$</span><span class="va">cp</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Cp:</span></span>
+<span><span class="co">#&gt;  140.9971 19.66463 3.060205 5</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"BIC:\n"</span>, <span class="va">best_summary</span><span class="op">$</span><span class="va">bic</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; BIC:</span></span>
+<span><span class="co">#&gt;  -37.23673 -106.1111 -119.3802 -114.8383</span></span>
+<span></span>
+<span><span class="co"># Visualize results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">best_subsets</span>, scale <span class="op">=</span> <span class="st">"adjr2"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/title.html">title</a></span><span class="op">(</span><span class="st">"Best Subsets: Adjusted R^2"</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="15-variable-selection_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;"></div>
+<p>Interpretation</p>
+<ol style="list-style-type: decimal">
+<li>
+<p><strong>Model Size</strong>:</p>
+<ul>
+<li><p>Examine the metrics for models with 1, 2, 3, and 4 predictors.</p></li>
+<li><p>Choose the model size that optimizes your preferred metric (e.g., maximized adjusted <span class="math inline">\(R^2\)</span>, minimized BIC).</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Model Comparison</strong>:</p>
+<ul>
+<li><p>For small datasets, adjusted <span class="math inline">\(R^2\)</span> is often a reliable criterion.</p></li>
+<li><p>For larger datasets, use BIC or AIC to avoid overfitting.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Efficiency</strong>:</p>
+<ul>
+<li>The algorithm evaluates far fewer models than an exhaustive search while still guaranteeing optimal results for each subset size.</li>
+</ul>
+</li>
+</ol>
+<p>Advantages:</p>
+<ul>
+<li><p>Computationally efficient compared to evaluating all possible subsets.</p></li>
+<li><p>Guarantees the best subsets for each model size.</p></li>
+<li><p>Flexibility to use different selection criteria (e.g., <span class="math inline">\(R^2\)</span>, AIC, BIC).</p></li>
+</ul>
+<p>Limitations:</p>
+<ul>
+<li><p>May become computationally intensive for very large <span class="math inline">\(p\)</span> (e.g., hundreds of predictors).</p></li>
+<li><p>Assumes linear relationships among predictors and the outcome.</p></li>
+</ul>
+<p>Practical Considerations</p>
+<ul>
+<li>
+<p><strong>When to use Best Subsets?</strong></p>
+<ul>
+<li><p>For datasets with a moderate number of predictors (<span class="math inline">\(p \leq 20\)</span>).</p></li>
+<li><p>When you need an optimal solution for each subset size.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Alternatives</strong>:</p>
+<ul>
+<li><p><strong>Stepwise Selection</strong>: Faster but less reliable.</p></li>
+<li><p><strong>Regularization Techniques</strong>: LASSO and Ridge regression handle large <span class="math inline">\(p\)</span> and collinearity effectively.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div id="stepwise-selection-methods-1" class="section level3" number="15.2.2">
+<h3>
+<span class="header-section-number">15.2.2</span> Stepwise Selection Methods<a class="anchor" aria-label="anchor" href="#stepwise-selection-methods-1"><i class="fas fa-link"></i></a>
+</h3>
+<p>Stepwise selection procedures are iterative methods for selecting predictor variables. These techniques balance model simplicity and predictive accuracy by systematically adding or removing variables based on predefined criteria.</p>
+<hr>
+<p><strong>Notes:</strong></p>
+<ul>
+<li>Computer implementations often replace exact F-values with “significance” levels:
+<ul>
+<li>
+<strong>SLE</strong>: Significance level to enter.</li>
+<li>
+<strong>SLS</strong>: Significance level to stay.</li>
+</ul>
+</li>
+<li>These thresholds serve as guides rather than strict tests of significance.</li>
+</ul>
+<p>Balancing SLE and SLS:</p>
+<ul>
+<li>Large <strong>SLE</strong> values: May include too many variables, risking overfitting.</li>
+<li>Small <strong>SLE</strong> values: May exclude important variables, leading to underfitting and overestimation of <span class="math inline">\(\sigma^2\)</span>.</li>
+<li>A reasonable range for SLE is <strong>0.05 to 0.5</strong>.</li>
+<li>Practical advice:
+<ul>
+<li>If <strong>SLE &gt; SLS</strong>, cycling may occur (adding and removing the same variable repeatedly). To fix this, set <span class="math inline">\(SLS = SLE / 2\)</span> <span class="citation">(<a href="references.html#ref-bendel1977comparison">Bendel and Afifi 1977</a>)</span>.</li>
+<li>If <strong>SLE &lt; SLS</strong>, the procedure becomes conservative, retaining variables with minimal contribution.</li>
+</ul>
+</li>
+</ul>
+<div id="forward-selection" class="section level4" number="15.2.2.1">
+<h4>
+<span class="header-section-number">15.2.2.1</span> Forward Selection<a class="anchor" aria-label="anchor" href="#forward-selection"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>Forward Selection</strong> starts with an empty model (only the intercept) and sequentially adds predictors. At each step, the variable that most improves the model fit (based on criteria like <span class="math inline">\(R^2\)</span>, AIC, or F-statistic) is added. The process stops when no variable improves the model significantly.</p>
+<p>Steps</p>
+<ol style="list-style-type: decimal">
+<li>Begin with the null model: <span class="math inline">\(Y = \beta_0\)</span>.</li>
+<li>Evaluate each predictor’s contribution to the model (e.g., using F-statistic or AIC).</li>
+<li>Add the predictor with the most significant improvement to the model.</li>
+<li>Repeat until no remaining variable significantly improves the model.</li>
+</ol>
+</div>
+<div id="backward-elimination" class="section level4" number="15.2.2.2">
+<h4>
+<span class="header-section-number">15.2.2.2</span> Backward Elimination<a class="anchor" aria-label="anchor" href="#backward-elimination"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>Backward Elimination</strong> starts with the full model, containing all predictors, and sequentially removes the least significant predictor (based on criteria like p-value or F-statistic). The process stops when all remaining predictors meet the significance threshold.</p>
+<p>Steps</p>
+<ol style="list-style-type: decimal">
+<li><p>Begin with the full model: <span class="math inline">\(Y = \beta_0 + \beta_1 X_1 + \dots + \beta_p X_p\)</span>.</p></li>
+<li><p>Identify the predictor with the smallest contribution to the model (e.g., highest p-value).</p></li>
+<li><p>Remove the least significant predictor.</p></li>
+<li><p>Repeat until all remaining predictors are statistically significant.</p></li>
+</ol>
+</div>
+<div id="stepwise-both-directions-selection" class="section level4" number="15.2.2.3">
+<h4>
+<span class="header-section-number">15.2.2.3</span> Stepwise (Both Directions) Selection<a class="anchor" aria-label="anchor" href="#stepwise-both-directions-selection"><i class="fas fa-link"></i></a>
+</h4>
+<p><strong>Stepwise Selection</strong> combines forward selection and backward elimination. At each step, it evaluates whether to add or remove predictors based on predefined criteria. This iterative process ensures that variables added in earlier steps can be removed later if they no longer contribute significantly.</p>
+<p>Steps</p>
+<ol style="list-style-type: decimal">
+<li><p>Start with the null model or a user-specified initial model.</p></li>
+<li><p>Evaluate all predictors not in the model for inclusion (forward step).</p></li>
+<li><p>Evaluate all predictors currently in the model for removal (backward step).</p></li>
+<li><p>Repeat steps 2 and 3 until no further addition or removal improves the model.</p></li>
+</ol>
+</div>
+<div id="comparison-of-methods" class="section level4" number="15.2.2.4">
+<h4>
+<span class="header-section-number">15.2.2.4</span> Comparison of Methods<a class="anchor" aria-label="anchor" href="#comparison-of-methods"><i class="fas fa-link"></i></a>
+</h4>
+<div class="inline-table"><table style="width:100%;" class="table table-sm">
+<colgroup>
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+</colgroup>
+<thead><tr class="header">
+<th>Method</th>
+<th>Starting Point</th>
+<th>Adds Predictors</th>
+<th>Removes Predictors</th>
+<th>Pros</th>
+<th>Cons</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>Forward Selection</strong></td>
+<td>Null model (no terms)</td>
+<td>Yes</td>
+<td>No</td>
+<td>Simple, fast, useful for small models</td>
+<td>Cannot remove irrelevant predictors</td>
+</tr>
+<tr class="even">
+<td><strong>Backward Elimination</strong></td>
+<td>Full model (all terms)</td>
+<td>No</td>
+<td>Yes</td>
+<td>Removes redundant variables</td>
+<td>May exclude important variables early</td>
+</tr>
+<tr class="odd">
+<td><strong>Stepwise Selection</strong></td>
+<td>User-defined or null</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Combines flexibility of both methods</td>
+<td>More computationally intensive</td>
+</tr>
+</tbody>
+</table></div>
+<div class="sourceCode" id="cb558"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Simulated Data</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
+<span><span class="va">x1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">5</span> <span class="op">+</span> <span class="fl">3</span> <span class="op">*</span> <span class="va">x1</span> <span class="op">-</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, sd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Prepare data</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">x1</span>, <span class="va">x2</span>, <span class="va">x3</span>, <span class="va">x4</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Null and Full Models</span></span>
+<span><span class="va">null_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="fl">1</span>, data <span class="op">=</span> <span class="va">data</span><span class="op">)</span></span>
+<span><span class="va">full_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">data</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Forward Selection</span></span>
+<span><span class="va">forward_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/step.html">step</a></span><span class="op">(</span></span>
+<span>    <span class="va">null_model</span>,</span>
+<span>    scope <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>lower <span class="op">=</span> <span class="va">null_model</span>, upper <span class="op">=</span> <span class="va">full_model</span><span class="op">)</span>,</span>
+<span>    direction <span class="op">=</span> <span class="st">"forward"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Start:  AIC=269.2</span></span>
+<span><span class="co">#&gt; y ~ 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;        Df Sum of Sq     RSS    AIC</span></span>
+<span><span class="co">#&gt; + x1    1    537.56  909.32 224.75</span></span>
+<span><span class="co">#&gt; + x2    1    523.27  923.62 226.31</span></span>
+<span><span class="co">#&gt; &lt;none&gt;              1446.88 269.20</span></span>
+<span><span class="co">#&gt; + x3    1     23.56 1423.32 269.56</span></span>
+<span><span class="co">#&gt; + x4    1      8.11 1438.78 270.64</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Step:  AIC=224.75</span></span>
+<span><span class="co">#&gt; y ~ x1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;        Df Sum of Sq    RSS    AIC</span></span>
+<span><span class="co">#&gt; + x2    1    473.21 436.11 153.27</span></span>
+<span><span class="co">#&gt; + x3    1     62.65 846.67 219.61</span></span>
+<span><span class="co">#&gt; &lt;none&gt;              909.32 224.75</span></span>
+<span><span class="co">#&gt; + x4    1      3.34 905.98 226.38</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Step:  AIC=153.27</span></span>
+<span><span class="co">#&gt; y ~ x1 + x2</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;        Df Sum of Sq    RSS    AIC</span></span>
+<span><span class="co">#&gt; + x3    1    71.382 364.73 137.40</span></span>
+<span><span class="co">#&gt; &lt;none&gt;              436.11 153.27</span></span>
+<span><span class="co">#&gt; + x4    1     0.847 435.27 155.08</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Step:  AIC=137.4</span></span>
+<span><span class="co">#&gt; y ~ x1 + x2 + x3</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;        Df Sum of Sq    RSS    AIC</span></span>
+<span><span class="co">#&gt; &lt;none&gt;              364.73 137.40</span></span>
+<span><span class="co">#&gt; + x4    1     0.231 364.50 139.34</span></span>
+<span></span>
+<span><span class="co"># Backward Elimination</span></span>
+<span><span class="va">backward_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/step.html">step</a></span><span class="op">(</span><span class="va">full_model</span>, direction <span class="op">=</span> <span class="st">"backward"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Start:  AIC=139.34</span></span>
+<span><span class="co">#&gt; y ~ x1 + x2 + x3 + x4</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;        Df Sum of Sq    RSS    AIC</span></span>
+<span><span class="co">#&gt; - x4    1      0.23 364.73 137.40</span></span>
+<span><span class="co">#&gt; &lt;none&gt;              364.50 139.34</span></span>
+<span><span class="co">#&gt; - x3    1     70.77 435.27 155.08</span></span>
+<span><span class="co">#&gt; - x2    1    480.14 844.64 221.37</span></span>
+<span><span class="co">#&gt; - x1    1    525.72 890.22 226.63</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Step:  AIC=137.4</span></span>
+<span><span class="co">#&gt; y ~ x1 + x2 + x3</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;        Df Sum of Sq    RSS    AIC</span></span>
+<span><span class="co">#&gt; &lt;none&gt;              364.73 137.40</span></span>
+<span><span class="co">#&gt; - x3    1     71.38 436.11 153.27</span></span>
+<span><span class="co">#&gt; - x2    1    481.94 846.67 219.61</span></span>
+<span><span class="co">#&gt; - x1    1    528.02 892.75 224.91</span></span>
+<span></span>
+<span><span class="co"># Stepwise Selection (Both Directions)</span></span>
+<span><span class="va">stepwise_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/step.html">step</a></span><span class="op">(</span></span>
+<span>    <span class="va">null_model</span>,</span>
+<span>    scope <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>lower <span class="op">=</span> <span class="va">null_model</span>, upper <span class="op">=</span> <span class="va">full_model</span><span class="op">)</span>,</span>
+<span>    direction <span class="op">=</span> <span class="st">"both"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Start:  AIC=269.2</span></span>
+<span><span class="co">#&gt; y ~ 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;        Df Sum of Sq     RSS    AIC</span></span>
+<span><span class="co">#&gt; + x1    1    537.56  909.32 224.75</span></span>
+<span><span class="co">#&gt; + x2    1    523.27  923.62 226.31</span></span>
+<span><span class="co">#&gt; &lt;none&gt;              1446.88 269.20</span></span>
+<span><span class="co">#&gt; + x3    1     23.56 1423.32 269.56</span></span>
+<span><span class="co">#&gt; + x4    1      8.11 1438.78 270.64</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Step:  AIC=224.75</span></span>
+<span><span class="co">#&gt; y ~ x1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;        Df Sum of Sq     RSS    AIC</span></span>
+<span><span class="co">#&gt; + x2    1    473.21  436.11 153.27</span></span>
+<span><span class="co">#&gt; + x3    1     62.65  846.67 219.61</span></span>
+<span><span class="co">#&gt; &lt;none&gt;               909.32 224.75</span></span>
+<span><span class="co">#&gt; + x4    1      3.34  905.98 226.38</span></span>
+<span><span class="co">#&gt; - x1    1    537.56 1446.88 269.20</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Step:  AIC=153.27</span></span>
+<span><span class="co">#&gt; y ~ x1 + x2</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;        Df Sum of Sq    RSS    AIC</span></span>
+<span><span class="co">#&gt; + x3    1     71.38 364.73 137.40</span></span>
+<span><span class="co">#&gt; &lt;none&gt;              436.11 153.27</span></span>
+<span><span class="co">#&gt; + x4    1      0.85 435.27 155.08</span></span>
+<span><span class="co">#&gt; - x2    1    473.21 909.32 224.75</span></span>
+<span><span class="co">#&gt; - x1    1    487.50 923.62 226.31</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Step:  AIC=137.4</span></span>
+<span><span class="co">#&gt; y ~ x1 + x2 + x3</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;        Df Sum of Sq    RSS    AIC</span></span>
+<span><span class="co">#&gt; &lt;none&gt;              364.73 137.40</span></span>
+<span><span class="co">#&gt; + x4    1      0.23 364.50 139.34</span></span>
+<span><span class="co">#&gt; - x3    1     71.38 436.11 153.27</span></span>
+<span><span class="co">#&gt; - x2    1    481.94 846.67 219.61</span></span>
+<span><span class="co">#&gt; - x1    1    528.02 892.75 224.91</span></span>
+<span></span>
+<span><span class="co"># Summarize Results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Forward Selection:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Forward Selection:</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">forward_model</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; lm(formula = y ~ x1 + x2 + x3, data = data)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residuals:</span></span>
+<span><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span><span class="co">#&gt; -4.9675 -1.1364  0.1726  1.3983  4.9332 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept)   5.2332     0.1990  26.300  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; x1            2.5541     0.2167  11.789  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; x2           -2.2852     0.2029 -11.263  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; x3            0.9018     0.2080   4.335  3.6e-05 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residual standard error: 1.949 on 96 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.7479, Adjusted R-squared:   0.74 </span></span>
+<span><span class="co">#&gt; F-statistic: 94.94 on 3 and 96 DF,  p-value: &lt; 2.2e-16</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\nBackward Elimination:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Backward Elimination:</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">backward_model</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; lm(formula = y ~ x1 + x2 + x3, data = data)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residuals:</span></span>
+<span><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span><span class="co">#&gt; -4.9675 -1.1364  0.1726  1.3983  4.9332 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept)   5.2332     0.1990  26.300  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; x1            2.5541     0.2167  11.789  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; x2           -2.2852     0.2029 -11.263  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; x3            0.9018     0.2080   4.335  3.6e-05 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residual standard error: 1.949 on 96 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.7479, Adjusted R-squared:   0.74 </span></span>
+<span><span class="co">#&gt; F-statistic: 94.94 on 3 and 96 DF,  p-value: &lt; 2.2e-16</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\nStepwise Selection:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Stepwise Selection:</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">stepwise_model</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; lm(formula = y ~ x1 + x2 + x3, data = data)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residuals:</span></span>
+<span><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span><span class="co">#&gt; -4.9675 -1.1364  0.1726  1.3983  4.9332 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept)   5.2332     0.1990  26.300  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; x1            2.5541     0.2167  11.789  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; x2           -2.2852     0.2029 -11.263  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; x3            0.9018     0.2080   4.335  3.6e-05 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residual standard error: 1.949 on 96 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.7479, Adjusted R-squared:   0.74 </span></span>
+<span><span class="co">#&gt; F-statistic: 94.94 on 3 and 96 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
+<p>Interpretation of Results</p>
+<ol style="list-style-type: decimal">
+<li>
+<p><strong>Forward Selection</strong>:</p>
+<ul>
+<li><p>Starts with no predictors and sequentially adds variables.</p></li>
+<li><p>Variables are chosen based on their contribution to improving model fit (e.g., reducing SSE, increasing <span class="math inline">\(R^2\)</span>).</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Backward Elimination</strong>:</p>
+<ul>
+<li><p>Begins with all predictors and removes the least significant one at each step.</p></li>
+<li><p>Stops when all remaining predictors meet the significance criterion.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Stepwise Selection</strong>:</p>
+<ul>
+<li><p>Combines forward selection and backward elimination.</p></li>
+<li><p>At each step, evaluates whether to add or remove variables based on predefined criteria.</p></li>
+</ul>
+</li>
+</ol>
+<p>Practical Considerations</p>
+<ul>
+<li>
+<p><strong>SLE and SLS Tuning</strong>:</p>
+<ul>
+<li><p>Choose thresholds carefully to balance model simplicity and predictive performance.</p></li>
+<li><p>For most applications, set <span class="math inline">\(SLS = SLE / 2\)</span> to prevent cycling.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Order of Entry</strong>:</p>
+<ul>
+<li>Stepwise selection is unaffected by the order of variable entry. Results depend on the data and significance criteria.</li>
+</ul>
+</li>
+<li>
+<p><strong>Automated Procedures</strong>:</p>
+<ul>
+<li><p>Forward selection is simpler but less robust than forward stepwise.</p></li>
+<li><p>Backward elimination works well when starting with all predictors.</p></li>
+</ul>
+</li>
+</ul>
+<p>Advantages:</p>
+<ul>
+<li><p>Automates variable selection, reducing manual effort.</p></li>
+<li><p>Balances model fit and parsimony using predefined criteria.</p></li>
+<li><p>Flexible: Works with different metrics (e.g., SSE, <span class="math inline">\(R^2\)</span>, AIC, BIC).</p></li>
+</ul>
+<p>Limitations:</p>
+<ul>
+<li><p>Can be sensitive to significance thresholds (SLE, SLS).</p></li>
+<li><p>Risk of excluding important variables in datasets with multicollinearity.</p></li>
+<li><p>May overfit or underfit if SLE/SLS thresholds are poorly chosen.</p></li>
+</ul>
+<p>Practical Use Cases</p>
+<ul>
+<li>
+<p><strong>Forward Stepwise</strong>:</p>
+<ul>
+<li>When starting with minimal knowledge of predictor importance.</li>
+</ul>
+</li>
+<li>
+<p><strong>Backward Elimination</strong>:</p>
+<ul>
+<li>When starting with many predictors and needing to reduce model complexity.</li>
+</ul>
+</li>
+<li>
+<p><strong>Stepwise (Both Directions)</strong>:</p>
+<ul>
+<li>For a balanced approach that adapts as variables are added or removed.</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="branch-and-bound-algorithm-1" class="section level3" number="15.2.3">
+<h3>
+<span class="header-section-number">15.2.3</span> Branch-and-Bound Algorithm<a class="anchor" aria-label="anchor" href="#branch-and-bound-algorithm-1"><i class="fas fa-link"></i></a>
+</h3>
+<p>The <strong>Branch-and-Bound Algorithm</strong> is a systematic optimization method used for solving subset selection problems <span class="citation">(<a href="references.html#ref-furnival2000regressions">Furnival and Wilson 2000</a>)</span>. It identifies the best subsets of predictors by exploring the solution space efficiently, avoiding the need to evaluate all possible subsets.</p>
+<p>The algorithm is particularly suited for problems with a large number of potential predictors. It systematically evaluates subsets of predictors, using bounds to prune the search space and reduce computational effort.</p>
+<ul>
+<li>
+<strong>Branching</strong>: Divides the solution space into smaller subsets (branches).</li>
+<li>
+<strong>Bounding</strong>: Calculates bounds on the best possible solution within each branch to decide whether to explore further or discard.</li>
+</ul>
+<hr>
+<p><strong>Key Features</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Subset Selection</strong>:
+<ul>
+<li>Used to identify the best subset of predictors.</li>
+<li>Evaluates subsets based on criteria like <span class="math inline">\(R^2\)</span>, adjusted <span class="math inline">\(R^2\)</span>, AIC, BIC, or Mallows’s <span class="math inline">\(C_p\)</span>.</li>
+</ul>
+</li>
+<li>
+<strong>Efficiency</strong>:
+<ul>
+<li>Avoids exhaustive search, which evaluates <span class="math inline">\(2^p\)</span> subsets for <span class="math inline">\(p\)</span> predictors.</li>
+<li>Reduces the computational burden by eliminating branches that cannot contain the optimal solution.</li>
+</ul>
+</li>
+<li>
+<strong>Guarantee</strong>:
+<ul>
+<li>Finds the globally optimal subset for the specified criterion.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<p><strong>Algorithm Steps</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Initialization</strong>:
+<ul>
+<li>Start with the full set of predictors.</li>
+<li>Define the criterion for evaluation (e.g., adjusted <span class="math inline">\(R^2\)</span>, AIC, BIC).</li>
+</ul>
+</li>
+<li>
+<strong>Branching</strong>:
+<ul>
+<li>Divide the predictors into smaller subsets (branches) systematically.</li>
+</ul>
+</li>
+<li>
+<strong>Bounding</strong>:
+<ul>
+<li>Compute bounds for the criterion in each branch.</li>
+<li>If the bound indicates the branch cannot improve the current best solution, discard it.</li>
+</ul>
+</li>
+<li>
+<strong>Pruning</strong>:
+<ul>
+<li>Skip evaluating subsets within discarded branches.</li>
+</ul>
+</li>
+<li>
+<strong>Stopping</strong>:
+<ul>
+<li>The algorithm terminates when all branches are either evaluated or pruned.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<div class="sourceCode" id="cb559"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Load the leaps package</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st">"leaps"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Simulated data</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
+<span><span class="va">x1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">x4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">5</span> <span class="op">+</span> <span class="fl">3</span> <span class="op">*</span> <span class="va">x1</span> <span class="op">-</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">x2</span> <span class="op">+</span> <span class="va">x3</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, sd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Prepare data for subset selection</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">x1</span>, <span class="va">x2</span>, <span class="va">x3</span>, <span class="va">x4</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Perform best subset selection using branch-and-bound</span></span>
+<span><span class="va">best_subsets</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/leaps/man/regsubsets.html">regsubsets</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">.</span>,</span>
+<span>               data <span class="op">=</span> <span class="va">data</span>,</span>
+<span>               nvmax <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>               method <span class="op">=</span> <span class="st">"seqrep"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Summarize results</span></span>
+<span><span class="va">best_summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">best_subsets</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Best Subsets Summary:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Best Subsets Summary:</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="va">best_summary</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Subset selection object</span></span>
+<span><span class="co">#&gt; Call: regsubsets.formula(y ~ ., data = data, nvmax = 4, method = "seqrep")</span></span>
+<span><span class="co">#&gt; 4 Variables  (and intercept)</span></span>
+<span><span class="co">#&gt;    Forced in Forced out</span></span>
+<span><span class="co">#&gt; x1     FALSE      FALSE</span></span>
+<span><span class="co">#&gt; x2     FALSE      FALSE</span></span>
+<span><span class="co">#&gt; x3     FALSE      FALSE</span></span>
+<span><span class="co">#&gt; x4     FALSE      FALSE</span></span>
+<span><span class="co">#&gt; 1 subsets of each size up to 4</span></span>
+<span><span class="co">#&gt; Selection Algorithm: 'sequential replacement'</span></span>
+<span><span class="co">#&gt;          x1  x2  x3  x4 </span></span>
+<span><span class="co">#&gt; 1  ( 1 ) "*" " " " " " "</span></span>
+<span><span class="co">#&gt; 2  ( 1 ) "*" "*" " " " "</span></span>
+<span><span class="co">#&gt; 3  ( 1 ) "*" "*" "*" " "</span></span>
+<span><span class="co">#&gt; 4  ( 1 ) "*" "*" "*" "*"</span></span>
+<span></span>
+<span><span class="co"># Visualize best subsets</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">best_subsets</span>, scale <span class="op">=</span> <span class="st">"adjr2"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/title.html">title</a></span><span class="op">(</span><span class="st">"Best Subsets: AdjusteR^2"</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="15-variable-selection_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;"></div>
+<p>Interpretation</p>
+<ol style="list-style-type: decimal">
+<li>
+<p><strong>Optimal Subsets</strong>:</p>
+<ul>
+<li><p>The algorithm identifies the best subset of predictors for each model size.</p></li>
+<li><p>Evaluate models based on metrics like adjusted <span class="math inline">\(R^2\)</span>, BIC, or AIC.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Visualization</strong>:</p>
+<ul>
+<li>The plot of adjusted <span class="math inline">\(R^2\)</span> helps identify the model size with the best tradeoff between fit and complexity.</li>
+</ul>
+</li>
+<li>
+<p><strong>Efficiency</strong>:</p>
+<ul>
+<li>The Branch-and-Bound Algorithm achieves optimal results without evaluating all <span class="math inline">\(2^p\)</span> subsets.</li>
+</ul>
+</li>
+</ol>
+<p>Advantages:</p>
+<ul>
+<li><p>Guarantees the best subset for a given criterion.</p></li>
+<li><p>Reduces computational cost compared to exhaustive search.</p></li>
+<li><p>Handles moderate-sized problems efficiently.</p></li>
+</ul>
+<p>Limitations:</p>
+<ul>
+<li><p>Computationally intensive for very large datasets or many predictors (<span class="math inline">\(p &gt; 20\)</span>).</p></li>
+<li><p>Requires a clearly defined evaluation criterion.</p></li>
+</ul>
+<p>Practical Considerations</p>
+<ul>
+<li>
+<p><strong>When to use Branch-and-Bound?</strong></p>
+<ul>
+<li><p>When <span class="math inline">\(p\)</span> (number of predictors) is moderate (<span class="math inline">\(p \leq 20\)</span>).</p></li>
+<li><p>When global optimality for subset selection is essential.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Alternatives</strong>:</p>
+<ul>
+<li>For larger <span class="math inline">\(p\)</span>, consider heuristic methods like stepwise selection or regularization techniques (e.g., LASSO, Ridge).</li>
+</ul>
+</li>
+<li>
+<p><strong>Applications</strong>:</p>
+<ul>
+<li>Branch-and-Bound is widely used in fields like statistics, operations research, and machine learning where optimal subset selection is crucial.</li>
+</ul>
+</li>
+</ul>
+</div>
+<div id="recursive-feature-elimination" class="section level3" number="15.2.4">
+<h3>
+<span class="header-section-number">15.2.4</span> Recursive Feature Elimination<a class="anchor" aria-label="anchor" href="#recursive-feature-elimination"><i class="fas fa-link"></i></a>
+</h3>
+<p><strong>Recursive Feature Elimination (RFE)</strong> is a feature selection method that systematically removes predictors from a model to identify the most relevant subset. RFE is commonly used in machine learning and regression tasks to improve model interpretability and performance by eliminating irrelevant or redundant features.</p>
+<hr>
+<p><strong>Theoretical Foundation</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Objective</strong>:
+<ul>
+<li>Select the subset of predictors that maximizes the performance of the model (e.g., minimizes prediction error or maximizes explained variance).</li>
+</ul>
+</li>
+<li>
+<strong>Approach</strong>:
+<ul>
+<li>RFE is a backward selection method that recursively removes the least important predictors based on their contribution to the model’s performance.</li>
+</ul>
+</li>
+<li>
+<strong>Key Features</strong>:
+<ul>
+<li>
+<strong>Feature Ranking</strong>: Predictors are ranked based on their importance (e.g., weights in a linear model, coefficients in regression, or feature importance scores in tree-based models).</li>
+<li>
+<strong>Recursive Elimination</strong>: At each step, the least important predictor is removed, and the model is refit with the remaining predictors.</li>
+</ul>
+</li>
+<li>
+<strong>Evaluation Criterion</strong>:
+<ul>
+<li>Model performance is evaluated using metrics such as <span class="math inline">\(R^2\)</span>, AIC, BIC, or cross-validation scores.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<p><strong>Steps in RFE</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Initialize</strong>:
+<ul>
+<li>Start with the full set of predictors.</li>
+</ul>
+</li>
+<li>
+<strong>Rank Features</strong>:
+<ul>
+<li>Train the model and compute feature importance scores (e.g., coefficients, weights, or feature importance).</li>
+</ul>
+</li>
+<li>
+<strong>Eliminate Features</strong>:
+<ul>
+<li>Remove the least important feature(s) based on the ranking.</li>
+</ul>
+</li>
+<li>
+<strong>Refit Model</strong>:
+<ul>
+<li>Refit the model with the reduced set of predictors.</li>
+</ul>
+</li>
+<li>
+<strong>Repeat</strong>:
+<ul>
+<li>Continue the process until the desired number of features is reached.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<div class="sourceCode" id="cb560"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Install and load caret package</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html">requireNamespace</a></span><span class="op">(</span><span class="st">"caret"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"caret"</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/topepo/caret/">caret</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Simulated data</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
+<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span> <span class="op">*</span> <span class="va">p</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="va">n</span>, ncol <span class="op">=</span> <span class="va">p</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">5</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html">rowSums</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, sd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>  <span class="co"># Only first 3 variables are relevant</span></span>
+<span></span>
+<span><span class="co"># Convert to a data frame</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span></span>
+<span><span class="va">data</span><span class="op">$</span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">y</span></span>
+<span></span>
+<span><span class="co"># Define control for RFE</span></span>
+<span><span class="va">control</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/caret/man/rfeControl.html">rfeControl</a></span><span class="op">(</span>functions <span class="op">=</span> <span class="va">lmFuncs</span>, <span class="co"># Use linear model for evaluation</span></span>
+<span>                      method <span class="op">=</span> <span class="st">"cv"</span>,      <span class="co"># Use cross-validation</span></span>
+<span>                      number <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>        <span class="co"># Number of folds</span></span>
+<span></span>
+<span><span class="co"># Perform RFE</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">rfe_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/caret/man/rfe.html">rfe</a></span><span class="op">(</span><span class="va">data</span><span class="op">[</span>, <span class="op">-</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">]</span>, <span class="va">data</span><span class="op">$</span><span class="va">y</span>, </span>
+<span>                  sizes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">)</span>,          <span class="co"># Subset sizes to evaluate</span></span>
+<span>                  rfeControl <span class="op">=</span> <span class="va">control</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display RFE results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Selected Predictors:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Selected Predictors:</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/caret/man/predictors.html">predictors</a></span><span class="op">(</span><span class="va">rfe_result</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "V1" "V2" "V3"</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"\nModel Performance:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Model Performance:</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="va">rfe_result</span><span class="op">$</span><span class="va">results</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    Variables     RMSE  Rsquared      MAE    RMSESD RsquaredSD     MAESD</span></span>
+<span><span class="co">#&gt; 1          1 2.342391 0.2118951 1.840089 0.5798450  0.2043123 0.4254393</span></span>
+<span><span class="co">#&gt; 2          2 2.146397 0.3549917 1.726721 0.5579553  0.2434206 0.4490311</span></span>
+<span><span class="co">#&gt; 3          3 2.063923 0.4209751 1.662022 0.5362445  0.2425727 0.4217594</span></span>
+<span><span class="co">#&gt; 4          4 2.124035 0.3574168 1.698954 0.5469199  0.2261644 0.4212677</span></span>
+<span><span class="co">#&gt; 5          5 2.128605 0.3526426 1.684169 0.5375931  0.2469891 0.4163273</span></span>
+<span><span class="co">#&gt; 6          6 2.153916 0.3226917 1.712140 0.5036119  0.2236060 0.4058412</span></span>
+<span><span class="co">#&gt; 7          7 2.162787 0.3223240 1.716382 0.5089243  0.2347677 0.3940646</span></span>
+<span><span class="co">#&gt; 8          8 2.152186 0.3222999 1.698816 0.5064040  0.2419215 0.3826101</span></span>
+<span><span class="co">#&gt; 9          9 2.137741 0.3288444 1.687136 0.5016526  0.2436893 0.3684675</span></span>
+<span><span class="co">#&gt; 10        10 2.139102 0.3290236 1.684362 0.5127830  0.2457675 0.3715176</span></span>
+<span></span>
+<span><span class="co"># Plot performance</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">rfe_result</span>, type <span class="op">=</span> <span class="st">"l"</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="15-variable-selection_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;"></div>
+<p><strong>Interpretation</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<p><strong>Selected Predictors</strong>:</p>
+<ul>
+<li>The algorithm identifies the most relevant predictors based on their impact on model performance.</li>
+</ul>
+</li>
+<li>
+<p><strong>Model Performance</strong>:</p>
+<ul>
+<li>The cross-validation results indicate how the model performs with different subset sizes, helping to select the optimal number of features.</li>
+</ul>
+</li>
+<li>
+<p><strong>Feature Ranking</strong>:</p>
+<ul>
+<li>RFE ranks features by their importance, providing insights into which predictors are most influential.</li>
+</ul>
+</li>
+</ol>
+<p>Advantages:</p>
+<ul>
+<li><p><strong>Improved Interpretability</strong>: Reduces the number of predictors, simplifying the model.</p></li>
+<li><p><strong>Performance Optimization</strong>: Eliminates irrelevant or redundant features, improving predictive accuracy.</p></li>
+<li><p><strong>Flexibility</strong>: Works with various model types (e.g., linear models, tree-based methods, SVMs).</p></li>
+</ul>
+<p>Limitations:</p>
+<ul>
+<li><p><strong>Computationally Intensive</strong>: Repeatedly trains models, which can be slow for large datasets or complex models.</p></li>
+<li><p><strong>Model Dependency</strong>: Feature importance rankings depend on the underlying model, which may introduce bias.</p></li>
+</ul>
+<p>Practical Considerations</p>
+<ul>
+<li>
+<p><strong>When to use RFE?</strong></p>
+<ul>
+<li><p>For high-dimensional datasets where feature selection is critical for model interpretability and performance.</p></li>
+<li><p>In machine learning workflows where feature importance scores are available.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Extensions</strong>:</p>
+<ul>
+<li><p>Combine RFE with regularization methods (e.g., LASSO, Ridge) for additional feature selection.</p></li>
+<li><p>Use advanced models (e.g., Random Forest, Gradient Boosting) for feature ranking.</p></li>
+</ul>
+</li>
+</ul>
+<hr>
+</div>
+</div>
+<div id="embedded-methods-integrated-into-model-training" class="section level2" number="15.3">
+<h2>
+<span class="header-section-number">15.3</span> Embedded Methods (Integrated into Model Training)<a class="anchor" aria-label="anchor" href="#embedded-methods-integrated-into-model-training"><i class="fas fa-link"></i></a>
+</h2>
+<div id="regularization-based-selection" class="section level3" number="15.3.1">
+<h3>
+<span class="header-section-number">15.3.1</span> Regularization-Based Selection<a class="anchor" aria-label="anchor" href="#regularization-based-selection"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>
+<strong>Lasso (L1 Regularization)</strong>: Shrinks some coefficients to zero, performing automatic selection.</li>
+<li>
+<strong>Ridge (L2 Regularization)</strong>: Shrinks coefficients but does not eliminate variables.</li>
+<li>
+<strong>Elastic Net</strong>: Combines L1 and L2 penalties for better feature selection.</li>
+</ul>
+</div>
+<div id="tree-based-feature-importance" class="section level3" number="15.3.2">
+<h3>
+<span class="header-section-number">15.3.2</span> Tree-Based Feature Importance<a class="anchor" aria-label="anchor" href="#tree-based-feature-importance"><i class="fas fa-link"></i></a>
+</h3>
+<p>Decision trees and ensemble methods (Random Forests, Gradient Boosting) rank features based on their contribution to predictions.</p>
+</div>
+<div id="genetic-algorithms-1" class="section level3" number="15.3.3">
+<h3>
+<span class="header-section-number">15.3.3</span> Genetic Algorithms<a class="anchor" aria-label="anchor" href="#genetic-algorithms-1"><i class="fas fa-link"></i></a>
+</h3>
+<p><strong>Genetic Algorithms (GA)</strong> are inspired by the principles of natural selection and genetics. They are metaheuristic optimization techniques that iteratively evolve a population of solutions to find an optimal or near-optimal subset of predictors for regression or classification tasks.</p>
+<hr>
+<p><strong>Theoretical Foundation</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Objective</strong>:
+<ul>
+<li>Select a subset of predictors that optimizes a predefined fitness function (e.g., <span class="math inline">\(R^2\)</span>, AIC, BIC, or prediction error).</li>
+</ul>
+</li>
+<li>
+<strong>Key Concepts</strong>:
+<ul>
+<li>
+<strong>Population</strong>: A collection of candidate solutions (subsets of predictors).</li>
+<li>
+<strong>Chromosome</strong>: Represents a solution as a binary vector (e.g., <code>1</code> if a variable is included, <code>0</code> otherwise).</li>
+<li>
+<strong>Fitness Function</strong>: Evaluates the quality of a solution based on the selected variables.</li>
+<li>
+<strong>Crossover</strong>: Combines two solutions to create a new solution.</li>
+<li>
+<strong>Mutation</strong>: Randomly alters a solution to maintain diversity in the population.</li>
+<li>
+<strong>Selection</strong>: Chooses solutions with higher fitness to create the next generation.</li>
+</ul>
+</li>
+<li>
+<strong>Advantages</strong>:
+<ul>
+<li>Explores a wide solution space effectively.</li>
+<li>Escapes local optima by introducing randomness.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<p><strong>Steps in Genetic Algorithms</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Initialization</strong>:
+<ul>
+<li>Generate an initial population of candidate solutions randomly.</li>
+</ul>
+</li>
+<li>
+<strong>Evaluation</strong>:
+<ul>
+<li>Compute the fitness function for each solution in the population.</li>
+</ul>
+</li>
+<li>
+<strong>Selection</strong>:
+<ul>
+<li>Select solutions with higher fitness values to be parents for the next generation.</li>
+</ul>
+</li>
+<li>
+<strong>Crossover</strong>:
+<ul>
+<li>Combine pairs of parent solutions to create offspring.</li>
+</ul>
+</li>
+<li>
+<strong>Mutation</strong>:
+<ul>
+<li>Randomly modify some solutions to introduce variability.</li>
+</ul>
+</li>
+<li>
+<strong>Replacement</strong>:
+<ul>
+<li>Replace the old population with the new generation.</li>
+</ul>
+</li>
+<li>
+<strong>Stopping Criteria</strong>:
+<ul>
+<li>Terminate the algorithm after a fixed number of generations or when the improvement in fitness is below a threshold.</li>
+</ul>
+</li>
+</ol>
+<hr>
+<div class="sourceCode" id="cb561"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Install and load GA package</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html">requireNamespace</a></span><span class="op">(</span><span class="st">"GA"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"GA"</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://luca-scr.github.io/GA/">GA</a></span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># Simulated data</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">100</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fl">10</span></span>
+<span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span> <span class="op">*</span> <span class="va">p</span><span class="op">)</span>, nrow <span class="op">=</span> <span class="va">n</span>, ncol <span class="op">=</span> <span class="va">p</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Only first 3 variables are relevant</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fl">5</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums.html">rowSums</a></span><span class="op">(</span><span class="va">X</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">3</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, sd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> </span>
+<span></span>
+<span><span class="co"># Convert to a data frame</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span></span>
+<span><span class="va">data</span><span class="op">$</span><span class="va">y</span> <span class="op">&lt;-</span> <span class="va">y</span></span>
+<span></span>
+<span><span class="co"># Define the fitness function</span></span>
+<span><span class="va">fitness_function</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">binary_vector</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">selected_vars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">binary_vector</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
+<span>    <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">selected_vars</span><span class="op">)</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span></span>
+<span>        <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="op">-</span><span class="cn">Inf</span><span class="op">)</span> <span class="co"># Penalize empty subsets</span></span>
+<span>    <span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">data</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">selected_vars</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/stats/AIC.html">AIC</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span>  <span class="co"># Return negative AIC (minimization problem)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># Run Genetic Algorithm</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">ga_result</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://github.com/luca-scr/GA/reference/ga.html">ga</a></span><span class="op">(</span></span>
+<span>        type <span class="op">=</span> <span class="st">"binary"</span>,</span>
+<span>        <span class="co"># Binary encoding for variable selection</span></span>
+<span>        fitness <span class="op">=</span> <span class="va">fitness_function</span>,</span>
+<span>        nBits <span class="op">=</span> <span class="va">p</span>,</span>
+<span>        <span class="co"># Number of predictors</span></span>
+<span>        popSize <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>        <span class="co"># Population size</span></span>
+<span>        maxiter <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>        <span class="co"># Maximum number of generations</span></span>
+<span>        run <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>        <span class="co"># Stop if no improvement in 10 generations</span></span>
+<span>        seed <span class="op">=</span> <span class="fl">123</span></span>
+<span>    <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Extract the best solution</span></span>
+<span><span class="va">best_solution</span> <span class="op">&lt;-</span> <span class="va">ga_result</span><span class="op">@</span><span class="va">solution</span><span class="op">[</span><span class="fl">1</span>, <span class="op">]</span></span>
+<span><span class="va">selected_vars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span><span class="op">(</span><span class="va">best_solution</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Selected Variables (Column Indices):\n"</span>, <span class="va">selected_vars</span>, <span class="st">"\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Selected Variables (Column Indices):</span></span>
+<span><span class="co">#&gt;  1 2 3 4</span></span>
+<span></span>
+<span><span class="co"># Fit the final model with selected variables</span></span>
+<span><span class="va">final_model</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">.</span>, data <span class="op">=</span> <span class="va">data</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">selected_vars</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html">ncol</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Final Model Summary:\n"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Final Model Summary:</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">final_model</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; lm(formula = y ~ ., data = data[, c(selected_vars, ncol(data))])</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residuals:</span></span>
+<span><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span><span class="co">#&gt; -5.4013 -1.3823  0.0151  1.0796  5.1537 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept)   5.2726     0.2101  25.096  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; V1            1.1477     0.2290   5.012 2.49e-06 ***</span></span>
+<span><span class="co">#&gt; V2            0.9469     0.2144   4.416 2.66e-05 ***</span></span>
+<span><span class="co">#&gt; V3            0.6864     0.2199   3.121  0.00239 ** </span></span>
+<span><span class="co">#&gt; V4            0.3881     0.1997   1.943  0.05496 .  </span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residual standard error: 2.058 on 95 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.3574, Adjusted R-squared:  0.3304 </span></span>
+<span><span class="co">#&gt; F-statistic: 13.21 on 4 and 95 DF,  p-value: 1.352e-08</span></span></code></pre></div>
+<p><strong>Interpretation</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<p><strong>Selected Variables</strong>:</p>
+<ul>
+<li>The genetic algorithm identifies the subset of predictors that minimizes the fitness function (negative AIC in this example).</li>
+</ul>
+</li>
+<li>
+<p><strong>Model Performance</strong>:</p>
+<ul>
+<li>The final model can be evaluated using metrics such as adjusted $R^2$, prediction error, or cross-validation.</li>
+</ul>
+</li>
+<li>
+<p><strong>Convergence</strong>:</p>
+<ul>
+<li>The algorithm evolves towards better solutions over generations, as indicated by improvements in the best fitness value.</li>
+</ul>
+</li>
+</ol>
+<p><strong>Advantages:</strong></p>
+<ul>
+<li><p>Can handle high-dimensional datasets and complex fitness functions.</p></li>
+<li><p>Avoids getting trapped in local optima by introducing randomness.</p></li>
+<li><p>Flexible: Can optimize any user-defined fitness function.</p></li>
+</ul>
+<p><strong>Limitations:</strong></p>
+<ul>
+<li><p>Computationally intensive for large datasets or many predictors.</p></li>
+<li><p>Requires careful tuning of hyperparameters (e.g., population size, mutation rate).</p></li>
+<li><p>May not guarantee a globally optimal solution.</p></li>
+</ul>
+<p><strong>Practical Considerations</strong></p>
+<ul>
+<li>
+<p><strong>When to use Genetic Algorithms?</strong></p>
+<ul>
+<li><p>For complex variable selection problems where traditional methods (e.g., stepwise selection) are insufficient.</p></li>
+<li><p>When the fitness function is non-linear or involves interactions among predictors.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Tuning Tips</strong>:</p>
+<ul>
+<li><p>Adjust population size and mutation rate based on dataset size and complexity.</p></li>
+<li><p>Use parallel computing to speed up the evaluation of fitness functions.</p></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="summary-table-1" class="section level2" number="15.4">
+<h2>
+<span class="header-section-number">15.4</span> Summary Table<a class="anchor" aria-label="anchor" href="#summary-table-1"><i class="fas fa-link"></i></a>
+</h2>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="20%">
+<col width="20%">
+<col width="20%">
+<col width="20%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th><strong>Method</strong></th>
+<th><strong>Type</strong></th>
+<th><strong>Approach</strong></th>
+<th><strong>Key Criterion</strong></th>
+<th><strong>Notes</strong></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Mallows’s C Statistic</td>
+<td>Information Criterion</td>
+<td>Subset Selection</td>
+<td>Model Complexity vs Fit</td>
+<td>Balances fit and simplicity.</td>
+</tr>
+<tr class="even">
+<td>Akaike Information Criterion (AIC)</td>
+<td>Information Criterion</td>
+<td>Model Selection</td>
+<td>Minimizes AIC</td>
+<td>Penalizes model complexity.</td>
+</tr>
+<tr class="odd">
+<td>Bayesian Information Criterion (BIC)</td>
+<td>Information Criterion</td>
+<td>Model Selection</td>
+<td>Minimizes BIC</td>
+<td>Stronger penalty for complexity.</td>
+</tr>
+<tr class="even">
+<td>Hannan-Quinn Criterion (HQC)</td>
+<td>Information Criterion</td>
+<td>Model Selection</td>
+<td>Minimizes HQC</td>
+<td>Combines AIC and BIC features.</td>
+</tr>
+<tr class="odd">
+<td>Minimum Description Length (MDL)</td>
+<td>Information Criterion</td>
+<td>Model Selection</td>
+<td>Data + Model Encoding Costs</td>
+<td>Focuses on encoding efficiency.</td>
+</tr>
+<tr class="even">
+<td>Prediction Error Sum of Squares (PRESS)</td>
+<td>Error-Based</td>
+<td>Cross-Validation</td>
+<td>Minimizes Prediction Error</td>
+<td>Measures predictive accuracy.</td>
+</tr>
+<tr class="odd">
+<td>Best Subsets Algorithm</td>
+<td>Exhaustive Search</td>
+<td>Subset Selection</td>
+<td>Best Fit Across Subsets</td>
+<td>Considers all variable combinations.</td>
+</tr>
+<tr class="even">
+<td>Forward Selection</td>
+<td>Stepwise</td>
+<td>Add Variables</td>
+<td>Significance Testing</td>
+<td>Adds variables one at a time.</td>
+</tr>
+<tr class="odd">
+<td>Backward Elimination</td>
+<td>Stepwise</td>
+<td>Remove Variables</td>
+<td>Significance Testing</td>
+<td>Removes variables iteratively.</td>
+</tr>
+<tr class="even">
+<td>Stepwise (Both Directions)</td>
+<td>Stepwise</td>
+<td>Add/Remove Variables</td>
+<td>Significance Testing</td>
+<td>Combines forward and backward methods.</td>
+</tr>
+<tr class="odd">
+<td>Branch-and-Bound Algorithm</td>
+<td>Optimized Search</td>
+<td>Subset Selection</td>
+<td>Efficient Subset Search</td>
+<td>Avoids exhaustive search.</td>
+</tr>
+<tr class="even">
+<td>Recursive Feature Elimination (RFE)</td>
+<td>Iterative Optimization</td>
+<td>Feature Removal</td>
+<td>Model Performance</td>
+<td>Removes least important predictors.</td>
+</tr>
+<tr class="odd">
+<td>Genetic Algorithms</td>
+<td>Heuristic Search</td>
+<td>Evolutionary Process</td>
+<td>Fitness Function</td>
+<td>Mimics natural selection for subsets.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="model-specification-tests.html"><span class="header-section-number">14</span> Model Specification Tests</a></div>
+<div class="next"><a href="hypothesis-testing.html"><span class="header-section-number">16</span> Hypothesis Testing</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#variable-selection"><span class="header-section-number">15</span> Variable Selection</a></li>
+<li>
+<a class="nav-link" href="#sec-filter-methods"><span class="header-section-number">15.1</span> Filter Methods (Statistical Criteria, Model-Agnostic)</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#information-criteria-based-selection"><span class="header-section-number">15.1.1</span> Information Criteria-Based Selection</a></li>
+<li><a class="nav-link" href="#univariate-selection-methods"><span class="header-section-number">15.1.2</span> Univariate Selection Methods</a></li>
+<li><a class="nav-link" href="#correlation-based-feature-selection"><span class="header-section-number">15.1.3</span> Correlation-Based Feature Selection</a></li>
+<li><a class="nav-link" href="#variance-thresholding"><span class="header-section-number">15.1.4</span> Variance Thresholding</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#wrapper-methods-model-based-subset-evaluation"><span class="header-section-number">15.2</span> Wrapper Methods (Model-Based Subset Evaluation)</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#best-subsets-algorithm-1"><span class="header-section-number">15.2.1</span> Best Subsets Algorithm</a></li>
+<li><a class="nav-link" href="#stepwise-selection-methods-1"><span class="header-section-number">15.2.2</span> Stepwise Selection Methods</a></li>
+<li><a class="nav-link" href="#branch-and-bound-algorithm-1"><span class="header-section-number">15.2.3</span> Branch-and-Bound Algorithm</a></li>
+<li><a class="nav-link" href="#recursive-feature-elimination"><span class="header-section-number">15.2.4</span> Recursive Feature Elimination</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#embedded-methods-integrated-into-model-training"><span class="header-section-number">15.3</span> Embedded Methods (Integrated into Model Training)</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#regularization-based-selection"><span class="header-section-number">15.3.1</span> Regularization-Based Selection</a></li>
+<li><a class="nav-link" href="#tree-based-feature-importance"><span class="header-section-number">15.3.2</span> Tree-Based Feature Importance</a></li>
+<li><a class="nav-link" href="#genetic-algorithms-1"><span class="header-section-number">15.3.3</span> Genetic Algorithms</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#summary-table-1"><span class="header-section-number">15.4</span> Summary Table</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/mikenguyen13/data_analysis/blob/main/15-variable-selection.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/mikenguyen13/data_analysis/edit/main/15-variable-selection.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-02-18.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>
