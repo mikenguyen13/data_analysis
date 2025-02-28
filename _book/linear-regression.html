@@ -104,7 +104,7 @@
 <li><a class="" href="experimental-design.html"><span class="header-section-number">22</span> Experimental Design</a></li>
 <li><a class="" href="sampling.html"><span class="header-section-number">23</span> Sampling</a></li>
 <li><a class="" href="sec-analysis-of-variance-anova.html"><span class="header-section-number">24</span> Analysis of Variance</a></li>
-<li><a class="" href="multivariate-methods.html"><span class="header-section-number">25</span> Multivariate Methods</a></li>
+<li><a class="" href="sec-multivariate-methods.html"><span class="header-section-number">25</span> Multivariate Methods</a></li>
 <li class="book-part">B. QUASI-EXPERIMENTAL DESIGN</li>
 <li><a class="" href="sec-quasi-experimental.html"><span class="header-section-number">26</span> Quasi-experimental</a></li>
 <li><a class="" href="regression-discontinuity.html"><span class="header-section-number">27</span> Regression Discontinuity</a></li>
@@ -2199,13 +2199,13 @@ h(Y) = \sqrt{Y}.
 <span><span class="va">model_trans</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">y_trans</span> <span class="op">~</span> <span class="va">x</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Compare residual plots</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, mar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Residual plot for raw data</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/stats/fitted.values.html">fitted</a></span><span class="op">(</span><span class="va">model_raw</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">resid</a></span><span class="op">(</span><span class="va">model_raw</span><span class="op">)</span>,</span>
-<span>    main <span class="op">=</span> <span class="st">"Residuals: Raw Data"</span>,</span>
+<span>    main <span class="op">=</span> <span class="st">"Residuals Raw Data"</span>,</span>
 <span>    xlab <span class="op">=</span> <span class="st">"Fitted Values"</span>,</span>
 <span>    ylab <span class="op">=</span> <span class="st">"Residuals"</span></span>
 <span><span class="op">)</span></span>
@@ -5708,30 +5708,46 @@ I = \frac{n}{W} \cdot \frac{\sum_i \sum_j w_{ij} (x_i - \bar{x})(x_j - \bar{x})}
 </ul>
 <div class="sourceCode" id="cb182"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load necessary packages</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://r-spatial.github.io/sf/">sf</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-spatial/spdep/">spdep</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Simulate spatial data (example with mtcars dataset)</span></span>
 <span><span class="va">coords</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html">cbind</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">$</span><span class="va">hp</span>, <span class="va">mtcars</span><span class="op">$</span><span class="va">wt</span><span class="op">)</span>  <span class="co"># Coordinates based on two variables</span></span>
-<span><span class="va">neighbors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/spdep/reference/knn2nb.html">knn2nb</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/spdep/reference/knearneigh.html">knearneigh</a></span><span class="op">(</span><span class="va">coords</span>, k <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span>  <span class="co"># Nearest neighbors</span></span>
-<span><span class="va">weights</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/spdep/reference/nb2listw.html">nb2listw</a></span><span class="op">(</span><span class="va">neighbors</span>, style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span>  <span class="co"># Spatial weights</span></span>
+<span></span>
+<span><span class="co"># Add small jitter to avoid duplicate coordinates</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>  <span class="co"># For reproducibility</span></span>
+<span><span class="va">coords_jittered</span> <span class="op">&lt;-</span></span>
+<span>    <span class="va">coords</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">coords</span><span class="op">)</span>,<span class="op">-</span><span class="fl">0.01</span>, <span class="fl">0.01</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Find nearest neighbors</span></span>
+<span><span class="va">neighbors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/spdep/reference/knn2nb.html">knn2nb</a></span><span class="op">(</span><span class="fu"><a href="https://r-spatial.github.io/spdep/reference/knearneigh.html">knearneigh</a></span><span class="op">(</span><span class="va">coords_jittered</span>, k <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Create spatial weights matrix</span></span>
+<span><span class="va">weights</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/spdep/reference/nb2listw.html">nb2listw</a></span><span class="op">(</span><span class="va">neighbors</span>, style <span class="op">=</span> <span class="st">"W"</span><span class="op">)</span>  <span class="co"># Row-standardized weights</span></span>
+<span></span>
+<span><span class="co"># Fit the linear model</span></span>
+<span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">hp</span> <span class="op">+</span> <span class="va">wt</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Check lengths of residuals and weights</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">residuals</span><span class="op">)</span>  <span class="co"># Should be 32</span></span>
+<span><span class="co">#&gt; [1] 32</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">weights</span><span class="op">$</span><span class="va">neighbours</span><span class="op">)</span>  <span class="co"># Should also be 32</span></span>
+<span><span class="co">#&gt; [1] 32</span></span>
 <span></span>
 <span><span class="co"># Compute Moran's I for residuals</span></span>
-<span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">hp</span> <span class="op">+</span> <span class="va">wt</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">)</span></span>
 <span><span class="va">moran_test</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://r-spatial.github.io/spdep/reference/moran.test.html">moran.test</a></span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">residuals</span>, <span class="va">weights</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Results</span></span>
-<span><span class="va">moran_test</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html">print</a></span><span class="op">(</span><span class="va">moran_test</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt;  Moran I test under randomisation</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; data:  model$residuals  </span></span>
 <span><span class="co">#&gt; weights: weights    </span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Moran I statistic standard deviate = 1.5146, p-value = 0.06494</span></span>
+<span><span class="co">#&gt; Moran I statistic standard deviate = 1.7679, p-value = 0.03854</span></span>
 <span><span class="co">#&gt; alternative hypothesis: greater</span></span>
 <span><span class="co">#&gt; sample estimates:</span></span>
 <span><span class="co">#&gt; Moran I statistic       Expectation          Variance </span></span>
-<span><span class="co">#&gt;        0.15425069       -0.03225806        0.01516371</span></span>
+<span><span class="co">#&gt;        0.18544790       -0.03225806        0.01516371</span></span>
 <span></span>
 <span><span class="co"># Moran's scatterplot</span></span>
 <span><span class="fu"><a href="https://r-spatial.github.io/spdep/reference/moran.plot.html">moran.plot</a></span><span class="op">(</span><span class="va">model</span><span class="op">$</span><span class="va">residuals</span>, <span class="va">weights</span>, main <span class="op">=</span> <span class="st">"Moran's Scatterplot"</span><span class="op">)</span></span></code></pre></div>
@@ -9203,7 +9219,7 @@ y = T C + \epsilon,
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-02-18.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-02-27.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

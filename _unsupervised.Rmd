@@ -1,0 +1,2150 @@
+# Unsupervised Learning
+
+## Principal Components {#principal-components}
+
+Principal Component Analysis (PCA) is an **unsupervised learning** technique used for:
+
+-   Identifying important features in high-dimensional data.
+
+-   Reducing dimensionality while retaining key information.
+
+-   Decorrelating multivariate vectors that exhibit dependence.
+
+-   Eigenvector/eigenvalue decomposition of covariance (or correlation) matrices.
+
+According to the **spectral decomposition theorem**, if $\boldsymbol{\Sigma}_{p \times p}$ is a positive semi-definite, symmetric, real matrix, then there exists an orthogonal matrix $\mathbf{A}$ such that:
+
+$$
+\mathbf{A' \Sigma A} = \boldsymbol{\Lambda}
+$$
+
+where $\boldsymbol{\Lambda}$ is a diagonal matrix containing the eigenvalues of $\boldsymbol{\Sigma}$:
+
+$$
+\boldsymbol{\Lambda} = 
+\begin{bmatrix}
+\lambda_1 & 0 & \dots & 0 \\
+0 & \lambda_2 & \dots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \dots & \lambda_p
+\end{bmatrix}
+$$
+
+The matrix $\mathbf{A}$ consists of eigenvectors as columns:
+
+$$
+\mathbf{A} =
+\begin{bmatrix}
+\mathbf{a}_1 & \mathbf{a}_2 & \dots & \mathbf{a}_p
+\end{bmatrix}
+$$
+
+where $\mathbf{a}_i$ is the $p \times 1$ eigenvector of $\boldsymbol{\Sigma}$ corresponding to eigenvalue $\lambda_i$, ordered such that:
+
+$$
+\lambda_1 \geq \lambda_2 \geq \dots \geq \lambda_p
+$$
+
+Alternatively, we express this in matrix decomposition form:
+
+$$
+\boldsymbol{\Sigma} = \mathbf{A \Lambda A}'
+$$
+
+Expanding this,
+
+$$
+\boldsymbol{\Sigma} = \mathbf{A}
+\begin{bmatrix}
+\lambda_1 & 0 & \dots & 0 \\
+0 & \lambda_2 & \dots & 0 \\
+\vdots & \vdots & \ddots & \vdots \\
+0 & 0 & \dots & \lambda_p
+\end{bmatrix}
+\mathbf{A}'
+= \sum_{i=1}^p \lambda_i \mathbf{a}_i \mathbf{a}_i'
+$$
+
+where $\mathbf{a}_i \mathbf{a}_i'$ is a rank-one matrix.
+
+------------------------------------------------------------------------
+
+**Example: PCA on a Bivariate Normal Distribution**
+
+Consider a **bivariate normal** random vector:
+
+$$
+\mathbf{x} \sim N_2(\boldsymbol{\mu}, \boldsymbol{\Sigma})
+$$
+
+where:
+
+$$
+\boldsymbol{\mu} = 
+\begin{bmatrix}
+5 \\ 
+12 
+\end{bmatrix};
+\quad
+\boldsymbol{\Sigma} = 
+\begin{bmatrix}
+4 & 1 \\
+1 & 2 
+\end{bmatrix}
+$$
+
+We generate data from this distribution:
+
+```{r}
+library(MASS)
+
+# Define mean vector and covariance matrix
+mu <- c(5, 12)
+Sigma <- matrix(c(4, 1, 1, 2), nrow = 2, byrow = TRUE)
+
+# Simulate 100 observations from the bivariate normal distribution
+set.seed(123)
+sim <- mvrnorm(n = 100, mu = mu, Sigma = Sigma)
+
+# Scatter plot of original data
+plot(sim[, 1],
+     sim[, 2],
+     xlab = "X1",
+     ylab = "X2",
+     main = "Original Data")
+```
+
+The eigenvectors of $\boldsymbol{\Sigma}$ form the matrix:
+
+$$
+\mathbf{A} = 
+\begin{bmatrix}
+0.9239 & -0.3827 \\
+0.3827 & 0.9239 
+\end{bmatrix}
+$$
+
+Columns of $\mathbf{A}$ are the eigenvectors for the spectral decomposition.
+
+Multiplying by this matrix transforms the data into uncorrelated components.
+
+Under matrix multiplication, the off-diagonal elements of $\mathbf{A' \Sigma A}$ become zero, making the transformed variables independent. This means that if:
+
+$$
+\mathbf{y} = \mathbf{A'x}
+$$
+
+then $\mathbf{y}$ follows:
+
+$$
+N_2 (\mathbf{A' \mu}, \mathbf{A' \Sigma A}) = N_2 (\mathbf{A' \mu}, \boldsymbol{\Lambda})
+$$
+
+Thus, the transformed mean and covariance are:
+
+$$
+\boldsymbol{\mu}_y =
+\begin{bmatrix}
+9.2119 \\
+9.1733 
+\end{bmatrix},
+\quad
+\boldsymbol{\Sigma}_y =
+\begin{bmatrix}
+4.4144 & 0 \\
+0 & 1.5859 
+\end{bmatrix}
+$$
+
+We manually apply PCA transformation:
+
+```{r}
+# Load necessary library
+library(MASS)
+
+# Define the eigenvector matrix (rotation matrix)
+A_matrix <- matrix(c(0.9239, -0.3827, 
+                     0.3827,  0.9239), 
+                   nrow = 2, byrow = TRUE)
+
+# Verify orthogonality (A' A = I)
+t(A_matrix) %*% A_matrix
+
+# Transform the data
+sim_transformed <- mvrnorm(
+    n = 1000,
+    mu = t(A_matrix) %*% mu,
+    Sigma = t(A_matrix) %*% Sigma %*% A_matrix
+)
+
+# Scatter plot of transformed data
+plot(sim_transformed[, 1], sim_transformed[, 2], 
+     xlab = "PC1", ylab = "PC2", 
+     main = "Transformed Data (PCA)")
+```
+
+**Key Observations**
+
+-   The off-diagonal elements of $\mathbf{A' \Sigma A}$ are zero, confirming that the transformed variables are uncorrelated.
+
+-   The new variables ($\mathbf{y}$'s) are called scores, representing projections onto the principal component axes.
+
+-   The first principal component ($y_1$) captures the largest variance in the data.
+
+-   The eigenvalues $\lambda_i$ represent the variance of each principal component: $$
+    \operatorname{Var}(y_i) = \operatorname{Var}(\mathbf{a'_i x}) = \lambda_i
+    $$ Thus, PCA diagonalizes the covariance matrix and projects data onto new uncorrelated axes.
+
+### Population Principal Components
+
+Consider $p \times 1$ random vectors $\mathbf{x}_1, \dots , \mathbf{x}_n$ that are i.i.d. with:
+
+$$
+\operatorname{Var}(\mathbf{x}_i) = \boldsymbol{\Sigma}
+$$
+
+Principal components (PCs) are linear combinations of $\mathbf{x}$ that capture the greatest variance while remaining uncorrelated:
+
+-   **First Principal Component (PC1):**\
+    The linear combination:
+
+    $$
+    y_1 = \mathbf{a}_1' \mathbf{x} = a_{11}x_1 + \dots + a_{1p}x_p
+    $$
+
+    is chosen such that:
+
+    -   $\mathbf{a}_1' \mathbf{a}_1 = 1$ (unit norm).
+    -   $\operatorname{Var}(y_1)$ is **maximized** among all possible linear combinations of $\mathbf{x}$.
+
+-   **Second Principal Component (PC2):**\
+    The linear combination:
+
+    $$
+    y_2 = \mathbf{a}_2' \mathbf{x} = a_{21}x_1 + \dots + a_{2p}x_p
+    $$
+
+    is chosen such that:
+
+    -   $\mathbf{a}_2' \mathbf{a}_2 = 1$.
+
+    -   $\operatorname{Var}(y_2)$ is **maximized** while being **uncorrelated with** $y_1$:
+
+        $$
+        \operatorname{Cov}(\mathbf{a}_1' \mathbf{x}, \mathbf{a}_2' \mathbf{x}) = 0
+        $$
+
+-   This process continues for all $y_i$ up to $y_p$.
+
+The eigenvectors $\mathbf{a}_i$ form the matrix $\mathbf{A}$ in the spectral decomposition:
+
+$$
+\mathbf{A' \Sigma A} = \boldsymbol{\Lambda}
+$$
+
+where:
+
+$$
+\operatorname{Var}(y_i) = \lambda_i, \quad i = 1, \dots, p
+$$
+
+The total variance of $\mathbf{x}$ is:
+
+$$
+\begin{aligned}
+\operatorname{Var}(x_1) + \dots + \operatorname{Var}(x_p) &= \operatorname{tr}(\boldsymbol{\Sigma}) = \lambda_1 + \dots + \lambda_p \\
+&= \operatorname{Var}(y_1) + \dots + \operatorname{Var}(y_p)
+\end{aligned}
+$$
+
+------------------------------------------------------------------------
+
+#### Data Reduction Using PCA
+
+To reduce dimensionality from $p$ to $k$ without significant loss of information, we use properties of population principal components:
+
+-   If:
+
+    $$
+    \boldsymbol{\Sigma} \approx \sum_{i=1}^k \lambda_i \mathbf{a}_i \mathbf{a}_i'
+    $$
+
+    then, although $\boldsymbol{\Sigma}$ has rank $p$, it can be well approximated by a rank $k$ matrix where $k < p$.
+
+-   The new "traits" are linear combinations of the original variables, often allowing for meaningful interpretation.
+
+-   The proportion of total variance explained by the $j$-th principal component is:
+
+    $$
+    \frac{\operatorname{Var}(y_j)}{\sum_{i=1}^p \operatorname{Var}(y_i)} = \frac{\lambda_j}{\sum_{i=1}^p \lambda_i}
+    $$
+
+-   The cumulative proportion of total variance explained by the first $k$ principal components:
+
+    $$
+    \frac{\sum_{i=1}^k \lambda_i}{\sum_{i=1}^p \lambda_i}
+    $$
+
+------------------------------------------------------------------------
+
+**Example: Variance Explained by PC1**
+
+From our previous example, the first principal component explains:
+
+$$
+\frac{4.4144}{4 + 2} = 0.735
+$$
+
+which means 73.5% of the total variance is captured by PC1 alone.
+
+### Sample Principal Components
+
+Since $\boldsymbol{\Sigma}$ is unknown, we estimate it using the sample covariance matrix:
+
+$$
+\mathbf{S} = \frac{1}{n-1}\sum_{i=1}^n (\mathbf{x}_i - \bar{\mathbf{x}})(\mathbf{x}_i - \bar{\mathbf{x}})'
+$$
+
+Let $\hat{\lambda}_1 \geq \hat{\lambda}_2 \geq \dots \geq \hat{\lambda}_p \geq 0$ be the eigenvalues of $\mathbf{S}$ and $\hat{\mathbf{a}}_1, \hat{\mathbf{a}}_2, \dots, \hat{\mathbf{a}}_p$ be the corresponding eigenvectors.
+
+Then, the $i$-th sample principal component score (or simply principal component) is:
+
+$$
+\hat{y}_{ij} = \sum_{k=1}^p \hat{a}_{ik}x_{kj} = \hat{\mathbf{a}}_i' \mathbf{x}_j
+$$
+
+------------------------------------------------------------------------
+
+**Properties of Sample Principal Components**
+
+1.  The estimated variance of $y_i = \hat{\mathbf{a}}_i' \mathbf{x}_j$ is given by: $$
+    \hat{\lambda}_i
+    $$
+
+2.  The sample covariance between different principal components is zero: $$
+    \operatorname{Cov}(\hat{y}_i, \hat{y}_{i'}) = 0, \quad i \neq i'
+    $$
+
+3.  The proportion of total sample variance accounted for by the i-th principal component: $$
+    \frac{\hat{\lambda}_i}{\sum_{k=1}^p \hat{\lambda}_k}
+    $$
+
+4.  The estimated correlation between the i-th principal component score and the l-th attribute of $\mathbf{x}$: $$
+    r_{x_l , \hat{y}_i} = \frac{\hat{a}_{il} \sqrt{\lambda_i}}{\sqrt{s_{ll}}}
+    $$
+
+5.  This correlation coefficient is often used to interpret the principal components. However, according to @johnson2002applied (pp. 433-434), $r_{x_l, \hat{y}_i}$ only measures the univariate contribution of an individual $X$ to a component $Y$ without considering the other $X$'s.
+
+    -   Some prefer using the eigenvector coefficients $\hat{a}_{il}$ for interpretation.
+
+6.  Both $r_{x_l, \hat{y}_i}$ and $\hat{a}_{il}$ are known as loadings.
+
+------------------------------------------------------------------------
+
+#### Computing Sample Principal Components
+
+To use $k$ principal components, we compute the scores for each data vector:
+
+$$
+\mathbf{y}_j = 
+\begin{bmatrix}
+y_{1j} \\
+y_{2j} \\
+\vdots \\
+y_{kj}
+\end{bmatrix}
+= 
+\begin{bmatrix}
+\hat{\mathbf{a}}_1' \mathbf{x}_j \\
+\hat{\mathbf{a}}_2' \mathbf{x}_j \\
+\vdots \\
+\hat{\mathbf{a}}_k' \mathbf{x}_j
+\end{bmatrix}
+= 
+\begin{bmatrix}
+\hat{\mathbf{a}}_1' \\
+\hat{\mathbf{a}}_2' \\
+\vdots \\
+\hat{\mathbf{a}}_k'
+\end{bmatrix}
+\mathbf{x}_j
+$$
+
+------------------------------------------------------------------------
+
+#### Issues in PCA
+
+1.  Large-Sample Theory for PCA:
+    -   PCA does not typically involve inference but is instead used for exploratory or descriptive analysis.
+    -   There exists a large-sample theory for eigenvalues and eigenvectors of sample covariance matrices if inference is required.
+2.  Scale Sensitivity:
+    -   PCA is not invariant to changes in scale.
+    -   Exception: If all traits are rescaled by the same constant (e.g., converting feet to inches), PCA remains unchanged.
+3.  Covariance Matrix vs. Correlation Matrix:
+    -   PCA based on the correlation matrix $\mathbf{R}$ differs from PCA based on the covariance matrix $\boldsymbol{\Sigma}$.
+    -   Correlation matrix PCA rescales each trait to have unit variance.
+    -   Transform original data $\mathbf{x}$ into standardized data $\mathbf{z}$: $$
+        z_{ij} = \frac{x_{ij} - \bar{x}_i}{\sqrt{s_{ii}}}
+        $$
+    -   After transformation: $$
+        \operatorname{Cov}(\mathbf{z}) = \mathbf{R}
+        $$
+    -   PCA computed on $\mathbf{R}$ follows the same procedure as PCA on $\mathbf{S}$.
+    -   Sum of eigenvalues of $\mathbf{R}$: $$
+        \hat{\lambda}_1 + \dots + \hat{\lambda}_p = p
+        $$
+4.  Choosing Between $\mathbf{S}$ and $\mathbf{R}$
+    -   If the scale of observations is similar, use the covariance matrix $\mathbf{S}$.
+    -   If the scales vary dramatically, PCA may be dominated by high-variance traits, so correlation matrix $\mathbf{R}$ may be preferable.
+
+------------------------------------------------------------------------
+
+#### Selecting the Number of Principal Components
+
+Several criteria help determine the optimal number of PCs:
+
+1.  Scree Plot:
+    -   Plot eigenvalues against their indices.
+    -   Look for the "elbow" where the steep decline flattens out.
+    -   Large gaps between eigenvalues may also suggest cutoff points.
+2.  Explained Variance Threshold:
+    -   Select enough components to capture a certain percentage of total variance (e.g., 50% or 90%).
+3.  Kaiser's Rule:
+    -   Retain only PCs with eigenvalues greater than 1.
+    -   This rule applies to PCA on the correlation matrix.
+4.  Randomized Data Comparison:
+    -   Compare the scree plot of observed data to that of a randomized dataset.
+
+------------------------------------------------------------------------
+
+The following **R code** demonstrates PCA on a dataset using the **covariance matrix**:
+
+```{r}
+# Load necessary library
+library(ggplot2)
+
+# Generate example dataset
+set.seed(123)
+X <- data.frame(
+    Trait1 = rnorm(100, mean = 5, sd = 2),
+    Trait2 = rnorm(100, mean = 10, sd = 3),
+    Trait3 = rnorm(100, mean = 15, sd = 5)
+)
+
+# Compute PCA using covariance matrix
+pca_cov <- prcomp(X, scale = FALSE)
+
+# Summary of PCA results
+summary(pca_cov)
+
+# Scree plot (eigenvalues)
+scree_plot <- ggplot(data = data.frame(
+    PC = 1:length(pca_cov$sdev),
+    Variance = (pca_cov$sdev) ^ 2
+),
+aes(x = PC, y = Variance)) +
+    geom_line() + geom_point() +
+    ggtitle("Scree Plot") +
+    xlab("Principal Component") +
+    ylab("Eigenvalue (Variance Explained)")
+scree_plot
+```
+
+### Application of PCA
+
+#### PCA on Covariance vs. Correlation Matrices
+
+PCA on the covariance matrix is usually not preferred because PCA is not invariant to changes in scale. Instead, PCA on the correlation matrix is often used, as it ensures that all variables contribute equally, regardless of their units.
+
+Additionally, PCA can help address multicollinearity, making it useful in regression analysis.
+
+> **Note:** Eigenvectors may differ by a multiplication of $-1$ across different implementations, but their interpretation remains the same.
+
+------------------------------------------------------------------------
+
+#### PCA on Stock Market Data
+
+We apply PCA to **stock market data** using both **covariance** and **correlation** matrices.
+
+```{r, message = FALSE}
+library(tidyverse)
+
+## Read in stock data
+stock <- read.table("images/stock.dat")
+
+## Assign variable names
+names(stock) <- c("allied", "dupont", "carbide", "exxon", "texaco")
+
+## Check dataset structure
+str(stock)
+```
+
+Compare Covariance and Correlation Matrices
+
+```{r}
+# Covariance matrix
+cov(stock)
+
+# Correlation matrix
+cor(stock)
+
+# Alternative: Standardizing data before computing covariance
+cov(scale(stock))  # Equivalent to using correlation matrix
+
+```
+
+PCA Using Covariance Matrix
+
+```{r}
+## PCA using covariance matrix
+cov_pca <- prcomp(stock) 
+# Uses singular value decomposition (SVD), with an (N-1) divisor
+# Alternative: `princomp()` performs PCA via spectral decomposition,
+# but `prcomp()` has better numerical accuracy.
+
+# Eigenvalues
+cov_results <- data.frame(eigen_values = cov_pca$sdev ^ 2)
+
+# Compute proportion of variance explained
+cov_results %>%
+    mutate(proportion = eigen_values / sum(eigen_values),
+           cumulative = cumsum(proportion)) 
+
+# Interpretation: The first two PCs account for ~73% of the variance
+```
+
+Eigenvectors (Principal Component Loadings)
+
+```{r}
+# Eigenvectors (Loadings)
+cov_pca$rotation  # `prcomp()` calls this `rotation`
+# `princomp()` refers to these as `loadings`
+```
+
+Interpretation:
+
+-   PC1 represents an overall market trend (average across stocks).
+-   PC2 contrasts Allied vs. Carbide.
+
+#### PCA Using Correlation Matrix
+
+```{r}
+# PCA using correlation matrix (same as `prcomp(scale(stock))`)
+cor_pca <- prcomp(stock, scale = TRUE)
+
+# Eigenvalues
+cor_results <- data.frame(eigen_values = cor_pca$sdev ^ 2)
+
+# Compute proportion of variance explained
+cor_results %>%
+    mutate(proportion = eigen_values / sum(eigen_values),
+           cumulative = cumsum(proportion)) 
+```
+
+Key Differences from Covariance PCA
+
+-   The first eigenvalue is smaller, since standardization reduces variance differences.
+-   Interpretation of PC2 differs:
+    -   Compares Allied, Dupont, and Carbide to Exxon and Texaco.
+
+Eigenvectors (Principal Component Loadings)
+
+```{r}
+cor_pca$rotation
+```
+
+#### Using PCA to Reduce Multicollinearity in Regression
+
+We now apply PCA to address multicollinearity in a COVID-19 dataset, using principal components as regressors.
+
+```{r}
+# Load dataset
+load('images/MOcovid.RData')
+
+# Perform PCA on standardized data
+covidpca <- prcomp(ndat[,-1], scale = TRUE, center = TRUE)
+
+# Eigenvectors for first two principal components
+covidpca$rotation[,1:2]
+
+```
+
+Variance Explained by Principal Components
+
+```{r}
+# Compute variance explained by each PC
+pr.var <- covidpca$sdev ^ 2
+pve <- pr.var / sum(pr.var)
+
+# Scree plot: variance explained by each PC
+plot(
+    pve,
+    xlab = "Principal Component",
+    ylab = "Proportion of Variance Explained",
+    ylim = c(0, 0.5),
+    type = "b"
+)
+
+# Cumulative variance explained plot
+plot(
+    cumsum(pve),
+    xlab = "Principal Component",
+    ylab = "Cumulative Proportion of Variance Explained",
+    ylim = c(0, 1),
+    type = "b"
+)
+
+```
+
+Interpretation:
+
+-   The first six principal components account for \~80% of the total variance.
+
+#### Principal Component Regression (PCR)
+
+We now regress COVID-19 outcomes on the first six principal components
+
+```{r}
+# Create dataset with first six PCs
+pcadat <- data.frame(covidpca$x[, 1:6])
+pcadat$y <- ndat$Y  # Outcome variable
+
+# Fit linear model using principal components
+pcr.man <- lm(log(y) ~ ., data = pcadat)
+
+# Compute Mean Squared Error (MSE)
+mean(pcr.man$residuals ^ 2)
+
+```
+
+Comparison: Regular Regression Without PCA
+
+```{r}
+# Fit standard multiple regression
+lm.fit <- lm(log(Y) ~ ., data = ndat)
+
+# Compute MSE
+mean(lm.fit$residuals ^ 2)
+
+```
+
+Observation:
+
+-   The PCA-based regression has a higher MSE than the standard regression.
+-   This occurs because collinearity does not always harm prediction, and standard regression can still perform well.
+
+Alternative: PCR with `pls` Package
+
+The `pcr` function in the `pls` package automatically selects the optimal number of components
+
+```{r}
+# Load package
+library(pls)
+
+# Fit PCR model using cross-validation
+pcr.fit <- pcr(log(Y) ~ ., data = ndat, scale = TRUE, validation = "CV")
+
+# Summary of PCR model
+summary(pcr.fit)
+
+```
+
+**Key Takeaways:**
+
+-   PCA helps reduce multicollinearity.
+
+-   PCA does not always improve prediction but can make models more interpretable.
+
+-   Cross-validation helps determine the optimal number of components.
+
+## Factor Analysis
+
+Factor Analysis (FA) is a **model-based** technique used to:
+
+-   Describe the covariance relationships among a large number of measured variables using a smaller set of latent (unobserved) factors.
+
+-   Identify underlying structures in the data, similar to [PCA](#principal-components), but with an explicit statistical model.
+
+> More details can be found in:
+>
+> -   [PSU STAT](https://online.stat.psu.edu/stat505/book/export/html/691)
+>
+> -   [UMN STAT](http://users.stat.umn.edu/~helwig/notes/factanal-Notes.pdf)
+
+------------------------------------------------------------------------
+
+### Factor Analysis Model
+
+Let $\mathbf{y}$ be a set of $p$ measured variables, with:
+
+$$
+E(\mathbf{y}) = \boldsymbol{\mu}, \quad \operatorname{Var}(\mathbf{y}) = \boldsymbol{\Sigma}
+$$
+
+The factor model assumes:
+
+$$
+\mathbf{y} - \boldsymbol{\mu} = \mathbf{L f} + \boldsymbol{\epsilon}
+$$
+
+Expanding this:
+
+$$
+\begin{aligned}
+\mathbf{y} - \boldsymbol{\mu} &=
+\begin{bmatrix}
+l_{11} f_1 + l_{12} f_2 + \dots + l_{1m} f_m \\
+\vdots \\
+l_{p1} f_1 + l_{p2} f_2 + \dots + l_{pm} f_m
+\end{bmatrix}
++
+\begin{bmatrix}
+\epsilon_1 \\
+\vdots \\
+\epsilon_p
+\end{bmatrix}
+\end{aligned}
+$$
+
+where:
+
+-   $\mathbf{y} - \boldsymbol{\mu}$: Centered measured variables.
+
+-   $\mathbf{L}$: $p \times m$ matrix of factor loadings (effects of latent factors).
+
+-   $\mathbf{f}$: $m$ unobserved common factors.
+
+-   $\boldsymbol{\epsilon}$: Random errors (i.e., variance not explained by common factors).
+
+We aim for $m \ll p$ to achieve dimensionality reduction, where $m$ is the number of factors and $p$ is the number of measured attributes.
+
+------------------------------------------------------------------------
+
+### Model Assumptions
+
+To ensure identifiability and interpretability:
+
+-   Specific errors have: $$
+      E(\boldsymbol{\epsilon}) = \mathbf{0}, \quad \operatorname{Var}(\boldsymbol{\epsilon}) = \boldsymbol{\Psi} = \operatorname{diag}(\psi_1, \dots, \psi_p)
+      $$
+
+-   Errors ($\epsilon$) and factors ($\mathbf{f}$) are independent.
+
+-   Additional assumption (orthogonal factor model): $$
+      E(\mathbf{f}) = \mathbf{0}, \quad \operatorname{Var}(\mathbf{f}) = \mathbf{I}_{m \times m}
+      $$
+
+This leads to the covariance structure of $\mathbf{y}$:
+
+$$
+\begin{aligned}
+\operatorname{Var}(\mathbf{y}) = \boldsymbol{\Sigma} &= \operatorname{Var}(\mathbf{Lf} + \boldsymbol{\epsilon}) \\
+&= \operatorname{Var}(\mathbf{Lf}) + \operatorname{Var}(\boldsymbol{\epsilon}) \\
+&= \mathbf{L} \operatorname{Var}(\mathbf{f}) \mathbf{L}' + \boldsymbol{\Psi} \\
+&= \mathbf{L I L}' + \boldsymbol{\Psi} \\
+&= \mathbf{L L}' + \boldsymbol{\Psi}
+\end{aligned}
+$$
+
+Since $\boldsymbol{\Psi}$ is diagonal, the off-diagonal elements of $\mathbf{L L}'$ correspond to the covariances in $\boldsymbol{\Sigma}$:
+
+$$
+\operatorname{Cov}(y_i, y_j) = \sum_{k=1}^m l_{ik} l_{jk}
+$$
+
+Thus, the covariance of $\mathbf{y}$ is completely determined by the $m$ factors, confirming that factor analysis captures shared variation across variables.
+
+Each variable's total variance:
+
+$$
+\operatorname{Var}(y_i) = \sum_{k=1}^m l_{ik}^2 + \psi_i
+$$
+
+where:
+
+-   $\psi_i$ = specific variance (unique to variable $y_i$).
+
+-   Communality: The variance explained by common factors: $$
+      h_i^2 = \sum_{k=1}^m l_{ik}^2
+      $$
+
+------------------------------------------------------------------------
+
+The factor model is unique only up to an orthogonal transformation.
+
+Let $\mathbf{T}$ be an $m \times m$ orthogonal matrix:
+
+$$
+\mathbf{T T}' = \mathbf{T}' \mathbf{T} = \mathbf{I}
+$$
+
+Then:
+
+$$
+\begin{aligned}
+\mathbf{y} - \boldsymbol{\mu} &= \mathbf{L f} + \boldsymbol{\epsilon} \\
+& =\mathbf{LTT'f} + \boldsymbol{\epsilon}
+\end{aligned}
+$$
+
+Defining new factor loadings and new factors:
+
+$$
+\mathbf{L}^* = \mathbf{L T}, \quad \mathbf{f}^* = \mathbf{T'f}
+$$
+
+leads to:
+
+$$
+\mathbf{y} - \boldsymbol{\mu} = \mathbf{L}^* \mathbf{f}^* + \boldsymbol{\epsilon}
+$$
+
+Since:
+
+$$
+\boldsymbol{\Sigma} = \mathbf{L L}' + \boldsymbol{\Psi} = \mathbf{LTT'L}' + \boldsymbol{\Psi} = \mathbf{L}^* (\mathbf{L}^*)' + \boldsymbol{\Psi}
+$$
+
+this means any orthogonal transformation of the factors is equally valid.
+
+------------------------------------------------------------------------
+
+### Factor Analysis and Scale Invariance
+
+Factor analysis is scale invariant, meaning that re-scaling variables does not change factor relationships.
+
+Let $\mathbf{y} = \mathbf{C x}$, where $\mathbf{C}$ is diagonal. Then:
+
+$$
+\mathbf{L}_y = \mathbf{C L}_x, \quad \boldsymbol{\Psi}_y = \mathbf{C \Psi}_x \mathbf{C}
+$$
+
+Thus, factor analysis remains valid under changes in scale.
+
+------------------------------------------------------------------------
+
+### Methods of Estimation
+
+To estimate the **factor loadings** matrix $\mathbf{L}$, several methods can be used:
+
+1.  [Principal Component Method]
+2.  [Principal Factor Method]
+3.  [Maximum Likelihood Method](#maximum-likelihood-method-factor-analysis)
+
+------------------------------------------------------------------------
+
+#### Principal Component Method
+
+The Principal Component Method estimates factors based on spectral decomposition.
+
+We start with the spectral decomposition:
+
+$$
+\begin{aligned}
+\boldsymbol{\Sigma} &= \lambda_1 \mathbf{a}_1 \mathbf{a}_1' + \dots + \lambda_p \mathbf{a}_p \mathbf{a}_p' \\
+&= \mathbf{A \Lambda A}' \\
+&= \sum_{k=1}^m \lambda_k \mathbf{a}_k \mathbf{a}_k' + \sum_{k=m+1}^p \lambda_k \mathbf{a}_k \mathbf{a}_k' \\
+&= \sum_{k=1}^m l_k l_k' + \sum_{k=m+1}^p \lambda_k \mathbf{a}_k \mathbf{a}_k'
+\end{aligned}
+$$
+
+where:
+
+-   $l_k = \mathbf{a}_k \sqrt{\lambda_k}$.
+-   The first term approximates the shared variance (captured by $m$ factors).
+-   The second term is not necessarily diagonal, representing the remaining variance.
+
+------------------------------------------------------------------------
+
+**Assumptions for Factor Analysis**
+
+We assume that the **specific variances** $\psi_i$ are:
+
+$$
+\psi_i = \sigma_{ii} - \sum_{k=1}^m l_{ik}^2 = \sigma_{ii} -  \sum_{k=1}^m \lambda_k a_{ik}^2
+$$
+
+which leads to the approximation:
+
+$$
+\boldsymbol{\Sigma} \approx \mathbf{LL}' + \boldsymbol{\Psi}
+$$
+
+where:
+
+-   $\mathbf{LL}'$ represents the shared variance (common factors).
+
+-   $\boldsymbol{\Psi}$ represents the unique variance.
+
+------------------------------------------------------------------------
+
+**Estimation Strategy**
+
+To estimate $\mathbf{L}$ and $\boldsymbol{\Psi}$, we use the eigenvalues and eigenvectors from the sample covariance matrix $\mathbf{S}$ or correlation matrix $\mathbf{R}$.
+
+> Key Properties of the Principal Component Method:
+>
+> -   The estimated factor loadings remain unchanged as the number of factors increases.
+>
+> -   The diagonal elements of $\hat{\mathbf{L}} \hat{\mathbf{L}}' + \hat{\boldsymbol{\Psi}}$ match the diagonal elements of $\mathbf{S}$ or $\mathbf{R}$, but off-diagonal elements may not be exactly reproduced.
+>
+> -   We select $m$ to ensure that the off-diagonal elements of $\mathbf{S} - (\hat{\mathbf{L}} \hat{\mathbf{L}}' + \hat{\boldsymbol{\Psi}})$ are minimized.
+
+The number of factors $m$ is typically chosen based on:
+
+-   **Scree plots** (looking for the "elbow" in eigenvalues).
+
+-   **Proportion of variance explained**.
+
+-   **Statistical tests** (e.g., Bartlett's test, Kaiser's rule).
+
+------------------------------------------------------------------------
+
+#### Principal Factor Method
+
+The Principal Factor Method estimates factors by modeling the correlation matrix:
+
+$$
+\mathbf{R} = \mathbf{L L}' + \boldsymbol{\Psi}
+$$
+
+Rearranging:
+
+$$
+\mathbf{L L}' = \mathbf{R} - \boldsymbol{\Psi} =
+\begin{bmatrix}
+h_1^2 & r_{12} & \dots & r_{1p} \\
+r_{21} & h_2^2 & \dots & r_{2p} \\
+\vdots & \vdots & \ddots & \vdots \\
+r_{p1} & r_{p2} & \dots & h_p^2
+\end{bmatrix}
+$$
+
+where:
+
+-   $h_i^2 = 1 - \psi_i$ is the communality (the proportion of variance in variable $i$ explained by common factors).
+
+------------------------------------------------------------------------
+
+**Iterative Estimation of Factor Loadings**
+
+1.  Start with initial estimates of the communalities:\
+    $$
+    (h_1^*)^2, (h_2^*)^2, \dots, (h_p^*)^2
+    $$ These can be obtained by regressing each variable on all others and using $R^2$ as $h^2$.
+
+2.  Compute the estimated correlation matrix minus specific variances:
+
+    $$
+    (\mathbf{R} - \boldsymbol{\Psi})_k =
+    \begin{bmatrix}
+    (h_1^*)^2 & r_{12} & \dots & r_{1p} \\
+    r_{21} & (h_2^*)^2 & \dots & r_{2p} \\
+    \vdots & \vdots & \ddots & \vdots \\
+    r_{p1} & r_{p2} & \dots & (h_p^*)^2
+    \end{bmatrix}
+    $$
+
+3.  Perform spectral decomposition to compute factor loadings:
+
+    $$
+    \mathbf{L}_k^* = (\sqrt{\hat{\lambda}_1^*} \hat{\mathbf{a}}_1^*, \dots, \sqrt{\hat{\lambda}_m^*} \hat{\mathbf{a}}_m^*)
+    $$
+
+4.  Update specific variances:
+
+    $$
+    \hat{\psi}_{i,k}^* = 1 - \sum_{j=1}^m \hat{\lambda}_i^* (\hat{a}_{ij}^*)^2
+    $$
+
+5.  Update communalities:
+
+    $$
+    (\hat{h}_i^*)^2 = 1 - \hat{\psi}_{i,k}^*
+    $$
+
+6.  Repeat Steps 2-5 with the updated values to compute a new $\mathbf{L}_{k+1}^*$.
+
+------------------------------------------------------------------------
+
+**Notes on Principal Factor Method**
+
+-   The matrix $(\mathbf{R} - \boldsymbol{\Psi})_k$ is not necessarily positive definite.
+-   The Principal Component Method is similar to Principal Factor Analysis if we assume initial communalities $h^2 = 1$.
+-   If $m$ is too large, some communalities may exceed 1, causing iteration failure.\
+    To handle this:
+    1.  Fix any communality exceeding 1 at 1 and continue iterating.
+    2.  Allow iterations to continue despite large communalities (but results may leave the parameter space).
+
+------------------------------------------------------------------------
+
+#### Maximum Likelihood Method {#maximum-likelihood-method-factor-analysis}
+
+To estimate factor loadings using the Maximum Likelihood Estimation (MLE) approach, we assume:
+
+**Distributional Assumptions**
+
+1.  Observed data follows a multivariate normal distribution: $$
+    \mathbf{y}_j \sim N(\boldsymbol{\mu}, \boldsymbol{\Sigma}), \quad j = 1, \dots, n
+    $$
+
+2.  Latent factors are standard normal: $$
+    \mathbf{f} \sim N(\mathbf{0}, \mathbf{I})
+    $$
+
+3.  Specific errors follow a normal distribution with diagonal covariance: $$
+    \boldsymbol{\epsilon}_j \sim N(\mathbf{0}, \boldsymbol{\Psi})
+    $$
+
+Since the factor loading matrix $\mathbf{L}$ is not unique, we impose the restriction:
+
+$$
+\mathbf{L}' \boldsymbol{\Psi}^{-1} \mathbf{L} = \boldsymbol{\Delta}
+$$
+
+where $\boldsymbol{\Delta}$ is a diagonal matrix.
+
+------------------------------------------------------------------------
+
+**Key Considerations**
+
+-   MLE computation is computationally expensive due to numerical optimization over nonlinear constraints.
+-   Exploratory Factor Analysis (EFA) typically does not rely on MLE due to its complexity.
+-   Likelihood ratio tests (LRTs) can be used to test hypotheses in Confirmatory Factor Analysis (CFA).
+
+------------------------------------------------------------------------
+
+### Factor Rotation
+
+Factor rotation is used to simplify the interpretation of factor loadings while preserving the original factor structure.
+
+Let $\mathbf{T}$ be an $m \times m$ orthogonal matrix, such that:
+
+$$
+\hat{\mathbf{L}} \hat{\mathbf{L}}' + \hat{\boldsymbol{\Psi}} = \hat{\mathbf{L}}^*(\hat{\mathbf{L}}^*)' + \hat{\boldsymbol{\Psi}}
+$$
+
+where:
+
+$$
+\mathbf{L}^* = \mathbf{L T}
+$$
+
+This means that:
+
+-   The specific variances $\boldsymbol{\Psi}$ and communalities do not change under an orthogonal transformation.
+
+-   Since infinitely many choices of $\mathbf{T}$ exist, an appropriate rotation criterion must be selected.
+
+------------------------------------------------------------------------
+
+#### Objective Function for Rotation
+
+One approach is to find $\mathbf{T}$ that maximizes the objective function:
+
+$$
+\sum_{j = 1}^m \left[\frac{1}{p} \sum_{i=1}^p \left(\frac{l_{ij}^{*2}}{h_i}\right)^2 - \left\{\frac{\gamma}{p} \sum_{i=1}^p \left(\frac{l_{ij}^{*2}}{h_i}\right)^2 \right\}^2 \right]
+$$
+
+where:
+
+-   $\frac{l_{ij}^{*2}}{h_i}$ are scaled loadings, giving variables with low communalities more influence.
+
+-   Different choices of $\gamma$ yield different rotation methods:
+
+| **Rotation Method** | $\gamma$ Value                  | **Purpose**                                                            |
+|--------------------|------------------|----------------------------------|
+| **Varimax**         | $\gamma = 1$                    | Maximizes high loadings per variable, aiming for **simple structure**. |
+| **Quartimax**       | $\gamma = 0$                    | Minimizes number of factors needed to explain variables.               |
+| **Equimax**         | $\gamma = m/2$                  | Balance between **Varimax** and **Quartimax**.                         |
+| **Parsimax**        | $\gamma = \frac{p(m-1)}{p+m-2}$ | Enhances parsimony while balancing factor structure.                   |
+| **Promax**          | *Non-orthogonal*                | Allows **correlated** factors (oblique rotation).                      |
+| **Harris-Kaiser**   | *Non-orthogonal*                | Alternative oblique transformation.                                    |
+
+------------------------------------------------------------------------
+
+#### Estimation of Factor Scores
+
+To estimate factor scores $\mathbf{f}_j$ for an individual $j$:
+
+1.  Recall the factor model:
+
+    $$
+    (\mathbf{y}_j - \boldsymbol{\mu}) = \mathbf{L}_{p \times m} \mathbf{f}_j + \boldsymbol{\epsilon}_j
+    $$
+
+2.  If the factor model is correct, then:
+
+    $$
+    \operatorname{Var}(\boldsymbol{\epsilon}_j) = \boldsymbol{\Psi} = \operatorname{diag} (\psi_1, \dots , \psi_p)
+    $$
+
+3.  We estimate $\mathbf{f}_j$ using weighted least squares:
+
+    $$
+    \begin{aligned}
+    \hat{\mathbf{f}} &= (\mathbf{L}'\boldsymbol{\Psi}^{-1} \mathbf{L})^{-1} \mathbf{L}' \boldsymbol{\Psi}^{-1}(\mathbf{y}_j - \boldsymbol{\mu}) \\
+    & \approx (\mathbf{L}'\boldsymbol{\Psi}^{-1} \mathbf{L})^{-1} \mathbf{L}' \boldsymbol{\Psi}^{-1}(\mathbf{y}_j - \bar{\mathbf{y}})
+    \end{aligned}
+    $$
+
+where:
+
+-   The first equation is the general factor score estimation formula.
+
+-   The second equation approximates $\boldsymbol{\mu}$ by $\bar{\mathbf{y}}$ (sample mean).
+
+------------------------------------------------------------------------
+
+#### Regression Method
+
+Alternatively, factor scores can be estimated using the regression method.
+
+Under the multivariate normality assumption (as in the [Maximum Likelihood] approach), consider the joint distribution of:
+
+$$
+\left(
+\begin{array}{c}
+\mathbf{y}_j - \boldsymbol{\mu} \\
+\mathbf{f}_j
+\end{array}
+\right) \sim
+N_{p + m}
+\left(
+\mathbf{0},
+\left[
+\begin{array}{cc}
+\mathbf{L L}' + \boldsymbol{\Psi} & \mathbf{L} \\
+\mathbf{L}' & \mathbf{I}_{m \times m}
+\end{array}
+\right]
+\right)
+$$
+
+where the $m$-factor model is correct.
+
+From conditional expectations in multivariate normal distributions, we obtain the expected value of factor scores:
+
+$$
+E(\mathbf{f}_j | \mathbf{y}_j - \boldsymbol{\mu}) = \mathbf{L}' (\mathbf{L L}' + \boldsymbol{\Psi})^{-1} (\mathbf{y}_j - \boldsymbol{\mu})
+$$
+
+> Interpretation:\
+> - The term $\mathbf{L}' (\mathbf{L L}' + \boldsymbol{\Psi})^{-1}$ is an $m \times p$ matrix of regression coefficients.\
+> - This provides a linear transformation of observed data to estimate factor scores.
+
+We estimate factor scores using the sample estimates:
+
+$$
+\hat{\mathbf{f}}_j = \hat{\mathbf{L}}' (\hat{\mathbf{L}} \hat{\mathbf{L}}' + \hat{\boldsymbol{\Psi}})^{-1} (\mathbf{y}_j - \bar{\mathbf{y}})
+$$
+
+Alternatively, to reduce errors from an incorrect choice of $m$, we substitute $\mathbf{S}$ for $\hat{\mathbf{L}} \hat{\mathbf{L}}' + \hat{\boldsymbol{\Psi}}$, yielding:
+
+$$
+\hat{\mathbf{f}}_j = \hat{\mathbf{L}}' \mathbf{S}^{-1} (\mathbf{y}_j - \bar{\mathbf{y}})
+$$
+
+where $j = 1, \dots, n$.
+
+------------------------------------------------------------------------
+
+Assessing Factor Model Fit
+
+1.  Visualization of Factor Scores
+    -   Scatterplots of factor scores can reveal patterns or clustering.
+    -   Boxplots help detect skewness or outliers.
+2.  Outlier Detection
+    -   Since $\mathbf{f}_j \sim \operatorname{i.i.d.} N(\mathbf{0}, \mathbf{I}_{m \times m})$, deviations may indicate model misfit.
+    -   Mahalanobis distance can be used to detect multivariate outliers.
+3.  Multivariate Normality Checks
+    -   If factor scores are normally distributed, residuals should also be multivariate normal.
+    -   Apply Mardia's test for multivariate normality.
+4.  Univariate Normality Tests
+    -   Use Shapiro-Wilk, Anderson-Darling, or Kolmogorov-Smirnov tests to check if factor scores follow a normal distribution.
+5.  Confirmatory Factor Analysis (CFA)
+    -   Formal hypothesis testing on factor loadings.
+    -   Uses MLE to compare full vs. reduced models.
+    -   Model fit assessed via:
+        -   Likelihood ratio tests.
+        -   Goodness-of-fit indices (e.g., RMSEA, CFI, TLI).
+
+------------------------------------------------------------------------
+
+### Application of Factor Analysis
+
+The **`psych`** package provides useful functions for **factor analysis**, including:
+
+-   **Communalities (h2)**: Proportion of variance in a variable explained by factors.
+
+-   **Uniqueness (u2)**: Proportion of variance **not explained** by factors.
+
+-   **Complexity (com)**: Measures how much a variable loads onto multiple factors.
+
+------------------------------------------------------------------------
+
+We use the **Harman.5** dataset from the **`psych`** package.
+
+```{r}
+# Load necessary libraries
+library(psych)
+library(tidyverse)
+
+# Load Harman.5 dataset
+data(Harman.5)
+
+# View dataset
+Harman.5
+```
+
+Compute Correlation Matrix
+
+```{r}
+# Compute correlation matrix
+cor_mat <- cor(Harman.5)
+cor_mat
+
+```
+
+Principal Component Method with Correlation Matrix
+
+```{r}
+# Perform PCA with standardization
+cor_pca <- prcomp(Harman.5, scale = TRUE)
+
+# Extract eigenvalues
+cor_results <- data.frame(eigen_values = cor_pca$sdev ^ 2)
+
+# Compute variance explained
+cor_results <- cor_results %>%
+    mutate(
+        proportion = eigen_values / sum(eigen_values),
+        cumulative = cumsum(proportion),
+        number = row_number()
+    )
+
+# Display results
+cor_results
+
+```
+
+Scree Plot of Eigenvalues
+
+```{r}
+# Scree plot using ggplot2
+scree_gg <- ggplot(cor_results, aes(x = number, y = eigen_values)) +
+    geom_line(alpha = 0.5) +
+    geom_text(aes(label = number)) +
+    scale_x_continuous(name = "Number of Factors") +
+    scale_y_continuous(name = "Eigenvalue") +
+    theme_bw()
+
+scree_gg
+
+# Alternative scree plot
+screeplot(cor_pca, type = 'lines')
+
+```
+
+Based on the scree plot and eigenvalues, we retain 2 factors.
+
+#### Factor Analysis with 2 Factors
+
+```{r}
+# Perform Factor Analysis with 2 factors (no rotation)
+factor_pca <- principal(Harman.5, nfactors = 2, rotate = "none")
+
+# Display factor loadings
+factor_pca
+
+```
+
+1.  Factor 1 represents overall socioeconomic health.
+2.  Factor 2 contrasts population & employment vs. school & house value.
+
+#### Factor Analysis Using Squared Multiple Correlations
+
+```{r}
+# Factor Analysis with SMC prior, no rotation
+factor_pca_smc <- fa(Harman.5, nfactors = 2, fm = "pa", rotate = "none", SMC = TRUE)
+factor_pca_smc
+
+```
+
+#### Factor Analysis with Rotation
+
+```{r}
+# Promax Rotation
+factor_pca_smc_pro <- fa(Harman.5, nfactors = 2, fm = "pa", rotate = "Promax", SMC = TRUE)
+factor_pca_smc_pro
+
+# Varimax Rotation
+factor_pca_smc_var <- fa(Harman.5, nfactors = 2, fm = "pa", rotate = "varimax", SMC = TRUE)
+factor_pca_smc_var
+
+```
+
+#### Visualizing Factor Loadings
+
+##### Compare Rotations: No Rotation vs. Promax vs. Varimax
+
+```{r}
+# Combine factor loadings into a single data frame
+factors_df <- bind_rows(
+    data.frame(y = rownames(factor_pca_smc$loadings), unclass(factor_pca_smc$loadings)),
+    data.frame(y = rownames(factor_pca_smc_pro$loadings), unclass(factor_pca_smc_pro$loadings)),
+    data.frame(y = rownames(factor_pca_smc_var$loadings), unclass(factor_pca_smc_var$loadings)),
+    .id = "Rotation"
+)
+
+# Factor loading plot
+flag_gg <- ggplot(factors_df) +
+    geom_vline(aes(xintercept = 0)) +
+    geom_hline(aes(yintercept = 0)) +
+    geom_point(aes(x = PA2, y = PA1, col = y, shape = y), size = 2) +
+    scale_x_continuous(name = "Factor 2", limits = c(-1.1, 1.1)) +
+    scale_y_continuous(name = "Factor 1", limits = c(-1.1, 1.1)) +
+    facet_wrap("Rotation", labeller = labeller(Rotation = c("1" = "Original", "2" = "Promax", "3" = "Varimax"))) +
+    coord_fixed(ratio = 1)  # Maintain equal aspect ratio
+
+flag_gg
+
+```
+
+Promax and Varimax rotations effectively assign traits to specific factors.
+
+#### Maximum Likelihood Factor Analysis
+
+We also perform MLE-based factor analysis to determine the optimal number of factors
+
+```{r}
+# MLE with 1 Factor
+factor_mle_1 <- fa(Harman.5, nfactors = 1, fm = "mle", rotate = "none", SMC = TRUE)
+factor_mle_1
+
+# MLE with 2 Factors
+factor_mle_2 <- fa(Harman.5, nfactors = 2, fm = "mle", rotate = "none", SMC = TRUE)
+factor_mle_2
+
+# MLE with 3 Factors
+factor_mle_3 <- fa(Harman.5, nfactors = 3, fm = "mle", rotate = "none", SMC = TRUE)
+factor_mle_3
+
+```
+
+The output provides tests for:
+
+1.  Null Hypothesis of No Common Factors
+
+    -   Found in the statement: "The degrees of freedom for the null model\..."
+
+2.  Hypothesis That Number of Factors Is Sufficient
+
+    -   Found in the statement: "The total number of observations was\..."
+
+Final Model Choice
+
+-   1 factor is insufficient.
+
+-   2 factors are sufficient.
+
+-   3 factors cannot be tested due to insufficient data (negative degrees of freedom and NA p-value).
+
+------------------------------------------------------------------------
+
+## Discriminant Analysis
+
+Suppose we have two or more different populations from which observations could come from. Discriminant analysis seeks to determine which of the possible population an observation comes from while making as few mistakes as possible
+
+-   This is an alternative to logistic approaches with the following advantages:
+
+    -   when there is clear separation between classes, the parameter estimates for the logic regression model can be **surprisingly** unstable, while discriminant approaches do not suffer
+
+    -   If X is normal in each of the classes and the sample size is small, then discriminant approaches can be more accurate
+
+Notation
+
+Similar to MANOVA, let $\mathbf{y}_{j1},\mathbf{y}_{j2},\dots, \mathbf{y}_{in_j} \sim iid f_j (\mathbf{y})$ for $j = 1,\dots, h$
+
+Let $f_j(\mathbf{y})$ be the density function for population j . Note that each vector $\mathbf{y}$ contain measurements on all $p$ traits
+
+1.  Assume that each observation is from one of $h$ possible populations.
+2.  We want to form a discriminant rule that will allocate an observation $\mathbf{y}$ to population j when $\mathbf{y}$ is in fact from this population
+
+### Known Populations
+
+The maximum likelihood discriminant rule for assigning an observation $\mathbf{y}$ to one of the $h$ populations allocates $\mathbf{y}$ to the population that gives the largest likelihood to $\mathbf{y}$
+
+Consider the likelihood for a single observation $\mathbf{y}$, which has the form $f_j (\mathbf{y})$ where j is the true population.
+
+Since $j$ is unknown, to make the likelihood as large as possible, we should choose the value j which causes $f_j (\mathbf{y})$ to be as large as possible
+
+Consider a simple univariate example. Suppose we have data from one of two binomial populations.
+
+-   The first population has $n= 10$ trials with success probability $p = .5$
+
+-   The second population has $n= 10$ trials with success probability $p = .7$
+
+-   to which population would we assign an observation of $y = 7$
+
+-   Note:
+
+    -   $f(y = 7|n = 10, p = .5) = .117$
+
+    -   $f(y = 7|n = 10, p = .7) = .267$ where $f(.)$ is the binomial likelihood.
+
+    -   Hence, we choose the second population
+
+Another example
+
+We have 2 populations, where
+
+-   First population: $N(\mu_1, \sigma^2_1)$
+
+-   Second population: $N(\mu_2, \sigma^2_2)$
+
+The likelihood for a single observation is
+
+$$
+f_j (y) = (2\pi \sigma^2_j)^{-1/2} \exp\{ -\frac{1}{2}(\frac{y - \mu_j}{\sigma_j})^2\}
+$$
+
+Consider a likelihood ratio rule
+
+$$
+\begin{aligned}
+\Lambda &= \frac{\text{likelihood of y from pop 1}}{\text{likelihood of y from pop 2}} \\
+&= \frac{f_1(y)}{f_2(y)} \\
+&= \frac{\sigma_2}{\sigma_1} \exp\{-\frac{1}{2}[(\frac{y - \mu_1}{\sigma_1})^2- (\frac{y - \mu_2}{\sigma_2})^2] \}
+\end{aligned}
+$$
+
+Hence, we classify into
+
+-   pop 1 if $\Lambda >1$
+
+-   pop 2 if $\Lambda <1$
+
+-   for ties, flip a coin
+
+Another way to think:
+
+we classify into population 1 if the "standardized distance" of y from $\mu_1$ is less than the "standardized distance" of y from $\mu_2$ which is referred to as a **quadratic discriminant rule**.
+
+(Significant simplification occurs in th special case where $\sigma_1 = \sigma_2 = \sigma^2$)
+
+Thus, we classify into population 1 if
+
+$$
+(y - \mu_2)^2 > (y - \mu_1)^2
+$$
+
+or
+
+$$
+|y- \mu_2| > |y - \mu_1|
+$$
+
+and
+
+$$
+-2 \log (\Lambda) = -2y  \frac{(\mu_1 - \mu_2)}{\sigma^2} + \frac{(\mu_1^2 - \mu_2^2)}{\sigma^2} = \beta y + \alpha
+$$
+
+Thus, we classify into population 1 if this is less than 0.
+
+Discriminant classification rule is linear in y in this case.
+
+#### Multivariate Expansion
+
+Suppose that there are 2 populations
+
+-   $N_p(\mathbf{\mu}_1, \mathbf{\Sigma}_1)$
+
+-   $N_p(\mathbf{\mu}_2, \mathbf{\Sigma}_2)$
+
+$$
+\begin{aligned}
+-2 \log(\frac{f_1 (\mathbf{x})}{f_2 (\mathbf{x})}) &= \log|\mathbf{\Sigma}_1| + (\mathbf{x} - \mathbf{\mu}_1)' \mathbf{\Sigma}^{-1}_1 (\mathbf{x} - \mathbf{\mu}_1) \\
+&- [\log|\mathbf{\Sigma}_2|+ (\mathbf{x} - \mathbf{\mu}_2)' \mathbf{\Sigma}^{-1}_2 (\mathbf{x} - \mathbf{\mu}_2) ]
+\end{aligned}
+$$
+
+Again, we classify into population 1 if this is less than 0, otherwise, population 2. And like the univariate case with non-equal variances, this is a quadratic discriminant rule.
+
+And if the covariance matrices are equal: $\mathbf{\Sigma}_1 = \mathbf{\Sigma}_2 = \mathbf{\Sigma}_1$ classify into population 1 if
+
+$$
+(\mathbf{\mu}_1 - \mathbf{\mu}_2)' \mathbf{\Sigma}^{-1}\mathbf{x} - \frac{1}{2} (\mathbf{\mu}_1 - \mathbf{\mu}_2)' \mathbf{\Sigma}^{-1} (\mathbf{\mu}_1 - \mathbf{\mu}_2) \ge 0
+$$
+
+This linear discriminant rule is also referred to as **Fisher's linear discriminant function**
+
+By **assuming the covariance matrices are equal, we assume that the shape and orientation fo the two populations must be the same (which can be a strong restriction)**
+
+In other words, for each variable, it can have different mean but the same variance.
+
+-   Note: LDA Bayes decision boundary is linear. Hence, quadratic decision boundary might lead to better classification. Moreover, the assumption of same variance/covariance matrix across all classes for Gaussian densities imposes the linear rule, if we allow the predictors in each class to follow MVN distribution with class-specific mean vectors and variance/covariance matrices, then it is **Quadratic Discriminant Analysis.** But then, you will have more parameters to estimate (which gives more flexibility than LDA) at the cost of more variance (bias -variance tradeoff).
+
+When $\mathbf{\mu}_1, \mathbf{\mu}_2, \mathbf{\Sigma}$ are known, the probability of misclassification can be determined:
+
+$$
+\begin{aligned}
+P(2|1) &= P(\text{calssify into pop 2| x is from pop 1}) \\
+&= P((\mathbf{\mu}_1 - \mathbf{\mu}_2)' \mathbf{\Sigma}^{-1} \mathbf{x} \le \frac{1}{2} (\mathbf{\mu}_1 - \mathbf{\mu}_2)' \mathbf{\Sigma}^{-1} (\mathbf{\mu}_1 - \mathbf{\mu}_2)|\mathbf{x} \sim N(\mu_1, \mathbf{\Sigma}) \\
+&= \Phi(-\frac{1}{2} \delta)
+\end{aligned}
+$$
+
+where
+
+-   $\delta^2 = (\mathbf{\mu}_1 - \mathbf{\mu}_2)' \mathbf{\Sigma}^{-1} (\mathbf{\mu}_1 - \mathbf{\mu}_2)$
+
+-   $\Phi$ is the standard normal CDF
+
+Suppose there are $h$ possible populations, which are distributed as $N_p (\mathbf{\mu}_p, \mathbf{\Sigma})$. Then, the maximum likelihood (linear) discriminant rule allocates $\mathbf{y}$ to population j where j minimizes the squared Mahalanobis distance
+
+$$
+(\mathbf{y} - \mathbf{\mu}_j)' \mathbf{\Sigma}^{-1} (\mathbf{y} - \mathbf{\mu}_j)
+$$
+
+#### Bayes Discriminant Rules
+
+If we know that population j has prior probabilities $\pi_j$ (assume $\pi_j >0$) we can form the Bayes discriminant rule.
+
+This rule allocates an observation $\mathbf{y}$ to the population for which $\pi_j f_j (\mathbf{y})$ is maximized.
+
+Note:
+
+-   **Maximum likelihood discriminant rule** is a special case of the **Bayes discriminant rule**, where it sets all the $\pi_j = 1/h$
+
+Optimal Properties of Bayes Discriminant Rules
+
+-   let $p_{ii}$ be the probability of correctly assigning an observation from population i
+
+-   then one rule (with probabilities $p_{ii}$ ) is as good as another rule (with probabilities $p_{ii}'$ ) if $p_{ii} \ge p_{ii}'$ for all $i = 1,\dots, h$
+
+-   The first rule is better than the alternative if $p_{ii} > p_{ii}'$ for at least one i.
+
+-   A rule for which there is no better alternative is called admissible
+
+-   Bayes Discriminant Rules are admissible
+
+-   If we utilized prior probabilities, then we can form the posterior probability of a correct allocation, $\sum_{i=1}^h \pi_i p_{ii}$
+
+-   Bayes Discriminant Rules have the largest possible posterior probability of correct allocation with respect to the prior
+
+-   These properties show that **Bayes Discriminant rule is our best approach**.
+
+Unequal Cost
+
+-   We want to consider the cost misallocation
+
+    -   Define $c_{ij}$ to be the cost associated with allocation a member of population j to population i.
+
+-   Assume that
+
+    -   $c_{ij} >0$ for all $i \neq j$
+
+    -   $c_{ij} = 0$ if $i = j$
+
+-   We could determine the expected amount of loss for an observation allocated to population i as $\sum_j c_{ij} p_{ij}$ where the $p_{ij}s$ are the probabilities of allocating an observation from population j into population i
+
+-   We want to minimize the amount of loss expected for our rule. Using a Bayes Discrimination, allocate $\mathbf{y}$ to the population j which minimizes $\sum_{k \neq j} c_{ij} \pi_k f_k(\mathbf{y})$
+
+-   We could assign equal probabilities to each group and get a maximum likelihood type rule. here, we would allocate $\mathbf{y}$ to population j which minimizes $\sum_{k \neq j}c_{jk} f_k(\mathbf{y})$
+
+**Example**:
+
+Two binomial populations, each of size 10, with probabilities $p_1 = .5$ and $p_2 = .7$
+
+And the probability of being in the first population is .9
+
+However, suppose the cost of inappropriately allocating into the first population is 1 and the cost of incorrectly allocating into the second population is 5.
+
+In this case, we pick population 1 over population 2
+
+In general, we consider two regions, $R_1$ and $R_2$ associated with population 1 and 2:
+
+$$
+R_1: \frac{f_1 (\mathbf{x})}{f_2 (\mathbf{x})} \ge \frac{c_{12} \pi_2}{c_{21} \pi_1}
+$$
+
+$$
+R_2: \frac{f_1 (\mathbf{x})}{f_2 (\mathbf{x})} < \frac{c_{12} \pi_2}{c_{21} \pi_1}
+$$
+
+where $c_{12}$ is the cost of assigning a member of population 2 to population 1.
+
+#### Discrimination Under Estimation
+
+Suppose we know the form of the distributions for populations of interests, but we still have to estimate the parameters.
+
+Example:
+
+we know the distributions are multivariate normal, but we have to estimate the means and variances
+
+The maximum likelihood discriminant rule allocates an observation $\mathbf{y}$ to population j when j maximizes the function
+
+$$
+f_j (\mathbf{y} |\hat{\theta})
+$$
+
+where $\hat{\theta}$ are the maximum likelihood estimates of the unknown parameters
+
+For instance, we have 2 multivariate normal populations with distinct means, but common variance covariance matrix
+
+MLEs for $\mathbf{\mu}_1$ and $\mathbf{\mu}_2$ are $\mathbf{\bar{y}}_1$ and $\mathbf{\bar{y}}_2$and common $\mathbf{\Sigma}$ is $\mathbf{S}$.
+
+Thus, an estimated discriminant rule could be formed by substituting these sample values for the population values
+
+#### Native Bayes
+
+-   The challenge with classification using Bayes' is that we don't know the (true) densities, $f_k, k = 1, \dots, K$, while LDA and QDA make **strong multivariate normality assumptions** to deal with this.
+
+-   Naive Bayes makes only one assumption: **within the k-th class, the p predictors are independent (i.e,, for** $k = 1,\dots, K$
+
+$$
+f_k(x) = f_{k1}(x_1) \times f_{k2}(x_2) \times \dots \times f_{kp}(x_p)
+$$
+
+where $f_{kj}$ is the density function of the j-th predictor among observation in the k-th class.
+
+This assumption allows the use of joint distribution without the need to account for dependence between observations. However, this (native) assumption can be unrealistic, but still works well in cases where the number of sample (n) is not large relative to the number of features (p).
+
+With this assumption, we have
+
+$$
+P(Y=k|X=x) = \frac{\pi_k \times f_{k1}(x_1) \times \dots \times f_{kp}(x_p)}{\sum_{l=1}^K \pi_l \times f_{l1}(x_1)\times \dots f_{lp}(x_p)}
+$$
+
+we only need to estimate the one-dimensional density function $f_{kj}$ with either of these approaches:
+
+-   When $X_j$ is quantitative, assume it has a univariate normal distribution (with independence): $X_j | Y = k \sim N(\mu_{jk}, \sigma^2_{jk})$ which is more restrictive than QDA because it assumes predictors are independent (e.g., a diagonal covariance matrix)
+
+-   When $X_j$ is quantitative, use a kernel density estimator [Kernel Methods] ; which is a smoothed histogram
+
+-   When $X_j$ is qualitative, we count the promotion of training observations for the j-th predictor corresponding to each class.
+
+#### Comparison of Classification Methods
+
+Assuming we have K classes and K is the baseline from (James , Witten, Hastie, and Tibshirani book)
+
+Comparing the log odds relative to the K class
+
+##### Logistic Regression
+
+$$
+\log(\frac{P(Y=k|X = x)}{P(Y = K| X = x)}) = \beta_{k0} + \sum_{j=1}^p \beta_{kj}x_j
+$$
+
+##### LDA
+
+$$
+\log(\frac{P(Y = k | X = x)}{P(Y = K | X = x)} = a_k + \sum_{j=1}^p b_{kj} x_j
+$$
+
+where $a_k$ and $b_{kj}$ are functions of $\pi_k, \pi_K, \mu_k , \mu_K, \mathbf{\Sigma}$
+
+Similar to logistic regression, LDA assumes the log odds is linear in $x$
+
+Even though they look like having the same form, the parameters in logistic regression are estimated by MLE, where as LDA linear parameters are specified by the prior and normal distributions
+
+We expect LDA to outperform logistic regression when the normality assumption (approximately) holds, and logistic regression to perform better when it does not
+
+##### QDA
+
+$$
+\log(\frac{P(Y=k|X=x}{P(Y=K | X = x}) = a_k + \sum_{j=1}^{p}b_{kj}x_{j} + \sum_{j=1}^p \sum_{l=1}^p c_{kjl}x_j x_l 
+$$
+
+where $a_k, b_{kj}, c_{kjl}$ are functions $\pi_k , \pi_K, \mu_k, \mu_K ,\mathbf{\Sigma}_k, \mathbf{\Sigma}_K$
+
+##### Naive Bayes
+
+$$
+\log (\frac{P(Y = k | X = x)}{P(Y = K | X = x}) = a_k + \sum_{j=1}^p g_{kj} (x_j)
+$$
+
+where $a_k = \log (\pi_k / \pi_K)$ and $g_{kj}(x_j) = \log(\frac{f_{kj}(x_j)}{f_{Kj}(x_j)})$ which is the form of generalized additive model
+
+##### Summary
+
+-   LDA is a special case of QDA
+
+-   LDA is robust when it comes to high dimensions
+
+-   Any classifier with a linear decision boundary is a special case of naive Bayes with $g_{kj}(x_j) = b_{kj} x_j$, which means LDA is a special case of naive Bayes. LDA assumes that the features are normally distributed with a common within-class covariance matrix, and naive Bayes assumes independence of the features.
+
+-   Naive bayes is also a special case of LDA with $\mathbf{\Sigma}$ restricted to a diagonal matrix with diagonals, $\sigma^2$ (another notation $diag (\mathbf{\Sigma})$ ) assuming $f_{kj}(x_j) = N(\mu_{kj}, \sigma^2_j)$
+
+-   QDA and naive Bayes are not special case of each other. In principal,e naive Bayes can produce a more flexible fit by the choice of $g_{kj}(x_j)$ , but it's restricted to only purely additive fit, but QDA includes multiplicative terms of the form $c_{kjl}x_j x_l$
+
+-   None of these methods uniformly dominates the others: the choice of method depends on the true distribution of the predictors in each of the K classes, n and p (i.e., related to the bias-variance tradeoff).
+
+Compare to the non-parametric method (KNN)
+
+-   KNN would outperform both LDA and logistic regression when the decision boundary is highly nonlinear, but can't say which predictors are most important, and requires many observations
+
+-   KNN is also limited in high-dimensions due to the curse of dimensionality
+
+-   Since QDA is a special type of nonlinear decision boundary (quadratic), it can be considered as a compromise between the linear methods and KNN classification. QDA can have fewer training observations than KNN but not as flexible.
+
+From simulation:
+
+| True decision boundary                           | Best performance          |
+|----------------------------------------------|--------------------------|
+| Linear                                           | LDA + Logistic regression |
+| Moderately nonlinear                             | QDA + Naive Bayes         |
+| Highly nonlinear (many training, p is not large) | KNN                       |
+
+-   like linear regression, we can also introduce flexibility by including transformed features $\sqrt{X}, X^2, X^3$
+
+### Probabilities of Misclassification
+
+When the distribution are exactly known, we can determine the misclassification probabilities exactly. however, when we need to estimate the population parameters, we have to estimate the probability of misclassification
+
+-   Naive method
+
+    -   Plugging the parameters estimates into the form for the misclassification probabilities results to derive at the estimates of the misclassification probability.
+
+    -   But this will tend to be optimistic when the number of samples in one or more populations is small.
+
+-   Resubstitution method
+
+    -   Use the proportion of the samples from population i that would be allocated to another population as an estimate of the misclassification probability
+
+    -   But also optimistic when the number of samples is small
+
+-   Jack-knife estimates:
+
+    -   The above two methods use observation to estimate both parameters and also misclassification probabilities based upon the discriminant rule
+
+    -   Alternatively, we determine the discriminant rule based upon all of the data except the k-th observation from the j-th population
+
+    -   then, determine if the k-th observation would be misclassified under this rule
+
+    -   perform this process for all $n_j$ observation in population j . An estimate fo the misclassification probability would be the fraction of $n_j$ observations which were misclassified
+
+    -   repeat the process for other $i \neq j$ populations
+
+    -   This method is more reliable than the others, but also computationally intensive
+
+-   Cross-Validation
+
+**Summary**
+
+Consider the group-specific densities $f_j (\mathbf{x})$ for multivariate vector $\mathbf{x}$.
+
+Assume equal misclassifications costs, the Bayes classification probability of $\mathbf{x}$ belonging to the j-th population is
+
+$$
+p(j |\mathbf{x}) = \frac{\pi_j f_j (\mathbf{x})}{\sum_{k=1}^h \pi_k f_k (\mathbf{x})}
+$$
+
+$j = 1,\dots, h$
+
+where there are $h$ possible groups.
+
+We then classify into the group for which this probability of membership is largest
+
+Alternatively, we can write this in terms of a **generalized squared distance** formation
+
+$$
+D_j^2 (\mathbf{x}) = d_j^2 (\mathbf{x})+ g_1(j) + g_2 (j)
+$$
+
+where
+
+-   $d_j^2(\mathbf{x}) = (\mathbf{x} - \mathbf{\mu}_j)' \mathbf{V}_j^{-1} (\mathbf{x} - \mathbf{\mu}_j)$ is the squared Mahalanobis distance from $\mathbf{x}$ to the centroid of group j, and
+
+    -   $\mathbf{V}_j = \mathbf{S}_j$ if the within group covariance matrices are not equal
+
+    -   $\mathbf{V}_j = \mathbf{S}_p$ if a pooled covariance estimate is appropriate
+
+and
+
+$$
+g_1(j) =
+\begin{cases}
+\ln |\mathbf{S}_j| & \text{within group covariances are not equal} \\
+0 & \text{pooled covariance}
+\end{cases}
+$$
+
+$$
+g_2(j) = 
+\begin{cases}
+-2 \ln \pi_j & \text{prior probabilities are not equal} \\
+0 & \text{prior probabilities are equal}
+\end{cases}
+$$
+
+then, the posterior probability of belonging to group j is
+
+$$
+p(j| \mathbf{x})  = \frac{\exp(-.5 D_j^2(\mathbf{x}))}{\sum_{k=1}^h \exp(-.5 D^2_k (\mathbf{x}))}
+$$
+
+where $j = 1,\dots , h$
+
+and $\mathbf{x}$ is classified into group j if $p(j | \mathbf{x})$ is largest for $j = 1,\dots,h$ (or, $D_j^2(\mathbf{x})$ is smallest).
+
+#### Assessing Classification Performance
+
+For binary classification, confusion matrix
+
+|            | Predicted class |                |                |       |
+|------------|-----------------|----------------|----------------|-------|
+|            |                 | \- or Null     | \+ or Null     | Total |
+| True Class | \- or Null      | True Neg (TN)  | False Pos (FP) | N     |
+|            | \+ or Null      | False Neg (FN) | True Pos (TP)  | P     |
+|            | Total           | N\*            | P\*            |       |
+
+and table 4.6 from [@james2013]
+
+| Name             | Definition | Synonyms                                      |
+|------------------|------------------|------------------------------------|
+| False Pos rate   | FP/N       | Type I error, 1 0 Specificity                 |
+| True Pos. rate   | TP/P       | 1 - Type II error, power, sensitivity, recall |
+| Pos Pred. value  | TP/P\*     | Precision, 1 - false discovery promotion      |
+| Neg. Pred. value | TN/N\*     |                                               |
+
+ROC curve (receiver Operating Characteristics) is a graphical comparison between **sensitivity** (true positive) and **specificity** ( = 1 - false positive)
+
+y-axis = true positive rate
+
+x-axis = false positive rate
+
+as we change the threshold rate for classifying an observation as from 0 to 1
+
+AUC (area under the ROC) ideally would equal to 1, a bad classifier would have AUC = 0.5 (pure chance)
+
+### Unknown Populations/ Nonparametric Discrimination
+
+When your multivariate data are not Gaussian, or known distributional form at all, we can use the following methods
+
+#### Kernel Methods
+
+We approximate $f_j (\mathbf{x})$ by a kernel density estimate
+
+$$
+\hat{f}_j(\mathbf{x}) = \frac{1}{n_j} \sum_{i = 1}^{n_j} K_j (\mathbf{x} - \mathbf{x}_i)
+$$
+
+where
+
+-   $K_j (.)$ is a kernel function satisfying $\int K_j(\mathbf{z})d\mathbf{z} =1$
+
+-   $\mathbf{x}_i$ , $i = 1,\dots , n_j$ is a random sample from the j-th population.
+
+Thus, after finding $\hat{f}_j (\mathbf{x})$ for each of the $h$ populations, the posterior probability of group membership is
+
+$$
+p(j |\mathbf{x}) = \frac{\pi_j \hat{f}_j (\mathbf{x})}{\sum_{k-1}^h \pi_k \hat{f}_k (\mathbf{x})}
+$$
+
+where $j = 1,\dots, h$
+
+There are different choices for the kernel function:
+
+-   Uniform
+
+-   Normal
+
+-   Epanechnikov
+
+-   Biweight
+
+-   Triweight
+
+We these kernels, we have to pick the "radius" (or variance, width, window width, bandwidth) of the kernel, which is a smoothing parameter (the larger the radius, the more smooth the kernel estimate of the density).
+
+To select the smoothness parameter, we can use the following method
+
+If we believe the populations were close to multivariate normal, then
+
+$$
+R = (\frac{4/(2p+1)}{n_j})^{1/(p+1}
+$$
+
+But since we do not know for sure, we might choose several different values and select one that vies the best out of sample or cross-validation discrimination.
+
+Moreover, you also have to decide whether to use different kernel smoothness for different populations, which is similar to the individual and pooled covariances in the classical methodology.
+
+#### Nearest Neighbor Methods
+
+The nearest neighbor (also known as k-nearest neighbor) method performs the classification of a new observation vector based on the group membership of its nearest neighbors. In practice, we find
+
+$$
+d_{ij}^2 (\mathbf{x}, \mathbf{x}_i) = (\mathbf{x}, \mathbf{x}_i) V_j^{-1}(\mathbf{x}, \mathbf{x}_i)
+$$
+
+which is the distance between the vector $\mathbf{x}$ and the $i$-th observation in group $j$
+
+We consider different choices for $\mathbf{V}_j$
+
+For example,
+
+$$
+\begin{aligned}
+\mathbf{V}_j &= \mathbf{S}_p \\
+\mathbf{V}_j &= \mathbf{S}_j \\
+\mathbf{V}_j &= \mathbf{I} \\
+\mathbf{V}_j &= diag (\mathbf{S}_p)
+\end{aligned}
+$$
+
+We find the $k$ observations that are closest to $\mathbf{x}$ (where users pick $k$). Then we classify into the most common population, weighted by the prior.
+
+#### Modern Discriminant Methods
+
+**Note**:
+
+Logistic regression (with or without random effects) is a flexible model-based procedure for classification between two populations.
+
+The extension of logistic regression to the multi-group setting is polychotomous logistic regression (or, mulinomial regression).
+
+The machine learning and pattern recognition are growing with strong focus on nonlinear discriminant analysis methods such as:
+
+-   radial basis function networks
+
+-   support vector machines
+
+-   multiplayer perceptrons (neural networks)
+
+The general framework
+
+$$
+g_j (\mathbf{x}) = \sum_{l = 1}^m w_{jl}\phi_l (\mathbf{x}; \mathbf{\theta}_l) + w_{j0}
+$$
+
+where
+
+-   $j = 1,\dots, h$
+
+-   $m$ nonlinear basis functions $\phi_l$, each of which has $n_m$ parameters given by $\theta_l = \{ \theta_{lk}: k = 1, \dots , n_m \}$
+
+We assign $\mathbf{x}$ to the $j$-th population if $g_j(\mathbf{x})$ is the maximum for all $j = 1,\dots, h$
+
+Development usually focuses on the choice and estimation of the basis functions, $\phi_l$ and the estimation of the weights $w_{jl}$
+
+More details can be found [@webb2011statistical]
+
+### Application
+
+```{r}
+library(class)
+library(klaR)
+library(MASS)
+library(tidyverse)
+
+## Read in the data
+crops <- read.table("images/crops.txt")
+names(crops) <- c("crop", "y1", "y2", "y3", "y4")
+str(crops)
+
+
+## Read in test data
+crops_test <- read.table("images/crops_test.txt")
+names(crops_test) <- c("crop", "y1", "y2", "y3", "y4")
+str(crops_test)
+
+
+```
+
+#### LDA
+
+Default prior is proportional to sample size and `lda` and `qda` do not fit a constant or intercept term
+
+```{r}
+## Linear discriminant analysis
+lda_mod <- lda(crop ~ y1 + y2 + y3 + y4,
+               data = crops)
+lda_mod
+
+## Look at accuracy on the training data
+lda_fitted <- predict(lda_mod,newdata = crops)
+# Contingency table
+lda_table <- table(truth = crops$crop, fitted = lda_fitted$class)
+lda_table
+# accuracy of 0.5 is just random (not good)
+
+## Posterior probabilities of membership
+crops_post <- cbind.data.frame(crops,
+                               crop_pred = lda_fitted$class,
+                               lda_fitted$posterior)
+crops_post <- crops_post %>%
+    mutate(missed = crop != crop_pred)
+head(crops_post)
+# posterior shows that posterior of corn membership is much higher than the prior
+
+## LOOCV
+# leave-one-out cross validation for linear discriminant analysis
+# cannot run the predict function using the object with CV = TRUE 
+# because it returns the within sample predictions
+lda_cv <- lda(crop ~ y1 + y2 + y3 + y4,
+              data = crops, CV = TRUE)
+# Contingency table
+lda_table_cv <- table(truth = crops$crop, fitted = lda_cv$class)
+lda_table_cv
+
+## Predict the test data
+lda_pred <- predict(lda_mod, newdata = crops_test)
+
+## Make a contingency table with truth and most likely class
+table(truth=crops_test$crop, predict=lda_pred$class)
+
+```
+
+LDA didn't do well on both within sample and out-of-sample data.
+
+#### QDA
+
+```{r}
+## Quadratic discriminant analysis
+qda_mod <- qda(crop ~ y1 + y2 + y3 + y4,
+               data = crops)
+
+## Look at accuracy on the training data
+qda_fitted <- predict(qda_mod, newdata = crops)
+# Contingency table
+qda_table <- table(truth = crops$crop, fitted = qda_fitted$class)
+qda_table
+
+## LOOCV
+qda_cv <- qda(crop ~ y1 + y2 + y3 + y4,
+              data = crops, CV = TRUE)
+# Contingency table
+qda_table_cv <- table(truth = crops$crop, fitted = qda_cv$class)
+qda_table_cv
+
+## Predict the test data
+qda_pred <- predict(qda_mod, newdata = crops_test)
+## Make a contingency table with truth and most likely class
+table(truth = crops_test$crop, predict = qda_pred$class)
+
+```
+
+#### KNN
+
+`knn` uses design matrices of the features.
+
+```{r}
+## Design matrices
+X_train <- crops %>%
+    dplyr::select(-crop)
+X_test <- crops_test %>%
+    dplyr::select(-crop)
+Y_train <- crops$crop
+Y_test <- crops_test$crop
+
+## Nearest neighbors with 2 neighbors
+knn_2 <- knn(X_train, X_train, Y_train, k = 2)
+table(truth = Y_train, fitted = knn_2)
+
+## Accuracy
+mean(Y_train==knn_2)
+
+## Performance on test data
+knn_2_test <- knn(X_train, X_test, Y_train, k = 2)
+table(truth = Y_test, predict = knn_2_test)
+
+## Accuracy
+mean(Y_test==knn_2_test)
+
+## Nearest neighbors with 3 neighbors
+knn_3 <- knn(X_train, X_train, Y_train, k = 3)
+table(truth = Y_train, fitted = knn_3)
+
+## Accuracy
+mean(Y_train==knn_3)
+
+## Performance on test data
+knn_3_test <- knn(X_train, X_test, Y_train, k = 3)
+table(truth = Y_test, predict = knn_3_test)
+
+## Accuracy
+mean(Y_test==knn_3_test)
+
+```
+
+#### Stepwise
+
+Stepwise discriminant analysis using the `stepclass` in function in the `klaR` package.
+
+```{r}
+step <- stepclass(
+    crop ~ y1 + y2 + y3 + y4,
+    data = crops,
+    method = "qda",
+    improvement = 0.15
+)
+
+step$process
+
+step$performance.measure
+```
+
+Iris Data
+
+```{r}
+
+library(dplyr)
+data('iris')
+set.seed(1)
+samp <-
+    sample.int(nrow(iris), size = floor(0.70 * nrow(iris)), replace = F)
+
+train.iris <- iris[samp,] %>% mutate_if(is.numeric,scale)
+test.iris <- iris[-samp,] %>% mutate_if(is.numeric,scale)
+
+library(ggplot2)
+iris.model <- lda(Species ~ ., data = train.iris)
+#pred
+pred.lda <- predict(iris.model, test.iris)
+table(truth = test.iris$Species, prediction = pred.lda$class)
+
+plot(iris.model)
+
+iris.model.qda <- qda(Species~.,data=train.iris)
+#pred
+pred.qda <- predict(iris.model.qda,test.iris)
+table(truth=test.iris$Species,prediction=pred.qda$class)
+
+```
+
+#### PCA with Discriminant Analysis
+
+we can use both PCA for dimension reduction in discriminant analysis
+
+```{r}
+zeros <- as.matrix(read.table("images/mnist0_train_b.txt"))
+nines <- as.matrix(read.table("images/mnist9_train_b.txt"))
+train <- rbind(zeros[1:1000, ], nines[1:1000, ])
+train <- train / 255 #divide by 255 per notes (so ranges from 0 to 1)
+train <- t(train) #each column is an observation
+image(matrix(train[, 1], nrow = 28), main = 'Example image, unrotated')
+
+
+test <- rbind(zeros[2501:3000, ], nines[2501:3000, ])
+test <- test / 255
+test <- t(test)
+y.train <- c(rep(0, 1000), rep(9, 1000))
+y.test <- c(rep(0, 500), rep(9, 500))
+
+
+library(MASS)
+pc <- prcomp(t(train))
+train.large <- data.frame(cbind(y.train, pc$x[, 1:10]))
+large <- lda(y.train ~ ., data = train.large)
+#the test data set needs to be constucted w/ the same 10 princomps
+test.large <- data.frame(cbind(y.test, predict(pc, t(test))[, 1:10]))
+pred.lda <- predict(large, test.large)
+table(truth = test.large$y.test, prediction = pred.lda$class)
+
+large.qda <- qda(y.train~.,data=train.large)
+#prediction
+pred.qda <- predict(large.qda,test.large)
+table(truth=test.large$y.test,prediction=pred.qda$class)
+```

@@ -104,7 +104,7 @@
 <li><a class="" href="experimental-design.html"><span class="header-section-number">22</span> Experimental Design</a></li>
 <li><a class="" href="sampling.html"><span class="header-section-number">23</span> Sampling</a></li>
 <li><a class="" href="sec-analysis-of-variance-anova.html"><span class="header-section-number">24</span> Analysis of Variance</a></li>
-<li><a class="" href="multivariate-methods.html"><span class="header-section-number">25</span> Multivariate Methods</a></li>
+<li><a class="" href="sec-multivariate-methods.html"><span class="header-section-number">25</span> Multivariate Methods</a></li>
 <li class="book-part">B. QUASI-EXPERIMENTAL DESIGN</li>
 <li><a class="active" href="sec-quasi-experimental.html"><span class="header-section-number">26</span> Quasi-experimental</a></li>
 <li><a class="" href="regression-discontinuity.html"><span class="header-section-number">27</span> Regression Discontinuity</a></li>
@@ -192,9 +192,442 @@
 <li>What are threats to the validity of your assumptions?</li>
 <li>What you do to address it? And maybe how future research can do to address it.</li>
 </ol>
-<div id="natural-experiments" class="section level2" number="26.1">
+<div id="assumptions-1" class="section level2" number="26.1">
 <h2>
-<span class="header-section-number">26.1</span> Natural Experiments<a class="anchor" aria-label="anchor" href="#natural-experiments"><i class="fas fa-link"></i></a>
+<span class="header-section-number">26.1</span> Assumptions<a class="anchor" aria-label="anchor" href="#assumptions-1"><i class="fas fa-link"></i></a>
+</h2>
+<p>Assumptions to identify treatment effect in non-randomized studies:</p>
+<ol style="list-style-type: decimal">
+<li>SUTVA</li>
+<li>Conditonal Ignorability Asumtpion</li>
+<li>Overlap (Positivity) Asumption</li>
+</ol>
+<div id="stable-unit-treatment-value-assumption" class="section level3" number="26.1.1">
+<h3>
+<span class="header-section-number">26.1.1</span> <strong>Stable Unit Treatment Value Assumption</strong><a class="anchor" aria-label="anchor" href="#stable-unit-treatment-value-assumption"><i class="fas fa-link"></i></a>
+</h3>
+<p>First, we assume the <strong>Stable Unit Treatment Value Assumption (SUTVA)</strong> holds. SUTVA consists of two key components:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>the treatment levels of</strong> <span class="math inline">\(Z\)</span> (1 and 0) adequately represent all versions of the treatment, often referred to as the <strong>consistency assumption</strong> in the epidemiology literature</li>
+<li>a subject’s outcomes are not affected by other subjects’ exposures. This assumption ensures that potential outcomes are well-defined and independent of external influences, allowing for a <strong>causal interpretation</strong> of treatment effects.</li>
+</ol>
+<p>SUTVA is fundamental in <strong>Rubin’s Causal Model (RCM)</strong> and provides the foundation for defining potential outcomes. If violated, causal inference methods may lead to <strong>biased estimators</strong> and <strong>incorrect standard errors</strong>. Below, we formally define SUTVA, explore its implications, and discuss methods to handle violations.</p>
+<hr>
+<div id="definition-and-mathematical-formulation" class="section level4" number="26.1.1.1">
+<h4>
+<span class="header-section-number">26.1.1.1</span> <strong>Definition and Mathematical Formulation</strong><a class="anchor" aria-label="anchor" href="#definition-and-mathematical-formulation"><i class="fas fa-link"></i></a>
+</h4>
+<p>Let <span class="math inline">\(Y_i(Z)\)</span> be the <strong>potential outcome</strong> for unit <span class="math inline">\(i\)</span> under treatment <span class="math inline">\(Z\)</span>, where <span class="math inline">\(Z \in \{0,1\}\)</span> represents a binary treatment assignment. SUTVA states that:</p>
+<p><span class="math display">\[
+Y_i(Z) = Y_i(Z, \mathbf{Z}_{-i})
+\]</span></p>
+<p>where <span class="math inline">\(\mathbf{Z}_{-i}\)</span> denotes the treatment assignments of all other units except <span class="math inline">\(i\)</span>. If SUTVA holds, then:</p>
+<p><span class="math display">\[
+Y_i(Z) = Y_i(Z, \mathbf{Z}_{-i}) \quad \forall \mathbf{Z}_{-i}.
+\]</span></p>
+<p>This equation ensures that unit <span class="math inline">\(i\)</span>’s outcome depends <strong>only</strong> on its own treatment status <span class="math inline">\(Z\)</span> and not on the treatment assignments of other units.</p>
+<p>Under SUTVA, the <strong>Average Treatment Effect (ATE)</strong> is well-defined as:</p>
+<p><span class="math display">\[
+\text{ATE} = \mathbb{E}[Y_i(1)] - \mathbb{E}[Y_i(0)].
+\]</span></p>
+<p>However, if SUTVA is violated due to <strong>interference or treatment inconsistency</strong>, then the standard <strong>potential outcomes framework</strong> must be adjusted to account for these effects.</p>
+<hr>
+</div>
+<div id="no-interference-assumption-and-its-mathematical-implications" class="section level4" number="26.1.1.2">
+<h4>
+<span class="header-section-number">26.1.1.2</span> <strong>No Interference Assumption and Its Mathematical Implications</strong><a class="anchor" aria-label="anchor" href="#no-interference-assumption-and-its-mathematical-implications"><i class="fas fa-link"></i></a>
+</h4>
+<div id="definition-of-no-interference" class="section level5" number="26.1.1.2.1">
+<h5>
+<span class="header-section-number">26.1.1.2.1</span> <strong>Definition of No Interference</strong><a class="anchor" aria-label="anchor" href="#definition-of-no-interference"><i class="fas fa-link"></i></a>
+</h5>
+<p>The <strong>no interference</strong> component of SUTVA assumes that one unit’s treatment assignment does not affect another unit’s outcome. In many real-world scenarios, this assumption is violated due to <strong>spillover effects</strong>, such as:</p>
+<ul>
+<li>
+<strong>Epidemiology</strong>: In vaccine studies, an individual’s health status may be affected by the vaccination status of their social network.</li>
+<li>
+<strong>Marketing Experiments</strong>: In online advertising, one consumer’s exposure to an ad campaign may influence their peers’ purchasing decisions.</li>
+</ul>
+<p>Formally, if interference exists, then unit <span class="math inline">\(i\)</span>’s outcome depends on a <strong>neighborhood function</strong> <span class="math inline">\(\mathcal{N}(i)\)</span>, where:</p>
+<p><span class="math display">\[
+Y_i(Z, \mathbf{Z}_{\mathcal{N}(i)}).
+\]</span></p>
+<p>If <span class="math inline">\(\mathcal{N}(i) \neq \emptyset\)</span>, interference exists, and SUTVA is violated. In such cases, we must redefine treatment effects by considering <strong>direct and indirect effects</strong> using methodologies such as <strong>spatial models</strong> or <strong>network-based causal inference</strong>.</p>
+</div>
+<div id="special-cases-of-interference" class="section level5" number="26.1.1.2.2">
+<h5>
+<span class="header-section-number">26.1.1.2.2</span> <strong>Special Cases of Interference</strong><a class="anchor" aria-label="anchor" href="#special-cases-of-interference"><i class="fas fa-link"></i></a>
+</h5>
+<ul>
+<li>
+<strong>Complete Interference</strong>: Every unit’s outcome is affected by all other units’ treatment assignments.</li>
+<li>
+<strong>Partial Interference</strong>: Interference occurs <strong>within</strong> subgroups but not <strong>between</strong> them (e.g., classrooms in an educational experiment).</li>
+<li>
+<strong>Network Interference</strong>: Treatment effects propagate through a social or spatial network, requiring models like <strong>graph-based causal inference</strong>.</li>
+</ul>
+<hr>
+</div>
+</div>
+<div id="no-hidden-variations-in-treatment" class="section level4" number="26.1.1.3">
+<h4>
+<span class="header-section-number">26.1.1.3</span> <strong>No Hidden Variations in Treatment</strong><a class="anchor" aria-label="anchor" href="#no-hidden-variations-in-treatment"><i class="fas fa-link"></i></a>
+</h4>
+<p>The second component of SUTVA ensures that the treatment effect is <strong>uniquely defined</strong>, meaning there are no hidden variations in how the treatment is administered. That is, if multiple <strong>versions</strong> of the treatment exist (e.g., different dosages of a drug), the causal effect may <strong>not be well-defined</strong>.</p>
+<p>Mathematically, if there exist multiple versions <span class="math inline">\(v\)</span> of the treatment <span class="math inline">\(Z\)</span>, then the potential outcome should be indexed accordingly:</p>
+<p><span class="math display">\[
+Y_i(Z, v).
+\]</span></p>
+<p>If different versions produce different outcomes, then:</p>
+<p><span class="math display">\[
+Y_i(Z, v_1) \neq Y_i(Z, v_2).
+\]</span></p>
+<p>This violates SUTVA and requires <strong>instrumental variables (IV)</strong> or <strong>latent variable models</strong> to adjust for treatment heterogeneity.</p>
+<hr>
+</div>
+<div id="implications-of-violating-sutva" class="section level4" number="26.1.1.4">
+<h4>
+<span class="header-section-number">26.1.1.4</span> <strong>Implications of Violating SUTVA</strong><a class="anchor" aria-label="anchor" href="#implications-of-violating-sutva"><i class="fas fa-link"></i></a>
+</h4>
+<p>If SUTVA is violated, causal inference suffers from <strong>bias, incorrect standard errors, and ambiguous estimands</strong>. Key consequences include:</p>
+<ul>
+<li>
+<strong>Bias in Estimators</strong>: If interference is ignored, treatment effects are misestimated.</li>
+<li>
+<strong>Incorrect Standard Errors</strong>: Standard errors may be <strong>underestimated</strong> (if spillovers are ignored) or <strong>overestimated</strong> (if hidden treatment variations exist).</li>
+<li>
+<strong>Ill-Defined Causal Effects</strong>: If multiple treatment versions exist, it becomes unclear <strong>which causal effect</strong> is being estimated.</li>
+</ul>
+<p>In such cases, alternative estimands such as <strong>network-adjusted treatment effects</strong> or <strong>spatial spillover models</strong> are needed.</p>
+<hr>
+</div>
+<div id="strategies-to-address-sutva-violations" class="section level4" number="26.1.1.5">
+<h4>
+<span class="header-section-number">26.1.1.5</span> <strong>Strategies to Address SUTVA Violations</strong><a class="anchor" aria-label="anchor" href="#strategies-to-address-sutva-violations"><i class="fas fa-link"></i></a>
+</h4>
+<p>To mitigate violations of SUTVA, researchers can adopt the following techniques:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Randomized Saturation Designs</strong>: Introduce varying treatment intensities across clusters to measure spillover effects.</li>
+<li>
+<strong>Network-Based Causal Models</strong>: Use graph theory to model interference.</li>
+<li>
+<strong>Instrumental Variables (IV)</strong>: If multiple versions of treatment exist, use an IV that isolates a single version.</li>
+<li>
+<strong>Stratified Analysis</strong>: If treatment versions differ significantly, analyze each subgroup separately.</li>
+<li>
+<strong>Difference-in-Differences (DiD) with Spatial Controls</strong>: For geographic spillovers, include spatially lagged treatment indicators.</li>
+</ol>
+<p>Each of these approaches ensures that causal inferences remain valid despite potential SUTVA violations.</p>
+<hr>
+</div>
+</div>
+<div id="conditional-ignorability-assumption" class="section level3" number="26.1.2">
+<h3>
+<span class="header-section-number">26.1.2</span> <strong>Conditional Ignorability Assumption</strong><a class="anchor" aria-label="anchor" href="#conditional-ignorability-assumption"><i class="fas fa-link"></i></a>
+</h3>
+<p>Next, we must assume that <strong>treatment assignment is independent of the potential outcomes conditional on the observed covariates</strong>. This assumption has several equivalent names in the causal inference literature, including <strong>“conditional ignorability,” “conditional exchangeability,” “no unobserved confounding,” and “no omitted variables.”</strong> In the language of <strong>causal diagrams</strong>, this assumption ensures that all <strong>backdoor paths</strong> between treatment and outcome are blocked by <strong>observed covariates</strong>.</p>
+<p>Formally, we assume that treatment assignment <span class="math inline">\(Z\)</span> is independent of the potential outcomes <span class="math inline">\(Y(Z)\)</span> given a set of <strong>observed covariates</strong> <span class="math inline">\(X\)</span>:</p>
+<p><span class="math display">\[
+Y(1), Y(0) \perp\!\!\!\perp Z \mid X.
+\]</span></p>
+<p>This means that <strong>after conditioning on</strong> <span class="math inline">\(X\)</span>, the probability of receiving treatment is unrelated to the potential outcomes, ensuring that comparisons between treated and untreated units are <strong>unbiased</strong>. Below, we explore the mathematical implications, violations, and strategies for addressing violations of this assumption.</p>
+<hr>
+<div id="formal-definition-and-notation" class="section level4" number="26.1.2.1">
+<h4>
+<span class="header-section-number">26.1.2.1</span> <strong>Formal Definition and Notation</strong><a class="anchor" aria-label="anchor" href="#formal-definition-and-notation"><i class="fas fa-link"></i></a>
+</h4>
+<p>In causal inference, <strong>treatment assignment is said to be ignorable</strong> if, conditional on observed covariates <span class="math inline">\(X\)</span>, the treatment indicator <span class="math inline">\(Z\)</span> is independent of the potential outcomes:</p>
+<p><span class="math display">\[
+P(Y(1), Y(0) \mid Z, X) = P(Y(1), Y(0) \mid X).
+\]</span></p>
+<p>Equivalently, in terms of conditional probability:</p>
+<p><span class="math display">\[
+P(Z = 1 \mid Y(1), Y(0), X) = P(Z = 1 \mid X).
+\]</span></p>
+<p>This ensures that treatment assignment is <strong>as good as random</strong> once we control for <span class="math inline">\(X\)</span>, meaning that the probability of receiving treatment does not depend on unmeasured confounders.</p>
+<p>A direct consequence is that we can estimate the <strong>Average Treatment Effect (ATE)</strong> using observational data:</p>
+<p><span class="math display">\[
+\mathbb{E}[Y(1) - Y(0)] = \mathbb{E}[\mathbb{E}[Y \mid Z=1, X] - \mathbb{E}[Y \mid Z=0, X]].
+\]</span></p>
+<p>If <strong>ignorability holds</strong>, standard regression models, matching, or weighting techniques (e.g., propensity score weighting) can provide <strong>unbiased causal estimates</strong>.</p>
+<hr>
+</div>
+<div id="the-role-of-causal-diagrams-and-backdoor-paths" class="section level4" number="26.1.2.2">
+<h4>
+<span class="header-section-number">26.1.2.2</span> <strong>The Role of Causal Diagrams and Backdoor Paths</strong><a class="anchor" aria-label="anchor" href="#the-role-of-causal-diagrams-and-backdoor-paths"><i class="fas fa-link"></i></a>
+</h4>
+<p>In <strong>causal diagrams</strong> (DAGs), confounding arises when a <strong>backdoor path</strong> exists between treatment <span class="math inline">\(Z\)</span> and outcome <span class="math inline">\(Y\)</span>. A <strong>backdoor path</strong> is any <strong>non-causal</strong> path that creates <strong>spurious associations</strong> between <span class="math inline">\(Z\)</span> and <span class="math inline">\(Y\)</span>. The <strong>conditional ignorability assumption</strong> requires that all such paths be <strong>blocked</strong> by conditioning on a sufficient set of covariates <span class="math inline">\(X\)</span>.</p>
+<div id="identifying-backdoor-paths" class="section level5" number="26.1.2.2.1">
+<h5>
+<span class="header-section-number">26.1.2.2.1</span> <strong>Identifying Backdoor Paths</strong><a class="anchor" aria-label="anchor" href="#identifying-backdoor-paths"><i class="fas fa-link"></i></a>
+</h5>
+<p>Consider a simple causal diagram:</p>
+<p>X → Z → Y X → Y</p>
+<p>Here, <span class="math inline">\(X\)</span> is a <strong>common cause</strong> of both <span class="math inline">\(Z\)</span> and <span class="math inline">\(Y\)</span>, creating a <strong>backdoor path</strong> <span class="math inline">\(Z \leftarrow X \rightarrow Y\)</span>. If we fail to <strong>control for</strong> <span class="math inline">\(X\)</span>, the estimated effect of <span class="math inline">\(Z\)</span> on <span class="math inline">\(Y\)</span> will be <strong>biased</strong>. However, if we <strong>condition on</strong> <span class="math inline">\(X\)</span>, we block the backdoor path and obtain an <strong>unbiased estimate</strong> of the treatment effect.</p>
+</div>
+<div id="sufficient-covariate-adjustment" class="section level5" number="26.1.2.2.2">
+<h5>
+<span class="header-section-number">26.1.2.2.2</span> <strong>Sufficient Covariate Adjustment</strong><a class="anchor" aria-label="anchor" href="#sufficient-covariate-adjustment"><i class="fas fa-link"></i></a>
+</h5>
+<p>To satisfy the conditional ignorability assumption, researchers must identify a <strong>sufficient set of confounders</strong> to block all backdoor paths. This is often done using <strong>domain knowledge</strong> and <strong>causal structure learning algorithms</strong>.</p>
+<ul>
+<li>
+<strong>Minimal Sufficient Adjustment Set</strong>: The smallest set of covariates <span class="math inline">\(X\)</span> that, when conditioned upon, satisfies ignorability.</li>
+<li>
+<strong>Propensity Score Methods</strong>: Instead of adjusting directly for <span class="math inline">\(X\)</span>, one can estimate the probability of treatment <span class="math inline">\(P(Z=1 \mid X)\)</span> and use <strong>inverse probability weighting (IPW)</strong> or <strong>matching</strong>.</li>
+</ul>
+<hr>
+</div>
+</div>
+<div id="violations-of-the-ignorability-assumption" class="section level4" number="26.1.2.3">
+<h4>
+<span class="header-section-number">26.1.2.3</span> <strong>Violations of the Ignorability Assumption</strong><a class="anchor" aria-label="anchor" href="#violations-of-the-ignorability-assumption"><i class="fas fa-link"></i></a>
+</h4>
+<p>If ignorability does <strong>not</strong> hold, treatment assignment depends on <strong>unobserved confounders</strong>, introducing <strong>omitted variable bias</strong>. Mathematically, if there exists an unmeasured variable <span class="math inline">\(U\)</span> such that:</p>
+<p><span class="math display">\[
+Y(1), Y(0) \not\perp\!\!\!\perp Z \mid X,
+\]</span></p>
+<p>then estimates of the treatment effect will be <strong>biased</strong>.</p>
+<div id="consequences-of-violations" class="section level5" number="26.1.2.3.1">
+<h5>
+<span class="header-section-number">26.1.2.3.1</span> <strong>Consequences of Violations</strong><a class="anchor" aria-label="anchor" href="#consequences-of-violations"><i class="fas fa-link"></i></a>
+</h5>
+<ul>
+<li>
+<strong>Confounded Estimates</strong>: The estimated treatment effect captures both the causal effect and the bias from unobserved confounders.</li>
+<li>
+<strong>Selection Bias</strong>: If treatment assignment is related to factors that also influence the outcome, the sample may not be representative.</li>
+<li>
+<strong>Overestimation or Underestimation</strong>: Ignoring important confounders can lead to inflated or deflated estimates of treatment effects.</li>
+</ul>
+</div>
+<div id="example-of-confounding" class="section level5" number="26.1.2.3.2">
+<h5>
+<span class="header-section-number">26.1.2.3.2</span> <strong>Example of Confounding</strong><a class="anchor" aria-label="anchor" href="#example-of-confounding"><i class="fas fa-link"></i></a>
+</h5>
+<p>Consider an <strong>observational study on smoking and lung cancer</strong>:</p>
+<p>Smoking → Lung Cancer Genetics → Smoking Genetics → Lung Cancer</p>
+<p>Here, <strong>genetics</strong> is an unmeasured confounder affecting both <strong>smoking</strong> and <strong>lung cancer</strong>. If we do not control for genetics, the estimated effect of smoking on lung cancer will be <strong>biased</strong>.</p>
+<hr>
+</div>
+</div>
+<div id="strategies-to-address-violations" class="section level4" number="26.1.2.4">
+<h4>
+<span class="header-section-number">26.1.2.4</span> <strong>Strategies to Address Violations</strong><a class="anchor" aria-label="anchor" href="#strategies-to-address-violations"><i class="fas fa-link"></i></a>
+</h4>
+<p>If ignorability is violated due to <strong>unobserved confounding</strong>, several techniques can be used to mitigate bias:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Instrumental Variables (IV)</strong>:
+<ul>
+<li>Use a variable <span class="math inline">\(W\)</span> that affects treatment <span class="math inline">\(Z\)</span> but has <strong>no direct effect</strong> on <span class="math inline">\(Y\)</span>, ensuring exogeneity.</li>
+<li>Example: Randomized incentives to encourage treatment uptake.</li>
+</ul>
+</li>
+<li>
+<strong>Difference-in-Differences (DiD)</strong>:
+<ul>
+<li>Compare changes in outcomes before and after treatment in a treated vs. control group.</li>
+<li>Requires a <strong>parallel trends assumption</strong>.</li>
+</ul>
+</li>
+<li>
+<strong>Regression Discontinuity (RD)</strong>:
+<ul>
+<li>Exploit cutoff-based treatment assignment.</li>
+<li>Example: Scholarship eligibility at a certain GPA threshold.</li>
+</ul>
+</li>
+<li>
+<strong>Propensity Score Methods</strong>:
+<ul>
+<li>Estimate the probability of treatment given <span class="math inline">\(X\)</span>.</li>
+<li>Use <strong>matching, inverse probability weighting (IPW), or stratification</strong> to balance treatment groups.</li>
+</ul>
+</li>
+<li>
+<strong>Sensitivity Analysis</strong>:
+<ul>
+<li>Quantify how much unobserved confounding would be needed to alter conclusions.</li>
+<li>Example: <strong>Rosenbaum’s sensitivity bounds</strong>.</li>
+</ul>
+</li>
+</ol>
+<hr>
+</div>
+<div id="practical-considerations-5" class="section level4" number="26.1.2.5">
+<h4>
+<span class="header-section-number">26.1.2.5</span> <strong>Practical Considerations</strong><a class="anchor" aria-label="anchor" href="#practical-considerations-5"><i class="fas fa-link"></i></a>
+</h4>
+<div id="how-to-select-covariates-x" class="section level5" number="26.1.2.5.1">
+<h5>
+<span class="header-section-number">26.1.2.5.1</span> <strong>How to Select Covariates</strong> <span class="math inline">\(X\)</span>?<a class="anchor" aria-label="anchor" href="#how-to-select-covariates-x"><i class="fas fa-link"></i></a>
+</h5>
+<ul>
+<li>
+<strong>Domain Knowledge</strong>: Consult experts to identify potential confounders.</li>
+<li>
+<strong>Causal Discovery Methods</strong>: Use <strong>Bayesian networks or structure learning</strong> to infer relationships.</li>
+<li>
+<strong>Statistical Tests</strong>: Examine balance in pre-treatment characteristics.</li>
+</ul>
+</div>
+<div id="trade-offs-in-covariate-selection" class="section level5" number="26.1.2.5.2">
+<h5>
+<span class="header-section-number">26.1.2.5.2</span> <strong>Trade-Offs in Covariate Selection</strong><a class="anchor" aria-label="anchor" href="#trade-offs-in-covariate-selection"><i class="fas fa-link"></i></a>
+</h5>
+<ul>
+<li>
+<strong>Too Few Covariates</strong> → Risk of <strong>omitted variable bias</strong>.</li>
+<li>
+<strong>Too Many Covariates</strong> → <strong>Overfitting</strong>, loss of <strong>efficiency</strong> in estimation.</li>
+</ul>
+<hr>
+</div>
+</div>
+</div>
+<div id="overlap-positivity-assumption" class="section level3" number="26.1.3">
+<h3>
+<span class="header-section-number">26.1.3</span> <strong>Overlap (Positivity) Assumption</strong><a class="anchor" aria-label="anchor" href="#overlap-positivity-assumption"><i class="fas fa-link"></i></a>
+</h3>
+<p>Next, we assume that the probability of receiving treatment is strictly <strong>greater than zero and less than one</strong> over the support of the observed covariates <span class="math inline">\(X_i\)</span>. This is known as the <strong>overlap assumption</strong>, also referred to as <strong>common support</strong> or <strong>positivity</strong>. Mathematically, this is written as:</p>
+<p><span class="math display">\[
+0 &lt; P(Z_i = 1 \mid X_i) &lt; 1, \quad \forall X_i.
+\]</span></p>
+<p>This ensures that for every possible value of <span class="math inline">\(X_i\)</span>, there is <strong>some</strong> probability of receiving both treatment (<span class="math inline">\(Z_i = 1\)</span>) and control (<span class="math inline">\(Z_i = 0\)</span>). In other words, there must be <strong>overlap</strong> in the covariate distributions between treated and control units.</p>
+<p>When <strong>overlap is limited</strong>, the <strong>Average Treatment Effect (ATE)</strong> may not be identifiable, even if the <strong>Average Treatment effect on the Treated (ATT)</strong> remains identifiable. In extreme cases, even ATT may not be identified due to severe lack of common support. In such situations, an alternative estimand can be used, such as the <strong>Average Treatment Effect for the Overlap Population (ATO)</strong>, which focuses on a <strong>marginal population</strong> where treatment is not deterministic <span class="citation">(<a href="references.html#ref-li2018balancing">F. Li, Morgan, and Zaslavsky 2018</a>)</span>.</p>
+<hr>
+<div id="mathematical-formulation-of-overlap" class="section level4" number="26.1.3.1">
+<h4>
+<span class="header-section-number">26.1.3.1</span> <strong>Mathematical Formulation of Overlap</strong><a class="anchor" aria-label="anchor" href="#mathematical-formulation-of-overlap"><i class="fas fa-link"></i></a>
+</h4>
+<p>The overlap assumption states that <strong>for every possible value of the covariates</strong> <span class="math inline">\(X_i\)</span>, there exists some probability of being in both treatment groups. This prevents situations where treatment assignment is deterministic, which would make causal inference impossible.</p>
+<p>Mathematically, overlap requires that:</p>
+<p><span class="math display">\[
+0 &lt; P(Z_i = 1 \mid X_i) &lt; 1 \quad \forall X_i.
+\]</span></p>
+<p>This means that:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Positivity Condition</strong>: Every unit in the population has a <strong>nonzero probability</strong> of receiving treatment.</li>
+<li>
+<strong>No Deterministic Treatment Assignment</strong>: If <span class="math inline">\(P(Z_i = 1 \mid X_i) = 0\)</span> or <span class="math inline">\(P(Z_i = 1 \mid X_i) = 1\)</span> for some <span class="math inline">\(X_i\)</span>, then the causal effect is <strong>not identifiable</strong> for those values of <span class="math inline">\(X_i\)</span>.</li>
+</ol>
+<p>In practical terms, if some subpopulations <strong>always receive treatment</strong> (<span class="math inline">\(P(Z_i = 1 \mid X_i) = 1\)</span>) or <strong>never receive treatment</strong> (<span class="math inline">\(P(Z_i = 1 \mid X_i) = 0\)</span>), then there is <strong>no counterfactual</strong> to compare against, making it impossible to estimate causal effects for those groups.</p>
+<hr>
+</div>
+<div id="implications-of-violating-the-overlap-assumption" class="section level4" number="26.1.3.2">
+<h4>
+<span class="header-section-number">26.1.3.2</span> <strong>Implications of Violating the Overlap Assumption</strong><a class="anchor" aria-label="anchor" href="#implications-of-violating-the-overlap-assumption"><i class="fas fa-link"></i></a>
+</h4>
+<p>When the overlap assumption is violated, the identification of causal effects becomes problematic. Some key implications include:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Limited Generalizability of ATE</strong>: If there is <strong>poor overlap</strong> in covariate distributions between treated and control units, the <strong>Average Treatment Effect (ATE)</strong> may not be identified.</li>
+<li>
+<strong>ATT May Still Be Identifiable</strong>: If <strong>some</strong> overlap exists but is limited, we may still be able to estimate the <strong>Average Treatment Effect on the Treated (ATT)</strong>.</li>
+<li>
+<strong>Extreme Cases - No ATT Identification</strong>: If <strong>no</strong> overlap exists between treated and control groups, even ATT may not be identified.</li>
+<li>
+<strong>Extrapolation Bias</strong>: In extreme cases, estimation relies on extrapolating from regions where overlap is weak, leading to <strong>biased and unstable causal estimates</strong>.</li>
+</ol>
+<p>To illustrate, consider an observational study on the effect of an <strong>education intervention</strong> on academic performance. If <strong>only students from high-income families</strong> received the intervention (<span class="math inline">\(P(Z = 1 \mid X) = 1\)</span> for high income), then we cannot compare them to <strong>low-income students</strong> who never received the intervention (<span class="math inline">\(P(Z = 1 \mid X) = 0\)</span>). This lack of common support prevents estimation of a valid treatment effect.</p>
+<hr>
+</div>
+<div id="diagnosing-overlap-violations-in-practice" class="section level4" number="26.1.3.3">
+<h4>
+<span class="header-section-number">26.1.3.3</span> <strong>Diagnosing Overlap Violations in Practice</strong><a class="anchor" aria-label="anchor" href="#diagnosing-overlap-violations-in-practice"><i class="fas fa-link"></i></a>
+</h4>
+<p>Before estimating causal effects, it is crucial to assess whether the overlap assumption holds. Some common diagnostic tools include:</p>
+<div id="propensity-score-distribution" class="section level5" number="26.1.3.3.1">
+<h5>
+<span class="header-section-number">26.1.3.3.1</span> <strong>Propensity Score Distribution</strong><a class="anchor" aria-label="anchor" href="#propensity-score-distribution"><i class="fas fa-link"></i></a>
+</h5>
+<p>A key approach is to <strong>estimate the propensity score</strong> <span class="math inline">\(e(X) = P(Z = 1 \mid X)\)</span> and visualize its distribution across treated and control units. A lack of overlap in propensity scores suggests that <strong>some regions of</strong> <span class="math inline">\(X\)</span> lack common support.</p>
+<ul>
+<li>
+<strong>Well-Mixed Propensity Score Distributions</strong> → Good overlap, strong causal identification.</li>
+<li>
+<strong>Separated Propensity Score Distributions</strong> → Poor overlap, potential issues with causal estimation.</li>
+</ul>
+</div>
+<div id="standardized-mean-differences-smd" class="section level5" number="26.1.3.3.2">
+<h5>
+<span class="header-section-number">26.1.3.3.2</span> <strong>Standardized Mean Differences (SMD)</strong><a class="anchor" aria-label="anchor" href="#standardized-mean-differences-smd"><i class="fas fa-link"></i></a>
+</h5>
+<p>Standardized mean differences compare the covariate distributions between treated and control groups. If large imbalances exist, overlap may be insufficient.</p>
+</div>
+<div id="kernel-density-plots" class="section level5" number="26.1.3.3.3">
+<h5>
+<span class="header-section-number">26.1.3.3.3</span> <strong>Kernel Density Plots</strong><a class="anchor" aria-label="anchor" href="#kernel-density-plots"><i class="fas fa-link"></i></a>
+</h5>
+<p>Plotting the kernel density of <strong>propensity scores</strong> can reveal whether both groups have sufficient representation across the distribution.</p>
+<hr>
+</div>
+</div>
+<div id="strategies-to-address-overlap-violations" class="section level4" number="26.1.3.4">
+<h4>
+<span class="header-section-number">26.1.3.4</span> <strong>Strategies to Address Overlap Violations</strong><a class="anchor" aria-label="anchor" href="#strategies-to-address-overlap-violations"><i class="fas fa-link"></i></a>
+</h4>
+<p>When overlap is weak, several strategies can be employed:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Trimming Non-Overlapping Units</strong>
+<ul>
+<li>Exclude observations with extreme propensity scores (e.g., those where <span class="math inline">\(P(Z = 1 \mid X) \approx 0\)</span> or <span class="math inline">\(P(Z = 1 \mid X) \approx 1\)</span>).</li>
+<li>Improves robustness but reduces sample size.</li>
+</ul>
+</li>
+<li>
+<strong>Reweighting Approaches</strong>
+<ul>
+<li>Use <strong>overlap weights</strong> to emphasize the population where treatment assignment is not deterministic.</li>
+<li>The <strong>Average Treatment Effect for the Overlap Population (ATO)</strong> [29] estimates the effect for units where <span class="math inline">\(P(Z = 1 \mid X)\)</span> is close to 0.5.</li>
+</ul>
+</li>
+<li>
+<strong>Matching on the Propensity Score</strong>
+<ul>
+<li>Remove units without suitable matches from the opposite treatment group.</li>
+<li>Improves balance at the cost of excluding some observations.</li>
+</ul>
+</li>
+<li>
+<strong>Covariate Balancing Techniques</strong>
+<ul>
+<li>Use <strong>entropy balancing</strong> or <strong>inverse probability weighting (IPW)</strong> to adjust for limited overlap.</li>
+<li>Ensures that covariate distributions are similar across groups.</li>
+</ul>
+</li>
+<li>
+<strong>Sensitivity Analysis</strong>
+<ul>
+<li>Quantify how overlap violations affect causal conclusions.</li>
+<li>Example: <strong>Rosenbaum’s bounds for unmeasured confounding</strong>.</li>
+</ul>
+</li>
+</ol>
+<hr>
+</div>
+<div id="the-average-treatment-effect-for-the-overlap-population" class="section level4" number="26.1.3.5">
+<h4>
+<span class="header-section-number">26.1.3.5</span> <strong>The Average Treatment Effect for the Overlap Population</strong><a class="anchor" aria-label="anchor" href="#the-average-treatment-effect-for-the-overlap-population"><i class="fas fa-link"></i></a>
+</h4>
+<p>When overlap is limited, one alternative is to estimate the <strong>Average Treatment Effect for the Overlap Population (ATO)</strong>. Unlike ATE, which targets the <strong>entire population</strong>, and ATT, which targets the <strong>treated population</strong>, ATO focuses on the <strong>subset of units where treatment is not deterministic</strong>.</p>
+<p>Mathematically, ATO is estimated using <strong>overlap weights</strong>:</p>
+<p><span class="math display">\[
+W_i = P(Z_i = 1 \mid X_i) (1 - P(Z_i = 1 \mid X_i)).
+\]</span></p>
+<p>This <strong>downweights extreme propensity scores</strong> and ensures that inference is focused on a population where treatment was plausibly <strong>assignable in both directions</strong>. ATO is particularly useful when <strong>generalizability is a concern</strong> or when <strong>extrapolation is unreliable</strong>.</p>
+<hr>
+</div>
+</div>
+</div>
+<div id="natural-experiments" class="section level2" number="26.2">
+<h2>
+<span class="header-section-number">26.2</span> Natural Experiments<a class="anchor" aria-label="anchor" href="#natural-experiments"><i class="fas fa-link"></i></a>
 </h2>
 <p>Reusing the same natural experiments for research, particularly when employing identical methods to determine the treatment effect in a given setting, can pose problems for hypothesis testing.</p>
 <p>Simulations show that when <span class="math inline">\(N_{\text{Outcome}} &gt;&gt; N_{\text{True effect}}\)</span>, more than 50% of statistically significant findings may be false positives <span class="citation">(<a href="references.html#ref-heath2023reusing">Heath et al. 2023, 2331</a>)</span>.</p>
@@ -210,43 +643,43 @@
 <li><p><strong>Chronological Sequencing</strong>: Outcomes are ordered by the date they were first reported, with multiple testing corrections applied in this sequence. This method progressively raises the statistical significance threshold as more outcomes are reviewed over time.</p></li>
 <li><p><strong>Best Foot Forward Policy</strong>: Outcomes are ordered from most to least likely to be rejected based on experimental data. Used primarily in clinical trials, this approach gives priority to intended treatment effects, which are subjected to less stringent statistical requirements. New outcomes are added to the sequence as they are linked to the primary treatment effect.</p></li>
 </ol>
-<div class="sourceCode" id="cb730"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb730-1"><a href="sec-quasi-experimental.html#cb730-1" tabindex="-1"></a><span class="co"># Romano-Wolf correction</span></span>
-<span id="cb730-2"><a href="sec-quasi-experimental.html#cb730-2" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
-<span id="cb730-3"><a href="sec-quasi-experimental.html#cb730-3" tabindex="-1"></a><span class="fu">library</span>(wildrwolf)</span>
-<span id="cb730-4"><a href="sec-quasi-experimental.html#cb730-4" tabindex="-1"></a></span>
-<span id="cb730-5"><a href="sec-quasi-experimental.html#cb730-5" tabindex="-1"></a><span class="fu">head</span>(iris)</span>
-<span id="cb730-6"><a href="sec-quasi-experimental.html#cb730-6" tabindex="-1"></a><span class="co">#&gt;   Sepal.Length Sepal.Width Petal.Length Petal.Width Species</span></span>
-<span id="cb730-7"><a href="sec-quasi-experimental.html#cb730-7" tabindex="-1"></a><span class="co">#&gt; 1          5.1         3.5          1.4         0.2  setosa</span></span>
-<span id="cb730-8"><a href="sec-quasi-experimental.html#cb730-8" tabindex="-1"></a><span class="co">#&gt; 2          4.9         3.0          1.4         0.2  setosa</span></span>
-<span id="cb730-9"><a href="sec-quasi-experimental.html#cb730-9" tabindex="-1"></a><span class="co">#&gt; 3          4.7         3.2          1.3         0.2  setosa</span></span>
-<span id="cb730-10"><a href="sec-quasi-experimental.html#cb730-10" tabindex="-1"></a><span class="co">#&gt; 4          4.6         3.1          1.5         0.2  setosa</span></span>
-<span id="cb730-11"><a href="sec-quasi-experimental.html#cb730-11" tabindex="-1"></a><span class="co">#&gt; 5          5.0         3.6          1.4         0.2  setosa</span></span>
-<span id="cb730-12"><a href="sec-quasi-experimental.html#cb730-12" tabindex="-1"></a><span class="co">#&gt; 6          5.4         3.9          1.7         0.4  setosa</span></span>
-<span id="cb730-13"><a href="sec-quasi-experimental.html#cb730-13" tabindex="-1"></a></span>
-<span id="cb730-14"><a href="sec-quasi-experimental.html#cb730-14" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> <span class="fu">feols</span>(Sepal.Width <span class="sc">~</span> Sepal.Length , <span class="at">data =</span> iris)</span>
-<span id="cb730-15"><a href="sec-quasi-experimental.html#cb730-15" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> <span class="fu">feols</span>(Petal.Length <span class="sc">~</span> Sepal.Length, <span class="at">data =</span> iris)</span>
-<span id="cb730-16"><a href="sec-quasi-experimental.html#cb730-16" tabindex="-1"></a>fit3 <span class="ot">&lt;-</span> <span class="fu">feols</span>(Petal.Width <span class="sc">~</span> Sepal.Length, <span class="at">data =</span> iris)</span>
-<span id="cb730-17"><a href="sec-quasi-experimental.html#cb730-17" tabindex="-1"></a></span>
-<span id="cb730-18"><a href="sec-quasi-experimental.html#cb730-18" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">rwolf</span>(</span>
-<span id="cb730-19"><a href="sec-quasi-experimental.html#cb730-19" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">list</span>(fit1, fit2, fit3), </span>
-<span id="cb730-20"><a href="sec-quasi-experimental.html#cb730-20" tabindex="-1"></a>  <span class="at">param =</span> <span class="st">"Sepal.Length"</span>,  </span>
-<span id="cb730-21"><a href="sec-quasi-experimental.html#cb730-21" tabindex="-1"></a>  <span class="at">B =</span> <span class="dv">500</span></span>
-<span id="cb730-22"><a href="sec-quasi-experimental.html#cb730-22" tabindex="-1"></a>)</span>
-<span id="cb730-23"><a href="sec-quasi-experimental.html#cb730-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb730-24"><a href="sec-quasi-experimental.html#cb730-24" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
-<span id="cb730-25"><a href="sec-quasi-experimental.html#cb730-25" tabindex="-1"></a>  <span class="er">|</span>                                                                      <span class="er">|</span>   <span class="dv">0</span>%</span>
-<span id="cb730-26"><a href="sec-quasi-experimental.html#cb730-26" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
-<span id="cb730-27"><a href="sec-quasi-experimental.html#cb730-27" tabindex="-1"></a>  <span class="er">|=======================</span>                                               <span class="er">|</span>  <span class="dv">33</span>%</span>
-<span id="cb730-28"><a href="sec-quasi-experimental.html#cb730-28" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
-<span id="cb730-29"><a href="sec-quasi-experimental.html#cb730-29" tabindex="-1"></a>  <span class="er">|===============================================</span>                       <span class="er">|</span>  <span class="dv">67</span>%</span>
-<span id="cb730-30"><a href="sec-quasi-experimental.html#cb730-30" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
-<span id="cb730-31"><a href="sec-quasi-experimental.html#cb730-31" tabindex="-1"></a>  <span class="er">|======================================================================|</span> <span class="dv">100</span>%</span>
-<span id="cb730-32"><a href="sec-quasi-experimental.html#cb730-32" tabindex="-1"></a></span>
-<span id="cb730-33"><a href="sec-quasi-experimental.html#cb730-33" tabindex="-1"></a>res</span>
-<span id="cb730-34"><a href="sec-quasi-experimental.html#cb730-34" tabindex="-1"></a><span class="co">#&gt;   model   Estimate Std. Error   t value     Pr(&gt;|t|) RW Pr(&gt;|t|)</span></span>
-<span id="cb730-35"><a href="sec-quasi-experimental.html#cb730-35" tabindex="-1"></a><span class="co">#&gt; 1     1 -0.0618848 0.04296699 -1.440287    0.1518983 0.115768463</span></span>
-<span id="cb730-36"><a href="sec-quasi-experimental.html#cb730-36" tabindex="-1"></a><span class="co">#&gt; 2     2   1.858433 0.08585565  21.64602 1.038667e-47 0.001996008</span></span>
-<span id="cb730-37"><a href="sec-quasi-experimental.html#cb730-37" tabindex="-1"></a><span class="co">#&gt; 3     3  0.7529176 0.04353017  17.29645 2.325498e-37 0.001996008</span></span></code></pre></div>
+<div class="sourceCode" id="cb738"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb738-1"><a href="sec-quasi-experimental.html#cb738-1" tabindex="-1"></a><span class="co"># Romano-Wolf correction</span></span>
+<span id="cb738-2"><a href="sec-quasi-experimental.html#cb738-2" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
+<span id="cb738-3"><a href="sec-quasi-experimental.html#cb738-3" tabindex="-1"></a><span class="fu">library</span>(wildrwolf)</span>
+<span id="cb738-4"><a href="sec-quasi-experimental.html#cb738-4" tabindex="-1"></a></span>
+<span id="cb738-5"><a href="sec-quasi-experimental.html#cb738-5" tabindex="-1"></a><span class="fu">head</span>(iris)</span>
+<span id="cb738-6"><a href="sec-quasi-experimental.html#cb738-6" tabindex="-1"></a><span class="co">#&gt;   Sepal.Length Sepal.Width Petal.Length Petal.Width Species</span></span>
+<span id="cb738-7"><a href="sec-quasi-experimental.html#cb738-7" tabindex="-1"></a><span class="co">#&gt; 1          5.1         3.5          1.4         0.2  setosa</span></span>
+<span id="cb738-8"><a href="sec-quasi-experimental.html#cb738-8" tabindex="-1"></a><span class="co">#&gt; 2          4.9         3.0          1.4         0.2  setosa</span></span>
+<span id="cb738-9"><a href="sec-quasi-experimental.html#cb738-9" tabindex="-1"></a><span class="co">#&gt; 3          4.7         3.2          1.3         0.2  setosa</span></span>
+<span id="cb738-10"><a href="sec-quasi-experimental.html#cb738-10" tabindex="-1"></a><span class="co">#&gt; 4          4.6         3.1          1.5         0.2  setosa</span></span>
+<span id="cb738-11"><a href="sec-quasi-experimental.html#cb738-11" tabindex="-1"></a><span class="co">#&gt; 5          5.0         3.6          1.4         0.2  setosa</span></span>
+<span id="cb738-12"><a href="sec-quasi-experimental.html#cb738-12" tabindex="-1"></a><span class="co">#&gt; 6          5.4         3.9          1.7         0.4  setosa</span></span>
+<span id="cb738-13"><a href="sec-quasi-experimental.html#cb738-13" tabindex="-1"></a></span>
+<span id="cb738-14"><a href="sec-quasi-experimental.html#cb738-14" tabindex="-1"></a>fit1 <span class="ot">&lt;-</span> <span class="fu">feols</span>(Sepal.Width <span class="sc">~</span> Sepal.Length , <span class="at">data =</span> iris)</span>
+<span id="cb738-15"><a href="sec-quasi-experimental.html#cb738-15" tabindex="-1"></a>fit2 <span class="ot">&lt;-</span> <span class="fu">feols</span>(Petal.Length <span class="sc">~</span> Sepal.Length, <span class="at">data =</span> iris)</span>
+<span id="cb738-16"><a href="sec-quasi-experimental.html#cb738-16" tabindex="-1"></a>fit3 <span class="ot">&lt;-</span> <span class="fu">feols</span>(Petal.Width <span class="sc">~</span> Sepal.Length, <span class="at">data =</span> iris)</span>
+<span id="cb738-17"><a href="sec-quasi-experimental.html#cb738-17" tabindex="-1"></a></span>
+<span id="cb738-18"><a href="sec-quasi-experimental.html#cb738-18" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">rwolf</span>(</span>
+<span id="cb738-19"><a href="sec-quasi-experimental.html#cb738-19" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">list</span>(fit1, fit2, fit3), </span>
+<span id="cb738-20"><a href="sec-quasi-experimental.html#cb738-20" tabindex="-1"></a>  <span class="at">param =</span> <span class="st">"Sepal.Length"</span>,  </span>
+<span id="cb738-21"><a href="sec-quasi-experimental.html#cb738-21" tabindex="-1"></a>  <span class="at">B =</span> <span class="dv">500</span></span>
+<span id="cb738-22"><a href="sec-quasi-experimental.html#cb738-22" tabindex="-1"></a>)</span>
+<span id="cb738-23"><a href="sec-quasi-experimental.html#cb738-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb738-24"><a href="sec-quasi-experimental.html#cb738-24" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb738-25"><a href="sec-quasi-experimental.html#cb738-25" tabindex="-1"></a>  <span class="er">|</span>                                                                      <span class="er">|</span>   <span class="dv">0</span>%</span>
+<span id="cb738-26"><a href="sec-quasi-experimental.html#cb738-26" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb738-27"><a href="sec-quasi-experimental.html#cb738-27" tabindex="-1"></a>  <span class="er">|=======================</span>                                               <span class="er">|</span>  <span class="dv">33</span>%</span>
+<span id="cb738-28"><a href="sec-quasi-experimental.html#cb738-28" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb738-29"><a href="sec-quasi-experimental.html#cb738-29" tabindex="-1"></a>  <span class="er">|===============================================</span>                       <span class="er">|</span>  <span class="dv">67</span>%</span>
+<span id="cb738-30"><a href="sec-quasi-experimental.html#cb738-30" tabindex="-1"></a>  <span class="sc">|</span>                                                                            </span>
+<span id="cb738-31"><a href="sec-quasi-experimental.html#cb738-31" tabindex="-1"></a>  <span class="er">|======================================================================|</span> <span class="dv">100</span>%</span>
+<span id="cb738-32"><a href="sec-quasi-experimental.html#cb738-32" tabindex="-1"></a></span>
+<span id="cb738-33"><a href="sec-quasi-experimental.html#cb738-33" tabindex="-1"></a>res</span>
+<span id="cb738-34"><a href="sec-quasi-experimental.html#cb738-34" tabindex="-1"></a><span class="co">#&gt;   model   Estimate Std. Error   t value     Pr(&gt;|t|) RW Pr(&gt;|t|)</span></span>
+<span id="cb738-35"><a href="sec-quasi-experimental.html#cb738-35" tabindex="-1"></a><span class="co">#&gt; 1     1 -0.0618848 0.04296699 -1.440287    0.1518983 0.115768463</span></span>
+<span id="cb738-36"><a href="sec-quasi-experimental.html#cb738-36" tabindex="-1"></a><span class="co">#&gt; 2     2   1.858433 0.08585565  21.64602 1.038667e-47 0.001996008</span></span>
+<span id="cb738-37"><a href="sec-quasi-experimental.html#cb738-37" tabindex="-1"></a><span class="co">#&gt; 3     3  0.7529176 0.04353017  17.29645 2.325498e-37 0.001996008</span></span></code></pre></div>
 <p>For all other tests, one can use <code><a href="https://rdrr.io/pkg/multtest/man/mt.rawp2adjp.html">multtest::mt.rawp2adjp</a></code> which includes:</p>
 <ul>
 <li>Bonferroni</li>
@@ -261,7 +694,7 @@
 </li>
 </ul>
 <p>Permutation adjusted p-values for simple multiple testing procedures</p>
-<div class="sourceCode" id="cb731"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb739"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># BiocManager::install("multtest")</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">multtest</span><span class="op">)</span></span>
 <span></span>
@@ -306,13 +739,20 @@
 </div>
 </div>
   <div class="chapter-nav">
-<div class="prev"><a href="multivariate-methods.html"><span class="header-section-number">25</span> Multivariate Methods</a></div>
+<div class="prev"><a href="sec-multivariate-methods.html"><span class="header-section-number">25</span> Multivariate Methods</a></div>
 <div class="next"><a href="regression-discontinuity.html"><span class="header-section-number">27</span> Regression Discontinuity</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
 <li><a class="nav-link" href="#sec-quasi-experimental"><span class="header-section-number">26</span> Quasi-experimental</a></li>
-<li><a class="nav-link" href="#natural-experiments"><span class="header-section-number">26.1</span> Natural Experiments</a></li>
+<li>
+<a class="nav-link" href="#assumptions-1"><span class="header-section-number">26.1</span> Assumptions</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#stable-unit-treatment-value-assumption"><span class="header-section-number">26.1.1</span> Stable Unit Treatment Value Assumption</a></li>
+<li><a class="nav-link" href="#conditional-ignorability-assumption"><span class="header-section-number">26.1.2</span> Conditional Ignorability Assumption</a></li>
+<li><a class="nav-link" href="#overlap-positivity-assumption"><span class="header-section-number">26.1.3</span> Overlap (Positivity) Assumption</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#natural-experiments"><span class="header-section-number">26.2</span> Natural Experiments</a></li>
 </ul>
 
       <div class="book-extra">
@@ -330,7 +770,7 @@
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-02-18.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-02-27.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

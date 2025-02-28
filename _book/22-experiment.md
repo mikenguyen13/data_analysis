@@ -91,14 +91,16 @@ Expanding this equation:
 
 $$
 \begin{aligned}
-E[Y_i | D_i = 1] - E[Y_i | D_i = 0] &= (E[Y_{1i} | D_i = 1] - E[Y_{0i}|D_i = 1] ) + (E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0]) \\
-&= (E[Y_{1i}-Y_{0i}|D_i = 1] ) + (E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0])
+E[Y_i | D_i = 1] - E[Y_i | D_i = 0] &= (E[Y_{1i} | D_i = 1] - E[Y_{0i}|D_i = 1] ) \\
+&+ (E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0]) \\
+&= (E[Y_{1i}-Y_{0i}|D_i = 1] ) \\
+&+ (E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0])
 \end{aligned}
 $$
 
 This equation decomposes the **observed difference** into two components:
 
--   
+-   Treatment Effect on the Treated: $E[Y_{1i} - Y_{0i} |D_i = 1]$, which represents the causal impact of the treatment on those who are treated.
 
 -   **Selection Bias**:\
     $E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0]$, which captures systematic differences between treated and untreated groups **even in the absence of treatment**.
@@ -396,7 +398,9 @@ data <- data.frame(
 )
 
 # Crossover ANOVA
-anova_crossover <- aov(Response ~ Treatment + Period + Error(Subject/Period), data = data)
+anova_crossover <-
+  aov(Response ~ Treatment + Period + Error(Subject / Period),
+      data = data)
 summary(anova_crossover)
 #> 
 #> Error: Subject
@@ -457,9 +461,13 @@ set.seed(123)
 # Simulated dataset for a split-plot experiment
 data <- data.frame(
   Farm = rep(1:6, each = 4), # 6 farms (whole plots)
-  Irrigation = rep(c("Drip", "Sprinkler"), each = 12), # Whole-plot factor
+  
+  # Whole-plot factor
+  Irrigation = rep(c("Drip", "Sprinkler"), each = 12), 
   Soil = rep(c("Clay", "Sand"), times = 12), # Sub-plot factor
-  Yield = c(rnorm(12, mean=30, sd=5), rnorm(12, mean=35, sd=5)) # Response variable
+  
+  # Response variable
+  Yield = c(rnorm(12, mean=30, sd=5), rnorm(12, mean=35, sd=5)) 
 )
 
 # Load mixed-effects model library
@@ -552,12 +560,18 @@ set.seed(123)
 latin_square <- data.frame(
   Shift = rep(1:3, each = 3), # Rows
   Workstation = rep(1:3, times = 3), # Columns
-  Method = c("A", "B", "C", "C", "A", "B", "B", "C", "A"), # Treatments assigned in a balanced way
-  Time = c(rnorm(3, mean=30, sd=3), rnorm(3, mean=28, sd=3), rnorm(3, mean=32, sd=3)) # Assembly time
+  
+  # Treatments assigned in a balanced way
+  Method = c("A", "B", "C", "C", "A", "B", "B", "C", "A"), 
+  Time = c(rnorm(3, mean = 30, sd = 3),
+           rnorm(3, mean = 28, sd = 3),
+           rnorm(3, mean = 32, sd = 3)) # Assembly time
 )
 
 # ANOVA for Latin Square Design
-anova_latin <- aov(Time ~ factor(Shift) + factor(Workstation) + factor(Method), data = latin_square)
+anova_latin <-
+  aov(Time ~ factor(Shift) + factor(Workstation) + factor(Method),
+      data = latin_square)
 summary(anova_latin)
 #>                     Df Sum Sq Mean Sq F value Pr(>F)
 #> factor(Shift)        2  1.148   0.574   0.079  0.927
@@ -592,7 +606,9 @@ set.seed(123)
 # Create stratified groups
 data <- data.frame(
   income_group = rep(c("Low", "Medium", "High"), each = 10),
-  treatment = sample(rep(c("New Policy", "Old Policy"), each = 15)) # Stratified randomization
+  
+  # Stratified randomization
+  treatment = sample(rep(c("New Policy", "Old Policy"), each = 15)) 
 )
 
 # Display the stratification results
@@ -879,7 +895,10 @@ balance_criterion <- function(X, group) {
   cov_inv <- solve(cov(X))
   M <- t(mean_diff) %*% cov_inv %*% mean_diff
   
-  return(M < 3.84)  # Acceptable threshold (chi-squared critical value for k = 2, alpha = 0.05)
+  
+  # Acceptable threshold 
+  # (chi-squared critical value for k = 2, alpha = 0.05)
+  return(M < 3.84)  
 }
 
 # Repeat randomization until balance is met
@@ -995,14 +1014,13 @@ $$
 D_{ik} &= \gamma_0 + \gamma_1 Z_{ik} + v_{ik} \\
 Y_{ik} &= \beta_0 + \beta_1 D_{ik} + \epsilon_{ik}
 \end{aligned}
-$$
-where:
+$$ where:
 
 -   $\gamma_1$ measures the effect of assignment on actual treatment received.
 
 -   $\beta_1$ estimates the treatment effect, adjusting for noncompliance.
 
-If individuals influence each other\'s outcomes, traditional randomization is biased. Solutions include:
+If individuals influence each other's outcomes, traditional randomization is biased. Solutions include:
 
 1.  **Cluster Randomization**: Assigning treatments at the group level (e.g., entire social circles receive the same ad).
 
@@ -1025,7 +1043,8 @@ data <- data.frame(
 data$D <- ifelse(runif(n) < 0.8, data$Z, 1 - data$Z)
 
 # Generate outcome variable (Y) with true treatment effect
-data$Y <- 5 + 3 * data$D + rnorm(n, mean = 0, sd = 2)  # True effect of D on Y is 3
+# True effect of D on Y is 3
+data$Y <- 5 + 3 * data$D + rnorm(n, mean = 0, sd = 2)  
 
 # Estimate Two-Stage Least Squares (2SLS)
 iv_model <- ivreg(Y ~ D | Z, data = data)
@@ -1064,20 +1083,17 @@ If interference is present, the standard IV method may be biased. Researchers sh
 
 ## Emerging Research
 
-
 Recent research highlights significant challenges in measuring the causal effects of ad content in online advertising experiments. Digital advertising platforms employ algorithmic targeting and dynamic ad delivery mechanisms, which can introduce systematic biases in A/B testing [@braun2025where]. Key concerns include:
 
-- **Nonrandom Exposure**: Online advertising platforms optimize ad delivery dynamically, meaning users are not randomly assigned to different ad variants. Instead, platforms use proprietary algorithms to serve ads to different, often highly heterogeneous, user groups.  
+-   **Nonrandom Exposure**: Online advertising platforms optimize ad delivery dynamically, meaning users are not randomly assigned to different ad variants. Instead, platforms use proprietary algorithms to serve ads to different, often highly heterogeneous, user groups.
 
-- **Divergent Delivery**: The optimization process can lead to "divergent delivery," where differences in user engagement patterns and platform objectives result in non-comparable treatment groups. This confounds the true effect of ad content with algorithmic biases in exposure.  
+-   **Divergent Delivery**: The optimization process can lead to "divergent delivery," where differences in user engagement patterns and platform objectives result in non-comparable treatment groups. This confounds the true effect of ad content with algorithmic biases in exposure.
 
-- **Bias in Measured Effects**: Algorithmic targeting, user heterogeneity, and data aggregation can distort both the **magnitude** and **direction** of estimated ad effects. This means traditional A/B test results may not accurately reflect the true impact of ad creatives.  
+-   **Bias in Measured Effects**: Algorithmic targeting, user heterogeneity, and data aggregation can distort both the **magnitude** and **direction** of estimated ad effects. This means traditional A/B test results may not accurately reflect the true impact of ad creatives.
 
-- **Limited Transparency**: Platforms have little incentive to assist advertisers or researchers in disentangling ad content effects from proprietary targeting mechanisms. As a result, experimenters must design careful identification strategies to mitigate these biases.  
+-   **Limited Transparency**: Platforms have little incentive to assist advertisers or researchers in disentangling ad content effects from proprietary targeting mechanisms. As a result, experimenters must design careful identification strategies to mitigate these biases.
 
-
-
-### Handling Zero-Valued Outcomes
+### Handling Zero-Valued Outcomes {#sec-handling-zero-valued-outcomes}
 
 When analyzing treatment effects, a common issue arises when the outcome variable includes **zero values**.
 
@@ -1282,16 +1298,16 @@ combined_res |>
 -   If we assume $c = 0.1$, meaning compliers' outcomes are 10% of always-takers', then the intensive-margin effect is 6.6 units higher for always-takers.
 -   If $c = 0.5$, meaning compliers' outcomes are 50% of always-takers', then the intensive-margin effect is 2.54 units higher.
 
-These results highlight how **assumptions about compliers affect conclusions** about the intensive margin.
+These results highlight how assumptions about compliers affect conclusions about the intensive margin.
 
-When dealing with **zero-valued outcomes**, log transformations are **not appropriate**. Instead:
+When dealing with [zero-valued outcomes](#sec-handling-zero-valued-outcomes), log transformations are not appropriate. Instead:
 
--   **Poisson QMLE** provides a robust way to estimate **percentage changes** in the outcome.
+-   **Poisson QMLE** provides a robust way to estimate percentage changes in the outcome.
 
 -   **Extensive vs. Intensive Margins** allow us to distinguish between:
 
-    -   The **probability** of a nonzero outcome (**extensive margin**).
+    -   The probability of a nonzero outcome (extensive margin).
 
-    -   The **magnitude** of change among those with a nonzero outcome (**intensive margin**).
+    -   The magnitude of change among those with a nonzero outcome (intensive margin).
 
--   **Lee Bounds** provide a method to estimate the **intensive-margin effect**, though results can be **sensitive to assumptions** about always-takers and compliers.
+-   **Lee Bounds** provide a method to estimate the intensive-margin effect, though results can be sensitive to assumptions about always-takers and compliers.

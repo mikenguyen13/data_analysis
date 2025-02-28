@@ -17,9 +17,7 @@ A well-chosen sample ensures that results generalize to the population, reducing
 
 ------------------------------------------------------------------------
 
-## Sampling Techniques
-
-### Probability Sampling
+## Probability Sampling
 
 Probability sampling methods ensure that every element in the population has a known, nonzero probability of being selected. These methods are preferred in inferential statistics since they allow for the estimation of sampling error.
 
@@ -253,7 +251,7 @@ cluster_sample <- filter(data, Cluster %in% chosen_clusters)
 
 -   Risk of unrepresentative clusters
 
-### Non-Probability Sampling
+## Non-Probability Sampling
 
 These methods do not give all elements a known probability of selection. They are used in exploratory research but are not suitable for making formal statistical inferences.
 

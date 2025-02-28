@@ -104,7 +104,7 @@
 <li><a class="active" href="experimental-design.html"><span class="header-section-number">22</span> Experimental Design</a></li>
 <li><a class="" href="sampling.html"><span class="header-section-number">23</span> Sampling</a></li>
 <li><a class="" href="sec-analysis-of-variance-anova.html"><span class="header-section-number">24</span> Analysis of Variance</a></li>
-<li><a class="" href="multivariate-methods.html"><span class="header-section-number">25</span> Multivariate Methods</a></li>
+<li><a class="" href="sec-multivariate-methods.html"><span class="header-section-number">25</span> Multivariate Methods</a></li>
 <li class="book-part">B. QUASI-EXPERIMENTAL DESIGN</li>
 <li><a class="" href="sec-quasi-experimental.html"><span class="header-section-number">26</span> Quasi-experimental</a></li>
 <li><a class="" href="regression-discontinuity.html"><span class="header-section-number">27</span> Regression Discontinuity</a></li>
@@ -238,15 +238,16 @@ E[Y_i | D_i = 1] - E[Y_i | D_i = 0]
 <p>Expanding this equation:</p>
 <p><span class="math display">\[
 \begin{aligned}
-E[Y_i | D_i = 1] - E[Y_i | D_i = 0] &amp;= (E[Y_{1i} | D_i = 1] - E[Y_{0i}|D_i = 1] ) + (E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0]) \\
-&amp;= (E[Y_{1i}-Y_{0i}|D_i = 1] ) + (E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0])
+E[Y_i | D_i = 1] - E[Y_i | D_i = 0] &amp;= (E[Y_{1i} | D_i = 1] - E[Y_{0i}|D_i = 1] ) \\
+&amp;+ (E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0]) \\
+&amp;= (E[Y_{1i}-Y_{0i}|D_i = 1] ) \\
+&amp;+ (E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0])
 \end{aligned}
 \]</span></p>
 <p>This equation decomposes the <strong>observed difference</strong> into two components:</p>
 <ul>
-<li>
-<li>
-<strong>Selection Bias</strong>:<br><span class="math inline">\(E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0]\)</span>, which captures systematic differences between treated and untreated groups <strong>even in the absence of treatment</strong>.</li>
+<li><p>Treatment Effect on the Treated: <span class="math inline">\(E[Y_{1i} - Y_{0i} |D_i = 1]\)</span>, which represents the causal impact of the treatment on those who are treated.</p></li>
+<li><p><strong>Selection Bias</strong>:<br><span class="math inline">\(E[Y_{0i} |D_i = 1] - E[Y_{0i} |D_i = 0]\)</span>, which captures systematic differences between treated and untreated groups <strong>even in the absence of treatment</strong>.</p></li>
 </ul>
 <p>Thus, the <strong>observed difference in outcomes</strong> is:</p>
 <p><span class="math display">\[
@@ -514,7 +515,9 @@ Y_{ijk} = \mu + \tau_i + \pi_j + \beta_k + \epsilon_{ijk}
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Crossover ANOVA</span></span>
-<span><span class="va">anova_crossover</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/aov.html">aov</a></span><span class="op">(</span><span class="va">Response</span> <span class="op">~</span> <span class="va">Treatment</span> <span class="op">+</span> <span class="va">Period</span> <span class="op">+</span> <span class="fu">Error</span><span class="op">(</span><span class="va">Subject</span><span class="op">/</span><span class="va">Period</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">data</span><span class="op">)</span></span>
+<span><span class="va">anova_crossover</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/aov.html">aov</a></span><span class="op">(</span><span class="va">Response</span> <span class="op">~</span> <span class="va">Treatment</span> <span class="op">+</span> <span class="va">Period</span> <span class="op">+</span> <span class="fu">Error</span><span class="op">(</span><span class="va">Subject</span> <span class="op">/</span> <span class="va">Period</span><span class="op">)</span>,</span>
+<span>      data <span class="op">=</span> <span class="va">data</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">anova_crossover</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Error: Subject</span></span>
@@ -578,9 +581,13 @@ Y_{ijk} = \mu + \alpha_i + B_k + \beta_j + (\alpha\beta)_{ij} + \epsilon_{ijk}
 <span><span class="co"># Simulated dataset for a split-plot experiment</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
 <span>  Farm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span>, each <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>, <span class="co"># 6 farms (whole plots)</span></span>
-<span>  Irrigation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Drip"</span>, <span class="st">"Sprinkler"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">12</span><span class="op">)</span>, <span class="co"># Whole-plot factor</span></span>
+<span>  </span>
+<span>  <span class="co"># Whole-plot factor</span></span>
+<span>  Irrigation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Drip"</span>, <span class="st">"Sprinkler"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">12</span><span class="op">)</span>, </span>
 <span>  Soil <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Clay"</span>, <span class="st">"Sand"</span><span class="op">)</span>, times <span class="op">=</span> <span class="fl">12</span><span class="op">)</span>, <span class="co"># Sub-plot factor</span></span>
-<span>  Yield <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">12</span>, mean<span class="op">=</span><span class="fl">30</span>, sd<span class="op">=</span><span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">12</span>, mean<span class="op">=</span><span class="fl">35</span>, sd<span class="op">=</span><span class="fl">5</span><span class="op">)</span><span class="op">)</span> <span class="co"># Response variable</span></span>
+<span>  </span>
+<span>  <span class="co"># Response variable</span></span>
+<span>  Yield <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">12</span>, mean<span class="op">=</span><span class="fl">30</span>, sd<span class="op">=</span><span class="fl">5</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">12</span>, mean<span class="op">=</span><span class="fl">35</span>, sd<span class="op">=</span><span class="fl">5</span><span class="op">)</span><span class="op">)</span> </span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Load mixed-effects model library</span></span>
@@ -658,12 +665,18 @@ Y_{ijk} = \mu + \alpha_i + \beta_j + \gamma_k + \epsilon_{ijk}
 <span><span class="va">latin_square</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
 <span>  Shift <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, each <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>, <span class="co"># Rows</span></span>
 <span>  Workstation <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, times <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>, <span class="co"># Columns</span></span>
-<span>  Method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"C"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"A"</span><span class="op">)</span>, <span class="co"># Treatments assigned in a balanced way</span></span>
-<span>  Time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">3</span>, mean<span class="op">=</span><span class="fl">30</span>, sd<span class="op">=</span><span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">3</span>, mean<span class="op">=</span><span class="fl">28</span>, sd<span class="op">=</span><span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">3</span>, mean<span class="op">=</span><span class="fl">32</span>, sd<span class="op">=</span><span class="fl">3</span><span class="op">)</span><span class="op">)</span> <span class="co"># Assembly time</span></span>
+<span>  </span>
+<span>  <span class="co"># Treatments assigned in a balanced way</span></span>
+<span>  Method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"C"</span>, <span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"A"</span><span class="op">)</span>, </span>
+<span>  Time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">3</span>, mean <span class="op">=</span> <span class="fl">30</span>, sd <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>           <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">3</span>, mean <span class="op">=</span> <span class="fl">28</span>, sd <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>           <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">3</span>, mean <span class="op">=</span> <span class="fl">32</span>, sd <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span> <span class="co"># Assembly time</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># ANOVA for Latin Square Design</span></span>
-<span><span class="va">anova_latin</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/aov.html">aov</a></span><span class="op">(</span><span class="va">Time</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">Shift</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">Workstation</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">Method</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">latin_square</span><span class="op">)</span></span>
+<span><span class="va">anova_latin</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/stats/aov.html">aov</a></span><span class="op">(</span><span class="va">Time</span> <span class="op">~</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">Shift</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">Workstation</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">factor</a></span><span class="op">(</span><span class="va">Method</span><span class="op">)</span>,</span>
+<span>      data <span class="op">=</span> <span class="va">latin_square</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">anova_latin</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                     Df Sum Sq Mean Sq F value Pr(&gt;F)</span></span>
 <span><span class="co">#&gt; factor(Shift)        2  1.148   0.574   0.079  0.927</span></span>
@@ -701,7 +714,9 @@ Y_{ijk} = \mu + \alpha_i + \beta_j + \gamma_k + \epsilon_{ijk}
 <span><span class="co"># Create stratified groups</span></span>
 <span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
 <span>  income_group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Low"</span>, <span class="st">"Medium"</span>, <span class="st">"High"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">10</span><span class="op">)</span>,</span>
-<span>  treatment <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"New Policy"</span>, <span class="st">"Old Policy"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">15</span><span class="op">)</span><span class="op">)</span> <span class="co"># Stratified randomization</span></span>
+<span>  </span>
+<span>  <span class="co"># Stratified randomization</span></span>
+<span>  treatment <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"New Policy"</span>, <span class="st">"Old Policy"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">15</span><span class="op">)</span><span class="op">)</span> </span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Display the stratification results</span></span>
@@ -1031,7 +1046,10 @@ M &gt; a
 <span>  <span class="va">cov_inv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/solve-methods.html">solve</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html">cov</a></span><span class="op">(</span><span class="va">X</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="va">M</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/t.html">t</a></span><span class="op">(</span><span class="va">mean_diff</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html">%*%</a></span> <span class="va">cov_inv</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html">%*%</a></span> <span class="va">mean_diff</span></span>
 <span>  </span>
-<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">M</span> <span class="op">&lt;</span> <span class="fl">3.84</span><span class="op">)</span>  <span class="co"># Acceptable threshold (chi-squared critical value for k = 2, alpha = 0.05)</span></span>
+<span>  </span>
+<span>  <span class="co"># Acceptable threshold </span></span>
+<span>  <span class="co"># (chi-squared critical value for k = 2, alpha = 0.05)</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">M</span> <span class="op">&lt;</span> <span class="fl">3.84</span><span class="op">)</span>  </span>
 <span><span class="op">}</span></span>
 <span></span>
 <span><span class="co"># Repeat randomization until balance is met</span></span>
@@ -1148,13 +1166,12 @@ Y_{ijk} = \mu + \alpha_i + \beta_{j(i)} + \epsilon_{ijk}
 D_{ik} &amp;= \gamma_0 + \gamma_1 Z_{ik} + v_{ik} \\
 Y_{ik} &amp;= \beta_0 + \beta_1 D_{ik} + \epsilon_{ik}
 \end{aligned}
-\]</span>
-where:</p>
+\]</span> where:</p>
 <ul>
 <li><p><span class="math inline">\(\gamma_1\)</span> measures the effect of assignment on actual treatment received.</p></li>
 <li><p><span class="math inline">\(\beta_1\)</span> estimates the treatment effect, adjusting for noncompliance.</p></li>
 </ul>
-<p>If individuals influence each other's outcomes, traditional randomization is biased. Solutions include:</p>
+<p>If individuals influence each other’s outcomes, traditional randomization is biased. Solutions include:</p>
 <ol style="list-style-type: decimal">
 <li><p><strong>Cluster Randomization</strong>: Assigning treatments at the group level (e.g., entire social circles receive the same ad).</p></li>
 <li><p><strong>Partial Interference Models</strong>: Assume interference only occurs within predefined groups.</p></li>
@@ -1175,7 +1192,8 @@ where:</p>
 <span><span class="va">data</span><span class="op">$</span><span class="va">D</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">0.8</span>, <span class="va">data</span><span class="op">$</span><span class="va">Z</span>, <span class="fl">1</span> <span class="op">-</span> <span class="va">data</span><span class="op">$</span><span class="va">Z</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Generate outcome variable (Y) with true treatment effect</span></span>
-<span><span class="va">data</span><span class="op">$</span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fl">5</span> <span class="op">+</span> <span class="fl">3</span> <span class="op">*</span> <span class="va">data</span><span class="op">$</span><span class="va">D</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>  <span class="co"># True effect of D on Y is 3</span></span>
+<span><span class="co"># True effect of D on Y is 3</span></span>
+<span><span class="va">data</span><span class="op">$</span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fl">5</span> <span class="op">+</span> <span class="fl">3</span> <span class="op">*</span> <span class="va">data</span><span class="op">$</span><span class="va">D</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>  </span>
 <span></span>
 <span><span class="co"># Estimate Two-Stage Least Squares (2SLS)</span></span>
 <span><span class="va">iv_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://zeileis.github.io/ivreg/reference/ivreg.html">ivreg</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="va">D</span> <span class="op">|</span> <span class="va">Z</span>, data <span class="op">=</span> <span class="va">data</span><span class="op">)</span></span>
@@ -1222,9 +1240,9 @@ where:</p>
 <li><p><strong>Bias in Measured Effects</strong>: Algorithmic targeting, user heterogeneity, and data aggregation can distort both the <strong>magnitude</strong> and <strong>direction</strong> of estimated ad effects. This means traditional A/B test results may not accurately reflect the true impact of ad creatives.</p></li>
 <li><p><strong>Limited Transparency</strong>: Platforms have little incentive to assist advertisers or researchers in disentangling ad content effects from proprietary targeting mechanisms. As a result, experimenters must design careful identification strategies to mitigate these biases.</p></li>
 </ul>
-<div id="handling-zero-valued-outcomes" class="section level3" number="22.6.1">
+<div id="sec-handling-zero-valued-outcomes" class="section level3" number="22.6.1">
 <h3>
-<span class="header-section-number">22.6.1</span> Handling Zero-Valued Outcomes<a class="anchor" aria-label="anchor" href="#handling-zero-valued-outcomes"><i class="fas fa-link"></i></a>
+<span class="header-section-number">22.6.1</span> Handling Zero-Valued Outcomes<a class="anchor" aria-label="anchor" href="#sec-handling-zero-valued-outcomes"><i class="fas fa-link"></i></a>
 </h3>
 <p>When analyzing treatment effects, a common issue arises when the outcome variable includes <strong>zero values</strong>.</p>
 <p>For example, in business applications, a marketing intervention may have <strong>no effect on some customers</strong> (resulting in zero sales). If we were to apply a <a href="variable-transformation.html#sec-logarithmic-transformation">log transformation</a> to the outcome variable, this would be problematic because:</p>
@@ -1421,18 +1439,18 @@ E(Y(1) \| \text{Complier}) = (1 - c) E(Y(1) \| \text{Always-taker})
 <li>If we assume <span class="math inline">\(c = 0.1\)</span>, meaning compliers’ outcomes are 10% of always-takers’, then the intensive-margin effect is 6.6 units higher for always-takers.</li>
 <li>If <span class="math inline">\(c = 0.5\)</span>, meaning compliers’ outcomes are 50% of always-takers’, then the intensive-margin effect is 2.54 units higher.</li>
 </ul>
-<p>These results highlight how <strong>assumptions about compliers affect conclusions</strong> about the intensive margin.</p>
-<p>When dealing with <strong>zero-valued outcomes</strong>, log transformations are <strong>not appropriate</strong>. Instead:</p>
+<p>These results highlight how assumptions about compliers affect conclusions about the intensive margin.</p>
+<p>When dealing with <a href="experimental-design.html#sec-handling-zero-valued-outcomes">zero-valued outcomes</a>, log transformations are not appropriate. Instead:</p>
 <ul>
-<li><p><strong>Poisson QMLE</strong> provides a robust way to estimate <strong>percentage changes</strong> in the outcome.</p></li>
+<li><p><strong>Poisson QMLE</strong> provides a robust way to estimate percentage changes in the outcome.</p></li>
 <li>
 <p><strong>Extensive vs. Intensive Margins</strong> allow us to distinguish between:</p>
 <ul>
-<li><p>The <strong>probability</strong> of a nonzero outcome (<strong>extensive margin</strong>).</p></li>
-<li><p>The <strong>magnitude</strong> of change among those with a nonzero outcome (<strong>intensive margin</strong>).</p></li>
+<li><p>The probability of a nonzero outcome (extensive margin).</p></li>
+<li><p>The magnitude of change among those with a nonzero outcome (intensive margin).</p></li>
 </ul>
 </li>
-<li><p><strong>Lee Bounds</strong> provide a method to estimate the <strong>intensive-margin effect</strong>, though results can be <strong>sensitive to assumptions</strong> about always-takers and compliers.</p></li>
+<li><p><strong>Lee Bounds</strong> provide a method to estimate the intensive-margin effect, though results can be sensitive to assumptions about always-takers and compliers.</p></li>
 </ul>
 </div>
 </div>
@@ -1473,7 +1491,7 @@ E(Y(1) \| \text{Complier}) = (1 - c) E(Y(1) \| \text{Always-taker})
 </ul>
 </li>
 <li>
-<a class="nav-link" href="#emerging-research"><span class="header-section-number">22.6</span> Emerging Research</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#handling-zero-valued-outcomes"><span class="header-section-number">22.6.1</span> Handling Zero-Valued Outcomes</a></li></ul>
+<a class="nav-link" href="#emerging-research"><span class="header-section-number">22.6</span> Emerging Research</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#sec-handling-zero-valued-outcomes"><span class="header-section-number">22.6.1</span> Handling Zero-Valued Outcomes</a></li></ul>
 </li>
 </ul>
 
@@ -1492,7 +1510,7 @@ E(Y(1) \| \text{Complier}) = (1 - c) E(Y(1) \| \text{Always-taker})
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-02-18.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-02-27.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

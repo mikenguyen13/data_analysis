@@ -1781,13 +1781,13 @@ y_trans <- sqrt(y)
 model_trans <- lm(y_trans ~ x)
 
 # Compare residual plots
-par(mfrow = c(2, 1))
+par(mfrow = c(2, 1), mar = c(4, 4, 2, 1))
 
 # Residual plot for raw data
 plot(
     fitted(model_raw),
     resid(model_raw),
-    main = "Residuals: Raw Data",
+    main = "Residuals Raw Data",
     xlab = "Fitted Values",
     ylab = "Residuals"
 )
@@ -4876,30 +4876,46 @@ Spatial Weight Matrix ($W$): $W$ defines the spatial relationship between observ
 
 ```r
 # Load necessary packages
+library(sf)
 library(spdep)
 
 # Simulate spatial data (example with mtcars dataset)
 coords <- cbind(mtcars$hp, mtcars$wt)  # Coordinates based on two variables
-neighbors <- knn2nb(knearneigh(coords, k = 3))  # Nearest neighbors
-weights <- nb2listw(neighbors, style = "W")  # Spatial weights
+
+# Add small jitter to avoid duplicate coordinates
+set.seed(123)  # For reproducibility
+coords_jittered <-
+    coords + matrix(runif(length(coords),-0.01, 0.01), ncol = 2)
+
+# Find nearest neighbors
+neighbors <- knn2nb(knearneigh(coords_jittered, k = 3))
+
+# Create spatial weights matrix
+weights <- nb2listw(neighbors, style = "W")  # Row-standardized weights
+
+# Fit the linear model
+model <- lm(mpg ~ hp + wt, data = mtcars)
+
+# Check lengths of residuals and weights
+length(model$residuals)  # Should be 32
+#> [1] 32
+length(weights$neighbours)  # Should also be 32
+#> [1] 32
 
 # Compute Moran's I for residuals
-model <- lm(mpg ~ hp + wt, data = mtcars)
 moran_test <- moran.test(model$residuals, weights)
-
-# Results
-moran_test
+print(moran_test)
 #> 
 #> 	Moran I test under randomisation
 #> 
 #> data:  model$residuals  
 #> weights: weights    
 #> 
-#> Moran I statistic standard deviate = 1.5146, p-value = 0.06494
+#> Moran I statistic standard deviate = 1.7679, p-value = 0.03854
 #> alternative hypothesis: greater
 #> sample estimates:
 #> Moran I statistic       Expectation          Variance 
-#>        0.15425069       -0.03225806        0.01516371
+#>        0.18544790       -0.03225806        0.01516371
 
 # Moran's scatterplot
 moran.plot(model$residuals, weights, main = "Moran's Scatterplot")

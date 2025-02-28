@@ -1,192 +1,328 @@
-# Multivariate Methods
+# Multivariate Methods {#sec-multivariate-methods}
 
-$y_1,...,y_p$ are possibly correlated random variables with means $\mu_1,...,\mu_p$
+In the previous section on ANOVA, we examined how to compare means across multiple groups. However, ANOVA primarily deals with a **single response variable**. In many business and financial applications, we often need to analyze multiple interrelated variables simultaneously. For instance:
+
+-   In **marketing**, customer purchase behavior, brand perception, and loyalty scores are often studied together.
+-   In **finance**, portfolio risk assessment involves analyzing correlations between different asset returns.
+
+To handle such cases, we use [multivariate methods](#sec-multivariate-methods), which extend classical statistical techniques to multiple dependent variables. At the core of multivariate analysis lies the [covariance matrix](#sec-covariance-matrix-multivariate), which captures relationships between multiple random variables.
+
+## Basic Understanding
+
+### Multivariate Random Vectors
+
+Let $y_1, \dots, y_p$ be random variables, possibly correlated, with means $\mu_1, \dots, \mu_p$. We define the random vector:
 
 $$
-\mathbf{y} = 
-\left(
-\begin{array}
-{c}
+\mathbf{y} =
+\begin{bmatrix}
 y_1 \\
-. \\
-y_p \\
-\end{array}
-\right)
+\vdots \\
+y_p
+\end{bmatrix}
 $$
 
+The expected value (mean vector) is:
+
 $$
-E(\mathbf{y}) = 
-\left(
-\begin{array}
-{c}
+E(\mathbf{y}) =
+\begin{bmatrix}
 \mu_1 \\
-. \\
-\mu_p \\
-\end{array}
-\right)
+\vdots \\
+\mu_p
+\end{bmatrix}
 $$
 
-Let $\sigma_{ij} = cov(y_i, y_j)$ for $i,j = 1,…,p$
+### Covariance Matrix {#sec-covariance-matrix-multivariate}
+
+The covariance between any two variables $y_i$ and $y_j$ is:
 
 $$
-\mathbf{\Sigma} = (\sigma_{ij}) = 
-\left(
-\begin{array}
-{cccc}
-\sigma_{11} & \sigma_{22} & ... &  \sigma_{1p} \\
-\sigma_{21} & \sigma_{22} & ... & \sigma_{2p} \\
-. & . & . & . \\
-\sigma_{p1} & \sigma_{p2} & ... & \sigma_{pp}
-\end{array}
-\right)
+\sigma_{ij} = \text{cov}(y_i, y_j) = E[(y_i - \mu_i)(y_j - \mu_j)]
 $$
 
-where $\mathbf{\Sigma}$ (symmetric) is the variance-covariance or dispersion matrix
-
-Let $\mathbf{u}_{p \times 1}$ and $\mathbf{v}_{q \times 1}$ be random vectors with means $\mu_u$ and $\mu_v$ . Then
+This leads to the **variance-covariance matrix**, also called the **dispersion matrix**:
 
 $$
-\mathbf{\Sigma}_{uv} = cov(\mathbf{u,v}) = E[(\mathbf{u} - \mu_u)(\mathbf{v} - \mu_v)']
+\mathbf{\Sigma} = (\sigma_{ij}) =
+\begin{bmatrix}
+\sigma_{11} & \sigma_{12} & \dots & \sigma_{1p} \\
+\sigma_{21} & \sigma_{22} & \dots & \sigma_{2p} \\
+\vdots & \vdots & \ddots & \vdots \\
+\sigma_{p1} & \sigma_{p2} & \dots & \sigma_{pp}
+\end{bmatrix}
 $$
 
-in which $\mathbf{\Sigma}_{uv} \neq \mathbf{\Sigma}_{vu}$ and $\mathbf{\Sigma}_{uv} = \mathbf{\Sigma}_{vu}'$
+where $\sigma_{ii} = \text{Var}(y_i)$ represents the variance of $y_i$. Since covariance is symmetric, we have:
 
-\
-**Properties of Covariance Matrices**
+$$
+\sigma_{ij} = \sigma_{ji}, \quad \forall i, j.
+$$
 
-1.  Symmetric $\mathbf{\Sigma}' = \mathbf{\Sigma}$
-2.  Non-negative definite $\mathbf{a'\Sigma a} \ge 0$ for any $\mathbf{a} \in R^p$, which is equivalent to eigenvalues of $\mathbf{\Sigma}$, $\lambda_1 \ge \lambda_2 \ge ... \ge \lambda_p \ge 0$
-3.  $|\mathbf{\Sigma}| = \lambda_1 \lambda_2 ... \lambda_p \ge 0$ (**generalized variance**) (the bigger this number is, the more variation there is
-4.  $trace(\mathbf{\Sigma}) = tr(\mathbf{\Sigma}) = \lambda_1 + ... + \lambda_p = \sigma_{11} + ... + \sigma_{pp} =$ sum of variance (**total variance**)
+If we consider two random vectors $\mathbf{u}_{p \times 1}$ and $\mathbf{v}_{q \times 1}$ with means $\mu_u$ and $\mu_v$, their **cross-covariance matrix** is:
 
-Note:
+$$
+\mathbf{\Sigma}_{uv} = \text{cov}(\mathbf{u}, \mathbf{v}) = E[(\mathbf{u} - \mu_u)(\mathbf{v} - \mu_v)']
+$$
 
--   $\mathbf{\Sigma}$ is typically required to be positive definite, which means all eigenvalues are positive, and $\mathbf{\Sigma}$ has an inverse $\mathbf{\Sigma}^{-1}$ such that $\mathbf{\Sigma}^{-1}\mathbf{\Sigma} = \mathbf{I}_{p \times p} = \mathbf{\Sigma \Sigma}^{-1}$
+where $\mathbf{\Sigma}_{uv} \neq \mathbf{\Sigma}_{vu}$, but they satisfy:
 
-**Correlation Matrices**
+$$
+\mathbf{\Sigma}_{uv} = \mathbf{\Sigma}_{vu}'.
+$$
+
+#### Properties of Covariance Matrices
+
+A valid covariance matrix $\mathbf{\Sigma}$ satisfies the following properties:
+
+1.  **Symmetry**:\
+    $$\mathbf{\Sigma}' = \mathbf{\Sigma}.$$
+
+2.  **Non-negative definiteness**:\
+    $$\mathbf{a}'\mathbf{\Sigma} \mathbf{a} \geq 0, \quad \forall \mathbf{a} \in \mathbb{R}^p,$$ which implies that the **eigenvalues** $\lambda_1, \dots, \lambda_p$ satisfy: $$\lambda_1 \geq \lambda_2 \geq \dots \geq \lambda_p \geq 0.$$
+
+3.  **Generalized variance** (determinant of $\mathbf{\Sigma}$):\
+    $$|\mathbf{\Sigma}| = \lambda_1 \lambda_2 \dots \lambda_p \geq 0.$$
+
+4.  **Total variance** (trace of $\mathbf{\Sigma}$):\
+    $$\text{tr}(\mathbf{\Sigma}) = \sum_{i=1}^{p} \lambda_i = \sum_{i=1}^{p} \sigma_{ii}.$$
+
+5.  **Positive definiteness** (a common assumption in multivariate analysis):
+
+    -   All eigenvalues of $\mathbf{\Sigma}$ are strictly positive.
+    -   $\mathbf{\Sigma}$ has an inverse $\mathbf{\Sigma}^{-1}$, satisfying: $$\mathbf{\Sigma}^{-1} \mathbf{\Sigma} = \mathbf{I}_{p \times p} = \mathbf{\Sigma} \mathbf{\Sigma}^{-1}.$$
+
+#### Correlation Matrices
+
+The **correlation matrix** provides a standardized measure of linear relationships between variables. The correlation between two variables $y_i$ and $y_j$ is defined as:
 
 $$
 \rho_{ij} = \frac{\sigma_{ij}}{\sqrt{\sigma_{ii} \sigma_{jj}}}
 $$
 
+where $\sigma_{ij}$ is the covariance and $\sigma_{ii}$ and $\sigma_{jj}$ are variances.
+
+Thus, the **correlation matrix** $\mathbf{R}$ is:
+
 $$
 \mathbf{R} = 
-\left(
-\begin{array}
-{cccc}
-\rho_{11} & \rho_{12} & ... & \rho_{1p} \\
-\rho_{21} & \rho_{22} & ... & \rho_{2p} \\
-. & . & . &. \\
-\rho_{p1} & \rho_{p2} & ... & \rho_{pp} \\
-\end{array}
-\right)
+\begin{bmatrix}
+\rho_{11} & \rho_{12} & \dots & \rho_{1p} \\
+\rho_{21} & \rho_{22} & \dots & \rho_{2p} \\
+\vdots & \vdots & \ddots & \vdots \\
+\rho_{p1} & \rho_{p2} & \dots & \rho_{pp}
+\end{bmatrix}
 $$
 
-where $\rho_{ij}$ is the correlation, and $\rho_{ii} = 1$ for all i
+where $\rho_{ii} = 1$ for all $i$.
 
-Alternatively,
-
-$$
-\mathbf{R} = [diag(\mathbf{\Sigma})]^{-1/2}\mathbf{\Sigma}[diag(\mathbf{\Sigma})]^{-1/2}
-$$
-
-where $diag(\mathbf{\Sigma})$ is the matrix which has the $\sigma_{ii}$'s on the diagonal and 0's elsewhere
-
-and $\mathbf{A}^{1/2}$ (the square root of a symmetric matrix) is a symmetric matrix such as $\mathbf{A} = \mathbf{A}^{1/2}\mathbf{A}^{1/2}$
-
-**Equalities**
-
-Let
-
--   $\mathbf{x}$ and $\mathbf{y}$ be random vectors with means $\mu_x$ and $\mu_y$ and variance -variance matrices $\mathbf{\Sigma}_x$ and $\mathbf{\Sigma}_y$.
-
--   $\mathbf{A}$ and $\mathbf{B}$ be matrices of constants and $\mathbf{c}$ and $\mathbf{d}$ be vectors of constants
-
-Then
-
--   $E(\mathbf{Ay + c} ) = \mathbf{A} \mu_y + c$
-
--   $var(\mathbf{Ay + c}) = \mathbf{A} var(\mathbf{y})\mathbf{A}' = \mathbf{A \Sigma_y A}'$
-
--   $cov(\mathbf{Ay + c, By+ d}) = \mathbf{A\Sigma_y B}'$
-
--   $E(\mathbf{Ay + Bx + c}) = \mathbf{A \mu_y + B \mu_x + c}$
-
--   $var(\mathbf{Ay + Bx + c}) = \mathbf{A \Sigma_y A' + B \Sigma_x B' + A \Sigma_{yx}B' + B\Sigma'_{yx}A'}$
-
-**Multivariate Normal Distribution**
-
-Let $\mathbf{y}$ be a multivariate normal (MVN) random variable with mean $\mu$ and variance $\mathbf{\Sigma}$. Then the density of $\mathbf{y}$ is
+Alternatively, the correlation matrix can be expressed as:
 
 $$
-f(\mathbf{y}) = \frac{1}{(2\pi)^{p/2}|\mathbf{\Sigma}|^{1/2}} \exp(-\frac{1}{2} \mathbf{(y-\mu)'\Sigma^{-1}(y-\mu)} )
+\mathbf{R} = [\text{diag}(\mathbf{\Sigma})]^{-1/2} \mathbf{\Sigma} [\text{diag}(\mathbf{\Sigma})]^{-1/2}
 $$
 
-$\mathbf{y} \sim N_p(\mu, \mathbf{\Sigma})$
+where:
 
-### Properties of MVN
+-   $\text{diag}(\mathbf{\Sigma})$ is a diagonal matrix with elements $\sigma_{ii}$ on the diagonal and zeros elsewhere.
+-   $\mathbf{A}^{1/2}$ (the square root of a symmetric matrix) is a symmetric matrix satisfying $\mathbf{A} = \mathbf{A}^{1/2} \mathbf{A}^{1/2}$.
 
--   Let $\mathbf{A}_{r \times p}$ be a fixed matrix. Then $\mathbf{Ay} \sim N_r (\mathbf{A \mu, A \Sigma A'})$ . $r \le p$ and all rows of $\mathbf{A}$ must be linearly independent to guarantee that $\mathbf{A \Sigma A}'$ is non-singular.
+------------------------------------------------------------------------
 
--   Let $\mathbf{G}$ be a matrix such that $\mathbf{\Sigma}^{-1} = \mathbf{GG}'$. Then $\mathbf{G'y} \sim N_p(\mathbf{G' \mu, I})$ and $\mathbf{G'(y-\mu)} \sim N_p (0,\mathbf{I})$
+### Equalities in Expectation and Variance
 
--   Any fixed linear combination of $y_1,...,y_p$ (say $\mathbf{c'y}$) follows $\mathbf{c'y} \sim N_1 (\mathbf{c' \mu, c' \Sigma c})$
+Let:
 
--   Define a partition, $[\mathbf{y}'_1,\mathbf{y}_2']'$ where
+-   $\mathbf{x}$ and $\mathbf{y}$ be random vectors with means $\mu_x$ and $\mu_y$ and covariance matrices $\mathbf{\Sigma}_x$ and $\mathbf{\Sigma}_y$.
+-   $\mathbf{A}$ and $\mathbf{B}$ be matrices of constants, and $\mathbf{c}$ and $\mathbf{d}$ be vectors of constants.
 
-    -   $\mathbf{y}_1$ is $p_1 \times 1$
+Then the following properties hold:
 
-    -   $\mathbf{y}_2$ is $p_2 \times 1$,
+1.  **Expectation transformations**: $$
+    E(\mathbf{Ay + c}) = \mathbf{A} \mu_y + \mathbf{c}
+    $$
 
-    -   $p_1 + p_2 = p$
+2.  **Variance transformations**: $$
+    \text{Var}(\mathbf{Ay + c}) = \mathbf{A} \text{Var}(\mathbf{y}) \mathbf{A}' = \mathbf{A \Sigma_y A'}
+    $$
 
-    -   $p_1,p_2 \ge 1$ Then
+3.  **Covariance of linear transformations**: $$
+    \text{Cov}(\mathbf{Ay + c}, \mathbf{By + d}) = \mathbf{A \Sigma_y B'}
+    $$
+
+4.  **Expectation of combined variables**: $$
+    E(\mathbf{Ay + Bx + c}) = \mathbf{A} \mu_y + \mathbf{B} \mu_x + \mathbf{c}
+    $$
+
+5.  **Variance of combined variables**: $$
+    \text{Var}(\mathbf{Ay + Bx + c}) =
+    \mathbf{A \Sigma_y A' + B \Sigma_x B' + A \Sigma_{yx} B' + B\Sigma'_{yx}A'}
+    $$
+
+------------------------------------------------------------------------
+
+### Multivariate Normal Distribution
+
+The **multivariate normal distribution (MVN)** is fundamental in multivariate analysis. Let $\mathbf{y}$ be a multivariate normal random variable with mean $\mu$ and covariance matrix $\mathbf{\Sigma}$. Then its **probability density function (PDF)** is:
 
 $$
-\left(
-\begin{array}
-{c}
+f(\mathbf{y}) = \frac{1}{(2\pi)^{p/2} |\mathbf{\Sigma}|^{1/2}}
+\exp \left(-\frac{1}{2} (\mathbf{y} - \mu)' \mathbf{\Sigma}^{-1} (\mathbf{y} - \mu) \right).
+$$
+
+We denote this distribution as:
+
+$$
+\mathbf{y} \sim N_p(\mu, \mathbf{\Sigma}).
+$$
+
+------------------------------------------------------------------------
+
+#### Properties of the Multivariate Normal Distribution
+
+The multivariate normal distribution has several important properties that are fundamental to multivariate statistical methods.
+
+-   **Linear Transformations**:\
+    Let $\mathbf{A}_{r \times p}$ be a fixed matrix. Then:
+
+    $$
+    \mathbf{Ay} \sim N_r (\mathbf{A \mu}, \mathbf{A \Sigma A'})
+    $$
+
+    where $r \leq p$. Additionally, for $\mathbf{A \Sigma A'}$ to be **non-singular**, the rows of $\mathbf{A}$ must be **linearly independent**.
+
+-   **Standardization using Precision Matrix**:\
+    Let $\mathbf{G}$ be a matrix such that:
+
+    $$
+    \mathbf{\Sigma}^{-1} = \mathbf{GG}'
+    $$
+
+    Then:
+
+    $$
+    \mathbf{G'y} \sim N_p(\mathbf{G' \mu}, \mathbf{I})
+    $$
+
+    and:
+
+    $$
+    \mathbf{G'(y-\mu)} \sim N_p (0,\mathbf{I}).
+    $$
+
+    This transformation **whitens** the data, converting it into an identity covariance structure.
+
+-   **Linear Combinations**:\
+    Any fixed linear combination of $y_1, \dots, y_p$, say $\mathbf{c'y}$, follows:
+
+    $$
+    \mathbf{c'y} \sim N_1 (\mathbf{c' \mu}, \mathbf{c' \Sigma c}).
+    $$
+
+------------------------------------------------------------------------
+
+#### Partitioning the MVN Distribution
+
+Consider a partitioned random vector:
+
+$$
+\mathbf{y} =
+\begin{bmatrix}
 \mathbf{y}_1 \\
-\mathbf{y}_2 \\
-\end{array}
-\right)
+\mathbf{y}_2
+\end{bmatrix}
 \sim
-N
+N_p
 \left(
-\left(
-\begin{array}
-{c}
+\begin{bmatrix}
 \mu_1 \\
-\mu_2 \\
-\end{array}
-\right),
-\left(
-\begin{array}
-{cc}
+\mu_2
+\end{bmatrix},
+\begin{bmatrix}
 \mathbf{\Sigma}_{11} & \mathbf{\Sigma}_{12} \\
-\mathbf{\Sigma}_{21} & \mathbf{\Sigma}_{22}\\
-\end{array}
-\right)
-\right)
+\mathbf{\Sigma}_{21} & \mathbf{\Sigma}_{22}
+\end{bmatrix}
+\right).
 $$
 
--   The marginal distributions of $\mathbf{y}_1$ and $\mathbf{y}_2$ are $\mathbf{y}_1 \sim N_{p1}(\mathbf{\mu_1, \Sigma_{11}})$ and $\mathbf{y}_2 \sim N_{p2}(\mathbf{\mu_2, \Sigma_{22}})$
+where:
 
--   Individual components $y_1,...,y_p$ are all normally distributed $y_i \sim N_1(\mu_i, \sigma_{ii})$
+-   $\mathbf{y}_1$ is $p_1 \times 1$,
+-   $\mathbf{y}_2$ is $p_2 \times 1$,
+-   $p_1 + p_2 = p$,
+-   and $p_1, p_2 \geq 1$.
 
--   The conditional distribution of $\mathbf{y}_1$ and $\mathbf{y}_2$ is normal
+The marginal distributions of $\mathbf{y}_1$ and $\mathbf{y}_2$ are:
 
-    -   $\mathbf{y}_1 | \mathbf{y}_2 \sim N_{p1}(\mathbf{\mu_1 + \Sigma_{12} \Sigma_{22}^{-1}(y_2 - \mu_2),\Sigma_{11} - \Sigma_{12} \Sigma_{22}^{-1} \sigma_{21}})$
+$$
+\mathbf{y}_1 \sim N_{p_1}(\mathbf{\mu_1}, \mathbf{\Sigma_{11}})
+\quad \text{and} \quad
+\mathbf{y}_2 \sim N_{p_2}(\mathbf{\mu_2}, \mathbf{\Sigma_{22}}).
+$$
 
-        -   In this formula, we see if we know (have info about) $\mathbf{y}_2$, we can re-weight $\mathbf{y}_1$ 's mean, and the variance is reduced because we know more about $\mathbf{y}_1$ because we know $\mathbf{y}_2$
+Each component $y_i$ follows:
 
-    -   which is analogous to $\mathbf{y}_2 | \mathbf{y}_1$. And $\mathbf{y}_1$ and $\mathbf{y}_2$ are independently distrusted only if $\mathbf{\Sigma}_{12} = 0$
+$$
+y_i \sim N_1(\mu_i, \sigma_{ii}).
+$$
 
--   If $\mathbf{y} \sim N(\mathbf{\mu, \Sigma})$ and $\mathbf{\Sigma}$ is positive definite, then $\mathbf{(y-\mu)' \Sigma^{-1} (y - \mu)} \sim \chi^2_{(p)}$
+The **conditional distribution** of $\mathbf{y}_1$ given $\mathbf{y}_2$ is also normal:
 
--   If $\mathbf{y}_i$ are independent $N_p (\mathbf{\mu}_i , \mathbf{\Sigma}_i)$ random variables, then for fixed matrices $\mathbf{A}_{i(m \times p)}$, $\sum_{i=1}^k \mathbf{A}_i \mathbf{y}_i \sim N_m (\sum_{i=1}^{k} \mathbf{A}_i \mathbf{\mu}_i, \sum_{i=1}^k \mathbf{A}_i \mathbf{\Sigma}_i \mathbf{A}_i)$
+$$
+\mathbf{y}_1 | \mathbf{y}_2 \sim N_{p_1} \Big(
+\mathbf{\mu_1 + \Sigma_{12} \Sigma_{22}^{-1}(y_2 - \mu_2)},
+\mathbf{\Sigma_{11} - \Sigma_{12} \Sigma_{22}^{-1} \Sigma_{21}}
+\Big).
+$$
 
-**Multiple Regression**
+This equation shows that **knowing** $\mathbf{y}_2$ adjusts the mean of $\mathbf{y}_1$, and the variance is reduced.\
+Similarly, the conditional distribution of $\mathbf{y}_2$ given $\mathbf{y}_1$ follows the same structure.
+
+-   $\mathbf{y}_1$ and $\mathbf{y}_2$ are **independent** if and only if:
+
+    $$
+    \mathbf{\Sigma}_{12} = 0.
+    $$
+
+If $\mathbf{y} \sim N(\mathbf{\mu}, \mathbf{\Sigma})$ and $\mathbf{\Sigma}$ is **positive definite**, then:
+
+$$
+(\mathbf{y} - \mu)' \mathbf{\Sigma}^{-1} (\mathbf{y} - \mu) \sim \chi^2_p.
+$$
+
+This property is essential in **hypothesis testing** and **Mahalanobis distance calculations**.
+
+------------------------------------------------------------------------
+
+#### Summation of Independent MVN Variables
+
+If $\mathbf{y}_i$ are independent random vectors following:
+
+$$
+\mathbf{y}_i \sim N_p (\mathbf{\mu}_i , \mathbf{\Sigma}_i),
+$$
+
+then for fixed matrices $\mathbf{A}_{i(m \times p)}$, the sum:
+
+$$
+\sum_{i=1}^k \mathbf{A}_i \mathbf{y}_i
+$$
+
+follows:
+
+$$
+\sum_{i=1}^k \mathbf{A}_i \mathbf{y}_i \sim N_m \Big(
+\sum_{i=1}^{k} \mathbf{A}_i \mathbf{\mu}_i, \sum_{i=1}^k \mathbf{A}_i \mathbf{\Sigma}_i \mathbf{A}_i'
+\Big).
+$$
+
+This property underpins **multivariate regression** and **linear discriminant analysis**.
+
+------------------------------------------------------------------------
+
+#### Multiple Regression
+
+In multivariate analysis, multiple regression extends simple regression to cases where multiple predictor variables influence a response variable. Suppose:
 
 $$
 \left(
@@ -217,174 +353,408 @@ N_{p+1}
 \right)
 $$
 
-The conditional distribution of Y given x follows a univariate normal distribution with
+where:
+
+-   $Y$ is a scalar response variable.
+-   $\mathbf{x}$ is a $p \times 1$ vector of predictors.
+-   $\mu_y$ and $\mathbf{\mu}_x$ are the respective means.
+-   $\sigma_Y^2$ is the variance of $Y$.
+-   $\mathbf{\Sigma}_{xx}$ is the covariance matrix of $\mathbf{x}$.
+-   $\mathbf{\Sigma}_{yx}$ is the covariance vector between $Y$ and $\mathbf{x}$.
+
+From the properties of the **multivariate normal distribution**, the conditional expectation of $Y$ given $\mathbf{x}$ is:
 
 $$
 \begin{aligned}
-E(Y| \mathbf{x}) &= \mu_y + \mathbf{\Sigma}_{yx} \Sigma_{xx}^{-1} (\mathbf{x}- \mu_x) \\
-&= \mu_y - \Sigma_{yx} \Sigma_{xx}^{-1}\mu_x + \Sigma_{yx} \Sigma_{xx}^{-1}\mathbf{x} \\
-&= \beta_0 + \mathbf{\beta'x}
-\end{aligned} 
-$$
-
-where $\beta = (\beta_1,...,\beta_p)' = \mathbf{\Sigma}_{xx}^{-1} \mathbf{\Sigma}_{yx}'$ (e.g., analogous to $\mathbf{(x'x)^{-1}x'y}$ but not the same if we consider $Y_i$ and $\mathbf{x}_i$, $i = 1,..,n$ and use the empirical covariance formula: $var(Y|\mathbf{x}) = \sigma^2_Y - \mathbf{\Sigma_{yx}\Sigma^{-1}_{xx} \Sigma'_{yx}}$)
-
-**Samples from Multivariate Normal Populations**
-
-A random sample of size n, $\mathbf{y}_1,.., \mathbf{y}_n$ from $N_p (\mathbf{\mu}, \mathbf{\Sigma})$. Then
-
--   Since $\mathbf{y}_1,..., \mathbf{y}_n$ are iid, their sample mean, $\bar{\mathbf{y}} = \sum_{i=1}^n \mathbf{y}_i/n \sim N_p (\mathbf{\mu}, \mathbf{\Sigma}/n)$. that is, $\bar{\mathbf{y}}$ is an unbiased estimator of $\mathbf{\mu}$
-
--   The $p \times p$ sample variance-covariance matrix, $\mathbf{S}$ is $\mathbf{S} = \frac{1}{n-1}\sum_{i=1}^n (\mathbf{y}_i - \bar{\mathbf{y}})(\mathbf{y}_i - \bar{\mathbf{y}})' = \frac{1}{n-1} (\sum_{i=1}^n \mathbf{y}_i \mathbf{y}_i' - n \bar{\mathbf{y}}\bar{\mathbf{y}}')$
-
-    -   where $\mathbf{S}$ is symmetric, unbiased estimator of $\mathbf{\Sigma}$ and has $p(p+1)/2$ random variables.
-
--   $(n-1)\mathbf{S} \sim W_p (n-1, \mathbf{\Sigma})$ is a Wishart distribution with n-1 degrees of freedom and expectation $(n-1) \mathbf{\Sigma}$. The Wishart distribution is a multivariate extension of the Chi-squared distribution.
-
--   $\bar{\mathbf{y}}$ and $\mathbf{S}$ are independent
-
--   $\bar{\mathbf{y}}$ and $\mathbf{S}$ are sufficient statistics. (All of the info in the data about $\mathbf{\mu}$ and $\mathbf{\Sigma}$ is contained in $\bar{\mathbf{y}}$ and $\mathbf{S}$ , regardless of sample size).
-
-**Large Sample Properties**
-
-$\mathbf{y}_1,..., \mathbf{y}_n$ are a random sample from some population with mean $\mathbf{\mu}$ and variance-covariance matrix $\mathbf{\Sigma}$
-
--   $\bar{\mathbf{y}}$ is a consistent estimator for $\mu$
-
--   $\mathbf{S}$ is a consistent estimator for $\mathbf{\Sigma}$
-
--   **Multivariate Central Limit Theorem**: Similar to the univariate case, $\sqrt{n}(\bar{\mathbf{y}} - \mu) \dot{\sim} N_p (\mathbf{0,\Sigma})$ where n is large relative to p ($n \ge 25p$), which is equivalent to $\bar{\mathbf{y}} \dot{\sim} N_p (\mu, \mathbf{\Sigma}/n)$
-
--   **Wald's Theorem**: $n(\bar{\mathbf{y}} - \mu)' \mathbf{S}^{-1} (\bar{\mathbf{y}} - \mu)$ when n is large relative to p.
-
-Maximum Likelihood Estimation for MVN
-
-Suppose iid $\mathbf{y}_1 ,... \mathbf{y}_n \sim N_p (\mu, \mathbf{\Sigma})$, the likelihood function for the data is
-
-$$
-\begin{aligned}
-L(\mu, \mathbf{\Sigma}) &= \prod_{j=1}^n (\frac{1}{(2\pi)^{p/2}|\mathbf{\Sigma}|^{1/2}} \exp(-\frac{1}{2}(\mathbf{y}_j -\mu)'\mathbf{\Sigma}^{-1})(\mathbf{y}_j -\mu)) \\
-&= \frac{1}{(2\pi)^{np/2}|\mathbf{\Sigma}|^{n/2}} \exp(-\frac{1}{2} \sum_{j=1}^n(\mathbf{y}_j -\mu)'\mathbf{\Sigma}^{-1})(\mathbf{y}_j -\mu)
+E(Y| \mathbf{x}) &= \mu_y + \mathbf{\Sigma}_{yx} \mathbf{\Sigma}_{xx}^{-1} (\mathbf{x}- \mathbf{\mu}_x) \\
+&= \mu_y - \mathbf{\Sigma}_{yx} \mathbf{\Sigma}_{xx}^{-1} \mathbf{\mu}_x + \mathbf{\Sigma}_{yx} \mathbf{\Sigma}_{xx}^{-1} \mathbf{x} \\
+&= \beta_0 + \mathbf{\beta' x},
 \end{aligned}
 $$
 
-Then, the MLEs are
+where:
+
+-   $\beta_0 = \mu_y - \mathbf{\Sigma}_{yx} \mathbf{\Sigma}_{xx}^{-1} \mathbf{\mu}_x$ (intercept).
+-   $\mathbf{\beta} = (\beta_1, \dots, \beta_p)' = \mathbf{\Sigma}_{xx}^{-1} \mathbf{\Sigma}_{yx}'$ (regression coefficients).
+
+This resembles the least squares estimator:
 
 $$
-\hat{\mu} = \bar{\mathbf{y}}
+\mathbf{\beta} = (\mathbf{x'x})^{-1} \mathbf{x'y},
+$$
+
+but differs when considering the theoretical covariance relationships rather than empirical estimates.
+
+The **conditional variance** of $Y$ given $\mathbf{x}$ is:
+
+$$
+\text{Var}(Y | \mathbf{x}) = \sigma^2_Y - \mathbf{\Sigma}_{yx} \mathbf{\Sigma}_{xx}^{-1} \mathbf{\Sigma'}_{yx}.
+$$
+
+This shows that knowing $\mathbf{x}$ **reduces uncertainty** in predicting $Y$.
+
+------------------------------------------------------------------------
+
+#### Samples from Multivariate Normal Populations
+
+Suppose we have a random sample of size $n$, denoted as:
+
+$$
+\mathbf{y}_1, \dots, \mathbf{y}_n \sim N_p (\mathbf{\mu}, \mathbf{\Sigma}).
+$$
+
+Then:
+
+1.  **Sample Mean**: The sample mean is given by:
+
+    $$
+    \bar{\mathbf{y}} = \frac{1}{n} \sum_{i=1}^n \mathbf{y}_i.
+    $$
+
+    Since $\mathbf{y}_i$ are independent and identically distributed (iid), it follows that:
+
+    $$
+    \bar{\mathbf{y}} \sim N_p (\mathbf{\mu}, \mathbf{\Sigma} / n).
+    $$
+
+    This implies that $\bar{\mathbf{y}}$ is an unbiased estimator of $\mathbf{\mu}$.
+
+2.  **Sample Covariance Matrix**: The $p \times p$ sample variance-covariance matrix is:
+
+    $$
+    \mathbf{S} = \frac{1}{n-1} \sum_{i=1}^n (\mathbf{y}_i - \bar{\mathbf{y}})(\mathbf{y}_i - \bar{\mathbf{y}})'.
+    $$
+
+    Expanding this:
+
+    $$
+    \mathbf{S} = \frac{1}{n-1} \left( \sum_{i=1}^n \mathbf{y}_i \mathbf{y}_i' - n \bar{\mathbf{y}} \bar{\mathbf{y}}' \right).
+    $$
+
+    -   $\mathbf{S}$ is symmetric.
+    -   $\mathbf{S}$ is an unbiased estimator of $\mathbf{\Sigma}$.
+    -   $\mathbf{S}$ contains $p(p+1)/2$ unique random variables.
+
+3.  **Wishart Distribution**: The scaled sample covariance matrix follows a Wishart distribution:
+
+    $$
+    (n-1) \mathbf{S} \sim W_p(n-1, \mathbf{\Sigma}).
+    $$
+
+    where:
+
+    -   $W_p(n-1, \mathbf{\Sigma})$ is a Wishart distribution with $n-1$ degrees of freedom.
+    -   $E[(n-1) \mathbf{S}] = (n-1) \mathbf{\Sigma}$.
+
+    The Wishart distribution is a multivariate generalization of the chi-square distribution.
+
+4.  **Independence of** $\bar{\mathbf{y}}$ and $\mathbf{S}$: The sample mean $\bar{\mathbf{y}}$ and sample covariance matrix $\mathbf{S}$ are independent:
+
+    $$
+    \bar{\mathbf{y}} \perp \mathbf{S}.
+    $$
+
+    This result is crucial for inference in multivariate hypothesis testing.
+
+5.  **Sufficiency of** $\bar{\mathbf{y}}$ and $\mathbf{S}$: The pair $(\bar{\mathbf{y}}, \mathbf{S})$ are sufficient statistics for $(\mathbf{\mu}, \mathbf{\Sigma})$.\
+    That is, all the information about $\mathbf{\mu}$ and $\mathbf{\Sigma}$ in the sample is contained in $\bar{\mathbf{y}}$ and $\mathbf{S}$, regardless of sample size.
+
+------------------------------------------------------------------------
+
+#### Large Sample Properties
+
+Consider a random sample $\mathbf{y}_1, \dots, \mathbf{y}_n$ drawn from a population with mean $\mathbf{\mu}$ and variance-covariance matrix $\mathbf{\Sigma}$.
+
+**Key Properties**
+
+-   **Consistency of Estimators**:
+
+    -   The sample mean $\bar{\mathbf{y}}$ is a consistent estimator of $\mathbf{\mu}$.
+    -   The sample covariance matrix $\mathbf{S}$ is a consistent estimator of $\mathbf{\Sigma}$.
+
+-   Multivariate [Central Limit Theorem]:
+
+    -   Similar to the univariate case, the sample mean follows approximately:
+
+        $$
+        \sqrt{n}(\bar{\mathbf{y}} - \mu) \dot{\sim} N_p (\mathbf{0}, \mathbf{\Sigma})
+        $$
+
+        This approximation holds when the sample size is large relative to the number of variables ($n \geq 25p$).
+
+    -   Equivalently, the sample mean follows:
+
+        $$
+        \bar{\mathbf{y}} \dot{\sim} N_p (\mathbf{\mu}, \mathbf{\Sigma} / n).
+        $$
+
+-   **Wald's Theorem**:
+
+    -   When $n$ is large relative to $p$:
+
+        $$
+        n(\bar{\mathbf{y}} - \mathbf{\mu})' \mathbf{S}^{-1} (\bar{\mathbf{y}} - \mathbf{\mu}) \sim \chi^2_p.
+        $$
+
+    This is useful for hypothesis testing about $\mathbf{\mu}$.
+
+------------------------------------------------------------------------
+
+#### Maximum Likelihood Estimation for MVN
+
+Suppose $\mathbf{y}_1, \dots, \mathbf{y}_n$ are iid random vectors from:
+
+$$
+\mathbf{y}_i \sim N_p (\mathbf{\mu}, \mathbf{\Sigma}).
+$$
+
+The likelihood function for the sample is:
+
+$$
+\begin{aligned}
+L(\mathbf{\mu}, \mathbf{\Sigma}) &= \prod_{j=1}^n \left[ \frac{1}{(2\pi)^{p/2}|\mathbf{\Sigma}|^{1/2}} 
+\exp \left(-\frac{1}{2} (\mathbf{y}_j - \mathbf{\mu})' \mathbf{\Sigma}^{-1} (\mathbf{y}_j - \mathbf{\mu}) \right) \right] \\
+&= \frac{1}{(2\pi)^{np/2}|\mathbf{\Sigma}|^{n/2}} 
+\exp \left(-\frac{1}{2} \sum_{j=1}^n (\mathbf{y}_j - \mathbf{\mu})' \mathbf{\Sigma}^{-1} (\mathbf{y}_j - \mathbf{\mu}) \right).
+\end{aligned}
+$$
+
+Taking the log-likelihood function and differentiating with respect to $\mathbf{\mu}$ and $\mathbf{\Sigma}$ leads to the maximum likelihood estimators:
+
+The MLE for the mean is simply the sample mean:
+
+$$
+\hat{\mathbf{\mu}} = \bar{\mathbf{y}}.
+$$
+
+The MLE for the covariance matrix is:
+
+$$
+\hat{\mathbf{\Sigma}} = \frac{n-1}{n} \mathbf{S}.
+$$
+
+where:
+
+$$
+\mathbf{S} = \frac{1}{n-1} \sum_{j=1}^n (\mathbf{y}_j - \bar{\mathbf{y}})(\mathbf{y}_j - \bar{\mathbf{y}})'.
+$$
+
+This differs from $\mathbf{S}$ by the factor $\frac{n-1}{n}$, making $\hat{\mathbf{\Sigma}}$ a **biased estimator** of $\mathbf{\Sigma}$.
+
+------------------------------------------------------------------------
+
+##### Properties of Maximum Likelihood Estimators
+
+MLEs have several important theoretical properties:
+
+1.  **Invariance**:
+    -   If $\hat{\theta}$ is the MLE of $\theta$, then the MLE of any function $h(\theta)$ is:
+
+        $$
+        h(\hat{\theta}).
+        $$
+2.  **Consistency**:
+    -   MLEs are consistent estimators, meaning they converge to the true parameter values as $n \to \infty$.
+    -   However, they can be biased for finite samples.
+3.  **Efficiency**:
+    -   MLEs are asymptotically efficient, meaning they achieve the Cramér-Rao lower bound for variance in large samples.
+    -   No other estimator has a smaller variance asymptotically.
+4.  **Asymptotic Normality**:
+    -   Suppose $\hat{\theta}_n$ is the MLE for $\theta$ based on $n$ independent observations.
+
+    -   Then, for large $n$:
+
+        $$
+        \hat{\theta}_n \dot{\sim} N(\theta, \mathbf{H}^{-1}),
+        $$
+
+        where $\mathbf{H}$ is the [Fisher Information Matrix], defined as:
+
+        $$
+        \mathbf{H}_{ij} = -E\left(\frac{\partial^2 l(\mathbf{\theta})}{\partial \theta_i \partial \theta_j}\right).
+        $$
+
+        -   The [Fisher Information Matrix] measures the amount of information in the data about $\theta$.
+        -   It can be estimated by evaluating the second derivatives of the log-likelihood function at $\hat{\theta}_n$.
+
+------------------------------------------------------------------------
+
+##### Likelihood Ratio Testing
+
+MLEs allow us to construct likelihood ratio tests for hypothesis testing.
+
+-   Suppose we test a null hypothesis $H_0$:
+
+    $$
+    H_0: \mathbf{\theta} \in \Theta_0 \quad \text{vs.} \quad H_A: \mathbf{\theta} \in \Theta.
+    $$
+
+-   The likelihood ratio statistic is:
+
+    $$
+    \Lambda = \frac{\max_{\theta \in \Theta_0} L(\mathbf{\mu}, \mathbf{\Sigma} | \mathbf{Y})}
+    {\max_{\theta \in \Theta} L(\mathbf{\mu}, \mathbf{\Sigma} | \mathbf{Y})}.
+    $$
+
+-   Under large sample conditions, we use the Wilks' theorem, which states:
+
+    $$
+    -2 \log \Lambda \sim \chi^2_v,
+    $$
+
+    where:
+
+    -   $v$ is the difference in the number of parameters between the unrestricted and restricted models.
+    -   This allows us to approximate the distribution of $-2 \log \Lambda$ using the chi-square distribution.
+
+------------------------------------------------------------------------
+
+### Test of Multivariate Normality
+
+Assessing multivariate normality is essential for many statistical techniques, including multivariate regression, principal component analysis, and MANOVA. Below are key methods for testing MVN.
+
+#### Univariate Normality Checks
+
+Before testing for multivariate normality, it is useful to check for univariate normality in each variable separately:
+
+-   Normality Assessment: Visual and statistical tests can be used to check normality.
+-   Key Property: If any univariate distribution is not normal, then the joint multivariate distribution cannot be normal.
+-   Important Caveat: Even if all univariate distributions are normal, this does not guarantee multivariate normality.
+
+Thus, **univariate normality is a necessary but not sufficient condition** for MVN.
+
+------------------------------------------------------------------------
+
+#### Mardia's Test for Multivariate Normality
+
+@mardia1970measures proposed two measures for assessing MVN:
+
+**1. Multivariate Skewness**
+
+Defined as:
+
+$$
+\beta_{1,p} = E[(\mathbf{y} - \mathbf{\mu})' \mathbf{\Sigma}^{-1} (\mathbf{x} - \mathbf{\mu})]^3,
+$$
+
+where $\mathbf{x}$ and $\mathbf{y}$ are independent but identically distributed.
+
+**2. Multivariate Kurtosis**
+
+Defined as:
+
+$$
+\beta_{2,p} = E[(\mathbf{y} - \mathbf{\mu})' \mathbf{\Sigma}^{-1} (\mathbf{x} - \mathbf{\mu})]^2.
+$$
+
+For a **true multivariate normal distribution**:
+
+$$
+\beta_{1,p} = 0, \quad \beta_{2,p} = p(p+2).
+$$
+
+**Sample Estimates**
+
+For a random sample of size $n$, we estimate:
+
+$$
+\hat{\beta}_{1,p} = \frac{1}{n^2} \sum_{i=1}^{n} \sum_{j=1}^{n} g^2_{ij},
 $$
 
 $$
-\hat{\mathbf{\Sigma}} = \frac{n-1}{n} \mathbf{S}
+\hat{\beta}_{2,p} = \frac{1}{n} \sum_{i=1}^{n} g^2_{ii},
 $$
 
-using derivatives of the log of the likelihood function with respect to $\mu$ and $\mathbf{\Sigma}$
+where:
 
-**Properties of MLEs**
+-   $g_{ij} = (\mathbf{y}_i - \bar{\mathbf{y}})' \mathbf{S}^{-1} (\mathbf{y}_j - \bar{\mathbf{y}})$,
+-   $g_{ii} = d_i^2$, which is the Mahalanobis distance.
 
--   Invariance: If $\hat{\theta}$ is the MLE of $\theta$, then the MLE of $h(\theta)$ is $h(\hat{\theta})$ for any function h(.)
+@mardia1970measures derived the following large-sample approximations:
 
--   Consistency: MLEs are consistent estimators, but they are usually biased
+$$
+\kappa_1 = \frac{n \hat{\beta}_{1,p}}{6} \dot{\sim} \chi^2_{p(p+1)(p+2)/6},
+$$
 
--   Efficiency: MLEs are efficient estimators (no other estimator has a smaller variance for large samples)
+$$
+\kappa_2 = \frac{\hat{\beta}_{2,p} - p(p+2)}{\sqrt{8p(p+2)/n}} \sim N(0,1).
+$$
 
--   Asymptotic normality: Suppose that $\hat{\theta}_n$ is the MLE for $\theta$ based upon n independent observations. Then $\hat{\theta}_n \dot{\sim} N(\theta, \mathbf{H}^{-1})$
+**Interpretation**
 
-    -   $\mathbf{H}$ is the Fisher Information Matrix, which contains the expected values of the second partial derivatives fo the log-likelihood function. the (i,j)th element of $\mathbf{H}$ is $-E(\frac{\partial^2 l(\mathbf{\theta})}{\partial \theta_i \partial \theta_j})$
+-   $\kappa_1$ and $\kappa_2$ are test statistics for the null hypothesis of MVN.
+-   Non-normality in means is associated with skewness ($\beta_{1,p}$).
+-   Non-normality in covariance is associated with kurtosis ($\beta_{2,p}$).
 
-    -   we can estimate $\mathbf{H}$ by finding the form determined above, and evaluate it at $\theta = \hat{\theta}_n$
+------------------------------------------------------------------------
 
--   Likelihood ratio testing: for some null hypothesis, $H_0$ we can form a likelihood ratio test
+#### Doornik-Hansen Test
 
-    -   The statistic is: $\Lambda = \frac{\max_{H_0}l(\mathbf{\mu}, \mathbf{\Sigma|Y})}{\max l(\mu, \mathbf{\Sigma | Y})}$
+-   This test transforms variables to approximate normality using skewness and kurtosis corrections [@doornik2008omnibus].
+-   Recommended when sample sizes are small.
 
-    -   For large n, $-2 \log \Lambda \sim \chi^2_{(v)}$ where v is the number of parameters in the unrestricted space minus the number of parameters under $H_0$
+#### Chi-Square Q-Q Plot
 
-**Test of Multivariate Normality**
+The Chi-Square Q-Q plot is a graphical method for assessing MVN:
 
--   Check univariate normality for each trait (X) separately
+1.  Compute Mahalanobis distances:
 
-    -   Can check $$Normality Assessment$$
+    $$
+    d_i^2 = (\mathbf{y}_i - \bar{\mathbf{y}})' \mathbf{S}^{-1} (\mathbf{y}_i - \bar{\mathbf{y}}).
+    $$
 
-    -   The good thing is that if any of the univariate trait is not normal, then the joint distribution is not normal (see again [m]). If a joint multivariate distribution is normal, then the marginal distribution has to be normal.
+2.  The transformed variables:
 
-    -   However, marginal normality of all traits does not imply joint MVN
+    $$
+    \mathbf{z}_i = \mathbf{\Sigma}^{-1/2}(\mathbf{y}_i - \mathbf{\mu})
+    $$
 
-    -   Easily rule out multivariate normality, but not easy to prove it
+    are iid from $N_p(\mathbf{0}, \mathbf{I})$, and thus:
 
--   Mardia's tests for multivariate normality
+    $$
+    d_i^2 \sim \chi^2_p.
+    $$
 
-    -   Multivariate skewness is$$
-        \beta_{1,p} = E[(\mathbf{y}- \mathbf{\mu})' \mathbf{\Sigma}^{-1} (\mathbf{x} - \mathbf{\mu})]^3
-        $$
+3.  Plot ordered $d_i^2$ values against the theoretical quantiles of the $\chi^2_p$ distribution.
 
-    -   where $\mathbf{x}$ and $\mathbf{y}$ are independent, but have the same distribution (note: $\beta$ here is not regression coefficient)
+**Interpretation**
 
-    -   Multivariate kurtosis is defined as
+-   If the data are MVN, the plot should resemble a straight line at 45°.
+-   Deviations suggest non-normality, especially in the tails.
 
-    -   $$
-        \beta_{2,p} - E[(\mathbf{y}- \mathbf{\mu})' \mathbf{\Sigma}^{-1} (\mathbf{x} - \mathbf{\mu})]^2
-        $$
+**Limitations**
 
-    -   For the MVN distribution, we have $\beta_{1,p} = 0$ and $\beta_{2,p} = p(p+2)$
+-   Requires a large sample size.
+-   Even when data are truly MVN, the tails may deviate.
 
-    -   For a sample of size n, we can estimate
+------------------------------------------------------------------------
 
-        $$
-        \hat{\beta}_{1,p} = \frac{1}{n^2}\sum_{i=1}^n \sum_{j=1}^n g^2_{ij}
-        $$
+#### Handling Non-Normality
 
-        $$
-        \hat{\beta}_{2,p} = \frac{1}{n} \sum_{i=1}^n g^2_{ii}
-        $$
+If data **fail** the multivariate normality tests, possible approaches include:
 
-        -   where $g_{ij} = (\mathbf{y}_i - \bar{\mathbf{y}})' \mathbf{S}^{-1} (\mathbf{y}_j - \bar{\mathbf{y}})$. Note: $g_{ii} = d^2_i$ where $d^2_i$ is the Mahalanobis distance
+1.  **Ignoring non-normality** (acceptable for large samples due to the CLT).
+2.  **Using nonparametric methods** (e.g., permutation tests).
+3.  **Applying approximate models** (e.g., [Generalized Linear Mixed Models]).
+4.  **Transforming the data** (e.g., log, Box-Cox, or rank transformations \@ref(variable-transformation)).
 
-    -   [@mardia1970measures] shows for large n
-
-        $$
-        \kappa_1 = \frac{n \hat{\beta}_{1,p}}{6} \dot{\sim} \chi^2_{p(p+1)(p+2)/6}
-        $$
-
-        $$
-        \kappa_2 = \frac{\hat{\beta}_{2,p} - p(p+2)}{\sqrt{8p(p+2)/n}} \sim N(0,1)
-        $$
-
-        -   Hence, we can use $\kappa_1$ and $\kappa_2$ to test the null hypothesis of MVN.
-
-        -   When the data are non-normal, normal theory tests on the mean are sensitive to $\beta_{1,p}$ , while tests on the covariance are sensitive to $\beta_{2,p}$
-
--   Alternatively, Doornik-Hansen test for multivariate normality [@doornik2008omnibus]
-
--   Chi-square Q-Q plot
-
-    -   Let $\mathbf{y}_i, i = 1,...,n$ be a random sample sample from $N_p(\mathbf{\mu}, \mathbf{\Sigma})$
-
-    -   Then $\mathbf{z}_i = \mathbf{\Sigma}^{-1/2}(\mathbf{y}_i - \mathbf{\mu}), i = 1,...,n$ are iid $N_p (\mathbf{0}, \mathbf{I})$. Thus, $d_i^2 = \mathbf{z}_i' \mathbf{z}_i \sim \chi^2_p , i = 1,...,n$
-
-    -   plot the ordered $d_i^2$ values against the qualities of the $\chi^2_p$ distribution. When normality holds, the plot should approximately resemble a straight lien passing through the origin at a 45 degree
-
-    -   it requires large sample size (i.e., sensitive to sample size). Even if we generate data from a MVN, the tail of the Chi-square Q-Q plot can still be out of line.
-
--   If the data are not normal, we can
-
-    -   ignore it
-
-    -   use nonparametric methods
-
-    -   use models based upon an approximate distribution (e.g., GLMM)
-
-    -   try performing a transformation
+------------------------------------------------------------------------
 
 
 ```r
-library(heplots)
-library(ICSNP)
-library(MVN)
-library(tidyverse)
+# Load necessary libraries
+library(heplots)      # Multivariate hypothesis tests
+library(ICSNP)        # Multivariate tests
+library(MVN)          # Multivariate normality tests
+library(tidyverse)    # Data wrangling & visualization
 
-trees = read.table("images/trees.dat")
-names(trees) <- c("Nitrogen","Phosphorous","Potassium","Ash","Height")
+
+# Load dataset
+trees <- read.table("images/trees.dat")
+names(trees) <-
+    c("Nitrogen", "Phosphorous", "Potassium", "Ash", "Height")
+
+# Structure of dataset
 str(trees)
 #> 'data.frame':	26 obs. of  5 variables:
 #>  $ Nitrogen   : num  2.2 2.1 1.52 2.88 2.18 1.87 1.52 2.37 2.06 1.84 ...
@@ -393,6 +763,7 @@ str(trees)
 #>  $ Ash        : num  1.79 1.08 0.47 1.48 1.09 0.99 0.85 0.94 0.8 0.77 ...
 #>  $ Height     : int  351 249 171 373 321 191 225 291 284 213 ...
 
+# Summary statistics
 summary(trees)
 #>     Nitrogen      Phosphorous       Potassium           Ash        
 #>  Min.   :1.130   Min.   :0.1570   Min.   :0.3800   Min.   :0.4500  
@@ -408,7 +779,9 @@ summary(trees)
 #>  Mean   :196.6  
 #>  3rd Qu.:276.0  
 #>  Max.   :373.0
-cor(trees, method = "pearson") # correlation matrix
+
+# Pearson correlation matrix
+cor(trees, method = "pearson")
 #>              Nitrogen Phosphorous Potassium       Ash    Height
 #> Nitrogen    1.0000000   0.6023902 0.5462456 0.6509771 0.8181641
 #> Phosphorous 0.6023902   1.0000000 0.7037469 0.6707871 0.7739656
@@ -416,21 +789,22 @@ cor(trees, method = "pearson") # correlation matrix
 #> Ash         0.6509771   0.6707871 0.6710548 1.0000000 0.7676771
 #> Height      0.8181641   0.7739656 0.7915683 0.7676771 1.0000000
 
-# qq-plot 
+# Q-Q plots for each variable
 gg <- trees %>%
     pivot_longer(everything(), names_to = "Var", values_to = "Value") %>%
     ggplot(aes(sample = Value)) +
     geom_qq() +
     geom_qq_line() +
-    facet_wrap("Var", scales = "free")
-gg
+    facet_wrap( ~ Var, scales = "free")
+
+print(gg)
 ```
 
 <img src="25-multivariate_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
-# Univariate normality
+# Shapiro-Wilk test for univariate normality
 sw_tests <- apply(trees, MARGIN = 2, FUN = shapiro.test)
 sw_tests
 #> $Nitrogen
@@ -471,8 +845,9 @@ sw_tests
 #> 
 #> data:  newX[, i]
 #> W = 0.94107, p-value = 0.1424
-# Kolmogorov-Smirnov test 
-ks_tests <- map(trees, ~ ks.test(scale(.x),"pnorm"))
+
+# Kolmogorov-Smirnov test for normality
+ks_tests <- map(trees, ~ ks.test(scale(.x), "pnorm"))
 ks_tests
 #> $Nitrogen
 #> 
@@ -518,7 +893,7 @@ ks_tests
 #> D = 0.1107, p-value = 0.9076
 #> alternative hypothesis: two-sided
 
-# Mardia's test, need large sample size for power
+# Mardia's test for multivariate normality
 mardia_test <-
     mvn(
         trees,
@@ -526,14 +901,13 @@ mardia_test <-
         covariance = FALSE,
         multivariatePlot = "qq"
     )
-
 mardia_test$multivariateNormality
 #>              Test         Statistic            p value Result
 #> 1 Mardia Skewness  29.7248528871795   0.72054426745778    YES
 #> 2 Mardia Kurtosis -1.67743173185383 0.0934580886477281    YES
 #> 3             MVN              <NA>               <NA>    YES
 
-# Doornik-Hansen's test 
+# Doornik-Hansen test
 dh_test <-
     mvn(
         trees,
@@ -550,7 +924,7 @@ dh_test$multivariateNormality
 #>             Test        E df      p value MVN
 #> 1 Doornik-Hansen 161.9446 10 1.285352e-29  NO
 
-# Henze-Zirkler's test 
+# Henze-Zirkler test
 hz_test <-
     mvn(
         trees,
@@ -561,10 +935,8 @@ hz_test <-
 hz_test$multivariateNormality
 #>            Test        HZ   p value MVN
 #> 1 Henze-Zirkler 0.7591525 0.6398905 YES
-# The last column indicates whether dataset follows a multivariate normality or not (i.e, YES or NO) at significance level 0.05.
 
-# Royston's test
-# can only apply for 3 < obs < 5000 (because of Shapiro-Wilk's test)
+# Royston's test (only for 3 < obs < 5000)
 royston_test <-
     mvn(
         trees,
@@ -576,8 +948,7 @@ royston_test$multivariateNormality
 #>      Test        H    p value MVN
 #> 1 Royston 9.064631 0.08199215 YES
 
-
-# E-statistic
+# Energy test
 estat_test <-
     mvn(
         trees,
@@ -587,441 +958,977 @@ estat_test <-
     )
 estat_test$multivariateNormality
 #>          Test Statistic p value MVN
-#> 1 E-statistic  1.091101   0.551 YES
+#> 1 E-statistic  1.091101   0.545 YES
 ```
 
 ### Mean Vector Inference
 
-In the univariate normal distribution, we test $H_0: \mu =\mu_0$ by using
+#### Univariate Case
+
+In the univariate normal distribution, we test:
 
 $$
-T = \frac{\bar{y}- \mu_0}{s/\sqrt{n}} \sim t_{n-1}
+H_0: \mu = \mu_0
 $$
 
-under the null hypothesis. And reject the null if $|T|$ is large relative to $t_{(1-\alpha/2,n-1)}$ because it means that seeing a value as large as what we observed is rare if the null is true
-
-Equivalently,
+using the t-test statistic:
 
 $$
-T^2 = \frac{(\bar{y}- \mu_0)^2}{s^2/n} = n(\bar{y}- \mu_0)(s^2)^{-1}(\bar{y}- \mu_0) \sim f_{(1,n-1)}
+T = \frac{\bar{y} - \mu_0}{s/\sqrt{n}} \sim t_{n-1}.
 $$
 
-#### **Natural Multivariate Generalization**
+**Decision Rule**
+
+-   If $H_0$ is true, then $T$ follows a t-distribution with $n-1$ degrees of freedom.
+
+-   We reject $H_0$ if:
+
+    $$
+    |T| > t_{(1-\alpha/2, n-1)}
+    $$
+
+    because an extreme value suggests that observing $\bar{y}$ under $H_0$ is unlikely.
+
+**Alternative Formulation**
+
+Squaring $T$, we obtain:
+
+$$
+T^2 = \frac{(\bar{y} - \mu_0)^2}{s^2/n} = n(\bar{y} - \mu_0) (s^2)^{-1} (\bar{y} - \mu_0).
+$$
+
+Under $H_0$:
+
+$$
+T^2 \sim f_{(1,n-1)}.
+$$
+
+This formulation allows for a **direct extension** to the multivariate case.
+
+------------------------------------------------------------------------
+
+#### Multivariate Generalization: Hotelling's $T^2$ Test
+
+For a **p-dimensional mean vector**, we test:
 
 $$
 \begin{aligned}
-&H_0: \mathbf{\mu} = \mathbf{\mu}_0 \\
-&H_a: \mathbf{\mu} \neq \mathbf{\mu}_0
+&H_0: \mathbf{\mu} = \mathbf{\mu}_0, \\
+&H_a: \mathbf{\mu} \neq \mathbf{\mu}_0.
 \end{aligned}
 $$
 
-Define **Hotelling's** $T^2$ by
+Define the **Hotelling's** $T^2$ test statistic:
 
 $$
-T^2 = n(\bar{\mathbf{y}} - \mathbf{\mu}_0)'\mathbf{S}^{-1}(\bar{\mathbf{y}} - \mathbf{\mu}_0)
+T^2 = n(\bar{\mathbf{y}} - \mathbf{\mu}_0)' \mathbf{S}^{-1} (\bar{\mathbf{y}} - \mathbf{\mu}_0).
 $$
 
-which can be viewed as a generalized distance between $\bar{\mathbf{y}}$ and $\mathbf{\mu}_0$
+where:
 
-Under the assumption of normality,
+-   $\bar{\mathbf{y}}$ is the sample mean vector,
+
+-   $\mathbf{S}$ is the sample covariance matrix,
+
+-   $T^2$ can be interpreted as a generalized squared distance between $\bar{\mathbf{y}}$ and $\mathbf{\mu}_0$.
+
+Under **multivariate normality**, the test statistic follows an **F-distribution**:
 
 $$
-F = \frac{n-p}{(n-1)p} T^2 \sim f_{(p,n-p)}
+F = \frac{n-p}{(n-1)p} T^2 \sim f_{(p, n-p)}.
 $$
 
-and reject the null hypothesis when $F > f_{(1-\alpha, p, n-p)}$
+We **reject** $H_0$ if:
 
--   The $T^2$ test is invariant to changes in measurement units.
+$$
+F > f_{(1-\alpha, p, n-p)}.
+$$
 
-    -   If $\mathbf{z = Cy + d}$ where $\mathbf{C}$ and $\mathbf{d}$ do not depend on $\mathbf{y}$, then $T^2(\mathbf{z}) - T^2(\mathbf{y})$
+------------------------------------------------------------------------
 
--   The $T^2$ test can be derived as a **likelihood ratio** test of $H_0: \mu = \mu_0$
+**Key Properties of Hotelling's** $T^2$ Test
+
+1.  **Invariance to Measurement Scale**:
+    -   If we apply a linear transformation to the data:
+
+        $$
+        \mathbf{z} = \mathbf{C} \mathbf{y} + \mathbf{d},
+        $$
+
+        where $\mathbf{C}$ and $\mathbf{d}$ do not depend on $\mathbf{y}$, then:
+
+        $$
+        T^2(\mathbf{z}) = T^2(\mathbf{y}).
+        $$
+
+        This ensures that unit changes (e.g., inches to centimeters) do not affect the test results.
+2.  **Likelihood Ratio Test**:
+    -   The $T^2$ test can be derived as a likelihood ratio test for $H_0: \mathbf{\mu} = \mathbf{\mu}_0$.
+
+------------------------------------------------------------------------
+
+
+```r
+# Load required packages
+library(MASS)    # For multivariate analysis
+library(ICSNP)   # For Hotelling's T^2 test
+
+# Simulated dataset (5 variables, 30 observations)
+set.seed(123)
+n <- 30  # Sample size
+p <- 5   # Number of variables
+mu <- rep(0, p)  # Population mean vector
+Sigma <- diag(p) # Identity covariance matrix
+
+# Generate multivariate normal data
+data <- mvrnorm(n, mu, Sigma)
+colnames(data) <- paste0("V", 1:p)
+
+# Compute sample mean and covariance
+sample_mean <- colMeans(data)
+sample_cov  <- cov(data)
+
+# Perform Hotelling's T^2 test (testing against mu_0 = rep(0, p))
+hotelling_test <- HotellingsT2(data, mu = rep(0, p))
+
+# Print results
+print(hotelling_test)
+#> 
+#> 	Hotelling's one sample T2-test
+#> 
+#> data:  data
+#> T.2 = 0.43475, df1 = 5, df2 = 25, p-value = 0.82
+#> alternative hypothesis: true location is not equal to c(0,0,0,0,0)
+```
 
 #### Confidence Intervals
 
-##### Confidence Region
+##### Confidence Region for the Mean Vector
 
-An "exact" $100(1-\alpha)\%$ confidence region for $\mathbf{\mu}$ is the set of all vectors, $\mathbf{v}$, which are "close enough" to the observed mean vector, $\bar{\mathbf{y}}$ to satisfy
-
-$$
-n(\bar{\mathbf{y}} - \mathbf{\mu}_0)'\mathbf{S}^{-1}(\bar{\mathbf{y}} - \mathbf{\mu}_0) \le \frac{(n-1)p}{n-p} f_{(1-\alpha, p, n-p)}
-$$
-
--   $\mathbf{v}$ are just the mean vectors that are not rejected by the $T^2$ test when $\mathbf{\bar{y}}$ is observed.
-
-In case that you have 2 parameters, the confidence region is a "hyper-ellipsoid".
-
-In this region, it consists of all $\mathbf{\mu}_0$ vectors for which the $T^2$ test would not reject $H_0$ at significance level $\alpha$
-
-Even though the confidence region better assesses the joint knowledge concerning plausible values of $\mathbf{\mu}$ , people typically include confidence statement about the individual component means. We'd like all of the separate confidence statements to hold **simultaneously** with a specified high probability. Simultaneous confidence intervals: intervals **against** any statement being incorrect
-
-###### Simultaneous Confidence Statements
-
--   Intervals based on a rectangular confidence region by projecting the previous region onto the coordinate axes:
+An exact $100(1-\alpha)\%$ confidence region for the population mean vector $\mathbf{\mu}$ is the set of all vectors $\mathbf{v}$ that are "close enough" to the observed mean vector $\bar{\mathbf{y}}$ such that:
 
 $$
-\bar{y}_{i} \pm \sqrt{\frac{(n-1)p}{n-p}f_{(1-\alpha, p,n-p)}\frac{s_{ii}}{n}}
+n(\bar{\mathbf{y}} - \mathbf{\mu}_0)' \mathbf{S}^{-1} (\bar{\mathbf{y}} - \mathbf{\mu}_0) \leq \frac{(n-1)p}{n-p} f_{(1-\alpha, p, n-p)}.
 $$
 
-for all $i = 1,..,p$
+**Interpretation**
 
-which implied confidence region is conservative; it has at least $100(1- \alpha)\%$
+-   The confidence region consists of all mean vectors $\mathbf{\mu}_0$ for which we fail to reject $H_0$ in the Hotelling's $T^2$ test.
+-   If $p = 2$, this confidence region forms a hyper-ellipsoid.
 
-Generally, simultaneous $100(1-\alpha) \%$ confidence intervals for all linear combinations , $\mathbf{a}$ of the elements of the mean vector are given by
+**Why Use Confidence Regions?**
+
+-   They provide a joint assessment of plausible values for $\mathbf{\mu}$.
+-   However, in practice, we often prefer individual confidence intervals for each mean component.
+
+------------------------------------------------------------------------
+
+##### Simultaneous Confidence Intervals
+
+We want simultaneous confidence statements, ensuring that all individual confidence intervals hold simultaneously with high probability.
+
+**Simultaneous Confidence Intervals (General Form)**
+
+By projecting the confidence region onto the coordinate axes, we obtain simultaneous confidence intervals:
 
 $$
-\mathbf{a'\bar{y}} \pm \sqrt{\frac{(n-1)p}{n-p}f_{(1-\alpha, p,n-p)}\frac{\mathbf{a'Sa}}{n}}
+\bar{y}_{i} \pm \sqrt{\frac{(n-1)p}{n-p} f_{(1-\alpha, p, n-p)} \frac{s_{ii}}{n}}, \quad \text{for } i = 1, \dots, p.
 $$
 
--   works for any arbitrary linear combination $\mathbf{a'\mu} = a_1 \mu_1 + ... + a_p \mu_p$, which is a projection onto the axis in the direction of $\mathbf{a}$
+-   These intervals are conservative, meaning their actual confidence level is at least $100(1 - \alpha)\%$.
 
--   These intervals have the property that the probability that at least one such interval does not contain the appropriate $\mathbf{a' \mu}$ is no more than $\alpha$
+**Simultaneous Confidence Intervals for Any Linear Combination**
 
--   These types of intervals can be used for "data snooping" (like $$Scheffe$$)
-
-###### One $\mu$ at a time
-
--   One at a time confidence intervals:
+For any arbitrary linear combination $\mathbf{a'\mu}$:
 
 $$
-\bar{y}_i \pm t_{(1 - \alpha/2, n-1} \sqrt{\frac{s_{ii}}{n}}
+\mathbf{a'\bar{y}} \pm \sqrt{\frac{(n-1)p}{n-p} f_{(1-\alpha, p, n-p)} \frac{\mathbf{a'Sa}}{n}}.
 $$
 
--   Each of these intervals has a probability of $1-\alpha$ of covering the appropriate $\mu_i$
+where:
 
--   But they ignore the covariance structure of the $p$ variables
+-   $\mathbf{a'\mu} = a_1 \mu_1 + \dots + a_p \mu_p$ is a projection onto the axis in the direction of $\mathbf{a}$.
 
--   If we only care about $k$ simultaneous intervals, we can use "one at a time" method with the $$Bonferroni$$ correction.
+-   The probability that at least one interval fails to contain the corresponding $\mathbf{a'\mu}$ is no more than $\alpha$.
 
--   This method gets more conservative as the number of intervals $k$ increases.
+-   These intervals are useful for "data snooping" (similar to Scheffé's method in ANOVA
+
+    \@ref(sec-scheffe-anova)).
+
+------------------------------------------------------------------------
+
+##### One-at-a-Time Confidence Intervals
+
+A simpler alternative is to construct **separate** confidence intervals for each mean component **individually**:
+
+$$
+\bar{y}_i \pm t_{(1 - \alpha/2, n-1)} \sqrt{\frac{s_{ii}}{n}}.
+$$
+
+**Limitations**
+
+-   Each interval has a probability of $1-\alpha$ of covering the corresponding $\mu_i$.
+-   They ignore the covariance structure between the $p$ variables.
+
+**Bonferroni Correction for Multiple Comparisons**
+
+If we only care about $k$ specific intervals, we can adjust for multiple comparisons using the Bonferroni correction:
+
+$$
+\bar{y}_i \pm t_{(1 - \alpha/(2k), n-1)} \sqrt{\frac{s_{ii}}{n}}.
+$$
+
+-   This ensures that the overall confidence level remains at $100(1 - \alpha)\%$.
+-   The method becomes more conservative as the number of comparisons $k$ increases.
+
+------------------------------------------------------------------------
+
+
+```r
+# Load necessary libraries
+library(MASS)    # For multivariate analysis
+library(ICSNP)   # For Hotelling's T2 test
+library(tidyverse)  # Data manipulation and plotting
+
+# Simulated dataset (5 variables, 30 observations)
+set.seed(123)
+n <- 30  # Sample size
+p <- 5   # Number of variables
+alpha <- 0.05  # Significance level
+
+# Population mean and covariance
+mu <- rep(0, p)  
+Sigma <- diag(p)  
+
+# Generate multivariate normal data
+data <- mvrnorm(n, mu, Sigma)
+colnames(data) <- paste0("V", 1:p)
+
+# Compute sample mean and covariance
+sample_mean <- colMeans(data)
+sample_cov  <- cov(data)
+
+# Hotelling's T^2 statistic
+T2 <-
+    n * t(sample_mean - mu) %*% solve(sample_cov) %*% (sample_mean - mu)
+
+# Critical value for Hotelling's T^2 test
+F_crit <- ((n - 1) * p / (n - p)) * qf(1 - alpha, p, n - p)
+
+# Confidence region check
+T2 <= F_crit  # If TRUE, mean vector is within the confidence region
+#>      [,1]
+#> [1,] TRUE
+
+# Simultaneous confidence intervals
+CI_limits <-
+    sqrt(((n - 1) * p) / (n - p) * qf(1 - alpha, p, n - p) * diag(sample_cov) / n)
+
+# Construct confidence intervals
+simultaneous_CI <- data.frame(
+  Variable = colnames(data),
+  Lower = sample_mean - CI_limits,
+  Upper = sample_mean + CI_limits
+)
+
+print(simultaneous_CI)
+#>    Variable      Lower     Upper
+#> V1       V1 -0.9983080 0.6311472
+#> V2       V2 -0.7372215 0.5494437
+#> V3       V3 -0.5926088 0.6414496
+#> V4       V4 -0.4140990 0.7707756
+#> V5       V5 -0.7430441 0.6488366
+
+# Bonferroni-corrected one-at-a-time confidence intervals
+t_crit <- qt(1 - alpha / (2 * p), n - 1)
+
+bonferroni_CI <- data.frame(
+  Variable = colnames(data),
+  Lower = sample_mean - t_crit * sqrt(diag(sample_cov) / n),
+  Upper = sample_mean + t_crit * sqrt(diag(sample_cov) / n)
+)
+
+print(bonferroni_CI)
+#>    Variable      Lower     Upper
+#> V1       V1 -0.7615465 0.3943857
+#> V2       V2 -0.5502678 0.3624900
+#> V3       V3 -0.4132989 0.4621397
+#> V4       V4 -0.2419355 0.5986122
+#> V5       V5 -0.5408025 0.4465950
+```
 
 ### General Hypothesis Testing
 
-#### One-sample Tests
+#### One-Sample Multivariate Tests {#sec-one-sample-multivariate-tests}
+
+We consider testing the hypothesis:
 
 $$
-H_0: \mathbf{C \mu= 0} 
+H_0: \mathbf{C \mu} = 0
 $$
 
-where
+where:
 
--   $\mathbf{C}$ is a $c \times p$ matrix of rank c where $c \le p$
+-   $\mathbf{C}$ is a $c \times p$ contrast matrix of rank $c$, where $c \leq p$.
 
-We can test this hypothesis using the following statistic
+-   $\mathbf{\mu}$ is the $p \times 1$ population mean vector.
+
+The test statistic for this hypothesis is:
 
 $$
 F = \frac{n - c}{(n-1)c} T^2
 $$
 
-where $T^2 = n(\mathbf{C\bar{y}})' (\mathbf{CSC'})^{-1} (\mathbf{C\bar{y}})$
-
-Example:
+where:
 
 $$
-H_0: \mu_1 = \mu_2 = ... = \mu_p
+T^2 = n(\mathbf{C\bar{y}})' (\mathbf{CSC'})^{-1} (\mathbf{C\bar{y}}).
 $$
 
-Equivalently,
+This follows an F-distribution:
+
+$$
+F \sim f_{(c, n-c)}.
+$$
+
+------------------------------------------------------------------------
+
+**Example: Testing Equal Means Across Variables**
+
+We test whether all **mean components are equal**:
+
+$$
+H_0: \mu_1 = \mu_2 = \dots = \mu_p.
+$$
+
+This can be rewritten as:
 
 $$
 \begin{aligned}
-\mu_1 - \mu_2 &= 0 \\
+\mu_1 - \mu_2 &= 0, \\
+\mu_2 - \mu_3 &= 0, \\
 &\vdots \\
-\mu_{p-1} - \mu_p &= 0
+\mu_{p-1} - \mu_p &= 0.
 \end{aligned}
 $$
 
-a total of $p-1$ tests. Hence, we have $\mathbf{C}$ as the $p - 1 \times p$ matrix
+Since we are testing $p-1$ constraints, the contrast matrix $\mathbf{C}$ is a $(p-1) \times p$ matrix:
 
 $$
 \mathbf{C} = 
-\left(
-\begin{array}
-{ccccc}
-1 & -1 & 0 & \ldots & 0 \\
-0 & 1 & -1 & \ldots & 0 \\
+\begin{bmatrix}
+1 & -1 & 0 & \dots & 0 \\
+0 & 1 & -1 & \dots & 0 \\
 \vdots & \vdots & \vdots & \ddots & \vdots \\
-0 & 0 & \ldots & 1 & -1 
-\end{array}
-\right)
+0 & 0 & \dots & 1 & -1
+\end{bmatrix}.
 $$
 
-number of rows = $c = p -1$
+**Alternatively**, we can compare all other means **to the first mean**:
 
-Equivalently, we can also compare all of the other means to the first mean. Then, we test $\mu_1 - \mu_2 = 0, \mu_1 - \mu_3 = 0,..., \mu_1 - \mu_p = 0$, the $(p-1) \times p$ matrix $\mathbf{C}$ is
+$$
+H_0: \mu_1 - \mu_2 = 0, \quad \mu_1 - \mu_3 = 0, \quad \dots, \quad \mu_1 - \mu_p = 0.
+$$
+
+The contrast matrix $\mathbf{C}$ then becomes:
 
 $$
 \mathbf{C} = 
-\left(
-\begin{array}
-{ccccc}
--1 & 1 & 0 & \ldots & 0 \\
--1 & 0 & 1 & \ldots & 0 \\
+\begin{bmatrix}
+-1 & 1 & 0 & \dots & 0 \\
+-1 & 0 & 1 & \dots & 0 \\
 \vdots & \vdots & \vdots & \ddots & \vdots \\
--1 & 0 & \ldots & 0 & 1 
-\end{array}
-\right)
+-1 & 0 & \dots & 0 & 1
+\end{bmatrix}.
 $$
 
-The value of $T^2$ is invariant to these equivalent choices of $\mathbf{C}$
+**Key Property**
 
-This is often used for **repeated measures designs**, where each subject receives each treatment once over successive periods of time (all treatments are administered to each unit).
+-   The value of $T^2$ is invariant to these different choices of $\mathbf{C}$.
 
-Example:
+------------------------------------------------------------------------
 
-Let $y_{ij}$ be the response from subject i at time j for $i = 1,..,n, j = 1,...,T$. In this case, $\mathbf{y}_i = (y_{i1}, ..., y_{iT})', i = 1,...,n$ are a random sample from $N_T (\mathbf{\mu}, \mathbf{\Sigma})$
+**Application: Repeated Measures Design**
 
-Let $n=8$ subjects, $T = 6$. We are interested in $\mu_1, .., \mu_6$
+Repeated measures designs involve **measuring each subject multiple times** under different conditions or time points.
+
+Let:
+
+-   $y_{ij}$ be the **response of subject** $i$ at time $j$, where $i = 1, \dots, n$ and $j = 1, \dots, T$.
+
+-   $\mathbf{y}_i = (y_{i1}, ..., y_{iT})'$ be a random sample from:
 
 $$
-H_0: \mu_1 = \mu_2 = ... = \mu_6
+N_T (\mathbf{\mu}, \mathbf{\Sigma}).
 $$
 
-Equivalently,
+------------------------------------------------------------------------
+
+**Example: Testing Equal Means Over Time**
+
+Suppose we have:
+
+-   $n = 8$ subjects,
+
+-   $T = 6$ time points.
+
+We test:
+
+$$
+H_0: \mu_1 = \mu_2 = \dots = \mu_6.
+$$
+
+This is equivalent to:
 
 $$
 \begin{aligned}
-\mu_1 - \mu_2 &= 0 \\
-\mu_2 - \mu_3 &= 0 \\
-&... \\
-\mu_5  - \mu_6 &= 0
+\mu_1 - \mu_2 &= 0, \\
+\mu_2 - \mu_3 &= 0, \\
+&\dots, \\
+\mu_5 - \mu_6 &= 0.
 \end{aligned}
 $$
 
-We can test orthogonal polynomials for 4 equally spaced time points. To test for example the null hypothesis that quadratic and cubic effects are jointly equal to 0, we would define $\mathbf{C}$
+The corresponding **contrast matrix** is:
 
 $$
 \mathbf{C} = 
-\left(
-\begin{array}
-{cccc}
+\begin{bmatrix}
+1 & -1 & 0 & 0 & 0 & 0 \\
+0 & 1 & -1 & 0 & 0 & 0 \\
+0 & 0 & 1 & -1 & 0 & 0 \\
+0 & 0 & 0 & 1 & -1 & 0 \\
+0 & 0 & 0 & 0 & 1 & -1
+\end{bmatrix}.
+$$
+
+If measurements occur at equally spaced time points, we can test for trend effects using orthogonal polynomials.
+
+For example, testing whether quadratic and cubic trends are jointly zero, we use:
+
+$$
+\mathbf{C} = 
+\begin{bmatrix}
 1 & -1 & -1 & 1 \\
 -1 & 3 & -3 & 1
-\end{array}
-\right)
+\end{bmatrix}.
 $$
 
-#### Two-Sample Tests
+------------------------------------------------------------------------
 
-Consider the analogous two sample multivariate tests.
 
-Example: we have data on two independent random samples, one sample from each of two populations
+```r
+# Load necessary libraries
+library(MASS)    # For multivariate normal data
+library(ICSNP)   # For Hotelling's T^2 test
 
-$$
-\begin{aligned}
-\mathbf{y}_{1i} &\sim N_p (\mathbf{\mu_1, \Sigma}) \\
-\mathbf{y}_{2j} &\sim N_p (\mathbf{\mu_2, \Sigma})
-\end{aligned}
-$$
+# Simulated dataset (6 variables, 8 subjects)
+set.seed(123)
+n <- 8   # Number of subjects
+p <- 6   # Number of time points
 
-We **assume**
+# Generate sample data
+mu <- rep(5, p)  # Population mean
+Sigma <- diag(p)  # Identity covariance matrix
 
--   normality
+data <- mvrnorm(n, mu, Sigma)
+colnames(data) <- paste0("Time", 1:p)
 
--   equal variance-covariance matrices
+# Compute sample mean and covariance
+sample_mean <- colMeans(data)
+sample_cov  <- cov(data)
 
--   independent random samples
+# Define contrast matrix for equal means hypothesis
+C <- matrix(0, nrow = p - 1, ncol = p)
+for (i in 1:(p - 1)) {
+  C[i, i] <- 1
+  C[i, i + 1] <- -1
+}
 
-We can summarize our data using the **sufficient statistics** $\mathbf{\bar{y}}_1, \mathbf{S}_1, \mathbf{\bar{y}}_2, \mathbf{S}_2$ with respective sample sizes, $n_1,n_2$
+# Compute Hotelling's T^2 statistic
+T2 <-
+    n * t(C %*% sample_mean) %*% solve(C %*% sample_cov %*% t(C)) %*% (C %*% sample_mean)
 
-Since we assume that $\mathbf{\Sigma}_1 = \mathbf{\Sigma}_2 = \mathbf{\Sigma}$, compute a pooled estimate of the variance-covariance matrix on $n_1 + n_2 - 2$ df
+# Compute F statistic
+c <- nrow(C)
+F_stat <- ((n - c) / ((n - 1) * c)) * T2
 
-$$
-\mathbf{S} = \frac{(n_1 - 1)\mathbf{S}_1 + (n_2-1) \mathbf{S}_2}{(n_1 -1) + (n_2 - 1)}
-$$
+# Critical value
+F_crit <- qf(0.95, c, n - c)
 
-$$
-\begin{aligned}
-&H_0: \mathbf{\mu}_1 = \mathbf{\mu}_2 \\
-&H_a: \mathbf{\mu}_1 \neq \mathbf{\mu}_2
-\end{aligned}
-$$
+# Decision rule
+decision <- F_stat > F_crit
 
-At least one element of the mean vectors is different
+# Print results
+list(
+  T2_statistic = T2,
+  F_statistic = F_stat,
+  F_critical_value = F_crit,
+  Reject_H0 = decision
+)
+#> $T2_statistic
+#>          [,1]
+#> [1,] 22.54896
+#> 
+#> $F_statistic
+#>          [,1]
+#> [1,] 1.932768
+#> 
+#> $F_critical_value
+#> [1] 9.013455
+#> 
+#> $Reject_H0
+#>       [,1]
+#> [1,] FALSE
+```
 
-We use
+------------------------------------------------------------------------
 
--   $\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2$ to estimate $\mu_1 - \mu_2$
+#### Two-Sample Multivariate Tests {#sec-two-sample-multivariate-tests}
 
--   $\mathbf{S}$ to estimate $\mathbf{\Sigma}$
-
-    Note: because we assume the two populations are independent, there is no covariance
-
-    $cov(\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2) = var(\mathbf{\bar{y}}_1) + var(\mathbf{\bar{y}}_2) = \frac{\mathbf{\Sigma_1}}{n_1} + \frac{\mathbf{\Sigma_2}}{n_2} = \mathbf{\Sigma}(\frac{1}{n_1} + \frac{1}{n_2})$
-
-Reject $H_0$ if
-
-$$
-\begin{aligned}
-T^2 &= (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2)'\{ \mathbf{S} (\frac{1}{n_1} + \frac{1}{n_2})\}^{-1} (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2)\\
-&= \frac{n_1 n_2}{n_1 +n_2} (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2)'\{ \mathbf{S} \}^{-1} (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2)\\
-& \ge \frac{(n_1 + n_2 -2)p}{n_1 + n_2 - p - 1} f_{(1- \alpha,n_1 + n_2 - p -1)}
-\end{aligned}
-$$
-
-or equivalently, if
-
-$$
-F = \frac{n_1 + n_2 - p -1}{(n_1 + n_2 -2)p} T^2 \ge f_{(1- \alpha, p , n_1 + n_2 -p -1)}
-$$
-
-A $100(1-\alpha) \%$ confidence region for $\mu_1 - \mu_2$ consists of all vector $\delta$ which satisfy
-
-$$
-\frac{n_1 n_2}{n_1 + n_2} (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2 - \mathbf{\delta})' \mathbf{S}^{-1}(\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2 - \mathbf{\delta}) \le \frac{(n_1 + n_2 - 2)p}{n_1 + n_2 -p - 1}f_{(1-\alpha, p , n_1 + n_2 - p -1)}
-$$
-
-The simultaneous confidence intervals for all linear combinations of $\mu_1 - \mu_2$ have the form
-
-$$
-\mathbf{a'}(\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2) \pm \sqrt{\frac{(n_1 + n_2 -2)p}{n_1 + n_2 - p -1}}f_{(1-\alpha, p, n_1 + n_2 -p -1)} \times \sqrt{\mathbf{a'Sa}(\frac{1}{n_1} + \frac{1}{n_2})}
-$$
-
-Bonferroni intervals, for k combinations
-
-$$
-(\bar{y}_{1i} - \bar{y}_{2i}) \pm t_{(1-\alpha/2k, n_1 + n_2 - 2)}\sqrt{(\frac{1}{n_1}  + \frac{1}{n_2})s_{ii}}
-$$
-
-#### Model Assumptions
-
-If model assumption are not met
-
--   Unequal Covariance Matrices
-
-    -   If $n_1 = n_2$ (large samples) there is little effect on the Type I error rate and power fo the two sample test
-
-    -   If $n_1 > n_2$ and the eigenvalues of $\mathbf{\Sigma}_1 \mathbf{\Sigma}^{-1}_2$ are less than 1, the Type I error level is inflated
-
-    -   If $n_1 > n_2$ and some eigenvalues of $\mathbf{\Sigma}_1 \mathbf{\Sigma}_2^{-1}$ are greater than 1, the Type I error rate is too small, leading to a reduction in power
-
--   Sample Not Normal
-
-    -   Type I error level of the two sample $T^2$ test isn't much affect by moderate departures from normality if the two populations being sampled have similar distributions
-
-    -   One sample $T^2$ test is much more sensitive to lack of normality, especially when the distribution is skewed.
-
-    -   Intuitively, you can think that in one sample your distribution will be sensitive, but the distribution of the difference between two similar distributions will not be as sensitive.
-
-    -   Solutions:
-
-        -   Transform to make the data more normal
-
-        -   Large large samples, use the $\chi^2$ (Wald) test, in which populations don't need to be normal, or equal sample sizes, or equal variance-covariance matrices
-
-            -   $H_0: \mu_1 - \mu_2 =0$ use $(\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2)'( \frac{1}{n_1} \mathbf{S}_1 + \frac{1}{n_2}\mathbf{S}_2)^{-1}(\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2) \dot{\sim} \chi^2_{(p)}$
-
-##### Equal Covariance Matrices Tests
-
-With independent random samples from k populations of $p$-dimensional vectors. We compute the sample covariance matrix for each, $\mathbf{S}_i$, where $i = 1,...,k$
+Consider testing the equality of two multivariate population means. Suppose we have two independent random samples:
 
 $$
 \begin{aligned}
-&H_0: \mathbf{\Sigma}_1 = \mathbf{\Sigma}_2 = \ldots = \mathbf{\Sigma}_k = \mathbf{\Sigma} \\
-&H_a: \text{at least 2 are different}
+\mathbf{y}_{1i} &\sim N_p (\mathbf{\mu}_1, \mathbf{\Sigma}), \quad i = 1, \dots, n_1, \\
+\mathbf{y}_{2j} &\sim N_p (\mathbf{\mu}_2, \mathbf{\Sigma}), \quad j = 1, \dots, n_2.
 \end{aligned}
 $$
 
-Assume $H_0$ is true, we would use a pooled estimate of the common covariance matrix, $\mathbf{\Sigma}$
+We assume:
+
+-   Multivariate normality of both populations.
+
+-   Equal variance-covariance matrices: $\mathbf{\Sigma}_1 = \mathbf{\Sigma}_2 = \mathbf{\Sigma}$.
+
+-   Independence between samples.
+
+------------------------------------------------------------------------
+
+We summarize our data using the sufficient statistics:
+
+-   Sample means: $\mathbf{\bar{y}}_1$, $\mathbf{\bar{y}}_2$.
+
+-   Sample covariance matrices: $\mathbf{S}_1$, $\mathbf{S}_2$.
+
+-   Sample sizes: $n_1, n_2$.
+
+Since we assume equal variance-covariance matrices, we compute a pooled estimator:
+
+$$
+\mathbf{S} = \frac{(n_1 - 1)\mathbf{S}_1 + (n_2 - 1)\mathbf{S}_2}{(n_1 -1) + (n_2 - 1)}
+$$
+
+with $n_1 + n_2 - 2$ degrees of freedom.
+
+We test:
+
+$$
+\begin{aligned}
+&H_0: \mathbf{\mu}_1 = \mathbf{\mu}_2, \\
+&H_a: \mathbf{\mu}_1 \neq \mathbf{\mu}_2.
+\end{aligned}
+$$
+
+That is, we check whether at least one element of $\mathbf{\mu}_1 - \mathbf{\mu}_2$ is different.
+
+We use:
+
+-   $\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2$ to estimate $\mathbf{\mu}_1 - \mathbf{\mu}_2$.
+
+-   $\mathbf{S}$ to estimate $\mathbf{\Sigma}$.
+
+Since the two populations are **independent**, the covariance is:
+
+$$
+\text{Cov}(\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2) = \text{Var}(\mathbf{\bar{y}}_1) + \text{Var}(\mathbf{\bar{y}}_2) = \mathbf{\Sigma} \left(\frac{1}{n_1} + \frac{1}{n_2} \right).
+$$
+
+The Hotelling's $T^2$ statistic is:
+
+$$
+T^2 = (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2)' \left\{ \mathbf{S} \left(\frac{1}{n_1} + \frac{1}{n_2} \right) \right\}^{-1} (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2).
+$$
+
+which simplifies to:
+
+$$
+T^2 = \frac{n_1 n_2}{n_1 + n_2} (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2)' \mathbf{S}^{-1} (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2).
+$$
+
+Reject $H_0$ if:
+
+$$
+T^2 \geq \frac{(n_1 + n_2 - 2)p}{n_1 + n_2 - p - 1} f_{(1- \alpha, p, n_1 + n_2 - p - 1)}
+$$
+
+or equivalently, using the F-statistic:
+
+$$
+F = \frac{n_1 + n_2 - p -1}{(n_1 + n_2 -2)p} T^2.
+$$
+
+Reject $H_0$ if:
+
+$$
+F \geq f_{(1- \alpha, p , n_1 + n_2 - p -1)}.
+$$
+
+------------------------------------------------------------------------
+
+A $100(1-\alpha)\%$ confidence region for $\mathbf{\mu}_1 - \mathbf{\mu}_2$ consists of all vectors $\mathbf{\delta}$ satisfying:
+
+$$
+\frac{n_1 n_2}{n_1 + n_2} (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2 - \mathbf{\delta})' \mathbf{S}^{-1} (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2 - \mathbf{\delta}) \leq \frac{(n_1 + n_2 - 2)p}{n_1 + n_2 - p - 1} f_{(1-\alpha, p, n_1 + n_2 - p -1)}.
+$$
+
+For all linear combinations of $\mathbf{\mu}_1 - \mathbf{\mu}_2$, the simultaneous confidence intervals:
+
+$$
+\mathbf{a'}(\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2) \pm \sqrt{\frac{(n_1 + n_2 -2)p}{n_1 + n_2 - p -1} f_{(1-\alpha, p, n_1 + n_2 - p -1)} \times \mathbf{a'Sa} \left(\frac{1}{n_1} + \frac{1}{n_2}\right)}.
+$$
+
+For $k$ **pairwise comparisons**, Bonferroni intervals are:
+
+$$
+(\bar{y}_{1i} - \bar{y}_{2i}) \pm t_{(1-\alpha/2k, n_1 + n_2 - 2)} \sqrt{\left(\frac{1}{n_1}  + \frac{1}{n_2}\right) s_{ii}}.
+$$
+
+------------------------------------------------------------------------
+
+
+```r
+# Load necessary libraries
+library(MASS)    # For multivariate analysis
+library(ICSNP)   # For Hotelling's T^2 test
+
+# Simulated dataset (p = 4 variables, two groups)
+set.seed(123)
+n1 <- 20  # Sample size for group 1
+n2 <- 25  # Sample size for group 2
+p <- 4    # Number of variables
+
+# Generate data for both groups
+mu1 <- rep(0, p)  # Mean vector for group 1
+mu2 <- rep(1, p)  # Mean vector for group 2
+Sigma <- diag(p)  # Identity covariance matrix
+
+data1 <- mvrnorm(n1, mu1, Sigma)
+data2 <- mvrnorm(n2, mu2, Sigma)
+
+# Compute sample means and covariance matrices
+y1_bar <- colMeans(data1)
+y2_bar <- colMeans(data2)
+S1 <- cov(data1)
+S2 <- cov(data2)
+
+# Compute pooled covariance matrix
+S_pooled <- ((n1 - 1) * S1 + (n2 - 1) * S2) / (n1 + n2 - 2)
+
+# Compute Hotelling's T^2 statistic
+T2 <- (y1_bar - y2_bar) %*% solve(S_pooled * (1/n1 + 1/n2)) %*% (y1_bar - y2_bar)
+
+# Convert to F-statistic
+F_stat <- ((n1 + n2 - p - 1) / ((n1 + n2 - 2) * p)) * T2
+F_crit <- qf(0.95, p, n1 + n2 - p - 1)
+
+# Decision rule
+decision <- F_stat > F_crit
+
+# Print results
+list(
+  T2_statistic = T2,
+  F_statistic = F_stat,
+  F_critical_value = F_crit,
+  Reject_H0 = decision
+)
+#> $T2_statistic
+#>          [,1]
+#> [1,] 51.90437
+#> 
+#> $F_statistic
+#>          [,1]
+#> [1,] 12.07078
+#> 
+#> $F_critical_value
+#> [1] 2.605975
+#> 
+#> $Reject_H0
+#>      [,1]
+#> [1,] TRUE
+```
+
+#### Model Assumptions in Multivariate Tests
+
+##### Effects of Unequal Covariance Matrices
+
+We assume that the two population covariance matrices are equal ($\mathbf{\Sigma}_1 = \mathbf{\Sigma}_2$), but in reality, this assumption may not hold.
+
+**Impact on Type I Error and Power**
+
+-   If $n_1 = n_2$ (large samples), the impact on Type I error rate and power is minimal.
+-   If $n_1 > n_2$ and eigenvalues of $\mathbf{\Sigma}_1 \mathbf{\Sigma}_2^{-1}$ are less than 1, the Type I error is inflated.
+-   If $n_1 > n_2$ and some eigenvalues of $\mathbf{\Sigma}_1 \mathbf{\Sigma}_2^{-1}$ are greater than 1, the Type I error is too small, reducing power.
+
+------------------------------------------------------------------------
+
+##### Effects of Non-Normality
+
+Multivariate tests often assume normality, but real-world data may not follow a normal distribution.
+
+**Impact on Test Performance**
+
+-   [Two-sample](#sec-two-sample-multivariate-tests) Hotelling's $T^2$ test is robust to moderate departures from normality if both populations have similar distributions.
+-   [One-sample](#sec-one-sample-multivariate-tests) Hotelling's $T^2$ test is more sensitive to lack of normality, especially when the distribution is skewed.
+
+**Intuition**
+
+-   A [one-sample](#sec-one-sample-multivariate-tests) test depends on the distribution of individual variables, making it more sensitive to normality violations.
+-   A [two-sample](#sec-two-sample-multivariate-tests) test depends on the distribution of differences, which may be less sensitive to non-normality if both groups have similar distributions.
+
+**Solutions**
+
+1.  **Transform the data** (e.g., log or Box-Cox transformation \@ref(variable-transformation)) to improve normality.
+
+2.  **Use large samples** and rely on the [Central Limit Theorem].
+
+3.  **Use alternative tests** that do not assume normality:
+
+    -   **Wald's Test** (Chi-square-based test), which does not require:
+
+        -   Normality,
+        -   Equal sample sizes,
+        -   Equal covariance matrices.
+
+    -   Test:
+
+        $$
+        H_0: \mathbf{\mu}_1 - \mathbf{\mu}_2 = 0
+        $$
+
+        using:
+
+        $$
+        (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2)' \left( \frac{1}{n_1} \mathbf{S}_1 + \frac{1}{n_2} \mathbf{S}_2 \right)^{-1} (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2) \dot{\sim} \chi^2_p.
+        $$
+
+------------------------------------------------------------------------
+
+##### Testing Equality of Covariance Matrices
+
+With $k$ independent groups, each having a $p$-dimensional vector, we test:
+
+$$
+\begin{aligned}
+&H_0: \mathbf{\Sigma}_1 = \mathbf{\Sigma}_2 = \dots = \mathbf{\Sigma}_k = \mathbf{\Sigma}, \\
+&H_a: \text{At least two are different}.
+\end{aligned}
+$$
+
+If $H_0$ holds, we use a pooled covariance estimate:
 
 $$
 \mathbf{S} = \frac{\sum_{i=1}^k (n_i -1)\mathbf{S}_i}{\sum_{i=1}^k (n_i - 1)}
 $$
 
-with $\sum_{i=1}^k (n_i -1)$
+with $\sum_{i=1}^k (n_i -1)$ degrees of freedom.
 
-###### Bartlett's Test
+------------------------------------------------------------------------
 
-(a modification of the likelihood ratio test). Define
+##### Bartlett's Test for Equal Covariances
 
-$$
-N = \sum_{i=1}^k n_i
-$$
+Bartlett's test is a likelihood ratio test for equality of covariance matrices.
 
-and (note: $| |$ are determinants here, not absolute value)
+Define:
 
 $$
-M = (N - k) \log|\mathbf{S}| - \sum_{i=1}^k (n_i - 1)  \log|\mathbf{S}_i|
+N = \sum_{i=1}^k n_i.
 $$
 
-$$
-C^{-1} = 1 - \frac{2p^2 + 3p - 1}{6(p+1)(k-1)} \{\sum_{i=1}^k (\frac{1}{n_i - 1}) - \frac{1}{N-k} \}
-$$
-
--   Reject $H_0$ when $MC^{-1} > \chi^2_{1- \alpha, (k-1)p(p+1)/2}$
-
--   If not all samples are from normal populations, $MC^{-1}$ has a distribution which is often shifted to the right of the nominal $\chi^2$ distribution, which means $H_0$ is often rejected even when it is true (the Type I error level is inflated). Hence, it is better to test individual normality first, or then multivariate normality before you do Bartlett's test.
-
-#### Two-Sample Repeated Measurements
-
--   Define $\mathbf{y}_{hi} = (y_{hi1}, ..., y_{hit})'$ to be the observations from the i-th subject in the h-th group for times 1 through T
-
--   Assume that $\mathbf{y}_{11}, ..., \mathbf{y}_{1n_1}$ are iid $N_t(\mathbf{\mu}_1, \mathbf{\Sigma})$ and that $\mathbf{y}_{21},...,\mathbf{y}_{2n_2}$ are iid $N_t(\mathbf{\mu}_2, \mathbf{\Sigma})$
-
--   $H_0: \mathbf{C}(\mathbf{\mu}_1 - \mathbf{\mu}_2) = \mathbf{0}_c$ where $\mathbf{C}$ is a $c \times t$ matrix of rank $c$ where $c \le t$
-
--   The test statistic has the form
+Compute:
 
 $$
-T^2 = \frac{n_1 n_2}{n_1 + n_2} (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2)' \mathbf{C}'(\mathbf{CSC}')^{-1}\mathbf{C} (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2)
+M = (N - k) \log|\mathbf{S}| - \sum_{i=1}^k (n_i - 1) \log|\mathbf{S}_i|.
 $$
 
-where $\mathbf{S}$ is the pooled covariance estimate. Then,
+Correction factor:
 
 $$
-F = \frac{n_1 + n_2 - c -1}{(n_1 + n_2-2)c} T^2 \sim f_{(c, n_1 + n_2 - c-1)}
+C^{-1} = 1 - \frac{2p^2 + 3p - 1}{6(p+1)(k-1)} \left\{ \sum_{i=1}^k \left(\frac{1}{n_i - 1}\right) - \frac{1}{N-k} \right\}.
 $$
 
-when $H_0$ is true
-
-If the null hypothesis $H_0: \mu_1 = \mu_2$ is rejected. A weaker hypothesis is that the profiles for the two groups are parallel.
+Reject $H_0$ if:
 
 $$
-\begin{aligned}
-\mu_{11} - \mu_{21} &= \mu_{12} - \mu_{22} \\
-&\vdots \\
-\mu_{1t-1} - \mu_{2t-1} &= \mu_{1t} - \mu_{2t}
-\end{aligned}
+MC^{-1} > \chi^2_{1- \alpha, (k-1)p(p+1)/2}.
 $$
 
-The null hypothesis matrix term is then
+**Limitations**
 
-$H_0: \mathbf{C}(\mu_1 - \mu_2) = \mathbf{0}_c$ , where $c = t - 1$ and
+-   Sensitive to non-normality: If data are not normal, $MC^{-1}$ often follows a right-skewed distribution (i.e., shifted to the right of the nomial $\chi^2$ distriubtion), increasing false positives.
+-   Best practice: Check univariate and multivariate normality first before using Bartlett's test.
 
-$$
-\mathbf{C} = 
-\left(
-\begin{array}
-{ccccc}
-1 & -1 & 0 & \ldots & 0 \\
-0 & 1 & -1 & \ldots & 0 \\
-\vdots & \vdots & \vdots & \ddots & \vdots \\
-0 & 0 & 0 & \ldots & -1 
-\end{array}
-\right)_{(t-1) \times t}
-$$
+------------------------------------------------------------------------
 
 
 ```r
-# One-sample Hotelling's T^2 test
-#  Create data frame
+# Load required packages
+library(MASS)    # For multivariate normal data
+library(ICSNP)   # Multivariate tests
+library(car)     # Homogeneity of variance tests
+
+# Simulated dataset (three groups, p = 4 variables)
+set.seed(123)
+n1 <- 20  # Group 1 sample size
+n2 <- 25  # Group 2 sample size
+n3 <- 30  # Group 3 sample size
+p <- 4    # Number of variables
+
+# Generate data from different covariance structures
+mu1 <- rep(0, p)  
+mu2 <- rep(1, p)  
+mu3 <- rep(2, p)  
+
+Sigma1 <- diag(p)         # Identity covariance for group 1
+Sigma2 <- 2 * diag(p)     # Scaled identity for group 2
+Sigma3 <- matrix(0.5, p, p) + diag(0.5, p)  # Structured covariance for group 3
+
+data1 <- mvrnorm(n1, mu1, Sigma1)
+data2 <- mvrnorm(n2, mu2, Sigma2)
+data3 <- mvrnorm(n3, mu3, Sigma3)
+
+# Create a combined dataset
+group_labels <- c(rep("Group1", n1), rep("Group2", n2), rep("Group3", n3))
+data <- data.frame(Group = group_labels, rbind(data1, data2, data3))
+
+# Compute covariance matrices
+S1 <- cov(data1)
+S2 <- cov(data2)
+S3 <- cov(data3)
+
+# Bartlett's Test for Equal Covariances
+bartlett_test <- bartlett.test(data[,-1], g = data$Group)
+print(bartlett_test)
+#> 
+#> 	Bartlett test of homogeneity of variances
+#> 
+#> data:  data[, -1]
+#> Bartlett's K-squared = 0.99333, df = 3, p-value = 0.8029
+
+# Box’s M test (alternative for multivariate homogeneity)
+box_test <- boxM(data[,-1], data$Group)
+print(box_test)
+#> 
+#> 	Box's M-test for Homogeneity of Covariance Matrices
+#> 
+#> data:  data[, -1]
+#> Chi-Sq (approx.) = 51.039, df = 20, p-value = 0.000157
+```
+
+------------------------------------------------------------------------
+
+#### Two-Sample Repeated Measures Analysis
+
+Define $\mathbf{y}_{hi}$ as the $t$-dimensional response vector for subject $i$ in group $h$:
+
+$$
+\mathbf{y}_{hi} = (y_{hi1}, y_{hi2}, ..., y_{hit})'
+$$
+
+Assume:
+
+-   **Group 1**: $\mathbf{y}_{11}, ..., \mathbf{y}_{1n_1} \sim N_t(\mathbf{\mu}_1, \mathbf{\Sigma})$ (i.e., iid from a common distribution).
+
+-   **Group 2**: $\mathbf{y}_{21}, ..., \mathbf{y}_{2n_2} \sim N_t(\mathbf{\mu}_2, \mathbf{\Sigma})$.
+
+We test whether the mean response vectors are **equal across groups**:
+
+$$
+H_0: \mathbf{C}(\mathbf{\mu}_1 - \mathbf{\mu}_2) = \mathbf{0}_c.
+$$
+
+where:
+
+-   $\mathbf{C}$ is a contrast matrix of dimensions $c \times t$ (rank $c$, where $c \leq t$).
+
+-   If $H_0$ is true, the two groups have the same mean structure.
+
+------------------------------------------------------------------------
+
+The **Hotelling's** $T^2$ statistic for repeated measures is:
+
+$$
+T^2 = \frac{n_1 n_2}{n_1 + n_2} (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2)' \mathbf{C}' (\mathbf{CSC'})^{-1} \mathbf{C} (\mathbf{\bar{y}}_1 - \mathbf{\bar{y}}_2).
+$$
+
+where $\mathbf{S}$ is the pooled covariance matrix. The corresponding F-statistic follows:
+
+$$
+F = \frac{n_1 + n_2 - c - 1}{(n_1 + n_2 - 2)c} T^2 \sim f_{(c, n_1 + n_2 - c - 1)}.
+$$
+
+under the null hypothesis.
+
+------------------------------------------------------------------------
+
+If we reject $H_0: \mathbf{\mu}_1 = \mathbf{\mu}_2$, we may test whether the **profiles are parallel**:
+
+$$
+\begin{aligned}
+\mu_{11} - \mu_{21} &= \mu_{12} - \mu_{22}, \\
+&\vdots \\
+\mu_{1t-1} - \mu_{2t-1} &= \mu_{1t} - \mu_{2t}.
+\end{aligned}
+$$
+
+This is expressed as:
+
+$$
+H_0: \mathbf{C}(\mu_1 - \mu_2) = \mathbf{0}_c,
+$$
+
+where:
+
+-   $c = t - 1$ (one fewer than the number of time points).
+-   The contrast matrix $\mathbf{C}$ is:
+
+$$
+\mathbf{C} = 
+\begin{bmatrix}
+1 & -1 & 0 & \dots & 0 \\
+0 & 1 & -1 & \dots & 0 \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+0 & 0 & 0 & \dots & -1
+\end{bmatrix}_{(t-1) \times t}.
+$$
+
+------------------------------------------------------------------------
+
+1.  **One-Sample Hotelling's** $T^2$ Test
+
+
+```r
+# Load necessary libraries
+library(ICSNP)
+library(dplyr)
+
+# Data: Measurements on 3 variables
 plants <- data.frame(
     y1 = c(2.11, 2.36, 2.13, 2.78, 2.17),
     y2 = c(10.1, 35.0, 2.0, 6.0, 2.0),
     y3 = c(3.4, 4.1, 1.9, 3.8, 1.7)
 )
 
-# Center the data with 
-# the hypothesized means and make a matrix
+# Center the data with hypothesized means
 plants_ctr <- plants %>%
     transmute(y1_ctr = y1 - 2.85,
               y2_ctr = y2 - 15.0,
               y3_ctr = y3 - 6.0) %>%
     as.matrix()
 
-# Use anova.mlm to calculate Wilks' lambda
+# Perform Wilks' Lambda test for one-sample Hotelling's T^2
 onesamp_fit <- anova(lm(plants_ctr ~ 1), test = "Wilks")
-onesamp_fit
+print(onesamp_fit)
 #> Analysis of Variance Table
 #> 
 #>             Df    Wilks approx F num Df den Df  Pr(>F)  
@@ -1031,14 +1938,17 @@ onesamp_fit
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
-can't reject the null of hypothesized vector of means
+-   If the p-value is large, we fail to reject $H_0$ and conclude that the hypothesized mean vector is plausible.
+
+-   If the p-value is small, we reject $H_0$ and infer that the sample mean significantly differs from the hypothesized values.
+
+2.  **Paired-Sample Hotelling's** $T^2$ **Test**
+
+Used when each subject has two sets of paired measurements.
 
 
 ```r
-# Paired-Sample Hotelling's T^2 test
-library(ICSNP)
-
-#  Create data frame
+# Data: Commercial vs. State Lab Waste Analysis
 waste <- data.frame(
     case = 1:11,
     com_y1 = c(6, 6, 18, 8, 11, 34, 28, 71, 43, 33, 20),
@@ -1047,15 +1957,14 @@ waste <- data.frame(
     state_y2 = c(15, 13, 22, 29, 31, 64, 30, 64, 56, 20, 21)
 )
 
-# Calculate the difference between commercial and state labs
+# Compute differences between commercial and state labs
 waste_diff <- waste %>%
     transmute(y1_diff = com_y1 - state_y1,
               y2_diff = com_y2 - state_y2)
-# Run the test
+
+# Perform Paired Hotelling’s T^2 test
 paired_fit <- HotellingsT2(waste_diff)
-# value T.2 in the output corresponds to 
-# the approximate F-value in the output from anova.mlm
-paired_fit 
+print(paired_fit)
 #> 
 #> 	Hotelling's one sample T2-test
 #> 
@@ -1064,53 +1973,45 @@ paired_fit
 #> alternative hypothesis: true location is not equal to c(0,0)
 ```
 
-reject the null that the two labs' measurements are equal
+-   Reject $H_0$: Measurements from the two labs significantly differ.
+
+-   Fail to reject $H_0$: No significant difference between the two labs.
+
+3.  **Independent-Sample Hotelling's** $T^2$ **Test with Bartlett's Test**
+
+Used when comparing **two independent groups**.
 
 
 ```r
-# Independent-Sample Hotelling's T^2 test with Bartlett's test
-
-# Read in data
+# Read steel strength data
 steel <- read.table("images/steel.dat")
 names(steel) <- c("Temp", "Yield", "Strength")
-str(steel)
-#> 'data.frame':	12 obs. of  3 variables:
-#>  $ Temp    : int  1 1 1 1 1 2 2 2 2 2 ...
-#>  $ Yield   : int  33 36 35 38 40 35 36 38 39 41 ...
-#>  $ Strength: int  60 61 64 63 65 57 59 59 61 63 ...
 
-# Plot the data
+# Scatter plot of Yield vs Strength
+library(ggplot2)
 ggplot(steel, aes(x = Yield, y = Strength)) +
     geom_text(aes(label = Temp), size = 5) +
-    geom_segment(aes(
-        x = 33,
-        y = 57.5,
-        xend = 42,
-        yend = 65
-    ), col = "red")
+    geom_segment(aes(x = 33, y = 57.5, xend = 42, yend = 65), col = "red")
 ```
 
-<img src="25-multivariate_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-multivariate_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
-
-# Bartlett's test for equality of covariance matrices
-# same thing as Box's M test in the multivariate setting
+# Bartlett's test for equality of covariances
 bart_test <- boxM(steel[, -1], steel$Temp)
-bart_test # fail to reject the null of equal covariances 
+print(bart_test)  # If p > 0.05, fail to reject equal covariances
 #> 
 #> 	Box's M-test for Homogeneity of Covariance Matrices
 #> 
 #> data:  steel[, -1]
 #> Chi-Sq (approx.) = 0.38077, df = 3, p-value = 0.9442
 
-# anova.mlm
+# Multivariate analysis of variance (MANOVA) using Wilks' Lambda
 twosamp_fit <-
-    anova(lm(cbind(Yield, Strength) ~ factor(Temp), 
-             data = steel), 
+    anova(lm(cbind(Yield, Strength) ~ factor(Temp), data = steel), 
           test = "Wilks")
-twosamp_fit
+print(twosamp_fit)
 #> Analysis of Variance Table
 #> 
 #>              Df    Wilks approx F num Df den Df    Pr(>F)    
@@ -1120,11 +2021,9 @@ twosamp_fit
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-# ICSNP package
-twosamp_fit2 <-
-    HotellingsT2(cbind(steel$Yield, steel$Strength) ~ 
-                     factor(steel$Temp))
-twosamp_fit2
+# Independent-Sample Hotelling's T^2 Test
+twosamp_fit2 <- HotellingsT2(cbind(steel$Yield, steel$Strength) ~ factor(steel$Temp))
+print(twosamp_fit2)
 #> 
 #> 	Hotelling's two sample T2-test
 #> 
@@ -1133,82 +2032,120 @@ twosamp_fit2
 #> alternative hypothesis: true location difference is not equal to c(0,0)
 ```
 
-reject null. Hence, there is a difference in the means of the bivariate normal distributions
+-   Reject $H_0$: The two temperature groups have significantly different mean vectors.
 
-## MANOVA
+-   Fail to reject $H_0$: No significant difference between groups.
 
-Multivariate Analysis of Variance
+**Summary of Repeated Measures Hypothesis Testing**
 
-One-way MANOVA
+| **Test**                                 | **Hypothesis**                                                  | **Application**                |
+|----------------------|--------------------------------|------------------|
+| **One-Sample Hotelling's** $T^2$         | $H_0: \mathbf{\mu} = \mathbf{\mu}_0$                            | Single group mean vector test  |
+| **Paired-Sample Hotelling's** $T^2$      | $H_0: \mathbf{\mu}_d = 0$                                       | Paired measurements comparison |
+| **Independent-Sample Hotelling's** $T^2$ | $H_0: \mathbf{\mu}_1 = \mathbf{\mu}_2$                          | Two-group mean vector test     |
+| **Parallel Profiles Test**               | $H_0: \mathbf{C}(\mathbf{\mu}_1 - \mathbf{\mu}_2) = \mathbf{0}$ | Testing parallel time trends   |
 
-Compare treatment means for h different populations
+------------------------------------------------------------------------
 
-Population 1: $\mathbf{y}_{11}, \mathbf{y}_{12}, \dots, \mathbf{y}_{1n_1} \sim idd N_p (\mathbf{\mu}_1, \mathbf{\Sigma})$
+## Multivariate Analysis of Variance (MANOVA)
 
-$\vdots$
+Multivariate Analysis of Variance (MANOVA) is an extension of the univariate Analysis of Variance (ANOVA) that allows researchers to examine multiple dependent variables simultaneously. Unlike ANOVA, which evaluates differences in means for a single dependent variable across groups, MANOVA assesses whether there are statistically significant differences among groups across two or more correlated dependent variables.
 
-Population h: $\mathbf{y}_{h1}, \mathbf{y}_{h2}, \dots, \mathbf{y}_{hn_h} \sim idd N_p (\mathbf{\mu}_h, \mathbf{\Sigma})$
+By considering multiple dependent variables at once, MANOVA accounts for interdependencies between them, reducing the likelihood of Type I errors that may arise from conducting multiple separate ANOVA tests. It is particularly useful in fields such as psychology, marketing, and social sciences, where multiple outcome measures are often interrelated.
+
+This technique is commonly applied in experimental and observational studies where researchers seek to determine the impact of categorical independent variables on multiple continuous dependent variables.
+
+### One-Way MANOVA
+
+One-way MANOVA extends the univariate one-way ANOVA to multiple dependent variables. It is used to compare treatment means across $h$ different populations when the response consists of multiple correlated variables.
+
+Let the populations be indexed by $i = 1, 2, \dots, h$, and the observations within each population be indexed by $j = 1, 2, \dots, n_i$. We assume:
+
+-   Population 1: $\mathbf{y}_{11}, \mathbf{y}_{12}, \dots, \mathbf{y}_{1n_1} \sim \text{i.i.d. } N_p (\boldsymbol{\mu}_1, \boldsymbol{\Sigma})$
+-   $\vdots$
+-   Population $h$: $\mathbf{y}_{h1}, \mathbf{y}_{h2}, \dots, \mathbf{y}_{hn_h} \sim \text{i.i.d. } N_p (\boldsymbol{\mu}_h, \boldsymbol{\Sigma})$
+
+where:
+
+-   $\mathbf{y}_{ij}$ is a $p$-dimensional response vector for the $j$th observation in the $i$th group.
+
+-   $\boldsymbol{\mu}_i$ is the population mean vector for the $i$th group.
+
+-   $\boldsymbol{\Sigma}$ is the common covariance matrix across all groups.
 
 **Assumptions**
 
-1.  Independent random samples from $h$ different populations
-2.  Common covariance matrices
-3.  Each population is multivariate **normal**
+1.  **Independence**: Observations within and across groups are independent.
+2.  **Multivariate Normality**: Each population follows a $p$-variate normal distribution.
+3.  **Homogeneity of Covariance Matrices**: The covariance matrix $\boldsymbol{\Sigma}$ is the same for all groups.
 
-Calculate the summary statistics $\mathbf{\bar{y}}_i, \mathbf{S}$ and the pooled estimate of the covariance matrix $\mathbf{S}$
+For each group $i$, we can compute:
 
-Similar to the univariate one-way ANVOA, we can use the effects model formulation $\mathbf{\mu}_i = \mathbf{\mu} + \mathbf{\tau}_i$, where
+-   Sample mean vector: $\mathbf{\bar{y}}_i = \frac{1}{n_i} \sum_{j=1}^{n_i} \mathbf{y}_{ij}$
 
--   $\mathbf{\mu}_i$ is the population mean for population i
+-   Sample covariance matrix: $\mathbf{S}_i = \frac{1}{n_i - 1} \sum_{j=1}^{n_i} (\mathbf{y}_{ij} - \mathbf{\bar{y}}_i)(\mathbf{y}_{ij} - \mathbf{\bar{y}}_i)'$
 
--   $\mathbf{\mu}$ is the overall mean effect
+-   Pooled covariance matrix: $$
+      \mathbf{S} = \frac{1}{\sum_{i=1}^{h} (n_i - 1)} \sum_{i=1}^{h} (n_i - 1) \mathbf{S}_i
+      $$
 
--   $\mathbf{\tau}_i$ is the treatment effect of the i-th treatment.
+#### Effects Model Formulation
 
-For the one-way model: $\mathbf{y}_{ij} = \mu + \tau_i + \epsilon_{ij}$ for $i = 1,..,h; j = 1,..., n_i$ and $\epsilon_{ij} \sim N_p(\mathbf{0, \Sigma})$
-
-However, the above model is over-parameterized (i.e., infinite number of ways to define $\mathbf{\mu}$ and the $\mathbf{\tau}_i$'s such that they add up to $\mu_i$. Thus we can constrain by having
-
-$$
-\sum_{i=1}^h n_i \tau_i = 0 
-$$
-
-or
+Similar to the univariate one-way ANOVA, the effects model can be written as:
 
 $$
-\mathbf{\tau}_h = 0
+\boldsymbol{\mu}_i = \boldsymbol{\mu} + \boldsymbol{\tau}_i
 $$
 
-The observational equivalent of the effects model is
+where:
+
+-   $\boldsymbol{\mu}_i$ is the mean vector for group $i$.
+
+-   $\boldsymbol{\mu}$ is the overall mean effect.
+
+-   $\boldsymbol{\tau}_i$ is the treatment effect for group $i$.
+
+The observational model is:
 
 $$
-\begin{aligned}
-\mathbf{y}_{ij} &= \mathbf{\bar{y}} + (\mathbf{\bar{y}}_i - \mathbf{\bar{y}}) + (\mathbf{y}_{ij} - \mathbf{\bar{y}}_i) \\
-&= \text{overall sample mean} + \text{treatement effect} + \text{residual} \text{ (under univariate ANOVA)}
-\end{aligned} 
+\mathbf{y}_{ij} = \boldsymbol{\mu} + \boldsymbol{\tau}_i + \boldsymbol{\epsilon}_{ij}
 $$
 
-After manipulation
+where $\boldsymbol{\epsilon}_{ij} \sim N_p(\mathbf{0}, \boldsymbol{\Sigma})$ represents the residual variation.
+
+Since the model is overparameterized, we impose the constraint:
 
 $$
-\sum_{i = 1}^h \sum_{j = 1}^{n_i} (\mathbf{\bar{y}}_{ij} - \mathbf{\bar{y}})(\mathbf{\bar{y}}_{ij} - \mathbf{\bar{y}})' = \sum_{i = 1}^h n_i (\mathbf{\bar{y}}_i - \mathbf{\bar{y}})(\mathbf{\bar{y}}_i - \mathbf{\bar{y}})' + \sum_{i=1}^h \sum_{j = 1}^{n_i} (\mathbf{\bar{y}}_{ij} - \mathbf{\bar{y}})(\mathbf{\bar{y}}_{ij} - \mathbf{\bar{y}}_i)'
+\sum_{i=1}^h n_i \boldsymbol{\tau}_i = \mathbf{0}
 $$
 
-LHS = Total corrected sums of squares and cross products (SSCP) matrix
+or equivalently, we may set $\boldsymbol{\tau}_h = \mathbf{0}$.
 
-RHS =
+------------------------------------------------------------------------
 
--   1st term = Treatment (or between subjects) sum of squares and cross product matrix (denoted H;B)
-
--   2nd term = residual (or within subject) SSCP matrix denoted (E;W)
-
-Note:
+Analogous to univariate ANOVA, the total variability is partitioned as:
 
 $$
-\mathbf{E} = (n_1 - 1)\mathbf{S}_1  + ... + (n_h -1) \mathbf{S}_h = (n-h) \mathbf{S}
+\sum_{i = 1}^h \sum_{j = 1}^{n_i} (\mathbf{y}_{ij} - \mathbf{\bar{y}})(\mathbf{y}_{ij} - \mathbf{\bar{y}})' =
+\sum_{i = 1}^h n_i (\mathbf{\bar{y}}_i - \mathbf{\bar{y}})(\mathbf{\bar{y}}_i - \mathbf{\bar{y}})' +
+\sum_{i=1}^h \sum_{j = 1}^{n_i} (\mathbf{y}_{ij} - \mathbf{\bar{y}}_i)(\mathbf{y}_{ij} - \mathbf{\bar{y}}_i)'
 $$
 
-MANOVA table
+where:
+
+-   **LHS**: Total corrected sums of squares and cross-products (SSCP) matrix.
+
+-   **RHS**:
+
+    -   First term: Between-groups SSCP matrix (denoted $\mathbf{H}$).
+
+    -   Second term: Within-groups (residual) SSCP matrix (denoted $\mathbf{E}$).
+
+The total within-group variation is:
+
+$$
+\mathbf{E} = (n_1 - 1)\mathbf{S}_1  + \dots + (n_h -1) \mathbf{S}_h = (\sum_{i=1}^h n_i - h) \mathbf{S}
+$$
 
 | Source           | SSCP             | df                      |
 |------------------|------------------|-------------------------|
@@ -1216,118 +2153,151 @@ MANOVA table
 | Residual (error) | $\mathbf{E}$     | $\sum_{i= 1}^h n_i - h$ |
 | Total Corrected  | $\mathbf{H + E}$ | $\sum_{i=1}^h n_i -1$   |
 
-: MONOVA table
+: MANOVA Table
+
+##### Hypothesis Testing
+
+The null hypothesis states:
 
 $$
-H_0: \tau_1 = \tau_2 = \dots = \tau_h = \mathbf{0}
+H_0: \boldsymbol{\tau}_1 = \boldsymbol{\tau}_2 = \dots = \boldsymbol{\tau}_h = \mathbf{0}
 $$
 
-We consider the relative "sizes" of $\mathbf{E}$ and $\mathbf{H+E}$
+which implies that all group mean vectors are equal.
 
-Wilk's Lambda
+To test $H_0$, we assess the relative sizes of $\mathbf{E}$ and $\mathbf{H + E}$ using Wilks' Lambda:
 
-Define Wilk's Lambda
+Wilks' Lambda is defined as:
 
 $$
-\Lambda^* = \frac{|\mathbf{E}|}{|\mathbf{H+E}|}
+\Lambda^* = \frac{|\mathbf{E}|}{|\mathbf{H + E}|}
 $$
 
 Properties:
 
-1.  Wilk's Lambda is equivalent to the F-statistic in the univariate case
-
-2.  The exact distribution of $\Lambda^*$ can be determined for especial cases.
-
-3.  For large sample sizes, reject $H_0$ if
+1.  In the univariate case, Wilks' Lambda reduces to the F-statistic.
+2.  The exact distribution of $\Lambda^*$ is known in special cases.
+3.  For large samples, we reject $H_0$ if:
 
 $$
--(\sum_{i=1}^h n_i - 1 - \frac{p+h}{2}) \log(\Lambda^*) > \chi^2_{(1-\alpha, p(h-1))}
+-\left( \sum_{i=1}^h n_i - 1 - \frac{p+h}{2} \right) \log(\Lambda^*) > \chi^2_{(1-\alpha, p(h-1))}
 $$
 
-### Testing General Hypotheses
 
--   $h$ different treatments
+```r
+# Load dataset
+data(iris)
 
--   with the i-th treatment
+# Fit MANOVA model
+manova_fit <-
+    manova(cbind(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) ~ Species,
+           data = iris)
 
--   applied to $n_i$ subjects that
+# Summary of the MANOVA test
+summary(manova_fit, test = "Wilks")
+#>            Df    Wilks approx F num Df den Df    Pr(>F)    
+#> Species     2 0.023439   199.15      8    288 < 2.2e-16 ***
+#> Residuals 147                                              
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
 
--   are observed for $p$ repeated measures.
+#### Testing General Hypotheses in MANOVA
 
-Consider this a $p$ dimensional obs on a random sample from each of $h$ different treatment populations.
+We consider $h$ different treatments, where the $i$-th treatment is applied to $n_i$ subjects, each observed for $p$ repeated measures. This results in a $p$-dimensional observation vector for each subject in a random sample from each of the $h$ different treatment populations.
+
+The general MANOVA model can be written as:
 
 $$
-\mathbf{y}_{ij} = \mathbf{\mu} + \mathbf{\tau}_i + \mathbf{\epsilon}_{ij}
+\mathbf{y}_{ij} = \boldsymbol{\mu} + \boldsymbol{\tau}_i + \boldsymbol{\epsilon}_{ij}, \quad i = 1, \dots, h; \quad j = 1, \dots, n_i
 $$
 
-for $i = 1,..,h$ and $j = 1,..,n_i$
-
-Equivalently,
+Equivalently, in matrix notation:
 
 $$
-\mathbf{Y} = \mathbf{XB} + \mathbf{\epsilon}
+\mathbf{Y} = \mathbf{XB} + \boldsymbol{\epsilon}
 $$
 
-where $n = \sum_{i = 1}^h n_i$ and with restriction $\mathbf{\tau}_h = 0$
+where:
+
+-   $\mathbf{Y}_{(n \times p)}$ is the matrix of response variables.
+
+-   $\mathbf{X}_{(n \times h)}$ is the design matrix. - $\mathbf{B}_{(h \times p)}$ contains the treatment effects.
+
+-   $\boldsymbol{\epsilon}_{(n \times p)}$ is the error matrix.
+
+The response matrix:
 
 $$
 \mathbf{Y}_{(n \times p)} = 
-\left[
-\begin{array}
-{c}
+\begin{bmatrix}
 \mathbf{y}_{11}' \\
 \vdots \\
 \mathbf{y}_{1n_1}' \\
 \vdots \\
 \mathbf{y}_{hn_h}'
-\end{array}
-\right],
-\mathbf{B}_{(h \times p)} = 
-\left[
-\begin{array}
-{c}
-\mathbf{\mu}' \\
-\mathbf{\tau}_1' \\
-\vdots \\
-\mathbf{\tau}_{h-1}'
-\end{array}
-\right],
-\mathbf{\epsilon}_{(n \times p)} = 
-\left[
-\begin{array}
-{c}
-\epsilon_{11}' \\
-\vdots \\
-\epsilon_{1n_1}' \\
-\vdots \\
-\epsilon_{hn_h}'
-\end{array}
-\right]
+\end{bmatrix}
 $$
+
+The coefficient matrix:
+
+$$
+\mathbf{B}_{(h \times p)} = 
+\begin{bmatrix}
+\boldsymbol{\mu}' \\
+\boldsymbol{\tau}_1' \\
+\vdots \\
+\boldsymbol{\tau}_{h-1}'
+\end{bmatrix}
+$$
+
+The error matrix:
+
+$$
+\boldsymbol{\epsilon}_{(n \times p)} = 
+\begin{bmatrix}
+\boldsymbol{\epsilon}_{11}' \\
+\vdots \\
+\boldsymbol{\epsilon}_{1n_1}' \\
+\vdots \\
+\boldsymbol{\epsilon}_{hn_h}'
+\end{bmatrix}
+$$
+
+The design matrix $\mathbf{X}$ encodes the treatment assignments:
 
 $$
 \mathbf{X}_{(n \times h)} = 
-\left[
-\begin{array}
-{ccccc}
-1 & 1 & 0 & \ldots & 0 \\
+\begin{bmatrix}
+1 & 1 & 0 & \dots & 0 \\
+\vdots & \vdots & \vdots &  & \vdots \\
+1 & 1 & 0 & \dots & 0 \\
+\vdots & \vdots & \vdots & \dots & \vdots \\
+1 & 0 & 0 & \dots & 0 \\
 \vdots & \vdots & \vdots & & \vdots \\
-1 & 1 & 0 & \ldots & 0 \\
-\vdots & \vdots & \vdots & \ldots & \vdots \\
-1 & 0 & 0 & \ldots & 0 \\
-\vdots & \vdots & \vdots & & \vdots \\
-1 & 0 & 0 & \ldots & 0 
-\end{array}
-\right]
+1 & 0 & 0 & \dots & 0 
+\end{bmatrix}
 $$
 
-Estimation
+##### Estimation
+
+The least squares estimate of $\mathbf{B}$ is given by:
 
 $$
-\mathbf{\hat{B}} = (\mathbf{X'X})^{-1} \mathbf{X'Y}
+\hat{\mathbf{B}} = (\mathbf{X'X})^{-1} \mathbf{X'Y}
 $$
 
-Rows of $\mathbf{Y}$ are independent (i.e., $var(\mathbf{Y}) = \mathbf{I}_n \otimes \mathbf{\Sigma}$ , an $np \times np$ matrix, where $\otimes$ is the Kronecker product).
+Since the rows of $\mathbf{Y}$ are independent, we assume:
+
+$$
+\operatorname{Var}(\mathbf{Y}) = \mathbf{I}_n \otimes \boldsymbol{\Sigma}
+$$
+
+where $\otimes$ denotes the Kronecker product, resulting in an $np \times np$ covariance matrix.
+
+##### Hypothesis Testing
+
+The general hypothesis in MANOVA can be written as:
 
 $$
 \begin{aligned}
@@ -1336,66 +2306,95 @@ $$
 \end{aligned}
 $$
 
-where
+where:
 
--   $\mathbf{L}$ is a $g \times h$ matrix of full row rank ($g \le h$) = comparisons across groups
+-   $\mathbf{L}$ is a $(g \times h)$ matrix of full row rank ($g \le h$), specifying comparisons across groups.
 
--   $\mathbf{M}$ is a $p \times u$ matrix of full column rank ($u \le p$) = comparisons across traits
+-   $\mathbf{M}$ is a $(p \times u)$ matrix of full column rank ($u \le p$), specifying comparisons across traits.
 
-The general treatment corrected sums of squares and cross product is
+To evaluate the effect of treatments in the MANOVA framework, we compute the treatment corrected sums of squares and cross-product (SSCP) matrix:
 
 $$
 \mathbf{H} = \mathbf{M'Y'X(X'X)^{-1}L'[L(X'X)^{-1}L']^{-1}L(X'X)^{-1}X'YM}
 $$
 
-or for the null hypothesis $H_0: \mathbf{LBM} = \mathbf{D}$
+If we are testing the null hypothesis:
+
+$$
+H_0: \mathbf{LBM} = \mathbf{D}
+$$
+
+then the corresponding SSCP matrix is:
 
 $$
 \mathbf{H} = (\mathbf{\hat{LBM}} - \mathbf{D})'[\mathbf{X(X'X)^{-1}L}]^{-1}(\mathbf{\hat{LBM}} - \mathbf{D})
 $$
 
-The general matrix of residual sums of squares and cross product
+Similarly, the residual (error) SSCP matrix is given by:
 
 $$
-\mathbf{E} = \mathbf{M'Y'[I-X(X'X)^{-1}X']YM} = \mathbf{M'[Y'Y - \hat{B}'(X'X)^{-1}\hat{B}]M}
+\mathbf{E} = \mathbf{M'Y'[I - X(X'X)^{-1}X']Y M}
 $$
 
-We can compute the following statistic eigenvalues of $\mathbf{HE}^{-1}$
+which can also be expressed as:
 
--   Wilk's Criterion: $\Lambda^* = \frac{|\mathbf{E}|}{|\mathbf{H} + \mathbf{E}|}$ . The df depend on the rank of $\mathbf{L}, \mathbf{M}, \mathbf{X}$
+$$
+\mathbf{E} = \mathbf{M'[Y'Y - \hat{B}'(X'X)^{-1} \hat{B}]M}
+$$
 
--   Lawley-Hotelling Trace: $U = tr(\mathbf{HE}^{-1})$
+These matrices, $\mathbf{H}$ and $\mathbf{E}$, serve as the basis for assessing the relative treatment effect in a multivariate setting.
 
--   Pillai Trace: $V = tr(\mathbf{H}(\mathbf{H}+ \mathbf{E}^{-1})$
+------------------------------------------------------------------------
 
--   Roy's Maximum Root: largest eigenvalue of $\mathbf{HE}^{-1}$
+##### Test Statistics in MANOVA
 
-If $H_0$ is true and n is large, $-(n-1- \frac{p+h}{2})\ln \Lambda^* \sim \chi^2_{p(h-1)}$. Some special values of p and h can give exact F-dist under $H_0$
+To test whether treatment effects significantly impact the multivariate response, we examine the eigenvalues of $\mathbf{HE}^{-1}$, leading to several common test statistics:
+
+1.  **Wilks' Lambda**: $$
+    \Lambda^* = \frac{|\mathbf{E}|}{|\mathbf{H} + \mathbf{E}|}
+    $$ A smaller $\Lambda^*$ indicates a greater difference among group mean vectors. The degrees of freedom depend on the ranks of $\mathbf{L}, \mathbf{M},$ and $\mathbf{X}$.
+
+2.  **Lawley-Hotelling Trace**: $$
+    U = \operatorname{tr}(\mathbf{HE}^{-1})
+    $$ This statistic sums the eigenvalues of $\mathbf{HE}^{-1}$, capturing the overall treatment effect.
+
+3.  **Pillai's Trace**: $$
+    V = \operatorname{tr}(\mathbf{H}(\mathbf{H} + \mathbf{E})^{-1})
+    $$ This test is known for its robustness against violations of MANOVA assumptions.
+
+4.  **Roy's Maximum Root**: The largest eigenvalue of $\mathbf{HE}^{-1}$. It focuses on the strongest treatment effect present in the data.
+
+For large $n$, under $H_0$:
+
+$$
+-\left(n - 1 - \frac{p + h}{2} \right) \ln \Lambda^* \sim \chi^2_{p(h-1)}
+$$
+
+In certain cases, specific values of $p$ and $h$ allow for an exact F-distribution under $H_0$.
 
 
 ```r
-# One-way MANOVA
+## One-Way MANOVA
 
 library(car)
 library(emmeans)
 library(profileR)
 library(tidyverse)
 
-## Read in the data
+# Read in the data
 gpagmat <- read.table("images/gpagmat.dat")
 
-## Change the variable names
+# Change the variable names
 names(gpagmat) <- c("y1", "y2", "admit")
 
-## Check the structure
+# Check the structure of the dataset
 str(gpagmat)
 #> 'data.frame':	85 obs. of  3 variables:
 #>  $ y1   : num  2.96 3.14 3.22 3.29 3.69 3.46 3.03 3.19 3.63 3.59 ...
 #>  $ y2   : int  596 473 482 527 505 693 626 663 447 588 ...
 #>  $ admit: int  1 1 1 1 1 1 1 1 1 1 ...
 
-
-## Plot the data
+# Plot the data
 gg <- ggplot(gpagmat, aes(x = y1, y = y2)) +
     geom_text(aes(label = admit, col = as.character(admit))) +
     scale_color_discrete(name = "Admission",
@@ -1403,8 +2402,10 @@ gg <- ggplot(gpagmat, aes(x = y1, y = y2)) +
     scale_x_continuous(name = "GPA") +
     scale_y_continuous(name = "GMAT")
 
-## Fit one-way MANOVA
+# Fit a one-way MANOVA model
 oneway_fit <- manova(cbind(y1, y2) ~ admit, data = gpagmat)
+
+# MANOVA test using Wilks' Lambda
 summary(oneway_fit, test = "Wilks")
 #>           Df  Wilks approx F num Df den Df    Pr(>F)    
 #> admit      1 0.6126   25.927      2     82 1.881e-09 ***
@@ -1413,14 +2414,13 @@ summary(oneway_fit, test = "Wilks")
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
-reject the null of equal multivariate mean vectors between the three admmission groups
+Since the Wilks\' Lambda test results in a small p-value, we reject the null hypothesis of equal multivariate mean vectors among the three admission groups.
+
+**Repeated Measures MANOVA**
 
 
 ```r
-# Repeated Measures MANOVA
-
-
-## Create data frame
+# Create dataset for repeated measures example
 stress <- data.frame(
     subject = 1:8,
     begin = c(3, 2, 5, 6, 1, 5, 1, 5),
@@ -1429,25 +2429,32 @@ stress <- data.frame(
 )
 ```
 
--   If independent = time with 3 levels -\> univariate ANOVA (require sphericity assumption (i.e., the variances for all differences are equal))
--   If each level of independent time as a separate variable -\> MANOVA (does not require sphericity assumption)
+**Choosing the Correct Model**
+
+-   If time (with three levels) is treated as an independent variable, we use **univariate ANOVA** (which requires the sphericity assumption, meaning the variances of all differences must be equal).
+
+-   If each time point is treated as a separate variable, we use **MANOVA** (which does not require the sphericity assumption).
 
 
 ```r
-## MANOVA
+# Fit the MANOVA model for repeated measures
 stress_mod <- lm(cbind(begin, middle, final) ~ 1, data = stress)
-idata <-
-    data.frame(time = factor(
-        c("begin", "middle", "final"),
-        levels = c("begin", "middle", "final")
-    ))
-repeat_fit <-
-    Anova(
-        stress_mod,
-        idata = idata,
-        idesign = ~ time,
-        icontrasts = "contr.poly"
-    )
+
+# Define the within-subject factor
+idata <- data.frame(time = factor(
+    c("begin", "middle", "final"),
+    levels = c("begin", "middle", "final")
+))
+
+# Perform repeated measures MANOVA
+repeat_fit <- Anova(
+    stress_mod,
+    idata = idata,
+    idesign = ~ time,
+    icontrasts = "contr.poly"
+)
+
+# Summarize results
 summary(repeat_fit) 
 #> 
 #> Type III Repeated Measures MANOVA Tests:
@@ -1526,38 +2533,51 @@ summary(repeat_fit)
 #> time 0.9528433 0.01611634
 ```
 
-can't reject the null hypothesis of sphericity, hence univariate ANOVA is also appropriate.We also see linear significant time effect, but no quadratic time effect
+The results indicate that we cannot reject the null hypothesis of sphericity, meaning that univariate ANOVA is also appropriate. The linear time effect is significant, but the quadratic time effect is not.
+
+**Polynomial Contrasts for Time Effects**
+
+To further explore the effect of time, we examine polynomial contrasts.
 
 
 ```r
-## Polynomial contrasts
-# What is the reference for the marginal means?
+# Check the reference for the marginal means
 ref_grid(stress_mod, mult.name = "time")
 #> 'emmGrid' object with variables:
 #>     1 = 1
 #>     time = multivariate response levels: begin, middle, final
 
-# marginal means for the levels of time
+# Compute marginal means for time levels
 contr_means <- emmeans(stress_mod, ~ time, mult.name = "time")
+
+# Test for polynomial trends
 contrast(contr_means, method = "poly")
 #>  contrast  estimate    SE df t.ratio p.value
 #>  linear        2.12 0.766  7   2.773  0.0276
 #>  quadratic     1.38 0.944  7   1.457  0.1885
 ```
 
+The results confirm that there is a **significant linear trend** over time but **no quadratic trend**.
+
+**MANOVA for Drug Treatments**
+
+We now analyze a multivariate response for different drug treatments.
+
 
 ```r
-# MANOVA
-
-
-## Read in Data
+# Read in the dataset
 heart <- read.table("images/heart.dat")
+
+# Assign variable names
 names(heart) <- c("drug", "y1", "y2", "y3", "y4")
-## Create a subject ID nested within drug
+
+# Create a subject ID nested within drug groups
 heart <- heart %>%
     group_by(drug) %>%
     mutate(subject = row_number()) %>%
     ungroup()
+
+# Check dataset structure
 str(heart)
 #> tibble [24 × 6] (S3: tbl_df/tbl/data.frame)
 #>  $ drug   : chr [1:24] "ax23" "ax23" "ax23" "ax23" ...
@@ -1567,30 +2587,36 @@ str(heart)
 #>  $ y4     : int [1:24] 77 82 75 69 66 77 70 70 80 84 ...
 #>  $ subject: int [1:24] 1 2 3 4 5 6 7 8 1 2 ...
 
-## Create means summary for profile plot,
-# pivot longer for plotting with ggplot
+# Create means summary for a profile plot
 heart_means <- heart %>%
     group_by(drug) %>%
     summarize_at(vars(starts_with("y")), mean) %>%
     ungroup() %>%
     pivot_longer(-drug, names_to = "time", values_to = "mean") %>%
     mutate(time = as.numeric(as.factor(time)))
+
+# Generate the profile plot
 gg_profile <- ggplot(heart_means, aes(x = time, y = mean)) +
     geom_line(aes(col = drug)) +
     geom_point(aes(col = drug)) +
     ggtitle("Profile Plot") +
     scale_y_continuous(name = "Response") +
     scale_x_discrete(name = "Time")
+
 gg_profile
 ```
 
-<img src="25-multivariate_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
-
+<img src="25-multivariate_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
-## Fit model
+
+# Fit the MANOVA model
 heart_mod <- lm(cbind(y1, y2, y3, y4) ~ drug, data = heart)
+
+# Perform MANOVA test
 man_fit <- car::Anova(heart_mod)
+
+# Summarize results
 summary(man_fit)
 #> 
 #> Type II MANOVA Tests:
@@ -1623,43 +2649,60 @@ summary(man_fit)
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
-reject the null hypothesis of no difference in means between treatments
+Since we obtain a small p-value, we reject the null hypothesis of no difference in means between the treatments.
+
+**Contrasts Between Treatment Groups**
+
+To further investigate group differences, we define **contrast matrices.**
 
 
 ```r
-## Contrasts
+# Convert drug variable to a factor
 heart$drug <- factor(heart$drug)
+
+# Define contrast matrix L
 L <- matrix(c(0, 2,
-              1, -1,-1, -1), nrow = 3, byrow = T)
+              1, -1,-1, -1), nrow = 3, byrow = TRUE)
+
 colnames(L) <- c("bww9:ctrl", "ax23:rest")
 rownames(L) <- unique(heart$drug)
+
+# Assign contrasts
 contrasts(heart$drug) <- L
 contrasts(heart$drug)
 #>      bww9:ctrl ax23:rest
 #> ax23         0         2
 #> bww9         1        -1
 #> ctrl        -1        -1
+```
 
-# do not set contrast L if you do further analysis (e.g., Anova, lm)
-# do M matrix instead
+**Hypothesis Testing with Contrast Matrices**
 
+Instead of setting contrasts in `heart$drug`, we use a contrast matrix $\mathbf{M}$
+
+
+```r
+# Define contrast matrix M for further testing
 M <- matrix(c(1, -1, 0, 0,
               0, 1, -1, 0,
               0, 0, 1, -1), nrow = 4)
-## update model to test contrasts
+
+# Update model for contrast testing
 heart_mod2 <- update(heart_mod)
+
+# Display model coefficients
 coef(heart_mod2)
 #>                  y1         y2        y3    y4
 #> (Intercept)   75.00 78.9583333 77.041667 74.75
 #> drugbww9:ctrl  4.50  5.8125000  3.562500  4.25
 #> drugax23:rest -2.25  0.7708333  1.979167 -0.75
+```
 
-# Hypothesis test for bww9 vs control after transformation M
-# same as linearHypothesis(heart_mod, hypothesis.matrix = c(0,1,-1), P = M)
-bww9vctrl <-
-    car::linearHypothesis(heart_mod2,
-                     hypothesis.matrix = c(0, 1, 0),
-                     P = M)
+Comparing Drug `bww9` vs Control
+
+
+```r
+bww9vctrl <- car::linearHypothesis(heart_mod2, hypothesis.matrix = c(0, 1, 0), P = M)
 bww9vctrl
 #> 
 #>  Response transformation matrix:
@@ -1688,10 +2731,7 @@ bww9vctrl
 #> Hotelling-Lawley  1 0.3448644 2.184141      3     19 0.1233
 #> Roy               1 0.3448644 2.184141      3     19 0.1233
 
-bww9vctrl <-
-    car::linearHypothesis(heart_mod,
-                     hypothesis.matrix = c(0, 1, -1),
-                     P = M)
+bww9vctrl <- car::linearHypothesis(heart_mod, hypothesis.matrix = c(0, 1, -1), P = M)
 bww9vctrl
 #> 
 #>  Response transformation matrix:
@@ -1721,15 +2761,13 @@ bww9vctrl
 #> Roy               1 0.3448644 2.184141      3     19 0.1233
 ```
 
-there is no significant difference in means between the control and `bww9` drug
+Since the p-value is not significant, we conclude that there is no significant difference between the control and `bww9` drug treatment.
+
+**Comparing Drug `ax23` vs Rest**
 
 
 ```r
-# Hypothesis test for ax23 vs rest after transformation M
-axx23vrest <-
-    car::linearHypothesis(heart_mod2,
-                     hypothesis.matrix = c(0, 0, 1),
-                     P = M)
+axx23vrest <- car::linearHypothesis(heart_mod2, hypothesis.matrix = c(0, 0, 1), P = M)
 axx23vrest
 #> 
 #>  Response transformation matrix:
@@ -1760,10 +2798,7 @@ axx23vrest
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-axx23vrest <-
-    car::linearHypothesis(heart_mod,
-                     hypothesis.matrix = c(2, -1, 1),
-                     P = M)
+axx23vrest <- car::linearHypothesis(heart_mod, hypothesis.matrix = c(2, -1, 1), P = M)
 axx23vrest
 #> 
 #>  Response transformation matrix:
@@ -1795,9 +2830,11 @@ axx23vrest
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
 
-there is a significant difference in means between ax23 drug treatment and the rest of the treatments
+Since we obtain a significant p-value, we conclude that the `ax23` drug treatment significantly differs from the rest of the treatments.
 
-### Profile Analysis
+------------------------------------------------------------------------
+
+#### Profile Analysis
 
 Examine similarities between the treatment effects (between subjects), which is useful for longitudinal analysis. Null is that all treatments have the same average effect.
 
@@ -2225,7 +3262,7 @@ sim <- mvrnorm(n = 1000, mu = mu, Sigma = Sigma)
 plot(sim[, 1], sim[, 2])
 ```
 
-<img src="25-multivariate_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-multivariate_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
 
 Here,
 
@@ -2291,7 +3328,7 @@ sim1 <-
 plot(sim1[, 1], sim1[, 2])
 ```
 
-<img src="25-multivariate_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-multivariate_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
 
 No more dependence in the data structure, plot
 
@@ -2590,7 +3627,7 @@ plot(
 )
 ```
 
-<img src="25-multivariate_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-multivariate_files/figure-html/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -2603,7 +3640,7 @@ plot(
 )
 ```
 
-<img src="25-multivariate_files/figure-html/unnamed-chunk-17-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-multivariate_files/figure-html/unnamed-chunk-24-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -3054,14 +4091,14 @@ scree_gg <- ggplot(cor_results, aes(x = number, y = eigen_values)) +
 scree_gg
 ```
 
-<img src="25-multivariate_files/figure-html/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-multivariate_files/figure-html/unnamed-chunk-25-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
 screeplot(cor_pca, type = 'lines')
 ```
 
-<img src="25-multivariate_files/figure-html/unnamed-chunk-18-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-multivariate_files/figure-html/unnamed-chunk-25-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -3233,7 +4270,7 @@ flag_gg <- ggplot(factors_df) +
 flag_gg
 ```
 
-<img src="25-multivariate_files/figure-html/unnamed-chunk-18-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-multivariate_files/figure-html/unnamed-chunk-25-3.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -3723,7 +4760,7 @@ Compare to the non-parametric method (KNN)
 From simulation:
 
 | True decision boundary                           | Best performance          |
-|--------------------------------------------|----------------------------|
+|----------------------------------------------|--------------------------|
 | Linear                                           | LDA + Logistic regression |
 | Moderately nonlinear                             | QDA + Naive Bayes         |
 | Highly nonlinear (many training, p is not large) | KNN                       |
@@ -3834,7 +4871,7 @@ For binary classification, confusion matrix
 and table 4.6 from [@james2013]
 
 | Name             | Definition | Synonyms                                      |
-|------------------|------------------|-----------------------------------|
+|------------------|------------------|------------------------------------|
 | False Pos rate   | FP/N       | Type I error, 1 0 Specificity                 |
 | True Pos. rate   | TP/P       | 1 - Type II error, power, sensitivity, recall |
 | Pos Pred. value  | TP/P\*     | Precision, 1 - false discovery promotion      |
@@ -4169,13 +5206,13 @@ table(truth = Y_train, fitted = knn_2)
 #> truth        Clover Corn Cotton Soybeans Sugarbeets
 #>   Clover          9    0      1        1          0
 #>   Corn            0    7      0        0          0
-#>   Cotton          1    0      3        0          2
-#>   Soybeans        0    0      0        4          2
-#>   Sugarbeets      1    0      1        2          2
+#>   Cotton          1    0      4        0          1
+#>   Soybeans        0    0      0        5          1
+#>   Sugarbeets      1    0      0        0          5
 
 ## Accuracy
 mean(Y_train==knn_2)
-#> [1] 0.6944444
+#> [1] 0.8333333
 
 ## Performance on test data
 knn_2_test <- knn(X_train, X_test, Y_train, k = 2)
@@ -4184,28 +5221,28 @@ table(truth = Y_test, predict = knn_2_test)
 #> truth        Clover Corn Cotton Soybeans Sugarbeets
 #>   Clover          1    0      0        0          0
 #>   Corn            0    1      0        0          0
-#>   Cotton          0    0      1        0          0
+#>   Cotton          0    0      0        0          1
 #>   Soybeans        0    0      0        1          0
 #>   Sugarbeets      0    0      0        0          1
 
 ## Accuracy
 mean(Y_test==knn_2_test)
-#> [1] 1
+#> [1] 0.8
 
 ## Nearest neighbors with 3 neighbors
 knn_3 <- knn(X_train, X_train, Y_train, k = 3)
 table(truth = Y_train, fitted = knn_3)
 #>             fitted
 #> truth        Clover Corn Cotton Soybeans Sugarbeets
-#>   Clover          7    0      2        2          0
-#>   Corn            0    6      0        1          0
-#>   Cotton          1    1      4        0          0
-#>   Soybeans        1    1      0        4          0
-#>   Sugarbeets      0    0      0        1          5
+#>   Clover          8    0      3        0          0
+#>   Corn            0    4      0        3          0
+#>   Cotton          1    0      3        1          1
+#>   Soybeans        0    0      1        4          1
+#>   Sugarbeets      0    0      0        3          3
 
 ## Accuracy
 mean(Y_train==knn_3)
-#> [1] 0.7222222
+#> [1] 0.6111111
 
 ## Performance on test data
 knn_3_test <- knn(X_train, X_test, Y_train, k = 3)
@@ -4235,15 +5272,15 @@ step <- stepclass(
     method = "qda",
     improvement = 0.15
 )
-#> correctness rate: 0.425;  in: "y1";  variables (1): y1 
+#> correctness rate: 0.41667;  in: "y1";  variables (1): y1 
 #> 
 #>  hr.elapsed min.elapsed sec.elapsed 
-#>        0.00        0.00        0.25
+#>        0.00        0.00        0.22
 
 step$process
 #>    step var varname result.pm
-#> 0 start   0      --     0.000
-#> 1    in   1      y1     0.425
+#> 0 start   0      -- 0.0000000
+#> 1    in   1      y1 0.4166667
 
 step$performance.measure
 #> [1] "correctness rate"
@@ -4277,7 +5314,7 @@ table(truth = test.iris$Species, prediction = pred.lda$class)
 plot(iris.model)
 ```
 
-<img src="25-multivariate_files/figure-html/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-multivariate_files/figure-html/unnamed-chunk-31-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
@@ -4306,7 +5343,7 @@ train <- t(train) #each column is an observation
 image(matrix(train[, 1], nrow = 28), main = 'Example image, unrotated')
 ```
 
-<img src="25-multivariate_files/figure-html/unnamed-chunk-25-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="25-multivariate_files/figure-html/unnamed-chunk-32-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```r
 
