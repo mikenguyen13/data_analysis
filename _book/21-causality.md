@@ -79,11 +79,15 @@ These levels correspond to [The Ladder of Causation](#sec-the-ladder-of-causatio
 
 Pearl's *Ladder of Causation* describes **three hierarchical levels of causal reasoning**:
 
++---------------------+--------------+----------------------------------------------------------+---------------------------------------------------------------+
 | **Level**           | **Activity** | **Questions Answered**                                   | **Examples**                                                  |
-|---------------------|--------------|----------------------------------------------------------|---------------------------------------------------------------|
++=====================+==============+==========================================================+===============================================================+
 | **Association**     | *Seeing*     | What is? How does seeing $X$ change my belief in $Y$?    | What does a symptom tell me about a disease?                  |
++---------------------+--------------+----------------------------------------------------------+---------------------------------------------------------------+
 | **Intervention**    | *Doing*      | What if? What happens if I intervene and change $X$?     | If I study more, will my test score improve?                  |
++---------------------+--------------+----------------------------------------------------------+---------------------------------------------------------------+
 | **Counterfactuals** | *Imagining*  | Why? What would have happened if $X$ had been different? | If I had quit smoking a year ago, would I be healthier today? |
++---------------------+--------------+----------------------------------------------------------+---------------------------------------------------------------+
 
 *(Adapted from [@pearl2019seven], p. 57)*
 
@@ -460,11 +464,15 @@ For further reading:
 
 Experimental and quasi-experimental designs differ in their approach to causal inference. The table below summarizes key distinctions:
 
++-----------------------------------------------+------------------------------------------------+
 | **Experimental Design**                       | **Quasi-Experimental Design**                  |
-|-----------------------------------------------|------------------------------------------------|
++===============================================+================================================+
 | Conducted by an experimentalist               | Conducted by an observationalist               |
++-----------------------------------------------+------------------------------------------------+
 | Uses experimental data                        | Uses observational data                        |
++-----------------------------------------------+------------------------------------------------+
 | Random assignment reduces treatment imbalance | Random sampling reduces sample selection error |
++-----------------------------------------------+------------------------------------------------+
 
 ### Criticisms of Quasi-Experimental Designs
 
@@ -1094,10 +1102,13 @@ $$
 -   Since always-takers receive treatment regardless of assignment, their presence does not bias LATE as long as monotonicity holds.
 -   In practice, monotonicity is often reasonable, as defiers are rare.
 
++------------------------------------------------------+---------------------------------------+-----------------------------------------------------------------------+------------------------------------------+
 | **Scenario**                                         | **What it Measures**                  | **When to Use It?**                                                   | **Key Assumptions**                      |
-|------------------------------------------------------|---------------------------------------|-----------------------------------------------------------------------|------------------------------------------|
++======================================================+=======================================+=======================================================================+==========================================+
 | [Intention-to-Treat](#sec-intention-to-treat-effect) | Effect of being assigned to treatment | Policy impact with non-compliance                                     | None (preserves randomization)           |
++------------------------------------------------------+---------------------------------------+-----------------------------------------------------------------------+------------------------------------------+
 | [LATE](#sec-local-average-treatment-effects)         | Effect on **compliers only**          | When we care about **actual treatment effect** rather than assignment | Excludability, Monotonicity (No Defiers) |
++------------------------------------------------------+---------------------------------------+-----------------------------------------------------------------------+------------------------------------------+
 
 ------------------------------------------------------------------------
 
@@ -1132,9 +1143,6 @@ Define the following indicators:
     0, & \text{if unit } i \text{ is in the control group}
     \end{cases}
     $$
-
-<!-- -->
-
 -   **Potential Outcomes Framework**:\
     $$
     Y_i =
@@ -1144,6 +1152,9 @@ Define the following indicators:
     \end{cases}
     $$
 
+```{=html}
+<!-- -->
+```
 -   **Observed Outcome**:\
     Since we can never observe both potential outcomes for the same unit, the observed outcome is:
 
@@ -1465,11 +1476,15 @@ $$
 
 ------------------------------------------------------------------------
 
++----------------------------------------+-------------------------------------------------------------+---------------------------------------------------------------+------------------------------------------+
 | **Treatment Effect**                   | **Definition**                                              | **Use Case**                                                  | **Potential Issues**                     |
-|----------------------------------------|-------------------------------------------------------------|---------------------------------------------------------------|------------------------------------------|
++========================================+=============================================================+===============================================================+==========================================+
 | **ATE (Average Treatment Effect)**     | Effect on **randomly selected individuals**                 | Policy decisions applicable to entire population              | Requires full randomization              |
++----------------------------------------+-------------------------------------------------------------+---------------------------------------------------------------+------------------------------------------+
 | **ATT (Average Treatment on Treated)** | Effect on **those who received treatment**                  | Evaluating effectiveness of interventions for targeted groups | Selection bias if treatment is voluntary |
++----------------------------------------+-------------------------------------------------------------+---------------------------------------------------------------+------------------------------------------+
 | **ATC (Average Treatment on Control)** | Effect **if treatment were given to untreated individuals** | Predicting treatment effects for new populations              | May not be generalizable                 |
++----------------------------------------+-------------------------------------------------------------+---------------------------------------------------------------+------------------------------------------+
 
 ### Quantile Average Treatment Effects {#sec-quantile-average-treatment-effects}
 
@@ -1562,15 +1577,26 @@ This captures how treatment **affects the relative likelihood** of success in a 
 
 ### Summary Table: Treatment Effect Estimands
 
++------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------+
 | **Treatment Effect**                                                                           | **Definition**                                                                                          | **Use Case**                                                                        | **Key Assumptions**                                                                            | **When It Differs from ATE?**                                                  |
-|------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|
++================================================================================================+=========================================================================================================+=====================================================================================+================================================================================================+================================================================================+
 | [Average Treatment Effect](#sec-average-treatment-effect)                                      | The expected treatment effect for a randomly chosen individual in the population.                       | General policy evaluation; measures the overall impact.                             | Randomization or strong ignorability (treatment assignment independent of potential outcomes). | \-                                                                             |
++------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------+
 | [Conditional Average Treatment Effect](#sec-conditional-average-treatment-effect-)             | The treatment effect for a specific subgroup of the population, conditional on covariates $X$.          | Identifies heterogeneous effects; useful for targeted interventions.                | Treatment effect heterogeneity must exist.                                                     | Differs when treatment effects vary across subgroups.                          |
++------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------+
 | [Intention-to-Treat Effect](#sec-intention-to-treat-effect)                                    | The effect of being assigned to treatment, regardless of actual compliance.                             | Policy evaluations where non-compliance exists.                                     | Randomized treatment assignment ensures unbiased estimation.                                   | Lower than ATE when not all assigned individuals comply.                       |
++------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------+
 | [Local Average Treatment Effect](#sec-local-average-treatment-effects)                         | The effect of treatment only on compliers---those who take the treatment if and only if assigned to it. | When compliance is imperfect, LATE isolates the effect for compliers.               | Monotonicity (no defiers); instrument only affects the outcome through treatment.              | Differs from ATE when compliance is selective.                                 |
++------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------+
 | [Average Treatment Effect on the Treated](#sec-average-treatment-effect-on-the-treated)        | The effect of treatment on those who actually received the treatment.                                   | Used when assessing effectiveness of a treatment for those who self-select into it. | No unmeasured confounders within the treated group.                                            | Differs when treatment selection is not random.                                |
++------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------+
 | [Average Treatment Effect on the Control](#sec-average-treatment-effect-on-the-control)        | The effect the treatment would have had on individuals who were not treated.                            | Predicts the effect of expanding a program to the untreated population.             | No unmeasured confounders within the control group.                                            | Differs when treatment effects are heterogeneous.                              |
++------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------+
 | [Sample Average Treatment Effect](#sec-sample-average-treatment-effect-on-the-treated)         | The estimated treatment effect in the sample.                                                           | Used when evaluating treatment within a specific sample.                            | Sample must be representative of the population for external validity.                         | Differs when the sample is not representative of the population.               |
++------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------+
 | [Population Average Treatment Effect](#sec-population-average-treatment-effect-on-the-treated) | The expected treatment effect for the entire population.                                                | Policy design and large-scale decision-making.                                      | Requires that sample selection is random.                                                      | Differs when sample selection bias exists.                                     |
++------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------+
 | [Quantile Treatment Effect](#sec-quantile-average-treatment-effects)                           | The treatment effect at a specific percentile of the outcome distribution.                              | Understanding distributional effects rather than mean effects.                      | Rank preservation or monotonicity assumptions may be needed.                                   | Differs when treatment effects vary across outcome quantiles.                  |
++------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------+
 | [Log-Odds Treatment Effect](#sec-log-odds-treatment-effects-for-binary-outcomes)               | The effect of treatment on binary outcomes, expressed in log-odds.                                      | Used when outcomes are dichotomous (e.g., employed/unemployed, survived/died).      | Logistic model assumptions must hold.                                                          | Differs when treatment effects are nonlinear or outcome probabilities are low. |
++------------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------+

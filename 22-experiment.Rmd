@@ -1,4 +1,4 @@
-# Experimental Design
+# Experimental Design {#sec-experimental-design}
 
 Imagine you're a marketing manager trying to decide whether a new advertising campaign will boost sales. Or perhaps you're an economist investigating the impact of tax incentives on consumer spending. In both cases, you need a way to determine **causal effects**---not just correlations. This is where **experimental design** becomes essential.
 

@@ -1,4 +1,4 @@
-# Matching Methods
+# Matching Methods {#sec-matching-methods}
 
 Matching is a process that aims to close back doors - potential sources of bias - by constructing comparison groups that are similar according to a set of matching variables. This helps to ensure that any observed differences in outcomes between the treatment and comparison groups can be more confidently attributed to the treatment itself, rather than other factors that may differ between the groups.
 
@@ -1025,7 +1025,7 @@ parallelPlot(
 matched.data <- generateDataset(L1.frontier, N = 400) 
 ```
 
-### Propensity Scores
+### Propensity Scores {#sec-propensity-scores}
 
 Even though I mention the propensity scores matching method here, it is no longer recommended to use such method in research and publication [@king2019propensity] because it increases
 
@@ -1503,7 +1503,7 @@ There are several ways one can deal with selection on unobservables:
 
 4.  [Coefficient-stability Bounds]
 
-### Rosenbaum Bounds
+### Rosenbaum Bounds {#sec-rosenbaum-bounds}
 
 Examples in marketing
 
@@ -1523,7 +1523,7 @@ Examples in marketing
 
 General
 
--   [Matching Methods] are favored for estimating treatment effects in observational data, offering advantages over regression methods because
+-   [Matching Methods](#sec-matching-methods) are favored for estimating treatment effects in observational data, offering advantages over regression methods because
 
     -   It reduces reliance on functional form assumptions.
 

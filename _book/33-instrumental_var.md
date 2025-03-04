@@ -1,6 +1,6 @@
-# Instrumental Variables
+# Instrumental Variables {#sec-instrumental-variables}
 
-Similar to [RCT][Experimental Design], we try to introduce randomization (random assignment to treatment) to our treatment variable by using only variation in the instrument.
+Similar to [RCT](#sec-experimental-design), we try to introduce randomization (random assignment to treatment) to our treatment variable by using only variation in the instrument.
 
 Logic of using an instrument:
 
@@ -920,7 +920,7 @@ Stock and Yogo provide critical values for different scenarios (bias, size disto
 **Comparison**
 
 | **Test**                    | **Description**                                                     | **Focus**                                                                  | **Usage**                                                                                                                                               |
-|-----------------------------|---------------------------------------------------------------------|----------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------|
+|---------------|---------------|---------------|-----------------------------|
 | **First-Stage F-Test**      | Evaluates the joint significance of instruments in the first stage. | Predictive power of instruments for the endogenous variable.               | Simplest and most direct test, widely used especially with a single endogenous variable. Rule of thumb: F \< 10 suggests weak instruments.              |
 | **Cragg-Donald Test**       | Wald statistic for joint significance of instruments.               | Joint strength of multiple instruments with multiple endogenous variables. | More appropriate in complex IV setups with multiple endogenous variables. Compares statistic against critical values for assessing instrument strength. |
 | **Stock-Yogo Weak IV Test** | Compares test statistic to pre-determined critical values.          | Minimizing size distortions and bias from weak instruments.                | Theoretical evaluation of instrument strength, ensuring the reliability of 2SLS estimates against specific thresholds of bias or size distortion.       |

@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 35 Matching Methods | A Guide on Data Analysis</title>
+<meta name="author" content="Mike Nguyen">
+<meta name="description" content="Matching is a process that aims to close back doors - potential sources of bias - by constructing comparison groups that are similar according to a set of matching variables. This helps to ensure...">
+<meta name="generator" content="bookdown 0.35 with bs4_book()">
+<meta property="og:title" content="Chapter 35 Matching Methods | A Guide on Data Analysis">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://bookdown.org/mike/data_analysis/sec-matching-methods.html">
+<meta property="og:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<meta property="og:description" content="Matching is a process that aims to close back doors - potential sources of bias - by constructing comparison groups that are similar according to a set of matching variables. This helps to ensure...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 35 Matching Methods | A Guide on Data Analysis">
+<meta name="twitter:description" content="Matching is a process that aims to close back doors - potential sources of bias - by constructing comparison groups that are similar according to a set of matching variables. This helps to ensure...">
+<meta name="twitter:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.6.1/transition.js"></script><script src="libs/bs3compat-0.6.1/tabs.js"></script><script src="libs/bs3compat-0.6.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/kePrint-0.0.1/kePrint.js"></script><link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+<!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script><script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-DMNX2X65HQ');
+    </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">A Guide on Data Analysis</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Preface</a></li>
+<li><a class="" href="introduction.html"><span class="header-section-number">1</span> Introduction</a></li>
+<li><a class="" href="prerequisites.html"><span class="header-section-number">2</span> Prerequisites</a></li>
+<li class="book-part">I. BASIC</li>
+<li><a class="" href="descriptive-statistics.html"><span class="header-section-number">3</span> Descriptive Statistics</a></li>
+<li><a class="" href="basic-statistical-inference.html"><span class="header-section-number">4</span> Basic Statistical Inference</a></li>
+<li class="book-part">II. REGRESSION</li>
+<li><a class="" href="linear-regression.html"><span class="header-section-number">5</span> Linear Regression</a></li>
+<li><a class="" href="non-linear-regression.html"><span class="header-section-number">6</span> Non-Linear Regression</a></li>
+<li><a class="" href="generalized-linear-models.html"><span class="header-section-number">7</span> Generalized Linear Models</a></li>
+<li><a class="" href="sec-linear-mixed-models.html"><span class="header-section-number">8</span> Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonlinear-and-generalized-linear-mixed-models.html"><span class="header-section-number">9</span> Nonlinear and Generalized Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonparametric-regression.html"><span class="header-section-number">10</span> Nonparametric Regression</a></li>
+<li class="book-part">III. RAMIFICATIONS</li>
+<li><a class="" href="data.html"><span class="header-section-number">11</span> Data</a></li>
+<li><a class="" href="variable-transformation.html"><span class="header-section-number">12</span> Variable Transformation</a></li>
+<li><a class="" href="imputation-missing-data.html"><span class="header-section-number">13</span> Imputation (Missing Data)</a></li>
+<li><a class="" href="model-specification-tests.html"><span class="header-section-number">14</span> Model Specification Tests</a></li>
+<li><a class="" href="variable-selection.html"><span class="header-section-number">15</span> Variable Selection</a></li>
+<li><a class="" href="hypothesis-testing.html"><span class="header-section-number">16</span> Hypothesis Testing</a></li>
+<li><a class="" href="sec-marginal-effects.html"><span class="header-section-number">17</span> Marginal Effects</a></li>
+<li><a class="" href="moderation.html"><span class="header-section-number">18</span> Moderation</a></li>
+<li><a class="" href="mediation.html"><span class="header-section-number">19</span> Mediation</a></li>
+<li><a class="" href="prediction-and-estimation.html"><span class="header-section-number">20</span> Prediction and Estimation</a></li>
+<li class="book-part">IV. CAUSAL INFERENCE</li>
+<li><a class="" href="sec-causal-inference.html"><span class="header-section-number">21</span> Causal Inference</a></li>
+<li class="book-part">A. EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-experimental-design.html"><span class="header-section-number">22</span> Experimental Design</a></li>
+<li><a class="" href="sampling.html"><span class="header-section-number">23</span> Sampling</a></li>
+<li><a class="" href="sec-analysis-of-variance-anova.html"><span class="header-section-number">24</span> Analysis of Variance</a></li>
+<li><a class="" href="sec-multivariate-methods.html"><span class="header-section-number">25</span> Multivariate Methods</a></li>
+<li class="book-part">B. QUASI-EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-quasi-experimental.html"><span class="header-section-number">26</span> Quasi-Experimental Methods</a></li>
+<li><a class="" href="sec-regression-discontinuity.html"><span class="header-section-number">27</span> Regression Discontinuity</a></li>
+<li><a class="" href="temporal-discontinuity-designs.html"><span class="header-section-number">28</span> Temporal Discontinuity Designs</a></li>
+<li><a class="" href="sec-synthetic-difference-in-differences.html"><span class="header-section-number">29</span> Synthetic Difference-in-Differences</a></li>
+<li><a class="" href="sec-difference-in-differences.html"><span class="header-section-number">30</span> Difference-in-Differences</a></li>
+<li><a class="" href="changes-in-changes.html"><span class="header-section-number">31</span> Changes-in-Changes</a></li>
+<li><a class="" href="sec-synthetic-control.html"><span class="header-section-number">32</span> Synthetic Control</a></li>
+<li><a class="" href="event-studies.html"><span class="header-section-number">33</span> Event Studies</a></li>
+<li><a class="" href="sec-instrumental-variables.html"><span class="header-section-number">34</span> Instrumental Variables</a></li>
+<li><a class="active" href="sec-matching-methods.html"><span class="header-section-number">35</span> Matching Methods</a></li>
+<li class="book-part">C. OTHER CONCERNS</li>
+<li><a class="" href="endogeneity.html"><span class="header-section-number">36</span> Endogeneity</a></li>
+<li><a class="" href="other-biases.html"><span class="header-section-number">37</span> Other Biases</a></li>
+<li><a class="" href="controls.html"><span class="header-section-number">38</span> Controls</a></li>
+<li><a class="" href="directed-acyclic-graph.html"><span class="header-section-number">39</span> Directed Acyclic Graph</a></li>
+<li class="book-part">V. MISCELLANEOUS</li>
+<li><a class="" href="report.html"><span class="header-section-number">40</span> Report</a></li>
+<li><a class="" href="exploratory-data-analysis.html"><span class="header-section-number">41</span> Exploratory Data Analysis</a></li>
+<li><a class="" href="sensitivity-analysis-robustness-check.html"><span class="header-section-number">42</span> Sensitivity Analysis/ Robustness Check</a></li>
+<li><a class="" href="replication-and-synthetic-data.html"><span class="header-section-number">43</span> Replication and Synthetic Data</a></li>
+<li class="book-part">APPENDIX</li>
+<li><a class="" href="appendix.html"><span class="header-section-number">A</span> Appendix</a></li>
+<li><a class="" href="bookdown-cheat-sheet.html"><span class="header-section-number">B</span> Bookdown cheat sheet</a></li>
+<li><a class="" href="references.html">References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/mikenguyen13/data_analysis">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="sec-matching-methods" class="section level1" number="35">
+<h1>
+<span class="header-section-number">35</span> Matching Methods<a class="anchor" aria-label="anchor" href="#sec-matching-methods"><i class="fas fa-link"></i></a>
+</h1>
+<p>Matching is a process that aims to close back doors - potential sources of bias - by constructing comparison groups that are similar according to a set of matching variables. This helps to ensure that any observed differences in outcomes between the treatment and comparison groups can be more confidently attributed to the treatment itself, rather than other factors that may differ between the groups.</p>
+<p>Matching and DiD can use pre-treatment outcomes to correct for selection bias. From real world data and simulation, <span class="citation">(<a href="references.html#ref-chabe2015analysis">Chabé-Ferret 2015</a>)</span> found that matching generally underestimates the average causal effect and gets closer to the true effect with more number of pre-treatment outcomes. When selection bias is symmetric around the treatment date, DID is still consistent when implemented symmetrically (i.e., the same number of period before and after treatment). In cases where selection bias is asymmetric, the MC simulations show that Symmetric DID still performs better than Matching.</p>
+<p>Matching is useful, but not a general solution to causal problems <span class="citation">(<a href="references.html#ref-smith2005does">J. A. Smith and Todd 2005</a>)</span></p>
+<p><strong>Assumption</strong>: Observables can identify the selection into the treatment and control groups</p>
+<p><strong>Identification</strong>: The exclusion restriction can be met conditional on the observables</p>
+<p><strong>Motivation</strong></p>
+<p>Effect of college quality on earnings</p>
+<ul>
+<li>They ultimately estimate the treatment effect on the treated of attending a top (high ACT) versus bottom (low ACT) quartile college</li>
+</ul>
+<p><strong>Example</strong></p>
+<p><span class="citation">Aaronson, Barrow, and Sander (<a href="references.html#ref-aaronson2007teachers">2007</a>)</span></p>
+<p>Do teachers qualifications (causally) affect student test scores?</p>
+<p>Step 1:</p>
+<p><span class="math display">\[
+Y_{ijt} = \delta_0 + Y_{ij(t-1)} \delta_1 + X_{it} \delta_2 + Z_{jt} \delta_3 + \epsilon_{ijt}
+\]</span></p>
+<p>There can always be another variable</p>
+<p>Any observable sorting is imperfect</p>
+<p>Step 2:</p>
+<p><span class="math display">\[
+Y_{ijst} = \alpha_0 + Y_{ij(t-1)}\alpha_1 + X_{it} \alpha_2 + Z_{jt} \alpha_3 + \gamma_s + u_{isjt}
+\]</span></p>
+<ul>
+<li><p><span class="math inline">\(\delta_3 &gt;0\)</span></p></li>
+<li><p><span class="math inline">\(\delta_3 &gt; \alpha_3\)</span></p></li>
+<li><p><span class="math inline">\(\gamma_s\)</span> = school fixed effect</p></li>
+</ul>
+<p>Sorting is less within school. Hence, we can introduce the school fixed effect</p>
+<p>Step 3:</p>
+<p>Find schools that look like they are putting students in class randomly (or as good as random) + we run step 2</p>
+<p><span class="math display">\[
+\begin{aligned}
+Y_{isjt} = Y_{isj(t-1)} \lambda &amp;+ X_{it} \alpha_1 +Z_{jt} \alpha_{21} \\
+&amp;+ (Z_{jt} \times D_i)\alpha_{22}+ \gamma_5 + u_{isjt}
+\end{aligned}
+\]</span></p>
+<ul>
+<li><p><span class="math inline">\(D_{it}\)</span> is an element of <span class="math inline">\(X_{it}\)</span></p></li>
+<li><p><span class="math inline">\(Z_{it}\)</span> = teacher experience</p></li>
+</ul>
+<p><span class="math display">\[
+D_{it}=
+\begin{cases}
+1 &amp; \text{ if high poverty} \\
+0 &amp; \text{otherwise}
+\end{cases}
+\]</span></p>
+<p><span class="math inline">\(H_0:\)</span> <span class="math inline">\(\alpha_{22} = 0\)</span> test for effect heterogeneity whether the effect of teacher experience (<span class="math inline">\(Z_{jt}\)</span>) is different</p>
+<ul>
+<li><p>For low poverty is <span class="math inline">\(\alpha_{21}\)</span></p></li>
+<li><p>For high poverty effect is <span class="math inline">\(\alpha_{21} + \alpha_{22}\)</span></p></li>
+</ul>
+<p>Matching is <strong>selection on observables</strong> and only works if you have good observables.</p>
+<p>Sufficient identification assumption under Selection on observable/ back-door criterion (based on Bernard Koch’s <a href="https://www.youtube.com/watch?v=v9uf9rDYEMg&amp;ab_channel=SummerInstituteinComputationalSocialScience">presentation</a>)</p>
+<ul>
+<li>
+<p>Strong conditional ignorability</p>
+<ul>
+<li><p><span class="math inline">\(Y(0),Y(1) \perp T|X\)</span></p></li>
+<li><p>No hidden confounders</p></li>
+</ul>
+</li>
+<li>
+<p>Overlap</p>
+<ul>
+<li><p><span class="math inline">\(\forall x \in X, t \in \{0, 1\}: p (T = t | X = x&gt; 0\)</span></p></li>
+<li><p>All treatments have non-zero probability of being observed</p></li>
+</ul>
+</li>
+<li>
+<p>SUTVA/ Consistency</p>
+<ul>
+<li>Treatment and outcomes of different subjects are independent</li>
+</ul>
+</li>
+</ul>
+<p>Relative to <a href="linear-regression.html#ordinary-least-squares">OLS</a></p>
+<ol style="list-style-type: decimal">
+<li>Matching makes the <strong>common support</strong> explicit (and changes default from “ignore” to “enforce”)</li>
+<li>Relaxes linear function form. Thus, less parametric.</li>
+</ol>
+<p>It also helps if you have high ratio of controls to treatments.</p>
+<p>For detail summary <span class="citation">(<a href="references.html#ref-stuart2010matching">Stuart 2010</a>)</span></p>
+<p>Matching is defined as “any method that aims to equate (or”balance”) the distribution of covariates in the treated and control groups.” <span class="citation">(<a href="references.html#ref-stuart2010matching">Stuart 2010, 1</a>)</span></p>
+<p>Equivalently, matching is a selection on observables identifications strategy.</p>
+<p><strong>If you think your OLS estimate is biased, a matching estimate (almost surely) is too.</strong></p>
+<p>Unconditionally, consider</p>
+<p><span class="math display">\[
+\begin{aligned}
+E(Y_i^T | T) - E(Y_i^C |C) &amp;+ E(Y_i^C | T) - E(Y_i^C | T) \\
+= E(Y_i^T - Y_i^C | T) &amp;+ [E(Y_i^C | T) - E(Y_i^C |C)] \\
+= E(Y_i^T - Y_i^C | T) &amp;+ \text{selection bias}
+\end{aligned}
+\]</span></p>
+<p>where <span class="math inline">\(E(Y_i^T - Y_i^C | T)\)</span> is the causal inference that we want to know.</p>
+<p>Randomization eliminates the selection bias.</p>
+<p>If we don’t have randomization, then <span class="math inline">\(E(Y_i^C | T) \neq E(Y_i^C |C)\)</span></p>
+<p>Matching tries to do selection on observables <span class="math inline">\(E(Y_i^C | X, T) = E(Y_i^C|X, C)\)</span></p>
+<p><a href="sec-matching-methods.html#sec-propensity-scores">Propensity Scores</a> basically do <span class="math inline">\(E(Y_i^C| P(X) , T) = E(Y_i^C | P(X), C)\)</span></p>
+<p><strong>Matching standard errors will exceed OLS standard errors</strong></p>
+<p>The treatment should have larger predictive power than the control because you use treatment to pick control (not control to pick treatment).</p>
+<p>The average treatment effect (ATE) is</p>
+<p><span class="math display">\[
+\frac{1}{N_T} \sum_{i=1}^{N_T} (Y_i^T - \frac{1}{N_{C_T}} \sum_{i=1}^{N_{C_T}} Y_i^C)
+\]</span></p>
+<p>Since there is no closed-form solution for the standard error of the average treatment effect, we have to use bootstrapping to get standard error.</p>
+<p>Professor Gary King advocates instead of using the word “matching”, we should use “<strong>pruning</strong>” (i.e., deleting observations). It is a preprocessing step where it prunes nonmatches to make control variables less important in your analysis.</p>
+<p>Without Matching</p>
+<ul>
+<li>
+<strong>Imbalance data</strong> leads to <strong>model dependence</strong> lead to a lot of <strong>researcher discretion</strong> leads to <strong>bias</strong>
+</li>
+</ul>
+<p>With Matching</p>
+<ul>
+<li>We have balance data which essentially erase human discretion</li>
+</ul>
+<div class="inline-table"><table class="table table-sm">
+<caption>Table @ref(tab:Gary King - International Methods Colloquium talk 2015)</caption>
+<thead><tr class="header">
+<th>Balance Covariates</th>
+<th>Complete Randomization</th>
+<th>Fully Exact</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Observed</td>
+<td>On average</td>
+<td>Exact</td>
+</tr>
+<tr class="even">
+<td>Unobserved</td>
+<td>On average</td>
+<td>On average</td>
+</tr>
+</tbody>
+</table></div>
+<p>Fully blocked is superior on</p>
+<ul>
+<li><p>imbalance</p></li>
+<li><p>model dependence</p></li>
+<li><p>power</p></li>
+<li><p>efficiency</p></li>
+<li><p>bias</p></li>
+<li><p>research costs</p></li>
+<li><p>robustness</p></li>
+</ul>
+<p>Matching is used when</p>
+<ul>
+<li><p>Outcomes are not available to select subjects for follow-up</p></li>
+<li><p>Outcomes are available to improve precision of the estimate (i.e., reduce bias)</p></li>
+</ul>
+<p>Hence, we can only observe one outcome of a unit (either treated or control), we can think of this problem as missing data as well. Thus, this section is closely related to <a href="imputation-missing-data.html#imputation-missing-data">Imputation (Missing Data)</a></p>
+<p>In observational studies, we cannot randomize the treatment effect. Subjects select their own treatments, which could introduce selection bias (i.e., systematic differences between group differences that confound the effects of response variable differences).</p>
+<p>Matching is used to</p>
+<ul>
+<li><p>reduce model dependence</p></li>
+<li><p>diagnose balance in the dataset</p></li>
+</ul>
+<p>Assumptions of matching:</p>
+<ol style="list-style-type: decimal">
+<li>
+<p>treatment assignment is independent of potential outcomes given the covariates</p>
+<ul>
+<li><p><span class="math inline">\(T \perp (Y(0),Y(1))|X\)</span></p></li>
+<li><p>known as ignorability, or ignorable, no hidden bias, or unconfounded.</p></li>
+<li>
+<p>You typically satisfy this assumption when unobserved covariates correlated with observed covariates.</p>
+<ul>
+<li>But when unobserved covariates are unrelated to the observed covariates, you can use sensitivity analysis to check your result, or use “design sensitivity” <span class="citation">(<a href="references.html#ref-heller2009split">Heller, Rosenbaum, and Small 2009</a>)</span>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>positive probability of receiving treatment for all X</p>
+<ul>
+<li><span class="math inline">\(0 &lt; P(T=1|X)&lt;1 \forall X\)</span></li>
+</ul>
+</li>
+<li>
+<p>Stable Unit Treatment value Assumption (SUTVA)</p>
+<ul>
+<li>
+<p>Outcomes of A are not affected by treatment of B.</p>
+<ul>
+<li>Very hard in cases where there is “spillover” effects (interactions between control and treatment). To combat, we need to reduce interactions.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<p>Generalization</p>
+<ul>
+<li><p><span class="math inline">\(P_t\)</span>: treated population -&gt; <span class="math inline">\(N_t\)</span>: random sample from treated</p></li>
+<li><p><span class="math inline">\(P_c\)</span>: control population -&gt; <span class="math inline">\(N_c\)</span>: random sample from control</p></li>
+<li><p><span class="math inline">\(\mu_i\)</span> = means ; <span class="math inline">\(\Sigma_i\)</span> = variance covariance matrix of the <span class="math inline">\(p\)</span> covariates in group i (<span class="math inline">\(i = t,c\)</span>)</p></li>
+<li><p><span class="math inline">\(X_j\)</span> = <span class="math inline">\(p\)</span> covariates of individual <span class="math inline">\(j\)</span></p></li>
+<li><p><span class="math inline">\(T_j\)</span> = treatment assignment</p></li>
+<li><p><span class="math inline">\(Y_j\)</span> = observed outcome</p></li>
+<li><p>Assume: <span class="math inline">\(N_t &lt; N_c\)</span></p></li>
+<li>
+<p>Treatment effect is <span class="math inline">\(\tau(x) = R_1(x) - R_0(x)\)</span> where</p>
+<ul>
+<li><p><span class="math inline">\(R_1(x) = E(Y(1)|X)\)</span></p></li>
+<li><p><span class="math inline">\(R_0(x) = E(Y(0)|X)\)</span></p></li>
+</ul>
+</li>
+<li>
+<p>Assume: parallel trends hence <span class="math inline">\(\tau(x) = \tau \forall x\)</span></p>
+<ul>
+<li>If the parallel trends are not assumed, an average effect can be estimated.</li>
+</ul>
+</li>
+<li>
+<p>Common estimands:</p>
+<ul>
+<li><p>Average effect of the treatment on the treated (<strong>ATT</strong>): effects on treatment group</p></li>
+<li><p>Average treatment effect (<strong>ATE</strong>): effect on both treatment and control</p></li>
+</ul>
+</li>
+</ul>
+<p>Steps:</p>
+<ol style="list-style-type: decimal">
+<li>
+<p>Define “closeness”: decide distance measure to be used</p>
+<ol style="list-style-type: decimal">
+<li>
+<p>Which variables to include:</p>
+<ol style="list-style-type: decimal">
+<li>
+<p>Ignorability (no unobserved differences between treatment and control)</p>
+<ol style="list-style-type: decimal">
+<li><p>Since cost of including unrelated variables is small, you should include as many as possible (unless sample size/power doesn’t allow you to because of increased variance)</p></li>
+<li><p>Do not include variables that were affected by the treatment.</p></li>
+<li><p>Note: if a matching variable (i.e., heavy drug users) is highly correlated to the outcome variable (i.e., heavy drinkers) , you will be better to exclude it in the matching set.</p></li>
+</ol>
+</li>
+</ol>
+</li>
+<li><p>Which distance measures: more below</p></li>
+</ol>
+</li>
+<li>
+<p>Matching methods</p>
+<ol style="list-style-type: decimal">
+<li>
+<p>Nearest neighbor matching</p>
+<ol style="list-style-type: decimal">
+<li><p>Simple (greedy) matching: performs poorly when there is competition for controls.</p></li>
+<li><p>Optimal matching: considers global distance measure</p></li>
+<li><p>Ratio matching: to combat increase bias and reduced variation when you have k:1 matching, one can use approximations by <span class="citation">Rubin and Thomas (<a href="references.html#ref-rubin1996matching">1996</a>)</span>.</p></li>
+<li><p>With or without replacement: with replacement is typically better, but one needs to account for dependent in the matched sample when doing later analysis (can use frequency weights to combat).</p></li>
+</ol>
+</li>
+<li>
+<p>Subclassification, Full Matching and Weighting</p>
+<p>Nearest neighbor matching assign is 0 (control) or 1 (treated), while these methods use weights between 0 and 1.</p>
+<ol style="list-style-type: decimal">
+<li><p>Subclassification: distribution into multiple subclass (e.g., 5-10)</p></li>
+<li><p>Full matching: optimal ly minimize the average of the distances between each treated unit and each control unit within each matched set.</p></li>
+<li>
+<p>Weighting adjustments: weighting technique uses propensity scores to estimate ATE. If the weights are extreme, the variance can be large not due to the underlying probabilities, but due to the estimation procure. To combat this, use (1) weight trimming, or (2) doubly -robust methods when propensity scores are used for weighing or matching.</p>
+<ol style="list-style-type: decimal">
+<li><p>Inverse probability of treatment weighting (IPTW) <span class="math inline">\(w_i = \frac{T_i}{\hat{e}_i} + \frac{1 - T_i}{1 - \hat{e}_i}\)</span></p></li>
+<li><p>Odds <span class="math inline">\(w_i = T_i + (1-T_i) \frac{\hat{e}_i}{1-\hat{e}_i}\)</span></p></li>
+<li><p>Kernel weighting (e.g., in economics) averages over multiple units in the control group.</p></li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p>Assessing Common Support</p>
+<ul>
+<li>common support means overlapping of the propensity score distributions in the treatment and control groups. Propensity score is used to discard control units from the common support. Alternatively, convex hull of the covariates in the multi-dimensional space.</li>
+</ul>
+</li>
+</ol>
+</li>
+<li>
+<p>Assessing the quality of matched samples (Diagnose)</p>
+<ul>
+<li>
+<p>Balance = similarity of the empirical distribution of the full set of covariates in the matched treated and control groups. Equivalently, treatment is unrelated to the covariates</p>
+<ul>
+<li>
+<span class="math inline">\(\tilde{p}(X|T=1) = \tilde{p}(X|T=0)\)</span> where <span class="math inline">\(\tilde{p}\)</span> is the empirical distribution.</li>
+</ul>
+</li>
+<li>
+<p>Numerical Diagnostics</p>
+<ol style="list-style-type: decimal">
+<li><p>standardized difference in means of each covariate (most common), also known as”standardized bias”, “standardized difference in means”.</p></li>
+<li><p>standardized difference of means of the propensity score (should be &lt; 0.25) <span class="citation">(<a href="references.html#ref-rubin2001using">Rubin 2001</a>)</span></p></li>
+<li><p>ratio of the variances of the propensity score in the treated and control groups (should be between 0.5 and 2). <span class="citation">(<a href="references.html#ref-rubin2001using">Rubin 2001</a>)</span></p></li>
+<li>
+<p>For each covariate, the ratio fo the variance of the residuals orthogonal to the propensity score in the treated and control groups.</p>
+<p>Note: can’t use hypothesis tests or p-values because of (1) in-sample property (not population), (2) conflation of changes in balance with changes in statistical power.</p>
+</li>
+</ol>
+</li>
+<li>
+<p>Graphical Diagnostics</p>
+<ul>
+<li><p>QQ plots</p></li>
+<li><p>Empirical Distribution Plot</p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Estimate the treatment effect</p>
+<ol style="list-style-type: decimal">
+<li>
+<p>After k:1</p>
+<ol style="list-style-type: decimal">
+<li>Need to account for weights when use matching with replacement.</li>
+</ol>
+</li>
+<li>
+<p>After Subclassification and Full Matching</p>
+<ol style="list-style-type: decimal">
+<li><p>Weighting the subclass estimates by the number of treated units in each subclass for ATT</p></li>
+<li><p>Weighting by the overall number of individual in each subclass for ATE.</p></li>
+</ol>
+</li>
+<li><p>Variance estimation: should incorporate uncertainties in both the matching procedure (step 3) and the estimation procedure (step 4)</p></li>
+</ol>
+</li>
+</ol>
+<p><strong>Notes</strong>:</p>
+<ul>
+<li><p>With missing data, use generalized boosted models, or multiple imputation <span class="citation">(<a href="references.html#ref-qu2009propensity">Qu and Lipkovich 2009</a>)</span></p></li>
+<li>
+<p>Violation of ignorable treatment assignment (i.e., unobservables affect treatment and outcome). control by</p>
+<ul>
+<li><p>measure pre-treatment measure of the outcome variable</p></li>
+<li><p>find the difference in outcomes between multiple control groups. If there is a significant difference, there is evidence for violation.</p></li>
+<li><p>find the range of correlations between unobservables and both treatment assignment and outcome to nullify the significant effect.</p></li>
+</ul>
+</li>
+<li>
+<p>Choosing between methods</p>
+<ul>
+<li><p>smallest standardized difference of mean across the largest number of covariates</p></li>
+<li><p>minimize the standardized difference of means of a few particularly prognostic covariates</p></li>
+<li><p>fest number of large standardized difference of means (&gt; 0.25)</p></li>
+<li><p><span class="citation">(<a href="references.html#ref-diamond2013genetic">Diamond and Sekhon 2013</a>)</span> automates the process</p></li>
+</ul>
+</li>
+<li>
+<p>In practice</p>
+<ul>
+<li><p>If ATE, ask if there is enough overlap of the treated and control groups’ propensity score to estimate ATE, if not use ATT instead</p></li>
+<li><p>If ATT, ask if there are controls across the full range of the treated group</p></li>
+</ul>
+</li>
+<li>
+<p>Choose matching method</p>
+<ul>
+<li><p>If ATE, use IPTW or full matching</p></li>
+<li><p>If ATT, and more controls than treated (at least 3 times), k:1 nearest neighbor without replacement</p></li>
+<li><p>If ATT, and few controls , use subclassification, full matching, and weighting by the odds</p></li>
+</ul>
+</li>
+<li>
+<p>Diagnostic</p>
+<ul>
+<li><p>If balance, use regression on matched samples</p></li>
+<li><p>If imbalance on few covariates, treat them with Mahalanobis</p></li>
+<li><p>If imbalance on many covariates, try k:1 matching with replacement</p></li>
+</ul>
+</li>
+</ul>
+<p>Ways to define the distance <span class="math inline">\(D_{ij}\)</span></p>
+<ol style="list-style-type: decimal">
+<li>Exact</li>
+</ol>
+<p><span class="math display">\[
+D_{ij} =
+\begin{cases}
+0, \text{ if } X_i = X_j, \\
+\infty, \text{ if } X_i \neq X_j
+\end{cases}
+\]</span></p>
+<p>An advanced is <a href="sec-matching-methods.html#coarsened-exact-matching">Coarsened Exact Matching</a></p>
+<ol start="2" style="list-style-type: decimal">
+<li>Mahalanobis</li>
+</ol>
+<p><span class="math display">\[
+D_{ij} = (X_i - X_j)'\Sigma^{-1} (X_i - X_j)
+\]</span></p>
+<p>where</p>
+<p><span class="math inline">\(\Sigma\)</span> = variance covariance matrix of X in the</p>
+<ul>
+<li><p>control group if ATT is interested</p></li>
+<li><p>polled treatment and control groups if ATE is interested</p></li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li>Propensity score:</li>
+</ol>
+<p><span class="math display">\[
+D_{ij} = |e_i - e_j|
+\]</span></p>
+<p>where <span class="math inline">\(e_k\)</span> = the propensity score for individual k</p>
+<p>An advanced is Prognosis score <span class="citation">(<a href="references.html#ref-hansen2008prognostic">B. B. Hansen 2008</a>)</span>, but you have to know (i.e., specify) the relationship between the covariates and outcome.</p>
+<ol start="4" style="list-style-type: decimal">
+<li>Linear propensity score</li>
+</ol>
+<p><span class="math display">\[
+D_{ij} = |logit(e_i) - logit(e_j)|
+\]</span></p>
+<p>The exact and Mahalanobis are not good in high dimensional or non normally distributed X’s cases.</p>
+<p>We can combine Mahalanobis matching with propensity score calipers <span class="citation">(<a href="references.html#ref-rubin2000combining">Rubin and Thomas 2000</a>)</span></p>
+<p>Other advanced methods for longitudinal settings</p>
+<ul>
+<li><p>marginal structural models <span class="citation">(<a href="references.html#ref-robins2000marginal">Robins, Hernan, and Brumback 2000</a>)</span></p></li>
+<li><p>balanced risk set matching <span class="citation">(<a href="references.html#ref-li2001balanced">Y. P. Li, Propert, and Rosenbaum 2001</a>)</span></p></li>
+</ul>
+<p>Most matching methods are based on (ex-post)</p>
+<ul>
+<li><p>propensity score</p></li>
+<li><p>distance metric</p></li>
+<li><p>covariates</p></li>
+</ul>
+<p>Packages</p>
+<ul>
+<li><p><code>cem</code> Coarsened exact matching</p></li>
+<li><p><code>Matching</code> Multivariate and propensity score matching with balance optimization</p></li>
+<li><p><code>MatchIt</code> Nonparametric preprocessing for parametric causal inference. Have nearest neighbor, Mahalanobis, caliper, exact, full, optimal, subclassification</p></li>
+<li><p><code>MatchingFrontier</code> optimize balance and sample size <span class="citation">(<a href="references.html#ref-king2017balance">G. King, Lucas, and Nielsen 2017</a>)</span></p></li>
+<li><p><code>optmatch</code>optimal matching with variable ratio, optimal and full matching</p></li>
+<li><p><code>PSAgraphics</code> Propensity score graphics</p></li>
+<li><p><code>rbounds</code> sensitivity analysis with matched data, examine ignorable treatment assignment assumption</p></li>
+<li><p><code>twang</code> weighting and analysis of non-equivalent groups</p></li>
+<li><p><code>CBPS</code> covariate balancing propensity score. Can also be used in the longitudinal setting with marginal structural models.</p></li>
+<li><p><code>PanelMatch</code> based on <a href="https://imai.fas.harvard.edu/research/files/tscs.pdf">Imai, Kim, and Wang (2018)</a></p></li>
+</ul>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="62%">
+<col width="37%">
+</colgroup>
+<thead><tr class="header">
+<th>Matching</th>
+<th>Regression</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Not as sensitive to the functional form of the covariates</td>
+<td>can estimate the effect of a continuous treatment</td>
+</tr>
+<tr class="even">
+<td>
+<p>Easier to asses whether it’s working</p>
+<p>Easier to explain</p>
+<p>allows a nice visualization of an evaluation</p>
+</td>
+<td>estimate the effect of all the variables (not just the treatment)</td>
+</tr>
+<tr class="odd">
+<td>If you treatment is fairly rare, you may have a lot of control observations that are obviously no comparable</td>
+<td>can estimate interactions of treatment with covariates</td>
+</tr>
+<tr class="even">
+<td>Less parametric</td>
+<td>More parametric</td>
+</tr>
+<tr class="odd">
+<td>Enforces common support (i.e., space where treatment and control have the same characteristics)</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>However, the problem of <strong>omitted variables</strong> (i.e., those that affect both the outcome and whether observation was treated) - unobserved confounders is still present in matching methods.</p>
+<p>Difference between matching and regression following Pischke’s <a href="https://econ.lse.ac.uk/staff/spischke/ec533/regression%20vs%20matching.pdf">lecture</a></p>
+<p>Suppose we want to estimate the effect of treatment on the treated</p>
+<p><span class="math display">\[
+\begin{aligned}
+\delta_{TOT} &amp;= E[ Y_{1i} - Y_{0i} | D_i = 1 ] \\
+&amp;= E\{E[Y_{1i} | X_i, D_i = 1] \\
+&amp; - E[Y_{0i}|X_i, D_i = 1]|D_i = 1\} &amp;&amp; \text{law of itereated expectations}
+\end{aligned}
+\]</span></p>
+<p>Under conditional independence</p>
+<p><span class="math display">\[
+E[Y_{0i} |X_i , D_i = 0 ] = E[Y_{0i} | X_i, D_i = 1]
+\]</span></p>
+<p>then</p>
+<p><span class="math display">\[
+\begin{aligned}
+\delta_{TOT} &amp;= E \{ E[ Y_{1i} | X_i, D_i = 1] - E[ Y_{0i}|X_i, D_i = 0 ]|D_i = 1\} \\
+&amp;= E\{E[y_i | X_i, D_i = 1] - E[y_i |X_i, D_i = 0 ] | D_i = 1\} \\
+&amp;= E[\delta_X |D_i = 1]
+\end{aligned}
+\]</span></p>
+<p>where <span class="math inline">\(\delta_X\)</span> is an X-specific difference in means at covariate value <span class="math inline">\(X_i\)</span></p>
+<p>When <span class="math inline">\(X_i\)</span> is discrete, the matching estimand is</p>
+<p><span class="math display">\[
+\delta_M = \sum_x \delta_x P(X_i = x |D_i = 1)
+\]</span></p>
+<p>where <span class="math inline">\(P(X_i = x |D_i = 1)\)</span> is the probability mass function for <span class="math inline">\(X_i\)</span> given <span class="math inline">\(D_i = 1\)</span></p>
+<p>According to Bayes rule,</p>
+<p><span class="math display">\[
+P(X_i = x | D_i = 1) = \frac{P(D_i = 1 | X_i = x) \times P(X_i = x)}{P(D_i = 1)}
+\]</span></p>
+<p>hence,</p>
+<p><span class="math display">\[
+\begin{aligned}
+\delta_M &amp;= \frac{\sum_x \delta_x P (D_i = 1 | X_i = x) P (X_i = x)}{\sum_x P(D_i = 1 |X_i = x)P(X_i = x)} \\
+&amp;= \sum_x \delta_x \frac{ P (D_i = 1 | X_i = x) P (X_i = x)}{\sum_x P(D_i = 1 |X_i = x)P(X_i = x)}
+\end{aligned}
+\]</span></p>
+<p>On the other hand, suppose we have regression</p>
+<p><span class="math display">\[
+y_i = \sum_x d_{ix} \beta_x + \delta_R D_i + \epsilon_i
+\]</span></p>
+<p>where</p>
+<ul>
+<li><p><span class="math inline">\(d_{ix}\)</span> = dummy that indicates <span class="math inline">\(X_i = x\)</span></p></li>
+<li><p><span class="math inline">\(\beta_x\)</span> = regression-effect for <span class="math inline">\(X_i = x\)</span></p></li>
+<li><p><span class="math inline">\(\delta_R\)</span> = regression estimand where</p></li>
+</ul>
+<p><span class="math display">\[
+\begin{aligned}
+\delta_R &amp;= \frac{\sum_x \delta_x [P(D_i = 1 | X_i = x) (1 - P(D_i = 1 | X_i = x))]P(X_i = x)}{\sum_x [P(D_i = 1| X_i = x)(1 - P(D_i = 1 | X_i = x))]P(X_i = x)} \\
+&amp;= \sum_x \delta_x \frac{[P(D_i = 1 | X_i = x) (1 - P(D_i = 1 | X_i = x))]P(X_i = x)}{\sum_x [P(D_i = 1| X_i = x)(1 - P(D_i = 1 | X_i = x))]P(X_i = x)}
+\end{aligned}
+\]</span></p>
+<p>the difference between the regression and matching estimand is the weights they use to combine the covariate specific treatment effect <span class="math inline">\(\delta_x\)</span></p>
+<div class="inline-table"><table style="width:100%;" class="table table-sm">
+<colgroup>
+<col width="2%">
+<col width="17%">
+<col width="44%">
+<col width="35%">
+</colgroup>
+<thead><tr class="header">
+<th>Type</th>
+<th>uses weights which depend on</th>
+<th>interpretation</th>
+<th>makes sense because</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Matching</td>
+<td>
+<p><span class="math inline">\(P(D_i = 1|X_i = x)\)</span></p>
+<p>the fraction of treated observations in a covariate cell (i.e., or the mean of <span class="math inline">\(D_i\)</span>)</p>
+</td>
+<td>This is larger in cells with many treated observations.</td>
+<td>we want the effect of treatment on the treated</td>
+</tr>
+<tr class="even">
+<td>Regression</td>
+<td>
+<p><span class="math inline">\(P(D_i = 1 |X_i = x)(1 - P(D_i = 1| X_i ))\)</span></p>
+<p>the variance of <span class="math inline">\(D_i\)</span> in the covariate cell</p>
+</td>
+<td>This weight is largest in cells where there are half treated and half untreated observations. (this is the reason why we want to treat our sample so it is balanced, before running regular regression model, as mentioned above).</td>
+<td>these cells will produce the lowest variance estimates of <span class="math inline">\(\delta_x\)</span>. If all the <span class="math inline">\(\delta_x\)</span> are the same, the most efficient estimand uses the lowest variance cells most heavily.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The goal of matching is to produce covariate balance (i.e., distributions of covariates in treatment and control groups are approximately similar as they would be in a successful randomized experiment).</p>
+<div id="selection-on-observables" class="section level2" number="35.1">
+<h2>
+<span class="header-section-number">35.1</span> Selection on Observables<a class="anchor" aria-label="anchor" href="#selection-on-observables"><i class="fas fa-link"></i></a>
+</h2>
+<div id="matchit" class="section level3" number="35.1.1">
+<h3>
+<span class="header-section-number">35.1.1</span> MatchIt<a class="anchor" aria-label="anchor" href="#matchit"><i class="fas fa-link"></i></a>
+</h3>
+<p>Procedure typically involves (proposed by <a href="https://cran.r-project.org/web/packages/MatchIt/vignettes/MatchIt.html">Noah Freifer</a> using <code>MatchIt</code>)</p>
+<ol style="list-style-type: decimal">
+<li>planning</li>
+<li>matching</li>
+<li>checking (balance)</li>
+<li>estimating the treatment effect</li>
+</ol>
+<div class="sourceCode" id="cb891"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://kosukeimai.github.io/MatchIt/">MatchIt</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"lalonde"</span><span class="op">)</span></span></code></pre></div>
+<p>examine <code>treat</code> on <code>re78</code></p>
+<ol style="list-style-type: decimal">
+<li>Planning</li>
+</ol>
+<ul>
+<li><p>select type of effect to be estimated (e.g., mediation effect, conditional effect, marginal effect)</p></li>
+<li><p>select the target population</p></li>
+<li><p>select variables to match/balance <span class="citation">(<a href="references.html#ref-austin2011optimal">Austin 2011</a>)</span> <span class="citation">(<a href="references.html#ref-vanderweele2019principles">T. J. VanderWeele 2019</a>)</span></p></li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>Check Initial Imbalance</li>
+</ol>
+<div class="sourceCode" id="cb892"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># No matching; constructing a pre-match matchit object</span></span>
+<span><span class="va">m.out0</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">matchit</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/stats/formula.html">formula</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">race</span> </span>
+<span>            <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span>, env <span class="op">=</span> <span class="va">lalonde</span><span class="op">)</span>,</span>
+<span>    data <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="va">lalonde</span><span class="op">)</span>,</span>
+<span>    method <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>    <span class="co"># assess balance before matching</span></span>
+<span>    distance <span class="op">=</span> <span class="st">"glm"</span> <span class="co"># logistic regression</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Checking balance prior to matching</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">m.out0</span><span class="op">)</span></span></code></pre></div>
+<ol start="3" style="list-style-type: decimal">
+<li>Matching</li>
+</ol>
+<div class="sourceCode" id="cb893"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># 1:1 NN PS matching w/o replacement</span></span>
+<span><span class="va">m.out1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">matchit</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span>,</span>
+<span>                  data <span class="op">=</span> <span class="va">lalonde</span>,</span>
+<span>                  method <span class="op">=</span> <span class="st">"nearest"</span>,</span>
+<span>                  distance <span class="op">=</span> <span class="st">"glm"</span><span class="op">)</span></span>
+<span><span class="va">m.out1</span></span>
+<span><span class="co">#&gt; A matchit object</span></span>
+<span><span class="co">#&gt;  - method: 1:1 nearest neighbor matching without replacement</span></span>
+<span><span class="co">#&gt;  - distance: Propensity score</span></span>
+<span><span class="co">#&gt;              - estimated with logistic regression</span></span>
+<span><span class="co">#&gt;  - number of obs.: 614 (original), 370 (matched)</span></span>
+<span><span class="co">#&gt;  - target estimand: ATT</span></span>
+<span><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
+<ol start="4" style="list-style-type: decimal">
+<li>Check balance</li>
+</ol>
+<p>Sometimes you have to make trade-off between balance and sample size.</p>
+<div class="sourceCode" id="cb894"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Checking balance after NN matching</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">m.out1</span>, un <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; matchit(formula = treat ~ age + educ, data = lalonde, method = "nearest", </span></span>
+<span><span class="co">#&gt;     distance = "glm")</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Summary of Balance for Matched Data:</span></span>
+<span><span class="co">#&gt;          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean</span></span>
+<span><span class="co">#&gt; distance        0.3080        0.3077          0.0094     0.9963    0.0033</span></span>
+<span><span class="co">#&gt; age            25.8162       25.8649         -0.0068     1.0300    0.0050</span></span>
+<span><span class="co">#&gt; educ           10.3459       10.2865          0.0296     0.5886    0.0253</span></span>
+<span><span class="co">#&gt;          eCDF Max Std. Pair Dist.</span></span>
+<span><span class="co">#&gt; distance   0.0432          0.0146</span></span>
+<span><span class="co">#&gt; age        0.0162          0.0597</span></span>
+<span><span class="co">#&gt; educ       0.1189          0.8146</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Sample Sizes:</span></span>
+<span><span class="co">#&gt;           Control Treated</span></span>
+<span><span class="co">#&gt; All           429     185</span></span>
+<span><span class="co">#&gt; Matched       185     185</span></span>
+<span><span class="co">#&gt; Unmatched     244       0</span></span>
+<span><span class="co">#&gt; Discarded       0       0</span></span>
+<span></span>
+<span><span class="co"># examine visually</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">m.out1</span>, type <span class="op">=</span> <span class="st">"jitter"</span>, interactive <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="35-matching-methods_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb895"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span></span>
+<span>    <span class="va">m.out1</span>,</span>
+<span>    type <span class="op">=</span> <span class="st">"qq"</span>,</span>
+<span>    interactive <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>    which.xs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"age"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="35-matching-methods_files/figure-html/unnamed-chunk-4-2.png" width="90%" style="display: block; margin: auto;"></div>
+<p>Try Full Match (i.e., every treated matches with one control, and every control with one treated).</p>
+<div class="sourceCode" id="cb896"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Full matching on a probit PS</span></span>
+<span><span class="va">m.out2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">matchit</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span>, </span>
+<span>                  data <span class="op">=</span> <span class="va">lalonde</span>,</span>
+<span>                  method <span class="op">=</span> <span class="st">"full"</span>, </span>
+<span>                  distance <span class="op">=</span> <span class="st">"glm"</span>, </span>
+<span>                  link <span class="op">=</span> <span class="st">"probit"</span><span class="op">)</span></span>
+<span><span class="va">m.out2</span></span>
+<span><span class="co">#&gt; A matchit object</span></span>
+<span><span class="co">#&gt;  - method: Optimal full matching</span></span>
+<span><span class="co">#&gt;  - distance: Propensity score</span></span>
+<span><span class="co">#&gt;              - estimated with probit regression</span></span>
+<span><span class="co">#&gt;  - number of obs.: 614 (original), 614 (matched)</span></span>
+<span><span class="co">#&gt;  - target estimand: ATT</span></span>
+<span><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
+<p>Checking balance again</p>
+<div class="sourceCode" id="cb897"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Checking balance after full matching</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">m.out2</span>, un <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; matchit(formula = treat ~ age + educ, data = lalonde, method = "full", </span></span>
+<span><span class="co">#&gt;     distance = "glm", link = "probit")</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Summary of Balance for Matched Data:</span></span>
+<span><span class="co">#&gt;          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean</span></span>
+<span><span class="co">#&gt; distance        0.3082        0.3081          0.0023     0.9815    0.0028</span></span>
+<span><span class="co">#&gt; age            25.8162       25.8035          0.0018     0.9825    0.0062</span></span>
+<span><span class="co">#&gt; educ           10.3459       10.2315          0.0569     0.4390    0.0481</span></span>
+<span><span class="co">#&gt;          eCDF Max Std. Pair Dist.</span></span>
+<span><span class="co">#&gt; distance   0.0270          0.0382</span></span>
+<span><span class="co">#&gt; age        0.0249          0.1110</span></span>
+<span><span class="co">#&gt; educ       0.1300          0.9805</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Sample Sizes:</span></span>
+<span><span class="co">#&gt;               Control Treated</span></span>
+<span><span class="co">#&gt; All            429.       185</span></span>
+<span><span class="co">#&gt; Matched (ESS)  145.23     185</span></span>
+<span><span class="co">#&gt; Matched        429.       185</span></span>
+<span><span class="co">#&gt; Unmatched        0.         0</span></span>
+<span><span class="co">#&gt; Discarded        0.         0</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">m.out2</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="35-matching-methods_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;"></div>
+<p>Exact Matching</p>
+<div class="sourceCode" id="cb898"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Full matching on a probit PS</span></span>
+<span><span class="va">m.out3</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">matchit</a></span><span class="op">(</span></span>
+<span>        <span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span>,</span>
+<span>        data <span class="op">=</span> <span class="va">lalonde</span>,</span>
+<span>        method <span class="op">=</span> <span class="st">"exact"</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="va">m.out3</span></span>
+<span><span class="co">#&gt; A matchit object</span></span>
+<span><span class="co">#&gt;  - method: Exact matching</span></span>
+<span><span class="co">#&gt;  - number of obs.: 614 (original), 332 (matched)</span></span>
+<span><span class="co">#&gt;  - target estimand: ATT</span></span>
+<span><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
+<p>Subclassfication</p>
+<div class="sourceCode" id="cb899"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">m.out4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">matchit</a></span><span class="op">(</span></span>
+<span>    <span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span>, </span>
+<span>    data <span class="op">=</span> <span class="va">lalonde</span>,</span>
+<span>    method <span class="op">=</span> <span class="st">"subclass"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">m.out4</span></span>
+<span><span class="co">#&gt; A matchit object</span></span>
+<span><span class="co">#&gt;  - method: Subclassification (6 subclasses)</span></span>
+<span><span class="co">#&gt;  - distance: Propensity score</span></span>
+<span><span class="co">#&gt;              - estimated with logistic regression</span></span>
+<span><span class="co">#&gt;  - number of obs.: 614 (original), 614 (matched)</span></span>
+<span><span class="co">#&gt;  - target estimand: ATT</span></span>
+<span><span class="co">#&gt;  - covariates: age, educ</span></span>
+<span></span>
+<span><span class="co"># Or you can use in conjunction with "nearest"</span></span>
+<span><span class="va">m.out4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">matchit</a></span><span class="op">(</span></span>
+<span>    <span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">lalonde</span>,</span>
+<span>    method <span class="op">=</span> <span class="st">"nearest"</span>,</span>
+<span>    option <span class="op">=</span> <span class="st">"subclass"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">m.out4</span></span>
+<span><span class="co">#&gt; A matchit object</span></span>
+<span><span class="co">#&gt;  - method: 1:1 nearest neighbor matching without replacement</span></span>
+<span><span class="co">#&gt;  - distance: Propensity score</span></span>
+<span><span class="co">#&gt;              - estimated with logistic regression</span></span>
+<span><span class="co">#&gt;  - number of obs.: 614 (original), 370 (matched)</span></span>
+<span><span class="co">#&gt;  - target estimand: ATT</span></span>
+<span><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
+<p>Optimal Matching</p>
+<div class="sourceCode" id="cb900"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">m.out5</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">matchit</a></span><span class="op">(</span></span>
+<span>    <span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span>, </span>
+<span>    data <span class="op">=</span> <span class="va">lalonde</span>,</span>
+<span>    method <span class="op">=</span> <span class="st">"optimal"</span>,</span>
+<span>    ratio <span class="op">=</span> <span class="fl">2</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">m.out5</span></span>
+<span><span class="co">#&gt; A matchit object</span></span>
+<span><span class="co">#&gt;  - method: 2:1 optimal pair matching</span></span>
+<span><span class="co">#&gt;  - distance: Propensity score</span></span>
+<span><span class="co">#&gt;              - estimated with logistic regression</span></span>
+<span><span class="co">#&gt;  - number of obs.: 614 (original), 555 (matched)</span></span>
+<span><span class="co">#&gt;  - target estimand: ATT</span></span>
+<span><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
+<p>Genetic Matching</p>
+<div class="sourceCode" id="cb901"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">m.out6</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">matchit</a></span><span class="op">(</span></span>
+<span>    <span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span>, </span>
+<span>    data <span class="op">=</span> <span class="va">lalonde</span>,</span>
+<span>    method <span class="op">=</span> <span class="st">"genetic"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">m.out6</span></span>
+<span><span class="co">#&gt; A matchit object</span></span>
+<span><span class="co">#&gt;  - method: 1:1 genetic matching without replacement</span></span>
+<span><span class="co">#&gt;  - distance: Propensity score</span></span>
+<span><span class="co">#&gt;              - estimated with logistic regression</span></span>
+<span><span class="co">#&gt;  - number of obs.: 614 (original), 370 (matched)</span></span>
+<span><span class="co">#&gt;  - target estimand: ATT</span></span>
+<span><span class="co">#&gt;  - covariates: age, educ</span></span></code></pre></div>
+<ol start="4" style="list-style-type: decimal">
+<li>Estimating the Treatment Effect</li>
+</ol>
+<div class="sourceCode" id="cb902"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># get matched data</span></span>
+<span><span class="va">m.data1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/match.data.html">match.data</a></span><span class="op">(</span><span class="va">m.out1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">m.data1</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      treat age educ   race married nodegree re74 re75       re78  distance</span></span>
+<span><span class="co">#&gt; NSW1     1  37   11  black       1        1    0    0  9930.0460 0.2536942</span></span>
+<span><span class="co">#&gt; NSW2     1  22    9 hispan       0        1    0    0  3595.8940 0.3245468</span></span>
+<span><span class="co">#&gt; NSW3     1  30   12  black       0        0    0    0 24909.4500 0.2881139</span></span>
+<span><span class="co">#&gt; NSW4     1  27   11  black       0        1    0    0  7506.1460 0.3016672</span></span>
+<span><span class="co">#&gt; NSW5     1  33    8  black       0        1    0    0   289.7899 0.2683025</span></span>
+<span><span class="co">#&gt; NSW6     1  22    9  black       0        1    0    0  4056.4940 0.3245468</span></span>
+<span><span class="co">#&gt;      weights subclass</span></span>
+<span><span class="co">#&gt; NSW1       1        1</span></span>
+<span><span class="co">#&gt; NSW2       1       98</span></span>
+<span><span class="co">#&gt; NSW3       1      109</span></span>
+<span><span class="co">#&gt; NSW4       1      120</span></span>
+<span><span class="co">#&gt; NSW5       1      131</span></span>
+<span><span class="co">#&gt; NSW6       1      142</span></span></code></pre></div>
+<div class="sourceCode" id="cb903"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st">"lmtest"</span><span class="op">)</span> <span class="co">#coeftest</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://sandwich.R-Forge.R-project.org/">"sandwich"</a></span><span class="op">)</span> <span class="co">#vcovCL</span></span>
+<span></span>
+<span><span class="co"># imbalance matched dataset</span></span>
+<span><span class="va">fit1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> ,</span>
+<span>           data <span class="op">=</span> <span class="va">m.data1</span>, </span>
+<span>           weights <span class="op">=</span> <span class="va">weights</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/lmtest/man/coeftest.html">coeftest</a></span><span class="op">(</span><span class="va">fit1</span>, vcov. <span class="op">=</span> <span class="va">vcovCL</span>, cluster <span class="op">=</span> <span class="op">~</span><span class="va">subclass</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; t test of coefficients:</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;              Estimate Std. Error t value Pr(&gt;|t|)   </span></span>
+<span><span class="co">#&gt; (Intercept)  -174.902   2445.013 -0.0715 0.943012   </span></span>
+<span><span class="co">#&gt; treat       -1139.085    780.399 -1.4596 0.145253   </span></span>
+<span><span class="co">#&gt; age           153.133     55.317  2.7683 0.005922 **</span></span>
+<span><span class="co">#&gt; educ          358.577    163.860  2.1883 0.029278 * </span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
+<p><code>treat</code> coefficient = estimated ATT</p>
+<div class="sourceCode" id="cb904"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># balance matched dataset </span></span>
+<span><span class="va">m.data2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/match.data.html">match.data</a></span><span class="op">(</span><span class="va">m.out2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> , </span>
+<span>           data <span class="op">=</span> <span class="va">m.data2</span>, weights <span class="op">=</span> <span class="va">weights</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/lmtest/man/coeftest.html">coeftest</a></span><span class="op">(</span><span class="va">fit2</span>, vcov. <span class="op">=</span> <span class="va">vcovCL</span>, cluster <span class="op">=</span> <span class="op">~</span><span class="va">subclass</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; t test of coefficients:</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;             Estimate Std. Error t value Pr(&gt;|t|)  </span></span>
+<span><span class="co">#&gt; (Intercept) 2151.952   3141.152  0.6851  0.49355  </span></span>
+<span><span class="co">#&gt; treat       -725.184    703.297 -1.0311  0.30289  </span></span>
+<span><span class="co">#&gt; age          120.260     53.933  2.2298  0.02612 *</span></span>
+<span><span class="co">#&gt; educ         175.693    241.694  0.7269  0.46755  </span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
+<p>When reporting, remember to mention</p>
+<ol style="list-style-type: decimal">
+<li>the matching specification (method, and additional options)</li>
+<li>the distance measure (e.g., propensity score)</li>
+<li>other methods, and rationale for the final chosen method.</li>
+<li>balance statistics of the matched dataset.</li>
+<li>number of matched, unmatched, discarded</li>
+<li>estimation method for treatment effect.</li>
+</ol>
+</div>
+<div id="designmatch" class="section level3" number="35.1.2">
+<h3>
+<span class="header-section-number">35.1.2</span> designmatch<a class="anchor" aria-label="anchor" href="#designmatch"><i class="fas fa-link"></i></a>
+</h3>
+<p>This package includes</p>
+<ul>
+<li><p><code>distmatch</code> optimal distance matching</p></li>
+<li><p><code>bmatch</code> optimal bipartile matching</p></li>
+<li><p><code>cardmatch</code> optimal cardinality matching</p></li>
+<li><p><code>profmatch</code> optimal profile matching</p></li>
+<li><p><code>nmatch</code> optimal nonbipartile matching</p></li>
+</ul>
+<div class="sourceCode" id="cb905"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">designmatch</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div id="matchingfrontier" class="section level3" number="35.1.3">
+<h3>
+<span class="header-section-number">35.1.3</span> MatchingFrontier<a class="anchor" aria-label="anchor" href="#matchingfrontier"><i class="fas fa-link"></i></a>
+</h3>
+<p>As mentioned in <code>MatchIt</code>, you have to make trade-off (also known as bias-variance trade-off) between balance and sample size. An automated procedure to optimize this trade-off is implemented in <code>MatchingFrontier</code> <span class="citation">(<a href="references.html#ref-king2017balance">G. King, Lucas, and Nielsen 2017</a>)</span>, which solves this joint optimization problem.</p>
+<p>Following <code>MatchingFrontier</code> <a href="https://projects.iq.harvard.edu/files/frontier/files/using_matchingfrontier.pdf">guide</a></p>
+<div class="sourceCode" id="cb906"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># library(devtools)</span></span>
+<span><span class="co"># install_github('ChristopherLucas/MatchingFrontier')</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">MatchingFrontier</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"lalonde"</span><span class="op">)</span></span>
+<span><span class="co"># choose var to match on</span></span>
+<span><span class="va">match.on</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/row_colnames.html">colnames</a></span><span class="op">(</span><span class="va">lalonde</span><span class="op">)</span><span class="op">[</span><span class="op">!</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/row_colnames.html">colnames</a></span><span class="op">(</span><span class="va">lalonde</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/pkg/BiocGenerics/man/match.html">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'re78'</span>, <span class="st">'treat'</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="va">match.on</span></span>
+<span></span>
+<span><span class="co"># Mahanlanobis frontier (default)</span></span>
+<span><span class="va">mahal.frontier</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu">makeFrontier</span><span class="op">(</span></span>
+<span>        dataset <span class="op">=</span> <span class="va">lalonde</span>,</span>
+<span>        treatment <span class="op">=</span> <span class="st">"treat"</span>,</span>
+<span>        match.on <span class="op">=</span> <span class="va">match.on</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="va">mahal.frontier</span></span>
+<span></span>
+<span><span class="co"># L1 frontier</span></span>
+<span><span class="va">L1.frontier</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu">makeFrontier</span><span class="op">(</span></span>
+<span>        dataset <span class="op">=</span> <span class="va">lalonde</span>,</span>
+<span>        treatment <span class="op">=</span> <span class="st">'treat'</span>,</span>
+<span>        match.on <span class="op">=</span> <span class="va">match.on</span>,</span>
+<span>        QOI <span class="op">=</span> <span class="st">'SATT'</span>,</span>
+<span>        metric <span class="op">=</span> <span class="st">'L1'</span>,</span>
+<span>        ratio <span class="op">=</span> <span class="st">'fixed'</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="va">L1.frontier</span></span>
+<span></span>
+<span><span class="co"># estimate effects along the frontier</span></span>
+<span></span>
+<span><span class="co"># Set base form</span></span>
+<span><span class="va">my.form</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/stats/formula.html">as.formula</a></span><span class="op">(</span><span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">black</span> <span class="op">+</span> <span class="va">education</span> </span>
+<span>               <span class="op">+</span> <span class="va">hispanic</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="va">re75</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Estimate effects for the mahalanobis frontier</span></span>
+<span><span class="va">mahal.estimates</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu">estimateEffects</span><span class="op">(</span></span>
+<span>        <span class="va">mahal.frontier</span>,</span>
+<span>        <span class="st">'re78 ~ treat'</span>,</span>
+<span>        mod.dependence.formula <span class="op">=</span> <span class="va">my.form</span>,</span>
+<span>        continuous.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'age'</span>, <span class="st">'education'</span>, <span class="st">'re74'</span>, <span class="st">'re75'</span><span class="op">)</span>,</span>
+<span>        prop.estimated <span class="op">=</span> <span class="fl">.1</span>,</span>
+<span>        means.as.cutpoints <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Estimate effects for the L1 frontier</span></span>
+<span><span class="va">L1.estimates</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu">estimateEffects</span><span class="op">(</span></span>
+<span>        <span class="va">L1.frontier</span>,</span>
+<span>        <span class="st">'re78 ~ treat'</span>,</span>
+<span>        mod.dependence.formula <span class="op">=</span> <span class="va">my.form</span>,</span>
+<span>        continuous.vars <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'age'</span>, <span class="st">'education'</span>, <span class="st">'re74'</span>, <span class="st">'re75'</span><span class="op">)</span>,</span>
+<span>        prop.estimated <span class="op">=</span> <span class="fl">.1</span>,</span>
+<span>        means.as.cutpoints <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Plot covariates means </span></span>
+<span><span class="co"># plotPrunedMeans()</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># Plot estimates (deprecated)</span></span>
+<span><span class="co"># plotEstimates(</span></span>
+<span><span class="co">#     L1.estimates,</span></span>
+<span><span class="co">#     ylim = c(-10000, 3000),</span></span>
+<span><span class="co">#     cex.lab = 1.4,</span></span>
+<span><span class="co">#     cex.axis = 1.4,</span></span>
+<span><span class="co">#     panel.first = grid(NULL, NULL, lwd = 2,)</span></span>
+<span><span class="co"># )</span></span>
+<span></span>
+<span><span class="co"># Plot estimates</span></span>
+<span><span class="fu">plotMeans</span><span class="op">(</span><span class="va">L1.frontier</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># parallel plot</span></span>
+<span><span class="fu">parallelPlot</span><span class="op">(</span></span>
+<span>    <span class="va">L1.frontier</span>,</span>
+<span>    N <span class="op">=</span> <span class="fl">400</span>,</span>
+<span>    variables <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">'age'</span>, <span class="st">'re74'</span>, <span class="st">'re75'</span>, <span class="st">'black'</span><span class="op">)</span>,</span>
+<span>    treated.col <span class="op">=</span> <span class="st">'blue'</span>,</span>
+<span>    control.col <span class="op">=</span> <span class="st">'gray'</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># export matched dataset</span></span>
+<span><span class="co"># take 400 units</span></span>
+<span><span class="va">matched.data</span> <span class="op">&lt;-</span> <span class="fu">generateDataset</span><span class="op">(</span><span class="va">L1.frontier</span>, N <span class="op">=</span> <span class="fl">400</span><span class="op">)</span> </span></code></pre></div>
+</div>
+<div id="sec-propensity-scores" class="section level3" number="35.1.4">
+<h3>
+<span class="header-section-number">35.1.4</span> Propensity Scores<a class="anchor" aria-label="anchor" href="#sec-propensity-scores"><i class="fas fa-link"></i></a>
+</h3>
+<p>Even though I mention the propensity scores matching method here, it is no longer recommended to use such method in research and publication <span class="citation">(<a href="references.html#ref-king2019propensity">G. King and Nielsen 2019</a>)</span> because it increases</p>
+<ul>
+<li><p>imbalance</p></li>
+<li><p>inefficiency</p></li>
+<li><p>model dependence: small changes in the model specification lead to big changes in model results</p></li>
+<li><p>bias</p></li>
+</ul>
+<p><span class="citation">(<a href="references.html#ref-abadie2016matching">Abadie and Imbens 2016</a>)</span>note</p>
+<ul>
+<li><p>The initial estimation of the propensity score influences the large sample distribution of the estimators.</p></li>
+<li>
+<p>Adjustments are made to the large sample variances of these estimators for both ATE and ATT.</p>
+<ul>
+<li><p>The adjustment for the ATE estimator is either negative or zero, indicating greater efficiency when matching on an estimated propensity score versus the true score in large samples.</p></li>
+<li><p>For the ATET estimator, the sign of the adjustment depends on the data generating process. Neglecting the estimation error in the propensity score can lead to inaccurate confidence intervals for the ATT estimator, making them either too large or too small.</p></li>
+</ul>
+</li>
+</ul>
+<p>PSM tries to accomplish complete randomization while other methods try to achieve fully blocked. Hence, you probably better off use any other methods.</p>
+<p>Propensity is “the probability of receiving the treatment given the observed covariates.” <span class="citation">(<a href="references.html#ref-rosenbaum1985bias">Rosenbaum and Rubin 1985</a>)</span></p>
+<p>Equivalently, it can to understood as the probability of being treated.</p>
+<p><span class="math display">\[
+e_i (X_i) = P(T_i = 1 | X_i)
+\]</span></p>
+<p>Estimation using</p>
+<ul>
+<li><p>logistic regression</p></li>
+<li>
+<p>Non parametric methods:</p>
+<ul>
+<li><p>boosted CART</p></li>
+<li><p>generalized boosted models (gbm)</p></li>
+</ul>
+</li>
+</ul>
+<p>Steps by Gary King’s <a href="https://www.youtube.com/watch?v=rBv39pK1iEs&amp;ab_channel=MethodsColloquium">slides</a></p>
+<ul>
+<li><p>reduce k elements of X to scalar</p></li>
+<li><p><span class="math inline">\(\pi_i \equiv P(T_i = 1|X) = \frac{1}{1+e^{X_i \beta}}\)</span></p></li>
+<li><p>Distance (<span class="math inline">\(X_c, X_t\)</span>) = <span class="math inline">\(|\pi_c - \pi_t|\)</span></p></li>
+<li><p>match each treated unit to the nearest control unit</p></li>
+<li><p>control units: not reused; pruned if unused</p></li>
+<li><p>prune matches if distances &gt; caliper</p></li>
+</ul>
+<p>In the best case scenario, you randomly prune, which increases imbalance</p>
+<p>Other methods dominate because they try to match exactly hence</p>
+<ul>
+<li><p><span class="math inline">\(X_c = X_t \to \pi_c = \pi_t\)</span> (exact match leads to equal propensity scores) but</p></li>
+<li><p><span class="math inline">\(\pi_c = \pi_t \nrightarrow X_c = X_t\)</span> (equal propensity scores do not necessarily lead to exact match)</p></li>
+</ul>
+<p>Notes:</p>
+<ul>
+<li><p>Do not include/control for irrelevant covariates because it leads your PSM to be more random, hence more imbalance</p></li>
+<li><p>Do not include for <span class="citation">(<a href="references.html#ref-bhattacharya2007instrumental">Bhattacharya and Vogt 2007</a>)</span> instrumental variable in the predictor set of a propensity score matching estimator. More generally, using variables that do not control for potential confounders, even if they are predictive of the treatment, can result in biased estimates</p></li>
+</ul>
+<p>What you left with after pruning is more important than what you start with then throw out.</p>
+<p>Diagnostics:</p>
+<ul>
+<li><p>balance of the covariates</p></li>
+<li><p>no need to concern about collinearity</p></li>
+<li><p>can’t use c-stat or stepwise because those model fit stat do not apply</p></li>
+</ul>
+<p>Application</p>
+<ul>
+<li>
+<p>Finance:</p>
+<ul>
+<li>
+<span class="citation">Hirtle, Kovner, and Plosser (<a href="references.html#ref-hirtle2020impact">2020</a>)</span> examine the impact of bank supervision on risk, profitability, and growth, using a matched sample approach to show that increased supervisory attention leads to less risky loan portfolios and reduced volatility without compromising profitability or growth.</li>
+</ul>
+</li>
+</ul>
+<div id="look-ahead-propensity-score-matching" class="section level4" number="35.1.4.1">
+<h4>
+<span class="header-section-number">35.1.4.1</span> Look Ahead Propensity Score Matching<a class="anchor" aria-label="anchor" href="#look-ahead-propensity-score-matching"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li><span class="citation">(<a href="references.html#ref-bapna2018monetizing">Bapna, Ramaprasad, and Umyarov 2018</a>)</span></li>
+</ul>
+</div>
+</div>
+<div id="mahalanobis-distance" class="section level3" number="35.1.5">
+<h3>
+<span class="header-section-number">35.1.5</span> Mahalanobis Distance<a class="anchor" aria-label="anchor" href="#mahalanobis-distance"><i class="fas fa-link"></i></a>
+</h3>
+<p>Approximates fully blocked experiment</p>
+<p>Distance <span class="math inline">\((X_c,X_t)\)</span> = <span class="math inline">\(\sqrt{(X_c - X_t)'S^{-1}(X_c - X_t)}\)</span></p>
+<p>where <span class="math inline">\(S^{-1}\)</span> standardize the distance</p>
+<p>In application we use Euclidean distance.</p>
+<p>Prune unused control units, and prune matches if distance &gt; caliper</p>
+</div>
+<div id="coarsened-exact-matching" class="section level3" number="35.1.6">
+<h3>
+<span class="header-section-number">35.1.6</span> Coarsened Exact Matching<a class="anchor" aria-label="anchor" href="#coarsened-exact-matching"><i class="fas fa-link"></i></a>
+</h3>
+<p>Steps from Gray King’s <a href="https://www.youtube.com/watch?v=rBv39pK1iEs&amp;ab_channel=MethodsColloquium">slides</a> International Methods Colloquium talk 2015</p>
+<ul>
+<li><p>Temporarily coarsen <span class="math inline">\(X\)</span></p></li>
+<li>
+<p>Apply exact matching to the coarsened <span class="math inline">\(X, C(X)\)</span></p>
+<ul>
+<li><p>sort observation into strata, each with unique values of <span class="math inline">\(C(X)\)</span></p></li>
+<li><p>prune stratum with 0 treated or 0 control units</p></li>
+</ul>
+</li>
+<li><p>Pass on original (uncoarsened) units except those pruned</p></li>
+</ul>
+<p>Properties:</p>
+<ul>
+<li>
+<p>Monotonic imbalance bounding (MIB) matching method</p>
+<ul>
+<li>maximum imbalance between the treated and control chosen ex ante</li>
+</ul>
+</li>
+<li><p>meets congruence principle</p></li>
+<li><p>robust to measurement error</p></li>
+<li><p>can be implemented with multiple imputation</p></li>
+<li><p>works well for multi-category treatments</p></li>
+</ul>
+<p>Assumptions:</p>
+<ul>
+<li>Ignorability (i.e., no omitted variable bias)</li>
+</ul>
+<p>More detail in <span class="citation">(<a href="references.html#ref-iacus2012causal">Iacus, King, and Porro 2012</a>)</span></p>
+<p>Example by <a href="https://cran.r-project.org/web/packages/cem/vignettes/cem.pdf">package’s authors</a></p>
+<div class="sourceCode" id="cb907"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://gking.harvard.edu/cem">cem</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">LeLonde</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">Le</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/na.fail.html">na.omit</a></span><span class="op">(</span><span class="va">LeLonde</span><span class="op">)</span><span class="op">)</span> <span class="co"># remove missing data</span></span>
+<span><span class="co"># treated and control groups</span></span>
+<span><span class="va">tr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/which.html">which</a></span><span class="op">(</span><span class="va">Le</span><span class="op">$</span><span class="va">treated</span><span class="op">==</span><span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">ct</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/which.html">which</a></span><span class="op">(</span><span class="va">Le</span><span class="op">$</span><span class="va">treated</span><span class="op">==</span><span class="fl">0</span><span class="op">)</span></span>
+<span><span class="va">ntr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">tr</span><span class="op">)</span></span>
+<span><span class="va">nct</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">ct</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># unadjusted, biased difference in means</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/mean.html">mean</a></span><span class="op">(</span><span class="va">Le</span><span class="op">$</span><span class="va">re78</span><span class="op">[</span><span class="va">tr</span><span class="op">]</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/mean.html">mean</a></span><span class="op">(</span><span class="va">Le</span><span class="op">$</span><span class="va">re78</span><span class="op">[</span><span class="va">ct</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 759.0479</span></span>
+<span></span>
+<span><span class="co"># pre-treatment covariates</span></span>
+<span><span class="va">vars</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span></span>
+<span>        <span class="st">"age"</span>,</span>
+<span>        <span class="st">"education"</span>,</span>
+<span>        <span class="st">"black"</span>,</span>
+<span>        <span class="st">"married"</span>,</span>
+<span>        <span class="st">"nodegree"</span>,</span>
+<span>        <span class="st">"re74"</span>,</span>
+<span>        <span class="st">"re75"</span>,</span>
+<span>        <span class="st">"hispanic"</span>,</span>
+<span>        <span class="st">"u74"</span>,</span>
+<span>        <span class="st">"u75"</span>,</span>
+<span>        <span class="st">"q1"</span></span>
+<span>    <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># overall imbalance statistics</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/cem/man/imbalance.html">imbalance</a></span><span class="op">(</span>group<span class="op">=</span><span class="va">Le</span><span class="op">$</span><span class="va">treated</span>, data<span class="op">=</span><span class="va">Le</span><span class="op">[</span><span class="va">vars</span><span class="op">]</span><span class="op">)</span> <span class="co"># L1 = 0.902</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Multivariate Imbalance Measure: L1=0.902</span></span>
+<span><span class="co">#&gt; Percentage of local common support: LCS=5.8%</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Univariate Imbalance Measures:</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;               statistic   type           L1 min 25%      50%       75%</span></span>
+<span><span class="co">#&gt; age        -0.252373042 (diff) 5.102041e-03   0   0   0.0000   -1.0000</span></span>
+<span><span class="co">#&gt; education   0.153634710 (diff) 8.463851e-02   1   0   1.0000    1.0000</span></span>
+<span><span class="co">#&gt; black      -0.010322734 (diff) 1.032273e-02   0   0   0.0000    0.0000</span></span>
+<span><span class="co">#&gt; married    -0.009551495 (diff) 9.551495e-03   0   0   0.0000    0.0000</span></span>
+<span><span class="co">#&gt; nodegree   -0.081217371 (diff) 8.121737e-02   0  -1   0.0000    0.0000</span></span>
+<span><span class="co">#&gt; re74      -18.160446880 (diff) 5.551115e-17   0   0 284.0715  806.3452</span></span>
+<span><span class="co">#&gt; re75      101.501761679 (diff) 5.551115e-17   0   0 485.6310 1238.4114</span></span>
+<span><span class="co">#&gt; hispanic   -0.010144756 (diff) 1.014476e-02   0   0   0.0000    0.0000</span></span>
+<span><span class="co">#&gt; u74        -0.045582186 (diff) 4.558219e-02   0   0   0.0000    0.0000</span></span>
+<span><span class="co">#&gt; u75        -0.065555292 (diff) 6.555529e-02   0   0   0.0000    0.0000</span></span>
+<span><span class="co">#&gt; q1          7.494021189 (Chi2) 1.067078e-01  NA  NA       NA        NA</span></span>
+<span><span class="co">#&gt;                  max</span></span>
+<span><span class="co">#&gt; age          -6.0000</span></span>
+<span><span class="co">#&gt; education     1.0000</span></span>
+<span><span class="co">#&gt; black         0.0000</span></span>
+<span><span class="co">#&gt; married       0.0000</span></span>
+<span><span class="co">#&gt; nodegree      0.0000</span></span>
+<span><span class="co">#&gt; re74      -2139.0195</span></span>
+<span><span class="co">#&gt; re75        490.3945</span></span>
+<span><span class="co">#&gt; hispanic      0.0000</span></span>
+<span><span class="co">#&gt; u74           0.0000</span></span>
+<span><span class="co">#&gt; u75           0.0000</span></span>
+<span><span class="co">#&gt; q1                NA</span></span>
+<span></span>
+<span><span class="co"># drop other variables that are not pre - treatmentt matching variables</span></span>
+<span><span class="va">todrop</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"treated"</span>, <span class="st">"re78"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/cem/man/imbalance.html">imbalance</a></span><span class="op">(</span>group<span class="op">=</span><span class="va">Le</span><span class="op">$</span><span class="va">treated</span>, data<span class="op">=</span><span class="va">Le</span>, drop<span class="op">=</span><span class="va">todrop</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Multivariate Imbalance Measure: L1=0.902</span></span>
+<span><span class="co">#&gt; Percentage of local common support: LCS=5.8%</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Univariate Imbalance Measures:</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;               statistic   type           L1 min 25%      50%       75%</span></span>
+<span><span class="co">#&gt; age        -0.252373042 (diff) 5.102041e-03   0   0   0.0000   -1.0000</span></span>
+<span><span class="co">#&gt; education   0.153634710 (diff) 8.463851e-02   1   0   1.0000    1.0000</span></span>
+<span><span class="co">#&gt; black      -0.010322734 (diff) 1.032273e-02   0   0   0.0000    0.0000</span></span>
+<span><span class="co">#&gt; married    -0.009551495 (diff) 9.551495e-03   0   0   0.0000    0.0000</span></span>
+<span><span class="co">#&gt; nodegree   -0.081217371 (diff) 8.121737e-02   0  -1   0.0000    0.0000</span></span>
+<span><span class="co">#&gt; re74      -18.160446880 (diff) 5.551115e-17   0   0 284.0715  806.3452</span></span>
+<span><span class="co">#&gt; re75      101.501761679 (diff) 5.551115e-17   0   0 485.6310 1238.4114</span></span>
+<span><span class="co">#&gt; hispanic   -0.010144756 (diff) 1.014476e-02   0   0   0.0000    0.0000</span></span>
+<span><span class="co">#&gt; u74        -0.045582186 (diff) 4.558219e-02   0   0   0.0000    0.0000</span></span>
+<span><span class="co">#&gt; u75        -0.065555292 (diff) 6.555529e-02   0   0   0.0000    0.0000</span></span>
+<span><span class="co">#&gt; q1          7.494021189 (Chi2) 1.067078e-01  NA  NA       NA        NA</span></span>
+<span><span class="co">#&gt;                  max</span></span>
+<span><span class="co">#&gt; age          -6.0000</span></span>
+<span><span class="co">#&gt; education     1.0000</span></span>
+<span><span class="co">#&gt; black         0.0000</span></span>
+<span><span class="co">#&gt; married       0.0000</span></span>
+<span><span class="co">#&gt; nodegree      0.0000</span></span>
+<span><span class="co">#&gt; re74      -2139.0195</span></span>
+<span><span class="co">#&gt; re75        490.3945</span></span>
+<span><span class="co">#&gt; hispanic      0.0000</span></span>
+<span><span class="co">#&gt; u74           0.0000</span></span>
+<span><span class="co">#&gt; u75           0.0000</span></span>
+<span><span class="co">#&gt; q1                NA</span></span></code></pre></div>
+<p>automated coarsening</p>
+<div class="sourceCode" id="cb908"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">mat</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/cem/man/cem.html">cem</a></span><span class="op">(</span></span>
+<span>        treatment <span class="op">=</span> <span class="st">"treated"</span>,</span>
+<span>        data <span class="op">=</span> <span class="va">Le</span>,</span>
+<span>        drop <span class="op">=</span> <span class="st">"re78"</span>,</span>
+<span>        keep.all <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Using 'treated'='1' as baseline group</span></span>
+<span><span class="va">mat</span></span>
+<span><span class="co">#&gt;            G0  G1</span></span>
+<span><span class="co">#&gt; All       392 258</span></span>
+<span><span class="co">#&gt; Matched    95  84</span></span>
+<span><span class="co">#&gt; Unmatched 297 174</span></span>
+<span></span>
+<span><span class="co"># mat$w</span></span></code></pre></div>
+<p>coarsening by explicit user choice</p>
+<div class="sourceCode" id="cb909"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># categorial variables</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/levels.html">levels</a></span><span class="op">(</span><span class="va">Le</span><span class="op">$</span><span class="va">q1</span><span class="op">)</span> <span class="co"># grouping option</span></span>
+<span><span class="co">#&gt; [1] "agree"             "disagree"          "neutral"          </span></span>
+<span><span class="co">#&gt; [4] "no opinion"        "strongly agree"    "strongly disagree"</span></span>
+<span><span class="va">q1.grp</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span></span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"strongly agree"</span>, <span class="st">"agree"</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"neutral"</span>, <span class="st">"no opinion"</span><span class="op">)</span>,</span>
+<span>        <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"strongly disagree"</span>, <span class="st">"disagree"</span><span class="op">)</span></span>
+<span>    <span class="op">)</span> <span class="co"># if you want ordered categories</span></span>
+<span></span>
+<span><span class="co"># continuous variables</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/table.html">table</a></span><span class="op">(</span><span class="va">Le</span><span class="op">$</span><span class="va">education</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;   3   4   5   6   7   8   9  10  11  12  13  14  15 </span></span>
+<span><span class="co">#&gt;   1   5   4   6  12  55 106 146 173 113  19   9   1</span></span>
+<span><span class="va">educut</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">6.5</span>, <span class="fl">8.5</span>, <span class="fl">12.5</span>, <span class="fl">17</span><span class="op">)</span>  <span class="co"># use cutpoints</span></span>
+<span></span>
+<span><span class="va">mat1</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/cem/man/cem.html">cem</a></span><span class="op">(</span></span>
+<span>        treatment <span class="op">=</span> <span class="st">"treated"</span>,</span>
+<span>        data <span class="op">=</span> <span class="va">Le</span>,</span>
+<span>        drop <span class="op">=</span> <span class="st">"re78"</span>,</span>
+<span>        cutpoints <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>education <span class="op">=</span> <span class="va">educut</span><span class="op">)</span>,</span>
+<span>        grouping <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>q1 <span class="op">=</span> <span class="va">q1.grp</span><span class="op">)</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Using 'treated'='1' as baseline group</span></span>
+<span><span class="va">mat1</span></span>
+<span><span class="co">#&gt;            G0  G1</span></span>
+<span><span class="co">#&gt; All       392 258</span></span>
+<span><span class="co">#&gt; Matched   158 115</span></span>
+<span><span class="co">#&gt; Unmatched 234 143</span></span></code></pre></div>
+<ul>
+<li><p>Can also use progressive coarsening method to control the number of matches.</p></li>
+<li><p><code>cem</code> can also handle some missingness.</p></li>
+</ul>
+</div>
+<div id="genetic-matching" class="section level3" number="35.1.7">
+<h3>
+<span class="header-section-number">35.1.7</span> Genetic Matching<a class="anchor" aria-label="anchor" href="#genetic-matching"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>
+<p>GM uses iterative checking process of propensity scores, which combines propensity scores and Mahalanobis distance.</p>
+<ul>
+<li>GenMatch <span class="citation">(<a href="references.html#ref-diamond2013genetic">Diamond and Sekhon 2013</a>)</span>
+</li>
+</ul>
+</li>
+<li><p>GM is arguably “superior” method than nearest neighbor or full matching in imbalanced data</p></li>
+<li><p>Use a genetic search algorithm to find weights for each covariate such that we have optimal balance.</p></li>
+<li>
+<p>Implementation</p>
+<ul>
+<li><p>could use <em>with replacement</em></p></li>
+<li>
+<p>balance can be based on</p>
+<ul>
+<li><p>paired <span class="math inline">\(t\)</span>-tests (dichotomous variables)</p></li>
+<li><p>Kolmogorov-Smirnov (multinomial and continuous)</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Packages</p>
+<p><code>Matching</code></p>
+<div class="sourceCode" id="cb910"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/JasjeetSekhon/Matching">Matching</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">lalonde</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/attach.html">attach</a></span><span class="op">(</span><span class="va">lalonde</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#The covariates we want to match on</span></span>
+<span><span class="va">X</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/cbind.html">cbind</a></span><span class="op">(</span><span class="va">age</span>, <span class="va">educ</span>, <span class="va">black</span>, <span class="va">hisp</span>, <span class="va">married</span>, <span class="va">nodegr</span>, <span class="va">u74</span>, <span class="va">u75</span>, <span class="va">re75</span>, <span class="va">re74</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#The covariates we want to obtain balance on</span></span>
+<span><span class="va">BalanceMat</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/cbind.html">cbind</a></span><span class="op">(</span><span class="va">age</span>,</span>
+<span>          <span class="va">educ</span>,</span>
+<span>          <span class="va">black</span>,</span>
+<span>          <span class="va">hisp</span>,</span>
+<span>          <span class="va">married</span>,</span>
+<span>          <span class="va">nodegr</span>,</span>
+<span>          <span class="va">u74</span>,</span>
+<span>          <span class="va">u75</span>,</span>
+<span>          <span class="va">re75</span>,</span>
+<span>          <span class="va">re74</span>,</span>
+<span>          <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html">I</a></span><span class="op">(</span><span class="va">re74</span> <span class="op">*</span> <span class="va">re75</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#</span></span>
+<span><span class="co">#Let's call GenMatch() to find the optimal weight to give each</span></span>
+<span><span class="co">#covariate in 'X' so as we have achieved balance on the covariates in</span></span>
+<span><span class="co">#'BalanceMat'. This is only an example so we want GenMatch to be quick</span></span>
+<span><span class="co">#so the population size has been set to be only 16 via the 'pop.size'</span></span>
+<span><span class="co">#option. This is *WAY* too small for actual problems.</span></span>
+<span><span class="co">#For details see http://sekhon.berkeley.edu/papers/MatchingJSS.pdf.</span></span>
+<span><span class="co">#</span></span>
+<span><span class="va">genout</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/Matching/man/GenMatch.html">GenMatch</a></span><span class="op">(</span></span>
+<span>        Tr <span class="op">=</span> <span class="va">treat</span>,</span>
+<span>        X <span class="op">=</span> <span class="va">X</span>,</span>
+<span>        BalanceMatrix <span class="op">=</span> <span class="va">BalanceMat</span>,</span>
+<span>        estimand <span class="op">=</span> <span class="st">"ATE"</span>,</span>
+<span>        M <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>        pop.size <span class="op">=</span> <span class="fl">16</span>,</span>
+<span>        max.generations <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>        wait.generations <span class="op">=</span> <span class="fl">1</span></span>
+<span>    <span class="op">)</span></span>
+<span></span>
+<span><span class="co">#The outcome variable</span></span>
+<span><span class="va">Y</span><span class="op">=</span><span class="va">re78</span><span class="op">/</span><span class="fl">1000</span></span>
+<span></span>
+<span><span class="co">#</span></span>
+<span><span class="co"># Now that GenMatch() has found the optimal weights, let's estimate</span></span>
+<span><span class="co"># our causal effect of interest using those weights</span></span>
+<span><span class="co">#</span></span>
+<span><span class="va">mout</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/Matching/man/Match.html">Match</a></span><span class="op">(</span></span>
+<span>        Y <span class="op">=</span> <span class="va">Y</span>,</span>
+<span>        Tr <span class="op">=</span> <span class="va">treat</span>,</span>
+<span>        X <span class="op">=</span> <span class="va">X</span>,</span>
+<span>        estimand <span class="op">=</span> <span class="st">"ATE"</span>,</span>
+<span>        Weight.matrix <span class="op">=</span> <span class="va">genout</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">mout</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">#                        </span></span>
+<span><span class="co">#Let's determine if balance has actually been obtained on the variables of interest</span></span>
+<span><span class="co">#                        </span></span>
+<span><span class="va">mb</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/Matching/man/MatchBalance.html">MatchBalance</a></span><span class="op">(</span></span>
+<span>        <span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> <span class="op">+</span> <span class="va">black</span> <span class="op">+</span> <span class="va">hisp</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegr</span> </span>
+<span>        <span class="op">+</span> <span class="va">u74</span> <span class="op">+</span> <span class="va">u75</span> <span class="op">+</span> <span class="va">re75</span> <span class="op">+</span> <span class="va">re74</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html">I</a></span><span class="op">(</span><span class="va">re74</span> <span class="op">*</span> <span class="va">re75</span><span class="op">)</span>,</span>
+<span>        match.out <span class="op">=</span> <span class="va">mout</span>,</span>
+<span>        nboots <span class="op">=</span> <span class="fl">500</span></span>
+<span>    <span class="op">)</span></span></code></pre></div>
+</div>
+<div id="entropy-balancing" class="section level3" number="35.1.8">
+<h3>
+<span class="header-section-number">35.1.8</span> Entropy Balancing<a class="anchor" aria-label="anchor" href="#entropy-balancing"><i class="fas fa-link"></i></a>
+</h3>
+<p><span class="citation">(<a href="references.html#ref-hainmueller2012entropy">Hainmueller 2012</a>)</span></p>
+<ul>
+<li><p>Entropy balancing is a method for achieving covariate balance in observational studies with binary treatments.</p></li>
+<li><p>It uses a maximum entropy reweighting scheme to ensure that treatment and control groups are balanced based on sample moments.</p></li>
+<li><p>This method adjusts for inequalities in the covariate distributions, reducing dependence on the model used for estimating treatment effects.</p></li>
+<li><p>Entropy balancing improves balance across all included covariate moments and removes the need for repetitive balance checking and iterative model searching.</p></li>
+</ul>
+</div>
+<div id="matching-for-high-dimensional-data" class="section level3" number="35.1.9">
+<h3>
+<span class="header-section-number">35.1.9</span> Matching for high-dimensional data<a class="anchor" aria-label="anchor" href="#matching-for-high-dimensional-data"><i class="fas fa-link"></i></a>
+</h3>
+<p>One could reduce the number of dimensions using methods such as:</p>
+<ul>
+<li><p>Lasso <span class="citation">(<a href="references.html#ref-gordon2019comparison">Gordon et al. 2019</a>)</span></p></li>
+<li><p>Penalized logistic regression <span class="citation">(<a href="references.html#ref-eckles2021bias">Eckles and Bakshy 2021</a>)</span></p></li>
+<li><p>PCA (Principal Component Analysis)</p></li>
+<li><p>Locality Preserving Projections (LPP) <span class="citation">(<a href="references.html#ref-li2016matching">S. Li et al. 2016</a>)</span></p></li>
+<li><p>Random projection</p></li>
+<li><p>Autoencoders <span class="citation">(<a href="references.html#ref-ramachandra2018deep">Ramachandra 2018</a>)</span></p></li>
+</ul>
+<p>Additionally, one could jointly does dimension reduction while balancing the distributions of the control and treated groups <span class="citation">(<a href="references.html#ref-yao2018representation">Yao et al. 2018</a>)</span>.</p>
+</div>
+<div id="matching-for-time-series-cross-section-data" class="section level3" number="35.1.10">
+<h3>
+<span class="header-section-number">35.1.10</span> Matching for time series-cross-section data<a class="anchor" aria-label="anchor" href="#matching-for-time-series-cross-section-data"><i class="fas fa-link"></i></a>
+</h3>
+<p>Examples: <span class="citation">(<a href="references.html#ref-scheve2012democracy">Scheve and Stasavage 2012</a>)</span> and <span class="citation">(<a href="references.html#ref-acemoglu2019democracy">Acemoglu et al. 2019</a>)</span></p>
+<p>Identification strategy:</p>
+<ul>
+<li><p>Within-unit over-time variation</p></li>
+<li><p>within-time across-units variation</p></li>
+</ul>
+<p>See <a href="sec-difference-in-differences.html#did-with-in-and-out-treatment-condition">DID with in and out treatment condition</a> for details of this method</p>
+</div>
+<div id="matching-for-multiple-treatments" class="section level3" number="35.1.11">
+<h3>
+<span class="header-section-number">35.1.11</span> Matching for multiple treatments<a class="anchor" aria-label="anchor" href="#matching-for-multiple-treatments"><i class="fas fa-link"></i></a>
+</h3>
+<p>In cases where you have multiple treatment groups, and you want to do matching, it’s important to have the same baseline (control) group. For more details, see</p>
+<ul>
+<li><p><span class="citation">(<a href="references.html#ref-mccaffrey2013tutorial">McCaffrey et al. 2013</a>)</span></p></li>
+<li><p><span class="citation">(<a href="references.html#ref-lopez2017estimation">Lopez and Gutman 2017</a>)</span></p></li>
+<li><p><span class="citation">(<a href="references.html#ref-zhao2021propensity">Zhao et al. 2021</a>)</span>: also for continuous treatment</p></li>
+</ul>
+<p>If you insist on using the <code>MatchIt</code> package, then see this <a href="https://stats.stackexchange.com/questions/405019/matching-with-multiple-treatments">answer</a></p>
+</div>
+<div id="matching-for-multi-level-treatments" class="section level3" number="35.1.12">
+<h3>
+<span class="header-section-number">35.1.12</span> Matching for multi-level treatments<a class="anchor" aria-label="anchor" href="#matching-for-multi-level-treatments"><i class="fas fa-link"></i></a>
+</h3>
+<p>See <span class="citation">(<a href="references.html#ref-yang2016propensity">Yang et al. 2016</a>)</span></p>
+<p>Package in R <code>shuyang1987/multilevelMatching</code> on Github</p>
+</div>
+<div id="matching-for-repeated-treatments" class="section level3" number="35.1.13">
+<h3>
+<span class="header-section-number">35.1.13</span> Matching for repeated treatments<a class="anchor" aria-label="anchor" href="#matching-for-repeated-treatments"><i class="fas fa-link"></i></a>
+</h3>
+<p><a href="https://cran.r-project.org/web/packages/twang/vignettes/iptw.pdf" class="uri">https://cran.r-project.org/web/packages/twang/vignettes/iptw.pdf</a></p>
+<p>package in R <code>twang</code></p>
+</div>
+</div>
+<div id="selection-on-unobservables" class="section level2" number="35.2">
+<h2>
+<span class="header-section-number">35.2</span> Selection on Unobservables<a class="anchor" aria-label="anchor" href="#selection-on-unobservables"><i class="fas fa-link"></i></a>
+</h2>
+<p>There are several ways one can deal with selection on unobservables:</p>
+<ol style="list-style-type: decimal">
+<li><p><a href="sec-matching-methods.html#sec-rosenbaum-bounds">Rosenbaum Bounds</a></p></li>
+<li><p><a href="endogeneity.html#endogenous-sample-selection">Endogenous Sample Selection</a> (i.e., Heckman-style correction): examine the <span class="math inline">\(\lambda\)</span> term to see whether it’s significant (sign of endogenous selection)</p></li>
+<li><p><a href="sec-matching-methods.html#relative-correlation-restrictions">Relative Correlation Restrictions</a></p></li>
+<li><p><a href="sec-matching-methods.html#coefficient-stability-bounds">Coefficient-stability Bounds</a></p></li>
+</ol>
+<div id="sec-rosenbaum-bounds" class="section level3" number="35.2.1">
+<h3>
+<span class="header-section-number">35.2.1</span> Rosenbaum Bounds<a class="anchor" aria-label="anchor" href="#sec-rosenbaum-bounds"><i class="fas fa-link"></i></a>
+</h3>
+<p>Examples in marketing</p>
+<ul>
+<li><p><span class="citation">(<a href="references.html#ref-oestreicher2013content">Oestreicher-Singer and Zalmanson 2013</a>)</span>: A range of 1.5 to 1.8 is important for the effect of the level of community participation of users on their willingness to pay for premium services.</p></li>
+<li><p><span class="citation">(<a href="references.html#ref-sun2013ad">M. Sun and Zhu 2013</a>)</span>: A factor of 1.5 is essential for understanding the relationship between the launch of an ad revenue-sharing program and the popularity of content.</p></li>
+<li><p><span class="citation">(<a href="references.html#ref-manchanda2015social">Manchanda, Packard, and Pattabhiramaiah 2015</a>)</span>: A factor of 1.6 is required for the social dollar effect to be nullified.</p></li>
+<li><p><span class="citation">(<a href="references.html#ref-sudhir2015peter">Sudhir and Talukdar 2015</a>)</span>: A factor of 1.9 is needed for IT adoption to impact labor productivity, and 2.2 for IT adoption to affect floor productivity.</p></li>
+<li><p><span class="citation">(<a href="references.html#ref-proserpio2017">Proserpio and Zervas 2017b</a>)</span>: A factor of 2 is necessary for the firm’s use of management responses to influence online reputation.</p></li>
+<li><p><span class="citation">(<a href="references.html#ref-zhang2022makes">S. Zhang et al. 2022</a>)</span>: A factor of 1.55 is critical for the acquisition of verified images to drive demand for Airbnb properties.</p></li>
+<li><p><span class="citation">(<a href="references.html#ref-chae2023paywall">Chae, Ha, and Schweidel 2023</a>)</span>: A factor of 27 (not a typo) is significant in how paywall suspensions affect subsequent subscription decisions.</p></li>
+</ul>
+<p>General</p>
+<ul>
+<li>
+<p><a href="sec-matching-methods.html#sec-matching-methods">Matching Methods</a> are favored for estimating treatment effects in observational data, offering advantages over regression methods because</p>
+<ul>
+<li><p>It reduces reliance on functional form assumptions.</p></li>
+<li><p>Assumes all selection-influencing covariates are observable; estimates are unbiased if no unobserved confounders are missed.</p></li>
+</ul>
+</li>
+<li>
+<p>Concerns arise when potentially relevant covariates are unmeasured.</p>
+<ul>
+<li>
+<a href="examine%20departure%20from%20assumption%20of%20free%20hidden%20bias%20due%20to%20unobservables.">Rosenbaum Bounds</a> assess the overall sensitivity of coefficient estimates to hidden bias <span class="citation">(<a href="references.html#ref-rosenbaum2002overt">Rosenbaum and Rosenbaum 2002</a>)</span> without having knowledge (e.g., direction) of the bias. Because the unboservables that cause hidden bias have to both affect selection into treatment by a factor of <span class="math inline">\(\Gamma\)</span> and predictive of outcome, this method is also known as <strong>worst case analyses</strong> <span class="citation">(<a href="references.html#ref-diprete2004assessing">DiPrete and Gangl 2004</a>)</span>.</li>
+</ul>
+</li>
+<li><p>Can’t provide precise bounds on estimates of treatment effects (see <a href="sec-matching-methods.html#relative-correlation-restrictions">Relative Correlation Restrictions</a>)</p></li>
+<li><p>Typically, we show both p-value and H-L point estimate for each level of gamma <span class="math inline">\(\Gamma\)</span></p></li>
+</ul>
+<p>With random treatment assignment, we can use the non-parametric test (Wilcoxon signed rank test) to see if there is treatment effect.</p>
+<p>Without random treatment assignment (i.e., observational data), we cannot use this test. With <a href="sec-matching-methods.html#selection-on-observables">Selection on Observables</a>, we can use this test if we believe there are no unmeasured confounders. And this is where <span class="citation">Rosenbaum (<a href="references.html#ref-rosenbaum2002attributing">2002</a>)</span> can come in to talk about the believability of this notion.</p>
+<p>In layman’s terms, consider that the treatment assignment is based on a method where the odds of treatment for a unit and its control differ by a multiplier <span class="math inline">\(\Gamma\)</span></p>
+<ul>
+<li>For example, <span class="math inline">\(\Gamma = 1\)</span> means that the odds of assignment are identical, indicating random treatment assignment.</li>
+<li>Another example, <span class="math inline">\(\Gamma = 2\)</span>, in the same matched pair, one unit is twice as likely to receive the treatment (due to unobservables).</li>
+<li>Since we can’t know <span class="math inline">\(\Gamma\)</span> with certainty, we run sensitivity analysis to see if the results change with different values of <span class="math inline">\(\Gamma\)</span>
+</li>
+<li>This bias is the product of an unobservable that influences both treatment selection and outcome by a factor <span class="math inline">\(\Gamma\)</span> (omitted variable bias)</li>
+</ul>
+<p>In technical terms,</p>
+<ul>
+<li>
+<strong>Treatment Assignment and Probability</strong>:
+<ul>
+<li>Consider unit <span class="math inline">\(j\)</span> with a probability <span class="math inline">\(\pi_j\)</span> of receiving the treatment, and unit <span class="math inline">\(i\)</span> with <span class="math inline">\(\pi_i\)</span>.</li>
+<li>Ideally, after matching, if there’s no hidden bias, we’d have <span class="math inline">\(\pi_i = \pi_j\)</span>.</li>
+<li>However, observing <span class="math inline">\(\pi_i \neq \pi_j\)</span> raises questions about potential biases affecting our inference. This is evaluated using the odds ratio.</li>
+</ul>
+</li>
+<li>
+<strong>Odds Ratio and Hidden Bias</strong>:
+<ul>
+<li>The odds of treatment for a unit <span class="math inline">\(j\)</span> is defined as <span class="math inline">\(\frac{\pi_j}{1 - \pi_j}\)</span>.</li>
+<li>The odds ratio between two matched units <span class="math inline">\(i\)</span> and <span class="math inline">\(j\)</span> is constrained by <span class="math inline">\(\frac{1}{\Gamma} \le \frac{\pi_i / (1- \pi_i)}{\pi_j/ (1- \pi_j)} \le \Gamma\)</span>.
+<ul>
+<li>If <span class="math inline">\(\Gamma = 1\)</span>, it implies an absence of hidden bias.</li>
+<li>If <span class="math inline">\(\Gamma = 2\)</span>, the odds of receiving treatment could differ by up to a factor of 2 between the two units.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<strong>Sensitivity Analysis Using Gamma</strong>:
+<ul>
+<li>The value of <span class="math inline">\(\Gamma\)</span> helps measure the potential departure from a bias-free study.</li>
+<li>Sensitivity analysis involves varying <span class="math inline">\(\Gamma\)</span> to examine how inferences might change with the presence of hidden biases.</li>
+</ul>
+</li>
+<li>
+<strong>Incorporating Unobserved Covariates</strong>:
+<ul>
+<li>Consider a scenario where unit <span class="math inline">\(i\)</span> has observed covariates <span class="math inline">\(x_i\)</span> and an unobserved covariate <span class="math inline">\(u_i\)</span>, that both affect the outcome.</li>
+<li>A logistic regression model could link the odds of assignment to these covariates: <span class="math inline">\(\log(\frac{\pi_i}{1 - \pi_i}) = \kappa x_i + \gamma u_i\)</span>, where <span class="math inline">\(\gamma\)</span> represents the impact of the unobserved covariate.</li>
+</ul>
+</li>
+<li>
+<strong>Steps for Sensitivity Analysis</strong> (We could create a table of different levels of <span class="math inline">\(\Gamma\)</span> to assess how the magnitude of biases can affect our evidence of the treatment effect (estimate):
+<ol style="list-style-type: decimal">
+<li>Select a range of values for <span class="math inline">\(\Gamma\)</span> (e.g., <span class="math inline">\(1 \to 2\)</span>).</li>
+<li>Assess how the p-value or the magnitude of the treatment effect <span class="citation">(<a href="references.html#ref-hodges2011estimates">Hodges Jr and Lehmann 2011</a>)</span> (for more details, see <span class="citation">(<a href="references.html#ref-hollander2013nonparametric">Hollander, Wolfe, and Chicken 2013</a>)</span>) changes with varying <span class="math inline">\(\Gamma\)</span> values.</li>
+<li>Employ specific randomization tests based on the type of outcome to establish bounds on inferences.
+<ul>
+<li>report the minimum value of <span class="math inline">\(\Gamma\)</span> at which the treatment treat is nullified (i.e., become insignificant). And the literature’s rules of thumb is that if <span class="math inline">\(\Gamma &gt; 2\)</span>, then we have strong evidence for our treatment effect is robust to large biases <span class="citation">(<a href="references.html#ref-proserpio2017online">Proserpio and Zervas 2017a</a>)</span>
+</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+<p>Notes:</p>
+<ul>
+<li>If we have treatment assignment is clustered (e.g., within school, within state) we need to adjust the bounds for clustered treatment assignment <span class="citation">(<a href="references.html#ref-hansen2014clustered">B. B. Hansen, Rosenbaum, and Small 2014</a>)</span> (similar to clustered standard errors).</li>
+</ul>
+<p>Packages</p>
+<ul>
+<li><p><code>rbounds</code> <span class="citation">(<a href="references.html#ref-keele2010overview">Keele 2010</a>)</span></p></li>
+<li><p><code>sensitivitymv</code> <span class="citation">(<a href="references.html#ref-rosenbaum2015two">Rosenbaum 2015</a>)</span></p></li>
+</ul>
+<p>Since we typically assess our estimate sensitivity to unboservables after matching, we first do some matching.</p>
+<div class="sourceCode" id="cb911"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://kosukeimai.github.io/MatchIt/">MatchIt</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/JasjeetSekhon/Matching">Matching</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"lalonde"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">matched</span> <span class="op">&lt;-</span> <span class="fu">MatchIt</span><span class="fu">::</span><span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">matchit</a></span><span class="op">(</span></span>
+<span>    <span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">lalonde</span>,</span>
+<span>    method <span class="op">=</span> <span class="st">"nearest"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">matched</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; MatchIt::matchit(formula = treat ~ age + educ, data = lalonde, </span></span>
+<span><span class="co">#&gt;     method = "nearest")</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Summary of Balance for All Data:</span></span>
+<span><span class="co">#&gt;          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean</span></span>
+<span><span class="co">#&gt; distance        0.4203        0.4125          0.1689     1.2900    0.0431</span></span>
+<span><span class="co">#&gt; age            25.8162       25.0538          0.1066     1.0278    0.0254</span></span>
+<span><span class="co">#&gt; educ           10.3459       10.0885          0.1281     1.5513    0.0287</span></span>
+<span><span class="co">#&gt;          eCDF Max</span></span>
+<span><span class="co">#&gt; distance   0.1251</span></span>
+<span><span class="co">#&gt; age        0.0652</span></span>
+<span><span class="co">#&gt; educ       0.1265</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Summary of Balance for Matched Data:</span></span>
+<span><span class="co">#&gt;          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean</span></span>
+<span><span class="co">#&gt; distance        0.4203        0.4179          0.0520     1.1691    0.0105</span></span>
+<span><span class="co">#&gt; age            25.8162       25.5081          0.0431     1.1518    0.0148</span></span>
+<span><span class="co">#&gt; educ           10.3459       10.2811          0.0323     1.5138    0.0224</span></span>
+<span><span class="co">#&gt;          eCDF Max Std. Pair Dist.</span></span>
+<span><span class="co">#&gt; distance   0.0595          0.0598</span></span>
+<span><span class="co">#&gt; age        0.0486          0.5628</span></span>
+<span><span class="co">#&gt; educ       0.0757          0.3602</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Sample Sizes:</span></span>
+<span><span class="co">#&gt;           Control Treated</span></span>
+<span><span class="co">#&gt; All           260     185</span></span>
+<span><span class="co">#&gt; Matched       185     185</span></span>
+<span><span class="co">#&gt; Unmatched      75       0</span></span>
+<span><span class="co">#&gt; Discarded       0       0</span></span>
+<span><span class="va">matched_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/match.data.html">match.data</a></span><span class="op">(</span><span class="va">matched</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">treatment_group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/subset.html">subset</a></span><span class="op">(</span><span class="va">matched_data</span>, <span class="va">treat</span> <span class="op">==</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">control_group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/subset.html">subset</a></span><span class="op">(</span><span class="va">matched_data</span>, <span class="va">treat</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">rbounds</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># p-value sensitivity </span></span>
+<span><span class="va">psens_res</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/rbounds/man/psens.html">psens</a></span><span class="op">(</span><span class="va">treatment_group</span><span class="op">$</span><span class="va">re78</span>,</span>
+<span>          <span class="va">control_group</span><span class="op">$</span><span class="va">re78</span>,</span>
+<span>          Gamma <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>          GammaInc <span class="op">=</span> <span class="fl">.1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">psens_res</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  Rosenbaum Sensitivity Test for Wilcoxon Signed Rank P-Value </span></span>
+<span><span class="co">#&gt;  </span></span>
+<span><span class="co">#&gt; Unconfounded estimate ....  0.0058 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  Gamma Lower bound Upper bound</span></span>
+<span><span class="co">#&gt;    1.0      0.0058      0.0058</span></span>
+<span><span class="co">#&gt;    1.1      0.0011      0.0235</span></span>
+<span><span class="co">#&gt;    1.2      0.0002      0.0668</span></span>
+<span><span class="co">#&gt;    1.3      0.0000      0.1458</span></span>
+<span><span class="co">#&gt;    1.4      0.0000      0.2599</span></span>
+<span><span class="co">#&gt;    1.5      0.0000      0.3967</span></span>
+<span><span class="co">#&gt;    1.6      0.0000      0.5378</span></span>
+<span><span class="co">#&gt;    1.7      0.0000      0.6664</span></span>
+<span><span class="co">#&gt;    1.8      0.0000      0.7723</span></span>
+<span><span class="co">#&gt;    1.9      0.0000      0.8523</span></span>
+<span><span class="co">#&gt;    2.0      0.0000      0.9085</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  Note: Gamma is Odds of Differential Assignment To</span></span>
+<span><span class="co">#&gt;  Treatment Due to Unobserved Factors </span></span>
+<span><span class="co">#&gt; </span></span>
+<span></span>
+<span><span class="co"># Hodges-Lehmann point estimate sensitivity</span></span>
+<span><span class="co"># median difference between treatment and control</span></span>
+<span><span class="va">hlsens_res</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/rbounds/man/hlsens.html">hlsens</a></span><span class="op">(</span><span class="va">treatment_group</span><span class="op">$</span><span class="va">re78</span>,</span>
+<span>           <span class="va">control_group</span><span class="op">$</span><span class="va">re78</span>,</span>
+<span>           Gamma <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>           GammaInc <span class="op">=</span> <span class="fl">.1</span><span class="op">)</span></span>
+<span><span class="va">hlsens_res</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  Rosenbaum Sensitivity Test for Hodges-Lehmann Point Estimate </span></span>
+<span><span class="co">#&gt;  </span></span>
+<span><span class="co">#&gt; Unconfounded estimate ....  1745.843 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  Gamma Lower bound Upper bound</span></span>
+<span><span class="co">#&gt;    1.0 1745.800000      1745.8</span></span>
+<span><span class="co">#&gt;    1.1 1139.100000      1865.6</span></span>
+<span><span class="co">#&gt;    1.2  830.840000      2160.9</span></span>
+<span><span class="co">#&gt;    1.3  533.740000      2462.4</span></span>
+<span><span class="co">#&gt;    1.4  259.940000      2793.8</span></span>
+<span><span class="co">#&gt;    1.5   -0.056912      3059.3</span></span>
+<span><span class="co">#&gt;    1.6 -144.960000      3297.8</span></span>
+<span><span class="co">#&gt;    1.7 -380.560000      3535.7</span></span>
+<span><span class="co">#&gt;    1.8 -554.360000      3751.0</span></span>
+<span><span class="co">#&gt;    1.9 -716.360000      4012.1</span></span>
+<span><span class="co">#&gt;    2.0 -918.760000      4224.3</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;  Note: Gamma is Odds of Differential Assignment To</span></span>
+<span><span class="co">#&gt;  Treatment Due to Unobserved Factors </span></span>
+<span><span class="co">#&gt; </span></span></code></pre></div>
+<p>For multiple control group matching</p>
+<div class="sourceCode" id="cb912"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/JasjeetSekhon/Matching">Matching</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://kosukeimai.github.io/MatchIt/">MatchIt</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">n_ratio</span> <span class="op">&lt;-</span> <span class="fl">2</span></span>
+<span><span class="va">matched</span> <span class="op">&lt;-</span> <span class="fu">MatchIt</span><span class="fu">::</span><span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/matchit.html">matchit</a></span><span class="op">(</span><span class="va">treat</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">educ</span> ,</span>
+<span>                   method <span class="op">=</span> <span class="st">"nearest"</span>, ratio <span class="op">=</span> <span class="va">n_ratio</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">matched</span><span class="op">)</span></span>
+<span><span class="va">matched_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://kosukeimai.github.io/MatchIt/reference/match.data.html">match.data</a></span><span class="op">(</span><span class="va">matched</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">mcontrol_res</span> <span class="op">&lt;-</span> <span class="fu">rbounds</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rbounds/man/mcontrol.html">mcontrol</a></span><span class="op">(</span></span>
+<span>    y          <span class="op">=</span> <span class="va">matched_data</span><span class="op">$</span><span class="va">re78</span>,</span>
+<span>    grp.id     <span class="op">=</span> <span class="va">matched_data</span><span class="op">$</span><span class="va">subclass</span>,</span>
+<span>    treat.id   <span class="op">=</span> <span class="va">matched_data</span><span class="op">$</span><span class="va">treat</span>,</span>
+<span>    group.size <span class="op">=</span> <span class="va">n_ratio</span> <span class="op">+</span> <span class="fl">1</span>,</span>
+<span>    Gamma      <span class="op">=</span> <span class="fl">2.5</span>,</span>
+<span>    GammaInc   <span class="op">=</span> <span class="fl">.1</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">mcontrol_res</span></span></code></pre></div>
+<p><code>sensitivitymw</code> is faster than <code>sensitivitymw</code>. But <code>sensitivitymw</code> can match where matched sets can have differing numbers of controls <span class="citation">(<a href="references.html#ref-rosenbaum2015two">Rosenbaum 2015</a>)</span>.</p>
+<div class="sourceCode" id="cb913"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">sensitivitymv</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">lead150</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">lead150</span><span class="op">)</span></span>
+<span><span class="co">#&gt;      [,1] [,2] [,3] [,4] [,5] [,6]</span></span>
+<span><span class="co">#&gt; [1,] 1.40 1.23 2.24 0.96 1.90 1.14</span></span>
+<span><span class="co">#&gt; [2,] 0.63 0.99 0.87 1.90 0.67 1.40</span></span>
+<span><span class="co">#&gt; [3,] 1.98 0.82 0.66 0.58 1.00 1.30</span></span>
+<span><span class="co">#&gt; [4,] 1.45 0.53 1.43 1.70 0.85 1.50</span></span>
+<span><span class="co">#&gt; [5,] 1.60 1.70 0.63 1.05 1.08 0.92</span></span>
+<span><span class="co">#&gt; [6,] 1.13 0.31 0.71 1.10 0.86 1.14</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/sensitivitymv/man/senmv.html">senmv</a></span><span class="op">(</span><span class="va">lead150</span>,gamma<span class="op">=</span><span class="fl">2</span>,trim<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $pval</span></span>
+<span><span class="co">#&gt; [1] 0.02665519</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $deviate</span></span>
+<span><span class="co">#&gt; [1] 1.932398</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $statistic</span></span>
+<span><span class="co">#&gt; [1] 27.97564</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $expectation</span></span>
+<span><span class="co">#&gt; [1] 18.0064</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $variance</span></span>
+<span><span class="co">#&gt; [1] 26.61524</span></span>
+<span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">sensitivitymw</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/sensitivitymw/man/senmw.html">senmw</a></span><span class="op">(</span><span class="va">lead150</span>,gamma<span class="op">=</span><span class="fl">2</span>,trim<span class="op">=</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $pval</span></span>
+<span><span class="co">#&gt; [1] 0.02665519</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $deviate</span></span>
+<span><span class="co">#&gt; [1] 1.932398</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $statistic</span></span>
+<span><span class="co">#&gt; [1] 27.97564</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $expectation</span></span>
+<span><span class="co">#&gt; [1] 18.0064</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $variance</span></span>
+<span><span class="co">#&gt; [1] 26.61524</span></span></code></pre></div>
+</div>
+<div id="relative-correlation-restrictions" class="section level3" number="35.2.2">
+<h3>
+<span class="header-section-number">35.2.2</span> Relative Correlation Restrictions<a class="anchor" aria-label="anchor" href="#relative-correlation-restrictions"><i class="fas fa-link"></i></a>
+</h3>
+<p>Examples in marketing</p>
+<ul>
+<li><p><span class="citation">(<a href="references.html#ref-manchanda2015social">Manchanda, Packard, and Pattabhiramaiah 2015</a>)</span>: 3.23 for social dollar effect to be nullified</p></li>
+<li><p><span class="citation">(<a href="references.html#ref-chae2023paywall">Chae, Ha, and Schweidel 2023</a>)</span>: 6.69 (i.e., how much stronger the selection on unobservables has to be compared to the selection on observables to negate the result) for paywall suspensions affect subsequent subscription decisions</p></li>
+<li><p><span class="citation">(<a href="references.html#ref-sun2013ad">M. Sun and Zhu 2013</a>)</span></p></li>
+</ul>
+<p>General</p>
+<ul>
+<li><p>Proposed by <span class="citation">Altonji, Elder, and Taber (<a href="references.html#ref-altonji2005selection">2005</a>)</span></p></li>
+<li><p>Generalized by <span class="citation">Krauth (<a href="references.html#ref-krauth2016bounding">2016</a>)</span></p></li>
+<li><p>Estimate bounds of the treatment effects due to unobserved selection.</p></li>
+</ul>
+<p><span class="math display">\[
+Y_i = X_i \beta  + C_i \gamma + \epsilon_i
+\]</span></p>
+<p>where</p>
+<ul>
+<li><p><span class="math inline">\(\beta\)</span> is the effect of interest</p></li>
+<li><p><span class="math inline">\(C_i\)</span> is the control variable</p></li>
+<li><p>Using OLS, <span class="math inline">\(cor(X_i, \epsilon_i) = 0\)</span></p></li>
+</ul>
+<p>Under RCR analysis, we assume</p>
+<p><span class="math display">\[
+cor(X_i, \epsilon_i) = \lambda cor(X_i, C_i \gamma)
+\]</span></p>
+<p>where <span class="math inline">\(\lambda \in (\lambda_l, \lambda_h)\)</span></p>
+<p>Choice of <span class="math inline">\(\lambda\)</span></p>
+<ul>
+<li><p>Strong assumption of no omitted variable bias (small</p></li>
+<li><p>If <span class="math inline">\(\lambda = 0\)</span>, then <span class="math inline">\(cor(X_i, \epsilon_i) = 0\)</span></p></li>
+<li><p>If <span class="math inline">\(\lambda = 1\)</span>, then <span class="math inline">\(cor(X_i, \epsilon_i) = cor(X_i, C_i \gamma)\)</span></p></li>
+<li><p>We typically examine <span class="math inline">\(\lambda \in (0, 1)\)</span></p></li>
+</ul>
+<div class="sourceCode" id="cb914"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># remotes::install_github("bvkrauth/rcr/r/rcrbounds")</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bvkrauth/rcr">rcrbounds</a></span><span class="op">)</span></span>
+<span><span class="co"># rcrbounds::install_rcrpy()</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"ChickWeight"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">rcr_res</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu">rcrbounds</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rcrbounds/man/rcr.html">rcr</a></span><span class="op">(</span><span class="va">weight</span> <span class="op">~</span> <span class="va">Time</span> <span class="op">|</span></span>
+<span>                       <span class="va">Diet</span>, <span class="va">ChickWeight</span>, rc_range <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">rcr_res</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; rcrbounds::rcr(formula = weight ~ Time | Diet, data = ChickWeight, </span></span>
+<span><span class="co">#&gt;     rc_range = c(0, 10))</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;     rcInf effectInf       rc0   effectL   effectH </span></span>
+<span><span class="co">#&gt; 34.676505 71.989336 34.741955  7.447713  8.750492</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">rcr_res</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; rcrbounds::rcr(formula = weight ~ Time | Diet, data = ChickWeight, </span></span>
+<span><span class="co">#&gt;     rc_range = c(0, 10))</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;            Estimate  Std. Error    t value      Pr(&gt;|t|)</span></span>
+<span><span class="co">#&gt; rcInf     34.676505  50.1295005  0.6917385  4.891016e-01</span></span>
+<span><span class="co">#&gt; effectInf 71.989336 112.5711682  0.6395007  5.224973e-01</span></span>
+<span><span class="co">#&gt; rc0       34.741955  58.7169195  0.5916856  5.540611e-01</span></span>
+<span><span class="co">#&gt; effectL    7.447713   2.4276246  3.0679014  2.155677e-03</span></span>
+<span><span class="co">#&gt; effectH    8.750492   0.2607671 33.5567355 7.180405e-247</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; conservative confidence interval:</span></span>
+<span><span class="co">#&gt;          2.5  %  97.5  %</span></span>
+<span><span class="co">#&gt; effect 2.689656 9.261586</span></span>
+<span></span>
+<span><span class="co"># hypothesis test for the coefficient</span></span>
+<span><span class="fu">rcrbounds</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/rcrbounds/man/effect_test.html">effect_test</a></span><span class="op">(</span><span class="va">rcr_res</span>, h0 <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] 0.001234233</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">rcr_res</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="35-matching-methods_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;"></div>
+</div>
+<div id="coefficient-stability-bounds" class="section level3" number="35.2.3">
+<h3>
+<span class="header-section-number">35.2.3</span> Coefficient-stability Bounds<a class="anchor" aria-label="anchor" href="#coefficient-stability-bounds"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>Developed by <span class="citation">Oster (<a href="references.html#ref-oster2019unobservable">2019</a>)</span>
+</li>
+<li>Assess robustness to omitted variable bias by observing:
+<ol style="list-style-type: decimal">
+<li><p>Changes in the coefficient of interest</p></li>
+<li><p>Shifts in model <span class="math inline">\(R^2\)</span></p></li>
+</ol>
+</li>
+<li>Refer <span class="citation">Masten and Poirier (<a href="references.html#ref-masten2022effect">2022</a>)</span> for reverse sign problem.</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+
+<div class="chapter-nav">
+<div class="prev"><a href="sec-instrumental-variables.html"><span class="header-section-number">34</span> Instrumental Variables</a></div>
+<div class="next"><a href="endogeneity.html"><span class="header-section-number">36</span> Endogeneity</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sec-matching-methods"><span class="header-section-number">35</span> Matching Methods</a></li>
+<li>
+<a class="nav-link" href="#selection-on-observables"><span class="header-section-number">35.1</span> Selection on Observables</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#matchit"><span class="header-section-number">35.1.1</span> MatchIt</a></li>
+<li><a class="nav-link" href="#designmatch"><span class="header-section-number">35.1.2</span> designmatch</a></li>
+<li><a class="nav-link" href="#matchingfrontier"><span class="header-section-number">35.1.3</span> MatchingFrontier</a></li>
+<li><a class="nav-link" href="#sec-propensity-scores"><span class="header-section-number">35.1.4</span> Propensity Scores</a></li>
+<li><a class="nav-link" href="#mahalanobis-distance"><span class="header-section-number">35.1.5</span> Mahalanobis Distance</a></li>
+<li><a class="nav-link" href="#coarsened-exact-matching"><span class="header-section-number">35.1.6</span> Coarsened Exact Matching</a></li>
+<li><a class="nav-link" href="#genetic-matching"><span class="header-section-number">35.1.7</span> Genetic Matching</a></li>
+<li><a class="nav-link" href="#entropy-balancing"><span class="header-section-number">35.1.8</span> Entropy Balancing</a></li>
+<li><a class="nav-link" href="#matching-for-high-dimensional-data"><span class="header-section-number">35.1.9</span> Matching for high-dimensional data</a></li>
+<li><a class="nav-link" href="#matching-for-time-series-cross-section-data"><span class="header-section-number">35.1.10</span> Matching for time series-cross-section data</a></li>
+<li><a class="nav-link" href="#matching-for-multiple-treatments"><span class="header-section-number">35.1.11</span> Matching for multiple treatments</a></li>
+<li><a class="nav-link" href="#matching-for-multi-level-treatments"><span class="header-section-number">35.1.12</span> Matching for multi-level treatments</a></li>
+<li><a class="nav-link" href="#matching-for-repeated-treatments"><span class="header-section-number">35.1.13</span> Matching for repeated treatments</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#selection-on-unobservables"><span class="header-section-number">35.2</span> Selection on Unobservables</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sec-rosenbaum-bounds"><span class="header-section-number">35.2.1</span> Rosenbaum Bounds</a></li>
+<li><a class="nav-link" href="#relative-correlation-restrictions"><span class="header-section-number">35.2.2</span> Relative Correlation Restrictions</a></li>
+<li><a class="nav-link" href="#coefficient-stability-bounds"><span class="header-section-number">35.2.3</span> Coefficient-stability Bounds</a></li>
+</ul>
+</li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/mikenguyen13/data_analysis/blob/main/35-matching-methods.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/mikenguyen13/data_analysis/edit/main/35-matching-methods.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+</div>
+  
+
+  
+
+</div>
+ <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-03-03.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 34 Instrumental Variables | A Guide on Data Analysis</title>
+<meta name="author" content="Mike Nguyen">
+<meta name="description" content="Similar to RCT, we try to introduce randomization (random assignment to treatment) to our treatment variable by using only variation in the instrument. Logic of using an instrument: Use only...">
+<meta name="generator" content="bookdown 0.35 with bs4_book()">
+<meta property="og:title" content="Chapter 34 Instrumental Variables | A Guide on Data Analysis">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://bookdown.org/mike/data_analysis/sec-instrumental-variables.html">
+<meta property="og:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<meta property="og:description" content="Similar to RCT, we try to introduce randomization (random assignment to treatment) to our treatment variable by using only variation in the instrument. Logic of using an instrument: Use only...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 34 Instrumental Variables | A Guide on Data Analysis">
+<meta name="twitter:description" content="Similar to RCT, we try to introduce randomization (random assignment to treatment) to our treatment variable by using only variation in the instrument. Logic of using an instrument: Use only...">
+<meta name="twitter:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.6.1/transition.js"></script><script src="libs/bs3compat-0.6.1/tabs.js"></script><script src="libs/bs3compat-0.6.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/kePrint-0.0.1/kePrint.js"></script><link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+<!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script><script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-DMNX2X65HQ');
+    </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">A Guide on Data Analysis</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Preface</a></li>
+<li><a class="" href="introduction.html"><span class="header-section-number">1</span> Introduction</a></li>
+<li><a class="" href="prerequisites.html"><span class="header-section-number">2</span> Prerequisites</a></li>
+<li class="book-part">I. BASIC</li>
+<li><a class="" href="descriptive-statistics.html"><span class="header-section-number">3</span> Descriptive Statistics</a></li>
+<li><a class="" href="basic-statistical-inference.html"><span class="header-section-number">4</span> Basic Statistical Inference</a></li>
+<li class="book-part">II. REGRESSION</li>
+<li><a class="" href="linear-regression.html"><span class="header-section-number">5</span> Linear Regression</a></li>
+<li><a class="" href="non-linear-regression.html"><span class="header-section-number">6</span> Non-Linear Regression</a></li>
+<li><a class="" href="generalized-linear-models.html"><span class="header-section-number">7</span> Generalized Linear Models</a></li>
+<li><a class="" href="sec-linear-mixed-models.html"><span class="header-section-number">8</span> Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonlinear-and-generalized-linear-mixed-models.html"><span class="header-section-number">9</span> Nonlinear and Generalized Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonparametric-regression.html"><span class="header-section-number">10</span> Nonparametric Regression</a></li>
+<li class="book-part">III. RAMIFICATIONS</li>
+<li><a class="" href="data.html"><span class="header-section-number">11</span> Data</a></li>
+<li><a class="" href="variable-transformation.html"><span class="header-section-number">12</span> Variable Transformation</a></li>
+<li><a class="" href="imputation-missing-data.html"><span class="header-section-number">13</span> Imputation (Missing Data)</a></li>
+<li><a class="" href="model-specification-tests.html"><span class="header-section-number">14</span> Model Specification Tests</a></li>
+<li><a class="" href="variable-selection.html"><span class="header-section-number">15</span> Variable Selection</a></li>
+<li><a class="" href="hypothesis-testing.html"><span class="header-section-number">16</span> Hypothesis Testing</a></li>
+<li><a class="" href="sec-marginal-effects.html"><span class="header-section-number">17</span> Marginal Effects</a></li>
+<li><a class="" href="moderation.html"><span class="header-section-number">18</span> Moderation</a></li>
+<li><a class="" href="mediation.html"><span class="header-section-number">19</span> Mediation</a></li>
+<li><a class="" href="prediction-and-estimation.html"><span class="header-section-number">20</span> Prediction and Estimation</a></li>
+<li class="book-part">IV. CAUSAL INFERENCE</li>
+<li><a class="" href="sec-causal-inference.html"><span class="header-section-number">21</span> Causal Inference</a></li>
+<li class="book-part">A. EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-experimental-design.html"><span class="header-section-number">22</span> Experimental Design</a></li>
+<li><a class="" href="sampling.html"><span class="header-section-number">23</span> Sampling</a></li>
+<li><a class="" href="sec-analysis-of-variance-anova.html"><span class="header-section-number">24</span> Analysis of Variance</a></li>
+<li><a class="" href="sec-multivariate-methods.html"><span class="header-section-number">25</span> Multivariate Methods</a></li>
+<li class="book-part">B. QUASI-EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-quasi-experimental.html"><span class="header-section-number">26</span> Quasi-Experimental Methods</a></li>
+<li><a class="" href="sec-regression-discontinuity.html"><span class="header-section-number">27</span> Regression Discontinuity</a></li>
+<li><a class="" href="temporal-discontinuity-designs.html"><span class="header-section-number">28</span> Temporal Discontinuity Designs</a></li>
+<li><a class="" href="sec-synthetic-difference-in-differences.html"><span class="header-section-number">29</span> Synthetic Difference-in-Differences</a></li>
+<li><a class="" href="sec-difference-in-differences.html"><span class="header-section-number">30</span> Difference-in-Differences</a></li>
+<li><a class="" href="changes-in-changes.html"><span class="header-section-number">31</span> Changes-in-Changes</a></li>
+<li><a class="" href="sec-synthetic-control.html"><span class="header-section-number">32</span> Synthetic Control</a></li>
+<li><a class="" href="event-studies.html"><span class="header-section-number">33</span> Event Studies</a></li>
+<li><a class="active" href="sec-instrumental-variables.html"><span class="header-section-number">34</span> Instrumental Variables</a></li>
+<li><a class="" href="sec-matching-methods.html"><span class="header-section-number">35</span> Matching Methods</a></li>
+<li class="book-part">C. OTHER CONCERNS</li>
+<li><a class="" href="endogeneity.html"><span class="header-section-number">36</span> Endogeneity</a></li>
+<li><a class="" href="other-biases.html"><span class="header-section-number">37</span> Other Biases</a></li>
+<li><a class="" href="controls.html"><span class="header-section-number">38</span> Controls</a></li>
+<li><a class="" href="directed-acyclic-graph.html"><span class="header-section-number">39</span> Directed Acyclic Graph</a></li>
+<li class="book-part">V. MISCELLANEOUS</li>
+<li><a class="" href="report.html"><span class="header-section-number">40</span> Report</a></li>
+<li><a class="" href="exploratory-data-analysis.html"><span class="header-section-number">41</span> Exploratory Data Analysis</a></li>
+<li><a class="" href="sensitivity-analysis-robustness-check.html"><span class="header-section-number">42</span> Sensitivity Analysis/ Robustness Check</a></li>
+<li><a class="" href="replication-and-synthetic-data.html"><span class="header-section-number">43</span> Replication and Synthetic Data</a></li>
+<li class="book-part">APPENDIX</li>
+<li><a class="" href="appendix.html"><span class="header-section-number">A</span> Appendix</a></li>
+<li><a class="" href="bookdown-cheat-sheet.html"><span class="header-section-number">B</span> Bookdown cheat sheet</a></li>
+<li><a class="" href="references.html">References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/mikenguyen13/data_analysis">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="sec-instrumental-variables" class="section level1" number="34">
+<h1>
+<span class="header-section-number">34</span> Instrumental Variables<a class="anchor" aria-label="anchor" href="#sec-instrumental-variables"><i class="fas fa-link"></i></a>
+</h1>
+<p>Similar to <a href="sec-experimental-design.html#sec-experimental-design">RCT</a>, we try to introduce randomization (random assignment to treatment) to our treatment variable by using only variation in the instrument.</p>
+<p>Logic of using an instrument:</p>
+<ul>
+<li><p>Use only exogenous variation to see the variation in treatment (try to exclude all endogenous variation in the treatment)</p></li>
+<li><p>Use only exogenous variation to see the variation in outcome (try to exclude all endogenous variation in the outcome)</p></li>
+<li><p>See the relationship between treatment and outcome in terms of residual variations that are exogenous to omitted variables.</p></li>
+</ul>
+<p><strong>Notes</strong>:</p>
+<ul>
+<li><p>Instruments can be used to remove attenuation bias in errors-in-variables.</p></li>
+<li><p>Be careful with the F-test and standard errors when you do 2SLS by hand (you need to correct them).</p></li>
+<li>
+<p>Repeated use of related IVs across different studies can collectively invalidate these instruments, primarily through the violation of the exclusion restriction <span class="citation">(<a href="references.html#ref-gallen2020broken">Gallen 2020</a>)</span>. One needs to test for invalid instruments (Hausman-like test).</p>
+<ul>
+<li>
+<span class="citation">Mellon (<a href="references.html#ref-mellon2023rain">2023</a>)</span> shows the widespread use of weather as an instrument in social sciences (289 studies linking weather to 195 variables) demonstrates significant exclusion violations that can overturn many IV results.</li>
+</ul>
+</li>
+<li>
+<p>For [Zero-valued Outcomes], we can’t directly interpret the treatment coefficient of log-transformed outcome regression as percentage change <span class="citation">(<a href="references.html#ref-chen2023logs">J. Chen and Roth 2023</a>)</span>. We have to distinguish the treatment effect on the intensive (outcome: 10 to 11) vs. extensive margins (outcome: 0 to 1), and we can’t readily interpret the treatment coefficient of log-transformed outcome regression as percentage change. To have percentage change interpretation, we can either do:</p>
+<ul>
+<li>
+<p>Proportional LATE: estimate <span class="math inline">\(\theta_{ATE\%}\)</span> for those who are compliers under the instrument. To estimate proportional LATE,</p>
+<ol style="list-style-type: decimal">
+<li><p>Regress <span class="math inline">\(Y_i = \beta D_i + X_i + \epsilon_i\)</span> using 2SLS with an instrument on <span class="math inline">\(D_i\)</span>, where <span class="math inline">\(\beta\)</span> is interpreted as the LATE in levels of the control group’s mean for compliers.</p></li>
+<li><p>Get estimate of the control complier mean by regressing with same 2SLS regression <span class="citation">(<a href="references.html#ref-abadie2002instrumental">Abadie, Angrist, and Imbens 2002</a>)</span> where the final outcome is <span class="math inline">\(-(D_i - 1)Y_i\)</span> , we refer to the new new estimated effect of <span class="math inline">\(D_i\)</span> as <span class="math inline">\(\beta_{cc}\)</span></p></li>
+<li><p>The <span class="math inline">\(\theta_{ATE \%}\)</span> for compliers that are induced by the instrument is <span class="math inline">\(\hat{\beta}/\hat{\beta}_{cc}\)</span>, where it can be interpreted directly as the percentage change for compliers that are induced by the instrument under treatment as compared to under control.</p></li>
+<li><p>SE can be obtained by non-parametric bootstrap.</p></li>
+<li><p>For specific case that the instrument is binary, <span class="math inline">\(\theta\)</span> of the intensive margin for compliers can be directly obtained by Poisson IV regression (<code>ivpoisson</code> in Stata).</p></li>
+</ol>
+</li>
+<li><p><span class="citation">Lee (<a href="references.html#ref-lee2009training">2009</a>)</span> bounds: we can get bounds for the average treatment effect in logs for compliers who have positive outcome regardless of treatment status (i.e., intensive-margin effect). This requires a monotonicity assumption for compliers where they should still have positive outcome regardless of treatment status.</p></li>
+</ul>
+</li>
+</ul>
+<p><strong>Notes</strong> on First-stage:</p>
+<ul>
+<li>
+<p>Always use the OLS regression in the first stage (regardless of the type of endogenous variables - e.g., continuous or discreet) (suggested by <span class="citation">(<a href="references.html#ref-angrist2009mostly">J. D. Angrist and Pischke 2009</a>)</span>. Estimates of IV can still be consistent regardless of the form of the endogenous variables (discreet vs. continuous).</p>
+<ul>
+<li>Alternatively, we could use “biprobit” model, but this is applicable only in cases where you have both dependent and endogenous variables to be binary.</li>
+</ul>
+</li>
+<li><p>If you still want to continue and use logit or probit models for the first stage when you have binary variables, you have a “<a href="https://www.statalist.org/forums/forum/general-stata-discussion/general/1379449-two-step-iv-method-with-binary-dependent-variable">forbidden regression</a>” (also <a href="https://stats.stackexchange.com/questions/125830/consistency-of-2sls-with-binary-endogenous-variable">1</a>, <a href="https://stats.stackexchange.com/questions/94063/probit-two-stage-least-squares-2sls/94392#94392">2</a>) (i.e., an incorrect extension of 2SLS to a nonlinear case).</p></li>
+</ul>
+<p>There are several ways to understand this problem:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Identification strategy</strong>: The identification strategy in instrumental variables analysis relies on the fact that the instrumental variable affects the outcome variable only through its effect on the endogenous variable. However, when the endogenous variable is binary, the relationship between the instrumental variable and the endogenous variable is not continuous. This means that the instrumental variable can only affect the endogenous variable in discrete jumps, rather than through a continuous change. As a result, the identification of the causal effect of the endogenous variable on the outcome variable may not be possible with probit or logit regression in the first stage.</p></li>
+<li>
+<p><strong>Model assumptions</strong>: Both models assume that the error term has a specific distribution (normal or logistic), and that the probability of the binary outcome is a function of the linear combination of the regressors.</p>
+<p>When the endogenous variable is binary, however, the distribution of the error term is not specified, as there is no continuous relationship between the endogenous variable and the outcome variable. This means that the assumptions of the probit and logit models may not hold, and the resulting estimates may not be reliable or interpretable.</p>
+</li>
+<li><p><strong>Issue of weak instruments</strong>: When the instrument is weak, the variance of the inverse Mills ratio (which is used to correct for endogeneity in instrumental variables analysis) can be very large. In the case of binary endogenous variables, the inverse Mills ratio cannot be consistently estimated using probit or logit regression, and this can lead to biased and inconsistent estimates of the causal effect of the endogenous variable on the outcome variable.</p></li>
+</ol>
+<p>Problems with weak instruments <span class="citation">(<a href="references.html#ref-bound1995problems">Bound, Jaeger, and Baker 1995</a>)</span>:</p>
+<ul>
+<li><p>Weak instrumental variables can produce (finite-sample) <strong>biased</strong> and <strong>inconsistent</strong> estimates of the causal effect of an endogenous variable on an outcome variable (even in the presence of large sample size)</p></li>
+<li><p>In a finite sample, instrumental variables (IV) estimates can be biased in the same direction as ordinary least squares (OLS) estimates. Additionally, the bias of IV estimates approaches that of OLS estimates as the correlation (R2) between the instruments and the endogenous explanatory variable approaches zero. This means that when the correlation between the instruments and the endogenous variable is weak, the bias of the IV estimates can be similar to that of the OLS estimates.</p></li>
+<li><p>Weak instruments are problematic because they do not have enough variation to fully capture the variation in the endogenous variable, leading to measurement error and other sources of noise in the estimates.</p></li>
+<li><p>Using weak instruments can produce large standard errors and low t-ratio. And when the feedback (reverse causality) is strong, the bias in IV is even greater than that of OLS <span class="citation">(<a href="references.html#ref-nelson1988distribution">C. Nelson and Startz 1988</a>)</span>.</p></li>
+<li><p>Using lagged dependent variables as instruments for current values depends on serial correlations, typically low <span class="citation">(<a href="references.html#ref-nelson1988distribution">C. Nelson and Startz 1988</a>)</span>.</p></li>
+<li><p>Using multiple covariates to artificially increase the first-stage <span class="math inline">\(R^2\)</span> does not solve this weak instrument problem <span class="citation">(<a href="references.html#ref-nelson1988distribution">C. Nelson and Startz 1988</a>)</span>.</p></li>
+<li>
+<p>Solutions:</p>
+<ul>
+<li><p>use of multiple instruments</p></li>
+<li><p>use of instrumental variables with higher correlation</p></li>
+<li><p>use of alternative estimation methods such as limited information maximum likelihood (LIML) or two-stage least squares (2SLS) with heteroscedasticity-robust standard errors.</p></li>
+</ul>
+</li>
+</ul>
+<p>Instrument Validity:</p>
+<ol style="list-style-type: decimal">
+<li>Random assignment (<a href="sec-instrumental-variables.html#exogeneity-assumption">Exogeneity Assumption</a>).</li>
+<li>Any effect of the instrument on the outcome must be through the endogenous variable (<a href="sec-instrumental-variables.html#relevance-assumption">Relevance Assumption</a>).</li>
+</ol>
+<div id="framework" class="section level2" number="34.1">
+<h2>
+<span class="header-section-number">34.1</span> Framework<a class="anchor" aria-label="anchor" href="#framework"><i class="fas fa-link"></i></a>
+</h2>
+<ul>
+<li><p><span class="math inline">\(D_i \sim Bern\)</span> Dummy Treatment</p></li>
+<li><p><span class="math inline">\(Y_{0i}, Y_{1i}\)</span> potential outcomes</p></li>
+<li><p><span class="math inline">\(Y_i = Y_{0i} + (Y_{1i} - Y_{0i}) D_i\)</span> observed outcome</p></li>
+<li><p><span class="math inline">\(Z_i \perp Y_{0i}, Y_{1i}\)</span> Instrumental variables (and also correlate with <span class="math inline">\(D_i\)</span>)</p></li>
+</ul>
+<p>Under constant-effects and linear (<span class="math inline">\(Y_{1i} - Y_{0i}\)</span> are the same for everyone)</p>
+<p><span class="math display">\[ \begin{aligned} Y_{0i} &amp;= \alpha + \eta_i \\ Y_{1i} - Y_{0i} &amp;= \rho \\ Y_i &amp;= Y_{0i} + D_i (Y_{1i} - Y_{0i}) \\ &amp;= \alpha + \eta_i  + D_i \rho \\ &amp;= \alpha + \rho D_i + \eta_i \end{aligned} \]</span></p>
+<p>where</p>
+<ul>
+<li><p><span class="math inline">\(\eta_i\)</span> is individual differences</p></li>
+<li><p><span class="math inline">\(\rho\)</span> is the difference between treated outcome and untreated outcome. Here we assume they are constant for everyone</p></li>
+</ul>
+<p>However, we have a problem with OLS because <span class="math inline">\(D_i\)</span> is correlated with <span class="math inline">\(\eta_i\)</span> for each unit</p>
+<p>But <span class="math inline">\(Z_i\)</span> can come to the rescue, the causal estimate can be written as</p>
+<p><span class="math display">\[ \begin{aligned} \rho &amp;= \frac{Cov( Y_i, Z_i)}{Cov(D_i, Z_i)} \\ &amp;= \frac{Cov(Y_i, Z_i) / V(Z_i) }{Cov( D_i, Z_i) / V(Z_i)} = \frac{Reduced form}{First-stage} \\ &amp;= \frac{E[Y_i |Z_i = 1] - E[Y_i | Z_i = 0]}{E[D_i |Z_i = 1] - E[D_i | Z_i = 0 ]} \end{aligned} \]</span></p>
+<p>Under heterogeneous treatment effect (<span class="math inline">\(Y_{1i} - Y_{0i}\)</span> are different for everyone) with LATE framework</p>
+<p><span class="math inline">\(Y_i(d,z)\)</span> denotes the potential outcome for unit <span class="math inline">\(i\)</span> with treatment <span class="math inline">\(D_i = d\)</span> and instrument <span class="math inline">\(Z_i = z\)</span></p>
+<p>Observed treatment status</p>
+<p><span class="math display">\[ D_i = D_{0i} + Z_i (D_{1i} - D_{0i}) \]</span></p>
+<p>where</p>
+<ul>
+<li><p><span class="math inline">\(D_{1i}\)</span> is treatment status of unit <span class="math inline">\(i\)</span> when <span class="math inline">\(z_i = 1\)</span></p></li>
+<li><p><span class="math inline">\(D_{0i}\)</span> is treatment status of unit <span class="math inline">\(i\)</span> when <span class="math inline">\(z_i = 0\)</span></p></li>
+<li><p><span class="math inline">\(D_{1i} - D_{0i}\)</span> is the causal effect of <span class="math inline">\(Z_i\)</span> on <span class="math inline">\(D_i\)</span></p></li>
+</ul>
+<p><strong>Assumptions</strong></p>
+<ul>
+<li>
+<p><u><strong><em>Independence</em></strong></u>: The instrument is randomly assigned (i.e., independent of potential outcomes and potential treatments)</p>
+<ul>
+<li><p><span class="math inline">\([\{Y_i(d,z); \forall d, z \}, D_{1i}, D_{0i} ] \Pi Z_i\)</span></p></li>
+<li><p>This assumption let the first-stage equation be the average causal effect of <span class="math inline">\(Z_i\)</span> on <span class="math inline">\(D_i\)</span></p></li>
+</ul>
+<p><span class="math display">\[ \begin{aligned} E[D_i |Z_i = 1] - E[D_i | Z_i = 0] &amp;= E[D_{1i} |Z_i = 1] - E[D_{0i} |Z_i = 0] \\ &amp;= E[D_{1i} - D_{0i}] \end{aligned} \]</span></p>
+<ul>
+<li>This assumption also is sufficient for a causal interpretation of the reduced form, where we see the effect of the instrument on the outcome.</li>
+</ul>
+</li>
+</ul>
+<p><span class="math display">\[ E[Y_i |Z_i = 1 ] - E[Y_i|Z_i = 0] = E[Y_i (D_{1i}, Z_i = 1) - Y_i (D_{0i} , Z_i = 0)] \]</span></p>
+<ul>
+<li>
+<p><u><strong><em>Exclusion</em></strong></u> (i.e., existence of instruments <span class="citation">(<a href="references.html#ref-imbens1994identification">G. W. Imbens and Angrist 1994</a>)</span></p>
+<ul>
+<li>The treatment <span class="math inline">\(D_i\)</span> fully mediates the effect of <span class="math inline">\(Z_i\)</span> on <span class="math inline">\(Y_i\)</span>
+</li>
+</ul>
+<p><span class="math display">\[ Y_{1i} = Y_i (1,1) = Y_i (1,0) \\  Y_{0i} = Y_i (0,1) = Y_i (0, 0) \]</span></p>
+<ul>
+<li>With this assumption, the observed outcome <span class="math inline">\(Y_i\)</span> can be thought of as (assume <span class="math inline">\(Y_{1i}, Y_{0i}\)</span> already satisfy the independence assumption)</li>
+</ul>
+<p><span class="math display">\[ \begin{aligned} Y_i &amp;= Y_i (0, Z_i) + [Y_i (1 , Z_i) - Y_i (0, Z_i)] D_i \\ &amp;= Y_{0i} + (Y_{1i} - Y_{0i} ) D_i \end{aligned} \]</span></p>
+<ul>
+<li>This assumption let us go from reduced-form causal effects to treatment effects <span class="citation">(<a href="references.html#ref-angrist1995two">J. D. Angrist and Imbens 1995</a>)</span>
+</li>
+</ul>
+</li>
+<li>
+<p><u><strong><em>Monotonicity</em></strong></u>: <span class="math inline">\(D_{1i} &gt; D_{0i} \forall i\)</span></p>
+<ul>
+<li><p>With this assumption, we have <span class="math inline">\(E[D_{1i} - D_{0i} ] = P[D_{1i} &gt; D_{0i}]\)</span></p></li>
+<li><p>This assumption lets us assume that there is a first stage, in which we examine the proportion of the population that <span class="math inline">\(D_i\)</span> is driven by <span class="math inline">\(Z_i\)</span></p></li>
+<li>
+<p>This assumption is used to solve to problem of the shifts between participation status back to non-participation status.</p>
+<ul>
+<li><p>Alternatively, one can solve the same problem by assuming constant (homogeneous) treatment effect <span class="citation">(<a href="references.html#ref-imbens1994identification">G. W. Imbens and Angrist 1994</a>)</span>, but this is rather restrictive.</p></li>
+<li><p>A third solution is the assumption that there exists a value of the instrument, where the probability of participation conditional on that value is 0 <span class="citation">J. Angrist and Imbens (<a href="references.html#ref-angrist1991sources">1991</a>)</span>.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>With these three assumptions, we have the LATE theorem <span class="citation">(<a href="references.html#ref-angrist2009mostly">J. D. Angrist and Pischke 2009, 4.4.1</a>)</span></p>
+<p><span class="math display">\[ \frac{E[Y_i | Z_i = 1] - E[Y_i | Z_i = 0]}{E[D_i |Z_i = 1] - E[D_i |Z_i = 0]} = E[Y_{1i} - Y_{0i} | D_{1i} &gt; D_{0i}] \]</span></p>
+<p>LATE assumptions allow us to go back to the types of subjects we have in <a href="sec-causal-inference.html#sec-causal-inference">Causal Inference</a></p>
+<ul>
+<li>
+<p>Switchers:</p>
+<ul>
+<li>Compliers: <span class="math inline">\(D_{1i} &gt; D_{0i}\)</span>
+</li>
+</ul>
+</li>
+<li>
+<p>Non-switchers:</p>
+<ul>
+<li><p>Always-takers: <span class="math inline">\(D_{1i} = D_{0i} = 1\)</span></p></li>
+<li><p>Never-takers: <span class="math inline">\(D_{1i} = D_{0i} = 0\)</span></p></li>
+</ul>
+</li>
+</ul>
+<p><a href="sec-instrumental-variables.html#sec-instrumental-variables">Instrumental Variables</a> can’t say anything about non-switchers because treatment status <span class="math inline">\(D_i\)</span> has no effects on them (similar to fixed effects models).</p>
+<p>When all groups are the same, we come back to the constant-effects world.</p>
+<p>Treatment effects on the treated is a weighted average of always-takers and compliers.</p>
+<p>In the special case of IV in randomized trials, we have a compliance problem (when compliance is voluntary), where those in the treated will not always take the treatment (i.e., might be selection bias).</p>
+<ul>
+<li><p><strong>Intention-to-treat analysis</strong> is valid, but contaminated by non-compliance</p></li>
+<li><p>IV in this case (<span class="math inline">\(Z_i\)</span> = random assignment to the treatment; <span class="math inline">\(D_i\)</span> = whether the unit actually received/took the treatment) can solve this problem.</p></li>
+<li>
+<p>Under certain assumptions (i.e., SUTVA, random assignment, exclusion restriction, no defiers, and monotinicity), this analysis can give causal interpreation of LATE because it’s the average causal effect for the compliers only.</p>
+<ul>
+<li>Without these assumptions, it’s a ratio of intention-to-treat.</li>
+</ul>
+</li>
+<li><p>Without always-takers in this case, LATE = Treatment effects on the treated</p></li>
+</ul>
+<p>See proof <span class="citation">Bloom (<a href="references.html#ref-bloom1984accounting">1984</a>)</span> and examples <span class="citation">Bloom et al. (<a href="references.html#ref-bloom1997benefits">1997</a>)</span> and <span class="citation">Sherman and Berk (<a href="references.html#ref-sherman1984minneapolis">1984</a>)</span></p>
+<p><span class="math display">\[ \frac{E[Y_i |Z_i = 1] - E[Y_i |Z_i = 0]}{E[D_i |Z_i = 1]} = \frac{\text{Intention-to-treat effect}}{\text{Compliance rate}} \\ = E[Y_{1i} - Y_{0i} |D_i = 1] \]</span></p>
+</div>
+<div id="estimation-2" class="section level2" number="34.2">
+<h2>
+<span class="header-section-number">34.2</span> Estimation<a class="anchor" aria-label="anchor" href="#estimation-2"><i class="fas fa-link"></i></a>
+</h2>
+<div id="sls-estimation" class="section level3" number="34.2.1">
+<h3>
+<span class="header-section-number">34.2.1</span> 2SLS Estimation<a class="anchor" aria-label="anchor" href="#sls-estimation"><i class="fas fa-link"></i></a>
+</h3>
+<p>A special case of <a href="sec-instrumental-variables.html#iv-gmm">IV-GMM</a></p>
+<p>Examples by authors of <code>fixest</code> package</p>
+<div class="sourceCode" id="cb877"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
+<span><span class="va">base</span> <span class="op">=</span> <span class="va">iris</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">base</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"y"</span>, <span class="st">"x1"</span>, <span class="st">"x_endo_1"</span>, <span class="st">"x_inst_1"</span>, <span class="st">"fe"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">base</span><span class="op">$</span><span class="va">x_inst_2</span> <span class="op">=</span> <span class="fl">0.2</span> <span class="op">*</span> <span class="va">base</span><span class="op">$</span><span class="va">y</span> <span class="op">+</span> <span class="fl">0.2</span> <span class="op">*</span> <span class="va">base</span><span class="op">$</span><span class="va">x_endo_1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">150</span>, sd <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="va">base</span><span class="op">$</span><span class="va">x_endo_2</span> <span class="op">=</span> <span class="fl">0.2</span> <span class="op">*</span> <span class="va">base</span><span class="op">$</span><span class="va">y</span> <span class="op">-</span> <span class="fl">0.2</span> <span class="op">*</span> <span class="va">base</span><span class="op">$</span><span class="va">x_inst_1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">150</span>, sd <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># est_iv = feols(y ~ x1 | x_endo_1  ~ x_inst_1 , base)</span></span>
+<span><span class="va">est_iv</span> <span class="op">=</span> <span class="fu"><a href="https://lrberge.github.io/fixest/reference/feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">|</span> <span class="va">x_endo_1</span> <span class="op">+</span> <span class="va">x_endo_2</span> <span class="op">~</span> <span class="va">x_inst_1</span> <span class="op">+</span> <span class="va">x_inst_2</span>, <span class="va">base</span><span class="op">)</span></span>
+<span><span class="va">est_iv</span></span>
+<span><span class="co">#&gt; TSLS estimation - Dep. Var.: y</span></span>
+<span><span class="co">#&gt;                   Endo.    : x_endo_1, x_endo_2</span></span>
+<span><span class="co">#&gt;                   Instr.   : x_inst_1, x_inst_2</span></span>
+<span><span class="co">#&gt; Second stage: Dep. Var.: y</span></span>
+<span><span class="co">#&gt; Observations: 150</span></span>
+<span><span class="co">#&gt; Standard-errors: IID </span></span>
+<span><span class="co">#&gt;              Estimate Std. Error  t value   Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept)  1.831380   0.411435  4.45121 1.6844e-05 ***</span></span>
+<span><span class="co">#&gt; fit_x_endo_1 0.444982   0.022086 20.14744  &lt; 2.2e-16 ***</span></span>
+<span><span class="co">#&gt; fit_x_endo_2 0.639916   0.307376  2.08186 3.9100e-02 *  </span></span>
+<span><span class="co">#&gt; x1           0.565095   0.084715  6.67051 4.9180e-10 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; RMSE: 0.398842   Adj. R2: 0.761653</span></span>
+<span><span class="co">#&gt; F-test (1st stage), x_endo_1: stat = 903.2    , p &lt; 2.2e-16 , on 2 and 146 DoF.</span></span>
+<span><span class="co">#&gt; F-test (1st stage), x_endo_2: stat =   3.25828, p = 0.041268, on 2 and 146 DoF.</span></span>
+<span><span class="co">#&gt;                   Wu-Hausman: stat =   6.79183, p = 0.001518, on 2 and 144 DoF.</span></span></code></pre></div>
+<p>Default statistics</p>
+<ol style="list-style-type: decimal">
+<li>F-test first-stage (weak instrument test)</li>
+<li>Wu-Hausman endogeneity test</li>
+<li>Over-identifying restriction (Sargan) J-test</li>
+</ol>
+<div class="sourceCode" id="cb878"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/fitstat.html">fitstat</a></span><span class="op">(</span></span>
+<span>    <span class="va">est_iv</span>,</span>
+<span>    type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span></span>
+<span>        <span class="st">"n"</span>, <span class="st">"ll"</span>, <span class="st">"aic"</span>, <span class="st">"bic"</span>, <span class="st">"rmse"</span>, <span class="co"># ll means log-likelihood</span></span>
+<span>        </span>
+<span>        <span class="st">"my"</span>, <span class="co"># mean dependent var</span></span>
+<span></span>
+<span>        <span class="st">"g"</span>, <span class="co"># degrees of freedom used to compute the t-test</span></span>
+<span></span>
+<span>        <span class="st">"r2"</span>, <span class="st">"ar2"</span>, <span class="st">"wr2"</span>, <span class="st">"awr2"</span>, <span class="st">"pr2"</span>, <span class="st">"apr2"</span>, <span class="st">"wpr2"</span>, <span class="st">"awpr2"</span>,</span>
+<span></span>
+<span>        <span class="st">"theta"</span>, <span class="co"># over-dispersion parameter in Negative Binomial models</span></span>
+<span></span>
+<span>        <span class="st">"f"</span>, <span class="st">"wf"</span>, <span class="co"># F-tests of nullity of the coefficients</span></span>
+<span></span>
+<span>        <span class="st">"wald"</span>, <span class="co"># Wald test of joint nullity of the coefficients</span></span>
+<span></span>
+<span>        <span class="st">"ivf"</span>,</span>
+<span>        </span>
+<span>        <span class="st">"ivf1"</span>,</span>
+<span></span>
+<span>        <span class="st">"ivf2"</span>,</span>
+<span></span>
+<span>        <span class="st">"ivfall"</span>,</span>
+<span>        </span>
+<span>        <span class="st">"ivwald"</span>, <span class="st">"ivwald1"</span>, <span class="st">"ivwald2"</span>, <span class="st">"ivwaldall"</span>,</span>
+<span></span>
+<span>        <span class="st">"cd"</span></span>
+<span>        </span>
+<span>        <span class="co"># "kpr"</span></span>
+<span>        </span>
+<span>        </span>
+<span>        <span class="op">)</span>,</span>
+<span>    cluster <span class="op">=</span> <span class="st">'fe'</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;                 Observations: 150</span></span>
+<span><span class="co">#&gt;               Log-Likelihood: -75.0</span></span>
+<span><span class="co">#&gt;                          AIC: 157.9</span></span>
+<span><span class="co">#&gt;                          BIC: 170.0</span></span>
+<span><span class="co">#&gt;                         RMSE: 0.398842</span></span>
+<span><span class="co">#&gt;               Dep. Var. mean: 5.84333</span></span>
+<span><span class="co">#&gt;                            G: 3</span></span>
+<span><span class="co">#&gt;                           R2: 0.766452</span></span>
+<span><span class="co">#&gt;                      Adj. R2: 0.761653</span></span>
+<span><span class="co">#&gt;                    Within R2: NA</span></span>
+<span><span class="co">#&gt;                         awr2: NA</span></span>
+<span><span class="co">#&gt;                    Pseudo R2: 0.592684</span></span>
+<span><span class="co">#&gt;               Adj. Pseudo R2: 0.576383</span></span>
+<span><span class="co">#&gt;             Within Pseudo R2: NA</span></span>
+<span><span class="co">#&gt;                        awpr2: NA</span></span>
+<span><span class="co">#&gt;              Over-dispersion: NA</span></span>
+<span><span class="co">#&gt;                       F-test: stat =       1.80769, p = 0.375558, on 3 and 2 DoF.</span></span>
+<span><span class="co">#&gt;           F-test (projected): NA</span></span>
+<span><span class="co">#&gt;         Wald (joint nullity): stat = 539,363.2    , p &lt; 2.2e-16 , on 3 and 146 DoF, VCOV: Clustered (fe).</span></span>
+<span><span class="co">#&gt; F-test (1st stage), x_endo_1: stat =     903.2    , p &lt; 2.2e-16 , on 2 and 146 DoF.</span></span>
+<span><span class="co">#&gt; F-test (1st stage), x_endo_2: stat =       3.25828, p = 0.041268, on 2 and 146 DoF.</span></span>
+<span><span class="co">#&gt;           F-test (2nd stage): stat =     194.2    , p &lt; 2.2e-16 , on 2 and 146 DoF.</span></span>
+<span><span class="co">#&gt;             F-test (IV only): stat =     194.2    , p &lt; 2.2e-16 , on 2 and 146 DoF.</span></span>
+<span><span class="co">#&gt; Wald (1st stage), x_endo_1  : stat =   1,482.6    , p &lt; 2.2e-16 , on 2 and 146 DoF, VCOV: Clustered (fe).</span></span>
+<span><span class="co">#&gt; Wald (1st stage), x_endo_2  : stat =       2.22157, p = 0.112092, on 2 and 146 DoF, VCOV: Clustered (fe).</span></span>
+<span><span class="co">#&gt;             Wald (2nd stage): stat = 539,363.2    , p &lt; 2.2e-16 , on 2 and 146 DoF, VCOV: Clustered (fe).</span></span>
+<span><span class="co">#&gt;               Wald (IV only): stat = 539,363.2    , p &lt; 2.2e-16 , on 2 and 146 DoF, VCOV: Clustered (fe).</span></span>
+<span><span class="co">#&gt;                 Cragg-Donald: 3.11162</span></span></code></pre></div>
+<p>To set default printing</p>
+<div class="sourceCode" id="cb879"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># always add second-stage Wald test</span></span>
+<span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/print.fixest.html">setFixest_print</a></span><span class="op">(</span>fitstat <span class="op">=</span> <span class="op">~</span> <span class="va">.</span> <span class="op">+</span> <span class="va">ivwald2</span><span class="op">)</span></span>
+<span><span class="va">est_iv</span></span></code></pre></div>
+<p>To see results from different stages</p>
+<div class="sourceCode" id="cb880"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># first-stage</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">est_iv</span>, stage <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># second-stage</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">est_iv</span>, stage <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># both stages</span></span>
+<span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/etable.html">etable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">est_iv</span>, stage <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">2</span><span class="op">)</span>, fitstat <span class="op">=</span> <span class="op">~</span> <span class="va">.</span> <span class="op">+</span> <span class="va">ivfall</span> <span class="op">+</span> <span class="va">ivwaldall.p</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/etable.html">etable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">est_iv</span>, stage <span class="op">=</span> <span class="fl">2</span><span class="op">:</span><span class="fl">1</span><span class="op">)</span>, fitstat <span class="op">=</span> <span class="op">~</span> <span class="va">.</span> <span class="op">+</span> <span class="va">ivfall</span> <span class="op">+</span> <span class="va">ivwaldall.p</span><span class="op">)</span></span>
+<span><span class="co"># .p means p-value, not statistic</span></span>
+<span><span class="co"># `all` means IV only</span></span></code></pre></div>
+</div>
+<div id="iv-gmm" class="section level3" number="34.2.2" data-link="IV-GMM">
+<h3>
+<span class="header-section-number">34.2.2</span> IV-GMM<a class="anchor" aria-label="anchor" href="#iv-gmm"><i class="fas fa-link"></i></a>
+</h3>
+<p>This is a more general framework.</p>
+<ul>
+<li>
+<a href="sec-instrumental-variables.html#sls-estimation">2SLS Estimation</a> is a special case of <a href="sec-instrumental-variables.html#iv-gmm">IV-GMM</a> estimator</li>
+</ul>
+<p><span class="math display">\[
+Y = X \beta + u, u \sim (0, \Omega)
+\]</span></p>
+<p>where</p>
+<ul>
+<li>
+<span class="math inline">\(X\)</span> is a matrix of endogenous variables (<span class="math inline">\(N\times k\)</span>)</li>
+</ul>
+<p>We will use a matrix of instruments <span class="math inline">\(X\)</span> where it has <span class="math inline">\(N \times l\)</span> dimensions (where <span class="math inline">\(l \ge k\)</span>)</p>
+<p>Then, we can have a set of <span class="math inline">\(l\)</span> moments:</p>
+<p><span class="math display">\[
+g_i (\beta) = Z_i' u_i = Z_i' (Y_i - X_i \beta)
+\]</span></p>
+<p>where</p>
+<ul>
+<li><span class="math inline">\(i \in (1,N)\)</span></li>
+</ul>
+<p>Each <span class="math inline">\(l\)</span> moment equation is a sample moment, which can be estimated by averaging over <span class="math inline">\(N\)</span></p>
+<p><span class="math display">\[
+\bar{g}(\beta) = \frac{1}{N} \sum_{i = 1}^N Z_i (Y_i - X_i \beta) = \frac{1}{N} Z'u
+\]</span></p>
+<p>GMM then estimate <span class="math inline">\(\beta\)</span> so that <span class="math inline">\(\bar{g}(\hat{\beta}_{GMM}) = 0\)</span></p>
+<p>When <span class="math inline">\(l = k\)</span> there is a unique solution to this system of equations (and equivalent to the IV estimator)</p>
+<p><span class="math display">\[
+\hat{\beta}_{IV} = (Z'X)^{-1}Z'Y
+\]</span></p>
+<p>When <span class="math inline">\(l &gt; k\)</span>, we have a set of <span class="math inline">\(k\)</span> instruments</p>
+<p><span class="math display">\[
+\hat{X} = Z(Z'Z)^{-1} Z' X = P_ZX
+\]</span></p>
+<p>then we can use the 2SLS estimator</p>
+<p><span class="math display">\[
+\begin{aligned}
+\hat{\beta}_{2SLS} &amp;= (\hat{X}'X)^{-1} \hat{X}' Y \\
+&amp;= (X'P_Z X)^{-1}X' P_Z Y
+\end{aligned}
+\]</span></p>
+<p>Differences between 2SLS and IV-GMM:</p>
+<ul>
+<li><p>In the 2SLS method, when there are more instruments available than what is actually needed for the estimation, to address this, a matrix is created that only includes the necessary instruments, which simplifies the calculation.</p></li>
+<li><p>The IV-GMM method uses all the available instruments, but applies a weighting system to prioritize the instruments that are most relevant. This approach is useful when there are more instruments than necessary, which can make the calculation more complex. The IV-GMM method uses a criterion function to weight the estimates and improve their accuracy.</p></li>
+<li><p><strong>In short, always use IV-GMM when you have overid problems</strong></p></li>
+</ul>
+<p>GMM estimator minimizes</p>
+<p><span class="math display">\[
+J (\hat{\beta}_{GMM} ) = N \bar{g}(\hat{\beta}_{GMM})' W \bar{g} (\hat{\beta}_{GMM})
+\]</span></p>
+<p>where <span class="math inline">\(W\)</span> is a symmetric weighting matrix <span class="math inline">\(l \times l\)</span></p>
+<p>For an overid equation, solving the set of FOCs for the IV-GMM estimator, we should have</p>
+<p><span class="math display">\[
+\hat{\beta}_{GMM} = (X'ZWZ' X)^{-1} X'ZWZ'Y
+\]</span></p>
+<p>which is identical for all <span class="math inline">\(W\)</span> matrices. The optimal <span class="math inline">\(W = S^{-1}\)</span> <span class="citation">(<a href="references.html#ref-hansen1982large">L. P. Hansen 1982</a>)</span> where <span class="math inline">\(S\)</span> is the covariance matrix of the moment conditions to produce the most efficient estimator:</p>
+<p><span class="math display">\[
+S = E[Z'uu'Z] = \lim_{N \to \infty} N^{-1}[Z' \Omega Z]
+\]</span></p>
+<p>With a consistent estimator of <span class="math inline">\(S\)</span> from the 2SLS residuals, the feasible IV-GMM estimator can be defined as</p>
+<p><span class="math display">\[
+\hat{\beta}_{FEGMM} = (X'Z \hat{S}^{-1} Z' X)^{-1} X'Z \hat{S}^{-1} Z'Y
+\]</span></p>
+<p>In cases where <span class="math inline">\(\Omega\)</span> (i.e., the vcov of the error process <span class="math inline">\(u\)</span>) satisfy all classical assumptions</p>
+<ol style="list-style-type: decimal">
+<li>IID</li>
+<li><span class="math inline">\(S = \sigma^2_u I_N\)</span></li>
+<li>The optimal weighting matrix is proportional to the identity matrix</li>
+</ol>
+<p>Then, IV-GMM estimator is the standard IV (or 2SLS) estimator.</p>
+<p>For IV-GMM, you also have an additional test of overid restrictions: GMM distance (also known as Hayashi C statistic)</p>
+<p>To account for clustering, one can use code provided by this <a href="https://www.r-bloggers.com/2014/04/iv-estimates-via-gmm-with-clustering-in-r/">blog</a></p>
+</div>
+</div>
+<div id="inference-2" class="section level2" number="34.3">
+<h2>
+<span class="header-section-number">34.3</span> Inference<a class="anchor" aria-label="anchor" href="#inference-2"><i class="fas fa-link"></i></a>
+</h2>
+<p>Under just-identified instrument variable model, we have</p>
+<p><span class="math display">\[
+Y = \beta X + u
+\]</span></p>
+<p>where <span class="math inline">\(corr(u, Z) = 0\)</span> (relevant assumption) and <span class="math inline">\(corr(Z,X) \neq 0\)</span> (exogenous assumption)</p>
+<p>The t-ratio approach to construct the 95 CIs is</p>
+<p><span class="math display">\[
+\hat{\beta} \pm 1.96 \sqrt{\hat{V}_N(\hat{\beta})}
+\]</span></p>
+<p>But this is wrong, and has been long recognized by those who understand the “weak instruments” problem <span class="citation">Dufour (<a href="references.html#ref-dufour1997some">1997</a>)</span></p>
+<p>To test the null hypothesis of <span class="math inline">\(\beta = \beta_0\)</span> <span class="citation">(<a href="references.html#ref-lee2022valid">Lee et al. 2022</a>)</span> <span class="math display">\[ \frac{(\hat{\beta} - \beta_0)^2}{\hat{V}_N(\hat{\beta})} = \hat{t}^2 = \hat{t}^2_{AR} \times \frac{1}{1 - \hat{\rho} \frac{\hat{t}_{AR}}{\hat{f}} + \frac{\hat{t}^2_{AR}}{\hat{f}^2}} \]</span> where <span class="math inline">\(\hat{t}_{AR}^2 \sim \chi^2(1)\)</span> (even with weak instruments) <span class="citation">(<a href="references.html#ref-anderson1949estimation">T. W. Anderson and Rubin 1949</a>)</span></p>
+<p><span class="math display">\[
+\hat{t}_{AR} = \frac{\hat{\pi}(\hat{\beta} - \beta_0)}{\sqrt{\hat{V}_N (\hat{\pi} (\hat{\beta} - \beta_0))}} \sim N(0,1)
+\]</span></p>
+<p>where</p>
+<ul>
+<li><p><span class="math inline">\(\hat{f} = \frac{\hat{\pi}}{\sqrt{\hat{V}_N(\hat{\pi})}}\sim N\)</span></p></li>
+<li><p><span class="math inline">\(\hat{\pi}\)</span> = 1st-stage coefficient</p></li>
+<li><p><span class="math inline">\(\hat{\rho} = COV(Zv, Zu)\)</span> = correlation between the 1st-stage residual and an estimate of <span class="math inline">\(u\)</span></p></li>
+</ul>
+<p>Even in large samples, <span class="math inline">\(\hat{t}^2 \neq \hat{t}^2_{AR}\)</span> because the right-hand term does not have a degenerate distribution. Thus, the normal t critical values wouldn’t work.</p>
+<p>The t-ratios does not match that of standard normal, but it matches the proposed density by <span class="citation">Staiger and Stock (<a href="references.html#ref-staiger1997instrumental">1997</a>)</span> and <span class="citation">J. H. Stock and Yogo (<a href="references.html#ref-stock2005testing">2005</a>)</span> .</p>
+<p>The deviation between <span class="math inline">\(\hat{t}^2 , \hat{t}^2_{AR}\)</span> depends on</p>
+<ol style="list-style-type: decimal">
+<li>
+<span class="math inline">\(\pi\)</span> (i.e., correlation between the instrument and the endogenous variable)</li>
+<li>
+<span class="math inline">\(E(F)\)</span> (i.e., strength of the first-stage)</li>
+<li>Magnitude of <span class="math inline">\(|\rho|\)</span> (i.e., degree of endogeneity)</li>
+</ol>
+<p>Hence, we can think of several scenarios:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Worst case</strong>: Very weak first stage (<span class="math inline">\(\pi = 0\)</span>) and high degree of endogeneity (<span class="math inline">\(|\rho |= 1\)</span>).</li>
+</ol>
+<ul>
+<li><p>The interval <span class="math inline">\(\hat{\beta} \pm 1.96 \times SE\)</span> does not contain the true parameter <span class="math inline">\(\beta\)</span>.</p></li>
+<li><p>A 5 percent significance test under these conditions will incorrectly reject the null hypothesis (<span class="math inline">\(\beta = \beta_0\)</span>) 100% of the time.</p></li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>
+<strong>Best case</strong>: No endogeneity (<span class="math inline">\(\rho =0\)</span>) or very large <span class="math inline">\(\hat{f}\)</span> (very strong first-stage)</li>
+</ol>
+<ul>
+<li>The interval <span class="math inline">\(\hat{\beta} \pm 1.96 \times SD\)</span> accurately contains <span class="math inline">\(\beta\)</span> at least 95% of the time.</li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li>
+<strong>Intermediate case</strong>: The performance of the interval lies between the two extremes.</li>
+</ol>
+<p><strong>Solutions</strong>: To have valid inference of <span class="math inline">\(\hat{\beta} \pm 1.96 \times SE\)</span> using t-ratio (<span class="math inline">\(\hat{t}^2 \approx \hat{t}^2_{AR}\)</span>), we can either</p>
+<ol style="list-style-type: decimal">
+<li>Assume our problem away
+<ol style="list-style-type: decimal">
+<li>Assume <span class="math inline">\(E(F) &gt; 142.6\)</span> <span class="citation">(<a href="references.html#ref-lee2022valid">Lee et al. 2022</a>)</span> (Not much of an assumption since we can observe first-stage F-stat empirically).</li>
+<li>Assume <span class="math inline">\(|\rho| &lt; 0.565\)</span> <span class="citation">Lee et al. (<a href="references.html#ref-lee2022valid">2022</a>)</span>, but this defeats our motivation to use IV in the first place because we think there is a strong endogeneity bias, that’s why we are trying to correct for it (circular argument).</li>
+</ol>
+</li>
+<li>Deal with it head on
+<ol style="list-style-type: decimal">
+<li>
+<a href="sec-instrumental-variables.html#ar-approach">AR approach</a> <span class="citation">(<a href="references.html#ref-anderson1949estimation">T. W. Anderson and Rubin 1949</a>)</span>
+</li>
+<li>
+<a href="sec-instrumental-variables.html#tf-procedure">tF Procedure</a> <span class="citation">(<a href="references.html#ref-lee2022valid">Lee et al. 2022</a>)</span>
+</li>
+<li>
+<a href="sec-instrumental-variables.html#ak-approach">AK approach</a> <span class="citation">(<a href="references.html#ref-angrist2023one">J. Angrist and Kolesár 2023</a>)</span>
+</li>
+</ol>
+</li>
+</ol>
+<p><strong>Common Practices &amp; Challenges</strong>:</p>
+<ul>
+<li>
+<p>The t-ratio test is preferred by many researchers but has its pitfalls:</p>
+<ul>
+<li>Known to over-reject (equivalently, under-cover confidence intervals), especially with weak instruments <span class="citation">Dufour (<a href="references.html#ref-dufour1997some">1997</a>)</span>.</li>
+</ul>
+</li>
+<li>
+<p>To address this:</p>
+<ul>
+<li><p>The first-stage F-statistic is used as an indicator of weak instruments.</p></li>
+<li><p><span class="citation">J. H. Stock and Yogo (<a href="references.html#ref-stock2005testing">2005</a>)</span> provided a framework to understand and correct these <strong>distortions</strong>.</p></li>
+</ul>
+</li>
+</ul>
+<p><strong>Misinterpretations</strong>:</p>
+<ul>
+<li>
+<p>Common errors in application:</p>
+<ul>
+<li><p>Using a rule-of-thumb F-stat threshold of 10 instead of referring to <span class="citation">J. H. Stock and Yogo (<a href="references.html#ref-stock2005testing">2005</a>)</span>.</p></li>
+<li><p>Mislabeling intervals such as <span class="math inline">\(\hat{\beta} \pm 1.96 \times \hat{se}(\hat{\beta})\)</span> as 95% confidence intervals (when passed the <span class="math inline">\(F&gt;10\)</span> rule of thumb). <span class="citation">Staiger and Stock (<a href="references.html#ref-staiger1997instrumental">1997</a>)</span> clarified that such intervals actually represent 85% confidence when using <span class="math inline">\(F &gt; 16.38\)</span> from <span class="citation">J. H. Stock and Yogo (<a href="references.html#ref-stock2005testing">2005</a>)</span></p></li>
+</ul>
+</li>
+<li><p>Pretesting for weak instruments might exacerbate over-rejection of the t-ratio test mentioned above <span class="citation">(<a href="references.html#ref-hall1996judging">A. R. Hall, Rudebusch, and Wilcox 1996</a>)</span>.</p></li>
+<li><p>Selective model specification (i.e., dropping certain specification) based on F-statistics also leads to significant <strong>distortions</strong> <span class="citation">(<a href="references.html#ref-andrews2019weak">I. Andrews, Stock, and Sun 2019</a>)</span>.</p></li>
+</ul>
+<div id="ar-approach" class="section level3" number="34.3.1">
+<h3>
+<span class="header-section-number">34.3.1</span> AR approach<a class="anchor" aria-label="anchor" href="#ar-approach"><i class="fas fa-link"></i></a>
+</h3>
+<p><strong>Validity of Anderson-Rubin Test</strong> (notated as AR) <span class="citation">(<a href="references.html#ref-anderson1949estimation">T. W. Anderson and Rubin 1949</a>)</span>:</p>
+<ul>
+<li><p>Gives accurate results even under non-normal and homoskedastic errors <span class="citation">(<a href="references.html#ref-staiger1997instrumental">Staiger and Stock 1997</a>)</span>.</p></li>
+<li><p>Maintains validity across diverse error structures <span class="citation">(<a href="references.html#ref-stock2000gmm">J. H. Stock and Wright 2000</a>)</span>.</p></li>
+<li>
+<p>Minimizes type II error among several alternative tests, in cases of:</p>
+<ul>
+<li><p>Homoskedastic errors <span class="citation">M. J. Moreira (<a href="references.html#ref-moreira2009tests">2009</a>)</span>.</p></li>
+<li><p>Generalized for heteroskedastic, clustered, and autocorrelated errors <span class="citation">(<a href="references.html#ref-moreira2019optimal">H. Moreira and Moreira 2019</a>)</span>.</p></li>
+</ul>
+</li>
+</ul>
+<div class="sourceCode" id="cb881"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yiqingxu.org/packages/ivDiag/">ivDiag</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># AR test (robust to weak instruments)</span></span>
+<span><span class="co"># example by the package's authors</span></span>
+<span><span class="fu">ivDiag</span><span class="fu">::</span><span class="fu"><a href="https://yiqingxu.org/packages/ivDiag/reference/AR_test.html">AR_test</a></span><span class="op">(</span></span>
+<span>    data <span class="op">=</span> <span class="va">rueda</span>,</span>
+<span>    Y <span class="op">=</span> <span class="st">"e_vote_buying"</span>,</span>
+<span>    <span class="co"># treatment</span></span>
+<span>    D <span class="op">=</span> <span class="st">"lm_pob_mesa"</span>,</span>
+<span>    <span class="co"># instruments</span></span>
+<span>    Z <span class="op">=</span> <span class="st">"lz_pob_mesa_f"</span>,</span>
+<span>    controls <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"lpopulation"</span>, <span class="st">"lpotencial"</span><span class="op">)</span>,</span>
+<span>    cl <span class="op">=</span> <span class="st">"muni_code"</span>,</span>
+<span>    CI <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; $Fstat</span></span>
+<span><span class="co">#&gt;         F       df1       df2         p </span></span>
+<span><span class="co">#&gt;   50.5097    1.0000 4350.0000    0.0000</span></span>
+<span></span>
+<span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu">ivDiag</span><span class="fu">::</span><span class="fu"><a href="https://yiqingxu.org/packages/ivDiag/reference/ivDiag.html">ivDiag</a></span><span class="op">(</span></span>
+<span>    data <span class="op">=</span> <span class="va">rueda</span>,</span>
+<span>    Y <span class="op">=</span> <span class="st">"e_vote_buying"</span>,</span>
+<span>    D <span class="op">=</span> <span class="st">"lm_pob_mesa"</span>,</span>
+<span>    Z <span class="op">=</span> <span class="st">"lz_pob_mesa_f"</span>,</span>
+<span>    controls <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"lpopulation"</span>, <span class="st">"lpotencial"</span><span class="op">)</span>,</span>
+<span>    cl <span class="op">=</span> <span class="st">"muni_code"</span>,</span>
+<span>    cores <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>    bootstrap <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">g</span><span class="op">$</span><span class="va">AR</span></span>
+<span><span class="co">#&gt; $Fstat</span></span>
+<span><span class="co">#&gt;         F       df1       df2         p </span></span>
+<span><span class="co">#&gt;   50.5097    1.0000 4350.0000    0.0000 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $ci.print</span></span>
+<span><span class="co">#&gt; [1] "[-1.2545, -0.7156]"</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $ci</span></span>
+<span><span class="co">#&gt; [1] -1.2545169 -0.7155854</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $bounded</span></span>
+<span><span class="co">#&gt; [1] TRUE</span></span>
+<span><span class="fu">ivDiag</span><span class="fu">::</span><span class="fu"><a href="https://yiqingxu.org/packages/ivDiag/reference/plot_coef.html">plot_coef</a></span><span class="op">(</span><span class="va">g</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="34-instrumental_var_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;"></div>
+</div>
+<div id="tf-procedure" class="section level3" number="34.3.2">
+<h3>
+<span class="header-section-number">34.3.2</span> tF Procedure<a class="anchor" aria-label="anchor" href="#tf-procedure"><i class="fas fa-link"></i></a>
+</h3>
+<p><span class="citation">Lee et al. (<a href="references.html#ref-lee2022valid">2022</a>)</span> propose a new method that is aligned better with traditional econometric training than AR, where it is called the tF procedure. It incorporates both the 1st-stage F-stat and the 2SLS <span class="math inline">\(t\)</span>-value. This method is applicable to single instrumental variable (i.e., just-identified model), including</p>
+<ul>
+<li><p>Randomized trials with imperfect compliance <span class="citation">(<a href="references.html#ref-imbens1994identification">G. W. Imbens and Angrist 1994</a>)</span>.</p></li>
+<li><p>Fuzzy <a href="sec-regression-discontinuity.html#sec-regression-discontinuity">Regression Discontinuity</a> designs <span class="citation">(<a href="references.html#ref-lee2010regression">Lee and Lemieux 2010</a>)</span>.</p></li>
+<li><p>Fuzzy regression kink designs <span class="citation">(<a href="references.html#ref-card2015inference">Card et al. 2015</a>)</span>.</p></li>
+</ul>
+<p>See <span class="citation">I. Andrews, Stock, and Sun (<a href="references.html#ref-andrews2019weak">2019</a>)</span> for a comparison between <a href="sec-instrumental-variables.html#ar-approach">AR approach</a> and <a href="sec-instrumental-variables.html#tf-procedure">tF Procedure</a>.</p>
+<p><strong>tF Procedure</strong>:</p>
+<ul>
+<li><p>Adjusts the t-ratio based on the first-stage F-statistic.</p></li>
+<li><p>Rather than a fixed pretesting threshold, it applies an adjustment factor to 2SLS standard errors.</p></li>
+<li><p>Adjustment factors are provided for 95% and 99% confidence levels.</p></li>
+</ul>
+<p><strong>Advantages of the tF Procedure</strong>:</p>
+<ol style="list-style-type: decimal">
+<li>
+<p><strong>Smooth Adjustment</strong>:</p>
+<ul>
+<li><p>Gives usable finite confidence intervals for smaller F statistic values.</p></li>
+<li><p>95% confidence is applicable for <span class="math inline">\(F &gt; 3.84\)</span>, aligning with AR’s bounded 95% confidence intervals.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Clear Confidence Levels</strong>:</p>
+<ul>
+<li><p>These levels incorporate effects of basing inference on the first-stage F.</p></li>
+<li><p>Mirrors AR or other zero distortion procedures.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Robustness</strong>:</p>
+<ul>
+<li><p>Robust against common error structures (e.g., heteroskedasticity or clustering and/or autocorrelated errors).</p></li>
+<li><p>No further adjustments are necessary as long as robust variance estimators are consistently used (same robust variance estimator used for the 1st-stage as for the IV estimate).</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Comparison to AR</strong>:</p>
+<ul>
+<li>Surprisingly, with <span class="math inline">\(F &gt; 3.84\)</span>, AR’s expected interval length is infinite, while tF’s is finite (i.e., better).</li>
+</ul>
+</li>
+<li>
+<p><strong>Applicability</strong>:</p>
+<ul>
+<li><p>The tF adjustment can re-evaluate published studies if the first-stage F-statistic is available.</p></li>
+<li><p>Original data access is not needed.</p></li>
+</ul>
+</li>
+</ol>
+<p><strong>Impacts in Applied Research</strong>:</p>
+<ul>
+<li><p><span class="citation">Lee et al. (<a href="references.html#ref-lee2022valid">2022</a>)</span> examined recent single-instrument specification studies from the American Economic Review (AER).</p></li>
+<li>
+<p>Observations:</p>
+<ul>
+<li>
+<p>For at least 25% of the studied specifications, using tF increased confidence interval lengths by:</p>
+<ul>
+<li><p>49% (5% significance level).</p></li>
+<li><p>136% (1% significance level).</p></li>
+</ul>
+</li>
+<li><p>For specifications with <span class="math inline">\(F &gt; 10\)</span> and <span class="math inline">\(t &gt; 1.96\)</span>, about 25% became statistically insignificant at the 5% level when adjusted using tF.</p></li>
+<li><p>Conclusion: tF adjustments could greatly influence inferences in research employing t-ratio inferences.</p></li>
+</ul>
+</li>
+</ul>
+<p>Notation</p>
+<ul>
+<li><span class="math inline">\(Y = X \beta + W \gamma + u\)</span></li>
+<li><span class="math inline">\(X = Z \pi + W \xi + \nu\)</span></li>
+</ul>
+<p>where</p>
+<ul>
+<li>
+<span class="math inline">\(W\)</span>: Additional covariates, possibly including an intercept term.</li>
+<li>
+<span class="math inline">\(X\)</span>: variable of interest</li>
+<li>
+<span class="math inline">\(Z\)</span>: instruments</li>
+</ul>
+<p>Key Statistics:</p>
+<ul>
+<li><p><span class="math inline">\(t\)</span>-ratio for the instrumental variable estimator: <span class="math inline">\(\hat{t} = \frac{\hat{\beta} - \beta_0}{\sqrt{\hat{V}_N (\hat{\beta})}}\)</span></p></li>
+<li><p><span class="math inline">\(t\)</span>-ratio for the first-stage coefficient: <span class="math inline">\(\hat{f} = \frac{\hat{\pi}}{\sqrt{\hat{V}_N (\hat{\pi})}}\)</span></p></li>
+<li><p><span class="math inline">\(\hat{F} = \hat{f}^2\)</span></p></li>
+</ul>
+<p>where</p>
+<ul>
+<li>
+<span class="math inline">\(\hat{\beta}\)</span>: Instrumental variable estimator.</li>
+<li>
+<span class="math inline">\(\hat{V}_N (\hat{\beta})\)</span>: Estimated variance of <span class="math inline">\(\hat{\beta}\)</span>, possibly robust to deal with non-iid errors.</li>
+<li>
+<span class="math inline">\(\hat{t}\)</span>: <span class="math inline">\(t\)</span>-ratio under the null hypothesis.</li>
+<li>
+<span class="math inline">\(\hat{f}\)</span>: <span class="math inline">\(t\)</span>-ratio under the null hypothesis of <span class="math inline">\(\pi=0\)</span>.</li>
+</ul>
+<p>Traditional <span class="math inline">\(t\)</span> Inference:</p>
+<ul>
+<li>In large samples, <span class="math inline">\(\hat{t}^2 \to^d t^2\)</span>
+</li>
+<li>Standard normal critical values are <span class="math inline">\(\pm 1.96\)</span> for 5% significance level testing.</li>
+</ul>
+<p>Distortions in Inference in the case of IV:</p>
+<ul>
+<li>Use of a standard normal can lead to distorted inferences even in large samples.
+<ul>
+<li>Despite large samples, t-distribution might not be normal.</li>
+</ul>
+</li>
+<li>But magnitude of this distortion can be quantified.
+<ul>
+<li>
+<span class="citation">J. H. Stock and Yogo (<a href="references.html#ref-stock2005testing">2005</a>)</span> provides a formula for Wald test statistics using 2SLS.</li>
+<li>
+<span class="math inline">\(t^2\)</span> formula allows for quantification of inference distortions.</li>
+<li>In the just-identified case with one endogenous regressor <span class="math inline">\(t^2 = f + t_{AR} + \rho f t_{AR}\)</span> <span class="citation">(<a href="references.html#ref-stock2005testing">J. H. Stock and Yogo 2005</a>)</span>
+<ul>
+<li>
+<span class="math inline">\(\hat{f} \to^d f\)</span> and <span class="math inline">\(\bar{f} = \frac{\pi}{\sqrt{\frac{1}{N} AV(\hat{\pi})}}\)</span> and <span class="math inline">\(AV(\hat{\pi})\)</span> is the asymptotic variance of <span class="math inline">\(\hat{\pi}\)</span>
+</li>
+<li>
+<span class="math inline">\(t_{AR}\)</span> is a standard normal with <span class="math inline">\(AR = t^2_{AR}\)</span>
+</li>
+<li>
+<span class="math inline">\(\rho\)</span> (degree of endogeneity) is the correlation of <span class="math inline">\(Zu\)</span> and <span class="math inline">\(Z \nu\)</span> (when data are homoskedastic, <span class="math inline">\(\rho\)</span> is the correlation between <span class="math inline">\(u\)</span> and <span class="math inline">\(\nu\)</span>)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>Implications of <span class="math inline">\(t^2\)</span> formula:</p>
+<ul>
+<li>Varies rejection rates depending on <span class="math inline">\(\rho\)</span> value.
+<ul>
+<li>
+<span class="math inline">\(\rho \in (0,0.5]\)</span> (low) the t-ratio rejects at a probability below the nominal <span class="math inline">\(0.05\)</span> rate</li>
+<li>
+<span class="math inline">\(\rho = 0.8\)</span> (high) the rejection rate can be <span class="math inline">\(0.13\)</span>
+</li>
+</ul>
+</li>
+<li>In short, incorrect test size when relying solely on <span class="math inline">\(t^2\)</span> (based on traditional econometric understanding)</li>
+</ul>
+<p>To correct for this, one can</p>
+<ol style="list-style-type: decimal">
+<li>Estimate the usually 2SLS standard errors</li>
+<li>Multiply the SE by the adjustment factor based on the observed first-stage <span class="math inline">\(\hat{F}\)</span> stat</li>
+<li>One can go back to the traditional hypothesis by using either the t-ratio of confidence intervals</li>
+</ol>
+<p><span class="citation">Lee et al. (<a href="references.html#ref-lee2022valid">2022</a>)</span> call this adjusted SE as “0.05 tF SE”.</p>
+<div class="sourceCode" id="cb882"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yiqingxu.org/packages/ivDiag/">ivDiag</a></span><span class="op">)</span></span>
+<span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu">ivDiag</span><span class="fu">::</span><span class="fu"><a href="https://yiqingxu.org/packages/ivDiag/reference/ivDiag.html">ivDiag</a></span><span class="op">(</span></span>
+<span>    data <span class="op">=</span> <span class="va">rueda</span>,</span>
+<span>    Y <span class="op">=</span> <span class="st">"e_vote_buying"</span>,</span>
+<span>    D <span class="op">=</span> <span class="st">"lm_pob_mesa"</span>,</span>
+<span>    Z <span class="op">=</span> <span class="st">"lz_pob_mesa_f"</span>,</span>
+<span>    controls <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"lpopulation"</span>, <span class="st">"lpotencial"</span><span class="op">)</span>,</span>
+<span>    cl <span class="op">=</span> <span class="st">"muni_code"</span>,</span>
+<span>    cores <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>    bootstrap <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">g</span><span class="op">$</span><span class="va">tF</span></span>
+<span><span class="co">#&gt;         F        cF      Coef        SE         t    CI2.5%   CI97.5%   p-value </span></span>
+<span><span class="co">#&gt; 8598.3264    1.9600   -0.9835    0.1540   -6.3872   -1.2853   -0.6817    0.0000</span></span></code></pre></div>
+<div class="sourceCode" id="cb883"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># example in fixest package</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
+<span><span class="va">base</span> <span class="op">=</span> <span class="va">iris</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">base</span><span class="op">)</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"y"</span>, <span class="st">"x1"</span>, <span class="st">"x_endo_1"</span>, <span class="st">"x_inst_1"</span>, <span class="st">"fe"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">base</span><span class="op">$</span><span class="va">x_inst_2</span> <span class="op">=</span> <span class="fl">0.2</span> <span class="op">*</span> <span class="va">base</span><span class="op">$</span><span class="va">y</span> <span class="op">+</span> <span class="fl">0.2</span> <span class="op">*</span> <span class="va">base</span><span class="op">$</span><span class="va">x_endo_1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">150</span>, sd <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="va">base</span><span class="op">$</span><span class="va">x_endo_2</span> <span class="op">=</span> <span class="fl">0.2</span> <span class="op">*</span> <span class="va">base</span><span class="op">$</span><span class="va">y</span> <span class="op">-</span> <span class="fl">0.2</span> <span class="op">*</span> <span class="va">base</span><span class="op">$</span><span class="va">x_inst_1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">150</span>, sd <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">est_iv</span> <span class="op">=</span> <span class="fu"><a href="https://lrberge.github.io/fixest/reference/feols.html">feols</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">|</span> <span class="va">x_endo_1</span> <span class="op">+</span> <span class="va">x_endo_2</span> <span class="op">~</span> <span class="va">x_inst_1</span> <span class="op">+</span> <span class="va">x_inst_2</span>, <span class="va">base</span><span class="op">)</span></span>
+<span><span class="va">est_iv</span></span>
+<span><span class="co">#&gt; TSLS estimation - Dep. Var.: y</span></span>
+<span><span class="co">#&gt;                   Endo.    : x_endo_1, x_endo_2</span></span>
+<span><span class="co">#&gt;                   Instr.   : x_inst_1, x_inst_2</span></span>
+<span><span class="co">#&gt; Second stage: Dep. Var.: y</span></span>
+<span><span class="co">#&gt; Observations: 150</span></span>
+<span><span class="co">#&gt; Standard-errors: IID </span></span>
+<span><span class="co">#&gt;              Estimate Std. Error  t value   Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept)  1.831380   0.411435  4.45121 1.6844e-05 ***</span></span>
+<span><span class="co">#&gt; fit_x_endo_1 0.444982   0.022086 20.14744  &lt; 2.2e-16 ***</span></span>
+<span><span class="co">#&gt; fit_x_endo_2 0.639916   0.307376  2.08186 3.9100e-02 *  </span></span>
+<span><span class="co">#&gt; x1           0.565095   0.084715  6.67051 4.9180e-10 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; RMSE: 0.398842   Adj. R2: 0.761653</span></span>
+<span><span class="co">#&gt; F-test (1st stage), x_endo_1: stat = 903.2    , p &lt; 2.2e-16 , on 2 and 146 DoF.</span></span>
+<span><span class="co">#&gt; F-test (1st stage), x_endo_2: stat =   3.25828, p = 0.041268, on 2 and 146 DoF.</span></span>
+<span><span class="co">#&gt;                   Wu-Hausman: stat =   6.79183, p = 0.001518, on 2 and 144 DoF.</span></span>
+<span></span>
+<span><span class="va">res_est_iv</span> <span class="op">&lt;-</span> <span class="va">est_iv</span><span class="op">$</span><span class="va">coeftable</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu"><a href="https://tibble.tidyverse.org/reference/rownames.html">rownames_to_column</a></span><span class="op">(</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="va">coef_of_interest</span> <span class="op">&lt;-</span></span>
+<span>    <span class="va">res_est_iv</span><span class="op">[</span><span class="va">res_est_iv</span><span class="op">$</span><span class="va">rowname</span> <span class="op">==</span> <span class="st">"fit_x_endo_1"</span>, <span class="st">"Estimate"</span><span class="op">]</span></span>
+<span><span class="va">se_of_interest</span> <span class="op">&lt;-</span></span>
+<span>    <span class="va">res_est_iv</span><span class="op">[</span><span class="va">res_est_iv</span><span class="op">$</span><span class="va">rowname</span> <span class="op">==</span> <span class="st">"fit_x_endo_1"</span>, <span class="st">"Std. Error"</span><span class="op">]</span></span>
+<span><span class="va">fstat_1st</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lrberge.github.io/fixest/reference/fitstat.html">fitstat</a></span><span class="op">(</span><span class="va">est_iv</span>, type <span class="op">=</span> <span class="st">"ivf1"</span><span class="op">)</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">stat</span></span>
+<span></span>
+<span><span class="co"># To get the correct SE based on 1st-stage F-stat (This result is similar without adjustment since F is large)</span></span>
+<span><span class="co"># the results are the new CIS and p.value</span></span>
+<span><span class="fu"><a href="https://yiqingxu.org/packages/ivDiag/reference/tF.html">tF</a></span><span class="op">(</span>coef <span class="op">=</span> <span class="va">coef_of_interest</span>, se <span class="op">=</span> <span class="va">se_of_interest</span>, Fstat <span class="op">=</span> <span class="va">fstat_1st</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/nice_tab.html">nice_tab</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
+<span><span class="co">#&gt;          F   cF    Coef      SE        t  CI2.5. CI97.5. p.value</span></span>
+<span><span class="co">#&gt; 1 903.1628 1.96 0.44498 0.02209 20.14744 0.40169 0.48827       0</span></span>
+<span></span>
+<span><span class="co"># We can try to see a different 1st-stage F-stat and how it changes the results</span></span>
+<span><span class="fu"><a href="https://yiqingxu.org/packages/ivDiag/reference/tF.html">tF</a></span><span class="op">(</span>coef <span class="op">=</span> <span class="va">coef_of_interest</span>, se <span class="op">=</span> <span class="va">se_of_interest</span>, Fstat <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>    <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/nice_tab.html">nice_tab</a></span><span class="op">(</span><span class="fl">5</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   F    cF    Coef      SE        t  CI2.5. CI97.5. p.value</span></span>
+<span><span class="co">#&gt; 1 2 18.66 0.44498 0.02209 20.14744 0.03285 0.85711 0.03432</span></span></code></pre></div>
+</div>
+<div id="ak-approach" class="section level3" number="34.3.3">
+<h3>
+<span class="header-section-number">34.3.3</span> AK approach<a class="anchor" aria-label="anchor" href="#ak-approach"><i class="fas fa-link"></i></a>
+</h3>
+<p><span class="citation">(<a href="references.html#ref-angrist2023one">J. Angrist and Kolesár 2023</a>)</span></p>
+</div>
+</div>
+<div id="testing-assumptions" class="section level2" number="34.4">
+<h2>
+<span class="header-section-number">34.4</span> Testing Assumptions<a class="anchor" aria-label="anchor" href="#testing-assumptions"><i class="fas fa-link"></i></a>
+</h2>
+<p><span class="math display">\[
+Y = \beta_1 X_1 + \beta_2 X_2 + \epsilon
+\]</span></p>
+<p>where</p>
+<ul>
+<li><p><span class="math inline">\(X_1\)</span> are exogenous variables</p></li>
+<li><p><span class="math inline">\(X_2\)</span> are endogenous variables</p></li>
+<li><p><span class="math inline">\(Z\)</span> are instrumental variables</p></li>
+</ul>
+<p>If <span class="math inline">\(Z\)</span> satisfies the relevance condition, it means <span class="math inline">\(Cov(Z, X_2) \neq 0\)</span></p>
+<p>This is important because we need this to be able to estimate <span class="math inline">\(\beta_2\)</span> where</p>
+<p><span class="math display">\[
+\beta_2 = \frac{Cov(Z,Y)}{Cov(Z, X_2)}
+\]</span></p>
+<p>If <span class="math inline">\(Z\)</span> satisfies the exogeneity condition, <span class="math inline">\(E[Z\epsilon]=0\)</span>, this can achieve by</p>
+<ul>
+<li><p><span class="math inline">\(Z\)</span> having no direct effect on <span class="math inline">\(Y\)</span> except through <span class="math inline">\(X_2\)</span></p></li>
+<li><p>In the presence of omitted variable, <span class="math inline">\(Z\)</span> is uncorrelated with this variable.</p></li>
+</ul>
+<p>If we just want to know the effect of <span class="math inline">\(Z\)</span> on <span class="math inline">\(Y\)</span> (<strong>reduced form</strong>) where the coefficient of <span class="math inline">\(Z\)</span> is</p>
+<p><span class="math display">\[
+\rho = \frac{Cov(Y, Z)}{Var(Z)}
+\]</span></p>
+<p>and this effect is only through <span class="math inline">\(X_2\)</span> (by the exclusion restriction assumption).</p>
+<p>We can also consistently estimate the effect of <span class="math inline">\(Z\)</span> on <span class="math inline">\(X\)</span> (<strong>first stage</strong>) where the the coefficient of <span class="math inline">\(X_2\)</span> is</p>
+<p><span class="math display">\[
+\pi = \frac{Cov(X_2, Z)}{Var(Z)}
+\]</span></p>
+<p>and the IV estimate is</p>
+<p><span class="math display">\[
+\beta_2 = \frac{Cov(Y,Z)}{Cov(X_2, Z)} = \frac{\rho}{\pi}
+\]</span></p>
+<div id="relevance-assumption" class="section level3" number="34.4.1">
+<h3>
+<span class="header-section-number">34.4.1</span> Relevance Assumption<a class="anchor" aria-label="anchor" href="#relevance-assumption"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>
+<p><strong>Weak instruments</strong>: can explain little variation in the endogenous regressor</p>
+<ul>
+<li>Coefficient estimate of the endogenous variable will be inaccurate.</li>
+<li>For cases where weak instruments are unavoidable, <span class="citation">M. J. Moreira (<a href="references.html#ref-moreira2003conditional">2003</a>)</span> proposes the conditional likelihood ratio test for robust inference. This test is considered approximately optimal for weak instrument scenarios <span class="citation">(<a href="references.html#ref-andrews2008efficient">D. W. Andrews, Moreira, and Stock 2008</a>; <a href="references.html#ref-andrews2008exactly">D. W. Andrews and Marmer 2008</a>)</span>.</li>
+</ul>
+</li>
+<li>
+<p>Rule of thumb:</p>
+<ul>
+<li><p>Compute F-statistic in the first-stage, where it should be greater than 10. But this is discouraged now by <span class="citation">Lee et al. (<a href="references.html#ref-lee2022valid">2022</a>)</span></p></li>
+<li><p>use <code><a href="https://rdrr.io/pkg/car/man/linearHypothesis.html">linearHypothesis()</a></code> to see only instrument coefficients.</p></li>
+</ul>
+</li>
+</ul>
+<p><strong>First-Stage F-Test</strong></p>
+<p>In the context of a two-stage least squares (2SLS) setup where you are estimating the equation:</p>
+<p><span class="math display">\[
+Y = X \beta + \epsilon
+\]</span></p>
+<p>and <span class="math inline">\(X\)</span> is endogenous, you typically estimate a first-stage regression of:</p>
+<p><span class="math display">\[
+X = Z \pi + u
+\]</span></p>
+<p>where 𝑍Z is the instrument.</p>
+<p>The first-stage F-test evaluates the joint significance of the instruments in this first stage:</p>
+<p><span class="math display">\[
+F = \frac{(SSR_r - SSR_{ur})/q}{SSR_{ur}/ (n - k - 1)}
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><p><span class="math inline">\(SSR_r\)</span> is the sum of squared residuals from the restricted model (no instruments, just the constant).</p></li>
+<li><p><span class="math inline">\(SSR_{ur}\)</span> is the sum of squared residuals from the unrestricted model (with instruments).</p></li>
+<li><p><span class="math inline">\(q\)</span> is the number of instruments excluded from the main equation.</p></li>
+<li><p><span class="math inline">\(n\)</span> is the number of observations.</p></li>
+<li><p><span class="math inline">\(k\)</span> is the number of explanatory variables excluding the instruments.</p></li>
+</ul>
+<p><strong>Cragg-Donald Test</strong></p>
+<p>The Cragg-Donald statistic is essentially the same as the Wald statistic of the joint significance of the instruments in the first stage, and it’s used specifically when you have multiple endogenous regressors. It’s calculated as:</p>
+<p><span class="math display">\[
+CD = n \times (R_{ur}^2 - R_r^2)
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><p><span class="math inline">\(R_{ur}^2\)</span> and <span class="math inline">\(R_r^2\)</span> are the R-squared values from the unrestricted and restricted models respectively.</p></li>
+<li><p><span class="math inline">\(n\)</span> is the number of observations.</p></li>
+</ul>
+<p>For one endogenous variable, the Cragg-Donald test results should align closely with those from Stock and Yogo. The Anderson canonical correlation test, a likelihood ratio test, also works under similar conditions, contrasting with Cragg-Donald’s Wald statistic approach. Both are valid with one endogenous variable and at least one instrument.</p>
+<p><strong>Stock-Yogo Weak IV Test</strong></p>
+<p>The Stock-Yogo test does not directly compute a statistic like the F-test or Cragg-Donald, but rather uses pre-computed critical values to assess the strength of instruments. It often uses the eigenvalues derived from the concentration matrix:</p>
+<p><span class="math display">\[
+S = \frac{1}{n} (Z' X) (X'Z)
+\]</span></p>
+<p>where <span class="math inline">\(Z\)</span> is the matrix of instruments and <span class="math inline">\(X\)</span> is the matrix of endogenous regressors.</p>
+<p>Stock and Yogo provide critical values for different scenarios (bias, size distortion) for a given number of instruments and endogenous regressors, based on the smallest eigenvalue of <span class="math inline">\(S\)</span>. The test compares these eigenvalues against critical values that correspond to thresholds of permissible bias or size distortion in a 2SLS estimator.</p>
+<ul>
+<li>
+<strong>Critical Values and Test Conditions</strong>: The critical values derived by Stock and Yogo depend on the level of acceptable bias, the number of endogenous regressors, and the number of instruments. For example, with a 5% maximum acceptable bias, one endogenous variable, and three instruments, the critical value for a sufficient first stage F-statistic is 13.91. Note that this framework requires at least two overidentifying degree of freedom.</li>
+</ul>
+<p><strong>Comparison</strong></p>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="20%">
+<col width="20%">
+<col width="20%">
+<col width="39%">
+</colgroup>
+<thead><tr class="header">
+<th><strong>Test</strong></th>
+<th><strong>Description</strong></th>
+<th><strong>Focus</strong></th>
+<th><strong>Usage</strong></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>First-Stage F-Test</strong></td>
+<td>Evaluates the joint significance of instruments in the first stage.</td>
+<td>Predictive power of instruments for the endogenous variable.</td>
+<td>Simplest and most direct test, widely used especially with a single endogenous variable. Rule of thumb: F &lt; 10 suggests weak instruments.</td>
+</tr>
+<tr class="even">
+<td><strong>Cragg-Donald Test</strong></td>
+<td>Wald statistic for joint significance of instruments.</td>
+<td>Joint strength of multiple instruments with multiple endogenous variables.</td>
+<td>More appropriate in complex IV setups with multiple endogenous variables. Compares statistic against critical values for assessing instrument strength.</td>
+</tr>
+<tr class="odd">
+<td><strong>Stock-Yogo Weak IV Test</strong></td>
+<td>Compares test statistic to pre-determined critical values.</td>
+<td>Minimizing size distortions and bias from weak instruments.</td>
+<td>Theoretical evaluation of instrument strength, ensuring the reliability of 2SLS estimates against specific thresholds of bias or size distortion.</td>
+</tr>
+</tbody>
+</table></div>
+<p>All the mentioned tests (Stock Yogo, Cragg-Donald, Anderson canonical correlation test) assume errors are independently and identically distributed. If this assumption is violated, the Kleinbergen-Paap test is robust against violations of the iid assumption and can be applied even with a single endogenous variable and instrument, provided the model is properly identified <span class="citation">(<a href="references.html#ref-baum2021ivreg2h">Baum and Schaffer 2021</a>)</span>.</p>
+<div id="weak-instrument-tests" class="section level4" number="34.4.1.1">
+<h4>
+<span class="header-section-number">34.4.1.1</span> Weak Instrument Tests<a class="anchor" aria-label="anchor" href="#weak-instrument-tests"><i class="fas fa-link"></i></a>
+</h4>
+</div>
+<div id="cragg-donald" class="section level4" number="34.4.1.2">
+<h4>
+<span class="header-section-number">34.4.1.2</span> Cragg-Donald<a class="anchor" aria-label="anchor" href="#cragg-donald"><i class="fas fa-link"></i></a>
+</h4>
+<p><span class="citation">(<a href="references.html#ref-cragg1993testing">Cragg and Donald 1993</a>)</span></p>
+<p>Similar to the first-stage F-statistic</p>
+<div class="sourceCode" id="cb884"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">cragg</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">AER</span><span class="op">)</span> <span class="co"># for dataaset</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"WeakInstrument"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/cragg/man/cragg_donald.html">cragg_donald</a></span><span class="op">(</span></span>
+<span>    <span class="co"># control variables</span></span>
+<span>    X <span class="op">=</span> <span class="op">~</span> <span class="fl">1</span>, </span>
+<span>    <span class="co"># endogeneous variables</span></span>
+<span>    D <span class="op">=</span> <span class="op">~</span> <span class="va">x</span>, </span>
+<span>    <span class="co"># instrument variables </span></span>
+<span>    Z <span class="op">=</span> <span class="op">~</span> <span class="va">z</span>, </span>
+<span>    data <span class="op">=</span> <span class="va">WeakInstrument</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Cragg-Donald test for weak instruments:</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;      Data:                        WeakInstrument </span></span>
+<span><span class="co">#&gt;      Controls:                    ~1 </span></span>
+<span><span class="co">#&gt;      Treatments:                  ~x </span></span>
+<span><span class="co">#&gt;      Instruments:                 ~z </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;      Cragg-Donald Statistic:        4.566136 </span></span>
+<span><span class="co">#&gt;      Df:                                 198</span></span></code></pre></div>
+<p>Large CD statistic implies that the instruments are strong, but not in our case here. But to judge it against some critical value, we have to look at <a href="sec-instrumental-variables.html#stock-yogo">Stock-Yogo</a></p>
+</div>
+<div id="stock-yogo" class="section level4" number="34.4.1.3">
+<h4>
+<span class="header-section-number">34.4.1.3</span> Stock-Yogo<a class="anchor" aria-label="anchor" href="#stock-yogo"><i class="fas fa-link"></i></a>
+</h4>
+<p><span class="citation">J. H. Stock and Yogo (<a href="references.html#ref-stock2002testing">2002</a>)</span> set the critical values such that the bias is less then 10% (default)</p>
+<p><span class="math inline">\(H_0:\)</span> Instruments are weak</p>
+<p><span class="math inline">\(H_1:\)</span> Instruments are not weak</p>
+<div class="sourceCode" id="cb885"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">cragg</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">AER</span><span class="op">)</span> <span class="co"># for dataaset</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"WeakInstrument"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/cragg/man/stock_yogo_test.html">stock_yogo_test</a></span><span class="op">(</span></span>
+<span>    <span class="co"># control variables</span></span>
+<span>    X <span class="op">=</span> <span class="op">~</span> <span class="fl">1</span>,</span>
+<span>    <span class="co"># endogeneous variables</span></span>
+<span>    D <span class="op">=</span> <span class="op">~</span> <span class="va">x</span>,</span>
+<span>    <span class="co"># instrument variables</span></span>
+<span>    Z <span class="op">=</span> <span class="op">~</span> <span class="va">z</span>,</span>
+<span>    size_bias <span class="op">=</span> <span class="st">"bias"</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">WeakInstrument</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>The CD statistic should be bigger than the set critical value to be considered strong instruments.</p>
+</div>
+<div id="anderson-rubin" class="section level4" number="34.4.1.4">
+<h4>
+<span class="header-section-number">34.4.1.4</span> Anderson-Rubin<a class="anchor" aria-label="anchor" href="#anderson-rubin"><i class="fas fa-link"></i></a>
+</h4>
+</div>
+<div id="stock-wright" class="section level4" number="34.4.1.5">
+<h4>
+<span class="header-section-number">34.4.1.5</span> Stock-Wright<a class="anchor" aria-label="anchor" href="#stock-wright"><i class="fas fa-link"></i></a>
+</h4>
+</div>
+</div>
+<div id="exogeneity-assumption" class="section level3" number="34.4.2">
+<h3>
+<span class="header-section-number">34.4.2</span> Exogeneity Assumption<a class="anchor" aria-label="anchor" href="#exogeneity-assumption"><i class="fas fa-link"></i></a>
+</h3>
+<p>The local average treatment effect (LATE) is defined as:</p>
+<p><span class="math display">\[
+\text{LATE} = \frac{\text{reduced form}}{\text{first stage}} = \frac{\rho}{\phi}
+\]</span></p>
+<p>This implies that the reduced form (<span class="math inline">\(\rho\)</span>) is the product of the first stage (<span class="math inline">\(\phi\)</span>) and LATE:</p>
+<p><span class="math display">\[
+\rho = \phi \times \text{LATE}
+\]</span></p>
+<p>Thus, if the first stage (<span class="math inline">\(\phi\)</span>) is 0, the reduced form (<span class="math inline">\(\rho\)</span>) should also be 0.</p>
+<div class="sourceCode" id="cb886"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Load necessary libraries</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://shiny.posit.co/">shiny</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">AER</span><span class="op">)</span>  <span class="co"># for ivreg</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span>  <span class="co"># for visualization</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span>  <span class="co"># for data manipulation</span></span>
+<span></span>
+<span><span class="co"># Function to simulate the dataset</span></span>
+<span><span class="va">simulate_iv_data</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span>, <span class="va">beta</span>, <span class="va">phi</span>, <span class="va">direct_effect</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">Z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span>  <span class="va">epsilon_x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span>  <span class="va">epsilon_y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span>  <span class="va">X</span> <span class="op">&lt;-</span> <span class="va">phi</span> <span class="op">*</span> <span class="va">Z</span> <span class="op">+</span> <span class="va">epsilon_x</span></span>
+<span>  <span class="va">Y</span> <span class="op">&lt;-</span> <span class="va">beta</span> <span class="op">*</span> <span class="va">X</span> <span class="op">+</span> <span class="va">direct_effect</span> <span class="op">*</span> <span class="va">Z</span> <span class="op">+</span> <span class="va">epsilon_y</span></span>
+<span>  <span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>Y <span class="op">=</span> <span class="va">Y</span>, X <span class="op">=</span> <span class="va">X</span>, Z <span class="op">=</span> <span class="va">Z</span><span class="op">)</span></span>
+<span>  <span class="kw"><a href="https://rdrr.io/r/base/function.html">return</a></span><span class="op">(</span><span class="va">data</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># Function to run the simulations and calculate the effects</span></span>
+<span><span class="va">run_simulation</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">n</span>, <span class="va">beta</span>, <span class="va">phi</span>, <span class="va">direct_effect</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="co"># Simulate the data</span></span>
+<span>  <span class="va">simulated_data</span> <span class="op">&lt;-</span> <span class="fu">simulate_iv_data</span><span class="op">(</span><span class="va">n</span>, <span class="va">beta</span>, <span class="va">phi</span>, <span class="va">direct_effect</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="co"># Estimate first-stage effect (phi)</span></span>
+<span>  <span class="va">first_stage</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">X</span> <span class="op">~</span> <span class="va">Z</span>, data <span class="op">=</span> <span class="va">simulated_data</span><span class="op">)</span></span>
+<span>  <span class="va">phi</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">first_stage</span><span class="op">)</span><span class="op">[</span><span class="st">"Z"</span><span class="op">]</span></span>
+<span>  <span class="va">phi_ci</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/confint.html">confint</a></span><span class="op">(</span><span class="va">first_stage</span><span class="op">)</span><span class="op">[</span><span class="st">"Z"</span>, <span class="op">]</span></span>
+<span>  </span>
+<span>  <span class="co"># Estimate reduced-form effect (rho)</span></span>
+<span>  <span class="va">reduced_form</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="va">Z</span>, data <span class="op">=</span> <span class="va">simulated_data</span><span class="op">)</span></span>
+<span>  <span class="va">rho</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">reduced_form</span><span class="op">)</span><span class="op">[</span><span class="st">"Z"</span><span class="op">]</span></span>
+<span>  <span class="va">rho_ci</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/confint.html">confint</a></span><span class="op">(</span><span class="va">reduced_form</span><span class="op">)</span><span class="op">[</span><span class="st">"Z"</span>, <span class="op">]</span></span>
+<span>  </span>
+<span>  <span class="co"># Estimate LATE using IV regression</span></span>
+<span>  <span class="va">iv_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/AER/man/ivreg.html">ivreg</a></span><span class="op">(</span><span class="va">Y</span> <span class="op">~</span> <span class="va">X</span> <span class="op">|</span> <span class="va">Z</span>, data <span class="op">=</span> <span class="va">simulated_data</span><span class="op">)</span></span>
+<span>  <span class="va">iv_late</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">iv_model</span><span class="op">)</span><span class="op">[</span><span class="st">"X"</span><span class="op">]</span></span>
+<span>  <span class="va">iv_late_ci</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/confint.html">confint</a></span><span class="op">(</span><span class="va">iv_model</span><span class="op">)</span><span class="op">[</span><span class="st">"X"</span>, <span class="op">]</span></span>
+<span>  </span>
+<span>  <span class="co"># Calculate LATE as the ratio of reduced-form and first-stage coefficients</span></span>
+<span>  <span class="va">calculated_late</span> <span class="op">&lt;-</span> <span class="va">rho</span> <span class="op">/</span> <span class="va">phi</span></span>
+<span>  <span class="va">calculated_late_se</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html">sqrt</a></span><span class="op">(</span></span>
+<span>    <span class="op">(</span><span class="va">rho_ci</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">-</span> <span class="va">rho</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span> <span class="op">/</span> <span class="va">phi</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="op">(</span><span class="va">rho</span> <span class="op">*</span> <span class="op">(</span><span class="va">phi_ci</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">-</span> <span class="va">phi</span><span class="op">)</span> <span class="op">/</span> <span class="va">phi</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span></span>
+<span>  <span class="op">)</span></span>
+<span>  <span class="va">calculated_late_ci</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">calculated_late</span> <span class="op">-</span> <span class="fl">1.96</span> <span class="op">*</span> <span class="va">calculated_late_se</span>, </span>
+<span>                          <span class="va">calculated_late</span> <span class="op">+</span> <span class="fl">1.96</span> <span class="op">*</span> <span class="va">calculated_late_se</span><span class="op">)</span></span>
+<span>  </span>
+<span>  <span class="co"># Return a list of results</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>phi <span class="op">=</span> <span class="va">phi</span>, </span>
+<span>       phi_ci <span class="op">=</span> <span class="va">phi_ci</span>,</span>
+<span>       rho <span class="op">=</span> <span class="va">rho</span>, </span>
+<span>       rho_ci <span class="op">=</span> <span class="va">rho_ci</span>,</span>
+<span>       direct_effect <span class="op">=</span> <span class="va">direct_effect</span>,</span>
+<span>       direct_effect_ci <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">direct_effect</span>, <span class="va">direct_effect</span><span class="op">)</span>,  <span class="co"># Placeholder for direct effect CI</span></span>
+<span>       iv_late <span class="op">=</span> <span class="va">iv_late</span>, </span>
+<span>       iv_late_ci <span class="op">=</span> <span class="va">iv_late_ci</span>,</span>
+<span>       calculated_late <span class="op">=</span> <span class="va">calculated_late</span>, </span>
+<span>       calculated_late_ci <span class="op">=</span> <span class="va">calculated_late_ci</span>,</span>
+<span>       true_effect <span class="op">=</span> <span class="va">beta</span>,</span>
+<span>       true_effect_ci <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">beta</span>, <span class="va">beta</span><span class="op">)</span><span class="op">)</span>  <span class="co"># Placeholder for true effect CI</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># Define UI for the sliders</span></span>
+<span><span class="va">ui</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/fluidPage.html">fluidPage</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/titlePanel.html">titlePanel</a></span><span class="op">(</span><span class="st">"IV Model Simulation"</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/sidebarLayout.html">sidebarLayout</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/sidebarLayout.html">sidebarPanel</a></span><span class="op">(</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/sliderInput.html">sliderInput</a></span><span class="op">(</span><span class="st">"beta"</span>, <span class="st">"True Effect of X on Y (beta):"</span>, min <span class="op">=</span> <span class="fl">0</span>, max <span class="op">=</span> <span class="fl">1.0</span>, value <span class="op">=</span> <span class="fl">0.5</span>, step <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>,</span>
+<span>      <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/sliderInput.html">sliderInput</a></span><span class="op">(</span><span class="st">"phi"</span>, <span class="st">"First Stage Effect (phi):"</span>, min <span class="op">=</span> <span class="fl">0</span>, max <span class="op">=</span> <span class="fl">1.0</span>, value <span class="op">=</span> <span class="fl">0.7</span>, step <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span>,</span>
+<span>      <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/sliderInput.html">sliderInput</a></span><span class="op">(</span><span class="st">"direct_effect"</span>, <span class="st">"Direct Effect of Z on Y:"</span>, min <span class="op">=</span> <span class="op">-</span><span class="fl">0.5</span>, max <span class="op">=</span> <span class="fl">0.5</span>, value <span class="op">=</span> <span class="fl">0</span>, step <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
+<span>    <span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/sidebarLayout.html">mainPanel</a></span><span class="op">(</span></span>
+<span>      <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/plotOutput.html">plotOutput</a></span><span class="op">(</span><span class="st">"dotPlot"</span><span class="op">)</span></span>
+<span>    <span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Define server logic to run the simulation and generate the plot</span></span>
+<span><span class="va">server</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">input</span>, <span class="va">output</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">output</span><span class="op">$</span><span class="va">dotPlot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/shiny/man/renderPlot.html">renderPlot</a></span><span class="op">(</span><span class="op">{</span></span>
+<span>    <span class="co"># Run simulation</span></span>
+<span>    <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu">run_simulation</span><span class="op">(</span>n <span class="op">=</span> <span class="fl">1000</span>, beta <span class="op">=</span> <span class="va">input</span><span class="op">$</span><span class="va">beta</span>, phi <span class="op">=</span> <span class="va">input</span><span class="op">$</span><span class="va">phi</span>, direct_effect <span class="op">=</span> <span class="va">input</span><span class="op">$</span><span class="va">direct_effect</span><span class="op">)</span></span>
+<span>    </span>
+<span>    <span class="co"># Prepare data for plotting</span></span>
+<span>    <span class="va">plot_data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>      Effect <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"First Stage (phi)"</span>, <span class="st">"Reduced Form (rho)"</span>, <span class="st">"Direct Effect"</span>, <span class="st">"LATE (Ratio)"</span>, <span class="st">"LATE (IV)"</span>, <span class="st">"True Effect"</span><span class="op">)</span>,</span>
+<span>      Value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">results</span><span class="op">$</span><span class="va">phi</span>, <span class="va">results</span><span class="op">$</span><span class="va">rho</span>, <span class="va">results</span><span class="op">$</span><span class="va">direct_effect</span>, <span class="va">results</span><span class="op">$</span><span class="va">calculated_late</span>, <span class="va">results</span><span class="op">$</span><span class="va">iv_late</span>, <span class="va">results</span><span class="op">$</span><span class="va">true_effect</span><span class="op">)</span>,</span>
+<span>      CI_Lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">results</span><span class="op">$</span><span class="va">phi_ci</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">results</span><span class="op">$</span><span class="va">rho_ci</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">results</span><span class="op">$</span><span class="va">direct_effect_ci</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">results</span><span class="op">$</span><span class="va">calculated_late_ci</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">results</span><span class="op">$</span><span class="va">iv_late_ci</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, <span class="va">results</span><span class="op">$</span><span class="va">true_effect_ci</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span>,</span>
+<span>      CI_Upper <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">results</span><span class="op">$</span><span class="va">phi_ci</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">results</span><span class="op">$</span><span class="va">rho_ci</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">results</span><span class="op">$</span><span class="va">direct_effect_ci</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">results</span><span class="op">$</span><span class="va">calculated_late_ci</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">results</span><span class="op">$</span><span class="va">iv_late_ci</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span>, <span class="va">results</span><span class="op">$</span><span class="va">true_effect_ci</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span><span class="op">)</span></span>
+<span>    <span class="op">)</span></span>
+<span>    </span>
+<span>    <span class="co"># Create dot plot with confidence intervals</span></span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">plot_data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Effect</span>, y <span class="op">=</span> <span class="va">Value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html">geom_point</a></span><span class="op">(</span>size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_linerange.html">geom_errorbar</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>ymin <span class="op">=</span> <span class="va">CI_Lower</span>, ymax <span class="op">=</span> <span class="va">CI_Upper</span><span class="op">)</span>, width <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"IV Model Effects"</span>,</span>
+<span>           y <span class="op">=</span> <span class="st">"Coefficient Value"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_cartesian.html">coord_cartesian</a></span><span class="op">(</span>ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span>  <span class="co"># Limits the y-axis to -1 to 1 but allows CI beyond</span></span>
+<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>      <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">45</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">}</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
+<span></span>
+<span><span class="co"># Run the application </span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/shinyApp.html">shinyApp</a></span><span class="op">(</span>ui <span class="op">=</span> <span class="va">ui</span>, server <span class="op">=</span> <span class="va">server</span><span class="op">)</span></span></code></pre></div>
+<p>A statistically significant reduced form estimate without a corresponding first stage indicates an issue, suggesting an alternative channel linking instruments to outcomes or a direct effect of the IV on the outcome.</p>
+<ul>
+<li>
+<strong>No Direct Effect</strong>: When the direct effect is 0 and the first stage is 0, the reduced form is 0.
+<ul>
+<li>Note: Extremely rare cases with multiple additional paths that perfectly cancel each other out can also produce this result, but testing for all possible paths is impractical.</li>
+</ul>
+</li>
+<li>
+<strong>With Direct Effect</strong>: When there is a direct effect of the IV on the outcome, the reduced form can be significantly different from 0, even if the first stage is 0.
+<ul>
+<li>This violates the exogeneity assumption, as the IV should only affect the outcome through the treatment variable.</li>
+</ul>
+</li>
+</ul>
+<p>To test the validity of the exogeneity assumption, we can use a sanity test:</p>
+<ul>
+<li>Identify groups for which the effects of instruments on the treatment variable are small and not significantly different from 0. The reduced form estimate for these groups should also be 0. These “no-first-stage samples” provide evidence of whether the exogeneity assumption is violated.</li>
+</ul>
+<div id="overid-tests" class="section level4" number="34.4.2.1">
+<h4>
+<span class="header-section-number">34.4.2.1</span> Overid Tests<a class="anchor" aria-label="anchor" href="#overid-tests"><i class="fas fa-link"></i></a>
+</h4>
+<ul>
+<li>
+<p>Wald test and Hausman test for exogeneity of <span class="math inline">\(X\)</span> assuming <span class="math inline">\(Z\)</span> is exogenous</p>
+<ul>
+<li>People might prefer Wald test over Hausman test.</li>
+</ul>
+</li>
+<li><p>Sargan (for 2SLS) is a simpler version of Hansen’s J test (for IV-GMM)</p></li>
+<li><p>Modified J test (i.e., Regularized jacknife IV): can handle weak instruments and small sample size <span class="citation">(<a href="references.html#ref-carrasco2022testing">Carrasco and Doukali 2022</a>)</span> (also proposed a regularized F-test to test relevance assumption that is robust to heteroskedasticity).</p></li>
+<li><p>New advances: endogeneity robust inference in finite sample and sensitivity analysis of inference <span class="citation">(<a href="references.html#ref-kiviet2020testing">Kiviet 2020</a>)</span></p></li>
+</ul>
+<p>These tests that can provide evidence fo the validity of the over-identifying restrictions is not sufficient or necessary for the validity of the moment conditions (i.e., this assumption cannot be tested). <span class="citation">(<a href="references.html#ref-deaton2010instruments">Deaton 2010</a>; <a href="references.html#ref-parente2012cautionary">Parente and Silva 2012</a>)</span></p>
+<ul>
+<li><p>The over-identifying restriction can still be valid even when the instruments are correlated with the error terms, but then in this case, what you’re estimating is no longer your parameters of interest.</p></li>
+<li><p>Rejection of the over-identifying restrictions can also be the result of <strong>parameter heterogeneity</strong> <span class="citation">(<a href="references.html#ref-angrist2000interpretation">J. D. Angrist, Graddy, and Imbens 2000</a>)</span></p></li>
+</ul>
+<p>Why overid tests hold no value/info?</p>
+<ul>
+<li>
+<p>Overidentifying restrictions are valid irrespective of the instruments’ validity</p>
+<ul>
+<li>Whenever instruments have the same motivation and are on the same scale, the estimated parameter of interests will be very close <span class="citation">(<a href="references.html#ref-parente2012cautionary">Parente and Silva 2012, 316</a>)</span>
+</li>
+</ul>
+</li>
+<li>
+<p>Overidentifying restriction are invalid when each instrument is valid</p>
+<ul>
+<li>When the effect of your parameter of interest is heterogeneous (e.g., you have two groups with two different true effects), your first instrument can be correlated with your variable of interest only for the first group and your second interments can be correlated with your variable of interest only for the second group (i.e., each instrument is valid), and if you use each instrument, you can still identify the parameter of interest. However, if you use both of them, what you estimate is a mixture of the two groups. Hence, the overidentifying restriction will be invalid (because no single parameters can make the errors of the model orthogonal to both instruments). The result may seem confusing at first because if each subset of overidentifying restrictions is valid, the full set should also be valid. However, this interpretation is flawed because the residual’s orthogonality to the instruments depends on the chosen set of instruments, and therefore the set of restrictions tested when using two sets of instruments together is not the same as the union of the sets of restrictions tested when using each set of instruments separately <span class="citation">(<a href="references.html#ref-parente2012cautionary">Parente and Silva 2012, 316</a>)</span>
+</li>
+</ul>
+</li>
+</ul>
+<p>These tests (of overidentifying restrictions) should be used to check whether different instruments identify the same parameters of interest, not to check their validity</p>
+<p><span class="citation">(<a href="references.html#ref-hausman1983specification">J. A. Hausman 1983</a>; <a href="references.html#ref-parente2012cautionary">Parente and Silva 2012</a>)</span></p>
+<div id="wald-test" class="section level5" number="34.4.2.1.1">
+<h5>
+<span class="header-section-number">34.4.2.1.1</span> Wald Test<a class="anchor" aria-label="anchor" href="#wald-test"><i class="fas fa-link"></i></a>
+</h5>
+<p>Assuming that <span class="math inline">\(Z\)</span> is exogenous (a valid instrument), we want to know whether <span class="math inline">\(X_2\)</span> is exogenous</p>
+<p>1st stage:</p>
+<p><span class="math display">\[
+X_2 = \hat{\alpha} Z + \hat{\epsilon}
+\]</span></p>
+<p>2nd stage:</p>
+<p><span class="math display">\[
+Y = \delta_0 X_1 + \delta_1 X_2 + \delta_2 \hat{\epsilon} + u
+\]</span></p>
+<p>where</p>
+<ul>
+<li>
+<span class="math inline">\(\hat{\epsilon}\)</span> is the residuals from the 1st stage</li>
+</ul>
+<p>The Wald test of exogeneity assumes</p>
+<p><span class="math display">\[
+H_0: \delta_2 = 0 \\
+H_1: \delta_2 \neq 0
+\]</span></p>
+<p>If you have more than one endogenous variable with more than one instrument, <span class="math inline">\(\delta_2\)</span> is a vector of all residuals from all the first-stage equations. And the null hypothesis is that they are jointly equal 0.</p>
+<p>If you reject this hypothesis, it means that <span class="math inline">\(X_2\)</span> is <strong>not endogenous</strong>. Hence, for this test, we do not want to reject the null hypothesis.</p>
+<p>If the test is not sacrificially significant, we might just don’t have enough information to reject the null.</p>
+<p>When you have a valid instrument <span class="math inline">\(Z\)</span>, whether <span class="math inline">\(X_2\)</span> is endogenous or exogenous, your coefficient estimates of <span class="math inline">\(X_2\)</span> should still be consistent. But if <span class="math inline">\(X_2\)</span> is exogenous, then 2SLS will be inefficient (i.e., larger standard errors).</p>
+<p>Intuition:</p>
+<p><span class="math inline">\(\hat{\epsilon}\)</span> is the supposed endogenous part of <span class="math inline">\(X_2\)</span>, When we regress <span class="math inline">\(Y\)</span> on <span class="math inline">\(\hat{\epsilon}\)</span> and observe that its coefficient is not different from 0. It means that the exogenous part of <span class="math inline">\(X_2\)</span> can explain well the impact on <span class="math inline">\(Y\)</span>, and there is no endogenous part.</p>
+</div>
+<div id="hausmans-test" class="section level5" number="34.4.2.1.2">
+<h5>
+<span class="header-section-number">34.4.2.1.2</span> Hausman’s Test<a class="anchor" aria-label="anchor" href="#hausmans-test"><i class="fas fa-link"></i></a>
+</h5>
+<p>Similar to <a href="generalized-linear-models.html#sec-wald-test-logistic">Wald Test</a> and identical to <a href="generalized-linear-models.html#sec-wald-test-logistic">Wald Test</a> when we have homoskedasticity (i.e., homogeneity of variances). Because of this assumption, it’s used less often than <a href="generalized-linear-models.html#sec-wald-test-logistic">Wald Test</a></p>
+</div>
+<div id="hansens-j" class="section level5" number="34.4.2.1.3">
+<h5>
+<span class="header-section-number">34.4.2.1.3</span> Hansen’s J<a class="anchor" aria-label="anchor" href="#hansens-j"><i class="fas fa-link"></i></a>
+</h5>
+<ul>
+<li><p><span class="citation">(<a href="references.html#ref-hansen1982large">L. P. Hansen 1982</a>)</span></p></li>
+<li>
+<p>J-test (over-identifying restrictions test): test whether <strong>additional</strong> instruments are exogenous</p>
+<ul>
+<li>Can only be applied in cases where you have more instruments than endogenous variables
+<ul>
+<li><span class="math inline">\(dim(Z) &gt; dim(X_2)\)</span></li>
+</ul>
+</li>
+<li>Assume at least one instrument within <span class="math inline">\(Z\)</span> is exogenous</li>
+</ul>
+</li>
+</ul>
+<p>Procedure IV-GMM:</p>
+<ol style="list-style-type: decimal">
+<li>Obtain the residuals of the 2SLS estimation</li>
+<li>Regress the residuals on all instruments and exogenous variables.</li>
+<li>Test the joint hypothesis that all coefficients of the residuals across instruments are 0 (i.e., this is true when instruments are exogenous).
+<ol style="list-style-type: decimal">
+<li><p>Compute <span class="math inline">\(J = mF\)</span> where <span class="math inline">\(m\)</span> is the number of instruments, and <span class="math inline">\(F\)</span> is your equation <span class="math inline">\(F\)</span> statistic (can you use <code><a href="https://rdrr.io/pkg/car/man/linearHypothesis.html">linearHypothesis()</a></code> again).</p></li>
+<li><p>If your exogeneity assumption is true, then <span class="math inline">\(J \sim \chi^2_{m-k}\)</span> where <span class="math inline">\(k\)</span> is the number of endogenous variables.</p></li>
+</ol>
+</li>
+<li>If you reject this hypothesis, it can be that
+<ol style="list-style-type: decimal">
+<li><p>The first sets of instruments are invalid</p></li>
+<li><p>The second sets of instruments are invalid</p></li>
+<li><p>Both sets of instruments are invalid</p></li>
+</ol>
+</li>
+</ol>
+<p><strong>Note</strong>: This test is only true when your residuals are homoskedastic.</p>
+<p>For a heteroskedasticity-robust <span class="math inline">\(J\)</span>-statistic, see <span class="citation">(<a href="references.html#ref-carrasco2022testing">Carrasco and Doukali 2022</a>; <a href="references.html#ref-li2022testing">H. Li et al. 2022</a>)</span></p>
+</div>
+<div id="sargan-test" class="section level5" number="34.4.2.1.4">
+<h5>
+<span class="header-section-number">34.4.2.1.4</span> Sargan Test<a class="anchor" aria-label="anchor" href="#sargan-test"><i class="fas fa-link"></i></a>
+</h5>
+<p><span class="citation">(<a href="references.html#ref-sargan1958estimation">Sargan 1958</a>)</span></p>
+<p>Similar to <a href="sec-instrumental-variables.html#hansens-j">Hansen’s J</a>, but it assumes homoskedasticity</p>
+<ul>
+<li><p>Have to be careful when sample is not collected exogenously. As such, when you have choice-based sampling design, the sampling weights have to be considered to have consistent estimates. However, even if we apply sampling weights, the tests are not suitable because the iid assumption off errors are already violated. Hence, the test is invalid in this case <span class="citation">(<a href="references.html#ref-pitt2011overidentification">Pitt 2011</a>)</span>.</p></li>
+<li><p>If one has heteroskedasticity in its design, the Sargan test is invalid <span class="citation">(<a href="references.html#ref-pitt2011overidentification">Pitt 2011</a>})</span></p></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div id="negative-r2" class="section level2" number="34.5">
+<h2>
+<span class="header-section-number">34.5</span> Negative <span class="math inline">\(R^2\)</span><a class="anchor" aria-label="anchor" href="#negative-r2"><i class="fas fa-link"></i></a>
+</h2>
+<p>It’s okay to have negative <span class="math inline">\(R^2\)</span> in the 2nd stage. We care more about consistent coefficient estimates.</p>
+<p><span class="math inline">\(R^2\)</span> has no statistical meaning in instrumental variable regression or 2 or 3SLS</p>
+<p><span class="math display">\[
+R^2 = \frac{MSS}{TSS}
+\]</span></p>
+<p>where</p>
+<ul>
+<li>MSS = model sum of squares (TSS- RSS)</li>
+<li>TSS = total sum of squares (<span class="math inline">\(\sum(y - \bar{y})^2\)</span>)</li>
+<li>RSS = residual sum of squares (<span class="math inline">\(\sum (y - Xb)^2\)</span>)</li>
+</ul>
+<p>If <span class="math inline">\(TSS &gt; RSS\)</span>, then we have negative RSS and negative <span class="math inline">\(R^2\)</span>. Since the predicted values of the endogenous variables are different from the endogenous variables themselves, the error that is used to calculate RSS can be different from the error in the second stage, and RSS in the second stage can be less than TSS.</p>
+</div>
+<div id="treatment-intensity" class="section level2" number="34.6">
+<h2>
+<span class="header-section-number">34.6</span> Treatment Intensity<a class="anchor" aria-label="anchor" href="#treatment-intensity"><i class="fas fa-link"></i></a>
+</h2>
+<p>Two-Stage Least Squares (TSLS) can be used to estimate the average causal effect of variable treatment intensity, and it “identifies a weighted average of per-unit treatment effects along the length of a causal response function” <span class="citation">(<a href="references.html#ref-angrist1995two">J. D. Angrist and Imbens 1995, 431</a>)</span>. For example</p>
+<ul>
+<li><p>Drug dosage</p></li>
+<li><p>Hours of exam prep on score <span class="citation">(<a href="references.html#ref-powers1984effects">Powers and Swinton 1984</a>)</span></p></li>
+<li><p>Cigarette smoking on birth weights <span class="citation">(<a href="references.html#ref-permutt1989simultaneous">Permutt and Hebel 1989</a>)</span></p></li>
+<li><p>Years of education</p></li>
+<li><p>Class size on test score <span class="citation">(<a href="references.html#ref-angrist1999using">J. D. Angrist and Lavy 1999</a>)</span></p></li>
+<li><p>Sibship size on earning <span class="citation">(<a href="references.html#ref-lavy2006new">Lavy, Angrist, and Schlosser 2006</a>)</span></p></li>
+<li><p>Social Media Adoption</p></li>
+</ul>
+<p>The <strong>average causal effect</strong> here refers to the conditional expectation of the difference in outcomes between the treated and what would have happened in the counterfactual world.</p>
+<p>Notes:</p>
+<ul>
+<li>We do not need a linearity assumption of the relationships between the dependent variable, treatment intensities, and instruments.</li>
+</ul>
+<p>Example</p>
+<p>In their original paper, <span class="citation">J. D. Angrist and Imbens (<a href="references.html#ref-angrist1995two">1995</a>)</span> take the example of schooling effect on earnings where they have quarters of birth as the instrumental variable.</p>
+<p>For each additional year of schooling, there can be an increase in earnings, and each additional year can be heterogeneous (both in the sense that grade 9th to grade 10th is qualitatively different and one can change to a different school).</p>
+<p><span class="math display">\[
+Y = \gamma_0 + \gamma_1 X_1 + \rho S + \epsilon
+\]</span></p>
+<p>where</p>
+<ul>
+<li><p><span class="math inline">\(S\)</span> is years of schooling (i.e., endogenous regressor)</p></li>
+<li><p><span class="math inline">\(\rho\)</span> is the return to a year of schooling</p></li>
+<li><p><span class="math inline">\(X_1\)</span> is a matrix of exogenous covariates</p></li>
+</ul>
+<p>Schooling can also be related to the exogenous variable <span class="math inline">\(X_1\)</span></p>
+<p><span class="math display">\[
+S = \delta_0 + X_1 \delta_1 + X_2 \delta_2 + \eta
+\]</span></p>
+<p>where</p>
+<ul>
+<li><p><span class="math inline">\(X_2\)</span> is an exogenous instrument</p></li>
+<li><p><span class="math inline">\(\delta_2\)</span> is the coefficient of the instrument</p></li>
+</ul>
+<p>by using only the fitted value in the second, the TSLS can give a consistent estimate of the effect of schooling on earning</p>
+<p><span class="math display">\[
+Y = \gamma_0 + X_1 \gamma-1 + \rho \hat{S} + \nu
+\]</span></p>
+<p>To give <span class="math inline">\(\rho\)</span> a causal interpretation,</p>
+<ol style="list-style-type: decimal">
+<li>We first have to have the SUTVA (stable unit treatment value assumption), where the potential outcomes of the same person with different years of schooling are independent.</li>
+<li>When <span class="math inline">\(\rho\)</span> has a probability limit equal to a weighted average of <span class="math inline">\(E[Y_j - Y_{j-1}] \forall j\)</span>
+</li>
+</ol>
+<p>Even though the first bullet point is not trivial, most of the time we don’t have to defend much about it in a research article, the second bullet point is the harder one to argue and only apply to certain cases.</p>
+</div>
+<div id="control-function" class="section level2" number="34.7">
+<h2>
+<span class="header-section-number">34.7</span> Control Function<a class="anchor" aria-label="anchor" href="#control-function"><i class="fas fa-link"></i></a>
+</h2>
+<p>Also known as <strong>two-stage residual inclusion</strong></p>
+<p>Resources:</p>
+<ul>
+<li>
+<p>Binary outcome and binary endogenous variable application <span class="citation">(<a href="references.html#ref-tchetgen2014note">E. Tchetgen Tchetgen 2014</a>)</span></p>
+<ul>
+<li><p>In rare events: we use a logistic model in the 2nd stage</p></li>
+<li><p>In non-rare events: use risk ratio regression in the 2nd stage</p></li>
+</ul>
+</li>
+<li><p>Application in marketing for consumer choice model <span class="citation">(<a href="references.html#ref-petrin2010control">Petrin and Train 2010</a>)</span></p></li>
+</ul>
+<p>Notes</p>
+<ul>
+<li>This approach is better suited for models with nonadditive errors (e.g., discrete choice models), or binary endogenous model, binary response variable, etc.</li>
+</ul>
+<p><span class="math display">\[
+Y = g(X) + U \\
+X = \pi(Z) + V \\
+E(U |Z,V) = E(U|V) \\
+E(V|Z) = 0
+\]</span></p>
+<p>Under control function approach,</p>
+<p><span class="math display">\[
+E(Y|Z,V) = g(X) + E(U|Z,V) \\
+= g(X) + E(U|V) \\
+= g(X) + h(V)
+\]</span></p>
+<p>where <span class="math inline">\(h(V)\)</span> is the control function that models the endogeneity</p>
+<ol style="list-style-type: decimal">
+<li>Linear in parameters</li>
+</ol>
+<!-- --><ol style="list-style-type: lower-alpha">
+<li>Linear Endogenous Variables:
+<ul>
+<li>The control function function approach is identical to the usual 2SLS estimator</li>
+</ul>
+</li>
+<li>Nonlinear Endogenous Variables:
+<ul>
+<li>The control function is different from the 2SLS estimator</li>
+</ul>
+</li>
+<li>Nonlinear in parameters:
+<ul>
+<li>The CF function is superior than the 2SLS estimator</li>
+</ul>
+</li>
+</ol>
+<div id="simulation" class="section level3" number="34.7.1">
+<h3>
+<span class="header-section-number">34.7.1</span> Simulation<a class="anchor" aria-label="anchor" href="#simulation"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb887"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://vincentarelbundock.github.io/modelsummary/">modelsummary</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Set the seed for reproducibility</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">=</span> <span class="fl">10000</span></span>
+<span><span class="co"># Generate the exogenous variable from a normal distribution</span></span>
+<span><span class="va">exogenous</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, mean <span class="op">=</span> <span class="fl">5</span>, sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Generate the omitted variable as a function of the exogenous variable</span></span>
+<span><span class="va">omitted</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, mean <span class="op">=</span> <span class="fl">2</span>, sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Generate the endogenous variable as a function of the omitted variable and the exogenous variable</span></span>
+<span><span class="va">endogenous</span> <span class="op">&lt;-</span> <span class="fl">5</span> <span class="op">*</span> <span class="va">omitted</span> <span class="op">+</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">exogenous</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># nonlinear endogenous variable</span></span>
+<span><span class="va">endogenous_nonlinear</span> <span class="op">&lt;-</span> <span class="fl">5</span> <span class="op">*</span> <span class="va">omitted</span><span class="op">^</span><span class="fl">2</span> <span class="op">+</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">exogenous</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">100</span>, mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">unrelated</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html">rexp</a></span><span class="op">(</span><span class="va">n</span>, rate <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Generate the response variable as a function of the endogenous variable and the omitted variable</span></span>
+<span><span class="va">response</span> <span class="op">&lt;-</span> <span class="fl">4</span> <span class="op">+</span>  <span class="fl">3</span> <span class="op">*</span> <span class="va">endogenous</span> <span class="op">+</span> <span class="fl">6</span> <span class="op">*</span> <span class="va">omitted</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">response_nonlinear</span> <span class="op">&lt;-</span> <span class="fl">4</span> <span class="op">+</span>  <span class="fl">3</span> <span class="op">*</span> <span class="va">endogenous_nonlinear</span> <span class="op">+</span> <span class="fl">6</span> <span class="op">*</span> <span class="va">omitted</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">response_nonlinear_para</span> <span class="op">&lt;-</span> <span class="fl">4</span> <span class="op">+</span>  <span class="fl">3</span> <span class="op">*</span> <span class="va">endogenous</span> <span class="op">^</span> <span class="fl">2</span> <span class="op">+</span> <span class="fl">6</span> <span class="op">*</span> <span class="va">omitted</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span>, mean <span class="op">=</span> <span class="fl">0</span>, sd <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># Combine the variables into a data frame</span></span>
+<span><span class="va">my_data</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>        <span class="va">exogenous</span>,</span>
+<span>        <span class="va">omitted</span>,</span>
+<span>        <span class="va">endogenous</span>,</span>
+<span>        <span class="va">response</span>,</span>
+<span>        <span class="va">unrelated</span>,</span>
+<span>        <span class="va">response</span>,</span>
+<span>        <span class="va">response_nonlinear</span>,</span>
+<span>        <span class="va">response_nonlinear_para</span></span>
+<span>    <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># View the first few rows of the data frame</span></span>
+<span><span class="co"># head(my_data)</span></span>
+<span></span>
+<span><span class="va">wo_omitted</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lrberge.github.io/fixest/reference/feols.html">feols</a></span><span class="op">(</span><span class="va">response</span> <span class="op">~</span> <span class="va">endogenous</span> <span class="op">+</span> <span class="fu">sw0</span><span class="op">(</span><span class="va">unrelated</span><span class="op">)</span>, data <span class="op">=</span> <span class="va">my_data</span><span class="op">)</span></span>
+<span><span class="va">w_omitted</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://lrberge.github.io/fixest/reference/feols.html">feols</a></span><span class="op">(</span><span class="va">response</span> <span class="op">~</span> <span class="va">endogenous</span> <span class="op">+</span> <span class="va">omitted</span> <span class="op">+</span> <span class="va">unrelated</span>, data <span class="op">=</span> <span class="va">my_data</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="co"># ivreg::ivreg(response ~ endogenous + unrelated | exogenous, data = my_data)</span></span>
+<span><span class="va">iv</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://lrberge.github.io/fixest/reference/feols.html">feols</a></span><span class="op">(</span><span class="va">response</span> <span class="op">~</span> <span class="fl">1</span> <span class="op">+</span> <span class="fu">sw0</span><span class="op">(</span><span class="va">unrelated</span><span class="op">)</span> <span class="op">|</span> <span class="va">endogenous</span> <span class="op">~</span> <span class="va">exogenous</span>, data <span class="op">=</span> <span class="va">my_data</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/etable.html">etable</a></span><span class="op">(</span></span>
+<span>    <span class="va">wo_omitted</span>,</span>
+<span>    <span class="va">w_omitted</span>,</span>
+<span>    <span class="va">iv</span>, </span>
+<span>    digits <span class="op">=</span> <span class="fl">2</span></span>
+<span>    <span class="co"># vcov = list("each", "iid", "hetero")</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;                   wo_omitted.1   wo_omitted.2      w_omitted           iv.1</span></span>
+<span><span class="co">#&gt; Dependent Var.:       response       response       response       response</span></span>
+<span><span class="co">#&gt;                                                                            </span></span>
+<span><span class="co">#&gt; Constant        -3.9*** (0.10) -4.0*** (0.10)  4.0*** (0.05) 15.7*** (0.59)</span></span>
+<span><span class="co">#&gt; endogenous      4.0*** (0.005) 4.0*** (0.005) 3.0*** (0.004)  3.0*** (0.03)</span></span>
+<span><span class="co">#&gt; unrelated                         0.03 (0.03)  0.002 (0.010)               </span></span>
+<span><span class="co">#&gt; omitted                                        6.0*** (0.02)               </span></span>
+<span><span class="co">#&gt; _______________ ______________ ______________ ______________ ______________</span></span>
+<span><span class="co">#&gt; S.E. type                  IID            IID            IID            IID</span></span>
+<span><span class="co">#&gt; Observations            10,000         10,000         10,000         10,000</span></span>
+<span><span class="co">#&gt; R2                     0.98566        0.98567        0.99803        0.92608</span></span>
+<span><span class="co">#&gt; Adj. R2                0.98566        0.98566        0.99803        0.92607</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;                           iv.2</span></span>
+<span><span class="co">#&gt; Dependent Var.:       response</span></span>
+<span><span class="co">#&gt;                               </span></span>
+<span><span class="co">#&gt; Constant        15.6*** (0.59)</span></span>
+<span><span class="co">#&gt; endogenous       3.0*** (0.03)</span></span>
+<span><span class="co">#&gt; unrelated         0.10. (0.06)</span></span>
+<span><span class="co">#&gt; omitted                       </span></span>
+<span><span class="co">#&gt; _______________ ______________</span></span>
+<span><span class="co">#&gt; S.E. type                  IID</span></span>
+<span><span class="co">#&gt; Observations            10,000</span></span>
+<span><span class="co">#&gt; R2                     0.92610</span></span>
+<span><span class="co">#&gt; Adj. R2                0.92608</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
+<p>Linear in parameter and linear in endogenous variable</p>
+<div class="sourceCode" id="cb888"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># manual</span></span>
+<span><span class="co"># 2SLS</span></span>
+<span><span class="va">first_stage</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">endogenous</span> <span class="op">~</span> <span class="va">exogenous</span>, data <span class="op">=</span> <span class="va">my_data</span><span class="op">)</span></span>
+<span><span class="va">new_data</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/cbind.html">cbind</a></span><span class="op">(</span><span class="va">my_data</span>, new_endogenous <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">first_stage</span>, <span class="va">my_data</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">second_stage</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">response</span> <span class="op">~</span> <span class="va">new_endogenous</span>, data <span class="op">=</span> <span class="va">new_data</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">second_stage</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; lm(formula = response ~ new_endogenous, data = new_data)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residuals:</span></span>
+<span><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span><span class="co">#&gt; -77.683 -14.374  -0.107  14.289  78.274 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;                Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept)     15.6743     2.0819   7.529 5.57e-14 ***</span></span>
+<span><span class="co">#&gt; new_endogenous   3.0142     0.1039  29.025  &lt; 2e-16 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residual standard error: 21.26 on 9998 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.07771,    Adjusted R-squared:  0.07762 </span></span>
+<span><span class="co">#&gt; F-statistic: 842.4 on 1 and 9998 DF,  p-value: &lt; 2.2e-16</span></span>
+<span></span>
+<span><span class="va">new_data_cf</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/cbind.html">cbind</a></span><span class="op">(</span><span class="va">my_data</span>, residual <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">resid</a></span><span class="op">(</span><span class="va">first_stage</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">second_stage_cf</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">response</span> <span class="op">~</span> <span class="va">endogenous</span> <span class="op">+</span> <span class="va">residual</span>, data <span class="op">=</span> <span class="va">new_data_cf</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">second_stage_cf</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; lm(formula = response ~ endogenous + residual, data = new_data_cf)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residuals:</span></span>
+<span><span class="co">#&gt;    Min     1Q Median     3Q    Max </span></span>
+<span><span class="co">#&gt; -5.360 -1.016  0.003  1.023  5.201 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;              Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept) 15.674265   0.149350   105.0   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; endogenous   3.014202   0.007450   404.6   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; residual     1.140920   0.008027   142.1   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residual standard error: 1.525 on 9997 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.9953, Adjusted R-squared:  0.9953 </span></span>
+<span><span class="co">#&gt; F-statistic: 1.048e+06 on 2 and 9997 DF,  p-value: &lt; 2.2e-16</span></span>
+<span></span>
+<span><span class="fu"><a href="https://modelsummary.com/man/modelsummary.html">modelsummary</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">second_stage</span>, <span class="va">second_stage_cf</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-table"><table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead><tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:center;">
+ (1)
+</th>
+<th style="text-align:center;">
+  (2)
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+(Intercept)
+</td>
+<td style="text-align:center;">
+15.674
+</td>
+<td style="text-align:center;">
+15.674
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:center;">
+(2.082)
+</td>
+<td style="text-align:center;">
+(0.149)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+new_endogenous
+</td>
+<td style="text-align:center;">
+3.014
+</td>
+<td style="text-align:center;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:center;">
+(0.104)
+</td>
+<td style="text-align:center;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+endogenous
+</td>
+<td style="text-align:center;">
+</td>
+<td style="text-align:center;">
+3.014
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:center;">
+</td>
+<td style="text-align:center;">
+(0.007)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+residual
+</td>
+<td style="text-align:center;">
+</td>
+<td style="text-align:center;">
+1.141
+</td>
+</tr>
+<tr>
+<td style="text-align:left;box-shadow: 0px 1.5px">
+</td>
+<td style="text-align:center;box-shadow: 0px 1.5px">
+</td>
+<td style="text-align:center;box-shadow: 0px 1.5px">
+(0.008)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num.Obs.
+</td>
+<td style="text-align:center;">
+10000
+</td>
+<td style="text-align:center;">
+10000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+R2
+</td>
+<td style="text-align:center;">
+0.078
+</td>
+<td style="text-align:center;">
+0.995
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+R2 Adj.
+</td>
+<td style="text-align:center;">
+0.078
+</td>
+<td style="text-align:center;">
+0.995
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+AIC
+</td>
+<td style="text-align:center;">
+89520.9
+</td>
+<td style="text-align:center;">
+36826.8
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BIC
+</td>
+<td style="text-align:center;">
+89542.5
+</td>
+<td style="text-align:center;">
+36855.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Log.Lik.
+</td>
+<td style="text-align:center;">
+−44757.438
+</td>
+<td style="text-align:center;">
+−18409.377
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+F
+</td>
+<td style="text-align:center;">
+842.424
+</td>
+<td style="text-align:center;">
+1048263.304
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RMSE
+</td>
+<td style="text-align:center;">
+21.26
+</td>
+<td style="text-align:center;">
+1.53
+</td>
+</tr>
+</tbody>
+</table></div>
+<p>Nonlinear in endogenous variable</p>
+<div class="sourceCode" id="cb889"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># 2SLS</span></span>
+<span><span class="va">first_stage</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">endogenous_nonlinear</span> <span class="op">~</span> <span class="va">exogenous</span>, data <span class="op">=</span> <span class="va">my_data</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">new_data</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/cbind.html">cbind</a></span><span class="op">(</span><span class="va">my_data</span>, new_endogenous_nonlinear <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">first_stage</span>, <span class="va">my_data</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">second_stage</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">response_nonlinear</span> <span class="op">~</span> <span class="va">new_endogenous_nonlinear</span>, data <span class="op">=</span> <span class="va">new_data</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">second_stage</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; lm(formula = response_nonlinear ~ new_endogenous_nonlinear, data = new_data)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residuals:</span></span>
+<span><span class="co">#&gt;    Min     1Q Median     3Q    Max </span></span>
+<span><span class="co">#&gt; -94.43 -52.10 -15.29  36.50 446.08 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;                          Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept)               15.3390    11.8175   1.298    0.194    </span></span>
+<span><span class="co">#&gt; new_endogenous_nonlinear   3.0174     0.3376   8.938   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residual standard error: 69.51 on 9998 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.007927,   Adjusted R-squared:  0.007828 </span></span>
+<span><span class="co">#&gt; F-statistic: 79.89 on 1 and 9998 DF,  p-value: &lt; 2.2e-16</span></span>
+<span></span>
+<span><span class="va">new_data_cf</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/cbind.html">cbind</a></span><span class="op">(</span><span class="va">my_data</span>, residual <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">resid</a></span><span class="op">(</span><span class="va">first_stage</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">second_stage_cf</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">response_nonlinear</span> <span class="op">~</span> <span class="va">endogenous_nonlinear</span> <span class="op">+</span> <span class="va">residual</span>, data <span class="op">=</span> <span class="va">new_data_cf</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">second_stage_cf</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; lm(formula = response_nonlinear ~ endogenous_nonlinear + residual, </span></span>
+<span><span class="co">#&gt;     data = new_data_cf)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residuals:</span></span>
+<span><span class="co">#&gt;      Min       1Q   Median       3Q      Max </span></span>
+<span><span class="co">#&gt; -17.5437  -0.8348   0.4614   1.4424   4.8154 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;                      Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept)          15.33904    0.38459   39.88   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; endogenous_nonlinear  3.01737    0.01099  274.64   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; residual              0.24919    0.01104   22.58   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residual standard error: 2.262 on 9997 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.9989, Adjusted R-squared:  0.9989 </span></span>
+<span><span class="co">#&gt; F-statistic: 4.753e+06 on 2 and 9997 DF,  p-value: &lt; 2.2e-16</span></span>
+<span></span>
+<span><span class="fu"><a href="https://modelsummary.com/man/modelsummary.html">modelsummary</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">second_stage</span>, <span class="va">second_stage_cf</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-table"><table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead><tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:center;">
+ (1)
+</th>
+<th style="text-align:center;">
+  (2)
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+(Intercept)
+</td>
+<td style="text-align:center;">
+15.339
+</td>
+<td style="text-align:center;">
+15.339
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:center;">
+(11.817)
+</td>
+<td style="text-align:center;">
+(0.385)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+new_endogenous_nonlinear
+</td>
+<td style="text-align:center;">
+3.017
+</td>
+<td style="text-align:center;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:center;">
+(0.338)
+</td>
+<td style="text-align:center;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+endogenous_nonlinear
+</td>
+<td style="text-align:center;">
+</td>
+<td style="text-align:center;">
+3.017
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:center;">
+</td>
+<td style="text-align:center;">
+(0.011)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+residual
+</td>
+<td style="text-align:center;">
+</td>
+<td style="text-align:center;">
+0.249
+</td>
+</tr>
+<tr>
+<td style="text-align:left;box-shadow: 0px 1.5px">
+</td>
+<td style="text-align:center;box-shadow: 0px 1.5px">
+</td>
+<td style="text-align:center;box-shadow: 0px 1.5px">
+(0.011)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num.Obs.
+</td>
+<td style="text-align:center;">
+10000
+</td>
+<td style="text-align:center;">
+10000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+R2
+</td>
+<td style="text-align:center;">
+0.008
+</td>
+<td style="text-align:center;">
+0.999
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+R2 Adj.
+</td>
+<td style="text-align:center;">
+0.008
+</td>
+<td style="text-align:center;">
+0.999
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+AIC
+</td>
+<td style="text-align:center;">
+113211.6
+</td>
+<td style="text-align:center;">
+44709.6
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BIC
+</td>
+<td style="text-align:center;">
+113233.2
+</td>
+<td style="text-align:center;">
+44738.4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Log.Lik.
+</td>
+<td style="text-align:center;">
+−56602.782
+</td>
+<td style="text-align:center;">
+−22350.801
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+F
+</td>
+<td style="text-align:center;">
+79.887
+</td>
+<td style="text-align:center;">
+4752573.052
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RMSE
+</td>
+<td style="text-align:center;">
+69.50
+</td>
+<td style="text-align:center;">
+2.26
+</td>
+</tr>
+</tbody>
+</table></div>
+<p>Nonlinear in parameters</p>
+<div class="sourceCode" id="cb890"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># 2SLS</span></span>
+<span><span class="va">first_stage</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">endogenous</span> <span class="op">~</span> <span class="va">exogenous</span>, data <span class="op">=</span> <span class="va">my_data</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">new_data</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/cbind.html">cbind</a></span><span class="op">(</span><span class="va">my_data</span>, new_endogenous <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html">predict</a></span><span class="op">(</span><span class="va">first_stage</span>, <span class="va">my_data</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">second_stage</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">response_nonlinear_para</span> <span class="op">~</span> <span class="va">new_endogenous</span>, data <span class="op">=</span> <span class="va">new_data</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">second_stage</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; lm(formula = response_nonlinear_para ~ new_endogenous, data = new_data)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residuals:</span></span>
+<span><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span><span class="co">#&gt; -1536.5  -452.4   -80.7   368.4  3780.9 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;                 Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept)    -1089.943     61.706  -17.66   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; new_endogenous   119.829      3.078   38.93   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residual standard error: 630.2 on 9998 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.1316, Adjusted R-squared:  0.1316 </span></span>
+<span><span class="co">#&gt; F-statistic:  1516 on 1 and 9998 DF,  p-value: &lt; 2.2e-16</span></span>
+<span></span>
+<span><span class="va">new_data_cf</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/cbind.html">cbind</a></span><span class="op">(</span><span class="va">my_data</span>, residual <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/residuals.html">resid</a></span><span class="op">(</span><span class="va">first_stage</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">second_stage_cf</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">response_nonlinear_para</span> <span class="op">~</span> <span class="va">endogenous_nonlinear</span> <span class="op">+</span> <span class="va">residual</span>, data <span class="op">=</span> <span class="va">new_data_cf</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">second_stage_cf</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Call:</span></span>
+<span><span class="co">#&gt; lm(formula = response_nonlinear_para ~ endogenous_nonlinear + </span></span>
+<span><span class="co">#&gt;     residual, data = new_data_cf)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residuals:</span></span>
+<span><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></span>
+<span><span class="co">#&gt; -961.00 -139.32  -16.02  135.57 1403.62 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Coefficients:</span></span>
+<span><span class="co">#&gt;                      Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span><span class="co">#&gt; (Intercept)          678.1593     9.9177   68.38   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; endogenous_nonlinear  17.7884     0.2759   64.46   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; residual              52.5016     1.1552   45.45   &lt;2e-16 ***</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Residual standard error: 231.9 on 9997 degrees of freedom</span></span>
+<span><span class="co">#&gt; Multiple R-squared:  0.8824, Adjusted R-squared:  0.8824 </span></span>
+<span><span class="co">#&gt; F-statistic: 3.751e+04 on 2 and 9997 DF,  p-value: &lt; 2.2e-16</span></span>
+<span></span>
+<span><span class="fu"><a href="https://modelsummary.com/man/modelsummary.html">modelsummary</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="va">second_stage</span>, <span class="va">second_stage_cf</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-table"><table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead><tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:center;">
+ (1)
+</th>
+<th style="text-align:center;">
+  (2)
+</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+(Intercept)
+</td>
+<td style="text-align:center;">
+−1089.943
+</td>
+<td style="text-align:center;">
+678.159
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:center;">
+(61.706)
+</td>
+<td style="text-align:center;">
+(9.918)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+new_endogenous
+</td>
+<td style="text-align:center;">
+119.829
+</td>
+<td style="text-align:center;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:center;">
+(3.078)
+</td>
+<td style="text-align:center;">
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+endogenous_nonlinear
+</td>
+<td style="text-align:center;">
+</td>
+<td style="text-align:center;">
+17.788
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:center;">
+</td>
+<td style="text-align:center;">
+(0.276)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+residual
+</td>
+<td style="text-align:center;">
+</td>
+<td style="text-align:center;">
+52.502
+</td>
+</tr>
+<tr>
+<td style="text-align:left;box-shadow: 0px 1.5px">
+</td>
+<td style="text-align:center;box-shadow: 0px 1.5px">
+</td>
+<td style="text-align:center;box-shadow: 0px 1.5px">
+(1.155)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Num.Obs.
+</td>
+<td style="text-align:center;">
+10000
+</td>
+<td style="text-align:center;">
+10000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+R2
+</td>
+<td style="text-align:center;">
+0.132
+</td>
+<td style="text-align:center;">
+0.882
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+R2 Adj.
+</td>
+<td style="text-align:center;">
+0.132
+</td>
+<td style="text-align:center;">
+0.882
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+AIC
+</td>
+<td style="text-align:center;">
+157302.4
+</td>
+<td style="text-align:center;">
+137311.3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+BIC
+</td>
+<td style="text-align:center;">
+157324.1
+</td>
+<td style="text-align:center;">
+137340.1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Log.Lik.
+</td>
+<td style="text-align:center;">
+−78648.225
+</td>
+<td style="text-align:center;">
+−68651.628
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+F
+</td>
+<td style="text-align:center;">
+1515.642
+</td>
+<td style="text-align:center;">
+37505.777
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+RMSE
+</td>
+<td style="text-align:center;">
+630.10
+</td>
+<td style="text-align:center;">
+231.88
+</td>
+</tr>
+</tbody>
+</table></div>
+<!-- ## Application in Marketing --><!-- ### Peer-based IV -->
+</div>
+</div>
+<div id="new-advances" class="section level2" number="34.8">
+<h2>
+<span class="header-section-number">34.8</span> New Advances<a class="anchor" aria-label="anchor" href="#new-advances"><i class="fas fa-link"></i></a>
+</h2>
+<ul>
+<li>Combine ML and IV <span class="citation">(<a href="references.html#ref-singh2020machine">Singh, Hosanagar, and Gandhi 2020</a>)</span>
+</li>
+</ul>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="event-studies.html"><span class="header-section-number">33</span> Event Studies</a></div>
+<div class="next"><a href="sec-matching-methods.html"><span class="header-section-number">35</span> Matching Methods</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sec-instrumental-variables"><span class="header-section-number">34</span> Instrumental Variables</a></li>
+<li><a class="nav-link" href="#framework"><span class="header-section-number">34.1</span> Framework</a></li>
+<li>
+<a class="nav-link" href="#estimation-2"><span class="header-section-number">34.2</span> Estimation</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sls-estimation"><span class="header-section-number">34.2.1</span> 2SLS Estimation</a></li>
+<li><a class="nav-link" href="#iv-gmm"><span class="header-section-number">34.2.2</span> IV-GMM</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#inference-2"><span class="header-section-number">34.3</span> Inference</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#ar-approach"><span class="header-section-number">34.3.1</span> AR approach</a></li>
+<li><a class="nav-link" href="#tf-procedure"><span class="header-section-number">34.3.2</span> tF Procedure</a></li>
+<li><a class="nav-link" href="#ak-approach"><span class="header-section-number">34.3.3</span> AK approach</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#testing-assumptions"><span class="header-section-number">34.4</span> Testing Assumptions</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#relevance-assumption"><span class="header-section-number">34.4.1</span> Relevance Assumption</a></li>
+<li><a class="nav-link" href="#exogeneity-assumption"><span class="header-section-number">34.4.2</span> Exogeneity Assumption</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#negative-r2"><span class="header-section-number">34.5</span> Negative \(R^2\)</a></li>
+<li><a class="nav-link" href="#treatment-intensity"><span class="header-section-number">34.6</span> Treatment Intensity</a></li>
+<li>
+<a class="nav-link" href="#control-function"><span class="header-section-number">34.7</span> Control Function</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#simulation"><span class="header-section-number">34.7.1</span> Simulation</a></li></ul>
+</li>
+<li><a class="nav-link" href="#new-advances"><span class="header-section-number">34.8</span> New Advances</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/mikenguyen13/data_analysis/blob/main/34-instrumental_var.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/mikenguyen13/data_analysis/edit/main/34-instrumental_var.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-03-03.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

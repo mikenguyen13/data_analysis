@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 29 Synthetic Difference-in-Differences | A Guide on Data Analysis</title>
+<meta name="author" content="Mike Nguyen">
+<meta name="description" content="Understanding the impact of policy interventions is a fundamental challenge in empirical research. Analysts frequently rely on panel data, which tracks multiple units over time, to assess how...">
+<meta name="generator" content="bookdown 0.35 with bs4_book()">
+<meta property="og:title" content="Chapter 29 Synthetic Difference-in-Differences | A Guide on Data Analysis">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://bookdown.org/mike/data_analysis/sec-synthetic-difference-in-differences.html">
+<meta property="og:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<meta property="og:description" content="Understanding the impact of policy interventions is a fundamental challenge in empirical research. Analysts frequently rely on panel data, which tracks multiple units over time, to assess how...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 29 Synthetic Difference-in-Differences | A Guide on Data Analysis">
+<meta name="twitter:description" content="Understanding the impact of policy interventions is a fundamental challenge in empirical research. Analysts frequently rely on panel data, which tracks multiple units over time, to assess how...">
+<meta name="twitter:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.6.1/transition.js"></script><script src="libs/bs3compat-0.6.1/tabs.js"></script><script src="libs/bs3compat-0.6.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/kePrint-0.0.1/kePrint.js"></script><link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+<!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script><script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-DMNX2X65HQ');
+    </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">A Guide on Data Analysis</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Preface</a></li>
+<li><a class="" href="introduction.html"><span class="header-section-number">1</span> Introduction</a></li>
+<li><a class="" href="prerequisites.html"><span class="header-section-number">2</span> Prerequisites</a></li>
+<li class="book-part">I. BASIC</li>
+<li><a class="" href="descriptive-statistics.html"><span class="header-section-number">3</span> Descriptive Statistics</a></li>
+<li><a class="" href="basic-statistical-inference.html"><span class="header-section-number">4</span> Basic Statistical Inference</a></li>
+<li class="book-part">II. REGRESSION</li>
+<li><a class="" href="linear-regression.html"><span class="header-section-number">5</span> Linear Regression</a></li>
+<li><a class="" href="non-linear-regression.html"><span class="header-section-number">6</span> Non-Linear Regression</a></li>
+<li><a class="" href="generalized-linear-models.html"><span class="header-section-number">7</span> Generalized Linear Models</a></li>
+<li><a class="" href="sec-linear-mixed-models.html"><span class="header-section-number">8</span> Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonlinear-and-generalized-linear-mixed-models.html"><span class="header-section-number">9</span> Nonlinear and Generalized Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonparametric-regression.html"><span class="header-section-number">10</span> Nonparametric Regression</a></li>
+<li class="book-part">III. RAMIFICATIONS</li>
+<li><a class="" href="data.html"><span class="header-section-number">11</span> Data</a></li>
+<li><a class="" href="variable-transformation.html"><span class="header-section-number">12</span> Variable Transformation</a></li>
+<li><a class="" href="imputation-missing-data.html"><span class="header-section-number">13</span> Imputation (Missing Data)</a></li>
+<li><a class="" href="model-specification-tests.html"><span class="header-section-number">14</span> Model Specification Tests</a></li>
+<li><a class="" href="variable-selection.html"><span class="header-section-number">15</span> Variable Selection</a></li>
+<li><a class="" href="hypothesis-testing.html"><span class="header-section-number">16</span> Hypothesis Testing</a></li>
+<li><a class="" href="sec-marginal-effects.html"><span class="header-section-number">17</span> Marginal Effects</a></li>
+<li><a class="" href="moderation.html"><span class="header-section-number">18</span> Moderation</a></li>
+<li><a class="" href="mediation.html"><span class="header-section-number">19</span> Mediation</a></li>
+<li><a class="" href="prediction-and-estimation.html"><span class="header-section-number">20</span> Prediction and Estimation</a></li>
+<li class="book-part">IV. CAUSAL INFERENCE</li>
+<li><a class="" href="sec-causal-inference.html"><span class="header-section-number">21</span> Causal Inference</a></li>
+<li class="book-part">A. EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-experimental-design.html"><span class="header-section-number">22</span> Experimental Design</a></li>
+<li><a class="" href="sampling.html"><span class="header-section-number">23</span> Sampling</a></li>
+<li><a class="" href="sec-analysis-of-variance-anova.html"><span class="header-section-number">24</span> Analysis of Variance</a></li>
+<li><a class="" href="sec-multivariate-methods.html"><span class="header-section-number">25</span> Multivariate Methods</a></li>
+<li class="book-part">B. QUASI-EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-quasi-experimental.html"><span class="header-section-number">26</span> Quasi-Experimental Methods</a></li>
+<li><a class="" href="sec-regression-discontinuity.html"><span class="header-section-number">27</span> Regression Discontinuity</a></li>
+<li><a class="" href="temporal-discontinuity-designs.html"><span class="header-section-number">28</span> Temporal Discontinuity Designs</a></li>
+<li><a class="active" href="sec-synthetic-difference-in-differences.html"><span class="header-section-number">29</span> Synthetic Difference-in-Differences</a></li>
+<li><a class="" href="sec-difference-in-differences.html"><span class="header-section-number">30</span> Difference-in-Differences</a></li>
+<li><a class="" href="changes-in-changes.html"><span class="header-section-number">31</span> Changes-in-Changes</a></li>
+<li><a class="" href="sec-synthetic-control.html"><span class="header-section-number">32</span> Synthetic Control</a></li>
+<li><a class="" href="event-studies.html"><span class="header-section-number">33</span> Event Studies</a></li>
+<li><a class="" href="sec-instrumental-variables.html"><span class="header-section-number">34</span> Instrumental Variables</a></li>
+<li><a class="" href="sec-matching-methods.html"><span class="header-section-number">35</span> Matching Methods</a></li>
+<li class="book-part">C. OTHER CONCERNS</li>
+<li><a class="" href="endogeneity.html"><span class="header-section-number">36</span> Endogeneity</a></li>
+<li><a class="" href="other-biases.html"><span class="header-section-number">37</span> Other Biases</a></li>
+<li><a class="" href="controls.html"><span class="header-section-number">38</span> Controls</a></li>
+<li><a class="" href="directed-acyclic-graph.html"><span class="header-section-number">39</span> Directed Acyclic Graph</a></li>
+<li class="book-part">V. MISCELLANEOUS</li>
+<li><a class="" href="report.html"><span class="header-section-number">40</span> Report</a></li>
+<li><a class="" href="exploratory-data-analysis.html"><span class="header-section-number">41</span> Exploratory Data Analysis</a></li>
+<li><a class="" href="sensitivity-analysis-robustness-check.html"><span class="header-section-number">42</span> Sensitivity Analysis/ Robustness Check</a></li>
+<li><a class="" href="replication-and-synthetic-data.html"><span class="header-section-number">43</span> Replication and Synthetic Data</a></li>
+<li class="book-part">APPENDIX</li>
+<li><a class="" href="appendix.html"><span class="header-section-number">A</span> Appendix</a></li>
+<li><a class="" href="bookdown-cheat-sheet.html"><span class="header-section-number">B</span> Bookdown cheat sheet</a></li>
+<li><a class="" href="references.html">References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/mikenguyen13/data_analysis">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="sec-synthetic-difference-in-differences" class="section level1" number="29">
+<h1>
+<span class="header-section-number">29</span> Synthetic Difference-in-Differences<a class="anchor" aria-label="anchor" href="#sec-synthetic-difference-in-differences"><i class="fas fa-link"></i></a>
+</h1>
+<p>Understanding the impact of policy interventions is a fundamental challenge in empirical research. Analysts frequently rely on <strong>panel data</strong>, which tracks multiple units over time, to assess how outcomes change before and after a policy is implemented. However, estimating causal effects in this setting is complicated by the fact that policies are often adopted non-randomly—certain units may be more likely to receive treatment based on their characteristics, prior trends, or external factors. If treatment assignment correlates with unit-specific or time-specific factors, <strong>selection bias</strong> can invalidate causal conclusions, even when observed covariates are accounted for <span class="citation">(<a href="references.html#ref-imbens2015causal">G. W. Imbens and Rubin 2015</a>)</span>.</p>
+<p>A well-established approach to dealing with this challenge is the <a href="sec-difference-in-differences.html#sec-difference-in-differences">Difference-in-Differences</a> (DID) method, which compares changes in outcomes between treated and untreated groups. However, <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> relies on the crucial <strong>parallel trends assumption</strong>—the idea that, in the absence of treatment, treated and untreated units would have followed similar trajectories. When this assumption is violated, <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> can produce biased estimates.</p>
+<p>An alternative approach, <a href="sec-synthetic-control.html#sec-synthetic-control">Synthetic Control</a> (SC), is particularly useful when only a few units receive treatment. Instead of assuming parallel trends, <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a> constructs a weighted combination of untreated units that best approximates the pre-treatment behavior of the treated group. This method improves comparability but has limitations, including sensitivity to extrapolation and instability when there are many control units.</p>
+<p>To address the shortcomings of both <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> and <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a>, <strong>Synthetic Difference-in-Differences (SDID)</strong> was introduced by <span class="citation">(<a href="references.html#ref-arkhangelsky2021synthetic">Arkhangelsky et al. 2021</a>)</span>. SDID is a <strong>weighted double-differencing estimator</strong> that:</p>
+<ul>
+<li>Combines features of <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> and <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a> to improve causal inference.</li>
+<li>Adjusts for differences in pre-treatment trends through reweighting (like <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a>).</li>
+<li>Remains invariant to additive unit-level shifts and is valid for large panels (like <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a>).</li>
+</ul>
+<p>The key advantage of SDID is that it achieves double robustness: it performs well when <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> assumptions hold but also corrects for deviations from parallel trends by using synthetic weights. This makes SDID particularly useful in situations where treatment assignment is correlated with latent factors that affect outcomes over time.</p>
+<ul>
+<li>SDID explicitly accounts for systematic unit-level effects that influence treatment assignment.</li>
+<li>This is especially valuable when treatment is non-randomly assigned based on persistent unit characteristics.</li>
+<li>Even under purely random treatment assignment, all three methods (<a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a>, <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a>, and SDID) are unbiased—but SDID achieves the smallest standard error (SE).</li>
+</ul>
+<p>Recent research has applied SDID to evaluate marketing interventions and policy changes:</p>
+<ul>
+<li>
+<strong>TV Advertising &amp; Online Sales</strong> <span class="citation">(<a href="references.html#ref-lambrecht2024tv">Lambrecht, Tucker, and Zhang 2024</a>)</span>: SDID was used to estimate the effect of TV ad campaigns on consumer behavior, accounting for time-varying confounders.</li>
+<li>
+<strong>Soda Tax &amp; Marketing Effectiveness</strong> <span class="citation">(<a href="references.html#ref-keller2024soda">Keller, Guyt, and Grewal 2024</a>)</span>: SDID helped measure how soda tax policies influenced marketing strategies and consumer demand.</li>
+</ul>
+<div class="inline-table"><table style="width:99%;" class="table table-sm">
+<caption>Key Differences Between <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> and <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a>
+</caption>
+<colgroup>
+<col width="5%">
+<col width="21%">
+<col width="10%">
+<col width="27%">
+<col width="34%">
+</colgroup>
+<thead><tr class="header">
+<th>Method</th>
+<th>Assumptions</th>
+<th>Use Case</th>
+<th>Strengths</th>
+<th>Weaknesses</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>DID</strong></td>
+<td>Parallel trends assumption</td>
+<td>Many treated units</td>
+<td>Simple implementation, valid for large panels</td>
+<td>Fails when parallel trends assumption is violated</td>
+</tr>
+<tr class="even">
+<td><strong>SC</strong></td>
+<td>Reweighting to match pre-treatment trends</td>
+<td>Few treated units</td>
+<td>More flexible, compensates for lack of parallel trends</td>
+<td>Sensitive to outliers, does not scale well with large treated groups</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Attractive Features of SDID</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Statistical Properties</strong>
+<ul>
+<li>Provides consistent and asymptotically normal estimates.</li>
+<li>Achieves double robustness, similar to augmented inverse probability weighting estimators <span class="citation">Scharfstein, Rotnitzky, and Robins (<a href="references.html#ref-scharfstein1999adjusting">1999</a>)</span>.</li>
+</ul>
+</li>
+<li>
+<strong>Performance Comparison</strong>
+<ul>
+<li>In settings where <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> is valid, SDID performs at least as well or better.</li>
+<li>Unlike <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a>, SDID remains valid when treatment assignment correlates with latent unit-level or time-varying factors.</li>
+<li>In settings where <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a> is used, SDID performs equally well or better.</li>
+<li>When treatment is randomly assigned, all methods remain unbiased, but SDID tends to have higher precision.</li>
+</ul>
+</li>
+<li>
+<strong>Bias Reduction</strong>
+<ul>
+<li>Particularly effective when treatment assignment is not uniformly random.</li>
+<li>Offers robustness against violations of standard <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> or <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a> assumptions.</li>
+</ul>
+</li>
+<li>
+<strong>Related to Augmented SC</strong>
+<ul>
+<li>Shares methodological similarities with augmented <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a> estimators <span class="citation">(<a href="references.html#ref-ben2021augmented">Ben-Michael, Feller, and Rothstein 2021</a>; <a href="references.html#ref-arkhangelsky2021synthetic">Arkhangelsky et al. 2021, 4112</a>)</span>.</li>
+</ul>
+</li>
+<li>
+<strong>Recommended Use Cases</strong><br>
+SDID is particularly effective when:
+<ul>
+<li>The number of control units (<span class="math inline">\(N_{ctr}\)</span>) is similar to the number of pre-treatment periods (<span class="math inline">\(T_{pre}\)</span>).</li>
+<li>The number of post-treatment periods (<span class="math inline">\(T_{post}\)</span>) is small.</li>
+<li>The number of treated units (<span class="math inline">\(N_{tr}\)</span>) satisfies:<br><span class="math display">\[ N_{tr} &lt; \sqrt{N_{ctr}} \]</span>
+</li>
+</ul>
+</li>
+</ol>
+<hr>
+<div id="understanding" class="section level2" number="29.1">
+<h2>
+<span class="header-section-number">29.1</span> Understanding<a class="anchor" aria-label="anchor" href="#understanding"><i class="fas fa-link"></i></a>
+</h2>
+<p>To formally define the SDID estimator, we begin by considering a balanced panel dataset with <span class="math inline">\(N\)</span> units observed over <span class="math inline">\(T\)</span> time periods. Our goal is to estimate the causal effect of a treatment intervention while accounting for both unit-specific and time-specific confounders.</p>
+<p>Let:</p>
+<ul>
+<li>
+<span class="math inline">\(Y_{it}\)</span> be the outcome variable for unit <span class="math inline">\(i\)</span> at time <span class="math inline">\(t\)</span>.</li>
+<li>
+<span class="math inline">\(W_{it} \in \{0,1\}\)</span> be a binary indicator of treatment, where <span class="math inline">\(W_{it} = 1\)</span> if unit <span class="math inline">\(i\)</span> is treated at time <span class="math inline">\(t\)</span> and <span class="math inline">\(0\)</span> otherwise.</li>
+<li>The panel consists of:
+<ul>
+<li>
+<span class="math inline">\(N_c\)</span> control units (never treated).</li>
+<li>
+<span class="math inline">\(N_t\)</span> treated units, exposed to treatment after period <span class="math inline">\(T_{pre}\)</span>.</li>
+</ul>
+</li>
+</ul>
+<div id="steps-in-sdid-estimation" class="section level3" number="29.1.1">
+<h3>
+<span class="header-section-number">29.1.1</span> Steps in SDID Estimation<a class="anchor" aria-label="anchor" href="#steps-in-sdid-estimation"><i class="fas fa-link"></i></a>
+</h3>
+<p>SDID combines ideas from both <strong>SC</strong> and <strong>DID</strong> by introducing unit weights and time weights:</p>
+<ol style="list-style-type: decimal">
+<li><p><strong>Find unit weights</strong> <span class="math inline">\(\hat{w}_i^{sdid}\)</span> to ensure that pre-treatment outcomes of the weighted control group match the pre-treatment outcomes of the treated units:<br><span class="math display">\[
+\sum_{i = 1}^{N_c} \hat{w}_i^{sdid} Y_{it} \approx \frac{1}{N_t} \sum_{i = N_c + 1}^{N} Y_{it}, \quad \forall t = 1, \dots, T_{pre}
+\]</span><br>
+This ensures that pre-treatment trends of treated and control units are similar, just as in <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a>.</p></li>
+<li><p><strong>Find time weights</strong> <span class="math inline">\(\hat{\lambda}_t^{sdid}\)</span> to balance post-treatment deviations from pre-treatment outcomes, stabilizing the inference.</p></li>
+<li>
+<p><strong>Estimate the treatment effect</strong> <span class="math inline">\(\hat{\tau}^{sdid}\)</span> by solving the following minimization problem:<br><span class="math display">\[
+(\hat{\tau}^{sdid}, \hat{\mu}, \hat{\alpha}, \hat{\beta}) = \arg \min_{\tau, \mu, \alpha, \beta} \sum_{i=1}^{N} \sum_{t=1}^{T} (Y_{it} - \mu - \alpha_i - \beta_t - W_{it} \tau)^2 \hat{w}_i^{sdid} \hat{\lambda}_t^{sdid}
+\]</span><br>
+where:</p>
+<ul>
+<li>
+<span class="math inline">\(\mu\)</span> is the global intercept.</li>
+<li>
+<span class="math inline">\(\alpha_i\)</span> captures unit-specific fixed effects.</li>
+<li>
+<span class="math inline">\(\beta_t\)</span> captures time-specific fixed effects.</li>
+<li>
+<span class="math inline">\(\tau\)</span> represents the treatment effect.</li>
+</ul>
+</li>
+</ol>
+<p>Unlike the standard <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> and <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a> estimators, SDID incorporates both unit and time weights, making it less sensitive to violations of parallel trends.</p>
+<p>DID solves:<br><span class="math display">\[
+(\hat{\tau}^{did}, \hat{\mu}, \hat{\alpha}, \hat{\beta}) = \arg \min_{\tau, \mu, \alpha, \beta} \sum_{i=1}^{N} \sum_{t=1}^{T} (Y_{it} - \mu - \alpha_i - \beta_t - W_{it} \tau)^2
+\]</span><br>
+However, <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> does not use unit or time weights, making it unreliable if treatment assignment correlates with unobserved factors.</p>
+<p>SC minimizes:<br><span class="math display">\[
+(\hat{\tau}^{sc}, \hat{\mu}, \hat{\beta}) = \arg \min_{\tau, \mu, \beta} \sum_{i=1}^{N} \sum_{t=1}^{T} (Y_{it} - \mu - \beta_t - W_{it} \tau)^2 \hat{w}_i^{sdid}
+\]</span><br>
+SC does not include unit fixed effects (<span class="math inline">\(\alpha_i\)</span>) or time weights (<span class="math inline">\(\hat{\lambda}_t\)</span>), which can introduce bias when unmeasured confounders vary over time.</p>
+</div>
+<div id="comparison-of-methods-1" class="section level3" number="29.1.2">
+<h3>
+<span class="header-section-number">29.1.2</span> Comparison of Methods<a class="anchor" aria-label="anchor" href="#comparison-of-methods-1"><i class="fas fa-link"></i></a>
+</h3>
+<p>The table below summarizes key differences between <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a>, <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a>, and SDID:</p>
+<div class="inline-table"><table style="width:99%;" class="table table-sm">
+<colgroup>
+<col width="11%">
+<col width="24%">
+<col width="28%">
+<col width="35%">
+</colgroup>
+<thead><tr class="header">
+<th></th>
+<th><strong>DID</strong></th>
+<th><strong>SC</strong></th>
+<th><strong>SDID</strong></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>Primary Assumption</strong></td>
+<td>Absence of intervention leads to parallel evolution across states.</td>
+<td>Reweights unexposed states to match pre-intervention outcomes of treated state.</td>
+<td>Reweights control units to ensure a parallel time trend with the treated pre-intervention trend.</td>
+</tr>
+<tr class="even">
+<td><strong>Reliability Concern</strong></td>
+<td>Can be unreliable when pre-intervention trends aren’t parallel.</td>
+<td>Accounts for non-parallel pre-intervention trends by reweighting.</td>
+<td>Uses reweighting to adjust for non-parallel pre-intervention trends.</td>
+</tr>
+<tr class="odd">
+<td><strong>Treatment of Time Periods</strong></td>
+<td>All pre-treatment periods are given equal weight.</td>
+<td>Doesn’t specifically emphasize equal weight for pre-treatment periods.</td>
+<td>Focuses only on a subset of pre-intervention time periods, selected based on historical outcomes.</td>
+</tr>
+<tr class="even">
+<td><strong>Goal with Reweighting</strong></td>
+<td>N/A (doesn’t use reweighting).</td>
+<td>To match treated state as closely as possible before the intervention.</td>
+<td>Make trends of control units parallel (not necessarily identical) to the treated pre-intervention.</td>
+</tr>
+</tbody>
+</table></div>
+<p>An alternative formulation of the SDID treatment effect is:<br><span class="math display">\[
+\hat{\tau} = \hat{\delta}_t - \sum_{i = 1}^{N_c} \hat{w}_i^{sdid} \hat{\delta}_i
+\]</span><br>
+where:</p>
+<ul>
+<li>
+<span class="math inline">\(\hat{\delta}_t = \frac{1}{N_t} \sum_{i = N_c + 1}^{N} \hat{\delta}_i\)</span> represents the average deviation in treated units post-treatment.</li>
+<li>
+<span class="math inline">\(\sum_{i = 1}^{N_c} \hat{w}_i^{sdid} \hat{\delta}_i\)</span> adjusts for differences using weighted control unit deviations.</li>
+</ul>
+<div class="inline-table"><table style="width:99%;" class="table table-sm">
+<colgroup>
+<col width="4%">
+<col width="21%">
+<col width="41%">
+<col width="31%">
+</colgroup>
+<thead><tr class="header">
+<th>Method</th>
+<th>Sample Weight</th>
+<th>Adjusted outcomes (<span class="math inline">\(\hat{\delta}_i\)</span>)</th>
+<th>Interpretation</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>SC</td>
+<td><span class="math inline">\(\hat{w}^{sc} = \min_{w \in R}l_{unit}(w)\)</span></td>
+<td><span class="math inline">\(\frac{1}{T_{post}} \sum_{t = T_{pre} + 1}^T Y_{it}\)</span></td>
+<td>Unweighted treatment period averages</td>
+</tr>
+<tr class="even">
+<td>DID</td>
+<td><span class="math inline">\(\hat{w}_i^{did} = N_c^{-1}\)</span></td>
+<td><span class="math inline">\(\frac{1}{T_{post}} \sum_{t = T_{pre}+ 1}^T Y_{it} - \frac{1}{T_{pre}} \sum_{t = 1}^{T_{pre}}Y_{it}\)</span></td>
+<td>Unweighted differences between average treatment period and pretreatment outcome</td>
+</tr>
+<tr class="odd">
+<td>SDID</td>
+<td><span class="math inline">\((\hat{w}_0, \hat{w}^{sdid}) = \min l_{unit}(w_0, w)\)</span></td>
+<td><span class="math inline">\(\frac{1}{T_{post}} \sum_{t = T_{pre} + 1}^T Y_{it} - \sum_{t = 1}^{T_{pre}} \hat{\lambda}_t^{sdid} Y_{it}\)</span></td>
+<td>Weighted differences between average treatment period and pretreatment outcome</td>
+</tr>
+</tbody>
+</table></div>
+<p>A key innovation in Synthetic Difference-in-Differences is its use of unit and time weights to refine causal estimates. By applying weights, SDID essentially localizes a standard two-way fixed effects regression, making it more robust and precise.</p>
+</div>
+<div id="why-use-weights" class="section level3" number="29.1.3">
+<h3>
+<span class="header-section-number">29.1.3</span> <strong>Why Use Weights?</strong><a class="anchor" aria-label="anchor" href="#why-use-weights"><i class="fas fa-link"></i></a>
+</h3>
+<ul>
+<li>Unit weights (<span class="math inline">\(\hat{w}_i^{sdid}\)</span>) emphasize control units that are most similar to the treated units based on pre-treatment trends.</li>
+<li>Time weights (<span class="math inline">\(\hat{\lambda}_t^{sdid}\)</span>) prioritize time periods most comparable to the post-treatment period.</li>
+<li>This approach improves parallel trends validity without requiring a perfect match in raw data.</li>
+</ul>
+</div>
+<div id="benefits-of-localization-in-sdid" class="section level3" number="29.1.4">
+<h3>
+<span class="header-section-number">29.1.4</span> <strong>Benefits of Localization in SDID</strong><a class="anchor" aria-label="anchor" href="#benefits-of-localization-in-sdid"><i class="fas fa-link"></i></a>
+</h3>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Robustness</strong>
+<ul>
+<li>By focusing on comparable units and time periods, SDID reduces bias from dissimilar observations.</li>
+</ul>
+</li>
+<li>
+<strong>Improved Precision</strong>
+<ul>
+<li>SDID eliminates predictable variation in outcomes, reducing standard errors (SEs) compared to <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> and <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a>
+</li>
+<li>SEs in SDID are smaller than those in <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> and <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a>.</li>
+<li>Caveat: If outcome heterogeneity is minimal, unequal weighting might slightly reduce precision relative to standard <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a>.</li>
+</ul>
+</li>
+</ol>
+<hr>
+</div>
+<div id="designing-sdid-weights" class="section level3" number="29.1.5">
+<h3>
+<span class="header-section-number">29.1.5</span> <strong>Designing SDID Weights</strong><a class="anchor" aria-label="anchor" href="#designing-sdid-weights"><i class="fas fa-link"></i></a>
+</h3>
+<div id="unit-weights-balancing-pre-treatment-trends" class="section level4" number="29.1.5.1">
+<h4>
+<span class="header-section-number">29.1.5.1</span> <strong>Unit Weights: Balancing Pre-Treatment Trends</strong><a class="anchor" aria-label="anchor" href="#unit-weights-balancing-pre-treatment-trends"><i class="fas fa-link"></i></a>
+</h4>
+<p>Unit weights <span class="math inline">\(\hat{w}_i^{sdid}\)</span> ensure that the weighted control group mimics the treated group’s pre-treatment trends, similar to <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a> but with greater flexibility:<br><span class="math display">\[
+\sum_{i = 1}^{N_c} \hat{w}_i^{sdid} Y_{it} \approx \frac{1}{N_t} \sum_{i = N_c + 1}^{N} Y_{it}, \quad \forall t = 1, \dots, T_{pre}
+\]</span><br>
+This helps achieve parallel pre-treatment trends rather than requiring an exact match in levels.</p>
+</div>
+<div id="time-weights-stabilizing-post-treatment-inference" class="section level4" number="29.1.5.2">
+<h4>
+<span class="header-section-number">29.1.5.2</span> <strong>Time Weights: Stabilizing Post-Treatment Inference</strong><a class="anchor" aria-label="anchor" href="#time-weights-stabilizing-post-treatment-inference"><i class="fas fa-link"></i></a>
+</h4>
+<p>Time weights <span class="math inline">\(\hat{\lambda}_t^{sdid}\)</span> ensure that post-treatment deviations are balanced relative to pre-treatment trends. This minimizes bias by down-weighting time periods that are vastly different from the post-treatment period.</p>
+<ul>
+<li>Unlike unit weights, time weights do not require regularization because outcomes within the same time period are highly correlated across units.</li>
+<li>Time weights improve the precision of SDID estimates by preventing certain periods from dominating the estimation process.</li>
+</ul>
+<hr>
+</div>
+</div>
+<div id="how-sdid-enhances-dids-plausibility" class="section level3" number="29.1.6">
+<h3>
+<span class="header-section-number">29.1.6</span> <strong>How SDID Enhances DID’s Plausibility</strong><a class="anchor" aria-label="anchor" href="#how-sdid-enhances-dids-plausibility"><i class="fas fa-link"></i></a>
+</h3>
+<p>DID assumes parallel trends, but raw data often violates this assumption. SDID corrects for non-parallel trends by weighting both units and time periods.</p>
+<ul>
+<li>Similar techniques have been used before to adjust <a href="sec-difference-in-differences.html#sec-difference-in-differences">DID</a> assumptions, such as controlling for covariates or selecting specific time periods <span class="citation">(<a href="references.html#ref-callaway2021difference">Callaway and Sant’Anna 2021</a>)</span>.</li>
+<li>SDID automates this process, applying a systematic weighting approach for both units and time periods.</li>
+</ul>
+<hr>
+<p>Including unit fixed effects (<span class="math inline">\(\alpha_i\)</span>) in SDID has two main advantages:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Flexibility</strong>:
+<ul>
+<li>Allows for systematic differences across units while preserving parallel trends after reweighting.</li>
+</ul>
+</li>
+<li>
+<strong>Enhanced Precision</strong>:
+<ul>
+<li>Explains a large fraction of the variation in outcomes, reducing noise and improving estimation accuracy.</li>
+</ul>
+</li>
+</ol>
+<p><strong>Unit Fixed Effects and SC Weighting</strong></p>
+<ul>
+<li>Under ideal conditions, <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a> reweighting alone could account for unit fixed effects—if the weighted average of control unit outcomes perfectly matched the treated unit’s pre-treatment trajectory.</li>
+<li>However, this rarely happens in reality, making unit fixed effects necessary for robust inference.</li>
+<li>The use of fixed effects in synthetic control regressions (SC with intercept) was first proposed in <span class="citation">Doudchenko and Imbens (<a href="references.html#ref-doudchenko2016balancing">2016</a>)</span> and <span class="citation">Ferman and Pinto (<a href="references.html#ref-ferman2021synthetic">2021</a>)</span>, where it was referred to as DIFP (Difference-in-Fixed-Effects Prediction).</li>
+</ul>
+<hr>
+</div>
+<div id="choosing-sdid-weights" class="section level3" number="29.1.7">
+<h3>
+<span class="header-section-number">29.1.7</span> <strong>Choosing SDID Weights</strong><a class="anchor" aria-label="anchor" href="#choosing-sdid-weights"><i class="fas fa-link"></i></a>
+</h3>
+<ol style="list-style-type: decimal">
+<li><strong>Choosing Unit Weights</strong></li>
+</ol>
+<p><strong>Regularization Parameter:</strong></p>
+<ul>
+<li>The penalty term is calibrated based on the typical one-period change in control unit outcomes during the pre-treatment period.</li>
+<li>This value is then multiplied by a scaling factor <span class="citation">(<a href="references.html#ref-arkhangelsky2021synthetic">Arkhangelsky et al. 2021, 4092</a>)</span>.</li>
+</ul>
+<p><strong>Relation to Synthetic Control Weights:</strong></p>
+<p>SDID weights resemble those used in <span class="citation">Abadie, Diamond, and Hainmueller (<a href="references.html#ref-abadie2010synthetic">2010</a>)</span> but have two key modifications:</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Inclusion of an Intercept Term</strong>
+<ul>
+<li>Unlike <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a>, SDID does not force the control pre-trends to exactly match the treated pre-trends—it only ensures they are parallel.</li>
+<li>This flexibility arises from unit fixed effects, which absorb any systematic level differences.</li>
+</ul>
+</li>
+<li>
+<strong>Regularization Penalty</strong>
+<ul>
+<li>Borrowed from <span class="citation">Doudchenko and Imbens (<a href="references.html#ref-doudchenko2016balancing">2016</a>)</span>.</li>
+<li>Ensures dispersion of weights, preventing over-reliance on a few control units.</li>
+<li>This guarantees a unique solution for unit weights.</li>
+</ul>
+</li>
+</ol>
+<p><strong>How SDID Compares to DID Weights:</strong></p>
+<ul>
+<li>DID weights are a special case of <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a> weights without an intercept or regularization penalty.</li>
+<li>DID applies unit weights as in <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a> but only when there is one treated unit.</li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li><strong>Choosing Time Weights</strong></li>
+</ol>
+<ul>
+<li>Like unit weights, time weights include an intercept term to account for overall time effects.</li>
+<li>No regularization is applied to time weights because within-period correlations across units are expected.</li>
+<li>This design allows SDID to minimize bias while stabilizing inference.</li>
+</ul>
+<hr>
+</div>
+<div id="accounting-for-time-varying-covariates-in-weight-estimation" class="section level3" number="29.1.8">
+<h3>
+<span class="header-section-number">29.1.8</span> <strong>Accounting for Time-Varying Covariates in Weight Estimation</strong><a class="anchor" aria-label="anchor" href="#accounting-for-time-varying-covariates-in-weight-estimation"><i class="fas fa-link"></i></a>
+</h3>
+<p>To further refine the estimation process, SDID can incorporate time-varying covariates by adjusting the outcome variable:<br><span class="math display">\[
+Y_{it}^{res} = Y_{it} - X_{it} \hat{\beta}
+\]</span><br>
+where <span class="math inline">\(\hat{\beta}\)</span> comes from the regression:<br><span class="math display">\[
+Y_{it} = X_{it} \beta + \varepsilon_{it}
+\]</span><br>
+This residualized outcome (<span class="math inline">\(Y_{it}^{res}\)</span>) ensures that the weighting process accounts for time-varying confounders, improving the validity of causal estimates.</p>
+<hr>
+</div>
+</div>
+<div id="application-3" class="section level2" number="29.2">
+<h2>
+<span class="header-section-number">29.2</span> Application<a class="anchor" aria-label="anchor" href="#application-3"><i class="fas fa-link"></i></a>
+</h2>
+<p><strong>SDID Algorithm</strong></p>
+<ol style="list-style-type: decimal">
+<li>Compute regularization parameter <span class="math inline">\(\zeta\)</span>
+</li>
+</ol>
+<p><span class="math display">\[
+\zeta = (N_{t}T_{post})^{1/4} \hat{\sigma}
+\]</span></p>
+<p>where</p>
+<p><span class="math display">\[
+\hat{\sigma}^2 = \frac{1}{N_c(T_{pre}- 1)} \sum_{i = 1}^{N_c} \sum_{t = 1}^{T_{re}-1}(\Delta_{it} - \hat{\Delta})^2
+\]</span></p>
+<ul>
+<li><p><span class="math inline">\(\Delta_{it} = Y_{i(t + 1)} - Y_{it}\)</span></p></li>
+<li><p><span class="math inline">\(\hat{\Delta} = \frac{1}{N_c(T_{pre} - 1)}\sum_{i = 1}^{N_c}\sum_{t = 1}^{T_{pre}-1} \Delta_{it}\)</span></p></li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>Compute unit weights <span class="math inline">\(\hat{w}^{sdid}\)</span>
+</li>
+</ol>
+<p><span class="math display">\[
+(\hat{w}_0, \hat{w}^{sidid}) = \arg \min_{w_0 \in R, w \in \Omega}l_{unit}(w_0, w)
+\]</span></p>
+<p>where</p>
+<ul>
+<li><p><span class="math inline">\(l_{unit} (w_0, w) = \sum_{t = 1}^{T_{pre}}(w_0 + \sum_{i = 1}^{N_c}w_i Y_{it} - \frac{1}{N_t}\sum_{i = N_c + 1}^NY_{it})^2 + \zeta^2 T_{pre}||w||_2^2\)</span></p></li>
+<li><p><span class="math inline">\(\Omega = \{w \in R_+^N: \sum_{i = 1}^{N_c} w_i = 1, w_i = N_t^{-1} \forall i = N_c + 1, \dots, N \}\)</span></p></li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li>Compute time weights <span class="math inline">\(\hat{\lambda}^{sdid}\)</span>
+</li>
+</ol>
+<p><span class="math display">\[
+(\hat{\lambda}_0 , \hat{\lambda}^{sdid}) = \arg \min_{\lambda_0 \in R, \lambda \in \Lambda} l_{time}(\lambda_0, \lambda)
+\]</span></p>
+<p>where</p>
+<ul>
+<li><p><span class="math inline">\(l_{time} (\lambda_0, \lambda) = \sum_{i = 1}^{N_c}(\lambda_0 + \sum_{t = 1}^{T_{pre}} \lambda_t Y_{it} - \frac{1}{T_{post}} \sum_{t = T_{pre} + 1}^T Y_{it})^2\)</span></p></li>
+<li><p><span class="math inline">\(\Lambda = \{ \lambda \in R_+^T: \sum_{t = 1}^{T_{pre}} \lambda_t = 1, \lambda_t = T_{post}^{-1} \forall t = T_{pre} + 1, \dots, T\}\)</span></p></li>
+</ul>
+<ol start="4" style="list-style-type: decimal">
+<li>Compute the SDID estimator</li>
+</ol>
+<p><span class="math display">\[
+(\hat{\tau}^{sdid}, \hat{\mu}, \hat{\alpha}, \hat{\beta}) = \arg \min_{\tau, \mu, \alpha, \beta}\{ \sum_{i = 1}^N \sum_{t = 1}^T (Y_{it} - \mu - \alpha_i - \beta_t - W_{it} \tau)^2 \hat{w}_i^{sdid}\hat{\lambda}_t^{sdid}
+\]</span></p>
+<hr>
+<p><strong>SE Estimation</strong></p>
+<ul>
+<li><p>Under certain assumptions (errors, samples, and interaction properties between time and unit fixed effects) detailed in <span class="citation">(<a href="references.html#ref-arkhangelsky2019synthetic">Arkhangelsky et al. 2019, 4107</a>)</span>, SDID is asymptotically normal and zero-centered</p></li>
+<li><p>Using its asymptotic variance, conventional confidence intervals can be applied to SDID.</p></li>
+</ul>
+<p><span class="math display">\[
+\tau \in \hat{\tau}^{sdid} \pm z_{\alpha/2}\sqrt{\hat{V}_\tau}
+\]</span></p>
+<ul>
+<li>
+<p>There are 3 approaches for variance estimation in confidence intervals:</p>
+<ol style="list-style-type: decimal">
+<li>
+<p><strong>Clustered Bootstrap <span class="citation">(<a href="references.html#ref-efron1992bootstrap">Efron 1992</a>)</span>:</strong></p>
+<ul>
+<li><p>Independently resample units.</p></li>
+<li><p>Advantages: Simple to use; robust performance in large panels due to natural approach to inference with panel data where observations of the same unit might be correlated.</p></li>
+<li><p>Disadvantage: Computationally expensive.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Jackknife <span class="citation">(<a href="references.html#ref-miller1974jackknife">Miller 1974</a>)</span>:</strong></p>
+<ul>
+<li><p>Applied to weighted SDID regression with fixed weights.</p></li>
+<li><p>Generally conservative and precise when treated and control units are sufficiently similar.</p></li>
+<li><p>Not recommended for some methods, like the <a href="sec-synthetic-control.html#sec-synthetic-control">SC</a> estimator, due to potential biases.</p></li>
+<li><p>Appropriate for jackknifing DID without random weights.</p></li>
+</ul>
+</li>
+<li>
+<p><strong>Placebo Variance Estimation:</strong></p>
+<ul>
+<li><p>Can used in cases with only one treated unit or large panels.</p></li>
+<li><p>Placebo evaluations swap out the treated unit for untreated ones to estimate noise.</p></li>
+<li><p>Relies on homoskedasticity across units.</p></li>
+<li><p>Depends on homoskedasticity across units. It hinges on the empirical distribution of residuals from placebo estimators on control units.</p></li>
+<li><p>The validity of the placebo method hinges on consistent noise distribution across units. One treated unit makes nonparametric variance estimation difficult, necessitating homoskedasticity for feasible inference. Detailed analysis available in <span class="citation">Conley and Taber (<a href="references.html#ref-conley2011inference">2011</a>)</span>.</p></li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+<p>All algorithms are from <span class="citation">Arkhangelsky et al. (<a href="references.html#ref-arkhangelsky2021synthetic">2021</a>)</span>, p. 4109:</p>
+<blockquote>
+<p><strong>Bootstrap Variance Estimation</strong></p>
+<ol style="list-style-type: decimal">
+<li>
+<p>For each <span class="math inline">\(b\)</span> from <span class="math inline">\(1 \to B\)</span>:</p>
+<ul>
+<li><p>Sample <span class="math inline">\(N\)</span> rows from <span class="math inline">\((\mathbf{Y}, \mathbf{W})\)</span> to get (<span class="math inline">\(\mathbf{Y}^{(b)}, \mathbf{W}^{(b)}\)</span>) with replacement.</p></li>
+<li><p>If the sample lacks treated or control units, resample.</p></li>
+<li><p>Calculate <span class="math inline">\(\tau^{(b)}\)</span> using (<span class="math inline">\(\mathbf{Y}^{(b)}, \mathbf{W}^{(b)}\)</span>).</p></li>
+</ul>
+</li>
+<li><p>Calculate variance: <span class="math inline">\(\hat{V}_\tau = \frac{1}{B} \sum_{b = 1}^B (\hat{\tau}^{b} - \frac{1}{B} \sum_{b = 1}^B \hat{\tau}^b)^2\)</span></p></li>
+</ol>
+</blockquote>
+<blockquote>
+<p><strong>Jackknife Variance Estimation</strong></p>
+<ol style="list-style-type: decimal">
+<li>For each <span class="math inline">\(i\)</span> from <span class="math inline">\(1 \to N\)</span>:
+<ol style="list-style-type: decimal">
+<li>Calculate <span class="math inline">\(\hat{\tau}^{(-i)}\)</span>: <span class="math inline">\(\arg\min_{\tau, \{\alpha_j, \beta_t\}} \sum_{j \neq, i, t}(\mathbf{Y}_{jt} - \alpha_j - \beta_t - \tau \mathbf{W}_{it})^2 \hat{w}_j \hat{\lambda}_t\)</span>
+</li>
+</ol>
+</li>
+<li>Calculate: <span class="math inline">\(\hat{V}_{\tau} = (N - 1) N^{-1} \sum_{i = 1}^N (\hat{\tau}^{(-i)} - \hat{\tau})^2\)</span>
+</li>
+</ol>
+</blockquote>
+<blockquote>
+<p><strong>Placebo Variance Estimation</strong></p>
+<ol style="list-style-type: decimal">
+<li>For each <span class="math inline">\(b\)</span> from <span class="math inline">\(1 \to B\)</span>
+<ol style="list-style-type: decimal">
+<li>Sample <span class="math inline">\(N_t\)</span> out of <span class="math inline">\(N_c\)</span> without replacement to get the “placebo” treatment</li>
+<li>Construct a placebo treatment matrix <span class="math inline">\(\mathbf{W}_c^b\)</span> for the controls</li>
+<li>Calculate <span class="math inline">\(\hat{\tau}\)</span> based on <span class="math inline">\((\mathbf{Y}_c, \mathbf{W}_c^b)\)</span>
+</li>
+</ol>
+</li>
+<li>Calculate <span class="math inline">\(\hat{V}_\tau = \frac{1}{B}\sum_{b = 1}^B (\hat{\tau}^b - \frac{1}{B} \sum_{b = 1}^B \hat{\tau}^b)^2\)</span>
+</li>
+</ol>
+</blockquote>
+<div id="block-treatment" class="section level3" number="29.2.1">
+<h3>
+<span class="header-section-number">29.2.1</span> Block Treatment<a class="anchor" aria-label="anchor" href="#block-treatment"><i class="fas fa-link"></i></a>
+</h3>
+<p>Code provided by the <code>synthdid</code> package</p>
+<div class="sourceCode" id="cb750"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/synth-inference/synthdid">synthdid</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Estimate the effect of California Proposition 99 on cigarette consumption</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">'california_prop99'</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">setup</span> <span class="op">=</span> <span class="fu">synthdid</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/synthdid/man/panel.matrices.html">panel.matrices</a></span><span class="op">(</span><span class="fu">synthdid</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/synthdid/man/california_prop99.html">california_prop99</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">tau.hat</span> <span class="op">=</span> <span class="fu">synthdid</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/synthdid/man/synthdid_estimate.html">synthdid_estimate</a></span><span class="op">(</span><span class="va">setup</span><span class="op">$</span><span class="va">Y</span>, <span class="va">setup</span><span class="op">$</span><span class="va">N0</span>, <span class="va">setup</span><span class="op">$</span><span class="va">T0</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># se = sqrt(vcov(tau.hat, method = 'placebo'))</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">tau.hat</span><span class="op">)</span> <span class="op">+</span> <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/ama_theme.html">ama_theme</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="29-synthdid_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb751"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">setup</span> <span class="op">=</span> <span class="fu">synthdid</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/synthdid/man/panel.matrices.html">panel.matrices</a></span><span class="op">(</span><span class="fu">synthdid</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/synthdid/man/california_prop99.html">california_prop99</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Run for specific estimators</span></span>
+<span><span class="va">results_selected</span> <span class="op">=</span> <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/panel_estimate.html">panel_estimate</a></span><span class="op">(</span><span class="va">setup</span>,</span>
+<span>                                               selected_estimators <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"synthdid"</span>, <span class="st">"did"</span>, <span class="st">"sc"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">results_selected</span></span>
+<span><span class="co">#&gt; $synthdid</span></span>
+<span><span class="co">#&gt; $synthdid$estimate</span></span>
+<span><span class="co">#&gt; synthdid: -15.604 +- NA. Effective N0/N0 = 16.4/38~0.4. Effective T0/T0 = 2.8/19~0.1. N1,T1 = 1,12. </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $synthdid$std.error</span></span>
+<span><span class="co">#&gt; [1] 10.05324</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $did</span></span>
+<span><span class="co">#&gt; $did$estimate</span></span>
+<span><span class="co">#&gt; synthdid: -27.349 +- NA. Effective N0/N0 = 38.0/38~1.0. Effective T0/T0 = 19.0/19~1.0. N1,T1 = 1,12. </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $did$std.error</span></span>
+<span><span class="co">#&gt; [1] 15.81479</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $sc</span></span>
+<span><span class="co">#&gt; $sc$estimate</span></span>
+<span><span class="co">#&gt; synthdid: -19.620 +- NA. Effective N0/N0 = 3.8/38~0.1. Effective T0/T0 = Inf/19~Inf. N1,T1 = 1,12. </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $sc$std.error</span></span>
+<span><span class="co">#&gt; [1] 11.16422</span></span>
+<span></span>
+<span><span class="co"># to access more details in the estimate object</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">results_selected</span><span class="op">$</span><span class="va">did</span><span class="op">$</span><span class="va">estimate</span><span class="op">)</span></span>
+<span><span class="co">#&gt; $estimate</span></span>
+<span><span class="co">#&gt; [1] -27.34911</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $se</span></span>
+<span><span class="co">#&gt;      [,1]</span></span>
+<span><span class="co">#&gt; [1,]   NA</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $controls</span></span>
+<span><span class="co">#&gt;                estimate 1</span></span>
+<span><span class="co">#&gt; Wyoming             0.026</span></span>
+<span><span class="co">#&gt; Wisconsin           0.026</span></span>
+<span><span class="co">#&gt; West Virginia       0.026</span></span>
+<span><span class="co">#&gt; Virginia            0.026</span></span>
+<span><span class="co">#&gt; Vermont             0.026</span></span>
+<span><span class="co">#&gt; Utah                0.026</span></span>
+<span><span class="co">#&gt; Texas               0.026</span></span>
+<span><span class="co">#&gt; Tennessee           0.026</span></span>
+<span><span class="co">#&gt; South Dakota        0.026</span></span>
+<span><span class="co">#&gt; South Carolina      0.026</span></span>
+<span><span class="co">#&gt; Rhode Island        0.026</span></span>
+<span><span class="co">#&gt; Pennsylvania        0.026</span></span>
+<span><span class="co">#&gt; Oklahoma            0.026</span></span>
+<span><span class="co">#&gt; Ohio                0.026</span></span>
+<span><span class="co">#&gt; North Dakota        0.026</span></span>
+<span><span class="co">#&gt; North Carolina      0.026</span></span>
+<span><span class="co">#&gt; New Mexico          0.026</span></span>
+<span><span class="co">#&gt; New Hampshire       0.026</span></span>
+<span><span class="co">#&gt; Nevada              0.026</span></span>
+<span><span class="co">#&gt; Nebraska            0.026</span></span>
+<span><span class="co">#&gt; Montana             0.026</span></span>
+<span><span class="co">#&gt; Missouri            0.026</span></span>
+<span><span class="co">#&gt; Mississippi         0.026</span></span>
+<span><span class="co">#&gt; Minnesota           0.026</span></span>
+<span><span class="co">#&gt; Maine               0.026</span></span>
+<span><span class="co">#&gt; Louisiana           0.026</span></span>
+<span><span class="co">#&gt; Kentucky            0.026</span></span>
+<span><span class="co">#&gt; Kansas              0.026</span></span>
+<span><span class="co">#&gt; Iowa                0.026</span></span>
+<span><span class="co">#&gt; Indiana             0.026</span></span>
+<span><span class="co">#&gt; Illinois            0.026</span></span>
+<span><span class="co">#&gt; Idaho               0.026</span></span>
+<span><span class="co">#&gt; Georgia             0.026</span></span>
+<span><span class="co">#&gt; Delaware            0.026</span></span>
+<span><span class="co">#&gt; Connecticut         0.026</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $periods</span></span>
+<span><span class="co">#&gt;      estimate 1</span></span>
+<span><span class="co">#&gt; 1988      0.053</span></span>
+<span><span class="co">#&gt; 1987      0.053</span></span>
+<span><span class="co">#&gt; 1986      0.053</span></span>
+<span><span class="co">#&gt; 1985      0.053</span></span>
+<span><span class="co">#&gt; 1984      0.053</span></span>
+<span><span class="co">#&gt; 1983      0.053</span></span>
+<span><span class="co">#&gt; 1982      0.053</span></span>
+<span><span class="co">#&gt; 1981      0.053</span></span>
+<span><span class="co">#&gt; 1980      0.053</span></span>
+<span><span class="co">#&gt; 1979      0.053</span></span>
+<span><span class="co">#&gt; 1978      0.053</span></span>
+<span><span class="co">#&gt; 1977      0.053</span></span>
+<span><span class="co">#&gt; 1976      0.053</span></span>
+<span><span class="co">#&gt; 1975      0.053</span></span>
+<span><span class="co">#&gt; 1974      0.053</span></span>
+<span><span class="co">#&gt; 1973      0.053</span></span>
+<span><span class="co">#&gt; 1972      0.053</span></span>
+<span><span class="co">#&gt; 1971      0.053</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; $dimensions</span></span>
+<span><span class="co">#&gt;           N1           N0 N0.effective           T1           T0 T0.effective </span></span>
+<span><span class="co">#&gt;            1           38           38           12           19           19</span></span>
+<span></span>
+<span><span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/process_panel_estimate.html">process_panel_estimate</a></span><span class="op">(</span><span class="va">results_selected</span><span class="op">)</span></span>
+<span><span class="co">#&gt;     Method Estimate    SE</span></span>
+<span><span class="co">#&gt; 1 SYNTHDID   -15.60 10.05</span></span>
+<span><span class="co">#&gt; 2      DID   -27.35 15.81</span></span>
+<span><span class="co">#&gt; 3       SC   -19.62 11.16</span></span></code></pre></div>
+</div>
+<div id="staggered-adoption" class="section level3" number="29.2.2">
+<h3>
+<span class="header-section-number">29.2.2</span> Staggered Adoption<a class="anchor" aria-label="anchor" href="#staggered-adoption"><i class="fas fa-link"></i></a>
+</h3>
+<p>To apply to staggered adoption settings using the SDID estimator (see examples in <span class="citation">Arkhangelsky et al. (<a href="references.html#ref-arkhangelsky2021synthetic">2021</a>)</span>, p. 4115 similar to <span class="citation">Ben-Michael, Feller, and Rothstein (<a href="references.html#ref-ben2022synthetic">2022</a>)</span>), we can:</p>
+<ol style="list-style-type: decimal">
+<li><p>Apply the SDID estimator repeatedly, once for every adoption date.</p></li>
+<li><p>Using <span class="citation">Ben-Michael, Feller, and Rothstein (<a href="references.html#ref-ben2022synthetic">2022</a>)</span> ’s method, form matrices for each adoption date. Apply SDID and average based on treated unit/time-period fractions.</p></li>
+<li><p>Create multiple samples by splitting the data up by time periods. Each sample should have a consistent adoption date.</p></li>
+</ol>
+<p>For a formal note on this special case, see <span class="citation">Porreca (<a href="references.html#ref-porreca2022synthetic">2022</a>)</span>. It compares the outcomes from using SynthDiD with those from other estimators:</p>
+<ul>
+<li><p>Two-Way Fixed Effects (TWFE),</p></li>
+<li><p>The group time average treatment effect estimator from <span class="citation">Callaway and Sant’Anna (<a href="references.html#ref-callaway2021difference">2021</a>)</span>,</p></li>
+<li><p>The partially pooled synthetic control method estimator from <span class="citation">Ben-Michael, Feller, and Rothstein (<a href="references.html#ref-ben2021augmented">2021</a>)</span>, in a staggered treatment adoption context.</p></li>
+<li>
+<p>The findings reveal that SynthDiD produces a different estimate of the average treatment effect compared to the other methods.</p>
+<ul>
+<li>Simulation results suggest that these differences could be due to the SynthDiD’s data generating process assumption (a latent factor model) aligning more closely with the actual data than the additive fixed effects model assumed by traditional DiD methods.</li>
+</ul>
+</li>
+</ul>
+<p>To explore heterogeneity of treatment effect, we can do subgroup analysis <span class="citation">(<a href="references.html#ref-berman2022value">Berman and Israeli 2022, 1092</a>)</span></p>
+<div class="inline-table"><table style="width:99%;" class="table table-sm">
+<colgroup>
+<col width="17%">
+<col width="17%">
+<col width="39%">
+<col width="25%">
+</colgroup>
+<thead><tr class="header">
+<th><strong>Method</strong></th>
+<th><strong>Advantages</strong></th>
+<th><strong>Disadvantages</strong></th>
+<th><strong>Procedure</strong></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Split Data into Subsets</td>
+<td>Compares treated units to control units within the same subgroup.</td>
+<td>Each subset uses a different synthetic control, making it challenging to compare effects across subgroups.</td>
+<td><ol style="list-style-type: decimal">
+<li>Split the data into separate subsets for each subgroup.</li>
+<li>Compute synthetic DID effects for each subset.</li>
+</ol></td>
+</tr>
+<tr class="even">
+<td>Control Group Comprising All Non-adopters</td>
+<td>Control weights match pretrends well for each treated subgroup.</td>
+<td>Each control unit receives a different weight for each treatment subgroup, making it difficult to compare results due to varying synthetic controls.</td>
+<td><ol style="list-style-type: decimal">
+<li>Use a control group consisting of all non-adopters in each balanced panel cohort analysis.</li>
+<li>Switch treatment units to the subgroup being analyzed.</li>
+<li>Perform <code>synthdid</code> analysis.</li>
+</ol></td>
+</tr>
+<tr class="odd">
+<td>Use All Data to Estimate Synthetic Control Weights <strong>(recommend)</strong>
+</td>
+<td>All units have the same synthetic control.</td>
+<td>Pretrend match may not be as accurate since it aims to match the average outcome of all treated units, not just a specific subgroup.</td>
+<td><ol style="list-style-type: decimal">
+<li>Use all the data to estimate the synthetic DID control weights.</li>
+<li>Compute treatment effects using only the treated subgroup units as the treatment units.</li>
+</ol></td>
+</tr>
+</tbody>
+</table></div>
+<div class="sourceCode" id="cb752"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
+<span><span class="va">df</span> <span class="op">&lt;-</span> <span class="fu">fixest</span><span class="fu">::</span><span class="va"><a href="https://lrberge.github.io/fixest/reference/base_stagg.html">base_stagg</a></span> <span class="op">|&gt;</span></span>
+<span>   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>treatvar <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="va">time_to_treatment</span> <span class="op">&gt;=</span> <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>   <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>treatvar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/integer.html">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="va">year_treated</span> <span class="op">&gt;</span> <span class="op">(</span><span class="fl">5</span> <span class="op">+</span> <span class="fl">2</span><span class="op">)</span>, <span class="fl">0</span>, <span class="va">treatvar</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span></span>
+<span><span class="va">est</span> <span class="op">&lt;-</span> <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/synthdid_est_ate.html">synthdid_est_ate</a></span><span class="op">(</span></span>
+<span>  data               <span class="op">=</span> <span class="va">df</span>,</span>
+<span>  adoption_cohorts   <span class="op">=</span> <span class="fl">5</span><span class="op">:</span><span class="fl">7</span>,</span>
+<span>  lags               <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  leads              <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  time_var           <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>  unit_id_var        <span class="op">=</span> <span class="st">"id"</span>,</span>
+<span>  treated_period_var <span class="op">=</span> <span class="st">"year_treated"</span>,</span>
+<span>  treat_stat_var     <span class="op">=</span> <span class="st">"treatvar"</span>,</span>
+<span>  outcome_var        <span class="op">=</span> <span class="st">"y"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Adoption Cohort: 5 </span></span>
+<span><span class="co">#&gt; Treated units: 5 Control units: 65 </span></span>
+<span><span class="co">#&gt; Adoption Cohort: 6 </span></span>
+<span><span class="co">#&gt; Treated units: 5 Control units: 60 </span></span>
+<span><span class="co">#&gt; Adoption Cohort: 7 </span></span>
+<span><span class="co">#&gt; Treated units: 5 Control units: 55</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>    Period <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">est</span><span class="op">$</span><span class="va">TE_mean_w</span><span class="op">)</span>,</span>
+<span>    ATE    <span class="op">=</span> <span class="va">est</span><span class="op">$</span><span class="va">TE_mean_w</span>,</span>
+<span>    SE     <span class="op">=</span> <span class="va">est</span><span class="op">$</span><span class="va">SE_mean_w</span></span>
+<span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/nice_tab.html">nice_tab</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    Period   ATE   SE</span></span>
+<span><span class="co">#&gt; 1      -2 -0.05 0.22</span></span>
+<span><span class="co">#&gt; 2      -1  0.05 0.22</span></span>
+<span><span class="co">#&gt; 3       0 -5.07 0.80</span></span>
+<span><span class="co">#&gt; 4       1 -4.68 0.51</span></span>
+<span><span class="co">#&gt; 5       2 -3.70 0.79</span></span>
+<span><span class="co">#&gt; 6 cumul.0 -5.07 0.80</span></span>
+<span><span class="co">#&gt; 7 cumul.1 -4.87 0.55</span></span>
+<span><span class="co">#&gt; 8 cumul.2 -4.48 0.53</span></span>
+<span></span>
+<span></span>
+<span><span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/synthdid_plot_ate.html">synthdid_plot_ate</a></span><span class="op">(</span><span class="va">est</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="29-synthdid_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb753"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">est_sub</span> <span class="op">&lt;-</span> <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/synthdid_est_ate.html">synthdid_est_ate</a></span><span class="op">(</span></span>
+<span>  data               <span class="op">=</span> <span class="va">df</span>,</span>
+<span>  adoption_cohorts   <span class="op">=</span> <span class="fl">5</span><span class="op">:</span><span class="fl">7</span>,</span>
+<span>  lags               <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  leads              <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>  time_var           <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>  unit_id_var        <span class="op">=</span> <span class="st">"id"</span>,</span>
+<span>  treated_period_var <span class="op">=</span> <span class="st">"year_treated"</span>,</span>
+<span>  treat_stat_var     <span class="op">=</span> <span class="st">"treatvar"</span>,</span>
+<span>  outcome_var        <span class="op">=</span> <span class="st">"y"</span>,</span>
+<span>  <span class="co"># a vector of subgroup id (from unit id)</span></span>
+<span>  subgroup           <span class="op">=</span>  <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span></span>
+<span>    <span class="co"># some are treated</span></span>
+<span>    <span class="st">"11"</span>, <span class="st">"30"</span>, <span class="st">"49"</span> ,</span>
+<span>    <span class="co"># some are control within this period</span></span>
+<span>    <span class="st">"20"</span>, <span class="st">"25"</span>, <span class="st">"21"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Adoption Cohort: 5 </span></span>
+<span><span class="co">#&gt; Treated units: 3 Control units: 65 </span></span>
+<span><span class="co">#&gt; Adoption Cohort: 6 </span></span>
+<span><span class="co">#&gt; Treated units: 0 Control units: 60 </span></span>
+<span><span class="co">#&gt; Adoption Cohort: 7 </span></span>
+<span><span class="co">#&gt; Treated units: 0 Control units: 55</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>    Period <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">est_sub</span><span class="op">$</span><span class="va">TE_mean_w</span><span class="op">)</span>,</span>
+<span>    ATE <span class="op">=</span> <span class="va">est_sub</span><span class="op">$</span><span class="va">TE_mean_w</span>,</span>
+<span>    SE <span class="op">=</span> <span class="va">est_sub</span><span class="op">$</span><span class="va">SE_mean_w</span></span>
+<span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>    <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/nice_tab.html">nice_tab</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    Period   ATE   SE</span></span>
+<span><span class="co">#&gt; 1      -2  0.32 0.44</span></span>
+<span><span class="co">#&gt; 2      -1 -0.32 0.44</span></span>
+<span><span class="co">#&gt; 3       0 -4.29 1.68</span></span>
+<span><span class="co">#&gt; 4       1 -4.00 1.52</span></span>
+<span><span class="co">#&gt; 5       2 -3.44 2.90</span></span>
+<span><span class="co">#&gt; 6 cumul.0 -4.29 1.68</span></span>
+<span><span class="co">#&gt; 7 cumul.1 -4.14 1.52</span></span>
+<span><span class="co">#&gt; 8 cumul.2 -3.91 1.82</span></span>
+<span></span>
+<span><span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/synthdid_plot_ate.html">synthdid_plot_ate</a></span><span class="op">(</span><span class="va">est</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="29-synthdid_files/figure-html/synthdid%20subgroup%20analysis-1.png" width="90%" style="display: block; margin: auto;"></div>
+<p>Plot different estimators</p>
+<div class="sourceCode" id="cb754"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">causalverse</span><span class="op">)</span></span>
+<span><span class="va">methods</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"synthdid"</span>, <span class="st">"did"</span>, <span class="st">"sc"</span>, <span class="st">"sc_ridge"</span>, <span class="st">"difp"</span>, <span class="st">"difp_ridge"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">estimates</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/lapply.html">lapply</a></span><span class="op">(</span><span class="va">methods</span>, <span class="kw">function</span><span class="op">(</span><span class="va">method</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/synthdid_est_ate.html">synthdid_est_ate</a></span><span class="op">(</span></span>
+<span>    data               <span class="op">=</span> <span class="va">df</span>,</span>
+<span>    adoption_cohorts   <span class="op">=</span> <span class="fl">5</span><span class="op">:</span><span class="fl">7</span>,</span>
+<span>    lags               <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>    leads              <span class="op">=</span> <span class="fl">2</span>,</span>
+<span>    time_var           <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>    unit_id_var        <span class="op">=</span> <span class="st">"id"</span>,</span>
+<span>    treated_period_var <span class="op">=</span> <span class="st">"year_treated"</span>,</span>
+<span>    treat_stat_var     <span class="op">=</span> <span class="st">"treatvar"</span>,</span>
+<span>    outcome_var        <span class="op">=</span> <span class="st">"y"</span>,</span>
+<span>    method <span class="op">=</span> <span class="va">method</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">plots</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/lapply.html">lapply</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_along</a></span><span class="op">(</span><span class="va">estimates</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/synthdid_plot_ate.html">synthdid_plot_ate</a></span><span class="op">(</span><span class="va">estimates</span><span class="op">[[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span>,</span>
+<span>                                 title <span class="op">=</span> <span class="va">methods</span><span class="op">[</span><span class="va">i</span><span class="op">]</span>,</span>
+<span>                                 theme <span class="op">=</span> <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/ama_theme.html">ama_theme</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu">gridExtra</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gridExtra/man/arrangeGrob.html">grid.arrange</a></span><span class="op">(</span>grobs <span class="op">=</span> <span class="va">plots</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+
+</div>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="temporal-discontinuity-designs.html"><span class="header-section-number">28</span> Temporal Discontinuity Designs</a></div>
+<div class="next"><a href="sec-difference-in-differences.html"><span class="header-section-number">30</span> Difference-in-Differences</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sec-synthetic-difference-in-differences"><span class="header-section-number">29</span> Synthetic Difference-in-Differences</a></li>
+<li>
+<a class="nav-link" href="#understanding"><span class="header-section-number">29.1</span> Understanding</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#steps-in-sdid-estimation"><span class="header-section-number">29.1.1</span> Steps in SDID Estimation</a></li>
+<li><a class="nav-link" href="#comparison-of-methods-1"><span class="header-section-number">29.1.2</span> Comparison of Methods</a></li>
+<li><a class="nav-link" href="#why-use-weights"><span class="header-section-number">29.1.3</span> Why Use Weights?</a></li>
+<li><a class="nav-link" href="#benefits-of-localization-in-sdid"><span class="header-section-number">29.1.4</span> Benefits of Localization in SDID</a></li>
+<li><a class="nav-link" href="#designing-sdid-weights"><span class="header-section-number">29.1.5</span> Designing SDID Weights</a></li>
+<li><a class="nav-link" href="#how-sdid-enhances-dids-plausibility"><span class="header-section-number">29.1.6</span> How SDID Enhances DID’s Plausibility</a></li>
+<li><a class="nav-link" href="#choosing-sdid-weights"><span class="header-section-number">29.1.7</span> Choosing SDID Weights</a></li>
+<li><a class="nav-link" href="#accounting-for-time-varying-covariates-in-weight-estimation"><span class="header-section-number">29.1.8</span> Accounting for Time-Varying Covariates in Weight Estimation</a></li>
+</ul>
+</li>
+<li>
+<a class="nav-link" href="#application-3"><span class="header-section-number">29.2</span> Application</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#block-treatment"><span class="header-section-number">29.2.1</span> Block Treatment</a></li>
+<li><a class="nav-link" href="#staggered-adoption"><span class="header-section-number">29.2.2</span> Staggered Adoption</a></li>
+</ul>
+</li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/mikenguyen13/data_analysis/blob/main/29-synthdid.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/mikenguyen13/data_analysis/edit/main/29-synthdid.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-03-03.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

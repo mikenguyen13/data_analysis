@@ -1,4 +1,4 @@
-# Difference-in-differences
+# Difference-in-differences {#sec-difference-in-differences}
 
 [List of packages](https://github.com/lnsongxf/DiD-1)
 
