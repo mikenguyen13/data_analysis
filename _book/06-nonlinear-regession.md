@@ -5077,7 +5077,7 @@ summary(nlin_modG)
 #> Residual standard error: 2.135 on 99 degrees of freedom
 #> 
 #> Number of iterations to convergence: 4 
-#> Achieved convergence tolerance: 7.204e-06
+#> Achieved convergence tolerance: 7.213e-06
 ```
 
 Note: The `nls_multstart` package can perform a grid search more efficiently without requiring manual looping.
@@ -5597,7 +5597,7 @@ summary(nlin_4)
 #> Residual standard error: 0.2831 on 247 degrees of freedom
 #> 
 #> Number of iterations to convergence: 9 
-#> Achieved convergence tolerance: 2.294e-07
+#> Achieved convergence tolerance: 2.307e-07
 ```
 
 ### Logistic Growth Model
@@ -5673,7 +5673,7 @@ summary(logisticModelSS)
 #> Residual standard error: 0.6528 on 7 degrees of freedom
 #> 
 #> Number of iterations to convergence: 1 
-#> Achieved convergence tolerance: 1.908e-06
+#> Achieved convergence tolerance: 1.906e-06
 
 # Extract parameter estimates
 coef(logisticModelSS)
@@ -5712,7 +5712,7 @@ summary(logisticModel)
 #> Residual standard error: 0.6528 on 7 degrees of freedom
 #> 
 #> Number of iterations to convergence: 0 
-#> Achieved convergence tolerance: 1.924e-06
+#> Achieved convergence tolerance: 1.91e-06
 ```
 
 Visualizing the Logistic Model Fit
@@ -5898,7 +5898,7 @@ summary(sep30_nls)
 #> Residual standard error: 8.258 on 237 degrees of freedom
 #> 
 #> Number of iterations to convergence: 6 
-#> Achieved convergence tolerance: 3.608e-09
+#> Achieved convergence tolerance: 1.166e-08
 summary(sep60_nls)
 #> 
 #> Formula: ryp ~ SS_nonlinModel(predictor = no3, b0, b1, alpha)
@@ -5914,7 +5914,7 @@ summary(sep60_nls)
 #> Residual standard error: 7.427 on 237 degrees of freedom
 #> 
 #> Number of iterations to convergence: 5 
-#> Achieved convergence tolerance: 8.571e-09
+#> Achieved convergence tolerance: 2.196e-08
 ```
 
 **Modeling Soil Depths Together and Comparing Models**
@@ -5949,7 +5949,7 @@ summary(red_nls)
 #> Residual standard error: 9.13 on 477 degrees of freedom
 #> 
 #> Number of iterations to convergence: 7 
-#> Achieved convergence tolerance: 7.126e-09
+#> Achieved convergence tolerance: 8.568e-09
 
 # Visualizing the combined model fit
 par(mfrow = c(1, 1))

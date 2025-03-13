@@ -4959,13 +4959,13 @@ geary_test
 #> 	Geary C test under randomisation
 #> 
 #> data:  model$residuals 
-#> weights: weights 
+#> weights: weights   
 #> 
-#> Geary C statistic standard deviate = 1.0592, p-value = 0.1447
+#> Geary C statistic standard deviate = 1.0606, p-value = 0.1444
 #> alternative hypothesis: Expectation greater than statistic
 #> sample estimates:
 #> Geary C statistic       Expectation          Variance 
-#>        0.84535708        1.00000000        0.02131399
+#>        0.84515868        1.00000000        0.02131399
 ```
 
 Significant Geary's C: Highlights local spatial autocorrelation, useful for identifying specific regions or groups of observations where dependence is strong.

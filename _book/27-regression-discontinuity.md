@@ -697,19 +697,19 @@ rdbounds_est <-
         num_bootstraps = 5
     )
 #> [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.38047"
-#> [1] "2025-02-08 18:14:33.753569 Estimating CDFs for point estimates"
-#> [1] "2025-02-08 18:14:34.145708 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-02-08 18:14:35.938183 Estimating CDFs with nudged tau (tau_star)"
-#> [1] "2025-02-08 18:14:35.993495 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-02-08 18:14:38.747617 Beginning parallelized output by bootstrap.."
-#> [1] "2025-02-08 18:14:43.191747 Computing Confidence Intervals"
-#> [1] "2025-02-08 18:14:54.779613 Time taken:0.35 minutes"
+#> [1] "2025-03-11 15:50:08.347625 Estimating CDFs for point estimates"
+#> [1] "2025-03-11 15:50:08.572628 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-03-11 15:50:10.687572 Estimating CDFs with nudged tau (tau_star)"
+#> [1] "2025-03-11 15:50:10.74728 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-03-11 15:50:13.975564 Beginning parallelized output by bootstrap.."
+#> [1] "2025-03-11 15:50:18.941564 Computing Confidence Intervals"
+#> [1] "2025-03-11 15:50:33.160952 Time taken:0.41 minutes"
 ```
 
 
 ```r
 rdbounds_summary(rdbounds_est, title_prefix = "Sample Data Results")
-#> [1] "Time taken: 0.35 minutes"
+#> [1] "Time taken: 0.41 minutes"
 #> [1] "Sample size: 1000"
 #> [1] "Local Average Treatment Effect:"
 #> $tau_hat
@@ -815,18 +815,18 @@ rdbounds_est_tau <-
         num_bootstraps = 5
     )
 #> [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.38047"
-#> [1] "2025-02-08 18:14:56.245033 Estimating CDFs for point estimates"
-#> [1] "2025-02-08 18:14:56.449024 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-02-08 18:14:58.23866 Estimating CDFs with nudged tau (tau_star)"
-#> [1] "2025-02-08 18:14:58.276159 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-02-08 18:15:01.104187 Beginning parallelized output by bootstrap.."
-#> [1] "2025-02-08 18:15:05.392548 Estimating CDFs with fixed tau value of: 0.025"
-#> [1] "2025-02-08 18:15:05.468534 Estimating CDFs with fixed tau value of: 0.05"
-#> [1] "2025-02-08 18:15:05.527238 Estimating CDFs with fixed tau value of: 0.1"
-#> [1] "2025-02-08 18:15:05.578757 Estimating CDFs with fixed tau value of: 0.2"
-#> [1] "2025-02-08 18:15:06.69184 Beginning parallelized output by bootstrap x fixed tau.."
-#> [1] "2025-02-08 18:15:09.681396 Computing Confidence Intervals"
-#> [1] "2025-02-08 18:15:22.407704 Time taken:0.44 minutes"
+#> [1] "2025-03-11 15:50:34.782099 Estimating CDFs for point estimates"
+#> [1] "2025-03-11 15:50:34.9791 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-03-11 15:50:37.084322 Estimating CDFs with nudged tau (tau_star)"
+#> [1] "2025-03-11 15:50:37.136006 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-03-11 15:50:40.222807 Beginning parallelized output by bootstrap.."
+#> [1] "2025-03-11 15:50:44.957412 Estimating CDFs with fixed tau value of: 0.025"
+#> [1] "2025-03-11 15:50:45.021623 Estimating CDFs with fixed tau value of: 0.05"
+#> [1] "2025-03-11 15:50:45.06365 Estimating CDFs with fixed tau value of: 0.1"
+#> [1] "2025-03-11 15:50:45.102478 Estimating CDFs with fixed tau value of: 0.2"
+#> [1] "2025-03-11 15:50:46.21112 Beginning parallelized output by bootstrap x fixed tau.."
+#> [1] "2025-03-11 15:50:48.958913 Computing Confidence Intervals"
+#> [1] "2025-03-11 15:51:05.586373 Time taken:0.51 minutes"
 ```
 
 
@@ -1919,20 +1919,20 @@ summary(rdd_mod)
 #> lm(formula = y ~ ., data = dat_step1, weights = weights)
 #> 
 #> Residuals:
-#>     Min      1Q  Median      3Q     Max 
-#> -3.3961 -0.6527  0.0088  0.6859  3.5718 
+#>      Min       1Q   Median       3Q      Max 
+#> -3.08072 -0.54182  0.05352  0.54135  2.51267 
 #> 
 #> Coefficients:
 #>             Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept) 17.03060    0.06819  249.76   <2e-16 ***
-#> D            9.96019    0.10781   92.39   <2e-16 ***
-#> x            2.04011    0.03370   60.54   <2e-16 ***
+#> (Intercept) 17.21703    0.20060   85.83   <2e-16 ***
+#> D            9.79856    0.31716   30.89   <2e-16 ***
+#> x            2.14839    0.09914   21.67   <2e-16 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Residual standard error: 0.998 on 997 degrees of freedom
-#> Multiple R-squared:  0.9694,	Adjusted R-squared:  0.9694 
-#> F-statistic: 1.582e+04 on 2 and 997 DF,  p-value: < 2.2e-16
+#> Residual standard error: 0.9284 on 97 degrees of freedom
+#> Multiple R-squared:  0.9746,	Adjusted R-squared:  0.9741 
+#> F-statistic:  1863 on 2 and 97 DF,  p-value: < 2.2e-16
 ```
 
 Plot the RD regression line with binned observations:
@@ -1941,7 +1941,6 @@ Plot the RD regression line with binned observations:
 ```r
 # Plot RD regression
 plot(rdd_mod, cex = 0.5, col = "red", xlab = "GPA", ylab = "Future Success")
-#> [1] "Mass points detected in the running variable."
 ```
 
 <img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" />

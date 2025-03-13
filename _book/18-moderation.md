@@ -639,19 +639,21 @@ summary(model_2)
 #> lm(formula = y_2 ~ x_2 * w, data = data_2)
 #> 
 #> Residuals:
-#>      Min       1Q   Median       3Q      Max 
-#> -13.3524  -3.3012  -0.0851   3.6035  15.0982 
+#>     Min      1Q  Median      3Q     Max 
+#> -9.3184 -3.1945 -0.0162  2.9254 11.7005 
 #> 
 #> Coefficients:
-#>             Estimate Std. Error t value Pr(>|t|)
-#> (Intercept) -0.20314    0.50581  -0.402    0.688
-#> x_2         -0.47184    0.31228  -1.511    0.132
-#> w            0.03911    0.71376   0.055    0.956
-#> x_2:w        0.29631    0.43098   0.688    0.493
+#>             Estimate Std. Error t value Pr(>|t|)  
+#> (Intercept)  -0.7478     0.4479  -1.670   0.0966 .
+#> x_2          -0.1610     0.2584  -0.623   0.5338  
+#> w             1.5016     0.6245   2.405   0.0171 *
+#> x_2:w        -0.3757     0.3517  -1.068   0.2868  
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Residual standard error: 5.036 on 196 degrees of freedom
-#> Multiple R-squared:  0.01338,	Adjusted R-squared:  -0.001726 
-#> F-statistic: 0.8857 on 3 and 196 DF,  p-value: 0.4495
+#> Residual standard error: 4.411 on 196 degrees of freedom
+#> Multiple R-squared:  0.05252,	Adjusted R-squared:  0.03801 
+#> F-statistic: 3.621 on 3 and 196 DF,  p-value: 0.0141
 
 # Linearity check plot
 interact_plot(

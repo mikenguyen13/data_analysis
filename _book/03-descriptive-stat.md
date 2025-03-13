@@ -125,12 +125,12 @@ library(e1071)
 # Calculate skewness
 skewness_value <- skewness(data)
 cat("Skewness:", skewness_value, "\n")
-#> Skewness: 0.362615
+#> Skewness: -0.1053895
 
 # Calculate kurtosis
 kurtosis_value <- kurtosis(data)
 cat("Kurtosis:", kurtosis_value, "\n")
-#> Kurtosis: -0.3066409
+#> Kurtosis: -0.2826932
 ```
 
 ## Graphical Measures
@@ -242,16 +242,17 @@ stem(data)
 #> 
 #>   The decimal point is at the |
 #> 
-#>   -2 | 4321000
-#>   -1 | 87665
-#>   -1 | 44433222111000
-#>   -0 | 998888886666665555
-#>   -0 | 433322221100
-#>    0 | 0112233333344
-#>    0 | 5666677888999999
-#>    1 | 0111122344
-#>    1 | 699
-#>    2 | 34
+#>   -2 | 65
+#>   -2 | 
+#>   -1 | 665
+#>   -1 | 44443330000000
+#>   -0 | 9999888888777777666655
+#>   -0 | 44443332222211110
+#>    0 | 000011112233333334
+#>    0 | 555567777888899
+#>    1 | 0013344
+#>    1 | 5
+#>    2 | 1
 
 # Bagplot - A 2D Boxplot Extension: Visualizes the spread and identifies outliers in two-dimensional data.
 pacman::p_load(aplpack)
@@ -415,7 +416,7 @@ library("EnvStats")
 
 # Perform Probability Plot Correlation Coefficient (PPCC) Test
 gofTest(data, test = "ppcc")$p.value # Probability Plot Correlation Coefficient
-#> [1] 0.3701575
+#> [1] 0.4855617
 ```
 
 ##### Shapiro-Wilk Test
@@ -786,13 +787,13 @@ ks.test(data, "pnorm", mean(data), sd(data))
 #> 	Exact one-sample Kolmogorov-Smirnov test
 #> 
 #> data:  data
-#> D = 0.098643, p-value = 0.6785
+#> D = 0.10812, p-value = 0.5658
 #> alternative hypothesis: two-sided
 
 # Goodness-of-fit test using gofTest
 library(DescTools)
 gofTest(data, test = "ks")$p.value  # Kolmogorov-Smirnov test p-value
-#> [1] 0.6785444
+#> [1] 0.5657619
 ```
 
 -   **Advantages**:
@@ -868,7 +869,7 @@ data <- rnorm(50)
 # Perform the Cramer-von Mises test
 library(DescTools)
 gofTest(data, test = "cvm")$p.value  # Cramer-von Mises test p-value
-#> [1] 0.04846959
+#> [1] 0.7045712
 ```
 
 -   **Advantages**:
@@ -971,7 +972,7 @@ jarque.bera.test(data)
 #> 	Jarque Bera Test
 #> 
 #> data:  data
-#> X-squared = 0.89476, df = 2, p-value = 0.6393
+#> X-squared = 0.98267, df = 2, p-value = 0.6118
 ```
 
 ## Bivariate Statistics
@@ -1337,10 +1338,6 @@ summary(logistic_model)
 #> 
 #> Call:
 #> glm(formula = y ~ x, family = binomial)
-#> 
-#> Deviance Residuals: 
-#>        Min          1Q      Median          3Q         Max  
-#> -2.770e-04  -2.100e-08  -2.100e-08   2.100e-08   2.548e-04  
 #> 
 #> Coefficients:
 #>             Estimate Std. Error z value Pr(>|z|)

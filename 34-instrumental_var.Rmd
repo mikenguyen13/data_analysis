@@ -1,6 +1,21 @@
 # Instrumental Variables {#sec-instrumental-variables}
 
-Similar to [RCT](#sec-experimental-design), we try to introduce randomization (random assignment to treatment) to our treatment variable by using only variation in the instrument.
+In many empirical settings, we seek to estimate the causal effect of an explanatory variable $X$ on an outcome variable $Y$. A common starting point is the [Ordinary Least Squares] regression:
+
+$$ Y = \beta_0 + \beta_1 X + \varepsilon. $$
+
+For OLS to provide an unbiased and consistent estimate of $\beta_1$, the explanatory variable $X$ must satisfy the *exogeneity condition*:
+
+$$ \mathbb{E}[\varepsilon \mid X] = 0. $$
+
+However, when $X$ is correlated with the error term $\varepsilon$, this assumption is violated, leading to *endogeneity*. As a result, the OLS estimator is biased and inconsistent. Common causes of endogeneity include:
+
+-   **Omitted Variable Bias (OVB):** When a relevant variable is omitted from the regression, leading to correlation between $X$ and $\varepsilon$.
+-   **Simultaneity:** When $X$ and $Y$ are jointly determined, such as in supply-and-demand models.
+-   **Measurement Error:** Errors in measuring $X$ introduce bias in estimation.
+    -   **Attenuation Bias in Errors-in-Variables**: measurement error in the independent variable leads to an underestimate of the true effect (biasing the coefficient toward zero).
+
+Instrumental Variables (IV) estimation addresses endogeneity by introducing an instrument $Z$ that affects $Y$ *only* through $X$. Similar to [RCT](#sec-experimental-design), we try to introduce randomization (random assignment to treatment) to our treatment variable by using only variation in the instrument.
 
 Logic of using an instrument:
 
@@ -10,202 +25,227 @@ Logic of using an instrument:
 
 -   See the relationship between treatment and outcome in terms of residual variations that are exogenous to omitted variables.
 
-**Notes**:
+For an instrument $Z$ to be valid, it must satisfy two conditions:
 
--   Instruments can be used to remove attenuation bias in errors-in-variables.
+1.  **Relevance Condition**: The instrument $Z$ must be correlated with the endogenous variable $X$: $$ \text{Cov}(Z, X) \neq 0. $$
 
--   Be careful with the F-test and standard errors when you do 2SLS by hand (you need to correct them).
+2.  **Exogeneity Condition (Exclusion Restriction)**: The instrument $Z$ must be uncorrelated with the error term $\varepsilon$ and affect $Y$ *only* through $X$: $$ \text{Cov}(Z, \varepsilon) = 0. $$
 
--   Repeated use of related IVs across different studies can collectively invalidate these instruments, primarily through the violation of the exclusion restriction [@gallen2020broken]. One needs to test for invalid instruments (Hausman-like test).
+These conditions ensure that $Z$ provides exogenous variation in $X$, allowing us to isolate the causal effect of $X$ on $Y$.
 
-    -   @mellon2023rain shows the widespread use of weather as an instrument in social sciences (289 studies linking weather to 195 variables) demonstrates significant exclusion violations that can overturn many IV results.
+These conditions ensure that $Z$ provides exogenous variation in $X$, allowing us to estimate the causal effect of $X$ on $Y$. [Random assignment](#sec-the-gold-standard-randomized-controlled-trials) of $Z$ helps ensure exogeneity, but we must also confirm that $Z$ influences $Y$ *only* through $X$ to satisfy the exclusion restriction.
 
--   For [Zero-valued Outcomes], we can't directly interpret the treatment coefficient of log-transformed outcome regression as percentage change [@chen2023logs]. We have to distinguish the treatment effect on the intensive (outcome: 10 to 11) vs. extensive margins (outcome: 0 to 1), and we can't readily interpret the treatment coefficient of log-transformed outcome regression as percentage change. To have percentage change interpretation, we can either do:
+The IV approach dates back to early econometric research in the 1920s and 1930s, with a significant role in Cowles Commission studies on simultaneous equations. Key contributions include:
 
-    -   Proportional LATE: estimate $\theta_{ATE\%}$ for those who are compliers under the instrument. To estimate proportional LATE,
+-   @wright1928tariff: One of the earliest applications, studying supply and demand for pig iron.
+-   @angrist1991sources: Popularized IV methods using quarter-of-birth as an instrument for education.
 
-        1.  Regress $Y_i = \beta D_i + X_i + \epsilon_i$ using 2SLS with an instrument on $D_i$, where $\beta$ is interpreted as the LATE in levels of the control group's mean for compliers.
+The *credibility revolution* in econometrics (1990s--2000s) led to widespread use of IVs in applied research, particularly in economics, political science, and epidemiology.
 
-        2.  Get estimate of the control complier mean by regressing with same 2SLS regression [@abadie2002instrumental] where the final outcome is $-(D_i - 1)Y_i$ , we refer to the new new estimated effect of $D_i$ as $\beta_{cc}$
+## Challenges with Instrumental Variables
 
-        3.  The $\theta_{ATE \%}$ for compliers that are induced by the instrument is $\hat{\beta}/\hat{\beta}_{cc}$, where it can be interpreted directly as the percentage change for compliers that are induced by the instrument under treatment as compared to under control.
+While IVs can provide a solution to endogeneity, several challenges arise:
 
-        4.  SE can be obtained by non-parametric bootstrap.
+-   **Exclusion Restriction Violations:** If $Z$ affects $Y$ through any channel other than $X$, the IV estimate is biased.
+-   **Repeated Use of Instruments:** Common instruments, such as weather or policy changes, may be invalid due to their widespread application across studies [@gallen2020broken]. One needs to test for invalid instruments (Hausman-like test).
+    -   A notable example is @mellon2023rain, who documents that *289 social sciences studies* have used weather as an instrument for 195 variables, raising concerns about exclusion violations.
+-   **Heterogeneous Treatment Effects:** The Local Average Treatment Effect (LATE) estimated by IV applies only to *compliers*---units whose treatment status is affected by the instrument.
+-   **Weak Instruments**: Too little correlation with the endogenous regressor yields unstable estimates.
+-   **Invalid Instruments**: If the instrument violates exogeneity, your results are inconsistent.
+-   **Interpretation Mistakes**: The IV identifies *only* the effect for those "marginal" units whose treatment status is driven by the instrument.
 
-        5.  For specific case that the instrument is binary, $\theta$ of the intensive margin for compliers can be directly obtained by Poisson IV regression (`ivpoisson` in Stata).
+------------------------------------------------------------------------
 
-    -   @lee2009training bounds: we can get bounds for the average treatment effect in logs for compliers who have positive outcome regardless of treatment status (i.e., intensive-margin effect). This requires a monotonicity assumption for compliers where they should still have positive outcome regardless of treatment status.
+## Framework for Instrumental Variables
 
-**Notes** on First-stage:
+We consider a binary treatment framework where:
 
--   Always use the OLS regression in the first stage (regardless of the type of endogenous variables - e.g., continuous or discreet) (suggested by [@angrist2009mostly]. Estimates of IV can still be consistent regardless of the form of the endogenous variables (discreet vs. continuous).
+-   $D_i \sim Bernoulli(p)$ is a dummy treatment variable.
 
-    -   Alternatively, we could use "biprobit" model, but this is applicable only in cases where you have both dependent and endogenous variables to be binary.
+-   $(Y_{0i}, Y_{1i})$ are the potential outcomes under control and treatment.
 
--   If you still want to continue and use logit or probit models for the first stage when you have binary variables, you have a "[forbidden regression](https://www.statalist.org/forums/forum/general-stata-discussion/general/1379449-two-step-iv-method-with-binary-dependent-variable)" (also [1](https://stats.stackexchange.com/questions/125830/consistency-of-2sls-with-binary-endogenous-variable), [2](https://stats.stackexchange.com/questions/94063/probit-two-stage-least-squares-2sls/94392#94392)) (i.e., an incorrect extension of 2SLS to a nonlinear case).
+-   The observed outcome is: $$ Y_i = Y_{0i} + (Y_{1i} - Y_{0i}) D_i. $$
 
-There are several ways to understand this problem:
+-   We introduce an instrumental variable $Z_i$ satisfying: $$ Z_i \perp (Y_{0i}, Y_{1i}, D_{0i}, D_{1i}). $$
 
-1.  **Identification strategy**: The identification strategy in instrumental variables analysis relies on the fact that the instrumental variable affects the outcome variable only through its effect on the endogenous variable. However, when the endogenous variable is binary, the relationship between the instrumental variable and the endogenous variable is not continuous. This means that the instrumental variable can only affect the endogenous variable in discrete jumps, rather than through a continuous change. As a result, the identification of the causal effect of the endogenous variable on the outcome variable may not be possible with probit or logit regression in the first stage.
+    -   This means $Z_i$ is independent of potential outcomes and potential treatment status.
+    -   $Z_i$ must also be correlated with $D_i$ to satisfy the **relevance condition**.
 
-2.  **Model assumptions**: Both models assume that the error term has a specific distribution (normal or logistic), and that the probability of the binary outcome is a function of the linear combination of the regressors.
+### Constant-Treatment-Effect Model
 
-    When the endogenous variable is binary, however, the distribution of the error term is not specified, as there is no continuous relationship between the endogenous variable and the outcome variable. This means that the assumptions of the probit and logit models may not hold, and the resulting estimates may not be reliable or interpretable.
+Under the constant treatment effect assumption (i.e., the treatment effect is the same for all individuals),
 
-3.  **Issue of weak instruments**: When the instrument is weak, the variance of the inverse Mills ratio (which is used to correct for endogeneity in instrumental variables analysis) can be very large. In the case of binary endogenous variables, the inverse Mills ratio cannot be consistently estimated using probit or logit regression, and this can lead to biased and inconsistent estimates of the causal effect of the endogenous variable on the outcome variable.
+$$
+\begin{aligned}
+Y_{0i} &= \alpha + \eta_i, \\
+Y_{1i} - Y_{0i} &= \rho, \\
+Y_i &= Y_{0i} + D_i (Y_{1i} - Y_{0i}) \\
+    &= \alpha + \eta_i  + D_i \rho \\
+    &= \alpha + \rho D_i + \eta_i.
+\end{aligned}
+$$
 
-Problems with weak instruments [@bound1995problems]:
+where:
 
--   Weak instrumental variables can produce (finite-sample) **biased** and **inconsistent** estimates of the causal effect of an endogenous variable on an outcome variable (even in the presence of large sample size)
+-   $\eta_i$ captures individual-level heterogeneity.
+-   $\rho$ is the constant treatment effect.
 
--   In a finite sample, instrumental variables (IV) estimates can be biased in the same direction as ordinary least squares (OLS) estimates. Additionally, the bias of IV estimates approaches that of OLS estimates as the correlation (R2) between the instruments and the endogenous explanatory variable approaches zero. This means that when the correlation between the instruments and the endogenous variable is weak, the bias of the IV estimates can be similar to that of the OLS estimates.
+The problem with OLS estimation is that $D_i$ may be correlated with $\eta_i$, leading to **endogeneity bias**.
 
--   Weak instruments are problematic because they do not have enough variation to fully capture the variation in the endogenous variable, leading to measurement error and other sources of noise in the estimates.
+### Instrumental Variable Solution
 
--   Using weak instruments can produce large standard errors and low t-ratio. And when the feedback (reverse causality) is strong, the bias in IV is even greater than that of OLS [@nelson1988distribution].
+A valid instrument $Z_i$ allows us to estimate the causal effect $\rho$ via:
 
--   Using lagged dependent variables as instruments for current values depends on serial correlations, typically low [@nelson1988distribution].
+$$
+\begin{aligned}
+\rho &= \frac{\text{Cov}(Y_i, Z_i)}{\text{Cov}(D_i, Z_i)} \\
+     &= \frac{\text{Cov}(Y_i, Z_i) / V(Z_i) }{\text{Cov}(D_i, Z_i) / V(Z_i)} \\
+     &= \frac{\text{Reduced form estimate}}{\text{First-stage estimate}} \\
+     &= \frac{E[Y_i |Z_i = 1] - E[Y_i | Z_i = 0]}{E[D_i |Z_i = 1] - E[D_i | Z_i = 0 ]}.
+\end{aligned}
+$$
 
--   Using multiple covariates to artificially increase the first-stage $R^2$ does not solve this weak instrument problem [@nelson1988distribution].
+This ratio measures the treatment effect *only if* $Z_i$ is a valid instrument.
 
--   Solutions:
+### Heterogeneous Treatment Effects and the LATE Framework
 
-    -   use of multiple instruments
+In a more general framework where treatment effects vary across individuals,
 
-    -   use of instrumental variables with higher correlation
+-   Define **potential outcomes** as: $$ Y_i(d,z) = \text{outcome for unit } i \text{ given } D_i = d, Z_i = z. $$
 
-    -   use of alternative estimation methods such as limited information maximum likelihood (LIML) or two-stage least squares (2SLS) with heteroscedasticity-robust standard errors.
+-   Define **treatment status** based on $Z_i$: $$ D_i = D_{0i} + Z_i (D_{1i} - D_{0i}). $$
 
-Instrument Validity:
+    where:
 
-1.  Random assignment ([Exogeneity Assumption]).
-2.  Any effect of the instrument on the outcome must be through the endogenous variable ([Relevance Assumption]).
+    -   $D_{1i}$ is the treatment status when $Z_i = 1$.
+    -   $D_{0i}$ is the treatment status when $Z_i = 0$.
+    -   $D_{1i} - D_{0i}$ is the causal effect of $Z_i$ on $D_i$.
 
-## Framework
+### Assumptions for LATE Identification
 
--   $D_i \sim Bern$ Dummy Treatment
+#### Independence (Instrument Randomization)
 
--   $Y_{0i}, Y_{1i}$ potential outcomes
+The instrument must be *as good as randomly assigned*:
 
--   $Y_i = Y_{0i} + (Y_{1i} - Y_{0i}) D_i$ observed outcome
+$$ [\{Y_i(d,z); \forall d, z \}, D_{1i}, D_{0i} ] \perp Z_i. $$
 
--   $Z_i \perp Y_{0i}, Y_{1i}$ Instrumental variables (and also correlate with $D_i$)
+This ensures that $Z_i$ is uncorrelated with potential outcomes and potential treatment status.
 
-Under constant-effects and linear ($Y_{1i} - Y_{0i}$ are the same for everyone)
+This assumption let the **first-stage equation** be the average causal effect of $Z_i$ on $D_i$
 
-$$ \begin{aligned} Y_{0i} &= \alpha + \eta_i \\ Y_{1i} - Y_{0i} &= \rho \\ Y_i &= Y_{0i} + D_i (Y_{1i} - Y_{0i}) \\ &= \alpha + \eta_i  + D_i \rho \\ &= \alpha + \rho D_i + \eta_i \end{aligned} $$
+$$ \begin{aligned} E[D_i |Z_i = 1] - E[D_i | Z_i = 0] &= E[D_{1i} |Z_i = 1] - E[D_{0i} |Z_i = 0] \\ &= E[D_{1i} - D_{0i}] \end{aligned} $$
 
-where
-
--   $\eta_i$ is individual differences
-
--   $\rho$ is the difference between treated outcome and untreated outcome. Here we assume they are constant for everyone
-
-However, we have a problem with OLS because $D_i$ is correlated with $\eta_i$ for each unit
-
-But $Z_i$ can come to the rescue, the causal estimate can be written as
-
-$$ \begin{aligned} \rho &= \frac{Cov( Y_i, Z_i)}{Cov(D_i, Z_i)} \\ &= \frac{Cov(Y_i, Z_i) / V(Z_i) }{Cov( D_i, Z_i) / V(Z_i)} = \frac{Reduced form}{First-stage} \\ &= \frac{E[Y_i |Z_i = 1] - E[Y_i | Z_i = 0]}{E[D_i |Z_i = 1] - E[D_i | Z_i = 0 ]} \end{aligned} $$
-
-Under heterogeneous treatment effect ($Y_{1i} - Y_{0i}$ are different for everyone) with LATE framework
-
-$Y_i(d,z)$ denotes the potential outcome for unit $i$ with treatment $D_i = d$ and instrument $Z_i = z$
-
-Observed treatment status
-
-$$ D_i = D_{0i} + Z_i (D_{1i} - D_{0i}) $$
-
-where
-
--   $D_{1i}$ is treatment status of unit $i$ when $z_i = 1$
-
--   $D_{0i}$ is treatment status of unit $i$ when $z_i = 0$
-
--   $D_{1i} - D_{0i}$ is the causal effect of $Z_i$ on $D_i$
-
-**Assumptions**
-
--   [***Independence***]{.underline}: The instrument is randomly assigned (i.e., independent of potential outcomes and potential treatments)
-
-    -   $[\{Y_i(d,z); \forall d, z \}, D_{1i}, D_{0i} ] \Pi Z_i$
-
-    -   This assumption let the first-stage equation be the average causal effect of $Z_i$ on $D_i$
-
-    $$ \begin{aligned} E[D_i |Z_i = 1] - E[D_i | Z_i = 0] &= E[D_{1i} |Z_i = 1] - E[D_{0i} |Z_i = 0] \\ &= E[D_{1i} - D_{0i}] \end{aligned} $$
-
-    -   This assumption also is sufficient for a causal interpretation of the reduced form, where we see the effect of the instrument on the outcome.
+This assumption also is sufficient for a causal interpretation of the **reduced form**, where we see the effect of the instrument $Z_i$ on the outcome $Y_i$:
 
 $$ E[Y_i |Z_i = 1 ] - E[Y_i|Z_i = 0] = E[Y_i (D_{1i}, Z_i = 1) - Y_i (D_{0i} , Z_i = 0)] $$
 
--   [***Exclusion***]{.underline} (i.e., existence of instruments [@imbens1994identification]
+#### Exclusion Restriction
 
-    -   The treatment $D_i$ fully mediates the effect of $Z_i$ on $Y_i$
+This is also known as the existence of the instrument assumption [@imbens1994identification]. The instrument should only affect $Y_i$ through $D_i$ (i.e., the treatment $D_i$ fully mediates the effect of $Z_i$ on $Y_i$):
 
-    $$ Y_{1i} = Y_i (1,1) = Y_i (1,0) \\  Y_{0i} = Y_i (0,1) = Y_i (0, 0) $$
+$$ 
+\begin{aligned}
+Y_{1i} &= Y_i (1,1) = Y_i (1,0)\\
+Y_{0i} &= Y_i (0,1) = Y_i (0,0)
+\end{aligned}
+$$
 
-    -   With this assumption, the observed outcome $Y_i$ can be thought of as (assume $Y_{1i}, Y_{0i}$ already satisfy the independence assumption)
+Under this assumption (and assume $Y_{1i, Y_{0i}}$ already satisfy the independence assumption), the observed outcome $Y_i$ can be rewritten as:
 
-    $$ \begin{aligned} Y_i &= Y_i (0, Z_i) + [Y_i (1 , Z_i) - Y_i (0, Z_i)] D_i \\ &= Y_{0i} + (Y_{1i} - Y_{0i} ) D_i \end{aligned} $$
+$$
+\begin{aligned}
+  Y_i &= Y_i (0, Z_i) + [Y_i (1 , Z_i) - Y_i (0, Z_i)] D_i \\
+      &= Y_{0i} + (Y_{1i} - Y_{0i}) D_i.
+  \end{aligned}
+$$
 
-    -   This assumption let us go from reduced-form causal effects to treatment effects [@angrist1995two]
+This assumption let us go from reduced-form causal effects to treatment effects [@angrist1995two].
 
--   [***Monotonicity***]{.underline}: $D_{1i} > D_{0i} \forall i$
+#### Monotonicity (No Defiers)
 
-    -   With this assumption, we have $E[D_{1i} - D_{0i} ] = P[D_{1i} > D_{0i}]$
+We assume that $Z_i$ affects $D_i$ in a *monotonic* way:
 
-    -   This assumption lets us assume that there is a first stage, in which we examine the proportion of the population that $D_i$ is driven by $Z_i$
+$$ D_{1i} \geq D_{0i}, \quad \forall i. $$
 
-    -   This assumption is used to solve to problem of the shifts between participation status back to non-participation status.
+-   This assumption lets us assume that there is a first stage, in which we examine the proportion of the population that $D_i$ is driven by $Z_i$. It implies that $Z_i$ only moves individuals *toward* treatment, but never away. This rules out "defiers" (i.e., individuals who would have taken the treatment when not assigned but refuse when assigned).
+-   This assumption is used to solve to problem of the shifts between participation status back to non-participation status.
+    -   Alternatively, one can solve the same problem by assuming constant (homogeneous) treatment effect [@imbens1994identification], but this is rather restrictive.
 
-        -   Alternatively, one can solve the same problem by assuming constant (homogeneous) treatment effect [@imbens1994identification], but this is rather restrictive.
+    -   A third solution is the assumption that there exists a value of the instrument, where the probability of participation conditional on that value is 0 [@heckman1990varieties, @angrist1991sources].
 
-        -   A third solution is the assumption that there exists a value of the instrument, where the probability of participation conditional on that value is 0 [@heckman1990varieties, @angrist1991sources].
+Under monotonicity,
 
-With these three assumptions, we have the LATE theorem [@angrist2009mostly, 4.4.1]
+$$
+\begin{aligned}
+  E[D_{1i} - D_{0i} ] = P[D_{1i} > D_{0i}].
+  \end{aligned}
+$$
 
-$$ \frac{E[Y_i | Z_i = 1] - E[Y_i | Z_i = 0]}{E[D_i |Z_i = 1] - E[D_i |Z_i = 0]} = E[Y_{1i} - Y_{0i} | D_{1i} > D_{0i}] $$
+### Local Average Treatment Effect Theorem
 
-LATE assumptions allow us to go back to the types of subjects we have in [Causal Inference]
+Given **Independence**, **Exclusion**, and **Monotonicity**, we obtain the **LATE** result [@angrist2009mostly, 4.4.1]:
 
--   Switchers:
+$$
+\begin{aligned}
+\frac{E[Y_i | Z_i = 1] - E[Y_i | Z_i = 0]}{E[D_i |Z_i = 1] - E[D_i |Z_i = 0]} = E[Y_{1i} - Y_{0i} | D_{1i} > D_{0i}].
+\end{aligned}
+$$
 
-    -   Compliers: $D_{1i} > D_{0i}$
+This states that the IV estimator recovers the causal effect *only for compliers*---units whose treatment status changes due to $Z_i$.
 
--   Non-switchers:
+IV only identifies treatment effects for **switchers** (compliers):
 
-    -   Always-takers: $D_{1i} = D_{0i} = 1$
+| Switcher Type     | Compliance Type   | Definition                                                        |
+|------------------|-------------------------|-----------------------------|
+| **Switchers**     | **Compliers**     | $D_{1i} > D_{0i}$ (take treatment if $Z_i = 1$, not if $Z_i = 0$) |
+| **Non-switchers** | **Always-Takers** | $D_{1i} = D_{0i} = 1$ (always take treatment)                     |
+| **Non-switchers** | **Never-Takers**  | $D_{1i} = D_{0i} = 0$ (never take treatment)                      |
 
-    -   Never-takers: $D_{1i} = D_{0i} = 0$
+-   IV estimates nothing for always-takers and never-takers since their treatment status is unaffected by $Z_i$ (Similar to the fixed-effects models).
 
-[Instrumental Variables] can't say anything about non-switchers because treatment status $D_i$ has no effects on them (similar to fixed effects models).
+### IV in Randomized Trials (Noncompliance)
 
-When all groups are the same, we come back to the constant-effects world.
+-   In randomized trials, if compliance is imperfect (i.e., compliance is voluntary), where individuals in the treatment group will not always take the treatment (e.g., **selection bias**), intention-to-treat (ITT) estimates are valid but **contaminated by noncompliance**.
+-   IV estimation using [random assignment](#sec-the-gold-standard-randomized-controlled-trials) ($Z_i$) as an instrument for actual treatment received ($D_i$) recovers the LATE.
 
-Treatment effects on the treated is a weighted average of always-takers and compliers.
+$$
+\begin{aligned}
+\frac{E[Y_i |Z_i = 1] - E[Y_i |Z_i = 0]}{E[D_i |Z_i = 1]} = \frac{\text{Intent-to-Treat Effect}}{\text{Compliance Rate}} = E[Y_{1i} - Y_{0i} |D_i = 1].
+\end{aligned}
+$$
 
-In the special case of IV in randomized trials, we have a compliance problem (when compliance is voluntary), where those in the treated will not always take the treatment (i.e., might be selection bias).
+Under full compliance, **LATE = Treatment Effect on the Treated (TOT)**.
 
--   **Intention-to-treat analysis** is valid, but contaminated by non-compliance
+------------------------------------------------------------------------
 
--   IV in this case ($Z_i$ = random assignment to the treatment; $D_i$ = whether the unit actually received/took the treatment) can solve this problem.
+## Estimation {#sec-estimation}
 
--   Under certain assumptions (i.e., SUTVA, random assignment, exclusion restriction, no defiers, and monotinicity), this analysis can give causal interpreation of LATE because it's the average causal effect for the compliers only.
+### Two-Stage Least Squares Estimation {#sec-two-stage-least-squares-estimation}
 
-    -   Without these assumptions, it's a ratio of intention-to-treat.
+Two-Stage Least Squares (2SLS) is the most widely used IV estimator It's a special case of [IV-GMM]. Consider the structural equation:
 
--   Without always-takers in this case, LATE = Treatment effects on the treated
+$$
+Y_i = X_i \beta + \varepsilon_i,
+$$
 
-See proof @bloom1984accounting and examples @bloom1997benefits and @sherman1984minneapolis
+where $X_i$ is endogenous. We introduce an **instrument** $Z_i$ satisfying:
 
-$$ \frac{E[Y_i |Z_i = 1] - E[Y_i |Z_i = 0]}{E[D_i |Z_i = 1]} = \frac{\text{Intention-to-treat effect}}{\text{Compliance rate}} \\ = E[Y_{1i} - Y_{0i} |D_i = 1] $$
+1.  **Relevance**: $Z_i$ is correlated with $X_i$.
+2.  **Exogeneity**: $Z_i$ is uncorrelated with $\varepsilon_i$.
 
-## Estimation
+**2SLS Steps**
 
-### 2SLS Estimation
+1.  **First-Stage Regression:** Predict $X_i$ using the instrument: $$
+    X_i = \pi_0 + \pi_1 Z_i + v_i.
+    $$
 
-A special case of [IV-GMM]
+    -   Obtain fitted values $\hat{X}_i = \pi_0 + \pi_1 Z_i$.
 
-Examples by authors of `fixest` package
+2.  **Second-Stage Regression:** Use $\hat{X}_i$ in place of $X_i$: $$
+    Y_i = \beta_0 + \beta_1 \hat{X}_i + \varepsilon_i.
+    $$
+
+    -   The estimated $\hat{\beta}_1$ is our IV estimator.
 
 ```{r}
 library(fixest)
@@ -215,53 +255,18 @@ set.seed(2)
 base$x_inst_2 = 0.2 * base$y + 0.2 * base$x_endo_1 + rnorm(150, sd = 0.5)
 base$x_endo_2 = 0.2 * base$y - 0.2 * base$x_inst_1 + rnorm(150, sd = 0.5)
 
-# est_iv = feols(y ~ x1 | x_endo_1  ~ x_inst_1 , base)
+# IV Estimation
 est_iv = feols(y ~ x1 | x_endo_1 + x_endo_2 ~ x_inst_1 + x_inst_2, base)
-est_iv
+summary(est_iv)
 ```
 
-Default statistics
+**Diagnostic Tests**
 
-1.  F-test first-stage (weak instrument test)
-2.  Wu-Hausman endogeneity test
-3.  Over-identifying restriction (Sargan) J-test
+To assess instrument validity:
 
 ```{r}
-fitstat(
-    est_iv,
-    type = c(
-        "n", "ll", "aic", "bic", "rmse", # ll means log-likelihood
-        
-        "my", # mean dependent var
+fitstat(est_iv, type = c("n", "f", "ivf", "ivf1", "ivf2", "ivwald", "cd"))
 
-        "g", # degrees of freedom used to compute the t-test
-
-        "r2", "ar2", "wr2", "awr2", "pr2", "apr2", "wpr2", "awpr2",
-
-        "theta", # over-dispersion parameter in Negative Binomial models
-
-        "f", "wf", # F-tests of nullity of the coefficients
-
-        "wald", # Wald test of joint nullity of the coefficients
-
-        "ivf",
-        
-        "ivf1",
-
-        "ivf2",
-
-        "ivfall",
-        
-        "ivwald", "ivwald1", "ivwald2", "ivwaldall",
-
-        "cd"
-        
-        # "kpr"
-        
-        
-        ),
-    cluster = 'fe'
-)
 ```
 
 To set default printing
@@ -288,210 +293,695 @@ etable(summary(est_iv, stage = 2:1), fitstat = ~ . + ivfall + ivwaldall.p)
 # `all` means IV only
 ```
 
-### IV-GMM {data-link="IV-GMM"}
+### IV-GMM
 
-This is a more general framework.
+The Generalized Method of Moments (GMM) provides a flexible estimation framework that generalizes the Instrumental Variables (IV) approach, including [2SLS](#sec-two-stage-least-squares-estimation) as a special case. The key idea behind GMM is to use moment conditions derived from economic models to estimate parameters efficiently, even in the presence of endogeneity.
 
--   [2SLS Estimation] is a special case of [IV-GMM] estimator
-
-$$
-Y = X \beta + u, u \sim (0, \Omega)
-$$
-
-where
-
--   $X$ is a matrix of endogenous variables ($N\times k$)
-
-We will use a matrix of instruments $X$ where it has $N \times l$ dimensions (where $l \ge k$)
-
-Then, we can have a set of $l$ moments:
+Consider the standard linear regression model:
 
 $$
-g_i (\beta) = Z_i' u_i = Z_i' (Y_i - X_i \beta)
+Y = X\beta + u, \quad u \sim (0, \Omega)
 $$
 
-where
+where:
 
--   $i \in (1,N)$
+-   $Y$ is an $N \times 1$ vector of the dependent variable.
+-   $X$ is an $N \times k$ matrix of endogenous regressors.
+-   $\beta$ is a $k \times 1$ vector of coefficients.
+-   $u$ is an $N \times 1$ vector of error terms.
+-   $\Omega$ is the variance-covariance matrix of $u$.
 
-Each $l$ moment equation is a sample moment, which can be estimated by averaging over $N$
-
-$$
-\bar{g}(\beta) = \frac{1}{N} \sum_{i = 1}^N Z_i (Y_i - X_i \beta) = \frac{1}{N} Z'u
-$$
-
-GMM then estimate $\beta$ so that $\bar{g}(\hat{\beta}_{GMM}) = 0$
-
-When $l = k$ there is a unique solution to this system of equations (and equivalent to the IV estimator)
+To address endogeneity in $X$, we introduce an $N \times l$ matrix of instruments, $Z$, where $l \geq k$. The moment conditions are then given by:
 
 $$
-\hat{\beta}_{IV} = (Z'X)^{-1}Z'Y
+E[Z_i' u_i] = E[Z_i' (Y_i - X_i \beta)] = 0.
 $$
 
-When $l > k$, we have a set of $k$ instruments
+In practice, these expectations are replaced by their sample analogs. The empirical moment conditions are given by:
 
 $$
-\hat{X} = Z(Z'Z)^{-1} Z' X = P_ZX
+\bar{g}(\beta) = \frac{1}{N} \sum_{i=1}^{N} Z_i' (Y_i - X_i \beta) = \frac{1}{N} Z' (Y - X\beta).
 $$
 
-then we can use the 2SLS estimator
+GMM estimates $\beta$ by minimizing a quadratic function of these sample moments.
+
+------------------------------------------------------------------------
+
+#### IV and GMM Estimators
+
+1.  **Exactly Identified Case** ($l = k$)
+
+When the number of instruments equals the number of endogenous regressors ($l = k$), the moment conditions uniquely determine $\beta$. In this case, the IV estimator is:
+
+$$
+\hat{\beta}_{IV} = (Z'X)^{-1}Z'Y.
+$$
+
+This is equivalent to the classical 2SLS estimator.
+
+2.  **Overidentified Case** ($l > k$)
+
+When there are more instruments than endogenous variables ($l > k$), the system has more moment conditions than parameters. In this case, we project $X$ onto the instrument space:
+
+$$
+\hat{X} = Z(Z'Z)^{-1} Z' X = P_Z X.
+$$
+
+The 2SLS estimator is then given by:
 
 $$
 \begin{aligned}
 \hat{\beta}_{2SLS} &= (\hat{X}'X)^{-1} \hat{X}' Y \\
-&= (X'P_Z X)^{-1}X' P_Z Y
+&= (X'P_Z X)^{-1} X' P_Z Y.
 \end{aligned}
 $$
 
-Differences between 2SLS and IV-GMM:
+However, 2SLS does not optimally weight the instruments when $l > k$. The IV-GMM approach resolves this issue.
 
--   In the 2SLS method, when there are more instruments available than what is actually needed for the estimation, to address this, a matrix is created that only includes the necessary instruments, which simplifies the calculation.
+------------------------------------------------------------------------
 
--   The IV-GMM method uses all the available instruments, but applies a weighting system to prioritize the instruments that are most relevant. This approach is useful when there are more instruments than necessary, which can make the calculation more complex. The IV-GMM method uses a criterion function to weight the estimates and improve their accuracy.
+#### IV-GMM Estimation
 
--   **In short, always use IV-GMM when you have overid problems**
-
-GMM estimator minimizes
+The GMM estimator is obtained by minimizing the objective function:
 
 $$
-J (\hat{\beta}_{GMM} ) = N \bar{g}(\hat{\beta}_{GMM})' W \bar{g} (\hat{\beta}_{GMM})
+J (\hat{\beta}_{GMM} ) = N \bar{g}(\hat{\beta}_{GMM})' W \bar{g} (\hat{\beta}_{GMM}),
 $$
 
-where $W$ is a symmetric weighting matrix $l \times l$
+where $W$ is an $l \times l$ symmetric weighting matrix.
 
-For an overid equation, solving the set of FOCs for the IV-GMM estimator, we should have
-
-$$
-\hat{\beta}_{GMM} = (X'ZWZ' X)^{-1} X'ZWZ'Y
-$$
-
-which is identical for all $W$ matrices. The optimal $W = S^{-1}$ [@hansen1982large] where $S$ is the covariance matrix of the moment conditions to produce the most efficient estimator:
+For the IV-GMM estimator, solving the first-order conditions yields:
 
 $$
-S = E[Z'uu'Z] = \lim_{N \to \infty} N^{-1}[Z' \Omega Z]
+\hat{\beta}_{GMM} = (X'ZWZ' X)^{-1} X'ZWZ'Y.
 $$
 
-With a consistent estimator of $S$ from the 2SLS residuals, the feasible IV-GMM estimator can be defined as
+For any weighting matrix $W$, this is a consistent estimator. The optimal choice of $W$ is $S^{-1}$, where $S$ is the covariance matrix of the moment conditions:
 
 $$
-\hat{\beta}_{FEGMM} = (X'Z \hat{S}^{-1} Z' X)^{-1} X'Z \hat{S}^{-1} Z'Y
+S = E[Z' u u' Z] = \lim_{N \to \infty} N^{-1} [Z' \Omega Z].
 $$
 
-In cases where $\Omega$ (i.e., the vcov of the error process $u$) satisfy all classical assumptions
+A feasible estimator replaces $S$ with its sample estimate from the 2SLS residuals:
 
-1.  IID
-2.  $S = \sigma^2_u I_N$
-3.  The optimal weighting matrix is proportional to the identity matrix
+$$
+\hat{\beta}_{FEGMM} = (X'Z \hat{S}^{-1} Z' X)^{-1} X'Z \hat{S}^{-1} Z'Y.
+$$
 
-Then, IV-GMM estimator is the standard IV (or 2SLS) estimator.
+When $\Omega$ satisfies standard assumptions:
 
-For IV-GMM, you also have an additional test of overid restrictions: GMM distance (also known as Hayashi C statistic)
+1.  Errors are independently and identically distributed.
+2.  $S = \sigma_u^2 I_N$.
+3.  The optimal weighting matrix is proportional to the identity matrix.
 
-To account for clustering, one can use code provided by this [blog](https://www.r-bloggers.com/2014/04/iv-estimates-via-gmm-with-clustering-in-r/)
+Then, the IV-GMM estimator simplifies to the standard IV (or 2SLS) estimator.
 
-## Inference
+------------------------------------------------------------------------
 
-Under just-identified instrument variable model, we have
+Comparison of 2SLS and IV-GMM
+
+| Feature                 | 2SLS                                   | IV-GMM                               |
+|-------------------|--------------------------|---------------------------|
+| Instrument usage        | Uses a subset of available instruments | Uses all available instruments       |
+| Weighting               | No weighting applied                   | Weights instruments for efficiency   |
+| Efficiency              | Suboptimal in overidentified cases     | Efficient when $W = S^{-1}$          |
+| Overidentification test | Not available                          | Uses Hansen's $J$-test (overid test) |
+
+Key Takeaways:
+
+-   Use IV-GMM whenever overidentification is a concern (i.e., $l > k$).
+-   2SLS is a special case of IV-GMM when the weighting matrix is proportional to the identity matrix.
+-   IV-GMM improves efficiency by optimally weighting the moment conditions.
+
+```{r}
+# Standard approach
+
+library(gmm)
+gmm_model <- gmm(y ~ x1, ~ x_inst_1 + x_inst_2, data = base)
+summary(gmm_model)
+
+```
+
+------------------------------------------------------------------------
+
+#### Overidentification Test: Hansen's $J$-Statistic
+
+A key advantage of IV-GMM is that it allows testing of instrument validity through the **Hansen** $J$-test (also known as the GMM distance test or Hayashi's C-statistic). The test statistic is:
+
+$$
+J = N \bar{g}(\hat{\beta}_{GMM})' \hat{S}^{-1} \bar{g} (\hat{\beta}_{GMM}),
+$$
+
+which follows a $\chi^2$ distribution with degrees of freedom equal to the number of overidentifying restrictions ($l - k$). A significant $J$-statistic suggests that the instruments may not be valid.
+
+------------------------------------------------------------------------
+
+#### Cluster-Robust Standard Errors
+
+In empirical applications, errors often exhibit **heteroskedasticity** or **intra-group correlation** (clustering), violating the assumption of independently and identically distributed errors. Standard IV-GMM estimators remain consistent but **may not be efficient** if clustering is ignored.
+
+To address this, we adjust the GMM weighting matrix by incorporating cluster-robust variance estimation. Specifically, the covariance matrix of the moment conditions $S$ is estimated as:
+
+$$
+\hat{S} = \frac{1}{N} \sum_{c=1}^{C} \left( \sum_{i \in c} Z_i' u_i \right) \left( \sum_{i \in c} Z_i' u_i \right)',
+$$
+
+where:
+
+-   $C$ is the number of clusters,
+
+-   $i \in c$ represents observations belonging to cluster $c$,
+
+-   $u_i$ is the residual for observation $i$,
+
+-   $Z_i$ is the vector of instruments.
+
+Using this robust weighting matrix, we compute a **clustered GMM estimator** that remains consistent and improves inference when clustering is present.
+
+------------------------------------------------------------------------
+
+```{r}
+# Load required packages
+library(gmm)
+library(dplyr)
+library(MASS)  # For generalized inverse if needed
+
+# General IV-GMM function with clustering
+gmmcl <- function(formula, instruments, data, cluster_var, lambda = 1e-6) {
+  
+  # Ensure cluster_var exists in data
+  if (!(cluster_var %in% colnames(data))) {
+    stop("Error: Cluster variable not found in data.")
+  }
+  
+  # Step 1: Initial GMM estimation (identity weighting matrix)
+  initial_gmm <- gmm(formula, instruments, data = data, vcov = "TrueFixed", 
+                      weightsMatrix = diag(ncol(model.matrix(instruments, data))))
+  
+  # Extract residuals
+  u_hat <- residuals(initial_gmm)
+  
+  # Matrix of instruments
+  Z <- model.matrix(instruments, data)
+  
+  # Ensure clusters are treated as a factor
+  data[[cluster_var]] <- as.factor(data[[cluster_var]])
+  
+  # Compute clustered weighting matrix
+  cluster_groups <- split(seq_along(u_hat), data[[cluster_var]])
+  
+  # Remove empty clusters (if any)
+  cluster_groups <- cluster_groups[lengths(cluster_groups) > 0]
+  
+  # Initialize cluster-based covariance matrix
+  S_cluster <- matrix(0, ncol(Z), ncol(Z))  # Zero matrix
+  
+  # Compute clustered weight matrix
+  for (indices in cluster_groups) {
+    if (length(indices) > 0) {  # Ensure valid clusters
+      u_cluster <- matrix(u_hat[indices], ncol = 1)  # Convert to column matrix
+      Z_cluster <- Z[indices, , drop = FALSE]        # Keep matrix form
+      S_cluster <- S_cluster + t(Z_cluster) %*% (u_cluster %*% t(u_cluster)) %*% Z_cluster
+    }
+  }
+  
+  # Normalize by sample size
+  S_cluster <- S_cluster / nrow(data)
+  
+  # Ensure S_cluster is invertible
+  S_cluster <- S_cluster + lambda * diag(ncol(S_cluster))  # Regularization
+
+  # Compute inverse or generalized inverse if needed
+  if (qr(S_cluster)$rank < ncol(S_cluster)) {
+    S_cluster_inv <- ginv(S_cluster)  # Use generalized inverse (MASS package)
+  } else {
+    S_cluster_inv <- solve(S_cluster)
+  }
+
+  # Step 2: GMM estimation using clustered weighting matrix
+  final_gmm <- gmm(formula, instruments, data = data, vcov = "TrueFixed", 
+                    weightsMatrix = S_cluster_inv)
+  
+  return(final_gmm)
+}
+
+# Example: Simulated Data for IV-GMM with Clustering
+set.seed(123)
+n <- 200   # Total observations
+C <- 50    # Number of clusters
+data <- data.frame(
+  cluster = rep(1:C, each = n / C),  # Cluster variable
+  z1 = rnorm(n),
+  z2 = rnorm(n),
+  x1 = rnorm(n),
+  y1 = rnorm(n)
+)
+data$x1 <- data$z1 + data$z2 + rnorm(n)  # Endogenous regressor
+data$y1 <- data$x1 + rnorm(n)            # Outcome variable
+
+# Run standard IV-GMM (without clustering)
+gmm_results_standard <- gmm(y1 ~ x1, ~ z1 + z2, data = data)
+
+# Run IV-GMM with clustering
+gmm_results_clustered <- gmmcl(y1 ~ x1, ~ z1 + z2, data = data, cluster_var = "cluster")
+
+# Display results for comparison
+summary(gmm_results_standard)
+summary(gmm_results_clustered)
+
+```
+
+------------------------------------------------------------------------
+
+### Limited Information Maximum Likelihood
+
+LIML is an alternative to 2SLS that performs better when instruments are weak.
+
+It solves: $$
+\min_{\lambda} \left| \begin{bmatrix} Y - X\beta \\ \lambda (D - X\gamma) \end{bmatrix} \right|
+$$ where $\lambda$ is an eigenvalue.
+
+### Jackknife IV
+
+JIVE reduces small-sample bias by leaving each observation out when estimating first-stage fitted values:
+
+$$
+\begin{aligned}
+\hat{X}_i^{(-i)} &= Z_i (Z_{-i}'Z_{-i})^{-1} Z_{-i}'X_{-i}. \\
+\hat{\beta}_{JIVE} &= (X^{(-i)'}X^{(-i)})^{-1}X^{(-i)'} Y
+\end{aligned}
+$$
+
+```{r}
+library(AER)
+jive_model = ivreg(y ~ x_endo_1 | x_inst_1, data = base, method = "jive")
+summary(jive_model)
+
+```
+
+------------------------------------------------------------------------
+
+### Control Function Approach
+
+The Control Function (CF) approach, also known as two-stage residual inclusion (2SRI), is a method used to address endogeneity in regression models. This approach is particularly suited for models with nonadditive errors, such as discrete choice models or cases where both the endogenous variable and the outcome are binary.
+
+The control function approach is particularly useful in:
+
+-   **Binary outcome and binary endogenous variable models**:
+    -   In rare events, the second stage typically uses a **logistic model** [@tchetgen2014note].
+    -   In non-rare events, a **risk ratio regression** is often more appropriate.
+-   **Marketing applications**:
+    -   Used in consumer choice models to account for endogeneity in demand estimation [@petrin2010control].
+
+The general model setup is:
+
+$$
+Y = g(X) + U  
+$$
+
+$$
+X = \pi(Z) + V  
+$$
+
+with the key assumptions:
+
+1.  **Conditional mean independence**:\
+    $$E(U |Z,V) = E(U|V)$$\
+    This implies that once we control for $V$, the instrumental variable $Z$ does not directly affect $U$.
+
+2.  **Instrument relevance**:\
+    $$E(V|Z) = 0$$\
+    This ensures that $Z$ is a valid instrument for $X$.
+
+Under the control function approach, the expectation of $Y$ conditional on $(Z,V)$ can be rewritten as:
+
+$$
+E(Y|Z,V) = g(X) + E(U|Z,V) = g(X) + E(U|V) = g(X) + h(V).
+$$
+
+Here, $h(V)$ is the control function that captures endogeneity through the first-stage residuals.
+
+#### Implementation
+
+Rather than replacing the endogenous variable $X_i$ with its predicted value $\hat{X}_i$, the CF approach explicitly incorporates the residuals from the first-stage regression:
+
+**Stage 1: Estimate First-Stage Residuals**
+
+Estimate the endogenous variable using its instrumental variables:
+
+$$
+X_i = Z_i \pi + v_i.
+$$
+
+Obtain the residuals:
+
+$$
+\hat{v}_i = X_i - Z_i \hat{\pi}.
+$$
+
+**Stage 2: Include Residuals in Outcome Equation**
+
+Regress the outcome variable on $X_i$ and the first-stage residuals:
+
+$$
+Y_i = X_i \beta + \gamma \hat{v}_i + \varepsilon_i.
+$$
+
+If endogeneity is present, $\gamma \neq 0$; otherwise, the endogenous regressor $X$ would be exogenous.
+
+#### Comparison to Two-Stage Least Squares
+
+The control function method differs from [2SLS](#sec-two-stage-least-squares-estimation) depending on whether the model is **linear** or **nonlinear**:
+
+1.  **Linear Endogenous Variables**:
+    -   When both $X$ and $Y$ are continuous, the CF approach is equivalent to 2SLS.
+2.  **Nonlinear Endogenous Variables**:
+    -   If $X$ is nonlinear (e.g., a binary treatment), CF differs from 2SLS and often performs better.
+3.  **Nonlinear in Parameters**:
+    -   In models where $g(X)$ is nonlinear (e.g., logit/probit models), CF is typically **superior** to 2SLS because it explicitly models endogeneity via the control function $h(V)$.
+
+```{r}
+library(fixest)
+library(tidyverse)
+library(modelsummary)
+
+# Set the seed for reproducibility
+set.seed(123)
+n = 10000
+# Generate the exogenous variable from a normal distribution
+exogenous <- rnorm(n, mean = 5, sd = 1)
+
+# Generate the omitted variable as a function of the exogenous variable
+omitted <- rnorm(n, mean = 2, sd = 1)
+
+# Generate the endogenous variable as a function of the omitted variable and the exogenous variable
+endogenous <- 5 * omitted + 2 * exogenous + rnorm(n, mean = 0, sd = 1)
+
+# nonlinear endogenous variable
+endogenous_nonlinear <- 5 * omitted^2 + 2 * exogenous + rnorm(100, mean = 0, sd = 1)
+
+unrelated <- rexp(n, rate = 1)
+
+# Generate the response variable as a function of the endogenous variable and the omitted variable
+response <- 4 +  3 * endogenous + 6 * omitted + rnorm(n, mean = 0, sd = 1)
+
+response_nonlinear <- 4 +  3 * endogenous_nonlinear + 6 * omitted + rnorm(n, mean = 0, sd = 1)
+
+response_nonlinear_para <- 4 +  3 * endogenous ^ 2 + 6 * omitted + rnorm(n, mean = 0, sd = 1)
+
+
+# Combine the variables into a data frame
+my_data <-
+    data.frame(
+        exogenous,
+        omitted,
+        endogenous,
+        response,
+        unrelated,
+        response,
+        response_nonlinear,
+        response_nonlinear_para
+    )
+
+# View the first few rows of the data frame
+# head(my_data)
+
+wo_omitted <- feols(response ~ endogenous + sw0(unrelated), data = my_data)
+w_omitted  <- feols(response ~ endogenous + omitted + unrelated, data = my_data)
+
+
+# ivreg::ivreg(response ~ endogenous + unrelated | exogenous, data = my_data)
+iv <- feols(response ~ 1 + sw0(unrelated) | endogenous ~ exogenous, data = my_data)
+
+etable(
+    wo_omitted,
+    w_omitted,
+    iv, 
+    digits = 2
+    # vcov = list("each", "iid", "hetero")
+)
+```
+
+Linear in parameter and linear in endogenous variable
+
+```{r}
+# manual
+# 2SLS
+first_stage = lm(endogenous ~ exogenous, data = my_data)
+new_data = cbind(my_data, new_endogenous = predict(first_stage, my_data))
+second_stage = lm(response ~ new_endogenous, data = new_data)
+summary(second_stage)
+
+new_data_cf = cbind(my_data, residual = resid(first_stage))
+second_stage_cf = lm(response ~ endogenous + residual, data = new_data_cf)
+summary(second_stage_cf)
+
+modelsummary(list(second_stage, second_stage_cf))
+```
+
+Nonlinear in endogenous variable
+
+```{r}
+# 2SLS
+first_stage = lm(endogenous_nonlinear ~ exogenous, data = my_data)
+
+new_data = cbind(my_data, new_endogenous_nonlinear = predict(first_stage, my_data))
+second_stage = lm(response_nonlinear ~ new_endogenous_nonlinear, data = new_data)
+summary(second_stage)
+
+new_data_cf = cbind(my_data, residual = resid(first_stage))
+second_stage_cf = lm(response_nonlinear ~ endogenous_nonlinear + residual, data = new_data_cf)
+summary(second_stage_cf)
+
+modelsummary(list(second_stage, second_stage_cf))
+```
+
+Nonlinear in parameters
+
+```{r}
+# 2SLS
+first_stage = lm(endogenous ~ exogenous, data = my_data)
+
+new_data = cbind(my_data, new_endogenous = predict(first_stage, my_data))
+second_stage = lm(response_nonlinear_para ~ new_endogenous, data = new_data)
+summary(second_stage)
+
+new_data_cf = cbind(my_data, residual = resid(first_stage))
+second_stage_cf = lm(response_nonlinear_para ~ endogenous_nonlinear + residual, data = new_data_cf)
+summary(second_stage_cf)
+
+modelsummary(list(second_stage, second_stage_cf))
+```
+
+### Fuller and Bias-Reduced IV
+
+Fuller adjusts LIML for bias reduction.
+
+```{r}
+fuller_model = ivreg(y ~ x_endo_1 | x_inst_1, data = base, method = "fuller", k = 1)
+summary(fuller_model)
+
+```
+
+------------------------------------------------------------------------
+
+## Inference {#sec-inference-iv}
+
+Inference in IV models, particularly when instruments are weak, presents serious challenges that can undermine standard testing and confidence interval procedures. In this section, we explore the core issues of IV inference under weak instruments, discuss the standard and alternative approaches, and outline practical guidelines for applied research.
+
+Consider the just-identified linear IV model:
 
 $$
 Y = \beta X + u
 $$
 
-where $corr(u, Z) = 0$ (relevant assumption) and $corr(Z,X) \neq 0$ (exogenous assumption)
+where:
 
-The t-ratio approach to construct the 95 CIs is
+-   $X$ is endogenous: $\text{Cov}(X, u) \neq 0$.
+
+-   $Z$ is an instrumental variable satisfying:
+
+    -   **Relevance**: $\text{Cov}(Z, X) \neq 0$.
+
+    -   **Exogeneity**: $\text{Cov}(Z, u) = 0$.
+
+The IV estimator of $\beta$ is consistent under these assumptions.
+
+A commonly used approach for inference is the t-ratio method, constructing a 95% confidence interval as:
 
 $$
 \hat{\beta} \pm 1.96 \sqrt{\hat{V}_N(\hat{\beta})}
 $$
 
-But this is wrong, and has been long recognized by those who understand the "weak instruments" problem [@staiger1997instrumental, @dufour1997some]
+However, this approach is invalid when instruments are weak. Specifically:
 
-To test the null hypothesis of $\beta = \beta_0$ [@lee2022valid] $$ \frac{(\hat{\beta} - \beta_0)^2}{\hat{V}_N(\hat{\beta})} = \hat{t}^2 = \hat{t}^2_{AR} \times \frac{1}{1 - \hat{\rho} \frac{\hat{t}_{AR}}{\hat{f}} + \frac{\hat{t}^2_{AR}}{\hat{f}^2}} $$ where $\hat{t}_{AR}^2 \sim \chi^2(1)$ (even with weak instruments) [@anderson1949estimation]
+-   The t-ratio does not follow a standard normal distribution under weak instruments.
+
+-   Confidence intervals based on this method can severely under-cover the true parameter.
+
+-   Hypothesis tests can over-reject, even in large samples.
+
+This problem was first systematically identified by @staiger1997instrumental and @dufour1997some. Weak instruments create distortions in the finite-sample distribution of $\hat{\beta}$.
+
+**Common Practices and Misinterpretations**
+
+1.  Overreliance on t-Ratio Tests
+
+-   Popular but problematic when instruments are weak.
+-   Known to over-reject null hypotheses and under-cover confidence intervals.
+-   Documented extensively by @nelson1990distribution, @bound1995problems, @dufour1997some, and @lee2022valid.
+
+2.  Weak Instrument Diagnostics
+
+-   First-Stage F-Statistic:
+    -   Rule of thumb: $F > 10$ often used but simplistic and misleading.
+    -   More accurate critical values provided by @stock2005testing.
+    -   For 95% coverage, $F > 16.38$ is often cited [@staiger1997instrumental].
+
+3.  Misinterpretations and Pitfalls
+
+-   Mistakenly interpreting $\hat{\beta} \pm 1.96 \times \hat{SE}$ as a 95% CI when the instrument is weak, @staiger1997instrumental show that under $F > 16.38$, the nominal 95% CI may only offer 85% coverage.
+-   Pretesting for weak instruments can exacerbate inference problems [@hall1996judging].
+-   Selective model specification based on weak instrument diagnostics may introduce additional distortions [@andrews2019weak].
+
+------------------------------------------------------------------------
+
+### Weak Instruments Problem
+
+An alternative statistic accounts for weak instrument issues by adjusting the standard Anderson-Rubin (AR) test:
 
 $$
-\hat{t}_{AR} = \frac{\hat{\pi}(\hat{\beta} - \beta_0)}{\sqrt{\hat{V}_N (\hat{\pi} (\hat{\beta} - \beta_0))}} \sim N(0,1)
+\hat{t}^2 = \hat{t}^2_{AR} \times \frac{1}{1 - \hat{\rho} \frac{\hat{t}_{AR}}{\hat{f}} + \frac{\hat{t}^2_{AR}}{\hat{f}^2}}
 $$
 
-where
+Where:
 
--   $\hat{f} = \frac{\hat{\pi}}{\sqrt{\hat{V}_N(\hat{\pi})}}\sim N$
+-   $\hat{t}^2_{AR} \sim \chi^2(1)$ under the null, even with weak instruments [@anderson1949estimation].
 
--   $\hat{\pi}$ = 1st-stage coefficient
+-   $\hat{t}_{AR} = \dfrac{\hat{\pi}(\hat{\beta} - \beta_0)}{\sqrt{\hat{V}_N (\hat{\pi} (\hat{\beta} - \beta_0))}} \sim N(0,1)$.
 
--   $\hat{\rho} = COV(Zv, Zu)$ = correlation between the 1st-stage residual and an estimate of $u$
+-   $\hat{f} = \dfrac{\hat{\pi}}{\sqrt{\hat{V}_N(\hat{\pi})}}$ measures instrument strength (first-stage F-stat).
 
-Even in large samples, $\hat{t}^2 \neq \hat{t}^2_{AR}$ because the right-hand term does not have a degenerate distribution. Thus, the normal t critical values wouldn't work.
+-   $\hat{\pi}$ is the coefficient from the first-stage regression of $X$ on $Z$.
 
-The t-ratios does not match that of standard normal, but it matches the proposed density by @staiger1997instrumental and @stock2005testing .
+-   $\hat{\rho} = \text{Cov}(Zv, Zu)$ captures the correlation between first-stage residuals and $u$.
 
-The deviation between $\hat{t}^2 , \hat{t}^2_{AR}$ depends on
+**Implications**
 
-1.  $\pi$ (i.e., correlation between the instrument and the endogenous variable)
-2.  $E(F)$ (i.e., strength of the first-stage)
-3.  Magnitude of $|\rho|$ (i.e., degree of endogeneity)
+-   Even in large samples, $\hat{t}^2 \neq \hat{t}^2_{AR}$ because the adjustment term does not converge to zero unless instruments are strong and $\rho = 0$.
+-   The distribution of $\hat{t}$ does not match the standard normal but follows a more complex distribution described by @staiger1997instrumental and @stock2005testing.
 
-Hence, we can think of several scenarios:
+------------------------------------------------------------------------
 
-1.  **Worst case**: Very weak first stage ($\pi = 0$) and high degree of endogeneity ($|\rho |= 1$).
+The divergence between $\hat{t}^2$ and $\hat{t}^2_{AR}$ depends on:
 
--   The interval $\hat{\beta} \pm 1.96 \times SE$ does not contain the true parameter $\beta$.
+1.  **Instrument Strength** ($\pi$): Higher correlation between $Z$ and $X$ mitigates the problem.
+2.  **First-Stage F-statistic** ($E(F)$): A weak first-stage regression increases the bias and distortion.
+3.  **Endogeneity Level** ($|\rho|$): Greater correlation between $X$ and $u$ exacerbates inference errors.
 
--   A 5 percent significance test under these conditions will incorrectly reject the null hypothesis ($\beta = \beta_0$) 100% of the time.
+------------------------------------------------------------------------
 
-2.  **Best case**: No endogeneity ($\rho =0$) or very large $\hat{f}$ (very strong first-stage)
+| **Scenario**      | **Conditions**                                                   | **Inference Quality**                                                    |
+|------------------|----------------------|--------------------------------|
+| Worst Case        | $\pi = 0$, $|\rho| = 1$                                          | $\hat{\beta} \pm 1.96 \times SE$ fails; Type I error = 100%              |
+| Best Case         | $\rho = 0$ (No endogeneity) or very large $\hat{f}$ (strong $Z$) | Standard inference works; intervals cover $\beta$ with correct rate      |
+| Intermediate Case | Moderate $\pi$, $\rho$, and $F$                                  | Coverage and Type I error lie between extremes; standard inference risky |
 
--   The interval $\hat{\beta} \pm 1.96 \times SD$ accurately contains $\beta$ at least 95% of the time.
+------------------------------------------------------------------------
 
-3.  **Intermediate case**: The performance of the interval lies between the two extremes.
+### Solutions and Approaches for Valid Inference
 
-**Solutions**: To have valid inference of $\hat{\beta} \pm 1.96 \times SE$ using t-ratio ($\hat{t}^2 \approx \hat{t}^2_{AR}$), we can either
+1.  **Assume the Problem Away (Risky Assumptions)**
+    1.  **High First-Stage F-statistic**:
+        -   Require $E(F) > 142.6$ for near-validity [@lee2022valid].
+        -   While the first-stage $F$ is observable, this threshold is high and often impractical.
+    2.  **Low Endogeneity**:
+        -   Assume $|\rho| < 0.565$ [@angrist2024one, @lee2022valid]. In other words, we assume endogeneity to be less than moderat level.
+        -   This undermines the motivation for IV in the first place, which exists precisely because of suspected endogeneity.
+2.  **Confront the Problem Directly (Robust Methods)**
+    1.  [Anderson-Rubin (AR) Test](#sec-anderson-rubin-approach) [@anderson1949estimation]:
+        -   Valid under weak instruments.
+        -   Tests whether $Z$ explains variation in $Y - \beta_0 X$.
+    2.  [tF Procedure](#sec-tf-procedure) [@lee2022valid]:
+        -   Combines t-statistics and F-statistics in a unified testing framework.
+        -   Offers valid inference in presence of weak instruments.
+    3.  [Andrews-Kolesár (AK) Procedure](#sec-ak-approach) [@angrist2023one]:
+        -   Provides uniformly valid confidence intervals for $\beta$.
+        -   Allows for weak instruments and arbitrary heteroskedasticity.
+        -   Especially useful in overidentified settings.
 
-1.  Assume our problem away
-    1.  Assume $E(F) > 142.6$ [@lee2022valid] (Not much of an assumption since we can observe first-stage F-stat empirically).
-    2.  Assume $|\rho| < 0.565$ [@angrist2024one, @lee2022valid], but this defeats our motivation to use IV in the first place because we think there is a strong endogeneity bias, that's why we are trying to correct for it (circular argument).
-2.  Deal with it head on
-    1.  [AR approach] [@anderson1949estimation]
-    2.  [tF Procedure] [@lee2022valid]
-    3.  [AK approach] [@angrist2023one]
+------------------------------------------------------------------------
 
-**Common Practices & Challenges**:
+### Anderson-Rubin Approach {#sec-anderson-rubin-approach}
 
--   The t-ratio test is preferred by many researchers but has its pitfalls:
+The Anderson-Rubin (AR) test, originally proposed by @anderson1949estimation, remains one of the most robust inferential tools in the context of instrumental variable estimation, particularly when instruments are weak or endogenous regressors exhibit complex error structures.
 
-    -   Known to over-reject (equivalently, under-cover confidence intervals), especially with weak instruments [@lee2022valid, @nelson1990distribution, @bound1995problems, @dufour1997some].
+The AR test directly evaluates the joint null hypothesis that:
 
--   To address this:
+$$
+H_0: \beta = \beta_0
+$$
 
-    -   The first-stage F-statistic is used as an indicator of weak instruments.
+by testing whether the instruments explain any variation in the residuals $Y - \beta_0 X$. Under the null, the model becomes:
 
-    -   [@staiger1997instrumental, @stock2005testing] provided a framework to understand and correct these **distortions**.
+$$
+Y - \beta_0 X = u
+$$
 
-**Misinterpretations**:
+Given that $\text{Cov}(Z, u) = 0$ (by the IV exogeneity assumption), the test regresses $(Y - \beta_0 X)$ on $Z$. The test statistic is constructed as:
 
--   Common errors in application:
+$$
+AR(\beta_0) = \frac{(Y - \beta_0 X)' P_Z (Y - \beta_0 X)}{\hat{\sigma}^2}
+$$
 
-    -   Using a rule-of-thumb F-stat threshold of 10 instead of referring to @stock2005testing.
+-   $P_Z$ is the projection matrix onto the column space of $Z$: $P_Z = Z (Z'Z)^{-1} Z'$.
+-   $\hat{\sigma}^2$ is an estimate of the error variance (under homoskedasticity).
 
-    -   Mislabeling intervals such as $\hat{\beta} \pm 1.96 \times \hat{se}(\hat{\beta})$ as 95% confidence intervals (when passed the $F>10$ rule of thumb). @staiger1997instrumental clarified that such intervals actually represent 85% confidence when using $F > 16.38$ from @stock2005testing
+Under $H_0$, the statistic follows a chi-squared distribution:
 
--   Pretesting for weak instruments might exacerbate over-rejection of the t-ratio test mentioned above [@hall1996judging].
+$$
+AR(\beta_0) \sim \chi^2(q)
+$$
 
--   Selective model specification (i.e., dropping certain specification) based on F-statistics also leads to significant **distortions** [@andrews2019weak].
+where $q$ is the number of instruments (1 in a just-identified model).
 
-### AR approach
+------------------------------------------------------------------------
 
-**Validity of Anderson-Rubin Test** (notated as AR) [@anderson1949estimation]:
+**Key Properties of the AR Test**
 
--   Gives accurate results even under non-normal and homoskedastic errors [@staiger1997instrumental].
+-   **Robust to Weak Instruments**:
+    -   The AR test does not rely on the strength of the instruments.
+    -   Its distribution under the null hypothesis remains valid even when the instruments are weak [@staiger1997instrumental].
+-   **Robust to Non-Normality and Homoskedastic Errors**:
+    -   Maintains correct Type I error rates even under non-normal errors [@staiger1997instrumental].
+    -   Optimality properties under homoskedastic errors are established in @andrews2006optimal and @moreira2009tests.
+-   **Robust to Heteroskedasticity, Clustering, and Autocorrelation**:
+    -   The AR test has been generalized to account for heteroskedasticity, clustered errors, and autocorrelation [@stock2000gmm; @moreira2019optimal].
+    -   Valid inference is possible when combined with heteroskedasticity-robust variance estimators or cluster-robust techniques.
 
--   Maintains validity across diverse error structures [@stock2000gmm].
+| **Setting**                        | **Validity**                                                              | **Reference**                            |
+|-------------------|----------------------------------|-------------------|
+| Non-Normal, Homoskedastic Errors   | Valid without distributional assumptions                                  | [@staiger1997instrumental]               |
+| Heteroskedastic Errors             | Generalized AR test remains valid; robust variance estimation recommended | [@stock2000gmm]                          |
+| Clustered or Autocorrelated Errors | Extensions available using cluster-robust and HAC variance estimators     | [@moreira2019optimal]                    |
+| Optimality under Homoskedasticity  | AR test minimizes Type II error among invariant tests                     | [@andrews2006optimal; @moreira2009tests] |
 
--   Minimizes type II error among several alternative tests, in cases of:
+------------------------------------------------------------------------
 
-    -   Homoskedastic errors [@andrews2006optimal, @moreira2009tests].
+The AR test is relatively simple to implement and is available in most econometric software. Here's an intuitive step-by-step breakdown:
 
-    -   Generalized for heteroskedastic, clustered, and autocorrelated errors [@moreira2019optimal].
+1.  Specify the null hypothesis value $\beta_0$.
+2.  Compute the residual $u = Y - \beta_0 X$.
+3.  Regress $u$ on $Z$ and obtain the $R^2$ from this regression.
+4.  Compute the test statistic:
+
+$$
+AR(\beta_0) = \frac{R^2 \cdot n}{q}
+$$
+
+(For a just-identified model with a single instrument, $q=1$.)
+
+5.  Compare $AR(\beta_0)$ to the $\chi^2(q)$ distribution to determine significance.
 
 ```{r}
 library(ivDiag)
@@ -524,90 +1014,149 @@ g$AR
 ivDiag::plot_coef(g)
 ```
 
-### tF Procedure
+------------------------------------------------------------------------
 
-@lee2022valid propose a new method that is aligned better with traditional econometric training than AR, where it is called the tF procedure. It incorporates both the 1st-stage F-stat and the 2SLS $t$-value. This method is applicable to single instrumental variable (i.e., just-identified model), including
+### tF Procedure {#sec-tf-procedure}
 
--   Randomized trials with imperfect compliance [@imbens1994identification].
+@lee2022valid introduce the tF procedure, an inference method specifically designed for just-identified IV models (single endogenous regressor and single instrument). It addresses the shortcomings of traditional 2SLS $t$-tests under weak instruments and offers a solution that is conceptually familiar to researchers trained in standard econometric practices.
 
--   Fuzzy [Regression Discontinuity] designs [@lee2010regression].
+Unlike the [Anderson-Rubin test](#sec-anderson-rubin-approach), which inverts hypothesis tests to form confidence sets, the tF procedure adjusts standard $t$-statistics and standard errors directly, making it a more intuitive extension of traditional hypothesis testing.
 
--   Fuzzy regression kink designs [@card2015inference].
+The tF procedure is widely applicable in settings where just-identified IV models arise, including:
 
-See @andrews2019weak for a comparison between [AR approach] and [tF Procedure].
+-   **Randomized controlled trials with imperfect compliance**\
+    (e.g., [Local Average Treatment Effects] in @imbens1994identification).
 
-**tF Procedure**:
+-   [Fuzzy Regression Discontinuity Designs](#sec-fuzzy-regression-discontinuity-design)\
+    (e.g., @lee2010regression).
 
--   Adjusts the t-ratio based on the first-stage F-statistic.
+-   [Fuzzy Regression Kink Designs](#sec-identification-in-fuzzy-regression-kink-design)\
+    (e.g., [@card2015inference]).
 
--   Rather than a fixed pretesting threshold, it applies an adjustment factor to 2SLS standard errors.
+A comparison of the [AR approach](#sec-anderson-rubin-approach) and the [tF procedure](#sec-tf-procedure) can be found in @andrews2019weak.
 
--   Adjustment factors are provided for 95% and 99% confidence levels.
+| **Feature**                     | **Anderson-Rubin**                                             | **tF Procedure**                                           |
+|------------------|-----------------------------|-------------------------|
+| **Robustness to Weak IV**       | Yes (valid under weak instruments)                             | Yes (valid under weak instruments)                         |
+| **Finite Confidence Intervals** | No (interval becomes infinite for $F \le 3.84$)                | Yes (finite intervals for all $F$ values)                  |
+| **Interval Length**             | Often longer, especially when $F$ is moderate (e.g., $F = 16$) | Typically shorter than AR intervals for $F > 3.84$         |
+| **Ease of Interpretation**      | Requires inverting tests; less intuitive                       | Directly adjusts $t$-based standard errors; more intuitive |
+| **Computational Simplicity**    | Moderate (inversion of hypothesis tests)                       | Simple (multiplicative adjustment to standard errors)      |
 
-**Advantages of the tF Procedure**:
+-   With $F > 3.84$, the AR test's expected interval length is infinite, whereas the tF procedure guarantees finite intervals, making it superior in practical applications with weak instruments.
 
-1.  **Smooth Adjustment**:
+The tF procedure adjusts the conventional 2SLS $t$-ratio for the first-stage F-statistic strength. Instead of relying on a pre-testing threshold (e.g., $F > 10$), the tF approach provides a smooth adjustment to the standard errors.
 
-    -   Gives usable finite confidence intervals for smaller F statistic values.
+Key Features:
 
-    -   95% confidence is applicable for $F > 3.84$, aligning with AR's bounded 95% confidence intervals.
+-   Adjusts the 2SLS $t$-ratio based on the observed first-stage F-statistic.
+-   Applies different adjustment factors for different significance levels (e.g., 95% and 99%).
+-   Remains valid even when the instrument is weak, offering finite confidence intervals even when the first-stage F-statistic is low.
 
-2.  **Clear Confidence Levels**:
+**Advantages of the tF Procedure**
 
-    -   These levels incorporate effects of basing inference on the first-stage F.
+1.  Smooth Adjustment for First-Stage Strength
 
-    -   Mirrors AR or other zero distortion procedures.
+-   The tF procedure smoothly adjusts inference based on the observed first-stage F-statistic, avoiding the need for arbitrary pre-testing thresholds (e.g., $F > 10$).
 
-3.  **Robustness**:
+-   It produces finite and usable confidence intervals even when the first-stage F-statistic is low:
 
-    -   Robust against common error structures (e.g., heteroskedasticity or clustering and/or autocorrelated errors).
+    $$
+    F > 3.84
+    $$
 
-    -   No further adjustments are necessary as long as robust variance estimators are consistently used (same robust variance estimator used for the 1st-stage as for the IV estimate).
+-   This threshold aligns with the critical value of 3.84 for a 95% [Anderson-Rubin](#sec-anderson-rubin-approach) confidence interval, but with a crucial advantage:
 
-4.  **Comparison to AR**:
+    -   The AR interval becomes unbounded (i.e., infinite length) when $F \le 3.84$.
+    -   The tF procedure, in contrast, still provides a finite confidence interval, making it more practical in weak instrument cases.
 
-    -   Surprisingly, with $F > 3.84$, AR's expected interval length is infinite, while tF's is finite (i.e., better).
+------------------------------------------------------------------------
 
-5.  **Applicability**:
+2.  Clear and Interpretable Confidence Levels
 
-    -   The tF adjustment can re-evaluate published studies if the first-stage F-statistic is available.
+-   The tF procedure offers transparent confidence intervals that:
 
-    -   Original data access is not needed.
+    -   Directly incorporate the impact of first-stage instrument strength on the critical values used for inference.
 
-**Impacts in Applied Research**:
+    -   Mirror the distortion-free properties of robust methods like the [Anderson-Rubin](#sec-anderson-rubin-approach) test, but remain closer in spirit to conventional $t$-based inference.
 
--   @lee2022valid examined recent single-instrument specification studies from the American Economic Review (AER).
+-   Researchers can interpret tF-based 95% and 99% confidence intervals using familiar econometric tools, without needing to invert hypothesis tests or construct confidence sets.
 
--   Observations:
+------------------------------------------------------------------------
 
-    -   For at least 25% of the studied specifications, using tF increased confidence interval lengths by:
+3.  Robustness to Common Error Structures
 
-        -   49% (5% significance level).
+-   The tF procedure remains robust in the presence of:
 
-        -   136% (1% significance level).
+    -   Heteroskedasticity
+    -   Clustering
+    -   Autocorrelation
 
-    -   For specifications with $F > 10$ and $t > 1.96$, about 25% became statistically insignificant at the 5% level when adjusted using tF.
+-   No additional adjustments are necessary beyond the use of a robust variance estimator for both:
 
-    -   Conclusion: tF adjustments could greatly influence inferences in research employing t-ratio inferences.
+    -   The first-stage regression
+    -   The second-stage IV regression
 
-Notation
+-   As long as the same robust variance estimator is applied consistently, the tF adjustment maintains valid inference without imposing additional computational complexity.
 
--   $Y = X \beta + W \gamma + u$
--   $X = Z \pi + W \xi + \nu$
+------------------------------------------------------------------------
 
-where
+4.  Applicability to Published Research
 
--   $W$: Additional covariates, possibly including an intercept term.
--   $X$: variable of interest
--   $Z$: instruments
+-   One of the most powerful features of the tF procedure is its flexibility for re-evaluating published studies:
+
+    -   Researchers only need the reported first-stage F-statistic and standard errors from the 2SLS estimates.
+
+    -   No access to the original data is required to recalculate confidence intervals or test statistical significance using the tF adjustment.
+
+-   This makes the tF procedure particularly valuable for meta-analyses, replications, and robustness checks of published IV studies, where:
+
+    -   Raw data may be unavailable, or
+    -   Replication costs are high.
+
+------------------------------------------------------------------------
+
+Consider the linear IV model with additional covariates $W$:
+
+$$
+Y = X \beta + W \gamma + u
+$$
+
+$$
+X = Z \pi + W \xi + \nu
+$$
+
+Where:
+
+-   $Y$: Outcome variable.
+
+-   $X$: Endogenous regressor of interest.
+
+-   $Z$: Instrumental variable (single instrument case).
+
+-   $W$: Vector of exogenous controls, possibly including an intercept.
+
+-   $u$, $\nu$: Error terms.
 
 Key Statistics:
 
--   $t$-ratio for the instrumental variable estimator: $\hat{t} = \frac{\hat{\beta} - \beta_0}{\sqrt{\hat{V}_N (\hat{\beta})}}$
+-   $t$-ratio for the IV estimator:
 
--   $t$-ratio for the first-stage coefficient: $\hat{f} = \frac{\hat{\pi}}{\sqrt{\hat{V}_N (\hat{\pi})}}$
+    $$
+    \hat{t} = \frac{\hat{\beta} - \beta_0}{\sqrt{\hat{V}_N (\hat{\beta})}}
+    $$
 
--   $\hat{F} = \hat{f}^2$
+-   $t$-ratio for the first-stage coefficient:
+
+    $$
+    \hat{f} = \frac{\hat{\pi}}{\sqrt{\hat{V}_N (\hat{\pi})}}
+    $$
+
+-   First-stage F-statistic:
+
+    $$
+    \hat{F} = \hat{f}^2
+    $$
 
 where
 
@@ -616,37 +1165,79 @@ where
 -   $\hat{t}$: $t$-ratio under the null hypothesis.
 -   $\hat{f}$: $t$-ratio under the null hypothesis of $\pi=0$.
 
-Traditional $t$ Inference:
+------------------------------------------------------------------------
 
--   In large samples, $\hat{t}^2 \to^d t^2$
--   Standard normal critical values are $\pm 1.96$ for 5% significance level testing.
+Under traditional asymptotics large samples, the $t$-ratio statistic follows:
 
-Distortions in Inference in the case of IV:
+$$
+\hat{t}^2 \to^d t^2
+$$
 
--   Use of a standard normal can lead to distorted inferences even in large samples.
-    -   Despite large samples, t-distribution might not be normal.
--   But magnitude of this distortion can be quantified.
-    -   @stock2005testing provides a formula for Wald test statistics using 2SLS.
-    -   $t^2$ formula allows for quantification of inference distortions.
-    -   In the just-identified case with one endogenous regressor $t^2 = f + t_{AR} + \rho f t_{AR}$ [@stock2005testing]
-        -   $\hat{f} \to^d f$ and $\bar{f} = \frac{\pi}{\sqrt{\frac{1}{N} AV(\hat{\pi})}}$ and $AV(\hat{\pi})$ is the asymptotic variance of $\hat{\pi}$
-        -   $t_{AR}$ is a standard normal with $AR = t^2_{AR}$
-        -   $\rho$ (degree of endogeneity) is the correlation of $Zu$ and $Z \nu$ (when data are homoskedastic, $\rho$ is the correlation between $u$ and $\nu$)
+With critical values:
 
-Implications of $t^2$ formula:
+-   $\pm 1.96$ for a 5% significance test.
 
--   Varies rejection rates depending on $\rho$ value.
-    -   $\rho \in (0,0.5]$ (low) the t-ratio rejects at a probability below the nominal $0.05$ rate
-    -   $\rho = 0.8$ (high) the rejection rate can be $0.13$
--   In short, incorrect test size when relying solely on $t^2$ (based on traditional econometric understanding)
+-   $\pm 2.58$ for a 1% significance test.
 
-To correct for this, one can
+However, in IV settings (particularly with weak instruments):
 
-1.  Estimate the usually 2SLS standard errors
-2.  Multiply the SE by the adjustment factor based on the observed first-stage $\hat{F}$ stat
-3.  One can go back to the traditional hypothesis by using either the t-ratio of confidence intervals
+-   The distribution of the $t$-statistic is distorted (i.e., $t$-distribution might not be normal), even in large samples.
 
-@lee2022valid call this adjusted SE as "0.05 tF SE".
+-   The distortion arises because the strength of the instrument ($F$) and the degree of endogeneity ($\rho$) affect the $t$-distribution.
+
+@stock2005testing provide a formula to quantify this distortion (in the just-identified case) for Wald test statistics using 2SLS.:
+
+$$
+t^2 = f + t_{AR} + \rho f t_{AR}
+$$
+
+Where:
+
+-   $\hat{f} \to^d f$
+
+-   $\bar{f} = \dfrac{\pi}{\sqrt{\dfrac{1}{N} AV(\hat{\pi})}}$ and $AV(\hat{\pi})$ is the asymptotic variance of $\hat{\pi}$
+
+-   $t_{AR}$ is asymptotically standard normal ($AR = t^2_{AR}$)
+
+-   $\rho$ measures the correlation (degree of endogeneity) between $Zu$ and $Z\nu$ (when data are homoskedastic, $\rho$ is the correlation between $u$ and $\nu$).
+
+Implications:
+
+-   For low $\rho$ ($\rho \in [0, 0.5]$), rejection probabilities can be below nominal levels.
+-   For high $\rho$ ($\rho = 0.8$), rejection rates can be inflated, e.g., 13% rejection at a nominal 5% significance level.
+-   Reliance on standard $t$-ratios leads to incorrect test sizes and invalid confidence intervals.
+
+------------------------------------------------------------------------
+
+The tF procedure corrects for these distortions by adjusting the standard error of the 2SLS estimator based on the observed first-stage F-statistic.
+
+Steps:
+
+1.  Estimate $\hat{\beta}$ and its conventional SE from 2SLS.
+2.  Compute the first-stage $\hat{F}$.
+3.  Multiply the conventional SE by an adjustment factor, which depends on $\hat{F}$ and the desired confidence level.
+4.  Compute new $t$-ratios and construct confidence intervals using standard critical values (e.g., $\pm 1.96$ for 95% CI).
+
+@lee2022valid refer to the adjusted standard errors as "0.05 tF SE" (for a 5% significance level) and "0.01 tF SE" (for 1%).
+
+------------------------------------------------------------------------
+
+@lee2022valid conducted a review of recent single-instrument studies in the American Economic Review.
+
+Key Findings:
+
+-   For at least 25% of the examined specifications:
+    -   tF-adjusted confidence intervals were 49% longer at the 5% level.
+    -   tF-adjusted confidence intervals were 136% longer at the 1% level.
+-   Even among specifications with $F > 10$ and $t > 1.96$:
+    -   Approximately 25% became statistically insignificant at the 5% level after applying the tF adjustment.
+
+Takeaway:
+
+-   The tF procedure can substantially alter inference conclusions.
+-   Published studies can be re-evaluated with the tF method using only the reported first-stage F-statistics, without requiring access to the underlying microdata.
+
+------------------------------------------------------------------------
 
 ```{r}
 library(ivDiag)
@@ -696,9 +1287,127 @@ tF(coef = coef_of_interest, se = se_of_interest, Fstat = 2) |>
     causalverse::nice_tab(5)
 ```
 
-### AK approach
+------------------------------------------------------------------------
 
-[@angrist2023one]
+### AK Approach {#sec-ak-approach}
+
+@angrist2024one offer a reappraisal of just-identified IV models, focusing on the finite-sample properties of conventional inference in cases where a single instrument is used for a single endogenous variable. Their findings challenge some of the more pessimistic views about weak instruments and inference distortions in microeconometric applications.
+
+Rather than propose a new estimator or test, Angrist and Kolesár provide a framework and rationale supporting the validity of traditional just-ID IV inference in many practical settings. Their insights clarify when conventional t-tests and confidence intervals can be trusted, and they offer practical guidance on first-stage pretesting, bias reduction, and endogeneity considerations.
+
+AK apply their framework to three canonical studies:
+
+1.  @angrist1991does - Education returns
+2.  @angrist1998children - Family size and female labor supply
+3.  @angrist1999using - Class size effects
+
+Findings:
+
+-   Endogeneity ($\rho$) in these studies is moderate (typically $|\rho| < 0.47$).
+
+-   Conventional t-tests and confidence intervals work reasonably well.
+
+-   In many micro applications, theoretical bounds on causal effects and plausible OVB scenarios limit $\rho$, supporting the validity of conventional inference.
+
+------------------------------------------------------------------------
+
+**Key Contributions of the AK Approach**
+
+-   **Reassessing Bias and Coverage**:\
+    AK demonstrate that conventional IV estimates and t-tests in just-ID IV models often perform better than theory might suggest---provided the degree of endogeneity ($\rho$) is moderate, and the first-stage F-statistic is not extremely weak.
+
+-   **First-Stage Sign Screening**:
+
+    -   They propose sign screening as a simple, costless strategy to halve the median bias of IV estimators.
+    -   Screening on the sign of the estimated first-stage coefficient (i.e., using only samples where the first-stage estimate has the correct sign) improves the finite-sample performance of just-ID IV estimates without degrading confidence interval coverage.
+
+-   **Bias-Minimizing Screening Rule**:
+
+    -   AK show that setting the first-stage t-statistic threshold $c = 0$, i.e., requiring only the correct sign of the first-stage estimate, minimizes median bias while preserving conventional coverage properties.
+
+-   **Practical Implication**:
+
+    -   They argue that conventional just-ID IV inference, including t-tests and confidence intervals, is likely valid in most microeconometric applications, especially where theory or institutional knowledge suggests the direction of the first-stage relationship.
+
+------------------------------------------------------------------------
+
+#### Model Setup and Notation
+
+AK adopt a reduced-form and first-stage specification for just-ID IV models:
+
+$$
+Y_i = Z_i \delta + X_i' \psi_1 + u_i \\
+D_i = Z_i \pi + X_i' \psi_2 + v_i
+$$
+
+-   $Y_i$: Outcome variable
+-   $D_i$: Endogenous treatment variable
+-   $Z_i$: Instrumental variable (single instrument)
+-   $X_i$: Control variables
+-   $u_i, v_i$: Error terms
+
+Parameter of Interest:
+
+$$
+\beta = \frac{\delta}{\pi}
+$$
+
+------------------------------------------------------------------------
+
+#### Endogeneity and Instrument Strength
+
+AK characterize the two key parameters governing finite-sample inference:
+
+-   **Instrument Strength**:\
+    $$ E[F] = \frac{\pi^2}{\sigma^2_{\hat{\pi}}} + 1 $$\
+    (Expected value of the first-stage F-statistic.)
+
+-   **Endogeneity**:\
+    $$ \rho = \text{cor}(\hat{\delta} - \hat{\pi} \beta, \hat{\pi}) $$\
+    Measures the degree of correlation between reduced-form and first-stage residuals (or between $u$ and $v$ under homoskedasticity).
+
+Key Insight:
+
+For $\rho < 0.76$, the coverage of conventional 95% confidence intervals is distorted by less than 5%, regardless of the first-stage F-statistic.
+
+------------------------------------------------------------------------
+
+#### First-Stage Sign Screening
+
+AK argue that pre-screening based on the sign of the first-stage estimate ($\hat{\pi}$) offers bias reduction without compromising confidence interval coverage.
+
+Screening Rule:
+
+-   Screen if $\hat{\pi} > 0$\
+    (or $\hat{\pi} < 0$ if the theoretical sign is negative).
+
+Results:
+
+-   Halves median bias of the IV estimator.
+-   No degradation of confidence interval coverage.
+
+This screening approach:
+
+-   Avoids the pitfalls of pre-testing based on first-stage F-statistics (which can exacerbate bias and distort inference).
+
+-   Provides a "free lunch": bias reduction with no coverage cost.
+
+------------------------------------------------------------------------
+
+#### Rejection Rates and Confidence Interval Coverage
+
+-   Rejection rates of conventional t-tests stay close to the nominal level (5%) if $|\rho| < 0.76$, independent of instrument strength.
+-   For $|\rho| < 0.565$, conventional t-tests exhibit no over-rejection, aligning with findings from @lee2022valid.
+
+Comparison with AR and tF Procedures:
+
+| **Approach**          | **Bias Reduction**         | **Coverage** | **CI Length (F \> 3.84)**                  |
+|------------------|------------------|------------------|-------------------|
+| **AK Sign Screening** | Halves median bias         | Near-nominal | Finite                                     |
+| **AR Test**           | No bias (inversion method) | Exact        | Infinite                                   |
+| **tF Procedure**      | Bias adjusted              | Near-nominal | Longer than AK (especially for moderate F) |
+
+------------------------------------------------------------------------
 
 ## Testing Assumptions
 
@@ -828,7 +1537,7 @@ Stock and Yogo provide critical values for different scenarios (bias, size disto
 **Comparison**
 
 | **Test**                    | **Description**                                                     | **Focus**                                                                  | **Usage**                                                                                                                                               |
-|---------------|---------------|---------------|-----------------------------|
+|------------------|------------------|------------------|-------------------|
 | **First-Stage F-Test**      | Evaluates the joint significance of instruments in the first stage. | Predictive power of instruments for the endogenous variable.               | Simplest and most direct test, widely used especially with a single endogenous variable. Rule of thumb: F \< 10 suggests weak instruments.              |
 | **Cragg-Donald Test**       | Wald statistic for joint significance of instruments.               | Joint strength of multiple instruments with multiple endogenous variables. | More appropriate in complex IV setups with multiple endogenous variables. Compares statistic against critical values for assessing instrument strength. |
 | **Stock-Yogo Weak IV Test** | Compares test statistic to pre-determined critical values.          | Minimizing size distortions and bias from weak instruments.                | Theoretical evaluation of instrument strength, ensuring the reliability of 2SLS estimates against specific thresholds of bias or size distortion.       |
@@ -1139,23 +1848,164 @@ Similar to [Hansen's J](#hansens-j), but it assumes homoskedasticity
 
 -   If one has heteroskedasticity in its design, the Sargan test is invalid [@pitt2011overidentification}]
 
-## Negative $R^2$
+------------------------------------------------------------------------
 
-It's okay to have negative $R^2$ in the 2nd stage. We care more about consistent coefficient estimates.
+## Negative $R^2$ in IV Regression
 
-$R^2$ has no statistical meaning in instrumental variable regression or 2 or 3SLS
+In IV estimation, particularly 2SLS and 3SLS, it is common and not problematic to encounter negative $R^2$ values in the second stage regression. Unlike [Ordinary Least Squares], where $R^2$ is often used to assess the fit of the model, in IV regression the primary concern is consistency and unbiased estimation of the coefficients of interest, not the goodness-of-fit.
+
+What Should You Look At Instead of $R^2$ in IV?
+
+1.  **Instrument Relevance** (First-stage $F$-statistics, Partial $R^2$)
+2.  **Weak Instrument Tests** (Kleibergen-Paap, Anderson-Rubin tests)
+3.  **Validity of Instruments** (Overidentification tests like Sargan/Hansen J-test)
+4.  **Endogeneity Tests** (Durbin-Wu-Hausman test for endogeneity)
+5.  [Confidence Intervals and Standard Errors](#sec-inference-iv), focusing on inference for $\hat{\beta}$.
+
+**Geometric Intuition**
+
+-   In OLS, the fitted values $\hat{y}$ are the orthogonal projection of $y$ onto the column space of $X$.
+-   In 2SLS, $\hat{y}$ is the projection onto the space spanned by $Z$, not $X$.
+-   As a result, the angle between $y$ and $\hat{y}$ may not minimize the residual variance, and RSS can be larger than in OLS.
+
+------------------------------------------------------------------------
+
+Recall the formula for the coefficient of determination ($R^2$) in a regression model:
 
 $$
-R^2 = \frac{MSS}{TSS}
+R^2 = 1 - \frac{RSS}{TSS} = \frac{MSS}{TSS}
 $$
 
-where
+Where:
 
--   MSS = model sum of squares (TSS- RSS)
--   TSS = total sum of squares ($\sum(y - \bar{y})^2$)
--   RSS = residual sum of squares ($\sum (y - Xb)^2$)
+-   $TSS$ is the Total Sum of Squares: $$
+    TSS = \sum_{i=1}^n (y_i - \bar{y})^2
+    $$
+-   $MSS$ is the Model Sum of Squares: $$
+    MSS = \sum_{i=1}^n (\hat{y}_i - \bar{y})^2
+    $$
+-   $RSS$ is the Residual Sum of Squares: $$
+    RSS = \sum_{i=1}^n (y_i - \hat{y}_i)^2
+    $$
 
-If $TSS > RSS$, then we have negative RSS and negative $R^2$. Since the predicted values of the endogenous variables are different from the endogenous variables themselves, the error that is used to calculate RSS can be different from the error in the second stage, and RSS in the second stage can be less than TSS.
+In OLS, the $R^2$ measures the proportion of variance in $Y$ that is explained by the regressors $X$.
+
+Key Properties in OLS:
+
+-   $R^2 \in [0, 1]$
+-   Adding more regressors (even irrelevant ones) never decreases $R^2$.
+-   $R^2$ measures in-sample goodness-of-fit, not causal interpretation.
+
+------------------------------------------------------------------------
+
+### Why Does $R^2$ Lose Its Meaning in IV Regression?
+
+In IV regression, the second stage regression replaces the endogenous variable $X_2$ with its predicted values from the first stage:
+
+Stage 1:
+
+$$
+X_2 = Z \pi + v
+$$
+
+Stage 2:
+
+$$
+Y = X_1 \beta_1 + \hat{X}_2 \beta_2 + \epsilon
+$$
+
+-   $\hat{X}_2$ is not the observed $X_2$, but a proxy constructed from $Z$.
+-   $\hat{X}_2$ isolates the exogenous variation in $X_2$ that is independent of $\epsilon$.
+-   This reduces bias, but comes at a cost:
+    -   The variation in $\hat{X}_2$ is typically less than that in $X_2$.
+    -   The predicted values $\hat{y}_i$ from the second stage are not necessarily close to $y_i$.
+
+### Why $R^2$ Can Be Negative:
+
+1.  $R^2$ is calculated using: $$
+    R^2 = 1 - \frac{RSS}{TSS}
+    $$ But in IV:
+
+-   The predicted values of $Y$ are not chosen to minimize RSS, because IV is not minimizing the residuals in the second stage.
+-   Unlike OLS, 2SLS chooses $\hat{\beta}$ to satisfy moment conditions rather than minimizing the sum of squared errors.
+
+2.  It is possible (and common in IV) for the residual sum of squares to be greater than the total sum of squares: $$
+    RSS > TSS
+    $$ Which makes: $$
+    R^2 = 1 - \frac{RSS}{TSS} < 0
+    $$
+
+3.  This happens because:
+
+    -   The predicted values $\hat{y}_i$ in IV are not optimized to fit the observed $y_i$.
+    -   The residuals can be larger, because IV focuses on identifying causal effects, not prediction.
+
+For example, assume we have:
+
+-   $TSS = 100$
+
+-   $RSS = 120$
+
+Then: $$ R^2 = 1 - \frac{120}{100} = -0.20 $$
+
+This happens because the IV procedure does not minimize RSS. It prioritizes solving the endogeneity problem over explaining the variance in $Y$.
+
+------------------------------------------------------------------------
+
+### Why We Don't Care About $R^2$ in IV
+
+1.  IV Estimates Focus on **Consistency**, Not **Prediction**
+
+-   The goal of IV is to obtain a consistent estimate of $\beta_2$.
+-   IV sacrifices fit (higher variance in $\hat{y}_i$) to remove endogeneity bias.
+
+2.  $R^2$ Does Not Reflect the Quality of an IV Estimator
+
+-   A high $R^2$ in IV may be misleading (for instance, when instruments are weak or invalid).
+-   A negative $R^2$ does not imply a bad IV estimator if the assumptions of instrument validity are met.
+
+3.  IV Regression Is About Identification, Not In-Sample Fit
+
+-   IV relies on relevance and exogeneity of instruments, not residual minimization.
+
+------------------------------------------------------------------------
+
+### Technical Details on $R^2$
+
+In OLS: $$
+\hat{\beta}^{OLS} = (X'X)^{-1} X'Y
+$$ Minimizes: $$
+RSS = (Y - X \hat{\beta}^{OLS})'(Y - X \hat{\beta}^{OLS})
+$$
+
+In IV: $$
+\hat{\beta}^{IV} = (X'P_Z X)^{-1} X'P_Z Y
+$$
+
+where:
+
+-   $P_Z = Z (Z'Z)^{-1} Z'$ is the projection matrix onto $Z$.
+
+-   The IV estimator solves: $$
+    Z'(Y - X\hat{\beta}) = 0
+    $$
+
+-   No guarantee that this minimizes RSS.
+
+Residuals:
+
+$$
+e^{IV} = Y - X \hat{\beta}^{IV}
+$$
+
+The norm of $e^{IV}$ is typically larger than in OLS because IV uses fewer effective degrees of freedom (constrained variation via $Z$).
+
+A Note on $R^2$ in 3SLS and GMM
+
+-   In 3SLS or GMM IV, $R^2$ can be similarly misleading.
+-   These methods often operate under moment conditions or system estimation, not residual minimization.
+
+------------------------------------------------------------------------
 
 ## Treatment Intensity
 
@@ -1224,167 +2074,6 @@ To give $\rho$ a causal interpretation,
 
 Even though the first bullet point is not trivial, most of the time we don't have to defend much about it in a research article, the second bullet point is the harder one to argue and only apply to certain cases.
 
-## Control Function
-
-Also known as **two-stage residual inclusion**
-
-Resources:
-
--   Binary outcome and binary endogenous variable application [@tchetgen2014note]
-
-    -   In rare events: we use a logistic model in the 2nd stage
-
-    -   In non-rare events: use risk ratio regression in the 2nd stage
-
--   Application in marketing for consumer choice model [@petrin2010control]
-
-Notes
-
--   This approach is better suited for models with nonadditive errors (e.g., discrete choice models), or binary endogenous model, binary response variable, etc.
-
-$$
-Y = g(X) + U \\
-X = \pi(Z) + V \\
-E(U |Z,V) = E(U|V) \\
-E(V|Z) = 0
-$$
-
-Under control function approach,
-
-$$
-E(Y|Z,V) = g(X) + E(U|Z,V) \\
-= g(X) + E(U|V) \\
-= g(X) + h(V)
-$$
-
-where $h(V)$ is the control function that models the endogeneity
-
-1.  Linear in parameters
-
-<!-- -->
-
-a.  Linear Endogenous Variables:
-    -   The control function function approach is identical to the usual 2SLS estimator
-b.  Nonlinear Endogenous Variables:
-    -   The control function is different from the 2SLS estimator
-c.  Nonlinear in parameters:
-    -   The CF function is superior than the 2SLS estimator
-
-### Simulation
-
-```{r}
-library(fixest)
-library(tidyverse)
-library(modelsummary)
-
-# Set the seed for reproducibility
-set.seed(123)
-n = 10000
-# Generate the exogenous variable from a normal distribution
-exogenous <- rnorm(n, mean = 5, sd = 1)
-
-# Generate the omitted variable as a function of the exogenous variable
-omitted <- rnorm(n, mean = 2, sd = 1)
-
-# Generate the endogenous variable as a function of the omitted variable and the exogenous variable
-endogenous <- 5 * omitted + 2 * exogenous + rnorm(n, mean = 0, sd = 1)
-
-# nonlinear endogenous variable
-endogenous_nonlinear <- 5 * omitted^2 + 2 * exogenous + rnorm(100, mean = 0, sd = 1)
-
-unrelated <- rexp(n, rate = 1)
-
-# Generate the response variable as a function of the endogenous variable and the omitted variable
-response <- 4 +  3 * endogenous + 6 * omitted + rnorm(n, mean = 0, sd = 1)
-
-response_nonlinear <- 4 +  3 * endogenous_nonlinear + 6 * omitted + rnorm(n, mean = 0, sd = 1)
-
-response_nonlinear_para <- 4 +  3 * endogenous ^ 2 + 6 * omitted + rnorm(n, mean = 0, sd = 1)
-
-
-# Combine the variables into a data frame
-my_data <-
-    data.frame(
-        exogenous,
-        omitted,
-        endogenous,
-        response,
-        unrelated,
-        response,
-        response_nonlinear,
-        response_nonlinear_para
-    )
-
-# View the first few rows of the data frame
-# head(my_data)
-
-wo_omitted <- feols(response ~ endogenous + sw0(unrelated), data = my_data)
-w_omitted  <- feols(response ~ endogenous + omitted + unrelated, data = my_data)
-
-
-# ivreg::ivreg(response ~ endogenous + unrelated | exogenous, data = my_data)
-iv <- feols(response ~ 1 + sw0(unrelated) | endogenous ~ exogenous, data = my_data)
-
-etable(
-    wo_omitted,
-    w_omitted,
-    iv, 
-    digits = 2
-    # vcov = list("each", "iid", "hetero")
-)
-```
-
-Linear in parameter and linear in endogenous variable
-
-```{r}
-# manual
-# 2SLS
-first_stage = lm(endogenous ~ exogenous, data = my_data)
-new_data = cbind(my_data, new_endogenous = predict(first_stage, my_data))
-second_stage = lm(response ~ new_endogenous, data = new_data)
-summary(second_stage)
-
-new_data_cf = cbind(my_data, residual = resid(first_stage))
-second_stage_cf = lm(response ~ endogenous + residual, data = new_data_cf)
-summary(second_stage_cf)
-
-modelsummary(list(second_stage, second_stage_cf))
-```
-
-Nonlinear in endogenous variable
-
-```{r}
-# 2SLS
-first_stage = lm(endogenous_nonlinear ~ exogenous, data = my_data)
-
-new_data = cbind(my_data, new_endogenous_nonlinear = predict(first_stage, my_data))
-second_stage = lm(response_nonlinear ~ new_endogenous_nonlinear, data = new_data)
-summary(second_stage)
-
-new_data_cf = cbind(my_data, residual = resid(first_stage))
-second_stage_cf = lm(response_nonlinear ~ endogenous_nonlinear + residual, data = new_data_cf)
-summary(second_stage_cf)
-
-modelsummary(list(second_stage, second_stage_cf))
-```
-
-Nonlinear in parameters
-
-```{r}
-# 2SLS
-first_stage = lm(endogenous ~ exogenous, data = my_data)
-
-new_data = cbind(my_data, new_endogenous = predict(first_stage, my_data))
-second_stage = lm(response_nonlinear_para ~ new_endogenous, data = new_data)
-summary(second_stage)
-
-new_data_cf = cbind(my_data, residual = resid(first_stage))
-second_stage_cf = lm(response_nonlinear_para ~ endogenous_nonlinear + residual, data = new_data_cf)
-summary(second_stage_cf)
-
-modelsummary(list(second_stage, second_stage_cf))
-```
-
 <!-- ## Application in Marketing -->
 
 <!-- ### Peer-based IV -->
@@ -1392,3 +2081,43 @@ modelsummary(list(second_stage, second_stage_cf))
 ## New Advances
 
 -   Combine ML and IV [@singh2020machine]
+
+------------------------------------------------------------------------
+
+## Special Considerations for Zero-Valued Outcomes
+
+For outcomes that take zero values, log transformations can introduce interpretation issues. Specifically, the coefficient on a log-transformed outcome does not directly represent a percentage change [@chen2023logs]. We have to distinguish the treatment effect on the intensive (outcome: 10 to 11) vs. extensive margins (outcome: 0 to 1), and we can't readily interpret the treatment coefficient of log-transformed outcome regression as percentage change. In such cases, researchers use alternative methods:
+
+### Proportional LATE Estimation
+
+When dealing with zero-valued outcomes, direct log transformations can lead to interpretation issues. To obtain an interpretable percentage change in the outcome due to treatment among *compliers*, we estimate the **proportional Local Average Treatment Effect (LATE)**, denoted as $\theta_{ATE\%}$.
+
+Steps to Estimate Proportional LATE:
+
+1.  **Estimate LATE using 2SLS:**
+
+    We first estimate the treatment effect using a standard Two-Stage Least Squares regression: $$ Y_i = \beta D_i + X_i + \epsilon_i, $$ where:
+
+    -   $D_i$ is the endogenous treatment variable.
+    -   $X_i$ includes any exogenous controls.
+    -   $\beta$ represents the LATE in *levels* for the mean of the control group's compliers.
+
+2.  **Estimate the control complier mean** ($\beta_{cc}$):
+
+    Using the same 2SLS setup, we estimate the control mean for compliers by transforming the outcome variable [@abadie2002instrumental]: $$ Y_i^{CC} = -(D_i - 1) Y_i. $$ The estimated coefficient from this regression, $\beta_{cc}$, captures the mean outcome for compliers in the control group.
+
+3.  **Compute the proportional LATE:**
+
+    The estimated proportional LATE is given by: $$ \theta_{ATE\%} = \frac{\hat{\beta}}{\hat{\beta}_{cc}}, $$ which provides a direct *percentage change* interpretation for the outcome among compliers induced by the instrument.
+
+4.  **Obtain standard errors via non-parametric bootstrap:**
+
+    Since $\theta_{ATE\%}$ is a ratio of estimated coefficients, standard errors are best obtained using non-parametric bootstrap methods.
+
+5.  **Special case: Binary instrument**
+
+    If the instrument is binary, $\theta_{ATE\%}$ for the intensive margin of compliers can be directly estimated using **Poisson IV regression** (`ivpoisson` in Stata).
+
+### Bounds on Intensive-Margin Effects
+
+@lee2009training proposed a bounding approach for intensive-margin effects, assuming that compliers always have positive outcomes regardless of treatment (i.e., intensive-margin effect). These bounds help estimate treatment effects without relying on log transformations. However, this requires a monotonicity assumption for compliers where they should still have positive outcome regardless of treatment status.

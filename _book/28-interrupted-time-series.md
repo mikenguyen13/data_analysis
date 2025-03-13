@@ -19,7 +19,7 @@ ITS and RDiT are particularly useful when:
 3.  There is no suitable cross-sectional control group, making difference-in-differences infeasible.
 
 |        Feature         |                     **RDiT**                      |                          **ITS**                          |
-|:----------------------:|:-------------------------------------------------:|:---------------------------------------------------------:|
+|:---------------:|:------------------------:|:----------------------------:|
 |       **Focus**        |          Local neighborhood around $T^*$          |       Entire time series (long pre- and post-data)        |
 |    **Effect Model**    |          Assumes a sharp, immediate jump          |   Can capture abrupt or gradual changes (level & slope)   |
 |       **Method**       |     Local polynomial regression around cutoff     |        Segmented regression using the full series         |
@@ -64,7 +64,7 @@ where:
 Because RDiT focuses on a local window around $T^*$, it is best when you expect an immediate jump at the cutoff and when observations near the cutoff are likely to be similar except for the treatment.
 
 |                      |                                       |                                              |
-|----------------------|---------------------------------------|----------------------------------------------|
+|-----------------|-------------------------|------------------------------|
 | **Criterion**        | **Standard RD**                       | **RDiT**                                     |
 | Running Variable     | Cross-sectional (e.g., test score)    | Time (e.g., policy implementation date)      |
 | Treatment Assignment | Based on threshold in $X$             | Based on threshold in $T^*$                  |
@@ -181,7 +181,7 @@ Event study methods, particularly modern implementations, have improved signific
 2.  **Higher-order time controls**: RDiT allows for more flexible modeling of time trends, including the use of higher-order polynomials, which may provide better approximations of underlying time dynamics.
 
 | **Method**                           | **Key Feature**                   | **Strengths**                           | **Weaknesses**                                                      |
-|--------------------------------------|-----------------------------------|-----------------------------------------|---------------------------------------------------------------------|
+|----------------|----------------|----------------|-------------------------|
 | **Difference-in-Differences**        | Uses a control group              | Accounts for time-invariant confounders | Requires parallel trends assumption                                 |
 | **Event Study**                      | Models multiple time periods      | Estimates dynamic treatment effects     | Requires staggered interventions                                    |
 | **Pre/Post Comparison**              | Simple before/after design        | No control needed                       | Cannot separate treatment from time trends                          |
@@ -627,7 +627,7 @@ Possible Threats to the Validity of ITS Analysis [@baicker2019testing]
 After an intervention, an outcome can exhibit four distinct patterns:
 
 | **Scenario**                           | **Description**                                                      |
-|----------------------------------------|----------------------------------------------------------------------|
+|---------------------------|---------------------------------------------|
 | **No effect**                          | The intervention does not change the level or trend of the outcome.  |
 | **Immediate effect**                   | A sharp, immediate change in the outcome following the intervention. |
 | **Sustained effect**                   | A gradual, long-term shift in the outcome that smooths over time.    |
@@ -838,22 +838,43 @@ We compare the observed data with a **counterfactual** (assuming no treatment) [
 
 
 ```r
-plot(df_its$T, df_its$Y, pch=16, col="gray",
-     xlab="Time (T)", ylab="Outcome (Y)",
-     main="ITS: Observed vs. Fitted vs. Counterfactual")
+plot(
+    df_its$T,
+    df_its$Y,
+    pch = 16,
+    col = "gray",
+    xlab = "Time (T)",
+    ylab = "Outcome (Y)",
+    main = "ITS: Observed vs. Fitted vs. Counterfactual"
+)
 
 # Add vertical line indicating intervention point
-abline(v=T_star, lwd=2, col="black")
+abline(v = T_star, lwd = 2, col = "black")
 
 # Add fitted ITS model trend
-lines(df_its$T, df_its$pred_its, lwd=2, col="blue")
+lines(df_its$T,
+      df_its$pred_its,
+      lwd = 2,
+      col = "blue")
 
 # Add counterfactual trend (what would have happened without intervention)
-lines(df_its$T, df_its$pred_counterfactual, lwd=2, col="red", lty=2)
+lines(
+    df_its$T,
+    df_its$pred_counterfactual,
+    lwd = 2,
+    col = "red",
+    lty = 2
+)
 
 # Add legend
-legend("topleft", legend=c("Observed Data", "Fitted ITS", "Counterfactual"),
-       col=c("gray", "blue", "red"), lty=c(NA,1,2), pch=c(16, NA, NA), lwd=c(NA,2,2))
+legend(
+    "topleft",
+    legend = c("Observed Data", "Fitted ITS", "Counterfactual"),
+    col = c("gray", "blue", "red"),
+    lty = c(NA, 1, 2),
+    pch = c(16, NA, NA),
+    lwd = c(NA, 2, 2)
+)
 ```
 
 <img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
@@ -1095,14 +1116,17 @@ res_hybrid <- coeftest(mod_hybrid, vcov = vcovHC(mod_hybrid, type = "HC1"))
 # STAGE 1: Local RDiT to estimate extra local jump around T_star ± h
 df_local <- subset(df, abs(t - T_star) < h)
 mod_local <- lm(Y ~ t_centered*D, data = df_local)
-tau_hat <- coef(mod_local)["D"]  # estimate of the jump at T_star from local model
+
+# estimate of the jump at T_star from local model
+tau_hat <- coef(mod_local)["D"]  
 
 # Adjust outcome by subtracting local jump * D
 df$Y_star <- df$Y - tau_hat * df$D
 
 # STAGE 2: Fit a standard ITS on the adjusted outcome Y_star
 mod_its_adjusted <- lm(Y_star ~ T_c + D + I(T_c*D) + P, data = df)
-res_its_adjusted <- coeftest(mod_its_adjusted, vcov = vcovHC(mod_its_adjusted, type = "HC1"))
+res_its_adjusted <-
+    coeftest(mod_its_adjusted, vcov = vcovHC(mod_its_adjusted, type = "HC1"))
 
 # -------------------------------------------------------------------
 # 5. Plot the Data and Fitted Lines

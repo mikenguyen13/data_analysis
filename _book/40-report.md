@@ -502,7 +502,7 @@ library("stargazer")
 stargazer(attitude)
 #> 
 #> % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-#> % Date and time: Sat, Feb 08, 2025 - 6:25:20 PM
+#> % Date and time: Tue, Mar 11, 2025 - 4:01:43 PM
 #> \begin{table}[!htbp] \centering 
 #>   \caption{} 
 #>   \label{} 
@@ -543,7 +543,7 @@ stargazer(linear.1,
           align = TRUE)
 #> 
 #> % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-#> % Date and time: Sat, Feb 08, 2025 - 6:25:20 PM
+#> % Date and time: Tue, Mar 11, 2025 - 4:01:43 PM
 #> % Requires LaTeX packages: dcolumn 
 #> \begin{table}[!htbp] \centering 
 #>   \caption{Results} 

@@ -1,75 +1,21 @@
-# Changes-in-Changes
+# Changes-in-Changes {#sec-changes-in-changes}
 
--   **Introduction**
+The Changes-in-Changes (CiC) estimator, introduced by @athey2006identification, is an alternative to the [Difference-in-Differences](#sec-difference-in-differences) strategy. While traditional DiD estimates the [Average Treatment Effect on the Treated] (ATT), CiC focuses on the **Quantile Treatment Effect on the Treated (QTT)**.
 
-    -   The Changes-in-Changes (CiC) estimator, introduced by @athey2006identification, is an alternative to the Difference-in-Differences (DiD) strategy.
-    -   Unlike traditional DiD, which estimates the Average Treatment Effect on the Treated (ATT), CiC focuses on the Quantile Treatment Effect on the Treated (QTT).
-    -   QTT captures the difference between potential outcome distributions for treated units at a specific quantile.
-    -   **Beyond Averages:** Policymakers often look beyond average program impacts, considering how benefits are distributed across different groups.
-        -   **Job Training Example:** Two programs with the same negative average impact may be treated differently: one benefiting high earners might be rejected, while one benefiting low earners could be approved.
-        -   **Traditional Methods' Limitations:** Methods like linear regression, which assume uniform effects, fail to capture important distributional differences.
-        -   **QTEs' Advantage:** QTE methods are tailored for analyzing how treatment effects vary across different segments of a population.
-    -   **QTE vs. ATE:** While QTEs provide detailed insights into distributional impacts, they also allow for the recovery of ATEs. However, ATEs are usually identified under weaker assumptions, making QTEs more suitable for exploring the shape of treatment effects rather than just their central tendency.
+Policymakers and analysts often look beyond average program impacts to understand how benefits are distributed across different subgroups. The QTT approach is particularly useful in cases where:
 
--   **Key Concepts**
+-   **Policy decisions depend on distributional effects:**
+    -   For instance, consider two job training programs with the same negative average effect.
+    -   If one program harms high-income earners while benefiting low-income earners, it might still be considered valuable, whereas a program that negatively affects low-income earners might be rejected.
+-   **Limitations of traditional methods:**
+    -   Methods such as linear regression assume uniform treatment effects across the population, which may mask important distributional differences.
+-   **Advantages of QTE methods:**
+    -   Quantile treatment effects (QTEs) allow for a more detailed examination of how treatment effects vary across different segments of a population.
+    -   While QTEs provide distributional insights, they can also be used to recover ATEs under weaker assumptions.
 
-    -   **Quantile Treatment Effect on the Treated (QTT):** Difference in quantiles of treated units' potential outcome distributions.
-    -   **Rank Preservation:** Assumes each unit's rank remains constant across potential outcome distributions---this is a strong assumption.
-    -   **Counterfactual Distribution:** Estimation focuses on determining this distribution for the treated units in period 1.
-
--   **Estimating QTT**
-
-    -   CiC uses four distributions from a 2x2 DiD design:
-        1.  $F_{Y(0),00}$: CDF of $Y(0)$ for control units in period 0.
-        2.  $F_{Y(0),10}$: CDF of $Y(0)$ for treatment units in period 0.
-        3.  $F_{Y(0),01}$: CDF of $Y(0)$ for control units in period 1.
-        4.  $F_{Y(1),11}$: CDF of $Y(1)$ for treatment units in period 1.
-    -   QTT is defined as the difference between the inverses of $F_{Y(1),11}$ and the counterfactual distribution $F_{Y(0),11}$ at quantile $q$:
-
-    $$
-      \Delta_\theta^{QTT} = F_{Y(1), 11}^{-1} (\theta) - F_{Y (0), 11}^{-1} (\theta)
-      $$
-
--   **Estimation Process**
-
-    -   **Counterfactual CDF:**
-
-    $$
-      \hat{F}_{Y(0),11}(y) = F_{y,01}\left(F^{-1}_{y,00}\left(F_{y,10}(y)\right)\right)
-      $$
-
-    -   **Equivalent Expression:**
-
-    $$
-      \hat{F}^{-1}_{Y(0),11}(\theta) = F^{-1}_{y,01}\left(F_{y,00}\left(F^{-1}_{y,10}(\theta)\right)\right)
-      $$
-
-    -   **Treatment Effect Estimate:**
-
-    $$
-      \hat{\Delta}^{CIC}_{\theta} = F^{-1}_{Y(1),11}(\theta) - \hat{F}^{-1}_{Y(0),11}(\theta)
-      $$
-
-    -   **Equivalently:**
-
-    $\Delta^{CIC}_{\theta}$ is the difference between two QTE estimates:
-
-    $$
-      \Delta^{CIC}_{\theta} = \Delta^{QTE}_{\theta,1} - \Delta^{QTE}_{\theta',0}
-      $$
-
-    where:
-
-    -   $\Delta^{QTT}_{\theta,1}$ = change over time in $y$ at quantile $\theta$ for $D = 1$ group.
-    -   $\Delta^{QTU}_{\theta',0}$ = change over time in $y$ at quantile $\theta'$ for $D = 0$ group, where $q'$ is the quantile in the $D = 0, T = 0$ distribution corresponding to the value of $y$ associated with quantile $\theta$ in the $D = 1, T = 0$ distribution.
-
--   **Marketing Example**
-
-    -   Suppose a company implements a new online marketing strategy aimed at improving customer retention rates.
-    -   **QTT:** The goal is to estimate the effect of the strategy on customer retention rates at different quantiles (e.g., median retention rate).
-    -   **Rank Preservation:** Assumes customers' rank in retention distribution remains the same, regardless of the strategy---this assumption is strong and should be carefully considered.
-    -   **Counterfactual:** CiC helps estimate how retention rates would have changed without the new strategy by comparing it with a control group.
-
+```{=html}
+<!-- -->
+```
 -   **References**
 
     -   @athey2006identification
@@ -80,6 +26,76 @@
 -   **Additional Resources**
 
     -   Code examples available in [Stata](https://sites.google.com/site/blaisemelly/home/computer-programs/cic_stata).
+
+## Key Concepts
+
+-   **Quantile Treatment Effect on the Treated (QTT):**
+    -   Measures the difference in quantiles of the potential outcome distributions for treated units.
+-   **Rank Preservation:**
+    -   Assumes that the rank of an individual remains unchanged across different potential outcome distributions.
+    -   This is a **strong assumption** and should be considered carefully in empirical applications.
+-   **Counterfactual Distribution:**
+    -   The main estimation challenge in CiC is constructing the **counterfactual distribution** of outcomes for treated units in period 1.
+
+## Estimating QTT with CiC
+
+CiC relies on four distributions from a 2 × 2 Difference-in-Differences (DiD) setup:
+
+1.  $F_{Y(0),00}$: CDF of $Y(0)$ for control units in period 0.
+2.  $F_{Y(0),10}$: CDF of $Y(0)$ for treatment units in period 0.
+3.  $F_{Y(0),01}$: CDF of $Y(0)$ for control units in period 1.
+4.  $F_{Y(1),11}$: CDF of $Y(1)$ for treatment units in period 1.
+
+The Quantile Treatment Effect on the Treated (QTT) at quantile $\theta$ is:
+
+$$
+\Delta_\theta^{QTT} = F_{Y(1), 11}^{-1} (\theta) - F_{Y (0), 11}^{-1} (\theta)
+$$
+
+To estimate the counterfactual CDF:
+
+$$
+\hat{F}_{Y(0),11}(y) = F_{y,01}\left(F^{-1}_{y,00}\left(F_{y,10}(y)\right)\right)
+$$
+
+This leads to the estimation of the inverse counterfactual CDF:
+
+$$
+\hat{F}^{-1}_{Y(0),11}(\theta) = F^{-1}_{y,01}\left(F_{y,00}\left(F^{-1}_{y,10}(\theta)\right)\right)
+$$
+
+Finally, the treatment effect estimate is:
+
+$$
+\hat{\Delta}^{CIC}_{\theta} = F^{-1}_{Y(1),11}(\theta) - \hat{F}^{-1}_{Y(0),11}(\theta)
+$$
+
+Alternatively, CiC can be expressed as the difference between two QTE estimates:
+
+$$
+\Delta^{CIC}_{\theta} = \Delta^{QTE}_{\theta,1} - \Delta^{QTE}_{\theta',0}
+$$
+
+where:
+
+-   $\Delta^{QTT}_{\theta,1}$ represents the change over time at quantile $\theta$ for the treated group ($D=1$).
+-   $\Delta^{QTU}_{\theta',0}$ represents the change over time at quantile $\theta'$ for the control group ($D=0$).
+    -   The quantile $\theta'$ is selected to match the value of $y$ at quantile $\theta$ in the treated group's period 0 distribution.
+
+------------------------------------------------------------------------
+
+**Marketing Example**
+
+Suppose a company introduces a new online marketing strategy aimed at improving customer retention rates. The goal is to analyze how this strategy affects retention at different quantiles of the customer base.
+
+1.  **QTT Interpretation:**
+    -   Instead of looking at the average effect of the marketing strategy, CiC allows the company to examine how retention rates change across different quantiles (e.g., low vs. high-retention customers).
+2.  **Rank Preservation Assumption:**
+    -   This approach assumes that customers' rank in the retention distribution remains unchanged, regardless of whether they received the new strategy.
+3.  **Counterfactual Distribution:**
+    -   CiC helps estimate how retention rates would have evolved without the new strategy, by comparing trends in the control group.
+
+------------------------------------------------------------------------
 
 ## Application
 
@@ -202,7 +218,7 @@ plot(jt.mdid)
 On top of the distributional DiD assumption, we need **copula stability** assumption (i.e., If, before the treatment, the units with the highest outcomes were improving the most, we would expect to see them improving the most in the current period too.) for these models:
 
 | **Aspect**                      | **QDiD**                       | **CiC**                          |
-|---------------------------------|--------------------------------|----------------------------------|
+|------------------------|-----------------------|-------------------------|
 | **Treatment of Time and Group** | Symmetric                      | Asymmetric                       |
 | **QTET Computation**            | Not inherently scale-invariant | Outcome Variable Scale-Invariant |
 

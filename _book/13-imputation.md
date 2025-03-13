@@ -736,12 +736,12 @@ print(data)
 #>    ID Age Gender Age_imputed
 #> 1   1  25      M          25
 #> 2   2  30      F          30
-#> 3   3  NA      F          60
+#> 3   3  NA      F          30
 #> 4   4  40      M          40
 #> 5   5  NA      M          70
 #> 6   6  50      F          50
 #> 7   7  60      M          60
-#> 8   8  NA      F          30
+#> 8   8  NA      F          50
 #> 9   9  70      M          70
 #> 10 10  80      F          80
 ```
@@ -2660,8 +2660,8 @@ summary(mi_data)
 #>   133    17 
 #> 
 #> $Sepal.Length$imputed
-#>      Min.   1st Qu.    Median      Mean   3rd Qu.      Max. 
-#> -0.292703 -0.102081  0.002985  0.001889  0.124160  0.424031 
+#>       Min.    1st Qu.     Median       Mean    3rd Qu.       Max. 
+#> -0.1432877 -0.0150334 -0.0002092  0.0124190  0.0346716  0.2684534 
 #> 
 #> $Sepal.Length$observed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -2675,8 +2675,8 @@ summary(mi_data)
 #>   131    19 
 #> 
 #> $Sepal.Width$imputed
-#>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#> -1.3749 -0.5070 -0.1670 -0.1150  0.3079  1.2217 
+#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#> -1.39679 -0.51603 -0.07172 -0.04021  0.44860  2.22865 
 #> 
 #> $Sepal.Width$observed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -2691,7 +2691,7 @@ summary(mi_data)
 #> 
 #> $Petal.Length$imputed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.89710 -0.51522  0.26565  0.04712  0.46851  1.04988 
+#> -0.91557 -0.54296  0.19113  0.03704  0.49518  0.80830 
 #> 
 #> $Petal.Length$observed
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -2706,7 +2706,7 @@ summary(mi_data)
 #> 
 #> $Petal.Width$imputed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.80431 -0.03949  0.23475  0.19349  0.55344  0.99432 
+#> -1.08673 -0.02079  0.27533  0.17597  0.56232  0.82927 
 #> 
 #> $Petal.Width$observed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -2717,9 +2717,9 @@ summary(mi_data)
 #> $Species$crosstab
 #>             
 #>              observed imputed
-#>   setosa          180      22
-#>   versicolor      192       6
-#>   virginica       184      16
+#>   setosa          180      20
+#>   versicolor      192       9
+#>   virginica       184      15
 #> 
 #> 
 #> $imputed_SepalLength

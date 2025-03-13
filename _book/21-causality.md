@@ -304,7 +304,7 @@ print(best_campaign_overall)
 #> # A tibble: 1 × 2
 #>   Campaign Overall_Conversion_Rate
 #>   <chr>                      <dbl>
-#> 1 B                          0.268
+#> 1 A                          0.184
 ```
 
 Even though **Campaign B** is **better** in each **segment**, you should see that **Campaign A** has a **higher** aggregated (overall) conversion rate!

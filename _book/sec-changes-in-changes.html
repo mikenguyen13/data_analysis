@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 31 Changes-in-Changes | A Guide on Data Analysis</title>
+<meta name="author" content="Mike Nguyen">
+<meta name="description" content="The Changes-in-Changes (CiC) estimator, introduced by Athey and Imbens (2006), is an alternative to the Difference-in-Differences strategy. While traditional DiD estimates the Average Treatment...">
+<meta name="generator" content="bookdown 0.35 with bs4_book()">
+<meta property="og:title" content="Chapter 31 Changes-in-Changes | A Guide on Data Analysis">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://bookdown.org/mike/data_analysis/sec-changes-in-changes.html">
+<meta property="og:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<meta property="og:description" content="The Changes-in-Changes (CiC) estimator, introduced by Athey and Imbens (2006), is an alternative to the Difference-in-Differences strategy. While traditional DiD estimates the Average Treatment...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 31 Changes-in-Changes | A Guide on Data Analysis">
+<meta name="twitter:description" content="The Changes-in-Changes (CiC) estimator, introduced by Athey and Imbens (2006), is an alternative to the Difference-in-Differences strategy. While traditional DiD estimates the Average Treatment...">
+<meta name="twitter:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.6.1/transition.js"></script><script src="libs/bs3compat-0.6.1/tabs.js"></script><script src="libs/bs3compat-0.6.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/kePrint-0.0.1/kePrint.js"></script><link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+<!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script><script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-DMNX2X65HQ');
+    </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">A Guide on Data Analysis</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Preface</a></li>
+<li><a class="" href="introduction.html"><span class="header-section-number">1</span> Introduction</a></li>
+<li><a class="" href="prerequisites.html"><span class="header-section-number">2</span> Prerequisites</a></li>
+<li class="book-part">I. BASIC</li>
+<li><a class="" href="descriptive-statistics.html"><span class="header-section-number">3</span> Descriptive Statistics</a></li>
+<li><a class="" href="basic-statistical-inference.html"><span class="header-section-number">4</span> Basic Statistical Inference</a></li>
+<li class="book-part">II. REGRESSION</li>
+<li><a class="" href="linear-regression.html"><span class="header-section-number">5</span> Linear Regression</a></li>
+<li><a class="" href="non-linear-regression.html"><span class="header-section-number">6</span> Non-Linear Regression</a></li>
+<li><a class="" href="generalized-linear-models.html"><span class="header-section-number">7</span> Generalized Linear Models</a></li>
+<li><a class="" href="sec-linear-mixed-models.html"><span class="header-section-number">8</span> Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonlinear-and-generalized-linear-mixed-models.html"><span class="header-section-number">9</span> Nonlinear and Generalized Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonparametric-regression.html"><span class="header-section-number">10</span> Nonparametric Regression</a></li>
+<li class="book-part">III. RAMIFICATIONS</li>
+<li><a class="" href="data.html"><span class="header-section-number">11</span> Data</a></li>
+<li><a class="" href="variable-transformation.html"><span class="header-section-number">12</span> Variable Transformation</a></li>
+<li><a class="" href="imputation-missing-data.html"><span class="header-section-number">13</span> Imputation (Missing Data)</a></li>
+<li><a class="" href="model-specification-tests.html"><span class="header-section-number">14</span> Model Specification Tests</a></li>
+<li><a class="" href="variable-selection.html"><span class="header-section-number">15</span> Variable Selection</a></li>
+<li><a class="" href="hypothesis-testing.html"><span class="header-section-number">16</span> Hypothesis Testing</a></li>
+<li><a class="" href="sec-marginal-effects.html"><span class="header-section-number">17</span> Marginal Effects</a></li>
+<li><a class="" href="moderation.html"><span class="header-section-number">18</span> Moderation</a></li>
+<li><a class="" href="mediation.html"><span class="header-section-number">19</span> Mediation</a></li>
+<li><a class="" href="prediction-and-estimation.html"><span class="header-section-number">20</span> Prediction and Estimation</a></li>
+<li class="book-part">IV. CAUSAL INFERENCE</li>
+<li><a class="" href="sec-causal-inference.html"><span class="header-section-number">21</span> Causal Inference</a></li>
+<li class="book-part">A. EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-experimental-design.html"><span class="header-section-number">22</span> Experimental Design</a></li>
+<li><a class="" href="sampling.html"><span class="header-section-number">23</span> Sampling</a></li>
+<li><a class="" href="sec-analysis-of-variance-anova.html"><span class="header-section-number">24</span> Analysis of Variance</a></li>
+<li><a class="" href="sec-multivariate-methods.html"><span class="header-section-number">25</span> Multivariate Methods</a></li>
+<li class="book-part">B. QUASI-EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-quasi-experimental.html"><span class="header-section-number">26</span> Quasi-Experimental Methods</a></li>
+<li><a class="" href="sec-regression-discontinuity.html"><span class="header-section-number">27</span> Regression Discontinuity</a></li>
+<li><a class="" href="temporal-discontinuity-designs.html"><span class="header-section-number">28</span> Temporal Discontinuity Designs</a></li>
+<li><a class="" href="sec-synthetic-difference-in-differences.html"><span class="header-section-number">29</span> Synthetic Difference-in-Differences</a></li>
+<li><a class="" href="sec-difference-in-differences.html"><span class="header-section-number">30</span> Difference-in-Differences</a></li>
+<li><a class="active" href="sec-changes-in-changes.html"><span class="header-section-number">31</span> Changes-in-Changes</a></li>
+<li><a class="" href="sec-synthetic-control.html"><span class="header-section-number">32</span> Synthetic Control</a></li>
+<li><a class="" href="sec-event-studies.html"><span class="header-section-number">33</span> Event Studies</a></li>
+<li><a class="" href="sec-instrumental-variables.html"><span class="header-section-number">34</span> Instrumental Variables</a></li>
+<li><a class="" href="sec-matching-methods.html"><span class="header-section-number">35</span> Matching Methods</a></li>
+<li class="book-part">C. OTHER CONCERNS</li>
+<li><a class="" href="endogeneity.html"><span class="header-section-number">36</span> Endogeneity</a></li>
+<li><a class="" href="other-biases.html"><span class="header-section-number">37</span> Other Biases</a></li>
+<li><a class="" href="controls.html"><span class="header-section-number">38</span> Controls</a></li>
+<li><a class="" href="directed-acyclic-graph.html"><span class="header-section-number">39</span> Directed Acyclic Graph</a></li>
+<li class="book-part">V. MISCELLANEOUS</li>
+<li><a class="" href="report.html"><span class="header-section-number">40</span> Report</a></li>
+<li><a class="" href="exploratory-data-analysis.html"><span class="header-section-number">41</span> Exploratory Data Analysis</a></li>
+<li><a class="" href="sensitivity-analysis-robustness-check.html"><span class="header-section-number">42</span> Sensitivity Analysis/ Robustness Check</a></li>
+<li><a class="" href="replication-and-synthetic-data.html"><span class="header-section-number">43</span> Replication and Synthetic Data</a></li>
+<li class="book-part">APPENDIX</li>
+<li><a class="" href="appendix.html"><span class="header-section-number">A</span> Appendix</a></li>
+<li><a class="" href="bookdown-cheat-sheet.html"><span class="header-section-number">B</span> Bookdown cheat sheet</a></li>
+<li><a class="" href="references.html">References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/mikenguyen13/data_analysis">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="sec-changes-in-changes" class="section level1" number="31">
+<h1>
+<span class="header-section-number">31</span> Changes-in-Changes<a class="anchor" aria-label="anchor" href="#sec-changes-in-changes"><i class="fas fa-link"></i></a>
+</h1>
+<p>The Changes-in-Changes (CiC) estimator, introduced by <span class="citation">Athey and Imbens (<a href="references.html#ref-athey2006identification">2006</a>)</span>, is an alternative to the <a href="sec-difference-in-differences.html#sec-difference-in-differences">Difference-in-Differences</a> strategy. While traditional DiD estimates the <a href="sec-causal-inference.html#sec-average-treatment-effect-on-the-treated">Average Treatment Effect on the Treated</a> (ATT), CiC focuses on the <strong>Quantile Treatment Effect on the Treated (QTT)</strong>.</p>
+<p>Policymakers and analysts often look beyond average program impacts to understand how benefits are distributed across different subgroups. The QTT approach is particularly useful in cases where:</p>
+<ul>
+<li>
+<strong>Policy decisions depend on distributional effects:</strong>
+<ul>
+<li>For instance, consider two job training programs with the same negative average effect.</li>
+<li>If one program harms high-income earners while benefiting low-income earners, it might still be considered valuable, whereas a program that negatively affects low-income earners might be rejected.</li>
+</ul>
+</li>
+<li>
+<strong>Limitations of traditional methods:</strong>
+<ul>
+<li>Methods such as linear regression assume uniform treatment effects across the population, which may mask important distributional differences.</li>
+</ul>
+</li>
+<li>
+<strong>Advantages of QTE methods:</strong>
+<ul>
+<li>Quantile treatment effects (QTEs) allow for a more detailed examination of how treatment effects vary across different segments of a population.</li>
+<li>While QTEs provide distributional insights, they can also be used to recover ATEs under weaker assumptions.</li>
+</ul>
+</li>
+</ul>
+<!-- --><ul>
+<li>
+<p><strong>References</strong></p>
+<ul>
+<li><span class="citation">Athey and Imbens (<a href="references.html#ref-athey2006identification">2006</a>)</span></li>
+<li>
+<span class="citation">Frölich and Melly (<a href="references.html#ref-frolich2013unconditional">2013</a>)</span>: IV-based</li>
+<li>
+<span class="citation">Callaway and Li (<a href="references.html#ref-callaway2019quantile">2019</a>)</span>: panel data</li>
+<li><span class="citation">M. Huber, Schelker, and Strittmatter (<a href="references.html#ref-huber2022direct">2022</a>)</span></li>
+</ul>
+</li>
+<li>
+<p><strong>Additional Resources</strong></p>
+<ul>
+<li>Code examples available in <a href="https://sites.google.com/site/blaisemelly/home/computer-programs/cic_stata">Stata</a>.</li>
+</ul>
+</li>
+</ul>
+<div id="key-concepts" class="section level2" number="31.1">
+<h2>
+<span class="header-section-number">31.1</span> Key Concepts<a class="anchor" aria-label="anchor" href="#key-concepts"><i class="fas fa-link"></i></a>
+</h2>
+<ul>
+<li>
+<strong>Quantile Treatment Effect on the Treated (QTT):</strong>
+<ul>
+<li>Measures the difference in quantiles of the potential outcome distributions for treated units.</li>
+</ul>
+</li>
+<li>
+<strong>Rank Preservation:</strong>
+<ul>
+<li>Assumes that the rank of an individual remains unchanged across different potential outcome distributions.</li>
+<li>This is a <strong>strong assumption</strong> and should be considered carefully in empirical applications.</li>
+</ul>
+</li>
+<li>
+<strong>Counterfactual Distribution:</strong>
+<ul>
+<li>The main estimation challenge in CiC is constructing the <strong>counterfactual distribution</strong> of outcomes for treated units in period 1.</li>
+</ul>
+</li>
+</ul>
+</div>
+<div id="estimating-qtt-with-cic" class="section level2" number="31.2">
+<h2>
+<span class="header-section-number">31.2</span> Estimating QTT with CiC<a class="anchor" aria-label="anchor" href="#estimating-qtt-with-cic"><i class="fas fa-link"></i></a>
+</h2>
+<p>CiC relies on four distributions from a 2 × 2 Difference-in-Differences (DiD) setup:</p>
+<ol style="list-style-type: decimal">
+<li>
+<span class="math inline">\(F_{Y(0),00}\)</span>: CDF of <span class="math inline">\(Y(0)\)</span> for control units in period 0.</li>
+<li>
+<span class="math inline">\(F_{Y(0),10}\)</span>: CDF of <span class="math inline">\(Y(0)\)</span> for treatment units in period 0.</li>
+<li>
+<span class="math inline">\(F_{Y(0),01}\)</span>: CDF of <span class="math inline">\(Y(0)\)</span> for control units in period 1.</li>
+<li>
+<span class="math inline">\(F_{Y(1),11}\)</span>: CDF of <span class="math inline">\(Y(1)\)</span> for treatment units in period 1.</li>
+</ol>
+<p>The Quantile Treatment Effect on the Treated (QTT) at quantile <span class="math inline">\(\theta\)</span> is:</p>
+<p><span class="math display">\[
+\Delta_\theta^{QTT} = F_{Y(1), 11}^{-1} (\theta) - F_{Y (0), 11}^{-1} (\theta)
+\]</span></p>
+<p>To estimate the counterfactual CDF:</p>
+<p><span class="math display">\[
+\hat{F}_{Y(0),11}(y) = F_{y,01}\left(F^{-1}_{y,00}\left(F_{y,10}(y)\right)\right)
+\]</span></p>
+<p>This leads to the estimation of the inverse counterfactual CDF:</p>
+<p><span class="math display">\[
+\hat{F}^{-1}_{Y(0),11}(\theta) = F^{-1}_{y,01}\left(F_{y,00}\left(F^{-1}_{y,10}(\theta)\right)\right)
+\]</span></p>
+<p>Finally, the treatment effect estimate is:</p>
+<p><span class="math display">\[
+\hat{\Delta}^{CIC}_{\theta} = F^{-1}_{Y(1),11}(\theta) - \hat{F}^{-1}_{Y(0),11}(\theta)
+\]</span></p>
+<p>Alternatively, CiC can be expressed as the difference between two QTE estimates:</p>
+<p><span class="math display">\[
+\Delta^{CIC}_{\theta} = \Delta^{QTE}_{\theta,1} - \Delta^{QTE}_{\theta',0}
+\]</span></p>
+<p>where:</p>
+<ul>
+<li>
+<span class="math inline">\(\Delta^{QTT}_{\theta,1}\)</span> represents the change over time at quantile <span class="math inline">\(\theta\)</span> for the treated group (<span class="math inline">\(D=1\)</span>).</li>
+<li>
+<span class="math inline">\(\Delta^{QTU}_{\theta',0}\)</span> represents the change over time at quantile <span class="math inline">\(\theta'\)</span> for the control group (<span class="math inline">\(D=0\)</span>).
+<ul>
+<li>The quantile <span class="math inline">\(\theta'\)</span> is selected to match the value of <span class="math inline">\(y\)</span> at quantile <span class="math inline">\(\theta\)</span> in the treated group’s period 0 distribution.</li>
+</ul>
+</li>
+</ul>
+<hr>
+<p><strong>Marketing Example</strong></p>
+<p>Suppose a company introduces a new online marketing strategy aimed at improving customer retention rates. The goal is to analyze how this strategy affects retention at different quantiles of the customer base.</p>
+<ol style="list-style-type: decimal">
+<li>
+<strong>QTT Interpretation:</strong>
+<ul>
+<li>Instead of looking at the average effect of the marketing strategy, CiC allows the company to examine how retention rates change across different quantiles (e.g., low vs. high-retention customers).</li>
+</ul>
+</li>
+<li>
+<strong>Rank Preservation Assumption:</strong>
+<ul>
+<li>This approach assumes that customers’ rank in the retention distribution remains unchanged, regardless of whether they received the new strategy.</li>
+</ul>
+</li>
+<li>
+<strong>Counterfactual Distribution:</strong>
+<ul>
+<li>CiC helps estimate how retention rates would have evolved without the new strategy, by comparing trends in the control group.</li>
+</ul>
+</li>
+</ol>
+<hr>
+</div>
+<div id="application-4" class="section level2" number="31.3">
+<h2>
+<span class="header-section-number">31.3</span> Application<a class="anchor" aria-label="anchor" href="#application-4"><i class="fas fa-link"></i></a>
+</h2>
+<div id="ecic-package" class="section level3" number="31.3.1">
+<h3>
+<span class="header-section-number">31.3.1</span> ECIC package<a class="anchor" aria-label="anchor" href="#ecic-package"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb824"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://frederickluser.github.io/ecic/">ecic</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">dat</span>, package <span class="op">=</span> <span class="st">"ecic"</span><span class="op">)</span></span>
+<span><span class="va">mod</span> <span class="op">=</span></span>
+<span>  <span class="fu"><a href="https://frederickluser.github.io/ecic/reference/ecic.html">ecic</a></span><span class="op">(</span></span>
+<span>    yvar  <span class="op">=</span> <span class="va">lemp</span>,         <span class="co"># dependent variable</span></span>
+<span>    gvar  <span class="op">=</span> <span class="va">first.treat</span>,  <span class="co"># group indicator</span></span>
+<span>    tvar  <span class="op">=</span> <span class="va">year</span>,         <span class="co"># time indicator</span></span>
+<span>    ivar  <span class="op">=</span> <span class="va">countyreal</span>,   <span class="co"># unit ID</span></span>
+<span>    dat   <span class="op">=</span> <span class="va">dat</span>,          <span class="co"># dataset</span></span>
+<span>    boot  <span class="op">=</span> <span class="st">"weighted"</span>,   <span class="co"># bootstrap proceduce ("no", "normal", or "weighted")</span></span>
+<span>    nReps <span class="op">=</span> <span class="fl">3</span>            <span class="co"># number of bootstrap runs</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="va">mod_res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">mod</span><span class="op">)</span></span>
+<span><span class="va">mod_res</span></span>
+<span><span class="co">#&gt;   perc    coefs          se</span></span>
+<span><span class="co">#&gt; 1  0.1 1.206140 0.021351711</span></span>
+<span><span class="co">#&gt; 2  0.2 1.316599 0.009225026</span></span>
+<span><span class="co">#&gt; 3  0.3 1.449963 0.001859468</span></span>
+<span><span class="co">#&gt; 4  0.4 1.583415 0.015296156</span></span>
+<span><span class="co">#&gt; 5  0.5 1.739932 0.011240454</span></span>
+<span><span class="co">#&gt; 6  0.6 1.915558 0.013060348</span></span>
+<span><span class="co">#&gt; 7  0.7 2.114966 0.014482208</span></span>
+<span><span class="co">#&gt; 8  0.8 2.363105 0.005173865</span></span>
+<span><span class="co">#&gt; 9  0.9 2.779202 0.020831180</span></span>
+<span></span>
+<span><span class="fu"><a href="https://frederickluser.github.io/ecic/reference/ecic_plot.html">ecic_plot</a></span><span class="op">(</span><span class="va">mod_res</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="31-changes-in-changes_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;"></div>
+</div>
+<div id="qte-package" class="section level3" number="31.3.2">
+<h3>
+<span class="header-section-number">31.3.2</span> QTE package<a class="anchor" aria-label="anchor" href="#qte-package"><i class="fas fa-link"></i></a>
+</h3>
+<div class="sourceCode" id="cb825"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">qte</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">lalonde</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># randomized setting</span></span>
+<span><span class="co"># qte is identical to qtet</span></span>
+<span><span class="va">jt.rand</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/qte/man/ci.qtet.html">ci.qtet</a></span><span class="op">(</span></span>
+<span>        <span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span>,</span>
+<span>        data <span class="op">=</span> <span class="va">lalonde.exp</span>,</span>
+<span>        iters <span class="op">=</span> <span class="fl">10</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">jt.rand</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Quantile Treatment Effect:</span></span>
+<span><span class="co">#&gt;      </span></span>
+<span><span class="co">#&gt; tau  QTE Std. Error</span></span>
+<span><span class="co">#&gt; 0.05    0.00    0.00</span></span>
+<span><span class="co">#&gt; 0.1     0.00    0.00</span></span>
+<span><span class="co">#&gt; 0.15    0.00    0.00</span></span>
+<span><span class="co">#&gt; 0.2     0.00   54.98</span></span>
+<span><span class="co">#&gt; 0.25  338.65  315.32</span></span>
+<span><span class="co">#&gt; 0.3   846.40  343.90</span></span>
+<span><span class="co">#&gt; 0.35 1451.51  407.52</span></span>
+<span><span class="co">#&gt; 0.4  1177.72  931.31</span></span>
+<span><span class="co">#&gt; 0.45 1396.08  915.89</span></span>
+<span><span class="co">#&gt; 0.5  1123.55  932.60</span></span>
+<span><span class="co">#&gt; 0.55 1181.54 1057.68</span></span>
+<span><span class="co">#&gt; 0.6  1466.51  921.44</span></span>
+<span><span class="co">#&gt; 0.65 2115.04  897.98</span></span>
+<span><span class="co">#&gt; 0.7  1795.12 1144.02</span></span>
+<span><span class="co">#&gt; 0.75 2347.49  968.60</span></span>
+<span><span class="co">#&gt; 0.8  2278.12 1300.98</span></span>
+<span><span class="co">#&gt; 0.85 2178.28 1015.37</span></span>
+<span><span class="co">#&gt; 0.9  3239.60 1237.80</span></span>
+<span><span class="co">#&gt; 0.95 3979.62 1981.71</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Average Treatment Effect:    1794.34</span></span>
+<span><span class="co">#&gt;   Std. Error:        494.60</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/qte/man/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.rand</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="31-changes-in-changes_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb826"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># conditional independence assumption (CIA)</span></span>
+<span><span class="va">jt.cia</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/qte/man/ci.qte.html">ci.qte</a></span><span class="op">(</span></span>
+<span>    <span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span>,</span>
+<span>    xformla <span class="op">=</span>  <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">education</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">lalonde.psid</span>,</span>
+<span>    iters <span class="op">=</span> <span class="fl">10</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">jt.cia</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Quantile Treatment Effect:</span></span>
+<span><span class="co">#&gt;      </span></span>
+<span><span class="co">#&gt; tau  QTE Std. Error</span></span>
+<span><span class="co">#&gt; 0.05      0.00        0.00</span></span>
+<span><span class="co">#&gt; 0.1       0.00       93.46</span></span>
+<span><span class="co">#&gt; 0.15  -4433.18      873.10</span></span>
+<span><span class="co">#&gt; 0.2   -8219.15      674.41</span></span>
+<span><span class="co">#&gt; 0.25 -10435.74      705.14</span></span>
+<span><span class="co">#&gt; 0.3  -12232.03      941.87</span></span>
+<span><span class="co">#&gt; 0.35 -12428.30     1526.74</span></span>
+<span><span class="co">#&gt; 0.4  -14195.24     1559.63</span></span>
+<span><span class="co">#&gt; 0.45 -14248.66     2023.16</span></span>
+<span><span class="co">#&gt; 0.5  -15538.67     2022.95</span></span>
+<span><span class="co">#&gt; 0.55 -16550.71     2113.32</span></span>
+<span><span class="co">#&gt; 0.6  -15595.02     2139.70</span></span>
+<span><span class="co">#&gt; 0.65 -15827.52     2592.23</span></span>
+<span><span class="co">#&gt; 0.7  -16090.32     2098.17</span></span>
+<span><span class="co">#&gt; 0.75 -16091.49     3532.28</span></span>
+<span><span class="co">#&gt; 0.8  -17864.76     2869.36</span></span>
+<span><span class="co">#&gt; 0.85 -16756.71     3387.75</span></span>
+<span><span class="co">#&gt; 0.9  -17914.99     4148.42</span></span>
+<span><span class="co">#&gt; 0.95 -23646.22     4915.39</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Average Treatment Effect:    -13435.40</span></span>
+<span><span class="co">#&gt;   Std. Error:        1236.42</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/qte/man/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.cia</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="31-changes-in-changes_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb827"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">jt.ciat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/qte/man/ci.qtet.html">ci.qtet</a></span><span class="op">(</span></span>
+<span>    <span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span>,</span>
+<span>    xformla <span class="op">=</span>  <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="va">education</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">lalonde.psid</span>,</span>
+<span>    iters <span class="op">=</span> <span class="fl">10</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">jt.ciat</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Quantile Treatment Effect:</span></span>
+<span><span class="co">#&gt;      </span></span>
+<span><span class="co">#&gt; tau  QTE Std. Error</span></span>
+<span><span class="co">#&gt; 0.05      0.00        0.00</span></span>
+<span><span class="co">#&gt; 0.1   -1018.15      332.02</span></span>
+<span><span class="co">#&gt; 0.15  -3251.00      644.21</span></span>
+<span><span class="co">#&gt; 0.2   -7240.86      577.41</span></span>
+<span><span class="co">#&gt; 0.25  -8379.94      458.94</span></span>
+<span><span class="co">#&gt; 0.3   -8758.82      766.03</span></span>
+<span><span class="co">#&gt; 0.35  -9897.44      975.71</span></span>
+<span><span class="co">#&gt; 0.4  -10239.57     1088.09</span></span>
+<span><span class="co">#&gt; 0.45 -10751.39     1158.45</span></span>
+<span><span class="co">#&gt; 0.5  -10570.14      993.22</span></span>
+<span><span class="co">#&gt; 0.55 -11348.96     1206.56</span></span>
+<span><span class="co">#&gt; 0.6  -11550.84     1062.11</span></span>
+<span><span class="co">#&gt; 0.65 -12203.56     1003.77</span></span>
+<span><span class="co">#&gt; 0.7  -13277.72     1094.05</span></span>
+<span><span class="co">#&gt; 0.75 -14011.74     1218.20</span></span>
+<span><span class="co">#&gt; 0.8  -14373.95      847.38</span></span>
+<span><span class="co">#&gt; 0.85 -14499.18      994.40</span></span>
+<span><span class="co">#&gt; 0.9  -15008.63     2167.18</span></span>
+<span><span class="co">#&gt; 0.95 -15954.05     2290.36</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Average Treatment Effect:    4266.19</span></span>
+<span><span class="co">#&gt;   Std. Error:        561.74</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/qte/man/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.ciat</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="31-changes-in-changes_files/figure-html/unnamed-chunk-3-2.png" width="90%" style="display: block; margin: auto;"></div>
+<ul>
+<li><p><strong>QTE</strong> compares quantiles of the entire population under treatment and control, whereas <strong>QTET</strong> compares quantiles within the treated group itself. This difference means that QTE reflects the overall population-level impact, while QTET focuses on the treated group’s specific impact.</p></li>
+<li><p><strong>CIA</strong> enables identification of both QTE and QTET, but since QTET is conditional on treatment, it might reflect different effects than QTE, especially when the treatment effect is heterogeneous across different subpopulations. For example, the QTE could show a more generalized effect across all individuals, while the QTET may reveal stronger or weaker effects for the subgroup that actually received the treatment.</p></li>
+</ul>
+<p>These are DID-like models</p>
+<ol style="list-style-type: decimal">
+<li>With the distributional difference-in-differences assumption <span class="citation">Callaway and Li (<a href="references.html#ref-callaway2019quantile">2019</a>)</span>, which is an extension of the parallel trends assumption, we can estimate QTET.</li>
+</ol>
+<div class="sourceCode" id="cb828"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># distributional DiD assumption</span></span>
+<span><span class="va">jt.pqtet</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/qte/man/panel.qtet.html">panel.qtet</a></span><span class="op">(</span></span>
+<span>    <span class="va">re</span> <span class="op">~</span> <span class="va">treat</span>,</span>
+<span>    t <span class="op">=</span> <span class="fl">1978</span>,</span>
+<span>    tmin1 <span class="op">=</span> <span class="fl">1975</span>,</span>
+<span>    tmin2 <span class="op">=</span> <span class="fl">1974</span>,</span>
+<span>    tname <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>    idname <span class="op">=</span> <span class="st">"id"</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">lalonde.psid.panel</span>,</span>
+<span>    iters <span class="op">=</span> <span class="fl">10</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">jt.pqtet</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Quantile Treatment Effect:</span></span>
+<span><span class="co">#&gt;      </span></span>
+<span><span class="co">#&gt; tau  QTE Std. Error</span></span>
+<span><span class="co">#&gt; 0.05  4779.21     1184.61</span></span>
+<span><span class="co">#&gt; 0.1   1987.35      598.93</span></span>
+<span><span class="co">#&gt; 0.15   842.95      560.29</span></span>
+<span><span class="co">#&gt; 0.2  -7366.04     4263.74</span></span>
+<span><span class="co">#&gt; 0.25 -8449.96     2815.47</span></span>
+<span><span class="co">#&gt; 0.3  -7992.15     1342.17</span></span>
+<span><span class="co">#&gt; 0.35 -7429.21     1301.18</span></span>
+<span><span class="co">#&gt; 0.4  -6597.37     1460.57</span></span>
+<span><span class="co">#&gt; 0.45 -5519.45     1549.01</span></span>
+<span><span class="co">#&gt; 0.5  -4702.88     1470.66</span></span>
+<span><span class="co">#&gt; 0.55 -3904.52     1406.34</span></span>
+<span><span class="co">#&gt; 0.6  -2741.80     1491.45</span></span>
+<span><span class="co">#&gt; 0.65 -1507.31     1415.52</span></span>
+<span><span class="co">#&gt; 0.7   -771.12     1396.28</span></span>
+<span><span class="co">#&gt; 0.75   707.81      848.70</span></span>
+<span><span class="co">#&gt; 0.8    580.00      735.53</span></span>
+<span><span class="co">#&gt; 0.85   821.75      898.37</span></span>
+<span><span class="co">#&gt; 0.9   -250.77     1456.65</span></span>
+<span><span class="co">#&gt; 0.95 -1874.54     2541.05</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Average Treatment Effect:    2326.51</span></span>
+<span><span class="co">#&gt;   Std. Error:        673.74</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/qte/man/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.pqtet</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="31-changes-in-changes_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;"></div>
+<ol start="2" style="list-style-type: decimal">
+<li>With 2 periods, the distributional DiD assumption can partially identify QTET with bounds <span class="citation">(<a href="references.html#ref-fan2012partial">Fan and Yu 2012</a>)</span>
+</li>
+</ol>
+<div class="sourceCode" id="cb829"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res_bound</span> <span class="op">&lt;-</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/pkg/qte/man/bounds.html">bounds</a></span><span class="op">(</span></span>
+<span>        <span class="va">re</span> <span class="op">~</span> <span class="va">treat</span>,</span>
+<span>        t <span class="op">=</span> <span class="fl">1978</span>,</span>
+<span>        tmin1 <span class="op">=</span> <span class="fl">1975</span>,</span>
+<span>        data <span class="op">=</span> <span class="va">lalonde.psid.panel</span>,</span>
+<span>        idname <span class="op">=</span> <span class="st">"id"</span>,</span>
+<span>        tname <span class="op">=</span> <span class="st">"year"</span></span>
+<span>    <span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">res_bound</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Bounds on the Quantile Treatment Effect on the Treated:</span></span>
+<span><span class="co">#&gt;      </span></span>
+<span><span class="co">#&gt; tau  Lower Bound Upper Bound</span></span>
+<span><span class="co">#&gt;         tau  Lower Bound Upper Bound</span></span>
+<span><span class="co">#&gt;        0.05       -51.72           0</span></span>
+<span><span class="co">#&gt;         0.1     -1220.84           0</span></span>
+<span><span class="co">#&gt;        0.15      -1881.9           0</span></span>
+<span><span class="co">#&gt;         0.2     -2601.32           0</span></span>
+<span><span class="co">#&gt;        0.25     -2916.38      485.23</span></span>
+<span><span class="co">#&gt;         0.3     -3080.16      943.05</span></span>
+<span><span class="co">#&gt;        0.35     -3327.89     1505.98</span></span>
+<span><span class="co">#&gt;         0.4     -3240.59     2133.59</span></span>
+<span><span class="co">#&gt;        0.45     -2982.51     2616.84</span></span>
+<span><span class="co">#&gt;         0.5     -3108.01      2566.2</span></span>
+<span><span class="co">#&gt;        0.55     -3342.66     2672.82</span></span>
+<span><span class="co">#&gt;         0.6      -3491.4      3065.7</span></span>
+<span><span class="co">#&gt;        0.65     -3739.74     3349.74</span></span>
+<span><span class="co">#&gt;         0.7     -4647.82     2992.03</span></span>
+<span><span class="co">#&gt;        0.75     -4826.78     3219.32</span></span>
+<span><span class="co">#&gt;         0.8      -5801.7     2702.33</span></span>
+<span><span class="co">#&gt;        0.85     -6588.61     2499.41</span></span>
+<span><span class="co">#&gt;         0.9     -8953.84     2020.84</span></span>
+<span><span class="co">#&gt;        0.95    -14283.61      397.04</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Average Treatment Effect on the Treated: 2326.51</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">res_bound</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="31-changes-in-changes_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;"></div>
+<ol start="3" style="list-style-type: decimal">
+<li>With a restrictive assumption that difference in the quantiles of the distribution of potential outcomes for the treated and untreated groups be the same for all values of quantiles, we can have the mean DiD model</li>
+</ol>
+<div class="sourceCode" id="cb830"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">jt.mdid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/qte/man/ddid2.html">ddid2</a></span><span class="op">(</span></span>
+<span>    <span class="va">re</span> <span class="op">~</span> <span class="va">treat</span>,</span>
+<span>    t <span class="op">=</span> <span class="fl">1978</span>,</span>
+<span>    tmin1 <span class="op">=</span> <span class="fl">1975</span>,</span>
+<span>    tname <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>    idname <span class="op">=</span> <span class="st">"id"</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">lalonde.psid.panel</span>,</span>
+<span>    iters <span class="op">=</span> <span class="fl">10</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">jt.mdid</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Quantile Treatment Effect:</span></span>
+<span><span class="co">#&gt;      </span></span>
+<span><span class="co">#&gt; tau  QTE Std. Error</span></span>
+<span><span class="co">#&gt; 0.05 10616.61      974.77</span></span>
+<span><span class="co">#&gt; 0.1   5019.83      461.51</span></span>
+<span><span class="co">#&gt; 0.15  2388.12      282.26</span></span>
+<span><span class="co">#&gt; 0.2   1033.23      213.28</span></span>
+<span><span class="co">#&gt; 0.25   485.23      265.96</span></span>
+<span><span class="co">#&gt; 0.3    943.05      389.74</span></span>
+<span><span class="co">#&gt; 0.35   931.45      581.36</span></span>
+<span><span class="co">#&gt; 0.4    945.35      780.38</span></span>
+<span><span class="co">#&gt; 0.45  1205.88      847.06</span></span>
+<span><span class="co">#&gt; 0.5   1362.11      529.48</span></span>
+<span><span class="co">#&gt; 0.55  1279.05      616.07</span></span>
+<span><span class="co">#&gt; 0.6   1618.13      972.18</span></span>
+<span><span class="co">#&gt; 0.65  1834.30      693.97</span></span>
+<span><span class="co">#&gt; 0.7   1326.06      838.10</span></span>
+<span><span class="co">#&gt; 0.75  1586.35      785.50</span></span>
+<span><span class="co">#&gt; 0.8   1256.09      941.77</span></span>
+<span><span class="co">#&gt; 0.85   723.10     1362.37</span></span>
+<span><span class="co">#&gt; 0.9    251.36     1657.92</span></span>
+<span><span class="co">#&gt; 0.95 -1509.92     1667.01</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Average Treatment Effect:    2326.51</span></span>
+<span><span class="co">#&gt;   Std. Error:        718.25</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">jt.mdid</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="31-changes-in-changes_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;"></div>
+<p>On top of the distributional DiD assumption, we need <strong>copula stability</strong> assumption (i.e., If, before the treatment, the units with the highest outcomes were improving the most, we would expect to see them improving the most in the current period too.) for these models:</p>
+<div class="inline-table"><table style="width:100%;" class="table table-sm">
+<colgroup>
+<col width="33%">
+<col width="31%">
+<col width="34%">
+</colgroup>
+<thead><tr class="header">
+<th><strong>Aspect</strong></th>
+<th><strong>QDiD</strong></th>
+<th><strong>CiC</strong></th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>Treatment of Time and Group</strong></td>
+<td>Symmetric</td>
+<td>Asymmetric</td>
+</tr>
+<tr class="even">
+<td><strong>QTET Computation</strong></td>
+<td>Not inherently scale-invariant</td>
+<td>Outcome Variable Scale-Invariant</td>
+</tr>
+</tbody>
+</table></div>
+<div class="sourceCode" id="cb831"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">jt.qdid</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/qte/man/QDiD.html">QDiD</a></span><span class="op">(</span></span>
+<span>    <span class="va">re</span> <span class="op">~</span> <span class="va">treat</span>,</span>
+<span>    t <span class="op">=</span> <span class="fl">1978</span>,</span>
+<span>    tmin1 <span class="op">=</span> <span class="fl">1975</span>,</span>
+<span>    tname <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>    idname <span class="op">=</span> <span class="st">"id"</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">lalonde.psid.panel</span>,</span>
+<span>    iters <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>    panel <span class="op">=</span> <span class="cn">T</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">jt.cic</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/qte/man/CiC.html">CiC</a></span><span class="op">(</span></span>
+<span>    <span class="va">re</span> <span class="op">~</span> <span class="va">treat</span>,</span>
+<span>    t <span class="op">=</span> <span class="fl">1978</span>,</span>
+<span>    tmin1 <span class="op">=</span> <span class="fl">1975</span>,</span>
+<span>    tname <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>    idname <span class="op">=</span> <span class="st">"id"</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">lalonde.psid.panel</span>,</span>
+<span>    iters <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>    panel <span class="op">=</span> <span class="cn">T</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+
+</div>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="sec-difference-in-differences.html"><span class="header-section-number">30</span> Difference-in-Differences</a></div>
+<div class="next"><a href="sec-synthetic-control.html"><span class="header-section-number">32</span> Synthetic Control</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sec-changes-in-changes"><span class="header-section-number">31</span> Changes-in-Changes</a></li>
+<li><a class="nav-link" href="#key-concepts"><span class="header-section-number">31.1</span> Key Concepts</a></li>
+<li><a class="nav-link" href="#estimating-qtt-with-cic"><span class="header-section-number">31.2</span> Estimating QTT with CiC</a></li>
+<li>
+<a class="nav-link" href="#application-4"><span class="header-section-number">31.3</span> Application</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#ecic-package"><span class="header-section-number">31.3.1</span> ECIC package</a></li>
+<li><a class="nav-link" href="#qte-package"><span class="header-section-number">31.3.2</span> QTE package</a></li>
+</ul>
+</li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/mikenguyen13/data_analysis/blob/main/31-changes-in-changes.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/mikenguyen13/data_analysis/edit/main/31-changes-in-changes.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-03-12.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

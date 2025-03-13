@@ -323,10 +323,6 @@ summary(model)
 #> Call:
 #> glm(formula = y ~ x, family = binomial)
 #> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -2.6226  -0.9385   0.5287   0.8333   1.4656  
-#> 
 #> Coefficients:
 #>             Estimate Std. Error z value Pr(>|z|)    
 #> (Intercept)   0.7223     0.2391   3.020 0.002524 ** 
@@ -482,10 +478,6 @@ summary(model)
 #> Call:
 #> glm(formula = y ~ x, family = binomial)
 #> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -2.6226  -0.9385   0.5287   0.8333   1.4656  
-#> 
 #> Coefficients:
 #>             Estimate Std. Error z value Pr(>|z|)    
 #> (Intercept)   0.7223     0.2391   3.020 0.002524 ** 
@@ -613,10 +605,6 @@ summary(Logistic_Model) # Model summary
 #> 
 #> Call:
 #> glm(formula = Y ~ X, family = binomial, data = BinData)
-#> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -2.2317   0.4153   0.5574   0.7922   1.1469  
 #> 
 #> Coefficients:
 #>             Estimate Std. Error z value Pr(>|z|)    
@@ -899,10 +887,6 @@ summary(probit_model)
 #> glm(formula = y ~ x1 + x2, family = binomial(link = "probit"), 
 #>     data = data)
 #> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -2.3740  -0.8663  -0.2318   0.8684   2.6666  
-#> 
 #> Coefficients:
 #>             Estimate Std. Error z value Pr(>|z|)    
 #> (Intercept) -0.09781    0.04499  -2.174   0.0297 *  
@@ -927,10 +911,6 @@ summary(logit_model)
 #> Call:
 #> glm(formula = y ~ x1 + x2, family = binomial(link = "logit"), 
 #>     data = data)
-#> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -2.3048  -0.8571  -0.2805   0.8632   2.5335  
 #> 
 #> Coefficients:
 #>             Estimate Std. Error z value Pr(>|z|)    
@@ -1064,10 +1044,6 @@ summary(model)
 #> glm(formula = cbind(ncases, ncontrols) ~ alcgp, family = binomial, 
 #>     data = esoph)
 #> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -4.0759  -1.2037  -0.0183   1.0928   3.7336  
-#> 
 #> Coefficients:
 #>             Estimate Std. Error z value Pr(>|z|)    
 #> (Intercept)  -2.5885     0.1925 -13.444  < 2e-16 ***
@@ -1125,10 +1101,6 @@ summary(better_model)
 #> Call:
 #> glm(formula = cbind(ncases, ncontrols) ~ agegp + alcgp, family = binomial, 
 #>     data = esoph)
-#> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -2.2395  -0.7186  -0.2324   0.7930   3.3538  
 #> 
 #> Coefficients:
 #>             Estimate Std. Error z value Pr(>|z|)    
@@ -1204,10 +1176,6 @@ summary(Prob_better_model)
 #> Call:
 #> glm(formula = cbind(ncases, ncontrols) ~ agegp + alcgp, family = binomial(link = probit), 
 #>     data = esoph)
-#> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -2.1325  -0.6877  -0.1661   0.7654   3.3258  
 #> 
 #> Coefficients:
 #>             Estimate Std. Error z value Pr(>|z|)    
@@ -1336,10 +1304,6 @@ summary(Poisson_Mod)
 #> Call:
 #> glm(formula = Num_Article ~ ., family = poisson, data = bioChemists)
 #> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -3.5672  -1.5398  -0.3660   0.5722   5.4467  
-#> 
 #> Coefficients:
 #>                  Estimate Std. Error z value Pr(>|z|)    
 #> (Intercept)      0.304617   0.102981   2.958   0.0031 ** 
@@ -1447,10 +1411,6 @@ summary(Poisson_Mod, dispersion = phi_hat)
 #> Call:
 #> glm(formula = Num_Article ~ ., family = poisson, data = bioChemists)
 #> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -3.5672  -1.5398  -0.3660   0.5722   5.4467  
-#> 
 #> Coefficients:
 #>                 Estimate Std. Error z value Pr(>|z|)    
 #> (Intercept)      0.30462    0.13809   2.206  0.02739 *  
@@ -1481,10 +1441,6 @@ summary(quasiPoisson_Mod)
 #> 
 #> Call:
 #> glm(formula = Num_Article ~ ., family = quasipoisson, data = bioChemists)
-#> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -3.5672  -1.5398  -0.3660   0.5722   5.4467  
 #> 
 #> Coefficients:
 #>                  Estimate Std. Error t value Pr(>|t|)    
@@ -1532,10 +1488,6 @@ summary(NegBin_Mod)
 #> Call:
 #> glm.nb(formula = Num_Article ~ ., data = bioChemists, init.theta = 2.264387695, 
 #>     link = log)
-#> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -2.1678  -1.3617  -0.2806   0.4476   3.4524  
 #> 
 #> Coefficients:
 #>                  Estimate Std. Error z value Pr(>|z|)    
@@ -1613,10 +1565,6 @@ summary(NegBinom_Mod)
 #> Call:
 #> MASS::glm.nb(formula = Num_Article ~ ., data = bioChemists, init.theta = 2.264387695, 
 #>     link = log)
-#> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -2.1678  -1.3617  -0.2806   0.4476   3.4524  
 #> 
 #> Coefficients:
 #>                  Estimate Std. Error z value Pr(>|z|)    
@@ -1927,10 +1875,6 @@ summary(quasiPoisson_Mod)
 #> Call:
 #> glm(formula = Num_Article ~ ., family = quasipoisson, data = bioChemists)
 #> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -3.5672  -1.5398  -0.3660   0.5722   5.4467  
-#> 
 #> Coefficients:
 #>                  Estimate Std. Error t value Pr(>|t|)    
 #> (Intercept)      0.304617   0.139273   2.187 0.028983 *  
@@ -2025,10 +1969,6 @@ summary(quasiPoisson_Mod)
 #> Call:
 #> glm(formula = Num_Article ~ ., family = quasipoisson, data = bioChemists)
 #> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -3.5672  -1.5398  -0.3660   0.5722   5.4467  
-#> 
 #> Coefficients:
 #>                  Estimate Std. Error t value Pr(>|t|)    
 #> (Intercept)      0.304617   0.139273   2.187 0.028983 *  
@@ -2052,10 +1992,6 @@ summary(NegBinom_Mod)
 #> Call:
 #> glm.nb(formula = Num_Article ~ ., data = bioChemists, init.theta = 2.264387695, 
 #>     link = log)
-#> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -2.1678  -1.3617  -0.2806   0.4476   3.4524  
 #> 
 #> Coefficients:
 #>                  Estimate Std. Error z value Pr(>|z|)    
@@ -2493,10 +2429,6 @@ summary(m1)
 #> glm(formula = y ~ block + block * x + block * I(x^2), family = Gamma(link = "inverse"), 
 #>     data = gammaDat)
 #> 
-#> Deviance Residuals: 
-#>      Min        1Q    Median        3Q       Max  
-#> -1.21708  -0.44148   0.02479   0.17999   0.80745  
-#> 
 #> Coefficients:
 #>                  Estimate Std. Error t value Pr(>|t|)    
 #> (Intercept)     1.115e-01  2.870e-02   3.886 0.000854 ***
@@ -2523,7 +2455,7 @@ summary(m1)
 **4. Predictions and Visualization**
 
 
-``` r
+```r
 # Generate new data for prediction
 newdf <-
     expand.grid(x = seq(0, 120, length = 50), 
@@ -3977,10 +3909,6 @@ if (phi_hat > 1) {
 #> 
 #> Call:
 #> glm.nb(formula = y ~ x, init.theta = 50.70707605, link = log)
-#> 
-#> Deviance Residuals: 
-#>     Min       1Q   Median       3Q      Max  
-#> -2.1034  -0.9978  -0.1393   0.6047   1.8553  
 #> 
 #> Coefficients:
 #>             Estimate Std. Error z value Pr(>|z|)    
