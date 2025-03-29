@@ -167,7 +167,7 @@ In cases where **data cannot be exported** due to security, privacy, or propriet
 1.  Import libraries
 
 
-```r
+``` r
 library(copula)
 library(moments)
 library(PerformanceAnalytics)  # For correlation plots
@@ -198,7 +198,7 @@ We'll create four continuous variables, `X1` through `X4`, each influenced by:
 This gives us a total of $3 \times 50 \times 20=3000$ rows in the "original" dataset.
 
 
-```r
+``` r
 set.seed(123)  # For reproducibility
 
 G <- 3    # Number of groups
@@ -268,7 +268,7 @@ Let's do some **descriptive statistics** and look at the **correlations** among 
 Because we have repeated measures (time series) nested in units and groups, these correlations are "pooled" across all rows. This is a simplification, but it will let us demonstrate how to do a copula-based synthetic approach.
 
 
-```r
+``` r
 # Descriptive stats (overall)
 summary(df_original[, c("X1", "X2", "X3", "X4")])
 #>        X1                X2                 X3                X4         
@@ -320,7 +320,7 @@ For simplicity, we'll:
 2.  Use a **multivariate copula** only for `X1–X4`.
 
 
-```r
+``` r
 # Extract the numeric columns we want to transform
 original_data <- df_original[, c("X1","X2","X3","X4")]
 
@@ -339,7 +339,7 @@ apply(u_data, 2, range)
 We'll fit a **Gaussian copula** (you could try **t-copula** or **vine copulas** for heavier tails or more complex dependencies). We use maximum likelihood estimation:
 
 
-```r
+``` r
 # Define an unstructured Gaussian copula
 gaussCop <- normalCopula(dim = ncol(u_data), dispstr = "un")
 
@@ -347,7 +347,7 @@ gaussCop <- normalCopula(dim = ncol(u_data), dispstr = "un")
 fit_gauss <- fitCopula(gaussCop, data = u_data, method = "ml")
 
 summary(fit_gauss)
-#> Call: fitCopula(gaussCop, data = u_data, ... = pairlist(method = "ml"))
+#> Call: fitCopula(gaussCop, data = u_data, method = "ml")
 #> Fit based on "maximum likelihood" and 3000 4-dimensional observations.
 #> Normal copula, dim. d = 4 
 #>       Estimate Std. Error
@@ -373,7 +373,7 @@ Check the estimated correlation matrix within the copula. This should reflect th
     2.  **Invert** them via the original empirical distributions (quantiles).
 
 
-```r
+``` r
 n_synth <- nrow(df_original)  # same size as original
 
 # Sample from the copula
@@ -414,7 +414,7 @@ A simple approach is to:
 Below, we do a simplistic approach: for each row, pick a random row from the original data to copy `group`, `unit`, and `time`. This preserves the real distribution of group/time pairs and the frequency of each unit. (But it does **not** preserve the original time-series ordering or autoregressive structure!)
 
 
-```r
+``` r
 indices <-
     sample(seq_len(nrow(df_original)),
            size = n_synth,
@@ -441,7 +441,7 @@ If you **need** to preserve the exact time-ordering or real "per-unit" correlati
 -   Compare Descriptive Statistics
 
 
-```r
+``` r
 # Original
 orig_means  <- colMeans(df_original[, c("X1", "X2", "X3", "X4")])
 orig_sds    <- apply(df_original[, c("X1", "X2", "X3", "X4")], 2, sd)
@@ -508,7 +508,7 @@ cat(
 -   Compare Correlation Matrices
 
 
-```r
+``` r
 cat("Original correlation:\n")
 #> Original correlation:
 round(cor(df_original[, c("X1", "X2", "X3", "X4")]), 3)
@@ -532,7 +532,7 @@ round(cor(df_synth[, c("X1_synth", "X2_synth", "X3_synth", "X4_synth")]), 3)
 -   Visual Comparison of Distributions
 
 
-```r
+``` r
 par(mfrow = c(2, 2))
 vars <- c("X1", "X2", "X3", "X4")
 for (i in seq_along(vars)) {
@@ -564,7 +564,7 @@ for (i in seq_along(vars)) {
 -   Correlation Plot for Synthetic Data
 
 
-```r
+``` r
 chart.Correlation(df_synth[, c("X1_synth", "X2_synth", "X3_synth", "X4_synth")],
                   histogram = TRUE, pch = 19)
 ```
@@ -605,7 +605,7 @@ We'll simulate a hierarchical time-series with:
 -   Nonlinear relationships between `X1`, `X2`, `X3`, `X4`.
 
 
-```r
+``` r
 # Step 1: Generate "df_original" (what the partner owns internally)
 set.seed(123)  # For reproducibility
 
@@ -689,7 +689,7 @@ Within the secure environment, you would run commands to get:
 Below, we'll do that *directly* in code---**but in reality**, you would just write these numbers down or save them in a doc, not export the raw data.
 
 
-```r
+``` r
 # Step 2: Summaries from "df_original" (pretend we can't take the actual df out)
 library(dplyr)
 
@@ -754,7 +754,7 @@ time_points
 Pretend these are the **only** data you're allowed to copy into your local machine:
 
 
-```r
+``` r
 # (Pretend these are typed or copy-pasted from the secure environment)
 
 # Means and SDs:
@@ -770,6 +770,7 @@ R <- cor_matrix
 G_outside   <- N_groups  # 3
 N_outside   <- unit_example  # 50
 Tt_outside  <- time_points   # 20
+
 ```
 
 4.  **Reconstruct Covariance Matrix and Distribution (Outside)**
@@ -787,7 +788,7 @@ Outside, you now have:
 Build the covariance $\Sigma$ from the correlation matrix and SDs:
 
 
-```r
+``` r
 # Step 3: Covariance matrix = diag(SDs) %*% R %*% diag(SDs)
 Sigma <- diag(sds) %*% R %*% diag(sds)
 Sigma
@@ -805,7 +806,7 @@ We'll replicate the same **hierarchical shape**: 3 groups, 50 units, 20 time poi
 > In practice, you might want to add back random intercepts for groups or time trends if your manual stats include that. However, if all you have are overall means, SDs, and a correlation matrix, the simplest approach is to assume a single global distribution for X1--X4.
 
 
-```r
+``` r
 library(MASS)
 
 set.seed(999)  # Synthetic data seed (different from original)
@@ -848,7 +849,7 @@ At this point, `df_synth` is a dataset that has the same shape (3 groups × 50 u
 Alternatively, if the goal is to capture even skewness and kurtosis, it's a bit more complex.
 
 
-```r
+``` r
 # Load required libraries
 library(MASS)   # For multivariate normal correlation structure
 library(sn)     # For skewed normal distribution
@@ -940,7 +941,7 @@ head(long_df)
 In reality, you might do this comparison inside the partner's environment to confirm your synthetic data is a close match. For demonstration, we'll just compare directly here.
 
 
-```r
+``` r
 # Step 5: Evaluate
 
 # A) Check Means & SDs
@@ -985,7 +986,7 @@ print(round(synth_cor, 3))
 You should see that the synthetic dataset's means, SDs, and correlation matrix are **very close** to the manually collected values from `df_original`.
 
 
-```r
+``` r
 # Histograms or density plots
 par(mfrow = c(2,2))
 hist(df_synth$X1, main="X1 Synthetic", col="lightblue", breaks=30)
@@ -996,7 +997,7 @@ hist(df_synth$X4, main="X4 Synthetic", col="lightblue", breaks=30)
 
 <img src="43-rep_synthetic_data_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Pairwise correlation scatterplots
 library(PerformanceAnalytics)
@@ -1012,7 +1013,7 @@ chart.Correlation(df_synth[, c("X1","X2","X3","X4")],
 The easiest way to create synthetic data is to use the `synthpop` package.
 
 
-```r
+``` r
 library(synthpop)
 library(tidyverse)
 library(performance)
@@ -1058,29 +1059,17 @@ syn_df <- syn(iris, seed = 3)
 
 # check for replciated uniques
 replicated.uniques(syn_df, iris)
-#> $replications
-#>   [1]  TRUE FALSE FALSE FALSE FALSE  TRUE FALSE FALSE FALSE  TRUE FALSE FALSE
-#>  [13]  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE FALSE FALSE
-#>  [25] FALSE FALSE FALSE FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
-#>  [37] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
-#>  [49] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
-#>  [61] FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE FALSE FALSE FALSE  TRUE
-#>  [73] FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE
-#>  [85] FALSE FALSE FALSE FALSE FALSE FALSE  TRUE FALSE FALSE FALSE FALSE  TRUE
-#>  [97] FALSE FALSE FALSE FALSE FALSE FALSE  TRUE FALSE FALSE  TRUE FALSE FALSE
-#> [109] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
-#> [121] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE  TRUE FALSE FALSE FALSE
-#> [133] FALSE  TRUE FALSE FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
-#> [145] FALSE FALSE FALSE FALSE FALSE FALSE
+#> Uniques and replicated uniques for  1  synthesised data set(s)
 #> 
-#> $no.uniques
-#> [1] 148
+#>  from keys:  Sepal.Length Sepal.Width Petal.Length Petal.Width Species 
 #> 
-#> $no.replications
-#> [1] 17
-#> 
-#> $per.replications
-#> [1] 11.33333
+#>                               Number from total     %
+#> Original                         148        150 98.67
+#> Synthetic                        137        150 91.33
+#> Synthetic uniques in original     17        150 11.33
+#> Replicated uniques                17        150 11.33
+#> To view possible exclusions from synthesised data set(s) check components
+#>   synU.rm (suggested for low-fidelity synthesis) or  repU.rm (for high fidelity)
 
 
 # remove replicated uniques and adds a FAKE_DATA label 
@@ -1090,18 +1079,18 @@ replicated.uniques(syn_df, iris)
 syn_df_sdc <- sdc(syn_df, iris, 
                   label = "FAKE_DATA",
                   rm.replicated.uniques = T)
-#> no. of replicated uniques: 17
+#> no. of replicated uniques removed: 17
 ```
 
 
-```r
+``` r
 iris |> 
     GGally::ggpairs()
 ```
 
 <img src="43-rep_synthetic_data_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 syn_df$syn |> 
     GGally::ggpairs()
@@ -1110,7 +1099,7 @@ syn_df$syn |>
 <img src="43-rep_synthetic_data_files/figure-html/unnamed-chunk-21-2.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 lm_ori <- lm(Sepal.Length ~ Sepal.Width + Petal.Length , data = iris)
 # performance::check_model(lm_ori)
 summary(lm_ori)
@@ -1167,14 +1156,14 @@ Open data can be assessed for its utility in two distinct ways:
 For General utility
 
 
-```r
+``` r
 compare(syn_df, iris)
 ```
 
 Specific utility
 
 
-```r
+``` r
 # just like regular lm, but for synthetic data
 lm_syn <- lm.synds(Sepal.Length ~ Sepal.Width + Petal.Length , data = syn_df)
 compare(lm_syn, iris)
@@ -1202,7 +1191,7 @@ compare(lm_syn, iris)
 
 <img src="43-rep_synthetic_data_files/figure-html/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # summary(lm_syn)
 ```

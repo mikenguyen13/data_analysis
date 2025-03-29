@@ -288,7 +288,7 @@ $$
 $$
 
 
-```r
+``` r
 # Load necessary packages
 library(ggplot2)
 library(margins)
@@ -450,7 +450,7 @@ To estimate $\frac{\partial p(\mathbf{X},\beta)}{\partial X}$ numerically:
     $$
 
 
-```r
+``` r
 # Load necessary packages
 library(margins)
 library(sandwich)
@@ -521,7 +521,7 @@ To improve accuracy, we use the **two-sided derivative**:
     $$
 
 
-```r
+``` r
 # Compute predicted probabilities at X - h
 X_new_minus <- X - h
 data_new_minus <- data.frame(X = X_new_minus)
@@ -602,7 +602,7 @@ $$
 **Step 1: Estimate the Model**
 
 
-```r
+``` r
 # Load necessary packages
 library(margins)
 library(sandwich)
@@ -621,7 +621,7 @@ logit_model <- glm(Y ~ X, family = binomial(link = "logit"))
 **Step 2: Compute Marginal Effects at the Mean**
 
 
-```r
+``` r
 # Compute mean of X
 X_mean <- mean(X)
 
@@ -728,7 +728,7 @@ MAE is particularly relevant when we want a single, interpretable effect for a r
 **Step 1: Estimate the Model**
 
 
-```r
+``` r
 # Load necessary packages
 library(margins)
 
@@ -748,7 +748,7 @@ logit_model <- glm(Y ~ X1 + X2, family = binomial(link = "logit"))
 **Step 2: Compute MAE**
 
 
-```r
+``` r
 # Compute the average of independent variables
 X_mean <- data.frame(X1 = mean(X1), X2 = mean(X2))
 
@@ -837,7 +837,7 @@ The **`marginaleffects`** package is the successor to `margins` and `emtrends`, 
 **Computing Predictions and Marginal Effects**
 
 
-```r
+``` r
 library(marginaleffects)
 library(tidyverse)
 data(mtcars)
@@ -857,7 +857,6 @@ predictions(mod) %>% head()
 #>      17.0      0.712 23.9   <0.001 416.2  15.6   18.4
 #>      19.7      0.875 22.5   <0.001 368.8  17.9   21.4
 #> 
-#> Columns: rowid, estimate, std.error, statistic, p.value, s.value, conf.low, conf.high, mpg, hp, wt, am 
 #> Type:  response
 
 # Create a reference grid for prediction
@@ -876,35 +875,37 @@ marginaleffects::plot_predictions(mod,
 Computing Marginal Effects
 
 
-```r
+``` r
 # Compute Average Marginal Effects (AME)
 mfx <- marginaleffects::slopes(mod, variables = c("hp", "wt"))
 head(mfx)
 #> 
-#>  Term Estimate Std. Error     z Pr(>|z|)   S   2.5 %    97.5 %
-#>    hp  -0.0369     0.0185 -1.99  0.04605 4.4 -0.0732 -0.000648
-#>    hp  -0.0287     0.0156 -1.84  0.06626 3.9 -0.0593  0.001926
-#>    hp  -0.0466     0.0226 -2.06  0.03926 4.7 -0.0909 -0.002293
-#>    hp  -0.0423     0.0133 -3.18  0.00146 9.4 -0.0683 -0.016232
-#>    hp  -0.0390     0.0134 -2.91  0.00363 8.1 -0.0653 -0.012730
-#>    hp  -0.0387     0.0135 -2.87  0.00409 7.9 -0.0652 -0.012289
+#>  Estimate Std. Error     z Pr(>|z|)   S   2.5 %    97.5 %
+#>   -0.0369     0.0185 -2.00  0.04598 4.4 -0.0732 -0.000659
+#>   -0.0287     0.0156 -1.84  0.06630 3.9 -0.0593  0.001931
+#>   -0.0466     0.0226 -2.06  0.03945 4.7 -0.0909 -0.002249
+#>   -0.0423     0.0133 -3.18  0.00146 9.4 -0.0683 -0.016232
+#>   -0.0390     0.0134 -2.91  0.00363 8.1 -0.0653 -0.012730
+#>   -0.0387     0.0135 -2.87  0.00409 7.9 -0.0652 -0.012289
 #> 
-#> Columns: rowid, term, estimate, std.error, statistic, p.value, s.value, conf.low, conf.high, predicted_lo, predicted_hi, predicted, mpg, hp, wt, am 
-#> Type:  response
+#> Term: hp
+#> Type:  response 
+#> Comparison: dY/dX
 
 # Compute Group-Average Marginal Effects
 head(marginaleffects::slopes(mod, by = "hp", variables = "am"))
 #> 
-#>  Term          Contrast hp Estimate Std. Error      z Pr(>|z|)   S 2.5 % 97.5 %
-#>    am mean(1) - mean(0) 52     3.98       5.20  0.764    0.445 1.2 -6.22  14.18
-#>    am mean(1) - mean(0) 62    -2.77       2.51 -1.107    0.268 1.9 -7.68   2.14
-#>    am mean(1) - mean(0) 65     3.00       4.13  0.725    0.468 1.1 -5.10  11.10
-#>    am mean(1) - mean(0) 66     2.03       3.48  0.582    0.561 0.8 -4.80   8.85
-#>    am mean(1) - mean(0) 91     1.86       2.76  0.674    0.500 1.0 -3.54   7.26
-#>    am mean(1) - mean(0) 93     1.20       2.35  0.511    0.609 0.7 -3.40   5.80
+#>  hp Estimate Std. Error      z Pr(>|z|)   S 2.5 % 97.5 %
+#>  52     3.98       5.20  0.764    0.445 1.2 -6.22  14.18
+#>  62    -2.77       2.51 -1.107    0.268 1.9 -7.68   2.14
+#>  65     3.00       4.13  0.725    0.468 1.1 -5.10  11.10
+#>  66     2.03       3.48  0.582    0.561 0.8 -4.80   8.85
+#>  91     1.86       2.76  0.674    0.500 1.0 -3.54   7.26
+#>  93     1.20       2.35  0.511    0.609 0.7 -3.40   5.80
 #> 
-#> Columns: term, contrast, hp, estimate, std.error, statistic, p.value, s.value, conf.low, conf.high, predicted_lo, predicted_hi, predicted 
-#> Type:  response
+#> Term: am
+#> Type:  response 
+#> Comparison: 1 - 0
 
 # Marginal Effects at Representative Values (MER)
 marginaleffects::slopes(mod, newdata = datagrid(am = 0, wt = c(2, 4)))
@@ -917,7 +918,6 @@ marginaleffects::slopes(mod, newdata = datagrid(am = 0, wt = c(2, 4)))
 #>    wt    dY/dX  0  2  -2.6762     1.4199 -1.885   0.0595 4.1 -5.4591  0.10676
 #>    wt    dY/dX  0  4  -2.6762     1.4206 -1.884   0.0596 4.1 -5.4605  0.10816
 #> 
-#> Columns: rowid, term, contrast, estimate, std.error, statistic, p.value, s.value, conf.low, conf.high, am, wt, predicted_lo, predicted_hi, predicted, hp, mpg 
 #> Type:  response
 
 # Marginal Effects at the Mean (MEM)
@@ -928,31 +928,31 @@ marginaleffects::slopes(mod, newdata = "mean")
 #>    hp    dY/dX  -0.0422     0.0133 -3.181  0.00147 9.4 -0.0683 -0.0162
 #>    wt    dY/dX  -2.6762     1.4193 -1.886  0.05935 4.1 -5.4579  0.1055
 #> 
-#> Columns: rowid, term, contrast, estimate, std.error, statistic, p.value, s.value, conf.low, conf.high, predicted_lo, predicted_hi, predicted, hp, wt, am, mpg 
 #> Type:  response
 ```
 
 Counterfactual Comparisons
 
 
-```r
+``` r
 # Counterfactual comparison: Effect of changing 'am' from 0 to 1
 comparisons(mod, variables = list(am = 0:1))
 #> 
-#>  Term Contrast Estimate Std. Error      z Pr(>|z|)   S 2.5 % 97.5 %
-#>    am    1 - 0    0.325       1.68  0.193    0.847 0.2 -2.97   3.62
-#>    am    1 - 0   -0.544       1.57 -0.347    0.729 0.5 -3.62   2.53
-#>    am    1 - 0    1.201       2.35  0.511    0.609 0.7 -3.40   5.80
-#>    am    1 - 0   -1.703       1.87 -0.912    0.362 1.5 -5.36   1.96
-#>    am    1 - 0   -0.615       1.68 -0.366    0.715 0.5 -3.91   2.68
-#> --- 22 rows omitted. See ?avg_comparisons and ?print.marginaleffects --- 
-#>    am    1 - 0    4.081       3.94  1.037    0.300 1.7 -3.63  11.79
-#>    am    1 - 0    2.106       2.29  0.920    0.358 1.5 -2.38   6.59
-#>    am    1 - 0    0.895       1.64  0.544    0.586 0.8 -2.33   4.12
-#>    am    1 - 0    4.027       3.24  1.243    0.214 2.2 -2.32  10.38
-#>    am    1 - 0   -0.237       1.59 -0.149    0.881 0.2 -3.35   2.87
-#> Columns: rowid, term, contrast, estimate, std.error, statistic, p.value, s.value, conf.low, conf.high, predicted_lo, predicted_hi, predicted, mpg, hp, wt, am 
-#> Type:  response
+#>  Estimate Std. Error      z Pr(>|z|)   S 2.5 % 97.5 %
+#>     0.325       1.68  0.193    0.847 0.2 -2.97   3.62
+#>    -0.544       1.57 -0.347    0.729 0.5 -3.62   2.53
+#>     1.201       2.35  0.511    0.609 0.7 -3.40   5.80
+#>    -1.703       1.87 -0.912    0.362 1.5 -5.36   1.96
+#>    -0.615       1.68 -0.366    0.715 0.5 -3.91   2.68
+#> --- 22 rows omitted. See ?print.marginaleffects --- 
+#>     4.081       3.94  1.037    0.300 1.7 -3.63  11.79
+#>     2.106       2.29  0.920    0.358 1.5 -2.38   6.59
+#>     0.895       1.64  0.544    0.586 0.8 -2.33   4.12
+#>     4.027       3.24  1.243    0.214 2.2 -2.32  10.38
+#>    -0.237       1.59 -0.149    0.881 0.2 -3.35   2.87
+#> Term: am
+#> Type:  response 
+#> Comparison: 1 - 0
 ```
 
 ### `margins` Package
@@ -976,7 +976,7 @@ The `margins` package is a popular choice, designed to replicate Stata's `margin
 -   Slower than `marginaleffects`, especially with large datasets.
 
 
-```r
+``` r
 library(margins)
 
 # Fit a linear model with interactions
@@ -1005,7 +1005,7 @@ plot(margins(mod))
 Marginal Effects at Representative Values
 
 
-```r
+``` r
 # Compute marginal effects when 'hp' = 150
 margins(mod, at = list(hp = 150)) %>% summary()
 #>  factor       hp     AME     SE       z      p   lower   upper
@@ -1035,7 +1035,7 @@ The **`mfx`** package is specialized for GLMs, computing marginal effects for pr
 **Example: Poisson Regression**
 
 
-```r
+``` r
 library(mfx)
 data("mtcars")
 

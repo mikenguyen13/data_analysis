@@ -264,7 +264,7 @@ $$
 -   This happens when the **mediator acts as a suppressor variable**, leading to counteracting paths.
 
 
-```r
+``` r
 library(bda)
 library(mediation)
 data("boundsdata")
@@ -308,7 +308,7 @@ bda::mediation.test(boundsdata$med, boundsdata$ttt, boundsdata$out) |>
 -   Bootstrapping can be applied **without raw data**, using only $a, b, var(a), var(b), cov(a,b)$ from multiple studies.
 
 
-```r
+``` r
 # Meta-Analytic Bootstrapping for Mediation
 library(causalverse)
 
@@ -327,7 +327,7 @@ result$plot
 When an **instrumental variable (IV)** is available, the causal effect can be estimated more reliably. Below are visual representations.
 
 
-```r
+``` r
 library(DiagrammeR)
 
 # Simple Treatment-Outcome Model
@@ -364,7 +364,7 @@ digraph {
 Mediation Analysis with Fixed Effects Models
 
 
-```r
+``` r
 library(mediation)
 library(fixest)
 
@@ -388,7 +388,7 @@ coef(out2)['ttt'] * coef(out3)['med'] / coef(out1)['ttt'] * 100
 Bootstrapped Mediation Analysis
 
 
-```r
+``` r
 library(boot)
 set.seed(1)
 
@@ -455,8 +455,9 @@ colMeans(boot_med$t)
 Alternatively, use the `robmed` package for **robust** mediation analysis:
 
 
-```r
+``` r
 library(robmed)
+
 ```
 
 ### Power Analysis for Mediation
@@ -464,7 +465,7 @@ library(robmed)
 To assess whether the study has sufficient **power** to detect mediation effects, use:
 
 
-```r
+``` r
 library(pwr2ppl)
 
 # Power analysis for the indirect effect (ab path)
@@ -477,6 +478,7 @@ medjs(
     mvars = 1,   # Number of mediators
     rep   = 1000 # Replications (use 10,000 for accuracy)
 )
+
 ```
 
 For **interactive** power analysis, see [Kenny's Mediation Power App](https://davidakenny.shinyapps.io/MedPower/).
@@ -501,7 +503,7 @@ Several R packages handle multiple mediation models:
     -   [Vignette](https://cran.r-project.org/web/packages/manymome/vignettes/med_lm.html)
 
 
-```r
+``` r
 library(manymome)
 ```
 
@@ -512,7 +514,7 @@ library(manymome)
     -   [Vignette](https://cran.r-project.org/web/packages/mma/vignettes/MMAvignette.html)
 
 
-```r
+``` r
 library(mma)
 ```
 
@@ -523,7 +525,7 @@ A popular method for estimating multiple mediation models is **Structural Equati
 To test multiple mediation, we first **simulate data** where two mediators ($M_1$ and $M_2$) contribute to the outcome ($Y$).
 
 
-```r
+``` r
 # Load required packages
 library(MASS)  # For mvrnorm (generating correlated errors)
 library(lavaan)
@@ -556,7 +558,7 @@ We analyze the indirect effects through both mediators ($M_1$ and $M_2$).
 1.  Correctly Modeling Correlated Mediators
 
 
-```r
+``` r
 # Generate data with correlated mediators
 Data_corr <- generate_data(n = 10000, corr = TRUE, correlation_value = 0.7)
 
@@ -589,7 +591,7 @@ parameterEstimates(fit_corr)[, c("lhs", "rhs", "est", "se", "pvalue")]
 2\. Incorrectly Ignoring Correlation Between Mediators
 
 
-```r
+``` r
 # Define SEM model without modeling mediator correlation
 model_uncorr <- '
   Y ~ b1 * M1 + b2 * M2 + c * X
@@ -619,7 +621,7 @@ parameterEstimates(fit_uncorr)[, c("lhs", "rhs", "est", "se", "pvalue")]
 To check whether modeling correlation matters, we compare AIC and RMSEA.
 
 
-```r
+``` r
 # Extract model fit statistics
 fit_measures <- function(fit) {
   fitMeasures(fit, c("aic", "bic", "rmsea", "chisq"))
@@ -649,7 +651,7 @@ After fitting the model, we assess:
 3.  **Total Effect**: Sum of direct and indirect effects.
 
 
-```r
+``` r
 # Extract indirect and direct effects
 parameterEstimates(fit_corr, standardized = TRUE)
 #>    lhs op rhs label    est    se       z pvalue ci.lower ci.upper std.lv
@@ -679,7 +681,7 @@ parameterEstimates(fit_corr, standardized = TRUE)
 If $c'$ is reduced (but still significant), we have partial mediation. If $c' \approx 0$, it suggests full mediation.
 
 
-```r
+``` r
 # Load required packages
 library(MASS)  # for mvrnorm
 library(lavaan)
@@ -827,7 +829,7 @@ Traditional mediation models assume that regression-based estimates provide vali
 We begin with a classic **three-step mediation approach**.
 
 
-```r
+``` r
 # Load data
 myData <- read.csv("data/mediationData.csv")
 
@@ -1018,7 +1020,7 @@ $$
 We now fit a **causal mediation model** using `mediation`.
 
 
-```r
+``` r
 library(mediation)
 set.seed(2014)
 data("framing", package = "mediation")
@@ -1074,7 +1076,7 @@ summary(med.out)
 **Alternative: Nonparametric Bootstrap**
 
 
-```r
+``` r
 med.out <-
     mediate(
         med.fit,
@@ -1114,7 +1116,7 @@ summary(med.out)
 If we suspect **moderation**, we include an **interaction term**.
 
 
-```r
+``` r
 med.fit <-
     lm(emo ~ treat + age + educ + gender + income, data = framing)
 
@@ -1173,7 +1175,7 @@ test.TMint(med.out, conf.level = .95)  # Tests for interaction effect
 Since **sequential ignorability** is untestable, we examine how unmeasured confounding affects ACME estimates.
 
 
-```r
+``` r
 # Load required package
 library(mediation)
 
@@ -1243,7 +1245,7 @@ plot(sens_out)
 Alternatively, using $R^2$ interpretation, we need to specify the direction of confounder that affects the mediator and outcome variables in `plot` using `sign.prod = "positive"` (i.e., same direction) or `sign.prod = "negative"` (i.e., opposite direction).
 
 
-```r
+``` r
 plot(sens.out, sens.par = "R2", r.type = "total", sign.prod = "positive")
 ```
 

@@ -1243,7 +1243,7 @@ To ensure a desired joint confidence level of $(1-\alpha)$ for both $\beta_0$ an
     -   This conservatism reduces statistical power.
 
 
-```r
+``` r
 # Load necessary libraries
 library(ggplot2)
 library(MASS)
@@ -1613,7 +1613,7 @@ The value of $\lambda$ can be selected using one of the following methods:
     -   Use computational optimization techniques to minimize the residual sum of squares (RSS) or another goodness-of-fit criterion.
 
 
-```r
+``` r
 # Install and load the necessary library
 if (!require("MASS")) install.packages("MASS")
 library(MASS)
@@ -1631,7 +1631,7 @@ boxcox_result <- boxcox(model, lambda = seq(-2, 2, 0.1), plotit = TRUE)
 
 <img src="05-linear-regression_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Find the optimal lambda
 optimal_lambda <- boxcox_result$x[which.max(boxcox_result$y)]
@@ -1766,7 +1766,7 @@ $$
 This transformation is widely used in Poisson regression to stabilize the variance of the response variable.
 
 
-```r
+``` r
 # Simulate Poisson data
 set.seed(123)
 n <- 500
@@ -3078,7 +3078,7 @@ Why It Matters
 2.  **Computational Simplicity:** It allows the decomposition of a large regression problem into smaller, computationally simpler pieces.
 
 
-```r
+``` r
 # Simulate data
 set.seed(123)
 n <- 100
@@ -3924,7 +3924,7 @@ Ensuring the normality of errors is a critical assumption in many regression mod
 Plots are invaluable for visual inspection of normality. One common approach is the Q-Q plot, which compares the quantiles of the residuals against those of a standard normal distribution:
 
 
-```r
+``` r
 # Example Q-Q plot
 set.seed(123) # For reproducibility
 y <- 1:100
@@ -4083,7 +4083,7 @@ $$
 where $\alpha$ is the desired significance level, $n$ is the sample size, and $p$ is the number of parameters in the model. Observations exceeding this threshold are flagged as potential outliers.
 
 
-```r
+``` r
 # Example R Code for Demonstrating Residual Diagnostics
 set.seed(123) # For reproducibility
 
@@ -4222,7 +4222,7 @@ Where:
 This provides a practical threshold for detecting influential observations in different dataset sizes.
 
 
-```r
+``` r
 # Load necessary package
 library(car)
 
@@ -4302,7 +4302,7 @@ Threshold for Influence
     -   Alternatively, cases where $D_i$ exceeds the 50th percentile of the $F$-distribution may also be considered influential.
 
 
-```r
+``` r
 # Load necessary package
 library(car)
 
@@ -4379,7 +4379,7 @@ The thresholds for identifying influential observations based on DFBETAS are:
 Where $n$ is the total number of observations.
 
 
-```r
+``` r
 # Load necessary package
 library(car)
 
@@ -4517,7 +4517,7 @@ Where:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary packages
 library(car)
 
@@ -4617,7 +4617,7 @@ $$
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary package
 library(car)
 
@@ -4677,7 +4677,7 @@ Procedure
 4.  Reject the null hypothesis of constant error variance if: $$ |t_L| > t_{1-\alpha/2; n-2} $$
 
 
-```r
+``` r
 # Load necessary package
 library(car)
 
@@ -4723,7 +4723,7 @@ Procedure
     -   Reject $H_0$ (homogeneous variance) if: $$ X^2_{BP} > \chi^2_{1-\alpha;1} $$
 
 
-```r
+``` r
 # Load necessary package
 library(lmtest)
 
@@ -4756,7 +4756,7 @@ A residual plot can help detect dependence in the residuals:
 3.  Independence is suggested if residuals are randomly scattered without clear patterns.
 
 
-```r
+``` r
 # Fit a regression model
 model <- lm(mpg ~ hp + wt, data = mtcars)
 
@@ -4789,7 +4789,7 @@ The **Durbin-Watson test** specifically detects autocorrelation in residuals, es
     -   $d > 2$: Negative autocorrelation.
 
 
-```r
+``` r
 # Load necessary package
 library(lmtest)
 
@@ -4821,7 +4821,7 @@ For time-series data, autocorrelation often occurs due to the temporal structure
     -   Identifies the correlation of residuals after removing the influence of intermediate lags.
 
 
-```r
+``` r
 # Load necessary package
 library(forecast)
 
@@ -4834,7 +4834,7 @@ acf(time_series_res, main = "ACF of Residuals")
 
 <img src="05-linear-regression_files/figure-html/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 pacf(time_series_res, main = "PACF of Residuals")
 ```
 
@@ -4874,7 +4874,7 @@ Spatial Weight Matrix ($W$): $W$ defines the spatial relationship between observ
 -   $I \approx 0$: Random spatial distribution.
 
 
-```r
+``` r
 # Load necessary packages
 library(sf)
 library(spdep)
@@ -4949,7 +4949,7 @@ Where:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Compute Geary's C for residuals
 geary_test <- geary.test(model$residuals, weights)
 
@@ -6649,7 +6649,7 @@ Alternatively, one can use **information criteria**---like the Akaike Informatio
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required libraries
 library(glmnet)
 
@@ -6675,7 +6675,7 @@ title("Coefficient Paths for Ridge Regression")
 -   Ridge regression tends to shrink coefficients but does not force them to be exactly zero.
 
 
-```r
+``` r
 # Lasso regression (alpha = 1)
 lasso_fit <- glmnet(X, y, alpha = 1)
 plot(lasso_fit, xvar = "lambda", label = TRUE)
@@ -6687,7 +6687,7 @@ title("Coefficient Paths for Lasso Regression")
 Here, as $\lambda$ grows, several coefficient paths **hit zero exactly**, illustrating the variable selection property of lasso.
 
 
-```r
+``` r
 # Elastic net (alpha = 0.5)
 elastic_net_fit <- glmnet(X, y, alpha = 0.5)
 plot(elastic_net_fit, xvar = "lambda", label = TRUE)
@@ -6703,14 +6703,14 @@ title("Coefficient Paths for Elastic Net (alpha = 0.5)")
 We can further refine our choice of $\lambda$ by performing cross-validation on the lasso model:
 
 
-```r
+``` r
 cv_lasso <- cv.glmnet(X, y, alpha = 1)
 plot(cv_lasso)
 ```
 
 <img src="05-linear-regression_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 best_lambda <- cv_lasso$lambda.min
 best_lambda
 #> [1] 0.1449586
@@ -7485,7 +7485,7 @@ Notes on Choosing an Estimator
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary libraries
 library(MASS)       # For robust regression functions like rlm
 library(robustbase) # For LTS regression and MM-estimators
@@ -7515,7 +7515,7 @@ ggplot(data, aes(x, y)) +
 
 <img src="05-linear-regression_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Ordinary Least Squares
 ols_model <- lm(y ~ x, data = data)
@@ -7543,7 +7543,7 @@ summary(ols_model)
 OLS coefficients are highly influenced by the presence of outliers. For example, the slope (x coefficient) and intercept are shifted to fit the outliers, resulting in a poor fit to the majority of the data.
 
 
-```r
+``` r
 # $M$-Estimators
 m_model <- rlm(y ~ x, data = data, psi = psi.huber)
 summary(m_model)
@@ -7564,7 +7564,7 @@ summary(m_model)
 The $M$-estimator reduces the influence of large residuals using Huber's psi function. This results in coefficients that are less affected by outliers compared to OLS.
 
 
-```r
+``` r
 # Least Trimmed Squares (LTS)
 lts_model <- ltsReg(y ~ x, data = data)
 lts_coefficients <- coef(lts_model)
@@ -7573,7 +7573,7 @@ lts_coefficients <- coef(lts_model)
 LTS minimizes the smallest squared residuals, ignoring extreme residuals. This results in a more robust fit, particularly in the presence of both vertical outliers and leverage points.
 
 
-```r
+``` r
 # $MM$-Estimators
 mm_model <- lmrob(y ~ x, data = data, setting = "KS2014")
 summary(mm_model)
@@ -7630,7 +7630,7 @@ $MM$-estimators combine robust scale estimation (from $S$-estimators) with effic
 This achieves both high robustness and high efficiency under normal conditions.
 
 
-```r
+``` r
 # Visualizing results
 data <- data %>%
     mutate(
@@ -7687,7 +7687,7 @@ Visualization shows the differences in regression fits:
     - $MM$-estimators balance robustness and efficiency, producing coefficients close to the LTS but with improved efficiency under normality.
 
 
-```r
+``` r
 # Comparing Coefficients
 comparison <- data.frame(
     Method = c("OLS", "$M$-Estimator", "LTS", "$MM$-Estimator"),
@@ -7826,7 +7826,7 @@ Practical Considerations
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required library
 library(pls)
 
@@ -7865,7 +7865,7 @@ validationplot(pls_fit, val.type = "MSEP")
 
 <img src="05-linear-regression_files/figure-html/unnamed-chunk-29-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Step 5: Extract Coefficients for Predictors
 pls_coefficients <- coef(pls_fit)
@@ -7909,7 +7909,7 @@ ggplot(actual_vs_predicted, aes(x = Actual, y = Predicted)) +
 
 <img src="05-linear-regression_files/figure-html/unnamed-chunk-29-2.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Step 7: Extract and Interpret Variable Importance (Loadings)
 loadings_matrix <- as.matrix(unclass(loadings(pls_fit)))

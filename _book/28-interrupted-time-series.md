@@ -19,7 +19,7 @@ ITS and RDiT are particularly useful when:
 3.  There is no suitable cross-sectional control group, making difference-in-differences infeasible.
 
 |        Feature         |                     **RDiT**                      |                          **ITS**                          |
-|:---------------:|:------------------------:|:----------------------------:|
+|:----------------------:|:-------------------------------------------------:|:---------------------------------------------------------:|
 |       **Focus**        |          Local neighborhood around $T^*$          |       Entire time series (long pre- and post-data)        |
 |    **Effect Model**    |          Assumes a sharp, immediate jump          |   Can capture abrupt or gradual changes (level & slope)   |
 |       **Method**       |     Local polynomial regression around cutoff     |        Segmented regression using the full series         |
@@ -64,7 +64,7 @@ where:
 Because RDiT focuses on a local window around $T^*$, it is best when you expect an immediate jump at the cutoff and when observations near the cutoff are likely to be similar except for the treatment.
 
 |                      |                                       |                                              |
-|-----------------|-------------------------|------------------------------|
+|----------------------|---------------------------------------|----------------------------------------------|
 | **Criterion**        | **Standard RD**                       | **RDiT**                                     |
 | Running Variable     | Cross-sectional (e.g., test score)    | Time (e.g., policy implementation date)      |
 | Treatment Assignment | Based on threshold in $X$             | Based on threshold in $T^*$                  |
@@ -181,7 +181,7 @@ Event study methods, particularly modern implementations, have improved signific
 2.  **Higher-order time controls**: RDiT allows for more flexible modeling of time trends, including the use of higher-order polynomials, which may provide better approximations of underlying time dynamics.
 
 | **Method**                           | **Key Feature**                   | **Strengths**                           | **Weaknesses**                                                      |
-|----------------|----------------|----------------|-------------------------|
+|--------------------------------------|-----------------------------------|-----------------------------------------|---------------------------------------------------------------------|
 | **Difference-in-Differences**        | Uses a control group              | Accounts for time-invariant confounders | Requires parallel trends assumption                                 |
 | **Event Study**                      | Models multiple time periods      | Estimates dynamic treatment effects     | Requires staggered interventions                                    |
 | **Pre/Post Comparison**              | Simple before/after design        | No control needed                       | Cannot separate treatment from time trends                          |
@@ -377,7 +377,7 @@ This study demonstrates how RDiT can capture immediate consumer reactions, disti
 9)  Plotting the local data and fitted RDiT regression lines
 
 
-```r
+``` r
 # -------------------------------------------------------------------
 # 0. Libraries
 # -------------------------------------------------------------------
@@ -490,7 +490,7 @@ abline(v=T_star, lwd=2)
 
 <img src="28-interrupted-time-series_files/figure-html/rdit-comprehensive-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # -------------------------------------------------------------------
 # Print Summaries & Brief Interpretation
@@ -627,7 +627,7 @@ Possible Threats to the Validity of ITS Analysis [@baicker2019testing]
 After an intervention, an outcome can exhibit four distinct patterns:
 
 | **Scenario**                           | **Description**                                                      |
-|---------------------------|---------------------------------------------|
+|----------------------------------------|----------------------------------------------------------------------|
 | **No effect**                          | The intervention does not change the level or trend of the outcome.  |
 | **Immediate effect**                   | A sharp, immediate change in the outcome following the intervention. |
 | **Sustained effect**                   | A gradual, long-term shift in the outcome that smooths over time.    |
@@ -692,7 +692,7 @@ While ITS is a valuable tool, it has some key limitations:
 6)  Brief interpretation of coefficients
 
 
-```r
+``` r
 # -------------------------------------------------------------------
 # 0. Libraries
 # -------------------------------------------------------------------
@@ -723,7 +723,7 @@ We'll simulate a time-series with:
 -   Random noise
 
 
-```r
+``` r
 Y <- 1.0 * t_vals +                      # baseline slope
   ifelse(t_vals >= T_star, 10, 0) +   # immediate jump of +10 at T_star
   
@@ -747,7 +747,7 @@ df_its <- data.frame(time = t_vals, Y = Y)
 -   $P_t$: time since intervention (0 before $T^*$, increments after)
 
 
-```r
+``` r
 df_its$D  <- ifelse(df_its$time >= T_star, 1, 0)
 df_its$T  <- df_its$time
 df_its$P  <- ifelse(df_its$time >= T_star, df_its$time - T_star, 0)
@@ -783,7 +783,7 @@ Model: $$Y_t = \beta_0 + \beta_1*T + \beta_2*D + \beta_3*(T*D) + \beta_4*P + \ep
 -   $\epsilon_t$: error term
 
 
-```r
+``` r
 # -------------------------------------------------------------------
 # 4. Fit the Comprehensive ITS Model (Segmented Regression)
 # -------------------------------------------------------------------
@@ -809,7 +809,7 @@ lines(df_its$T, df_its$pred_its, lwd=2)
 
 <img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # -------------------------------------------------------------------
 # 7. Summaries & Brief Interpretation
@@ -837,7 +837,7 @@ print(res_its)
 We compare the observed data with a **counterfactual** (assuming no treatment) [@lee2014graphical].
 
 
-```r
+``` r
 plot(
     df_its$T,
     df_its$Y,
@@ -1012,7 +1012,7 @@ Using one of these strategies ensures you capture both the **global** pre/post-i
 4)  Visualizing the results.
 
 
-```r
+``` r
 # -------------------------------------------------------------------
 # 0. Libraries
 # -------------------------------------------------------------------
@@ -1043,7 +1043,7 @@ We'll create a dataset that has:
 -   PLUS a local polynomial "extra jump" around $T^* \pm h=5$ (RDiT style)
 
 
-```r
+``` r
 h <- 5  # bandwidth for local discontinuity
 within_h <- abs(t_vals - T_star) < h  # indicator for local region
 ```
@@ -1063,7 +1063,7 @@ Create outcome $Y$ with:
 -   random noise
 
 
-```r
+``` r
 
 Y <- 0.3 * t_vals +                                        # baseline slope
      ifelse(t_vals >= T_star, 5, 0) +                      # immediate jump
@@ -1166,7 +1166,7 @@ lines(df$t,
 
 <img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 print(res_hybrid)
 #> 

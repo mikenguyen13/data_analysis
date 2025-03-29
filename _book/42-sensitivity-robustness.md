@@ -17,7 +17,7 @@ Resources
 Installation
 
 
-```r
+``` r
 devtools::install_github('https://github.com/AakaashRao/starbility')
 library(starbility)
 ```
@@ -25,7 +25,7 @@ library(starbility)
 Example by the [package's author](https://htmlpreview.github.io/?https://github.com/AakaashRao/starbility/blob/master/doc/starbility.html)
 
 
-```r
+``` r
 library(tidyverse)
 library(starbility)
 library(lfe)
@@ -40,7 +40,7 @@ diamonds = diamonds[indices, ]
 Plot different combinations of controls
 
 
-```r
+``` r
 
 # If you want to make the diamond dimensions as base control
 base_controls = c(
@@ -128,7 +128,7 @@ plots
 
 <img src="42-sensitivity-robustness_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # add comments
 # replacement_coef_panel = plots[[1]] +
@@ -161,7 +161,7 @@ Note:
 [More Advanced Stuff](https://htmlpreview.github.io/?https://github.com/AakaashRao/starbility/blob/master/doc/starbility-advanced.html)
 
 
-```r
+``` r
 # Step 1: Control Grid
 
 diamonds$high_clarity = diamonds$clarity %in% c('VS1','VVS2','VVS1','IF')
@@ -213,7 +213,7 @@ knitr::kable(grid1 %>% head(10))
 
 
 
-```r
+``` r
 
 # Step 2: Get model expression
 
@@ -247,7 +247,7 @@ knitr::kable(grid2 %>% head(10))
 
 
 
-```r
+``` r
 
 # Step 3: Estimate models
 grid3 = stability_plot(grid = grid2,
@@ -279,7 +279,7 @@ knitr::kable(grid3 %>% head(10))
 
 
 
-```r
+``` r
 
 # Step 4: Get dataframe to draw
 dfs = stability_plot(grid = grid3,
@@ -314,7 +314,7 @@ knitr::kable(coef_grid %>% head(10))
 
 
 
-```r
+``` r
 
 # Step 5: plot the sensitivity graph 
 panels = stability_plot(data = diamonds, 
@@ -339,7 +339,7 @@ stability_plot(data = diamonds,
 In step 2, we can modify to use other function (e.g., `glm`)
 
 
-```r
+``` r
 diamonds$above_med_price = as.numeric(diamonds$price > median(diamonds$price))
 
 base_controls = c('Diamond dimensions' = 'x + y + z')
@@ -388,7 +388,7 @@ knitr::kable(grid1 %>% head(10))
 
 
 
-```r
+``` r
 
 # customer function for the logit model
 starb_logit = function(spec, data, rhs, ...) {
@@ -419,7 +419,7 @@ stability_plot(grid = grid1,
 For getting other specification (e.g., different CI)
 
 
-```r
+``` r
 library(margins)
 starb_logit_enhanced = function(spec, data, rhs, ...) {
   # Unpack ...
@@ -465,7 +465,7 @@ stability_plot(grid = grid1,
 To get your customized plot
 
 
-```r
+``` r
 dfs = stability_plot(grid = grid1,
                data = diamonds, 
                lhs = lhs_var, 
@@ -533,7 +533,7 @@ cowplot::plot_grid(coef_plot, control_plot, rel_heights=c(1,0.5),
 To get different model specification (e.g., probit vs. logit)
 
 
-```r
+``` r
 starb_probit = function(spec, data, rhs, ...) {
     # Unpack ...
     l = list(...)
@@ -656,14 +656,14 @@ cowplot::plot_grid(
 Installation
 
 
-```r
+``` r
 devtools::install_github("joachim-gassen/rdfanalysis")
 ```
 
 Example by the [package's author](https://joachim-gassen.github.io/rdfanalysis/)
 
 
-```r
+``` r
 library(rdfanalysis)
 load(url("https://joachim-gassen.github.io/data/rdf_ests.RData"))
 plot_rdf_spec_curve(ests, "est", "lb", "ub") 
@@ -674,7 +674,7 @@ plot_rdf_spec_curve(ests, "est", "lb", "ub")
 Shiny app for readers to explore
 
 
-```r
+``` r
 design <- define_design(steps = c("read_data",
                                   "select_idvs",
                                   "treat_extreme_obs",
@@ -702,7 +702,7 @@ Packages
 -   `robomit`: Robustness checks for omitted variable bias (implementation of
 
 
-```r
+``` r
 library(robomit)
 
 # estimate beta 
@@ -735,7 +735,7 @@ o_beta(
 To quantify the bias needed to change the substantive conclusion from a causal inference study.
 
 
-```r
+``` r
 library(konfound)
 pkonfound(
     est_eff = 5, 
@@ -744,20 +744,22 @@ pkonfound(
     n_covariates = 5
 )
 #> Robustness of Inference to Replacement (RIR):
-#> To invalidate an inference,  21.506 % of the estimate would have to be due to bias. 
-#> This is based on a threshold of 3.925 for statistical significance (alpha = 0.05).
+#> RIR = 215
 #> 
-#> To invalidate an inference,  215  observations would have to be replaced with cases
-#> for which the effect is 0 (RIR = 215).
+#> To invalidate the inference of an effect using the threshold of 3.925 for
+#> statistical significance (with null hypothesis = 0 and alpha = 0.05), 21.506%
+#> of the (5) estimate would have to be due to bias. This implies that to
+#> invalidate the inference one would expect to have to replace 215 (21.506%)
+#> observations with data points for which the effect is 0 (RIR = 215).
 #> 
 #> See Frank et al. (2013) for a description of the method.
 #> 
 #> Citation: Frank, K.A., Maroulis, S., Duong, M., and Kelcey, B. (2013).
 #> What would it take to change an inference?
-#> Using Rubin's causal model to interpret the 
-#>         robustness of causal inferences.
-#> Education, Evaluation and 
-#>                        Policy Analysis, 35 437-460.
+#> Using Rubin's causal model to interpret the robustness of causal inferences.
+#> Education, Evaluation and Policy Analysis, 35 437-460.
+#> 
+#> Accuracy of results increases with the number of decimals reported.
 
 pkonfound(
     est_eff = 5, 
@@ -770,7 +772,7 @@ pkonfound(
 
 <img src="42-sensitivity-robustness_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 pkonfound(
     est_eff = 5, 

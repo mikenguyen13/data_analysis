@@ -101,7 +101,7 @@ If zeros are **small but meaningful** (e.g., revenue from startups), then using 
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 library(tidyverse)
 
 # Load dataset
@@ -171,7 +171,7 @@ $$
 -   When the variable has a natural lower bound (e.g., time to completion).
 
 
-```r
+``` r
 data(cars)
 
 # Original distribution
@@ -182,7 +182,7 @@ plot(cars$dist)
 
 <img src="12-variable_transformation_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Reciprocal transformation
 plot(1 / cars$dist)
@@ -211,21 +211,21 @@ $$
 -   Alternative to log transformation for handling zeros.
 
 
-```r
+``` r
 # Visualize original distribution 
 cars$dist %>% hist() 
 ```
 
 <img src="12-variable_transformation_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 # Alternative histogram  
 cars$dist %>% MASS::truehist()  
 ```
 
 <img src="12-variable_transformation_files/figure-html/unnamed-chunk-3-2.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Apply arcsinh transformation 
 as_dist <- bestNormalize::arcsinh_x(cars$dist) 
@@ -281,7 +281,7 @@ where $\Phi^{-1}$ is the inverse normal cumulative distribution function.
 -   When normality is required for **parametric tests**.
 
 
-```r
+``` r
 ord_dist <- bestNormalize::orderNorm(cars$dist)
 ord_dist
 #> orderNorm Transformation with 50 nonmissing obs and ties
@@ -305,7 +305,7 @@ The Lambert W transformation is a more advanced method that normalizes data by r
 -   When dealing with heavy-tailed distributions.
 
 
-```r
+``` r
 data(cars)
 head(cars$dist)
 #> [1]  2 10  4 22 16 10
@@ -314,7 +314,7 @@ cars$dist %>% hist()
 
 <img src="12-variable_transformation_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Apply Lambert W transformation
 l_dist <- LambertW::Gaussianize(cars$dist)
@@ -356,7 +356,7 @@ $$
 -   When data are strictly positive
 
 
-```r
+``` r
 library(MASS)
 data(cars)
 mod <- lm(cars$speed ~ cars$dist, data = cars)
@@ -367,7 +367,7 @@ plot(mod)
 
 <img src="12-variable_transformation_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" /><img src="12-variable_transformation_files/figure-html/unnamed-chunk-6-2.png" width="90%" style="display: block; margin: auto;" /><img src="12-variable_transformation_files/figure-html/unnamed-chunk-6-3.png" width="90%" style="display: block; margin: auto;" /><img src="12-variable_transformation_files/figure-html/unnamed-chunk-6-4.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Find optimal lambda
 bc <- boxcox(mod, lambda = seq(-3, 3))
@@ -375,7 +375,7 @@ bc <- boxcox(mod, lambda = seq(-3, 3))
 
 <img src="12-variable_transformation_files/figure-html/unnamed-chunk-6-5.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 best_lambda <- bc$x[which.max(bc$y)]
 
 # Apply transformation
@@ -392,7 +392,7 @@ x_i' (\lambda_1, \lambda_2) = \begin{cases} \frac{(x_i + \lambda_2)^{\lambda_1}-
 $$
 
 
-```r
+``` r
 # Two-parameter Box-Cox transformation
 two_bc <- geoR::boxcoxfit(cars$speed)
 two_bc
@@ -417,7 +417,7 @@ x_i'^\lambda = \begin{cases} \frac{(x_i+1)^\lambda -1}{\lambda} & \text{if } \la
 $$
 
 
-```r
+``` r
 data(cars)
 yj_speed <- bestNormalize::yeojohnson(cars$speed)
 yj_speed$x.t %>% hist()
@@ -438,7 +438,7 @@ When to Use:
 The `bestNormalize` package selects the **best transformation** for a given dataset.
 
 
-```r
+``` r
 bestdist <- bestNormalize::bestNormalize(cars$dist)
 bestdist$x.t %>% hist()
 ```
@@ -481,7 +481,7 @@ $$
 -   Linear regression models (dummy variables prevent information loss).
 
 
-```r
+``` r
 library(caret)
 
 data(iris)
@@ -525,7 +525,7 @@ Example:
 -   Memory-efficient encoding for high-cardinality features.
 
 
-```r
+``` r
 iris$Species_encoded <- as.numeric(factor(iris$Species))
 head(iris$Species_encoded)
 #> [1] 1 1 1 1 1 1
@@ -544,7 +544,7 @@ Maps categories to a **fixed number of hash bins**, reducing memory usage.
 -   Sparse models (e.g., text data in NLP).
 
 
-```r
+``` r
 library(text2vec)
 library(Matrix)
 
@@ -603,7 +603,7 @@ For four categories ("A", "B", "C", "D"):
 -   Tree-based models (preserves some ordinal information).
 
 
-```r
+``` r
 library(mltools)
 library(data.table)
 
@@ -611,6 +611,7 @@ library(data.table)
 binary_encoded <- one_hot(as.data.table(iris[, "Species"]))
 head(binary_encoded)
 #>    V1_setosa V1_versicolor V1_virginica
+#>        <int>         <int>        <int>
 #> 1:         1             0            0
 #> 2:         1             0            0
 #> 3:         1             0            0
@@ -640,7 +641,7 @@ $$ **When to Use:**
 -   Feature engineering for boosting algorithms (e.g., LightGBM).
 
 
-```r
+``` r
 freq_encoding <- table(iris$Species) / length(iris$Species)
 iris$Species_freq <-
     iris$Species %>% as.character() %>% map_dbl(~ freq_encoding[.])
@@ -663,7 +664,7 @@ $$ **When to Use:**
 -   Risk: Can lead to data leakage (use cross-validation).
 
 
-```r
+``` r
 library(data.table)
 iris_dt <- as.data.table(iris)
 iris_dt[, Species_mean := mean(Sepal.Length), by = Species]
@@ -688,7 +689,7 @@ Maps categories to **ordered integer values** based on logical ranking.
 -   Ordinal variables with meaningful order (e.g., satisfaction ratings).
 
 
-```r
+``` r
 iris$Species_ordinal <-
     as.numeric(factor(iris$Species, 
                       levels = c("setosa", "versicolor", "virginica")))
@@ -756,7 +757,7 @@ Why is WoE Valuable?
     In industries like banking, WoE is widely accepted because of its clear interpretability, which is crucial for compliance and transparency in credit risk modeling.
 
 
-```r
+``` r
 # Load required packages
 library(dplyr)
 library(knitr)
@@ -798,7 +799,7 @@ kable(woe_table)
 
 
 
-```r
+``` r
 
 # Merge the WoE values into the original data
 data_woe <- data %>%

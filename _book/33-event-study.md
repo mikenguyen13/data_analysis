@@ -13,7 +13,7 @@ The first event study was conducted by @dolley1933characteristics, while @campbe
 **Types of Events in Event Studies**
 
 | **Event Type**      | **Examples**                                                 |
-|-----------------------|-------------------------------------------------|
+|---------------------|--------------------------------------------------------------|
 | **Internal Events** | Stock repurchase, earnings announcements, leadership changes |
 | **External Events** | Macroeconomic shocks, regulatory changes, media reports      |
 
@@ -36,7 +36,7 @@ Event studies are useful in marketing for evaluating the effects of firm decisio
 #### Firm-Initiated Activities
 
 | **Event Type**                             | **Studies**                                                                                                                                                                                                                                                                           |
-|--------------------|----------------------------------------------------|
+|--------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Corporate Changes**                      | [@horsky1987does] (name change), [@kalaignanam2013corporate] (corporate brand change)                                                                                                                                                                                                 |
 | **New Product Strategies**                 | [@chaney1991impact] (new product announcements), [@raassens2012market] (outsourcing product development), [@sood2009innovations] (innovation payoff), [@borah2014make] (make, buy or ally for innovations), [@fang2015timing] (co-development agreements)                             |
 | **Brand & Marketing Strategies**           | [@lane1995stock] (brand extensions), [@wiles2012effect] (brand acquisition)                                                                                                                                                                                                           |
@@ -53,7 +53,7 @@ Event studies are useful in marketing for evaluating the effects of firm decisio
 Event studies are also used to examine the impact of external events on firm value, including regulatory decisions, media coverage, economic shocks, and unexpected crises.
 
 | **Event Type**                          | **Studies**                                                                                                                                                      |
-|---------------------|---------------------------------------------------|
+|-----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Regulatory Decisions**                | [@sorescu2003] (FDA approvals), [@rao2008fruits] (FDA approvals), [@tipton2009regulatory] (deceptive advertising regulation)                                     |
 | **Media Coverage & Consumer Reactions** | [@jacobson2009financial] (customer satisfaction score release), [@chen2012third] (third-party movie reviews), [@tellis2007] (quality reviews by Walter Mossberg) |
 | **Economic & Market Shocks**            | [@gielens2008dancing] (Walmart's entry into the UK), [@xiong2013asymmetric] (asymmetric news impact), [@pandey2005relationship] (diversity elite list)           |
@@ -90,7 +90,7 @@ An event study examines how a particular event affects a firm's stock price, ass
 **Common Types of Events Analyzed**
 
 | **Event Category**           | **Examples**                                                                                                                                   |
-|---------------------|---------------------------------------------------|
+|------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Corporate Actions**        | Dividends, mergers & acquisitions (M&A), stock buybacks, name changes, brand extensions, sponsorships, product launches, advertising campaigns |
 | **Regulatory Changes**       | New laws, taxation policies, financial deregulation, trade agreements                                                                          |
 | **Market Events**            | Privatization, nationalization, entry/exit from major indices                                                                                  |
@@ -108,7 +108,7 @@ To systematically identify events, researchers use **WRDS S&P Capital IQ Key Dev
 The estimation window is used to compute normal (expected) returns before the event.
 
 | **Study**              | **Estimation Window**                                                |
-|-----------------------|-------------------------------------------------|
+|------------------------|----------------------------------------------------------------------|
 | [@johnston2007review]  | 250 days before the event, with a 45-day gap before the event window |
 | [@wiles2012effect]     | 90-trading-day estimation window ending 6 days before the event      |
 | [@sorescu2017, p. 194] | 100 days before the event                                            |
@@ -122,7 +122,7 @@ The estimation window is used to compute normal (expected) returns before the ev
 The event window captures the market's reaction to the event. The selection of an appropriate window length depends on event type and information speed.
 
 | **Study**                                                          | **Event Window**  |
-|--------------------------------------------------|----------------------|
+|--------------------------------------------------------------------|-------------------|
 | [@balasubramanian2005impact; @boyd2010chief; @fornell2006customer] | **1-day window**  |
 | [@raassens2012market; @sood2009innovations]                        | **2-day window**  |
 | [@cornwell2005relationship; @sorescu2007some]                      | **Up to 10 days** |
@@ -287,7 +287,7 @@ where firm size can be:
 While most marketing events impact operating business value, in rare cases they also influence non-operating assets and debt:
 
 | Marketing Event                                       | Impact on Financial Structure       |
-|-------------------------------------------|-----------------------------|
+|-------------------------------------------------------|-------------------------------------|
 | Excess Pre-ordering [@hall2004determinants]           | Affects short-term debt             |
 | CMO Turnover [@berger1997managerial]                  | Higher debt due to manager turnover |
 | Unique Product Development [@bhaduri2002determinants] | Alters debt levels                  |
@@ -327,7 +327,7 @@ where:
 ### Computing Leverage Effect from Compustat Data
 
 
-```r
+``` r
 # Load required libraries
 library(tidyverse)
 
@@ -377,7 +377,7 @@ hist(
 
 <img src="33-event-study_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Compute coefficient of variation (CV)
 cv_le <-
@@ -425,7 +425,7 @@ By computing $\Delta W_t$, researchers can translate stock market reactions into
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary libraries
 library(tidyverse)
 
@@ -445,7 +445,7 @@ df_event_study <- df_event_study %>%
 # Summary statistics of economic impact
 summary(df_event_study$wealth_change)
 #>       Min.    1st Qu.     Median       Mean    3rd Qu.       Max. 
-#> -306702650  -12441117   33553616   63342785  108316418  644487833
+#> -182624158  -23329465   29601222   74140034  128382915  565137418
 
 # Histogram of total wealth gain/loss
 hist(
@@ -568,7 +568,7 @@ The Sign Test assumes symmetric abnormal returns around zero.
 -   Alternative hypothesis ($H_A$): More positive (or negative) abnormal returns than expected.
 
 
-```r
+``` r
 # Perform a sign test using binomial test
 binom.test(x = sum(CAR > 0), n = length(CAR), p = 0.5)
 ```
@@ -582,7 +582,7 @@ The Wilcoxon Signed-Rank Test allows for non-symmetry in returns.
 -   More powerful than the sign test when return magnitudes matter.
 
 
-```r
+``` r
 # Perform Wilcoxon Signed-Rank Test
 wilcox.test(CAR, mu = 0)
 ```
@@ -600,7 +600,7 @@ The Corrado Rank Test is a rank-based test for abnormal returns.
 -   More robust than the t-test under non-normality.
 
 
-```r
+``` r
 # Load necessary libraries
 library(tidyverse)
 
@@ -745,7 +745,7 @@ We will analyze the impact of **including vs. excluding** correlated and uncorre
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required libraries
 library(dplyr)
 library(ggplot2)
@@ -968,7 +968,7 @@ Cross-sectional dependence in returns biases the standard deviation estimates do
 -   Apply a time-series standard deviation test statistic [@brown1980measuring] to correct standard errors.
 
 
-```r
+``` r
 # Load required libraries
 library(sandwich)  # For robust standard errors
 library(lmtest)    # For hypothesis testing
@@ -1028,7 +1028,7 @@ A Heckman selection model can be used when private information influences both e
 2.  **Second Stage (Outcome Equation):** Model abnormal returns, controlling for the estimated Mills ratio ($\lambda$).
 
 
-```r
+``` r
 # Load required libraries
 library(sampleSelection)
 
@@ -1095,7 +1095,7 @@ PSM matches event firms with similar non-event firms, controlling for selection 
 -   **Marketing:** [@warren2017how, @borah2014make, @cao2013wedded].
 
 
-```r
+``` r
 # Load required libraries
 library(MatchIt)
 
@@ -1147,6 +1147,7 @@ summary(match_model)
 
 # Extract matched data
 matched_data <- match.data(match_model)
+
 ```
 
 **Advantages of PSM**
@@ -1191,7 +1192,7 @@ There are three primary methods for measuring long-term abnormal stock returns:
 Below is an example using the `crseEventStudy` package, which calculates standardized abnormal returns:
 
 
-```r
+``` r
 library(crseEventStudy)
 
 # Example using demo data from the package
@@ -1339,7 +1340,7 @@ The WRDS platform enables users to upload their own event data and apply these m
 The WRDS tool provides several options for customizing event study settings:
 
 | **Parameter** | **Description**                                                                             |
-|--------------------|----------------------------------------------------|
+|---------------|---------------------------------------------------------------------------------------------|
 | **MINWIN**    | The minimum number of months a firm must trade after the event to be included in the study. |
 | **MAXWIN**    | The maximum number of months considered in the event study.                                 |
 | **MONTH**     | The event window length (e.g., 12, 24, or 36 months) for BHAR calculation.                  |
@@ -1405,7 +1406,7 @@ To correct these biases, researchers often use:
 ------------------------------------------------------------------------
 
 | Feature                | LCAR                                             | BHAR                          |
-|------------------|---------------------------------|---------------------|
+|------------------------|--------------------------------------------------|-------------------------------|
 | **Computation**        | Sum of abnormal returns                          | Product of abnormal returns   |
 | **Return Aggregation** | Arithmetic                                       | Geometric                     |
 | **Main Issue**         | Variance drift                                   | Rebalancing bias              |
@@ -1416,7 +1417,7 @@ In short-term studies, LCAR and BHAR tend to yield similar results, but in long-
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary packages
 library(tidyverse)
 library(ggplot2)
@@ -1863,7 +1864,7 @@ where:
 **Summary: Model Comparison**
 
 | Model                | Key Assumptions                         | Factors Considered              | Best Use Case                |
-|-----------------|-----------------|---------------------|-----------------|
+|----------------------|-----------------------------------------|---------------------------------|------------------------------|
 | Constant Mean Return | Mean-reverting returns                  | None                            | Simple event studies         |
 | Market Model         | Linear relationship with market returns | Market factor ($R_m$)           | Short-term studies           |
 | Fama-French (FF3)    | Size & value factors matter             | Market, Size (SML), Value (HML) | Medium- to long-term studies |
@@ -1878,7 +1879,7 @@ where:
 Several R packages facilitate event studies. Below are some commonly used ones:
 
 | Package                | Description                                                  |
-|-----------------------------|------------------------------|
+|------------------------|--------------------------------------------------------------|
 | `eventstudies`         | Computes abnormal returns and visualizes event impact        |
 | `erer`                 | Implements event study methodology in economics and finance  |
 | `EventStudy`           | Provides API-based event study tools (requires subscription) |
@@ -1889,7 +1890,7 @@ Several R packages facilitate event studies. Below are some commonly used ones:
 To install these packages, run:
 
 
-```r
+``` r
 install.packages(
     c(
         "eventstudies",
@@ -1909,19 +1910,19 @@ A common approach in finance is to sort stocks into portfolios based on firm cha
 
 **Sorting Process**
 
-1.   Sort all stock returns into 10 deciles based on size (market capitalization).
+1.  Sort all stock returns into 10 deciles based on size (market capitalization).
 
-2.   Within each size decile, sort returns into 10 deciles based on B/M ratio.
+2.  Within each size decile, sort returns into 10 deciles based on B/M ratio.
 
-3.   Calculate the average return of each portfolio for each period (i.e., the expected return for stocks given their characteristics).
+3.  Calculate the average return of each portfolio for each period (i.e., the expected return for stocks given their characteristics).
 
-4.   Compare each stock\'s return to its corresponding portfolio.
+4.  Compare each stock's return to its corresponding portfolio.
 
 > **Important Notes:**
 >
 > -   Sorting often leads to more conservative estimates compared to Fama-French models.
 >
-> -    If the event study results change depending on the sorting order (e.g., sorting by B/M first vs. size first), this suggests that the findings are not robust.
+> -   If the event study results change depending on the sorting order (e.g., sorting by B/M first vs. size first), this suggests that the findings are not robust.
 
 ### **`erer` Package**
 
@@ -1930,7 +1931,7 @@ The `erer` package provides a straightforward implementation of event studies.
 Step 1: Load Required Libraries
 
 
-```r
+``` r
 library(erer)
 library(ggplot2)
 library(dplyr)
@@ -1941,7 +1942,7 @@ library(dplyr)
 The package includes an example dataset, `daEsa`, which contains stock returns and event dates.
 
 
-```r
+``` r
 data(daEsa)
 head(daEsa)
 #>       date       tb3m    sp500     bbc     bow     csk      gp      ip     kmb
@@ -1965,7 +1966,7 @@ head(daEsa)
 We define the estimation window (250 days before the event) and the event window ($\pm5$ days around the event):
 
 
-```r
+``` r
 hh <- evReturn(
     y = daEsa,      
     firm = "wpp",   
@@ -1975,12 +1976,13 @@ hh <- evReturn(
     event.date = 19990505, 
     event.win = 5    
 )
+
 ```
 
 **Step 4: Visualizing the Results**
 
 
-```r
+``` r
 plot(hh)
 ```
 

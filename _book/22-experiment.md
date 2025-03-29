@@ -245,7 +245,7 @@ where:
 -   $\epsilon_{ij}$ is the random error term, assumed to be normally distributed: $\epsilon_{ij} \sim N(0, \sigma^2)$.
 
 
-```r
+``` r
 set.seed(123)
 
 # Simulated dataset for email marketing experiment
@@ -291,7 +291,7 @@ $$ where:
 -   $\epsilon_{ij}$ is the random error.
 
 
-```r
+``` r
 set.seed(123)
 
 # Simulated dataset for store layout experiment
@@ -337,7 +337,7 @@ where:
 -   $\epsilon_{ijk}$ is the random error term.
 
 
-```r
+``` r
 set.seed(123)
 
 # Simulated dataset
@@ -386,7 +386,7 @@ $$ where:
 -   $\beta_k$ is the **subject effect** (individual baseline differences).
 
 
-```r
+``` r
 set.seed(123)
 
 # Simulated dataset
@@ -455,7 +455,7 @@ The key feature of the Split-Plot Design is that the whole-plot factor ($\alpha_
 We model the **Split-Plot Design** using a **Mixed Effects Model**, treating **Farm** as a **random effect** to account for variation at the whole-plot level.
 
 
-```r
+``` r
 set.seed(123)
 
 # Simulated dataset for a split-plot experiment
@@ -553,7 +553,7 @@ This ensures that each treatment is **equally balanced across both confounding f
 We implement a **Latin Square Design** by treating **Assembly Method** as the primary factor, while controlling for **Shifts** and **Workstations**.
 
 
-```r
+``` r
 set.seed(123)
 
 # Define the Latin Square layout
@@ -600,7 +600,7 @@ To maintain fairness:
 2.  Within each stratum, a random subset is assigned to receive the new policy, while others continue under the old policy.
 
 
-```r
+``` r
 set.seed(123)
 
 # Create stratified groups
@@ -797,7 +797,7 @@ An online retailer is testing two website designs (A and B) but wants to ensure 
 We define a balance criterion to check if the mean age difference between groups is acceptable before proceeding.
 
 
-```r
+``` r
 set.seed(123)
 
 # Define balance criterion: Ensure mean age difference < 1 year
@@ -877,7 +877,7 @@ where $a$ is chosen based on acceptable balance thresholds.
 We apply Mahalanobis Distance as a balance criterion to ensure that treatment and control groups are well-matched before proceeding with the experiment.
 
 
-```r
+``` r
 set.seed(123)
 library(MASS)
 
@@ -958,7 +958,7 @@ The nested structure ensures that the second-stage treatment ($\beta_{j(i)}$) is
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 set.seed(123)
 
 # Generate first-stage randomization (Initial Ad)
@@ -1027,7 +1027,7 @@ If individuals influence each other's outcomes, traditional randomization is bia
 2.  **Partial Interference Models**: Assume interference only occurs within predefined groups.
 
 
-```r
+``` r
 set.seed(123)
 library(ivreg)  # Load Instrumental Variable Regression Package
 
@@ -1165,7 +1165,7 @@ Instead of applying a log transformation, we should use methods that are **robus
 We first generate a dataset to simulate a scenario where an outcome variable (e.g., sales, website clicks) has **many zeros**, and treatment affects both the **extensive** and **intensive margins**.
 
 
-```r
+``` r
 set.seed(123) # For reproducibility
 library(tidyverse)
 
@@ -1223,7 +1223,7 @@ hist(
 Since we cannot use a log transformation, we estimate **percentage changes** using **Poisson QMLE**, which is robust to zero-valued outcomes.
 
 
-```r
+``` r
 library(fixest)
 
 # Poisson Quasi-Maximum Likelihood Estimation (QMLE)
@@ -1258,7 +1258,7 @@ To interpret the results:
 -   To compute the **proportional effect**, we exponentiate the coefficient:
 
 
-```r
+``` r
 # Compute the proportional effect of treatment
 treatment_effect <- exp(coefficients(res_pois)["Treatment"]) - 1
 treatment_effect
@@ -1269,7 +1269,7 @@ treatment_effect
 Compute the **standard error**:
 
 
-```r
+``` r
 # Compute standard error
 se_treatment <- exp(coefficients(res_pois)["Treatment"]) *
     sqrt(res_pois$cov.scaled["Treatment", "Treatment"])
@@ -1287,7 +1287,7 @@ We now estimate **treatment effects separately** for the **extensive margin** (p
 First, we use **Lee Bounds** to estimate the **intensive-margin effect** for individuals who always have a nonzero outcome.
 
 
-```r
+``` r
 library(causalverse)
 
 res <- causalverse::lee_bounds(
@@ -1316,7 +1316,7 @@ E(Y(1) \| \text{Complier}) = (1 - c) E(Y(1) \| \text{Always-taker})
 $$ We compute Lee Bounds for different values of $c$:
 
 
-```r
+``` r
 set.seed(1)
 c_values = c(0.1, 0.5, 0.7)
 

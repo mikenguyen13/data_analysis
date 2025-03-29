@@ -95,21 +95,14 @@ In practice, it's not always an either/or decision. Consider:
 -   **Model Selection & Regularization**: Use techniques like cross-validation to choose bandwidths (kernel smoothing), number of knots (splines), or hyperparameters (tree depth) to avoid overfitting.
 -   **Diagnostic Tools**: Start with a simple parametric model, look at residual plots to identify patterns that might warrant a nonparametric approach.
 
-+------------------------------+--------------------------------------------------------------------------+--------------------------------------------------------------------+
 | **Criterion**                | **Parametric Methods**                                                   | **Nonparametric Methods**                                          |
-+==============================+==========================================================================+====================================================================+
+|------------------------------|--------------------------------------------------------------------------|--------------------------------------------------------------------|
 | **Assumptions**              | Requires strict assumptions (e.g., linearity, distribution form)         | Minimal assumptions, flexible functional forms                     |
-+------------------------------+--------------------------------------------------------------------------+--------------------------------------------------------------------+
 | **Data Requirements**        | Often works with smaller datasets if assumptions hold                    | Generally more data-hungry due to flexibility                      |
-+------------------------------+--------------------------------------------------------------------------+--------------------------------------------------------------------+
 | **Interpretability**         | Straightforward coefficients, easy to explain                            | Visual or plot-based insights; feature importance in trees         |
-+------------------------------+--------------------------------------------------------------------------+--------------------------------------------------------------------+
 | **Complexity & Overfitting** | Less prone to overfitting if form is correct                             | Can overfit if not regularized (e.g., bandwidth selection)         |
-+------------------------------+--------------------------------------------------------------------------+--------------------------------------------------------------------+
 | **Extrapolation**            | Can extrapolate if the assumed form is correct                           | Poor extrapolation outside the observed data range                 |
-+------------------------------+--------------------------------------------------------------------------+--------------------------------------------------------------------+
 | **Computational Cost**       | Typically low to moderate (e.g., $O(n)$ to $O(n^2)$) depending on method | Can be higher (e.g., repeated local estimates or ensemble methods) |
-+------------------------------+--------------------------------------------------------------------------+--------------------------------------------------------------------+
 
 ------------------------------------------------------------------------
 
@@ -452,15 +445,11 @@ $$
 
 ### Comparison of Kernel-Based Estimators
 
-+----------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------+-----------------------+
 | **Estimator**        | **Formula**                                                                                                                                | **Key Feature**                    | **Weights Sum to 1?** |
-+======================+============================================================================================================================================+====================================+=======================+
+|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|-----------------------|
 | **Nadaraya--Watson** | $\displaystyle \hat{m}_h(x) = \frac{\sum K\left(\frac{x - x_i}{h}\right) y_i}{\sum K\left(\frac{x - x_i}{h}\right)}$                       | Weighted average of $y_i$          | Yes                   |
-+----------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------+-----------------------+
 | **Priestley--Chao**  | $\displaystyle \hat{m}_h(x) = \frac{1}{h} \sum K\left(\frac{x - x_i}{h}\right)(x_{i+1} - x_i) y_i$                                         | Incorporates data spacing          | No                    |
-+----------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------+-----------------------+
 | **Gasser--Müller**   | $\displaystyle \hat{m}_h(x) = \frac{1}{h} \sum \left[K^*\left(\frac{x - x_i}{h}\right) - K^*\left(\frac{x - x_{i+1}}{h}\right)\right] y_i$ | Uses cumulative kernel differences | No                    |
-+----------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------+-----------------------+
 
 ------------------------------------------------------------------------
 
@@ -550,7 +539,7 @@ The [Nadaraya-Watson estimator](#sec-nadaraya-watson-kernel-estimator) can be de
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary libraries
 library(ggplot2)
 library(gridExtra)
@@ -586,7 +575,7 @@ ggplot(data.frame(x, y), aes(x, y)) +
 <img src="10-nonparam-regression_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 # Gaussian Kernel Function
 gaussian_kernel <- function(u) {
     (1 / sqrt(2 * pi)) * exp(-0.5 * u ^ 2)
@@ -604,7 +593,7 @@ gaussian_cdf_kernel <- function(u) {
 ```
 
 
-```r
+``` r
 # Nadaraya-Watson Estimator
 nadaraya_watson <-
     function(x_eval, x, y, h, kernel = gaussian_kernel) {
@@ -650,7 +639,7 @@ ggplot() +
 -   The estimator **smooths the data**, assigning more weight to points close to each evaluation point based on the Gaussian kernel.
 
 
-```r
+``` r
 # Priestley–Chao Estimator
 priestley_chao <-
     function(x_eval, x, y, h, kernel = gaussian_kernel) {
@@ -691,7 +680,7 @@ ggplot() +
 -   It performs similarly to [Nadaraya--Watson](#sec-nadaraya-watson-kernel-estimator) when data are evenly spaced.
 
 
-```r
+``` r
 # Gasser–Müller Estimator
 gasser_mueller <-
     function(x_eval, x, y, h, cdf_kernel = gaussian_cdf_kernel) {
@@ -733,7 +722,7 @@ ggplot() +
 -   It performs well when data are unevenly distributed.
 
 
-```r
+``` r
 # Combine all estimates for comparison
 estimates_df <- data.frame(
     x = x_grid,
@@ -780,7 +769,7 @@ ggplot() +
 -   The [Gasser--Müller estimator](#sec-gasser-mueller-kernel-estimator) reduces **boundary bias** and handles **irregular data** effectively.
 
 
-```r
+``` r
 # Cross-validation for bandwidth selection (for Nadaraya–Watson)
 cv_bandwidth <- function(h, x, y, kernel = gaussian_kernel) {
   n <- length(y)
@@ -1051,17 +1040,12 @@ Alternatively, for [local linear regression](#sec-special-case-local-linear-regr
 
 Comparison: [Nadaraya-Watson](#sec-nadaraya-watson-kernel-estimator) vs. [Local Polynomial Regression](#sec-local-polynomial-regression)
 
-+--------------------------------------+----------------------------------+---------------------------------------------+
 | Aspect                               | Nadaraya-Watson (Local Constant) | Local Polynomial Regression                 |
-+======================================+==================================+=============================================+
+|--------------------------------------|----------------------------------|---------------------------------------------|
 | **Bias at boundaries**               | High                             | Reduced (especially for $p=1$)              |
-+--------------------------------------+----------------------------------+---------------------------------------------+
 | **Flexibility**                      | Limited (constant fit)           | Captures local trends (linear/quadratic)    |
-+--------------------------------------+----------------------------------+---------------------------------------------+
 | **Complexity**                       | Simpler                          | Slightly more complex (matrix operations)   |
-+--------------------------------------+----------------------------------+---------------------------------------------+
 | **Robustness to heteroscedasticity** | Lower                            | Higher (adapts better to varying densities) |
-+--------------------------------------+----------------------------------+---------------------------------------------+
 
 ------------------------------------------------------------------------
 
@@ -1074,7 +1058,7 @@ Comparison: [Nadaraya-Watson](#sec-nadaraya-watson-kernel-estimator) vs. [Local 
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary libraries
 library(ggplot2)
 library(gridExtra)
@@ -1105,7 +1089,7 @@ ggplot(data.frame(x, y), aes(x, y)) +
 <img src="10-nonparam-regression_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 # Gaussian Kernel Function
 gaussian_kernel <- function(u) {
     (1 / sqrt(2 * pi)) * exp(-0.5 * u ^ 2)
@@ -1150,7 +1134,7 @@ lqr_estimate <-
 ```
 
 
-```r
+``` r
 # Plot Local Linear Regression
 p1 <- ggplot() +
     geom_point(aes(x, y), color = "darkblue", alpha = 0.6) +
@@ -1200,7 +1184,7 @@ grid.arrange(p1, p2, ncol = 2)
 -   Boundary effects are better handled by local polynomial methods, especially with quadratic fits that capture curvature more effectively.
 
 
-```r
+``` r
 # Leave-One-Out Cross-Validation for Bandwidth Selection
 cv_bandwidth_lp <- function(h, x, y, p = 1, kernel = gaussian_kernel) {
   n <- length(y)
@@ -1242,7 +1226,7 @@ optimal_h_quadratic
 ```
 
 
-```r
+``` r
 # CV Error Plot for Linear and Quadratic Fits
 cv_data <- data.frame(
     Bandwidth = rep(bandwidths, 2),
@@ -1280,7 +1264,7 @@ ggplot(cv_data, aes(x = Bandwidth, y = CV_Error, color = Degree)) +
 -   Smaller bandwidths can overfit, while larger bandwidths may oversmooth.
 
 
-```r
+``` r
 # Apply Local Polynomial Regression with Optimal Bandwidths
 final_llr_estimate <-
     local_polynomial_regression(x_grid, x, y, h = optimal_h_linear, p = 1)
@@ -1399,7 +1383,7 @@ This connection extends naturally to more general kernel-based methods (e.g., Ga
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary libraries
 library(ggplot2)
 library(gridExtra)
@@ -1431,7 +1415,7 @@ ggplot(data.frame(x, y), aes(x, y)) +
 <img src="10-nonparam-regression_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 # Apply Smoothing Spline with Default Lambda 
 # (automatically selected using GCV)
 spline_fit_default <- smooth.spline(x, y)
@@ -1450,7 +1434,7 @@ spline_pred_flexible <- predict(spline_fit_flexible, x_grid)
 ```
 
 
-```r
+``` r
 # Plot Smoothing Splines with Different Smoothness Levels
 ggplot() +
     geom_point(aes(x, y), color = "darkblue", alpha = 0.5) +
@@ -1492,7 +1476,7 @@ ggplot() +
 -   The red solid line represents the true regression function.
 
 
-```r
+``` r
 # Extract Generalized Cross-Validation (GCV) Scores
 spline_fit_default$cv.crit  # GCV criterion for the default fit
 #> [1] 0.09698728
@@ -1511,7 +1495,7 @@ optimal_spar
 ```
 
 
-```r
+``` r
 # GCV Plot
 ggplot(data.frame(spar_values, gcv_scores),
        aes(x = spar_values, y = gcv_scores)) +
@@ -1535,7 +1519,7 @@ ggplot(data.frame(spar_values, gcv_scores),
 -   Low `spar` values correspond to flexible fits (risking overfitting), while high `spar` values produce smoother fits (risking underfitting).
 
 
-```r
+``` r
 # Apply Smoothing Spline with Optimal spar
 spline_fit_optimal <- smooth.spline(x, y, spar = optimal_spar)
 spline_pred_optimal <- predict(spline_fit_optimal, x_grid)
@@ -1776,7 +1760,7 @@ The **smoothing parameters** $\lambda_j$ control the complexity of each smooth t
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary libraries
 library(mgcv)    # For fitting GAMs
 library(ggplot2)
@@ -1825,7 +1809,7 @@ grid.arrange(p1, p2, p3, ncol = 3)
 <img src="10-nonparam-regression_files/figure-html/Simulate Data for GAM-1.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 # Fit a GAM using mgcv
 gam_model <-
     gam(y ~ s(x1) + s(x2) + s(x3),
@@ -1859,7 +1843,7 @@ summary(gam_model)
 ```
 
 
-```r
+``` r
 # Plot smooth terms
 par(mfrow = c(1, 3))  # Arrange plots in one row
 plot(gam_model, shade = TRUE, seWithMean = TRUE)
@@ -1867,12 +1851,13 @@ plot(gam_model, shade = TRUE, seWithMean = TRUE)
 
 <img src="10-nonparam-regression_files/figure-html/Visualizing Smooth Functions (Partial Dependence Plots)-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 par(mfrow = c(1, 1))  # Reset plotting layout
+
 ```
 
 
-```r
+``` r
 # Using ggplot2 with mgcv's predict function
 pred_data <- with(data_gam, expand.grid(
     x1 = seq(min(x1), max(x1), length.out = 100),
@@ -1895,7 +1880,7 @@ ggplot(pred_data, aes(x1, pred_x1)) +
 <img src="10-nonparam-regression_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 # Check AIC and GCV score
 AIC(gam_model)
 #> [1] 289.8201
@@ -1927,7 +1912,7 @@ AIC(gam_model, gam_model_simple, gam_model_complex)
 -   Compare models to prevent overfitting (too flexible) or underfitting (too simple).
 
 
-```r
+``` r
 # GAM with interaction using tensor product smooths
 gam_interaction <- gam(y ~ te(x1, x2) + s(x3),
                        data = data_gam)
@@ -1972,7 +1957,7 @@ vis.gam(
 -   The contour plot visualizes how their joint effect influences the response.
 
 
-```r
+``` r
 # Simulate binary response
 set.seed(123)
 prob <- plogis(1 + f1(x1) - f2(x2) + 0.3 * x3)  # Logistic function
@@ -2011,7 +1996,7 @@ plot(gam_logistic, shade = TRUE)
 
 <img src="10-nonparam-regression_files/figure-html/GAM for Logistic Regression (Binary Outcome)-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 par(mfrow = c(1, 1))
 ```
 
@@ -2019,7 +2004,7 @@ par(mfrow = c(1, 1))
 -   Smooth plots indicate predictors' influence on probability of success.
 
 
-```r
+``` r
 # Diagnostic plots
 par(mfrow = c(2, 2))
 gam.check(gam_model)
@@ -2162,24 +2147,17 @@ Random forests naturally provide measures of **variable importance**, helping id
 
 ### Advantages and Limitations of Tree-Based Methods
 
-+------------------------------+---------------------------------+----------------------------------------------------+
 | **Aspect**                   | **Regression Trees**            | **Random Forests**                                 |
-+==============================+=================================+====================================================+
+|------------------------------|---------------------------------|----------------------------------------------------|
 | **Interpretability**         | High (easy to visualize)        | Moderate (difficult to interpret individual trees) |
-+------------------------------+---------------------------------+----------------------------------------------------+
 | **Variance**                 | High (prone to overfitting)     | Low (averaging reduces variance)                   |
-+------------------------------+---------------------------------+----------------------------------------------------+
 | **Bias**                     | Low (flexible to data patterns) | Slightly higher than a single tree                 |
-+------------------------------+---------------------------------+----------------------------------------------------+
 | **Feature Importance**       | Basic (via tree splits)         | Advanced (permutation-based measures)              |
-+------------------------------+---------------------------------+----------------------------------------------------+
 | **Handling of Missing Data** | Handles with surrogate splits   | Handles naturally in ensemble averaging            |
-+------------------------------+---------------------------------+----------------------------------------------------+
 | **Computational Cost**       | Low (fast for small datasets)   | High (especially with many trees)                  |
-+------------------------------+---------------------------------+----------------------------------------------------+
 
 
-```r
+``` r
 # Load necessary libraries
 library(ggplot2)
 library(rpart)           # For regression trees
@@ -2226,7 +2204,7 @@ grid.arrange(p1, p2, p3, ncol = 3)
 <img src="10-nonparam-regression_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 # Fit a Regression Tree using rpart
 tree_model <-
     rpart(
@@ -2361,7 +2339,7 @@ rpart.plot(
 -   The tree depth affects interpretability and overfitting risk.
 
 
-```r
+``` r
 # Optimal pruning based on cross-validation error
 printcp(tree_model) # Displays CP table with cross-validation error
 #> 
@@ -2407,7 +2385,7 @@ rpart.plot(
 -   A shallower tree improves generalization on unseen data.
 
 
-```r
+``` r
 # Fit a Random Forest
 set.seed(123)
 rf_model <- randomForest(
@@ -2436,7 +2414,7 @@ print(rf_model)
 -   `mtry = 2` indicates 2 random predictors are considered at each split.
 
 
-```r
+``` r
 # Plot OOB Error vs. Number of Trees
 plot(rf_model, main = "Out-of-Bag Error for Random Forest")
 ```
@@ -2447,7 +2425,7 @@ plot(rf_model, main = "Out-of-Bag Error for Random Forest")
 -   Helps determine if more trees improve performance or if the model has converged.
 
 
-```r
+``` r
 # Variable Importance
 importance(rf_model)                # Numerical importance measures
 #>      %IncMSE IncNodePurity
@@ -2464,7 +2442,7 @@ varImpPlot(rf_model, main = "Variable Importance (Random Forest)")
 -   Variables with higher importance are more influential in the model.
 
 
-```r
+``` r
 # Predictions on new data
 x_new <- seq(0, 10, length.out = 200)
 test_data <- data.frame(x1 = x_new,
@@ -2503,7 +2481,7 @@ ggplot() +
 -   The random forest (green) provides a smoother fit by averaging across many trees, reducing variance.
 
 
-```r
+``` r
 # OOB Error (Random Forest)
 oob_mse <- rf_model$mse[length(rf_model$mse)]  # Final OOB MSE
 
@@ -2622,24 +2600,18 @@ $$
 
 where $\tau$ is the **threshold parameter**, often chosen based on the noise level (e.g., via cross-validation or universal thresholding).
 
-+------------------------+-----------------------------------------------------------------------------------------------+---------------------------------------+-----------------------------------------+
 | **Aspect**             | [**Kernel**](#sec-kernel-regression)**/[Local Polynomial](#sec-local-polynomial-regression)** | [**Splines**](#sec-smoothing-splines) | [**Wavelets**](#sec-wavelet-regression) |
-+========================+===============================================================================================+=======================================+=========================================+
+|------------------------|-----------------------------------------------------------------------------------------------|---------------------------------------|-----------------------------------------|
 | **Smoothness**         | Smooth, localized                                                                             | Globally smooth with knots            | Captures sharp discontinuities          |
-+------------------------+-----------------------------------------------------------------------------------------------+---------------------------------------+-----------------------------------------+
 | **Basis Functions**    | Kernel functions                                                                              | Piecewise polynomials                 | Compact, oscillatory wavelets           |
-+------------------------+-----------------------------------------------------------------------------------------------+---------------------------------------+-----------------------------------------+
 | **Handling of Noise**  | Prone to overfitting without smoothing                                                        | Controlled via penalties              | Excellent via thresholding              |
-+------------------------+-----------------------------------------------------------------------------------------------+---------------------------------------+-----------------------------------------+
 | **Computational Cost** | Moderate                                                                                      | High (for large knots)                | Efficient (fast wavelet transform)      |
-+------------------------+-----------------------------------------------------------------------------------------------+---------------------------------------+-----------------------------------------+
 | **Applications**       | Curve fitting, density estimation                                                             | Smoothing trends                      | Signal processing, time series          |
-+------------------------+-----------------------------------------------------------------------------------------------+---------------------------------------+-----------------------------------------+
 
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Simulated data: Noisy signal with discontinuities
 set.seed(123)
 n <- 96
@@ -2715,7 +2687,7 @@ legend(
 -   **Boundary Effects:** May suffer from artifacts near data boundaries without proper treatment.
 
 
-```r
+``` r
 # Load necessary libraries
 library(waveslim)   # For Discrete Wavelet Transform (DWT)
 library(ggplot2)
@@ -2752,7 +2724,7 @@ ggplot() +
 <img src="10-nonparam-regression_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 # Apply Discrete Wavelet Transform (DWT) using Haar wavelet
 dwt_result <- dwt(y, wf = "haar", n.levels = 4)
 
@@ -2775,7 +2747,7 @@ str(dwt_result)
 The DWT output contains approximation coefficients and detail coefficients for each level.
 
 
-```r
+``` r
 # Hard Thresholding
 threshold <- 0.2  # Chosen threshold for demonstration
 dwt_hard_thresh <- dwt_result
@@ -2787,7 +2759,7 @@ for (i in 1:4) {
 ```
 
 
-```r
+``` r
 # Soft Thresholding
 dwt_soft_thresh <- dwt_result
 
@@ -2795,20 +2767,22 @@ dwt_soft_thresh <- dwt_result
 for (i in 1:4) {
   dwt_soft_thresh[[i]] <- sign(dwt_result[[i]]) * pmax(abs(dwt_result[[i]]) - threshold, 0)
 }
+
 ```
 
 -   Hard Thresholding: Keeps coefficients above the threshold, sets others to zero.
 -   Soft Thresholding: Shrinks coefficients toward zero, reducing potential noise smoothly.
 
 
-```r
+``` r
 # Reconstruct the denoised signals using Inverse DWT
 y_hat_hard <- idwt(dwt_hard_thresh)
 y_hat_soft <- idwt(dwt_soft_thresh)
+
 ```
 
 
-```r
+``` r
 # Combine data for ggplot
 df_plot <- data.frame(
     x = rep(x, 4),
@@ -2842,7 +2816,7 @@ ggplot(df_plot, aes(x, y, color = Type, linetype = Type)) +
 <img src="10-nonparam-regression_files/figure-html/Visualization of Wavelet Denoising-1.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 # Compute Mean Squared Error (MSE) for each method
 mse_noisy <- mean((y - signal) ^ 2)
 mse_hard <- mean((y_hat_hard - signal) ^ 2)
@@ -2992,7 +2966,7 @@ where:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary libraries
 library(ggplot2)
 library(np)       # For multivariate kernel regression
@@ -3039,7 +3013,7 @@ gridExtra::grid.arrange(p1, p2, p3, ncol = 3)
 <img src="10-nonparam-regression_files/figure-html/Simulate Multivariate Data-1.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 # Multivariate Kernel Regression using np package
 bw <-
     npregbw(y ~ x1 + x2 + x3, data = data_multi)  # Bandwidth selection
@@ -3071,7 +3045,7 @@ ggplot(grid_data, aes(x1, x2, fill = pred)) +
 -   Bandwidth selection is critical for performance.
 
 
-```r
+``` r
 # Fit Thin-Plate Spline
 tps_model <- gam(y ~ s(x1, x2, x3, bs = "tp", k = 5), data = data_multi)
 
@@ -3093,7 +3067,7 @@ ggplot(grid_data, aes(x1, x2, fill = pred_tps)) +
 -   Computational cost increases with higher dimensions due to matrix operations.
 
 
-```r
+``` r
 # Fit Tensor Product Spline
 tensor_model <- gam(y ~ te(x1, x2, x3), data = data_multi)
 
@@ -3115,7 +3089,7 @@ ggplot(grid_data, aes(x1, x2, fill = pred_tensor)) +
 -   Suitable when data have structured dependencies but can lead to many parameters in higher dimensions.
 
 
-```r
+``` r
 # Additive Model (GAM)
 gam_model <- gam(y ~ s(x1) + s(x2) + s(x3), data = data_multi)
 
@@ -3140,7 +3114,7 @@ Why GAMs Help:
 -   Limitations: Cannot capture complex interactions unless explicitly added.
 
 
-```r
+``` r
 # Radial Basis Function Model
 rbf_model <- Tps(cbind(x1, x2, x3), y)  # Thin-plate spline RBF
 #> Warning: 
@@ -3167,7 +3141,7 @@ ggplot(grid_data, aes(x1, x2, fill = pred_rbf)) +
 -   Perform well for scattered data but can be computationally expensive for large datasets.
 
 
-```r
+``` r
 # Compute Mean Squared Error for each model
 mse_kernel <- mean((predict(kernel_model) - data_multi$y) ^ 2)
 mse_tps <- mean((predict(tps_model) - data_multi$y) ^ 2)

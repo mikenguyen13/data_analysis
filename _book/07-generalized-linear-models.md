@@ -4,7 +4,7 @@ Generalized Linear Models (GLMs) extend the traditional linear regression framew
 
 While [Ordinary Least Squares] regression assumes that the response variable is continuous and normally distributed, GLMs allow for response variables that follow distributions from the **exponential family**, such as **binomial, Poisson, and gamma distributions**. This flexibility makes them particularly useful in a wide range of business and research applications.
 
-A **Generalized Linear Model** (GLM) consists of three key components:
+A GLM consists of three key components:
 
 1.  **A random component**: The response variable $Y_i$ follows a distribution from the exponential family (e.g., binomial, Poisson, gamma).
 2.  **A systematic component**: A linear predictor $\eta_i = \mathbf{x'_i} \beta$, where $\mathbf{x'_i}$ is a vector of observed covariates (predictor variables) and $\beta$ is a vector of parameters to be estimated.
@@ -183,7 +183,7 @@ This matrix is essential for:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary library
 library(stats)
 
@@ -297,14 +297,14 @@ $$
 **Comparing Likelihood Ratio and Wald Tests**
 
 | Test                                                         | Best Used When...                                                                                                  |
-|--------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+|-------------------------|----------------------------------------------|
 | [Likelihood Ratio Test](#sec-likelihood-ratio-test-logistic) | More accurate in small samples, providing better control of error rates. Recommended when sample sizes are small.  |
 | [Wald Test](#sec-wald-test-logistic)                         | Easier to compute but may be inaccurate in small samples. Recommended when computational efficiency is a priority. |
 
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary library
 library(stats)
 
@@ -459,7 +459,7 @@ where $\tau$ is a chosen cutoff threshold (typically $\tau = 0.5$).
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary library
 library(stats)
 
@@ -539,7 +539,7 @@ In this section, we demonstrate the application of **logistic regression** using
 **1. Load Required Libraries**
 
 
-```r
+``` r
 library(kableExtra)
 library(dplyr)
 library(pscl)
@@ -577,7 +577,7 @@ y \sim Bernoulli(p)
 $$
 
 
-```r
+``` r
 set.seed(23) # Set seed for reproducibility
 x <- runif(1000, min = -0.5, max = 2.5)  # Generate X values
 eta1 <- 0.5 + 0.75 * x                   # Compute linear predictor
@@ -595,7 +595,7 @@ $$
 $$
 
 
-```r
+``` r
 Logistic_Model <- glm(formula = Y ~ X,
                       # Specifies the response distribution
                       family = binomial,
@@ -653,7 +653,7 @@ D = \text{Null Deviance} - \text{Residual Deviance}
 $$
 
 
-```r
+``` r
 Test_Dev <- Logistic_Model$null.deviance - Logistic_Model$deviance
 p_val_dev <- 1 - pchisq(q = Test_Dev, df = 1)
 p_val_dev
@@ -669,7 +669,7 @@ Since the **p-value is approximately 0**, we **reject** $H_0$, confirming that $
 We compute **deviance residuals** and plot them against $X$.
 
 
-```r
+``` r
 Logistic_Resids <- residuals(Logistic_Model, type = "deviance")
 
 plot(
@@ -689,7 +689,7 @@ This plot is not very informative. A more insightful approach is **binned residu
 We group residuals into **bins** based on predicted values.
 
 
-```r
+``` r
 plot_bin <- function(Y,
                      X,
                      bins = 100,
@@ -728,7 +728,7 @@ plot_bin(Y = Logistic_Resids, X = BinData$X, bins = 100)
 We also examine **predicted values vs residuals**:
 
 
-```r
+``` r
 Logistic_Predictions <- predict(Logistic_Model, type = "response")
 plot_bin(Y = Logistic_Resids, X = Logistic_Predictions, bins = 100)
 ```
@@ -738,7 +738,7 @@ plot_bin(Y = Logistic_Resids, X = Logistic_Predictions, bins = 100)
 Finally, we compare **predicted probabilities** to actual outcomes:
 
 
-```r
+``` r
 NumBins <- 10
 Binned_Data <- plot_bin(
     Y = BinData$Y,
@@ -782,7 +782,7 @@ X^2_{HL} \sim \chi^2_{J-1}
 $$
 
 
-```r
+``` r
 HL_BinVals <- (Binned_Data$Count * Binned_Data$Y_ave - 
                Binned_Data$Count * Binned_Data$X_ave) ^ 2 /   
                (Binned_Data$Count * Binned_Data$X_ave * (1 - Binned_Data$X_ave))
@@ -861,7 +861,7 @@ $$
 ### Application: Probit Regression
 
 
-```r
+``` r
 # Load necessary library
 library(ggplot2)
 
@@ -958,7 +958,7 @@ ggplot(data, aes(x = probit_pred, y = logit_pred)) +
 
 <img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Classification Accuracy
 threshold <- 0.5
@@ -997,7 +997,7 @@ The `esoph` dataset consists of:
 Before fitting our models, let's inspect the dataset and visualize some key relationships.
 
 
-```r
+``` r
 # Load and inspect the dataset
 data("esoph")
 head(esoph, n = 3)
@@ -1017,7 +1017,7 @@ plot(
 
 <img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Ensure categorical variables are treated as factors
 class(esoph$agegp) <- "factor"
@@ -1030,7 +1030,7 @@ class(esoph$tobgp) <- "factor"
 We first fit a **logistic regression model**, where the response variable is the proportion of cancer cases (`ncases`) relative to total observations (`ncases + ncontrols`).
 
 
-```r
+``` r
 # Logistic regression using alcohol consumption as a predictor
 model <-
     glm(cbind(ncases, ncontrols) ~ alcgp,
@@ -1071,7 +1071,7 @@ Interpretation
 Model Diagnostics
 
 
-```r
+``` r
 # Convert coefficients to odds ratios
 exp(coefficients(model))
 #> (Intercept)  alcgp40-79 alcgp80-119   alcgp120+ 
@@ -1087,7 +1087,7 @@ model$aic  # Lower AIC is preferable for model comparison
 To improve our model, we include **age group (`agegp`)** as an additional predictor.
 
 
-```r
+``` r
 # Logistic regression with alcohol consumption and age
 better_model <- glm(
     cbind(ncases, ncontrols) ~ agegp + alcgp,
@@ -1162,7 +1162,7 @@ Key Takeaways
 As discussed earlier, the **probit** model is an alternative to logistic regression, using a cumulative normal distribution instead of the logistic function.
 
 
-```r
+``` r
 # Probit regression model
 Prob_better_model <- glm(
     cbind(ncases, ncontrols) ~ agegp + alcgp,
@@ -1255,7 +1255,7 @@ We apply Poisson regression to the **bioChemists** dataset (from the `pscl` pack
 #### Dataset Overview
 
 
-```r
+``` r
 library(tidyverse)
 # Load dataset
 data(bioChemists, package = "pscl")
@@ -1291,7 +1291,7 @@ The **distribution of the number of articles** is right-skewed, which suggests a
 We model the number of articles published (`Num_Article`) as a function of various predictors.
 
 
-```r
+``` r
 # Poisson regression model
 Poisson_Mod <-
   glm(Num_Article ~ .,
@@ -1326,11 +1326,11 @@ summary(Poisson_Mod)
 
 Interpretation:
 
--   **Coefficients** are on the **log scale**, meaning they represent **log-rate ratios**.
+-   Coefficients are on the log scale, meaning they represent log-rate ratios.
 
--   **Exponentiating** the coefficients gives the **rate ratios**.
+-   Exponentiating the coefficients gives the rate ratios.
 
--   **Statistical significance** tells us whether each variable has a meaningful impact on publication count.
+-   Statistical significance tells us whether each variable has a meaningful impact on publication count.
 
 #### Model Diagnostics: Goodness of Fit
 
@@ -1341,7 +1341,7 @@ X^2 = \sum \frac{(Y_i - \hat{\mu}_i)^2}{\hat{\mu}_i}
 $$
 
 
-```r
+``` r
 # Compute predicted means
 Predicted_Means <- predict(Poisson_Mod, type = "response")
 
@@ -1354,9 +1354,9 @@ pchisq(X2, Poisson_Mod$df.residual, lower.tail = FALSE)
 #> [1] 7.849882e-47
 ```
 
--   If **p-value is small**, overdispersion is present.
+-   If p-value is small, overdispersion is present.
 
--   Large **X² statistic** suggests the model may not adequately capture variability.
+-   Large X² statistic suggests the model may not adequately capture variability.
 
 ##### Overdispersion Check: Ratio of Deviance to Degrees of Freedom
 
@@ -1365,7 +1365,7 @@ We compute: $$
 $$
 
 
-```r
+``` r
 # Overdispersion check
 Poisson_Mod$deviance / Poisson_Mod$df.residual
 #> [1] 1.797988
@@ -1382,7 +1382,7 @@ Poisson_Mod$deviance / Poisson_Mod$df.residual
 One possible remedy is to incorporate **interaction terms**, capturing complex relationships between predictors.
 
 
-```r
+``` r
 # Adding two-way and three-way interaction terms
 Poisson_Mod_All2way <-
   glm(Num_Article ~ . ^ 2, family = poisson, data = bioChemists)
@@ -1394,14 +1394,14 @@ This may improve model fit, but can lead to overfitting.
 
 ##### Quasi-Poisson Model (Adjusting for Overdispersion)
 
-A quick fix is to **allow the variance to scale** by introducing $\hat{\phi}$:
+A quick fix is to allow the variance to scale by introducing $\hat{\phi}$:
 
 $$
 \text{Var}(Y_i) = \hat{\phi} \mu_i
 $$
 
 
-```r
+``` r
 # Estimate dispersion parameter
 phi_hat = Poisson_Mod$deviance / Poisson_Mod$df.residual
 
@@ -1431,10 +1431,10 @@ summary(Poisson_Mod, dispersion = phi_hat)
 #> Number of Fisher Scoring iterations: 5
 ```
 
-Alternatively, we refit using a **Quasi-Poisson model**, which adjusts standard errors:
+Alternatively, we refit using a [Quasi-Poisson model](#sec-quasi-poisson-regression), which adjusts standard errors:
 
 
-```r
+``` r
 # Quasi-Poisson model
 quasiPoisson_Mod <- glm(Num_Article ~ ., family = quasipoisson, data = bioChemists)
 summary(quasiPoisson_Mod)
@@ -1462,20 +1462,20 @@ summary(quasiPoisson_Mod)
 #> Number of Fisher Scoring iterations: 5
 ```
 
-While Quasi-Poisson corrects standard errors, **it does not introduce an extra parameter** for overdispersion.
+While [Quasi-Poisson](#sec-quasi-poisson-regression) corrects standard errors, it does not introduce an extra parameter for overdispersion.
 
 ##### Negative Binomial Regression (Preferred Approach)
 
-A [Negative Binomial Regression](#sec-negative-binomial-regression) explicitly models overdispersion by introducing a **dispersion parameter** $\theta$:
+A [Negative Binomial Regression](#sec-negative-binomial-regression) explicitly models overdispersion by introducing a dispersion parameter $\theta$:
 
 $$
 \text{Var}(Y_i) = \mu_i + \theta \mu_i^2
 $$
 
-This extends Poisson regression by allowing the variance to **grow quadratically** rather than linearly.
+This extends Poisson regression by allowing the variance to grow quadratically rather than linearly.
 
 
-```r
+``` r
 # Load MASS package
 library(MASS)
 
@@ -1523,17 +1523,17 @@ When modeling **count data**, [Poisson regression](#sec-poisson-regression) assu
 
 $$
 \text{Var}(Y_i) = E(Y_i) = \mu_i
-$$ However, in many real-world datasets, the variance exceeds the mean---a phenomenon known as **overdispersion**. When overdispersion is present, the **Poisson model underestimates the variance**, leading to:
+$$ However, in many real-world datasets, the variance exceeds the mean---a phenomenon known as **overdispersion**. When overdispersion is present, the Poisson model underestimates the variance, leading to:
 
--   **Inflated test statistics** (small p-values).
+-   Inflated test statistics (small p-values).
 
--   **Overconfident predictions**.
+-   Overconfident predictions.
 
--   **Poor model fit**.
+-   Poor model fit.
 
 ### Negative Binomial Distribution
 
-To address overdispersion, **Negative Binomial (NB) regression** introduces an extra **dispersion parameter** $\theta$ to allow variance to be greater than the mean: $$
+To address overdispersion, **Negative Binomial regression** introduces an extra **dispersion parameter** $\theta$ to allow variance to be greater than the mean: $$
 \text{Var}(Y_i) = \mu_i + \theta \mu_i^2
 $$ where:
 
@@ -1552,7 +1552,7 @@ We apply **Negative Binomial regression** to the `bioChemists` dataset to model 
 #### Fitting the Negative Binomial Model
 
 
-```r
+``` r
 # Load necessary package
 library(MASS)
 
@@ -1611,7 +1611,7 @@ $$
 $$
 
 
-```r
+``` r
 # Overdispersion check for Poisson model
 Poisson_Mod$deviance / Poisson_Mod$df.residual
 #> [1] 1.797988
@@ -1619,7 +1619,7 @@ Poisson_Mod$deviance / Poisson_Mod$df.residual
 
 -   If $\hat{\phi} > 1$, overdispersion is present.
 
--   A large value suggests that **Poisson regression underestimates variance**.
+-   A large value suggests that Poisson regression underestimates variance.
 
 ##### Likelihood Ratio Test: Poisson vs. Negative Binomial
 
@@ -1628,7 +1628,7 @@ G^2 = 2 \times ( \log L_{NB} - \log L_{Poisson})
 $$ with $\text{df} = 1$
 
 
-```r
+``` r
 # Likelihood ratio test between Poisson and Negative Binomial
 pchisq(2 * (logLik(NegBinom_Mod) - logLik(Poisson_Mod)),
        df = 1,
@@ -1636,11 +1636,11 @@ pchisq(2 * (logLik(NegBinom_Mod) - logLik(Poisson_Mod)),
 #> 'log Lik.' 4.391728e-41 (df=7)
 ```
 
--   **Small p-value (\< 0.05)** → Negative Binomial model is **significantly better**.
+-   Small p-value (\< 0.05) → Negative Binomial model is significantly better.
 
--   **Large p-value (\> 0.05)** → Poisson model **is adequate**.
+-   Large p-value (\> 0.05) → Poisson model is adequate.
 
-Since **overdispersion is confirmed**, the Negative Binomial model is preferred.
+Since overdispersion is confirmed, the Negative Binomial model is preferred.
 
 #### Model Diagnostics and Evaluation
 
@@ -1649,7 +1649,7 @@ Since **overdispersion is confirmed**, the Negative Binomial model is preferred.
 The Negative Binomial dispersion parameter $\theta$ can be retrieved:
 
 
-```r
+``` r
 # Extract dispersion parameter estimate
 NegBinom_Mod$theta
 #> [1] 2.264388
@@ -1659,10 +1659,10 @@ NegBinom_Mod$theta
 
 #### Predictions and Rate Ratios
 
-In Negative Binomial regression, exponentiating the coefficients gives **rate ratios**:
+In Negative Binomial regression, exponentiating the coefficients gives rate ratios:
 
 
-```r
+``` r
 # Convert coefficients to rate ratios
 data.frame(`Odds Ratios` = exp(coef(NegBinom_Mod)))
 #>                 Odds.Ratios
@@ -1676,21 +1676,21 @@ data.frame(`Odds Ratios` = exp(coef(NegBinom_Mod)))
 
 A rate ratio of:
 
--   **\> 1** $\to$ Increases expected article count.
+-   **\>** 1 $\to$ Increases expected article count.
 
--   **\< 1** $\to$ Decreases expected article count.
+-   \< 1 $\to$ Decreases expected article count.
 
--   **= 1** $\to$ No effect.
+-   = 1 $\to$ No effect.
 
 For example:
 
--   If `PhD_Quality` has an exponentiated coefficient of **1.5**, individuals from higher-quality PhD programs are expected to publish **50% more articles**.
+-   If `PhD_Quality` has an exponentiated coefficient of 1.5, individuals from higher-quality PhD programs are expected to publish 50% more articles.
 
--   If `Sex` has an exponentiated coefficient of **0.8**, females publish **20% fewer articles** than males, all else equal.
+-   If `Sex` has an exponentiated coefficient of 0.8, females publish 20% fewer articles than males, all else equal.
 
 #### Alternative Approach: Zero-Inflated Models
 
-If a dataset has **excess zeros** (many individuals publish **no articles**), **Zero-Inflated Negative Binomial (ZINB) models** may be required.
+If a dataset has excess zeros (many individuals publish no articles), **Zero-Inflated Negative Binomial (ZINB) models** may be required.
 
 $$
 \text{P}(Y_i = 0) = p + (1 - p) f(Y_i = 0 | \mu, \theta)
@@ -1698,14 +1698,14 @@ $$
 
 where:
 
--   $p$ is the probability of **always being a zero** (e.g., inactive researchers).
+-   $p$ is the probability of always being a zero (e.g., inactive researchers).
 
--   $f(Y_i)$ follows the **Negative Binomial distribution**.
+-   $f(Y_i)$ follows the Negative Binomial distribution.
 
 ### Fitting a Zero-Inflated Negative Binomial Model
 
 
-```r
+``` r
 # Load package for zero-inflated models
 library(pscl)
 
@@ -1724,33 +1724,33 @@ summary(ZINB_Mod)
 #> 
 #> Count model coefficients (negbin with log link):
 #>                   Estimate Std. Error z value Pr(>|z|)    
-#> (Intercept)      0.4167466  0.1435964   2.902  0.00371 ** 
-#> SexWomen        -0.1955076  0.0755926  -2.586  0.00970 ** 
+#> (Intercept)      0.4167465  0.1435966   2.902  0.00371 ** 
+#> SexWomen        -0.1955068  0.0755926  -2.586  0.00970 ** 
 #> MarriedMarried   0.0975826  0.0844520   1.155  0.24789    
-#> Num_Kid5        -0.1517321  0.0542061  -2.799  0.00512 ** 
-#> PhD_Quality     -0.0006998  0.0362697  -0.019  0.98461    
+#> Num_Kid5        -0.1517325  0.0542061  -2.799  0.00512 ** 
+#> PhD_Quality     -0.0007001  0.0362697  -0.019  0.98460    
 #> Num_MentArticle  0.0247862  0.0034927   7.097 1.28e-12 ***
-#> Log(theta)       0.9763577  0.1354696   7.207 5.71e-13 ***
+#> Log(theta)       0.9763565  0.1354695   7.207 5.71e-13 ***
 #> 
 #> Zero-inflation model coefficients (binomial with logit link):
 #>                 Estimate Std. Error z value Pr(>|z|)   
-#> (Intercept)     -0.19161    1.32280  -0.145  0.88483   
-#> SexWomen         0.63587    0.84890   0.749  0.45382   
-#> MarriedMarried  -1.49944    0.93866  -1.597  0.11017   
-#> Num_Kid5         0.62841    0.44277   1.419  0.15583   
-#> PhD_Quality     -0.03773    0.30801  -0.123  0.90250   
-#> Num_MentArticle -0.88227    0.31622  -2.790  0.00527 **
+#> (Intercept)     -0.19169    1.32282  -0.145  0.88478   
+#> SexWomen         0.63593    0.84892   0.749  0.45379   
+#> MarriedMarried  -1.49947    0.93867  -1.597  0.11017   
+#> Num_Kid5         0.62843    0.44278   1.419  0.15582   
+#> PhD_Quality     -0.03771    0.30801  -0.122  0.90254   
+#> Num_MentArticle -0.88229    0.31623  -2.790  0.00527 **
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1 
 #> 
 #> Theta = 2.6548 
-#> Number of iterations in BFGS optimization: 27 
+#> Number of iterations in BFGS optimization: 43 
 #> Log-likelihood: -1550 on 13 Df
 ```
 
 This model accounts for:
 
--   Structural **zero inflation**.
+-   Structural zero inflation.
 
 -   Overdispersion.
 
@@ -1843,7 +1843,7 @@ We analyze the `bioChemists` dataset, modeling the number of published articles 
 We first fit a [Poisson regression model](#sec-poisson-regression) and check for overdispersion using the deviance-to-degrees-of-freedom ratio:
 
 
-```r
+``` r
 # Fit Poisson regression model
 Poisson_Mod <-
     glm(Num_Article ~ ., family = poisson, data = bioChemists)
@@ -1857,14 +1857,14 @@ dispersion_estimate
 
 -   If $\hat{\phi} > 1$, the Poisson model underestimates variance.
 
--   A **large value (\>\> 1)** suggests that Poisson regression **is not appropriate**.
+-   A large value (\>\> 1) suggests that Poisson regression is not appropriate.
 
 #### Fitting the Quasi-Poisson Model
 
 Since overdispersion is present, we refit the model using [Quasi-Poisson regression](#sec-quasi-poisson-regression), which scales standard errors by $\phi$.
 
 
-```r
+``` r
 # Fit Quasi-Poisson regression model
 quasiPoisson_Mod <-
     glm(Num_Article ~ ., family = quasipoisson, data = bioChemists)
@@ -1897,18 +1897,18 @@ summary(quasiPoisson_Mod)
 
 Interpretation:
 
--   The **coefficients remain the same** as in Poisson regression.
+-   The coefficients remain the same as in Poisson regression.
 
--   **Standard errors are inflated** to account for overdispersion.
+-   Standard errors are inflated to account for overdispersion.
 
--   **P-values increase**, leading to more conservative inference.
+-   P-values increase, leading to more conservative inference.
 
 #### Comparing Poisson and Quasi-Poisson
 
-To see the effect of using **Quasi-Poisson**, we compare **standard errors**:
+To see the effect of using [Quasi-Poisson](#sec-quasi-poisson-regression), we compare standard errors:
 
 
-```r
+``` r
 # Extract coefficients and standard errors
 poisson_se <- summary(Poisson_Mod)$coefficients[, 2]
 quasi_se <- summary(quasiPoisson_Mod)$coefficients[, 2]
@@ -1926,16 +1926,16 @@ se_comparison
 #> Num_MentArticle 0.002006073   0.002713028
 ```
 
--   **Quasi-Poisson has larger standard errors** than Poisson.
+-   [Quasi-Poisson](#sec-quasi-poisson-regression) has larger standard errors than [Poisson](#sec-poisson-regression).
 
--   This leads to **wider confidence intervals**, reducing the likelihood of false positives.
+-   This leads to wider confidence intervals, reducing the likelihood of false positives.
 
 #### Model Diagnostics: Checking Residuals
 
-We examine **residuals** to assess model fit:
+We examine residuals to assess model fit:
 
 
-```r
+``` r
 # Residual plot
 plot(
     quasiPoisson_Mod$fitted.values,
@@ -1949,16 +1949,16 @@ abline(h = 0, col = "red")
 
 <img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-35-1.png" width="90%" style="display: block; margin: auto;" />
 
--   If residuals show a **pattern**, additional predictors or transformations may be needed.
+-   If residuals show a pattern, additional predictors or transformations may be needed.
 
--   **Random scatter around zero** suggests a well-fitting model.
+-   Random scatter around zero suggests a well-fitting model.
 
 #### Alternative: Negative Binomial vs. Quasi-Poisson
 
 If overdispersion is **severe**, [Negative Binomial regression](#sec-negative-binomial-regression) may be preferable because it explicitly models dispersion:
 
 
-```r
+``` r
 # Fit Negative Binomial model
 library(MASS)
 NegBinom_Mod <- glm.nb(Num_Article ~ ., data = bioChemists)
@@ -2021,22 +2021,22 @@ summary(NegBinom_Mod)
 
 #### Key Differences: Quasi-Poisson vs. Negative Binomial
 
-| Feature                                   | Quasi-Poisson            | Negative Binomial |
-|-------------------------------------------|--------------------------|-------------------|
-| **Handles Overdispersion?**               | ✅ Yes                   | ✅ Yes            |
-| **Uses a Full Probability Distribution?** | ❌ No                    | ✅ Yes            |
-| **MLE-Based?**                            | ❌ No (quasi-likelihood) | ✅ Yes            |
-| **Can Use AIC/BIC for Model Selection?**  | ❌ No                    | ✅ Yes            |
-| **Better for Model Interpretation?**      | ✅ Yes                   | ✅ Yes            |
-| **Best for Severe Overdispersion?**       | ❌ No                    | ✅ Yes            |
+| Feature                               | Quasi-Poisson            | Negative Binomial |
+|----------------------------------|---------------------|------------------|
+| Handles Overdispersion?               | ✅ Yes                   | ✅ Yes            |
+| Uses a Full Probability Distribution? | ❌ No                    | ✅ Yes            |
+| MLE-Based?                            | ❌ No (quasi-likelihood) | ✅ Yes            |
+| Can Use AIC/BIC for Model Selection?  | ❌ No                    | ✅ Yes            |
+| Better for Model Interpretation?      | ✅ Yes                   | ✅ Yes            |
+| Best for Severe Overdispersion?       | ❌ No                    | ✅ Yes            |
 
 **When to Choose:**
 
--   Use [Quasi-Poisson](#sec-quasi-poisson-regression) when you **only need robust standard errors** and do not require model selection via AIC/BIC.
+-   Use [Quasi-Poisson](#sec-quasi-poisson-regression) when you only need robust standard errors and do not require model selection via AIC/BIC.
 
--   Use [Negative Binomial](#sec-negative-binomial-regression) when overdispersion is **large** and you want a **true likelihood-based model**.
+-   Use [Negative Binomial](#sec-negative-binomial-regression) when overdispersion is large and you want a true likelihood-based model.
 
-While Quasi-Poisson is a quick fix, Negative Binomial is generally the better choice for modeling count data with overdispersion.
+While [Quasi-Poisson](#sec-quasi-poisson-regression) is a quick fix, [Negative Binomial](#sec-negative-binomial-regression) is generally the better choice for modeling count data with overdispersion.
 
 ## Multinomial Logistic Regression {#sec-multinomial-logistic-regression}
 
@@ -2148,16 +2148,16 @@ Since there is no closed-form solution, numerical methods (see [Non-linear Least
 
 ### Interpretation of Coefficients
 
--   Each $\beta_{jp}$ represents the effect of $x_p$ on the **log-odds** of category $j$ relative to the baseline.
--   **Positive coefficients** mean increasing $x_p$ makes category $j$ more likely relative to the baseline.
--   **Negative coefficients** mean increasing $x_p$ makes category $j$ less likely relative to the baseline.
+-   Each $\beta_{jp}$ represents the effect of $x_p$ on the log-odds of category $j$ relative to the baseline.
+-   Positive coefficients mean increasing $x_p$ makes category $j$ more likely relative to the baseline.
+-   Negative coefficients mean increasing $x_p$ makes category $j$ less likely relative to the baseline.
 
 ### Application: Multinomial Logistic Regression
 
 **1. Load Necessary Libraries and Data**
 
 
-```r
+``` r
 library(faraway)  # For the dataset
 library(dplyr)    # For data manipulation
 library(ggplot2)  # For visualization
@@ -2185,7 +2185,7 @@ We classify political strength into three categories:
 3.  **Neutral**: Independents and other affiliations
 
 
-```r
+``` r
 # Check distribution of political identity
 table(nes96$PID)
 #> 
@@ -2216,7 +2216,7 @@ nes96 %>% group_by(Political_Strength) %>% summarise(Count = n())
 We visualize the proportion of each political strength category across age groups.
 
 
-```r
+``` r
 # Prepare data for visualization
 Plot_DF <- nes96 %>%
     mutate(Age_Grp = cut_number(age, 4)) %>%
@@ -2252,7 +2252,7 @@ Age_Plot
 We model **political strength** as a function of **age** and **education**.
 
 
-```r
+``` r
 # Fit multinomial logistic regression
 Multinomial_Model <-
     multinom(Political_Strength ~ age + educ,
@@ -2288,7 +2288,7 @@ summary(Multinomial_Model)
 We perform stepwise selection to find the best model.
 
 
-```r
+``` r
 Multinomial_Step <- step(Multinomial_Model, trace = 0)
 #> trying - age 
 #> trying - educ 
@@ -2309,7 +2309,7 @@ Multinomial_Step
 Compare the best model to the full model based on **deviance**:
 
 
-```r
+``` r
 pchisq(
     q = deviance(Multinomial_Step) - deviance(Multinomial_Model),
     df = Multinomial_Model$edf - Multinomial_Step$edf,
@@ -2325,7 +2325,7 @@ A non-significant p-value suggests **no major difference** between the full and 
 Predicting Political Strength Probabilities by Age
 
 
-```r
+``` r
 # Create data for prediction
 PlotData <- data.frame(age = seq(from = 19, to = 91))
 
@@ -2366,7 +2366,7 @@ legend(
 Predict for Specific Ages
 
 
-```r
+``` r
 # Predict class for a 34-year-old
 predict(Multinomial_Step, data.frame(age = 34))
 #> [1] Weak
@@ -2386,7 +2386,7 @@ When response variables are **strictly positive**, we use **Gamma regression**.
 **1. Load and Prepare Data**
 
 
-```r
+``` r
 library(agridat)  # Agricultural dataset
 
 # Load and filter data
@@ -2402,7 +2402,7 @@ gammaDat <-
 **2. Visualization of Inverse Yield**
 
 
-```r
+``` r
 ggplot(gammaDat, aes(x = x, y = 1 / y)) +
     geom_point(aes(color = block, shape = block)) +
     labs(title = "Inverse Yield vs Seeding Rate",
@@ -2419,7 +2419,7 @@ Gamma regression models **yield as a function of seeding rate** using an inverse
 $$
 
 
-```r
+``` r
 m1 <- glm(y ~ block + block * x + block * I(x^2),
           data = gammaDat, family = Gamma(link = "inverse"))
 
@@ -2455,7 +2455,7 @@ summary(m1)
 **4. Predictions and Visualization**
 
 
-```r
+``` r
 # Generate new data for prediction
 newdf <-
     expand.grid(x = seq(0, 120, length = 50), 
@@ -2887,12 +2887,12 @@ For this family, we obtain:
     $$
 -   **Variance of** $Y_i$: $$
     \text{Var}(Y_i) = b''(\theta_i) a(\phi) = V(\mu_i)a(\phi)
-    $$ where $V(\mu_i)$ is the **variance function**.
+    $$ where $V(\mu_i)$ is the variance function.
 -   **Systematic component (link function):** $$
     g(\mu_i) = \eta_i = \mathbf{x}_i' \beta
     $$
 
-The function $g(\cdot)$ is the **link function**, which connects the expected response $\mu_i$ to the linear predictor $\mathbf{x}_i' \beta$.
+The function $g(\cdot)$ is the link function, which connects the expected response $\mu_i$ to the linear predictor $\mathbf{x}_i' \beta$.
 
 ------------------------------------------------------------------------
 
@@ -2902,7 +2902,7 @@ $$
 l_i(\beta, \phi) = \frac{\theta_i y_i - b(\theta_i)}{a(\phi)} + c(y_i, \phi)
 $$
 
-For $n$ independent observations, the **total log-likelihood** is:
+For $n$ independent observations, the total log-likelihood is:
 
 $$
 l(\beta, \phi) = \sum_{i=1}^n l_i(\beta, \phi)
@@ -2920,7 +2920,7 @@ To estimate $\beta$, we maximize this log-likelihood function.
 
 #### Estimation of Systematic Component ($\beta$) {#estimation-of-systematic-component-beta}
 
-To differentiate $l(\beta,\phi)$ with respect to $\beta_j$, we apply the **chain rule**:
+To differentiate $l(\beta,\phi)$ with respect to $\beta_j$, we apply the chain rule:
 
 $$
 \frac{\partial l_i(\beta,\phi)}{\partial \beta_j} =
@@ -3036,13 +3036,13 @@ $$
 
 ------------------------------------------------------------------------
 
-To simplify expressions, we define the **weight**:
+To simplify expressions, we define the weight:
 
 $$
 w_i = \left(\left(\frac{\partial \eta_i}{\partial \mu_i}\right)^2 V(\mu_i)\right)^{-1}.
 $$
 
-For **canonical links**, this often simplifies to $w_i = V(\mu_i)$, such as:
+For canonical links, this often simplifies to $w_i = V(\mu_i)$, such as:
 
 -   **Bernoulli (logit link)**: $w_i = p_i(1-p_i)$.
 -   **Poisson (log link)**: $w_i = \mu_i$.
@@ -3069,7 +3069,7 @@ $$
 - E\left(\frac{\partial^2 l(\beta,\phi)}{\partial \beta_j \partial \beta_k}\right),
 $$
 
-which corresponds to the $(j,k)$-th element of the **Fisher information matrix** $\mathbf{I}(\beta)$:
+which corresponds to the $(j,k)$-th element of the Fisher information matrix $\mathbf{I}(\beta)$:
 
 $$
 \mathbf{I}_{jk}(\beta) = - E\left(\frac{\partial^2 l(\beta,\phi)}{\partial \beta_j \partial \beta_k}\right) = \sum_{i=1}^n \frac{w_i}{a(\phi)}x_{ij}x_{ik}.
@@ -3079,7 +3079,7 @@ $$
 
 **Example: Bernoulli Model with Logit Link**
 
-For a **Bernoulli** response with a **logit link function** (canonical link), we have:
+For a Bernoulli response with a logit link function (canonical link), we have:
 
 $$
 \begin{aligned}
@@ -3138,7 +3138,7 @@ $$\`
 
 ------------------------------------------------------------------------
 
-The **Fisher-Scoring** algorithm for the [Maximum Likelihood] estimate of $\mathbf{\beta}$ is given by:
+The Fisher-Scoring algorithm for the [Maximum Likelihood] estimate of $\mathbf{\beta}$ is given by:
 
 $$
 \left(
@@ -3320,7 +3320,7 @@ This means that the unification GLMs provide for estimating $\beta$ does not ext
     $$
 
 | Approach              | Description                                                      | Pros                         | Cons                                                          |
-|-----------------------|------------------------------------------------------------------|------------------------------|---------------------------------------------------------------|
+|---------------|----------------------|---------------|---------------------|
 | **MLE**               | Estimates $\phi$ by maximizing the likelihood function           | Theoretically optimal        | Computationally complex, lacks a general closed-form solution |
 | **Moment Estimation** | Uses a bias-corrected $\chi^2$ method based on residual variance | Simpler, widely used in GLMs | Not as efficient as MLE                                       |
 
@@ -3403,7 +3403,7 @@ where:
 ------------------------------------------------------------------------
 
 | Test                      | Pros                                                 | Cons                                          |
-|---------------------------|------------------------------------------------------|-----------------------------------------------|
+|------------------|-----------------------------|--------------------------|
 | **Wald Test**             | Easy to compute, does not require fitting two models | May perform poorly in small samples           |
 | **Likelihood Ratio Test** | More accurate, especially for small samples          | Requires fitting both full and reduced models |
 
@@ -3691,7 +3691,7 @@ follow a $\chi^2_{n-p}$ distribution.
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 set.seed(123) 
 n <- 100 
 x <- rnorm(n) 
@@ -3803,7 +3803,7 @@ Over-dispersion occurs when the observed variance exceeds what the assumed model
 **Variance Assumptions for Common Random Components**
 
 | Random Component | Standard Assumption ($\text{var}(Y)$) | Alternative Model Allowing Over-Dispersion ($V(\mu)$) |
-|------------------|---------------------------------------|-------------------------------------------------------|
+|----------------|-----------------------|---------------------------------|
 | **Binomial**     | $n \mu (1- \mu)$                      | $\phi n \mu (1- \mu)$, where $m_i = n$                |
 | **Poisson**      | $\mu$                                 | $\phi \mu$                                            |
 
@@ -3825,7 +3825,7 @@ To account for dispersion issues, we can:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary libraries
 library(ggplot2)
 library(MASS)   # For negative binomial models
@@ -3860,7 +3860,7 @@ ggplot(data = data.frame(fitted_vals, resid_dev),
 
 <img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-50-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Absolute Residuals vs Fitted Values (Variance Function Check)
 ggplot(data = data.frame(fitted_vals, abs_resid = abs(resid_dev)),
@@ -3876,7 +3876,7 @@ ggplot(data = data.frame(fitted_vals, abs_resid = abs(resid_dev)),
 
 <img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-50-2.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Goodness-of-Fit Metrics
 AIC(model_pois)    # Akaike Information Criterion

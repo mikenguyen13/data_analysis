@@ -717,7 +717,7 @@ Alternatively, data-driven methods can be used:
 -   **Alternative Heuristic**: $g = \lfloor T^{1/4} \rfloor$
 
 
-```r
+``` r
 # Load necessary libraries
 library(sandwich)
 library(lmtest)
@@ -788,7 +788,7 @@ $$
 Step 1: Estimate an OLS Regression and Obtain Residuals
 
 
-```r
+``` r
 # Load necessary libraries
 library(lmtest)
 library(sandwich)
@@ -809,7 +809,7 @@ residuals <- resid(model)
 Step 2: Test for Autocorrelation in Residuals
 
 
-```r
+``` r
 # Create lagged residuals
 lagged_residuals <- c(NA, residuals[-length(residuals)])
 
@@ -854,7 +854,7 @@ if (rho_p_value < 0.05) {
 Step 3: Testing for Higher-Order Serial Correlation
 
 
-```r
+``` r
 # Number of lags to test
 p <- 2  # Example: testing for 2nd order autocorrelation
 
@@ -892,9 +892,8 @@ f_test <- car::linearHypothesis(higher_order_autocorr_test_model,
 
 # Print the F-test results
 print(f_test)
-#> Linear hypothesis test
 #> 
-#> Hypothesis:
+#> Linear hypothesis test:
 #> lagged_residuals_matrix1 = 0
 #> lagged_residuals_matrix2 = 0
 #> 
@@ -2067,7 +2066,7 @@ This would confirm that **teacher characteristics are uncorrelated with measurem
 We typically don't test heteroskedasticity explicitly because robust covariance matrix estimation is used. However, other key assumptions should be tested before choosing the appropriate panel model.
 
 
-```r
+``` r
 library("plm")
 data("EmplUK", package="plm")
 data("Produc", package="plm")
@@ -2090,7 +2089,7 @@ Notes:
 -   A random effects model assumes a common intercept.
 
 
-```r
+``` r
 library(plm)
 plm::pooltest(inv ~ value + capital, 
               data = Grunfeld, 
@@ -2120,7 +2119,7 @@ Checks for the presence of individual or time effects, or both.
     -   `ghm`: Gourieroux, Holly, and Monfort test for two-way effects [@gourieroux1982likelihood]
 
 
-```r
+``` r
 pFtest(inv ~ value + capital, 
        data = Grunfeld, 
        effect = "twoways")
@@ -2159,7 +2158,7 @@ Tests whether residuals across entities are correlated.
 ##### Global Cross-Sectional Dependence
 
 
-```r
+``` r
 pcdtest(inv ~ value + capital, 
         data = Grunfeld, model = "within")
 #> 
@@ -2175,7 +2174,7 @@ pcdtest(inv ~ value + capital,
 Uses a spatial weight matrix **w**.
 
 
-```r
+``` r
 pcdtest(inv ~ value + capital, 
         data = Grunfeld, 
         model = "within", 
@@ -2207,7 +2206,7 @@ Types of Serial Correlation Tests
 -   Robustness: The test is robust to both unobserved individual effects and serial correlation.
 
 
-```r
+``` r
 library(plm)
 data("Produc", package = "plm")
 
@@ -2238,7 +2237,7 @@ pwtest(log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp,
     -   This is equivalent to assuming there is no presence of serial correlation, and random effects.
 
 
-```r
+``` r
 # Baltagi and Li's joint test for serial correlation and random effects
 pbsytest(log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp, 
          data = Produc, 
@@ -2258,7 +2257,7 @@ To distinguish the source of dependence, we use either (both tests assume normal
 **BSY Test for Serial Correlation**
 
 
-```r
+``` r
 pbsytest(log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp, 
          data = Produc)
 #> 
@@ -2272,7 +2271,7 @@ pbsytest(log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp,
 **BSY Test for Random Effects**
 
 
-```r
+``` r
 pbsytest(log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp, 
          data = Produc, 
          test = "re")
@@ -2287,7 +2286,7 @@ pbsytest(log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp,
 If serial correlation is "known" to be absent (based on the BSY test), the **LM test for random effects** is superior.
 
 
-```r
+``` r
 plmtest(inv ~ value + capital, 
         data = Grunfeld, 
         type = "honda")
@@ -2302,7 +2301,7 @@ plmtest(inv ~ value + capital,
 If random effects are absent (based on the BSY test), we use **Breusch-Godfrey's serial correlation test** [@breusch1978testing; @godfrey1978testing].
 
 
-```r
+``` r
 lmtest::bgtest()
 ```
 
@@ -2319,7 +2318,7 @@ Baltagi and Li's test detects serial correlation in AR(1) and MA(1) processes un
     -   It is applicable only to balanced panels
 
 
-```r
+``` r
 pbltest(log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp, 
         data = Produc, 
         alternative = "onesided")
@@ -2338,7 +2337,7 @@ pbltest(log(gsp) ~ log(pcap) + log(pc) + log(emp) + unemp,
 -   Can test for **higher-order serial correlation**.
 
 
-```r
+``` r
 # Baltagi-Griffin test for higher-order serial correlation
 plm::pbgtest(plm::plm(inv ~ value + capital, 
                       data = Grunfeld, 
@@ -2355,7 +2354,7 @@ plm::pbgtest(plm::plm(inv ~ value + capital,
 For short panels (Small $T$, Large $N$), use Wooldridge's test:
 
 
-```r
+``` r
 pwartest(log(emp) ~ log(wage) + log(capital), 
          data = EmplUK)
 #> 
@@ -2378,7 +2377,7 @@ pwartest(log(emp) ~ log(wage) + log(capital),
     -   If the test statistic is greater than the critical value (or $p \geq 0.05$), fail to reject $H_0$, suggesting the presence of a unit root.
 
 
-```r
+``` r
 library(tseries)
 
 # Example: Test for unit root in GDP data
@@ -2402,7 +2401,7 @@ If we reject $H_0$, the series is **stationary** and does not exhibit a stochast
 -   Decision Rule: If the test statistic is less than the critical value or $p < 0.05$, reject $H_0$ (evidence of stationarity).
 
 
-```r
+``` r
 library(tseries)
 library(plm)
 
@@ -2435,7 +2434,7 @@ If we reject $H_0$, the series is **stationary**.
     -   If the p-value is large ($p \geq 0.05$), fail to reject $H_0$, implying homoskedasticity.
 
 
-```r
+``` r
 library(lmtest)
 
 # Fit a panel model (pooled OLS)
@@ -2466,7 +2465,7 @@ Choosing the Correct Robust Covariance Matrix Estimator
 | `"arellano"` | ✅ Yes                                 | ✅ Yes                           | Fixed Effects   |
 
 
-```r
+``` r
 library(plm)
 
 # Fit a fixed effects model
@@ -2510,7 +2509,7 @@ The choice between POLS and RE depends on whether there are unobserved individua
 -   **Decision Rule:** If $p < 0.05$, reject $H_0$, indicating that RE is preferred.
 
 
-```r
+``` r
 library(plm)
 
 # Breusch-Pagan LM Test
@@ -2557,7 +2556,7 @@ Then,
     -   If $p \geq 0.05$: Fail to reject $H_0$, meaning RE can be used.
 
 
-```r
+``` r
 library(plm)
 
 # Fit FE and RE models
@@ -2665,7 +2664,7 @@ For a detailed guide, refer to:
 -   The [model components reference](https://cran.r-project.org/web/packages/plm/vignettes/C_plmModelComponents.html).
 
 
-```r
+``` r
 # Load the package
 library("plm")
 
@@ -2692,7 +2691,7 @@ head(Produc)
 To specify panel data, we define the **individual (cross-sectional) and time identifiers**:
 
 
-```r
+``` r
 # Convert data to panel format
 pdata <- pdata.frame(Produc, index = c("state", "year"))
 
@@ -2731,7 +2730,7 @@ The `plm` package allows for the estimation of several different panel data mode
 A simple **pooled OLS** model assumes a common intercept and ignores individual-specific effects.
 
 
-```r
+``` r
 pooling <- plm(log(gsp) ~ log(pcap) + log(emp) + unemp, 
                data = pdata, 
                model = "pooling")
@@ -2769,7 +2768,7 @@ summary(pooling)
 This estimator takes the average over time for each entity, reducing within-group variation.
 
 
-```r
+``` r
 between <- plm(log(gsp) ~ log(pcap) + log(emp) + unemp, 
                data = pdata, model = "between")
 summary(between)
@@ -2807,7 +2806,7 @@ summary(between)
 The **first-differences** model eliminates time-invariant effects by differencing adjacent periods.
 
 
-```r
+``` r
 firstdiff <- plm(log(gsp) ~ log(pcap) + log(emp) + unemp, 
                  data = pdata, model = "fd")
 summary(firstdiff)
@@ -2845,7 +2844,7 @@ summary(firstdiff)
 Controls for time-invariant heterogeneity by demeaning data within individuals.
 
 
-```r
+``` r
 fixed <- plm(log(gsp) ~ log(pcap) + log(emp) + unemp, 
              data = pdata, model = "within")
 summary(fixed)
@@ -2881,7 +2880,7 @@ summary(fixed)
 Accounts for unobserved heterogeneity by modeling it as a random component.
 
 
-```r
+``` r
 random <- plm(log(gsp) ~ log(pcap) + log(emp) + unemp, 
               data = pdata, model = "random")
 summary(random)
@@ -2931,7 +2930,7 @@ The **Breusch-Pagan LM test** compares random effects with pooled OLS.
 -   **Alternative Hypothesis:** Random effects model is appropriate.
 
 
-```r
+``` r
 plmtest(pooling, effect = "individual", type = "bp") 
 #> 
 #> 	Lagrange Multiplier Test - (Breusch-Pagan)
@@ -2948,7 +2947,7 @@ Other test types: `"honda"`, `"kw"`, `"ghm"`. Other effects: `"time"`, `"twoways
 Breusch-Pagan LM test for cross-sectional dependence
 
 
-```r
+``` r
 pcdtest(fixed, test = "lm")
 #> 
 #> 	Breusch-Pagan LM test for cross-sectional dependence in panels
@@ -2961,7 +2960,7 @@ pcdtest(fixed, test = "lm")
 Pesaran's CD statistic
 
 
-```r
+``` r
 pcdtest(fixed, test = "cd")
 #> 
 #> 	Pesaran CD test for cross-sectional dependence in panels
@@ -2976,7 +2975,7 @@ pcdtest(fixed, test = "cd")
 Used to check for autocorrelation in panel data.
 
 
-```r
+``` r
 pbgtest(fixed)
 #> 
 #> 	Breusch-Godfrey/Wooldridge test for serial correlation in panel models
@@ -2991,7 +2990,7 @@ pbgtest(fixed)
 Checks whether a time series variable is stationary.
 
 
-```r
+``` r
 library(tseries)
 adf.test(pdata$gsp, k = 2)
 #> 
@@ -3009,7 +3008,7 @@ adf.test(pdata$gsp, k = 2)
 -   **Alternative Hypothesis:** Fixed effects model is preferred.
 
 
-```r
+``` r
 pFtest(fixed, pooling)
 #> 
 #> 	F test for individual effects
@@ -3026,7 +3025,7 @@ pFtest(fixed, pooling)
 -   **Alternative Hypothesis:** Fixed effects are preferred (RE assumptions are violated).
 
 
-```r
+``` r
 phtest(random, fixed)
 #> 
 #> 	Hausman Test
@@ -3043,7 +3042,7 @@ phtest(random, fixed)
 Tests whether heteroskedasticity is present in the panel dataset.
 
 
-```r
+``` r
 library(lmtest)
 bptest(log(gsp) ~ log(pcap) + log(emp) + unemp,  data = pdata)
 #> 
@@ -3060,7 +3059,7 @@ If heteroskedasticity is detected, use robust standard errors:
 **For Random Effects Model**
 
 
-```r
+``` r
 # Original coefficients
 coeftest(random)
 #> 
@@ -3108,7 +3107,7 @@ t(sapply(c("HC0", "HC1", "HC2", "HC3", "HC4"), function(x)
 **For Fixed Effects Model**
 
 
-```r
+``` r
 # Original coefficients
 coeftest(fixed)
 #> 
@@ -3193,7 +3192,7 @@ Different estimators for the **variance components structure** exist in the lite
 -   **Two-way effects** (`effect = "twoways"`).
 
 
-```r
+``` r
 amemiya <- plm(
     log(gsp) ~ log(pcap) + log(emp) + unemp, 
     data = pdata,
@@ -3242,7 +3241,7 @@ summary(amemiya)
 The `ercomp()` function retrieves estimates of the **variance components** in a random effects model. Below, we extract the variance decomposition using Amemiya's method:
 
 
-```r
+``` r
 ercomp(log(gsp) ~ log(pcap) + log(emp) + unemp, 
        data = pdata,
        method = "amemiya",
@@ -3269,7 +3268,7 @@ This output includes:
 Panel datasets may be balanced (each individual has observations for all time periods) or unbalanced (some individuals are missing observations). The `punbalancedness()` function measures the degree of balance in the data, with values closer to 1 indicating a balanced panel [@ahrens1981two].
 
 
-```r
+``` r
 punbalancedness(random)
 #> gamma    nu 
 #>     1     1
@@ -3308,7 +3307,7 @@ The variable coefficients model (VCM) allows coefficients to vary across cross-s
 -   **Random effects (`random`)**: Assumes coefficients are drawn from a random distribution.
 
 
-```r
+``` r
 fixed_pvcm  <-
     pvcm(log(gsp) ~ log(pcap) + log(emp) + unemp,
          data = pdata,
@@ -3376,6 +3375,7 @@ summary(random_pvcm)
 #> Residual Sum of Squares: 40.789
 #> Multiple R-Squared: 0.99741
 #> Chisq: 739.334 on 3 DF, p-value: < 2.22e-16
+#> Test for parameter homogeneity: Chisq = 21768.8 on 188 DF, p-value: < 2.22e-16
 ```
 
 **Generalized Method of Moments Estimator (`pgmm`)**
@@ -3387,7 +3387,7 @@ The **Generalized Method of Moments** estimator is commonly used for **dynamic p
 -   Instrumental variables are used for estimation.
 
 
-```r
+``` r
 library(plm)
 
 # estimates a dynamic labor demand function using one-step GMM, 
@@ -3466,7 +3466,7 @@ However, it assumes **no cross-sectional correlation** and is most suitable when
 **Random Effects FGLS Model:**
 
 
-```r
+``` r
 zz <- pggls(
     log(emp) ~ log(wage) + log(capital),
     data = EmplUK,
@@ -3501,7 +3501,7 @@ summary(zz)
 **Fixed Effects FGLS Model:**
 
 
-```r
+``` r
 zz <- pggls(
     log(emp) ~ log(wage) + log(capital),
     data = EmplUK,
@@ -3570,7 +3570,7 @@ For further details, refer to the official [fixest vignette](https://cran.r-proj
 > **Note:** These functions work only for `fixest` objects.
 
 
-```r
+``` r
 library(fixest)
 data(airquality)
 
@@ -3697,7 +3697,7 @@ This example demonstrates:
 Use `feols()` to estimate models with multiple dependent variables simultaneously:
 
 
-```r
+``` r
 etable(feols(c(Sepal.Length, Sepal.Width) ~
                  Petal.Length + Petal.Width,
              data = iris))
@@ -3719,7 +3719,7 @@ etable(feols(c(Sepal.Length, Sepal.Width) ~
 Alternatively, define a list of dependent variables and loop over them:
 
 
-```r
+``` r
 depvars <- c("Sepal.Length", "Sepal.Width")
 
 res <- lapply(depvars, function(var) {
@@ -3777,7 +3777,7 @@ Options to write the functions
 | `mvsw(x1, x2, x3)` | Estimates **all possible combinations** of the variables.                     |
 
 
-```r
+``` r
 # Example: Cumulative Stepwise Estimation
 etable(feols(Ozone ~ csw(Solar.R, Wind, Temp), data = airquality))
 #>                            feols(Ozone ~ c..1 feols(Ozone ~ c..2
@@ -3816,7 +3816,7 @@ etable(feols(Ozone ~ csw(Solar.R, Wind, Temp), data = airquality))
 Estimate separate regressions for different subgroups in the dataset using `fsplit`.
 
 
-```r
+``` r
 etable(feols(Ozone ~ Solar.R + Wind, fsplit = ~ Month, data = airquality))
 #>                            feols(Ozone ~ S..1 feols(Ozone ..2 feols(Ozone ~..3
 #> Sample (Month)                    Full sample               5                6
@@ -3899,7 +3899,7 @@ To let R know which SE estimation you want to use, insert `vcov = vcov_type ~ va
 **Example: Newey-West Standard Errors**
 
 
-```r
+``` r
 etable(feols(
     Ozone ~ Solar.R + Wind,
     data = airquality,
@@ -3923,7 +3923,7 @@ etable(feols(
 Specify the number of lag periods to consider:
 
 
-```r
+``` r
 etable(feols(
     Ozone ~ Solar.R + Wind,
     data = airquality,
@@ -3951,7 +3951,7 @@ To specify a distance cutoff: `vcov = vcov_conley(lat = "lat", lon = "long", cut
 Using Standard Errors from the `sandwich` Package
 
 
-```r
+``` r
 etable(feols(
     Ozone ~ Solar.R + Wind,
     data = airquality,
@@ -3978,7 +3978,7 @@ etable(feols(
 Apply small sample adjustments using `ssc()`:
 
 
-```r
+``` r
 etable(feols(
     Ozone ~ Solar.R + Wind,
     data = airquality,

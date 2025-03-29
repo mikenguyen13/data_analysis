@@ -71,7 +71,7 @@ When the relationship between variables is different at the aggregate level than
 **Step 1**: Create individual level data
 
 
-```r
+``` r
 set.seed(123)
 
 # Generate data for 1000 individuals
@@ -108,7 +108,7 @@ This would show a significant positive relationship between income and consumpti
 **Step 2**: Aggregate data to 'neighborhood' level
 
 
-```r
+``` r
 # Assume 100 neighborhoods with 10 individuals each
 n_neighborhoods <- 100
 
@@ -143,7 +143,7 @@ summary(aggregate_lm)
 If aggregation bias is present, the coefficient for income in the aggregate regression might be different from the coefficient in the individual regression, even if the individual relationship is significant and strong.
 
 
-```r
+``` r
 library(ggplot2)
 
 # Individual scatterplot
@@ -241,7 +241,7 @@ Here's a setup:
 2.  The new technique has a positive effect on grades, but this is masked by the fact that many low-ability students use it.
 
 
-```r
+``` r
 set.seed(123)
 
 # Generate data for 1000 students
@@ -345,7 +345,7 @@ From this simulation:
 This is a classic example of Simpson's Paradox: within each ability group, the technique appears beneficial, but when data is aggregated, the effect seems negative because of the distribution of the technique across ability groups.
 
 
-```r
+``` r
 library(ggplot2)
 
 # Scatterplot for overall data
@@ -414,7 +414,7 @@ Survivorship bias refers to the logical error of concentrating on the entities t
 2.  **Confirmation Bias**: Survivorship bias can reinforce confirmation bias. By only looking at the "winners", we might confirm our existing beliefs about what leads to success, ignoring evidence to the contrary from those that didn't survive.
 
 
-```r
+``` r
 set.seed(42)
 
 # Generating data for 100 companies
@@ -442,7 +442,7 @@ survivor_avg
 Using a histogram to visualize the distribution of earnings, highlighting the "survivors".
 
 
-```r
+``` r
 library(ggplot2)
 
 df <- data.frame(earnings)
@@ -503,7 +503,7 @@ Publication bias occurs when the results of studies influence the likelihood of 
 Let's simulate an experiment on a new treatment. We'll assume that the treatment has no effect, but due to random variation, some studies will show significant positive or negative effects.
 
 
-```r
+``` r
 set.seed(42)
 
 # Number of studies
@@ -532,7 +532,7 @@ published_avg_effect
 Using a histogram to visualize the distribution of study results, highlighting the "published" studies.
 
 
-```r
+``` r
 library(ggplot2)
 
 df <- data.frame(results)

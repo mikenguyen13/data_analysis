@@ -128,7 +128,7 @@ If we don't have randomization, then $E(Y_i^C | T) \neq E(Y_i^C |C)$
 
 Matching tries to do selection on observables $E(Y_i^C | X, T) = E(Y_i^C|X, C)$
 
-[Propensity Scores] basically do $E(Y_i^C| P(X) , T) = E(Y_i^C | P(X), C)$
+[Propensity Scores](#sec-propensity-scores) basically do $E(Y_i^C| P(X) , T) = E(Y_i^C | P(X), C)$
 
 **Matching standard errors will exceed OLS standard errors**
 
@@ -581,7 +581,7 @@ Procedure typically involves (proposed by [Noah Freifer](https://cran.r-project.
 4.  estimating the treatment effect
 
 
-```r
+``` r
 library(MatchIt)
 data("lalonde")
 ```
@@ -599,7 +599,7 @@ examine `treat` on `re78`
 2.  Check Initial Imbalance
 
 
-```r
+``` r
 # No matching; constructing a pre-match matchit object
 m.out0 <- matchit(
     formula(treat ~ age + educ + race 
@@ -618,14 +618,14 @@ summary(m.out0)
 3.  Matching
 
 
-```r
+``` r
 # 1:1 NN PS matching w/o replacement
 m.out1 <- matchit(treat ~ age + educ,
                   data = lalonde,
                   method = "nearest",
                   distance = "glm")
 m.out1
-#> A matchit object
+#> A `matchit` object
 #>  - method: 1:1 nearest neighbor matching without replacement
 #>  - distance: Propensity score
 #>              - estimated with logistic regression
@@ -639,7 +639,7 @@ m.out1
 Sometimes you have to make trade-off between balance and sample size.
 
 
-```r
+``` r
 # Checking balance after NN matching
 summary(m.out1, un = FALSE)
 #> 
@@ -670,7 +670,7 @@ plot(m.out1, type = "jitter", interactive = FALSE)
 
 <img src="35-matching-methods_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 plot(
     m.out1,
@@ -685,7 +685,7 @@ plot(
 Try Full Match (i.e., every treated matches with one control, and every control with one treated).
 
 
-```r
+``` r
 # Full matching on a probit PS
 m.out2 <- matchit(treat ~ age + educ, 
                   data = lalonde,
@@ -693,7 +693,7 @@ m.out2 <- matchit(treat ~ age + educ,
                   distance = "glm", 
                   link = "probit")
 m.out2
-#> A matchit object
+#> A `matchit` object
 #>  - method: Optimal full matching
 #>  - distance: Propensity score
 #>              - estimated with probit regression
@@ -705,7 +705,7 @@ m.out2
 Checking balance again
 
 
-```r
+``` r
 # Checking balance after full matching
 summary(m.out2, un = FALSE)
 #> 
@@ -715,18 +715,18 @@ summary(m.out2, un = FALSE)
 #> 
 #> Summary of Balance for Matched Data:
 #>          Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
-#> distance        0.3082        0.3081          0.0023     0.9815    0.0028
-#> age            25.8162       25.8035          0.0018     0.9825    0.0062
-#> educ           10.3459       10.2315          0.0569     0.4390    0.0481
+#> distance        0.3082        0.3082         -0.0003     0.9847    0.0036
+#> age            25.8162       25.7805          0.0050     0.9950    0.0071
+#> educ           10.3459       10.2146          0.0653     0.4485    0.0458
 #>          eCDF Max Std. Pair Dist.
-#> distance   0.0270          0.0382
-#> age        0.0249          0.1110
-#> educ       0.1300          0.9805
+#> distance   0.0270          0.0409
+#> age        0.0251          0.1198
+#> educ       0.1159          1.1123
 #> 
 #> Sample Sizes:
 #>               Control Treated
 #> All            429.       185
-#> Matched (ESS)  145.23     185
+#> Matched (ESS)  197.42     185
 #> Matched        429.       185
 #> Unmatched        0.         0
 #> Discarded        0.         0
@@ -739,7 +739,7 @@ plot(summary(m.out2))
 Exact Matching
 
 
-```r
+``` r
 # Full matching on a probit PS
 m.out3 <-
     matchit(
@@ -748,7 +748,7 @@ m.out3 <-
         method = "exact"
     )
 m.out3
-#> A matchit object
+#> A `matchit` object
 #>  - method: Exact matching
 #>  - number of obs.: 614 (original), 332 (matched)
 #>  - target estimand: ATT
@@ -758,14 +758,14 @@ m.out3
 Subclassfication
 
 
-```r
+``` r
 m.out4 <- matchit(
     treat ~ age + educ, 
     data = lalonde,
     method = "subclass"
 )
 m.out4
-#> A matchit object
+#> A `matchit` object
 #>  - method: Subclassification (6 subclasses)
 #>  - distance: Propensity score
 #>              - estimated with logistic regression
@@ -781,7 +781,7 @@ m.out4 <- matchit(
     option = "subclass"
 )
 m.out4
-#> A matchit object
+#> A `matchit` object
 #>  - method: 1:1 nearest neighbor matching without replacement
 #>  - distance: Propensity score
 #>              - estimated with logistic regression
@@ -793,7 +793,7 @@ m.out4
 Optimal Matching
 
 
-```r
+``` r
 m.out5 <- matchit(
     treat ~ age + educ, 
     data = lalonde,
@@ -801,7 +801,7 @@ m.out5 <- matchit(
     ratio = 2
 )
 m.out5
-#> A matchit object
+#> A `matchit` object
 #>  - method: 2:1 optimal pair matching
 #>  - distance: Propensity score
 #>              - estimated with logistic regression
@@ -813,14 +813,14 @@ m.out5
 Genetic Matching
 
 
-```r
+``` r
 m.out6 <- matchit(
     treat ~ age + educ, 
     data = lalonde,
     method = "genetic"
 )
 m.out6
-#> A matchit object
+#> A `matchit` object
 #>  - method: 1:1 genetic matching without replacement
 #>  - distance: Propensity score
 #>              - estimated with logistic regression
@@ -832,7 +832,7 @@ m.out6
 4.  Estimating the Treatment Effect
 
 
-```r
+``` r
 # get matched data
 m.data1 <- match.data(m.out1)
 
@@ -846,15 +846,15 @@ head(m.data1)
 #> NSW6     1  22    9  black       0        1    0    0  4056.4940 0.3245468
 #>      weights subclass
 #> NSW1       1        1
-#> NSW2       1       98
-#> NSW3       1      109
-#> NSW4       1      120
-#> NSW5       1      131
-#> NSW6       1      142
+#> NSW2       1        2
+#> NSW3       1        3
+#> NSW4       1        4
+#> NSW5       1        5
+#> NSW6       1        6
 ```
 
 
-```r
+``` r
 library("lmtest") #coeftest
 library("sandwich") #vcovCL
 
@@ -879,7 +879,7 @@ coeftest(fit1, vcov. = vcovCL, cluster = ~subclass)
 `treat` coefficient = estimated ATT
 
 
-```r
+``` r
 # balance matched dataset 
 m.data2 <- match.data(m.out2)
 
@@ -890,11 +890,11 @@ coeftest(fit2, vcov. = vcovCL, cluster = ~subclass)
 #> 
 #> t test of coefficients:
 #> 
-#>             Estimate Std. Error t value Pr(>|t|)  
-#> (Intercept) 2151.952   3141.152  0.6851  0.49355  
-#> treat       -725.184    703.297 -1.0311  0.30289  
-#> age          120.260     53.933  2.2298  0.02612 *
-#> educ         175.693    241.694  0.7269  0.46755  
+#>             Estimate Std. Error t value Pr(>|t|)   
+#> (Intercept)  608.213   3206.875  0.1897 0.849639   
+#> treat       -744.499    750.324 -0.9922 0.321476   
+#> age          149.329     57.465  2.5986 0.009587 **
+#> educ         254.238    246.309  1.0322 0.302391   
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -923,7 +923,7 @@ This package includes
 -   `nmatch` optimal nonbipartile matching
 
 
-```r
+``` r
 library(designmatch)
 ```
 
@@ -934,7 +934,7 @@ As mentioned in `MatchIt`, you have to make trade-off (also known as bias-varian
 Following `MatchingFrontier` [guide](https://projects.iq.harvard.edu/files/frontier/files/using_matchingfrontier.pdf)
 
 
-```r
+``` r
 # library(devtools)
 # install_github('ChristopherLucas/MatchingFrontier')
 library(MatchingFrontier)
@@ -1164,7 +1164,7 @@ More detail in [@iacus2012causal]
 Example by [package's authors](https://cran.r-project.org/web/packages/cem/vignettes/cem.pdf)
 
 
-```r
+``` r
 library(cem)
 data(LeLonde)
 
@@ -1266,7 +1266,7 @@ imbalance(group=Le$treated, data=Le, drop=todrop)
 automated coarsening
 
 
-```r
+``` r
 mat <-
     cem(
         treatment = "treated",
@@ -1288,7 +1288,7 @@ mat
 coarsening by explicit user choice
 
 
-```r
+``` r
 # categorial variables
 levels(Le$q1) # grouping option
 #> [1] "agree"             "disagree"          "neutral"          
@@ -1353,7 +1353,7 @@ Packages
 `Matching`
 
 
-```r
+``` r
 library(Matching)
 data(lalonde)
 attach(lalonde)
@@ -1495,7 +1495,7 @@ package in R `twang`
 
 There are several ways one can deal with selection on unobservables:
 
-1.  [Rosenbaum Bounds]
+1.  [Rosenbaum Bounds](#sec-rosenbaum-bounds)
 
 2.  [Endogenous Sample Selection] (i.e., Heckman-style correction): examine the $\lambda$ term to see whether it's significant (sign of endogenous selection)
 
@@ -1584,7 +1584,7 @@ Packages
 Since we typically assess our estimate sensitivity to unboservables after matching, we first do some matching.
 
 
-```r
+``` r
 library(MatchIt)
 library(Matching)
 data("lalonde")
@@ -1698,7 +1698,7 @@ hlsens_res
 For multiple control group matching
 
 
-```r
+``` r
 library(Matching)
 library(MatchIt)
 
@@ -1723,7 +1723,7 @@ mcontrol_res
 `sensitivitymw` is faster than `sensitivitymw`. But `sensitivitymw` can match where matched sets can have differing numbers of controls [@rosenbaum2015two].
 
 
-```r
+``` r
 library(sensitivitymv)
 data(lead150)
 head(lead150)
@@ -1817,7 +1817,7 @@ Choice of $\lambda$
 -   We typically examine $\lambda \in (0, 1)$
 
 
-```r
+``` r
 # remotes::install_github("bvkrauth/rcr/r/rcrbounds")
 library(rcrbounds)
 # rcrbounds::install_rcrpy()

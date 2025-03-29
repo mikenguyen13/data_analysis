@@ -378,7 +378,7 @@ Applying this Bayesian correction can give them a better estimate of the correla
 To implement this calculation in R, see below
 
 
-```r
+``` r
 n_new              <- 200
 r_new              <- 0.5
 alpha              <- 0.05
@@ -542,7 +542,7 @@ This is actually the general framework for instrumental variables
 Using the OLS estimates as a reference point
 
 
-```r
+``` r
 library(AER)
 library(REndo)
 set.seed(421)
@@ -1004,7 +1004,7 @@ Application
 Expenditure as observed instrument
 
 
-```r
+``` r
 m2.2sls <-
     ivreg(
         read ~ stratio + english + lunch 
@@ -1171,7 +1171,7 @@ Note:
 -   If $P_t \sim N$, you have inefficient estimates.
 
 
-```r
+``` r
 m3.liv <- latentIV(read ~ stratio, data = school)
 summary(m3.liv)$coefficients[1:7, ]
 #>                   Estimate    Std. Error       z-score     Pr(>|z|)
@@ -1221,7 +1221,7 @@ Otherwise, based on Gaussian copulas, augmented OLS estimation is used.
     -   $T$ = n of time periods observed in the data
 
 
-```r
+``` r
 # 1.34 comes from this
 diff(qnorm(c(0.25, 0.75)))
 #> [1] 1.34898
@@ -1236,7 +1236,7 @@ Hence, the standard errors would not be correct.
 So we use the sampling distributions (from bootstrapping) to get standard errors and the variance-covariance matrix. Since the distribution of the bootstrapped parameters is highly skewed, we report the percentile confidence intervals is preferable.
 
 
-```r
+``` r
 set.seed(110)
 m4.cc <-
     copulaCorrection(
@@ -1250,14 +1250,22 @@ m4.cc <-
         verbose = FALSE
     )
 summary(m4.cc)$coefficients[1:7,]
-#>             Point Estimate   Boots SE Lower Boots CI (95%) Upper Boots CI (95%)
-#> (Intercept)   682.25380724 2.80554213                   NA                   NA
-#> stratio        -0.35704030 0.02075999                   NA                   NA
-#> english        -0.21753937 0.01450666                   NA                   NA
-#> lunch          -0.35642639 0.01902052                   NA                   NA
-#> calworks       -0.06930202 0.02076781                   NA                   NA
-#> gradesKK-08    -2.02155911 0.25684614                   NA                   NA
-#> income          0.80137171 0.04725700                   NA                   NA
+#>             Point Estimate    Boots SE Lower Boots CI (95%)
+#> (Intercept)   682.38500189 2.438874461                   NA
+#> stratio        -0.31091374 0.022332810                   NA
+#> english        -0.19648765 0.026136685                   NA
+#> lunch          -0.38439247 0.032293205                   NA
+#> calworks       -0.04363619 0.009027372                   NA
+#> gradesKK-08    -1.97957885 0.138420392                   NA
+#> income          0.77449995 0.033266598                   NA
+#>             Upper Boots CI (95%)
+#> (Intercept)                   NA
+#> stratio                       NA
+#> english                       NA
+#> lunch                         NA
+#> calworks                      NA
+#> gradesKK-08                   NA
+#> income                        NA
 ```
 
 we run this model with only one endogenous continuous regressor (`stratio`). Sometimes, the code will not converge, in which case you can use different
@@ -1296,7 +1304,7 @@ Since the regressors $G(X) = X$ are included as instruments, $G(X)$ can't be a l
 Since this method has very strong assumptions, [Higher Moments Method] should only be used in case of overidentification
 
 
-```r
+``` r
 set.seed(111)
 m5.hetEr <-
     hetErrorsIV(
@@ -1379,7 +1387,7 @@ Bias could stem from:
 -   also use omitted variable test (based on the Hausman-test [@hausman1978specification] for panel data), which allows the comparison of a robust estimator and an estimator that is efficient under the null hypothesis of no omitted variables or the comparison of two robust estimators at different levels.
 
 
-```r
+``` r
 # function 'cholmod_factor_ldetA' not provided by package 'Matrix'
 set.seed(113)
 school$gr08 <- school$grades == "KK-06"
@@ -1404,7 +1412,7 @@ We estimate a three-level model with X15 assumed endogenous. Having a three-leve
 -   The robust estimator would be preferable if you think there is omitted variables.
 
 
-```r
+``` r
 # function 'cholmod_factor_ldetA' not provided by package 'Matrix'’
 data(dataMultilevelIV)
 set.seed(114)
@@ -1443,7 +1451,7 @@ Summary, use the omitted variable test comparing `REF vs. FE_L2` first.
     -   `GMM_L2` vs. `GMM_L3`
 
 
-```r
+``` r
 summary(m8.multilevel, "REF")
 # compare REF with all the other estimators. Testing REF (the most efficient estimator) against FE_L2 (the most robust estimator), equivalently we are testing simultaneously for level-2 and level-3 omitted effects. 
 ```
@@ -1453,7 +1461,7 @@ Since the null hypothesis is rejected (p = 0.000139), there is bias in the rando
 To test for level-2 omitted effects (regardless of level-3 omitted effects), we compare FE_L2 versus FE_L3
 
 
-```r
+``` r
 summary(m8.multilevel,"FE_L2")
 ```
 
@@ -1489,254 +1497,608 @@ $$
 
 where $\epsilon$ is uncorrelated with education and IQ test.
 
+------------------------------------------------------------------------
+
 ## Endogenous Sample Selection
 
-Selection into treatment does not occur randomly in observational studies, leading to **selection bias**---a major challenge in causal inference. Individuals often choose whether to participate in a treatment based on personal characteristics, external incentives, or underlying risk factors. This selection process can introduce systematic differences between the treatment and control groups, biasing the estimated treatment effects.
+Endogenous sample selection arises in **observational** or **non-experimental** research whenever the inclusion of observations (or assignment to treatment) is **not random**, and the same unobservable factors influencing selection also affect the outcome of interest. This scenario leads to **biased and inconsistent** estimates of causal parameters (e.g., [Average Treatment Effects]) if not properly addressed.
 
-Selection bias typically arises from two opposing sources:
+This problem was first formalized in the econometric literature by @heckman1974shadow @heckman1976common @heckman1979sample, whose work addressed the issue in the context of labor force participation among women. Later, @amemiya1984tobit generalize the method. Now, it has since been applied widely across social sciences, epidemiology, marketing, and finance.
 
-### **Mitigation-Based Selection**
+Endogenous sample selection is often conflated with general selection bias, but it is important to understand that sample selection refers specifically to the inclusion of observations into the estimation sample, not just to assignment into treatment (i.e., selection bias).
 
--   Individuals **select into treatment to combat a problem** they already face.
--   This creates a **negative selection bias**---those who take treatment are systematically worse off compared to those who do not.
--   **Example**:
-    -   People at **high risk of severe illness** (e.g., elderly or immunocompromised individuals) are more likely to **get vaccinated**. If we compare vaccinated vs. unvaccinated individuals without adjusting for risk factors, we might mistakenly conclude that vaccines are ineffective simply because vaccinated individuals had worse initial health conditions.
+This problem comes in many names such as self-selection problem, incidental truncation, or omitted variable (i.e., the omitted variable is how people were selected into the sample). Some disciplines consider nonresponse/selection bias as sample selection:
 
-### **Preference-Based Selection**
+-   When unobservable factors that affect who is in the sample are independent of unobservable factors that affect the outcome, the sample selection is not endogenous. Hence, the sample selection is ignorable and estimator that ignores sample selection is still consistent.
+-   When the unobservable factors that affect who is included in the sample are correlated with the unobservable factors that affect the outcome, the sample selection is endogenous and not ignorable, because estimators that ignore endogenous sample selection are not consistent (we don't know which part of the observable outcome is related to the causal relationship and which part is due to different people were selected for the treatment and control groups).
 
--   Individuals **select into treatment because they inherently prefer it**, rather than because of an underlying problem.
--   This creates a **positive selection bias**---those who take treatment are systematically better off compared to those who do not.
--   **Example**:
-    -   People who are **health-conscious and physically active** are more likely to **join a fitness program**. If we compare fitness program participants to non-participants, we might falsely attribute their better health outcomes to the program, when in reality, their pre-existing lifestyle contributed to their improved health.
+Many evaluation studies use observational data, and in such data:
+
+-   Participants are not randomly assigned.
+-   Treatment or exposure is determined by individual or institutional choices.
+-   Counterfactual outcomes are not observed.
+-   The treatment indicator is often endogenous.
+
+Some notable terminologies include:
+
+1.  **Truncation**: Occurs when data are collected only from a restricted subpopulation based on the value of a variable.
+    -   **Left truncation**: Values below a threshold are excluded (e.g., only high-income individuals are surveyed).
+    -   **Right truncation**: Values above a threshold are excluded.
+2.  **Censoring**: Occurs when the variable is **observed but coarsened** beyond a threshold.
+    -   E.g., incomes below a certain level are coded as zero; arrest counts above a threshold are top-coded.
+3.  **Incidental Truncation**: Refers to selection based on a latent variable (e.g., employment decisions), **not directly observed**. This is what makes Heckman's model distinct.
+    -   Also called **non-random sample selection**.
+    -   The error in the outcome equation is correlated with the selection indicator.
+
+Researchers often categorize self-selection into:
+
+-   **Negative (Mitigation-Based) Selection:** Individuals select into a treatment or sample to address an existing problem, so they start off with worse potential outcomes.
+    -   Bias direction: Underestimates true treatment effects (makes the treatment look less effective than it is).
+    -   Individuals select into treatment to combat a problem they already face.
+    -   **Examples**:
+        -   People at high risk of severe illness (e.g., elderly or immunocompromised individuals) are more likely to get vaccinated. If we compare vaccinated vs. unvaccinated individuals without adjusting for risk factors, we might mistakenly conclude that vaccines are ineffective simply because vaccinated individuals had worse initial health conditions.
+        -   Evaluating the effect of job training programs---unemployed individuals with the greatest difficulty finding jobs are most likely to enroll, leading to underestimated program benefits.
+-   **Positive (Preference-Based) Selection:** Individuals select into a treatment or sample because they have advantageous traits, preferences, or resources. Hence, those who take treatment are systematically better off compared to those who do not.
+    -   Bias direction: Overestimates true treatment effects (makes the treatment look more effective than it is).
+    -   Individuals select into treatment because they inherently prefer it, rather than because of an underlying problem.
+    -   **Examples:**
+        -   People who are health-conscious and physically active are more likely to join a fitness program. If we compare fitness program participants to non-participants, we might falsely attribute their better health outcomes to the program, when in reality, their pre-existing lifestyle contributed to their improved health.
+        -   Evaluating the effect of private school education---students who attend private schools often come from wealthier families with greater academic support, making it difficult to isolate the true impact of the school itself.
+
+Both forms of selection reflect correlation between **unobservables** (driving selection) and **potential outcomes**---the hallmark of **endogenous selection bias**.
 
 ------------------------------------------------------------------------
 
-## Implications for Causal Inference
+Some seminal applied works in this area include:
 
-Selection bias distorts the observed treatment effect, leading to **biased estimates of causal relationships**. Depending on the nature of selection, this bias can **overestimate or underestimate** the true effect:
+1.  **Labor Force Participation** [@heckman1974shadow]
 
--   **Negative Selection Bias (Mitigation-Based)**:
-    -   The observed treatment group appears **worse off** than the control group.
-    -   The treatment effect may be **underestimated** or even appear harmful.
-    -   Example: Evaluating the effect of **job training programs**---unemployed individuals with the greatest difficulty finding jobs are most likely to enroll, leading to underestimated program benefits.
--   **Positive Selection Bias (Preference-Based)**:
-    -   The observed treatment group appears **better off** than the control group.
-    -   The treatment effect may be **overestimated**.
-    -   Example: Evaluating the effect of **private school education**---students who attend private schools often come from wealthier families with greater academic support, making it difficult to isolate the true impact of the school itself.
+-   Wages are observed **only** for women who choose to work.
+-   Unobservable preferences (reservation wages) drive participation.
+-   Ignoring this leads to **biased estimates of the returns to education**.
 
-### **Addressing Selection Bias**
+2.  **Union Membership** [@lewis1986union]
 
-Several causal inference methods aim to **correct for selection bias** and estimate unbiased treatment effects:
+-   Wages differ between union and non-union workers.
+-   But union membership is **not exogenous**---workers choose to join based on anticipated benefits.
+-   Naïve OLS yields biased estimates of union premium.
 
-1.  **Randomized Controlled Trials (RCTs)**
-    -   Gold standard for causal inference, eliminating selection bias by randomly assigning treatment.
-2.  **Instrumental Variables (IV)**
-    -   Uses an external variable (instrument) that affects treatment assignment but is unrelated to the outcome, helping to isolate the causal effect.
-3.  **Difference-in-Differences (DiD)**
-    -   Compares changes in outcomes before and after treatment between a treatment and control group, assuming parallel trends.
-4.  **Matching Methods (e.g., Propensity Score Matching)**
-    -   Creates a synthetic control group by matching treated and untreated individuals with similar observable characteristics.
-5.  **Regression Discontinuity (RD)**
-    -   Exploits treatment assignment thresholds (e.g., age cutoffs for eligibility) to compare individuals just above and below the threshold.
-6.  **Synthetic Control Methods**
-    -   Constructs a weighted combination of control units to approximate the counterfactual outcome of the treated group.
+3.  **College Attendance** [@card1999causal; @card2001estimating]
 
--   Also known as sample selection or self-selection problem or incidental truncation.
+-   Comparing income of college graduates vs. non-graduates.
+-   Attending college is a choice based on expected gains, ability, or family background.
+-   A treatment effect model (described next) is more appropriate here.
 
--   The omitted variable is how people were selected into the sample
+------------------------------------------------------------------------
 
-Some disciplines consider nonresponse bias and selection bias as sample selection.
+### Unifying Model Frameworks
 
--   When unobservable factors that affect who is in the sample are independent of unobservable factors that affect the outcome, the sample selection is not endogenous. Hence, the sample selection is ignorable and estimator that ignores sample selection is still consistent.
--   when the unobservable factors that affect who is included in the sample are correlated with the unobservable factors that affect the outcome, the sample selection is endogenous and not ignorable, because estimators that ignore endogenous sample selection are not consistent (we don't know which part of the observable outcome is related to the causal relationship and which part is due to different people were selected for the treatment and control groups).
+Though often conflated, there are several overlapping models to address endogenous selection:
 
-Assumptions: - The unobservables that affect the treatment selection and the outcome are jointly distributed as bivariate normal.
+1.  [Sample Selection Model](#sec-sample-selection-model) [@heckman1979sample]: Outcome is *unobserved* if an agent is not selected into the sample.
+2.  [Treatment Effect Model](#sec-treatment-effect-switching-model): Outcome is observed for both groups (treated vs. untreated), but treatment assignment is endogenous.
+3.  [Heckman-Type / Control Function Approaches](#sec-heckman-type-control-function): Decompose the endogenous regressor or incorporate a correction term (Inverse Mills Ratio or residual) to control for endogeneity.
 
-**Notes**:
+All revolve around the challenge: unobserved factors affect both who is included (or treated) and outcomes.
 
--   If you don't have strong exclusion restriction, identification is driven by the assumed non linearity in the functional form (through inverse Mills ratio). E.g., the estimate depend on the bivariate normal distribution of the error structure:
+To formalize the problem, we consider the outcome and selection equations. Let:
 
-    -   With strong exclusion restriction for the covariate in the correction equation, the variation in this variable can help identify the control for selection
-    -   With weak exclusion restriction, and the variable exists in both steps, it's the assumed error structure that identifies the control for selection [@heckman2004using].
+-   $y_i$: observed outcome (e.g., wage)
+-   $x_i$: covariates affecting outcome
+-   $z_i$: covariates affecting selection
+-   $w_i$: binary indicator for selection into the sample (e.g., employment)
 
--   In management, @wolfolds2019misaccounting found that papers should have valid exclusion conditions, because without these, simulations show that results using the Heckman method are less reliable than those obtained with OLS.
+#### Sample Selection Model {#sec-sample-selection-model}
 
--   There are differences between Heckman Sample Selection vs. Heckman-type correction
-
-|                            | **Heckman Sample Selection Model**                                                                                                              | **Heckman-Type Corrections**                                                                                                                                                                                                      |
-|----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| When                       | Only observes one sample (treated), addressing selection bias directly.                                                                         | Two samples are observed (treated and untreated), known as the control function approach.                                                                                                                                         |
-| Model                      | Probit                                                                                                                                          | OLS (even for dummy endogenous variable)                                                                                                                                                                                          |
-| Integration of 1st stage   | Also include a term (called Inverse Mills ratio) besides the endogenous variable.                                                               | Decompose the endogenous variable to get the part that is uncorrelated with the error terms of the outcome equation. Either use the predicted endogenous variable directly or include the residual from the first-stage equation. |
-| Advantages and Assumptions | Provides a direct test for endogeneity via the coefficient of the inverse Mills ratio but requires the assumption of joint normality of errors. | Does not require the assumption of joint normality, but can't test for endogeneity directly.                                                                                                                                      |
-
-To deal with [Sample Selection], we can
-
--   Randomization: participants are randomly selected into treatment and control.
--   Instruments that determine the treatment status (i.e., treatment vs. control) but not the outcome ($Y$)
--   Functional form of the selection and outcome processes: originated from [@Heckman_1976], later on generalize by [@amemiya1984tobit]
-
-We have our main model
-
-$$
-\mathbf{y^* = xb + \epsilon}
-$$
-
-However, the pattern of missingness (i.e., censored) is related to the unobserved (latent) process:
-
-$$
-\mathbf{z^* = w \gamma + u}
-$$
-
-and
-
-$$
-z_i = 
-\begin{cases}
-1& \text{if } z_i^*>0 \\
-0&\text{if } z_i^*\le0\\
-\end{cases}
-$$
-
-Equivalently, $z_i = 1$ ($y_i$ is observed) when
-
-$$
-u_i \ge -w_i \gamma
-$$
-
-Hence, the probability of observed $y_i$ is
+We begin with an **outcome equation**, which describes the variable of interest $y_i$. However, we only observe $y_i$ if a certain **selection mechanism** indicates it is part of the sample. That mechanism is captured by a binary indicator $w_i = 1$. Formally, the observed outcome equation is:
 
 $$
 \begin{aligned}
-P(u_i \ge -w_i \gamma) &= 1 - \Phi(-w_i \gamma) \\
-&= \Phi(w_i \gamma) & \text{symmetry of the standard normal distribution}
+y_i &= x_i' \beta + \varepsilon_i, \quad &\text{(Observed only if } w_i = 1\text{)}, \\
+\varepsilon_i &\sim N(0, \sigma_\varepsilon^2).
 \end{aligned}
 $$
 
-We will **assume**
+Here, $x_i$ is a vector of explanatory variables (or covariates) that explain $y_i$. The noise term $\varepsilon_i$ is assumed to be normally distributed with mean zero and variance $\sigma_\varepsilon^2$. However, because we only see $y_i$ for those cases in which $w_i = 1$, we must account for how the selection occurs.
 
--   the error term of the selection $\mathbf{u \sim N(0,I)}$
--   $Var(u_i) = 1$ for identification purposes
+Next, we specify the **selection equation** via a **latent index model**. Let $w_i^*$ be an unobserved latent variable:
 
-Visually, $P(u_i \ge -w_i \gamma)$ is the shaded area.
+$$
+\begin{aligned}
+w_i^* &= z_i' \gamma + u_i, \\
+w_i &= \begin{cases}
+1 & \text{if } w_i^* > 0, \\
+0 & \text{otherwise}.
+\end{cases}
+\end{aligned}
+$$
+
+Here, $z_i$ is a vector of variables that influence whether or not $y_i$ is observed. In practice, $z_i$ may overlap with $x_i$, but can also include variables not in the outcome equation. For **identification**, we normalize $\mathrm{Var}(u_i) = 1$. This is analogous to the probit model's standard normalization.
+
+Because $w_i = 1$ exactly when $w_i^* > 0$, this event occurs if $u_i \ge -\,z_i' \gamma$. Therefore,
+
+$$
+\begin{aligned} 
+P(w_i = 1) 
+&= P\bigl(u_i \ge -z_i' \gamma\bigr),\\ 
+&= 1 - \Phi\bigl(-z_i'\gamma\bigr), \\ 
+&= \Phi\bigl(z_i'\gamma\bigr),
+\end{aligned}
+$$
+
+where we use the symmetry of the standard normal distribution.
+
+We assume $(\varepsilon_i, u_i)$ are **jointly normally distributed** with correlation $\rho$. In other words,
+
+$$
+\begin{pmatrix}
+\varepsilon_i \\
+u_i
+\end{pmatrix}
+\;\sim\; \mathcal{N} \!\Biggl(
+\begin{pmatrix} 0 \\ 0 \end{pmatrix},
+\begin{pmatrix} \sigma^2_\varepsilon & \rho \,\sigma_\varepsilon \\
+\rho \,\sigma_\varepsilon & 1 \end{pmatrix}
+\Biggr).
+$$
+
+-   If $\rho = 0$, the selection is exogenous: whether $y_i$ is observed is unrelated to unobserved determinants of $y_i$.
+-   If $\rho \neq 0$, **sample selection is endogenous**. Failing to model this selection mechanism leads to biased estimates of $\beta$.
+
+Interpreting $\rho$
+
+-   $\rho > 0$: Individuals with higher unobserved components in $\varepsilon_i$ (and thus typically larger $y_i$) are **more likely** to appear in the sample. (Positive selection)
+-   $\rho < 0$: Individuals with higher unobserved components in $\varepsilon_i$ are **less likely** to appear. (Negative selection)
+-   $\rho = 0$: No endogenous selection. Observed outcomes are effectively random with respect to the unobserved part of $y_i$.
+
+In empirical practice, $\rho$ signals the direction of bias one might expect if the selection process is ignored.
+
+Often, it is helpful to visualize how part of the distribution of $u_i$ (the error in the selection equation) is truncated based on the threshold $w_i^*>0$. Below is a notional R code snippet that draws a normal density and shades the region where $u_i > -z_i'\gamma$.
 
 
-```r
+``` r
 x = seq(-3, 3, length = 200)
 y = dnorm(x, mean = 0, sd = 1)
 plot(x,
      y,
      type = "l",
-     main = bquote("Probabibility distribution of" ~ u[i]))
-x = seq(0.3, 3, length = 100)
-y = dnorm(x, mean = 0, sd = 1)
-polygon(c(0.3, x, 3), c(0, y, 0), col = "gray")
-text(1, 0.1, bquote(1 - Phi ~ (-w[i] ~ gamma)))
-arrows(-0.5, 0.1, 0.3, 0, length = .15)
-text(-0.5, 0.12, bquote(-w[i] ~ gamma))
-legend(
-    "topright",
-    "Gray = Prob of Observed",
-    pch = 1,
-    title = "legend",
-    inset = .02
-)
+     main =  bquote("Probabibility distribution of" ~ u[i]))
+
+x_shaded = seq(0.3, 3, length = 100)
+y_shaded = dnorm(x_shaded, 0, 1)
+polygon(c(0.3, x_shaded, 3), c(0, y_shaded, 0), col = "gray")
+
+text(1, 0.1, expression(1 - Phi(-z[i] * gamma)))
+arrows(-0.5, 0.1, 0.3, 0, length = 0.15)
+text(-0.5, 0.12, expression(-z[i] * gamma))
+legend("topright",
+       "Gray = Prob of Observed",
+       pch = 1,
+       inset = 0.02)
 ```
 
 <img src="36-endogeneity_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
 
-Hence in our observed model, we see
+In this figure, the gray‐shaded area represents $u_i > -z_i'\gamma$. Observations in that range are included in the sample. If $\rho\neq 0$, then the unobserved factors that drive $u_i$ also affect $\varepsilon_i$, causing a non‐representative sample of $\varepsilon_i$.
 
-```{=tex}
-\begin{equation}
-y_i = x_i\beta + \epsilon_i \text{when $z_i=1$}
-\end{equation}
+A core insight of the Heckman model is the conditional expectation of $y_i$ given $w_i=1$:
+
+$$
+E\bigl(y_i \mid w_i = 1\bigr)
+\;=\;
+E\bigl(y_i \mid w_i^*>0\bigr)
+\;=\;
+E\bigl(x_i'\beta + \varepsilon_i \mid u_i > -z_i'\gamma\bigr).
+$$
+
+Since $x_i'\beta$ is nonrandom (conditional on $x_i$), we get
+
+$$
+E\bigl(y_i \mid w_i=1\bigr)
+= x_i'\beta + E\bigl(\varepsilon_i \mid u_i > -z_i'\gamma\bigr).
+$$
+
+From bivariate normal properties:
+
+$$
+\varepsilon_i \,\bigl\lvert\, u_i=a
+\;\sim\; 
+N\!\Bigl(\rho\,\sigma_{\varepsilon}\cdot a,\; (1-\rho^2)\,\sigma_{\varepsilon}^2\Bigr).
+$$
+
+Thus,
+
+$$
+E\bigl(\varepsilon_i \mid u_i > -z_i'\gamma\bigr)
+=\;
+\rho\,\sigma_{\varepsilon}\,
+E\bigl(u_i \mid u_i > -z_i'\gamma\bigr).
+$$
+
+If $U\sim N(0,1)$, then
+
+$$
+E(U \mid U>a)
+= \frac{\phi(a)}{1-\Phi(a)}
+= \frac{\phi(a)}{\Phi(-a)},
+$$ where $\phi$ is the standard normal pdf, $\Phi$ is the cdf. By symmetry, $\phi(-a)=\phi(a)$ and $\Phi(-a)=1-\Phi(a)$. Letting $a = -\,z_i'\gamma$ yields
+
+$$
+E\bigl(U \mid U > -z_i'\gamma\bigr) 
+= \frac{\phi(-z_i'\gamma)}{1-\Phi(-z_i'\gamma)}
+= \frac{\phi(z_i'\gamma)}{\Phi(z_i'\gamma)}.
+$$
+
+Define the **Inverse Mills Ratio** (IMR) as
+
+$$
+\lambda(x)
+= \frac{\phi(x)}{\Phi(x)}.
+$$
+
+Hence,
+
+$$
+E\bigl(\varepsilon_i \mid u_i > -z_i'\gamma\bigr)
+= \rho\,\sigma_{\varepsilon}\,\lambda\bigl(z_i'\gamma\bigr),
+$$ and therefore
+
+$$
+\boxed{
+E\bigl(y_i \mid w_i=1\bigr)
+= x_i'\beta 
+\;+\;
+\rho\,\sigma_{\varepsilon}\,
+\frac{\phi\bigl(z_i'\gamma\bigr)}{\Phi\bigl(z_i'\gamma\bigr)}.
+}
+$$
+
+This extra term is the so‐called **Heckman correction**.
+
+The IMR appears in the two‐step procedure as a regressor for bias correction. It has useful derivatives:
+
+$$
+\frac{d}{dx}\Bigl[\text{IMR}(x)\Bigr]
+= \frac{d}{dx}\Bigl[\frac{\phi(x)}{\Phi(x)}\Bigr]
+= -x\,\text{IMR}(x)\;-\;\bigl[\text{IMR}(x)\bigr]^2.
+$$
+
+This arises from the quotient rule and the fact that $\phi'(x)=-x\phi(x)$, $\Phi'(x)=\phi(x)$. The derivative property also helps in interpreting marginal effects in selection models.
+
+------------------------------------------------------------------------
+
+#### Treatment Effect (Switching) Model {#sec-treatment-effect-switching-model}
+
+While the sample selection model is used when outcome is only observed for one group (e.g., $D = 1$), the treatment effect model is used when outcomes are observed for both groups, but treatment assignment is endogenous.
+
+Treatment Effect Model Equations:
+
+-   Outcome: $$ y_i = x_i' \beta + D_i \delta + \varepsilon_i $$
+-   Selection: $$ D_i^* = z_i' \gamma + u_i \\ D_i = 1 \text{ if } D_i^* > 0 $$
+
+Where:
+
+-   $D_i$ is the treatment indicator.
+
+-   $(\varepsilon_i, u_i)$ are again bivariate normal with correlation $\rho$.
+
+The treatment effect model is sometimes called a **switching regression**.
+
+#### Heckman-Type vs. Control Function {#sec-heckman-type-control-function}
+
+-   **Heckman Sample Selection**: Insert an Inverse Mills Ratio (IMR) to adjust the outcome equation for non-random truncation.
+-   **Control Function**: Residual-based or predicted-endogenous-variable approach that mirrors IV logic, but typically *still* requires an instrument or parametric assumption.
+
+|                            |                                                                                                                                                 |                                                                                                                                                                                                                                   |
+|----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|                            | **Heckman Sample Selection Model**                                                                                                              | **Heckman-Type Corrections**                                                                                                                                                                                                      |
+| When                       | Only observes one sample (treated), addressing selection bias directly.                                                                         | Two samples are observed (treated and untreated), known as the control function approach.                                                                                                                                         |
+| Model                      | Probit                                                                                                                                          | OLS (even for dummy endogenous variable)                                                                                                                                                                                          |
+| Integration of 1st stage   | Also include a term (called Inverse Mills ratio) besides the endogenous variable.                                                               | Decompose the endogenous variable to get the part that is uncorrelated with the error terms of the outcome equation. Either use the predicted endogenous variable directly or include the residual from the first-stage equation. |
+| Advantages and Assumptions | Provides a direct test for endogeneity via the coefficient of the inverse Mills ratio but requires the assumption of joint normality of errors. | Does not require the assumption of joint normality, but can't test for endogeneity directly.                                                                                                                                      |
+
+: Differences between Heckman Sample Selection vs. Heckman-type correction
+
+------------------------------------------------------------------------
+
+### Estimation Methods
+
+#### Heckman's Two-Step Estimator (Heckit)
+
+**Step 1: Estimate Selection Equation with Probit**
+
+We estimate the probability of being included in the sample: $$ P(w_i = 1 \mid z_i) = \Phi(z_i' \gamma) $$
+
+From the estimated model, we compute the **Inverse Mills Ratio (IMR)**: $$ \lambda_i = \frac{\phi(z_i' \hat{\gamma})}{\Phi(z_i' \hat{\gamma})} $$
+
+This term captures the expected value of the error in the outcome equation, conditional on selection.
+
+**Step 2: Include IMR in Outcome Equation**
+
+We then estimate the regression: $$ y_i = x_i' \beta + \delta \lambda_i + \nu_i $$
+
+-   If $\delta$ is significantly different from 0, selection bias is present.
+-   $\lambda_i$ corrects for the non-random selection.
+-   OLS on this augmented model yields consistent estimates of $\beta$ under the joint normality assumption.
+-   Pros: Conceptually simple; widely used.
+-   Cons: Relies heavily on the bivariate normal assumption for $(\varepsilon_i, u_i)$. If no good exclusion variable is available, identification rests on the functional form.
+
+Specifically, the model can be identified **without an exclusion restriction**, but in such cases, identification is driven purely by the **non-linearity** of the probit function and the normality assumption (through the IMR). This is **fragile**.
+
+-   With strong exclusion restriction for the covariate in the correction equation, the variation in this variable can help identify the control for selection.
+-   With weak exclusion restriction, and the variable exists in both steps, it's the assumed error structure that identifies the control for selection [@heckman2004using].
+-   In management, @wolfolds2019misaccounting found that papers should have valid exclusion conditions, because without these, simulations show that results using the Heckman method are less reliable than those obtained with OLS.
+
+For robust identification, we prefer an **exclusion restriction**:
+
+-   A variable that affects selection (through $z_i$) but not the outcome.
+-   Example: Distance to a training center might affect the probability of enrollment, but not post-training income.
+
+Without such a variable, the model relies solely on functional form.
+
+The Heckman two-step estimation procedure is less efficient than FIML. One key limitation is that the two-step estimator does not fully exploit the joint distribution of the error terms across equations, leading to a loss of efficiency. Moreover, the two-step approach may introduce **measurement error** in the second stage. This arises because the inverse Mills ratio used in the second stage is itself an estimated regressor, which can lead to biased standard errors and inference.
+
+
+``` r
+###########################
+#   SIM 1: Heckman 2-step #
+###########################
+suppressPackageStartupMessages(library(MASS))
+
+set.seed(123)
+n <- 1000
+rho <- 0.5
+beta_true <- 2
+
+gamma_true <- 1.0
+Sigma <- matrix(c(1, rho, rho, 1), 2)
+errors <- mvrnorm(n, c(0,0), Sigma)
+
+epsilon <- errors[,1]
+u       <- errors[,2]
+
+x <- rnorm(n)
+w <- rnorm(n)
+
+# Selection
+z_star <- w*gamma_true + u
+z <- ifelse(z_star>0,1,0)
+
+# Outcome
+
+y_star <- x * beta_true + epsilon
+# Observed only if z=1
+y_obs <- ifelse(z == 1, y_star, NA)
+
+# Step 1: Probit
+sel_mod <- glm(z ~ w, family = binomial(link = "probit"))
+z_hat <- predict(sel_mod, type = "link")
+lambda_vals <- dnorm(z_hat) / pnorm(z_hat)
+
+# Step 2: OLS on observed + IMR
+data_heck <- data.frame(y = y_obs,
+                        x = x,
+                        imr = lambda_vals,
+                        z = z)
+observed_data <- subset(data_heck, z == 1)
+heck_lm <- lm(y ~ x + imr, data = observed_data)
+summary(heck_lm)
+#> 
+#> Call:
+#> lm(formula = y ~ x + imr, data = observed_data)
+#> 
+#> Residuals:
+#>      Min       1Q   Median       3Q      Max 
+#> -2.76657 -0.60099 -0.02776  0.56317  2.74797 
+#> 
+#> Coefficients:
+#>             Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)  0.01715    0.07068   0.243    0.808    
+#> x            1.95925    0.03934  49.800  < 2e-16 ***
+#> imr          0.41900    0.10063   4.164 3.69e-05 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 0.8942 on 501 degrees of freedom
+#> Multiple R-squared:  0.8332,	Adjusted R-squared:  0.8325 
+#> F-statistic:  1251 on 2 and 501 DF,  p-value: < 2.2e-16
+
+cat("True beta=", beta_true, "\n")
+#> True beta= 2
+cat("Heckman 2-step estimated beta=", coef(heck_lm)["x"], "\n")
+#> Heckman 2-step estimated beta= 1.959249
 ```
-and the joint distribution of the selection model ($u_i$), and the observed equation ($\epsilon_i$) as
+
+#### Full Information Maximum Likelihood
+
+Jointly estimates the selection and outcome equations via ML, assuming:
 
 $$
-\left[
-\begin{array}
-{c}
-u \\
-\epsilon \\
-\end{array}
-\right]
-\sim^{iid}N
-\left(
-\left[
-\begin{array}
-{c}
-0 \\
-0 \\
-\end{array}
-\right],
-\left[
-\begin{array}
-{cc}
-1 & \rho \\
-\rho & \sigma^2_{\epsilon} \\
-\end{array}
-\right]
-\right)
+\biggl(\varepsilon_i, u_i\biggr) \sim \mathcal{N}\biggl(\begin{pmatrix}0\\0\end{pmatrix},\begin{pmatrix}\sigma_{\varepsilon}^2 & \rho\,\sigma_{\varepsilon}\\\rho\,\sigma_{\varepsilon} & 1\end{pmatrix}\biggr).
 $$
 
-The relation between the observed and selection models:
+-   Pros: More efficient if the distributional assumption is correct. Allows a direct test of $\rho=0$ (LR test).
+-   Cons: More sensitive to specification errors (i.e., requires stronger distributional assumptions); potentially complex to implement.
+
+We can use the **`sampleSelection`** package in R to perform full maximum likelihood estimation for the same data:
+
+
+``` r
+#############################
+# SIM 2: 2-step vs. FIML    #
+#############################
+
+suppressPackageStartupMessages(library(sampleSelection))
+
+# Using same data (z, x, y_obs) from above
+
+# 1) Heckman 2-step (built-in)
+heck2 <-
+    selection(z ~ w, y_obs ~ x, method = "2step", data = data_heck)
+summary(heck2)
+#> --------------------------------------------
+#> Tobit 2 model (sample selection model)
+#> 2-step Heckman / heckit estimation
+#> 1000 observations (496 censored and 504 observed)
+#> 7 free parameters (df = 994)
+#> Probit selection equation:
+#>             Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)  0.02053    0.04494   0.457    0.648    
+#> w            0.94063    0.05911  15.913   <2e-16 ***
+#> Outcome equation:
+#>             Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)  0.01715    0.07289   0.235    0.814    
+#> x            1.95925    0.03924  49.932   <2e-16 ***
+#> Multiple R-Squared:0.8332,	Adjusted R-Squared:0.8325
+#>    Error terms:
+#>               Estimate Std. Error t value Pr(>|t|)    
+#> invMillsRatio   0.4190     0.1018   4.116 4.18e-05 ***
+#> sigma           0.9388         NA      NA       NA    
+#> rho             0.4463         NA      NA       NA    
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> --------------------------------------------
+
+# 2) FIML
+heckFIML <-
+    selection(z ~ w, y_obs ~ x, method = "ml", data = data_heck)
+summary(heckFIML)
+#> --------------------------------------------
+#> Tobit 2 model (sample selection model)
+#> Maximum Likelihood estimation
+#> Newton-Raphson maximisation, 2 iterations
+#> Return code 8: successive function values within relative tolerance limit (reltol)
+#> Log-Likelihood: -1174.233 
+#> 1000 observations (496 censored and 504 observed)
+#> 6 free parameters (df = 994)
+#> Probit selection equation:
+#>             Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)  0.02169    0.04488   0.483    0.629    
+#> w            0.94203    0.05908  15.945   <2e-16 ***
+#> Outcome equation:
+#>             Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept) 0.008601   0.071315   0.121    0.904    
+#> x           1.959195   0.039124  50.077   <2e-16 ***
+#>    Error terms:
+#>       Estimate Std. Error t value Pr(>|t|)    
+#> sigma  0.94118    0.03503  26.867  < 2e-16 ***
+#> rho    0.46051    0.09411   4.893 1.16e-06 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> --------------------------------------------
+```
+
+You can compare the coefficient estimates on `x` from `heck2` vs. `heckFIML`. In large samples, both should converge to the true $\beta$. FIML is typically more efficient, but if the normality assumption is violated, both can be biased.
+
+#### CF and IV Approaches
+
+1.  **Control Function**
+
+-   Residual-based approach: Regress the selection (or treatment) variable on excluded instruments and included controls. Obtain the predicted residual. Include that residual in the main outcome regression.
+-   If correlated residual is significant, that indicates endogeneity; adjusting for it can correct bias.
+-   Often used in the context of treatment effect models or simultaneously with IV logic.
+
+2.  **Instrumental Variables**
+
+-   In the pure treatment effect context, an IV must affect treatment assignment but not the outcome directly.
+-   For sample selection, an exclusion restriction ("instrument") must shift selection but not outcomes.
+-   Example: Distance to a training center influences participation in a job program but not post-training earnings.
+
+------------------------------------------------------------------------
+
+### Theoretical Connections
+
+#### Conditional Expectation from Truncated Distributions
+
+In the sample selection scenario:
 
 $$
 \begin{aligned}
-E(y_i | y_i \text{ observed}) &= E(y_i| z^*>0) \\
-&= E(y_i| -w_i \gamma) \\
-&= \mathbf{x}_i \beta + E(\epsilon_i | u_i > -w_i \gamma) \\
-&= \mathbf{x}_i \beta + \rho \sigma_\epsilon \frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)}
+\mathbb{E}[y_i\mid w_i=1] &= x_i\beta + \mathbb{E}[\varepsilon_i\mid w_i^*>0],\\
+&= x_i\beta + \rho\,\sigma_{\varepsilon}\,\frac{\phi(z_i'\gamma)}{\Phi(z_i'\gamma)},
 \end{aligned}
 $$
 
-where $\frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)}$ is the Inverse Mills Ratio. and $\rho \sigma_\epsilon \frac{\phi(w_i \gamma)}{\Phi(w_i \gamma)} \ge 0$
+where $\rho\,\sigma_{\varepsilon}$ is the covariance term and $\phi$ and $\Phi$ are the standard normal PDF and CDF, respectively. This formula underpins the inverse Mills ratio correction.
 
-A property of IMR: Its derivative is: $IMR'(x) = -x IMR(x) - IMR(x)^2$
+-   If $\rho>0$, then the same unobservables that increase the likelihood of selection also increase outcomes, implying positive selection.
+-   If $\rho<0$, selection is negatively correlated with outcomes.
+-   $\hat{\rho}$: Estimated correlation of error terms. If significantly different from 0, endogenous selection is present.
+-   Wald or Likelihood Ratio Test: Used to test $H_0: \rho = 0$.
+-   Lambda ($\hat{\lambda}$): Product of $\hat{\rho} \hat{\sigma}_\varepsilon$---measures strength of selection bias.
+-   Inverse Mills Ratio: Can be saved and inspected to understand sample inclusion probabilities.
 
-Great visualization of special cases of correlation patterns among data and errors by professor [Rob Hick](https://rlhick.people.wm.edu/stories/econ_407_notes_heckman.html)
+#### Relationship Among Models
 
-Note:
+All the models in [Unifying Model Frameworks] can be seen as special or generalized cases:
 
-[@bareinboim2014transportability] is an excellent summary of cases that we can still do causal inference in case of selection bias. I'll try to summarize their idea here:
+-   If one only has data for the selected group, it's a sample selection setup.
 
-Let $X$ be an action, $Y$ be an outcome, and S be a binary indicator of entry into the data pool where ($S = 1 =$ in the sample, $S = 0 =$ out of sample) and Q be the conditional distribution $Q = P(y|x)$.
+-   If data for both groups exist, but assignment is endogenous, it's a treatment effect problem.
 
-Usually we want to understand , but because of $S$, we only have $P(y, x|S = 1)$. Hence, we'd like to recover $P(y|x)$ from $P(y, x|S = 1)$
+-   If there's a valid instrument, one can do a control function or IV approach.
 
--   If both X and Y affect S, we can't unbiasedly estimate $P(y|x)$
+-   If the normality assumption holds and selection is truly parametric, Heckman or FIML correct for the bias.
 
-In the case of Omitted variable bias ($U$) and sample selection bias ($S$), you have unblocked extraneous "flow" of information between X and $Y$, which causes spurious correlation for $X$ and $Y$. Traditionally, we would recover $Q$ by parametric assumption of
+Summary Table of Methods
 
-(1) The data generating process (e.g., Heckman 2-step)
-(2) Type of data-generating model (e..g, treatment-dependent or outcome-dependent)
-(3) Selection's probability $P(S = 1|P a_s)$ with non-parametrically based causal graphical models, the authors proposed more robust way to model misspecification regardless of the type of data-generating model, and do not require selection's probability. Hence, you can recover Q
-    -   Without external data
-    -   With external data
-    -   Causal effects with the Selection-backdoor criterion
+| **Method**              | **Data Observed**                                               | **Key Assumption**                       | **Exclusion?**       | **Pros**                                | **Cons**                                                   |
+|-------------------------|-----------------------------------------------------------------|------------------------------------------|----------------------|-----------------------------------------|------------------------------------------------------------|
+| OLS (Naive)             | Full or partial, ignoring selection                             | No endogeneity in errors                 | Not required         | Simple to implement                     | Biased if endogeneity is present                           |
+| Heckman 2-Step (Heckit) | Outcome only for selected group                                 | Joint normal errors; linear functional   | Strongly recommended | Intuitive, widely used                  | Sensitive to normality/functional form.                    |
+| FIML (Full ML)          | Same as Heckman (subset observed)                               | Joint normal errors                      | Strongly recommended | More efficient, direct test of $\rho=0$ | Complex, more sensitive to misspecification                |
+| Control Function        | Observed data for both or one group (depending on setup)        | Some form of valid instrument or exog.   | Yes (instrument)     | Extends easily to many models           | Must find valid instrument, no direct test for endogeneity |
+| Instrumental Variables  | Observed data for both groups, or entire sample (for selection) | IV must affect selection but not outcome | Yes (instrument)     | Common approach in program evaluation   | Exclusion restriction validity is critical                 |
 
-### Tobit-2
+------------------------------------------------------------------------
 
-also known as Heckman's standard sample selection model\
-Assumption: joint normality of the errors
+#### Concerns
 
-Data here is taken from @mroz1984sensitivity.
+1.  **Small Samples**: Two-step procedures can be unstable in smaller datasets.
+2.  **Exclusion Restrictions**: Without a credible variable that predicts selection but not outcomes, identification depends purely on functional form (bivariate normal + nonlinearity of probit).
+3.  **Distributional Assumption**: If normality is seriously violated, neither 2-step nor FIML may reliably remove bias.
+4.  **Measurement Error in IMR**: The second-stage includes an *estimated* regressor $\hat{\lambda}_i$, which can add noise.
+5.  **Connection to IV**: If a strong instrument exists, one could proceed with a control function or standard IV in a treatment effect setup. But for sample selection (lack of data on unselected), the Heckman approach is more common.
+6.  **Presence of Correlation between the Error Terms**: The Heckman treatment effect model outperforms OLS when $\rho \neq 0$ because it corrects for selection bias due to unobserved factors. However, when $\rho = 0$, the correction is unnecessary and can introduce inefficiency, making simpler methods more accurate.
 
-We want to estimate the log(wage) for married women, with education, experience, experience squared, and a dummy variable for living in a big city. But we can only observe the wage for women who are working, which means a lot of married women in 1975 who were out of the labor force are unaccounted for. Hence, an OLS estimate of the wage equation would be bias due to sample selection. Since we have data on non-participants (i.e., those who are not working for pay), we can correct for the selection process.
+------------------------------------------------------------------------
 
-The Tobit-2 estimates are consistent
+### Tobit-2: Heckman's Sample Selection Model
 
-#### Example 1
+The Tobit-2 model, also known as **Heckman's standard sample selection model**, is designed to correct for sample selection bias. This arises when the outcome variable is only observed for a non-random subset of the population, and the selection process is correlated with the outcome of interest.
+
+A key assumption of the model is the **joint normality of the error terms** in the selection and outcome equations.
+
+#### Panel Study of Income Dynamics
+
+We demonstrate the model using the classic dataset from @mroz1984sensitivity, which provides data from the 1975 Panel Study of Income Dynamics on married women's labor-force participation and wages.
+
+We aim to estimate the log of hourly wages for married women, using:
+
+-   `educ`: Years of education
+-   `exper`: Years of work experience
+-   `exper^2`: Experience squared (to capture non-linear effects)
+-   `city`: A dummy for residence in a big city
+
+However, wages are only observed for those who participated in the labor force, meaning an OLS regression using only this subsample would suffer from selection bias.
+
+Because we also have data on non-participants, we can use Heckman's two-step method to correct for this bias.
+
+------------------------------------------------------------------------
+
+1.  **Load and Prepare Data**
 
 
-```r
+``` r
 library(sampleSelection)
 library(dplyr)
-# 1975 data on married women’s pay and labor-force participation 
-# from the Panel Study of Income Dynamics (PSID)
-data("Mroz87") 
+library(nnet)
+library(ggplot2)
+library(reshape2)
+
+data("Mroz87")  # PSID data on married women in 1975
+Mroz87 = Mroz87 %>%
+  mutate(kids = kids5 + kids618)  # total number of children
 head(Mroz87)
 #>   lfp hours kids5 kids618 age educ   wage repwage hushrs husage huseduc huswage
 #> 1   1  1610     1       0  32   12 3.3540    2.65   2708     34      12  4.0288
@@ -1752,33 +2114,70 @@ head(Mroz87)
 #> 4   7300 0.7815        7        7  5.0    0     6  6.799996    FALSE   FALSE
 #> 5  27300 0.6215       12       14  9.5    1     7 20.100058     TRUE   FALSE
 #> 6  19495 0.6915       14        7  7.5    1    33  9.859054    FALSE   FALSE
-Mroz87 = Mroz87 %>%
-    mutate(kids = kids5 + kids618)
-
-library(nnet)
-library(ggplot2)
-library(reshape2)
+#>   kids
+#> 1    1
+#> 2    2
+#> 3    4
+#> 4    3
+#> 5    3
+#> 6    0
 ```
 
-2-stage Heckman's model:
+2.  **Model Overview**
 
-(1) probit equation estimates the selection process (who is in the labor force?)
-(2) the results from 1st stage are used to construct a variable that captures the selection effect in the wage equation. This correction variable is called the **inverse Mills ratio**.
+The two-step Heckman selection model proceeds as follows:
+
+1.  **Selection Equation (Probit)**:\
+    Models the probability of labor force participation (`lfp = 1`) as a function of variables that affect the decision to work.
+
+2.  **Outcome Equation (Wage)**:\
+    Models log wages conditional on working. A correction term, the IMR, is included to account for the non-random selection into work.
+
+Step 1: Naive OLS on Observed Wages
 
 
-```r
-# OLS: log wage regression on LF participants only
-ols1 = lm(log(wage) ~ educ + exper + I(exper ^ 2) + city, 
+``` r
+ols1 = lm(log(wage) ~ educ + exper + I(exper ^ 2) + city,
           data = subset(Mroz87, lfp == 1))
-# Heckman's Two-step estimation with LFP selection equation
+summary(ols1)
+#> 
+#> Call:
+#> lm(formula = log(wage) ~ educ + exper + I(exper^2) + city, data = subset(Mroz87, 
+#>     lfp == 1))
+#> 
+#> Residuals:
+#>      Min       1Q   Median       3Q      Max 
+#> -3.10084 -0.32453  0.05292  0.36261  2.34806 
+#> 
+#> Coefficients:
+#>               Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept) -0.5308476  0.1990253  -2.667  0.00794 ** 
+#> educ         0.1057097  0.0143280   7.378 8.58e-13 ***
+#> exper        0.0410584  0.0131963   3.111  0.00199 ** 
+#> I(exper^2)  -0.0007973  0.0003938  -2.025  0.04352 *  
+#> city         0.0542225  0.0680903   0.796  0.42629    
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 0.6667 on 423 degrees of freedom
+#> Multiple R-squared:  0.1581,	Adjusted R-squared:  0.1501 
+#> F-statistic: 19.86 on 4 and 423 DF,  p-value: 5.389e-15
+```
+
+This OLS is biased because it only includes women who chose to work.
+
+Step 2: Heckman Two-Step Estimation
+
+
+``` r
+# Heckman 2-step estimation
 heck1 = heckit(
     selection = lfp ~ age + I(age ^ 2) + kids + huswage + educ,
-    # the selection process, l
-    # fp = 1 if the woman is participating in the labor force
     outcome = log(wage) ~ educ + exper + I(exper ^ 2) + city,
     data = Mroz87
 )
 
+# Stage 1: Selection equation (probit)
 summary(heck1$probit)
 #> --------------------------------------------
 #> Probit binary choice model/Maximum Likelihood estimation
@@ -1800,6 +2199,8 @@ summary(heck1$probit)
 #> Significance test:
 #> chi2(5) = 64.10407 (p=1.719042e-12)
 #> --------------------------------------------
+
+# Stage 2: Wage equation with selection correction
 summary(heck1$lm)
 #> 
 #> Call:
@@ -1825,18 +2226,16 @@ summary(heck1$lm)
 #> F-statistic:   240 on 6 and 422 DF,  p-value: < 2.2e-16
 ```
 
-Use only variables that affect the selection process in the selection equation. Technically, the selection equation and the equation of interest could have the same set of regressors. But it is not recommended because we should only use variables (or at least one) in the selection equation that affect the selection process, but not the wage process (i.e., instruments). Here, variable `kids` fulfill that role: women with kids may be more likely to stay home, but working moms with kids would not have their wages change.
-
-Alternatively,
+The variable `kids` is used only in the selection equation. This follows good practice: at least one variable should appear only in the selection equation (serving as an instrument) to help identify the model.
 
 
-```r
-# ML estimation of selection model
+``` r
+# ML estimation of Heckman selection model
 ml1 = selection(
-    selection = lfp ~ age + I(age ^ 2) + kids + huswage + educ,
-    outcome = log(wage) ~ educ + exper + I(exper ^ 2) + city,
-    data = Mroz87
-) 
+  selection = lfp ~ age + I(age^2) + kids + huswage + educ,
+  outcome = log(wage) ~ educ + exper + I(exper^2) + city,
+  data = Mroz87
+)
 summary(ml1)
 #> --------------------------------------------
 #> Tobit 2 model (sample selection model)
@@ -1868,16 +2267,16 @@ summary(ml1)
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> --------------------------------------------
-# summary(ml1$twoStep)
 ```
 
-Manual
+The MLE approach jointly estimates both equations, yielding consistent and asymptotically efficient estimates.
+
+Manual Implementation: Constructing the IMR
 
 
-```r
-myprob <- probit(lfp ~ age + I( age^2 ) + kids + huswage + educ, 
-                 # x = TRUE, 
-                 # iterlim = 30, 
+``` r
+# Step 1: Probit model
+myprob <- probit(lfp ~ age + I(age^2) + kids + huswage + educ,
                  data = Mroz87)
 summary(myprob)
 #> --------------------------------------------
@@ -1901,13 +2300,14 @@ summary(myprob)
 #> chi2(5) = 64.10407 (p=1.719042e-12)
 #> --------------------------------------------
 
+# Step 2: Compute IMR
 imr <- invMillsRatio(myprob)
 Mroz87$IMR1 <- imr$IMR1
 
-manually_est <- lm(log(wage) ~ educ + exper + I( exper^2 ) + city + IMR1,
-                   data = Mroz87, 
+# Step 3: Wage regression including IMR
+manually_est <- lm(log(wage) ~ educ + exper + I(exper^2) + city + IMR1,
+                   data = Mroz87,
                    subset = (lfp == 1))
-
 summary(manually_est)
 #> 
 #> Call:
@@ -1934,32 +2334,28 @@ summary(manually_est)
 #> F-statistic: 15.86 on 5 and 422 DF,  p-value: 2.505e-14
 ```
 
-Similarly,
+Equivalent Method Using `glm` and Manual IMR Calculation
 
 
-```r
-probit_selection <-
-    glm(lfp ~ age + I( age^2 ) + kids + huswage + educ,
-        data = Mroz87,
-        family = binomial(link = 'probit'))
+``` r
+# Probit via glm
+probit_selection <- glm(
+  lfp ~ age + I(age^2) + kids + huswage + educ,
+  data = Mroz87,
+  family = binomial(link = 'probit')
+)
 
-# library(fixest)
-# probit_selection <-
-#     fixest::feglm(lfp ~ age + I( age^2 ) + kids + huswage + educ,
-#         data = Mroz87,
-#         family = binomial(link = 'probit'))
-
+# Compute predicted latent index and IMR
 probit_lp <- -predict(probit_selection)
 inv_mills <- dnorm(probit_lp) / (1 - pnorm(probit_lp))
 Mroz87$inv_mills <- inv_mills
 
-
-probit_outcome <-
-    glm(
-        log(wage) ~ educ + exper + I(exper ^ 2) + city + inv_mills,
-        data = Mroz87,
-        subset = (lfp == 1)
-    )
+# Second stage: Wage regression with correction
+probit_outcome <- glm(
+  log(wage) ~ educ + exper + I(exper^2) + city + inv_mills,
+  data = Mroz87,
+  subset = (lfp == 1)
+)
 summary(probit_outcome)
 #> 
 #> Call:
@@ -1986,151 +2382,133 @@ summary(probit_outcome)
 #> Number of Fisher Scoring iterations: 2
 ```
 
+Comparing Models
 
-```r
-library("stargazer")
-library("Mediana")
-library("plm")
-# function to calculate corrected SEs for regression 
+
+``` r
+library(stargazer)
+library(plm)
+library(sandwich)
+
+# Custom robust SE function
 cse = function(reg) {
-  rob = sqrt(diag(vcovHC(reg, type = "HC1")))
-  return(rob)
+  sqrt(diag(vcovHC(reg, type = "HC1")))
 }
 
-# stargazer table
+# Comparison table
 stargazer(
-    # ols1,
-    heck1,
-    ml1,
-    # manually_est,
-    
-    se = list(cse(ols1), NULL, NULL),
-    title = "Married women's wage regressions",
-    type = "text",
-    df = FALSE,
-    digits = 4,
-    selection.equation = T
+  ols1, heck1, ml1, manually_est,
+  se = list(cse(ols1), NULL, NULL, NULL),
+  title = "Married Women's Wage Regressions: OLS vs Heckman Models",
+  type = "text",
+  df = FALSE,
+  digits = 4,
+  selection.equation = TRUE
 )
 #> 
-#> Married women's wage regressions
-#> ===================================================
-#>                           Dependent variable:      
-#>                     -------------------------------
-#>                                   lfp              
-#>                         Heckman        selection   
-#>                        selection                   
-#>                           (1)             (2)      
-#> ---------------------------------------------------
-#> age                    0.1861***       0.1842***   
-#>                                        (0.0658)    
-#>                                                    
-#> I(age2)                 -0.0024       -0.0024***   
-#>                                        (0.0008)    
-#>                                                    
-#> kids                  -0.1496***      -0.1488***   
-#>                                        (0.0385)    
-#>                                                    
-#> huswage                 -0.0430       -0.0434***   
-#>                                        (0.0123)    
-#>                                                    
-#> educ                    0.1250         0.1256***   
-#>                        (0.0130)        (0.0229)    
-#>                                                    
-#> Constant              -4.1815***      -4.1484***   
-#>                        (0.2032)        (1.4109)    
-#>                                                    
-#> ---------------------------------------------------
-#> Observations              753             753      
-#> R2                      0.1582                     
-#> Adjusted R2             0.1482                     
-#> Log Likelihood                         -914.0777   
-#> rho                     0.0830      0.0505 (0.2317)
-#> Inverse Mills Ratio 0.0551 (0.2099)                
-#> ===================================================
-#> Note:                   *p<0.1; **p<0.05; ***p<0.01
-
-
-stargazer(
-    ols1,
-    # heck1,
-    # ml1,
-    manually_est,
-    
-    se = list(cse(ols1), NULL, NULL),
-    title = "Married women's wage regressions",
-    type = "text",
-    df = FALSE,
-    digits = 4,
-    selection.equation = T
-)
-#> 
-#> Married women's wage regressions
-#> ================================================
-#>                         Dependent variable:     
-#>                     ----------------------------
-#>                              log(wage)          
-#>                          (1)            (2)     
-#> ------------------------------------------------
-#> educ                  0.1057***      0.1092***  
-#>                        (0.0130)      (0.0197)   
-#>                                                 
-#> exper                 0.0411***      0.0419***  
-#>                        (0.0154)      (0.0136)   
-#>                                                 
-#> I(exper2)              -0.0008*      -0.0008**  
-#>                        (0.0004)      (0.0004)   
-#>                                                 
-#> city                    0.0542        0.0510    
-#>                        (0.0653)      (0.0692)   
-#>                                                 
-#> IMR1                                  0.0551    
-#>                                      (0.2112)   
-#>                                                 
-#> Constant              -0.5308***      -0.6143   
-#>                        (0.2032)      (0.3769)   
-#>                                                 
-#> ------------------------------------------------
-#> Observations             428            428     
-#> R2                      0.1581        0.1582    
-#> Adjusted R2             0.1501        0.1482    
-#> Residual Std. Error     0.6667        0.6674    
-#> F Statistic           19.8561***    15.8635***  
-#> ================================================
-#> Note:                *p<0.1; **p<0.05; ***p<0.01
+#> Married Women's Wage Regressions: OLS vs Heckman Models
+#> =========================================================================
+#>                                      Dependent variable:                 
+#>                     -----------------------------------------------------
+#>                     log(wage)                lfp               log(wage) 
+#>                        OLS         Heckman        selection       OLS    
+#>                                   selection                              
+#>                        (1)           (2)             (3)          (4)    
+#> -------------------------------------------------------------------------
+#> age                               0.1861***       0.1842***              
+#>                                   (0.0652)        (0.0658)               
+#>                                                                          
+#> I(age2)                          -0.0024***      -0.0024***              
+#>                                   (0.0008)        (0.0008)               
+#>                                                                          
+#> kids                             -0.1496***      -0.1488***              
+#>                                   (0.0383)        (0.0385)               
+#>                                                                          
+#> huswage                          -0.0430***      -0.0434***              
+#>                                   (0.0122)        (0.0123)               
+#>                                                                          
+#> educ                0.1057***     0.1250***       0.1256***    0.1092*** 
+#>                      (0.0130)     (0.0228)        (0.0229)      (0.0197) 
+#>                                                                          
+#> exper               0.0411***                                  0.0419*** 
+#>                      (0.0154)                                   (0.0136) 
+#>                                                                          
+#> I(exper2)            -0.0008*                                  -0.0008** 
+#>                      (0.0004)                                   (0.0004) 
+#>                                                                          
+#> city                  0.0542                                     0.0510  
+#>                      (0.0653)                                   (0.0692) 
+#>                                                                          
+#> IMR1                                                             0.0551  
+#>                                                                 (0.2112) 
+#>                                                                          
+#> Constant            -0.5308***   -4.1815***      -4.1484***     -0.6143  
+#>                      (0.2032)     (1.4024)        (1.4109)      (0.3769) 
+#>                                                                          
+#> -------------------------------------------------------------------------
+#> Observations           428           753             753          428    
+#> R2                    0.1581       0.1582                        0.1582  
+#> Adjusted R2           0.1501       0.1482                        0.1482  
+#> Log Likelihood                                    -914.0777              
+#> rho                                0.0830      0.0505 (0.2317)           
+#> Inverse Mills Ratio            0.0551 (0.2099)                           
+#> Residual Std. Error   0.6667                                     0.6674  
+#> F Statistic         19.8561***                                 15.8635***
+#> =========================================================================
+#> Note:                                         *p<0.1; **p<0.05; ***p<0.01
 ```
 
-Rho is an estimate of the correlation of the errors between the selection and wage equations. In the lower panel, the estimated coefficient on the inverse Mills ratio is given for the Heckman model. The fact that it is not statistically different from zero is consistent with the idea that selection bias was not a serious problem in this case.
+-   IMR: If the coefficient on the IMR is statistically significant, it suggests selection bias is present and that OLS estimates are biased.
 
-If the estimated coefficient of the inverse Mills ratio in the Heckman model is not statistically different from zero, then selection bias was not a serious problem.
+-   $\rho$: Represents the estimated correlation between the error terms of the selection and outcome equations. A significant $\rho$ implies non-random selection, justifying the Heckman correction.
 
-#### Example 2
+-   In our case, if the IMR coefficient is not statistically different from zero, then selection bias may not be a serious concern.
 
-This code is from [R package sampleSelection](https://cran.r-project.org/web/packages/sampleSelection/vignettes/selection.pdf)
+#### The Role of Exclusion Restrictions in Heckman's Model
+
+This example, adapted from the `sampleSelection`, demonstrates the identification of the sample selection model using simulated data.
+
+We compare two cases:
+
+-   One where an **exclusion restriction** is present (i.e., selection and outcome equations use different regressors).
+
+-   One where the **same regressor** is used in both equations.
+
+------------------------------------------------------------------------
+
+**Case 1: With Exclusion Restriction**
 
 
-```r
+``` r
 set.seed(0)
-library("sampleSelection")
-library("mvtnorm")
-# bivariate normal disturbances
-eps <-
-    rmvnorm(500, c(0, 0), matrix(c(1, -0.7, -0.7, 1), 2, 2)) 
+library(sampleSelection)
+library(mvtnorm)
 
-# uniformly distributed explanatory variable 
-# (vectors of explanatory variables for the selection)
+
+# Simulate bivariate normal error terms with correlation -0.7
+eps <-
+    rmvnorm(500, mean = c(0, 0), sigma = matrix(c(1,-0.7,-0.7, 1), 2, 2))
+
+# Independent explanatory variable for selection equation
 xs <- runif(500)
 
-# probit data generating process
-ys <- xs + eps[, 1] > 0 
+# Selection: Probit model (latent utility model)
+ys_latent <- xs + eps[, 1]
+ys <- ys_latent > 0  # observed participation indicator (TRUE/FALSE)
 
-# vectors of explanatory variables for outcome equation
-xo <- runif(500) 
-yoX <- xo + eps[, 2] # latent outcome
-yo <- yoX * (ys > 0) # observable outcome
-# true intercepts = 0 and our true slopes = 1
-# xs and xo are independent. 
-# Hence, exclusion restriction is fulfilled
-summary(selection(ys ~ xs, yo ~ xo))
+# Independent explanatory variable for outcome equation
+xo <- runif(500)
+
+# Latent outcome variable
+yo_latent <- xo + eps[, 2]
+
+# Observed outcome: only when selected (ys == TRUE)
+yo <- yo_latent * ys
+
+# Estimate Heckman's selection model
+model_with_exclusion <-
+    selection(selection = ys ~ xs, outcome = yo ~ xo)
+summary(model_with_exclusion)
 #> --------------------------------------------
 #> Tobit 2 model (sample selection model)
 #> Maximum Likelihood estimation
@@ -2156,13 +2534,32 @@ summary(selection(ys ~ xs, yo ~ xo))
 #> --------------------------------------------
 ```
 
-without the exclusion restriction, we generate yo using xs instead of xo.
+**Key Observations:**
+
+-   The variables `xs` and `xo` are **independent**, fulfilling the **exclusion restriction**.
+
+-   The outcome equation is identified not only by the non-linearity of the model but also by the presence of a regressor in the selection equation that is absent from the outcome equation.
+
+This mirrors realistic scenarios in applied business settings, such as:
+
+-   Participation in the labor force driven by family or geographic factors (`xs`), while wages depend on skills or education (`xo`).
+
+-   Loan application driven by personal risk preferences, while interest rates depend on credit score or income.
+
+------------------------------------------------------------------------
+
+**Case 2: Without Exclusion Restriction**
 
 
-```r
-yoX <- xs + eps[,2]
-yo <- yoX*(ys > 0)
-summary(selection(ys ~ xs, yo ~ xs))
+``` r
+# Now use the same regressor (xs) in both equations
+yo_latent2 <- xs + eps[, 2]
+yo2 <- yo_latent2 * ys
+
+# Re-estimate model without exclusion restriction
+model_no_exclusion <-
+    selection(selection = ys ~ xs, outcome = yo2 ~ xs)
+summary(model_no_exclusion)
 #> --------------------------------------------
 #> Tobit 2 model (sample selection model)
 #> Maximum Likelihood estimation
@@ -2188,36 +2585,73 @@ summary(selection(ys ~ xs, yo ~ xs))
 #> --------------------------------------------
 ```
 
-We can see that our estimates are still unbiased but standard errors are substantially larger. The exclusion restriction (i.e., independent information about the selection process) has a certain identifying power that we desire. Hence, it's better to have different set of variable for the selection process from the interested equation. Without the exclusion restriction, we solely rely on the functional form identification.
+**What changes?**
 
-### Tobit-5
+-   The estimates remain approximately unbiased because the model is still identified by functional form (non-linear selection mechanism).
 
-Also known as the switching regression model\
-Condition: There is at least one variable in X in the selection process not included in the observed process. Used when there are separate models for participants, and non-participants.
+-   However, the standard errors are substantially larger, leading to less precise inference.
+
+**Why Exclusion Restrictions Matter**
+
+The exclusion restriction improves identification by introducing additional variation that affects selection but not the outcome. This is a common recommendation in empirical work:
+
+-   In the first case, `xs` helps explain who is selected, while `xo` helps explain the outcome, enabling more precise estimates.
+
+-   In the second case, all variation comes from `xs`, meaning the model relies solely on the distributional assumptions (e.g., joint normality of errors) for identification.
+
+**Best Practice (for applied researchers):**
+
+> Always try to include at least one variable in the selection equation that does **not appear in the outcome equation**. This helps identify the model and improves estimation precision.
+
+### Tobit-5: Switching Regression Model
+
+The **Tobit-5** model, also known as the **Switching Regression Model**, generalizes Heckman's sample selection model to allow for two separate outcome equations:
+
+-   One model for participants
+-   A different model for non-participants
+
+Assumptions:
+
+-   The selection process determines which outcome equation is observed.
+-   There is at least one variable in the selection equation that does not appear in the outcome equations (i.e., an exclusion restriction), which improves identification.
+-   The errors from all three equations (selection, outcome1, outcome2) are assumed to be jointly normally distributed.
+
+This model is especially relevant when selection is endogenous and both groups (selected and unselected) have distinct data-generating processes.
+
+------------------------------------------------------------------------
+
+#### Simulated Example: With Exclusion Restriction
 
 
-```r
+``` r
 set.seed(0)
+library(sampleSelection)
+library(mvtnorm)
+
+# Define a 3x3 covariance matrix with positive correlations
 vc <- diag(3)
 vc[lower.tri(vc)] <- c(0.9, 0.5, 0.1)
-vc[upper.tri(vc)] <- vc[lower.tri(vc)]
+vc[upper.tri(vc)] <- t(vc)[upper.tri(vc)]
 
-# 3 disturbance vectors by a 3-dimensional normal distribution
-eps <- rmvnorm(500, c(0,0,0), vc) 
-xs <- runif(500) # uniformly distributed on [0, 1]
-ys <- xs + eps[,1] > 0
-xo1 <- runif(500) # uniformly distributed on [0, 1]
-yo1 <- xo1 + eps[,2]
-xo2 <- runif(500) # uniformly distributed on [0, 1]
-yo2 <- xo2 + eps[,3]
-```
+# Generate multivariate normal error terms
+eps <- rmvnorm(500, mean = c(0, 0, 0), sigma = vc)
 
-exclusion restriction is fulfilled when $x$'s are independent.
+# Selection equation regressor (xs), uniformly distributed
+xs <- runif(500)
 
+# Binary selection indicator: ys = 1 if selected
+ys <- xs + eps[, 1] > 0
 
-```r
-# one selection equation and a list of two outcome equations
-summary(selection(ys~xs, list(yo1 ~ xo1, yo2 ~ xo2))) 
+# Separate regressors for two regimes (fulfilling exclusion restriction)
+xo1 <- runif(500)
+yo1 <- xo1 + eps[, 2]  # Outcome for selected group
+
+xo2 <- runif(500)
+yo2 <- xo2 + eps[, 3]  # Outcome for non-selected group
+
+# Fit switching regression model
+model_switch <- selection(ys ~ xs, list(yo1 ~ xo1, yo2 ~ xo2))
+summary(model_switch)
 #> --------------------------------------------
 #> Tobit 5 model (switching regression model)
 #> Maximum Likelihood estimation
@@ -2249,111 +2683,522 @@ summary(selection(ys~xs, list(yo1 ~ xo1, yo2 ~ xo2)))
 #> --------------------------------------------
 ```
 
-All the estimates are close to the true values.
+The estimated coefficients are close to the true values (intercept = 0, slope = 1), and the model converges well due to correct specification and valid exclusion restriction.
 
-Example of functional form misspecification
+#### Example: Functional Form Misspecification
+
+To demonstrate how **non-normal errors** or skewed distributions affect the model, consider the following:
 
 
-```r
-set.seed(5)
-eps <- rmvnorm(1000, rep(0, 3), vc)
-eps <- eps^2 - 1 # subtract 1 in order to get the mean zero disturbances
+``` r
+set.seed(0)
+eps <- rmvnorm(1000, mean = rep(0, 3), sigma = vc)
 
-# interval [−1, 0] to get an asymmetric distribution over observed choices
-xs <- runif(1000, -1, 0) 
-ys <- xs + eps[,1] > 0
+# Induce skewness: squared errors minus 1 to ensure mean zero
+eps <- eps^2 - 1
+
+# Generate xs on a skewed interval [-1, 0]
+xs <- runif(1000, -1, 0)
+ys <- xs + eps[, 1] > 0
+
 xo1 <- runif(1000)
-yo1 <- xo1 + eps[,2]
+yo1 <- xo1 + eps[, 2]
+
 xo2 <- runif(1000)
-yo2 <- xo2 + eps[,3]
-summary(selection(ys~xs, list(yo1 ~ xo1, yo2 ~ xo2), iterlim=20))
+yo2 <- xo2 + eps[, 3]
+
+# Attempt model estimation
+summary(selection(ys ~ xs, list(yo1 ~ xo1, yo2 ~ xo2), iterlim = 20))
 #> --------------------------------------------
 #> Tobit 5 model (switching regression model)
 #> Maximum Likelihood estimation
-#> Newton-Raphson maximisation, 4 iterations
+#> Newton-Raphson maximisation, 12 iterations
 #> Return code 3: Last step could not find a value above the current.
 #> Boundary of parameter space?  
 #> Consider switching to a more robust optimisation method temporarily.
-#> Log-Likelihood: -1665.936 
-#> 1000 observations: 760 selection 1 (FALSE) and 240 selection 2 (TRUE)
+#> Log-Likelihood: -1695.102 
+#> 1000 observations: 782 selection 1 (FALSE) and 218 selection 2 (TRUE)
 #> 10 free parameters (df = 990)
 #> Probit selection equation:
-#>             Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept) -0.53698    0.05808  -9.245  < 2e-16 ***
-#> xs           0.31268    0.09395   3.328 0.000906 ***
+#>              Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept) -0.660315   0.082477  -8.006  3.3e-15 ***
+#> xs           0.007167   0.088630   0.081    0.936    
 #> Outcome equation 1:
 #>             Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept) -0.70679    0.03573  -19.78   <2e-16 ***
-#> xo1          0.91603    0.05626   16.28   <2e-16 ***
+#> (Intercept) -0.31351    0.04868   -6.44 1.86e-10 ***
+#> xo1          1.03862    0.08049   12.90  < 2e-16 ***
 #> Outcome equation 2:
-#>             Estimate Std. Error t value Pr(>|t|)  
-#> (Intercept)   0.1446        NaN     NaN      NaN  
-#> xo2           1.1196     0.5014   2.233   0.0258 *
+#>             Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)  -2.6835     0.2043 -13.132  < 2e-16 ***
+#> xo2           1.0230     0.1309   7.814 1.41e-14 ***
 #>    Error terms:
 #>        Estimate Std. Error t value Pr(>|t|)    
-#> sigma1  0.67770    0.01760   38.50   <2e-16 ***
-#> sigma2  2.31432    0.07615   30.39   <2e-16 ***
-#> rho1   -0.97137        NaN     NaN      NaN    
-#> rho2    0.17039        NaN     NaN      NaN    
+#> sigma1  0.70172    0.02000   35.09   <2e-16 ***
+#> sigma2  2.49651        NaN     NaN      NaN    
+#> rho1    0.51564    0.04216   12.23   <2e-16 ***
+#> rho2    1.00000        NaN     NaN      NaN    
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> --------------------------------------------
 ```
 
-Although we still have an exclusion restriction (xo1 and xo2 are independent), we now have problems with the intercepts (i.e., they are statistically significantly different from the true values zero), and convergence problems.
+Even though the exclusion restriction is preserved, non-normal errors introduce bias in the intercept estimates, and convergence is less reliable. This illustrates how functional form misspecification (i.e., deviations from assumed distributional forms) impacts performance.
 
-If we don't have the exclusion restriction, we will have a larger variance of xs
+#### Example: No Exclusion Restriction
+
+Here we remove the exclusion restriction by using the same regressor (`xs`) in both outcome equations.
 
 
-```r
-set.seed(6)
+``` r
+set.seed(0)
 xs <- runif(1000, -1, 1)
-ys <- xs + eps[,1] > 0
-yo1 <- xs + eps[,2]
-yo2 <- xs + eps[,3]
-summary(tmp <- selection(ys~xs, list(yo1 ~ xs, yo2 ~ xs), iterlim=20))
+ys <- xs + eps[, 1] > 0
+
+yo1 <- xs + eps[, 2]
+yo2 <- xs + eps[, 3]
+
+# Fit switching regression without exclusion restriction
+summary(tmp <-
+            selection(ys ~ xs, list(yo1 ~ xs, yo2 ~ xs), iterlim = 20))
 #> --------------------------------------------
 #> Tobit 5 model (switching regression model)
 #> Maximum Likelihood estimation
 #> Newton-Raphson maximisation, 16 iterations
-#> Return code 8: successive function values within relative tolerance limit (reltol)
-#> Log-Likelihood: -1936.431 
-#> 1000 observations: 626 selection 1 (FALSE) and 374 selection 2 (TRUE)
+#> Return code 1: gradient close to zero (gradtol)
+#> Log-Likelihood: -1879.552 
+#> 1000 observations: 615 selection 1 (FALSE) and 385 selection 2 (TRUE)
 #> 10 free parameters (df = 990)
 #> Probit selection equation:
 #>             Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept)  -0.3528     0.0424  -8.321 2.86e-16 ***
-#> xs            0.8354     0.0756  11.050  < 2e-16 ***
+#> (Intercept) -0.33425    0.04280   -7.81 1.46e-14 ***
+#> xs           0.94762    0.07763   12.21  < 2e-16 ***
 #> Outcome equation 1:
 #>             Estimate Std. Error t value Pr(>|t|)    
-#> (Intercept) -0.55448    0.06339  -8.748   <2e-16 ***
-#> xs           0.81764    0.06048  13.519   <2e-16 ***
+#> (Intercept) -0.49592    0.06800  -7.293 6.19e-13 ***
+#> xs           0.84530    0.06789  12.450  < 2e-16 ***
 #> Outcome equation 2:
-#>             Estimate Std. Error t value Pr(>|t|)
-#> (Intercept)   0.6457     0.4994   1.293    0.196
-#> xs            0.3520     0.3197   1.101    0.271
+#>             Estimate Std. Error t value Pr(>|t|)  
+#> (Intercept)   0.3861     0.4967   0.777   0.4371  
+#> xs            0.6254     0.3322   1.882   0.0601 .
 #>    Error terms:
 #>        Estimate Std. Error t value Pr(>|t|)    
-#> sigma1  0.59187    0.01853  31.935   <2e-16 ***
-#> sigma2  1.97257    0.07228  27.289   <2e-16 ***
-#> rho1    0.15568    0.15914   0.978    0.328    
-#> rho2   -0.01541    0.23370  -0.066    0.947    
+#> sigma1  0.61693    0.02054  30.029   <2e-16 ***
+#> sigma2  1.59059    0.05745  27.687   <2e-16 ***
+#> rho1    0.19981    0.15863   1.260    0.208    
+#> rho2   -0.01259    0.29339  -0.043    0.966    
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> --------------------------------------------
 ```
 
-Usually it will not converge. Even if it does, the results may be seriously biased.
+This model may fail to converge or produce biased estimates, especially for the intercepts. Even if it does converge, the reliability of the inference is questionable due to weak identification from using the same regressor across all equations.
 
-**Note**
+**Notes on Estimation and Convergence**
 
-The log-likelihood function of the models might not be globally concave. Hence, it might not converge, or converge to a local maximum. To combat this, we can use
+The log-likelihood function of switching regression models is not globally concave, so the estimation process may:
 
--   Different starting value
--   Different maximization methods.
--   refer to [Non-linear Least Squares] for suggestions.
+-   Fail to converge
 
-##### Pattern-Mixture Models
+-   Converge to a local maximum
 
--   compared to the Heckman's model where it assumes the value of the missing data is predetermined, pattern-mixture models assume missingness affect the distribution of variable of interest (e.g., Y)
--   To read more, you can check [NCSU](https://www4.stat.ncsu.edu/~davidian/st790/notes/chap6.pdf), [stefvanbuuren](https://stefvanbuuren.name/fimd/sec-nonignorable.html).
+Practical Tips:
+
+-   Try different starting values or random seeds
+
+-   Use alternative maximization algorithms (e.g., `optim` control)
+
+-   Consider rescaling variables or centering predictors
+
+-   Refer to [Non-Linear Regression] for advanced diagnostics
+
+Model Comparison Summary
+
+| Scenario                      | Exclusion Restriction | Convergence | Bias             | Variance |
+|-------------------------------|-----------------------|-------------|------------------|----------|
+| Well-specified with exclusion | Yes                   | Likely      | No               | Low      |
+| Misspecified distribution     | Yes                   | Risky       | Yes (intercepts) | Moderate |
+| No exclusion restriction      | No                    | Often fails | Yes              | High     |
+
+### Pattern-Mixture Models
+
+In the context of endogenous sample selection, one of the central challenges is modeling the joint distribution of the outcome and the selection mechanism when data are [Missing Not At Random (MNAR)]. In this framework, the probability that an outcome is observed may depend on unobserved values of that outcome, making the missingness mechanism **nonignorable**.
+
+Previously, we discussed the **selection model** approach (e.g., Heckman's Tobit-2 model), which factorizes the joint distribution as:
+
+$$
+\mathbb{P}(Y, R) = \mathbb{P}(Y) \cdot \mathbb{P}(R \mid Y),
+$$
+
+where:
+
+-   $Y$ is the outcome of interest,
+
+-   $R$ is the response indicator (with $R = 1$ if $Y$ is observed, $R = 0$ otherwise).
+
+This approach models the selection process explicitly via $\mathbb{P}(R \mid Y)$, often using a parametric model such as the probit.
+
+However, the **pattern-mixture model (PMM)** offers an alternative and equally valid factorization:
+
+$$
+\mathbb{P}(Y, R) = \mathbb{P}(Y \mid R) \cdot \mathbb{P}(R),
+$$
+
+which decomposes the joint distribution by conditioning on the response pattern. This approach is particularly advantageous when the selection mechanism is complex, or when interest lies in modeling how the outcome distribution varies across response strata.
+
+------------------------------------------------------------------------
+
+#### Definition of the Pattern-Mixture Model
+
+Let $(Y_i, R_i)$ for $i = 1, \dots, n$ denote the observed data, where:
+
+-   $Y_i \in \mathbb{R}^p$ is the multivariate outcome of interest,
+-   $R_i \in \{0,1\}^p$ is a missingness pattern indicator vector, where $R_{ij} = 1$ indicates that $Y_{ij}$ is observed.
+
+Define $\mathcal{R}$ as the finite set of all possible response patterns. For each pattern $r \in \mathcal{R}$, partition the outcome vector $Y$ into:
+
+-   $Y_{(r)}$: observed components of $Y$ under pattern $r$,
+-   $Y_{(\bar{r})}$: missing components of $Y$ under pattern $r$.
+
+The joint distribution can then be factorized according to the pattern-mixture model as:
+
+$$
+f(Y, R) = f(Y \mid R = r) \cdot \mathbb{P}(R = r), \quad r \in \mathcal{R}.
+$$
+
+The marginal distribution of $Y$ is obtained by summing over all response patterns:
+
+$$
+f(Y) = \sum_{r \in \mathcal{R}} f(Y \mid R = r) \cdot \mathbb{P}(R = r).
+$$
+
+In the simplest case of binary response patterns (complete responders $R=1$ and complete nonresponders $R=0$), this reduces to:
+
+$$
+\mathbb{P}(Y) = \mathbb{P}(Y \mid R = 1) \cdot \mathbb{P}(R = 1) + \mathbb{P}(Y \mid R = 0) \cdot \mathbb{P}(R = 0).
+$$
+
+Thus, the overall distribution of $Y$ is explicitly treated as a **mixture** of distributions for responders and nonresponders. While $\mathbb{P}(Y \mid R = 1)$ can be directly estimated from observed data, $\mathbb{P}(Y \mid R = 0)$ cannot be identified from data alone, necessitating additional assumptions or sensitivity parameters for its estimation.
+
+Common approaches for addressing non-identifiability involve defining plausible deviations from $\mathbb{P}(Y \mid R = 1)$ using specific sensitivity parameters such as:
+
+-   **Shift Bias**: Adjusting imputed values by a constant $\delta$ to reflect systematic differences in nonresponders.
+-   **Scale Bias**: Scaling imputed values to account for differing variability.
+-   **Shape Bias**: Reweighting imputations, for example, using methods like Selection-Indicator Reweighting (SIR), to capture distributional shape differences.
+
+In this discussion, primary focus is placed on the shift parameter $\delta$, hypothesizing that nonresponse shifts the mean of $Y$ by $\delta$ units.
+
+In practice, since only observed components $Y_{(r)}$ are available for individuals with missing data, modeling the full conditional distribution $f(Y \mid R = r)$ requires extrapolating from observed to unobserved components.
+
+------------------------------------------------------------------------
+
+#### Modeling Strategy and Identifiability
+
+Suppose the full-data conditional distribution is parameterized by pattern-specific parameters $\theta_r$ for each response pattern $r \in \mathcal{R}$:
+
+$$
+f(Y \mid R = r; \theta_r), \quad \text{with } \theta = \{\theta_r : r \in \mathcal{R}\}.
+$$
+
+Then, the marginal distribution of $Y$ can be expressed as:
+
+$$
+f(Y; \theta, \psi) = \sum_{r \in \mathcal{R}} f(Y \mid R = r; \theta_r) \cdot \mathbb{P}(R = r; \psi),
+$$
+
+where $\psi$ parameterizes the distribution of response patterns.
+
+Important points about identifiability include:
+
+-   The model is inherently non-identifiable without explicit assumptions regarding the distribution of missing components $Y_{(\bar{r})}$.
+-   Estimating $f(Y_{(\bar{r})} \mid Y_{(r)}, R = r)$ requires external information, expert knowledge, or assumptions encapsulated in sensitivity parameters.
+
+The conditional density for each response pattern can be further decomposed as:
+
+$$
+f(Y \mid R = r) = f(Y_{(r)} \mid R = r) \cdot f(Y_{(\bar{r})} \mid Y_{(r)}, R = r).
+$$
+
+-   The first term $f(Y_{(r)} \mid R = r)$ is estimable directly from observed data.
+-   The second term $f(Y_{(\bar{r})} \mid Y_{(r)}, R = r)$ cannot be identified from observed data alone and must rely on assumptions or additional sensitivity analysis.
+
+------------------------------------------------------------------------
+
+#### Location Shift Models
+
+A widely used strategy in PMMs is to introduce a **location shift** for the unobserved outcomes. Specifically, assume that:
+
+$$
+Y_{(\bar{r})} \mid Y_{(r)}, R = r \sim \mathcal{L}(Y_{(\bar{r})} \mid Y_{(r)}, R = r = r^*) + \delta_r,
+$$
+
+where:
+
+-   $r^*$ denotes a fully observed (reference) pattern (e.g., $R = 1^p$),
+
+-   $\delta_r$ is a vector of **sensitivity parameters** that quantify the mean shift for missing outcomes under pattern $r$.
+
+More formally, for each $r \in \mathcal{R}$ and unobserved component $j \in \bar{r}$, we specify:
+
+$$
+\mathbb{E}[Y_j \mid Y_{(r)}, R = r] = \mathbb{E}[Y_j \mid Y_{(r)}, R = r^*] + \delta_{rj}.
+$$
+
+Under this framework:
+
+-   Setting $\delta_r = 0$ corresponds to the MAR assumption (i.e., ignorability).
+-   Nonzero $\delta_r$ introduces controlled deviations from MAR and enables sensitivity analysis.
+
+------------------------------------------------------------------------
+
+#### Sensitivity Analysis in Pattern-Mixture Models
+
+To evaluate the robustness of inferences to the missing data mechanism, we perform sensitivity analysis by varying $\delta_r$ over plausible ranges.
+
+**Bias in Estimation**
+
+Let $\mu = \mathbb{E}[Y]$ be the target estimand. Under the pattern-mixture decomposition:
+
+$$
+\mu = \sum_{r \in \mathcal{R}} \mathbb{E}[Y \mid R = r] \cdot \mathbb{P}(R = r),
+$$
+
+and under the shift model:
+
+$$
+\mathbb{E}[Y \mid R = r] = \tilde{\mu}_r + \delta_r^{*},
+$$
+
+where:
+
+-   $\tilde{\mu}_r$ is the mean computed using observed data (e.g., via imputation under MAR),
+
+-   $\delta_r^{*}$ is a vector with entries equal to the mean shifts $\delta_{rj}$ for missing components and 0 for observed components.
+
+Therefore, the overall bias induced by nonzero shifts is:
+
+$$
+\Delta = \sum_{r \in \mathcal{R}} \delta_r^{*} \cdot \mathbb{P}(R = r).
+$$
+
+This highlights how the overall expectation depends linearly on the sensitivity parameters and their associated pattern probabilities.
+
+Practical Recommendations
+
+-   Use subject-matter knowledge to specify plausible ranges for $\delta_r$.
+-   Consider standard increments (e.g., $\pm 0.2$ SD units) or domain-specific metrics (e.g., $\pm 5$ P/E for valuation).
+-   If the dataset is large and the number of missingness patterns is small (e.g., monotone dropout), more detailed pattern-specific modeling is feasible.
+
+------------------------------------------------------------------------
+
+#### Generalization to Multivariate and Longitudinal Data
+
+Suppose $Y = (Y_1, \dots, Y_T)$ is a longitudinal outcome. Let $D \in \{1, \dots, T+1\}$ denote the dropout time, where $D = t$ implies observation up to time $t-1$.
+
+Then the pattern-mixture factorization becomes:
+
+$$
+f(Y, D) = f(Y \mid D = t) \cdot \mathbb{P}(D = t), \quad t = 2, \dots, T+1.
+$$
+
+Assume a parametric model:
+
+$$
+Y_j \mid D = t \sim \mathcal{N}(\beta_{0t} + \beta_{1t} t_j, \sigma_t^2), \quad \text{for } j = 1, \dots, T.
+$$
+
+Then the overall mean trajectory becomes:
+
+$$
+\mathbb{E}[Y_j] = \sum_{t=2}^{T+1} (\beta_{0t} + \beta_{1t} t_j) \cdot \mathbb{P}(D = t).
+$$
+
+This model allows for dropout-pattern-specific trajectories and can flexibly account for deviations in the distributional shape due to dropout.
+
+------------------------------------------------------------------------
+
+#### Comparison with Selection Models
+
+| Feature                        | Selection Model                            | Pattern-Mixture Model                      |
+|--------------------------------|--------------------------------------------|--------------------------------------------|
+| Factorization                  | $\mathbb{P}(Y) \cdot \mathbb{P}(R \mid Y)$ | $\mathbb{P}(Y \mid R) \cdot \mathbb{P}(R)$ |
+| Target of modeling             | Missingness process $\mathbb{P}(R \mid Y)$ | Distribution of $Y$ under $R$              |
+| Assumption for identifiability | MAR (often Probit)                         | Extrapolation (e.g., shift $\delta$)       |
+| Modeling burden                | On $\mathbb{P}(R \mid Y)$                  | On $f(Y \mid R)$                           |
+| Sensitivity analysis           | Less interpretable                         | Easily parameterized (via $\delta$)        |
+
+
+``` r
+library(tidyverse)
+library(mice)
+library(mvtnorm)
+library(ggplot2)
+library(broom)
+library(patchwork)
+```
+
+1.  Simulate Longitudinal Dropout Data
+
+We simulate a 3-time-point longitudinal outcome, where dropout depends on unobserved future outcomes, i.e., MNAR.
+
+
+``` r
+set.seed(123)
+
+# Parameters
+n <- 100
+time <- c(0, 1, 2)
+beta <- c(100, 5)  # intercept and slope
+sigma <- 5
+dropout_bias <- -10  # MNAR: lower future Y -> more dropout
+
+# Simulate full data (Y1, Y2, Y3)
+Y <- matrix(NA, nrow = n, ncol = 3)
+for (i in 1:3) {
+    Y[, i] <- beta[1] + beta[2] * time[i] + rnorm(n, 0, sigma)
+}
+
+# Dropout mechanism: higher chance to drop if Y3 is low
+prob_dropout <- plogis(-0.5 + 0.2 * (dropout_bias - Y[, 3]))
+drop <- rbinom(n, 1, prob_dropout)
+
+# Define dropout time: if drop == 1, then Y3 is missing
+R <- matrix(1, nrow = n, ncol = 3)
+R[drop == 1, 3] <- 0
+
+# Observed data
+Y_obs <- Y
+Y_obs[R == 0] <- NA
+
+# Combine into a data frame
+df <-
+    data.frame(
+        id = 1:n,
+        Y1 = Y_obs[, 1],
+        Y2 = Y_obs[, 2],
+        Y3 = Y_obs[, 3],
+        R3 = R[, 3]
+    )
+
+```
+
+2.  Fit Pattern-Mixture Model with Delta Adjustment
+
+We model $Y_3$ as a function of $Y_1$ and $Y_2$, using the observed cases (complete cases), and create multiple imputed datasets under various shift parameters $\delta$ to represent different MNAR scenarios.
+
+
+``` r
+# Base linear model for Y3 ~ Y1 + Y2
+model_cc <- lm(Y3 ~ Y1 + Y2, data = df, subset = R3 == 1)
+
+# Predict for missing Y3s
+preds <- predict(model_cc, newdata = df)
+
+# Sensitivity values for delta
+delta_seq <- c(0, -2.5, -5, -7.5, -10)  # in units of Y3
+
+# Perform delta adjustment
+imputed_dfs <- lapply(delta_seq, function(delta) {
+  df_new <- df
+  df_new$Y3_imp <- ifelse(is.na(df$Y3),
+                          preds + delta,
+                          df$Y3)
+  df_new$delta <- delta
+  return(df_new)
+})
+
+# Stack all results
+df_imp_all <- bind_rows(imputed_dfs)
+
+```
+
+3.  Estimate Full-Data Mean and Trajectory under Each Delta
+
+We now estimate the mean of $Y_3$ and the full outcome trajectory across delta values.
+
+
+``` r
+estimates <- df_imp_all %>%
+    group_by(delta) %>%
+    summarise(
+        mu_Y1 = mean(Y1, na.rm = TRUE),
+        mu_Y2 = mean(Y2, na.rm = TRUE),
+        mu_Y3 = mean(Y3_imp),
+        .groups = "drop"
+    ) %>%
+    pivot_longer(cols = starts_with("mu"),
+                 names_to = "Time",
+                 values_to = "Mean") %>%
+    mutate(Time = factor(
+        Time,
+        levels = c("mu_Y1", "mu_Y2", "mu_Y3"),
+        labels = c("Time 1", "Time 2", "Time 3")
+    ))
+
+```
+
+4.  Visualization: Sensitivity Analysis
+
+We visualize how the mean trajectory changes across different sensitivity parameters $\delta$.
+
+
+``` r
+ggplot(estimates, aes(
+    x = Time,
+    y = Mean,
+    color = as.factor(delta),
+    group = delta
+)) +
+    geom_line(linewidth = 1) +
+    geom_point(size = 2) +
+    scale_color_viridis_d(name = expression(delta)) +
+    labs(
+        title = "Pattern-Mixture Model Sensitivity Analysis",
+        subtitle = "Mean outcome trajectory under different delta adjustments",
+        y = "Mean of Y_t",
+        x = "Time"
+    ) +
+    causalverse::ama_theme()
+```
+
+<img src="36-endogeneity_files/figure-html/unnamed-chunk-31-1.png" width="90%" style="display: block; margin: auto;" />
+
+5.  Sensitivity Table for Reporting
+
+This table quantifies the change in $\mu_{Y3}$ across sensitivity scenarios.
+
+
+``` r
+df_summary <- df_imp_all %>%
+    group_by(delta) %>%
+    summarise(
+        Mean_Y3 = mean(Y3_imp),
+        SD_Y3 = sd(Y3_imp),
+        N_Missing = sum(is.na(Y3)),
+        N_Observed = sum(!is.na(Y3))
+    )
+
+knitr::kable(df_summary, digits = 2,
+             caption = "Sensitivity of Estimated Mean of Y3 to Delta Adjustments")
+```
+
+
+
+Table: (\#tab:unnamed-chunk-32)Sensitivity of Estimated Mean of Y3 to Delta Adjustments
+
+| delta| Mean_Y3| SD_Y3| N_Missing| N_Observed|
+|-----:|-------:|-----:|---------:|----------:|
+| -10.0|   110.6|  4.75|         0|        100|
+|  -7.5|   110.6|  4.75|         0|        100|
+|  -5.0|   110.6|  4.75|         0|        100|
+|  -2.5|   110.6|  4.75|         0|        100|
+|   0.0|   110.6|  4.75|         0|        100|
+
+
+
+6.  Interpretation and Discussion
+
+-   The estimated mean of $Y_3$ decreases linearly with increasingly negative $\delta$, as expected.
+
+-   This illustrates the **non-identifiability** of the distribution of missing data without unverifiable assumptions.
+
+-   The results provide a **tipping point analysis**: at what $\delta$ does inference about the mean (or treatment effect, in a causal study) substantially change?

@@ -1,7 +1,7 @@
 # Exploratory Data Analysis
 
 
-```r
+``` r
 # load to get txhousing data
 library(ggplot2)
 ```
@@ -13,7 +13,7 @@ Feature Engineering
 Missing Data
 
 
-```r
+``` r
 # install.packages("DataExplorer")
 library(DataExplorer)
 
@@ -41,7 +41,7 @@ plot_prcomp() # plot PCA
 Error Identification
 
 
-```r
+``` r
 # install.packages("dataReporter")
 library(dataReporter)
 makeDataReport() # detailed report like DataExplorer
@@ -50,7 +50,7 @@ makeDataReport() # detailed report like DataExplorer
 Summary statistics
 
 
-```r
+``` r
 library(skimr)
 skim() # give only few quick summary stat, not as detailed as the other two packages
 ```
@@ -60,7 +60,7 @@ Not so code-y process
 Quick and dirty way to look at your data
 
 
-```r
+``` r
 # install.packages("rpivotTable")
 library(rpivotTable)
 # give set up just like Excel table 
@@ -73,7 +73,7 @@ Code generation and wrangling
 Shiny-app based Tableu style
 
 
-```r
+``` r
 # install.packages("esquisse")
 library(esquisse)
 esquisse::esquisser()
@@ -82,13 +82,13 @@ esquisse::esquisser()
 Customized your daily/automatic report
 
 
-```r
+``` r
 # install.packages("chronicle")
 library(chronicle)
 ```
 
 
-```r
+``` r
 # install.packages("dlookr")
 # install.packages("descriptr")
 ```

@@ -206,7 +206,7 @@ The rejection region depends on the significance level ($\alpha$). For a two-tai
 Let's create a visualization to tie these concepts together:
 
 
-```r
+``` r
 # Parameters
 alpha <- 0.05  # Significance level
 df <- 29       # Degrees of freedom (for t-distribution)
@@ -594,7 +594,7 @@ $$
 This value should be rounded up to the nearest integer to ensure the required precision.
 
 
-```r
+``` r
 # Generate random data and compute a 95% confidence interval
 data <- rnorm(100) # Generate 100 random values
 t.test(data, conf.level = 0.95) # Perform t-test with 95% confidence interval
@@ -602,32 +602,32 @@ t.test(data, conf.level = 0.95) # Perform t-test with 95% confidence interval
 #> 	One Sample t-test
 #> 
 #> data:  data
-#> t = 1.5755, df = 99, p-value = 0.1183
+#> t = -0.6021, df = 99, p-value = 0.5485
 #> alternative hypothesis: true mean is not equal to 0
 #> 95 percent confidence interval:
-#>  -0.03744912  0.32612074
+#>  -0.2815591  0.1504635
 #> sample estimates:
-#> mean of x 
-#> 0.1443358
+#>   mean of x 
+#> -0.06554781
 ```
 
 For a one-sided hypothesis test, such as testing $H_0: \mu \geq 30$ versus $H_a: \mu < 30$:
 
 
-```r
+``` r
 # Perform one-sided t-test
 t.test(data, mu = 30, alternative = "less")
 #> 
 #> 	One Sample t-test
 #> 
 #> data:  data
-#> t = -325.88, df = 99, p-value < 2.2e-16
+#> t = -276.17, df = 99, p-value < 2.2e-16
 #> alternative hypothesis: true mean is less than 30
 #> 95 percent confidence interval:
-#>       -Inf 0.2964533
+#>       -Inf 0.1152103
 #> sample estimates:
-#> mean of x 
-#> 0.1443358
+#>   mean of x 
+#> -0.06554781
 ```
 
 When $\sigma$ is unknown, you can estimate it using:
@@ -735,7 +735,7 @@ Notes:
     -   and a decreasing function of the population variability $\sigma$.
 
 
-```r
+``` r
 # Example: Power calculation for a one-sample t-test
 library(pwr)
 
@@ -999,7 +999,7 @@ Handling zeros in the data is a common issue with the Sign Test:
 3.  **Ignore Zeros**: Ignore zeros, but note this reduces the sample size and power.
 
 
-```r
+``` r
 # Example Data
 data <- c(0.76, 0.82, 0.80, 0.79, 1.06, 0.83, -0.43, -0.34, 3.34, 2.33)
 
@@ -1111,7 +1111,7 @@ If some observations $|y_i|$ have tied absolute values, assign the average rank 
     -   $|y_4| = 5$: $r_4 = 4$
 
 
-```r
+``` r
 # Example Data
 data <- c(0.76, 0.82, 0.80, 0.79, 1.06, 0.83, -0.43, -0.34, 3.34, 2.33)
 
@@ -1131,7 +1131,7 @@ wilcox_exact
 For large samples, you can use the normal approximation by setting `exact = FALSE`:
 
 
-```r
+``` r
 # Perform Wilcoxon Signed Rank Test (normal approximation)
 wilcox_normal <- wilcox.test(data, exact = FALSE)
 
@@ -1206,7 +1206,7 @@ Steps for Conducting a Runs Test:
 For a numerical dataset where the test is based on values above and below the median:
 
 
-```r
+``` r
 # Example dataset
 data <- c(1.2, -0.5, 3.4, -1.1, 2.8, -0.8, 4.5, 0.7)
 
@@ -1282,7 +1282,7 @@ Alternatively, calculate the p-value and reject $H_0$ if the p-value $\leq \alph
 Suppose we have a dataset and want to test whether the proportion of observations below the 50th percentile (median) matches the expected value of $p = 0.5$.
 
 
-```r
+``` r
 # Example data
 data <- c(12, 15, 14, 10, 13, 11, 14, 16, 15, 13)
 
@@ -1336,7 +1336,7 @@ list(
 For a one-sided test (e.g., testing whether the proportion is greater than $p$):
 
 
-```r
+``` r
 # Calculate one-sided p-value
 p_value_one_sided <- 1 - pnorm(z)
 
@@ -1426,7 +1426,7 @@ $$
 If $\delta_0 = 0$, this tests whether the two means are equal.
 
 
-```r
+``` r
 # Large sample test
 y <- c(10, 12, 14, 16, 18)
 x <- c(9, 11, 13, 15, 17)
@@ -1551,7 +1551,7 @@ Reject $H_0$ if: $$
 $$
 
 
-```r
+``` r
 # Small sample test with equal variance
 t_test_equal <- t.test(y, x, var.equal = TRUE)
 t_test_equal
@@ -1643,7 +1643,7 @@ t = \frac{\bar{y} - \bar{x}-\delta_0}{\sqrt{s^2_y/n_y + s^2_x /n_x}}
 $$
 
 
-```r
+``` r
 # Small sample test with unequal variance
 t_test_unequal <- t.test(y, x, var.equal = FALSE)
 t_test_unequal
@@ -1715,7 +1715,7 @@ Here:
     -   If the normality assumption is not met, use robust tests such as the [Modified Levene Test (Brown-Forsythe Test)](#modified-levene-test-brown-forsythe-test), which compares group variances based on medians instead of means.
 
 
-```r
+``` r
 # Load iris dataset
 data(iris)
 
@@ -1796,7 +1796,7 @@ Under the null hypothesis, $W \sim F_{k-1, n - k}$.
     $$
 
 
-```r
+``` r
 # Load required package
 library(car)
 
@@ -1898,7 +1898,7 @@ $$
 This is equivalent to applying a two-sample t-test to the absolute deviations.
 
 
-```r
+``` r
 # Absolute deviations from the median
 dVe <- abs(irisVe - median(irisVe))
 dVi <- abs(irisVi - median(irisVi))
@@ -1924,7 +1924,7 @@ levene_test
 For small sample sizes, use the unequal variance t-test directly on the original data as a robust alternative:
 
 
-```r
+``` r
 # Small sample t-test with unequal variances
 small_sample_test <- t.test(irisVe, irisVi, var.equal = FALSE)
 
@@ -1993,7 +1993,7 @@ Alternatively, use the p-value:
 -   Reject $H_0$ if the p-value $\leq \alpha$.
 
 
-```r
+``` r
 # Perform Bartlett's Test
 bartlett_test <- bartlett.test(Petal.Width ~ Species, data = iris)
 
@@ -2112,7 +2112,7 @@ where:
 -   $\delta$: The minimum detectable difference between the means.
 
 
-```r
+``` r
 # Parameters
 alpha <- 0.05   # Significance level
 beta <- 0.2     # Type II error rate (1 - Power = 0.2)
@@ -2160,7 +2160,7 @@ Where:
 This correction adjusts for the increased variability of the t-distribution, especially important for small sample sizes.
 
 
-```r
+``` r
 # Parameters
 alpha <- 0.05    # Significance level
 power <- 0.8     # Desired power
@@ -2307,7 +2307,7 @@ $$
 $$
 
 
-```r
+``` r
 # Sample data
 treatment_a <- c(85, 90, 78, 92, 88)
 treatment_b <- c(80, 86, 75, 89, 85)
@@ -2446,7 +2446,7 @@ The **Wilcoxon Rank Test** is a nonparametric test used to compare two independe
     $$
 
 
-```r
+``` r
 # Subset data for two species
 irisVe <- iris$Petal.Width[iris$Species == "versicolor"]
 irisVi <- iris$Petal.Width[iris$Species == "virginica"]
@@ -2578,7 +2578,7 @@ $$
 When $y_i = x_j$ (ties), assign a value of $1/2$ to both $u_y$ and $u_x$ for that pair. While the exact sampling distribution differs slightly when ties exist, the **large sample normal approximation** remains reasonable.
 
 
-```r
+``` r
 # Subset data for two species
 irisVe <- iris$Petal.Width[iris$Species == "versicolor"]
 irisVi <- iris$Petal.Width[iris$Species == "virginica"]
@@ -2674,7 +2674,7 @@ where:
 Fisher's Exact Test can be extended to a **contingency table** setting to test whether the observed frequencies differ significantly from the expected frequencies under the null hypothesis of no association.
 
 
-```r
+``` r
 # Create a 2x2 contingency table
 data_table <- matrix(c(8, 2, 1, 5), nrow = 2, byrow = TRUE)
 colnames(data_table) <- c("Success", "Failure")
@@ -2778,7 +2778,7 @@ H_a: p_J < 0.5
 $$
 
 
-```r
+``` r
 # Observed data
 july.x <- 480
 july.n <- 1000
@@ -2811,7 +2811,7 @@ H_a: p_j \neq p_S
 $$
 
 
-```r
+``` r
 # Observed data for two groups
 sept.x <- 704
 sept.n <- 1600
@@ -2964,7 +2964,7 @@ When categorical data are cross-classified, we create a two-way table of observe
     -   Design 2 tests whether column proportions are **homogeneous** across groups (e.g., are the groups similar?).
 
 
-```r
+``` r
 # Sampling Design 1: Total Sample Size Fixed
 # Parameters for the multinomial distribution
 r <- 3  # Number of rows
@@ -3009,7 +3009,7 @@ print(chisq_test_fixed_total)
 -   **Conclusion**: Reject Null​. The data suggests significant dependence between row and column variables.
 
 
-```r
+``` r
 # Sampling Design 2: Row Totals Fixed
 # Parameters for the fixed row totals
 n_row <- c(30, 40, 30)  # Row totals
@@ -3115,7 +3115,7 @@ Notes on the Pearson Chi-Square Test
 -   **Assumption on Expected Frequencies**: The test is not valid when more than 20% of the expected cell counts are less than 5. In such cases, exact tests are preferred.
 
 
-```r
+``` r
 # Create a contingency table
 data_table <- matrix(c(30, 10, 20, 40), nrow = 2, byrow = TRUE)
 colnames(data_table) <- c("Category 1", "Category 2")
@@ -3288,7 +3288,7 @@ $$
 Let's consider a scenario where a business wants to evaluate the relationship between customer satisfaction (Satisfied vs. Not Satisfied) and the likelihood of repeat purchases (Yes vs. No) across different regions (e.g., North, South, and West). The goal is to determine whether this relationship holds consistently across the regions.
 
 
-```r
+``` r
 # Create a 2 x 2 x 3 contingency table
 CustomerData = array(
     c(40, 30, 200, 300, 35, 20, 180, 265, 50, 25, 250, 275),
@@ -3311,7 +3311,7 @@ margin.table(CustomerData, c(1, 2))
 1.  Calculate the overall odds ratio (ignoring strata):
 
 
-```r
+``` r
 library(samplesizeCMH)
 marginal_table = margin.table(CustomerData, c(1, 2))
 odds.ratio(marginal_table)
@@ -3321,7 +3321,7 @@ odds.ratio(marginal_table)
 2.  Calculate the conditional odds ratios for each region:
 
 
-```r
+``` r
 apply(CustomerData, 3, odds.ratio)
 #>    North    South     West 
 #> 2.000000 2.576389 2.200000
@@ -3330,7 +3330,7 @@ apply(CustomerData, 3, odds.ratio)
 3.  The Mantel-Haenszel Test evaluates whether the relationship between customer satisfaction and repeat purchases remains consistent across regions:
 
 
-```r
+``` r
 mantelhaen.test(CustomerData, correct = TRUE)
 #> 
 #> 	Mantel-Haenszel chi-squared test with continuity correction
@@ -3406,7 +3406,7 @@ Let's analyze a voting behavior study where participants were surveyed before an
 -   Columns: Voting preference after the campaign (Yes, No).
 
 
-```r
+``` r
 # Voting preference before and after a campaign
 vote = matrix(c(682, 22, 86, 810), nrow = 2, byrow = TRUE,
               dimnames = list(
@@ -3485,7 +3485,7 @@ Under the null hypothesis, the test statistic $B^2$ approximately follows a $\ch
 For example, a company surveys customers about their satisfaction before and after implementing a new policy. Satisfaction is rated on a scale of 1 to 3 (1 = Low, 2 = Medium, 3 = High). The paired responses are summarized in the following $3 \times 3$ contingency table.
 
 
-```r
+``` r
 # Satisfaction ratings before and after the intervention
 satisfaction_table <- matrix(c(
     30, 10, 5,  # Before: Low
@@ -3594,7 +3594,7 @@ The test statistic $M^2$ follows a $\chi^2$ distribution with $(r - 1)$ degrees 
 A company surveys employees about their satisfaction levels (Low, Medium, High) before and after implementing a new workplace policy. The results are summarized in the following $3 \times 3$ contingency table.
 
 
-```r
+``` r
 # Employee satisfaction data before and after a policy change
 satisfaction_table <- matrix(c(
     40, 10, 5,  # Before: Low
@@ -3710,7 +3710,7 @@ The test statistic follows a $\chi^2$ distribution with 1 degree of freedom unde
 A company evaluates whether sales performance (Low, Medium, High) is associated with product satisfaction (Low, Medium, High) across three experience levels (Junior, Mid-level, Senior). The data is organized into a $3 \times 3 \times 3$ contingency table.
 
 
-```r
+``` r
 # Sales performance data
 sales_data <- array(
     c(20, 15, 10, 12, 18, 15, 8, 12, 20,   # Junior
@@ -3867,7 +3867,7 @@ Let's consider a study examining whether the success rate of a marketing campaig
 | High         | 45      | 5       | 50    |
 
 
-```r
+``` r
 # Data: Success and Failure counts by Income Level
 income_levels <- c("Low", "Medium", "High")
 success <- c(20, 35, 45)
@@ -3992,7 +3992,7 @@ $$
 Let's consider a study analyzing whether customer satisfaction ratings (on a scale of 1 to 5) improve with increasing levels of service tiers (Basic, Standard, Premium). The data is grouped by service tier, and we hypothesize that satisfaction ratings increase with higher service tiers.
 
 
-```r
+``` r
 # Example Data: Customer Satisfaction Ratings by Service Tier
 satisfaction <- list(
   Basic = c(2, 3, 2, 4, 3),
@@ -4129,7 +4129,7 @@ The test statistic $M$ is asymptotically normally distributed under the null hyp
 Let's consider a marketing study evaluating whether customer satisfaction levels (Low, Medium, High) are associated with increasing purchase frequency (Low, Medium, High).
 
 
-```r
+``` r
 # Customer satisfaction and purchase frequency data
 data <- matrix(
   c(10, 5, 2, 15, 20, 8, 25, 30, 12), 
@@ -4239,7 +4239,7 @@ The test statistic follows a chi-square distribution with 1 degree of freedom un
 Let's consider a study analyzing whether the proportion of customers who recommend a product increases with customer satisfaction levels (Low, Medium, High).
 
 
-```r
+``` r
 # Example Data: Customer Satisfaction and Recommendation
 satisfaction_levels <- c("Low", "Medium", "High")
 success <- c(20, 35, 50)  # Number of customers who recommend the product
@@ -4428,7 +4428,7 @@ The KS test is useful in various scenarios, including:
 **Example 1: Continuous Distributions**
 
 
-```r
+``` r
 # Load necessary libraries
 library(stats)
 
@@ -4455,7 +4455,7 @@ This compares the CDFs of the two samples. The p-value indicates whether the nul
 For discrete data, a bootstrapped version of the KS test is often used to bypass the continuity requirement.
 
 
-```r
+``` r
 library(Matching)
 
 # Define two discrete samples
@@ -4491,7 +4491,7 @@ This method performs a bootstrapped version of the KS test, suitable for discret
 If you wish to extend the analysis to include divergence measures like KL divergence, use the following:
 
 
-```r
+``` r
 library(entropy)
 library(tidyverse)
 
@@ -4568,7 +4568,7 @@ The Anderson-Darling test is commonly used in:
 **Example: Testing Normality with the Anderson-Darling Test**
 
 
-```r
+``` r
 library(nortest)
 
 # Generate a sample from a normal distribution
@@ -4592,7 +4592,7 @@ If the p-value is below a chosen significance level (e.g., 0.05), the null hypot
 The AD test can also be applied to compare two empirical distributions using resampling techniques.
 
 
-```r
+``` r
 # Define two samples
 set.seed(1)
 sample_1 <- rnorm(100, mean = 0, sd = 1)
@@ -4679,7 +4679,7 @@ Suppose you are testing whether a six-sided die is fair. The die is rolled 60 ti
 -   **Expected Frequencies**: A fair die has equal probability for each face, so $E_i = 60 / 6 = 10$ for each face.
 
 
-```r
+``` r
 # Observed frequencies
 observed <- c(10, 12, 8, 11, 9, 10)
 
@@ -4703,7 +4703,7 @@ chisq_test
 For a die with unequal probabilities (e.g., a loaded die), the expected probabilities are defined explicitly:
 
 
-```r
+``` r
 # Observed frequencies
 observed <- c(10, 12, 8, 11, 9, 10)
 
@@ -4794,7 +4794,7 @@ The Cramér-von Mises test is widely used in:
 **Example 1: Testing Normality**
 
 
-```r
+``` r
 library(nortest)
 
 # Generate a sample from a normal distribution
@@ -4818,7 +4818,7 @@ The test evaluates whether the sample data follow a normal distribution.
 For distributions other than normal, you can use resampling techniques or custom implementations. Here's a pseudo-implementation for a custom theoretical distribution:
 
 
-```r
+``` r
 # Custom ECDF and theoretical CDF comparison
 set.seed(1)
 sample_data <-
@@ -4910,7 +4910,7 @@ $$
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 library(philentropy)
 
 # Example 1: Continuous case
@@ -4972,7 +4972,7 @@ $$ where:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load the required library
 library(philentropy)
 
@@ -5058,7 +5058,7 @@ Hellinger distance is widely used in:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 library(philentropy)
 
 # Example 1: Compute Hellinger Distance for Discrete Distributions
@@ -5145,7 +5145,7 @@ The Bhattacharyya distance is widely used in:
 **Example 1: Discrete Distributions**
 
 
-```r
+``` r
 # Define two discrete probability distributions
 P_discrete <- c(0.1, 0.2, 0.3, 0.4)  # Normalized probabilities
 Q_discrete <- c(0.3, 0.3, 0.2, 0.2)  # Normalized probabilities
@@ -5176,7 +5176,7 @@ A smaller Bhattacharyya distance indicates greater similarity between the two di
 For continuous distributions, the Bhattacharyya distance can be approximated using numerical integration or discretization.
 
 
-```r
+``` r
 # Generate two continuous distributions
 set.seed(1)
 P_continuous <-
@@ -5276,7 +5276,7 @@ Wasserstein distance is widely used in various fields, including:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 library(transport)
 library(twosamples)
 
@@ -5368,7 +5368,7 @@ The Energy Distance is widely used in:
 **Example 1: Comparing Two Distributions**
 
 
-```r
+``` r
 # Load the 'energy' package
 library(energy)
 
@@ -5394,7 +5394,7 @@ This calculates the energy distance between two multi-dimensional distributions.
 Example 2: Energy Test for Equality of Distributions
 
 
-```r
+``` r
 # Perform the Energy Test
 energy_test <-
     eqdist.etest(rbind(X, Y), sizes = c(nrow(X), nrow(Y)), R = 999)
@@ -5486,7 +5486,7 @@ The Total Variation Distance is used in:
 **Example 1: Discrete Distributions**
 
 
-```r
+``` r
 # Define two discrete probability distributions
 P_discrete <- c(0.1, 0.2, 0.3, 0.4)  # Normalized probabilities
 Q_discrete <- c(0.3, 0.3, 0.2, 0.2)  # Normalized probabilities
@@ -5504,7 +5504,7 @@ This calculates the maximum difference between the two distributions, scaled to 
 For continuous distributions, the TV distance can be approximated using discretization or numerical integration. Here's an example using random samples:
 
 
-```r
+``` r
 # Generate two continuous distributions
 set.seed(1)
 P_continuous <-

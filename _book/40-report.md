@@ -57,7 +57,7 @@ Regression Table
 -   [modelsummary](https://github.com/vincentarelbundock/modelsummary#a-simple-example)
 
 
-```r
+``` r
 library(jtools)
 data(movies)
 fit <- lm(metascore ~ budget + us_gross + year, data = movies)
@@ -138,7 +138,7 @@ summ(fit)
 <sup></sup> Standard errors: OLS</td></tr></tfoot>
 </table>
 
-```r
+``` r
 summ(
     fit,
     scale = TRUE,
@@ -238,7 +238,7 @@ summ(
 <sup></sup> Standard errors: OLS; Continuous predictors are mean-centered and scaled by 1 s.d. The outcome variable remains in its original units.</td></tr></tfoot>
 </table>
 
-```r
+``` r
 
 #obtain clsuter-robust SE
 data("PetersenCL", package = "sandwich")
@@ -309,7 +309,7 @@ summ(fit2, robust = "HC3", cluster = "firm")
 Model to Equation
 
 
-```r
+``` r
 # install.packages("equatiomatic") # not available for R 4.2
 fit <- lm(metascore ~ budget + us_gross + year, data = movies)
 # show the theoretical model
@@ -321,7 +321,7 @@ equatiomatic::extract_eq(fit, use_coefs = TRUE)
 ## Model Comparison
 
 
-```r
+``` r
 fit <- lm(metascore ~ log(budget), data = movies)
 fit_b <- lm(metascore ~ log(budget) + log(us_gross), data = movies)
 fit_c <- lm(metascore ~ log(budget) + log(us_gross) + runtime, data = movies)
@@ -332,8 +332,8 @@ export_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 
 
 ```{=html}
-<table class="huxtable" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-3">
-<caption style="caption-side: top; text-align: center;">(#tab:unnamed-chunk-3) </caption><col><col><col><col><tr>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><col><col><col><tr>
 <th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;"></th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 1</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 2</th><th style="vertical-align: top; text-align: center; white-space: normal; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Model 3</th></tr>
 <tr>
 <th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Budget</th><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-2.43 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-5.16 ***</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-6.70 ***</td></tr>
@@ -365,130 +365,221 @@ export_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 Another package is `modelsummary`
 
 
-```r
+``` r
 library(modelsummary)
 lm_mod <- lm(mpg ~ wt + hp + cyl, mtcars)
 msummary(lm_mod, vcov = c("iid","robust","HC4"))
 ```
 
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:center;">  (1) </th>
-   <th style="text-align:center;">   (2) </th>
-   <th style="text-align:center;">   (3) </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;"> (Intercept) </td>
-   <td style="text-align:center;"> 38.752 </td>
-   <td style="text-align:center;"> 38.752 </td>
-   <td style="text-align:center;"> 38.752 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:center;"> (1.787) </td>
-   <td style="text-align:center;"> (2.286) </td>
-   <td style="text-align:center;"> (2.177) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> wt </td>
-   <td style="text-align:center;"> −3.167 </td>
-   <td style="text-align:center;"> −3.167 </td>
-   <td style="text-align:center;"> −3.167 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:center;"> (0.741) </td>
-   <td style="text-align:center;"> (0.833) </td>
-   <td style="text-align:center;"> (0.819) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> hp </td>
-   <td style="text-align:center;"> −0.018 </td>
-   <td style="text-align:center;"> −0.018 </td>
-   <td style="text-align:center;"> −0.018 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;">  </td>
-   <td style="text-align:center;"> (0.012) </td>
-   <td style="text-align:center;"> (0.010) </td>
-   <td style="text-align:center;"> (0.013) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> cyl </td>
-   <td style="text-align:center;"> −0.942 </td>
-   <td style="text-align:center;"> −0.942 </td>
-   <td style="text-align:center;"> −0.942 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;box-shadow: 0px 1.5px">  </td>
-   <td style="text-align:center;box-shadow: 0px 1.5px"> (0.551) </td>
-   <td style="text-align:center;box-shadow: 0px 1.5px"> (0.573) </td>
-   <td style="text-align:center;box-shadow: 0px 1.5px"> (0.572) </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Num.Obs. </td>
-   <td style="text-align:center;"> 32 </td>
-   <td style="text-align:center;"> 32 </td>
-   <td style="text-align:center;"> 32 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> R2 </td>
-   <td style="text-align:center;"> 0.843 </td>
-   <td style="text-align:center;"> 0.843 </td>
-   <td style="text-align:center;"> 0.843 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> R2 Adj. </td>
-   <td style="text-align:center;"> 0.826 </td>
-   <td style="text-align:center;"> 0.826 </td>
-   <td style="text-align:center;"> 0.826 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> AIC </td>
-   <td style="text-align:center;"> 155.5 </td>
-   <td style="text-align:center;"> 155.5 </td>
-   <td style="text-align:center;"> 155.5 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> BIC </td>
-   <td style="text-align:center;"> 162.8 </td>
-   <td style="text-align:center;"> 162.8 </td>
-   <td style="text-align:center;"> 162.8 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Log.Lik. </td>
-   <td style="text-align:center;"> −72.738 </td>
-   <td style="text-align:center;"> −72.738 </td>
-   <td style="text-align:center;"> −72.738 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> F </td>
-   <td style="text-align:center;"> 50.171 </td>
-   <td style="text-align:center;"> 31.065 </td>
-   <td style="text-align:center;"> 32.623 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> RMSE </td>
-   <td style="text-align:center;"> 2.35 </td>
-   <td style="text-align:center;"> 2.35 </td>
-   <td style="text-align:center;"> 2.35 </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> Std.Errors </td>
-   <td style="text-align:center;"> IID </td>
-   <td style="text-align:center;"> HC3 </td>
-   <td style="text-align:center;"> HC4 </td>
-  </tr>
-</tbody>
-</table>
+
+```{=html}
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_b07y66upvkn4o098hna6(i, j, css_id) {
+          var table = document.getElementById("tinytable_b07y66upvkn4o098hna6");
+          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function insertSpanRow(i, colspan, content) {
+        var table = document.getElementById('tinytable_b07y66upvkn4o098hna6');
+        var newRow = table.insertRow(i);
+        var newCell = newRow.insertCell(0);
+        newCell.setAttribute("colspan", colspan);
+        // newCell.innerText = content;
+        // this may be unsafe, but innerText does not interpret <br>
+        newCell.innerHTML = content;
+      }
+      function spanCell_b07y66upvkn4o098hna6(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_b07y66upvkn4o098hna6");
+        const targetRow = table.rows[i];
+        const targetCell = targetRow.cells[j];
+        for (let r = 0; r < rowspan; r++) {
+          // Only start deleting cells to the right for the first row (r == 0)
+          if (r === 0) {
+            // Delete cells to the right of the target cell in the first row
+            for (let c = colspan - 1; c > 0; c--) {
+              if (table.rows[i + r].cells[j + c]) {
+                table.rows[i + r].deleteCell(j + c);
+              }
+            }
+          }
+          // For rows below the first, delete starting from the target column
+          if (r > 0) {
+            for (let c = colspan - 1; c >= 0; c--) {
+              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
+                table.rows[i + r].deleteCell(j);
+              }
+            }
+          }
+        }
+        // Set rowspan and colspan of the target cell
+        targetCell.rowSpan = rowspan;
+        targetCell.colSpan = colspan;
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: 8, j: 0 },  ], css_id: 'tinytable_css_wfig3xtkftibzntsw2ug',}, 
+          { positions: [ { i: 0, j: 0 },  ], css_id: 'tinytable_css_svxe39d5tanus5llwrtm',}, 
+          { positions: [ { i: 17, j: 1 }, { i: 17, j: 2 }, { i: 17, j: 3 },  ], css_id: 'tinytable_css_p9cswius7cc7cr1o4ujf',}, 
+          { positions: [ { i: 8, j: 3 }, { i: 8, j: 1 }, { i: 8, j: 2 },  ], css_id: 'tinytable_css_okc4q1nhhkvp3eflt0ce',}, 
+          { positions: [ { i: 1, j: 0 }, { i: 2, j: 0 }, { i: 3, j: 0 }, { i: 4, j: 0 }, { i: 5, j: 0 }, { i: 6, j: 0 }, { i: 7, j: 0 }, { i: 12, j: 0 }, { i: 9, j: 0 }, { i: 10, j: 0 }, { i: 11, j: 0 }, { i: 16, j: 0 }, { i: 13, j: 0 }, { i: 14, j: 0 }, { i: 15, j: 0 },  ], css_id: 'tinytable_css_ltsj57d7usvddwadw9jo',}, 
+          { positions: [ { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 },  ], css_id: 'tinytable_css_fbhxwbx6tzm81gv4lp9q',}, 
+          { positions: [ { i: 17, j: 0 },  ], css_id: 'tinytable_css_356lh8ohkf2wlm0w536d',}, 
+          { positions: [ { i: 3, j: 1 }, { i: 4, j: 1 }, { i: 1, j: 1 }, { i: 2, j: 1 }, { i: 7, j: 1 }, { i: 3, j: 2 }, { i: 9, j: 1 }, { i: 6, j: 1 }, { i: 11, j: 1 }, { i: 12, j: 1 }, { i: 13, j: 1 }, { i: 14, j: 1 }, { i: 15, j: 1 }, { i: 16, j: 1 }, { i: 12, j: 2 }, { i: 5, j: 1 }, { i: 1, j: 2 }, { i: 2, j: 2 }, { i: 16, j: 2 }, { i: 4, j: 2 }, { i: 10, j: 1 }, { i: 6, j: 2 }, { i: 7, j: 2 }, { i: 3, j: 3 }, { i: 9, j: 2 }, { i: 10, j: 2 }, { i: 11, j: 2 }, { i: 7, j: 3 }, { i: 13, j: 2 }, { i: 14, j: 2 }, { i: 15, j: 2 }, { i: 11, j: 3 }, { i: 12, j: 3 }, { i: 5, j: 2 }, { i: 1, j: 3 }, { i: 2, j: 3 }, { i: 16, j: 3 }, { i: 4, j: 3 }, { i: 5, j: 3 }, { i: 6, j: 3 }, { i: 15, j: 3 }, { i: 9, j: 3 }, { i: 10, j: 3 }, { i: 13, j: 3 }, { i: 14, j: 3 },  ], css_id: 'tinytable_css_1tuy8k3kcp0ygxbx7za0',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_b07y66upvkn4o098hna6(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_wfig3xtkftibzntsw2ug, .table th.tinytable_css_wfig3xtkftibzntsw2ug { text-align: left; border-bottom: solid black 0.05em; }
+      .table td.tinytable_css_svxe39d5tanus5llwrtm, .table th.tinytable_css_svxe39d5tanus5llwrtm { text-align: left; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_p9cswius7cc7cr1o4ujf, .table th.tinytable_css_p9cswius7cc7cr1o4ujf { text-align: center; border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_okc4q1nhhkvp3eflt0ce, .table th.tinytable_css_okc4q1nhhkvp3eflt0ce { text-align: center; border-bottom: solid black 0.05em; }
+      .table td.tinytable_css_ltsj57d7usvddwadw9jo, .table th.tinytable_css_ltsj57d7usvddwadw9jo { text-align: left; }
+      .table td.tinytable_css_fbhxwbx6tzm81gv4lp9q, .table th.tinytable_css_fbhxwbx6tzm81gv4lp9q { text-align: center; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_356lh8ohkf2wlm0w536d, .table th.tinytable_css_356lh8ohkf2wlm0w536d { text-align: left; border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_1tuy8k3kcp0ygxbx7za0, .table th.tinytable_css_1tuy8k3kcp0ygxbx7za0 { text-align: center; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_b07y66upvkn4o098hna6" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing='true'>
+        <thead>
+        
+              <tr>
+                <th scope="col"> </th>
+                <th scope="col">(1)</th>
+                <th scope="col">(2)</th>
+                <th scope="col">(3)</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td>(Intercept)</td>
+                  <td>38.752</td>
+                  <td>38.752</td>
+                  <td>38.752</td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td>(1.787)</td>
+                  <td>(2.286)</td>
+                  <td>(2.177)</td>
+                </tr>
+                <tr>
+                  <td>wt</td>
+                  <td>-3.167</td>
+                  <td>-3.167</td>
+                  <td>-3.167</td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td>(0.741)</td>
+                  <td>(0.833)</td>
+                  <td>(0.819)</td>
+                </tr>
+                <tr>
+                  <td>hp</td>
+                  <td>-0.018</td>
+                  <td>-0.018</td>
+                  <td>-0.018</td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td>(0.012)</td>
+                  <td>(0.010)</td>
+                  <td>(0.013)</td>
+                </tr>
+                <tr>
+                  <td>cyl</td>
+                  <td>-0.942</td>
+                  <td>-0.942</td>
+                  <td>-0.942</td>
+                </tr>
+                <tr>
+                  <td></td>
+                  <td>(0.551)</td>
+                  <td>(0.573)</td>
+                  <td>(0.572)</td>
+                </tr>
+                <tr>
+                  <td>Num.Obs.</td>
+                  <td>32</td>
+                  <td>32</td>
+                  <td>32</td>
+                </tr>
+                <tr>
+                  <td>R2</td>
+                  <td>0.843</td>
+                  <td>0.843</td>
+                  <td>0.843</td>
+                </tr>
+                <tr>
+                  <td>R2 Adj.</td>
+                  <td>0.826</td>
+                  <td>0.826</td>
+                  <td>0.826</td>
+                </tr>
+                <tr>
+                  <td>AIC</td>
+                  <td>155.5</td>
+                  <td>155.5</td>
+                  <td>155.5</td>
+                </tr>
+                <tr>
+                  <td>BIC</td>
+                  <td>162.8</td>
+                  <td>162.8</td>
+                  <td>162.8</td>
+                </tr>
+                <tr>
+                  <td>Log.Lik.</td>
+                  <td>-72.738</td>
+                  <td>-72.738</td>
+                  <td>-72.738</td>
+                </tr>
+                <tr>
+                  <td>F</td>
+                  <td>50.171</td>
+                  <td>31.065</td>
+                  <td>32.623</td>
+                </tr>
+                <tr>
+                  <td>RMSE</td>
+                  <td>2.35</td>
+                  <td>2.35</td>
+                  <td>2.35</td>
+                </tr>
+                <tr>
+                  <td>Std.Errors</td>
+                  <td>IID</td>
+                  <td>HC3</td>
+                  <td>HC4</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+```
 
 
-
-```r
+``` r
 modelplot(lm_mod, vcov = c("iid","robust","HC4"))
 ```
 
@@ -497,12 +588,12 @@ modelplot(lm_mod, vcov = c("iid","robust","HC4"))
 Another package is `stargazer`
 
 
-```r
+``` r
 library("stargazer")
 stargazer(attitude)
 #> 
 #> % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-#> % Date and time: Tue, Mar 11, 2025 - 4:01:43 PM
+#> % Date and time: Tue, Mar 18, 2025 - 11:45:17 AM
 #> \begin{table}[!htbp] \centering 
 #>   \caption{} 
 #>   \label{} 
@@ -543,7 +634,7 @@ stargazer(linear.1,
           align = TRUE)
 #> 
 #> % Table created by stargazer v.5.2.3 by Marek Hlavac, Social Policy Institute. E-mail: marek.hlavac at gmail.com
-#> % Date and time: Tue, Mar 11, 2025 - 4:01:43 PM
+#> % Date and time: Tue, Mar 18, 2025 - 11:45:17 AM
 #> % Requires LaTeX packages: dcolumn 
 #> \begin{table}[!htbp] \centering 
 #>   \caption{Results} 
@@ -594,7 +685,7 @@ stargazer(linear.1,
 ```
 
 
-```r
+``` r
 # Latex
 stargazer(
     linear.1,
@@ -617,7 +708,7 @@ stargazer(
 ```
 
 
-```r
+``` r
 # ASCII text output
 stargazer(
     linear.1,
@@ -661,7 +752,7 @@ stargazer(
 ```
 
 
-```r
+``` r
 stargazer(
     linear.1,
     linear.2,
@@ -685,7 +776,7 @@ stargazer(
 Correlation Table
 
 
-```r
+``` r
 correlation.matrix <-
     cor(attitude[, c("rating", "complaints", "privileges")])
 stargazer(correlation.matrix, title = "Correlation Matrix")
@@ -694,14 +785,14 @@ stargazer(correlation.matrix, title = "Correlation Matrix")
 ## Changes in an estimate
 
 
-```r
+``` r
 coef_names <- coef_names[1:3] # Dropping intercept for plots
 plot_summs(fit, fit_b, fit_c, robust = "HC3", coefs = coef_names)
 ```
 
 <img src="40-report_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 plot_summs(
     fit_c,
     robust = "HC3",
@@ -749,7 +840,7 @@ plot_summs(
 +------------+------------+------------------------------------------------------------------------------------------+--------------------------------+
 
 
-```r
+``` r
 data(cars)
 model <- lm(speed ~ dist, data = cars)
 summary(model)
@@ -787,7 +878,7 @@ lmtest::coeftest(model, vcov. = sandwich::vcovHC(model, type = "HC1"))
 The `ggdist` allows us to visualize uncertainty under both frequentist and Bayesian frameworks
 
 
-```r
+``` r
 library(ggdist)
 ```
 
@@ -796,7 +887,7 @@ library(ggdist)
 Export APA theme
 
 
-```r
+``` r
 data("mtcars")
 
 library(flextable)
@@ -806,7 +897,7 @@ theme_apa(flextable(mtcars[1:5,1:5]))
 Export to Latex
 
 
-```r
+``` r
 print(xtable::xtable(mtcars, type = "latex"),
       file = file.path(getwd(), "output", "mtcars_xtable.tex"))
 
@@ -826,7 +917,7 @@ stargazer::stargazer(
 However, the above codes do not play well with notes. Hence, I create my own custom code that follows the AMA guidelines
 
 
-```r
+``` r
 ama_tbl <- function(data, caption, label, note, output_path) {
   library(tidyverse)
   library(xtable)
@@ -882,7 +973,7 @@ ama_tbl <- function(data, caption, label, note, output_path) {
 ```
 
 
-```r
+``` r
 ama_tbl(
     mtcars,
     caption     = "This is caption",
@@ -899,7 +990,7 @@ You can customize your plots based on your preferred journals. Here, I am creati
 American-Marketing-Association-ready theme for plots
 
 
-```r
+``` r
 library(ggplot2)
 
 # check available fonts
@@ -910,7 +1001,7 @@ library(ggplot2)
 ```
 
 
-```r
+``` r
 # Making a theme
 amatheme = theme_bw(base_size = 14, base_family = "serif") + # This is Time New Roman
     
@@ -971,7 +1062,7 @@ amatheme = theme_bw(base_size = 14, base_family = "serif") + # This is Time New 
 Example
 
 
-```r
+``` r
 library(tidyverse)
 library(ggsci)
 data("mtcars")
@@ -989,7 +1080,7 @@ yourplot +
 
 <img src="40-report_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 yourplot + 
     amatheme + 
@@ -1001,7 +1092,7 @@ yourplot +
 Other pre-specified themes
 
 
-```r
+``` r
 library(ggthemes)
 
 
@@ -1012,7 +1103,7 @@ yourplot +
 
 <img src="40-report_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # The economist theme
 yourplot + 
@@ -1021,7 +1112,7 @@ yourplot +
 
 <img src="40-report_files/figure-html/unnamed-chunk-20-2.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 yourplot + 
     theme_economist_white()
@@ -1029,7 +1120,7 @@ yourplot +
 
 <img src="40-report_files/figure-html/unnamed-chunk-20-3.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Wall street journal theme
 yourplot + 
@@ -1038,7 +1129,7 @@ yourplot +
 
 <img src="40-report_files/figure-html/unnamed-chunk-20-4.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # APA theme
 yourplot +

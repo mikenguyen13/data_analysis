@@ -385,7 +385,7 @@ Without proper identification (e.g., **randomization, instrumental variables, di
 To illustrate these concepts, consider the following directed acyclic graph (DAG):
 
 
-```r
+``` r
 library(ggdag)
 library(dagitty)
 library(ggplot2)

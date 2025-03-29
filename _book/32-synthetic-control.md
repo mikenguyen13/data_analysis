@@ -353,7 +353,7 @@ $$ \min_W \lambda \sum_{j} ||Y_{j,\text{pre}} - \sum_i W_{ij} Y_{i,\text{pre}}||
 where $\lambda$ is a tuning parameter that controls the trade-off between individual and pooled balance​.
 
 
-```r
+``` r
 # Load necessary library
 library(augsynth)
 ```
@@ -442,7 +442,7 @@ Corrected Bootstrap Algorithm:
 This approach ensures correct coverage probabilities and avoids bias in standard error estimation.
 
 
-```r
+``` r
 # Load required package
 library(gsynth)
 
@@ -681,7 +681,7 @@ Common MCMC techniques used:
 -   Hamiltonian Monte Carlo (HMC) for high-dimensional posteriors.
 
 
-```r
+``` r
 # Load necessary libraries
 library(rstan)
 library(bayesplot)
@@ -824,7 +824,7 @@ By applying common weights across these outcomes, their SCM results showed:
 -   Stronger evidence of educational impacts following the crisis.
 
 
-```r
+``` r
 # Load necessary libraries
 library(augsynth)
 
@@ -844,7 +844,7 @@ This example simulates data for 10 states over 30 years, where State A receives 
 Load Required Libraries
 
 
-```r
+``` r
 # install.packages("Synth")
 # install.packages("gsynth")
 library("Synth")
@@ -854,7 +854,7 @@ library("gsynth")
 We construct a panel dataset where the outcome variable $Y$ is influenced by two covariates ($X_1, X_2$). Treatment ($T$) is applied to State A from year 15 onwards, with an artificial treatment effect of +20.
 
 
-```r
+``` r
 # Simulate panel data
 set.seed(1)
 
@@ -894,7 +894,7 @@ The `Synth` package creates a synthetic control by matching pre-treatment trends
 We specify predictors, dependent variable, and donor pool.
 
 
-```r
+``` r
 dataprep.out <- dataprep(
   df,
   predictors = c("X1", "X2"),
@@ -908,12 +908,13 @@ dataprep.out <- dataprep(
   time.optimize.ssr = 1:14,
   time.plot = 1:30
 )
+
 ```
 
 Fit Synthetic Control Model
 
 
-```r
+``` r
 synth.out <- synth(dataprep.out)
 #> 
 #> X1, X0, Z1, Z0 all come directly from dataprep object.
@@ -967,7 +968,7 @@ print(synth.tab(dataprep.res = dataprep.out, synth.res = synth.out))
 Plot: Observed vs. Synthetic State A
 
 
-```r
+``` r
 path.plot(
   synth.out,
   dataprep.out,
@@ -988,7 +989,7 @@ Plot: Treatment Effect (Gaps Plot)
 The gaps plot shows the difference between `State A` and its synthetic control over time.
 
 
-```r
+``` r
 gaps.plot(synth.res    = synth.out,
           dataprep.res = dataprep.out,
           Ylab         = c("Gap"),
@@ -1017,7 +1018,7 @@ Fit Generalized Synthetic Control Model
 We use two-way fixed effects, cross-validation (`CV = TRUE`), and bootstrapped standard errors.
 
 
-```r
+``` r
 gsynth.out <- gsynth(
   Y ~ T + X1 + X2,
   data = df,
@@ -1045,14 +1046,14 @@ gsynth.out <- gsynth(
 ```
 
 
-```r
+``` r
 # Plot Estimated Treatment Effects
 plot(gsynth.out)
 ```
 
 <img src="32-synthetic-control_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Plot Counterfactual Trends
 plot(gsynth.out, type = "counterfactual")
@@ -1060,7 +1061,7 @@ plot(gsynth.out, type = "counterfactual")
 
 <img src="32-synthetic-control_files/figure-html/unnamed-chunk-12-2.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Show Estimations for Control Cases
 plot(gsynth.out, type = "counterfactual", raw = "all") 
@@ -1078,14 +1079,14 @@ We will:
 2.  Evaluate the policy's impact by comparing the real and synthetic Basque GDP.
 
 
-```r
+``` r
 library(Synth)
 ```
 
 The `basque` dataset from `Synth` contains economic indicators for Spain's regions from 1955 to 1997.
 
 
-```r
+``` r
 data("basque")
 dim(basque)  # 774 observations, 17 variables
 #> [1] 774  17
@@ -1118,7 +1119,7 @@ Step 1: Preparing Data for `Synth`
 We define predictors and specify pre-treatment (1960--1969) and post-treatment (1975--1997) periods.
 
 
-```r
+``` r
 dataprep.out <- dataprep(
     foo = basque,
     predictors = c(
@@ -1153,6 +1154,7 @@ dataprep.out <- dataprep(
     time.optimize.ssr = 1960:1969,
     time.plot = 1955:1997
 )
+
 ```
 
 Step 2: Estimating the Synthetic Control
@@ -1160,7 +1162,7 @@ Step 2: Estimating the Synthetic Control
 We now estimate the synthetic control weights using `synth()`. This solves for weights that best match the pre-treatment economic indicators of the Basque Country.
 
 
-```r
+``` r
 synth.out = synth(data.prep.obj = dataprep.out, method = "BFGS")
 #> 
 #> X1, X0, Z1, Z0 all come directly from dataprep object.
@@ -1188,7 +1190,7 @@ Step 3: Evaluating Treatment Effects
 Calculate the GDP Gap Between Real and Synthetic Basque Country
 
 
-```r
+``` r
 gaps = dataprep.out$Y1plot - (dataprep.out$Y0plot %*% synth.out$solution.w)
 gaps[1:3,1]  # First three differences
 #>       1955       1956       1957 
@@ -1198,7 +1200,7 @@ gaps[1:3,1]  # First three differences
 The `synth.tab()` function provides pre-treatment fit diagnostics and predictor weights.
 
 
-```r
+``` r
 synth.tables = synth.tab(dataprep.res = dataprep.out, synth.res = synth.out)
 names(synth.tables)
 #> [1] "tab.pred" "tab.v"    "tab.w"    "tab.loss"
@@ -1224,7 +1226,7 @@ synth.tables$tab.pred[1:13,]
 Importance of Each Control Region in the Synthetic Basque Country
 
 
-```r
+``` r
 synth.tables$tab.w[8:14, ]
 #>    w.weights            unit.names unit.numbers
 #> 9      0.000    Castilla-La Mancha            9
@@ -1241,7 +1243,7 @@ Step 4: Visualizing Results
 Plot Real vs. Synthetic GDP Per Capita
 
 
-```r
+``` r
 path.plot(
     synth.res = synth.out,
     dataprep.res = dataprep.out,
@@ -1258,7 +1260,7 @@ path.plot(
 Plot the Treatment Effect (GDP Gap)
 
 
-```r
+``` r
 gaps.plot(
     synth.res = synth.out,
     dataprep.res = dataprep.out,
@@ -1289,7 +1291,7 @@ This example evaluates the Seattle Drug Market Initiative, a policing interventi
 Step 1: Load the Required Package and Data
 
 
-```r
+``` r
 library(microsynth)
 data("seattledmi")
 ```
@@ -1303,7 +1305,7 @@ We specify:
 -   Outcomes (time-variant): Crime rates across different offense categories.
 
 
-```r
+``` r
 cov.var <- c(
     "TotalPop",
     "BLACK",
@@ -1324,7 +1326,7 @@ Step 3: Fit the Micro-Synthetic Control Model
 We first estimate treatment effects using a single follow-up period.
 
 
-```r
+``` r
 sea1 <- microsynth(
     seattledmi,
     idvar       = "ID",          # Unique unit identifier
@@ -1346,7 +1348,7 @@ sea1 <- microsynth(
 Step 4: Summarize Results
 
 
-```r
+``` r
 summary(sea1)
 ```
 
@@ -1363,7 +1365,7 @@ Step 5: Visualize the Treatment Effect
 We generate a treatment effect plot comparing actual vs. synthetic trends.
 
 
-```r
+``` r
 plot_microsynth(sea1)
 ```
 
@@ -1372,7 +1374,7 @@ Step 6: Incorporating Multiple Follow-Up Periods
 We extend the analysis by adding multiple post-treatment periods (`end.post = c(14, 16)`) and permutation-based placebo tests (`perm = 250`, `jack = TRUE`).
 
 
-```r
+``` r
 sea2 <- microsynth(
     seattledmi,
     idvar       = "ID",
@@ -1415,7 +1417,7 @@ Key robustness checks:
 ```
 
 
-```r
+``` r
 summary(sea2)  # Compare estimates with multiple follow-up periods
 plot_microsynth(sea2)  # Visualize placebo-adjusted treatment effects
 ```

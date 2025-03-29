@@ -115,7 +115,7 @@ There are differences between a population and a sample:
 +-------------------------+-------------------+----------------------------------------------------+
 
 
-```r
+``` r
 # Generate random data from a normal distribution
 data <- rnorm(100)
 
@@ -125,12 +125,12 @@ library(e1071)
 # Calculate skewness
 skewness_value <- skewness(data)
 cat("Skewness:", skewness_value, "\n")
-#> Skewness: -0.1053895
+#> Skewness: -0.2827733
 
 # Calculate kurtosis
 kurtosis_value <- kurtosis(data)
 cat("Kurtosis:", kurtosis_value, "\n")
-#> Kurtosis: -0.2826932
+#> Kurtosis: -0.3884512
 ```
 
 ## Graphical Measures
@@ -138,33 +138,33 @@ cat("Kurtosis:", kurtosis_value, "\n")
 The following table summarizes key graphical measures along with guidance on when and why to use each. More detailed explanations, visual examples, and sample code will be discussed after this table.
 
 +---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
-| **Graph Type**            | **When to Use**                                                                          | **Why It\'s Useful**                                                               |
+| **Graph Type**            | **When to Use**                                                                          | **Why It's Useful**                                                                |
 +===========================+==========================================================================================+====================================================================================+
-| **Histogram**             | \- Exploring the distribution (shape, center, spread) of a single continuous variable    | \- Quickly identifies frequency, modes, skewness, and potential outliers \         |
-|                           |                                                                                          | - Provides an overview of data \"shape\"                                           |
+| **Histogram**             | \- Exploring the distribution (shape, center, spread) of a single continuous variable    | \- Quickly identifies frequency, modes, skewness, and potential outliers\          |
+|                           |                                                                                          | - Provides an overview of data "shape"                                             |
 +---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
-| **Box-and-Whisker Plot**  | \- Comparing the same continuous variable across multiple categories \                   | \- Shows distribution at a glance (median, quartiles) \                            |
+| **Box-and-Whisker Plot**  | \- Comparing the same continuous variable across multiple categories\                    | \- Shows distribution at a glance (median, quartiles)\                             |
 |                           | - Identifying median, IQR, and outliers                                                  | - Highlights outliers and potential group differences                              |
 +---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
-| **Stem-and-Leaf Plot**    | \- Small, single-variable datasets where you want a textual yet visual distribution view | \- Reveals the distribution while preserving actual data values \                  |
+| **Stem-and-Leaf Plot**    | \- Small, single-variable datasets where you want a textual yet visual distribution view | \- Reveals the distribution while preserving actual data values\                   |
 |                           |                                                                                          | - Easy to spot clusters and gaps for small datasets                                |
 +---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
-| **Notched Boxplot**       | \- Similar to a standard boxplot but with confidence intervals around the median         | \- If notches don\'t overlap, it suggests the medians differ significantly \       |
+| **Notched Boxplot**       | \- Similar to a standard boxplot but with confidence intervals around the median         | \- If notches don't overlap, it suggests the medians differ significantly\         |
 |                           |                                                                                          | - Helps clarify whether differences in medians are likely meaningful               |
 +---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
-| **Bagplot (2D Boxplot)**  | \- Bivariate data where you want a 2D \"boxplot\"-style overview \                       | \- Depicts both central region (\"bag\") and potential outliers \                  |
+| **Bagplot (2D Boxplot)**  | \- Bivariate data where you want a 2D "boxplot"-style overview\                          | \- Depicts both central region ("bag") and potential outliers\                     |
 |                           | - Identifying outliers in two-dimensional space                                          | - Ideal for discovering clusters or unusual points in two continuous variables     |
 +---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
-| **Boxplot Matrix**        | \- Multiple continuous variables that you want to compare side-by-side                   | \- Quickly compares distributions of many variables simultaneously \               |
+| **Boxplot Matrix**        | \- Multiple continuous variables that you want to compare side-by-side                   | \- Quickly compares distributions of many variables simultaneously\                |
 |                           |                                                                                          | - Helpful for spotting differences in median, spread, and outliers                 |
 +---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
-| **Violin Plot**           | \- Same use case as boxplot but you want *more detail* on the distribution\'s shape      | \- Combines boxplot features with a density plot \                                 |
+| **Violin Plot**           | \- Same use case as boxplot but you want *more detail* on the distribution's shape       | \- Combines boxplot features with a density plot\                                  |
 |                           |                                                                                          | - Shows where data are concentrated or sparse within each category                 |
 +---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
-| **Scatterplot**           | \- Two continuous variables to check for relationships, trends, or outliers              | \- Visualizes correlation or non-linear patterns \                                 |
+| **Scatterplot**           | \- Two continuous variables to check for relationships, trends, or outliers              | \- Visualizes correlation or non-linear patterns\                                  |
 |                           |                                                                                          | - Aids in identifying clusters or extreme values                                   |
 +---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
-| **Pairwise Scatterplots** | \- Initial exploration of *several* variables at once                                    | \- Enables a quick scan of relationships between *all* variable pairs \            |
+| **Pairwise Scatterplots** | \- Initial exploration of *several* variables at once                                    | \- Enables a quick scan of relationships between *all* variable pairs\             |
 |                           |                                                                                          | - Useful for identifying multivariate patterns or potential correlation structures |
 +---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
 
@@ -181,7 +181,7 @@ The following table summarizes key graphical measures along with guidance on whe
 Properly labeling your graphs is essential to ensure that viewers can easily understand the data presented. Below are several examples of graphical measures used to assess the shape of a dataset.
 
 
-```r
+``` r
 # Generate random data for demonstration purposes
 data <- rnorm(100)
 
@@ -199,7 +199,7 @@ hist(
 
 <img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Interactive Histogram: Using 'highcharter' for a more interactive visualization.
 # pacman::p_load("highcharter")
@@ -218,7 +218,7 @@ boxplot(
 
 <img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-2.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Notched Boxplot: The notches indicate a confidence interval around the median.
 boxplot(
@@ -234,7 +234,7 @@ boxplot(
 
 <img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-3.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 # If the notches of two boxes do not overlap, this suggests that the medians differ significantly.
 
 # Stem-and-Leaf Plot: Provides a quick way to visualize the distribution of data.
@@ -242,17 +242,13 @@ stem(data)
 #> 
 #>   The decimal point is at the |
 #> 
-#>   -2 | 65
-#>   -2 | 
-#>   -1 | 665
-#>   -1 | 44443330000000
-#>   -0 | 9999888888777777666655
-#>   -0 | 44443332222211110
-#>    0 | 000011112233333334
-#>    0 | 555567777888899
-#>    1 | 0013344
-#>    1 | 5
-#>    2 | 1
+#>   -3 | 7
+#>   -2 | 3200
+#>   -1 | 9998755321000
+#>   -0 | 9999988777766666544443332222211110
+#>    0 | 00111122223333344455557788888999
+#>    1 | 00112234778
+#>    2 | 11169
 
 # Bagplot - A 2D Boxplot Extension: Visualizes the spread and identifies outliers in two-dimensional data.
 pacman::p_load(aplpack)
@@ -266,14 +262,14 @@ bagplot(wt,
 
 <img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-4.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 detach(mtcars)
 ```
 
 Below are some advanced plot types that can provide deeper insights into data:
 
 
-```r
+``` r
 # boxplot.matrix(): Creates boxplots for each column in a matrix. Useful for comparing multiple variables.
 graphics::boxplot.matrix(
     cbind(
@@ -290,7 +286,7 @@ graphics::boxplot.matrix(
 
 <img src="03-descriptive-stat_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Violin Plot (vioplot()): Combines a boxplot with a density plot, providing more information about the distribution.
 library("vioplot")
@@ -306,7 +302,7 @@ Scatterplots are useful for visualizing relationships between two continuous var
 Pairwise Scatterplots: Visualizes relationships between all pairs of variables in a dataset. This is especially useful for exploring potential correlations.
 
 
-```r
+``` r
 pairs(mtcars,
       main = "Pairwise Scatterplots",
       pch = 19,
@@ -326,7 +322,7 @@ Graphical methods provide an intuitive way to visually inspect the normality of 
 Below is an example of using the `qqnorm` and `qqline` functions in R to assess the normality of the `precip` dataset, which contains precipitation data (in inches per year) for 70 U.S. cities:
 
 
-```r
+``` r
 # Load the required package
 pacman::p_load("car")
 
@@ -411,12 +407,12 @@ $$
     -   Inference on $W^*$ requires reference to special tables [@Looney_1985].
 
 
-```r
+``` r
 library("EnvStats")
 
 # Perform Probability Plot Correlation Coefficient (PPCC) Test
 gofTest(data, test = "ppcc")$p.value # Probability Plot Correlation Coefficient
-#> [1] 0.4855617
+#> [1] 0.5539577
 ```
 
 ##### Shapiro-Wilk Test
@@ -477,7 +473,7 @@ Hence, the Shapiro-Wilk test's sensitivity to these deviations makes it a powerf
     -   Smaller values of $W$ indicate deviations from normality.
 
 
-```r
+``` r
 # Perform Shapiro-Wilk Test (Default for gofTest)
 EnvStats::gofTest(mtcars$mpg, test = "sw")
 #> 
@@ -563,7 +559,7 @@ Applications of the ECDF
 4.  **Comparing Distributions**: Compare the ECDFs of two datasets to assess differences in their distributions.
 
 
-```r
+``` r
 # Load required libraries
 library(ggplot2)
 
@@ -600,7 +596,7 @@ ggplot(ecdf_data, aes(x = x, y = ecdf)) +
 <img src="03-descriptive-stat_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 # Alternatively
 plot.ecdf(as.numeric(mtcars[1, ]),
           verticals = TRUE,
@@ -696,7 +692,7 @@ The Anderson-Darling test can be applied to various distributions by using speci
 For more details on transformations and critical values, consult [@Stephens_1974].
 
 
-```r
+``` r
 # Perform Anderson-Darling Test
 library(nortest)
 ad_test_result <- ad.test(mtcars$mpg)
@@ -713,7 +709,7 @@ ad_test_result
 Alternatively, for a broader range of distributions, use the `gofTest` function from the `gof` package:
 
 
-```r
+``` r
 # General goodness-of-fit test with Anderson-Darling
 library(EnvStats)
 gof_test_result <- EnvStats::gofTest(mtcars$mpg, test = "ad")
@@ -779,7 +775,7 @@ Applications
 To perform a one-sample K-S test in R, use the `ks.test()` function. To check the goodness of fit for a specific distribution, the `gofTest()` function from a package like `DescTools` can also be used.
 
 
-```r
+``` r
 # One-sample Kolmogorov-Smirnov test for normality
 data <- rnorm(50)  # Generate random normal data
 ks.test(data, "pnorm", mean(data), sd(data))
@@ -787,13 +783,13 @@ ks.test(data, "pnorm", mean(data), sd(data))
 #> 	Exact one-sample Kolmogorov-Smirnov test
 #> 
 #> data:  data
-#> D = 0.10812, p-value = 0.5658
+#> D = 0.079541, p-value = 0.8849
 #> alternative hypothesis: two-sided
 
 # Goodness-of-fit test using gofTest
 library(DescTools)
 gofTest(data, test = "ks")$p.value  # Kolmogorov-Smirnov test p-value
-#> [1] 0.5657619
+#> [1] 0.8848834
 ```
 
 -   **Advantages**:
@@ -862,14 +858,14 @@ Applications
 To perform a Cramer-von Mises test in R, the `gofTest()` function from the `DescTools` package can be used. Below is an example:
 
 
-```r
+``` r
 # Generate random normal data
 data <- rnorm(50)
 
 # Perform the Cramer-von Mises test
 library(DescTools)
 gofTest(data, test = "cvm")$p.value  # Cramer-von Mises test p-value
-#> [1] 0.7045712
+#> [1] 0.856957
 ```
 
 -   **Advantages**:
@@ -960,7 +956,7 @@ Applications
 The Jarque-Bera test can be performed in R using the `tseries` package:
 
 
-```r
+``` r
 library(tseries)
 
 # Generate a sample dataset
@@ -972,7 +968,7 @@ jarque.bera.test(data)
 #> 	Jarque Bera Test
 #> 
 #> data:  data
-#> X-squared = 0.98267, df = 2, p-value = 0.6118
+#> X-squared = 0.77463, df = 2, p-value = 0.6789
 ```
 
 ## Bivariate Statistics
@@ -1033,7 +1029,7 @@ Before delving into the analysis, it is critical to consider the following:
 ### Two Continuous
 
 
-```r
+``` r
 set.seed(1)
 n = 100 # (sample size)
 
@@ -1072,7 +1068,7 @@ Interpretation:
 -   $r = 0$: No linear relationship.
 
 
-```r
+``` r
 # Pearson correlation
 pearson_corr <- stats::cor(data$A, data$B, method = "pearson")
 cat("Pearson Correlation (r):", pearson_corr, "\n")
@@ -1113,7 +1109,7 @@ Interpretation:
 -   $\rho = 0$: No monotonic relationship.
 
 
-```r
+``` r
 # Spearman correlation
 spearman_corr <- stats::cor(data$A, data$B, method = "spearman")
 cat("Spearman Correlation (rho):", spearman_corr, "\n")
@@ -1157,7 +1153,7 @@ Interpretation:
 -   $\tau = 0$: No monotonic relationship.
 
 
-```r
+``` r
 # Kendall's Tau correlation
 kendall_corr <- stats::cor(data$A, data$B, method = "kendall")
 cat("Kendall's Tau Correlation (tau):", kendall_corr, "\n")
@@ -1195,7 +1191,7 @@ Interpretation:
 -   $dCor = 1$: Perfect association.
 
 
-```r
+``` r
 # Distance correlation
 distance_corr <- energy::dcor(data$A, data$B)
 cat("Distance Correlation (dCor):", distance_corr, "\n")
@@ -1266,7 +1262,7 @@ Use Case:
 -   To evaluate the linear relationship between a binary categorical variable and a continuous variable.
 
 
-```r
+``` r
 library(ltm)
 # Point-Biserial Correlation
 biserial_corr <- ltm::biserial.cor(
@@ -1326,7 +1322,7 @@ Use Case:
 -   To predict the likelihood of a binary outcome based on a continuous predictor (e.g., probability of success given test scores).
 
 
-```r
+``` r
 # Simulated data
 set.seed(123)
 x <- rnorm(100, mean = 50, sd = 10)  # Continuous predictor
@@ -1360,7 +1356,7 @@ print(head(predicted_probs))
 ```
 
 
-```r
+``` r
 # Visualize logistic regression curve
 library(ggplot2)
 data <- data.frame(x = x, y = y, predicted = predicted_probs)
@@ -1503,7 +1499,7 @@ $$
 -   Measures average absolute differences.
 
 
-```r
+``` r
 # Example data
 x <- c(1, 2, 3, 4, 5)
 y <- c(2, 3, 4, 5, 6)
@@ -1568,7 +1564,7 @@ Use Case:
 -   Tests for **independence** between two nominal variables.
 
 
-```r
+``` r
 # Example data
 dt <- matrix(c(15, 25, 20, 40), nrow = 2)
 rownames(dt) <- c("Group A", "Group B")
@@ -1612,7 +1608,7 @@ Use Case:
 -   2 binary
 
 
-```r
+``` r
 library(psych)
 
 # Compute Phi Coefficient
@@ -1648,7 +1644,7 @@ Use Case:
 -   Measures the **strength of association** between nominal variables with no natural order.
 
 
-```r
+``` r
 library(lsr)
 
 # Simulate data
@@ -1675,7 +1671,7 @@ Alternatively,
 -   `fisheradj` bias correction Fisher z transformation
 
 
-```r
+``` r
 DescTools::CramerV(data, conf.level = 0.95,method = "ncchisqadj")
 #>  Cramer V    lwr.ci    upr.ci 
 #> 0.3472325 0.3929964 0.4033053
@@ -1692,7 +1688,7 @@ Adjusted formulas account for non-central Chi-squared or bias correction. Exampl
 -   **Bias Correction**: $V_{adj} = V - \text{Bias Term}$
 
 
-```r
+``` r
 library(DescTools)
 
 # Compute Adjusted Cramer's V
@@ -1723,7 +1719,7 @@ Use Case:
 -   Preferred when table dimensions are **highly unequal**.
 
 
-```r
+``` r
 # Compute Tschuprow's T
 tschuprow_t <- DescTools::TschuprowT(data$A, data$B)
 cat("Tschuprow's T:", tschuprow_t, "\n")
@@ -1761,7 +1757,7 @@ Use Case:
 -   Suitable for ordinal-ordinal or ordinal-continuous associations.
 
 
-```r
+``` r
 # Simulating ordinal data
 set.seed(123)
 ordinal_x <- sample(1:5, 100, replace = TRUE)
@@ -1800,7 +1796,7 @@ Use Case:
 -   Ideal for small datasets or when ties are present.
 
 
-```r
+``` r
 # Kendall's Tau
 kendall_corr <- cor(ordinal_x, ordinal_y, method = "kendall")
 cat("Kendall's Tau (tau):", kendall_corr, "\n")
@@ -1822,7 +1818,7 @@ Use Case:
 -   Works well when there are **many ties** in the data.
 
 
-```r
+``` r
 library(vcd)
 
 # Simulating ordinal data
@@ -1843,7 +1839,7 @@ Use Case:
 -   Useful when analyzing relationships between ordinal predictors and nominal responses (or vice versa).
 
 
-```r
+``` r
 rcompanion::freemanTheta(ordinal_x, ordinal_y)
 #> Freeman.theta 
 #>         0.094
@@ -1870,7 +1866,7 @@ Use Case:
 -   Quantifies the effect size when analyzing how well a nominal variable explains an ordinal variable.
 
 
-```r
+``` r
 set.seed(123)
 ordinal_x <- sample(1:5, 100, replace = TRUE)  # Ordinal variable
 nominal_y <- sample(1:3, 100, replace = TRUE) # Nominal variable
@@ -1904,7 +1900,7 @@ Use Case:
 -   Suitable for ordinal variables with many ties.
 
 
-```r
+``` r
 n = 100 # (sample size)
 set.seed(1)
 dt = table(data.frame(
@@ -1921,7 +1917,7 @@ dt
 ```
 
 
-```r
+``` r
 # Compute Goodman-Kruskal's Gamma
 library(DescTools)
 goodman_kruskal_gamma <- GoodmanKruskalGamma(dt, conf.level = 0.95)
@@ -1948,7 +1944,7 @@ Use Case:
 -   Appropriate when there is a clear predictor-response relationship between two ordinal variables.
 
 
-```r
+``` r
 # Compute Somers' D
 somers_d <- SomersDelta(dt, conf.level = 0.95)
 somers_d
@@ -1975,7 +1971,7 @@ Use Case:
 -   Use when ordinal data contains ties.
 
 
-```r
+``` r
 # Compute Kendall's Tau-b
 kendalls_tau_b <- KendallTauB(dt, conf.level = 0.95)
 kendalls_tau_b
@@ -2017,7 +2013,7 @@ Y = \frac{1 = \sqrt{1-Q^2}}{Q}
 $$
 
 
-```r
+``` r
 # Create 2x2 table
 dt_binary <- table(data.frame(
   A = sample(c(0, 1), replace = TRUE, size = n),
@@ -2035,7 +2031,7 @@ yules_q
 **Tetrachoric Correlation** measures the association between two **binary variables** by assuming they represent thresholds of underlying continuous normal distributions. It is a special case of [Polychoric Correlation] when both variables are binary
 
 
-```r
+``` r
 # Simulate binary data
 library(psych)
 data_binary <- data.frame(
@@ -2070,7 +2066,7 @@ Use Case:
 -   Suitable for ordinal variables with a natural order.
 
 
-```r
+``` r
 # Simulate ordinal data
 library(polycor)
 data_ordinal <- data.frame(
@@ -2113,7 +2109,7 @@ cat("Polychoric Correlation:", polychoric_corr, "\n")
 ### General Approach to Bivariate Statistics
 
 
-```r
+``` r
 library(tidyverse)
 
 data("mtcars")
@@ -2143,7 +2139,7 @@ str(df_factor)
 Get the correlation table for continuous variables only
 
 
-```r
+``` r
 cor(df)
 #>             cyl         vs       carb
 #> cyl   1.0000000 -0.8108118  0.5269883
@@ -2157,7 +2153,7 @@ cor(df)
 Alternatively, you can also have the
 
 
-```r
+``` r
 Hmisc::rcorr(as.matrix(df), type = "pearson")
 #>        cyl    vs  carb
 #> cyl   1.00 -0.81  0.53
@@ -2175,45 +2171,132 @@ Hmisc::rcorr(as.matrix(df), type = "pearson")
 ```
 
 
-```r
+``` r
 modelsummary::datasummary_correlation(df)
 ```
 
-<table class="table" style="width: auto !important; margin-left: auto; margin-right: auto;">
- <thead>
-  <tr>
-   <th style="text-align:left;">   </th>
-   <th style="text-align:right;"> cyl </th>
-   <th style="text-align:right;"> vs </th>
-   <th style="text-align:right;"> carb </th>
-  </tr>
- </thead>
-<tbody>
-  <tr>
-   <td style="text-align:left;"> cyl </td>
-   <td style="text-align:right;"> 1 </td>
-   <td style="text-align:right;"> . </td>
-   <td style="text-align:right;"> . </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> vs </td>
-   <td style="text-align:right;"> −.81 </td>
-   <td style="text-align:right;"> 1 </td>
-   <td style="text-align:right;"> . </td>
-  </tr>
-  <tr>
-   <td style="text-align:left;"> carb </td>
-   <td style="text-align:right;"> .53 </td>
-   <td style="text-align:right;"> −.57 </td>
-   <td style="text-align:right;"> 1 </td>
-  </tr>
-</tbody>
-</table>
+
+```{=html}
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_4bt818lqmx201is4xbhx(i, j, css_id) {
+          var table = document.getElementById("tinytable_4bt818lqmx201is4xbhx");
+          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function insertSpanRow(i, colspan, content) {
+        var table = document.getElementById('tinytable_4bt818lqmx201is4xbhx');
+        var newRow = table.insertRow(i);
+        var newCell = newRow.insertCell(0);
+        newCell.setAttribute("colspan", colspan);
+        // newCell.innerText = content;
+        // this may be unsafe, but innerText does not interpret <br>
+        newCell.innerHTML = content;
+      }
+      function spanCell_4bt818lqmx201is4xbhx(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_4bt818lqmx201is4xbhx");
+        const targetRow = table.rows[i];
+        const targetCell = targetRow.cells[j];
+        for (let r = 0; r < rowspan; r++) {
+          // Only start deleting cells to the right for the first row (r == 0)
+          if (r === 0) {
+            // Delete cells to the right of the target cell in the first row
+            for (let c = colspan - 1; c > 0; c--) {
+              if (table.rows[i + r].cells[j + c]) {
+                table.rows[i + r].deleteCell(j + c);
+              }
+            }
+          }
+          // For rows below the first, delete starting from the target column
+          if (r > 0) {
+            for (let c = colspan - 1; c >= 0; c--) {
+              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
+                table.rows[i + r].deleteCell(j);
+              }
+            }
+          }
+        }
+        // Set rowspan and colspan of the target cell
+        targetCell.rowSpan = rowspan;
+        targetCell.colSpan = colspan;
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: 3, j: 1 }, { i: 3, j: 2 }, { i: 3, j: 3 },  ], css_id: 'tinytable_css_oykvf6oiyoc9xfan26tl',}, 
+          { positions: [ { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 },  ], css_id: 'tinytable_css_k5np7k6ywt443a19x1b5',}, 
+          { positions: [ { i: 3, j: 0 },  ], css_id: 'tinytable_css_ess4l0lcl5wnlw9i7baf',}, 
+          { positions: [ { i: 0, j: 0 },  ], css_id: 'tinytable_css_c35moflpd57kn2dqci2s',}, 
+          { positions: [ { i: 1, j: 1 }, { i: 2, j: 1 }, { i: 1, j: 2 }, { i: 2, j: 2 }, { i: 1, j: 3 }, { i: 2, j: 3 },  ], css_id: 'tinytable_css_8i4g8ocby718u646u1j7',}, 
+          { positions: [ { i: 1, j: 0 }, { i: 2, j: 0 },  ], css_id: 'tinytable_css_4oudzjuc2ns9c59ihkmp',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_4bt818lqmx201is4xbhx(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_oykvf6oiyoc9xfan26tl, .table th.tinytable_css_oykvf6oiyoc9xfan26tl { text-align: right; border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_k5np7k6ywt443a19x1b5, .table th.tinytable_css_k5np7k6ywt443a19x1b5 { text-align: right; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_ess4l0lcl5wnlw9i7baf, .table th.tinytable_css_ess4l0lcl5wnlw9i7baf { text-align: left; border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_c35moflpd57kn2dqci2s, .table th.tinytable_css_c35moflpd57kn2dqci2s { text-align: left; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_8i4g8ocby718u646u1j7, .table th.tinytable_css_8i4g8ocby718u646u1j7 { text-align: right; }
+      .table td.tinytable_css_4oudzjuc2ns9c59ihkmp, .table th.tinytable_css_4oudzjuc2ns9c59ihkmp { text-align: left; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_4bt818lqmx201is4xbhx" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing='true'>
+        <thead>
+        
+              <tr>
+                <th scope="col"> </th>
+                <th scope="col">cyl</th>
+                <th scope="col">vs</th>
+                <th scope="col">carb</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td>cyl</td>
+                  <td>1</td>
+                  <td>.</td>
+                  <td>.</td>
+                </tr>
+                <tr>
+                  <td>vs</td>
+                  <td>-.81</td>
+                  <td>1</td>
+                  <td>.</td>
+                </tr>
+                <tr>
+                  <td>carb</td>
+                  <td>.53</td>
+                  <td>-.57</td>
+                  <td>1</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+```
 
 
 
-
-```r
+``` r
 ggcorrplot::ggcorrplot(cor(df))
 ```
 
@@ -2266,7 +2349,7 @@ Despite its strengths, this approach has some limitations:
 These limitations should be considered when interpreting results, especially in multi-variable or mixed-data contexts.
 
 
-```r
+``` r
 library(ppsr)
 library(tidyverse)
 
@@ -2293,7 +2376,7 @@ ppsr::score_matrix(df,
 ```
 
 
-```r
+``` r
 corrplot::corrplot(cor(df))
 ```
 
@@ -2302,14 +2385,14 @@ corrplot::corrplot(cor(df))
 Alternatively,
 
 
-```r
+``` r
 PerformanceAnalytics::chart.Correlation(df, histogram = T, pch = 19)
 ```
 
 <img src="03-descriptive-stat_files/figure-html/unnamed-chunk-49-1.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 heatmap(as.matrix(df))
 ```
 
@@ -2318,7 +2401,7 @@ heatmap(as.matrix(df))
 More general form,
 
 
-```r
+``` r
 ppsr::visualize_pps(
     df = iris,
     do_parallel = TRUE,
@@ -2329,7 +2412,7 @@ ppsr::visualize_pps(
 <img src="03-descriptive-stat_files/figure-html/unnamed-chunk-51-1.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 ppsr::visualize_correlations(
     df = iris
 )
@@ -2340,7 +2423,7 @@ ppsr::visualize_correlations(
 Both heat map and correlation at the same time
 
 
-```r
+``` r
 ppsr::visualize_both(
     df = iris,
     do_parallel = TRUE,
@@ -2353,7 +2436,7 @@ ppsr::visualize_both(
 More elaboration with `ggplot2`
 
 
-```r
+``` r
 ppsr::visualize_pps(
     df = iris,
     color_value_high = 'red',

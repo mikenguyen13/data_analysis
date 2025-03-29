@@ -45,7 +45,7 @@ $$
 
 To model this data, we use a two-stage hierarchical approach:
 
-#### Stage 1: Regression Model (Within-Subject Variation) {#sec-stage-1-regression-model-(within-subject-variation}
+#### Stage 1: Regression Model (Within-Subject Variation) {#sec-stage-1-regression-model-within-subject-variation}
 
 We first model how the response changes over time for each subject:
 
@@ -61,7 +61,7 @@ where:
 
 At this stage, each individual has their own unique regression coefficients $\beta_i$. However, estimating a separate $\beta_i$ for each subject is impractical when $N$ is large. Thus, we introduce a [second stage](#sec-stage-2-parameter-model-(between-subject-variation) to impose structure on $\beta_i$.
 
-#### Stage 2: Parameter Model (Between-Subject Variation) {#sec-stage-2-parameter-model-(between-subject-variation}
+#### Stage 2: Parameter Model (Between-Subject Variation) {#sec-stage-2-parameter-model-between-subject-variation}
 
 We assume that the subject-specific coefficients $\beta_i$ arise from a common population distribution:
 
@@ -2050,7 +2050,7 @@ When comparing models (e.g., different random slopes or covariance structures), 
 -   **AICc**: Adjusted AIC for small sample sizes.
 
 
-```r
+``` r
 # Practical Example with Linear Mixed Models in R
 
 
@@ -2341,7 +2341,7 @@ Since each variety-field combination is observed only once, we cannot model a ra
 #### Data Exploration
 
 
-```r
+``` r
 library(ggplot2)
 data(irrigation, package = "faraway")  # Load the dataset
 
@@ -2390,7 +2390,7 @@ We fit a mixed-effects model where:
 -   Field is modeled as a random effect to account for variability between fields.
 
 
-```r
+``` r
 library(lmerTest)  # Provides p-values for lmer models
 
 # Full model with interaction term
@@ -2455,7 +2455,7 @@ anova(sp_model, ddf = "Kenward-Roger")
 We compare the **full model** (with interaction) to an **additive model** (without interaction):
 
 
-```r
+``` r
 library(lme4)
 
 # Additive model (no interaction)
@@ -2495,7 +2495,7 @@ To verify whether the random field effect is necessary, we conduct an exact RLRT
     -   $H_a$: $\sigma^2_f > 0$ (random field effect is significant).
 
 
-```r
+``` r
 library(RLRsim)
 
 # RLRT for the random effect of field
@@ -2853,7 +2853,7 @@ $$
 #### Data Exploration
 
 
-```r
+``` r
 data(pulp, package = "faraway")
 library(ggplot2)
 library(dplyr)
@@ -2869,7 +2869,7 @@ ggplot(pulp, aes(x = operator, y = bright)) +
 
 <img src="08-linear-mixed-models_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Group-wise summary
 pulp %>%
@@ -2887,7 +2887,7 @@ pulp %>%
 #### Fitting the Mixed Model with `lme4`
 
 
-```r
+``` r
 library(lme4)
 
 # Random intercepts model: operator as a random effect
@@ -2952,7 +2952,7 @@ rho
 To obtain p-values for fixed effects using Satterthwaite's approximation:
 
 
-```r
+``` r
 library(lmerTest)
 
 # Model with p-values
@@ -2971,7 +2971,7 @@ In this example, we can see that the confidence interval computed by `confint` f
 #### Bayesian Mixed Model with `MCMCglmm`
 
 
-```r
+``` r
 library(MCMCglmm)
 
 # Bayesian mixed model
@@ -2993,7 +2993,7 @@ Bayesian credible intervals may differ slightly from frequentist confidence inte
 #### Predictions
 
 
-```r
+``` r
 # Random effects predictions (BLUPs)
 ranef(mixed_model)$operator
 #>   (Intercept)
@@ -3019,7 +3019,7 @@ predict(mixed_model, newdata = data.frame(operator = c('a', 'b', 'c', 'd')))
 For **bootstrap confidence intervals**, use:
 
 
-```r
+``` r
 bootMer(mixed_model, FUN = fixef, nsim = 100)
 #> 
 #> PARAMETRIC BOOTSTRAP
@@ -3037,7 +3037,7 @@ bootMer(mixed_model, FUN = fixef, nsim = 100)
 ### Example 2: Penicillin Yield (GLMM with Blocking)
 
 
-```r
+``` r
 data(penicillin, package = "faraway")
 library(ggplot2)
 
@@ -3050,7 +3050,7 @@ ggplot(penicillin, aes(y = yield, x = treat, shape = blend, color = blend)) +
 
 <img src="08-linear-mixed-models_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Mixed model: blend as random effect, treatment as fixed
 mixed_model <- lmer(yield ~ treat + (1 | blend), data = penicillin)
@@ -3100,7 +3100,7 @@ ranef(mixed_model)$blend
 Testing for Treatment Effect
 
 
-```r
+``` r
 # ANOVA for fixed effects
 anova(mixed_model)
 #> Type III Analysis of Variance Table with Satterthwaite's method
@@ -3113,7 +3113,7 @@ Since the $p$-value $> .05$, we fail to reject the null hypothesis (no treatment
 Model Comparison with Kenward-Roger Approximation
 
 
-```r
+``` r
 library(pbkrtest)
 
 # Full model vs. null model
@@ -3135,7 +3135,7 @@ The results are consistent with the earlier ANOVA: **no significant treatment ef
 ### Example 3: Growth in Rats Over Time
 
 
-```r
+``` r
 rats <- read.csv(
     "images/rats.dat",
     header = FALSE,
@@ -3150,7 +3150,7 @@ rats$t <- log(1 + (rats$age - 45) / 10)
 Model Fitting
 
 
-```r
+``` r
 # Treatment as fixed effect, random intercepts for rats
 rat_model <- lmer(y ~ t:Treatment + (1 | rat), data = rats)
 summary(rat_model)
@@ -3198,7 +3198,7 @@ Since the **p-value is significant**, we conclude that the **treatment effect va
 ### Example 4: Tree Water Use (Agridat)
 
 
-```r
+``` r
 library(agridat)
 dat <- harris.wateruse
 
@@ -3218,14 +3218,14 @@ useOuterStrips(
 Remove outlier
 
 
-```r
+``` r
 dat <- subset(dat, day!=268)
 ```
 
 Plot between water use and day for one age and species group
 
 
-```r
+``` r
 xyplot(
     water ~ day | tree,
     dat,
@@ -3240,7 +3240,7 @@ xyplot(
 <img src="08-linear-mixed-models_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 # Rescale day for nicer output, and convergence issues
 dat <- transform(dat, ti = day / 100)
 # add quadratic term
@@ -3253,7 +3253,7 @@ d22 <- droplevels(subset(dat, age == "A2" & species == "S2"))
 Fitting with `nlme` using `lme`
 
 
-```r
+``` r
 library(nlme)
 
 ## We use pdDiag() to get uncorrelated random effects
@@ -3325,7 +3325,7 @@ fixef(m1n)
 Fitting with `lme4` using `lmer`
 
 
-```r
+``` r
 library(lme4)
 
 m1lmer <-
@@ -3368,7 +3368,7 @@ Notes:
     -   `(ti-1|tree)`
 
 
-```r
+``` r
 m1l <-
     lmer(water ~ 1 + ti + ti2 
          + (1 | tree) + (0 + ti | tree) 
@@ -3396,7 +3396,7 @@ fixef(m1l)
 Adding Correlation Structure
 
 
-```r
+``` r
 m2n <- lme(
     water ~ 1 + ti + ti2,
     data = d22,

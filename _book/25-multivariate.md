@@ -741,7 +741,7 @@ If data **fail** the multivariate normality tests, possible approaches include:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary libraries
 library(heplots)      # Multivariate hypothesis tests
 library(ICSNP)        # Multivariate tests
@@ -802,7 +802,7 @@ print(gg)
 
 <img src="25-multivariate_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Shapiro-Wilk test for univariate normality
 sw_tests <- apply(trees, MARGIN = 2, FUN = shapiro.test)
@@ -901,6 +901,11 @@ mardia_test <-
         covariance = FALSE,
         multivariatePlot = "qq"
     )
+```
+
+<img src="25-multivariate_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" />
+
+``` r
 mardia_test$multivariateNormality
 #>              Test         Statistic            p value Result
 #> 1 Mardia Skewness  29.7248528871795   0.72054426745778    YES
@@ -915,11 +920,6 @@ dh_test <-
         covariance = FALSE,
         multivariatePlot = "qq"
     )
-```
-
-<img src="25-multivariate_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" />
-
-```r
 dh_test$multivariateNormality
 #>             Test        E df      p value MVN
 #> 1 Doornik-Hansen 161.9446 10 1.285352e-29  NO
@@ -958,7 +958,7 @@ estat_test <-
     )
 estat_test$multivariateNormality
 #>          Test Statistic p value MVN
-#> 1 E-statistic  1.091101   0.539 YES
+#> 1 E-statistic  1.091101   0.522 YES
 ```
 
 ### Mean Vector Inference
@@ -1068,7 +1068,7 @@ $$
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required packages
 library(MASS)    # For multivariate analysis
 library(ICSNP)   # For Hotelling's T^2 test
@@ -1184,7 +1184,7 @@ $$
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary libraries
 library(MASS)    # For multivariate analysis
 library(ICSNP)   # For Hotelling's T2 test
@@ -1417,7 +1417,7 @@ $$
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary libraries
 library(MASS)    # For multivariate normal data
 library(ICSNP)   # For Hotelling's T^2 test
@@ -1597,7 +1597,7 @@ $$
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary libraries
 library(MASS)    # For multivariate analysis
 library(ICSNP)   # For Hotelling's T^2 test
@@ -1771,7 +1771,7 @@ $$
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required packages
 library(MASS)    # For multivariate normal data
 library(ICSNP)   # Multivariate tests
@@ -1907,7 +1907,7 @@ $$
 1.  **One-Sample Hotelling's** $T^2$ Test
 
 
-```r
+``` r
 # Load necessary libraries
 library(ICSNP)
 library(dplyr)
@@ -1947,7 +1947,7 @@ print(onesamp_fit)
 Used when each subject has two sets of paired measurements.
 
 
-```r
+``` r
 # Data: Commercial vs. State Lab Waste Analysis
 waste <- data.frame(
     case = 1:11,
@@ -1982,7 +1982,7 @@ print(paired_fit)
 Used when comparing **two independent groups**.
 
 
-```r
+``` r
 # Read steel strength data
 steel <- read.table("images/steel.dat")
 names(steel) <- c("Temp", "Yield", "Strength")
@@ -1996,7 +1996,7 @@ ggplot(steel, aes(x = Yield, y = Strength)) +
 
 <img src="25-multivariate_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Bartlett's test for equality of covariances
 bart_test <- boxM(steel[, -1], steel$Temp)
@@ -2039,7 +2039,7 @@ print(twosamp_fit2)
 **Summary of Repeated Measures Hypothesis Testing**
 
 | **Test**                                 | **Hypothesis**                                                  | **Application**                |
-|----------------------|--------------------------------|------------------|
+|------------------------------------------|-----------------------------------------------------------------|--------------------------------|
 | **One-Sample Hotelling's** $T^2$         | $H_0: \mathbf{\mu} = \mathbf{\mu}_0$                            | Single group mean vector test  |
 | **Paired-Sample Hotelling's** $T^2$      | $H_0: \mathbf{\mu}_d = 0$                                       | Paired measurements comparison |
 | **Independent-Sample Hotelling's** $T^2$ | $H_0: \mathbf{\mu}_1 = \mathbf{\mu}_2$                          | Two-group mean vector test     |
@@ -2186,7 +2186,7 @@ $$
 $$
 
 
-```r
+``` r
 # Load dataset
 data(iris)
 
@@ -2375,7 +2375,7 @@ $$
 In certain cases, specific values of $p$ and $h$ allow for an exact $F$-distribution under $H_0$.
 
 
-```r
+``` r
 ## One-Way MANOVA
 
 library(car)
@@ -2421,7 +2421,7 @@ Since the Wilks' Lambda test results in a small $p$-value, we reject the null hy
 **Repeated Measures MANOVA**
 
 
-```r
+``` r
 # Create dataset for repeated measures example
 stress <- data.frame(
     subject = 1:8,
@@ -2429,6 +2429,7 @@ stress <- data.frame(
     middle = c(3, 4, 3, 7, 4, 7, 1, 2),
     final = c(6, 7, 4, 7, 6, 7, 3, 5)
 )
+
 ```
 
 **Choosing the Correct Model**
@@ -2438,7 +2439,7 @@ stress <- data.frame(
 -   If each time point is treated as a separate variable, we use **MANOVA** (which does not require the sphericity assumption).
 
 
-```r
+``` r
 # Fit the MANOVA model for repeated measures
 stress_mod <- lm(cbind(begin, middle, final) ~ 1, data = stress)
 
@@ -2542,7 +2543,7 @@ The results indicate that we cannot reject the null hypothesis of sphericity, me
 To further explore the effect of time, we examine polynomial contrasts.
 
 
-```r
+``` r
 # Check the reference for the marginal means
 ref_grid(stress_mod, mult.name = "time")
 #> 'emmGrid' object with variables:
@@ -2566,7 +2567,7 @@ The results confirm that there is a **significant linear trend** over time but *
 We now analyze a multivariate response for different drug treatments.
 
 
-```r
+``` r
 # Read in the dataset
 heart <- read.table("images/heart.dat")
 
@@ -2610,7 +2611,7 @@ gg_profile
 
 <img src="25-multivariate_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Fit the MANOVA model
 heart_mod <- lm(cbind(y1, y2, y3, y4) ~ drug, data = heart)
@@ -2658,7 +2659,7 @@ Since we obtain a small $p$-value, we reject the null hypothesis of no differenc
 To further investigate group differences, we define **contrast matrices.**
 
 
-```r
+``` r
 # Convert drug variable to a factor
 heart$drug <- factor(heart$drug)
 
@@ -2683,7 +2684,7 @@ contrasts(heart$drug)
 Instead of setting contrasts in `heart$drug`, we use a contrast matrix $\mathbf{M}$
 
 
-```r
+``` r
 # Define contrast matrix M for further testing
 M <- matrix(c(1, -1, 0, 0,
               0, 1, -1, 0,
@@ -2703,7 +2704,7 @@ coef(heart_mod2)
 Comparing Drug `bww9` vs Control
 
 
-```r
+``` r
 bww9vctrl <-
     car::linearHypothesis(heart_mod2,
                           hypothesis.matrix = c(0, 1, 0),
@@ -2774,7 +2775,7 @@ Since the $p$-value is not significant, we conclude that there is no significant
 **Comparing Drug `ax23` vs Rest**
 
 
-```r
+``` r
 axx23vrest <-
     car::linearHypothesis(heart_mod2,
                           hypothesis.matrix = c(0, 0, 1),
@@ -3180,13 +3181,13 @@ If we fail to reject all three hypotheses, we conclude that:
 The three profile tests correspond to well-known univariate ANOVA components:
 
 | Test                      | Equivalent test for                                |
-|--------------------------|----------------------------------------------|
+|---------------------------|----------------------------------------------------|
 | **Parallel profiles**     | Interaction effect (treatment × time)              |
 | **Coincidental profiles** | Main effect of treatment (between-subjects factor) |
 | **Horizontal profiles**   | Main effect of time (repeated measures factor)     |
 
 
-```r
+``` r
 # Profile analysis for heart dataset
 profile_fit <- pbg(
     data = as.matrix(heart[, 2:5]),   # Response variables

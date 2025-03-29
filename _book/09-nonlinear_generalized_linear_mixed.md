@@ -681,7 +681,7 @@ Consider the case of **repeated measurements**:
 We will use the **CBPP dataset** from the `lme4` package to demonstrate different estimation approaches for binomial mixed models.
 
 
-```r
+``` r
 library(lme4)
 data(cbpp, package = "lme4")
 head(cbpp)
@@ -713,7 +713,7 @@ The data contain information about contagious bovine pleuropneumonia (CBPP) case
 -   AIC/BIC values are not interpretable since PQL does not rely on full likelihood.
 
 
-```r
+``` r
 library(MASS)
 pql_cbpp <- glmmPQL(
     cbind(incidence, size - incidence) ~ period,
@@ -759,7 +759,7 @@ summary(pql_cbpp)
 Interpretation
 
 
-```r
+``` r
 exp(0.556)
 #> [1] 1.743684
 ```
@@ -771,7 +771,7 @@ The fixed effects are interpreted similarly to logistic regression. For example,
 -   The **log odds** of having a case in **period 2** are **-1.016** less than in **period 1** (baseline).
 
 
-```r
+``` r
 summary(pql_cbpp)$tTable
 #>                 Value Std.Error DF   t-value      p-value
 #> (Intercept) -1.327364 0.2390194 38 -5.553372 2.333216e-06
@@ -793,7 +793,7 @@ summary(pql_cbpp)$tTable
 -   May struggle with convergence for complex models.
 
 
-```r
+``` r
 numint_cbpp <- glmer(
     cbind(incidence, size - incidence) ~ period + (1 | herd),
     data = cbpp,
@@ -839,7 +839,7 @@ summary(numint_cbpp)
 For small datasets, the difference between PQL and numerical integration may be minimal.
 
 
-```r
+``` r
 library(rbenchmark)
 benchmark(
     "PQL (MASS)" = {
@@ -863,8 +863,8 @@ benchmark(
     order = "relative"
 )
 #>                           test replications elapsed relative
-#> 1                   PQL (MASS)           50    4.87    1.000
-#> 2 Numerical Integration (lme4)           50    9.05    1.858
+#> 1                   PQL (MASS)           50    4.78    1.000
+#> 2 Numerical Integration (lme4)           50   10.06    2.105
 ```
 
 **Improving Accuracy with Gauss-Hermite Quadrature**
@@ -872,7 +872,7 @@ benchmark(
 Setting `nAGQ > 1` increases the accuracy of the likelihood approximation:
 
 
-```r
+``` r
 numint_cbpp_GH <- glmer(
     cbind(incidence, size - incidence) ~ period + (1 | herd),
     data = cbpp,
@@ -898,7 +898,7 @@ summary(numint_cbpp_GH)$coefficients[, 1] -
 -   Computationally intensive, especially with large datasets or complex hierarchical structures.
 
 
-```r
+``` r
 library(MCMCglmm)
 Bayes_cbpp <- MCMCglmm(
     cbind(incidence, size - incidence) ~ period,
@@ -913,25 +913,25 @@ summary(Bayes_cbpp)
 #>  Thinning interval  = 10
 #>  Sample size  = 1000 
 #> 
-#>  DIC: 537.6654 
+#>  DIC: 537.859 
 #> 
 #>  G-structure:  ~herd
 #> 
 #>      post.mean  l-95% CI u-95% CI eff.samp
-#> herd   0.01489 7.096e-17  0.07232    229.4
+#> herd   0.02997 1.186e-16   0.2022    98.51
 #> 
 #>  R-structure:  ~units
 #> 
 #>       post.mean l-95% CI u-95% CI eff.samp
-#> units     1.102   0.3434    2.138    273.3
+#> units     1.113   0.3264    2.066    360.8
 #> 
 #>  Location effects: cbind(incidence, size - incidence) ~ period 
 #> 
 #>             post.mean l-95% CI u-95% CI eff.samp  pMCMC    
-#> (Intercept)   -1.5324  -2.2186  -0.9049    908.6 <0.001 ***
-#> period2       -1.2938  -2.3859  -0.2230    858.2  0.028 *  
-#> period3       -1.4065  -2.4900  -0.2594    761.9  0.008 ** 
-#> period4       -1.9772  -3.2968  -0.7241    468.4 <0.001 ***
+#> (Intercept)   -1.5285  -2.0946  -0.7901    836.3 <0.001 ***
+#> period2       -1.2835  -2.2661  -0.1616    705.6  0.010 ** 
+#> period3       -1.3802  -2.3882  -0.2153    697.6  0.016 *  
+#> period4       -1.9958  -3.2815  -0.8024    441.3 <0.001 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -941,29 +941,29 @@ summary(Bayes_cbpp)
 Variance Component Analysis
 
 
-```r
+``` r
 # explains less variability
 apply(Bayes_cbpp$VCV, 2, sd)
-#>       herd      units 
-#> 0.06693913 0.49363796
+#>      herd     units 
+#> 0.1119681 0.4973538
 ```
 
 Posterior Summaries
 
 
-```r
+``` r
 summary(Bayes_cbpp)$solutions
 #>             post.mean  l-95% CI   u-95% CI eff.samp pMCMC
-#> (Intercept) -1.532403 -2.218564 -0.9048971 908.6403 0.001
-#> period2     -1.293835 -2.385898 -0.2230115 858.1893 0.028
-#> period3     -1.406481 -2.489974 -0.2593996 761.8712 0.008
-#> period4     -1.977166 -3.296802 -0.7240878 468.3743 0.001
+#> (Intercept) -1.528512 -2.094593 -0.7901404 836.2718 0.001
+#> period2     -1.283512 -2.266096 -0.1615766 705.6380 0.010
+#> period3     -1.380243 -2.388198 -0.2152571 697.5827 0.016
+#> period4     -1.995790 -3.281474 -0.8024437 441.2809 0.001
 ```
 
 MCMC Diagnostics
 
 
-```r
+``` r
 library(lattice)
 xyplot(as.mcmc(Bayes_cbpp$Sol), layout = c(2, 2))
 ```
@@ -973,7 +973,7 @@ xyplot(as.mcmc(Bayes_cbpp$Sol), layout = c(2, 2))
 There is no trend (i.e., well-mixed).
 
 
-```r
+``` r
 xyplot(as.mcmc(Bayes_cbpp$VCV), layout = c(2, 1))
 ```
 
@@ -986,7 +986,7 @@ For the herd variable, many of the values are 0, which suggests a problem. To ad
 -   Increase the number of iterations
 
 
-```r
+``` r
 Bayes_cbpp2 <- MCMCglmm(
     cbind(incidence, size - incidence) ~ period,
     random = ~ herd,
@@ -1013,7 +1013,7 @@ To change the shape of priors, in `MCMCglmm` use:
 We'll now model count data using the **Owl dataset**
 
 
-```r
+``` r
 library(glmmTMB)
 library(dplyr)
 data(Owls, package = "glmmTMB")
@@ -1033,7 +1033,7 @@ $$ This is equivalent to: $$
 $$ where $b$ represents **BroodSize**. In this formulation, we "offset" the mean by including the logarithm of $b$ as an offset term in the model. This adjustment accounts for the varying exposure or denominator in rate-based responses.
 
 
-```r
+``` r
 owls_glmer <- glmer(
     Ncalls ~ offset(log(BroodSize)) + FoodTreatment * SexParent + (1 | Nest),
     family = poisson,
@@ -1083,7 +1083,7 @@ summary(owls_glmer)
 Addressing overdispersion using the negative binomial distribution:
 
 
-```r
+``` r
 owls_glmerNB <- glmer.nb(
     Ncalls ~ offset(log(BroodSize)) + FoodTreatment * SexParent + (1 | Nest),
     data = Owls
@@ -1110,10 +1110,10 @@ summary(owls_glmerNB)
 #> 
 #> Fixed effects:
 #>                                     Estimate Std. Error z value Pr(>|z|)    
-#> (Intercept)                          0.69005    0.13400   5.149 2.61e-07 ***
+#> (Intercept)                          0.69005    0.13400   5.150 2.61e-07 ***
 #> FoodTreatmentSatiated               -0.76657    0.16509  -4.643 3.43e-06 ***
 #> SexParentMale                       -0.02605    0.14575  -0.179    0.858    
-#> FoodTreatmentSatiated:SexParentMale  0.15680    0.20513   0.764    0.445    
+#> FoodTreatmentSatiated:SexParentMale  0.15680    0.20512   0.764    0.445    
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
@@ -1127,7 +1127,7 @@ summary(owls_glmerNB)
 There is an improvement using negative binomial considering over-dispersion
 
 
-```r
+``` r
 hist(Owls$Ncalls,breaks=30)
 ```
 
@@ -1138,7 +1138,7 @@ hist(Owls$Ncalls,breaks=30)
 Handling excess zeros with a zero-inflated Poisson model:
 
 
-```r
+``` r
 library(glmmTMB)
 owls_glmm <-
     glmmTMB(
@@ -1239,7 +1239,7 @@ We will analyze the **Gotway Hessian Fly** dataset from the `agridat` package to
 #### Data Visualization
 
 
-```r
+``` r
 library(agridat)
 library(ggplot2)
 library(lme4)
@@ -1267,7 +1267,7 @@ ggplot(dat, aes(x = lat, y = long, fill = prop)) +
 1.  **Frequentist Approach with `glmer`**
 
 
-```r
+``` r
 flymodel <- glmer(
     cbind(y, n - y) ~ gen + (1 | block),
     data   = dat,
@@ -1296,15 +1296,15 @@ summary(flymodel)
 #> Fixed effects:
 #>             Estimate Std. Error z value Pr(>|z|)    
 #> (Intercept)   1.5035     0.3914   3.841 0.000122 ***
-#> genG02       -0.1939     0.5302  -0.366 0.714644    
-#> genG03       -0.5408     0.5103  -1.060 0.289260    
+#> genG02       -0.1939     0.5302  -0.366 0.714645    
+#> genG03       -0.5408     0.5103  -1.060 0.289263    
 #> genG04       -1.4342     0.4714  -3.043 0.002346 ** 
-#> genG05       -0.2037     0.5429  -0.375 0.707486    
-#> genG06       -0.9783     0.5046  -1.939 0.052533 .  
-#> genG07       -0.6041     0.5111  -1.182 0.237235    
+#> genG05       -0.2037     0.5429  -0.375 0.707487    
+#> genG06       -0.9783     0.5046  -1.939 0.052534 .  
+#> genG07       -0.6041     0.5111  -1.182 0.237237    
 #> genG08       -1.6774     0.4907  -3.418 0.000630 ***
-#> genG09       -1.3984     0.4725  -2.960 0.003078 ** 
-#> genG10       -0.6817     0.5333  -1.278 0.201181    
+#> genG09       -1.3984     0.4725  -2.960 0.003079 ** 
+#> genG10       -0.6817     0.5333  -1.278 0.201183    
 #> genG11       -1.4630     0.4843  -3.021 0.002522 ** 
 #> genG12       -1.4591     0.4918  -2.967 0.003010 ** 
 #> genG13       -3.5528     0.6600  -5.383 7.31e-08 ***
@@ -1326,7 +1326,7 @@ summary(flymodel)
 2.  **Bayesian Approach with `MCMCglmm`**
 
 
-```r
+``` r
 library(MCMCglmm)
 library(coda)
 
@@ -1343,37 +1343,37 @@ summary(Bayes_flymodel)
 #>  Thinning interval  = 10
 #>  Sample size  = 1000 
 #> 
-#>  DIC: 877.8705 
+#>  DIC: 877.6617 
 #> 
 #>  G-structure:  ~block
 #> 
 #>       post.mean  l-95% CI u-95% CI eff.samp
-#> block  0.009321 4.231e-17  0.02219    567.6
+#> block   0.04578 3.837e-17   0.0741     1000
 #> 
 #>  R-structure:  ~units
 #> 
 #>       post.mean l-95% CI u-95% CI eff.samp
-#> units    0.9798   0.2854    1.814    396.9
+#> units    0.9846   0.2753     1.88    343.4
 #> 
 #>  Location effects: cbind(y, n - y) ~ gen 
 #> 
 #>             post.mean l-95% CI u-95% CI eff.samp  pMCMC    
-#> (Intercept)    1.9453   0.5506   3.2689    891.7  0.002 ** 
-#> genG02        -0.3978  -2.0200   1.3991   1000.0  0.644    
-#> genG03        -0.6869  -2.3681   1.3375   1000.0  0.456    
-#> genG04        -1.7906  -3.6153  -0.1204   1000.0  0.040 *  
-#> genG05        -0.3365  -2.2415   1.4151   1142.5  0.746    
-#> genG06        -1.2958  -3.0881   0.4852   1000.0  0.168    
-#> genG07        -0.7078  -2.3546   1.1984    906.0  0.446    
-#> genG08        -2.0808  -3.7943  -0.2088    903.2  0.016 *  
-#> genG09        -1.8410  -3.7099  -0.1652    887.7  0.036 *  
-#> genG10        -0.8309  -2.6624   0.9302   1000.0  0.376    
-#> genG11        -1.9500  -3.7212  -0.2839    820.7  0.018 *  
-#> genG12        -1.9456  -3.5689  -0.1417    855.6  0.026 *  
-#> genG13        -4.4209  -6.4504  -2.5177    753.9 <0.001 ***
-#> genG14        -3.1814  -4.8420  -1.2142    820.9 <0.001 ***
-#> genG15        -2.7887  -4.4517  -0.9149   1000.0 <0.001 ***
-#> genG16        -3.8646  -5.6545  -1.7410    814.7 <0.001 ***
+#> (Intercept)   1.91735  0.43600  3.26116    880.0  0.006 ** 
+#> genG02       -0.32422 -2.25105  1.47384   1000.0  0.736    
+#> genG03       -0.69479 -2.48763  0.95483    876.0  0.432    
+#> genG04       -1.78752 -3.57721 -0.03332   1000.0  0.052 .  
+#> genG05       -0.30606 -2.23317  1.53127    686.6  0.748    
+#> genG06       -1.26377 -3.00144  0.83328   1000.0  0.166    
+#> genG07       -0.73383 -2.60995  0.94514    884.5  0.436    
+#> genG08       -2.05165 -3.66942 -0.08526   1000.0  0.024 *  
+#> genG09       -1.83095 -3.70722 -0.04753    811.0  0.042 *  
+#> genG10       -0.75951 -2.84242  0.95539   1000.0  0.414    
+#> genG11       -1.91460 -3.80032  0.07508    896.9  0.036 *  
+#> genG12       -1.88198 -3.94552 -0.19179    796.3  0.046 *  
+#> genG13       -4.37381 -6.79197 -2.49196    648.2 <0.001 ***
+#> genG14       -3.13256 -5.10437 -1.23477    877.1  0.004 ** 
+#> genG15       -2.75849 -4.57665 -0.93052    738.7  0.002 ** 
+#> genG16       -3.84007 -6.13313 -2.03533    787.8 <0.001 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -1385,7 +1385,7 @@ summary(Bayes_flymodel)
 -   **Autocorrelation Plot:** Evaluates dependency between MCMC samples.
 
 
-```r
+``` r
 # Trace plot for the first fixed effect
 plot(Bayes_flymodel$Sol[, 1],
      main = colnames(Bayes_flymodel$Sol)[1])
@@ -1393,7 +1393,7 @@ plot(Bayes_flymodel$Sol[, 1],
 
 <img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Autocorrelation plot
 autocorr.plot(Bayes_flymodel$Sol[, 1],
@@ -1415,7 +1415,7 @@ This dataset comes from @Schabenberger_2001
 #### Data Preparation
 
 
-```r
+``` r
 dat2 <- read.table("images/YellowPoplarData_r.txt")
 names(dat2) <-
     c('tn', 'k', 'dbh', 'totht', 'dob', 'ht', 'maxd', 'cumv')
@@ -1426,7 +1426,7 @@ dat2$r <- 1 - dat2$dob / dat2$totht
 #### Data Visualization
 
 
-```r
+``` r
 library(dplyr)
 
 dat2 <- dat2 %>% group_by(tn) %>% mutate(
@@ -1465,7 +1465,7 @@ $$ Where:
 #### Fitting the Nonlinear Mixed Model
 
 
-```r
+``` r
 library(nlme)
 
 tmp <- nlme(
@@ -1541,7 +1541,7 @@ This result is a bit different from the original study because of different impl
 #### Visualizing Model Predictions
 
 
-```r
+``` r
 library(cowplot)
 
 # Prediction function

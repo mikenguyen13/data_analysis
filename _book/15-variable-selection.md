@@ -130,7 +130,7 @@ $$
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Simulated data
 set.seed(123)
 n <- 100
@@ -213,7 +213,7 @@ Where:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Simulated data
 set.seed(123)
 n <- 100
@@ -320,7 +320,7 @@ Where:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Function to manually compute BIC
 calculate_bic <- function(model, n) {
   sse <- sum(residuals(model)^2)
@@ -419,7 +419,7 @@ Where:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Simulated data
 set.seed(123)
 n <- 100
@@ -570,7 +570,7 @@ Practical Use Cases
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Simulated data
 set.seed(123)
 n <- 100
@@ -668,7 +668,7 @@ Where:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Function to compute PRESS
 calculate_press <- function(model) {
   residuals <- residuals(model)
@@ -773,7 +773,7 @@ $$ Where:
 A higher IG indicates a more informative variable.
 
 
-```r
+``` r
 # Load Library
 library(FSelector)
 
@@ -804,7 +804,7 @@ $$ Where:
 -   $P(x)$, $P(y)$ = Marginal probability distributions.
 
 
-```r
+``` r
 # Load Library
 library(infotheo)
 
@@ -877,7 +877,7 @@ Example: Features with Low and High Variance
 A **variance threshold** is set to remove features below a certain variance level. The default threshold is **0**, which removes features with a single constant value across all samples.
 
 
-```r
+``` r
 # Load necessary library
 library(caret)
 
@@ -917,7 +917,7 @@ $$ where $p$ is the proportion of **ones**.
 -   If $p = 0.5$, variance is **highest**, meaning equal distribution of 0s and 1s.
 
 
-```r
+``` r
 # Binary feature dataset
 binary_data <- data.frame(
   Feature_A = c(rep(0, 98), rep(1, 2)), # Low variance (almost all 0s)
@@ -973,7 +973,7 @@ The **Best Subsets Algorithm** is a systematic method for selecting the best com
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load the leaps package
 library("leaps")
 
@@ -1131,7 +1131,7 @@ Steps
 | **Stepwise Selection**   | User-defined or null   | Yes             | Yes                | Combines flexibility of both methods  | More computationally intensive        |
 
 
-```r
+``` r
 # Simulated Data
 set.seed(123)
 n <- 100
@@ -1441,7 +1441,7 @@ The algorithm is particularly suited for problems with a large number of potenti
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load the leaps package
 library("leaps")
 
@@ -1576,7 +1576,7 @@ Practical Considerations
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Install and load caret package
 if (!requireNamespace("caret", quietly = TRUE)) install.packages("caret")
 library(caret)
@@ -1730,7 +1730,7 @@ Decision trees and ensemble methods (Random Forests, Gradient Boosting) rank fea
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Install and load GA package
 if (!requireNamespace("GA", quietly = TRUE))
     install.packages("GA")

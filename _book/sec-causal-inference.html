@@ -7,7 +7,7 @@
 <title>Chapter 21 Causal Inference | A Guide on Data Analysis</title>
 <meta name="author" content="Mike Nguyen">
 <meta name="description" content="Throughout our journey into statistical concepts, we’ve uncovered patterns, relationships, and trends in data. But now, we arrive at one of the most profound questions in all of research and...">
-<meta name="generator" content="bookdown 0.35 with bs4_book()">
+<meta name="generator" content="bookdown 0.42 with bs4_book()">
 <meta property="og:title" content="Chapter 21 Causal Inference | A Guide on Data Analysis">
 <meta property="og:type" content="book">
 <meta property="og:url" content="https://bookdown.org/mike/data_analysis/sec-causal-inference.html">
@@ -19,9 +19,8 @@
 <meta name="twitter:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
-<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.6.1/transition.js"></script><script src="libs/bs3compat-0.6.1/tabs.js"></script><script src="libs/bs3compat-0.6.1/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
-<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><script src="libs/kePrint-0.0.1/kePrint.js"></script><link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet">
-<!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script><script>
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script><script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){window.dataLayer.push(arguments);}
       gtag('js', new Date());
@@ -126,6 +125,7 @@
 <li><a class="" href="exploratory-data-analysis.html"><span class="header-section-number">41</span> Exploratory Data Analysis</a></li>
 <li><a class="" href="sensitivity-analysis-robustness-check.html"><span class="header-section-number">42</span> Sensitivity Analysis/ Robustness Check</a></li>
 <li><a class="" href="replication-and-synthetic-data.html"><span class="header-section-number">43</span> Replication and Synthetic Data</a></li>
+<li><a class="" href="high-performance-computing.html"><span class="header-section-number">44</span> High-Performance Computing</a></li>
 <li class="book-part">APPENDIX</li>
 <li><a class="" href="appendix.html"><span class="header-section-number">A</span> Appendix</a></li>
 <li><a class="" href="bookdown-cheat-sheet.html"><span class="header-section-number">B</span> Bookdown cheat sheet</a></li>
@@ -681,14 +681,42 @@ P(Y | do(X)) &gt; P(Y).
 <h3>
 <span class="header-section-number">21.6.1</span> Criticisms of Quasi-Experimental Designs<a class="anchor" aria-label="anchor" href="#criticisms-of-quasi-experimental-designs"><i class="fas fa-link"></i></a>
 </h3>
-<p>Quasi-experimental methods do not always approximate experimental results accurately. For instance, <span class="citation">LaLonde (<a href="references.html#ref-lalonde1986evaluating">1986</a>)</span> demonstrates that commonly used methods such as:</p>
+<p><a href="sec-quasi-experimental.html#sec-quasi-experimental">Quasi-experimental methods</a> do not always approximate experimental results accurately. For instance, <span class="citation">LaLonde (<a href="references.html#ref-lalonde1986evaluating">1986</a>)</span> demonstrates that commonly used methods such as:</p>
 <ul>
 <li><a href="sec-matching-methods.html#sec-matching-methods">Matching Methods</a></li>
 <li><a href="sec-difference-in-differences.html#sec-difference-in-differences">Difference-in-differences</a></li>
-<li>
-<a href="endogeneity.html#tobit-2">Tobit-2</a> (Heckman-type models)</li>
+<li>[Tobit-2] (Heckman-type models)</li>
 </ul>
-<p>often fail to replicate experimental estimates reliably.</p>
+<p>often fail to replicate experimental estimates reliably. This finding cast serious doubt on the credibility of observational studies for estimating causal effects, igniting an ongoing debate in econometrics and statistics about the reliability of nonexperimental evaluations.</p>
+<p>LaLonde’s critical assessment served as a catalyst for significant methodological and practical advancements in causal inference. In the decades since this publication, the field has evolved considerably, introducing both theoretical innovations and empirical practices aimed at addressing the limitations that were exposed <span class="citation">(<a href="references.html#ref-imbens2024lalonde">G. Imbens and Xu 2024</a>)</span>. Among these advances are:</p>
+<ul>
+<li><p><strong>Emphasis on estimators based on unconfoundedness (selection on observables):</strong><br>
+Modern causal inference frameworks frequently adopt the <em>unconfoundedness</em> or <em>conditional independence</em> assumption. Under this premise, treatment assignment is assumed to be independent of potential outcomes, conditional on observed covariates. This theoretical foundation underpins many widely used estimation techniques, such as matching methods, inverse probability weighting, and regression adjustment.</p></li>
+<li><p><strong>Focus on covariate overlap (common support):</strong><br>
+Researchers now recognize the critical importance of <em>overlap</em>, also referred to as <em>common support</em>, in the distributions of covariates across treatment and control groups. Without sufficient overlap, comparisons between treated and untreated units rely on extrapolation, which weakens causal claims. Modern methods explicitly assess and often impose restrictions to ensure overlap before proceeding with estimation.</p></li>
+<li><p><strong>Introduction of propensity score-based methods and doubly robust estimators:</strong><br>
+The introduction of <em>propensity score</em> methods <span class="citation">(<a href="references.html#ref-rosenbaum1983central">Rosenbaum and Rubin 1983</a>)</span> was a breakthrough, offering a way to reduce the dimensionality of the covariate space while balancing observed characteristics across groups. More recently, <em>doubly robust</em> estimators have emerged, combining propensity score weighting with outcome regression. These estimators provide consistent treatment effect estimates if either the propensity score model or the outcome model is correctly specified, offering greater robustness in practice.</p></li>
+<li><p><strong>Greater emphasis on validation exercises to bolster credibility:</strong><br>
+Modern studies increasingly incorporate validation techniques to evaluate the credibility of their findings. <em>Placebo tests</em>, <em>falsification exercises</em>, and <em>sensitivity analyses</em> are commonly employed to assess whether estimated effects may be driven by unobserved confounding or model misspecification. Such practices go beyond traditional goodness-of-fit statistics, directly interrogating the assumptions underlying causal inference.</p></li>
+<li><p><strong>Methods for estimating and exploiting treatment effect heterogeneity:</strong><br>
+Beyond estimating average treatment effects, contemporary research frequently explores <em>heterogeneous treatment effects</em>. These methods identify subgroups that may experience different causal impacts, which is of particular relevance in fields like personalized marketing, targeted interventions, and policy design.</p></li>
+</ul>
+<p>To illustrate the practical lessons from these methodological advances, <span class="citation">G. Imbens and Xu (<a href="references.html#ref-imbens2024lalonde">2024</a>)</span> reexamine two canonical datasets:</p>
+<ol style="list-style-type: decimal">
+<li><strong>LaLonde’s National Supported Work Demonstration data</strong></li>
+<li><strong>The Imbens-Rubin-Sacerdote draft lottery data</strong></li>
+</ol>
+<p>Applying modern causal inference methods to these datasets demonstrates that, when sufficient covariate overlap exists, robust estimates of the adjusted differences between treatment and control groups can be achieved. However, it is critical to underscore that robustness in estimation does not equate to validity. Without direct validation exercises, such as placebo tests, even well-behaved estimates may be misleading.</p>
+<p><span class="citation">G. Imbens and Xu (<a href="references.html#ref-imbens2024lalonde">2024</a>)</span> highlight several key lessons for practitioners working with nonexperimental data to estimate causal effects:</p>
+<ul>
+<li><p><strong>Careful examination of the assignment process is essential.</strong><br>
+Understanding the mechanisms by which units are assigned to treatment or control conditions informs the plausibility of the unconfoundedness assumption.</p></li>
+<li><p><strong>Inspection of covariate overlap is non-negotiable.</strong><br>
+Without sufficient overlap, causal effect estimation may rely heavily on model extrapolation, undermining credibility.</p></li>
+<li><p><strong>Validation exercises are indispensable.</strong><br>
+Placebo tests and falsification strategies help ensure that estimated treatment effects are not artifacts of modeling choices or unobserved confounding.</p></li>
+</ul>
+<p>While methodological advances have substantially improved the tools available for causal inference with observational data, their effective application requires rigorous attention to the underlying assumptions and diligent validation to support credible causal claims.</p>
 <hr>
 </div>
 </div>
@@ -700,7 +728,7 @@ P(Y | do(X)) &gt; P(Y).
 <ol style="list-style-type: decimal">
 <li><p><a href="Randomized%20Control%20Trials" title="Gold standard">Experimental Design</a>: Randomized Control Trials (Gold standard)</p></li>
 <li>
-<p>[Quasi-experimental]</p>
+<p><a href="sec-quasi-experimental.html#sec-quasi-experimental">Quasi-experimental</a></p>
 <ol style="list-style-type: decimal">
 <li><p><a href="sec-regression-discontinuity.html#sec-regression-discontinuity">Regression Discontinuity</a></p></li>
 <li><p><a href="sec-synthetic-difference-in-differences.html#sec-synthetic-difference-in-differences">Synthetic Difference-in-Differences</a></p></li>
@@ -730,6 +758,7 @@ P(Y | do(X)) &gt; P(Y).
 <li><p><a href="sec-causal-inference.html#sec-statistical-conclusion-validity">Statistical Conclusion Validity</a></p></li>
 </ol>
 <p>By examining these, you can ensure that your study’s measurements are accurate, your findings are reliably causal, and your conclusions generalize to broader contexts.</p>
+<hr>
 <div id="sec-measurement-validity" class="section level3" number="21.8.1">
 <h3>
 <span class="header-section-number">21.8.1</span> Measurement Validity<a class="anchor" aria-label="anchor" href="#sec-measurement-validity"><i class="fas fa-link"></i></a>
@@ -2051,7 +2080,7 @@ LOTE = \text{Log-odds}(Y | D = 1) - \text{Log-odds}(Y | D = 0)
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-03-12.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-03-28.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

@@ -13,9 +13,8 @@ Policymakers and analysts often look beyond average program impacts to understan
     -   Quantile treatment effects (QTEs) allow for a more detailed examination of how treatment effects vary across different segments of a population.
     -   While QTEs provide distributional insights, they can also be used to recover ATEs under weaker assumptions.
 
-```{=html}
 <!-- -->
-```
+
 -   **References**
 
     -   @athey2006identification
@@ -102,7 +101,7 @@ Suppose a company introduces a new online marketing strategy aimed at improving 
 ### ECIC package
 
 
-```r
+``` r
 library(ecic)
 data(dat, package = "ecic")
 mod =
@@ -136,7 +135,7 @@ ecic_plot(mod_res)
 ### QTE package
 
 
-```r
+``` r
 library(qte)
 data(lalonde)
 
@@ -156,32 +155,32 @@ summary(jt.rand)
 #> 0.05	   0.00	   0.00
 #> 0.1	   0.00	   0.00
 #> 0.15	   0.00	   0.00
-#> 0.2	   0.00	  54.98
-#> 0.25	 338.65	 315.32
-#> 0.3	 846.40	 343.90
-#> 0.35	1451.51	 407.52
-#> 0.4	1177.72	 931.31
-#> 0.45	1396.08	 915.89
-#> 0.5	1123.55	 932.60
-#> 0.55	1181.54	1057.68
-#> 0.6	1466.51	 921.44
-#> 0.65	2115.04	 897.98
-#> 0.7	1795.12	1144.02
-#> 0.75	2347.49	 968.60
-#> 0.8	2278.12	1300.98
-#> 0.85	2178.28	1015.37
-#> 0.9	3239.60	1237.80
-#> 0.95	3979.62	1981.71
+#> 0.2	   0.00	   0.00
+#> 0.25	 338.65	 263.22
+#> 0.3	 846.40	 252.47
+#> 0.35	1451.51	 662.56
+#> 0.4	1177.72	 927.57
+#> 0.45	1396.08	 991.86
+#> 0.5	1123.55	 917.24
+#> 0.55	1181.54	 924.07
+#> 0.6	1466.51	 985.22
+#> 0.65	2115.04	 716.32
+#> 0.7	1795.12	 916.91
+#> 0.75	2347.49	 791.90
+#> 0.8	2278.12	1224.09
+#> 0.85	2178.28	1108.93
+#> 0.9	3239.60	1410.21
+#> 0.95	3979.62	2230.92
 #> 
 #> Average Treatment Effect:	1794.34
-#> 	 Std. Error: 		494.60
+#> 	 Std. Error: 		471.73
 ggqte(jt.rand)
 ```
 
 <img src="31-changes-in-changes_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 # conditional independence assumption (CIA)
 jt.cia <- ci.qte(
     re78 ~ treat,
@@ -195,33 +194,33 @@ summary(jt.cia)
 #> 		
 #> tau	QTE	Std. Error
 #> 0.05	     0.00	     0.00
-#> 0.1	     0.00	    93.46
-#> 0.15	 -4433.18	   873.10
-#> 0.2	 -8219.15	   674.41
-#> 0.25	-10435.74	   705.14
-#> 0.3	-12232.03	   941.87
-#> 0.35	-12428.30	  1526.74
-#> 0.4	-14195.24	  1559.63
-#> 0.45	-14248.66	  2023.16
-#> 0.5	-15538.67	  2022.95
-#> 0.55	-16550.71	  2113.32
-#> 0.6	-15595.02	  2139.70
-#> 0.65	-15827.52	  2592.23
-#> 0.7	-16090.32	  2098.17
-#> 0.75	-16091.49	  3532.28
-#> 0.8	-17864.76	  2869.36
-#> 0.85	-16756.71	  3387.75
-#> 0.9	-17914.99	  4148.42
-#> 0.95	-23646.22	  4915.39
+#> 0.1	     0.00	     0.00
+#> 0.15	 -4433.18	   662.10
+#> 0.2	 -8219.15	   414.44
+#> 0.25	-10435.74	   705.88
+#> 0.3	-12232.03	  1068.63
+#> 0.35	-12428.30	  1285.30
+#> 0.4	-14195.24	  1413.59
+#> 0.45	-14248.66	  1199.83
+#> 0.5	-15538.67	  1588.75
+#> 0.55	-16550.71	  2332.34
+#> 0.6	-15595.02	  2865.96
+#> 0.65	-15827.52	  3251.43
+#> 0.7	-16090.32	  3027.22
+#> 0.75	-16091.49	  2114.92
+#> 0.8	-17864.76	  3023.02
+#> 0.85	-16756.71	  3369.78
+#> 0.9	-17914.99	  2753.80
+#> 0.95	-23646.22	  2015.65
 #> 
 #> Average Treatment Effect:	-13435.40
-#> 	 Std. Error: 		1236.42
+#> 	 Std. Error: 		1316.72
 ggqte(jt.cia)
 ```
 
 <img src="31-changes-in-changes_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 jt.ciat <- ci.qtet(
     re78 ~ treat,
@@ -235,27 +234,27 @@ summary(jt.ciat)
 #> 		
 #> tau	QTE	Std. Error
 #> 0.05	     0.00	     0.00
-#> 0.1	 -1018.15	   332.02
-#> 0.15	 -3251.00	   644.21
-#> 0.2	 -7240.86	   577.41
-#> 0.25	 -8379.94	   458.94
-#> 0.3	 -8758.82	   766.03
-#> 0.35	 -9897.44	   975.71
-#> 0.4	-10239.57	  1088.09
-#> 0.45	-10751.39	  1158.45
-#> 0.5	-10570.14	   993.22
-#> 0.55	-11348.96	  1206.56
-#> 0.6	-11550.84	  1062.11
-#> 0.65	-12203.56	  1003.77
-#> 0.7	-13277.72	  1094.05
-#> 0.75	-14011.74	  1218.20
-#> 0.8	-14373.95	   847.38
-#> 0.85	-14499.18	   994.40
-#> 0.9	-15008.63	  2167.18
-#> 0.95	-15954.05	  2290.36
+#> 0.1	 -1018.15	   686.51
+#> 0.15	 -3251.00	  1235.32
+#> 0.2	 -7240.86	   668.66
+#> 0.25	 -8379.94	   675.01
+#> 0.3	 -8758.82	   624.48
+#> 0.35	 -9897.44	   842.15
+#> 0.4	-10239.57	   821.84
+#> 0.45	-10751.39	   698.30
+#> 0.5	-10570.14	   609.17
+#> 0.55	-11348.96	   849.99
+#> 0.6	-11550.84	   863.64
+#> 0.65	-12203.56	  1045.32
+#> 0.7	-13277.72	   981.13
+#> 0.75	-14011.74	  1085.65
+#> 0.8	-14373.95	  1060.66
+#> 0.85	-14499.18	   881.43
+#> 0.9	-15008.63	  1406.46
+#> 0.95	-15954.05	  2300.23
 #> 
 #> Average Treatment Effect:	4266.19
-#> 	 Std. Error: 		561.74
+#> 	 Std. Error: 		489.40
 ggqte(jt.ciat)
 ```
 
@@ -270,7 +269,7 @@ These are DID-like models
 1.  With the distributional difference-in-differences assumption [@fan2012partial, @callaway2019quantile], which is an extension of the parallel trends assumption, we can estimate QTET.
 
 
-```r
+``` r
 # distributional DiD assumption
 jt.pqtet <- panel.qtet(
     re ~ treat,
@@ -287,28 +286,28 @@ summary(jt.pqtet)
 #> Quantile Treatment Effect:
 #> 		
 #> tau	QTE	Std. Error
-#> 0.05	 4779.21	 1184.61
-#> 0.1	 1987.35	  598.93
-#> 0.15	  842.95	  560.29
-#> 0.2	-7366.04	 4263.74
-#> 0.25	-8449.96	 2815.47
-#> 0.3	-7992.15	 1342.17
-#> 0.35	-7429.21	 1301.18
-#> 0.4	-6597.37	 1460.57
-#> 0.45	-5519.45	 1549.01
-#> 0.5	-4702.88	 1470.66
-#> 0.55	-3904.52	 1406.34
-#> 0.6	-2741.80	 1491.45
-#> 0.65	-1507.31	 1415.52
-#> 0.7	 -771.12	 1396.28
-#> 0.75	  707.81	  848.70
-#> 0.8	  580.00	  735.53
-#> 0.85	  821.75	  898.37
-#> 0.9	 -250.77	 1456.65
-#> 0.95	-1874.54	 2541.05
+#> 0.05	 4779.21	 1145.64
+#> 0.1	 1987.35	  747.00
+#> 0.15	  842.95	 3412.43
+#> 0.2	-7366.04	 4193.83
+#> 0.25	-8449.96	 2564.49
+#> 0.3	-7992.15	 1160.72
+#> 0.35	-7429.21	 1260.38
+#> 0.4	-6597.37	 1430.09
+#> 0.45	-5519.45	 1581.31
+#> 0.5	-4702.88	 1409.53
+#> 0.55	-3904.52	 1400.60
+#> 0.6	-2741.80	 1352.61
+#> 0.65	-1507.31	 1423.39
+#> 0.7	 -771.12	 1667.54
+#> 0.75	  707.81	  914.24
+#> 0.8	  580.00	  838.14
+#> 0.85	  821.75	  962.21
+#> 0.9	 -250.77	 2682.88
+#> 0.95	-1874.54	 3531.19
 #> 
 #> Average Treatment Effect:	2326.51
-#> 	 Std. Error: 		673.74
+#> 	 Std. Error: 		574.42
 ggqte(jt.pqtet)
 ```
 
@@ -317,7 +316,7 @@ ggqte(jt.pqtet)
 2.  With 2 periods, the distributional DiD assumption can partially identify QTET with bounds [@fan2012partial]
 
 
-```r
+``` r
 res_bound <-
     bounds(
         re ~ treat,
@@ -362,7 +361,7 @@ plot(res_bound)
 3.  With a restrictive assumption that difference in the quantiles of the distribution of potential outcomes for the treated and untreated groups be the same for all values of quantiles, we can have the mean DiD model
 
 
-```r
+``` r
 jt.mdid <- ddid2(
     re ~ treat,
     t = 1978,
@@ -377,28 +376,28 @@ summary(jt.mdid)
 #> Quantile Treatment Effect:
 #> 		
 #> tau	QTE	Std. Error
-#> 0.05	10616.61	  974.77
-#> 0.1	 5019.83	  461.51
-#> 0.15	 2388.12	  282.26
-#> 0.2	 1033.23	  213.28
-#> 0.25	  485.23	  265.96
-#> 0.3	  943.05	  389.74
-#> 0.35	  931.45	  581.36
-#> 0.4	  945.35	  780.38
-#> 0.45	 1205.88	  847.06
-#> 0.5	 1362.11	  529.48
-#> 0.55	 1279.05	  616.07
-#> 0.6	 1618.13	  972.18
-#> 0.65	 1834.30	  693.97
-#> 0.7	 1326.06	  838.10
-#> 0.75	 1586.35	  785.50
-#> 0.8	 1256.09	  941.77
-#> 0.85	  723.10	 1362.37
-#> 0.9	  251.36	 1657.92
-#> 0.95	-1509.92	 1667.01
+#> 0.05	10616.61	  956.40
+#> 0.1	 5019.83	  531.62
+#> 0.15	 2388.12	  323.23
+#> 0.2	 1033.23	  223.63
+#> 0.25	  485.23	  288.38
+#> 0.3	  943.05	  198.68
+#> 0.35	  931.45	  401.69
+#> 0.4	  945.35	  534.35
+#> 0.45	 1205.88	  631.34
+#> 0.5	 1362.11	  590.43
+#> 0.55	 1279.05	  694.74
+#> 0.6	 1618.13	  601.12
+#> 0.65	 1834.30	  490.30
+#> 0.7	 1326.06	  604.88
+#> 0.75	 1586.35	  539.30
+#> 0.8	 1256.09	  671.43
+#> 0.85	  723.10	  701.93
+#> 0.9	  251.36	 1572.61
+#> 0.95	-1509.92	 2167.51
 #> 
 #> Average Treatment Effect:	2326.51
-#> 	 Std. Error: 		718.25
+#> 	 Std. Error: 		519.83
 plot(jt.mdid)
 ```
 
@@ -407,12 +406,12 @@ plot(jt.mdid)
 On top of the distributional DiD assumption, we need **copula stability** assumption (i.e., If, before the treatment, the units with the highest outcomes were improving the most, we would expect to see them improving the most in the current period too.) for these models:
 
 | **Aspect**                      | **QDiD**                       | **CiC**                          |
-|------------------------|-----------------------|-------------------------|
+|---------------------------------|--------------------------------|----------------------------------|
 | **Treatment of Time and Group** | Symmetric                      | Asymmetric                       |
 | **QTET Computation**            | Not inherently scale-invariant | Outcome Variable Scale-Invariant |
 
 
-```r
+``` r
 jt.qdid <- QDiD(
     re ~ treat,
     t = 1978,

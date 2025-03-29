@@ -28,7 +28,7 @@ Simple Random Sampling (SRS) ensures that every element in the population has an
 Below is an example of drawing a simple random sample without replacement from a population of 100 elements:
 
 
-```r
+``` r
 set.seed(123)
 population <- 1:100  # A population of 100 elements
 sample_srs <- sample(population, size = 10, replace = FALSE)
@@ -53,7 +53,7 @@ sample_srs
 The `sample_n()` function in `dplyr` allows for simple random sampling from a dataset:
 
 
-```r
+``` r
 library(dplyr)
 iris_df <- iris
 set.seed(1)
@@ -71,7 +71,7 @@ sample_n(iris_df, 5)  # Randomly selects 5 rows from the iris dataset
 The `sampling` package provides functions for random sampling **with** and **without** replacement.
 
 
-```r
+``` r
 library(sampling)
 # Assign a unique ID to each row in the dataset
 iris_df$id <- 1:nrow(iris_df)
@@ -90,7 +90,7 @@ srs_sample_wr <- srswr(10, length(iris_df$id))
 The `sampler` package provides additional functionality, such as **oversampling** to account for non-response.
 
 
-```r
+``` r
 library(sampler)
 rsamp(albania, n = 260, over = 0.1, rep = FALSE)
 ```
@@ -100,7 +100,7 @@ rsamp(albania, n = 260, over = 0.1, rep = FALSE)
 To compare a sample with received (collected) data and identify missing elements:
 
 
-```r
+``` r
 alsample <- rsamp(df = albania, 544)  # Initial sample
 alreceived <- rsamp(df = alsample, 390)  # Collected data
 rmissing(sampdf = alsample, colldf = alreceived, col_name = qvKod)
@@ -115,7 +115,7 @@ Stratified sampling involves dividing the population into distinct **strata** ba
 The following example demonstrates stratified sampling where individuals belong to three different groups **(A, B, C)**, and a random sample is drawn from each.
 
 
-```r
+``` r
 library(dplyr)
 
 set.seed(123)
@@ -153,7 +153,7 @@ stratified_sample <- data %>%
 Here, we extract **5 random observations** from each species in the `iris` dataset.
 
 
-```r
+``` r
 library(dplyr)
 
 set.seed(123)
@@ -169,13 +169,14 @@ sample_iris <- iris %>%
 Instead of selecting a fixed number, we can sample **15% of each species**:
 
 
-```r
+``` r
 set.seed(123)
 sample_iris <- iris %>%
   group_by(Species) %>%
   sample_frac(size = 0.15)  # Selects 15% of each species
 
 # sample_iris
+
 ```
 
 #### Using the `sampler` Package
@@ -183,7 +184,7 @@ sample_iris <- iris %>%
 The `sampler` package allows stratified sampling with proportional allocation:
 
 
-```r
+``` r
 library(sampler)
 
 # Stratified sample using proportional allocation without replacement
@@ -195,7 +196,7 @@ ssamp(df = albania, n = 360, strata = qarku, over = 0.1)
 To identify the number of missing values **by stratum** between the initial sample and the collected data:
 
 
-```r
+``` r
 alsample <- rsamp(df = albania, 544)  # Initial sample
 alreceived <- rsamp(df = alsample, 390)  # Collected data
 
@@ -212,7 +213,7 @@ smissing(
 Selects every $k$th element after a random starting point.
 
 
-```r
+``` r
 k <- 10  # Select every 10th element
 start <- sample(1:k, 1)  # Random start point
 sample_systematic <- population[seq(start, length(population), by = k)]
@@ -233,7 +234,7 @@ sample_systematic <- population[seq(start, length(population), by = k)]
 Instead of selecting individuals, entire clusters (e.g., cities, schools) are randomly chosen, and all members of selected clusters are included.
 
 
-```r
+``` r
 data$Cluster <- sample(1:10, 100, replace = TRUE)  # Assign 10 clusters
 chosen_clusters <- sample(1:10, size = 3)  # Select 3 clusters
 cluster_sample <- filter(data, Cluster %in% chosen_clusters)
@@ -291,7 +292,7 @@ Common methods for unequal probability sampling include:
 The following functions from the `sampling` package implement various unequal probability sampling methods:
 
 
-```r
+``` r
 library(sampling)
 
 # Different methods for unequal probability sampling
@@ -346,7 +347,7 @@ The **Cube Method** is a widely used approach for balanced sampling, consisting 
 2.  **Landing Phase**: Adjusts the sample to meet constraints while keeping randomness.
 
 
-```r
+``` r
 library(sampling)
 
 # Cube method functions
@@ -360,7 +361,7 @@ landingcube()      # Landing phase method
 Stratification attempts to **replicate the population structure** in the sample by preserving the original **multivariate histogram**.
 
 
-```r
+``` r
 library(survey)
 data("api")
 
@@ -375,7 +376,7 @@ srs_design <- svydesign(data = apistrat,
 An additional method for balanced stratification is:
 
 
-```r
+``` r
 balancedstratification()
 ```
 
@@ -386,7 +387,7 @@ This method ensures that within each stratum, the sample retains the original pr
 Cluster sampling involves selecting **entire groups (clusters)** instead of individual units. A balanced approach ensures that the sampled clusters **preserve the overall distribution of auxiliary variables**.
 
 
-```r
+``` r
 library(survey)
 data("api")
 
@@ -395,12 +396,13 @@ srs_design <- svydesign(data = apiclus1,
                         weights = ~pw, 
                         fpc = ~fpc, 
                         id = ~dnum)
+
 ```
 
 For explicitly balanced cluster sampling:
 
 
-```r
+``` r
 balancedcluster()
 
 ```
@@ -412,7 +414,7 @@ This method ensures that the **cluster-level characteristics** of the sample mat
 Two-stage sampling first selects primary units (e.g., schools, cities) and then samples within them. A balanced approach ensures **representative selection at both stages**.
 
 
-```r
+``` r
 library(survey)
 data("api")
 
@@ -425,7 +427,7 @@ srs_design <- svydesign(data = apiclus2,
 For explicitly balanced two-stage sampling:
 
 
-```r
+``` r
 balancedtwostage()
 ```
 
@@ -446,7 +448,7 @@ $$ where:
 -   $E$ is the margin of error
 
 
-```r
+``` r
 z <- qnorm(0.975)  # 95% confidence level
 p <- 0.5  # Estimated proportion
 E <- 0.05  # 5% margin of error

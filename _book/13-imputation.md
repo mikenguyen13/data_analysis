@@ -335,7 +335,7 @@ Understanding the mechanism behind missing data is critical to choosing the appr
 Visualization tools are essential for detecting patterns in missing data. Heatmaps and correlation plots can help identify systematic missingness and provide insights into the underlying mechanism.
 
 
-```r
+``` r
 # Example: Visualizing missing data
 library(Amelia)
 missmap(
@@ -357,7 +357,7 @@ missmap(
 -   **Univariate Analysis**: Calculate the proportion of missing data for each variable.
 
 
-```r
+``` r
 # Example: Proportion of missing values
 missing_proportions <- colSums(is.na(airquality)) / nrow(airquality)
 print(missing_proportions)
@@ -368,7 +368,7 @@ print(missing_proportions)
 -   **Multivariate Analysis**: Examine whether missingness in one variable is related to others. This can be visualized using scatterplots of observed vs. missing values.
 
 
-```r
+``` r
 # Example: Missingness correlation
 library(naniar)
 vis_miss(airquality)
@@ -376,7 +376,7 @@ vis_miss(airquality)
 
 <img src="13-imputation_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 gg_miss_upset(airquality) # Displays a missingness upset plot
 ```
 
@@ -399,7 +399,7 @@ Where:
 -   $E_i$= Expected frequency under MCAR
 
 
-```r
+``` r
 # Example: Little's test
 naniar::mcar_test(airquality)
 #> # A tibble: 1 × 4
@@ -410,7 +410,7 @@ misty::na.test(airquality)
 #>  Little's MCAR Test
 #> 
 #>     n nIncomp nPattern  chi2 df  pval 
-#>   153      42        4 35.15 14 0.001
+#>   152      42        4 35.68 14 0.001
 ```
 
 #### Diagnosing MCAR via Dummy Variables
@@ -430,7 +430,7 @@ Creating a binary indicator for missingness allows you to test whether the prese
     -   T-test: Compare means of (other) observed variables with missingness indicators.
 
 
-```r
+``` r
 # Example: Chi-square test
 airquality$missing_var <- as.factor(ifelse(is.na(airquality$Ozone), 1, 0))
 # Across groups of months
@@ -718,7 +718,7 @@ This method ensures imputed values are plausible while incorporating variability
 Below is an example code snippet illustrating Hot Deck Imputation in R:
 
 
-```r
+``` r
 library(Hmisc)
 
 # Example dataset with missing values
@@ -736,12 +736,12 @@ print(data)
 #>    ID Age Gender Age_imputed
 #> 1   1  25      M          25
 #> 2   2  30      F          30
-#> 3   3  NA      F          30
+#> 3   3  NA      F          80
 #> 4   4  40      M          40
-#> 5   5  NA      M          70
+#> 5   5  NA      M          50
 #> 6   6  50      F          50
 #> 7   7  60      M          60
-#> 8   8  NA      F          50
+#> 8   8  NA      F          30
 #> 9   9  70      M          70
 #> 10 10  80      F          80
 ```
@@ -783,7 +783,7 @@ Cold Deck Imputation is a systematic variant of Hot Deck Imputation where the do
 Suppose we have a current dataset with missing values and a historical dataset with similar variables. The following example demonstrates how Cold Deck Imputation can be implemented:
 
 
-```r
+``` r
 # Current dataset with missing values
 current_data <- data.frame(
   ID = 1:5,
@@ -872,7 +872,7 @@ This imputation method replaces missing values by randomly sampling from the obs
 The following example demonstrates how to use random draw imputation to fill in missing values:
 
 
-```r
+``` r
 # Example dataset with missing values
 set.seed(123)
 data <- data.frame(
@@ -965,7 +965,7 @@ Predictive Mean Matching (PMM) imputes missing values by finding observed values
 Example from [Statistics Globe](https://statisticsglobe.com/predictive-mean-matching-imputation-method/)
 
 
-```r
+``` r
 set.seed(1) # Seed
 N  <- 100                                    # Sample size
 y  <- round(runif(N,-10, 10))                 # Target variable Y
@@ -1060,7 +1060,7 @@ head(data_imp_multi)
 Example from [UCLA Statistical Consulting](https://stats.idre.ucla.edu/r/faq/how-do-i-perform-multiple-imputation-using-predictive-mean-matching-in-r/)
 
 
-```r
+``` r
 library(mice)
 library(VIM)
 library(lattice)
@@ -1148,14 +1148,14 @@ p
 -   `mm` = the number of observations where the second variable's value (e.g. the col variable) is observed and first (or row) variable is missing
 
 
-```r
+``` r
 ## Margin plot of y1 and y4
 marginplot(anscombe[c(5, 8)], col = c("blue", "red", "orange"))
 ```
 
 <img src="13-imputation_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 ## 5 imputations for all missing values
 imp1 <- mice(anscombe, m = 5)
@@ -1190,24 +1190,24 @@ imp1 <- mice(anscombe, m = 5)
 ## linear regression for each imputed data set - 5 regression are run
 fitm <- with(imp1, lm(y1 ~ y4 + x1))
 summary(fitm)
-#> # A tibble: 15 × 6
-#>    term        estimate std.error statistic p.value  nobs
-#>    <chr>          <dbl>     <dbl>     <dbl>   <dbl> <int>
-#>  1 (Intercept)    7.33      2.44       3.01  0.0169    11
-#>  2 y4            -0.416     0.223     -1.86  0.0996    11
-#>  3 x1             0.371     0.141      2.63  0.0302    11
-#>  4 (Intercept)    7.27      2.90       2.51  0.0365    11
-#>  5 y4            -0.435     0.273     -1.59  0.150     11
-#>  6 x1             0.387     0.160      2.41  0.0422    11
-#>  7 (Intercept)    6.54      2.80       2.33  0.0479    11
-#>  8 y4            -0.322     0.255     -1.26  0.243     11
-#>  9 x1             0.362     0.156      2.32  0.0491    11
-#> 10 (Intercept)    5.93      3.08       1.92  0.0907    11
-#> 11 y4            -0.286     0.282     -1.02  0.339     11
-#> 12 x1             0.418     0.176      2.37  0.0451    11
-#> 13 (Intercept)    8.16      2.67       3.05  0.0158    11
-#> 14 y4            -0.489     0.251     -1.95  0.0867    11
-#> 15 x1             0.326     0.151      2.17  0.0622    11
+#> # A tibble: 15 × 7
+#>    term        estimate std.error statistic p.value  nobs df.residual
+#>    <chr>          <dbl>     <dbl>     <dbl>   <dbl> <int>       <dbl>
+#>  1 (Intercept)    7.33      2.44       3.01  0.0169    11           8
+#>  2 y4            -0.416     0.223     -1.86  0.0996    11           8
+#>  3 x1             0.371     0.141      2.63  0.0302    11           8
+#>  4 (Intercept)    7.27      2.90       2.51  0.0365    11           8
+#>  5 y4            -0.435     0.273     -1.59  0.150     11           8
+#>  6 x1             0.387     0.160      2.41  0.0422    11           8
+#>  7 (Intercept)    6.54      2.80       2.33  0.0479    11           8
+#>  8 y4            -0.322     0.255     -1.26  0.243     11           8
+#>  9 x1             0.362     0.156      2.32  0.0491    11           8
+#> 10 (Intercept)    5.93      3.08       1.92  0.0907    11           8
+#> 11 y4            -0.286     0.282     -1.02  0.339     11           8
+#> 12 x1             0.418     0.176      2.37  0.0451    11           8
+#> 13 (Intercept)    8.16      2.67       3.05  0.0158    11           8
+#> 14 y4            -0.489     0.251     -1.95  0.0867    11           8
+#> 15 x1             0.326     0.151      2.17  0.0622    11           8
 
 ## pool coefficients and standard errors across all 5 regression models
 pool(fitm)
@@ -1317,7 +1317,7 @@ Notes
 | **Bias Potential**             | Higher                              | Lower                 |
 
 
-```r
+``` r
 # Income data
 set.seed(1)                              # Set seed
 N <- 1000                                    # Sample size
@@ -1339,7 +1339,7 @@ data_inc_miss <- data.frame(income, x1, x2)
 Single stochastic regression imputation
 
 
-```r
+``` r
 imp_inc_sri  <- mice(data_inc_miss, method = "norm.nob", m = 1)
 #> 
 #>  iter imp variable
@@ -1354,7 +1354,7 @@ data_inc_sri <- complete(imp_inc_sri)
 Single predictive mean matching
 
 
-```r
+``` r
 imp_inc_pmm  <- mice(data_inc_miss, method = "pmm", m = 1)
 #> 
 #>  iter imp variable
@@ -1369,7 +1369,7 @@ data_inc_pmm <- complete(imp_inc_pmm)
 Stochastic regression imputation contains negative values
 
 
-```r
+``` r
 data_inc_sri$income[data_inc_sri$income < 0]
 #>  [1]  -23.85404  -58.37790  -61.86396  -57.47909  -21.29221  -73.26549
 #>  [7]  -61.76194  -42.45942 -351.02991 -317.69090
@@ -1381,7 +1381,7 @@ data_inc_pmm$income[data_inc_pmm$income < 0]
 Evidence for heteroskadastic data
 
 
-```r
+``` r
 # Heteroscedastic data
  
 set.seed(1)                             # Set seed
@@ -1403,7 +1403,7 @@ data_het_miss <- data.frame(y, x)
 Single stochastic regression imputation
 
 
-```r
+``` r
 imp_het_sri  <- mice(data_het_miss, method = "norm.nob", m = 1)
 #> 
 #>  iter imp variable
@@ -1418,7 +1418,7 @@ data_het_sri <- complete(imp_het_sri)
 Single predictive mean matching
 
 
-```r
+``` r
 imp_het_pmm  <- mice(data_het_miss, method = "pmm", m = 1)
 #> 
 #>  iter imp variable
@@ -1433,7 +1433,7 @@ data_het_pmm <- complete(imp_het_pmm)
 Comparison between predictive mean matching and stochastic regression imputation
 
 
-```r
+``` r
 par(mfrow = c(1, 2))                              # Both plots in one graphic
 
 # Plot of observed values
@@ -2129,7 +2129,7 @@ This section demonstrates how to visualize missing data and handle it using diff
 Visualizing missing data is an essential first step in understanding the patterns and extent of missingness in your dataset.
 
 
-```r
+``` r
 library(visdat)
 library(naniar)
 library(ggplot2)
@@ -2140,7 +2140,7 @@ vis_miss(airquality)
 
 <img src="13-imputation_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Missingness patterns using an upset plot
 gg_miss_upset(airquality)
@@ -2149,7 +2149,7 @@ gg_miss_upset(airquality)
 <img src="13-imputation_files/figure-html/unnamed-chunk-20-2.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 # Scatter plot of missing data with faceting
 ggplot(airquality, aes(x, y)) +
   geom_miss_point() +
@@ -2187,7 +2187,7 @@ $$
 ### Generating Missing Data for Demonstration
 
 
-```r
+``` r
 library(missForest)
 
 # Load the data
@@ -2207,7 +2207,7 @@ iris.mis <- subset(iris.mis, select = -c(Species))
 Mean, median, or mode imputation is a simple yet commonly used technique.
 
 
-```r
+``` r
 # Imputation for the entire dataset
 e1071::impute(iris.mis, what = "mean")        # Replace with mean
 e1071::impute(iris.mis, what = "median")      # Replace with median
@@ -2223,7 +2223,7 @@ Checking Accuracy
 Accuracy can be checked by comparing predictions with actual values.
 
 
-```r
+``` r
 # Example data
 actuals <- iris$Sepal.Width[is.na(iris.mis$Sepal.Width)]
 predicteds <- rep(mean(iris$Sepal.Width, na.rm = TRUE), length(actuals))
@@ -2244,7 +2244,7 @@ RMSE(predicteds, actuals)
 KNN is a more sophisticated method, leveraging similar observations to fill in missing values.
 
 
-```r
+``` r
 library(DMwR2)
 knnOutput <- knnImputation(data = iris.mis.cat, meth = "median")
 anyNA(knnOutput)  # Check for remaining missing values
@@ -2252,7 +2252,7 @@ anyNA(knnOutput)  # Check for remaining missing values
 ```
 
 
-```r
+``` r
 actuals <- iris$Sepal.Width[is.na(iris.mis$Sepal.Width)]
 predicteds <- knnOutput[is.na(iris.mis$Sepal.Width), "Sepal.Width"]
 # Using MLmetrics package
@@ -2273,7 +2273,7 @@ KNN typically improves upon mean or median imputation in terms of predictive acc
 Decision trees, such as those implemented in `rpart`, are effective for both numeric and categorical variables.
 
 
-```r
+``` r
 library(rpart)
 
 # Imputation for a categorical variable
@@ -2323,7 +2323,7 @@ By default:
 -   **Proportional Odds Model**: For ordered factor variables (≥2 levels).
 
 
-```r
+``` r
 # Load packages
 library(mice)
 library(VIM)
@@ -2377,7 +2377,7 @@ aggr(
 Imputing Data
 
 
-```r
+``` r
 # Perform multiple imputation using MICE
 imputed_Data <- mice(
   iris.mis,
@@ -2386,12 +2386,13 @@ imputed_Data <- mice(
   method = 'pmm',    # Imputation method
   seed = 500         # Random seed for reproducibility
 )
+
 ```
 
 Evaluating Imputed Data
 
 
-```r
+``` r
 # Summary of imputed data
 summary(imputed_Data)
 #> Class: mids
@@ -2415,7 +2416,7 @@ densityplot(imputed_Data)
 Accessing and Using Imputed Data
 
 
-```r
+``` r
 # Access the complete datasets
 completeData1 <- complete(imputed_Data, 1)  # First imputed dataset
 completeData2 <- complete(imputed_Data, 2)  # Second imputed dataset
@@ -2424,7 +2425,7 @@ completeData2 <- complete(imputed_Data, 2)  # Second imputed dataset
 Regression Model with Imputed Dataset
 
 
-```r
+``` r
 # Fit a regression model using imputed datasets
 fit <- with(data = imputed_Data, exp = lm(Sepal.Width ~ Sepal.Length + Petal.Width))
 
@@ -2458,7 +2459,7 @@ Amelia uses a **bootstrap-based Expectation-Maximization with Bootstrapping (EMB
 #### Imputation with Amelia
 
 
-```r
+``` r
 library(Amelia)
 data("iris")
 
@@ -2495,6 +2496,7 @@ amelia_fit <- amelia(
 
 # Access imputed outputs
 # amelia_fit$imputations[[1]]
+
 ```
 
 Amelia's workflow includes bootstrapping multiple imputations to generate robust estimates of means and variances. This process ensures flexibility and speed for large datasets.
@@ -2513,7 +2515,7 @@ The `missForest` package provides a robust non-parametric imputation method usin
 4.  **High Control**: Offers customizable parameters like `mtry` and `ntree`.
 
 
-```r
+``` r
 library(missForest)
 
 # Impute missing values using default parameters
@@ -2525,7 +2527,7 @@ iris.imp <- missForest(iris.mis)
 ```
 
 
-```r
+``` r
 # Out-of-bag error estimates
 iris.imp$OOBerror
 #>      NRMSE        PFC 
@@ -2561,7 +2563,7 @@ The `Hmisc` package provides a suite of tools for imputing missing data, offerin
 -   Fisher's optimum scoring is used for categorical variable prediction.
 
 
-```r
+``` r
 library(Hmisc)
 
 # Impute using mean
@@ -2645,7 +2647,7 @@ The `mi` package is a powerful tool for imputation, using Bayesian methods and p
 4.  **Noise Addition**: Adds noise to address additive constraints.
 
 
-```r
+``` r
 library(mi)
 
 # Perform imputation using mi
@@ -2661,7 +2663,7 @@ summary(mi_data)
 #> 
 #> $Sepal.Length$imputed
 #>       Min.    1st Qu.     Median       Mean    3rd Qu.       Max. 
-#> -0.1432877 -0.0150334 -0.0002092  0.0124190  0.0346716  0.2684534 
+#> -0.2287475 -0.0424463  0.0006431  0.0061198  0.0352278  0.4228834 
 #> 
 #> $Sepal.Length$observed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -2676,7 +2678,7 @@ summary(mi_data)
 #> 
 #> $Sepal.Width$imputed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -1.39679 -0.51603 -0.07172 -0.04021  0.44860  2.22865 
+#> -1.44237 -0.43537 -0.11444 -0.04532  0.37742  1.46777 
 #> 
 #> $Sepal.Width$observed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -2691,7 +2693,7 @@ summary(mi_data)
 #> 
 #> $Petal.Length$imputed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.91557 -0.54296  0.19113  0.03704  0.49518  0.80830 
+#> -1.02972 -0.55688  0.26093  0.02067  0.45559  0.78717 
 #> 
 #> $Petal.Length$observed
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -2706,7 +2708,7 @@ summary(mi_data)
 #> 
 #> $Petal.Width$imputed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -1.08673 -0.02079  0.27533  0.17597  0.56232  0.82927 
+#> -0.89499 -0.01023  0.20006  0.14966  0.47713  0.72856 
 #> 
 #> $Petal.Width$observed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -2717,9 +2719,9 @@ summary(mi_data)
 #> $Species$crosstab
 #>             
 #>              observed imputed
-#>   setosa          180      20
-#>   versicolor      192       9
-#>   virginica       184      15
+#>   setosa          180      22
+#>   versicolor      192       6
+#>   virginica       184      16
 #> 
 #> 
 #> $imputed_SepalLength

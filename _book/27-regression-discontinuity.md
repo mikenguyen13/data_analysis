@@ -297,7 +297,7 @@ If the bunching test fails to detect manipulation, we proceed to the [Placebo Te
 **McCrary Density Test (Discontinuity in Forcing Variable)**
 
 
-```r
+``` r
 library(rdd)
 
 set.seed(1)
@@ -327,7 +327,7 @@ DCdensity(x, 0)  # Discontinuity detected
 **Cattaneo Density Test (Improved Version)**
 
 
-```r
+``` r
 library(rddensity)
 
 # Simulated continuous density
@@ -425,7 +425,7 @@ The objective is to **minimize mean squared error (MSE)** between estimated and 
 -   The optimal bandwidth for estimating treatment effects may **differ** from the optimal bandwidth for testing covariates but should be fairly close.
 
 
-```r
+``` r
 # Load required package
 library(rdd)
 
@@ -648,12 +648,12 @@ QTE vs. ATE Under Manipulation:
     -   Guide policy targeting by identifying unit types based on observed characteristics.
 
 
-```r
+``` r
 devtools::install_github("francoisgerard/rdbounds/R")
 ```
 
 
-```r
+``` r
 library(formattable)
 library(data.table)
 library(rdbounds)
@@ -697,19 +697,19 @@ rdbounds_est <-
         num_bootstraps = 5
     )
 #> [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.38047"
-#> [1] "2025-03-11 15:50:08.347625 Estimating CDFs for point estimates"
-#> [1] "2025-03-11 15:50:08.572628 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-03-11 15:50:10.687572 Estimating CDFs with nudged tau (tau_star)"
-#> [1] "2025-03-11 15:50:10.74728 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-03-11 15:50:13.975564 Beginning parallelized output by bootstrap.."
-#> [1] "2025-03-11 15:50:18.941564 Computing Confidence Intervals"
-#> [1] "2025-03-11 15:50:33.160952 Time taken:0.41 minutes"
+#> [1] "2025-03-18 11:06:09.865241 Estimating CDFs for point estimates"
+#> [1] "2025-03-18 11:06:10.167795 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-03-18 11:06:12.38372 Estimating CDFs with nudged tau (tau_star)"
+#> [1] "2025-03-18 11:06:12.429188 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-03-18 11:06:16.48029 Beginning parallelized output by bootstrap.."
+#> [1] "2025-03-18 11:06:20.764061 Computing Confidence Intervals"
+#> [1] "2025-03-18 11:06:33.707395 Time taken:0.4 minutes"
 ```
 
 
-```r
+``` r
 rdbounds_summary(rdbounds_est, title_prefix = "Sample Data Results")
-#> [1] "Time taken: 0.41 minutes"
+#> [1] "Time taken: 0.4 minutes"
 #> [1] "Sample size: 1000"
 #> [1] "Local Average Treatment Effect:"
 #> $tau_hat
@@ -792,7 +792,7 @@ rdbounds_summary(rdbounds_est, title_prefix = "Sample Data Results")
 ```
 
 
-```r
+``` r
 rdbounds_est_tau <-
     rdbounds(
         y = df$y,
@@ -815,28 +815,28 @@ rdbounds_est_tau <-
         num_bootstraps = 5
     )
 #> [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.38047"
-#> [1] "2025-03-11 15:50:34.782099 Estimating CDFs for point estimates"
-#> [1] "2025-03-11 15:50:34.9791 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-03-11 15:50:37.084322 Estimating CDFs with nudged tau (tau_star)"
-#> [1] "2025-03-11 15:50:37.136006 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-03-11 15:50:40.222807 Beginning parallelized output by bootstrap.."
-#> [1] "2025-03-11 15:50:44.957412 Estimating CDFs with fixed tau value of: 0.025"
-#> [1] "2025-03-11 15:50:45.021623 Estimating CDFs with fixed tau value of: 0.05"
-#> [1] "2025-03-11 15:50:45.06365 Estimating CDFs with fixed tau value of: 0.1"
-#> [1] "2025-03-11 15:50:45.102478 Estimating CDFs with fixed tau value of: 0.2"
-#> [1] "2025-03-11 15:50:46.21112 Beginning parallelized output by bootstrap x fixed tau.."
-#> [1] "2025-03-11 15:50:48.958913 Computing Confidence Intervals"
-#> [1] "2025-03-11 15:51:05.586373 Time taken:0.51 minutes"
+#> [1] "2025-03-18 11:06:35.36151 Estimating CDFs for point estimates"
+#> [1] "2025-03-18 11:06:35.578808 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-03-18 11:06:37.519459 Estimating CDFs with nudged tau (tau_star)"
+#> [1] "2025-03-18 11:06:37.590958 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-03-18 11:06:40.652474 Beginning parallelized output by bootstrap.."
+#> [1] "2025-03-18 11:06:45.388902 Estimating CDFs with fixed tau value of: 0.025"
+#> [1] "2025-03-18 11:06:45.460836 Estimating CDFs with fixed tau value of: 0.05"
+#> [1] "2025-03-18 11:06:45.531103 Estimating CDFs with fixed tau value of: 0.1"
+#> [1] "2025-03-18 11:06:45.590547 Estimating CDFs with fixed tau value of: 0.2"
+#> [1] "2025-03-18 11:06:46.638509 Beginning parallelized output by bootstrap x fixed tau.."
+#> [1] "2025-03-18 11:06:50.52083 Computing Confidence Intervals"
+#> [1] "2025-03-18 11:07:03.385809 Time taken:0.47 minutes"
 ```
 
 
-```r
+``` r
 causalverse::plot_rd_aa_share(rdbounds_est_tau) # For SRD (default)
 ```
 
 <img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 # causalverse::plot_rd_aa_share(rdbounds_est_tau, rd_type = "FRD")  # For FRD
 ```
 
@@ -1881,7 +1881,7 @@ $$
 We simulate 100 observations, where GPA is the forcing variable and career success depends on GPA and the treatment effect.
 
 
-```r
+``` r
 # Set seed for reproducibility
 set.seed(42)
 
@@ -1908,7 +1908,7 @@ plot(data, col = "red", cex = 0.5, xlab = "GPA", ylab = "Future Success")
 We estimate the Sharp RD treatment effect using [local linear regression](#sec-special-case-local-linear-regression):
 
 
-```r
+``` r
 # Estimate the sharp RDD model
 rdd_mod <- rdd_reg_lm(rdd_object = data, slope = "same")
 
@@ -1938,7 +1938,7 @@ summary(rdd_mod)
 Plot the RD regression line with binned observations:
 
 
-```r
+``` r
 # Plot RD regression
 plot(rdd_mod, cex = 0.5, col = "red", xlab = "GPA", ylab = "Future Success")
 ```
@@ -1950,7 +1950,7 @@ We verify whether results hold under different bandwidths and functional forms:
 1.  Varying the Bandwidth
 
 
-```r
+``` r
 # Using rdrobust for robust estimation
 library(rdrobust)
 
@@ -1984,7 +1984,7 @@ summary(rd_out)
 2.  McCrary Test for Manipulation
 
 
-```r
+``` r
 library(rddensity)
 
 # Check for discontinuities in GPA distribution
@@ -2000,7 +2000,7 @@ rddensity(GPA, c = 3.5)
 We compare linear and quadratic specifications:
 
 
-```r
+``` r
 # Estimate RD with a quadratic polynomial
 rdd_mod_quad <- rdd_reg_lm(rdd_object = data, slope = "separate", order = 2)
 summary(rdd_mod_quad)

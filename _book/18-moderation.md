@@ -81,7 +81,7 @@ The `emmeans` package (Estimated Marginal Means) is a powerful tool for post-hoc
 To install and load the package:
 
 
-```r
+``` r
 install.packages("emmeans")
 ```
 
@@ -92,7 +92,7 @@ The dataset used in this section is sourced from the [UCLA Statistical Consultin
 -   `loss` represents weight loss, and `hours` and `effort` are continuous predictors.
 
 
-```r
+``` r
 library(tidyverse)
 dat <- readRDS("data/exercise.rds") %>%
     mutate(prog = factor(prog, labels = c("jog", "swim", "read"))) %>%
@@ -104,7 +104,7 @@ dat <- readRDS("data/exercise.rds") %>%
 We begin with an interaction model between two continuous variables: `hours` (exercise duration) and `effort` (self-reported effort level).
 
 
-```r
+``` r
 contcont <- lm(loss ~ hours * effort, data = dat)
 summary(contcont)
 #> 
@@ -140,7 +140,7 @@ Following @aiken2005interaction, the spotlight analysis examines the effect of `
 -   Mean of `effort` minus one standard deviation
 
 
-```r
+``` r
 library(emmeans)
 effar <- round(mean(dat$effort) + sd(dat$effort), 1)
 effr  <- round(mean(dat$effort), 1)
@@ -154,9 +154,9 @@ mylist <- list(effort = c(effbr, effr, effar))
 # Compute simple slopes
 emtrends(contcont, ~ effort, var = "hours", at = mylist)
 #>  effort hours.trend    SE  df lower.CL upper.CL
-#>    24.5       0.261 1.352 896   -2.392     2.91
+#>    24.5       0.261 1.350 896   -2.392     2.91
 #>    29.7       2.307 0.915 896    0.511     4.10
-#>    34.8       4.313 1.308 896    1.745     6.88
+#>    34.8       4.313 1.310 896    1.745     6.88
 #> 
 #> Confidence level used: 0.95
 
@@ -168,7 +168,7 @@ emmip(contcont, effort ~ hours, at = mylist, CIs = TRUE)
 
 <img src="18-moderation_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Test statistical differences in slopes
 emtrends(
@@ -180,9 +180,9 @@ emtrends(
 )
 #> $emtrends
 #>  effort hours.trend    SE  df lower.CL upper.CL
-#>    24.5       0.261 1.352 896   -2.392     2.91
+#>    24.5       0.261 1.350 896   -2.392     2.91
 #>    29.7       2.307 0.915 896    0.511     4.10
-#>    34.8       4.313 1.308 896    1.745     6.88
+#>    34.8       4.313 1.310 896    1.745     6.88
 #> 
 #> Results are averaged over the levels of: hours 
 #> Confidence level used: 0.95 
@@ -190,7 +190,7 @@ emtrends(
 #> $contrasts
 #>  contrast                estimate    SE  df t.ratio p.value
 #>  effort24.5 - effort29.7    -2.05 0.975 896  -2.098  0.0362
-#>  effort24.5 - effort34.8    -4.05 1.931 896  -2.098  0.0362
+#>  effort24.5 - effort34.8    -4.05 1.930 896  -2.098  0.0362
 #>  effort29.7 - effort34.8    -2.01 0.956 896  -2.098  0.0362
 #> 
 #> Results are averaged over the levels of: hours
@@ -201,7 +201,7 @@ The three p-values obtained above correspond to the interaction term in the regr
 For a professional figure, we refine the visualization using `ggplot2`:
 
 
-```r
+``` r
 library(ggplot2)
 
 # Prepare data for plotting
@@ -242,7 +242,7 @@ p1  + labs(x = "Exercise Hours",
 Next, we examine an interaction where `hours` (continuous) interacts with `gender` (categorical). We set "Female" as the reference category:
 
 
-```r
+``` r
 dat$gender <- relevel(dat$gender, ref = "female")
 contcat <- lm(loss ~ hours * gender, data = dat)
 summary(contcat)
@@ -271,7 +271,7 @@ summary(contcat)
 Simple Slopes by Gender
 
 
-```r
+``` r
 # Compute simple slopes for each gender
 emtrends(contcat, ~ gender, var = "hours")
 #>  gender hours.trend   SE  df lower.CL upper.CL
@@ -297,7 +297,7 @@ emtrends(contcat, pairwise ~ gender, var = "hours")
 Since this test is equivalent to the interaction term in the regression model, a significant result confirms a moderating effect of `gender`.
 
 
-```r
+``` r
 mylist <- list(hours = seq(0, 4, by = 0.4),
                gender = c("female", "male"))
 emmip(contcat, gender ~ hours, at = mylist, CIs = TRUE)
@@ -310,7 +310,7 @@ emmip(contcat, gender ~ hours, at = mylist, CIs = TRUE)
 Now, we examine the interaction between two categorical variables: `gender` (male, female) and `prog` (exercise program). We set "Read" as the reference category for `prog` and "Female" for `gender`:
 
 
-```r
+``` r
 dat$prog   <- relevel(dat$prog, ref = "read")
 dat$gender <- relevel(dat$gender, ref = "female")
 
@@ -343,7 +343,7 @@ summary(catcat)
 Simple Effects and Contrast Analysis
 
 
-```r
+``` r
 # Estimated marginal means for all combinations of gender and program
 emcatcat <- emmeans(catcat, ~ gender * prog)
 
@@ -363,7 +363,7 @@ contrast(emcatcat, "revpairwise", by = "prog", adjust = "bonferroni")
 ```
 
 
-```r
+``` r
 emmip(catcat, prog ~ gender, CIs = TRUE)
 ```
 
@@ -372,7 +372,7 @@ emmip(catcat, prog ~ gender, CIs = TRUE)
 For a more intuitive presentation, we use a bar graph with error bars
 
 
-```r
+``` r
 # Prepare data
 catcatdat <- emmip(catcat,
                    gender ~ prog,
@@ -405,7 +405,7 @@ p1  + labs(x = "Exercise Program",
 The `probemod` package is designed for moderation analysis, particularly focusing on **Johnson-Neyman intervals** and **simple slopes analysis**. However, **this package is not recommended** due to known issues with subscript handling and formatting errors in some outputs.
 
 
-```r
+``` r
 install.packages("probemod", dependencies = T)
 ```
 
@@ -414,7 +414,7 @@ The **Johnson-Neyman technique** identifies values of the moderator (`gender`) w
 Example: J-N Analysis in a `loss ~ hours * gender` Model
 
 
-```r
+``` r
 library(probemod)
 
 myModel <-
@@ -433,7 +433,7 @@ The `jn()` function computes Johnson-Neyman intervals, highlighting the values o
 The **Pick-a-Point** method tests the simple effect of `hours` at specific values of `gender`, akin to spotlight analysis.
 
 
-```r
+``` r
 pickapoint(
     myModel,
     dv = 'loss',
@@ -450,7 +450,7 @@ plot(jnresults)
 The `interactions` package is a **recommended** tool for visualizing and interpreting interaction effects in regression models. It provides user-friendly functions for **interaction plots**, **simple slopes analysis**, and **Johnson-Neyman intervals**, making it an excellent choice for moderation analysis.
 
 
-```r
+``` r
 install.packages("interactions")
 ```
 
@@ -463,7 +463,7 @@ Example: Interaction Between `Illiteracy` and `Murder`
 We use the `state.x77` dataset to explore how **Illiteracy Rate** and **Murder Rate** interact to predict **Income** across U.S. states.
 
 
-```r
+``` r
 states <- as.data.frame(state.x77)
 fiti <- lm(Income ~ Illiteracy * Murder + `HS Grad`, data = states)
 summary(fiti)
@@ -501,7 +501,7 @@ For continuous moderators, the standard values chosen for visualization are:
 The `interact_plot()` function provides an easy way to visualize these effects.
 
 
-```r
+``` r
 library(interactions)
 interact_plot(fiti,
               pred = Illiteracy,
@@ -543,7 +543,7 @@ interact_plot(fiti,
 If the model includes **weights**, they can be incorporated into the visualization
 
 
-```r
+``` r
 fiti <- lm(Income ~ Illiteracy * Murder,
            data = states,
            weights = Population)
@@ -559,7 +559,7 @@ interact_plot(fiti,
 A **partial effect plot** shows how the effect of one variable changes across different levels of another variable while controlling for other predictors.
 
 
-```r
+``` r
 library(ggplot2)
 data(cars)
 
@@ -622,7 +622,7 @@ To check whether an interaction is **truly linear**, we can compare fitted lines
 -   **Subsamples** based on the moderator (red line)
 
 
-```r
+``` r
 # Generate synthetic data
 x_2 <- runif(n = 200, min = -3, max = 3)
 w   <- rbinom(n = 200, size = 1, prob = 0.5)
@@ -639,21 +639,21 @@ summary(model_2)
 #> lm(formula = y_2 ~ x_2 * w, data = data_2)
 #> 
 #> Residuals:
-#>     Min      1Q  Median      3Q     Max 
-#> -9.3184 -3.1945 -0.0162  2.9254 11.7005 
+#>      Min       1Q   Median       3Q      Max 
+#> -13.2239  -3.2584  -0.0551   2.9940  12.6630 
 #> 
 #> Coefficients:
 #>             Estimate Std. Error t value Pr(>|t|)  
-#> (Intercept)  -0.7478     0.4479  -1.670   0.0966 .
-#> x_2          -0.1610     0.2584  -0.623   0.5338  
-#> w             1.5016     0.6245   2.405   0.0171 *
-#> x_2:w        -0.3757     0.3517  -1.068   0.2868  
+#> (Intercept)  -0.6837     0.4394  -1.556   0.1213  
+#> x_2          -0.2131     0.2424  -0.879   0.3803  
+#> w             1.6540     0.6627   2.496   0.0134 *
+#> x_2:w         0.4934     0.3811   1.295   0.1969  
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 #> 
-#> Residual standard error: 4.411 on 196 degrees of freedom
-#> Multiple R-squared:  0.05252,	Adjusted R-squared:  0.03801 
-#> F-statistic: 3.621 on 3 and 196 DF,  p-value: 0.0141
+#> Residual standard error: 4.65 on 196 degrees of freedom
+#> Multiple R-squared:  0.03825,	Adjusted R-squared:  0.02352 
+#> F-statistic: 2.598 on 3 and 196 DF,  p-value: 0.05353
 
 # Linearity check plot
 interact_plot(
@@ -682,36 +682,36 @@ How `sim_slopes()` Works:
 Example: Continuous by Continuous Interaction
 
 
-```r
+``` r
 sim_slopes(fiti,
            pred = Illiteracy,
            modx = Murder,
            johnson_neyman = FALSE)
-#> SIMPLE SLOPES ANALYSIS 
+#> SIMPLE SLOPES ANALYSIS
 #> 
 #> Slope of Illiteracy when Murder =  5.420973 (- 1 SD): 
 #> 
 #>     Est.     S.E.   t val.      p
 #> -------- -------- -------- ------
-#>   -71.59   268.65    -0.27   0.79
+#>   -17.43   250.08    -0.07   0.94
 #> 
 #> Slope of Illiteracy when Murder =  8.685043 (Mean): 
 #> 
 #>      Est.     S.E.   t val.      p
 #> --------- -------- -------- ------
-#>   -437.12   175.82    -2.49   0.02
+#>   -399.64   178.86    -2.23   0.03
 #> 
 #> Slope of Illiteracy when Murder = 11.949113 (+ 1 SD): 
 #> 
 #>      Est.     S.E.   t val.      p
 #> --------- -------- -------- ------
-#>   -802.66   145.72    -5.51   0.00
+#>   -781.85   189.11    -4.13   0.00
 ```
 
 We can also visualize the simple slopes
 
 
-```r
+``` r
 # Store results
 ss <- sim_slopes(fiti,
                  pred = Illiteracy,
@@ -727,7 +727,7 @@ plot(ss)
 For publication-quality results, we convert the simple slopes analysis into a table using `huxtable`.
 
 
-```r
+``` r
 library(huxtable)
 
 ss <- sim_slopes(fiti,
@@ -741,17 +741,15 @@ as_huxtable(ss)
 
 
 ```{=html}
-<table class="huxtable" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-24">
-<caption style="caption-side: top; text-align: center;">(#tab:unnamed-chunk-24) </caption><col><col><tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Value of Murder</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Slope of Illiteracy</td></tr>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Value of Murder</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Slope of Illiteracy</th></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Value of Murder</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">slope</th></tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.00</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">617.34 (434.85)</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.00</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">535.50 (458.77)</td></tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">5.00</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">31.86 (262.63)</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">5.00</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-24.44 (282.48)</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">10.00</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-584.38 (152.37)***</td></tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">10.00</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-553.62 (171.42)**</td></tr>
 </table>
 
 ```
@@ -768,7 +766,7 @@ Since J-N performs multiple comparisons across all values of the moderator, it *
 Example: Johnson-Neyman Analysis
 
 
-```r
+``` r
 sim_slopes(
     fiti,
     pred = Illiteracy,
@@ -786,46 +784,46 @@ sim_slopes(
     
     jnalpha = 0.05  # Significance level
 )
-#> JOHNSON-NEYMAN INTERVAL 
+#> JOHNSON-NEYMAN INTERVAL
 #> 
-#> When Murder is OUTSIDE the interval [-11.70, 8.75], the slope of Illiteracy
+#> When Murder is OUTSIDE the interval [-7.87, 8.51], the slope of Illiteracy
 #> is p < .05.
 #> 
 #> Note: The range of observed values of Murder is [1.40, 15.10]
 #> 
-#> Interval calculated using false discovery rate adjusted t = 2.33 
+#> Interval calculated using false discovery rate adjusted t = 2.35 
 #> 
-#> SIMPLE SLOPES ANALYSIS 
+#> SIMPLE SLOPES ANALYSIS
 #> 
 #> Slope of Illiteracy when Murder =  5.420973 (- 1 SD): 
 #> 
 #>     Est.     S.E.   t val.      p
 #> -------- -------- -------- ------
-#>   -71.59   256.60    -0.28   0.78
+#>   -17.43   227.37    -0.08   0.94
 #> 
 #> Slope of Illiteracy when Murder =  8.685043 (Mean): 
 #> 
 #>      Est.     S.E.   t val.      p
 #> --------- -------- -------- ------
-#>   -437.12   191.07    -2.29   0.03
+#>   -399.64   158.77    -2.52   0.02
 #> 
 #> Slope of Illiteracy when Murder = 11.949113 (+ 1 SD): 
 #> 
 #>      Est.     S.E.   t val.      p
 #> --------- -------- -------- ------
-#>   -802.66   178.75    -4.49   0.00
+#>   -781.85   156.96    -4.98   0.00
 ```
 
 To visualize the J-N intervals
 
 
-```r
+``` r
 johnson_neyman(fiti,
                pred = Illiteracy,
                modx = Murder,
                control.fdr = TRUE, # Corrects for Type I error
                alpha = .05)
-#> JOHNSON-NEYMAN INTERVAL 
+#> JOHNSON-NEYMAN INTERVAL
 #> 
 #> When Murder is OUTSIDE the interval [-22.57, 8.52], the slope of Illiteracy
 #> is p < .05.
@@ -852,7 +850,7 @@ In three-way interactions, the effect of $X$ on $Y$ depends on **two moderators*
 Example: 3-Way Interaction Visualization
 
 
-```r
+``` r
 library(jtools)
 # Convert 'cyl' to factor
 mtcars$cyl <- factor(mtcars$cyl,
@@ -876,7 +874,7 @@ interact_plot(fitc3,
 The Johnson-Neyman technique can also be applied in a **three-way interaction context**
 
 
-```r
+``` r
 library(survey)
 data(api)
 
@@ -903,14 +901,14 @@ sim_slopes(
 )
 #> ███████████████ While enroll (2nd moderator) =  153.0518 (- 1 SD) ██████████████ 
 #> 
-#> JOHNSON-NEYMAN INTERVAL 
+#> JOHNSON-NEYMAN INTERVAL
 #> 
 #> When avg.ed is OUTSIDE the interval [2.75, 3.82], the slope of growth is p
 #> < .05.
 #> 
 #> Note: The range of observed values of avg.ed is [1.38, 4.44]
 #> 
-#> SIMPLE SLOPES ANALYSIS 
+#> SIMPLE SLOPES ANALYSIS
 #> 
 #> Slope of growth when avg.ed = 2.085002 (- 1 SD): 
 #> 
@@ -932,14 +930,14 @@ sim_slopes(
 #> 
 #> ████████████████ While enroll (2nd moderator) =  595.2821 (Mean) ███████████████ 
 #> 
-#> JOHNSON-NEYMAN INTERVAL 
+#> JOHNSON-NEYMAN INTERVAL
 #> 
 #> When avg.ed is OUTSIDE the interval [2.84, 7.83], the slope of growth is p
 #> < .05.
 #> 
 #> Note: The range of observed values of avg.ed is [1.38, 4.44]
 #> 
-#> SIMPLE SLOPES ANALYSIS 
+#> SIMPLE SLOPES ANALYSIS
 #> 
 #> Slope of growth when avg.ed = 2.085002 (- 1 SD): 
 #> 
@@ -961,12 +959,12 @@ sim_slopes(
 #> 
 #> ███████████████ While enroll (2nd moderator) = 1037.5125 (+ 1 SD) ██████████████ 
 #> 
-#> JOHNSON-NEYMAN INTERVAL 
+#> JOHNSON-NEYMAN INTERVAL
 #> 
 #> The Johnson-Neyman interval could not be found. Is the p value for your
 #> interaction term below the specified alpha?
 #> 
-#> SIMPLE SLOPES ANALYSIS 
+#> SIMPLE SLOPES ANALYSIS
 #> 
 #> Slope of growth when avg.ed = 2.085002 (- 1 SD): 
 #> 
@@ -992,7 +990,7 @@ sim_slopes(
 To present the results in a **publication-ready format**, we generate tables and plots
 
 
-```r
+``` r
 ss3 <-
     sim_slopes(regmodel3,
                pred = growth,
@@ -1005,7 +1003,7 @@ plot(ss3)
 
 <img src="18-moderation_files/figure-html/unnamed-chunk-29-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Convert results into a formatted table
 library(huxtable)
@@ -1014,35 +1012,33 @@ as_huxtable(ss3)
 
 
 ```{=html}
-<table class="huxtable" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:unnamed-chunk-29">
-<caption style="caption-side: top; text-align: center;">(#tab:unnamed-chunk-29) </caption><col><col><tr>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><col><tr>
 <td colspan="2" style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal; font-style: italic;">enroll = 153</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Value of avg.ed</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Slope of growth</td></tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Value of avg.ed</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Slope of growth</th></tr>
 <tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Value of avg.ed</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">slope</th></tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.09</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1.25 (0.32)***</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.09</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1.25 (0.32)***</td></tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.79</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.39 (0.22)#</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.79</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.39 (0.22)#</td></tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.49</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-0.48 (0.35)</td></tr>
 <tr>
 <td colspan="2" style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal; font-style: italic;">enroll = 595.28</td></tr>
 <tr>
 <td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Value of avg.ed</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Slope of growth</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.49</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-0.48 (0.35)</td></tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.09</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.72 (0.22)**</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.09</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.72 (0.22)**</td></tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.79</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.34 (0.16)*</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.79</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.34 (0.16)*</td></tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.49</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-0.04 (0.24)</td></tr>
 <tr>
 <td colspan="2" style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal; font-style: italic;">enroll = 1037.51</td></tr>
 <tr>
 <td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Value of avg.ed</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Slope of growth</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.49</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-0.04 (0.24)</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.09</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.18 (0.31)</td></tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.09</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.18 (0.31)</td></tr>
 <tr>
 <td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.79</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.29 (0.20)</td></tr>
 <tr>
@@ -1059,7 +1055,7 @@ Interactions between categorical predictors can be visualized using **categorica
 Example: Interaction Between `cyl`, `fwd`, and `auto`
 
 
-```r
+``` r
 library(ggplot2)
 
 # Convert variables to factors
@@ -1215,7 +1211,7 @@ summ(fit3)
 </table>
 
 
-```r
+``` r
 cat_plot(fit3,
          pred = cyl,
          modx = fwd,
@@ -1227,7 +1223,7 @@ cat_plot(fit3,
 Line Plot for Categorical Interaction
 
 
-```r
+``` r
 cat_plot(
     fit3,
     pred = cyl,
@@ -1243,7 +1239,7 @@ cat_plot(
 Bar Plot Representation
 
 
-```r
+``` r
 cat_plot(
     fit3,
     pred = cyl,
@@ -1270,7 +1266,7 @@ Key Features:
 -   Standardized reporting guidelines based on [@knol2012recommendations].
 
 
-```r
+``` r
 install.packages("interactionR", dependencies = T)
 ```
 
@@ -1281,7 +1277,7 @@ The `sjPlot` package is highly recommended for publication-quality visualization
 **More details:** [sjPlot interaction visualization](https://strengejacke.github.io/sjPlot/articles/plot_interactions.html)
 
 
-```r
+``` r
 install.packages("sjPlot")
 ```
 

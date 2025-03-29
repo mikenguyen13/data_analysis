@@ -221,7 +221,7 @@ Where:
 -   A **non-significant F-statistic** indicates no structural break, supporting the use of a pooled model.
 
 
-```r
+``` r
 # Load necessary libraries
 library(car)        # For Wald Test
 library(lmtest)     # For Likelihood Ratio Test
@@ -247,9 +247,8 @@ restricted_model <- lm(y ~ x1)                # Restricted model
 
 wald_test <- linearHypothesis(unrestricted_model, c("x2 = 0", "x3 = 0"))
 print(wald_test)
-#> Linear hypothesis test
 #> 
-#> Hypothesis:
+#> Linear hypothesis test:
 #> x2 = 0
 #> x3 = 0
 #> 
@@ -762,7 +761,7 @@ To compare models on the **same scale** as the original dependent variable ($y$)
     Where $\hat{S}$ is the **mean of the exponentiated residuals** from the log model.
 
 
-```r
+``` r
 # Install and load necessary libraries
 # install.packages("nonnest2")  # Uncomment if not already installed
 library(nonnest2)    # For Vuong Test
@@ -1154,7 +1153,7 @@ The **Glejser Test** detects heteroskedasticity by regressing the **absolute val
 Detecting heteroskedasticity is critical for ensuring the reliability of regression models. While each test has strengths and limitations, combining multiple tests can provide robust insights. Once heteroskedasticity is detected, consider using **robust standard errors** or alternative estimation techniques (e.g., [Generalized Least Squares] or [Weighted Least Squares]) to address the issue.
 
 
-```r
+``` r
 # Install and load necessary libraries
 # install.packages("lmtest")      # For Breusch–Pagan Test
 # install.packages("car")         # For additional regression diagnostics
@@ -1526,7 +1525,7 @@ The **Rainbow Test** is a general-purpose diagnostic tool for functional form mi
 Functional form misspecification can severely distort regression results, leading to biased estimates and invalid inferences. While no single test can detect all types of misspecification, using a combination of tests provides a robust framework for model diagnostics.
 
 
-```r
+``` r
 # Install and load necessary libraries
 # install.packages("lmtest")      # For RESET and Harvey–Collier Test
 # install.packages("car")         # For diagnostic tests
@@ -1872,7 +1871,7 @@ The **Runs Test** is a **non-parametric test** that examines the randomness of r
 Detecting autocorrelation is crucial for ensuring the efficiency and reliability of regression models, especially in time-series analysis. While the [Durbin--Watson Test](#sec-durbin–watson-test) is suitable for detecting first-order autocorrelation, the [Breusch--Godfrey Test](#sec-breusch–godfrey-test) and [Ljung--Box Test](#sec-ljung–box-test-or-box–pierce-test) offer more flexibility for higher-order and multi-lag dependencies. Non-parametric tests like the [Runs Test](#sec-runs-test) serve as useful supplementary diagnostics.
 
 
-```r
+``` r
 # Install and load necessary libraries
 # install.packages("lmtest")  # For Durbin–Watson and Breusch–Godfrey Tests
 # install.packages("tseries") # For Runs Test
@@ -2227,7 +2226,7 @@ If multicollinearity is detected, consider the following solutions:
 Multicollinearity can significantly distort regression estimates, leading to misleading interpretations. While [VIF](#sec-variance-inflation-factor) and [Tolerance](#sec-tolerance-statistic) are commonly used diagnostics, advanced techniques like the [Condition Index](#sec-condition-index-and-eigenvalue-decomposition) and Eigenvalue Decomposition provide deeper insights, especially when dealing with complex datasets.
 
 
-```r
+``` r
 # Install and load necessary libraries
 # install.packages("car")        # For VIF calculation
 # install.packages("corpcor")    # For determinant of correlation matrix

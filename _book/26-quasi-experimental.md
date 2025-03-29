@@ -646,7 +646,7 @@ These approaches ensure that the p-value correction is consistent with the tempo
 The Romano-Wolf correction is highly recommended for handling multiple testing in natural experiments:
 
 
-```r
+``` r
 # Install required packages
 # install.packages("fixest")
 # install.packages("wildrwolf")
@@ -668,7 +668,8 @@ res <- rwolf(
   param = "Sepal.Length",  
   B = 500
 )
-#>   |                                                                              |                                                                      |   0%  |                                                                              |=======================                                               |  33%  |                                                                              |===============================================                       |  67%  |                                                                              |======================================================================| 100%
+#>   |                                                                              |                                                                      |   0%
+#>   |                                                                              |=======================                                               |  33%  |                                                                              |===============================================                       |  67%  |                                                                              |======================================================================| 100%
 
 res
 #>   model   Estimate Std. Error   t value     Pr(>|t|) RW Pr(>|t|)
@@ -682,7 +683,7 @@ res
 For other multiple testing adjustments, use the `multtest` package:
 
 
-```r
+``` r
 # Install package if necessary
 # BiocManager::install("multtest")
 

@@ -526,7 +526,7 @@ where:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 library(car)
 
 # Fit a multiple regression model
@@ -534,9 +534,8 @@ mod.duncan <- lm(prestige ~ income + education, data=Duncan)
 
 # Test whether income and education coefficients are equal
 linearHypothesis(mod.duncan, "1*income - 1*education = 0")
-#> Linear hypothesis test
 #> 
-#> Hypothesis:
+#> Linear hypothesis test:
 #> income - education = 0
 #> 
 #> Model 1: restricted model
@@ -568,7 +567,7 @@ $$
 Alternatively, we can directly estimate the difference between two regression coefficients.
 
 
-```r
+``` r
 difftest_lm <- function(x1, x2, model) {
     # Compute coefficient difference
     diffest <-
@@ -608,7 +607,7 @@ difftest_lm <- function(x1, x2, model) {
 We demonstrate this function using the Duncan dataset from the {car} package:
 
 
-```r
+``` r
 library(car)
 
 # Load Duncan dataset
@@ -704,7 +703,7 @@ The test statistic follows an F-distribution with degrees of freedom $(q, n - p)
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 library(car)
 library(nlWaldTest)
 
@@ -801,7 +800,7 @@ If the likelihood ratio is small (i.e., $L_r$ is much smaller than $L_f$), then:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 library(lmtest)
 
 # Load example dataset
@@ -868,7 +867,7 @@ If the score function $S(\theta_0)$ is significantly different from zero, then w
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary libraries
 library(lmtest)  # For the Lagrange Multiplier test
 library(car)     # For example data
@@ -905,7 +904,7 @@ print(lm_test)
 A visual comparison of hypothesis tests is shown below:
 
 
-```r
+``` r
 # Load required libraries
 library(ggplot2)
 
@@ -1155,7 +1154,7 @@ This relationship ensures that TOST is consistent with CI-based inference.
 Suppose we have two groups and want to test whether their mean difference is practically insignificant within a range of $[-0.5, 0.5]$.
 
 
-```r
+``` r
 library(TOSTER)
 
 # Simulated data: Two groups with similar means
@@ -1203,6 +1202,7 @@ TOSTtwo(
 #> 
 #> Equivalence Test Result:
 #> The equivalence test was non-significant, t(56.56) = 0.553, p = 0.291, given equivalence bounds of -0.456 and 0.456 (on a raw scale) and an alpha of 0.05.
+#> 
 #> Null Hypothesis Test Result:
 #> The null hypothesis test was non-significant, t(56.56) = -1.384, p = 0.172, given an alpha of 0.05.
 ```
@@ -1216,7 +1216,7 @@ TOSTtwo(
 We can also use TOST to test whether a correlation coefficient is effectively zero.
 
 
-```r
+``` r
 # Simulated correlation data
 set.seed(123)
 x <- rnorm(50)
@@ -1253,6 +1253,7 @@ TOSTr(
 #> 
 #> Equivalence Test Result:
 #> The equivalence test was non-significant, p = 0.280, given equivalence bounds of -0.100 and 0.100 and an alpha of 0.05.
+#> 
 #> Null Hypothesis Test Result:
 #> The null hypothesis test was non-significant, p = 0.915, given an alpha of 0.05.
 ```
@@ -1383,7 +1384,7 @@ Interpretation:
 #### Example 1: FDR Correction on Simulated Data
 
 
-```r
+``` r
 set.seed(123)
 
 # Generate 20 random p-values
@@ -1414,7 +1415,7 @@ data.frame(Raw_p = round(p_values, 3),
 FDR is widely used in genomics, where thousands of genes are tested for differential expression.
 
 
-```r
+``` r
 library(multtest)
 
 # Simulated gene expression study with 1000 genes
@@ -1494,7 +1495,7 @@ $$
 We can apply BY correction using the built-in `p.adjust()` function.
 
 
-```r
+``` r
 set.seed(123)
 
 # Simulate 50 random p-values
@@ -1561,7 +1562,7 @@ data.frame(Raw_p = round(p_values, 3), Adjusted_BY = round(p_by, 3))
 Comparison: BH vs. BY
 
 
-```r
+``` r
 p_bh <- p.adjust(p_values, method = "BH")  # BH correction
 
 # Visualize differences
@@ -1606,7 +1607,7 @@ $$ where:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # devtools::install_github("jdstorey/qvalue")
 library(qvalue)
 
@@ -1626,7 +1627,7 @@ summary(qvals)
 Comparison: BH vs. BY vs. Storey
 
 
-```r
+``` r
 # Apply multiple corrections
 p_bh <- p.adjust(p_values, method = "BH")   # Benjamini-Hochberg
 p_by <- p.adjust(p_values, method = "BY")   # Benjamini-Yekutieli

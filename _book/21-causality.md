@@ -221,7 +221,7 @@ Imagine a company running two marketing campaigns, Campaign A and Campaign B, to
 We will simulate conversion rates for two different customer segments: **High-Value** customers (who typically convert at a higher rate) and **Low-Value** customers (who convert at a lower rate).
 
 
-```r
+``` r
 # Load necessary libraries
 library(dplyr)
 
@@ -270,7 +270,7 @@ Thus, **B** outperforms **A** in each **individual** segment.
 Now, let's calculate the overall conversion rate for each campaign without considering customer segments.
 
 
-```r
+``` r
 # Compute overall conversion rates for each campaign
 overall_rates <- marketing_data %>%
   group_by(Campaign) %>%
@@ -294,7 +294,7 @@ print(overall_rates)
 Let's determine which campaign appears to have a higher conversion rate.
 
 
-```r
+``` r
 # Identify the campaign with the higher overall conversion rate
 best_campaign_overall <- overall_rates %>%
     filter(Overall_Conversion_Rate == max(Overall_Conversion_Rate)) %>%
@@ -314,7 +314,7 @@ Even though **Campaign B** is **better** in each **segment**, you should see tha
 We now analyze the conversion rates separately for high-value and low-value customers.
 
 
-```r
+``` r
 # Compute conversion rates by customer segment
 by_segment <- marketing_data %>%
   select(Campaign, Segment, Conversion_Rate) %>%
@@ -341,7 +341,7 @@ This **reversal** is the hallmark of **Simpson's Paradox**.
 To make this clearer, let's visualize the results.
 
 
-```r
+``` r
 library(ggplot2)
 
 # Plot conversion rates by campaign and segment
@@ -401,7 +401,7 @@ To avoid Simpson's Paradox, we need to move beyond association and use causal an
 Let's adjust for the confounding variable using **logistic regression**.
 
 
-```r
+``` r
 # Logistic regression adjusting for the Segment
 model <- glm(
   cbind(Conversions, Visitors - Conversions) ~ Campaign + Segment,
@@ -476,13 +476,50 @@ Experimental and quasi-experimental designs differ in their approach to causal i
 
 ### Criticisms of Quasi-Experimental Designs
 
-Quasi-experimental methods do not always approximate experimental results accurately. For instance, @lalonde1986evaluating demonstrates that commonly used methods such as:
+[Quasi-experimental methods](#sec-quasi-experimental) do not always approximate experimental results accurately. For instance, @lalonde1986evaluating demonstrates that commonly used methods such as:
 
 -   [Matching Methods]
 -   [Difference-in-differences]
 -   [Tobit-2] (Heckman-type models)
 
-often fail to replicate experimental estimates reliably.
+often fail to replicate experimental estimates reliably. This finding cast serious doubt on the credibility of observational studies for estimating causal effects, igniting an ongoing debate in econometrics and statistics about the reliability of nonexperimental evaluations.
+
+LaLonde's critical assessment served as a catalyst for significant methodological and practical advancements in causal inference. In the decades since this publication, the field has evolved considerably, introducing both theoretical innovations and empirical practices aimed at addressing the limitations that were exposed [@imbens2024lalonde]. Among these advances are:
+
+-   **Emphasis on estimators based on unconfoundedness (selection on observables):**\
+    Modern causal inference frameworks frequently adopt the *unconfoundedness* or *conditional independence* assumption. Under this premise, treatment assignment is assumed to be independent of potential outcomes, conditional on observed covariates. This theoretical foundation underpins many widely used estimation techniques, such as matching methods, inverse probability weighting, and regression adjustment.
+
+-   **Focus on covariate overlap (common support):**\
+    Researchers now recognize the critical importance of *overlap*, also referred to as *common support*, in the distributions of covariates across treatment and control groups. Without sufficient overlap, comparisons between treated and untreated units rely on extrapolation, which weakens causal claims. Modern methods explicitly assess and often impose restrictions to ensure overlap before proceeding with estimation.
+
+-   **Introduction of propensity score-based methods and doubly robust estimators:**\
+    The introduction of *propensity score* methods [@rosenbaum1983central] was a breakthrough, offering a way to reduce the dimensionality of the covariate space while balancing observed characteristics across groups. More recently, *doubly robust* estimators have emerged, combining propensity score weighting with outcome regression. These estimators provide consistent treatment effect estimates if either the propensity score model or the outcome model is correctly specified, offering greater robustness in practice.
+
+-   **Greater emphasis on validation exercises to bolster credibility:**\
+    Modern studies increasingly incorporate validation techniques to evaluate the credibility of their findings. *Placebo tests*, *falsification exercises*, and *sensitivity analyses* are commonly employed to assess whether estimated effects may be driven by unobserved confounding or model misspecification. Such practices go beyond traditional goodness-of-fit statistics, directly interrogating the assumptions underlying causal inference.
+
+-   **Methods for estimating and exploiting treatment effect heterogeneity:**\
+    Beyond estimating average treatment effects, contemporary research frequently explores *heterogeneous treatment effects*. These methods identify subgroups that may experience different causal impacts, which is of particular relevance in fields like personalized marketing, targeted interventions, and policy design.
+
+To illustrate the practical lessons from these methodological advances, @imbens2024lalonde reexamine two canonical datasets:
+
+1.  **LaLonde's National Supported Work Demonstration data**
+2.  **The Imbens-Rubin-Sacerdote draft lottery data**
+
+Applying modern causal inference methods to these datasets demonstrates that, when sufficient covariate overlap exists, robust estimates of the adjusted differences between treatment and control groups can be achieved. However, it is critical to underscore that robustness in estimation does not equate to validity. Without direct validation exercises, such as placebo tests, even well-behaved estimates may be misleading.
+
+@imbens2024lalonde highlight several key lessons for practitioners working with nonexperimental data to estimate causal effects:
+
+-   **Careful examination of the assignment process is essential.**\
+    Understanding the mechanisms by which units are assigned to treatment or control conditions informs the plausibility of the unconfoundedness assumption.
+
+-   **Inspection of covariate overlap is non-negotiable.**\
+    Without sufficient overlap, causal effect estimation may rely heavily on model extrapolation, undermining credibility.
+
+-   **Validation exercises are indispensable.**\
+    Placebo tests and falsification strategies help ensure that estimated treatment effects are not artifacts of modeling choices or unobserved confounding.
+
+While methodological advances have substantially improved the tools available for causal inference with observational data, their effective application requires rigorous attention to the underlying assumptions and diligent validation to support credible causal claims.
 
 ------------------------------------------------------------------------
 
@@ -492,7 +529,7 @@ Causal inference tools can be categorized based on their methodological rigor, w
 
 1.  [Experimental Design](Randomized%20Control%20Trials "Gold standard"): Randomized Control Trials (Gold standard)
 
-2.  [Quasi-experimental]
+2.  [Quasi-experimental](#sec-quasi-experimental)
 
     1.  [Regression Discontinuity]
 
@@ -531,6 +568,8 @@ Validity in research includes:
 5.  [Statistical Conclusion Validity](#sec-statistical-conclusion-validity)
 
 By examining these, you can ensure that your study's measurements are accurate, your findings are reliably causal, and your conclusions generalize to broader contexts.
+
+------------------------------------------------------------------------
 
 ### Measurement Validity {#sec-measurement-validity}
 
@@ -1152,9 +1191,8 @@ Define the following indicators:
     \end{cases}
     $$
 
-```{=html}
 <!-- -->
-```
+
 -   **Observed Outcome**:\
     Since we can never observe both potential outcomes for the same unit, the observed outcome is:
 

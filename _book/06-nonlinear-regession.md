@@ -491,7 +491,7 @@ The Gauss-Newton method works well when the nonlinear model can be approximated 
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary libraries
 library(minpack.lm)  # Provides nonlinear least squares functions
 
@@ -548,7 +548,7 @@ print(fit$par)
 4.  The `fit$par` provides the estimated parameters after the algorithm converges.
 
 
-```r
+``` r
 # Visualize the data and the fitted model
 plot(
   x,
@@ -659,7 +659,7 @@ Thus, the standard Gauss-Newton method can be interpreted as a special case of t
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required library
 library(minpack.lm)
 
@@ -820,7 +820,7 @@ A common approach is **backtracking line search**, where $\alpha_j$ is reduced i
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load necessary libraries
 library(ggplot2)
 
@@ -989,7 +989,7 @@ The Levenberg-Marquardt algorithm is particularly useful when the Jacobian matri
 This adjustment ensures that the algorithm moves efficiently while avoiding instability.
 
 
-```r
+``` r
 # Load required libraries
 library(minpack.lm)
 library(ggplot2)
@@ -1178,7 +1178,7 @@ where:
     -   Computing second derivatives is often difficult for complex functions.
 
 
-```r
+``` r
 # Load required libraries
 library(ggplot2)
 
@@ -1348,7 +1348,7 @@ where:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required libraries
 library(ggplot2)
 
@@ -1459,7 +1459,7 @@ This ensures that the optimization **respects parameter bounds**.
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required libraries
 library(ggplot2)
 
@@ -1674,7 +1674,7 @@ The **Secant Method** for nonlinear optimization follows these steps:
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required libraries
 library(numDeriv)
 
@@ -1869,7 +1869,7 @@ The **accuracy** of the solution depends on the **grid resolution**---a finer gr
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Define a numerically stable logistic function
 safe_exp <- function(x) {
     return(ifelse(x > 700, Inf, exp(pmin(x, 700))))  # Prevent overflow
@@ -2037,7 +2037,7 @@ The process continues until convergence.
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required library
 library(stats)
 
@@ -2200,7 +2200,7 @@ $$
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required library
 library(stats)
 
@@ -2329,7 +2329,7 @@ The **accuracy** of the solution depends on the **number of random samples**---a
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required library
 library(stats)
 
@@ -2499,7 +2499,7 @@ $$
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required library
 library(stats)
 
@@ -2671,7 +2671,7 @@ For **nonlinear regression**, we expect $Q(\theta) = SSE(\theta)$, so the soluti
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required library
 library(stats)
 
@@ -2839,7 +2839,7 @@ where $Q(\theta)$ is the **objective function** (e.g., sum of squared errors in 
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required library
 library(DEoptim)
 
@@ -2994,7 +2994,7 @@ where $\alpha \in (0,1)$ is a decay factor that controls cooling speed.
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required library
 library(stats)
 
@@ -3175,7 +3175,7 @@ The **algorithm iterates** through:
 5.  Termination when convergence is reached.
 
 
-```r
+``` r
 # Load required library
 library(GA)
 
@@ -3348,7 +3348,7 @@ This process continues until **convergence criteria** (like a max number of iter
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required library
 library(pso)
 
@@ -3524,7 +3524,7 @@ where $c > 1$ is a scaling factor.
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required library
 library(DEoptim)
 
@@ -3695,7 +3695,7 @@ $$
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required libraries
 library(numDeriv)
 
@@ -3912,7 +3912,7 @@ Again, this is **linearized**, making it solvable via **OLS regression**.
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required library
 library(stats)
 
@@ -4035,7 +4035,7 @@ This adjustment **ensures a balance between stability and efficiency**.
 ------------------------------------------------------------------------
 
 
-```r
+``` r
 # Load required libraries
 library(numDeriv)
 
@@ -4151,7 +4151,7 @@ legend(
 ### Comparison of Nonlinear Optimizers
 
 
-```r
+``` r
 # ALL-IN-ONE R SCRIPT COMPARING MULTIPLE NONLINEAR-REGRESSION OPTIMIZERS
 
 library(minpack.lm) # nlsLM (Levenberg-Marquardt)
@@ -4913,7 +4913,7 @@ ggplot(all_results, aes(x = Method, y = log(SSE), fill = Problem)) +
 
 <img src="06-nonlinear-regession_files/figure-html/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Example: Time (ms) by method & problem
 ggplot(all_results, aes(x = Method, y = Time_ms, fill = Problem)) +
@@ -4943,7 +4943,7 @@ Choosing good starting values can significantly impact the efficiency and succes
 #### Grid Search for Optimal Starting Values
 
 
-```r
+``` r
 # Set seed for reproducibility
 set.seed(123)
 
@@ -4976,7 +4976,7 @@ mod <- function(a, b, x) {
 ```
 
 
-```r
+``` r
 # Ensure all y values are positive (avoid log issues)
 y_adj <-
   ifelse(y > 0, y, min(y[y > 0]) + 1e-3)  # Shift small values slightly
@@ -5027,7 +5027,7 @@ legend(
 ```
 
 
-```r
+``` r
 # Define grid of possible parameter values
 aseq <- seq(10, 18, 0.2)
 bseq <- seq(0.001, 0.075, 0.001)
@@ -5087,7 +5087,7 @@ Visualizing Prediction Intervals
 Once the model is fitted, it is useful to visualize prediction intervals to assess model uncertainty.
 
 
-```r
+``` r
 # Load necessary package
 library(nlstools)
 
@@ -5112,7 +5112,7 @@ Many nonlinear models have well-established functional forms, allowing for progr
 To explore available self-starting models in R, use:
 
 
-```r
+``` r
 apropos("^SS")
 ```
 
@@ -5177,7 +5177,7 @@ Assessing the adequacy of a **nonlinear model** involves checking its **nonlinea
     -   **Bayesian methods** for parameter estimation.
 
 
-```r
+``` r
 # Check intrinsic curvature
 modD <- deriv3(~ a * exp(b * x), c("a", "b"), function(a, b, x) NULL)
 
@@ -5255,7 +5255,7 @@ $$
 $$
 
 
-```r
+``` r
 # Residual diagnostics for nonlinear models
 library(nlstools)
 resid_nls <- nlsResiduals(nlin_modD)
@@ -5340,7 +5340,7 @@ where
 1.  Loading and Visualizing the Data
 
 
-```r
+``` r
 library(dplyr)
 library(ggplot2)
 
@@ -5364,7 +5364,7 @@ Since nonlinear optimization is sensitive to starting values, we estimate reason
 Finding the Maximum $Y$ Value
 
 
-```r
+``` r
 max(my_data$y)
 #> [1] 2.6722
 my_data$x[which.max(my_data$y)]
@@ -5380,7 +5380,7 @@ Estimating $\theta_2$ from the Median $y$ Value
 -   The equation simplifies to: $1 + \theta_2 \exp(0.4 x) = 2$
 
 
-```r
+``` r
 # find mean y
 mean(my_data$y) 
 #> [1] -0.0747864
@@ -5400,7 +5400,7 @@ my_data$x[which.min(abs(my_data$y - (mean(my_data$y))))]
 Finding the Value of $\theta_0$ and $\theta_1$
 
 
-```r
+``` r
 # find value of x closet to 1
 my_data$x[which.min(abs(my_data$x - 1))] 
 #> [1] 0.9895
@@ -5419,7 +5419,7 @@ my_data$y[match(my_data$x[which.min(abs(my_data$x - 1))], my_data$x)]
 Solving for $\theta_0, \theta_1, \theta_2$
 
 
-```r
+``` r
 library(matlib)
 
 # Define coefficient matrix
@@ -5456,7 +5456,7 @@ Using these estimates, we manually implement the **Gauss-Newton optimization**.
 **Defining the Model and Its Derivatives**
 
 
-```r
+``` r
 # Starting values
 theta_0_strt <- as.numeric(gsub(".*=\\s*", "", theta_start[1]))
 theta_1_strt <- as.numeric(gsub(".*=\\s*", "", theta_start[2]))
@@ -5479,7 +5479,7 @@ df_4.d_theta_2 <- D(f_4, 'theta_2')
 Iterative Gauss-Newton Optimization
 
 
-```r
+``` r
 # Initialize
 theta_vec <- matrix(c(theta_0_strt, theta_1_strt, theta_2_strt))
 delta <- matrix(NA, nrow = 3, ncol = 1)
@@ -5552,7 +5552,7 @@ theta_vec[, ncol(theta_vec)]
 4.  Checking Convergence and Variance
 
 
-```r
+``` r
 # Final objective function value (SSE)
 sum((my_data$y - f_theta[, i])^2)
 #> [1] 19.80165
@@ -5572,7 +5572,7 @@ as.numeric(sigma2)*as.matrix(solve(crossprod(F_theta_0)))
 5.  Validating with `nls()`
 
 
-```r
+``` r
 nlin_4 <- nls(
   y ~ mod_4(theta_0, theta_1, theta_2, x),
   start = list(
@@ -5641,7 +5641,7 @@ This gives the parameter relationships:
 -   $P_0 = -r \cdot xmid$
 
 
-```r
+``` r
 # Simulated time-series data
 time <- c(1, 2, 3, 5, 10, 15, 20, 25, 30, 35)
 population <- c(2.8, 4.2, 3.5, 6.3, 15.7, 21.3, 23.7, 25.1, 25.8, 25.9)
@@ -5652,7 +5652,7 @@ plot(time, population, las = 1, pch = 16, main = "Logistic Growth Model")
 
 <img src="06-nonlinear-regession_files/figure-html/unnamed-chunk-40-1.png" width="90%" style="display: block; margin: auto;" />
 
-```r
+``` r
 
 # Fit the logistic growth model using programmed starting values
 logisticModelSS <- nls(population ~ SSlogis(time, Asym, xmid, scal))
@@ -5684,7 +5684,7 @@ coef(logisticModelSS)
 To fit the model using an alternative parameterization ($K, r, P_0$), we convert the estimated coefficients:
 
 
-```r
+``` r
 # Convert parameter estimates to alternative logistic model parameters
 Ks <- as.numeric(coef(logisticModelSS)[1])  # Carrying capacity (K)
 rs <- -1 / as.numeric(coef(logisticModelSS)[3])  # Growth rate (r)
@@ -5718,7 +5718,7 @@ summary(logisticModel)
 Visualizing the Logistic Model Fit
 
 
-```r
+``` r
 # Plot original data
 plot(time,
      population,
@@ -5740,7 +5740,7 @@ lines(time,
 This example is based on [@Schabenberger_2001] and demonstrates the use of a **plateau model** to estimate the relationship between soil nitrate ($NO_3$) concentration and relative yield percent (RYP) at two different depths (30 cm and 60 cm).
 
 
-```r
+``` r
 # Load data
 dat <- read.table("images/dat.txt", header = TRUE)
 
@@ -5778,7 +5778,7 @@ This model assumes a **linear increase** up to a threshold ($\alpha_j$), beyond 
 Defining the Plateau Model as a Function
 
 
-```r
+``` r
 # Define the nonlinear plateau model function
 nonlinModel <- function(predictor, b0, b1, alpha) {
   ifelse(predictor <= alpha, 
@@ -5796,7 +5796,7 @@ Since the model is **piecewise linear**, we can estimate starting values using:
 2.  The **last predictor value** used in the regression as the plateau threshold ($\alpha$)
 
 
-```r
+``` r
 # Define initialization function for self-starting plateau model
 nonlinModelInit <- function(mCall, LHS, data) {
   # Sort data by increasing predictor value
@@ -5821,7 +5821,7 @@ nonlinModelInit <- function(mCall, LHS, data) {
 Combining Model and Self-Start Function
 
 
-```r
+``` r
 # Define a self-starting nonlinear model for nls
 SS_nonlinModel <- selfStart(nonlinModel,
                             nonlinModelInit,
@@ -5831,7 +5831,7 @@ SS_nonlinModel <- selfStart(nonlinModel,
 The `nls` function is used to estimate parameters separately for **each soil depth (30 cm and 60 cm).**
 
 
-```r
+``` r
 # Fit the model for depth = 30 cm
 sep30_nls <- nls(ryp ~ SS_nonlinModel(predictor = no3, b0, b1, alpha),
                   data = dat[dat$depth == 30,])
@@ -5844,7 +5844,7 @@ sep60_nls <- nls(ryp ~ SS_nonlinModel(predictor = no3, b0, b1, alpha),
 We generate separate plots for **30 cm** and **60 cm** depths, showing both **confidence** and **prediction intervals.**
 
 
-```r
+``` r
 # Set plotting layout
 par(mfrow = c(1, 2))
 
@@ -5882,7 +5882,7 @@ plotFit(
 <img src="06-nonlinear-regession_files/figure-html/unnamed-chunk-48-1.png" width="90%" style="display: block; margin: auto;" />
 
 
-```r
+``` r
 summary(sep30_nls)
 #> 
 #> Formula: ryp ~ SS_nonlinModel(predictor = no3, b0, b1, alpha)
@@ -5926,7 +5926,7 @@ Instead of fitting separate models for different soil depths, we first fit a **c
 The reduced model assumes that **all soil depths follow the same nonlinear relationship**.
 
 
-```r
+``` r
 # Fit the combined model (common parameters across all depths)
 red_nls <- nls(
   ryp ~ SS_nonlinModel(predictor = no3, b0, b1, alpha), 
@@ -5974,7 +5974,7 @@ plotFit(
 Checking residuals helps diagnose potential **lack of fit**.
 
 
-```r
+``` r
 library(nlstools)
 
 # Residual diagnostics using nlstools
@@ -6011,7 +6011,7 @@ where:
 4.  **Defining the Full (Depth-Specific) Model**
 
 
-```r
+``` r
 nonlinModelF <- function(predictor, soildep, b01, b11, a1, d0, d1, da) {
   
   # Define parameters for 60 cm depth as increments from 30 cm parameters
@@ -6046,7 +6046,7 @@ nonlinModelF <- function(predictor, soildep, b01, b11, a1, d0, d1, da) {
 The starting values are taken from the **separately fitted models** for each depth.
 
 
-```r
+``` r
 Soil_full <- nls(
   ryp ~ nonlinModelF(
     predictor = no3,
