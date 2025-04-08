@@ -917,7 +917,7 @@ low p-value means you reject the null of exogenous instruments. Hence you would 
 -   really only useful if one instrument is thought to be truly exogenous (randomly assigned). even f you do reject the null, the test does not tell you which instrument is exogenous and which is endogenous.
 
 | Result          | Implication                                                                         |
-|-----------------|-------------------------------------------------------------------------------------|
+|----------------|--------------------------------------------------------|
 | reject the null | you can be pretty sure there is an endogenous instrument, but don't know which one. |
 | fail to reject  | could be either (1) they are both exogenous, (2) they are both endogenous.          |
 
@@ -1790,7 +1790,7 @@ The treatment effect model is sometimes called a **switching regression**.
 -   **Control Function**: Residual-based or predicted-endogenous-variable approach that mirrors IV logic, but typically *still* requires an instrument or parametric assumption.
 
 |                            |                                                                                                                                                 |                                                                                                                                                                                                                                   |
-|----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|--------------|----------------------|------------------------------------|
 |                            | **Heckman Sample Selection Model**                                                                                                              | **Heckman-Type Corrections**                                                                                                                                                                                                      |
 | When                       | Only observes one sample (treated), addressing selection bias directly.                                                                         | Two samples are observed (treated and untreated), known as the control function approach.                                                                                                                                         |
 | Model                      | Probit                                                                                                                                          | OLS (even for dummy endogenous variable)                                                                                                                                                                                          |
@@ -2043,7 +2043,7 @@ All the models in [Unifying Model Frameworks] can be seen as special or generali
 Summary Table of Methods
 
 | **Method**              | **Data Observed**                                               | **Key Assumption**                       | **Exclusion?**       | **Pros**                                | **Cons**                                                   |
-|-------------------------|-----------------------------------------------------------------|------------------------------------------|----------------------|-----------------------------------------|------------------------------------------------------------|
+|------------|-------------|------------|------------|------------|------------|
 | OLS (Naive)             | Full or partial, ignoring selection                             | No endogeneity in errors                 | Not required         | Simple to implement                     | Biased if endogeneity is present                           |
 | Heckman 2-Step (Heckit) | Outcome only for selected group                                 | Joint normal errors; linear functional   | Strongly recommended | Intuitive, widely used                  | Sensitive to normality/functional form.                    |
 | FIML (Full ML)          | Same as Heckman (subset observed)                               | Joint normal errors                      | Strongly recommended | More efficient, direct test of $\rho=0$ | Complex, more sensitive to misspecification                |
@@ -2814,7 +2814,7 @@ Practical Tips:
 Model Comparison Summary
 
 | Scenario                      | Exclusion Restriction | Convergence | Bias             | Variance |
-|-------------------------------|-----------------------|-------------|------------------|----------|
+|-------------------|--------------|--------------|--------------|--------------|
 | Well-specified with exclusion | Yes                   | Likely      | No               | Low      |
 | Misspecified distribution     | Yes                   | Risky       | Yes (intercepts) | Moderate |
 | No exclusion restriction      | No                    | Often fails | Yes              | High     |
@@ -3019,7 +3019,7 @@ This model allows for dropout-pattern-specific trajectories and can flexibly acc
 #### Comparison with Selection Models
 
 | Feature                        | Selection Model                            | Pattern-Mixture Model                      |
-|--------------------------------|--------------------------------------------|--------------------------------------------|
+|--------------------|--------------------------|--------------------------|
 | Factorization                  | $\mathbb{P}(Y) \cdot \mathbb{P}(R \mid Y)$ | $\mathbb{P}(Y \mid R) \cdot \mathbb{P}(R)$ |
 | Target of modeling             | Missingness process $\mathbb{P}(R \mid Y)$ | Distribution of $Y$ under $R$              |
 | Assumption for identifiability | MAR (often Probit)                         | Extrapolation (e.g., shift $\delta$)       |
@@ -3153,7 +3153,6 @@ ggplot(estimates, aes(
     scale_color_viridis_d(name = expression(delta)) +
     labs(
         title = "Pattern-Mixture Model Sensitivity Analysis",
-        subtitle = "Mean outcome trajectory under different delta adjustments",
         y = "Mean of Y_t",
         x = "Time"
     ) +

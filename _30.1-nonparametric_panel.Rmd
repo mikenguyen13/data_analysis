@@ -1,0 +1,398 @@
+## Nonparametric Difference-in-Differences
+
+This section covers methods for identifying and estimating average treatment effects in a panel-data setting *without* relying on strong functional-form (i.e., parametric) assumptions. Traditional TWFE or linear panel-data models impose linearity or additivity in the unobserved unit- and time-effects, making them relatively easy to implement but restrictive. By contrast, the methods here allow fully nonparametric relationships between potential outcomes, unobserved unit-specific components, unobserved time-specific components, and idiosyncratic shocks. Our objective is to estimate average treatment effects under considerably weaker functional-form assumptions than those imposed by a standard TWFE regression.
+
+We focus on the estimation of an [Average Treatment Effect] (ATE) or, more often in empirical work, an [Average Treatment Effect on the Treated] (ATT)---all within a panel-data framework that permits unobserved heterogeneity in both the cross-sectional (unit) dimension and the time dimension.
+
+Throughout, we assume a standard potential-outcomes framework for causal inference in panel data---only we refrain from imposing a linear or additive structure on how unit- and time-effects enter the outcome.
+
+Seminal papers:
+
+-   [@lee2015panel]: Panel nonparametric regression with fixed effects
+
+-   [@athey2006identification]: Identification and inference in nonlinear difference-in-differences models
+
+-   [@athey2025identification]: Identification of Average Treatment Effects in Nonparametric Panel Models
+
+------------------------------------------------------------------------
+
+### Setup and Potential Outcomes
+
+When estimating causal effects using panel data, many standard approaches (like difference-in-differences, fixed effects regression, or linear factor models) place strong *parametric* assumptions on the outcome process. For example, a typical two-way fixed effects model posits
+
+$$ Y_{it}(0) \;=\; \alpha_i + \beta_t + \varepsilon_{it}, $$
+
+where $Y_{it}(0)$ is the (untreated) outcome for unit $i$ in period $t$. Although extremely common in empirical research, these linearity assumptions can break down when treatment assignments or structural relationships are more complex.
+
+**Nonparametric panel models** (sometimes called "nonparametric factor models") allow the relationship between the unobserved components and outcomes to be *fully flexible*, subject only to mild smoothness and factor-separability conditions [@athey2025identification]. The essential insight is that even if there are unknown $\alpha_i$ capturing unit-level factors and unknown $\beta_t$ capturing time-level factors, one can still identify and estimate certain average outcomes and causal estimands under appropriate assumptions about how $\alpha_i$ and $\beta_t$ enter.
+
+We will consider a panel of $N$ units (e.g., individuals, firms, states) observed over $T$ time periods, $t \in \{1,\ldots,T\}$. Let $$
+W_{it} \;\in\; \{0,1\}
+$$ denote an indicator of treatment status for unit $i$ at period $t$. We define two potential outcomes:
+
+$$
+\begin{aligned}
+Y_{it}(0) &= \text{outcome for unit } i \text{ at time } t \text{ if not treated}, \\
+Y_{it}(1) &= \text{outcome if treated}.
+\end{aligned}
+$$ Then the realized outcome is $$
+Y_{it} 
+=
+\begin{cases}
+Y_{it}(0), & \text{if }W_{it} = 0,\\
+Y_{it}(1), & \text{if }W_{it} = 1.
+\end{cases}
+$$ We focus on identifying an *average treatment effect*, for instance the *ATT* (average treatment effect on treated):
+
+$$
+\tau = \text{ATT} =
+\frac{\sum_{i,t} W_{it}\,\bigl[Y_{it}(1) \;-\; Y_{it}(0)\bigr]}{\sum_{i,t} W_{it}}.
+$$
+
+which is the average treatment effect among the treated $(i,t)$ pairs. Of course, $Y_{it}(0)$ is not observed for treated observations, making identification of $\tau$ a challenge.
+
+------------------------------------------------------------------------
+
+A classical DiD design supposes two periods ($t=0$ and $t=1$), two groups ($G=0$ untreated, $G=1$ treated), and the so-called *parallel trends* assumption for the untreated potential outcomes. This parallels the linear two-way fixed-effects model in a multi-period extension. However, as soon as one allows either:
+
+1.  Nonlinear dependence of outcomes on latent factors, or
+2.  Non-parallel trends driven by unobserved time effects that vary by unit in a non-additive way,
+
+standard DiD and TWFE become invalid or highly biased.
+
+In parametric practice, a user might fit $$
+Y_{it} \;=\; \alpha_i \;+\; \gamma_t \;+\; \delta\,W_{it} \;+\; \varepsilon_{it}
+$$ by OLS---implicitly assuming that $\delta$ is the constant average effect of interest. But if $\alpha_i + \gamma_t$ is an oversimplification (for instance if $Y_{it}$ depends *nonlinearly* on $\alpha_i$ and $\beta_t$), the linear regression estimates can suffer from specification bias.
+
+------------------------------------------------------------------------
+
+### Nonparametric Factor Model
+
+We now let the *untreated* outcome $Y_{it}(0)$ arise from:
+
+1.  A function $g(\cdot)$ that is nonparametric in $(\alpha_i,\beta_t,\varepsilon_{it})$. The function $g(\cdot)$ is completely unknown and potentially quite general, subject only to smoothness and bounded-derivative conditions (described below). We observe many units $i$ and many time periods $t$.
+2.  A *latent unit effect* $\alpha_i$.
+3.  A *latent time effect* $\beta_t$.
+4.  An *idiosyncratic shock* $\varepsilon_{it}$.
+
+Formally, for the no-treatment potential outcome (i.e., *nonparametric factor model* (NPM)): $$
+Y_{it}(0)
+\;=\;
+g\bigl(\alpha_i,\;\beta_t,\;\varepsilon_{it}\bigr),
+$$ where:
+
+-   $\alpha_i \in \mathcal{A}\subseteq \mathbb{R}^{d_\alpha}$ is a random vector specific to unit $i$.
+-   $\beta_t \in \mathcal{B}\subseteq \mathbb{R}^{d_\beta}$ is a random vector specific to period $t$.
+-   $\varepsilon_{it}$ is an idiosyncratic error term (possibly correlated over time within $i$, but independent across $i$).
+
+We do *not* assume linearity, additivity, or a specific parametric form for $g$. Instead, we impose:
+
+1.  **Smoothness**: $g(\alpha,\beta,\varepsilon)$ is continuously differentiable in its arguments (or at least Hölder continuous) with uniformly bounded first derivatives.
+2.  **Latent independence**: The collections $\{\alpha_i\}_{i=1}^N$, $\{\beta_t\}_{t=1}^T$, and $\{\varepsilon_{it}\}$ are mutually independent (with $\alpha_i$ iid across $i$). We allow $\beta_t$ to be autocorrelated over $t$, as long as its marginal distribution is stationary; similarly for $\varepsilon_{it}$.
+3.  The dimension $N$ of units and the dimension $T$ of time both go to infinity in the asymptotic sequence. As the number of observations increase (i.e., more units and more time periods), they fill the matrix space, instead of expanding it (identical to infill asymptotics is in time series and spatial econometrics) [@zhang2005towards].
+
+> **Remark on Exchangeability.** One motivation for such a factor-separable structure is the notion of *row-and-column exchangeability* from random-matrix theory, which guarantees a (potentially complicated) representation of the form $g(\alpha_i,\beta_t,\varepsilon_{it})$. Here we simply posit that such a representation exists and exploit its factor structure for identification.
+
+> **Remark:** Traditional two-way fixed effects is the special case $g(\alpha_i,\beta_t,\varepsilon_{it}) = \alpha_i + \beta_t + \varepsilon_{it}$. Linear factor models of the form $g(\alpha_i,\beta_t,\varepsilon_{it})=\alpha_i^\top\beta_t + \varepsilon_{it}$ also fit here. The main distinction is that *we do not restrict* $g$ to be linear, additive, or even low-rank, provided it depends only on unit- and time-specific factors and on an idiosyncratic shock.
+
+### Potential Outcomes under Treatment
+
+When a unit is *actually treated* at $(i,t)$, we denote its potential outcome $Y_{it}(1)$. Often one posits that $$
+Y_{it}(1)
+\;=\;
+g\bigl(\alpha_i,\;\beta_t,\;\varepsilon_{it}\bigr) + \delta(\alpha_i,\beta_t),
+$$ where $\delta(\alpha,\beta)$ is the causal increment (the "structural treatment effect") which may depend on $\alpha_i,\beta_t$. For identification of $\tau$, we mainly require enough structure to express $$
+Y_{it}(1) - Y_{it}(0)
+\;=\;
+\delta(\alpha_i,\beta_t).
+$$ In that case, $$
+\tau
+\;=\;
+\frac{\sum_{i,t} W_{it}\,\delta(\alpha_i,\beta_t)}{\sum_{i,t} W_{it}}.
+$$ Still, $\alpha_i$ and $\beta_t$ are unobserved, so we cannot directly condition on them.
+
+------------------------------------------------------------------------
+
+### Key Assumptions
+
+To estimate the *counterfactual* $Y_{it}(0)$ for units that are treated, we need an identification strategy. In other words, we need additional conditions on how the treatment $W_{it}$ is assigned. In a standard cross-sectional observational study, *unconfoundedness* (or *ignorability*) requires that $W_i \perp Y_i(0)$ conditional on observed $X_i$. Here, we do not observe the relevant confounders $(\alpha_i,\beta_t)$, so we assume:
+
+1.  **Latent Factor Ignorability**:
+
+    1.  **Latent Factor Unconfoundedness**: $$
+        \bigl\{W_{it}\bigr\} \;\perp\; Y_{it}(0) 
+        \bigm|
+        (\alpha_i,\,\beta_t).
+        $$ Equivalently, $\{W_{it}\}$ is (conditionally) independent of the untreated potential outcomes given $\alpha_i,\beta_t$. That is, *conditional on the latent unit factor* $\alpha_i$ and latent time factor $\beta_t$, the assignment is as good as random for that $(i,t)$.
+
+    2.  **Overlap**: There exists a positive constant $c>0$ such that $$
+        0 \;<\; c 
+        \;\leq\;
+        \Pr\bigl(W_{it}=1 \,\mid\, \alpha_i,\beta_t\bigr) 
+        \;\leq\;
+        1 - c 
+        \;<\; 1
+        $$ for all $\alpha_i,\beta_t$. Thus, each $(i,t)$ has a nontrivial chance of being treated and of not being treated, *given* the latent factors. Without this, the average effect on the treated could fail to be identified.
+
+2.  **SUTVA**: Stable Unit Treatment Value Assumption]
+
+> **Interpretation**: If $\alpha_i,\beta_t$ were actually observed, the assumption would reduce to the usual "unconfoundedness" from cross-sectional observational studies. But we do *not* see $\alpha_i,\beta_t$. Instead, we only see $(Y_{it},W_{it})$. Our factor structure ensures that if two units share the *same* or *similar* $\alpha$-value, their untreated outcomes behave similarly across all times $t$, and vice versa for time effects.
+
+> **Key Points**: Because $\alpha_i,\beta_t$ are unobserved, these assumptions themselves cannot be tested in the data. They should be motivated by design or domain knowledge about how the intervention is assigned.
+
+Under the above assumptions, identification proceeds by:
+
+-   Recognizing that **if** we could identify or approximate $\mu(\alpha_i,\beta_t)\;=\;E[Y_{it}(0)\mid \alpha_i,\beta_t]$, then we could impute $Y_{it}(0)$ for each treated $(i,t)$.
+-   Summing up the difference $Y_{it}(1) - \mu(\alpha_i,\beta_t)$ over all treated $(i,t)$ yields the *ATT*.
+
+Thus the core challenge: How can one identify $\mu(\alpha,\beta)$ without direct knowledge of $\alpha_i$ or $\beta_t$?
+
+### Identification: Expected Outcomes for Treated Units
+
+The key object for causal inference is to be able to impute (or estimate) the *counterfactual* outcome $Y_{it}(0)$ for each $(i,t)$ that actually received treatment. Once we can estimate $E[Y_{it}(0)\mid \alpha_i,\beta_t]$ for the treated pairs, we can construct the average effect of treatment.
+
+Hence, it suffices to identify or consistently estimate $$ \mu(\alpha,\beta) \;=\; E\bigl[\,g(\alpha,\beta,\varepsilon)\,\bigm|\;\alpha,\beta\bigr]. $$ We do *not* need to identify $\alpha_i$ or $\beta_t$ themselves, nor do we need to identify $g$ in full detail. We merely need to learn, for the relevant $\alpha_i,\beta_t$, the expected *untreated* outcome.
+
+A major challenge is that $\alpha_i$ and $\beta_t$ are unobserved. We cannot simply condition on them as in a standard unconfoundedness approach. Instead, we exploit the following insight:
+
+-   Even though $\alpha_i,\beta_t$ are not observed, units with *similar functions* $\mu(\alpha_i,\beta)$ over $\beta$ can serve as "matches" for one another (and similarly in time).
+-   We can detect *which pairs of units* have similar $\mu(\alpha,\cdot)$ by comparing how each unit co-varies with other units over time.
+
+Intuitively, if two units $i$ and $j$ have *similar entire functions* $\mu(\alpha_i,\cdot)$ and $\mu(\alpha_j,\cdot)$ with respect to $\beta$, then for any other unit $k$, the covariance patterns of $(Y_{it},Y_{kt})$ and $(Y_{jt},Y_{kt})$ over $t$ will be close. By "covariance patterns," we mean $$ \frac{1}{T}\sum_{t=1}^T \bigl(Y_{it}-\overline Y_{i\cdot}\bigr)\,\bigl(Y_{kt}-\overline Y_{k\cdot}\bigr), $$ (or a direct average $\frac{1}{T}\sum_t Y_{it}Y_{kt}$ under mean-zero assumptions). Units $i$ and $j$ that yield *very similar* such patterns across all $k$ are suggestive that $\mu(\alpha_i,\beta)\approx \mu(\alpha_j,\beta)$ for the range of $\beta$.
+
+Concretely, we construct, for each unit $i$, a *matching set* $\mathcal{J}(i)$ containing units $j$ whose covariance patterns with all other units are close to $i$'s. These sets can grow with $N$ and $T$, enabling consistent estimation. Once $\mathcal{J}(i)$ is formed, we estimate $$ Y_{it}(0) \;\approx\; \hat{Y}_{it}(0) \;=\; \frac{1}{|\mathcal{J}(i)|}\,\sum_{j\in \mathcal{J}(i)}\,Y_{jt} \quad \text{(for a control period/time }t). $$ Under certain smoothness and large-$N$-large-$T$ asymptotics, this converges in probability to $\mu(\alpha_i,\beta_t)$.
+
+> Notes: Typical matching process will work TWFE setting, but will all fail under a more general setting [@athey2025identification]
+
+------------------------------------------------------------------------
+
+### From DiD to Nonparametric Factor DiD
+
+In a linear DiD (two-way fixed effects), we exploit that for each unit $i$, $$
+\mu(\alpha_i,\beta_t)
+\;=\;
+\alpha_i + \beta_t.
+$$ We can difference out $\alpha_i$ by taking time differences for the same unit, or difference out $\beta_t$ by taking cross-sectional differences at the same time. That collapses into the classical DiD or TWFE approach.
+
+However, when $$
+\mu(\alpha_i,\beta_t)
+\;=\;
+E\bigl[g(\alpha_i,\beta_t,\varepsilon_{it}) \mid \alpha_i,\beta_t\bigr]
+$$ is not additive in $\alpha_i,\beta_t$, simple differencing fails to isolate the effect. Instead, we proceed by the following logic:
+
+1.  **Covariance-based grouping**: If $\mu(\alpha_i,\cdot)$ and $\mu(\alpha_j,\cdot)$ are "similar functions" of time, then over the cross-section of other units $k$, the cross-covariances $\text{Cov}[Y_{i\cdot},Y_{k\cdot}]$ and $\text{Cov}[Y_{j\cdot},Y_{k\cdot}]$ should be close.
+2.  **Match sets**: By scanning across many units, we can find those units $j$ whose "time-series profiles" are close to that of $i$ in a relevant sense---thus effectively ensuring $\mu(\alpha_j,\beta_t)\approx \mu(\alpha_i,\beta_t)$ for all $t$.
+
+Once we have a (growing) match set $\mathcal{J}(i)\subset\{1,\dots,N\}$ of units for which $$
+\mu(\alpha_j,\beta)
+\;\approx\;
+\mu(\alpha_i,\beta)
+\quad
+\forall
+\text{ relevant }\beta,
+$$ we can then impute: $$
+Y_{it}(0)
+\;\approx\;
+\hat{Y}_{it}(0)
+\;=\;
+\frac{1}{|\mathcal{J}(i)|}
+\sum_{j\in \mathcal{J}(i)}\, Y_{jt}(0).
+$$ And since *some* of those $j$ will be in the control condition at time $t$ with positive probability (by overlap), we can form an unbiased (or consistent) estimate of $\mu(\alpha_i,\beta_t)$.
+
+The approach is reminiscent of a "nonparametric differences-in-differences" but *crucially extended* to handle unknown factor structures and to exploit *two-dimensional matching* (on both unit- and time-latent factors).
+
+------------------------------------------------------------------------
+
+### Constructing Match Sets
+
+We now present a bit more of the mathematical derivation behind how to find and justify a suitable set $\mathcal{J}(i)$.
+
+1.  **Population-Level Idea (Infeasible)**
+
+Consider the function $$
+\mu(\alpha,\beta) 
+\;=\;
+E\bigl[g(\alpha,\beta,\varepsilon)\,\big|\;\alpha,\beta\bigr].
+$$ For any pair $\alpha,\alpha'$, define $$
+\Gamma(\alpha,\alpha')
+\;=\;
+E_\beta\Bigl[\bigl(\mu(\alpha,\beta)-\mu(\alpha',\beta)\bigr)^2\Bigr].
+$$ If $\Gamma(\alpha,\alpha')=0$ implies that $\mu(\alpha,\cdot)$ and $\mu(\alpha',\cdot)$ coincide almost everywhere in $\beta$, then $\alpha,\alpha'$ represent *"equivalent" unit types* for the no-treatment potential.
+
+In an *ideal world* where we observe $\alpha_i,\alpha_j$ directly, we could group *exactly* the pairs $(i,j)$ for which $\Gamma(\alpha_i,\alpha_j)=0$. That would ensure $\mu(\alpha_j,\beta)\equiv \mu(\alpha_i,\beta)$. Then for any time $t$, $$
+\mu(\alpha_j,\beta_t)
+\;=\;
+\mu(\alpha_i,\beta_t),
+$$ and we are done.
+
+**But**: We never see $\alpha_i$. Instead we see only $\{Y_{it}(0)\}$. The *key insight* is that $$
+\Gamma(\alpha,\alpha')
+\;=\;
+E_\beta\Bigl[\bigl(\mu(\alpha,\beta)-\mu(\alpha',\beta)\bigr)\,\mu(\alpha,\beta)\Bigr]
+\;-\;
+E_\beta\Bigl[\bigl(\mu(\alpha,\beta)-\mu(\alpha',\beta)\bigr)\,\mu(\alpha',\beta)\Bigr],
+$$ so checking whether $\Gamma(\alpha,\alpha')=0$ amounts to verifying that all cross-covariances in a large enough "basis" vanish. Concretely, if for *every* $\alpha''$, $$
+E_\beta\Bigl[\bigl(\mu(\alpha,\beta)-\mu(\alpha',\beta)\bigr)\,\mu(\alpha'',\beta)\Bigr]
+=0,
+$$ then $\mu(\alpha,\beta)\equiv\mu(\alpha',\beta)$. We only have data on *observed units'* time-series, but with large $N$ we can approximate a "dense" set of $\alpha''$-values (since each unit $k$ might correspond to some $\alpha_k$).
+
+2.  **Feasible Matching with Observed Data**
+
+Given the population-level logic, we define an *empirical* matching set for each unit $i$: $$
+\mathcal{J}_\nu(i)
+\;=\;
+\left\{
+j \neq i : 
+\max_{k\neq i,j}
+\Bigl|
+\widehat{\text{Cov}}_{t\in\{1,\dots,T\}}
+\bigl(Y_{it}-Y_{jt},\,Y_{kt}\bigr)
+\Bigr|
+\;\le\;
+\nu
+\right\},
+$$ where $$
+\widehat{\text{Cov}}_{t\in\{1,\dots,T\}}
+\bigl(X_t,Y_t\bigr)
+\;=\;
+\frac{1}{T}
+\sum_{t=1}^T 
+\bigl(X_t - \overline{X}\bigr)\bigl(Y_t - \overline{Y}\bigr)
+$$ (assuming sample means subtracted, or we can just use raw cross-products if the data are zero-mean, etc.).
+
+This set $\mathcal{J}_\nu(i)$ includes all units $j$ for which the sample cross-covariances $\{(Y_{it}-Y_{jt})\,Y_{kt}\}_{k=1}^N$ are small. By the argument above, that strongly suggests $\mu(\alpha_i,\beta)\approx \mu(\alpha_j,\beta)$ for *all* $\beta$.
+
+-   As $\nu\rightarrow 0$, the set $\mathcal{J}_\nu(i)$ shrinks to those $j$ that are truly *very similar* in the sense of $\mu(\alpha_j,\beta)\approx \mu(\alpha_i,\beta)$.
+-   As $N,T\rightarrow\infty$, one can show (under mild conditions on $g$ and the distributions) that for each $i$, $\mathcal{J}_\nu(i)$ is nonempty and grows. Indeed, with large $N$, *some* units' latent vectors $\alpha_j$ will be close in the sense above. With large $T$, the sample covariances converge to population covariances.
+
+Formally, let $\varepsilon>0$. Choose $\nu$ to be small enough (depending on $\varepsilon$, $\alpha_i$, etc.) so that if $$
+\max_{k\neq i,j}
+\bigl|\widehat{\text{Cov}}(Y_{it}-Y_{jt},\,Y_{kt})\bigr|
+\;\le\;
+\nu,
+$$ then $$
+E_\beta\bigl[\mu(\alpha_i,\beta) - \mu(\alpha_j,\beta)\bigr]^2
+\;\le\;
+\varepsilon.
+$$ We require suitable Lipschitz conditions on $g$, and we rely on a large-sample result that $\widehat{\text{Cov}}(\cdots)$ converges uniformly to the population version. Under typical conditions (e.g., stationarity, independence across $i$, mild mixing in $t$), we can ensure with high probability that all sample covariance objects are close to their population analogs. Then by choosing $\nu$ that goes to 0 slowly as $N,T\to\infty$, each unit $i$ obtains at least one match $j$, *and* $\mu(\alpha_i,\cdot)\approx \mu(\alpha_j,\cdot)$ in sup norm.
+
+------------------------------------------------------------------------
+
+### Estimating the ATT
+
+Having found $\mathcal{J}_\nu(i)$, define an imputation for the no-treatment outcome of unit $i$ in period $t$:
+
+-   First, restrict to *those* $j\in \mathcal{J}_\nu(i)$ such that $j$ is in the control group at time $t$ ($W_{jt}=0$). Call that restricted set $\mathcal{J}_\nu(i,t)$.\
+-   Then let $$
+    \hat{Y}_{it}(0)
+    \;=\;
+    \frac{1}{|\mathcal{J}_\nu(i,t)|}
+    \sum_{j\in \mathcal{J}_\nu(i,t)}
+    Y_{jt}(0).
+    $$
+
+If $\mathcal{J}_\nu(i,t)$ is non-empty, this quantity approximates $\mu(\alpha_i,\beta_t)$. By the overlap assumption, with probability approaching 1, *some* fraction of units in $\mathcal{J}_\nu(i)$ remain untreated at time $t$.
+
+Hence for a treated cell $(i,t)$ (i.e., $W_{it}=1$), we define the DiD-type estimator of the *individual-level effect* as $$
+\hat{\delta}_{it}
+\;=\;
+Y_{it}
+\;-\;
+\hat{Y}_{it}(0).
+$$ Then we *aggregate* these individual-level effect estimates over $(i,t)$ with $W_{it}=1$ to get the *average treatment effect on the treated*:
+
+$$
+\hat{\tau}
+\;=\;
+\frac{\sum_{(i,t) :\,W_{it}=1}
+\bigl[
+Y_{it} \;-\;\hat{Y}_{it}(0)
+\bigr]}{\sum_{(i,t)}W_{it}}.
+$$ Under mild regularity, $\hat{\tau}$ converges in probability to $$
+\tau
+\;=\;
+\frac{\sum_{(i,t):W_{it}=1}\delta(\alpha_i,\beta_t)}{\sum_{(i,t)}W_{it}},
+$$ provided the sample-imputed $\hat{Y}_{it}(0)$ converges in probability to $\mu(\alpha_i,\beta_t)$.
+
+> **Key advantage**: We never needed a parametric form for $\mu(\alpha_i,\beta_t)$ nor a strong "parallel trends" assumption. Instead, *conditional* on $(\alpha_i,\beta_t)$, the assignment is unconfounded.
+
+------------------------------------------------------------------------
+
+### Relation to Other Models
+
+#### Standard TWFE DiD
+
+When $g(\alpha_i,\beta_t,\varepsilon_{it}) = \alpha_i + \beta_t + \varepsilon_{it}$, the method above simplifies drastically:
+
+-   The condition $\mu(\alpha_i,\beta_t) = \alpha_i + \beta_t$ means that $\mu(\alpha_i,\beta)$ is basically $\alpha_i + \beta$.
+-   Covariance-based matching for each $i$ picks out units $j$ that have the same $\alpha_j=\alpha_i$. Because *in a linear-additive setting*, if $\alpha_j\neq \alpha_i$, average differences in outcomes would show up no matter how $\beta_t$ changes.
+
+Hence, in the linear-additive case, simply *differencing out* $\alpha_i$ or $\beta_t$ is feasible, so standard DiD or a two-way fixed-effects regression obtains the same result. Our procedure reverts to standard practice (albeit in a more complicated guise).
+
+But once $\mu(\alpha_i,\beta_t)$ is *non-additive* or *nonlinear*, the classical differencing argument fails. The matching approach is the correct generalization that does not rely on linearity or parallel-trends restrictions.
+
+#### Linear Factor Model
+
+Another special case of the $g(.)$ function is the Linear Factor Model (LFM), where
+
+$$
+g(\alpha_i, \beta_t, \epsilon_it) = \alpha_i \beta_t + \epsilon_{it}
+$$
+
+Similar to the TWFE, LFM typically focuses on estimating $\alpha_i$ and $\beta_T$ with specific assumptions about $\epsilon_{it}$. On the other hand, NPM does not estimate $\alpha_i$ and $\beta_t$ directly, but treat them as random variables (with assumptions about their properties).
+
+------------------------------------------------------------------------
+
+### Practical Considerations and Extensions
+
+#### Clustering and Dimension Reduction
+
+In large panels, computing $\max_{k\neq i,j}|\widehat{\text{Cov}}(\dots)|$ for all pairs $(i,j)$ can be computationally expensive, $O(N^3T)$. One common approach is:
+
+1.  **Cluster or group** the units by some preliminary dimension-reduction technique (e.g., approximate a factor structure via singular value decomposition or use "grouped patterns of heterogeneity").
+2.  Within each cluster, do a fine-grained matching.
+
+Alternatively, if one can guess that $\alpha_i$ takes on only a finite set of values (the "grouped heterogeneity" scenario), then the problem simplifies further to cluster assignment.
+
+#### Multiple Treatment Periods and Staggered Adoption
+
+Many empirical DiD settings allow for "staggered adoption," meaning units adopt treatment at different times. Then one must be careful that for each $(i,t)$, there exist *sufficiently many* potential matches $j$ that remain in the control condition in period $t$. Overlap must hold for each period. If in a given time $t$, almost every unit is treated, the approach can break down.
+
+#### Inference
+
+For standard errors or confidence intervals, we can treat $\hat{\tau}$ as a matching estimator. Tools from nonparametric or matching-based inference (like block bootstraps or cross-fitting) can be adapted, though the factor dependence can complicate things. A typical approach is:
+
+-   Block bootstrap entire time sequences or entire units, preserving temporal/cross-sectional dependence.
+-   Recompute $\mathcal{J}_\nu(i)$ in each bootstrap draw.
+-   Compute $\hat{\tau}$-distribution across draws.
+
+As $N,T\to\infty$, under regularity conditions, the bootstrap converges to the correct limiting distribution.
+
+#### Oaxaca--Blinder decomposition
+
+Beyond causal inference, the same nonparametric factor framework is useful for other exercises where we need to estimate or compare *counterfactuals*. A prime example is the **Oaxaca--Blinder decomposition** (or group-outcome decomposition). If $W_{it}=1$ denotes membership in group 1 (e.g. "female") and $W_{it}=0$ denotes group 2 (e.g. "male"), we can look at the difference in average outcomes, $$ E\bigl[Y_{it}\,\bigm|\;W_{it} = 1\bigr] \;-\; E\bigl[Y_{it}\,\bigm|\;W_{it} = 0\bigr]. $$ To separate this into an "explained" part (due to differences in the distributions of $\alpha_i,\beta_t$) and an "unexplained" part (due to differences in the function $\mu(\alpha,\beta)$), we require analogs of the same identification machinery: each group has a nonparametric factor structure with group-specific $\alpha_i$ and $\beta_t$. One then constructs a decomposition $$ \underbrace{E\bigl[\mu_1(\alpha^1,\beta^1)\bigr] - E\bigl[\mu_0(\alpha^0,\beta^0)\bigr]}_{\text{gap}} = \underbrace{\Bigl(E\bigl[\mu_1(\alpha^1,\beta^1)\bigr] - E\bigl[\mu_0(\alpha^1,\beta^1)\bigr]\Bigr)}_{\text{“unexplained”}} \;+\; \underbrace{\Bigl(E\bigl[\mu_0(\alpha^1,\beta^1)\bigr] - E\bigl[\mu_0(\alpha^0,\beta^0)\bigr]\Bigr)}_{\text{“explained”}}. $$ Though $\alpha^1,\beta^1$ and $\alpha^0,\beta^0$ remain unobserved, the same nonparametric identification argument extends, provided each group's factor structure is stable within group. One can then proceed with a matching-based approach to impute *counterfactual group membership* outcomes.
+
+#### Decomposition Applications
+
+An important extension is to *nonparametric decompositions* (e.g., for wage gaps). Suppose $W_{it}\in\{0,1\}$ just denotes membership in group 1 or group 0. Then we can express $$
+E[Y_{it}\mid W_{it}=1]
+\;-\;
+E[Y_{it}\mid W_{it}=0]
+\;=\;
+\underbrace{
+\bigl[E[\mu_1(\alpha_i,\beta_t)] - E[\mu_0(\alpha_i,\beta_t)]\bigr]
+}_{\text{unexplained “structural” part}}
+\;+\;
+\underbrace{
+\bigl[E[\mu_0(\alpha_i,\beta_t)] - E[\mu_0(\alpha'_i,\beta'_t)]\bigr]
+}_{\text{explained “composition” part}}
+$$ (using a suitable matching argument to interpret how $\alpha_i,\beta_t$ differ across groups 1 and 0). The same type of factor-based matching allows one to consistently impute "what if group-1 individuals had the same distribution of $\alpha$- and $\beta$-values as group 0?" and vice versa. In short, the logic from the causal setting extends to decomposition by group membership.
+
+### Practical Implementation
+
+In practical applications:
+
+1.  **Dimension selection**: In large $N,T$, searching for matches via covariance patterns can be computationally heavy. In smaller samples, naive nearest-neighbor approaches may overfit. Implementations often cluster units first (grouping them by "type") and then do a finer matching. Some authors call this *grouped heterogeneity* or *blocked clusterwise estimation*.
+2.  **Regularization**: To avoid searching for an exact covariance match, many applied methods impose bandwidth or penalization, stopping once enough matches are found.
+
+------------------------------------------------------------------------

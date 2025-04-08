@@ -105,9 +105,9 @@ If zeros are **small but meaningful** (e.g., revenue from startups), then using 
 library(tidyverse)
 
 # Load dataset
-data(cars)
+cars = datasets::cars
 
-# Original speed values
+# Original values
 head(cars$speed)
 #> [1] 4 4 7 7 8 9
 
@@ -172,7 +172,8 @@ $$
 
 
 ``` r
-data(cars)
+# data(cars)
+cars = datasets::cars
 
 # Original distribution
 head(cars$dist)
@@ -306,7 +307,7 @@ The Lambert W transformation is a more advanced method that normalizes data by r
 
 
 ``` r
-data(cars)
+cars = datasets::cars
 head(cars$dist)
 #> [1]  2 10  4 22 16 10
 cars$dist %>% hist()
@@ -358,7 +359,8 @@ $$
 
 ``` r
 library(MASS)
-data(cars)
+# data(cars)
+cars = datasets::cars
 mod <- lm(cars$speed ~ cars$dist, data = cars)
 
 # Check residuals
@@ -418,7 +420,8 @@ $$
 
 
 ``` r
-data(cars)
+# data(cars)
+cars = datasets::cars
 yj_speed <- bestNormalize::yeojohnson(cars$speed)
 yj_speed$x.t %>% hist()
 ```

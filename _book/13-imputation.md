@@ -992,7 +992,7 @@ library("mice") # Load mice package
 
 ##### Impute data via predictive mean matching (single imputation)#####
 
-imp_single <- mice(data, m = 1, method = "pmm") # Impute missing values
+imp_single <- mice::mice(data, m = 1, method = "pmm") # Impute missing values
 #> 
 #>  iter imp variable
 #>   1   1  y
@@ -1000,7 +1000,7 @@ imp_single <- mice(data, m = 1, method = "pmm") # Impute missing values
 #>   3   1  y
 #>   4   1  y
 #>   5   1  y
-data_imp_single <- complete(imp_single)         # Store imputed data
+data_imp_single <- mice::complete(imp_single)         # Store imputed data
 # head(data_imp_single)
 
 # Since single imputation underestiamtes stnadard errors, 
@@ -1039,7 +1039,7 @@ imp_multi <- mice(data, m = 5, method = "pmm")
 #>   5   5  y
 data_imp_multi_all <-
     # Store multiply imputed data
-    complete(imp_multi,       
+    mice::complete(imp_multi,       
              "repeated",
              include = TRUE)
 
@@ -1210,7 +1210,7 @@ summary(fitm)
 #> 15 x1             0.326     0.151      2.17  0.0622    11           8
 
 ## pool coefficients and standard errors across all 5 regression models
-pool(fitm)
+mice::pool(fitm)
 #> Class: mipo    m = 5 
 #>          term m   estimate       ubar           b          t dfcom       df
 #> 1 (Intercept) 5  7.0445966 7.76794670 0.719350800 8.63116766     8 5.805314
@@ -1222,7 +1222,7 @@ pool(fitm)
 #> 3 0.05502168 0.05215218 0.2586992
 
 ## output parameter estimates
-summary(pool(fitm))
+summary(mice::pool(fitm))
 #>          term   estimate std.error statistic       df    p.value
 #> 1 (Intercept)  7.0445966 2.9378849  2.397846 5.805314 0.05483678
 #> 2          y4 -0.3896685 0.2733843 -1.425350 5.706243 0.20638512
@@ -1265,6 +1265,7 @@ This method is commonly used as a foundation for multiple imputation techniques.
 3.  Generate random residuals based on the distribution of residuals from the regression model.
 4.  Add the random residuals to the predicted values to impute missing values.
 
+
 ``` r
 # Example dataset with missing values
 set.seed(123)
@@ -1299,6 +1300,17 @@ imputed_data <- stochastic_impute(data, predictor = "X", target = "Y")
 
 # Display the imputed dataset
 print(imputed_data)
+#>           X        Y
+#> 1  44.39524 100.0000
+#> 2  47.69823 105.0000
+#> 3  65.58708 110.0000
+#> 4  50.70508 137.0070
+#> 5  51.29288 120.0000
+#> 6  67.15065 114.9107
+#> 7  54.60916 130.0000
+#> 8  37.34939 135.0000
+#> 9  43.13147 140.0000
+#> 10 45.54338 127.9359
 ```
 
 Notes
@@ -1348,7 +1360,7 @@ imp_inc_sri  <- mice(data_inc_miss, method = "norm.nob", m = 1)
 #>   3   1  income
 #>   4   1  income
 #>   5   1  income
-data_inc_sri <- complete(imp_inc_sri)
+data_inc_sri <- mice::complete(imp_inc_sri)
 ```
 
 Single predictive mean matching
@@ -1363,7 +1375,7 @@ imp_inc_pmm  <- mice(data_inc_miss, method = "pmm", m = 1)
 #>   3   1  income
 #>   4   1  income
 #>   5   1  income
-data_inc_pmm <- complete(imp_inc_pmm)
+data_inc_pmm <- mice::complete(imp_inc_pmm)
 ```
 
 Stochastic regression imputation contains negative values
@@ -1412,7 +1424,7 @@ imp_het_sri  <- mice(data_het_miss, method = "norm.nob", m = 1)
 #>   3   1  y
 #>   4   1  y
 #>   5   1  y
-data_het_sri <- complete(imp_het_sri)
+data_het_sri <- mice::complete(imp_het_sri)
 ```
 
 Single predictive mean matching
@@ -1427,7 +1439,7 @@ imp_het_pmm  <- mice(data_het_miss, method = "pmm", m = 1)
 #>   3   1  y
 #>   4   1  y
 #>   5   1  y
-data_het_pmm <- complete(imp_het_pmm)
+data_het_pmm <- mice::complete(imp_het_pmm)
 ```
 
 Comparison between predictive mean matching and stochastic regression imputation
@@ -1500,7 +1512,7 @@ mtext(
 )
 ```
 
-<img src="13-imputation_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="13-imputation_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
 
 #### Matrix Completion
 
@@ -2138,7 +2150,7 @@ library(ggplot2)
 vis_miss(airquality)
 ```
 
-<img src="13-imputation_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="13-imputation_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
 
@@ -2146,7 +2158,7 @@ vis_miss(airquality)
 gg_miss_upset(airquality)
 ```
 
-<img src="13-imputation_files/figure-html/unnamed-chunk-20-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="13-imputation_files/figure-html/unnamed-chunk-21-2.png" width="90%" style="display: block; margin: auto;" />
 
 
 ``` r
@@ -2246,7 +2258,9 @@ KNN is a more sophisticated method, leveraging similar observations to fill in m
 
 ``` r
 library(DMwR2)
-knnOutput <- knnImputation(data = iris.mis.cat, meth = "median")
+knnOutput <-
+  DMwR2::knnImputation(data = iris.mis.cat,
+                       meth = "median")
 anyNA(knnOutput)  # Check for remaining missing values
 #> [1] FALSE
 ```
@@ -2332,7 +2346,7 @@ library(VIM)
 md.pattern(iris.mis)
 ```
 
-<img src="13-imputation_files/figure-html/unnamed-chunk-28-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="13-imputation_files/figure-html/unnamed-chunk-29-1.png" width="90%" style="display: block; margin: auto;" />
 
 ```
 #>     Sepal.Width Sepal.Length Petal.Length Petal.Width   
@@ -2362,7 +2376,7 @@ aggr(
 )
 ```
 
-<img src="13-imputation_files/figure-html/unnamed-chunk-28-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="13-imputation_files/figure-html/unnamed-chunk-29-2.png" width="90%" style="display: block; margin: auto;" />
 
 ```
 #> 
@@ -2411,15 +2425,15 @@ summary(imputed_Data)
 densityplot(imputed_Data)
 ```
 
-<img src="13-imputation_files/figure-html/unnamed-chunk-30-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="13-imputation_files/figure-html/unnamed-chunk-31-1.png" width="90%" style="display: block; margin: auto;" />
 
 Accessing and Using Imputed Data
 
 
 ``` r
 # Access the complete datasets
-completeData1 <- complete(imputed_Data, 1)  # First imputed dataset
-completeData2 <- complete(imputed_Data, 2)  # Second imputed dataset
+completeData1 <- mice::complete(imputed_Data, 1)  # First imputed dataset
+completeData2 <- mice::complete(imputed_Data, 2)  # Second imputed dataset
 ```
 
 Regression Model with Imputed Dataset
@@ -2427,10 +2441,12 @@ Regression Model with Imputed Dataset
 
 ``` r
 # Fit a regression model using imputed datasets
-fit <- with(data = imputed_Data, exp = lm(Sepal.Width ~ Sepal.Length + Petal.Width))
+fit <-
+  with(data = imputed_Data,
+       exp = lm(Sepal.Width ~ Sepal.Length + Petal.Width))
 
 # Combine results of all 5 models
-combine <- pool(fit)
+combine <- mice::pool(fit)
 summary(combine)
 #>           term   estimate  std.error statistic        df      p.value
 #> 1  (Intercept)  1.9054698 0.33454626  5.695684 105.12438 1.127064e-07
@@ -2662,8 +2678,8 @@ summary(mi_data)
 #>   133    17 
 #> 
 #> $Sepal.Length$imputed
-#>       Min.    1st Qu.     Median       Mean    3rd Qu.       Max. 
-#> -0.2287475 -0.0424463  0.0006431  0.0061198  0.0352278  0.4228834 
+#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#> -0.49245 -0.11014 -0.03219 -0.03177  0.07648  0.26285 
 #> 
 #> $Sepal.Length$observed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -2678,7 +2694,7 @@ summary(mi_data)
 #> 
 #> $Sepal.Width$imputed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -1.44237 -0.43537 -0.11444 -0.04532  0.37742  1.46777 
+#> -1.36598 -0.42701 -0.02470 -0.05906  0.33439  1.26391 
 #> 
 #> $Sepal.Width$observed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -2693,7 +2709,7 @@ summary(mi_data)
 #> 
 #> $Petal.Length$imputed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -1.02972 -0.55688  0.26093  0.02067  0.45559  0.78717 
+#> -0.99051 -0.58897  0.25662  0.02104  0.44036  0.88355 
 #> 
 #> $Petal.Length$observed
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -2707,8 +2723,8 @@ summary(mi_data)
 #>   134    16 
 #> 
 #> $Petal.Width$imputed
-#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.89499 -0.01023  0.20006  0.14966  0.47713  0.72856 
+#>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#> -0.7959 -0.1103  0.1910  0.1282  0.4769  0.8144 
 #> 
 #> $Petal.Width$observed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -2719,9 +2735,9 @@ summary(mi_data)
 #> $Species$crosstab
 #>             
 #>              observed imputed
-#>   setosa          180      22
-#>   versicolor      192       6
-#>   virginica       184      16
+#>   setosa          180      20
+#>   versicolor      192       7
+#>   virginica       184      17
 #> 
 #> 
 #> $imputed_SepalLength

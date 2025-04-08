@@ -906,8 +906,8 @@ library("mice") # Load mice package
 
 ##### Impute data via predictive mean matching (single imputation)#####
 
-imp_single <- mice(data, m = 1, method = "pmm") # Impute missing values
-data_imp_single <- complete(imp_single)         # Store imputed data
+imp_single <- mice::mice(data, m = 1, method = "pmm") # Impute missing values
+data_imp_single <- mice::complete(imp_single)         # Store imputed data
 # head(data_imp_single)
 
 # Since single imputation underestiamtes stnadard errors, 
@@ -919,7 +919,7 @@ data_imp_single <- complete(imp_single)         # Store imputed data
 imp_multi <- mice(data, m = 5, method = "pmm")  
 data_imp_multi_all <-
     # Store multiply imputed data
-    complete(imp_multi,       
+    mice::complete(imp_multi,       
              "repeated",
              include = TRUE)
 
@@ -971,10 +971,10 @@ fitm <- with(imp1, lm(y1 ~ y4 + x1))
 summary(fitm)
 
 ## pool coefficients and standard errors across all 5 regression models
-pool(fitm)
+mice::pool(fitm)
 
 ## output parameter estimates
-summary(pool(fitm))
+summary(mice::pool(fitm))
 ```
 
 ##### Stochastic Imputation
@@ -1013,7 +1013,7 @@ This method is commonly used as a foundation for multiple imputation techniques.
 3.  Generate random residuals based on the distribution of residuals from the regression model.
 4.  Add the random residuals to the predicted values to impute missing values.
 
-``` r
+```{r}
 # Example dataset with missing values
 set.seed(123)
 data <- data.frame(
@@ -1087,14 +1087,14 @@ Single stochastic regression imputation
 
 ```{r}
 imp_inc_sri  <- mice(data_inc_miss, method = "norm.nob", m = 1)
-data_inc_sri <- complete(imp_inc_sri)
+data_inc_sri <- mice::complete(imp_inc_sri)
 ```
 
 Single predictive mean matching
 
 ```{r}
 imp_inc_pmm  <- mice(data_inc_miss, method = "pmm", m = 1)
-data_inc_pmm <- complete(imp_inc_pmm)
+data_inc_pmm <- mice::complete(imp_inc_pmm)
 ```
 
 Stochastic regression imputation contains negative values
@@ -1130,14 +1130,14 @@ Single stochastic regression imputation
 
 ```{r}
 imp_het_sri  <- mice(data_het_miss, method = "norm.nob", m = 1)
-data_het_sri <- complete(imp_het_sri)
+data_het_sri <- mice::complete(imp_het_sri)
 ```
 
 Single predictive mean matching
 
 ```{r}
 imp_het_pmm  <- mice(data_het_miss, method = "pmm", m = 1)
-data_het_pmm <- complete(imp_het_pmm)
+data_het_pmm <- mice::complete(imp_het_pmm)
 ```
 
 Comparison between predictive mean matching and stochastic regression imputation
@@ -1937,7 +1937,9 @@ KNN is a more sophisticated method, leveraging similar observations to fill in m
 
 ```{r}
 library(DMwR2)
-knnOutput <- knnImputation(data = iris.mis.cat, meth = "median")
+knnOutput <-
+  DMwR2::knnImputation(data = iris.mis.cat,
+                       meth = "median")
 anyNA(knnOutput)  # Check for remaining missing values
 ```
 
@@ -2058,18 +2060,20 @@ Accessing and Using Imputed Data
 
 ```{r}
 # Access the complete datasets
-completeData1 <- complete(imputed_Data, 1)  # First imputed dataset
-completeData2 <- complete(imputed_Data, 2)  # Second imputed dataset
+completeData1 <- mice::complete(imputed_Data, 1)  # First imputed dataset
+completeData2 <- mice::complete(imputed_Data, 2)  # Second imputed dataset
 ```
 
 Regression Model with Imputed Dataset
 
 ```{r}
 # Fit a regression model using imputed datasets
-fit <- with(data = imputed_Data, exp = lm(Sepal.Width ~ Sepal.Length + Petal.Width))
+fit <-
+  with(data = imputed_Data,
+       exp = lm(Sepal.Width ~ Sepal.Length + Petal.Width))
 
 # Combine results of all 5 models
-combine <- pool(fit)
+combine <- mice::pool(fit)
 summary(combine)
 
 ```

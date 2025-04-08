@@ -196,7 +196,7 @@ This states that the IV estimator recovers the causal effect *only for compliers
 IV only identifies treatment effects for switchers (compliers):
 
 | Switcher Type | Compliance Type | Definition                                                        |
-|------------------|------------------|-----------------------------------|
+|---------------|-----------------|-------------------------------------------------------------------|
 | Switchers     | Compliers       | $D_{1i} > D_{0i}$ (take treatment if $Z_i = 1$, not if $Z_i = 0$) |
 | Non-switchers | Always-Takers   | $D_{1i} = D_{0i} = 1$ (always take treatment)                     |
 | Non-switchers | Never-Takers    | $D_{1i} = D_{0i} = 0$ (never take treatment)                      |
@@ -429,7 +429,7 @@ Then, the IV-GMM estimator simplifies to the standard IV (or 2SLS) estimator.
 Comparison of 2SLS and IV-GMM
 
 | Feature                 | 2SLS                                   | IV-GMM                               |
-|------------------|----------------------------|--------------------------|
+|-------------------------|----------------------------------------|--------------------------------------|
 | Instrument usage        | Uses a subset of available instruments | Uses all available instruments       |
 | Weighting               | No weighting applied                   | Weights instruments for efficiency   |
 | Efficiency              | Suboptimal in overidentified cases     | Efficient when $W = S^{-1}$          |
@@ -1732,7 +1732,9 @@ $$
 \hat{\beta}_{GMM} = \arg \min_{\beta} \left( \frac{1}{n} \sum_{i=1}^n Z_i (Y_i - X_i' \beta) \right)' W \left( \frac{1}{n} \sum_{i=1}^n Z_i (Y_i - X_i' \beta) \right)
 $$
 
-Where $W$ is an optimal weighting matrix, typically: $$
+Where $W$ is an optimal weighting matrix, typically:
+
+$$
 W = \Omega^{-1}
 $$
 
@@ -1744,7 +1746,7 @@ Result
 Summary Table of Conditions
 
 | **Condition**               | **Requirement**                      | **Purpose**                  |
-|----------------------|---------------------------|-----------------------|
+|-----------------------------|--------------------------------------|------------------------------|
 | Instrument Exogeneity       | $\mathbb{E}[Z'u] = 0$                | Instrument validity          |
 | Instrument Relevance        | $\mathrm{rank}(\mathbb{E}[Z'X]) = k$ | Model identification         |
 | Random Sampling             | IID (or stationary and mixing)       | LLN and CLT applicability    |
@@ -1851,7 +1853,7 @@ The divergence between $\hat{t}^2$ and $\hat{t}^2_{AR}$ depends on:
 ------------------------------------------------------------------------
 
 | Scenario          | Conditions                                                       | Inference Quality                                                        |
-|------------------|--------------------------|----------------------------|
+|-------------------|------------------------------------------------------------------|--------------------------------------------------------------------------|
 | Worst Case        | $\pi = 0$, $|\rho| = 1$                                          | $\hat{\beta} \pm 1.96 \times SE$ fails; Type I error = 100%              |
 | Best Case         | $\rho = 0$ (No endogeneity) or very large $\hat{f}$ (strong $Z$) | Standard inference works; intervals cover $\beta$ with correct rate      |
 | Intermediate Case | Moderate $\pi$, $\rho$, and $F$                                  | Coverage and Type I error lie between extremes; standard inference risky |
@@ -1929,7 +1931,7 @@ Key Properties of the AR Test
     -   Valid inference is possible when combined with heteroskedasticity-robust variance estimators or cluster-robust techniques.
 
 | Setting                            | Validity                                                                  | Reference                                |
-|------------------|----------------------------------|--------------------|
+|------------------------------------|---------------------------------------------------------------------------|------------------------------------------|
 | Non-Normal, Homoskedastic Errors   | Valid without distributional assumptions                                  | [@staiger1997instrumental]               |
 | Heteroskedastic Errors             | Generalized AR test remains valid; robust variance estimation recommended | [@stock2000gmm]                          |
 | Clustered or Autocorrelated Errors | Extensions available using cluster-robust and HAC variance estimators     | [@moreira2019optimal]                    |
@@ -2023,7 +2025,7 @@ The tF procedure is widely applicable in settings where just-identified IV model
 A comparison of the [AR approach](#sec-anderson-rubin-approach) and the [tF procedure](#sec-tf-procedure) can be found in @andrews2019weak.
 
 | Feature                     | Anderson-Rubin                                                 | tF Procedure                                               |
-|-------------------|---------------------------|--------------------------|
+|-----------------------------|----------------------------------------------------------------|------------------------------------------------------------|
 | Robustness to Weak IV       | Yes (valid under weak instruments)                             | Yes (valid under weak instruments)                         |
 | Finite Confidence Intervals | No (interval becomes infinite for $F \le 3.84$)                | Yes (finite intervals for all $F$ values)                  |
 | Interval Length             | Often longer, especially when $F$ is moderate (e.g., $F = 16$) | Typically shorter than AR intervals for $F > 3.84$         |
@@ -2414,7 +2416,7 @@ This screening approach:
 Comparison with AR and tF Procedures:
 
 | Approach          | Bias Reduction             | Coverage     | CI Length (F \> 3.84)                      |
-|------------------|------------------|------------------|-------------------|
+|-------------------|----------------------------|--------------|--------------------------------------------|
 | AK Sign Screening | Halves median bias         | Near-nominal | Finite                                     |
 | AR Test           | No bias (inversion method) | Exact        | Infinite                                   |
 | tF Procedure      | Bias adjusted              | Near-nominal | Longer than AK (especially for moderate F) |
@@ -3029,7 +3031,7 @@ While the KP rk statistic tests for underidentification, it does not directly as
 Comparison: Kleibergen-Paap rk vs Cragg-Donald Statistic
 
 | Feature                       | [Kleibergen-Paap rk Statistic](#sec-kleibergen-paap-rk-statistic) | [Cragg-Donald Statistic](#sec-cragg-donald-test) |
-|------------------|------------------------------|------------------------|
+|-------------------------------|-------------------------------------------------------------------|--------------------------------------------------|
 | Robust to Heteroskedasticity  | Yes                                                               | No                                               |
 | Valid Under Non-i.i.d. Errors | Yes                                                               | No                                               |
 | Underidentification Test      | Yes                                                               | No (tests weak instruments)                      |
@@ -3112,7 +3114,7 @@ Interpretation
 #### Comparison of Weak Instrument Tests
 
 | Test                    | Description                                                   | Use Case                                                                               | Assumptions                |
-|------------------|------------------|-------------------|------------------|
+|-------------------------|---------------------------------------------------------------|----------------------------------------------------------------------------------------|----------------------------|
 | First-Stage F-Statistic | Joint significance of instruments on $X_2$                    | Simple IV models (1 endogenous regressor, 1+ instruments)                              | i.i.d. errors              |
 | Cragg-Donald Wald       | Wald test for multiple instruments and endogenous variables   | Multi-equation IV models                                                               | i.i.d. errors              |
 | Stock-Yogo              | Critical values for bias/size distortion                      | Assess bias and size distortions in 2SLS estimator                                     | i.i.d. errors              |
@@ -3134,16 +3136,128 @@ This is stronger than exclusion restriction and typically requires randomized as
 
 ### Monotonicity Assumption {#sec-monotonicity-assumption}
 
--   For [Local Average Treatment Effects] [@imbens1994identification]
--   There are no defiers: the instrument $Z$ does not cause $X_2$ to increase for some units while decreasing it for others.
+-   Relevant for identifying [Local Average Treatment Effects] [@imbens1994identification]
+-   Assumes there are **no defiers**: the instrument $Z$ does not cause the treatment $X_2$ to increase for some units while decreasing it for others.
 
 $$
 X_2(Z = 1) \ge X_2(Z = 0) \quad \text{for all individuals}
 $$
 
--   Ensures we are identifying a Local Average Treatment Effect for compliers.
+-   Ensures we are identifying a [Local Average Treatment Effect] (LATE) for the group of **compliers**---individuals whose treatment status responds to the instrument.
 
-This is particularly relevant in binary instruments and treatment effect heterogeneity contexts.
+This assumption is particularly important in empirical applications involving binary instruments and heterogeneous treatment effects.
+
+In business settings, instruments often arise from policy changes, eligibility cutoffs, or randomized marketing campaigns. For instance:
+
+-   A firm rolls out a new loyalty program ($Z = 1$) in selected regions to encourage purchases ($X_2$). The monotonicity assumption implies that no customer *reduces* their purchases because of the program---it only increases or leaves them unchanged.
+
+This assumption rules out defiers---individuals who respond to the instrument in the opposite direction---which would otherwise bias the IV estimate by introducing effects not attributable to compliers. Violations of monotonicity make the IV estimate difficult to interpret, as it may average over both compliers and defiers, yielding a non-causal or ambiguous LATE.
+
+While monotonicity is an assumption about unobserved counterfactuals and thus not directly testable, several empirical strategies can provide suggestive evidence:
+
+1.  First-Stage Regression
+
+Estimate the impact of the instrument on the treatment. A strong, consistent sign across subgroups supports monotonicity.
+
+
+``` r
+set.seed(123)
+
+# Sample size
+n <- 1000
+
+# Generate instrument (Z), treatment (D), and outcome (Y)
+Z <- rbinom(n, 1, 0.5)  # Binary instrument (e.g., policy change)
+U <- rnorm(n)           # Unobserved confounder
+D <- 0.8 * Z + 0.3 * U + rnorm(n)  # Treatment variable
+Y <- 2 * D + 0.5 * U + rnorm(n)    # Outcome variable
+
+# Create a data frame
+df <- data.frame(Z, D, Y)
+
+# First-stage regression
+first_stage <- lm(D ~ Z, data = df)
+summary(first_stage)
+#> 
+#> Call:
+#> lm(formula = D ~ Z, data = df)
+#> 
+#> Residuals:
+#>     Min      1Q  Median      3Q     Max 
+#> -3.2277 -0.7054  0.0105  0.7047  3.3846 
+#> 
+#> Coefficients:
+#>             Estimate Std. Error t value Pr(>|t|)    
+#> (Intercept)  0.02910    0.04651   0.626    0.532    
+#> Z            0.74286    0.06623  11.216   <2e-16 ***
+#> ---
+#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#> 
+#> Residual standard error: 1.047 on 998 degrees of freedom
+#> Multiple R-squared:  0.1119,	Adjusted R-squared:  0.111 
+#> F-statistic: 125.8 on 1 and 998 DF,  p-value: < 2.2e-16
+
+# Check F-statistic
+fs_f_stat <- summary(first_stage)$fstatistic[1]
+fs_f_stat
+#>    value 
+#> 125.7911
+```
+
+-   A positive and significant coefficient on $Z$ supports a monotonic relationship.
+
+-   If the coefficient is near zero or flips sign in subgroups, this may signal violations.
+
+2.  Density Plot of First-Stage Residuals
+
+
+``` r
+# Extract residuals
+residuals_first_stage <- residuals(first_stage)
+
+# Plot density
+library(ggplot2)
+ggplot(data.frame(residuals = residuals_first_stage),
+       aes(x = residuals)) +
+    geom_density(fill = "blue", alpha = 0.5) +
+    ggtitle("Density of First-Stage Residuals") +
+    xlab("Residuals from First-Stage Regression") +
+    ylab("Density") +
+    causalverse::ama_theme()
+```
+
+<img src="34-instrumental_var_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
+
+-   A unimodal residual distribution supports monotonicity.
+
+-   A bimodal or heavily skewed pattern could suggest a mixture of compliers and defiers.
+
+3.  Subgroup Analysis
+
+Split the sample into subgroups (e.g., by market segment or region) and compare the first-stage coefficients.
+
+
+``` r
+# Create two random subgroups
+df$subgroup <- ifelse(runif(n) > 0.5, "Group A", "Group B")
+
+# First-stage regression in subgroups
+first_stage_A <- lm(D ~ Z, data = df[df$subgroup == "Group A", ])
+first_stage_B <- lm(D ~ Z, data = df[df$subgroup == "Group B", ])
+
+# Compare coefficients
+coef_A <- coef(first_stage_A)["Z"]
+coef_B <- coef(first_stage_B)["Z"]
+
+cat("First-stage coefficient for Group A:", coef_A, "\n")
+#> First-stage coefficient for Group A: 0.6645617
+cat("First-stage coefficient for Group B:", coef_B, "\n")
+#> First-stage coefficient for Group B: 0.8256711
+```
+
+-   If both groups show a coefficient with the same sign, this supports monotonicity.
+
+-   Opposing signs raise concerns that some individuals may respond *against* the instrument.
 
 ------------------------------------------------------------------------
 
@@ -3515,7 +3629,7 @@ Contextual Evaluation Is Key
 Summary Table: Common Misinterpretations vs. Reality
 
 | **Common Misinterpretation**                                 | **Correct Understanding**                                                                                                           |
-|-------------------------|-----------------------------------------------|
+|--------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
 | "The J-test proves my instruments are valid."                | Failing to reject does *not* prove validity; it only means no evidence *against* validity was found.                                |
 | "A high p-value shows strong evidence of validity."          | A high p-value shows no evidence *against* validity, possibly due to low power or other limitations.                                |
 | "Rejecting the J-test means I know which instrument is bad." | Rejection only indicates a problem. It doesn't pinpoint which instrument or whether the issue is broader model misspecification.    |
@@ -4175,4 +4289,3 @@ Steps to Estimate Proportional LATE:
 #### Bounds on Intensive-Margin Effects
 
 @lee2009training proposed a bounding approach for intensive-margin effects, assuming that compliers always have positive outcomes regardless of treatment (i.e., intensive-margin effect). These bounds help estimate treatment effects without relying on log transformations. However, this requires a monotonicity assumption for compliers where they should still have positive outcome regardless of treatment status.
-

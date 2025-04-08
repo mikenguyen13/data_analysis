@@ -89,6 +89,38 @@ While the replication standard is fundamental to scientific integrity, certain c
 
 -   Robustness checks: Both human and AI-assisted teams were significantly better than AI-led teams in proposing (25 percentage points, p = 0.017) and implementing (33 percentage points, p = 0.005) comprehensive robustness checks.
 
+@huntington2025sources uses a three-stage many-analysts design to examine how researcher decisions influence variation in treatment effect estimates.
+
+-    146 research teams completed the same causal inference task three times under increasingly standardized conditions:
+
+    -    **Stage 1:** Few constraints (free-form analysis).
+
+    -    **Stage 2:** Prescribed research design.
+
+    -    **Stage 3:** Prescribed design plus pre-cleaned data.
+
+```{=html}
+<!-- -->
+```
+-    **Key findings:**
+
+    -    **Stage 1:** High variation in reported effects (IQR = 3.1 percentage points), with outliers.
+
+    -    **Stage 2:** Even greater variation (IQR = 4.0), due to imperfect protocol adherence.
+
+    -    **Stage 3:** Lowest variation (IQR = 2.4), suggesting data cleaning substantially reduces result heterogeneity.
+
+```{=html}
+<!-- -->
+```
+-    **Sample size convergence:**
+
+    -   IQR dropped from 295,187 (Stage 1) to 29,144 (Stage 2), and was effectively zero in Stage 3.
+
+    The results highlight the **critical role of data cleaning** in applied microeconomics and suggest **new directions for replication research**.
+
+------------------------------------------------------------------------
+
 ## Synthetic Data
 
 Synthetic data, which models real data while ensuring anonymity, is becoming an essential tool in research. By generating artificial datasets that retain key statistical properties of the original data, researchers can **preserve privacy, enhance data accessibility, and facilitate replication**. However, synthetic data also introduces complexities and should be used with caution.
@@ -158,7 +190,6 @@ In cases where **data cannot be exported** due to security, privacy, or propriet
 -   **Synthetic Data Generation with Preserved Properties**
     -   Use models trained on the secure dataset to produce synthetic data without directly copying real observations.
     -   Ensure that key statistical relationships are maintained, even if individual values differ.
-
 
 ## Application
 
@@ -589,7 +620,6 @@ chart.Correlation(df_synth[, c("X1_synth", "X2_synth", "X3_synth", "X4_synth")],
 
 -   **Privacy Considerations**: Even if data is synthetic, do check that it doesn't inadvertently leak private information (e.g., via memorizing outliers). Techniques like **differential privacy** or **post-hoc checks** might be required.
 
-
 ### Restricted Dataset
 
 1.  **Generate the "Original" Complex Dataset**
@@ -935,7 +965,6 @@ long_df <- long_df[, c("Time", "Group", "Value")]
 head(long_df)
 ```
 
-
 5.  **Evaluate & Compare**
 
 In reality, you might do this comparison inside the partner's environment to confirm your synthetic data is a close match. For demonstration, we'll just compare directly here.
@@ -1006,7 +1035,6 @@ chart.Correlation(df_synth[, c("X1","X2","X3","X4")],
 ```
 
 <img src="43-rep_synthetic_data_files/figure-html/unnamed-chunk-19-2.png" width="90%" style="display: block; margin: auto;" />
-
 
 ### Synthpop
 

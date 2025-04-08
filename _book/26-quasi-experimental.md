@@ -165,7 +165,7 @@ However, if SUTVA is violated, standard causal inference methods may fail. Commo
 Violating SUTVA introduces significant challenges in causal inference, leading to:
 
 |                                |                                                                                                                                    |
-|--------------------------------|------------------------------------------------------------------------------------------------------------------------------------|
+|-----------------|-------------------------------------------------------|
 | Issue                          | Consequence                                                                                                                        |
 | **Bias in Estimators**         | If interference is ignored, treatment effects may be over- or underestimated.                                                      |
 | **Incorrect Standard Errors**  | Standard errors may be **underestimated** (if spillovers are ignored) or **overestimated** (if hidden treatment variations exist). |
@@ -376,6 +376,8 @@ This condition ensures that for every possible value of $X_i$, there is a **nonz
 
 When overlap is limited, the [Average Treatment Effect] may not be identifiable. In some cases, the [Average Treatment Effect on the Treated] remains identifiable, but extreme violations of overlap can make even ATT estimation problematic. An alternative estimand, the Average Treatment Effect for the Overlap Population (ATO), may be used instead, focusing on a subpopulation where treatment assignment is not deterministic [@li2018balancing].
 
+While the ATO offers a practical solution in the presence of limited overlap, researchers may still prefer more conventional estimands like the ATT for interpretability and policy relevance. In such cases, **balancing weights** present a valuable alternative to inverse probability weights. Unlike Inverse Probability Weighting, which can yield extreme weights under poor overlap, balancing weights directly address covariate imbalance during the estimation process. @ben2023using demonstrate that balancing weights can recover the ATT even when inverse probability weighting fails due to limited overlap. Although overlap weights remain an important tool for reducing bias, balancing weights enable researchers to target familiar causal estimands like the ATT, offering a compelling compromise between statistical robustness and interpretability.
+
 ------------------------------------------------------------------------
 
 The overlap assumption prevents cases where treatment assignment is deterministic, ensuring that:
@@ -398,7 +400,7 @@ If some subpopulations always receive treatment ($P(Z_i = 1 \mid X_i) = 1$) or n
 When the overlap assumption is violated, identifying causal effects becomes challenging. Key implications include:
 
 | **Issue**                                        | **Consequence**                                                                         |
-|--------------------------------------------------|-----------------------------------------------------------------------------------------|
+|--------------------------|----------------------------------------------|
 | **Limited Generalizability of ATE**              | ATE cannot be estimated if there is poor overlap in covariate distributions.            |
 | **ATT May Still Be Identifiable**                | ATT can be estimated if some overlap exists, but it is restricted to the treated group. |
 | **Severe Violations Can Prevent ATT Estimation** | If there is no overlap, even ATT is not identifiable.                                   |
@@ -766,7 +768,7 @@ To illustrate this, I will generate a visual spectrum positioning common quasi-e
 -   May be employed when experimental or quasi-experimental designs are not feasible.
 
 | **Aspect**      | **Design-Based**                           | **Model-Based**                    |
-|-----------------|--------------------------------------------|------------------------------------|
+|-----------------|-------------------------------|-------------------------|
 | **Approach**    | Relies on study design                     | Relies on statistical models       |
 | **Assumptions** | Fewer, often intuitive (e.g., cutoff)      | Stronger, often less testable      |
 | **Examples**    | RCTs, natural experiments, RD, DiD         | Structural models, PSM             |
@@ -790,7 +792,7 @@ These methods are particularly useful when:
 -   Quasi-random variation exists (e.g., firms, consumers, or individuals are assigned treatment based on factors outside their control).
 
 | **Method**                   | **Key Concept**                                    | **Assumptions**                                                        | **Example (Marketing & Economics)**                                     |
-|------------------------------|----------------------------------------------------|------------------------------------------------------------------------|-------------------------------------------------------------------------|
+|----------------|----------------|--------------------|---------------------|
 | **Regression Discontinuity** | Units near a threshold are **as good as random**.  | No precise control over cutoff; outcomes continuous.                   | Loyalty program tiers, minimum wage effects.                            |
 | **Synthetic Control**        | Constructs a weighted synthetic counterfactual.    | Pre-treatment trends must match; no confounding post-treatment shocks. | National ad campaign impact, tax cut effects.                           |
 | **Event Studies**            | Measures how an event changes outcomes over time.  | Parallel pre-trends; no anticipatory effects.                          | Black Friday sales, stock price reactions.                              |
@@ -832,7 +834,7 @@ Unlike other quasi-experimental designs that leverage external assignment mechan
 **Key Model-Based Methods in Causal Inference**
 
 | **Method**                                             | **Key Concept**                                                                | **Assumptions**                                                       | **Example (Marketing & Economics)**                                                      |
-|--------------------------------------------------------|--------------------------------------------------------------------------------|-----------------------------------------------------------------------|------------------------------------------------------------------------------------------|
+|-----------------|------------------|-----------------|--------------------|
 | **Propensity Score Matching (PSM) / Weighting**        | Uses estimated probabilities of treatment to create comparable groups.         | Treatment assignment is modeled correctly; no unmeasured confounding. | Job training programs (matching participants to non-participants); Ad campaign exposure. |
 | **Structural Causal Models (SCMs) / DAGs**             | Specifies causal relationships using directed acyclic graphs (DAGs).           | Correct causal structure; no omitted paths.                           | Customer churn prediction; Impact of pricing on sales.                                   |
 | **Covariate Adjustment (Regression-Based Approaches)** | Uses regression to control for confounding variables.                          | Linear or nonlinear functional forms are correctly specified.         | Estimating the impact of online ads on revenue.                                          |
@@ -947,7 +949,7 @@ Hence, *the key question for each method is:*
 Most real-world applications lie somewhere in the middle, combining aspects of both approaches.
 
 | **Feature**                            | **Design-Based Perspective**                                      | **Model-Based Perspective**                             |
-|----------------------------------------|-------------------------------------------------------------------|---------------------------------------------------------|
+|------------------|-----------------------------|-------------------------|
 | **Causal Identification**              | Based on external design (e.g., policy, cutoff, exogenous event). | Based on statistical modeling of treatment assignment.  |
 | **Reliance on Exogeneity**             | Yes, due to natural variation in treatment assignment.            | No, relies on observed data adjustments.                |
 | **Control for Confounders**            | Partially through design (e.g., RD exploits cutoffs).             | Entirely through covariate control.                     |

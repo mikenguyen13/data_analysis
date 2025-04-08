@@ -255,6 +255,32 @@
 <li><p>AI-assisted teams detected 0.4 more errors per team than AI-led teams (p = 0.029) but still fewer than human teams.</p></li>
 <li><p>Robustness checks: Both human and AI-assisted teams were significantly better than AI-led teams in proposing (25 percentage points, p = 0.017) and implementing (33 percentage points, p = 0.005) comprehensive robustness checks.</p></li>
 </ul>
+<p><span class="citation">Huntington-Klein et al. (<a href="references.html#ref-huntington2025sources">2025</a>)</span> uses a three-stage many-analysts design to examine how researcher decisions influence variation in treatment effect estimates.</p>
+<ul>
+<li>146 research teams completed the same causal inference task three times under increasingly standardized conditions:</li>
+</ul>
+<pre><code>-    **Stage 1:** Few constraints (free-form analysis).
+
+-    **Stage 2:** Prescribed research design.
+
+-    **Stage 3:** Prescribed design plus pre-cleaned data.</code></pre>
+<!-- -->
+<ul>
+<li><strong>Key findings:</strong></li>
+</ul>
+<pre><code>-    **Stage 1:** High variation in reported effects (IQR = 3.1 percentage points), with outliers.
+
+-    **Stage 2:** Even greater variation (IQR = 4.0), due to imperfect protocol adherence.
+
+-    **Stage 3:** Lowest variation (IQR = 2.4), suggesting data cleaning substantially reduces result heterogeneity.</code></pre>
+<!-- -->
+<ul>
+<li><strong>Sample size convergence:</strong></li>
+</ul>
+<pre><code>-   IQR dropped from 295,187 (Stage 1) to 29,144 (Stage 2), and was effectively zero in Stage 3.
+
+The results highlight the **critical role of data cleaning** in applied microeconomics and suggest **new directions for replication research**.</code></pre>
+<hr>
 </div>
 </div>
 <div id="synthetic-data" class="section level2" number="43.2">
@@ -409,7 +435,7 @@
 <ol style="list-style-type: decimal">
 <li>Import libraries</li>
 </ol>
-<div class="sourceCode" id="cb1075"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1093"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://copula.r-forge.r-project.org/">copula</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.r-project.org">moments</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/braverock/PerformanceAnalytics">PerformanceAnalytics</a></span><span class="op">)</span>  <span class="co"># For correlation plots</span></span>
@@ -432,7 +458,7 @@
 <li><p>Nonlinear cross-relationships among X1–X4</p></li>
 </ul>
 <p>This gives us a total of <span class="math inline">\(3 \times 50 \times 20=3000\)</span> rows in the “original” dataset.</p>
-<div class="sourceCode" id="cb1076"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1094"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>  <span class="co"># For reproducibility</span></span>
 <span></span>
 <span><span class="va">G</span> <span class="op">&lt;-</span> <span class="fl">3</span>    <span class="co"># Number of groups</span></span>
@@ -499,7 +525,7 @@
 </ol>
 <p>Let’s do some <strong>descriptive statistics</strong> and look at the <strong>correlations</strong> among X1–X4.<br>
 Because we have repeated measures (time series) nested in units and groups, these correlations are “pooled” across all rows. This is a simplification, but it will let us demonstrate how to do a copula-based synthetic approach.</p>
-<div class="sourceCode" id="cb1077"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1095"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Descriptive stats (overall)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">df_original</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"X1"</span>, <span class="st">"X2"</span>, <span class="st">"X3"</span>, <span class="st">"X4"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;        X1                X2                 X3                X4         </span></span>
@@ -546,7 +572,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <li><p>Re-sample <code>group</code> and <code>time</code> from their original distributions (like “bootstrapping”).</p></li>
 <li><p>Use a <strong>multivariate copula</strong> only for <code>X1–X4</code>.</p></li>
 </ol>
-<div class="sourceCode" id="cb1078"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1096"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Extract the numeric columns we want to transform</span></span>
 <span><span class="va">original_data</span> <span class="op">&lt;-</span> <span class="va">df_original</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"X1"</span>,<span class="st">"X2"</span>,<span class="st">"X3"</span>,<span class="st">"X4"</span><span class="op">)</span><span class="op">]</span></span>
 <span></span>
@@ -562,7 +588,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <li>Fit a Copula Model</li>
 </ol>
 <p>We’ll fit a <strong>Gaussian copula</strong> (you could try <strong>t-copula</strong> or <strong>vine copulas</strong> for heavier tails or more complex dependencies). We use maximum likelihood estimation:</p>
-<div class="sourceCode" id="cb1079"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1097"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Define an unstructured Gaussian copula</span></span>
 <span><span class="va">gaussCop</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/copula/man/ellipCopula.html">normalCopula</a></span><span class="op">(</span>dim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/nrow.html">ncol</a></span><span class="op">(</span><span class="va">u_data</span><span class="op">)</span>, dispstr <span class="op">=</span> <span class="st">"un"</span><span class="op">)</span></span>
 <span></span>
@@ -599,7 +625,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 </ol>
 </li>
 </ul>
-<div class="sourceCode" id="cb1080"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1098"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">n_synth</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df_original</span><span class="op">)</span>  <span class="co"># same size as original</span></span>
 <span></span>
 <span><span class="co"># Sample from the copula</span></span>
@@ -635,7 +661,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <li><p><strong>Re-sample “time”</strong> from the original distribution or replicate the same time points.</p></li>
 </ul>
 <p>Below, we do a simplistic approach: for each row, pick a random row from the original data to copy <code>group</code>, <code>unit</code>, and <code>time</code>. This preserves the real distribution of group/time pairs and the frequency of each unit. (But it does <strong>not</strong> preserve the original time-series ordering or autoregressive structure!)</p>
-<div class="sourceCode" id="cb1081"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1099"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">indices</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/sample.html">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/nrow.html">nrow</a></span><span class="op">(</span><span class="va">df_original</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>           size <span class="op">=</span> <span class="va">n_synth</span>,</span>
@@ -660,7 +686,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <ul>
 <li>Compare Descriptive Statistics</li>
 </ul>
-<div class="sourceCode" id="cb1082"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1100"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Original</span></span>
 <span><span class="va">orig_means</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Matrix/man/colSums-methods.html">colMeans</a></span><span class="op">(</span><span class="va">df_original</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"X1"</span>, <span class="st">"X2"</span>, <span class="st">"X3"</span>, <span class="st">"X4"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">orig_sds</span>    <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html">apply</a></span><span class="op">(</span><span class="va">df_original</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"X1"</span>, <span class="st">"X2"</span>, <span class="st">"X3"</span>, <span class="st">"X4"</span><span class="op">)</span><span class="op">]</span>, <span class="fl">2</span>, <span class="va">sd</span><span class="op">)</span></span>
@@ -725,7 +751,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <ul>
 <li>Compare Correlation Matrices</li>
 </ul>
-<div class="sourceCode" id="cb1083"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1101"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html">cat</a></span><span class="op">(</span><span class="st">"Original correlation:\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Original correlation:</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Round.html">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/cor.html">cor</a></span><span class="op">(</span><span class="va">df_original</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"X1"</span>, <span class="st">"X2"</span>, <span class="st">"X3"</span>, <span class="st">"X4"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span></span>
@@ -747,7 +773,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <ul>
 <li>Visual Comparison of Distributions</li>
 </ul>
-<div class="sourceCode" id="cb1084"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1102"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">vars</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"X1"</span>, <span class="st">"X2"</span>, <span class="st">"X3"</span>, <span class="st">"X4"</span><span class="op">)</span></span>
 <span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq_along</a></span><span class="op">(</span><span class="va">vars</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
@@ -776,7 +802,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <ul>
 <li>Correlation Plot for Synthetic Data</li>
 </ul>
-<div class="sourceCode" id="cb1085"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1103"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/PerformanceAnalytics/man/chart.Correlation.html">chart.Correlation</a></span><span class="op">(</span><span class="va">df_synth</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"X1_synth"</span>, <span class="st">"X2_synth"</span>, <span class="st">"X3_synth"</span>, <span class="st">"X4_synth"</span><span class="op">)</span><span class="op">]</span>,</span>
 <span>                  histogram <span class="op">=</span> <span class="cn">TRUE</span>, pch <span class="op">=</span> <span class="fl">19</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="43-rep_synthetic_data_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;"></div>
@@ -814,7 +840,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <li><p><span class="math inline">\(T = 20\)</span> time points per unit</p></li>
 <li><p>Nonlinear relationships between <code>X1</code>, <code>X2</code>, <code>X3</code>, <code>X4</code>.</p></li>
 </ul>
-<div class="sourceCode" id="cb1086"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1104"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Step 1: Generate "df_original" (what the partner owns internally)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span>  <span class="co"># For reproducibility</span></span>
 <span></span>
@@ -891,7 +917,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <li><p>Any other relevant stats (min, max, skewness, kurtosis, etc.) you might use</p></li>
 </ul>
 <p>Below, we’ll do that <em>directly</em> in code—<strong>but in reality</strong>, you would just write these numbers down or save them in a doc, not export the raw data.</p>
-<div class="sourceCode" id="cb1087"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1105"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Step 2: Summaries from "df_original" (pretend we can't take the actual df out)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></span>
 <span></span>
@@ -948,7 +974,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 </ul>
 <p><strong>Simulating What We “Take Out”</strong></p>
 <p>Pretend these are the <strong>only</strong> data you’re allowed to copy into your local machine:</p>
-<div class="sourceCode" id="cb1088"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1106"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># (Pretend these are typed or copy-pasted from the secure environment)</span></span>
 <span></span>
 <span><span class="co"># Means and SDs:</span></span>
@@ -975,7 +1001,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <li><p>Basic knowledge: 3 groups, 50 units each, 20 time points each (or however the real data is structured)</p></li>
 </ul>
 <p>Build the covariance <span class="math inline">\(\Sigma\)</span> from the correlation matrix and SDs:</p>
-<div class="sourceCode" id="cb1089"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1107"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Step 3: Covariance matrix = diag(SDs) %*% R %*% diag(SDs)</span></span>
 <span><span class="va">Sigma</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/diag.html">diag</a></span><span class="op">(</span><span class="va">sds</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html">%*%</a></span> <span class="va">R</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html">%*%</a></span> <span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/diag.html">diag</a></span><span class="op">(</span><span class="va">sds</span><span class="op">)</span></span>
 <span><span class="va">Sigma</span></span>
@@ -991,7 +1017,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <blockquote>
 <p>In practice, you might want to add back random intercepts for groups or time trends if your manual stats include that. However, if all you have are overall means, SDs, and a correlation matrix, the simplest approach is to assume a single global distribution for X1–X4.</p>
 </blockquote>
-<div class="sourceCode" id="cb1090"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1108"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.stats.ox.ac.uk/pub/MASS4/">MASS</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">999</span><span class="op">)</span>  <span class="co"># Synthetic data seed (different from original)</span></span>
@@ -1029,7 +1055,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <span><span class="co">#&gt; 6     1 G1_U1    6 -2.70087059 13.626038 1.959473 2.6224373</span></span></code></pre></div>
 <p>At this point, <code>df_synth</code> is a dataset that has the same shape (3 groups × 50 units × 20 time points = 3000 rows) and is drawn from the same approximate distribution (matching the partner’s means, SDs, correlation matrix).</p>
 <p>Alternatively, if the goal is to capture even skewness and kurtosis, it’s a bit more complex.</p>
-<div class="sourceCode" id="cb1091"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1109"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load required libraries</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.stats.ox.ac.uk/pub/MASS4/">MASS</a></span><span class="op">)</span>   <span class="co"># For multivariate normal correlation structure</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://azzalini.stat.unipd.it/SN/">sn</a></span><span class="op">)</span>     <span class="co"># For skewed normal distribution</span></span>
@@ -1117,7 +1143,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <li><strong>Evaluate &amp; Compare</strong></li>
 </ol>
 <p>In reality, you might do this comparison inside the partner’s environment to confirm your synthetic data is a close match. For demonstration, we’ll just compare directly here.</p>
-<div class="sourceCode" id="cb1092"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1110"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Step 5: Evaluate</span></span>
 <span></span>
 <span><span class="co"># A) Check Means &amp; SDs</span></span>
@@ -1158,7 +1184,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <span><span class="co">#&gt; X3  0.402  0.114  1.000 -0.376</span></span>
 <span><span class="co">#&gt; X4 -0.704  0.756 -0.376  1.000</span></span></code></pre></div>
 <p>You should see that the synthetic dataset’s means, SDs, and correlation matrix are <strong>very close</strong> to the manually collected values from <code>df_original</code>.</p>
-<div class="sourceCode" id="cb1093"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1111"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Histograms or density plots</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/par.html">par</a></span><span class="op">(</span>mfrow <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">2</span>,<span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html">hist</a></span><span class="op">(</span><span class="va">df_synth</span><span class="op">$</span><span class="va">X1</span>, main<span class="op">=</span><span class="st">"X1 Synthetic"</span>, col<span class="op">=</span><span class="st">"lightblue"</span>, breaks<span class="op">=</span><span class="fl">30</span><span class="op">)</span></span>
@@ -1166,7 +1192,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html">hist</a></span><span class="op">(</span><span class="va">df_synth</span><span class="op">$</span><span class="va">X3</span>, main<span class="op">=</span><span class="st">"X3 Synthetic"</span>, col<span class="op">=</span><span class="st">"lightblue"</span>, breaks<span class="op">=</span><span class="fl">30</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html">hist</a></span><span class="op">(</span><span class="va">df_synth</span><span class="op">$</span><span class="va">X4</span>, main<span class="op">=</span><span class="st">"X4 Synthetic"</span>, col<span class="op">=</span><span class="st">"lightblue"</span>, breaks<span class="op">=</span><span class="fl">30</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="43-rep_synthetic_data_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1094"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1112"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Pairwise correlation scatterplots</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/braverock/PerformanceAnalytics">PerformanceAnalytics</a></span><span class="op">)</span></span>
@@ -1179,7 +1205,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <span class="header-section-number">43.3.3</span> Synthpop<a class="anchor" aria-label="anchor" href="#synthpop"><i class="fas fa-link"></i></a>
 </h3>
 <p>The easiest way to create synthetic data is to use the <code>synthpop</code> package.</p>
-<div class="sourceCode" id="cb1095"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1113"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">synthpop</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://easystats.github.io/performance/">performance</a></span><span class="op">)</span></span>
@@ -1246,16 +1272,16 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <span>                  label <span class="op">=</span> <span class="st">"FAKE_DATA"</span>,</span>
 <span>                  rm.replicated.uniques <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span>
 <span><span class="co">#&gt; no. of replicated uniques removed: 17</span></span></code></pre></div>
-<div class="sourceCode" id="cb1096"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1114"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">iris</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu">GGally</span><span class="fu">::</span><span class="fu"><a href="https://ggobi.github.io/ggally/reference/ggpairs.html">ggpairs</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="43-rep_synthetic_data_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1097"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1115"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">syn_df</span><span class="op">$</span><span class="va">syn</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="fu">GGally</span><span class="fu">::</span><span class="fu"><a href="https://ggobi.github.io/ggally/reference/ggpairs.html">ggpairs</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="43-rep_synthetic_data_files/figure-html/unnamed-chunk-21-2.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1098"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1116"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lm_ori</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">Sepal.Length</span> <span class="op">~</span> <span class="va">Sepal.Width</span> <span class="op">+</span> <span class="va">Petal.Length</span> , data <span class="op">=</span> <span class="va">iris</span><span class="op">)</span></span>
 <span><span class="co"># performance::check_model(lm_ori)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">lm_ori</span><span class="op">)</span></span>
@@ -1307,10 +1333,10 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <li><p><strong>Specific Utility</strong>: This focuses on the comparability of models derived from synthetic and original datasets, emphasizing analytical reproducibility.</p></li>
 </ol>
 <p>For General utility</p>
-<div class="sourceCode" id="cb1099"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1117"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/synthpop/man/compare.html">compare</a></span><span class="op">(</span><span class="va">syn_df</span>, <span class="va">iris</span><span class="op">)</span></span></code></pre></div>
 <p>Specific utility</p>
-<div class="sourceCode" id="cb1100"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1118"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># just like regular lm, but for synthetic data</span></span>
 <span><span class="va">lm_syn</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/synthpop/man/glm.synds.html">lm.synds</a></span><span class="op">(</span><span class="va">Sepal.Length</span> <span class="op">~</span> <span class="va">Sepal.Width</span> <span class="op">+</span> <span class="va">Petal.Length</span> , data <span class="op">=</span> <span class="va">syn_df</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/synthpop/man/compare.html">compare</a></span><span class="op">(</span><span class="va">lm_syn</span>, <span class="va">iris</span><span class="op">)</span></span>
@@ -1335,7 +1361,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Confidence interval plot:</span></span></code></pre></div>
 <div class="inline-figure"><img src="43-rep_synthetic_data_files/figure-html/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb1101"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb1119"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># summary(lm_syn)</span></span></code></pre></div>
 <p>You basically want your lack-of-fit test to be non-significant.</p>
@@ -1390,7 +1416,7 @@ Because we have repeated measures (time series) nested in units and groups, thes
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-03-28.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-04-07.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">
