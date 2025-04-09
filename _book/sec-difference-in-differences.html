@@ -340,6 +340,119 @@ E[Y_1(1) - Y_0(1) | D = 1] &amp;= \{E[Y(1)|D = 1] - E[Y(1)|D = 0] \} \\
 <li>If the control group would have experienced a different trajectory, the DID estimate may be biased.</li>
 <li>Since we cannot observe treatment variation in the control group, we cannot infer the treatment effect for this group.</li>
 </ul>
+<div class="sourceCode" id="cb758"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Load required libraries</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org">dplyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Simulated dataset for illustration</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>  time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,  <span class="co"># Pre (0) and Post (1)</span></span>
+<span>  treated <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>, times <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>, <span class="co"># Control (0) and Treated (1)</span></span>
+<span>  error <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Generate outcome variable</span></span>
+<span><span class="va">data</span><span class="op">$</span><span class="va">outcome</span> <span class="op">&lt;-</span> <span class="fl">5</span> <span class="op">+</span> <span class="fl">3</span> <span class="op">*</span> <span class="va">data</span><span class="op">$</span><span class="va">treated</span> <span class="op">+</span> <span class="fl">2</span> <span class="op">*</span> <span class="va">data</span><span class="op">$</span><span class="va">time</span> <span class="op">+</span> <span class="fl">4</span> <span class="op">*</span> <span class="va">data</span><span class="op">$</span><span class="va">treated</span> <span class="op">*</span> <span class="va">data</span><span class="op">$</span><span class="va">time</span> <span class="op">+</span> <span class="va">data</span><span class="op">$</span><span class="va">error</span></span>
+<span></span>
+<span><span class="co"># Compute averages for 2x2 table</span></span>
+<span><span class="va">table_means</span> <span class="op">&lt;-</span> <span class="va">data</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">group_by</a></span><span class="op">(</span><span class="va">treated</span>, <span class="va">time</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html">summarize</a></span><span class="op">(</span>mean_outcome <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/mean.html">mean</a></span><span class="op">(</span><span class="va">outcome</span><span class="op">)</span>, .groups <span class="op">=</span> <span class="st">"drop"</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span></span>
+<span>    group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">treated</span> <span class="op">==</span> <span class="fl">1</span>, <span class="st">"Treated"</span>, <span class="st">"Control"</span><span class="op">)</span>, <span class="st">", "</span>, </span>
+<span>                   <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">time</span> <span class="op">==</span> <span class="fl">1</span>, <span class="st">"Post"</span>, <span class="st">"Pre"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display the 2x2 table</span></span>
+<span><span class="va">table_2x2</span> <span class="op">&lt;-</span> <span class="va">table_means</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html">select</a></span><span class="op">(</span><span class="va">group</span>, <span class="va">mean_outcome</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu">tidyr</span><span class="fu">::</span><span class="fu"><a href="https://tidyr.tidyverse.org/reference/spread.html">spread</a></span><span class="op">(</span>key <span class="op">=</span> <span class="va">group</span>, value <span class="op">=</span> <span class="va">mean_outcome</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="st">"2x2 Table of Mean Outcomes:"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "2x2 Table of Mean Outcomes:"</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="va">table_2x2</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # A tibble: 1 × 4</span></span>
+<span><span class="co">#&gt;   `Control, Post` `Control, Pre` `Treated, Post` `Treated, Pre`</span></span>
+<span><span class="co">#&gt;             &lt;dbl&gt;          &lt;dbl&gt;           &lt;dbl&gt;          &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1            7.19           5.20            14.0           8.00</span></span>
+<span></span>
+<span><span class="co"># Calculate Diff-in-Diff manually</span></span>
+<span><span class="va">Y11</span> <span class="op">&lt;-</span> <span class="va">table_means</span><span class="op">$</span><span class="va">mean_outcome</span><span class="op">[</span><span class="va">table_means</span><span class="op">$</span><span class="va">group</span> <span class="op">==</span> <span class="st">"Treated, Post"</span><span class="op">]</span>  <span class="co"># Treated, Post</span></span>
+<span><span class="va">Y10</span> <span class="op">&lt;-</span> <span class="va">table_means</span><span class="op">$</span><span class="va">mean_outcome</span><span class="op">[</span><span class="va">table_means</span><span class="op">$</span><span class="va">group</span> <span class="op">==</span> <span class="st">"Treated, Pre"</span><span class="op">]</span>   <span class="co"># Treated, Pre</span></span>
+<span><span class="va">Y01</span> <span class="op">&lt;-</span> <span class="va">table_means</span><span class="op">$</span><span class="va">mean_outcome</span><span class="op">[</span><span class="va">table_means</span><span class="op">$</span><span class="va">group</span> <span class="op">==</span> <span class="st">"Control, Post"</span><span class="op">]</span>  <span class="co"># Control, Post</span></span>
+<span><span class="va">Y00</span> <span class="op">&lt;-</span> <span class="va">table_means</span><span class="op">$</span><span class="va">mean_outcome</span><span class="op">[</span><span class="va">table_means</span><span class="op">$</span><span class="va">group</span> <span class="op">==</span> <span class="st">"Control, Pre"</span><span class="op">]</span>   <span class="co"># Control, Pre</span></span>
+<span></span>
+<span><span class="va">diff_in_diff_formula</span> <span class="op">&lt;-</span> <span class="op">(</span><span class="va">Y11</span> <span class="op">-</span> <span class="va">Y10</span><span class="op">)</span> <span class="op">-</span> <span class="op">(</span><span class="va">Y01</span> <span class="op">-</span> <span class="va">Y00</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Estimate DID using OLS</span></span>
+<span><span class="va">model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html">lm</a></span><span class="op">(</span><span class="va">outcome</span> <span class="op">~</span> <span class="va">treated</span> <span class="op">*</span> <span class="va">time</span>, data <span class="op">=</span> <span class="va">data</span><span class="op">)</span></span>
+<span><span class="va">ols_estimate</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coef</a></span><span class="op">(</span><span class="va">model</span><span class="op">)</span><span class="op">[</span><span class="st">"treated:time"</span><span class="op">]</span></span>
+<span></span>
+<span><span class="co"># Print results</span></span>
+<span><span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span></span>
+<span>  Method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Diff-in-Diff Formula"</span>, <span class="st">"OLS Estimate"</span><span class="op">)</span>,</span>
+<span>  Estimate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">diff_in_diff_formula</span>, <span class="va">ols_estimate</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="st">"Comparison of DID Estimates:"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "Comparison of DID Estimates:"</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="va">results</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                            Method Estimate</span></span>
+<span><span class="co">#&gt;              Diff-in-Diff Formula 4.035895</span></span>
+<span><span class="co">#&gt; treated:time         OLS Estimate 4.035895</span></span>
+<span></span>
+<span><span class="co"># Visualization</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">data</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="va">time</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">outcome</span>, color <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html">as.factor</a></span><span class="op">(</span><span class="va">treated</span><span class="op">)</span>, group <span class="op">=</span> <span class="va">treated</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/stat_summary.html">stat_summary</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">mean</span>, geom <span class="op">=</span> <span class="st">"point"</span>, size <span class="op">=</span> <span class="fl">3</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/stat_summary.html">stat_summary</a></span><span class="op">(</span>fun <span class="op">=</span> <span class="va">mean</span>, geom <span class="op">=</span> <span class="st">"line"</span>, linetype <span class="op">=</span> <span class="st">"dashed"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">labs</a></span><span class="op">(</span></span>
+<span>    title <span class="op">=</span> <span class="st">"Difference-in-Differences Visualization"</span>,</span>
+<span>    x <span class="op">=</span> <span class="st">"Time (0 = Pre, 1 = Post)"</span>,</span>
+<span>    y <span class="op">=</span> <span class="st">"Outcome"</span>,</span>
+<span>    color <span class="op">=</span> <span class="st">"Group"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/scale_manual.html">scale_color_manual</a></span><span class="op">(</span>labels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Control"</span>, <span class="st">"Treated"</span><span class="op">)</span>, values <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"blue"</span>, <span class="st">"red"</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html">theme_minimal</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-table"><table class="table table-sm">
+<thead><tr class="header">
+<th></th>
+<th>Control (0)</th>
+<th>Treated (1)</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><strong>Pre (0)</strong></td>
+<td><span class="math inline">\(\bar{Y}_{00} = 5\)</span></td>
+<td><span class="math inline">\(\bar{Y}_{10} = 8\)</span></td>
+</tr>
+<tr class="even">
+<td><strong>Post (1)</strong></td>
+<td><span class="math inline">\(\bar{Y}_{01} = 7\)</span></td>
+<td><span class="math inline">\(\bar{Y}_{11} = 14\)</span></td>
+</tr>
+</tbody>
+</table></div>
+<p>The table organizes the mean outcomes into four cells:</p>
+<ol style="list-style-type: decimal">
+<li><p>Control Group, Pre-period (<span class="math inline">\(\bar{Y}_{00}\)</span>): Mean outcome for the control group before the intervention.</p></li>
+<li><p>Control Group, Post-period (<span class="math inline">\(\bar{Y}_{01}\)</span>): Mean outcome for the control group after the intervention.</p></li>
+<li><p>Treated Group, Pre-period (<span class="math inline">\(\bar{Y}_{10}\)</span>): Mean outcome for the treated group before the intervention.</p></li>
+<li><p>Treated Group, Post-period (<span class="math inline">\(\bar{Y}_{11}\)</span>): Mean outcome for the treated group after the intervention.</p></li>
+</ol>
+<p>The DID treatment effect calculated from the simple formula of averages is identical to the estimate from an OLS regression with an interaction term.</p>
+<p>The treatment effect is calculated as:</p>
+<p><span class="math inline">\(\text{DID} = (\bar{Y}_{11} - \bar{Y}_{10}) - (\bar{Y}_{01} - \bar{Y}_{00})\)</span></p>
+<p>Compute manually:</p>
+<p><span class="math inline">\((\bar{Y}_{11} - \bar{Y}_{10}) - (\bar{Y}_{01} - \bar{Y}_{00})\)</span></p>
+<p>Use OLS regression:</p>
+<p><span class="math inline">\(Y_{it} = \beta_0 + \beta_1 \text{treated}_i + \beta_2 \text{time}_t + \beta_3 (\text{treated}_i \cdot \text{time}_t) + \epsilon_{it}\)</span></p>
+<p>Using the simulated table:</p>
+<p><span class="math inline">\(\text{DID} = (14 - 8) - (7 - 5) = 6 - 2 = 4\)</span></p>
+<p>This matches the <strong>interaction term coefficient</strong> (<span class="math inline">\(\beta_3 = 4\)</span>) from the OLS regression.</p>
+<p>Both methods give the same result!</p>
 <hr>
 </div>
 <div id="extensions-of-did" class="section level3" number="30.3.2">
@@ -457,7 +570,7 @@ Y &amp;= \alpha_0 + \alpha_1 Group + \alpha_2 Time  \\
 </li>
 </ol>
 <hr>
-<div class="sourceCode" id="cb758"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb759"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span></span>
@@ -499,10 +612,10 @@ Y &amp;= \alpha_0 + \alpha_1 Group + \alpha_2 Time  \\
 <span><span class="co">#&gt; Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span>
 <span></span>
 <span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/coefplot.html">iplot</a></span><span class="op">(</span><span class="va">cali</span>, pt.join <span class="op">=</span> <span class="cn">T</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb759"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb760"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/coefplot.html">coefplot</a></span><span class="op">(</span><span class="va">cali</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-2-2.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-3-2.png" width="90%" style="display: block; margin: auto;"></div>
 </div>
 </div>
 <div id="empirical-research-walkthrough" class="section level2" number="30.4">
@@ -945,7 +1058,7 @@ y_{ut} = \beta \text{Post}_t + \gamma_u + \gamma_w(t) + \gamma_l + \gamma_g(u)p(
 <h3>
 <span class="header-section-number">30.6.1</span> Canonical TWFE Model<a class="anchor" aria-label="anchor" href="#canonical-twfe-model"><i class="fas fa-link"></i></a>
 </h3>
-<p>Following the notation in <span class="citation">(<a href="references.html#ref-arkhangelsky2024design">Arkhangelsky et al. 2024</a>)</span>, the canonical TWFE model is typically written as:</p>
+<p>The canonical TWFE model is typically written as:</p>
 <p><span class="math display">\[
 Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
 \]</span></p>
@@ -959,7 +1072,7 @@ Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
 <li><p><span class="math inline">\(X_{it}\)</span> = Covariates</p></li>
 <li><p><span class="math inline">\(\epsilon_{it}\)</span> = Error term</p></li>
 </ul>
-<p>An illustrative TWFE event-study model (adapted from <span class="citation">(<a href="references.html#ref-stevenson2006bargaining">Stevenson and Wolfers 2006</a>)</span>):</p>
+<p>An illustrative TWFE event-study model <span class="citation">(<a href="references.html#ref-stevenson2006bargaining">Stevenson and Wolfers 2006</a>)</span>:</p>
 <p><span class="math display">\[ \begin{aligned} Y_{it} &amp;= \sum_{k} \beta_{k} \cdot Treatment_{it}^{k} \;+\; \eta_{i} \;+\; \lambda_{t} \;+\; Controls_{it} \;+\; \epsilon_{it}, \end{aligned} \]</span></p>
 <p>where:</p>
 <ul>
@@ -978,8 +1091,7 @@ Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
 <li>The treatment effect is constant across units <span class="citation">(<a href="references.html#ref-goodman2021difference">Goodman-Bacon 2021</a>; <a href="references.html#ref-de2020two">Clément De Chaisemartin and d’Haultfoeuille 2020</a>; <a href="references.html#ref-sun2021estimating">L. Sun and Abraham 2021</a>; <a href="references.html#ref-borusyak2021revisiting">Borusyak, Jaravel, and Spiess 2021</a>)</span>.</li>
 </ul>
 </li>
-<li>
-<strong>Parallel trends</strong> assumption</li>
+<li><a href="sec-difference-in-differences.html#prior-parallel-trends-test">Parallel trends assumption</a></li>
 <li>
 <strong>Linear additive effects</strong> are valid <span class="citation">(<a href="references.html#ref-imai2021use">Imai and Kim 2021</a>)</span>.</li>
 </ol>
@@ -1047,7 +1159,6 @@ Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
 <h3>
 <span class="header-section-number">30.6.2</span> Limitations of TWFE<a class="anchor" aria-label="anchor" href="#limitations-of-twfe"><i class="fas fa-link"></i></a>
 </h3>
-<p>When Do Problems Arise?</p>
 <p>TWFE DiD is <strong>valid only</strong> under strong assumptions that the treatment effect does not vary across units or over time. In reality, we almost always see some form of <strong>treatment heterogeneity</strong>:</p>
 <ul>
 <li>
@@ -1085,9 +1196,9 @@ Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
 <h3>
 <span class="header-section-number">30.6.3</span> Diagnosing and Addressing Bias in TWFE<a class="anchor" aria-label="anchor" href="#diagnosing-and-addressing-bias-in-twfe"><i class="fas fa-link"></i></a>
 </h3>
-<p>Researchers can identify and mitigate the biases arising from heterogeneous treatment effects through <strong>diagnostic checks</strong> and <strong>alternative estimators</strong>:</p>
+<p>Researchers can identify and mitigate the biases arising from heterogeneous treatment effects through diagnostic checks and alternative estimators:</p>
 <ol style="list-style-type: decimal">
-<li>Goodman-Bacon Decomposition</li>
+<li><a href="sec-difference-in-differences.html#sec-goodman-bacon-decomposition">Goodman-Bacon Decomposition</a></li>
 </ol>
 <ul>
 <li>
@@ -1098,7 +1209,7 @@ Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
 <strong>Implementation</strong>: Identify subgroups by treatment timing, then examine each group–time pair to see how it contributes to the aggregate TWFE coefficient.</li>
 </ul>
 <ol start="2" style="list-style-type: decimal">
-<li>Plotting Treatment Timing</li>
+<li><strong>Plotting Treatment Timing</strong></li>
 </ol>
 <ul>
 <li>
@@ -1107,7 +1218,7 @@ Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
 <strong>High Risk of Bias</strong>: If treatment is staggered and many units differ in their adoption times, standard TWFE will often be biased.</li>
 </ul>
 <ol start="3" style="list-style-type: decimal">
-<li>Assessing Treatment Heterogeneity Directly</li>
+<li><strong>Assessing Treatment Heterogeneity Directly</strong></li>
 </ol>
 <ul>
 <li>
@@ -1135,7 +1246,7 @@ Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
 <li>Comparisons between early-treated and later-treated groups can produce <strong>negative weights</strong>, potentially biasing the aggregate TWFE estimate.</li>
 </ul>
 <p>We illustrate the decomposition using the <code>castle</code> dataset from the <code>bacondecomp</code> package:</p>
-<div class="sourceCode" id="cb760"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb761"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">bacondecomp</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span></span>
@@ -1151,7 +1262,7 @@ Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
 <span><span class="co">#&gt; 5   1.749841    0 Alabama 2004</span></span>
 <span><span class="co">#&gt; 6   2.130440    0 Alabama 2005</span></span></code></pre></div>
 <p>Running the Goodman-Bacon Decomposition</p>
-<div class="sourceCode" id="cb761"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb762"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Apply Goodman-Bacon decomposition</span></span>
 <span><span class="va">df_bacon</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/bacondecomp/man/bacon.html">bacon</a></span><span class="op">(</span></span>
 <span>  formula <span class="op">=</span> <span class="va">l_homicide</span> <span class="op">~</span> <span class="va">post</span>,</span>
@@ -1169,7 +1280,7 @@ Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
 <span><span class="va">weighted_avg</span></span>
 <span><span class="co">#&gt; [1] 0.08181162</span></span></code></pre></div>
 <p>Comparing with the TWFE Estimate</p>
-<div class="sourceCode" id="cb762"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb763"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://broom.tidymodels.org/">broom</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Fit a TWFE model</span></span>
@@ -1190,11 +1301,11 @@ Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
 <span><span class="co">#&gt; 10 factor(state)Florida      -0.251     0.0798    -3.14  1.76e-  3</span></span>
 <span><span class="co">#&gt; # ℹ 51 more rows</span></span></code></pre></div>
 <blockquote>
-<p><strong>Interpretation</strong>: The TWFE estimate (approx. 0.08) equals the <strong>weighted average</strong> of the Bacon decomposition estimates, confirming the decomposition’s validity.</p>
+<p><strong>Interpretation</strong>: The TWFE estimate (approx. 0.08) equals the weighted average of the Bacon decomposition estimates, confirming the decomposition’s validity.</p>
 </blockquote>
 <hr>
 <p>Visualizing the Decomposition</p>
-<div class="sourceCode" id="cb763"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb764"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="va">df_bacon</span><span class="op">)</span> <span class="op">+</span></span>
@@ -1210,9 +1321,9 @@ Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
 <span>    color <span class="op">=</span> <span class="st">"Comparison Type"</span></span>
 <span>  <span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/ama_theme.html">ama_theme</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;"></div>
 <blockquote>
-<p><strong>Insight</strong>: This plot shows the contribution of each 2×2 DiD comparison, highlighting how <strong>estimates with large weights dominate</strong> the overall TWFE coefficient.</p>
+<p><strong>Insight</strong>: This plot shows the contribution of each 2×2 DiD comparison, highlighting how estimates with large weights dominate the overall TWFE coefficient.</p>
 </blockquote>
 <hr>
 <p>Interpretation and Practical Implications</p>
@@ -1623,7 +1734,7 @@ Average of <span class="math inline">\(\theta_C(t)\)</span> across all post-trea
 <li><p>Cohort: Weighted by group sizes (i.e., treated cohorts).</p></li>
 <li><p>Calendar: Weighted by the number of observations in each calendar time.</p></li>
 </ul>
-<div class="sourceCode" id="cb764"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb765"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">staggered</span><span class="op">)</span> </span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"base_stagg"</span><span class="op">)</span></span>
@@ -1664,7 +1775,7 @@ Average of <span class="math inline">\(\theta_C(t)\)</span> across all post-trea
 <span><span class="co">#&gt;     estimate        se se_neyman</span></span>
 <span><span class="co">#&gt; 1 -0.5861831 0.1768297 0.1770729</span></span></code></pre></div>
 <p>To visualize treatment dynamics around the time of adoption, the event study specification estimates dynamic treatment effects relative to the time of treatment.</p>
-<div class="sourceCode" id="cb765"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb766"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/staggered/man/staggered.html">staggered</a></span><span class="op">(</span></span>
 <span>    df <span class="op">=</span> <span class="va">base_stagg</span>,</span>
 <span>    i <span class="op">=</span> <span class="st">"id"</span>,</span>
@@ -1692,13 +1803,13 @@ Average of <span class="math inline">\(\theta_C(t)\)</span> across all post-trea
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ylab</a></span><span class="op">(</span><span class="st">"ATT Estimate"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html">ggtitle</a></span><span class="op">(</span><span class="st">"Event Study: Dynamic Treatment Effects"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/ama_theme.html">ama_theme</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p>The <code>staggered</code> package also includes direct implementations of alternative estimators:</p>
 <ul>
 <li><p><code><a href="https://rdrr.io/pkg/staggered/man/staggered_cs.html">staggered_cs()</a></code> implements the <span class="citation">Callaway and Sant’Anna (<a href="references.html#ref-callaway2021difference">2021</a>)</span> estimator.</p></li>
 <li><p><code><a href="https://rdrr.io/pkg/staggered/man/staggered_sa.html">staggered_sa()</a></code> implements the <span class="citation">L. Sun and Abraham (<a href="references.html#ref-sun2021estimating">2021</a>)</span> estimator, which adjusts for bias from comparisons involving already-treated units.</p></li>
 </ul>
-<div class="sourceCode" id="cb766"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb767"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Callaway and Sant’Anna estimator</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/staggered/man/staggered_cs.html">staggered_cs</a></span><span class="op">(</span></span>
 <span>    df <span class="op">=</span> <span class="va">base_stagg</span>,</span>
@@ -1723,7 +1834,7 @@ Average of <span class="math inline">\(\theta_C(t)\)</span> across all post-trea
 <span><span class="co">#&gt;     estimate        se se_neyman</span></span>
 <span><span class="co">#&gt; 1 -0.7551901 0.4407818 0.4409525</span></span></code></pre></div>
 <p>To assess statistical significance under the sharp null hypothesis <span class="math inline">\(H_0: \text{TE} = 0\)</span>, the <code>staggered</code> package includes an option for Fisher’s randomization (permutation) test. This approach tests whether the observed estimate could plausibly occur under a random reallocation of treatment timings.</p>
-<div class="sourceCode" id="cb767"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb768"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Fisher Randomization Test</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/staggered/man/staggered.html">staggered</a></span><span class="op">(</span></span>
 <span>    df <span class="op">=</span> <span class="va">base_stagg</span>,</span>
@@ -1936,7 +2047,7 @@ CATT_{e, l} = 0 \quad \text{for all } l &lt; 0
 <p>This interaction-weighted estimator ensures that the estimated average treatment effect reflects a convex combination of dynamic treatment effects from different cohorts and times.</p>
 <p>In this way, their aggregation logic closely mirrors that of <span class="citation">Callaway and Sant’Anna (<a href="references.html#ref-callaway2021difference">2021</a>)</span>, who also construct average treatment effects from group-time ATTs using interpretable weights that align with the sampling structure.</p>
 <hr>
-<div class="sourceCode" id="cb768"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb769"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"base_stagg"</span><span class="op">)</span></span>
 <span></span>
@@ -1946,11 +2057,11 @@ CATT_{e, l} = 0 \quad \text{for all } l &lt; 0
 <span>  data <span class="op">=</span> <span class="va">base_stagg</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Use <code><a href="https://lrberge.github.io/fixest/reference/coefplot.html">iplot()</a></code> to visualize the estimated dynamic treatment effects across relative time:</p>
-<div class="sourceCode" id="cb769"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/coefplot.html">iplot</a></span><span class="op">(</span><span class="va">res_sa20</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;"></div>
-<p>You can summarize the results using different aggregation options:</p>
 <div class="sourceCode" id="cb770"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/coefplot.html">iplot</a></span><span class="op">(</span><span class="va">res_sa20</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;"></div>
+<p>You can summarize the results using different aggregation options:</p>
+<div class="sourceCode" id="cb771"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Overall average ATT</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">res_sa20</span>, agg <span class="op">=</span> <span class="st">"att"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; OLS estimation, Dep. Var.: y</span></span>
@@ -2070,22 +2181,32 @@ CATT_{e, l} = 0 \quad \text{for all } l &lt; 0
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span></span></code></pre></div>
 <p>The <code>fwlplot</code> package provides diagnostics for how much variation is explained by fixed effects or covariates:</p>
-<div class="sourceCode" id="cb771"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb772"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">fwlplot</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Simple FWL plot</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/fwlplot/man/fwl_plot.html">fwl_plot</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span>, data <span class="op">=</span> <span class="va">base_stagg</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb772"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="co"># With fixed effects</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/fwlplot/man/fwl_plot.html">fwl_plot</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">|</span> <span class="va">id</span> <span class="op">+</span> <span class="va">year</span>, data <span class="op">=</span> <span class="va">base_stagg</span>, n_sample <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-14-2.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;"></div>
 <div class="sourceCode" id="cb773"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
+<span></span>
+<span><span class="co"># With fixed effects</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/fwlplot/man/fwl_plot.html">fwl_plot</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">|</span> <span class="va">id</span> <span class="op">+</span> <span class="va">year</span>,</span>
+<span>         data <span class="op">=</span> <span class="va">base_stagg</span>,</span>
+<span>         n_sample <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-15-2.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb774"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
 <span><span class="co"># Splitting by treatment status</span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/fwlplot/man/fwl_plot.html">fwl_plot</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">|</span> <span class="va">id</span> <span class="op">+</span> <span class="va">year</span>, data <span class="op">=</span> <span class="va">base_stagg</span>, n_sample <span class="op">=</span> <span class="fl">100</span>, fsplit <span class="op">=</span> <span class="op">~</span> <span class="va">treated</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-14-3.png" width="90%" style="display: block; margin: auto;"></div>
+<span><span class="fu"><a href="https://rdrr.io/pkg/fwlplot/man/fwl_plot.html">fwl_plot</a></span><span class="op">(</span></span>
+<span>    <span class="va">y</span> <span class="op">~</span> <span class="va">x1</span> <span class="op">|</span></span>
+<span>        <span class="va">id</span> <span class="op">+</span> <span class="va">year</span>,</span>
+<span>    data <span class="op">=</span> <span class="va">base_stagg</span>,</span>
+<span>    n_sample <span class="op">=</span> <span class="fl">100</span>,</span>
+<span>    fsplit <span class="op">=</span> <span class="op">~</span> <span class="va">treated</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-15-3.png" width="90%" style="display: block; margin: auto;"></div>
+<hr>
 </div>
 </div>
 <div id="sec-stacked-difference-in-differences" class="section level3" number="30.8.3">
@@ -2251,7 +2372,7 @@ Y_{itd} = \sum_{j = -\kappa_a}^{\kappa_b} \beta_j \cdot \mathbb{1}(YSE_{td} = j)
 <li><p><strong>Cluster at Unit Level</strong> <span class="citation">(<a href="references.html#ref-deshpande2019screened">Deshpande and Li 2019</a>)</span>: Appropriate when units are uniquely identified and do not appear in multiple sub-experiments.</p></li>
 </ul>
 <hr>
-<div class="sourceCode" id="cb774"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb775"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://bcallaway11.github.io/did/">did</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
@@ -2303,7 +2424,7 @@ Y_{itd} = \sum_{j = -\kappa_a}^{\kappa_b} \beta_j \cdot \mathbb{1}(YSE_{td} = j)
 <span><span class="co"># Insert zero for the omitted period (usually -1)</span></span>
 <span><span class="va">stacked_coeffs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">stacked_coeffs</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span>, <span class="fl">0</span>, <span class="va">stacked_coeffs</span><span class="op">[</span><span class="fl">5</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="va">stacked_se</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="va">stacked_se</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">4</span><span class="op">]</span>, <span class="fl">0</span>, <span class="va">stacked_se</span><span class="op">[</span><span class="fl">5</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb775"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb776"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plotting estimates from three methods: Callaway &amp; Sant'Anna, Sun &amp; Abraham, and Stacked DiD</span></span>
 <span></span>
 <span><span class="va">cs_out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://bcallaway11.github.io/did/reference/att_gt.html">att_gt</a></span><span class="op">(</span></span>
@@ -2377,7 +2498,7 @@ Y_{itd} = \sum_{j = -\kappa_a}^{\kappa_b} \beta_j \cdot \mathbb{1}(YSE_{td} = j)
 <span>        color <span class="op">=</span> <span class="st">"Estimator"</span></span>
 <span>    <span class="op">)</span> <span class="op">+</span> </span>
 <span>    <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/ama_theme.html">ama_theme</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;"></div>
 <hr>
 </div>
 </div>
@@ -2479,14 +2600,14 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 </ul>
 </li>
 </ul>
-<div class="sourceCode" id="cb776"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb777"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">PanelMatch</span><span class="op">)</span></span></code></pre></div>
 <p><strong>Treatment Variation plot</strong></p>
 <ul>
 <li><p>Visualize the variation of the treatment across space and time</p></li>
 <li><p>Aids in discerning whether the treatment fluctuates adequately over time and units or if the variation is primarily clustered in a subset of data.</p></li>
 </ul>
-<div class="sourceCode" id="cb777"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb778"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/DisplayTreatment.html">DisplayTreatment</a></span><span class="op">(</span></span>
 <span>    unit.id <span class="op">=</span> <span class="st">"wbcode2"</span>,</span>
 <span>    time.id <span class="op">=</span> <span class="st">"year"</span>,</span>
@@ -2499,7 +2620,7 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 <span>    <span class="co"># dense.plot = TRUE,</span></span>
 <span>    data <span class="op">=</span> <span class="va">dem</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;"></div>
 <ol style="list-style-type: decimal">
 <li>Select <span class="math inline">\(F\)</span> (i.e., the number of leads - time periods after treatment). Driven by what authors are interested in estimating:</li>
 </ol>
@@ -2710,7 +2831,7 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 </ul>
 </li>
 </ul>
-<div class="sourceCode" id="cb778"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb779"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">PanelMatch</span><span class="op">)</span></span>
 <span><span class="co"># All examples follow the package's vignette</span></span>
 <span><span class="co"># Create the matched sets</span></span>
@@ -2744,9 +2865,9 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 <span>    <span class="co"># highlight the particular set</span></span>
 <span>    show.set.only <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p>Control units and the treated unit have identical treatment histories over the lag window (1988-1991)</p>
-<div class="sourceCode" id="cb779"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb780"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/DisplayTreatment.html">DisplayTreatment</a></span><span class="op">(</span></span>
 <span>    unit.id <span class="op">=</span> <span class="st">"wbcode2"</span>,</span>
 <span>    time.id <span class="op">=</span> <span class="st">"year"</span>,</span>
@@ -2759,7 +2880,7 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 <span>    <span class="co"># highlight the particular set</span></span>
 <span>    show.set.only <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p>This set is more limited than the first one, but we can still see that we have exact past histories.</p>
 <ul>
 <li>
@@ -2832,7 +2953,7 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 </ul>
 </li>
 </ul>
-<div class="sourceCode" id="cb780"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb781"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># PanelMatch without any refinement</span></span>
 <span><span class="va">PM.results.none</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/PanelMatch.html">PanelMatch</a></span><span class="op">(</span></span>
@@ -2873,7 +2994,7 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 <span>        use.diagonal.variance.matrix <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="va">msets.maha</span> <span class="op">&lt;-</span> <span class="va">PM.results.maha</span><span class="op">$</span><span class="va">att</span></span></code></pre></div>
-<div class="sourceCode" id="cb781"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb782"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># these 2 should be identical because weights are not shown</span></span>
 <span><span class="va">msets.none</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   wbcode2 year matched.set.size</span></span>
@@ -2899,9 +3020,9 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 <li><p>A red line, by default, indicates the count of matched sets where treated units had no matching control units (i.e., empty matched sets).</p></li>
 <li><p>Plot adjustments can be made using <strong><code><a href="https://rdrr.io/r/graphics/plot.default.html">graphics::plot</a></code></strong>.</p></li>
 </ul>
-<div class="sourceCode" id="cb782"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb783"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">msets.none</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p><strong>Comparing Methods of Refinement</strong></p>
 <ul>
 <li>
@@ -2943,7 +3064,7 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 </ul>
 </li>
 </ul>
-<div class="sourceCode" id="cb783"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb784"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">PM.results.none</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/PanelMatch.html">PanelMatch</a></span><span class="op">(</span></span>
 <span>        lag <span class="op">=</span> <span class="fl">4</span>,</span>
@@ -3081,7 +3202,7 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 </ul>
 </li>
 </ul>
-<div class="sourceCode" id="cb784"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb785"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Use equal weights</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/get_covariate_balance.html">get_covariate_balance</a></span><span class="op">(</span></span>
 <span>    <span class="va">PM.results.ps.weight</span><span class="op">$</span><span class="va">att</span>,</span>
@@ -3092,8 +3213,8 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 <span>    <span class="co"># visualize by setting plot to TRUE</span></span>
 <span>    ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-25-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb785"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-26-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb786"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Compare covariate balance to refined sets</span></span>
 <span><span class="co"># See large improvement in balance</span></span>
@@ -3105,8 +3226,8 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 <span>    <span class="co"># visualize by setting plot to TRUE</span></span>
 <span>    ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-25-2.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb786"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-26-2.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb787"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/balance_scatter.html">balance_scatter</a></span><span class="op">(</span></span>
@@ -3115,7 +3236,7 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 <span>    data <span class="op">=</span> <span class="va">dem</span>,</span>
 <span>    covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"y"</span>, <span class="st">"tradewb"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-25-3.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-26-3.png" width="90%" style="display: block; margin: auto;"></div>
 <p><strong><code>PanelEstimate</code></strong></p>
 <ul>
 <li>
@@ -3138,7 +3259,7 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 </ul>
 </li>
 </ul>
-<div class="sourceCode" id="cb787"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb788"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">PE.results</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/PanelMatch/man/PanelEstimate.html">PanelEstimate</a></span><span class="op">(</span></span>
 <span>    sets              <span class="op">=</span> <span class="va">PM.results.ps.weight</span>,</span>
 <span>    data              <span class="op">=</span> <span class="va">dem</span>,</span>
@@ -3154,8 +3275,8 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 <span></span>
 <span><span class="co"># standard errors</span></span>
 <span><span class="va">PE.results</span><span class="op">[[</span><span class="st">"standard.error"</span><span class="op">]</span><span class="op">]</span></span>
-<span><span class="co">#&gt;       t+0       t+1       t+2       t+3       t+4 </span></span>
-<span><span class="co">#&gt; 0.6490501 1.0459313 1.4313788 1.7770150 2.1971133</span></span>
+<span><span class="co">#&gt;      t+0      t+1      t+2      t+3      t+4 </span></span>
+<span><span class="co">#&gt; 0.621126 1.053932 1.456882 1.843088 2.210310</span></span>
 <span></span>
 <span></span>
 <span><span class="co"># use conditional method</span></span>
@@ -3198,9 +3319,9 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 <span><span class="co">#&gt; [1] "att"</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">PE.results</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-26-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-27-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p><strong>Moderating Variables</strong></p>
-<div class="sourceCode" id="cb788"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb789"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># moderating variable</span></span>
 <span><span class="va">dem</span><span class="op">$</span><span class="va">moderator</span> <span class="op">&lt;-</span> <span class="fl">0</span></span>
 <span><span class="va">dem</span><span class="op">$</span><span class="va">moderator</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html">ifelse</a></span><span class="op">(</span><span class="va">dem</span><span class="op">$</span><span class="va">wbcode2</span> <span class="op">&gt;</span> <span class="fl">100</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span></span>
@@ -3229,11 +3350,11 @@ Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 <span></span>
 <span><span class="co"># Each element in the list corresponds to a level in the moderator</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">PE.results</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-27-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb789"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-28-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb790"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">PE.results</span><span class="op">[[</span><span class="fl">2</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-27-2.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-28-2.png" width="90%" style="display: block; margin: auto;"></div>
 <p>To write up for journal submission, you can follow the following report:</p>
 <p>In this study, closely aligned with the research by <span class="citation">(<a href="references.html#ref-acemoglu2019democracy">Acemoglu et al. 2019</a>)</span>, two key effects of democracy on economic growth are estimated: the impact of democratization and that of authoritarian reversal. The treatment variable, <span class="math inline">\(X_{it}\)</span>, is defined to be one if country <span class="math inline">\(i\)</span> is democratic in year <span class="math inline">\(t\)</span>, and zero otherwise.</p>
 <p>The Average Treatment Effect for the Treated (ATT) under democratization is formulated as follows:</p>
@@ -3283,7 +3404,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <p>Lastly, we evaluate the balance of lagged outcome variables over several pre-treatment periods and that of time-varying covariates. This examination aids in assessing the validity of the parallel trend assumption integral to the DiD estimator justification.</p>
 </blockquote>
 <p>In Figure for balance scatter, we demonstrate the enhancement of covariate balance thank to the refinement of matched sets. Each scatter plot contrasts the absolute standardized mean difference, as detailed in Equation @ref(eq: ), before (horizontal axis) and after (vertical axis) this refinement. Points below the 45-degree line indicate an improved standardized mean balance for certain time-varying covariates post-refinement. The majority of variables benefit from this refinement process. Notably, the propensity score weighting (bottom panel) shows the most significant improvement, whereas Mahalanobis matching (top panel) yields a more modest improvement.</p>
-<div class="sourceCode" id="cb790"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb791"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">PanelMatch</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">causalverse</span><span class="op">)</span></span>
 <span></span>
@@ -3325,7 +3446,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <span><span class="va">lags</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="va">sizes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 <p>You can either do it sequentailly</p>
-<div class="sourceCode" id="cb791"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb792"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_pm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gsubfn/man/list.html">list</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
 <span><span class="kw">for</span><span class="op">(</span><span class="va">method</span> <span class="kw">in</span> <span class="va">methods</span><span class="op">)</span> <span class="op">{</span></span>
@@ -3351,7 +3472,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <span>    <span class="op">}</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <p>or in parallel</p>
-<div class="sourceCode" id="cb792"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb793"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/RevolutionAnalytics/foreach">foreach</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/RevolutionAnalytics/doparallel">doParallel</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/doParallel/man/registerDoParallel.html">registerDoParallel</a></span><span class="op">(</span>cores <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
@@ -3411,7 +3532,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/doParallel/man/registerDoParallel.html">stopImplicitCluster</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb793"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb794"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">gridExtra</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Updated plotting function</span></span>
@@ -3531,7 +3652,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <span><span class="co">#&gt; png </span></span>
 <span><span class="co">#&gt;   2</span></span></code></pre></div>
 <p>Note: Scatter plots display the standardized mean difference of each covariate <span class="math inline">\(j\)</span> and lag year <span class="math inline">\(l\)</span> as defined in Equation <a href="#eq:aggbalance">(<strong>??</strong>)</a> before (x-axis) and after (y-axis) matched set refinement. Each plot includes varying numbers of possible matches for each matching method. Rows represent different matching/weighting methods, while columns indicate adjustments for various lag lengths.</p>
-<div class="sourceCode" id="cb794"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb795"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Step 1: Define configurations</span></span>
 <span><span class="va">configurations</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gsubfn/man/list.html">list</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/gsubfn/man/list.html">list</a></span><span class="op">(</span>refinement.method <span class="op">=</span> <span class="st">"none"</span>, qoi <span class="op">=</span> <span class="st">"att"</span><span class="op">)</span>,</span>
@@ -3583,7 +3704,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/paste.html">paste</a></span><span class="op">(</span><span class="va">config</span><span class="op">$</span><span class="va">qoi</span>, <span class="va">config</span><span class="op">$</span><span class="va">refinement.method</span>, sep <span class="op">=</span> <span class="st">"."</span><span class="op">)</span></span>
 <span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
 <p>To export</p>
-<div class="sourceCode" id="cb795"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb796"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">gridExtra</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">grid</span><span class="op">)</span></span>
 <span></span>
@@ -3664,7 +3785,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb796"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb797"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yihui.org/knitr/">knitr</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/include_graphics.html">include_graphics</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/getwd.html">getwd</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"images"</span>, <span class="st">"p_covariate_balance.png"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Note: Each graph displays the standardized mean difference, as outlined in Equation <a href="#eq:aggbalance">(<strong>??</strong>)</a>, plotted on the vertical axis across a pre-treatment duration of four years represented on the horizontal axis. The leftmost column illustrates the balance prior to refinement, while the subsequent three columns depict the covariate balance post the application of distinct refinement techniques. Each individual line signifies the balance of a specific variable during the pre-treatment phase.The red line is tradewb and blue line is the lagged outcome variable.</p>
@@ -3673,7 +3794,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <p><strong>Estimation Results</strong></p>
 <p>We now detail the estimated ATTs derived from the matching techniques. Figure below offers visual representations of the impacts of treatment initiation (upper panel) and treatment reversal (lower panel) on the outcome variable for a duration of 5 years post-transition, specifically, (<span class="math inline">\(F = 0, 1, …, 4\)</span>). Across the five methods (columns), it becomes evident that the point estimates of effects associated with treatment initiation consistently approximate zero over the 5-year window. In contrast, the estimated outcomes of treatment reversal are notably negative and maintain statistical significance through all refinement techniques during the initial year of transition and the 1 to 4 years that follow, provided treatment reversal is permissible. These effects are notably pronounced, pointing to an estimated reduction of roughly X% in the outcome variable.</p>
 <p>Collectively, these findings indicate that the transition into the treated state from its absence doesn’t invariably lead to a heightened outcome. Instead, the transition from the treated state back to its absence exerts a considerable negative effect on the outcome variable in both the short and intermediate terms. Hence, the positive effect of the treatment (if we were to use traditional DiD) is actually driven by the negative effect of treatment reversal.</p>
-<div class="sourceCode" id="cb797"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb798"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># sequential</span></span>
 <span><span class="co"># Step 1: Apply PanelEstimate function</span></span>
 <span></span>
@@ -3744,7 +3865,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <span>  <span class="co"># Transfer the name of the current element to the res_est_plot_rev list</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">res_est_plot_rev</span><span class="op">)</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">res_est_rev</span><span class="op">)</span><span class="op">[</span><span class="va">i</span><span class="op">]</span></span>
 <span><span class="op">}</span></span></code></pre></div>
-<div class="sourceCode" id="cb798"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb799"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># parallel</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/RevolutionAnalytics/doparallel">doParallel</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/RevolutionAnalytics/foreach">foreach</a></span><span class="op">)</span></span>
@@ -3819,7 +3940,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <span><span class="co"># Stop the cluster</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/parallel/makeCluster.html">stopCluster</a></span><span class="op">(</span><span class="va">cl</span><span class="op">)</span></span></code></pre></div>
 <p>To export</p>
-<div class="sourceCode" id="cb799"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb800"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">gridExtra</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">grid</span><span class="op">)</span></span>
 <span></span>
@@ -3896,7 +4017,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/grDevices/dev.html">dev.off</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb800"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb801"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yihui.org/knitr/">knitr</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/include_graphics.html">include_graphics</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/getwd.html">getwd</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"images"</span>, <span class="st">"p_did_est_in_n_out.png"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div id="counterfactual-estimators" class="section level4" number="30.8.4.1">
@@ -3980,7 +4101,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <li><p><span class="citation">(<a href="references.html#ref-gardner2022two">Gardner 2022</a>; <a href="references.html#ref-borusyak2021revisiting">Borusyak, Jaravel, and Spiess 2021</a>)</span></p></li>
 <li><p><span class="citation">(<a href="references.html#ref-brown2023simple">N. Brown, Butts, and Westerlund 2023</a>)</span></p></li>
 </ul>
-<div class="sourceCode" id="cb801"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb802"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://yiqingxu.org/packages/fect/articles/tutorial.html">fect</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">PanelMatch</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/PanelMatch/man/dem.html">dem</a></span></span>
@@ -4006,7 +4127,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">model.fect</span>, stats <span class="op">=</span> <span class="st">"F.p"</span><span class="op">)</span></span></code></pre></div>
 <p>F-test <span class="math inline">\(H_0\)</span>: residual averages in the pre-treatment periods = 0</p>
 <p>To see treatment reversal effects</p>
-<div class="sourceCode" id="cb802"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb803"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">model.fect</span>, stats <span class="op">=</span> <span class="st">"F.p"</span>, type <span class="op">=</span> <span class="st">'exit'</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div id="placebo-test" class="section level5" number="30.8.4.1.2">
@@ -4015,7 +4136,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 </h5>
 <p>By selecting a part of the data and excluding observations within a specified range to improve the model fitting, we then evaluate whether the estimated Average Treatment Effect (ATT) within this range significantly differs from zero. This approach helps us analyze the periods before treatment.</p>
 <p>If this test fails, either the functional form or strict exogeneity assumption is problematic.</p>
-<div class="sourceCode" id="cb803"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb804"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out.fect.p</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu">fect</span><span class="op">(</span></span>
 <span>        Y <span class="op">=</span> <span class="st">"y"</span>,</span>
@@ -4037,7 +4158,7 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 </h5>
 <p>The placebo test can be adapted to assess carryover effects by masking several post-treatment periods instead of pre-treatment ones. If no carryover effects are present, the average prediction error should approximate zero. For the carryover test, set <code>carryoverTest = TRUE</code>. Specify a post-treatment period range in carryover.period to exclude observations for model fitting, then evaluate if the estimated ATT significantly deviates from zero.</p>
 <p>Even if we have carryover effects, in most cases of the staggered adoption setting, researchers are interested in the cumulative effects, or aggregated treatment effects, so it’s okay.</p>
-<div class="sourceCode" id="cb804"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb805"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out.fect.c</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu">fect</span><span class="op">(</span></span>
 <span>        Y <span class="op">=</span> <span class="st">"y"</span>,</span>
@@ -4053,12 +4174,14 @@ B_{it}(j, l) = \frac{V_{i, t- l,j}- \sum_{i' \in \mathcal{M}_{it}}w_{it}^{i'}V_{
 <span>    <span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">out.fect.c</span>,  stats <span class="op">=</span> <span class="st">"carryover.p"</span><span class="op">)</span></span></code></pre></div>
 <p>We have evidence of carryover effects.</p>
+<hr>
 </div>
 </div>
-<div id="matrix-completion-1" class="section level4" number="30.8.4.2">
-<h4>
-<span class="header-section-number">30.8.4.2</span> Matrix Completion<a class="anchor" aria-label="anchor" href="#matrix-completion-1"><i class="fas fa-link"></i></a>
-</h4>
+</div>
+<div id="matrix-completion-1" class="section level3" number="30.8.5">
+<h3>
+<span class="header-section-number">30.8.5</span> Matrix Completion<a class="anchor" aria-label="anchor" href="#matrix-completion-1"><i class="fas fa-link"></i></a>
+</h3>
 <p>Applications in marketing:</p>
 <ul>
 <li><span class="citation">Bronnenberg, Dubé, and Sanders (<a href="references.html#ref-bronnenberg2020consumer">2020</a>)</span></li>
@@ -4193,11 +4316,11 @@ Y_{it}  =L_{it} + \sum_{p = 1}^P \sum_{q= 1}^Q X_{ip} H_{pq}Z_{qt} + \mu_i + \la
 <li><p>have autocorrelated errors</p></li>
 <li><p>have weighted loss function (i.e., take into account the probability of outcomes for a unit being missing)</p></li>
 </ul>
+<hr>
 </div>
-</div>
-<div id="sec-reshaped-inverse-probability-weighting-twfe-estimator" class="section level3" number="30.8.5">
+<div id="sec-reshaped-inverse-probability-weighting-twfe-estimator" class="section level3" number="30.8.6">
 <h3>
-<span class="header-section-number">30.8.5</span> Reshaped Inverse Probability Weighting - TWFE Estimator<a class="anchor" aria-label="anchor" href="#sec-reshaped-inverse-probability-weighting-twfe-estimator"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.6</span> Reshaped Inverse Probability Weighting - TWFE Estimator<a class="anchor" aria-label="anchor" href="#sec-reshaped-inverse-probability-weighting-twfe-estimator"><i class="fas fa-link"></i></a>
 </h3>
 <p>The <strong>Reshaped Inverse Probability Weighting (RIPW) estimator</strong> extends the classic <strong>TWFE</strong> regression framework to account for arbitrary, time- and unit-varying treatment assignment mechanisms. This approach leverages an explicit model for treatment assignment to achieve <strong>design robustness</strong>, maintaining consistency even when traditional fixed-effects outcome models are misspecified.</p>
 <p>The RIPW-TWFE framework is particularly relevant in panel data settings with <strong>general treatment patterns</strong></p>
@@ -4445,16 +4568,17 @@ Y_{it} = W_{it} Y_{it}(1) + (1 - W_{it}) Y_{it}(0)
 <li>Unlike conventional TWFE regressions, which can yield biased estimands under heterogeneity, RIPW explicitly targets user-specified weighted averages (DATE).</li>
 <li>In randomized experiments, RIPW ensures the <strong>effective estimand</strong> is interpretable as a population-level average, determined by the design <span class="math inline">\(\Pi\)</span>.</li>
 </ul>
+<hr>
 </div>
-<div id="gardner2022two-and-borusyak2024revisiting" class="section level3" number="30.8.6">
+<div id="gardner2022two-and-borusyak2024revisiting" class="section level3" number="30.8.7">
 <h3>
-<span class="header-section-number">30.8.6</span> <span class="citation">Gardner (<a href="references.html#ref-gardner2022two">2022</a>)</span> and <span class="citation">Borusyak, Jaravel, and Spiess (<a href="references.html#ref-borusyak2024revisiting">2024</a>)</span><a class="anchor" aria-label="anchor" href="#gardner2022two-and-borusyak2024revisiting"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.7</span> <span class="citation">Gardner (<a href="references.html#ref-gardner2022two">2022</a>)</span> and <span class="citation">Borusyak, Jaravel, and Spiess (<a href="references.html#ref-borusyak2024revisiting">2024</a>)</span><a class="anchor" aria-label="anchor" href="#gardner2022two-and-borusyak2024revisiting"><i class="fas fa-link"></i></a>
 </h3>
 <ul>
 <li><p>Estimate the time and unit fixed effects separately</p></li>
 <li><p>Known as the imputation method <span class="citation">(<a href="references.html#ref-borusyak2024revisiting">Borusyak, Jaravel, and Spiess 2024</a>)</span> or two-stage DiD <span class="citation">(<a href="references.html#ref-gardner2022two">Gardner 2022</a>)</span></p></li>
 </ul>
-<div class="sourceCode" id="cb805"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb806"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># remotes::install_github("kylebutts/did2s")</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://kylebutts.github.io/did2s/">did2s</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org">ggplot2</a></span><span class="op">)</span></span>
@@ -4507,12 +4631,12 @@ Y_{it} = W_{it} Y_{it}(1) + (1 - W_{it}) Y_{it}(0)
 <span>    xlab <span class="op">=</span> <span class="st">"Time to treatment"</span>,</span>
 <span>    ref.line <span class="op">=</span> <span class="op">-</span><span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-42-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb806"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-43-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb807"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/coefplot.html">coefplot</a></span><span class="op">(</span><span class="va">est</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-42-2.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb807"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-43-2.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb808"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mult_est</span> <span class="op">&lt;-</span> <span class="fu">did2s</span><span class="fu">::</span><span class="fu"><a href="https://kylebutts.github.io/did2s/reference/event_study.html">event_study</a></span><span class="op">(</span></span>
 <span>    data <span class="op">=</span> <span class="fu">fixest</span><span class="fu">::</span><span class="va"><a href="https://lrberge.github.io/fixest/reference/base_stagg.html">base_stagg</a></span> <span class="op">|&gt;</span></span>
 <span>        <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html">mutate</a></span><span class="op">(</span>year_treated <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html">if_else</a></span><span class="op">(</span><span class="va">year_treated</span> <span class="op">==</span> <span class="fl">10000</span>, <span class="fl">0</span>, <span class="va">year_treated</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -4527,10 +4651,10 @@ Y_{it} = W_{it} Y_{it}(1) + (1 - W_{it}) Y_{it}(0)
 <span><span class="co">#&gt; Caused by error in `.subset2()`:</span></span>
 <span><span class="co">#&gt; ! no such index at level 1</span></span>
 <span><span class="fu">did2s</span><span class="fu">::</span><span class="fu"><a href="https://kylebutts.github.io/did2s/reference/event_study.html">plot_event_study</a></span><span class="op">(</span><span class="va">mult_est</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-43-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-44-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p><span class="citation">Borusyak, Jaravel, and Spiess (<a href="references.html#ref-borusyak2024revisiting">2024</a>)</span> <code>didimputation</code></p>
 <p>This version is currently not working</p>
-<div class="sourceCode" id="cb808"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb809"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">didimputation</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"base_stagg"</span><span class="op">)</span></span>
@@ -4542,10 +4666,11 @@ Y_{it} = W_{it} Y_{it}(1) + (1 - W_{it}) Y_{it}(0)
 <span>    tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>    idname <span class="op">=</span> <span class="st">"id"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<hr>
 </div>
-<div id="de2020two" class="section level3" number="30.8.7">
+<div id="de2020two" class="section level3" number="30.8.8">
 <h3>
-<span class="header-section-number">30.8.7</span> <span class="citation">Clément De Chaisemartin and d’Haultfoeuille (<a href="references.html#ref-de2020two">2020</a>)</span><a class="anchor" aria-label="anchor" href="#de2020two"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.8</span> <span class="citation">Clément De Chaisemartin and d’Haultfoeuille (<a href="references.html#ref-de2020two">2020</a>)</span><a class="anchor" aria-label="anchor" href="#de2020two"><i class="fas fa-link"></i></a>
 </h3>
 <p>use <code>twowayfeweights</code> from <a href="https://github.com/shuo-zhang-ucsb/twowayfeweights">GitHub</a> <span class="citation">(<a href="references.html#ref-de2020two">Clément De Chaisemartin and d’Haultfoeuille 2020</a>)</span></p>
 <ul>
@@ -4563,7 +4688,7 @@ Y_{it} = W_{it} Y_{it}(1) + (1 - W_{it}) Y_{it}(0)
 </li>
 </ul>
 <p>There still isn’t a good package for this estimator.</p>
-<div class="sourceCode" id="cb809"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb810"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># remotes::install_github("shuo-zhang-ucsb/did_multiplegt") </span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">DIDmultiplegt</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
@@ -4584,8 +4709,8 @@ Y_{it} = W_{it} Y_{it}(1) + (1 - W_{it}) Y_{it}(0)
 <span>        controls <span class="op">=</span> <span class="st">"x1"</span>,</span>
 <span>        placebo <span class="op">=</span> <span class="fl">2</span></span>
 <span>    <span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-45-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb810"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-46-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb811"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $args</span></span>
@@ -4723,9 +4848,9 @@ Y_{it} = W_{it} Y_{it}(1) + (1 - W_{it}) Y_{it}(0)
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $plot</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-45-2.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-46-2.png" width="90%" style="display: block; margin: auto;"></div>
 <p>I don’t recommend the <code>TwoWayFEWeights</code> since it only gives the aggregated average treatment effect over all post-treatment periods, but not for each period.</p>
-<div class="sourceCode" id="cb811"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb812"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/chaisemartinPackages">TwoWayFEWeights</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/TwoWayFEWeights/man/twowayfeweights.html">twowayfeweights</a></span><span class="op">(</span></span>
@@ -4759,10 +4884,11 @@ Y_{it} = W_{it} Y_{it}(1) + (1 - W_{it}) Y_{it}(0)
 <span><span class="co">#&gt;   Reference: Corollary 1, de Chaisemartin, C and D'Haultfoeuille, X (2020a)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; The development of this package was funded by the European Union (ERC, REALLYCREDIBLE,GA N. 101043899).</span></span></code></pre></div>
+<hr>
 </div>
-<div id="augmentedforward-did" class="section level3" number="30.8.8">
+<div id="augmentedforward-did" class="section level3" number="30.8.9">
 <h3>
-<span class="header-section-number">30.8.8</span> Augmented/Forward DID<a class="anchor" aria-label="anchor" href="#augmentedforward-did"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.9</span> Augmented/Forward DID<a class="anchor" aria-label="anchor" href="#augmentedforward-did"><i class="fas fa-link"></i></a>
 </h3>
 <ul>
 <li>DID Methods for Limited Pre-Treatment Periods:</li>
@@ -4799,9 +4925,9 @@ Y_{it} = W_{it} Y_{it}(1) + (1 - W_{it}) Y_{it}(0)
 </table></div>
 <hr>
 </div>
-<div id="doubly-robust-difference-in-differences-estimators" class="section level3" number="30.8.9">
+<div id="doubly-robust-difference-in-differences-estimators" class="section level3" number="30.8.10">
 <h3>
-<span class="header-section-number">30.8.9</span> Doubly Robust Difference-in-Differences Estimators<a class="anchor" aria-label="anchor" href="#doubly-robust-difference-in-differences-estimators"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.10</span> Doubly Robust Difference-in-Differences Estimators<a class="anchor" aria-label="anchor" href="#doubly-robust-difference-in-differences-estimators"><i class="fas fa-link"></i></a>
 </h3>
 <p>In its simplest “canonical” form, DID compares the before-and-after outcomes of one group that eventually receives a treatment (the “treated” group) with the before-and-after outcomes of another group that never receives the treatment (the “comparison” group). Under the parallel trends assumption, DID can recover the average treatment effect on the treated (ATT).</p>
 <p>Practitioners often enrich DID analyses by conditioning on observed covariates to mitigate violations of the unconditional parallel trends assumption. Once conditioning on covariates, the DID framework remains attractive, provided that <em>conditional</em> parallel trends hold.</p>
@@ -4816,9 +4942,9 @@ Y_{it} = W_{it} Y_{it}(1) + (1 - W_{it}) Y_{it}(0)
 <p>This section covers both cases of (i) panel data (where we observe each unit in both pre- and post-treatment periods) and (ii) repeated cross-section data (where, in each period, we observe a new random sample of units).</p>
 <p>Under suitable conditions, the proposed doubly robust estimators not only exhibit desirable robustness properties to misspecification but can also attain the semiparametric efficiency bound, making them <em>locally efficient</em> if all working models are correct.</p>
 <hr>
-<div id="notation-and-set-up" class="section level4" number="30.8.9.1">
+<div id="notation-and-set-up" class="section level4" number="30.8.10.1">
 <h4>
-<span class="header-section-number">30.8.9.1</span> Notation and set-up<a class="anchor" aria-label="anchor" href="#notation-and-set-up"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.10.1</span> Notation and set-up<a class="anchor" aria-label="anchor" href="#notation-and-set-up"><i class="fas fa-link"></i></a>
 </h4>
 <ul>
 <li>
@@ -4868,14 +4994,14 @@ There exists <span class="math inline">\(\varepsilon&gt;0\)</span> such that <sp
 <p>Under these assumptions, we can identify <span class="math inline">\(\mathbb{E}[\,Y_{1}(0)\mid D=1]\)</span> in a semiparametric fashion, either by modeling the outcome regressions (the OR approach) or by modeling the propensity score (the IPW approach).</p>
 <hr>
 </div>
-<div id="two-traditional-did-approaches" class="section level4" number="30.8.9.2">
+<div id="two-traditional-did-approaches" class="section level4" number="30.8.10.2">
 <h4>
-<span class="header-section-number">30.8.9.2</span> Two Traditional DID Approaches<a class="anchor" aria-label="anchor" href="#two-traditional-did-approaches"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.10.2</span> Two Traditional DID Approaches<a class="anchor" aria-label="anchor" href="#two-traditional-did-approaches"><i class="fas fa-link"></i></a>
 </h4>
 <p>We briefly outline the classical DID estimators that rely solely on either outcome regressions or inverse probability weighting, to motivate the doubly robust idea.</p>
-<div id="outcome-regression-or-approach" class="section level5" number="30.8.9.2.1">
+<div id="outcome-regression-or-approach" class="section level5" number="30.8.10.2.1">
 <h5>
-<span class="header-section-number">30.8.9.2.1</span> Outcome-regression (OR) approach<a class="anchor" aria-label="anchor" href="#outcome-regression-or-approach"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.10.2.1</span> Outcome-regression (OR) approach<a class="anchor" aria-label="anchor" href="#outcome-regression-or-approach"><i class="fas fa-link"></i></a>
 </h5>
 <p>Define <span class="math display">\[
    m_{d,t}(x) \;=\; \mathbb{E}[\,Y_t \,\mid\,D=d,\; X=x\,].
@@ -4902,9 +5028,9 @@ There exists <span class="math inline">\(\varepsilon&gt;0\)</span> such that <sp
 <p>where <span class="math inline">\(\overline{Y}_{d,t}\)</span> is the sample mean of <span class="math inline">\(Y_t\)</span> among units with <span class="math inline">\(D=d\)</span>, and <span class="math inline">\(\hat{m}_{0,t}\)</span> is some fitted model (e.g., linear or semiparametric) for <span class="math inline">\(\mathbb{E}[\,Y_t \mid D=0,\,X\,]\)</span>.</p>
 <p>This OR estimator is consistent if (and only if) we have <em>correctly specified</em> the two outcome-regression functions <span class="math inline">\(m_{0,1}(x)\)</span> and <span class="math inline">\(m_{0,0}(x)\)</span>. If these regressions are misspecified, the estimator will generally be biased.</p>
 </div>
-<div id="ipw-approach" class="section level5" number="30.8.9.2.2">
+<div id="ipw-approach" class="section level5" number="30.8.10.2.2">
 <h5>
-<span class="header-section-number">30.8.9.2.2</span> IPW approach<a class="anchor" aria-label="anchor" href="#ipw-approach"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.10.2.2</span> IPW approach<a class="anchor" aria-label="anchor" href="#ipw-approach"><i class="fas fa-link"></i></a>
 </h5>
 <p>An alternative is to model the propensity score <span class="math display">\[
    p(x)\;=\; P(D=1\mid X=x),
@@ -4930,9 +5056,9 @@ There exists <span class="math inline">\(\varepsilon&gt;0\)</span> such that <sp
 <hr>
 </div>
 </div>
-<div id="doubly-robust-did-main-identification" class="section level4" number="30.8.9.3">
+<div id="doubly-robust-did-main-identification" class="section level4" number="30.8.10.3">
 <h4>
-<span class="header-section-number">30.8.9.3</span> Doubly Robust DID: Main Identification<a class="anchor" aria-label="anchor" href="#doubly-robust-did-main-identification"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.10.3</span> Doubly Robust DID: Main Identification<a class="anchor" aria-label="anchor" href="#doubly-robust-did-main-identification"><i class="fas fa-link"></i></a>
 </h4>
 <p>The <strong>doubly robust (DR) idea</strong> is to combine the OR and IPW approaches so that the resulting estimator is consistent if <em>either</em> the OR model is correct <em>or</em> the propensity-score model is correct. Formally, consider two generic “working” models:</p>
 <ul>
@@ -4940,9 +5066,9 @@ There exists <span class="math inline">\(\varepsilon&gt;0\)</span> such that <sp
 <li><p><span class="math inline">\(\mu_{0,t}(X)\)</span> for the outcome regressions <span class="math inline">\(m_{0,t}(X)=\mathbb{E}[Y_t \mid D=0,X]\)</span>.</p></li>
 </ul>
 <p>We define two “DR moments” for each data structure.</p>
-<div id="dr-estimand-for-panel-data" class="section level5" number="30.8.9.3.1">
+<div id="dr-estimand-for-panel-data" class="section level5" number="30.8.10.3.1">
 <h5>
-<span class="header-section-number">30.8.9.3.1</span> DR estimand for panel data<a class="anchor" aria-label="anchor" href="#dr-estimand-for-panel-data"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.10.3.1</span> DR estimand for panel data<a class="anchor" aria-label="anchor" href="#dr-estimand-for-panel-data"><i class="fas fa-link"></i></a>
 </h5>
 <p>When panel data are available, define <span class="math display">\[
    \Delta Y \;=\; Y_1 \,-\, Y_0,
@@ -4961,9 +5087,9 @@ There exists <span class="math inline">\(\varepsilon&gt;0\)</span> such that <sp
    w_{0}^{\mathrm{p}}(D,X;\,\pi)\;=\;\frac{\pi(X)\,(1-D)}{(1-\pi(X))\,\mathbb{E}\bigl[\tfrac{\pi(X)\,(1-D)}{1-\pi(X)}\bigr]}.
 \]</span> It can be shown that <span class="math inline">\(\tau^{\mathrm{dr,p}} = \tau\)</span> provided <em>either</em> <span class="math inline">\(\pi(x)=p(x)\)</span> almost surely (a.s.) <em>or</em> <span class="math inline">\(\mu_{0,\Delta}(x)=m_{0,\Delta}(x)\)</span> a.s. (the latter meaning that at least the regression for the comparison group is correct).</p>
 </div>
-<div id="dr-estimands-for-repeated-cross-sections" class="section level5" number="30.8.9.3.2">
+<div id="dr-estimands-for-repeated-cross-sections" class="section level5" number="30.8.10.3.2">
 <h5>
-<span class="header-section-number">30.8.9.3.2</span> DR estimands for repeated cross-sections<a class="anchor" aria-label="anchor" href="#dr-estimands-for-repeated-cross-sections"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.10.3.2</span> DR estimands for repeated cross-sections<a class="anchor" aria-label="anchor" href="#dr-estimands-for-repeated-cross-sections"><i class="fas fa-link"></i></a>
 </h5>
 <p>When we only have repeated cross-sections, the DR construction must account for the fact that <span class="math inline">\(Y_0, Y_1\)</span> are not observed jointly on the same individuals. Let <span class="math inline">\(\lambda = P(T=1)\)</span>. Then two valid DR estimands are:</p>
 <ol style="list-style-type: decimal">
@@ -5011,9 +5137,9 @@ There exists <span class="math inline">\(\varepsilon&gt;0\)</span> such that <sp
 <hr>
 </div>
 </div>
-<div id="semiparametric-efficiency-bounds-and-local-efficiency" class="section level4" number="30.8.9.4">
+<div id="semiparametric-efficiency-bounds-and-local-efficiency" class="section level4" number="30.8.10.4">
 <h4>
-<span class="header-section-number">30.8.9.4</span> Semiparametric Efficiency Bounds and Local Efficiency<a class="anchor" aria-label="anchor" href="#semiparametric-efficiency-bounds-and-local-efficiency"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.10.4</span> Semiparametric Efficiency Bounds and Local Efficiency<a class="anchor" aria-label="anchor" href="#semiparametric-efficiency-bounds-and-local-efficiency"><i class="fas fa-link"></i></a>
 </h4>
 <p>An important concept in semiparametric inference is the <strong>semiparametric efficiency bound</strong>, which is the infimum of the asymptotic variance across <em>all</em> regular estimators that exploit only the imposed assumptions (parallel trends, overlap, stationarity). Equivalently, one can think of it as the variance of the “efficient influence function” (EIF).</p>
 <p>We highlight key results:</p>
@@ -5055,9 +5181,9 @@ There exists <span class="math inline">\(\varepsilon&gt;0\)</span> such that <sp
 <p>One can further show that having access to <em>panel</em> data can be strictly more informative (i.e., yields a <em>smaller</em> semiparametric variance bound) than repeated cross-sections. This difference can grow if the pre- and post-treatment samples are highly unbalanced.</p>
 <hr>
 </div>
-<div id="construction-of-doubly-robust-did-estimators" class="section level4" number="30.8.9.5">
+<div id="construction-of-doubly-robust-did-estimators" class="section level4" number="30.8.10.5">
 <h4>
-<span class="header-section-number">30.8.9.5</span> Construction of Doubly Robust DID Estimators<a class="anchor" aria-label="anchor" href="#construction-of-doubly-robust-did-estimators"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.10.5</span> Construction of Doubly Robust DID Estimators<a class="anchor" aria-label="anchor" href="#construction-of-doubly-robust-did-estimators"><i class="fas fa-link"></i></a>
 </h4>
 <ol style="list-style-type: decimal">
 <li><strong>Generic two-step approach</strong></li>
@@ -5115,9 +5241,9 @@ Replace <span class="math inline">\(p\)</span> with <span class="math inline">\(
 </ul>
 <hr>
 </div>
-<div id="large-sample-properties-2" class="section level4" number="30.8.9.6">
+<div id="large-sample-properties-2" class="section level4" number="30.8.10.6">
 <h4>
-<span class="header-section-number">30.8.9.6</span> Large-Sample Properties<a class="anchor" aria-label="anchor" href="#large-sample-properties-2"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.10.6</span> Large-Sample Properties<a class="anchor" aria-label="anchor" href="#large-sample-properties-2"><i class="fas fa-link"></i></a>
 </h4>
 <p>Assume mild regularity conditions for consistency and asymptotic normality (e.g., overlapping support, identifiability of the pseudo-true parameters for the first-step models, and suitable rates of convergence) <span class="citation">(<a href="references.html#ref-sant2020doubly">Sant’Anna and Zhao 2020</a>)</span>.</p>
 <ol style="list-style-type: decimal">
@@ -5133,9 +5259,9 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 </ol>
 <hr>
 </div>
-<div id="practical-implementation" class="section level4" number="30.8.9.7">
+<div id="practical-implementation" class="section level4" number="30.8.10.7">
 <h4>
-<span class="header-section-number">30.8.9.7</span> Practical Implementation<a class="anchor" aria-label="anchor" href="#practical-implementation"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.10.7</span> Practical Implementation<a class="anchor" aria-label="anchor" href="#practical-implementation"><i class="fas fa-link"></i></a>
 </h4>
 <p>In practice, the recommended workflow is:</p>
 <ol style="list-style-type: decimal">
@@ -5152,7 +5278,7 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
    \hat{V} \;=\; \frac{1}{n}\sum_{i=1}^n \hat{\eta}_i^2,
 \]</span> where <span class="math inline">\(\hat{\eta}_i\)</span> is the evaluator’s best estimate of the influence function for observation <span class="math inline">\(i\)</span>. Under certain “improved DR” constructions, the same <span class="math inline">\(\hat{\eta}_i\)</span> works regardless of which part of the model is correct.</p>
 <hr>
-<div class="sourceCode" id="cb812"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb813"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">'base_stagg'</span><span class="op">)</span></span>
 <span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://bcallaway11.github.io/did/">did</a></span><span class="op">)</span></span>
@@ -5187,19 +5313,19 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <span><span class="va">agg.es</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://bcallaway11.github.io/did/reference/aggte.html">aggte</a></span><span class="op">(</span><span class="va">drdid_result</span>, type <span class="op">=</span> <span class="st">"dynamic"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://bcallaway11.github.io/did/reference/ggdid.html">ggdid</a></span><span class="op">(</span><span class="va">agg.es</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-47-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb813"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-48-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb814"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">agg.gs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://bcallaway11.github.io/did/reference/aggte.html">aggte</a></span><span class="op">(</span><span class="va">drdid_result</span>, type <span class="op">=</span> <span class="st">"group"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://bcallaway11.github.io/did/reference/ggdid.html">ggdid</a></span><span class="op">(</span><span class="va">agg.gs</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-47-2.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-48-2.png" width="90%" style="display: block; margin: auto;"></div>
 <hr>
 </div>
 </div>
-<div id="nonlinear-difference-in-differences" class="section level3" number="30.8.10">
+<div id="nonlinear-difference-in-differences" class="section level3" number="30.8.11">
 <h3>
-<span class="header-section-number">30.8.10</span> Nonlinear Difference-in-Differences<a class="anchor" aria-label="anchor" href="#nonlinear-difference-in-differences"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.11</span> Nonlinear Difference-in-Differences<a class="anchor" aria-label="anchor" href="#nonlinear-difference-in-differences"><i class="fas fa-link"></i></a>
 </h3>
 <p>Traditional Difference-in-Differences methods typically rely on linear models with strong assumptions like constant treatment effects and homogeneous trends across treatment groups. These assumptions often fail in real-world data — especially when outcomes are <strong>binary</strong>, <strong>fractional</strong>, or <strong>counts</strong>, such as:</p>
 <ul>
@@ -5209,9 +5335,9 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 </ul>
 <p>In these cases, the <strong>linear parallel trends</strong> assumption may be inappropriate. This chapter develops an advanced, flexible framework for nonlinear DiD estimation with staggered interventions <span class="citation">(<a href="references.html#ref-wooldridge2023simple">Wooldridge 2023</a>)</span>.</p>
 <hr>
-<div id="overview-of-framework" class="section level4" number="30.8.10.1">
+<div id="overview-of-framework" class="section level4" number="30.8.11.1">
 <h4>
-<span class="header-section-number">30.8.10.1</span> Overview of Framework<a class="anchor" aria-label="anchor" href="#overview-of-framework"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.11.1</span> Overview of Framework<a class="anchor" aria-label="anchor" href="#overview-of-framework"><i class="fas fa-link"></i></a>
 </h4>
 <p>We consider a panel dataset where units are observed over <span class="math inline">\(T\)</span> time periods. Units become treated at various times (staggered rollout), and the goal is to estimate <a href="sec-causal-inference.html#sec-average-treatment-effect-on-the-treated">Average Treatment Effect on the Treated</a> (ATT) at different times.</p>
 <p>Let <span class="math inline">\(Y_{it}(g)\)</span> denote the potential outcome at time <span class="math inline">\(t\)</span> if unit <span class="math inline">\(i\)</span> were first treated in period <span class="math inline">\(g\)</span>, with <span class="math inline">\(g = q, \ldots, T\)</span> or <span class="math inline">\(g = \infty\)</span> (never treated). Define the ATT for cohort <span class="math inline">\(g\)</span> at time <span class="math inline">\(r \geq g\)</span> as:</p>
@@ -5226,9 +5352,9 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <p>This formulation nests logistic and Poisson mean structures, and allows us to handle various limited dependent variables.</p>
 <hr>
 </div>
-<div id="assumptions-1" class="section level4" number="30.8.10.2">
+<div id="assumptions-1" class="section level4" number="30.8.11.2">
 <h4>
-<span class="header-section-number">30.8.10.2</span> Assumptions<a class="anchor" aria-label="anchor" href="#assumptions-1"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.11.2</span> Assumptions<a class="anchor" aria-label="anchor" href="#assumptions-1"><i class="fas fa-link"></i></a>
 </h4>
 <p>We require the following identification assumptions:</p>
 <ul>
@@ -5248,9 +5374,9 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <p>These assumptions are weaker and more realistic than linear Parallel Trends, especially when outcomes are constrained.</p>
 <hr>
 </div>
-<div id="estimation-2" class="section level4" number="30.8.10.3">
+<div id="estimation-2" class="section level4" number="30.8.11.3">
 <h4>
-<span class="header-section-number">30.8.10.3</span> Estimation<a class="anchor" aria-label="anchor" href="#estimation-2"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.11.3</span> Estimation<a class="anchor" aria-label="anchor" href="#estimation-2"><i class="fas fa-link"></i></a>
 </h4>
 <p><strong>Step 1: Imputation Estimator</strong></p>
 <ol style="list-style-type: decimal">
@@ -5325,9 +5451,9 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 </table></div>
 <hr>
 </div>
-<div id="inference-2" class="section level4" number="30.8.10.4">
+<div id="inference-2" class="section level4" number="30.8.11.4">
 <h4>
-<span class="header-section-number">30.8.10.4</span> Inference<a class="anchor" aria-label="anchor" href="#inference-2"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.11.4</span> Inference<a class="anchor" aria-label="anchor" href="#inference-2"><i class="fas fa-link"></i></a>
 </h4>
 <ul>
 <li>Standard errors can be obtained via the delta method or bootstrap</li>
@@ -5346,16 +5472,16 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 </ul>
 <hr>
 </div>
-<div id="application-using-etwfe" class="section level4" number="30.8.10.5">
+<div id="application-using-etwfe" class="section level4" number="30.8.11.5">
 <h4>
-<span class="header-section-number">30.8.10.5</span> Application Using <code>etwfe</code><a class="anchor" aria-label="anchor" href="#application-using-etwfe"><i class="fas fa-link"></i></a>
+<span class="header-section-number">30.8.11.5</span> Application Using <code>etwfe</code><a class="anchor" aria-label="anchor" href="#application-using-etwfe"><i class="fas fa-link"></i></a>
 </h4>
 <p>The <code>etwfe</code> package provides a unified, user-friendly interface for estimating staggered treatment effects using <strong>generalized linear models</strong>. It is particularly well-suited for nonlinear outcomes, such as <strong>binary</strong>, <strong>fractional</strong>, or <strong>count</strong> data.</p>
 <p>We’ll now demonstrate how to apply <code>etwfe</code> to estimate <a href="sec-causal-inference.html#sec-average-treatment-effect-on-the-treated">Average Treatment Effect on the Treated</a> (ATT) under a nonlinear DiD framework using a Poisson model. This aligns with the exponential conditional mean assumption discussed earlier.</p>
 <ol style="list-style-type: decimal">
 <li>Install and load packages</li>
 </ol>
-<div class="sourceCode" id="cb814"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb815"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># --- 1) Load packages ---</span></span>
 <span><span class="co"># install.packages("fixest")</span></span>
 <span><span class="co"># install.packages("marginaleffects")</span></span>
@@ -5380,7 +5506,7 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <li><p>Some stores are “staggered” in the sense that they adopt in different periods. We’ll randomly draw their adoption date from <span class="math inline">\(\{4,5,6\}\)</span>. Others never adopt at all.</p></li>
 <li><p>We include store-level intercepts, time intercepts, and idiosyncratic noise to make it more realistic.</p></li>
 </ul>
-<div class="sourceCode" id="cb815"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb816"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># --- 2) Simulate Data ---</span></span>
 <span><span class="va">N</span> <span class="op">&lt;-</span> <span class="fl">200</span>   <span class="co"># number of stores</span></span>
 <span><span class="cn">T</span> <span class="op">&lt;-</span> <span class="fl">10</span>    <span class="co"># number of time periods</span></span>
@@ -5441,7 +5567,7 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <li><p><code>vcov = ~id</code> clusters standard errors at the store level.</p></li>
 <li><p><code>cgroup = "never"</code>: We specify that the never-treated units form our comparison group. This ensures we can see <em>pre-treatment</em> and <em>post-treatment</em> dynamic effects in an event-study plot.</p></li>
 </ul>
-<div class="sourceCode" id="cb816"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb817"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># --- 3) Estimate with etwfe ---</span></span>
 <span><span class="va">mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://grantmcdermott.com/etwfe/reference/etwfe.html">etwfe</a></span><span class="op">(</span></span>
 <span>    fml    <span class="op">=</span> <span class="va">logY</span> <span class="op">~</span> <span class="va">xvar</span>,</span>
@@ -5457,7 +5583,7 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <li>Recover the average treatment effect on the treated (ATT)</li>
 </ol>
 <p>Here’s a <em>single-number</em> estimate of the overall average effect on the treated, across all times and cohorts:</p>
-<div class="sourceCode" id="cb817"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb818"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># --- 4) Single-number ATT ---</span></span>
 <span><span class="va">ATT_est</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://grantmcdermott.com/etwfe/reference/emfx.html">emfx</a></span><span class="op">(</span><span class="va">mod</span>, type <span class="op">=</span> <span class="st">"simple"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/print.html">print</a></span><span class="op">(</span><span class="va">ATT_est</span><span class="op">)</span></span>
@@ -5473,7 +5599,7 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <li>Recover an event-study pattern of dynamic effects</li>
 </ol>
 <p>To check pre- and post-treatment dynamics, we ask for an <strong>event study</strong> via <code>type = "event"</code>. This shows how the outcome evolves <em>around</em> the adoption time. Negative “event” values correspond to pre-treatment, while nonnegative “event” values are post-treatment.</p>
-<div class="sourceCode" id="cb818"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb819"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># --- 5) Event-study estimates ---</span></span>
 <span><span class="va">mod_es</span> <span class="op">&lt;-</span> <span class="fu"><a href="http://grantmcdermott.com/etwfe/reference/emfx.html">emfx</a></span><span class="op">(</span><span class="va">mod</span>, type <span class="op">=</span> <span class="st">"event"</span><span class="op">)</span></span>
 <span><span class="va">mod_es</span></span>
@@ -5739,7 +5865,7 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <li><p>Build a <strong>reference</strong> dataset with the same event times.</p></li>
 <li><p>Plot both on the same figure.</p></li>
 </ol>
-<div class="sourceCode" id="cb819"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb820"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># --- 6) Plot results vs. known effect ---</span></span>
 <span><span class="va">est_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/as.data.frame.html">as.data.frame</a></span><span class="op">(</span><span class="va">mod_es</span><span class="op">)</span></span>
 <span></span>
@@ -5796,14 +5922,14 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <span>        caption <span class="op">=</span> <span class="st">"Dashed red line = known true effect; Shaded area = 95% CI"</span></span>
 <span>    <span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/ama_theme.html">ama_theme</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-53-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-54-1.png" width="90%" style="display: block; margin: auto;"></div>
 <ul>
 <li><p><strong>Solid line</strong> and shaded region: the ETWFE <em>point estimates</em> and their 95% confidence intervals, for each event time relative to adoption.</p></li>
 <li><p><strong>Dashed red line</strong>: the <em>true</em> effect that we built into the DGP.</p></li>
 </ul>
 <p>If the estimation works well (and your sample is big enough), the estimated event-study effects should hover near the dashed red line <em>post</em>-treatment, and near zero <em>pre</em>-treatment.</p>
 <p>Alternatively, we could also the <code>plot</code> function to produce a quick plot.</p>
-<div class="sourceCode" id="cb820"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb821"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span></span>
 <span>    <span class="va">mod_es</span>,</span>
 <span>    type <span class="op">=</span> <span class="st">"ribbon"</span>,</span>
@@ -5813,12 +5939,12 @@ If <em>both</em> the propensity score model and the outcome-regression models ar
 <span>    sub  <span class="op">=</span> <span class="st">""</span>,</span>
 <span>    <span class="co"># file = "event-study.png", width = 8, height = 5. # save file</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-54-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-55-1.png" width="90%" style="display: block; margin: auto;"></div>
 <ol start="7" style="list-style-type: decimal">
 <li>Double-check in a regression table (optional)</li>
 </ol>
 <p>If you like to see a clean numeric summary of the <em>dynamic</em> estimates by period, you can pipe your event-study object into <code>modelsummary</code>:</p>
-<div class="sourceCode" id="cb821"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb822"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># --- 7) Optional table for dynamic estimates ---</span></span>
 <span><span class="fu"><a href="https://modelsummary.com/man/modelsummary.html">modelsummary</a></span><span class="op">(</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/gsubfn/man/list.html">list</a></span><span class="op">(</span><span class="st">"Event-Study"</span> <span class="op">=</span> <span class="va">mod_es</span><span class="op">)</span>,</span>
@@ -6332,7 +6458,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 (T \times G) + \epsilon
 </li>
 </ul>
 <hr>
-<div class="sourceCode" id="cb822"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb823"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="va">od</span> <span class="op">&lt;-</span> <span class="fu">causaldata</span><span class="fu">::</span><span class="va"><a href="https://rdrr.io/pkg/causaldata/man/organ_donations.html">organ_donations</a></span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
@@ -6350,8 +6476,8 @@ Y = \alpha_g + \beta_1 T + \beta_2 (T \times G) + \epsilon
 <span>    display_CI <span class="op">=</span> <span class="cn">F</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; [[1]]</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-56-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb823"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-57-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb824"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># do it manually</span></span>
 <span><span class="co"># always good but plot the dependent out</span></span>
@@ -6365,8 +6491,8 @@ Y = \alpha_g + \beta_1 T + \beta_2 (T \times G) + \epsilon
 <span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">Quarter_Num</span>, y <span class="op">=</span> <span class="va">Rate</span>, color <span class="op">=</span> <span class="va">California</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html">geom_line</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/ama_theme.html">ama_theme</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-56-2.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb824"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-57-2.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb825"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span></span>
 <span><span class="co"># but it's also important to use statistical test</span></span>
@@ -6375,10 +6501,10 @@ Y = \alpha_g + \beta_1 T + \beta_2 (T \times G) + \epsilon
 <span>                             data <span class="op">=</span> <span class="va">od</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu">fixest</span><span class="fu">::</span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/coefplot.html">coefplot</a></span><span class="op">(</span><span class="va">prior_trend</span>, grid <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-56-3.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb825"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-57-3.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb826"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">fixest</span><span class="fu">::</span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/coefplot.html">iplot</a></span><span class="op">(</span><span class="va">prior_trend</span>, grid <span class="op">=</span> <span class="cn">F</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-56-4.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-57-4.png" width="90%" style="display: block; margin: auto;"></div>
 <p>This is alarming since one of the periods is significantly different from 0, which means that our parallel trends assumption is not plausible.</p>
 <p>In cases where the parallel trends assumption is questionable, researchers should consider methods for assessing and addressing potential violations. Some key approaches are discussed in <span class="citation">Rambachan and Roth (<a href="references.html#ref-rambachan2023more">2023</a>)</span>:</p>
 <ul>
@@ -6387,7 +6513,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 (T \times G) + \epsilon
 <li><p><strong>Sensitivity Analysis</strong>: Evaluate how sensitive the results are to potential deviations from parallel trends.</p></li>
 </ul>
 <p>To implement these approaches, the <code>HonestDiD</code> package by <span class="citation">Rambachan and Roth (<a href="references.html#ref-rambachan2023more">2023</a>)</span> provides robust statistical tools:</p>
-<div class="sourceCode" id="cb826"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb827"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># https://github.com/asheshrambachan/HonestDiD</span></span>
 <span><span class="co"># remotes::install_github("asheshrambachan/HonestDiD")</span></span>
 <span><span class="co"># library(HonestDiD)</span></span></code></pre></div>
@@ -6397,7 +6523,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 (T \times G) + \epsilon
 <li><p>With a stronger assumption on selection bias—grounded in policymakers’ perspectives—they can estimate a point estimate of ATT.</p></li>
 </ul>
 <p>Another useful tool for assessing parallel trends is the <code>pretrends</code> package by <span class="citation">Roth (<a href="references.html#ref-roth2022pretest">2022</a>)</span>, which provides formal pre-trend tests:</p>
-<div class="sourceCode" id="cb827"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb828"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Install and load the pretrends package</span></span>
 <span><span class="co"># install.packages("pretrends")</span></span>
 <span><span class="co"># library(pretrends)</span></span></code></pre></div>
@@ -6466,7 +6592,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 (T \times G) + \epsilon
 </li>
 </ul>
 <hr>
-<div class="sourceCode" id="cb828"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb829"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load necessary libraries</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org">tidyverse</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
@@ -6529,7 +6655,7 @@ Y = \alpha_g + \beta_1 T + \beta_2 (T \times G) + \epsilon
 <span>        y <span class="op">=</span> <span class="st">"Estimated Effect on Organ Donation Rate"</span>,</span>
 <span>        x <span class="op">=</span> <span class="st">"Placebo Treatment"</span></span>
 <span>    <span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-59-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-60-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p>We would like the “supposed” DiD to be insignificant.</p>
 </div>
 </div>
@@ -6742,7 +6868,7 @@ Y_{it} = \exp(\lambda_t + \beta_2 D_i + \sum_{r \neq -1} \beta_r D_i \times (Rel
 \exp(\hat{\beta}_r) - 1 = 0 \quad \text{for} \quad r &lt; 0.
 \]</span></p>
 <p>Even if the pre-treatment estimates appear close to zero, we should still conduct a sensitivity analysis <span class="citation">(<a href="references.html#ref-rambachan2023more">Rambachan and Roth 2023</a>)</span> to assess robustness (see <a href="sec-difference-in-differences.html#prior-parallel-trends-test">Prior Parallel Trends Test</a>).</p>
-<div class="sourceCode" id="cb829"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb830"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span> <span class="co"># For reproducibility</span></span>
 <span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">500</span> <span class="co"># Number of observations per group (treated and control)</span></span>
@@ -6793,7 +6919,7 @@ Y_{it} = \exp(\lambda_t + \beta_2 D_i + \sum_{r \neq -1} \beta_r D_i \times (Rel
 <span><span class="co">#&gt; 4  4         0      1      20</span></span>
 <span><span class="co">#&gt; 5  5         0      0      19</span></span>
 <span><span class="co">#&gt; 6  6         0      1       0</span></span></code></pre></div>
-<div class="sourceCode" id="cb830"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb831"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="va">res_pois</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu"><a href="https://lrberge.github.io/fixest/reference/feglm.html">fepois</a></span><span class="op">(</span><span class="va">Outcome</span> <span class="op">~</span> <span class="va">Treatment</span> <span class="op">+</span> <span class="va">Period</span> <span class="op">+</span> <span class="va">Treatment</span> <span class="op">*</span> <span class="va">Period</span>,</span>
@@ -6827,7 +6953,7 @@ Y_{it} = \exp(\lambda_t + \beta_2 D_i + \sum_{r \neq -1} \beta_r D_i \times (Rel
 <span><span class="co">#&gt; Treatment:Period </span></span>
 <span><span class="co">#&gt;        0.1288596</span></span></code></pre></div>
 <p>In this example, the DID coefficient is not significant. However, say that it’s significant, we can interpret the coefficient as 3 percent increase in post-treatment period due to the treatment.</p>
-<div class="sourceCode" id="cb831"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb832"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">base_did_log0</span> <span class="op">&lt;-</span> <span class="va">base_did</span> <span class="op">|&gt;</span> </span>
@@ -6910,7 +7036,7 @@ m(y) =
 </tr>
 </tbody>
 </table></div>
-<div class="sourceCode" id="cb832"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb833"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://lrberge.github.io/fixest/">fixest</a></span><span class="op">)</span></span>
 <span><span class="va">base_did_log0_cali</span> <span class="op">&lt;-</span> <span class="va">base_did_log0</span> <span class="op">|&gt;</span> </span>
 <span>    <span class="co"># get min </span></span>
@@ -6945,8 +7071,8 @@ m(y) =
 <span>       col <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">xvec</span><span class="op">)</span>,</span>
 <span>       pch <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">xvec</span><span class="op">)</span>,</span>
 <span>       legend <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html">as.character</a></span><span class="op">(</span><span class="va">xvec</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-60-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb833"><pre class="downlit sourceCode r">
+<div class="inline-figure"><img src="30-dif-in-dif_files/figure-html/unnamed-chunk-61-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="sourceCode" id="cb834"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span></span>
 <span><span class="fu"><a href="https://lrberge.github.io/fixest/reference/etable.html">etable</a></span><span class="op">(</span></span>
@@ -7097,12 +7223,13 @@ m(y) =
 <li><a class="nav-link" href="#sec-cohort-average-treatment-effects-sun2021estimating"><span class="header-section-number">30.8.2</span> Cohort Average Treatment Effects (L. Sun and Abraham 2021)</a></li>
 <li><a class="nav-link" href="#sec-stacked-difference-in-differences"><span class="header-section-number">30.8.3</span> Stacked Difference-in-Differences</a></li>
 <li><a class="nav-link" href="#did-with-in-and-out-treatment-condition"><span class="header-section-number">30.8.4</span> DID with in and out treatment condition</a></li>
-<li><a class="nav-link" href="#sec-reshaped-inverse-probability-weighting-twfe-estimator"><span class="header-section-number">30.8.5</span> Reshaped Inverse Probability Weighting - TWFE Estimator</a></li>
-<li><a class="nav-link" href="#gardner2022two-and-borusyak2024revisiting"><span class="header-section-number">30.8.6</span> Gardner (2022) and Borusyak, Jaravel, and Spiess (2024)</a></li>
-<li><a class="nav-link" href="#de2020two"><span class="header-section-number">30.8.7</span> Clément De Chaisemartin and d’Haultfoeuille (2020)</a></li>
-<li><a class="nav-link" href="#augmentedforward-did"><span class="header-section-number">30.8.8</span> Augmented/Forward DID</a></li>
-<li><a class="nav-link" href="#doubly-robust-difference-in-differences-estimators"><span class="header-section-number">30.8.9</span> Doubly Robust Difference-in-Differences Estimators</a></li>
-<li><a class="nav-link" href="#nonlinear-difference-in-differences"><span class="header-section-number">30.8.10</span> Nonlinear Difference-in-Differences</a></li>
+<li><a class="nav-link" href="#matrix-completion-1"><span class="header-section-number">30.8.5</span> Matrix Completion</a></li>
+<li><a class="nav-link" href="#sec-reshaped-inverse-probability-weighting-twfe-estimator"><span class="header-section-number">30.8.6</span> Reshaped Inverse Probability Weighting - TWFE Estimator</a></li>
+<li><a class="nav-link" href="#gardner2022two-and-borusyak2024revisiting"><span class="header-section-number">30.8.7</span> Gardner (2022) and Borusyak, Jaravel, and Spiess (2024)</a></li>
+<li><a class="nav-link" href="#de2020two"><span class="header-section-number">30.8.8</span> Clément De Chaisemartin and d’Haultfoeuille (2020)</a></li>
+<li><a class="nav-link" href="#augmentedforward-did"><span class="header-section-number">30.8.9</span> Augmented/Forward DID</a></li>
+<li><a class="nav-link" href="#doubly-robust-difference-in-differences-estimators"><span class="header-section-number">30.8.10</span> Doubly Robust Difference-in-Differences Estimators</a></li>
+<li><a class="nav-link" href="#nonlinear-difference-in-differences"><span class="header-section-number">30.8.11</span> Nonlinear Difference-in-Differences</a></li>
 </ul>
 </li>
 <li>
@@ -7161,7 +7288,7 @@ m(y) =
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-04-07.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-04-09.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

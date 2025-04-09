@@ -156,6 +156,123 @@ This formulation differences out time-invariant unobserved factors, assuming the
 -   If the control group would have experienced a different trajectory, the DID estimate may be biased.
 -   Since we cannot observe treatment variation in the control group, we cannot infer the treatment effect for this group.
 
+
+``` r
+# Load required libraries
+library(dplyr)
+library(ggplot2)
+set.seed(1)
+
+# Simulated dataset for illustration
+data <- data.frame(
+  time = rep(c(0, 1), each = 50),  # Pre (0) and Post (1)
+  treated = rep(c(0, 1), times = 50), # Control (0) and Treated (1)
+  error = rnorm(100)
+)
+
+# Generate outcome variable
+data$outcome <- 5 + 3 * data$treated + 2 * data$time + 4 * data$treated * data$time + data$error
+
+# Compute averages for 2x2 table
+table_means <- data %>%
+  group_by(treated, time) %>%
+  summarize(mean_outcome = mean(outcome), .groups = "drop") %>%
+  mutate(
+    group = paste0(ifelse(treated == 1, "Treated", "Control"), ", ", 
+                   ifelse(time == 1, "Post", "Pre"))
+  )
+
+# Display the 2x2 table
+table_2x2 <- table_means %>%
+  select(group, mean_outcome) %>%
+  tidyr::spread(key = group, value = mean_outcome)
+
+print("2x2 Table of Mean Outcomes:")
+#> [1] "2x2 Table of Mean Outcomes:"
+print(table_2x2)
+#> # A tibble: 1 × 4
+#>   `Control, Post` `Control, Pre` `Treated, Post` `Treated, Pre`
+#>             <dbl>          <dbl>           <dbl>          <dbl>
+#> 1            7.19           5.20            14.0           8.00
+
+# Calculate Diff-in-Diff manually
+Y11 <- table_means$mean_outcome[table_means$group == "Treated, Post"]  # Treated, Post
+Y10 <- table_means$mean_outcome[table_means$group == "Treated, Pre"]   # Treated, Pre
+Y01 <- table_means$mean_outcome[table_means$group == "Control, Post"]  # Control, Post
+Y00 <- table_means$mean_outcome[table_means$group == "Control, Pre"]   # Control, Pre
+
+diff_in_diff_formula <- (Y11 - Y10) - (Y01 - Y00)
+
+# Estimate DID using OLS
+model <- lm(outcome ~ treated * time, data = data)
+ols_estimate <- coef(model)["treated:time"]
+
+# Print results
+results <- data.frame(
+  Method = c("Diff-in-Diff Formula", "OLS Estimate"),
+  Estimate = c(diff_in_diff_formula, ols_estimate)
+)
+
+print("Comparison of DID Estimates:")
+#> [1] "Comparison of DID Estimates:"
+print(results)
+#>                            Method Estimate
+#>              Diff-in-Diff Formula 4.035895
+#> treated:time         OLS Estimate 4.035895
+
+# Visualization
+ggplot(data, aes(x = as.factor(time), y = outcome, color = as.factor(treated), group = treated)) +
+  stat_summary(fun = mean, geom = "point", size = 3) +
+  stat_summary(fun = mean, geom = "line", linetype = "dashed") +
+  labs(
+    title = "Difference-in-Differences Visualization",
+    x = "Time (0 = Pre, 1 = Post)",
+    y = "Outcome",
+    color = "Group"
+  ) +
+  scale_color_manual(labels = c("Control", "Treated"), values = c("blue", "red")) +
+  theme_minimal()
+```
+
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
+
+|              | Control (0)        | Treated (1)         |
+|--------------|--------------------|---------------------|
+| **Pre (0)**  | $\bar{Y}_{00} = 5$ | $\bar{Y}_{10} = 8$  |
+| **Post (1)** | $\bar{Y}_{01} = 7$ | $\bar{Y}_{11} = 14$ |
+
+The table organizes the mean outcomes into four cells:
+
+1.  Control Group, Pre-period ($\bar{Y}_{00}$): Mean outcome for the control group before the intervention.
+
+2.  Control Group, Post-period ($\bar{Y}_{01}$): Mean outcome for the control group after the intervention.
+
+3.  Treated Group, Pre-period ($\bar{Y}_{10}$): Mean outcome for the treated group before the intervention.
+
+4.  Treated Group, Post-period ($\bar{Y}_{11}$): Mean outcome for the treated group after the intervention.
+
+The DID treatment effect calculated from the simple formula of averages is identical to the estimate from an OLS regression with an interaction term.
+
+The treatment effect is calculated as:
+
+$\text{DID} = (\bar{Y}_{11} - \bar{Y}_{10}) - (\bar{Y}_{01} - \bar{Y}_{00})$
+
+Compute manually:
+
+$(\bar{Y}_{11} - \bar{Y}_{10}) - (\bar{Y}_{01} - \bar{Y}_{00})$
+
+Use OLS regression:
+
+$Y_{it} = \beta_0 + \beta_1 \text{treated}_i + \beta_2 \text{time}_t + \beta_3 (\text{treated}_i \cdot \text{time}_t) + \epsilon_{it}$
+
+Using the simulated table:
+
+$\text{DID} = (14 - 8) - (7 - 5) = 6 - 2 = 4$
+
+This matches the **interaction term coefficient** ($\beta_3 = 4$) from the OLS regression.
+
+Both methods give the same result!
+
 ------------------------------------------------------------------------
 
 ### Extensions of DID
@@ -297,13 +414,13 @@ etable(cali)
 iplot(cali, pt.join = T)
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
 coefplot(cali)
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-2-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-3-2.png" width="90%" style="display: block; margin: auto;" />
 
 ## Empirical Research Walkthrough
 
@@ -628,7 +745,7 @@ When applying TWFE to datasets with **multiple treatment groups** and **staggere
 
 ### Canonical TWFE Model
 
-Following the notation in [@arkhangelsky2024design], the canonical TWFE model is typically written as:
+The canonical TWFE model is typically written as:
 
 $$
 Y_{it} = \alpha_i + \lambda_t + \tau W_{it} + \beta X_{it} + \epsilon_{it},
@@ -650,7 +767,7 @@ where:
 
 -   $\epsilon_{it}$ = Error term
 
-An illustrative TWFE event-study model (adapted from [@stevenson2006bargaining]):
+An illustrative TWFE event-study model [@stevenson2006bargaining]:
 
 $$ \begin{aligned} Y_{it} &= \sum_{k} \beta_{k} \cdot Treatment_{it}^{k} \;+\; \eta_{i} \;+\; \lambda_{t} \;+\; Controls_{it} \;+\; \epsilon_{it}, \end{aligned} $$
 
@@ -671,7 +788,7 @@ When there are only two time periods $(T=2)$, TWFE simplifies to the **tradition
 1.  **Homogeneous treatment effects** across units and time periods, meaning:
     -   No dynamic treatment effects (i.e., treatment effects do not evolve over time).
     -   The treatment effect is constant across units [@goodman2021difference; @de2020two; @sun2021estimating; @borusyak2021revisiting].
-2.  **Parallel trends** assumption
+2.  [Parallel trends assumption](#prior-parallel-trends-test)
 3.  **Linear additive effects** are valid [@imai2021use].
 
 However, in practice, **treatment effects are often heterogeneous**. If effects vary by cohort or over time, then standard TWFE estimates can be biased---particularly when there is staggered adoption or dynamic treatment effects [@goodman2021difference; @de2020two; @sun2021estimating; @borusyak2021revisiting]. Hence, to use the TWFE, we actually have to argue why the effects are homogeneous to justify TWFE use:
@@ -707,8 +824,6 @@ TWFE compares different types of treatment/control groups:
 
 ### Limitations of TWFE
 
-When Do Problems Arise?
-
 TWFE DiD is **valid only** under strong assumptions that the treatment effect does not vary across units or over time. In reality, we almost always see some form of **treatment heterogeneity**:
 
 -   **No dynamic treatment effects**: The model requires that the treatment effect not evolve over time.
@@ -736,20 +851,20 @@ In fields like finance and accounting, [newer estimators](#sec-modern-estimators
 
 ### Diagnosing and Addressing Bias in TWFE
 
-Researchers can identify and mitigate the biases arising from heterogeneous treatment effects through **diagnostic checks** and **alternative estimators**:
+Researchers can identify and mitigate the biases arising from heterogeneous treatment effects through diagnostic checks and alternative estimators:
 
-1.  Goodman-Bacon Decomposition
+1.  [Goodman-Bacon Decomposition](#sec-goodman-bacon-decomposition)
 
 -   **Purpose**: Decomposes the TWFE DiD estimate into the sum of all two-group, two-period comparisons.
 -   **Insight**: Reveals which comparisons have negative weights and how much each comparison contributes to the overall estimate [@goodman2021difference].
 -   **Implementation**: Identify subgroups by treatment timing, then examine each group--time pair to see how it contributes to the aggregate TWFE coefficient.
 
-2.  Plotting Treatment Timing
+2.  **Plotting Treatment Timing**
 
 -   **Visual Inspection**: Always **plot** the distribution of treatment timing across units.
 -   **High Risk of Bias**: If treatment is staggered and many units differ in their adoption times, standard TWFE will often be biased.
 
-3.  Assessing Treatment Heterogeneity Directly
+3.  **Assessing Treatment Heterogeneity Directly**
 
 -   **Check for Variation in Effects**: If there is a theoretical or empirical reason to believe that treatment effects differ by subgroup or over time, TWFE might not be appropriate.
 -   **Size of Never-Treated Sample**: When 80% or more of the sample is never treated, the potential for bias in TWFE is smaller. However, large shares of treated units with varied adoption times raise red flags.
@@ -837,7 +952,7 @@ tidy(fit_tw)
 #> # ℹ 51 more rows
 ```
 
-> **Interpretation**: The TWFE estimate (approx. 0.08) equals the **weighted average** of the Bacon decomposition estimates, confirming the decomposition's validity.
+> **Interpretation**: The TWFE estimate (approx. 0.08) equals the weighted average of the Bacon decomposition estimates, confirming the decomposition's validity.
 
 ------------------------------------------------------------------------
 
@@ -862,9 +977,9 @@ ggplot(df_bacon) +
   causalverse::ama_theme()
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
 
-> **Insight**: This plot shows the contribution of each 2×2 DiD comparison, highlighting how **estimates with large weights dominate** the overall TWFE coefficient.
+> **Insight**: This plot shows the contribution of each 2×2 DiD comparison, highlighting how estimates with large weights dominate the overall TWFE coefficient.
 
 ------------------------------------------------------------------------
 
@@ -897,7 +1012,7 @@ Summary Table: Goodman-Bacon Comparison Types
 
 ### Remedies for TWFE's Shortcomings
 
-This section outlines **alternative estimators** and design-based approaches that explicitly handle **heterogeneous treatment effects**, **staggered adoption** [@baker2022much], and **dynamic treatment effects** better than standard TWFE ([Modern Estimators for Staggered Adoption]).
+This section outlines **alternative estimators** and design-based approaches that explicitly handle **heterogeneous treatment effects**, **staggered adoption** [@baker2022much], and **dynamic treatment effects** better than standard TWFE ([Modern Estimators for Staggered Adoption](#sec-modern-estimators-for-staggered-adoption)).
 
 1.  [Group-Time Average Treatment Effects](#sec-group-time-average-treatment-effects-callaway2021difference)
 
@@ -1239,7 +1354,7 @@ ggplot(
     causalverse::ama_theme()
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
 
 The `staggered` package also includes direct implementations of alternative estimators:
 
@@ -1477,7 +1592,7 @@ Use `iplot()` to visualize the estimated dynamic treatment effects across relati
 iplot(res_sa20)
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
 
 You can summarize the results using different aggregation options:
 
@@ -1613,23 +1728,34 @@ library(fwlplot)
 fwl_plot(y ~ x1, data = base_stagg)
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
 
+
 # With fixed effects
-fwl_plot(y ~ x1 | id + year, data = base_stagg, n_sample = 100)
+fwl_plot(y ~ x1 | id + year,
+         data = base_stagg,
+         n_sample = 100)
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-14-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-15-2.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
 
 # Splitting by treatment status
-fwl_plot(y ~ x1 | id + year, data = base_stagg, n_sample = 100, fsplit = ~ treated)
+fwl_plot(
+    y ~ x1 |
+        id + year,
+    data = base_stagg,
+    n_sample = 100,
+    fsplit = ~ treated
+)
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-14-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-15-3.png" width="90%" style="display: block; margin: auto;" />
+
+------------------------------------------------------------------------
 
 ### Stacked Difference-in-Differences {#sec-stacked-difference-in-differences}
 
@@ -1918,7 +2044,7 @@ ggplot(compare_df_longer) +
     causalverse::ama_theme()
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" />
 
 ------------------------------------------------------------------------
 
@@ -2044,7 +2170,7 @@ DisplayTreatment(
 )
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
 
 1.  Select $F$ (i.e., the number of leads - time periods after treatment). Driven by what authors are interested in estimating:
 
@@ -2299,7 +2425,7 @@ DisplayTreatment(
 )
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
 
 Control units and the treated unit have identical treatment histories over the lag window (1988-1991)
 
@@ -2319,7 +2445,7 @@ DisplayTreatment(
 )
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
 
 This set is more limited than the first one, but we can still see that we have exact past histories.
 
@@ -2477,7 +2603,7 @@ msets.maha |> head()
 plot(msets.none)
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
 
 **Comparing Methods of Refinement**
 
@@ -2672,7 +2798,7 @@ get_covariate_balance(
 )
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-25-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-26-1.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
 
@@ -2688,7 +2814,7 @@ get_covariate_balance(
 )
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-25-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-26-2.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
 
@@ -2701,7 +2827,7 @@ balance_scatter(
 )
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-25-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-26-3.png" width="90%" style="display: block; margin: auto;" />
 
 **`PanelEstimate`**
 
@@ -2736,8 +2862,8 @@ PE.results[["estimates"]]
 
 # standard errors
 PE.results[["standard.error"]]
-#>       t+0       t+1       t+2       t+3       t+4 
-#> 0.6490501 1.0459313 1.4313788 1.7770150 2.1971133
+#>      t+0      t+1      t+2      t+3      t+4 
+#> 0.621126 1.053932 1.456882 1.843088 2.210310
 
 
 # use conditional method
@@ -2782,7 +2908,7 @@ summary(PE.results)
 plot(PE.results)
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-26-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-27-1.png" width="90%" style="display: block; margin: auto;" />
 
 **Moderating Variables**
 
@@ -2818,14 +2944,14 @@ PE.results <-
 plot(PE.results[[1]])
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-27-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-28-1.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
 
 plot(PE.results[[2]])
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-27-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-28-2.png" width="90%" style="display: block; margin: auto;" />
 
 To write up for journal submission, you can follow the following report:
 
@@ -3695,7 +3821,9 @@ plot(out.fect.c,  stats = "carryover.p")
 
 We have evidence of carryover effects.
 
-#### Matrix Completion
+------------------------------------------------------------------------
+
+### Matrix Completion
 
 Applications in marketing:
 
@@ -3859,6 +3987,8 @@ This method allows to
 -   have autocorrelated errors
 
 -   have weighted loss function (i.e., take into account the probability of outcomes for a unit being missing)
+
+------------------------------------------------------------------------
 
 ### Reshaped Inverse Probability Weighting - TWFE Estimator {#sec-reshaped-inverse-probability-weighting-twfe-estimator}
 
@@ -4108,6 +4238,8 @@ This feature is particularly valuable in [quasi-experimental designs](#sec-quasi
 -   Unlike conventional TWFE regressions, which can yield biased estimands under heterogeneity, RIPW explicitly targets user-specified weighted averages (DATE).
 -   In randomized experiments, RIPW ensures the **effective estimand** is interpretable as a population-level average, determined by the design $\Pi$.
 
+------------------------------------------------------------------------
+
 ### @gardner2022two and @borusyak2024revisiting
 
 -   Estimate the time and unit fixed effects separately
@@ -4170,14 +4302,14 @@ fixest::iplot(
 )
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-42-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-43-1.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
 
 coefplot(est)
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-42-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-43-2.png" width="90%" style="display: block; margin: auto;" />
 
 
 ``` r
@@ -4197,7 +4329,7 @@ mult_est <- did2s::event_study(
 did2s::plot_event_study(mult_est)
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-43-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-44-1.png" width="90%" style="display: block; margin: auto;" />
 
 @borusyak2024revisiting `didimputation`
 
@@ -4217,6 +4349,8 @@ did_imputation(
     idname = "id"
 )
 ```
+
+------------------------------------------------------------------------
 
 ### @de2020two
 
@@ -4256,7 +4390,7 @@ res <-
     )
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-45-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-46-1.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
 
@@ -4398,7 +4532,7 @@ head(res)
 #> $plot
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-45-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-46-2.png" width="90%" style="display: block; margin: auto;" />
 
 I don't recommend the `TwoWayFEWeights` since it only gives the aggregated average treatment effect over all post-treatment periods, but not for each period.
 
@@ -4438,6 +4572,8 @@ print(res)
 #> 
 #> The development of this package was funded by the European Union (ERC, REALLYCREDIBLE,GA N. 101043899).
 ```
+
+------------------------------------------------------------------------
 
 ### Augmented/Forward DID
 
@@ -4827,7 +4963,7 @@ agg.es <- aggte(drdid_result, type = "dynamic")
 ggdid(agg.es)
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-47-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-48-1.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
 
@@ -4836,7 +4972,7 @@ agg.gs <- aggte(drdid_result, type = "group")
 ggdid(agg.gs)
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-47-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-48-2.png" width="90%" style="display: block; margin: auto;" />
 
 ------------------------------------------------------------------------
 
@@ -5445,7 +5581,7 @@ ggplot() +
     causalverse::ama_theme()
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-53-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-54-1.png" width="90%" style="display: block; margin: auto;" />
 
 -   **Solid line** and shaded region: the ETWFE *point estimates* and their 95% confidence intervals, for each event time relative to adoption.
 
@@ -5468,7 +5604,7 @@ plot(
 )
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-54-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-55-1.png" width="90%" style="display: block; margin: auto;" />
 
 7.  Double-check in a regression table (optional)
 
@@ -5907,7 +6043,7 @@ causalverse::plot_par_trends(
 #> [[1]]
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-56-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-57-1.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
 
@@ -5925,7 +6061,7 @@ od |>
     causalverse::ama_theme()
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-56-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-57-2.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
 
@@ -5938,13 +6074,13 @@ prior_trend <- fixest::feols(Rate ~ i(Quarter_Num, California) |
 fixest::coefplot(prior_trend, grid = F)
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-56-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-57-3.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
 fixest::iplot(prior_trend, grid = F)
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-56-4.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-57-4.png" width="90%" style="display: block; margin: auto;" />
 
 This is alarming since one of the periods is significantly different from 0, which means that our parallel trends assumption is not plausible.
 
@@ -6116,7 +6252,7 @@ ggplot(coef_df, aes(x = Model, y = Estimate)) +
     )
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-59-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-60-1.png" width="90%" style="display: block; margin: auto;" />
 
 We would like the "supposed" DiD to be insignificant.
 
@@ -6497,7 +6633,7 @@ legend("topleft",
        legend = as.character(xvec))
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-60-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-61-1.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
 

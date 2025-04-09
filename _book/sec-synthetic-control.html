@@ -558,7 +558,7 @@ Y_{1t}^I = Y_{1t}
 <p>The objective function combines both individual and aggregate balance constraints:</p>
 <p><span class="math display">\[ \min_W \lambda \sum_{j} ||Y_{j,\text{pre}} - \sum_i W_{ij} Y_{i,\text{pre}}||^2 + (1-\lambda) ||Y_{\text{treated, pre}} - \sum_i W_i Y_{i,\text{pre}}||^2 \]</span></p>
 <p>where <span class="math inline">\(\lambda\)</span> is a tuning parameter that controls the trade-off between individual and pooled balance​.</p>
-<div class="sourceCode" id="cb842"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb843"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load necessary library</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">augsynth</span><span class="op">)</span></span></code></pre></div>
 <hr>
@@ -643,106 +643,106 @@ Y_{it}^* = X_{it} \hat{\beta} + \hat{\lambda}_i' \hat{f}_t + \varepsilon_{it}^*
 <li>Re-estimate the model on resampled data and compute bootstrap confidence intervals.</li>
 </ol>
 <p>This approach ensures correct coverage probabilities and avoids bias in standard error estimation.</p>
-<div class="sourceCode" id="cb843"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb843-1"><a href="sec-synthetic-control.html#cb843-1" tabindex="-1"></a><span class="co"># Load required package</span></span>
-<span id="cb843-2"><a href="sec-synthetic-control.html#cb843-2" tabindex="-1"></a><span class="fu">library</span>(gsynth)</span>
-<span id="cb843-3"><a href="sec-synthetic-control.html#cb843-3" tabindex="-1"></a></span>
-<span id="cb843-4"><a href="sec-synthetic-control.html#cb843-4" tabindex="-1"></a><span class="co"># Example data</span></span>
-<span id="cb843-5"><a href="sec-synthetic-control.html#cb843-5" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"gsynth"</span>)</span>
-<span id="cb843-6"><a href="sec-synthetic-control.html#cb843-6" tabindex="-1"></a></span>
-<span id="cb843-7"><a href="sec-synthetic-control.html#cb843-7" tabindex="-1"></a><span class="co"># Fit Generalized Synthetic Control Model</span></span>
-<span id="cb843-8"><a href="sec-synthetic-control.html#cb843-8" tabindex="-1"></a>gsc_model <span class="ot">&lt;-</span></span>
-<span id="cb843-9"><a href="sec-synthetic-control.html#cb843-9" tabindex="-1"></a>    <span class="fu">gsynth</span>(</span>
-<span id="cb843-10"><a href="sec-synthetic-control.html#cb843-10" tabindex="-1"></a>        Y <span class="sc">~</span> D <span class="sc">+</span> X1 <span class="sc">+</span> X2,</span>
-<span id="cb843-11"><a href="sec-synthetic-control.html#cb843-11" tabindex="-1"></a>        <span class="at">data =</span> simdata,</span>
-<span id="cb843-12"><a href="sec-synthetic-control.html#cb843-12" tabindex="-1"></a>        <span class="at">parallel =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb843-13"><a href="sec-synthetic-control.html#cb843-13" tabindex="-1"></a>        <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"time"</span>),</span>
-<span id="cb843-14"><a href="sec-synthetic-control.html#cb843-14" tabindex="-1"></a>        <span class="at">force =</span> <span class="st">"two-way"</span>,</span>
-<span id="cb843-15"><a href="sec-synthetic-control.html#cb843-15" tabindex="-1"></a>        <span class="at">CV =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb843-16"><a href="sec-synthetic-control.html#cb843-16" tabindex="-1"></a>        <span class="at">r =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">5</span>),</span>
-<span id="cb843-17"><a href="sec-synthetic-control.html#cb843-17" tabindex="-1"></a>        <span class="at">se =</span> T</span>
-<span id="cb843-18"><a href="sec-synthetic-control.html#cb843-18" tabindex="-1"></a>    )</span>
-<span id="cb843-19"><a href="sec-synthetic-control.html#cb843-19" tabindex="-1"></a><span class="co">#&gt; Cross-validating ... </span></span>
-<span id="cb843-20"><a href="sec-synthetic-control.html#cb843-20" tabindex="-1"></a><span class="co">#&gt;  r = 0; sigma2 = 1.84865; IC = 1.02023; PC = 1.74458; MSPE = 2.37280</span></span>
-<span id="cb843-21"><a href="sec-synthetic-control.html#cb843-21" tabindex="-1"></a><span class="co">#&gt;  r = 1; sigma2 = 1.51541; IC = 1.20588; PC = 1.99818; MSPE = 1.71743</span></span>
-<span id="cb843-22"><a href="sec-synthetic-control.html#cb843-22" tabindex="-1"></a><span class="co">#&gt;  r = 2; sigma2 = 0.99737; IC = 1.16130; PC = 1.69046; MSPE = 1.14540*</span></span>
-<span id="cb843-23"><a href="sec-synthetic-control.html#cb843-23" tabindex="-1"></a><span class="co">#&gt;  r = 3; sigma2 = 0.94664; IC = 1.47216; PC = 1.96215; MSPE = 1.15032</span></span>
-<span id="cb843-24"><a href="sec-synthetic-control.html#cb843-24" tabindex="-1"></a><span class="co">#&gt;  r = 4; sigma2 = 0.89411; IC = 1.76745; PC = 2.19241; MSPE = 1.21397</span></span>
-<span id="cb843-25"><a href="sec-synthetic-control.html#cb843-25" tabindex="-1"></a><span class="co">#&gt;  r = 5; sigma2 = 0.85060; IC = 2.05928; PC = 2.40964; MSPE = 1.23876</span></span>
-<span id="cb843-26"><a href="sec-synthetic-control.html#cb843-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb843-27"><a href="sec-synthetic-control.html#cb843-27" tabindex="-1"></a><span class="co">#&gt;  r* = 2</span></span>
-<span id="cb843-28"><a href="sec-synthetic-control.html#cb843-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb843-29"><a href="sec-synthetic-control.html#cb843-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb843-30"><a href="sec-synthetic-control.html#cb843-30" tabindex="-1"></a>Bootstrapping ...</span>
-<span id="cb843-31"><a href="sec-synthetic-control.html#cb843-31" tabindex="-1"></a><span class="co">#&gt; ..</span></span>
-<span id="cb843-32"><a href="sec-synthetic-control.html#cb843-32" tabindex="-1"></a></span>
-<span id="cb843-33"><a href="sec-synthetic-control.html#cb843-33" tabindex="-1"></a><span class="co"># Summary of results</span></span>
-<span id="cb843-34"><a href="sec-synthetic-control.html#cb843-34" tabindex="-1"></a><span class="fu">summary</span>(gsc_model)</span>
-<span id="cb843-35"><a href="sec-synthetic-control.html#cb843-35" tabindex="-1"></a><span class="co">#&gt;              Length Class   Mode     </span></span>
-<span id="cb843-36"><a href="sec-synthetic-control.html#cb843-36" tabindex="-1"></a><span class="co">#&gt; Y.dat         1500  -none-  numeric  </span></span>
-<span id="cb843-37"><a href="sec-synthetic-control.html#cb843-37" tabindex="-1"></a><span class="co">#&gt; Y                1  -none-  character</span></span>
-<span id="cb843-38"><a href="sec-synthetic-control.html#cb843-38" tabindex="-1"></a><span class="co">#&gt; D                1  -none-  character</span></span>
-<span id="cb843-39"><a href="sec-synthetic-control.html#cb843-39" tabindex="-1"></a><span class="co">#&gt; X                2  -none-  character</span></span>
-<span id="cb843-40"><a href="sec-synthetic-control.html#cb843-40" tabindex="-1"></a><span class="co">#&gt; W                0  -none-  NULL     </span></span>
-<span id="cb843-41"><a href="sec-synthetic-control.html#cb843-41" tabindex="-1"></a><span class="co">#&gt; index            2  -none-  character</span></span>
-<span id="cb843-42"><a href="sec-synthetic-control.html#cb843-42" tabindex="-1"></a><span class="co">#&gt; id              50  -none-  numeric  </span></span>
-<span id="cb843-43"><a href="sec-synthetic-control.html#cb843-43" tabindex="-1"></a><span class="co">#&gt; time            30  -none-  numeric  </span></span>
-<span id="cb843-44"><a href="sec-synthetic-control.html#cb843-44" tabindex="-1"></a><span class="co">#&gt; obs.missing   1500  -none-  numeric  </span></span>
-<span id="cb843-45"><a href="sec-synthetic-control.html#cb843-45" tabindex="-1"></a><span class="co">#&gt; id.tr            5  -none-  numeric  </span></span>
-<span id="cb843-46"><a href="sec-synthetic-control.html#cb843-46" tabindex="-1"></a><span class="co">#&gt; id.co           45  -none-  numeric  </span></span>
-<span id="cb843-47"><a href="sec-synthetic-control.html#cb843-47" tabindex="-1"></a><span class="co">#&gt; D.tr           150  -none-  numeric  </span></span>
-<span id="cb843-48"><a href="sec-synthetic-control.html#cb843-48" tabindex="-1"></a><span class="co">#&gt; I.tr           150  -none-  numeric  </span></span>
-<span id="cb843-49"><a href="sec-synthetic-control.html#cb843-49" tabindex="-1"></a><span class="co">#&gt; Y.tr           150  -none-  numeric  </span></span>
-<span id="cb843-50"><a href="sec-synthetic-control.html#cb843-50" tabindex="-1"></a><span class="co">#&gt; Y.ct           150  -none-  numeric  </span></span>
-<span id="cb843-51"><a href="sec-synthetic-control.html#cb843-51" tabindex="-1"></a><span class="co">#&gt; Y.co          1350  -none-  numeric  </span></span>
-<span id="cb843-52"><a href="sec-synthetic-control.html#cb843-52" tabindex="-1"></a><span class="co">#&gt; eff            150  -none-  numeric  </span></span>
-<span id="cb843-53"><a href="sec-synthetic-control.html#cb843-53" tabindex="-1"></a><span class="co">#&gt; Y.bar           90  -none-  numeric  </span></span>
-<span id="cb843-54"><a href="sec-synthetic-control.html#cb843-54" tabindex="-1"></a><span class="co">#&gt; att             30  -none-  numeric  </span></span>
-<span id="cb843-55"><a href="sec-synthetic-control.html#cb843-55" tabindex="-1"></a><span class="co">#&gt; att.avg          1  -none-  numeric  </span></span>
-<span id="cb843-56"><a href="sec-synthetic-control.html#cb843-56" tabindex="-1"></a><span class="co">#&gt; force            1  -none-  numeric  </span></span>
-<span id="cb843-57"><a href="sec-synthetic-control.html#cb843-57" tabindex="-1"></a><span class="co">#&gt; sameT0           1  -none-  logical  </span></span>
-<span id="cb843-58"><a href="sec-synthetic-control.html#cb843-58" tabindex="-1"></a><span class="co">#&gt; T                1  -none-  numeric  </span></span>
-<span id="cb843-59"><a href="sec-synthetic-control.html#cb843-59" tabindex="-1"></a><span class="co">#&gt; N                1  -none-  numeric  </span></span>
-<span id="cb843-60"><a href="sec-synthetic-control.html#cb843-60" tabindex="-1"></a><span class="co">#&gt; p                1  -none-  numeric  </span></span>
-<span id="cb843-61"><a href="sec-synthetic-control.html#cb843-61" tabindex="-1"></a><span class="co">#&gt; Ntr              1  -none-  numeric  </span></span>
-<span id="cb843-62"><a href="sec-synthetic-control.html#cb843-62" tabindex="-1"></a><span class="co">#&gt; Nco              1  -none-  numeric  </span></span>
-<span id="cb843-63"><a href="sec-synthetic-control.html#cb843-63" tabindex="-1"></a><span class="co">#&gt; T0               5  -none-  numeric  </span></span>
-<span id="cb843-64"><a href="sec-synthetic-control.html#cb843-64" tabindex="-1"></a><span class="co">#&gt; tr              50  -none-  logical  </span></span>
-<span id="cb843-65"><a href="sec-synthetic-control.html#cb843-65" tabindex="-1"></a><span class="co">#&gt; pre            150  -none-  logical  </span></span>
-<span id="cb843-66"><a href="sec-synthetic-control.html#cb843-66" tabindex="-1"></a><span class="co">#&gt; post           150  -none-  logical  </span></span>
-<span id="cb843-67"><a href="sec-synthetic-control.html#cb843-67" tabindex="-1"></a><span class="co">#&gt; r.cv             1  -none-  numeric  </span></span>
-<span id="cb843-68"><a href="sec-synthetic-control.html#cb843-68" tabindex="-1"></a><span class="co">#&gt; IC               1  -none-  numeric  </span></span>
-<span id="cb843-69"><a href="sec-synthetic-control.html#cb843-69" tabindex="-1"></a><span class="co">#&gt; PC               1  -none-  numeric  </span></span>
-<span id="cb843-70"><a href="sec-synthetic-control.html#cb843-70" tabindex="-1"></a><span class="co">#&gt; beta             2  -none-  numeric  </span></span>
-<span id="cb843-71"><a href="sec-synthetic-control.html#cb843-71" tabindex="-1"></a><span class="co">#&gt; est.co          13  -none-  list     </span></span>
-<span id="cb843-72"><a href="sec-synthetic-control.html#cb843-72" tabindex="-1"></a><span class="co">#&gt; mu               1  -none-  numeric  </span></span>
-<span id="cb843-73"><a href="sec-synthetic-control.html#cb843-73" tabindex="-1"></a><span class="co">#&gt; validX           1  -none-  numeric  </span></span>
-<span id="cb843-74"><a href="sec-synthetic-control.html#cb843-74" tabindex="-1"></a><span class="co">#&gt; sigma2           1  -none-  numeric  </span></span>
-<span id="cb843-75"><a href="sec-synthetic-control.html#cb843-75" tabindex="-1"></a><span class="co">#&gt; res.co        1350  -none-  numeric  </span></span>
-<span id="cb843-76"><a href="sec-synthetic-control.html#cb843-76" tabindex="-1"></a><span class="co">#&gt; MSPE             1  -none-  numeric  </span></span>
-<span id="cb843-77"><a href="sec-synthetic-control.html#cb843-77" tabindex="-1"></a><span class="co">#&gt; CV.out          30  -none-  numeric  </span></span>
-<span id="cb843-78"><a href="sec-synthetic-control.html#cb843-78" tabindex="-1"></a><span class="co">#&gt; niter            1  -none-  numeric  </span></span>
-<span id="cb843-79"><a href="sec-synthetic-control.html#cb843-79" tabindex="-1"></a><span class="co">#&gt; factor          60  -none-  numeric  </span></span>
-<span id="cb843-80"><a href="sec-synthetic-control.html#cb843-80" tabindex="-1"></a><span class="co">#&gt; lambda.co       90  -none-  numeric  </span></span>
-<span id="cb843-81"><a href="sec-synthetic-control.html#cb843-81" tabindex="-1"></a><span class="co">#&gt; lambda.tr       10  -none-  numeric  </span></span>
-<span id="cb843-82"><a href="sec-synthetic-control.html#cb843-82" tabindex="-1"></a><span class="co">#&gt; wgt.implied    225  -none-  numeric  </span></span>
-<span id="cb843-83"><a href="sec-synthetic-control.html#cb843-83" tabindex="-1"></a><span class="co">#&gt; alpha.tr         5  -none-  numeric  </span></span>
-<span id="cb843-84"><a href="sec-synthetic-control.html#cb843-84" tabindex="-1"></a><span class="co">#&gt; alpha.co        45  -none-  numeric  </span></span>
-<span id="cb843-85"><a href="sec-synthetic-control.html#cb843-85" tabindex="-1"></a><span class="co">#&gt; xi              30  -none-  numeric  </span></span>
-<span id="cb843-86"><a href="sec-synthetic-control.html#cb843-86" tabindex="-1"></a><span class="co">#&gt; inference        1  -none-  character</span></span>
-<span id="cb843-87"><a href="sec-synthetic-control.html#cb843-87" tabindex="-1"></a><span class="co">#&gt; est.att        180  -none-  numeric  </span></span>
-<span id="cb843-88"><a href="sec-synthetic-control.html#cb843-88" tabindex="-1"></a><span class="co">#&gt; est.avg          5  -none-  numeric  </span></span>
-<span id="cb843-89"><a href="sec-synthetic-control.html#cb843-89" tabindex="-1"></a><span class="co">#&gt; att.avg.boot   200  -none-  numeric  </span></span>
-<span id="cb843-90"><a href="sec-synthetic-control.html#cb843-90" tabindex="-1"></a><span class="co">#&gt; att.boot      6000  -none-  numeric  </span></span>
-<span id="cb843-91"><a href="sec-synthetic-control.html#cb843-91" tabindex="-1"></a><span class="co">#&gt; eff.boot     30000  -none-  numeric  </span></span>
-<span id="cb843-92"><a href="sec-synthetic-control.html#cb843-92" tabindex="-1"></a><span class="co">#&gt; Dtr.boot     30000  -none-  numeric  </span></span>
-<span id="cb843-93"><a href="sec-synthetic-control.html#cb843-93" tabindex="-1"></a><span class="co">#&gt; Itr.boot     30000  -none-  numeric  </span></span>
-<span id="cb843-94"><a href="sec-synthetic-control.html#cb843-94" tabindex="-1"></a><span class="co">#&gt; beta.boot      400  -none-  numeric  </span></span>
-<span id="cb843-95"><a href="sec-synthetic-control.html#cb843-95" tabindex="-1"></a><span class="co">#&gt; est.beta        10  -none-  numeric  </span></span>
-<span id="cb843-96"><a href="sec-synthetic-control.html#cb843-96" tabindex="-1"></a><span class="co">#&gt; call             9  -none-  call     </span></span>
-<span id="cb843-97"><a href="sec-synthetic-control.html#cb843-97" tabindex="-1"></a><span class="co">#&gt; formula          3  formula call</span></span>
-<span id="cb843-98"><a href="sec-synthetic-control.html#cb843-98" tabindex="-1"></a></span>
-<span id="cb843-99"><a href="sec-synthetic-control.html#cb843-99" tabindex="-1"></a><span class="co"># Visualization</span></span>
-<span id="cb843-100"><a href="sec-synthetic-control.html#cb843-100" tabindex="-1"></a><span class="fu">plot</span>(gsc_model)</span></code></pre></div>
+<div class="sourceCode" id="cb844"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb844-1"><a href="sec-synthetic-control.html#cb844-1" tabindex="-1"></a><span class="co"># Load required package</span></span>
+<span id="cb844-2"><a href="sec-synthetic-control.html#cb844-2" tabindex="-1"></a><span class="fu">library</span>(gsynth)</span>
+<span id="cb844-3"><a href="sec-synthetic-control.html#cb844-3" tabindex="-1"></a></span>
+<span id="cb844-4"><a href="sec-synthetic-control.html#cb844-4" tabindex="-1"></a><span class="co"># Example data</span></span>
+<span id="cb844-5"><a href="sec-synthetic-control.html#cb844-5" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"gsynth"</span>)</span>
+<span id="cb844-6"><a href="sec-synthetic-control.html#cb844-6" tabindex="-1"></a></span>
+<span id="cb844-7"><a href="sec-synthetic-control.html#cb844-7" tabindex="-1"></a><span class="co"># Fit Generalized Synthetic Control Model</span></span>
+<span id="cb844-8"><a href="sec-synthetic-control.html#cb844-8" tabindex="-1"></a>gsc_model <span class="ot">&lt;-</span></span>
+<span id="cb844-9"><a href="sec-synthetic-control.html#cb844-9" tabindex="-1"></a>    <span class="fu">gsynth</span>(</span>
+<span id="cb844-10"><a href="sec-synthetic-control.html#cb844-10" tabindex="-1"></a>        Y <span class="sc">~</span> D <span class="sc">+</span> X1 <span class="sc">+</span> X2,</span>
+<span id="cb844-11"><a href="sec-synthetic-control.html#cb844-11" tabindex="-1"></a>        <span class="at">data =</span> simdata,</span>
+<span id="cb844-12"><a href="sec-synthetic-control.html#cb844-12" tabindex="-1"></a>        <span class="at">parallel =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb844-13"><a href="sec-synthetic-control.html#cb844-13" tabindex="-1"></a>        <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"time"</span>),</span>
+<span id="cb844-14"><a href="sec-synthetic-control.html#cb844-14" tabindex="-1"></a>        <span class="at">force =</span> <span class="st">"two-way"</span>,</span>
+<span id="cb844-15"><a href="sec-synthetic-control.html#cb844-15" tabindex="-1"></a>        <span class="at">CV =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb844-16"><a href="sec-synthetic-control.html#cb844-16" tabindex="-1"></a>        <span class="at">r =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">5</span>),</span>
+<span id="cb844-17"><a href="sec-synthetic-control.html#cb844-17" tabindex="-1"></a>        <span class="at">se =</span> T</span>
+<span id="cb844-18"><a href="sec-synthetic-control.html#cb844-18" tabindex="-1"></a>    )</span>
+<span id="cb844-19"><a href="sec-synthetic-control.html#cb844-19" tabindex="-1"></a><span class="co">#&gt; Cross-validating ... </span></span>
+<span id="cb844-20"><a href="sec-synthetic-control.html#cb844-20" tabindex="-1"></a><span class="co">#&gt;  r = 0; sigma2 = 1.84865; IC = 1.02023; PC = 1.74458; MSPE = 2.37280</span></span>
+<span id="cb844-21"><a href="sec-synthetic-control.html#cb844-21" tabindex="-1"></a><span class="co">#&gt;  r = 1; sigma2 = 1.51541; IC = 1.20588; PC = 1.99818; MSPE = 1.71743</span></span>
+<span id="cb844-22"><a href="sec-synthetic-control.html#cb844-22" tabindex="-1"></a><span class="co">#&gt;  r = 2; sigma2 = 0.99737; IC = 1.16130; PC = 1.69046; MSPE = 1.14540*</span></span>
+<span id="cb844-23"><a href="sec-synthetic-control.html#cb844-23" tabindex="-1"></a><span class="co">#&gt;  r = 3; sigma2 = 0.94664; IC = 1.47216; PC = 1.96215; MSPE = 1.15032</span></span>
+<span id="cb844-24"><a href="sec-synthetic-control.html#cb844-24" tabindex="-1"></a><span class="co">#&gt;  r = 4; sigma2 = 0.89411; IC = 1.76745; PC = 2.19241; MSPE = 1.21397</span></span>
+<span id="cb844-25"><a href="sec-synthetic-control.html#cb844-25" tabindex="-1"></a><span class="co">#&gt;  r = 5; sigma2 = 0.85060; IC = 2.05928; PC = 2.40964; MSPE = 1.23876</span></span>
+<span id="cb844-26"><a href="sec-synthetic-control.html#cb844-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb844-27"><a href="sec-synthetic-control.html#cb844-27" tabindex="-1"></a><span class="co">#&gt;  r* = 2</span></span>
+<span id="cb844-28"><a href="sec-synthetic-control.html#cb844-28" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb844-29"><a href="sec-synthetic-control.html#cb844-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb844-30"><a href="sec-synthetic-control.html#cb844-30" tabindex="-1"></a>Bootstrapping ...</span>
+<span id="cb844-31"><a href="sec-synthetic-control.html#cb844-31" tabindex="-1"></a><span class="co">#&gt; ..</span></span>
+<span id="cb844-32"><a href="sec-synthetic-control.html#cb844-32" tabindex="-1"></a></span>
+<span id="cb844-33"><a href="sec-synthetic-control.html#cb844-33" tabindex="-1"></a><span class="co"># Summary of results</span></span>
+<span id="cb844-34"><a href="sec-synthetic-control.html#cb844-34" tabindex="-1"></a><span class="fu">summary</span>(gsc_model)</span>
+<span id="cb844-35"><a href="sec-synthetic-control.html#cb844-35" tabindex="-1"></a><span class="co">#&gt;              Length Class   Mode     </span></span>
+<span id="cb844-36"><a href="sec-synthetic-control.html#cb844-36" tabindex="-1"></a><span class="co">#&gt; Y.dat         1500  -none-  numeric  </span></span>
+<span id="cb844-37"><a href="sec-synthetic-control.html#cb844-37" tabindex="-1"></a><span class="co">#&gt; Y                1  -none-  character</span></span>
+<span id="cb844-38"><a href="sec-synthetic-control.html#cb844-38" tabindex="-1"></a><span class="co">#&gt; D                1  -none-  character</span></span>
+<span id="cb844-39"><a href="sec-synthetic-control.html#cb844-39" tabindex="-1"></a><span class="co">#&gt; X                2  -none-  character</span></span>
+<span id="cb844-40"><a href="sec-synthetic-control.html#cb844-40" tabindex="-1"></a><span class="co">#&gt; W                0  -none-  NULL     </span></span>
+<span id="cb844-41"><a href="sec-synthetic-control.html#cb844-41" tabindex="-1"></a><span class="co">#&gt; index            2  -none-  character</span></span>
+<span id="cb844-42"><a href="sec-synthetic-control.html#cb844-42" tabindex="-1"></a><span class="co">#&gt; id              50  -none-  numeric  </span></span>
+<span id="cb844-43"><a href="sec-synthetic-control.html#cb844-43" tabindex="-1"></a><span class="co">#&gt; time            30  -none-  numeric  </span></span>
+<span id="cb844-44"><a href="sec-synthetic-control.html#cb844-44" tabindex="-1"></a><span class="co">#&gt; obs.missing   1500  -none-  numeric  </span></span>
+<span id="cb844-45"><a href="sec-synthetic-control.html#cb844-45" tabindex="-1"></a><span class="co">#&gt; id.tr            5  -none-  numeric  </span></span>
+<span id="cb844-46"><a href="sec-synthetic-control.html#cb844-46" tabindex="-1"></a><span class="co">#&gt; id.co           45  -none-  numeric  </span></span>
+<span id="cb844-47"><a href="sec-synthetic-control.html#cb844-47" tabindex="-1"></a><span class="co">#&gt; D.tr           150  -none-  numeric  </span></span>
+<span id="cb844-48"><a href="sec-synthetic-control.html#cb844-48" tabindex="-1"></a><span class="co">#&gt; I.tr           150  -none-  numeric  </span></span>
+<span id="cb844-49"><a href="sec-synthetic-control.html#cb844-49" tabindex="-1"></a><span class="co">#&gt; Y.tr           150  -none-  numeric  </span></span>
+<span id="cb844-50"><a href="sec-synthetic-control.html#cb844-50" tabindex="-1"></a><span class="co">#&gt; Y.ct           150  -none-  numeric  </span></span>
+<span id="cb844-51"><a href="sec-synthetic-control.html#cb844-51" tabindex="-1"></a><span class="co">#&gt; Y.co          1350  -none-  numeric  </span></span>
+<span id="cb844-52"><a href="sec-synthetic-control.html#cb844-52" tabindex="-1"></a><span class="co">#&gt; eff            150  -none-  numeric  </span></span>
+<span id="cb844-53"><a href="sec-synthetic-control.html#cb844-53" tabindex="-1"></a><span class="co">#&gt; Y.bar           90  -none-  numeric  </span></span>
+<span id="cb844-54"><a href="sec-synthetic-control.html#cb844-54" tabindex="-1"></a><span class="co">#&gt; att             30  -none-  numeric  </span></span>
+<span id="cb844-55"><a href="sec-synthetic-control.html#cb844-55" tabindex="-1"></a><span class="co">#&gt; att.avg          1  -none-  numeric  </span></span>
+<span id="cb844-56"><a href="sec-synthetic-control.html#cb844-56" tabindex="-1"></a><span class="co">#&gt; force            1  -none-  numeric  </span></span>
+<span id="cb844-57"><a href="sec-synthetic-control.html#cb844-57" tabindex="-1"></a><span class="co">#&gt; sameT0           1  -none-  logical  </span></span>
+<span id="cb844-58"><a href="sec-synthetic-control.html#cb844-58" tabindex="-1"></a><span class="co">#&gt; T                1  -none-  numeric  </span></span>
+<span id="cb844-59"><a href="sec-synthetic-control.html#cb844-59" tabindex="-1"></a><span class="co">#&gt; N                1  -none-  numeric  </span></span>
+<span id="cb844-60"><a href="sec-synthetic-control.html#cb844-60" tabindex="-1"></a><span class="co">#&gt; p                1  -none-  numeric  </span></span>
+<span id="cb844-61"><a href="sec-synthetic-control.html#cb844-61" tabindex="-1"></a><span class="co">#&gt; Ntr              1  -none-  numeric  </span></span>
+<span id="cb844-62"><a href="sec-synthetic-control.html#cb844-62" tabindex="-1"></a><span class="co">#&gt; Nco              1  -none-  numeric  </span></span>
+<span id="cb844-63"><a href="sec-synthetic-control.html#cb844-63" tabindex="-1"></a><span class="co">#&gt; T0               5  -none-  numeric  </span></span>
+<span id="cb844-64"><a href="sec-synthetic-control.html#cb844-64" tabindex="-1"></a><span class="co">#&gt; tr              50  -none-  logical  </span></span>
+<span id="cb844-65"><a href="sec-synthetic-control.html#cb844-65" tabindex="-1"></a><span class="co">#&gt; pre            150  -none-  logical  </span></span>
+<span id="cb844-66"><a href="sec-synthetic-control.html#cb844-66" tabindex="-1"></a><span class="co">#&gt; post           150  -none-  logical  </span></span>
+<span id="cb844-67"><a href="sec-synthetic-control.html#cb844-67" tabindex="-1"></a><span class="co">#&gt; r.cv             1  -none-  numeric  </span></span>
+<span id="cb844-68"><a href="sec-synthetic-control.html#cb844-68" tabindex="-1"></a><span class="co">#&gt; IC               1  -none-  numeric  </span></span>
+<span id="cb844-69"><a href="sec-synthetic-control.html#cb844-69" tabindex="-1"></a><span class="co">#&gt; PC               1  -none-  numeric  </span></span>
+<span id="cb844-70"><a href="sec-synthetic-control.html#cb844-70" tabindex="-1"></a><span class="co">#&gt; beta             2  -none-  numeric  </span></span>
+<span id="cb844-71"><a href="sec-synthetic-control.html#cb844-71" tabindex="-1"></a><span class="co">#&gt; est.co          13  -none-  list     </span></span>
+<span id="cb844-72"><a href="sec-synthetic-control.html#cb844-72" tabindex="-1"></a><span class="co">#&gt; mu               1  -none-  numeric  </span></span>
+<span id="cb844-73"><a href="sec-synthetic-control.html#cb844-73" tabindex="-1"></a><span class="co">#&gt; validX           1  -none-  numeric  </span></span>
+<span id="cb844-74"><a href="sec-synthetic-control.html#cb844-74" tabindex="-1"></a><span class="co">#&gt; sigma2           1  -none-  numeric  </span></span>
+<span id="cb844-75"><a href="sec-synthetic-control.html#cb844-75" tabindex="-1"></a><span class="co">#&gt; res.co        1350  -none-  numeric  </span></span>
+<span id="cb844-76"><a href="sec-synthetic-control.html#cb844-76" tabindex="-1"></a><span class="co">#&gt; MSPE             1  -none-  numeric  </span></span>
+<span id="cb844-77"><a href="sec-synthetic-control.html#cb844-77" tabindex="-1"></a><span class="co">#&gt; CV.out          30  -none-  numeric  </span></span>
+<span id="cb844-78"><a href="sec-synthetic-control.html#cb844-78" tabindex="-1"></a><span class="co">#&gt; niter            1  -none-  numeric  </span></span>
+<span id="cb844-79"><a href="sec-synthetic-control.html#cb844-79" tabindex="-1"></a><span class="co">#&gt; factor          60  -none-  numeric  </span></span>
+<span id="cb844-80"><a href="sec-synthetic-control.html#cb844-80" tabindex="-1"></a><span class="co">#&gt; lambda.co       90  -none-  numeric  </span></span>
+<span id="cb844-81"><a href="sec-synthetic-control.html#cb844-81" tabindex="-1"></a><span class="co">#&gt; lambda.tr       10  -none-  numeric  </span></span>
+<span id="cb844-82"><a href="sec-synthetic-control.html#cb844-82" tabindex="-1"></a><span class="co">#&gt; wgt.implied    225  -none-  numeric  </span></span>
+<span id="cb844-83"><a href="sec-synthetic-control.html#cb844-83" tabindex="-1"></a><span class="co">#&gt; alpha.tr         5  -none-  numeric  </span></span>
+<span id="cb844-84"><a href="sec-synthetic-control.html#cb844-84" tabindex="-1"></a><span class="co">#&gt; alpha.co        45  -none-  numeric  </span></span>
+<span id="cb844-85"><a href="sec-synthetic-control.html#cb844-85" tabindex="-1"></a><span class="co">#&gt; xi              30  -none-  numeric  </span></span>
+<span id="cb844-86"><a href="sec-synthetic-control.html#cb844-86" tabindex="-1"></a><span class="co">#&gt; inference        1  -none-  character</span></span>
+<span id="cb844-87"><a href="sec-synthetic-control.html#cb844-87" tabindex="-1"></a><span class="co">#&gt; est.att        180  -none-  numeric  </span></span>
+<span id="cb844-88"><a href="sec-synthetic-control.html#cb844-88" tabindex="-1"></a><span class="co">#&gt; est.avg          5  -none-  numeric  </span></span>
+<span id="cb844-89"><a href="sec-synthetic-control.html#cb844-89" tabindex="-1"></a><span class="co">#&gt; att.avg.boot   200  -none-  numeric  </span></span>
+<span id="cb844-90"><a href="sec-synthetic-control.html#cb844-90" tabindex="-1"></a><span class="co">#&gt; att.boot      6000  -none-  numeric  </span></span>
+<span id="cb844-91"><a href="sec-synthetic-control.html#cb844-91" tabindex="-1"></a><span class="co">#&gt; eff.boot     30000  -none-  numeric  </span></span>
+<span id="cb844-92"><a href="sec-synthetic-control.html#cb844-92" tabindex="-1"></a><span class="co">#&gt; Dtr.boot     30000  -none-  numeric  </span></span>
+<span id="cb844-93"><a href="sec-synthetic-control.html#cb844-93" tabindex="-1"></a><span class="co">#&gt; Itr.boot     30000  -none-  numeric  </span></span>
+<span id="cb844-94"><a href="sec-synthetic-control.html#cb844-94" tabindex="-1"></a><span class="co">#&gt; beta.boot      400  -none-  numeric  </span></span>
+<span id="cb844-95"><a href="sec-synthetic-control.html#cb844-95" tabindex="-1"></a><span class="co">#&gt; est.beta        10  -none-  numeric  </span></span>
+<span id="cb844-96"><a href="sec-synthetic-control.html#cb844-96" tabindex="-1"></a><span class="co">#&gt; call             9  -none-  call     </span></span>
+<span id="cb844-97"><a href="sec-synthetic-control.html#cb844-97" tabindex="-1"></a><span class="co">#&gt; formula          3  formula call</span></span>
+<span id="cb844-98"><a href="sec-synthetic-control.html#cb844-98" tabindex="-1"></a></span>
+<span id="cb844-99"><a href="sec-synthetic-control.html#cb844-99" tabindex="-1"></a><span class="co"># Visualization</span></span>
+<span id="cb844-100"><a href="sec-synthetic-control.html#cb844-100" tabindex="-1"></a><span class="fu">plot</span>(gsc_model)</span></code></pre></div>
 <div class="inline-figure"><img src="32-synthetic-control_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;"></div>
 <hr>
 </div>
@@ -876,7 +876,7 @@ P(\theta | Y_{\text{obs}}) \propto P(Y_{\text{obs}} | \theta) P(\theta),
 <li><p>Gibbs Sampling for latent factors and regression coefficients.</p></li>
 <li><p>Hamiltonian Monte Carlo (HMC) for high-dimensional posteriors.</p></li>
 </ul>
-<div class="sourceCode" id="cb844"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb845"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load necessary libraries</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://mc-stan.org/rstan/">rstan</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://mc-stan.org/bayesplot/">bayesplot</a></span><span class="op">)</span></span>
@@ -1013,7 +1013,7 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <li><p>Better pre-treatment fit for educational outcomes.</p></li>
 <li><p>Stronger evidence of educational impacts following the crisis.</p></li>
 </ul>
-<div class="sourceCode" id="cb845"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb846"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load necessary libraries</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">augsynth</span><span class="op">)</span></span>
 <span></span>
@@ -1036,13 +1036,13 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <a href="sec-synthetic-control.html#generalized-synthetic-control">Generalized Synthetic Control</a> using <code>gsynth</code>, which incorporates iterative fixed effects and multiple treated units.</li>
 </ol>
 <p>Load Required Libraries</p>
-<div class="sourceCode" id="cb846"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb847"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("Synth")</span></span>
 <span><span class="co"># install.packages("gsynth")</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://web.stanford.edu/~jhain/">"Synth"</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://yiqingxu.org/packages/gsynth/gsynth_examples.html">"gsynth"</a></span><span class="op">)</span></span></code></pre></div>
 <p>We construct a panel dataset where the outcome variable <span class="math inline">\(Y\)</span> is influenced by two covariates (<span class="math inline">\(X_1, X_2\)</span>). Treatment (<span class="math inline">\(T\)</span>) is applied to State A from year 15 onwards, with an artificial treatment effect of +20.</p>
-<div class="sourceCode" id="cb847"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb848"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Simulate panel data</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span></span>
@@ -1076,7 +1076,7 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <p>Step 1: Estimating Synthetic Control with <code>Synth</code></p>
 <p>The <code>Synth</code> package creates a synthetic control by matching pre-treatment trends of the treated unit (<code>State A</code>) with a weighted combination of donor states.</p>
 <p>We specify predictors, dependent variable, and donor pool.</p>
-<div class="sourceCode" id="cb848"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb849"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dataprep.out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Synth/man/dataprep.html">dataprep</a></span><span class="op">(</span></span>
 <span>  <span class="va">df</span>,</span>
 <span>  predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"X1"</span>, <span class="st">"X2"</span><span class="op">)</span>,</span>
@@ -1091,7 +1091,7 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <span>  time.plot <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">30</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Fit Synthetic Control Model</p>
-<div class="sourceCode" id="cb849"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb850"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">synth.out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Synth/man/synth.html">synth</a></span><span class="op">(</span><span class="va">dataprep.out</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; X1, X0, Z1, Z0 all come directly from dataprep object.</span></span>
@@ -1141,7 +1141,7 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <span><span class="co">#&gt;            Loss W   Loss V</span></span>
 <span><span class="co">#&gt; [1,] 9.761708e-12 9.831789</span></span></code></pre></div>
 <p>Plot: Observed vs. Synthetic State A</p>
-<div class="sourceCode" id="cb850"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb851"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/Synth/man/path.plot.html">path.plot</a></span><span class="op">(</span></span>
 <span>  <span class="va">synth.out</span>,</span>
 <span>  <span class="va">dataprep.out</span>,</span>
@@ -1156,7 +1156,7 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <div class="inline-figure"><img src="32-synthetic-control_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p>Plot: Treatment Effect (Gaps Plot)</p>
 <p>The gaps plot shows the difference between <code>State A</code> and its synthetic control over time.</p>
-<div class="sourceCode" id="cb851"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb852"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/Synth/man/gaps.plot.html">gaps.plot</a></span><span class="op">(</span>synth.res    <span class="op">=</span> <span class="va">synth.out</span>,</span>
 <span>          dataprep.res <span class="op">=</span> <span class="va">dataprep.out</span>,</span>
 <span>          Ylab         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"Gap"</span><span class="op">)</span>,</span>
@@ -1176,42 +1176,42 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 </ul>
 <p>Fit Generalized Synthetic Control Model</p>
 <p>We use two-way fixed effects, cross-validation (<code>CV = TRUE</code>), and bootstrapped standard errors.</p>
-<div class="sourceCode" id="cb852"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb852-1"><a href="sec-synthetic-control.html#cb852-1" tabindex="-1"></a>gsynth.out <span class="ot">&lt;-</span> <span class="fu">gsynth</span>(</span>
-<span id="cb852-2"><a href="sec-synthetic-control.html#cb852-2" tabindex="-1"></a>  Y <span class="sc">~</span> T <span class="sc">+</span> X1 <span class="sc">+</span> X2,</span>
-<span id="cb852-3"><a href="sec-synthetic-control.html#cb852-3" tabindex="-1"></a>  <span class="at">data =</span> df,</span>
-<span id="cb852-4"><a href="sec-synthetic-control.html#cb852-4" tabindex="-1"></a>  <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"state"</span>, <span class="st">"year"</span>),</span>
-<span id="cb852-5"><a href="sec-synthetic-control.html#cb852-5" tabindex="-1"></a>  <span class="at">force =</span> <span class="st">"two-way"</span>,</span>
-<span id="cb852-6"><a href="sec-synthetic-control.html#cb852-6" tabindex="-1"></a>  <span class="at">CV =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb852-7"><a href="sec-synthetic-control.html#cb852-7" tabindex="-1"></a>  <span class="at">r =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">5</span>),</span>
-<span id="cb852-8"><a href="sec-synthetic-control.html#cb852-8" tabindex="-1"></a>  <span class="at">se =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb852-9"><a href="sec-synthetic-control.html#cb852-9" tabindex="-1"></a>  <span class="at">inference =</span> <span class="st">"parametric"</span>,</span>
-<span id="cb852-10"><a href="sec-synthetic-control.html#cb852-10" tabindex="-1"></a>  <span class="at">nboots =</span> <span class="dv">100</span></span>
-<span id="cb852-11"><a href="sec-synthetic-control.html#cb852-11" tabindex="-1"></a>)</span>
-<span id="cb852-12"><a href="sec-synthetic-control.html#cb852-12" tabindex="-1"></a><span class="co">#&gt; Parallel computing ...</span></span>
-<span id="cb852-13"><a href="sec-synthetic-control.html#cb852-13" tabindex="-1"></a><span class="co">#&gt; Cross-validating ... </span></span>
-<span id="cb852-14"><a href="sec-synthetic-control.html#cb852-14" tabindex="-1"></a><span class="co">#&gt;  r = 0; sigma2 = 1.13533; IC = 0.95632; PC = 0.96713; MSPE = 1.65502</span></span>
-<span id="cb852-15"><a href="sec-synthetic-control.html#cb852-15" tabindex="-1"></a><span class="co">#&gt;  r = 1; sigma2 = 0.96885; IC = 1.54420; PC = 4.30644; MSPE = 1.33375</span></span>
-<span id="cb852-16"><a href="sec-synthetic-control.html#cb852-16" tabindex="-1"></a><span class="co">#&gt;  r = 2; sigma2 = 0.81855; IC = 2.08062; PC = 6.58556; MSPE = 1.27341*</span></span>
-<span id="cb852-17"><a href="sec-synthetic-control.html#cb852-17" tabindex="-1"></a><span class="co">#&gt;  r = 3; sigma2 = 0.71670; IC = 2.61125; PC = 8.35187; MSPE = 1.79319</span></span>
-<span id="cb852-18"><a href="sec-synthetic-control.html#cb852-18" tabindex="-1"></a><span class="co">#&gt;  r = 4; sigma2 = 0.62823; IC = 3.10156; PC = 9.59221; MSPE = 2.02301</span></span>
-<span id="cb852-19"><a href="sec-synthetic-control.html#cb852-19" tabindex="-1"></a><span class="co">#&gt;  r = 5; sigma2 = 0.55497; IC = 3.55814; PC = 10.48406; MSPE = 2.79596</span></span>
-<span id="cb852-20"><a href="sec-synthetic-control.html#cb852-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb852-21"><a href="sec-synthetic-control.html#cb852-21" tabindex="-1"></a><span class="co">#&gt;  r* = 2</span></span>
-<span id="cb852-22"><a href="sec-synthetic-control.html#cb852-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb852-23"><a href="sec-synthetic-control.html#cb852-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb852-24"><a href="sec-synthetic-control.html#cb852-24" tabindex="-1"></a>Simulating errors ...</span>
-<span id="cb852-25"><a href="sec-synthetic-control.html#cb852-25" tabindex="-1"></a>Bootstrapping ...</span>
-<span id="cb852-26"><a href="sec-synthetic-control.html#cb852-26" tabindex="-1"></a><span class="co">#&gt; </span></span></code></pre></div>
-<div class="sourceCode" id="cb853"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb853"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb853-1"><a href="sec-synthetic-control.html#cb853-1" tabindex="-1"></a>gsynth.out <span class="ot">&lt;-</span> <span class="fu">gsynth</span>(</span>
+<span id="cb853-2"><a href="sec-synthetic-control.html#cb853-2" tabindex="-1"></a>  Y <span class="sc">~</span> T <span class="sc">+</span> X1 <span class="sc">+</span> X2,</span>
+<span id="cb853-3"><a href="sec-synthetic-control.html#cb853-3" tabindex="-1"></a>  <span class="at">data =</span> df,</span>
+<span id="cb853-4"><a href="sec-synthetic-control.html#cb853-4" tabindex="-1"></a>  <span class="at">index =</span> <span class="fu">c</span>(<span class="st">"state"</span>, <span class="st">"year"</span>),</span>
+<span id="cb853-5"><a href="sec-synthetic-control.html#cb853-5" tabindex="-1"></a>  <span class="at">force =</span> <span class="st">"two-way"</span>,</span>
+<span id="cb853-6"><a href="sec-synthetic-control.html#cb853-6" tabindex="-1"></a>  <span class="at">CV =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb853-7"><a href="sec-synthetic-control.html#cb853-7" tabindex="-1"></a>  <span class="at">r =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">5</span>),</span>
+<span id="cb853-8"><a href="sec-synthetic-control.html#cb853-8" tabindex="-1"></a>  <span class="at">se =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb853-9"><a href="sec-synthetic-control.html#cb853-9" tabindex="-1"></a>  <span class="at">inference =</span> <span class="st">"parametric"</span>,</span>
+<span id="cb853-10"><a href="sec-synthetic-control.html#cb853-10" tabindex="-1"></a>  <span class="at">nboots =</span> <span class="dv">100</span></span>
+<span id="cb853-11"><a href="sec-synthetic-control.html#cb853-11" tabindex="-1"></a>)</span>
+<span id="cb853-12"><a href="sec-synthetic-control.html#cb853-12" tabindex="-1"></a><span class="co">#&gt; Parallel computing ...</span></span>
+<span id="cb853-13"><a href="sec-synthetic-control.html#cb853-13" tabindex="-1"></a><span class="co">#&gt; Cross-validating ... </span></span>
+<span id="cb853-14"><a href="sec-synthetic-control.html#cb853-14" tabindex="-1"></a><span class="co">#&gt;  r = 0; sigma2 = 1.13533; IC = 0.95632; PC = 0.96713; MSPE = 1.65502</span></span>
+<span id="cb853-15"><a href="sec-synthetic-control.html#cb853-15" tabindex="-1"></a><span class="co">#&gt;  r = 1; sigma2 = 0.96885; IC = 1.54420; PC = 4.30644; MSPE = 1.33375</span></span>
+<span id="cb853-16"><a href="sec-synthetic-control.html#cb853-16" tabindex="-1"></a><span class="co">#&gt;  r = 2; sigma2 = 0.81855; IC = 2.08062; PC = 6.58556; MSPE = 1.27341*</span></span>
+<span id="cb853-17"><a href="sec-synthetic-control.html#cb853-17" tabindex="-1"></a><span class="co">#&gt;  r = 3; sigma2 = 0.71670; IC = 2.61125; PC = 8.35187; MSPE = 1.79319</span></span>
+<span id="cb853-18"><a href="sec-synthetic-control.html#cb853-18" tabindex="-1"></a><span class="co">#&gt;  r = 4; sigma2 = 0.62823; IC = 3.10156; PC = 9.59221; MSPE = 2.02301</span></span>
+<span id="cb853-19"><a href="sec-synthetic-control.html#cb853-19" tabindex="-1"></a><span class="co">#&gt;  r = 5; sigma2 = 0.55497; IC = 3.55814; PC = 10.48406; MSPE = 2.79596</span></span>
+<span id="cb853-20"><a href="sec-synthetic-control.html#cb853-20" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb853-21"><a href="sec-synthetic-control.html#cb853-21" tabindex="-1"></a><span class="co">#&gt;  r* = 2</span></span>
+<span id="cb853-22"><a href="sec-synthetic-control.html#cb853-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb853-23"><a href="sec-synthetic-control.html#cb853-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb853-24"><a href="sec-synthetic-control.html#cb853-24" tabindex="-1"></a>Simulating errors ...</span>
+<span id="cb853-25"><a href="sec-synthetic-control.html#cb853-25" tabindex="-1"></a>Bootstrapping ...</span>
+<span id="cb853-26"><a href="sec-synthetic-control.html#cb853-26" tabindex="-1"></a><span class="co">#&gt; </span></span></code></pre></div>
+<div class="sourceCode" id="cb854"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot Estimated Treatment Effects</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">gsynth.out</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="32-synthetic-control_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb854"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb855"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Plot Counterfactual Trends</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">gsynth.out</span>, type <span class="op">=</span> <span class="st">"counterfactual"</span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="32-synthetic-control_files/figure-html/unnamed-chunk-12-2.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb855"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb856"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Show Estimations for Control Cases</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">gsynth.out</span>, type <span class="op">=</span> <span class="st">"counterfactual"</span>, raw <span class="op">=</span> <span class="st">"all"</span><span class="op">)</span> </span></code></pre></div>
@@ -1227,10 +1227,10 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <li>Construct a synthetic control using economic predictors. 2</li>
 <li>Evaluate the policy’s impact by comparing the real and synthetic Basque GDP.</li>
 </ol>
-<div class="sourceCode" id="cb856"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb857"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://web.stanford.edu/~jhain/">Synth</a></span><span class="op">)</span></span></code></pre></div>
 <p>The <code>basque</code> dataset from <code>Synth</code> contains economic indicators for Spain’s regions from 1955 to 1997.</p>
-<div class="sourceCode" id="cb857"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb858"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"basque"</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html">dim</a></span><span class="op">(</span><span class="va">basque</span><span class="op">)</span>  <span class="co"># 774 observations, 17 variables</span></span>
 <span><span class="co">#&gt; [1] 774  17</span></span>
@@ -1258,7 +1258,7 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <span><span class="co">#&gt; 6          NA         NA          NA               NA      NA     NA</span></span></code></pre></div>
 <p>Step 1: Preparing Data for <code>Synth</code></p>
 <p>We define predictors and specify pre-treatment (1960–1969) and post-treatment (1975–1997) periods.</p>
-<div class="sourceCode" id="cb858"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb859"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dataprep.out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/Synth/man/dataprep.html">dataprep</a></span><span class="op">(</span></span>
 <span>    foo <span class="op">=</span> <span class="va">basque</span>,</span>
 <span>    predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span></span>
@@ -1295,7 +1295,7 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <span><span class="op">)</span></span></code></pre></div>
 <p>Step 2: Estimating the Synthetic Control</p>
 <p>We now estimate the synthetic control weights using <code><a href="https://rdrr.io/pkg/Synth/man/synth.html">synth()</a></code>. This solves for weights that best match the pre-treatment economic indicators of the Basque Country.</p>
-<div class="sourceCode" id="cb859"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb860"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">synth.out</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/Synth/man/synth.html">synth</a></span><span class="op">(</span>data.prep.obj <span class="op">=</span> <span class="va">dataprep.out</span>, method <span class="op">=</span> <span class="st">"BFGS"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; X1, X0, Z1, Z0 all come directly from dataprep object.</span></span>
@@ -1318,13 +1318,13 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <span><span class="co">#&gt;  2.53e-08 4.63e-08 6.44e-08 2.81e-08 3.37e-08 4.844e-07 4.2e-08 4.69e-08 0.8508145 9.75e-08 3.2e-08 5.54e-08 0.1491843 4.86e-08 9.89e-08 1.162e-07</span></span></code></pre></div>
 <p>Step 3: Evaluating Treatment Effects</p>
 <p>Calculate the GDP Gap Between Real and Synthetic Basque Country</p>
-<div class="sourceCode" id="cb860"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb861"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gaps</span> <span class="op">=</span> <span class="va">dataprep.out</span><span class="op">$</span><span class="va">Y1plot</span> <span class="op">-</span> <span class="op">(</span><span class="va">dataprep.out</span><span class="op">$</span><span class="va">Y0plot</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html">%*%</a></span> <span class="va">synth.out</span><span class="op">$</span><span class="va">solution.w</span><span class="op">)</span></span>
 <span><span class="va">gaps</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>,<span class="fl">1</span><span class="op">]</span>  <span class="co"># First three differences</span></span>
 <span><span class="co">#&gt;       1955       1956       1957 </span></span>
 <span><span class="co">#&gt; 0.15023473 0.09168035 0.03716475</span></span></code></pre></div>
 <p>The <code><a href="https://rdrr.io/pkg/Synth/man/synth.tab.html">synth.tab()</a></code> function provides pre-treatment fit diagnostics and predictor weights.</p>
-<div class="sourceCode" id="cb861"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb862"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">synth.tables</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/pkg/Synth/man/synth.tab.html">synth.tab</a></span><span class="op">(</span>dataprep.res <span class="op">=</span> <span class="va">dataprep.out</span>, synth.res <span class="op">=</span> <span class="va">synth.out</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html">names</a></span><span class="op">(</span><span class="va">synth.tables</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "tab.pred" "tab.v"    "tab.w"    "tab.loss"</span></span>
@@ -1346,7 +1346,7 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <span><span class="co">#&gt; special.sec.services.venta.1961.1969      33.754    41.104      36.528</span></span>
 <span><span class="co">#&gt; special.sec.services.nonventa.1961.1969    4.072     5.371       7.111</span></span></code></pre></div>
 <p>Importance of Each Control Region in the Synthetic Basque Country</p>
-<div class="sourceCode" id="cb862"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb863"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">synth.tables</span><span class="op">$</span><span class="va">tab.w</span><span class="op">[</span><span class="fl">8</span><span class="op">:</span><span class="fl">14</span>, <span class="op">]</span></span>
 <span><span class="co">#&gt;    w.weights            unit.names unit.numbers</span></span>
 <span><span class="co">#&gt; 9      0.000    Castilla-La Mancha            9</span></span>
@@ -1358,7 +1358,7 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <span><span class="co">#&gt; 15     0.000    Murcia (Region de)           15</span></span></code></pre></div>
 <p>Step 4: Visualizing Results</p>
 <p>Plot Real vs. Synthetic GDP Per Capita</p>
-<div class="sourceCode" id="cb863"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb864"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/Synth/man/path.plot.html">path.plot</a></span><span class="op">(</span></span>
 <span>    synth.res <span class="op">=</span> <span class="va">synth.out</span>,</span>
 <span>    dataprep.res <span class="op">=</span> <span class="va">dataprep.out</span>,</span>
@@ -1370,7 +1370,7 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <span><span class="op">)</span></span></code></pre></div>
 <div class="inline-figure"><img src="32-synthetic-control_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;"></div>
 <p>Plot the Treatment Effect (GDP Gap)</p>
-<div class="sourceCode" id="cb864"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb865"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/Synth/man/gaps.plot.html">gaps.plot</a></span><span class="op">(</span></span>
 <span>    synth.res <span class="op">=</span> <span class="va">synth.out</span>,</span>
 <span>    dataprep.res <span class="op">=</span> <span class="va">dataprep.out</span>,</span>
@@ -1396,7 +1396,7 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <p>This example evaluates the Seattle Drug Market Initiative, a policing intervention aimed at reducing drug-related crime. The dataset <code>seattledmi</code> contains crime statistics across different city zones.</p>
 <hr>
 <p>Step 1: Load the Required Package and Data</p>
-<div class="sourceCode" id="cb865"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb866"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">microsynth</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="st">"seattledmi"</span><span class="op">)</span></span></code></pre></div>
 <p>Step 2: Define Predictors and Outcome Variables</p>
@@ -1405,7 +1405,7 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <li><p>Predictors (time-invariant): Population, race distribution, household data.</p></li>
 <li><p>Outcomes (time-variant): Crime rates across different offense categories.</p></li>
 </ul>
-<div class="sourceCode" id="cb866"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb867"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cov.var</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span></span>
 <span>    <span class="st">"TotalPop"</span>,</span>
 <span>    <span class="st">"BLACK"</span>,</span>
@@ -1420,7 +1420,7 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <span><span class="va">match.out</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"i_felony"</span>, <span class="st">"i_misdemea"</span>, <span class="st">"i_drugs"</span>, <span class="st">"any_crime"</span><span class="op">)</span></span></code></pre></div>
 <p>Step 3: Fit the Micro-Synthetic Control Model</p>
 <p>We first estimate treatment effects using a single follow-up period.</p>
-<div class="sourceCode" id="cb867"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb868"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sea1</span> <span class="op">&lt;-</span> <span class="fu">microsynth</span><span class="op">(</span></span>
 <span>    <span class="va">seattledmi</span>,</span>
 <span>    idvar       <span class="op">=</span> <span class="st">"ID"</span>,          <span class="co"># Unique unit identifier</span></span>
@@ -1437,7 +1437,7 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <span>    n.cores     <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">min</a></span><span class="op">(</span><span class="fu">parallel</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/parallel/detectCores.html">detectCores</a></span><span class="op">(</span><span class="op">)</span> <span class="op">-</span> <span class="fl">4</span>, <span class="fl">2</span><span class="op">)</span> <span class="co"># Parallel processing</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Step 4: Summarize Results</p>
-<div class="sourceCode" id="cb868"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb869"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">sea1</span><span class="op">)</span></span></code></pre></div>
 <p>This output provides:</p>
 <ul>
@@ -1447,11 +1447,11 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 </ul>
 <p>Step 5: Visualize the Treatment Effect</p>
 <p>We generate a treatment effect plot comparing actual vs. synthetic trends.</p>
-<div class="sourceCode" id="cb869"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb870"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">plot_microsynth</span><span class="op">(</span><span class="va">sea1</span><span class="op">)</span></span></code></pre></div>
 <p>Step 6: Incorporating Multiple Follow-Up Periods</p>
 <p>We extend the analysis by adding multiple post-treatment periods (<code>end.post = c(14, 16)</code>) and permutation-based placebo tests (<code>perm = 250</code>, <code>jack = TRUE</code>).</p>
-<div class="sourceCode" id="cb870"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb871"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sea2</span> <span class="op">&lt;-</span> <span class="fu">microsynth</span><span class="op">(</span></span>
 <span>    <span class="va">seattledmi</span>,</span>
 <span>    idvar       <span class="op">=</span> <span class="st">"ID"</span>,</span>
@@ -1484,7 +1484,7 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <pre><code>1.  Removes one control unit at a time and re-estimates effects.
 
 2.  Ensures no single control dominates the synthetic match.</code></pre>
-<div class="sourceCode" id="cb873"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb874"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">sea2</span><span class="op">)</span>  <span class="co"># Compare estimates with multiple follow-up periods</span></span>
 <span><span class="fu">plot_microsynth</span><span class="op">(</span><span class="va">sea2</span><span class="op">)</span>  <span class="co"># Visualize placebo-adjusted treatment effects</span></span></code></pre></div>
 
@@ -1574,7 +1574,7 @@ Y_{itk}(0) = X_{it} \beta_k + \lambda_i' f_{tk} + \varepsilon_{itk}
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-04-07.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-04-09.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

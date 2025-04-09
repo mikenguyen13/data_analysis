@@ -1,529 +1,466 @@
 # Matching Methods {#sec-matching-methods}
 
-Matching is a process that aims to close back doors - potential sources of bias - by constructing comparison groups that are similar according to a set of matching variables. This helps to ensure that any observed differences in outcomes between the treatment and comparison groups can be more confidently attributed to the treatment itself, rather than other factors that may differ between the groups.
+Matching is a strategy that aims to eliminate---or at least minimize---potential sources of bias by constructing treatment and comparison groups with similar observed characteristics. By doing so, any observed differences in outcomes between these groups can be attributed more confidently to the treatment itself rather than to other factors. In observational research, matching is frequently combined with [Difference-in-Differences] (DiD) techniques to address issues of selection bias, particularly when multiple pre-treatment outcomes are available.
 
-Matching and DiD can use pre-treatment outcomes to correct for selection bias. From real world data and simulation, [@chabe2015analysis] found that matching generally underestimates the average causal effect and gets closer to the true effect with more number of pre-treatment outcomes. When selection bias is symmetric around the treatment date, DID is still consistent when implemented symmetrically (i.e., the same number of period before and after treatment). In cases where selection bias is asymmetric, the MC simulations show that Symmetric DID still performs better than Matching.
+> Matching is defined as "any method that aims to equate (or"balance") the distribution of covariates in the treated and control groups." [@stuart2010matching, pp. 1]
 
-Matching is useful, but not a general solution to causal problems [@smith2005does]
+Matching is particularly useful when:
 
-**Assumption**: Observables can identify the selection into the treatment and control groups
+-   Outcomes are **not yet observed**, such as in follow-up studies, and you want to construct balanced treatment/control groups.
+-   Outcomes **are available**, but you wish to **reduce model dependence** and **improve robustness**.
 
-**Identification**: The exclusion restriction can be met conditional on the observables
+> Conceptually, matching can also be viewed through the lens of **missing data**, since we never observe both potential outcomes $(Y_i^T, Y_i^C)$ for any unit. Hence, this topic closely relates to [Imputation (Missing Data)].
 
-**Motivation**
+## Introduction and Motivation
 
-Effect of college quality on earnings
+### Why Match?
 
--   They ultimately estimate the treatment effect on the treated of attending a top (high ACT) versus bottom (low ACT) quartile college
+In many observational studies, researchers do not have the luxury of randomization. Subjects (people, firms, schools, etc.) typically select or are selected into treatment based on certain observed and/or unobserved characteristics. This can introduce systematic differences (selection bias) that confound causal inference. Matching attempts to approximate a randomized experiment by "balancing" these observed characteristics between treated and non-treated (control) units.
 
-**Example**
+-   **Goal:** Reduce model dependence and clarify causal effects by ensuring that treated and control subjects have sufficiently comparable covariates.
+-   **Challenge:** Even if matching achieves balance in observed covariates, any **unobserved** confounders remain a threat to identification (i.e., Matching is only a selection observables identification strategy). Matching does not magically fix bias from unobserved variables.
 
-@aaronson2007teachers
+To understand why causal inference is difficult in observational studies, consider:
 
-Do teachers qualifications (causally) affect student test scores?
+$$ 
+\begin{aligned} E(Y_i^T | T) - E(Y_i^C | C) &= E(Y_i^T - Y_i^C | T) + \underbrace{[E(Y_i^C | T) - E(Y_i^C | C)]}_{\text{Selection Bias}} \\ \end{aligned} $$
 
-Step 1:
+-   The term $E(Y_i^T - Y_i^C | T)$ is the **causal effect** (specifically the ATT).
+-   The term $E(Y_i^C | T) - E(Y_i^C | C)$ reflects **selection bias** due to systematic differences in the untreated potential outcome across treated and control groups.
 
-$$
-Y_{ijt} = \delta_0 + Y_{ij(t-1)} \delta_1 + X_{it} \delta_2 + Z_{jt} \delta_3 + \epsilon_{ijt}
-$$
+Random assignment ensures:
 
-There can always be another variable
+$$ E(Y_i^C | T) = E(Y_i^C | C) $$
 
-Any observable sorting is imperfect
+which eliminates selection bias. In observational data, however, this equality rarely holds.
 
-Step 2:
+Matching aims to mimic randomization by **conditioning on covariates** $X$:
 
-$$
-Y_{ijst} = \alpha_0 + Y_{ij(t-1)}\alpha_1 + X_{it} \alpha_2 + Z_{jt} \alpha_3 + \gamma_s + u_{isjt}
-$$
+$$ E(Y_i^C | X, T) = E(Y_i^C | X, C) $$
 
--   $\delta_3 >0$
+For example, propensity score matching achieves this balance by conditioning on the **propensity score** $P(X)$:
 
--   $\delta_3 > \alpha_3$
+$$ E(Y_i^C | P(X), T) = E(Y_i^C | P(X), C) $$
 
--   $\gamma_s$ = school fixed effect
+(See [Propensity Scores](#sec-propensity-scores) for further discussion.)
 
-Sorting is less within school. Hence, we can introduce the school fixed effect
+The [Average Treatment Effect] (ATE) under matching is typically estimated as:
 
-Step 3:
+$$ \frac{1}{N_T} \sum_{i=1}^{N_T} \left(Y_i^T - \frac{1}{N_{C_i}} \sum_{j \in \mathcal{C}_i} Y_j^C\right) $$
 
-Find schools that look like they are putting students in class randomly (or as good as random) + we run step 2
+where $\mathcal{C}_i$ denotes the matched controls for treated unit $i$.
 
-$$
-\begin{aligned}
-Y_{isjt} = Y_{isj(t-1)} \lambda &+ X_{it} \alpha_1 +Z_{jt} \alpha_{21} \\
-&+ (Z_{jt} \times D_i)\alpha_{22}+ \gamma_5 + u_{isjt}
-\end{aligned}
-$$
+Standard Errors in Matching
 
--   $D_{it}$ is an element of $X_{it}$
+-   Matching does not have a closed-form standard error for the ATE or ATT.
+-   Therefore, we rely on bootstrapping to estimate uncertainty.
 
--   $Z_{it}$ = teacher experience
+> **Note**: Matching tends to yield larger standard errors than [OLS][Ordinary Least Squares] because it reduces the effective sample size by discarding unmatched observations.
 
-$$
-D_{it}=
-\begin{cases}
-1 & \text{ if high poverty} \\
-0 & \text{otherwise}
-\end{cases}
-$$
+------------------------------------------------------------------------
 
-$H_0:$ $\alpha_{22} = 0$ test for effect heterogeneity whether the effect of teacher experience ($Z_{jt}$) is different
+### Matching as "Pruning"
 
--   For low poverty is $\alpha_{21}$
+Professor @king2017balance suggests calling matching "**pruning**," emphasizing its role as a **preprocessing** step. The goal is to **prune** unmatched or poorly matched units before conducting analysis, reducing model dependence.
 
--   For high poverty effect is $\alpha_{21} + \alpha_{22}$
+Without Matching:
 
-Matching is **selection on observables** and only works if you have good observables.
+-   Imbalanced data → Model dependence → Researcher discretion → Biased estimates
 
-Sufficient identification assumption under Selection on observable/ back-door criterion (based on Bernard Koch's [presentation](https://www.youtube.com/watch?v=v9uf9rDYEMg&ab_channel=SummerInstituteinComputationalSocialScience))
+With Matching:
 
--   Strong conditional ignorability
+-   Balanced data → Reduces discretion → More credible causal inference
 
-    -   $Y(0),Y(1) \perp T|X$
+| Balance of Covariates | Complete Randomization | Fully Exact Matching |
+|-----------------------|------------------------|----------------------|
+| **Observed**          | On average             | Exact                |
+| **Unobserved**        | On average             | On average           |
 
-    -   No hidden confounders
+: Degree of Balance Across Designs
 
--   Overlap
+Fully blocked or exactly matched designs outperform randomized ones on:
 
-    -   $\forall x \in X, t \in \{0, 1\}: p (T = t | X = x> 0$
+-   **Imbalance**
+-   **Model dependence**
+-   **Efficiency and power**
+-   **Bias**
+-   **Robustness**
+-   **Research costs**
 
-    -   All treatments have non-zero probability of being observed
+------------------------------------------------------------------------
 
--   SUTVA/ Consistency
+### Matching with DiD
 
-    -   Treatment and outcomes of different subjects are independent
+Matching can be fruitfully combined with DiD when multiple pre-treatment periods are available. Such designs can help correct for selection bias under certain assumptions:
 
-Relative to [OLS][Ordinary Least Squares]
+-   When selection bias is symmetric around the treatment date, standard DID (implemented symmetrically around the treatment date) remains consistent [@chabe2015analysis ].
+-   If selection bias is asymmetric, simulations by @chabe2015analysis show that symmetric DID still outperforms matching alone, although having more pre-treatment observations can improve matching performance.
 
-1.  Matching makes the **common support** explicit (and changes default from "ignore" to "enforce")
-2.  Relaxes linear function form. Thus, less parametric.
+In short, matching is not a universal solution but often provides a helpful preprocessing step before conducting DiD or other causal estimation methods [@smith2005does].
 
-It also helps if you have high ratio of controls to treatments.
+------------------------------------------------------------------------
 
-For detail summary [@stuart2010matching]
+## Key Assumptions
 
-Matching is defined as "any method that aims to equate (or"balance") the distribution of covariates in the treated and control groups." [@stuart2010matching, pp. 1]
+Matching relies on the standard set of assumptions underpinning [selection on observables](#sec-selection-on-observables)---also known as the **back-door criterion** (see [Assumptions for Identifying Treatment Effects]). When these assumptions hold, matching can yield valid estimates of causal effects by constructing treated and control groups that are comparable on observed covariates.
 
-Equivalently, matching is a selection on observables identifications strategy.
+1.  **Strong** [Conditional Ignorability Assumption] (Unconfoundedness)
 
-**If you think your OLS estimate is biased, a matching estimate (almost surely) is too.**
-
-Unconditionally, consider
+Also known as the **no hidden bias** or **ignorability** assumption:
 
 $$
-\begin{aligned}
-E(Y_i^T | T) - E(Y_i^C |C) &+ E(Y_i^C | T) - E(Y_i^C | T) \\
-= E(Y_i^T - Y_i^C | T) &+ [E(Y_i^C | T) - E(Y_i^C |C)] \\
-= E(Y_i^T - Y_i^C | T) &+ \text{selection bias}
-\end{aligned}
+(Y(0),\, Y(1)) \,\perp\, T \,\big|\, X
 $$
 
-where $E(Y_i^T - Y_i^C | T)$ is the causal inference that we want to know.
+This implies that, **conditional on covariates** $X$, treatment assignment is independent of the potential outcomes. In other words, there are **no unobserved confounders** once we adjust for $X$.
 
-Randomization eliminates the selection bias.
+-   This assumption is **not testable**, but it is more plausible when all relevant confounders are observed and included in $X$.
+-   It is often satisfied **approximately** when unobserved covariates are highly correlated with the observed ones.
+-   If unobserved variables are unrelated to $X$, you can:
+    -   Conduct **sensitivity analysis** to test the robustness of your estimates.
+    -   Apply **design sensitivity** techniques: If unobserved confounding is suspected, methods such as [@heller2009split]'s design sensitivity approaches or bounding approaches (e.g., the `rbounds` R package) can be used to test how robust findings are to hidden bias.
 
-If we don't have randomization, then $E(Y_i^C | T) \neq E(Y_i^C |C)$
+> This is the cornerstone assumption of matching: without it, causal inference from observational data is generally invalid.
 
-Matching tries to do selection on observables $E(Y_i^C | X, T) = E(Y_i^C|X, C)$
+------------------------------------------------------------------------
 
-[Propensity Scores](#sec-propensity-scores) basically do $E(Y_i^C| P(X) , T) = E(Y_i^C | P(X), C)$
-
-**Matching standard errors will exceed OLS standard errors**
-
-The treatment should have larger predictive power than the control because you use treatment to pick control (not control to pick treatment).
-
-The average treatment effect (ATE) is
+2.  [Overlap (Positivity) Assumption] **(Common Support)**
 
 $$
-\frac{1}{N_T} \sum_{i=1}^{N_T} (Y_i^T - \frac{1}{N_{C_T}} \sum_{i=1}^{N_{C_T}} Y_i^C)
+0 < P(T=1 \mid X) < 1 \quad \forall X
 $$
 
-Since there is no closed-form solution for the standard error of the average treatment effect, we have to use bootstrapping to get standard error.
+This condition ensures that, for every value of the covariates $X$, there is a positive probability of receiving both treatment and control.
 
-Professor Gary King advocates instead of using the word "matching", we should use "**pruning**" (i.e., deleting observations). It is a preprocessing step where it prunes nonmatches to make control variables less important in your analysis.
+-   If this assumption fails, there are regions of covariate space where either treatment or control units are absent, making comparison impossible.
+-   Matching enforces this assumption by discarding units outside of the region of common support.
 
-Without Matching
+> This pruning step is both a strength and limitation of matching---it improves internal validity at the cost of generalizability.
 
--   **Imbalance data** leads to **model dependence** lead to a lot of **researcher discretion** leads to **bias**
+------------------------------------------------------------------------
 
-With Matching
+3.  [Stable Unit Treatment Value Assumption] (SUTVA)
 
--   We have balance data which essentially erase human discretion
+SUTVA requires that:
 
-| Balance Covariates | Complete Randomization | Fully Exact |
-|--------------------|------------------------|-------------|
-| Observed           | On average             | Exact       |
-| Unobserved         | On average             | On average  |
+-   The potential outcomes for any individual unit do not depend on the treatment assignment of other units.
 
-: Table \@ref(tab:Gary King - International Methods Colloquium talk 2015)
+That is, there are **no interference or spillover effects** between units.
 
-Fully blocked is superior on
+-   Mathematically, $Y_i(T_i)$ depends only on $T_i$, not on $T_j$ for any $j \neq i$.
+-   Violations can occur in settings like:
+    -   Education (peer effects)
+    -   Epidemiology (disease transmission)
+    -   Marketing (network influence)
 
--   imbalance
+> In cases with known spillover, efforts should be made to **reduce interactions** or explicitly **model interference**.
 
--   model dependence
+------------------------------------------------------------------------
 
--   power
+Summary of Assumptions for Matching
 
--   efficiency
+| Assumption                   | Description                                                                         | Notation                                     |
+|------------------------------|-------------------------------------------------------------------------------------|----------------------------------------------|
+| **Conditional Ignorability** | No hidden confounding after conditioning on covariates                              | $(Y(0), Y(1)) \perp T \mid X$                |
+| **Overlap (Positivity)**     | Each unit has a non-zero probability of treatment and control assignment            | $0 < P(T=1 \mid X) < 1$                      |
+| **SUTVA**                    | No interference between units; one unit's outcome unaffected by another's treatment | $Y_i(T_i)$ unaffected by $T_j$ for $j \ne i$ |
 
--   bias
+These three assumptions form the foundation for valid causal inference using matching methods.
 
--   research costs
+## Framework for Generalization
 
--   robustness
+Let:
 
-Matching is used when
+-   $P_t$, $P_c$: treated and control populations
+-   $N_t$, $N_c$: random samples drawn from $P_t$, $P_c$
+-   $\mu_i$, $\Sigma_i$: means and covariance matrices of the $p$ covariates in group $i \in \{t, c\}$
+-   $X_j$: vector of covariates for individual $j$
+-   $T_j \in \{0, 1\}$: treatment indicator (1 = treated, 0 = control)
+-   $Y_j$: observed outcome
+-   Assume $N_t < N_c$ (i.e., more controls than treated)
 
--   Outcomes are not available to select subjects for follow-up
-
--   Outcomes are available to improve precision of the estimate (i.e., reduce bias)
-
-Hence, we can only observe one outcome of a unit (either treated or control), we can think of this problem as missing data as well. Thus, this section is closely related to [Imputation (Missing Data)]
-
-In observational studies, we cannot randomize the treatment effect. Subjects select their own treatments, which could introduce selection bias (i.e., systematic differences between group differences that confound the effects of response variable differences).
-
-Matching is used to
-
--   reduce model dependence
-
--   diagnose balance in the dataset
-
-Assumptions of matching:
-
-1.  treatment assignment is independent of potential outcomes given the covariates
-
-    -   $T \perp (Y(0),Y(1))|X$
-
-    -   known as ignorability, or ignorable, no hidden bias, or unconfounded.
-
-    -   You typically satisfy this assumption when unobserved covariates correlated with observed covariates.
-
-        -   But when unobserved covariates are unrelated to the observed covariates, you can use sensitivity analysis to check your result, or use "design sensitivity" [@heller2009split]
-
-2.  positive probability of receiving treatment for all X
-
-    -   $0 < P(T=1|X)<1 \forall X$
-
-3.  Stable Unit Treatment value Assumption (SUTVA)
-
-    -   Outcomes of A are not affected by treatment of B.
-
-        -   Very hard in cases where there is "spillover" effects (interactions between control and treatment). To combat, we need to reduce interactions.
-
-Generalization
-
--   $P_t$: treated population -\> $N_t$: random sample from treated
-
--   $P_c$: control population -\> $N_c$: random sample from control
-
--   $\mu_i$ = means ; $\Sigma_i$ = variance covariance matrix of the $p$ covariates in group i ($i = t,c$)
-
--   $X_j$ = $p$ covariates of individual $j$
-
--   $T_j$ = treatment assignment
-
--   $Y_j$ = observed outcome
-
--   Assume: $N_t < N_c$
-
--   Treatment effect is $\tau(x) = R_1(x) - R_0(x)$ where
-
-    -   $R_1(x) = E(Y(1)|X)$
-
-    -   $R_0(x) = E(Y(0)|X)$
-
--   Assume: parallel trends hence $\tau(x) = \tau \forall x$
-
-    -   If the parallel trends are not assumed, an average effect can be estimated.
-
--   Common estimands:
-
-    -   Average effect of the treatment on the treated (**ATT**): effects on treatment group
-
-    -   Average treatment effect (**ATE**): effect on both treatment and control
-
-Steps:
-
-1.  Define "closeness": decide distance measure to be used
-
-    1.  Which variables to include:
-
-        1.  Ignorability (no unobserved differences between treatment and control)
-
-            1.  Since cost of including unrelated variables is small, you should include as many as possible (unless sample size/power doesn't allow you to because of increased variance)
-
-            2.  Do not include variables that were affected by the treatment.
-
-            3.  Note: if a matching variable (i.e., heavy drug users) is highly correlated to the outcome variable (i.e., heavy drinkers) , you will be better to exclude it in the matching set.
-
-    2.  Which distance measures: more below
-
-2.  Matching methods
-
-    1.  Nearest neighbor matching
-
-        1.  Simple (greedy) matching: performs poorly when there is competition for controls.
-
-        2.  Optimal matching: considers global distance measure
-
-        3.  Ratio matching: to combat increase bias and reduced variation when you have k:1 matching, one can use approximations by @rubin1996matching.
-
-        4.  With or without replacement: with replacement is typically better, but one needs to account for dependent in the matched sample when doing later analysis (can use frequency weights to combat).
-
-    2.  Subclassification, Full Matching and Weighting
-
-        Nearest neighbor matching assign is 0 (control) or 1 (treated), while these methods use weights between 0 and 1.
-
-        1.  Subclassification: distribution into multiple subclass (e.g., 5-10)
-
-        2.  Full matching: optimal ly minimize the average of the distances between each treated unit and each control unit within each matched set.
-
-        3.  Weighting adjustments: weighting technique uses propensity scores to estimate ATE. If the weights are extreme, the variance can be large not due to the underlying probabilities, but due to the estimation procure. To combat this, use (1) weight trimming, or (2) doubly -robust methods when propensity scores are used for weighing or matching.
-
-            1.  Inverse probability of treatment weighting (IPTW) $w_i = \frac{T_i}{\hat{e}_i} + \frac{1 - T_i}{1 - \hat{e}_i}$
-
-            2.  Odds $w_i = T_i + (1-T_i) \frac{\hat{e}_i}{1-\hat{e}_i}$
-
-            3.  Kernel weighting (e.g., in economics) averages over multiple units in the control group.
-
-    3.  Assessing Common Support
-
-        -   common support means overlapping of the propensity score distributions in the treatment and control groups. Propensity score is used to discard control units from the common support. Alternatively, convex hull of the covariates in the multi-dimensional space.
-
-3.  Assessing the quality of matched samples (Diagnose)
-
-    -   Balance = similarity of the empirical distribution of the full set of covariates in the matched treated and control groups. Equivalently, treatment is unrelated to the covariates
-
-        -   $\tilde{p}(X|T=1) = \tilde{p}(X|T=0)$ where $\tilde{p}$ is the empirical distribution.
-
-    -   Numerical Diagnostics
-
-        1.  standardized difference in means of each covariate (most common), also known as"standardized bias", "standardized difference in means".
-
-        2.  standardized difference of means of the propensity score (should be \< 0.25) [@rubin2001using]
-
-        3.  ratio of the variances of the propensity score in the treated and control groups (should be between 0.5 and 2). [@rubin2001using]
-
-        4.  For each covariate, the ratio fo the variance of the residuals orthogonal to the propensity score in the treated and control groups.
-
-            Note: can't use hypothesis tests or p-values because of (1) in-sample property (not population), (2) conflation of changes in balance with changes in statistical power.
-
-    -   Graphical Diagnostics
-
-        -   QQ plots
-
-        -   Empirical Distribution Plot
-
-4.  Estimate the treatment effect
-
-    1.  After k:1
-
-        1.  Need to account for weights when use matching with replacement.
-
-    2.  After Subclassification and Full Matching
-
-        1.  Weighting the subclass estimates by the number of treated units in each subclass for ATT
-
-        2.  Weighting by the overall number of individual in each subclass for ATE.
-
-    3.  Variance estimation: should incorporate uncertainties in both the matching procedure (step 3) and the estimation procedure (step 4)
-
-**Notes**:
-
--   With missing data, use generalized boosted models, or multiple imputation [@qu2009propensity]
-
--   Violation of ignorable treatment assignment (i.e., unobservables affect treatment and outcome). control by
-
-    -   measure pre-treatment measure of the outcome variable
-
-    -   find the difference in outcomes between multiple control groups. If there is a significant difference, there is evidence for violation.
-
-    -   find the range of correlations between unobservables and both treatment assignment and outcome to nullify the significant effect.
-
--   Choosing between methods
-
-    -   smallest standardized difference of mean across the largest number of covariates
-
-    -   minimize the standardized difference of means of a few particularly prognostic covariates
-
-    -   fest number of large standardized difference of means (\> 0.25)
-
-    -   [@diamond2013genetic] automates the process
-
--   In practice
-
-    -   If ATE, ask if there is enough overlap of the treated and control groups' propensity score to estimate ATE, if not use ATT instead
-
-    -   If ATT, ask if there are controls across the full range of the treated group
-
--   Choose matching method
-
-    -   If ATE, use IPTW or full matching
-
-    -   If ATT, and more controls than treated (at least 3 times), k:1 nearest neighbor without replacement
-
-    -   If ATT, and few controls , use subclassification, full matching, and weighting by the odds
-
--   Diagnostic
-
-    -   If balance, use regression on matched samples
-
-    -   If imbalance on few covariates, treat them with Mahalanobis
-
-    -   If imbalance on many covariates, try k:1 matching with replacement
-
-Ways to define the distance $D_{ij}$
-
-1.  Exact
+The conditional treatment effect is:
 
 $$
-D_{ij} = 
-\begin{cases}
-0, \text{ if } X_i = X_j, \\
-\infty, \text{ if } X_i \neq X_j
-\end{cases}
+\tau(x) = R_1(x) - R_0(x), \quad \text{where } R_1(x) = E[Y(1) \mid X = x], \quad R_0(x) = E[Y(0) \mid X = x]
 $$
 
-An advanced is [Coarsened Exact Matching]
+If we assume **constant treatment effects (parallel trends)**, then $\tau(x) = \tau$ for all $x$. If this assumption is relaxed, we can still estimate an **average** effect over the distribution of $X$.
 
-2.  Mahalanobis
+**Common Estimands**
+
+-   [Average Treatment Effect] (ATE): Average causal effect across all units.
+-   [Average Treatment Effect on the Treated] (ATT): Causal effect for treated units only.
+
+------------------------------------------------------------------------
+
+## Steps for Matching
+
+Most matching methods rely on:
+
+-   **Propensity score**: summarizes $P(T=1|X)$
+-   **Distance metric**: measures similarity
+-   **Covariates**: assumed to satisfy ignorability
+
+### Step 1: Define "Closeness" (Distance Metrics)
+
+Matching requires a **distance metric** to define similarity between treated and control units.
+
+#### Variable Selection Guidelines
+
+-   Include as many pre-treatment covariates as possible to support conditional ignorability.
+-   Avoid post-treatment variables, which introduce bias.
+-   Be cautious with variables (e.g., heavy drug users) highly correlated with the outcome (e.g., heavy drinkers) but not treatment (e.g., mediators).
+-   If variables are uncorrelated with both treatment and outcome, the cost of inclusion is small.
+
+#### Distance Measures
+
++----------------------------+----------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
+| Method                     | Formula                                            | Notes                                                                                                                                    |
++============================+====================================================+==========================================================================================================================================+
+| **Exact Matching**         | $D_{ij} = 0$ if $X_i = X_j$, else $\infty$         | Only feasible in low dimensions; can be relaxed via [Coarsened Exact Matching]                                                           |
++----------------------------+----------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
+| **Mahalanobis Distance**   | $D_{ij} = (X_i - X_j)' \Sigma^{-1}(X_i - X_j)$     | $\Sigma$ (var-covar matrix of $X$) from control group if ATT is of interest or pooled if ATE is of interest; sensitive to dimensionality |
++----------------------------+----------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
+| **Propensity Score**       | $D_{ij} = |e_i - e_j|$                             | Where $e_k$ is the estimated propensity score $P(T=1 \mid X_k)$ for unit $k$.                                                            |
+|                            |                                                    |                                                                                                                                          |
+|                            |                                                    | Advanced: **Prognostic scores** [@hansen2008prognostic] require modeling $E[Y(0)|X]$, so they depend on the outcome model.               |
++----------------------------+----------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
+| **Logit Propensity Score** | $D_{ij} = |\text{logit}(e_i) - \text{logit}(e_j)|$ | More stable in tails of distribution                                                                                                     |
++----------------------------+----------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------+
+
+> **Tip**: In high dimensions, exact and Mahalanobis matching perform poorly. Combining Mahalanobis with **propensity score calipers** can improve robustness [@rubin2000combining].
+
+Advanced methods for longitudinal setting:
+
+-   **Marginal Structural Models**: for time-varying treatments [@robins2000marginal]
+-   **Balanced Risk Set Matching**: for survival analysis [@li2001balanced]
+
+------------------------------------------------------------------------
+
+### Step 2: Matching Algorithms
+
+1.  Nearest Neighbor Matching
+
+-   **Greedy matching**: Fast, but suboptimal under competition for controls.
+-   **Optimal matching**: Minimizes global distance across all pairs.
+-   **Ratio matching (k:1)**: Useful when controls outnumber treated; choose $k$ using trade-off between bias and variance [@rubin1996matching].
+-   **With vs. without replacement**:
+    -   **With replacement**: Improves matching quality, but requires **frequency weights** for analysis.
+    -   **Without replacement**: Simpler, but less flexible.
+
+2.  Subclassification, Full Matching, and Weighting
+
+These methods generalize nearest-neighbor approaches by assigning **fractional weights**.
+
+-   **Subclassification**: Partition into strata based on propensity score (e.g., quintiles).
+-   **Full Matching**: Each treated unit is matched to a weighted group of controls (and vice versa) to minimize average within-set distance.
+-   **Weighting**: Weighting techniques use propensity scores to estimate the ATE. However, if the weights are extreme, the resulting variance may be inflated---not due to the underlying probabilities, but due to the estimation procedure itself. To address this issue, researchers can employ (1) weight trimming or (2) doubly robust methods when using propensity scores for weighting or matching.
+    -   **Inverse Probability of Treatment Weighting (IPTW)**: $$
+        w_i = \frac{T_i}{\hat{e}_i} + \frac{1 - T_i}{1 - \hat{e}_i}
+        $$
+    -   **Odds weighting**: $$
+        w_i = T_i + (1 - T_i)\frac{\hat{e}_i}{1 - \hat{e}_i}
+        $$
+    -   **Kernel weighting**: Smooth average over control group (popular in economics).
+    -   **Trimming and Doubly-Robust Methods**: Reduce variance due to extreme weights.
+
+3.  Assessing Common Support
+
+-   Use propensity score histograms to visualize overlap.
+-   Units outside the convex hull of $X$ (i.e., unmatched regions) can be discarded.
+-   Lack of overlap indicates that some comparisons are extrapolations, not empirical matches.
+
+------------------------------------------------------------------------
+
+### Step 3: Diagnosing Match Quality
+
+#### Balance Diagnostics
+
+Matching aims to balance the covariate distributions between treated and control units. A well-matched sample satisfies:
 
 $$
-D_{ij} = (X_i - X_j)'\Sigma^{-1} (X_i - X_j)
+\tilde{p}(X \mid T=1) \approx \tilde{p}(X \mid T=0)
 $$
 
-where
+where $\tilde{p}$ is the empirical distribution.
 
-$\Sigma$ = variance covariance matrix of X in the
+1.  Numerical Checks
 
--   control group if ATT is interested
+-   **Standardized differences in means** (most common): Should be $< 0.1$
+-   **Standardized difference of propensity scores**: Should be $< 0.25$ [@rubin2001using]
+-   **Variance ratio of propensity scores**: Between 0.5 and 2.0 [@rubin2001using]
+-   **Variance of residuals** after regression on propensity score (treated vs. control) for each covariate
 
--   polled treatment and control groups if ATE is interested
+> Avoid using p-values as diagnostics---they conflate balance with statistical power and are sensitive to sample size.
 
-3.  Propensity score:
+2.  Graphical Diagnostics
+
+-   **Empirical Distribution Plots**
+-   **Quantile-Quantile (QQ) Plots**
+-   **Love Plots**: Summarize standardized differences before/after matching
+
+------------------------------------------------------------------------
+
+### Step 4: Estimating Treatment Effects
+
+#### After Matching
+
+-   With k:1 matching with replacement, use weights to adjust for reuse of controls.
+-   Use regression adjustment on matched samples to improve precision and adjust for residual imbalance.
+
+#### After Subclassification or Full Matching
+
+-   **ATT**: Weight subclass-specific estimates by number of treated units.
+-   **ATE**: Weight by total units per subclass.
+
+#### Variance Estimation
+
+Must reflect uncertainty in both:
+
+1.  The **matching procedure** (sampling and distance calculation) (Step 3)
+2.  The **outcome model** (regression, difference-in-means, etc.) (Step 4)
+
+Often estimated via **bootstrapping**.
+
+------------------------------------------------------------------------
+
+## Special Considerations
+
+1.  **Handling Missing Data**
+
+-   Use generalized boosted models or multiple imputation [@qu2009propensity].
+
+2.  **Violation of Ignorability**
+
+Strategies when unobservables bias treatment:
+
+-   Use **pre-treatment measures** of outcome
+-   Compare **multiple control groups**
+-   Conduct **sensitivity analysis**:
+    -   Quantify correlation between unobserved confounders and both treatment and outcome to nullify the observed effect
+
+------------------------------------------------------------------------
+
+## Choosing a Matching Strategy
+
+### Based on Estimand
+
+-   **ATE**: Use IPTW or full matching
+-   **ATT**:
+    -   If many controls ($N_c > 3N_t$): k:1 nearest neighbor without replacement
+    -   If few controls: subclassification, full matching, or odds weighting
+
+### Based on Diagnostics
+
+-   If balanced: proceed with regression on matched samples
+-   If imbalance on few covariates: Mahalanobis matching on those
+-   If imbalance on many covariates: Try k:1 matching with replacement
+
+### Selection Criteria
+
+-   Minimize standardized differences across many covariates
+-   Especially prioritize prognostic covariates
+-   Minimize number of covariates with large ($>0.25$) imbalance [@diamond2013genetic]
+
+Matching is not one-size-fits-all. Choose methods based on the target estimand, data structure, and diagnostic results.
+
+------------------------------------------------------------------------
+
+## Motivating Examples
+
+Do Teachers' Qualifications Affect Student Test Scores? [@aaronson2007teachers]
+
+1.  **Initial Model:** $$
+    Y_{ijt} = \delta_0 + Y_{ij(t-1)}\,\delta_1 + X_{it}\,\delta_2 + Z_{jt}\,\delta_3 + \epsilon_{ijt},
+    $$ where $Y_{ijt}$ is the outcome (test score) of student $i$ in class $j$ at time $t$, $X_{it}$ are student-level covariates, and $Z_{jt}$ are teacher or classroom-level covariates.
+
+2.  **Refining the Model:** $$
+    Y_{ijst} = \alpha_0 + Y_{ij(t-1)}\,\alpha_1 + X_{it}\,\alpha_2 + Z_{jt}\,\alpha_3 + \gamma_s + u_{isjt},
+    $$ introducing school fixed effects ($\gamma_s$). Sorting of students and teachers often happens within schools, so including fixed effects can reduce bias.
+
+3.  **Further Adjustment via Matching:**\
+    Identify schools or classes that appear to allocate teachers as-if randomly (or close to it). Match students on prior scores ($Y_{ij(t-1)}$) and other observed characteristics. Then re-run a model with interactions: $$
+    \begin{aligned}
+    Y_{isjt} 
+    &= Y_{isj(t-1)}\,\lambda 
+       + X_{it}\,\alpha_1 
+       + Z_{jt}\,\alpha_{21} 
+       + (Z_{jt} \times D_i)\,\alpha_{22} 
+       + \gamma_s 
+       + u_{isjt},
+    \end{aligned}
+    $$ where $D_i$ is an indicator for "high-poverty" students. Testing $\alpha_{22} = 0$ checks for heterogeneous effects of teacher experience by student poverty level.
+
+------------------------------------------------------------------------
+
+## Matching vs. Regression
+
+Matching and regression are two core strategies used in observational studies to adjust for differences in covariates $X$ and estimate causal effects. While both aim to remove bias due to confounding, they approach the problem differently, particularly in how they **weight observations**, handle **functional form assumptions**, and address **covariate balance**.
+
+Neither method can resolve the issue of **unobserved confounding**, but each can be a powerful tool when used with care and supported by appropriate diagnostics.
+
+-   **Matching** emphasizes covariate balance by pruning the dataset to retain only comparable units. It is nonparametric, focusing on ATT.
+-   **Regression** (typically [OLS][Ordinary Least Squares]) emphasizes functional form and allows for model-based adjustment, enabling the estimation of ATE and continuous or interactive effects of treatment.
+
+Both matching and regression assign implicit or explicit weights to observations during estimation:
+
+-   **Matching**: Weights observations more heavily in strata with more treated units, aligning with the ATT estimand.
+-   [OLS][Ordinary Least Squares] **Regression**: Places more weight on strata where the variance of treatment assignment is highest---i.e., when groups are approximately balanced between treated and control (near 50/50).
+
+This results in differing estimands and sensitivities:
+
+> **Important Caveat**: If your [OLS][Ordinary Least Squares] estimate is biased due to unobserved confounding, your matching estimate is likely biased too. Both depend on the [selection on observables](#sec-selection-on-observables) assumption.
+
+We explore the difference in estimands between matching and regression, especially for estimating the ATT.
+
+### Matching Estimand
+
+Suppose we want the treatment effect on the treated:
 
 $$
-D_{ij} = |e_i - e_j|
+\delta_{\text{TOT}} = E[Y_{1i} - Y_{0i} \mid D_i = 1]
 $$
 
-where $e_k$ = the propensity score for individual k
-
-An advanced is Prognosis score [@hansen2008prognostic], but you have to know (i.e., specify) the relationship between the covariates and outcome.
-
-4.  Linear propensity score
+Using the [Law of Iterated Expectation]:
 
 $$
-D_{ij} = |logit(e_i) - logit(e_j)|
+\delta_{\text{TOT}} = E\left[ E[Y_{1i} \mid X_i, D_i = 1] - E[Y_{0i} \mid X_i, D_i = 1] \mid D_i = 1 \right]
 $$
 
-The exact and Mahalanobis are not good in high dimensional or non normally distributed X's cases.
+Assuming conditional independence:
 
-We can combine Mahalanobis matching with propensity score calipers [@rubin2000combining]
+$$
+E[Y_{0i} \mid X_i, D_i = 0] = E[Y_{0i} \mid X_i, D_i = 1]
+$$
 
-Other advanced methods for longitudinal settings
-
--   marginal structural models [@robins2000marginal]
-
--   balanced risk set matching [@li2001balanced]
-
-Most matching methods are based on (ex-post)
-
--   propensity score
-
--   distance metric
-
--   covariates
-
-Packages
-
--   `cem` Coarsened exact matching
-
--   `Matching` Multivariate and propensity score matching with balance optimization
-
--   `MatchIt` Nonparametric preprocessing for parametric causal inference. Have nearest neighbor, Mahalanobis, caliper, exact, full, optimal, subclassification
-
--   `MatchingFrontier` optimize balance and sample size [@king2017balance]
-
--   `optmatch`optimal matching with variable ratio, optimal and full matching
-
--   `PSAgraphics` Propensity score graphics
-
--   `rbounds` sensitivity analysis with matched data, examine ignorable treatment assignment assumption
-
--   `twang` weighting and analysis of non-equivalent groups
-
--   `CBPS` covariate balancing propensity score. Can also be used in the longitudinal setting with marginal structural models.
-
--   `PanelMatch` based on [Imai, Kim, and Wang (2018)](https://imai.fas.harvard.edu/research/files/tscs.pdf)
-
-+--------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------+
-| Matching                                                                                                     | Regression                                                        |
-+==============================================================================================================+===================================================================+
-| Not as sensitive to the functional form of the covariates                                                    | can estimate the effect of a continuous treatment                 |
-+--------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------+
-| Easier to asses whether it's working                                                                         | estimate the effect of all the variables (not just the treatment) |
-|                                                                                                              |                                                                   |
-| Easier to explain                                                                                            |                                                                   |
-|                                                                                                              |                                                                   |
-| allows a nice visualization of an evaluation                                                                 |                                                                   |
-+--------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------+
-| If you treatment is fairly rare, you may have a lot of control observations that are obviously no comparable | can estimate interactions of treatment with covariates            |
-+--------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------+
-| Less parametric                                                                                              | More parametric                                                   |
-+--------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------+
-| Enforces common support (i.e., space where treatment and control have the same characteristics)              |                                                                   |
-+--------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------+
-
-However, the problem of **omitted variables** (i.e., those that affect both the outcome and whether observation was treated) - unobserved confounders is still present in matching methods.
-
-Difference between matching and regression following Pischke's [lecture](https://econ.lse.ac.uk/staff/spischke/ec533/regression%20vs%20matching.pdf)
-
-Suppose we want to estimate the effect of treatment on the treated
+Then,
 
 $$
 \begin{aligned}
-\delta_{TOT} &= E[ Y_{1i} - Y_{0i} | D_i = 1 ] \\
-&= E\{E[Y_{1i} | X_i, D_i = 1] \\
-& - E[Y_{0i}|X_i, D_i = 1]|D_i = 1\} && \text{law of itereated expectations}
-\end{aligned}
-$$
-
-Under conditional independence
-
-$$
-E[Y_{0i} |X_i , D_i = 0 ] = E[Y_{0i} | X_i, D_i = 1]
-$$
-
-then
-
-$$
-\begin{aligned}
-\delta_{TOT} &= E \{ E[ Y_{1i} | X_i, D_i = 1] - E[ Y_{0i}|X_i, D_i = 0 ]|D_i = 1\} \\
-&= E\{E[y_i | X_i, D_i = 1] - E[y_i |X_i, D_i = 0 ] | D_i = 1\} \\
+\delta_{TOT} &= E [ E[ Y_{1i} | X_i, D_i = 1] - E[ Y_{0i}|X_i, D_i = 0 ]|D_i = 1 ] \\
+&= E\left[ E[Y_i \mid X_i, D_i = 1] - E[Y_i \mid X_i, D_i = 0] \mid D_i = 1 \right] \\
 &= E[\delta_X |D_i = 1]
 \end{aligned}
 $$
 
-where $\delta_X$ is an X-specific difference in means at covariate value $X_i$
+where $\delta_X$ is an $X$-specific difference in means at covariate value $X_i$
 
-When $X_i$ is discrete, the matching estimand is
+If $X_i$ is discrete, the matching estimand becomes:
 
 $$
-\delta_M = \sum_x \delta_x P(X_i = x |D_i = 1)
+\delta_M = \sum_x \delta_x P(X_i = x \mid D_i = 1)
 $$
 
 where $P(X_i = x |D_i = 1)$ is the probability mass function for $X_i$ given $D_i = 1$
 
-According to Bayes rule,
+By Bayes' rule:
 
 $$
-P(X_i = x | D_i = 1) = \frac{P(D_i = 1 | X_i = x) \times P(X_i = x)}{P(D_i = 1)}
+P(X_i = x \mid D_i = 1) = \frac{P(D_i = 1 \mid X_i = x) P(X_i = x)}{P(D_i = 1)}
 $$
 
-hence,
+So,
 
 $$
 \begin{aligned}
@@ -532,19 +469,21 @@ $$
 \end{aligned}
 $$
 
-On the other hand, suppose we have regression
+------------------------------------------------------------------------
+
+### Regression Estimand
+
+In regression:
 
 $$
-y_i = \sum_x d_{ix} \beta_x + \delta_R D_i + \epsilon_i
+Y_i = \sum_x d_{ix} \beta_x + \delta_R D_i + \varepsilon_i
 $$
 
-where
+-   $d_{ix}$ = indicator that $X_i = x$
+-   $\beta_x$ = baseline outcome at $X = x$
+-   $\delta_R$ = regression estimand
 
--   $d_{ix}$ = dummy that indicates $X_i = x$
-
--   $\beta_x$ = regression-effect for $X_i = x$
-
--   $\delta_R$ = regression estimand where
+Then,
 
 $$
 \begin{aligned}
@@ -553,23 +492,82 @@ $$
 \end{aligned}
 $$
 
-the difference between the regression and matching estimand is the weights they use to combine the covariate specific treatment effect $\delta_x$
+------------------------------------------------------------------------
 
-+------------+---------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Type       | uses weights which depend on                                                          | interpretation                                                                                                                                                                                                                     | makes sense because                                                                                                                                                                |
-+============+=======================================================================================+====================================================================================================================================================================================================================================+====================================================================================================================================================================================+
-| Matching   | $P(D_i = 1|X_i = x)$                                                                  | This is larger in cells with many treated observations.                                                                                                                                                                            | we want the effect of treatment on the treated                                                                                                                                     |
-|            |                                                                                       |                                                                                                                                                                                                                                    |                                                                                                                                                                                    |
-|            | the fraction of treated observations in a covariate cell (i.e., or the mean of $D_i$) |                                                                                                                                                                                                                                    |                                                                                                                                                                                    |
-+------------+---------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Regression | $P(D_i = 1 |X_i = x)(1 - P(D_i = 1| X_i ))$                                           | This weight is largest in cells where there are half treated and half untreated observations. (this is the reason why we want to treat our sample so it is balanced, before running regular regression model, as mentioned above). | these cells will produce the lowest variance estimates of $\delta_x$. If all the $\delta_x$ are the same, the most efficient estimand uses the lowest variance cells most heavily. |
-|            |                                                                                       |                                                                                                                                                                                                                                    |                                                                                                                                                                                    |
-|            | the variance of $D_i$ in the covariate cell                                           |                                                                                                                                                                                                                                    |                                                                                                                                                                                    |
-+------------+---------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+### Interpretation: Weighting Differences
 
-The goal of matching is to produce covariate balance (i.e., distributions of covariates in treatment and control groups are approximately similar as they would be in a successful randomized experiment).
+The distinction between matching and regression comes down to how covariate-specific treatment effects $\delta_x$ are weighted:
 
-## Selection on Observables
+| Type       | Weighting Function                                     | Interpretation                                                                               | Makes Sense Because...                                                                                              |
+|------------|--------------------------------------------------------|----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| Matching   | $P(D_i = 1 \mid X_i = x)$                              | Weights more heavily where more treated units exist (ATT-focused)                            | We're interested in the effect on the treated, so more weight is placed where treated units are observed            |
+| Regression | $P(D_i = 1 \mid X_i = x)(1 - P(D_i = 1 \mid X_i = x))$ | Weights more where treatment assignment has high variance (i.e., near 50/50 treated/control) | These cells provide lowest-variance estimates of $\delta_x$, assuming the treatment effect is homogenous across $X$ |
+
+**Summary Table: Matching vs. Regression**
+
+| Feature                    | Matching                                                 | Regression (OLS)                                    |
+|----------------------------|----------------------------------------------------------|-----------------------------------------------------|
+| **Functional Form**        | Less parametric; no assumption of linearity              | Parametric; usually assumes linearity               |
+| **Primary Estimand**       | ATT (effect on the treated)                              | ATE or effects of continuous/interacted treatments  |
+| **Balance**                | Enforces balance via matched samples                     | Does not guarantee balance                          |
+| **Diagnostics**            | Covariate SMDs, QQ plots, empirical distributions        | Residual plots, R-squared, heteroskedasticity tests |
+| **Unobserved Confounding** | Cannot be resolved; assumes ignorability                 | Same limitation                                     |
+| **Standard Errors**        | Larger; require bootstrapping                            | Smaller; closed-form under assumptions              |
+| **Best Used When**         | High control-to-treated ratio; misspecification concerns | Model is correctly specified; sufficient overlap    |
+
+------------------------------------------------------------------------
+
+**Qualitative Comparisons**
+
+| Matching                                                            | Regression                                                           |
+|---------------------------------------------------------------------|----------------------------------------------------------------------|
+| Not sensitive to the form of covariate-outcome relationship         | Can estimate continuous or interacted treatment effects              |
+| Easier to assess balance and interpret diagnostics                  | Easier to estimate the effects of all covariates, not just treatment |
+| Facilitates clear visual evaluation of overlap and balance          | Less intuitive diagnostics; model diagnostics used                   |
+| Helps when treatment is rare (prunes clearly incomparable controls) | Performs better with balanced treatment assignment                   |
+| Forces explicit enforcement of common support                       | May extrapolate outside the support of covariate distributions       |
+
+------------------------------------------------------------------------
+
+## Software and Practical Implementation
+
+Many R packages provide functionality for implementing the various matching methods discussed above. Below is an overview of some popular options:
+
+-   **MatchIt**:\
+    Implements a wide range of matching methods (nearest neighbor, optimal, full, subclassification, exact, etc.). It focuses on "preprocessing" data before a final outcome analysis.
+
+-   **Matching**:\
+    Provides multivariate and propensity score matching, including options for *exact* and *nearest neighbor* matching. The package also offers functions to evaluate balance and to conduct sensitivity analyses.
+
+-   **cem** (Coarsened Exact Matching):\
+    Uses a coarsening approach to create strata within which exact matching can be performed. This can reduce imbalance by discarding units that do not overlap in coarsened covariate space.
+
+-   **optmatch**:\
+    Enables *optimal matching* with variable matching ratios and full matching, allowing for flexible group constructions that minimize overall distance.
+
+-   **MatchingFrontier** [@king2017balance]:\
+    Finds the "frontier" of matching solutions by balancing sample size (or other constraints) against covariate balance. Allows analysts to see trade-offs in real time.
+
+-   **CBPS** (Covariate Balancing Propensity Score):\
+    Estimates propensity scores such that covariate balance is directly optimized. This can help avoid iterative re-specification of the propensity score model.
+
+-   **PanelMatch** [@rauh2025panelmatch]:\
+    Tailored to panel (longitudinal) data settings, providing matching methods that exploit repeated observations over time (e.g., for DID-type analyses in a time-series cross-sectional environment).
+
+-   **PSAgraphics**:\
+    Specializes in visual diagnostics for propensity score analyses, offering graphical tools to inspect balance and common support.
+
+-   **rbounds**:\
+    Conducts **Rosenbaum bounds** sensitivity analysis on matched data. Researchers can examine how a hypothetical unmeasured confounder could undermine their estimated treatment effects.
+
+-   **twang**:\
+    Implements *generalized boosted models (GBM)* to estimate propensity scores. Often used for weighting approaches such as inverse probability weighting (IPW).
+
+In practice, the choice of software and methods hinges on the study design, the nature of the data, and the researcher's theoretical expectations regarding treatment assignment.
+
+------------------------------------------------------------------------
+
+## Selection on Observables {#sec-selection-on-observables}
 
 ### MatchIt
 
@@ -1262,7 +1260,7 @@ Package in R `shuyang1987/multilevelMatching` on Github
 
 package in R `twang`
 
-## Selection on Unobservables
+## Selection on Unobservables {#sec-selection-on-unobservables}
 
 There are several ways one can deal with selection on unobservables:
 
@@ -1310,7 +1308,7 @@ General
 
 With random treatment assignment, we can use the non-parametric test (Wilcoxon signed rank test) to see if there is treatment effect.
 
-Without random treatment assignment (i.e., observational data), we cannot use this test. With [Selection on Observables], we can use this test if we believe there are no unmeasured confounders. And this is where @rosenbaum2002attributing can come in to talk about the believability of this notion.
+Without random treatment assignment (i.e., observational data), we cannot use this test. With [Selection on Observables](#sec-selection-on-observables), we can use this test if we believe there are no unmeasured confounders. And this is where @rosenbaum2002attributing can come in to talk about the believability of this notion.
 
 In layman's terms, consider that the treatment assignment is based on a method where the odds of treatment for a unit and its control differ by a multiplier $\Gamma$
 
