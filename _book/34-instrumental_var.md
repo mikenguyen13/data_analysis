@@ -196,7 +196,7 @@ This states that the IV estimator recovers the causal effect *only for compliers
 IV only identifies treatment effects for switchers (compliers):
 
 | Switcher Type | Compliance Type | Definition                                                        |
-|---------------|-----------------|-------------------------------------------------------------------|
+|--------------|--------------|-------------------------------------------|
 | Switchers     | Compliers       | $D_{1i} > D_{0i}$ (take treatment if $Z_i = 1$, not if $Z_i = 0$) |
 | Non-switchers | Always-Takers   | $D_{1i} = D_{0i} = 1$ (always take treatment)                     |
 | Non-switchers | Never-Takers    | $D_{1i} = D_{0i} = 0$ (never take treatment)                      |
@@ -429,7 +429,7 @@ Then, the IV-GMM estimator simplifies to the standard IV (or 2SLS) estimator.
 Comparison of 2SLS and IV-GMM
 
 | Feature                 | 2SLS                                   | IV-GMM                               |
-|-------------------------|----------------------------------------|--------------------------------------|
+|------------------|----------------------------|--------------------------|
 | Instrument usage        | Uses a subset of available instruments | Uses all available instruments       |
 | Weighting               | No weighting applied                   | Weights instruments for efficiency   |
 | Efficiency              | Suboptimal in overidentified cases     | Efficient when $W = S^{-1}$          |
@@ -1746,7 +1746,7 @@ Result
 Summary Table of Conditions
 
 | **Condition**               | **Requirement**                      | **Purpose**                  |
-|-----------------------------|--------------------------------------|------------------------------|
+|----------------------|----------------------------|-----------------------|
 | Instrument Exogeneity       | $\mathbb{E}[Z'u] = 0$                | Instrument validity          |
 | Instrument Relevance        | $\mathrm{rank}(\mathbb{E}[Z'X]) = k$ | Model identification         |
 | Random Sampling             | IID (or stationary and mixing)       | LLN and CLT applicability    |
@@ -1853,7 +1853,7 @@ The divergence between $\hat{t}^2$ and $\hat{t}^2_{AR}$ depends on:
 ------------------------------------------------------------------------
 
 | Scenario          | Conditions                                                       | Inference Quality                                                        |
-|-------------------|------------------------------------------------------------------|--------------------------------------------------------------------------|
+|----------------|---------------------------|------------------------------|
 | Worst Case        | $\pi = 0$, $|\rho| = 1$                                          | $\hat{\beta} \pm 1.96 \times SE$ fails; Type I error = 100%              |
 | Best Case         | $\rho = 0$ (No endogeneity) or very large $\hat{f}$ (strong $Z$) | Standard inference works; intervals cover $\beta$ with correct rate      |
 | Intermediate Case | Moderate $\pi$, $\rho$, and $F$                                  | Coverage and Type I error lie between extremes; standard inference risky |
@@ -1931,7 +1931,7 @@ Key Properties of the AR Test
     -   Valid inference is possible when combined with heteroskedasticity-robust variance estimators or cluster-robust techniques.
 
 | Setting                            | Validity                                                                  | Reference                                |
-|------------------------------------|---------------------------------------------------------------------------|------------------------------------------|
+|------------------|----------------------------------|--------------------|
 | Non-Normal, Homoskedastic Errors   | Valid without distributional assumptions                                  | [@staiger1997instrumental]               |
 | Heteroskedastic Errors             | Generalized AR test remains valid; robust variance estimation recommended | [@stock2000gmm]                          |
 | Clustered or Autocorrelated Errors | Extensions available using cluster-robust and HAC variance estimators     | [@moreira2019optimal]                    |
@@ -2025,7 +2025,7 @@ The tF procedure is widely applicable in settings where just-identified IV model
 A comparison of the [AR approach](#sec-anderson-rubin-approach) and the [tF procedure](#sec-tf-procedure) can be found in @andrews2019weak.
 
 | Feature                     | Anderson-Rubin                                                 | tF Procedure                                               |
-|-----------------------------|----------------------------------------------------------------|------------------------------------------------------------|
+|-----------------|-----------------------------|---------------------------|
 | Robustness to Weak IV       | Yes (valid under weak instruments)                             | Yes (valid under weak instruments)                         |
 | Finite Confidence Intervals | No (interval becomes infinite for $F \le 3.84$)                | Yes (finite intervals for all $F$ values)                  |
 | Interval Length             | Often longer, especially when $F$ is moderate (e.g., $F = 16$) | Typically shorter than AR intervals for $F > 3.84$         |
@@ -2416,7 +2416,7 @@ This screening approach:
 Comparison with AR and tF Procedures:
 
 | Approach          | Bias Reduction             | Coverage     | CI Length (F \> 3.84)                      |
-|-------------------|----------------------------|--------------|--------------------------------------------|
+|---------------|----------------|---------------|--------------------------|
 | AK Sign Screening | Halves median bias         | Near-nominal | Finite                                     |
 | AR Test           | No bias (inversion method) | Exact        | Infinite                                   |
 | tF Procedure      | Bias adjusted              | Near-nominal | Longer than AK (especially for moderate F) |
@@ -3031,7 +3031,7 @@ While the KP rk statistic tests for underidentification, it does not directly as
 Comparison: Kleibergen-Paap rk vs Cragg-Donald Statistic
 
 | Feature                       | [Kleibergen-Paap rk Statistic](#sec-kleibergen-paap-rk-statistic) | [Cragg-Donald Statistic](#sec-cragg-donald-test) |
-|-------------------------------|-------------------------------------------------------------------|--------------------------------------------------|
+|-----------------|-------------------------------|------------------------|
 | Robust to Heteroskedasticity  | Yes                                                               | No                                               |
 | Valid Under Non-i.i.d. Errors | Yes                                                               | No                                               |
 | Underidentification Test      | Yes                                                               | No (tests weak instruments)                      |
@@ -3114,14 +3114,14 @@ Interpretation
 #### Comparison of Weak Instrument Tests
 
 | Test                    | Description                                                   | Use Case                                                                               | Assumptions                |
-|-------------------------|---------------------------------------------------------------|----------------------------------------------------------------------------------------|----------------------------|
+|--------------|------------------|--------------------------|--------------|
 | First-Stage F-Statistic | Joint significance of instruments on $X_2$                    | Simple IV models (1 endogenous regressor, 1+ instruments)                              | i.i.d. errors              |
 | Cragg-Donald Wald       | Wald test for multiple instruments and endogenous variables   | Multi-equation IV models                                                               | i.i.d. errors              |
 | Stock-Yogo              | Critical values for bias/size distortion                      | Assess bias and size distortions in 2SLS estimator                                     | i.i.d. errors              |
 | Anderson-Rubin          | Joint significance test in structural equation                | Robust to weak instruments; tests hypotheses on $\beta_2$                              | None (valid under weak IV) |
 | Kleinbergen-Paap rk     | Generalized Cragg-Donald for heteroskedastic/clustered errors | Robust inference when classical assumptions fail; heteroskedastic-consistent inference | Allows heteroskedasticity  |
 
-All the mentioned tests (Stock Yogo, Cragg-Donald, Anderson canonical correlation test) assume errors are independently and identically distributed. If this assumption is violated, the Kleinbergen-Paap test is robust against violations of the iid assumption and can be applied even with a single endogenous variable and instrument, provided the model is properly identified [@baum2021ivreg2h].
+All the mentioned tests (Stock Yogo, Cragg-Donald, Anderson canonical correlation test) assume errors are independently and identically distributed. If this assumption is violated, the Kleinbergen-Paap test is robust against violations of the iid assumption and can be applied even with a single endogenous variable and instrument, provided the model is properly identified [@baum2019advice].
 
 ------------------------------------------------------------------------
 
@@ -3629,7 +3629,7 @@ Contextual Evaluation Is Key
 Summary Table: Common Misinterpretations vs. Reality
 
 | **Common Misinterpretation**                                 | **Correct Understanding**                                                                                                           |
-|--------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+|-----------------------|------------------------------------------------|
 | "The J-test proves my instruments are valid."                | Failing to reject does *not* prove validity; it only means no evidence *against* validity was found.                                |
 | "A high p-value shows strong evidence of validity."          | A high p-value shows no evidence *against* validity, possibly due to low power or other limitations.                                |
 | "Rejecting the J-test means I know which instrument is bad." | Rejection only indicates a problem. It doesn't pinpoint which instrument or whether the issue is broader model misspecification.    |
@@ -4007,7 +4007,7 @@ Common examples of treatment intensity include:
 -   **Cigarette consumption** (e.g., packs per day) on infant birth weights [@permutt1989simultaneous]
 -   **Years of education** and their effect on earnings
 -   **Class size** and its impact on student test scores [@angrist1999using]
--   **Sibship size** and later-life earnings [@lavy2006new]
+-   **Sibship size** and later-life earnings [@angrist2010multiple]
 -   **Social media adoption intensity** (e.g., time spent, number of platforms)
 
 The average causal effect here refers to the conditional expectation of the difference in outcomes between the treated unit (at a given treatment intensity) and what would have happened in the counterfactual scenario (at a different treatment intensity). Importantly:
@@ -4254,7 +4254,7 @@ This scenario is common in:
 
 ### Zero-Valued Outcomes
 
-For outcomes that take zero values, log transformations can introduce interpretation issues. Specifically, the coefficient on a log-transformed outcome does not directly represent a percentage change [@chen2023logs]. We have to distinguish the treatment effect on the intensive (outcome: 10 to 11) vs. extensive margins (outcome: 0 to 1), and we can't readily interpret the treatment coefficient of log-transformed outcome regression as percentage change. In such cases, researchers use alternative methods:
+For outcomes that take zero values, log transformations can introduce interpretation issues. Specifically, the coefficient on a log-transformed outcome does not directly represent a percentage change [@chen2024logs]. We have to distinguish the treatment effect on the intensive (outcome: 10 to 11) vs. extensive margins (outcome: 0 to 1), and we can't readily interpret the treatment coefficient of log-transformed outcome regression as percentage change. In such cases, researchers use alternative methods:
 
 #### Proportional LATE Estimation
 

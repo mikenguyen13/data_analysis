@@ -1,0 +1,383 @@
+```{r}
+@article{rubin1974estimating,
+  title={Estimating causal effects of treatments in randomized and nonrandomized studies.},
+  author={Rubin, Donald B},
+  journal={Journal of educational Psychology},
+  volume={66},
+  number={5},
+  pages={688},
+  year={1974},
+  publisher={American Psychological Association}
+}
+
+
+```
+
+## Matching on the Estimated Propensity Score
+
+Let $W \in \{0, 1\}$ denote the binary treatment indicator and $Y$ the observed outcome. Following the potential outcomes framework @rubin1974estimating, define:
+
+-   $Y(1)$: potential outcome if treated
+
+-   $Y(0)$: potential outcome if untreated
+
+The goal is to estimate:
+
+-   Average Treatment Effect (ATE): $\tau = \mathbb{E}[Y(1) - Y(0)]$
+
+-   Average Treatment Effect on the Treated (ATT): $\tau_t = \mathbb{E}[Y(1) - Y(0) \mid W = 1]$
+
+Let $X$ be a vector of pre-treatment covariates, and define the **propensity score** as $p(X) = \Pr(W = 1 \mid X)$. The core assumption enabling identification is:
+
+$$
+\text{Assumption 1 (Strong Ignorability)}: \{Y(0), Y(1)\} \perp W \mid X \quad \text{and} \quad 0 < p < p(X) < 1
+$$
+
+### Matching Estimators
+
+#### Matching on the True Propensity Score
+
+The matching estimator for ATE is:
+
+$$
+\hat{\tau}_N^* = \frac{1}{N} \sum_{i=1}^N (2W_i - 1)\left( Y_i - \frac{1}{M} \sum_{j \in \mathcal{J}_M(i)} Y_j \right)
+$$
+
+Where:
+
+-   $\mathcal{J}_M(i)$: set of $M$ matched units from the opposite treatment group based on closeness in $p(X_i)$
+
+Under regularity conditions, @abadie2016matching derive:
+
+$$
+\sqrt{N}(\hat{\tau}_N^* - \tau) \xrightarrow{d} \mathcal{N}(0, \sigma^2)
+$$
+
+Where $\sigma^2$ accounts for both variance in outcomes and the match quality.
+
+#### Matching on the Estimated Propensity Score
+
+In practice, $p(X)$ is unknown and must be estimated. Let $p(X) = F(X^\top \theta^*)$ with estimated parameters $\hat{\theta}_N$. Then the estimator becomes:
+
+$$
+\hat{\tau}_N = \frac{1}{N} \sum_{i=1}^N (2W_i - 1)\left( Y_i - \frac{1}{M} \sum_{j \in \mathcal{J}_M(i, \hat{\theta}_N)} Y_j \right)
+$$
+
+The key theoretical contribution is that:
+
+$$
+\sqrt{N}(\hat{\tau}_N - \tau) \xrightarrow{d} \mathcal{N}(0, \sigma^2 - c^\top I_{\theta^*}^{-1} c)
+$$
+
+Where:
+
+-   $c$: vector capturing the covariance between $X$ and conditional means $\mu(w, X)$ given $F(X^\top \theta^*)$
+
+-   $I_{\theta^*}$: Fisher information matrix of the propensity score model
+
+**Important Insight**: The adjustment $-c^\top I_{\theta^*}^{-1} c \leq 0$, meaning matching on the estimated propensity score is **more efficient** in large samples than matching on the true propensity score.
+
+#### Estimation for ATT
+
+For the ATT, the adjustment is more nuanced. The asymptotic variance becomes:
+
+$$
+\sigma_{t, adj}^2 = \sigma_t^2 - c_t^\top I_{\theta^*}^{-1} c_t + \left( \frac{\partial \tau_t}{\partial \theta} \right)^\top I_{\theta^*}^{-1} \left( \frac{\partial \tau_t}{\partial \theta} \right)
+$$
+
+Here, the adjustment may **increase or decrease** the variance, depending on whether $\tau_t$ is sensitive to $\theta$ and the structure of $X$.
+
+### Estimating the Adjusted Variance in Practice
+
+@abadie2016matching provide estimators for each component:
+
+-   Variance of outcome differences using $L$ nearest neighbors
+
+-   Covariances for computing $c$ and $c_t$
+
+-   Score function and information matrix $I_{\theta^*}$ from the propensity score model
+
+This allows estimation of the **adjusted standard errors** to construct valid confidence intervals.
+
+------------------------------------------------------------------------
+
+## Matching on the Estimated Propensity Score
+
+Following the potential outcomes framework @rubin1974estimating, define:
+
+-   $W_i \in \{0, 1\}$: binary indicator of treatment assignment for unit $i$
+
+-   $Y_i$: observed outcome for unit $i$
+
+-   $X_i \in \mathbb{R}^k$: vector of $k$-dimensional covariates
+
+We define potential outcomes:
+
+-   $Y_i(1)$: outcome for unit $i$ if treated
+
+-   $Y_i(0)$: outcome for unit $i$ if untreated
+
+The fundamental problem of causal inference is that we only observe one of these: $$
+Y_i = W_i Y_i(1) + (1 - W_i) Y_i(0)
+$$
+
+Our parameters of interest:
+
+-   Average Treatment Effect (ATE): $$
+      \tau = \mathbb{E}[Y_i(1) - Y_i(0)]
+      $$
+
+-   Average Treatment Effect on the Treated (ATT): $$
+      \tau_t = \mathbb{E}[Y_i(1) - Y_i(0) \mid W_i = 1]
+      $$
+
+------------------------------------------------------------------------
+
+### Assumptions for Identification via Propensity Scores
+
+Define the propensity score: $$
+p(X_i) = \mathbb{P}(W_i = 1 \mid X_i)
+$$
+
+We require:
+
+**Assumption 1 (Strong Ignorability of Treatment):**
+
+1.  **Unconfoundedness**: $$
+       (Y_i(0), Y_i(1)) \perp W_i \mid X_i
+       $$
+2.  **Overlap**: $$
+       0 < p < p(X_i) < 1 \quad \text{for all } i
+       $$
+
+Then, by @rosenbaum1983central, we can condition on the scalar $p(X)$ instead of the vector $X$.
+
+------------------------------------------------------------------------
+
+### Estimating the Propensity Score
+
+In practice, we **do not observe** the true propensity score $p(X_i)$. Instead, we specify a parametric model:
+
+**Logit/Probit Propensity Model:** $$
+p(X_i; \theta) = F(X_i^\top \theta)
+$$
+
+-   $F$: CDF function (logistic for logit, standard normal for probit)
+
+-   $\theta \in \mathbb{R}^k$: unknown parameter vector
+
+We estimate $\theta$ from data using maximum likelihood: $$
+\hat{\theta}_N = \arg \max_{\theta} \sum_{i=1}^N \left[ W_i \log F(X_i^\top \theta) + (1 - W_i) \log (1 - F(X_i^\top \theta)) \right]
+$$ Here, $\hat{\theta}_N$ is the maximum likelihood estimator of $\theta$ based on a sample of $N$ units.
+
+Define: $$
+\hat{p}_i := p(X_i; \hat{\theta}_N) = F(X_i^\top \hat{\theta}_N)
+$$
+
+This is the estimated propensity score for unit $i$.
+
+------------------------------------------------------------------------
+
+### Propensity Score Matching Estimator
+
+We use **nearest neighbor matching** on the estimated scores $\hat{p}_i$:
+
+Define $\mathcal{J}_M(i)$ as the set of $M$ units from the opposite treatment group closest to unit $i$ in estimated propensity score. Then, the ATE matching estimator is:
+
+$$
+\hat{\tau}_N := \frac{1}{N} \sum_{i=1}^N (2W_i - 1) \left[ Y_i - \frac{1}{M} \sum_{j \in \mathcal{J}_M(i)} Y_j \right]
+$$
+
+-   If $W_i = 1$, we subtract the average outcome of $M$ matched control units.
+-   If $W_i = 0$, we subtract the average of matched treated units.
+
+This estimator is nonparametric, yet it depends on the estimated propensity scores $\hat{p}_i$.
+
+------------------------------------------------------------------------
+
+### Asymptotic Distribution with Estimated vs. True Propensity Score
+
+Let:
+
+-   $\theta^*$: true parameter (i.e., such that $p(X) = F(X^\top \theta^*)$)
+
+-   $\hat{\tau}_N(\theta^*)$: estimator based on the *true* propensity score
+
+-   $\hat{\tau}_N(\hat{\theta}_N)$: estimator based on the *estimated* propensity score
+
+Under regularity conditions [@abadie2016matching]:
+
+#### Matching on the True Propensity Score:
+
+$$
+\sqrt{N}(\hat{\tau}_N(\theta^*) - \tau) \xrightarrow{d} \mathcal{N}(0, \sigma^2)
+$$
+
+#### Matching on the Estimated Propensity Score:
+
+$$
+\sqrt{N}(\hat{\tau}_N(\hat{\theta}_N) - \tau) \xrightarrow{d} \mathcal{N}(0, \sigma^2 - c^\top I^{-1}_{\theta^*} c)
+$$
+
+Where:
+
+-   $\sigma^2$: variance from @abadie2016matching for matching on true $p(X)$
+
+-   $c$: vector accounting for covariation between covariates and outcomes at the estimated scores
+
+-   $I_{\theta^*}$: Fisher Information Matrix of the log-likelihood of the propensity model
+
+@abadie2016matching provide estimators for each component:
+
+-   Variance of outcome differences using $L$ nearest neighbors
+
+-   Covariances for computing $c$ and $c_t$
+
+-   Score function and information matrix $I_{\theta^*}$ from the propensity score model
+
+This allows estimation of the **adjusted standard errors** to construct valid confidence intervals.
+
+The adjustment: $$
+-c^\top I_{\theta^*}^{-1} c
+$$ is always $\leq 0$.
+
+That is, estimating the propensity score reduces the asymptotic variance. This may seem paradoxical but occurs because estimated propensity scores *"pull"* units closer in a way that optimizes match quality.
+
+> **Heuristic**: estimation noise adds variation in match assignments that, counterintuitively, **improves balance** in large samples.
+
+------------------------------------------------------------------------
+
+### Final Notes
+
+-   For **ATT/ATT**, the adjustment can increase or decrease variance.
+-   These results rely on fixed $M$ matching and a parametric score model.
+-   The bootstrap is invalid for inference due to non-smoothness of matching.
+
+#### A step-by-step walk-through for PhD students
+
+*Why matching on an **estimated** propensity score can be **more** efficient than matching on the (unobserved) "true" score*
+
+------------------------------------------------------------------------
+
+### 1 Why we need the propensity score at all
+
+Suppose every unit $i$ has two potential outcomes $Y_i(1)$ and $Y_i(0)$.\
+The causal quantity we want---say the **average treatment effect (ATE)**\
+$$
+\tau=\mathbb E\,[Y(1)-Y(0)]
+$$ is not directly observable because we never see both potential outcomes for the same unit.
+
+If we observe a rich covariate vector $X_i$ and believe that
+
+$$
+(Y_i(0),Y_i(1))\;\perp\;W_i\;\bigm|\;X_i
+\tag{S.1}
+$$
+
+then, in principle, we could compare outcomes for treated and control units *with identical* $X$.\
+@rosenbaum1983central showed that instead of matching on the **entire** $X$, it suffices to match on the scalar
+
+$$
+p(X_i)=\Pr(W_i=1\mid X_i),
+$$
+
+called the **propensity score**. This dramatically reduces the dimensionality of the problem [@rosenbaum1983central].
+
+------------------------------------------------------------------------
+
+### 2 From the score to a matching estimator
+
+**Nearest-neighbor idea.**\
+For any treated unit, find the $M$ control units whose *propensity scores* are closest; for any control unit, do the analogous search among treated units.\
+With a fixed $M$, the *matching estimator* of the ATE is
+
+$$
+\hat\tau_N
+=\frac1N\sum_{i=1}^{N}(2W_i-1)\!
+\left[Y_i-\frac1M\sum_{j\in\mathcal J_M(i)}Y_j\right],
+\tag{2.1}
+$$
+
+where $\mathcal J_M(i)$ is the matched set for unit $i$.
+
+If we could plug the **true** score $p(X_i)$ into the search, @abadie2016matching proved that
+
+$$
+\sqrt N\bigl[\hat\tau_N-\tau\bigr]\;\overset d\longrightarrow\;
+\mathcal N(0,\sigma^{2}).
+\tag{2.2}
+$$\
+The variance $\sigma^{2}$ contains both outcome variability and "matching error."
+
+------------------------------------------------------------------------
+
+### 3 But we never know $p(X)$
+
+In practice we **estimate** it.\
+A common specification is a logit or probit model
+
+$$
+p(X_i;\theta)=F(X_i^{\!\top}\theta),\qquad
+F(z)=\frac{1}{1+e^{-z}}\;(\text{logit})\;\text{or}\; \Phi(z)\;(\text{probit}),
+$$
+
+and we obtain $\hat\theta_N$ by maximum likelihood. The *estimated* score is $\hat p_i = p(X_i;\hat\theta_N)$.
+
+------------------------------------------------------------------------
+
+### 4 What estimation error does to matching
+
+Intuitively, you might worry that extra noise in $\hat p$ would hurt precision.\
+Paradoxically it can **help**:
+
+$$
+\sqrt N\bigl[\hat\tau_N(\hat\theta_N)-\tau\bigr]
+\;\overset d\longrightarrow\;
+\mathcal N\!\Bigl(0,\;\sigma^{2}-c^{\top}I^{-1}_{\theta^{\!*}}c\Bigr),
+\tag{4.1}
+$$
+
+where
+
+-   $I_{\theta^{\!*}}$ is the Fisher information of the propensity-score likelihood,
+-   $c$ is a covariance term linking $X$ and the conditional mean differences $\mu(1,X)-\mu(0,X)$.
+
+Because $I_{\theta^{\!*}}$ is positive-definite, the quadratic form $-c^{\top}I^{-1}_{\theta^{\!*}}c\le0$.\
+**Result:** matching on the *estimated* score is at least as precise, and generically *more* precise, than matching on the true score. @abadie2016matching derive this formally.
+
+*Economic intuition.*\
+The extra variation in $\hat p$ reshuffles close ties: some treated units pick better-balanced controls (and vice versa), reducing the component of variance due to imperfect matches.
+
+------------------------------------------------------------------------
+
+### 5 Variance you should report in applied work
+
+@abadie2016matching also give *plug-in* formulas so you can compute the adjusted standard error in practice:
+
+1.  **Outcome-difference variance** $\hat\sigma^{2}$.\
+    For each unit, look at its $L$ nearest neighbors *within the same treatment status* and form a leave-one-out variance estimator.
+2.  **Information matrix** $\hat I_{\hat\theta_N}$.\
+    Read it off the negative Hessian of the maximized log-likelihood.
+3.  **Covariance vector** $\hat c$.\
+    Compute sample means of $\{W_i-\hat p_i\}\{Y_i-\bar Y(X_i)\}\partial\hat p_i/\partial\theta$.
+
+The non-smooth nature of matching makes the ordinary bootstrap inconsistent, so rely on this analytic variance instead.
+
+------------------------------------------------------------------------
+
+### 6 A note on the ATT
+
+When you focus on the **treated** group only, score-estimation uncertainty plays two roles: it changes who gets matched *and* it changes the implicit weights inside the estimand.\
+The asymptotic variance becomes
+
+$$
+\sigma_{t}^{2}-c_t^{\top}I_{\theta^{\!*}}^{-1}c_t
++
+\Bigl(\partial\tau_t/\partial\theta\Bigr)^{\!\top}
+I_{\theta^{\!*}}^{-1}
+\Bigl(\partial\tau_t/\partial\theta\Bigr),
+$$
+
+so efficiency can rise **or** fall depending on how sensitive $\tau_t$ is to $\theta$.
+
+------------------------------------------------------------------------

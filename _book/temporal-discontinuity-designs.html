@@ -7,7 +7,7 @@
 <title>Chapter 28 Temporal Discontinuity Designs | A Guide on Data Analysis</title>
 <meta name="author" content="Mike Nguyen">
 <meta name="description" content="When evaluating the causal impact of a policy, intervention, or treatment that begins at a known time, two popular quasi-experimental methods are: Regression Discontinuity in Time Interrupted Time...">
-<meta name="generator" content="bookdown 0.42 with bs4_book()">
+<meta name="generator" content="bookdown 0.43 with bs4_book()">
 <meta property="og:title" content="Chapter 28 Temporal Discontinuity Designs | A Guide on Data Analysis">
 <meta property="og:type" content="book">
 <meta property="og:url" content="https://bookdown.org/mike/data_analysis/temporal-discontinuity-designs.html">
@@ -158,11 +158,11 @@
 <li>A policy is implemented at different times for different subjects (e.g., state-level policy rollouts).</li>
 <li>There is no suitable cross-sectional control group, making difference-in-differences infeasible.</li>
 </ol>
-<div class="inline-table"><table class="table table-sm">
+<div class="inline-table"><table style="width:100%;" class="table table-sm">
 <colgroup>
-<col width="17%">
-<col width="38%">
-<col width="44%">
+<col width="23%">
+<col width="35%">
+<col width="41%">
 </colgroup>
 <thead><tr class="header">
 <th align="center">Feature</th>
@@ -258,9 +258,9 @@ Y_t = \alpha_0 + \alpha_1 \bigl(T_t - T^*\bigr) \;+\; \tau\,D_t \;+\; \alpha_2 \
 <div class="inline-table"><table class="table table-sm">
 <caption>When RDiT is Used Instead of Traditional RD</caption>
 <colgroup>
-<col width="20%">
-<col width="36%">
-<col width="42%">
+<col width="23%">
+<col width="34%">
+<col width="41%">
 </colgroup>
 <tbody>
 <tr class="odd">
@@ -400,10 +400,10 @@ Y_t = \delta_0 + \sum_{j} \delta_j X_{jt} + \nu_t
 <div class="inline-table"><table class="table table-sm">
 <caption>Comparison with Other Methods</caption>
 <colgroup>
-<col width="20%">
-<col width="19%">
-<col width="22%">
-<col width="37%">
+<col width="21%">
+<col width="21%">
+<col width="21%">
+<col width="34%">
 </colgroup>
 <thead><tr class="header">
 <th><strong>Method</strong></th>
@@ -886,8 +886,8 @@ If only certain individuals or settings receive the intervention, pre-existing d
 <caption>
 <strong>Key assumptions</strong> for ITS:</caption>
 <colgroup>
-<col width="36%">
-<col width="63%">
+<col width="37%">
+<col width="62%">
 </colgroup>
 <thead><tr class="header">
 <th><strong>Scenario</strong></th>
@@ -1515,7 +1515,99 @@ Y_{t} &amp;= \underbrace{\beta_0
 <strong>Interpretation</strong>: A single unified model that merges local jumps with global trends may be difficult to interpret. Distinguish clearly which parameters capture the sharp discontinuity versus the long-run trend.</li>
 </ul>
 <p>In practice, a hybrid approach can work if you truly believe there is both a local immediate jump and a longer-run trend change that standard ITS alone may not fully capture. However, weigh the added complexity against the quality and richness of your data.</p>
-
+<hr>
+</div>
+</div>
+<div id="case-crossover-study-design" class="section level2" number="28.4">
+<h2>
+<span class="header-section-number">28.4</span> Case-Crossover Study Design<a class="anchor" aria-label="anchor" href="#case-crossover-study-design"><i class="fas fa-link"></i></a>
+</h2>
+<p>A case-crossover study is an observational epidemiological method designed primarily to assess the transient effects of acute exposures on the risk of sudden-onset outcomes. Introduced by <span class="citation">Maclure (<a href="references.html#ref-maclure1991case">1991</a>)</span>, this design utilizes individuals as their own controls, thus inherently adjusting for stable, within-subject confounders.</p>
+<p>For example, consider assessing whether vigorous exercise increases the risk of myocardial infarction (MI) <span class="citation">(<a href="references.html#ref-mittleman1993triggering">Mittleman et al. 1993</a>)</span>:</p>
+<ul>
+<li>Hazard Period: 1-hour preceding MI onset.</li>
+<li>Control Periods: Identical 1-hour windows on other days.</li>
+</ul>
+<p>Applying conditional logistic regression, we estimate the odds ratio (OR) indicating how acute exercise influences MI risk.</p>
+<p><strong>Implementation</strong> in R: <span class="citation">Z. Zhang (<a href="references.html#ref-zhang2016case">2016</a>)</span> and <code>season</code> package</p>
+<p><strong>Advantages</strong></p>
+<ul>
+<li>
+<strong>Self-Matching:</strong> Controls individual-level confounding, including genetics, demographics, and chronic health status <span class="citation">(<a href="references.html#ref-maclure1991case">Maclure 1991</a>)</span>.</li>
+<li>
+<strong>Efficiency:</strong> Requires fewer subjects due to within-person matching <span class="citation">(<a href="references.html#ref-mittleman1995control">Mittleman, Maclure, and Robins 1995</a>)</span>.</li>
+<li>
+<strong>Applicability:</strong> Highly suitable for studying acute triggers (e.g., air pollution, physical exertion, drug use) <span class="citation">(<a href="references.html#ref-lumley2000bias">Lumley and Levy 2000</a>)</span>.</li>
+</ul>
+<p><strong>Limitations</strong></p>
+<ul>
+<li>
+<strong>Carryover Effects:</strong> Difficulties arise if exposure has prolonged effects <span class="citation">(<a href="references.html#ref-maclure2000should">Maclure and Mittleman 2000</a>)</span>.</li>
+<li>
+<strong>Time-Varying Confounding:</strong> Cannot inherently control for confounders changing within short timeframes unless explicitly modeled <span class="citation">(<a href="references.html#ref-navidi1998bidirectional">Navidi 1998</a>)</span>.</li>
+<li>
+<strong>Selection Bias:</strong> Incorrect selection of control periods can bias results <span class="citation">(<a href="references.html#ref-lumley2000bias">Lumley and Levy 2000</a>)</span>.</li>
+</ul>
+<div id="mathematical-foundations" class="section level3" number="28.4.1">
+<h3>
+<span class="header-section-number">28.4.1</span> Mathematical Foundations<a class="anchor" aria-label="anchor" href="#mathematical-foundations"><i class="fas fa-link"></i></a>
+</h3>
+<p>The case-crossover design compares exposure status during a “hazard” or “case” period immediately preceding the event to exposure status during “control” periods when the event did not occur <span class="citation">(<a href="references.html#ref-maclure2000should">Maclure and Mittleman 2000</a>)</span>.</p>
+<p>Formally, let:</p>
+<ul>
+<li>
+<span class="math inline">\(X_{i,t}\)</span> denote the exposure status (binary or continuous) of individual <span class="math inline">\(i\)</span> at time <span class="math inline">\(t\)</span>.</li>
+<li>
+<span class="math inline">\(Y_{i,t}\)</span> indicate the occurrence (1) or absence (0) of an acute event at time <span class="math inline">\(t\)</span>.</li>
+</ul>
+<p>The probability of an event occurring at time <span class="math inline">\(t\)</span> given exposure is modeled by a conditional logistic regression:</p>
+<p><span class="math display">\[ \text{logit}(P(Y_{i,t}=1|X_{i,t})) = \alpha_i + \beta X_{i,t} \]</span></p>
+<p>Here:</p>
+<ul>
+<li><p><span class="math inline">\(\alpha_i\)</span> is a subject-specific fixed effect that controls for all time-invariant confounding within subjects.</p></li>
+<li><p><span class="math inline">\(\beta\)</span> is the log-odds ratio quantifying the exposure effect.</p></li>
+</ul>
+<p>The conditional logistic regression explicitly considers matched strata (individual cases) and compares the distribution of exposure during the case and control periods within each individual:</p>
+<p><span class="math display">\[ L(\beta) = \prod_{i=1}^{n} \frac{\exp(\beta X_{i,case})}{\exp(\beta X_{i,case}) + \sum_{j \in C_i} \exp(\beta X_{i,j})} \]</span></p>
+<ul>
+<li>
+<span class="math inline">\(X_{i,case}\)</span> represents exposure during the hazard period for case <span class="math inline">\(i\)</span>.</li>
+<li>
+<span class="math inline">\(X_{i,j}\)</span> represents exposure during control periods <span class="math inline">\(C_i\)</span> for case <span class="math inline">\(i\)</span>.</li>
+</ul>
+</div>
+<div id="selection-of-control-periods" class="section level3" number="28.4.2">
+<h3>
+<span class="header-section-number">28.4.2</span> Selection of Control Periods<a class="anchor" aria-label="anchor" href="#selection-of-control-periods"><i class="fas fa-link"></i></a>
+</h3>
+<div id="bidirectional" class="section level4" number="28.4.2.1">
+<h4>
+<span class="header-section-number">28.4.2.1</span> Bidirectional<a class="anchor" aria-label="anchor" href="#bidirectional"><i class="fas fa-link"></i></a>
+</h4>
+<p>Bidirectional (symmetrical) selection involves choosing control periods before and after the event equally <span class="citation">(<a href="references.html#ref-navidi1998bidirectional">Navidi 1998</a>)</span>:</p>
+<p><span class="math display">\[ \text{Control Periods} = \{t - k, t + k\}, k \in \mathbb{N} \]</span></p>
+<p>This method mitigates biases related to temporal trends in exposure.</p>
+</div>
+<div id="unidirectional" class="section level4" number="28.4.2.2">
+<h4>
+<span class="header-section-number">28.4.2.2</span> Unidirectional<a class="anchor" aria-label="anchor" href="#unidirectional"><i class="fas fa-link"></i></a>
+</h4>
+<p>Unidirectional selection (either exclusively prior or subsequent to the event) might introduce biases if exposure trends are strong <span class="citation">(<a href="references.html#ref-lumley2000bias">Lumley and Levy 2000</a>)</span>:</p>
+<p><span class="math display">\[ \text{Control Periods} = \{t - k\}, k \in \mathbb{N} \]</span></p>
+</div>
+</div>
+<div id="assumptions-1" class="section level3" number="28.4.3">
+<h3>
+<span class="header-section-number">28.4.3</span> Assumptions<a class="anchor" aria-label="anchor" href="#assumptions-1"><i class="fas fa-link"></i></a>
+</h3>
+<ol style="list-style-type: decimal">
+<li>
+<strong>Transient Effect Assumption:</strong> Exposure effects are acute and short-lived <span class="citation">(<a href="references.html#ref-maclure1991case">Maclure 1991</a>)</span>.</li>
+<li>
+<strong>Exchangeability of Hazard and Control Periods:</strong> Conditional on individual fixed effects, control periods accurately represent exposure probabilities during hazard periods <span class="citation">(<a href="references.html#ref-mittleman1995control">Mittleman, Maclure, and Robins 1995</a>)</span>.</li>
+<li>
+<strong>No Carryover Effects:</strong> Exposure in one period does not affect subsequent periods <span class="citation">(<a href="references.html#ref-maclure2000should">Maclure and Mittleman 2000</a>)</span>.</li>
+</ol>
 </div>
 </div>
 </div>
@@ -1552,6 +1644,13 @@ Y_{t} &amp;= \underbrace{\beta_0
 <li><a class="nav-link" href="#practical-guidance"><span class="header-section-number">28.3.5</span> Practical Guidance</a></li>
 </ul>
 </li>
+<li>
+<a class="nav-link" href="#case-crossover-study-design"><span class="header-section-number">28.4</span> Case-Crossover Study Design</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#mathematical-foundations"><span class="header-section-number">28.4.1</span> Mathematical Foundations</a></li>
+<li><a class="nav-link" href="#selection-of-control-periods"><span class="header-section-number">28.4.2</span> Selection of Control Periods</a></li>
+<li><a class="nav-link" href="#assumptions-1"><span class="header-section-number">28.4.3</span> Assumptions</a></li>
+</ul>
+</li>
 </ul>
 
       <div class="book-extra">
@@ -1569,7 +1668,7 @@ Y_{t} &amp;= \underbrace{\beta_0
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-04-09.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-04-27.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">

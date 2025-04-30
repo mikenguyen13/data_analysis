@@ -45,3 +45,7 @@ Notes:
     -   Close all backdoor path between $X$ and $Y$ (to eliminate spurious correlation)
 
     -   Do not close any causal path between $X$ and $Y$ (any mediators).
+
+## Causal Discovery
+
+@eberhardt2024discovering

@@ -1,7 +1,7 @@
 ---
 title: "A Guide on Data Analysis"
 author: "Mike Nguyen"
-date: "2025-04-09"
+date: "2025-04-27"
 header-includes:
   - \usepackage{titling}
   - \pretitle{\begin{center}
@@ -76,13 +76,13 @@ I hope this book provides a valuable starting point for aspiring statisticians, 
 }
 ```
 
-## More books {.unnumbered}
+<!-- ## More books {.unnumbered} -->
 
-More books by the author can be found [here](https://mikenguyen.netlify.app/books/written_books/):
+<!-- More books by the author can be found [here](https://mikenguyen.netlify.app/books/written_books/): -->
 
--   [Advanced Data Analysis](https://bookdown.org/mike/advanced_data_analysis/): the second book in the data analysis series, which covers machine learning models (with a focus on prediction)
--   [Marketing Research](https://bookdown.org/mike/marketing_research/)
--   [Communication Theory](https://bookdown.org/mike/comm_theory/)
+<!-- -   [Advanced Data Analysis](https://bookdown.org/mike/advanced_data_analysis/): the second book in the data analysis series, which covers machine learning models (with a focus on prediction) -->
+<!-- -   [Marketing Research](https://bookdown.org/mike/marketing_research/) -->
+<!-- -   [Communication Theory](https://bookdown.org/mike/comm_theory/) -->
 
 # Introduction
 

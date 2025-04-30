@@ -88,7 +88,7 @@ Selecting the constant $c$ is critical:
 From a statistical modeling perspective:
 
 -   **For inference-based models**, the choice of $c$ can significantly impact the fit. See [@ekwaru2018overlooked].
--   **In causal inference** (e.g., DID, IV), improper log transformations (e.g., logging zero values) can introduce bias [@chen2023logs].
+-   **In causal inference** (e.g., DID, IV), improper log transformations (e.g., logging zero values) can introduce bias [@chen2024logs].
 
 #### When is Log Transformation Problematic?
 

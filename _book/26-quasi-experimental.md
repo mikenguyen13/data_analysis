@@ -2,15 +2,15 @@
 
 Quasi-experimental methods are widely used in causal inference when randomized experiments are not feasible. Typically, these methods rely on **pre- and post-intervention data** and attempt to identify **exogenous variation** that can be leveraged to estimate causal effects.
 
-Great resources for causal inference include:
+<!-- Great resources for causal inference include: -->
 
--   [Causal Inference Mixtape](https://mixtape.scunning.com/introduction.html)
--   [Recent Advances in Micro](https://christinecai.github.io/PublicGoods/applied_micro_methods.pdf)
+<!-- -   [Causal Inference Mixtape](https://mixtape.scunning.com/introduction.html) -->
+<!-- -   [Recent Advances in Micro](https://christinecai.github.io/PublicGoods/applied_micro_methods.pdf) -->
 
-The following R packages are useful for implementing quasi-experimental methods:
+<!-- The following R packages are useful for implementing quasi-experimental methods: -->
 
--   [Econometrics](https://cran.r-project.org/web/views/Econometrics.html): Covers a broad range of econometric techniques.
--   [Causal Inference](https://cran.r-project.org/web/views/CausalInference.html): Provides tools for estimating causal effects under different identification assumptions.
+<!-- -   [Econometrics](https://cran.r-project.org/web/views/Econometrics.html): Covers a broad range of econometric techniques. -->
+<!-- -   [Causal Inference](https://cran.r-project.org/web/views/CausalInference.html): Provides tools for estimating causal effects under different identification assumptions. -->
 
 While internal validity ensures a credible causal effect, external validity assesses whether the findings **generalize** beyond the sample.
 
@@ -97,7 +97,7 @@ Key Questions to Address:
 1.  **What are the identification assumptions?**
     -   Clearly state the assumptions required for causal inference.
 2.  **What are the threats to validity?**
-    -   Consider potential confounders, measurement errors, and violations of SUTVA.
+    -   Consider potential confounders, measurement errors, and violations of [SUTVA](#sec-sutva).
 3.  **How do you address these threats?**
     -   Describe robustness checks and alternative specifications.
     -   Suggest directions for future research to improve causal identification.
@@ -165,7 +165,7 @@ However, if SUTVA is violated, standard causal inference methods may fail. Commo
 Violating SUTVA introduces significant challenges in causal inference, leading to:
 
 |                                |                                                                                                                                    |
-|-----------------|-------------------------------------------------------|
+|------------------|------------------------------------------------------|
 | Issue                          | Consequence                                                                                                                        |
 | **Bias in Estimators**         | If interference is ignored, treatment effects may be over- or underestimated.                                                      |
 | **Incorrect Standard Errors**  | Standard errors may be **underestimated** (if spillovers are ignored) or **overestimated** (if hidden treatment variations exist). |
@@ -768,7 +768,7 @@ To illustrate this, I will generate a visual spectrum positioning common quasi-e
 -   May be employed when experimental or quasi-experimental designs are not feasible.
 
 | **Aspect**      | **Design-Based**                           | **Model-Based**                    |
-|-----------------|-------------------------------|-------------------------|
+|------------------|------------------------------|------------------------|
 | **Approach**    | Relies on study design                     | Relies on statistical models       |
 | **Assumptions** | Fewer, often intuitive (e.g., cutoff)      | Stronger, often less testable      |
 | **Examples**    | RCTs, natural experiments, RD, DiD         | Structural models, PSM             |
@@ -792,7 +792,7 @@ These methods are particularly useful when:
 -   Quasi-random variation exists (e.g., firms, consumers, or individuals are assigned treatment based on factors outside their control).
 
 | **Method**                   | **Key Concept**                                    | **Assumptions**                                                        | **Example (Marketing & Economics)**                                     |
-|----------------|----------------|--------------------|---------------------|
+|-----------------|-----------------|-------------------|--------------------|
 | **Regression Discontinuity** | Units near a threshold are **as good as random**.  | No precise control over cutoff; outcomes continuous.                   | Loyalty program tiers, minimum wage effects.                            |
 | **Synthetic Control**        | Constructs a weighted synthetic counterfactual.    | Pre-treatment trends must match; no confounding post-treatment shocks. | National ad campaign impact, tax cut effects.                           |
 | **Event Studies**            | Measures how an event changes outcomes over time.  | Parallel pre-trends; no anticipatory effects.                          | Black Friday sales, stock price reactions.                              |
@@ -834,7 +834,7 @@ Unlike other quasi-experimental designs that leverage external assignment mechan
 **Key Model-Based Methods in Causal Inference**
 
 | **Method**                                             | **Key Concept**                                                                | **Assumptions**                                                       | **Example (Marketing & Economics)**                                                      |
-|-----------------|------------------|-----------------|--------------------|
+|------------------|------------------|------------------|--------------------|
 | **Propensity Score Matching (PSM) / Weighting**        | Uses estimated probabilities of treatment to create comparable groups.         | Treatment assignment is modeled correctly; no unmeasured confounding. | Job training programs (matching participants to non-participants); Ad campaign exposure. |
 | **Structural Causal Models (SCMs) / DAGs**             | Specifies causal relationships using directed acyclic graphs (DAGs).           | Correct causal structure; no omitted paths.                           | Customer churn prediction; Impact of pricing on sales.                                   |
 | **Covariate Adjustment (Regression-Based Approaches)** | Uses regression to control for confounding variables.                          | Linear or nonlinear functional forms are correctly specified.         | Estimating the impact of online ads on revenue.                                          |

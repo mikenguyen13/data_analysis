@@ -3,18 +3,12 @@
 Regression Discontinuity (RD) is a quasi-experimental design that exploits a discrete jump in treatment assignment based on a continuous (or approximately continuous) variable, often called the **running variable**, **forcing variable**, or **assignment variable**.
 
 -   A common application occurs when an intervention is assigned based on whether the running variable exceeds a predefined cutoff.
--   The approach provides **localized causal inference** around the cutoff, akin to a randomized experiment.
--   **Historical Background:** First introduced by [@thistlethwaite1960] in the context of merit awards and their effect on future academic outcomes.
+-   The approach provides **localized causal inference** around the cutoff, akin to a [randomized experiment](#sec-the-gold-standard-randomized-controlled-trials) in the local region.
+-   **Historical Background:** First introduced by @thistlethwaite1960 in the context of merit awards and their effect on future academic outcomes.
 
 **Key References:**
 
 Foundational papers: [@imbens2008regression; @lee2010regression]
-
--   Practical guidelines:
-
-    -   [WWC RD Guide](https://ies.ed.gov/ncee/wwc/Docs/ReferenceResources/wwc_rd.pdf)
-
-    -   [WWC RD Standards](https://ies.ed.gov/ncee/wwc/Docs/ReferenceResources/wwc_rdd_standards_122315.pdf)
 
 ------------------------------------------------------------------------
 
@@ -71,7 +65,7 @@ Additional variations:
      E[Y(0)|X=x] \text{ and } E[Y(1)|X=x] \text{ are continuous at } x = c.
      $$
 
-3.  **Exogeneity of the Cutoff:** The cutoff should not be manipulable.
+3.  **Exogeneity of the Cutoff:** The cutoff should not be manipulable. No confounding interventions at the cutoff.
 
 4.  **No Discontinuity in Confounding Variables:** Other covariates should be smooth at the threshold. A common test is to check for jumps in covariates unrelated to treatment.
 
@@ -79,25 +73,11 @@ Additional variations:
 
 ### Threats to RD Validity
 
-### Violation of Continuity in Covariates
-
-If other variables besides treatment exhibit a discontinuity at the cutoff, the estimated effect may be biased.
-
-**Solution:** Conduct balance tests on pre-treatment covariates.
-
-### Multiple Discontinuities
-
-When multiple threshold effects exist, identification becomes more challenging.
-
-**Solution:** Use robustness checks with alternative model specifications.
-
-### Manipulation of the Running Variable
-
-Subjects may manipulate $X_i$ to qualify for treatment (e.g., strategic behavior in test scores).
-
-**Solution:** Implement McCrary's density test to check for discontinuities in the distribution of $X_i$.
-
-------------------------------------------------------------------------
+| **Issue**                             | **Description**                                                                                                 | **Solution**                                                                                |
+|----------------|-----------------------------|---------------------------|
+| Violation of Continuity in Covariates | If other variables besides treatment exhibit a discontinuity at the cutoff, the estimated effect may be biased. | Conduct balance tests on pre-treatment covariates.                                          |
+| Multiple Discontinuities              | When multiple threshold effects exist, identification becomes more challenging.                                 | Use robustness checks with alternative model specifications.                                |
+| Manipulation of the Running Variable  | Subjects may manipulate $X_i$ to qualify for treatment (e.g., strategic behavior in test scores).               | Implement McCrary's density test to check for discontinuities in the distribution of $X_i$. |
 
 ## Model Estimation Strategies
 
@@ -959,6 +939,7 @@ $$
 -   **Bandwidth Selection**: Only observations near the cutoff should be used. Methods like **cross-validation** or @calonico2020optimal optimal bandwidth selection can help.
 -   **Polynomial Order**: A [local linear model](#sec-special-case-local-linear-regression) is typically preferred, but higher-order polynomials may be used cautiously.
 -   **Robust Inference**: Standard errors should be computed using heteroskedasticity-robust and clustered standard errors if necessary.
+-   **Strong first-stage** (e.g., F-stat $\ge$ 16); no exclusion restriction violations; same model for both outcome and treatment take-up.
 
 ### Steps for Fuzzy RD
 
@@ -1831,7 +1812,7 @@ By comparing firms just above and below an expenditure threshold, the RD framewo
 **Key RD [Packages](https://rdpackages.github.io/) in R**
 
 | **Feature**             | **rdd**                 | **rdrobust**                                                     | **rddtools**                                  |
-|-----------------|-----------------|-----------------------|-----------------|
+|------------------|------------------|-------------------|------------------|
 | **Estimator**           | Local linear regression | Local polynomial regression                                      | Local polynomial regression                   |
 | **Bandwidth Selection** | [@imbens2012optimal]    | [@calonico2014robust; @imbens2012optimal ; @calonico2020optimal] | [@imbens2012optimal]                          |
 | **Kernel Functions**    | Epanechnikov, Gaussian  | Epanechnikov                                                     | Gaussian                                      |
@@ -2112,8 +2093,9 @@ Thus, the RD framework must be modified:
     -   If states sort differently near the threshold, state fixed effects ($\gamma_s$) may be needed.
     -   However, if sorting is non-random, the RD assumption fails.
 
+```{=html}
 <!-- -->
-
+```
 2.  Panel Data Implications:
     -   Fixed-effects models are not preferred in RD, as they are lower in the causal inference hierarchy.
     -   RD typically excludes pre-treatment periods, whereas fixed-effects require before-and-after comparisons.

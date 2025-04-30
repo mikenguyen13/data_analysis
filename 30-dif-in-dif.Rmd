@@ -2,7 +2,7 @@
 
 [Difference-in-Differences](#sec-difference-in-differences) (DID) is a widely used causal inference method for estimating the effect of **policy interventions** or **exogenous shocks** when randomized experiments are not feasible. The key idea behind DID is to compare changes in outcomes over time between **treated** and **control** groups, under the assumption that---absent treatment---both groups would have followed parallel trends.
 
-[List of packages](https://github.com/lnsongxf/DiD-1)
+<!-- [List of packages](https://github.com/lnsongxf/DiD-1) -->
 
 DID analysis can go beyond simple treatment effects by exploring causal mechanisms using mediation and moderation analyses:
 
@@ -38,7 +38,7 @@ DID has also been extensively applied in **economics**, particularly in policy e
 
 ------------------------------------------------------------------------
 
-## Visualization
+## Visualization {#sec-visualization-did}
 
 ```{r}
 library(panelView)
@@ -149,7 +149,9 @@ data <- data.frame(
 )
 
 # Generate outcome variable
-data$outcome <- 5 + 3 * data$treated + 2 * data$time + 4 * data$treated * data$time + data$error
+data$outcome <-
+    5 + 3 * data$treated + 2 * data$time + 
+    4 * data$treated * data$time + data$error
 
 # Compute averages for 2x2 table
 table_means <- data %>%
@@ -169,10 +171,18 @@ print("2x2 Table of Mean Outcomes:")
 print(table_2x2)
 
 # Calculate Diff-in-Diff manually
-Y11 <- table_means$mean_outcome[table_means$group == "Treated, Post"]  # Treated, Post
-Y10 <- table_means$mean_outcome[table_means$group == "Treated, Pre"]   # Treated, Pre
-Y01 <- table_means$mean_outcome[table_means$group == "Control, Post"]  # Control, Post
-Y00 <- table_means$mean_outcome[table_means$group == "Control, Pre"]   # Control, Pre
+
+# Treated, Post
+Y11 <- table_means$mean_outcome[table_means$group == "Treated, Post"]  
+
+# Treated, Pre
+Y10 <- table_means$mean_outcome[table_means$group == "Treated, Pre"]   
+
+# Control, Post
+Y01 <- table_means$mean_outcome[table_means$group == "Control, Post"]  
+
+# Control, Pre
+Y00 <- table_means$mean_outcome[table_means$group == "Control, Pre"]   
 
 diff_in_diff_formula <- (Y11 - Y10) - (Y01 - Y00)
 
@@ -190,17 +200,26 @@ print("Comparison of DID Estimates:")
 print(results)
 
 # Visualization
-ggplot(data, aes(x = as.factor(time), y = outcome, color = as.factor(treated), group = treated)) +
-  stat_summary(fun = mean, geom = "point", size = 3) +
-  stat_summary(fun = mean, geom = "line", linetype = "dashed") +
-  labs(
-    title = "Difference-in-Differences Visualization",
-    x = "Time (0 = Pre, 1 = Post)",
-    y = "Outcome",
-    color = "Group"
-  ) +
-  scale_color_manual(labels = c("Control", "Treated"), values = c("blue", "red")) +
-  theme_minimal()
+ggplot(data,
+       aes(
+           x = as.factor(time),
+           y = outcome,
+           color = as.factor(treated),
+           group = treated
+       )) +
+    stat_summary(fun = mean, geom = "point", size = 3) +
+    stat_summary(fun = mean,
+                 geom = "line",
+                 linetype = "dashed") +
+    labs(
+        title = "Difference-in-Differences Visualization",
+        x = "Time (0 = Pre, 1 = Post)",
+        y = "Outcome",
+        color = "Group"
+    ) +
+    scale_color_manual(labels = c("Control", "Treated"),
+                       values = c("blue", "red")) +
+    causalverse::ama_theme()
 ```
 
 |              | Control (0)        | Treated (1)         |
@@ -264,7 +283,7 @@ where:
 
 -   $\delta X_{igt}$ = Additional Covariates.
 
-This is known as the Two-Way Fixed Effects DID model. However, TWFE performs poorly under staggered treatment adoption, where different groups receive treatment at different times.
+This is known as the [Two-Way Fixed Effects DID](#sec-two-way-fixed-effects) model. However, TWFE performs poorly under staggered treatment adoption, where different groups receive treatment at different times.
 
 ------------------------------------------------------------------------
 
@@ -310,13 +329,13 @@ where:
 
 -   Treatment coefficients ($\beta_t$) measure the effect over time.
 
-Key Observations:
+**Key Observations**:
 
 -   Pre-treatment coefficients should be close to zero ($\beta_{-T_1}, \dots, \beta_{-1} \approx 0$), ensuring no pre-trend bias.
 
 -   Post-treatment coefficients should be significantly different from zero ($\beta_1, \dots, \beta_{T_2} \neq 0$), measuring the treatment effect over time.
 
--   Higher standard errors (SEs) with more interactions: Including too many lags can reduce precision.
+-   Higher standard errors with more interactions: Including too many lags can reduce precision.
 
 ------------------------------------------------------------------------
 
@@ -325,6 +344,8 @@ Key Observations:
 DID can also be applied to relationships between variables rather than just outcome levels.
 
 For example, DID can be used to estimate treatment effects on regression coefficients by comparing relationships before and after a policy change.
+
+------------------------------------------------------------------------
 
 ### Goals of DID
 
@@ -376,7 +397,7 @@ Three Types of "Ban the Box" Policies:
 Identification Strategy
 
 -   If any county within a Metropolitan Statistical Area (MSA) adopts BTB, the entire MSA is considered treated.
--   If a state passes a law banning BTB ("ban the ban"), then all counties in that state are treated.
+-   If a state passes a law banning BTB, then all counties in that state are treated.
 
 ------------------------------------------------------------------------
 
@@ -447,6 +468,8 @@ Key points:
 
 -   Leave out $BTB_{m (t - 1)} \theta_3$ as the reference category (to avoid perfect collinearity).
 -   If $\theta_2$ is significantly different from $\theta_3$, it suggests pre-trend issues, which could indicate anticipatory effects before BTB implementation.
+
+> Substantively, @shoag2021ban show that Ban-the-box policies increased employment in high-crime neighborhoods by up to 4%, especially in the public sector and low-wage jobs. This is the first nationwide evidence that such laws improve job access for areas with many ex-offenders.
 
 ------------------------------------------------------------------------
 
@@ -666,15 +689,11 @@ This model can be used to analyze the impact of an event on the outcome of inter
 
 ------------------------------------------------------------------------
 
-Below is a **reorganized, reconciled write-up** on Two-Way Fixed Effects (TWFE), its assumptions, limitations, and potential remedies when dealing with multiple time periods and staggered treatment adoption. **No information has been removed**; rather, everything is merged into a more logical, coherent flow, with minor additions and clarifications to improve readability.
-
-------------------------------------------------------------------------
-
 ## Two-Way Fixed Effects {#sec-two-way-fixed-effects}
 
 A generalization of the [Difference-in-Differences](#sec-difference-in-differences) model is the two-way fixed effects (TWFE) model, which accounts for **multiple groups** and **multiple time periods** by including both unit and time fixed effects. In practice, TWFE is frequently used to estimate causal effects in panel data settings. However, it is **not** a design-based, non-parametric causal estimator [@imai2021use], and it can suffer from severe biases if the treatment effect is heterogeneous across units or time.
 
-When applying TWFE to datasets with **multiple treatment groups** and **staggered treatment timing**, the estimated causal coefficient is a **weighted average** of all possible two-group, two-period DiD comparisons. Crucially, some of these weights can be **negative**, which leads to potential biases. The weighting scheme depends on:
+When applying TWFE to datasets with **multiple treatment groups** and **staggered treatment timing**, the estimated causal coefficient is a **weighted average** of all possible two-group, two-period DiD comparisons. Crucially, some of these weights can be **negative** [@goodman2021difference], which leads to potential biases. The weighting scheme depends on:
 
 -   **Group sizes**
 -   **Variation in treatment timing**
@@ -718,11 +737,11 @@ where:
 
 -   $\lambda_t$: Time fixed effects, capturing overall macro shocks.
 
--   **Standard Errors**: Typically clustered at the group or cohort level.
+-   Standard Errors: Typically clustered at the group or cohort level.
 
 Usually, researchers drop the period **immediately before treatment** ($k=-1$) to avoid collinearity. However, dropping this or another period inappropriately can shift or bias the estimates.
 
-When there are only two time periods $(T=2)$, TWFE simplifies to the **traditional DiD model**. Under **homogeneous treatment effects** and if the **parallel trends assumption** holds, $\hat{\tau}_{OLS}$ is unbiased. Specifically, the model assumes [@imai2021use]:
+When there are only two time periods $(T=2)$, TWFE simplifies to the [traditional DiD model](#sec-simple-difference-in-differences). Under **homogeneous treatment effects** and if the [parallel trends assumption](#prior-parallel-trends-test) holds, $\hat{\tau}_{OLS}$ is unbiased. Specifically, the model assumes [@imai2021use]:
 
 1.  **Homogeneous treatment effects** across units and time periods, meaning:
     -   No dynamic treatment effects (i.e., treatment effects do not evolve over time).
@@ -744,6 +763,8 @@ However, in practice, **treatment effects are often heterogeneous**. If effects 
 -   **Sources of treatment heterogeneity**:
     -   Delayed treatment effects: The impact of treatment may take time to manifest.
     -   Evolving effects: Treatment effects can increase or change over time (e.g., phase-in effects).
+
+------------------------------------------------------------------------
 
 TWFE compares different types of treatment/control groups:
 
@@ -775,7 +796,7 @@ If any of these assumptions are violated, TWFE can produce biased estimates. Spe
 -   **Potential Bias from Dropping Relative Time Periods**: If all units eventually get treated, software often drops a reference period (or periods) to avoid multicollinearity. If the dropped period is post-treatment, the bias can worsen. Researchers often drop relative time $-1$ or $-2$.
 -   **Delayed or Evolving Treatment Effects**: If the effect of treatment takes time to manifest or changes over time, TWFE's single coefficient $\tau$ can be misleading.
 
-When **two time periods only** exist, TWFE collapses back to the traditional DiD model, making these problems far less severe. But as soon as one moves beyond a single treatment period or has variation in treatment timing, these issues become critical.
+When **two time periods only** exist, TWFE collapses back to the [traditional DiD model](#sec-simple-difference-in-differences), making these problems far less severe. But as soon as one moves beyond a single treatment period or has variation in treatment timing, these issues become critical.
 
 Several authors [@sun2021estimating; @callaway2021difference; @goodman2021difference] have raised concerns that TWFE DiD regressions under staggered adoption:
 
@@ -798,9 +819,9 @@ Researchers can identify and mitigate the biases arising from heterogeneous trea
 -   **Insight**: Reveals which comparisons have negative weights and how much each comparison contributes to the overall estimate [@goodman2021difference].
 -   **Implementation**: Identify subgroups by treatment timing, then examine each group--time pair to see how it contributes to the aggregate TWFE coefficient.
 
-2.  **Plotting Treatment Timing**
+2.  [Plotting Treatment Timing](#sec-visualization-did)
 
--   **Visual Inspection**: Always **plot** the distribution of treatment timing across units.
+-   **Visual Inspection**: Always plot the distribution of treatment timing across units.
 -   **High Risk of Bias**: If treatment is staggered and many units differ in their adoption times, standard TWFE will often be biased.
 
 3.  **Assessing Treatment Heterogeneity Directly**
@@ -815,7 +836,7 @@ Researchers can identify and mitigate the biases arising from heterogeneous trea
 
 The Goodman-Bacon decomposition [@goodman2021difference] is a powerful diagnostic tool for understanding the [TWFE](#sec-two-way-fixed-effects) estimator in settings with [staggered treatment adoption](#sec-staggered-difference-in-differences). This approach clarifies how the TWFE DiD estimate is a weighted average of many **2×2 difference-in-differences comparisons** between groups treated at different times (or never treated).
 
-For an excellent set of explanatory slides by the author, [see here](https://www.stata.com/meeting/chicago19/slides/chicago19_Goodman-Bacon.pdf).
+<!-- For an excellent set of explanatory slides by the author, [see here](https://www.stata.com/meeting/chicago19/slides/chicago19_Goodman-Bacon.pdf). -->
 
 Key Takeaways
 
@@ -919,11 +940,11 @@ Summary Table: Goodman-Bacon Comparison Types
 
 ### Remedies for TWFE's Shortcomings
 
-This section outlines **alternative estimators** and design-based approaches that explicitly handle **heterogeneous treatment effects**, **staggered adoption** [@baker2022much], and **dynamic treatment effects** better than standard TWFE ([Modern Estimators for Staggered Adoption](#sec-modern-estimators-for-staggered-adoption)).
+This section outlines **alternative estimators** and design-based approaches that explicitly handle **heterogeneous treatment effects**, **staggered adoption** [@baker2022much], and **dynamic treatment effects** better than standard TWFE (e.g., [Modern Estimators for Staggered Adoption](#sec-modern-estimators-for-staggered-adoption)).
 
 1.  [Group-Time Average Treatment Effects](#sec-group-time-average-treatment-effects-callaway2021difference)
 
-[@callaway2021difference] propose a **two-step** approach:
+@callaway2021difference propose a two-step approach:
 
 1.  **Group-time treatment effects**: In each time period, estimate the effect for the cohort that first received treatment in that period (compared to a never-treated group).
 2.  **Aggregate**: Use a bootstrap procedure to account for autocorrelation and clustering, then aggregate across groups.
@@ -933,42 +954,45 @@ This section outlines **alternative estimators** and design-based approaches tha
 
 2.  [Event-Study Design with Cohort-Specific Estimates](#sec-cohort-average-treatment-effects-sun2021estimating)
 
-[@sun2021estimating] build on [@callaway2021difference] to handle **event-study** settings:
+@sun2021estimating build on @callaway2021difference to handle event-study settings:
 
 -   **Lags and Leads**: Capture dynamic treatment effects by including time lags and leads relative to the event (treatment).
 -   **Cohort-Specific Estimates**: Estimate separate paths of outcomes for each cohort, controlling for other cohorts carefully.
 -   **Interaction-Weighted Estimator**: Adjusts for differences in when treatment began.
 -   **Implementation**: `fixest` package in R.
 
-3.  Weighted TWFE with Time-Varying Treatment
+3.  [Panel Match DiD Estimator with In-and-Out Treatment Conditions](#sec-panel-match-did-estimator-with-in-and-out-treatment-conditions)
 
-[@imai2021use] develop methods allowing units to **switch in and out** of treatment:
+@imai2021use develop methods allowing units to **switch in and out** of treatment:
 
 -   **Matching** to create a weighted version of TWFE, addressing some of the bias from heterogeneous effects.
 -   **Implementation**: `wfe` and `PanelMatch` R packages.
 
 4.  Two-Stage Difference-in-Differences (DiD2S)
 
-[@gardner2022two] propose **two-stage DiD**:
+@gardner2022two propose **two-stage DiD**:
 
 -   **Idea**: Partial out fixed effects first, then perform a second-stage regression that focuses on within-group/time variation.
 -   **Strength**: Handles heterogeneous treatment effects well, especially when never-treated units are present.
 -   **Implementation**: `did2s` R package.
 
-5.  Exposure-Adjusted DiD for Never-Treated Units
+5.  [Switching DiD Estimator](#sec-switching-difference-in-differences-estimator-de2020two)
 
--   **If a study has never-treated units**, [@de2020two] suggest an **exposure-adjusted DiD estimator** to recover the average treatment effect.
+-   If a study has **never-treated units**, @de2020two suggest an [switching DiD estimator](#sec-switching-difference-in-differences-estimator-de2020two) to recover the [average treatment effect](#sec-average-treatment-effect).
 -   **Caveat**: This approach still fails to detect heterogeneity if treatment effects vary with **exposure length** [@sun2022linear].
 
-6.  [Reshaped Inverse Probability Weighting--TWFE Estimator](#sec-reshaped-inverse-probability-weighting-twfe-estimator)
+6.  [Matrix Completion Estimator](#sec-matrix-completion-estimator)
+7.  [Reshaped Inverse Probability Weighting--TWFE Estimator](#sec-reshaped-inverse-probability-weighting-twfe-estimator)
 
--   **Design-Based Approaches**: [@arkhangelsky2024design] offer further refinements that incorporate inverse probability weighting.
+-   **Design-Based Approaches**: @arkhangelsky2024design offer further refinements that incorporate inverse probability weighting.
 -   **Goal**: Improve balance and reduce bias from non-random treatment timing.
 
 7.  [Stacked DID](#sec-stacked-difference-in-differences) (Simpler but Biased)
     -   Build stacked datasets for each treatment cohort, running separate regressions for each "event window."
     -   This approach is simpler but can still carry biases if the underlying assumptions are violated [@gormley2011growing; @cengiz2019effect; @deshpande2019screened].
-8.  [Doubly Robust Difference-in-Differences Estimators]
+8.  [Doubly Robust Difference-in-Differences Estimators] (DR-DID) [@sant2020doubly]
+    -   DR-DID estimators combine outcome regression and propensity score weighting to identify treatment effects, remaining consistent if either model is correctly specified.
+    -   They achieve local efficiency under joint correctness and can be applied to both panel and repeated cross-section data.
 9.  [Nonlinear Difference-in-Differences]
 
 ------------------------------------------------------------------------
@@ -992,15 +1016,11 @@ Below are practical guidelines for deciding when to use TWFE and how to diagnose
     -   **Full Relative-Time Indicators**: Include flexible event-time indicators, carefully choosing a reference period (commonly $-1$, the year before treatment). Specifically, Include fully flexible relative time indicators, and justify the reference period (usually $l = -1$ or the period just prior to treatment).
     -   **Beware of Multicollinearity**: Including leads and lags can cause multicollinearity and artificially produce significant "pre-trends."
     -   **Drop the Right Periods**: If all units eventually get treated, dropping post-treatment periods accidentally can bias results.
-4.  **Consider Alternative Estimators**
-    -   **Group-Time ATTs** [@callaway2021difference]
-    -   **Event-Study DiD** [@sun2021estimating]
-    -   **Two-Stage DiD (DiD2S)** [@gardner2022two]
-    -   **Weighted or Matching Approaches** [@imai2021use]
+4.  [**Consider Alternative Estimators**](#sec-modern-estimators-for-staggered-adoption)
 
 ------------------------------------------------------------------------
 
-## Multiple Periods and Variation in Treatment Timing
+## Multiple Periods and Variation in Treatment Timing {#sec-multiple-periods-and-variation-in-treatment-timing}
 
 TWFE has been extended beyond the simple DiD setup to **multiple periods** and **staggered adoption** (where treatment occurs at different times for different units). Such designs are common in applied economics, public policy, and longitudinal research. However, standard TWFE regressions **can** be biased in these contexts when treatment effects are heterogeneous across groups or over time.
 
@@ -1110,7 +1130,7 @@ The following assumptions are typically imposed to identify treatment effects in
 
 ------------------------------------------------------------------------
 
-The Group-Time ATT, $ATT(g, t)$, measures the average treatment effect for units first treated in period $g$, evaluated at time $t$.
+The Group-Time [ATT](#sec-average-treatment-effect-on-the-treated), $ATT(g, t)$, measures the average treatment effect for units first treated in period $g$, evaluated at time $t$.
 
 $$
 ATT(g, t) = \mathbb{E}[Y_t(g) - Y_t(0) | G_i = g]
@@ -1807,341 +1827,326 @@ ggplot(compare_df_longer) +
 
 ------------------------------------------------------------------------
 
-### DID with in and out treatment condition
+### Panel Match DiD Estimator with In-and-Out Treatment Conditions {#sec-panel-match-did-estimator-with-in-and-out-treatment-conditions}
 
-As noted in [@imai2021use], the TWFE estimator is not a fully nonparametric approach and is sensitive to incorrect model specifications (i.e., model dependence).
+As noted in @imai2021use, the [TWFE](#sec-two-way-fixed-effects) regression model is widely used but fundamentally relies on strong modeling assumptions, particularly **linearity** and **additivity**. It does not constitute a fully nonparametric estimation method and may yield biased results under model misspecification.
 
--   To mitigate model dependence, they propose matching methods for panel data.
--   Implementations are available via the `wfe` (Weighted Fixed Effects) and `PanelMatch` R packages.
+#### Limitations of TWFE
 
-@imai2021use
+Researchers often prefer TWFE due to its ability to control for both unit- and time-specific unobserved confounders:
 
-This case generalizes the staggered adoption setting, allowing units to vary in treatment over time. For $N$ units across $T$ time periods (with potentially unbalanced panels), let $X_{it}$ represent treatment and $Y_{it}$ the outcome for unit $i$ at time $t$. We use the two-way linear fixed effects model:
+-   $\alpha_i = h(\mathbf{U}_i)$ accounts for unit-level confounders.
+-   $\gamma_t = f(\mathbf{V}_t)$ adjusts for time-level confounders.
+
+The functional forms $h(\cdot)$ and $f(\cdot)$ are left unspecified, but **additivity and separability** are assumed. TWFE is based on the model:
 
 $$
 Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
 $$
 
-for $i = 1, \dots, N$ and $t = 1, \dots, T$. Here, $\alpha_i$ and $\gamma_t$ are unit and time fixed effects. They capture time-invariant unit-specific and unit-invariant time-specific unobserved confounders, respectively. We can express these as $\alpha_i = h(\mathbf{U}_i)$ and $\gamma_t = f(\mathbf{V}_t)$, with $\mathbf{U}_i$ and $\mathbf{V}_t$ being the confounders. The model doesn't assume a specific form for $h(.)$ and $f(.)$, but that they're additive and separable given binary treatment.
+for $i = 1, \dots, N$, and $t = 1, \dots, T$. However, this formulation requires a linear specification for the treatment effect $\beta$. Contrary to popular belief, the model does require functional form assumptions for validity [@imai2021use, p. 406; @imai2019should].
 
-The least squares estimate of $\beta$ leverages the covariance in outcome and treatment [@imai2021use, p. 406]. Specifically, it uses the within-unit and within-time variations. Many researchers prefer the two fixed effects (2FE) estimator because it adjusts for both types of unobserved confounders without specific functional-form assumptions, but this is wrong [@imai2019should]. We do need functional-form assumption (i.e., linearity assumption) for the 2FE to work [@imai2021use, p. 406]
+------------------------------------------------------------------------
 
--   **Two-Way Matching Estimator**:
+#### Matching and the Panel Match DiD Estimator
 
-    -   It can lead to mismatches; units with the same treatment status get matched when estimating counterfactual outcomes.
+To mitigate model dependence and improve causal inference validity, @imai2021use propose a matching-based framework for panel data. This method is implemented via the `wfe` and `PanelMatch` R packages and offers **design-based identification** under relaxed assumptions.
 
-    -   Observations need to be matched with opposite treatment status for correct causal effects estimation.
+This setting generalizes [staggered adoption](#sec-staggered-difference-in-differences), allowing units to transition in and out of treatment. The core idea is to construct matched control groups that share the same **treatment history** as treated units and then apply a [Difference-in-Differences](#sec-simple-difference-in-differences) logic. This is better than [synthetic controls]((#sec-synthetic-control)) (e.g., @xu2017generalized) because it requires less data to achieve good performance and can adapt to contexts where units switch treatment status multiple times.
 
-    -   Mismatches can cause attenuation bias.
+**Key Properties** of PM-DiD [@imai2021matching]
 
-    -   The 2FE estimator adjusts for this bias using the factor $K$, which represents the net proportion of proper matches between observations with opposite treatment status.
+-   Designed for **multiple treatment switches** over time.
+-   Addresses issues of **carryover**, **reversal**, and **attenuation bias**.
+-   Allows estimation of **short-term and long-term** causal effects, accounting for time dynamics.
 
--   **Weighting in 2FE**:
+**Key Findings** [@imai2021matching]
 
-    -   Observation $(i,t)$ is weighted based on how often it acts as a control unit.
+-   Even under favorable conditions for OLS, PM-DiD is more robust to model misspecification and omitted lags.
 
-    -   The weighted 2FE estimator still has mismatches, but fewer than the standard 2FE estimator.
+-   This robustness comes with a cost: reduced efficiency (larger variance).
 
-    -   Adjustments are made based on observations that neither belong to the same unit nor the same time period as the matched observation.
+-   Reflects the classic bias-variance tradeoff between flexible and parametric estimators.
 
-    -   This means there are challenges in adjusting for unit-specific and time-specific unobserved confounders under the two-way fixed effect framework.
+**Data and Software Requirements**
 
--   **Equivalence & Assumptions**:
+-   Treatment variable: binary (0 = control, 1 = treated).
 
-    -   Equivalence between the 2FE estimator and the DID estimator is dependent on the linearity assumption.
+-   Unit and time variables: integer/numeric and ordered.
 
-    -   The multi-period DiD estimator is described as an average of two-time-period, two-group DiD estimators applied during changes from control to treatment.
+-   Input data must be in `data.frame` format.
 
--   **Comparison with DiD**:
+Examples:
 
-    -   In simple settings (two time periods, treatment given to one group in the second period), the standard nonparametric DiD estimator equals the 2FE estimator.
+-   @scheve2012democracy
 
-    -   This doesn't hold in multi-period DiD designs where units change treatment status multiple times at different intervals.
+-   @acemoglu2019democracy
 
-    -   Contrary to popular belief, the unweighted 2FE estimator isn't generally equivalent to the multi-period DiD estimator.
+------------------------------------------------------------------------
 
-    -   While the multi-period DiD can be equivalent to the weighted 2FE, some control observations may have negative regression weights.
+#### Two-Way Matching Interpretation of TWFE
 
--   **Conclusion**:
+The least squares estimate of $\beta$ in the TWFE model can be re-expressed as a **matching estimator** that compares each treated unit to observations within:
 
-    -   Justifying the 2FE estimator as the DID estimator isn't warranted without imposing the linearity assumption.
+-   The **same unit** (within-unit match),
+-   The **same time period** (within-time match),
+-   Adjusted by a third set of observations in neither group.
 
-**Application [@imai2021matching]**
+This leads to mismatches---treated observations compared to units with the same treatment status, which causes **attenuation bias**.
 
--   **Matching Methods**:
+The adjustment factor $K$ corrects for this by weighting matches appropriately. However, even the **weighted TWFE estimator** contains some mismatches and relies on comparisons across units that differ in key characteristics.
 
-    -   Enhance the validity of causal inference.
+In the simple two-period, two-group DiD setting, the TWFE and DiD estimators coincide. However, in [multi-period DiD](#sec-multiple-periods-and-variation-in-treatment-timing) with **treatment reversals**, this equivalence breaks down [@imai2021use].
 
-    -   Reduce model dependence and provide intuitive diagnostics [@ho2007matching]
+-   The **unweighted TWFE** is not equivalent to multi-period DiD.
+-   The [multi-period DiD](#sec-multiple-periods-and-variation-in-treatment-timing) is equivalent to a **weighted TWFE**, but some weights are **negative**---a problematic feature from a design-based perspective.
 
-    -   Rarely utilized in analyzing time series cross-sectional data.
+This means that justifying TWFE via DiD logic is incorrect unless the linearity assumption is satisfied.
 
-    -   The proposed matching estimators are more robust than the standard two-way fixed effects estimator, which can be biased if mis-specified
+------------------------------------------------------------------------
 
-    -   Better than synthetic controls (e.g., [@xu2017generalized]) because it needs less data to achieve good performance and and adapt the the context of unit switching treatment status multiple times.
+#### Estimation Using Panel Match DiD
 
--   Notes:
+**Core Estimation Steps** [@imai2021matching]:
 
-    -   Potential carryover effects (treatment may have a long-term effect), leading to post-treatment bias.
+1.  Match treated observations with control observations from the same time period and with identical treatment histories over the past $L$ periods.
+2.  Use standard matching or weighting methods to refine control sets (e.g., Mahalanobis distance, propensity score).
+3.  Apply a DiD estimator to compute treatment effects at time $t + F$.
+4.  Evaluate match quality using covariate balance diagnostics [@ho2007matching].
 
--   **Proposed Approach**:
+**Causal Estimand**
 
-    1.  Treated observations are matched with control observations from other units in the same time period with the same treatment history up to a specified number of lags.
+Let $F$ be the number of **leads** (future periods) and $L$ be the number of **lags** (past treatment periods). Define the average treatment effect as:
 
-    2.  Standard matching and weighting techniques are employed to further refine the matched set.
+$$
+\delta(F, L) = \mathbb{E}\left[Y_{i, t+F}(1) - Y_{i, t+F}(0) \mid \text{treatment history from } t-L \text{ to } t\right]
+$$
 
-    3.  Apply a DiD estimator to adjust for time trend.
+-   $F = 0$: contemporaneous effect (short-run ATT)
+-   $F > 0$: future outcomes (long-run ATT)
+-   $L$: adjusts for potential **carryover effects**
 
-    4.  The goal is to have treated and matched control observations with similar covariate values.
+The estimator also allows for estimation of the **Average Reversal Treatment Effect (ART)** when treatment status switches from 1 to 0.
 
--   **Assessment**:
+------------------------------------------------------------------------
 
-    -   The quality of matches is evaluated through covariate balancing.
+#### Model Assumptions
 
--   **Estimation**:
+-   **No spillover effects** across units (i.e., SUTVA holds)
 
-    -   Both short-term and long-term average treatment effects on the treated (ATT) are estimated.
+-   **Carryover effects** allowed up to $L$ periods.
+
+-   After $L$ lags, prior treatments are assumed to have no effect on $Y_{i,t+F}$.
+
+-   The potential outcome at $t + F$ is independent of treatment assignments beyond $t - L$.
+
+-   The key identifying assumption is a conditional parallel trends assumption. Outcome trends are assumed parallel across treated and matched control units, conditional on:
+
+    -   Past treatment,
+
+    -   Covariate histories,
+
+    -   Lagged outcomes (excluding the most recent).
+
+    Unlike standard [TWFE](#sec-simple-difference-in-differences), strong ignorability is not required.
+
+------------------------------------------------------------------------
+
+#### Covariate Balance Assessment
+
+Assessing balance before estimating ATT is critical:
+
+-   Compute the mean standardized difference between treated and matched control units.
+-   Check balance across covariates and lagged outcomes for all $L$ pretreatment periods.
+-   Imbalanced covariates may indicate violations of the parallel trends assumption.
+
+------------------------------------------------------------------------
+
+#### Implementing the Panel Match DiD Estimator
 
 ```{r}
 library(PanelMatch)
 ```
 
-**Treatment Variation plot**
+**Treatment Variation Plot**
 
--   Visualize the variation of the treatment across space and time
-
--   Aids in discerning whether the treatment fluctuates adequately over time and units or if the variation is primarily clustered in a subset of data.
+Visualizing the variation of treatment across space and time is essential to assess whether the treatment has sufficient heterogeneity to support credible causal identification.
 
 ```{r}
 DisplayTreatment(
-    unit.id = "wbcode2",
-    time.id = "year",
-    legend.position = "none",
-    xlab = "year",
-    ylab = "Country Code",
-    treatment = "dem",
-    
-    hide.x.tick.label = TRUE, hide.y.tick.label = TRUE, 
-    # dense.plot = TRUE,
-    data = dem
+  unit.id = "wbcode2",
+  time.id = "year",
+  legend.position = "none",
+  xlab = "Year",
+  ylab = "Country Code",
+  treatment = "dem",
+  hide.x.tick.label = TRUE,
+  hide.y.tick.label = TRUE,
+  data = dem
 )
 ```
 
-1.  Select $F$ (i.e., the number of leads - time periods after treatment). Driven by what authors are interested in estimating:
+-   This plot aids in identifying whether the treatment is broadly distributed or concentrated among a few units or time periods.
 
--   $F = 0$ is the contemporaneous effect (short-term effect)
+-   Insufficient treatment variation may weaken identification or reduce the precision of estimated effects.
 
--   $F = n$ is the the treatment effect on the outcome two time periods after the treatment. (cumulative or long-term effect)
+##### Setting Parameters $F$ and $L$
 
-2.  Select $L$ (number of lags to adjust).
+1.  Select $F$: the number of leads, or time periods after treatment, for which the effect is measured.
 
--   Driven by the identification assumption.
+-   $F = 0$: contemporaneous (short-term) treatment effect.
 
--   Balances bias-variance tradeoff.
+-   $F > 0$: long-term or cumulative effects.
 
--   Higher $L$ values increase credibility but reduce efficiency by limiting potential matches.
+2.  Select $L$: the number of lags (prior treatment periods) used in matching to adjust for carryover effects.
 
-**Model assumption**:
+-   Increasing $L$ enhances credibility but reduces match quality and sample size.
 
--   No spillover effect assumed.
+-   This selection reflects the bias-variance tradeoff.
 
--   Carryover effect allowed up to $L$ periods.
+------------------------------------------------------------------------
 
--   Potential outcome for a unit depends neither on others' treatment status nor on its past treatment after $L$ periods.
+##### Causal Quantity of Interest
 
-After defining causal quantity with parameters $L$ and $F$.
+The [ATT](#sec-average-treatment-effect-on-the-treated) is defined as:
 
--   Focus on the average treatment effect of treatment status change.
--   $\delta(F,L)$ is the average causal effect of treatment change (ATT), $F$ periods post-treatment, considering treatment history up to $L$ periods.
--   Causal quantity considers potential future treatment reversals, meaning treatment could revert to control before outcome measurement.
+$$
+\delta(F, L) = \mathbb{E} \left[ Y_{i,t+F}(1) - Y_{i,t+F}(0) \mid X_{i,t} = 1, \text{History}_{i,t-L:t-1} \right]
+$$
 
-Also possible to estimate the average treatment effect of treatment reversal on the reversed (ART).
+-   This estimator accounts for carryover history (via $L$) and post-treatment dynamics (via $F$).
 
-Choose $L,F$ based on specific needs.
+-   It is also robust to treatment reversals, i.e., treatment switching back to control.
 
--   A large $L$ value:
+A related estimand, the **Average Reversal Treatment Effect (ART)**, measures the causal effect of switching from treatment to control.
 
-    -   Increases the credibility of the limited carryover effect assumption.
+##### Choosing $F$ and $L$
 
-    -   Allows more past treatments (up to $t−L$) to influence the outcome $Y_{i,t+F}$.
+-   **Large** $L$:
 
-    -   Might reduce the number of matches and lead to less precise estimates.
+    -   Improves identification of causal effect by accounting for long-term treatment confounding.
 
--   Selecting an appropriate number of lags
+    -   Reduces sample size due to stricter matching requirements.
 
-    -   Researchers should base this choice on substantive knowledge.
+-   **Large** $F$:
 
-    -   Sensitivity of empirical results to this choice should be examined.
+    -   Enables analysis of delayed effects.
 
--   The choice of $F$ should be:
+    -   Complicates interpretation if units switch treatment again before $t + F$.
 
-    -   Substantively motivated.
+Researchers should select $F$ and $L$ based on substantive context, theoretical considerations, and sensitivity analysis.
 
-    -   Decides whether the interest lies in short-term or long-term causal effects.
+------------------------------------------------------------------------
 
-    -   A large $F$ value can complicate causal effect interpretation, especially if many units switch treatment status during the $F$ lead time period.
+##### Constructing and Refining Matched Sets
 
-**Identification Assumption**
+1.  **Initial Matching**
 
--   Parallel trend assumption conditioned on treatment, outcome (excluding immediate lag), and covariate histories.
+-   Each treated observation is matched to control units from other units in the same time period.
 
--   Doesn't require strong unconfoundedness assumption.
+-   Matching is based on exact treatment histories from $t - L$ to $t - 1$.
 
--   Cannot account for unobserved time-varying confounders.
+Purpose
 
--   Essential to examine outcome time trends.
+-   Controls for carryover effects.
 
-    -   Check if they're parallel between treated and matched control units using pre-treatment data
+-   Ensures matched units have similar latent propensities for treatment.
 
--   **Constructing the Matched Sets**:
+2.  **Refinement Process**
 
-    -   For each treated observation, create matched control units with identical treatment history from $t−L$ to $t−1$.
+-   Refined matched sets additionally adjust for pre-treatment covariates and lagged outcomes.
 
-    -   Matching based on treatment history helps control for carryover effects.
+-   Matching strategies:
 
-    -   Past treatments often act as major confounders, but this method can correct for it.
+    -   Mahalanobis distance.
 
-    -   Exact matching on time period adjusts for time-specific unobserved confounders.
+    -   Propensity score.
 
-    -   Unlike staggered adoption methods, units can change treatment status multiple times.
+<!-- -->
 
-    -   Matched set allows treatment switching in and out of treatment
+-   Up to $J$ best matches per treated unit may be used.
 
--   **Refining the Matched Sets**:
+3.  **Weighting**
 
-    -   Initially, matched sets adjust only for treatment history.
+-   Assigns weights to matched controls to emphasize similarity.
 
-    -   Parallel trend assumption requires adjustments for other confounders like past outcomes and covariates.
+-   Weighting is often done via inverse propensity scores, or other balance-enhancing metrics.
 
-    -   Matching methods:
+-   Can be considered a generalization of traditional matching.
 
-        -   Match each treated observation with up to $J$ control units.
+------------------------------------------------------------------------
 
-        -   Distance measures like Mahalanobis distance or propensity score can be used.
+##### Difference-in-Differences Estimation
 
-        -   Match based on estimated propensity score, considering pretreatment covariates.
+Once matched sets are constructed:
 
-        -   Refined matched set selects most similar control units based on observed confounders.
+-   The counterfactual for each treated unit is a weighted average of outcomes from its matched control set.
 
-    -   Weighting methods:
+-   The DiD estimate of ATT is:
 
-        -   Assign weight to each control unit in a matched set.
+$$
+\widehat{\delta}_{\text{ATT}} = \frac{1}{|T_1|} \sum_{(i,t) \in T_1} \left[ Y_{i,t+F} - \sum_{j \in \mathcal{C}_{it}} w_{ijt} Y_{j,t+F} \right]
+$$
 
-        -   Weights prioritize more similar units.
+where $T_1$ is the set of treated observations, $\mathcal{C}_{it}$ is the matched control set, and $w_{ijt}$ are normalized weights.
 
-        -   Inverse propensity score weighting method can be applied.
+Considerations when $F > 0$:
 
-        -   Weighting is a more generalized method than matching.
+-   Matched controls may themselves switch into treatment before $t + F$.
 
-**The Difference-in-Differences Estimator**:
+-   Some treated units may revert to control.
 
--   Using refined matched sets, the ATT (Average Treatment Effect on the Treated) of policy change is estimated.
+------------------------------------------------------------------------
 
--   For each treated observation, estimate the counterfactual outcome using the weighted average of control units in the refined set.
+##### Checking Covariate Balance
 
--   The DiD estimate of the ATT is computed for each treated observation, then averaged across all such observations.
+One of the main advantages of matching-based estimators is the ability to diagnose balance:
 
--   For noncontemporaneous treatment effects where $F > 0$:
+-   For each covariate and each lag, compute:
 
-    -   The ATT doesn't specify future treatment sequence.
+$$
+\text{Standardized Difference} = \frac{\bar{X}_{\text{treated}} - \bar{X}_{\text{control}}}{\text{SD}_{\text{treated}}}
+$$
 
-    -   Matched control units might have units receiving treatment between time $t$ and $t + F$.
+-   Aggregate these over all treated observations and time periods.
 
-    -   Some treated units could return to control conditions between these times.
+-   Examine balance on:
 
-**Checking Covariate Balance**:
+    -   Time-varying covariates,
 
--   The proposed methodology offers the advantage of checking covariate balance between treated and matched control observations.
+    -   Lagged outcomes,
 
--   This check helps to see if treated and matched control observations are comparable with respect to observed confounders.
+    -   Baseline covariates
 
--   Once matched sets are refined, covariate balance examination becomes straightforward.
+Balance checks provide indirect validation of the [parallel trends assumption](#prior-parallel-trends-test).
 
--   Examine the mean difference of each covariate between a treated observation and its matched controls for each pretreatment time period.
+------------------------------------------------------------------------
 
--   Standardize this difference using the standard deviation of each covariate across all treated observations in the dataset.
+##### Standard Error Estimation
 
--   Aggregate this covariate balance measure across all treated observations for each covariate and pretreatment time period.
+-   Analogous to the conditional variance seen in regression models.
 
--   Examine balance for lagged outcome variables over multiple pretreatment periods and time-varying covariates.
+-   Standard errors are calculated conditional on the matching weights [@imbens2015causal].
 
-    -   This helps evaluate the validity of the parallel trend assumption underlying the proposed DiD estimator.
+-   SE here is a measure of sampling uncertainty given the matched design.
 
-**Relations with Linear Fixed Effects Regression Estimators**:
+**Note**: They do not incorporate uncertainty from the matching procedure itself [@ho2007matching].
 
--   The standard DiD estimator is equivalent to the linear two-way fixed effects regression estimator when:
+------------------------------------------------------------------------
 
-    -   Only two time periods exist.
+##### Matching on Treatment History
 
-    -   Treatment is given to some units exclusively in the second period.
+-   The goal is to compare treated units transitioning into treatment to control units with comparable treatment histories.
 
--   This equivalence doesn't extend to multiperiod DiD designs, where:
+-   Set `qoi =`:
 
-    -   More than two time periods are considered.
+    -   `"att"`: Average Treatment on the Treated,
 
-    -   Units might receive treatment multiple times.
+    -   `"atc"`: Average Treatment on the Controls,
 
--   Despite this, many researchers relate the use of the two-way fixed effects estimator to the DiD design.
+    -   `"art"`: Average Reversal Treatment Effect,
 
-**Standard Error Calculation**:
-
--   Approach:
-
-    -   Condition on the weights implied by the matching process.
-
-    -   These weights denote how often an observation is utilized in matching [@imbens2015causal]
-
--   Context:
-
-    -   Analogous to the conditional variance seen in regression models.
-
-    -   Resulting standard errors don't factor in uncertainties around the matching procedure.
-
-    -   They can be viewed as a measure of uncertainty conditional upon the matching process [@ho2007matching].
-
-**Key Findings**:
-
--   Even in conditions favoring OLS, the proposed matching estimator displayed higher robustness to omitted relevant lags than the linear regression model with fixed effects.
-
--   The robustness offered by matching came at a cost - reduced statistical power.
-
--   This emphasizes the classic statistical tradeoff between bias (where matching has an advantage) and variance (where regression models might be more efficient).
-
-**Data Requirements**
-
--   The treatment variable is binary:
-
-    -   0 signifies "assignment" to control.
-
-    -   1 signifies assignment to treatment.
-
--   Variables identifying units in the data must be: Numeric or integer.
-
--   Variables identifying time periods should be: Consecutive numeric/integer data.
-
--   Data format requirement: Must be provided as a standard `data.frame` object.
-
-Basic functions:
-
-1.  Utilize treatment histories to create matching sets of treated and control units.
-
-2.  Refine these matched sets by determining weights for each control unit in the set.
-
-    -   Units with higher weights have a larger influence during estimations.
-
-**Matching on Treatment History**:
-
--   Goal is to match units transitioning from untreated to treated status with control units that have similar past treatment histories.
-
--   Setting the Quantity of Interest (`qoi =`)
-
-    -   `att` average treatment effect on treated units
-
-    -   `atc` average treatment effect of treatment on the control units
-
-    -   `art` average effect of treatment reversal for units that experience treatment reversal
-
-    -   `ate` average treatment effect
+    -   `"ate"`: Average Treatment Effect.
 
 ```{r}
 library(PanelMatch)
@@ -2607,9 +2612,9 @@ plot(PE.results[[1]])
 plot(PE.results[[2]])
 ```
 
-To write up for journal submission, you can follow the following report:
+<!--#To write up for journal submission, you can follow the following report:  -->
 
-In this study, closely aligned with the research by [@acemoglu2019democracy], two key effects of democracy on economic growth are estimated: the impact of democratization and that of authoritarian reversal. The treatment variable, $X_{it}$, is defined to be one if country $i$ is democratic in year $t$, and zero otherwise.
+In this study, closely aligned with the research by @acemoglu2019democracy, two key effects of democracy on economic growth are estimated: the impact of democratization and that of authoritarian reversal. The treatment variable, $X_{it}$, is defined to be one if country $i$ is democratic in year $t$, and zero otherwise.
 
 The Average Treatment Effect for the Treated (ATT) under democratization is formulated as follows:
 
@@ -2721,7 +2726,7 @@ lags <- c(1, 4)
 sizes <- c(5, 10)
 ```
 
-You can either do it sequentailly
+You can either do it sequentially
 
 ```{r, eval = FALSE, collapse=TRUE}
 res_pm <- list()
@@ -3330,9 +3335,11 @@ library(knitr)
 include_graphics(file.path(getwd(), "images", "p_did_est_in_n_out.png"))
 ```
 
-#### Counterfactual Estimators
+------------------------------------------------------------------------
 
--   Also known as **imputation approach** [@liu2022practical]
+### Counterfactual Estimators
+
+-   Also known as **imputation approach** [@liu2024practical]
 -   This class of estimator consider observation treatment as missing data. Models are built using data from the control units to impute conterfactuals for the treated observations.
 -   It's called counterfactual estimators because they predict outcomes as if the treated observations had not received the treatment.
 -   Advantages:
@@ -3344,10 +3351,10 @@ include_graphics(file.path(getwd(), "images", "p_did_est_in_n_out.png"))
     -   Interactive Fixed Effects conterfactual estimator (IFEct) [@gobillon2016regional, @xu2017generalized]:
         -   When we suspect unobserved time-varying confounder, FEct fails. Instead, IFEct uses the factor-augmented models to relax the strict exogeneity assumption where the effects of unobservables can be decomposed to unit FE + time FE + unit x time FE.
         -   Generalized Synthetic Controls are a subset of IFEct when treatments don't revert.
-    -   [Matrix completion] (MC) [@athey2021matrix]:
+    -   [Matrix Completion Estimator](#sec-matrix-completion-estimator) (MC) [@athey2021matrix]:
         -   Generalization of factor-augmented models. Different from IFEct which uses hard impute, MC uses soft impute to regularize the singular values when decomposing the residual matrix.
         -   Only when latent factors (of unobservables) are strong and sparse, IFEct outperforms MC.
-    -   [Synthetic Controls] (case studies)
+    -   [Synthetic Control] (case studies)
 
 **Identifying Assumptions**:
 
@@ -3367,11 +3374,11 @@ include_graphics(file.path(getwd(), "images", "p_did_est_in_n_out.png"))
 
 Notes:
 
--   Use jackknife when number of treated units is small [@liu2022practical, p.166].
+-   Use jackknife when number of treated units is small [@liu2024practical, p.166].
 
 ##### Imputation Method
 
-@liu2022practical can also account for treatment reversals and heterogeneous treatment effects.
+@liu2024practical can also account for treatment reversals and heterogeneous treatment effects.
 
 Other imputation estimators include
 
@@ -3463,170 +3470,156 @@ We have evidence of carryover effects.
 
 ------------------------------------------------------------------------
 
-### Matrix Completion
+### Matrix Completion Estimator {#sec-matrix-completion-estimator}
 
-Applications in marketing:
+Matrix completion methods have become increasingly influential in causal inference for panel data, particularly when estimating [average treatment effects](#sec-average-treatment-effect) in business settings such as marketing experiments, customer behavior modeling, and pricing interventions. These settings often feature [staggered adoption](#sec-staggered-difference-in-differences)of treatments across units and time, leading to **structured missing data**. @athey2021matrix develop a matrix completion framework that subsumes methods based on **unconfoundedness** and [**synthetic controls**](#sec-synthetic-control), by leveraging the low-rank structure of potential outcomes matrices.
 
--   @bronnenberg2020consumer
+An important empirical context is consumer choice data in marketing, where missing outcomes can arise due to **intermittent treatment**, e.g., promotional campaigns delivered at varying times across different stores or consumer segments. One illustrative application is provided by @bronnenberg2020consumer, who investigates **consumer response to targeted marketing campaigns** using panel data that naturally contains missing counterfactual outcomes for treated units.
 
-To estimate average causal effects in panel data with units exposed to treatment intermittently, two literatures are pivotal:
+Two key literatures have historically addressed the problem of imputing missing potential outcomes:
 
--   **Unconfoundedness** [@imbens2015causal]: Imputes missing potential control outcomes for treated units using observed outcomes from similar control units in previous periods.
+-   **Unconfoundedness Framework** [@imbens2015causal]:
+    -   Assumes [selection on observables](#sec-selection-on-observables).
+    -   Imputes missing control outcomes by matching or regression using untreated units with similar characteristics or histories.
+    -   Assumes time patterns are stable across units.
+-   [**Synthetic Control**](#sec-synthetic-control) [@abadie2010synthetic]:
+    -   Constructs counterfactual outcomes as weighted averages of control units.
+    -   Assumes unit patterns are stable over time.
+    -   Particularly suited for single treated unit settings.
 
--   **Synthetic Control** [@abadie2010synthetic]: Imputes missing control outcomes for treated units using weighted averages from control units, matching lagged outcomes between treated and control units.
+These methods can be unified under the matrix completion framework, which interprets the panel of outcomes as a low-rank matrix plus noise, allowing for flexible imputation without strong parametric assumptions.
 
-Both exploit missing potential outcomes under different assumptions:
+Contributions of @athey2021matrix
 
--   Unconfoundedness assumes time patterns are stable across units.
+1.  Accommodates structured missingness, including staggered adoption.
+2.  Adjusts for unit ($\mu_i$) and time ($\lambda_t$) fixed effects prior to low-rank estimation.
+3.  Exhibits strong performance across unbalanced panels with varying dimensions:
+    -   $T \gg N$: Where unconfoundedness struggles.
+    -   $N \gg T$: Where synthetic control performs poorly.
 
--   Synthetic control assumes unit patterns are stable over time.
+**Advantages of Matrix Completion**
 
-Once regularization is applied, both approaches are applicable in similar settings [@athey2021matrix].
+-   Utilizes all units and periods, even treated ones, to learn latent factors.
+-   Handles complex missingness patterns and autocorrelated errors.
+-   Accommodates covariates and heterogeneous treatment effects.
+-   Can apply weighted loss functions to account for non-random assignment or missingness.
 
-**Matrix Completion** method, nesting both, is based on matrix factorization, focusing on imputing missing matrix elements assuming:
+------------------------------------------------------------------------
 
-1.  Complete matrix = low-rank matrix + noise.
-2.  Missingness is completely at random.
+#### Matrix Completion Core Assumptions
 
-It's distinguished by not imposing factorization restrictions but utilizing regularization to define the estimator, particularly effective with the nuclear norm as a regularizer for complex missing patterns [@athey2021matrix].
+The matrix completion approach is built on the assumption that the complete outcome matrix $\mathbf{Y}$ satisfies:
 
-Contributions of @athey2021matrix matrix completion include:
+1.  **Low-rank structure**: $$
+    \mathbf{Y} = \mathbf{U} \mathbf{V}^T + \mathbf{E}
+    $$ where $\mathbf{U} \in \mathbb{R}^{N \times R}$, $\mathbf{V} \in \mathbb{R}^{T \times R}$, and $\mathbf{E}$ is a noise matrix.
+2.  [Missing Completely At Random (MCAR)](#missing-completely-at-random-mcar): The pattern of missing data is independent of unobserved outcomes, conditional on observables.
 
-1.  Recognizing structured missing patterns allowing time correlation, enabling staggered adoption.
-2.  Modifying estimators for unregularized unit and time fixed effects.
-3.  Performing well across various $T$ and $N$ sizes, unlike unconfoundedness and synthetic control, which falter when $T >> N$ or $N >> T$, respectively.
+Unlike prior approaches, matrix completion does not impose a specific factorization, but rather regularizes the estimator, e.g., via nuclear norm minimization.
 
-Identifying Assumptions:
+To identify the causal estimand, matrix completion relies on:
 
-1.  SUTVA: Potential outcomes indexed only by the unit's contemporaneous treatment.
-2.  No dynamic effects (it's okay under staggered adoption, it gives a different interpretation of estimand).
+-   [SUTVA](#sec-sutva) **(Stable Unit Treatment Value Assumption)**: $Y_{it}(w)$ depends only on $W_{it}$, not on other units' treatments.
 
-Setup:
+-   **No dynamic treatment effects**: The treatment at time $t$ does not influence outcomes in other periods.
 
--   $Y_{it}(0)$ and $Y_{it}(1)$ represent potential outcomes of $Y_{it}$.
--   $W_{it}$ is a binary treatment indicator.
+------------------------------------------------------------------------
 
-Aim to estimate the average effect for the treated:
+#### Causal Estimand
+
+Let $Y_{it}(0)$ and $Y_{it}(1)$ denote the potential outcomes under control and treatment. We observe treated outcomes, and aim to impute unobserved control outcomes:
 
 $$
-\tau = \frac{\sum_{(i,t): W_{it} = 1}[Y_{it}(1) - Y_{it}(0)]}{\sum_{i,t}W_{it}}
+\tau = \frac{\sum_{(i,t): W_{it} = 1} \left[ Y_{it}(1) - Y_{it}(0) \right]}{\sum_{i,t} W_{it}}
 $$
 
-We observe all relevant values for $Y_{it}(1)$
+Let $\mathcal{M}$ be the set of indices $(i, t)$ where $W_{it} = 1$ (treated, hence $Y_{it}(0)$ is missing), and $\mathcal{O}$ the set where $W_{it} = 0$ (control, hence $Y_{it}(0)$ is observed).
 
-We want to impute missing entries in the $Y(0)$ matrix for treated units with $W_{it} = 1$.
-
-Define $\mathcal{M}$ as the set of pairs of indices $(i,t)$, where $i \in N$ and $t \in T$, corresponding to missing entries with $W_{it} = 1$; $\mathcal{O}$ as the set of pairs of indices corresponding to observed entries in $Y(0)$ with $W_{it} = 0$.
-
-Data is conceptualized as two $N \times T$ matrices, one incomplete and one complete:
+We conceptualize the data as 2 $N \times T$ matrices:
 
 $$
-Y = \begin{pmatrix}
+\mathbf{Y} =
+\begin{pmatrix}
 Y_{11} & Y_{12} & ? & \cdots & Y_{1T} \\
 ? & ? & Y_{23} & \cdots & ? \\
 Y_{31} & ? & Y_{33} & \cdots & ? \\
 \vdots & \vdots & \vdots & \ddots & \vdots \\
 Y_{N1} & ? & Y_{N3} & \cdots & ?
 \end{pmatrix},
-$$
-
-and
-
-$$
-W = \begin{pmatrix}
+\quad
+\mathbf{W} =
+\begin{pmatrix}
 0 & 0 & 1 & \cdots & 0 \\
 1 & 1 & 0 & \cdots & 1 \\
 0 & 1 & 0 & \cdots & 1 \\
 \vdots & \vdots & \vdots & \ddots & \vdots \\
 0 & 1 & 0 & \cdots & 1
-\end{pmatrix},
+\end{pmatrix}
 $$
 
-where
+**Matrix Shape**
+
++------------------------+-----------------------+------------------------------------------+
+| Matrix Shape           | Pattern               | Literature / Method                      |
++------------------------+-----------------------+------------------------------------------+
+| Thin ($N \gg T$)       | Single-treated-period | Horizontal regression (unconfoundedness) |
++------------------------+-----------------------+------------------------------------------+
+| Fat ($T \gg N$)        | Single-treated-unit   | Vertical regression (synthetic control)  |
++------------------------+-----------------------+------------------------------------------+
+| Square ($N \approx T$) | Varying patterns      | TWFE / Matrix Completion                 |
++------------------------+-----------------------+------------------------------------------+
+
+**Special Patterns of Missingness**
+
+-   **Block structures**:
+    -   **Single-period treatment** (horizontal regression) [@imbens2015causal]
+    -   **Single-unit treatment** (vertical regression) [@abadie2010synthetic]
+-   **Staggered adoption**: Treatments occur at different times across units, as in many business interventions.
+
+------------------------------------------------------------------------
+
+#### Unified Low-Rank Model
+
+Matrix completion generalizes these approaches using a low-rank plus noise model:
 
 $$
-W_{it} =
-\begin{cases}
-1 & \text{if } (i,t) \in \mathcal{M}, \\
-0 & \text{if } (i,t) \in \mathcal{O},
-\end{cases}
+\mathbf{Y} = \mathbf{U} \mathbf{V}^T + \mathbf{E}
 $$
 
-is an indicator for the event that the corresponding component of $Y$, that is $Y_{it}$, is missing.
+where $R = \text{rank}(\mathbf{Y})$ is typically low relative to $N$ and $T$.
 
-Patterns of missing data in $\mathbf{Y}$:
+-   **TWFE** assumes additivity: $\mathbf{Y}_{it} = \mu_i + \lambda_t + \epsilon_{it}$.
+-   **Interactive Fixed Effects** use $R$ factors: $\mathbf{Y}_{it} = \sum_{r=1}^R \alpha_{ir} \gamma_{rt} + \epsilon_{it}$. To estimate the number of factors $R$, see @bai2002determining and @moon2015linear.
+-   **Matrix Completion** estimates $\mathbf{Y}$ via regularization, avoiding the need to explicitly choose $R$.
 
--   Block (treatment) structure with 2 special cases
+<!-- [Specifically](https://bookdown.org/stanfordgsbsilab/ml-ci-tutorial/matrix-completion-methods.html) -->
 
-    -   Single-treated-period block structure [@imbens2015causal]
-
-    -   Single-treated-unit block structure [@abadie2010synthetic]
-
--   Staggered Adoption
-
-Shape of matrix $\mathbf{Y}$:
-
--   Thin ($N >> T$)
-
--   Fat ($T >> N$)
-
--   Square ($N \approx T$)
-
-Combinations of patterns of missingness and shape create different literatures:
-
--   Horizontal Regression = Thin matrix + single-treated-period block (focusing on cross-section correlation patterns)
-
--   Vertical Regression = Fat matrix + single-treated-unit block (focusing on time-series correlation patterns)
-
--   TWFE = Square matrix
-
-To combine, we can exploit both stable patterns over time, and across units (e.g., TWFE, interactive FEs or matrix completion).
-
-For the same factor model
+In practical settings (e.g., marketing campaigns), it's beneficial to incorporate unit-level and time-varying covariates:
 
 $$
-\mathbf{Y = UV}^T + \mathbf{\epsilon}
+Y_{it} = L_{it} + \sum_{p=1}^{P} \sum_{q=1}^{Q} X_{ip} H_{pq} Z_{qt} + \mu_i + \lambda_t + V_{it} \beta + \epsilon_{it}
 $$
 
-where $\mathbf{U}$ is $N \times R$ and $\mathbf{V}$ is $T\times R$
-
-The interactive FE literature focuses on a fixed number of factors $R$ in $\mathbf{U, V}$, while matrix completion focuses on impute $\mathbf{Y}$ using some forms regularization (e.g., nuclear norm).
-
--   We can also estimate the number of factors $R$ [@bai2002determining, @moon2015linear]
-
-To use the nuclear norm minimization estimator, we must add a penalty term to regularize the objective function. However, before doing so, we need to explicitly estimate the time ($\lambda_t$) and unit ($\mu_i$) fixed effects implicitly embedded in the missing data matrix to reduce the bias of the regularization term.
-
-[Specifically](https://bookdown.org/stanfordgsbsilab/ml-ci-tutorial/matrix-completion-methods.html),
-
-$$
-Y_{it}  =L_{it} + \sum_{p = 1}^P \sum_{q= 1}^Q X_{ip} H_{pq}Z_{qt} + \mu_i + \lambda_t + V_{it} \beta + \epsilon_{it}
-$$
-
-where
-
--   $X_{ip}$ is a matrix of $p$ variables for unit $i$
-
--   $Z_{qt}$ is a matrix of $q$ variables for time $t$
-
--   $V_{it}$ is a matrix of time-varying variables.
-
-Lasso-type $l_1$ norm ($||H|| = \sum_{p = 1}^p \sum_{q = 1}^Q |H_{pq}|$) is used to shrink $H \to 0$
+-   $X_{ip}$: Unit covariates (a matrix of $p$ variables for unit $i$)
+-   $Z_{qt}$: Time covariates (a matrix of $q$ variables for time $t$)
+-   $V_{it}$: Time-varying covariates
+-   $H$: Interaction effects. Lasso-type $l_1$ norm ($||H|| = \sum_{p = 1}^p \sum_{q = 1}^Q |H_{pq}|$) is used to shrink $H \to 0$.
 
 There are several options to regularize $L$:
 
-1.  Frobenius (i.e., Ridge): not informative since it imputes missing values as 0.
-2.  Nuclear Norm (i.e., Lasso): computationally feasible (using SOFT-IMPUTE algorithm [@mazumder2010spectral]).
-3.  Rank (i.e., Subset selection): not computationally feasible
-
-This method allows to
-
--   use more covariates
-
--   leverage data from treated units (can be used when treatment effect is constant and pattern of missing is not complex).
-
--   have autocorrelated errors
-
--   have weighted loss function (i.e., take into account the probability of outcomes for a unit being missing)
++-----------------+------------------------------------+-------------------------------+---------------------------------------------+
+| **Regularizer** | **Penalty**                        | **Properties**                | **Feasibility**                             |
++-----------------+------------------------------------+-------------------------------+---------------------------------------------+
+| Frobenius Norm  | $\|\mathbf{L}\|_F^2$               | Ridge-type; shrinks towards 0 | Not informative                             |
+|                 |                                    |                               |                                             |
+| (i.e., Ridge)   |                                    |                               |                                             |
++-----------------+------------------------------------+-------------------------------+---------------------------------------------+
+| Nuclear Norm    | $\|\mathbf{L}\|_* = \sum \sigma_r$ | Convex relaxation of rank     | ✔ (via SOFT-IMPUTE [@mazumder2010spectral]) |
+|                 |                                    |                               |                                             |
+| (i.e., Lasso)   |                                    |                               |                                             |
++-----------------+------------------------------------+-------------------------------+---------------------------------------------+
+| Rank Constraint | $\text{rank}(\mathbf{L}) \le R$    | Direct low-rank control       | ✘ (NP-hard)                                 |
++-----------------+------------------------------------+-------------------------------+---------------------------------------------+
 
 ------------------------------------------------------------------------
 
@@ -3950,30 +3943,148 @@ did_imputation(
 
 ------------------------------------------------------------------------
 
-### @de2020two
+### Switching Difference-in-Differences Estimator [@de2020two] {#sec-switching-difference-in-differences-estimator-de2020two}
 
-use `twowayfeweights` from [GitHub](https://github.com/shuo-zhang-ucsb/twowayfeweights) [@de2020two]
+[TWFE](#sec-two-way-fixed-effects) hinges on restrictive assumptions --- notably, the homogeneity of treatment effects across time and groups. When this assumption is violated, TWFE can yield misleading results, including estimates with signs opposite to all underlying effects.
 
--   Average instant treatment effect of changes in the treatment
+We consider a standard panel data setup with $G$ groups and $T$ time periods. Each observation belongs to a group-period cell $(g, t)$, and treatment $D_{g,t} \in \{0,1\}$ is assigned at the group-time level.
 
-    -   This relaxes the no-carryover-effect assumption.
+Let $Y_{i,g,t}$ be the outcome of individual $i$ in group $g$ at time $t$, with potential outcomes $Y_{i,g,t}(1)$ and $Y_{i,g,t}(0)$. Observed outcomes satisfy:
 
--   Drawbacks:
+$$
+Y_{i,g,t} = D_{g,t} \cdot Y_{i,g,t}(1) + (1 - D_{g,t}) \cdot Y_{i,g,t}(0)
+$$
 
-    -   Cannot observe treatment effects that manifest over time.
+The canonical TWFE regression is:
 
-There still isn't a good package for this estimator.
+$$
+Y_{i,g,t} = \alpha_g + \lambda_t + \beta^{fe} D_{g,t} + \varepsilon_{i,g,t}
+$$
 
-```{r, warning = FALSE}
-# remotes::install_github("shuo-zhang-ucsb/did_multiplegt") 
-library(DIDmultiplegt)
-library(fixest)
-library(tidyverse)
+where $\alpha_g$ are group fixed effects, $\lambda_t$ are time fixed effects, and $\beta^{fe}$ is interpreted as the treatment effect **only under homogeneous treatment effects**.
 
+#### Heterogeneous Treatment Effects and Weighting Bias
+
+When treatment effects vary across $(g,t)$ cells, the TWFE estimator $\hat{\beta}^{fe}$ is no longer a simple average. Instead, it can be decomposed into a weighted sum of cell-specific average treatment effects:
+
+$$
+\beta^{fe} = \mathbb{E} \left[ \sum_{(g,t): D_{g,t}=1} w_{g,t} \Delta_{g,t} \right]
+$$
+
+where:
+
+-   $\Delta_{g,t} = \mathbb{E}[Y_{g,t}(1) - Y_{g,t}(0)]$ is the average treatment effect in cell $(g,t)$
+-   $w_{g,t}$ are weights that **can be negative** and sum to one.
+
+Some weights are negative because [TWFE](#sec-two-way-fixed-effects) implicitly compares outcomes across all treated and untreated groups, even when "controls" are themselves treated. These comparisons can subtract out treatment effects, leading to negative weights.
+
+------------------------------------------------------------------------
+
+#### Illustration: Negative Weights Can Flip Signs
+
+For example, suppose:
+
+-   Group 1 is treated only in period 3: $\Delta_{1,3} = 1$
+-   Group 2 is treated in periods 2 and 3:
+    -   $\Delta_{2,2} = 1$
+    -   $\Delta_{2,3} = 4$
+
+Then TWFE produces:
+
+$$
+\beta^{fe} = \frac{1}{2} \Delta_{1,3} + \Delta_{2,2} - \frac{1}{2} \Delta_{2,3} = \frac{1}{2} + 1 - 2 = -0.5
+$$
+
+All $\Delta_{g,t}$s are positive, but the TWFE estimate is **negative**.
+
+------------------------------------------------------------------------
+
+To assess the extent to which TWFE may be misleading, compute the **robustness ratio**:
+
+$$
+\sigma^{fe}_\_ = \frac{|\hat{\beta}^{fe}|}{\hat{\sigma}(w)}
+$$
+
+Where:
+
+-   $\hat{\sigma}(w)$ is the standard deviation of the TWFE weights across treated cells.
+-   A **small** $\sigma^{fe}_\_$ indicates that minor heterogeneity can reverse the sign of the estimate.
+
+This can be estimated directly from data and helps determine whether TWFE is reliable in your context.
+
+------------------------------------------------------------------------
+
+#### DID_M Estimator: A Robust Alternative
+
+@de2020two propose the **DID_M** estimator, which is valid under heterogeneous treatment effects. It focuses only on **switching groups**, using non-switchers as controls in a local difference-in-differences design.
+
+Let $S$ denote the set of all $(g,t)$ cells where treatment status changes between $t-1$ and $t$. The DID_M estimator is:
+
+$$
+\text{DID}_M = \sum_{t=2}^{T} \left( \frac{N_{1,0,t}}{N_S} \cdot \text{DID}^+_t + \frac{N_{0,1,t}}{N_S} \cdot \text{DID}^-_t \right)
+$$
+
+Where:
+
+-   $\text{DID}^+_t$ compares joiners to stable untreated groups
+-   $\text{DID}^-_t$ compares leavers to stable treated groups
+-   $N_S$ is the total number of observations in switching cells
+
+DID_M requires:
+
+1.  **Common trends** for both treated and untreated potential outcomes
+2.  **Existence of stable groups** at every $t$ (i.e., some groups don't change treatment status)
+3.  **No Ashenfelter dip** (treatment not triggered by negative shocks)
+
+These assumptions are **weaker** than those required for TWFE to be unbiased.
+
+@de2020two also propose a placebo version of DID_M using pre-treatment periods. If pre-treatment differences exist between switchers and non-switchers, this indicates violation of the parallel trends assumption. This test is analogous to pre-trend checks in event-study designs.
+
+```{r}
+# Load required packages
+library(fixest)            # For TWFE model and dataset
+library(TwoWayFEWeights)   # For decomposing TWFE weights
+library(DIDmultiplegt)     # For robust SDID estimator
+
+# Load the sample staggered adoption dataset
 data("base_stagg")
 
-res <-
-    did_multiplegt(
+# Preview the data
+head(base_stagg)
+```
+
+1.  Estimate TWFE Model
+
+```{r}
+# Run standard TWFE using fixest
+twfe <- feols(y ~ treatment | id + year,
+                    data = base_stagg |>
+                        dplyr::mutate(treatment = dplyr::if_else(time_to_treatment < 0, 0, 1)))
+summary(twfe)
+
+```
+
+2.  Decompose Weights with `TwoWayFEWeights`
+
+```{r}
+twfe_weights <- twowayfeweights(
+    data = base_stagg |> dplyr::mutate(treatment = dplyr::if_else(time_to_treatment < 0, 0, 1)),
+    Y = "y",
+    G = "year_treated",
+    T = "year",
+    D = "treatment", 
+    summary_measures = T
+)
+
+# Show summary
+twfe_weights
+```
+
+3.  Estimate DID_M (Switching DID Estimator) with `DIDmultiplegt`
+
+```{r}
+# Estimate robust SDID estimator (DID_M)
+did_m <- did_multiplegt(
         mode = "dyn",
         df = base_stagg |>
             dplyr::mutate(treatment = dplyr::if_else(time_to_treatment < 0, 0, 1)),
@@ -3986,24 +4097,7 @@ res <-
         placebo = 2
     )
 
-head(res)
-```
-
-I don't recommend the `TwoWayFEWeights` since it only gives the aggregated average treatment effect over all post-treatment periods, but not for each period.
-
-```{r}
-library(TwoWayFEWeights)
-
-res <- twowayfeweights(
-    data = base_stagg |> dplyr::mutate(treatment = dplyr::if_else(time_to_treatment < 0, 0, 1)),
-    Y = "y",
-    G = "year_treated",
-    T = "year",
-    D = "treatment", 
-    summary_measures = T
-)
-
-print(res)
+summary(did_m)
 ```
 
 ------------------------------------------------------------------------
@@ -4028,7 +4122,7 @@ print(res)
 
 ### Doubly Robust Difference-in-Differences Estimators
 
-In its simplest "canonical" form, DID compares the before-and-after outcomes of one group that eventually receives a treatment (the "treated" group) with the before-and-after outcomes of another group that never receives the treatment (the "comparison" group). Under the parallel trends assumption, DID can recover the average treatment effect on the treated (ATT).
+In its simplest "canonical" form, DID compares the before-and-after outcomes of one group that eventually receives a treatment (the "treated" group) with the before-and-after outcomes of another group that never receives the treatment (the "comparison" group). Under the parallel trends assumption, DID can recover the [average treatment effect on the treated](#sec-average-treatment-effect-on-the-treated) (ATT).
 
 Practitioners often enrich DID analyses by conditioning on observed covariates to mitigate violations of the unconditional parallel trends assumption. Once conditioning on covariates, the DID framework remains attractive, provided that *conditional* parallel trends hold.
 
@@ -4208,21 +4302,7 @@ When we only have repeated cross-sections, the DR construction must account for 
     $$ and $\mu_{0,Y}(T,X)=T\cdot\mu_{0,1}(X)+(1-T)\cdot\mu_{0,0}(X)$.
 
 2.  $$
-      \tau^{\mathrm{dr,rc}}_{2} 
-      \;=\; 
-      \tau^{\mathrm{dr,rc}}_{1}
-      \;+\;
-      \Bigl[
-        \mathbb{E}\bigl(\mu_{1,1}(X) - \mu_{0,1}(X)\,\big\vert\,D=1\bigr)
-        \;-\;
-        \mathbb{E}\bigl(\mu_{1,1}(X) - \mu_{0,1}(X)\,\big\vert\,D=1,\,T=1\bigr)
-      \Bigr]
-      \;-\;
-      \Bigl[
-        \mathbb{E}\bigl(\mu_{1,0}(X) - \mu_{0,0}(X)\,\big\vert\,D=1\bigr)
-        \;-\;
-        \mathbb{E}\bigl(\mu_{1,0}(X) - \mu_{0,0}(X)\,\big\vert\,D=1,\,T=0\bigr)
-      \Bigr],
+    \tau^{\mathrm{dr,rc}}_{2} \;=\; \tau^{\mathrm{dr,rc}}_{1}\;+\;\Bigl[    \mathbb{E}\bigl(\mu_{1,1}(X) - \mu_{0,1}(X)\,\big|\,D=1\bigr)    \;-\;    \mathbb{E}\bigl(\mu_{1,1}(X) - \mu_{0,1}(X)\,\big|\,D=1,\,T=1\bigr)    \Bigr]\\\;-\;\Bigl[    \mathbb{E}\bigl(\mu_{1,0}(X) - \mu_{0,0}(X)\,\big|\,D=1\bigr)    \;-\;    \mathbb{E}\bigl(\mu_{1,0}(X) - \mu_{0,0}(X)\,\big|\,D=1,\,T=0\bigr)    \Bigr]
     $$ where $\mu_{d,t}(x)$ is a model for $m_{d,t}(x)=\mathbb{E}[Y \mid D=d,\,T=t,\,X=x]$.
 
 One can show $\tau^{\mathrm{dr,rc}}_1 = \tau^{\mathrm{dr,rc}}_2 = \tau$ as long as the stationarity of $(D,X)$ across time holds and *either* the propensity score model $\pi(x)=p(x)$ is correct *or* the comparison-group outcome regressions are correct [@sant2020doubly]. Notably, $\tau^{\mathrm{dr,rc}}_2$ also includes explicit modeling of the treated group's outcomes. However, in terms of identification alone, $\tau^{\mathrm{dr,rc}}_1$ and $\tau^{\mathrm{dr,rc}}_2$ share the same double-robust property.
@@ -4237,16 +4317,13 @@ We highlight key results:
 
 1.  **Efficient influence function for panel data**
 
-Under the above mentioned assumptions (i.i.d. data generating process, overlap, and conditional parallel trends) and *without* imposing further parametric constraints on $(m_{d,t},p)$, one can derive that the **EIF** for $\tau$ in the panel-data setting is $$
-  \eta^{e,\mathrm{p}}(Y_1,Y_0,D,X) 
-  \;=\;
-  \frac{D}{\mathbb{E}[D]}\Bigl[m_{1,\Delta}(X) - m_{0,\Delta}(X) - \tau\Bigr]
-  \;+\;
-  \frac{D}{\mathbb{E}[D]}\Bigl[\Delta Y - m_{1,\Delta}(X)\Bigr]
-  \;-\;
-  \frac{\pi(X)\,(1-D)}{(1-\pi(X))\,\mathbb{E}\bigl[\tfrac{\pi(X)\,(1-D)}{1-\pi(X)}\bigr]}
-  \Bigl[\Delta Y - m_{0,\Delta}(X)\Bigr],
-$$ where $\Delta Y = Y_1 - Y_0$ and $m_{d,\Delta}(X) \equiv m_{d,1}(X) - m_{d,0}(X)$.
+Under the above mentioned assumptions (i.i.d. data generating process, overlap, and conditional parallel trends) and *without* imposing further parametric constraints on $(m_{d,t},p)$, one can derive that the **EIF** for $\tau$ in the panel-data setting is
+
+$$
+\eta^{e,\mathrm{p}}(Y_1, Y_0, D, X) \;=\;\frac{D}{\mathbb{E}[D]}\Bigl[m_{1,\Delta}(X) - m_{0,\Delta}(X) - \tau\Bigr]\\\;+\;\frac{D}{\mathbb{E}[D]}\Bigl[\Delta Y - m_{1,\Delta}(X)\Bigr]\\\;-\;\frac{\pi(X)\,(1-D)}{(1 - \pi(X))\,\mathbb{E}\bigl[\tfrac{\pi(X)\,(1-D)}{1 - \pi(X)}\bigr]}\Bigl[\Delta Y - m_{0,\Delta}(X)\Bigr]
+$$
+
+where $\Delta Y = Y_1 - Y_0$ and $m_{d,\Delta}(X) \equiv m_{d,1}(X) - m_{d,0}(X)$.
 
 The associated **semiparametric efficiency bound** is $$
    \mathbb{E}\bigl[\,\eta^{e,\mathrm{p}}(Y_1,Y_0,D,X)^2\bigr].
@@ -4254,22 +4331,13 @@ $$ It can be shown that a DR DID estimator can *attain* this bound if (1) the pr
 
 2.  **Efficient influence function for repeated cross-sections**
 
-Similarly, when only repeated cross-sections are available, the EIF becomes $$
-  \eta^{e,\mathrm{rc}}(Y,D,T,X) \;=\;
-  \frac{D}{\mathbb{E}[D]}\Bigl[m_{1,\Delta}(X)- m_{0,\Delta}(X)-\tau\Bigr]
-  \;+\;
-  \Bigl[
-    w_{1,1}^{\mathrm{rc}}(D,T)\bigl(Y-m_{1,1}(X)\bigr)
-    \;-\;
-    w_{1,0}^{\mathrm{rc}}(D,T)\bigl(Y-m_{1,0}(X)\bigr)
-  \Bigr]
-  \;-\;
-  \Bigl[
-    w_{0,1}^{\mathrm{rc}}(D,T,X;p)\bigl(Y-m_{0,1}(X)\bigr)
-    \;-\;
-    w_{0,0}^{\mathrm{rc}}(D,T,X;p)\bigl(Y-m_{0,0}(X)\bigr)
-  \Bigr],
-$$ with $\,m_{d,\Delta}(X)=m_{d,1}(X)-m_{d,0}(X)$. The resulting efficiency bound is $\mathbb{E}\bigl[\eta^{e,\mathrm{rc}}(Y,D,T,X)^2\bigr]$.
+Similarly, when only repeated cross-sections are available, the EIF becomes
+
+$$
+\eta^{e,\mathrm{rc}}(Y,D,T,X) \;=\;\frac{D}{\mathbb{E}[D]}\Bigl[m_{1,\Delta}(X) - m_{0,\Delta}(X) - \tau\Bigr]\\\;+\;\Bigl[    w_{1,1}^{\mathrm{rc}}(D,T)\bigl(Y - m_{1,1}(X)\bigr)    \;-\;    w_{1,0}^{\mathrm{rc}}(D,T)\bigl(Y - m_{1,0}(X)\bigr)    \Bigr]\\\;-\;\Bigl[    w_{0,1}^{\mathrm{rc}}(D,T,X;p)\bigl(Y - m_{0,1}(X)\bigr)    \;-\;    w_{0,0}^{\mathrm{rc}}(D,T,X;p)\bigl(Y - m_{0,0}(X)\bigr)    \Bigr]
+$$
+
+with $\,m_{d,\Delta}(X)=m_{d,1}(X)-m_{d,0}(X)$. The resulting efficiency bound is $\mathbb{E}\bigl[\eta^{e,\mathrm{rc}}(Y,D,T,X)^2\bigr]$.
 
 One can further show that having access to *panel* data can be strictly more informative (i.e., yields a *smaller* semiparametric variance bound) than repeated cross-sections. This difference can grow if the pre- and post-treatment samples are highly unbalanced.
 
@@ -4393,7 +4461,7 @@ Traditional Difference-in-Differences methods typically rely on linear models wi
 -   Proportion of customers who churned (fraction),
 -   Number of crimes in a neighborhood (count).
 
-In these cases, the **linear parallel trends** assumption may be inappropriate. This chapter develops an advanced, flexible framework for nonlinear DiD estimation with staggered interventions [@wooldridge2023simple].
+In these cases, the **linear parallel trends** assumption may be inappropriate. This section develops an advanced, flexible framework for nonlinear DiD estimation with staggered interventions [@wooldridge2023simple].
 
 ------------------------------------------------------------------------
 
@@ -4619,7 +4687,7 @@ mod <- etwfe(
 
 Nothing fancy will appear in the raw coefficient list because it's fully "saturated" with interactions. The real prize is in the aggregated treatment effects, which we'll obtain next.
 
-4.  Recover the average treatment effect on the treated (ATT)
+4.  Recover the [ATT](#sec-average-treatment-effect-on-the-treated)
 
 Here's a *single-number* estimate of the overall average effect on the treated, across all times and cohorts:
 
@@ -4902,7 +4970,7 @@ A possible solution is to use an intention-to-treat (ITT) approach, where treatm
 
 -   With multiple treatments, we must check pre-trends separately for each treated group against the control group.
 
--   If pre-treatment trends are not parallel, we may need to adopt alternative methods such as synthetic control models or event study analyses.
+-   If pre-treatment trends are not parallel, we may need to adopt alternative methods such as [synthetic control]((#sec-synthetic-control)) models or event study analyses.
 
 ------------------------------------------------------------------------
 
@@ -5008,17 +5076,67 @@ One way to address mediator endogeneity is to use **instrumental variables**, wh
 
 1.  **Parallel Trends Assumption**
 
--   The treatment and control groups must follow parallel trends in the absence of treatment.
--   Mathematically, this means the expected difference in potential outcomes remains constant over time:\
-    $$E[Y_{it}(0) | D_i = 1] - E[Y_{it}(0) | D_i = 0] \text{ is constant over time.}$$\
--   This assumption is crucial, as violations lead to biased estimates.
--   Use DiD when:
-    -   You have pre- and post-treatment data.
-    -   You have clear treatment and control groups.
--   Avoid DiD when:
-    -   Treatment assignment is not random.
-    -   There are confounders affecting trends differently.
--   Testing Parallel Trends: [Prior Parallel Trends Test](#prior-parallel-trends-test).
+The Difference-in-Differences estimator relies on a key identifying assumption: the parallel trends assumption. This assumption states that, in the absence of treatment, the average outcome for the treated group would have evolved over time in the same way as for the control group.
+
+Let:
+
+-   $Y_{it}(0)$ denote the potential outcome without treatment for unit $i$ at time $t$
+
+-   $D_i = 1$ if unit $i$ is in the treatment group, and $D_i = 0$ if in the control group
+
+Then, the parallel trends assumption can be written as:
+
+$$
+E[Y_{it}(0) \mid D_i = 1] - E[Y_{it}(0) \mid D_i = 0] = \Delta_0 \quad \text{for all } t,
+$$
+
+where $\Delta_0$ is a constant difference over time in the untreated potential outcomes between the two groups. This assumption does not require the levels of outcomes to be the same between groups---only that the difference remains constant over time.
+
+In other words, the gap between treatment and control groups in the absence of treatment must remain stable. If this holds, any deviation from that stable difference after the treatment is attributed to the causal effect of the treatment.
+
+------------------------------------------------------------------------
+
+It is important to understand how the parallel trends assumption compares to other, stronger assumptions:
+
+-   **Same untreated levels across groups**:\
+    A stronger assumption would require that the treated and control groups have **identical untreated outcomes at all times**:
+
+    $$
+    E[Y_{it}(0) \mid D_i = 1] = E[Y_{it}(0) \mid D_i = 0] \quad \text{for all } t
+    $$
+
+    This is often unrealistic in observational settings, where baseline characteristics typically differ between groups.
+
+-   **No change in untreated outcomes over time**:\
+    Another strong assumption is that **untreated outcomes remain constant over time**, for both groups:
+
+    $$
+    E[Y_{it}(0)] = E[Y_{i,t'}(0)] \quad \text{for all } i \text{ and times } t, t'
+    $$
+
+    This implies no secular trends, which is rarely plausible in real-world applications where outcomes (e.g., sales, earnings, health metrics) naturally evolve over time.
+
+The **parallel trends assumption is weaker** than both of these and is generally more defensible, especially when supported by pre-treatment data.
+
+------------------------------------------------------------------------
+
+DiD is appropriate when:
+
+-   You have pre-treatment and post-treatment outcome data
+
+-   You have clearly defined treatment and control groups
+
+-   The parallel trends assumption is plausible
+
+Avoid using DiD when:
+
+-   Treatment assignment is not random or quasi-random
+
+-   Unobserved confounders may cause the groups to evolve differently over time
+
+Testing Parallel Trends: [Prior Parallel Trends Test](#prior-parallel-trends-test).
+
+------------------------------------------------------------------------
 
 2.  **No Anticipation Effect (Pre-Treatment Exogeneity)**
 
@@ -5093,11 +5211,11 @@ One way to address mediator endogeneity is to use **instrumental variables**, wh
 
 -   If treatment effects vary across groups and interact with treatment variance, standard estimators may be invalid [@gibbons2018broken].
 
-12. Endogenous Timing
+12. **Endogenous Timing**
 
 If the timing of units can be influenced by strategic decisions in a DID analysis, an instrumental variable approach with a control function can be used to control for endogeneity in timing.
 
-13. Questionable Counterfactuals
+13. **Questionable Counterfactuals**
 
 In situations where the control units may not serve as a reliable counterfactual for the treated units, matching methods such as propensity score matching or generalized random forest can be utilized. Additional methods can be found in [Matching Methods].
 
@@ -5221,7 +5339,7 @@ In cases where the parallel trends assumption is questionable, researchers shoul
 
 -   **Imposing Restrictions**: Constrain how different the post-treatment violations of parallel trends can be relative to pre-treatment deviations.
 
--   **Partial Identification**: Rather than assuming a single causal effect, derive bounds on the ATT.
+-   [**Partial Identification**](#sec-partial-identification-did): Rather than assuming a single causal effect, derive bounds on the ATT.
 
 -   **Sensitivity Analysis**: Evaluate how sensitive the results are to potential deviations from parallel trends.
 
@@ -5247,6 +5365,8 @@ Another useful tool for assessing parallel trends is the `pretrends` package by 
 # library(pretrends)
 
 ```
+
+------------------------------------------------------------------------
 
 ### Placebo Test {#sec-placebo-test-did}
 
@@ -5497,7 +5617,7 @@ Key advantages of PPML:
 
 When dealing with **zero-valued outcomes**, it is crucial to separate the **intensive margin effect** (e.g., outcome changes from 10 to 11) from the **extensive margin effect** (e.g., outcome changes from 0 to 1).
 
-A common issue is that the treatment coefficient from a **log-transformed regression** cannot be directly interpreted as a percentage change when zeros are present [@chen2023logs]. To address this, we can consider two alternative approaches:
+A common issue is that the treatment coefficient from a **log-transformed regression** cannot be directly interpreted as a percentage change when zeros are present [@chen2024logs]. To address this, we can consider two alternative approaches:
 
 1.  **Proportional Treatment Effects**
 
@@ -5626,7 +5746,7 @@ which means without treatment, the average percentage change in the mean outcome
 
 A potential limitation of proportional treatment effects is that they may not be well-suited for heavy-tailed outcomes. In such cases, we may prefer to explicitly model the extensive margin effect.
 
-Following [@chen2023logs, p. 39], we can calibrate the weight placed on the intensive vs. extensive margin to ensure meaningful interpretation of the treatment effect.
+Following [@chen2024logs, p. 39], we can calibrate the weight placed on the intensive vs. extensive margin to ensure meaningful interpretation of the treatment effect.
 
 If we want to study the treatment effect on a concave transformation of the outcome that is less influenced by those in the distribution's tail, then we can perform this analysis.
 
@@ -5726,3 +5846,134 @@ To correct for serial correlation, various methods can be employed. However, som
     -   Empirical corrections (e.g., cluster-robust standard errors) and arbitrary variance-covariance matrix adjustments (e.g., Newey-West) can work well, but they are reliable only in large samples.
 
 Overall, selecting the appropriate correction method depends on the sample size and structure of the data. When possible, block bootstrapping and collapsing data into pre/post periods are among the most effective approaches.
+
+------------------------------------------------------------------------
+
+### Partial Identification {#sec-partial-identification-did}
+
+Classical DiD delivers a **point‑identified** estimate of the [average treatment effect on the treated](#sec-average-treatment-effect-on-the-treated) (ATT) only when the [parallel‑trends assumption](#prior-parallel-trends-test) is exact. Yet in practice pre‑trends often deviate or post‑treatment shocks differ across groups (e.g., the famous @ashenfelter1978estimating). Partial‑identification (PI) methods shift the question from *"Is the estimate unbiased?"* to *"How much would the identifying assumption have to fail before I reverse my conclusion?"*
+
+PI approaches for DiD
+
+-   @manski2018right propose bounding the treatment effect parameter $\delta$ across time and space in the presence of violations to the parallel trends assumption.
+-   @keele2019patterns introduce a Rosenbaum-style sensitivity parameter that quantifies the magnitude of hidden bias necessary to reverse the sign of the estimated effect.
+-   @keele2019bracketing extends this framework to settings where the treated group may be simultaneously exposed to another event, using the Rosenbaum-style sensitivity analysis to assess the robustness of causal claims under such compound treatments.
+-   @ye2024negative utilize two control groups subjected to negatively correlated shocks to non-parametrically bracket the counterfactual trend, offering bounds on treatment effects without relying on the parallel trends assumption.
+-   @leavitt2020beyond adopts an Empirical Bayes approach that places a hierarchical prior over $\delta$, shrinking extreme violations of parallel trends while providing posterior credible intervals that explicitly account for trend heterogeneity.
+-   Two bounding strategies in @rambachan2023more ---(i) [Relative magnitude bounds](#sec-relative‑magnitude-restriction-honestdid): $|\delta| \leq M \cdot \max$ pre-period jumps; (ii) [Smoothness bounds](#sec-smoothness-restriction-honestdid): allow $\delta$'s slope to shift by at most $M$ per period.
+
+------------------------------------------------------------------------
+
+#### Canonical DiD notation and the source of bias
+
+Let
+
+-   $Y_{it}^{1}$ and $Y_{it}^{0}$ be potential outcomes for unit $i$ in period $t$ under treatment and no treatment;
+-   $D_i\in\{0,1\}$ indicate ever‑treated units;
+-   $\texttt{Post}_t$ mark periods after the policy shock.
+
+For two periods (pre, post) and two groups (T = treated, U = untreated) the simple DiD estimator is
+
+$$
+\hat\beta_{DD}= \Bigl[E(Y_T^{1}\mid \texttt{Post})-E(Y_T^{0}\mid \texttt{Pre})\Bigr]\;-\;\Bigl[E(Y_U^{0}\mid \texttt{Post})-E(Y_U^{0}\mid \texttt{Pre})\Bigr].
+$$
+
+Add--subtract the **counterfactual trend** $E(Y_T^{0}\mid \texttt{Post})$ and rearrange:
+
+$$
+\begin{aligned}
+\hat\beta_{DD} &= \underbrace{E(Y_T^{1}\mid\texttt{Post})-E(Y_T^{0}\mid\texttt{Post})}_{\text{ATT}} \\
+&+
+\underbrace{\bigl[E(Y_T^{0}\mid\texttt{Post})-E(Y_T^{0}\mid\texttt{Pre})\bigr]
+-\bigl[E(Y_U^{0}\mid\texttt{Post})-E(Y_U^{0}\mid\texttt{Pre})\bigr]}_{\delta}
+\end{aligned}
+$$
+
+Hence
+
+$$
+\hat\beta_{DD}= \text{ATT}+\delta .
+$$
+
+When [parallel trends](#prior-parallel-trends-test) hold, $\delta=0$; any violation translates **one‑for‑one** into bias [@frake2025partial].
+
+------------------------------------------------------------------------
+
+#### Bounding the ATT when $\delta\neq 0$
+
+The core PI idea is simple: *derive credible bounds on* $\delta$, then translate those into bounds on the ATT.
+
+Two families of restrictions---both operationalized by @rambachan2023more and implemented in the `honestdid` package---are now widely used:
+
+1.  [Relative‑magnitude (RM) bounds](#sec-relative‑magnitude-restriction-honestdid): the post‑treatment gap $|\delta|$ cannot exceed $M$ times the largest *period‑to‑period* deviation observed in the *pre‑treatment* event‑study.
+2.  [Smoothness (SM) bounds](#sec-smoothness-restriction-honestdid): the *slope* of the treated‑minus‑control gap can change by at most $M$ units each period after treatment.
+
+Because $M$ is researcher‑chosen, inference is reported across a grid of plausible $M$ values, revealing the *breakdown* threshold where the confidence set first touches zero [@frake2025partial, p. 14].
+
+------------------------------------------------------------------------
+
+#### Relative‑Magnitude Restriction {#sec-relative‑magnitude-restriction-honestdid}}
+
+*Let* $\hat g_t$ be the event‑study coefficient at time $t$ (normalized to zero at $t=-1$).
+
+-   **Step 1 --- calibrate the worst pre‑trend**:\
+    $M_0 = \max_{s<0} |\hat g_s-\hat g_{s-1}|$.
+
+-   **Step 2 --- allow proportional violations post‑treatment**:\
+    Impose $|\delta_t|\le M\cdot M_0$ for every $t\ge 0$.
+
+-   **Step 3 --- construct "honest" confidence sets** for the ATT or for period‑specific effects by solving a constrained least‑squares problem [@rambachan2023more].
+
+------------------------------------------------------------------------
+
+#### Smoothness Restriction {#sec-smoothness-restriction-honestdid}
+
+When violations evolve gradually---e.g., treated units drift upward over time---the SM bound is more credible.
+
+-   **Step 1 --- estimate the pre‑treatment slope**:\
+    $s_0 = \hat g_{-1}-\hat g_{-2}$.
+
+-   **Step 2 --- restrict post‑treatment slopes**:\
+    The counterfactual slope in period $k$ may vary within\
+    $[s_0-M,\; s_0+M]$.
+
+-   **Step 3 --- propagate forward** to obtain an admissible path for $\delta_t$; compute the least‑favorable path, then derive confidence sets [@rambachan2023more].
+
+------------------------------------------------------------------------
+
+#### Step‑by‑step Empirical Workflow
+
+See @frake2025partial, p. 15 for a decision tree that guides the choice of method.
+
+1.  **Graph the event‑study.** Are any pre‑trends visible? Quantify their magnitude and/or slope.
+2.  **Choose a restriction family** (RM for episodic shocks, SM for trending deviations). Justify the choice theoretically (e.g., anticipation effects vs. gradual selection).
+3.  **Select a grid of** $M$. Always display the break‑even $M^{*}$ where the CI first covers zero; interpret $M^{*}$ in real‑world units.
+4.  **Report the full set, not only the "robust" interval.** Transparency trumps opportunistic suppression.
+5.  **Complement with falsification tests** (placebo policy dates, placebo outcomes) to discipline the plausible range of $M$.
+6.  **Document software and code.** `honestdid` (R/Stata) includes convenient wrappers for both restrictions and automatic figures.
+
+------------------------------------------------------------------------
+
+#### Worked Example (Stylized)
+
+Suppose pre‑policy trends exhibit at most a 0.8‑point swing. Setting $M\in\{0,0.5,1,1.5\}$:
+
+| $M$ | 95 % CI for ATT | Conclusion           |
+|-----|-----------------|----------------------|
+| 0   | [0.85, 1.25]    | Positive, robust     |
+| 0.5 | [0.60, 1.50]    | Positive             |
+| 1   | [‑0.05, 1.85]   | Sign flips plausible |
+| 1.5 | [‑0.45, 2.25]   | Cannot rule out zero |
+
+Thus the causal claim survives unless the unobserved counterfactual deviations are $\ge 1 \times$ the worst pre‑treatment kink---an interpretation far clearer than a single $p$‑value.
+
+------------------------------------------------------------------------
+
+#### Common Pitfalls and Best Practices
+
+-   **Mistaking absence of significant pre‑trends for proof of parallel‑trends.** Under‑powered tests can miss economically large differences.
+-   **Choosing** $M$ post‑hoc. Decide the grid *before* looking at results.
+-   **Ignoring sign.** If theory predicts the treated counterfactual would have **fallen**, impose a one‑sided bound; doing otherwise wastes power.
+-   **Forgetting heterogeneous timing or staggered adoption.** Apply PI to group‑time ATT estimates from modern DiD estimators before aggregation.
+
+Partial‑identification transforms DiD from a "take‑it‑or‑leave‑it" enterprise into a transparent sensitivity analysis. By explicitly parameterizing---and visually communicating---the extent of permissible departures from parallel trends, researchers allow readers to map their own priors onto empirical conclusions. Used thoughtfully, PI techniques enhance credibility without demanding the impossible.

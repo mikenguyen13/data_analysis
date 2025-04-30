@@ -19,7 +19,7 @@ ITS and RDiT are particularly useful when:
 3.  There is no suitable cross-sectional control group, making difference-in-differences infeasible.
 
 |        Feature         |                     **RDiT**                      |                          **ITS**                          |
-|:----------------------:|:-------------------------------------------------:|:---------------------------------------------------------:|
+|:---------------:|:------------------------:|:----------------------------:|
 |       **Focus**        |          Local neighborhood around $T^*$          |       Entire time series (long pre- and post-data)        |
 |    **Effect Model**    |          Assumes a sharp, immediate jump          |   Can capture abrupt or gradual changes (level & slope)   |
 |       **Method**       |     Local polynomial regression around cutoff     |        Segmented regression using the full series         |
@@ -64,7 +64,7 @@ where:
 Because RDiT focuses on a local window around $T^*$, it is best when you expect an immediate jump at the cutoff and when observations near the cutoff are likely to be similar except for the treatment.
 
 |                      |                                       |                                              |
-|----------------------|---------------------------------------|----------------------------------------------|
+|-----------------|-------------------------|------------------------------|
 | **Criterion**        | **Standard RD**                       | **RDiT**                                     |
 | Running Variable     | Cross-sectional (e.g., test score)    | Time (e.g., policy implementation date)      |
 | Treatment Assignment | Based on threshold in $X$             | Based on threshold in $T^*$                  |
@@ -181,7 +181,7 @@ Event study methods, particularly modern implementations, have improved signific
 2.  **Higher-order time controls**: RDiT allows for more flexible modeling of time trends, including the use of higher-order polynomials, which may provide better approximations of underlying time dynamics.
 
 | **Method**                           | **Key Feature**                   | **Strengths**                           | **Weaknesses**                                                      |
-|--------------------------------------|-----------------------------------|-----------------------------------------|---------------------------------------------------------------------|
+|----------------|----------------|----------------|-------------------------|
 | **Difference-in-Differences**        | Uses a control group              | Accounts for time-invariant confounders | Requires parallel trends assumption                                 |
 | **Event Study**                      | Models multiple time periods      | Estimates dynamic treatment effects     | Requires staggered interventions                                    |
 | **Pre/Post Comparison**              | Simple before/after design        | No control needed                       | Cannot separate treatment from time trends                          |
@@ -559,7 +559,7 @@ Possible Threats to the Validity of ITS Analysis [@baicker2019testing]
 After an intervention, an outcome can exhibit four distinct patterns:
 
 | **Scenario**                           | **Description**                                                      |
-|----------------------------------------|----------------------------------------------------------------------|
+|---------------------------|---------------------------------------------|
 | **No effect**                          | The intervention does not change the level or trend of the outcome.  |
 | **Immediate effect**                   | A sharp, immediate change in the outcome following the intervention. |
 | **Sustained effect**                   | A gradual, long-term shift in the outcome that smooths over time.    |
@@ -1096,3 +1096,78 @@ print(res_its_adjusted)
 -   **Interpretation**: A single unified model that merges local jumps with global trends may be difficult to interpret. Distinguish clearly which parameters capture the sharp discontinuity versus the long-run trend.
 
 In practice, a hybrid approach can work if you truly believe there is both a local immediate jump and a longer-run trend change that standard ITS alone may not fully capture. However, weigh the added complexity against the quality and richness of your data.
+
+------------------------------------------------------------------------
+
+## Case-Crossover Study Design
+
+A case-crossover study is an observational epidemiological method designed primarily to assess the transient effects of acute exposures on the risk of sudden-onset outcomes. Introduced by @maclure1991case, this design utilizes individuals as their own controls, thus inherently adjusting for stable, within-subject confounders.
+
+For example, consider assessing whether vigorous exercise increases the risk of myocardial infarction (MI) [@mittleman1993triggering]:
+
+-   Hazard Period: 1-hour preceding MI onset.
+-   Control Periods: Identical 1-hour windows on other days.
+
+Applying conditional logistic regression, we estimate the odds ratio (OR) indicating how acute exercise influences MI risk.
+
+**Implementation** in R: @zhang2016case and `season` package
+
+**Advantages**
+
+-   **Self-Matching:** Controls individual-level confounding, including genetics, demographics, and chronic health status [@maclure1991case].
+-   **Efficiency:** Requires fewer subjects due to within-person matching [@mittleman1995control].
+-   **Applicability:** Highly suitable for studying acute triggers (e.g., air pollution, physical exertion, drug use) [@lumley2000bias].
+
+**Limitations**
+
+-   **Carryover Effects:** Difficulties arise if exposure has prolonged effects [@maclure2000should].
+-   **Time-Varying Confounding:** Cannot inherently control for confounders changing within short timeframes unless explicitly modeled [@navidi1998bidirectional].
+-   **Selection Bias:** Incorrect selection of control periods can bias results [@lumley2000bias].
+
+### Mathematical Foundations
+
+The case-crossover design compares exposure status during a "hazard" or "case" period immediately preceding the event to exposure status during "control" periods when the event did not occur [@maclure2000should].
+
+Formally, let:
+
+-   $X_{i,t}$ denote the exposure status (binary or continuous) of individual $i$ at time $t$.
+-   $Y_{i,t}$ indicate the occurrence (1) or absence (0) of an acute event at time $t$.
+
+The probability of an event occurring at time $t$ given exposure is modeled by a conditional logistic regression:
+
+$$ \text{logit}(P(Y_{i,t}=1|X_{i,t})) = \alpha_i + \beta X_{i,t} $$
+
+Here:
+
+-   $\alpha_i$ is a subject-specific fixed effect that controls for all time-invariant confounding within subjects.
+
+-   $\beta$ is the log-odds ratio quantifying the exposure effect.
+
+The conditional logistic regression explicitly considers matched strata (individual cases) and compares the distribution of exposure during the case and control periods within each individual:
+
+$$ L(\beta) = \prod_{i=1}^{n} \frac{\exp(\beta X_{i,case})}{\exp(\beta X_{i,case}) + \sum_{j \in C_i} \exp(\beta X_{i,j})} $$
+
+-   $X_{i,case}$ represents exposure during the hazard period for case $i$.
+-   $X_{i,j}$ represents exposure during control periods $C_i$ for case $i$.
+
+### Selection of Control Periods
+
+#### Bidirectional
+
+Bidirectional (symmetrical) selection involves choosing control periods before and after the event equally [@navidi1998bidirectional]:
+
+$$ \text{Control Periods} = \{t - k, t + k\}, k \in \mathbb{N} $$
+
+This method mitigates biases related to temporal trends in exposure.
+
+#### Unidirectional
+
+Unidirectional selection (either exclusively prior or subsequent to the event) might introduce biases if exposure trends are strong [@lumley2000bias]:
+
+$$ \text{Control Periods} = \{t - k\}, k \in \mathbb{N} $$
+
+### Assumptions
+
+1.  **Transient Effect Assumption:** Exposure effects are acute and short-lived [@maclure1991case].
+2.  **Exchangeability of Hazard and Control Periods:** Conditional on individual fixed effects, control periods accurately represent exposure probabilities during hazard periods [@mittleman1995control].
+3.  **No Carryover Effects:** Exposure in one period does not affect subsequent periods [@maclure2000should].

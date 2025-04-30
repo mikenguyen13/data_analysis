@@ -832,6 +832,8 @@ library(augsynth)
 synth_model <- augsynth_multiout()
 ```
 
+------------------------------------------------------------------------
+
 ## Applications
 
 ### Synthetic Control Estimation

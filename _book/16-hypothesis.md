@@ -1063,9 +1063,8 @@ ggplot(df, aes(x = theta, y = likelihood)) +
 
 <img src="16-hypothesis_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
 
-![](images/nested_tests.jpg){alt=""}
-
-*Figure adapted from [@fox1997applied].*
+<!-- ![](images/nested_tests.jpg){alt=""} -->
+<!-- *Figure adapted from [@fox1997applied].* -->
 
 Each test approaches hypothesis evaluation differently:
 

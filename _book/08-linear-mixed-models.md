@@ -2812,7 +2812,7 @@ Several R packages are available for fitting mixed-effects models, each with uni
     -   Computationally efficient and widely used.
     -   User-friendly formula syntax.
     -   Can handle non-normal responses (e.g., GLMMs).
-    -   For detailed documentation, refer to @bates2014fittinglinearmixedeffectsmodels.
+    -   For detailed documentation, refer to @bates2015fitting.
 -   Others:
     -   Bayesian Mixed Models: `MCMCglmm`, `brms`.
     -   Genetics/Plant Breeding: `ASReml`.
