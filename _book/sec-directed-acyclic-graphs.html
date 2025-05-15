@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Chapter 38 Directed Acyclic Graphs | A Guide on Data Analysis</title>
+<meta name="author" content="Mike Nguyen">
+<meta name="description" content="Directed Acyclic Graphs (DAGs) provide a formal and visual framework for representing assumptions about causal structures. In modern data analysis, they are essential tools for understanding,...">
+<meta name="generator" content="bookdown 0.43 with bs4_book()">
+<meta property="og:title" content="Chapter 38 Directed Acyclic Graphs | A Guide on Data Analysis">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://bookdown.org/mike/data_analysis/sec-directed-acyclic-graphs.html">
+<meta property="og:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<meta property="og:description" content="Directed Acyclic Graphs (DAGs) provide a formal and visual framework for representing assumptions about causal structures. In modern data analysis, they are essential tools for understanding,...">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Chapter 38 Directed Acyclic Graphs | A Guide on Data Analysis">
+<meta name="twitter:description" content="Directed Acyclic Graphs (DAGs) provide a formal and visual framework for representing assumptions about causal structures. In modern data analysis, they are essential tools for understanding,...">
+<meta name="twitter:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script><script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-DMNX2X65HQ');
+    </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">A Guide on Data Analysis</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Preface</a></li>
+<li><a class="" href="introduction.html"><span class="header-section-number">1</span> Introduction</a></li>
+<li><a class="" href="prerequisites.html"><span class="header-section-number">2</span> Prerequisites</a></li>
+<li class="book-part">I. BASIC</li>
+<li><a class="" href="descriptive-statistics.html"><span class="header-section-number">3</span> Descriptive Statistics</a></li>
+<li><a class="" href="basic-statistical-inference.html"><span class="header-section-number">4</span> Basic Statistical Inference</a></li>
+<li class="book-part">II. REGRESSION</li>
+<li><a class="" href="linear-regression.html"><span class="header-section-number">5</span> Linear Regression</a></li>
+<li><a class="" href="non-linear-regression.html"><span class="header-section-number">6</span> Non-Linear Regression</a></li>
+<li><a class="" href="generalized-linear-models.html"><span class="header-section-number">7</span> Generalized Linear Models</a></li>
+<li><a class="" href="sec-linear-mixed-models.html"><span class="header-section-number">8</span> Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonlinear-and-generalized-linear-mixed-models.html"><span class="header-section-number">9</span> Nonlinear and Generalized Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonparametric-regression.html"><span class="header-section-number">10</span> Nonparametric Regression</a></li>
+<li class="book-part">III. RAMIFICATIONS</li>
+<li><a class="" href="data.html"><span class="header-section-number">11</span> Data</a></li>
+<li><a class="" href="variable-transformation.html"><span class="header-section-number">12</span> Variable Transformation</a></li>
+<li><a class="" href="imputation-missing-data.html"><span class="header-section-number">13</span> Imputation (Missing Data)</a></li>
+<li><a class="" href="model-specification-tests.html"><span class="header-section-number">14</span> Model Specification Tests</a></li>
+<li><a class="" href="variable-selection.html"><span class="header-section-number">15</span> Variable Selection</a></li>
+<li><a class="" href="hypothesis-testing.html"><span class="header-section-number">16</span> Hypothesis Testing</a></li>
+<li><a class="" href="sec-marginal-effects.html"><span class="header-section-number">17</span> Marginal Effects</a></li>
+<li><a class="" href="moderation.html"><span class="header-section-number">18</span> Moderation</a></li>
+<li><a class="" href="mediation.html"><span class="header-section-number">19</span> Mediation</a></li>
+<li><a class="" href="prediction-and-estimation.html"><span class="header-section-number">20</span> Prediction and Estimation</a></li>
+<li class="book-part">IV. CAUSAL INFERENCE</li>
+<li><a class="" href="sec-causal-inference.html"><span class="header-section-number">21</span> Causal Inference</a></li>
+<li class="book-part">A. EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-experimental-design.html"><span class="header-section-number">22</span> Experimental Design</a></li>
+<li><a class="" href="sampling.html"><span class="header-section-number">23</span> Sampling</a></li>
+<li><a class="" href="sec-analysis-of-variance-anova.html"><span class="header-section-number">24</span> Analysis of Variance</a></li>
+<li><a class="" href="sec-multivariate-methods.html"><span class="header-section-number">25</span> Multivariate Methods</a></li>
+<li class="book-part">B. QUASI-EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-quasi-experimental.html"><span class="header-section-number">26</span> Quasi-Experimental Methods</a></li>
+<li><a class="" href="sec-regression-discontinuity.html"><span class="header-section-number">27</span> Regression Discontinuity</a></li>
+<li><a class="" href="temporal-discontinuity-designs.html"><span class="header-section-number">28</span> Temporal Discontinuity Designs</a></li>
+<li><a class="" href="sec-synthetic-difference-in-differences.html"><span class="header-section-number">29</span> Synthetic Difference-in-Differences</a></li>
+<li><a class="" href="sec-difference-in-differences.html"><span class="header-section-number">30</span> Difference-in-Differences</a></li>
+<li><a class="" href="sec-changes-in-changes.html"><span class="header-section-number">31</span> Changes-in-Changes</a></li>
+<li><a class="" href="sec-synthetic-control.html"><span class="header-section-number">32</span> Synthetic Control</a></li>
+<li><a class="" href="sec-event-studies.html"><span class="header-section-number">33</span> Event Studies</a></li>
+<li><a class="" href="sec-instrumental-variables.html"><span class="header-section-number">34</span> Instrumental Variables</a></li>
+<li><a class="" href="sec-matching-methods.html"><span class="header-section-number">35</span> Matching Methods</a></li>
+<li class="book-part">C. OTHER CONCERNS</li>
+<li><a class="" href="sec-endogeneity.html"><span class="header-section-number">36</span> Endogeneity</a></li>
+<li><a class="" href="other-biases.html"><span class="header-section-number">37</span> Other Biases</a></li>
+<li><a class="active" href="sec-directed-acyclic-graphs.html"><span class="header-section-number">38</span> Directed Acyclic Graphs</a></li>
+<li><a class="" href="sec-controls.html"><span class="header-section-number">39</span> Controls</a></li>
+<li class="book-part">V. MISCELLANEOUS</li>
+<li><a class="" href="report.html"><span class="header-section-number">40</span> Report</a></li>
+<li><a class="" href="exploratory-data-analysis.html"><span class="header-section-number">41</span> Exploratory Data Analysis</a></li>
+<li><a class="" href="sensitivity-analysis-robustness-check.html"><span class="header-section-number">42</span> Sensitivity Analysis/ Robustness Check</a></li>
+<li><a class="" href="replication-and-synthetic-data.html"><span class="header-section-number">43</span> Replication and Synthetic Data</a></li>
+<li><a class="" href="high-performance-computing.html"><span class="header-section-number">44</span> High-Performance Computing</a></li>
+<li class="book-part">APPENDIX</li>
+<li><a class="" href="appendix.html"><span class="header-section-number">A</span> Appendix</a></li>
+<li><a class="" href="bookdown-cheat-sheet.html"><span class="header-section-number">B</span> Bookdown cheat sheet</a></li>
+<li><a class="" href="references.html">References</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/mikenguyen13/data_analysis">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="sec-directed-acyclic-graphs" class="section level1" number="38">
+<h1>
+<span class="header-section-number">38</span> Directed Acyclic Graphs<a class="anchor" aria-label="anchor" href="#sec-directed-acyclic-graphs"><i class="fas fa-link"></i></a>
+</h1>
+<p>Directed Acyclic Graphs (DAGs) provide a formal and visual framework for representing assumptions about causal structures. In modern data analysis, they are essential tools for understanding, identifying, and validating causal effects.</p>
+<p>A DAG is a graph composed of nodes (representing variables) and directed edges (arrows) showing the direction of causality. “Acyclic” means that the graph contains no feedback loops; you cannot return to the same node by following the direction of the arrows.</p>
+<p>Understanding DAGs helps analysts reason about:</p>
+<ul>
+<li>Which variables to control for in a regression model</li>
+<li>How to avoid collider bias and confounding</li>
+<li>What types of data are needed to estimate causal effects</li>
+<li>Where causal identification fails due to unobserved variables</li>
+</ul>
+<p>These R packages facilitate DAG creation, visualization, and causal analysis:</p>
+<ul>
+<li>
+<code>dagitty</code>: Powerful syntax for defining DAGs, checking d-separation, and performing adjustment set analysis.</li>
+<li>
+<code>ggdag</code>: A <code>ggplot2</code>-based visualization tool for DAGs, compatible with <code>dagitty</code>, providing publication-ready DAGs.</li>
+<li>
+<code>dagR</code>: Focuses on applied epidemiological use of DAGs, particularly for teaching.</li>
+<li>
+<code>r-causal</code>: Developed by the <a href="https://www.ccd.pitt.edu/data-science/">Center for Causal Discovery</a>. Offers methods for causal discovery from data (also in Python).</li>
+</ul>
+<p>Web Tools</p>
+<ul>
+<li>
+<strong>Publication-ready DAG editor</strong>: <a href="https://www.gerkelab.com/project/shinydag/">shinyDAG</a> – An R-based Shiny app for creating beautiful DAGs interactively.</li>
+<li>
+<strong>Standalone DAG tool</strong>: <a href="https://hsz.dife.de/dag/">DAG program</a> by Sven Knüppel – Excellent for beginners needing an intuitive graphical interface.</li>
+</ul>
+<div id="basic-notation-and-graph-structures" class="section level2" number="38.1">
+<h2>
+<span class="header-section-number">38.1</span> Basic Notation and Graph Structures<a class="anchor" aria-label="anchor" href="#basic-notation-and-graph-structures"><i class="fas fa-link"></i></a>
+</h2>
+<p>Directed Acyclic Graphs are composed of basic building blocks that define relationships between variables.</p>
+<ol style="list-style-type: decimal">
+<li><strong>Mediators (Chains)</strong></li>
+</ol>
+<p><span class="math display">\[
+X \to Z \to Y
+\]</span></p>
+<ul>
+<li>Variable <span class="math inline">\(Z\)</span> mediates the effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span>.</li>
+<li>Controlling for <span class="math inline">\(Z\)</span> blocks the <em>indirect</em> effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span>.</li>
+<li>Use case in marketing: Email promotion (<span class="math inline">\(X\)</span>) → customer interest (<span class="math inline">\(Z\)</span>) → purchase (<span class="math inline">\(Y\)</span>). Controlling for interest removes the indirect path, isolating the direct impact.</li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li><strong>Common Causes (Forks)</strong></li>
+</ol>
+<p><span class="math display">\[
+X \leftarrow Z \to Y
+\]</span></p>
+<ul>
+<li>
+<span class="math inline">\(Z\)</span> is a confounder, creating a spurious association between <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>.</li>
+<li>To estimate the causal effect of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span>, <span class="math inline">\(Z\)</span> must be controlled.</li>
+<li>Use case in finance: An economic indicator (<span class="math inline">\(Z\)</span>) affects both stock investment decisions (<span class="math inline">\(X\)</span>) and market returns (<span class="math inline">\(Y\)</span>).</li>
+</ul>
+<blockquote>
+<p><strong>Key concept</strong>: If <span class="math inline">\(Z\)</span> is not controlled, <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> may appear correlated due to a shared cause rather than a causal link.</p>
+</blockquote>
+<ol start="3" style="list-style-type: decimal">
+<li><strong>Common Effects (Colliders)</strong></li>
+</ol>
+<p><span class="math display">\[
+X \to Z \leftarrow Y
+\]</span></p>
+<ul>
+<li>
+<span class="math inline">\(Z\)</span> is a collider, and controlling for it induces a spurious association between <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span>.</li>
+<li>Do <strong>not</strong> control for <span class="math inline">\(Z\)</span> or its descendants.</li>
+<li>Use case in HR analytics: Two independent hiring factors (<span class="math inline">\(X\)</span> = education, <span class="math inline">\(Y\)</span> = experience) both influence a decision variable <span class="math inline">\(Z\)</span> (hiring outcome). Conditioning on being hired can create an artificial correlation between education and experience.</li>
+</ul>
+<p><strong>Other Concepts</strong></p>
+<ul>
+<li>
+<strong>Descendants</strong>: Any variable downstream from a node; controlling for a descendant can have similar effects to controlling for the ancestor.</li>
+<li>
+<strong>d-Separation</strong>: A graphical criterion to determine conditional independence. If all paths between <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> are blocked by controlling for a set of variables <span class="math inline">\(Z\)</span>, then <span class="math inline">\(X\)</span> is d-separated from <span class="math inline">\(Y\)</span> given <span class="math inline">\(Z\)</span>.</li>
+</ul>
+</div>
+<div id="rule-of-thumb-for-causal-inference" class="section level2" number="38.2">
+<h2>
+<span class="header-section-number">38.2</span> Rule of Thumb for Causal Inference<a class="anchor" aria-label="anchor" href="#rule-of-thumb-for-causal-inference"><i class="fas fa-link"></i></a>
+</h2>
+<p>To validly estimate the causal effect <span class="math inline">\(X \to Y\)</span>:</p>
+<ul>
+<li>
+<strong>Close all backdoor paths</strong> between <span class="math inline">\(X\)</span> and <span class="math inline">\(Y\)</span> (paths that start with an arrow into <span class="math inline">\(X\)</span>). This removes confounding.</li>
+<li>
+<strong>Do not block</strong> any part of the direct or indirect <em>causal</em> path from <span class="math inline">\(X\)</span> to <span class="math inline">\(Y\)</span> (especially via mediators).</li>
+</ul>
+<blockquote>
+<p>This is known as the <strong>backdoor criterion</strong>—a formal condition from Pearl’s Causal Inference framework.</p>
+</blockquote>
+</div>
+<div id="example-dag" class="section level2" number="38.3">
+<h2>
+<span class="header-section-number">38.3</span> Example DAG<a class="anchor" aria-label="anchor" href="#example-dag"><i class="fas fa-link"></i></a>
+</h2>
+<div class="sourceCode" id="cb985"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://www.dagitty.net">dagitty</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/r-causal/ggdag">ggdag</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">dag</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/dagitty/man/dagitty.html">dagitty</a></span><span class="op">(</span><span class="st">"dag {</span></span>
+<span><span class="st">  X -&gt; Z -&gt; Y</span></span>
+<span><span class="st">  Z &lt;- U -&gt; Y</span></span>
+<span><span class="st">}"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/dagitty/man/coordinates.html">coordinates</a></span><span class="op">(</span><span class="va">dag</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/gsubfn/man/list.html">list</a></span><span class="op">(</span></span>
+<span>  x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>X <span class="op">=</span> <span class="fl">1</span>, Z <span class="op">=</span> <span class="fl">2</span>, Y <span class="op">=</span> <span class="fl">3</span>, U <span class="op">=</span> <span class="fl">1.5</span><span class="op">)</span>,</span>
+<span>  y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span>X <span class="op">=</span> <span class="fl">1</span>, Z <span class="op">=</span> <span class="fl">1</span>, Y <span class="op">=</span> <span class="fl">1</span>, U <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://r-causal.github.io/ggdag/reference/ggdag.html">ggdag</a></span><span class="op">(</span><span class="va">dag</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://r-causal.github.io/ggdag/reference/theme_dag_blank.html">theme_dag</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="inline-figure"><img src="38-dag_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;"></div>
+<p>This DAG has:</p>
+<ul>
+<li>A mediator path: <span class="math inline">\(X \to Z \to Y\)</span>
+</li>
+<li>A backdoor path through an unobserved confounder: <span class="math inline">\(X \leftarrow U \to Y\)</span>
+</li>
+</ul>
+<p>Use <code>adjustmentSets(dag, exposure = "X", outcome = "Y")</code> to identify a valid adjustment set.</p>
+</div>
+<div id="causal-discovery" class="section level2" number="38.4">
+<h2>
+<span class="header-section-number">38.4</span> Causal Discovery<a class="anchor" aria-label="anchor" href="#causal-discovery"><i class="fas fa-link"></i></a>
+</h2>
+<p>Causal discovery involves algorithmically identifying causal relationships from data under a set of assumptions (like faithfulness and causal sufficiency). Key algorithms include:</p>
+<ul>
+<li>
+<strong>PC algorithm</strong>: Constraint-based, uses conditional independence testing</li>
+<li>
+<strong>GES (Greedy Equivalence Search)</strong>: Score-based method</li>
+<li>
+<strong>FCI (Fast Causal Inference)</strong>: Extends PC to handle latent confounders</li>
+</ul>
+<blockquote>
+<p>See <span class="citation">(<a href="references.html#ref-eberhardt2024discovering">Eberhardt, Kaynar, and Siddiq 2024</a>)</span> for a comprehensive discussion on the assumptions and limitations of discovery algorithms in practice.</p>
+</blockquote>
+</div>
+<div id="section" class="section level2" number="38.5">
+<h2>
+<span class="header-section-number">38.5</span> <a class="anchor" aria-label="anchor" href="#section"><i class="fas fa-link"></i></a>
+</h2>
+
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="other-biases.html"><span class="header-section-number">37</span> Other Biases</a></div>
+<div class="next"><a href="sec-controls.html"><span class="header-section-number">39</span> Controls</a></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sec-directed-acyclic-graphs"><span class="header-section-number">38</span> Directed Acyclic Graphs</a></li>
+<li><a class="nav-link" href="#basic-notation-and-graph-structures"><span class="header-section-number">38.1</span> Basic Notation and Graph Structures</a></li>
+<li><a class="nav-link" href="#rule-of-thumb-for-causal-inference"><span class="header-section-number">38.2</span> Rule of Thumb for Causal Inference</a></li>
+<li><a class="nav-link" href="#example-dag"><span class="header-section-number">38.3</span> Example DAG</a></li>
+<li><a class="nav-link" href="#causal-discovery"><span class="header-section-number">38.4</span> Causal Discovery</a></li>
+<li><a class="nav-link" href="#section"><span class="header-section-number">38.5</span></a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/mikenguyen13/data_analysis/blob/main/38-dag.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/mikenguyen13/data_analysis/edit/main/38-dag.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-05-14.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

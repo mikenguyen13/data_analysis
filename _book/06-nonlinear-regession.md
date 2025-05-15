@@ -370,7 +370,7 @@ $$
 \begin{aligned}
 Y_i &\approx f(\mathbf{x}_i; \hat{\theta}^{(0)}) 
 + \sum_{j=1}^{p} \frac{\partial f(\mathbf{x}_i; \theta)}{\partial \theta_j} \bigg|_{\theta = \hat{\theta}^{(0)}} 
-\bigl(\theta_j - \hat{\theta}_j^{(0)}\bigr) 
+\left(\theta_j - \hat{\theta}_j^{(0)}\right) 
 + \epsilon_i.
 \end{aligned}
 $$
@@ -434,7 +434,7 @@ $$
 6.  **Estimate Variance**: After convergence, we assume $\epsilon \sim (\mathbf{0}, \sigma^2 \mathbf{I})$. The variance $\sigma^2$ can be estimated by
 
 $$
-\hat{\sigma}^2 = \frac{1}{n-p} \bigl(\mathbf{Y} - \mathbf{f}(\mathbf{x}; \hat{\theta})\bigr)' \bigl(\mathbf{Y} - \mathbf{f}(\mathbf{x}; \hat{\theta})\bigr).
+\hat{\sigma}^2 = \frac{1}{n-p} \left(\mathbf{Y} - \mathbf{f}(\mathbf{x}; \hat{\theta})\right)' \left(\mathbf{Y} - \mathbf{f}(\mathbf{x}; \hat{\theta})\right).
 $$
 
 ------------------------------------------------------------------------
@@ -444,10 +444,10 @@ $$
 Common criteria for deciding when to stop iterating include:
 
 1.  **Objective Function Change**: $$
-    \frac{\bigl|SSE(\hat{\theta}^{(j+1)}) - SSE(\hat{\theta}^{(j)})\bigr|}{SSE(\hat{\theta}^{(j)})} < \gamma_1.
+    \frac{\left|SSE(\hat{\theta}^{(j+1)}) - SSE(\hat{\theta}^{(j)})\right|}{SSE(\hat{\theta}^{(j)})} < \gamma_1.
     $$
 2.  **Parameter Change**: $$
-    \bigl|\hat{\theta}^{(j+1)} - \hat{\theta}^{(j)}\bigr| < \gamma_2.
+    \left|\hat{\theta}^{(j+1)} - \hat{\theta}^{(j)}\right| < \gamma_2.
     $$
 3.  **Residual Projection Criterion**: The residuals satisfy convergence as defined in [@bates1981relative].
 
@@ -463,7 +463,7 @@ the gradient is
 
 $$
 \frac{\partial SSE(\theta)}{\partial \theta} 
-= 2\,\mathbf{F}(\theta)' \bigl[\mathbf{Y} - \mathbf{f}(\theta)\bigr].
+= 2\,\mathbf{F}(\theta)' \left[\mathbf{Y} - \mathbf{f}(\theta)\right].
 $$
 
 Using the Gauss-Newton update rule from iteration $j$ to $j+1$:
@@ -472,10 +472,10 @@ $$
 \begin{aligned}
 \hat{\theta}^{(j+1)} 
 &= \hat{\theta}^{(j)} + \hat{\delta}^{(j+1)} \\
-&= \hat{\theta}^{(j)} + \bigl[\mathbf{F}(\hat{\theta}^{(j)})' \,\mathbf{F}(\hat{\theta}^{(j)})\bigr]^{-1} 
-\,\mathbf{F}(\hat{\theta}^{(j)})' \bigl[\mathbf{Y} - \mathbf{f}(\hat{\theta}^{(j)})\bigr] \\
+&= \hat{\theta}^{(j)} + \left[\mathbf{F}(\hat{\theta}^{(j)})' \,\mathbf{F}(\hat{\theta}^{(j)})\right]^{-1} 
+\,\mathbf{F}(\hat{\theta}^{(j)})' \left[\mathbf{Y} - \mathbf{f}(\hat{\theta}^{(j)})\right] \\
 &= \hat{\theta}^{(j)} 
-- \frac{1}{2} \bigl[\mathbf{F}(\hat{\theta}^{(j)})' \,\mathbf{F}(\hat{\theta}^{(j)})\bigr]^{-1} 
+- \frac{1}{2} \left[\mathbf{F}(\hat{\theta}^{(j)})' \,\mathbf{F}(\hat{\theta}^{(j)})\right]^{-1} 
 \, \frac{\partial SSE(\hat{\theta}^{(j)})}{\partial \theta},
 \end{aligned}
 $$
@@ -483,7 +483,7 @@ $$
 where:
 
 -   $\frac{\partial SSE(\hat{\theta}^{(j)})}{\partial \theta}$ is the **gradient vector**, pointing in the direction of **steepest ascent** of SSE.\
--   $\bigl[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})\bigr]^{-1}$ determines the **step size**, controlling how far to move in the direction of improvement.\
+-   $\left[\mathbf{F}(\hat{\theta}^{(j)})'\mathbf{F}(\hat{\theta}^{(j)})\right]^{-1}$ determines the **step size**, controlling how far to move in the direction of improvement.\
 -   The factor $-\tfrac{1}{2}$ ensures movement in the **direction of steepest descent**, helping to **minimize** the SSE.
 
 The Gauss-Newton method works well when the nonlinear model can be approximated accurately by a **first-order Taylor expansion** near the solution. If the assumption of near-linearity in the residual function $\mathbf{r}(\theta) = \mathbf{Y} - \mathbf{f}(\theta)$ is violated, convergence may be slow or fail altogether. In such cases, more robust methods like [Levenberg-Marquardt Algorithm](#levenberg-marquardt) (which modifies Gauss-Newton with a damping parameter) are often preferred.

@@ -1,0 +1,1887 @@
+### Recentered Instrumental Variables
+
+In modern empirical settings, treatments or instruments often take the form of *formula variables*---constructed using multiple components, including predetermined characteristics and exogenous shocks. However, a critical challenge arises when units are nonrandomly exposed to these shocks, leading to **omitted variable bias (OVB)** even if the shocks themselves are exogenous.
+
+To address this, @borusyak2023nonrandom introduce a powerful general solution: **Recentered Instrumental Variables (RIV)**. This method removes OVB by adjusting for each unit's expected exposure to the shocks, calculated using a formal *shock assignment process*.
+
+The insights from this framework apply broadly in applied microeconometrics:
+
+-   **Linear SSIV**: @autor2013china; @borusyak2022quasi
+-   **Nonlinear SSIV**: @boustan2013effect; @chodorow2020secular; @derenoncourt2022can
+-   **Centralized school assignment mechanisms**: @abdulkadirouglu2017research; @angrist2020simple
+-   **Model-implied optimal IVs**: @adao2019general
+-   **Weather instruments**: @madestam2013political
+-   **Mass media exposure via free-space propagation**: @olken2009television; @yanagizawa2014propaganda
+
+------------------------------------------------------------------------
+
+#### Motivation and Context
+
+Many treatments and instruments in applied econometrics and policy evaluation resemble structured SSIVs. These settings involve multiple sources of variation---some plausibly exogenous (e.g., randomized), others not.
+
+Here are several motivating examples:
+
+1.  **Spatial/Network/General Equilibrium Spillover Treatments**\
+    *Example:* The number of neighbors selected for a randomized intervention. Outcomes depend on both *who* is treated and *who* is connected to whom.
+
+2.  **Regional Growth of Market Access from Transportation Upgrades**\
+    *Example:* The timing and location of road construction interacts with existing market locations and population sizes to determine changes in accessibility.
+
+3.  **Individual Eligibility for Public Programs (e.g., Medicaid)**\
+    *Example:* Policy is assigned at the state level, while eligibility depends on individual income and demographics---only some variation is exogenous.
+
+Each case involves **nonrandom exposure to exogenous shocks**---and estimating causal effects in these settings using standard IV or OLS risks bias.
+
+These scenarios raise a key question:
+
+> **How can we leverage only the exogenous components of such exposure variables** $z_i$ when estimating causal effects?
+
+------------------------------------------------------------------------
+
+#### Structured Exposure to Exogenous Shocks
+
+@borusyak2023nonrandom provide a conceptual framework for understanding how **non-random exposure to randomized shocks** can generate **systematic variation** in treatment intensity, leading to omitted variable bias (OVB).
+
+1.  **Non-random exposure induces systematic variation**\
+    Even if shocks are randomized, outcomes may still be correlated with exposure features.\
+    *Example:* Randomizing road construction does not imply random growth in market access.
+
+2.  **Systematic variation can be removed via recentering**\
+    A novel correction approach involves:
+
+    -   Specifying many *counterfactual* assignments of shocks.
+    -   Simulating the average exposure for each unit:\
+        $$ \mu_i = \mathbb{E}[z_i \mid \text{random shocks}] $$
+    -   Constructing a *recentered* instrument:\
+        $$ \tilde{z}_i = z_i - \mu_i $$
+    -   Alternatively, controlling directly for $\mu_i$.
+
+    This approach isolates exogenous variation by removing structure in exposure that is systematically correlated with potential outcomes.
+
+3.  **Efficiency Gains**\
+    Interestingly, this correction can **improve statistical efficiency**, because it reuses structured variation to better predict the effect of the underlying shocks.
+
+> Conventional solutions like directly instrumenting with shocks or controlling for all features of exposure are often infeasible. Recentering provides a tractable alternative.
+
+------------------------------------------------------------------------
+
+#### Motivating Example: Market Access Effects via RCT of Transportation Networks
+
+Suppose we are interested in estimating how transportation infrastructure affects land value through market access:
+
+Let $V_i$ denote land value in region $i$, and $MA_i$ denote its market access:
+
+$$ \Delta \log V_i = \beta \cdot \Delta \log MA_i + \epsilon_i $$
+
+where market access is defined as:
+
+$$ MA_{it} = \sum_j \tau(g_t, \text{loc}_i, \text{loc}_j)^{-1} \cdot \text{pop}_j $$
+
+-   $g_t$: Road network in time period $t$
+-   $\tau$: Travel cost function based on locations
+-   $\text{pop}_j$: Population at destination $j$
+
+**Key Insight:**\
+Even if roads are randomized, market access ($MA_i$) is not. The transformation of shocks through geography and population introduces **non-random exposure**.
+
+------------------------------------------------------------------------
+
+Illustration: High-Speed Rail in China
+
+-   As of April 2019, 149 lines were built or planned.
+-   83 lines were completed by 2016---assume the timing was random.
+-   But the *locations* of the 83 lines determine which areas gained market access.
+
+Let:
+
+-   $z_i$: Realized change in $MA_i$
+-   $\mu_i$: Expected change in $MA_i$ from random draws of 83 lines (via simulation)
+
+Then:
+
+$$ \begin{aligned} \tilde{z}_i &= z_i - \mu_i \\ \text{Recentered MA} &= \text{Realized MA} - \text{Expected MA} \end{aligned} $$
+
+can be used as a **valid instrument**. This procedure removes systematic variation correlated with potential outcomes (e.g., periphery regions hit by sea-level rise, or different regional growth trends).
+
+Implication:
+
+> Recentered market access growth serves as an instrument for realized growth, isolating the impact of transportation infrastructure from confounding spatial patterns.
+
+This method effectively compares **realized shocks** to a **counterfactual distribution** of shocks, recovering cleaner identification.
+
+------------------------------------------------------------------------
+
+#### Linear SSIV Revisit
+
+The classic SSIV setup is a special case of structured exposure where the instrument is a linear aggregation of exogenous shocks:
+
+$$ z_i = \sum_n s_{in} g_n $$
+
+Here:
+
+-   $s_{in}$: exposure share of individual $i$ to group $n$
+
+-   $g_n$: group-level shock, assumed exogenous
+
+The expected value of $z_i$ given exposure shares is:
+
+$$ \mu_i = \mathbb{E}\left[\sum_n s_{in} g_n \mid \mathbf{s}\right] = \sum_n s_{in} \cdot \mathbb{E}[g_n \mid \mathbf{s}] $$
+
+-   If the shocks $g_n$ are exogenous *conditional* on the shares, and $\mathbb{E}[g_n \mid \mathbf{s}] = \gamma$, then:
+
+    $$ \mu_i = \gamma \cdot \sum_n s_{in} $$
+
+-   Controlling for the sum-of-shares $S_i = \sum_n s_{in}$ is sufficient to remove systematic variation. This is **observable**, interpretable as an overall exposure intensity, and can be partialled out using the **Frisch--Waugh--Lovell theorem**.
+
+-   More generally, if $g_n$ is exogenous conditional on group characteristics $q_n$:
+
+    $$ \mathbb{E}[g_n \mid \mathbf{s}, \mathbf{q}] = q_n' \gamma, $$
+
+    then the expected value we need to adjust becomes:
+
+    $$ \mu_i = \sum_{n} s_{in}E[g_n | s,q] = \sum_n s_{in} \cdot q_n' \gamma = \gamma' \cdot \sum_n s_{in} q_n $$
+
+Thus, controlling for the weighted sum of group characteristics $\sum_n s_{in} q_n$ is sufficient. This setup should feel familiar---it closely resembles standard controls in shift-share regressions, and aligns with the recent literature emphasizing *leave-one-out*, *exposure-weighted controls*, and *quasi-experimental shift-share designs*.
+
+------------------------------------------------------------------------
+
+#### Example: Effects of Program Eligibility
+
+Let us consider an example from public economics: evaluating the effect of Medicaid eligibility on outcomes such as health or labor supply.
+
+Assume the model:
+
+$$ y_i = \beta x_i + \epsilon_i $$
+
+-   $x_i$: eligibility indicator for individual $i$
+-   $g_{state_i}$: state-level Medicaid policy
+-   Individual eligibility depends on $g_{state_i}$ and pre-determined demographics (e.g., income, age, family size)
+
+Even if we assume that the state policies are randomly assigned, pre-treatment demographics are still endogenous. Hence, OLS can still be biased.
+
+The classic solution, as in @currie1996saving, is to use a **"simulated eligibility" instrument**:
+
+-   Compute a simulated eligibility rate using the average policy generosity $g_{s}$ across a reference sample of individuals with fixed demographics.
+-   This generates a state-level instrument: the average eligibility rate for a "simulated" reference group.
+
+**Limitation:** While valid, this approach is potentially inefficient. Policy shocks may have **heterogeneous effects** across demographic groups (e.g., low-income individuals are more affected by policy expansions).
+
+------------------------------------------------------------------------
+
+@borusyak2023nonrandom propose a recentreing strategy to improve both identification and efficiency.
+
+Setup:
+
+-   Treat state-level policies $g_s$ as **randomly assigned across states**
+-   Each individual $i$ has demographics that determine whether they would be eligible under each possible state policy
+
+Then define:
+
+$$ \mu_i = \mathbb{E}[x_i \mid \text{random assignment of policies}] = \text{share of states where } i \text{ would be eligible} $$
+
+-   $\mu_i$ reflects expected eligibility under the random assignment distribution
+-   It plays the role of a structured confounder, analogous to a propensity score
+
+Estimation Strategy:
+
+1.  Compute realized eligibility $x_i$ from actual state assignment
+
+2.  Compute expected eligibility $\mu_i$ via simulation over many random permutations of policy assignments
+
+3.  Use recentered eligibility as an instrument:
+
+    $$ \tilde{x}_i = x_i - \mu_i $$
+
+    or control for $\mu_i$ directly
+
+> This isolates the variation in eligibility that is due to random policy assignment, not endogenous demographic composition.
+
+By controlling for $\mu_i$, we:
+
+-   Improve **first-stage prediction**
+-   Avoid noise from individuals who are **always or never eligible** under any policy (who contribute little identifying variation)
+-   Achieve efficiency gains without sacrificing identification
+
+------------------------------------------------------------------------
+
+#### Formal Framework
+
+We aim to estimate a structural parameter $\beta$ from the equation:
+
+$$ y_i = \beta x_i + \epsilon_i $$
+
+for a fixed population of units $i = 1, \dots, N$.
+
+Let:
+
+-   $x_i$: endogenous treatment or regressor of interest
+
+-   $z_i$: candidate instrumental variable
+
+-   $\epsilon_i$: unobserved error term (mean-zero)
+
+-   $w$: vector of observed, predetermined covariates
+
+-   $g = (g_1, \dots, g_K)$: vector of **exogenous shocks**, not necessarily varying at the unit level
+
+The instrument is a known function of shocks and covariates:
+
+$$ z_i = f_i(g, w) $$
+
+where:
+
+-   $g$ is a vector of exogenous shocks,
+-   $w$ includes observed or predetermined variables,
+-   $f_i$ is a known formula,
+
+we face a problem: even though $g \perp \!\!\! \perp \varepsilon_i \mid w$, it is not generally true that $z_i \perp \!\!\! \perp \varepsilon_i$. This is because $f_i(g, w)$ may systematically assign higher $z_i$ values to units with particular, potentially unobserved characteristics, resulting in OVB.
+
+This framework is general:
+
+-   It nests classic shift-share and SSIV designs
+-   It encompasses reduced-form setups where $x_i = z_i$
+-   It accommodates instruments that depend on group-level shocks, geography, networks, or allocations
+-   It allows for $f_i(\cdot)$ to be non-linear or involve interactions with unit-level characteristics
+
+------------------------------------------------------------------------
+
+#### Instrument Recentering Removes Bias
+
+Even if the shocks $g$ are randomized, the realized instruments $z_i = f_i(g, w)$ may have **non-random exposure patterns** that generate **omitted variable bias**:
+
+$$ \mathbb{E}\left[\frac{1}{N} \sum_i z_i \epsilon_i \right] = \mathbb{E}\left[\frac{1}{N} \sum_i \mu_i \epsilon_i \right] \neq 0 $$
+
+The central insight of the RIV method is that this bias can be removed by adjusting each unit's observed instrument by its **expected value under counterfactual shocks**. Specifically, define:
+
+-   **Expected instrument**:\
+    $$ \mu_i = \mathbb{E}_{g' \sim G(\cdot|w)}[f_i(g', w)] $$
+
+-   **Recentered instrument**:
+
+$$ \tilde{z}_i = z_i - \mu_i $$
+
+is **uncorrelated with the error term**:
+
+$$ \mathbb{E}\left[\frac{1}{N} \sum_i \tilde{z}_i \epsilon_i \right] = 0 $$
+
+This renders $\tilde{z}_i$ a valid instrument for identifying $\beta$.
+
+> Alternatively, controlling for $\mu_i$ in the second stage also removes the bias, thanks to the **Frisch--Waugh--Lovell theorem**.
+
+------------------------------------------------------------------------
+
+#### Assumptions
+
+To compute $\mu_i$ and identify causal effects, we must formalize the *shock assignment process*, where we require:
+
+1.  **Shock Exogeneity**\
+    $$ g \perp \epsilon \mid w $$\
+    The vector of shocks is independent of unobserved potential outcomes, conditional on observed covariates. This assumption is satisfied when:
+
+    -   **Randomized assignment** (e.g., lotteries, RCTs),
+    -   **Natural shocks** (e.g., weather, seismic activity),
+    -   **Plausibly exogenous assignment mechanisms** (e.g., policy variations across states).
+
+    The counterfactual shocks $g'$ are drawn from the known distribution $G(g | w)$.
+
+2.  **Known Conditional Shock Distribution**\
+    $$ G(g \mid w) \text{ is known} $$\
+    For instance, this may come from:
+
+    -   a randomization protocol (e.g., randomized assignment across geography)
+    -   a design-based permutation distribution (e.g., uniform distribution over assignments of $g$ to locations)
+
+These assumptions allow us to derive the **expected instrument** for each unit:
+
+$$ \mu_i = \mathbb{E}[z_i \mid w] = \mathbb{E}[f_i(g, w) \mid w] = \int f_i(g, w) \, dG(g \mid w) $$
+
+------------------------------------------------------------------------
+
+#### Estimation Procedure
+
+**Step-by-Step Guide**
+
+1.  Define instrument formula: $z_i = f_i(g, w)$
+2.  Specify the assignment process: Know or assume a credible distribution $G(g | w)$
+3.  Generate counterfactual shocks: Simulate $S$ draws $g^{(s)} \sim G(g | w)$
+4.  Compute expected instrument: $$
+    \mu_i = \frac{1}{S} \sum_{s=1}^S f_i(g^{(s)}, w)
+    $$
+5.  Recenter the instrument: $\tilde{z}_i = z_i - \mu_i$
+6.  Estimate IV model: Use $\tilde{z}_i$ as instrument for $x_i$
+
+**Alternative: Control Function Form**
+
+Include $\mu_i$ as a control variable:
+
+$$
+y_i = \beta x_i + \lambda \mu_i + u_i \quad \text{with } z_i \text{ as instrument for } x_i
+$$
+
+This "control function" approach can improve efficiency and may be especially helpful when treatment effect heterogeneity is expected.
+
+------------------------------------------------------------------------
+
+#### Properties and Theoretical Guarantees
+
+1.  **Consistency**: The estimator remains consistent even when $\tilde{z}_i$ are weakly dependent across $i$, such as in networked or spatial settings.
+
+RIV estimators are **consistent** under mild regularity conditions:
+
+-   Sufficient variation in shocks across units,
+-   Known shock assignment process,
+-   Finite second moments.
+
+Notably, **no assumptions are made about the correlation structure of** $\varepsilon_i$. This makes the method robust to complex spatial or network dependence structures.
+
+2.  **Finite Sample Inference**
+
+Standard errors may be invalid due to dependence across units exposed to shared shocks. Instead, @borusyak2023nonrandom advocate **Randomization Inference**:
+
+-   Define a test statistic based on recentered residuals,
+-   Simulate its distribution under resampled shocks $g^*$,
+-   Construct confidence intervals by test inversion.
+
+This yields **exact finite-sample inference** conditional on the shocks and structure of exposure.
+
+Under constant treatment effects, the known distribution $G(g \mid w)$ permits:
+
+-   **exact confidence intervals**
+-   **falsification tests** (e.g., for over-identification or placebo inference)
+
+3.  **Optimality:**\
+    @borusyak2023nonrandom characterize the **asymptotically efficient** recentered IV among all instruments of the form $f_i(g, w)$. This generalizes the notion of optimal weighting in generalized method of moments (GMM) to shift-share and structured IV settings.
+
+------------------------------------------------------------------------
+
+#### Extensions
+
+1.  **Heterogeneous Treatment Effects**
+
+When $\beta_i$ varies across units, $\tilde{z}_i$ identifies a **convex average** of $\beta_i$, provided that first-stage monotonicity holds (i.e., the instrument uniformly increases treatment intensity). Hence, RIV identifies a **weighted average of treatment effects** (like LATE). This makes it suitable for use in settings where effect heterogeneity is present but not fully observed.
+
+2.  **General Functional Forms**
+
+The framework handles nonlinear and high-dimensional treatments:
+
+$$
+x_i = h_i(g, w, u)
+$$
+
+where $u$ is unobserved. The candidate instrument $z_i = h_i(g, w, 0)$ is recentered over $g$ to purge bias from nonrandom exposure.
+
+3.  **Propensity Score Analogy**
+
+The RIV approach is closely related to **propensity score adjustment**, but adapted for formula treatments. Unlike classical methods:
+
+-   RIV works for continuous or multivariate treatments.
+-   No need to estimate high-dimensional propensity functions.
+-   Recaptures causal variation from exogenous shocks through structural simulation.
+
+------------------------------------------------------------------------
+
+#### Applications
+
+**Application 1: Market Access from Chinese High-Speed Rail**
+
+@borusyak2023nonrandom first apply the recentering method to study the effects of **market access growth** due to China's high-speed rail (HSR) network.
+
+Empirical Context
+
+-   Between 2008 and 2016, 83 HSR lines were built connecting major cities in China.
+-   An additional 66 lines were planned but not built during this period.
+-   The goal is to estimate the causal effect of increased market access on employment growth across 274 prefectures between 2007 and 2016.
+
+Market access for prefecture $i$ in year $t$ is defined as:
+
+$$ MA_{it} = \sum_k \exp(-0.02 \cdot \tau_{ikt}) \cdot p_{k, 2000} $$
+
+-   $\tau_{ikt}$: HSR-affected travel time from $i$ to $k$ [@zheng2013china]
+-   $p_{k, 2000}$: Population of prefecture $k$ in 2000
+
+This captures the economic mass accessible to region $i$ via the HSR network, assuming lower travel costs increase accessibility.
+
+#### The Problem: Non-Random Exposure
+
+Raw comparisons between regions with **high** vs. **low** growth in $MA_{it}$ are not convincing. This contrast may reflect:
+
+-   Regional economic trends
+-   Geography (e.g., eastern vs. western provinces)
+-   Historical investment patterns
+
+Even controlling for observable confounders (e.g., province fixed effects, geographic coordinates) is problematic:
+
+-   $MA_{it}$ is constructed via a **model of travel costs**, not directly observed.
+-   There is **no experimental analog** to benchmark these controls.
+
+#### The Solution: Use a Natural Experiment
+
+1.  @bartelme2018economies leverage shocks that affect market size
+2.  @donaldson2018railroads compare between built vs. never-built lines
+3.  @borusyak2023nonrandom propose isolating one plausibly exogenous source of variation: the timing of construction among observably similar lines.
+
+-   Assume the set of lines (built + unbuilt) was fixed as of 2019.
+-   Randomly reshuffle which lines were built by 2016, maintaining the same number of lines and connectivity structure.
+-   Use these reshuffled draws to estimate expected market access growth ($\mu_i$) under the null of random assignment.
+
+Then compute the **recentered instrument**:
+
+$$ \tilde{z}_i = \Delta \log MA_i - \mu_i $$
+
+This removes systematic variation correlated with geography or development trends, isolating the effect of HSR-driven market access growth.
+
+------------------------------------------------------------------------
+
+**Application 2: Efficient Estimation of Medicaid Expansion Effects**
+
+The second application revisits a classic setting in public economics: evaluating the effects of Medicaid expansion under the Affordable Care Act.
+
+Empirical Context
+
+-   In 2014, 19 out of 43 states with initially low Medicaid coverage expanded eligibility to 138% of the federal poverty line.
+-   Expansion decisions are assumed as good as random among states with same-party governors.
+-   However, household demographics and pre-2014 policy environments are not randomly assigned.
+
+Outcomes
+
+-   Medicaid take-up
+-   Crowd-out of private insurance
+
+Both estimators are valid under the same identification assumptions (random expansion decisions conditional on covariates), but differ in efficiency:
+
+1.  Simulated IV [@currie1996saving]:\
+    Use a state-level expansion dummy as an instrument for individual-level eligibility.
+
+2.  Recentered IV [@borusyak2023nonrandom]:\
+    Predict eligibility $x_i$ based on state expansion status and non-random demographics, then compute:
+
+    $$ \mu_i = \mathbb{E}[x_i \mid \text{random expansion}] $$
+
+    and recenter:
+
+    $$ \tilde{x}_i = x_i - \mu_i $$
+
+Result
+
+-   The recentered IV estimator yields standard errors 3x smaller than the simulated IV.
+-   This reflects more efficient use of within-state variation across heterogeneous households.
+
+------------------------------------------------------------------------
+
+#### Practical Considerations
+
+> When leveraging a **natural experiment**, recentering allows researchers to align estimation with the identifying variation they trust.
+
+-   **Computational burden**: Requires simulation over counterfactual shocks---can be intensive but parallelizable.
+-   **Choice of counterfactuals**: Central to the credibility of the design; sensitivity checks are critical.
+-   **Robustness**: Include predetermined controls after recentering to improve efficiency, or use both control and recentered instrument for double robustness.
+    -   Falsify the identifying variation via balance tests or pre-trend analysis
+    -   Report results under alternative reshuffling strategies as robustness checks
+
+------------------------------------------------------------------------
+
+#### Conclusion
+
+The RIV method offers a framework for causal inference in complex empirical settings. It enables credible identification even when treatment or instrument exposure is nonrandom and high-dimensional. By leveraging the structure of the assignment process, RIV removes OVB in a conceptually elegant and practically feasible manner.
+
+This method is especially valuable in modern applied economics, where treatments arise from structural formulas, interactions, or networks---and where standard IV assumptions are no longer sufficient.
+
+------------------------------------------------------------------------
+
+## Shift-Share Instrument
+
+The **shift‑share (a.k.a. Bartik) instrument** exploits the idea that a unit's exposure to a set of aggregate shocks is mediated by its pre‑determined "shares." A classic application measures the effect of local labor‑demand shocks on outcomes such as wages or migration by weighting nation‑wide industry growth rates with the locality's pre‑shocked industry composition. Because the shares are fixed **before** the shocks realize, the composite instrument can be relevant (it moves with the shocks) yet plausibly exogenous to unobserved shocks that drive the outcome of interest. Recent work unifies these designs under the general heading of **pooled‑exposure research designs** and clarifies the conditions under which they deliver consistent causal estimates [@goldsmith2020bartik].
+
+The label "Bartik instrument" comes from @bartik1991benefits monograph *Who Benefits from State and Local Economic Development Policies?* Early, influential adoptions include @blanchard1992regional, @bound2000demand, and @card2001immigrant.
+
+Alternative Names
+
+-   **Industry‑mix** instrument (economic‑geography literature)
+-   **Exposure‑weighted** instrument
+-   **Regional demand shifter**
+
+All terms refer to the same design.
+
+Examples in IS: [@huang2020unemployment]
+
+Examples in Finance: [@beaumont2025build]
+
+------------------------------------------------------------------------
+
+### Notation and data structure
+
+-   **Units and time.** Index units (regions, individuals, cohorts) by $i=1,\dots,N$ and time by $t=0,\dots,T$.
+-   **Shocks.** Let $g_{kt}$ be a common shock to sector $k\in\{1,\dots,K\}$ in period $t$. These are observed (e.g., national industry growth).
+-   **Shares.** Let $s_{ik0}$ be the baseline share of sector $k$ in unit $i$ measured in a base period $0$,. Shares satisfy $\sum_{k}s_{ik0}=1$.
+-   **Treatment.** Define the endogenous treatment (or "dose") as\
+    $$
+    D_{it} \;=\; \sum_{k}s_{ik0}\,g_{kt}\;,
+    $$ so every unit is differentially exposed to the same vector of shocks according to its baseline shares.
+-   **Outcome.** $Y_{it}$ is the realized outcome, and $X_{it}$ collects further controls (e.g., fixed effects, trends).
+
+------------------------------------------------------------------------
+
+### Instrument Construction
+
+In linear potential‑outcome notation, their true structural relationship can be written
+
+$$
+Y_{it}\;=\;\beta\,D_{it} \;+\; X_{it}'\gamma \;+\; u_{it},
+$$
+
+where $u_{it}$ contains unobservables that may correlate with $D_{it}$. Because the shares are pre‑determined and the shocks are aggregate, an **instrument**
+
+$$
+Z_{it}\;=\;\sum_{k}s_{ik0}\,g_{kt}
+$$
+
+is available to proxy for $D_{it}$. Empirically $Z_{it}\equiv D_{it}$ when $D_{it}$ is defined as above; however, one often observes only an endogenous proxy for $D_{it}$ (e.g., local employment actually realized, affected by local conditions), whereas $Z_{it}$ is constructed from exogenous aggregates.
+
+A **share‑shift** variant allows $s_{ik0}$ to come from a *shifted* base year (say, five years prior) to ensure that (i) the shares are pre‑determined relative to the shock window and (ii) serial correlation between shares and unobserved local shocks is minimized. Formally, pick a lag $L$ and set $\tilde s_{ik,t-L}$ as the share measured at $t-L$; the instrument becomes
+
+$$
+Z_{it}^{(L)} \;=\;\sum_{k}\tilde s_{ik,t-L}\,g_{kt}.
+$$
+
+When $L>0$ the design is colloquially called a **share‑shift Bartik IV** because the share base "shifts" forward with time while remaining *lagged* relative to the contemporaneous shocks [@borusyak2025practical].
+
+------------------------------------------------------------------------
+
+Stack observations and estimate
+
+$$
+\begin{aligned}
+\text{1st stage:}\quad D_{it}&= \pi\,Z_{it} + X_{it}'\delta + v_{it} \\
+\text{2nd stage:}\quad Y_{it}&= \beta\,\hat D_{it} + X_{it}'\gamma + e_{it}
+\end{aligned}
+$$
+
+where $\hat D_{it}$ is the predicted treatment. In practice one embeds rich fixed effects---e.g., unit and time FEs---to absorb unobserved mean differences and common shocks. By Frisch‑Waugh‑Lovell the 2SLS estimate equals the IV estimate from the demeaned data.
+
+------------------------------------------------------------------------
+
+### Identification assumptions
+
+1.  **Shock exogeneity (many‑shocks path).**\
+    This is also known as exogeneity of national shocks (shifts)\
+    $\mathbb{E}[g_{kt}u_{it}]=0$ for all $k,t,i$. Under many (as $K\to\infty$) independent shocks, a law‑of‑large‑numbers style argument yields $\mathbb{E}[Z_{it}u_{it}]\approx0$.
+    -   **Definition**: The national shocks (e.g., industry-wide trends or foreign demand shocks) must be exogenous to the local outcomes.
+    -   **Implication**: The national component (e.g., sector growth rates, policy exposure) cannot be driven by or anticipate local conditions.
+    -   **Violation Risk**: National shocks that are correlated with unobserved determinants of the outcome (e.g., industry lobbying based on local downturns) threaten identification.
+
+2.  **Share exogeneity (many‑shares path).**\
+    This is also known as predetermined or exogenous local shares.\
+    Even with few shocks, if the shares are quasi‑random at an initial date (e.g., driven by historical geography) then $\mathbb{E}[s_{ik0}u_{it}]=0$, securing validity.
+    -   **Definition**: The local shares (e.g., baseline industry composition, immigrant group shares, initial sectoral employment) must be predetermined and not affected by future shocks.
+    -   **Implication**: These shares should be measured in a baseline year and not respond to anticipation of future treatments or outcomes.
+    -   **Violation Risk**: If local areas sorted into certain industries *because of* expected future gains (reverse causality), this undermines causal inference.
+
+3.  **Relevance.** Var$(Z_{it})>0$ and first‑stage $F$-statistic is non‑trivial.
+
+    -   **Definition**: The constructed shift-share instrument must explain a meaningful portion of treatment variation across units (i.e., relevance).
+
+    -   **Implication**: Weak instrument problems can emerge if the variation in exposure is too small or dominated by noise.
+
+    -   **Violation Risk**: A weak first-stage leads to large finite-sample bias and inflated standard errors in 2SLS settings.
+
+4.  **Stability.** Shocks should not differentially affect units except through the weighted sum $D_{it}$. Formally, no violation of the exclusion restriction through contemporaneous general equilibrium feedback.
+
+5.  **Linearity and Additivity in Exposure Construction**
+
+    -   **Definition**: The shift-share exposure is assumed to be a linear combination of national shocks weighted by local shares.
+
+    -   **Implication**: The model assumes a linear exposure-response function.
+
+    -   **Violation Risk**: Non-linearities or threshold effects in exposure may lead to biased estimation if linearity is assumed incorrectly.
+
+6.  **Independence between Shares and Shocks**
+
+    -   **Definition**: The shares and shocks must be statistically independent conditional on controls.
+
+    -   **Implication**: There should be no systematic sorting of shares into future shocks.
+
+    -   **Violation Risk**: For example, if fast-growing sectors systematically attract early entrants in certain regions, the shift and share are correlated, biasing estimates.
+
+7.  **No Omitted Local Trends or Confounders**
+
+    -   **Definition**: The design assumes that all confounding trends are either time-invariant (handled by fixed effects) or controlled for directly.
+
+    -   **Implication**: Any differential trends across units that are correlated with both the shares and the outcomes must be accounted for.
+
+    -   **Violation Risk**: Failing to control for local policies, demographic changes, or other time-varying confounders can lead to omitted variable bias.
+
+@goldsmith2020bartik show that any Bartik IV can be seen as a weighted sum of *design‑level exposures*:
+
+$$
+Z_{it}= \sum_{k}\omega_{ik}\,g_{kt}, \quad 
+\omega_{ik}=s_{ik0}-\bar s_{k0},
+$$
+
+where $\bar s_{k0}$ is the average share. Identification can therefore rest on either exogenous shocks **or** exogenous deviations of shares from the mean.
+
+------------------------------------------------------------------------
+
+### Large‑$K$ asymptotics
+
+Let $K\to\infty$ with appropriate regularity:
+
+$$
+Z_{it}= \underbrace{\sum_k s_{ik0}\,g_{kt}}_{\text{IV}} 
+\quad\rightsquigarrow\quad 
+\mathbb{E}[g_{kt}] + \mathcal{O}_p\!\bigl(K^{-1/2}\bigr).
+$$
+
+If $g_{kt}$ are i.i.d. shocks with zero mean, the IV becomes mean‑zero, mitigating endogeneity from local shocks $u_{it}$. @borusyak2025practical emphasize practical checklists---e.g., **orthogonality tests** of shocks to baseline covariates and **leave‑one‑out** constructions that drop shock $k$ when estimating effects on industries heavily represented by $k$.
+
+------------------------------------------------------------------------
+
+### Share‑shift versus conventional shift‑share
+
++----------------+------------------------------------------------------+----------------------------------------------------------------+
+| Feature        | Conventional Bartik                                  | Share‑shift Bartik                                             |
++================+======================================================+================================================================+
+| Share timing   | Fixed once (e.g., 1990)                              | Rolling, but lagged $L$ periods                                |
++----------------+------------------------------------------------------+----------------------------------------------------------------+
+| Goal           | Maximize shock variation, minimize share‑endogeneity | Reduce serial correlation between shares and unit‑level shocks |
++----------------+------------------------------------------------------+----------------------------------------------------------------+
+| Implementation | $Z_{it}=\sum_k s_{ik,0}g_{kt}$                       | $Z_{it}^{(L)}=\sum_k s_{ik,t-L}g_{kt}$                         |
++----------------+------------------------------------------------------+----------------------------------------------------------------+
+
+Because the shares evolve, $Z_{it}^{(L)}$ is *not* collinear with unit fixed effects, making identification feasible even with long panels where conventional Bartik would be swept out by unit FEs. At the same time one must verify that shares measured at $t-L$ are still plausibly exogenous to shocks $u_{it}$. Common choices are $L\in\{5,10\}$ years in annual data or two lags in quarterly data.
+
+------------------------------------------------------------------------
+
+### Standard errors and inference
+
+The composite nature of $Z_{it}$ induces **cross‑sectional dependence** because units that share similar $s_{ik0}$ load similarly on $g_{kt}$. Standard practice is therefore to
+
+-   **Cluster at the shock level** (e.g., industry × year) when $K$ is modest;
+-   Use **AKM corrections** [@adao2019shift], which account simultaneously for many‑shares and many‑shocks asymptotics;
+-   Apply randomization **inference** by re‑drawing shocks $g_{kt}$ under the null to build exact $p$-values.
+
+------------------------------------------------------------------------
+
+### Diagnostics and robustness
+
+1.  **First‑stage** $F$. A weak instrument test using the effective degrees‑of‑freedom of $Z_{it}$.
+2.  **Rotated shocks test / placebo.** Replace $g_{kt}$ with shocks drawn from a pre‑period to detect spurious correlation.
+3.  **Leave‑one‑out IV.** Compute $Z_{it}^{(-i)}=\sum_ks_{ik0}^{(-i)}g_{kt}$ where the share of unit $i$ is omitted, reducing mechanical correlation.
+4.  **Balance tests.** Regress pre‑treatment outcomes on $Z_{it}$ to probe exclusion.
+
+------------------------------------------------------------------------
+
+### Extensions
+
+-   **Heterogeneous effects.** Interact $D_{it}$ with baseline covariates to test for effect heterogeneity.
+-   **Dynamic Bartik.** Include lags and leads of $D_{it}$ to produce an event‑study--style response.
+-   **Multi‑dimensional shocks.** Replace $g_{kt}$ with a vector (e.g., trade shocks by partner × industry), stacking them into a higher‑order share matrix.
+-   **Shift‑share DiD hybrid.** Use Bartik as the *first stage* within a staggered‑adoption DiD when treatment is partially driven by differential exposure to shocks.
+
+------------------------------------------------------------------------
+
+### Recent methodological developments
+
+1.  @borusyak2025practical deliver a practitioner guide emphasizing *empirical checklists* for constructing leave‑one‑out instruments and AKM standard errors.
+2.  @borusyak2025practical propose a *two‑path* identification taxonomy---many exogenous shocks vs. many exogenous shares---and shows how to design diagnostics tailored to the chosen path.
+3.  @borusyak2022quasi refine randomization inference for shift‑share by exploiting permutation symmetries of shocks.
+4.  @jaeger2018shift show finite‑sample pitfalls & leave‑one‑out adjustments
+5.  @broxterman2020empirical show that excluding nontraded sector employment improves instrument quality, and that alternative national shifters like prices and wages can enhance relevance and validity.
+
+------------------------------------------------------------------------
+
+### Limitations and best‑practice checklist
+
++-------------------------------------------------+---------------------------------------------------------------------------------------+
+| Issue                                           | Guidance                                                                              |
++=================================================+=======================================================================================+
+| Over‑reliance on single dominant shock          | Apply leave‑one‑out; test sensitivity to dropping that shock                          |
++-------------------------------------------------+---------------------------------------------------------------------------------------+
+| Persistent unobservables correlated with shares | Use *rolling* share‑shift with sufficient lag; include pre‑trend controls             |
++-------------------------------------------------+---------------------------------------------------------------------------------------+
+| General‑equilibrium feedback                    | Shorten estimation window; instrument only for first‑round effects                    |
++-------------------------------------------------+---------------------------------------------------------------------------------------+
+| Non‑linear outcomes                             | Employ control‑function or GMM variants; quantile IV if distributional effects matter |
++-------------------------------------------------+---------------------------------------------------------------------------------------+
+| Spatial spillovers                              | Cluster at aggregated geography; include spatial‑lag controls                         |
++-------------------------------------------------+---------------------------------------------------------------------------------------+
+
+------------------------------------------------------------------------
+
+### Instrument decomposition
+
+Write $G_t$ for the $K\times1$ vector of shocks and $S_0$ for the $N\times K$ matrix of shares. Then
+
+$$
+\mathbf Z_t = S_0\,G_t,\qquad 
+\mathbf D_t = S_{t-1}\,G_t,
+$$
+
+so the **first‑stage coefficient** satisfies
+
+$$
+\hat\pi
+=\bigl(Z_t' M_X D_t\bigr)\bigl(Z_t' M_X Z_t\bigr)^{-1}
+=\frac{\sum_i Z_{it} (D_{it}-\hat D_{it}^{X})}{\sum_i Z_{it} (Z_{it}-\hat Z_{it}^{X})},
+$$
+
+where $M_X$ projects out controls. Under valid instruments $\hat\beta\to\beta$ in probability, and inference proceeds with the usual robust or AKM variance.
+
+------------------------------------------------------------------------
+
+```{r}
+library(ShiftShareSE)
+
+ivreg_ss(d_sh_empl ~ 1 | shock, X=IV, data=ADH$reg, W=ADH$W,
+         method=c("ehw", "akm", "akm0"))
+
+reg_ss(d_sh_empl ~ 1, X=IV, data=ADH$reg, W=ADH$W,
+       method=c("ehw", "akm", "akm0"))
+reg_ss(shock ~ 1, X=IV, data=ADH$reg, W=ADH$W,
+       method=c("ehw", "akm", "akm0"))
+```
+
+```{r, eval = FALSE}
+devtools::install_github("jjchern/bartik.weight")
+```
+
++------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
+| **Research Question / Use Case**                                                               | **Case Analog**               | **Instrument / Causal Variation**                    | **Potential Outcomes**                     |
++================================================================================================+===============================+======================================================+============================================+
+| How do industry-specific labor demand shocks shape local brand preferences?                    | Region/Consumer               | National labor demand shocks × local sector exposure | Brand search, loyalty, sales               |
++------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
+| Do local industry booms amplify advertising effectiveness?                                     | Ad campaign                   | National ad growth × historical media exposure       | Sales lift, engagement                     |
++------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
+| What is the causal effect of AI adoption on consumer price discrimination and personalization? | Firms adopting AI             | AI tech diffusion × tech occupation shares           | Pricing dispersion, personalization levels |
++------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
+| How does remote work diffusion affect consumer demand for local services?                      | Consumers in affected regions | Remote-eligible jobs × national WFH trends           | Local demand shifts, channel use           |
++------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
+| How do regional labor shocks affect influencer marketing outcomes?                             | Influencer campaign           | Labor shock × creative industry concentration        | Engagement, conversions                    |
++------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
+| Does the diffusion of new platforms reshape competitive dynamics?                              | Brand presence on platform    | Platform user growth × smartphone or youth share     | Ad spend shifts, competitive responses     |
++------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
+| What is the effect of logistics infrastructure on e-commerce adoption and marketing mix?       | Regional retail activity      | Fulfillment center expansion × historical exposure   | Digital vs. in-store investment            |
++------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
+| Do regional supply chain shocks alter price sensitivity and brand switching?                   | Consumer purchases            | Import reliance × national input cost shocks         | Price elasticity, brand loyalty            |
++------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
+| How do green tech booms impact demand for eco-friendly brands?                                 | Green product categories      | Renewable job growth × regional green employment     | Green product demand, WTP                  |
++------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
+| Does job automation reduce trust in AI-based recommendations?                                  | Consumer-platform interaction | Automation risk × tech adoption rate                 | Trust in algorithms, engagement            |
++------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
+
+------------------------------------------------------------------------
+
+# 1 What Is a Shift--Share (Bartik) Instrument?
+
+A **shift--share (SS) instrument**---often called a **Bartik instrument**---is a widely used tool in empirical economics for estimating causal effects when treatment is endogenous. It is constructed as a weighted average of **common shocks**, where the **weights** are **pre-determined exposure shares** that vary across observational units (such as regions, firms, or individuals):
+
+$$
+Z_{\ell t} = \sum_{n=1}^N s_{\ell n}^{(0)}\, g_{nt},
+$$
+
+where:
+
+-   $g_{nt}$ is an exogenous or quasi-exogenous **shock** (or *shift*) to sector $n$ at time $t$
+-   $s_{\ell n}^{(0)}$ is the **baseline share** or exposure of unit $\ell$ to sector $n$ in a pre-treatment period (often labeled as time 0)
+
+> **Interpretation:** If the shocks $g_{nt}$ are exogenous, then variation in $Z_{\ell t}$ across units reflects only their differing baseline exposure $s_{\ell n}^{(0)}$. This allows $Z_{\ell t}$ to serve as an instrument for potentially endogenous regressors.
+
+------------------------------------------------------------------------
+
+## General Structure
+
+Let:
+
+-   $\ell = 1, \dots, L$ index units (e.g., regions, firms)
+-   $n = 1, \dots, N$ index sectors, industries, or origin countries
+
+We observe:
+
+-   Outcome: $Y_\ell$
+-   Treatment: $X_\ell$
+-   Instrument: $Z_\ell = \sum_n s_{\ell n}^{(0)} g_n$
+
+Our model of interest is:
+
+$$
+Y_\ell = \beta X_\ell + \epsilon_\ell
+$$
+
+Possible interpretations:
+
+-   A structural equation or potential outcomes model
+-   Could be misspecified, with treatment effect heterogeneity: $\beta_\ell$
+-   Could be reduced-form, with $X_\ell = Z_\ell$
+-   May include additional controls: $W_\ell$
+
+$$
+Y_\ell = \beta X_\ell + \gamma' W_\ell + \epsilon_\ell
+$$
+
+::: callout-note
+**Generality.** *Any* variable that varies across units and over time can, in principle, be decomposed into common shocks and heterogeneous exposure. Shift--share logic thus applies far beyond labor-market studies, including immigration, trade, and firm-level analyses.
+
+But remember: the usefulness of SSIV depends critically on assumptions about the shocks and shares. Researchers must justify the instrument's validity in context.
+:::
+
+The table below summarizes key empirical studies that employ a shift--share design. Each follows the structure:
+
+$$ Z_\ell = \sum_{n=1}^N s_{\ell n}^{(0)} g_n $$
+
+but differs in interpretation of sectors $n$, units $\ell$, and the nature of the shocks and outcomes.
+
++------------------------+-------------------------------+---------------------------------------------------+-----------------------------+------------------------------------------------------------+-------------------------------------------------------------+----------------------------------------------------+-----------------------------------------------------------+
+| Study                  | Context                       | Outcome $Y_\ell$                                  | Treatment $X_\ell$          | Shock $g_n$                                                | Share $s_{\ell n}^{(0)}$                                    | Instrument $Z_\ell$                                | Parameter of Interest $\beta$                             |
++========================+===============================+===================================================+=============================+============================================================+=============================================================+====================================================+===========================================================+
+| @bartik1991benefits    | Regional labor markets        | Wage growth                                       | Employment growth           | National industry employment growth                        | Lagged employment share of industry $n$ in region $\ell$    | Predicted local employment growth                  | Inverse local labor supply elasticity                     |
+|                        |                               |                                                   |                             |                                                            |                                                             |                                                    |                                                           |
+| @blanchard1992regional |                               |                                                   |                             |                                                            |                                                             |                                                    |                                                           |
++------------------------+-------------------------------+---------------------------------------------------+-----------------------------+------------------------------------------------------------+-------------------------------------------------------------+----------------------------------------------------+-----------------------------------------------------------+
+| @autor2013china        | China trade shock             | Change in manufacturing employment, unemployment. | Import competition growth   | Growth in Chinese exports to other countries (by industry) | 10-year lagged employment shares in manufacturing           | Predicted import competition growth                | Labor market response to trade shocks                     |
++------------------------+-------------------------------+---------------------------------------------------+-----------------------------+------------------------------------------------------------+-------------------------------------------------------------+----------------------------------------------------+-----------------------------------------------------------+
+| @card2009immigration   | Immigration and labor markets | Relative wages and employment of natives          | Immigrant inflow            | National immigration growth from origin country $n$        | Historical immigrant share from origin $n$ in region $\ell$ | Predicted immigrant inflow based on enclave growth | Elasticity of substitution between natives and immigrants |
++------------------------+-------------------------------+---------------------------------------------------+-----------------------------+------------------------------------------------------------+-------------------------------------------------------------+----------------------------------------------------+-----------------------------------------------------------+
+| @hummels2014wage       | Trade and firm wages          | Firm-level wages                                  | Import volume at firm level | Change in transport costs (by product-country)             | Lagged import share (firm-by-product-country)               | Predicted import cost exposure                     | Effect of import exposure on wages                        |
++------------------------+-------------------------------+---------------------------------------------------+-----------------------------+------------------------------------------------------------+-------------------------------------------------------------+----------------------------------------------------+-----------------------------------------------------------+
+| @acemoglu2016import    | Import competition & industry | Industry-level employment                         | Import penetration          | Growth in Chinese import penetration in industry $n$       | Not applicable (industry-level regressions)                 | Direct shock $g_n$ used in regression              | Causal effect of trade exposure on employment             |
++------------------------+-------------------------------+---------------------------------------------------+-----------------------------+------------------------------------------------------------+-------------------------------------------------------------+----------------------------------------------------+-----------------------------------------------------------+
+
+### Key Observations
+
+-   Despite different contexts, **each application leverages cross-sectional heterogeneity in exposure** ($s_{\ell n}^{(0)}$) to identify the effects of a common shock $g_n$.
+-   The **validity** of $Z_\ell$ as an instrument depends critically on the exogeneity of $g_n$ and the **plausible independence** of the shares $s_{\ell n}^{(0)}$ from potential outcomes.
+
+------------------------------------------------------------------------
+
+### Interpretation Tips
+
+-   Think of $Z_\ell$ as the **exposure-weighted forecast** of how a region or firm would be affected by aggregate shocks.
+-   The goal of shift--share IV is to **replicate a quasi-experiment**, but the combination of many sectors and regions can make the randomization implicit rather than explicit.
+-   In applied work, researchers often include **controls for baseline characteristics** and conduct **placebo and robustness checks** to support the identifying assumptions.
+
+------------------------------------------------------------------------
+
+**Under what conditions is this shift--share IV strategy valid?**
+
+We seek to ensure that the instrument satisfies the IV exclusion restriction:
+
+$$
+\mathbb{E}\left[\frac{1}{L} \sum_{\ell=1}^L Z_\ell \epsilon_\ell \right] = 0
+$$
+
+This looks slightly different from standard IV conditions due to **non-i.i.d. sampling** and **clustered structure**. The key is to analyze the statistical properties of both the shocks $g_n$ and the shares $s_{\ell n}^{(0)}$.
+
+------------------------------------------------------------------------
+
+## Shock Exogeneity
+
+-   **Question:** How does Chinese import competition affect U.S. manufacturing employment? [@acemoglu2016import]
+
+Industry-level regression:
+
+$$
+\Delta \log \text{Emp}_{nt} = \alpha + \beta \Delta IP_{nt} + \epsilon_{nt}
+$$
+
+-   $\Delta IP_{nt}$ = Growth in import penetration from China in industry $n$
+-   $\epsilon_{nt}$ = Unobserved industry-specific demand/productivity shocks
+
+Key Challenges:
+
+1.  [Endogeneity](#sec-endogeneity-in-shift–share-designs) of $\Delta IP_{nt}$: OLS is inconsistent for estimating $\beta$
+2.  [General equilibrium spillovers](#sec-general-equilibrium-spillovers-ssiv): $\beta$ may not capture aggregate causal effects
+
+------------------------------------------------------------------------
+
+### Endogeneity in Shift--Share Designs {#sec-endogeneity-in-shift--share-designs}
+
+The observed import penetration growth $\Delta IP_{nt}$ is affected by Chinese productivity shocks, but also by U.S. industry-level productivity and demand shocks. These shocks are captured in: $\epsilon_{nt}$. As a result, OLS estimates of the impact of $\Delta IP_{nt}$ on outcomes (like employment) are biased and inconsistent.
+
+@autor2013china instrument $\Delta IP_{nt}$ with:
+
+$$
+\Delta IPO_{nt} = \text{Average growth of Chinese imports in 8 non-U.S. countries}.
+$$
+
+-   **Relevance**: Both $\Delta IP_{nt}$ and $\Delta IPO_{nt}$ are driven by the same Chinese productivity shocks.
+-   **Exgeoneity Validity**: U.S.-specific shocks $\epsilon_{nt}$ are assumed **uncorrelated** with the import trends of other countries.
+
+------------------------------------------------------------------------
+
+#### Identification from a Natural Experiment
+
+Suppose $\Delta IPO_{nt}$ is **as-good-as-randomly assigned**, as in an RCT. Then:
+
+$$
+\mathbb{E}[\Delta IPO_{nt} \mid \mathcal{I}_{nt}] = \mu \quad \text{for all } n,t,
+$$
+
+where $\mathcal{I}_{nt}$ includes:
+
+-   U.S. demand shocks ($\epsilon_{nt}$),
+-   Pre-trends,
+-   Balance variables, etc.
+
+This allows consistent IV estimation from many $(n, t)$ observations, assuming independent variation in $\Delta IPO_{nt}$ across $n$ and $t$.
+
+We can also relax this to allow observables $q_{nt}$:
+
+$$
+\mathbb{E}[\Delta IPO_{nt} \mid \mathcal{I}_{nt}] = q_{nt}' \mu.
+$$
+
+Examples of $q_{nt}$:
+
+1.  **Period fixed effects**, isolating within-period shock variation.
+2.  **Sector fixed effects**, isolating variation within broad sectors.
+
+In that case, control for $q_{nt}$ in the industry-level IV model.
+
+------------------------------------------------------------------------
+
+### General Equilibrium Spillovers {#sec-general-equilibrium-spillovers-ssiv}
+
+When a shock hits a particular industry (say, furniture manufacturing), its effects can spill over into other parts of the economy. These are called **general equilibrium (GE) effects**, and they can complicate causal inference.
+
+Why Do Spillovers Matter?
+
+-   Suppose employment in industry $n$ shrinks due to a negative shock (like import competition from China).
+-   Whether total employment in the economy falls depends on whether affected workers find jobs in other industries.
+    -   If workers are quickly reabsorbed into other sectors, aggregate employment may not fall.
+    -   If they can't find work or drop out of the labor force, aggregate employment falls.
+-   Similarly, wages in other sectors may change in response to worker inflows/outflows.
+
+Intuition:
+
+> If workers laid off in one industry shift into others, both employment and wages in those other industries may change. So, comparing employment or wages across industries **doesn't isolate the effect of the original shock** --- because the economy is adjusting everywhere.
+
+Stylized Example:
+
+-   If workers move to retail, aggregate employment may **stay constant**.
+-   If workers remain unemployed, aggregate employment **falls**.
+
+Implication for Identification:
+
+-   If you're estimating the effect of a shock on wages or employment using industry-level data, spillovers can bias your estimates.
+-   Wage comparisons across industries may not reflect true local effects because of market-wide adjustments.
+
+------------------------------------------------------------------------
+
+To address the challenges of general equilibrium spillovers across industries, @autor2013china propose analyzing the impact of shocks at the **regional level**, not the industry level.
+
+They specify **regional outcome equations** of the form:
+
+$$
+Y_\ell = \beta X_\ell + \gamma' W_\ell + \epsilon_\ell,
+$$
+
+and use the **shift--share instrument**:
+
+$$
+Z_\ell = \sum_n s_{\ell n}^{(0)} g_n,
+$$
+
+where:
+
+-   $Y_\ell$ is the outcome for region $\ell$ (e.g., employment, wages, etc.)
+-   $X_\ell$ is the potentially endogenous treatment (e.g., import competition)
+-   $s_{\ell n}^{(0)}$ is region $\ell$'s pre-determined employment share in industry $n$
+-   $g_n$ is the national shock to industry $n$
+
+------------------------------------------------------------------------
+
+Why the Regional Level?
+
+-   Regions are treated as isolated islands:
+    -   Workers do not easily move across regions in response to shocks.
+    -   Most adjustments happen within regions, not across them.
+-   This makes it more plausible that variation in $Z_\ell$ is exogenous --- driven by external shocks $g_n$ and not by region-specific unobservables.
+
+------------------------------------------------------------------------
+
+Structural Support
+
+-   @adao2019shift formalize this in a **simple spatial model**: local labor markets are semi-closed, and spillovers are limited.
+-   @adao2019general extend this to include **richer spatial interactions**, such as commuting zones, migration, and product market linkages across regions.
+
+> Just because your model is well-specified (e.g., you correctly model spillovers) does **not** guarantee valid identification.
+
+You still need:
+
+-   **Quasi-random shocks** $g_n$
+-   **Predetermined exposure shares** $s_{\ell n}^{(0)}$
+-   **No omitted variables correlated with** $Z_\ell$ and $Y_\ell$
+
+So, the same shock $g_n$ used in an industry-level regression can be used to construct a valid instrument $Z_\ell$ for a regional-level regression, if the assumptions behind the shift--share design are satisfied.
+
+> The regional SSIV approach provides a way to leverage **industry-level quasi-experiments** for causal identification **at the region level** --- especially when mobility across regions is limited and exposure shares are exogenous.
+
+------------------------------------------------------------------------
+
+### SSIV Estimation as Equivalent to Shock-Level IV
+
+@borusyak2022quasi provide an insightful reinterpretation of the SSIV estimator by showing that it's numerically equivalent to an IV regression at the shock level.
+
+We start with the regional model:
+
+$$
+y_\ell = \beta x_\ell + \gamma' w_\ell + \epsilon_\ell
+$$
+
+and use a shift--share instrument:
+
+$$
+z_\ell = \sum_n s_{\ell n} g_n, \quad \text{with} \quad \sum_n s_{\ell n} = 1 \text{ for all } \ell.
+$$
+
+------------------------------------------------------------------------
+
+Step 1: Residualizing Using FWL Theorem
+
+Let:
+
+-   $v_\ell^\perp$ be the residual from regressing variable $v_\ell$ (e.g., $y_\ell$ or $x_\ell$) on the controls $w_\ell$.
+-   For example:
+    -   $y_\ell^\perp = y_\ell - \hat{\gamma}_y' w_\ell$
+    -   $x_\ell^\perp = x_\ell - \hat{\gamma}_x' w_\ell$
+
+Then the SSIV estimator becomes:
+
+$$
+\hat{\beta}^{SSIV} = \frac{\sum_\ell z_\ell y_\ell^\perp}{\sum_\ell z_\ell x_\ell^\perp}
+= \frac{\sum_\ell \sum_n s_{\ell n} g_n y_\ell^\perp}{\sum_\ell \sum_n s_{\ell n} g_n x_\ell^\perp}
+$$
+
+------------------------------------------------------------------------
+
+Step 2: Rewriting as a Shock-Level Aggregation
+
+Group the expression by shocks $n$:
+
+$$
+\begin{aligned}
+\hat{\beta}^{SSIV} &=
+ \frac{\frac{1}{L} \sum_\ell \sum_n s_{\ell n} g_n y_\ell^\perp}{\frac{1}{L} \sum_\ell \sum_n s_{\ell n} g_n x_\ell^\perp} \\
+&=
+\frac{\sum_n g_n \left( \frac{1}{L} \sum_\ell s_{\ell n} y_\ell^\perp \right)}{\sum_n g_n \left( \frac{1}{L} \sum_\ell s_{\ell n} x_\ell^\perp \right)}
+= \frac{\sum_n s_n g_n \bar{y}_n^\perp}{\sum_n s_n g_n \bar{x}_n^\perp}
+\end{aligned}
+$$
+
+where:
+
+-   $\bar{v}_n^\perp = \dfrac{\sum_\ell s_{\ell n} v_\ell^\perp}{\sum_\ell s_{\ell n}}$ is the exposure-weighted average residual for shock $n$
+-   $s_n = \dfrac{1}{L} \sum_\ell s_{\ell n}$ is the average exposure share for shock $n$
+
+> The SSIV estimator based on regional data is algebraically identical to an IV regression at the shock (industry) level:
+
+$$
+\bar{y}_n^\perp = \alpha + \beta \bar{x}_n^\perp + \bar{\epsilon}_n
+$$
+
+with:
+
+-   Instrument: $g_n$
+
+-   Weights: $s_n$
+
+-   Outcome: $\bar{y}_n^\perp$
+
+-   Treatment: $\bar{x}_n^\perp$
+
+-   $\bar{\epsilon}_n$ represents the average unobserved outcome residual among regions most exposed to industry $n$. In the @autor2013china context, this captures how regional employment outcomes are affected by unobserved factors, averaged across regions highly specialized in industry $n$.
+
+------------------------------------------------------------------------
+
+Conditions for Consistency [@borusyak2022quasi]
+
+1.  **Quasi-Random Shock Assignment**
+
+$$
+\mathbb{E}[g_n \mid \bar{\epsilon}_n, s_n] = \mu.
+$$
+
+Implies: $z_\ell = \mu + \sum_n s_{\ell n} (g_n - \mu) = \mu + \text{mean-zero noise}$.
+
+2.  **Many Uncorrelated Shocks**
+
+-   Herfindahl index condition: $\mathbb{E} \left[ \sum_n s_n^2 \right] \to 0$ as $N \to \infty$ (i.e., Expected HHI of average shock exposure converges to 0).
+-   Covariance: $\text{Cov}(g_n, g_{n'} \mid \bar{\epsilon}, s) = 0$ for $n \ne n'$ (i.e., Shocks are uncorrelated given unobservables)
+
+Based on [Law of Large Numbers], this ensures:
+
+$$
+\sum_n s_n g_n \bar{\epsilon}_n \xrightarrow{p} 0
+$$
+
+------------------------------------------------------------------------
+
+Extensions from @borusyak2022quasi
+
+1.  **Conditional Quasi-Random Assignment**
+
+$$
+\mathbb{E}[g_n \mid \bar{\epsilon}_n, q_n, s_n] = q_n' \mu
+$$
+
+-   Control for $w_\ell = \sum_n s_{\ell n} q_n$ to restore consistency
+
+2.  **Weakly Correlated Shocks**
+
+-   $g_n |(\bar{\epsilon}, q, s)$ are clustered or dependent across $n$
+-   Consistency holds if dependence is not too strong
+
+3.  **Estimated Shocks**
+
+-   Let $g_n$ be estimated: $g_n = \sum_\ell w_{\ell n} g_{\ell n}$
+-   Use leave-one-out estimator:
+
+$$
+\tilde{g}_{\ell n} = \sum_{l' \ne \ell} w_{l'n} g_{l'n}, \quad z_\ell = \sum_n s_{\ell n} \tilde{g}_{\ell n}
+$$
+
+Analogous to Jackknife IV Estimation (JIVE) correction.
+
+4.  **Panel Data**: With $(y_{\ell t}, x_{\ell t}, s_{\ell nt}, g_{nt})$:
+
+-   Consistency from either $N \to \infty$ or $T \to \infty$
+-   Unit fixed effects remove time-invariant components of $g_{nt}$
+
+5.  **Heterogeneous Treatment Effects**
+
+-   SSIV identifies a LATE-type convex average under first-stage monotonicity
+
+------------------------------------------------------------------------
+
+### Relaxing the Constant-Share Assumption in Shift-Share Designs
+
+A standard identifying assumption in SSIV designs is that the exposure shares sum to one within each observational unit:
+
+$$
+\sum_n s_{ln} = 1 \forall l
+$$
+
+This normalization simplifies the instrument's structure and supports identification under assumptions A1 (exogeneity of shocks) and A2 (shock heterogeneity). However, many empirical applications involve **incomplete or unnormalized exposure shares**, where $\sum_n s_{ln} \equiv S_l \ne 1$ and may vary across units.
+
+#### Endogeneity Induced by Varying Total Exposure
+
+Consider the general SSIV instrument:
+
+$$
+z_l = \sum_n s_{ln} g_n
+$$
+
+If we decompose $g_n$ as $g_n = \mu + (g_n - \mu)$ for some average shock $\mu$, then:
+
+$$
+z_l = \mu S_l + \sum_n s_{ln}(g_n - \mu)
+$$
+
+The key issue is that $z_l$ now contains a mechanical component $\mu S_l$ that is proportional to $S_l$, the total exposure. If $S_l$ is endogenous --- for example, reflecting the size of a particular sector in region $l$ --- then $z_l$ is no longer a valid instrument unless $S_l$ is appropriately controlled for in the estimation equation. For example, @autor2013china compares regions with larger and smaller values of $z_l$, but mechanically, this could simply mean comparing regions with higher and lower levels of manufacturing employment
+
+------------------------------------------------------------------------
+
+#### Estimation Strategy with Varying Total Exposure
+
+To isolate the exogenous variation in $z_l$, it is necessary to control for $S_l$:
+
+$$
+z_l = \sum_n s_{ln} (\mu + (g_n - \mu)) = \mu S_l + \sum_n s_{ln}(g_n - \mu)
+$$
+
+The second term represents the clean variation driven by the quasi-random component of the shocks. Including $S_l$ as a control absorbs the endogenous variation in total exposure.
+
+In a panel setting with time-varying shocks, the decomposition becomes:
+
+$$
+z_{lt}=\sum_n s_{ln} (\mu_t + (g_{nt} - \mu_t)) = \mu_t S_{lt} + \sum_n s_{lnt}(g_{nt} - \mu_t)
+$$
+
+In this case, controlling for $S_{lt} \times$ time fixed effects ensures identification comes from within-period variation in the quasi-random component. Specifically, this is critical when assumption A1 (exogeneity of shocks) holds conditional on $q_n$.
+
+------------------------------------------------------------------------
+
+### Correlation in Instruments from Similar Exposure Patterns
+
+A second challenge arises not from the structure of $z_l$, but from inference: even when shocks are quasi-random, observations with **similar exposure vectors** $(s_{l1}, \dots, s_{lN})$ will have mechanically correlated instruments.
+
+This phenomenon, termed **exposure clustering** in @adao2019shift, undermines standard inference techniques. Specifically, when the residual $\epsilon_l$ is also affected by industry-level shocks:
+
+$$
+\epsilon_l = \sum_n s_{ln} \nu_n + \tilde{\epsilon}_l
+$$
+
+the usual assumptions underpinning the [Central Limit Theorem] for $\hat{\beta}$ fail, because the instrument $z_l$ and residual $\epsilon_l$ are correlated across observational units with similar exposure profiles.
+
+------------------------------------------------------------------------
+
+#### Inference at the Level of Shocks
+
+The solution proposed by @adao2019shift and refined in @borusyak2022quasi is to conduct inference **at the level of shocks**, not observational units. This is achieved by transforming the SSIV into an equivalent **shock-level regression**:
+
+$$
+\bar{y}_n^{\perp} = \alpha + \beta \bar{x}_n^{\perp} + \mathbf{q}_n' \tau + \bar{\epsilon}_n^{\perp}
+$$
+
+-   $\bar{x}_n^{\perp}$ and $\bar{y}_n^{\perp}$ are aggregated and residualized outcomes and treatments using exposure weights.
+-   Instrument: $g_n$, assumed quasi-random.
+-   Weighting: by average industry exposure $s_n = \sum_l \omega_l s_{ln}$.
+
+This approach yields numerically identical estimates of $\hat{\beta}$ (under linearity) while ensuring valid standard errors through clustering at the level of the shocks --- the source of identifying variation.
+
+The same logic applies to pre-trend tests, placebo regressions, and tests of instrument strength. The `ssaggregate` package implements this transformation.
+
+```{r, eval = FALSE}
+devtools::install_github("kylebutts/ssaggregate")
+```
+
+------------------------------------------------------------------------
+
+### Case Study: Chinese Import Competition and U.S. Labor Markets
+
+@autor2013china estimate the impact of rising Chinese import competition on U.S. labor markets over 1991--2007.
+
+**Design Overview**
+
+-   **Treatment:**\
+    $$x_{lt} = \text{Growth of Chinese imports per worker in \$1000}$$
+
+-   **Outcome:**\
+    $$y_{lt} = \text{Change in manufacturing employment share}$$
+
+-   **Instrument (Shift-Share):**\
+    $$
+    z_{lt} = \sum_n s_{lnt} g_{nt}
+    $$\
+    where:
+
+    -   $n$ indexes 397 SIC 4-digit industries,
+    -   $g_{nt}$ is growth in Chinese exports to non-U.S. destinations per U.S. worker,
+    -   $s_{lnt}$ is the lagged employment share of industry $n$ in location $l$.
+
+This design leverages quasi-random shocks $g_{nt}$ under the assumption that productivity shocks in China affect global exports, including to the U.S.
+
+**Assumption A1 (Exogeneity):**\
+@borusyak2022quasi recast the design as using quasi-random shocks and recommend conducting shock-level balance tests:
+
+-   Regress $g_n$ on industry covariates $q_n$ (e.g., lagged outcomes, sector and year fixed effects).
+-   If $\text{Cov}(g_n, q_n) \approx 0$, the exogeneity assumption is plausible.
+
+@borusyak2022quasi validate the approach by replicating @autor2013china with shock-level balance tests and find no significant correlation between $g_n$ and industry observables, after controlling for year fixed effects.
+
+**Control for Industry Confounders:**
+
+Include:
+
+$$
+w_{lt} = \sum_n s_{lnt} q_{nt}
+$$
+
+in the main regression to control for industry-level observables (e.g., sector FEs, period FEs, variables from @acemoglu2016import).
+
+**Assumption A2 (Sufficient Variation):**
+
+Assessed via the effective number of shocks:
+
+-   Inverse Herfindahl index of $s_n$: typically 58--192 in the @autor2013china setting.
+-   Suggests that enough variation exists across shocks to support asymptotic approximations.
+-   Empirically, shocks $g_n$ are uncorrelated across SIC3 sectors.
+
+------------------------------------------------------------------------
+
+## Share Exogeneity
+
+@card1990impact leverages a large, sudden migration of low-skilled Cuban workers into Miami following the 1980 Mariel boatlift. Since Miami already had a large Cuban enclave, this setting creates natural variation in immigrant inflows across cities, which can be instrumented using the **lagged share of Cuban workers** in the local labor market.
+
+This approach is a canonical example of a SSIV design. Conceptually, we are instrumenting immigration inflows using the interaction of:
+
+-   Local shares of Cuban workers pre-boatlift ($s_{l, \text{Cuba}}$), and
+-   A national "shock" that uniformly affects all locations with Cuban workers (i.e., the Mariel migration).
+
+This fits into a **difference-in-differences** logic: we need **parallel trends**, meaning cities with high and low initial Cuban shares would have followed similar employment trends absent the shock.
+
+This type of instrument can be represented as:
+
+$$
+z_l = \sum_n s_{ln} g_n
+$$
+
+where:
+
+-   $s_{ln}$ is the share of group $n$ (e.g., Cubans) in location $l$ at a pre-determined time (pre-shock),
+-   $g_n$ is the national shock affecting group $n$ (e.g., the size of migration inflow from group $n$),
+-   $z_l$ is the instrument for treatment exposure in location $l$.
+
+In the basic Mariel case:
+
+$$
+s_{l, \text{Cuba}} \cdot 1 + \sum_{n \ne \text{Cuba}} s_{ln} \cdot 0 = s_{l, \text{Cuba}}
+$$
+
+If multiple migration origin groups experience independent push shocks (e.g., multiple boatlifts), these can be pooled together into a broader SSIV framework.
+
+@goldsmith2020bartik show that if we treat the set of groups $n$ and shocks $g_n$ as fixed, the SSIV estimator:
+
+$$
+\hat{\beta} = \frac{\sum_l z_l y_l^\perp}{\sum_l z_l x_l^\perp}
+$$
+
+is numerically equivalent to an **overidentified IV regression** using the $N$ shares $s_{ln}$ as instruments, with a weighting scheme derived from the $g_n$ shocks.
+
+------------------------------------------------------------------------
+
+The key identifying assumption is **share exogeneity**:
+
+$$
+\mathbb{E}[\epsilon_l \mid s_{ln}] = 0 \quad \forall n
+$$
+
+That is, the shares must be uncorrelated with unobserved location-level residuals. This implies the moment conditions:
+
+$$
+\mathbb{E}\left[ \sum_l z_l \epsilon_l \right] = \sum_l \sum_n g_n \mathbb{E}[s_{ln}] \cdot \mathbb{E}[\epsilon_l \mid s_{ln}] = 0
+$$
+
+These provide $N$ moment conditions at the level of observations:
+
+-   For example, 38 conditions in @card1990impact
+-   397 in @autor2013china
+-   Just 1 in @borusyak2022quasi when using shocks at the industry level
+
+In other words, SSIV can be interpreted as **pooling many boatlift-style DiD IVs**, one for each industry or origin group.
+
+------------------------------------------------------------------------
+
+### Rotemberg Weights
+
+To show how SSIV implicitly weights these multiple instruments, @goldsmith2020bartik decompose the SSIV estimator using **Rotemberg weights** [@rotemberg1983instrument]:
+
+$$
+\hat{\beta} = \sum_n \hat{\alpha}_n \hat{\beta}_n
+$$
+
+Where:
+
+-   $\hat{\beta}_n = \frac{\sum_l s_{ln} y_l^\perp}{\sum_l s_{ln} x_l^\perp}$ is the IV estimate using share $n$ alone
+-   $\hat{\alpha}_n = \frac{g_n \sum_l s_{ln} x_l^\perp}{\sum_{n'} g_{n'} \sum_l s_{ln'} x_l^\perp}$ is the Rotemberg weight on share $n$
+
+These weights reflect how much each $n$-specific IV contributes to the overall SSIV estimate. Intuitively, shares with:
+
+-   larger first-stage covariance with the treatment ($\sum_l s_{ln} x_l^\perp$),
+-   and more extreme shocks ($g_n$)
+
+get more weight.
+
+> Importantly, **Rotemberg weights can be negative**, which is problematic under treatment effect heterogeneity, as it may result in an SSIV estimate outside the range of true local effects.
+
+------------------------------------------------------------------------
+
+### Share Exogeneity Plausibility
+
+**Share exogeneity** does *not* require that shares themselves are unaffected by outcomes --- they are pre-determined. Instead, the assumption is:
+
+> All unobserved residual variation in outcomes is uncorrelated with the local share distribution.
+
+Formally, the problem arises if unobserved group-level shocks $\nu_n$ enter the outcome:
+
+$$
+\epsilon_l = \sum_n s_{ln} \nu_n + \tilde{\epsilon}_l
+$$
+
+Even if $\nu_n$ is uncorrelated with the national shock $g_n$, the shares $s_{ln}$ mechanically induce correlation with $\epsilon_l$. Thus:
+
+-   In large samples, this creates bias.
+-   Shares are not exogenous if they load on unobserved structural shocks across industries or origins.
+
+Examples
+
+-   In @autor2013china, unobserved industry-specific technology shocks ($\nu_n$) influence labor markets via employment shares, violating exogeneity.
+-   This issue worsens when shares are "generic":
+    -   For example, if lagged employment shares predict a wide array of shocks (i.e., many $g_n$ and $\nu_n$ aligned).
+
+In layman's terms: if the past composition of your city predicts a lot of things (not just the shock you're using), you can't treat those shares as exogenous.
+
+------------------------------------------------------------------------
+
+### Empirical Strategies to Assess Share Exogeneity
+
+When the assumption is **ex ante plausible**, we can **test its validity ex post**:
+
+-   **Balance tests / Pre-trend tests**: do regions with high vs. low shares show similar trends before the shock?
+-   **Overidentification tests**: under constant treatment effects, these test whether all instruments agree.
+
+@goldsmith2020bartik apply these diagnostics:
+
+-   For @card1990impact: tests **pass**, supporting share exogeneity.
+-   For @autor2013china: tests **fail**, consistent with the presence of omitted variable bias.
+
+------------------------------------------------------------------------
+
+## Choosing an Appropriate SSIV Framework
+
+The implementation and validity of a shift-share IV estimator depend critically on how we conceptualize the **source of identifying variation**. In particular, we need to ask: *Are we relying on variation in shocks, or variation in shares?* Each setting requires different assumptions and lends itself to a different empirical framework.
+
+We now describe three canonical cases:
+
+------------------------------------------------------------------------
+
+### **Case 1: The Instrument is a Set of Quasi-Random Shocks**
+
+In this ideal scenario, the researcher observes a set of **many, plausibly exogenous shocks** $g_n$ (e.g., industry or origin-country shocks) that are **quasi-randomly assigned** and exogenous by construction.
+
+-   **Example:** @borusyak2022quasi provide a formal framework for this setting. They treat the shocks $g_n$ as the instrument and map the resulting variation to units like local labor markets (e.g., commuting zones).
+-   Under this view, the shares $s_{ln}$ are simply exposure mappings that weight the effect of these shocks.
+
+The identifying variation comes entirely from $g_n$, while $s_{ln}$ defines the unit's exposure. This setup allows researchers to estimate the **local average treatment effect (LATE)** of shocks on outcomes at the aggregated level.
+
+This framework is often appropriate when:
+
+-   Shocks are numerous and granular (e.g., hundreds of industries or countries).
+-   Shocks are externally generated or independent of the data (e.g., natural disasters, trade wars, refugee flows).
+
+------------------------------------------------------------------------
+
+### **Case 2: Shocks are Estimated In-Sample**
+
+The researcher does not observe the shocks $g_n$ directly, but instead **constructs them in-sample**, often by averaging over other units.
+
+-   **Canonical example:** @bartik1991benefits constructs $g_n$ as national industry growth rates, under the assumption that these capture latent national demand shocks.
+-   @card2009immigration estimates national immigration rates by group as a proxy for labor supply shocks.
+
+This framework requires stronger assumptions, because:
+
+-   Shocks are *not* truly exogenous: they are estimated from the same data used to estimate treatment effects.
+-   Shocks may reflect endogenous responses, such as national policies or business cycles.
+
+Thus, while still plausible in many cases, this approach requires additional care, including robustness checks and careful arguments about the external validity of the constructed shocks.
+
+------------------------------------------------------------------------
+
+### **Case 3: Shocks are Not Plausibly Exogenous**
+
+In some applications, $g_n$ cannot be interpreted as valid instruments:
+
+-   There are **too few shocks** (e.g., only a handful of origin countries).
+-   The shocks are **not exogenous**, even conditional on shares.
+
+In these cases, identification may rest entirely on the assumption of **share exogeneity**, meaning that the shares $s_{ln}$ are uncorrelated with unobservables:
+
+$$
+\mathbb{E}[\epsilon_l \mid s_{ln}] = 0
+$$
+
+This is a much stronger assumption, because:
+
+-   Unobserved group-level shocks $\nu_n$ (e.g., industry-specific trends or latent migration drivers) may be correlated with both the shares and the outcome.
+-   The shares may act as proxies for broader latent economic forces, violating exogeneity.
+
+In these cases, the identifying variation is no longer driven by random assignment of shocks, but instead relies on a **DiD-style logic**: that units with high vs. low exposure shares would have evolved similarly absent the treatment.
+
+------------------------------------------------------------------------
+
+## Ex Ante vs. Ex Post Validity of the Identification Strategy
+
+@borusyak2022quasi state a key principle:
+
+> The choice between a **shock-driven** vs. **share-driven** identification strategy must be made *ex ante*, not based on ex post tests.
+
+Why?
+
+-   Ex post balance or pre-trend tests are useful for falsifying assumptions, but cannot confirm validity.
+-   If the identifying assumptions are not justified *before* estimation, statistical inferences become fragile and possibly invalid.
+
+@borusyak2022quasi also propose an intuitive distinction:
+
+-   **Tailored shares** are *specific to the treatment or setting* and are unlikely to correlate with other latent economic shocks.
+    -   E.g., pre-existing Cuban shares in @card1990impact are tightly connected to the Mariel boatlift.
+    -   These settings have a natural **difference-in-differences** feel, with the shock being plausibly orthogonal to pre-trends.
+    -   This setting doesn't even require plausible shocks. But with these shocks, we can improve statistical power and possibly avoid the **many-instrument bias**.
+-   **Generic shares**, by contrast, are more problematic.
+    -   E.g., in @autor2013china, industry employment shares predict a wide range of outcomes due to unobserved productivity shocks.
+    -   In such cases, **unobserved components** of the outcome equation ($\nu_n$) may load on the same shares used in the instrument, violating exogeneity.
+    -   This is especially dangerous when the same shares $s_{ln}$ appear in both the endogenous regressor and the residual.
+
+In short:
+
+-   **Tailored shares**: more credible identification; can often be interpreted causally even without many shocks.
+-   **Generic shares**: risk of overfitting and omitted variable bias; identification rests on stronger assumptions.
+
+------------------------------------------------------------------------
+
+### Practical Implications for Researchers
+
+To guide empirical design, consider the following checklist:
+
++------------------------------------------------------------------------------------------+----------------------------------------------------------------------------+
+| Question                                                                                 | Relevance to Design                                                        |
++==========================================================================================+============================================================================+
+| Are the shocks $g_n$ observed and plausibly exogenous?                                   | If yes, prefer a shock-driven SSIV design.                                 |
++------------------------------------------------------------------------------------------+----------------------------------------------------------------------------+
+| Are the shocks estimated in-sample?                                                      | Proceed with caution: validate assumptions and test robustness.            |
++------------------------------------------------------------------------------------------+----------------------------------------------------------------------------+
+| Are the shares tailored to a specific treatment (e.g., a natural experiment)?            | Increases credibility of share exogeneity.                                 |
++------------------------------------------------------------------------------------------+----------------------------------------------------------------------------+
+| Are the shares generic across settings or outcomes?                                      | Raises red flags; test for robustness, overidentification, and pre-trends. |
++------------------------------------------------------------------------------------------+----------------------------------------------------------------------------+
+| Is the design better interpreted as difference-in-differences or instrumental variables? | Helps clarify the role of shocks vs. shares in identification.             |
++------------------------------------------------------------------------------------------+----------------------------------------------------------------------------+
+
+# 3 Canonical Empirical Applications
+
++-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| Research Area                           | Illustrative Studies                                                                                                                                                                                                                      |
++=========================================+===========================================================================================================================================================================================================================================+
+| **Regional labor demand & immigration** | @blanchard1992regional; @bound2000demand; @card2001immigrant; @moretti2004workers; @card2009immigration; @aizer2010gender; @duranton2011fundamental; @beaudry2012does; @diamond2016determinants; @imbert2022migrants; @altonji2018effects |
++-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Bank lending & credit supply**        | @amiti2018much; @greenstone2020credit                                                                                                                                                                                                     |
++-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Market size & demography**            | @acemoglu2004market; @jaravel2021inflation                                                                                                                                                                                                |
++-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Labor supply elasticity**             | @blanchard1992regionalm; @bartik1991benefits                                                                                                                                                                                              |
++-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Fiscal multipliers**                  | @nakamura2014fiscal                                                                                                                                                                                                                       |
++-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Trade shocks & labor markets**        | @autor2013china; @autor2018understanding                                                                                                                                                                                                  |
++-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Foreign aid allocation**              | @nunn2014us                                                                                                                                                                                                                               |
++-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Portfolio allocation**                | @calvet2009fight                                                                                                                                                                                                                          |
++-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Trade shocks & prices**               | @piveteau2018impact                                                                                                                                                                                                                       |
++-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Technology & automation**             | @acemoglu2017secular                                                                                                                                                                                                                      |
++-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| **Predicting population growth**        | @baum2017roads                                                                                                                                                                                                                            |
++-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+# 4 Econometric Intuition
+
+Because $Z_{\ell t}$ is a **sum of common shocks**, the usual moment $E[Z_{\ell t}\,\epsilon_{\ell t}]=0$ can fail even when each $g_{nt}$ is exogenous. Consistency instead relies on a **law of large numbers across sectors**:
+
+$$
+\frac{1}{L}\sum_{\ell=1}^{L} Z_{\ell t}\,\epsilon_{\ell t}\xrightarrow{p}0\quad(L\to\infty).
+$$
+
++----------------------+--------------------------------+---------------------------------------------------------------+
+| Feature              | Standard IV                    | Shift--Share IV                                               |
++======================+================================+===============================================================+
+| Exogeneity condition | $E[Z_{\ell}\epsilon_{\ell}]=0$ | $E\big[\tfrac{1}{L}\sum_{\ell}Z_{\ell}\epsilon_{\ell}\big]=0$ |
++----------------------+--------------------------------+---------------------------------------------------------------+
+| Source of variation  | Unit‑specific instrument       | Weighted average of common shocks                             |
++----------------------+--------------------------------+---------------------------------------------------------------+
+| Asymptotics          | Validity at each unit          | Validity *on average* across many units                       |
++----------------------+--------------------------------+---------------------------------------------------------------+
+
+::: callout-tip
+Dividing by $L$ ensures asymptotic consistency; SSIV requires **aggregate‑level exogeneity**, not unit‑level randomization.
+:::
+
+# 6 Identification Strategies
+
+## 6.1 *Shares‑Exogenous* Approach @goldsmith2020bartik
+
+Assume baseline shares $s_{\ell n}^{(0)}$ are *as good as random* across units (conditional on controls). Without treatment, units differently exposed would have followed parallel trends---akin to stacking difference‑in‑differences by sector.
+
+**Checklist** [@borusyak2025practical]:
+
+-   Motivate why the shares isolate exposure to *this* shock.
+-   Include an **incomplete‑share control** $S_{\ell}=\sum_{n}s_{\ell n}^{(0)}$ so identification comes from composition, not scale.
+-   Examine **Rotemberg weights** (`bartik_weight`) and balance the sectors with highest influence. \## Basic Setup: Growth Between Two Periods
+
+------------------------------------------------------------------------
+
+## Basic Setup: One Growth Period
+
+We want to estimate the effect of **employment growth** in location $l$, denoted $x_l$, on **wage growth** in the same location, denoted $y_l$. A simple linear model is:
+
+$$
+y_l = \rho + \beta_0 x_l + \epsilon_l
+$$
+
+where:
+
+-   $y_l$ is the wage growth in location $l$,
+
+-   $x_l$ is the employment growth in $l$,
+
+-   $\rho$ is a constant term,
+
+-   $\beta_0$ is the coefficient of interest,
+
+-   $\epsilon_l$ is an error term.
+
+------------------------------------------------------------------------
+
+## Decomposition of Employment Growth
+
+Employment growth $x_l$ can be decomposed across $K$ industries, where:
+
+-   $z_{lk}$ is the **initial employment share** of industry $k$ in location $l$,
+
+-   $g_{lk}$ is the **employment growth rate** of industry $k$ in location $l$.
+
+Then:
+
+$$
+x_l = \sum_{k = 1}^K z_{lk} g_{lk}
+$$
+
+Each industry-level growth rate $g_{lk}$ can further be decomposed into:
+
+-   a **national industry component** $g_k$, and
+
+-   a **local industry deviation** $\tilde{g}_{lk}$:
+
+$$
+g_{lk} = g_k + \tilde{g}_{lk}
+$$
+
+------------------------------------------------------------------------
+
+## The Bartik Instrument
+
+The Bartik instrument (also called a shift-share instrument) replaces the local industry growth $g_{lk}$ with national industry growth $g_k$, using the same local shares:
+
+$$
+B_l = \sum_{k = 1}^K z_{lk} g_k
+$$
+
+This instrument is valid under the assumption that the local industry shares $z_{lk}$ are **exogenous**, i.e., uncorrelated with the error term $\epsilon_l$.
+
+------------------------------------------------------------------------
+
+## Full Panel Setup: Multiple Growth Periods
+
+In a panel data setting with multiple time periods $t$, we can estimate:
+
+$$
+y_{lt} = D_{lt} \rho + x_{lt} \beta_0 + \epsilon_{lt}
+$$
+
+where:
+
+-   $y_{lt}$ and $x_{lt}$ are outcomes and employment growth in location $l$ at time $t$,
+
+-   $D_{lt}$ denotes **location-time fixed effects**, which control for location-specific time trends,
+
+-   $\epsilon_{lt}$ is the error term.
+
+Employment growth is constructed as:
+
+$$
+x_{lt} = \sum_{k = 1}^K z_{lkt} g_{lkt}
+$$
+
+with industry growth decomposed as:
+
+$$
+g_{lkt} = g_{kt} + \tilde{g}_{lkt}
+$$
+
+The corresponding **panel Bartik instrument** uses **initial period shares** (e.g., from $t = 0$):
+
+$$
+B_{lt} = \sum_{k = 1}^K z_{lk0} g_{kt}
+$$
+
+------------------------------------------------------------------------
+
+## Bartik as GMM-IV Estimator
+
+A key insight from @goldsmith2020bartik is that the Bartik instrument can be interpreted as a **Generalized Method of Moments (GMM) Instrumental Variables (IV)** estimator.
+
+### Moment Conditions
+
+For instruments $z_i \in Z$ and errors $\epsilon_i$, GMM relies on moment conditions:
+
+$$
+\mathbb{E}[z_i \epsilon_i] = 0
+$$
+
+This reflects the standard **exclusion restriction**. If the number of instruments equals the number of endogenous regressors, GMM reduces to standard IV estimation. If we have more instruments, GMM chooses a **weighting matrix** to minimize a quadratic form of the moment conditions:
+
+$$
+\min_\theta \left( \frac{1}{n} \sum_{i=1}^n z_i \epsilon_i(\theta) \right)' W \left( \frac{1}{n} \sum_{i=1}^n z_i \epsilon_i(\theta) \right)
+$$
+
+In the Bartik case:
+
+-   Each $z_{lk}$ is a separate instrument,
+
+-   The Bartik instrument is a linear combination of these instruments,
+
+-   The GMM weighting matrix is proportional to the **cross-product of national industry growth rates**, which captures the relative informativeness of different instruments.
+
+------------------------------------------------------------------------
+
+## Identification: Exogeneity of Shares
+
+The identification assumption is that **initial employment shares are exogenous**, i.e.:
+
+$$
+\mathbb{E}[\epsilon_l \mid Z, X] = 0
+$$
+
+This means that, conditional on covariates, shares are uncorrelated with unobserved shocks affecting wage growth. Crucially:
+
+-   The **levels** of industry shares do **not** need to be uncorrelated with wage **levels**.
+
+-   What matters is the **independence of shares from unobservables** that drive **growth**.
+
+The national growth rates $g_k$ are **not required** to be exogenous for identification; they only affect the **efficiency** of the GMM estimator via the weighting matrix.
+
+------------------------------------------------------------------------
+
+## Do We Need All Instruments? Rotemberg Weights
+
+Many Bartik applications include hundreds of industries. Are all industry shares equally important as instruments?
+
+**No.** @goldsmith2020bartik propose **Rotemberg weights** to summarize how much each industry contributes to the Bartik estimate. These weights:
+
+-   Sum to 1,
+
+-   Help identify which industries drive identification,
+
+-   Can inform sensitivity checks: if one industry has most of the weight, its exogeneity is critical.
+
+------------------------------------------------------------------------
+
+## A Simple Example: Two Industries, One Period
+
+Suppose we only have two industries and one period. Then $z_{l1} + z_{l2} = 1$, so the industry mix is determined by $z_{l1}$.
+
+We estimate:
+
+$$
+y_l = \rho + \beta_0 x_l + \epsilon_l
+$$
+
+with:
+
+$$
+x_l = g_{l1} z_{l1} + g_{l2} z_{l2}
+$$
+
+and the Bartik instrument becomes:
+
+$$
+B_l = g_1 z_{l1} + g_2 z_{l2}
+$$
+
+Substituting $z_{l2} = 1 - z_{l1}$:
+
+$$
+B_l = g_2 + (g_1 - g_2) z_{l1}
+$$
+
+Now, the **first stage** becomes:
+
+$$
+x_l = \gamma_0 + \gamma B_l + \eta_l = \gamma_0 + \gamma g_2 + \gamma (g_1 - g_2) z_{l1} + \eta_l
+$$
+
+If we used $z_{l1}$ directly as the instrument:
+
+$$
+x_l = \delta_0 + \delta z_{l1} + \nu_l
+$$
+
+The two first stages are equivalent if:
+
+$$
+\gamma = \frac{\delta}{g_1 - g_2}
+$$
+
+Therefore, the **IV estimates of** $\beta_0$ will be identical --- the Bartik instrument is simply a scaled version of $z_{l1}$.
+
+------------------------------------------------------------------------
+
+## Two Industries, Two Periods
+
+Suppose we have two industries and two time periods $t = 1, 2$. We estimate:
+
+$$
+y_{lt} = \tau_t + \beta_0 x_{lt} + \epsilon_{lt}
+$$
+
+Use only initial shares (from $t = 0$), and assume $z_{l2,0} = 1 - z_{l1,0}$. Then the Bartik instrument is:
+
+$$
+B_{lt} = g_{1t} z_{l1,0} + g_{2t} z_{l2,0} = g_{2t} + (g_{1t} - g_{2t}) z_{l1,0}
+$$
+
+This leads to a first-stage regression:
+
+$$
+x_{lt} = (\tau_t + \gamma g_{2t}) + \gamma (g_{1t} - g_{2t}) z_{l1,0} + \eta_{lt}
+$$
+
+We can write this using time dummies:
+
+$$
+g_{1t} - g_{2t} = 1(t = 1)(g_{11} - g_{21}) + 1(t = 2)(g_{12} - g_{22})
+$$
+
+Then:
+
+$$
+x_{lt} = \tau_t + z_{l1,0} \cdot 1(t = 1) \cdot \delta_1 + z_{l1,0} \cdot 1(t = 2) \cdot \delta_2 + \delta_{lt}
+$$
+
+These are equivalent if:
+
+$$
+\frac{\delta_1}{g_{11} - g_{21}} = \frac{\delta_2}{g_{12} - g_{22}}
+$$
+
+------------------------------------------------------------------------
+
+## Interpretation: Two-Industry, Two-Period Analogy to DiD
+
+@goldsmith2020bartik show that in the two-industry, two-period case, the setup resembles a **difference-in-differences (DiD)** design:
+
+-   **Shares** measure **exposure** to an aggregate "treatment" (e.g., policy).
+-   **National growth rates** measure the **intensity** of treatment.
+-   The Bartik approach compares high- and low-exposure locations across periods of differing treatment intensity.
+
+------------------------------------------------------------------------
+
+## Why Use Bartik Instead of the Unconstrained Estimator?
+
+A natural question is: shouldn't the **unconstrained estimator**, using all instruments directly, perform better?
+
+Not necessarily. The **Bartik estimator** is a **just-identified IV** using a theoretically motivated linear combination of instruments. Its appeal lies in:
+
+-   **Interpretability** (the national industry shocks are the "policy shocks"),
+
+-   **Efficiency**, if the weighting matrix is well specified,
+
+-   **Simplicity**, especially when the number of instruments is large.
+
+But in theory, **unconstrained GMM** could be more flexible, especially when the exogeneity of only some shares is questionable.
+
+------------------------------------------------------------------------
+
+## 6.2 *Shifts‑Exogenous* Approach @borusyak2022quasi
+
+Assume shocks $g_{nt}$ are orthogonal to the *share‑weighted* average error $\epsilon_{\ell}$. Even if shares are endogenous, a randomly assigned shock (e.g., a subsidy lottery) yields a valid instrument.
+
+**Checklist** (adapted from @borusyak2025practical):
+
+-   Articulate the hypothetical experiment generating $g_{nt}$.
+-   Lag shares to a pre‑period to avoid mechanical correlation.
+-   Control for $S_{\ell}$.
+-   Balance‑test the shocks.
+
+::: callout-warning
+**Spillovers.** Sector‑specific shocks may reallocate workers across sectors within a region. Build the instrument at the *labor‑market* level to capture such spillovers or model them explicitly.
+:::
+
+## Share Shift IV
+
+<!-- <https://www.brendanmichaelprice.com/teaching/ecn250a/slides/Price-ECN250A-L20-Slides-Shift-Share-Instruments.pdf> -->
+
+<!-- <https://onlinelibrary.wiley.com/doi/10.1111/jors.12481> -->
+
+<!-- <https://drive.google.com/file/d/1jxx0UvVs3Nqw1qzboL3uG9q3TLQ5Nw49/view> -->
+
+

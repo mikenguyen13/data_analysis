@@ -2,7 +2,7 @@
 
 When you have an area of interest to research, a problem to solve, or a relationship to investigate, theoretical and empirical processes will help you.
 
-**Estimand**: Defined as "a quantity of scientific interest that can be calculated in the population and does not change its value depending on the data collection design used to measure it (i.e., it does not vary with sample size, survey design, the number of non-respondents, or follow-up efforts)." [@Rubin_1996]
+>**Estimand**: Defined as "a quantity of scientific interest that can be calculated in the population and does not change its value depending on the data collection design used to measure it (i.e., it does not vary with sample size, survey design, the number of non-respondents, or follow-up efforts)." [@Rubin_1996]
 
 Examples of estimands include:
 
@@ -125,12 +125,12 @@ library(e1071)
 # Calculate skewness
 skewness_value <- skewness(data)
 cat("Skewness:", skewness_value, "\n")
-#> Skewness: -0.2827733
+#> Skewness: 0.3744006
 
 # Calculate kurtosis
 kurtosis_value <- kurtosis(data)
 cat("Kurtosis:", kurtosis_value, "\n")
-#> Kurtosis: -0.3884512
+#> Kurtosis: 1.759225
 ```
 
 ## Graphical Measures
@@ -242,13 +242,15 @@ stem(data)
 #> 
 #>   The decimal point is at the |
 #> 
-#>   -3 | 7
-#>   -2 | 3200
-#>   -1 | 9998755321000
-#>   -0 | 9999988777766666544443332222211110
-#>    0 | 00111122223333344455557788888999
-#>    1 | 00112234778
-#>    2 | 11169
+#>   -1 | 97555
+#>   -1 | 4433221100
+#>   -0 | 9998888877776655555
+#>   -0 | 443333222222221100
+#>    0 | 011111222222233333334444
+#>    0 | 555577777899
+#>    1 | 00111222
+#>    1 | 67
+#>    2 | 01
 
 # Bagplot - A 2D Boxplot Extension: Visualizes the spread and identifies outliers in two-dimensional data.
 pacman::p_load(aplpack)
@@ -412,7 +414,7 @@ library("EnvStats")
 
 # Perform Probability Plot Correlation Coefficient (PPCC) Test
 gofTest(data, test = "ppcc")$p.value # Probability Plot Correlation Coefficient
-#> [1] 0.5539577
+#> [1] 0.8447804
 ```
 
 ##### Shapiro-Wilk Test
@@ -476,31 +478,58 @@ Hence, the Shapiro-Wilk test's sensitivity to these deviations makes it a powerf
 ``` r
 # Perform Shapiro-Wilk Test (Default for gofTest)
 EnvStats::gofTest(mtcars$mpg, test = "sw")
+#> $distribution
+#> [1] "Normal"
 #> 
-#> Results of Goodness-of-Fit Test
-#> -------------------------------
+#> $dist.abb
+#> [1] "norm"
 #> 
-#> Test Method:                     Shapiro-Wilk GOF
+#> $distribution.parameters
+#>      mean        sd 
+#> 20.090625  6.026948 
 #> 
-#> Hypothesized Distribution:       Normal
+#> $n.param.est
+#> [1] 2
 #> 
-#> Estimated Parameter(s):          mean = 20.090625
-#>                                  sd   =  6.026948
+#> $estimation.method
+#> [1] "mvue"
 #> 
-#> Estimation Method:               mvue
+#> $statistic
+#>         W 
+#> 0.9475647 
 #> 
-#> Data:                            mtcars$mpg
+#> $sample.size
+#> [1] 32
 #> 
-#> Sample Size:                     32
+#> $parameters
+#>  n 
+#> 32 
 #> 
-#> Test Statistic:                  W = 0.9475647
+#> $z.value
+#> [1] 1.160703
 #> 
-#> Test Statistic Parameter:        n = 32
+#> $p.value
+#> [1] 0.1228814
 #> 
-#> P-value:                         0.1228814
+#> $alternative
+#> [1] "True cdf does not equal the\n                                 Normal Distribution."
 #> 
-#> Alternative Hypothesis:          True cdf does not equal the
-#>                                  Normal Distribution.
+#> $method
+#> [1] "Shapiro-Wilk GOF"
+#> 
+#> $data
+#>  [1] 21.0 21.0 22.8 21.4 18.7 18.1 14.3 24.4 22.8 19.2 17.8 16.4 17.3 15.2 10.4
+#> [16] 10.4 14.7 32.4 30.4 33.9 21.5 15.5 15.2 13.3 19.2 27.3 26.0 30.4 15.8 19.7
+#> [31] 15.0 21.4
+#> 
+#> $data.name
+#> [1] "mtcars$mpg"
+#> 
+#> $bad.obs
+#> [1] 0
+#> 
+#> attr(,"class")
+#> [1] "gof"
 ```
 
 #### Methods Based on Empirical Cumulative Distribution Function
@@ -783,13 +812,13 @@ ks.test(data, "pnorm", mean(data), sd(data))
 #> 	Exact one-sample Kolmogorov-Smirnov test
 #> 
 #> data:  data
-#> D = 0.079541, p-value = 0.8849
+#> D = 0.085345, p-value = 0.8294
 #> alternative hypothesis: two-sided
 
 # Goodness-of-fit test using gofTest
 library(DescTools)
 gofTest(data, test = "ks")$p.value  # Kolmogorov-Smirnov test p-value
-#> [1] 0.8848834
+#> [1] 0.8294042
 ```
 
 -   **Advantages**:
@@ -865,7 +894,7 @@ data <- rnorm(50)
 # Perform the Cramer-von Mises test
 library(DescTools)
 gofTest(data, test = "cvm")$p.value  # Cramer-von Mises test p-value
-#> [1] 0.856957
+#> [1] 0.5938969
 ```
 
 -   **Advantages**:
@@ -968,7 +997,7 @@ jarque.bera.test(data)
 #> 	Jarque Bera Test
 #> 
 #> data:  data
-#> X-squared = 0.77463, df = 2, p-value = 0.6789
+#> X-squared = 1.8829, df = 2, p-value = 0.3901
 ```
 
 ## Bivariate Statistics
@@ -1574,10 +1603,20 @@ colnames(dt) <- c("Category 1", "Category 2")
 chi_sq_test <- chisq.test(dt)
 print(chi_sq_test)
 #> 
-#> 	Pearson's Chi-squared test with Yates' continuity correction
+#> Results of Hypothesis Test
+#> --------------------------
 #> 
-#> data:  dt
-#> X-squared = 0.045788, df = 1, p-value = 0.8306
+#> Alternative Hypothesis:          
+#> 
+#> Test Name:                       Pearson's Chi-squared test with Yates' continuity correction
+#> 
+#> Data:                            dt
+#> 
+#> Test Statistic:                  X-squared = 0.04578755
+#> 
+#> Test Statistic Parameter:        df = 1
+#> 
+#> P-value:                         0.8305625
 ```
 
 ##### Phi Coefficient
@@ -2042,15 +2081,23 @@ data_binary <- data.frame(
 # Compute Tetrachoric Correlation
 tetrachoric_corr <- tetrachoric(data_binary)
 print(tetrachoric_corr)
-#> Call: tetrachoric(x = data_binary)
-#> tetrachoric correlation 
-#>   A    B   
-#> A 1.00     
-#> B 0.31 1.00
+#> $rho
+#>           A         B
+#> A 1.0000000 0.3147214
+#> B 0.3147214 1.0000000
 #> 
-#>  with tau of 
-#>      A      B 
-#>  0.126 -0.025
+#> $tau
+#>           A           B 
+#>  0.12566135 -0.02506891 
+#> 
+#> $n.obs
+#> [1] 100
+#> 
+#> $Call
+#> tetrachoric(x = data_binary)
+#> 
+#> attr(,"class")
+#> [1] "psych" "tetra"
 ```
 
 ###### Polychoric Correlation
@@ -2232,11 +2279,11 @@ modelsummary::datasummary_correlation(df)
           var cellsToStyle = [
             // tinytable style arrays after
           { positions: [ { i: 3, j: 1 }, { i: 3, j: 2 }, { i: 3, j: 3 },  ], css_id: 'tinytable_css_oykvf6oiyoc9xfan26tl',}, 
+          { positions: [ { i: 1, j: 1 }, { i: 2, j: 1 }, { i: 1, j: 2 }, { i: 2, j: 2 }, { i: 1, j: 3 }, { i: 2, j: 3 },  ], css_id: 'tinytable_css_8i4g8ocby718u646u1j7',}, 
           { positions: [ { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 },  ], css_id: 'tinytable_css_k5np7k6ywt443a19x1b5',}, 
           { positions: [ { i: 3, j: 0 },  ], css_id: 'tinytable_css_ess4l0lcl5wnlw9i7baf',}, 
-          { positions: [ { i: 0, j: 0 },  ], css_id: 'tinytable_css_c35moflpd57kn2dqci2s',}, 
-          { positions: [ { i: 1, j: 1 }, { i: 2, j: 1 }, { i: 1, j: 2 }, { i: 2, j: 2 }, { i: 1, j: 3 }, { i: 2, j: 3 },  ], css_id: 'tinytable_css_8i4g8ocby718u646u1j7',}, 
           { positions: [ { i: 1, j: 0 }, { i: 2, j: 0 },  ], css_id: 'tinytable_css_4oudzjuc2ns9c59ihkmp',}, 
+          { positions: [ { i: 0, j: 0 },  ], css_id: 'tinytable_css_c35moflpd57kn2dqci2s',}, 
           ];
 
           // Loop over the arrays to style the cells
@@ -2251,11 +2298,11 @@ modelsummary::datasummary_correlation(df)
     <style>
       /* tinytable css entries after */
       .table td.tinytable_css_oykvf6oiyoc9xfan26tl, .table th.tinytable_css_oykvf6oiyoc9xfan26tl { text-align: right; border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_8i4g8ocby718u646u1j7, .table th.tinytable_css_8i4g8ocby718u646u1j7 { text-align: right; }
       .table td.tinytable_css_k5np7k6ywt443a19x1b5, .table th.tinytable_css_k5np7k6ywt443a19x1b5 { text-align: right; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
       .table td.tinytable_css_ess4l0lcl5wnlw9i7baf, .table th.tinytable_css_ess4l0lcl5wnlw9i7baf { text-align: left; border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_c35moflpd57kn2dqci2s, .table th.tinytable_css_c35moflpd57kn2dqci2s { text-align: left; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-      .table td.tinytable_css_8i4g8ocby718u646u1j7, .table th.tinytable_css_8i4g8ocby718u646u1j7 { text-align: right; }
       .table td.tinytable_css_4oudzjuc2ns9c59ihkmp, .table th.tinytable_css_4oudzjuc2ns9c59ihkmp { text-align: left; }
+      .table td.tinytable_css_c35moflpd57kn2dqci2s, .table th.tinytable_css_c35moflpd57kn2dqci2s { text-align: left; border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
     </style>
     <div class="container">
       <table class="table table-borderless" id="tinytable_4bt818lqmx201is4xbhx" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing='true'>

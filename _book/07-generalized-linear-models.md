@@ -297,7 +297,7 @@ $$
 **Comparing Likelihood Ratio and Wald Tests**
 
 | Test                                                         | Best Used When...                                                                                                  |
-|-------------------------|----------------------------------------------|
+|--------------------------|----------------------------------------------|
 | [Likelihood Ratio Test](#sec-likelihood-ratio-test-logistic) | More accurate in small samples, providing better control of error rates. Recommended when sample sizes are small.  |
 | [Wald Test](#sec-wald-test-logistic)                         | Easier to compute but may be inaccurate in small samples. Recommended when computational efficiency is a priority. |
 
@@ -2022,7 +2022,7 @@ summary(NegBinom_Mod)
 #### Key Differences: Quasi-Poisson vs. Negative Binomial
 
 | Feature                               | Quasi-Poisson            | Negative Binomial |
-|----------------------------------|---------------------|------------------|
+|---------------------------------|---------------------|------------------|
 | Handles Overdispersion?               | ✅ Yes                   | ✅ Yes            |
 | Uses a Full Probability Distribution? | ❌ No                    | ✅ Yes            |
 | MLE-Based?                            | ❌ No (quasi-likelihood) | ✅ Yes            |
@@ -2846,7 +2846,15 @@ Example 4: Gamma Distribution (Inverse Link)
 
 The following table presents common **GLM link functions** and their corresponding **inverse functions**.
 
-$$ \begin{array}{|l|c|c|} \hline \textbf{Link} & \eta_i = g(\mu_i) & \mu_i = g^{-1}(\eta_i) \\ \hline \text{Identity} & \mu_i & \eta_i \\ \text{Log} & \log_e \mu_i & e^{\eta_i} \\ \text{Inverse} & \mu_i^{-1} & \eta_i^{-1} \\ \text{Inverse-square} & \mu_i^{-2} & \eta_i^{-1/2} \\ \text{Square-root} & \sqrt{\mu_i} & \eta_i^2 \\ \text{Logit} & \log_e \left( \frac{\mu_i}{1 - \mu_i} \right) & \frac{1}{1 + e^{-\eta_i}} \\ \text{Probit} & \Phi^{-1}(\mu_i) & \Phi(\eta_i) \\ \hline \end{array} $$
+| Link           | $\eta_i = g(\mu_i)$                             | $\mu_i = g^{-1}(\eta_i)$    |
+|-----------------|-----------------------------|---------------------------|
+| Identity       | $\mu_i$                                         | $\eta_i$                    |
+| Log            | $\log_e \mu_i$                                  | $e^{\eta_i}$                |
+| Inverse        | $\mu_i^{-1}$                                    | $\eta_i^{-1}$               |
+| Inverse-square | $\mu_i^{-2}$                                    | $\eta_i^{-1/2}$             |
+| Square-root    | $\sqrt{\mu_i}$                                  | $\eta_i^2$                  |
+| Logit          | $\log_e \left( \frac{\mu_i}{1 - \mu_i} \right)$ | $\frac{1}{1 + e^{-\eta_i}}$ |
+| Probit         | $\Phi^{-1}(\mu_i)$                              | $\Phi(\eta_i)$              |
 
 where
 
@@ -2963,7 +2971,7 @@ l_i(\theta_i,\phi) = \frac{\theta_i \,y_i - b(\theta_i)}{a(\phi)} + c(y_i,\phi).
 $$
 
 1.  Differentiate $\theta_i y_i - b(\theta_i)$ with respect to $\theta_i$: $$
-    \frac{\partial}{\partial \theta_i} \bigl[\theta_i\,y_i - b(\theta_i)\bigr] = y_i - b'(\theta_i).
+    \frac{\partial}{\partial \theta_i} \left[\theta_i\,y_i - b(\theta_i)\right] = y_i - b'(\theta_i).
     $$ But by exponential‐family definitions,$b'(\theta_i) = \mu_i$.\
     So that is $y_i - \mu_i$.
 2.  Since everything is divided by $a(\phi)$, we get $$
@@ -3009,7 +3017,7 @@ For example,
 In general,
 
 $$
-\boxed{ \frac{\partial \mu_i}{\partial \eta_i} = \left.\frac{d}{d\eta}\bigl[g^{-1}(\eta)\bigr]\right|_{\eta=\eta_i} = \left(g^{-1}\right)'(\eta_i). }
+\boxed{ \frac{\partial \mu_i}{\partial \eta_i} = \left.\frac{d}{d\eta}\left[g^{-1}(\eta)\right]\right|_{\eta=\eta_i} = \left(g^{-1}\right)'(\eta_i). }
 $$
 
 If the link is *also* canonical, then typically $\frac{\partial \mu_i}{\partial \eta_i} = V(\mu_i)$. Indeed, that is consistent with the second term result.
@@ -3026,12 +3034,16 @@ $$
 \eta_i = \mathbf{x}_i^\prime \beta = \sum_{k=1}^p x_{ik}\,\beta_k.
 $$
 
-Hence, the derivative of $\eta_i$ with respect to $\beta_j$ is simply $$
+Hence, the derivative of $\eta_i$ with respect to $\beta_j$ is simply
+
+$$
 \boxed{ \frac{\partial \eta_i}{\partial \beta_j} = x_{ij}. }
 $$
 
-Therefore, for the **entire** log‐likelihood $l(\beta, \phi) = \sum_{i=1}^n l_i(\beta,\phi)$, we sum over $i$: $$
-\boxed{ \frac{\partial l(\beta,\phi)}{\partial \beta_j} = \sum_{i=1}^n \Bigl[ \frac{y_i - \mu_i}{a(\phi)} \times \frac{1}{V(\mu_i)} \times \frac{\partial \mu_i}{\partial \eta_i} \times x_{ij} \Bigr]. }
+Therefore, for the **entire** log‐likelihood $l(\beta, \phi) = \sum_{i=1}^n l_i(\beta,\phi)$, we sum over $i$:
+
+$$
+\boxed{ \frac{\partial l(\beta,\phi)}{\partial \beta_j} = \sum_{i=1}^n \left[ \frac{y_i - \mu_i}{a(\phi)} \times \frac{1}{V(\mu_i)} \times \frac{\partial \mu_i}{\partial \eta_i} \times x_{ij} \right] }
 $$
 
 ------------------------------------------------------------------------
@@ -3320,7 +3332,7 @@ This means that the unification GLMs provide for estimating $\beta$ does not ext
     $$
 
 | Approach              | Description                                                      | Pros                         | Cons                                                          |
-|---------------|----------------------|---------------|---------------------|
+|-----------------|--------------------|-----------------|-------------------|
 | **MLE**               | Estimates $\phi$ by maximizing the likelihood function           | Theoretically optimal        | Computationally complex, lacks a general closed-form solution |
 | **Moment Estimation** | Uses a bias-corrected $\chi^2$ method based on residual variance | Simpler, widely used in GLMs | Not as efficient as MLE                                       |
 
@@ -3403,7 +3415,7 @@ where:
 ------------------------------------------------------------------------
 
 | Test                      | Pros                                                 | Cons                                          |
-|------------------|-----------------------------|--------------------------|
+|------------------|----------------------------|--------------------------|
 | **Wald Test**             | Easy to compute, does not require fitting two models | May perform poorly in small samples           |
 | **Likelihood Ratio Test** | More accurate, especially for small samples          | Requires fitting both full and reduced models |
 
@@ -3803,7 +3815,7 @@ Over-dispersion occurs when the observed variance exceeds what the assumed model
 **Variance Assumptions for Common Random Components**
 
 | Random Component | Standard Assumption ($\text{var}(Y)$) | Alternative Model Allowing Over-Dispersion ($V(\mu)$) |
-|----------------|-----------------------|---------------------------------|
+|------------------|-----------------------|--------------------------------|
 | **Binomial**     | $n \mu (1- \mu)$                      | $\phi n \mu (1- \mu)$, where $m_i = n$                |
 | **Poisson**      | $\mu$                                 | $\phi \mu$                                            |
 

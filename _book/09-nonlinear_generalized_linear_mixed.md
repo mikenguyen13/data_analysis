@@ -806,8 +806,8 @@ summary(numint_cbpp)
 #> Formula: cbind(incidence, size - incidence) ~ period + (1 | herd)
 #>    Data: cbpp
 #> 
-#>      AIC      BIC   logLik deviance df.resid 
-#>    194.1    204.2    -92.0    184.1       51 
+#>       AIC       BIC    logLik -2*log(L)  df.resid 
+#>     194.1     204.2     -92.0     184.1        51 
 #> 
 #> Scaled residuals: 
 #>     Min      1Q  Median      3Q     Max 
@@ -863,8 +863,8 @@ benchmark(
     order = "relative"
 )
 #>                           test replications elapsed relative
-#> 1                   PQL (MASS)           50    4.78    1.000
-#> 2 Numerical Integration (lme4)           50   10.06    2.105
+#> 1                   PQL (MASS)           50    4.48    1.000
+#> 2 Numerical Integration (lme4)           50    9.16    2.045
 ```
 
 **Improving Accuracy with Gauss-Hermite Quadrature**
@@ -913,25 +913,25 @@ summary(Bayes_cbpp)
 #>  Thinning interval  = 10
 #>  Sample size  = 1000 
 #> 
-#>  DIC: 537.859 
+#>  DIC: 537.6541 
 #> 
 #>  G-structure:  ~herd
 #> 
 #>      post.mean  l-95% CI u-95% CI eff.samp
-#> herd   0.02997 1.186e-16   0.2022    98.51
+#> herd   0.01121 1.144e-16   0.0425    71.03
 #> 
 #>  R-structure:  ~units
 #> 
 #>       post.mean l-95% CI u-95% CI eff.samp
-#> units     1.113   0.3264    2.066    360.8
+#> units     1.128   0.2475    2.123    285.4
 #> 
 #>  Location effects: cbind(incidence, size - incidence) ~ period 
 #> 
 #>             post.mean l-95% CI u-95% CI eff.samp  pMCMC    
-#> (Intercept)   -1.5285  -2.0946  -0.7901    836.3 <0.001 ***
-#> period2       -1.2835  -2.2661  -0.1616    705.6  0.010 ** 
-#> period3       -1.3802  -2.3882  -0.2153    697.6  0.016 *  
-#> period4       -1.9958  -3.2815  -0.8024    441.3 <0.001 ***
+#> (Intercept)   -1.5410  -2.1748  -0.8358    797.6 <0.001 ***
+#> period2       -1.2464  -2.3298  -0.2327    708.7  0.014 *  
+#> period3       -1.3737  -2.4446  -0.2574    719.4  0.018 *  
+#> period4       -1.9347  -3.2662  -0.7931    580.2  0.002 ** 
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -944,8 +944,8 @@ Variance Component Analysis
 ``` r
 # explains less variability
 apply(Bayes_cbpp$VCV, 2, sd)
-#>      herd     units 
-#> 0.1119681 0.4973538
+#>       herd      units 
+#> 0.05822934 0.51923602
 ```
 
 Posterior Summaries
@@ -954,10 +954,10 @@ Posterior Summaries
 ``` r
 summary(Bayes_cbpp)$solutions
 #>             post.mean  l-95% CI   u-95% CI eff.samp pMCMC
-#> (Intercept) -1.528512 -2.094593 -0.7901404 836.2718 0.001
-#> period2     -1.283512 -2.266096 -0.1615766 705.6380 0.010
-#> period3     -1.380243 -2.388198 -0.2152571 697.5827 0.016
-#> period4     -1.995790 -3.281474 -0.8024437 441.2809 0.001
+#> (Intercept) -1.541044 -2.174758 -0.8357819 797.6463 0.001
+#> period2     -1.246428 -2.329763 -0.2327008 708.6562 0.014
+#> period3     -1.373747 -2.444636 -0.2574092 719.3625 0.018
+#> period4     -1.934747 -3.266209 -0.7930924 580.1757 0.002
 ```
 
 MCMC Diagnostics
@@ -1047,8 +1047,8 @@ summary(owls_glmer)
 #>     (1 | Nest)
 #>    Data: Owls
 #> 
-#>      AIC      BIC   logLik deviance df.resid 
-#>   5212.8   5234.8  -2601.4   5202.8      594 
+#>       AIC       BIC    logLik -2*log(L)  df.resid 
+#>    5212.8    5234.8   -2601.4    5202.8       594 
 #> 
 #> Scaled residuals: 
 #>     Min      1Q  Median      3Q     Max 
@@ -1096,8 +1096,8 @@ summary(owls_glmerNB)
 #>     (1 | Nest)
 #>    Data: Owls
 #> 
-#>      AIC      BIC   logLik deviance df.resid 
-#>   3495.6   3522.0  -1741.8   3483.6      593 
+#>       AIC       BIC    logLik -2*log(L)  df.resid 
+#>    3495.6    3522.0   -1741.8    3483.6       593 
 #> 
 #> Scaled residuals: 
 #>     Min      1Q  Median      3Q     Max 
@@ -1193,8 +1193,8 @@ summary(owls_glmm_zi_cov)
 #> Zero inflation:          ~ArrivalTime
 #> Data: Owls
 #> 
-#>      AIC      BIC   logLik deviance df.resid 
-#>   3422.5   3457.7  -1703.3   3406.5      591 
+#>       AIC       BIC    logLik -2*log(L)  df.resid 
+#>    3422.5    3457.7   -1703.3    3406.5       591 
 #> 
 #> Random effects:
 #> 
@@ -1281,8 +1281,8 @@ summary(flymodel)
 #> Formula: cbind(y, n - y) ~ gen + (1 | block)
 #>    Data: dat
 #> 
-#>      AIC      BIC   logLik deviance df.resid 
-#>    162.2    198.9    -64.1    128.2       47 
+#>       AIC       BIC    logLik -2*log(L)  df.resid 
+#>     162.2     198.9     -64.1     128.2        47 
 #> 
 #> Scaled residuals: 
 #>      Min       1Q   Median       3Q      Max 
@@ -1343,37 +1343,37 @@ summary(Bayes_flymodel)
 #>  Thinning interval  = 10
 #>  Sample size  = 1000 
 #> 
-#>  DIC: 877.6617 
+#>  DIC: 877.3603 
 #> 
 #>  G-structure:  ~block
 #> 
-#>       post.mean  l-95% CI u-95% CI eff.samp
-#> block   0.04578 3.837e-17   0.0741     1000
+#>       post.mean l-95% CI u-95% CI eff.samp
+#> block   0.02354 6.92e-17  0.05404    798.1
 #> 
 #>  R-structure:  ~units
 #> 
 #>       post.mean l-95% CI u-95% CI eff.samp
-#> units    0.9846   0.2753     1.88    343.4
+#> units    0.9667   0.3118    1.821    380.8
 #> 
 #>  Location effects: cbind(y, n - y) ~ gen 
 #> 
 #>             post.mean l-95% CI u-95% CI eff.samp  pMCMC    
-#> (Intercept)   1.91735  0.43600  3.26116    880.0  0.006 ** 
-#> genG02       -0.32422 -2.25105  1.47384   1000.0  0.736    
-#> genG03       -0.69479 -2.48763  0.95483    876.0  0.432    
-#> genG04       -1.78752 -3.57721 -0.03332   1000.0  0.052 .  
-#> genG05       -0.30606 -2.23317  1.53127    686.6  0.748    
-#> genG06       -1.26377 -3.00144  0.83328   1000.0  0.166    
-#> genG07       -0.73383 -2.60995  0.94514    884.5  0.436    
-#> genG08       -2.05165 -3.66942 -0.08526   1000.0  0.024 *  
-#> genG09       -1.83095 -3.70722 -0.04753    811.0  0.042 *  
-#> genG10       -0.75951 -2.84242  0.95539   1000.0  0.414    
-#> genG11       -1.91460 -3.80032  0.07508    896.9  0.036 *  
-#> genG12       -1.88198 -3.94552 -0.19179    796.3  0.046 *  
-#> genG13       -4.37381 -6.79197 -2.49196    648.2 <0.001 ***
-#> genG14       -3.13256 -5.10437 -1.23477    877.1  0.004 ** 
-#> genG15       -2.75849 -4.57665 -0.93052    738.7  0.002 ** 
-#> genG16       -3.84007 -6.13313 -2.03533    787.8 <0.001 ***
+#> (Intercept)   1.94362  0.60729  3.33723    815.1  0.002 ** 
+#> genG02       -0.40383 -2.36504  1.26737   1016.4  0.694    
+#> genG03       -0.72396 -2.72598  0.95420    847.0  0.418    
+#> genG04       -1.81903 -3.70454 -0.09682    907.4  0.044 *  
+#> genG05       -0.37390 -2.39632  1.32895    865.5  0.708    
+#> genG06       -1.24261 -3.10044  0.37768    845.7  0.140    
+#> genG07       -0.76143 -2.57149  1.03524    831.5  0.390    
+#> genG08       -2.08644 -3.67326 -0.17025    825.0  0.012 *  
+#> genG09       -1.82256 -3.57204 -0.16156    899.8  0.026 *  
+#> genG10       -0.79585 -2.66493  1.07283   1121.7  0.400    
+#> genG11       -1.95648 -3.58516 -0.15710    884.8  0.018 *  
+#> genG12       -1.92374 -3.89023 -0.29812    813.6  0.030 *  
+#> genG13       -4.40453 -6.55523 -2.39214    666.9 <0.001 ***
+#> genG14       -3.20863 -5.22849 -1.44975    912.6 <0.001 ***
+#> genG15       -2.76870 -4.65470 -1.04934    825.6 <0.001 ***
+#> genG16       -3.81851 -5.74736 -1.98829   1035.0 <0.001 ***
 #> ---
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```

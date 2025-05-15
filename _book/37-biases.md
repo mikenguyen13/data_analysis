@@ -4,63 +4,33 @@ In econometrics, the main objective is often to uncover causal relationships. Ho
 
 What we've covered so far (see [Linear Regression] and [Endogeneity]):
 
-1.  **Omitted Variable Bias (OVB)**:
+1.  [**Endogeneity Bias**](#sec-endogeneity): Occurs when an error term is correlated with an independent variable. This can be due to:
 
-    -   Arises when a variable that affects the dependent variable and is correlated with an independent variable is left out of the regression.
+    -   [Simultaneity](#sec-simultaneity) (or Reverse Causality): When the dependent variable simultaneously affects an independent variable. Happens when the dependent variable causes changes in the independent variable, leading to a two-way causation.
 
-2.  **Endogeneity Bias**:
+    -   [Omitted variables](#sec-omitted-variable-bias). Arises when a variable that affects the dependent variable and is correlated with an independent variable is left out of the regression.
 
-    -   Occurs when an error term is correlated with an independent variable. This can be due to:
+    -   [Measurement error](#sec-measurement-error) in the independent variable. Bias introduced when variables in a model are measured with error. If the error is in an independent variable and is classical (mean zero and uncorrelated with the true value), it typically biases the coefficient towards zero.
 
-        -   Simultaneity: When the dependent variable simultaneously affects an independent variable.
+2.  [**Sample Selection Bias**](#sec-endogenous-sample-selection): Arises when the sample is not randomly selected and the selection is related to the dependent variable. A classic example is the Heckman correction for labor market studies where participants self-select into the workforce.
 
-        -   Omitted variables.
+3.  **Multicollinearity**: Not a bias in the strictest sense, but in the presence of high multicollinearity (when independent variables are highly correlated), coefficient estimates can become unstable and standard errors large. This makes it hard to determine the individual effect of predictors on the dependent variable.
 
-        -   Measurement error in the independent variable.
+4.  **Specification Errors**: Arise when the functional form of the model is incorrectly specified, e.g., omitting interaction terms or polynomial terms when they are needed.
 
-3.  **Measurement Error**:
+5.  **Autocorrelation (or Serial Correlation)**: Occurs in time-series data when the error terms are correlated over time. This doesn't cause bias in the coefficient estimates of OLS, but it can make standard errors biased, leading to incorrect inference.
 
-    -   Bias introduced when variables in a model are measured with error. If the error is in an independent variable and is classical (mean zero and uncorrelated with the true value), it typically biases the coefficient towards zero.
+6.  **Heteroskedasticity**: Occurs when the variance of the error term is not constant across observations. Like autocorrelation, heteroskedasticity doesn't bias the OLS estimates but can bias standard errors.
 
-4.  **Sample Selection Bias**:
+7.  [**Aggregation Bias**](#sec-aggregation-bias): Introduced when data are aggregated, and analysis is conducted at this aggregate level rather than the individual level.
 
-    -   Arises when the sample is not randomly selected and the selection is related to the dependent variable. A classic example is the Heckman correction for labor market studies where participants self-select into the workforce.
+8.  [**Survivorship Bias**](#sec-survivorship-bias) **(very much related to Sample Selection)**: Arises when the sample only includes "survivors" or those who "passed" a certain threshold. Common in finance where only funds or firms that "survive" are analyzed.
 
-5.  **Simultaneity Bias (or Reverse Causality)**:
+9.  [**Publication Bias**](#sec-publication-bias): Not a bias in econometric estimation per se, but relevant in the context of empirical studies. It refers to the tendency for journals to publish only significant or positive results, leading to an overrepresentation of such results in the literature.
 
-    -   Happens when the dependent variable causes changes in the independent variable, leading to a two-way causation.
+------------------------------------------------------------------------
 
-6.  **Multicollinearity**:
-
-    -   Not a bias in the strictest sense, but in the presence of high multicollinearity (when independent variables are highly correlated), coefficient estimates can become unstable and standard errors large. This makes it hard to determine the individual effect of predictors on the dependent variable.
-
-7.  **Specification Errors**:
-
-    -   Arise when the functional form of the model is incorrectly specified, e.g., omitting interaction terms or polynomial terms when they are needed.
-
-8.  **Autocorrelation (or Serial Correlation)**:
-
-    -   Occurs in time-series data when the error terms are correlated over time. This doesn't cause bias in the coefficient estimates of OLS, but it can make standard errors biased, leading to incorrect inference.
-
-9.  **Heteroskedasticity**:
-
-    -   Occurs when the variance of the error term is not constant across observations. Like autocorrelation, heteroskedasticity doesn't bias the OLS estimates but can bias standard errors.
-
-In this section, we will mention other biases that you may encounter when conducting your research
-
-10. 
-
--   Introduced when data are aggregated, and analysis is conducted at this aggregate level rather than the individual level.
-
-11. [**Survivorship Bias**] **(very much related to Sample Selection)**:
-
--   Arises when the sample only includes "survivors" or those who "passed" a certain threshold. Common in finance where only funds or firms that "survive" are analyzed.
-
-12. 
-
--   Not a bias in econometric estimation per se, but relevant in the context of empirical studies. It refers to the tendency for journals to publish only significant or positive results, leading to an overrepresentation of such results in the literature.
-
-## Aggregation Bias
+## Aggregation Bias {#sec-aggregation-bias}
 
 Aggregation bias, also known as ecological fallacy, refers to the error introduced when data are aggregated and an analysis is conducted at this aggregate level, rather than at the individual level. This can be especially problematic in econometrics, where analysts are often concerned with understanding individual behavior.
 
@@ -395,13 +365,17 @@ gridExtra::grid.arrange(grobs = list(p1, p2, p3), ncol = 1)
 
 <img src="37-biases_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
 
-## Contamination Bias
+------------------------------------------------------------------------
+
+## Contamination Bias {#sec-contamination-bias}
 
 @goldsmith2022contamination show regressions with multiple treatments and flexible controls often fail to estimate convex averages of heterogeneous treatment effects, resulting in contamination by non-convex averages of other treatments' effects.
 
 -   3 estimation methods to avoid this bias and find significant contamination bias in observational studies, with experimental studies showing less due to lower variability in propensity scores.
 
-## Survivorship Bias
+------------------------------------------------------------------------
+
+## Survivorship Bias {#sec-survivorship-bias}
 
 Survivorship bias refers to the logical error of concentrating on the entities that have made it past some selection process and overlooking those that didn't, typically because of a lack of visibility. This can skew results and lead to overly optimistic conclusions.
 
@@ -488,7 +462,9 @@ In the plot, the "True Avg" might be lower than the "Survivor Avg", indicating t
 
 5.  **Sensitivity Analysis**: Test how sensitive your results are to assumptions about the non-survivors.
 
-## Publication Bias
+------------------------------------------------------------------------
+
+## Publication Bias {#sec-publication-bias}
 
 Publication bias occurs when the results of studies influence the likelihood of their being published. Typically, studies with significant, positive, or sensational results are more likely to be published than those with non-significant or negative results. This can skew the perceived effectiveness or results when researchers conduct meta-analyses or literature reviews, leading them to draw inaccurate conclusions.
 

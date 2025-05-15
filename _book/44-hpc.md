@@ -477,23 +477,23 @@ plan(sequential)
 # Print table
 print(results)
 #>              Approach Data_Size Cores   Time_Sec Memory_MB
-#> 1          SingleCore     10000     1 0.01592588      0.00
-#> 2          SingleCore   1000000     1 1.39803696      0.00
-#> 3           parLapply     10000     2 0.01917386      0.01
-#> 4           parLapply   1000000     2 1.39586711      0.01
-#> 5           parLapply     10000     4 0.01869416      0.02
-#> 6           parLapply   1000000     4 1.38051891      0.02
-#> 7  foreach_doParallel     10000     2 0.05416512      0.01
-#> 8  foreach_doParallel   1000000     2 1.39824295      0.01
-#> 9  foreach_doParallel     10000     4 0.05402493      0.02
-#> 10 foreach_doParallel   1000000     4 1.37731504      0.02
-#> 11      future_lapply     10000     2 0.06894493      0.01
-#> 12      future_lapply   1000000     2 2.96077895      0.01
-#> 13      future_lapply     10000     4 0.09989095      0.02
-#> 14      future_lapply   1000000     4 5.80409098      0.02
+#> 1          SingleCore     10000     1 0.01581287      0.00
+#> 2          SingleCore   1000000     1 1.43626785      0.00
+#> 3           parLapply     10000     2 0.01978612      0.01
+#> 4           parLapply   1000000     2 1.42945695      0.01
+#> 5           parLapply     10000     4 0.01906514      0.02
+#> 6           parLapply   1000000     4 1.46021295      0.02
+#> 7  foreach_doParallel     10000     2 0.06499314      0.01
+#> 8  foreach_doParallel   1000000     2 1.42544699      0.01
+#> 9  foreach_doParallel     10000     4 0.05926299      0.02
+#> 10 foreach_doParallel   1000000     4 1.43057013      0.02
+#> 11      future_lapply     10000     2 0.11854696      0.01
+#> 12      future_lapply   1000000     2 2.88425088      0.01
+#> 13      future_lapply     10000     4 0.22660494      0.02
+#> 14      future_lapply   1000000     4 5.74241900      0.02
 
 # Save to CSV
-write.csv(results, "HPC_parallel_results.csv", row.names = FALSE)
+# write.csv(results, "HPC_parallel_results.csv", row.names = FALSE)
 
 # Plot Time vs. Data Size / Cores
 ggplot(results, aes(x = as.factor(Cores), y = Time_Sec, fill = Approach)) +

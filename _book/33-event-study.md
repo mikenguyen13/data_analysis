@@ -445,7 +445,7 @@ df_event_study <- df_event_study %>%
 # Summary statistics of economic impact
 summary(df_event_study$wealth_change)
 #>       Min.    1st Qu.     Median       Mean    3rd Qu.       Max. 
-#> -182624158  -23329465   29601222   74140034  128382915  565137418
+#> -452754614  -17135099   32402378   47805094   97481255  518034141
 
 # Histogram of total wealth gain/loss
 hist(

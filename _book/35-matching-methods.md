@@ -71,13 +71,10 @@ With Matching:
 
 -   Balanced data → Reduces discretion → More credible causal inference
 
-+-----------------------+------------------------+----------------------+
 | Balance of Covariates | Complete Randomization | Fully Exact Matching |
-+=======================+========================+======================+
+|-----------------------|------------------------|----------------------|
 | **Observed**          | On average             | Exact                |
-+-----------------------+------------------------+----------------------+
 | **Unobserved**        | On average             | On average           |
-+-----------------------+------------------------+----------------------+
 
 : Degree of Balance Across Designs
 
@@ -162,15 +159,11 @@ That is, there are **no interference or spillover effects** between units.
 
 Summary of Assumptions for Matching
 
-+------------------------------+-------------------------------------------------------------------------------------+----------------------------------------------+
 | Assumption                   | Description                                                                         | Notation                                     |
-+==============================+=====================================================================================+==============================================+
+|------------------------------|-------------------------------------------------------------------------------------|----------------------------------------------|
 | **Conditional Ignorability** | No hidden confounding after conditioning on covariates                              | $(Y(0), Y(1)) \perp T \mid X$                |
-+------------------------------+-------------------------------------------------------------------------------------+----------------------------------------------+
 | **Overlap (Positivity)**     | Each unit has a non-zero probability of treatment and control assignment            | $0 < P(T=1 \mid X) < 1$                      |
-+------------------------------+-------------------------------------------------------------------------------------+----------------------------------------------+
 | **SUTVA**                    | No interference between units; one unit's outcome unaffected by another's treatment | $Y_i(T_i)$ unaffected by $T_j$ for $j \ne i$ |
-+------------------------------+-------------------------------------------------------------------------------------+----------------------------------------------+
 
 These three assumptions form the foundation for valid causal inference using matching methods.
 
@@ -480,51 +473,34 @@ $$
 
 The distinction between matching and regression comes down to how covariate-specific treatment effects $\delta_x$ are weighted:
 
-+-------------+--------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------+
-| Type        | Weighting Function                                                                   | Interpretation                                                                               | Makes Sense Because...                                                                                              |
-+=============+======================================================================================+==============================================================================================+=====================================================================================================================+
-| Matching    | $P(D_i = 1 \mid X_i = x)$                                                            | Weights more heavily where more treated units exist (ATT-focused)                            | We're interested in the effect on the treated, so more weight is placed where treated units are observed            |
-+-------------+--------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------+
-| Regression  | $\begin{aligned}P(D_i = 1 \mid X_i = x)\\(1 - P(D_i = 1 \mid X_i = x))\end{aligned}$ | Weights more where treatment assignment has high variance (i.e., near 50/50 treated/control) | These cells provide lowest-variance estimates of $\delta_x$, assuming the treatment effect is homogenous across $X$ |
-+-------------+--------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------+
+| Type       | Weighting Function                                                                   | Interpretation                                                                               | Makes Sense Because...                                                                                              |
+|------------|--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| Matching   | $P(D_i = 1 \mid X_i = x)$                                                            | Weights more heavily where more treated units exist (ATT-focused)                            | We're interested in the effect on the treated, so more weight is placed where treated units are observed            |
+| Regression | $\begin{aligned}P(D_i = 1 \mid X_i = x)\\(1 - P(D_i = 1 \mid X_i = x))\end{aligned}$ | Weights more where treatment assignment has high variance (i.e., near 50/50 treated/control) | These cells provide lowest-variance estimates of $\delta_x$, assuming the treatment effect is homogenous across $X$ |
 
 **Summary Table: Matching vs. Regression**
 
-+----------------------------+----------------------------------------------------------+-----------------------------------------------------+
 | Feature                    | Matching                                                 | Regression (OLS)                                    |
-+============================+==========================================================+=====================================================+
+|----------------------------|----------------------------------------------------------|-----------------------------------------------------|
 | **Functional Form**        | Less parametric; no assumption of linearity              | Parametric; usually assumes linearity               |
-+----------------------------+----------------------------------------------------------+-----------------------------------------------------+
 | **Primary Estimand**       | ATT (effect on the treated)                              | ATE or effects of continuous/interacted treatments  |
-+----------------------------+----------------------------------------------------------+-----------------------------------------------------+
 | **Balance**                | Enforces balance via matched samples                     | Does not guarantee balance                          |
-+----------------------------+----------------------------------------------------------+-----------------------------------------------------+
 | **Diagnostics**            | Covariate SMDs, QQ plots, empirical distributions        | Residual plots, R-squared, heteroskedasticity tests |
-+----------------------------+----------------------------------------------------------+-----------------------------------------------------+
 | **Unobserved Confounding** | Cannot be resolved; assumes ignorability                 | Same limitation                                     |
-+----------------------------+----------------------------------------------------------+-----------------------------------------------------+
 | **Standard Errors**        | Larger; require bootstrapping                            | Smaller; closed-form under assumptions              |
-+----------------------------+----------------------------------------------------------+-----------------------------------------------------+
 | **Best Used When**         | High control-to-treated ratio; misspecification concerns | Model is correctly specified; sufficient overlap    |
-+----------------------------+----------------------------------------------------------+-----------------------------------------------------+
 
 ------------------------------------------------------------------------
 
 **Qualitative Comparisons**
 
-+---------------------------------------------------------------------+----------------------------------------------------------------------+
 | Matching                                                            | Regression                                                           |
-+=====================================================================+======================================================================+
+|---------------------------------------------------------------------|----------------------------------------------------------------------|
 | Not sensitive to the form of covariate-outcome relationship         | Can estimate continuous or interacted treatment effects              |
-+---------------------------------------------------------------------+----------------------------------------------------------------------+
 | Easier to assess balance and interpret diagnostics                  | Easier to estimate the effects of all covariates, not just treatment |
-+---------------------------------------------------------------------+----------------------------------------------------------------------+
 | Facilitates clear visual evaluation of overlap and balance          | Less intuitive diagnostics; model diagnostics used                   |
-+---------------------------------------------------------------------+----------------------------------------------------------------------+
 | Helps when treatment is rare (prunes clearly incomparable controls) | Performs better with balanced treatment assignment                   |
-+---------------------------------------------------------------------+----------------------------------------------------------------------+
 | Forces explicit enforcement of common support                       | May extrapolate outside the support of covariate distributions       |
-+---------------------------------------------------------------------+----------------------------------------------------------------------+
 
 ------------------------------------------------------------------------
 
@@ -719,7 +695,8 @@ summary(m.out1, un = FALSE)  # only show post-matching stats
 #> 
 #> Call:
 #> matchit(formula = treat ~ age + educ + race + married + nodegree + 
-#>     re74 + re75, data = lalonde, method = "nearest", distance = "glm")
+#>     re74 + re75, data = MatchIt::lalonde, method = "nearest", 
+#>     distance = "glm")
 #> 
 #> Summary of Balance for Matched Data:
 #>            Means Treated Means Control Std. Mean Diff. Var. Ratio eCDF Mean
@@ -1224,19 +1201,11 @@ In the study of @bapna2018monetizing:
 
 -   Analysis: [Difference-in-Differences](#sec-difference-in-differences) estimation.
 
-**Results:**
+**Results:** Premium adoption increases:
 
--   Premium adoption increases:
-
-```{=html}
-<!-- -->
-```
 -   Songs listened: +287.2%
-
 -   Playlists created: +1.92%
-
 -   Forum posts: +2.01%
-
 -   Friends added: +15.77%
 
 ------------------------------------------------------------------------
@@ -1365,19 +1334,13 @@ How to implement Dynamic LA-PSM:
 
 ------------------------------------------------------------------------
 
-+----------------------+------------------------------------+--------------------------------------------+
-| Feature              | Static Look-Ahead PSM              | Dynamic Look-Ahead PSM                     |
-+:=====================+:===================================+:===========================================+
-| Matching Window      | Single, fixed window (e.g., $t=5$) | Rolling window at each time $t$            |
-+----------------------+------------------------------------+--------------------------------------------+
-| Treated Group        | Treated at $t$                     | Treated at $t$                             |
-+----------------------+------------------------------------+--------------------------------------------+
-| Control Group        | Future treated (after $t$)         | Future treated relative to each $t$        |
-+----------------------+------------------------------------+--------------------------------------------+
-| Updates over time?   | No                                 | Yes                                        |
-+----------------------+------------------------------------+--------------------------------------------+
-| Suitable for         | Simple adoption settings           | Gradual adoption / time-sensitive settings |
-+----------------------+------------------------------------+--------------------------------------------+
+| Feature            | Static Look-Ahead PSM              | Dynamic Look-Ahead PSM                     |
+|:-------------------|:-----------------------------------|:-------------------------------------------|
+| Matching Window    | Single, fixed window (e.g., $t=5$) | Rolling window at each time $t$            |
+| Treated Group      | Treated at $t$                     | Treated at $t$                             |
+| Control Group      | Future treated (after $t$)         | Future treated relative to each $t$        |
+| Updates over time? | No                                 | Yes                                        |
+| Suitable for       | Simple adoption settings           | Gradual adoption / time-sensitive settings |
 
 > **Challenge:**\
 > Simulate your own dataset with hidden confounding and implement both Static and Dynamic Look-Ahead PSM.\
@@ -1955,47 +1918,604 @@ summary(fit)
 
 ------------------------------------------------------------------------
 
-### Matching for high-dimensional data
+### Matching for High-Dimensional Data
 
-One could reduce the number of dimensions using methods such as:
+As the dimensionality of covariates increases, traditional matching methods (such as nearest neighbor matching using propensity scores or Mahalanobis distance) become increasingly unreliable. This issue, often referred to as the **curse of dimensionality**, undermines the ability to find good matches because distances between points become less informative in high-dimensional space.
 
--   Lasso [@gordon2019comparison]
+In high-dimensional settings, where the number of covariates is large (potentially exceeding the number of observations), careful preprocessing is necessary to reduce dimensionality before matching can be effectively applied. The following approaches are commonly used to mitigate these challenges by reducing the feature space while preserving meaningful structure relevant to treatment assignment and outcomes.
 
--   Penalized logistic regression [@eckles2021bias]
+#### Dimensionality Reduction Techniques
 
--   PCA (Principal Component Analysis)
+A variety of dimensionality reduction techniques can be employed prior to matching. Each method has distinct assumptions and use cases:
 
--   Locality Preserving Projections (LPP) [@li2016matching]
+-   **Lasso Regression (Least Absolute Shrinkage and Selection Operator)**\
+    Lasso imposes an $L_1$ penalty on the regression coefficients, effectively shrinking some coefficients to zero. This property is particularly useful in high-dimensional settings, as it performs both regularization and variable selection.\
+    Lasso can be used to identify a smaller set of covariates that are most predictive of treatment assignment or outcome, which can then be used in matching procedures [@gordon2019comparison].
 
--   Random projection
+-   **Penalized Logistic Regression**\
+    When the treatment is binary, penalized logistic regression (e.g., using an $L_1$ or $L_2$ penalty) can be employed to estimate propensity scores while avoiding overfitting in high-dimensional spaces. These penalized models provide more stable estimates of the propensity score, which is essential for reliable matching [@eckles2021bias].
 
--   Autoencoders [@ramachandra2018deep]
+-   **Principal Component Analysis (PCA)**\
+    PCA is an unsupervised linear transformation that projects the original features into a lower-dimensional space by retaining the directions of maximum variance. While PCA does not consider treatment assignment directly, it is effective for denoising and compressing data, particularly when covariates are highly correlated.\
+    The principal components can then be used as inputs to standard matching methods.
 
-Additionally, one could jointly does dimension reduction while balancing the distributions of the control and treated groups [@yao2018representation].
+-   **Locality Preserving Projections (LPP)**\
+    LPP is a linear dimensionality reduction technique that, unlike PCA, preserves local neighborhood structures. It constructs a similarity graph and projects data into a lower-dimensional space such that nearby points remain close. This locality-preserving property is beneficial for matching, as it helps maintain the integrity of local relationships within the data [@li2016matching].
 
-### Matching for multiple treatments
+-   **Random Projection**\
+    Random projection reduces dimensionality by projecting data onto a lower-dimensional subspace using a random matrix. It is computationally efficient and has theoretical guarantees (e.g., Johnson--Lindenstrauss lemma) that distances between points are approximately preserved. This makes it a viable option for extremely high-dimensional data where exact structure preservation is less critical.
 
-In cases where you have multiple treatment groups, and you want to do matching, it's important to have the same baseline (control) group. For more details, see
+-   **Autoencoders**\
+    Autoencoders are neural network architectures designed to learn efficient, nonlinear representations (encodings) of data. An autoencoder consists of an encoder that compresses the input and a decoder that attempts to reconstruct the original input from this compressed representation.\
+    Autoencoders are particularly effective in capturing complex, nonlinear relationships among features, which may be missed by linear methods like PCA. The latent representation obtained from the encoder can then be used for matching [@ramachandra2018deep].
 
--   [@mccaffrey2013tutorial]
+#### Joint Dimensionality Reduction and Distribution Balancing
 
--   [@lopez2017estimation]
+Rather than performing dimensionality reduction and matching as separate steps, an emerging strategy is to jointly learn representations that simultaneously:
 
--   [@zhao2021propensity]: also for continuous treatment
+1.  Reduce dimensionality, and
+2.  Balance the covariate distributions between treated and control groups.
 
-If you insist on using the `MatchIt` package, then see this [answer](https://stats.stackexchange.com/questions/405019/matching-with-multiple-treatments)
+This is exemplified by *representation learning for causal inference* approaches. One such method, proposed by @yao2018representation, integrates neural networks with matching objectives to learn latent representations of covariates that are both low-dimensional and balanced. These representations are optimized such that the distributions of treated and control units in the latent space are similar (e.g., using maximum mean discrepancy or other balancing metrics), thereby improving the quality of matches and robustness of treatment effect estimates.
 
-### Matching for multi-level treatments
+#### Summary of Approaches
 
-See [@yang2016propensity]
+| Method                        | Type            | Supervised? | Key Feature                                     | Reference                |
+|-------------------------------|-----------------|-------------|-------------------------------------------------|--------------------------|
+| Lasso                         | Linear, sparse  | Yes         | Variable selection via $L_1$ penalty            | [@gordon2019comparison]  |
+| Penalized logistic regression | Linear          | Yes         | Regularized propensity score estimation         | [@eckles2021bias]        |
+| PCA                           | Linear          | No          | Projects onto directions of maximal variance    | --                       |
+| LPP                           | Linear          | No          | Preserves local neighborhood structure          | [@li2016matching]        |
+| Random projection             | Linear (random) | No          | Fast and preserves pairwise distances           | --                       |
+| Autoencoders                  | Nonlinear       | Yes         | Learns nonlinear representations                | [@ramachandra2018deep]   |
+| Joint representation learning | Nonlinear       | Yes         | Learns balanced low-dimensional representations | [@yao2018representation] |
 
-Package in R `shuyang1987/multilevelMatching` on Github
+#### Practical Considerations
 
-### Matching for repeated treatments
+-   **Model selection and validation**: When applying dimensionality reduction prior to matching, one must ensure that the reduced representation still contains sufficient information for confounding adjustment. Cross-validation and balance metrics (e.g., standardized mean differences) should be used to assess the adequacy of the transformation.
 
-<https://cran.r-project.org/web/packages/twang/vignettes/iptw.pdf>
+-   **Interpretability**: While methods like PCA or autoencoders can be effective, they may obscure the interpretability of matches since the transformed features may not correspond to original covariates. Sparse methods like Lasso retain interpretability by selecting original covariates.
 
-package in R `twang`
+-   **Computational efficiency**: Techniques such as random projection or penalized regression are computationally efficient and scalable to large datasets, while autoencoders and joint learning approaches may require more extensive training and hyperparameter tuning.
+
+------------------------------------------------------------------------
+
+### Matching for Multiple Treatments
+
+In many applied settings, researchers face the challenge of estimating causal effects for **more than two treatment levels**. For example, a marketing campaign may have three variants (e.g., control, light exposure, heavy exposure), or a policy evaluation may involve multiple interventions. Standard binary treatment matching methods fall short in these cases, necessitating methodological extensions.
+
+Suppose a dataset includes $T$ distinct treatment groups: $\mathcal{T} = \{0, 1, ..., T-1\}$. Here, $T = 0$ typically denotes the control group, and $T \in \{1, ..., T-1\}$ are active treatments. The goal is to estimate the [Average Treatment Effect] or **Pairwise Treatment Effects**, such as $\text{ATE}_{j,k} = \mathbb{E}[Y(j) - Y(k)]$ for any $j, k \in \mathcal{T}$.
+
+Key challenges in this setting include:
+
+-   Ensuring common support across multiple groups
+-   Adjusting for confounders in a balanced way across all treatment pairs
+-   Managing covariate imbalance and dimensionality as the number of treatments increases
+
+------------------------------------------------------------------------
+
+#### Matching Approaches for Multiple Treatments
+
+Several strategies exist for matching in the presence of multiple treatments:
+
+1.  **Generalized Propensity Scores (GPS)**
+
+The generalized propensity score is defined as the conditional probability of receiving each treatment level given covariates:
+
+$$
+e_t(X) = \mathbb{P}(T = t \mid X), \quad \text{for } t = 0, 1, ..., T-1
+$$
+
+Estimation is typically done using **multinomial logistic regression**. Once GPS scores are estimated, matching can proceed via:
+
+-   **One-vs-all**: For each treatment level, match treated units to all others combined.
+-   **Pairwise matching**: Conduct separate pairwise comparisons between all treatment levels.
+-   **Full matching**: Attempt to construct a global matched sample covering all treatments, using the GPS vector.
+
+[@mccaffrey2013tutorial] provides a comprehensive overview of GPS-based methods, including their implementation in the `twang` package.
+
+2.  **Covariate Balancing Propensity Scores (CBPS)** for Multiple Treatments
+
+[@lopez2017estimation] extend CBPS to the multinomial case. Rather than merely estimating GPS, CBPS directly optimizes covariate balance across treatment groups while estimating GPS parameters. This dual-objective estimation leads to more robust causal estimates in finite samples.
+
+3.  **Kernel or Distance-Based Matching on Multinomial Scores**
+
+Instead of reducing GPS to scalar scores, matching can be performed using the full vector of propensity scores, using distance metrics such as Euclidean or Mahalanobis distance in the GPS space. This approach aligns with @zhao2021propensity, who also consider **continuous treatments** using **Generalized Propensity Score Density Estimation**.
+
+------------------------------------------------------------------------
+
+#### Matching with Multiple Treatments Using MatchIt and Alternatives
+
+While the `MatchIt` package in R was originally developed with binary treatment settings in mind, it can be adapted to handle multiple treatment groups through **pairwise matching** and careful design. However, this approach requires manual data preparation and a clear understanding of the causal estimands of interest---such as the ATT, ATC, or ATE.
+
+1.  Pairwise Matching with a Shared Control Group
+
+To estimate the effect of multiple treatments compared to a shared control group, one straightforward method is to perform separate pairwise matchings between the control group and each treatment group:
+
+
+``` r
+# Load required libraries
+library(MatchIt)
+library(cobalt)  # For balance checking
+
+# Example dataset: Simulated
+set.seed(123)
+n <- 400
+df <- data.frame(
+  treat = factor(sample(c("control", "A", "B", "C"), n, replace = TRUE)),
+  cov1 = rnorm(n),
+  cov2 = runif(n),
+  cov3 = rbinom(n, 1, 0.5),
+  outcome = rnorm(n)
+)
+
+# Define treatment levels
+treatment_levels <- c("A", "B", "C")
+control_level <- "control"
+
+# Initialize weight column
+df$match.weights <- 0
+
+# Perform pairwise matching of each treatment group vs control
+for (treat in treatment_levels) {
+  # Subset to control and current treatment
+  subset_df <- df[df$treat %in% c(treat, control_level), ]
+  
+  # Create a binary treatment variable: 1 for current treatment, 0 for control
+  subset_df$treat_binary <- as.numeric(subset_df$treat == treat)
+
+  # Run matching
+  m.out <- matchit(treat_binary ~ cov1 + cov2 + cov3,
+                   data = subset_df, method = "nearest")
+
+  # Assign weights back to the original dataset
+  matched_units <- names(m.out$weights[m.out$weights > 0])
+  df[matched_units, "match.weights"] <- m.out$weights[matched_units]
+}
+
+# Check covariate balance
+bal.tab(treat ~ cov1 + cov2 + cov3, data = df,
+        weights = df$match.weights, method = "matching")
+#> Balance summary across all treatment pairs
+#>         Type Max.Diff.Adj
+#> cov1 Contin.       0.2200
+#> cov2 Contin.       0.1416
+#> cov3  Binary       0.0412
+#> 
+#> Sample sizes
+#>           A  B  C control
+#> All     104 97 85     114
+#> Matched 104 97 85     114
+
+# Estimate treatment effects using weighted regression
+model <- glm(outcome ~ relevel(treat, ref = "control"),
+             data = df[df$match.weights > 0, ],
+             weights = match.weights)
+
+summary(model)
+#> 
+#> Call:
+#> glm(formula = outcome ~ relevel(treat, ref = "control"), data = df[df$match.weights > 
+#>     0, ], weights = match.weights)
+#> 
+#> Coefficients:
+#>                                  Estimate Std. Error t value Pr(>|t|)
+#> (Intercept)                      -0.03758    0.09349  -0.402    0.688
+#> relevel(treat, ref = "control")A  0.08584    0.13536   0.634    0.526
+#> relevel(treat, ref = "control")B  0.06877    0.13789   0.499    0.618
+#> relevel(treat, ref = "control")C  0.03806    0.14305   0.266    0.790
+#> 
+#> (Dispersion parameter for gaussian family taken to be 0.9964463)
+#> 
+#>     Null deviance: 395.05  on 399  degrees of freedom
+#> Residual deviance: 394.59  on 396  degrees of freedom
+#> AIC: 1139.7
+#> 
+#> Number of Fisher Scoring iterations: 2
+```
+
+This approach estimates the **ATT for each treatment group** relative to the control. That is, for each treated group (e.g., A, B, or C), we ask: *what would the outcome have been if those who received treatment had instead received the control?*
+
+2.  Estimating the ATC Using `MatchIt`
+
+In some cases, we may wish to estimate the ATC---i.e., what would have happened to the control group if they had received each of the treatments. To do this, we match **control units to each treated group**, reversing the focal population. Practically, this means keeping the control group intact and separately matching each treatment group to it.
+
+
+``` r
+# Load required libraries
+library(MatchIt)
+library(cobalt)
+
+# Simulate example data
+set.seed(456)
+n <- 400
+df <- data.frame(
+  treat = factor(sample(c("control", "A", "B", "C"), n, replace = TRUE)),
+  cov1 = rnorm(n),
+  cov2 = runif(n),
+  cov3 = rbinom(n, 1, 0.5),
+  outcome = rnorm(n)
+)
+
+# Define treatment levels
+treatment_levels <- c("A", "B", "C")
+control_level <- "control"
+
+# Initialize weight column
+df$match.weights <- 0
+
+# Estimate ATC by matching treated units to the control group
+for (treat in treatment_levels) {
+  # Subset to current treatment and control
+  subset_df <- df[df$treat %in% c(treat, control_level), ]
+  
+  # Binary treatment variable: 0 for treatment group, 1 for control
+  # This reverses the focus, targeting the control as the treated group
+  subset_df$treat_binary <- as.numeric(subset_df$treat == control_level)
+
+  # Perform matching
+  m.out <- matchit(treat_binary ~ cov1 + cov2 + cov3,
+                   data = subset_df, method = "nearest")
+  
+  # Extract matched unit IDs
+  matched_ids <- names(m.out$weights[m.out$weights > 0])
+  
+  # Assign weights back to original dataset
+  df[matched_ids, "match.weights"] <- m.out$weights[matched_ids]
+}
+
+# Check balance (optional)
+bal.tab(treat ~ cov1 + cov2 + cov3, data = df,
+        weights = df$match.weights, method = "matching")
+#> Balance summary across all treatment pairs
+#>         Type Max.Diff.Adj
+#> cov1 Contin.       0.1229
+#> cov2 Contin.       0.2695
+#> cov3  Binary       0.1985
+#> 
+#> Sample sizes
+#>            A  B  C control
+#> All       99 90 98     113
+#> Matched   99 90 98     111
+#> Unmatched  0  0  0       2
+
+# Estimate ATC via weighted regression
+model <- glm(outcome ~ relevel(treat, ref = "control"),
+             data = df[df$match.weights > 0, ],
+             weights = match.weights)
+
+summary(model)
+#> 
+#> Call:
+#> glm(formula = outcome ~ relevel(treat, ref = "control"), data = df[df$match.weights > 
+#>     0, ], weights = match.weights)
+#> 
+#> Coefficients:
+#>                                  Estimate Std. Error t value Pr(>|t|)
+#> (Intercept)                       0.06826    0.09176   0.744    0.457
+#> relevel(treat, ref = "control")A -0.05103    0.13364  -0.382    0.703
+#> relevel(treat, ref = "control")B  0.08667    0.13713   0.632    0.528
+#> relevel(treat, ref = "control")C  0.09488    0.13400   0.708    0.479
+#> 
+#> (Dispersion parameter for gaussian family taken to be 0.9346181)
+#> 
+#>     Null deviance: 369.69  on 397  degrees of freedom
+#> Residual deviance: 368.24  on 394  degrees of freedom
+#> AIC: 1108.5
+#> 
+#> Number of Fisher Scoring iterations: 2
+```
+
+3.  Regression and Effect Estimation
+
+After constructing the matched dataset, one can use regression on the matched sample to estimate the treatment effects:
+
+
+``` r
+# Subset the data first
+matched_data <- df[df$match.weights > 0, ]
+
+# Then fit the weighted regression using the weights from the subset
+model <- glm(outcome ~ relevel(treat, ref = "control"),
+             data = matched_data,
+             weights = matched_data$match.weights)
+
+summary(model)
+#> 
+#> Call:
+#> glm(formula = outcome ~ relevel(treat, ref = "control"), data = matched_data, 
+#>     weights = matched_data$match.weights)
+#> 
+#> Coefficients:
+#>                                  Estimate Std. Error t value Pr(>|t|)
+#> (Intercept)                       0.06826    0.09176   0.744    0.457
+#> relevel(treat, ref = "control")A -0.05103    0.13364  -0.382    0.703
+#> relevel(treat, ref = "control")B  0.08667    0.13713   0.632    0.528
+#> relevel(treat, ref = "control")C  0.09488    0.13400   0.708    0.479
+#> 
+#> (Dispersion parameter for gaussian family taken to be 0.9346181)
+#> 
+#>     Null deviance: 369.69  on 397  degrees of freedom
+#> Residual deviance: 368.24  on 394  degrees of freedom
+#> AIC: 1108.5
+#> 
+#> Number of Fisher Scoring iterations: 2
+```
+
+Caveats and Limitations
+
+-   Matching one treatment group at a time does not preserve global covariate balance across all treatment groups, only pairwise balance with the control.
+
+-   Overlap (common support) assumptions should be verified individually for each pairwise comparison.
+
+-   Matched samples may vary for each comparison, complicating aggregate inference or joint hypothesis testing.
+
+------------------------------------------------------------------------
+
+#### Alternative: Weighting for Multiple Treatments with `WeightIt`
+
+Matching can be cumbersome in multiple-treatment settings. Weighting approaches offer a more seamless framework, especially when estimating ATE or ATC across all treatment levels simultaneously. The `WeightIt` package extends propensity score weighting to multi-treatment scenarios with strong support for diagnostics and flexible estimation.
+
+
+``` r
+# Load required libraries
+library(WeightIt)
+library(cobalt)
+
+# Simulate example data
+set.seed(789)
+n <- 400
+df <- data.frame(
+  treat = factor(sample(c("control", "A", "B", "C"), n, replace = TRUE)),
+  cov1 = rnorm(n),
+  cov2 = runif(n),
+  cov3 = rbinom(n, 1, 0.5),
+  outcome = rnorm(n)
+)
+
+# Estimate weights for ATE across all treatment levels using multinomial logistic regression
+w.out <- weightit(
+  treat ~ cov1 + cov2 + cov3,
+  data = df,
+  estimand = "ATE",
+  method = "glm"  # multinomial model when treat is a factor with >2 levels
+)
+
+# Check covariate balance
+bal.tab(w.out)
+#> Balance summary across all treatment pairs
+#>         Type Max.Diff.Adj
+#> cov1 Contin.       0.0309
+#> cov2 Contin.       0.0341
+#> cov3  Binary       0.0109
+#> 
+#> Effective sample sizes
+#>                 A     B      C control
+#> Unadjusted 112.   99.   107.     82.  
+#> Adjusted   109.59 92.71 100.11   80.73
+
+bal.tab(w.out, which.treat = c("A", "B", "C"))
+#> Balance by treatment pair
+#> 
+#>  - - - A (0) vs. B (1) - - - 
+#> Balance Measures
+#>         Type Diff.Adj
+#> cov1 Contin.  -0.0211
+#> cov2 Contin.  -0.0018
+#> cov3  Binary   0.0013
+#> 
+#> Effective sample sizes
+#>                 A     B
+#> Unadjusted 112.   99.  
+#> Adjusted   109.59 92.71
+#> 
+#>  - - - A (0) vs. C (1) - - - 
+#> Balance Measures
+#>         Type Diff.Adj
+#> cov1 Contin.  -0.0034
+#> cov2 Contin.   0.0322
+#> cov3  Binary   0.0109
+#> 
+#> Effective sample sizes
+#>                 A      C
+#> Unadjusted 112.   107.  
+#> Adjusted   109.59 100.11
+#> 
+#>  - - - B (0) vs. C (1) - - - 
+#> Balance Measures
+#>         Type Diff.Adj
+#> cov1 Contin.   0.0176
+#> cov2 Contin.   0.0341
+#> cov3  Binary   0.0097
+#> 
+#> Effective sample sizes
+#>                B      C
+#> Unadjusted 99.   107.  
+#> Adjusted   92.71 100.11
+#>  - - - - - - - - - - - - - - - -
+
+
+# Estimate treatment effects with robust SEs
+library(jtools)
+model <- glm(outcome ~ relevel(treat, ref = "control"),
+             data = df,
+             weights = w.out$weights)
+summ(model, robust = "HC1")
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Observations </td>
+   <td style="text-align:right;"> 400 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Dependent variable </td>
+   <td style="text-align:right;"> outcome </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Type </td>
+   <td style="text-align:right;"> Linear regression </td>
+  </tr>
+</tbody>
+</table> <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> χ²(3) </td>
+   <td style="text-align:right;"> 33.68 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> p </td>
+   <td style="text-align:right;"> 0.03 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Pseudo-R² (Cragg-Uhler) </td>
+   <td style="text-align:right;"> 0.02 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> Pseudo-R² (McFadden) </td>
+   <td style="text-align:right;"> 0.01 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> AIC </td>
+   <td style="text-align:right;"> 1143.60 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> BIC </td>
+   <td style="text-align:right;"> 1163.56 </td>
+  </tr>
+</tbody>
+</table> <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> Est. </th>
+   <th style="text-align:right;"> S.E. </th>
+   <th style="text-align:right;"> t val. </th>
+   <th style="text-align:right;"> p </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> (Intercept) </td>
+   <td style="text-align:right;"> -0.21 </td>
+   <td style="text-align:right;"> 0.11 </td>
+   <td style="text-align:right;"> -1.93 </td>
+   <td style="text-align:right;"> 0.05 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> relevel(treat, ref = "control")A </td>
+   <td style="text-align:right;"> 0.26 </td>
+   <td style="text-align:right;"> 0.15 </td>
+   <td style="text-align:right;"> 1.74 </td>
+   <td style="text-align:right;"> 0.08 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> relevel(treat, ref = "control")B </td>
+   <td style="text-align:right;"> -0.03 </td>
+   <td style="text-align:right;"> 0.15 </td>
+   <td style="text-align:right;"> -0.21 </td>
+   <td style="text-align:right;"> 0.83 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;font-weight: bold;"> relevel(treat, ref = "control")C </td>
+   <td style="text-align:right;"> 0.29 </td>
+   <td style="text-align:right;"> 0.14 </td>
+   <td style="text-align:right;"> 2.00 </td>
+   <td style="text-align:right;"> 0.05 </td>
+  </tr>
+</tbody>
+<tfoot><tr><td style="padding: 0; " colspan="100%">
+<sup></sup> Standard errors: Robust, type = HC1</td></tr></tfoot>
+</table>
+
+Additional Notes:
+
+-   To estimate the ATT for a specific treatment (e.g., treatment A), set `focal = "A"` and `estimand = "ATT"` in `weightit()`.
+
+-   Setting `method = "gbm"` in `WeightIt` will use boosted models, equivalent to the `twang` package.
+
+-   Weighting approaches avoid sample size loss from discarding unmatched units and provide smoother covariate balance optimization.
+
+#### Summary: Matching vs. Weighting in Multi-Treatment Settings
+
+| Method     | Approach                           | Estimands Supported | Pros                                   | Cons                                                    |
+|------------|------------------------------------|---------------------|----------------------------------------|---------------------------------------------------------|
+| `MatchIt`  | Pairwise matching (manual)         | ATT, ATC            | Intuitive; transparent matched pairs   | Manual; repeated steps; limited to pairwise comparisons |
+| `WeightIt` | Simultaneous weighting             | ATT, ATC, ATE       | Flexible; single model; scalable       | Requires model diagnostics                              |
+| `twang`    | Boosted weighting for GPS          | ATT, ATE            | Automatic tuning; longitudinal support | More complex interface                                  |
+| `CBPS`     | Balance-constrained GPS estimation | ATT, ATE            | Direct balance optimization            | May require customization                               |
+
+In general, weighting is more scalable and coherent for estimating causal effects in multi-treatment contexts, while matching can be useful when interpretability and transparency of individual pairings is important.
+
+------------------------------------------------------------------------
+
+### Matching for Multi-Level Treatments
+
+Some treatments are not just categorical, but **ordinal** (multi-level), such as "low", "medium", and "high" dosage levels. These differ from multinomial treatments in that the levels have a **natural order**. Incorporating this structure can improve both estimation efficiency and interpretability.
+
+#### Propensity Score Estimation
+
+In this context, researchers often use **ordinal logistic regression** to estimate the probability of being in each treatment level:
+
+$$
+\text{logit}\left(\mathbb{P}(T \leq t \mid X)\right) = \alpha_t - X^\top \beta
+$$
+
+This model imposes the **proportional odds assumption**, where the log-odds are linear in covariates but share the same coefficients across cutoffs.
+
+#### Matching Strategies
+
+@yang2016propensity provide a framework for matching with ordinal treatments, arguing that matching on the **generalized propensity score** derived from an ordinal model helps preserve the order and improves balance. Key considerations include:
+
+-   Matching on estimated ordinal probabilities or cumulative logits
+-   Using Mahalanobis distance in the latent score space
+-   Implementing stratification or subclassification based on predicted scores
+
+A custom package, [`shuyang1987/multilevelMatching`](https://github.com/shuyang1987/multilevelMatching), provides tools for this kind of analysis. The package includes:
+
+-   Functions to estimate ordinal GPS
+-   Matching and subclassification routines
+-   Diagnostics to evaluate covariate balance
+
+------------------------------------------------------------------------
+
+### Matching for Repeated Treatments (Time-Varying Treatments)
+
+In longitudinal studies, treatments are often administered at multiple time points. Examples include:
+
+-   A patient receiving a drug in multiple doses over weeks
+-   A user receiving marketing emails over several days
+
+This setting raises unique challenges, such as:
+
+-   **Time-varying confounding**: Covariates affected by prior treatment may influence future treatment and outcomes
+-   **Cumulative dose effects**: Treatment assignment is no longer a one-time event
+
+#### Marginal Structural Models
+
+The most popular framework for analyzing repeated treatments is the **Marginal Structural Model (MSMs)**, which estimates causal effects by weighting each observation using **Inverse Probability of Treatment Weights (IPTW)**.
+
+Let $A_t$ be the treatment at time $t$, and $X_t$ be time-varying covariates. The IPTW for a trajectory is:
+
+$$
+w_i = \prod_{t=1}^{T} \frac{1}{\mathbb{P}(A_{it} \mid \bar{A}_{i,t-1}, \bar{X}_{i,t})}
+$$
+
+Weights are estimated using logistic regression models at each time point. The outcome model then regresses $Y$ on $\bar{A}_T$ using the weights.
+
+The [`twang`](https://cran.r-project.org/web/packages/twang/vignettes/iptw.pdf) package provides tools for:
+
+-   Estimating time-varying propensity scores
+-   Computing IPTWs
+-   Fitting marginal structural models
+-   Checking covariate balance over time
+
+Practical Notes
+
+-   Stabilized weights help reduce variance
+-   Trimming or truncating extreme weights is often necessary to maintain robust inference
+-   Dynamic treatment regimes may require further generalizations such as structural nested mean models.
 
 ------------------------------------------------------------------------
 
@@ -2118,23 +2638,15 @@ If treatment is clustered (e.g., by region or school), standard Rosenbaum bounds
 
 The table below shows $\Gamma$ thresholds needed to nullify treatment effects in real-world marketing studies:
 
-+---------------------------+-------------------+-----------------------------------------------------------+
 | Study                     | Critical $\Gamma$ | Context                                                   |
-+===========================+===================+===========================================================+
+|---------------------------|-------------------|-----------------------------------------------------------|
 | [@oestreicher2013content] | 1.5 -- 1.8        | User community participation on willingness to pay        |
-+---------------------------+-------------------+-----------------------------------------------------------+
 | [@sun2013ad]              | 1.5               | Revenue-sharing program and content popularity            |
-+---------------------------+-------------------+-----------------------------------------------------------+
 | [@manchanda2015social]    | 1.6               | Impact of social referrals on purchase behavior           |
-+---------------------------+-------------------+-----------------------------------------------------------+
 | [@sudhir2015peter]        | 1.9 -- 2.2        | IT adoption effects on productivity                       |
-+---------------------------+-------------------+-----------------------------------------------------------+
 | [@proserpio2017online]    | 2.0               | Management responses and online reputation                |
-+---------------------------+-------------------+-----------------------------------------------------------+
 | [@zhang2022makes]         | 1.55              | Verified photos and Airbnb demand                         |
-+---------------------------+-------------------+-----------------------------------------------------------+
 | [@chae2023paywall]        | 27.0              | Paywall suspensions and future subscriptions (not a typo) |
-+---------------------------+-------------------+-----------------------------------------------------------+
 
 Packages
 
@@ -2405,15 +2917,11 @@ This makes RCR particularly useful for *stress testing* causal estimates: "How b
 
 This method has been applied to various marketing and digital strategy settings to assess the robustness of estimated effects. A few notable examples:
 
-+------------------------+---------------------------------------------------------------------------+-------------------------------------+
 | Study                  | Context                                                                   | Minimum $\lambda$ to nullify effect |
-+========================+===========================================================================+=====================================+
+|------------------------|---------------------------------------------------------------------------|-------------------------------------|
 | [@manchanda2015social] | **Social dollar effect**: impact of peer influence on purchasing behavior | 3.23                                |
-+------------------------+---------------------------------------------------------------------------+-------------------------------------+
 | [@chae2023paywall]     | **Paywall suspension**: effect on future subscription behavior            | 6.69                                |
-+------------------------+---------------------------------------------------------------------------+-------------------------------------+
 | [@sun2013ad]           | **Ad revenue-sharing**: impact on content popularity                      |                                     |
-+------------------------+---------------------------------------------------------------------------+-------------------------------------+
 
 These high $\lambda$ values imply that unobserved selection would need to be 3 to 7 times stronger than observable selection to eliminate the estimated treatment effect. In practical terms, this offers strong evidence that the effects are robust to omitted variable bias.
 
@@ -2465,7 +2973,7 @@ rcrbounds::effect_test(rcr_res, h0 = 0)
 plot(rcr_res)
 ```
 
-<img src="35-matching-methods_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="35-matching-methods_files/figure-html/unnamed-chunk-25-1.png" width="90%" style="display: block; margin: auto;" />
 
 The plot shows how the estimated treatment effect varies as we allow for stronger selection on unobservables (i.e., increasing $\lambda$). If the effect remains consistently different from zero even at high $\lambda$, it provides graphical evidence of robustness.
 
@@ -2667,7 +3175,7 @@ o_delta_rsq_viz(
 )
 ```
 
-<img src="35-matching-methods_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
+<img src="35-matching-methods_files/figure-html/unnamed-chunk-26-1.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
 
@@ -2688,7 +3196,7 @@ o_delta_boot_viz(
 )
 ```
 
-<img src="35-matching-methods_files/figure-html/unnamed-chunk-22-2.png" width="90%" style="display: block; margin: auto;" />
+<img src="35-matching-methods_files/figure-html/unnamed-chunk-26-2.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
 
@@ -2702,7 +3210,7 @@ o_beta_rsq_viz(
 )
 ```
 
-<img src="35-matching-methods_files/figure-html/unnamed-chunk-22-3.png" width="90%" style="display: block; margin: auto;" />
+<img src="35-matching-methods_files/figure-html/unnamed-chunk-26-3.png" width="90%" style="display: block; margin: auto;" />
 
 1.  **Explain‑away curve**: plots $\delta^*$ against a range of $R^2_{\max}$.
 2.  **Bootstrap histogram**: sampling distribution of $\delta^*$, with 90/95/99 % bands.

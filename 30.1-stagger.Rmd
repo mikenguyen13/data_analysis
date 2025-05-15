@@ -1,0 +1,765 @@
+## Modern Estimators for Staggered Adoption {#sec-modern-estimators-for-staggered-adoption}
+
+### Group-Time Average Treatment Effects [@callaway2021difference] {#sec-group-time-average-treatment-effects-callaway2021difference}
+
+**Notation Recap**
+
+-   $Y_{it}(0)$: Potential outcome for unit $i$ at time $t$ in the absence of treatment.
+
+-   $Y_{it}(g)$: Potential outcome for unit $i$ at time $t$ if first treated in period $g$.
+
+-   $Y_{it}$: Observed outcome for unit $i$ at time $t$.
+
+    $$
+    Y_{it} =
+    \begin{cases}
+    Y_{it}(0), & \text{if unit } i \text{ never treated ( } C_i = 1 \text{)} \\
+    1\{G_i > t\} Y_{it}(0) + 1\{G_i \le t\} Y_{it}(G_i), & \text{otherwise}
+    \end{cases}
+    $$
+
+-   $G_i$: Group assignment, i.e., the time period when unit $i$ first receives treatment.
+
+-   $C_i = 1$: Indicator that unit $i$ never receives treatment (the never-treated group).
+
+-   $D_{it} = 1\{G_i \le t\}$: Indicator that unit $i$ has been treated by time $t$.
+
+------------------------------------------------------------------------
+
+**Assumptions**
+
+The following assumptions are typically imposed to identify treatment effects in staggered adoption settings.
+
+1.  **Staggered Treatment Adoption**\
+    Once treated, a unit remains treated in all subsequent periods.\
+    Formally, $D_{it}$ is non-decreasing in $t$.
+
+2.  **Parallel Trends Assumptions** (Conditional or Unconditional on Covariates)
+
+    Two common variants:
+
+    -   **Parallel trends based on never-treated units**: $$
+        \mathbb{E}[Y_t(0) - Y_{t-1}(0) | G_i = g] = \mathbb{E}[Y_t(0) - Y_{t-1}(0) | C_i = 1]
+        $$ Interpretation:
+        -   The average potential outcome trends of the treated group ($G_i = g$) are the same as the **never-treated** group, absent treatment.
+    -   **Parallel trends based on not-yet-treated units**: $$
+        \mathbb{E}[Y_t(0) - Y_{t-1}(0) | G_i = g] = \mathbb{E}[Y_t(0) - Y_{t-1}(0) | D_{is} = 0, G_i \ne g]
+        $$ Interpretation:
+        -   Units **not yet treated** by time $s$ ($D_{is} = 0$) can serve as controls for units first treated at $g$.
+
+    These assumptions can also be **conditional on covariates** $X$, as:
+
+    $$
+    \mathbb{E}[Y_t(0) - Y_{t-1}(0) | X_i, G_i = g] = \mathbb{E}[Y_t(0) - Y_{t-1}(0) | X_i, C_i = 1]
+    $$
+
+3.  **Random Sampling**\
+    Units are sampled independently and identically from the population.
+
+4.  **Irreversibility of Treatment**\
+    Once treated, units do not revert to untreated status.
+
+5.  **Overlap (Positivity)**\
+    For each group $g$, the propensity of receiving treatment at $g$ lies strictly within $(0, 1)$: $$
+    0 < \mathbb{P}(G_i = g | X_i) < 1
+    $$
+
+------------------------------------------------------------------------
+
+The Group-Time [ATT](#sec-average-treatment-effect-on-the-treated), $ATT(g, t)$, measures the average treatment effect for units first treated in period $g$, evaluated at time $t$.
+
+$$
+ATT(g, t) = \mathbb{E}[Y_t(g) - Y_t(0) | G_i = g]
+$$
+
+Interpretation:
+
+-   $g$ indexes when the group first receives treatment.
+
+-   $t$ is the time period when the effect is evaluated.
+
+-   $ATT(g, t)$ captures how treatment effects evolve over time, following adoption at time $g$.
+
+------------------------------------------------------------------------
+
+Identification of $ATT(g, t)$
+
+1.  **Using Never-Treated Units as Controls**: $$
+    ATT(g, t) = \mathbb{E}[Y_t - Y_{g-1} | G_i = g] - \mathbb{E}[Y_t - Y_{g-1} | C_i = 1], \quad \forall t \ge g
+    $$
+
+2.  **Using Not-Yet-Treated Units as Controls**: $$
+    ATT(g, t) = \mathbb{E}[Y_t - Y_{g-1} | G_i = g] - \mathbb{E}[Y_t - Y_{g-1} | D_{it} = 0, G_i \ne g], \quad \forall t \ge g
+    $$
+
+3.  **Conditional Parallel Trends (with Covariates)**:\
+    If treatment assignment depends on covariates $X_i$, adjust the parallel trends assumption:
+
+    -   **Never-treated controls**: $$
+        ATT(g, t) = \mathbb{E}[Y_t - Y_{g-1} | X_i, G_i = g] - \mathbb{E}[Y_t - Y_{g-1} | X_i, C_i = 1], \quad \forall t \ge g
+        $$
+    -   **Not-yet-treated controls**: $$
+        ATT(g, t) = \mathbb{E}[Y_t - Y_{g-1} | X_i, G_i = g] - \mathbb{E}[Y_t - Y_{g-1} | X_i, D_{it} = 0, G_i \ne g], \quad \forall t \ge g
+        $$
+
+------------------------------------------------------------------------
+
+Aggregating $ATT(g, t)$: Common Parameters of Interest
+
+1.  [Average Treatment Effect] per Group ($\theta_S(g)$):\
+    Average effect over all periods after treatment for group $g$: $$
+    \theta_S(g) = \frac{1}{\tau - g + 1} \sum_{t = g}^{\tau} ATT(g, t)
+    $$
+
+    -   $\tau$: Last time period in the panel.
+
+2.  Overall [Average Treatment Effect on the Treated] (ATT) ($\theta_S^O$):\
+    Weighted average of $\theta_S(g)$ across groups $g$, weighted by their group size: $$
+    \theta_S^O = \sum_{g=2}^{\tau} \theta_S(g) \cdot \mathbb{P}(G_i = g)
+    $$
+
+3.  **Dynamic Treatment Effects** ($\theta_D(e)$):\
+    Average effect after $e$ periods of treatment exposure: $$
+    \theta_D(e) = \sum_{g=2}^{\tau} \mathbb{1}\{g + e \le \tau\} \cdot ATT(g, g + e) \cdot \mathbb{P}(G_i = g | g + e \le \tau)
+    $$
+
+4.  **Calendar Time Treatment Effects** ($\theta_C(t)$):\
+    Average treatment effect at time $t$ across all groups treated by $t$: $$
+    \theta_C(t) = \sum_{g=2}^{\tau} \mathbb{1}\{g \le t\} \cdot ATT(g, t) \cdot \mathbb{P}(G_i = g | g \le t)
+    $$
+
+5.  **Average Calendar Time Treatment Effect** ($\theta_C$):\
+    Average of $\theta_C(t)$ across all post-treatment periods: $$
+    \theta_C = \frac{1}{\tau - 1} \sum_{t=2}^{\tau} \theta_C(t)
+    $$
+
+The `staggered()` function offers several estimands, each defining a different way of aggregating group-time average treatment effects into a single overall treatment effect:
+
+-   Simple: Equally weighted across all groups.
+
+-   Cohort: Weighted by group sizes (i.e., treated cohorts).
+
+-   Calendar: Weighted by the number of observations in each calendar time.
+
+```{r}
+library(staggered) 
+library(fixest)
+data("base_stagg")
+
+# Simple weighted average ATT
+staggered(
+    df = base_stagg,
+    i = "id",
+    t = "year",
+    g = "year_treated",
+    y = "y",
+    estimand = "simple"
+)
+
+# Cohort weighted ATT (i.e., by treatment cohort size)
+staggered(
+    df = base_stagg,
+    i = "id",
+    t = "year",
+    g = "year_treated",
+    y = "y",
+    estimand = "cohort"
+)
+
+# Calendar weighted ATT (i.e., by year)
+staggered(
+    df = base_stagg,
+    i = "id",
+    t = "year",
+    g = "year_treated",
+    y = "y",
+    estimand = "calendar"
+)
+```
+
+To visualize treatment dynamics around the time of adoption, the event study specification estimates dynamic treatment effects relative to the time of treatment.
+
+```{r}
+res <- staggered(
+    df = base_stagg,
+    i = "id",
+    t = "year",
+    g = "year_treated",
+    y = "y",
+    estimand = "eventstudy", 
+    eventTime = -9:8
+)
+
+# Plotting the event study with pointwise confidence intervals
+library(ggplot2)
+library(dplyr)
+
+ggplot(
+    res |> mutate(
+        ymin_ptwise = estimate - 1.96 * se,
+        ymax_ptwise = estimate + 1.96 * se
+    ),
+    aes(x = eventTime, y = estimate)
+) +
+    geom_pointrange(aes(ymin = ymin_ptwise, ymax = ymax_ptwise)) +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    xlab("Event Time") +
+    ylab("ATT Estimate") +
+    ggtitle("Event Study: Dynamic Treatment Effects") +
+    causalverse::ama_theme()
+```
+
+The `staggered` package also includes direct implementations of alternative estimators:
+
+-   `staggered_cs()` implements the @callaway2021difference estimator.
+
+-   `staggered_sa()` implements the @sun2021estimating estimator, which adjusts for bias from comparisons involving already-treated units.
+
+```{r}
+# Callaway and Sant’Anna estimator
+staggered_cs(
+    df = base_stagg,
+    i = "id",
+    t = "year",
+    g = "year_treated",
+    y = "y",
+    estimand = "simple"
+)
+
+# Sun and Abraham estimator
+staggered_sa(
+    df = base_stagg,
+    i = "id",
+    t = "year",
+    g = "year_treated",
+    y = "y",
+    estimand = "simple"
+)
+```
+
+To assess statistical significance under the sharp null hypothesis $H_0: \text{TE} = 0$, the `staggered` package includes an option for Fisher's randomization (permutation) test. This approach tests whether the observed estimate could plausibly occur under a random reallocation of treatment timings.
+
+```{r}
+# Fisher Randomization Test
+staggered(
+    df = base_stagg,
+    i = "id",
+    t = "year",
+    g = "year_treated",
+    y = "y",
+    estimand = "simple",
+    compute_fisher = TRUE,
+    num_fisher_permutations = 100
+)
+```
+
+This test provides a non-parametric method for inference and is particularly useful when the number of groups is small or standard errors are unreliable due to clustering or heteroskedasticity.
+
+------------------------------------------------------------------------
+
+### Cohort Average Treatment Effects [@sun2021estimating] {#sec-cohort-average-treatment-effects-sun2021estimating}
+
+@sun2021estimating propose a solution to the TWFE problem in staggered adoption settings by introducing an interaction-weighted estimator for dynamic treatment effects. This estimator is based on the concept of **Cohort Average Treatment Effects on the Treated (CATT)**, which accounts for variation in treatment timing and dynamic treatment responses.
+
+Traditional TWFE estimators implicitly assume **homogeneous treatment effects** and often rely on treated units serving as controls for later-treated units. When treatment effects vary over time or across groups, this leads to **contaminated comparisons**, especially in event-study specifications.
+
+@sun2021estimating address this issue by:
+
+-   Estimating cohort-specific treatment effects relative to time since treatment.
+
+-   Using never-treated units as controls, or in their absence, the last-treated cohort.
+
+#### Defining the Parameter of Interest: CATT
+
+Let $E_i = e$ denote the period when unit $i$ first receives treatment. The **cohort-specific average treatment effect on the treated** (CATT) is defined as: $$
+CATT_{e, l} = \mathbb{E}[Y_{i, e + l} - Y_{i, e + l}^\infty \mid E_i = e]
+$$ Where:
+
+-   $l$ is the relative period (e.g., $l = -1$ is one year before treatment, $l = 0$ is the treatment year).
+
+-   $Y_{i, e + l}^\infty$ is the potential outcome without treatment.
+
+-   $Y_{i, e + l}$ is the observed outcome.
+
+This formulation allows one to trace out the dynamic effect of treatment for each cohort, relative to their treatment start time.
+
+@sun2021estimating extend the interaction-weighted idea to panel settings, originally introduced by @gibbons2018broken in a cross-sectional context.
+
+They propose regressing the outcome on:
+
+-   Relative time indicators constructed by interacting treatment cohort ($E_i$) with time ($t$).
+
+-   Unit and time fixed effects.
+
+This method explicitly estimates $CATT_{e, l}$ terms, avoiding the contaminating influence of already-treated units that TWFE models often suffer from.
+
+**Relative Period Bin Indicator**
+
+$$ D_{it}^l = \mathbb{1}(t - E_i = l) $$
+
+-   $E_i$: The time period when unit $i$ first receives treatment.
+-   $l$: The **relative time period**---how many periods have passed since treatment began.
+
+1.  **Static Specification**
+
+$$ Y_{it} = \alpha_i + \lambda_t + \mu_g \sum_{l \ge 0} D_{it}^l + \epsilon_{it} $$
+
+-   $\alpha_i$: Unit fixed effects.
+-   $\lambda_t$: Time fixed effects.
+-   $\mu_g$: Effect for group $g$.
+-   Excludes periods **prior to treatment**.
+
+2.  **Dynamic Specification**
+
+$$ Y_{it} = \alpha_i + \lambda_t + \sum_{\substack{l = -K \\ l \neq -1}}^{L} \mu_l D_{it}^l + \epsilon_{it} $$
+
+-   Includes leads and lags of treatment indicators $D_{it}^l$.
+-   Excludes one period (typically $l = -1$) to avoid perfect collinearity.
+-   Tests for pre-treatment parallel trends rely on the leads ($l < 0$).
+
+------------------------------------------------------------------------
+
+#### Identifying Assumptions
+
+1.  **Parallel Trends**
+
+For identification, it is assumed that untreated potential outcomes follow parallel trends across cohorts in the absence of treatment: $$
+\mathbb{E}[Y_{it}^\infty - Y_{i, t-1}^\infty \mid E_i = e] = \text{constant across } e
+$$ This allows us to use **never-treated** or **not-yet-treated** units as valid counterfactuals.
+
+2.  **No Anticipatory Effects**
+
+Treatment should not influence outcomes before it is implemented. That is: $$
+CATT_{e, l} = 0 \quad \text{for all } l < 0
+$$ This ensures that any pre-trends are not driven by behavioral changes in anticipation of treatment.
+
+3.  **Treatment Effect Homogeneity (Optional)**
+
+The treatment effect is consistent across cohorts for each relative period. Each adoption cohort should have the same path of treatment effects. In other words, the trajectory of each treatment cohort is similar.
+
+Although @sun2021estimating allow treatment effect heterogeneity, some settings may assume homogeneous effects within cohorts and periods:
+
+-   Each cohort has the same pattern of response over time.
+
+-   This is relaxed in their design but assumed in simpler TWFE settings.
+
+#### Comparison to Other Designs
+
+Different DiD designs make distinct assumptions about how treatment effects vary:
+
++-------------------------+----------------+---------------------+------------------------------------------------------------------------------------------------------+
+| Study                   | Vary Over Time | Vary Across Cohorts | Notes                                                                                                |
++=========================+================+=====================+======================================================================================================+
+| @sun2021estimating      | ✓              | ✓                   | Allows full heterogeneity                                                                            |
++-------------------------+----------------+---------------------+------------------------------------------------------------------------------------------------------+
+| @callaway2021difference | ✓              | ✓                   | Estimates group × time ATTs                                                                          |
++-------------------------+----------------+---------------------+------------------------------------------------------------------------------------------------------+
+| @borusyak2024revisiting | ✓              | ✗                   | Homogeneous across cohorts                                                                           |
+|                         |                |                     |                                                                                                      |
+|                         |                |                     | Heterogeneity over time                                                                              |
++-------------------------+----------------+---------------------+------------------------------------------------------------------------------------------------------+
+| @athey2022design        | ✗              | ✓                   | Heterogeneity only across adoption cohorts                                                           |
++-------------------------+----------------+---------------------+------------------------------------------------------------------------------------------------------+
+| @de2023two              | ✓              | ✓                   | Complete heterogeneity                                                                               |
++-------------------------+----------------+---------------------+------------------------------------------------------------------------------------------------------+
+| @goodman2021difference  | ✓ or ✗         | ✗ or ✓              | Restricts one dimension                                                                              |
+|                         |                |                     |                                                                                                      |
+|                         |                |                     | Heterogeneity either "vary across units but not over time" or "vary over time but not across units". |
++-------------------------+----------------+---------------------+------------------------------------------------------------------------------------------------------+
+
+#### Sources of Treatment Effect Heterogeneity
+
+Several forces can generate heterogeneous treatment effects:
+
+-   **Calendar Time Effects**: Macro events (e.g., recessions, policy changes) affect cohorts differently.
+
+-   **Selection into Timing**: Units self-select into early/late treatment based on anticipated effects.
+
+-   **Composition Differences**: Adoption cohorts may differ in observed or unobserved ways.
+
+Such heterogeneity can bias TWFE estimates, which often average effects across incomparable groups.
+
+------------------------------------------------------------------------
+
+#### Technical Issues
+
+When using an event-study TWFE regression to estimate dynamic treatment effects in staggered adoption settings, one must exclude certain relative time indicators to avoid perfect multicollinearity. This arises because relative period indicators are linearly dependent due to the presence of unit and time fixed effects.
+
+Specifically, the following two terms must be addressed:
+
+-   **The period immediately before treatment** ($l = -1$): This period is typically omitted and serves as the baseline for comparison. This normalization has been standard practice in event study regressions prior to @sun2021estimating .
+
+-   **A distant post-treatment period** (e.g., $l = +5$ or $l = +10$): @sun2021estimating clarified that in addition to the baseline period, at least one other relative time indicator---typically from the far tail of the post-treatment distribution---must be dropped, binned, or trimmed to avoid multicollinearity among the relative time dummies. This issue emerges because fixed effects absorb much of the within-unit and within-time variation, reducing the effective rank of the design matrix.
+
+Dropping certain relative periods (especially pre-treatment periods) introduces an implicit normalization: the estimates for included periods are now interpreted relative to the omitted periods. If treatment effects are present in these omitted periods---say, due to anticipation or early effects---this will contaminate the estimates of included relative periods.
+
+To avoid this contamination, researchers often assume that all pre-treatment periods have zero treatment effect, i.e.,
+
+$$
+CATT_{e, l} = 0 \quad \text{for all } l < 0
+$$
+
+This assumption ensures that excluded pre-treatment periods form a valid counterfactual, and estimates for $l \geq 0$ are not biased due to normalization.
+
+------------------------------------------------------------------------
+
+@sun2021estimating resolve the issues of weighting and aggregation by using a clean weighting scheme that avoids contamination from excluded periods. Their method produces a weighted average of cohort- and time-specific treatment effects ($CATT_{e, l}$), where the weights are:
+
+-   **Non-negative**
+-   **Sum to one**
+-   **Interpretable as the fraction of treated units who are observed** $l$ periods after treatment, normalized over the number of available periods $g$
+
+This interaction-weighted estimator ensures that the estimated average treatment effect reflects a convex combination of dynamic treatment effects from different cohorts and times.
+
+In this way, their aggregation logic closely mirrors that of @callaway2021difference, who also construct average treatment effects from group-time ATTs using interpretable weights that align with the sampling structure.
+
+------------------------------------------------------------------------
+
+```{r}
+library(fixest)
+data("base_stagg")
+
+# Estimate Sun & Abraham interaction-weighted model
+res_sa20 <- feols(
+  y ~ x1 + sunab(year_treated, year) | id + year,
+  data = base_stagg
+)
+
+```
+
+Use `iplot()` to visualize the estimated dynamic treatment effects across relative time:
+
+```{r}
+iplot(res_sa20)
+
+```
+
+You can summarize the results using different aggregation options:
+
+```{r}
+# Overall average ATT
+summary(res_sa20, agg = "att")
+
+# Aggregation across post-treatment periods (excluding leads)
+summary(res_sa20, agg = c("att" = "year::[^-]"))
+
+# Aggregate post-treatment effects from l = 0 to 8
+summary(res_sa20, agg = c("att" = "year::[012345678]")) |> 
+  etable(digits = 2)
+
+```
+
+The `fwlplot` package provides diagnostics for how much variation is explained by fixed effects or covariates:
+
+```{r}
+library(fwlplot)
+
+# Simple FWL plot
+fwl_plot(y ~ x1, data = base_stagg)
+
+
+# With fixed effects
+fwl_plot(y ~ x1 | id + year,
+         data = base_stagg,
+         n_sample = 100)
+
+# Splitting by treatment status
+fwl_plot(
+    y ~ x1 |
+        id + year,
+    data = base_stagg,
+    n_sample = 100,
+    fsplit = ~ treated
+)
+```
+
+------------------------------------------------------------------------
+
+### Stacked Difference-in-Differences {#sec-stacked-difference-in-differences}
+
+The **Stacked DiD** approach addresses key limitations of standard TWFE models in **staggered adoption designs**, particularly **treatment effect heterogeneity** and **timing variations**. By constructing **sub-experiments** around each treatment event, researchers can isolate cleaner comparisons and reduce contamination from improperly specified control groups.
+
+Basic TWFE Specification
+
+$$
+Y_{it} = \beta_{FE} D_{it} + A_i + B_t + \epsilon_{it}
+$$
+
+-   $Y_{it}$: Outcome for unit $i$ at time $t$.
+-   $D_{it}$: Treatment indicator (1 if treated, 0 otherwise).
+-   $A_i$: Unit (group) fixed effects.
+-   $B_t$: Time period fixed effects.
+-   $\epsilon_{it}$: Idiosyncratic error term.
+
+------------------------------------------------------------------------
+
+Steps in the Stacked DiD Procedure
+
+#### Choose an Event Window
+
+Define:
+
+-   $\kappa_a$: Number of **pre-treatment** periods to include in the event window (lead periods).
+-   $\kappa_b$: Number of **post-treatment** periods to include in the event window (lag periods).
+
+**Implication**:\
+Only events where sufficient **pre- and post-treatment periods** exist will be included (i.e., excluding those events that do not meet this criteria).
+
+------------------------------------------------------------------------
+
+#### Enumerate Sub-Experiments
+
+Define:
+
+-   $T_1$: First period in the panel.
+-   $T_T$: Last period in the panel.
+-   $\Omega_A$: The set of **treatment adoption periods** that fit within the event window:
+
+$$
+\Omega_A = \left\{ A_i \;\middle|\; T_1 + \kappa_a \le A_i \le T_T - \kappa_b \right\}
+$$
+
+-   Each $A_i$ represents an **adoption period** for unit $i$ that has enough time on both sides of the event.
+
+Let $d = 1, \dots, D$ index the **sub-experiments** in $\Omega_A$.
+
+-   $\omega_d$: The event (adoption) date of the $d$-th sub-experiment.
+
+------------------------------------------------------------------------
+
+#### Define Inclusion Criteria
+
+**Valid Treated Units**
+
+-   In sub-experiment $d$, treated units have adoption date exactly equal to $\omega_d$.
+-   A unit may only be treated in one sub-experiment to avoid duplication.
+
+**Clean Control Units**
+
+-   Controls are units where $A_i > \omega_d + \kappa_b$, i.e.,
+    -   They are **never treated**, or
+    -   They are **treated in the far future** (beyond the post-event window).
+-   A control unit can appear in multiple sub-experiments, but this requires correcting standard errors (see below).
+
+**Valid Time Periods**
+
+-   Only observations where\
+    $$
+    \omega_d - \kappa_a \le t \le \omega_d + \kappa_b
+    $$\
+    are included.
+-   This ensures the analysis is centered on the event window.
+
+#### Specify Estimating Equation
+
+Basic DiD Specification in the Stacked Dataset
+
+$$
+Y_{itd} = \beta_0 + \beta_1 T_{id}  + \beta_2 P_{td} + \beta_3 (T_{id} \times P_{td}) + \epsilon_{itd}
+$$
+
+Where:
+
+-   $i$: Unit index
+
+-   $t$: Time index
+
+-   $d$: Sub-experiment index
+
+-   $T_{id}$: Indicator for **treated units** in sub-experiment $d$
+
+-   $P_{td}$: Indicator for **post-treatment periods** in sub-experiment $d$
+
+-   $\beta_3$: Captures the **DiD estimate** of the treatment effect.
+
+Equivalent Form with Fixed Effects
+
+$$
+Y_{itd} = \beta_3 (T_{id} \times P_{td}) + \theta_{id} + \gamma_{td} + \epsilon_{itd}
+$$
+
+where
+
+-   $\theta_{id}$: Unit-by-sub-experiment fixed effect.
+
+-   $\gamma_{td}$: Time-by-sub-experiment fixed effect.
+
+Note:
+
+-   $\beta_3$ summarizes the average treatment effect across all sub-experiments but does not allow for dynamic effects by time since treatment.
+
+#### Stacked Event Study Specification
+
+Define Time Since Event ($YSE_{td}$):
+
+$$
+YSE_{td} = t- \omega_d
+$$
+
+where
+
+-   Measures time since the event (relative time) in sub-experiment $d$.
+
+-   $YSE_{td} \in [-\kappa_a, \dots, 0, \dots, \kappa_b]$ in every sub-experiment.
+
+**Event-Study Regression (Sub-Experiment Level)**
+
+$$
+Y_{it}^d = \sum_{j = -\kappa_a}^{\kappa_b} \beta_j^d . 1 (YSE_{td} = j) + \sum_{j = -\kappa_a}^{\kappa_b} \delta_j^d (T_{id} . 1 (YSE_{td} = j)) + \theta_i^d + \epsilon_{it}^d
+$$
+
+where
+
+-   Separate coefficients for each sub-experiment $d$.
+
+-   $\delta_j^d$: Captures treatment effects at relative time $j$ within sub-experiment $d$.
+
+**Pooled Stacked Event-Study Regression**
+
+$$
+Y_{itd} = \sum_{j = -\kappa_a}^{\kappa_b} \beta_j \cdot \mathbb{1}(YSE_{td} = j) + \sum_{j = -\kappa_a}^{\kappa_b} \delta_j \left( T_{id} \cdot \mathbb{1}(YSE_{td} = j) \right) + \theta_{id} + \epsilon_{itd}
+$$
+
+-   Pooled coefficients $\delta_j$ reflect average treatment effects by event time $j$ across sub-experiments.
+
+#### Clustering in Stacked DID
+
+-   **Cluster at Unit × Sub-Experiment Level** [@cengiz2019effect]: Accounts for units appearing multiple times across sub-experiments.
+
+-   **Cluster at Unit Level** [@deshpande2019screened]: Appropriate when units are uniquely identified and do not appear in multiple sub-experiments.
+
+------------------------------------------------------------------------
+
+```{r}
+library(did)
+library(tidyverse)
+library(fixest)
+
+# Load example data
+data(base_stagg)
+
+# Get treated cohorts (exclude never-treated units coded as 10000)
+cohorts <- base_stagg %>%
+    filter(year_treated != 10000) %>%
+    distinct(year_treated) %>%
+    pull()
+
+# Function to generate data for each sub-experiment
+getdata <- function(j, window) {
+    base_stagg %>%
+        filter(
+            year_treated == j |               # treated units in cohort j
+            year_treated > j + window         # controls not treated soon after
+        ) %>%
+        filter(
+            year >= j - window &
+            year <= j + window                # event window bounds
+        ) %>%
+        mutate(df = j)                        # sub-experiment indicator
+}
+
+# Generate the stacked dataset
+stacked_data <- map_df(cohorts, ~ getdata(., window = 5)) %>%
+    mutate(
+        rel_year = if_else(df == year_treated, time_to_treatment, NA_real_)
+    ) %>%
+    fastDummies::dummy_cols("rel_year", ignore_na = TRUE) %>%
+    mutate(across(starts_with("rel_year_"), ~ replace_na(., 0)))
+
+# Estimate fixed effects regression on the stacked data
+stacked_result <- feols(
+    y ~ `rel_year_-5` + `rel_year_-4` + `rel_year_-3` + `rel_year_-2` +
+        rel_year_0 + rel_year_1 + rel_year_2 + rel_year_3 +
+        rel_year_4 + rel_year_5 |
+        id ^ df + year ^ df,
+    data = stacked_data
+)
+
+# Extract coefficients and standard errors
+stacked_coeffs <- stacked_result$coefficients
+stacked_se <- stacked_result$se
+
+# Insert zero for the omitted period (usually -1)
+stacked_coeffs <- c(stacked_coeffs[1:4], 0, stacked_coeffs[5:10])
+stacked_se <- c(stacked_se[1:4], 0, stacked_se[5:10])
+```
+
+```{r}
+# Plotting estimates from three methods: Callaway & Sant'Anna, Sun & Abraham, and Stacked DiD
+
+cs_out <- att_gt(
+    yname = "y",
+    data = base_stagg,
+    gname = "year_treated",
+    idname = "id",
+    # xformla = "~x1",
+    tname = "year"
+)
+cs <-
+    aggte(
+        cs_out,
+        type = "dynamic",
+        min_e = -5,
+        max_e = 5,
+        bstrap = FALSE,
+        cband = FALSE
+    )
+
+
+
+res_sa20 = feols(y ~ sunab(year_treated, year) |
+                     id + year, base_stagg)
+sa = tidy(res_sa20)[5:14, ] %>% pull(estimate)
+sa = c(sa[1:4], 0, sa[5:10])
+
+sa_se = tidy(res_sa20)[6:15, ] %>% pull(std.error)
+sa_se = c(sa_se[1:4], 0, sa_se[5:10])
+
+compare_df_est = data.frame(
+    period = -5:5,
+    cs = cs$att.egt,
+    sa = sa,
+    stacked = stacked_coeffs
+)
+
+compare_df_se = data.frame(
+    period = -5:5,
+    cs = cs$se.egt,
+    sa = sa_se,
+    stacked = stacked_se
+)
+
+compare_df_longer <- compare_df_est %>%
+    pivot_longer(!period, names_to = "estimator", values_to = "est") %>%
+    full_join(compare_df_se %>%
+                  pivot_longer(!period, names_to = "estimator", values_to = "se")) %>%
+    mutate(upper = est +  1.96 * se,
+           lower = est - 1.96 * se)
+
+ggplot(compare_df_longer) +
+    geom_ribbon(aes(
+        x = period,
+        ymin = lower,
+        ymax = upper,
+        group = estimator
+    ), alpha = 0.2) +
+    geom_line(aes(
+        x = period,
+        y = est,
+        group = estimator,
+        color = estimator
+    ),
+    linewidth = 1.2) +
+    
+    labs(
+        title = "Comparison of Dynamic Treatment Effects",
+        x = "Event Time (Periods since Treatment)",
+        y = "Estimated ATT",
+        color = "Estimator"
+    ) + 
+    causalverse::ama_theme()
+
+```
+
+------------------------------------------------------------------------
+

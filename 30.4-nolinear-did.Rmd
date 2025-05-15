@@ -1,0 +1,391 @@
+### Nonlinear Difference-in-Differences
+
+Traditional Difference-in-Differences methods typically rely on linear models with strong assumptions like constant treatment effects and homogeneous trends across treatment groups. These assumptions often fail in real-world data --- especially when outcomes are **binary**, **fractional**, or **counts**, such as:
+
+-   Employment status (binary),
+-   Proportion of customers who churned (fraction),
+-   Number of crimes in a neighborhood (count).
+
+In these cases, the **linear parallel trends** assumption may be inappropriate. This section develops an advanced, flexible framework for nonlinear DiD estimation with staggered interventions [@wooldridge2023simple].
+
+------------------------------------------------------------------------
+
+#### Overview of Framework
+
+We consider a panel dataset where units are observed over $T$ time periods. Units become treated at various times (staggered rollout), and the goal is to estimate [Average Treatment Effect on the Treated] (ATT) at different times.
+
+Let $Y_{it}(g)$ denote the potential outcome at time $t$ if unit $i$ were first treated in period $g$, with $g = q, \ldots, T$ or $g = \infty$ (never treated). Define the ATT for cohort $g$ at time $r \geq g$ as:
+
+$$
+\tau_{gr} = \mathbb{E}\left[Y_{ir}(g) - Y_{ir}(\infty) \mid D_g = 1\right]
+$$
+
+Here, $D_g = 1$ indicates that unit $i$ was first treated in period $g$.
+
+Rather than assuming linear conditional expectations of untreated outcomes, we posit a **nonlinear conditional mean** using a known, strictly increasing function $G(\cdot)$:
+
+$$
+\mathbb{E}[Y_{it}(0) \mid D, X] = G\left( \alpha + \sum_{g=q}^{T} \beta_g D_g + X \kappa + \sum_{g=q}^{T} (D_g \cdot X)\eta_g + \gamma_t + X \pi_t \right)
+$$
+
+This formulation nests logistic and Poisson mean structures, and allows us to handle various limited dependent variables.
+
+------------------------------------------------------------------------
+
+#### Assumptions
+
+We require the following identification assumptions:
+
+-   **Conditional No Anticipation:** $$
+    \mathbb{E}[Y_{it}(g) \mid D_g = 1, X] = \mathbb{E}[Y_{it}(\infty) \mid D_g = 1, X], \quad \forall t < g
+    $$
+
+-   **Conditional Index Parallel Trends:** The untreated mean trends are parallel in a transformed index space: $$
+    \mathbb{E}[Y_{it}(\infty) \mid D, X] = G(\text{linear index in } D, X, t)
+    $$
+
+    -   $G(\cdot)$ is a **known**, strictly increasing function (e.g., $\exp(\cdot)$ for Poisson)
+
+These assumptions are weaker and more realistic than linear Parallel Trends, especially when outcomes are constrained.
+
+------------------------------------------------------------------------
+
+#### Estimation
+
+**Step 1: Imputation Estimator**
+
+1.  Estimate Parameters Using Untreated Observations Only:
+
+Use all $(i,t)$ such that unit $i$ is untreated at $t$ (i.e., $W_{it} = 0$). Fit the nonlinear regression model: $$ Y_{it} = G\left(\alpha + \sum_g \beta_g D_g + X_i \kappa + D_g X_i \eta_g + \gamma_t + X_i \pi_t\right) + \varepsilon_{it} $$
+
+2.  Impute Counterfactual Outcomes for Treated Observations:
+
+For treated observations $(i,t)$ with $W_{it}=1$, predict $\widehat{Y}_{it}(0)$ using the model from Step 1.
+
+3.  Compute ATT for Each Cohort $g$ and Time $r$:
+
+$$ \hat{\tau}_{gr} = \frac{1}{N_{gr}} \sum_{i: D_g=1} \left( Y_{ir} - \widehat{Y}_{ir}(0) \right) $$
+
+------------------------------------------------------------------------
+
+**Step 2: Pooled QMLE Estimator (Equivalent When Using Canonical Link)**
+
+1.  Fit Model Using All Observations:
+
+Fit the pooled nonlinear model across all units and time: $$ Y_{it} = G\left(\alpha + \sum_g \beta_g D_g + X_i \kappa + D_g X_i \eta_g + \gamma_t + X_i \pi_t + \delta_r \cdot W_{it} + W_{it} X_i \xi \right) + \varepsilon_{it} $$
+
+Where:
+
+-   $W_{it} = 1$ if unit $i$ is treated at time $t$
+
+-   $W_{it} = 0$ otherwise
+
+2.  Estimate $\delta_r$ as the ATT for cohort $g$ in period $r$:
+
+-   $\delta_r$ is interpreted as an event-time ATT
+-   This estimator is consistent when $G^{-1}(\cdot)$ is the canonical link (e.g., log link for Poisson)
+
+3.  Average Partial Effect (APE) for ATT:
+
+$$ \hat{\tau}_{gr} = \frac{1}{N_g} \sum_{i: D_g=1} \left[ G\left( X_i\beta + \delta_r + \ldots \right) - G\left( X_i\beta + \ldots \right) \right] $$
+
+**Canonical Links in Practice**
+
++-------------------------------+--------------+--------------------------------------------+
+| Conditional Mean              | LEF Density  | Suitable For                               |
++===============================+==============+============================================+
+| $G(z) = z$                    | Normal       | Any response                               |
++-------------------------------+--------------+--------------------------------------------+
+| $G(z) = \exp(z)$              | Poisson      | Nonnegative/counts, no natural upper bound |
++-------------------------------+--------------+--------------------------------------------+
+| $G(z) = \text{logit}^{-1}(z)$ | Binomial     | Nonnegative, known upper bound             |
++-------------------------------+--------------+--------------------------------------------+
+| $G(z) = \text{logit}^{-1}(z)$ | Bernoulli    | Binary or fractional responses             |
++-------------------------------+--------------+--------------------------------------------+
+
+------------------------------------------------------------------------
+
+#### Inference
+
+-   Standard errors can be obtained via the delta method or bootstrap
+-   Cluster-robust standard errors by unit are preferred
+-   When using QMLE, the estimates are valid under correct mean specification, regardless of higher moments
+
+When Do Imputation and Pooled Methods Match?
+
+-   They are numerically identical when:
+    -   Estimating with the canonical link function
+    -   Model is correctly specified
+    -   Same data used for both (i.e., `W_it = 0` and pooled)
+
+------------------------------------------------------------------------
+
+#### Application Using `etwfe`
+
+The `etwfe` package provides a unified, user-friendly interface for estimating staggered treatment effects using **generalized linear models**. It is particularly well-suited for nonlinear outcomes, such as **binary**, **fractional**, or **count** data.
+
+We'll now demonstrate how to apply `etwfe` to estimate [Average Treatment Effect on the Treated] (ATT) under a nonlinear DiD framework using a Poisson model. This aligns with the exponential conditional mean assumption discussed earlier.
+
+1.  Install and load packages
+
+```{r}
+# --- 1) Load packages ---
+# install.packages("fixest")
+# install.packages("marginaleffects")
+# install.packages("etwfe")
+# install.packages("ggplot2")
+# install.packages("modelsummary")
+
+library(etwfe)
+library(fixest)
+library(marginaleffects)
+library(ggplot2)
+library(modelsummary)
+set.seed(12345)
+```
+
+2.  Simulate a known data-generating process
+
+Imagine a **multi-period business panel** where each "unit" is a *regional store* or *branch* of a large retail chain. Half of these stores eventually receive a new *marketing analytics platform* at some known time, which in principle changes their performance metric (e.g., weekly log sales). The other half *never* receive the platform, functioning as a "never-treated" control group.
+
+-   We have $N=200$ stores (half eventually treated, half never treated).
+
+-   Each store is observed over $T=10$ time periods (e.g., quarters or years).
+
+-   The *true* "treatment effect on the treated" is constant at $\delta = -0.05$ for all *post*-treatment times. (Interpretation: the new marketing platform *reduced* log-sales by about 5 percent, though in real life one might expect a positive effect!)
+
+-   Some stores are "staggered" in the sense that they adopt in different periods. We'll randomly draw their adoption date from $\{4,5,6\}$. Others never adopt at all.
+
+-   We include store-level intercepts, time intercepts, and idiosyncratic noise to make it more realistic.
+
+```{r}
+# --- 2) Simulate Data ---
+N <- 200   # number of stores
+T <- 10    # number of time periods
+id   <- rep(1:N, each = T)
+time <- rep(1:T, times = N)
+
+# Mark half of them as eventually treated, half never
+treated_ids <- sample(1:N, size = N/2, replace = FALSE)
+is_treated  <- id %in% treated_ids
+
+# Among the treated, pick an adoption time 4,5, or 6 at random
+adopt_time_vec <- sample(c(4,5,6), size = length(treated_ids), replace = TRUE)
+adopt_time     <- rep(0, N) # 0 means "never"
+adopt_time[treated_ids] <- adopt_time_vec
+
+# Store effects, time effects, control variable, noise
+alpha_i <- rnorm(N, mean = 2, sd = 0.5)[id]
+gamma_t <- rnorm(T, mean = 0, sd = 0.2)[time]
+xvar    <- rnorm(N*T, mean = 1, sd = 0.3)
+beta    <- 0.10
+noise   <- rnorm(N*T, mean = 0, sd = 0.1)
+
+# True treatment effect = -0.05 for time >= adopt_time
+true_ATT <- -0.05
+D_it     <- as.numeric((adopt_time[id] != 0) & (time >= adopt_time[id]))
+
+# Final outcome in logs:
+y <- alpha_i + gamma_t + beta*xvar + true_ATT*D_it + noise
+
+# Put it all in a data frame
+simdat <- data.frame(
+    id         = id,
+    time       = time,
+    adopt_time = adopt_time[id],
+    treat      = D_it,
+    xvar       = xvar,
+    logY       = y
+)
+
+head(simdat)
+```
+
+In this business setting, you can imagine that `logY` is the natural log of revenue, sales, or another KPI, and `xvar` is a log of local population, number of competitor stores in the region, or similar.
+
+3.  Estimate with `etwfe`
+
+We want to test whether the new marketing analytics platform has changed the log outcome. We will use `etwfe`:
+
+-   `fml = logY ~ xvar` says that `logY` is the outcome, `xvar` is a control.
+
+-   `tvar = time` is the time variable.
+
+-   `gvar = adopt_time` is the *group/cohort* variable (the "first treatment time" or 0 if never).
+
+-   `vcov = ~id` clusters standard errors at the store level.
+
+-   `cgroup = "never"`: We specify that the never-treated units form our comparison group. This ensures we can see *pre-treatment* and *post-treatment* dynamic effects in an event-study plot.
+
+```{r}
+# --- 3) Estimate with etwfe ---
+mod <- etwfe(
+    fml    = logY ~ xvar,
+    tvar   = time,
+    gvar   = adopt_time,
+    data   = simdat,
+    # xvar   = moderator, # Heterogenous Treatment Effects
+    vcov   = ~id,
+    cgroup = "never"  # so that never-treated are the baseline
+)
+```
+
+Nothing fancy will appear in the raw coefficient list because it's fully "saturated" with interactions. The real prize is in the aggregated treatment effects, which we'll obtain next.
+
+4.  Recover the [ATT](#sec-average-treatment-effect-on-the-treated)
+
+Here's a *single-number* estimate of the overall average effect on the treated, across all times and cohorts:
+
+```{r}
+# --- 4) Single-number ATT ---
+ATT_est <- emfx(mod, type = "simple")
+print(ATT_est)
+```
+
+You should see an estimate near the *true* $-0.05$.
+
+5.  Recover an event-study pattern of dynamic effects
+
+To check pre- and post-treatment dynamics, we ask for an **event study** via `type = "event"`. This shows how the outcome evolves *around* the adoption time. Negative "event" values correspond to pre-treatment, while nonnegative "event" values are post-treatment.
+
+```{r}
+# --- 5) Event-study estimates ---
+mod_es <- emfx(mod, type = "event")
+mod_es
+
+
+# Renaming function to replace ".Dtreat" with something more meaningful
+rename_fn = function(old_names) {
+  new_names = gsub(".Dtreat", "Period post treatment =", old_names)
+  setNames(new_names, old_names)
+}
+
+modelsummary(
+  list(mod_es),
+  shape       = term:event:statistic ~ model,
+  coef_rename = rename_fn,
+  gof_omit    = "Adj|Within|IC|RMSE",
+  stars       = TRUE,
+  title       = "Event study",
+  notes       = "Std. errors are clustered at the id level"
+)
+```
+
+-   By default, this will return events from (roughly) the earliest pre-treatment period up to the maximum possible post-treatment period in your data, using *never-treated* as the comparison group.
+
+-   Inspect the estimates and confidence intervals. Ideally, pre-treatment estimates should be near 0, and post-treatment estimates near $-0.05$.
+
+6.  Plot the estimated event-study vs. the true effect
+
+In a business or marketing study, a useful final step is a chart showing the point estimates (with confidence bands) plus the known *true* effect as a reference.
+
+Construct the "true" dynamic effect curve
+
+-   Pre-treatment periods: effect = 0
+
+-   Post-treatment periods: effect = $\delta=-0.05$
+
+Below we will:
+
+1.  Extract the estimated event effects from `mod_es`.
+
+2.  Build a **reference** dataset with the same event times.
+
+3.  Plot both on the same figure.
+
+```{r}
+# --- 6) Plot results vs. known effect ---
+est_df <- as.data.frame(mod_es)
+
+range_of_event <- range(est_df$event)
+event_breaks   <- seq(range_of_event[1], range_of_event[2], by = 1)
+true_fun <- function(e) ifelse(e < 0, 0, -0.05)
+event_grid <- seq(range_of_event[1], range_of_event[2], by = 1)
+true_df <- data.frame(
+    event       = event_grid,
+    true_effect = sapply(event_grid, true_fun)
+)
+
+ggplot() +
+    # Confidence interval ribbon (put it first so it's behind everything)
+    geom_ribbon(
+        data = est_df,
+        aes(x = event, ymin = conf.low, ymax = conf.high),
+        fill = "grey60",   # light gray fill
+        alpha = 0.3
+    ) +
+    # Estimated effect line
+    geom_line(
+        data = est_df,
+        aes(x = event, y = estimate),
+        color = "black",
+        size = 1
+    ) +
+    # Estimated effect points
+    geom_point(
+        data = est_df,
+        aes(x = event, y = estimate),
+        color = "black",
+        size = 2
+    ) +
+    # Known true effect (dashed red line)
+    geom_line(
+        data = true_df,
+        aes(x = event, y = true_effect),
+        color = "red",
+        linetype = "dashed",
+        linewidth = 1
+    ) +
+    # Horizontal zero line
+    geom_hline(yintercept = 0, linetype = "dotted") +
+    # Vertical line at event = 0 for clarity
+    geom_vline(xintercept = 0, color = "gray40", linetype = "dashed") +
+    # Make sure x-axis breaks are integers
+    scale_x_continuous(breaks = event_breaks) +
+    labs(
+        title = "Event-Study Plot vs. Known True Effect",
+        subtitle = "Business simulation with new marketing platform adoption",
+        x = "Event time (periods relative to adoption)",
+        y = "Effect on log-outcome (ATT)",
+        caption = "Dashed red line = known true effect; Shaded area = 95% CI"
+    ) +
+    causalverse::ama_theme()
+```
+
+-   **Solid line** and shaded region: the ETWFE *point estimates* and their 95% confidence intervals, for each event time relative to adoption.
+
+-   **Dashed red line**: the *true* effect that we built into the DGP.
+
+If the estimation works well (and your sample is big enough), the estimated event-study effects should hover near the dashed red line *post*-treatment, and near zero *pre*-treatment.
+
+Alternatively, we could also the `plot` function to produce a quick plot.
+
+```{r}
+plot(
+    mod_es,
+    type = "ribbon",
+    # col  = "",# color
+    xlab = "",
+    main = "",
+    sub  = "",
+    # file = "event-study.png", width = 8, height = 5. # save file
+)
+```
+
+7.  Double-check in a regression table (optional)
+
+If you like to see a clean numeric summary of the *dynamic* estimates by period, you can pipe your event-study object into `modelsummary`:
+
+```{r, eval = FALSE}
+# --- 7) Optional table for dynamic estimates ---
+modelsummary(
+    list("Event-Study" = mod_es),
+    shape     = term + statistic ~ model + event,
+    gof_map   = NA,
+    coef_map  = c(".Dtreat" = "ATT"),
+    title     = "ETWFE Event-Study by Relative Adoption Period",
+    notes     = "Std. errors are clustered by store ID"
+)
+```
+
+------------------------------------------------------------------------

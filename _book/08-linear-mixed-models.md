@@ -1648,13 +1648,13 @@ Comparison of Estimation Methods for $\mathbf{V}$
 +---------------------------------------------------------+-------------------+---------------------+------------------------+--------------------------------------------+
 | Method                                                  | Assumptions       | Computational Cost  | Handles Non-Normality? | Best Use Case                              |
 +=========================================================+===================+=====================+========================+============================================+
-| [MLE](#sec-maximum-likelihood-estimation-lmm)           | Gaussian errors   | High (iterative)    | ❌ No                  | Model selection (AIC/BIC)                  |
+| [MLE](#sec-maximum-likelihood-estimation-lmm)           | Gaussian errors   | High (iterative)    | No                     | Model selection (AIC/BIC)                  |
 +---------------------------------------------------------+-------------------+---------------------+------------------------+--------------------------------------------+
-| [REML](#sec-estimated-generalized-least-squares-lmm)    | Gaussian errors   | High (iterative)    | ❌ No                  | Variance estimation                        |
+| [REML](#sec-estimated-generalized-least-squares-lmm)    | Gaussian errors   | High (iterative)    | No                     | Variance estimation                        |
 +---------------------------------------------------------+-------------------+---------------------+------------------------+--------------------------------------------+
-| [EGLS](#sec-estimated-generalized-least-squares-lmm)    | First two moments | Low (non-iterative) | ✅ Yes                 | Large-scale models with correlated errors  |
+| [EGLS](#sec-estimated-generalized-least-squares-lmm)    | First two moments | Low (non-iterative) | Yes                    | Large-scale models with correlated errors  |
 +---------------------------------------------------------+-------------------+---------------------+------------------------+--------------------------------------------+
-| [Bayesian](#sec-bayesian-hierarchical-models-lmm) (BHM) | Probabilistic     | Very High (MCMC)    | ✅ Yes                 | Small samples, prior information available |
+| [Bayesian](#sec-bayesian-hierarchical-models-lmm) (BHM) | Probabilistic     | Very High (MCMC)    | Yes                    | Small samples, prior information available |
 +---------------------------------------------------------+-------------------+---------------------+------------------------+--------------------------------------------+
 
 ## Inference in Linear Mixed Models
@@ -1870,6 +1870,8 @@ LRT can also be applied to variance components:
 +-----------------+--------------------------------+-------------------------------------+--------------------------------------------------+
 | Wald (Variance) | Variance components ($\theta$) | Simple extension of Wald test       | Fails near parameter space boundaries            |
 +-----------------+--------------------------------+-------------------------------------+--------------------------------------------------+
+
+------------------------------------------------------------------------
 
 ## Information Criteria for Model Selection
 
@@ -2167,6 +2169,8 @@ print(results)
 +---------------+----------------+------------------------------------------------+
 | **AICc**      | Model 2        | Adjusted for small samples, Model 2 still best |
 +---------------+----------------+------------------------------------------------+
+
+------------------------------------------------------------------------
 
 ## Split-Plot Designs
 
@@ -2467,9 +2471,9 @@ anova(sp_model_additive, sp_model, ddf = "Kenward-Roger")
 #> Models:
 #> sp_model_additive: yield ~ irrigation + variety + (1 | field)
 #> sp_model: yield ~ irrigation * variety + (1 | field)
-#>                   npar    AIC    BIC  logLik deviance  Chisq Df Pr(>Chisq)
-#> sp_model_additive    7 83.959 89.368 -34.980   69.959                     
-#> sp_model            10 88.609 96.335 -34.305   68.609 1.3503  3     0.7172
+#>                   npar    AIC    BIC  logLik -2*log(L)  Chisq Df Pr(>Chisq)
+#> sp_model_additive    7 83.959 89.368 -34.980    69.959                     
+#> sp_model            10 88.609 96.335 -34.305    68.609 1.3503  3     0.7172
 ```
 
 -   **Hypotheses:**
@@ -2514,6 +2518,8 @@ exactRLRT(sp_model)
 -   If the p-value is significant, we reject $H_0$, confirming that the random field effect is essential.
 
 -   A significant random effect implies substantial variability between fields that must be accounted for in the model.
+
+------------------------------------------------------------------------
 
 ## Repeated Measures in Mixed Models
 

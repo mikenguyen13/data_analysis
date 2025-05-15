@@ -677,19 +677,19 @@ rdbounds_est <-
         num_bootstraps = 5
     )
 #> [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.38047"
-#> [1] "2025-03-18 11:06:09.865241 Estimating CDFs for point estimates"
-#> [1] "2025-03-18 11:06:10.167795 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-03-18 11:06:12.38372 Estimating CDFs with nudged tau (tau_star)"
-#> [1] "2025-03-18 11:06:12.429188 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-03-18 11:06:16.48029 Beginning parallelized output by bootstrap.."
-#> [1] "2025-03-18 11:06:20.764061 Computing Confidence Intervals"
-#> [1] "2025-03-18 11:06:33.707395 Time taken:0.4 minutes"
+#> [1] "2025-05-14 20:33:47.909864 Estimating CDFs for point estimates"
+#> [1] "2025-05-14 20:33:48.466955 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-05-14 20:33:50.700413 Estimating CDFs with nudged tau (tau_star)"
+#> [1] "2025-05-14 20:33:50.765021 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-05-14 20:33:54.245449 Beginning parallelized output by bootstrap.."
+#> [1] "2025-05-14 20:33:59.711629 Computing Confidence Intervals"
+#> [1] "2025-05-14 20:34:16.710439 Time taken:0.48 minutes"
 ```
 
 
 ``` r
 rdbounds_summary(rdbounds_est, title_prefix = "Sample Data Results")
-#> [1] "Time taken: 0.4 minutes"
+#> [1] "Time taken: 0.48 minutes"
 #> [1] "Sample size: 1000"
 #> [1] "Local Average Treatment Effect:"
 #> $tau_hat
@@ -795,18 +795,18 @@ rdbounds_est_tau <-
         num_bootstraps = 5
     )
 #> [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.38047"
-#> [1] "2025-03-18 11:06:35.36151 Estimating CDFs for point estimates"
-#> [1] "2025-03-18 11:06:35.578808 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-03-18 11:06:37.519459 Estimating CDFs with nudged tau (tau_star)"
-#> [1] "2025-03-18 11:06:37.590958 .....Estimating CDFs for units just to the right of the cutoff"
-#> [1] "2025-03-18 11:06:40.652474 Beginning parallelized output by bootstrap.."
-#> [1] "2025-03-18 11:06:45.388902 Estimating CDFs with fixed tau value of: 0.025"
-#> [1] "2025-03-18 11:06:45.460836 Estimating CDFs with fixed tau value of: 0.05"
-#> [1] "2025-03-18 11:06:45.531103 Estimating CDFs with fixed tau value of: 0.1"
-#> [1] "2025-03-18 11:06:45.590547 Estimating CDFs with fixed tau value of: 0.2"
-#> [1] "2025-03-18 11:06:46.638509 Beginning parallelized output by bootstrap x fixed tau.."
-#> [1] "2025-03-18 11:06:50.52083 Computing Confidence Intervals"
-#> [1] "2025-03-18 11:07:03.385809 Time taken:0.47 minutes"
+#> [1] "2025-05-14 20:34:18.345701 Estimating CDFs for point estimates"
+#> [1] "2025-05-14 20:34:18.580208 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-05-14 20:34:21.070091 Estimating CDFs with nudged tau (tau_star)"
+#> [1] "2025-05-14 20:34:21.121132 .....Estimating CDFs for units just to the right of the cutoff"
+#> [1] "2025-05-14 20:34:24.568454 Beginning parallelized output by bootstrap.."
+#> [1] "2025-05-14 20:34:29.367159 Estimating CDFs with fixed tau value of: 0.025"
+#> [1] "2025-05-14 20:34:29.434238 Estimating CDFs with fixed tau value of: 0.05"
+#> [1] "2025-05-14 20:34:29.531261 Estimating CDFs with fixed tau value of: 0.1"
+#> [1] "2025-05-14 20:34:29.598908 Estimating CDFs with fixed tau value of: 0.2"
+#> [1] "2025-05-14 20:34:30.932877 Beginning parallelized output by bootstrap x fixed tau.."
+#> [1] "2025-05-14 20:34:33.544657 Computing Confidence Intervals"
+#> [1] "2025-05-14 20:34:50.413887 Time taken:0.54 minutes"
 ```
 
 

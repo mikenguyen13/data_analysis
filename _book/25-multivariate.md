@@ -958,7 +958,7 @@ estat_test <-
     )
 estat_test$multivariateNormality
 #>          Test Statistic p value MVN
-#> 1 E-statistic  1.091101   0.522 YES
+#> 1 E-statistic  1.091101   0.554 YES
 ```
 
 ### Mean Vector Inference

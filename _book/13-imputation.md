@@ -736,12 +736,12 @@ print(data)
 #>    ID Age Gender Age_imputed
 #> 1   1  25      M          25
 #> 2   2  30      F          30
-#> 3   3  NA      F          80
+#> 3   3  NA      F          60
 #> 4   4  40      M          40
-#> 5   5  NA      M          50
+#> 5   5  NA      M          60
 #> 6   6  50      F          50
 #> 7   7  60      M          60
-#> 8   8  NA      F          30
+#> 8   8  NA      F          50
 #> 9   9  70      M          70
 #> 10 10  80      F          80
 ```
@@ -1522,7 +1522,7 @@ Matrix completion is a method used to impute missing data in a feature matrix wh
 
 Consider an $n \times p$ feature matrix $\mathbf{X}$, where the element $x_{ij}$ represents the value for the $i$th observation and $j$th feature. Some elements of $\mathbf{X}$ are missing, and we aim to impute these missing values.
 
-Similar to the process described in \@ref(principal-components), the matrix $\mathbf{X}$ can be approximated using its leading principal components. Specifically, we consider $M$ principal components that minimize the following objective:
+The matrix $\mathbf{X}$ can be approximated using its leading principal components. Specifically, we consider $M$ principal components that minimize the following objective:
 
 $$
 \underset{\mathbf{A} \in \mathbb{R}^{n \times M}, \mathbf{B} \in \mathbb{R}^{p \times M}}{\operatorname{min}} \left\{ \sum_{(i,j) \in \mathcal{O}} (x_{ij} - \sum_{m=1}^M a_{im}b_{jm})^2 \right\}
@@ -2679,7 +2679,7 @@ summary(mi_data)
 #> 
 #> $Sepal.Length$imputed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.49245 -0.11014 -0.03219 -0.03177  0.07648  0.26285 
+#> -0.28900 -0.05467 -0.01368 -0.01573  0.03970  0.15427 
 #> 
 #> $Sepal.Length$observed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -2694,7 +2694,7 @@ summary(mi_data)
 #> 
 #> $Sepal.Width$imputed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -1.36598 -0.42701 -0.02470 -0.05906  0.33439  1.26391 
+#> -1.27054 -0.48086 -0.01793 -0.04736  0.29911  1.78435 
 #> 
 #> $Sepal.Width$observed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -2708,8 +2708,8 @@ summary(mi_data)
 #>   138    12 
 #> 
 #> $Petal.Length$imputed
-#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
-#> -0.99051 -0.58897  0.25662  0.02104  0.44036  0.88355 
+#>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#> -0.8370 -0.6256  0.2117  0.0303  0.4575  0.7208 
 #> 
 #> $Petal.Length$observed
 #>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -2723,8 +2723,8 @@ summary(mi_data)
 #>   134    16 
 #> 
 #> $Petal.Width$imputed
-#>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-#> -0.7959 -0.1103  0.1910  0.1282  0.4769  0.8144 
+#>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+#> -0.77086  0.02848  0.19666  0.17639  0.47746  1.02418 
 #> 
 #> $Petal.Width$observed
 #>     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
@@ -2735,8 +2735,8 @@ summary(mi_data)
 #> $Species$crosstab
 #>             
 #>              observed imputed
-#>   setosa          180      20
-#>   versicolor      192       7
+#>   setosa          180      21
+#>   versicolor      192       6
 #>   virginica       184      17
 #> 
 #> 

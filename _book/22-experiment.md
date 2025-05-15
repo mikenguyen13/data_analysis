@@ -1093,28 +1093,6 @@ Recent research highlights significant challenges in measuring the causal effect
 
 -   **Limited Transparency**: Platforms have little incentive to assist advertisers or researchers in disentangling ad content effects from proprietary targeting mechanisms. As a result, experimenters must design careful identification strategies to mitigate these biases.
 
-@zhao2024pigeonhole
-
--   Addresses the challenge of covariate balancing in online A/B testing when experimental subjects arrive sequentially.
-
--   Introduces the **online blocking problem**, where subjects with heterogeneous covariates must be immediately assigned to control or treatment groups.
-
--   Aims to minimize total discrepancy, measured as the minimum weight perfect matching between groups.
-
--   Proposes a **pigeonhole design**, a randomized experimental design that:
-
-    -   **Partitions** the covariate space into smaller subspaces ("pigeonholes").
-
-    -   **Balances** the number of treated and control subjects within each pigeonhole.
-
--   Theoretical analysis demonstrates the effectiveness of the pigeonhole design.
-
--   Compares against **matched-pair design** and **completely randomized design**, identifying scenarios where the pigeonhole design performs better.
-
--   **Empirical validation using Yahoo! data** shows a **10.2% reduction in variance** in estimating the average treatment effect.
-
--   Highlights practical implications for improving covariate balance in real-world online experiments.
-
 ### Covariate Balancing in Online A/B Testing: The Pigeonhole Design
 
 @zhao2024pigeonhole address the challenge of covariate balancing in online A/B testing when experimental subjects arrive sequentially. Traditional experimental designs struggle to maintain balance in real-time settings where treatment assignments must be made immediately. This work introduces the **online blocking problem**, in which subjects with heterogeneous covariates must be assigned to treatment or control groups dynamically, with the goal of minimizing **total discrepancy**---quantified as the minimum weight perfect matching between groups.
