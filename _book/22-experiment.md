@@ -1081,6 +1081,8 @@ summary(iv_model)
 
 If interference is present, the standard IV method may be biased. Researchers should explore network-based randomization or spatial models.
 
+
+
 ## Emerging Research
 
 Recent research highlights significant challenges in measuring the causal effects of ad content in online advertising experiments. Digital advertising platforms employ algorithmic targeting and dynamic ad delivery mechanisms, which can introduce systematic biases in A/B testing [@braun2025where]. Key concerns include:

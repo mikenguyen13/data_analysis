@@ -1,0 +1,550 @@
+### Granular IV and Structural Identification in the Global Oil Market
+
+In empirical macroeconomics and international finance, distinguishing between aggregate and local (country-specific) shocks is often a powerful strategy for identification. One such powerful framework that has emerged in recent years is **Granular Instrumental Variables (GIV)**, which exploits differences in local-level behavior to uncover aggregate relationships.
+
+Granular IV builds upon the insight that micro-level (local) variation can serve as a source of exogenous variation in identifying macroeconomic parameters. This section explores this framework in the context of the global oil market, following the approach of @baumeister2023full, who build on the theoretical foundations laid by @gabaix2024granular.
+
+------------------------------------------------------------------------
+
+#### Motivation: Local vs Aggregate Variation
+
+When estimating macroeconomic relationships, it is tempting---but often misleading---to rely only on aggregate data. However, local or micro-level outcomes often respond heterogeneously to common shocks or exhibit idiosyncratic dynamics that are averaged out at the macro level. Granular IV methods exploit these micro-level deviations to identify structural parameters in macro models.
+
+> **Key Idea:** Differences between **local** and **aggregate** outcomes can be leveraged as instruments to identify structural elasticities and shock responses at the global level.
+
+------------------------------------------------------------------------
+
+#### Bartik Instruments vs. Granular IV
+
+Before proceeding, it's useful to compare the **Bartik instrument** and **Granular IV**, as both use local variation but in slightly different ways:
+
+| Feature             | Bartik Instrument                     | Granular IV                              |
+|---------------------|---------------------------------------|------------------------------------------|
+| Source of variation | National exposure to aggregate shocks | Idiosyncratic local shocks               |
+| Aggregation method  | Weighted sum of industry-level shocks | Weighted sum of micro-level shocks       |
+| Assumption          | Common shocks + exogenous weights     | Independent granular shocks              |
+| Examples            | Labor demand shocks across regions    | Country-level oil production/consumption |
+
+------------------------------------------------------------------------
+
+#### Case Study: The Global Oil Market
+
+The empirical analysis follows the structural framework of @baumeister2023full, estimating oil supply and demand elasticities using data from 1973:M1 to 2023:M2 (excluding the COVID-19 period). The model considers both the largest producers and consumers of oil and uses a structural system of equations to identify price elasticities.
+
+Countries Considered
+
+-   **Producers (n = 4):** United States, Saudi Arabia, Russia, Rest of the World
+-   **Consumers (m = 4):** United States, Japan, Europe, Rest of the World
+
+------------------------------------------------------------------------
+
+##### Data Definitions
+
+-   $q_{it}$: Growth rate of oil production in country $i$
+-   $s_{qi}$: Share of country $i$ in world oil production
+-   $c_{jt}$: Growth rate of oil consumption in country $j$
+-   $s_{cj}$: Share of country $j$ in world oil consumption
+
+The global growth rates are approximated as weighted averages:
+
+$$
+\sum_{i=1}^n s_{qi} q_{it} \approx \text{Global Oil Production Growth}
+$$
+
+$$
+\sum_{j=1}^m s_{cj} c_{jt} \approx \text{Global Oil Consumption Growth}
+$$
+
+------------------------------------------------------------------------
+
+##### Structural Model: Supply, Demand, and Inventory
+
+1.  **Supply Equation (Country** $i$**)**
+
+$$
+q_{it} = \phi_{qi} p_t + \mathbf{b}_{qi}' \mathbf{x}_{t-1} + u_{qit} + u_{\chi it}
+$$
+
+-   $\phi_{qi}$: Short-run supply elasticity of country $i$
+-   $\mathbf{x}_{t-1}$: Lags of production, consumption, and global oil price
+-   $u_{qit}$: Structural supply shock
+-   $u_{\chi it}$: Measurement error in production
+
+**Vector Form:**
+
+$$
+\mathbf{q}_t = \boldsymbol{\phi}_q p_t + \mathbf{B}_q \mathbf{x}_{t-1} + \mathbf{u}_{qt} + \mathbf{u}_{\chi t}
+$$
+
+2.  **Demand Equation (Country** $j$**)**
+
+$$
+c_{jt} = \phi_{cj} p_t + \mathbf{b}_{cj}' \mathbf{x}_{t-1} + u_{cjt} + u_{\psi jt}
+$$
+
+-   $\phi_{cj}$: Short-run demand elasticity
+-   $u_{cjt}$: Demand shock
+-   $u_{\psi jt}$: Measurement error in consumption
+
+**Vector Form:**
+
+$$
+\mathbf{c}_t = \boldsymbol{\phi}_c p_t + \mathbf{B}_c \mathbf{x}_{t-1} + \mathbf{u}_{ct} + \mathbf{u}_{\psi t}
+$$
+
+3.  **Inventory Demand Equation**
+
+Inventories reconcile the difference between correctly measured global production and consumption:
+
+$$
+v_t = \sum_{i=1}^n s_{qi} (q_{it} - u_{\chi it}) - \sum_{j=1}^m s_{cj} (c_{jt} - u_{\psi jt})
+$$
+
+**Inventory Behavior:**
+
+$$
+v_t = \phi_v p_t + \mathbf{b}_v' \mathbf{x}_{t-1} + u_{vt}
+$$
+
+------------------------------------------------------------------------
+
+##### The Market-Clearing Identity
+
+Combining supply, demand, and inventory relations yields the key structural equation determining the price $p_t$:
+
+$$
+\left( \mathbf{s}_q' \boldsymbol{\phi}_q - \mathbf{s}_c' \boldsymbol{\phi}_c - \phi_v \right) p_t =
+\left( \mathbf{s}_c' \mathbf{B}_c - \mathbf{s}_q' \mathbf{B}_q + \mathbf{b}_v' \right) \mathbf{x}_{t-1}
++ \mathbf{s}_c' \mathbf{u}_{ct} - \mathbf{s}_q' \mathbf{u}_{qt} + u_{vt}
+$$
+
+This equation determines $p_t$ endogenously from observable lags and unobservable structural shocks.
+
+------------------------------------------------------------------------
+
+#### System Overview
+
+The model consists of $n + m + 1$ equations for the $n + m + 1$ endogenous variables: $\mathbf{q}_t$, $\mathbf{c}_t$, and $p_t$. The system is closed and identified under assumptions about the **correlations and structure of the shocks**.
+
+| Equation         | Variables Involved        | Shocks Included        |
+|------------------|---------------------------|------------------------|
+| Supply ($n$ eqs) | $q_{it}$                  | $u_{qit}, u_{\chi it}$ |
+| Demand ($m$ eqs) | $c_{jt}$                  | $u_{cjt}, u_{\psi jt}$ |
+| Inventory (1 eq) | $v_t$ (function of $p_t$) | $u_{vt}$               |
+
+------------------------------------------------------------------------
+
+#### Identification Strategy
+
+To identify structural parameters such as $\phi_q$ and $\phi_c$, we rely on:
+
+-   Cross-sectional variation in country-specific shocks
+-   Assumptions about **orthogonality** of shocks across countries
+-   Independence of measurement errors and shocks from prices
+-   Lagged variables in $\mathbf{x}_{t-1}$ as instruments
+
+> **Granular IV Insight:** Country-level production and consumption shocks are granular and can be exploited for instrumenting global variables (like $p_t$) because they are weakly correlated across countries, making the system well-suited for IV estimation.
+
+------------------------------------------------------------------------
+
+#### Estimation Approach: Full Information Maximum Likelihood (FIML)
+
+Following @baumeister2023full, the full system is estimated jointly using **Full Information Maximum Likelihood (FIML)**, which allows for efficient estimation of all structural parameters while incorporating restrictions implied by the model.
+
+Advantages of FIML:
+
+-   Accounts for all equations and correlations simultaneously
+-   Incorporates information from both supply and demand sides
+-   Enables counterfactual simulations and variance decompositions
+
+------------------------------------------------------------------------
+
+#### Example 1: Granular Instrumental Variables in Demand Shocks
+
+This example illustrates the **Granular IV approach** in a simplified setting, focusing on the demand side of the global oil market. We assume all countries have the same short-run **demand elasticity**, and we show how the **idiosyncratic component of demand shocks** can be isolated and used as an instrument to identify the supply elasticity.
+
+------------------------------------------------------------------------
+
+**Step 1: Demand Equation with a Common and Idiosyncratic Component**
+
+Suppose the **short-run demand elasticity** is the same across all countries:
+
+$$
+\phi_{cj} = \phi_c \quad \text{for all } j = 1, \ldots, m
+$$
+
+Assume that each country $j$ experiences a demand shock that consists of:
+
+-   A common global component: $f_{ct}$
+-   An idiosyncratic deviation: $\eta_{cjt}$
+
+The structural demand equation for country $j$ is:
+
+$$
+c_{jt} = \phi_c p_t + \mathbf{b}_{cj}' \mathbf{x}_{t-1} + f_{ct} + \eta_{cjt} + u_{\psi jt}
+$$
+
+Where:
+
+-   $c_{jt}$: Consumption growth in country $j$
+-   $\phi_c$: Common demand elasticity
+-   $p_t$: Global oil price
+-   $\mathbf{x}_{t-1}$: Lagged control variables
+-   $f_{ct}$: Common demand shock (global factor)
+-   $\eta_{cjt}$: Idiosyncratic shock
+-   $u_{\psi jt}$: Measurement error in consumption
+
+------------------------------------------------------------------------
+
+**Step 2: Averaging Across Countries**
+
+We compute the **unweighted average** of consumption growth across all $m$ countries:
+
+$$
+\bar{c}_t = \frac{1}{m} \sum_{j=1}^{m} c_{jt}
+$$
+
+Substituting from the structural equation:
+
+$$
+\bar{c}_t = \phi_c p_t + \bar{\mathbf{b}}_c' \mathbf{x}_{t-1} + f_{ct} + \bar{\eta}_{ct} + \bar{u}_{\psi t}
+$$
+
+Where:
+
+-   $\bar{\mathbf{b}}_c = \frac{1}{m} \sum_{j=1}^{m} \mathbf{b}_{cj}$
+-   $\bar{\eta}_{ct} = \frac{1}{m} \sum_{j=1}^{m} \eta_{cjt}$
+-   $\bar{u}_{\psi t} = \frac{1}{m} \sum_{j=1}^{m} u_{\psi jt}$
+
+------------------------------------------------------------------------
+
+**Step 3: Country-Specific Deviations from the Average**
+
+The difference between individual and average consumption:
+
+$$
+c_{jt} - \bar{c}_t = (\mathbf{b}_{cj}' - \bar{\mathbf{b}}_c') \mathbf{x}_{t-1} + (\eta_{cjt} - \bar{\eta}_{ct}) + (u_{\psi jt} - \bar{u}_{\psi t})
+$$
+
+Crucially:
+
+-   The price term $\phi_c p_t$ and common shock $f_{ct}$ cancel out
+-   Only idiosyncratic variation and measurement error remain
+
+------------------------------------------------------------------------
+
+**Step 4: Valid Instrument Construction**
+
+Under the assumption that idiosyncratic demand shocks and measurement errors are uncorrelated with supply shocks, the deviation $c_{jt} - \bar{c}_t$ is a valid instrument for identifying supply elasticity.
+
+To increase power, form a **weighted combination** using the countries' consumption shares \$s\_{cj}\$:
+
+$$
+c_t = \sum_{j=1}^{m} s_{cj} c_{jt}
+$$
+
+Then, the **difference between the share-weighted and unweighted averages**:
+
+$$
+c_t - \bar{c}_t = \sum_{j=1}^{m} s_{cj} (c_{jt} - \bar{c}_t)
+$$
+
+Substituting in:
+
+$$
+c_t - \bar{c}_t = \sum_{j=1}^{m} s_{cj} \left[ (\mathbf{b}_{cj}' - \bar{\mathbf{b}}_c') \mathbf{x}_{t-1} + (\eta_{cjt} - \bar{\eta}_{ct}) + (u_{\psi jt} - \bar{u}_{\psi t}) \right]
+$$
+
+Which simplifies to:
+
+$$
+c_t - \bar{c}_t = (\mathbf{b}_c' - \bar{\mathbf{b}}_c') \mathbf{x}_{t-1} + (\eta_{ct} - \bar{\eta}_{ct}) + (u_{\psi t} - \bar{u}_{\psi t})
+$$
+
+This expression captures a **granular instrument** constructed from **micro-level heterogeneity**, uncorrelated with global supply shocks.
+
+------------------------------------------------------------------------
+
+**Step 5: Interpretation and Application**
+
+Why is this a valid instrument?
+
+-   It is orthogonal to the endogenous price $p_t$.
+-   It contains variation only from idiosyncratic components, which are plausibly exogenous.
+-   By construction, it isolates micro-level shocks that do not influence aggregate equilibrium prices directly.
+
+The difference between:
+
+-   **Share-weighted** consumption: $c_t = \sum_{j=1}^{m} s_{cj} c_{jt}$
+-   **Unweighted average** consumption: $\bar{c}_t = \frac{1}{m} \sum_{j=1}^{m} c_{jt}$
+
+is a valid and powerful instrument for estimating the supply elasticity $\phi_q$.
+
+------------------------------------------------------------------------
+
+Summary Table
+
++----------------------+-----------------+-------------------------+--------------------------------+-------------+
+| Component            | Contains Price? | Contains Global Shocks? | Contains Idiosyncratic Shocks? | Use for IV? |
++======================+=================+=========================+================================+=============+
+| $c_{jt}$             | ✅              | ✅                      | ✅                             | ❌          |
++----------------------+-----------------+-------------------------+--------------------------------+-------------+
+| $\bar{c}_t$          | ✅              | ✅                      | ✅ (averaged)                  | ❌          |
++----------------------+-----------------+-------------------------+--------------------------------+-------------+
+| $c_{jt} - \bar{c}_t$ | ❌              | ❌                      | ✅                             | ✅          |
++----------------------+-----------------+-------------------------+--------------------------------+-------------+
+| $c_t - \bar{c}_t$    | ❌              | ❌                      | ✅ (aggregated)                | ✅          |
+|                      |                 |                         |                                |             |
+| (weighted diff)      |                 |                         |                                |             |
++----------------------+-----------------+-------------------------+--------------------------------+-------------+
+
+------------------------------------------------------------------------
+
+#### Example 2: Identification with Correlated Global Shocks and Reduced Form VAR
+
+In this second example, we explore the implications of relaxing the assumption that supply and demand shocks are uncorrelated. We begin with the ideal case of orthogonality and show how it enables the use of cross-equation moment restrictions. Then, we discuss a more realistic setting where supply and demand shocks share common global factors, and show how the structural model can still be estimated using a reduced-form Vector Autoregression (VAR) and a structural factor model.
+
+This example closely mirrors real-world applications where global markets (such as oil) are influenced by both **systematic global shocks** and **idiosyncratic local shocks**, and where measurement error plays a significant role.
+
+------------------------------------------------------------------------
+
+##### Part I: Orthogonal Shocks and Overidentification
+
+**Assumption: No Correlation Between Supply and Demand Shocks**
+
+Assume the composite shocks to supply and demand are uncorrelated:
+
+$$
+\mathbb{E} \left[ (\mathbf{u}_{qt} + \mathbf{u}_{\chi t})(\mathbf{u}_{ct} + \mathbf{u}_{\psi t})' \right] = \mathbf{0}_{nm}
+$$
+
+This implies:
+
+$$
+\mathbb{E} \left[ (\mathbf{q}_t - \boldsymbol{\phi}_q p_t - \mathbf{B}_q \mathbf{x}_{t-1})(\mathbf{c}_t - \boldsymbol{\phi}_c p_t - \mathbf{B}_c \mathbf{x}_{t-1})' \right] = \mathbf{0}_{nm}
+$$
+
+This gives $nm$ moment conditions (one for each supply-demand country pair) that can be used as overidentifying restrictions in estimating:
+
+-   $\boldsymbol{\phi}_q$ (vector of $n$ supply elasticities)
+-   $\boldsymbol{\phi}_c$ (vector of $m$ demand elasticities)
+
+Since we have $nm$ restrictions and $n + m$ parameters, we are overidentified.
+
+------------------------------------------------------------------------
+
+Estimation Procedure
+
+Let:
+
+-   $\hat{\varepsilon}_{qit} =$ *residual from OLS regression of* $q{it}$ on $\mathbf{x}_{t-1}$
+-   $\hat{\varepsilon}_{pt} =$ *residual of* $p_t$ *on* $\mathbf{x}{t-1}$
+-   $\hat{\varepsilon}_{cjt} =$ *residual of* $c{jt}$ on $\mathbf{x}_{t-1}$
+
+Then define:
+
+$$
+\tilde{\varepsilon}_{qit} = \hat{\varepsilon}_{qit} - \phi_{qi} \hat{\varepsilon}_{pt}
+$$
+
+$$
+\tilde{\varepsilon}_{cjt} = \hat{\varepsilon}_{cjt} - \phi_{cj} \hat{\varepsilon}_{pt}
+$$
+
+The moment restriction becomes:
+
+$$
+T^{-1} \sum_{t=1}^{T} \tilde{\varepsilon}_{qit} \tilde{\varepsilon}_{cjt} = 0 \quad \forall i = 1, \ldots, n; \quad j = 1, \ldots, m
+$$
+
+These restrictions can be used to estimate $\phi_{qi}, \phi_{cj}$ via **Generalized Method of Moments**.
+
+> However, in practice, these overidentifying restrictions are rejected --- indicating that supply and demand shocks are not uncorrelated.
+
+------------------------------------------------------------------------
+
+##### Part II: A Less Restrictive Model with Correlated Global Factors
+
+To address this, we introduce a **factor structure** that allows for correlation between shocks via shared global factors.
+
+------------------------------------------------------------------------
+
+**Structural Factor Model**
+
+Let shocks be composed of:
+
+-   A common global factor $f_t$
+-   A sector-specific global factor (e.g., $f_{qt}$ for supply, $f_{ct}$ for demand)
+-   An idiosyncratic shock
+-   Measurement error
+
+Supply Shock
+
+$$
+\mathbf{u}_{qt} = \mathbf{h}_q f_t + \boldsymbol{\gamma}_q f_{qt} + \boldsymbol{\eta}_{qt}
+$$
+
+Demand Shock
+
+$$
+\mathbf{u}_{ct} = \mathbf{h}_c f_t + \boldsymbol{\gamma}_c f_{ct} + \boldsymbol{\eta}_{ct}
+$$
+
+------------------------------------------------------------------------
+
+**Reduced Form Representation: VAR(12)**
+
+Let the **endogenous vector** be:
+
+$$
+\mathbf{y}_t = \begin{bmatrix} \mathbf{q}_t' & \mathbf{c}_t' & p_t \end{bmatrix}'
+$$
+
+We estimate the following **reduced form VAR**:
+
+$$
+\mathbf{y}_t = \boldsymbol{\Pi} \mathbf{x}_{t-1} + \boldsymbol{\varepsilon}_t
+$$
+
+Where:
+
+-   $\mathbf{x}_{t-1} = \left(1, \mathbf{y}_{t-1}', \ldots, \mathbf{y}_{t-12}' \right)'$
+-   $\boldsymbol{\varepsilon}_t$: Reduced-form residuals
+
+------------------------------------------------------------------------
+
+**Structural System Representation**
+
+The reduced-form shocks $\boldsymbol{\varepsilon}_t$ are linked to structural shocks $\mathbf{u}_t$ via a matrix $\mathbf{A}$:
+
+$$
+\mathbf{A} \boldsymbol{\varepsilon}_t = \mathbf{u}_t
+$$
+
+Where:
+
+$$
+\mathbf{A} = 
+\begin{bmatrix}
+\mathbf{I}_n & \mathbf{0} & -\boldsymbol{\phi}_q \\
+\mathbf{0} & \mathbf{I}_m & -\boldsymbol{\phi}_c \\
+\mathbf{0} & \mathbf{0} & 1
+\end{bmatrix}
+$$
+
+------------------------------------------------------------------------
+
+The structural residuals are:
+
+$$
+\mathbf{u}_t =
+\begin{bmatrix}
+\mathbf{h}_q f_t + \boldsymbol{\gamma}_q f_{qt} + \boldsymbol{\eta}_{qt} + \mathbf{u}_{\chi t} \\
+\mathbf{h}_c f_t + \boldsymbol{\gamma}_c f_{ct} + \boldsymbol{\eta}_{ct} + \mathbf{u}_{\psi t} \\
+\alpha \mathbf{s}_c' (\mathbf{h}_c f_t + \boldsymbol{\gamma}_c f_{ct} + \boldsymbol{\eta}_{ct})
+- \alpha \mathbf{s}_q' (\mathbf{h}_q f_t + \boldsymbol{\gamma}_q f_{qt} + \boldsymbol{\eta}_{qt}) + \alpha u_{vt}
+\end{bmatrix}
+$$
+
+------------------------------------------------------------------------
+
+##### Assumptions
+
+1.  **Uncorrelated Idiosyncratic Shocks**
+
+$$
+\mathbb{E}
+\left[
+\begin{bmatrix}
+\boldsymbol{\eta}_{qt} \\
+\boldsymbol{\eta}_{ct}
+\end{bmatrix}
+\begin{bmatrix}
+\boldsymbol{\eta}_{qt}' & \boldsymbol{\eta}_{ct}'
+\end{bmatrix}
+\right]
+=
+\begin{bmatrix}
+\boldsymbol{\Sigma}_q & \mathbf{0} \\
+\mathbf{0} & \boldsymbol{\Sigma}_c
+\end{bmatrix}
+$$
+
+Where $\boldsymbol{\Sigma}_q$ and $\boldsymbol{\Sigma}_c$ are **diagonal**.
+
+------------------------------------------------------------------------
+
+2.  **Normalized Global Factors**
+
+$$
+\mathbb{E}
+\left[
+\begin{bmatrix}
+f_t \\
+f_{qt} \\
+f_{ct}
+\end{bmatrix}
+\begin{bmatrix}
+f_t & f_{qt} & f_{ct}
+\end{bmatrix}
+\right] = \mathbf{I}_3
+$$
+
+------------------------------------------------------------------------
+
+3.  **Measurement Errors with Common Variance**
+
+$$
+\mathbb{E}
+\left[
+\begin{bmatrix}
+\mathbf{u}_{\chi t} \\
+\mathbf{u}_{\psi t}
+\end{bmatrix}
+\begin{bmatrix}
+\mathbf{u}_{\chi t}' & \mathbf{u}_{\psi t}'
+\end{bmatrix}
+\right]
+=
+\begin{bmatrix}
+\sigma_{\chi}^2 \mathbf{I}_n & \mathbf{0} \\
+\mathbf{0} & \sigma_{\psi}^2 \mathbf{I}_m
+\end{bmatrix}
+$$
+
+------------------------------------------------------------------------
+
+**Structural Covariance Matrix**
+
+Putting it all together, the implied structural variance-covariance matrix is:
+
+$$
+\mathbf{D} = \mathbb{E}[\mathbf{u}_t \mathbf{u}_t']
+$$
+
+It has block structure:
+
+-   **Top-left**: Variance of supply shocks
+-   **Middle**: Variance of demand shocks
+-   **Bottom-right**: Variance of price equation residual
+-   **Cross-terms**: Covariances due to global factors
+
+The full expression (see above) is derived by combining all shock components with appropriate loadings and shares.
+
+------------------------------------------------------------------------
+
+##### Estimation Strategy
+
+Given the factor structure and reduced-form VAR:
+
+1.  Estimate reduced-form VAR to obtain $\boldsymbol{\varepsilon}_t$
+
+2.  Use **FIML** or **Bayesian methods** to estimate:
+
+    -   Structural elasticities $\boldsymbol{\phi}_q$, $\boldsymbol{\phi}_c$
+    -   Factor loadings $\mathbf{h}_q$, $\mathbf{h}_c$, $\boldsymbol{\gamma}_q$, $\boldsymbol{\gamma}_c$
+    -   Variance matrices $\boldsymbol{\Sigma}q$*,* $\boldsymbol{\Sigma}c$, $\sigma*\chi^2$, $\sigma*\psi^2$, $\sigma_v^2$
+
+3.  Impose structural restrictions via the matrix $\mathbf{A}$ and solve for parameters under the covariance constraints in $\mathbf{D}$
+
+------------------------------------------------------------------------

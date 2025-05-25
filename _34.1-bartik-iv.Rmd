@@ -565,6 +565,7 @@ where $\hat D_{it}$ is the predicted treatment. In practice one embeds rich fixe
 1.  **Shock exogeneity (many‑shocks path).**\
     This is also known as exogeneity of national shocks (shifts)\
     $\mathbb{E}[g_{kt}u_{it}]=0$ for all $k,t,i$. Under many (as $K\to\infty$) independent shocks, a law‑of‑large‑numbers style argument yields $\mathbb{E}[Z_{it}u_{it}]\approx0$.
+
     -   **Definition**: The national shocks (e.g., industry-wide trends or foreign demand shocks) must be exogenous to the local outcomes.
     -   **Implication**: The national component (e.g., sector growth rates, policy exposure) cannot be driven by or anticipate local conditions.
     -   **Violation Risk**: National shocks that are correlated with unobserved determinants of the outcome (e.g., industry lobbying based on local downturns) threaten identification.
@@ -572,6 +573,7 @@ where $\hat D_{it}$ is the predicted treatment. In practice one embeds rich fixe
 2.  **Share exogeneity (many‑shares path).**\
     This is also known as predetermined or exogenous local shares.\
     Even with few shocks, if the shares are quasi‑random at an initial date (e.g., driven by historical geography) then $\mathbb{E}[s_{ik0}u_{it}]=0$, securing validity.
+
     -   **Definition**: The local shares (e.g., baseline industry composition, immigrant group shares, initial sectoral employment) must be predetermined and not affected by future shocks.
     -   **Implication**: These shares should be measured in a baseline year and not respond to anticipation of future treatments or outcomes.
     -   **Violation Risk**: If local areas sorted into certain industries *because of* expected future gains (reverse causality), this undermines causal inference.
@@ -637,15 +639,11 @@ If $g_{kt}$ are i.i.d. shocks with zero mean, the IV becomes mean‑zero, mitiga
 
 ### Share‑shift versus conventional shift‑share
 
-+----------------+------------------------------------------------------+----------------------------------------------------------------+
 | Feature        | Conventional Bartik                                  | Share‑shift Bartik                                             |
-+================+======================================================+================================================================+
+|----------------|------------------------------------------------------|----------------------------------------------------------------|
 | Share timing   | Fixed once (e.g., 1990)                              | Rolling, but lagged $L$ periods                                |
-+----------------+------------------------------------------------------+----------------------------------------------------------------+
 | Goal           | Maximize shock variation, minimize share‑endogeneity | Reduce serial correlation between shares and unit‑level shocks |
-+----------------+------------------------------------------------------+----------------------------------------------------------------+
 | Implementation | $Z_{it}=\sum_k s_{ik,0}g_{kt}$                       | $Z_{it}^{(L)}=\sum_k s_{ik,t-L}g_{kt}$                         |
-+----------------+------------------------------------------------------+----------------------------------------------------------------+
 
 Because the shares evolve, $Z_{it}^{(L)}$ is *not* collinear with unit fixed effects, making identification feasible even with long panels where conventional Bartik would be swept out by unit FEs. At the same time one must verify that shares measured at $t-L$ are still plausibly exogenous to shocks $u_{it}$. Common choices are $L\in\{5,10\}$ years in annual data or two lags in quarterly data.
 
@@ -691,19 +689,13 @@ The composite nature of $Z_{it}$ induces **cross‑sectional dependence** becaus
 
 ### Limitations and best‑practice checklist
 
-+-------------------------------------------------+---------------------------------------------------------------------------------------+
 | Issue                                           | Guidance                                                                              |
-+=================================================+=======================================================================================+
+|-------------------------------------------------|---------------------------------------------------------------------------------------|
 | Over‑reliance on single dominant shock          | Apply leave‑one‑out; test sensitivity to dropping that shock                          |
-+-------------------------------------------------+---------------------------------------------------------------------------------------+
 | Persistent unobservables correlated with shares | Use *rolling* share‑shift with sufficient lag; include pre‑trend controls             |
-+-------------------------------------------------+---------------------------------------------------------------------------------------+
 | General‑equilibrium feedback                    | Shorten estimation window; instrument only for first‑round effects                    |
-+-------------------------------------------------+---------------------------------------------------------------------------------------+
 | Non‑linear outcomes                             | Employ control‑function or GMM variants; quantile IV if distributional effects matter |
-+-------------------------------------------------+---------------------------------------------------------------------------------------+
 | Spatial spillovers                              | Cluster at aggregated geography; include spatial‑lag controls                         |
-+-------------------------------------------------+---------------------------------------------------------------------------------------+
 
 ------------------------------------------------------------------------
 
@@ -744,29 +736,18 @@ reg_ss(shock ~ 1, X=IV, data=ADH$reg, W=ADH$W,
 devtools::install_github("jjchern/bartik.weight")
 ```
 
-+------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
 | **Research Question / Use Case**                                                               | **Case Analog**               | **Instrument / Causal Variation**                    | **Potential Outcomes**                     |
-+================================================================================================+===============================+======================================================+============================================+
+|------------------------------------------------------------------------------------------------|-------------------------------|------------------------------------------------------|--------------------------------------------|
 | How do industry-specific labor demand shocks shape local brand preferences?                    | Region/Consumer               | National labor demand shocks × local sector exposure | Brand search, loyalty, sales               |
-+------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
 | Do local industry booms amplify advertising effectiveness?                                     | Ad campaign                   | National ad growth × historical media exposure       | Sales lift, engagement                     |
-+------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
 | What is the causal effect of AI adoption on consumer price discrimination and personalization? | Firms adopting AI             | AI tech diffusion × tech occupation shares           | Pricing dispersion, personalization levels |
-+------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
 | How does remote work diffusion affect consumer demand for local services?                      | Consumers in affected regions | Remote-eligible jobs × national WFH trends           | Local demand shifts, channel use           |
-+------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
 | How do regional labor shocks affect influencer marketing outcomes?                             | Influencer campaign           | Labor shock × creative industry concentration        | Engagement, conversions                    |
-+------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
 | Does the diffusion of new platforms reshape competitive dynamics?                              | Brand presence on platform    | Platform user growth × smartphone or youth share     | Ad spend shifts, competitive responses     |
-+------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
 | What is the effect of logistics infrastructure on e-commerce adoption and marketing mix?       | Regional retail activity      | Fulfillment center expansion × historical exposure   | Digital vs. in-store investment            |
-+------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
 | Do regional supply chain shocks alter price sensitivity and brand switching?                   | Consumer purchases            | Import reliance × national input cost shocks         | Price elasticity, brand loyalty            |
-+------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
 | How do green tech booms impact demand for eco-friendly brands?                                 | Green product categories      | Renewable job growth × regional green employment     | Green product demand, WTP                  |
-+------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
 | Does job automation reduce trust in AI-based recommendations?                                  | Consumer-platform interaction | Automation risk × tech adoption rate                 | Trust in algorithms, engagement            |
-+------------------------------------------------------------------------------------------------+-------------------------------+------------------------------------------------------+--------------------------------------------+
 
 ------------------------------------------------------------------------
 
@@ -1511,47 +1492,31 @@ In short:
 
 To guide empirical design, consider the following checklist:
 
-+------------------------------------------------------------------------------------------+----------------------------------------------------------------------------+
 | Question                                                                                 | Relevance to Design                                                        |
-+==========================================================================================+============================================================================+
+|------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
 | Are the shocks $g_n$ observed and plausibly exogenous?                                   | If yes, prefer a shock-driven SSIV design.                                 |
-+------------------------------------------------------------------------------------------+----------------------------------------------------------------------------+
 | Are the shocks estimated in-sample?                                                      | Proceed with caution: validate assumptions and test robustness.            |
-+------------------------------------------------------------------------------------------+----------------------------------------------------------------------------+
 | Are the shares tailored to a specific treatment (e.g., a natural experiment)?            | Increases credibility of share exogeneity.                                 |
-+------------------------------------------------------------------------------------------+----------------------------------------------------------------------------+
 | Are the shares generic across settings or outcomes?                                      | Raises red flags; test for robustness, overidentification, and pre-trends. |
-+------------------------------------------------------------------------------------------+----------------------------------------------------------------------------+
 | Is the design better interpreted as difference-in-differences or instrumental variables? | Helps clarify the role of shocks vs. shares in identification.             |
-+------------------------------------------------------------------------------------------+----------------------------------------------------------------------------+
 
 # 3 Canonical Empirical Applications
 
-+-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Research Area                           | Illustrative Studies                                                                                                                                                                                                                      |
-+=========================================+===========================================================================================================================================================================================================================================+
+|-----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Regional labor demand & immigration** | @blanchard1992regional; @bound2000demand; @card2001immigrant; @moretti2004workers; @card2009immigration; @aizer2010gender; @duranton2011fundamental; @beaudry2012does; @diamond2016determinants; @imbert2022migrants; @altonji2018effects |
-+-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **Bank lending & credit supply**        | @amiti2018much; @greenstone2020credit                                                                                                                                                                                                     |
-+-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **Market size & demography**            | @acemoglu2004market; @jaravel2021inflation                                                                                                                                                                                                |
-+-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **Labor supply elasticity**             | @blanchard1992regionalm; @bartik1991benefits                                                                                                                                                                                              |
-+-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **Fiscal multipliers**                  | @nakamura2014fiscal                                                                                                                                                                                                                       |
-+-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **Trade shocks & labor markets**        | @autor2013china; @autor2018understanding                                                                                                                                                                                                  |
-+-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **Foreign aid allocation**              | @nunn2014us                                                                                                                                                                                                                               |
-+-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **Portfolio allocation**                | @calvet2009fight                                                                                                                                                                                                                          |
-+-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **Trade shocks & prices**               | @piveteau2018impact                                                                                                                                                                                                                       |
-+-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **Technology & automation**             | @acemoglu2017secular                                                                                                                                                                                                                      |
-+-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | **Predicting population growth**        | @baum2017roads                                                                                                                                                                                                                            |
-+-----------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+@jaravel2019unequal relative demand iincreases product variety and lowers inflation for continuing products.
 
 # 4 Econometric Intuition
 
@@ -1561,15 +1526,11 @@ $$
 \frac{1}{L}\sum_{\ell=1}^{L} Z_{\ell t}\,\epsilon_{\ell t}\xrightarrow{p}0\quad(L\to\infty).
 $$
 
-+----------------------+--------------------------------+---------------------------------------------------------------+
 | Feature              | Standard IV                    | Shift--Share IV                                               |
-+======================+================================+===============================================================+
+|----------------------|--------------------------------|---------------------------------------------------------------|
 | Exogeneity condition | $E[Z_{\ell}\epsilon_{\ell}]=0$ | $E\big[\tfrac{1}{L}\sum_{\ell}Z_{\ell}\epsilon_{\ell}\big]=0$ |
-+----------------------+--------------------------------+---------------------------------------------------------------+
 | Source of variation  | Unit‑specific instrument       | Weighted average of common shocks                             |
-+----------------------+--------------------------------+---------------------------------------------------------------+
 | Asymptotics          | Validity at each unit          | Validity *on average* across many units                       |
-+----------------------+--------------------------------+---------------------------------------------------------------+
 
 ::: callout-tip
 Dividing by $L$ ensures asymptotic consistency; SSIV requires **aggregate‑level exogeneity**, not unit‑level randomization.
@@ -1883,5 +1844,3 @@ Assume shocks $g_{nt}$ are orthogonal to the *share‑weighted* average error $\
 <!-- <https://onlinelibrary.wiley.com/doi/10.1111/jors.12481> -->
 
 <!-- <https://drive.google.com/file/d/1jxx0UvVs3Nqw1qzboL3uG9q3TLQ5Nw49/view> -->
-
-

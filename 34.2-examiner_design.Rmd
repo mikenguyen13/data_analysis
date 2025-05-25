@@ -14,6 +14,10 @@ The examiner/judge design is a powerful way to achieve identification in observa
 
 -   **Quasi-Random Assignment (Exogeneity):** Because examiners or judges are assigned to cases essentially at random (often by rotation, scheduling, or lottery), the particular decision-maker an individual gets is independent of that individual's characteristics. This approximates the randomness of an experiment. As long as assignment is truly random (or as-good-as-random after conditioning on any known factors like time or location), the examiner identity is uncorrelated with unobserved confounders. In other words, which judge you draw should have no direct bearing on your outcome except through the judge's decision. This satisfies the **exogeneity** condition for an IV.
 
+    -   **Discretion Over a Binary Treatment**: Each decision maker has discretionary authority over a treatment variable $D_i$, typically binary (e.g., pretrial release vs. detention).
+
+    -   **Heterogeneity in Behavior**: Decision makers differ systematically in their propensity to assign treatment, allowing us to use these differences as instrumental variation.
+
 -   **Instrument Relevance:** Different examiners have different propensities to deliver the treatment. Some judges are more severe (more likely to incarcerate or give long sentences), while others are more lenient; some doctors are more likely to prescribe an intensive treatment, etc. This translates into substantial variation in the probability of treatment based solely on who the case was assigned to. For example, in the patent context, being assigned a lenient patent examiner vs. a strict one can significantly change the probability of a patent grant [@farre2020patent].
 
 -   **Exclusion Restriction:** The IV assumption is that the assigned examiner affects the outcome *only* through the treatment itself. In a judge design, this means the "type of judge you are assigned" should impact the defendant's future outcomes solely via the judge's decision (e.g. incarceration or release), not through any other channel. For instance, a harsh judge might send you to prison; a lenient judge might not -- that difference can affect your future, but we assume that it's only the incarceration that matters for your future outcome, not any direct effect of interacting with a harsh vs. nice judge per se. This exclusion restriction is more plausible when the decision-maker has no direct interaction with the individual beyond making the decision. Researchers take care to argue that conditional on the controls and the treatment itself, the identity of the examiner has no independent effect on outcomes. If these conditions (relevance and exogeneity/exclusion) hold, then the variation in treatment induced by examiner assignment can be used to consistently estimate the causal effect of the treatment.
@@ -26,7 +30,7 @@ The term **leniency IV** refers to this same instrumental variable strategy, emp
 
 A leniency IV design typically involves constructing an instrument like *"the leave-out mean decision rate of the assigned examiner."* This could be, for instance, the fraction of previous similar cases that the examiner approved (excluding the current case). That number captures how lenient or strict they generally are. Because assignment is random, some individuals get a high-leniency examiner and others a low-leniency examiner, creating exogenous variation in treatment. By comparing outcomes across these, one can identify the causal effect of the treatment. The term "leniency" highlights that it's the discretionary toughness of the examiner that we're leveraging.
 
-#### Examples of Examiner/Judge IV Designs in Research
+#### Examples in Economics
 
 Many influential studies across economics and related fields have employed examiner or judge IV designs to answer causal questions. Below are several prominent examples illustrating the range of applications and findings:
 
@@ -53,7 +57,7 @@ In marketing research, analogous setups can be constructed by identifying quasi-
 This analogical use of judge leniency introduces a powerful framework for addressing endogeneity in business contexts, allowing us to disentangle the effect of marketing actions (e.g., discounts, loyalty offers) from the confounding influence of customer selection or targeting bias.
 
 | **Judge Analog**   | **Case Analog**            | **Instrument / Causal Variation**        | **Use Case / Research Question**          | **Potential Outcomes**         |
-|--------------|--------------|---------------|---------------|--------------|
+|---------------|---------------|---------------|---------------|---------------|
 | Ad reviewer        | Submitted ad               | Reviewer identity, shift rotation        | Effect of ad rejection or delay on sales  | CTR, sales, acquisition        |
 | Search ranker      | Product view/visit         | Random tie-breaking in rank              | Impact of product ranking on behavior     | Purchases, engagement          |
 | Sales rep          | Customer inquiry           | Agent assignment variation               | Salesperson influence on conversion       | Conversion, satisfaction       |
@@ -61,3 +65,357 @@ This analogical use of judge leniency introduces a powerful framework for addres
 | Matching algorithm | Influencer-brand pairing   | Batch assignment randomness              | Does match quality affect campaign ROI?   | ROI, awareness                 |
 | Moderator          | User post / ad             | Moderator stringency variation           | Enforcement effect on trust and activity  | Engagement, advertiser trust   |
 | Grant reviewer     | Startup or proposal        | Panel assignment, reviewer fixed effects | Causal effect of grant approval on growth | Marketing scaling, performance |
+
+------------------------------------------------------------------------
+
+<!-- #### Illustrative Examples -->
+
+<!-- **Example 1: Bail Setting in Philadelphia** -->
+
+<!-- The pretrial release decision in Philadelphia illustrates a decision maker IV design [@stevenson2018distortion]: -->
+
+<!-- -   After arrest, a defendant may: -->
+
+<!--     -   Be held in jail, -->
+
+<!--     -   Released on bail (money required), -->
+
+<!--     -   Or released on recognizance (no money required). -->
+
+<!-- -   This decision is made by one of six magistrates during preliminary hearings. -->
+
+<!-- -   Magistrate assignment depends on a **rotating schedule**, and the **time of arrest** introduces random variation in which magistrate a defendant faces. -->
+
+<!-- **Example 2: Bankruptcy Judges in Chapter 13** -->
+
+<!-- Another example arises in the Chapter 13 bankruptcy process [@dobbie2017consumer]: -->
+
+<!-- -   When filing for Chapter 13, a debtor submits a repayment plan that must be approved by a judge. -->
+
+<!-- -   Judge assignment is random within location and filing day, producing quasi-random variation in outcomes. -->
+
+<!-- -   Judge leniency toward discharging debts creates the necessary heterogeneity. -->
+
+#### Formal Setup and Notation
+
+We define the setup formally as follows:
+
+-   Let $i = 1, \dots, n$ index individuals.
+-   Each individual has two outcomes of interest:
+    -   $D_i$: the **treatment decision**, made by the decision maker (e.g., bail granted or not).
+    -   $Y_i$: the **final outcome**, potentially affected by $D_i$ (e.g., rearrest, discharge success).
+-   Each individual is randomly assigned to one of $K$ decision makers: $Q_i \in \{0, 1, \dots, K - 1\}$.
+-   We define potential treatment outcomes as:
+    -   $D_i(q)$: the treatment decision if individual $i$ were assigned to decision maker $q$.
+-   We observe only the realized $D_i = D_i(Q_i)$.
+
+**Note**: There is no meaningful ordering of $Q_i$. The variation is purely categorical, not ordinal.
+
+We also define potential final outcomes:
+
+-   $Y_i(D_i(q), q)$: the final outcome if individual $i$ is assigned to decision maker $q$, receives treatment $D_i(q)$.
+
+When conducting IV, we focus on the reduced form and first-stage variation induced by $Q_i$, and seek to shut down the **direct effect** of $Q_i$ on $Y_i$, conditioning only on $D_i$.
+
+------------------------------------------------------------------------
+
+We first consider the variation in $D_i$ across $Q_i$, potentially conditioning on observed covariates $W_i$.
+
+-   Assume *conditional ignorability*: assignment to $Q_i$ is as good as random given $W_i$.
+-   In the simplest case, $W_i$ contains only a constant (i.e., unadjusted analysis).
+
+We can define:
+
+$$
+\tau_{q, q'} = \mathbb{E}[D_i \mid Q_i = q] - \mathbb{E}[D_i \mid Q_i = q']
+$$
+
+This is the **relative effect of decision maker** $q$ vs. $q'$ on treatment assignment.
+
+Define:
+
+$$
+\mu_D(q) = \mathbb{E}[D_i \mid Q_i = q]
+$$
+
+-   This is **judge** $q$'s average leniency (i.e., how often they assign the treatment).
+-   Estimated via simple regression:
+
+$$
+D_i = Q_i \mu_D + u_i
+$$
+
+Where $Q_i$ is a vector of $K$ dummies. Then $\hat{\mu}_D(q)$ are the fitted means.
+
+------------------------------------------------------------------------
+
+To isolate judge-level variation while adjusting for baseline differences (e.g., location), we control for $W_i$:
+
+$$
+D_i = Q_i \mu_D + W_i \gamma + u_i
+$$
+
+-   Here, $\mu_D(q)$ reflects **conditional leniency**, net of $W_i$.
+-   Define the predicted value:
+
+$$
+Z_i = \hat{D}_i^\perp
+$$
+
+This is the **residualized leniency score**, representing how lenient decision maker $Q_i$ is, beyond what is expected from covariates $W_i$.
+
+------------------------------------------------------------------------
+
+Interpreting the Instrument $Z_i$
+
+-   $Z_i$ reflects **within-location variation** in decision maker behavior.
+-   It isolates judge-specific variation that is not confounded by observable case-level or court-level factors.
+-   Mechanically, we define the **residualized predicted treatment** as:
+
+$$
+\hat{D}_i^\perp = \frac{1}{n} \left( \sum_i \underbrace{1(Q_i = q) D_i}_{\text{judge mean}} - \sum_i \underbrace{1(W_i = w) D_i}_{\text{location mean}} \right)
+$$
+
+-   The **judge mean** captures the average treatment assigned by judge $q$.
+-   The **location mean** captures the average treatment assigned across individuals with the same observable characteristics $W_i = w$ (e.g., court, time window).
+-   Subtracting the location mean **residualizes** the judge effect by removing location-specific variation.
+
+The goal is to extract only the variation across judges that is orthogonal to systematic location-level treatment patterns.
+
+------------------------------------------------------------------------
+
+Why Is This Re-centering Necessary?
+
+The raw leniency score $\mu_D(q) = \mathbb{E}[D_i \mid Q_i = q]$ may reflect:
+
+-   Actual judge discretion, but also
+-   Systematic differences in case mix, depending on location or time of day
+
+This can bias the instrument if judges are not assigned uniformly across these contexts.
+
+By centering judge-level means relative to the mean outcome in their location, we obtain a more meaningful instrument:
+
+-   It now reflects how lenient this judge is relative to their local peer group, controlling for observable confounding.
+
+Once we apply this residualization:
+
+-   We obtain a **"recentered" leniency measure**, which reflects **within-location differences** in decision-maker behavior.
+-   This measure is commonly used in empirical IV applications (e.g., in criminal justice, bankruptcy courts, asylum decisions).
+
+------------------------------------------------------------------------
+
+This aligns with real-world practice in empirical work, which often uses **leave-one-out** versions of $\mu_D(Q_i)$ to avoid mechanical endogeneity.
+
+**Why use leave-one-out?**
+
+-   Including the individual's own outcome in the estimation of their instrument can induce endogeneity (mechanical correlation).
+-   The **leave-one-out leniency score** for judge $q$ is:
+
+$$
+\tilde{\mu}_D^{(-i)}(q) = \frac{1}{n_q - 1} \sum_{j \ne i, Q_j = q} D_j
+$$
+
+Where $n_q$ is the number of individuals assigned to judge $q$.
+
+-   This ensures that the instrument is **uncorrelated with individual-level shocks**, a key IV requirement.
+
+------------------------------------------------------------------------
+
+We can compute **residualized outcomes** by subtracting out location-level variation, just like we did with leniency:
+
+$$
+\hat{Y}_i^\perp = \hat{Y}_i - \mathbb{E}[Y_i \mid W_i]
+$$
+
+This helps us distinguish how much of the variation in outcomes is due to **judge effects**, rather than **location-level factors**.
+
+-   Even after controlling for $W_i$, we often still observe meaningful variation in $Y_i$ across judges.
+-   This implies that **judge assignment induces variation in outcomes**, even when holding location and case mix fixed.
+
+------------------------------------------------------------------------
+
+#### Assumptions
+
+1.  **Relevance**:
+    -   The instrument $Z_i$ (e.g., judge leniency) must be **strongly correlated** with $D_i$.
+    -   That is, $\mathbb{E}[D_i \mid Z_i]$ must vary meaningfully across values of $Z_i$.
+2.  **Exclusion**:
+    -   The instrument must affect the outcome **only through** $D_i$.
+    -   That is, $Q_i$ should not have a **direct effect** on $Y_i$ once we control for $D_i$.
+3.  **Monotonicity** [@imbens1994identification]:
+    -   The effect of the instrument should not "flip signs" across units.
+    -   If judge $q$ is more lenient than $q'$, then they are more lenient for **everyone**.
+
+**Note**: The **exclusion** and **monotonicity** assumptions are not directly testable and can be controversial. We'll return to this in more depth later.
+
+------------------------------------------------------------------------
+
+#### One vs. Many Instruments
+
+In many applied papers, researchers use the **leniency score** $Z_i = \hat{D}_i^\perp$ rather than judge dummies directly.
+
+Why?
+
+1.  **Computational Simplicity**:
+    -   Using $Z_i$ avoids estimating an over-identified system (i.e., one instrument per judge).
+    -   This speeds up computation, especially in large datasets.
+2.  **Ease of Visualization**:
+    -   Researchers often plot reduced-form and first-stage coefficients against leniency.
+    -   This offers intuitive visual evidence of instrument strength and outcome response.
+3.  **First Stage Power**:
+    -   In a just-identified model, checking the strength of the instrument (e.g., F-statistic) is straightforward.
+    -   In contrast, many-instrument settings can obscure weak instrument issues.
+
+------------------------------------------------------------------------
+
+Recall the 2SLS estimator in matrix form:
+
+$$
+\hat{\beta}_{2SLS} = \frac{D'Q(Q'Q)^{-1}Q'Y}{D'Q(Q'Q)^{-1}Q'D} = \frac{\hat{D}'Y}{\hat{D}'D}
+$$
+
+This highlights a key point:
+
+-   Using many instruments (judge dummies) and projecting onto them,
+-   or using the predicted value $\hat{D}_i$ as a single instrument,
+
+are algebraically equivalent in the absence of controls.
+
+-   Adding controls just residualizes $D_i$, $Y_i$, and $Z_i$ with respect to $W_i$.
+
+So which approach is better?
+
+-   The core identifying variation is still the random assignment to $K$ judges.
+-   Collapsing that variation into a predicted value $Z_i$ does not change the source of randomness.
+-   However, using the predicted value may obsure the experimental structure.
+
+While point estimates may be equivalent, the inference can differ:
+
+-   If we use $\hat{\mu}_D(q)$ as the first-stage effect, we ignore the sampling uncertainty in estimating these means.
+-   The variance of $\hat{D}_i^\perp$ does not account for variability in the projection, leading to potentially understated standard errors.
+
+> This issue is closely related to the **many instrument problem**, and arises especially when $K$ is large or judge assignment is sparse.
+
+In many empirical cases:
+
+-   The just-identified leniency instrument and over-identified judge-dummy approach yield similar standard errors.
+-   This occurs when $\hat{\mu}_D(q)$ is estimated with high precision (i.e., many observations per judge).
+
+------------------------------------------------------------------------
+
+The most important advantage of leniency instruments is that they naturally handle the "own-observation" bias.
+
+-   In the naive case, $\hat{\mu}_D(q)$ includes individual $i$'s own treatment $D_i$:
+    -   This introduces mechanical endogeneity, as the instrument is correlated with the error in $Y_i$.
+-   The leave-one-out leniency score corrects this:
+
+$$
+\tilde{\mu}_D^{(-i)}(q) = \frac{1}{n_q - 1} \sum_{\substack{j \ne i \\ Q_j = q}} D_j
+$$
+
+-   Researchers construct $Z_i$ using $\tilde{\mu}_D^{(-i)}(Q_i)$, which excludes $i$'s data from their own instrument.
+
+This is essentially a finite-sample approximation to jackknife IV (JIVE).
+
+-   The bias corrected by LOO is exactly the one that arises in **many-instrument IV** in small samples.
+-   The correction is especially important when the number of judges per location is moderate or small.
+
+Given that the leniency approach can be understood as a form of JIVE [@angrist1999jackknife], why not go further ? U-JIVE (Unbiased JIVE) is a modern refinement developed to directly address these issues in finite samples [@kolesa2013estimation].
+
+-   With many instruments or many fixed effects (e.g., location and time dummies), we can face the **same inference problems**.
+-   U-JIVE provides a **consistent and unbiased estimator** even in these challenging setups.
+
+------------------------------------------------------------------------
+
+#### Testing the Exclusion Restriction
+
+The exclusion restriction requires that judge assignment affects the outcome only through treatment---i.e., $Q_i$ affects $Y_i$ only through $D_i$.
+
+This is challenging to test directly, but we can probe its plausibility using tools familiar from RCTs and observational causal inference: **covariate balance checks**.
+
+**Step 1: Predict Propensity Scores**
+
+-   Compute the first-stage predicted treatment: $\hat{\mu}_D(Q_i)$
+-   This is judge $Q_i$'s estimated leniency (possibly residualized)
+-   Use this as a "propensity score" for treatment $D_i$
+
+**Step 2: Test Covariate Balance Across Leniency**
+
+-   Regress observable covariates $X_i$ on $\hat{\mu}_D(Q_i)$
+-   If the assignment of judges is random (conditional on covariates), we should see no systematic relationship between covariates and predicted treatment
+
+This is analogous to testing for pre-treatment balance in randomized experiments.
+
+See Table 1 of @dobbie2017consumer, which displays descriptive statistics and tests for covariate balance across predicted leniency scores. This is now a standard empirical diagnostic in papers using judge IV designs.
+
+> If covariates vary significantly with $\hat{\mu}_D(Q_i)$, the exclusion assumption is questionable---it may indicate that judge assignment is confounded with case characteristics.
+
+------------------------------------------------------------------------
+
+#### Testing the Monotonicity Assumption
+
+The **monotonicity assumption** requires that if one judge is more lenient than another, they are more lenient **for everyone**---i.e., no individual who is treated by a strict judge would have been untreated by a lenient one.
+
+This is subtle and particularly hard to test in multi-judge (non-binary instrument) designs.
+
+> **Monotonicity violations imply violations of the LATE interpretation**---our IV may no longer estimate a meaningful average causal effect.
+
+Recent work attempts to develop *testable implications* of monotonicity [@kitagawa2015test; @frandsen2023judging].
+
+Let:
+
+-   $D$ be a binary treatment
+
+-   $Z$ a binary instrument (e.g., judge assignment)
+
+-   $Y$ the outcome of interest
+
+Define the joint distributions:
+
+-   $P(y, d) = \mathbb{P}(Y = y, D = d \mid Z = 1)$
+-   $Q(y, d) = \mathbb{P}(Y = y, D = d \mid Z = 0)$
+
+@kitagawa2015test shows that in the binary IV case if the IV is **valid and monotonic**, then:
+
+$$
+P(B, 1) - Q(B, 1) \ge 0 \\
+P(B, 0) - Q(B, 0) \ge 0
+$$
+
+Where $B$ is any set of outcomes (e.g., $Y \in \{1\}$). These inequalities follow from the **complier potential outcome structure** under monotonicity.
+
+> These are testable implications. Violations suggest either invalid instruments or monotonicity failures.
+
+------------------------------------------------------------------------
+
+In judge IV designs, the instrument is not binary. @frandsen2023judging extended @kitagawa2015test idea to this case.
+
+Key idea:
+
+-   Map multiple judges to a scalar leniency index, $Z_i = \hat{\mu}_D(Q_i)$
+
+-   Discretize $Z_i$ if needed, then apply Kitagawa-style tests
+
+Challenges:
+
+-   The mapping introduces estimation error and noise
+
+-   Tests rely on finite-sample approximations and may be underpowered
+
+Still, these tests provide useful diagnostic tools to evaluate monotonicity plausibility.
+
+A practical question: what can we do if the exclusion or monotonicity assumptions fail?
+
+-   Estimating bounds on the treatment effect under partial violations
+-   Exploring subgroup monotonicity (e.g., within strata where judges are plausibly rankable)
+-   Using alternative identification strategies (e.g., weaker forms of LATE)
+
+In other words, all is not lost---but interpretation becomes more cautious and subtle.
+
+Even when assumptions are reasonable, inference remains challenging in judge-IV setups.
+
+-   Many instruments $\to$ weak instrument concerns
+-   Many controls (fixed effects) $\to$ finite-sample bias and overfitting
+-   Heteroskedasticity $\to$ robust inference is tricky
+
+------------------------------------------------------------------------
