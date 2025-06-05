@@ -1,0 +1,2207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>C Chapter: Cluster Randomization and Interference Bias | A Guide on Data Analysis</title>
+<meta name="author" content="Mike Nguyen">
+<meta name="description" content="C.1 6. Implementation: Practical Guidelines  C.1.1 6.1 Constructing Clusters Use one or more of the following: Geographic proximity. Embedding techniques (e.g., Word2Vec on search sequences)....">
+<meta name="generator" content="bookdown 0.43 with bs4_book()">
+<meta property="og:title" content="C Chapter: Cluster Randomization and Interference Bias | A Guide on Data Analysis">
+<meta property="og:type" content="book">
+<meta property="og:url" content="https://bookdown.org/mike/data_analysis/chapter-cluster-randomization-and-interference-bias.html">
+<meta property="og:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<meta property="og:description" content="C.1 6. Implementation: Practical Guidelines  C.1.1 6.1 Constructing Clusters Use one or more of the following: Geographic proximity. Embedding techniques (e.g., Word2Vec on search sequences)....">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="C Chapter: Cluster Randomization and Interference Bias | A Guide on Data Analysis">
+<meta name="twitter:description" content="C.1 6. Implementation: Practical Guidelines  C.1.1 6.1 Constructing Clusters Use one or more of the following: Geographic proximity. Embedding techniques (e.g., Word2Vec on search sequences)....">
+<meta name="twitter:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
+<!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
+<script src="libs/bootstrap-4.6.0/bootstrap.bundle.min.js"></script><script src="libs/bs3compat-0.9.0/transition.js"></script><script src="libs/bs3compat-0.9.0/tabs.js"></script><script src="libs/bs3compat-0.9.0/bs3compat.js"></script><link href="libs/bs4_book-1.0.0/bs4_book.css" rel="stylesheet">
+<script src="libs/bs4_book-1.0.0/bs4_book.js"></script><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script><script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){window.dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-DMNX2X65HQ');
+    </script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- CSS --><style type="text/css">
+    
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  </style>
+<style type="text/css">
+    /* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+    div.csl-bib-body { }
+    div.csl-entry {
+      clear: both;
+        }
+    .hanging div.csl-entry {
+      margin-left:2em;
+      text-indent:-2em;
+    }
+    div.csl-left-margin {
+      min-width:2em;
+      float:left;
+    }
+    div.csl-right-inline {
+      margin-left:2em;
+      padding-left:1em;
+    }
+    div.csl-indent {
+      margin-left: 2em;
+    }
+  </style>
+</head>
+<body data-spy="scroll" data-target="#toc">
+
+<div class="container-fluid">
+<div class="row">
+  <header class="col-sm-12 col-lg-3 sidebar sidebar-book"><a class="sr-only sr-only-focusable" href="#content">Skip to main content</a>
+
+    <div class="d-flex align-items-start justify-content-between">
+      <h1>
+        <a href="index.html" title="">A Guide on Data Analysis</a>
+      </h1>
+      <button class="btn btn-outline-primary d-lg-none ml-2 mt-1" type="button" data-toggle="collapse" data-target="#main-nav" aria-expanded="true" aria-controls="main-nav"><i class="fas fa-bars"></i><span class="sr-only">Show table of contents</span></button>
+    </div>
+
+    <div id="main-nav" class="collapse-lg">
+      <form role="search">
+        <input id="search" class="form-control" type="search" placeholder="Search" aria-label="Search">
+</form>
+
+      <nav aria-label="Table of contents"><h2>Table of contents</h2>
+        <ul class="book-toc list-unstyled">
+<li><a class="" href="index.html">Preface</a></li>
+<li><a class="" href="introduction.html"><span class="header-section-number">1</span> Introduction</a></li>
+<li><a class="" href="prerequisites.html"><span class="header-section-number">2</span> Prerequisites</a></li>
+<li class="book-part">I. BASIC</li>
+<li><a class="" href="descriptive-statistics.html"><span class="header-section-number">3</span> Descriptive Statistics</a></li>
+<li><a class="" href="basic-statistical-inference.html"><span class="header-section-number">4</span> Basic Statistical Inference</a></li>
+<li class="book-part">II. REGRESSION</li>
+<li><a class="" href="linear-regression.html"><span class="header-section-number">5</span> Linear Regression</a></li>
+<li><a class="" href="non-linear-regression.html"><span class="header-section-number">6</span> Non-Linear Regression</a></li>
+<li><a class="" href="generalized-linear-models.html"><span class="header-section-number">7</span> Generalized Linear Models</a></li>
+<li><a class="" href="sec-linear-mixed-models.html"><span class="header-section-number">8</span> Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonlinear-and-generalized-linear-mixed-models.html"><span class="header-section-number">9</span> Nonlinear and Generalized Linear Mixed Models</a></li>
+<li><a class="" href="sec-nonparametric-regression.html"><span class="header-section-number">10</span> Nonparametric Regression</a></li>
+<li class="book-part">III. RAMIFICATIONS</li>
+<li><a class="" href="data.html"><span class="header-section-number">11</span> Data</a></li>
+<li><a class="" href="variable-transformation.html"><span class="header-section-number">12</span> Variable Transformation</a></li>
+<li><a class="" href="imputation-missing-data.html"><span class="header-section-number">13</span> Imputation (Missing Data)</a></li>
+<li><a class="" href="model-specification-tests.html"><span class="header-section-number">14</span> Model Specification Tests</a></li>
+<li><a class="" href="variable-selection.html"><span class="header-section-number">15</span> Variable Selection</a></li>
+<li><a class="" href="hypothesis-testing.html"><span class="header-section-number">16</span> Hypothesis Testing</a></li>
+<li><a class="" href="sec-marginal-effects.html"><span class="header-section-number">17</span> Marginal Effects</a></li>
+<li><a class="" href="moderation.html"><span class="header-section-number">18</span> Moderation</a></li>
+<li><a class="" href="mediation.html"><span class="header-section-number">19</span> Mediation</a></li>
+<li><a class="" href="prediction-and-estimation.html"><span class="header-section-number">20</span> Prediction and Estimation</a></li>
+<li class="book-part">IV. CAUSAL INFERENCE</li>
+<li><a class="" href="sec-causal-inference.html"><span class="header-section-number">21</span> Causal Inference</a></li>
+<li class="book-part">A. EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-experimental-design.html"><span class="header-section-number">22</span> Experimental Design</a></li>
+<li><a class="" href="sampling.html"><span class="header-section-number">23</span> Sampling</a></li>
+<li><a class="" href="sec-analysis-of-variance-anova.html"><span class="header-section-number">24</span> Analysis of Variance</a></li>
+<li><a class="" href="sec-multivariate-methods.html"><span class="header-section-number">25</span> Multivariate Methods</a></li>
+<li class="book-part">B. QUASI-EXPERIMENTAL DESIGN</li>
+<li><a class="" href="sec-quasi-experimental.html"><span class="header-section-number">26</span> Quasi-Experimental Methods</a></li>
+<li><a class="" href="sec-regression-discontinuity.html"><span class="header-section-number">27</span> Regression Discontinuity</a></li>
+<li><a class="" href="temporal-discontinuity-designs.html"><span class="header-section-number">28</span> Temporal Discontinuity Designs</a></li>
+<li><a class="" href="sec-synthetic-difference-in-differences.html"><span class="header-section-number">29</span> Synthetic Difference-in-Differences</a></li>
+<li><a class="" href="sec-difference-in-differences.html"><span class="header-section-number">30</span> Difference-in-Differences</a></li>
+<li><a class="" href="sec-changes-in-changes.html"><span class="header-section-number">31</span> Changes-in-Changes</a></li>
+<li><a class="" href="sec-synthetic-control.html"><span class="header-section-number">32</span> Synthetic Control</a></li>
+<li><a class="" href="sec-event-studies.html"><span class="header-section-number">33</span> Event Studies</a></li>
+<li><a class="" href="sec-instrumental-variables.html"><span class="header-section-number">34</span> Instrumental Variables</a></li>
+<li><a class="" href="sec-matching-methods.html"><span class="header-section-number">35</span> Matching Methods</a></li>
+<li class="book-part">C. OTHER CONCERNS</li>
+<li><a class="" href="sec-endogeneity.html"><span class="header-section-number">36</span> Endogeneity</a></li>
+<li><a class="" href="other-biases.html"><span class="header-section-number">37</span> Other Biases</a></li>
+<li><a class="" href="sec-directed-acyclic-graphs.html"><span class="header-section-number">38</span> Directed Acyclic Graphs</a></li>
+<li><a class="" href="sec-controls.html"><span class="header-section-number">39</span> Controls</a></li>
+<li class="book-part">V. MISCELLANEOUS</li>
+<li><a class="" href="report.html"><span class="header-section-number">40</span> Report</a></li>
+<li><a class="" href="exploratory-data-analysis.html"><span class="header-section-number">41</span> Exploratory Data Analysis</a></li>
+<li><a class="" href="sensitivity-analysis-robustness-check.html"><span class="header-section-number">42</span> Sensitivity Analysis/ Robustness Check</a></li>
+<li><a class="" href="replication-and-synthetic-data.html"><span class="header-section-number">43</span> Replication and Synthetic Data</a></li>
+<li><a class="" href="high-performance-computing.html"><span class="header-section-number">44</span> High-Performance Computing</a></li>
+<li class="book-part">APPENDIX</li>
+<li><a class="" href="appendix.html"><span class="header-section-number">A</span> Appendix</a></li>
+<li><a class="" href="bookdown-cheat-sheet.html"><span class="header-section-number">B</span> Bookdown cheat sheet</a></li>
+<li><a class="" href="references.html">References</a></li>
+<li><a class="active" href="chapter-cluster-randomization-and-interference-bias.html"><span class="header-section-number">C</span> Chapter: Cluster Randomization and Interference Bias</a></li>
+</ul>
+
+        <div class="book-extra">
+          <p><a id="book-repo" href="https://github.com/mikenguyen13/data_analysis">View book source <i class="fab fa-github"></i></a></p>
+        </div>
+      </nav>
+</div>
+  </header><main class="col-sm-12 col-md-9 col-lg-7" id="content"><div id="chapter-cluster-randomization-and-interference-bias" class="section level1" number="47">
+<h1>
+<span class="header-section-number">C</span> Chapter: Cluster Randomization and Interference Bias<a class="anchor" aria-label="anchor" href="#chapter-cluster-randomization-and-interference-bias"><i class="fas fa-link"></i></a>
+</h1>
+<div id="implementation-practical-guidelines" class="section level2" number="47.1">
+<h2>
+<span class="header-section-number">C.1</span> 6. Implementation: Practical Guidelines<a class="anchor" aria-label="anchor" href="#implementation-practical-guidelines"><i class="fas fa-link"></i></a>
+</h2>
+<div id="constructing-clusters" class="section level3" number="47.1.1">
+<h3>
+<span class="header-section-number">C.1.1</span> 6.1 Constructing Clusters<a class="anchor" aria-label="anchor" href="#constructing-clusters"><i class="fas fa-link"></i></a>
+</h3>
+<p>Use one or more of the following:</p>
+<ul>
+<li>Geographic proximity.</li>
+<li>Embedding techniques (e.g., Word2Vec on search sequences).</li>
+<li>Co-view or co-search frequency.</li>
+<li>Pricing similarity or estimated cross-price elasticities.</li>
+</ul>
+</div>
+<div id="evaluating-cluster-quality" class="section level3" number="47.1.2">
+<h3>
+<span class="header-section-number">C.1.2</span> 6.2 Evaluating Cluster Quality<a class="anchor" aria-label="anchor" href="#evaluating-cluster-quality"><i class="fas fa-link"></i></a>
+</h3>
+<p>Use proxy interference matrix $P$ (e.g., PDP view co-occurrence), then:</p>
+<div class="sourceCode" id="cb1164"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">Q</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">B</span>, <span class="va">clusters</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/lapply.html">sapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/nrow.html">nrow</a></span><span class="op">(</span><span class="va">B</span><span class="op">)</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">B</span><span class="op">[</span><span class="va">i</span>, <span class="va">clusters</span> <span class="op">!=</span> <span class="va">clusters</span><span class="op">[</span><span class="va">i</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="op">}</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span></span></code></pre></div>
+<p>Lower <span class="math inline">\(Q\)</span> indicates better clustering.</p>
+</div>
+<div id="trade-offs" class="section level3" number="47.1.3">
+<h3>
+<span class="header-section-number">C.1.3</span> 6.3 Trade-offs<a class="anchor" aria-label="anchor" href="#trade-offs"><i class="fas fa-link"></i></a>
+</h3>
+<div class="inline-table"><table class="table table-sm">
+<colgroup>
+<col width="31%">
+<col width="32%">
+<col width="36%">
+</colgroup>
+<thead><tr class="header">
+<th>Factor</th>
+<th>Individual Randomization</th>
+<th>Cluster Randomization</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Bias (Interference)</td>
+<td>High</td>
+<td>Low</td>
+</tr>
+<tr class="even">
+<td>Power</td>
+<td>High</td>
+<td>Lower</td>
+</tr>
+<tr class="odd">
+<td>Complexity</td>
+<td>Low</td>
+<td>Moderate</td>
+</tr>
+<tr class="even">
+<td>Implementation overhead</td>
+<td>Minimal</td>
+<td>Requires new infrastructure</td>
+</tr>
+</tbody>
+</table></div>
+<div class="sourceCode" id="cb1165"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
+<span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">1000</span></span>
+<span><span class="va">clusters</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">100</span>, each<span class="op">=</span><span class="fl">10</span><span class="op">)</span></span>
+<span><span class="va">Z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html">rbinom</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">1</span>, <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="va">B</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n</span><span class="op">^</span><span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">0.1</span><span class="op">)</span>, <span class="va">n</span>, <span class="va">n</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://www.math.uzh.ch/pages/spam/reference/diag.html">diag</a></span><span class="op">(</span><span class="va">B</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">0.5</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Simulate outcome</span></span>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/lapply.html">sapply</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="va">n</span>, <span class="kw">function</span><span class="op">(</span><span class="va">i</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html">sum</a></span><span class="op">(</span><span class="va">B</span><span class="op">[</span><span class="va">i</span>,<span class="op">]</span> <span class="op">*</span> <span class="va">Z</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Estimate TATE under individual randomization</span></span>
+<span><span class="va">t_ind</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/mean.html">mean</a></span><span class="op">(</span><span class="va">Y</span><span class="op">[</span><span class="va">Z</span><span class="op">==</span><span class="fl">1</span><span class="op">]</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/mean.html">mean</a></span><span class="op">(</span><span class="va">Y</span><span class="op">[</span><span class="va">Z</span><span class="op">==</span><span class="fl">0</span><span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Estimate TATE under cluster randomization</span></span>
+<span><span class="va">cluster_Z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/tapply.html">tapply</a></span><span class="op">(</span><span class="va">Z</span>, <span class="va">clusters</span>, <span class="va">mean</span><span class="op">)</span></span>
+<span><span class="va">cluster_Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/tapply.html">tapply</a></span><span class="op">(</span><span class="va">Y</span>, <span class="va">clusters</span>, <span class="va">mean</span><span class="op">)</span></span>
+<span><span class="va">t_cr</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/mean.html">mean</a></span><span class="op">(</span><span class="va">cluster_Y</span><span class="op">[</span><span class="va">cluster_Z</span> <span class="op">&gt;</span> <span class="fl">0.5</span><span class="op">]</span><span class="op">)</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/pkg/BiocGenerics/man/mean.html">mean</a></span><span class="op">(</span><span class="va">cluster_Y</span><span class="op">[</span><span class="va">cluster_Z</span> <span class="op">&lt;=</span> <span class="fl">0.5</span><span class="op">]</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">t_ind</span></span>
+<span><span class="co">#&gt; [1] 0.7931955</span></span>
+<span><span class="va">t_cr</span></span>
+<span><span class="co">#&gt; [1] 0.3104478</span></span></code></pre></div>
+<p>Observe that <span class="math inline">\(t_{\text{ind}}\)</span> is inflated relative to <span class="math inline">\(t_{\text{cr}}\)</span>.</p>
+</div>
+</div>
+<div id="limitations-and-open-questions" class="section level2" number="47.2">
+<h2>
+<span class="header-section-number">C.2</span> 8. Limitations and Open Questions<a class="anchor" aria-label="anchor" href="#limitations-and-open-questions"><i class="fas fa-link"></i></a>
+</h2>
+<ul>
+<li>
+<strong>Loss of precision</strong>: Especially problematic in low-interference settings.</li>
+<li>
+<strong>Complexity of clustering</strong>: No universal optimal method exists.</li>
+<li>
+<strong>Temporal dynamics</strong>: Cluster randomization doesn’t inherently address time-based spillovers.</li>
+<li>
+<strong>Heterogeneous effects</strong>: Bias correction may vary by treatment strength or context.</li>
+</ul>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-abadie2005semiparametric" class="csl-entry">
+Abadie, Alberto. 2005. <span>“Semiparametric Difference-in-Differences Estimators.”</span> <em>The Review of Economic Studies</em> 72 (1): 1–19.
+</div>
+<div id="ref-abadie2021using" class="csl-entry">
+———. 2021. <span>“Using Synthetic Controls: Feasibility, Data Requirements, and Methodological Aspects.”</span> <em>Journal of Economic Literature</em> 59 (2): 391–425.
+</div>
+<div id="ref-abadie2002instrumental" class="csl-entry">
+Abadie, Alberto, Joshua Angrist, and Guido Imbens. 2002. <span>“Instrumental Variables Estimates of the Effect of Subsidized Training on the Quantiles of Trainee Earnings.”</span> <em>Econometrica</em> 70 (1): 91–117.
+</div>
+<div id="ref-abadie2023should" class="csl-entry">
+Abadie, Alberto, Susan Athey, Guido W Imbens, and Jeffrey M Wooldridge. 2023. <span>“When Should You Adjust Standard Errors for Clustering?”</span> <em>The Quarterly Journal of Economics</em> 138 (1): 1–35.
+</div>
+<div id="ref-abadie2010synthetic" class="csl-entry">
+Abadie, Alberto, Alexis Diamond, and Jens Hainmueller. 2010. <span>“Synthetic Control Methods for Comparative Case Studies: Estimating the Effect of California’s Tobacco Control Program.”</span> <em>Journal of the American Statistical Association</em> 105 (490): 493–505.
+</div>
+<div id="ref-abadie2003economic" class="csl-entry">
+Abadie, Alberto, and Javier Gardeazabal. 2003. <span>“The Economic Costs of Conflict: A Case Study of the Basque Country.”</span> <em>American Economic Review</em> 93 (1): 113–32.
+</div>
+<div id="ref-abadie2016matching" class="csl-entry">
+Abadie, Alberto, and Guido W Imbens. 2016. <span>“Matching on the Estimated Propensity Score.”</span> <em>Econometrica</em> 84 (2): 781–807.
+</div>
+<div id="ref-abadie2021penalized" class="csl-entry">
+Abadie, Alberto, and Jérémy L’hour. 2021. <span>“A Penalized Synthetic Control Estimator for Disaggregated Data.”</span> <em>Journal of the American Statistical Association</em> 116 (536): 1817–34.
+</div>
+<div id="ref-acemoglu2019democracy" class="csl-entry">
+Acemoglu, Daron, Suresh Naidu, Pascual Restrepo, and James A Robinson. 2019. <span>“Democracy Does Cause Growth.”</span> <em>Journal of Political Economy</em> 127 (1): 47–100.
+</div>
+<div id="ref-acharya1993value" class="csl-entry">
+Acharya, Sankarshan. 1993. <span>“Value of Latent Information: Alternative Event Study Methods.”</span> <em>The Journal of Finance</em> 48 (1): 363–85.
+</div>
+<div id="ref-adalja2023gmo" class="csl-entry">
+Adalja, Aaron, Jūra Liaukonytė, Emily Wang, and Xinrong Zhu. 2023. <span>“GMO and Non-GMO Labeling Effects: Evidence from a Quasi-Natural Experiment.”</span> <em>Marketing Science</em> 42 (2): 233–50.
+</div>
+<div id="ref-agarwal2023causal" class="csl-entry">
+Agarwal, Anish, Munther Dahleh, Devavrat Shah, and Dennis Shen. 2023. <span>“Causal Matrix Completion.”</span> In <em>The Thirty Sixth Annual Conference on Learning Theory</em>, 3821–26. PMLR.
+</div>
+<div id="ref-agrawal1995economic" class="csl-entry">
+Agrawal, Jagdish, and Wagner A Kamakura. 1995. <span>“The Economic Worth of Celebrity Endorsers: An Event Study Analysis.”</span> <em>Journal of Marketing</em> 59 (3): 56–62.
+</div>
+<div id="ref-ahrens1981two" class="csl-entry">
+Ahrens, Henry, and Robert Pincus. 1981. <span>“On Two Measures of Unbalancedness in a One-Way Model and Their Relation to Efficiency.”</span> <em>Biometrical Journal</em> 23 (3): 227–35.
+</div>
+<div id="ref-aiken2005interaction" class="csl-entry">
+Aiken, Leona S, and Stephen G West. 2005. <span>“Interaction Effects.”</span> <em>Encyclopedia of Statistics in Behavioral Science</em>.
+</div>
+<div id="ref-aizer2015juvenile" class="csl-entry">
+Aizer, Anna, and Joseph J Doyle Jr. 2015. <span>“Juvenile Incarceration, Human Capital, and Future Crime: Evidence from Randomly Assigned Judges.”</span> <em>The Quarterly Journal of Economics</em> 130 (2): 759–803.
+</div>
+<div id="ref-akca2020value" class="csl-entry">
+Akca, Selin, and Anita Rao. 2020. <span>“Value of Aggregators.”</span> <em>Marketing Science</em> 39 (5): 893–922.
+</div>
+<div id="ref-allison20027" class="csl-entry">
+Allison, Paul D, and Richard P Waterman. 2002. <span>“7. Fixed-Effects Negative Binomial Regression Models.”</span> <em>Sociological Methodology</em> 32 (1): 247–65.
+</div>
+<div id="ref-altonji2005selection" class="csl-entry">
+Altonji, Joseph G, Todd E Elder, and Christopher R Taber. 2005. <span>“Selection on Observed and Unobserved Variables: Assessing the Effectiveness of Catholic Schools.”</span> <em>Journal of Political Economy</em> 113 (1): 151–84.
+</div>
+<div id="ref-amemiya1971estimation" class="csl-entry">
+Amemiya, Takeshi. 1971. <span>“The Estimation of the Variances in a Variance-Components Model.”</span> <em>International Economic Review</em>, 1–13.
+</div>
+<div id="ref-amemiya1984tobit" class="csl-entry">
+———. 1984. <span>“Tobit Models: A Survey.”</span> <em>Journal of Econometrics</em> 24 (1-2): 3–61.
+</div>
+<div id="ref-amemiya1986instrumental" class="csl-entry">
+Amemiya, Takeshi, and Thomas E MaCurdy. 1986. <span>“Instrumental-Variable Estimation of an Error-Components Model.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 869–80.
+</div>
+<div id="ref-anderson2015growth" class="csl-entry">
+Anderson, James E, Mario Larch, and Yoto V Yotov. 2015. <span>“Growth and Trade with Frictions: A Structural Estimation Framework.”</span> National Bureau of Economic Research.
+</div>
+<div id="ref-anderson2014subways" class="csl-entry">
+Anderson, Michael L. 2014. <span>“Subways, Strikes, and Slowdowns: The Impacts of Public Transit on Traffic Congestion.”</span> <em>American Economic Review</em> 104 (9): 2763–96.
+</div>
+<div id="ref-Anderson_1952" class="csl-entry">
+Anderson, Theodore W, and Donald A Darling. 1952. <span>“Asymptotic Theory of Certain" Goodness of Fit" Criteria Based on Stochastic Processes.”</span> <em>The Annals of Mathematical Statistics</em>, 193–212.
+</div>
+<div id="ref-anderson1949estimation" class="csl-entry">
+Anderson, Theodore W, and Herman Rubin. 1949. <span>“Estimation of the Parameters of a Single Equation in a Complete System of Stochastic Equations.”</span> <em>The Annals of Mathematical Statistics</em> 20 (1): 46–63.
+</div>
+<div id="ref-andrews1974" class="csl-entry">
+Andrews, D. F. 1974. <span>“A Robust Method for Multiple Linear Regression.”</span> <em>Technometrics</em> 16 (4): 523–31. <a href="https://doi.org/10.1080/00401706.1974.10489233">https://doi.org/10.1080/00401706.1974.10489233</a>.
+</div>
+<div id="ref-andrews2006optimal" class="csl-entry">
+Andrews, Donald WK, Marcelo J Moreira, and James H Stock. 2006. <span>“Optimal Two-Sided Invariant Similar Tests for Instrumental Variables Regression.”</span> <em>Econometrica</em> 74 (3): 715–52.
+</div>
+<div id="ref-andrews2008efficient" class="csl-entry">
+———. 2008. <span>“Efficient Two-Sided Nonsimilar Invariant Tests in IV Regression with Weak Instruments.”</span> <em>Journal of Econometrics</em> 146 (2): 241–54.
+</div>
+<div id="ref-andrews2019weak" class="csl-entry">
+Andrews, Isaiah, James H Stock, and Liyang Sun. 2019. <span>“Weak Instruments in Instrumental Variables Regression: Theory and Practice.”</span> <em>Annual Review of Economics</em> 11: 727–53.
+</div>
+<div id="ref-angrist1998children" class="csl-entry">
+Angrist, Joshua D, and William N Evans. 1998. <span>“Children and Their Parents’ Labor Supply: Evidence from Exogenous Variation in Family Size.”</span> <em>American Economic Review</em> 88 (3): 450–77.
+</div>
+<div id="ref-angrist2000interpretation" class="csl-entry">
+Angrist, Joshua D, Kathryn Graddy, and Guido W Imbens. 2000. <span>“The Interpretation of Instrumental Variables Estimators in Simultaneous Equations Models with an Application to the Demand for Fish.”</span> <em>The Review of Economic Studies</em> 67 (3): 499–527.
+</div>
+<div id="ref-angrist1995two" class="csl-entry">
+Angrist, Joshua D, and Guido W Imbens. 1995. <span>“Two-Stage Least Squares Estimation of Average Causal Effects in Models with Variable Treatment Intensity.”</span> <em>Journal of the American Statistical Association</em> 90 (430): 431–42.
+</div>
+<div id="ref-angrist1999jackknife" class="csl-entry">
+Angrist, Joshua D, Guido W Imbens, and Alan B Krueger. 1999. <span>“Jackknife Instrumental Variables Estimation.”</span> <em>Journal of Applied Econometrics</em> 14 (1): 57–67.
+</div>
+<div id="ref-angrist1991does" class="csl-entry">
+Angrist, Joshua D, and Alan B Krueger. 1991. <span>“Does Compulsory School Attendance Affect Schooling and Earnings?”</span> <em>The Quarterly Journal of Economics</em> 106 (4): 979–1014.
+</div>
+<div id="ref-angrist2001instrumental" class="csl-entry">
+———. 2001. <span>“Instrumental Variables and the Search for Identification: From Supply and Demand to Natural Experiments.”</span> <em>Journal of Economic Perspectives</em> 15 (4): 69–85.
+</div>
+<div id="ref-angrist1999using" class="csl-entry">
+Angrist, Joshua D, and Victor Lavy. 1999. <span>“Using Maimonides’ Rule to Estimate the Effect of Class Size on Scholastic Achievement.”</span> <em>The Quarterly Journal of Economics</em> 114 (2): 533–75.
+</div>
+<div id="ref-angrist2009mostly" class="csl-entry">
+Angrist, Joshua D, and Jörn-Steffen Pischke. 2009. <em>Mostly Harmless Econometrics: An Empiricist’s Companion</em>. Princeton university press.
+</div>
+<div id="ref-angrist1991sources" class="csl-entry">
+Angrist, Joshua, and Guido Imbens. 1991. <span>“Sources of Identifying Information in Evaluation Models.”</span> National Bureau of Economic Research; National Bureau of Economic Research Cambridge, Mass., USA.
+</div>
+<div id="ref-angrist2023one" class="csl-entry">
+Angrist, Joshua, and Michal Kolesár. 2023. <span>“One Instrument to Rule Them All: The Bias and Coverage of Just-ID IV.”</span> <em>Journal of Econometrics</em>.
+</div>
+<div id="ref-angrist2024one" class="csl-entry">
+———. 2024. <span>“One Instrument to Rule Them All: The Bias and Coverage of Just-ID IV.”</span> <em>Journal of Econometrics</em> 240 (2): 105398.
+</div>
+<div id="ref-angrist2010multiple" class="csl-entry">
+Angrist, Joshua, Victor Lavy, and Analia Schlosser. 2010. <span>“Multiple Experiments for the Causal Link Between the Quantity and Quality of Children.”</span> <em>Journal of Labor Economics</em> 28 (4): 773–824.
+</div>
+<div id="ref-arkhangelsky2019synthetic" class="csl-entry">
+Arkhangelsky, Dmitry, Susan Athey, David A Hirshberg, Guido W Imbens, and Stefan Wager. 2019. <span>“Synthetic Difference in Differences.”</span> National Bureau of Economic Research.
+</div>
+<div id="ref-arkhangelsky2021synthetic" class="csl-entry">
+———. 2021. <span>“Synthetic Difference-in-Differences.”</span> <em>American Economic Review</em> 111 (12): 4088–118.
+</div>
+<div id="ref-arkhangelsky2023large" class="csl-entry">
+Arkhangelsky, Dmitry, and David Hirshberg. 2023. <span>“Large-Sample Properties of the Synthetic Control Method Under Selection on Unobservables.”</span> <em>arXiv Preprint arXiv:2311.13575</em> 2.
+</div>
+<div id="ref-arkhangelsky2024design" class="csl-entry">
+Arkhangelsky, Dmitry, Guido W Imbens, Lihua Lei, and Xiaoman Luo. 2024. <span>“Design-Robust Two-Way-Fixed-Effects Regression for Panel Data.”</span> <em>Quantitative Economics</em> 15 (4): 999–1034.
+</div>
+<div id="ref-aronow2019note" class="csl-entry">
+Aronow, Peter M, Jonathon Baron, and Lauren Pinson. 2019. <span>“A Note on Dropping Experimental Subjects Who Fail a Manipulation Check.”</span> <em>Political Analysis</em> 27 (4): 572–89.
+</div>
+<div id="ref-ashenfelter1978estimating" class="csl-entry">
+Ashenfelter, Orley. 1978. <span>“Estimating the Effect of Training Programs on Earnings.”</span> <em>The Review of Economics and Statistics</em>, 47–57.
+</div>
+<div id="ref-assmann1996confidence" class="csl-entry">
+Assmann, Susan F, David W Hosmer, Stanley Lemeshow, and Kenneth A Mundt. 1996. <span>“Confidence Intervals for Measures of Interaction.”</span> <em>Epidemiology</em>, 286–90.
+</div>
+<div id="ref-athey2021matrix" class="csl-entry">
+Athey, Susan, Mohsen Bayati, Nikolay Doudchenko, Guido Imbens, and Khashayar Khosravi. 2021. <span>“Matrix Completion Methods for Causal Panel Data Models.”</span> <em>Journal of the American Statistical Association</em> 116 (536): 1716–30.
+</div>
+<div id="ref-athey2006identification" class="csl-entry">
+Athey, Susan, and Guido W Imbens. 2006. <span>“Identification and Inference in Nonlinear Difference-in-Differences Models.”</span> <em>Econometrica</em> 74 (2): 431–97.
+</div>
+<div id="ref-athey2019machine" class="csl-entry">
+———. 2019. <span>“Machine Learning Methods That Economists Should Know About.”</span> <em>Annual Review of Economics</em> 11: 685–725.
+</div>
+<div id="ref-athey2022design" class="csl-entry">
+———. 2022. <span>“Design-Based Analysis in Difference-in-Differences Settings with Staggered Adoption.”</span> <em>Journal of Econometrics</em> 226 (1): 62–79.
+</div>
+<div id="ref-auffhammer2011clearing" class="csl-entry">
+Auffhammer, Maximilian, and Ryan Kellogg. 2011. <span>“Clearing the Air? The Effects of Gasoline Content Regulation on Air Quality.”</span> <em>American Economic Review</em> 101 (6): 2687–2722.
+</div>
+<div id="ref-austin2011optimal" class="csl-entry">
+Austin, Peter C. 2011. <span>“Optimal Caliper Widths for Propensity-Score Matching When Estimating Differences in Means and Differences in Proportions in Observational Studies.”</span> <em>Pharmaceutical Statistics</em> 10 (2): 150–61.
+</div>
+<div id="ref-azoulay2019does" class="csl-entry">
+Azoulay, Pierre, Christian Fons-Rosen, and Joshua S Graff Zivin. 2019. <span>“Does Science Advance One Funeral at a Time?”</span> <em>American Economic Review</em> 109 (8): 2889–2920.
+</div>
+<div id="ref-babcock2010" class="csl-entry">
+Babcock, Philip. 2010. <span>“Real Costs of Nominal Grade Inflation? New Evidence from Student Course Evaluations.”</span> <em>Economic Inquiry</em> 48 (4): 983–96.
+</div>
+<div id="ref-bai2002determining" class="csl-entry">
+Bai, Jushan, and Serena Ng. 2002. <span>“Determining the Number of Factors in Approximate Factor Models.”</span> <em>Econometrica</em> 70 (1): 191–221. https://doi.org/<a href="https://doi.org/10.1111/1468-0262.00273">https://doi.org/10.1111/1468-0262.00273</a>.
+</div>
+<div id="ref-baicker2019testing" class="csl-entry">
+Baicker, Katherine, and Theodore Svoronos. 2019. <span>“Testing the Validity of the Single Interrupted Time Series Design.”</span> National Bureau of Economic Research.
+</div>
+<div id="ref-bajari2011regression" class="csl-entry">
+Bajari, Patrick, Han Hong, Minjung Park, and Robert Town. 2011. <span>“Regression Discontinuity Designs with an Endogenous Forcing Variable and an Application to Contracting in Health Care.”</span> National Bureau of Economic Research.
+</div>
+<div id="ref-baker2022much" class="csl-entry">
+Baker, Andrew C, David F Larcker, and Charles CY Wang. 2022. <span>“How Much Should We Trust Staggered Difference-in-Differences Estimates?”</span> <em>Journal of Financial Economics</em> 144 (2): 370–95.
+</div>
+<div id="ref-balasubramanian2005impact" class="csl-entry">
+Balasubramanian, Siva K, Ike Mathur, and Ramendra Thakur. 2005. <span>“The Impact of High-Quality Firm Achievements on Shareholder Value: Focus on Malcolm Baldrige and JD Power and Associates Awards.”</span> <em>Journal of the Academy of Marketing Science</em> 33 (4): 413–22.
+</div>
+<div id="ref-balestra1987full" class="csl-entry">
+Balestra, Pietro, and Jayalakshmi Varadharajan-Krishnakumar. 1987. <span>“Full Information Estimations of a System of Simultaneous Equations with Error Component Structure.”</span> <em>Econometric Theory</em> 3 (2): 223–46.
+</div>
+<div id="ref-baltagi1981simultaneous" class="csl-entry">
+Baltagi, Badi H. 1981. <span>“Simultaneous Equations with Error Components.”</span> <em>Journal of Econometrics</em> 17 (2): 189–200.
+</div>
+<div id="ref-baltagi1991joint" class="csl-entry">
+Baltagi, Badi H, and Qi Li. 1991. <span>“A Joint Test for Serial Correlation and Random Individual Effects.”</span> <em>Statistics &amp; Probability Letters</em> 11 (3): 277–80.
+</div>
+<div id="ref-baltagi1995testing" class="csl-entry">
+———. 1995. <span>“Testing AR (1) Against MA (1) Disturbances in an Error Component Model.”</span> <em>Journal of Econometrics</em> 68 (1): 133–51.
+</div>
+<div id="ref-ban2022generalized" class="csl-entry">
+Ban, Kyunghoon, and Desire Kedagni. 2022. <span>“Generalized Difference-in-Differences Models: Robust Bounds.”</span> <em>arXiv Preprint arXiv:2211.06710</em>.
+</div>
+<div id="ref-bapna2018monetizing" class="csl-entry">
+Bapna, Ravi, Jui Ramaprasad, and Akhmed Umyarov. 2018. <span>“Monetizing Freemium Communities.”</span> <em>Mis Quarterly</em> 42 (3): 719–A4.
+</div>
+<div id="ref-barber1997firm" class="csl-entry">
+Barber, Bead M, and John D Lyon. 1997. <span>“Firm Size, Book-to-Market Ratio, and Security Returns: A Holdout Sample of Financial Firms.”</span> <em>The Journal of Finance</em> 52 (2): 875–83.
+</div>
+<div id="ref-baron1986moderator" class="csl-entry">
+Baron, Reuben M, and David A Kenny. 1986. <span>“The Moderator–Mediator Variable Distinction in Social Psychological Research: Conceptual, Strategic, and Statistical Considerations.”</span> <em>Journal of Personality and Social Psychology</em> 51 (6): 1173.
+</div>
+<div id="ref-barreca2011saving" class="csl-entry">
+Barreca, Alan I, Melanie Guldi, Jason M Lindo, and Glen R Waddell. 2011. <span>“Saving Babies? Revisiting the Effect of Very Low Birth Weight Classification.”</span> <em>The Quarterly Journal of Economics</em> 126 (4): 2117–23.
+</div>
+<div id="ref-bartlett1947use" class="csl-entry">
+Bartlett, Maurice S. 1947. <span>“The Use of Transformations.”</span> <em>Biometrics</em> 3 (1): 39–52.
+</div>
+<div id="ref-bates1980relative" class="csl-entry">
+Bates, Douglas M, and Donald G Watts. 1980. <span>“Relative Curvature Measures of Nonlinearity.”</span> <em>Journal of the Royal Statistical Society: Series B (Methodological)</em> 42 (1): 1–16.
+</div>
+<div id="ref-bates1981relative" class="csl-entry">
+———. 1981. <span>“A Relative Off Set Orthogonality Convergence Criterion for Nonlinear Least Squares.”</span> <em>Technometrics</em> 23 (2): 179–83.
+</div>
+<div id="ref-bates2015fitting" class="csl-entry">
+Bates, Douglas, Martin Mächler, Ben Bolker, and Steve Walker. 2015. <span>“Fitting Linear Mixed-Effects Models Using Lme4.”</span> <em>Journal of Statistical Software</em> 67: 1–48.
+</div>
+<div id="ref-bauer2005probing" class="csl-entry">
+Bauer, Daniel J, and Patrick J Curran. 2005. <span>“Probing Interactions in Fixed and Multilevel Regression: Inferential and Graphical Techniques.”</span> <em>Multivariate Behavioral Research</em> 40 (3): 373–400.
+</div>
+<div id="ref-bauer2006conceptualizing" class="csl-entry">
+Bauer, Daniel J, Kristopher J Preacher, and Karen M Gil. 2006. <span>“Conceptualizing and Testing Random Indirect Effects and Moderated Mediation in Multilevel Models: New Procedures and Recommendations.”</span> <em>Psychological Methods</em> 11 (2): 142.
+</div>
+<div id="ref-baum2019advice" class="csl-entry">
+Baum, Christopher F, and Arthur Lewbel. 2019. <span>“Advice on Using Heteroskedasticity-Based Identification.”</span> <em>The Stata Journal</em> 19 (4): 757–67.
+</div>
+<div id="ref-beaton1974" class="csl-entry">
+Beaton, Albert E., and John W. Tukey. 1974. <span>“The Fitting of Power Series, Meaning Polynomials, Illustrated on Band-Spectroscopic Data.”</span> <em>Technometrics</em> 16 (2): 147–85. <a href="https://doi.org/10.1080/00401706.1974.10489171">https://doi.org/10.1080/00401706.1974.10489171</a>.
+</div>
+<div id="ref-beerli2021abolition" class="csl-entry">
+Beerli, Andreas, Jan Ruffner, Michael Siegenthaler, and Giovanni Peri. 2021. <span>“The Abolition of Immigration Restrictions and the Performance of Firms and Workers: Evidence from Switzerland.”</span> <em>American Economic Review</em> 111 (3): 976–1012.
+</div>
+<div id="ref-bekker1994alternative" class="csl-entry">
+Bekker, Paul A. 1994. <span>“Alternative Approximations to the Distributions of Instrumental Variable Estimators.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 657–81.
+</div>
+<div id="ref-belloni2014high" class="csl-entry">
+Belloni, Alexandre, Victor Chernozhukov, and Christian Hansen. 2014. <span>“High-Dimensional Methods and Inference on Structural and Treatment Effects.”</span> <em>Journal of Economic Perspectives</em> 28 (2): 29–50.
+</div>
+<div id="ref-bendel1977comparison" class="csl-entry">
+Bendel, Robert B, and Abdelmonem A Afifi. 1977. <span>“Comparison of Stopping Rules in Forward <span>‘Stepwise’</span> Regression.”</span> <em>Journal of the American Statistical Association</em> 72 (357): 46–53.
+</div>
+<div id="ref-benjamini1995controlling" class="csl-entry">
+Benjamini, Yoav, and Yosef Hochberg. 1995. <span>“Controlling the False Discovery Rate: A Practical and Powerful Approach to Multiple Testing.”</span> <em>Journal of the Royal Statistical Society: Series B (Methodological)</em> 57 (1): 289–300.
+</div>
+<div id="ref-benjamini2000adaptive" class="csl-entry">
+———. 2000. <span>“On the Adaptive Control of the False Discovery Rate in Multiple Testing with Independent Statistics.”</span> <em>Journal of Educational and Behavioral Statistics</em> 25 (1): 60–83.
+</div>
+<div id="ref-benjamini2006adaptive" class="csl-entry">
+Benjamini, Yoav, Abba M Krieger, and Daniel Yekutieli. 2006. <span>“Adaptive Linear Step-up Procedures That Control the False Discovery Rate.”</span> <em>Biometrika</em> 93 (3): 491–507.
+</div>
+<div id="ref-benjamini2001control" class="csl-entry">
+Benjamini, Yoav, and Daniel Yekutieli. 2001. <span>“The Control of the False Discovery Rate in Multiple Testing Under Dependency.”</span> <em>Annals of Statistics</em>, 1165–88.
+</div>
+<div id="ref-ben2020varying" class="csl-entry">
+Ben-Michael, Eli, Avi Feller, and Jesse Rothstein. 2020. <span>“Varying Impacts of Letters of Recommendation on College Admissions: Approximate Balancing Weights for Subgroup Effects in Observational Studies.”</span> <em>arXiv Preprint arXiv:2008.04394</em>.
+</div>
+<div id="ref-ben2021augmented" class="csl-entry">
+———. 2021. <span>“The Augmented Synthetic Control Method.”</span> <em>Journal of the American Statistical Association</em> 116 (536): 1789–1803.
+</div>
+<div id="ref-ben2022synthetic" class="csl-entry">
+———. 2022. <span>“Synthetic Controls with Staggered Adoption.”</span> <em>Journal of the Royal Statistical Society Series B: Statistical Methodology</em> 84 (2): 351–81.
+</div>
+<div id="ref-ben2023using" class="csl-entry">
+Ben-Michael, Eli, and Luke Keele. 2023. <span>“Using Balancing Weights to Target the Treatment Effect on the Treated When Overlap Is Poor.”</span> <em>Epidemiology</em> 34 (5): 637–44.
+</div>
+<div id="ref-benston1985validity" class="csl-entry">
+Benston, George J. 1985. <span>“The Validity of Profits-Structure Studies with Particular Reference to the FTC’s Line of Business Data.”</span> <em>The American Economic Review</em> 75 (1): 37–67.
+</div>
+<div id="ref-bento2014effects" class="csl-entry">
+Bento, Antonio, Daniel Kaffine, Kevin Roth, and Matthew Zaragoza-Watkins. 2014. <span>“The Effects of Regulation in the Presence of Multiple Unpriced Externalities: Evidence from the Transportation Sector.”</span> <em>American Economic Journal: Economic Policy</em> 6 (3): 1–29.
+</div>
+<div id="ref-Bera_1981" class="csl-entry">
+Bera, Anil K, and Carlos M Jarque. 1981. <span>“Efficient Tests for Normality, Homoscedasticity and Serial Independence of Regression Residuals: Monte Carlo Evidence.”</span> <em>Economics Letters</em> 7 (4): 313–18.
+</div>
+<div id="ref-bera2001tests" class="csl-entry">
+Bera, Anil K, Walter Sosa-Escudero, and Mann Yoon. 2001. <span>“Tests for the Error Component Model in the Presence of Local Misspecification.”</span> <em>Journal of Econometrics</em> 101 (1): 1–23.
+</div>
+<div id="ref-berger1997managerial" class="csl-entry">
+Berger, Philip G, Eli Ofek, and David L Yermack. 1997. <span>“Managerial Entrenchment and Capital Structure Decisions.”</span> <em>The Journal of Finance</em> 52 (4): 1411–38.
+</div>
+<div id="ref-berkouwer2022credit" class="csl-entry">
+Berkouwer, Susanna B, and Joshua T Dean. 2022. <span>“Credit, Attention, and Externalities in the Adoption of Energy Efficient Technologies by Low-Income Households.”</span> <em>American Economic Review</em> 112 (10): 3291–3330.
+</div>
+<div id="ref-berman2022value" class="csl-entry">
+Berman, Ron, and Ayelet Israeli. 2022. <span>“The Value of Descriptive Analytics: Evidence from Online Retailers.”</span> <em>Marketing Science</em> 41 (6): 1074–96.
+</div>
+<div id="ref-bernard1987cross" class="csl-entry">
+Bernard, Victor L. 1987. <span>“Cross-Sectional Dependence and Problems in Inference in Market-Based Accounting Research.”</span> <em>Journal of Accounting Research</em>, 1–48.
+</div>
+<div id="ref-bertanha2021better" class="csl-entry">
+Bertanha, Marinho, Andrew H McCallum, and Nathan Seegert. 2021. <span>“Better Bunching, Nicer Notching.”</span> <em>arXiv Preprint arXiv:2101.01170</em>.
+</div>
+<div id="ref-bertrand2004much" class="csl-entry">
+Bertrand, Marianne, Esther Duflo, and Sendhil Mullainathan. 2004. <span>“How Much Should We Trust Differences-in-Differences Estimates?”</span> <em>The Quarterly Journal of Economics</em> 119 (1): 249–75.
+</div>
+<div id="ref-bertrand2004emily" class="csl-entry">
+Bertrand, Marianne, and Sendhil Mullainathan. 2004. <span>“Are Emily and Greg More Employable Than Lakisha and Jamal? A Field Experiment on Labor Market Discrimination.”</span> <em>American Economic Review</em> 94 (4): 991–1013.
+</div>
+<div id="ref-bhaduri2002determinants" class="csl-entry">
+Bhaduri, Saumitra N. 2002. <span>“Determinants of Corporate Borrowing: Some Evidence from the Indian Corporate Structure.”</span> <em>Journal of Economics and Finance</em> 26 (2): 200–215.
+</div>
+<div id="ref-bhagat1998shareholder" class="csl-entry">
+Bhagat, Sanjai, John Bizjak, and Jeffrey L Coles. 1998. <span>“The Shareholder Wealth Implications of Corporate Lawsuits.”</span> <em>Financial Management</em>, 5–27.
+</div>
+<div id="ref-bhattacharya2007instrumental" class="csl-entry">
+Bhattacharya, Jay, and William B Vogt. 2007. <span>“Do Instrumental Variables Belong in Propensity Scores?”</span> National Bureau of Economic Research.
+</div>
+<div id="ref-bickel1981analysis" class="csl-entry">
+Bickel, Peter J, and Kjell A Doksum. 1981. <span>“An Analysis of Transformations Revisited.”</span> <em>Journal of the American Statistical Association</em> 76 (374): 296–311.
+</div>
+<div id="ref-bishop2006pattern" class="csl-entry">
+Bishop, Christopher M. 2006. <em>Pattern Recognition and Machine Learning</em>. Springer.
+</div>
+<div id="ref-blake2014marketplace" class="csl-entry">
+Blake, Thomas, and Dominic Coey. 2014. <span>“Why Marketplace Experimentation Is Harder Than It Seems: The Role of Test-Control Interference.”</span> In <em>Proceedings of the Fifteenth ACM Conference on Economics and Computation</em>, 567–82.
+</div>
+<div id="ref-blau1999" class="csl-entry">
+Blau, David M. 1999. <span>“The Effect of Income on Child Development.”</span> <em>Review of Economics and Statistics</em> 81 (2): 261–76.
+</div>
+<div id="ref-blomquist2021bunching" class="csl-entry">
+Blomquist, Sören, Whitney K Newey, Anil Kumar, and Che-Yuan Liang. 2021. <span>“On Bunching and Identification of the Taxable Income Elasticity.”</span> <em>Journal of Political Economy</em> 129 (8): 2320–43.
+</div>
+<div id="ref-blundell1998initial" class="csl-entry">
+Blundell, Richard, and Stephen Bond. 1998. <span>“Initial Conditions and Moment Restrictions in Dynamic Panel Data Models.”</span> <em>Journal of Econometrics</em> 87 (1): 115–43.
+</div>
+<div id="ref-bockerman2018kink" class="csl-entry">
+Böckerman, Petri, Ohto Kanninen, and Ilpo Suoniemi. 2018. <span>“A Kink That Makes You Sick: The Effect of Sick Pay on Absence.”</span> <em>Journal of Applied Econometrics</em> 33 (4): 568–79.
+</div>
+<div id="ref-bollen1990direct" class="csl-entry">
+Bollen, Kenneth A, and Robert Stine. 1990. <span>“Direct and Indirect Effects: Classical and Bootstrap Estimates of Variability.”</span> <em>Sociological Methodology</em>, 115–40.
+</div>
+<div id="ref-borah2014make" class="csl-entry">
+Borah, Abhishek, and Gerard J Tellis. 2014. <span>“Make, Buy, or Ally? Choice of and Payoff from Announcements of Alternate Strategies for Innovations.”</span> <em>Marketing Science</em> 33 (1): 114–33.
+</div>
+<div id="ref-borusyak2021revisiting" class="csl-entry">
+Borusyak, Kirill, Xavier Jaravel, and Jann Spiess. 2021. <span>“Revisiting Event Study Designs: Robust and Efficient Estimation.”</span> <em>arXiv Preprint arXiv:2108.12419</em>.
+</div>
+<div id="ref-borusyak2024revisiting" class="csl-entry">
+———. 2024. <span>“Revisiting Event-Study Designs: Robust and Efficient Estimation.”</span> <em>Review of Economic Studies</em> 91 (6): 3253–85.
+</div>
+<div id="ref-bosch2020data" class="csl-entry">
+Bosch, Nicole, Vincent Dekker, and Kristina Strohmaier. 2020. <span>“A Data-Driven Procedure to Determine the Bunching Window: An Application to the Netherlands.”</span> <em>International Tax and Public Finance</em> 27: 951–79.
+</div>
+<div id="ref-bottomley2019analysing" class="csl-entry">
+Bottomley, Christian, J Anthony G Scott, and Valerie Isham. 2019. <span>“Analysing Interrupted Time Series with a Control.”</span> <em>Epidemiologic Methods</em> 8 (1): 20180010.
+</div>
+<div id="ref-bound1989measurement" class="csl-entry">
+Bound, John, Charles C Brown, Greg Duncan, and Willard L Rodgers. 1989. <span>“Measurement Error in Cross-Sectional and Longitudinal Labor Market Surveys: Results from Two Validation Studies.”</span> National Bureau of Economic Research.
+</div>
+<div id="ref-bound2001measurement" class="csl-entry">
+Bound, John, Charles Brown, and Nancy Mathiowetz. 2001. <span>“Measurement Error in Survey Data.”</span> In <em>Handbook of Econometrics</em>, 5:3705–3843. Elsevier.
+</div>
+<div id="ref-bound1995problems" class="csl-entry">
+Bound, John, David A Jaeger, and Regina M Baker. 1995. <span>“Problems with Instrumental Variables Estimation When the Correlation Between the Instruments and the Endogenous Explanatory Variable Is Weak.”</span> <em>Journal of the American Statistical Association</em> 90 (430): 443–50.
+</div>
+<div id="ref-bowblis2021occupational" class="csl-entry">
+Bowblis, John R, and Austin C Smith. 2021. <span>“Occupational Licensing of Social Services and Nursing Home Quality: A Regression Discontinuity Approach.”</span> <em>ILR Review</em> 74 (1): 199–223.
+</div>
+<div id="ref-box1976science" class="csl-entry">
+Box, George EP. 1976. <span>“Science and Statistics.”</span> <em>Journal of the American Statistical Association</em> 71 (356): 791–99.
+</div>
+<div id="ref-box1981analysis" class="csl-entry">
+Box, George EP, and David R Cox. 1981. <em>An Analysis of Transformations Revisited, Rebutted</em>. University of Wisconsin-Madison. Mathematics Research Center.
+</div>
+<div id="ref-box1970distribution" class="csl-entry">
+Box, George EP, and David A Pierce. 1970. <span>“Distribution of Residual Autocorrelations in Autoregressive-Integrated Moving Average Time Series Models.”</span> <em>Journal of the American Statistical Association</em> 65 (332): 1509–26.
+</div>
+<div id="ref-boyd2010chief" class="csl-entry">
+Boyd, D Eric, Rajesh K Chandy, and Marcus Cunha Jr. 2010. <span>“When Do Chief Marketing Officers Affect Firm Value? A Customer Power Explanation.”</span> <em>Journal of Marketing Research</em> 47 (6): 1162–76.
+</div>
+<div id="ref-boyd2008market" class="csl-entry">
+Boyd, D Eric, and Robert E Spekman. 2008. <span>“The Market Value Impact of Indirect Ties Within Technology Alliances.”</span> <em>Journal of the Academy of Marketing Science</em> 36: 488–500.
+</div>
+<div id="ref-braun2025where" class="csl-entry">
+Braun, Michael, and Eric M. Schwartz. 2025. <span>“Where a/b Testing Goes Wrong: How Divergent Delivery Affects What Online Experiments Cannot (and Can) Tell You about How Customers Respond to Advertising.”</span> <em>Journal of Marketing</em> 0 (0). <a href="https://doi.org/10.1177/00222429241275886">https://doi.org/10.1177/00222429241275886</a>.
+</div>
+<div id="ref-brav1997myth" class="csl-entry">
+Brav, Alon, and Paul A Gompers. 1997. <span>“Myth or Reality? The Long-Run Underperformance of Initial Public Offerings: Evidence from Venture and Nonventure Capital-Backed Companies.”</span> <em>The Journal of Finance</em> 52 (5): 1791–821.
+</div>
+<div id="ref-breiman2001random" class="csl-entry">
+Breiman, Leo. 2001. <span>“Random Forests.”</span> <em>Machine Learning</em> 45: 5–32.
+</div>
+<div id="ref-breiman2017classification" class="csl-entry">
+———. 2017. <em>Classification and Regression Trees</em>. Routledge.
+</div>
+<div id="ref-breusch1978testing" class="csl-entry">
+Breusch, Trevor S. 1978. <span>“Testing for Autocorrelation in Dynamic Linear Models.”</span> <em>Australian Economic Papers</em> 17 (31): 334–55.
+</div>
+<div id="ref-breusch1989efficient" class="csl-entry">
+Breusch, Trevor S, Grayham E Mizon, and Peter Schmidt. 1989. <span>“Efficient Estimation Using Panel Data.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 695–700.
+</div>
+<div id="ref-breusch1979simple" class="csl-entry">
+Breusch, Trevor S, and Adrian R Pagan. 1979. <span>“A Simple Test for Heteroscedasticity and Random Coefficient Variation.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 1287–94.
+</div>
+<div id="ref-Breusch_1980" class="csl-entry">
+———. 1980. <span>“The Lagrange Multiplier Test and Its Applications to Model Specification in Econometrics.”</span> <em>The Review of Economic Studies</em> 47 (1): 239–53.
+</div>
+<div id="ref-brodeur2021covid" class="csl-entry">
+Brodeur, Abel, Andrew E Clark, Sarah Fleche, and Nattavudh Powdthavee. 2021. <span>“COVID-19, Lockdowns and Well-Being: Evidence from Google Trends.”</span> <em>Journal of Public Economics</em> 193: 104346.
+</div>
+<div id="ref-brodeur2025comparing" class="csl-entry">
+Brodeur, Abel, David Valenta, Alexandru Marcoci, Juan P Aparicio, Derek Mikola, Bruno Barbarioli, Rohan Alexander, et al. 2025. <span>“Comparing Human-Only, AI-Assisted, and AI-Led Teams on Assessing Research Reproducibility in Quantitative Social Science.”</span> I4R Discussion Paper Series.
+</div>
+<div id="ref-bronnenberg2020consumer" class="csl-entry">
+Bronnenberg, Bart J, Jean-Pierre Dubé, and Robert E Sanders. 2020. <span>“Consumer Misinformation and the Brand Premium: A Private Label Blind Taste Test.”</span> <em>Marketing Science</em> 39 (2): 382–406.
+</div>
+<div id="ref-brown2025dynamic" class="csl-entry">
+Brown, Nicholas L., and Kyle Butts. 2025. <span>“Dynamic Treatment Effect Estimation with Interactive Fixed Effects and Short Panels.”</span> <em>Journal of Econometrics</em> 250: 106013. <a href="https://doi.org/10.1016/j.jeconom.2025.106013">https://doi.org/10.1016/j.jeconom.2025.106013</a>.
+</div>
+<div id="ref-brown2023simple" class="csl-entry">
+Brown, Nicholas, Kyle Butts, and Joakim Westerlund. 2023. <span>“Simple Difference-in-Differences Estimation in Fixed-t Panels.”</span> <em>arXiv Preprint arXiv:2301.11358</em>.
+</div>
+<div id="ref-brown1980measuring" class="csl-entry">
+Brown, Stephen J, and Jerold B Warner. 1980. <span>“Measuring Security Price Performance.”</span> <em>Journal of Financial Economics</em> 8 (3): 205–58.
+</div>
+<div id="ref-brown1985using" class="csl-entry">
+———. 1985. <span>“Using Daily Stock Returns: The Case of Event Studies.”</span> <em>Journal of Financial Economics</em> 14 (1): 3–31.
+</div>
+<div id="ref-burger2014did" class="csl-entry">
+Burger, Nicholas E, Daniel T Kaffine, and Bob Yu. 2014. <span>“Did California’s Hand-Held Cell Phone Ban Reduce Accidents?”</span> <em>Transportation Research Part A: Policy and Practice</em> 66: 162–72.
+</div>
+<div id="ref-burtch2018can" class="csl-entry">
+Burtch, Gordon, Seth Carnahan, and Brad N Greenwood. 2018. <span>“Can You Gig It? An Empirical Examination of the Gig Economy and Entrepreneurial Activity.”</span> <em>Management Science</em> 64 (12): 5497–5520.
+</div>
+<div id="ref-busse2013estimating" class="csl-entry">
+Busse, Meghan R, Nicola Lacetera, Devin G Pope, Jorge Silva-Risso, and Justin R Sydnor. 2013. <span>“Estimating the Effect of Salience in Wholesale and Retail Car Markets.”</span> <em>American Economic Review</em> 103 (3): 575–79.
+</div>
+<div id="ref-busse2010best" class="csl-entry">
+Busse, Meghan R, Duncan I Simester, and Florian Zettelmeyer. 2010. <span>“<span>‘The Best Price You’ll Ever Get’</span>: The 2005 Employee Discount Pricing Promotions in the US Automobile Industry.”</span> <em>Marketing Science</em> 29 (2): 268–90.
+</div>
+<div id="ref-busse20061" class="csl-entry">
+Busse, Meghan, Jorge Silva-Risso, and Florian Zettelmeyer. 2006. <span>“1000 Cash Back: The Pass-Through of Auto Manufacturer Promotions.”</span> <em>American Economic Review</em> 96 (4): 1253–70.
+</div>
+<div id="ref-butcher2014effects" class="csl-entry">
+Butcher, Kristin F, Patrick J McEwan, and Akila Weerapana. 2014. <span>“The Effects of an Anti-Grade Inflation Policy at Wellesley College.”</span> <em>Journal of Economic Perspectives</em> 28 (3): 189–204.
+</div>
+<div id="ref-cabral2022demand" class="csl-entry">
+Cabral, Marika, Can Cui, and Michael Dworsky. 2022. <span>“The Demand for Insurance and Rationale for a Mandate: Evidence from Workers’ Compensation Insurance.”</span> <em>American Economic Review</em> 112 (5): 1621–68.
+</div>
+<div id="ref-cai2022implementation" class="csl-entry">
+Cai, Yong, Ivan A Canay, Deborah Kim, and Azeem M Shaikh. 2022. <span>“On the Implementation of Approximate Randomization Tests in Linear Models with a Small Number of Clusters.”</span> <em>Journal of Econometric Methods</em> 12 (1): 85–103.
+</div>
+<div id="ref-callaway2019quantile" class="csl-entry">
+Callaway, Brantly, and Tong Li. 2019. <span>“Quantile Treatment Effects in Difference in Differences Models with Panel Data.”</span> <em>Quantitative Economics</em> 10 (4): 1579–1618.
+</div>
+<div id="ref-callaway2021difference" class="csl-entry">
+Callaway, Brantly, and Pedro HC Sant’Anna. 2021. <span>“Difference-in-Differences with Multiple Time Periods.”</span> <em>Journal of Econometrics</em> 225 (2): 200–230.
+</div>
+<div id="ref-calonico2020optimal" class="csl-entry">
+Calonico, Sebastian, Matias D Cattaneo, and Max H Farrell. 2020. <span>“Optimal Bandwidth Choice for Robust Bias-Corrected Inference in Regression Discontinuity Designs.”</span> <em>The Econometrics Journal</em> 23 (2): 192–210.
+</div>
+<div id="ref-calonico2014robust" class="csl-entry">
+Calonico, Sebastian, Matias D Cattaneo, and Rocio Titiunik. 2014. <span>“Robust Nonparametric Confidence Intervals for Regression-Discontinuity Designs.”</span> <em>Econometrica</em> 82 (6): 2295–2326.
+</div>
+<div id="ref-cameron2008bootstrap" class="csl-entry">
+Cameron, A Colin, Jonah B Gelbach, and Douglas L Miller. 2008. <span>“Bootstrap-Based Improvements for Inference with Clustered Errors.”</span> <em>The Review of Economics and Statistics</em> 90 (3): 414–27.
+</div>
+<div id="ref-campbell1998econometrics" class="csl-entry">
+Campbell, John Y, Andrew W Lo, A Craig MacKinlay, and Robert F Whitelaw. 1998. <span>“The Econometrics of Financial Markets.”</span> <em>Macroeconomic Dynamics</em> 2 (4): 559–62.
+</div>
+<div id="ref-cao2013wedded" class="csl-entry">
+Cao, Zixia, and Alina Sorescu. 2013. <span>“Wedded Bliss or Tainted Love? Stock Market Reactions to the Introduction of Cobranded Products.”</span> <em>Marketing Science</em> 32 (6): 939–59.
+</div>
+<div id="ref-card1999causal" class="csl-entry">
+Card, David. 1999. <span>“The Causal Effect of Education on Earnings.”</span> <em>Handbook of Labor Economics</em> 3: 1801–63.
+</div>
+<div id="ref-card2001estimating" class="csl-entry">
+———. 2001. <span>“Estimating the Return to Schooling: Progress on Some Persistent Econometric Problems.”</span> <em>Econometrica</em> 69 (5): 1127–60.
+</div>
+<div id="ref-card1993minimum" class="csl-entry">
+Card, David, and Alan B Krueger. 1993. <span>“Minimum Wages and Employment: A Case Study of the Fast Food Industry in New Jersey and Pennsylvania.”</span> National Bureau of Economic Research.
+</div>
+<div id="ref-card2015inference" class="csl-entry">
+Card, David, David S Lee, Zhuan Pei, and Andrea Weber. 2015. <span>“Inference on Causal Effects in a Generalized Regression Kink Design.”</span> <em>Econometrica</em> 83 (6): 2453–83.
+</div>
+<div id="ref-carhart1997persistence" class="csl-entry">
+Carhart, Mark M. 1997. <span>“On Persistence in Mutual Fund Performance.”</span> <em>The Journal of Finance</em> 52 (1): 57–82.
+</div>
+<div id="ref-carpenter2009effect" class="csl-entry">
+Carpenter, Christopher, and Carlos Dobkin. 2009. <span>“The Effect of Alcohol Consumption on Mortality: Regression Discontinuity Evidence from the Minimum Drinking Age.”</span> <em>American Economic Journal: Applied Economics</em> 1 (1): 164–82.
+</div>
+<div id="ref-carranza2022job" class="csl-entry">
+Carranza, Eliana, Robert Garlick, Kate Orkin, and Neil Rankin. 2022. <span>“Job Search and Hiring with Limited Information about Workseekers’ Skills.”</span> <em>American Economic Review</em> 112 (11): 3547–83.
+</div>
+<div id="ref-carrasco2022testing" class="csl-entry">
+Carrasco, Marine, and Mohamed Doukali. 2022. <span>“Testing Overidentifying Restrictions with Many Instruments and Heteroscedasticity Using Regularised Jackknife IV.”</span> <em>The Econometrics Journal</em> 25 (1): 71–97.
+</div>
+<div id="ref-cattaneo2019practical" class="csl-entry">
+Cattaneo, Matias D, Nicolás Idrobo, and Rocı́o Titiunik. 2019. <em>A Practical Introduction to Regression Discontinuity Designs: Foundations</em>. Cambridge University Press.
+</div>
+<div id="ref-cengiz2019effect" class="csl-entry">
+Cengiz, Doruk, Arindrajit Dube, Attila Lindner, and Ben Zipperer. 2019. <span>“The Effect of Minimum Wages on Low-Wage Jobs.”</span> <em>The Quarterly Journal of Economics</em> 134 (3): 1405–54.
+</div>
+<div id="ref-chabe2015analysis" class="csl-entry">
+Chabé-Ferret, Sylvain. 2015. <span>“Analysis of the Bias of Matching and Difference-in-Difference Under Alternative Earnings and Selection Processes.”</span> <em>Journal of Econometrics</em> 185 (1): 110–23.
+</div>
+<div id="ref-chae2023paywall" class="csl-entry">
+Chae, Inyoung, Jihyeon Ha, and David A Schweidel. 2023. <span>“Paywall Suspensions and Digital News Subscriptions.”</span> <em>Marketing Science</em> 42 (4): 729–45.
+</div>
+<div id="ref-chaney1991impact" class="csl-entry">
+Chaney, Paul K, Timothy M Devinney, and Russell S Winer. 1991. <span>“The Impact of New Product Introductions on the Market Value of Firms.”</span> <em>Journal of Business</em>, 573–610.
+</div>
+<div id="ref-chaplin2018internal" class="csl-entry">
+Chaplin, Duncan D, Thomas D Cook, Jelena Zurovac, Jared S Coopersmith, Mariel M Finucane, Lauren N Vollmer, and Rebecca E Morris. 2018. <span>“The Internal and External Validity of the Regression Discontinuity Design: A Meta-Analysis of 15 Within-Study Comparisons.”</span> <em>Journal of Policy Analysis and Management</em> 37 (2): 403–29.
+</div>
+<div id="ref-chatterjee2015matrix" class="csl-entry">
+Chatterjee, Sourav. 2015. <span>“Matrix Estimation by Universal Singular Value Thresholding.”</span> <em>The Annals of Statistics</em> 43 (1): 177–214.
+</div>
+<div id="ref-chen2018effect" class="csl-entry">
+Chen, Hong, Qiongsi Li, Jay S Kaufman, Jun Wang, Ray Copes, Yushan Su, and Tarik Benmarhnia. 2018. <span>“Effect of Air Quality Alerts on Human Health: A Regression Discontinuity Analysis in Toronto, Canada.”</span> <em>The Lancet Planetary Health</em> 2 (1): e19–26.
+</div>
+<div id="ref-chen2024logs" class="csl-entry">
+Chen, Jiafeng, and Jonathan Roth. 2024. <span>“Logs with Zeros? Some Problems and Solutions.”</span> <em>The Quarterly Journal of Economics</em> 139 (2): 891–936.
+</div>
+<div id="ref-chen2009learning" class="csl-entry">
+Chen, Xinlei, George John, Julie M Hays, Arthur V Hill, and Susan E Geurs. 2009. <span>“Learning from a Service Guarantee Quasi Experiment.”</span> <em>Journal of Marketing Research</em> 46 (5): 584–96.
+</div>
+<div id="ref-chen2009does" class="csl-entry">
+Chen, Yubo, Shankar Ganesan, and Yong Liu. 2009. <span>“Does a Firm’s Product-Recall Strategy Affect Its Financial Value? An Examination of Strategic Alternatives During Product-Harm Crises.”</span> <em>Journal of Marketing</em> 73 (6): 214–26.
+</div>
+<div id="ref-chen2012third" class="csl-entry">
+Chen, Yubo, Yong Liu, and Jurui Zhang. 2012. <span>“When Do Third-Party Product Reviews Affect Firm Value and What Can Firms Do? The Case of Media Critics and Professional Movie Reviews.”</span> <em>Journal of Marketing</em> 76 (2): 116–34.
+</div>
+<div id="ref-chernozhukov2018double" class="csl-entry">
+Chernozhukov, Victor, Denis Chetverikov, Mert Demirer, Esther Duflo, Christian Hansen, Whitney Newey, and James Robins. 2018. <span>“Double/Debiased Machine Learning for Treatment and Structural Parameters.”</span> <em>The Econometrics Journal</em> 21 (1): C1–68.
+</div>
+<div id="ref-chernozhukov2005iv" class="csl-entry">
+Chernozhukov, Victor, and Christian Hansen. 2005. <span>“An IV Model of Quantile Treatment Effects.”</span> <em>Econometrica</em> 73 (1): 245–61.
+</div>
+<div id="ref-chetty2016effects" class="csl-entry">
+Chetty, Raj, Nathaniel Hendren, and Lawrence F Katz. 2016. <span>“The Effects of Exposure to Better Neighborhoods on Children: New Evidence from the Moving to Opportunity Experiment.”</span> <em>American Economic Review</em> 106 (4): 855–902.
+</div>
+<div id="ref-chung2014bonuses" class="csl-entry">
+Chung, Doug J, Thomas Steenburgh, and K Sudhir. 2014. <span>“Do Bonuses Enhance Sales Productivity? A Dynamic Structural Analysis of Bonus-Based Compensation Plans.”</span> <em>Marketing Science</em> 33 (2): 165–87.
+</div>
+<div id="ref-cinelli2020making" class="csl-entry">
+Cinelli, Carlos, and Chad Hazlett. 2020. <span>“Making Sense of Sensitivity: Extending Omitted Variable Bias.”</span> <em>Journal of the Royal Statistical Society Series B: Statistical Methodology</em> 82 (1): 39–67.
+</div>
+<div id="ref-cinelli2019sensitivity" class="csl-entry">
+Cinelli, Carlos, Daniel Kumor, Bryant Chen, Judea Pearl, and Elias Bareinboim. 2019. <span>“Sensitivity Analysis of Linear Structural Causal Models.”</span> In <em>International Conference on Machine Learning</em>, 1252–61. PMLR; Proceedings of Machine Learning Research.
+</div>
+<div id="ref-conley1999gmm" class="csl-entry">
+Conley, Timothy G. 1999. <span>“GMM Estimation with Cross Sectional Dependence.”</span> <em>Journal of Econometrics</em> 92 (1): 1–45.
+</div>
+<div id="ref-conley2011inference" class="csl-entry">
+Conley, Timothy G, and Christopher R Taber. 2011. <span>“Inference with <span>‘Difference in Differences’</span> with a Small Number of Policy Changes.”</span> <em>The Review of Economics and Statistics</em> 93 (1): 113–25.
+</div>
+<div id="ref-cornwell2005relationship" class="csl-entry">
+Cornwell, T Bettina, Stephen W Pruitt, and John M Clark. 2005. <span>“The Relationship Between Major-League Sports’ Official Sponsorship Announcements and the Stock Prices of Sponsoring Firms.”</span> <em>Journal of the Academy of Marketing Science</em> 33 (4): 401–12.
+</div>
+<div id="ref-cragg1993testing" class="csl-entry">
+Cragg, John G, and Stephen G Donald. 1993. <span>“Testing Identifiability and Specification in Instrumental Variable Models.”</span> <em>Econometric Theory</em> 9 (2): 222–40.
+</div>
+<div id="ref-cramer1999mathematical" class="csl-entry">
+Cramér, Harald. 1999. <em>Mathematical Methods of Statistics</em>. Vol. 43. Princeton university press.
+</div>
+<div id="ref-cribari2004asymptotic" class="csl-entry">
+Cribari-Neto, Francisco. 2004. <span>“Asymptotic Inference Under Heteroskedasticity of Unknown Form.”</span> <em>Computational Statistics &amp; Data Analysis</em> 45 (2): 215–33.
+</div>
+<div id="ref-cribari2011new" class="csl-entry">
+Cribari-Neto, Francisco, and Wilton Bernardino da Silva. 2011. <span>“A New Heteroskedasticity-Consistent Covariance Matrix Estimator for the Linear Regression Model.”</span> <em>AStA Advances in Statistical Analysis</em> 95: 129–46.
+</div>
+<div id="ref-cribari2007inference" class="csl-entry">
+Cribari-Neto, Francisco, Tatiene C Souza, and Klaus LP Vasconcellos. 2007. <span>“Inference Under Heteroskedasticity and Leveraged Data.”</span> <em>Communications in Statistics—Theory and Methods</em> 36 (10): 1877–88.
+</div>
+<div id="ref-cullen2005impact" class="csl-entry">
+Cullen, Julie Berry, Brian A Jacob, and Steven D Levitt. 2005. <span>“The Impact of School Choice on Student Outcomes: An Analysis of the Chicago Public Schools.”</span> <em>Journal of Public Economics</em> 89 (5-6): 729–60.
+</div>
+<div id="ref-datta2018changing" class="csl-entry">
+Datta, Hannes, George Knox, and Bart J Bronnenberg. 2018. <span>“Changing Their Tune: How Consumers’ Adoption of Online Streaming Affects Music Consumption and Discovery.”</span> <em>Marketing Science</em> 37 (1): 5–21.
+</div>
+<div id="ref-davidson1981several" class="csl-entry">
+Davidson, Russell, and James G MacKinnon. 1981. <span>“Several Tests for Model Specification in the Presence of Alternative Hypotheses.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 781–93.
+</div>
+<div id="ref-davis2008effect" class="csl-entry">
+Davis, Lucas W. 2008. <span>“The Effect of Driving Restrictions on Air Quality in Mexico City.”</span> <em>Journal of Political Economy</em> 116 (1): 38–81.
+</div>
+<div id="ref-davis2010international" class="csl-entry">
+Davis, Lucas W, and Matthew E Kahn. 2010. <span>“International Trade in Used Vehicles: The Environmental Consequences of NAFTA.”</span> <em>American Economic Journal: Economic Policy</em> 2 (4): 58–82.
+</div>
+<div id="ref-daw2018matching" class="csl-entry">
+Daw, Jamie R, and Laura A Hatfield. 2018. <span>“Matching and Regression to the Mean in Difference-in-Differences Analysis.”</span> <em>Health Services Research</em> 53 (6): 4138–56.
+</div>
+<div id="ref-dawson2006probing" class="csl-entry">
+Dawson, Jeremy F, and Andreas W Richter. 2006. <span>“Probing Three-Way Interactions in Moderated Multiple Regression: Development and Application of a Slope Difference Test.”</span> <em>Journal of Applied Psychology</em> 91 (4): 917.
+</div>
+<div id="ref-de2023two" class="csl-entry">
+De Chaisemartin, Clement, and Xavier D’haultfœuille. 2023. <span>“Two-Way Fixed Effects and Differences-in-Differences Estimators with Several Treatments.”</span> <em>Journal of Econometrics</em> 236 (2): 105480.
+</div>
+<div id="ref-de2020two" class="csl-entry">
+De Chaisemartin, Clément, and Xavier d’Haultfoeuille. 2020. <span>“Two-Way Fixed Effects Estimators with Heterogeneous Treatment Effects.”</span> <em>American Economic Review</em> 110 (9): 2964–96.
+</div>
+<div id="ref-de2013deterrent" class="csl-entry">
+De Paola, Maria, Vincenzo Scoppa, and Mariatiziana Falcone. 2013. <span>“The Deterrent Effects of the Penalty Points System for Driving Offences: A Regression Discontinuity Approach.”</span> <em>Empirical Economics</em> 45: 965–85.
+</div>
+<div id="ref-deaton2010instruments" class="csl-entry">
+Deaton, Angus. 2010. <span>“Instruments, Randomization, and Learning about Development.”</span> <em>Journal of Economic Literature</em> 48 (2): 424–55.
+</div>
+<div id="ref-deshpande2019screened" class="csl-entry">
+Deshpande, Manasi, and Yue Li. 2019. <span>“Who Is Screened Out? Application Costs and the Targeting of Disability Programs.”</span> <em>American Economic Journal: Economic Policy</em> 11 (4): 213–48.
+</div>
+<div id="ref-diamond2013genetic" class="csl-entry">
+Diamond, Alexis, and Jasjeet S Sekhon. 2013. <span>“Genetic Matching for Estimating Causal Effects: A General Multivariate Matching Method for Achieving Balance in Observational Studies.”</span> <em>Review of Economics and Statistics</em> 95 (3): 932–45.
+</div>
+<div id="ref-diprete2004assessing" class="csl-entry">
+DiPrete, Thomas A, and Markus Gangl. 2004. <span>“Assessing Bias in the Estimation of Causal Effects: Rosenbaum Bounds on Matching Estimators and Instrumental Variables Estimation with Imperfect Instruments.”</span> <em>Sociological Methodology</em> 34 (1): 271–310.
+</div>
+<div id="ref-doan2021does" class="csl-entry">
+Doan, Trang, and Mai Iskandar-Datta. 2021. <span>“Does Gender in the c-Suite Really Matter?”</span> <em>Journal of Accounting, Auditing &amp; Finance</em> 36 (1): 81–107.
+</div>
+<div id="ref-dobbie2018effects" class="csl-entry">
+Dobbie, Will, Jacob Goldin, and Crystal S Yang. 2018. <span>“The Effects of Pre-Trial Detention on Conviction, Future Crime, and Employment: Evidence from Randomly Assigned Judges.”</span> <em>American Economic Review</em> 108 (2): 201–40.
+</div>
+<div id="ref-dobbie2017consumer" class="csl-entry">
+Dobbie, Will, Paul Goldsmith-Pinkham, and Crystal S Yang. 2017. <span>“Consumer Bankruptcy and Financial Health.”</span> <em>Review of Economics and Statistics</em> 99 (5): 853–69.
+</div>
+<div id="ref-doleac2020unintended" class="csl-entry">
+Doleac, Jennifer L, and Benjamin Hansen. 2020. <span>“The Unintended Consequences of <span>‘Ban the Box’</span>: Statistical Discrimination and Employment Outcomes When Criminal Histories Are Hidden.”</span> <em>Journal of Labor Economics</em> 38 (2): 321–74.
+</div>
+<div id="ref-dolley1933characteristics" class="csl-entry">
+Dolley, James Clay. 1933. <span>“Characteristics and Procedure of Common Stock Split-Ups.”</span> <em>Harvard Business Review</em> 11 (3): 316–26.
+</div>
+<div id="ref-donald2007inference" class="csl-entry">
+Donald, Stephen G, and Kevin Lang. 2007. <span>“Inference with Difference-in-Differences and Other Panel Data.”</span> <em>The Review of Economics and Statistics</em> 89 (2): 221–33.
+</div>
+<div id="ref-donoho1995adapting" class="csl-entry">
+Donoho, David L, and Iain M Johnstone. 1995. <span>“Adapting to Unknown Smoothness via Wavelet Shrinkage.”</span> <em>Journal of the American Statistical Association</em> 90 (432): 1200–1224.
+</div>
+<div id="ref-doornik2008omnibus" class="csl-entry">
+Doornik, Jurgen A, and Henrik Hansen. 2008. <span>“An Omnibus Test for Univariate and Multivariate Normality.”</span> <em>Oxford Bulletin of Economics and Statistics</em> 70: 927–39.
+</div>
+<div id="ref-doudchenko2016balancing" class="csl-entry">
+Doudchenko, Nikolay, and Guido W Imbens. 2016. <span>“Balancing, Regression, Difference-in-Differences and Synthetic Control Methods: A Synthesis.”</span> National Bureau of Economic Research.
+</div>
+<div id="ref-driscoll1998consistent" class="csl-entry">
+Driscoll, John C, and Aart C Kraay. 1998. <span>“Consistent Covariance Matrix Estimation with Spatially Dependent Panel Data.”</span> <em>Review of Economics and Statistics</em> 80 (4): 549–60.
+</div>
+<div id="ref-dubow2006measuring" class="csl-entry">
+Dubow, Ben, and Nuno B Monteiro. 2006. <span>“Measuring Market Cleanliness.”</span> <em>Available at SSRN 1019999</em>.
+</div>
+<div id="ref-dufour1997some" class="csl-entry">
+Dufour, Jean-Marie. 1997. <span>“Some Impossibility Theorems in Econometrics with Applications to Structural and Dynamic Models.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 1365–87.
+</div>
+<div id="ref-ebbes2011sense" class="csl-entry">
+Ebbes, Peter, Dominik Papies, and Harald J Van Heerde. 2011. <span>“The Sense and Non-Sense of Holdout Sample Validation in the Presence of Endogeneity.”</span> <em>Marketing Science</em> 30 (6): 1115–22.
+</div>
+<div id="ref-eberhardt2024discovering" class="csl-entry">
+Eberhardt, Frederick, Nur Kaynar, and Auyon Siddiq. 2024. <span>“Discovering Causal Models with Optimization: Confounders, Cycles, and Instrument Validity.”</span> <em>Management Science</em>.
+</div>
+<div id="ref-eckles2021bias" class="csl-entry">
+Eckles, Dean, and Eytan Bakshy. 2021. <span>“Bias and High-Dimensional Adjustment in Observational Studies of Peer Effects.”</span> <em>Journal of the American Statistical Association</em> 116 (534): 507–17.
+</div>
+<div id="ref-efron1992bootstrap" class="csl-entry">
+Efron, Bradley. 1992. <span>“Bootstrap Methods: Another Look at the Jackknife.”</span> In <em>Breakthroughs in Statistics: Methodology and Distribution</em>, 569–93. Springer.
+</div>
+<div id="ref-einav2010beyond" class="csl-entry">
+Einav, Liran, Amy Finkelstein, and Jonathan Levin. 2010. <span>“Beyond Testing: Empirical Models of Insurance Markets.”</span> <em>Annu. Rev. Econ.</em> 2 (1): 311–36.
+</div>
+<div id="ref-ekwaru2018overlooked" class="csl-entry">
+Ekwaru, John Paul, and Paul J Veugelers. 2018. <span>“The Overlooked Importance of Constants Added in Log Transformation of Independent Variables with Zero Values: A Proposed Approach for Determining an Optimal Constant.”</span> <em>Statistics in Biopharmaceutical Research</em> 10 (1): 26–29.
+</div>
+<div id="ref-elberse2007power" class="csl-entry">
+Elberse, Anita. 2007. <span>“The Power of Stars: Do Star Actors Drive the Success of Movies?”</span> <em>Journal of Marketing</em> 71 (4): 102–20.
+</div>
+<div id="ref-esarey2018marginal" class="csl-entry">
+Esarey, Justin, and Jane Lawrence Sumner. 2018. <span>“Marginal Effects in Interaction Models: Determining and Controlling the False Positive Rate.”</span> <em>Comparative Political Studies</em> 51 (9): 1144–76.
+</div>
+<div id="ref-faber2019tourism" class="csl-entry">
+Faber, Benjamin, and Cecile Gaubert. 2019. <span>“Tourism and Economic Development: Evidence from Mexico’s Coastline.”</span> <em>American Economic Review</em> 109 (6): 2245–93.
+</div>
+<div id="ref-fama1970efficient" class="csl-entry">
+Fama, Eugene F. 1970. <span>“Efficient Capital Markets: A Review of Theory and Empirical Work.”</span> <em>The Journal of Finance</em> 25 (2): 383–417.
+</div>
+<div id="ref-fama1969adjustment" class="csl-entry">
+Fama, Eugene F, Lawrence Fisher, Michael C Jensen, and Richard Roll. 1969. <span>“The Adjustment of Stock Prices to New Information.”</span> <em>International Economic Review</em> 10 (1): 1–21.
+</div>
+<div id="ref-fama1993common" class="csl-entry">
+Fama, Eugene F, and Kenneth R French. 1993. <span>“Common Risk Factors in the Returns on Stocks and Bonds.”</span> <em>Journal of Financial Economics</em> 33 (1): 3–56.
+</div>
+<div id="ref-fama2010luck" class="csl-entry">
+———. 2010. <span>“Luck Versus Skill in the Cross-Section of Mutual Fund Returns.”</span> <em>The Journal of Finance</em> 65 (5): 1915–47.
+</div>
+<div id="ref-fan2012partial" class="csl-entry">
+Fan, Yanqin, and Zhengfei Yu. 2012. <span>“Partial Identification of Distributional and Quantile Treatment Effects in Difference-in-Differences Models.”</span> <em>Economics Letters</em> 115 (3): 511–15.
+</div>
+<div id="ref-fang2015timing" class="csl-entry">
+Fang, Eric, Jongkuk Lee, and Zhi Yang. 2015. <span>“The Timing of Codevelopment Alliances in New Product Development Processes: Returns for Upstream and Downstream Partners.”</span> <em>Journal of Marketing</em> 79 (1): 64–82.
+</div>
+<div id="ref-faraway2016extending" class="csl-entry">
+Faraway, Julian J. 2016. <em>Extending the Linear Model with r: Generalized Linear, Mixed Effects and Nonparametric Regression Models</em>. CRC press.
+</div>
+<div id="ref-farre2020patent" class="csl-entry">
+Farre-Mensa, Joan, Deepak Hegde, and Alexander Ljungqvist. 2020. <span>“What Is a Patent Worth? Evidence from the US Patent <span>‘Lottery’</span>.”</span> <em>The Journal of Finance</em> 75 (2): 639–82.
+</div>
+<div id="ref-ferman2021synthetic" class="csl-entry">
+Ferman, Bruno, and Cristine Pinto. 2021. <span>“Synthetic Controls with Imperfect Pretreatment Fit.”</span> <em>Quantitative Economics</em> 12 (4): 1197–1221.
+</div>
+<div id="ref-firpo2018synthetic" class="csl-entry">
+Firpo, Sergio, and Vitor Possebom. 2018. <span>“Synthetic Control Method: Inference, Sensitivity Analysis and Confidence Sets.”</span> <em>Journal of Causal Inference</em> 6 (2): 20160026.
+</div>
+<div id="ref-fornell2006customer" class="csl-entry">
+Fornell, Claes, Sunil Mithas, Forrest V Morgeson III, and Mayuram S Krishnan. 2006. <span>“Customer Satisfaction and Stock Prices: High Returns, Low Risk.”</span> <em>Journal of Marketing</em> 70 (1): 3–14.
+</div>
+<div id="ref-fossum2023use" class="csl-entry">
+Fossum, Jessica L, and Amanda K Montoya. 2023. <span>“When to Use Different Inferential Methods for Power Analysis and Data Analysis for Between-Subjects Mediation.”</span> <em>Advances in Methods and Practices in Psychological Science</em> 6 (2): 25152459231156606.
+</div>
+<div id="ref-frake2025partial" class="csl-entry">
+Frake, Justin, Anthony Gibbs, Brent Goldfarb, Takuya Hiraiwa, Evan Starr, and Shotaro Yamaguchi. 2025. <span>“From Perfect to Practical: Partial Identification Methods for Causal Inference in Strategic Management Research.”</span> <em>Strategic Management Journal</em> 46 (5): 1234–56. <a href="https://doi.org/10.1002/smj.3714">https://doi.org/10.1002/smj.3714</a>.
+</div>
+<div id="ref-frandsen2023judging" class="csl-entry">
+Frandsen, Brigham, Lars Lefgren, and Emily Leslie. 2023. <span>“Judging Judge Fixed Effects.”</span> <em>American Economic Review</em> 113 (1): 253–77.
+</div>
+<div id="ref-freedman2008randomization" class="csl-entry">
+Freedman, David A. 2008. <span>“Randomization Does Not Justify Logistic Regression.”</span> <em>Statistical Science</em>, 237–49.
+</div>
+<div id="ref-fricke2017identification" class="csl-entry">
+Fricke, Hans. 2017. <span>“Identification Based on Difference-in-Differences Approaches with Multiple Treatments.”</span> <em>Oxford Bulletin of Economics and Statistics</em> 79 (3): 426–33.
+</div>
+<div id="ref-fritz2012explanation" class="csl-entry">
+Fritz, Matthew S, Amanda B Taylor, and David P MacKinnon. 2012. <span>“Explanation of Two Anomalous Results in Statistical Mediation Analysis.”</span> <em>Multivariate Behavioral Research</em> 47 (1): 61–87. <a href="https://doi.org/10.1080/00273171.2012.640596">https://doi.org/10.1080/00273171.2012.640596</a>.
+</div>
+<div id="ref-frolich2013unconditional" class="csl-entry">
+Frölich, Markus, and Blaise Melly. 2013. <span>“Unconditional Quantile Treatment Effects Under Endogeneity.”</span> <em>Journal of Business &amp; Economic Statistics</em> 31 (3): 346–57.
+</div>
+<div id="ref-fuchs2016natural" class="csl-entry">
+Fuchs-Schündeln, Nicola, and Tarek Alexander Hassan. 2016. <span>“Natural Experiments in Macroeconomics.”</span> In <em>Handbook of Macroeconomics</em>, 2:923–1012. Elsevier.
+</div>
+<div id="ref-furnival2000regressions" class="csl-entry">
+Furnival, George M, and Robert W Wilson. 2000. <span>“Regressions by Leaps and Bounds.”</span> <em>Technometrics</em> 42 (1): 69–79.
+</div>
+<div id="ref-gallego2013effect" class="csl-entry">
+Gallego, Francisco, Juan-Pablo Montero, and Christian Salas. 2013. <span>“The Effect of Transport Policies on Car Use: Evidence from Latin American Cities.”</span> <em>Journal of Public Economics</em> 107: 47–62.
+</div>
+<div id="ref-gallen2020broken" class="csl-entry">
+Gallen, Trevor. 2020. <span>“Broken Instruments.”</span> <em>Available at SSRN 3671850</em>.
+</div>
+<div id="ref-gao2015should" class="csl-entry">
+Gao, Haibing, Jinhong Xie, Qi Wang, and Kenneth C Wilbur. 2015. <span>“Should Ad Spending Increase or Decrease Before a Recall Announcement? The Marketing–Finance Interface in Product-Harm Crisis Management.”</span> <em>Journal of Marketing</em> 79 (5): 80–99.
+</div>
+<div id="ref-gardner2022two" class="csl-entry">
+Gardner, John. 2022. <span>“Two-Stage Differences in Differences.”</span> <em>arXiv Preprint arXiv:2207.05943</em>.
+</div>
+<div id="ref-gasser1979kernel" class="csl-entry">
+Gasser, Theo, and Hans-Georg Müller. 1979. <span>“Kernel Estimation of Regression Functions.”</span> In <em>Smoothing Techniques for Curve Estimation: Proceedings of a Workshop Held in Heidelberg, April 2–4, 1979</em>, 23–68. Springer.
+</div>
+<div id="ref-geary1936moments" class="csl-entry">
+Geary, R Cf. 1936. <span>“Moments of the Ratio of the Mean Deviation to the Standard Deviation for Normal Samples.”</span> <em>Biometrika</em>, 295–307.
+</div>
+<div id="ref-gelman2019high" class="csl-entry">
+Gelman, Andrew, and Guido Imbens. 2019. <span>“Why High-Order Polynomials Should Not Be Used in Regression Discontinuity Designs.”</span> <em>Journal of Business &amp; Economic Statistics</em> 37 (3): 447–56.
+</div>
+<div id="ref-gerard2020bounds" class="csl-entry">
+Gerard, François, Miikka Rokkanen, and Christoph Rothe. 2020. <span>“Bounds on Treatment Effects in Regression Discontinuity Designs with a Manipulated Running Variable.”</span> <em>Quantitative Economics</em> 11 (3): 839–70.
+</div>
+<div id="ref-gerber2010" class="csl-entry">
+Gerber, Alan S, Donald P Green, Edward H Kaplan, and Holger L Kern. 2010. <span>“Baseline, Placebo, and Treatment: Efficient Estimation for Three-Group Experiments.”</span> <em>Political Analysis</em> 18 (3): 297–315.
+</div>
+<div id="ref-geyskens2002market" class="csl-entry">
+Geyskens, Inge, Katrijn Gielens, and Marnik G Dekimpe. 2002. <span>“The Market Valuation of Internet Channel Additions.”</span> <em>Journal of Marketing</em> 66 (2): 102–19.
+</div>
+<div id="ref-gibbons2018broken" class="csl-entry">
+Gibbons, Charles E, Juan Carlos Suárez Serrato, and Michael B Urbancic. 2018. <span>“Broken or Fixed Effects?”</span> <em>Journal of Econometric Methods</em> 8 (1): 20170002.
+</div>
+<div id="ref-gielens2008dancing" class="csl-entry">
+Gielens, Katrijn, Linda M Van de Gucht, Jan-Benedict EM Steenkamp, and Marnik G Dekimpe. 2008. <span>“Dancing with a Giant: The Effect of Wal-Mart’s Entry into the United Kingdom on the Performance of European Retailers.”</span> <em>Journal of Marketing Research</em> 45 (5): 519–34.
+</div>
+<div id="ref-Glasser_1964" class="csl-entry">
+Glasser, MARC. 1964. <span>“Linear Regression Analysis with Missing Observations Among the Independent Variables.”</span> <em>Journal of the American Statistical Association</em> 59 (307): 834–44.
+</div>
+<div id="ref-glejser1969new" class="csl-entry">
+Glejser, Herbert. 1969. <span>“A New Test for Heteroskedasticity.”</span> <em>Journal of the American Statistical Association</em> 64 (325): 316–23.
+</div>
+<div id="ref-gobillon2016regional" class="csl-entry">
+Gobillon, Laurent, and Thierry Magnac. 2016. <span>“Regional Policy Evaluation: Interactive Fixed Effects and Synthetic Controls.”</span> <em>Review of Economics and Statistics</em> 98 (3): 535–51.
+</div>
+<div id="ref-godfrey1978testing" class="csl-entry">
+Godfrey, Leslie G. 1978. <span>“Testing Against General Autoregressive and Moving Average Error Models When the Regressors Include Lagged Dependent Variables.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 1293–1301.
+</div>
+<div id="ref-goldberger1991course" class="csl-entry">
+Goldberger, Arthur Stanley. 1991. <em>A Course in Econometrics</em>. Harvard University Press.
+</div>
+<div id="ref-goldfarb2011online" class="csl-entry">
+Goldfarb, Avi, and Catherine Tucker. 2011. <span>“Online Display Advertising: Targeting and Obtrusiveness.”</span> <em>Marketing Science</em> 30 (3): 389–404.
+</div>
+<div id="ref-goldfarb2022conducting" class="csl-entry">
+Goldfarb, Avi, Catherine Tucker, and Yanwen Wang. 2022. <span>“Conducting Research in Marketing with Quasi-Experiments.”</span> <em>Journal of Marketing</em> 86 (3): 1–20.
+</div>
+<div id="ref-goldfeld1965some" class="csl-entry">
+Goldfeld, Stephen M, and Richard E Quandt. 1965. <span>“Some Tests for Homoscedasticity.”</span> <em>Journal of the American Statistical Association</em> 60 (310): 539–47.
+</div>
+<div id="ref-goldsmith2022contamination" class="csl-entry">
+Goldsmith-Pinkham, Paul, Peter Hull, and Michal Kolesár. 2022. <span>“Contamination Bias in Linear Regressions.”</span> National Bureau of Economic Research.
+</div>
+<div id="ref-gonzalez2021identifying" class="csl-entry">
+González-Uribe, Juanita, and Santiago Reyes. 2021. <span>“Identifying and Boosting <span>‘Gazelles’</span>: Evidence from Business Accelerators.”</span> <em>Journal of Financial Economics</em> 139 (1): 260–87.
+</div>
+<div id="ref-goodman2021difference" class="csl-entry">
+Goodman-Bacon, Andrew. 2021. <span>“Difference-in-Differences with Variation in Treatment Timing.”</span> <em>Journal of Econometrics</em> 225 (2): 254–77.
+</div>
+<div id="ref-gordon2019comparison" class="csl-entry">
+Gordon, Brett R, Florian Zettelmeyer, Neha Bhargava, and Dan Chapsky. 2019. <span>“A Comparison of Approaches to Advertising Measurement: Evidence from Big Field Experiments at Facebook.”</span> <em>Marketing Science</em> 38 (2): 193–225.
+</div>
+<div id="ref-gormley2011growing" class="csl-entry">
+Gormley, Todd A, and David A Matsa. 2011. <span>“Growing Out of Trouble? Corporate Responses to Liability Risk.”</span> <em>The Review of Financial Studies</em> 24 (8): 2781–821.
+</div>
+<div id="ref-gould2010maximum" class="csl-entry">
+Gould, W, J Pitblado, and B Poi. 2010. <span>“Maximum Likelihood Estimation with Stata: StataCorp LP.”</span> Stata press; Texas: Stata Press.
+</div>
+<div id="ref-gourieroux1982likelihood" class="csl-entry">
+Gourieroux, Christian, Alberto Holly, and Alain Monfort. 1982. <span>“Likelihood Ratio Test, Wald Test, and Kuhn-Tucker Test in Linear Models with Inequality Constraints on the Regression Parameters.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 63–80.
+</div>
+<div id="ref-graham2012inverse" class="csl-entry">
+Graham, Bryan S, Cristine Campos de Xavier Pinto, and Daniel Egel. 2012. <span>“Inverse Probability Tilting for Moment Condition Models with Missing Data.”</span> <em>The Review of Economic Studies</em> 79 (3): 1053–79.
+</div>
+<div id="ref-greene1990gamma" class="csl-entry">
+Greene, William H. 1990. <span>“A Gamma-Distributed Stochastic Frontier Model.”</span> <em>Journal of Econometrics</em> 46 (1-2): 141–63.
+</div>
+<div id="ref-greevy2004optimal" class="csl-entry">
+Greevy, Robert, Bo Lu, Jeffrey H Silber, and Paul Rosenbaum. 2004. <span>“Optimal Multivariate Matching Before Randomization.”</span> <em>Biostatistics</em> 5 (2): 263–75.
+</div>
+<div id="ref-gronau1974wage" class="csl-entry">
+Gronau, Reuben. 1974. <span>“Wage Comparisons–a Selectivity Bias.”</span> <em>Journal of Political Economy</em> 82 (6): 1119–43.
+</div>
+<div id="ref-guo2020let" class="csl-entry">
+Guo, Tong, Srinivasaraghavan Sriram, and Puneet Manchanda. 2020. <span>“<span>‘Let the Sunshine in’</span>: The Impact of Industry Payment Disclosure on Physician Prescription Behavior.”</span> <em>Marketing Science</em> 39 (3): 516–39.
+</div>
+<div id="ref-habel2021variable" class="csl-entry">
+Habel, Johannes, Sascha Alavi, and Kim Linsenmayer. 2021. <span>“Variable Compensation and Salesperson Health.”</span> <em>Journal of Marketing</em> 85 (3): 130–49.
+</div>
+<div id="ref-hainmueller2012entropy" class="csl-entry">
+Hainmueller, Jens. 2012. <span>“Entropy Balancing for Causal Effects: A Multivariate Reweighting Method to Produce Balanced Samples in Observational Studies.”</span> <em>Political Analysis</em> 20 (1): 25–46.
+</div>
+<div id="ref-haitovsky1968missing" class="csl-entry">
+Haitovsky, Yoel. 1968. <span>“Missing Data in Regression Analysis.”</span> <em>Journal of the Royal Statistical Society: Series B (Methodological)</em> 30 (1): 67–82.
+</div>
+<div id="ref-hall1996judging" class="csl-entry">
+Hall, Alastair R, Glenn D Rudebusch, and David W Wilcox. 1996. <span>“Judging Instrument Relevance in Instrumental Variables Estimation.”</span> <em>International Economic Review</em>, 283–98.
+</div>
+<div id="ref-hall2004determinants" class="csl-entry">
+Hall, Graham C, Patrick J Hutchinson, and Nicos Michaelas. 2004. <span>“Determinants of the Capital Structures of European SMEs.”</span> <em>Journal of Business Finance &amp; Accounting</em> 31 (5-6): 711–28.
+</div>
+<div id="ref-hampel2005" class="csl-entry">
+Hampel, Frank R., Elvezio M. Ronchetti, Peter J. Rousseeuw, and Werner A. Stahel. 2005. <span>“Robust Statistics.”</span> <em>Wiley Series in Probability and Statistics</em>, March. <a href="https://doi.org/10.1002/9781118186435">https://doi.org/10.1002/9781118186435</a>.
+</div>
+<div id="ref-hansen2008prognostic" class="csl-entry">
+Hansen, Ben B. 2008. <span>“The Prognostic Analogue of the Propensity Score.”</span> <em>Biometrika</em> 95 (2): 481–88.
+</div>
+<div id="ref-hansen2014clustered" class="csl-entry">
+Hansen, Ben B, Paul R Rosenbaum, and Dylan S Small. 2014. <span>“Clustered Treatment Assignments and Sensitivity to Unmeasured Biases in Observational Studies.”</span> <em>Journal of the American Statistical Association</em> 109 (505): 133–44.
+</div>
+<div id="ref-hansen1982large" class="csl-entry">
+Hansen, Lars Peter. 1982. <span>“Large Sample Properties of Generalized Method of Moments Estimators.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 1029–54.
+</div>
+<div id="ref-harper2017did" class="csl-entry">
+Harper, Sam, and Tim A Bruckner. 2017. <span>“Did the Great Recession Increase Suicides in the USA? Evidence from an Interrupted Time-Series Analysis.”</span> <em>Annals of Epidemiology</em> 27 (7): 409–14.
+</div>
+<div id="ref-hartmann2011identifying" class="csl-entry">
+Hartmann, Wesley, Harikesh S Nair, and Sridhar Narayanan. 2011. <span>“Identifying Causal Marketing Mix Effects Using a Regression Discontinuity Design.”</span> <em>Marketing Science</em> 30 (6): 1079–97.
+</div>
+<div id="ref-harvey1977testing" class="csl-entry">
+Harvey, Andrew C, and Patrick Collier. 1977. <span>“Testing for Functional Misspecification in Regression Analysis.”</span> <em>Journal of Econometrics</em> 6 (1): 103–19.
+</div>
+<div id="ref-hastie2015matrix" class="csl-entry">
+Hastie, Trevor, Rahul Mazumder, Jason D Lee, and Reza Zadeh. 2015. <span>“Matrix Completion and Low-Rank SVD via Fast Alternating Least Squares.”</span> <em>The Journal of Machine Learning Research</em> 16 (1): 3367–3402.
+</div>
+<div id="ref-hastie2009elements" class="csl-entry">
+Hastie, Trevor, Robert Tibshirani, and Jerome H Friedman. 2009. <em>The Elements of Statistical Learning: Data Mining, Inference, and Prediction</em>. Vol. 2. Springer.
+</div>
+<div id="ref-hausman2018" class="csl-entry">
+Hausman, Catherine, and David S Rapson. 2018. <span>“Regression Discontinuity in Time: Considerations for Empirical Applications.”</span> <em>Annual Review of Resource Economics</em> 10: 533–52.
+</div>
+<div id="ref-hausman1983specification" class="csl-entry">
+Hausman, Jerry A. 1983. <span>“Specification and Estimation of Simultaneous Equation Models.”</span> <em>Handbook of Econometrics</em> 1: 391–448.
+</div>
+<div id="ref-hayes2014statistical" class="csl-entry">
+Hayes, Andrew F, and Kristopher J Preacher. 2014. <span>“Statistical Mediation Analysis with a Multicategorical Independent Variable.”</span> <em>British Journal of Mathematical and Statistical Psychology</em> 67 (3): 451–70.
+</div>
+<div id="ref-hayes2013relative" class="csl-entry">
+Hayes, Andrew F, and Michael Scharkow. 2013. <span>“The Relative Trustworthiness of Inferential Tests of the Indirect Effect in Statistical Mediation Analysis: Does Method Really Matter?”</span> <em>Psychological Science</em> 24 (10): 1918–27.
+</div>
+<div id="ref-he2021end" class="csl-entry">
+He, Cheng, O Cem Ozturk, Chris Gu, and Jorge Mario Silva-Risso. 2021. <span>“The End of the Express Road for Hybrid Vehicles: Can Governments’ Green Product Incentives Backfire?”</span> <em>Marketing Science</em> 40 (1): 80–100.
+</div>
+<div id="ref-he2022market" class="csl-entry">
+He, Sherry, Brett Hollenbeck, and Davide Proserpio. 2022. <span>“The Market for Fake Reviews.”</span> <em>Marketing Science</em> 41 (5): 896–921.
+</div>
+<div id="ref-heath2023reusing" class="csl-entry">
+Heath, Davidson, Matthew C Ringgenberg, Mehrdad Samadi, and Ingrid M Werner. 2023. <span>“Reusing Natural Experiments.”</span> <em>The Journal of Finance</em> 78 (4): 2329–64.
+</div>
+<div id="ref-heckman1974shadow" class="csl-entry">
+Heckman, James. 1974. <span>“Shadow Prices, Market Wages, and Labor Supply.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 679–94.
+</div>
+<div id="ref-heckman1990varieties" class="csl-entry">
+———. 1990. <span>“Varieties of Selection Bias.”</span> <em>The American Economic Review</em> 80 (2): 313–18.
+</div>
+<div id="ref-heckman1976common" class="csl-entry">
+Heckman, James J. 1976b. <span>“The Common Structure of Statistical Models of Truncation, Sample Selection and Limited Dependent Variables and a Simple Estimator for Such Models.”</span> In <em>Annals of Economic and Social Measurement, Volume 5, Number 4</em>, 475–92. NBER.
+</div>
+<div id="ref-Heckman_1976" class="csl-entry">
+———. 1976a. <span>“The Common Structure of Statistical Models of Truncation, Sample Selection and Limited Dependent Variables and a Simple Estimator for Such Models.”</span> In <em>Annals of Economic and Social Measurement, Volume 5, Number 4</em>, 475–92. NBER.
+</div>
+<div id="ref-heckman1979sample" class="csl-entry">
+———. 1979. <span>“Sample Selection Bias as a Specification Error.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 153–61.
+</div>
+<div id="ref-heckman1997matching" class="csl-entry">
+Heckman, James J, Hidehiko Ichimura, and Petra E Todd. 1997. <span>“Matching as an Econometric Evaluation Estimator: Evidence from Evaluating a Job Training Programme.”</span> <em>The Review of Economic Studies</em> 64 (4): 605–54.
+</div>
+<div id="ref-heckman1999economics" class="csl-entry">
+Heckman, James J, Robert J LaLonde, and Jeffrey A Smith. 1999. <span>“The Economics and Econometrics of Active Labor Market Programs.”</span> In <em>Handbook of Labor Economics</em>, 3:1865–2097. Elsevier.
+</div>
+<div id="ref-heckman2004using" class="csl-entry">
+Heckman, James, and Salvador Navarro-Lozano. 2004. <span>“Using Matching, Instrumental Variables, and Control Functions to Estimate Economic Choice Models.”</span> <em>Review of Economics and Statistics</em> 86 (1): 30–57.
+</div>
+<div id="ref-heller2009split" class="csl-entry">
+Heller, Ruth, Paul R Rosenbaum, and Dylan S Small. 2009. <span>“Split Samples and Design Sensitivity in Observational Studies.”</span> <em>Journal of the American Statistical Association</em> 104 (487): 1090–1101.
+</div>
+<div id="ref-henderson1975best" class="csl-entry">
+Henderson, Charles R. 1975. <span>“Best Linear Unbiased Estimation and Prediction Under a Selection Model.”</span> <em>Biometrics</em>, 423–47.
+</div>
+<div id="ref-hill2021endogeneity" class="csl-entry">
+Hill, Aaron D, Scott G Johnson, Lindsey M Greco, Ernest H O’Boyle, and Sheryl L Walter. 2021. <span>“Endogeneity: A Review and Agenda for the Methodology-Practice Divide Affecting Micro and Macro Research.”</span> <em>Journal of Management</em> 47 (1): 105–43.
+</div>
+<div id="ref-hirtle2020impact" class="csl-entry">
+Hirtle, Beverly, Anna Kovner, and Matthew Plosser. 2020. <span>“The Impact of Supervision on Bank Performance.”</span> <em>The Journal of Finance</em> 75 (5): 2765–2808.
+</div>
+<div id="ref-hjort2019arrival" class="csl-entry">
+Hjort, Jonas, and Jonas Poulsen. 2019. <span>“The Arrival of Fast Internet and Employment in Africa.”</span> <em>American Economic Review</em> 109 (3): 1032–79.
+</div>
+<div id="ref-ho2007matching" class="csl-entry">
+Ho, Daniel E, Kosuke Imai, Gary King, and Elizabeth A Stuart. 2007. <span>“Matching as Nonparametric Preprocessing for Reducing Model Dependence in Parametric Causal Inference.”</span> <em>Political Analysis</em> 15 (3): 199–236.
+</div>
+<div id="ref-hochberg1988sharper" class="csl-entry">
+Hochberg, Yosef. 1988. <span>“A Sharper Bonferroni Procedure for Multiple Tests of Significance.”</span> <em>Biometrika</em> 75 (4): 800–802.
+</div>
+<div id="ref-hodges2011estimates" class="csl-entry">
+Hodges Jr, Joseph L, and Erich L Lehmann. 2011. <span>“Estimates of Location Based on Rank Tests.”</span> In <em>Selected Works of EL Lehmann</em>, 287–300. Springer.
+</div>
+<div id="ref-hoerl1970" class="csl-entry">
+Hoerl, Arthur E., and Robert W. Kennard. 1970. <span>“Ridge Regression: Biased Estimation for Nonorthogonal Problems.”</span> <em>Technometrics</em> 12 (1): 55–67. <a href="https://doi.org/10.1080/00401706.1970.10488634">https://doi.org/10.1080/00401706.1970.10488634</a>.
+</div>
+<div id="ref-hollander2013nonparametric" class="csl-entry">
+Hollander, Myles, Douglas A Wolfe, and Eric Chicken. 2013. <em>Nonparametric Statistical Methods</em>. John Wiley &amp; Sons.
+</div>
+<div id="ref-holm1979simple" class="csl-entry">
+Holm, Sture. 1979. <span>“A Simple Sequentially Rejective Multiple Test Procedure.”</span> <em>Scandinavian Journal of Statistics</em>, 65–70.
+</div>
+<div id="ref-holtz2025reducing" class="csl-entry">
+Holtz, David, Felipe Lobel, Ruben Lobel, Inessa Liskovich, and Sinan Aral. 2025. <span>“Reducing Interference Bias in Online Marketplace Experiments Using Cluster Randomization: Evidence from a Pricing Meta-Experiment on Airbnb.”</span> <em>Management Science</em> 71 (1): 390–406.
+</div>
+<div id="ref-homburg2014firm" class="csl-entry">
+Homburg, Christian, Josef Vollmayr, and Alexander Hahn. 2014. <span>“Firm Value Creation Through Major Channel Expansions: Evidence from an Event Study in the United States, Germany, and China.”</span> <em>Journal of Marketing</em> 78 (3): 38–61.
+</div>
+<div id="ref-honda1985testing" class="csl-entry">
+Honda, Yuzo. 1985. <span>“Testing the Error Components Model with Non-Normal Disturbances.”</span> <em>The Review of Economic Studies</em> 52 (4): 681–90.
+</div>
+<div id="ref-horsky1987does" class="csl-entry">
+Horsky, Dan, and Patrick Swyngedouw. 1987. <span>“Does It Pay to Change Your Company’s Name? A Stock Market Perspective.”</span> <em>Marketing Science</em> 6 (4): 320–35.
+</div>
+<div id="ref-horvitz1952generalization" class="csl-entry">
+Horvitz, Daniel G, and Donovan J Thompson. 1952. <span>“A Generalization of Sampling Without Replacement from a Finite Universe.”</span> <em>Journal of the American Statistical Association</em> 47 (260): 663–85.
+</div>
+<div id="ref-hosmer1992confidence" class="csl-entry">
+Hosmer, David W, and Stanley Lemeshow. 1992. <span>“Confidence Interval Estimation of Interaction.”</span> <em>Epidemiology</em>, 452–56.
+</div>
+<div id="ref-houston2000buyer" class="csl-entry">
+Houston, Mark B, and Shane A Johnson. 2000. <span>“Buyer–Supplier Contracts Versus Joint Ventures: Determinants and Consequences of Transaction Structure.”</span> <em>Journal of Marketing Research</em> 37 (1): 1–15.
+</div>
+<div id="ref-hoyer2008nonlinear" class="csl-entry">
+Hoyer, Patrik, Dominik Janzing, Joris M Mooij, Jonas Peters, and Bernhard Schölkopf. 2008. <span>“Nonlinear Causal Discovery with Additive Noise Models.”</span> <em>Advances in Neural Information Processing Systems</em> 21.
+</div>
+<div id="ref-hoyle1999statistical" class="csl-entry">
+Hoyle, Rick H. 1999. <em>Statistical Strategies for Small Sample Research</em>. sage.
+</div>
+<div id="ref-hoynes2009consumption" class="csl-entry">
+Hoynes, Hilary W, and Diane Whitmore Schanzenbach. 2009. <span>“Consumption Responses to in-Kind Transfers: Evidence from the Introduction of the Food Stamp Program.”</span> <em>American Economic Journal: Applied Economics</em> 1 (4): 109–39.
+</div>
+<div id="ref-huber2022direct" class="csl-entry">
+Huber, Martin, Mark Schelker, and Anthony Strittmatter. 2022. <span>“Direct and Indirect Effects Based on Changes-in-Changes.”</span> <em>Journal of Business &amp; Economic Statistics</em> 40 (1): 432–43.
+</div>
+<div id="ref-huber1964" class="csl-entry">
+Huber, Peter J. 1964. <span>“Robust Estimation of a Location Parameter.”</span> <em>The Annals of Mathematical Statistics</em> 35 (1): 73–101. <a href="https://doi.org/10.1214/aoms/1177703732">https://doi.org/10.1214/aoms/1177703732</a>.
+</div>
+<div id="ref-huntington2025sources" class="csl-entry">
+Huntington-Klein, Nick, Claus C Pörtner, Yubraj Acharya, Matus Adamkovic, Joop Adema, Lameck Ondieki Agasa, Imtiaz Ahmad, et al. 2025. <span>“The Sources of Researcher Variation in Economics.”</span> I4R Discussion Paper Series.
+</div>
+<div id="ref-hurvich1989regression" class="csl-entry">
+Hurvich, Clifford M, and Chih-Ling Tsai. 1989. <span>“Regression and Time Series Model Selection in Small Samples.”</span> <em>Biometrika</em> 76 (2): 297–307.
+</div>
+<div id="ref-iacus2012causal" class="csl-entry">
+Iacus, Stefano M, Gary King, and Giuseppe Porro. 2012. <span>“Causal Inference Without Balance Checking: Coarsened Exact Matching.”</span> <em>Political Analysis</em> 20 (1): 1–24.
+</div>
+<div id="ref-imai2021causal" class="csl-entry">
+Imai, Kosuke, Zhichao Jiang, and Anup Malani. 2021. <span>“Causal Inference with Interference and Noncompliance in Two-Stage Randomized Experiments.”</span> <em>Journal of the American Statistical Association</em> 116 (534): 632–44.
+</div>
+<div id="ref-imai2010general" class="csl-entry">
+Imai, Kosuke, Luke Keele, and Dustin Tingley. 2010. <span>“A General Approach to Causal Mediation Analysis.”</span> <em>Psychological Methods</em> 15 (4): 309.
+</div>
+<div id="ref-imai2010identification" class="csl-entry">
+Imai, Kosuke, Luke Keele, and Teppei Yamamoto. 2010. <span>“Identification, Inference and Sensitivity Analysis for Causal Mediation Effects.”</span> <em>Statistical Science</em> 25 (1): 51–71.
+</div>
+<div id="ref-imai2019should" class="csl-entry">
+Imai, Kosuke, and In Song Kim. 2019. <span>“When Should We Use Unit Fixed Effects Regression Models for Causal Inference with Longitudinal Data?”</span> <em>American Journal of Political Science</em> 63 (2): 467–90.
+</div>
+<div id="ref-imai2021use" class="csl-entry">
+———. 2021. <span>“On the Use of Two-Way Fixed Effects Regression Models for Causal Inference with Panel Data.”</span> <em>Political Analysis</em> 29 (3): 405–15.
+</div>
+<div id="ref-imai2021matching" class="csl-entry">
+Imai, Kosuke, In Song Kim, and Erik H Wang. 2021. <span>“Matching Methods for Causal Inference with Time-Series Cross-Sectional Data.”</span> <em>American Journal of Political Science</em>.
+</div>
+<div id="ref-imai2008" class="csl-entry">
+Imai, Kosuke, Gary King, and Elizabeth A Stuart. 2008. <span>“Misunderstandings Between Experimentalists and Observationalists about Causal Inference.”</span> <em>Journal of the Royal Statistical Society: Series A (Statistics in Society)</em> 171 (2): 481–502.
+</div>
+<div id="ref-imbens2003sensitivity" class="csl-entry">
+Imbens, Guido W. 2003. <span>“Sensitivity to Exogeneity Assumptions in Program Evaluation.”</span> <em>American Economic Review</em> 93 (2): 126–32.
+</div>
+<div id="ref-imbens1994identification" class="csl-entry">
+Imbens, Guido W, and Joshua D Angrist. 1994. <span>“Identification and Estimation of Local Average Treatment Effects.”</span> <em>Econometrica</em> 62 (2): 467–75.
+</div>
+<div id="ref-imbens2015causal" class="csl-entry">
+Imbens, Guido W, and Donald B Rubin. 2015. <em>Causal Inference in Statistics, Social, and Biomedical Sciences</em>. Cambridge University Press.
+</div>
+<div id="ref-imbens2012optimal" class="csl-entry">
+Imbens, Guido, and Karthik Kalyanaraman. 2012. <span>“Optimal Bandwidth Choice for the Regression Discontinuity Estimator.”</span> <em>The Review of Economic Studies</em> 79 (3): 933–59.
+</div>
+<div id="ref-imbens2008regression" class="csl-entry">
+Imbens, Guido, and Thomas Lemieux. 2008. <span>“The Regression Discontinuity Design–Theory and Applications.”</span> <em>Journal of Econometrics</em>.
+</div>
+<div id="ref-imbens2024lalonde" class="csl-entry">
+Imbens, Guido, and Yiqing Xu. 2024. <span>“Lalonde (1986) After Nearly Four Decades: Lessons Learned.”</span> <em>arXiv Preprint arXiv:2406.00827</em>.
+</div>
+<div id="ref-iskandar2013valuation" class="csl-entry">
+Iskandar-Datta, Mai, and Yonghong Jia. 2013. <span>“Valuation Consequences of Clawback Provisions.”</span> <em>The Accounting Review</em> 88 (1): 171–98.
+</div>
+<div id="ref-israeli2018online" class="csl-entry">
+Israeli, Ayelet. 2018. <span>“Online MAP Enforcement: Evidence from a Quasi-Experiment.”</span> <em>Marketing Science</em> 37 (5): 710–32.
+</div>
+<div id="ref-ittner2009commentary" class="csl-entry">
+Ittner, Christopher, David Larcker, and Daniel Taylor. 2009. <span>“Commentary–the Stock Market’s Pricing of Customer Satisfaction.”</span> <em>Marketing Science</em> 28 (5): 826–35.
+</div>
+<div id="ref-jacobson2009financial" class="csl-entry">
+Jacobson, Robert, and Natalie Mizik. 2009. <span>“The Financial Markets and Customer Satisfaction: Reexamining Possible Financial Market Mispricing of Customer Satisfaction.”</span> <em>Marketing Science</em> 28 (5): 810–19.
+</div>
+<div id="ref-jaffe1974special" class="csl-entry">
+Jaffe, Jeffrey F. 1974. <span>“Special Information and Insider Trading.”</span> <em>The Journal of Business</em> 47 (3): 410–28.
+</div>
+<div id="ref-james2013" class="csl-entry">
+James, Gareth, Daniela Witten, Trevor Hastie, and Robert Tibshirani. 2013. <em>An Introduction to Statistical Learning</em>. Vol. 112. Springer.
+</div>
+<div id="ref-janakiraman2018effect" class="csl-entry">
+Janakiraman, Ramkumar, Joon Ho Lim, and Rishika Rishika. 2018. <span>“The Effect of a Data Breach Announcement on Customer Behavior: Evidence from a Multichannel Retailer.”</span> <em>Journal of Marketing</em> 82 (2): 85–105.
+</div>
+<div id="ref-jepsen2014labor" class="csl-entry">
+Jepsen, Christopher, Kenneth Troske, and Paul Coomes. 2014. <span>“The Labor-Market Returns to Community College Degrees, Diplomas, and Certificates.”</span> <em>Journal of Labor Economics</em> 32 (1): 95–121.
+</div>
+<div id="ref-jin2008" class="csl-entry">
+Jin, Hui, and Donald B Rubin. 2008. <span>“Principal Stratification for Causal Inference with Extended Partial Compliance.”</span> <em>Journal of the American Statistical Association</em> 103 (481): 101–11.
+</div>
+<div id="ref-jin2009" class="csl-entry">
+———. 2009. <span>“Public Schools Versus Private Schools: Causal Inference with Partial Compliance.”</span> <em>Journal of Educational and Behavioral Statistics</em> 34 (1): 24–45.
+</div>
+<div id="ref-johansson2022rerandomization" class="csl-entry">
+Johansson, Per, and Mårten Schultzberg. 2022. <span>“Rerandomization: A Complement or Substitute for Stratification in Randomized Experiments?”</span> <em>Journal of Statistical Planning and Inference</em> 218: 43–58.
+</div>
+<div id="ref-johnson2020regulation" class="csl-entry">
+Johnson, Matthew S. 2020. <span>“Regulation by Shaming: Deterrence Effects of Publicizing Violations of Workplace Safety and Health Laws.”</span> <em>American Economic Review</em> 110 (6): 1866–1904.
+</div>
+<div id="ref-johnson1949" class="csl-entry">
+Johnson, N. L. 1949. <span>“Systems of Frequency Curves Generated by Methods of Translation.”</span> <em>Biometrika</em> 36 (1/2): 149. <a href="https://doi.org/10.2307/2332539">https://doi.org/10.2307/2332539</a>.
+</div>
+<div id="ref-johnson1936tests" class="csl-entry">
+Johnson, Palmer Oliver, and Jerzy Neyman. 1936. <span>“Tests of Certain Linear Hypotheses and Their Applications to Some Educational Problems.”</span> <em>Statistical Research Memoirs</em> 1: 57.
+</div>
+<div id="ref-johnston2007review" class="csl-entry">
+Johnston, Margaret A. 2007. <span>“A Review of the Application of Event Studies in Marketing.”</span> <em>Academy of Marketing Science Review</em> 2007: 1.
+</div>
+<div id="ref-jones1996indicator" class="csl-entry">
+Jones, Michael P. 1996. <span>“Indicator and Stratification Methods for Missing Explanatory Variables in Multiple Linear Regression.”</span> <em>Journal of the American Statistical Association</em> 91 (433): 222–30.
+</div>
+<div id="ref-jordon2022synthetic" class="csl-entry">
+Jordon, James, Lukasz Szpruch, Florimond Houssiau, Mirko Bottarelli, Giovanni Cherubin, Carsten Maple, Samuel N Cohen, and Adrian Weller. 2022. <span>“Synthetic Data–What, Why and How?”</span> <em>arXiv Preprint arXiv:2205.03257</em>.
+</div>
+<div id="ref-joshi2009movie" class="csl-entry">
+Joshi, Amit M, and Dominique M Hanssens. 2009. <span>“Movie Advertising and the Stock Market Valuation of Studios: A Case of <span>‘Great Expectations?’</span>”</span> <em>Marketing Science</em> 28 (2): 239–50.
+</div>
+<div id="ref-kahn2020promise" class="csl-entry">
+Kahn-Lang, Ariella, and Kevin Lang. 2020. <span>“The Promise and Pitfalls of Differences-in-Differences: Reflections on 16 and Pregnant and Other Applications.”</span> <em>Journal of Business &amp; Economic Statistics</em> 38 (3): 613–20.
+</div>
+<div id="ref-kalaignanam2013corporate" class="csl-entry">
+Kalaignanam, Kartik, and S Cem Bahadir. 2013. <span>“Corporate Brand Name Changes and Business Restructuring: Is the Relationship Complementary or Substitutive?”</span> <em>Journal of the Academy of Marketing Science</em> 41: 456–72.
+</div>
+<div id="ref-kapelner2014matching" class="csl-entry">
+Kapelner, Adam, and Abba Krieger. 2014. <span>“Matching on-the-Fly: Sequential Allocation with Higher Power and Efficiency.”</span> <em>Biometrics</em> 70 (2): 378–88.
+</div>
+<div id="ref-karniouchina2009impact" class="csl-entry">
+Karniouchina, Ekaterina V, William L Moore, and Kevin J Cooney. 2009. <span>“Impact of Mad Money Stock Recommendations: Merging Financial and Marketing Perspectives.”</span> <em>Journal of Marketing</em> 73 (6): 244–66.
+</div>
+<div id="ref-karniouchina2011marketing" class="csl-entry">
+Karniouchina, Ekaterina V, Can Uslay, and Grigori Erenburg. 2011. <span>“Do Marketing Media Have Life Cycles? The Case of Product Placement in Movies.”</span> <em>Journal of Marketing</em> 75 (3): 27–48.
+</div>
+<div id="ref-keele2010overview" class="csl-entry">
+Keele, Luke. 2010. <span>“An Overview of Rbounds: An r Package for Rosenbaum Bounds Sensitivity Analysis with Matched Data.”</span> <em>White Paper. Columbus, OH</em> 1: 15.
+</div>
+<div id="ref-keele2019patterns" class="csl-entry">
+Keele, Luke J, Dylan S Small, Jesse Y Hsu, and Colin B Fogarty. 2019. <span>“Patterns of Effects and Sensitivity Analysis for Differences-in-Differences.”</span> <em>arXiv Preprint arXiv:1901.01869</em>.
+</div>
+<div id="ref-keele2025so" class="csl-entry">
+Keele, Luke, and Richard Grieve. 2025. <span>“So Many Choices: A Guide to Selecting Among Methods to Adjust for Observed Confounders.”</span> <em>Statistics in Medicine</em> 44 (5): e10336.
+</div>
+<div id="ref-keele2019bracketing" class="csl-entry">
+Keele, Luke, Raiden Hasegawa, and Dylan Small. 2019. <span>“Bracketing Bounds for Differences-in-Differences with an Application to Voter Id Laws.”</span> <em>Massachusetts Institute of Technology</em> 11.
+</div>
+<div id="ref-keller2024soda" class="csl-entry">
+Keller, Kristopher O, Jonne Y Guyt, and Rajdeep Grewal. 2024. <span>“Soda Taxes and Marketing Conduct.”</span> <em>Journal of Marketing Research</em> 61 (3): 393–410.
+</div>
+<div id="ref-kenny2014power" class="csl-entry">
+Kenny, David A, and Charles M Judd. 2014. <span>“Power Anomalies in Testing Mediation.”</span> <em>Psychological Science</em> 25 (2): 334–39.
+</div>
+<div id="ref-kim2011stock" class="csl-entry">
+Kim, MinChung, and Leigh M McAlister. 2011. <span>“Stock Market Reaction to Unexpected Growth in Marketing Expenditure: Negative for Sales Force, Contingent on Spending Level for Advertising.”</span> <em>Journal of Marketing</em> 75 (4): 68–85.
+</div>
+<div id="ref-kim2020bayesian" class="csl-entry">
+Kim, Sungjin, Clarence Lee, and Sachin Gupta. 2020. <span>“Bayesian Synthetic Control Methods.”</span> <em>Journal of Marketing Research</em> 57 (5): 831–52.
+</div>
+<div id="ref-king1995replication" class="csl-entry">
+King, Gary. 1995. <span>“Replication, Replication.”</span> <em>PS: Political Science &amp; Politics</em> 28 (3): 444–52.
+</div>
+<div id="ref-king2017balance" class="csl-entry">
+King, Gary, Christopher Lucas, and Richard A Nielsen. 2017. <span>“The Balance-Sample Size Frontier in Matching Methods for Causal Inference.”</span> <em>American Journal of Political Science</em> 61 (2): 473–89.
+</div>
+<div id="ref-king2019propensity" class="csl-entry">
+King, Gary, and Richard Nielsen. 2019. <span>“Why Propensity Scores Should Not Be Used for Matching.”</span> <em>Political Analysis</em> 27 (4): 435–54.
+</div>
+<div id="ref-King_1997" class="csl-entry">
+King, Maxwell L, and Ping X Wu. 1997. <span>“Locally Optimal One-Sided Tests for Multiparameter Hypotheses.”</span> <em>Econometric Reviews</em> 16 (2): 131–56.
+</div>
+<div id="ref-kitagawa2015test" class="csl-entry">
+Kitagawa, Toru. 2015. <span>“A Test for Instrument Validity.”</span> <em>Econometrica</em> 83 (5): 2043–63.
+</div>
+<div id="ref-kiviet2020testing" class="csl-entry">
+Kiviet, Jan F. 2020. <span>“Testing the Impossible: Identifying Exclusion Restrictions.”</span> <em>Journal of Econometrics</em> 218 (2): 294–316.
+</div>
+<div id="ref-kleinberg2015prediction" class="csl-entry">
+Kleinberg, Jon, Jens Ludwig, Sendhil Mullainathan, and Ziad Obermeyer. 2015. <span>“Prediction Policy Problems.”</span> <em>American Economic Review</em> 105 (5): 491–95.
+</div>
+<div id="ref-kleven2016bunching" class="csl-entry">
+Kleven, Henrik Jacobsen. 2016. <span>“Bunching.”</span> <em>Annual Review of Economics</em> 8: 435–64.
+</div>
+<div id="ref-kling2006incarceration" class="csl-entry">
+Kling, Jeffrey R. 2006. <span>“Incarceration Length, Employment, and Earnings.”</span> <em>American Economic Review</em> 96 (3): 863–76.
+</div>
+<div id="ref-knol2012recommendations" class="csl-entry">
+Knol, Mirjam J, and Tyler J VanderWeele. 2012. <span>“Recommendations for Presenting Analyses of Effect Modification and Interaction.”</span> <em>International Journal of Epidemiology</em> 41 (2): 514–20.
+</div>
+<div id="ref-kolesa2013estimation" class="csl-entry">
+KolesÃ, Michal et al. 2013. <span>“Estimation in an Instrumental Variables Model with Treatment Effect Heterogeneity.”</span>
+</div>
+<div id="ref-kothari1997measuring" class="csl-entry">
+Kothari, SP, and Jerold B Warner. 1997. <span>“Measuring Long-Horizon Security Price Performance.”</span> <em>Journal of Financial Economics</em> 43 (3): 301–39.
+</div>
+<div id="ref-krauth2016bounding" class="csl-entry">
+Krauth, Brian. 2016. <span>“Bounding a Linear Causal Effect Using Relative Correlation Restrictions.”</span> <em>Journal of Econometric Methods</em> 5 (1): 117–41.
+</div>
+<div id="ref-laird1982random" class="csl-entry">
+Laird, Nan M, and James H Ware. 1982. <span>“Random-Effects Models for Longitudinal Data.”</span> <em>Biometrics</em>, 963–74.
+</div>
+<div id="ref-lalonde1986evaluating" class="csl-entry">
+LaLonde, Robert J. 1986. <span>“Evaluating the Econometric Evaluations of Training Programs with Experimental Data.”</span> <em>The American Economic Review</em>, 604–20.
+</div>
+<div id="ref-lambrecht2024tv" class="csl-entry">
+Lambrecht, Anja, Catherine Tucker, and Xu Zhang. 2024. <span>“TV Advertising and Online Sales: A Case Study of Intertemporal Substitution Effects for an Online Travel Platform.”</span> <em>Journal of Marketing Research</em> 61 (2): 248–70.
+</div>
+<div id="ref-lancaster2000incidental" class="csl-entry">
+Lancaster, Tony. 2000. <span>“The Incidental Parameter Problem Since 1948.”</span> <em>Journal of Econometrics</em> 95 (2): 391–413.
+</div>
+<div id="ref-lane1995stock" class="csl-entry">
+Lane, Vicki, and Robert Jacobson. 1995. <span>“Stock Market Reactions to Brand Extension Announcements: The Effects of Brand Attitude and Familiarity.”</span> <em>Journal of Marketing</em> 59 (1): 63–77.
+</div>
+<div id="ref-leavitt2020beyond" class="csl-entry">
+Leavitt, Thomas. 2020. <span>“Beyond Parallel Trends: Improvements on Estimation and Inference in the Difference-in-Differences Design.”</span> Working paper.
+</div>
+<div id="ref-ledgerwood2011trade" class="csl-entry">
+Ledgerwood, Alison, and Patrick E Shrout. 2011. <span>“The Trade-Off Between Accuracy and Precision in Latent Variable Models of Mediation Processes.”</span> <em>Journal of Personality and Social Psychology</em> 101 (6): 1174.
+</div>
+<div id="ref-lee2009training" class="csl-entry">
+Lee, David S. 2009. <span>“Training, Wages, and Sample Selection: Estimating Sharp Bounds on Treatment Effects.”</span> <em>The Review of Economic Studies</em>, 1071–1102.
+</div>
+<div id="ref-lee2010regression" class="csl-entry">
+Lee, David S, and Thomas Lemieux. 2010. <span>“Regression Discontinuity Designs in Economics.”</span> <em>Journal of Economic Literature</em> 48 (2): 281–355.
+</div>
+<div id="ref-lee2022valid" class="csl-entry">
+Lee, David S, Justin McCrary, Marcelo J Moreira, and Jack Porter. 2022. <span>“Valid t-Ratio Inference for IV.”</span> <em>American Economic Review</em> 112 (10): 3260–90.
+</div>
+<div id="ref-lee2014graphical" class="csl-entry">
+Lee Rodgers, Joseph, William Howard Beasley, and Matthew Schuelke. 2014. <span>“Graphical Data Analysis on the Circle: Wrap-Around Time Series Plots for (Interrupted) Time Series Designs.”</span> <em>Multivariate Behavioral Research</em> 49 (6): 571–80.
+</div>
+<div id="ref-lewis1986union" class="csl-entry">
+Lewis, H Gregg. 1986. <span>“Union Relative Wage Effects.”</span> <em>Handbook of Labor Economics</em> 2: 1139–81.
+</div>
+<div id="ref-li2018balancing" class="csl-entry">
+Li, Fan, Kari Lock Morgan, and Alan M Zaslavsky. 2018. <span>“Balancing Covariates via Propensity Score Weighting.”</span> <em>Journal of the American Statistical Association</em> 113 (521): 390–400.
+</div>
+<div id="ref-li2022testing" class="csl-entry">
+Li, Hanqing, Xiaohui Liu, Yuting Chen, and Yawen Fan. 2022. <span>“Testing for Serial Correlation in Autoregressive Exogenous Models with Possible GARCH Errors.”</span> <em>Entropy</em> 24 (8): 1076.
+</div>
+<div id="ref-li2024frontiers" class="csl-entry">
+Li, Kathleen T. 2024. <span>“Frontiers: A Simple Forward Difference-in-Differences Method.”</span> <em>Marketing Science</em> 43 (2): 267–79.
+</div>
+<div id="ref-li2023statistical" class="csl-entry">
+Li, Kathleen T, and Garrett P Sonnier. 2023. <span>“Statistical Inference for the Factor Model Approach to Estimate Causal Effects in Quasi-Experimental Settings.”</span> <em>Journal of Marketing Research</em> 60 (3): 449–72.
+</div>
+<div id="ref-li2023augmented" class="csl-entry">
+Li, Kathleen T, and Christophe Van den Bulte. 2023. <span>“Augmented Difference-in-Differences.”</span> <em>Marketing Science</em> 42 (4): 746–67.
+</div>
+<div id="ref-li2016matching" class="csl-entry">
+Li, Sheng, Nikos Vlassis, Jaya Kawale, and Yun Fu. 2016. <span>“Matching via Dimensionality Reduction for Estimation of Treatment Effects in Digital Marketing Campaigns.”</span> In <em>IJCAI</em>, 16:3768–74.
+</div>
+<div id="ref-li2001balanced" class="csl-entry">
+Li, Yunfei Paul, Kathleen J Propert, and Paul R Rosenbaum. 2001. <span>“Balanced Risk Set Matching.”</span> <em>Journal of the American Statistical Association</em> 96 (455): 870–82.
+</div>
+<div id="ref-liang1986longitudinal" class="csl-entry">
+Liang, Kung-Yee, and Scott L Zeger. 1986. <span>“Longitudinal Data Analysis Using Generalized Linear Models.”</span> <em>Biometrika</em> 73 (1): 13–22.
+</div>
+<div id="ref-liaukonyte2015television" class="csl-entry">
+Liaukonyte, Jura, Thales Teixeira, and Kenneth C Wilbur. 2015. <span>“Television Advertising and Online Shopping.”</span> <em>Marketing Science</em> 34 (3): 311–30.
+</div>
+<div id="ref-liaukonyte2023frontiers" class="csl-entry">
+Liaukonytė, Jūra, Anna Tuchman, and Xinrong Zhu. 2023. <span>“Frontiers: Spilling the Beans on Political Consumerism: Do Social Media Boycotts and Buycotts Translate to Real Sales Impact?”</span> <em>Marketing Science</em> 42 (1): 11–25.
+</div>
+<div id="ref-lim2020competitive" class="csl-entry">
+Lim, Joon Ho, Rishika Rishika, Ramkumar Janakiraman, and PK Kannan. 2020. <span>“Competitive Effects of Front-of-Package Nutrition Labeling Adoption on Nutritional Quality: Evidence from Facts up Front–Style Labels.”</span> <em>Journal of Marketing</em> 84 (6): 3–21.
+</div>
+<div id="ref-linden2015conducting" class="csl-entry">
+Linden, Ariel. 2015. <span>“Conducting Interrupted Time-Series Analysis for Single-and Multiple-Group Comparisons.”</span> <em>The Stata Journal</em> 15 (2): 480–500.
+</div>
+<div id="ref-linden2017comprehensive" class="csl-entry">
+———. 2017. <span>“A Comprehensive Set of Postestimation Measures to Enrich Interrupted Time-Series Analysis.”</span> <em>The Stata Journal</em> 17 (1): 73–88.
+</div>
+<div id="ref-linden2016using" class="csl-entry">
+Linden, Ariel, and Paul R Yarnold. 2016. <span>“Using Machine Learning to Identify Structural Breaks in Single-Group Interrupted Time Series Designs.”</span> <em>Journal of Evaluation in Clinical Practice</em> 22 (6): 855–59.
+</div>
+<div id="ref-little1988test" class="csl-entry">
+Little, Roderick JA. 1988. <span>“A Test of Missing Completely at Random for Multivariate Data with Missing Values.”</span> <em>Journal of the American Statistical Association</em> 83 (404): 1198–1202.
+</div>
+<div id="ref-Little_1992" class="csl-entry">
+———. 1992. <span>“Regression with Missing x’s: A Review.”</span> <em>Journal of the American Statistical Association</em> 87 (420): 1227–37.
+</div>
+<div id="ref-liu2024practical" class="csl-entry">
+Liu, Licheng, Ye Wang, and Yiqing Xu. 2024. <span>“A Practical Guide to Counterfactual Estimators for Causal Inference with Time-Series Cross-Sectional Data.”</span> <em>American Journal of Political Science</em> 68 (1): 160–76.
+</div>
+<div id="ref-ljung1978measure" class="csl-entry">
+Ljung, Greta M, and George EP Box. 1978. <span>“On a Measure of Lack of Fit in Time Series Models.”</span> <em>Biometrika</em> 65 (2): 297–303.
+</div>
+<div id="ref-long2010" class="csl-entry">
+Long, Qi, Roderick JA Little, and Xihong Lin. 2010. <span>“Estimating Causal Effects in Trials Involving Multitreatment Arms Subject to Non-Compliance: A Bayesian Framework.”</span> <em>Journal of the Royal Statistical Society: Series C (Applied Statistics)</em> 59 (3): 513–31.
+</div>
+<div id="ref-Looney_1985" class="csl-entry">
+Looney, Stephen W, and Thomas R Gulledge Jr. 1985. <span>“Use of the Correlation Coefficient with Normal Probability Plots.”</span> <em>The American Statistician</em> 39 (1): 75–79.
+</div>
+<div id="ref-lopez2017estimation" class="csl-entry">
+Lopez, Michael J, and Roee Gutman. 2017. <span>“Estimation of Causal Effects with Multiple Treatments: A Review and New Ideas.”</span> <em>Statistical Science</em>, 432–54.
+</div>
+<div id="ref-loughran1995new" class="csl-entry">
+Loughran, Tim, and Jay R Ritter. 1995. <span>“The New Issues Puzzle.”</span> <em>The Journal of Finance</em> 50 (1): 23–51.
+</div>
+<div id="ref-loughran2000uniformly" class="csl-entry">
+———. 2000. <span>“Uniformly Least Powerful Tests of Market Efficiency.”</span> <em>Journal of Financial Economics</em> 55 (3): 361–89.
+</div>
+<div id="ref-lovell2008simple" class="csl-entry">
+Lovell, Michael C. 2008. <span>“A Simple Proof of the FWL Theorem.”</span> <em>The Journal of Economic Education</em> 39 (1): 88–91.
+</div>
+<div id="ref-lumley2000bias" class="csl-entry">
+Lumley, Thomas, and Drew Levy. 2000. <span>“Bias in the Case–Crossover Design: Implications for Studies of Air Pollution.”</span> <em>Environmetrics: The Official Journal of the International Environmetrics Society</em> 11 (6): 689–704.
+</div>
+<div id="ref-lyon1999improved" class="csl-entry">
+Lyon, John D, Brad M Barber, and Chih-Ling Tsai. 1999. <span>“Improved Methods for Tests of Long-Run Abnormal Stock Returns.”</span> <em>The Journal of Finance</em> 54 (1): 165–201.
+</div>
+<div id="ref-mackinlay1997event" class="csl-entry">
+MacKinlay, A Craig. 1997. <span>“Event Studies in Economics and Finance.”</span> <em>Journal of Economic Literature</em> 35 (1): 13–39.
+</div>
+<div id="ref-mackinnon2007mediation" class="csl-entry">
+MacKinnon, David P, Amanda J Fairchild, and Matthew S Fritz. 2007. <span>“Mediation Analysis.”</span> <em>Annu. Rev. Psychol.</em> 58: 593–614.
+</div>
+<div id="ref-mackinnon1995simulation" class="csl-entry">
+MacKinnon, David P, Ghulam Warsi, and James H Dwyer. 1995. <span>“A Simulation Study of Mediated Effect Measures.”</span> <em>Multivariate Behavioral Research</em> 30 (1): 41–62.
+</div>
+<div id="ref-mackinnon1985some" class="csl-entry">
+MacKinnon, James G, and Halbert White. 1985. <span>“Some Heteroskedasticity-Consistent Covariance Matrix Estimators with Improved Finite Sample Properties.”</span> <em>Journal of Econometrics</em> 29 (3): 305–25.
+</div>
+<div id="ref-maclure1991case" class="csl-entry">
+Maclure, Malcolm. 1991. <span>“The Case-Crossover Design: A Method for Studying Transient Effects on the Risk of Acute Events.”</span> <em>American Journal of Epidemiology</em> 133 (2): 144–53.
+</div>
+<div id="ref-maclure2000should" class="csl-entry">
+Maclure, Malcolm, and MA Mittleman. 2000. <span>“Should We Use a Case-Crossover Design?”</span> <em>Annual Review of Public Health</em> 21 (1): 193–221.
+</div>
+<div id="ref-maestas2013does" class="csl-entry">
+Maestas, Nicole, Kathleen J Mullen, and Alexander Strand. 2013. <span>“Does Disability Insurance Receipt Discourage Work? Using Examiner Assignment to Estimate Causal Effects of SSDI Receipt.”</span> <em>American Economic Review</em> 103 (5): 1797–1829.
+</div>
+<div id="ref-Magel_1987" class="csl-entry">
+Magel, Rhonda C, and Doris Hertsgaard. 1987. <span>“A Collinearity Diagnostic for Nonlinear Regression: A Collinearity Diagnostic.”</span> <em>Communications in Statistics-Simulation and Computation</em> 16 (1): 85–97.
+</div>
+<div id="ref-malhotra2011evaluating" class="csl-entry">
+Malhotra, Arvind, and Claudia Kubowicz Malhotra. 2011. <span>“Evaluating Customer Information Breaches as Service Failures: An Event Study Approach.”</span> <em>Journal of Service Research</em> 14 (1): 44–59.
+</div>
+<div id="ref-mallows1995more" class="csl-entry">
+Mallows, Cohn L. 1995. <span>“More Comments on Cp.”</span> <em>Technometrics</em> 37 (4): 362–72.
+</div>
+<div id="ref-manchanda2015social" class="csl-entry">
+Manchanda, Puneet, Grant Packard, and Adithya Pattabhiramaiah. 2015. <span>“Social Dollars: The Economic Impact of Customer Participation in a Firm-Sponsored Online Customer Community.”</span> <em>Marketing Science</em> 34 (3): 367–87.
+</div>
+<div id="ref-manly1976exponential" class="csl-entry">
+Manly, Bryan FJ. 1976. <span>“Exponential Data Transformations.”</span> <em>Journal of the Royal Statistical Society Series D: The Statistician</em> 25 (1): 37–42.
+</div>
+<div id="ref-manski2018right" class="csl-entry">
+Manski, Charles F, and John V Pepper. 2018. <span>“How Do Right-to-Carry Laws Affect Crime Rates? Coping with Ambiguity Using Bounded-Variation Assumptions.”</span> <em>Review of Economics and Statistics</em> 100 (2): 232–44.
+</div>
+<div id="ref-marcus2021role" class="csl-entry">
+Marcus, Michelle, and Pedro HC Sant’Anna. 2021. <span>“The Role of Parallel Trends in Event Study Settings: An Application to Environmental Economics.”</span> <em>Journal of the Association of Environmental and Resource Economists</em> 8 (2): 235–75.
+</div>
+<div id="ref-mardia1970measures" class="csl-entry">
+Mardia, Kanti V. 1970. <span>“Measures of Multivariate Skewness and Kurtosis with Applications.”</span> <em>Biometrika</em> 57 (3): 519–30.
+</div>
+<div id="ref-markovitch2008findings" class="csl-entry">
+Markovitch, Dmitri G, and Peter N Golder. 2008. <span>“Findings—Using Stock Prices to Predict Market Events: Evidence on Sales Takeoff and Long-Term Firm Survival.”</span> <em>Marketing Science</em> 27 (4): 717–29.
+</div>
+<div id="ref-Marsaglia_2004" class="csl-entry">
+Marsaglia, George, and John Marsaglia. 2004. <span>“Evaluating the Anderson-Darling Distribution.”</span> <em>Journal of Statistical Software</em> 9: 1–5.
+</div>
+<div id="ref-masten2022effect" class="csl-entry">
+Masten, Matthew A, and Alexandre Poirier. 2022. <span>“The Effect of Omitted Variables on the Sign of Regression Coefficients.”</span> <em>arXiv Preprint arXiv:2208.00552</em>.
+</div>
+<div id="ref-masulis2011venture" class="csl-entry">
+Masulis, Ronald W, and Rajarishi Nahata. 2011. <span>“Venture Capital Conflicts of Interest: Evidence from Acquisitions of Venture-Backed Firms.”</span> <em>Journal of Financial and Quantitative Analysis</em> 46 (2): 395–430.
+</div>
+<div id="ref-mazodier2013sponsorship" class="csl-entry">
+Mazodier, Marc, and Amir Rezaee. 2013. <span>“Are Sponsorship Announcements Good News for the Shareholders? Evidence from International Stock Exchanges.”</span> <em>Journal of the Academy of Marketing Science</em> 41: 586–600.
+</div>
+<div id="ref-mazumder2010spectral" class="csl-entry">
+Mazumder, Rahul, Trevor Hastie, and Robert Tibshirani. 2010. <span>“Spectral Regularization Algorithms for Learning Large Incomplete Matrices.”</span> <em>The Journal of Machine Learning Research</em> 11: 2287–2322.
+</div>
+<div id="ref-mccaffrey2013tutorial" class="csl-entry">
+McCaffrey, Daniel F, Beth Ann Griffin, Daniel Almirall, Mary Ellen Slaughter, Rajeev Ramchand, and Lane F Burgette. 2013. <span>“A Tutorial on Propensity Score Estimation for Multiple Treatments Using Generalized Boosted Models.”</span> <em>Statistics in Medicine</em> 32 (19): 3388–3414.
+</div>
+<div id="ref-mccrary2008manipulation" class="csl-entry">
+McCrary, Justin. 2008. <span>“Manipulation of the Running Variable in the Regression Discontinuity Design: A Density Test.”</span> <em>Journal of Econometrics</em> 142 (2): 698–714.
+</div>
+<div id="ref-McCullagh_2019" class="csl-entry">
+McCullagh, Peter. 2019. <em>Generalized Linear Models</em>. Routledge.
+</div>
+<div id="ref-mcwilliams1997event" class="csl-entry">
+McWilliams, Abagail, and Donald Siegel. 1997. <span>“Event Studies in Management Research: Theoretical and Empirical Issues.”</span> <em>Academy of Management Journal</em> 40 (3): 626–57.
+</div>
+<div id="ref-mellon2021rain" class="csl-entry">
+Mellon, Jonathan. 2021. <span>“Rain, Rain, Go Away: 194 Potential Exclusion-Restriction Violations for Studies Using Weather as an Instrumental Variable.”</span> <em>American Journal of Political Science</em>.
+</div>
+<div id="ref-miller1974jackknife" class="csl-entry">
+Miller, Rupert G. 1974. <span>“The Jackknife-a Review.”</span> <em>Biometrika</em> 61 (1): 1–15.
+</div>
+<div id="ref-mirenda2022economic" class="csl-entry">
+Mirenda, Litterio, Sauro Mocetti, and Lucia Rizzica. 2022. <span>“The Economic Effects of Mafia: Firm Level Evidence.”</span> <em>American Economic Review</em> 112 (8): 2748–73.
+</div>
+<div id="ref-mitchell2000managerial" class="csl-entry">
+Mitchell, Mark L, and Erik Stafford. 2000. <span>“Managerial Decisions and Long-Term Stock Price Performance.”</span> <em>The Journal of Business</em> 73 (3): 287–329.
+</div>
+<div id="ref-mittleman1995control" class="csl-entry">
+Mittleman, Murray A, Malcolm Maclure, and James M Robins. 1995. <span>“Control Sampling Strategies for Case-Crossover Studies: An Assessment of Relative Efficiency.”</span> <em>American Journal of Epidemiology</em> 142 (1): 91–98.
+</div>
+<div id="ref-mittleman1993triggering" class="csl-entry">
+Mittleman, Murray A, Malcolm Maclure, Geoffrey H Tofler, Jane B Sherwood, Robert J Goldberg, and James E Muller. 1993. <span>“Triggering of Acute Myocardial Infarction by Heavy Physical Exertion–Protection Against Triggering by Regular Exertion.”</span> <em>New England Journal of Medicine</em> 329 (23): 1677–83.
+</div>
+<div id="ref-mogstad2024instrumental" class="csl-entry">
+Mogstad, Magne, and Alexander Torgovitsky. 2024. <span>“Instrumental Variables with Unobserved Heterogeneity in Treatment Effects.”</span> In <em>Handbook of Labor Economics</em>, 5:1–114. Elsevier.
+</div>
+<div id="ref-moon2015linear" class="csl-entry">
+Moon, Hyungsik Roger, and Martin Weidner. 2015. <span>“Linear Regression for Panel with Unknown Number of Factors as Interactive Fixed Effects.”</span> <em>Econometrica</em> 83 (4): 1543–79. https://doi.org/<a href="https://doi.org/10.3982/ECTA9382">https://doi.org/10.3982/ECTA9382</a>.
+</div>
+<div id="ref-moreira2019optimal" class="csl-entry">
+Moreira, Humberto, and Marcelo J Moreira. 2019. <span>“Optimal Two-Sided Tests for Instrumental Variables Regression with Heteroskedastic and Autocorrelated Errors.”</span> <em>Journal of Econometrics</em> 213 (2): 398–433.
+</div>
+<div id="ref-moreira2003conditional" class="csl-entry">
+Moreira, Marcelo J. 2003. <span>“A Conditional Likelihood Ratio Test for Structural Models.”</span> <em>Econometrica</em> 71 (4): 1027–48.
+</div>
+<div id="ref-moreira2009tests" class="csl-entry">
+———. 2009. <span>“Tests with Correct Size When Instruments Can Be Arbitrarily Weak.”</span> <em>Journal of Econometrics</em> 152 (2): 131–40.
+</div>
+<div id="ref-morgan2012rerandomization" class="csl-entry">
+Morgan, Kari Lock, and Donald B Rubin. 2012. <span>“Rerandomization to Improve Covariate Balance in Experiments.”</span> <em>Annals of Statistics</em> 40 (2): 1263–82.
+</div>
+<div id="ref-mroz1984sensitivity" class="csl-entry">
+Mroz, Thomas Alvin. 1984. <em>The Sensitivity of an Empirical Model of Married Women’s Hours of Work to Economic and Statistical Assumptions</em>. Stanford University.
+</div>
+<div id="ref-mullainathan2017machine" class="csl-entry">
+Mullainathan, Sendhil, and Jann Spiess. 2017. <span>“Machine Learning: An Applied Econometric Approach.”</span> <em>Journal of Economic Perspectives</em> 31 (2): 87–106.
+</div>
+<div id="ref-nadaraya1964estimating" class="csl-entry">
+Nadaraya, Elizbar A. 1964. <span>“On Estimating Regression.”</span> <em>Theory of Probability &amp; Its Applications</em> 9 (1): 141–42.
+</div>
+<div id="ref-narayanan2015position" class="csl-entry">
+Narayanan, Sridhar, and Kirthi Kalyanam. 2015. <span>“Position Effects in Search Advertising and Their Moderators: A Regression Discontinuity Approach.”</span> <em>Marketing Science</em> 34 (3): 388–407.
+</div>
+<div id="ref-narayanan2013estimating" class="csl-entry">
+Narayanan, Sridhar, and Harikesh S Nair. 2013. <span>“Estimating Causal Installed-Base Effects: A Bias-Correction Approach.”</span> <em>Journal of Marketing Research</em> 50 (1): 70–94.
+</div>
+<div id="ref-navidi1998bidirectional" class="csl-entry">
+Navidi, William. 1998. <span>“Bidirectional Case-Crossover Designs for Exposures with Time Trends.”</span> <em>Biometrics</em>, 596–605.
+</div>
+<div id="ref-nelder1972generalized" class="csl-entry">
+Nelder, John Ashworth, and Robert WM Wedderburn. 1972. <span>“Generalized Linear Models.”</span> <em>Journal of the Royal Statistical Society Series A: Statistics in Society</em> 135 (3): 370–84.
+</div>
+<div id="ref-nelson1990distribution" class="csl-entry">
+Nelson, Charles R, and Richard Startz. 1990. <span>“The Distribution of the Instrumental Variables Estimator and Its t-Ratio When the Instrument Is a Poor One.”</span> <em>Journal of Business</em>, S125–40.
+</div>
+<div id="ref-nerlove1971further" class="csl-entry">
+Nerlove, Marc. 1971. <span>“Further Evidence on the Estimation of Dynamic Economic Relations from a Time Series of Cross Sections.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 359–82.
+</div>
+<div id="ref-newey1994large" class="csl-entry">
+Newey, Whitney K, and Daniel McFadden. 1994. <span>“Large Sample Estimation and Hypothesis Testing.”</span> <em>Handbook of Econometrics</em> 4: 2111–2245.
+</div>
+<div id="ref-newey1986simple" class="csl-entry">
+Newey, Whitney K, and Kenneth D West. 1986. <span>“A Simple, Positive Semi-Definite, Heteroskedasticity and Autocorrelationconsistent Covariance Matrix.”</span>
+</div>
+<div id="ref-nickell1981biases" class="csl-entry">
+Nickell, Stephen. 1981. <span>“Biases in Dynamic Models with Fixed Effects.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 1417–26.
+</div>
+<div id="ref-nielsen2010estimating" class="csl-entry">
+Nielsen, Helena Skyt, Torben Sørensen, and Christopher Taber. 2010. <span>“Estimating the Effect of Student Aid on College Enrollment: Evidence from a Government Grant Policy Reform.”</span> <em>American Economic Journal: Economic Policy</em> 2 (2): 185–215.
+</div>
+<div id="ref-norris2021effects" class="csl-entry">
+Norris, Samuel, Matthew Pecenco, and Jeffrey Weaver. 2021. <span>“The Effects of Parental and Sibling Incarceration: Evidence from Ohio.”</span> <em>American Economic Review</em> 111 (9): 2926–63.
+</div>
+<div id="ref-o2010not" class="csl-entry">
+O’Hara, Robert, and Johan Kotze. 2010. <span>“Do Not Log-Transform Count Data.”</span> <em>Nature Precedings</em>, 1–1.
+</div>
+<div id="ref-oestreicher2013content" class="csl-entry">
+Oestreicher-Singer, Gal, and Lior Zalmanson. 2013. <span>“Content or Community? A Digital Business Strategy for Content Providers in the Social Age.”</span> <em>MIS Quarterly</em>, 591–616.
+</div>
+<div id="ref-oster2019unobservable" class="csl-entry">
+Oster, Emily. 2019. <span>“Unobservable Selection and Coefficient Stability: Theory and Evidence.”</span> <em>Journal of Business &amp; Economic Statistics</em> 37 (2): 187–204.
+</div>
+<div id="ref-owen1983class" class="csl-entry">
+Owen, Joel, and Ramon Rabinovitch. 1983. <span>“On the Class of Elliptical Distributions and Their Applications to the Theory of Portfolio Choice.”</span> <em>The Journal of Finance</em> 38 (3): 745–52.
+</div>
+<div id="ref-pandey2005relationship" class="csl-entry">
+Pandey, Vivek K, Kevin J Shanahan, and Scott W Hansen. 2005. <span>“The Relationship Between Shareholder Wealth Effects, Diversity, and Publicity as a Marketing Strategy.”</span> <em>Journal of the Academy of Marketing Science</em> 33: 423–31.
+</div>
+<div id="ref-pang2022bayesian" class="csl-entry">
+Pang, Xun, Licheng Liu, and Yiqing Xu. 2022. <span>“A Bayesian Alternative to Synthetic Control for Comparative Case Studies.”</span> <em>Political Analysis</em> 30 (2): 269–88.
+</div>
+<div id="ref-parente2012cautionary" class="csl-entry">
+Parente, Paulo MDC, and JMC Santos Silva. 2012. <span>“A Cautionary Note on Tests of Overidentifying Restrictions.”</span> <em>Economics Letters</em> 115 (2): 314–17.
+</div>
+<div id="ref-park1966estimation" class="csl-entry">
+Park, Rolla E. 1966. <span>“Estimation with Heteroscedastic Error Terms.”</span> <em>Econometrica</em> 34 (4).
+</div>
+<div id="ref-patell1976corporate" class="csl-entry">
+Patell, James M. 1976. <span>“Corporate Forecasts of Earnings Per Share and Stock Price Behavior: Empirical Test.”</span> <em>Journal of Accounting Research</em>, 246–76.
+</div>
+<div id="ref-pattabhiramaiah2019paywalls" class="csl-entry">
+Pattabhiramaiah, Adithya, Shreya Sriram, and Puneet Manchanda. 2019. <span>“Paywalls: Monetizing Online Content.”</span> <em>Journal of Marketing</em> 83 (2): 19–36.
+</div>
+<div id="ref-pearl2014graphical" class="csl-entry">
+Pearl, Judea. 2014. <span>“Graphical Models for Probabilistic and Causal Reasoning.”</span> <em>Computing Handbook, 3rd Ed.(1)</em>, 44–41.
+</div>
+<div id="ref-pearl2019seven" class="csl-entry">
+———. 2019. <span>“The Seven Tools of Causal Inference, with Reflections on Machine Learning.”</span> <em>Communications of the ACM</em> 62 (3): 54–60.
+</div>
+<div id="ref-Pearl_2018" class="csl-entry">
+Pearl, Judea, and Dana Mackenzie. 2018. <em>The Book of Why: The New Science of Cause and Effect</em>. Basic books.
+</div>
+<div id="ref-penfold2013use" class="csl-entry">
+Penfold, Robert B, and Fang Zhang. 2013. <span>“Use of Interrupted Time Series Analysis in Evaluating Health Care Quality Improvements.”</span> <em>Academic Pediatrics</em> 13 (6): S38–44.
+</div>
+<div id="ref-permutt1989simultaneous" class="csl-entry">
+Permutt, Thomas, and J Richard Hebel. 1989. <span>“Simultaneous-Equation Estimation in a Clinical Trial of the Effect of Smoking on Birth Weight.”</span> <em>Biometrics</em>, 619–22.
+</div>
+<div id="ref-petrin2010control" class="csl-entry">
+Petrin, Amil, and Kenneth Train. 2010. <span>“A Control Function Approach to Endogeneity in Consumer Choice Models.”</span> <em>Journal of Marketing Research</em> 47 (1): 3–13.
+</div>
+<div id="ref-peukert2022regulatory" class="csl-entry">
+Peukert, Christian, Stefan Bechtold, Michail Batikas, and Tobias Kretschmer. 2022. <span>“Regulatory Spillovers and Data Governance: Evidence from the GDPR.”</span> <em>Marketing Science</em> 41 (4): 746–68.
+</div>
+<div id="ref-pitt2011overidentification" class="csl-entry">
+Pitt, Mark M. 2011. <span>“Overidentification Tests and Causality: A Second Response to Roodman and Morduch.”</span> <em>Access at: Http://Www. Brown. Edu/Research/Projects/Pitt</em>.
+</div>
+<div id="ref-pocock1975sequential" class="csl-entry">
+Pocock, Stuart J, and Richard Simon. 1975. <span>“Sequential Treatment Assignment with Balancing for Prognostic Factors in the Controlled Clinical Trial.”</span> <em>Biometrics</em>, 103–15.
+</div>
+<div id="ref-porreca2022synthetic" class="csl-entry">
+Porreca, Zachary. 2022. <span>“Synthetic Difference-in-Differences Estimation with Staggered Treatment Timing.”</span> <em>Economics Letters</em> 220: 110874.
+</div>
+<div id="ref-powers1984effects" class="csl-entry">
+Powers, Donald E, and Spencer S Swinton. 1984. <span>“Effects of Self-Study for Coachable Test Item Types.”</span> <em>Journal of Educational Psychology</em> 76 (2): 266.
+</div>
+<div id="ref-preacher2004spss" class="csl-entry">
+Preacher, Kristopher J, and Andrew F Hayes. 2004. <span>“SPSS and SAS Procedures for Estimating Indirect Effects in Simple Mediation Models.”</span> <em>Behavior Research Methods, Instruments, &amp; Computers</em> 36: 717–31.
+</div>
+<div id="ref-priestley1972non" class="csl-entry">
+Priestley, Maurice B, and MT Chao. 1972. <span>“Non-Parametric Function Fitting.”</span> <em>Journal of the Royal Statistical Society Series B: Statistical Methodology</em> 34 (3): 385–92.
+</div>
+<div id="ref-proserpio2017online" class="csl-entry">
+Proserpio, Davide, and Georgios Zervas. 2017. <span>“Online Reputation Management: Estimating the Impact of Management Responses on Consumer Reviews.”</span> <em>Marketing Science</em> 36 (5): 645–65.
+</div>
+<div id="ref-puhani2012treatment" class="csl-entry">
+Puhani, Patrick A. 2012. <span>“The Treatment Effect, the Cross Difference, and the Interaction Term in Nonlinear <span>‘Difference-in-Differences’</span> Models.”</span> <em>Economics Letters</em> 115 (1): 85–87.
+</div>
+<div id="ref-qu2009propensity" class="csl-entry">
+Qu, Yongming, and Ilya Lipkovich. 2009. <span>“Propensity Score Estimation with Missing Values Using a Multiple Imputation Missingness Pattern (MIMP) Approach.”</span> <em>Statistics in Medicine</em> 28 (9): 1402–14.
+</div>
+<div id="ref-raassens2012market" class="csl-entry">
+Raassens, Néomie, Stefan Wuyts, and Inge Geyskens. 2012. <span>“The Market Valuation of Outsourcing New Product Development.”</span> <em>Journal of Marketing Research</em> 49 (5): 682–95.
+</div>
+<div id="ref-ramachandra2018deep" class="csl-entry">
+Ramachandra, Vikas. 2018. <span>“Deep Learning for Causal Inference.”</span> <em>arXiv Preprint arXiv:1803.00149</em>.
+</div>
+<div id="ref-ramani2019effects" class="csl-entry">
+Ramani, Nandini, and Raji Srinivasan. 2019. <span>“Effects of Liberalization on Incumbent Firms’ Marketing-Mix Responses and Performance: Evidence from a Quasi-Experiment.”</span> <em>Journal of Marketing</em> 83 (5): 97–114.
+</div>
+<div id="ref-rambachan2023more" class="csl-entry">
+Rambachan, Ashesh, and Jonathan Roth. 2023. <span>“A More Credible Approach to Parallel Trends.”</span> <em>Review of Economic Studies</em>, rdad018.
+</div>
+<div id="ref-ramsey1969tests" class="csl-entry">
+Ramsey, James Bernard. 1969. <span>“Tests for Specification Errors in Classical Linear Least-Squares Regression Analysis.”</span> <em>Journal of the Royal Statistical Society Series B: Statistical Methodology</em> 31 (2): 350–71.
+</div>
+<div id="ref-rao1992information" class="csl-entry">
+Rao, C Radhakrishna. 1992. <span>“Information and the Accuracy Attainable in the Estimation of Statistical Parameters.”</span> In <em>Breakthroughs in Statistics: Foundations and Basic Theory</em>, 235–47. Springer.
+</div>
+<div id="ref-rao2008fruits" class="csl-entry">
+Rao, Raghunath Singh, Rajesh K Chandy, and Jaideep C Prabhu. 2008. <span>“The Fruits of Legitimacy: Why Some New Ventures Gain More from Innovation Than Others.”</span> <em>Journal of Marketing</em> 72 (4): 58–75.
+</div>
+<div id="ref-rauh2025panelmatch" class="csl-entry">
+Rauh, Adam, In Song Kim, and Kosuke Imai. 2025. <span>“PanelMatch: Matching Methods for Causal Inference with Time-Series Cross-Section Data.”</span> <em>arXiv Preprint arXiv:2503.02073</em>.
+</div>
+<div id="ref-ritter1991long" class="csl-entry">
+Ritter, Jay R. 1991. <span>“The Long-Run Performance of Initial Public Offerings.”</span> <em>The Journal of Finance</em> 46 (1): 3–27.
+</div>
+<div id="ref-robins2000marginal" class="csl-entry">
+Robins, James M, Miguel Angel Hernan, and Babette Brumback. 2000. <span>“Marginal Structural Models and Causal Inference in Epidemiology.”</span> <em>Epidemiology</em>, 550–60.
+</div>
+<div id="ref-rodgers2005did" class="csl-entry">
+Rodgers, Joseph Lee, Craig A St John, and Ronnie Coleman. 2005. <span>“Did Fertility Go up After the Oklahoma City Bombing? An Analysis of Births in Metropolitan Counties in Oklahoma, 1990–1999.”</span> <em>Demography</em> 42: 675–92.
+</div>
+<div id="ref-romano2005stepwise" class="csl-entry">
+Romano, Joseph P, and Michael Wolf. 2005. <span>“Stepwise Multiple Testing as Formalized Data Snooping.”</span> <em>Econometrica</em> 73 (4): 1237–82.
+</div>
+<div id="ref-romano2016efficient" class="csl-entry">
+———. 2016. <span>“Efficient Computation of Adjusted p-Values for Resampling-Based Stepdown Multiple Testing.”</span> <em>Statistics &amp; Probability Letters</em> 113: 38–40.
+</div>
+<div id="ref-rosenbaum2002attributing" class="csl-entry">
+Rosenbaum, Paul R. 2002. <span>“Attributing Effects to Treatment in Matched Observational Studies.”</span> <em>Journal of the American Statistical Association</em> 97 (457): 183–92.
+</div>
+<div id="ref-rosenbaum2015two" class="csl-entry">
+———. 2015. <span>“Two r Packages for Sensitivity Analysis in Observational Studies.”</span> <em>Observational Studies</em> 1 (2): 1–17.
+</div>
+<div id="ref-rosenbaum1983central" class="csl-entry">
+Rosenbaum, Paul R, and Donald B Rubin. 1983. <span>“The Central Role of the Propensity Score in Observational Studies for Causal Effects.”</span> <em>Biometrika</em> 70 (1): 41–55.
+</div>
+<div id="ref-rosenbaum1985bias" class="csl-entry">
+———. 1985. <span>“The Bias Due to Incomplete Matching.”</span> <em>Biometrics</em>, 103–16.
+</div>
+<div id="ref-rosenzweig2000natural" class="csl-entry">
+Rosenzweig, Mark R, and Kenneth I Wolpin. 2000. <span>“Natural <span>‘Natural Experiments’</span> in Economics.”</span> <em>Journal of Economic Literature</em> 38 (4): 827–74.
+</div>
+<div id="ref-roth2022pretest" class="csl-entry">
+Roth, Jonathan. 2022. <span>“Pretest with Caution: Event-Study Estimates After Testing for Parallel Trends.”</span> <em>American Economic Review</em> 4 (3): 305–22.
+</div>
+<div id="ref-roth2023parallel" class="csl-entry">
+Roth, Jonathan, and Pedro HC Sant’Anna. 2023. <span>“When Is Parallel Trends Sensitive to Functional Form?”</span> <em>Econometrica</em> 91 (2): 737–47.
+</div>
+<div id="ref-rubin1973use" class="csl-entry">
+Rubin, Donald B. 1973. <span>“The Use of Matched Sampling and Regression Adjustment to Remove Bias in Observational Studies.”</span> <em>Biometrics</em>, 185–203.
+</div>
+<div id="ref-Rubin_1996" class="csl-entry">
+———. 1996. <span>“Multiple Imputation After 18+ Years.”</span> <em>Journal of the American Statistical Association</em> 91 (434): 473–89.
+</div>
+<div id="ref-rubin2001using" class="csl-entry">
+———. 2001. <span>“Using Propensity Scores to Help Design Observational Studies: Application to the Tobacco Litigation.”</span> <em>Health Services and Outcomes Research Methodology</em> 2: 169–88.
+</div>
+<div id="ref-rubin1996matching" class="csl-entry">
+Rubin, Donald B, and Neal Thomas. 1996. <span>“Matching Using Estimated Propensity Scores: Relating Theory to Practice.”</span> <em>Biometrics</em>, 249–64.
+</div>
+<div id="ref-rubin2000combining" class="csl-entry">
+———. 2000. <span>“Combining Propensity Score Matching with Additional Adjustments for Prognostic Covariates.”</span> <em>Journal of the American Statistical Association</em> 95 (450): 573–85.
+</div>
+<div id="ref-ryan2019now" class="csl-entry">
+Ryan, Andrew M, Evangelos Kontopantelis, Ariel Linden, and James F Burgess Jr. 2019. <span>“Now Trending: Coping with Non-Parallel Trends in Difference-in-Differences Analysis.”</span> <em>Statistical Methods in Medical Research</em> 28 (12): 3697–3711.
+</div>
+<div id="ref-sant2020doubly" class="csl-entry">
+Sant’Anna, Pedro HC, and Jun Zhao. 2020. <span>“Doubly Robust Difference-in-Differences Estimators.”</span> <em>Journal of Econometrics</em> 219 (1): 101–22.
+</div>
+<div id="ref-sargan1958estimation" class="csl-entry">
+Sargan, John D. 1958. <span>“The Estimation of Economic Relationships Using Instrumental Variables.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 393–415.
+</div>
+<div id="ref-Satterthwaite_1946" class="csl-entry">
+Satterthwaite, Franklin E. 1946. <span>“An Approximate Distribution of Estimates of Variance Components.”</span> <em>Biometrics Bulletin</em> 2 (6): 110–14.
+</div>
+<div id="ref-Schabenberger_2001" class="csl-entry">
+Schabenberger, Oliver, and Francis J Pierce. 2001. <em>Contemporary Statistical Models for the Plant and Soil Sciences</em>. CRC press.
+</div>
+<div id="ref-scharfstein1999adjusting" class="csl-entry">
+Scharfstein, Daniel O, Andrea Rotnitzky, and James M Robins. 1999. <span>“Adjusting for Nonignorable Drop-Out Using Semiparametric Nonresponse Models.”</span> <em>Journal of the American Statistical Association</em> 94 (448): 1096–1120.
+</div>
+<div id="ref-scheve2012democracy" class="csl-entry">
+Scheve, Kenneth, and David Stasavage. 2012. <span>“Democracy, War, and Wealth: Lessons from Two Centuries of Inheritance Taxation.”</span> <em>American Political Science Review</em> 106 (1): 81–102.
+</div>
+<div id="ref-schipper1983effects" class="csl-entry">
+Schipper, Katherine, and Abbie Smith. 1983. <span>“Effects of Recontracting on Shareholder Wealth: The Case of Voluntary Spin-Offs.”</span> <em>Journal of Financial Economics</em> 12 (4): 437–67.
+</div>
+<div id="ref-schipper1983evidence" class="csl-entry">
+Schipper, Katherine, and Rex Thompson. 1983. <span>“Evidence on the Capitalized Value of Merger Activity for Acquiring Firms.”</span> <em>Journal of Financial Economics</em> 11 (1-4): 85–119.
+</div>
+<div id="ref-schisterman2003estimation" class="csl-entry">
+Schisterman, Enrique F, Kirsten B Moysich, Lucinda J England, and Malla Rao. 2003. <span>“Estimation of the Correlation Coefficient Using the Bayesian Approach and Its Applications for Epidemiologic Research.”</span> <em>BMC Medical Research Methodology</em> 3: 1–4.
+</div>
+<div id="ref-schuirmann1987comparison" class="csl-entry">
+Schuirmann, Donald J. 1987. <span>“A Comparison of the Two One-Sided Tests Procedure and the Power Approach for Assessing the Equivalence of Average Bioavailability.”</span> <em>Journal of Pharmacokinetics and Biopharmaceutics</em> 15: 657–80.
+</div>
+<div id="ref-schulze2012linking" class="csl-entry">
+Schulze, Christian, Bernd Skiera, and Thorsten Wiesel. 2012. <span>“Linking Customer and Financial Metrics to Shareholder Value: The Leverage Effect in Customer-Based Valuation.”</span> <em>Journal of Marketing</em> 76 (2): 17–32.
+</div>
+<div id="ref-Shapiro_1965" class="csl-entry">
+Shapiro, Samuel Sanford, and Martin B Wilk. 1965. <span>“An Analysis of Variance Test for Normality (Complete Samples).”</span> <em>Biometrika</em> 52 (3/4): 591–611.
+</div>
+<div id="ref-Shapiro_1972" class="csl-entry">
+Shapiro, Samuel S, and RS Francia. 1972. <span>“An Approximate Analysis of Variance Test for Normality.”</span> <em>Journal of the American Statistical Association</em> 67 (337): 215–16.
+</div>
+<div id="ref-shin2012fire" class="csl-entry">
+Shin, Jiwoong, K Sudhir, and Dae-Hee Yoon. 2012. <span>“When to <span>‘Fire’</span> Customers: Customer Cost-Based Pricing.”</span> <em>Management Science</em> 58 (5): 932–47.
+</div>
+<div id="ref-shoag2021ban" class="csl-entry">
+Shoag, Daniel, and Stan Veuger. 2021. <span>“Ban-the-Box Measures Help High-Crime Neighborhoods.”</span> <em>The Journal of Law and Economics</em> 64 (1): 85–105.
+</div>
+<div id="ref-shrout2002mediation" class="csl-entry">
+Shrout, Patrick E, and Niall Bolger. 2002. <span>“Mediation in Experimental and Nonexperimental Studies: New Procedures and Recommendations.”</span> <em>Psychological Methods</em> 7 (4): 422.
+</div>
+<div id="ref-vsidak1967rectangular" class="csl-entry">
+Šidák, Zbyněk. 1967. <span>“Rectangular Confidence Regions for the Means of Multivariate Normal Distributions.”</span> <em>Journal of the American Statistical Association</em> 62 (318): 626–33.
+</div>
+<div id="ref-silva2006log" class="csl-entry">
+Silva, JMC Santos, and Silvana Tenreyro. 2006. <span>“The Log of Gravity.”</span> <em>The Review of Economics and Statistics</em> 88 (4): 641–58.
+</div>
+<div id="ref-silva2011further" class="csl-entry">
+———. 2011. <span>“Further Simulation Evidence on the Performance of the Poisson Pseudo-Maximum Likelihood Estimator.”</span> <em>Economics Letters</em> 112 (2): 220–22.
+</div>
+<div id="ref-simonsohn2014pa" class="csl-entry">
+Simonsohn, Uri, Leif D Nelson, and Joseph P Simmons. 2014a. <span>“P-Curve and Effect Size: Correcting for Publication Bias Using Only Significant Results.”</span> <em>Perspectives on Psychological Science</em> 9 (6): 666–81.
+</div>
+<div id="ref-simonsohn2014p" class="csl-entry">
+———. 2014b. <span>“P-Curve: A Key to the File-Drawer.”</span> <em>Journal of Experimental Psychology: General</em> 143 (2): 534.
+</div>
+<div id="ref-simonsohn2015better" class="csl-entry">
+Simonsohn, Uri, Joseph P Simmons, and Leif D Nelson. 2015. <span>“Better p-Curves: Making p-Curve Analysis More Robust to Errors, Fraud, and Ambitious p-Hacking, a Reply to Ulrich and Miller.”</span> <em>Journal of Experimental Psychology: General</em> 144 (62): 1146–52.
+</div>
+<div id="ref-simonsohn2020specification" class="csl-entry">
+———. 2020. <span>“Specification Curve Analysis.”</span> <em>Nature Human Behaviour</em> 4 (11): 1208–14.
+</div>
+<div id="ref-skiera2017should" class="csl-entry">
+Skiera, Bernd, Emanuel Bayer, and Lisa Schöler. 2017. <span>“What Should Be the Dependent Variable in Marketing-Related Event Studies?”</span> <em>International Journal of Research in Marketing</em> 34 (3): 641–59.
+</div>
+<div id="ref-smith1982beliefs" class="csl-entry">
+Smith, Eliot R. 1982. <span>“Beliefs, Attributions, and Evaluations: Nonhierarchical Models of Mediation in Social Cognition.”</span> <em>Journal of Personality and Social Psychology</em> 43 (2): 248.
+</div>
+<div id="ref-smith2005does" class="csl-entry">
+Smith, Jeffrey A, and Petra E Todd. 2005. <span>“Does Matching Overcome LaLonde’s Critique of Nonexperimental Estimators?”</span> <em>Journal of Econometrics</em> 125 (1-2): 305–53.
+</div>
+<div id="ref-snedecor1989statistical" class="csl-entry">
+Snedecor, George W., and William G. Cochran. 1989. <span>“Statistical Methods.”</span>
+</div>
+<div id="ref-sobel1982asymptotic" class="csl-entry">
+Sobel, Michael E. 1982. <span>“Asymptotic Confidence Intervals for Indirect Effects in Structural Equation Models.”</span> <em>Sociological Methodology</em> 13: 290–312.
+</div>
+<div id="ref-sood2009innovations" class="csl-entry">
+Sood, Ashish, and Gerard J Tellis. 2009. <span>“Do Innovations Really Pay Off? Total Stock Market Returns to Innovation.”</span> <em>Marketing Science</em> 28 (3): 442–56.
+</div>
+<div id="ref-sorescu2003" class="csl-entry">
+Sorescu, Alina B, Rajesh K Chandy, and Jaideep C Prabhu. 2003. <span>“Sources and Financial Consequences of Radical Innovation: Insights from Pharmaceuticals.”</span> <em>Journal of Marketing</em> 67 (4): 82–102.
+</div>
+<div id="ref-sorescu2007some" class="csl-entry">
+———. 2007. <span>“Why Some Acquisitions Do Better Than Others: Product Capital as a Driver of Long-Term Stock Returns.”</span> <em>Journal of Marketing Research</em> 44 (1): 57–72.
+</div>
+<div id="ref-sorescu2017" class="csl-entry">
+Sorescu, Alina, Nooshin L Warren, and Larisa Ertekin. 2017. <span>“Event Study Methodology in the Marketing Literature: An Overview.”</span> <em>Journal of the Academy of Marketing Science</em> 45: 186–207.
+</div>
+<div id="ref-spiller2013" class="csl-entry">
+Spiller, Stephen A, Gavan J Fitzsimons, John G Lynch Jr, and Gary H McClelland. 2013. <span>“Spotlights, Floodlights, and the Magic Number Zero: Simple Effects Tests in Moderated Regression.”</span> <em>Journal of Marketing Research</em> 50 (2): 277–88.
+</div>
+<div id="ref-Laurent_1992" class="csl-entry">
+St Laurent, Roy T, and R Dennis Cook. 1992. <span>“Leverage and Superleverage in Nonlinear Regression.”</span> <em>Journal of the American Statistical Association</em> 87 (420): 985–90.
+</div>
+<div id="ref-staiger1997instrumental" class="csl-entry">
+Staiger, Douglas, and James H Stock. 1997. <span>“Instrumental Variables Regression with Weak Instruments.”</span> <em>Econometrica</em> 65 (3): 557–86.
+</div>
+<div id="ref-Stephens_1974" class="csl-entry">
+Stephens, Michael A. 1974. <span>“EDF Statistics for Goodness of Fit and Some Comparisons.”</span> <em>Journal of the American Statistical Association</em> 69 (347): 730–37.
+</div>
+<div id="ref-stevenson2006bargaining" class="csl-entry">
+Stevenson, Betsey, and Justin Wolfers. 2006. <span>“Bargaining in the Shadow of the Law: Divorce Laws and Family Distress.”</span> <em>The Quarterly Journal of Economics</em> 121 (1): 267–88.
+</div>
+<div id="ref-stock2000gmm" class="csl-entry">
+Stock, James H, and Jonathan H Wright. 2000. <span>“GMM with Weak Identification.”</span> <em>Econometrica</em> 68 (5): 1055–96.
+</div>
+<div id="ref-stock2002testing" class="csl-entry">
+Stock, James H, and Motohiro Yogo. 2002. <span>“Testing for Weak Instruments in Linear IV Regression.”</span> National Bureau of Economic Research Cambridge, Mass., USA.
+</div>
+<div id="ref-stock2005testing" class="csl-entry">
+———. 2005. <span>“Testing for Weak Instruments in Linear IV Regression.”</span> <em>Identification and Inference for Econometric Models: Essays in Honor of Thomas Rothenberg</em>, 80.
+</div>
+<div id="ref-stuart2010matching" class="csl-entry">
+Stuart, Elizabeth A. 2010. <span>“Matching Methods for Causal Inference: A Review and a Look Forward.”</span> <em>Statistical Science: A Review Journal of the Institute of Mathematical Statistics</em> 25 (1): 1.
+</div>
+<div id="ref-student1908probable" class="csl-entry">
+Student. 1908. <span>“The Probable Error of a Mean.”</span> <em>Biometrika</em>, 1–25.
+</div>
+<div id="ref-sudhir2015peter" class="csl-entry">
+Sudhir, K, and Debabrata Talukdar. 2015. <span>“The <span>‘Peter Pan Syndrome’</span> in Emerging Markets: The Productivity-Transparency Trade-Off in IT Adoption.”</span> <em>Marketing Science</em> 34 (4): 500–521.
+</div>
+<div id="ref-sun2018semiparametric" class="csl-entry">
+Sun, BaoLuo, Lan Liu, Wang Miao, Kathleen Wirth, James Robins, and Eric J Tchetgen Tchetgen. 2018. <span>“Semiparametric Estimation with Data Missing Not at Random Using an Instrumental Variable.”</span> <em>Statistica Sinica</em> 28 (4): 1965.
+</div>
+<div id="ref-sun2021estimating" class="csl-entry">
+Sun, Liyang, and Sarah Abraham. 2021. <span>“Estimating Dynamic Treatment Effects in Event Studies with Heterogeneous Treatment Effects.”</span> <em>Journal of Econometrics</em> 225 (2): 175–99.
+</div>
+<div id="ref-sun2023using" class="csl-entry">
+Sun, Liyang, Eli Ben-Michael, and Avi Feller. 2023. <span>“Using Multiple Outcomes to Improve the Synthetic Control Method.”</span> <em>arXiv Preprint arXiv:2311.16260</em>.
+</div>
+<div id="ref-sun2022linear" class="csl-entry">
+Sun, Liyang, and Jesse M Shapiro. 2022. <span>“A Linear Panel Model with Heterogeneous Coefficients and Variation in Exposure.”</span> <em>Journal of Economic Perspectives</em> 36 (4): 193–204.
+</div>
+<div id="ref-sun2013ad" class="csl-entry">
+Sun, Monic, and Feng Zhu. 2013. <span>“Ad Revenue and Content Commercialization: Evidence from Blogs.”</span> <em>Management Science</em> 59 (10): 2314–31.
+</div>
+<div id="ref-swamy1972exact" class="csl-entry">
+Swamy, PAVB, and Swarnjit S Arora. 1972. <span>“The Exact Finite Sample Properties of the Estimators of Coefficients in the Error Components Regression Models.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 261–75.
+</div>
+<div id="ref-tchetgen2014note" class="csl-entry">
+Tchetgen Tchetgen, Eric. 2014. <span>“A Note on the Control Function Approach with an Instrumental Variable and a Binary Outcome.”</span> <em>Epidemiologic Methods</em> 3 (1): 107–12.
+</div>
+<div id="ref-tchetgen2017general" class="csl-entry">
+Tchetgen Tchetgen, Eric J, and Kathleen E Wirth. 2017. <span>“A General Instrumental Variable Framework for Regression Analysis with Outcome Missing Not at Random.”</span> <em>Biometrics</em> 73 (4): 1123–31.
+</div>
+<div id="ref-tellis2007" class="csl-entry">
+Tellis, Gerard J, and Joseph Johnson. 2007. <span>“The Value of Quality.”</span> <em>Marketing Science</em> 26 (6): 758–73.
+</div>
+<div id="ref-thistlethwaite1960" class="csl-entry">
+Thistlethwaite, Donald L, and Donald T Campbell. 1960. <span>“Regression-Discontinuity Analysis: An Alternative to the Ex Post Facto Experiment.”</span> <em>Journal of Educational Psychology</em> 51 (6): 309.
+</div>
+<div id="ref-thoemmes2017analysis" class="csl-entry">
+Thoemmes, Felix, Wang Liao, and Ze Jin. 2017. <span>“The Analysis of the Regression-Discontinuity Design in r.”</span> <em>Journal of Educational and Behavioral Statistics</em> 42 (3): 341–60.
+</div>
+<div id="ref-tibbe2022correcting" class="csl-entry">
+Tibbe, Tristan D, and Amanda K Montoya. 2022. <span>“Correcting the Bias Correction for the Bootstrap Confidence Interval in Mediation Analysis.”</span> <em>Frontiers in Psychology</em> 13: 810258.
+</div>
+<div id="ref-tibshirani1996" class="csl-entry">
+Tibshirani, Robert. 1996. <span>“Regression Shrinkage and Selection Via the Lasso.”</span> <em>Journal of the Royal Statistical Society Series B: Statistical Methodology</em> 58 (1): 267–88. <a href="https://doi.org/10.1111/j.2517-6161.1996.tb02080.x">https://doi.org/10.1111/j.2517-6161.1996.tb02080.x</a>.
+</div>
+<div id="ref-tipton2009regulatory" class="csl-entry">
+Tipton, Martha Myslinski, Sundar G Bharadwaj, and Diana C Robertson. 2009. <span>“Regulatory Exposure of Deceptive Marketing and Its Impact on Firm Value.”</span> <em>Journal of Marketing</em> 73 (6): 227–43.
+</div>
+<div id="ref-tirunillai2017" class="csl-entry">
+Tirunillai, Seshadri, and Gerard J Tellis. 2017. <span>“Does Offline TV Advertising Affect Online Chatter? Quasi-Experimental Analysis Using Synthetic Control.”</span> <em>Marketing Science</em> 36 (6): 862–78.
+</div>
+<div id="ref-tukey1993tightening" class="csl-entry">
+Tukey, John W. 1993. <span>“Tightening the Clinical Trial.”</span> <em>Controlled Clinical Trials</em> 14 (4): 266–85.
+</div>
+<div id="ref-ugander2013graph" class="csl-entry">
+Ugander, Johan, Brian Karrer, Lars Backstrom, and Jon Kleinberg. 2013. <span>“Graph Cluster Randomization: Network Exposure to Multiple Universes.”</span> In <em>Proceedings of the 19th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining</em>, 329–37.
+</div>
+<div id="ref-utts1982rainbow" class="csl-entry">
+Utts, Jessica M. 1982. <span>“The Rainbow Test for Lack of Fit in Regression.”</span> <em>Communications in Statistics-Theory and Methods</em> 11 (24): 2801–15.
+</div>
+<div id="ref-Vach_1994" class="csl-entry">
+Vach, Werner, and Werner Vach. 1994. <span>“Missing Values and Subsampling.”</span> <em>Logistic Regression with Missing Values in the Covariates</em>, 98–102.
+</div>
+<div id="ref-vanderweele2015explanation" class="csl-entry">
+VanderWeele, Tyler. 2015. <em>Explanation in Causal Inference: Methods for Mediation and Interaction</em>. Oxford University Press.
+</div>
+<div id="ref-vanderweele2019principles" class="csl-entry">
+VanderWeele, Tyler J. 2019. <span>“Principles of Confounder Selection.”</span> <em>European Journal of Epidemiology</em> 34: 211–19.
+</div>
+<div id="ref-vapnik2013nature" class="csl-entry">
+Vapnik, Vladimir. 2013. <em>The Nature of Statistical Learning Theory</em>. Springer science &amp; business media.
+</div>
+<div id="ref-von_Hippel_2009" class="csl-entry">
+Von Hippel, Paul T. 2009. <span>“8. How to Impute Interactions, Squares, and Other Transformed Variables.”</span> <em>Sociological Methodology</em> 39 (1): 265–91.
+</div>
+<div id="ref-vuong1989likelihood" class="csl-entry">
+Vuong, Quang H. 1989. <span>“Likelihood Ratio Tests for Model Selection and Non-Nested Hypotheses.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 307–33.
+</div>
+<div id="ref-wallace1969use" class="csl-entry">
+Wallace, T Dudley, and Ashiq Hussain. 1969. <span>“The Use of Error Components Models in Combining Cross Section with Time Series Data.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 55–72.
+</div>
+<div id="ref-wang2018border" class="csl-entry">
+Wang, Yanwen, Michael Lewis, and David A Schweidel. 2018. <span>“A Border Strategy Analysis of Ad Source and Message Tone in Senatorial Campaigns.”</span> <em>Marketing Science</em> 37 (3): 333–55.
+</div>
+<div id="ref-wang2019mobile" class="csl-entry">
+Wang, Yanwen, Chunhua Wu, and Ting Zhu. 2019. <span>“Mobile Hailing Technology and Taxi Driving Behaviors.”</span> <em>Marketing Science</em> 38 (5): 734–55.
+</div>
+<div id="ref-warren2017how" class="csl-entry">
+Warren, Nooshin L, and Alina Sorescu. 2017. <span>“When 1+ 1&gt; 2: How Investors React to New Product Releases Announced Concurrently with Other Corporate News.”</span> <em>Journal of Marketing</em> 81 (2): 64–82.
+</div>
+<div id="ref-watson1964smooth" class="csl-entry">
+Watson, Geoffrey S. 1964. <span>“Smooth Regression Analysis.”</span> <em>Sankhy<span>ā</span>: The Indian Journal of Statistics, Series A</em>, 359–72.
+</div>
+<div id="ref-westfall2016statistically" class="csl-entry">
+Westfall, Jacob, and Tal Yarkoni. 2016. <span>“Statistically Controlling for Confounding Constructs Is Harder Than You Think.”</span> <em>PloS One</em> 11 (3): e0152719.
+</div>
+<div id="ref-white1980heteroskedasticity" class="csl-entry">
+White, Halbert. 1980. <span>“A Heteroskedasticity-Consistent Covariance Matrix Estimator and a Direct Test for Heteroskedasticity.”</span> <em>Econometrica: Journal of the Econometric Society</em>, 817–38.
+</div>
+<div id="ref-wiles2009worth" class="csl-entry">
+Wiles, Michael A, and Anna Danielova. 2009. <span>“The Worth of Product Placement in Successful Films: An Event Study Analysis.”</span> <em>Journal of Marketing</em> 73 (4): 44–63.
+</div>
+<div id="ref-wiles2010stock" class="csl-entry">
+Wiles, Michael A, Shailendra P Jain, Saurabh Mishra, and Charles Lindsey. 2010. <span>“Stock Market Response to Regulatory Reports of Deceptive Advertising: The Moderating Effect of Omission Bias and Firm Reputation.”</span> <em>Marketing Science</em> 29 (5): 828–45.
+</div>
+<div id="ref-wiles2012effect" class="csl-entry">
+Wiles, Michael A, Neil A Morgan, and Lopo L Rego. 2012. <span>“The Effect of Brand Acquisition and Disposal on Stock Returns.”</span> <em>Journal of Marketing</em> 76 (1): 38–58.
+</div>
+<div id="ref-wing2024designing" class="csl-entry">
+Wing, Coady, Madeline Yozwiak, Alex Hollingsworth, Seth Freedman, and Kosali Simon. 2024. <span>“Designing Difference-in-Difference Studies with Staggered Treatment Adoption: Key Concepts and Practical Guidelines.”</span> <em>Annual Review of Public Health</em> 45.
+</div>
+<div id="ref-wolfers2003business" class="csl-entry">
+Wolfers, Justin. 2003. <span>“Is Business Cycle Volatility Costly? Evidence from Surveys of Subjective Well-Being.”</span> <em>International Finance</em> 6 (1): 1–26.
+</div>
+<div id="ref-wolfolds2019misaccounting" class="csl-entry">
+Wolfolds, Sarah E, and Jordan Siegel. 2019. <span>“Misaccounting for Endogeneity: The Peril of Relying on the Heckman Two-Step Method Without a Valid Instrument.”</span> <em>Strategic Management Journal</em> 40 (3): 432–62.
+</div>
+<div id="ref-wooldridge1999quasi" class="csl-entry">
+Wooldridge, Jeffrey M. 1999. <span>“Quasi-Likelihood Methods for Count Data.”</span> <em>Handbook of Applied Econometrics Volume 2: Microeconomics</em>, 321–68.
+</div>
+<div id="ref-wooldridge2023simple" class="csl-entry">
+———. 2023. <span>“Simple Approaches to Nonlinear Difference-in-Differences with Panel Data.”</span> <em>The Econometrics Journal</em> 26 (3): C31–66.
+</div>
+<div id="ref-wright1928tariff" class="csl-entry">
+Wright, Philip Green. 1928. <em>The Tariff on Animal and Vegetable Oils</em>. 26. Macmillan.
+</div>
+<div id="ref-xiong2013asymmetric" class="csl-entry">
+Xiong, Guiyang, and Sundar Bharadwaj. 2013. <span>“Asymmetric Roles of Advertising and Marketing Capability in Financial Returns to News: Turning Bad into Good and Good into Great.”</span> <em>Journal of Marketing Research</em> 50 (6): 706–24.
+</div>
+<div id="ref-xu2017generalized" class="csl-entry">
+Xu, Yiqing. 2017. <span>“Generalized Synthetic Control Method: Causal Inference with Interactive Fixed Effects Models.”</span> <em>Political Analysis</em> 25 (1): 57–76.
+</div>
+<div id="ref-yang2016propensity" class="csl-entry">
+Yang, Shu, Guido W Imbens, Zhanglin Cui, Douglas E Faries, and Zbigniew Kadziola. 2016. <span>“Propensity Score Matching and Subclassification in Observational Studies with Multi-Level Treatments.”</span> <em>Biometrics</em> 72 (4): 1055–65.
+</div>
+<div id="ref-yao2018representation" class="csl-entry">
+Yao, Liuyi, Sheng Li, Yaliang Li, Mengdi Huai, Jing Gao, and Aidong Zhang. 2018. <span>“Representation Learning for Treatment Effect Estimation from Observational Data.”</span> <em>Advances in Neural Information Processing Systems</em> 31.
+</div>
+<div id="ref-ye2024negative" class="csl-entry">
+Ye, Ting, Luke Keele, Raiden Hasegawa, and Dylan S Small. 2024. <span>“A Negative Correlation Strategy for Bracketing in Difference-in-Differences.”</span> <em>Journal of the American Statistical Association</em> 119 (547): 2256–68.
+</div>
+<div id="ref-yule1899" class="csl-entry">
+Yule, G Udny. 1899. <span>“An Investigation into the Causes of Changes in Pauperism in England, Chiefly During the Last Two Intercensal Decades (Part i.).”</span> <em>Journal of the Royal Statistical Society</em> 62 (2): 249–95.
+</div>
+<div id="ref-zhang2003estimation" class="csl-entry">
+Zhang, Junni L, and Donald B Rubin. 2003. <span>“Estimation of Causal Effects via Principal Stratification When Some Outcomes Are Truncated by <span>‘Death’</span>.”</span> <em>Journal of Educational and Behavioral Statistics</em> 28 (4): 353–68.
+</div>
+<div id="ref-zhang2022makes" class="csl-entry">
+Zhang, Shunyuan, Dokyun Lee, Param Vir Singh, and Kannan Srinivasan. 2022. <span>“What Makes a Good Image? Airbnb Demand Analytics Leveraging Interpretable Image Features.”</span> <em>Management Science</em> 68 (8): 5644–66.
+</div>
+<div id="ref-zhang2016case" class="csl-entry">
+Zhang, Zhongheng. 2016. <span>“Case-Crossover Design and Its Implementation in r.”</span> <em>Annals of Translational Medicine</em> 4 (18): 341.
+</div>
+<div id="ref-zhao2024pigeonhole" class="csl-entry">
+Zhao, Jinglong, and Zijie Zhou. 2024. <span>“Pigeonhole Design: Balancing Sequential Experiments from an Online Matching Perspective.”</span> <em>Management Science</em>.
+</div>
+<div id="ref-zhao2021propensity" class="csl-entry">
+Zhao, Qin-Yu, Jing-Chao Luo, Ying Su, Yi-Jie Zhang, Guo-Wei Tu, and Zhe Luo. 2021. <span>“Propensity Score Matching with r: Conventional Methods and New Features.”</span> <em>Annals of Translational Medicine</em> 9 (9).
+</div>
+<div id="ref-zou2008estimation" class="csl-entry">
+Zou, Guang Yong. 2008. <span>“On the Estimation of Additive Interaction by Use of the Four-by-Two Table and Beyond.”</span> <em>American Journal of Epidemiology</em> 168 (2): 212–24.
+</div>
+<div id="ref-zou2005a" class="csl-entry">
+Zou, Hui, and Trevor Hastie. 2005. <span>“Regularization and Variable Selection Via the Elastic Net.”</span> <em>Journal of the Royal Statistical Society Series B: Statistical Methodology</em> 67 (2): 301–20. <a href="https://doi.org/10.1111/j.1467-9868.2005.00503.x">https://doi.org/10.1111/j.1467-9868.2005.00503.x</a>.
+</div>
+</div>
+</div>
+</div>
+  <div class="chapter-nav">
+<div class="prev"><a href="references.html">References</a></div>
+<div class="empty"></div>
+</div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
+    <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
+      <ul class="nav navbar-nav">
+<li><a class="nav-link" href="#chapter-cluster-randomization-and-interference-bias"><span class="header-section-number">C</span> Chapter: Cluster Randomization and Interference Bias</a></li>
+<li>
+<a class="nav-link" href="#implementation-practical-guidelines"><span class="header-section-number">C.1</span> 6. Implementation: Practical Guidelines</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#constructing-clusters"><span class="header-section-number">C.1.1</span> 6.1 Constructing Clusters</a></li>
+<li><a class="nav-link" href="#evaluating-cluster-quality"><span class="header-section-number">C.1.2</span> 6.2 Evaluating Cluster Quality</a></li>
+<li><a class="nav-link" href="#trade-offs"><span class="header-section-number">C.1.3</span> 6.3 Trade-offs</a></li>
+</ul>
+</li>
+<li><a class="nav-link" href="#limitations-and-open-questions"><span class="header-section-number">C.2</span> 8. Limitations and Open Questions</a></li>
+</ul>
+
+      <div class="book-extra">
+        <ul class="list-unstyled">
+<li><a id="book-source" href="https://github.com/mikenguyen13/data_analysis/blob/main/test_21.Rmd">View source <i class="fab fa-github"></i></a></li>
+          <li><a id="book-edit" href="https://github.com/mikenguyen13/data_analysis/edit/main/test_21.Rmd">Edit this page <i class="fab fa-github"></i></a></li>
+        </ul>
+</div>
+    </nav>
+</div>
+
+</div>
+</div> <!-- .container -->
+
+<footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-06-05.</p>
+  </div>
+
+  <div class="col-12 col-md-6 mt-3">
+    <p>This book was built by the <a class="text-light" href="https://bookdown.org">bookdown</a> R package.</p>
+  </div>
+
+</div></div>
+</footer><!-- dynamically load mathjax for compatibility with self-contained --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><script type="text/x-mathjax-config">const popovers = document.querySelectorAll('a.footnote-ref[data-toggle="popover"]');
+for (let popover of popovers) {
+  const div = document.createElement('div');
+  div.setAttribute('style', 'position: absolute; top: 0, left:0; width:0, height:0, overflow: hidden; visibility: hidden;');
+  div.innerHTML = popover.getAttribute('data-content');
+
+  var has_math = div.querySelector("span.math");
+  if (has_math) {
+    document.body.appendChild(div);
+    MathJax.Hub.Queue(["Typeset", MathJax.Hub, div]);
+    MathJax.Hub.Queue(function() {
+      popover.setAttribute('data-content', div.innerHTML);
+      document.body.removeChild(div);
+    })
+  }
+}
+</script>
+</body>
+</html>

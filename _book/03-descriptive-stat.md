@@ -1,8 +1,10 @@
 # Descriptive Statistics
 
+Descriptive statistics serve as the cornerstone of data exploration. This chapter covers the tools used to summarize and visualize data, including measures of central tendency, dispersion, and shape. We emphasize the importance of choosing appropriate graphical techniques to identify patterns, outliers, and relationships. The chapter also includes procedures for assessing normality and a primer on bivariate analysis, laying the groundwork for later inferential methods. Real-world business examples illustrate how descriptive techniques provide insight and guide further analysis.
+
 When you have an area of interest to research, a problem to solve, or a relationship to investigate, theoretical and empirical processes will help you.
 
->**Estimand**: Defined as "a quantity of scientific interest that can be calculated in the population and does not change its value depending on the data collection design used to measure it (i.e., it does not vary with sample size, survey design, the number of non-respondents, or follow-up efforts)." [@Rubin_1996]
+> **Estimand** is defined as "a quantity of scientific interest that can be calculated in the population and does not change its value depending on the data collection design used to measure it (i.e., it does not vary with sample size, survey design, the number of non-respondents, or follow-up efforts)." [@Rubin_1996]
 
 Examples of estimands include:
 
@@ -15,8 +17,6 @@ Examples of estimands include:
 ------------------------------------------------------------------------
 
 ## Numerical Measures
-
-There are differences between a population and a sample:
 
 +----------------------+-----------------------------------------------------------------+-----------------------------------------------------------------------------------------------+-------------------------------------------------------------+
 | **Measures of**      | **Category**                                                    | **Population**                                                                                | **Sample**                                                  |
@@ -47,6 +47,8 @@ There are differences between a population and a sample:
 |                      |                                                                 |                                                                                               |                                                             |
 |                      | (peakedness and tail thickness) Standardized 4th central moment |                                                                                               |                                                             |
 +----------------------+-----------------------------------------------------------------+-----------------------------------------------------------------------------------------------+-------------------------------------------------------------+
+
+: Differences between a population and a sample
 
 ------------------------------------------------------------------------
 
@@ -104,15 +106,13 @@ There are differences between a population and a sample:
         -   @snedecor1989statistical, Table A 19(ii)
         -   @geary1936moments
 
-+-------------------------+-------------------+----------------------------------------------------+
 | **Kurtosis Value**      | **Tail Behavior** | **Comparison to Normal Distribution**              |
-+=========================+===================+====================================================+
+|-------------------------|-------------------|----------------------------------------------------|
 | $g_2 > 0$ (Leptokurtic) | Heavier Tails     | Examples: $t$-distributions                        |
-+-------------------------+-------------------+----------------------------------------------------+
 | $g_2 < 0$ (Platykurtic) | Lighter Tails     | Examples: Uniform or certain bounded distributions |
-+-------------------------+-------------------+----------------------------------------------------+
 | $g_2 = 0$ (Mesokurtic)  | Normal Tails      | Exactly matches the normal distribution            |
-+-------------------------+-------------------+----------------------------------------------------+
+
+: Kurtosis types and comparison to the normal distribution
 
 
 ``` r
@@ -168,6 +168,8 @@ The following table summarizes key graphical measures along with guidance on whe
 |                           |                                                                                          | - Useful for identifying multivariate patterns or potential correlation structures |
 +---------------------------+------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
 
+: Summary of key graphical measures
+
 **Tips for Selecting the Right Plot:**
 
 -   **Focus on Your Question**: Are you comparing groups, investigating correlations, or just exploring the overall shape of the data?
@@ -185,7 +187,8 @@ Properly labeling your graphs is essential to ensure that viewers can easily und
 # Generate random data for demonstration purposes
 data <- rnorm(100)
 
-# Histogram: A graphical representation of the distribution of a dataset.
+# Histogram: A graphical representation of the distribution 
+# of a dataset.
 hist(
     data,
     labels = TRUE,
@@ -197,15 +200,23 @@ hist(
 )
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-1.png" alt="Histogram displays frequency distribution of values ranging from -2 to 3. The highest frequency is 20 at value 1, with other notable frequencies being 16 at value 0 and 15 at value -1. Frequencies decrease towards the extremes of the value range." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-2)Histogram of Random Data</p>
+</div>
+
 
 ``` r
-
-# Interactive Histogram: Using 'highcharter' for a more interactive visualization.
+# Interactive Histogram: Using 'highcharter' for 
+# a more interactive visualization.
 # pacman::p_load("highcharter")
 # hchart(data, type = "column", name = "Random Data Distribution")
+```
 
-# Box-and-Whisker Plot: Useful for visualizing the distribution and identifying outliers.
+
+``` r
+# Box-and-Whisker Plot: Useful for visualizing the distribution 
+# and identifying outliers.
 boxplot(
     count ~ spray,
     data = InsectSprays,
@@ -216,11 +227,15 @@ boxplot(
 )
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-2.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-4-1.png" alt="Boxplot of insect sprays showing the distribution of counts for six spray types labeled A to F. The y-axis represents the count, ranging from 0 to 25. Spray types A, B, and F have higher median counts, with F having the highest. Types C, D, and E have lower median counts, with some outliers present." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-4)Boxplot of Insect Sprays</p>
+</div>
+
 
 ``` r
-
-# Notched Boxplot: The notches indicate a confidence interval around the median.
+# Notched Boxplot: The notches indicate a confidence interval 
+# around the median.
 boxplot(
     len ~ supp * dose,
     data = ToothGrowth,
@@ -232,12 +247,17 @@ boxplot(
 )
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-3.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-5-1.png" alt="Notched Boxplot illustrating tooth growth by supplement type and dose. The x-axis represents different supplement and dose combinations: OJ.0.5, VC.0.5, OJ.1, VC.1, OJ.2, and VC.2. The y-axis shows tooth length. Each box plot displays the median, quartiles, and potential outliers for each group. Yellow and green colors differentiate the supplement types. " width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-5)Tooth Growth by Supplement and Dose</p>
+</div>
+
+If the notches of two boxes do not overlap, this suggests that the medians differ significantly.
+
 
 ``` r
-# If the notches of two boxes do not overlap, this suggests that the medians differ significantly.
-
-# Stem-and-Leaf Plot: Provides a quick way to visualize the distribution of data.
+# Stem-and-Leaf Plot: Provides a quick way to visualize 
+# the distribution of data.
 stem(data)
 #> 
 #>   The decimal point is at the |
@@ -251,8 +271,12 @@ stem(data)
 #>    1 | 00111222
 #>    1 | 67
 #>    2 | 01
+```
 
-# Bagplot - A 2D Boxplot Extension: Visualizes the spread and identifies outliers in two-dimensional data.
+
+``` r
+# Bagplot - A 2D Boxplot Extension: Visualizes the spread and 
+# identifies outliers in two-dimensional data.
 pacman::p_load(aplpack)
 attach(mtcars)
 bagplot(wt,
@@ -262,7 +286,10 @@ bagplot(wt,
         main = "Bagplot of Car Weight vs. Miles Per Gallon")
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-2-4.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-7-1.png" alt="Bagplot of car weight versus miles per gallon. The X-axis represents car weight, ranging from 2 to 5, and the Y-axis represents miles per gallon, ranging from 10 to 30. The plot includes a central blue area indicating the data's median and spread, with outliers marked outside this region. Red lines and a central orange arrow highlight data distribution and direction." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-7)Bagplot of Car Weight vs. Miles Per Gallon</p>
+</div>
 
 ``` r
 detach(mtcars)
@@ -272,7 +299,8 @@ Below are some advanced plot types that can provide deeper insights into data:
 
 
 ``` r
-# boxplot.matrix(): Creates boxplots for each column in a matrix. Useful for comparing multiple variables.
+# boxplot.matrix(): Creates boxplots for each column in a matrix. 
+# Useful for comparing multiple variables.
 graphics::boxplot.matrix(
     cbind(
         Uni05 = (1:100) / 21,
@@ -286,16 +314,23 @@ graphics::boxplot.matrix(
 )
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-8-1.png" alt="Boxplot displays data for four categories: Uni05, Norm, T5, and Gam2. Each boxplot shows the median, quartiles, and potential outliers. Uni05 has the widest interquartile range, while Gam2 shows several outliers above the upper whisker. The y-axis ranges from -4 to 8." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-8)Boxplot Marix</p>
+</div>
+
 
 ``` r
-
-# Violin Plot (vioplot()): Combines a boxplot with a density plot, providing more information about the distribution.
+# Violin Plot (vioplot()): Combines a boxplot with a density plot, 
+# providing more information about the distribution.
 library("vioplot")
 vioplot(data, col = "lightblue", main = "Violin Plot Example")
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-3-2.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-9-1.png" alt="A violin plot displays data distribution. The plot shows a symmetrical, light blue shape with a central black boxplot, including a white dot representing the median. The y-axis ranges from -2 to 3, and the x-axis is labeled with a single category, 1. The plot illustrates data density and variability." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-9)Violin Plot Example</p>
+</div>
 
 ### Scatterplot
 
@@ -311,7 +346,10 @@ pairs(mtcars,
       col = "blue")
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-10-1.png" alt="Scatterplot matrix displays pairwise relationships between variables: mpg, cyl, disp, hp, drat, wt, qsec, vs, am, gear, and carb. Each subplot shows a scatterplot with blue data points, illustrating correlations between two variables. Axes are labeled with variable names and scales. The matrix provides a comprehensive visual overview of potential correlations in the dataset." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-10)Pairwise Scatterplots</p>
+</div>
 
 ## Normality Assessment
 
@@ -335,7 +373,10 @@ qqnorm(precip,
 qqline(precip, col = "red")
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-11-1.png" alt="Q-Q plot of precipitation data for 70 US cities, comparing observed precipitation values in inches per year to theoretical quantiles. The plot features a red reference line indicating a normal distribution. Data points are mostly aligned along the line, suggesting normality, with some deviation at the extremes." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-11)Q-Q Plot of Precipitation Data</p>
+</div>
 
 **Interpretation**
 
@@ -565,17 +606,14 @@ Properties of the ECDF
 
 Let's consider a sample dataset $\{3, 7, 7, 10, 15\}$. The ECDF at different values of $x$ is calculated as:
 
-+------------+-----------------------------------------+----------------+---------------+
-| $x$        | $\mathbb{I}(X_i \leq x)$ for each $X_i$ | Count $\leq x$ | ECDF $F_n(x)$ |
-+============+=========================================+================+===============+
-| $x = 5$    | $\{1, 0, 0, 0, 0\}$                     | 1              | $1/5 = 0.2$   |
-+------------+-----------------------------------------+----------------+---------------+
-| $x = 7$    | $\{1, 1, 1, 0, 0\}$                     | 3              | $3/5 = 0.6$   |
-+------------+-----------------------------------------+----------------+---------------+
-| $x = 12$   | $\{1, 1, 1, 1, 0\}$                     | 4              | $4/5 = 0.8$   |
-+------------+-----------------------------------------+----------------+---------------+
-| $x = 15$   | $\{1, 1, 1, 1, 1\}$                     | 5              | $5/5 = 1.0$   |
-+------------+-----------------------------------------+----------------+---------------+
+| $x$      | $\mathbb{I}(X_i \leq x)$ for each $X_i$ | Count $\leq x$ | ECDF $F_n(x)$ |
+|----------|-----------------------------------------|----------------|---------------|
+| $x = 5$  | $\{1, 0, 0, 0, 0\}$                     | 1              | $1/5 = 0.2$   |
+| $x = 7$  | $\{1, 1, 1, 0, 0\}$                     | 3              | $3/5 = 0.6$   |
+| $x = 12$ | $\{1, 1, 1, 1, 0\}$                     | 4              | $4/5 = 0.8$   |
+| $x = 15$ | $\{1, 1, 1, 1, 1\}$                     | 5              | $5/5 = 1.0$   |
+
+: Empirical cumulative distribution function computation example
 
 Applications of the ECDF
 
@@ -610,7 +648,10 @@ print(ecdf_data)
 #> 2  7  0.6
 #> 3 10  0.8
 #> 4 15  1.0
+```
 
+
+``` r
 # Plot the ECDF
 ggplot(ecdf_data, aes(x = x, y = ecdf)) +
   geom_step() +
@@ -622,7 +663,10 @@ ggplot(ecdf_data, aes(x = x, y = ecdf)) +
   theme_minimal()
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-15-1.png" alt="An X-Y chart displays a step-like line graph. The x-axis is ranging from 0 to 14, and the y-axis is ranging from 0.2 to 1.0. The graph shows a series of horizontal and vertical steps, indicating the cumulative distribution of data values." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-15)Empirical Cumulative Distribution Function</p>
+</div>
 
 
 ``` r
@@ -632,7 +676,10 @@ plot.ecdf(as.numeric(mtcars[1, ]),
           do.points = FALSE)
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-16-1.png" alt="Empirical cumulative distribution function (ECDF) plot shows the stepwise increase of Fn(x) on the y-axis from 0 to 1, against x-values ranging from 0 to 150 on the x-axis. The plot illustrates the cumulative probability distribution of a dataset." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-16)Empirical Cumulative Distribution Function Alternative</p>
+</div>
 
 ##### Anderson-Darling Test
 
@@ -690,8 +737,8 @@ Key Features of the Test
 
 Hypothesis Testing
 
--   **Null Hypothesis (**$H_0$): The data follows the specified distribution (e.g., normal distribution).
--   **Alternative Hypothesis (**$H_1$): The data does not follow the specified distribution.
+-   **Null Hypothesis** ($H_0$): The data follows the specified distribution (e.g., normal distribution).
+-   **Alternative Hypothesis** ($H_1$): The data does not follow the specified distribution.
 -   The null hypothesis is rejected if $A^2$ is too large, indicating a poor fit to the specified distribution.
 
 Critical values for the test statistic are provided by [@Marsaglia_2004] and [@Stephens_1974].
@@ -776,8 +823,8 @@ where $F_{n,1}(x)$ and $F_{m,2}(x)$ are the empirical CDFs of the two samples, w
 
 Hypotheses
 
--   **Null hypothesis (**$H_0$): The sample comes from the specified distribution (one-sample) or the two samples are drawn from the same distribution (two-sample).
--   **Alternative hypothesis (**$H_1$): The sample does not come from the specified distribution (one-sample) or the two samples are drawn from different distributions (two-sample).
+-   **Null hypothesis** ($H_0$): The sample comes from the specified distribution (one-sample) or the two samples are drawn from the same distribution (two-sample).
+-   **Alternative hypothesis** ($H_1$): The sample does not come from the specified distribution (one-sample) or the two samples are drawn from different distributions (two-sample).
 
 Properties
 
@@ -865,8 +912,8 @@ where:
 
 Hypotheses
 
--   **Null hypothesis (H0)**: The sample data follow the specified distribution.
--   **Alternative hypothesis (H1)**: The sample data do not follow the specified distribution.
+-   **Null hypothesis** ($H_0$): The sample data follow the specified distribution.
+-   **Alternative hypothesis** ($H_1$): The sample data do not follow the specified distribution.
 
 Properties
 
@@ -1055,6 +1102,8 @@ Before delving into the analysis, it is critical to consider the following:
 |                 | [Logistic Regression]                                      | [Spearman Correlation]                        |
 +-----------------+------------------------------------------------------------+-----------------------------------------------+
 
+: Common association measures
+
 ### Two Continuous
 
 
@@ -1227,19 +1276,14 @@ cat("Distance Correlation (dCor):", distance_corr, "\n")
 #> Distance Correlation (dCor): 0.1008934
 ```
 
-#### Summary Table of Correlation Methods
-
-+--------------------------+--------------------------------+---------------------------+-----------------------------+-------------------------+-------------------------------------+
 | Method                   | Formula/Approach               | Detects Relationship Type | Assumptions                 | Sensitivity to Outliers | Use Case                            |
-+==========================+================================+===========================+=============================+=========================+=====================================+
+|--------------------------|--------------------------------|---------------------------|-----------------------------|-------------------------|-------------------------------------|
 | **Pearson**              | Linear covariance              | Linear                    | Normality, homoscedasticity | High                    | Linear relationships.               |
-+--------------------------+--------------------------------+---------------------------+-----------------------------+-------------------------+-------------------------------------+
 | **Spearman**             | Ranks and monotonicity formula | Monotonic                 | None                        | Moderate                | Monotonic, non-linear data.         |
-+--------------------------+--------------------------------+---------------------------+-----------------------------+-------------------------+-------------------------------------+
 | **Kendall's Tau**        | Concordance/discordance ratio  | Monotonic                 | None                        | Low                     | Small datasets, robust to outliers. |
-+--------------------------+--------------------------------+---------------------------+-----------------------------+-------------------------+-------------------------------------+
 | **Distance Correlation** | Distance-based variance        | Linear and non-linear     | None                        | Low                     | Complex, non-linear relationships.  |
-+--------------------------+--------------------------------+---------------------------+-----------------------------+-------------------------+-------------------------------------+
+
+: Summary of Correlation Methods
 
 ### Categorical and Continuous
 
@@ -1397,21 +1441,19 @@ ggplot(data, aes(x = x, y = predicted)) +
          x = "Continuous Predictor", y = "Predicted Probability")
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-29-1.png" alt="Chart shows a scatter plot of red data points along the x-axis labeled 'Continuous Predictor' and y-axis labeled 'Predicted Probability.' A blue line indicates the regression trend. The chart illustrates the relationship between a continuous predictor and predicted probabilities in a logistic regression model." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-29)Logistic Regression Continuous versus Binary</p>
+</div>
 
-#### Summary Table of Methods (Between Categorical and Continuous)
-
-+--------------------------------+---------------------------------------+------------------------------------+----------------------------------------+
 | Method                         | Type of Variable Relationship         | Key Assumptions                    | Use Case                               |
-+================================+=======================================+====================================+========================================+
+|--------------------------------|---------------------------------------|------------------------------------|----------------------------------------|
 | **Point-Biserial Correlation** | Binary Categorical vs Continuous      | Linear, normality (continuous)     | Assess linear association.             |
-+--------------------------------+---------------------------------------+------------------------------------+----------------------------------------+
 | **Logistic Regression**        | Continuous → Binary Categorical       | Logit-linear relationship          | Predict probability of binary outcome. |
-+--------------------------------+---------------------------------------+------------------------------------+----------------------------------------+
 | **ANOVA**                      | Multi-level Categorical vs Continuous | Normality, homogeneity of variance | Compare means across groups.           |
-+--------------------------------+---------------------------------------+------------------------------------+----------------------------------------+
 | **T-Test**                     | Binary Categorical vs Continuous      | Normality, equal variance          | Compare means between two groups.      |
-+--------------------------------+---------------------------------------+------------------------------------+----------------------------------------+
+
+: Summary Table of Methods (Between Categorical and Continuous)
 
 ### Two Discrete
 
@@ -1653,7 +1695,7 @@ library(psych)
 # Compute Phi Coefficient
 phi_coeff <- phi(dt)
 cat("Phi Coefficient:", phi_coeff, "\n")
-#> Phi Coefficient: 0.04
+#> Phi Coefficient: 0.0428
 ```
 
 ##### Cramer's V {#cramers-v}
@@ -2033,6 +2075,8 @@ Special version $(2 \times 2)$ of the [Goodman Kruskal's Gamma](#goodman-kruskal
 | **Variable 2** | a          | b   |
 |                | c          | d   |
 
+: Special version of the Goodman Kruskal's Gamma coefficient
+
 $$
 \text{Yule's Q} = \frac{ad - bc}{ad + bc}
 $$
@@ -2127,31 +2171,21 @@ cat("Polychoric Correlation:", polychoric_corr, "\n")
 #> Polychoric Correlation: 0.1908334
 ```
 
-+-----------------------------+-----------------------------------+------------------------------------------------+
 | Metric                      | Variable Types                    | Use Case                                       |
-+=============================+===================================+================================================+
+|-----------------------------|-----------------------------------|------------------------------------------------|
 | **Spearman's Correlation**  | Ordinal vs. Ordinal               | Non-linear, monotonic relationships.           |
-+-----------------------------+-----------------------------------+------------------------------------------------+
 | **Kendall's Tau**           | Ordinal vs. Ordinal               | Non-linear, monotonic relationships with ties. |
-+-----------------------------+-----------------------------------+------------------------------------------------+
 | **Gamma Statistic**         | Ordinal vs. Ordinal               | Handles data with many ties effectively.       |
-+-----------------------------+-----------------------------------+------------------------------------------------+
 | **Freeman's Theta**         | Ordinal vs. Nominal               | Mixed data types (ordinal and nominal).        |
-+-----------------------------+-----------------------------------+------------------------------------------------+
 | **Epsilon-Squared**         | Ordinal vs. Nominal               | Variance explained by nominal groups.          |
-+-----------------------------+-----------------------------------+------------------------------------------------+
 | **Goodman-Kruskal's Gamma** | Ordinal vs. Ordinal               | Strong association; ignores ties.              |
-+-----------------------------+-----------------------------------+------------------------------------------------+
 | **Somers' D**               | Ordinal Predictor and Response    | Asymmetric association.                        |
-+-----------------------------+-----------------------------------+------------------------------------------------+
 | **Kendall's Tau-b**         | Ordinal vs. Ordinal               | Adjusts for ties in data.                      |
-+-----------------------------+-----------------------------------+------------------------------------------------+
 | **Yule's Q**                | Binary Ordinal vs. Binary Ordinal | Special case for 2x2 tables.                   |
-+-----------------------------+-----------------------------------+------------------------------------------------+
 | **Tetrachoric Correlation** | Binary vs. Binary                 | Binary ordinal variables.                      |
-+-----------------------------+-----------------------------------+------------------------------------------------+
 | **Polychoric Correlation**  | Ordinal vs. Ordinal               | Continuous latent structure.                   |
-+-----------------------------+-----------------------------------+------------------------------------------------+
+
+: Association metrics, variable types, and use cases
 
 ### General Approach to Bivariate Statistics
 
@@ -2347,7 +2381,10 @@ modelsummary::datasummary_correlation(df)
 ggcorrplot::ggcorrplot(cor(df))
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-46-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-53-1.png" alt="Heatmap showing correlation between variables: carb, vs, and cyl. The color scale ranges from blue to red, indicating correlation values from -1 to 1. Red signifies strong positive correlation, blue indicates strong negative correlation, and lighter shades represent weaker correlations. The heatmap includes a color legend labeled 'Corr' on the right." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-53)Heatmap Example</p>
+</div>
 
 Comparing correlations between different types of variables (e.g., continuous vs. categorical) poses unique challenges. One key issue is ensuring that methods are appropriate for the nature of the variables being analyzed. Another challenge lies in detecting non-linear relationships, as traditional correlation measures, such as Pearson's correlation coefficient, are designed to assess linear associations.
 
@@ -2427,7 +2464,10 @@ ppsr::score_matrix(df,
 corrplot::corrplot(cor(df))
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-48-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-55-1.png" alt="Bubble chart showing correlations between variables. Each cell contains a bubble representing the strength and direction of the correlation, with size and color indicating magnitude and sign. Dark blue indicates strong positive correlation, while dark red indicates strong negative correlation. A color scale on the right ranges from -1 to 1." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-55)Bubble Chart Example</p>
+</div>
 
 Alternatively,
 
@@ -2436,14 +2476,20 @@ Alternatively,
 PerformanceAnalytics::chart.Correlation(df, histogram = T, pch = 19)
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-49-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-56-1.png" alt="Scatterplot matrix showing relationships between variables. Each subplot includes a scatterplot with a red trend line. Correlation coefficients are displayed with significance levels: -0.81 (***), 0.53 (**), and -0.57 (***). Axes are labeled with corresponding variable values." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-56)Scatterplot Matrix Example</p>
+</div>
 
 
 ``` r
 heatmap(as.matrix(df))
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-50-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-57-1.png" alt="Heatmap displaying hierarchical clustering of various car models based on three variables. The color gradient ranges from light yellow to dark red, indicating varying levels of the variables. Car models listed include Hornet Sportabout, Pontiac Firebird, and others. A dendrogram on the left shows the clustering relationships among the models." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-57)Hierarchical Heatmap Example</p>
+</div>
 
 More general form,
 
@@ -2456,7 +2502,10 @@ ppsr::visualize_pps(
 )
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-51-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-58-1.png" alt="Heatmap showing the predictive power score (pps) between different features: Sepal.Length, Sepal.Width, and Petal.Length. The diagonal values are 1.00, indicating perfect correlation with themselves. Other values range from 0.05 to 0.62, with darker shades representing higher scores. A color scale on the right indicates pps values from 0.0 to 1.0." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-58)Heatmap Predictive Example</p>
+</div>
 
 
 ``` r
@@ -2465,7 +2514,10 @@ ppsr::visualize_correlations(
 )
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-52-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-59-1.png" alt="Heatmap showing correlation coefficients between Sepal.Length, Sepal.Width, and Petal.Length. The diagonal values are 1, indicating perfect correlation with themselves. Sepal.Length and Petal.Length have a high positive correlation of 0.87. Sepal.Width has a weak negative correlation with Sepal.Length (-0.12) and Petal.Length (-0.43). The color gradient ranges from dark blue for positive correlations to dark red for negative correlations, with a legend indicating correlation values from -1 to 1." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-59)Heatmap Correlation Example</p>
+</div>
 
 Both heat map and correlation at the same time
 
@@ -2478,7 +2530,10 @@ ppsr::visualize_both(
 )
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-53-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-60-1.png" alt="Heatmap figure showing two matrices comparing predictor and target variables. The left matrix represents predictive power scores (pps) with values ranging from 0 to 1, indicated by a blue gradient. The right matrix shows correlation values, ranging from -1 to 1, with a blue to red gradient. Both matrices include variables: Sepal.Length, Sepal.Width, and Petal.Length. Key values are displayed within each cell, such as 1.00, 0.07, and 0.62 in the pps matrix, and 1.00, -0.12, and 0.87 in the correlation matrix." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-60)Heatmap and Correlation Example</p>
+</div>
 
 More elaboration with `ggplot2`
 
@@ -2502,4 +2557,7 @@ ppsr::visualize_pps(
     )
 ```
 
-<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-54-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="03-descriptive-stat_files/figure-html/unnamed-chunk-61-1.png" alt="The heatmap displays correlation values between Sepal.Length, Sepal.Width, and Petal.Length, with values ranging from 0.00 to 1.00. The color gradient from yellow to red indicates increasing correlation strength. The side legend labeled 'pps' shows the color scale. The x-axis is labeled with Sepal.Length, Sepal.Width, and Petal.Length, and the y-axis is labeled 'target.' " width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-61)Correlation and Heatmap Example</p>
+</div>

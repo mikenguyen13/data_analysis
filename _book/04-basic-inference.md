@@ -1,5 +1,7 @@
 # Basic Statistical Inference
 
+This chapter introduces the core logic of statistical inference, focusing on how we use sample data to make probabilistic statements about populations. We begin with the hypothesis testing framework, including null and alternative hypotheses, test statistics, and $p$-values. Key concepts such as confidence intervals and Type I/II errors are explained in depth. Specific methods for one-sample and two-sample inference are discussed, along with inference for categorical data. We also introduce divergence metrics, which provide alternative ways to compare distributions---a concept increasingly important in modern data science applications.
+
 Statistical inference involves drawing conclusions about population parameters based on sample data. The two primary goals of inference are:
 
 1.  **Making inferences** about the true parameter value ($\beta$) based on our estimator or estimate:
@@ -312,7 +314,10 @@ legend(
 )
 ```
 
-<img src="04-basic-inference_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="04-basic-inference_files/figure-html/unnamed-chunk-1-1.png" alt="Chart titled 'Hypothesis Testing with Distribution' showing a bell curve representing a t-distribution. The x-axis is labeled 'Test Statistic (t-value)' and the y-axis is labeled 'Density.' The curve is divided into three regions: two 'Rejection Regions' in red on the tails, and a 'Non-Rejection Region' in blue in the center. Critical values are marked at -2.05 and 2.0. An observed test statistic at 2.5 is highlighted with a green dot. The p-value is noted as 0.018." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-1)Hypothesis Testing with Distribution</p>
+</div>
 
 ------------------------------------------------------------------------
 
@@ -412,7 +417,7 @@ $$
 \sigma_{\bar{X}} = \frac{\sigma}{\sqrt{n}}
 $$
 
-**Example**: - Suppose $\sigma = 10$ and $n = 25$. Then: $$
+**Example**: Suppose $\sigma = 10$ and $n = 25$. Then: $$
   \sigma_{\bar{X}} = \frac{10}{\sqrt{25}} = 2.
   $$
 
@@ -471,13 +476,12 @@ where $s / \sqrt{n}$ is the standard error of $\bar{y}$.
 
 If the experiment were repeated many times, $100(1-\alpha)\%$ of these intervals would contain $\mu$.
 
-+-------------------------------------------------+---------------------------------------------------+-------------------------------------------------+-------------------------------------------------+
 | Case                                            | Confidence Interval $100(1-\alpha)\%$             | Sample Size (Confidence $\alpha$, Error $d$)    | Hypothesis Test Statistic                       |
-+=================================================+===================================================+=================================================+=================================================+
+|-------------------------------------------------|---------------------------------------------------|-------------------------------------------------|-------------------------------------------------|
 | $\sigma^2$ known, $X$ normal (or $n \geq 25$)   | $\bar{X} \pm z_{\alpha/2}\frac{\sigma}{\sqrt{n}}$ | $n \approx \frac{z_{\alpha/2}^2 \sigma^2}{d^2}$ | $z = \frac{\bar{X} - \mu_0}{\sigma / \sqrt{n}}$ |
-+-------------------------------------------------+---------------------------------------------------+-------------------------------------------------+-------------------------------------------------+
 | $\sigma^2$ unknown, $X$ normal (or $n \geq 25$) | $\bar{X} \pm t_{\alpha/2}\frac{s}{\sqrt{n}}$      | $n \approx \frac{z_{\alpha/2}^2 s^2}{d^2}$      | $t = \frac{\bar{X} - \mu_0}{s / \sqrt{n}}$      |
-+-------------------------------------------------+---------------------------------------------------+-------------------------------------------------+-------------------------------------------------+
+
+: Confidence intervals, sample size, and test statistics for normal mean inference
 
 #### Power in Hypothesis Testing
 
@@ -775,25 +779,22 @@ cat("Achieved power with computed sample size:",
 
 ### For Difference of Means, Independent Samples
 
-+-------------------------------------------------------+----------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
 |                                                       | $100(1-\alpha)%$ Confidence Interval                                                         | Hypothesis Testing Test Statistic                                                                       |                                                                                                                                                        |
-+=======================================================+==============================================================================================+=========================================================================================================+========================================================================================================================================================+
+|-------------------------------------------------------|----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
 | When $\sigma^2$ is known                              | $\bar{X}_1 - \bar{X}_2 \pm z_{\alpha/2}\sqrt{\frac{\sigma^2_1}{n_1}+\frac{\sigma^2_2}{n_2}}$ | $z= \frac{(\bar{X}_1-\bar{X}_2)-(\mu_1-\mu_2)_0}{\sqrt{\frac{\sigma^2_1}{n_1}+\frac{\sigma^2_2}{n_2}}}$ |                                                                                                                                                        |
-+-------------------------------------------------------+----------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
 | When $\sigma^2$ is unknown, Variances Assumed EQUAL   | $\bar{X}_1 - \bar{X}_2 \pm t_{\alpha/2}\sqrt{s^2_p(\frac{1}{n_1}+\frac{1}{n_2})}$            | $t = \frac{(\bar{X}_1-\bar{X}_2)-(\mu_1-\mu_2)_0}{\sqrt{s^2_p(\frac{1}{n_1}+\frac{1}{n_2})}}$           | Pooled Variance: $s_p^2 = \frac{(n_1 -1)s^2_1 - (n_2-1)s^2_2}{n_1 + n_2 -2}$ Degrees of Freedom: $\gamma = n_1 + n_2 -2$                               |
-+-------------------------------------------------------+----------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
 | When $\sigma^2$ is unknown, Variances Assumed UNEQUAL | $\bar{X}_1 - \bar{X}_2 \pm t_{\alpha/2}\sqrt{(\frac{s^2_1}{n_1}+\frac{s^2_2}{n_2})}$         | $t = \frac{(\bar{X}_1-\bar{X}_2)-(\mu_1-\mu_2)_0}{\sqrt{(\frac{s^2_1}{n_1}+\frac{s^2_2}{n_2})}}$        | Degrees of Freedom: $\gamma = \frac{(\frac{s_1^2}{n_1}+\frac{s^2_2}{n_2})^2}{\frac{(\frac{s_1^2}{n_1})^2}{n_1-1}+\frac{(\frac{s_2^2}{n_2})^2}{n_2-1}}$ |
-+-------------------------------------------------------+----------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+: Inference for the difference between two means under various variance assumptions
 
 ### For Difference of Means, Paired Samples
 
-+---------------------------+------------------------------------------------+
 | Metric                    | Formula                                        |
-+===========================+================================================+
+|---------------------------|------------------------------------------------|
 | Confidence Interval       | $\bar{D} \pm t_{\alpha/2}\frac{s_d}{\sqrt{n}}$ |
-+---------------------------+------------------------------------------------+
 | Hypothesis Test Statistic | $t = \frac{\bar{D} - D_0}{s_d / \sqrt{n}}$     |
-+---------------------------+------------------------------------------------+
+
+: Confidence interval and test statistic for paired sample mean difference
 
 ### For Difference of Two Proportions
 
@@ -916,17 +917,14 @@ This test statistic follows a chi-squared distribution with $n-1$ degrees of fre
 
 ### Non-parametric Tests
 
-+---------------------------------------------------------------+------------------------------+--------------------------------+
 | **Method**                                                    | **Purpose**                  | **Assumptions**                |
-+===============================================================+==============================+================================+
+|---------------------------------------------------------------|------------------------------|--------------------------------|
 | [Sign Test]                                                   | Test median                  | None (ordinal data sufficient) |
-+---------------------------------------------------------------+------------------------------+--------------------------------+
 | [Wilcoxon Signed Rank Test]                                   | Test symmetry around a value | Symmetry of distribution       |
-+---------------------------------------------------------------+------------------------------+--------------------------------+
 | [Wald-Wolfowitz Runs Test]                                    | Test for randomness          | Independent observations       |
-+---------------------------------------------------------------+------------------------------+--------------------------------+
 | [Quantile (or Percentile) Test](#quantile-or-percentile-test) | Test specific quantile       | None (ordinal data sufficient) |
-+---------------------------------------------------------------+------------------------------+--------------------------------+
+
+: Nonparametric tests for medians, quantiles, and randomness with assumptions
 
 #### Sign Test
 
@@ -971,7 +969,7 @@ Steps:
 
 ------------------------------------------------------------------------
 
-Large Sample Normal Approximation
+**Large Sample Normal Approximation**
 
 For large $n$, use a normal approximation for the binomial test. Reject $H_0$ if: $$
 s_+ \ge \frac{n}{2} + \frac{1}{2} + z_{\alpha} \sqrt{\frac{n}{4}}
@@ -1365,6 +1363,8 @@ Limitations of the Test
 
 -   The test assumes that the quantile used (e.g., the median) is well-defined and correctly calculated from the data.
 
+------------------------------------------------------------------------
+
 ## Two-Sample Inference
 
 ### For Means
@@ -1483,6 +1483,8 @@ We can do inference based on the [Student's T Distribution], where we have 2 cas
 |                                                                | 3.  [Modified Levene Test (Brown-Forsythe Test)](#modified-levene-test-brown-forsythe-test) |                                   |
 |                                                                | 4.  [Bartlett's Test](#bartletts-test)                                                      |                                   |
 +----------------------------------------------------------------+---------------------------------------------------------------------------------------------+-----------------------------------+
+
+: Statistical assumptions, diagnostic tests, and graphical methods
 
 ##### Equal Variances
 
@@ -2213,15 +2215,11 @@ sample_size
 
 **Formula Summary**
 
-+--------------------+-----------------------------------------------------------------------------------------+
 | Test Type          | Formula for Sample Size                                                                 |
-+====================+=========================================================================================+
+|--------------------|-----------------------------------------------------------------------------------------|
 | One-Sided Test     | $n = 2 \left( \frac{\sigma (z_{\alpha} + z_{\beta})}{\delta} \right)^2$                 |
-+--------------------+-----------------------------------------------------------------------------------------+
 | Two-Sided Test     | $n = 2 \left( \frac{\sigma (z_{\alpha/2} + z_{\beta})}{\delta} \right)^2$               |
-+--------------------+-----------------------------------------------------------------------------------------+
 | Approximate t-Test | $n^* = 2 \left( \frac{\sigma (t_{2n-2; \alpha/2} + t_{2n-2; \beta})}{\delta} \right)^2$ |
-+--------------------+-----------------------------------------------------------------------------------------+
 
 ### Matched Pair Designs
 
@@ -2233,10 +2231,12 @@ We have two treatments, and the data are structured as follows:
 
 | Subject | Treatment A | Treatment B | Difference        |
 |---------|-------------|-------------|-------------------|
-| 1       | $y_1$       | $x_1$       | $d_1 = y_1 - x_1$ |
-| 2       | $y_2$       | $x_2$       | $d_2 = y_2 - x_2$ |
+| $1$     | $y_1$       | $x_1$       | $d_1 = y_1 - x_1$ |
+| $2$     | $y_2$       | $x_2$       | $d_2 = y_2 - x_2$ |
 | ...     | ...         | ...         | ...               |
-| n       | $y_n$       | $x_n$       | $d_n = y_n - x_n$ |
+| $n$     | $y_n$       | $x_n$       | $d_n = y_n - x_n$ |
+
+: Paired sample structure with treatment values and differences
 
 Here:
 
@@ -2622,6 +2622,8 @@ mann_whitney
 
 4.  **Handling Ties**: Ties are accounted for by assigning fractional contributions to $u_y$ and $u_x$.
 
+------------------------------------------------------------------------
+
 ## Categorical Data Analysis
 
 **Categorical Data Analysis** is used when the outcome variables are **categorical**.
@@ -2716,7 +2718,7 @@ The output of `fisher.test()` includes:
 
 -   If the p-value is less than $\alpha$, reject $H_0$ and conclude that there is a significant association between the two variables.
 
-##### Exact Chi-Square Test
+##### Exact Chi-Square Test {#sec-exact-chi-square-test}
 
 For small samples where the normal approximation does not apply, we can compute the **exact Chi-Square test** by using Fisher's Exact Test or Monte Carlo simulation methods.
 
@@ -2736,7 +2738,7 @@ where:
 
 #### Large Samples
 
-##### Pearson Chi-Square Test
+##### Pearson Chi-Square Test {#sec-pearson-chi-square-test}
 
 The **Pearson Chi-Square Test** is commonly used to test whether there is an association between two categorical variables. It compares the observed counts in a contingency table to the expected counts under the null hypothesis.
 
@@ -2844,17 +2846,13 @@ prop.test(
 
 ------------------------------------------------------------------------
 
-**Comparison of Proportions for Multiple Groups**
+|                     | Experiment 1 | Experiment 2 | ... | Experiment k |
+|---------------------|--------------|--------------|-----|--------------|
+| Number of successes | $x_1$        | $x_2$        | ... | $x_k$        |
+| Number of failures  | $n_1 - x_1$  | $n_2 - x_2$  | ... | $n_k - x_k$  |
+| Total               | $n_1$        | $n_2$        | ... | $n_k$        |
 
-+---------------------+--------------+--------------+------------+--------------+
-|                     | Experiment 1 | Experiment 2 | ...        | Experiment k |
-+=====================+==============+==============+============+==============+
-| Number of successes | $x_1$        | $x_2$        | ...        | $x_k$        |
-+---------------------+--------------+--------------+------------+--------------+
-| Number of failures  | $n_1 - x_1$  | $n_2 - x_2$  | ...        | $n_k - x_k$  |
-+---------------------+--------------+--------------+------------+--------------+
-| Total               | $n_1$        | $n_2$        | ...        | $n_k$        |
-+---------------------+--------------+--------------+------------+--------------+
+: Comparison of Proportions for Multiple Groups
 
 We test the null hypothesis:
 
@@ -2876,13 +2874,12 @@ $$
 
 The **expected counts** under $H_0$ are:
 
-+------------+------------------+------------------+------------+------------------+
-| Success    | $n_1 \hat{p}$    | $n_2 \hat{p}$    | ...        | $n_k \hat{p}$    |
-+============+==================+==================+============+==================+
-| Failure    | $n_1(1-\hat{p})$ | $n_2(1-\hat{p})$ | ...        | $n_k(1-\hat{p})$ |
-+------------+------------------+------------------+------------+------------------+
-|            | $n_1$            | $n_2$            |            | $n_k$            |
-+------------+------------------+------------------+------------+------------------+
+| Success | $n_1 \hat{p}$    | $n_2 \hat{p}$    | ... | $n_k \hat{p}$    |
+|---------|------------------|------------------|-----|------------------|
+| Failure | $n_1(1-\hat{p})$ | $n_2(1-\hat{p})$ | ... | $n_k(1-\hat{p})$ |
+|         | $n_1$            | $n_2$            |     | $n_k$            |
+
+: Expected counts for a goodness-of-fit test with estimated proportion
 
 The test statistic is:
 
@@ -2898,19 +2895,15 @@ with $k - 1$ degrees of freedom.
 
 When categorical data are cross-classified, we create a two-way table of observed counts.
 
-+--------------+----------+----------+-------+----------+-------+----------+-----------+
-|              | 1        | 2        | ...   | j        | ...   | c        | Row Total |
-+==============+==========+==========+=======+==========+=======+==========+===========+
-| 1            | $n_{11}$ | $n_{12}$ | ...   | $n_{1j}$ | ...   | $n_{1c}$ | $n_{1.}$  |
-+--------------+----------+----------+-------+----------+-------+----------+-----------+
-| 2            | $n_{21}$ | $n_{22}$ | ...   | $n_{2j}$ | ...   | $n_{2c}$ | $n_{2.}$  |
-+--------------+----------+----------+-------+----------+-------+----------+-----------+
-| ...          | ...      | ...      | ...   | ...      | ...   | ...      | ...       |
-+--------------+----------+----------+-------+----------+-------+----------+-----------+
-| r            | $n_{r1}$ | $n_{r2}$ | ...   | $n_{rj}$ | ...   | $n_{rc}$ | $n_{r.}$  |
-+--------------+----------+----------+-------+----------+-------+----------+-----------+
-| Column Total | $n_{.1}$ | $n_{.2}$ | ...   | $n_{.j}$ | ...   | $n_{.c}$ | $n_{..}$  |
-+--------------+----------+----------+-------+----------+-------+----------+-----------+
+|              | 1        | 2        | ... | j        | ... | c        | Row Total |
+|--------------|----------|----------|-----|----------|-----|----------|-----------|
+| 1            | $n_{11}$ | $n_{12}$ | ... | $n_{1j}$ | ... | $n_{1c}$ | $n_{1.}$  |
+| 2            | $n_{21}$ | $n_{22}$ | ... | $n_{2j}$ | ... | $n_{2c}$ | $n_{2.}$  |
+| ...          | ...      | ...      | ... | ...      | ... | ...      | ...       |
+| r            | $n_{r1}$ | $n_{r2}$ | ... | $n_{rj}$ | ... | $n_{rc}$ | $n_{r.}$  |
+| Column Total | $n_{.1}$ | $n_{.2}$ | ... | $n_{.j}$ | ... | $n_{.c}$ | $n_{..}$  |
+
+: General form contingency table with marginal totals
 
 **Sampling Designs**
 
@@ -2956,6 +2949,8 @@ When categorical data are cross-classified, we create a two-way table of observe
 | **Practical Use Case** | \- **Market Research**: Do customer demographics (rows) and purchase behavior (columns) show a dependence?\                         | \- **Public Health**: Are smoking rates (columns) consistent across age groups (rows)?\                                            |
 |                        | - **Biology**: Is there an association between species (rows) and habitat types (columns)?                                          | - **Education**: Do pass rates (columns) differ across schools (rows), controlling for the number of students in each school?      |
 +------------------------+-------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------+
+
+: Comparison of fixed total sample size vs. fixed row total designs in categorical data analysis
 
 **Why Both Designs?**
 
@@ -3094,7 +3089,7 @@ print(chisq_test_fixed_rows)
 
 ------------------------------------------------------------------------
 
-##### Chi-Square Test for Independence
+##### Chi-Square Test for Independence {#sec-chi-square-test-for-independence}
 
 The expected frequencies $\hat{e}_{ij}$ under the null hypothesis are:
 
@@ -3161,43 +3156,45 @@ The output includes:
 
 #### Key Takeaways
 
-+--------------------------------------+------------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------+--------------------------------------------------------------------+
-| **Test**                             | **Purpose**                                                                  | **Key Features**                                    | **Sample Size Suitability**      | **Statistical Assumptions**                                        |
-+======================================+==============================================================================+=====================================================+==================================+====================================================================+
-| **Fisher's Exact Test**              | Tests association between two categorical variables in a **2x2 table**.      | \- Computes exact p-values.\                        | **Small sample sizes**           | \- Observations are independent.\                                  |
-|                                      |                                                                              | - Does not rely on asymptotic assumptions.\         |                                  | - Fixed marginal totals.\                                          |
-|                                      |                                                                              | - Handles small sample sizes.                       |                                  | - No normality assumption.                                         |
-+--------------------------------------+------------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------+--------------------------------------------------------------------+
-| **Exact Chi-Square Test**            | Tests association in larger contingency tables using exact methods.          | \- Generalization of Fisher's Exact Test.\          | **Small to medium sample sizes** | \- Observations are independent.\                                  |
-|                                      |                                                                              | - Avoids asymptotic assumptions.\                   |                                  | - Marginal totals may not be fixed.\                               |
-|                                      |                                                                              | - Suitable for small to medium datasets.            |                                  | - No normality assumption.                                         |
-+--------------------------------------+------------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------+--------------------------------------------------------------------+
-| **Pearson Chi-Square Test**          | Tests discrepancies between observed and expected frequencies.               | \- Most common chi-square-based test.\              | **Large sample sizes**           | \- Observations are independent.\                                  |
-|                                      |                                                                              | - Includes independence and goodness-of-fit tests.\ |                                  | - Expected cell frequencies ≥ 5.\                                  |
-|                                      |                                                                              | - Relies on asymptotic assumptions.                 |                                  | - Test statistic follows a chi-square distribution asymptotically. |
-+--------------------------------------+------------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------+--------------------------------------------------------------------+
-| **Chi-Square Test for Independence** | Tests independence between two categorical variables in a contingency table. | \- Application of Pearson Chi-Square Test.\         | **Medium to large sample sizes** | \- Observations are independent.\                                  |
-|                                      |                                                                              | - Same assumptions as asymptotic chi-square tests.\ |                                  | - Expected cell frequencies ≥ 5.\                                  |
-|                                      |                                                                              | - Often used for larger contingency tables.         |                                  | - Random sampling.                                                 |
-+--------------------------------------+------------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------+--------------------------------------------------------------------+
++---------------------------------------------------------------------------+------------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------+--------------------------------------------------------------------+
+| **Test**                                                                  | **Purpose**                                                                  | **Key Features**                                    | **Sample Size Suitability**      | **Statistical Assumptions**                                        |
++===========================================================================+==============================================================================+=====================================================+==================================+====================================================================+
+| [Fisher's Exact Test](#fishers-exact-test)                                | Tests association between two categorical variables in a **2x2 table**.      | \- Computes exact $p$-values.\                      | **Small sample sizes**           | \- Observations are independent.\                                  |
+|                                                                           |                                                                              | - Does not rely on asymptotic assumptions.\         |                                  | - Fixed marginal totals.\                                          |
+|                                                                           |                                                                              | - Handles small sample sizes.                       |                                  | - No normality assumption.                                         |
++---------------------------------------------------------------------------+------------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------+--------------------------------------------------------------------+
+| [Exact Chi-Square Test](#sec-exact-chi-square-test)                       | Tests association in larger contingency tables using exact methods.          | \- Generalization of Fisher's Exact Test.\          | **Small to medium sample sizes** | \- Observations are independent.\                                  |
+|                                                                           |                                                                              | - Avoids asymptotic assumptions.\                   |                                  | - Marginal totals may not be fixed.\                               |
+|                                                                           |                                                                              | - Suitable for small to medium datasets.            |                                  | - No normality assumption.                                         |
++---------------------------------------------------------------------------+------------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------+--------------------------------------------------------------------+
+| [Pearson Chi-Square Test](#sec-pearson-chi-square-test)                   | Tests discrepancies between observed and expected frequencies.               | \- Most common chi-square-based test.\              | **Large sample sizes**           | \- Observations are independent.\                                  |
+|                                                                           |                                                                              | - Includes independence and goodness-of-fit tests.\ |                                  | - Expected cell frequencies $\ge 5$.\                              |
+|                                                                           |                                                                              | - Relies on asymptotic assumptions.                 |                                  | - Test statistic follows a chi-square distribution asymptotically. |
++---------------------------------------------------------------------------+------------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------+--------------------------------------------------------------------+
+| [Chi-Square Test for Independence](#sec-chi-square-test-for-independence) | Tests independence between two categorical variables in a contingency table. | \- Application of Pearson Chi-Square Test.\         | **Medium to large sample sizes** | \- Observations are independent.\                                  |
+|                                                                           |                                                                              | - Same assumptions as asymptotic chi-square tests.\ |                                  | - Expected cell frequencies $\ge 5$.\                              |
+|                                                                           |                                                                              | - Often used for larger contingency tables.         |                                  | - Random sampling.                                                 |
++---------------------------------------------------------------------------+------------------------------------------------------------------------------+-----------------------------------------------------+----------------------------------+--------------------------------------------------------------------+
 
-1.  **Fisher's Exact Test** is specialized for small samples and fixed margins (2x2 tables).
+: Comparison of tests for categorical association
 
-2.  **Exact Chi-Square Test** is a broader version of Fisher's for larger tables but avoids asymptotic approximations.
+1.  [Fisher's Exact Test](#fishers-exact-test) is specialized for small samples and fixed margins (2x2 tables).
 
-3.  **Pearson Chi-Square Test** is the general framework, and its applications include:
+2.  [Exact Chi-Square Test](#sec-exact-chi-square-test) is a broader version of Fisher's for larger tables but avoids asymptotic approximations.
+
+3.  [Pearson Chi-Square Test](#sec-pearson-chi-square-test) is the general framework, and its applications include:
 
     -   Goodness-of-fit testing.
 
     -   Testing independence (same as the Chi-Square Test for Independence).
 
-4.  **Chi-Square Test for Independence** is a specific application of the Pearson Chi-Square Test.
+4.  [Chi-Square Test for Independence](#sec-chi-square-test-for-independence) is a specific application of the Pearson Chi-Square Test.
 
 In essence:
 
--   **Fisher's Exact Test** and **Exact Chi-Square Test** are precise methods for small datasets.
+-   [Fisher's Exact Test](#fishers-exact-test) and [Exact Chi-Square Test](#sec-exact-chi-square-test) are precise methods for small datasets.
 
--   **Pearson Chi-Square Test** and **Chi-Square Test for Independence** are interchangeable terms in many contexts, focusing on larger datasets.
+-   [Pearson Chi-Square Test](#sec-pearson-chi-square-test) and [Chi-Square Test for Independence](#sec-chi-square-test-for-independence) are interchangeable terms in many contexts, focusing on larger datasets.
 
 ------------------------------------------------------------------------
 
@@ -3229,7 +3226,7 @@ When using these tests, keep in mind:
 
 -   **Contextual Relevance**: Interpret results within the context of the data and the research question. For example, a significant Spearman's correlation does not imply causation but rather a consistent trend.
 
-#### Mantel-Haenszel Chi-square Test
+#### Mantel-Haenszel Chi-square Test {#sec-mantel-haenszel-chi-square-test}
 
 The Mantel-Haenszel Chi-square Test is a statistical tool for evaluating ordinal associations, particularly when the data consists of multiple $2 \times 2$ contingency tables that examine the same association under varying conditions or strata. Unlike measures of association such as correlation coefficients, this test does not quantify the strength of the association but rather evaluates whether an association exists after controlling for stratification.
 
@@ -3364,7 +3361,7 @@ Interpretation
 
 #### McNemar's Test {#mcnemars-test}
 
-McNemar's Test is a special case of the [Mantel-Haenszel Chi-square Test], designed for paired nominal data. It is particularly useful for evaluating changes in categorical responses before and after a treatment or intervention, or for comparing paired responses in matched samples. Unlike the Mantel-Haenszel Test, which handles stratified data, McNemar's Test is tailored to situations with a single $2 \times 2$ table derived from paired observations.
+McNemar's Test is a special case of the [Mantel-Haenszel Chi-square Test](#sec-mantel-haenszel-chi-square-test), designed for paired nominal data. It is particularly useful for evaluating changes in categorical responses before and after a treatment or intervention, or for comparing paired responses in matched samples. Unlike the Mantel-Haenszel Test, which handles stratified data, McNemar's Test is tailored to situations with a single $2 \times 2$ table derived from paired observations.
 
 McNemar's Test assesses whether the proportions of discordant pairs (off-diagonal elements in a $2 \times 2$ table) are significantly different. Specifically, it tests the null hypothesis that the probabilities of transitioning from one category to another are equal.
 
@@ -3391,6 +3388,8 @@ Let the table structure be:
 |--------------|----------|----------|
 | **Before A** | $n_{11}$ | $n_{12}$ |
 | **Before B** | $n_{21}$ | $n_{22}$ |
+
+: Customer switching behavior between Product A and Product B
 
 -   $n_{12}$: Customers who switched from Product A to B.
 -   $n_{21}$: Customers who switched from Product B to A.
@@ -3456,7 +3455,7 @@ McNemar's Test is widely used in business and other fields:
 
 3.  **Healthcare Studies**: Analyzing treatment effects in paired medical trials.
 
-#### McNemar-Bowker Test
+#### McNemar-Bowker Test {#sec-mcnemar-bowker-test}
 
 The McNemar-Bowker Test is an extension of [McNemar's Test](#mcnemars-test), designed for analyzing paired nominal data with more than two categories. It evaluates the symmetry of the full contingency table by comparing the off-diagonal elements across all categories. This test is particularly useful for understanding whether changes between categories are uniformly distributed or whether significant asymmetries exist.
 
@@ -3567,9 +3566,9 @@ The McNemar-Bowker Test has broad applications in business and other fields:
 
 3.  **Product Testing**: Understanding how user preferences among different product features change after a redesign.
 
-#### Stuart-Maxwell Test
+#### Stuart-Maxwell Test {#sec-stuart-maxwell-test}
 
-The Stuart-Maxwell Test is used for analyzing changes in paired categorical data with more than two categories. It is a generalization of [McNemar's Test](#mcnemars-test), applied to square contingency tables where the off-diagonal elements represent transitions between categories. Unlike the [McNemar-Bowker Test], which tests for symmetry across all pairs, the [Stuart-Maxwell Test] focuses on overall marginal homogeneity.
+The Stuart-Maxwell Test is used for analyzing changes in paired categorical data with more than two categories. It is a generalization of [McNemar's Test](#mcnemars-test), applied to square contingency tables where the off-diagonal elements represent transitions between categories. Unlike the [McNemar-Bowker Test](#sec-mcnemar-bowker-test), which tests for symmetry across all pairs, the [Stuart-Maxwell Test](#sec-stuart-maxwell-test) focuses on overall marginal homogeneity.
 
 The test evaluates whether the marginal distributions of paired data are consistent across categories. This is particularly useful when investigating whether the distribution of responses has shifted between two conditions, such as before and after an intervention.
 
@@ -3672,9 +3671,9 @@ Practical Applications of the Stuart-Maxwell Test
 
 3.  **Healthcare Research**: Assessing changes in patient responses to treatments across categories.
 
-#### Cochran-Mantel-Haenszel (CMH) Test
+#### Cochran-Mantel-Haenszel (CMH) Test {#sec-cochran-mantel-haenszel-cmh-test}
 
-The Cochran-Mantel-Haenszel (CMH) Test is a generalization of the [Mantel-Haenszel Chi-square Test]. It evaluates the association between two variables while controlling for the effect of a third stratifying variable. This test is particularly suited for ordinal data, allowing researchers to detect trends and associations across strata.
+The Cochran-Mantel-Haenszel (CMH) Test is a generalization of the [Mantel-Haenszel Chi-square Test](#sec-mantel-haenszel-chi-square-test). It evaluates the association between two variables while controlling for the effect of a third stratifying variable. This test is particularly suited for ordinal data, allowing researchers to detect trends and associations across strata.
 
 The CMH Test addresses scenarios where:
 
@@ -3767,32 +3766,28 @@ Practical Applications of the CMH Test
 
 The following table provides a concise guide on when and why to use each test:
 
-+------------------------------------------+--------------------------------------------------------------------------------------------+---------------------------------------------------------------------+----------------------------------------------------------+
-| **Test Name**                            | **When to Use**                                                                            | **Key Question Addressed**                                          | **Data Requirements**                                    |
-+==========================================+============================================================================================+=====================================================================+==========================================================+
-| [**Mantel-Haenszel Chi-square Test**]    | When testing for association between two binary variables across multiple strata.          | Is there a consistent association across strata?                    | Binary variables in $2 \times 2 \times K$ tables.        |
-+------------------------------------------+--------------------------------------------------------------------------------------------+---------------------------------------------------------------------+----------------------------------------------------------+
-| [**McNemar's Test**]                     | When analyzing marginal symmetry in paired binary data.                                    | Are the proportions of discordant pairs equal?                      | Paired binary responses ($2 \times 2$ table).            |
-+------------------------------------------+--------------------------------------------------------------------------------------------+---------------------------------------------------------------------+----------------------------------------------------------+
-| [**McNemar-Bowker Test**]                | When testing for symmetry in paired nominal data with more than two categories.            | Are the off-diagonal elements symmetric across all categories?      | Paired nominal data in $r \times r$ tables.              |
-+------------------------------------------+--------------------------------------------------------------------------------------------+---------------------------------------------------------------------+----------------------------------------------------------+
-| [**Cochran-Mantel-Haenszel (CMH) Test**] | When testing ordinal or general associations while controlling for a stratifying variable. | Is there an association between two variables after stratification? | Ordinal or nominal data in $I \times J \times K$ tables. |
-+------------------------------------------+--------------------------------------------------------------------------------------------+---------------------------------------------------------------------+----------------------------------------------------------+
-| [**Stuart-Maxwell Test**]                | When analyzing marginal homogeneity in paired nominal data with more than two categories.  | Are the marginal distributions of paired data homogeneous?          | Paired nominal data in $r \times r$ tables.              |
-+------------------------------------------+--------------------------------------------------------------------------------------------+---------------------------------------------------------------------+----------------------------------------------------------+
+| **Test Name**                                                               | **When to Use**                                                                            | **Key Question Addressed**                                          | **Data Requirements**                                    |
+|-----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|---------------------------------------------------------------------|----------------------------------------------------------|
+| [Mantel-Haenszel Chi-square Test](#sec-mantel-haenszel-chi-square-test)     | When testing for association between two binary variables across multiple strata.          | Is there a consistent association across strata?                    | Binary variables in $2 \times 2 \times K$ tables.        |
+| [McNemar's Test](#mcnemars-test)                                            | When analyzing marginal symmetry in paired binary data.                                    | Are the proportions of discordant pairs equal?                      | Paired binary responses ($2 \times 2$ table).            |
+| [McNemar-Bowker Test](#sec-mcnemar-bowker-test)                             | When testing for symmetry in paired nominal data with more than two categories.            | Are the off-diagonal elements symmetric across all categories?      | Paired nominal data in $r \times r$ tables.              |
+| [Cochran-Mantel-Haenszel (CMH) Test](#sec-cochran-mantel-haenszel-cmh-test) | When testing ordinal or general associations while controlling for a stratifying variable. | Is there an association between two variables after stratification? | Ordinal or nominal data in $I \times J \times K$ tables. |
+| [Stuart-Maxwell Test](#sec-stuart-maxwell-test)                             | When analyzing marginal homogeneity in paired nominal data with more than two categories.  | Are the marginal distributions of paired data homogeneous?          | Paired nominal data in $r \times r$ tables.              |
+
+: Tests for categorical association
 
 ------------------------------------------------------------------------
 
 **How to Choose the Right Test**
 
 1.  **Paired vs. Stratified Data**:
-    -   Use **McNemar's Test** or **McNemar-Bowker Test** for paired data.
-    -   Use **Mantel-Haenszel** or **CMH Test** for stratified data.
+    -   Use [McNemar's Test](#mcnemars-test) or [McNemar-Bowker Test](#sec-mcnemar-bowker-test) for paired data.
+    -   Use [Mantel-Haenszel Chi-square Test](#sec-mantel-haenszel-chi-square-test) or [Cochran-Mantel-Haenszel (CMH) Test](#sec-cochran-mantel-haenszel-cmh-test) for stratified data.
 2.  **Binary vs. Multi-category Variables**:
-    -   Use **McNemar's Test** for binary data.
-    -   Use **McNemar-Bowker Test** or **Stuart-Maxwell Test** for multi-category data.
+    -   Use [McNemar's Test](#mcnemars-test) for binary data.
+    -   Use [McNemar-Bowker Test](#sec-mcnemar-bowker-test) or [Stuart-Maxwell Test](#sec-stuart-maxwell-test) for multi-category data.
 3.  **Ordinal Trends**:
-    -   Use the **CMH Test** if testing for ordinal associations while controlling for a stratifying variable.
+    -   Use the [Cochran-Mantel-Haenszel (CMH) Test](#sec-cochran-mantel-haenszel-cmh-test) if testing for ordinal associations while controlling for a stratifying variable.
 
 ------------------------------------------------------------------------
 
@@ -3818,7 +3813,7 @@ The primary objectives of trend tests are:
     -   A significant result indicates the presence of a trend but does not imply causality.
     -   The direction and strength of the trend should be carefully interpreted in the context of the data.
 
-#### Cochran-Armitage Test
+#### Cochran-Armitage Test {#sec-cochran-armitage-test}
 
 The Cochran-Armitage Test for Trend is a statistical method designed to detect a linear trend in proportions across ordered categories of a predictor variable. It is particularly useful in $2 \times J$ contingency tables, where there is a binary outcome (e.g., success/failure) and an ordinal predictor variable with $J$ ordered levels.
 
@@ -3873,6 +3868,8 @@ Let's consider a study examining whether the success rate of a marketing campaig
 | Low          | 20      | 30      | 50    |
 | Medium       | 35      | 15      | 50    |
 | High         | 45      | 5       | 50    |
+
+: Marketing campaign success by income level in a contingency table
 
 
 ``` r
@@ -3941,7 +3938,7 @@ Practical Applications
 
 3.  **Education**: Studying whether pass rates improve with higher levels of educational support.
 
-#### Jonckheere-Terpstra Test
+#### Jonckheere-Terpstra Test {#sec-jonckheere-terpstra-test}
 
 The Jonckheere-Terpstra Test is a nonparametric test designed to detect ordered differences between groups. It is particularly suited for ordinal data where both the predictor and response variables exhibit a monotonic trend. Unlike general nonparametric tests like the Kruskal-Wallis test, which assess any differences between groups, the Jonckheere-Terpstra Test specifically evaluates whether the data follows a prespecified ordering.
 
@@ -4088,9 +4085,9 @@ Practical Applications
 
 3.  **Education Research**: Analyzing whether test scores improve with higher levels of educational intervention.
 
-#### Mantel Test for Trend
+#### Mantel Test for Trend {#sec-mantel-test-for-trend}
 
-The Mantel Test for Trend is a statistical method designed to detect a linear association between two ordinal variables. It is an extension of the [Mantel-Haenszel Chi-square Test] and is particularly suited for analyzing trends in ordinal contingency tables, such as $I \times J$ tables where both variables are ordinal.
+The Mantel Test for Trend is a statistical method designed to detect a linear association between two ordinal variables. It is an extension of the [Mantel-Haenszel Chi-square Test](#sec-mantel-haenszel-chi-square-test) and is particularly suited for analyzing trends in ordinal contingency tables, such as $I \times J$ tables where both variables are ordinal.
 
 The Mantel Test for Trend evaluates whether an increasing or decreasing trend exists between two ordinal variables. It uses the ordering of categories to assess linear relationships, making it more sensitive to trends compared to general association tests like chi-square.
 
@@ -4204,7 +4201,7 @@ Practical Applications
 
 3.  **Social Sciences**: Analyzing trends in survey responses across ordered categories.
 
-#### Chi-square Test for Linear Trend
+#### Chi-square Test for Linear Trend {#sec-chi-square-test-for-linear-trend}
 
 The Chi-square Test for Linear Trend is a statistical method used to detect a linear relationship between an ordinal predictor and a binary outcome. It is an extension of the chi-square test, designed specifically for ordered categories, making it more sensitive to linear trends in proportions compared to a general chi-square test of independence.
 
@@ -4283,21 +4280,21 @@ Practical Applications
 
 #### Key Takeways
 
-+----------------------------------------+---------------------------------------------------------------------------+-------------------------------------------------------+---------------------------------------------------------------------------------------+
-| **Test**                               | **Purpose**                                                               | **Key Assumptions**                                   | **Use Cases**                                                                         |
-+========================================+===========================================================================+=======================================================+=======================================================================================+
-| [**Cochran-Armitage Test**]            | Tests for a linear trend in proportions across ordinal categories.        | \- Binary response variable.\                         | Evaluating dose-response relationships, comparing proportions across ordinal groups.  |
-|                                        |                                                                           | - Predictor variable is ordinal.                      |                                                                                       |
-+----------------------------------------+---------------------------------------------------------------------------+-------------------------------------------------------+---------------------------------------------------------------------------------------+
-| [**Jonckheere-Terpstra Test**]         | Tests for a monotonic trend in a response variable across ordered groups. | \- Response variable is continuous or ordinal.\       | Comparing medians or distributions across ordinal groups, e.g., treatment levels.     |
-|                                        |                                                                           | - Predictor variable is ordinal.                      |                                                                                       |
-+----------------------------------------+---------------------------------------------------------------------------+-------------------------------------------------------+---------------------------------------------------------------------------------------+
-| [**Mantel Test for Trend**]            | Evaluates a linear association between an ordinal predictor and response. | \- Ordinal variables.\                                | Determining trends in stratified or grouped data.                                     |
-|                                        |                                                                           | - Linear trend expected.                              |                                                                                       |
-+----------------------------------------+---------------------------------------------------------------------------+-------------------------------------------------------+---------------------------------------------------------------------------------------+
-| [**Chi-square Test for Linear Trend**] | Tests for linear trends in categorical data using contingency tables.     | \- Contingency table with ordinal predictor.\         | Analyzing trends in frequency data, e.g., examining disease prevalence by age groups. |
-|                                        |                                                                           | - Sufficient sample size (expected frequencies \> 5). |                                                                                       |
-+----------------------------------------+---------------------------------------------------------------------------+-------------------------------------------------------+---------------------------------------------------------------------------------------+
++---------------------------------------------------------------------------+---------------------------------------------------------------------------+--------------------------------------------------------+---------------------------------------------------------------------------------------+
+| **Test**                                                                  | **Purpose**                                                               | **Key Assumptions**                                    | **Use Cases**                                                                         |
++===========================================================================+===========================================================================+========================================================+=======================================================================================+
+| [Cochran-Armitage Test](#sec-cochran-armitage-test)                       | Tests for a linear trend in proportions across ordinal categories.        | \- Binary response variable.\                          | Evaluating dose-response relationships, comparing proportions across ordinal groups.  |
+|                                                                           |                                                                           | - Predictor variable is ordinal.                       |                                                                                       |
++---------------------------------------------------------------------------+---------------------------------------------------------------------------+--------------------------------------------------------+---------------------------------------------------------------------------------------+
+| [Jonckheere-Terpstra Test](#sec-jonckheere-terpstra-test)                 | Tests for a monotonic trend in a response variable across ordered groups. | \- Response variable is continuous or ordinal.\        | Comparing medians or distributions across ordinal groups, e.g., treatment levels.     |
+|                                                                           |                                                                           | - Predictor variable is ordinal.                       |                                                                                       |
++---------------------------------------------------------------------------+---------------------------------------------------------------------------+--------------------------------------------------------+---------------------------------------------------------------------------------------+
+| [Mantel Test for Trend](#sec-mantel-test-for-trend)                       | Evaluates a linear association between an ordinal predictor and response. | \- Ordinal variables.\                                 | Determining trends in stratified or grouped data.                                     |
+|                                                                           |                                                                           | - Linear trend expected.                               |                                                                                       |
++---------------------------------------------------------------------------+---------------------------------------------------------------------------+--------------------------------------------------------+---------------------------------------------------------------------------------------+
+| [Chi-square Test for Linear Trend](#sec-chi-square-test-for-linear-trend) | Tests for linear trends in categorical data using contingency tables.     | \- Contingency table with ordinal predictor.\          | Analyzing trends in frequency data, e.g., examining disease prevalence by age groups. |
+|                                                                           |                                                                           | - Sufficient sample size (expected frequencies $> 5$). |                                                                                       |
++---------------------------------------------------------------------------+---------------------------------------------------------------------------+--------------------------------------------------------+---------------------------------------------------------------------------------------+
 
 ## Divergence Metrics and Tests for Comparing Distributions
 
@@ -4344,15 +4341,13 @@ Divergence statistics differ fundamentally by focusing on statistical distances 
 
     -   Use distance metrics to compare datasets, distributions, or clustering outcomes where symmetry and geometric properties are important.
 
-+-------------------------+----------------------------------------------+----------------------------------------------------------+
 | **Aspect**              | **Divergence Metrics**                       | **Distance Metrics**                                     |
-+=========================+==============================================+==========================================================+
+|-------------------------|----------------------------------------------|----------------------------------------------------------|
 | **Symmetry**            | Often asymmetric (e.g., KL divergence).      | Always symmetric (e.g., Wasserstein).                    |
-+-------------------------+----------------------------------------------+----------------------------------------------------------+
 | **Triangle Inequality** | Not satisfied.                               | Satisfied.                                               |
-+-------------------------+----------------------------------------------+----------------------------------------------------------+
 | **Use Case**            | Quantifying how different distributions are. | Measuring the dissimilarity or "cost" of transformation. |
-+-------------------------+----------------------------------------------+----------------------------------------------------------+
+
+: Comparison of divergence and distance metrics in distribution analysis
 
 ------------------------------------------------------------------------
 
@@ -4386,7 +4381,7 @@ Divergence metrics are also highly relevant in business settings, providing insi
 
 ------------------------------------------------------------------------
 
-### Kolmogorov-Smirnov Test
+### Kolmogorov-Smirnov Test {#sec-kolmogorov-smirnov-test}
 
 The Kolmogorov-Smirnov (KS) test is a **non-parametric test** used to determine whether two distributions differ significantly or whether a sample distribution matches a reference distribution. It is applicable to **continuous distributions** and is widely used in hypothesis testing and model evaluation.
 
@@ -4529,9 +4524,9 @@ print(result)
 
 This calculates the KL divergence for all pairs of distributions in the list, offering additional insights into the relationships between the distributions.
 
-### Anderson-Darling Test
+### Anderson-Darling Test {#sec-anderson-darling-test}
 
-The Anderson-Darling (AD) test is a **goodness-of-fit test** that evaluates whether a sample of data comes from a specific distribution. It is an enhancement of the [Kolmogorov-Smirnov test], with greater sensitivity to deviations in the tails of the distribution.
+The Anderson-Darling (AD) test is a **goodness-of-fit test** that evaluates whether a sample of data comes from a specific distribution. It is an enhancement of the [Kolmogorov-Smirnov test](#sec-kolmogorov-smirnov-test), with greater sensitivity to deviations in the tails of the distribution.
 
 ------------------------------------------------------------------------
 
@@ -4606,7 +4601,7 @@ set.seed(1)
 sample_1 <- rnorm(100, mean = 0, sd = 1)
 sample_2 <- rnorm(100, mean = 1, sd = 1)
 
-# Perform resampling-based Anderson-Darling test (custom implementation or packages like twosamples)
+# Perform resampling-based Anderson-Darling test
 library(twosamples)
 ad_test_result_empirical <- ad_test(sample_1, sample_2)
 print(ad_test_result_empirical)
@@ -4616,7 +4611,7 @@ print(ad_test_result_empirical)
 
 This evaluates whether the two empirical distributions differ significantly.
 
-### Chi-Square Goodness-of-Fit Test
+### Chi-Square Goodness-of-Fit Test {#sec-chi-square-goodness-of-fit-test}
 
 The **Chi-Square Goodness-of-Fit Test** is a non-parametric statistical test used to evaluate whether a sample data set comes from a population with a specific distribution. It compares observed frequencies with expected frequencies under a hypothesized distribution.
 
@@ -4743,9 +4738,9 @@ Limitations of the Chi-Square Test
 
 The Chi-Square Goodness-of-Fit Test is a versatile tool for evaluating the fit of observed data to a hypothesized distribution, widely used in fields like quality control, genetics, and market research.
 
-### Cramér-von Mises Test
+### Cramér-von Mises Test {#sec-cramer-von-mises-test}
 
-The **Cramér-von Mises (CvM) Test** is a goodness-of-fit test that evaluates whether a sample data set comes from a specified distribution. Similar to the [Kolmogorov-Smirnov Test] (KS) and [Anderson-Darling Test] (AD), it assesses the discrepancy between the empirical and theoretical cumulative distribution functions (CDFs). However, the CvM test has **equal sensitivity across the entire distribution**, unlike the KS test (focused on the maximum difference) or the AD test (emphasizing the tails).
+The **Cramér-von Mises (CvM) Test** is a goodness-of-fit test that evaluates whether a sample data set comes from a specified distribution. Similar to the [Kolmogorov-Smirnov Test](#sec-kolmogorov-smirnov-test) (KS) and [Anderson-Darling Test](#sec-anderson-darling-test) (AD), it assesses the discrepancy between the empirical and theoretical cumulative distribution functions (CDFs). However, the CvM test has **equal sensitivity across the entire distribution**, unlike the KS test (focused on the maximum difference) or the AD test (emphasizing the tails).
 
 ------------------------------------------------------------------------
 
@@ -4876,7 +4871,7 @@ This demonstrates a custom calculation of the CvM statistic for testing goodness
 
 The Cramér-von Mises test is a robust and versatile goodness-of-fit test, offering balanced sensitivity across the entire distribution. Its complementarity to KS and AD tests makes it an essential tool for validating distributional assumptions in both theoretical and applied contexts.
 
-### Kullback-Leibler Divergence
+### Kullback-Leibler Divergence {#sec-kullback-leibler-divergence}
 
 Kullback-Leibler (KL) divergence, also known as **relative entropy**, is a measure used to quantify the similarity between two probability distributions. It plays a critical role in statistical inference, machine learning, and information theory. However, KL divergence is not a true metric as it does not satisfy the triangle inequality.
 
@@ -4948,9 +4943,9 @@ Insights:
 2.  Discrete case relies on empirical estimation of probabilities from counts.
 3.  Observe how KL divergence quantifies the "distance" between the two distributions.
 
-### Jensen-Shannon Divergence
+### Jensen-Shannon Divergence {#sec-jensen-shannon-divergence}
 
-Jensen-Shannon (JS) divergence is a symmetric and bounded measure of the similarity between two probability distributions. It is derived from the [Kullback-Leibler Divergence] (KL) but addresses its asymmetry and unboundedness by incorporating a mixed distribution.
+Jensen-Shannon (JS) divergence is a symmetric and bounded measure of the similarity between two probability distributions. It is derived from the [Kullback-Leibler Divergence](#sec-kullback-leibler-divergence) (KL) but addresses its asymmetry and unboundedness by incorporating a mixed distribution.
 
 The Jensen-Shannon divergence is defined as: $$
 D_{JS}(P \| Q) = \frac{1}{2} \left( D_{KL}(P \| M) + D_{KL}(Q \| M) \right)
@@ -5011,7 +5006,7 @@ print(paste("JS divergence (discrete):", round(JS_discrete, 2)))
 # Probabilities are estimated empirically before calculating the divergence.
 ```
 
-### Hellinger Distance
+### Hellinger Distance {#sec-hellinger-distance}
 
 The Hellinger distance is a bounded and symmetric measure of similarity between two probability distributions. It is widely used in statistics and machine learning to quantify how "close" two distributions are, with values ranging between 0 (identical distributions) and 1 (completely disjoint distributions).
 
@@ -5094,7 +5089,7 @@ print(paste("Hellinger Distance (Empirical):", round(hellinger_empirical, 4)))
 #> [1] "Hellinger Distance (Empirical): 0.465"
 ```
 
-### Bhattacharyya Distance
+### Bhattacharyya Distance {#sec-bhattacharyya-distance}
 
 The **Bhattacharyya Distance** is a statistical measure used to quantify the similarity or overlap between two probability distributions. It is commonly used in pattern recognition, signal processing, and statistics to evaluate how closely related two distributions are. The Bhattacharyya distance is particularly effective for comparing both discrete and continuous distributions.
 
@@ -5228,7 +5223,7 @@ Continuous distributions are discretized into histograms to compute the Bhattach
 2.  Continuous Case:
     1.  Distributions are discretized into histograms to approximate the Bhattacharyya coefficient and distance.
 
-### Wasserstein Distance
+### Wasserstein Distance {#sec-wasserstein-distance}
 
 The Wasserstein distance, also known as the **Earth Mover's Distance (EMD)**, is a measure of similarity between two probability distributions. It quantifies the "cost" of transforming one distribution into another, making it particularly suitable for continuous data and applications where the geometry of the data matters.
 
@@ -5316,7 +5311,7 @@ print(wass_test_result)
 # - Example 3 performs a permutation-based two-sample test using the Wasserstein metric.
 ```
 
-### Energy Distance
+### Energy Distance {#sec-energy-distance}
 
 The **Energy Distance** is a statistical metric used to quantify the similarity between two probability distributions. It is particularly effective for comparing multi-dimensional distributions.
 
@@ -5440,7 +5435,7 @@ Advantages of Energy Distance
 
     -   Effective even with complex data structures.
 
-### Total Variation Distance
+### Total Variation Distance {#sec-total-variation-distance}
 
 The **Total Variation (TV) Distance** is a measure of the maximum difference between two probability distributions. It is widely used in probability theory, statistics, and machine learning to quantify how dissimilar two distributions are.
 
@@ -5555,42 +5550,28 @@ The Total Variation Distance provides an intuitive and interpretable measure of 
 
 ### Summary
 
-**1. Tests for Comparing Distributions**
+| **Test Name**                                                           | **Purpose**                                                                              | **Type of Data**                     | **Advantages**                              | **Limitations**                                                              |
+|-------------------------------------------------------------------------|------------------------------------------------------------------------------------------|--------------------------------------|---------------------------------------------|------------------------------------------------------------------------------|
+| [Kolmogorov-Smirnov Test](#sec-kolmogorov-smirnov-test)                 | Tests if two distributions are the same or if a sample matches a reference distribution. | Empirical Distributions (Continuous) | Non-parametric, detects global differences. | Less sensitive to tail differences, limited to one-dimensional data.         |
+| [Anderson-Darling Test](#sec-anderson-darling-test)                     | Tests goodness-of-fit with emphasis on the tails.                                        | Continuous Data                      | Strong sensitivity to tail behavior.        | Requires specifying a reference distribution.                                |
+| [Chi-Square Goodness-of-Fit Test](#sec-chi-square-goodness-of-fit-test) | Tests if observed frequencies match expected frequencies.                                | Categorical Data                     | Simple, intuitive for discrete data.        | Requires large sample sizes and sufficiently large expected frequencies.     |
+| [Cramér-von Mises Test](#sec-cramer-von-mises-test)                     | Evaluates goodness-of-fit using cumulative distribution functions.                       | Empirical Distributions (Continuous) | Sensitive across the entire distribution.   | Limited to one-dimensional data; requires cumulative distribution functions. |
 
-+-------------------------------------+------------------------------------------------------------------------------------------+--------------------------------------+---------------------------------------------+------------------------------------------------------------------------------+
-| **Test Name**                       | **Purpose**                                                                              | **Type of Data**                     | **Advantages**                              | **Limitations**                                                              |
-+=====================================+==========================================================================================+======================================+=============================================+==============================================================================+
-| **Kolmogorov-Smirnov Test**         | Tests if two distributions are the same or if a sample matches a reference distribution. | Empirical Distributions (Continuous) | Non-parametric, detects global differences. | Less sensitive to tail differences, limited to one-dimensional data.         |
-+-------------------------------------+------------------------------------------------------------------------------------------+--------------------------------------+---------------------------------------------+------------------------------------------------------------------------------+
-| **Anderson-Darling Test**           | Tests goodness-of-fit with emphasis on the tails.                                        | Continuous Data                      | Strong sensitivity to tail behavior.        | Requires specifying a reference distribution.                                |
-+-------------------------------------+------------------------------------------------------------------------------------------+--------------------------------------+---------------------------------------------+------------------------------------------------------------------------------+
-| **Chi-Square Goodness-of-Fit Test** | Tests if observed frequencies match expected frequencies.                                | Categorical Data                     | Simple, intuitive for discrete data.        | Requires large sample sizes and sufficiently large expected frequencies.     |
-+-------------------------------------+------------------------------------------------------------------------------------------+--------------------------------------+---------------------------------------------+------------------------------------------------------------------------------+
-| **Cramér-von Mises Test**           | Evaluates goodness-of-fit using cumulative distribution functions.                       | Empirical Distributions (Continuous) | Sensitive across the entire distribution.   | Limited to one-dimensional data; requires cumulative distribution functions. |
-+-------------------------------------+------------------------------------------------------------------------------------------+--------------------------------------+---------------------------------------------+------------------------------------------------------------------------------+
+: Tests for Comparing Distributions
 
-**2. Divergence Metrics**
+| **Metric Name**                                                 | **Purpose**                                                            | **Type of Data**                                 | **Advantages**                                   | **Limitations**                                 |
+|-----------------------------------------------------------------|------------------------------------------------------------------------|--------------------------------------------------|--------------------------------------------------|-------------------------------------------------|
+| [Kullback-Leibler Divergence](#sec-kullback-leibler-divergence) | Measures how one probability distribution diverges from another.       | Probability Distributions (Continuous/Discrete)  | Provides a clear measure of information loss.    | Asymmetric, sensitive to zero probabilities.    |
+| [Jensen-Shannon Divergence](#sec-jensen-shannon-divergence)     | Symmetric measure of similarity between two probability distributions. | Probability Distributions (Continuous/Discrete)  | Symmetric and bounded; intuitive for comparison. | Less sensitive to tail differences.             |
+| [Hellinger Distance](#sec-hellinger-distance)                   | Measures geometric similarity between two probability distributions.   | Discrete or Continuous Probability Distributions | Easy to interpret; bounded between 0 and 1.      | Computationally expensive for large datasets.   |
+| [Bhattacharyya Distance](#sec-bhattacharyya-distance)           | Quantifies overlap between two statistical distributions.              | Probability Distributions (Continuous/Discrete)  | Useful for classification and clustering tasks.  | Less interpretable in large-scale applications. |
 
-+---------------------------------+------------------------------------------------------------------------+--------------------------------------------------+--------------------------------------------------+-------------------------------------------------+
-| **Metric Name**                 | **Purpose**                                                            | **Type of Data**                                 | **Advantages**                                   | **Limitations**                                 |
-+=================================+========================================================================+==================================================+==================================================+=================================================+
-| **Kullback-Leibler Divergence** | Measures how one probability distribution diverges from another.       | Probability Distributions (Continuous/Discrete)  | Provides a clear measure of information loss.    | Asymmetric, sensitive to zero probabilities.    |
-+---------------------------------+------------------------------------------------------------------------+--------------------------------------------------+--------------------------------------------------+-------------------------------------------------+
-| **Jensen-Shannon Divergence**   | Symmetric measure of similarity between two probability distributions. | Probability Distributions (Continuous/Discrete)  | Symmetric and bounded; intuitive for comparison. | Less sensitive to tail differences.             |
-+---------------------------------+------------------------------------------------------------------------+--------------------------------------------------+--------------------------------------------------+-------------------------------------------------+
-| **Hellinger Distance**          | Measures geometric similarity between two probability distributions.   | Discrete or Continuous Probability Distributions | Easy to interpret; bounded between 0 and 1.      | Computationally expensive for large datasets.   |
-+---------------------------------+------------------------------------------------------------------------+--------------------------------------------------+--------------------------------------------------+-------------------------------------------------+
-| **Bhattacharyya Distance**      | Quantifies overlap between two statistical distributions.              | Probability Distributions (Continuous/Discrete)  | Useful for classification and clustering tasks.  | Less interpretable in large-scale applications. |
-+---------------------------------+------------------------------------------------------------------------+--------------------------------------------------+--------------------------------------------------+-------------------------------------------------+
+: Divergence Metrics
 
-**3. Distance Metrics**
+| **Metric Name**                                           | **Purpose**                                                                          | **Type of Data**                                | **Advantages**                                        | **Limitations**                                              |
+|-----------------------------------------------------------|--------------------------------------------------------------------------------------|-------------------------------------------------|-------------------------------------------------------|--------------------------------------------------------------|
+| [Wasserstein Distance](#sec-wasserstein-distance)         | Measures the "effort" or "cost" to transform one distribution into another.          | Continuous or Empirical Distributions           | Provides geometric interpretation; versatile.         | Computationally expensive for large-scale data.              |
+| [Energy Distance](#sec-energy-distance)                   | Measures statistical dissimilarity between multivariate distributions.               | Multivariate Empirical Distributions            | Non-parametric, works well for high-dimensional data. | Requires pairwise calculations; sensitive to outliers.       |
+| [Total Variation Distance](#sec-total-variation-distance) | Measures the maximum absolute difference between probabilities of two distributions. | Probability Distributions (Discrete/Continuous) | Intuitive and strict divergence measure.              | Ignores structural differences beyond the largest deviation. |
 
-+------------------------------+--------------------------------------------------------------------------------------+-------------------------------------------------+-------------------------------------------------------+--------------------------------------------------------------+
-| **Metric Name**              | **Purpose**                                                                          | **Type of Data**                                | **Advantages**                                        | **Limitations**                                              |
-+==============================+======================================================================================+=================================================+=======================================================+==============================================================+
-| **Wasserstein Distance**     | Measures the "effort" or "cost" to transform one distribution into another.          | Continuous or Empirical Distributions           | Provides geometric interpretation; versatile.         | Computationally expensive for large-scale data.              |
-+------------------------------+--------------------------------------------------------------------------------------+-------------------------------------------------+-------------------------------------------------------+--------------------------------------------------------------+
-| **Energy Distance**          | Measures statistical dissimilarity between multivariate distributions.               | Multivariate Empirical Distributions            | Non-parametric, works well for high-dimensional data. | Requires pairwise calculations; sensitive to outliers.       |
-+------------------------------+--------------------------------------------------------------------------------------+-------------------------------------------------+-------------------------------------------------------+--------------------------------------------------------------+
-| **Total Variation Distance** | Measures the maximum absolute difference between probabilities of two distributions. | Probability Distributions (Discrete/Continuous) | Intuitive and strict divergence measure.              | Ignores structural differences beyond the largest deviation. |
-+------------------------------+--------------------------------------------------------------------------------------+-------------------------------------------------+-------------------------------------------------------+--------------------------------------------------------------+
+: Distance Metrics
