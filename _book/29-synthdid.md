@@ -1,12 +1,12 @@
 # Synthetic Difference-in-Differences {#sec-synthetic-difference-in-differences}
 
-Understanding the impact of policy interventions is a fundamental challenge in empirical research. Analysts frequently rely on **panel data**, which tracks multiple units over time, to assess how outcomes change before and after a policy is implemented. However, estimating causal effects in this setting is complicated by the fact that policies are often adopted non-randomly---certain units may be more likely to receive treatment based on their characteristics, prior trends, or external factors. If treatment assignment correlates with unit-specific or time-specific factors, **selection bias** can invalidate causal conclusions, even when observed covariates are accounted for [@imbens2015causal].
+Understanding the impact of policy interventions is a fundamental challenge in empirical research. Analysts frequently rely on **panel data**, which tracks multiple units over time, to assess how outcomes change before and after a policy is implemented. However, estimating causal effects in this setting is complicated by the fact that policies are often adopted non-randomly, where certain units may be more likely to receive treatment based on their characteristics, prior trends, or external factors. If treatment assignment correlates with unit-specific or time-specific factors, **selection bias** can invalidate causal conclusions, even when observed covariates are accounted for [@imbens2015causal].
 
-A well-established approach to dealing with this challenge is the [Difference-in-Differences](#sec-difference-in-differences) (DID) method, which compares changes in outcomes between treated and untreated groups. However, [DID](#sec-difference-in-differences) relies on the crucial **parallel trends assumption**---the idea that, in the absence of treatment, treated and untreated units would have followed similar trajectories. When this assumption is violated, [DID](#sec-difference-in-differences) can produce biased estimates.
+A well-established approach to dealing with this challenge is the [Difference-in-Differences](#sec-difference-in-differences) (DID) method, which compares changes in outcomes between treated and untreated groups. However, [DID](#sec-difference-in-differences) relies on the crucial **parallel trends assumption** (the idea that, in the absence of treatment, treated and untreated units would have followed similar trajectories). When this assumption is violated, [DID](#sec-difference-in-differences) can produce biased estimates.
 
 An alternative approach, [Synthetic Control](#sec-synthetic-control) (SC), is particularly useful when only a few units receive treatment. Instead of assuming parallel trends, [SC](#sec-synthetic-control) constructs a weighted combination of untreated units that best approximates the pre-treatment behavior of the treated group. This method improves comparability but has limitations, including sensitivity to extrapolation and instability when there are many control units.
 
-To address the shortcomings of both [DID](#sec-difference-in-differences) and [SC](#sec-synthetic-control), **Synthetic Difference-in-Differences (SDID)** was introduced by [@arkhangelsky2021synthetic]. SDID is a **weighted double-differencing estimator** that:
+To address the shortcomings of both [DID](#sec-difference-in-differences) and [SC](#sec-synthetic-control), **Synthetic Difference-in-Differences (SDID)** was introduced by @arkhangelsky2021synthetic. SDID is a **weighted double-differencing estimator** that:
 
 -   Combines features of [DID](#sec-difference-in-differences) and [SC](#sec-synthetic-control) to improve causal inference.
 -   Adjusts for differences in pre-treatment trends through reweighting (like [SC](#sec-synthetic-control)).
@@ -16,17 +16,20 @@ The key advantage of SDID is that it achieves double robustness: it performs wel
 
 -   SDID explicitly accounts for systematic unit-level effects that influence treatment assignment.
 -   This is especially valuable when treatment is non-randomly assigned based on persistent unit characteristics.
--   Even under purely random treatment assignment, all three methods ([DID](#sec-difference-in-differences), [SC](#sec-synthetic-control), and SDID) are unbiased---but SDID achieves the smallest standard error (SE).
+-   Even under purely random treatment assignment, all three methods ([DID](#sec-difference-in-differences), [SC](#sec-synthetic-control), and SDID) are unbiased, but SDID achieves the smallest standard errors.
 
 Recent research has applied SDID to evaluate marketing interventions and policy changes:
 
 -   **TV Advertising & Online Sales** [@lambrecht2024tv]: SDID was used to estimate the effect of TV ad campaigns on consumer behavior, accounting for time-varying confounders.
 -   **Soda Tax & Marketing Effectiveness** [@keller2024soda]: SDID helped measure how soda tax policies influenced marketing strategies and consumer demand.
 
-| Method  | Assumptions                               | Use Case           | Strengths                                              | Weaknesses                                                           |
-|---------|-------------------------------------------|--------------------|--------------------------------------------------------|----------------------------------------------------------------------|
-| **DID** | Parallel trends assumption                | Many treated units | Simple implementation, valid for large panels          | Fails when parallel trends assumption is violated                    |
-| **SC**  | Reweighting to match pre-treatment trends | Few treated units  | More flexible, compensates for lack of parallel trends | Sensitive to outliers, does not scale well with large treated groups |
++-----------+-------------------------------------------+--------------------+--------------------------------------------------------+----------------------------------------------------------------------+
+| Method    | Assumptions                               | Use Case           | Strengths                                              | Weaknesses                                                           |
++===========+===========================================+====================+========================================================+======================================================================+
+| **DID**   | Parallel trends assumption                | Many treated units | Simple implementation, valid for large panels          | Fails when parallel trends assumption is violated                    |
++-----------+-------------------------------------------+--------------------+--------------------------------------------------------+----------------------------------------------------------------------+
+| **SC**    | Reweighting to match pre-treatment trends | Few treated units  | More flexible, compensates for lack of parallel trends | Sensitive to outliers, does not scale well with large treated groups |
++-----------+-------------------------------------------+--------------------+--------------------------------------------------------+----------------------------------------------------------------------+
 
 : Key Differences Between [DID](#sec-difference-in-differences) and [SC](#sec-synthetic-control)
 
@@ -68,7 +71,7 @@ Let:
 
 ### Steps in SDID Estimation
 
-SDID combines ideas from both **SC** and **DID** by introducing unit weights and time weights:
+SDID combines ideas from both [SC](#sec-synthetic-control) and [DID](#sec-difference-in-differences) by introducing unit weights and time weights:
 
 1.  **Find unit weights** $\hat{w}_i^{sdid}$ to ensure that pre-treatment outcomes of the weighted control group match the pre-treatment outcomes of the treated units:\
     $$
@@ -107,12 +110,19 @@ SC does not include unit fixed effects ($\alpha_i$) or time weights ($\hat{\lamb
 
 The table below summarizes key differences between [DID](#sec-difference-in-differences), [SC](#sec-synthetic-control), and SDID:
 
++-------------------------------+--------------------------------------------------------------------+---------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------+
 |                               | **DID**                                                            | **SC**                                                                          | **SDID**                                                                                           |
-|-------------------------------|--------------------------------------------------------------------|---------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
++===============================+====================================================================+=================================================================================+====================================================================================================+
 | **Primary Assumption**        | Absence of intervention leads to parallel evolution across states. | Reweights unexposed states to match pre-intervention outcomes of treated state. | Reweights control units to ensure a parallel time trend with the treated pre-intervention trend.   |
++-------------------------------+--------------------------------------------------------------------+---------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------+
 | **Reliability Concern**       | Can be unreliable when pre-intervention trends aren't parallel.    | Accounts for non-parallel pre-intervention trends by reweighting.               | Uses reweighting to adjust for non-parallel pre-intervention trends.                               |
++-------------------------------+--------------------------------------------------------------------+---------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------+
 | **Treatment of Time Periods** | All pre-treatment periods are given equal weight.                  | Doesn't specifically emphasize equal weight for pre-treatment periods.          | Focuses only on a subset of pre-intervention time periods, selected based on historical outcomes.  |
++-------------------------------+--------------------------------------------------------------------+---------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------+
 | **Goal with Reweighting**     | N/A (doesn't use reweighting).                                     | To match treated state as closely as possible before the intervention.          | Make trends of control units parallel (not necessarily identical) to the treated pre-intervention. |
++-------------------------------+--------------------------------------------------------------------+---------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------+
+
+: Comparison of Methods
 
 An alternative formulation of the SDID treatment effect is:\
 $$
@@ -123,11 +133,17 @@ where:
 -   $\hat{\delta}_t = \frac{1}{N_t} \sum_{i = N_c + 1}^{N} \hat{\delta}_i$ represents the average deviation in treated units post-treatment.
 -   $\sum_{i = 1}^{N_c} \hat{w}_i^{sdid} \hat{\delta}_i$ adjusts for differences using weighted control unit deviations.
 
-| Method | Sample Weight                                         | Adjusted outcomes ($\hat{\delta}_i$)                                                                        | Interpretation                                                                   |
-|--------|-------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------|
-| SC     | $\hat{w}^{sc} = \min_{w \in R}l_{unit}(w)$            | $\frac{1}{T_{post}} \sum_{t = T_{pre} + 1}^T Y_{it}$                                                        | Unweighted treatment period averages                                             |
-| DID    | $\hat{w}_i^{did} = N_c^{-1}$                          | $\frac{1}{T_{post}} \sum_{t = T_{pre}+ 1}^T Y_{it} - \frac{1}{T_{pre}} \sum_{t = 1}^{T_{pre}}Y_{it}$        | Unweighted differences between average treatment period and pretreatment outcome |
-| SDID   | $(\hat{w}_0, \hat{w}^{sdid}) = \min l_{unit}(w_0, w)$ | $\frac{1}{T_{post}} \sum_{t = T_{pre} + 1}^T Y_{it} - \sum_{t = 1}^{T_{pre}} \hat{\lambda}_t^{sdid} Y_{it}$ | Weighted differences between average treatment period and pretreatment outcome   |
++------------+-------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+
+| Method     | Sample Weight                                         | Adjusted outcomes ($\hat{\delta}_i$)                                                                        | Interpretation                                                                   |
++============+=======================================================+=============================================================================================================+==================================================================================+
+| SC         | $\hat{w}^{sc} = \min_{w \in R}l_{unit}(w)$            | $\frac{1}{T_{post}} \sum_{t = T_{pre} + 1}^T Y_{it}$                                                        | Unweighted treatment period averages                                             |
++------------+-------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+
+| DID        | $\hat{w}_i^{did} = N_c^{-1}$                          | $\frac{1}{T_{post}} \sum_{t = T_{pre}+ 1}^T Y_{it} - \frac{1}{T_{pre}} \sum_{t = 1}^{T_{pre}}Y_{it}$        | Unweighted differences between average treatment period and pretreatment outcome |
++------------+-------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+
+| SDID       | $(\hat{w}_0, \hat{w}^{sdid}) = \min l_{unit}(w_0, w)$ | $\frac{1}{T_{post}} \sum_{t = T_{pre} + 1}^T Y_{it} - \sum_{t = 1}^{T_{pre}} \hat{\lambda}_t^{sdid} Y_{it}$ | Weighted differences between average treatment period and pretreatment outcome   |
++------------+-------------------------------------------------------+-------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+
+
+: Summary of SC, DID, and SDID Estimators
 
 A key innovation in Synthetic Difference-in-Differences is its use of unit and time weights to refine causal estimates. By applying weights, SDID essentially localizes a standard two-way fixed effects regression, making it more robust and precise.
 
@@ -185,7 +201,7 @@ Including unit fixed effects ($\alpha_i$) in SDID has two main advantages:
 
 **Unit Fixed Effects and SC Weighting**
 
--   Under ideal conditions, [SC](#sec-synthetic-control) reweighting alone could account for unit fixed effects---if the weighted average of control unit outcomes perfectly matched the treated unit's pre-treatment trajectory.
+-   Under ideal conditions, [SC](#sec-synthetic-control) reweighting alone could account for unit fixed effects, if the weighted average of control unit outcomes perfectly matched the treated unit's pre-treatment trajectory.
 -   However, this rarely happens in reality, making unit fixed effects necessary for robust inference.
 -   The use of fixed effects in synthetic control regressions (SC with intercept) was first proposed in @doudchenko2016balancing and @ferman2021synthetic, where it was referred to as DIFP (Difference-in-Fixed-Effects Prediction).
 
@@ -205,7 +221,7 @@ Including unit fixed effects ($\alpha_i$) in SDID has two main advantages:
 SDID weights resemble those used in @abadie2010synthetic but have two key modifications:
 
 1.  **Inclusion of an Intercept Term**
-    -   Unlike [SC](#sec-synthetic-control), SDID does not force the control pre-trends to exactly match the treated pre-trends---it only ensures they are parallel.
+    -   Unlike [SC](#sec-synthetic-control), SDID does not force the control pre-trends to exactly match the treated pre-trends. Iit only ensures they are parallel.
     -   This flexibility arises from unit fixed effects, which absorb any systematic level differences.
 2.  **Regularization Penalty**
     -   Borrowed from @doudchenko2016balancing.
@@ -378,11 +394,17 @@ setup = synthdid::panel.matrices(synthdid::california_prop99)
 tau.hat = synthdid::synthdid_estimate(setup$Y, setup$N0, setup$T0)
 
 # se = sqrt(vcov(tau.hat, method = 'placebo'))
+```
 
+
+``` r
 plot(tau.hat) + causalverse::ama_theme()
 ```
 
-<img src="29-synthdid_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="29-synthdid_files/figure-html/unnamed-chunk-2-1.png" alt="Line plot from 1970 to 2000 comparing two trajectories: a red line for synthetic control and a blue line for the treated unit. A vertical line around 1989 marks the intervention. After this point, the treated unit drops sharply compared to the synthetic control. A shaded area and dashed lines emphasize the gap between the two series, representing the estimated treatment effect. A legend identifies the treated and synthetic control lines." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-2)Synthetic Control Method: Treated vs. Synthetic Counterfactual Over Time</p>
+</div>
 
 
 ``` r
@@ -533,6 +555,8 @@ To explore heterogeneity of treatment effect, we can do subgroup analysis [@berm
 |                                                                    |                                                                   |                                                                                                                                                      | 2.  Compute treatment effects using only the treated subgroup units as the treatment units.    |
 +--------------------------------------------------------------------+-------------------------------------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------------------+
 
+: Subgroup Analysis Strategies for Exploring Treatment Effect Heterogeneity
+
 
 ``` r
 library(tidyverse)
@@ -574,12 +598,17 @@ data.frame(
 #> 6 cumul.0 -5.07 0.80
 #> 7 cumul.1 -4.87 0.55
 #> 8 cumul.2 -4.48 0.53
+```
 
 
+``` r
 causalverse::synthdid_plot_ate(est)
 ```
 
-<img src="29-synthdid_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="29-synthdid_files/figure-html/unnamed-chunk-4-1.png" alt="Line plot of ATE against relative time periods from −2 to +2. The ATE remains near zero before the event, then drops sharply at time 0, indicating a strong negative treatment effect. A gradual increase follows in post-treatment periods. Shaded gray bands show confidence intervals, and a red horizontal line at zero provides a visual reference for significance." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-4)Event Study Plot of Average Treatment Effect Over Time</p>
+</div>
 
 
 ``` r
@@ -622,11 +651,17 @@ data.frame(
 #> 6 cumul.0 -4.29 1.68
 #> 7 cumul.1 -4.14 1.52
 #> 8 cumul.2 -3.91 1.82
+```
 
+
+``` r
 causalverse::synthdid_plot_ate(est)
 ```
 
-<img src="29-synthdid_files/figure-html/synthdid subgroup analysis-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="29-synthdid_files/figure-html/unnamed-chunk-5-1.png" alt="Line plot of ATE against relative time periods from −2 to +2. The ATE remains near zero before the event, then drops sharply at time 0, indicating a strong negative treatment effect. A gradual increase follows in post-treatment periods. Shaded gray bands show confidence intervals, and a red horizontal line at zero provides a visual reference for significance." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-5)Event Study Plot of Average Treatment Effect Over Time (Subgroup)</p>
+</div>
 
 Plot different estimators
 

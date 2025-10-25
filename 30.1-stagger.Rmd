@@ -189,7 +189,9 @@ res <- staggered(
     estimand = "eventstudy", 
     eventTime = -9:8
 )
+```
 
+```{r  fig-event-study-dynamic-effects, fig.cap='Event Study Dynamic Treatment Effects', fig.alt='A dot-and-whisker plot showing ATT estimates over event time. Points before treatment hover near zero, while post-treatment estimates increase steadily, with confidence intervals widening over time.'}
 # Plotting the event study with pointwise confidence intervals
 library(ggplot2)
 library(dplyr)
@@ -367,6 +369,8 @@ Different DiD designs make distinct assumptions about how treatment effects vary
 |                         |                |                     | Heterogeneity either "vary across units but not over time" or "vary over time but not across units". |
 +-------------------------+----------------+---------------------+------------------------------------------------------------------------------------------------------+
 
+: Comparisons of Designs' Assumptions
+
 #### Sources of Treatment Effect Heterogeneity
 
 Several forces can generate heterogeneous treatment effects:
@@ -429,9 +433,8 @@ res_sa20 <- feols(
 
 Use `iplot()` to visualize the estimated dynamic treatment effects across relative time:
 
-```{r}
+```{r event-study-effect-on-y, fig.cap='Effect on y', fig.alt='Dot plot of treatment effects over time with 95% confidence intervals. Pre-treatment estimates hover near zero, while post-treatment effects show a rising trend, indicating increasing impact.'}
 iplot(res_sa20)
-
 ```
 
 You can summarize the results using different aggregation options:
@@ -453,16 +456,21 @@ The `fwlplot` package provides diagnostics for how much variation is explained b
 
 ```{r}
 library(fwlplot)
+```
 
+```{r scatter-regression-x1-y, fig.cap='Scatter Plot of Y agaisnt X1', fig.alt='A scatter plot showing a dense cloud of black points with a light blue regression line sloping upward, indicating a positive linear relationship between x1 and y, along with a shaded confidence band.'}
 # Simple FWL plot
 fwl_plot(y ~ x1, data = base_stagg)
+```
 
-
+```{r residualized-scatter-x1-y, fig.cap='Scatter Plot of Residualized Y against Residualized X1', fig.alt='Scatter plot of residualized y against residualized x1, with a fitted linear regression line and shaded confidence band. The plot reveals a positive partial relationship between the variables.'}
 # With fixed effects
 fwl_plot(y ~ x1 | id + year,
          data = base_stagg,
          n_sample = 100)
+```
 
+```{r residualized-scatter-by-treatment, fig.cap='Scatter Plot of Residualized Y against Residualized X1 by Treatment Status', fig.alt='Three scatter plots displaying residualized y versus residualized x1. The left panel shows the full sample, the middle panel shows untreated units, and the right panel shows treated units. Each includes a positively sloped regression line with confidence intervals.'}
 # Splitting by treatment status
 fwl_plot(
     y ~ x1 |
@@ -516,7 +524,7 @@ Define:
 -   $\Omega_A$: The set of **treatment adoption periods** that fit within the event window:
 
 $$
-\Omega_A = \left\{ A_i \;\middle|\; T_1 + \kappa_a \le A_i \le T_T - \kappa_b \right\}
+\Omega_A = \left\{ A_i \middle| T_1 + \kappa_a \le A_i \le T_T - \kappa_b \right\}
 $$
 
 -   Each $A_i$ represents an **adoption period** for unit $i$ that has enough time on both sides of the event.
@@ -735,7 +743,9 @@ compare_df_longer <- compare_df_est %>%
                   pivot_longer(!period, names_to = "estimator", values_to = "se")) %>%
     mutate(upper = est +  1.96 * se,
            lower = est - 1.96 * se)
+```
 
+```{r dynamic-treatment-comparison-att, fig.cap='Comparison of Dynamic Average Treatment Effects', fig.alt='Line plot showing estimated ATT over event time for three estimators: cs (red), sa (green), and stacked (blue). All estimators show a dip around event time zero, followed by increasing effects. Confidence bands are shown as shaded regions.'}
 ggplot(compare_df_longer) +
     geom_ribbon(aes(
         x = period,
@@ -758,8 +768,6 @@ ggplot(compare_df_longer) +
         color = "Estimator"
     ) + 
     causalverse::ama_theme()
-
 ```
 
 ------------------------------------------------------------------------
-

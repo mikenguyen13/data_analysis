@@ -1,5 +1,7 @@
 # Linear Mixed Models {#sec-linear-mixed-models}
 
+Recognizing clustered and longitudinal data structures, This chapter introduces Linear Mixed Models (LMMs). We review random-effects specification, restricted maximum likelihood (REML) estimation, and inference under unbalanced designs. Special attention is paid to split-plot experiments, repeated-measures designs, and cross-classified data common in education and panel studies. We outline model-selection heuristics, and present information-criteria benchmarks. Practical guidance on software and diagnostics (BLUPs, conditional residuals) rounds out the chapter.
+
 ## Dependent Data
 
 In many real-world applications, observations are not independent but exhibit **correlations** due to shared characteristics. Below are common forms of dependent data:
@@ -23,6 +25,8 @@ A key advantage of LMMs is that they model random subject-specific effects, rath
 
 -   A reduction in the number of parameters to estimate, avoiding overfitting.
 -   A framework for inference on a population level, rather than restricting conclusions to observed individuals.
+
+------------------------------------------------------------------------
 
 ### Motivation: A Repeated Measurements Example
 
@@ -59,7 +63,7 @@ where:
 -   $\beta_i$ is a $q \times 1$ vector of subject-specific regression coefficients.
 -   $\epsilon_i$ represents random errors, often assumed to follow $\epsilon_i \sim N(0, \sigma^2 I)$.
 
-At this stage, each individual has their own unique regression coefficients $\beta_i$. However, estimating a separate $\beta_i$ for each subject is impractical when $N$ is large. Thus, we introduce a [second stage](#sec-stage-2-parameter-model-(between-subject-variation) to impose structure on $\beta_i$.
+At this stage, each individual has their own unique regression coefficients $\beta_i$. However, estimating a separate $\beta_i$ for each subject is impractical when $N$ is large. Thus, we introduce a [second stage](#sec-stage-2-parameter-model-between-subject-variation) to impose structure on $\beta_i$.
 
 #### Stage 2: Parameter Model (Between-Subject Variation) {#sec-stage-2-parameter-model-between-subject-variation}
 
@@ -252,7 +256,7 @@ To address these issues, we adopt the [Linear Mixed Model](#sec-linear-mixed-mod
 
 #### Reformulating the Linear Mixed Model
 
-Substituting [Stage 2](#sec-stage-2-parameter-model-(between-subject-variation) into [Stage 1](#sec-stage-2-parameter-model-(between-subject-variation), we obtain:
+Substituting [Stage 2](#sec-stage-2-parameter-model-between-subject-variation) into [Stage 1](#sec-stage-1-regression-model-within-subject-variation), we obtain:
 
 $$
 \mathbf{Y}_i = \mathbf{Z}_i \mathbf{K}_i \beta + \mathbf{Z}_i \mathbf{b}_i + \mathbf{\epsilon}_i.
@@ -348,7 +352,7 @@ Interpretation:
 
     This shows that the random effects contribute additional correlation between observations.
 
-> 🔹 **Key Takeaway:**\
+> **Key Takeaway:**\
 > The marginal formulation of LMM no longer includes $Z_i b_i$ in the mean, but instead incorporates it into the covariance structure, introducing marginal dependence in $\mathbf{Y}_i$.
 
 Technically, rather than "averaging out" the random effect $b_i$, we add its contribution to the variance-covariance matrix.
@@ -554,7 +558,7 @@ Interpretation of the Marginal Model
 
     -   If $d_{22} > 0$, variance increases over time.
 
-> 🔹 **Key Takeaway**:\
+> **Key Takeaway**:\
 > In the hierarchical model, random effects contribute to the mean structure.\
 > In the marginal model, they affect the covariance structure, leading to heteroskedasticity (changing variance over time) and correlation between repeated measures.
 
@@ -652,25 +656,23 @@ Interpretation of $\rho$ (Intra-Class Correlation)
     -   The residual error variance dominates, meaning individual differences in intercepts are small.
     -   Measurements from the same subject are weakly correlated.
 
-------------------------------------------------------------------------
++----------------------------------+--------------------------------------------------------------------+
+| Feature                          | Explanation                                                        |
++==================================+====================================================================+
+| Intercepts                       | Random, subject-specific ($b_i$)                                   |
++----------------------------------+--------------------------------------------------------------------+
+| Slopes                           | Fixed within each treatment group                                  |
++----------------------------------+--------------------------------------------------------------------+
+| Covariance Structure             | Compound symmetry (constant variance, equal correlation)           |
++----------------------------------+--------------------------------------------------------------------+
+| Intra-Class Correlation ($\rho$) | Measures between-subject variability relative to total variability |
++----------------------------------+--------------------------------------------------------------------+
+| Interpretation                   | Large $\rho \to$ Strong subject-level differences,                 |
+|                                  |                                                                    |
+|                                  | Small $\rho \to$ Mostly residual noise                             |
++----------------------------------+--------------------------------------------------------------------+
 
-Summary of the Random-Intercepts Model
-
-+--------------------------------------+------------------------------------------------------------------------+
-| Feature                              | Explanation                                                            |
-+======================================+========================================================================+
-| **Intercepts**                       | Random, subject-specific ($b_i$)                                       |
-+--------------------------------------+------------------------------------------------------------------------+
-| **Slopes**                           | Fixed within each treatment group                                      |
-+--------------------------------------+------------------------------------------------------------------------+
-| **Covariance Structure**             | **Compound symmetry** (constant variance, equal correlation)           |
-+--------------------------------------+------------------------------------------------------------------------+
-| **Intra-Class Correlation (**$\rho$) | Measures **between-subject variability** relative to total variability |
-+--------------------------------------+------------------------------------------------------------------------+
-| **Interpretation**                   | Large $\rho$ → Strong subject-level differences,                       |
-|                                      |                                                                        |
-|                                      | Small $\rho$ → Mostly residual noise                                   |
-+--------------------------------------+------------------------------------------------------------------------+
+: Summary of the Random-Intercepts Model
 
 ------------------------------------------------------------------------
 
@@ -846,9 +848,9 @@ Properties of the AR(1) Structure:
 | **Matérn Covariance**              | Function of $|t_{ij} - t_{ik}|^\nu$         | Flexible decay    | Spatially continuous       | Generalization of Gaussian and exponential structures             | Geostatistics, spatiotemporal models           |
 +------------------------------------+---------------------------------------------+-------------------+----------------------------+-------------------------------------------------------------------+------------------------------------------------+
 
-------------------------------------------------------------------------
+: Covariance Structures in Mixed Models
 
-**Choosing the Right Covariance Structure**
+------------------------------------------------------------------------
 
 | Scenario                                 | Recommended Structure  |
 |------------------------------------------|------------------------|
@@ -858,6 +860,8 @@ Properties of the AR(1) Structure:
 | Spatial correlation                      | Spatial Power, Matérn  |
 | Irregularly spaced time points           | Toeplitz, Unstructured |
 | High-dimensional data                    | Banded, AR(1)          |
+
+: Choosing the Right Covariance Structure
 
 ------------------------------------------------------------------------
 
@@ -1036,7 +1040,7 @@ $$
 \mathbf{B - BZ'V^{-1}ZB + BZ'V^{-1}X (X'V^{-1}X)^{-1} X'V^{-1}B}.
 $$
 
-> 🔹 **Key Insight:**\
+> **Key Insight:**\
 > Mean Squared Prediction Error is more meaningful than $\text{Var}(\hat{\mathbf{b}})$ alone, since it accounts for both variance and bias in prediction.
 
 ------------------------------------------------------------------------
@@ -1078,17 +1082,19 @@ can be understood as:
 
 ------------------------------------------------------------------------
 
-+-----------------------------------------+--------------------------------------------------------------------+----------------------------------------------------+
-| **Component**                           | **Equation**                                                       | **Interpretation**                                 |
-+=========================================+====================================================================+====================================================+
-| **Fixed effects (**$\hat{\beta}$)       | $(\mathbf{X'V^{-1}X})^{-1} \mathbf{X'V^{-1}Y}$                     | [Generalized Least Squares] estimator              |
-+-----------------------------------------+--------------------------------------------------------------------+----------------------------------------------------+
-| **Random effects (**$\hat{\mathbf{b}}$) | $\mathbf{BZ'V^{-1}(Y - X\hat{\beta})}$                             | Best Linear Unbiased Predictor (BLUP)              |
-+-----------------------------------------+--------------------------------------------------------------------+----------------------------------------------------+
-| **Variance of** $\hat{\beta}$           | $(\mathbf{X'V^{-1}X})^{-1}$                                        | Accounts for uncertainty in fixed effect estimates |
-+-----------------------------------------+--------------------------------------------------------------------+----------------------------------------------------+
-| **Variance of prediction error**        | $\mathbf{B - BZ'V^{-1}ZB + BZ'V^{-1}X (X'V^{-1}X)^{-1} X'V^{-1}B}$ | Includes both variance and bias in prediction      |
-+-----------------------------------------+--------------------------------------------------------------------+----------------------------------------------------+
++-------------------------------------+--------------------------------------------------------------------+----------------------------------------------------+
+| **Component**                       | **Equation**                                                       | **Interpretation**                                 |
++=====================================+====================================================================+====================================================+
+| Fixed effects ($\hat{\beta}$)       | $(\mathbf{X'V^{-1}X})^{-1} \mathbf{X'V^{-1}Y}$                     | [Generalized Least Squares] estimator              |
++-------------------------------------+--------------------------------------------------------------------+----------------------------------------------------+
+| Random effects ($\hat{\mathbf{b}}$) | $\mathbf{BZ'V^{-1}(Y - X\hat{\beta})}$                             | Best Linear Unbiased Predictor (BLUP)              |
++-------------------------------------+--------------------------------------------------------------------+----------------------------------------------------+
+| Variance of $\hat{\beta}$           | $(\mathbf{X'V^{-1}X})^{-1}$                                        | Accounts for uncertainty in fixed effect estimates |
++-------------------------------------+--------------------------------------------------------------------+----------------------------------------------------+
+| Variance of prediction error        | $\mathbf{B - BZ'V^{-1}ZB + BZ'V^{-1}X (X'V^{-1}X)^{-1} X'V^{-1}B}$ | Includes both variance and bias in prediction      |
++-------------------------------------+--------------------------------------------------------------------+----------------------------------------------------+
+
+: Key Components and Equations in Linear Mixed Models
 
 ------------------------------------------------------------------------
 
@@ -1102,8 +1108,8 @@ $$
 
 Define:
 
--   $T = \sum_{i=1}^N n_i$ → **Total number of observations**.
--   $Nq$ → **Total number of random effects**.
+-   $T = \sum_{i=1}^N n_i$ as **Total number of observations**.
+-   $Nq$ as **Total number of random effects**.
 
 The **joint distribution** of $(\mathbf{b}, \mathbf{\epsilon})$ is:
 
@@ -1311,6 +1317,8 @@ $$
 | **Posterior Variance**    | $(\mathbf{Z'\Sigma^{-1}Z} + \mathbf{B^{-1}})^{-1}$                                                             | Uncertainty in predictions          |
 +---------------------------+----------------------------------------------------------------------------------------------------------------+-------------------------------------+
 
+: Bayesian Interpretation of Linear Mixed Models
+
 ### Estimating the Variance-Covariance Matrix
 
 If we have an estimate $\tilde{\mathbf{V}}$ for $\mathbf{V}$, we can estimate the fixed and random effects as:
@@ -1389,6 +1397,8 @@ Key Observations about MLE
 
 -   MLE tends to underestimate $\theta$ because it does not account for the estimation of fixed effects.
 -   Bias in variance estimates can be corrected using REML.
+
+------------------------------------------------------------------------
 
 #### Restricted Maximum Likelihood {#restricted-maximum-likelihood-lmm}
 
@@ -1643,8 +1653,6 @@ Since analytical solutions are generally unavailable, we use Markov Chain Monte 
 
 ------------------------------------------------------------------------
 
-Comparison of Estimation Methods for $\mathbf{V}$
-
 +---------------------------------------------------------+-------------------+---------------------+------------------------+--------------------------------------------+
 | Method                                                  | Assumptions       | Computational Cost  | Handles Non-Normality? | Best Use Case                              |
 +=========================================================+===================+=====================+========================+============================================+
@@ -1656,6 +1664,10 @@ Comparison of Estimation Methods for $\mathbf{V}$
 +---------------------------------------------------------+-------------------+---------------------+------------------------+--------------------------------------------+
 | [Bayesian](#sec-bayesian-hierarchical-models-lmm) (BHM) | Probabilistic     | Very High (MCMC)    | Yes                    | Small samples, prior information available |
 +---------------------------------------------------------+-------------------+---------------------+------------------------+--------------------------------------------+
+
+: Comparison of Estimation Methods for $\mathbf{V}$
+
+------------------------------------------------------------------------
 
 ## Inference in Linear Mixed Models
 
@@ -1734,13 +1746,13 @@ $$
 The F-statistic is:
 
 $$
-F^* = \frac{(\mathbf{A} \hat{\beta} - \mathbf{d})' \left[ \mathbf{A} \left( \mathbf{X}' \hat{\mathbf{V}}^{-1} \mathbf{X} \right)^{-1} \mathbf{A}' \right]^{-1} (\mathbf{A} \hat{\beta} - \mathbf{d})}{\hat{\sigma}^2 \, \text{rank}(\mathbf{A})}.
+F^* = \frac{(\mathbf{A} \hat{\beta} - \mathbf{d})' \left[ \mathbf{A} \left( \mathbf{X}' \hat{\mathbf{V}}^{-1} \mathbf{X} \right)^{-1} \mathbf{A}' \right]^{-1} (\mathbf{A} \hat{\beta} - \mathbf{d})}{\hat{\sigma}^2 \text{rank}(\mathbf{A})}.
 $$
 
 -   Distribution under $H_0$:
 
     $$
-    F^* \sim F_{\text{rank}(\mathbf{A}), \, \text{df}_{\text{denominator}}}.
+    F^* \sim F_{\text{rank}(\mathbf{A}),  \text{df}_{\text{denominator}}}.
     $$
 
 -   Approximating Denominator Degrees of Freedom:
@@ -1764,6 +1776,8 @@ Wald Test vs. F-Test:
 +--------------------------+---------------------------------------+-----------------------------------+
 | Reduction to t-test      | Yes (for single $\beta$)              | Yes (when rank($\mathbf{A}$) = 1) |
 +--------------------------+---------------------------------------+-----------------------------------+
+
+: Comparison of Wald Test and F-Test Under Common Evaluation Criteria
 
 ------------------------------------------------------------------------
 
@@ -1871,6 +1885,8 @@ LRT can also be applied to variance components:
 | Wald (Variance) | Variance components ($\theta$) | Simple extension of Wald test       | Fails near parameter space boundaries            |
 +-----------------+--------------------------------+-------------------------------------+--------------------------------------------------+
 
+: Comparison of Statistical Tests for Fixed and Random Effects in Linear Mixed Models
+
 ------------------------------------------------------------------------
 
 ## Information Criteria for Model Selection
@@ -1893,7 +1909,7 @@ The Akaike Information Criterion is derived from the Kullback-Leibler divergence
 **AIC Formula**:
 
 $$
-AIC = -2 \, l(\hat{\theta}, \hat{\beta}) + 2q
+AIC = -2  l(\hat{\theta}, \hat{\beta}) + 2q
 $$
 
 where:
@@ -1963,7 +1979,7 @@ The Bayesian Information Criterion is derived from a Bayesian framework and inco
 **BIC Formula**
 
 $$
-BIC = -2 \, l(\hat{\theta}, \hat{\beta}) + q \log(n)
+BIC = -2  l(\hat{\theta}, \hat{\beta}) + q \log(n)
 $$
 
 where:
@@ -2003,6 +2019,8 @@ When to Use BIC:
 +---------------+-----------------------------------+----------------------------+------------------------------------------------------+--------------------------+
 | **BIC**       | $-2l + q \log(n)$                 | $q \log(n)$                | Large samples, model selection in hypothesis testing | Lower is better          |
 +---------------+-----------------------------------+----------------------------+------------------------------------------------------+--------------------------+
+
+: Comparison of AIC, AICc, and BIC
 
 **Key Takeaways**
 
@@ -2170,6 +2188,8 @@ print(results)
 | **AICc**      | Model 2        | Adjusted for small samples, Model 2 still best |
 +---------------+----------------+------------------------------------------------+
 
+: Model Selection Results Based on Information Criteria
+
 ------------------------------------------------------------------------
 
 ## Split-Plot Designs
@@ -2309,6 +2329,8 @@ Mixed models are particularly useful when:
 
 -   You need to account for **complex correlation structures** within the data.
 
+------------------------------------------------------------------------
+
 ### Application: Split-Plot Design
 
 Consider an agricultural experiment designed to study the effects of irrigation and crop variety on yield. This scenario is well-suited for a split-plot design because irrigation treatments are applied to large plots (fields), while different crop varieties are planted within these plots.
@@ -2365,8 +2387,11 @@ head(irrigation, 4)
 #> 2    f1         i1      v2  37.9
 #> 3    f2         i2      v1  36.7
 #> 4    f2         i2      v2  38.2
+```
 
-# Exploratory plot: Yield by field, colored by variety and shaped by irrigation
+
+``` r
+# Exploratory plot
 ggplot(irrigation,
        aes(
            x     = field,
@@ -2381,7 +2406,10 @@ ggplot(irrigation,
     theme_minimal()
 ```
 
-<img src="08-linear-mixed-models_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="08-linear-mixed-models_files/figure-html/fig-field-irrigation-variety-1.png" alt="Scatter plot titled Yield by Field, Irrigation, and Variety showing yield on the y-axis and field on the x-axis. Data points are differentiated by shape and color to represent irrigation types and varieties. Irrigation types include i1 as circle, i2 as triangle, i3 as square, and i4 as cross. Varieties include v1 as red and v2 as blue. Fields f1 to f8 are shown with yield values ranging from 35 to 45" width="100%" />
+<p class="caption">(\#fig:fig-field-irrigation-variety)Yield by Field, Irrigation, and Variety</p>
+</div>
 
 This plot helps visualize how yield varies across fields, under different irrigation treatments, and for different varieties.
 
@@ -2399,7 +2427,8 @@ library(lmerTest)  # Provides p-values for lmer models
 
 # Full model with interaction term
 sp_model <-
-    lmer(yield ~ irrigation * variety + (1 | field), data = irrigation)
+  lmer(yield ~ irrigation * variety
+       + (1 | field), data = irrigation)
 summary(sp_model)
 #> Linear mixed model fit by REML. t-tests use Satterthwaite's method [
 #> lmerModLmerTest]
@@ -2863,7 +2892,10 @@ $$
 data(pulp, package = "faraway")
 library(ggplot2)
 library(dplyr)
+```
 
+
+``` r
 # Visualize brightness by operator
 ggplot(pulp, aes(x = operator, y = bright)) +
     geom_boxplot(fill = "lightblue") +
@@ -2873,10 +2905,13 @@ ggplot(pulp, aes(x = operator, y = bright)) +
     theme_minimal()
 ```
 
-<img src="08-linear-mixed-models_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="08-linear-mixed-models_files/figure-html/fig-pulp-operator-1.png" alt="Box plot titled Pulp Brightness by Operator showing brightness levels for four operators labeled a, b, c, and d. Operator a has the widest range. Operator b has the lowest median brightness. Operators c and d have similar median brightness, with operator d having a slightly higher range. The y-axis is labeled Brightness with values from 59.75 to 61.00" width="100%" />
+<p class="caption">(\#fig:fig-pulp-operator)Pulp Brightness by Operator</p>
+</div>
+
 
 ``` r
-
 # Group-wise summary
 pulp %>%
     group_by(operator) %>%
@@ -3017,7 +3052,8 @@ fixef(mixed_model) + ranef(mixed_model)$operator
 #> d    60.61340
 
 # Equivalent using predict()
-predict(mixed_model, newdata = data.frame(operator = c('a', 'b', 'c', 'd')))
+predict(mixed_model, 
+        newdata = data.frame(operator = c('a', 'b', 'c', 'd')))
 #>        1        2        3        4 
 #> 60.27806 60.14088 60.56767 60.61340
 ```
@@ -3040,24 +3076,37 @@ bootMer(mixed_model, FUN = fixef, nsim = 100)
 #> t1*     60.4 -0.0005452538    0.156374
 ```
 
+------------------------------------------------------------------------
+
 ### Example 2: Penicillin Yield (GLMM with Blocking)
 
 
 ``` r
 data(penicillin, package = "faraway")
 library(ggplot2)
+```
 
+
+``` r
 # Visualize yield by treatment and blend
-ggplot(penicillin, aes(y = yield, x = treat, shape = blend, color = blend)) +
+ggplot(penicillin, aes(
+  y = yield,
+  x = treat,
+  shape = blend,
+  color = blend
+)) +
   geom_point(size = 3) +
   labs(title = "Penicillin Yield by Treatment and Blend") +
   theme_minimal()
 ```
 
-<img src="08-linear-mixed-models_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="08-linear-mixed-models_files/figure-html/fig-pen-yield-treat-blend-1.png" alt="Chart titled Penicillin Yield by Treatment and Blend showing yield on the y-axis and treatment on the x-axis labeled A, B, C, and D. Data points are shown with different shapes and colors for each blend. Blend1 uses red circles, Blend2 uses green triangles, Blend3 uses green squares, Blend4 uses blue crosses, and Blend5 uses purple squares with an X. The chart shows variation in yield across treatments and blends" width="100%" />
+<p class="caption">(\#fig:fig-pen-yield-treat-blend)Penicillin Yield by Treatment and Blend</p>
+</div>
+
 
 ``` r
-
 # Mixed model: blend as random effect, treatment as fixed
 mixed_model <- lmer(yield ~ treat + (1 | blend), data = penicillin)
 summary(mixed_model)
@@ -3138,6 +3187,8 @@ KRmodcomp(full_model, null_model)
 
 The results are consistent with the earlier ANOVA: **no significant treatment effect**.
 
+------------------------------------------------------------------------
+
 ### Example 3: Growth in Rats Over Time
 
 
@@ -3206,10 +3257,13 @@ Since the **p-value is significant**, we conclude that the **treatment effect va
 
 ``` r
 library(agridat)
-dat <- harris.wateruse
-
-# Visualizing water use by species and age
 library(latticeExtra)
+dat <- harris.wateruse
+```
+
+
+``` r
+# Visualizing water use by species and age
 useOuterStrips(
   xyplot(water ~ day | species * age, 
          dat, group = tree,
@@ -3219,7 +3273,10 @@ useOuterStrips(
 )
 ```
 
-<img src="08-linear-mixed-models_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="08-linear-mixed-models_files/figure-html/fig-water-species-age-1.png" alt="Scatter plot with four panels showing water usage over time for two species and two age groups of trees, labeled A1 and A2. The x-axis represents days, ranging from 0 to 300, and the y-axis represents water usage, ranging from 0 to 6. Panels are divided into S1 and S2, each containing data points represented by colored circles with trend lines." width="90%" />
+<p class="caption">(\#fig:fig-water-species-age)Species by Age</p>
+</div>
 
 Remove outlier
 
@@ -3243,7 +3300,10 @@ xyplot(
 )
 ```
 
-<img src="08-linear-mixed-models_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="08-linear-mixed-models_files/figure-html/fig-water-age-species-1.png" alt="Scatter plot grid titled harris.wateruse Age 2, Species 2 showing water use profiles of individual trees over time. Each subplot, labeled T04 to T71, displays data points and trend lines for days 200 to 250. The y-axis represents water use levels from 0 to 4" width="100%" />
+<p class="caption">(\#fig:fig-water-age-species)harris.wateruse (Age 2, Species 2)</p>
+</div>
 
 
 ``` r
@@ -3478,3 +3538,5 @@ fixef(m2n)
 -   Bayesian models (e.g., `MCMCglmm`) offer flexible inference under uncertainty.
 
 -   Always consider model diagnostics and random effects structure carefully.
+
+------------------------------------------------------------------------

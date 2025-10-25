@@ -297,8 +297,8 @@ meaning the estimator is (asymptotically) unbiased for the true function or para
 
 However, **consistency** alone may not suffice for scientific inference. One often also examines:
 
--   **Asymptotic Normality**: $\sqrt{n}(\hat{\beta} - \beta) \;\;\xrightarrow{d}\;\; \mathcal{N}(0,\Sigma).$
--   **Confidence Intervals**: $\hat{\beta}_j \;\pm\; z_{\alpha/2}\,\mathrm{SE}\bigl(\hat{\beta}_j\bigr).$
+-   **Asymptotic Normality**: $\sqrt{n}(\hat{\beta} - \beta) \xrightarrow{d} \mathcal{N}(0,\Sigma).$
+-   **Confidence Intervals**: $\hat{\beta}_j \pm z_{\alpha/2}\,\mathrm{SE}\bigl(\hat{\beta}_j\bigr).$
 -   **Hypothesis Tests**: $H_0\colon \beta_j = 0 \quad\text{vs.}\quad H_1\colon \beta_j \neq 0.$
 
 ### Causal Inference Fundamentals
@@ -411,12 +411,17 @@ dag_plot <- ggdag(dag) +
     theme_void() +
     geom_text(aes(x = 0.5, y = 1.2, label = "Causation"), size = 4) +
     geom_text(aes(x = 0.3, y = 0.5, label = "Prediction"), size = 4) 
+```
 
-# Display the DAG
+
+``` r
 dag_plot
 ```
 
-<img src="20-prediction_estimation_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="20-prediction_estimation_files/figure-html/fig-flow-chart-prediction-and-causation-1.png" alt="Flow chart with nodes X0, X, Y, and II. Arrows indicate: X0 to Y (Causation), X0 to II (Prediction), X to Y, and Y to II. Shows directional relationships and predictive paths." width="90%" />
+<p class="caption">(\#fig:fig-flow-chart-prediction-and-causation)Flow Chart</p>
+</div>
 
 ## Illustrative Equations and Mathematical Contrasts
 
@@ -540,7 +545,7 @@ The expected value of $\hat{\beta}_1$ in large samples is:
 
 $$
 \beta_1
-\;+\;
++
 \beta_2 \,\frac{\mathrm{Cov}(X_1, X_2)}{\mathrm{Var}(X_1)}.
 $$
 

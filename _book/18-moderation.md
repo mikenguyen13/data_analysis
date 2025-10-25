@@ -1,5 +1,9 @@
 # Moderation
 
+Moderation analysis is essential for understanding interaction effects, when the relationship between two variables depends on the value of a third. This chapter introduces the concept through real-world examples. After outlining common types of moderation (binary, continuous, hierarchical), the chapter walks through the key terminology, including moderators, focal predictors, and conditional effects. It covers the classic moderation model and introduces interaction terms in regression. Later sections delve into two-way and three-way interactions, providing detailed guidance on specification, estimation, and interpretation. Graphical methods for exploring interaction effects are emphasized, using interaction plots and marginal effects visualization. The chapter ensures readers are able not only to model interaction effects correctly but to communicate them clearly to non-technical stakeholders.
+
+------------------------------------------------------------------------
+
 Moderation analysis examines how the relationship between an independent variable ($X$) and a dependent variable ($Y$) changes depending on a third variable, the *moderator* ($M$). In regression terms, moderation is represented as an interaction effect.
 
 ## Types of Moderation Analyses
@@ -94,6 +98,7 @@ The dataset used in this section is sourced from the [UCLA Statistical Consultin
 
 ``` r
 library(tidyverse)
+
 dat <- readRDS("data/exercise.rds") %>%
     mutate(prog = factor(prog, labels = c("jog", "swim", "read"))) %>%
     mutate(gender = factor(gender, labels = c("male", "female")))
@@ -163,13 +168,20 @@ emtrends(contcont, ~ effort, var = "hours", at = mylist)
 # Visualization of the interaction
 mylist <- list(hours = seq(0, 4, by = 0.4),
                effort = c(effbr, effr, effar))
+```
+
+
+``` r
 emmip(contcont, effort ~ hours, at = mylist, CIs = TRUE)
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-linear-prediction-vs-time-1.png" alt="A line chart showing linear predictions over time, with hours on the x-axis and linear prediction values on the y-axis. Three lines represent different effort levels. Each line shows a positive trend, with the blue line having the steepest slope. Error bars are present for each data point. A legend on the right indicates the color coding for effort levels." width="90%" />
+<p class="caption">(\#fig:fig-linear-prediction-vs-time)Linear Prediction Plot</p>
+</div>
+
 
 ``` r
-
 # Test statistical differences in slopes
 emtrends(
     contcont,
@@ -217,25 +229,25 @@ contcontdat <-
 # Convert effort levels to factors
 contcontdat$feffort <- factor(contcontdat$effort)
 levels(contcontdat$feffort) <- c("low", "medium", "high")
-
-# Generate plot
-p  <-
-    ggplot(data = contcontdat,
-           aes(x = hours, y = yvar, color = feffort)) +
-    geom_line()
-
-p1 <-
-    p +
-    geom_ribbon(aes(ymax = UCL, ymin = LCL, fill = feffort),
-                alpha = 0.4)
-
-p1  + labs(x = "Exercise Hours",
-           y = "Weight Loss",
-           color = "Effort",
-           fill = "Effort Level")
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
+
+``` r
+ggplot(data = contcontdat,
+       aes(x = hours, y = yvar, color = feffort)) +
+    geom_line() +
+    geom_ribbon(aes(ymax = UCL, ymin = LCL, fill = feffort),
+                alpha = 0.4) + labs(x = "Exercise Hours",
+                                    y = "Weight Loss",
+                                    color = "Effort",
+                                    fill = "Effort Level") +
+    theme_minimal()
+```
+
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-weight-loss-vs-effort-1.png" alt="Plot showing weight loss over exercise hours with varying effort levels. The x-axis represents exercise hours from 0 to 4, and the y-axis represents weight loss. Three colored lines indicate effort levels: red for low, green for medium, and blue for high. The blue line has the steepest positive slope. The chart shows that higher effort levels correlate with greater weight loss over time. A legend on the right labels the effort levels." width="90%" />
+<p class="caption">(\#fig:fig-weight-loss-vs-effort)Weight Loss vs Exercise Hours</p>
+</div>
 
 #### Continuous by Categorical Interaction
 
@@ -300,10 +312,18 @@ Since this test is equivalent to the interaction term in the regression model, a
 ``` r
 mylist <- list(hours = seq(0, 4, by = 0.4),
                gender = c("female", "male"))
+
+```
+
+
+``` r
 emmip(contcat, gender ~ hours, at = mylist, CIs = TRUE)
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-linear-prediction-by-gender-1.png" alt="Line chart showing linear predictions over time in hours for female and male groups. The x-axis ranges from 0 to 4 and the y-axis from 0 to 20. A red line for females and a blue line for males both show upward trends, with the female slope steeper. Error bars appear at each point. A legend on the right indicates group colors" width="100%" />
+<p class="caption">(\#fig:fig-linear-prediction-by-gender)Linear prediction vs hours</p>
+</div>
 
 #### Categorical by Categorical Interaction
 
@@ -367,7 +387,10 @@ contrast(emcatcat, "revpairwise", by = "prog", adjust = "bonferroni")
 emmip(catcat, prog ~ gender, CIs = TRUE)
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-prediction-by-gender-and-activity-1.png" alt="Plot showing linear predictions based on gender levels for three activities: reading, jogging, and swimming. The x-axis represents gender levels, labeled as female and male, while the y-axis shows linear prediction values. The chart includes three lines: red for reading, green for jogging, and blue for swimming. The legend on the right identifies the activities by color." width="90%" />
+<p class="caption">(\#fig:fig-prediction-by-gender-and-activity)Linear prediction vs Gender</p>
+</div>
 
 For a more intuitive presentation, we use a bar graph with error bars
 
@@ -378,27 +401,26 @@ catcatdat <- emmip(catcat,
                    gender ~ prog,
                    CIs = TRUE,
                    plotit = FALSE)
+```
 
-# Generate plot
-p <-
-    ggplot(data = catcatdat,
-           aes(x = prog, y = yvar, fill = gender)) +
-    geom_bar(stat = "identity", position = "dodge")
 
-p1 <-
-    p + geom_errorbar(
+``` r
+ggplot(data = catcatdat,
+       aes(x = prog, y = yvar, fill = gender)) +
+    geom_bar(stat = "identity", position = "dodge") + geom_errorbar(
         position = position_dodge(.9),
         width = .25,
         aes(ymax = UCL, ymin = LCL),
         alpha = 0.3
-    )
-
-p1  + labs(x = "Exercise Program",
-           y = "Weight Loss",
-           fill = "Gender")
+    )  + labs(x = "Exercise Program",
+              y = "Weight Loss",
+              fill = "Gender")
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-weight-loss-by-program-and-gender-1.png" alt="Bar chart showing weight loss across different exercise programs: reading, jogging, and swimming, categorized by gender. The y-axis represents weight loss, and the x-axis lists exercise programs. Females, represented by red bars, show the highest weight loss in swimming, followed by jogging and reading. Males, shown in blue bars, also have the highest weight loss in swimming, with jogging and reading following. Error bars indicate variability in data. A legend on the right identifies the colors for each gender." width="90%" />
+<p class="caption">(\#fig:fig-weight-loss-by-program-and-gender)Weigth Loss vs Exercise Program</p>
+</div>
 
 ### `probemod` Package
 
@@ -425,7 +447,6 @@ jnresults <- jn(myModel,
                 dv = 'loss',
                 iv = 'hours',
                 mod = 'gender')
-
 ```
 
 The `jn()` function computes Johnson-Neyman intervals, highlighting the values of `gender` at which the relationship between `hours` and `loss` is statistically significant.
@@ -538,23 +559,32 @@ interact_plot(fiti,
               ) 
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-interaction-illiteracy-murder-1.png" alt="Scatter plot showing the relationship between illiteracy rate on the x-axis and income on the y-axis. Trend lines represent murder rate levels: solid line for plus one standard deviation, dashed for mean, and dotted for minus one standard deviation. Shaded areas show confidence intervals" width="100%" />
+<p class="caption">(\#fig:fig-interaction-illiteracy-murder)Interaction Between Illiteracy and Murder Rate</p>
+</div>
 
-If the model includes **weights**, they can be incorporated into the visualization
+If the model includes **weights**, they can be incorporated into the visualization.
 
 
 ``` r
 fiti <- lm(Income ~ Illiteracy * Murder,
            data = states,
            weights = Population)
+```
 
+
+``` r
 interact_plot(fiti,
               pred = Illiteracy,
               modx = Murder,
               plot.points = TRUE)
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-bubble-illiteracy-income-1.png" alt="Bubble chart showing the relationship between illiteracy and income, with bubble sizes representing data points. Three trend lines for murder rate levels are included: plus one standard deviation, mean, and minus one standard deviation. The x-axis is illiteracy, and the y-axis is income, ranging from 3000 to 6000. All trend lines slope downward, with the steepest slope for the highest murder rate level." width="100%" />
+<p class="caption">(\#fig:fig-bubble-illiteracy-income)Bubble Chart between Income and Illiteracy</p>
+</div>
 
 A **partial effect plot** shows how the effect of one variable changes across different levels of another variable while controlling for other predictors.
 
@@ -599,7 +629,10 @@ summary(fitc)
 #> Residual standard error: 1.526 on 217 degrees of freedom
 #> Multiple R-squared:  0.8803,	Adjusted R-squared:  0.8715 
 #> F-statistic: 99.73 on 16 and 217 DF,  p-value: < 2.2e-16
+```
 
+
+``` r
 interact_plot(
     fitc,
     pred = displ,
@@ -613,7 +646,10 @@ interact_plot(
 )
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-20-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-displ-vs-cty-by-cyl-1.png" alt="Scatter plot showing the relationship between engine displacement (displ) on the x-axis and city fuel efficiency (cty) on the y-axis. Data points are color-coded by the number of cylinders (cyl), with a legend indicating line styles for 4, 5, 6, and 8 cylinders. Trend lines for each cylinder category show a general downward trend, indicating that as displacement increases, city fuel efficiency decreases." width="90%" />
+<p class="caption">(\#fig:fig-displ-vs-cty-by-cyl)Scatter Plot between cty and displ</p>
+</div>
 
 To check whether an interaction is **truly linear**, we can compare fitted lines based on:
 
@@ -639,22 +675,23 @@ summary(model_2)
 #> lm(formula = y_2 ~ x_2 * w, data = data_2)
 #> 
 #> Residuals:
-#>     Min      1Q  Median      3Q     Max 
-#> -14.554  -3.050   0.065   2.782  13.384 
+#>      Min       1Q   Median       3Q      Max 
+#> -10.8281  -3.2379   0.2682   2.9339  12.4055 
 #> 
 #> Coefficients:
-#>             Estimate Std. Error t value Pr(>|t|)  
-#> (Intercept)  0.42495    0.42785   0.993   0.3218  
-#> x_2         -0.56419    0.25426  -2.219   0.0276 *
-#> w           -0.02538    0.66809  -0.038   0.9697  
-#> x_2:w        0.54260    0.39873   1.361   0.1751  
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+#>             Estimate Std. Error t value Pr(>|t|)
+#> (Intercept)  -0.6138     0.4703  -1.305    0.193
+#> x_2          -0.1370     0.2690  -0.509    0.611
+#> w             1.0077     0.6800   1.482    0.140
+#> x_2:w         0.3123     0.3954   0.790    0.430
 #> 
-#> Residual standard error: 4.641 on 196 degrees of freedom
-#> Multiple R-squared:  0.02454,	Adjusted R-squared:  0.009605 
-#> F-statistic: 1.643 on 3 and 196 DF,  p-value: 0.1807
+#> Residual standard error: 4.761 on 196 degrees of freedom
+#> Multiple R-squared:  0.01547,	Adjusted R-squared:  0.0004036 
+#> F-statistic: 1.027 on 3 and 196 DF,  p-value: 0.3818
+```
 
+
+``` r
 # Linearity check plot
 interact_plot(
     model_2,
@@ -665,7 +702,10 @@ interact_plot(
 )
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-21-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-interaction-plot-dual-weights-1.png" alt="Two scatter plots comparing distributions with different weights (w=1 vs w=0), each showing parabolic curves with linear trend lines" width="100%" />
+<p class="caption">(\#fig:fig-interaction-plot-dual-weights)Interaction Plot</p>
+</div>
 
 ##### Simple Slopes Analysis
 
@@ -683,6 +723,7 @@ Example: Continuous by Continuous Interaction
 
 
 ``` r
+library(interactions)
 sim_slopes(fiti,
            pred = Illiteracy,
            modx = Murder,
@@ -717,12 +758,17 @@ ss <- sim_slopes(fiti,
                  pred = Illiteracy,
                  modx = Murder,
                  modx.values = c(0, 5, 10))
+```
 
-# Plot the slopes
+
+``` r
 plot(ss)
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-23-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-moderation-plot-1.png" alt="Chart displaying the relationship between the slope of illiteracy and murder rates at three levels: 0.00, 5.00, and 10.00. Each level is represented by a horizontal line with a central point, indicating the slope’s value range. The x-axis is labeled “Slope of Illiteracy,” ranging from -1000 to 1500." width="90%" />
+<p class="caption">(\#fig:fig-moderation-plot)Slope of Illiteracy</p>
+</div>
 
 For publication-quality results, we convert the simple slopes analysis into a table using `huxtable`.
 
@@ -736,30 +782,19 @@ ss <- sim_slopes(fiti,
                  modx.values = c(0, 5, 10))
 
 # Convert to a formatted table
-as_huxtable(ss)
+print(as_huxtable(ss))
+#>                      Value of Murder   Slope of Illiteracy  
+#>                    ─────────────────────────────────────────
+#>                      0.00              617.34 (434.85)      
+#>                      5.00              31.86 (262.63)       
+#>                      10.00             -553.62 (171.42)**
 ```
-
-
-```{=html}
-<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
-<col><col><tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Value of Murder</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Slope of Illiteracy</th></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.00</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">617.34 (434.85)</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">5.00</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">31.86 (262.63)</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">10.00</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-553.62 (171.42)**</td></tr>
-</table>
-
-```
-
 
 ##### Johnson-Neyman Intervals
 
 The **Johnson-Neyman technique** identifies the range of the moderator ($M$) where the effect of the predictor ($X$) on the dependent variable ($Y$) is statistically significant. This approach is useful when the moderator is continuous, allowing us to determine where an effect exists rather than arbitrarily choosing values.
 
-Although the J-N approach has been widely used [@johnson1936tests], it has known **inflated Type I error rates** [@bauer2005probing]. A correction method was proposed by [@esarey2018marginal] to address these issues.
+Although the J-N approach has been widely used [@johnson1936tests], it has known **inflated Type I error rates** [@bauer2005probing]. A correction method was proposed by @esarey2018marginal to address these issues.
 
 Since J-N performs multiple comparisons across all values of the moderator, it **inflates Type I error**. To control for this, we use [False Discovery Rate] correction.
 
@@ -833,11 +868,12 @@ johnson_neyman(fiti,
 #> Interval calculated using false discovery rate adjusted t = 2.33
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-26-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-johnson-neyman-significance-1.png" alt="Johnson-Neyman plot illustrating the relationship between the slope of illiteracy and murder rates. The x-axis represents murder rates, while the y-axis shows the slope of illiteracy. A red line with a shaded area indicates non-significant results, and a blue line with a shaded area indicates significant results. A black horizontal line represents the range of observed data." width="90%" />
+<p class="caption">(\#fig:fig-johnson-neyman-significance)Johnson Neyman Plot</p>
+</div>
 
 -   The y-axis represents the conditional slope of the predictor ($X$).
-
-<!-- -->
 
 -   The x-axis represents the values of the moderator ($M$).
 
@@ -858,8 +894,10 @@ mtcars$cyl <- factor(mtcars$cyl,
 
 # Fit the model
 fitc3 <- lm(mpg ~ hp * wt * cyl, data = mtcars)
+```
 
-# Plot interaction
+
+``` r
 interact_plot(fitc3,
               pred = hp,
               modx = wt,
@@ -867,7 +905,10 @@ interact_plot(fitc3,
     theme_apa(legend.pos = "bottomright")
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-27-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-johnson-neyman-interaction-1.png" alt="Three-panel X-Y chart illustrating the Johnson-Neyman technique for three-way interaction. Each panel represents different cylinder counts: 4, 6, and 8. The x-axis shows horsepower (hp), and the y-axis shows miles per gallon (mpg). Lines represent different standard deviations: solid for plus 1 standard deviation, dashed for mean, and dotted for minus 1 standard deviation. The chart highlights how mpg varies with hp across different cylinder counts." width="90%" />
+<p class="caption">(\#fig:fig-johnson-neyman-interaction)Interaction Plot</p>
+</div>
 
 ##### Johnson-Neyman for Three-Way Interaction
 
@@ -890,7 +931,10 @@ dstrat <- svydesign(
 # Fit 3-way interaction model
 regmodel3 <-
     survey::svyglm(api00 ~ avg.ed * growth * enroll, design = dstrat)
+```
 
+
+``` r
 # Johnson-Neyman analysis with visualization
 sim_slopes(
     regmodel3,
@@ -985,7 +1029,10 @@ sim_slopes(
 #>   0.40   0.27     1.49   0.14
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-28-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-growth-vs-avg-ed-by-enroll-level-1.png" alt="Three XY charts showing the relationship between average education (avg.ed) on the x-axis and slope of growth on the y-axis, across different enrollment levels. The top left chart shows a downward trend at minus one standard deviation of enrollment. The top right chart shows a similar downward trend at the mean. The bottom chart shows an upward trend at plus one standard deviation. Each plot includes a horizontal line at zero and vertical dashed reference lines." width="100%" />
+<p class="caption">(\#fig:fig-growth-vs-avg-ed-by-enroll-level)Slope of Growth</p>
+</div>
 
 To present the results in a **publication-ready format**, we generate tables and plots
 
@@ -996,57 +1043,46 @@ ss3 <-
                pred = growth,
                modx = avg.ed,
                mod2 = enroll)
+```
 
+
+``` r
 # Plot results
 plot(ss3)
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-29-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-growth-vs-avg-ed-horizontal-lines-1.png" alt="X-Y chart showing avg.ed vs. slope of growth. Horizontal lines at 2.09, 2.79, 3.49. Enrollment values include 1037.51, 153.05, 595.28. X-axis: 'Slope of growth' from -1 to 2." width="100%" />
+<p class="caption">(\#fig:fig-growth-vs-avg-ed-horizontal-lines)Slope of Growth</p>
+</div>
+
 
 ``` r
-
 # Convert results into a formatted table
 library(huxtable)
-as_huxtable(ss3)
+print(as_huxtable(ss3))
+#>                      ─────────────────────────────────────
+#>                        enroll = 153                       
+#>                        Value of avg.ed   Slope of growth  
+#>                      ─────────────────────────────────────
+#>                        2.09              1.25 (0.32)***   
+#>                        2.79              0.39 (0.22)#     
+#>                        3.49              -0.48 (0.35)     
+#>                      ─────────────────────────────────────
+#>                        enroll = 595.28                    
+#>                        Value of avg.ed   Slope of growth  
+#>                      ─────────────────────────────────────
+#>                        2.09              0.72 (0.22)**    
+#>                        2.79              0.34 (0.16)*     
+#>                        3.49              -0.04 (0.24)     
+#>                      ─────────────────────────────────────
+#>                        enroll = 1037.51                   
+#>                        Value of avg.ed   Slope of growth  
+#>                      ─────────────────────────────────────
+#>                        2.09              0.18 (0.31)      
+#>                        2.79              0.29 (0.20)      
+#>                        3.49              0.40 (0.27)
 ```
-
-
-```{=html}
-<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
-<col><col><tr>
-<td colspan="2" style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal; font-style: italic;">enroll = 153</td></tr>
-<tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Value of avg.ed</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Slope of growth</th></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.09</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1.25 (0.32)***</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.79</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.39 (0.22)#</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.49</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-0.48 (0.35)</td></tr>
-<tr>
-<td colspan="2" style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal; font-style: italic;">enroll = 595.28</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Value of avg.ed</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Slope of growth</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.09</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.72 (0.22)**</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.79</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.34 (0.16)*</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.49</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-0.04 (0.24)</td></tr>
-<tr>
-<td colspan="2" style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal; font-style: italic;">enroll = 1037.51</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Value of avg.ed</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 1pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Slope of growth</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.09</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 1pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.18 (0.31)</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.79</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.29 (0.20)</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.49</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.40 (0.27)</td></tr>
-</table>
-
-```
-
 
 #### Categorical Interactions
 
@@ -1057,6 +1093,7 @@ Example: Interaction Between `cyl`, `fwd`, and `auto`
 
 ``` r
 library(ggplot2)
+library(tidyverse)
 
 # Convert variables to factors
 mpg2 <- mpg %>%
@@ -1218,7 +1255,10 @@ cat_plot(fit3,
          plot.points = TRUE)
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-31-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-cty-vs-cyl-by-drivetrain-1.png" alt="Scatter plot showing the relationship between the number of cylinders (cyl) on the x-axis and city fuel efficiency (cty) on the y-axis. Data points are color-coded by drivetrain type: blue for 2-wheel drive (2wd) and orange for 4-wheel drive (4wd). Each group of data points is accompanied by horizontal lines indicating the mean and standard deviation. The plot illustrates a general trend of decreasing city fuel efficiency with an increasing number of cylinders." width="90%" />
+<p class="caption">(\#fig:fig-cty-vs-cyl-by-drivetrain)Scatter Plot</p>
+</div>
 
 Line Plot for Categorical Interaction
 
@@ -1234,7 +1274,10 @@ cat_plot(
 )
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-32-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-cty-vs-cyl-linechart-by-drivetrain-1.png" alt="Line chart showing the relationship between the number of cylinders (cyl) and city fuel efficiency (cty) for two types of wheel drive: 2wd and 4wd. The x-axis represents the number of cylinders, while the y-axis shows city fuel efficiency. The blue solid line with circles represents 2wd, and the orange dashed line with triangles represents 4wd. Error bars indicate variability in the data. A legend on the right identifies the line styles for each wheel drive type." width="90%" />
+<p class="caption">(\#fig:fig-cty-vs-cyl-linechart-by-drivetrain)Line Chart between cty and cyl</p>
+</div>
 
 Bar Plot Representation
 
@@ -1250,7 +1293,10 @@ cat_plot(
 )
 ```
 
-<img src="18-moderation_files/figure-html/unnamed-chunk-33-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="18-moderation_files/figure-html/fig-cty-vs-cyl-barchart-by-drivetrain-1.png" alt="Bar chart showing city mileage (cty) versus the number of cylinders (cyl) for vehicles with two-wheel drive (2wd) and four-wheel drive (4wd). Bars are grouped by cylinder count: 4, 6, and 8. Blue bars represent 2wd, and orange bars represent 4wd. Data points are overlaid as dots, indicating individual values. A legend on the right distinguishes between 2wd and 4wd." width="90%" />
+<p class="caption">(\#fig:fig-cty-vs-cyl-barchart-by-drivetrain)Bar Chart between cty and cyl</p>
+</div>
 
 ### `interactionR` Package
 
@@ -1283,10 +1329,408 @@ install.packages("sjPlot")
 
 ### Summary of Moderation Analysis Packages
 
-| **Package**    | **Purpose**                              | **Key Features**                                                             | **Recommended?**                    |
-|----------------|------------------------------------------|------------------------------------------------------------------------------|-------------------------------------|
-| `emmeans`      | Estimated marginal means & simple slopes | Computes simple slopes, spotlight analysis, floodlight analysis (J-N method) | ✅ Yes                              |
-| `probemod`     | Johnson-Neyman technique                 | Tests moderator significance ranges                                          | ❌ No (Subscript issues)            |
-| `interactions` | Interaction visualization                | Produces robust, customizable interaction plots                              | ✅ Yes                              |
-| `interactionR` | Epidemiological interaction measures     | Computes RERI, AP, SI for additive scale interactions                        | ✅ Yes (for public health research) |
-| `sjPlot`       | Publication-quality interaction plots    | Highly customizable, ideal for academic papers                               | ✅ Highly Recommended               |
+| **Package**    | **Purpose**                              | **Key Features**                                                             | **Recommended?**                 |
+|------------------|------------------|-------------------|------------------|
+| `emmeans`      | Estimated marginal means & simple slopes | Computes simple slopes, spotlight analysis, floodlight analysis (J-N method) | Yes                              |
+| `probemod`     | Johnson-Neyman technique                 | Tests moderator significance ranges                                          | No (Subscript issues)            |
+| `interactions` | Interaction visualization                | Produces robust, customizable interaction plots                              | Yes                              |
+| `interactionR` | Epidemiological interaction measures     | Computes RERI, AP, SI for additive scale interactions                        | Yes (for public health research) |
+| `sjPlot`       | Publication-quality interaction plots    | Highly customizable, ideal for academic papers                               | Highly Recommended               |
+
+: Summary of Moderation Analysis Packages
+
+------------------------------------------------------------------------
+
+## Interaction Debate: Binning Estimators vs. Generalized Additive Models
+
+While the classical moderation framework, as outlined above, is the dominant approach in applied research, it assumes that the specified interaction term fully captures how the relationship between $X$ and $Y$ changes with $M$. In practice, this approach relies on strong functional form assumptions, particularly linearity in both the main effects and the interaction. If these assumptions are violated, the estimated interaction effect may be biased or misleading.
+
+It is precisely these concerns that have motivated a recent and influential methodological debate about how interactions should be estimated and interpreted in observational data. At the center of this debate are two competing approaches: binning-based estimators, which aim to relax functional form assumptions through localized estimation, and generalized additive models (GAMs), which model nonlinear relationships directly. Understanding this debate is critical, because the choice of method can fundamentally change the conclusions we draw from moderation analyses.
+
+------------------------------------------------------------------------
+
+Imagine you're a business researcher studying how advertising effectiveness varies with market competition. You run a regression with an interaction term between advertising spend and competitive intensity. Your results show statistical significance, but are they valid? This question lies at the heart of a methodological debate that has profound implications for how we analyze interactions in observational data.
+
+In 2019, political scientists Jens Hainmueller, Jonathan Mummolo, and Yiqing Xu (HMX) published a highly influential paper proposing the "binning estimator" as a solution to problems with multiplicative interaction models [@hainmueller2019much]. Their approach has been widely adopted, with over 1,200 citations by the time of this writing. However, in 2024, Uri Simonsohn challenged this method, arguing that it can produce severely biased results when the underlying relationships are nonlinear, a condition that is arguably the norm rather than the exception in real-world data [@simonsohn2024interacting].
+
+This debate affects thousands of studies across business, economics, and social sciences. The choice between methods can determine whether you conclude that:
+
+-   Marketing effectiveness increases with firm size (or doesn't)
+
+-   Employee training has differential effects across experience levels (or doesn't)
+
+-   Product quality matters more in competitive markets (or doesn't)
+
+### The Stakes
+
+Consider that approximately 71% of articles in top journals test for interactions [@simonsohn2024interacting]. If the standard methods are flawed, this represents a massive potential for incorrect conclusions. The debate centers on a fundamental question: **What exactly are we trying to estimate when we probe an interaction?**
+
+1.  **Team HMX (Hainmueller, Mummolo, Xu + Liu, Liu)** [@hainmueller2019much; @hainmueller2025response]:
+
+-   Advocate for the binning estimator and kernel methods
+
+-   Focus on flexible estimation without strong functional form assumptions
+
+-   Emphasize practical diagnostics for applied researchers
+
+2.  **Team Simonsohn** [@simonsohn2024interacting] (Blog post [1](https://datacolada.org/121), [2](https://datacolada.org/123)):
+
+-   Champions Generalized Additive Models (GAMs)
+
+-   Argues that binning violates ceteris paribus principles
+
+-   Emphasizes the importance of handling nonlinearities correctly
+
+------------------------------------------------------------------------
+
+Before diving into the debate, let's establish a solid foundation. An interaction effect occurs when the relationship between two variables depends on the value of a third variable.
+
+The standard linear interaction model is the workhorse model in social sciences:
+
+$$Y = \beta_0 + \beta_1 D + \beta_2 X + \beta_3 D \times X + \epsilon$$
+
+Where:
+
+-   $Y$ = outcome variable (e.g., sales revenue)
+
+-   $D$ = treatment/focal variable (e.g., advertising spend)
+
+-   $X$ = moderator (e.g., market competition)
+
+-   $D \times X$ = interaction term
+
+The marginal effect of $D$ on $Y$ is:
+
+$$\frac{\partial Y}{\partial D} = \beta_1 + \beta_3 X$$
+
+This tells us that the effect of advertising on sales is $\beta_1$ when competition is zero, and changes by $\beta_3$ for each unit increase in competition.
+
+For example, consider a retail business studying how price changes affect sales, moderated by customer loyalty status:
+
+$$    
+Sales = \beta_0 + \beta_1(Price) + \beta_2(Loyalty) + \beta_3(Price × Loyalty) + \epsilon
+$$
+
+If $\beta_3$ is positive, it suggests loyal customers are less price-sensitive.
+
+However, the standard model assumes all relationships are **linear**. This means:
+
+1.  The effect of price on sales changes at a constant rate with loyalty
+2.  The relationships don't curve or bend
+3.  Effects are symmetric (increases and decreases have opposite but equal effects)
+
+**But what if these assumptions are violated?**
+
+------------------------------------------------------------------------
+
+### The Core Problem: When Linearity Fails
+
+The real world is frustratingly nonlinear. Consider these business realities:
+
+Common Nonlinearities in Business:
+
+1.  **Diminishing Returns**: Marketing effectiveness often follows a logarithmic pattern
+2.  **Threshold Effects**: Quality improvements may not matter until they cross a perceptibility threshold
+3.  **Saturation Points**: Customer satisfaction can't exceed 100%
+4.  **Network Effects**: Value may increase exponentially with user base size
+
+The Three Problems Identified
+
+1.  **Problem 1 (HMX)**: Researchers often probe interactions at extreme or impossible values of the moderator.
+2.  **Problem 2 (HMX)**: The interaction itself may be nonlinear.
+3.  **Problem 3 (Simonsohn)**: When predictors are correlated and have nonlinear effects, the interaction term captures these nonlinearities, leading to false positives.
+
+To understand problem 3, consider the true model: $$Y = D^2 + \epsilon$$
+
+Where $D$ and $X$ are correlated ($r = 0.5$), but $X$ doesn't actually affect $Y$.
+
+If we estimate: $$Y = \beta_0 + \beta_1 D + \beta_2 X + \beta_3 D \times X + \epsilon$$
+
+The interaction term $\beta_3$ will be significant even though there's no true interaction! This happens because:
+
+1.  The omitted $D^2$ term correlates with $D \times X$ (due to the correlation between $D$ and $X$)
+2.  The interaction term acts as a proxy for the missing nonlinearity
+3.  We mistakenly conclude that the effect of $D$ depends on $X$
+
+Imagine studying whether employee training effectiveness depends on prior experience. If both training hours and experience affect productivity nonlinearly, and they're correlated (more experienced employees often receive more training), you might falsely conclude that training works better for experienced employees when really you're just capturing the nonlinear effect of training itself.
+
+------------------------------------------------------------------------
+
+### Binning Estimator Approach {#sec-binning-estimator-approach}
+
+HMX proposed the binning estimator as a practical solution. Here's how it works:
+
+1.  **Split the moderator into bins** (typically terciles: low, medium, high)
+2.  **Estimate separate regressions** within each bin
+3.  **Compare effects across bins**
+
+For three bins, estimate: $$Y = \sum_{j=1}^{3} \{\mu_j + \alpha_j D + \eta_j (X-\bar{x}_j) + \beta_j(X-\bar{x}_j)D\}G_j + \epsilon$$
+
+Where:
+
+-   $G_j$ = indicator for bin $j$
+
+-   $\bar{x}_j$ = median value of $X$ in bin $j$
+
+-   $\alpha_j$ = effect of $D$ at the median of bin $j$
+
+Advantages Claimed by HMX
+
+1.  **Simplicity**: Easy to implement and understand
+2.  **Flexibility**: Doesn't impose strict functional form
+3.  **Diagnostics**: Reveals nonlinearities in the interaction
+4.  **Common Support**: Only estimates effects where data exist
+
+------------------------------------------------------------------------
+
+### Simonsohn's Critique
+
+Simonsohn provides a devastating example that illustrates the core problem with mathematical precision. Consider PhD admissions where professors rate PhD applicants:
+
+**The True Data Generating Process:** $\text{Rating} = \log(\text{GRE}) + \epsilon$
+
+**Key Facts:**
+
+-   Research experience does NOT enter the rating function
+
+-   But: $\text{Corr}(\text{GRE}, \text{Experience}) = 0.5$ (more experienced applicants tend to have higher GRE scores)
+
+-   Researchers want to know: Does research experience moderate the GRE-rating relationship?
+
+**What the Linear Model Estimates:** $\text{Rating} = \beta_0 + \beta_1 \text{GRE} + \beta_2 \text{Experience} + \beta_3 (\text{GRE} \times \text{Experience}) + \epsilon$
+
+The researcher finds $\beta_3 < 0$ and significant! Interpretation: "GRE matters less for experienced applicants."
+
+**What the Binning Estimator Shows:**
+
+Let's work through the math. Suppose:
+
+-   Low experience bin: Mean GRE = 400
+
+-   Medium experience bin: Mean GRE = 550
+
+-   High experience bin: Mean GRE = 700
+
+Within each bin, the binning estimator calculates: $\frac{\partial \text{Rating}}{\partial \text{GRE}} \bigg|_{\text{bin}} \approx \frac{\Delta \log(\text{GRE})}{\Delta \text{GRE}} \bigg|_{\text{mean GRE in bin}}$
+
+Since Rating = log(GRE), the true marginal effect is: $\frac{\partial \text{Rating}}{\partial \text{GRE}} = \frac{1}{\text{GRE}}$
+
+Therefore:
+
+-   Low bin (GRE $\approx$ 400): Marginal effect $\approx$ 1/400 = 0.0025
+
+-   Medium bin (GRE $\approx$ 550): Marginal effect $\approx$ 1/550 = 0.0018
+
+-   High bin (GRE $\approx$ 700): Marginal effect $\approx$ 1/700 = 0.0014
+
+**The Spurious Finding:**
+
+The binning estimator shows a declining marginal effect across experience levels (0.0025 $\to$ 0.0018 $\to$ 0.0014), leading to the false conclusion that "GRE matters less for experienced applicants."
+
+**Why This Happens**
+
+1.  **Omitted Variable Bias**: The true model contains log(GRE), which is approximately GRE - GRE$^2$ /2 + GRE$^3$ /3 + ... by Taylor expansion
+2.  **Correlation Structure**: Since Experience correlates with GRE, it also correlates with GRE²
+3.  **The Interaction Term as Proxy**: The interaction GRE × Experience partially captures the omitted GRE² term
+4.  **Binning Doesn't Help**: Within each bin, we still have:
+    -   Different average GRE levels
+    -   The same nonlinear relationship
+    -   Violation of ceteris paribus
+
+### Simonsohn's Core Criticism
+
+The binning estimator **violates ceteris paribus**. When comparing across bins, you're changing both:
+
+-   The moderator value (intentionally)
+
+-   The average value of correlated predictors (unintentionally)
+
+This confounding makes it impossible to isolate the true interaction effect.
+
+------------------------------------------------------------------------
+
+### Generalized Additive Models Alternative {#sec-generalized-additive-models-alternative}
+
+Simonsohn advocates for GAMs as a superior alternative. Let's understand what they are and why he believes they solve the problem.
+
+A GAM extends the linear model by replacing linear terms with smooth functions:
+
+**Linear Model**: $Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \epsilon$
+
+**GAM**: $Y = \beta_0 + f_1(X_1) + f_2(X_2) + \epsilon$
+
+Where $f_1$ and $f_2$ are smooth functions estimated from the data.
+
+GAMs can model interactions flexibly: $$Y = f_1(D) + f_2(X) + f_3(D, X) + \epsilon$$
+
+Where $f_3(D, X)$ captures any interaction beyond the main effects.
+
+How GAMs Work
+
+1.  **Basis Expansion**: Each smooth function is represented as a weighted sum of basis functions (like splines)
+2.  **Penalized Estimation**: A penalty prevents overfitting by controlling wiggliness
+3.  **Automatic Selection**: The degree of smoothness is determined by the data
+
+A smooth function in a GAM is represented as: $$f(x) = \sum_{k=1}^{K} \beta_k b_k(x)$$
+
+Where:
+
+-   $b_k(x)$ are basis functions (e.g., cubic splines)
+
+-   $\beta_k$ are coefficients to be estimated
+
+-   $K$ determines the maximum complexity
+
+Advantages of GAMs
+
+1.  **Flexibility**: Can capture any smooth relationship
+2.  **Ceteris Paribus**: Properly isolates effects
+3.  **No Binning**: Uses all data efficiently
+4.  **Automatic Complexity**: Data determines the functional form
+
+Simonsohn proposes "**GAM Simple Slopes**" for probing interactions:
+
+1.  Fit the GAM with interaction
+2.  Calculate predicted values at specific moderator values
+3.  Plot the relationship between $D$ and $Y$ at each moderator value
+
+This maintains ceteris paribus by holding other variables constant.
+
+------------------------------------------------------------------------
+
+### Mathematical Foundations of the Disagreement
+
+The core disagreement is philosophical: What is the estimand (target of estimation)?
+
+**Conditional Marginal Effect (CME)**
+
+-   What HMX target: $$\theta(x) = E\left[\frac{\partial Y_i(d)}{\partial d} \bigg| X_i = x\right]$$
+
+This marginalizes over the distribution of $D$ and other covariates $Z$ at $X = x$.
+
+**Conditional Average Partial Effect (CAPE)**
+
+-   What Simonsohn argues GAMs estimate: $$\rho(d, x) = E\left[\frac{\partial Y_i(d)}{\partial d} \bigg| D_i = d, X_i = x\right]$$
+
+This conditions on specific values of $D$.
+
+The Fundamental Difference
+
+-   HMX argue their estimand answers: "What's the average effect of $D$ for units with $X = x$?"
+
+-   Simonsohn argues researchers want: "What's the effect of $D$ at $X = x$, holding all else constant?"
+
+A Business Translation
+
+-   **HMX Estimand**: "What's the average effect of price changes for stores in high-competition markets?" (Includes the fact that high-competition stores might have different pricing patterns)
+
+-   **Simonsohn Estimand**: "If we took a store and changed only its price, how would the effect differ in high vs. low competition?" (Pure ceteris paribus effect)
+
+### Mathematical Example
+
+True model: $Y = D^2 - 0.5D + \epsilon$
+
+With $Corr(D, X) = 0.5$:
+
+**HMX's CME**: $\theta(x) = x - 0.5$ (Not zero! Increases with $X$)
+
+**Why?** As $X$ increases, the distribution of $D$ shifts up. Since $\frac{\partial Y}{\partial D} = 2D - 0.5$ increases with $D$, the average effect increases with $X$.
+
+**Simonsohn's Interpretation**: There's no interaction because $X$ doesn't appear in the true model.
+
+------------------------------------------------------------------------
+
+### When to Use Each Method
+
+**Use Traditional Linear Models When:**
+
+-   You have strong theoretical reasons to expect linear relationships
+
+-   Sample size is small (\< 200)
+
+-   Interpretability is paramount
+
+-   You've tested and confirmed linearity assumptions
+
+**Use Binning Estimator When:**
+
+-   You have experimental data (random assignment)
+
+-   You need a quick diagnostic tool
+
+-   You're presenting to non-technical audiences
+
+-   As a robustness check, not primary analysis
+
+**Use GAMs When:**
+
+-   You have observational data
+
+-   Sample size is adequate (\> 500 preferred)
+
+-   You suspect nonlinear relationships
+
+-   You need to maintain ceteris paribus
+
+**Best Practices for Any Method**
+
+1.  **Always visualize your data first**
+
+    ``` r
+    # Scatterplot matrix
+    pairs(~ Y + D + X, data = data, 
+          lower.panel = panel.smooth)
+    ```
+
+2.  **Test for nonlinearity**
+
+    ``` r
+    # Reset test for linearity
+    library(lmtest)
+    resettest(lm_model, power = 2:3)
+    ```
+
+3.  **Check correlations among predictors**
+
+    ``` r
+    cor(data[, c("D", "X")])
+    ```
+
+4.  **Consider theoretical expectations**
+
+    -   Are diminishing returns plausible?
+    -   Could there be threshold effects?
+    -   Is the scale bounded?
+
+5.  **Report multiple approaches**
+
+    -   Primary analysis with GAM
+    -   Robustness check with binning
+    -   Show how conclusions change (or don't)
+
+### A Decision Tree
+
+
+``` r
+Start: Do I need to test an interaction?
+│
+├─ Is at least one variable randomly assigned?
+│  ├─ Yes → Experimental/Quasi-experimental
+│  │  ├─ Sample size < 200 → Use linear model (with caution)
+│  │  ├─ Sample size 200-500 → Use binning as diagnostic + GAM
+│  │  └─ Sample size > 500 → Use GAM simple slopes
+│  │
+│  └─ No → Observational Data
+│     │
+│     ├─ Are predictors likely correlated?
+│     │  ├─ Yes (usually) → Strong nonlinearity concern
+│     │  │  ├─ Can implement GAM? → Use GAM
+│     │  │  └─ Cannot implement GAM? → Add quadratic controls
+│     │  │
+│     │  └─ No (rare) → Proceed with caution
+│     │
+│     └─ Check for nonlinearity
+│        ├─ Theory suggests nonlinearity → Use GAM
+│        ├─ Bounded scales → Use GAM
+│        └─ Previous literature → Use GAM
+```

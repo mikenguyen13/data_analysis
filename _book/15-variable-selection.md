@@ -67,7 +67,7 @@ Selecting the right subset of variables enhances model interpretability, reduces
     5.  [Genetic Algorithms](#genetic-algorithms-1)
 
 | Method Category | Examples                   | Pros                             | Cons                              |
-|------------------|------------------|------------------|------------------|
+|-----------------|-----------------|-------------------|-------------------|
 | **Filter**      | AIC, BIC, Mutual Info, CFS | Fast, scalable, model-agnostic   | Ignores feature interactions      |
 | **Wrapper**     | Stepwise Selection, RFE    | Finds optimal feature subsets    | Computationally expensive         |
 | **Embedded**    | Lasso, Decision Trees      | Model-aware, balances efficiency | Selection tied to specific models |
@@ -356,7 +356,7 @@ Interpretation
 **Comparison with AIC**
 
 | Criterion | Penalty Term | Sensitivity to Sample Size | Preferred Model Selection |
-|------------------|------------------|-------------------|------------------|
+|-----------------|-----------------|--------------------|-------------------|
 | **AIC**   | $2p$         | Less sensitive             | More parameters           |
 | **BIC**   | $p \ln(n)$   | More sensitive             | Simpler models            |
 
@@ -476,7 +476,7 @@ Interpretation
 Comparison with Other Criteria
 
 | Criterion | Penalty Term     | Sensitivity to Sample Size | Preferred Model Selection  |
-|------------------|------------------|------------------|------------------|
+|-----------------|-----------------|-------------------|-------------------|
 | **AIC**   | $2p$             | Low                        | Favors more complex models |
 | **BIC**   | $p \ln(n)$       | High                       | Favors simpler models      |
 | **HQC**   | $2p \ln(\ln(n))$ | Moderate                   | Balances fit and parsimony |
@@ -747,7 +747,7 @@ The two main categories of univariate selection methods are:
 Statistical tests assess the significance of relationships between individual predictors and the target variable. The choice of test depends on the type of data:
 
 | **Test**                         | **Used For**                                  | **Example Use Case**                                            |
-|------------------|---------------------------|---------------------------|
+|------------------|-----------------------|-------------------------------|
 | **Chi-Square Test**              | Categorical predictors vs. Categorical target | Checking if gender affects purchase behavior                    |
 | **ANOVA (Analysis of Variance)** | Continuous predictors vs. Categorical target  | Testing if different income groups have varying spending habits |
 | **Correlation Coefficients**     | Continuous predictors vs. Continuous target   | Measuring the relationship between advertising spend and sales  |
@@ -938,7 +938,7 @@ print(colnames(filtered_binary))
 ```
 
 | **Aspect**           | **Pros**                                                   | **Cons**                                                      |
-|----------------|---------------------------|-----------------------------|
+|------------------|--------------------------|----------------------------|
 | **Efficiency**       | Fast and computationally cheap                             | May remove useful features                                    |
 | **Interpretability** | Simple to understand and implement                         | Ignores correlation with target                               |
 | **Applicability**    | Works well for removing constant or near-constant features | Not useful for detecting redundant but high-variance features |
@@ -1486,13 +1486,19 @@ print(best_summary)
 #> 2  ( 1 ) "*" "*" " " " "
 #> 3  ( 1 ) "*" "*" "*" " "
 #> 4  ( 1 ) "*" "*" "*" "*"
+```
 
+
+``` r
 # Visualize best subsets
 plot(best_subsets, scale = "adjr2")
 title("Best Subsets: AdjusteR^2")
 ```
 
-<img src="15-variable-selection_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="15-variable-selection_files/figure-html/fig-best-subset-r2-1.png" alt="Bar chart showing adjusted R-squared values for variable combinations. The y-axis is labeled adjr2 with values 0.37, 0.69, and 0.74. The x-axis includes Intercept, x1, x2, x3, and x4. Black and gray bars represent subset performance in a statistical model" width="100%" />
+<p class="caption">(\#fig:fig-best-subset-r2)Best Subset Adjusted R2</p>
+</div>
 
 Interpretation
 
@@ -1624,12 +1630,18 @@ print(rfe_result$results)
 #> 8          8 2.152186 0.3222999 1.698816 0.5064040  0.2419215 0.3826101
 #> 9          9 2.137741 0.3288444 1.687136 0.5016526  0.2436893 0.3684675
 #> 10        10 2.139102 0.3290236 1.684362 0.5127830  0.2457675 0.3715176
+```
 
+
+``` r
 # Plot performance
 plot(rfe_result, type = "l")
 ```
 
-<img src="15-variable-selection_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="15-variable-selection_files/figure-html/fig-rmse-cv-line-chart-1.png" alt="Line chart showing RMSE (Cross-Validation) on the y-axis against Variables on the x-axis. The RMSE decreases sharply from 2.35 to a minimum around 2.10 at 3 variables, then fluctuates slightly between 2.10 and 2.15 as the number of variables increases to 10." width="90%" />
+<p class="caption">(\#fig:fig-rmse-cv-line-chart)RMSE CV</p>
+</div>
 
 **Interpretation**
 
@@ -1860,18 +1872,20 @@ print(summary(final_model))
 
 ## Summary Table
 
-| **Method**                              | **Type**               | **Approach**         | **Key Criterion**           | **Notes**                              |
-|---------------|---------------|---------------|---------------|---------------|
-| Mallows's C Statistic                   | Information Criterion  | Subset Selection     | Model Complexity vs Fit     | Balances fit and simplicity.           |
-| Akaike Information Criterion (AIC)      | Information Criterion  | Model Selection      | Minimizes AIC               | Penalizes model complexity.            |
-| Bayesian Information Criterion (BIC)    | Information Criterion  | Model Selection      | Minimizes BIC               | Stronger penalty for complexity.       |
-| Hannan-Quinn Criterion (HQC)            | Information Criterion  | Model Selection      | Minimizes HQC               | Combines AIC and BIC features.         |
-| Minimum Description Length (MDL)        | Information Criterion  | Model Selection      | Data + Model Encoding Costs | Focuses on encoding efficiency.        |
-| Prediction Error Sum of Squares (PRESS) | Error-Based            | Cross-Validation     | Minimizes Prediction Error  | Measures predictive accuracy.          |
-| Best Subsets Algorithm                  | Exhaustive Search      | Subset Selection     | Best Fit Across Subsets     | Considers all variable combinations.   |
-| Forward Selection                       | Stepwise               | Add Variables        | Significance Testing        | Adds variables one at a time.          |
-| Backward Elimination                    | Stepwise               | Remove Variables     | Significance Testing        | Removes variables iteratively.         |
-| Stepwise (Both Directions)              | Stepwise               | Add/Remove Variables | Significance Testing        | Combines forward and backward methods. |
-| Branch-and-Bound Algorithm              | Optimized Search       | Subset Selection     | Efficient Subset Search     | Avoids exhaustive search.              |
-| Recursive Feature Elimination (RFE)     | Iterative Optimization | Feature Removal      | Model Performance           | Removes least important predictors.    |
-| Genetic Algorithms                      | Heuristic Search       | Evolutionary Process | Fitness Function            | Mimics natural selection for subsets.  |
+| **Method**                                                                        | **Type**               | **Approach**         | **Key Criterion**           | **Notes**                              |
+|-------------------|--------------|--------------|--------------|--------------|
+| [Mallows's C Statistic](#mallowss-c-statistic)                                    | Information Criterion  | Subset Selection     | Model Complexity vs Fit     | Balances fit and simplicity.           |
+| [Akaike Information Criterion](#akaike-information-criterion-aic) (AIC)           | Information Criterion  | Model Selection      | Minimizes AIC               | Penalizes model complexity.            |
+| [Bayesian Information Criterion](#bayesian-information-criterion-bic) (BIC)       | Information Criterion  | Model Selection      | Minimizes BIC               | Stronger penalty for complexity.       |
+| [Hannan-Quinn Criterion](#hannan-quinn-criterion-hqc) (HQC)                       | Information Criterion  | Model Selection      | Minimizes HQC               | Combines AIC and BIC features.         |
+| [Minimum Description Length](#minimum-description-length-mdl) (MDL)               | Information Criterion  | Model Selection      | Data + Model Encoding Costs | Focuses on encoding efficiency.        |
+| [Prediction Error Sum of Squares](#prediction-error-sum-of-squares-press) (PRESS) | Error-Based            | Cross-Validation     | Minimizes Prediction Error  | Measures predictive accuracy.          |
+| [Best Subsets Algorithm](#best-subsets-algorithm-1)                               | Exhaustive Search      | Subset Selection     | Best Fit Across Subsets     | Considers all variable combinations.   |
+| Forward Selection                                                                 | Stepwise               | Add Variables        | Significance Testing        | Adds variables one at a time.          |
+| Backward Elimination                                                              | Stepwise               | Remove Variables     | Significance Testing        | Removes variables iteratively.         |
+| Stepwise (Both Directions)                                                        | Stepwise               | Add/Remove Variables | Significance Testing        | Combines forward and backward methods. |
+| [Branch-and-Bound Algorithm](#branch-and-bound-algorithm-1)                       | Optimized Search       | Subset Selection     | Efficient Subset Search     | Avoids exhaustive search.              |
+| Recursive Feature Elimination (RFE)                                               | Iterative Optimization | Feature Removal      | Model Performance           | Removes least important predictors.    |
+| [Genetic Algorithms](#genetic-algorithms-1)                                       | Heuristic Search       | Evolutionary Process | Fitness Function            | Mimics natural selection for subsets.  |
+
+: Comparison of Variable Selection Methods

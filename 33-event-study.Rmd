@@ -1,10 +1,10 @@
 # Event Studies {#sec-event-studies}
 
-The event study methodology is widely used in finance, marketing, and management to measure the impact of specific events on stock prices. The foundation of this methodology is the **Efficient Markets Hypothesis** proposed by @fama1970efficient, which asserts that asset prices reflect all available information. Under this assumption, stock prices should immediately react to new, unexpected information, making event studies a useful tool for assessing the economic impact of firm- and non-firm-initiated activities.
+The event study methodology is widely used in finance, marketing, and management to measure the impact of specific events on stock prices. The foundation of this methodology is the **Efficient Markets Hypothesis** proposed by @fama1970efficient, which asserts that asset prices reflect all available information. Under this assumption, stock prices should immediately react to new, unexpected information, making [event studies](#sec-event-studies) a useful tool for assessing the economic impact of firm- and non-firm-initiated activities.
 
 The first event study was conducted by @dolley1933characteristics, while @campbell1998econometrics formalized the methodology for modern applications. Later, @dubow2006measuring developed a metric to assess market transparency (i.e., a way to gauge how "clean" a market is) by tracking unusual stock price movements before major regulatory announcements. Their study found that abnormal price shifts before announcements could indicate insider trading, as prices reacted to leaked information before official disclosures.
 
-**Advantages of Event Studies**
+**Advantages of [Event Studies](#sec-event-studies)**
 
 -   **More Reliable than Accounting-Based Measures:** Unlike financial metrics (e.g., profits), which managers can manipulate, stock prices are harder to alter and reflect real-time investor sentiment [@benston1985validity].
 

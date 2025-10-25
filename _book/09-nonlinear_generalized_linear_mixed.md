@@ -1,5 +1,7 @@
 # Nonlinear and Generalized Linear Mixed Models {#sec-nonlinear-and-generalized-linear-mixed-models}
 
+This chapter fuses the flexibility of nonlinear and generalized models with random-effects structures, yielding NLMMs and GLMMs. We articulate their marginal and conditional interpretations, describe approximation strategies, and address identifiability in high-level random coefficients. The chapter systematically compares NLMMs and GLMMs, illustrating when each is preferred, and provides a full estimation workflow---model building, convergence assessment, and inferential reporting.
+
 Nonlinear Mixed Models (NLMMs) and Generalized Linear Mixed Models (GLMMs) extend traditional models by incorporating both fixed effects and random effects, allowing for greater flexibility in modeling complex data structures.
 
 -   NLMMs extend nonlinear models to include both fixed and random effects, accommodating nonlinear relationships in the data.
@@ -190,7 +192,7 @@ The inclusion of $\alpha_i$ accounts for subject-level heterogeneity, capturing 
 In [Linear Mixed Models](#sec-linear-mixed-models), the marginal likelihood of the observed data $\mathbf{y}$ is derived by integrating out the random effects from the hierarchical formulation:
 
 $$
-f(\mathbf{y}) = \int f(\mathbf{y} \mid \boldsymbol{\alpha}) \, f(\boldsymbol{\alpha}) \, d\boldsymbol{\alpha}
+f(\mathbf{y}) = \int f(\mathbf{y} \mid \boldsymbol{\alpha})  f(\boldsymbol{\alpha})  d\boldsymbol{\alpha}
 $$
 
 For LMMs, both component distributions---
@@ -210,14 +212,14 @@ In contrast:
 In both cases, the marginal likelihood integral:
 
 $$
-L(\boldsymbol{\beta}; \mathbf{y}) = \int f(\mathbf{y} \mid \boldsymbol{\alpha}) \, f(\boldsymbol{\alpha}) \, d\boldsymbol{\alpha}
+L(\boldsymbol{\beta}; \mathbf{y}) = \int f(\mathbf{y} \mid \boldsymbol{\alpha}) f(\boldsymbol{\alpha})  d\boldsymbol{\alpha}
 $$
 
 cannot be solved analytically. Consequently, estimation requires:
 
 -   [Numerical Integration](#estimation-by-numerical-integration)
--   Linearization of the Model
--   
+-   [Linearization of the Model](#sec-estimation-by-linearization-glmm)
+-   [Bayesian](#estimation-by-bayesian-hierarchical-models)
 
 ------------------------------------------------------------------------
 
@@ -226,7 +228,7 @@ cannot be solved analytically. Consequently, estimation requires:
 The marginal likelihood for parameter estimation is given by:
 
 $$
-L(\boldsymbol{\beta}; \mathbf{y}) = \int f(\mathbf{y} \mid \boldsymbol{\alpha}) \, f(\boldsymbol{\alpha}) \, d\boldsymbol{\alpha}
+L(\boldsymbol{\beta}; \mathbf{y}) = \int f(\mathbf{y} \mid \boldsymbol{\alpha})  f(\boldsymbol{\alpha})  d\boldsymbol{\alpha}
 $$
 
 To estimate the fixed effects $\boldsymbol{\beta}$, we often maximize the log-likelihood:
@@ -292,6 +294,8 @@ Since the integral in $L(\boldsymbol{\beta}; \mathbf{y})$ is generally intractab
 | Gaussian Quadrature   | Low-dimensional ($q \leq 3$) | High (with sufficient nodes)      | High (exponential growth with $q$) |
 | Laplace Approximation | Moderate-dimensional         | Moderate to High                  | Moderate                           |
 | Monte Carlo Methods   | High-dimensional             | Variable (depends on sample size) | High (but scalable)                |
+
+: Comparison of Numerical Integration Methods in Bayesian and Likelihood-Based Estimation
 
 -   For small random effect dimensions, quadrature methods are effective.
 -   For moderate dimensions, Laplace approximation offers a good balance.
@@ -477,7 +481,7 @@ $$
 Following [@liang1986longitudinal], the GEE for estimating $\boldsymbol{\beta}$ is:
 
 $$
-S(\boldsymbol{\beta}) = \sum_{i=1}^K \frac{\partial \boldsymbol{\mu}_i'}{\partial \boldsymbol{\beta}} \, \mathbf{V}_i^{-1} (\mathbf{y}_i - \boldsymbol{\mu}_i) = 0
+S(\boldsymbol{\beta}) = \sum_{i=1}^K \frac{\partial \boldsymbol{\mu}_i'}{\partial \boldsymbol{\beta}}  \mathbf{V}_i^{-1} (\mathbf{y}_i - \boldsymbol{\mu}_i) = 0
 $$
 
 Where:
@@ -495,7 +499,7 @@ Where:
 The covariance matrix $\mathbf{V}_i$ is modeled as:
 
 $$
-\mathbf{V}_i = a(\phi) \, \mathbf{B}_i^{1/2} \, \mathbf{R}(\boldsymbol{c}) \, \mathbf{B}_i^{1/2}
+\mathbf{V}_i = a(\phi) \mathbf{B}_i^{1/2}  \mathbf{R}(\boldsymbol{c})  \mathbf{B}_i^{1/2}
 $$
 
 -   $a(\phi)$ is a dispersion parameter,
@@ -528,8 +532,8 @@ Common Working Correlation Structures:
 4.  Update $\boldsymbol{\beta}$:
 
     $$
-    \boldsymbol{\beta}^{(r+1)} = \boldsymbol{\beta}^{(r)} + \left(\sum_{i=1}^K \frac{\partial \boldsymbol{\mu}_i'}{\partial \boldsymbol{\beta}} \, \hat{\mathbf{V}}_i^{-1} \, \frac{\partial \boldsymbol{\mu}_i}{\partial \boldsymbol{\beta}} \right)^{-1}
-    \left( \sum_{i=1}^K \frac{\partial \boldsymbol{\mu}_i'}{\partial \boldsymbol{\beta}} \, \hat{\mathbf{V}}_i^{-1} (\mathbf{y}_i - \boldsymbol{\mu}_i) \right)
+    \boldsymbol{\beta}^{(r+1)} = \boldsymbol{\beta}^{(r)} + \left(\sum_{i=1}^K \frac{\partial \boldsymbol{\mu}_i'}{\partial \boldsymbol{\beta}}  \hat{\mathbf{V}}_i^{-1}  \frac{\partial \boldsymbol{\mu}_i}{\partial \boldsymbol{\beta}} \right)^{-1}
+    \left( \sum_{i=1}^K \frac{\partial \boldsymbol{\mu}_i'}{\partial \boldsymbol{\beta}}  \hat{\mathbf{V}}_i^{-1} (\mathbf{y}_i - \boldsymbol{\mu}_i) \right)
     $$
 
 5.  Iteration:
@@ -557,7 +561,7 @@ Bayesian methods provide a flexible framework for estimating parameters in [NLMM
 In the Bayesian context, we are interested in the posterior distribution of the model parameters, given the observed data $\mathbf{y}$:
 
 $$
-f(\boldsymbol{\alpha}, \boldsymbol{\beta} \mid \mathbf{y}) \propto f(\mathbf{y} \mid \boldsymbol{\alpha}, \boldsymbol{\beta}) \, f(\boldsymbol{\alpha}) \, f(\boldsymbol{\beta})
+f(\boldsymbol{\alpha}, \boldsymbol{\beta} \mid \mathbf{y}) \propto f(\mathbf{y} \mid \boldsymbol{\alpha}, \boldsymbol{\beta})  f(\boldsymbol{\alpha})  f(\boldsymbol{\beta})
 $$
 
 Where:
@@ -597,7 +601,7 @@ Bayesian estimation can proceed through two general approaches:
 The marginal likelihood is typically intractable because it requires integrating over random effects:
 
 $$
-f(\mathbf{y} \mid \boldsymbol{\beta}) = \int f(\mathbf{y} \mid \boldsymbol{\alpha}, \boldsymbol{\beta}) \, f(\boldsymbol{\alpha}) \, d\boldsymbol{\alpha}
+f(\mathbf{y} \mid \boldsymbol{\beta}) = \int f(\mathbf{y} \mid \boldsymbol{\alpha}, \boldsymbol{\beta})  f(\boldsymbol{\alpha})  d\boldsymbol{\alpha}
 $$
 
 Since this integral cannot be solved analytically, we approximate it using the following methods:
@@ -673,6 +677,8 @@ Consider the case of **repeated measurements**:
 
 -   **If the data are Gaussian:** Use [Linear Mixed Models](#sec-linear-mixed-models).
 -   **If the data are non-Gaussian:** Use [Nonlinear and Generalized Linear Mixed Models](#sec-nonlinear-and-generalized-linear-mixed-models).
+
+------------------------------------------------------------------------
 
 ## Application: Nonlinear and Generalized Linear Mixed Models
 
@@ -968,7 +974,10 @@ library(lattice)
 xyplot(as.mcmc(Bayes_cbpp$Sol), layout = c(2, 2))
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/fig-mcmc-diag-period-1.png" alt="Four panel XY chart displaying time series data for different variables over iterations. Each panel represents a variable: period3, period4, Intercept, and period2. The x-axis shows iteration numbers from 4000 to 12000. The y-axis varies by panel, with values between -4 and 1. The data appears as fluctuating lines showing variability across iterations" width="100%" />
+<p class="caption">(\#fig:fig-mcmc-diag-period)MCMC Diagnostic</p>
+</div>
 
 There is no trend (i.e., well-mixed).
 
@@ -977,7 +986,10 @@ There is no trend (i.e., well-mixed).
 xyplot(as.mcmc(Bayes_cbpp$VCV), layout = c(2, 1))
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/fig-var-iter-diag-1.png" alt="Two panel XY chart showing data trends over iteration numbers. The left panel labeled herd displays a line graph with values from 0.0 to 1.0, showing sporadic peaks and long periods of low values. The right panel labeled units shows a line graph with values from 0 to 4, exhibiting frequent fluctuations. Both panels share the x-axis labeled Iteration number, with values from 4000 to 12000" width="100%" />
+<p class="caption">(\#fig:fig-var-iter-diag)Variable MCMC Diagnostic</p>
+</div>
 
 For the herd variable, many of the values are 0, which suggests a problem. To address the instability in the herd effect sampling, we can either:
 
@@ -1000,13 +1012,18 @@ Bayes_cbpp2 <- MCMCglmm(
 xyplot(as.mcmc(Bayes_cbpp2$VCV), layout = c(2, 1))
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/fig-var-iter-diag-alter-1.png" alt="Two panel XY chart showing data trends over iterations. The left panel labeled herd displays fluctuating values between 0 and 1.5 across iteration numbers from 10000 to 20000. The right panel labeled units shows values ranging from 0 to 3 with a noticeable dip around the middle of the iteration range. Both panels share the x-axis labeled Iteration number" width="100%" />
+<p class="caption">(\#fig:fig-var-iter-diag-alter)Variable MCMC Diagnostic (Alternative)</p>
+</div>
 
 To change the shape of priors, in `MCMCglmm` use:
 
 -   `V` controls for the location of the distribution (default = 1)
 
 -   `nu` controls for the concentration around V (default = 0)
+
+------------------------------------------------------------------------
 
 ### Count Data: Owl Dataset
 
@@ -1128,10 +1145,24 @@ There is an improvement using negative binomial considering over-dispersion
 
 
 ``` r
-hist(Owls$Ncalls,breaks=30)
+library(ggplot2)
+ggplot(Owls, aes(x = Ncalls)) +
+  geom_histogram(
+    bins = 30,
+    fill = "steelblue",
+    color = "white",
+    alpha = 0.8
+  ) +
+  labs(title = "Distribution of Owl Call Counts",
+       x = "Number of Calls",
+       y = "Frequency") +
+  theme_minimal(base_size = 14)
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/fig-hist-owl-call-1.png" alt="Histogram titled Distribution of Owl Call Counts showing the frequency distribution of owl calls. The x-axis represents the number of calls, ranging from 0 to 30. The y-axis shows frequency, peaking at over 150 for the lowest call range. The histogram shows a right-skewed distribution with most data concentrated at lower call numbers" width="100%" />
+<p class="caption">(\#fig:fig-hist-owl-call)Distribution of Owl Call Counts</p>
+</div>
 
 3.  **Zero-Inflated Model**
 
@@ -1248,7 +1279,10 @@ library(spaMM)
 data(gotway.hessianfly)
 dat <- gotway.hessianfly
 dat$prop <- dat$y / dat$n  # Proportion of successes
+```
 
+
+``` r
 ggplot(dat, aes(x = lat, y = long, fill = prop)) +
     geom_tile() +
     scale_fill_gradient(low = 'white', high = 'black') +
@@ -1256,7 +1290,10 @@ ggplot(dat, aes(x = lat, y = long, fill = prop)) +
     ggtitle('Gotway Hessian Fly: Proportion of Infestation')
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/fig-hessian-fly-1.png" alt="Heatmap titled Gotway Hessian Fly Proportion of Infestation displaying infestation levels across a grid. The x-axis is labeled lat and the y-axis long. Each cell is labeled with codes like G14, G09, and G12 representing different data points. The color gradient from white to black indicates infestation proportion, with a legend on the right showing values from 0.00 to 1.00. Blocks are categorized into B1, B2, B3, and B4, each represented by different colors" width="100%" />
+<p class="caption">(\#fig:fig-hessian-fly)Gotway Hessian Fly: Proportion of Infestation</p>
+</div>
 
 #### Model Specification
 
@@ -1391,22 +1428,30 @@ plot(Bayes_flymodel$Sol[, 1],
      main = colnames(Bayes_flymodel$Sol)[1])
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-22-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/fig-trace-plot-1.png" alt="Two-panel figure showing data related to the intercept. The left panel is a time series plot displaying the intercept values over iterations ranging from 4000 to 12000, with values fluctuating between 0 and 4. The right panel is a density plot of the intercept, with a peak around 2 and a range from -1 to 5. The density plot includes a note: "N = 1000 Bandwidth = 0.1907."" width="90%" />
+<p class="caption">(\#fig:fig-trace-plot)Trace Plot</p>
+</div>
+
 
 ``` r
-
 # Autocorrelation plot
 autocorr.plot(Bayes_flymodel$Sol[, 1],
               main = colnames(Bayes_flymodel$Sol)[1])
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-22-2.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/fig-autocor-plot-1.png" alt="Line chart titled Intercept showing autocorrelation on the y-axis from -1.0 to 1.0 and lag on the x-axis from 0 to 300. The chart shows a significant spike at lag 0, with values decreasing and stabilizing around zero as lag increases" width="100%" />
+<p class="caption">(\#fig:fig-autocor-plot)Autocorrelation Plot</p>
+</div>
 
 Bayesian Interpretation:
 
 -   **Posterior Means:** Represent the central tendency of the parameter estimates.
 
 -   **Credible Intervals:** Unlike frequentist confidence intervals, they can be interpreted directly as the probability that the parameter lies within the interval.
+
+------------------------------------------------------------------------
 
 ### Nonlinear Mixed Model: Yellow Poplar Data
 
@@ -1443,14 +1488,20 @@ dat2 <- dat2 %>% group_by(tn) %>% mutate(
         TRUE ~ 'j: 150+'
     )
 )
-
-ggplot(dat2, aes(x = r, y = cumv)) + 
-    geom_point(size = 0.5) + 
-    facet_wrap(vars(z)) +
-    labs(title = "Cumulative Volume vs. Relative Height by Tree Height Group")
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-24-1.png" width="90%" style="display: block; margin: auto;" />
+
+``` r
+ggplot(dat2, aes(x = r, y = cumv)) +
+  geom_point(size = 0.5) +
+  facet_wrap(vars(z)) +
+  labs(title = "Cumulative Volume vs. Relative Height by Tree Height Group")
+```
+
+<div class="figure" style="text-align: center">
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/fig-scatter-plot-cumul-1.png" alt="Scatter plot panels showing cumulative volume versus relative height, categorized by tree height groups labeled a to i. Each panel displays data points with varying density and distribution patterns. The x-axis represents relative height (r) ranging from 0.7 to 1.0, and the y-axis represents cumulative volume (cumv) from 0 to 200. Tree height groups are: a: 0–74ft, b: 74–88, c: 88–95, d: 95–99, e: 99–104, f: 104–109, g: 109–115, h: 115–120, i: 120–150." width="90%" />
+<p class="caption">(\#fig:fig-scatter-plot-cumul)Cumulative Volume vs. Relative Height by Tree Height Group</p>
+</div>
 
 #### Model Specification
 
@@ -1532,9 +1583,9 @@ nlme::intervals(tmp)
 
 #### Interpretation:
 
--   **Fixed Effects (**$\beta$): Describe the average growth pattern across all trees.
+-   **Fixed Effects** ($\beta$): Describe the average growth pattern across all trees.
 
--   **Random Effects (**$b_i$): Capture tree-specific deviations from the average trend.
+-   **Random Effects** ($b_i$): Capture tree-specific deviations from the average trend.
 
 This result is a bit different from the original study because of different implementation of nonlinear mixed models.
 
@@ -1579,11 +1630,17 @@ plot_tree <- function(tree_id) {
 p1 <- plot_tree(1)
 p2 <- plot_tree(151)
 p3 <- plot_tree(279)
+```
 
+
+``` r
 plot_grid(p1, p2, p3)
 ```
 
-<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/unnamed-chunk-26-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="09-nonlinear_generalized_linear_mixed_files/figure-html/fig-random-per-tree-plot-1.png" alt="Three XY charts labeled Tree 1, Tree 151, and Tree 279 display data points and lines. The x-axis is labeled r and the y-axis is labeled with_random. Each chart shows a curve with data points transitioning from low to high values. Two lines are present: one labeled With Random Effects in red and another Without Random Effects in teal. The charts illustrate the effect of random variables on the data" width="100%" />
+<p class="caption">(\#fig:fig-random-per-tree-plot)Individual Tree Scatter Plot</p>
+</div>
 
 -   **Red Line:** Model predictions with tree-specific random effects.
 
@@ -1593,4 +1650,9 @@ plot_grid(p1, p2, p3)
 
 ## Summary
 
-![](images/umbrella_of_models.PNG){width="100%"}
+<div class="figure" style="text-align: center">
+<img src="images/umbrella_of_models.PNG" alt="A flowchart showing the hierarchy of regression models. At the top is 'Generalized Linear Mixed Model,' which branches into 'Non-linear Mixed Model,' 'Linear Mixed Model,' and 'Generalized Linear Model.' These in turn connect to simpler models: 'Non-linear Regression' and 'Linear Regression.' Arrows indicate derivation or conceptual specialization." width="90%" />
+<p class="caption">(\#fig:fig-regression-model-hierarchy)Taxonomy of Regression Models</p>
+</div>
+
+------------------------------------------------------------------------

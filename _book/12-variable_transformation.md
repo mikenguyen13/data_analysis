@@ -1,5 +1,7 @@
 # Variable Transformation
 
+This chapter introduces the theoretical rationale and practical application of variable transformation techniques to improve model fit, satisfy assumptions, and enhance interpretability. It begins with transformations for continuous variables, including standardization, log transformations, power transformations (e.g., Box-Cox), and winsorization. These methods are presented in the context of their effects on skewness, variance stabilization, and coefficient interpretation. The chapter also addresses transformation strategies for categorical variables, including dummy coding, effects coding, and treatment contrasts. Readers will learn when transformations are appropriate, when they might obscure interpretation, and how they interact with model specification. The emphasis throughout is on practical implementation and the analytical reasoning behind transformation decisions.
+
 ## Continuous Variables
 
 Transforming continuous variables can be useful for various reasons, including:
@@ -70,8 +72,6 @@ Useful for handling **positive skewness** and **heteroskedasticity**:
 
 Logarithmic transformations are particularly useful for handling highly skewed data. They compress large values while expanding small values, which helps with heteroskedasticity and normality assumptions.
 
-#### Common Log Transformations
-
 | Formula                                             | When to Use                         |
 |----------------------------------------|--------------------------------|
 | $x_i' = \log(x_i)$                                  | When all values are positive.       |
@@ -79,6 +79,8 @@ Logarithmic transformations are particularly useful for handling highly skewed d
 | $x_i' = \log(x_i + c)$                              | Choosing $c$ depends on context.    |
 | $x_i' = \frac{x_i}{|x_i|} \log |x_i|$               | When data contains negative values. |
 | $x_i'^\lambda = \log(x_i + \sqrt{x_i^2 + \lambda})$ | Generalized log transformation.     |
+
+: Common Log Transformations
 
 Selecting the constant $c$ is critical:
 
@@ -90,7 +92,7 @@ From a statistical modeling perspective:
 -   **For inference-based models**, the choice of $c$ can significantly impact the fit. See [@ekwaru2018overlooked].
 -   **In causal inference** (e.g., DID, IV), improper log transformations (e.g., logging zero values) can introduce bias [@chen2024logs].
 
-#### When is Log Transformation Problematic?
+When is Log Transformation Problematic?
 
 -   When **zero values have a meaningful interpretation** (e.g., income of unemployed individuals).
 -   When **data are censored** (e.g., income data truncated at reporting thresholds).
@@ -178,18 +180,44 @@ cars = datasets::cars
 # Original distribution
 head(cars$dist)
 #> [1]  2 10  4 22 16 10
-plot(cars$dist)
 ```
 
-<img src="12-variable_transformation_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
-
-# Reciprocal transformation
-plot(1 / cars$dist)
+library(ggplot2)
+ggplot(cars, aes(x = seq_along(dist), y = dist)) +
+  geom_point(size = 2) +
+  labs(
+    title = "Stopping Distances",
+    x     = "Observation Index",
+    y     = "Stopping Distance"
+  ) +
+    causalverse::ama_theme()
 ```
 
-<img src="12-variable_transformation_files/figure-html/unnamed-chunk-2-2.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="12-variable_transformation_files/figure-html/fig-stopping-distances-1.png" alt="Scatter plot showing the relationship between 'Observation Index' on the x-axis and 'Stopping Distance' on the y-axis. The data points are distributed in an upward trend, indicating a positive correlation. The y-axis ranges from 0 to 120, while the x-axis ranges from 0 to 50." width="90%" />
+<p class="caption">(\#fig:fig-stopping-distances)Stopping Distances</p>
+</div>
+
+
+``` r
+# Reciprocal transformation
+library(ggplot2)
+ggplot(cars, aes(x = seq_along(dist), y = 1/dist)) +
+  geom_point(size = 2) +
+  labs(
+    title = "Stopping Distances",
+    x     = "Observation Index",
+    y     = "Reciprocal Stopping Distance"
+  ) +
+  theme_minimal(base_size = 14)
+```
+
+<div class="figure" style="text-align: center">
+<img src="12-variable_transformation_files/figure-html/fig-reciprocal-stopping-1.png" alt="Scatter plot showing the relationship between the index on the x-axis and the reciprocal of car distances on the y-axis. Data points are scattered, with higher values at lower indices and a general downward trend as the index increases." width="90%" />
+<p class="caption">(\#fig:fig-reciprocal-stopping)Reciprocal Stopping Distances</p>
+</div>
 
 ### Hyperbolic Arcsine Transformation
 
@@ -214,20 +242,27 @@ $$
 
 ``` r
 # Visualize original distribution 
-cars$dist %>% hist() 
+cars$dist %>% hist()
 ```
 
-<img src="12-variable_transformation_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="12-variable_transformation_files/figure-html/fig-histogram-1-1.png" alt="Histogram displaying frequency distribution. The x-axis ranges from 0 to 120, and the y-axis represents frequency, ranging from 0 to 20. The bars show a decreasing trend from left to right, with the highest frequency around 40. " width="90%" />
+<p class="caption">(\#fig:fig-histogram-1)Histogram plot</p>
+</div>
+
 
 ``` r
 # Alternative histogram  
 cars$dist %>% MASS::truehist()  
 ```
 
-<img src="12-variable_transformation_files/figure-html/unnamed-chunk-3-2.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="12-variable_transformation_files/figure-html/fig-histogram-alt-1.png" alt="Histogram displaying data distribution with values on the x-axis ranging from 0 to 140 and frequency on the y-axis from 0 to 0.015. The chart shows a peak around 40, with decreasing frequency towards higher values, and a small bar at the end near 140. The bars are light blue." width="90%" />
+<p class="caption">(\#fig:fig-histogram-alt)Alternative Histogram Plot</p>
+</div>
+
 
 ``` r
-
 # Apply arcsinh transformation 
 as_dist <- bestNormalize::arcsinh_x(cars$dist) 
 as_dist
@@ -235,10 +270,30 @@ as_dist
 #>  Relevant statistics:
 #>  - mean (before standardization) = 4.230843 
 #>  - sd (before standardization) = 0.7710887
-as_dist$x.t %>% hist()
 ```
 
-<img src="12-variable_transformation_files/figure-html/unnamed-chunk-3-3.png" width="90%" style="display: block; margin: auto;" />
+
+``` r
+library(ggplot2)
+ggplot() +
+  geom_histogram(
+    aes(x = as_dist$x.t, y = after_stat(count)),        
+    breaks = hist(as_dist$x.t, plot = FALSE)$breaks,
+    colour = "black",
+    fill   = "lightblue"
+  ) +
+  labs(
+    title = "Histogram of xt",
+    x     = "xt values",
+    y     = "Count"
+  ) +
+  theme_minimal()
+```
+
+<div class="figure" style="text-align: center">
+<img src="12-variable_transformation_files/figure-html/fig-histogram-arcsinh-1.png" alt="Histogram displaying frequency distribution of data. The x-axis ranges from -4 to 2, and the y-axis represents frequency, ranging from 0 to 15. The histogram shows a higher frequency of data around 0, with decreasing frequencies as values move towards -4 and 2." width="90%" />
+<p class="caption">(\#fig:fig-histogram-arcsinh)Arcsinh Transformed Histogram</p>
+</div>
 
 | Paper                  | Interpretation |
 |------------------------|----------------|
@@ -252,6 +307,8 @@ as_dist$x.t %>% hist()
 | @cabral2022demand      | Elasticity     |
 | @carranza2022job       | Percentage     |
 | @mirenda2022economic   | Percentage     |
+
+: Interpretation of Estimated Effects in Recent Applied Economics Papers
 
 Consider a simple regression model: $$ Y = \beta X + \epsilon $$ When both $Y$ and $X$ are transformed:
 
@@ -290,10 +347,30 @@ ord_dist
 #>  - Original quantiles:
 #>   0%  25%  50%  75% 100% 
 #>    2   26   36   56  120
-ord_dist$x.t %>% hist()
 ```
 
-<img src="12-variable_transformation_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
+
+``` r
+library(ggplot2)
+ggplot() +
+  geom_histogram(
+    aes(x = ord_dist$x.t, y = after_stat(count)),
+    breaks = hist(ord_dist$x.t, plot = FALSE)$breaks,
+    colour = "black",
+    fill   = "lightblue"
+  ) +
+  labs(
+    title = "Histogram",
+    x     = "xt values",
+    y     = "Count"
+  ) +
+  theme_minimal()
+```
+
+<div class="figure" style="text-align: center">
+<img src="12-variable_transformation_files/figure-html/fig-histogram-2-1.png" alt="Histogram displaying frequency distribution. The x-axis ranges from -2 to 2, and the y-axis represents frequency from 0 to 10. The chart shows a symmetrical distribution with the highest frequency around 0." width="90%" />
+<p class="caption">(\#fig:fig-histogram-2)Histogram Plot</p>
+</div>
 
 ### Lambert W x F Transformation
 
@@ -307,22 +384,36 @@ The Lambert W transformation is a more advanced method that normalizes data by r
 
 
 ``` r
-cars = datasets::cars
-head(cars$dist)
-#> [1]  2 10  4 22 16 10
-cars$dist %>% hist()
-```
-
-<img src="12-variable_transformation_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
-
-``` r
+# cars = datasets::cars
+# head(cars$dist)
+# cars$dist %>% hist()
 
 # Apply Lambert W transformation
 l_dist <- LambertW::Gaussianize(cars$dist)
-l_dist %>% hist()
 ```
 
-<img src="12-variable_transformation_files/figure-html/unnamed-chunk-5-2.png" width="90%" style="display: block; margin: auto;" />
+
+``` r
+library(ggplot2)
+ggplot() +
+  geom_histogram(
+    aes(x = l_dist, y = after_stat(count)), 
+    breaks = hist(l_dist, plot = FALSE)$breaks,
+    colour = "black",
+    fill   = "lightblue"
+  ) +
+  labs(
+    title = "Histogram of l_dist",
+    x     = "l_dist values",
+    y     = "Count"
+  ) +
+  theme_minimal()
+```
+
+<div class="figure" style="text-align: center">
+<img src="12-variable_transformation_files/figure-html/fig-lambertw-transform-1.png" alt="A histogram displaying frequency distribution with bars representing data intervals. The x-axis ranges from 0 to 120, and the y-axis shows frequency from 0 to 20. The tallest bar is between 20 and 40, indicating the highest frequency. " width="90%" />
+<p class="caption">(\#fig:fig-lambertw-transform)Lambert W Transformation</p>
+</div>
 
 ### Inverse Hyperbolic Sine Transformation
 
@@ -364,28 +455,28 @@ cars = datasets::cars
 mod <- lm(cars$speed ~ cars$dist, data = cars)
 
 # Check residuals
-plot(mod)
+# plot(mod)
 ```
 
-<img src="12-variable_transformation_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" /><img src="12-variable_transformation_files/figure-html/unnamed-chunk-6-2.png" width="90%" style="display: block; margin: auto;" /><img src="12-variable_transformation_files/figure-html/unnamed-chunk-6-3.png" width="90%" style="display: block; margin: auto;" /><img src="12-variable_transformation_files/figure-html/unnamed-chunk-6-4.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
-
 # Find optimal lambda
-bc <- boxcox(mod, lambda = seq(-3, 3))
+bc <- MASS::boxcox(mod, lambda = seq(-3, 3))
 ```
 
-<img src="12-variable_transformation_files/figure-html/unnamed-chunk-6-5.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="12-variable_transformation_files/figure-html/fig-loglik-curve-1.png" alt="Graph showing a log-likelihood curve plotted against lambda on the x-axis, ranging from -3 to 3. The y-axis represents log-likelihood values from -140 to -20. The curve peaks around lambda = 1.5. A horizontal dotted line at the top indicates the 95% confidence interval level, intersecting the curve. Vertical dotted lines mark specific lambda values near the peak." width="90%" />
+<p class="caption">(\#fig:fig-loglik-curve)Log-likelihood Curve</p>
+</div>
+
 
 ``` r
 best_lambda <- bc$x[which.max(bc$y)]
 
 # Apply transformation
 mod_lambda = lm(cars$speed ^ best_lambda ~ cars$dist, data = cars)
-plot(mod_lambda)
+# plot(mod_lambda)
 ```
-
-<img src="12-variable_transformation_files/figure-html/unnamed-chunk-6-6.png" width="90%" style="display: block; margin: auto;" /><img src="12-variable_transformation_files/figure-html/unnamed-chunk-6-7.png" width="90%" style="display: block; margin: auto;" /><img src="12-variable_transformation_files/figure-html/unnamed-chunk-6-8.png" width="90%" style="display: block; margin: auto;" /><img src="12-variable_transformation_files/figure-html/unnamed-chunk-6-9.png" width="90%" style="display: block; margin: auto;" />
 
 For the **two-parameter Box-Cox transformation**, we use:
 
@@ -403,10 +494,8 @@ two_bc
 #>  1.028798 15.253008 31.935297 
 #> 
 #> Convergence code returned by optim: 0
-plot(two_bc)
+# plot(two_bc)
 ```
-
-<img src="12-variable_transformation_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" /><img src="12-variable_transformation_files/figure-html/unnamed-chunk-7-2.png" width="90%" style="display: block; margin: auto;" />
 
 ### Yeo-Johnson Transformation
 
@@ -423,10 +512,17 @@ $$
 # data(cars)
 cars = datasets::cars
 yj_speed <- bestNormalize::yeojohnson(cars$speed)
-yj_speed$x.t %>% hist()
 ```
 
-<img src="12-variable_transformation_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" />
+
+``` r
+hist(yj_speed$x.t)
+```
+
+<div class="figure" style="text-align: center">
+<img src="12-variable_transformation_files/figure-html/fig-histogram-xt-1.png" alt="Histogram displaying frequency distribution. The x-axis ranges from -2 to 2, and the y-axis represents frequency from 0 to 10. The bars show a distribution with a peak around 0, indicating a higher frequency in the center and lower frequencies at the extremes." width="90%" />
+<p class="caption">(\#fig:fig-histogram-xt)Histogram of xt</p>
+</div>
 
 ### RankGauss Transformation
 
@@ -446,7 +542,10 @@ bestdist <- bestNormalize::bestNormalize(cars$dist)
 bestdist$x.t %>% hist()
 ```
 
-<img src="12-variable_transformation_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="12-variable_transformation_files/figure-html/fig-best-transform-hist-1.png" alt="Histogram displaying frequency distribution. The x-axis ranges from -2 to 2, and the y-axis represents frequency from 0 to 10. The bars show a distribution with a peak around 0, indicating a higher frequency in the center and lower frequencies at the extremes." width="90%" />
+<p class="caption">(\#fig:fig-best-transform-hist)Best Transformation Histogram</p>
+</div>
 
 ## Categorical Variables
 
@@ -518,6 +617,8 @@ Example:
 | Red      | 1             |
 | Blue     | 2             |
 | Green    | 3             |
+
+: Comparison of Categorical Encoding Methods
 
 **When to Use:**
 
@@ -598,6 +699,8 @@ For four categories ("A", "B", "C", "D"):
 | B        | 01          | 0, 1            |
 | C        | 10          | 1, 0            |
 | D        | 11          | 1, 1            |
+
+: Illustration of Binary Encoding for Categorical Variables
 
 **When to Use:**
 
@@ -686,6 +789,8 @@ Maps categories to **ordered integer values** based on logical ranking.
 | Low      | 1                |
 | Medium   | 2                |
 | High     | 3                |
+
+: Example of Ordinal Encoding for Ordered Categorical Variables
 
 **When to Use:**
 
@@ -903,8 +1008,10 @@ Similar to one-hot encoding, but retains ordinal structure.
 
 | Encoding Method    | Best for Low Cardinality | Best for High Cardinality | Handles Ordinality | Suitable for Tree Models | Suitable for Linear Models |
 |------------|------------|------------|------------|------------|------------|
-| One-Hot Encoding   | ✅ Yes                   | ❌ No                     | ❌ No              | ✅ Yes                   | ✅ Yes                     |
-| Label Encoding     | ✅ Yes                   | ✅ Yes                    | ✅ Yes             | ❌ No                    | ✅ Yes                     |
-| Target Encoding    | ✅ Yes                   | ✅ Yes                    | ❌ No              | ✅ Yes                   | ✅ Yes                     |
-| Frequency Encoding | ✅ Yes                   | ✅ Yes                    | ❌ No              | ✅ Yes                   | ✅ Yes                     |
-| Binary Encoding    | ✅ Yes                   | ✅ Yes                    | ❌ No              | ✅ Yes                   | ✅ Yes                     |
+| One-Hot Encoding   | Yes                      | No                        | No                 | Yes                      | Yes                        |
+| Label Encoding     | Yes                      | Yes                       | Yes                | No                       | Yes                        |
+| Target Encoding    | Yes                      | Yes                       | No                 | Yes                      | Yes                        |
+| Frequency Encoding | Yes                      | Yes                       | No                 | Yes                      | Yes                        |
+| Binary Encoding    | Yes                      | Yes                       | No                 | Yes                      | Yes                        |
+
+: Comparison of Encoding Methods

@@ -1,5 +1,7 @@
 # Mediation
 
+Mediation analysis uncovers the process by which a predictor affects an outcome through one or more intermediate variables. This chapter introduces the traditional approach to mediation, focusing on path analysis, the Baron & Kenny framework, and the Sobel test. Practical limitations of this approach are discussed, especially in the presence of confounding. Then, it presents a modern causal inference framework for mediation, including counterfactual definitions of direct and indirect effects. The use of bootstrapping is demonstrated with business examples. Assumptions such as sequential ignorability are explored in detail. Graphical representations, including path diagrams and causal graphs, are used to aid interpretation. The chapter provides the tools to not only estimate mediation effects but to assess their robustness, interpret their business relevance, and report them transparently.
+
 ## Traditional Approach
 
 The classical mediation analysis follows the approach introduced by @baron1986moderator, though it has limitations, particularly in requiring the first step ($X \to Y$) to be significant. Despite its shortcomings, this framework provides a useful foundation.
@@ -28,13 +30,19 @@ Originally, @baron1986moderator required the direct path $X \to Y$ to be signifi
 
 #### Unmediated Model
 
-![Unmediated model](images/mediation/direct_mod.png){width="90%"}
+<div class="figure" style="text-align: center">
+<img src="images/mediation/direct_mod.png" alt="Flow chart showing direct relationship from X to Y with arrow labeled c" width="90%" />
+<p class="caption">(\#fig:fig-unmediated-model-flow)Unmediated Model</p>
+</div>
 
 Here, $c$ represents the **total effect** of $X$ on $Y$.
 
 #### Mediated Model
 
-![](images/mediation/full_mod.png){width="90%"}
+<div class="figure" style="text-align: center">
+<img src="images/mediation/full_mod.png" alt="Flow chart showing mediation model with X to M (path a), M to Y (path b), and X to Y (path c prime)" width="90%" />
+<p class="caption">(\#fig:fig-mediated-model-flow)Mediated Model</p>
+</div>
 
 Here:
 
@@ -319,10 +327,17 @@ result <- causalverse::med_ind(
     var_b = 0.05, 
     cov_ab = 0.01
 )
+```
+
+
+``` r
 result$plot
 ```
 
-<img src="19-mediation_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="19-mediation_files/figure-html/fig-indirect-effect-distribution-1.png" alt="Right-skewed histogram of indirect effects with peak around 0.5 and red dashed confidence interval lines" width="100%" />
+<p class="caption">(\#fig:fig-indirect-effect-distribution)Distribution of Simulated Indirect Effects</p>
+</div>
 
 When an **instrumental variable (IV)** is available, the causal effect can be estimated more reliably. Below are visual representations.
 
@@ -478,7 +493,6 @@ medjs(
     mvars = 1,   # Number of mediators
     rep   = 1000 # Replications (use 10,000 for accuracy)
 )
-
 ```
 
 For **interactive** power analysis, see [Kenny's Mediation Power App](https://davidakenny.shinyapps.io/MedPower/).
@@ -486,10 +500,12 @@ For **interactive** power analysis, see [Kenny's Mediation Power App](https://da
 **Summary of Indirect Effect Tests**
 
 | **Test**                        | **Pros**                                       | **Cons**                         |
-|---------------------|-----------------------------|----------------------|
+|---------------------|------------------------------|----------------------|
 | **Sobel Test**                  | Simple, fast                                   | Assumes normality, low power     |
 | **Joint Significance Test**     | Robust to non-normality                        | No confidence interval           |
 | **Bootstrapping** (Recommended) | No normality assumption, handles small samples | May be liberal if bias-corrected |
+
+: Comparison of Mediation Testing Methods
 
 ### Multiple Mediation Analysis
 
@@ -818,6 +834,8 @@ In some cases, **multiple independent variables** ($X_1$, $X_2$) influence the s
 For an example in **PROCESS (SPSS/R)**, see:\
 [Process Mediation with Multiple Treatments](https://core.ecu.edu/wuenschk/MV/multReg/Mediation_Multicategorical.pdf).
 
+------------------------------------------------------------------------
+
 ## Causal Inference Approach to Mediation
 
 Traditional mediation models assume that regression-based estimates provide valid causal inference. However, **causal mediation analysis** (CMA) extends beyond traditional models by explicitly defining mediation in terms of **potential outcomes and counterfactuals**.
@@ -1013,9 +1031,9 @@ $$
 
 -   Second condition is stronger where the mediators is also random given the observed treatment and pre-treatment confounders. This condition is satisfied only when there is no unobserved pre-treatment confounders, and post-treatment confounders, and multiple mediators that are correlated.
 
-**Key Challenge**
-
-⚠️ **Sequential Ignorability is not testable.** Researchers should conduct **sensitivity analysis**.
+> **Key Challenge**
+>
+> **Sequential Ignorability is not testable.** Researchers should conduct **sensitivity analysis**.
 
 We now fit a **causal mediation model** using `mediation`.
 
@@ -1204,7 +1222,6 @@ med_out <- mediate(med_model,
 # Conduct sensitivity analysis
 sens_out <- medsens(med_out, sims = 100)
 
-# Print and plot results
 summary(sens_out)
 #> 
 #> Mediation Sensitivity Analysis for Average Causal Mediation Effect
@@ -1235,10 +1252,17 @@ summary(sens_out)
 #> Rho at which ACME = 0: -0.1
 #> R^2_M*R^2_Y* at which ACME = 0: 0.01
 #> R^2_M~R^2_Y~ at which ACME = 0: 0.0096
+```
+
+
+``` r
 plot(sens_out)
 ```
 
-<img src="19-mediation_files/figure-html/unnamed-chunk-19-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="19-mediation_files/figure-html/fig-acme-vs-rho-1.png" alt="Line plot showing average mediation effect vs sensitivity parameter rho with confidence interval shading and reference lines at zero" width="100%" />
+<p class="caption">(\#fig:fig-acme-vs-rho)ACME</p>
+</div>
 
 -   If ACME confidence intervals contain 0, the effect is not robust to confounding.
 
@@ -1249,8 +1273,6 @@ Alternatively, using $R^2$ interpretation, we need to specify the direction of c
 plot(sens.out, sens.par = "R2", r.type = "total", sign.prod = "positive")
 ```
 
-**Summary: Causal Mediation vs. Traditional Mediation**
-
 | **Aspect**                | **Traditional Mediation** | **Causal Mediation**         |
 |-----------------------|-----------------------|--------------------------|
 | **Model Assumption**      | Linear regressions        | Potential outcomes framework |
@@ -1258,3 +1280,5 @@ plot(sens.out, sens.par = "R2", r.type = "total", sign.prod = "positive")
 | **Inference Method**      | Product of coefficients   | Counterfactual reasoning     |
 | **Bootstrapping?**        | Common                    | Essential                    |
 | **Sensitivity Analysis?** | Rarely used               | Strongly recommended         |
+
+: Summary of Causal Mediation vs. Traditional Mediation

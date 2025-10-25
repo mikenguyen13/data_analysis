@@ -1,5 +1,7 @@
 # Imputation (Missing Data)
 
+Missing data is a pervasive issue in applied statistics, and this chapter offers a comprehensive treatment of its diagnosis and resolution. Beginning with a conceptual introduction, we discuss the mechanisms underlying missingness---MCAR, MAR, and MNAR---and their consequences for unbiased estimation. Later, the chapter provides practical tools for identifying patterns of missingness, including graphical and statistical diagnostics. It then reviews a spectrum of imputation methods, from simple techniques (mean substitution, regression imputation) to advanced algorithms (multiple imputation using chained equations and random forest imputation). Each method is evaluated in terms of bias, efficiency, and robustness, with detailed comparisons. Practical criteria for choosing an appropriate imputation strategy are also provided, followed by an in-depth discussion on ethical issues and transparency in reporting. Emerging trends in handling high-dimensional and MNAR data are also covered. Finally, the last section walks through a complete imputation example, ensuring readers can apply these concepts immediately.
+
 ## Introduction to Missing Data
 
 Missing data is a common problem in statistical analyses and data science, impacting the quality and reliability of insights derived from datasets. One widely used approach to address this issue is **imputation**, where missing data is replaced with *reasonable estimates*.
@@ -116,6 +118,8 @@ Missing data refers to the absence of values for some variables in a dataset. Th
 
 -   [Missing Not at Random](#missing-not-at-random-mnar) (MNAR): The probability of missingness depends on unobserved data or the missing values themselves. In this case, the missingness is related to the very information that is missing, making it the most challenging type to handle in analysis.
 
+------------------------------------------------------------------------
+
 #### Missing Completely at Random (MCAR) {#missing-completely-at-random-mcar}
 
 MCAR occurs when the probability of missingness is entirely random and unrelated to either observed or unobserved variables. Under this mechanism, missing data do not introduce bias in parameter estimates when ignored, although statistical efficiency is reduced due to the smaller sample size.
@@ -164,6 +168,8 @@ Since MCAR data introduce no bias, they can be handled using the following techn
 -   The "missingness" on one variable can be correlated with the "missingness" on another variable without violating the MCAR assumption.
 -   Absence of evidence for bias (e.g., failing to reject a t-test) does not confirm that the data are MCAR.
 
+------------------------------------------------------------------------
+
 #### Missing at Random (MAR) {#missing-at-random-mar}
 
 Missing at Random (MAR) occurs when missingness depends on observed variables but not the missing values themselves. This mechanism assumes that observed data provide sufficient information to explain the missingness. In other words, there is a systematic relationship between the propensity of missing values and the observed data, but not the missing data.
@@ -205,6 +211,8 @@ Common methods for handling MAR include:
 -   **Regression-Based Imputation:** Predicts missing values using observed covariates.
 
 These methods assume that observed variables fully explain the missingness. Effective handling of MAR requires careful modeling and often domain-specific knowledge to validate the assumptions underlying the analysis.
+
+------------------------------------------------------------------------
 
 #### Missing Not at Random (MNAR) {#missing-not-at-random-mnar}
 
@@ -265,6 +273,8 @@ Additionally, data collection strategies, such as follow-up surveys or targeted 
 | **MCAR**      | Neither observed nor missing data           | No bias; simplest to handle; decreases efficiency due to data loss.                     | Random sensor failure.                         |
 | **MAR**       | Observed data only                          | Requires observed data to explain missingness; common assumption in imputation methods. | Gender-based missingness of weight.            |
 | **MNAR**      | Missing data itself or unobserved variables | Requires explicit modeling of the missingness mechanism; significant bias if ignored.   | High-income individuals not disclosing income. |
+
+: Types of Missing Data Mechanisms and Their Implications
 
 ### Relationship Between Mechanisms and Ignorability {#relationship-between-mechanisms-and-ignorability}
 
@@ -334,7 +344,7 @@ Understanding the mechanism behind missing data is critical to choosing the appr
 
 Visualization tools are essential for detecting patterns in missing data. Heatmaps and correlation plots can help identify systematic missingness and provide insights into the underlying mechanism.
 
-```{r}
+```{r fig-missing-data-heatmap1, fig.cap="Missing Data Heatmap", fig.alt="Heatmap showing missing and observed data for variables Ozone, Solar.R, Day, Month, Temp, and Wind. Yellow bars indicate missing values and black bars indicate observed data. The y-axis ranges from 3 to 153, with a legend showing the color key", out.width="100%", fig.align="center"}
 # Example: Visualizing missing data
 library(Amelia)
 missmap(
@@ -364,7 +374,13 @@ print(missing_proportions)
 ```{r}
 # Example: Missingness correlation
 library(naniar)
+```
+
+```{r fig-missing-data-heatmap2, fig.cap='Missing Data Heatmap', fig.alt='Heatmap showing missing data across different variables. The x-axis lists variables: Ozone (24% missing), Solar.R (5% missing), Wind, Temp, Month, and Day, with the percentage of missing data indicated. The y-axis represents observations. A legend indicates missing data in black (4.8%) and present data in gray (95.2%).'}
 vis_miss(airquality)
+```
+
+```{r fig-missing-data-barchart, fig.cap="Missing Data Barchart", fig.alt="Bar chart showing intersection sizes for missing data in Solar and Ozone. The y-axis shows intersection sizes with values 35, 5, and 2. The x-axis shows set sizes, with Ozone larger than Solar. The chart highlights distribution and overlap of missing data between the two variables", out.width="100%", fig.align="center"}
 gg_miss_upset(airquality) # Displays a missingness upset plot
 ```
 
@@ -453,6 +469,8 @@ Summary
 -   **MAR**: Missingness related to observed data; requires modeling assumptions or proxy analysis.
 
 -   **MNAR**: Missingness depends on unobserved data; requires external validation or sensitivity analysis.
+
+------------------------------------------------------------------------
 
 ## Methods for Handling Missing Data
 
@@ -547,6 +565,8 @@ $$
 | **Listwise Deletion** | Simple and universally applicable; unbiased under MCAR; robust in certain MAR scenarios.              | Inefficient (larger standard errors); biased under MAR in many cases; discards potentially useful data. |
 | **Pairwise Deletion** | Utilizes all available data; efficient under MCAR with low correlations; avoids discarding all cases. | Biased under MAR; prone to non-positive-definite covariance matrices in small samples.                  |
 | **Indicator Method**  | Simple implementation; explicitly models missingness effect.                                          | Biased even under MCAR; complicates interpretation; may not reflect true underlying relationships.      |
+
+: Comparison of Basic Missing Data Handling Methods
 
 ### Single Imputation Techniques
 
@@ -777,6 +797,8 @@ print(current_data)
 | **Variability**    | Retained                      | Reduced                        |
 | **Bias Potential** | Lower                         | Higher (if donor pool differs) |
 
+: Comparison of Hot Deck and Cold Deck Imputation Techniques
+
 This method suits situations where external reference datasets are trusted and representative. However, careful consideration is required to ensure alignment between the donor pool and the target dataset to avoid systematic biases.
 
 ##### Random Draw from Observed Distribution
@@ -845,6 +867,8 @@ print(imputed_data)
 | **Preserves Variability**      | Yes                                    | Limited in deterministic forms |
 | **Considers Relationships**    | No                                     | Yes                            |
 | **Risk of Implausible Values** | Low (if observed values are plausible) | Moderate to High               |
+
+: Comparison of Random Draw and Regression-Based Imputation Methods
 
 This method is a quick and computationally efficient way to address missing data but is best complemented by more sophisticated methods when relationships between variables are important.
 
@@ -944,14 +968,17 @@ anscombe <- within(anscombe, {
 })
 ## view
 head(anscombe)
+```
 
+```{r fig-missing-data-pattern, fig.cap='Missing Data Pattern', fig.alt='Heatmap displaying a grid with labeled columns x1 to x4 and y1 to y4. Rows are numbered 1 to 6 on the left, and columns are numbered 0 to 6 at the bottom. Most cells are blue, indicating lower values, while a vertical strip of cells in the y3 and y4 columns are red, indicating higher values.'}
 ## check missing data patterns
 md.pattern(anscombe)
+```
 
+```{r}
 ## Number of observations per patterns for all pairs of variables
 p <- md.pairs(anscombe)
 p 
-
 ```
 
 -   `rr` = number of observations where both pairs of values are observed
@@ -959,10 +986,12 @@ p
 -   `mr` = the number of observations where the first variable's value (e.g. the row variable) is observed and second (or column) variable is missing
 -   `mm` = the number of observations where the second variable's value (e.g. the col variable) is observed and first (or row) variable is missing
 
-```{r}
+```{r fig-marginal-scatter, fig.cap="Scatterplot of y4 versus y1 with Marginal Boxplots", fig.alt="A scatterplot displaying the relationship between variables y1 (x-axis) and y4 (y-axis). Marginal boxplots are shown on the top and right axes. The boxplots summarize the distribution of y1 and y4 individually. Some outliers are marked in red, and colored points show potential groupings or categories in the data.", out.width="80%", fig.align="center"}
 ## Margin plot of y1 and y4
 marginplot(anscombe[c(5, 8)], col = c("blue", "red", "orange"))
+```
 
+```{r}
 ## 5 imputations for all missing values
 imp1 <- mice(anscombe, m = 5)
 
@@ -1064,6 +1093,8 @@ Notes
 | **Use in Multiple Imputation** | Limited                             | Well-suited           |
 | **Bias Potential**             | Higher                              | Lower                 |
 
+: Comparison of Random Draw and Regression-Based Imputation Methods
+
 ```{r}
 # Income data
 set.seed(1)                              # Set seed
@@ -1110,8 +1141,8 @@ Evidence for heteroskadastic data
 ```{r}
 # Heteroscedastic data
  
-set.seed(1)                             # Set seed
-N <- 1:1000                                  # Sample size
+set.seed(1) # Set seed
+N <- 1:1000 # Sample size
  
 a <- 0
 b <- 1
@@ -1142,8 +1173,9 @@ data_het_pmm <- mice::complete(imp_het_pmm)
 
 Comparison between predictive mean matching and stochastic regression imputation
 
-```{r}
-par(mfrow = c(1, 2))                              # Both plots in one graphic
+```{r fig-heteroskedastic-imputation-comparison, fig.cap="Imputation of Heteroskedastic Data", fig.alt="Scatter plots comparing two imputation methods for heteroskedastic data. The left plot shows stochastic regression imputation with observed values in black circles, imputed values in red, and a blue regression line. The right plot shows predictive mean matching with the same visual elements. Both plots have x-axis from 0 to 30000 and y-axis from -1000 to 3000", out.width="100%", fig.align="center"}
+# Both plots in one graphic
+par(mfrow = c(1, 2))
 
 # Plot of observed values
 plot(x[!is.na(data_het_sri$y)],
@@ -1200,7 +1232,7 @@ legend(
 )
 
 mtext(
-  "Imputation of Heteroscedastic Data",
+  "Imputation of Heteroskedastic Data",
   # Main title of plot
   side = 3,
   line = -1.5,
@@ -1282,7 +1314,11 @@ The eigen-decomposition used in standard principal component analysis is not app
 | **Random Draw from Observed**      | Simple; retains variability in data.                           | Does not preserve relationships among variables; random imputation may distort trends. |
 | **Matrix Completion**              | Captures dependencies; imputes structurally consistent values. | Computationally intensive; assumes principal components capture data relationships.    |
 
+: Comparison of Single Imputation Techniques
+
 Single imputation techniques are straightforward and accessible, but they often underestimate uncertainty and fail to fully leverage relationships among variables. These limitations make them less ideal for rigorous analyses compared to multiple imputation or model-based approaches.
+
+------------------------------------------------------------------------
 
 ### Machine Learning and Modern Approaches
 
@@ -1438,6 +1474,10 @@ Hybrid methods combine statistical and machine learning approaches. For example,
 | KNN Imputation             | Simple, interpretable                           | Computationally intensive, sensitive to k | General-purpose        |
 | Hybrid Methods             | Combines multiple strengths                     | Complexity in design                      | Flexible               |
 
+: Advanced Machine Learning Methods for Missing Data Imputation
+
+------------------------------------------------------------------------
+
 ### Multiple Imputation
 
 Multiple Imputation (MI) is a statistical technique for handling missing data by creating several plausible datasets through imputation, analyzing each dataset separately, and then combining the results to account for uncertainty in the imputations. MI operates under the assumption that missing data is either [Missing Completely at Random (MCAR)](#missing-completely-at-random-mcar) or [Missing at Random (MAR)](#missing-at-random-mar).
@@ -1559,6 +1599,8 @@ These formulas adjust the final variance to reflect uncertainty both within and 
 9.  **Create Multiplicative Terms Before Imputation**:
     -   When your model includes interaction or quadratic terms, generate these terms before imputing missing values. Imputing first and then generating these terms can introduce bias in their regression parameters, as highlighted by [@von_Hippel_2009].
 
+------------------------------------------------------------------------
+
 ## Evaluation of Imputation Methods
 
 ### Statistical Metrics for Assessing Imputation Quality
@@ -1659,6 +1701,8 @@ Choosing an appropriate imputation method depends on the following criteria:
 -   Computational efficiency and ease of implementation.
 -   Compatibility with downstream analysis methods.
 -   Alignment with the data's missingness mechanism.
+
+------------------------------------------------------------------------
 
 ## Challenges and Ethical Considerations
 
@@ -1831,6 +1875,8 @@ This section demonstrates how to visualize missing data and handle it using diff
 | **MICE**       | Multivariate Imputation via Chained Equations            | Yes          | Yes                          | Density plots, pooling of results | Handles variable interactions          | General-purpose imputation for MAR data    | Requires proper method selection for variable types |
 | **Amelia**     | Bootstrap-based Expectation Maximization (EMB)           | Yes          | Limited (requires normality) | Diagnostics supported             | Works well with large/time-series data | Time-series or datasets approximating MVN  | Assumes MVN, requires transformations for non-MVN   |
 
+: Comparison of R Packages for Multiple Imputation of Missing Data
+
 ### Visualizing Missing Data
 
 Visualizing missing data is an essential first step in understanding the patterns and extent of missingness in your dataset.
@@ -1839,10 +1885,14 @@ Visualizing missing data is an essential first step in understanding the pattern
 library(visdat)
 library(naniar)
 library(ggplot2)
+```
 
+```{r fig-missing-data-heatmap3, fig.cap='Heatmap', fig.alt='Heatmap showing missing data across different variables. The x-axis lists variables. The y-axis represents observations. Dark bars indicate missing data, with a legend showing 4.1% missing and 95.9% present data.'}
 # Visualizing missing data
 vis_miss(airquality)
+```
 
+```{r fig-missingness-pattern-barchart, fig.cap="Missingness Patterns", fig.alt="Bar chart showing intersection sizes for missing data in Solar and Ozone. The y-axis shows intersection sizes up to 40, with bars labeled 35, 5, and 2. The x-axis shows set sizes, with Ozone larger than Solar", out.width="100%", fig.align="center"}
 # Missingness patterns using an upset plot
 gg_miss_upset(airquality)
 ```
@@ -1860,7 +1910,7 @@ gg_miss_var(data, facet = group)
 gg_miss_fct(x = variable1, fct = variable2)
 ```
 
-For more details, read [The Missing Book by Nicholas Tierney & Allison Horst](https://tmb.njtierney.com/).
+<!-- For more details, read [The Missing Book by Nicholas Tierney & Allison Horst](https://tmb.njtierney.com/). -->
 
 ### How Many Imputations?
 
@@ -1952,7 +2002,6 @@ library(MLmetrics)
 MAE(predicteds, actuals)
 MSE(predicteds, actuals)
 RMSE(predicteds, actuals)
-
 ```
 
 KNN typically improves upon mean or median imputation in terms of predictive accuracy.
@@ -2014,10 +2063,14 @@ By default:
 # Load packages
 library(mice)
 library(VIM)
+```
 
+```{r fig-sepal-heatmap, fig.cap="Heatmap", fig.alt="Heatmap showing a grid with alternating blue and red cells. The x-axis is labeled Sepal Width with values 11, 15, 15, 19, 60. The y-axis is labeled Sepal Length with values 100, 15, 8, 2, 11, 1, 1, 1, 7, 3. The color pattern indicates varying data values", out.width="100%", fig.align="center"}
 # Check missing values pattern
-md.pattern(iris.mis)
+md.pattern(iris.mis, rotate.names = T)
+```
 
+```{r fig-barplot-and-matrix-missingness, fig.cap='Barplot and Matrix plot', fig.alt='Bar chart showing missing data percentages for four variables: Petal Width, Sepal Length, Petal Length, and Sepal Width. Petal Width has the highest missing data at 0.12, followed by Sepal Length and Petal Length at around 0.10, and Sepal Width at 0.08. Adjacent to the bar chart is a pattern matrix with yellow and blue squares, indicating data presence and absence patterns, with corresponding percentages ranging from 0.0067 to 0.6667.'}
 # Plot missing values
 aggr(
   iris.mis,
@@ -2050,10 +2103,11 @@ Evaluating Imputed Data
 ```{r}
 # Summary of imputed data
 summary(imputed_Data)
+```
 
+```{r fig-density-plot-imputation, fig.cap='Density Plot', fig.alt='Density plots showing distributions of sepal and petal dimensions from a dataset. The top left plot displays Sepal Length, the top right shows Sepal Width, the bottom left illustrates Petal Length, and the bottom right depicts Petal Width. Each plot features multiple overlapping red and blue curves. Each red curve represents one imputed dataset. The blue curve represents the observed dataset. The x-axis varies by plot, while the y-axis represents density.'}
 # Density plot: compare imputed values (red) with observed values (blue)
 densityplot(imputed_Data)
-
 ```
 
 Accessing and Using Imputed Data
@@ -2075,7 +2129,6 @@ fit <-
 # Combine results of all 5 models
 combine <- mice::pool(fit)
 summary(combine)
-
 ```
 
 ### Amelia

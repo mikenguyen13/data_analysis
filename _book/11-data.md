@@ -1,6 +1,10 @@
 # Data
 
+This chapter explores the concepts of data structures essential for statistical analysis. Beginning with an overview of data types, the chapter explains how the nature of variables influences analysis strategies. Emphasis is placed on understanding the differences and implications of cross-sectional, time series, repeated cross-sectional, and panel data, with real-world examples from marketing and finance. It also offers guidance on choosing the most appropriate data structure for specific research questions, a critical step often overlooked in applied research. Finally, the chapter addresses ethical considerations in data collection and use. By the end of the chapter, readers will be equipped to critically evaluate the structure, strengths, and limitations of various types of datasets, ensuring a sound analytical foundation for subsequent modeling work.
+
 Data can be defined broadly as any set of values, facts, or statistics that can be used for reference, analysis, and drawing inferences. In research, data drives the process of understanding phenomena, testing hypotheses, and formulating evidence-based conclusions. Choosing the right type of data (and understanding its strengths and limitations) is critical for the validity and reliability of findings.
+
+------------------------------------------------------------------------
 
 ## Data Types
 
@@ -9,11 +13,13 @@ Data can be defined broadly as any set of values, facts, or statistics that can 
 A foundational way to categorize data is by whether it is **qualitative** (non-numerical) or **quantitative** (numerical). These distinctions often guide research designs, data collection methods, and analytical techniques.
 
 | **Qualitative**                                                                                                 | **Quantitative**                                                                                              |
-|-----------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
+|------------------------------------|------------------------------------|
 | **Examples**: In-depth interviews, focus groups, case studies, ethnographies, open-ended questions, field notes | **Examples**: Surveys with closed-ended questions, experiments, numerical observations, structured interviews |
 | **Nature**: Text-based, often descriptive, subjective interpretations                                           | **Nature**: Numeric, more standardized, objective measures                                                    |
 | **Analysis**: Thematic coding, content analysis, discourse analysis                                             | **Analysis**: Statistical tests, regression, hypothesis testing, descriptive statistics                       |
 | **Outcome**: Rich context, detailed understanding of phenomena                                                  | **Outcome**: Measurable facts, generalizable findings (with appropriate sampling and design)                  |
+
+: Comparison of Qualitative and Quantitative Research Approaches
 
 #### Uses and Advantages of Qualitative Data
 
@@ -115,11 +121,13 @@ Another primary way to categorize data is by *how* observations are collected ov
 4.  [Panel (Longitudinal) Data](#sec-panel-data)
 
 | Type                                                                | Advantages                                                                                      | Limitations                                                                       |
-|---------------------------------------------------------------------|-------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+|--------------------|----------------------------|------------------------|
 | [Cross-Sectional Data](#sec-cross-sectional-data)                   | Simple, cost-effective, good for studying distributions or correlations at a single time point. | Lacks temporal information, can only infer associations, not causal links.        |
 | [Time Series Data](#sec-time-series-data)                           | Enables trend analysis, seasonality detection, and forecasting.                                 | Requires handling autocorrelation, stationarity issues, and structural breaks.    |
 | [Repeated Cross-Sectional Data](#sec-repeated-cross-sectional-data) | Tracks shifts in population-level parameters over time; simpler than panel data.                | Cannot track individual changes; comparability depends on consistent methodology. |
 | [Panel (Longitudinal) Data](#sec-panel-data)                        | Allows causal inference, controls for unobserved heterogeneity, tracks individual trajectories. | Expensive, prone to attrition, requires complex statistical methods.              |
+
+: Comparison of Data Structures in Empirical Research
 
 ------------------------------------------------------------------------
 
@@ -472,12 +480,12 @@ $$
 
 This weaker assumption only requires that $x_t$ is uncorrelated with the error in the same time period.
 
-**Key Differences from Strict Exogeneity**
-
 | Exogeneity Type            | Requirement                              | Allows Dynamic Models? |
-|----------------------------|------------------------------------------|------------------------|
+|----------------------|-------------------------------|-------------------|
 | Strict Exogeneity          | $E(\epsilon_t | x_1, x_2, ..., x_T) = 0$ | **No**                 |
 | Contemporaneous Exogeneity | $E(\mathbf{x}_t' \epsilon_t) = 0$        | **Yes**                |
+
+: Key Differences from Strict Exogeneity
 
 -   With contemporaneous exogeneity, $\epsilon_t$ can be correlated with past and future values of $x_t$.
 
@@ -920,11 +928,13 @@ if (f_test$`Pr(>F)`[2] < 0.05) {
 If serial correlation is detected, the following adjustments should be made:
 
 | **Problem**                            | **Solution**                                                                                                       |
-|----------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+|---------------------|---------------------------------------------------|
 | **Mild serial correlation**            | Use [Newey-West standard errors](#sec-newey-west-standard-errors)                                                  |
 | **Severe serial correlation**          | Use [Generalized Least Squares] or Prais-Winsten transformation                                                    |
 | **Autoregressive structure in errors** | Model as an **ARMA** process                                                                                       |
 | **Higher-order serial correlation**    | Include lags of dependent variable or use [HAC](#sec-newey-west-standard-errors) estimators with higher lag orders |
+
+: Strategies for Addressing Serial Correlation in Regression Models
 
 ------------------------------------------------------------------------
 
@@ -1033,21 +1043,25 @@ Since repeated cross-sections do not track individuals, a **synthetic cohort** c
 ### Advantages of Repeated Cross-Sectional Data
 
 | **Advantage**                  | **Explanation**                                                                                                    |
-|--------------------------------|--------------------------------------------------------------------------------------------------------------------|
+|--------------------|----------------------------------------------------|
 | **Tracks population trends**   | Useful for studying shifts in demographics, attitudes, and economic conditions over time.                          |
 | **Lower cost than panel data** | Tracking individuals across multiple waves (as in panel studies) is expensive and prone to attrition.              |
 | **No attrition bias**          | Unlike panel surveys, where respondents drop out over time, each wave draws a new representative sample.           |
 | **Easier implementation**      | Organizations can design a single survey protocol and repeat it at set intervals without managing panel retention. |
+
+: Advantages of Repeated Cross-Sectional Data
 
 ------------------------------------------------------------------------
 
 ### Disadvantages of Repeated Cross-Sectional Data
 
 | **Disadvantage**                    | **Explanation**                                                                                                              |
-|-------------------------------------|------------------------------------------------------------------------------------------------------------------------------|
+|--------------------|----------------------------------------------------|
 | **No individual-level transitions** | Cannot track **how specific individuals change** over time (e.g., income mobility, changes in attitudes).                    |
 | **Limited causal inference**        | Since we observe different people in each wave, we cannot directly infer individual **cause-and-effect** relationships.      |
 | **Comparability issues**            | Small differences in survey design (e.g., question wording or sampling frame) can make it difficult to compare across waves. |
+
+: Disadvantages of Repeated Cross-Sectional Data
 
 ------------------------------------------------------------------------
 
@@ -1093,21 +1107,25 @@ Panel data combines **cross-sectional variation (differences across entities)** 
 ### Advantages of Panel Data
 
 | **Advantage**                             | **Explanation**                                                        |
-|-------------------------------------------|------------------------------------------------------------------------|
+|---------------------------|---------------------------------------------|
 | **Captures individual trajectories**      | Allows for studying how individuals or firms evolve over time.         |
 | **Controls for unobserved heterogeneity** | Fixed effects models remove time-invariant individual characteristics. |
 | **Stronger causal inference**             | Difference-in-differences and FE models improve causal interpretation. |
 | **More efficient estimates**              | Exploits both cross-sectional and time-series variation.               |
+
+: Advantages of Panel Data
 
 ------------------------------------------------------------------------
 
 ### Disadvantages of Panel Data
 
 | **Disadvantage**               | **Explanation**                                                        |
-|--------------------------------|------------------------------------------------------------------------|
+|------------------------|-----------------------------------------------|
 | **Higher cost and complexity** | Tracking individuals over time is resource-intensive.                  |
 | **Attrition bias**             | If certain individuals drop out systematically, results may be biased. |
 | **Measurement errors**         | Errors accumulate over time, leading to potential biases.              |
+
+: Disadvantages of Panel Data
 
 ------------------------------------------------------------------------
 
@@ -1120,12 +1138,14 @@ Since we observe **both individuals and time periods**, we distinguish three typ
 -   **Within variation**: Differences **within** individuals (time variation).
 
 | **Estimate**     | **Formula**                                                   |
-|------------------|---------------------------------------------------------------|
+|--------------------|----------------------------------------------------|
 | Individual mean  | $\bar{x}_i = \frac{1}{T} \sum_t x_{it}$                       |
 | Overall mean     | $\bar{x} = \frac{1}{NT} \sum_i \sum_t x_{it}$                 |
 | Overall variance | $s_O^2 = \frac{1}{NT-1} \sum_i \sum_t (x_{it} - \bar{x})^2$   |
 | Between variance | $s_B^2 = \frac{1}{N-1} \sum_i (\bar{x}_i - \bar{x})^2$        |
 | Within variance  | $s_W^2 = \frac{1}{NT-1} \sum_i \sum_t (x_{it} - \bar{x}_i)^2$ |
+
+: Decomposition of Variance in Panel Data
 
 **Note:** $s_O^2 \approx s_B^2 + s_W^2$
 
@@ -1260,10 +1280,12 @@ If the standard assumptions fail, adjustments are necessary:
 **Comparing Pooled OLS with Alternative Panel Models**
 
 | **Model**          | **Assumption about** $c_i$                  | **Uses Within Variation?** | **Uses Between Variation?** | **Best When**                       |
-|--------------------|---------------------------------------------|----------------------------|-----------------------------|-------------------------------------|
-| **Pooled OLS**     | Assumes $c_i$ is uncorrelated with $x_{it}$ | ✅ Yes                     | ✅ Yes                      | No individual heterogeneity         |
-| **Fixed Effects**  | Removes $c_i$ via demeaning                 | ✅ Yes                     | ❌ No                       | $c_i$ is correlated with $x_{it}$   |
-| **Random Effects** | Assumes $c_i$ is uncorrelated with $x_{it}$ | ✅ Yes                     | ✅ Yes                      | $c_i$ is uncorrelated with $x_{it}$ |
+|---------------|---------------|---------------|---------------|---------------|
+| **Pooled OLS**     | Assumes $c_i$ is uncorrelated with $x_{it}$ | Yes                        | Yes                         | No individual heterogeneity         |
+| **Fixed Effects**  | Removes $c_i$ via demeaning                 | Yes                        | No                          | $c_i$ is correlated with $x_{it}$   |
+| **Random Effects** | Assumes $c_i$ is uncorrelated with $x_{it}$ | Yes                        | Yes                         | $c_i$ is uncorrelated with $x_{it}$ |
+
+: Comparing Pooled OLS with Alternative Panel Models
 
 ------------------------------------------------------------------------
 
@@ -1275,7 +1297,7 @@ If the standard assumptions fail, adjustments are necessary:
 
 -   If random effects assumption holds ($E(\mathbf{x}_{it}' c_i) = 0$)
 
-If these conditions fail, **Fixed Effects or Random Effects models** should be used instead.
+If these conditions fail, [Fixed Effects](#sec-fixed-effects-estimator) or [Random Effects](#sec-random-effects-estimator) models should be used instead.
 
 ------------------------------------------------------------------------
 
@@ -1298,12 +1320,10 @@ where:
 
 -   $u_{it}$ is the **idiosyncratic error** (time-variant).
 
-**Comparing Fixed Effects and Random Effects**
-
 | **Model**          | **Assumption on** $c_i$             | **Uses Within Variation?** | **Uses Between Variation?** | **Best When**                         |
-|--------------------|-------------------------------------|----------------------------|-----------------------------|---------------------------------------|
-| **Fixed Effects**  | $c_i$ is correlated with $x_{it}$   | ✅ Yes                     | ❌ No                       | Unobserved heterogeneity bias present |
-| **Random Effects** | $c_i$ is uncorrelated with $x_{it}$ | ✅ Yes                     | ✅ Yes                      | No correlation with regressors        |
+|---------------|---------------|---------------|---------------|---------------|
+| **Fixed Effects**  | $c_i$ is correlated with $x_{it}$   | Yes                        | No                          | Unobserved heterogeneity bias present |
+| **Random Effects** | $c_i$ is uncorrelated with $x_{it}$ | Yes                        | Yes                         | No correlation with regressors        |
 
 ------------------------------------------------------------------------
 
@@ -1381,9 +1401,11 @@ If this assumption fails:
 The RE estimator is a GLS estimator, meaning it is BLUE (Best Linear Unbiased Estimator) under homoskedasticity.
 
 | **Scenario**                                                                | **Efficiency of RE**                                                |
-|-----------------------------------------------------------------------------|---------------------------------------------------------------------|
+|--------------------------------------|----------------------------------|
 | [A4](#a4-homoskedasticity) (Homoskedasticity) holds                         | RE is the most efficient estimator.                                 |
 | [A4](#a4-homoskedasticity) fails (Heteroskedasticity or Serial Correlation) | RE remains more efficient than Pooled OLS but is no longer optimal. |
+
+: Efficiency of Random Effects Estimator Under Assumption A4
 
 -   When the variance of errors differs across individuals, RE can still be used but must be adjusted with robust standard errors.
 -   If errors are correlated over time, standard [Newey-West](#sec-newey-west-standard-errors) or cluster-robust standard errors should be applied.
@@ -1606,25 +1628,27 @@ This transformation **removes** $c_i$ completely, leaving a model that can be es
 #### Comparison of FE Approaches
 
 | **Approach**                                                           | **How it Works**                                  | **Pros**                                           | **Cons**                                                                  |
-|------------------------------------------------------------------------|---------------------------------------------------|----------------------------------------------------|---------------------------------------------------------------------------|
+|------------------|------------------|------------------|-------------------|
 | [Dummy Variable](#sec-dummy-variable-approach)                         | Includes individual dummies ($c_i$) in regression | Intuitive, easy to interpret                       | Computationally expensive for large $N$, standard errors may be incorrect |
 | [Within Transformation (Demeaning)](#sec-demean-within-transformation) | Subtracts individual mean from each variable      | Computationally efficient, correct standard errors | Cannot estimate time-invariant variables                                  |
 | [First-Difference Approach](#sec-first-difference-approach)            | Takes time differences to remove $c_i$            | Simple, works well for small $T$                   | Reduces sample size, introduces autocorrelation                           |
+
+: Comparison of FE Approaches
 
 ------------------------------------------------------------------------
 
 **Key Insights**
 
-1.  **The Dummy Variable Approach explicitly models** $c_i$ but is computationally expensive for large $N$.
-2.  **The Within (Demean) Transformation is the most commonly used FE method** because it is **computationally efficient** and **produces correct standard errors**.
-3.  **The First-Difference Approach is useful when** $T$ is small, but it reduces sample size and introduces autocorrelation.
-4.  **If data has many missing values, First-Difference is not recommended** due to its sensitivity to gaps in observations.
-5.  **Time dummies (**$d_t$) can be included in any FE model to control for time shocks that affect all individuals.
-6.  FE only exploits **within variation**, meaning only **status changes contribute to** $\beta$ estimates.
-7.  **With limited status changes, standard errors explode** (small number of switchers leads to high variance).
-8.  **Treatment effect is non-directional** but can be parameterized.
-9.  **Switchers vs. Non-Switchers**:
-    -   If **switchers differ fundamentally**, the FE estimator may still be biased.
+1.  The Dummy Variable Approach explicitly models $c_i$ but is computationally expensive for large $N$.
+2.  The Within (Demean) Transformation is the most commonly used FE method because it is computationally efficient and produces correct standard errors.
+3.  The First-Difference Approach is useful when $T$ is small, but it reduces sample size and introduces autocorrelation.
+4.  If data has many missing values, First-Difference is not recommended due to its sensitivity to gaps in observations.
+5.  Time dummies ($d_t$) can be included in any FE model to control for time shocks that affect all individuals.
+6.  FE only exploits within variation, meaning only status changes contribute to $\beta$ estimates.
+7.  With limited status changes, standard errors explode (small number of switchers leads to high variance).
+8.  Treatment effect is non-directional but can be parameterized.
+9.  Switchers vs. Non-Switchers:
+    -   If switchers differ fundamentally, the FE estimator may still be biased.
     -   Descriptive statistics on switchers/non-switchers help verify robustness.
 
 ------------------------------------------------------------------------
@@ -2456,13 +2480,13 @@ If heteroskedasticity is detected, we need to adjust for it using **robust stand
 
 If heteroskedasticity is present, robust covariance matrix estimation is recommended. Different estimators apply depending on whether serial correlation is also an issue.
 
-Choosing the Correct Robust Covariance Matrix Estimator
+| Estimator    | Corrects for Heteroskedasticity?    | Corrects for Serial Correlation? | Recommended For |
+|------------------|--------------------|------------------|------------------|
+| `"white1"`   | Yes                                 | No                               | Random Effects  |
+| `"white2"`   | Yes (common variance within groups) | No                               | Random Effects  |
+| `"arellano"` | Yes                                 | Yes                              | Fixed Effects   |
 
-| Estimator    | Corrects for Heteroskedasticity?       | Corrects for Serial Correlation? | Recommended For |
-|--------------|----------------------------------------|----------------------------------|-----------------|
-| `"white1"`   | ✅ Yes                                 | ❌ No                            | Random Effects  |
-| `"white2"`   | ✅ Yes (common variance within groups) | ❌ No                            | Random Effects  |
-| `"arellano"` | ✅ Yes                                 | ✅ Yes                           | Fixed Effects   |
+: Choosing the Correct Robust Covariance Matrix Estimator
 
 
 ``` r
@@ -2531,10 +2555,12 @@ The choice between **FE and RE** depends on whether the individual-specific effe
 
 **Key Assumptions and Properties**
 
-| Hypothesis                                     | If True                                                                                        |
-|------------------------------------------------|------------------------------------------------------------------------------------------------|
-| $H_0: \text{Cov}(c_i, \mathbf{x_{it}}) = 0$    | $\hat{\beta}{RE}$ *is **consistent and efficient**, while* $\hat{\beta}{FE}$ is **consistent** |
-| $H_0: \text{Cov}(c_i, \mathbf{x_{it}}) \neq 0$ | $\hat{\beta}{RE}$ *is **inconsistent**, while* $\hat{\beta}{FE}$ remains **consistent**        |
+| Hypothesis                                     | If True                                                                                          |
+|-------------------------|----------------------------------------------|
+| $H_0: \text{Cov}(c_i, \mathbf{x_{it}}) = 0$    | $\hat{\beta}_{RE}$ *is **consistent and efficient**, while* $\hat{\beta}_{FE}$ is **consistent** |
+| $H_0: \text{Cov}(c_i, \mathbf{x_{it}}) \neq 0$ | $\hat{\beta}_{RE}$ *is **inconsistent**, while* $\hat{\beta}_{FE}$ remains **consistent**        |
+
+: Implications of the Exogeneity Assumption for [Fixed](#sec-fixed-effects-estimator) and [Random Effects](#sec-random-effects-estimator) Estimators
 
 **Hausman Test**
 
@@ -2621,19 +2647,17 @@ However, additional assumptions determine whether the estimator is **consistent 
 
     -   [A4](#a4-homoskedasticity) Homoskedasticity generally does not hold, so cluster-robust SEs are required.
 
-**Estimator Selection Guide**
+| Estimator / True Model | POLS       | RE         | FE           |
+|------------------------|------------|------------|--------------|
+| POLS                   | Consistent | Consistent | Inconsistent |
+| FE                     | Consistent | Consistent | Consistent   |
+| RE                     | Consistent | Consistent | Inconsistent |
 
-| Estimator / True Model | POLS          | RE            | FE              |
-|------------------------|---------------|---------------|-----------------|
-| POLS                   | ✅ Consistent | ✅ Consistent | ❌ Inconsistent |
-| FE                     | ✅ Consistent | ✅ Consistent | ✅ Consistent   |
-| RE                     | ✅ Consistent | ✅ Consistent | ❌ Inconsistent |
+: Estimator Selection Guide
 
 ### Alternative Estimators
 
 Other estimators are available depending on model violations and additional considerations:
-
--   **Violation Estimators**: Adjust for assumption violations.
 
 -   **Basic Estimators**: Standard POLS, RE, FE.
 
@@ -3541,7 +3565,7 @@ summary(zz)
 -   Ideal for large-N, small-T panels.
 
 | Estimator                          | Method                               | Application                                                                                   |
-|------------------------------------|--------------------------------------|-----------------------------------------------------------------------------------------------|
+|------------------|------------------|------------------------------------|
 | **Variable Coefficients (`pvcm`)** | Fixed (`within`), Random (`random`)  | Allows coefficients to vary across individuals.                                               |
 | **GMM (`pgmm`)**                   | One-step, Two-step                   | Used in dynamic models with endogeneity.                                                      |
 | **Feasible GLS (`pggls`)**         | Fixed (`within`), Random (`pooling`) | Handles heteroskedasticity and serial correlation but assumes no cross-sectional correlation. |
@@ -3556,8 +3580,6 @@ The `fixest` package provides **efficient** and **flexible** methods for estimat
 
 For further details, refer to the official [fixest vignette](https://cran.r-project.org/web/packages/fixest/vignettes/exporting_tables.html).
 
-**Available Estimation Functions in `fixest`**
-
 | Function   | Model Type                                       |
 |------------|--------------------------------------------------|
 | `feols`    | Fixed effects OLS (linear regression)            |
@@ -3566,6 +3588,8 @@ For further details, refer to the official [fixest vignette](https://cran.r-proj
 | `feNmlm`   | Non-linear models (non-linear in RHS parameters) |
 | `fepois`   | Poisson fixed-effects regression                 |
 | `fenegbin` | Negative binomial fixed-effects regression       |
+
+: Available Estimation Functions in `fixest`
 
 > **Note:** These functions work only for `fixest` objects.
 
@@ -3626,35 +3650,7 @@ etable(est)
 #> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 # Output in LaTeX format
-etable(est, tex = TRUE)
-#> \begingroup
-#> \centering
-#> \begin{tabular}{lcccc}
-#>    \tabularnewline \midrule \midrule
-#>    Dependent Variable: & \multicolumn{4}{c}{Ozone (ppb)}\\
-#>    Model:                     & (1)            & (2)            & (3)            & (4)\\  
-#>    \midrule
-#>    \emph{Variables}\\
-#>    Solar Radiation (Langleys) & 0.1148$^{***}$ & 0.0522$^{**}$  & 0.1078$^{***}$ & 0.0509$^{**}$\\   
-#>                               & (0.0234)       & (0.0202)       & (0.0329)       & (0.0236)\\   
-#>    Wind Speed (mph)           &                & -3.109$^{***}$ &                & -3.289$^{***}$\\   
-#>                               &                & (0.7986)       &                & (0.7777)\\   
-#>    Temperature                &                & 1.875$^{***}$  &                & 2.052$^{***}$\\   
-#>                               &                & (0.3671)       &                & (0.2415)\\   
-#>    \midrule
-#>    \emph{Fixed-effects}\\
-#>    Month                      & Yes            & Yes            & Yes            & Yes\\  
-#>    Day                        &                &                & Yes            & Yes\\  
-#>    \midrule
-#>    \emph{Fit statistics}\\
-#>    Observations               & 111            & 111            & 111            & 111\\  
-#>    R$^2$                      & 0.31974        & 0.63686        & 0.58018        & 0.81604\\  
-#>    Within R$^2$               & 0.12245        & 0.53154        & 0.12074        & 0.61471\\  
-#>    \midrule \midrule
-#>    \multicolumn{5}{l}{\emph{Clustered (Day) standard-errors in parentheses}}\\
-#>    \multicolumn{5}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
-#> \end{tabular}
-#> \par\endgroup
+# etable(est, tex = TRUE)
 
 # Extract fixed-effects coefficients
 fixedEffects <- fixef(est[[1]])
@@ -3671,12 +3667,18 @@ summary(fixedEffects)
 fixedEffects$Month
 #>         5         6         7         8         9 
 #>  3.218876  8.287899 34.260812 40.122257 12.130971
+```
 
+
+``` r
 # Plot fixed effects
 plot(fixedEffects)
 ```
 
-<img src="11-data_files/figure-html/unnamed-chunk-49-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="11-data_files/figure-html/fig-centered-fe-plot-1.png" alt="Scatter plot showing centered fixed effects on the x-axis and values from -10 to 20 on the y-axis. Points labeled 5 to 9 are distributed across the chart" width="100%" />
+<p class="caption">(\#fig:fig-centered-fe-plot)Centered FE Plot</p>
+</div>
 
 This example demonstrates:
 
@@ -3768,13 +3770,15 @@ Options to write the functions
 
     -   `mvsw(x1, x2, x3)` will be `sw0(x1, x2, x3, x1 + x2, x1 + x3, x2 + x3, x1 + x2 + x3)`
 
-| Stepwise Function  | Description                                                                   |
-|--------------------|-------------------------------------------------------------------------------|
-| `sw(x1, x2)`       | Sequentially estimates models with each element separately.                   |
-| `sw0(x1, x2)`      | Same as `sw()`, but also estimates a **baseline model** without the elements. |
-| `csw(x1, x2)`      | Sequentially adds each element to the formula.                                |
-| `csw0(x1, x2)`     | Same as `csw()`, but also includes a **baseline model**.                      |
-| `mvsw(x1, x2, x3)` | Estimates **all possible combinations** of the variables.                     |
+| Stepwise Function  | Description                                                               |
+|-------------------|-----------------------------------------------------|
+| `sw(x1, x2)`       | Sequentially estimates models with each element separately.               |
+| `sw0(x1, x2)`      | Same as `sw()`, but also estimates a baseline model without the elements. |
+| `csw(x1, x2)`      | Sequentially adds each element to the formula.                            |
+| `csw0(x1, x2)`     | Same as `csw()`, but also includes a baseline model.                      |
+| `mvsw(x1, x2, x3)` | Estimates all possible combinations of the variables.                     |
+
+: Overview of Stepwise Model Selection Functions and Their Behaviors
 
 
 ``` r
@@ -3817,7 +3821,9 @@ Estimate separate regressions for different subgroups in the dataset using `fspl
 
 
 ``` r
-etable(feols(Ozone ~ Solar.R + Wind, fsplit = ~ Month, data = airquality))
+etable(feols(Ozone ~ Solar.R + Wind, 
+             fsplit = ~ Month, 
+             data = airquality))
 #>                            feols(Ozone ~ S..1 feols(Ozone ..2 feols(Ozone ~..3
 #> Sample (Month)                    Full sample               5                6
 #> Dependent Var.:                   Ozone (ppb)     Ozone (ppb)      Ozone (ppb)
@@ -4016,6 +4022,8 @@ Selecting the appropriate data type depends on:
 4.  **Analytical Goals**: Time-series forecasting, causal inference, or descriptive comparison each has different data requirements.
 
 5.  **Availability**: Sometimes only secondary or repeated cross-sectional data is available, which constrains the design.
+
+------------------------------------------------------------------------
 
 ## Data Quality and Ethical Considerations
 

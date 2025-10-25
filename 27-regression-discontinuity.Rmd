@@ -1,57 +1,92 @@
 # Regression Discontinuity {#sec-regression-discontinuity}
 
-Regression Discontinuity (RD) is a quasi-experimental design that exploits a discrete jump in treatment assignment based on a continuous (or approximately continuous) variable, often called the **running variable**, **forcing variable**, or **assignment variable**.
+Causal inference often requires creativity when randomized experiments are impractical, unethical, or too costly. In such situations, researchers turn to quasi-experimental designs that mimic the structure of randomized experiments under certain assumptions. One of the most compelling and rigorous among these is the **Regression Discontinuity (RD) design**, a method that turns a seemingly arbitrary policy rule into an opportunity for causal estimation.
 
--   A common application occurs when an intervention is assigned based on whether the running variable exceeds a predefined cutoff.
--   The approach provides **localized causal inference** around the cutoff, akin to a [randomized experiment](#sec-the-gold-standard-randomized-controlled-trials) in the local region.
--   **Historical Background:** First introduced by @thistlethwaite1960 in the context of merit awards and their effect on future academic outcomes.
+Imagine a policy in which financial aid is awarded only to students whose family income falls below a certain threshold, or a marketing campaign targeted solely at customers with a credit score above a specified value. These cutoffs create a situation where treatment assignment hinges on a single continuous variable (e.g., income or credit score ) crossing a fixed boundary. This boundary, or **cutoff**, introduces a discrete change in treatment probability based on a smooth, underlying score. That is the central insight behind RD: when individuals just above and just below the threshold are otherwise similar, comparing their outcomes offers a window into [local average treatment effects](#sec-local-average-treatment-effects).
 
-**Key References:**
+The RD design exploits this structure by focusing on the "edge" (the region near the cutoff) where treatment assignment changes abruptly. While units far from the threshold may differ systematically, those close to it are assumed to be comparable, as if randomly assigned to treatment or control. This gives RD a compelling advantage: under relatively mild assumptions, it can deliver **credible causal estimates**, particularly in situations where [randomized controlled trials](#sec-experimental-design) (RCTs) are infeasible.
 
-Foundational papers: [@imbens2008regression; @lee2010regression]
+Originally introduced by @thistlethwaite1960 in their evaluation of merit-based scholarships and their impact on academic outcomes, RD has since evolved into a widely used econometric tool across fields such as education, healthcare, marketing, political science, and finance. Its theoretical foundation was significantly refined and extended in modern work by @imbens2008regression and @lee2010regression, who formalized its assumptions and estimation strategies.
+
+RD designs come in two primary flavors:
+
+-   [**Sharp RD**](#sec-sharp-regression-discontinuity-design), where the treatment assignment is perfectly determined by whether the running variable exceeds the cutoff.
+
+-   [**Fuzzy RD**](#sec-fuzzy-regression-discontinuity-design), where the probability of treatment changes discontinuously at the cutoff but is not deterministically assigned.
+
+In either case, the defining characteristic is the **discontinuity in the treatment assignment rule** based on a continuous score, often referred to as the **running variable**, **forcing variable**, or **assignment variable**.
+
+Regression Discontinuity offers a powerful yet intuitive approach to causal inference, particularly when treatment assignment rules are rigid and known. In the sections that follow, we will develop the formal framework of RD designs, examine the key assumptions that underlie their validity, and apply the method to real-world business and policy problems.
 
 ------------------------------------------------------------------------
 
 ## Conceptual Framework
 
-Regression discontinuity is best understood as a **localized experiment at the threshold**:
+To truly appreciate the logic of RD designs, one must think like an experimentalist, but with observational data. RD transforms a deterministic rule (e.g., a policy cutoff) into an opportunity for **quasi-random assignment**. It is, in essence, a **localized experiment** conducted at the threshold of a continuous running variable.
 
--   [Internal Validity](#sec-internal-validity): Strong within a narrow bandwidth around the cutoff.
+At the heart of the RD framework is a deceptively simple idea: individuals just above and just below the cutoff are virtually identical in all respects, except for the treatment status induced by their position relative to the threshold. This intuition enables RD designs to estimate causal effects **with high internal validity**, even in the absence of random assignment.
 
--   [External Validity](#sec-external-validity): Limited---results may not generalize beyond the bandwidth.
+RD's strength lies in its focus on a **narrow window** around the cutoff, often called the **bandwidth**, where the [assumption of exchangeability](#sec-conditional-ignorability-assumption) is most plausible. Within this narrow range, the assignment mechanism approximates a randomized experiment.
 
--   Comparison to [Randomized Experiments](#sec-the-gold-standard-randomized-controlled-trials): Empirical evidence suggests that RD and randomized controlled trials yield similar estimates ([@chaplin2018internal], [Mathematica](https://www.mathematica.org/publications/replicating-experimental-impact-estimates-using-a-regression-discontinuity-approach)).
+-   [Internal Validity](#sec-internal-validity): Extremely strong near the cutoff. The closer the observations are to the threshold, the more credible the assumption that they are otherwise comparable.
+-   [External Validity](#sec-external-validity): More limited. Estimates are local to the cutoff and may not generalize to units far from the threshold. This tradeoff between precision and generalizability is a defining characteristic of RD.
 
-RD is connected to other causal inference methods:
+One of the most compelling validations of RD comes from empirical comparisons with randomized controlled trials (RCTs). Evidence from studies such as @chaplin2018internal and @gleason2018rd suggest that RD and RCTs often yield **remarkably similar treatment effect estimates**, underscoring RD's credibility when its assumptions are met. While RD is not a substitute for randomization, it can come surprisingly close in practice.
 
--   [Randomized Experiment](#sec-the-gold-standard-randomized-controlled-trials): It's local randomization.
+RD is not an island; it shares conceptual and methodological links with several other causal inference frameworks. Understanding these connections helps clarify when RD is appropriate and how it complements alternative approaches.
 
--   [Instrumental Variables]: RD can be viewed as a structural IV model [@angrist1999using].
-
--   [Matching Methods]: RD is a special case where matching occurs at a single threshold [@heckman1999economics].
-
--   [Interrupted Time Series] (ITS): RD is preferable when the running variable is finely measured. However, with highly discrete time data (e.g., quarterly or annual), ITS may be more appropriate. Hence, RD is always better than ITS if data are infinite (or substantially large).
+-   [Randomized Experiment](#sec-the-gold-standard-randomized-controlled-trials): RD can be seen as a **local randomization design** (treatment is "as-if" randomly assigned near the cutoff).
+-   [Instrumental Variables]: RD can be framed as a special case of a structural IV model [@angrist1999using], where the running variable induces exogenous variation in treatment at the threshold.
+-   [Matching Methods]: RD resembles a highly targeted form of matching (matching units just above and below a single threshold) [@heckman1999economics].
+-   [Interrupted Time Series] (ITS): RD outperforms ITS when the running variable is finely measured and continuous. However, in settings with highly discrete or temporally aggregated data (e.g., quarterly revenues or annual crime rates), ITS may be more suitable. Still, when the data are dense or effectively continuous, RD offers a more precise and defensible design.
 
 ------------------------------------------------------------------------
 
-### Types of Regression Discontinuity Designs
+## Types of Regression Discontinuity Designs
 
-1.  [Sharp RD](#sec-sharp-regression-discontinuity-design): Treatment probability jumps from 0 to 1 at the cutoff.
-2.  [Fuzzy RD](#sec-fuzzy-regression-discontinuity-design): Treatment probability changes discontinuously but does not reach 1.
-3.  [Kink RD](#sec-regression-kink-design): Discontinuity occurs in the slope rather than the level of the running variable [@nielsen2010estimating] (see applications in @bockerman2018kink and theoretical foundations in @card2015inference).
-4.  Regression Discontinuity in Time (i.e., [Interrupted Time Series]): The running variable is time.
+RD is not a one-size-fits-all approach. While the classic setup involves a binary treatment determined by a threshold-crossing rule, numerous extensions and variants exist, each tailored to different research contexts. Understanding these variations is essential for choosing the appropriate design and interpreting results correctly.
 
-Additional variations:
+1.  [Sharp RD](#sec-sharp-regression-discontinuity-design):The simplest and most intuitive form of RD:
+    -   **Definition**: Treatment assignment jumps **deterministically** from 0 to 1 at the cutoff.
+    -   **Implication**: Individuals below the threshold are never treated; those above always are.
+    -   **Identification**: The treatment effect is identified as the jump in the outcome at the cutoff.
+    -   **Example**: A scholarship awarded strictly to students with test scores ≥ 85.
+2.  [Fuzzy RD](#sec-fuzzy-regression-discontinuity-design):A generalization of the sharp design:
+    -   **Definition**: The probability of treatment increases **discontinuously** at the cutoff, but does not jump from 0 to 1.
+    -   **Implication**: Some individuals below the cutoff may receive the treatment, and some above may not.
+    -   **Identification**: Requires instrumental variable methods to estimate the [local average treatment effects](#sec-local-average-treatment-effects) (LATE) for compliers.
+    -   **Example**: A healthcare subsidy that is more likely, but not guaranteed, to be received by patients above a certain income level.
+3.  [Kink RD](#sec-regression-kink-design):A subtler variant based on a change in slope:
+    -   **Definition**: The **first derivative** (slope) of the outcome changes at the cutoff, rather than its level.
+    -   **Identification**: The treatment effect is identified from a discontinuity in the **marginal effect** of the running variable.
+    -   **Example**: Tax incentives where the marginal benefit changes at a threshold income level.
+    -   **References**: See theoretical foundations in [@card2015inference] and empirical applications in [@bockerman2018kink; @nielsen2010estimating].
+4.  Regression Discontinuity in Time (RDiT): Also known as a special case of [Interrupted Time Series]:
+    1.  **Definition**: The running variable is **time**, and the cutoff corresponds to a policy implementation date or event.
+    2.  **Application**: Evaluates the immediate impact of an intervention that begins at a known point in time.
+    3.  **Caveat**: Since time trends are often confounded by other events, careful modeling of pre- and post-trends is essential.
 
--   [Multiple Cutoffs](#sec-multi-cutoff-regression-discontinuity-design): Different thresholds across subgroups.
+> **Note**: RDiT is often less reliable than traditional RD due to potential violations of the continuity assumption, especially when time is measured in coarse intervals (e.g., quarterly or yearly).
 
--   [Multiple Scores](#sec-multi-score-regression-discontinuity-design): More than one running variable.
+------------------------------------------------------------------------
 
--   Geographic RD: Cutoff is spatially defined.
+RD designs have been extended in several directions to accommodate real-world complexities:
 
--   Dynamic Treatments: Treatment effects evolve over time.
-
--   Continuous Treatments: Instead of binary treatment, intensity varies.
+-   [Multiple Cutoffs](#sec-multi-cutoff-regression-discontinuity-design):
+    -   **Use case**: Different treatment thresholds apply to different subgroups (e.g., age groups, regions).
+    -   **Challenge**: Requires careful pooling and stratification to maintain comparability.
+-   [Multiple Scores](#sec-multi-score-regression-discontinuity-design) (Multiple Running Variables):
+    -   **Use case**: Treatment depends on more than one score (e.g., income and age).
+    -   **Approach**: Involves multivariate threshold rules or interaction effects.
+-   Geographic RD (Spatial RD):
+    -   **Definition**: The cutoff is defined in space, such as administrative borders or policy boundaries.
+    -   **Example**: A tax policy that applies only to businesses within a specific jurisdiction.
+-   Dynamic Treatments:
+    -   **Definition**: Treatment effects may **evolve over time** after the initial intervention.
+    -   **Consideration**: Requires longitudinal data and appropriate modeling of lagged effects.
+-   Continuous Treatment Intensity (Dose-Response RD):
+    -   **Definition**: Instead of a binary treatment, units receive varying degrees of treatment intensity based on the running variable.
+    -   **Example**: Advertising exposure that increases progressively with customer engagement scores.
 
 ------------------------------------------------------------------------
 
@@ -69,15 +104,17 @@ Additional variations:
 
 4.  **No Discontinuity in Confounding Variables:** Other covariates should be smooth at the threshold. A common test is to check for jumps in covariates unrelated to treatment.
 
-------------------------------------------------------------------------
-
-### Threats to RD Validity
+See Table \@ref(tab:rd-threat-validity) for examples of possible violations.
 
 | **Issue**                             | **Description**                                                                                                 | **Solution**                                                                                |
-|----------------|-----------------------------|---------------------------|
+|----------------|-------------------------------|-------------------------|
 | Violation of Continuity in Covariates | If other variables besides treatment exhibit a discontinuity at the cutoff, the estimated effect may be biased. | Conduct balance tests on pre-treatment covariates.                                          |
 | Multiple Discontinuities              | When multiple threshold effects exist, identification becomes more challenging.                                 | Use robustness checks with alternative model specifications.                                |
 | Manipulation of the Running Variable  | Subjects may manipulate $X_i$ to qualify for treatment (e.g., strategic behavior in test scores).               | Implement McCrary's density test to check for discontinuities in the distribution of $X_i$. |
+
+: (#tab:rd-threat-validity) Threats to RD Validity
+
+------------------------------------------------------------------------
 
 ## Model Estimation Strategies
 
@@ -97,7 +134,7 @@ For these reasons, researchers are often advised to avoid global high-order poly
 
 ### Nonparametric Models: Local Regression
 
-[Nonparametric models](#sec-nonparametric-regression), such as [local polynomial regression](#sec-local-polynomial-regression), offer greater flexibility by avoiding strong assumptions about functional form. Instead of fitting a single equation to the entire dataset, these methods estimate relationships **locally**---often using linear or quadratic polynomials within a neighborhood of each data point.
+[Nonparametric models](#sec-nonparametric-regression), such as [local polynomial regression](#sec-local-polynomial-regression), offer greater flexibility by avoiding strong assumptions about functional form. Instead of fitting a single equation to the entire dataset, these methods estimate relationships **locally**, often using linear or quadratic polynomials within a neighborhood of each data point.
 
 -   Uses weighted observations near the cutoff.
 -   More flexible than global polynomial regression.
@@ -222,14 +259,14 @@ Also known as **checking for discontinuities in average covariates**, this test 
 
 This test, also known as **checking for discontinuities in the distribution of the forcing variable**, detects whether subjects manipulate the running variable to sort into or out of treatment.
 
-If individuals can manipulate the running variable---especially when the cutoff is known in advance---this can lead to bunching behavior (i.e., clustering just above or below the cutoff).
+If individuals can manipulate the running variable, especially when the cutoff is known in advance, this can lead to bunching behavior (i.e., clustering just above or below the cutoff).
 
 -   If treatment is desirable, individuals will try to sort into treatment, leading to a gap just below the cutoff.
 -   If treatment is undesirable, individuals will try to avoid it, leading to a gap just above the cutoff.
 
 Under RD, we assume that there is no manipulation in the running variable. However, bunching behavior, where firms or individuals strategically manipulate their position, violates this assumption.
 
--   To address this issue, the bunching approach estimates the counterfactual distribution---what the density of individuals would have been in the absence of manipulation.
+-   To address this issue, the bunching approach estimates the counterfactual distribution, what the density of individuals would have been in the absence of manipulation.
 
 -   The fraction of individuals who engaged in manipulation is then calculated by comparing the observed distribution to this counterfactual distribution.
 
@@ -256,7 +293,7 @@ A widely used formal test is the McCrary density test [@mccrary2008manipulation]
 **Bunching Methodology**
 
 -   Bunching occurs when individuals self-select into specific values of the running variable (e.g., policy thresholds). See @kleven2016bunching for a review.
--   The method helps estimate the counterfactual distribution---what the density would have been without manipulation.
+-   The method helps estimate the counterfactual distribution (what the density would have been without manipulation).
 -   The fraction of individuals who manipulated can be estimated by comparing observed densities to the counterfactual.
 
 If the running variable and outcome are **simultaneously determined**, a modified RD estimator can be used for consistent estimation [@bajari2011regression]:
@@ -280,11 +317,15 @@ If the bunching test fails to detect manipulation, we proceed to the [Placebo Te
 library(rdd)
 
 set.seed(1)
+```
 
+```{r, fig.cap='Local Polynomial Regression without Discontinuity at Cutoff', fig.alt='Scatter plot with data points and two smooth fitted curves, one on each side of the vertical cutoff at zero. Solid lines indicate the fitted regression curves, while dashed lines show confidence bands.'}
 # Simulated data without discontinuity
 x <- runif(100, -1, 1)
 DCdensity(x, 0)  # No discontinuity
+```
 
+```{r, fig.cap='Local Polynomial Regression with Discontinuity at Cutoff', fig.alt='Scatter plot with data points and two smooth fitted curves, one on each side of the vertical cutoff at zero. Solid lines indicate the fitted regression curves, while dashed lines show confidence bands.'}
 # Simulated data with discontinuity
 x <- runif(1000, -1, 1)
 x <- x + 2 * (runif(1000, -1, 1) > 0 & x < 0)
@@ -517,18 +558,25 @@ Since $\tau$ is point-identified, we can construct sharp bounds on $\Gamma$ by a
 
 ##### Identification in Fuzzy RD
 
-In fuzzy RD, treatment assignment is not deterministic. The subpopulations observed in each treatment-status group at the cutoff are:
+In fuzzy RD, treatment assignment is not deterministic.
 
-| **Subpopulation** | **Unit Types Present** |
-|-------------------|------------------------|
-| $X = c^+, D = 1$  | $C_0, A_0, T_1$        |
-| $X = c^-, D = 1$  | $A_0$                  |
-| $X= c^+, D = 0$   | $N_0, U_1$             |
-| $X = c^-, D = 0$  | $C_0, N_0$             |
+<!-- The subpopulations observed in each treatment-status group at the cutoff are: -->
 
-*Source: Table on page 848 of @gerard2020bounds*
+<!-- | **Subpopulation** | **Unit Types Present** | -->
 
-Key Takeaways:
+<!-- |-------------------|------------------------| -->
+
+<!-- | $X = c^+, D = 1$  | $C_0, A_0, T_1$        | -->
+
+<!-- | $X = c^-, D = 1$  | $A_0$                  | -->
+
+<!-- | $X= c^+, D = 0$   | $N_0, U_1$             | -->
+
+<!-- | $X = c^-, D = 0$  | $C_0, N_0$             | -->
+
+<!-- *Source: Table on page 848 of @gerard2020bounds* -->
+
+<!-- Key Takeaways: -->
 
 -   **Unit Types and Combinations**: There are five distinct unit types and four combinations of treatment assignments and decisions relevant to the analysis. These distinctions are important because they affect how potential outcomes are analyzed and bounded.
 -   **Outcome Distributions**: The analysis involves estimating the distribution of potential outcomes (both treated and untreated) among potentially-assigned compliers at the cutoff.
@@ -552,7 +600,7 @@ The method to obtain sharp bounds on $\Gamma$ follows three steps:
 
 #### Extensions
 
-1.  Quantile Treatment Effects (QTEs)
+1.  **Quantile Treatment Effects (QTEs)**
 
 An alternative to average treatment effects is the quantile treatment effect (QTE), which focuses on different percentiles of the outcome distribution. Advantages of QTE bounds include:
 
@@ -564,13 +612,13 @@ QTE vs. ATE Under Manipulation:
 -   **ATE inference is highly sensitive** to manipulation, with confidence intervals widening significantly as assumed manipulation increases.
 -   **QTE inference remains meaningful** even under substantial manipulation.
 
-2.  Discrete Outcome Extensions: The framework applies not only to continuous outcomes but also to **discrete** outcome variables.
-3.  Role of Behavioral Assumptions
+2.  **Discrete Outcome Extensions**: The framework applies not only to continuous outcomes but also to **discrete** outcome variables.
+3.  **Role of Behavioral Assumptions**
 
 -   Making behavioral assumptions about high treatment likelihood among always-assigned units can refine the bounds.
 -   For example, assuming that most always-assigned units are treated allows for narrower bounds on treatment effects.
 
-4.  Incorporation of Covariates
+4.  **Incorporation of Covariates**
 
 -   Including pre-treatment covariates can refine treatment effect bounds.
 -   Covariates help:
@@ -646,7 +694,7 @@ rdbounds_est_tau <-
     )
 ```
 
-```{r}
+```{r, fig.cap='Robustness of Average Treatment Effect to Share of Always-assigned Units', fig.alt='Line chart showing ATE estimates plotted against the share of always-assigned units. Two solid lines with dots indicate upper and lower bounds of the estimated ATE as the share increases from 0 to 0.2. Dotted lines represent confidence intervals, and a red horizontal line marks zero.'}
 causalverse::plot_rd_aa_share(rdbounds_est_tau) # For SRD (default)
 # causalverse::plot_rd_aa_share(rdbounds_est_tau, rd_type = "FRD")  # For FRD
 ```
@@ -1274,6 +1322,8 @@ where:
 -   Re-estimate treatment effects using different bandwidths.
 -   If $\hat{\tau}(x,c)$ changes drastically, it suggests sensitivity to bandwidth choice.
 
+------------------------------------------------------------------------
+
 ## Multi-Score Regression Discontinuity Design {#sec-multi-score-regression-discontinuity-design}
 
 The **Multi-Score Regression Discontinuity Design** extends the **standard single-score RD** and [the multi-cutoff RD](#sec-multi-cutoff-regression-discontinuity-design) by introducing multiple running variables that simultaneously determine treatment eligibility. Instead of relying on a single threshold for assignment, treatment now depends on a **combination of multiple continuous scores** crossing predetermined cutoffs.
@@ -1494,7 +1544,9 @@ $$
 Y_i = \beta_0 + \beta_1 X_i + I(X_i \geq c) \beta_2 + \epsilon_i.
 $$
 
-![](images/rd1.PNG){style="display: block; margin: 1em auto" width="600" height="300"}
+```{r, fig.cap='Regression Discontinuity Design: Constant Slope', fig.alt='Line graph illustrating a sharp regression discontinuity'}
+knitr::include_graphics('images/rd1.PNG')
+```
 
 RD gives you $\beta_2$ (causal effect) of $X$ on $Y$ at the cutoff point
 
@@ -1503,6 +1555,10 @@ In practice, everyone does
 $$ Y_i = \alpha_0 + f(x) \alpha _1 + [I(x_i \ge c)]\alpha_2 + [f(x_i)\times [I(x_i \ge c)]\alpha_3 + u_i $$
 
 ![](images/rd2.PNG){style="display: block; margin: 1em auto" width="600" height="300"}
+
+```{r, fig.cap='Regression Discontinuity Design: Dynamic Slope', fig.alt='Line graph illustrating a sharp regression discontinuity'}
+knitr::include_graphics('images/rd2.PNG')
+```
 
 where we estimate different slope on different sides of the line. And if you estimate $\alpha_3$ to be no different from 0 then we return to the simple case.
 
@@ -1598,6 +1654,8 @@ While RD provides strong internal validity, its generalizability is often limite
 3.  **Spillover Effects**
     -   If treatment effects extend beyond the threshold (e.g., peer effects), RD assumptions may be violated.
 
+------------------------------------------------------------------------
+
 ## Applications of RD Designs
 
 Regression Discontinuity (RD) designs have widespread applications in empirical research across **economics, political science, marketing, and public policy**. These applications leverage **threshold-based decision rules** to identify causal effects in real-world settings where **randomized experiments** are infeasible.
@@ -1638,18 +1696,22 @@ Key insights:
 
 By comparing firms just above and below an expenditure threshold, the RD framework isolates the true causal impact of marketing spending on consumer behavior.
 
+<!--# Application in Finance: "Balancing External vs. Internal Validity: An Application of Causal Forest in Finance"  -->
+
 ### R Packages for RD Estimation
 
 **Key RD [Packages](https://rdpackages.github.io/) in R**
 
 | **Feature**             | **rdd**                 | **rdrobust**                                                     | **rddtools**                                  |
-|------------------|------------------|-------------------|------------------|
+|---------------|---------------|-------------------------|------------------|
 | **Estimator**           | Local linear regression | Local polynomial regression                                      | Local polynomial regression                   |
 | **Bandwidth Selection** | [@imbens2012optimal]    | [@calonico2014robust; @imbens2012optimal ; @calonico2020optimal] | [@imbens2012optimal]                          |
 | **Kernel Functions**    | Epanechnikov, Gaussian  | Epanechnikov                                                     | Gaussian                                      |
 | **Bias Correction**     | No                      | Yes                                                              | No                                            |
 | **Covariate Inclusion** | Yes                     | Yes                                                              | Yes                                           |
 | **Assumption Testing**  | McCrary Sorting Test    | No                                                               | McCrary Sorting, Covariate Distribution Tests |
+
+: Packages in R for RD Estimation
 
 For a detailed comparison, see [@thoemmes2017analysis] (Table 1, p. 347).
 
@@ -1709,7 +1771,9 @@ library(rddtools)
 
 # Format data for RD analysis
 data <- rdd_data(future_success, GPA, cutpoint = 3.5)
+```
 
+```{r, fig.cap='Binned Scatter Plot of GPA and Future Success with Threshold at 3.5', fig.alt='Scatter plot with GPA on the x-axis and future success on the y-axis. Red dots show average outcomes in GPA bins. A vertical dashed line at GPA = 3.5 marks a potential threshold. The data trend appears to rise steadily, with a sharp increase in future success for GPAs just above the cutoff.'}
 # Plot RD scatterplot
 plot(data, col = "red", cex = 0.5, xlab = "GPA", ylab = "Future Success")
 ```
@@ -1726,10 +1790,9 @@ summary(rdd_mod)
 
 Plot the RD regression line with binned observations:
 
-```{r}
+```{r, fig.cap='Coarse Binned Regression Discontinuity Plot of GPA and Future Success', fig.alt='Line plot of GPA versus future success with four coarse bins. A dashed vertical line at GPA = 3.5 marks the cutoff. A sharp jump in the fitted line is visible at the cutoff, indicating a possible treatment effect. The x-axis spans 0 to 4 GPA, and the y-axis ranges from 14 to 28 in future success.'}
 # Plot RD regression
 plot(rdd_mod, cex = 0.5, col = "red", xlab = "GPA", ylab = "Future Success")
-
 ```
 
 We verify whether results hold under different bandwidths and functional forms:
@@ -1784,7 +1847,7 @@ Occupational licensing is a form of labor market regulation that requires worker
 
 ------------------------------------------------------------------------
 
-#### **OLS Estimation: Naïve Approach and Its Bias**
+#### OLS Estimation: Naïve Approach and Its Bias
 
 A simple [Ordinary Least Squares] regression can be used to estimate the effect of licensed workers on quality of service:
 
@@ -1809,7 +1872,7 @@ where:
     -   Higher-quality facilities may have greater incentives to hire certified workers.
     -   This induces a positive correlation between $LW_i$ and $Y_i$, biasing $\alpha_2$ upward.
 
-#### **Fuzzy RD Framework**
+#### Fuzzy RD Framework
 
 The OLS model is endogenous, so we implement a [Fuzzy RD Design](#sec-fuzzy-regression-discontinuity-design) that exploits a discontinuity in licensing requirements at 120 beds.
 
@@ -1835,7 +1898,7 @@ This model estimates discontinuities in quality outcomes at the 120-bed threshol
 
 ------------------------------------------------------------------------
 
-#### **Why This RD is Fuzzy**
+#### Why This RD is Fuzzy
 
 Unlike a [Sharp RD](#sec-sharp-regression-discontinuity-design), treatment is not fully determined at the cutoff:
 
@@ -1849,9 +1912,8 @@ Thus, the RD framework must be modified:
     -   If states sort differently near the threshold, state fixed effects ($\gamma_s$) may be needed.
     -   However, if sorting is non-random, the RD assumption fails.
 
-```{=html}
 <!-- -->
-```
+
 2.  Panel Data Implications:
     -   Fixed-effects models are not preferred in RD, as they are lower in the causal inference hierarchy.
     -   RD typically excludes pre-treatment periods, whereas fixed-effects require before-and-after comparisons.
@@ -1860,7 +1922,7 @@ Thus, the RD framework must be modified:
 
 ------------------------------------------------------------------------
 
-#### **Instrumental Variable Approach**
+#### Instrumental Variable Approach
 
 To correct for endogeneity, we use a two-stage least squares IV approach, where the running variable serves as an instrument for treatment intensity.
 
@@ -1897,7 +1959,7 @@ where:
 
 ------------------------------------------------------------------------
 
-#### **Empirical Challenges**
+#### Empirical Challenges
 
 1.  **Bunching at Round Numbers**:
     -   Figure 1 shows facilities clustering at every 5-bed increment.
@@ -1908,21 +1970,19 @@ where:
     -   Fuzzy RD requires that we do not drop non-compliers (as it would introduce selection bias).
     -   However, we can drop manipulators if there is clear evidence of behavioral bias (e.g., preference for round numbers).
 
-------------------------------------------------------------------------
+<!-- ### Replicating [@carpenter2009effect] -->
 
-### Replicating [@carpenter2009effect]
+<!-- A well-known RD study by [@carpenter2009effect] investigates the causal effect of legal drinking age on mortality rates. -->
 
-A well-known RD study by [@carpenter2009effect] investigates the causal effect of legal drinking age on mortality rates.
+<!-- Replication available at: [Philipp Leppert](https://rpubs.com/phle/r_tutorial_regression_discontinuity_design). -->
 
-Replication available at: [Philipp Leppert](https://rpubs.com/phle/r_tutorial_regression_discontinuity_design).
-
-Data available at: [OpenICPSR](https://www.openicpsr.org/openicpsr/project/113550/version/V1/view?flag=follow&pageSize=100&sortOrder=(?title)&sortAsc=true).
+<!-- Data available at: [OpenICPSR](https://www.openicpsr.org/openicpsr/project/113550/version/V1/view?flag=follow&pageSize=100&sortOrder=(?title)&sortAsc=true). -->
 
 ------------------------------------------------------------------------
 
 ### Additional RD Applications
 
-For a comprehensive empirical RD application, see [@thoemmes2017analysis], where:
+For a comprehensive empirical RD application, see @thoemmes2017analysis, where:
 
 -   Multiple RD packages (`rdd`, `rdrobust`, `rddtools`) are tested.
 

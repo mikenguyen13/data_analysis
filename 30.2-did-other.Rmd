@@ -2,14 +2,12 @@
 
 As noted in @imai2021use, the [TWFE](#sec-two-way-fixed-effects) regression model is widely used but fundamentally relies on strong modeling assumptions, particularly **linearity** and **additivity**. It does not constitute a fully nonparametric estimation method and may yield biased results under model misspecification.
 
-#### Limitations of TWFE
-
-Researchers often prefer TWFE due to its ability to control for both unit- and time-specific unobserved confounders:
+Researchers often prefer [TWFE](http://127.0.0.1:27683/#0) due to its ability to control for both unit- and time-specific unobserved confounders:
 
 -   $\alpha_i = h(\mathbf{U}_i)$ accounts for unit-level confounders.
 -   $\gamma_t = f(\mathbf{V}_t)$ adjusts for time-level confounders.
 
-The functional forms $h(\cdot)$ and $f(\cdot)$ are left unspecified, but **additivity and separability** are assumed. TWFE is based on the model:
+The functional forms $h(\cdot)$ and $f(\cdot)$ are left unspecified, but **additivity and separability** are assumed. [TWFE](#sec-two-way-fixed-effects) is based on the model:
 
 $$
 Y_{it} = \alpha_i + \gamma_t + \beta X_{it} + \epsilon_{it}
@@ -47,7 +45,7 @@ This setting generalizes [staggered adoption](#sec-staggered-difference-in-diffe
 
 -   Input data must be in `data.frame` format.
 
-Examples:
+Examples of settings that can utilize this method:
 
 -   @scheve2012democracy
 
@@ -63,14 +61,14 @@ The least squares estimate of $\beta$ in the TWFE model can be re-expressed as a
 -   The **same time period** (within-time match),
 -   Adjusted by a third set of observations in neither group.
 
-This leads to mismatches---treated observations compared to units with the same treatment status, which causes **attenuation bias**.
+This leads to mismatches: treated observations compared to units with the same treatment status, which causes **attenuation bias**.
 
 The adjustment factor $K$ corrects for this by weighting matches appropriately. However, even the **weighted TWFE estimator** contains some mismatches and relies on comparisons across units that differ in key characteristics.
 
-In the simple two-period, two-group DiD setting, the TWFE and DiD estimators coincide. However, in [multi-period DiD](#sec-multiple-periods-and-variation-in-treatment-timing) with **treatment reversals**, this equivalence breaks down [@imai2021use].
+In the simple two-period, two-group DiD setting, the [TWFE](#sec-two-way-fixed-effects) and DiD estimators coincide. However, in [multi-period DiD](#sec-multiple-periods-and-variation-in-treatment-timing) with **treatment reversals**, this equivalence breaks down [@imai2021use].
 
 -   The **unweighted TWFE** is not equivalent to multi-period DiD.
--   The [multi-period DiD](#sec-multiple-periods-and-variation-in-treatment-timing) is equivalent to a **weighted TWFE**, but some weights are **negative**---a problematic feature from a design-based perspective.
+-   The [multi-period DiD](#sec-multiple-periods-and-variation-in-treatment-timing) is equivalent to a **weighted TWFE**, but some weights are **negative**, which is a problematic feature from a design-based perspective.
 
 This means that justifying TWFE via DiD logic is incorrect unless the linearity assumption is satisfied.
 
@@ -143,7 +141,7 @@ library(PanelMatch)
 
 Visualizing the variation of treatment across space and time is essential to assess whether the treatment has sufficient heterogeneity to support credible causal identification.
 
-```{r}
+```{r treatment-distribution-heatmap, fig.cap="Treatment Distribution Across Units and Time", fig.alt="A heatmap showing treatment status over time for different countries. The x-axis represents years from 1960 to 2010, and the y-axis lists country codes. Blue indicates control periods, and red indicates treated periods."}
 DisplayTreatment(
   panel.data = PanelData(
     panel.data = dem,
@@ -164,13 +162,13 @@ DisplayTreatment(
 
 ##### Setting Parameters $F$ and $L$
 
-1.  Select $F$: the number of leads, or time periods after treatment, for which the effect is measured.
+1.  **Select** $F$: the number of leads, or time periods after treatment, for which the effect is measured.
 
 -   $F = 0$: contemporaneous (short-term) treatment effect.
 
 -   $F > 0$: long-term or cumulative effects.
 
-2.  Select $L$: the number of lags (prior treatment periods) used in matching to adjust for carryover effects.
+2.  **Select** $L$: the number of lags (prior treatment periods) used in matching to adjust for carryover effects.
 
 -   Increasing $L$ enhances credibility but reduces match quality and sample size.
 
@@ -188,7 +186,7 @@ $$
 
 -   This estimator accounts for carryover history (via $L$) and post-treatment dynamics (via $F$).
 
--   It is also robust to treatment reversals, i.e., treatment switching back to control.
+-   It is also robust to treatment reversals (i.e., treatment switching back to control).
 
 A related estimand, the **Average Reversal Treatment Effect (ART)**, measures the causal effect of switching from treatment to control.
 
@@ -233,8 +231,6 @@ Purpose
     -   Mahalanobis distance.
 
     -   Propensity score.
-
-<!-- -->
 
 -   Up to $J$ best matches per treated unit may be used.
 
@@ -340,6 +336,9 @@ PM.results.none <-
         forbid.treatment.reversal = FALSE,
         use.diagonal.variance.matrix = TRUE
     )
+```
+
+```{r treatment-distribution-plot, fig.cap = "Treatment by Country and Year", fig.alt = "A heatmap visualizing treatment assignment across countries and years. Each row represents a country identified by a numeric code, and each column corresponds to a year from 1980 to 2019. Blue cells indicate treated periods, red marks the initial year of treatment, and pink or light gray cells represent untreated years. This visualization highlights variation in treatment timing and duration across units."}
 
 # visualize the treated unit and matched controls
 DisplayTreatment(
@@ -359,7 +358,8 @@ DisplayTreatment(
 
 Control units and the treated unit have identical treatment histories over the lag window (1988-1991)
 
-```{r}
+```{r treatment-distribution-zoomed, fig.cap = "Focused Treatment Visualization", fig.alt = "Zoomed-in heatmap of treatment distribution for a small subset of countries across years. Each row corresponds to a country code, and each column represents a year. The plot highlights a narrow band of treatment events in red, indicating the treatment start year, followed by blue for continued treatment, with surrounding periods shown in light gray or pink as untreated. This allows inspection of temporal alignment and treatment patterns across countries with synchronized or clustered interventions."}
+
 DisplayTreatment(
     legend.position = "none",
     xlab = "year",
@@ -394,19 +394,12 @@ This set is more limited than the first one, but we can still see that we have e
     -   Options include:
 
         -   `mahalanobis`
-
         -   `ps.match`
-
         -   `CBPS.match`
-
         -   `ps.weight`
-
         -   `CBPS.weight`
-
         -   `ps.msm.weight`
-
         -   `CBPS.msm.weight`
-
         -   `none`
 
     -   Methods with "match" in the name and Mahalanobis will assign equal weights to similar control units.
@@ -510,7 +503,8 @@ msets.maha |> head()
 
 -   Plot adjustments can be made using **`graphics::plot`**.
 
-```{r}
+```{r weight-distribution-plot, fig.cap = "Weight Distribution", fig.alt = "A matrix heatmap displaying the weights assigned to control units used for estimating treatment effects. Each row corresponds to a treated observation, and each column to a donor unit. Color intensity indicates the weight magnitude, ranging from blue for low weight to red for high weight. Most weights are concentrated in blue shades, suggesting relatively low contribution from most control units, with a few sparse red cells representing key contributors. This visualization helps assess the distribution and sparsity of synthetic control weights across units."}
+
 plot(
   msets.none,
   panel.data = PanelData(
@@ -715,7 +709,9 @@ PE.results[["estimates"]]
 PE.results[["standard.error"]]
 
 summary(PE.results)
+```
 
+```{r treatment-effects-over-time, fig.cap = "Post-treatment Effects Over Time", fig.alt = "A line plot showing estimated treatment effects over five time periods after treatment, labeled t+0 through t+4. Each point represents the estimated effect of treatment at a given time, with vertical lines indicating confidence intervals. The effects appear positive and relatively stable over time, with growing uncertainty further from the treatment period. The horizontal dashed line at zero marks the baseline for comparison, emphasizing the statistical range and potential significance of the estimates."}
 plot(PE.results)
 ```
 
@@ -748,23 +744,29 @@ PM.results <-
         use.diagonal.variance.matrix = TRUE
     )
 PE.results <-
-    PanelEstimate(sets      = PM.results,
-                  panel.data = PanelData(panel.data = dem, 
-              unit.id = "wbcode2", 
-              time.id = "year", 
-              treatment = "dem", 
-              outcome = "y"),
-                  moderator = "moderator")
+    PanelEstimate(
+        sets      = PM.results,
+        panel.data = PanelData(
+            panel.data = dem,
+            unit.id = "wbcode2",
+            time.id = "year",
+            treatment = "dem",
+            outcome = "y"
+        ),
+        moderator = "moderator"
+    )
+```
 
+```{r fig-treatment-effect-time, fig.cap="Estimated Effects of Treatment Over Time", fig.alt="Error bar plot of treatment effects from t+0 to t+4 with increasing uncertainty.", out.width="100%", fig.align="center"}
 # Each element in the list corresponds to a level in the moderator
 plot(PE.results[[1]])
 
-plot(PE.results[[2]])
+# plot(PE.results[[2]])
 ```
 
 <!--#To write up for journal submission, you can follow the following report:  -->
 
-In this study, closely aligned with the research by @acemoglu2019democracy, two key effects of democracy on economic growth are estimated: the impact of democratization and that of authoritarian reversal. The treatment variable, $X_{it}$, is defined to be one if country $i$ is democratic in year $t$, and zero otherwise.
+In this study, aligned with the research by @acemoglu2019democracy, two key effects of democracy on economic growth are estimated: the impact of democratization and that of authoritarian reversal. The treatment variable, $X_{it}$, is defined to be one if country $i$ is democratic in year $t$, and zero otherwise.
 
 The Average Treatment Effect for the Treated (ATT) under democratization is formulated as follows:
 
@@ -831,7 +833,7 @@ To enhance the quality of matched sets, methods such as Mahalanobis distance mat
 ```
 > Lastly, we evaluate the balance of lagged outcome variables over several pre-treatment periods and that of time-varying covariates. This examination aids in assessing the validity of the parallel trend assumption integral to the DiD estimator justification.
 
-In Figure for balance scatter, we demonstrate the enhancement of covariate balance thank to the refinement of matched sets. Each scatter plot contrasts the absolute standardized mean difference, as detailed in Equation \@ref(eq: ), before (horizontal axis) and after (vertical axis) this refinement. Points below the 45-degree line indicate an improved standardized mean balance for certain time-varying covariates post-refinement. The majority of variables benefit from this refinement process. Notably, the propensity score weighting (bottom panel) shows the most significant improvement, whereas Mahalanobis matching (top panel) yields a more modest improvement.
+In the balance scatter figure, we demonstrate the enhancement of covariate balance thank to the refinement of matched sets. Each scatter plot contrasts the absolute standardized mean difference between before (horizontal axis) and after (vertical axis) this refinement. Points below the 45-degree line indicate an improved standardized mean balance for certain time-varying covariates post-refinement. The majority of variables benefit from this refinement process. Notably, the propensity score weighting (bottom panel) shows the most significant improvement, whereas Mahalanobis matching (top panel) yields a more modest improvement.
 
 ```{r, collapse=TRUE}
 library(PanelMatch)
@@ -1088,12 +1090,11 @@ grid.text(
 dev.off()
 ```
 
-```{r balancescatter, out.width='100%', fig.cap="Variable Balance After Matched Set Refinement", include=FALSE}
-library(knitr)
-include_graphics(file.path(getwd(), "images", "did_balance_scatter.png"))
+```{r fig-matching-comparison, fig.cap="Variable Balance After Matched Set Refinement", fig.alt="Six panel plot comparing covariate balance using different matching methods and time lags", out.width="100%", fig.align="center"}
+knitr::include_graphics(file.path(getwd(), "images", "did_balance_scatter.png"))
 ```
 
-Note: Scatter plots display the standardized mean difference of each covariate $j$ and lag year $l$ as defined in Equation \@ref(eq:aggbalance) before (x-axis) and after (y-axis) matched set refinement. Each plot includes varying numbers of possible matches for each matching method. Rows represent different matching/weighting methods, while columns indicate adjustments for various lag lengths.
+Note: Scatter plots display the standardized mean difference of each covariate $j$ and lag year $l$ before (x-axis) and after (y-axis) matched set refinement. Each plot includes varying numbers of possible matches for each matching method. Rows represent different matching/weighting methods, while columns indicate adjustments for various lag lengths.
 
 ```{r balancepretreat, collapse=TRUE, fig.cap="Variable Balance in Pre-Treatment Period", eval = FALSE}
 # Step 1: Define configurations
@@ -1237,14 +1238,13 @@ grid.text(
 dev.off()
 ```
 
-```{r, eval = FALSE}
-library(knitr)
-include_graphics(file.path(getwd(), "images", "p_covariate_balance.png"))
+```{r fig-balance-by-method, fig.cap="Covariate Balance Over Time by Refinement Method and Estimand", fig.alt="Line plots showing covariate balance from time minus 4 to minus 1 for different methods and estimands", out.width="100%", fig.align="center"}
+knitr::include_graphics(file.path(getwd(), "images", "p_covariate_balance.png"))
 ```
 
-Note: Each graph displays the standardized mean difference, as outlined in Equation \@ref(eq:aggbalance), plotted on the vertical axis across a pre-treatment duration of four years represented on the horizontal axis. The leftmost column illustrates the balance prior to refinement, while the subsequent three columns depict the covariate balance post the application of distinct refinement techniques. Each individual line signifies the balance of a specific variable during the pre-treatment phase.The red line is tradewb and blue line is the lagged outcome variable.
+Note: Each graph displays the standardized mean difference plotted on the vertical axis across a pre-treatment duration of four years represented on the horizontal axis. The leftmost column illustrates the balance prior to refinement, while the subsequent three columns depict the covariate balance post the application of distinct refinement techniques. Each individual line signifies the balance of a specific variable during the pre-treatment phase. The red line is tradewb and blue line is the lagged outcome variable.
 
-In Figure \@ref(fig:balancepretreat), we observe a marked improvement in covariate balance due to the implemented matching procedures during the pre-treatment period. Our analysis prioritizes methods that adjust for time-varying covariates over a span of four years preceding the treatment initiation. The two rows delineate the standardized mean balance for both treatment modalities, with individual lines representing the balance for each covariate.
+In Figure \@ref(fig:fig-balance-by-method), we observe a marked improvement in covariate balance due to the implemented matching procedures during the pre-treatment period. Our analysis prioritizes methods that adjust for time-varying covariates over a span of four years preceding the treatment initiation. The two rows delineate the standardized mean balance for both treatment modalities, with individual lines representing the balance for each covariate.
 
 Across all scenarios, the refinement attributed to matched sets significantly enhances balance. Notably, using propensity score weighting considerably mitigates imbalances in confounders. While some degree of imbalance remains evident in the Mahalanobis distance and propensity score matching techniques, the standardized mean difference for the lagged outcome remains stable throughout the pre-treatment phase. This consistency lends credence to the validity of the proposed DiD estimator.
 
@@ -1484,31 +1484,97 @@ grid.text(
 dev.off()
 ```
 
-```{r, eval = FALSE}
-library(knitr)
-include_graphics(file.path(getwd(), "images", "p_did_est_in_n_out.png"))
+```{r, eval = FALSE, include=FALSE}
+knitr::include_graphics(file.path(getwd(), "images", "p_did_est_in_n_out.png"))
 ```
 
 ------------------------------------------------------------------------
 
-### Counterfactual Estimators
+### Counterfactual Estimators {#sec-counterfactual-estimators}
 
--   Also known as **imputation approach** [@liu2024practical]
--   This class of estimator consider observation treatment as missing data. Models are built using data from the control units to impute conterfactuals for the treated observations.
--   It's called counterfactual estimators because they predict outcomes as if the treated observations had not received the treatment.
--   Advantages:
-    -   Avoids negative weights and biases by not using treated observations for modeling and applying uniform weights.
-    -   Supports various models, including those that may relax strict exogeneity assumptions.
--   Methods including
-    -   Fixed-effects conterfactual estimator (FEct) (DiD is a special case):
-        -   Based on the [Two-way Fixed-effects], where assumes linear additive functional form of unobservables based on unit and time FEs. But FEct fixes the improper weighting of TWFE by comparing within each matched pair (where each pair is the treated observation and its predicted counterfactual that is the weighted sum of all untreated observations).
-    -   Interactive Fixed Effects conterfactual estimator (IFEct) [@gobillon2016regional, @xu2017generalized]:
-        -   When we suspect unobserved time-varying confounder, FEct fails. Instead, IFEct uses the factor-augmented models to relax the strict exogeneity assumption where the effects of unobservables can be decomposed to unit FE + time FE + unit x time FE.
-        -   Generalized Synthetic Controls are a subset of IFEct when treatments don't revert.
-    -   [Matrix Completion Estimator](#sec-matrix-completion-estimator) (MC) [@athey2021matrix]:
-        -   Generalization of factor-augmented models. Different from IFEct which uses hard impute, MC uses soft impute to regularize the singular values when decomposing the residual matrix.
-        -   Only when latent factors (of unobservables) are strong and sparse, IFEct outperforms MC.
-    -   [Synthetic Control] (case studies)
+Counterfactual (or **imputation**) estimators treat the *treated* outcome as missing and **impute** it using information from the control units [@liu2024practical]. Formally, let
+
+$$Y_{it}(1) \text{ and } Y_{it}(0)$$
+
+denote the potential outcomes for unit $i$ at time $t$ *with* and *without* treatment. For treated units we only observe $Y_{it}(1)$, so the goal is to impute the unobserved $Y_{it}(0)$ (i.e., the *counterfactual*).
+
+Why use counterfactual estimators?
+
+-   **Avoid negative weights**: unlike some TWFE specifications that generate undesirable extrapolation weights, imputation uses only control data when building the prediction model and (typically) applies equal weights in post-treatment periods.
+
+-   **Model flexibility**: analysts may combine rich time-series structure, non-linear regressions, or machine-learning learners while relaxing the *strict exogeneity* assumption that plagues [TWFE](#sec-two-way-fixed-effects).
+
+-   **Transparent diagnostics**: pre-treatment prediction error (e.g. $\text{RMSE}_{\text{pre}}$) offers a concrete check of model fit, something ordinary DiD lacks.
+
++----------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+-------------------------------------------------------+
+| Method                                                         | Core idea                                                                                                                               | Typical assumptions                                                                 | R implementation                                      |
++================================================================+=========================================================================================================================================+=====================================================================================+=======================================================+
+| **Fixed-effects counterfactual estimator (FEct)**              | Predict $Y_{it}(0)$ with two-way additive FEs; compare each treated $\hat{Y}_{it}(0)$ with $Y_{it}(1)$                                  | Linearity; unit and time additive unobservables; no time-varying confounders        | `fect::fect()` or `gsynth::gsynth(type = "fe")`       |
++----------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+-------------------------------------------------------+
+| **Interactive Fixed Effects counterfactual estimator (IFEct)** | Augment FEct with low-rank latent factors: $Y_{it}(0)=\alpha_i+\gamma_t+\lambda_i^\top f_t+\varepsilon_{it}$                            | Low-rank factor structure; factors capture all time-varying confounders             | `gsynth` (default), `fixest::feols()` with `sunab()`  |
+|                                                                |                                                                                                                                         |                                                                                     |                                                       |
+| [@gobillon2016regional, @xu2017generalized]                    |                                                                                                                                         |                                                                                     |                                                       |
++----------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+-------------------------------------------------------+
+| [Matrix Completion](#sec-matrix-completion-estimator) **(MC)** | Solve a *soft-impute* nuclear-norm regularization $$\min_{\widehat Y(0)} \|M\odot(Y-\widehat Y(0))\|_F^2 + \lambda\|\widehat Y(0)\|_*$$ | Same as IFE but allows dense weak factors; tuning via cross-validation              | `softImpute`, `synthdid::mc()`, `gsynth(type = "mc")` |
++----------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+-------------------------------------------------------+
+| **Synthetic Control (SC)**                                     | Choose non-negative weights that make the *weighted* control path mimic a treated path pre-treatment                                    | No interference; convex hull captures counterfactual; no return to pre-treat status | `Synth`, `synthdid`, `tidysynth`, `augsynth`          |
++----------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------------------------------+-------------------------------------------------------+
+
+: Main Families of Counterfactual Estimators
+
+------------------------------------------------------------------------
+
+1.  **Fixed-Effects Counterfactual Estimator (FEct)**
+
+DiD is a special case where each treated observation is compared to the *average* control outcome. This estimator assumes additive functional form of unobservables based on unit and time FEs. FEct predicts
+
+$$
+\widehat{Y}_{it}(0)
+  = \hat{\alpha}_i + \hat{\gamma}_t
+$$
+
+using **only** control units when fitting $(\hat{\alpha}_i,\hat{\gamma}_t)$. The ATT is then
+
+$$
+\widehat{\tau}_{FEct}
+  = \frac{1}{| \mathcal{T} |}\sum_{(i,t)\in\mathcal T}
+    \bigl\{Y_{it}(1)-\widehat{Y}_{it}(0)\bigr\},
+$$
+
+where $\mathcal T$ indexes treated unit--time pairs. FEct fixes the improper weighting of [TWFE](#sec-two-way-fixed-effects) by comparing within each matched pair (where each pair is the treated observation and its predicted counterfactual that is the weighted sum of all untreated observations).
+
+------------------------------------------------------------------------
+
+2.  **Interactive Fixed Effects (IFEct)**
+
+IFEct generalizes FEct by introducing $R$ latent factors:
+
+$$
+Y_{it}(0)
+  = \alpha_i + \gamma_t + \sum_{r=1}^R \lambda_{ir} f_{tr} + \varepsilon_{it},
+$$
+
+estimated via iterative principal components [@gobillon2016regional, @xu2017generalized]. When we suspect unobserved time-varying confounder, FEct fails. Instead, IFEct uses the factor-augmented models to relax the strict exogeneity assumption where the effects of unobservables can be decomposed to unit FE + time FE + unit x time FE.
+
+Setting $R=0$ recovers FEct. **Generalized Synthetic Control** (GSC) [@xu2017generalized] is an IFEct implementation with ridge penalization when $R>0$ (This estimator assumes treatments dont' revert).
+
+------------------------------------------------------------------------
+
+3.  [**Matrix Completion**](#sec-matrix-completion-estimator)
+
+This is a generalization of factor-augmented models. Rather than fixing $R$, MC solves a convex optimization where the nuclear-norm penalty $|\widehat Y(0)|_*$ shrinks *all* singular values. Different from IFEct which uses hard impute, MC uses soft impute to regularize the singular values when decomposing the residual matrix.
+
+IFEct can outperform MC when the latent factors (of unobservables) is indeed low-rank/sparse and strong; MC prevails when unobservables are *dense and weak.*
+
+------------------------------------------------------------------------
+
+4.  **[Synthetic Control]**
+
+SC is best viewed as a *case-study* tool (single or few treated units, single treatment onset) unlike FEct/IFEct/MC which handle staggered or many-treated designs naturally.
+
+> **Take-away:** Start with FEct; inspect fit. If time-varying bias remains, graduate to IFEct or MC. Reserve SC for small-$N$ case studies with clean interventions.
+
+------------------------------------------------------------------------
 
 **Identifying Assumptions**:
 
@@ -1536,7 +1602,7 @@ Notes:
 
 Other imputation estimators include
 
--   [@gardner2022two; @borusyak2021revisiting]
+-   [Two-stage DiD Estimator] [@gardner2022two; @borusyak2021revisiting]
 
 -   [@brown2023simple]
 
@@ -1555,7 +1621,7 @@ model.fect <-
         index = c("wbcode2", "year"),
         se = TRUE,
         parallel = TRUE,
-        seed = 1234,
+        seed = 1,
         # twfe
         force = "two-way"
     )
@@ -1713,12 +1779,15 @@ $$
 
 **Matrix Shape**
 
-|                        |                       |                                          |
-|------------------------|-----------------------|------------------------------------------|
++------------------------+-----------------------+------------------------------------------+
 | Matrix Shape           | Pattern               | Literature / Method                      |
++------------------------+-----------------------+------------------------------------------+
 | Thin ($N \gg T$)       | Single-treated-period | Horizontal regression (unconfoundedness) |
++------------------------+-----------------------+------------------------------------------+
 | Fat ($T \gg N$)        | Single-treated-unit   | Vertical regression (synthetic control)  |
++------------------------+-----------------------+------------------------------------------+
 | Square ($N \approx T$) | Varying patterns      | TWFE / Matrix Completion                 |
++------------------------+-----------------------+------------------------------------------+
 
 **Special Patterns of Missingness**
 
@@ -1771,6 +1840,76 @@ There are several options to regularize $L$:
 +-----------------+------------------------------------+-------------------------------+-----------------------------------------------+
 | Rank Constraint | $\text{rank}(\mathbf{L}) \le R$    | Direct low-rank control       | No (NP-hard)                                  |
 +-----------------+------------------------------------+-------------------------------+-----------------------------------------------+
+
+------------------------------------------------------------------------
+
+### Two-stage DiD Estimator
+
+-   Estimate the time and unit fixed effects separately
+
+-   Known as the imputation method [@borusyak2024revisiting] or two-stage DiD [@gardner2022two]
+
+```{r, warning=FALSE, message=FALSE}
+# remotes::install_github("kylebutts/did2s")
+library(did2s)
+library(ggplot2)
+library(fixest)
+library(tidyverse)
+data(base_stagg)
+
+
+est <- did2s(
+    data = base_stagg |> mutate(treat = if_else(time_to_treatment >= 0, 1, 0)),
+    yname = "y",
+    first_stage = ~ x1 | id + year,
+    second_stage = ~ i(time_to_treatment, ref = c(-1,-1000)),
+    treatment = "treat" ,
+    cluster_var = "id"
+)
+
+fixest::esttable(est)
+
+fixest::iplot(
+    est,
+    main = "Event study",
+    xlab = "Time to treatment",
+    ref.line = -1
+)
+
+coefplot(est)
+
+```
+
+```{r}
+mult_est <- did2s::event_study(
+    data = fixest::base_stagg |>
+        dplyr::mutate(year_treated = dplyr::if_else(year_treated == 10000, 0, year_treated)),
+    gname = "year_treated",
+    idname = "id",
+    tname = "year",
+    yname = "y",
+    estimator = "all"
+)
+did2s::plot_event_study(mult_est)
+```
+
+@borusyak2024revisiting `didimputation`
+
+This version is currently not working
+
+```{r, eval = FALSE}
+library(didimputation)
+library(fixest)
+data("base_stagg")
+
+did_imputation(
+    data = base_stagg,
+    yname = "y",
+    gname = "year_treated",
+    tname = "year",
+    idname = "id"
+)
+```
 
 ------------------------------------------------------------------------
 
@@ -2024,76 +2163,6 @@ This feature is particularly valuable in [quasi-experimental designs](#sec-quasi
 
 ------------------------------------------------------------------------
 
-### @gardner2022two and @borusyak2024revisiting
-
--   Estimate the time and unit fixed effects separately
-
--   Known as the imputation method [@borusyak2024revisiting] or two-stage DiD [@gardner2022two]
-
-```{r, warning=FALSE, message=FALSE}
-# remotes::install_github("kylebutts/did2s")
-library(did2s)
-library(ggplot2)
-library(fixest)
-library(tidyverse)
-data(base_stagg)
-
-
-est <- did2s(
-    data = base_stagg |> mutate(treat = if_else(time_to_treatment >= 0, 1, 0)),
-    yname = "y",
-    first_stage = ~ x1 | id + year,
-    second_stage = ~ i(time_to_treatment, ref = c(-1,-1000)),
-    treatment = "treat" ,
-    cluster_var = "id"
-)
-
-fixest::esttable(est)
-
-fixest::iplot(
-    est,
-    main = "Event study",
-    xlab = "Time to treatment",
-    ref.line = -1
-)
-
-coefplot(est)
-
-```
-
-```{r}
-mult_est <- did2s::event_study(
-    data = fixest::base_stagg |>
-        dplyr::mutate(year_treated = dplyr::if_else(year_treated == 10000, 0, year_treated)),
-    gname = "year_treated",
-    idname = "id",
-    tname = "year",
-    yname = "y",
-    estimator = "all"
-)
-did2s::plot_event_study(mult_est)
-```
-
-@borusyak2024revisiting `didimputation`
-
-This version is currently not working
-
-```{r, eval = FALSE}
-library(didimputation)
-library(fixest)
-data("base_stagg")
-
-did_imputation(
-    data = base_stagg,
-    yname = "y",
-    gname = "year_treated",
-    tname = "year",
-    idname = "id"
-)
-```
-
-------------------------------------------------------------------------
-
 ### Dynamic Treatment Effect Estimation with Interactive Fixed Effects and Short Panels
 
 <!-- https://www.kylebutts.com/files/JMP_slides.pdf -->
@@ -2104,7 +2173,7 @@ did_imputation(
 
 ### Switching Difference-in-Differences Estimator [@de2020two] {#sec-switching-difference-in-differences-estimator-de2020two}
 
-[TWFE](#sec-two-way-fixed-effects) hinges on restrictive assumptions --- notably, the homogeneity of treatment effects across time and groups. When this assumption is violated, TWFE can yield misleading results, including estimates with signs opposite to all underlying effects.
+[TWFE](#sec-two-way-fixed-effects) hinges on restrictive assumptions (e.g., the homogeneity of treatment effects across time and groups). When this assumption is violated, TWFE can yield misleading results, including estimates with signs opposite to all underlying effects.
 
 We consider a standard panel data setup with $G$ groups and $T$ time periods. Each observation belongs to a group-period cell $(g, t)$, and treatment $D_{g,t} \in \{0,1\}$ is assigned at the group-time level.
 
@@ -2290,7 +2359,7 @@ Historically, two main approaches have emerged for DID estimation in the presenc
 1.  **Outcome Regression (OR)** [@heckman1997matching]. Model the outcome evolution for the comparison group (and possibly for the treated group), and then plug these fitted outcome equations into the DID formula.
 2.  **Inverse Probability Weighting (IPW)** [@abadie2005semiparametric]. Model the probability of treatment conditional on covariates (the "propensity score") and use inverse-probability reweighting to reconstruct appropriate counterfactuals for the treated group.
 
-A key insight in semiparametric causal inference is that one can *combine* these two approaches---modeling the outcome regression and the propensity score in tandem---to form an estimator that remains consistent if *either* the outcome-regression equations are correctly specified *or* the propensity-score equation is correctly specified. Such an estimator is called **doubly robust** [@sant2020doubly].
+A key insight in semiparametric causal inference is that one can *combine* these two approaches (modeling the outcome regression and the propensity score in tandem) to form an estimator that remains consistent if *either* the outcome-regression equations are correctly specified *or* the propensity-score equation is correctly specified. Such an estimator is called **doubly robust** [@sant2020doubly].
 
 This section covers both cases of (i) panel data (where we observe each unit in both pre- and post-treatment periods) and (ii) repeated cross-section data (where, in each period, we observe a new random sample of units).
 
@@ -2306,10 +2375,10 @@ Under suitable conditions, the proposed doubly robust estimators not only exhibi
     -   $Y_{it}$ is the observed outcome at time $t$.
 
 -   **Potential outcomes.** We adopt the potential outcomes framework. Let $$
-       Y_{it}(1) \;=\; \text{potential outcome of unit }i \text{ at time } t \text{ if treated,}
+       Y_{it}(1) = \text{potential outcome of unit }i \text{ at time } t \text{ if treated,}
     $$ $$
-       Y_{it}(0) \;=\; \text{potential outcome of unit }i \text{ at time } t \text{ if not treated.}
-    $$ Then the observed outcome satisfies $Y_{it} = D_i \, Y_{it}(1) + (1-D_i)\, Y_{it}(0)$.
+       Y_{it}(0) = \text{potential outcome of unit }i \text{ at time } t \text{ if not treated.}
+    $$ Then the observed outcome satisfies $Y_{it} = D_i  Y_{it}(1) + (1-D_i) Y_{it}(0)$.
 
 -   **Covariates.** A vector of observed pre-treatment covariates is denoted $X_i$. Throughout, we assume the first component of $X_i$ is a constant (intercept).
 
@@ -2321,26 +2390,24 @@ Under suitable conditions, the proposed doubly robust estimators not only exhibi
 Let $n_1$ and $n_0$ be the respective sample sizes for the post- and pre-treatment periods, so $n_1 + n_0 = n$. Often we let $\lambda = P(T=1)\approx n_1/n.$
 
 The focus is on the ATT: $$
-    \tau \;=\; \mathbb{E}\bigl[Y_{i1}(1) - Y_{i1}(0)\,\big|\; D_i=1\bigr].
+    \tau = \mathbb{E}\bigl[Y_{i1}(1) - Y_{i1}(0)\big| D_i=1\bigr].
 $$ Because we only observe $Y_{i1}(1)$ for the treated group, the central challenge is to recover $\mathbb{E}[Y_{i1}(0)\mid D_i=1]$. Under standard DID assumptions, we identify $\tau$ by comparing the treated group's evolution in outcomes to the comparison group's evolution in outcomes.
 
 We require two key assumptions:
 
 1.  **Conditional parallel trends**\
     For $t=0,1$, let $$
-        \mathbb{E}[\,Y_{1}(0) - Y_{0}(0)\,\mid D=1,\, X] 
-        \;=\;
-        \mathbb{E}[\,Y_{1}(0) - Y_{0}(0)\,\mid D=0,\, X].
-    $$ This means that---conditional on $X$---in the *absence* of treatment, the treated and comparison groups would have had *parallel outcome evolutions*.
+        \mathbb{E}[Y_{1}(0) - Y_{0}(0)\mid D=1, X] 
+        =
+        \mathbb{E}[Y_{1}(0) - Y_{0}(0)\mid D=0, X].
+    $$ This means that, conditional on $X$, in the *absence* of treatment, the treated and comparison groups would have had *parallel outcome evolutions*.
 
 2.  **Overlap**\
     There exists $\varepsilon>0$ such that $$
-      P(D=1)\;>\;\varepsilon, 
-      \quad\text{and}\quad
-      P(D=1\,\vert\,X)\;\le\;1-\varepsilon
+      \varepsilon \le P(D=1\vert X)\le 1-\varepsilon
     $$ That is, we require that a nontrivial fraction of the population is treated, and for each $X$, there is a nontrivial probability of being in the untreated group ($D=0$).
 
-Under these assumptions, we can identify $\mathbb{E}[\,Y_{1}(0)\mid D=1]$ in a semiparametric fashion, either by modeling the outcome regressions (the OR approach) or by modeling the propensity score (the IPW approach).
+Under these assumptions, we can identify $\mathbb{E}[Y_{1}(0)\mid D=1]$ in a semiparametric fashion, either by modeling the outcome regressions (the OR approach) or by modeling the propensity score (the IPW approach).
 
 ------------------------------------------------------------------------
 
@@ -2350,55 +2417,62 @@ We briefly outline the classical DID estimators that rely solely on either outco
 
 ##### Outcome-regression (OR) approach
 
-Define $$
-   m_{d,t}(x) \;=\; \mathbb{E}[\,Y_t \,\mid\,D=d,\; X=x\,].
-$$ Under the conditional parallel trends assumption, $$
-  \mathbb{E}[\,Y_{1}(0)\mid D=1 \,]
-  \;=\;
-   \mathbb{E}[\,Y_{0}(0)\mid D=1\,]
-   \;+\; 
-   \mathbb{E}[\,m_{0,1}(X) - m_{0,0}(X)\,\big\vert\,D=1\,].
-$$ Hence an OR-based DID estimator (for panel or repeated cross-section) typically looks like $$
-  \hat{\tau}^{\mathrm{reg}}
-  \;=\;
-  \Bigl(\overline{Y}_{1,1}\Bigr)
-  \;-\;
-  \Bigl(\,\overline{Y}_{1,0}
-        \;+\;
-        \frac{1}{n_{\mathrm{treat}}}
-        \sum_{i:D_i=1}
-         \bigl[\,
-             \hat{m}_{0,1}(X_i) \;-\; \hat{m}_{0,0}(X_i)
-         \bigr]
-   \Bigr),
+Define 
+
+$$
+m_{d,t}(x) = \mathbb{E}[Y_t \mid D=d, X=x].
+$$ 
+
+Under the conditional parallel trends assumption, 
+
+$$
+\mathbb{E}[Y_{1}(0)\mid D=1 ] = \mathbb{E}[Y_{0}(0)\mid D=1] + \mathbb{E}[m_{0,1}(X) - m_{0,0}(X)\big\vert D=1].
+$$ 
+
+Hence an OR-based DID estimator (for panel or repeated cross-section) typically looks like 
+
+$$
+\hat{\tau}^{\mathrm{reg}} = \Bigl(\overline{Y}_{1,1}\Bigr) - \Bigl(\overline{Y}_{1,0} + \frac{1}{n_{\mathrm{treat}}} \sum_{i:D_i=1} \bigl[ \hat{m}_{0,1}(X_i) - \hat{m}_{0,0}(X_i) \bigr] \Bigr),
 $$
 
-where $\overline{Y}_{d,t}$ is the sample mean of $Y_t$ among units with $D=d$, and $\hat{m}_{0,t}$ is some fitted model (e.g., linear or semiparametric) for $\mathbb{E}[\,Y_t \mid D=0,\,X\,]$.
+where $\overline{Y}_{d,t}$ is the sample mean of $Y_t$ among units with $D=d$, and $\hat{m}_{0,t}$ is some fitted model (e.g., linear or semiparametric) for $\mathbb{E}[Y_t \mid D=0,X]$.
 
 This OR estimator is consistent if (and only if) we have *correctly specified* the two outcome-regression functions $m_{0,1}(x)$ and $m_{0,0}(x)$. If these regressions are misspecified, the estimator will generally be biased.
 
 ##### IPW approach
 
-An alternative is to model the propensity score $$
-   p(x)\;=\; P(D=1\mid X=x),
-$$ and use a Horvitz--Thompson-type reweighting [@horvitz1952generalization] to reconstruct what "would have happened" to the treated group under no treatment. In the panel-data case, @abadie2005semiparametric show that the ATT can be identified via $$
+An alternative is to model the propensity score 
+
+$$
+p(x)= P(D=1 \mid X=x),
+$$ 
+
+and use a Horvitz--Thompson-type reweighting [@horvitz1952generalization] to reconstruct what "would have happened" to the treated group under no treatment. In the panel-data case, @abadie2005semiparametric show that the ATT can be identified via 
+
+$$
   \tau 
-  \;=\;
+  =
   \frac{1}{\mathbb{E}[D]}
-  \,\mathbb{E}\Bigl[\,
+  \mathbb{E}\Bigl[
     \frac{D - p(X)}{1 - p(X)}
     \Bigl(Y_1 - Y_0\Bigr)
   \Bigr].
-$$ Hence an IPW estimator for panel data is $$
+$$ 
+
+Hence an IPW estimator for panel data is 
+
+$$
   \hat{\tau}^{\mathrm{ipw,p}}
-  \;=\;
+  =
   \frac{1}{\overline{D}}
   \sum_{i=1}^n
     \Bigl[
        \frac{D_i - \hat{p}(X_i)}{1-\hat{p}(X_i)}
     \Bigr]
-    \,\frac{1}{n}\bigl(Y_{i1} - Y_{i0}\bigr),
-$$ where $\hat{p}(\cdot)$ is a fitted propensity score model. Similar expressions exist for repeated cross-sections, with small modifications to handle the fact that we observe $Y_1$ only if $T=1$, etc.
+    \frac{1}{n}\bigl(Y_{i1} - Y_{i0}\bigr),
+$$ 
+
+where $\hat{p}(\cdot)$ is a fitted propensity score model. Similar expressions exist for repeated cross-sections, with small modifications to handle the fact that we observe $Y_1$ only if $T=1$, etc.
 
 This IPW estimator is consistent if (and only if) the propensity score is correctly specified, i.e., $\hat{p}(x)\approx p(x)$. If the propensity-score model is incorrect, the estimator may be severely biased.
 
@@ -2417,20 +2491,20 @@ We define two "DR moments" for each data structure.
 ##### DR estimand for panel data
 
 When panel data are available, define $$
-   \Delta Y \;=\; Y_1 \,-\, Y_0,
+   \Delta Y = Y_1 - Y_0,
    \quad
-   \mu_{0,\Delta}(X)\;=\;\mu_{0,1}(X)\;-\;\mu_{0,0}(X).
+   \mu_{0,\Delta}(X)=\mu_{0,1}(X)-\mu_{0,0}(X).
 $$ Then a DR moment for $\tau$ is: $$
    \tau^{\mathrm{dr,p}} 
-   \;=\;
+   =
    \mathbb{E}\Bigl[
-    \Bigl(\,w_{1}^{\mathrm{p}}(D)\,-\,w_{0}^{\mathrm{p}}(D,X;\,\pi)\Bigr)\,
-    \Bigl(\,\Delta Y \;-\;\mu_{0,\Delta}(X)\Bigr)
+    \Bigl(w_{1}^{\mathrm{p}}(D)-w_{0}^{\mathrm{p}}(D,X;\pi)\Bigr)
+    \Bigl(\Delta Y -\mu_{0,\Delta}(X)\Bigr)
    \Bigr],
 $$ where $$
-   w_{1}^{\mathrm{p}}(D)\;=\;\frac{D}{\mathbb{E}[D]},
+   w_{1}^{\mathrm{p}}(D)=\frac{D}{\mathbb{E}[D]},
    \quad\quad
-   w_{0}^{\mathrm{p}}(D,X;\,\pi)\;=\;\frac{\pi(X)\,(1-D)}{(1-\pi(X))\,\mathbb{E}\bigl[\tfrac{\pi(X)\,(1-D)}{1-\pi(X)}\bigr]}.
+   w_{0}^{\mathrm{p}}(D,X;\pi)=\frac{\pi(X)(1-D)}{(1-\pi(X))\mathbb{E}\bigl[\tfrac{\pi(X)(1-D)}{1-\pi(X)}\bigr]}.
 $$ It can be shown that $\tau^{\mathrm{dr,p}} = \tau$ provided *either* $\pi(x)=p(x)$ almost surely (a.s.) *or* $\mu_{0,\Delta}(x)=m_{0,\Delta}(x)$ a.s. (the latter meaning that at least the regression for the comparison group is correct).
 
 ##### DR estimands for repeated cross-sections
@@ -2439,30 +2513,30 @@ When we only have repeated cross-sections, the DR construction must account for 
 
 1.  $$
       \tau^{\mathrm{dr,rc}}_{1}
-      \;=\;
+      =
       \mathbb{E}\Bigl[
-       \bigl(\,w_{1}^{\mathrm{rc}}(D,T)\,-\,w_{0}^{\mathrm{rc}}(D,T,X;\,\pi)\bigr)\,
-       \bigl(Y \;-\;\mu_{0,Y}(T,X)\bigr)
+       \bigl(w_{1}^{\mathrm{rc}}(D,T)-w_{0}^{\mathrm{rc}}(D,T,X;\pi)\bigr)
+       \bigl(Y -\mu_{0,Y}(T,X)\bigr)
       \Bigr],
     $$ where $$
       w_{1}^{\mathrm{rc}}(D,T)
-      \;=\;
-      \frac{D\,1\{T=1\}}
-           {\mathbb{E}[D\,1\{T=1\}]}
-      \;-\;
-      \frac{D\,1\{T=0\}}
-           {\mathbb{E}[D\,1\{T=0\}]},
+      =
+      \frac{D1\{T=1\}}
+           {\mathbb{E}[D1\{T=1\}]}
+      -
+      \frac{D1\{T=0\}}
+           {\mathbb{E}[D1\{T=0\}]},
     $$ and $$
-      w_{0}^{\mathrm{rc}}(D,T,X;\,\pi)
-      \;=\;
-      \frac{\pi(X)\,(1-D)\,1\{T=1\}}{(1-\pi(X))\,\mathbb{E}\bigl[\tfrac{\pi(X)\,(1-D)\,1\{T=1\}}{(1-\pi(X))}\bigr]}
-      \;-\;
-      \frac{\pi(X)\,(1-D)\,1\{T=0\}}{(1-\pi(X))\,\mathbb{E}\bigl[\tfrac{\pi(X)\,(1-D)\,1\{T=0\}}{(1-\pi(X))}\bigr]},
+      w_{0}^{\mathrm{rc}}(D,T,X;\pi)
+      =
+      \frac{\pi(X)(1-D)1\{T=1\}}{(1-\pi(X))\mathbb{E}\bigl[\tfrac{\pi(X)(1-D)1\{T=1\}}{(1-\pi(X))}\bigr]}
+      -
+      \frac{\pi(X)(1-D)1\{T=0\}}{(1-\pi(X))\mathbb{E}\bigl[\tfrac{\pi(X)(1-D)1\{T=0\}}{(1-\pi(X))}\bigr]},
     $$ and $\mu_{0,Y}(T,X)=T\cdot\mu_{0,1}(X)+(1-T)\cdot\mu_{0,0}(X)$.
 
 2.  $$
-    \tau^{\mathrm{dr,rc}}_{2} \;=\; \tau^{\mathrm{dr,rc}}_{1}\;+\;\Bigl[    \mathbb{E}\bigl(\mu_{1,1}(X) - \mu_{0,1}(X)\,\big|\,D=1\bigr)    \;-\;    \mathbb{E}\bigl(\mu_{1,1}(X) - \mu_{0,1}(X)\,\big|\,D=1,\,T=1\bigr)    \Bigr]\\\;-\;\Bigl[    \mathbb{E}\bigl(\mu_{1,0}(X) - \mu_{0,0}(X)\,\big|\,D=1\bigr)    \;-\;    \mathbb{E}\bigl(\mu_{1,0}(X) - \mu_{0,0}(X)\,\big|\,D=1,\,T=0\bigr)    \Bigr]
-    $$ where $\mu_{d,t}(x)$ is a model for $m_{d,t}(x)=\mathbb{E}[Y \mid D=d,\,T=t,\,X=x]$.
+    \tau^{\mathrm{dr,rc}}_{2} = \tau^{\mathrm{dr,rc}}_{1}+\Bigl[    \mathbb{E}\bigl(\mu_{1,1}(X) - \mu_{0,1}(X)\big|D=1\bigr)    -    \mathbb{E}\bigl(\mu_{1,1}(X) - \mu_{0,1}(X)\big|D=1,T=1\bigr)    \Bigr]\\-\Bigl[    \mathbb{E}\bigl(\mu_{1,0}(X) - \mu_{0,0}(X)\big|D=1\bigr)    -    \mathbb{E}\bigl(\mu_{1,0}(X) - \mu_{0,0}(X)\big|D=1,T=0\bigr)    \Bigr]
+    $$ where $\mu_{d,t}(x)$ is a model for $m_{d,t}(x)=\mathbb{E}[Y \mid D=d,T=t,X=x]$.
 
 One can show $\tau^{\mathrm{dr,rc}}_1 = \tau^{\mathrm{dr,rc}}_2 = \tau$ as long as the stationarity of $(D,X)$ across time holds and *either* the propensity score model $\pi(x)=p(x)$ is correct *or* the comparison-group outcome regressions are correct [@sant2020doubly]. Notably, $\tau^{\mathrm{dr,rc}}_2$ also includes explicit modeling of the treated group's outcomes. However, in terms of identification alone, $\tau^{\mathrm{dr,rc}}_1$ and $\tau^{\mathrm{dr,rc}}_2$ share the same double-robust property.
 
@@ -2479,13 +2553,13 @@ We highlight key results:
 Under the above mentioned assumptions (i.i.d. data generating process, overlap, and conditional parallel trends) and *without* imposing further parametric constraints on $(m_{d,t},p)$, one can derive that the **EIF** for $\tau$ in the panel-data setting is
 
 $$
-\eta^{e,\mathrm{p}}(Y_1, Y_0, D, X) \;=\;\frac{D}{\mathbb{E}[D]}\Bigl[m_{1,\Delta}(X) - m_{0,\Delta}(X) - \tau\Bigr]\\\;+\;\frac{D}{\mathbb{E}[D]}\Bigl[\Delta Y - m_{1,\Delta}(X)\Bigr]\\\;-\;\frac{\pi(X)\,(1-D)}{(1 - \pi(X))\,\mathbb{E}\bigl[\tfrac{\pi(X)\,(1-D)}{1 - \pi(X)}\bigr]}\Bigl[\Delta Y - m_{0,\Delta}(X)\Bigr]
+\eta^{e,\mathrm{p}}(Y_1, Y_0, D, X) =\frac{D}{\mathbb{E}[D]}\Bigl[m_{1,\Delta}(X) - m_{0,\Delta}(X) - \tau\Bigr]\\+\frac{D}{\mathbb{E}[D]}\Bigl[\Delta Y - m_{1,\Delta}(X)\Bigr]\\-\frac{\pi(X)(1-D)}{(1 - \pi(X))\mathbb{E}\bigl[\tfrac{\pi(X)(1-D)}{1 - \pi(X)}\bigr]}\Bigl[\Delta Y - m_{0,\Delta}(X)\Bigr]
 $$
 
 where $\Delta Y = Y_1 - Y_0$ and $m_{d,\Delta}(X) \equiv m_{d,1}(X) - m_{d,0}(X)$.
 
 The associated **semiparametric efficiency bound** is $$
-   \mathbb{E}\bigl[\,\eta^{e,\mathrm{p}}(Y_1,Y_0,D,X)^2\bigr].
+   \mathbb{E}\bigl[\eta^{e,\mathrm{p}}(Y_1,Y_0,D,X)^2\bigr].
 $$ It can be shown that a DR DID estimator can *attain* this bound if (1) the propensity score is correctly modeled, and (2) the comparison-group outcome regressions are correctly modeled.
 
 2.  **Efficient influence function for repeated cross-sections**
@@ -2493,10 +2567,10 @@ $$ It can be shown that a DR DID estimator can *attain* this bound if (1) the pr
 Similarly, when only repeated cross-sections are available, the EIF becomes
 
 $$
-\eta^{e,\mathrm{rc}}(Y,D,T,X) \;=\;\frac{D}{\mathbb{E}[D]}\Bigl[m_{1,\Delta}(X) - m_{0,\Delta}(X) - \tau\Bigr]\\\;+\;\Bigl[    w_{1,1}^{\mathrm{rc}}(D,T)\bigl(Y - m_{1,1}(X)\bigr)    \;-\;    w_{1,0}^{\mathrm{rc}}(D,T)\bigl(Y - m_{1,0}(X)\bigr)    \Bigr]\\\;-\;\Bigl[    w_{0,1}^{\mathrm{rc}}(D,T,X;p)\bigl(Y - m_{0,1}(X)\bigr)    \;-\;    w_{0,0}^{\mathrm{rc}}(D,T,X;p)\bigl(Y - m_{0,0}(X)\bigr)    \Bigr]
+\eta^{e,\mathrm{rc}}(Y,D,T,X) =\frac{D}{\mathbb{E}[D]}\Bigl[m_{1,\Delta}(X) - m_{0,\Delta}(X) - \tau\Bigr]\\+\Bigl[    w_{1,1}^{\mathrm{rc}}(D,T)\bigl(Y - m_{1,1}(X)\bigr)    -    w_{1,0}^{\mathrm{rc}}(D,T)\bigl(Y - m_{1,0}(X)\bigr)    \Bigr]\\-\Bigl[    w_{0,1}^{\mathrm{rc}}(D,T,X;p)\bigl(Y - m_{0,1}(X)\bigr)    -    w_{0,0}^{\mathrm{rc}}(D,T,X;p)\bigl(Y - m_{0,0}(X)\bigr)    \Bigr]
 $$
 
-with $\,m_{d,\Delta}(X)=m_{d,1}(X)-m_{d,0}(X)$. The resulting efficiency bound is $\mathbb{E}\bigl[\eta^{e,\mathrm{rc}}(Y,D,T,X)^2\bigr]$.
+with $m_{d,\Delta}(X)=m_{d,1}(X)-m_{d,0}(X)$. The resulting efficiency bound is $\mathbb{E}\bigl[\eta^{e,\mathrm{rc}}(Y,D,T,X)^2\bigr]$.
 
 One can further show that having access to *panel* data can be strictly more informative (i.e., yields a *smaller* semiparametric variance bound) than repeated cross-sections. This difference can grow if the pre- and post-treatment samples are highly unbalanced.
 
@@ -2527,15 +2601,15 @@ One then obtains:
 
 -   **For panel data:** $$
         \hat{\tau}^{\mathrm{dr,p}}_{\mathrm{imp}}
-        \;=\;
+        =
         \frac1n \sum_{i=1}^n
           \Bigl[
-             w_{1}^{\mathrm{p}}(D_i) \;-\; w_{0}^{\mathrm{p}}\bigl(D_i,X_i;\,\hat{\gamma}^{\mathrm{ipt}}\bigr)
+             w_{1}^{\mathrm{p}}(D_i) - w_{0}^{\mathrm{p}}\bigl(D_i,X_i;\hat{\gamma}^{\mathrm{ipt}}\bigr)
           \Bigr]
           \Bigl[
             \bigl(Y_{i1}-Y_{i0}\bigr)
-            \;-\;
-            \hat{\mu}^{\mathrm{lin,p}}_{0,\Delta}\bigl(X_i;\,\hat{\beta}^{\mathrm{wls,p}}_{0,\Delta}\bigr)
+            -
+            \hat{\mu}^{\mathrm{lin,p}}_{0,\Delta}\bigl(X_i;\hat{\beta}^{\mathrm{wls,p}}_{0,\Delta}\bigr)
           \Bigr],
       $$ where $\hat{\gamma}^{\mathrm{ipt}}$ is the "inverse probability tilting" estimate for the logit propensity score, and $\hat{\beta}^{\mathrm{wls,p}}_{0,\Delta}$ is a weighted least squares estimate for the difference regressions of the comparison group. Under suitable regularity conditions, this estimator:
 
@@ -2560,9 +2634,9 @@ Assume mild regularity conditions for consistency and asymptotic normality (e.g.
 
 2.  **Asymptotic Normality.**\
     $$
-        \sqrt{n}\bigl(\,\hat{\tau}^{\mathrm{dr}} \,-\, \tau \bigr)
-        \;\;\xrightarrow{d}\;\;
-        N\bigl(\,0,\;\mathrm{Var}(\text{IF})\bigr),
+        \sqrt{n}\bigl(\hat{\tau}^{\mathrm{dr}} - \tau \bigr)
+        \xrightarrow{d}
+        N\bigl(0,\mathrm{Var}(\text{IF})\bigr),
     $$ where $\mathrm{Var}(\text{IF})$ depends on which part(s) of the nuisance models are consistently estimated. In general, one must account for the variance contribution of the first-stage estimation. But under certain special constructions (the "improved DR" approaches with inverse probability tilting and specialized weighting), the first-stage does not contribute additional variance, making inference simpler.
 
 3.  **Local Semiparametric Efficiency.**\
@@ -2580,7 +2654,7 @@ In practice, the recommended workflow is:
 4.  **Form the DR DID estimator** by plugging the fitted models from steps (1)--(3) into the chosen DR moment expression.
 
 **Inference** can often be carried out by taking the empirical variance of the estimated influence function: $$
-   \hat{V} \;=\; \frac{1}{n}\sum_{i=1}^n \hat{\eta}_i^2,
+   \hat{V} = \frac{1}{n}\sum_{i=1}^n \hat{\eta}_i^2,
 $$ where $\hat{\eta}_i$ is the evaluator's best estimate of the influence function for observation $i$. Under certain "improved DR" constructions, the same $\hat{\eta}_i$ works regardless of which part of the model is correct.
 
 ------------------------------------------------------------------------

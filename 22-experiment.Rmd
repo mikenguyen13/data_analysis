@@ -1,8 +1,10 @@
 # Experimental Design {#sec-experimental-design}
 
+This chapter provides a treatment of experimental design principles, focusing on their application in business experiments such as A/B testing, consumer behavior studies, and market research. It begins by defining key terms and explaining why randomization is the gold standard for establishing causal relationships. The chapter covers both classical and advanced designs, including completely randomized designs, factorial designs, and crossover trials. It also delves into the selection problem and the consequences of bias. Topics such as blocking, stratification, and factorial manipulation are discussed with an emphasis on practical implementation. Statistical notation is introduced to describe treatment allocation mechanisms, and visual diagrams help clarify complex ideas. Emerging research trends and limitations of traditional designs are also explored to prepare readers for real-world complexities.
+
 Imagine you're a marketing manager trying to decide whether a new advertising campaign will boost sales. Or perhaps you're an economist investigating the impact of tax incentives on consumer spending. In both cases, you need a way to determine **causal effects**---not just correlations. This is where **experimental design** becomes essential.
 
-At its core, experimental design ensures that studies are conducted efficiently and that valid conclusions can be drawn. In business applications, experiments help quantify the effects of pricing strategies, marketing tactics, and financial interventions. A well-designed experiment **reduces bias**, **controls variability**, and **maximizes the accuracy of causal inferences**.
+At its core, experimental design ensures that studies are conducted efficiently and that valid conclusions can be drawn. In business applications, experiments help quantify the effects of pricing strategies, marketing tactics, and financial interventions. A well-designed experiment reduces bias, controls variability, and maximizes the accuracy of causal inferences.
 
 ------------------------------------------------------------------------
 
@@ -25,14 +27,14 @@ Randomized Controlled Trials (RCTs) are the **holy grail of causal inference**. 
 RCTs provide:
 
 -   **Unbiased estimates** of treatment effects
--   **Elimination of confounding factors on average** (although covariate imbalance can occur, necessitating techniques like [Rerandomization] to achieve a "platinum standard" set by @tukey1993tightening)
+-   **Elimination of confounding factors on average** (although covariate imbalance can occur, necessitating techniques like [Rerandomization](#sec-re-randomization) to achieve a "platinum standard" set by @tukey1993tightening)
 
 An RCT consists of two groups:
 
 1.  **Treatment group**: Receives the intervention (e.g., a new marketing campaign, drug, or financial incentive).
 2.  **Control group**: Does not receive the intervention, serving as a baseline.
 
-Subjects from the same population are **randomly assigned** to either group. This randomization ensures that **any observed differences in outcomes are due solely to the treatment**---not external factors.
+Subjects from the same population are randomly assigned to either group. This randomization ensures that any observed differences in outcomes are due solely to the treatment---not external factors.
 
 However, RCTs are easier to conduct in **hard sciences** (e.g., medicine or physics), where treatments and environments can be tightly controlled. In **social sciences**, challenges arise because:
 
@@ -216,6 +218,8 @@ where:
 #### Example: Racial Discrimination in Hiring
 
 A famous study by @bertrand2004emily examined racial discrimination in hiring by randomly assigning Black- and White-sounding names to identical job applications. By ensuring that names were assigned randomly, the authors eliminated confounding factors like education and experience, allowing them to estimate the causal effect of race on callback rates.
+
+------------------------------------------------------------------------
 
 ## Classical Experimental Designs
 
@@ -514,6 +518,8 @@ summary(anova_latin)
 
 -   If "Shift" or "Workstation" is significant, it indicates systematic differences across these variables.
 
+------------------------------------------------------------------------
+
 ## Advanced Experimental Designs
 
 ### Semi-Random Experiments
@@ -619,6 +625,8 @@ Assume **10 students win** the lottery and **10 students lose**.
 | Compliers     | 2     | 0                | +1               | +1           |
 | Never Takers  | 7     | -0.1             | 0                | -0.1         |
 
+: Selection and Treatment Effects by Compliance Type Winners
+
 **For Losers:**
 
 | Type          | Count | Selection Effect | Treatment Effect | Total Effect |
@@ -627,11 +635,13 @@ Assume **10 students win** the lottery and **10 students lose**.
 | Compliers     | 2     | 0                | 0                | 0            |
 | Never Takers  | 7     | -0.1             | 0                | -0.1         |
 
+: Selection and Treatment Effects by Compliance Type Losers
+
 ------------------------------------------------------------------------
 
 Computing [Intent-to-Treat Effect](#sec-intention-to-treat-effect)
 
-We compute the **expected outcome** for those who **won** and **lost** the lottery.
+We compute the expected outcome for those who won and lost the lottery.
 
 $$
 \begin{aligned}
@@ -648,7 +658,7 @@ $$
 
 ------------------------------------------------------------------------
 
-Now, we calculate the **probability of enrollment** for lottery winners and losers:
+Now, we calculate the probability of enrollment for lottery winners and losers:
 
 $$
 \begin{aligned}
@@ -663,7 +673,7 @@ $$
 \text{Treatment Effect} = \frac{0.2}{0.3 - 0.1} = 1
 $$
 
-This confirms that the **true treatment effect** is **1 unit**.
+This confirms that the true treatment effect is 1 unit.
 
 ------------------------------------------------------------------------
 
@@ -676,22 +686,22 @@ $$
 where:
 
 -   $\delta$ = [Intent-to-Treat effect](#sec-intention-to-treat-effect)
--   $\lambda$ = **True treatment effect**
--   $W$ = Whether a student **wins** the lottery
--   $L$ = Whether a student **enrolls** in the school
+-   $\lambda$ = True treatment effect
+-   $W$ = Whether a student wins the lottery
+-   $L$ = Whether a student enrolls in the school
 -   $X_i \theta$ = Control variables (i.e., reweighting of lottery), but would not affect treatment effect $E(\delta)$
 
-Since **choosing to apply to a lottery is not random**, we must consider the following:
+Since choosing to apply to a lottery is not random, we must consider the following:
 
 $$
 E(\lambda) \neq E(\lambda_1)
 $$
 
-This demonstrates why **lottery-based assignment** is a useful but imperfect tool for [causal inference](#sec-causal-inference)---winning the lottery is random, but **who applies** is not.
+This demonstrates why lottery-based assignment is a useful but imperfect tool for [causal inference](#sec-causal-inference)---winning the lottery is random, but who applies is not.
 
 ------------------------------------------------------------------------
 
-### Re-Randomization
+### Re-Randomization {#sec-re-randomization}
 
 In standard randomization, baseline covariates are only balanced on average, meaning imbalance can still occur due to random chance. Re-randomization eliminates bad randomizations by checking balance before the experiment begins [@morgan2012rerandomization].
 
@@ -710,7 +720,9 @@ In standard randomization, baseline covariates are only balanced on average, mea
     -   Matched randomization [@greevy2004optimal; @kapelner2014matching].
     -   Minimization [@pocock1975sequential].
 
-![Figure from USC Schaeffer Center](images/The-Randomization-Procedure.png "Figure from USC Schaeffer Center"){width="80%"}
+```{r, fig.cap="Flow of Randomization", fig.alt='Flow chart illustrating a process for conducting an experiment. It begins with "Collect covariate data" and "Specify criteria for acceptable balance." Next, "(Re)randomize units to treatment groups" is followed by "Check balance," which branches into "unacceptable" and "acceptable." If unacceptable, it loops back to randomization. If acceptable, it proceeds to "Conduct experiment" and finally "Analyze results."', include=FALSE, echo = FALSE}
+knitr::include_graphics("images/The-Randomization-Procedure.png")
+```
 
 ------------------------------------------------------------------------
 
@@ -833,6 +845,8 @@ colMeans(X[group == 1, ])  # Treatment group means
 colMeans(X[group == 0, ])  # Control group means
 ```
 
+------------------------------------------------------------------------
+
 ### Two-Stage Randomized Experiments
 
 A **two-stage randomized experiment** involves **sequential interventions**, where treatment assignments depend on earlier responses. This design is widely used in:
@@ -895,9 +909,11 @@ table(data$stage1, data$stage2)
 
 This structure ensures:
 
-1.  **Fair assignment** of initial ads.
+1.  Fair assignment of initial ads.
 
-2.  **Adaptive targeting** in the second stage based on user engagement.
+2.  Adaptive targeting in the second stage based on user engagement.
+
+------------------------------------------------------------------------
 
 ### Two-Stage Randomized Experiments with Interference and Noncompliance
 
@@ -907,13 +923,13 @@ In real-world experiments, **interference and noncompliance** complicate analysi
 
 -   **Noncompliance**: When participants do not adhere to their assigned treatment (e.g., a customer ignoring an ad).
 
-To handle **noncompliance**, we define:
+To handle noncompliance, we define:
 
--   $Z_{ik}$ = **Assigned treatment** (e.g., Ad A or Ad B).
+-   $Z_{ik}$ = Assigned treatment (e.g., Ad A or Ad B).
 
--   $D_{ik}$ = **Actual treatment received** (e.g., whether the user actually saw the ad).
+-   $D_{ik}$ = Actual treatment received (e.g., whether the user actually saw the ad).
 
--   $Y_{ik}$ = **Outcome** (e.g., purchase).
+-   $Y_{ik}$ = Outcome (e.g., purchase).
 
 A **two-stage Instrumental Variable model** adjusts for noncompliance:
 
@@ -966,6 +982,14 @@ summary(iv_model)
 If interference is present, the standard IV method may be biased. Researchers should explore network-based randomization or spatial models.
 
 
+### Switchback Experiments with Surrogate Variables
+
+<!-- Switchback experiments, in which experimental units are assigned to control and treatment interchangeably over time, have gained increasing popularity in recent years due to their ability to mitigate interference across units. Despite their wide adoption in the technology sector, drawing reliable inferences from such experiments remains challenging due to temporal interference. In this paper, we address this challenge by examining a special causal structure commonly found in a wide range of applications. Specifically, we consider scenarios where there exist surrogate variables at each experimental period that can fully capture the potential temporal interference from the past. We outline the necessary assumptions for identification in this context and propose an unbiased estimator using the technique of importance sampling. Additionally, we derive an experimental design with a near-optimal worst-case guarantee and compare it theoretically and empirically to the inverse propensity score estimator. To facilitate inferences, we introduce both an exact inference procedure based on Fisher’s randomization test and an asymptotic inference procedure based on the central limit theorem. We demonstrate by extensive numerical experiments that the proposed estimator, coupled with the experimental design, results in lower risk compared with the traditional inverse propensity score estimator. -->
+
+
+
+
+------------------------------------------------------------------------
 
 ## Emerging Research
 
@@ -978,6 +1002,15 @@ Recent research highlights significant challenges in measuring the causal effect
 -   **Bias in Measured Effects**: Algorithmic targeting, user heterogeneity, and data aggregation can distort both the **magnitude** and **direction** of estimated ad effects. This means traditional A/B test results may not accurately reflect the true impact of ad creatives.
 
 -   **Limited Transparency**: Platforms have little incentive to assist advertisers or researchers in disentangling ad content effects from proprietary targeting mechanisms. As a result, experimenters must design careful identification strategies to mitigate these biases.
+
+------------------------------------------------------------------------
+
+
+<!-- ### Getting the Most Out of A/B Tests Using the Asymptotic Minimax-Regret Criteria -->
+
+<!-- Many firms conduct A/B tests to find a marketing action that improves a value of interest, such as revenue or profit. We develop the asymptotic minimax regret (AMMR) criterion, a practical decision-theoretic approach for choosing among binary marketing actions based on A/B tests. The AMMR is a general large-sample approximation of the minimax-regret criterion from a frequentist standpoint. Our method directly optimizes the decision-relevant metric, accounting for the product of the error probability and the associated magnitude of value loss. Implementing the AMMR decision rule is straightforward; it comprises simply comparing the standardized treatment-effect estimate to the AMMR-optimal decision threshold. The AMMR suggests selecting the treatment whenever the point estimate is positive, as this minimizes the maximum expected net loss from decision errors. A case study of a mobile game company’s A/B testing with Monte Carlo validation demonstrates that the AMMR decision rule effectively selects the optimal marketing action and improves revenue across various data-generating processes. -->
+
+
 
 ### Covariate Balancing in Online A/B Testing: The Pigeonhole Design
 
@@ -1005,16 +1038,18 @@ The findings of @zhao2024pigeonhole provide valuable insights for practitioners 
 
 This study contributes to the broader discussion of [randomized experimental design](#sec-the-gold-standard-randomized-controlled-trials) in dynamic settings, providing a compelling alternative to traditional approaches.
 
+------------------------------------------------------------------------
+
 ### Handling Zero-Valued Outcomes {#sec-handling-zero-valued-outcomes}
 
-When analyzing treatment effects, a common issue arises when the outcome variable includes **zero values**.
+When analyzing treatment effects, a common issue arises when the outcome variable includes zero values.
 
-For example, in business applications, a marketing intervention may have **no effect on some customers** (resulting in zero sales). If we were to apply a [log transformation](#sec-logarithmic-transformation) to the outcome variable, this would be problematic because:
+For example, in business applications, a marketing intervention may have no effect on some customers (resulting in zero sales). If we were to apply a [log transformation](#sec-logarithmic-transformation) to the outcome variable, this would be problematic because:
 
 -   $\log(0)$ is undefined.
--   Log transformation is **sensitive to outcome units**, making interpretation difficult [@chen2024logs].
+-   Log transformation is sensitive to outcome units, making interpretation difficult [@chen2024logs].
 
-Instead of applying a log transformation, we should use methods that are **robust to zero values**:
+Instead of applying a log transformation, we should use methods that are robust to zero values:
 
 1.  **Percentage changes in the Average**
     -   By using Poisson Quasi-Maximum Likelihood Estimation (QMLE), we can interpret coefficients as percentage changes in the mean outcome of the treatment group relative to the control group.
@@ -1026,7 +1061,7 @@ Instead of applying a log transformation, we should use methods that are **robus
 
 ------------------------------------------------------------------------
 
-We first generate a dataset to simulate a scenario where an outcome variable (e.g., sales, website clicks) has **many zeros**, and treatment affects both the **extensive** and **intensive margins**.
+We first generate a dataset to simulate a scenario where an outcome variable (e.g., sales, website clicks) has many zeros, and treatment affects both the extensive and intensive margins.
 
 ```{r}
 set.seed(123) # For reproducibility
@@ -1062,7 +1097,9 @@ data <- data.frame(
 
 # View first few rows
 head(data)
+```
 
+```{r, fig.cap='Distribution of Outcomes', fig.alt='Bar chart showing outcome frequencies with high frequency at 0 and decreasing frequencies for outcomes 1 through 6.'}
 # Plot distribution of outcomes
 hist(
     data$Outcome,
@@ -1074,7 +1111,7 @@ hist(
 
 #### Estimating Percentage Changes in the Average
 
-Since we cannot use a log transformation, we estimate **percentage changes** using **Poisson QMLE**, which is robust to zero-valued outcomes.
+Since we cannot use a log transformation, we estimate percentage changes using Poisson QMLE, which is robust to zero-valued outcomes.
 
 ```{r}
 library(fixest)
@@ -1093,9 +1130,9 @@ etable(res_pois)
 
 To interpret the results:
 
--   The coefficient on `Treatment` represents the **log-percentage change** in the mean outcome of the treatment group relative to the control group.
+-   The coefficient on `Treatment` represents the log-percentage change in the mean outcome of the treatment group relative to the control group.
 
--   To compute the **proportional effect**, we exponentiate the coefficient:
+-   To compute the proportional effect, we exponentiate the coefficient:
 
 ```{r}
 # Compute the proportional effect of treatment
@@ -1103,7 +1140,7 @@ treatment_effect <- exp(coefficients(res_pois)["Treatment"]) - 1
 treatment_effect
 ```
 
-Compute the **standard error**:
+Compute the standard error:
 
 ```{r}
 # Compute standard error
@@ -1112,13 +1149,13 @@ se_treatment <- exp(coefficients(res_pois)["Treatment"]) *
 se_treatment
 ```
 
-Thus, we conclude that the treatment effect increases the outcome by **1215%** for the treated group compared to the control group.
+Thus, we conclude that the treatment effect increases the outcome by 1215% for the treated group compared to the control group.
 
 #### Estimating Extensive vs. Intensive Margins
 
-We now estimate **treatment effects separately** for the **extensive margin** (probability of a nonzero outcome) and the **intensive margin** (magnitude of effect among those with a nonzero outcome).
+We now estimate treatment effects separately for the extensive margin (probability of a nonzero outcome) and the intensive margin (magnitude of effect among those with a nonzero outcome).
 
-First, we use **Lee Bounds** to estimate the **intensive-margin effect** for individuals who always have a nonzero outcome.
+First, we use Lee Bounds to estimate the intensive-margin effect for individuals who always have a nonzero outcome.
 
 ```{r}
 library(causalverse)
@@ -1135,13 +1172,13 @@ res <- causalverse::lee_bounds(
 print(res)
 ```
 
-Since the confidence interval **includes zero**, we cannot conclude that the treatment has a significant **intensive-margin effect**.
+Since the confidence interval includes zero, we cannot conclude that the treatment has a significant intensive-margin effect.
 
 #### Sensitivity Analysis: Varying the Effect for Compliers
 
-To further investigate the intensive-margin effect, we consider **how sensitive our results are** to different assumptions about compliers.
+To further investigate the intensive-margin effect, we consider how sensitive our results are to different assumptions about compliers.
 
-We assume that the expected outcome for compliers is $100 \times c%$ **lower or higher** than for always-takers: $$
+We assume that the expected outcome for compliers is $100 \times c%$ lower or higher than for always-takers: $$
 E(Y(1) \| \text{Complier}) = (1 - c) E(Y(1) \| \text{Always-taker})
 $$ We compute Lee Bounds for different values of $c$:
 

@@ -923,7 +923,10 @@ likelihood_0 <-
     dnorm(theta_0, mean = 1, sd = 1)  # Likelihood at theta_0
 likelihood_hat <-
     dnorm(theta_hat, mean = 1, sd = 1)  # Likelihood at theta_hat
+```
 
+
+``` r
 # Plot likelihood function
 ggplot(df, aes(x = theta, y = likelihood)) +
     geom_line(color = "blue", linewidth = 1.2) +  # Likelihood curve
@@ -1061,9 +1064,13 @@ ggplot(df, aes(x = theta, y = likelihood)) +
     )
 ```
 
-<img src="16-hypothesis_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="16-hypothesis_files/figure-html/fig-likelihood-test-comparison-1.png" alt="Chart showing a blue bell curve representing likelihood over theta values. A black dashed line marks theta0, and a red dashed line marks thetahat. Annotations include LRT height in purple, LM slope in orange, and Wald distance in green. The y-axis is labeled Likelihood and ranges from 0.0 to 0.4" width="100%" />
+<p class="caption">(\#fig:fig-likelihood-test-comparison)Comparison of Hypothesis Tests</p>
+</div>
 
 <!-- ![](images/nested_tests.jpg){alt=""} -->
+
 <!-- *Figure adapted from [@fox1997applied].* -->
 
 Each test approaches hypothesis evaluation differently:
@@ -1075,10 +1082,12 @@ Each test approaches hypothesis evaluation differently:
 The [Likelihood Ratio Test](#sec-likelihood-ratio-test) and [Lagrange Multiplier Test](#lagrange-multiplier-score) perform well in small to moderate samples, while the Wald Test is computationally simpler as it only requires one model estimation.
 
 | Test                                                   | Key Idea                                                    | Computation                         | Best Use Case                                |
-|------------------|--------------------|------------------|------------------|
+|------------------|-------------------|------------------|------------------|
 | [Likelihood Ratio Test](#sec-likelihood-ratio-test)    | Compares log-likelihoods of full vs. restricted models      | Estimates both models               | When both models can be estimated            |
 | [Wald Test](#sec-wald-test)                            | Checks if parameters significantly differ from $H_0$        | Estimates only the full model       | When the full model is available             |
 | [Lagrange Multiplier Test](#lagrange-multiplier-score) | Tests if the score function suggests moving away from $H_0$ | Estimates only the restricted model | When the full model is difficult to estimate |
+
+: Comparison of Likelihood Ratio, Wald, and Lagrange Multiplier Tests for Hypothesis Testing in Econometric Models
 
 ------------------------------------------------------------------------
 
@@ -1160,7 +1169,10 @@ library(TOSTER)
 set.seed(123)
 group1 <- rnorm(30, mean = 5, sd = 1)
 group2 <- rnorm(30, mean = 5.1, sd = 1)
+```
 
+
+``` r
 # Perform TOST equivalence test
 TOSTtwo(
     m1 = mean(group1),
@@ -1175,7 +1187,10 @@ TOSTtwo(
 )
 ```
 
-<img src="16-hypothesis_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="16-hypothesis_files/figure-html/fig-mean-difference-tost-1.png" alt="XY chart showing mean difference analysis. The mean difference is -0.325, with equivalence bounds at -0.456 and 0.456. The TOST 90 percent confidence interval is from -0.719 to 0.068. The NHST 95 percent confidence interval is from -0.797 to 0.146. Both intervals are marked non-significant. A central point has horizontal error bars and dashed lines indicate the bounds. The x-axis is labeled Mean Difference and ranges from -0.8 to 0.6" width="100%" />
+<p class="caption">(\#fig:fig-mean-difference-tost)Mean Difference Analysis</p>
+</div>
 
 ```
 #> TOST results:
@@ -1220,7 +1235,10 @@ We can also use TOST to test whether a correlation coefficient is effectively ze
 set.seed(123)
 x <- rnorm(50)
 y <- x * 0.02 + rnorm(50, sd = 1)  # Very weak correlation
+```
 
+
+``` r
 # TOST for correlation
 TOSTr(
     n = length(x),
@@ -1231,7 +1249,10 @@ TOSTr(
 )
 ```
 
-<img src="16-hypothesis_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="16-hypothesis_files/figure-html/fig-equivalence-bounds-correlation-1.png" alt="A horizontal X-Y chart displaying correlation analysis. The x-axis represents correlation values ranging from -0.3 to 0.2. A black square marker at r equals -0.015 indicates the correlation point. Equivalence bounds are set at -0.1 and 0.1. The chart includes two confidence intervals: TOST 90% confidence interval from -0.25 to 0.221 and NHST 95% confidence interval from  -0.293 to 0.264, both labeled as non-significant. The chart title notes equivalence bounds and correlation value." width="90%" />
+<p class="caption">(\#fig:fig-equivalence-bounds-correlation)Equivalence Bounds</p>
+</div>
 
 ```
 #> TOST results:
@@ -1290,11 +1311,15 @@ TOSTr(
 -   If the sample size is too small, making it difficult to detect equivalence reliably.
 
 | Feature                | Traditional [NHST](#sec-null-hypothesis-significance-testing) | [TOST Equivalence Testing](#sec-two-one-sided-tests-equivalence-testing) |
-|-----------------|--------------------------|----------------------------|
+|------------------|-------------------------|-----------------------------|
 | Null Hypothesis        | $H_0$: No effect ($\theta = 0$)                               | $H_0$: Effect is outside equivalence bounds                              |
 | Alternative Hypothesis | $H_a$: There is an effect ($\theta \neq 0$)                   | $H_a$: Effect is within equivalence bounds                               |
 | Goal                   | Detect difference                                             | Establish similarity                                                     |
 | p-value Interpretation | Small $p$ means evidence for an effect                        | Small $p$ means evidence for equivalence                                 |
+
+: Comparison Between Traditional NHST and TOST Equivalence Testing
+
+------------------------------------------------------------------------
 
 ## False Discovery Rate {#sec-false-discovery-rate}
 
@@ -1320,12 +1345,12 @@ Thus, if we do not adjust for multiple testing, we are highly likely to reject a
 
 ------------------------------------------------------------------------
 
-Family-Wise Error Rate vs. False Discovery Rate
-
 | Approach              | Controls                                     | Method                         | Pros                                       | Cons                                 |
 |---------------|---------------|---------------|---------------|---------------|
 | Bonferroni Correction | FWER (Probability of $\ge 1$ false positive) | Adjusts $\alpha$: $\alpha/m$   | Very conservative, reduces false positives | Low power, increases false negatives |
 | False Discovery Rate  | Expected proportion of false discoveries     | Adjusts $p$-values dynamically | Higher power, fewer false negatives        | Some false positives allowed         |
+
+: Family-Wise Error Rate vs. False Discovery Rate
 
 Why FDR?
 
@@ -1607,7 +1632,7 @@ $$ where:
 
 
 ``` r
-# devtools::install_github("jdstorey/qvalue")
+# remotes::install_github("StoreyLab/qvalue")
 library(qvalue)
 
 # Simulated data: 1000 hypothesis tests
@@ -1615,7 +1640,7 @@ set.seed(123)
 p_values <- runif(1000, 0, 0.1)  
 
 # Compute q-values
-qvals <- qvalue_truncp(p_values)$qvalues
+qvals <- qvalue_truncp(p = p_values)$qvalues
 
 # Summary of q-values
 summary(qvals)
@@ -1652,17 +1677,19 @@ data.frame(
 #> 10 0.046 0.098 0.731   0.977
 ```
 
-### Summary: False Discovery Rate Methods
+### Summary of False Discovery Rate Methods
 
 FDR control methods balance Type I and Type II errors, making them more powerful than conservative Family-Wise Error Rate (FWER) methods like Bonferroni.
 
 | Method                                                    | Type                               | Strength          | Best for                                         |
-|------------------|------------------|------------------|-------------------|
+|---------------------|-----------------|-----------------|------------------|
 | [Benjamini-Hochberg](#sec-benjamini-hochberg-procedure)   | Adjusted $p$-values                | Most powerful     | Independent tests (e.g., surveys, psychology)    |
 | [Benjamini-Yekutieli](#sec-benjamini-yekutieli-procedure) | Adjusted $p$-values                | More conservative | Correlated tests (e.g., fMRI, finance)           |
 | [Storey's q-value](#sec-storeys-q-value-approach)         | Direct FDR estimation              | Most flexible     | Large-scale studies (e.g., genomics, proteomics) |
 | Bonferroni                                                | Family-Wise Error Rate (FWER)      | Very conservative | Small number of tests, strict control            |
 | Holm's Method                                             | FWER (less strict than Bonferroni) | Moderate          | Moderately strict correction                     |
+
+: Summary of False Discovery Rate Methods
 
 ------------------------------------------------------------------------
 
@@ -1675,3 +1702,5 @@ FDR control methods balance Type I and Type II errors, making them more powerful
 | Bayesian Testing                                     | Uses posterior probabilities and Bayes Factor                   | Incorporates prior knowledge, intuitive | Requires prior distribution, computationally expensive       |
 | Decision-Theoretic                                   | Minimizes expected loss based on cost functions                 | Practical for decision-making           | Needs subjective cost assignment                             |
 | [False Discovery Rate](#sec-false-discovery-rate)    | Controls proportion of false positives in multiple tests        | Useful in high-dimensional data         | Can still lead to false discoveries                          |
+
+: Comparison of Testing Frameworks

@@ -101,8 +101,6 @@ A common heuristic is to set $h = 10^{-5}$ or a small fraction of the standard d
 
 ------------------------------------------------------------------------
 
-**Comparison of Analytical and Numerical Methods**
-
 +-------------------------------------------------------------------+-------------------------------------------+-------------------------------------------------+
 | Method                                                            | Advantages                                | Disadvantages                                   |
 +===================================================================+===========================================+=================================================+
@@ -111,7 +109,9 @@ A common heuristic is to set $h = 10^{-5}$ or a small fraction of the standard d
 | [**Numerical**](#sec-numerical-approximation-of-marginal-effects) | Works for any function, easy to implement | Requires careful choice of step size $h$        |
 +-------------------------------------------------------------------+-------------------------------------------+-------------------------------------------------+
 
-: Numerical derivatives are often preferred in empirical applications, especially when working with **complex models or machine learning algorithms**.
+: Comparison of Analytical and Numerical Methods
+
+Numerical derivatives are often preferred in empirical applications, especially when working with **complex models or machine learning algorithms**.
 
 +----------------------+-------------------------------------------------------------------------+-----------------------------------------------------------------------------+
 |                      | [Analytical Derivation](#sec-analytical-derivation-of-marginal-effects) | [Numerical Approximation](#sec-numerical-approximation-of-marginal-effects) |
@@ -120,6 +120,8 @@ A common heuristic is to set $h = 10^{-5}$ or a small fraction of the standard d
 +----------------------+-------------------------------------------------------------------------+-----------------------------------------------------------------------------+
 | **Standard Errors**  | Derived using variance rules                                            | Estimated via the delta method using the variance-covariance matrix         |
 +----------------------+-------------------------------------------------------------------------+-----------------------------------------------------------------------------+
+
+: Comparison of Analytical and Numerical Approaches for Marginal Effects and Standard Errors
 
 ------------------------------------------------------------------------
 
@@ -180,6 +182,8 @@ The interpretation of marginal effects differs depending on whether $X$ is conti
 +----------------+----------------------------------------------------------------------------------------------------+
 | **Discrete**   | The change in $E[Y|X]$ when $X$ increases by one unit (also called an **incremental effect**).     |
 +----------------+----------------------------------------------------------------------------------------------------+
+
+: Interpretation of Marginal Effects by Variable Type
 
 For example, in a **binary variable case** (e.g., a dummy variable for gender), the marginal effect is:
 
@@ -254,6 +258,8 @@ where:
 +-----------------------------------------------------------------------------+----------------------------------------------------+-----------------------------------+------------------------------------------+
 | **Simulation/Bootstrapping**                                                | Uses repeated sampling from estimated distribution | No assumptions on functional form | Computationally expensive                |
 +-----------------------------------------------------------------------------+----------------------------------------------------+-----------------------------------+------------------------------------------+
+
+: Comparison of Methods for Estimating Variance of Marginal Effects
 
 When to Use the Delta Method:
 
@@ -339,7 +345,10 @@ simulated_betas <-
     rnorm(1000, mean = beta_hat, sd = sqrt(var_beta_hat))  
 simulated_odds_ratios <-
     exp(simulated_betas)  # Apply transformation
+```
 
+
+``` r
 ggplot(data.frame(Odds_Ratio = simulated_odds_ratios),
        aes(x = Odds_Ratio)) +
     geom_histogram(
@@ -372,7 +381,10 @@ ggplot(data.frame(Odds_Ratio = simulated_odds_ratios),
     theme_minimal()
 ```
 
-<img src="17-marginal-effect_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="17-marginal-effect_files/figure-html/fig-simulated-odds-ratio-distribution-1.png" alt="Histogram showing the distribution of simulated odds ratios. The x-axis represents odds ratio values from 0 to 7, and the y-axis shows frequency peaking around 60. A red dashed line marks the mean near 2, and blue dotted lines indicate confidence intervals" width="100%" />
+<p class="caption">(\#fig:fig-simulated-odds-ratio-distribution)Distribution of Simulated Odds Ratios</p>
+</div>
 
 -   **Odds Ratio Computation**
 
@@ -404,6 +416,8 @@ ggplot(data.frame(Odds_Ratio = simulated_odds_ratios),
         -   The **blue dotted lines** show the **confidence interval bounds**.
 
         -   The **right-skewed distribution** reflects the non-linear transformation, meaning higher uncertainty for larger values.
+
+------------------------------------------------------------------------
 
 ## Types of Marginal Effect
 
@@ -540,12 +554,12 @@ data.frame(Method = "Two-Sided AME", Estimate = AME_two_sided)
 #> 1 Two-Sided AME 0.1921633
 ```
 
-**Comparison of One-Sided vs. Two-Sided AME**
-
 | Method        | Accuracy | Computational Cost | Bias   |
 |---------------|----------|--------------------|--------|
 | **One-Sided** | Lower    | Faster             | Higher |
 | **Two-Sided** | Higher   | Slightly Slower    | Lower  |
+
+: Comparison of One-Sided vs. Two-Sided AME
 
 -   **One-sided** AME is computationally simpler but can introduce bias.
 
@@ -587,8 +601,6 @@ $$
 \frac{\partial E[Y|X]}{\partial X} \Bigg|_{X = \bar{X}} = \beta_1 \cdot p(\bar{X}) \cdot (1 - p(\bar{X})).
 $$
 
-**MEM vs. AME**
-
 +-------------+------------------------------------------------------------+----------------------------------------------------------+----------------------------------------------------+
 | Method      | Description                                                | Pros                                                     | Cons                                               |
 +=============+============================================================+==========================================================+====================================================+
@@ -596,6 +608,8 @@ $$
 +-------------+------------------------------------------------------------+----------------------------------------------------------+----------------------------------------------------+
 | **AME**     | Average of marginal effects across all observations.       | More generalizable, considers full distribution of data. | Computationally more expensive.                    |
 +-------------+------------------------------------------------------------+----------------------------------------------------------+----------------------------------------------------+
+
+: MEM vs. AME
 
 ------------------------------------------------------------------------
 
@@ -658,6 +672,8 @@ A third approach is **Marginal Effects at Representative Values (MER)**, where w
 | **MER**     | Marginal effect at specific values (e.g., median, percentiles). | Captures effects at different levels of X.      | Requires choosing relevant reference values.   |
 +-------------+-----------------------------------------------------------------+-------------------------------------------------+------------------------------------------------+
 
+: Comparison of Marginal Effect Estimation Methods: MEM, AME, and MER
+
 **When to Use Each Method**
 
 -   Use **MEM** when you need a quick, interpretable summary at an "average" individual.
@@ -706,17 +722,17 @@ MAE is particularly relevant when we want a single, interpretable effect for a r
 
 ------------------------------------------------------------------------
 
-**Comparison: MAE vs. MEM vs. AME**
++------------+-------------------------------------------------------------------------------+--------------------------------------------+-----------------------------------------------------------------+
+| Method     | Definition                                                                    | Pros                                       | Cons                                                            |
++============+===============================================================================+============================================+=================================================================+
+| **MEM**    | Compute marginal effects at the mean values of $X$.                           | Simple and interpretable.                  | Mean values may not represent actual observations.              |
++------------+-------------------------------------------------------------------------------+--------------------------------------------+-----------------------------------------------------------------+
+| **AME**    | Compute marginal effects for each observation, then take the average.         | More robust, accounts for variability.     | Computationally more expensive.                                 |
++------------+-------------------------------------------------------------------------------+--------------------------------------------+-----------------------------------------------------------------+
+| **MAE**    | Compute probability at averaged $X$ values, then compute the marginal effect. | Accounts for interactions better than MEM. | Less commonly used, can be misleading if $X$ values are skewed. |
++------------+-------------------------------------------------------------------------------+--------------------------------------------+-----------------------------------------------------------------+
 
-+-------------+-----------------------------------------------------------------------------------+--------------------------------------------+-----------------------------------------------------------------+
-| Method      | Definition                                                                        | Pros                                       | Cons                                                            |
-+=============+===================================================================================+============================================+=================================================================+
-| **MEM**     | Compute marginal effects **at the mean values** of $X$.                           | Simple and interpretable.                  | Mean values may not represent actual observations.              |
-+-------------+-----------------------------------------------------------------------------------+--------------------------------------------+-----------------------------------------------------------------+
-| **AME**     | Compute marginal effects **for each observation**, then take the average.         | More robust, accounts for variability.     | Computationally more expensive.                                 |
-+-------------+-----------------------------------------------------------------------------------+--------------------------------------------+-----------------------------------------------------------------+
-| **MAE**     | Compute probability at **averaged** $X$ values, then compute the marginal effect. | Accounts for interactions better than MEM. | Less commonly used, can be misleading if $X$ values are skewed. |
-+-------------+-----------------------------------------------------------------------------------+--------------------------------------------+-----------------------------------------------------------------+
+: Comparison: MAE vs. MEM vs. AME
 
 **Intuition Behind MAE**
 
@@ -789,6 +805,8 @@ data.frame(
 |            |                                           |                           |                                                                            |
 |            |                                           |                           | When we need a single interpretable summary that accounts for interactions |
 +------------+-------------------------------------------+---------------------------+----------------------------------------------------------------------------+
+
+: Comparison of MEM, AME, and MAE in Marginal Effect Computation
 
 **When to Use MAE**
 
@@ -863,14 +881,20 @@ predictions(mod) %>% head()
 newdata <- datagrid(am = 0,
                     wt = c(2, 4),
                     model = mod)
+```
 
+
+``` r
 # Plot predictions for 'hp' and 'wt'
 marginaleffects::plot_predictions(mod, 
                                   newdata = newdata, 
                                   condition = c("hp", "wt"))
 ```
 
-<img src="17-marginal-effect_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="17-marginal-effect_files/figure-html/fig-line-chart-hp-vs-mpg-by-weight-1.png" alt="A line chart displaying the relationship between horsepower (hp) on the x-axis and miles per gallon (mpg) on the y-axis. Multiple lines represent different weight (wt) categories, ranging from 1.5 to 5.4, indicated by a color gradient. Each line shows a downward trend, suggesting that as horsepower increases, miles per gallon decreases. Shaded areas around the lines indicate confidence intervals." width="90%" />
+<p class="caption">(\#fig:fig-line-chart-hp-vs-mpg-by-weight)Line Chart Coefficients</p>
+</div>
 
 Computing Marginal Effects
 
@@ -995,12 +1019,18 @@ margins_summary(mod)
 #>     cyl  0.0381 0.5999  0.0636 0.9493 -1.1376  1.2139
 #>      hp -0.0463 0.0145 -3.1909 0.0014 -0.0748 -0.0179
 #>      wt -3.1198 0.6613 -4.7175 0.0000 -4.4160 -1.8236
+```
 
+
+``` r
 # Plot marginal effects
 plot(margins(mod))
 ```
 
-<img src="17-marginal-effect_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="17-marginal-effect_files/figure-html/fig-average-marginal-effect-1.png" alt="Chart showing the average marginal effects of cyl, hp, and wt. The y-axis ranges from -4 to 1. Each variable is marked with a point and vertical line for the confidence interval. Cyl shows a small positive effect, hp is near zero, and wt shows a negative effect" width="100%" />
+<p class="caption">(\#fig:fig-average-marginal-effect)Average Marginal Effect</p>
+</div>
 
 Marginal Effects at Representative Values
 
@@ -1032,6 +1062,8 @@ The **`mfx`** package is specialized for GLMs, computing marginal effects for pr
 | **Negative Binomial** | Count        | `negbinmfx()`  |
 | **Beta**              | Rate         | `betamfx()`    |
 
+: Marginal Effects Functions by Model and Outcome Type
+
 **Example: Poisson Regression**
 
 
@@ -1059,20 +1091,22 @@ For more details, see the [`mfx` vignette](https://cran.rstudio.com/web/packages
 
 ### Comparison of Packages
 
-+------------------------------+------------------------------------+----------------+-------------------------------+
-| Feature                      | `marginaleffects` ✅ (Recommended) | `margins`      | `mfx`                         |
-+==============================+====================================+================+===============================+
-| **Computes AME**             | ✅ Yes                             | ✅ Yes         | ❌ No                         |
-+------------------------------+------------------------------------+----------------+-------------------------------+
-| **Computes MEM**             | ✅ Yes                             | ✅ Yes         | ❌ No                         |
-+------------------------------+------------------------------------+----------------+-------------------------------+
-| **Computes MER**             | ✅ Yes                             | ✅ Yes         | ❌ No                         |
-+------------------------------+------------------------------------+----------------+-------------------------------+
-| **Supports GLM Models**      | ✅ Yes                             | ✅ Yes         | ✅ Yes (but limited to `glm`) |
-+------------------------------+------------------------------------+----------------+-------------------------------+
-| **Works with Interactions**  | ✅ Yes                             | ✅ Yes         | ❌ No                         |
-+------------------------------+------------------------------------+----------------+-------------------------------+
-| **Fast and Efficient**       | ✅ Yes                             | ❌ No (slower) | ✅ Yes (for GLMs)             |
-+------------------------------+------------------------------------+----------------+-------------------------------+
-| **Supports Counterfactuals** | ✅ Yes                             | ❌ No          | ❌ No                         |
-+------------------------------+------------------------------------+----------------+-------------------------------+
++------------------------------+---------------------------------+--------------+----------------------------+
+| Feature                      | `marginaleffects` (Recommended) | `margins`    | `mfx`                      |
++==============================+=================================+==============+============================+
+| **Computes AME**             | Yes                             | Yes          | No                         |
++------------------------------+---------------------------------+--------------+----------------------------+
+| **Computes MEM**             | Yes                             | Yes          | No                         |
++------------------------------+---------------------------------+--------------+----------------------------+
+| **Computes MER**             | Yes                             | Yes          | No                         |
++------------------------------+---------------------------------+--------------+----------------------------+
+| **Supports GLM Models**      | Yes                             | Yes          | Yes (but limited to `glm`) |
++------------------------------+---------------------------------+--------------+----------------------------+
+| **Works with Interactions**  | Yes                             | Yes          | No                         |
++------------------------------+---------------------------------+--------------+----------------------------+
+| **Fast and Efficient**       | Yes                             | No (slower)  | Yes (for GLMs)             |
++------------------------------+---------------------------------+--------------+----------------------------+
+| **Supports Counterfactuals** | Yes                             | No           | No                         |
++------------------------------+---------------------------------+--------------+----------------------------+
+
+: Comparison of R Packages for Estimating Marginal Effects

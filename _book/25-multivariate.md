@@ -1,11 +1,20 @@
 # Multivariate Methods {#sec-multivariate-methods}
 
-In the previous section on [ANOVA](#sec-analysis-of-variance-anova), we examined how to compare means across multiple groups. However, [ANOVA](#sec-analysis-of-variance-anova) primarily deals with a **single response variable**. In many business and financial applications, we often need to analyze multiple interrelated variables simultaneously. For instance:
+In the previous section on [ANOVA](#sec-analysis-of-variance-anova), we focused on comparing means across multiple groups under the assumption of a **single response variable**. This framework is powerful and widely used, but it quickly becomes inadequate when dealing with the complexities of real-world business data, where outcomes are rarely isolated.
 
--   In **marketing**, customer purchase behavior, brand perception, and loyalty scores are often studied together.
--   In **finance**, portfolio risk assessment involves analyzing correlations between different asset returns.
+In many practical settings, analysts are often faced with multiple, interrelated response variables that must be considered together to draw meaningful conclusions. Consider the following scenarios:
 
-To handle such cases, we use [multivariate methods](#sec-multivariate-methods), which extend classical statistical techniques to multiple dependent variables. At the core of multivariate analysis lies the [covariance matrix](#sec-covariance-matrix-multivariate), which captures relationships between multiple random variables.
+-   **Marketing Analytics**: When evaluating customer segments, it is insufficient to look at purchase frequency in isolation. Instead, we must consider multiple facets such as purchase frequency, basket size, brand perception, and loyalty metrics. These variables are often correlated, and analyzing them jointly can reveal deeper insights into customer behavior and strategic positioning.
+
+-   **Financial Portfolio Analysis**: In portfolio management, assessing the expected return of an asset is only half the picture. Effective risk management requires understanding the covariation of returns across multiple assets, especially when constructing diversified portfolios. Here, the interplay between asset returns becomes central to estimating overall portfolio risk.
+
+-   **Operational Strategy**: In supply chain optimization, factors like delivery time, cost efficiency, and service quality are interconnected. Modeling them simultaneously allows managers to balance trade-offs and optimize performance across the system.
+
+[Multivariate methods](#sec-multivariate-methods) extend classical statistical techniques to accommodate **multiple dependent variables** at once, allowing for a more comprehensive understanding of complex phenomena. These methods not only account for the individual behavior of each variable but also for the relationships among them. At the mathematical core of these techniques is the [covariance matrix](#sec-covariance-matrix-multivariate), a generalization of variance that captures the pairwise linear associations between variables.
+
+Multivariate analysis is not merely a technical extension of univariate methods, it is a conceptual shift. It reflects the reality that variables rarely operate in isolation, and that richer, more accurate conclusions often arise from analyzing their joint behavior.
+
+------------------------------------------------------------------------
 
 ## Basic Understanding
 
@@ -79,7 +88,7 @@ A valid covariance matrix $\mathbf{\Sigma}$ satisfies the following properties:
     $$\mathbf{\Sigma}' = \mathbf{\Sigma}.$$
 
 2.  **Non-negative definiteness**:\
-    $$\mathbf{a}'\mathbf{\Sigma} \mathbf{a} \geq 0, \quad \forall \mathbf{a} \in \mathbb{R}^p,$$ which implies that the **eigenvalues** $\lambda_1, \dots, \lambda_p$ satisfy: $$\lambda_1 \geq \lambda_2 \geq \dots \geq \lambda_p \geq 0.$$
+    $$\mathbf{a}'\mathbf{\Sigma} \mathbf{a} \geq 0, \quad \forall \mathbf{a} \in \mathbb{R}^p,$$ which implies that the eigenvalues $\lambda_1, \dots, \lambda_p$ satisfy: $$\lambda_1 \geq \lambda_2 \geq \dots \geq \lambda_p \geq 0.$$
 
 3.  **Generalized variance** (determinant of $\mathbf{\Sigma}$):\
     $$|\mathbf{\Sigma}| = \lambda_1 \lambda_2 \dots \lambda_p \geq 0.$$
@@ -189,7 +198,7 @@ The multivariate normal distribution has several important properties that are f
     \mathbf{Ay} \sim N_r (\mathbf{A \mu}, \mathbf{A \Sigma A'})
     $$
 
-    where $r \leq p$. Additionally, for $\mathbf{A \Sigma A'}$ to be **non-singular**, the rows of $\mathbf{A}$ must be **linearly independent**.
+    where $r \leq p$. Additionally, for $\mathbf{A \Sigma A'}$ to be non-singular, the rows of $\mathbf{A}$ must be linearly independent.
 
 -   **Standardization using Precision Matrix**:\
     Let $\mathbf{G}$ be a matrix such that:
@@ -210,7 +219,7 @@ The multivariate normal distribution has several important properties that are f
     \mathbf{G'(y-\mu)} \sim N_p (0,\mathbf{I}).
     $$
 
-    This transformation **whitens** the data, converting it into an identity covariance structure.
+    This transformation whitens the data, converting it into an identity covariance structure.
 
 -   **Linear Combinations**:\
     Any fixed linear combination of $y_1, \dots, y_p$, say $\mathbf{c'y}$, follows:
@@ -266,7 +275,7 @@ $$
 y_i \sim N_1(\mu_i, \sigma_{ii}).
 $$
 
-The **conditional distribution** of $\mathbf{y}_1$ given $\mathbf{y}_2$ is also normal:
+The conditional distribution of $\mathbf{y}_1$ given $\mathbf{y}_2$ is also normal:
 
 $$
 \mathbf{y}_1 | \mathbf{y}_2 \sim N_{p_1} \Big(
@@ -275,22 +284,22 @@ $$
 \Big).
 $$
 
-This equation shows that **knowing** $\mathbf{y}_2$ adjusts the mean of $\mathbf{y}_1$, and the variance is reduced.\
+This equation shows that knowing $\mathbf{y}_2$ adjusts the mean of $\mathbf{y}_1$, and the variance is reduced.\
 Similarly, the conditional distribution of $\mathbf{y}_2$ given $\mathbf{y}_1$ follows the same structure.
 
--   $\mathbf{y}_1$ and $\mathbf{y}_2$ are **independent** if and only if:
+-   $\mathbf{y}_1$ and $\mathbf{y}_2$ are independent if and only if:
 
     $$
     \mathbf{\Sigma}_{12} = 0.
     $$
 
-If $\mathbf{y} \sim N(\mathbf{\mu}, \mathbf{\Sigma})$ and $\mathbf{\Sigma}$ is **positive definite**, then:
+If $\mathbf{y} \sim N(\mathbf{\mu}, \mathbf{\Sigma})$ and $\mathbf{\Sigma}$ is positive definite, then:
 
 $$
 (\mathbf{y} - \mu)' \mathbf{\Sigma}^{-1} (\mathbf{y} - \mu) \sim \chi^2_p.
 $$
 
-This property is essential in **hypothesis testing** and **Mahalanobis distance calculations**.
+This property is essential in hypothesis testing and Mahalanobis distance calculations.
 
 ------------------------------------------------------------------------
 
@@ -316,7 +325,7 @@ $$
 \Big).
 $$
 
-This property underpins **multivariate regression** and **linear discriminant analysis**.
+This property underpins multivariate regression and linear discriminant analysis.
 
 ------------------------------------------------------------------------
 
@@ -362,7 +371,7 @@ where:
 -   $\mathbf{\Sigma}_{xx}$ is the covariance matrix of $\mathbf{x}$.
 -   $\mathbf{\Sigma}_{yx}$ is the covariance vector between $Y$ and $\mathbf{x}$.
 
-From the properties of the **multivariate normal distribution**, the conditional expectation of $Y$ given $\mathbf{x}$ is:
+From the properties of the multivariate normal distribution, the conditional expectation of $Y$ given $\mathbf{x}$ is:
 
 $$
 \begin{aligned}
@@ -385,13 +394,13 @@ $$
 
 but differs when considering the theoretical covariance relationships rather than empirical estimates.
 
-The **conditional variance** of $Y$ given $\mathbf{x}$ is:
+The conditional variance of $Y$ given $\mathbf{x}$ is:
 
 $$
 \text{Var}(Y | \mathbf{x}) = \sigma^2_Y - \mathbf{\Sigma}_{yx} \mathbf{\Sigma}_{xx}^{-1} \mathbf{\Sigma'}_{yx}.
 $$
 
-This shows that knowing $\mathbf{x}$ **reduces uncertainty** in predicting $Y$.
+This shows that knowing $\mathbf{x}$ reduces uncertainty in predicting $Y$.
 
 ------------------------------------------------------------------------
 
@@ -736,7 +745,7 @@ If data **fail** the multivariate normality tests, possible approaches include:
 1.  **Ignoring non-normality** (acceptable for large samples due to the [Central Limit Theorem]).
 2.  **Using nonparametric methods** (e.g., permutation tests).
 3.  **Applying approximate models** (e.g., [Generalized Linear Mixed Models]).
-4.  **Transforming the data** (e.g., log, Box-Cox, or rank transformations \@ref(variable-transformation)).
+4.  **Transforming the data** (e.g., log, Box-Cox, or rank transformations).
 
 ------------------------------------------------------------------------
 
@@ -796,14 +805,20 @@ gg <- trees %>%
     geom_qq() +
     geom_qq_line() +
     facet_wrap( ~ Var, scales = "free")
+```
 
+
+``` r
 print(gg)
 ```
 
-<img src="25-multivariate_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="25-multivariate_files/figure-html/unnamed-chunk-2-1.png" alt="Five-panel X-Y chart displaying scatter plots with linear regression lines. Each panel represents a different variable: Ash, Height, Nitrogen, Phosphorous, and Potassium. The x-axis ranges from -2 to 2, and the y-axis varies per panel. Data points are plotted with a positive correlation trend in each chart." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-2)Scatterplot</p>
+</div>
+
 
 ``` r
-
 # Shapiro-Wilk test for univariate normality
 sw_tests <- apply(trees, MARGIN = 2, FUN = shapiro.test)
 sw_tests
@@ -892,7 +907,10 @@ ks_tests
 #> data:  scale(.x)
 #> D = 0.1107, p-value = 0.9076
 #> alternative hypothesis: two-sided
+```
 
+
+``` r
 # Mardia's test for multivariate normality
 mardia_test <-
     mvn(
@@ -903,7 +921,11 @@ mardia_test <-
     )
 ```
 
-<img src="25-multivariate_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="25-multivariate_files/figure-html/unnamed-chunk-4-1.png" alt="Chi-Square Q-Q Plot displaying a comparison between Chi-Square Quantiles on the y-axis and Squared Mahalanobis Distance on the x-axis (Mardia). The plot features a series of data points scattered around a diagonal reference line, indicating the distribution of the data in relation to a theoretical chi-square distribution." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-4)Chi-Square Q-Q Plot Mardia</p>
+</div>
+
 
 ``` r
 mardia_test$multivariateNormality
@@ -911,7 +933,10 @@ mardia_test$multivariateNormality
 #> 1 Mardia Skewness  29.7248528871795   0.72054426745778    YES
 #> 2 Mardia Kurtosis -1.67743173185383 0.0934580886477281    YES
 #> 3             MVN              <NA>               <NA>    YES
+```
 
+
+``` r
 # Doornik-Hansen test
 dh_test <-
     mvn(
@@ -920,10 +945,22 @@ dh_test <-
         covariance = FALSE,
         multivariatePlot = "qq"
     )
+```
+
+<div class="figure" style="text-align: center">
+<img src="25-multivariate_files/figure-html/unnamed-chunk-6-1.png" alt="Chi-Square Q-Q Plot displaying a comparison between Chi-Square Quantiles on the y-axis and Squared Mahalanobis Distance on the x-axis (Doornik-Hansen Test). The plot features a series of data points scattered around a diagonal reference line, indicating the distribution of the data in relation to a theoretical chi-square distribution." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-6)Chi-Square Q-Q Plot Doornik-Hansen Test</p>
+</div>
+
+
+``` r
 dh_test$multivariateNormality
 #>             Test        E df      p value MVN
 #> 1 Doornik-Hansen 161.9446 10 1.285352e-29  NO
+```
 
+
+``` r
 # Henze-Zirkler test
 hz_test <-
     mvn(
@@ -932,10 +969,22 @@ hz_test <-
         covariance = FALSE,
         multivariatePlot = "qq"
     )
+```
+
+<div class="figure" style="text-align: center">
+<img src="25-multivariate_files/figure-html/unnamed-chunk-8-1.png" alt="Chi-Square Q-Q Plot displaying a comparison between Chi-Square Quantiles on the y-axis and Squared Mahalanobis Distance on the x-axis (Henze-Zirkler Test). The plot features a series of data points scattered around a diagonal reference line, indicating the distribution of the data in relation to a theoretical chi-square distribution." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-8)Chi-Square Q-Q Plot Henze-Zirkler Test</p>
+</div>
+
+
+``` r
 hz_test$multivariateNormality
 #>            Test        HZ   p value MVN
 #> 1 Henze-Zirkler 0.7591525 0.6398905 YES
+```
 
+
+``` r
 # Royston's test (only for 3 < obs < 5000)
 royston_test <-
     mvn(
@@ -944,10 +993,22 @@ royston_test <-
         covariance = FALSE,
         multivariatePlot = "qq"
     )
+```
+
+<div class="figure" style="text-align: center">
+<img src="25-multivariate_files/figure-html/unnamed-chunk-10-1.png" alt="Chi-Square Q-Q Plot displaying a comparison between Chi-Square Quantiles on the y-axis and Squared Mahalanobis Distance on the x-axis (Royston Test). The plot features a series of data points scattered around a diagonal reference line, indicating the distribution of the data in relation to a theoretical chi-square distribution." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-10)Chi-Square Q-Q Plot Royston Test</p>
+</div>
+
+
+``` r
 royston_test$multivariateNormality
 #>      Test        H    p value MVN
 #> 1 Royston 9.064631 0.08199215 YES
+```
 
+
+``` r
 # Energy test
 estat_test <-
     mvn(
@@ -956,9 +1017,18 @@ estat_test <-
         covariance = FALSE,
         multivariatePlot = "qq"
     )
+```
+
+<div class="figure" style="text-align: center">
+<img src="25-multivariate_files/figure-html/unnamed-chunk-12-1.png" alt="Chi-Square Q-Q Plot displaying a comparison between Chi-Square Quantiles on the y-axis and Squared Mahalanobis Distance on the x-axis (Energy Test). The plot features a series of data points scattered around a diagonal reference line, indicating the distribution of the data in relation to a theoretical chi-square distribution." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-12)Chi-Square Q-Q Plot Energy Test</p>
+</div>
+
+
+``` r
 estat_test$multivariateNormality
 #>          Test Statistic p value MVN
-#> 1 E-statistic  1.091101   0.554 YES
+#> 1 E-statistic  1.091101   0.509 YES
 ```
 
 ### Mean Vector Inference
@@ -1151,15 +1221,13 @@ where:
 
 -   The probability that at least one interval fails to contain the corresponding $\mathbf{a'\mu}$ is no more than $\alpha$.
 
--   These intervals are useful for "data snooping" (similar to Scheffé's method in [ANOVA](#sec-analysis-of-variance-anova)
-
-    \@ref(sec-scheffe-anova)).
+-   These intervals are useful for "data snooping" (similar to Scheffé's method in [ANOVA](#sec-analysis-of-variance-anova).
 
 ------------------------------------------------------------------------
 
 ##### One-at-a-Time Confidence Intervals
 
-A simpler alternative is to construct **separate** confidence intervals for each mean component **individually**:
+A simpler alternative is to construct separate confidence intervals for each mean component individually:
 
 $$
 \bar{y}_i \pm t_{(1 - \alpha/2, n-1)} \sqrt{\frac{s_{ii}}{n}}.
@@ -1295,7 +1363,7 @@ $$
 
 **Example: Testing Equal Means Across Variables**
 
-We test whether all **mean components are equal**:
+We test whether all mean components are equal:
 
 $$
 H_0: \mu_1 = \mu_2 = \dots = \mu_p.
@@ -1324,7 +1392,7 @@ $$
 \end{bmatrix}.
 $$
 
-**Alternatively**, we can compare all other means **to the first mean**:
+Alternatively, we can compare all other means to the first mean:
 
 $$
 H_0: \mu_1 - \mu_2 = 0, \quad \mu_1 - \mu_3 = 0, \quad \dots, \quad \mu_1 - \mu_p = 0.
@@ -1350,11 +1418,11 @@ $$
 
 **Application: Repeated Measures Design**
 
-Repeated measures designs involve **measuring each subject multiple times** under different conditions or time points.
+Repeated measures designs involve measuring each subject multiple times under different conditions or time points.
 
 Let:
 
--   $y_{ij}$ be the **response of subject** $i$ at time $j$, where $i = 1, \dots, n$ and $j = 1, \dots, T$.
+-   $y_{ij}$ be the response of subject $i$ at time $j$, where $i = 1, \dots, n$ and $j = 1, \dots, T$.
 
 -   $\mathbf{y}_i = (y_{i1}, ..., y_{iT})'$ be a random sample from:
 
@@ -1688,7 +1756,7 @@ Multivariate tests often assume normality, but real-world data may not follow a 
 
 **Solutions**
 
-1.  **Transform the data** (e.g., log or Box-Cox transformation \@ref(variable-transformation)) to improve normality.
+1.  **Transform the data** (e.g., log or Box-Cox transformation) to improve normality.
 
 2.  **Use large samples** and rely on the [Central Limit Theorem].
 
@@ -1979,7 +2047,7 @@ print(paired_fit)
 
 3.  **Independent-Sample Hotelling's** $T^2$ **Test with Bartlett's Test**
 
-Used when comparing **two independent groups**.
+Used when comparing two independent groups.
 
 
 ``` r
@@ -1989,15 +2057,22 @@ names(steel) <- c("Temp", "Yield", "Strength")
 
 # Scatter plot of Yield vs Strength
 library(ggplot2)
+```
+
+
+``` r
 ggplot(steel, aes(x = Yield, y = Strength)) +
     geom_text(aes(label = Temp), size = 5) +
     geom_segment(aes(x = 33, y = 57.5, xend = 42, yend = 65), col = "red")
 ```
 
-<img src="25-multivariate_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="25-multivariate_files/figure-html/unnamed-chunk-22-1.png" alt="Scatter plot with red trend line showing positive correlation between yield and strength, with data points marked as 1 and 2." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-22)Strength vs Yield</p>
+</div>
+
 
 ``` r
-
 # Bartlett's test for equality of covariances
 bart_test <- boxM(steel[, -1], steel$Temp)
 print(bart_test)  # If p > 0.05, fail to reject equal covariances
@@ -2022,7 +2097,8 @@ print(twosamp_fit)
 #> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 # Independent-Sample Hotelling's T^2 Test
-twosamp_fit2 <- HotellingsT2(cbind(steel$Yield, steel$Strength) ~ factor(steel$Temp))
+twosamp_fit2 <-
+    HotellingsT2(cbind(steel$Yield, steel$Strength) ~ factor(steel$Temp))
 print(twosamp_fit2)
 #> 
 #> 	Hotelling's two sample T2-test
@@ -2036,14 +2112,14 @@ print(twosamp_fit2)
 
 -   Fail to reject $H_0$: No significant difference between groups.
 
-**Summary of Repeated Measures Hypothesis Testing**
-
 | **Test**                                 | **Hypothesis**                                                  | **Application**                |
-|------------------------------------------|-----------------------------------------------------------------|--------------------------------|
+|----------------------|--------------------------------|------------------|
 | **One-Sample Hotelling's** $T^2$         | $H_0: \mathbf{\mu} = \mathbf{\mu}_0$                            | Single group mean vector test  |
 | **Paired-Sample Hotelling's** $T^2$      | $H_0: \mathbf{\mu}_d = 0$                                       | Paired measurements comparison |
 | **Independent-Sample Hotelling's** $T^2$ | $H_0: \mathbf{\mu}_1 = \mathbf{\mu}_2$                          | Two-group mean vector test     |
 | **Parallel Profiles Test**               | $H_0: \mathbf{C}(\mathbf{\mu}_1 - \mathbf{\mu}_2) = \mathbf{0}$ | Testing parallel time trends   |
+
+: Summary of Repeated Measures Hypothesis Testing
 
 ------------------------------------------------------------------------
 
@@ -2155,7 +2231,7 @@ $$
 | Residual (error) | $\mathbf{E}$     | $\sum_{i= 1}^h n_i - h$ |
 | Total Corrected  | $\mathbf{H + E}$ | $\sum_{i=1}^h n_i -1$   |
 
-: MANOVA Table
+: MANOVA Partitioning of SSCP and Degrees of Freedom
 
 ##### Hypothesis Testing
 
@@ -2434,9 +2510,9 @@ stress <- data.frame(
 
 **Choosing the Correct Model**
 
--   If time (with three levels) is treated as an independent variable, we use **univariate ANOVA** (which requires the sphericity assumption, meaning the variances of all differences must be equal).
+-   If time (with three levels) is treated as an independent variable, we use univariate ANOVA (which requires the sphericity assumption, meaning the variances of all differences must be equal).
 
--   If each time point is treated as a separate variable, we use **MANOVA** (which does not require the sphericity assumption).
+-   If each time point is treated as a separate variable, we use MANOVA (which does not require the sphericity assumption).
 
 
 ``` r
@@ -2560,7 +2636,7 @@ contrast(contr_means, method = "poly")
 #>  quadratic     1.38 0.944  7   1.457  0.1885
 ```
 
-The results confirm that there is a **significant linear trend** over time but **no quadratic trend**.
+The results confirm that there is a significant linear trend over time but no quadratic trend.
 
 **MANOVA for Drug Treatments**
 
@@ -2605,14 +2681,20 @@ gg_profile <- ggplot(heart_means, aes(x = time, y = mean)) +
     ggtitle("Profile Plot") +
     scale_y_continuous(name = "Response") +
     scale_x_discrete(name = "Time")
+```
 
+
+``` r
 gg_profile
 ```
 
-<img src="25-multivariate_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="25-multivariate_files/figure-html/unnamed-chunk-30-1.png" alt="Line chart showing response over time for three drugs: ax23 peaks then declines, bww9 fluctuates, and ctrl remains stable." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-30)Profile Plot</p>
+</div>
+
 
 ``` r
-
 # Fit the MANOVA model
 heart_mod <- lm(cbind(y1, y2, y3, y4) ~ drug, data = heart)
 
@@ -3181,10 +3263,12 @@ If we fail to reject all three hypotheses, we conclude that:
 The three profile tests correspond to well-known univariate ANOVA components:
 
 | Test                      | Equivalent test for                                |
-|---------------------------|----------------------------------------------------|
+|-------------------------|----------------------------------------------|
 | **Parallel profiles**     | Interaction effect (treatment × time)              |
 | **Coincidental profiles** | Main effect of treatment (between-subjects factor) |
 | **Horizontal profiles**   | Main effect of time (repeated measures factor)     |
+
+: Profile Tests and Their ANOVA Equivalents in Repeated Measures Designsknit
 
 
 ``` r
@@ -3224,4 +3308,15 @@ summary(profile_fit)
 
 ## Statistical Test Selection for Comparing Means
 
-![](images/MANOVA_summary.PNG "MANOVA summary"){style="display: block; margin: 1em auto" width="100%"}
+<div class="figure" style="text-align: center">
+<img src="images/MANOVA_summary.PNG" alt="Flow chart depicting a decision tree for statistical test selection based on the number of dependent and independent variables. It starts with the number of dependent variables, branching into one or more. For one dependent variable, it further divides based on the number of independent variables, leading to tests like One-sample T-test, Pair-sample T-test, and ANOVA variations. For two or more dependent variables, it considers whether dependent variables are repeated measures, leading to MANOVA or repeated measures MANOVA. The chart guides the selection of appropriate statistical tests." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-37)Statistical Test Selection for Comparing Means</p>
+</div>
+
+<!--# Throughout this chapter, we will explore a range of multivariate techniques—such as Principal Component Analysis (PCA), Canonical Correlation Analysis (CCA), Factor Analysis, and Multivariate Analysis of Variance (MANOVA)—each designed to answer specific types of questions about multivariate data. These tools are essential for any analyst or researcher aiming to unlock the structure and meaning hidden within high-dimensional datasets. -->
+
+<!--# Principal Component Analysis -->
+
+<!--# Canonical Correlation Analysis -->
+
+<!--# Factor Analysis -->

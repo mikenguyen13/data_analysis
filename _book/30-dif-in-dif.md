@@ -1,6 +1,15 @@
 # Difference-in-Differences {#sec-difference-in-differences}
 
-[Difference-in-Differences](#sec-difference-in-differences) (DID) is a widely used causal inference method for estimating the effect of **policy interventions** or **exogenous shocks** when randomized experiments are not feasible. The key idea behind DID is to compare changes in outcomes over time between **treated** and **control** groups, under the assumption that---absent treatment---both groups would have followed parallel trends.
+[Difference-in-Differences](#sec-difference-in-differences) (DID) is a widely used causal inference method for estimating the effect of **policy interventions** or **exogenous shocks** when randomized experiments are not feasible. The key idea behind DID is to compare changes in outcomes over time between **treated** and **control** groups, under the assumption that, absent treatment, both groups would have followed parallel trends.
+
+The method thrives in business analytics because transaction logs, panel dashboards, and quarterly filings already furnish the required data. Marketers appreciate its story-telling clarity, and finance analysts value its ability to control for economy-wide shocks without heavy modeling.
+
+Why Analysts Love DID?
+
+-   **Intuitive visuals** -- A two-line plot can immediately signal whether pre-treatment trends look parallel.
+-   **Light data demands** -- Only two time points and a clear treatment onset are needed.
+-   **Extendable** -- Regression frameworks let you handle staggered treatments, multiple periods, or continuous exposures.
+-   **Transparent** -- Assumptions and identifying variation are easy to communicate to executives, regulators, or reviewers.
 
 <!-- [List of packages](https://github.com/lnsongxf/DiD-1) -->
 
@@ -8,6 +17,9 @@ DID analysis can go beyond simple treatment effects by exploring causal mechanis
 
 -   [Mediation Under DiD]: Examines how intermediate variables (e.g., consumer sentiment, brand perception) mediate the treatment effect [@habel2021variable].
 -   [Moderation] Analysis: Studies how treatment effects vary across different groups (e.g., high vs. low brand loyalty) [@goldfarb2011online].
+
+Throughout this chapter you'll learn to implement DID, diagnose its assumptions, and defend your findings in a boardroom or peer-review letter. Real-world cases will keep the discussion grounded.\
+And don't worry: the equations stay in the wings until the intuition takes center stage.
 
 ## Empirical Studies
 
@@ -30,7 +42,7 @@ DID has been extensively applied in marketing and business research to measure t
 
 ### Applications of DID in Economics
 
-DID has also been extensively applied in **economics**, particularly in policy evaluation, labor economics, and macroeconomics:
+DID has also been extensively applied in economics, particularly in policy evaluation, labor economics, and macroeconomics:
 
 -   **Natural Experiments in Development Economics** [@rosenzweig2000natural]
 -   **Instrumental Variables & Natural Experiments** [@angrist2001instrumental]
@@ -39,6 +51,12 @@ DID has also been extensively applied in **economics**, particularly in policy e
 ------------------------------------------------------------------------
 
 ## Visualization {#sec-visualization-did}
+
+Before diving into estimation, it is always wise to (i) **confirm the treatment pattern** and (ii) **eyeball the outcomes**.
+
+The `panelView` package offers quick heatmaps and outcome traces that make these checks painless.
+
+### Data check
 
 
 ``` r
@@ -58,7 +76,12 @@ head(base_stagg)
 #> 5 87    1          0 -0.65103066
 #> 6 86    1          0 -5.33381664
 #> 7 85    1          0  0.49562631
+```
 
+### Treatment Assignment Heatmap
+
+
+``` r
 panelView::panelview(
     y ~ treat_stat,
     data = base_stagg,
@@ -71,10 +94,15 @@ panelView::panelview(
 )
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-2-1.png" alt="Heatmap showing treatment status by unit over 10 years. The y-axis lists individual units, and the x-axis marks years. Units transition from light blue (under control) to dark blue (under treatment) at different years, illustrating staggered treatment adoption. A legend at the bottom labels the two status colors." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-2)Treatment Assignment Over Time by Unit</p>
+</div>
+
+The diagonal "step" confirms that **not all units adopt at once**. This would be a perfect for a staggered-DiD design. Horizontal segments without a color change indicate units that never adopt.
+
 
 ``` r
-
 # alternatively specification
 panelView::panelview(
     Y = "y",
@@ -89,10 +117,15 @@ panelView::panelview(
 )
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-3-1.png" alt="Heatmap of treatment status over 10 years. The x-axis shows years, and the y-axis lists individual units. Each unit transitions from light blue (under control) to dark blue (under treatment) at different points in time, forming a downward diagonal boundary that reflects staggered adoption. A legend identifies the two treatment states." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-3)Staggered Treatment Timing Across Units</p>
+</div>
+
+### Raw Outcome Trajectories
+
 
 ``` r
-
 # Average outcomes for each cohort
 panelView::panelview(
     data = base_stagg, 
@@ -107,16 +140,57 @@ panelView::panelview(
 #> Number of unique treatment histories: 10
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-1-3.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-4-1.png" alt="Line plot showing individual outcome trajectories over time. Gray lines represent control units, orange lines show treated units before treatment, and red lines represent treated units after treatment. The y-axis measures outcome y, and the x-axis spans 10 years. Red lines tend to diverge upward or downward after year 5, indicating possible treatment effects." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-4)Raw Panel Data by Treatment Status Over Time</p>
+</div>
+
+If the red segments diverge immediately after treatment while the orange segments blend with gray beforehand, the visual evidence is supportive of a treatment effect and parallel pre-trends.
+
+### Event-time Averages
+
+A more focused diagnostic is to plot the **average outcome in event time** (years relative to first treatment).
+
+
+``` r
+base_stagg |>
+    group_by(event_time = year - min(year[treat_stat == 1])) |>
+    summarise(y_mean = mean(y),
+              se     = sd(y) / sqrt(n())) |>
+    ggplot(aes(event_time, y_mean)) +
+    geom_line(color = "#377eb8", linewidth = 1) +
+    geom_ribbon(aes(ymin = y_mean - se, ymax = y_mean + se),
+                fill = "#377eb8",
+                alpha = .2) +
+    geom_vline(xintercept = 0, linetype = "dashed") +
+    labs(x = "Years relative to treatment",
+         y = "Mean outcome (y)",
+         title = "Event-time plot: do outcomes change at treatment onset?") +
+    theme_minimal()
+```
+
+<div class="figure" style="text-align: center">
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-5-1.png" alt="Event-study line plot showing mean outcome over event time. The horizontal axis runs from several years before to after treatment, with a dashed vertical line at zero marking treatment onset. A solid blue line traces the average outcome, and a light-blue ribbon around it depicts SE confidence bands. The viewer can compare flat pre-treatment values to any jump or slope change after zero to gauge treatment effects." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-5)Event Time Averages</p>
+</div>
+
+A flat pre-trend (negative event times) and a noticeable jump at event-time 0 support the identifying assumptions for staggered DiD.
 
 ## Simple Difference-in-Differences {#sec-simple-difference-in-differences}
 
-Difference-in-Differences originated as a tool to analyze [natural experiments](#sec-natural-experiments), but its applications extend far beyond that. DID is built on the [Fixed Effects Estimator], making it a fundamental approach for policy evaluation and causal inference in observational studies.
+DID first emerged as an econometric workhorse for [natural experiments](#sec-natural-experiments), settings where policy shocks or geographic quirks mimic random assignment. Since then, its reach has grown dramatically: marketing A/B roll-outs, corporate ESG mandates, even the staggered release of a mobile-app feature now routinely call on DID for credible impact estimates.
 
-DID leverages inter-temporal variation between groups:
+At its computational heart lies the [Fixed Effects Estimator], which sweeps out any time-invariant heterogeneity across units and any shocks common to all periods---making DID a cornerstone technique for causal inference in observational data.
 
--   **Cross-sectional comparison**: Helps avoid omitted variable bias due to common trends.
--   **Time-series comparison**: Helps mitigate omitted variable bias due to cross-sectional heterogeneity.
+DID cleverly harnesses *inter-temporal variation* between groups in **two** complementary ways to fight omitted variable bias:
+
+-   **Cross-sectional comparison**: Compares treated and control units *at the same point in time*, canceling bias from shocks that hit both groups equally (e.g., nationwide inflation). This helps avoid omitted variable bias due to common trends.
+-   **Time-series comparison**: Tracks the same unit over time, purging bias from any fixed, unit-specific traits (e.g., a chain's brand equity, a region's climate). This helps mitigate omitted variable bias due to cross-sectional heterogeneity.
+
+By taking the *difference of differences*, we simultaneously:
+
+1.  **Remove common trends** that could confound a simple cross-sectional comparison.
+2.  **Eliminate unit-specific constants** that would spoil a pure time-series analysis.
 
 ------------------------------------------------------------------------
 
@@ -137,7 +211,9 @@ Consider a simple setting with:
 | Control ($D_i = 0$) | $E[Y_{0i}(1)|D_i = 0]$            | $E[Y_{0i}(0)|D_i = 0]$             |
 +---------------------+-----------------------------------+------------------------------------+
 
-The **fundamental challenge**: We cannot observe $E[Y_{0i}(1)|D_i = 1]$---i.e., the **counterfactual outcome** for the treated group had they not received treatment.
+: Potential Outcomes by Treatment Status and Time
+
+The **fundamental challenge**: We cannot observe $E[Y_{0i}(1)|D_i = 1]$ (i.e., the **counterfactual outcome** for the treated group had they not received treatment).
 
 ------------------------------------------------------------------------
 
@@ -150,7 +226,7 @@ E[Y_1(1) - Y_0(1) | D = 1] &= \{E[Y(1)|D = 1] - E[Y(1)|D = 0] \} \\
 \end{aligned}
 $$
 
-This formulation differences out time-invariant unobserved factors, assuming the parallel trends assumption holds.
+This formulation differences out time-invariant unobserved factors, assuming the [parallel trends assumption](#prior-parallel-trends-test) holds.
 
 -   For the treated group, we isolate the difference between being treated and not being treated.
 -   If the control group would have experienced a different trajectory, the DID estimate may be biased.
@@ -229,7 +305,10 @@ print(results)
 #>                            Method Estimate
 #>              Diff-in-Diff Formula 4.035895
 #> treated:time         OLS Estimate 4.035895
+```
 
+
+``` r
 # Visualization
 ggplot(data,
        aes(
@@ -253,12 +332,17 @@ ggplot(data,
     causalverse::ama_theme()
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-7-1.png" alt="Scatter plot with two time points labeled 0 (pre) and 1 (post) on the x-axis and outcome values on the y-axis. The control group is shown in blue and the treated group in red. Both groups increase over time, but the treated group shows a larger rise. Dotted lines connect pre- and post-intervention points for each group, visually illustrating the DiD estimate. A legend distinguishes control and treated groups." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-7)DiD Visualization</p>
+</div>
 
 |              | Control (0)        | Treated (1)         |
 |--------------|--------------------|---------------------|
 | **Pre (0)**  | $\bar{Y}_{00} = 5$ | $\bar{Y}_{10} = 8$  |
 | **Post (1)** | $\bar{Y}_{01} = 7$ | $\bar{Y}_{11} = 14$ |
+
+: DiD Table of Group-Time Average Outcomes
 
 The table organizes the mean outcomes into four cells:
 
@@ -339,6 +423,8 @@ To examine the dynamic treatment effects (that are not under rollout/staggered d
 +------------------------+---------------------------------------------------------+
 | $t = 2$                | One period after treatment                              |
 +------------------------+---------------------------------------------------------+
+
+: Event Time Coding Around Treatment
 
 **Dynamic Treatment Model Specification**
 
@@ -431,17 +517,27 @@ etable(cali)
 #> Within R2                                 0.00979
 #> ---
 #> Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
 
+
+``` r
 iplot(cali, pt.join = T)
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-9-1.png" alt="Line plot of treatment effect estimates over time centered at the intervention point (time 0). The y-axis represents the effect on rate with confidence intervals, and the x-axis shows relative time periods from −2 to +3. Estimates before the intervention are close to zero, while those after show a negative trend, indicating a drop in the rate. Vertical error bars indicate 95% confidence intervals." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-9)Estimated Effect on Rate Over Time</p>
+</div>
+
 
 ``` r
 coefplot(cali)
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-3-2.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-10-1.png" alt="Line plot of estimated interaction effects between California and relative time periods from −2 to 3, excluding time 0. The y-axis shows effect estimates with vertical 95% confidence intervals. Pre-intervention estimates hover around zero; post-intervention estimates are negative, indicating a decline in the rate attributable to California-specific policy changes." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-10)Interaction Effect on Rate</p>
+</div>
 
 ## Empirical Research Walkthrough
 
@@ -555,6 +651,8 @@ The study used a Difference-in-Differences approach to estimate the impact:
 | Control   | PA    | C            | D            | C - D             |
 |           |       | A - C        | B - D        | (A - B) - (C - D) |
 
+: DiD Estimator Illustration Using State-Level Example
+
 where:
 
 -   $A - B$ captures the treatment effect plus general time trends.
@@ -563,7 +661,7 @@ where:
 
 For the DiD estimator to be valid, the following conditions must hold:
 
-1.  **Parallel Trends Assumption**
+1.  [Parallel Trends Assumption](#prior-parallel-trends-test)
     -   The employment trends in NJ and PA would have been the same in the absence of the policy change.
     -   Pre-treatment employment trends should be similar between the two states.
 2.  **No "Switchers"**
@@ -623,7 +721,7 @@ Is Parallel Trends a Necessary or Sufficient Condition?
 -   Not sufficient: Even if pre-trends are parallel, other confounders could affect results.
 -   Not necessary: Parallel trends may emerge only after treatment, depending on behavioral responses.
 
-Thus, we cannot prove DiD is valid---we can only present evidence that supports the assumptions.
+Thus, we cannot prove DiD is valid. We can only present evidence that supports the assumptions.
 
 ------------------------------------------------------------------------
 
@@ -694,7 +792,7 @@ where:
 | **Control, Post** | 1                     | 0                     | 1                | 0                       |
 +-------------------+-----------------------+-----------------------+------------------+-------------------------+
 
-: Difference-in-Differences Table
+: Group-Level Design Matrix for Difference-in-Differences
 
 -   The average pre-period outcome for the control group is given by $\beta_0$.
 -   The key coefficient of interest is $\beta_3$, which captures the difference in the post-treatment effect between treated and control groups.
@@ -788,7 +886,7 @@ where:
 
 An illustrative TWFE event-study model [@stevenson2006bargaining]:
 
-$$ \begin{aligned} Y_{it} &= \sum_{k} \beta_{k} \cdot Treatment_{it}^{k} \;+\; \eta_{i} \;+\; \lambda_{t} \;+\; Controls_{it} \;+\; \epsilon_{it}, \end{aligned} $$
+$$ \begin{aligned} Y_{it} &= \sum_{k} \beta_{k} \cdot Treatment_{it}^{k} + \eta_{i} + \lambda_{t} + Controls_{it} + \epsilon_{it}, \end{aligned} $$
 
 where:
 
@@ -810,7 +908,7 @@ When there are only two time periods $(T=2)$, TWFE simplifies to the [traditiona
 2.  [Parallel trends assumption](#prior-parallel-trends-test)
 3.  **Linear additive effects** are valid [@imai2021use].
 
-However, in practice, **treatment effects are often heterogeneous**. If effects vary by cohort or over time, then standard TWFE estimates can be biased---particularly when there is staggered adoption or dynamic treatment effects [@goodman2021difference; @de2020two; @sun2021estimating; @borusyak2021revisiting]. Hence, to use the TWFE, we actually have to argue why the effects are homogeneous to justify TWFE use:
+However, in practice, **treatment effects are often heterogeneous**. If effects vary by cohort or over time, then standard TWFE estimates can be biased, particularly when there is staggered adoption or dynamic treatment effects [@goodman2021difference; @de2020two; @sun2021estimating; @borusyak2021revisiting]. Hence, to use the TWFE, we actually have to argue why the effects are homogeneous to justify TWFE use:
 
 -   **Assess treatment heterogeneity**: If heterogeneity exists, TWFE may produce biased estimates. Researchers should:
     -   Plot treatment timing across units.
@@ -998,7 +1096,10 @@ ggplot(df_bacon) +
   causalverse::ama_theme()
 ```
 
-<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="30-dif-in-dif_files/figure-html/unnamed-chunk-14-1.png" alt="Scatter plot of treatment effect estimates versus their weights. Points are colored by comparison type: red (earlier vs later treated), green (later vs earlier treated), and blue (treated vs untreated). Most comparisons cluster near zero weight, but a few blue points have large weights and high positive estimates, indicating that untreated comparisons drive much of the overall effect. A legend in the top right explains the color coding." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-14)Decomposition of Treatment Effects by Comparison Type and Weight</p>
+</div>
 
 > **Insight**: This plot shows the contribution of each 2×2 DiD comparison, highlighting how estimates with large weights dominate the overall TWFE coefficient.
 
@@ -1015,8 +1116,6 @@ Interpretation and Practical Implications
 
 When time-varying covariates are included that allow for identification within treatment timing groups, certain problematic comparisons (like "early vs. late") may no longer influence the TWFE estimator directly. These scenarios may collapse into simpler within-group estimates, improving identification.
 
-Summary Table: Goodman-Bacon Comparison Types
-
 +---------------------+------------------------------------------------+-----------------------+
 | Comparison Type     | Description                                    | Common Issue          |
 +=====================+================================================+=======================+
@@ -1029,11 +1128,13 @@ Summary Table: Goodman-Bacon Comparison Types
 | Treated vs. Treated | Within-treatment variation by timing           | Sensitive to dynamics |
 +---------------------+------------------------------------------------+-----------------------+
 
+: Goodman-Bacon Comparison Types
+
 ------------------------------------------------------------------------
 
 ### Remedies for TWFE's Shortcomings
 
-This section outlines **alternative estimators** and design-based approaches that explicitly handle **heterogeneous treatment effects**, **staggered adoption** [@baker2022much], and **dynamic treatment effects** better than standard TWFE (e.g., [Modern Estimators for Staggered Adoption](#sec-modern-estimators-for-staggered-adoption)).
+This section outlines alternative estimators and design-based approaches that explicitly handle **heterogeneous treatment effects**, **staggered adoption** [@baker2022much], and **dynamic treatment effects** better than standard TWFE (e.g., [Modern Estimators for Staggered Adoption](#sec-modern-estimators-for-staggered-adoption)).
 
 1.  [Group-Time Average Treatment Effects](#sec-group-time-average-treatment-effects-callaway2021difference)
 
@@ -1115,7 +1216,7 @@ Below are practical guidelines for deciding when to use TWFE and how to diagnose
 
 ## Multiple Periods and Variation in Treatment Timing {#sec-multiple-periods-and-variation-in-treatment-timing}
 
-TWFE has been extended beyond the simple DiD setup to **multiple periods** and **staggered adoption** (where treatment occurs at different times for different units). Such designs are common in applied economics, public policy, and longitudinal research. However, standard TWFE regressions **can** be biased in these contexts when treatment effects are heterogeneous across groups or over time.
+TWFE has been extended beyond the simple DiD setup to **multiple periods** and **staggered adoption** (where treatment occurs at different times for different units). Such designs are common in applied economics, public policy, and longitudinal research. However, standard TWFE regressions can be biased in these contexts when treatment effects are heterogeneous across groups or over time.
 
 ### Staggered Difference-in-Differences {#sec-staggered-difference-in-differences}
 
@@ -1133,8 +1234,8 @@ When using staggered adoption, the following assumptions are critical:
 1.  **Rollout Exogeneity**\
     Treatment assignment and timing should be uncorrelated with potential outcomes.
 
-    -   Evidence: Regress adoption on pre-treatment variables. And if you find evidence of correlation, include linear trends interacted with pre-treatment variables [@hoynes2009consumption]
-    -   Evidence: [@deshpande2019screened, p. 223]
+    -   **Evidence**: Regress adoption on pre-treatment variables. And if you find evidence of correlation, include linear trends interacted with pre-treatment variables [@hoynes2009consumption]
+    -   **Evidence** [@deshpande2019screened, p. 223]:
         -   Treatment is random: Regress treatment status at the unit level to all pre-treatment observables. If you have some that are predictive of treatment status, you might have to argue why it's not a worry. At best, you want this.
         -   Treatment timing is random: Conditional on treatment, regress timing of the treatment on pre-treatment observables. At least, you want this.
 
@@ -1154,4 +1255,3 @@ When using staggered adoption, the following assumptions are critical:
     -   **Effect Additivity**
 
 ------------------------------------------------------------------------
-

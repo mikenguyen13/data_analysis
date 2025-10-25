@@ -1,5 +1,7 @@
 # Nonparametric Regression {#sec-nonparametric-regression}
 
+This chapter surveys regression techniques that relax functional-form assumptions. Beginning with kernel and local-polynomial estimators, we derive bias-variance trade-offs and bandwidth-selection criteria. We then explore splines, generalized additive models, regression trees, random forests, and wavelet regression, emphasizing their interpretability and robustness. Multivariate nonparametrics are introduced through radial-basis functions. Confidence-interval construction via asymptotics and bootstrap methods is detailed, and a forward-looking conclusion discusses how nonparametric ideas underpin modern machine-learning algorithms, reinforcing the evolving landscape of regression analysis.
+
 **Nonparametric regression** refers to a class of regression techniques that do not assume a specific functional form (e.g., linear, polynomial of fixed degree) for the relationship between a predictor $x \in \mathbb{R}$ (or $\mathbf{x} \in \mathbb{R}^p$) and a response variable $y \in \mathbb{R}$. Instead, nonparametric methods aim to estimate this relationship directly from the data, allowing the data to "speak for themselves."
 
 In a standard regression framework, we have a response variable $Y$ and one or more predictors $\mathbf{X} = (X_1, X_2, \ldots, X_p)$. Let us start with a univariate setting for simplicity. We assume the following model:
@@ -95,14 +97,23 @@ In practice, it's not always an either/or decision. Consider:
 -   **Model Selection & Regularization**: Use techniques like cross-validation to choose bandwidths (kernel smoothing), number of knots (splines), or hyperparameters (tree depth) to avoid overfitting.
 -   **Diagnostic Tools**: Start with a simple parametric model, look at residual plots to identify patterns that might warrant a nonparametric approach.
 
++------------------------------+--------------------------------------------------------------------------+--------------------------------------------------------------------+
 | **Criterion**                | **Parametric Methods**                                                   | **Nonparametric Methods**                                          |
-|------------------------------|--------------------------------------------------------------------------|--------------------------------------------------------------------|
++==============================+==========================================================================+====================================================================+
 | **Assumptions**              | Requires strict assumptions (e.g., linearity, distribution form)         | Minimal assumptions, flexible functional forms                     |
++------------------------------+--------------------------------------------------------------------------+--------------------------------------------------------------------+
 | **Data Requirements**        | Often works with smaller datasets if assumptions hold                    | Generally more data-hungry due to flexibility                      |
++------------------------------+--------------------------------------------------------------------------+--------------------------------------------------------------------+
 | **Interpretability**         | Straightforward coefficients, easy to explain                            | Visual or plot-based insights; feature importance in trees         |
++------------------------------+--------------------------------------------------------------------------+--------------------------------------------------------------------+
 | **Complexity & Overfitting** | Less prone to overfitting if form is correct                             | Can overfit if not regularized (e.g., bandwidth selection)         |
++------------------------------+--------------------------------------------------------------------------+--------------------------------------------------------------------+
 | **Extrapolation**            | Can extrapolate if the assumed form is correct                           | Poor extrapolation outside the observed data range                 |
++------------------------------+--------------------------------------------------------------------------+--------------------------------------------------------------------+
 | **Computational Cost**       | Typically low to moderate (e.g., $O(n)$ to $O(n^2)$) depending on method | Can be higher (e.g., repeated local estimates or ensemble methods) |
++------------------------------+--------------------------------------------------------------------------+--------------------------------------------------------------------+
+
+: Comparison of Parametric and Nonparametric Statistical Methods
 
 ------------------------------------------------------------------------
 
@@ -156,7 +167,7 @@ Selecting an optimal bandwidth is critical, as it determines the balance between
 Many nonparametric regression estimators can be viewed as **weighted local averages** of the observed responses $\{Y_i\}$. In the univariate case, if $x_i$ are observations of the predictor and $y_i$ are the corresponding responses, the nonparametric estimator at a point $x$ often takes the form:
 
 $$
-\hat{m}(x) = \sum_{i=1}^n w_i(x) \, y_i,
+\hat{m}(x) = \sum_{i=1}^n w_i(x)  y_i,
 $$
 
 where the weights $w_i(x)$ depend on the distance between $x_i$ and $x$, and they satisfy:
@@ -182,7 +193,7 @@ A **kernel function** $K(\cdot)$ is a non-negative, symmetric function whose int
 
 2.  **Normalization**:\
     $$
-    \int_{-\infty}^{\infty} K(u)\,du = 1.
+    \int_{-\infty}^{\infty} K(u)du = 1.
     $$
 
 3.  **Symmetry**:\
@@ -259,7 +270,7 @@ Below is a comparison of widely used kernel functions, their functional forms, s
 +------------------------+--------------------------------------------------------------------------------------------------------------------------------+--------------------------+-------------------------------------------------------------------------+
 | **Kernel**             | **Formula**                                                                                                                    | **Support**              | **Key Characteristics**                                                 |
 +========================+================================================================================================================================+==========================+=========================================================================+
-| **Gaussian**           | $\displaystyle K(u) = \frac{1}{\sqrt{2\pi}}\, e^{-\frac{u^2}{2}}$                                                              | $u \in (-\infty,\infty)$ | **Smooth, bell-shaped**                                                 |
+| **Gaussian**           | $\displaystyle K(u) = \frac{1}{\sqrt{2\pi}} e^{-\frac{u^2}{2}}$                                                              | $u \in (-\infty,\infty)$ | **Smooth, bell-shaped**                                                 |
 |                        |                                                                                                                                |                          |                                                                         |
 |                        |                                                                                                                                |                          | Nonzero for all $u$, but decays quickly                                 |
 |                        |                                                                                                                                |                          |                                                                         |
@@ -295,6 +306,8 @@ Below is a comparison of widely used kernel functions, their functional forms, s
 |                        |                                                                                                                                |                          |                                                                         |
 |                        |                                                                                                                                |                          | Less commonly used, but still mathematically straightforward            |
 +------------------------+--------------------------------------------------------------------------------------------------------------------------------+--------------------------+-------------------------------------------------------------------------+
+
+: Comparison of Common Kernel Functions for Nonparametric Estimation
 
 ------------------------------------------------------------------------
 
@@ -347,6 +360,8 @@ $$
 
 where $\sum_{i=1}^n w_i(x) = 1$ for any $x$. Notice that $0 \le w_i(x) \le 1$ for all $i$.
 
+------------------------------------------------------------------------
+
 ### Priestley--Chao Kernel Estimator {#sec-priestley-chao-kernel-estimator}
 
 The **Priestley--Chao kernel estimator** [@priestley1972non] is an early kernel-based regression estimator designed to estimate the regression function $m(x)$ from observed data $\{(x_i, y_i)\}_{i=1}^n$. Unlike the [Nadaraya--Watson estimator](#sec-nadaraya-watson-kernel-estimator), which uses pointwise kernel weighting, the Priestley--Chao estimator incorporates **differences in the predictor variable** to approximate integrals more accurately.
@@ -378,7 +393,7 @@ This estimator is particularly useful when the design points $\{x_i\}$ are **une
 We can express the estimator as a **weighted sum** of the observed responses $y_i$:
 
 $$
-\hat{m}_h(x) = \sum_{i=1}^{n-1} w_i(x) \, y_i,
+\hat{m}_h(x) = \sum_{i=1}^{n-1} w_i(x)  y_i,
 $$
 
 where the weights are defined as:
@@ -409,7 +424,7 @@ $$
 
 where:
 
--   $K^*(u) = \int_{-\infty}^{u} K(v) \, dv$ is the **cumulative distribution function (CDF)** of the kernel $K$,
+-   $K^*(u) = \int_{-\infty}^{u} K(v)  dv$ is the **cumulative distribution function (CDF)** of the kernel $K$,
 
 -   $h > 0$ is the **bandwidth parameter**.
 
@@ -424,7 +439,7 @@ where:
 The [Gasser--Müller estimator](#sec-gasser-mueller-kernel-estimator) can also be expressed as a **weighted sum**:
 
 $$
-\hat{m}_h(x) = \sum_{i=1}^{n-1} w_i(x) \, y_i,
+\hat{m}_h(x) = \sum_{i=1}^{n-1} w_i(x)  y_i,
 $$
 
 where the weights are:
@@ -445,11 +460,17 @@ $$
 
 ### Comparison of Kernel-Based Estimators
 
-| **Estimator**        | **Formula**                                                                                                                                | **Key Feature**                    | **Weights Sum to 1?** |
-|----------------------|--------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|-----------------------|
-| **Nadaraya--Watson** | $\displaystyle \hat{m}_h(x) = \frac{\sum K\left(\frac{x - x_i}{h}\right) y_i}{\sum K\left(\frac{x - x_i}{h}\right)}$                       | Weighted average of $y_i$          | Yes                   |
-| **Priestley--Chao**  | $\displaystyle \hat{m}_h(x) = \frac{1}{h} \sum K\left(\frac{x - x_i}{h}\right)(x_{i+1} - x_i) y_i$                                         | Incorporates data spacing          | No                    |
-| **Gasser--Müller**   | $\displaystyle \hat{m}_h(x) = \frac{1}{h} \sum \left[K^*\left(\frac{x - x_i}{h}\right) - K^*\left(\frac{x - x_{i+1}}{h}\right)\right] y_i$ | Uses cumulative kernel differences | No                    |
++-----------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------+-----------------------+
+| **Estimator**                                             | **Formula**                                                                                                                                | **Key Feature**                    | **Weights Sum to 1?** |
++===========================================================+============================================================================================================================================+====================================+=======================+
+| [Nadaraya--Watson](#sec-nadaraya-watson-kernel-estimator) | $\displaystyle \hat{m}_h(x) = \frac{\sum K\left(\frac{x - x_i}{h}\right) y_i}{\sum K\left(\frac{x - x_i}{h}\right)}$                       | Weighted average of $y_i$          | Yes                   |
++-----------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------+-----------------------+
+| [Priestley--Chao](#sec-priestley-chao-kernel-estimator)   | $\displaystyle \hat{m}_h(x) = \frac{1}{h} \sum K\left(\frac{x - x_i}{h}\right)(x_{i+1} - x_i) y_i$                                         | Incorporates data spacing          | No                    |
++-----------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------+-----------------------+
+| [Gasser--Müller](#sec-gasser-mueller-kernel-estimator)    | $\displaystyle \hat{m}_h(x) = \frac{1}{h} \sum \left[K^*\left(\frac{x - x_i}{h}\right) - K^*\left(\frac{x - x_{i+1}}{h}\right)\right] y_i$ | Uses cumulative kernel differences | No                    |
++-----------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------+------------------------------------+-----------------------+
+
+: Comparison of Kernel-Based Estimators
 
 ------------------------------------------------------------------------
 
@@ -471,7 +492,7 @@ $$
 As $n \to \infty$, under smoothness assumptions on $m(x)$ and regularity conditions on the kernel $K$, the MISE has the following asymptotic expansion:
 
 $$
-\text{MISE}(\hat{m}_h) \approx \frac{R(K)}{n h} \, \sigma^2 + \frac{1}{4} \mu_2^2(K) \, h^4 \int \left\{m''(x)\right\}^2 dx,
+\text{MISE}(\hat{m}_h) \approx \frac{R(K)}{n h}  \sigma^2 + \frac{1}{4} \mu_2^2(K)  h^4 \int \left\{m''(x)\right\}^2 dx,
 $$
 
 where:
@@ -484,7 +505,7 @@ where:
 To find the **asymptotically optimal bandwidth**, we differentiate the MISE with respect to $h$, set the derivative to zero, and solve for $h$:
 
 $$
-h_{\mathrm{opt}} = \left(\frac{R(K) \, \sigma^2}{\mu_2^2(K) \int \left\{m''(x)\right\}^2 dx} \cdot \frac{1}{n}\right)^{1/5}.
+h_{\mathrm{opt}} = \left(\frac{R(K)  \sigma^2}{\mu_2^2(K) \int \left\{m''(x)\right\}^2 dx} \cdot \frac{1}{n}\right)^{1/5}.
 $$
 
 In practice, $\sigma^2$ and $\int \{m''(x)\}^2 dx$ are unknown and must be estimated from data. A common data-driven approach is [cross-validation](#sec-cross-validation-kernel-regression).
@@ -520,7 +541,7 @@ For the [Nadaraya-Watson estimator](#sec-nadaraya-watson-kernel-estimator), unde
 The [Nadaraya-Watson estimator](#sec-nadaraya-watson-kernel-estimator) can be derived from a **density-based perspective**:
 
 1.  By the definition of conditional expectation: $$
-    m(x) = \mathbb{E}[Y \mid X = x] = \frac{\int y \, f_{X,Y}(x, y) \, dy}{f_X(x)},
+    m(x) = \mathbb{E}[Y \mid X = x] = \frac{\int y  f_{X,Y}(x, y)  dy}{f_X(x)},
     $$ where $f_{X,Y}(x, y)$ is the joint density of $(X, Y)$, and $f_X(x)$ is the marginal density of $X$.
 
 2.  Estimate $f_X(x)$ using a kernel density estimator: $$
@@ -532,7 +553,7 @@ The [Nadaraya-Watson estimator](#sec-nadaraya-watson-kernel-estimator) can be de
     $$ where $\delta_{y_i}(y)$ is the Dirac delta function (a point mass at $y_i$).
 
 4.  The kernel regression estimator becomes: $$
-    \hat{m}_h(x) = \frac{\int y \, \hat{f}_{X,Y}(x, y) \, dy}{\hat{f}_X(x)} 
+    \hat{m}_h(x) = \frac{\int y  \hat{f}_{X,Y}(x, y)  dy}{\hat{f}_X(x)} 
     = \frac{\sum_{i=1}^n K\!\left(\frac{x - x_i}{h}\right) y_i}{\sum_{i=1}^n K\!\left(\frac{x - x_i}{h}\right)},
     $$ which is exactly the [Nadaraya-Watson estimator](#sec-nadaraya-watson-kernel-estimator).
 
@@ -560,7 +581,10 @@ true_function <-
 # Add Gaussian noise
 y <-
     true_function(x) + rnorm(n, sd = 0.3)              
+```
 
+
+``` r
 # Visualization of the data
 ggplot(data.frame(x, y), aes(x, y)) +
     geom_point(color = "darkblue") +
@@ -572,7 +596,10 @@ ggplot(data.frame(x, y), aes(x, y)) +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-sim-function-1.png" alt="Scatter plot with blue data points and red dashed line showing wavy true regression function" width="100%" />
+<p class="caption">(\#fig:fig-sim-function)Simulated Data with True Regression Function</p>
+</div>
 
 
 ``` r
@@ -609,7 +636,10 @@ h_nw <- 0.5  # Bandwidth for Nadaraya–Watson
 # Apply Nadaraya–Watson Estimator
 x_grid <- seq(0, 10, length.out = 200)
 nw_estimate <- nadaraya_watson(x_grid, x, y, h_nw)
+```
 
+
+``` r
 # Plot Nadaraya–Watson Estimate
 ggplot() +
     geom_point(aes(x, y), color = "darkblue", alpha = 0.6) +
@@ -628,7 +658,10 @@ ggplot() +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Nadaraya–Watson Kernel Estimator-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-nw-kernel-est-1.png" alt="Scatter plot illustrating the Nadaraya-Watson Kernel Estimator with a bandwidth of 0.5. The x-axis represents values from 0 to 10, while the y-axis shows estimated m(x) values. Blue dots indicate data points, a green line represents the kernel estimate, and a red dashed line shows the confidence interval." width="90%" />
+<p class="caption">(\#fig:fig-nw-kernel-est)Nadaraya–Watson Kernel Estimator</p>
+</div>
 
 -   The **green curve** is the [Nadaraya--Watson estimate](#sec-nadaraya-watson-kernel-estimator).
 
@@ -652,13 +685,16 @@ priestley_chao <-
 # Apply Priestley–Chao Estimator
 h_pc <- 0.5
 pc_estimate <- priestley_chao(x_grid, x, y, h_pc)
+```
 
+
+``` r
 # Plot Priestley–Chao Estimate
 ggplot() +
     geom_point(aes(x, y), color = "darkblue", alpha = 0.6) +
     geom_line(aes(x_grid, pc_estimate),
               color = "orange",
-              size = 1.2) +
+              linewidth = 1.2) +
     geom_line(aes(x_grid, true_function(x_grid)),
               color = "red",
               linetype = "dashed") +
@@ -671,7 +707,10 @@ ggplot() +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Priestley–Chao Kernel Estimator-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-pc-kernel-est-1.png" alt="Scatter plot illustrating the Priestley–Chao Kernel Estimator with a bandwidth of 0.5. The x-axis represents values from 0 to 10, and the y-axis shows estimated m(x) values. Blue dots indicate data points, while an orange line represents the kernel estimate. A red dashed line shows a comparison or confidence interval. " width="90%" />
+<p class="caption">(\#fig:fig-pc-kernel-est)Priestley–Chao Kernel Estimator</p>
+</div>
 
 -   The **orange curve** is the [Priestley--Chao](#sec-priestley-chao-kernel-estimator) estimate.
 
@@ -694,7 +733,10 @@ gasser_mueller <-
 # Apply Gasser–Müller Estimator
 h_gm <- 0.5
 gm_estimate <- gasser_mueller(x_grid, x, y, h_gm)
+```
 
+
+``` r
 # Plot Gasser–Müller Estimate
 ggplot() +
     geom_point(aes(x, y), color = "darkblue", alpha = 0.6) +
@@ -713,7 +755,10 @@ ggplot() +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Gasser–Müller Kernel Estimator-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-gm-kernel-est-1.png" alt="Scatter plot showing the Gasser-Müller Kernel Estimator with a bandwidth of 0.5. The x-axis represents values from 0 to 10, and the y-axis shows estimated m(x) values ranging from -3 to 2. Blue dots represent data points, a red dashed line indicates a smoothed estimate, and a thick purple line shows the kernel estimator curve." width="90%" />
+<p class="caption">(\#fig:fig-gm-kernel-est)Gasser–Müller Kernel Estimator</p>
+</div>
 
 -   The **purple curve** is the Gasser--Müller estimate.
 
@@ -731,7 +776,10 @@ estimates_df <- data.frame(
     Gasser_Mueller = gm_estimate,
     True_Function = true_function(x_grid)
 )
+```
 
+
+``` r
 # Plot all estimators together
 ggplot() +
   geom_point(aes(x, y), color = "gray60", alpha = 0.5) +
@@ -758,7 +806,10 @@ ggplot() +
   theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Comparing All Estimators-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-comp-kernel-1.png" alt="Chart titled Comparison of Kernel-Based Regression Estimators showing estimated m of x against x. The x-axis ranges from 0 to 10 and the y-axis from -3 to 2. Four lines represent different estimators: Gasser-Mueller in purple, Nadaraya-Watson in green, Priestley-Chao in orange, and the true function in red dashed. Data points are shown as gray dots. The chart highlights variations in estimation methods" width="100%" />
+<p class="caption">(\#fig:fig-comp-kernel)Comparison of Kernel-Based Regression Estimators</p>
+</div>
 
 -   **All estimators** approximate the true function well when the bandwidth is appropriately chosen.
 
@@ -791,7 +842,10 @@ cv_errors <- sapply(bandwidths, cv_bandwidth, x = x, y = y)
 optimal_h <- bandwidths[which.min(cv_errors)]
 optimal_h
 #> [1] 0.3
+```
 
+
+``` r
 # Plot CV errors
 ggplot(data.frame(bandwidths, cv_errors), aes(bandwidths, cv_errors)) +
     geom_line(color = "blue") +
@@ -803,7 +857,10 @@ ggplot(data.frame(bandwidths, cv_errors), aes(bandwidths, cv_errors)) +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Cross-Validation for Bandwidth Selection (Optional)-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-cv-bandwidth-selection-1.png" alt="Chart titled Cross-Validation for Bandwidth Selection showing a plot of cross-validation error against bandwidth h. The curve is U-shaped, starting high, dipping to a minimum, and then rising again. A red dot marks the minimum point on the curve, indicating the optimal bandwidth selection" width="100%" />
+<p class="caption">(\#fig:fig-cv-bandwidth-selection)Cross-Validation for Bandwidth Selection</p>
+</div>
 
 -   The **red point** indicates the **optimal bandwidth** that minimizes the cross-validation error.
 
@@ -826,7 +883,7 @@ $$
 that best fits the data $\{(x_i, y_i)\}$ within a neighborhood of $x$, **weighted by a kernel**. Specifically, we solve:
 
 $$
-(\hat{\beta}_0, \hat{\beta}_1, \ldots, \hat{\beta}_p) = \underset{\beta_0, \ldots, \beta_p}{\arg\min} \sum_{i=1}^n \left[y_i - \left\{\beta_0 + \beta_1 (x_i - x) + \cdots + \beta_p (x_i - x)^p\right\}\right]^2 \, K\!\left(\frac{x_i - x}{h}\right).
+(\hat{\beta}_0, \hat{\beta}_1, \ldots, \hat{\beta}_p) = \underset{\beta_0, \ldots, \beta_p}{\arg\min} \sum_{i=1}^n \left[y_i - \left\{\beta_0 + \beta_1 (x_i - x) + \cdots + \beta_p (x_i - x)^p\right\}\right]^2  K\!\left(\frac{x_i - x}{h}\right).
 $$
 
 We then estimate:
@@ -845,7 +902,7 @@ Centering at $x$ ensures that the fitted polynomial provides the best approximat
 Let $\mathbf{X}_x$ be the design matrix for the local polynomial expansion at point $x$. For a polynomial of degree $p$, each row $i$ of $\mathbf{X}_x$ is:
 
 $$
-\left(1,\; x_i - x,\; (x_i - x)^2,\; \ldots,\; (x_i - x)^p \right).
+\left(1, x_i - x, (x_i - x)^2, \ldots, (x_i - x)^p \right).
 $$
 
 Define $\mathbf{W}_x$ as the diagonal matrix with entries:
@@ -920,19 +977,19 @@ The resulting estimator for $\hat{m}(x)$ simplifies to:
 
 $$
 \hat{m}(x) 
-= \frac{S_{2}(x)\,S_{0y}(x) \;-\; S_{1}(x)\,S_{1y}(x)}
-       {S_{0}(x)\,S_{2}(x) \;-\; S_{1}^2(x)},
+= \frac{S_{2}(x)S_{0y}(x) - S_{1}(x)S_{1y}(x)}
+       {S_{0}(x)S_{2}(x) - S_{1}^2(x)},
 $$
 
 where
 
 $$
-S_k(x) = \sum_{i=1}^n (x_i - x)^k\, K\left(\tfrac{x_i - x}{h}\right)
+S_k(x) = \sum_{i=1}^n (x_i - x)^k K\left(\tfrac{x_i - x}{h}\right)
 $$
 
 $$
 S_{k y}(x) 
-\;=\; \sum_{i=1}^n (x_i - x)^k \, y_i \, K\!\left(\tfrac{x_i - x}{h}\right).
+= \sum_{i=1}^n (x_i - x)^k  y_i  K\!\left(\tfrac{x_i - x}{h}\right).
 $$
 
 ------------------------------------------------------------------------
@@ -940,22 +997,22 @@ $$
 To see why the local linear fit helps reduce bias, consider approximating $m$ around the point $x$ via a first-order Taylor expansion:
 
 $$
-m(t) \;\approx\; m(x) \;+\; m'(x)\,(t - x).
+m(t) \approx m(x) + m'(x)(t - x).
 $$
 
 When we perform local linear regression, we solve the weighted least squares problem
 
 $$
-\min_{\beta_0, \beta_1} \sum_{i=1}^n \left[y_i - \left\{\beta_0 + \beta_1 (x_i - x)\right\}\right]^2\, K\left(\tfrac{x_i - x}{h}\right).
+\min_{\beta_0, \beta_1} \sum_{i=1}^n \left[y_i - \left\{\beta_0 + \beta_1 (x_i - x)\right\}\right]^2 K\left(\tfrac{x_i - x}{h}\right).
 $$
 
 If we assume $y_i = m(x_i) + \varepsilon_i$, then expanding $m(x_i)$ in a Taylor series around $x$ gives:
 
 $$
 m(x_i) 
-\;=\; m(x) \;+\; m'(x)\,(x_i - x) 
-       \;+\; \tfrac{1}{2}\,m''(x)\,(x_i - x)^2 
-       \;+\; \cdots.
+= m(x) + m'(x)(x_i - x) 
+       + \tfrac{1}{2}m''(x)(x_i - x)^2 
+       + \cdots.
 $$
 
 For $x_i$ close to $x$, the higher-order terms may be small, but they contribute to the bias if we truncate at the linear term.
@@ -965,20 +1022,16 @@ For $x_i$ close to $x$, the higher-order terms may be small, but they contribute
 Let us denote:
 
 $$
-S_0(x) 
-\;=\; \sum_{i=1}^n K\!\left(\tfrac{x_i - x}{h}\right),
-\quad
-S_1(x) 
-\;=\; \sum_{i=1}^n (x_i - x)\,K\!\left(\tfrac{x_i - x}{h}\right),
-\quad
-S_2(x) 
-\;=\; \sum_{i=1}^n (x_i - x)^2\,K\!\left(\tfrac{x_i - x}{h}\right).
+\begin{aligned}
+S_0(x) &= \sum_{i=1}^n K\left(\frac{x_i - x}{h}\right), \\
+S_1(x) &= \sum_{i=1}^n (x_i - x) K\left(\frac{x_i - x}{h}\right), \\
+S_2(x) &= \sum_{i=1}^n (x_i - x)^2 K\left(\frac{x_i - x}{h}\right).\end{aligned}
 $$
 
 Similarly, define $$
-\sum_{i=1}^n y_i\,K\!\left(\tfrac{x_i - x}{h}\right)
+\sum_{i=1}^n y_iK\!\left(\tfrac{x_i - x}{h}\right)
 \quad\text{and}\quad
-\sum_{i=1}^n (x_i - x)\,y_i\,K\!\left(\tfrac{x_i - x}{h}\right)
+\sum_{i=1}^n (x_i - x)y_iK\!\left(\tfrac{x_i - x}{h}\right)
 $$ for the right-hand sides. The estimated coefficients $\hat{\beta}_0$ and $\hat{\beta}_1$ are found by solving:
 
 $$
@@ -992,24 +1045,24 @@ S_1(x) & S_2(x)
 \end{pmatrix}
 =
 \begin{pmatrix}
-\sum_{i=1}^n y_i \,K\!\left(\tfrac{x_i - x}{h}\right)\\[6pt]
-\sum_{i=1}^n (x_i - x)\,y_i \,K\!\left(\tfrac{x_i - x}{h}\right)
+\sum_{i=1}^n y_i K\!\left(\tfrac{x_i - x}{h}\right)\\[6pt]
+\sum_{i=1}^n (x_i - x)y_i K\!\left(\tfrac{x_i - x}{h}\right)
 \end{pmatrix}.
 $$
 
 Once $\hat{\beta}_0$ and $\hat{\beta}_1$ are found, we identify $\hat{m}(x) = \hat{\beta}_0$.
 
-By substituting the Taylor expansion $y_i = m(x_i) + \varepsilon_i$ and taking expectations, one can derive how the "extra" $\tfrac12\,m''(x)\,(x_i - x)^2$ terms feed into the local fit's bias.
+By substituting the Taylor expansion $y_i = m(x_i) + \varepsilon_i$ and taking expectations, one can derive how the "extra" $\tfrac12m''(x)(x_i - x)^2$ terms feed into the local fit's bias.
 
 From these expansions and associated algebra, one finds:
 
--   **Bias:** The leading bias term for local linear regression is typically on the order of $h^2$, often written as $\tfrac12\,m''(x)\,\mu_2(K)\,h^2$ for some constant $\mu_2(K)$ depending on the kernel's second moment.
--   **Variance:** The leading variance term at a single point $x$ is on the order of $\tfrac{1}{n\,h}$.
+-   **Bias:** The leading bias term for local linear regression is typically on the order of $h^2$, often written as $\tfrac12m''(x)\mu_2(K)h^2$ for some constant $\mu_2(K)$ depending on the kernel's second moment.
+-   **Variance:** The leading variance term at a single point $x$ is on the order of $\tfrac{1}{nh}$.
 
-Balancing these two orders of magnitude---i.e., setting $h^2 \sim \tfrac{1}{n\,h}$---gives $h \sim n^{-1/3}$. Consequently, the mean squared error at $x$ then behaves like
+Balancing these two orders of magnitude---i.e., setting $h^2 \sim \tfrac{1}{nh}$---gives $h \sim n^{-1/3}$. Consequently, the mean squared error at $x$ then behaves like
 
 $$
-\left(\hat{m}(x) - m(x)\right)^2 \;=\; O_p\!\left(n^{-2/3}\right).
+\left(\hat{m}(x) - m(x)\right)^2 = O_p\!\left(n^{-2/3}\right).
 $$
 
 While local constant ([Nadaraya--Watson](#sec-nadaraya-watson-kernel-estimator)) and local linear estimators often have the same *interior* rate, the local linear approach can eliminate leading-order bias near the boundaries, making it preferable in many practical settings.
@@ -1037,14 +1090,19 @@ Alternatively, for [local linear regression](#sec-special-case-local-linear-regr
 
 ------------------------------------------------------------------------
 
-Comparison: [Nadaraya-Watson](#sec-nadaraya-watson-kernel-estimator) vs. [Local Polynomial Regression](#sec-local-polynomial-regression)
-
++--------------------------------------+----------------------------------+---------------------------------------------+
 | Aspect                               | Nadaraya-Watson (Local Constant) | Local Polynomial Regression                 |
-|--------------------------------------|----------------------------------|---------------------------------------------|
++======================================+==================================+=============================================+
 | **Bias at boundaries**               | High                             | Reduced (especially for $p=1$)              |
++--------------------------------------+----------------------------------+---------------------------------------------+
 | **Flexibility**                      | Limited (constant fit)           | Captures local trends (linear/quadratic)    |
++--------------------------------------+----------------------------------+---------------------------------------------+
 | **Complexity**                       | Simpler                          | Slightly more complex (matrix operations)   |
++--------------------------------------+----------------------------------+---------------------------------------------+
 | **Robustness to heteroscedasticity** | Lower                            | Higher (adapts better to varying densities) |
++--------------------------------------+----------------------------------+---------------------------------------------+
+
+: Comparison: [Nadaraya-Watson](#sec-nadaraya-watson-kernel-estimator) vs. [Local Polynomial Regression](#sec-local-polynomial-regression)
 
 ------------------------------------------------------------------------
 
@@ -1073,7 +1131,10 @@ true_function <-
         sin(x) + 0.5 * cos(2 * x)  # True regression function
 y <-
     true_function(x) + rnorm(n, sd = 0.3) # Add Gaussian noise
+```
 
+
+``` r
 # Visualization of the data
 ggplot(data.frame(x, y), aes(x, y)) +
     geom_point(color = "darkblue") +
@@ -1085,7 +1146,10 @@ ggplot(data.frame(x, y), aes(x, y)) +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-sim-func-1.png" alt="Scatter plot titled Simulated Data with True Regression Function. X-axis labeled x ranges from 0 to 10. Y-axis labeled y ranges from -1 to 1. Blue dots show data points. A red dashed line shows a wavy regression function." width="100%" />
+<p class="caption">(\#fig:fig-sim-func)Simulated Data with True Regression Function</p>
+</div>
 
 
 ``` r
@@ -1167,12 +1231,18 @@ p2 <- ggplot() +
         y = "Estimated m(x)"
     ) +
     theme_minimal()
+```
 
+
+``` r
 # Display plots side by side
 grid.arrange(p1, p2, ncol = 2)
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Visualization of Local Polynomial Fits-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-comp-local-reg-1.png" alt="Two panel XY chart comparing local linear and quadratic regression models. The left panel shows local linear regression with p equal to 1 and includes a green line for the estimated function and red dashed lines for confidence intervals. The right panel shows local quadratic regression with p equal to 2, using an orange line for the estimate and red dashed lines for confidence intervals. Both panels use a bandwidth of 0.8 and plot estimated m of x against x, with scattered blue data points" width="100%" />
+<p class="caption">(\#fig:fig-comp-local-reg)Comparison of Local Regression</p>
+</div>
 
 -   The green curve represents the [local linear regression](#sec-special-case-local-linear-regression) estimate.
 
@@ -1195,7 +1265,13 @@ cv_bandwidth_lp <- function(h, x, y, p = 1, kernel = gaussian_kernel) {
     y_train <- y[-i]
     
     # Predict the left-out point
-    y_pred <- local_polynomial_regression(x[i], x_train, y_train, h = h, p = p, kernel = kernel)
+    y_pred <-
+      local_polynomial_regression(x[i],
+                                  x_train,
+                                  y_train,
+                                  h = h,
+                                  p = p,
+                                  kernel = kernel)
     
     # Accumulate squared error
     cv_error <- cv_error + (y[i] - y_pred)^2
@@ -1228,11 +1304,15 @@ optimal_h_quadratic
 ``` r
 # CV Error Plot for Linear and Quadratic Fits
 cv_data <- data.frame(
-    Bandwidth = rep(bandwidths, 2),
-    CV_Error = c(cv_errors_linear, cv_errors_quadratic),
-    Degree = rep(c("Linear (p=1)", "Quadratic (p=2)"), each = length(bandwidths))
+  Bandwidth = rep(bandwidths, 2),
+  CV_Error = c(cv_errors_linear, cv_errors_quadratic),
+  Degree = rep(c("Linear (p=1)", "Quadratic (p=2)"),
+               each = length(bandwidths))
 )
+```
 
+
+``` r
 ggplot(cv_data, aes(x = Bandwidth, y = CV_Error, color = Degree)) +
     geom_line(size = 1) +
     geom_point(
@@ -1254,7 +1334,10 @@ ggplot(cv_data, aes(x = Bandwidth, y = CV_Error, color = Degree)) +
     scale_color_manual(values = c("green", "orange"))
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Plotting Cross-Validation Results-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-cv-bandwith-selection-1.png" alt="Line chart titled Cross-Validation for Bandwidth Selection showing cross-validation error against bandwidth h. Two curves represent linear regression with p equal to 1 in green and quadratic regression with p equal to 2 in orange. Red points on the curves indicate optimal bandwidths. A legend identifies the regression degree types" width="100%" />
+<p class="caption">(\#fig:fig-cv-bandwith-selection)Cross-Validation for Bandwidth Selection</p>
+</div>
 
 -   The optimal bandwidth minimizes the cross-validation error.
 
@@ -1269,7 +1352,10 @@ final_llr_estimate <-
     local_polynomial_regression(x_grid, x, y, h = optimal_h_linear, p = 1)
 final_lqr_estimate <-
     local_polynomial_regression(x_grid, x, y, h = optimal_h_quadratic, p = 2)
+```
 
+
+``` r
 # Plot final fits
 ggplot() +
     geom_point(aes(x, y), color = "gray60", alpha = 0.5) +
@@ -1302,7 +1388,10 @@ ggplot() +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Final Fit with Optimal Bandwidths-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-line-comp-linear-quad-1.png" alt="Line chart displaying estimated functions compared to a true function. The x-axis is labeled x and ranges from 0 to 10. The y-axis is labeled estimated m of x and ranges from -1 to 1. The chart includes three lines: a green line for the linear estimate, an orange line for the quadratic estimate, and a red dashed line for the true function. Gray data points are scattered throughout. A legend on the right identifies the lines" width="100%" />
+<p class="caption">(\#fig:fig-line-comp-linear-quad)Line Comparison between Linear and Quadratic Estimates</p>
+</div>
 
 ------------------------------------------------------------------------
 
@@ -1313,7 +1402,7 @@ A **spline** is a piecewise polynomial function that is smooth at the junction p
 In the univariate case, suppose we have data $\{(x_i, y_i)\}_{i=1}^n$ with $0 \le x_1 < x_2 < \cdots < x_n \le 1$ (rescaling is always possible if needed). The **smoothing spline estimator** $\hat{m}(x)$ is defined as the solution to the following optimization problem:
 
 $$
-\hat{m}(x) = \underset{f \in \mathcal{H}}{\arg\min} \left\{ \sum_{i=1}^n \left(y_i - f(x_i)\right)^2 + \lambda \int_{0}^{1} \left(f''(t)\right)^2 \, dt \right\},
+\hat{m}(x) = \underset{f \in \mathcal{H}}{\arg\min} \left\{ \sum_{i=1}^n \left(y_i - f(x_i)\right)^2 + \lambda \int_{0}^{1} \left(f''(t)\right)^2  dt \right\},
 $$
 
 where:
@@ -1334,7 +1423,7 @@ A key result from spline theory is that the minimizer $\hat{m}(x)$ is a **natura
 The solution can be expressed as:
 
 $$
-\hat{m}(x) = a_0 + a_1 x + \sum_{j=1}^n b_j \, (x - x_j)_+^3,
+\hat{m}(x) = a_0 + a_1 x + \sum_{j=1}^n b_j  (x - x_j)_+^3,
 $$
 
 where:
@@ -1372,7 +1461,7 @@ The optimal $\lambda$ minimizes the GCV score, balancing fit and complexity with
 Smoothing splines can be viewed through the lens of **reproducing kernel Hilbert spaces (RKHS)**. The penalty term:
 
 $$
-\int_{0}^{1} \left(f''(t)\right)^2 \, dt
+\int_{0}^{1} \left(f''(t)\right)^2  dt
 $$
 
 defines a **semi-norm** that corresponds to the squared norm of $f$ in a particular RKHS associated with the cubic spline kernel. This interpretation reveals that smoothing splines are equivalent to solving a **regularization problem in an RKHS**, where the penalty controls the smoothness of the solution.
@@ -1399,7 +1488,10 @@ true_function <-
         sin(x) + 0.5 * cos(2 * x)  # True regression function
 y <-
     true_function(x) + rnorm(n, sd = 0.3) # Add Gaussian noise
+```
 
+
+``` r
 # Visualization of the data
 ggplot(data.frame(x, y), aes(x, y)) +
     geom_point(color = "darkblue", alpha = 0.6) +
@@ -1411,7 +1503,10 @@ ggplot(data.frame(x, y), aes(x, y)) +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-sim-function-alt-1.png" alt="Scatter plot titled Simulated Data with True Regression Function showing blue data points distributed along the x-axis from 0 to 10 and the y-axis from -1 to 1. A red dashed line represents the true regression function, illustrating a non-linear trend with peaks and troughs. The x-axis is labeled x and the y-axis is labeled y" width="100%" />
+<p class="caption">(\#fig:fig-sim-function-alt)Simulated Data with True Regression Function</p>
+</div>
 
 
 ``` r
@@ -1467,7 +1562,10 @@ ggplot() +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Visualization of Smoothing Spline Fits-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-smoothing-spline-fits-1.png" alt="Chart titled Smoothing Spline Fits showing data points and three smoothing lines. The x-axis is labeled x and the y-axis is labeled estimated m of x. The green line represents GCV-selected, the orange line shows smooth with spar equal to 0.8, and the purple line shows flexible with spar equal to 0.4. The chart illustrates how different smoothing parameters affect the fit of the data" width="100%" />
+<p class="caption">(\#fig:fig-smoothing-spline-fits)Smoothing Spline Fits</p>
+</div>
 
 -   The green curve is the fit with the optimal $\lambda$ selected automatically via GCV.
 -   The orange curve (with `spar = 0.8`) is smoother, capturing broad trends but missing finer details.
@@ -1511,7 +1609,10 @@ ggplot(data.frame(spar_values, gcv_scores),
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Plotting GCV Scores-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-gcv-smoothing-selection-1.png" alt="Graph titled GCV for Smoothing Parameter Selection showing the relationship between the smoothing parameter spar on the x-axis and the GCV score on the y-axis. The curve is blue with a red dot marking the minimum point at spar equal to 0.7, indicating the optimal smoothing parameter. The GCV score ranges from 0.2 to 0.6" width="100%" />
+<p class="caption">(\#fig:fig-gcv-smoothing-selection)GCV for Smoothing Parameter Selection</p>
+</div>
 
 -   The blue curve shows how the GCV score changes with different smoothing parameters (`spar`).
 -   The red point indicates the optimal smoothing parameter that minimizes the GCV score.
@@ -1544,7 +1645,10 @@ ggplot() +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Final Smoothing Spline Fit with Optimal lambda-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-spline-optimal-lambda-1.png" alt="Scatter plot showing a smoothing spline with an optimal smoothing parameter of 0.7. The x-axis is labeled x and the y-axis is labeled estimated m of x. Gray data points are scattered throughout the plot. A green line represents the smoothing spline and a red dashed line indicates the true function" width="100%" />
+<p class="caption">(\#fig:fig-spline-optimal-lambda)Smoothing Spline with Optimal Smoothing Parameter</p>
+</div>
 
 ------------------------------------------------------------------------
 
@@ -1557,7 +1661,7 @@ Constructing **confidence intervals** (or bands) for nonparametric regression es
 Under regularity conditions, nonparametric estimators are **asymptotically normal**. For a given point $x$, we have:
 
 $$
-\sqrt{n h} \left\{\hat{m}(x) - m(x)\right\} \overset{\mathcal{D}}{\longrightarrow} \mathcal{N}\left(0, \sigma^2 \, \nu(x)\right),
+\sqrt{n h} \left\{\hat{m}(x) - m(x)\right\} \overset{\mathcal{D}}{\longrightarrow} \mathcal{N}\left(0, \sigma^2  \nu(x)\right),
 $$
 
 where:
@@ -1651,9 +1755,9 @@ where:
 
 **Special Cases:**
 
--   **When** $g$ is the identity function and $Y$ is continuous: This reduces to an **additive model** (a special case of GAM).
--   **When** $g$ is the logit function and $Y$ is binary: We have a **logistic GAM** for classification tasks.
--   **When** $g$ is the log function and $Y$ follows a Poisson distribution: This is a **Poisson GAM** for count data.
+-   When $g$ is the identity function and $Y$ is continuous: This reduces to an **additive model** (a special case of GAM).
+-   When $g$ is the logit function and $Y$ is binary: We have a **logistic GAM** for classification tasks.
+-   When $g$ is the log function and $Y$ follows a Poisson distribution: This is a **Poisson GAM** for count data.
 
 ------------------------------------------------------------------------
 
@@ -1800,12 +1904,18 @@ p3 <-
     ggplot(data_gam, aes(x3, y)) + 
     geom_point() + 
     labs(title = "Effect of x3 (quadratic)")
+```
 
+
+``` r
 # Display plots side by side
 grid.arrange(p1, p2, p3, ncol = 3)
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Simulate Data for GAM-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-scatter-effect-x-1.png" alt="Three-panel scatter plots showing effects of x1, x2, and x3 on y with sine, log, and quadratic patterns respectively" width="100%" />
+<p class="caption">(\#fig:fig-scatter-effect-x)Scatter Plot Effect of X</p>
+</div>
 
 
 ``` r
@@ -1848,11 +1958,13 @@ par(mfrow = c(1, 3))  # Arrange plots in one row
 plot(gam_model, shade = TRUE, seWithMean = TRUE)
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Visualizing Smooth Functions (Partial Dependence Plots)-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/Visualizing Smooth Functions (Partial Dependence Plots)-1.png" alt="Three-panel X-Y chart displaying functions of variables x1, x2, and x3. The left panel shows a wavy line with confidence intervals for s(x1,6) against x1 ranging from 0 to 10. The middle panel depicts a slightly increasing line with confidence intervals for s(x2,1) against x2 ranging from 0 to 5. The right panel illustrates a parabolic curve with confidence intervals for s(x3,6.24) against x3 ranging from 0 to 10. Each panel includes a vertical axis labeled with values from -20 to 0." width="90%" />
+<p class="caption">(\#fig:Visualizing Smooth Functions (Partial Dependence Plots))Smooth Functions</p>
+</div>
 
 ``` r
 par(mfrow = c(1, 1))  # Reset plotting layout
-
 ```
 
 
@@ -1867,7 +1979,10 @@ pred_data <- with(data_gam, expand.grid(
 # Predictions for x1 effect
 pred_data$pred_x1 <-
     predict(gam_model, newdata = pred_data, type = "response")
+```
 
+
+``` r
 ggplot(pred_data, aes(x1, pred_x1)) +
     geom_line(color = "blue", size = 1.2) +
     labs(title = "Partial Effect of x1",
@@ -1876,7 +1991,10 @@ ggplot(pred_data, aes(x1, pred_x1)) +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-partial-effect-x1-1.png" alt="Line chart titled Partial Effect of x1 showing the effect on y as a function of x1. The curve is sinusoidal, starting at a moderate level, peaking around x1 equal to 2.5, dipping near x1 equal to 5, and rising again around x1 equal to 7.5 before slightly declining. The y-axis is labeled Effect on y and ranges from 3.5 to 5.5. The x-axis is labeled x1 and ranges from 0 to 10. The line is blue and smooth" width="100%" />
+<p class="caption">(\#fig:fig-partial-effect-x1)Partial Effect of x1</p>
+</div>
 
 
 ``` r
@@ -1940,7 +2058,10 @@ summary(gam_interaction)
 #> 
 #> R-sq.(adj) =  0.912   Deviance explained = 92.4%
 #> GCV = 1.0233  Scale est. = 0.87688   n = 100
+```
 
+
+``` r
 # Visualization of interaction effect
 vis.gam(
     gam_interaction,
@@ -1950,7 +2071,10 @@ vis.gam(
 )
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Adding Interaction Terms-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-linear-predictor-1.png" alt="Contour map titled Linear Predictor displaying color gradients from green to red representing varying values. Contour lines are labeled with values ranging from 2.5 to 5.5. The x-axis is labeled x1 and ranges from 0 to 10. The y-axis is labeled x2 and ranges from 0 to 5" width="100%" />
+<p class="caption">(\#fig:fig-linear-predictor)Linear Predictor</p>
+</div>
 
 -   The tensor product smooth `te(x1, x2)` captures nonlinear interactions between `x1` and `x2`.
 -   The contour plot visualizes how their joint effect influences the response.
@@ -1989,11 +2113,18 @@ summary(gam_logistic)
 #> 
 #> R-sq.(adj) =      1   Deviance explained = 99.8%
 #> UBRE = -0.84802  Scale est. = 1         n = 100
+```
+
+
+``` r
 par(mfrow = c(1, 3))
 plot(gam_logistic, shade = TRUE)
 ```
 
-<img src="10-nonparam-regression_files/figure-html/GAM for Logistic Regression (Binary Outcome)-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/unnamed-chunk-5-1.png" alt="Three-panel X-Y chart displaying smooth functions of variables x1, x2, and x3. Each panel shows a solid line representing the estimated smooth function and dashed lines indicating confidence intervals. The y-axes are labeled as s(x1, 4.47), s(x2, 1), and s(x3, 1) respectively, with values ranging from -200 to 400. The x-axes are labeled x1, x2, and x3, with varying scales. The chart visualizes the relationship between these variables and their respective smooth functions." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-5)Smooth Functions of Variables</p>
+</div>
 
 ``` r
 par(mfrow = c(1, 1))
@@ -2009,7 +2140,10 @@ par(mfrow = c(2, 2))
 gam.check(gam_model)
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Model Diagnostics-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/Model Diagnostics-1.png" alt="Four-panel figure showing residual analysis for a statistical model. Top left: Q-Q plot of deviance residuals against theoretical quantiles, with points following a diagonal line. Top right: Scatter plot of residuals versus linear predictor, showing a random distribution. Bottom left: Histogram of residuals, centered around zero, indicating normal distribution. Bottom right: Scatter plot of response versus fitted values, showing a linear relationship." width="90%" />
+<p class="caption">(\#fig:Model Diagnostics)Model Diagnostics</p>
+</div>
 
 ```
 #> 
@@ -2146,14 +2280,23 @@ Random forests naturally provide measures of **variable importance**, helping id
 
 ### Advantages and Limitations of Tree-Based Methods
 
++------------------------------+---------------------------------+----------------------------------------------------+
 | **Aspect**                   | **Regression Trees**            | **Random Forests**                                 |
-|------------------------------|---------------------------------|----------------------------------------------------|
++==============================+=================================+====================================================+
 | **Interpretability**         | High (easy to visualize)        | Moderate (difficult to interpret individual trees) |
++------------------------------+---------------------------------+----------------------------------------------------+
 | **Variance**                 | High (prone to overfitting)     | Low (averaging reduces variance)                   |
++------------------------------+---------------------------------+----------------------------------------------------+
 | **Bias**                     | Low (flexible to data patterns) | Slightly higher than a single tree                 |
++------------------------------+---------------------------------+----------------------------------------------------+
 | **Feature Importance**       | Basic (via tree splits)         | Advanced (permutation-based measures)              |
++------------------------------+---------------------------------+----------------------------------------------------+
 | **Handling of Missing Data** | Handles with surrogate splits   | Handles naturally in ensemble averaging            |
++------------------------------+---------------------------------+----------------------------------------------------+
 | **Computational Cost**       | Low (fast for small datasets)   | High (especially with many trees)                  |
++------------------------------+---------------------------------+----------------------------------------------------+
+
+: Advantages and Limitations of Tree-Based Methods
 
 
 ``` r
@@ -2196,11 +2339,17 @@ p2 <- ggplot(data_tree, aes(x2, y)) +
 p3 <- ggplot(data_tree, aes(x3, y)) +
     geom_point() +
     labs(title = "Effect of x3")
+```
 
+
+``` r
 grid.arrange(p1, p2, p3, ncol = 3)
 ```
 
-<img src="10-nonparam-regression_files/figure-html/unnamed-chunk-5-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-scatter-effects-1.png" alt="Three-panel scatter plot showing effects of x1 x2 and x3 on y. Each panel shows data points with different patterns. The third panel has points mostly at the top with some lower values. Axes are labeled x and y" width="100%" />
+<p class="caption">(\#fig:fig-scatter-effects)Scatter Plots of Variable Effects</p>
+</div>
 
 
 ``` r
@@ -2320,7 +2469,10 @@ summary(tree_model)
 #> 
 #> Node number 253: 15 observations
 #>   mean=4.988114, MSE=0.5504908
+```
 
+
+``` r
 # Visualize the Regression Tree
 rpart.plot(
     tree_model,
@@ -2331,7 +2483,10 @@ rpart.plot(
 )
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Fitting a Regression Tree-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/unnamed-chunk-7-1.png" alt="A regression tree diagram illustrating decision nodes and outcomes. The root node starts with a value of 2.6, splitting based on the condition of whether x3 is greater than or equal to 7.7. If yes, the left branch leads to a terminal node with a value of -4.6, while the right branch continues to further split if the condition is not met. Key decision points include conditions like whether x3 is smaller than 3, whether x3 is greater than or equal to 6.3, and whether x2 is smaller than  1.1. Terminal nodes display values such as 0.4, 2.1, 3.3, 3.6, 5, and 5.3, with corresponding sample sizes and percentages. The diagram visually represents the decision-making process in a regression analysis." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-7)Regression Tree</p>
+</div>
 
 -   Splits are made based on conditions (e.g., x1 \< 4.2), partitioning the predictor space.
 -   Terminal nodes (leaves) show the predicted value (mean response in that region).
@@ -2366,7 +2521,10 @@ optimal_cp <-
 
 # Prune the tree
 pruned_tree <- prune(tree_model, cp = optimal_cp)
+```
 
+
+``` r
 # Visualize the pruned tree
 rpart.plot(
     pruned_tree,
@@ -2377,7 +2535,10 @@ rpart.plot(
 )
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Pruning the Regression Tree-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/unnamed-chunk-8-1.png" alt="Pruned regression tree diagram illustrating decision nodes and leaf nodes. The root node splits based on the condition of whether x3 is greater than or equal to 7.7, with subsequent branches dividing further based on conditions like whether x3 is smaller than 3, whether x3 is greater than or equal to 6.3, and whether x2 is smaller than 1.1. Each node displays a value, sample size n, and percentage. The tree ends with leaf nodes showing final values and sample distributions." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-8)Pruned Regression Tree Diagram</p>
+</div>
 
 -   Pruning reduces overfitting by simplifying the tree.
 -   The optimal CP minimizes cross-validation error, balancing complexity and fit.
@@ -2418,7 +2579,10 @@ print(rf_model)
 plot(rf_model, main = "Out-of-Bag Error for Random Forest")
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Out-of-Bag (OOB) Error Plot-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-oob-error-plot-1.png" alt="Line chart titled Out-of-Bag Error for Random Forest showing the error rate on the y-axis and the number of trees on the x-axis. The error rate decreases sharply as the number of trees increases and stabilizes around 500 trees" width="100%" />
+<p class="caption">(\#fig:fig-oob-error-plot)Out-of-Bag Error for Random Forest</p>
+</div>
 
 -   OOB error stabilizes as more trees are added, providing an unbiased estimate of test error.
 -   Helps determine if more trees improve performance or if the model has converged.
@@ -2431,10 +2595,17 @@ importance(rf_model)                # Numerical importance measures
 #> x1 10.145674     137.09918
 #> x2  1.472662      77.41256
 #> x3 44.232816     718.49567
+```
+
+
+``` r
 varImpPlot(rf_model, main = "Variable Importance (Random Forest)")
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Feature Importance in Random Forests-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-variable-importance-rf-1.png" alt="Two XY charts display variable importance from a Random Forest model. The left chart shows percent increase in mean squared error on the x-axis, with variables x1, x2, and x3 on the y-axis. The right chart shows increase in node purity on the x-axis, with the same variables on the y-axis. Both charts indicate the relative importance of each variable, with x3 having the highest importance in both metrics" width="100%" />
+<p class="caption">(\#fig:fig-variable-importance-rf)Variable Importance (Random Forest)</p>
+</div>
 
 -   Mean Decrease in MSE indicates how much the model's error increases when a variable is permuted.
 -   Mean Decrease in Node Impurity reflects how much each variable reduces variance in splits.
@@ -2451,7 +2622,10 @@ test_data <- data.frame(x1 = x_new,
 # Predictions
 tree_pred <- predict(pruned_tree, newdata = test_data)
 rf_pred <- predict(rf_model, newdata = test_data)
+```
 
+
+``` r
 # Visualization
 ggplot() +
     geom_point(aes(x1, y),
@@ -2474,7 +2648,10 @@ ggplot() +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Model Comparison: Regression Tree vs. Random Forest-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-tree-vs-rf-1.png" alt="Chart comparing regression tree and random forest predictions. The x-axis is labeled x1 and the y-axis is labeled predicted y. A blue dashed line represents the pruned tree and a green line represents the random forest. Gray dots indicate data points. The chart title is Regression Tree vs. Random Forest, and the legend indicates blue for the pruned tree and green for the random forest" width="100%" />
+<p class="caption">(\#fig:fig-tree-vs-rf)Regression Tree vs. Random Forest</p>
+</div>
 
 -   The pruned regression tree (blue) shows step-like predictions, characteristic of piecewise constant fits.
 -   The random forest (green) provides a smoother fit by averaging across many trees, reducing variance.
@@ -2515,7 +2692,7 @@ A wavelet is a function $\psi(t)$ that oscillates (like a wave) but is localized
 Wavelet basis functions are generated by scaling and translating the mother wavelet:
 
 $$
-\psi_{j,k}(t) = 2^{j/2} \, \psi(2^j t - k),
+\psi_{j,k}(t) = 2^{j/2}  \psi(2^j t - k),
 $$
 
 where:
@@ -2533,7 +2710,7 @@ In addition to the mother wavelet $\psi(t)$, there's also a **scaling function**
 Just as Fourier analysis represents functions as sums of sines and cosines, **wavelet analysis** represents a function as a sum of wavelet basis functions:
 
 $$
-f(t) = \sum_{k} c_{J_0, k} \, \phi_{J_0, k}(t) + \sum_{j = J_0}^{J_{\max}} \sum_{k} d_{j, k} \, \psi_{j, k}(t),
+f(t) = \sum_{k} c_{J_0, k}  \phi_{J_0, k}(t) + \sum_{j = J_0}^{J_{\max}} \sum_{k} d_{j, k}  \psi_{j, k}(t),
 $$
 
 where:
@@ -2562,7 +2739,7 @@ where:
 We approximate $f(x)$ using a finite number of wavelet basis functions:
 
 $$
-\hat{f}(x) = \sum_{k} \hat{c}_{J_0, k} \, \phi_{J_0, k}(x) + \sum_{j = J_0}^{J_{\max}} \sum_{k} \hat{d}_{j, k} \, \psi_{j, k}(x),
+\hat{f}(x) = \sum_{k} \hat{c}_{J_0, k}  \phi_{J_0, k}(x) + \sum_{j = J_0}^{J_{\max}} \sum_{k} \hat{d}_{j, k}  \psi_{j, k}(x),
 $$
 
 where the coefficients $\hat{c}_{J_0, k}$ and $\hat{d}_{j, k}$ are estimated from the data.
@@ -2594,18 +2771,26 @@ $$
 
 $$
 \hat{d}_{j, k}^{\text{(soft)}} = 
-\operatorname{sign}(d_{j, k}) \cdot \max\left(|d_{j, k}| - \tau, \, 0\right),
+\operatorname{sign}(d_{j, k}) \cdot \max\left(|d_{j, k}| - \tau,  0\right),
 $$
 
 where $\tau$ is the **threshold parameter**, often chosen based on the noise level (e.g., via cross-validation or universal thresholding).
 
++------------------------+-----------------------------------------------------------------------------------------------+---------------------------------------+-----------------------------------------+
 | **Aspect**             | [**Kernel**](#sec-kernel-regression)**/[Local Polynomial](#sec-local-polynomial-regression)** | [**Splines**](#sec-smoothing-splines) | [**Wavelets**](#sec-wavelet-regression) |
-|------------------------|-----------------------------------------------------------------------------------------------|---------------------------------------|-----------------------------------------|
++========================+===============================================================================================+=======================================+=========================================+
 | **Smoothness**         | Smooth, localized                                                                             | Globally smooth with knots            | Captures sharp discontinuities          |
++------------------------+-----------------------------------------------------------------------------------------------+---------------------------------------+-----------------------------------------+
 | **Basis Functions**    | Kernel functions                                                                              | Piecewise polynomials                 | Compact, oscillatory wavelets           |
++------------------------+-----------------------------------------------------------------------------------------------+---------------------------------------+-----------------------------------------+
 | **Handling of Noise**  | Prone to overfitting without smoothing                                                        | Controlled via penalties              | Excellent via thresholding              |
++------------------------+-----------------------------------------------------------------------------------------------+---------------------------------------+-----------------------------------------+
 | **Computational Cost** | Moderate                                                                                      | High (for large knots)                | Efficient (fast wavelet transform)      |
++------------------------+-----------------------------------------------------------------------------------------------+---------------------------------------+-----------------------------------------+
 | **Applications**       | Curve fitting, density estimation                                                             | Smoothing trends                      | Signal processing, time series          |
++------------------------+-----------------------------------------------------------------------------------------------+---------------------------------------+-----------------------------------------+
+
+: Comparison of Nonparametric Smoothing Methods
 
 ------------------------------------------------------------------------
 
@@ -2642,7 +2827,10 @@ for (i in 1:4) {
 
 # Inverse DWT to reconstruct the signal
 y_hat <- idwt(dwt_result_thresh)
+```
 
+
+``` r
 # Plotting
 plot(
     x,
@@ -2667,7 +2855,10 @@ legend(
 )
 ```
 
-<img src="10-nonparam-regression_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-wavelet-denoising-1.png" alt="Chart titled Wavelet Regression Denoising showing an XY plot with three lines: gray for noisy data, blue dashed for the true signal, and red for the wavelet estimate. The x-axis ranges from 0.0 to 1.0 and the y-axis ranges from -1.0 to 2.0. A legend in the top right corner labels the lines. The chart illustrates the effectiveness of wavelet regression in denoising data" width="100%" />
+<p class="caption">(\#fig:fig-wavelet-denoising)Wavelet Regression (Denoising)</p>
+</div>
 
 **Advantages:**
 
@@ -2702,7 +2893,10 @@ signal <- sin(4 * pi * x) + ifelse(x > 0.5, 1, 0)
 
 # Add Gaussian noise
 y <- signal + rnorm(n, sd = 0.2)
+```
 
+
+``` r
 # Plot the noisy data and true signal
 ggplot() +
     geom_line(aes(x, y),
@@ -2720,7 +2914,10 @@ ggplot() +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-noisy-true-signal-1.png" alt="Chart titled Noisy Data with Underlying True Signal showing an XY plot. The x-axis is labeled x and ranges from 0 to 1. The y-axis is labeled Signal and ranges from -1 to 2. A grey line represents noisy data with fluctuations, while a blue dashed line indicates the smoother underlying true signal" width="100%" />
+<p class="caption">(\#fig:fig-noisy-true-signal)Noisy Data with Underlying True Signal</p>
+</div>
 
 
 ``` r
@@ -2796,7 +2993,10 @@ df_plot <- data.frame(
         each = n
     )
 )
+```
 
+
+``` r
 # Plotting
 ggplot(df_plot, aes(x, y, color = Type, linetype = Type)) +
     geom_line(size = 1) +
@@ -2812,7 +3012,10 @@ ggplot(df_plot, aes(x, y, color = Type, linetype = Type)) +
     theme(legend.position = "top")
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Visualization of Wavelet Denoising-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-wavelet-thresholding-1.png" alt="Chart titled Wavelet Regression Denoising comparing hard and soft thresholding. The x-axis represents values from 0 to 1 and the y-axis represents the signal. The chart includes four lines: hard thresholding in gray, noisy data in blue, soft thresholding in red, and the true signal in green. The lines illustrate differences in denoising techniques, with the true signal showing a smooth curve and the others showing variations in data processing" width="100%" />
+<p class="caption">(\#fig:fig-wavelet-thresholding)Wavelet Regression (Denoising)</p>
+</div>
 
 
 ``` r
@@ -2823,8 +3026,8 @@ mse_soft <- mean((y_hat_soft - signal) ^ 2)
 
 # Display MSE comparison
 data.frame(
-    Method = c("Noisy Data", "Hard Thresholding", "Soft Thresholding"),
-    MSE = c(mse_noisy, mse_hard, mse_soft)
+  Method = c("Noisy Data", "Hard Thresholding", "Soft Thresholding"),
+  MSE = c(mse_noisy, mse_hard, mse_soft)
 )
 #>              Method        MSE
 #> 1        Noisy Data 0.03127707
@@ -2867,7 +3070,7 @@ This makes traditional nonparametric methods, like kernel smoothing, impractical
 A straightforward extension of kernel regression to higher dimensions is the multivariate [Nadaraya-Watson estimator](#sec-nadaraya-watson-kernel-estimator):
 
 $$
-\hat{m}_h(\mathbf{x}) = \frac{\sum_{i=1}^n K_h(\mathbf{x} - \mathbf{x}_i) \, y_i}{\sum_{i=1}^n K_h(\mathbf{x} - \mathbf{x}_i)},
+\hat{m}_h(\mathbf{x}) = \frac{\sum_{i=1}^n K_h(\mathbf{x} - \mathbf{x}_i)  y_i}{\sum_{i=1}^n K_h(\mathbf{x} - \mathbf{x}_i)},
 $$
 
 where:
@@ -2910,7 +3113,7 @@ Thin-plate splines are **rotation-invariant** and do not require explicit placem
 For structured multivariate data, **tensor product splines** are commonly used. They construct a basis for each predictor and form the multivariate basis via tensor products:
 
 $$
-\hat{m}(\mathbf{x}) = \sum_{i=1}^{K_1} \sum_{j=1}^{K_2} \beta_{ij} \, B_i(x_1) \, B_j(x_2),
+\hat{m}(\mathbf{x}) = \sum_{i=1}^{K_1} \sum_{j=1}^{K_2} \beta_{ij}  B_i(x_1)  B_j(x_2),
 $$
 
 where $B_i(x_1)$ and $B_j(x_2)$ are spline basis functions for $x_1$ and $x_2$, respectively.
@@ -2953,7 +3156,7 @@ where each $f_j$ is a univariate smooth function estimated nonparametrically.
 A typical RBF model is:
 
 $$
-\hat{m}(\mathbf{x}) = \sum_{i=1}^n \alpha_i \, \phi(\|\mathbf{x} - \mathbf{x}_i\|),
+\hat{m}(\mathbf{x}) = \sum_{i=1}^n \alpha_i  \phi(\|\mathbf{x} - \mathbf{x}_i\|),
 $$
 
 where:
@@ -3005,11 +3208,17 @@ p3 <-
     ggplot(data_multi, aes(x3, y)) +
     geom_point(alpha = 0.5) +
     labs(title = "Effect of x3")
+```
 
+
+``` r
 gridExtra::grid.arrange(p1, p2, p3, ncol = 3)
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Simulate Multivariate Data-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-scatter-panel-effects-1.png" alt="Three panel XY chart showing the effects of variables x1, x2, and x3 on y. Each panel displays a scatter plot with the x-axis labeled as x1, x2, and x3 respectively, and the y-axis labeled as y. The data points are scattered, showing varying relationships between each x variable and y. The charts are titled Effect of x1, Effect of x2, and Effect of x3" width="100%" />
+<p class="caption">(\#fig:fig-scatter-panel-effects)Scatter Plot</p>
+</div>
 
 
 ``` r
@@ -3029,6 +3238,10 @@ pred_kernel <- predict(kernel_model, newdata = grid_data)
 
 # Visualization
 grid_data$pred <- pred_kernel
+```
+
+
+``` r
 ggplot(grid_data, aes(x1, x2, fill = pred)) +
     geom_raster() +
     scale_fill_viridis_c() +
@@ -3038,7 +3251,10 @@ ggplot(grid_data, aes(x1, x2, fill = pred)) +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Multivariate Kernel Regression (Nadaraya-Watson)-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/unnamed-chunk-12-1.png" alt="Heatmap illustrating multivariate kernel regression with x3 fixed. The x-axis represents x1, and the y-axis represents x2, both ranging from 0 to 5. The color gradient transitions from purple to yellow, indicating prediction values from 2 to 6, as shown in the legend on the right." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-12)Multivariate Kernel Regression (x3 fixed)</p>
+</div>
 
 -   Kernel regression captures nonlinear interactions but suffers from data sparsity in high dimensions (curse of dimensionality).
 -   Bandwidth selection is critical for performance.
@@ -3050,7 +3266,10 @@ tps_model <- gam(y ~ s(x1, x2, x3, bs = "tp", k = 5), data = data_multi)
 
 # Predictions
 grid_data$pred_tps <- predict(tps_model, newdata = grid_data)
+```
 
+
+``` r
 # Visualization
 ggplot(grid_data, aes(x1, x2, fill = pred_tps)) +
     geom_raster() +
@@ -3060,7 +3279,10 @@ ggplot(grid_data, aes(x1, x2, fill = pred_tps)) +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Thin-Plate Splines (with mgcv)-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-thin-plate-spline-x3-1.png" alt="Heatmap titled Thin-Plate Spline x3 fixed displaying a gradient of colors from dark purple to yellow. The x-axis is labeled x1 and ranges from 0 to 5. The y-axis is labeled x2 and ranges from 0 to 5. A color scale on the right labeled pred_tps indicates values from 2 to 6. The heatmap visualizes data variation across the x1 and x2 axes" width="100%" />
+<p class="caption">(\#fig:fig-thin-plate-spline-x3)Thin-Plate Spline (x3 fixed)</p>
+</div>
 
 -   Thin-plate splines handle smooth surfaces well and are rotation-invariant.
 -   Computational cost increases with higher dimensions due to matrix operations.
@@ -3072,7 +3294,10 @@ tensor_model <- gam(y ~ te(x1, x2, x3), data = data_multi)
 
 # Predictions
 grid_data$pred_tensor <- predict(tensor_model, newdata = grid_data)
+```
 
+
+``` r
 # Visualization
 ggplot(grid_data, aes(x1, x2, fill = pred_tensor)) +
     geom_raster() +
@@ -3082,7 +3307,10 @@ ggplot(grid_data, aes(x1, x2, fill = pred_tensor)) +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Tensor Product Splines (for Structured Interactions)-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-tensor-product-spline-x3-1.png" alt="Heatmap titled Tensor Product Spline x3 fixed displaying a gradient of colors from purple to yellow. The x-axis is labeled x1 and ranges from 0 to 5. The y-axis is labeled x2 and also ranges from 0 to 5. A color scale on the right labeled pred_tensor indicates values from 0 to 6, with darker colors representing lower values and lighter colors representing higher values" width="100%" />
+<p class="caption">(\#fig:fig-tensor-product-spline-x3)Tensor Product Spline (x3 fixed)</p>
+</div>
 
 -   Tensor product splines model interactions explicitly between variables.
 -   Suitable when data have structured dependencies but can lead to many parameters in higher dimensions.
@@ -3094,7 +3322,10 @@ gam_model <- gam(y ~ s(x1) + s(x2) + s(x3), data = data_multi)
 
 # Predictions
 grid_data$pred_gam <- predict(gam_model, newdata = grid_data)
+```
 
+
+``` r
 # Visualization
 ggplot(grid_data, aes(x1, x2, fill = pred_gam)) +
     geom_raster() +
@@ -3104,7 +3335,10 @@ ggplot(grid_data, aes(x1, x2, fill = pred_gam)) +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Additive Models (GAMs) to Mitigate Curse of Dimensionality-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/fig-gam-x3-fixed-1.png" alt="Heatmap illustrating an additive model GAM with x3 fixed. The x-axis represents variable x1 and the y-axis represents variable x2, both ranging from 0 to 5. The color gradient transitions from purple to yellow, indicating values of the predicted GAM labeled as pred_gam, with a scale from 1 to 6" width="100%" />
+<p class="caption">(\#fig:fig-gam-x3-fixed)Additive Model (GAM, x3 fixed)</p>
+</div>
 
 Why GAMs Help:
 
@@ -3124,7 +3358,10 @@ rbf_model <- Tps(cbind(x1, x2, x3), y)  # Thin-plate spline RBF
 # Predictions
 grid_data$pred_rbf <-
     predict(rbf_model, cbind(grid_data$x1, grid_data$x2, grid_data$x3))
+```
 
+
+``` r
 # Visualization
 ggplot(grid_data, aes(x1, x2, fill = pred_rbf)) +
     geom_raster() +
@@ -3134,7 +3371,10 @@ ggplot(grid_data, aes(x1, x2, fill = pred_rbf)) +
     theme_minimal()
 ```
 
-<img src="10-nonparam-regression_files/figure-html/Radial Basis Functions (RBFs) for Multivariate Regression-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="10-nonparam-regression_files/figure-html/unnamed-chunk-13-1.png" alt="Heatmap illustrating Radial Basis Function Regression with x3 fixed. The x-axis represents x1, and the y-axis represents x2. The color gradient ranges from purple to yellow, indicating varying levels of the predicted RBF values, labeled as pred_rbf, with a scale from 2 to 6." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-13)Radial Basis Function Regression (x3 fixed)</p>
+</div>
 
 -   RBFs capture complex, smooth surfaces and interactions based on distance.
 -   Perform well for scattered data but can be computationally expensive for large datasets.
@@ -3238,6 +3478,4 @@ As you apply these techniques in your own work, remember that regression is not 
 
 Whether you're developing marketing strategies, forecasting financial trends, optimizing healthcare interventions, or conducting academic research, the tools you've gained here will serve as a strong foundation.
 
-> As **George E.P. Box** put it: *"All models are wrong"—yet some, he noted, are still useful.* [@box1976science]
->
-> Our goal as analysts is to find models that are not only useful but also **enlightening**---models that reveal patterns, guide decisions, and deepen our understanding of the world.
+> As **George E.P. Box** put it: *"All models are wrong"---yet some, he noted, are still useful.* [@box1976science]

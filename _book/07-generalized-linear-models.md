@@ -1,10 +1,10 @@
 # Generalized Linear Models {#generalized-linear-models}
 
-Generalized Linear Models (GLMs) extend the traditional linear regression framework to accommodate response variables that do not necessarily follow a normal distribution. They provide a **flexible approach** to modeling relationships between a set of predictors and various types of dependent variables.
+Generalized Linear Models (GLMs) extend the traditional linear regression framework to accommodate response variables that do not necessarily follow a normal distribution. They provide a flexible approach to modeling relationships between a set of predictors and various types of dependent variables.
 
-While [Ordinary Least Squares] regression assumes that the response variable is continuous and normally distributed, GLMs allow for response variables that follow distributions from the **exponential family**, such as **binomial, Poisson, and gamma distributions**. This flexibility makes them particularly useful in a wide range of business and research applications.
+While [Ordinary Least Squares] regression assumes that the response variable is continuous and normally distributed, GLMs allow for response variables that follow distributions from the [exponential family](#sec-exponential-family-glm), such as [binomial](#sec-binomial-regression), [Poisson](#sec-poisson-regression), and gamma distributions. This flexibility makes them particularly useful in a wide range of business and research applications.
 
-A GLM consists of three key components:
+A [GLM](#generalized-linear-models) consists of three key components:
 
 1.  **A random component**: The response variable $Y_i$ follows a distribution from the exponential family (e.g., binomial, Poisson, gamma).
 2.  **A systematic component**: A linear predictor $\eta_i = \mathbf{x'_i} \beta$, where $\mathbf{x'_i}$ is a vector of observed covariates (predictor variables) and $\beta$ is a vector of parameters to be estimated.
@@ -21,6 +21,8 @@ The choice of **distribution** and **link function** depends on the nature of th
 -   [Quasi-Poisson Regression](#sec-quasi-poisson-regression): A variation of Poisson regression that adjusts for overdispersion by allowing the variance to be a linear function of the mean.
 -   [Multinomial Logistic Regression](#sec-multinomial-logistic-regression): A generalization of logistic regression for categorical response variables with more than two outcomes.
 -   [Generalization of Generalized Linear Model](#sec-generalization-of-generalized-linear-models): A flexible generalization of ordinary linear regression that allows for response variables with different distributions (e.g., normal, binomial, Poisson).
+
+------------------------------------------------------------------------
 
 ## Logistic Regression {#sec-logistic-regression}
 
@@ -83,7 +85,7 @@ $$
 
 Since this function is **concave**, we can maximize it numerically using **iterative optimization techniques**, such as:
 
--   **Newton-Raphson Method**
+-   [Newton-Raphson Algorithm]
 -   **Fisher Scoring Algorithm**
 
 These methods allow us to obtain the [Maximum Likelihood] Estimates of the parameters, $\hat{\beta}$.
@@ -294,12 +296,12 @@ $$
 
 ------------------------------------------------------------------------
 
-**Comparing Likelihood Ratio and Wald Tests**
-
 | Test                                                         | Best Used When...                                                                                                  |
 |--------------------------|----------------------------------------------|
 | [Likelihood Ratio Test](#sec-likelihood-ratio-test-logistic) | More accurate in small samples, providing better control of error rates. Recommended when sample sizes are small.  |
 | [Wald Test](#sec-wald-test-logistic)                         | Easier to compute but may be inaccurate in small samples. Recommended when computational efficiency is a priority. |
+
+: Comparing Likelihood Ratio and Wald Tests
 
 ------------------------------------------------------------------------
 
@@ -660,8 +662,6 @@ p_val_dev
 #> [1] 0
 ```
 
-**Conclusion:**
-
 Since the **p-value is approximately 0**, we **reject** $H_0$, confirming that $X$ is significantly related to $Y$.
 
 **5. Residual Analysis**
@@ -671,7 +671,11 @@ We compute **deviance residuals** and plot them against $X$.
 
 ``` r
 Logistic_Resids <- residuals(Logistic_Model, type = "deviance")
+```
 
+
+
+``` r
 plot(
     y = Logistic_Resids,
     x = BinData$X,
@@ -680,7 +684,10 @@ plot(
 )
 ```
 
-<img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-7-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="07-generalized-linear-models_files/figure-html/fig-deviance-resid-1.png" alt="Scatter plot showing the relationship between the variable X and deviance residuals. The plot features two distinct clusters of data points, both showing a downward trend. The x-axis ranges from -0.5 to 2.5 and the y-axis, labeled as deviance residuals, ranges from -2.0 to 1.0" width="100%" />
+<p class="caption">(\#fig:fig-deviance-resid)Deviance Residuals</p>
+</div>
 
 This plot is not very informative. A more insightful approach is **binned residual plots**.
 
@@ -723,7 +730,10 @@ plot_bin <- function(Y,
 plot_bin(Y = Logistic_Resids, X = BinData$X, bins = 100)
 ```
 
-<img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="07-generalized-linear-models_files/figure-html/fig-binned-resid-plot-1.png" alt="Scatter plot showing the relationship between BinData X on the x-axis and Logistic Residuals on the y-axis. Data points are scattered, showing variability in residuals relative to x values. The x-axis ranges from -0.5 to 2.5 and the y-axis ranges from -1.0 to 0.5" width="100%" />
+<p class="caption">(\#fig:fig-binned-resid-plot)Binned Residual Plot</p>
+</div>
 
 We also examine **predicted values vs residuals**:
 
@@ -733,9 +743,13 @@ Logistic_Predictions <- predict(Logistic_Model, type = "response")
 plot_bin(Y = Logistic_Resids, X = Logistic_Predictions, bins = 100)
 ```
 
-<img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="07-generalized-linear-models_files/figure-html/fig-pred-resdi-glm-1.png" alt="Scatter plot showing the relationship between logistic predictions on the x-axis and logistic residuals on the y-axis. Data points are scattered across the plot, indicating variability in residuals for different prediction values. The x-axis ranges from 0.6 to 0.9, and the y-axis ranges from -1.0 to 1.0." width="90%" />
+<p class="caption">(\#fig:fig-pred-resdi-glm)Predicted Values versus Residuals</p>
+</div>
 
 Finally, we compare **predicted probabilities** to actual outcomes:
+
 
 
 ``` r
@@ -761,7 +775,10 @@ Binned_Data
 abline(0, 1, lty = 2, col = 'blue')
 ```
 
-<img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-10-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="07-generalized-linear-models_files/figure-html/fig-pred-actual-glm-1.png" alt="Scatter plot showing data points with a blue dashed trend line. The x-axis is labeled as logistic predictions ranging from 0.6 to 0.9. The y-axis is labeled as observed values from BinData Y, also ranging from 0.6 to 0.9. The plot illustrates the relationship between logistic predictions and observed data" width="100%" />
+<p class="caption">(\#fig:fig-pred-actual-glm)Predicted versus Actual Values</p>
+</div>
 
 **7. Model Goodness-of-Fit: Hosmer-Lemeshow Test**
 
@@ -945,21 +962,27 @@ print(coef_comparison)
 # Compute predicted probabilities
 data$probit_pred <- predict(probit_model, type = "response")
 data$logit_pred <- predict(logit_model, type = "response")
-
-# Plot Probit vs Logit predictions
-ggplot(data, aes(x = probit_pred, y = logit_pred)) +
-    geom_point(alpha = 0.5) +
-    geom_abline(slope = 1,
-                intercept = 0,
-                col = "red") +
-    labs(title = "Comparison of Predicted Probabilities",
-         x = "Probit Predictions", y = "Logit Predictions")
 ```
 
-<img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-12-1.png" width="90%" style="display: block; margin: auto;" />
 
 ``` r
+# Plot Probit vs Logit predictions
+ggplot(data, aes(x = probit_pred, y = logit_pred)) +
+  geom_point(alpha = 0.5) +
+  geom_abline(slope = 1,
+              intercept = 0,
+              col = "red") +
+  labs(title = "Comparison of Predicted Probabilities",
+       x = "Probit Predictions", y = "Logit Predictions")
+```
 
+<div class="figure" style="text-align: center">
+<img src="07-generalized-linear-models_files/figure-html/fig-probit-logit-1.png" alt="Scatter plot titled Comparison of Predicted Probabilities showing a linear relationship between Probit predictions on the x-axis and Logit predictions on the y-axis. Data points are closely aligned along a red diagonal line, indicating a strong correlation. Axes range from 0 to 1" width="100%" />
+<p class="caption">(\#fig:fig-probit-logit)Comparison of Predicted Probabilities</p>
+</div>
+
+
+``` r
 # Classification Accuracy
 threshold <- 0.5
 data$probit_class <- ifelse(data$probit_pred > threshold, 1, 0)
@@ -973,6 +996,8 @@ print(paste("Probit Accuracy:", round(probit_acc, 4)))
 print(paste("Logit Accuracy:", round(logit_acc, 4)))
 #> [1] "Logit Accuracy: 0.71"
 ```
+
+------------------------------------------------------------------------
 
 ## Binomial Regression {#sec-binomial-regression}
 
@@ -1005,7 +1030,10 @@ head(esoph, n = 3)
 #> 1 25-34 0-39g/day 0-9g/day      0        40
 #> 2 25-34 0-39g/day    10-19      0        10
 #> 3 25-34 0-39g/day    20-29      0         6
+```
 
+
+``` r
 # Visualizing the proportion of cancer cases by alcohol consumption
 plot(
   esoph$ncases / (esoph$ncases + esoph$ncontrols) ~ esoph$alcgp,
@@ -1015,10 +1043,13 @@ plot(
 )
 ```
 
-<img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="07-generalized-linear-models_files/figure-html/fig-cancer-data-1.png" alt="Box plot titled Esophageal Cancer Data showing the proportion of cancer cases across four alcohol consumption groups: 0 to 39 g per day, 40 to 79 g, 80 to 119 g, and 120 or more grams. The y-axis represents the proportion of cancer cases from 0 to 1. Each box plot shows the median, quartiles, and outliers, indicating an increase in cancer cases with higher alcohol consumption" width="100%" />
+<p class="caption">(\#fig:fig-cancer-data)Esophageal Cancer Data</p>
+</div>
+
 
 ``` r
-
 # Ensure categorical variables are treated as factors
 class(esoph$agegp) <- "factor"
 class(esoph$alcgp) <- "factor"
@@ -1275,14 +1306,20 @@ bioChemists <- bioChemists %>%
     # Prestige of PhD program
     Num_MentArticle = ment   # Number of articles by mentor in last 3 years
   )
+```
 
+
+``` r
 # Visualize response variable distribution
 hist(bioChemists$Num_Article, 
      breaks = 25, 
      main = "Number of Articles Published")
 ```
 
-<img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-18-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="07-generalized-linear-models_files/figure-html/fig-num-article-pub-1.png" alt="Bar chart titled Number of Articles Published showing the frequency distribution of articles published by biochemists. The x-axis represents the number of articles, labeled as number of articles from bioChemists, ranging from 0 to over 15. The y-axis indicates frequency, with values up to 500. The chart shows a right-skewed distribution, with most biochemists publishing fewer articles" width="100%" />
+<p class="caption">(\#fig:fig-num-article-pub)Number of Articles Published</p>
+</div>
 
 The **distribution of the number of articles** is right-skewed, which suggests a Poisson model may be appropriate.
 
@@ -1336,7 +1373,9 @@ Interpretation:
 
 ##### Pearson's Chi-Square Test for Overdispersion
 
-We compute the **Pearson chi-square statistic** to check whether the variance significantly exceeds the mean. $$
+We compute the **Pearson chi-square statistic** to check whether the variance significantly exceeds the mean.
+
+$$
 X^2 = \sum \frac{(Y_i - \hat{\mu}_i)^2}{\hat{\mu}_i}
 $$
 
@@ -1360,7 +1399,9 @@ pchisq(X2, Poisson_Mod$df.residual, lower.tail = FALSE)
 
 ##### Overdispersion Check: Ratio of Deviance to Degrees of Freedom
 
-We compute: $$
+We compute:
+
+$$
 \hat{\phi} = \frac{\text{deviance}}{\text{degrees of freedom}}
 $$
 
@@ -1517,13 +1558,17 @@ summary(NegBin_Mod)
 
 This model is generally **preferred over Quasi-Poisson**, as it explicitly accounts for **heterogeneity** in the data.
 
+------------------------------------------------------------------------
+
 ## Negative Binomial Regression {#sec-negative-binomial-regression}
 
 When modeling **count data**, [Poisson regression](#sec-poisson-regression) assumes that the **mean and variance are equal**:
 
 $$
 \text{Var}(Y_i) = E(Y_i) = \mu_i
-$$ However, in many real-world datasets, the variance exceeds the mean---a phenomenon known as **overdispersion**. When overdispersion is present, the Poisson model underestimates the variance, leading to:
+$$
+
+However, in many real-world datasets, the variance exceeds the mean---a phenomenon known as **overdispersion**. When overdispersion is present, the Poisson model underestimates the variance, leading to:
 
 -   Inflated test statistics (small p-values).
 
@@ -1766,9 +1811,9 @@ ZINB is often preferred when many observations are zero. However, since ZINB doe
 
 Because ZINB combines two distinct processes rather than using a single exponential family distribution, it does not fit within the standard GLM framework.
 
-**What ZINB Belongs To**
+ZINB is part of finite mixture models and is sometimes considered within [generalized linear mixed models](#sec-nonlinear-and-generalized-linear-mixed-models) (GLMMs) or semi-parametric models.
 
-ZINB is part of finite mixture models and is sometimes considered within generalized linear mixed models (GLMMs) or semi-parametric models.
+------------------------------------------------------------------------
 
 ## Quasi-Poisson Regression {#sec-quasi-poisson-regression}
 
@@ -1947,7 +1992,10 @@ plot(
 abline(h = 0, col = "red")
 ```
 
-<img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-35-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="07-generalized-linear-models_files/figure-html/fig-res-fitted-val-1.png" alt="Scatter plot titled Residuals vs. Fitted Values Quasi-Poisson showing Pearson residuals on the y-axis and fitted values on the x-axis. Data points are scattered with a red horizontal line at zero indicating the baseline for residuals. The plot illustrates the distribution and variance of residuals relative to fitted values, highlighting potential patterns or deviations in a Quasi-Poisson regression model" width="100%" />
+<p class="caption">(\#fig:fig-res-fitted-val)Residuals vs. Fitted Values (Quasi-Poisson)</p>
+</div>
 
 -   If residuals show a pattern, additional predictors or transformations may be needed.
 
@@ -2022,13 +2070,15 @@ summary(NegBinom_Mod)
 #### Key Differences: Quasi-Poisson vs. Negative Binomial
 
 | Feature                               | Quasi-Poisson            | Negative Binomial |
-|---------------------------------|---------------------|------------------|
+|--------------------------------|----------------------|-------------------|
 | Handles Overdispersion?               | ✅ Yes                   | ✅ Yes            |
 | Uses a Full Probability Distribution? | ❌ No                    | ✅ Yes            |
 | MLE-Based?                            | ❌ No (quasi-likelihood) | ✅ Yes            |
 | Can Use AIC/BIC for Model Selection?  | ❌ No                    | ✅ Yes            |
 | Better for Model Interpretation?      | ✅ Yes                   | ✅ Yes            |
 | Best for Severe Overdispersion?       | ❌ No                    | ✅ Yes            |
+
+: Comparison of Quasi-Poisson and Negative Binomial Models for Overdispersed Count Data
 
 **When to Choose:**
 
@@ -2037,6 +2087,8 @@ summary(NegBinom_Mod)
 -   Use [Negative Binomial](#sec-negative-binomial-regression) when overdispersion is large and you want a true likelihood-based model.
 
 While [Quasi-Poisson](#sec-quasi-poisson-regression) is a quick fix, [Negative Binomial](#sec-negative-binomial-regression) is generally the better choice for modeling count data with overdispersion.
+
+------------------------------------------------------------------------
 
 ## Multinomial Logistic Regression {#sec-multinomial-logistic-regression}
 
@@ -2240,12 +2292,18 @@ Age_Plot <- ggplot(
     labs(title = "Political Strength by Age Group",
          x = "Age Group",
          y = "Proportion")
+```
 
+
+``` r
 # Display plot
 Age_Plot
 ```
 
-<img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-39-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="07-generalized-linear-models_files/figure-html/fig-poli-age-1.png" alt="Line chart titled Political Strength by Age Group showing proportions of political strength categories across age groups. The x-axis represents age groups from 19 to 91, grouped as 19 to 34, 34 to 44, 44 to 58, and 58 to 91. The y-axis shows proportion values ranging from 0.3 to 0.4. Three lines represent political strength categories: a red line for Neutral, a green dashed line for Strong, and a blue dashed line for Weak. The green line shows an upward trend, the blue line a downward trend, and the red line fluctuates. A legend on the right indicates the color coding for each category" width="100%" />
+<p class="caption">(\#fig:fig-poli-age)Political Strength by Age Group</p>
+</div>
 
 **4. Fit a Multinomial Logistic Model**
 
@@ -2334,7 +2392,10 @@ Preds <- PlotData %>%
     bind_cols(data.frame(predict(Multinomial_Step, 
                                  PlotData, 
                                  type = "probs")))
+```
 
+
+``` r
 # Plot predicted probabilities across age
 plot(
     x = Preds$age,
@@ -2361,7 +2422,10 @@ legend(
 )
 ```
 
-<img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-43-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="07-generalized-linear-models_files/figure-html/fig-age-pred-prob-1.png" alt="Line chart showing the proportion of three categories—Neutral, Weak, and Strong—across different ages from 20 to 90. The Neutral category, represented by a black line, slightly decreases over time. The Weak category, shown in blue, decreases more sharply. The Strong category, depicted in red, increases steadily. The x-axis represents age, and the y-axis represents proportion. A legend identifies the lines by color." width="90%" />
+<p class="caption">(\#fig:fig-age-pred-prob)Age Group by Predicted Probabilities</p>
+</div>
 
 Predict for Specific Ages
 
@@ -2373,7 +2437,9 @@ predict(Multinomial_Step, data.frame(age = 34))
 #> Levels: Neutral Strong Weak
 
 # Predict probabilities for 34 and 35-year-olds
-predict(Multinomial_Step, data.frame(age = c(34, 35)), type = "probs")
+predict(Multinomial_Step, 
+        data.frame(age = c(34, 35)), 
+        type = "probs")
 #>     Neutral    Strong      Weak
 #> 1 0.2597275 0.3556910 0.3845815
 #> 2 0.2594080 0.3587639 0.3818281
@@ -2388,6 +2454,7 @@ When response variables are **strictly positive**, we use **Gamma regression**.
 
 ``` r
 library(agridat)  # Agricultural dataset
+library(ggplot2)
 
 # Load and filter data
 dat <- agridat::streibig.competition
@@ -2410,11 +2477,16 @@ ggplot(gammaDat, aes(x = x, y = 1 / y)) +
          y = "Inverse Yield")
 ```
 
-<img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-46-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="07-generalized-linear-models_files/figure-html/fig-inverse-yield-seeding-1.png" alt="Scatter plot titled Inverse Yield vs Seeding Rate showing the relationship between inverse yield and seeding rate. The x-axis represents the seeding rate, ranging from 0 to 120, and the y-axis represents inverse yield, ranging from 0 to 0.5. Data points are categorized into three blocks: B1 as red circles, B2 as green triangles, and B3 as blue squares. The plot illustrates varying inverse yield values across different seeding rates for each block" width="100%" />
+<p class="caption">(\#fig:fig-inverse-yield-seeding)Inverse Yield vs Seeding Rate</p>
+</div>
 
 **3. Fit Gamma Regression Model**
 
-Gamma regression models **yield as a function of seeding rate** using an inverse link: $$
+Gamma regression models **yield as a function of seeding rate** using an inverse link: 
+
+$$
 \eta_{ij} = \beta_{0j} + \beta_{1j} x_{ij} + \beta_2 x_{ij}^2, \quad Y_{ij} = \eta_{ij}^{-1}
 $$
 
@@ -2463,7 +2535,10 @@ newdf <-
 
 # Predict responses
 newdf$pred <- predict(m1, newdata = newdf, type = "response")
+```
 
+
+``` r
 # Plot predictions
 ggplot(gammaDat, aes(x = x, y = y)) +
     geom_point(aes(color = block, shape = block)) +
@@ -2478,13 +2553,18 @@ ggplot(gammaDat, aes(x = x, y = y)) +
          y = "Yield")
 ```
 
-<img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-48-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="07-generalized-linear-models_files/figure-html/fig-pred-yield-seed-1.png" alt="Chart titled Predicted Yield by Seeding Rate showing yield on the y-axis and seeding rate on the x-axis. Three lines represent different blocks: B1 as a red solid line, B2 as a green dashed line, and B3 as a blue dotted line. Data points are marked with circles, triangles, and squares corresponding to each block. The chart illustrates the relationship between seeding rate and yield, with varying trends for each block" width="100%" />
+<p class="caption">(\#fig:fig-pred-yield-seed)Predicted Yield by Seeding Rate</p>
+</div>
+
+------------------------------------------------------------------------
 
 ## Generalization of Generalized Linear Models {#sec-generalization-of-generalized-linear-models}
 
 We have seen that [Poisson regression](#sec-poisson-regression) bears similarities to logistic regression. This insight leads us to a broader class of models known as [Generalized Linear Models](#generalized-linear-models), introduced by @nelder1972generalized. These models provide a unified framework for handling different types of response variables while maintaining the fundamental principles of linear modeling.
 
-### Exponential Family
+### Exponential Family {#sec-exponential-family-glm}
 
 The foundation of GLMs is built on the **exponential family of distributions**, which provides a flexible class of probability distributions that share a common form:
 
@@ -2734,7 +2814,10 @@ and $\theta_i$ is the **natural parameter** of the exponential family. In other 
     -   Continuously differentiable
     -   Invertible
 
-![GLM Structure](images/GLM.PNG){width="90%"}
+<div class="figure" style="text-align: center">
+<img src="images/GLM.PNG" alt="Diagram illustrating the relationships in a generalized linear model. On the left, θ maps to μ through the derivative of the cumulant function b′(θ), and μ maps back via its inverse. On the right, μ maps to the linear predictor η through the link function g(μ), and η maps back to μ through the inverse link function g⁻¹(η). The diagram visually represents both canonical and link function transformations." width="90%" />
+<p class="caption">(\#fig:fig-glm-structure)GLM Structure</p>
+</div>
 
 For an exponential-family distribution, the function $b(\theta)$ is called the *cumulant moment generating function*, and it relates $\theta$ to the mean via its derivative:
 
@@ -2847,7 +2930,7 @@ Example 4: Gamma Distribution (Inverse Link)
 The following table presents common **GLM link functions** and their corresponding **inverse functions**.
 
 | Link           | $\eta_i = g(\mu_i)$                             | $\mu_i = g^{-1}(\eta_i)$    |
-|-----------------|-----------------------------|---------------------------|
+|-------------------|---------------------------------|---------------------|
 | Identity       | $\mu_i$                                         | $\eta_i$                    |
 | Log            | $\log_e \mu_i$                                  | $e^{\eta_i}$                |
 | Inverse        | $\mu_i^{-1}$                                    | $\eta_i^{-1}$               |
@@ -2855,6 +2938,8 @@ The following table presents common **GLM link functions** and their correspondi
 | Square-root    | $\sqrt{\mu_i}$                                  | $\eta_i^2$                  |
 | Logit          | $\log_e \left( \frac{\mu_i}{1 - \mu_i} \right)$ | $\frac{1}{1 + e^{-\eta_i}}$ |
 | Probit         | $\Phi^{-1}(\mu_i)$                              | $\Phi(\eta_i)$              |
+
+: Common Link Functions in Generalized Linear Models
 
 where
 
@@ -2874,7 +2959,7 @@ The GLM framework extends [Linear Regression] by allowing for response variables
 
 -   However, this unification does not extend to the estimation of the dispersion parameter ($\phi$), which requires separate treatment, often involving alternative estimation methods such as moment-based approaches or quasi-likelihood estimation.
 
-In GLMs, the response variable $Y_i$ follows an **exponential family distribution** characterized by the density function:
+In GLMs, the response variable $Y_i$ follows an [exponential family distribution](#sec-exponential-family-glm) characterized by the density function:
 
 $$
 f(y_i ; \theta_i, \phi) = \exp\left(\frac{\theta_i y_i - b(\theta_i)}{a(\phi)} + c(y_i, \phi) \right)
@@ -2967,15 +3052,15 @@ $$
 Recall
 
 $$
-l_i(\theta_i,\phi) = \frac{\theta_i \,y_i - b(\theta_i)}{a(\phi)} + c(y_i,\phi).
+l_i(\theta_i,\phi) = \frac{\theta_i y_i - b(\theta_i)}{a(\phi)} + c(y_i,\phi).
 $$
 
 1.  Differentiate $\theta_i y_i - b(\theta_i)$ with respect to $\theta_i$: $$
-    \frac{\partial}{\partial \theta_i} \left[\theta_i\,y_i - b(\theta_i)\right] = y_i - b'(\theta_i).
+    \frac{\partial}{\partial \theta_i} \left[\theta_iy_i - b(\theta_i)\right] = y_i - b'(\theta_i).
     $$ But by exponential‐family definitions,$b'(\theta_i) = \mu_i$.\
     So that is $y_i - \mu_i$.
 2.  Since everything is divided by $a(\phi)$, we get $$
-    \frac{\partial l_i}{\partial \theta_i} = \frac{1}{a(\phi)}\,[\,y_i - \mu_i\,].
+    \frac{\partial l_i}{\partial \theta_i} = \frac{1}{a(\phi)}[y_i - \mu_i].
     $$ Hence, $$
     \boxed{ \frac{\partial l_i(\beta,\phi)}{\partial \theta_i} = \frac{y_i - \mu_i}{a(\phi)}. }
     $$
@@ -3010,7 +3095,7 @@ $$
 
 For example,
 
--   In a Bernoulli (logistic‐regression) model, $μg(\mu) = \log\frac{\mu}{1-\mu}$. So $\mu = g^{-1}(\eta) = \frac{1}{1+e^{-\eta}}$. Then $\frac{d\mu}{d\eta} = \mu\,(1-\mu)$.
+-   In a Bernoulli (logistic‐regression) model, $μg(\mu) = \log\frac{\mu}{1-\mu}$. So $\mu = g^{-1}(\eta) = \frac{1}{1+e^{-\eta}}$. Then $\frac{d\mu}{d\eta} = \mu(1-\mu)$.
 -   For a Poisson (log) link, $g(\mu) = \log(\mu)$. So $\mu = e^\eta$. Then $\frac{d\mu}{d\eta} = e^\eta = \mu$.
 -   For an identity link, $g(\mu) = \mu$. Then $\eta = \mu$ and $\frac{d\mu}{d\eta} = 1$.
 
@@ -3031,7 +3116,7 @@ $$
 Finally, the linear predictor is
 
 $$
-\eta_i = \mathbf{x}_i^\prime \beta = \sum_{k=1}^p x_{ik}\,\beta_k.
+\eta_i = \mathbf{x}_i^\prime \beta = \sum_{k=1}^p x_{ik}\beta_k.
 $$
 
 Hence, the derivative of $\eta_i$ with respect to $\beta_j$ is simply
@@ -3288,8 +3373,8 @@ $$
 -   Even with a **canonical link function** and constant $a(\phi)$, there is no simple general expression for the expected Fisher information:
 
 $$
-  -E\left(\frac{\partial^2 l}{\partial \phi^2} \right)
-  $$
+-E\left(\frac{\partial^2 l}{\partial \phi^2} \right)
+$$
 
 This means that the unification GLMs provide for estimating $\beta$ does not extend as neatly to $\phi$.
 
@@ -3332,9 +3417,11 @@ This means that the unification GLMs provide for estimating $\beta$ does not ext
     $$
 
 | Approach              | Description                                                      | Pros                         | Cons                                                          |
-|-----------------|--------------------|-----------------|-------------------|
+|------------------|-------------------|------------------|------------------|
 | **MLE**               | Estimates $\phi$ by maximizing the likelihood function           | Theoretically optimal        | Computationally complex, lacks a general closed-form solution |
 | **Moment Estimation** | Uses a bias-corrected $\chi^2$ method based on residual variance | Simpler, widely used in GLMs | Not as efficient as MLE                                       |
+
+: Comparison of Dispersion Parameter Estimation Methods in GLMs
 
 ------------------------------------------------------------------------
 
@@ -3415,9 +3502,11 @@ where:
 ------------------------------------------------------------------------
 
 | Test                      | Pros                                                 | Cons                                          |
-|------------------|----------------------------|--------------------------|
+|-------------------|----------------------------|--------------------------|
 | **Wald Test**             | Easy to compute, does not require fitting two models | May perform poorly in small samples           |
 | **Likelihood Ratio Test** | More accurate, especially for small samples          | Requires fitting both full and reduced models |
+
+: Comparison of Wald Test and Likelihood Ratio Test in Model Evaluation
 
 While the Wald test is more convenient, the likelihood ratio test is often preferred when sample sizes are small, as it tends to have better statistical properties.
 
@@ -3432,7 +3521,7 @@ While the Wald test is more convenient, the likelihood ratio test is often prefe
 
 Assuming the dispersion parameter $\phi$ is known, let:
 
--   $\tilde{\theta}$ be the **maximum likelihood estimate (MLE)** under the **full model**.
+-   $\tilde{\theta}$ be the **MLE** under the **full model**.
 
 -   $\hat{\theta}$ be the **MLE** under the **reduced model**.
 
@@ -3442,7 +3531,7 @@ $$
 2\sum_{i=1}^{n} \frac{y_i (\tilde{\theta}_i- \hat{\theta}_i)-b(\tilde{\theta}_i) + b(\hat{\theta}_i)}{a_i(\phi)}
 $$
 
-For **exponential family** distributions, the mean parameter is:
+For [exponential family](#sec-exponential-family-glm) distributions, the mean parameter is:
 
 $$
 \mu = E(y) = b'(\theta)
@@ -3731,6 +3820,8 @@ summary(pearson_residuals)
 
 -   The largest residuals indicate **potential outliers**, but they are not extreme enough to immediately suggest model inadequacy.
 
+------------------------------------------------------------------------
+
 ### Diagnostic Plots
 
 Standardized residual plots help diagnose potential issues with model specification, such as an incorrect link function or variance structure. Common residual plots include:
@@ -3751,6 +3842,8 @@ The following table summarizes the commonly used transformations $T(\hat{\mu}_i)
 |     Binomial     | $2 \sin^{-1}(\sqrt{\hat{\mu}})$ |
 |      Gamma       |       $2 \log(\hat{\mu})$       |
 | Inverse Gaussian |      $-2\hat{\mu}^{-1/2}$       |
+
+: Variance-Stabilizing Transformations for Common Distributions in GLMs
 
 Interpretation of Residual Plots
 
@@ -3815,9 +3908,11 @@ Over-dispersion occurs when the observed variance exceeds what the assumed model
 **Variance Assumptions for Common Random Components**
 
 | Random Component | Standard Assumption ($\text{var}(Y)$) | Alternative Model Allowing Over-Dispersion ($V(\mu)$) |
-|------------------|-----------------------|--------------------------------|
+|-------------------|-----------------------|-------------------------------|
 | **Binomial**     | $n \mu (1- \mu)$                      | $\phi n \mu (1- \mu)$, where $m_i = n$                |
 | **Poisson**      | $\mu$                                 | $\phi \mu$                                            |
+
+: Modeling Overdispersion in Binomial and Poisson Distributions
 
 -   **By default,** $\phi = 1$, meaning the variance follows the assumed model.
 -   If $\phi \neq 1$, the variance differs from the expectation:
@@ -3857,7 +3952,10 @@ model_pois <- glm(y ~ x, family = poisson(link = "log"))
 # Compute residuals
 resid_dev <- residuals(model_pois, type = "deviance")
 fitted_vals <- fitted(model_pois)
+```
 
+
+``` r
 # Standardized Residual Plot: Residuals vs Fitted Values
 ggplot(data = data.frame(fitted_vals, resid_dev),
        aes(x = fitted_vals, y = resid_dev)) +
@@ -3870,10 +3968,13 @@ ggplot(data = data.frame(fitted_vals, resid_dev),
          x = "Fitted Values", y = "Standardized Deviance Residuals")
 ```
 
-<img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-50-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="07-generalized-linear-models_files/figure-html/fig-sd-res-plot-1.png" alt="Scatter plot titled Standardized Deviance Residuals vs Fitted Values. The x-axis represents fitted values and the y-axis represents standardized deviance residuals. Data points are scattered throughout the plot, with a red line indicating a trend or pattern. The plot shows variability and potential non-linearity in the residuals" width="100%" />
+<p class="caption">(\#fig:fig-sd-res-plot)Standardized Deviance Residuals vs Fitted Values</p>
+</div>
+
 
 ``` r
-
 # Absolute Residuals vs Fitted Values (Variance Function Check)
 ggplot(data = data.frame(fitted_vals, abs_resid = abs(resid_dev)),
        aes(x = fitted_vals, y = abs_resid)) +
@@ -3886,10 +3987,13 @@ ggplot(data = data.frame(fitted_vals, abs_resid = abs(resid_dev)),
          x = "Fitted Values", y = "|Residuals|")
 ```
 
-<img src="07-generalized-linear-models_files/figure-html/unnamed-chunk-50-2.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="07-generalized-linear-models_files/figure-html/fig-abs-res-plot-1.png" alt="Scatter plot titled Absolute Deviance Residuals vs Fitted Values showing residuals on the y-axis and fitted values on the x-axis. Data points are scattered throughout the chart, with a blue line indicating a trend or smoothing curve. The plot illustrates the relationship between residuals and fitted values in a statistical model" width="100%" />
+<p class="caption">(\#fig:fig-abs-res-plot)Absolute Deviance Residuals vs Fitted Values</p>
+</div>
+
 
 ``` r
-
 # Goodness-of-Fit Metrics
 AIC(model_pois)    # Akaike Information Criterion
 #> [1] 322.9552
@@ -3971,3 +4075,5 @@ if (phi_hat > 1) {
 -   If $\phi > 1$, there is overdispersion, meaning a Negative Binomial model may be more appropriate.
 
 -   If $\phi < 1$, underdispersion is present, requiring alternative distributions like the Conway-Maxwell Poisson.
+
+------------------------------------------------------------------------

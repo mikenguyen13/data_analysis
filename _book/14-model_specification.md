@@ -1143,12 +1143,14 @@ The **Glejser Test** detects heteroskedasticity by regressing the **absolute val
 ### Summary of Heteroskedasticity Tests
 
 | **Test**                                      | **Type**                 | **Assumptions**                     | **Key Statistic** | **When to Use**                          |
-|---------------|---------------|---------------|---------------|---------------|
+|-----------------------------------------------|--------------------------|-------------------------------------|-------------------|------------------------------------------|
 | [Breusch--Pagan](#sec-breusch–pagan-test)     | Parametric               | Linear relationship with predictors | $\chi^2$          | General-purpose test                     |
 | [White](#sec-white-test-hetero)               | General (non-parametric) | No functional form assumption       | $\chi^2$          | Detects both linear & nonlinear forms    |
 | [Goldfeld--Quandt](#sec-goldfeld–quandt-test) | Group comparison         | Assumes known ordering of variance  | $F$-distribution  | When heteroskedasticity varies by groups |
 | [Park](#sec-park-test)                        | Parametric (log-linear)  | Assumes log-linear variance         | $t$-test          | When variance depends on predictors      |
 | [Glejser](#sec-glejser-test)                  | Parametric               | Based on absolute residuals         | $t$-test          | Simple test for variance dependence      |
+
+: Summary of Heteroskedasticity Tests
 
 Detecting heteroskedasticity is critical for ensuring the reliability of regression models. While each test has strengths and limitations, combining multiple tests can provide robust insights. Once heteroskedasticity is detected, consider using **robust standard errors** or alternative estimation techniques (e.g., [Generalized Least Squares] or [Weighted Least Squares]) to address the issue.
 
@@ -1517,10 +1519,12 @@ The **Rainbow Test** is a general-purpose diagnostic tool for functional form mi
 ### Summary of Functional Form Tests
 
 | **Test**                                         | **Type**             | **Key Statistic** | **Purpose**                               | **When to Use**                           |
-|---------------|---------------|---------------|---------------|---------------|
+|--------------------------------------------------|----------------------|-------------------|-------------------------------------------|-------------------------------------------|
 | [Ramsey RESET Test](#sec-ramsey-reset-test)      | Augmented regression | $F$-test          | Detects omitted variables, nonlinearities | General model specification testing       |
 | [Harvey--Collier Test](#sec-harvey–collier-test) | Residual-based       | $t$-test          | Detects systematic patterns in residuals  | Subtle misspecifications in linear models |
 | [Rainbow Test](#sec-rainbow-test)                | Subsample comparison | $F$-test          | Tests model stability across subsamples   | Comparing central vs. full sample         |
+
+: Summary of Functional Form Tests
 
 Functional form misspecification can severely distort regression results, leading to biased estimates and invalid inferences. While no single test can detect all types of misspecification, using a combination of tests provides a robust framework for model diagnostics.
 
@@ -1862,11 +1866,13 @@ The **Runs Test** is a **non-parametric test** that examines the randomness of r
 ### Summary of Autocorrelation Tests
 
 | **Test**                                      | **Type**                  | **Key Statistic** | **Detects**                      | **When to Use**                                         |
-|---------------|---------------|---------------|---------------|---------------|
+|-----------------------------------------------|---------------------------|-------------------|----------------------------------|---------------------------------------------------------|
 | [Durbin--Watson](#sec-durbin–watson-test)     | Parametric                | $DW$              | First-order autocorrelation      | Simple linear models without lagged dependent variables |
 | [Breusch--Godfrey](#sec-breusch–godfrey-test) | Parametric (general)      | $\chi^2$          | Higher-order autocorrelation     | Models with lagged dependent variables                  |
 | [Ljung--Box](#sec-ljung–box-test)             | Portmanteau (global test) | $\chi^2$          | Autocorrelation at multiple lags | Time-series models (e.g., ARIMA)                        |
 | [Runs Test](#sec-runs-test)                   | Non-parametric            | $Z$-statistic     | Non-random patterns in residuals | Supplementary diagnostic for randomness                 |
+
+: Summary of Autocorrelation Tests
 
 Detecting autocorrelation is crucial for ensuring the efficiency and reliability of regression models, especially in time-series analysis. While the [Durbin--Watson Test](#sec-durbin–watson-test) is suitable for detecting first-order autocorrelation, the [Breusch--Godfrey Test](#sec-breusch–godfrey-test) and [Ljung--Box Test](#sec-ljung–box-test-or-box–pierce-test) offer more flexibility for higher-order and multi-lag dependencies. Non-parametric tests like the [Runs Test](#sec-runs-test) serve as useful supplementary diagnostics.
 
@@ -2203,12 +2209,14 @@ A determinant **close to zero** suggests that the correlation matrix is nearly s
 ### Summary of Multicollinearity Diagnostics
 
 | **Diagnostic**                                                                  | **Type**          | **Key Metric**                            | **Threshold for Concern**                       | **When to Use**                                    |
-|---------------|---------------|---------------|---------------|---------------|
+|---------------------------------------------------------------------------------|-------------------|-------------------------------------------|-------------------------------------------------|----------------------------------------------------|
 | [Variance Inflation Factor](#sec-variance-inflation-factor)                     | Parametric        | $VIF = \frac{1}{1 - R_j^2}$               | $VIF \geq 5$ (moderate), $VIF \geq 10$ (severe) | General-purpose detection                          |
 | [Tolerance Statistic](#sec-tolerance-statistic)                                 | Parametric        | $1 - R_j^2$                               | $< 0.2$ (moderate), $< 0.1$ (severe)            | Reciprocal of VIF for variance interpretation      |
 | [Condition Index](#sec-condition-index-and-eigenvalue-decomposition)            | Eigenvalue-based  | $\sqrt{\frac{\lambda_{\max}}{\lambda_j}}$ | $> 10$ (moderate), $> 30$ (severe)              | Detects multicollinearity among multiple variables |
 | [Pairwise Correlation Matrix](#sec-pairwise-correlation-matrix)                 | Correlation-based | Pearson correlation ($\rho$)              | $|\rho| \geq 0.8$                               | Initial screening for bivariate correlations       |
 | [Determinant of Correlation Matrix](#sec-determinant-of-the-correlation-matrix) | Global diagnostic | $\det(R)$                                 | $\approx 0$ indicates severe multicollinearity  | Overall assessment of multicollinearity            |
+
+: Summary of Multicollinearity Diagnostics
 
 ------------------------------------------------------------------------
 

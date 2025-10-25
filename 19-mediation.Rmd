@@ -1,5 +1,7 @@
 # Mediation
 
+Mediation analysis uncovers the process by which a predictor affects an outcome through one or more intermediate variables. This chapter introduces the traditional approach to mediation, focusing on path analysis, the Baron & Kenny framework, and the Sobel test. Practical limitations of this approach are discussed, especially in the presence of confounding. Then, it presents a modern causal inference framework for mediation, including counterfactual definitions of direct and indirect effects. The use of bootstrapping is demonstrated with business examples. Assumptions such as sequential ignorability are explored in detail. Graphical representations, including path diagrams and causal graphs, are used to aid interpretation. The chapter provides the tools to not only estimate mediation effects but to assess their robustness, interpret their business relevance, and report them transparently.
+
 ## Traditional Approach
 
 The classical mediation analysis follows the approach introduced by @baron1986moderator, though it has limitations, particularly in requiring the first step ($X \to Y$) to be significant. Despite its shortcomings, this framework provides a useful foundation.
@@ -28,13 +30,17 @@ Originally, @baron1986moderator required the direct path $X \to Y$ to be signifi
 
 #### Unmediated Model
 
-![Unmediated model](images/mediation/direct_mod.png){width="90%"}
+```{r fig-unmediated-model-flow, echo=FALSE, fig.cap='Unmediated Model', fig.alt='Flow chart showing direct relationship from X to Y with arrow labeled c', out.width='90%', fig.align='center'}
+knitr::include_graphics('images/mediation/direct_mod.png')
+```
 
 Here, $c$ represents the **total effect** of $X$ on $Y$.
 
 #### Mediated Model
 
-![](images/mediation/full_mod.png){width="90%"}
+```{r fig-mediated-model-flow, echo=FALSE, fig.cap="Mediated Model", fig.alt='Flow chart showing mediation model with X to M (path a), M to Y (path b), and X to Y (path c prime)', out.width='90%', fig.align='center'}
+knitr::include_graphics('images/mediation/full_mod.png')
+```
 
 Here:
 
@@ -314,6 +320,9 @@ result <- causalverse::med_ind(
     var_b = 0.05, 
     cov_ab = 0.01
 )
+```
+
+```{r fig-indirect-effect-distribution, fig.cap='Distribution of Simulated Indirect Effects', fig.alt='Right-skewed histogram of indirect effects with peak around 0.5 and red dashed confidence interval lines', out.width="100%", fig.align="center"}
 result$plot
 ```
 
@@ -437,7 +446,6 @@ medjs(
     mvars = 1,   # Number of mediators
     rep   = 1000 # Replications (use 10,000 for accuracy)
 )
-
 ```
 
 For **interactive** power analysis, see [Kenny's Mediation Power App](https://davidakenny.shinyapps.io/MedPower/).
@@ -445,10 +453,12 @@ For **interactive** power analysis, see [Kenny's Mediation Power App](https://da
 **Summary of Indirect Effect Tests**
 
 | **Test**                        | **Pros**                                       | **Cons**                         |
-|---------------------|-----------------------------|----------------------|
+|---------------------|------------------------------|----------------------|
 | **Sobel Test**                  | Simple, fast                                   | Assumes normality, low power     |
 | **Joint Significance Test**     | Robust to non-normality                        | No confidence interval           |
 | **Bootstrapping** (Recommended) | No normality assumption, handles small samples | May be liberal if bias-corrected |
+
+: Comparison of Mediation Testing Methods
 
 ### Multiple Mediation Analysis
 
@@ -530,7 +540,6 @@ fit_corr <- sem(model_corr, data = Data_corr)
 
 # Extract parameter estimates
 parameterEstimates(fit_corr)[, c("lhs", "rhs", "est", "se", "pvalue")]
-
 ```
 
 2\. Incorrectly Ignoring Correlation Between Mediators
@@ -564,7 +573,6 @@ fit_measures <- function(fit) {
 # Compare model fits
 fit_measures(fit_corr)  # Correct model (correlated mediators)
 fit_measures(fit_uncorr)  # Incorrect model (ignores correlation)
-
 ```
 
 -   If AIC and RMSEA are lower in the correlated model, it suggests that accounting for correlated errors improves fit.
@@ -584,7 +592,6 @@ After fitting the model, we assess:
 ```{r}
 # Extract indirect and direct effects
 parameterEstimates(fit_corr, standardized = TRUE)
-
 ```
 
 If $c'$ is reduced (but still significant), we have partial mediation. If $c' \approx 0$, it suggests full mediation.
@@ -701,6 +708,8 @@ In some cases, **multiple independent variables** ($X_1$, $X_2$) influence the s
 
 For an example in **PROCESS (SPSS/R)**, see:\
 [Process Mediation with Multiple Treatments](https://core.ecu.edu/wuenschk/MV/multReg/Mediation_Multicategorical.pdf).
+
+------------------------------------------------------------------------
 
 ## Causal Inference Approach to Mediation
 
@@ -824,9 +833,9 @@ $$
 
 -   Second condition is stronger where the mediators is also random given the observed treatment and pre-treatment confounders. This condition is satisfied only when there is no unobserved pre-treatment confounders, and post-treatment confounders, and multiple mediators that are correlated.
 
-**Key Challenge**
-
-⚠️ **Sequential Ignorability is not testable.** Researchers should conduct **sensitivity analysis**.
+> **Key Challenge**
+>
+> **Sequential Ignorability is not testable.** Researchers should conduct **sensitivity analysis**.
 
 We now fit a **causal mediation model** using `mediation`.
 
@@ -858,7 +867,6 @@ med.out <-
         sims = 100
     )  # Use sims = 10000 in practice
 summary(med.out)
-
 ```
 
 **Alternative: Nonparametric Bootstrap**
@@ -875,7 +883,6 @@ med.out <-
         boot.ci.type = "bca"
     )
 summary(med.out)
-
 ```
 
 If we suspect **moderation**, we include an **interaction term**.
@@ -903,7 +910,6 @@ med.out <-
 
 summary(med.out)
 test.TMint(med.out, conf.level = .95)  # Tests for interaction effect
-
 ```
 
 Since **sequential ignorability** is untestable, we examine how unmeasured confounding affects ACME estimates.
@@ -937,8 +943,10 @@ med_out <- mediate(med_model,
 # Conduct sensitivity analysis
 sens_out <- medsens(med_out, sims = 100)
 
-# Print and plot results
 summary(sens_out)
+```
+
+```{r fig-acme-vs-rho, fig.cap='ACME', fig.alt='Line plot showing average mediation effect vs sensitivity parameter rho with confidence interval shading and reference lines at zero', out.width="100%", fig.align="center"}
 plot(sens_out)
 ```
 
@@ -950,8 +958,6 @@ Alternatively, using $R^2$ interpretation, we need to specify the direction of c
 plot(sens.out, sens.par = "R2", r.type = "total", sign.prod = "positive")
 ```
 
-**Summary: Causal Mediation vs. Traditional Mediation**
-
 | **Aspect**                | **Traditional Mediation** | **Causal Mediation**         |
 |-----------------------|-----------------------|--------------------------|
 | **Model Assumption**      | Linear regressions        | Potential outcomes framework |
@@ -959,3 +965,5 @@ plot(sens.out, sens.par = "R2", r.type = "total", sign.prod = "positive")
 | **Inference Method**      | Product of coefficients   | Counterfactual reasoning     |
 | **Bootstrapping?**        | Common                    | Essential                    |
 | **Sensitivity Analysis?** | Rarely used               | Strongly recommended         |
+
+: Summary of Causal Mediation vs. Traditional Mediation

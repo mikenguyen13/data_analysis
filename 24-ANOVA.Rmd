@@ -1,6 +1,8 @@
 # Analysis of Variance {#sec-analysis-of-variance-anova}
 
-Analysis of Variance (ANOVA) shares its underlying mechanism with linear regression. However, ANOVA approaches the analysis from a different perspective, making it particularly useful for studying **qualitative variables** and **designed experiments**.
+Analysis of Variance (ANOVA) forms a critical link between experimental design and statistical inference, and this chapter offers an in-depth look at its theoretical foundations and practical applications. Beginning with the [Completely Randomized Design](#sec-completely-randomized-design), the chapter introduces the partitioning of variance and the F-test, using intuitive visualizations and algebraic expressions. Advanced designs such as [randomized blocks](#sec-randomized-block-designs) and [nested designs](#sec-nested-designs) are then developed, followed by nonparametric approaches that relax assumptions about normality and homogeneity. The mathematics behind ANOVA is derived in detail, including the expected mean squares and orthogonal decomposition of variance. Emphasis is placed on correct interpretation of $p$-values and effect sizes. The chapter concludes with guidance on sample size planning and the introduction of covariance models.
+
+ANOVA shares its underlying mechanism with linear regression. However, ANOVA approaches the analysis from a different perspective, making it particularly useful for studying **qualitative variables** and **designed experiments**.
 
 **Key Terminology**
 
@@ -23,10 +25,10 @@ Advancements in Experimental Design
 
 1.  **Factorial Experiments**:
     -   Investigate multiple factors simultaneously.
-    -   Allow for the study of **interactions** between factors.
+    -   Allow for the study of interactions between factors.
 2.  **Replication**:
     -   Repeating experiments increases statistical power.
-    -   Helps estimate **mean squared error**.
+    -   Helps estimate mean squared error.
 3.  **Randomization**:
     -   Introduced formally by R.A. Fisher in the early 1900s.
     -   Ensures that treatment assignment is not systematically biased.
@@ -85,7 +87,7 @@ $$
 s_i^2 = \frac{1}{n_i - 1} \sum_{j=1}^{n_i} (Y_{ij} - \bar{Y_{i.}})^2
 $$
 
-The **grand mean** is:
+The grand mean is:
 
 $$
 \bar{Y_{..}} = \frac{1}{N} \sum_{i} \sum_{j} Y_{ij}
@@ -283,7 +285,7 @@ $$
 var(b_i) = var(\hat{\mu}_i) = \frac{\sigma^2}{n_i}, \quad i = 1,2,3
 $$
 
-The **mean squared error (MSE)** is given by:
+The mean squared error (MSE) is given by:
 
 $$
 \begin{aligned}
@@ -293,15 +295,15 @@ MSE
 &= \frac{1}{N - a} 
    \sum_{i=1}^a 
    \Bigl[ 
-     (n_i - 1) \;
+     (n_i - 1) 
      \underbrace{
        \frac{1}{n_i - 1}
        \sum_{j=1}^{n_i} 
          \bigl(Y_{ij} - \overline{Y}_{i\cdot}\bigr)^2
-     }_{=\,s_i^2}
+     }_{=s_i^2}
    \Bigr]
 \\[6pt]
-&= \frac{1}{N - a} \sum_{i=1}^a (n_i - 1)\, s_i^2.
+&= \frac{1}{N - a} \sum_{i=1}^a (n_i - 1) s_i^2.
 \end{aligned}
 $$
 
@@ -313,7 +315,7 @@ $$
 E(MSE) = \frac{1}{N-a} \sum_{i} (n_i-1) \sigma^2 = \sigma^2
 $$
 
-Thus, **MSE is an unbiased estimator of** $\sigma^2$, regardless of whether the treatment means are equal.
+Thus, MSE is an unbiased estimator of $\sigma^2$, regardless of whether the treatment means are equal.
 
 ------------------------------------------------------------------------
 
@@ -351,7 +353,7 @@ $$
 H_a: \text{at least one } \mu_i \text{ differs}
 $$
 
-The **test statistic** is:
+The test statistic is:
 
 $$
 F = \frac{MSTR}{MSE}
@@ -368,12 +370,12 @@ $$
 
 Decision Rule:
 
--   If $F \leq F_{(a-1, N-a;1-\alpha)}$, **fail to reject** $H_0$.
--   If $F \geq F_{(a-1, N-a;1-\alpha)}$, **reject** $H_0$.
+-   If $F \leq F_{(a-1, N-a;1-\alpha)}$, fail to reject $H_0$.
+-   If $F \geq F_{(a-1, N-a;1-\alpha)}$, reject $H_0$.
 
 ------------------------------------------------------------------------
 
-If there are only two treatments ($a = 2$), the ANOVA $F$-test **reduces to the two-sample** $t$-test:
+If there are only two treatments ($a = 2$), the ANOVA $F$-test reduces to the two-sample $t$-test:
 
 $$
 F = t^2
@@ -454,7 +456,7 @@ n_3 & 0 & 0 & n_3 \\
 \right)
 $$
 
-is **singular**, meaning $\mathbf{X'X}$ is not invertible. This results in an infinite number of possible solutions for $\mathbf{b}$.
+is singular, meaning $\mathbf{X'X}$ is not invertible. This results in an infinite number of possible solutions for $\mathbf{b}$.
 
 To resolve this, we impose restrictions on the parameters to ensure that $\mathbf{X}$ has full rank. Regardless of the restriction used, the expected value remains:
 
@@ -552,11 +554,11 @@ where $\beta = [\mu, \tau_1, \tau_2]'$.
 
 In **R**, the default parameterization in `lm()` for a one-way ANOVA model sets $\tau_1 = 0$. This effectively chooses the first treatment (or group) as a baseline or reference, making its treatment effect $\tau_1$ equal to zero.
 
-Consider the last example with three treatments, each having two observations, $\,n_1 = n_2 = n_3 = 2$. Under the restriction $\tau_1 = 0$, the treatment means can be expressed as:
+Consider the last example with three treatments, each having two observations, $n_1 = n_2 = n_3 = 2$. Under the restriction $\tau_1 = 0$, the treatment means can be expressed as:
 
 $$
 \begin{aligned}
-\mu_1 &= \mu + \tau_1 \;=\; \mu + 0 \;=\; \mu, \\
+\mu_1 &= \mu + \tau_1 = \mu + 0 = \mu, \\
 \mu_2 &= \mu + \tau_2, \\
 \mu_3 &= \mu + \tau_3.
 \end{aligned}
@@ -627,7 +629,7 @@ $$
 \hat{\tau_2} \\
 \hat{\tau_3}
 \end{pmatrix}
-= (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\,\mathbf{y}.
+= (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{y}.
 $$
 
 In our specific case with equal sample sizes ($n_1=n_2=n_3=2$), the $(\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{y}$ calculation yields:
@@ -670,7 +672,7 @@ Recall that:
 $$
 \text{Var}(\mathbf{b}) 
 = 
-\sigma^2\,(\mathbf{X}'\mathbf{X})^{-1}.
+\sigma^2(\mathbf{X}'\mathbf{X})^{-1}.
 $$
 
 Hence,
@@ -693,7 +695,7 @@ $$
 
 #### Equivalence of Parameterizations
 
-Despite having different ways of writing the model, all three parameterizations yield the **same** ANOVA table:
+Despite having different ways of writing the model, all three parameterizations yield the same ANOVA table:
 
 1.  [Model 1](#sec-cell-means-model): $Y_{ij} = \mu_i + \epsilon_{ij}$.
 2.  [Model 2](#restriction-on-sum-of-tau): $Y_{ij} = \mu + \tau_i + \epsilon_{ij}$ where $\sum_i \tau_i = 0$.
@@ -703,27 +705,29 @@ All three lead to the same fitted values, because
 
 $$
 \mathbf{\hat{Y}} = \mathbf{X}\bigl(\mathbf{X}'\mathbf{X}\bigr)^{-1}\mathbf{X}'\mathbf{Y}
-= \mathbf{P\,Y} 
-= \mathbf{X\,b}.
+= \mathbf{PY} 
+= \mathbf{Xb}.
 $$
 
 ------------------------------------------------------------------------
 
 #### ANOVA Table
 
-The generic form of the ANOVA table is:
+In Table \@ref(tab:anova-one-way-summary), the generic form of the ANOVA table is:
 
-+-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------+-------+--------------------+--------------------+
-| Source of Variation     | SS                                                                                                                                      | df    | MS                 | F                  |
-+=========================+=========================================================================================================================================+=======+====================+====================+
-| **Between Treatments**  | $\sum_{i} n_i (\overline{Y}_{i\cdot} - \overline{Y}_{\cdot\cdot})^2 \;=\; \mathbf{Y}'(\mathbf{P} - \mathbf{P}_1)\mathbf{Y}$             | $a-1$ | $\frac{SSTR}{a-1}$ | $\frac{MSTR}{MSE}$ |
-+-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------+-------+--------------------+--------------------+
-| **Error**               | $\sum_{i}\sum_{j}\bigl(Y_{ij} - \overline{Y}_{i\cdot}\bigr)^2 \;=\; \mathbf{e}'\mathbf{e}$                                              | $N-a$ | $\frac{SSE}{N-a}$  |                    |
-|                         |                                                                                                                                         |       |                    |                    |
-| **(within treatments)** |                                                                                                                                         |       |                    |                    |
-+-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------+-------+--------------------+--------------------+
-| **Total (corrected)**   | $\sum_{i} n_i(\overline{Y}_{i\cdot} - \overline{Y}_{\cdot\cdot})^2 \;=\; \mathbf{Y}'\mathbf{Y} \;-\; \mathbf{Y}'\mathbf{P}_1\mathbf{Y}$ | $N-1$ |                    |                    |
-+-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------+-------+--------------------+--------------------+
++-------------------------+-------------------------------------------------------------------------------------------------------------------------+-------------+--------------------+--------------------+
+| Source of Variation     | SS                                                                                                                      | df          | MS                 | F                  |
++=========================+=========================================================================================================================+=============+====================+====================+
+| **Between Treatments**  | $\sum_{i} n_i (\overline{Y}_{i\cdot} - \overline{Y}_{\cdot\cdot})^2 = \mathbf{Y}'(\mathbf{P} - \mathbf{P}_1)\mathbf{Y}$ | $a-1$       | $\frac{SSTR}{a-1}$ | $\frac{MSTR}{MSE}$ |
++-------------------------+-------------------------------------------------------------------------------------------------------------------------+-------------+--------------------+--------------------+
+| **Error**               | $\sum_{i}\sum_{j}\bigl(Y_{ij} - \overline{Y}_{i\cdot}\bigr)^2 = \mathbf{e}'\mathbf{e}$                                  | $N-a$       | $\frac{SSE}{N-a}$  |                    |
+|                         |                                                                                                                         |             |                    |                    |
+| **(within treatments)** |                                                                                                                         |             |                    |                    |
++-------------------------+-------------------------------------------------------------------------------------------------------------------------+-------------+--------------------+--------------------+
+| **Total (corrected)**   | $\sum_{i}\sum_{j}(Y_{ij} - \overline{Y}_{\cdot\cdot})^2 = \mathbf{Y}'\mathbf{Y} - \mathbf{Y}'\mathbf{P}_1\mathbf{Y}$    | $N-1$       |                    |                    |
++-------------------------+-------------------------------------------------------------------------------------------------------------------------+-------------+--------------------+--------------------+
+
+: (#tab:anova-one-way-summary) One-Way ANOVA Summary
 
 where $\mathbf{P}_1 = \frac{1}{n}\mathbf{J}$, $n = \sum_i n_i$, and $\mathbf{J}$ is the all-ones matrix.
 
@@ -976,7 +980,7 @@ $$
 F = T^2 \sim F_{1,N-a}
 $$
 
-This means that all such tests can be viewed as **single-degree-of-freedom** $F$-tests, since the numerator degrees of freedom is always 1.
+This means that all such tests can be viewed as single-degree-of-freedom $F$-tests, since the numerator degrees of freedom is always 1.
 
 ------------------------------------------------------------------------
 
@@ -995,13 +999,13 @@ When testing $k \geq 2$ contrasts simultaneously, the test statistics $T_1, T_2,
     (1 - 0.05)^3 = 0.857
     $$
 
-    meaning the overall Type I error rate would be approximately $0.143$, **not** $0.05$.
+    meaning the overall Type I error rate would be approximately $0.143$, not $0.05$.
 
 2.  **Data Snooping Concern**:\
-    The significance level $\alpha$ is valid **only if** the test was planned **before** examining the data.
+    The significance level $\alpha$ is valid only if the test was planned before examining the data.
 
     -   Often, an experiment suggests relationships to investigate.
-    -   Exploring effects based on observed data is known as **data snooping**.
+    -   Exploring effects based on observed data is known as data snooping.
 
 To address these issues, we use **Multiple Comparison Procedures**, such as:
 
@@ -1033,7 +1037,7 @@ Properties:
 -   When sample sizes are equal ($n_1 = n_2 = ... = n_a$), the family confidence coefficient is exactly $(1-\alpha)$.
 -   When sample sizes are unequal, the method is conservative (i.e., the actual significance level is less than $\alpha$).
 
-The Tukey test is based on the **studentized range**:
+The Tukey test is based on the studentized range:
 
 $$
 w = \max(Y_i) - \min(Y_i)
@@ -1101,7 +1105,7 @@ $$
 F > f_{1-\alpha; a-1, N-a}
 $$
 
-Notes:
+**Notes**:
 
 -   Finite Family Correction: Since we never test all possible contrasts in practice, the actual confidence coefficient is greater than $(1-\alpha)$. Thus, some researchers use a higher $\alpha$ (e.g., a 90% confidence level instead of 95%).
 -   Scheffé is useful for data snooping, since it applies to any contrast.
@@ -1125,7 +1129,7 @@ $$
 B = t_{1-\alpha/(2g), N-a}
 $$
 
-and $g$ is the **number of comparisons** in the family.
+and $g$ is the number of comparisons in the family.
 
 To test:
 
@@ -1148,7 +1152,7 @@ $$
 |T| > t_{1-\alpha/(2g),N-a}
 $$
 
-Notes:
+**Notes**:
 
 -   If all pairwise comparisons are needed, Tukey's method is superior, as it provides narrower confidence intervals.
 -   Bonferroni is better than Scheffé when the number of contrasts is similar to or smaller than the number of treatment levels.
@@ -1181,7 +1185,7 @@ where:
 
 -   $n_i, n_j$ are the sample sizes for groups $i$ and $j$.
 
-Notes:
+**Notes**:
 
 -   The LSD method does not adjust for multiple comparisons, which increases the Type I error rate.
 -   It is only valid if the overall ANOVA is significant (i.e., the global null hypothesis of no treatment effect is rejected).
@@ -1205,7 +1209,7 @@ Key Issues:
 +--------------+-------------------------------------+----------------------------------+------------------------------------------------------------------+---------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
 | Method       | Type of Comparisons                 | Controls Family-Wise Error Rate? | Best Used For                                                    | Strengths                                                                                         | Weaknesses                                                                         |
 +==============+=====================================+==================================+==================================================================+===================================================================================================+====================================================================================+
-| **Tukey**    | All pairwise comparisons            | Yes                              | Comparing all treatment means                                    | Exact confidence level when sample sizes are equal; more powerful than Scheffé for pairwise tests | Conservative if sample sizes are unequal                                           |
+| Tukey        | All pairwise comparisons            | Yes                              | Comparing all treatment means                                    | Exact confidence level when sample sizes are equal; more powerful than Scheffé for pairwise tests | Conservative if sample sizes are unequal                                           |
 +--------------+-------------------------------------+----------------------------------+------------------------------------------------------------------+---------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
 | Scheffé      | All possible contrasts              | Yes                              | Exploratory analysis, especially when interested in any contrast | Valid for any contrast; can be used for data snooping                                             | Confidence intervals wider than Tukey for pairwise comparisons                     |
 +--------------+-------------------------------------+----------------------------------+------------------------------------------------------------------+---------------------------------------------------------------------------------------------------+------------------------------------------------------------------------------------+
@@ -1367,10 +1371,12 @@ Although ANOVA calculations are the same for [fixed](#sec-single-factor-fixed-ef
 | $E(MSTR) = \sigma^2 + n \sigma^2_{\mu}$ | $E(MSTR) = \sigma^2 + \frac{ \sum_i n_i (\mu_i - \mu)^2}{a-1}$ |
 +-----------------------------------------+----------------------------------------------------------------+
 
+: Expected Mean Squares under Fixed and Random Effects Models
+
 -   If $\sigma^2_{\mu} = 0$, then $E(MSTR) = E(MSE)$, implying no treatment effect.
 -   Otherwise, $E(MSTR) > E(MSE)$, suggesting significant treatment variation.
 
-When sample sizes **are not equal**, the $F$-test remains valid, but the degrees of freedom change to:
+When sample sizes are not equal, the $F$-test remains valid, but the degrees of freedom change to:
 
 $$
 F \sim F_{(a-1, N-a)}
@@ -1380,7 +1386,7 @@ $$
 
 ##### Estimation of $\mu$
 
-An unbiased estimator of $E(Y_{ij}) = \mu$ is the **grand mean**:
+An unbiased estimator of $E(Y_{ij}) = \mu$ is the grand mean:
 
 $$
 \hat{\mu} = \bar{Y}_{..} = \frac{1}{a n} \sum_{i=1}^{a} \sum_{j=1}^{n} Y_{ij}
@@ -1419,7 +1425,7 @@ $$
 
 ##### Estimation of Intraclass Correlation Coefficient $\frac{\sigma^2_\mu}{\sigma^2_{\mu}+\sigma^2}$
 
-In both [random](#sec-single-factor-random-effects-model) and [fixed](#sec-single-factor-fixed-effects-model) effects models, $MSTR$ and $MSE$ are **independent**.
+In both [random](#sec-single-factor-random-effects-model) and [fixed](#sec-single-factor-fixed-effects-model) effects models, $MSTR$ and $MSE$ are independent.
 
 When sample sizes are equal ($n_i = n$ for all $i$), the test statistic:
 
@@ -1614,6 +1620,8 @@ Checking assumptions is crucial for valid inference. Common issues include:
 +------------------------------------------------------+---------------------------------------------------------------------------------+
 | **Omitted variable bias**                            | Residual plots, checking for unaccounted sources of variation                   |
 +------------------------------------------------------+---------------------------------------------------------------------------------+
+
+: Common Regression Issues and Diagnostic Tools
 
 ------------------------------------------------------------------------
 
@@ -1828,6 +1836,8 @@ In the [Factor Effects Model](#sec-factor-effects-model-two-factor-anova), the i
 | $(\alpha \beta)_{ij}$ (Interaction effects) | $(a-1)(b-1)$ (due to two constraints)           |
 +---------------------------------------------+-------------------------------------------------+
 
+: Parameter Count in Two-Way ANOVA with Interaction
+
 Thus, the total number of parameters:
 
 $$
@@ -2038,6 +2048,8 @@ For [Two-Factor ANOVA](#sec-two-factor-fixed-effects-anova), the degrees of free
 | $SSB$ (Factor B)     | $b - 1$                     |
 | $SSAB$ (Interaction) | $(a-1)(b-1)$                |
 
+: Sum of Squares and Associated Degrees of Freedom
+
 Since:
 
 $$
@@ -2138,6 +2150,8 @@ The Two-Way ANOVA table partitions the total variation into its components:
 +-------------------------+-------------------------+-----------------------------+----------------------------------+-----------------------------+
 | **Total (corrected)**   | $SSTO$                  | $abn - 1$                   | \-                               | \-                          |
 +-------------------------+-------------------------+-----------------------------+----------------------------------+-----------------------------+
+
+: Source of Variation, Sums of Squares, and F-Statistics
 
 ------------------------------------------------------------------------
 
@@ -2510,6 +2524,8 @@ since all random effects are independent across different factor levels.
 | **Different factor levels**                    | $i \neq i'$, $j \neq j'$        | $0$                                                              |
 +------------------------------------------------+---------------------------------+------------------------------------------------------------------+
 
+: Summary of Variance-Covariance Structure
+
 ------------------------------------------------------------------------
 
 ### Two-Way Mixed Effects ANOVA {#sec-two-way-mixed-effects-anova}
@@ -2519,7 +2535,7 @@ This is often referred to as a mixed effects model or simply a mixed model.
 
 #### Balanced
 
-For a balanced design, the **restricted** mixed model is:
+For a balanced design, the restricted mixed model is:
 
 $$
 Y_{ijk} = \mu_{..} + \alpha_i + \beta_j + (\alpha \beta)_{ij} + \epsilon_{ijk}
@@ -2539,7 +2555,7 @@ The restriction on interaction variance ($\frac{a-1}{a} \sigma^2_{\alpha \beta}$
 
 ------------------------------------------------------------------------
 
-An **unrestricted** version of the model removes constraints on interaction terms.
+An unrestricted version of the model removes constraints on interaction terms.
 
 Define:
 
@@ -2552,7 +2568,7 @@ $$
 
 where $\beta^*$ and $(\alpha \beta)^*_{ij}$ are unrestricted random effects.
 
-Some consider the **restricted model more general**, but we use the **restricted form** for simplicity.
+Some consider the restricted model more general, but we use the restricted form for simplicity.
 
 ------------------------------------------------------------------------
 
@@ -2574,8 +2590,6 @@ $$
 
 Observations sharing the same **random factor (B)** level are correlated.
 
-**Covariances for Different Cases**
-
 +---------------------------------------------------+------------------------------------------------------------------------------------+
 | **Condition**                                     | **Covariance**                                                                     |
 +===================================================+====================================================================================+
@@ -2586,13 +2600,13 @@ Observations sharing the same **random factor (B)** level are correlated.
 | Different $i$ and $j$ ($i \neq i'$, $j \neq j'$)  | $cov(Y_{ijk}, Y_{i'j'k'}) = 0$                                                     |
 +---------------------------------------------------+------------------------------------------------------------------------------------+
 
+: Covariances for Different Cases
+
 Thus, observations only become independent when they do not share the same random effect.
 
 An advantage of the **restricted mixed model** is that 2 observations from the same random factor (B) level can be positively or negatively correlated. In the **unrestricted** model, they can only be positively correlated.
 
 ------------------------------------------------------------------------
-
-**Comparison of Fixed, Random, and Mixed Effects Models**
 
 +-----------------+--------------------------------------------------------------+----------------------------------------+------------------------------------------------------------------------------------+
 | **Mean Square** | **Fixed ANOVA (A, B fixed)**                                 | **Random ANOVA (A, B random)**         | **Mixed ANOVA (A fixed, B random)**                                                |
@@ -2605,6 +2619,8 @@ An advantage of the **restricted mixed model** is that 2 observations from the s
 +-----------------+--------------------------------------------------------------+----------------------------------------+------------------------------------------------------------------------------------+
 | **MSE**         | $\sigma^2$                                                   | $\sigma^2$                             | $\sigma^2$                                                                         |
 +-----------------+--------------------------------------------------------------+----------------------------------------+------------------------------------------------------------------------------------+
+
+: Comparison of Fixed, Random, and Mixed Effects Models
 
 While SS and df are identical across models, the expected mean squares differ, affecting test statistics.
 
@@ -2643,6 +2659,8 @@ However, for [fixed effects models](#sec-two-factor-fixed-effects-anova), the te
 +-------------------------+------------------------------+--------------------------------+-------------------------------------+
 | **Interaction (A × B)** | $\frac{MSAB}{MSE}$           | $\frac{MSAB}{MSE}$             | $\frac{MSAB}{MSE}$                  |
 +-------------------------+------------------------------+--------------------------------+-------------------------------------+
+
+: F-Test Denominators for Factorial ANOVA Under Different Model Assumptions
 
 ------------------------------------------------------------------------
 
@@ -2762,8 +2780,6 @@ $$
 
 Observations sharing **Factor B (random effect)** are correlated.
 
-**Covariances for Different Cases**
-
 +-------------------------------------------------------+-----------------------------------------------------------------------------------+
 | **Condition**                                         | **Covariance**                                                                    |
 +=======================================================+===================================================================================+
@@ -2773,6 +2789,8 @@ Observations sharing **Factor B (random effect)** are correlated.
 +-------------------------------------------------------+-----------------------------------------------------------------------------------+
 | **Different** $i$ and $j$ ($i \neq i'$, $j \neq j'$)  | $cov(Y_{ijk}, Y_{i'j'k'}) = 0$                                                    |
 +-------------------------------------------------------+-----------------------------------------------------------------------------------+
+
+: Covariances for Different Cases
 
 Thus, only observations within the same random factor level share dependence.
 
@@ -3099,8 +3117,6 @@ where:
 
 ------------------------------------------------------------------------
 
-#### ANOVA Table for Randomized Block Design
-
 The ANOVA decomposition partitions total variability into contributions from blocks, treatments, and residual error.
 
 +-------------------------+-------------------------------------------------------------------------+-----------------------------+------------------------------------------+------------------------------------------+
@@ -3114,6 +3130,8 @@ The ANOVA decomposition partitions total variability into contributions from blo
 +-------------------------+-------------------------------------------------------------------------+-----------------------------+------------------------------------------+------------------------------------------+
 | **Total**               | $SSTO$                                                                  | $nr-1$                      | \-                                       | \-                                       |
 +-------------------------+-------------------------------------------------------------------------+-----------------------------+------------------------------------------+------------------------------------------+
+
+: ANOVA Table for Randomized Block Design
 
 #### F-tests in Randomized Block Designs
 
@@ -3247,13 +3265,13 @@ $$
 
 ------------------------------------------------------------------------
 
-**Expected Mean Squares for Fixed Treatments**
-
 | Source         | SS   | E(MS)                                    |
 |----------------|------|------------------------------------------|
 | **Blocks**     | SSBL | $\sigma^2 + r \sigma^2_\rho$             |
 | **Treatments** | SSTR | $\sigma^2 + n \frac{\sum \tau^2_j}{r-1}$ |
 | **Error**      | SSE  | $\sigma^2$                               |
+
+: Expected Mean Squares for Fixed Treatments
 
 ------------------------------------------------------------------------
 
@@ -3317,8 +3335,6 @@ The sum of squares and degrees of freedom for [interaction model](#sec-random-bl
 
 ------------------------------------------------------------------------
 
-#### ANOVA Table with Interaction Effects
-
 +----------------+----------+--------------+-----------------------------------------------------------------+
 | Source         | SS       | df           | E(MS)                                                           |
 +================+==========+==============+=================================================================+
@@ -3328,6 +3344,8 @@ The sum of squares and degrees of freedom for [interaction model](#sec-random-bl
 +----------------+----------+--------------+-----------------------------------------------------------------+
 | **Error**      | $SSE$    | $(n-1)(r-1)$ | $\sigma^2 + \sigma^2_{\rho \tau}$                               |
 +----------------+----------+--------------+-----------------------------------------------------------------+
+
+: ANOVA Table with Interaction Effects
 
 ------------------------------------------------------------------------
 
@@ -3454,7 +3472,7 @@ $$
 
 ------------------------------------------------------------------------
 
-## Nested Designs
+## Nested Designs {#sec-nested-designs}
 
 A nested design occurs when one factor is entirely contained within another. This differs from a crossed design, where all levels of one factor are present across all levels of another factor.
 
@@ -3527,7 +3545,7 @@ $$
 \sum_j \beta_{j(i)} = 0, \quad \forall i = 1, \dots, a
 $$
 
-Since $\beta_{j(i)}$ is the **specific effect** of the $j$-th level of factor $B$ nested within the $i$-th level of factor $A$, the full model can be written as:
+Since $\beta_{j(i)}$ is the specific effect of the $j$-th level of factor $B$ nested within the $i$-th level of factor $A$, the full model can be written as:
 
 $$
 \mu_{ij} = \mu_{..} + \alpha_i + \beta_{j(i)}
@@ -3585,6 +3603,8 @@ The least squares and maximum likelihood estimates:
 | $\beta_{j(i)}$  | $\bar{Y}_{ij.} - \bar{Y}_{i..}$ |
 | $\hat{Y}_{ijk}$ | $\bar{Y}_{ij.}$                 |
 
+: Estimators for Parameters in Nested Designs
+
 The residual error:
 
 $$
@@ -3612,8 +3632,6 @@ $$
 
 ------------------------------------------------------------------------
 
-#### ANOVA Table for Nested Designs
-
 +-------------------------+----------+-----------+----------+---------------------------------------------------+
 | **Source of Variation** | **SS**   | **df**    | **MS**   | **E(MS)**                                         |
 +=========================+==========+===========+==========+===================================================+
@@ -3625,6 +3643,8 @@ $$
 +-------------------------+----------+-----------+----------+---------------------------------------------------+
 | **Total**               | $SSTO$   | $abn -1$  |          |                                                   |
 +-------------------------+----------+-----------+----------+---------------------------------------------------+
+
+: ANOVA Table for Nested Designs
 
 ------------------------------------------------------------------------
 
@@ -3797,8 +3817,6 @@ $$
 
 ------------------------------------------------------------------------
 
-**Expected Mean Squares for Random Effects**
-
 +-----------------+----------------------------------------------------------------+------------------------------------------------------+
 | **Mean Square** | **Expected Mean Squares (A Fixed, B Random)**                  | **Expected Mean Squares (A Random, B Random)**       |
 +=================+================================================================+======================================================+
@@ -3809,9 +3827,9 @@ $$
 | **MSE**         | $\sigma^2$                                                     | $\sigma^2$                                           |
 +-----------------+----------------------------------------------------------------+------------------------------------------------------+
 
-------------------------------------------------------------------------
+: Expected Mean Squares for Random Effects
 
-**F-Tests for Factor Effects**
+------------------------------------------------------------------------
 
 +-----------------+--------------------------------+---------------------------------+
 | **Factor**      | **F-Test (A Fixed, B Random)** | **F-Test (A Random, B Random)** |
@@ -3820,6 +3838,8 @@ $$
 +-----------------+--------------------------------+---------------------------------+
 | **Factor B(A)** | $\frac{MSB(A)}{MSE}$           | $\frac{MSB(A)}{MSE}$            |
 +-----------------+--------------------------------+---------------------------------+
+
+: F-Tests for Factor Effects
 
 ------------------------------------------------------------------------
 
@@ -3835,7 +3855,7 @@ Another way to increase precision in treatment comparisons is by adjusting for c
 
 ------------------------------------------------------------------------
 
-## Sample Size Planning for ANOVA
+## Sample Size Planning for ANOVA {#sec-sample-size-planning-for-anova}
 
 ### Balanced Designs
 
@@ -4004,7 +4024,7 @@ However, the power level is different from the randomized block design because
 
 ------------------------------------------------------------------------
 
-## Single Factor Covariance Model
+## Single Factor Covariance Model {#sec-single-factor-covariance-model}
 
 The **single-factor covariance model** (Analysis of Covariance, ANCOVA) accounts for both treatment effects and a continuous covariate:
 
@@ -4020,7 +4040,7 @@ for $i = 1, \dots, r$ (treatments) and $j = 1, \dots, n_i$ (observations per tre
 -   $X_{ij}$: Observed covariate (fixed, not random).
 -   $\epsilon_{ij} \sim iid N(0, \sigma^2)$: Independent random errors.
 
-If we use $\gamma X_{ij}$ directly (without centering), then $\mu_{.}$ is no longer the overall mean. **Thus, centering the covariate** is necessary to maintain interpretability.
+If we use $\gamma X_{ij}$ directly (without centering), then $\mu_{.}$ is no longer the overall mean. Thus, centering the covariate is necessary to maintain interpretability.
 
 **Expectation and Variance**
 
@@ -4146,11 +4166,13 @@ For $r = 3$, we estimate:
 | $\tau_2 - \tau_3$ | $\hat{\tau}_1 + 2 \hat{\tau}_2$ | $var(\hat{\tau}_1) + 4var(\hat{\tau}_2) - 4cov(\hat{\tau}_1, \hat{\tau}_2)$ |
 +-------------------+---------------------------------+-----------------------------------------------------------------------------+
 
+: Estimates and Variances for Treatment Comparisons
+
 ------------------------------------------------------------------------
 
 ### Testing for Parallel Slopes
 
-To check if **slopes differ across treatments**, we use the model:
+To check if slopes differ across treatments, we use the model:
 
 $$
 Y_{ij} = \mu_{.} + \tau_1 I_{ij,1} + \tau_2 I_{ij,2} + \gamma X_{ij} + \beta_1 I_{ij,1}X_{ij} + \beta_2 I_{ij,2}X_{ij} + \epsilon_{ij}
@@ -4169,13 +4191,13 @@ $$
 \end{aligned}
 $$
 
-If the $F$-test fails to reject $H_0$, then **we assume parallel slopes**.
+If the $F$-test fails to reject $H_0$, then we assume parallel slopes.
 
 ------------------------------------------------------------------------
 
 ### Adjusted Means
 
-The **adjusted treatment means** account for covariate effects:
+The adjusted treatment means account for covariate effects:
 
 $$
 Y_{i.}(\text{adj}) = \bar{Y}_{i.} - \hat{\gamma}(\bar{X}_{i.} - \bar{X}_{..})
@@ -4194,3 +4216,9 @@ where:
 This provides estimated treatment means after controlling for covariate effects.
 
 ------------------------------------------------------------------------
+
+This chapter has provided an exploration of ANOVA, a foundational technique for comparing group means across multiple experimental conditions. Beginning with the [Completely Randomized Design](#sec-completely-randomized-design), we established the basic framework for understanding how ANOVA partitions variability. We then extended the discussion to [Nonparametric ANOVA](#sec-nonparametric-anova), accommodating situations where the assumptions of traditional ANOVA are violated.
+
+Subsequent sections introduced advanced designs such as [Randomized Block](#sec-randomized-block-designs) and [Nested Designs](#sec-nested-designs), which offer increased precision and control over variability by accounting for structured sources of heterogeneity. We also addressed [Sample Size Planning](#sec-sample-size-planning-for-anova), emphasizing the importance of statistical power and design efficiency. Finally, we examined the [Single Factor Covariance Model](#sec-single-factor-covariance-model), integrating covariates into the ANOVA framework to adjust for confounding variables and improve estimation accuracy.
+
+Together, these topics equip the reader with the methodological rigor needed to design, implement, and interpret experiments involving multiple group comparisons in complex real-world settings.

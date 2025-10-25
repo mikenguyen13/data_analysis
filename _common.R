@@ -16,7 +16,16 @@ knitr::opts_chunk$set(
 
 options(crayon.enabled = FALSE)
 
-suppressPackageStartupMessages(library(tidyverse))
+# suppressPackageStartupMessages(library(tidyverse))
+options(warn = -1)
+suppressPackageStartupMessages({
+    library(dplyr)
+    library(ggplot2)
+    library(tidyverse)
+    library(data.table)
+    library(lubridate)
+})
+
 theme_set(theme_light())
 
 library(scales)

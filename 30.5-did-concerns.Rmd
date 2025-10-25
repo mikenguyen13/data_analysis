@@ -312,65 +312,50 @@ Testing Parallel Trends: [Prior Parallel Trends Test](#prior-parallel-trends-tes
 
 -   There should be no other major shocks that affect treatment/control groups differently at the same time as treatment implementation.
 
-------------------------------------------------------------------------
+6.  **Random Sampling (or Representative Sampling)**
 
-**Limitations and Common Issues**
+-   **Assumption**: The units (e.g., individuals, firms, regions) in the treatment and control groups are drawn from the same population, or at least from populations that would follow parallel trends in the absence of treatment.
 
-1.  **Functional Form Dependence**
+-   **Implication**: Ensures external validity. It allows the DID estimator to generalize to the population of interest and prevents selection bias that would arise if treated and control units were systematically different at baseline.
 
--   If the response to treatment is nonlinear, compare high- vs. low-intensity groups.
+7.  **Overlap (also called Common Support)**
 
-2.  **Selection on (Time-Varying) Unobservables**
+-   **Assumption**: There is a positive probability of being treated or untreated for all units. Formally, for any covariate profile, there must be both treated and control units.
 
--   Use [Rosenbaum Bounds] to check the sensitivity of estimates to unobserved confounders.
+-   **Implication**: Without overlap, it becomes impossible to construct a valid counterfactual for some treated units. This assumption is especially important in staggered or generalized DID settings where treatment timing varies.
 
-3.  **Long-Term Effects**
+-   **Diagnostic**: One can assess this assumption using propensity score distributions or visualizations (e.g., covariate balance plots).
 
--   Parallel trends are more reliable in short time windows.
--   Over long periods, other confounding factors may emerge.
+8.  **Effect Additivity (also called Constant Treatment Effect or Additive Structure or Effect Homogeneity)**
 
-4.  **Heterogeneous Effects**
+-   **Assumption**: The treatment effect is additive and homogeneous across units and time, meaning that the treatment only shifts the outcome level, not its trend or curvature. In the simplest form: $Y_{it}(1) - Y_{it}(0) = \delta$ for all $i$,$t$
 
--   Treatment intensity (e.g., different doses) may vary across groups, leading to different effects.
+-   **Implication**: This assumption is not required for identification per se, but it simplifies estimation and interpretation. Violations may bias estimates if treatment effects vary in ways that interact with time or unit characteristics.
 
-5.  **Ashenfelter's Dip** [@ashenfelter1978estimating]
+-   **Alternative Approaches**: More recent DID methods (e.g., Callaway & Sant'Anna, Sun & Abraham) relax this assumption by allowing treatment effect heterogeneity.
 
--   Participants in job training programs often experience earnings drops before enrolling, making them systematically different from nonparticipants.
--   **Fix**: Compute long-run differences, excluding periods around treatment, to test for sustained impact [@proserpio2017online; @heckman1999economics; @jepsen2014labor].
+In a standard DID setup, researchers often *use* the phrases "effect additivity" and "effect homogeneity" interchangeably, because the customary linear-in-levels model embeds *both* ideas. Strictly speaking, however, they are not identical:
 
-6.  **Lagged Treatment Effects**
+| Concept                | What it literally requires                                                                                                                                                                                                                          | What it rules out                                                                                   | Relationship                                                                                                                                                                           |
+|--------------|--------------------------|--------------|-------------------|
+| **Effect additivity**  | Treated potential outcome equals untreated potential outcome plus a constant shift: $Y_{it}(1)=Y_{it}(0)+\tau$. The treatment enters the outcome **additively** and the size of the shift does **not depend on the baseline level** of the outcome. | Any multiplicative or nonlinear functional form of the effect (e.g., a constant percentage change). | Implies a constant *level* effect. Guarantees homogeneity *and* linearity.                                                                                                             |
+| **Effect homogeneity** | The treatment effect $\tau$ is **constant across units and periods**: $\tau_i=\tau_t=\tau$. It says nothing about whether that constant is added, multiplied, or otherwise applied.                                                                 | Unit-specific or time-varying treatment effects.                                                    | A broader statement. You can have homogeneous *multiplicative* effects ($Y_{it}(1)=Y_{it}(0)\times\lambda$ with constant $\lambda$). Those satisfy homogeneity but violate additivity. |
 
--   If effects are not immediate, using a lagged dependent variable $Y_{it-1}$ may be more appropriate [@blundell1998initial].
+Why they get conflated in practice
 
-7.  **Bias from Unobserved Factors Affecting Trends**
+1.  **Linear DID regression in levels.**\
+    The canonical two-way fixed-effects model, $Y_{it}= \alpha_i+\lambda_t+\tau D_{it}+\varepsilon_{it}$ identifies $\tau$ only if (a) the effect is additive and (b) the constant $\tau$ is the same for every $i$, $t$. Hence both additivity and homogeneity are baked in; many textbooks label the joint restriction simply "homogeneous treatment effects"
 
--   If external shocks influence treatment and control groups differently, this biases DiD estimates.
+2.  **Terminology drift.**\
+    Recent heterogeneity papers contrast "TWFE with homogeneous effects" against "heterogeneous effects" without separating additivity from constancy, so the two terms are often treated as synonyms even though, conceptually, homogeneity could hold on another scale.
 
-8.  **Correlated Observations**
+Practical implications
 
--   Standard errors should be clustered appropriately.
+-   If you keep the outcome in **levels**, invoking *homogeneous treatment effects* effectively commits you to *additivity* as well.
 
-9.  **Incidental Parameters Problem [@lancaster2000incidental]**
+-   If the outcome is log-transformed, **homogeneous effects** correspond to a constant percentage change, which is *multiplicative*, so additivity no longer holds.
 
--   Always prefer individual and time fixed effects to reduce bias.
-
-10. **Treatment Timing and Negative Weights**
-
--   If treatment timing varies across units, negative weights can arise in standard DiD estimators when treatment effects are heterogeneous [@athey2022design; @borusyak2024revisiting; @goodman2021difference].
--   **Fix:** Use estimators from @callaway2021difference and @de2020two (`did` package).
--   If expecting lags and leads, see @sun2021estimating.
-
-11. **Treatment Effect Heterogeneity Across Groups**
-
--   If treatment effects vary across groups and interact with treatment variance, standard estimators may be invalid [@gibbons2018broken].
-
-12. **Endogenous Timing**
-
-If the timing of units can be influenced by strategic decisions in a DID analysis, an instrumental variable approach with a control function can be used to control for endogeneity in timing.
-
-13. **Questionable Counterfactuals**
-
-In situations where the control units may not serve as a reliable counterfactual for the treated units, matching methods such as propensity score matching or generalized random forest can be utilized. Additional methods can be found in [Matching Methods].
+-   Robustness exercises that re-estimate the model in logs, differences, or growth rates test sensitivity to the additivity choice; stability across scales supports the idea that it is the constancy, not the functional form, that drives the results.
 
 ------------------------------------------------------------------------
 
@@ -711,6 +696,64 @@ To improve the credibility and transparency of DiD estimates, researchers should
 
 ## Concerns in DID
 
+### **Limitations and Common Issues**
+
+1.  **Functional Form Dependence**
+
+-   If the response to treatment is nonlinear, compare high- vs. low-intensity groups.
+
+2.  **Selection on (Time-Varying) Unobservables**
+
+-   Use [Rosenbaum Bounds] to check the sensitivity of estimates to unobserved confounders.
+
+3.  **Long-Term Effects**
+
+-   Parallel trends are more reliable in short time windows.
+-   Over long periods, other confounding factors may emerge.
+
+4.  **Heterogeneous Effects**
+
+-   Treatment intensity (e.g., different doses) may vary across groups, leading to different effects.
+
+5.  **Ashenfelter's Dip** [@ashenfelter1978estimating]
+
+-   Participants in job training programs often experience earnings drops before enrolling, making them systematically different from nonparticipants.
+-   **Fix**: Compute long-run differences, excluding periods around treatment, to test for sustained impact [@proserpio2017online; @heckman1999economics; @jepsen2014labor].
+
+6.  **Lagged Treatment Effects**
+
+-   If effects are not immediate, using a lagged dependent variable $Y_{it-1}$ may be more appropriate [@blundell1998initial].
+
+7.  **Bias from Unobserved Factors Affecting Trends**
+
+-   If external shocks influence treatment and control groups differently, this biases DiD estimates.
+
+8.  **Correlated Observations**
+
+-   Standard errors should be clustered appropriately.
+
+9.  **Incidental Parameters Problem [@lancaster2000incidental]**
+
+-   Always prefer individual and time fixed effects to reduce bias.
+
+10. **Treatment Timing and Negative Weights**
+
+-   If treatment timing varies across units, negative weights can arise in standard DiD estimators when treatment effects are heterogeneous [@athey2022design; @borusyak2024revisiting; @goodman2021difference].
+-   **Fix:** Use estimators from @callaway2021difference and @de2020two (`did` package).
+-   If expecting lags and leads, see @sun2021estimating.
+
+11. **Treatment Effect Heterogeneity Across Groups**
+
+-   If treatment effects vary across groups and interact with treatment variance, standard estimators may be invalid [@gibbons2018broken].
+
+12. **Endogenous Timing**
+
+If the timing of units can be influenced by strategic decisions in a DID analysis, an instrumental variable approach with a control function can be used to control for endogeneity in timing.
+
+13. **Questionable Counterfactuals**
+
+In situations where the control units may not serve as a reliable counterfactual for the treated units, matching methods such as propensity score matching or generalized random forest can be utilized. Additional methods can be found in [Matching Methods].
+
 ### Matching Methods in DID
 
 Matching methods are often used in **causal inference** to balance treated and control units based on **pre-treatment observables**. In the context of Difference-in-Differences, matching helps:
@@ -918,13 +961,10 @@ $$
 
 The choice of $x$ depends on what the researcher is interested in:
 
-+--------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Value of $x$ | Interest                                                                                                                                                                        |
-+==============+=================================================================================================================================================================================+
+|-------------|-----------------------------------------------------------|
 | $x = 0$      | The treatment effect in logs where all zero-valued outcomes are set to equal the minimum non-zero value (i.e., we exclude the extensive-margin change between 0 and $y_{min}$ ) |
-+--------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | $x>0$        | Setting the change between 0 and $y_{min}$ to be valued as the equivalent of a $x$ log point change along the intensive margin.                                                 |
-+--------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 ```{r}
 library(fixest)
@@ -1028,7 +1068,7 @@ Let
 For two periods (pre, post) and two groups (T = treated, U = untreated) the simple DiD estimator is
 
 $$
-\hat\beta_{DD}= \Bigl[E(Y_T^{1}\mid \texttt{Post})-E(Y_T^{0}\mid \texttt{Pre})\Bigr]\;-\;\Bigl[E(Y_U^{0}\mid \texttt{Post})-E(Y_U^{0}\mid \texttt{Pre})\Bigr].
+\hat\beta_{DD}= \Bigl[E(Y_T^{1}\mid \texttt{Post})-E(Y_T^{0}\mid \texttt{Pre})\Bigr]-\Bigl[E(Y_U^{0}\mid \texttt{Post})-E(Y_U^{0}\mid \texttt{Pre})\Bigr].
 $$
 
 Add--subtract the **counterfactual trend** $E(Y_T^{0}\mid \texttt{Post})$ and rearrange:
@@ -1088,7 +1128,7 @@ When violations evolve gradually---e.g., treated units drift upward over time---
 
 -   **Step 2 --- restrict post‑treatment slopes**:\
     The counterfactual slope in period $k$ may vary within\
-    $[s_0-M,\; s_0+M]$.
+    $[s_0-M, s_0+M]$.
 
 -   **Step 3 --- propagate forward** to obtain an admissible path for $\delta_t$; compute the least‑favorable path, then derive confidence sets [@rambachan2023more].
 

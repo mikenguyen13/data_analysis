@@ -1,25 +1,29 @@
 # Quasi-Experimental Methods {#sec-quasi-experimental}
 
-Quasi-experimental methods are widely used in causal inference when randomized experiments are not feasible. Typically, these methods rely on **pre- and post-intervention data** and attempt to identify **exogenous variation** that can be leveraged to estimate causal effects.
+Randomized experiments are often considered the gold standard for causal inference. However, in many real-world settings (e.g., evaluating public policy, marketing campaigns, or large-scale organizational changes), true randomization is either impractical, unethical, or impossible. This volume turns to quasi-experimental methods: a powerful toolkit for estimating causal effects when randomization is not an option.
+
+Building on the foundation established in the previous volume on experimental design, we now explore strategies that use observational data to approximate the logic of an experiment. Quasi-experimental methods typically rely on **pre- and post-intervention data** and seek out naturally occurring, plausibly **exogenous sources of variation** that can mimic random assignment. While these designs often strengthen internal validity, they also raise critical concerns about generalizability beyond the sample and the assumptions required for causal interpretation.
+
+As you engage with the material in this chapter, keep in mind three key considerations that often shape the credibility and applicability of quasi-experimental findings:
+
+-   **Representativeness of the Sample**: Do the units under study reflect a broader population to which results might be generalized?
+-   [**Limitations of the Design**](#sec-limitations-of-quasi-experiments): What assumptions are required for identification, and how sensitive are results to violations of these assumptions?
+-   **Integrating Quasi-Experimental Results with Structural Models**: Can quasi-experimental estimates be embedded within theoretical or economic models to extend their implications?
+    -   For concrete applications, see @anderson2015growth, @einav2010beyond, and @chung2014bonuses, which demonstrate how these tools are used in business and policy evaluation contexts.
+
+Quasi-experimental methods are central to applied research across economics, marketing, political science, and public health.
 
 <!-- Great resources for causal inference include: -->
 
 <!-- -   [Causal Inference Mixtape](https://mixtape.scunning.com/introduction.html) -->
+
 <!-- -   [Recent Advances in Micro](https://christinecai.github.io/PublicGoods/applied_micro_methods.pdf) -->
 
 <!-- The following R packages are useful for implementing quasi-experimental methods: -->
 
 <!-- -   [Econometrics](https://cran.r-project.org/web/views/Econometrics.html): Covers a broad range of econometric techniques. -->
+
 <!-- -   [Causal Inference](https://cran.r-project.org/web/views/CausalInference.html): Provides tools for estimating causal effects under different identification assumptions. -->
-
-While internal validity ensures a credible causal effect, external validity assesses whether the findings **generalize** beyond the sample.
-
-Key considerations:
-
--   Representativeness of the Sample
--   Limitations of the Design
--   Using Quasi-Experimental Results with Structural Models
-    -   See [@anderson2015growth], [@einav2010beyond], and [@chung2014bonuses] for applications.
 
 ------------------------------------------------------------------------
 
@@ -29,7 +33,7 @@ Unlike randomized experiments, quasi-experiments lack **formal statistical proof
 
 Key components of an identification strategy:
 
-1.  **Source of Exogenous Variation**
+1.  **Sources of Exogenous Variation**
     -   Justify where the exogenous variation originates.
     -   Use institutional knowledge and theoretical arguments to support this claim.
 2.  **Exclusion Restriction**
@@ -47,13 +51,117 @@ Every quasi-experimental method involves a **tradeoff between statistical power 
 
 -   Clustering should be determined based on the study design, not just expectations of correlation [@abadie2023should].
 
--   For small samples, use the wild bootstrap procedure to correct for downward bias [@cameron2008bootstrap]. See also [@cai2022implementation] for further assumptions.
+-   For small samples, use the wild bootstrap procedure to correct for downward bias [@cameron2008bootstrap]. See also @cai2022implementation for further assumptions.
 
 ------------------------------------------------------------------------
 
-## Robustness Checks
+## Establishing Mechanisms
 
-Robustness checks are essential to demonstrate that findings are not driven by model specification choices.
+Estimating a credible causal effect is a fundamental goal of quasi-experimental research. However, understanding *how* and *why* that effect arises is equally essential, especially for designing effective interventions, generalizing findings, and informing theoretical models.
+
+This section discusses two critical approaches to uncovering mechanisms: [**mediation**](#sec-mediation-analysis-explaining-the-causal-pathway) and [**moderation**](#sec-moderation-analysis-for-whom-or-under-what-conditions) analysis. These strategies help unpack the "black box" of causal inference by identifying intermediate processes and subgroup heterogeneity.
+
+------------------------------------------------------------------------
+
+### Mediation Analysis: Explaining the Causal Pathway {#sec-mediation-analysis-explaining-the-causal-pathway}
+
+Mediation analysis seeks to identify *intermediate variables* (known as **mediators**), through which the treatment influences the outcome. This allows researchers to distinguish between **direct effects** (from treatment to outcome) and **indirect effects** (those that operate through a mediator).
+
+Let:
+
+-   $T$ = Treatment
+
+-   $M$ = Mediator
+
+-   $Y$ = Outcome
+
+The goal is to decompose the total effect of $T$ on $Y$ into:
+
+-   **Direct Effect**: $T \rightarrow Y$
+
+-   **Indirect Effect**: $T \rightarrow M \rightarrow Y$
+
+To identify mediated effects causally, the following assumptions are typically needed:
+
+-   **Sequential Ignorability**: Treatment is as good as random, and the mediator is as good as random conditional on treatment and observed covariates.
+-   **No Unmeasured Mediator-Outcomes Confounders**: A strong assumption, often violated in observational settings.
+
+Estimation Strategies
+
+-   **Causal Mediation Analysis [@imai2010general]**: Provides nonparametric estimators for direct and indirect effects under the assumptions above.
+-   **Two-Stage Regression Approach**:
+    1.  Estimate the effect of treatment on mediator: $M_i = \alpha + \tau T_i + \varepsilon_i$
+    2.  Estimate outcome as function of treatment and mediator: $Y_i = \beta + \gamma T_i + \delta M_i + \eta_i$
+-   **Instrumental Variable Mediation**: In the presence of endogeneity, use IV methods where the instrument affects $M$ only through $T$.
+
+Practical Use Cases
+
+-   In marketing: Does an ad increase sales *because* it raises brand awareness (mediator)?
+-   In education: Does a tutoring program work by improving attendance (mediator), or student motivation?
+
+> **Caution:** Mediation analysis is often misused in quasi-experimental contexts; without strong assumptions or experimental variation in the mediator, estimates may not be causal.
+
+------------------------------------------------------------------------
+
+### Moderation Analysis: For Whom or Under What Conditions? {#sec-moderation-analysis-for-whom-or-under-what-conditions}
+
+Moderation analysis investigates *heterogeneity in treatment effects* across subgroups or conditional on covariates. Rather than explaining *why* an effect occurs, moderation reveals *when* and *for whom* it is stronger or weaker.
+
+Motivating Questions
+
+-   Do effects differ by gender, income, region, or baseline status?
+-   Is the treatment more effective for high-need individuals or early adopters?
+
+Estimation Approaches (Table \@ref(tab:quasi-exp-mech-approach)
+
+-   **Subgroup Analysis**: Estimate effects separately by subgroup (e.g., men vs. women).
+
+-   **Interaction Models**: Include interactions between the treatment and moderator:
+
+    $$
+    Y_{it} = \alpha + \beta_1 T_{it} + \beta_2 Z_i + \beta_3 T_{it} \times Z_i + \varepsilon_{it}
+    $$
+
+    where $Z_i$ is a moderating variable (e.g., high vs. low income).
+
+-   **Difference-in-Differences (DiD) with Moderation**: Extend [Difference-in-Differences](#sec-difference-in-differences) to test three-way interactions:
+
+    $$
+    Y_{it} = \alpha + \beta_1 \text{Post}_t + \beta_2 \text{Treat}_i + \beta_3 Z_i + \beta_4 \text{Post}_t \times \text{Treat}_i + \beta_5 \text{Post}_t \times \text{Treat}_i \times Z_i + \varepsilon_{it}
+    $$
+
+    Here, $\beta_5$ captures whether the treatment effect varies by $Z_i$.
+
+Visualization Tools
+
+-   **Marginal Effects Plots**: Show how the treatment effect varies across values of the moderator.
+-   **Interaction Plots**: Plot estimated means or regression lines by group and condition.
+
+| **Approach**      | **Goal**                        | **Key Assumptions**                             | **Common Pitfalls**                        |
+|----------------|----------------|----------------------|-------------------|
+| Mediation         | Identify intermediate variables | Sequential ignorability, no omitted confounders | Mediators may be endogenous                |
+| Subgroup Analysis | Estimate effects by group       | Sufficient sample size, balanced covariates     | Spurious differences due to imbalance      |
+| Interaction Terms | Estimate conditional effects    | Correct model specification                     | Misinterpretation of non-significant terms |
+
+: (#tab:quasi-exp-mech-approach) Mechanism Analysis Approaches
+
+------------------------------------------------------------------------
+
+Both mediation and moderation analyses serve as bridges between empirical estimates and theoretical models:
+
+-   **Mediation** links to *process theories*: How does a treatment bring about change?
+-   **Moderation** links to *contingency theories*: Under what conditions does the treatment work?
+
+In applied business research, understanding mechanisms is crucial for policy targeting, personalization strategies, and model refinement. For example:
+
+-   In customer retention programs, mediation might show that satisfaction explains retention gains.
+-   Moderation might reveal that effects are stronger for new customers than loyal ones.
+
+------------------------------------------------------------------------
+
+## Robustness Checks {#sec-robustness-checks-quasi-exp}
+
+Robustness checks or sensitivity analyses are essential to demonstrate that findings are not driven by model specification choices.
 
 Recommended robustness checks [@goldfarb2022conducting]:
 
@@ -61,7 +169,7 @@ Recommended robustness checks [@goldfarb2022conducting]:
     -   Show results with and without controls.
     -   Examine how the estimate of interest changes.
     -   Use **Rosenbaum bounds** for formal sensitivity analysis [@altonji2005selection].
-    -   In marketing applications, see [@manchanda2015social] and [@shin2012fire].
+    -   In marketing applications, see @manchanda2015social and @shin2012fire.
 2.  **Different Functional Forms**
     -   Check whether the results hold under different model specifications (e.g., linear vs. non-linear models).
 3.  **Varying Time Windows**
@@ -76,37 +184,92 @@ Recommended robustness checks [@goldfarb2022conducting]:
 
 ------------------------------------------------------------------------
 
-## Establishing Mechanisms
+## Limitations of Quasi-Experiments {#sec-limitations-of-quasi-experiments}
 
-Once the causal effect is established, the next step is to investigate how the effect operates.
+Quasi-experimental methods offer valuable tools for causal inference when RCTs are not feasible. However, these designs come with important limitations that must be addressed transparently and rigorously. Because quasi-experiments rely on observational or naturally occurring data, the assumptions required to identify causal effects are generally more stringent, less testable, and more vulnerable to violation than in randomized settings.
 
-1.  [Mediation] Analysis
-    -   Test whether an intermediate variable explains the effect of the treatment.
-2.  [Moderation] Analysis
-    -   Estimate the model separately for different subgroups.
-    -   Test for three-way interactions (e.g., interaction between treatment, time, and group membership in [Difference-in-Differences](#sec-difference-in-differences) settings).
+Researchers have a responsibility to not only articulate the assumptions underlying their identification strategy, but also to critically assess the threats to both internal and external validity. The credibility of a quasi-experimental study often hinges on the clarity and transparency with which these limitations are confronted.
+
+We structure the discussion around these fundamental questions that should guide both researchers and critical readers:
 
 ------------------------------------------------------------------------
 
-## Limitations of Quasi-Experiments
+### What Are the Identification Assumptions?
 
-Researchers should explicitly discuss the limitations of their quasi-experimental approach.
+At the heart of any causal claim is a set of assumptions that link the observed data to a counterfactual estimate. In quasi-experiments, these assumptions typically substitute for randomization. Researchers must clearly specify and justify them. For example,
 
-Key Questions to Address:
+-   **Difference-in-Differences** relies on the *parallel trends assumption* (i.e., in the absence of treatment, the treated and control groups would have followed the same outcome trajectory).
+-   **Regression Discontinuity** assumes that units just above and below the cutoff are comparable except for treatment assignment.
+-   **Instrumental Variables** require that the instrument affects the outcome only through the treatment and is not correlated with unobserved confounders.
 
-1.  **What are the identification assumptions?**
-    -   Clearly state the assumptions required for causal inference.
-2.  **What are the threats to validity?**
-    -   Consider potential confounders, measurement errors, and violations of [SUTVA](#sec-sutva).
-3.  **How do you address these threats?**
-    -   Describe robustness checks and alternative specifications.
-    -   Suggest directions for future research to improve causal identification.
+**Best Practice:** Use visual diagnostics, historical evidence, and pre-trend analyses to justify the plausibility of your identifying assumptions.
+
+------------------------------------------------------------------------
+
+### What Are the Threats to Validity?
+
+Even with well-articulated assumptions, quasi-experiments are vulnerable to a variety of threats that may compromise causal inference. These include:
+
+-   **Unobserved Confounding:** Particularly problematic in cross-sectional designs or when the assignment mechanism is poorly understood.
+-   **Violation of [SUTVA](#sec-sutva):** Spillovers, interference between units, or treatment variation may invalidate the independence assumption.
+-   **Anticipation Effects or Pre-Treatment Trends:** If agents react to anticipated treatments or if trends already diverge pre-treatment, causal interpretation is compromised.
+-   **Measurement Error in Assignment or Outcomes:** In RD designs, mismeasured running variables can attenuate treatment effects or bias discontinuity estimates.
+-   **Manipulation or Sorting Around a Threshold:** In RD or other assignment-based designs, strategic behavior can undermine the quasi-randomness of assignment.
+-   **Limited Overlap or Support:** In IV or matching designs, treatment effects may only be identified for a narrow subpopulation (e.g., compliers).
+
+**Best Practice:** Explicitly discuss how each threat could operate in your setting, and evaluate their plausibility using data and theory.
+
+------------------------------------------------------------------------
+
+### How Do You Address These Threats?
+
+[Robustness and sensitivity checks](#sec-robustness-checks-quasi-exp) are essential in bolstering the credibility of quasi-experimental findings. These may include:
+
+-   **Placebo Tests:** Check for treatment effects in periods or groups where no treatment occurred.
+-   **Falsification Outcomes:** Analyze outcomes that should not be affected by the treatment.
+-   **Pre-Trend Diagnostics:** For DiD, plot outcome trends before the intervention to assess the plausibility of the parallel trends assumption.
+-   **Bandwidth and Polynomial Sensitivity (in RD):** Vary bandwidths and functional forms to assess the stability of estimates.
+-   **Alternative Specifications:** Use different model formulations, control sets, or matching procedures to test robustness.
+-   **Heterogeneity Analysis:** Examine treatment effects across subgroups to reveal where assumptions may break down.
+
+**Best Practice:** Present robustness checks graphically where possible. Transparency in presenting weaknesses enhances credibility.
+
+------------------------------------------------------------------------
+
+### What Are the Implications for External Validity and Future Research?
+
+Quasi-experimental estimates are often highly context-specific, and generalizing beyond the study setting requires caution (See Table \@ref(tab:quasi-exp-examples-limitation) for limitations).
+
+-   **Limited Scope of Identification:** Many designs estimate Local Average Treatment Effects rather than Average Treatment Effects.
+-   **Sample and Setting Specificity:** Estimates may reflect idiosyncrasies of a particular institution, geography, or time period.
+-   **Policy Relevance:** Consider whether the scale or nature of the intervention reflects real-world applications.
+
+Future research directions often emerge from the limitations of a quasi-experimental study. Examples include:
+
+-   Identifying new sources of exogenous variation or natural experiments.
+-   Combining quasi-experimental evidence with structural modeling to improve extrapolation.
+-   Developing better diagnostics for assumption testing.
+-   Replicating findings in other settings or populations.
+
+------------------------------------------------------------------------
+
+| **Threat**                          | **Example Design** | **Diagnostic Tool**               | **Remedy or Check**                          |
+|------------------|----------------|-----------------|----------------------|
+| Unobserved Confounding              | Matching, DiD      | Pre-trend test, covariate balance | Sensitivity analysis, falsification outcomes |
+| Violation of Parallel Trends        | DiD                | Pre-treatment trends plot         | Group-specific trends, triple differences    |
+| Manipulation of Assignment Variable | RD                 | Density test (McCrary)            | Exclude manipulated region, use fuzzy RD     |
+| Spillovers / Interference           | All                | Spatial or network data analysis  | Clustered design, SUTVA discussion           |
+| Narrow Population of Compliers      | IV                 | Covariate balance for compliers   | Bounding methods, report LATE clearly        |
+
+: (#tab:quasi-exp-examples-limitation) Examples of Limitations and Responses
+
+Quasi-experimental methods are powerful, but their strength lies not in perfection, but in transparency. A well-documented quasi-experiment, with clear limitations and open discussion of assumptions, often contributes more to scientific knowledge than a poorly reported experiment. As we proceed through the chapters, you will see both exemplary and problematic applications of these methods, with an emphasis on the discipline required to make credible causal claims from imperfect data.
 
 ------------------------------------------------------------------------
 
 ## Assumptions for Identifying Treatment Effects
 
-To identify causal effects in **non-randomized studies**, we rely on three key assumptions:
+To identify causal effects in **non-randomized studies**, we typically rely on three key assumptions:
 
 1.  [Stable Unit Treatment Value Assumption](#sec-sutva) (SUTVA)
 2.  [Conditional Ignorability (Unconfoundedness) Assumption](#sec-conditional-ignorability-assumption)
@@ -162,14 +325,16 @@ However, if SUTVA is violated, standard causal inference methods may fail. Commo
     -   Example: Different incentive levels in a sales promotion may have different effects.
     -   **Solution:** Explicitly define and distinguish different treatment versions using **principal stratification**.
 
-Violating SUTVA introduces significant challenges in causal inference, leading to:
+Violating SUTVA introduces significant challenges in causal inference (Table \@ref(tab:quasi-exp-violating-sutva))
 
 |                                |                                                                                                                                    |
-|------------------|------------------------------------------------------|
+|-----------------|-------------------------------------------------------|
 | Issue                          | Consequence                                                                                                                        |
 | **Bias in Estimators**         | If interference is ignored, treatment effects may be over- or underestimated.                                                      |
 | **Incorrect Standard Errors**  | Standard errors may be **underestimated** (if spillovers are ignored) or **overestimated** (if hidden treatment variations exist). |
 | **Ill-Defined Causal Effects** | If multiple treatment versions exist, it becomes unclear which causal effect is being estimated.                                   |
+
+: (#tab:quasi-exp-violating-sutva) Consequences of Violating SUTVA
 
 Thus, when SUTVA is unlikely to hold, researchers must adopt more flexible methodologies to ensure valid inferences.
 
@@ -182,10 +347,18 @@ The [no interference](#sec-no-interference) component of the Stable Unit Treatme
 -   **Epidemiology**: In vaccine studies, an individual's health status may depend on the vaccination status of their social network.
 -   **Marketing Experiments**: In online advertising, one consumer's exposure to an ad campaign may influence their peers' purchasing behavior.
 
-Mathematically, interference occurs when unit $i$'s outcome depends on the treatment assignments of other units within a neighborhood function $\mathcal{N}(i)$:
+From an economist's point of view, this "no interference" condition quickly morphs into a list of assumptions about market isolation, absence of spillovers, and partial equilibrium thinking.
+
+Mathematically, let $Y_i(\mathbf{Z})$ be the potential outcome for unit $i$ given treatment assignments $\mathbf{Z} = (Z_1, \dots, Z_N)$ for all units. No interference means:
+
+$$ Y_i(\mathbf{Z}) = Y_i(Z_i) $$
+
+That is, unit $i$'s outcome depends only on its own treatment $Z_i$, not on $Z_j$ for $j \neq i$.
+
+Alternatively, we can write interference occurs when unit $i$'s outcome depends on the treatment assignments of other units within a neighborhood function $\mathcal{N}(i)$:
 
 $$
-Y_i(Z, \mathbf{Z}_{\mathcal{N}(i)}),
+Y_i(Z_i, \mathbf{Z}_{\mathcal{N}(i)}),
 $$
 
 where $\mathbf{Z}_{\mathcal{N}(i)}$ represents the treatment assignments of neighboring units. If $\mathcal{N}(i) \neq \emptyset$, then SUTVA is violated, necessitating alternative modeling approaches such as **spatial econometrics**, **network-based causal inference**, or **graph-based treatment effect estimation**.
@@ -201,6 +374,57 @@ Several forms of interference can arise in applied settings:
 -   **Network Interference**: Treatment effects propagate through a social or spatial network, requiring models such as **graph-based causal inference** or **spatial econometrics**.
 
 Each of these cases necessitates adjustments to standard causal inference techniques.
+
+------------------------------------------------------------------------
+
+Economists hear "no interference" and think:
+
+-   "No externalities"
+-   "No peer effects"
+-   "Partial equilibrium"
+-   "Small shock in a big market"
+-   "No strategic interaction"
+
+Table \@ref(tab:quasi-exp-no-interference) maps the statistical and economic language.
+
+| Statistical Term                        | Economic Translation            | Economic Intuition                                               |
+|---------------------|------------------|---------------------------------|
+| No interference between units           | No externalities                | My treatment does not affect your utility or production function |
+| Outcomes depend only on own treatment   | No peer effects                 | My grade is unaffected by whether my classmates are treated      |
+| Unit's treatment does not affect prices | Partial equilibrium             | Market prices remain fixed regardless of who is treated          |
+| Treated unit is infinitesimal           | No general equilibrium feedback | Treated fraction too small to shift aggregate supply/demand      |
+| No network dependence                   | No spillovers                   | No migration, contagion, or supply-chain effects to others       |
+
+: (#tab:quasi-exp-no-interference) No Interference in Economists' Understanding
+
+------------------------------------------------------------------------
+
+In many economic settings, no interference is a **very strong assumption** because:
+
+-   **Markets are connected**: Price changes in one market can propagate to others.
+-   **Agents are strategic**: Competitors, consumers, or workers adjust behavior in response to others' treatment.
+-   **Resources are scarce**: Treatments may affect availability of goods, labor, or credit elsewhere.
+-   **Networks matter**: Information, contagion, or migration can link outcomes.
+
+Economists often default to a **partial equilibrium** view to approximate no interference: analyze a small slice of the market where general equilibrium effects are negligible (Table \@ref(tab:quasi-exp-violations-econ)).
+
+| Scenario                   | Why Interference Occurs                                       | Type of Spillover          |
+|------------------|-------------------------------------|------------------|
+| Housing voucher experiment | Treated households bid up rents in the same area              | Price-mediated spillover   |
+| Tax break to one industry  | Shifts labor and capital into that industry, affecting others | Factor market reallocation |
+| Vaccination program        | Reduces disease prevalence for all                            | Epidemiological spillover  |
+| New export subsidy         | Alters exchange rate, affecting other exporters               | Macroeconomic spillover    |
+
+: (#tab:quasi-exp-violations-econ) Violations in Economics
+
+When No Interference is Plausible
+
+-   The treatment is randomized at a **micro level** and only a tiny fraction of units are treated.
+-   Units are geographically, socially, and economically **isolated**.
+-   Outcomes are determined **before** any interaction could occur.
+-   **Institutional separation** ensures one unit's treatment cannot affect another (e.g., sealed laboratory experiments).
+
+> **Key takeaway:** Statisticians define no interference narrowly: my potential outcomes depend only on my own treatment. Economists translate this into a battery of market-isolation assumptions, usually under a partial equilibrium frame. In most economic applications, the challenge is not assuming no interference, but modeling and estimating the ways in which it is violated.
 
 ------------------------------------------------------------------------
 
@@ -288,9 +512,9 @@ If ignorability holds, standard regression models, matching, or weighting techni
 
 In causal diagrams (DAGs), confounding arises when a backdoor path exists between treatment $Z$ and outcome $Y$. A backdoor path is any non-causal path that creates spurious associations between $Z$ and $Y$. The conditional ignorability assumption requires that all such paths be blocked by conditioning on a sufficient set of covariates $X$.
 
-Consider a simple causal diagram:
+Consider a simple causal diagram in Figure \@ref(fig:simple-dag).
 
-```{r, echo = FALSE}
+```{r simple-dag, echo = FALSE, fig.cap='Directed Acyclic Graph', fig.alt='A directed acyclic graph showing three nodes: X, Y, and Z. Arrows go from X to Y, X to Z, and Z to Y, representing a mediation model where X affects Y directly and also indirectly through mediator Z.'}
 # Load necessary libraries
 library(dagitty)
 library(ggdag)
@@ -340,9 +564,9 @@ then estimates of the treatment effect will be biased.
 
 **Example of Confounding**
 
-Consider an observational study on smoking and lung cancer:
+Consider an observational study on smoking and lung cancer (Figure \@ref(fig:example-confounding-dag)).
 
-```{r, echo = FALSE}
+```{r example-confounding-dag,echo=FALSE, fig.cap='Example of Confounding in a Causal Diagram', fig.alt='DAG showing confounding where Gene affects both Smoking and Cancer, potentially biasing the Smoking→Cancer effect.'}
 # Load necessary libraries
 library(dagitty)
 library(ggdag)
@@ -440,7 +664,7 @@ If some subpopulations always receive treatment ($P(Z_i = 1 \mid X_i) = 1$) or n
 
 #### Implications of Violating the Overlap Assumption
 
-When the overlap assumption is violated, identifying causal effects becomes challenging. Key implications include:
+When the overlap assumption is violated, identifying causal effects becomes challenging (Table \@ref(tab:quasi-exp-consequences-overlap)).
 
 | **Issue**                                        | **Consequence**                                                                         |
 |--------------------------|----------------------------------------------|
@@ -448,6 +672,8 @@ When the overlap assumption is violated, identifying causal effects becomes chal
 | **ATT May Still Be Identifiable**                | ATT can be estimated if some overlap exists, but it is restricted to the treated group. |
 | **Severe Violations Can Prevent ATT Estimation** | If there is no overlap, even ATT is not identifiable.                                   |
 | **Extrapolation Bias**                           | Weak overlap forces models to extrapolate, leading to unstable and biased estimates.    |
+
+: (#tab:quasi-exp-consequences-overlap) Consequences of Violating the Overlap Assumption
 
 **Example: Education Intervention and Socioeconomic Status**
 
@@ -501,7 +727,7 @@ If overlap is weak, several strategies can help:
 
 When overlap is weak, ATO offers an alternative estimand that focuses on the subpopulation where treatment is not deterministic.
 
-Instead of estimating the **ATE** (which applies to the entire population) or the **ATT** (which applies to the treated population), ATO focuses on units where **both treatment and control were plausible options**.
+Instead of estimating the **ATE** (which applies to the entire population) or the **ATT** (which applies to the treated population), ATO focuses on units where both treatment and control were plausible options (Table \@ref(tab:quasi-exp-causal-estimands)).
 
 ATO is estimated using **overlap weights**:
 
@@ -521,7 +747,7 @@ These weights:
 | **ATT**      | Treated population    | Moderate                |
 | **ATO**      | Overlap population    | Weak                    |
 
-: **Comparison of Estimands**
+: (#tab:quasi-exp-causal-estimands) Comparison of Estimands
 
 **Practical Applications of ATO**
 
@@ -532,7 +758,7 @@ These weights:
 
 ## Natural Experiments {#sec-natural-experiments}
 
-A natural experiment is an observational study in which an exogenous event, policy change, or external factor creates as-if random variation in treatment assignment across units. Unlike [randomized controlled trials](#sec-experimental-design) (RCTs)---where researchers actively manipulate treatment assignment---natural experiments leverage naturally occurring circumstances that approximate randomization.
+A natural experiment is an observational study in which an exogenous event, policy change, or external factor creates as-if random variation in treatment assignment across units. Unlike [randomized controlled trials](#sec-experimental-design) (RCTs), where researchers actively manipulate treatment assignment, natural experiments leverage naturally occurring circumstances that approximate randomization.
 
 In many fields, including economics, marketing, political science, and epidemiology, natural experiments provide an indispensable tool for causal inference, particularly when RCTs are impractical, unethical, or prohibitively expensive.
 
@@ -568,7 +794,7 @@ These examples illustrate how natural experiments are leveraged to estimate caus
 
 **Why Are Natural Experiments Important?**
 
-Natural experiments are powerful tools for identifying causal relationships because they often eliminate selection bias---a major issue in observational studies. However, they also present challenges:
+Natural experiments are powerful tools for identifying causal relationships because they often eliminate selection bias, a major issue in observational studies. However, they also present challenges:
 
 -   **Treatment Assignment is Not Always Perfectly Random**: Unlike RCTs, natural experiments rely on assumptions about the **as-if randomness** of treatment.
 -   **Potential for Confounding**: Even if treatment appears random, hidden factors might still bias results.
@@ -750,15 +976,17 @@ adj_pvals |> causalverse::nice_tab()
 # adj_pvals$adjp
 ```
 
+------------------------------------------------------------------------
+
 ## Design vs. Model-Based Approaches
 
 Quasi-experimental methods exist along a spectrum between **design-based** and **model-based** approaches, rather than fitting neatly into one category or the other. At one end, the **design-based perspective** emphasizes study structure, aiming to approximate randomization through external sources of variation, such as policy changes or natural experiments. At the other end, the **model-based perspective** relies more heavily on statistical assumptions and functional forms to estimate causal relationships.
 
 Most quasi-experimental methods blend elements of both perspectives, differing in the degree to which they prioritize design validity over statistical modeling. This section explores the continuum of these approaches, highlighting their fundamental differences and implications for empirical research.
 
-To illustrate this, I will generate a visual spectrum positioning common quasi-experimental methods along the continuum from design-based to model-based.
+See Figure \@ref(fig:continuum-causal-inference-methods) for a visual spectrum, positioning common quasi-experimental methods along the continuum from design-based to model-based.
 
-```{r, echo = FALSE}
+```{r continuum-causal-inference-methods, echo=FALSE, fig.cap='Continuum of Causal Inference Methods', fig.alt='Horizontal continuum showing causal inference methods from design-based like RCT and RDD to model-based like structural models, with methods like DiD, synthetic control, and IV in between.'}
 # Load necessary library
 library(ggplot2)
 
@@ -825,20 +1053,22 @@ ggplot(methods, aes(x = Position, y = 1)) +
 -   May be employed when experimental or quasi-experimental designs are not feasible.
 
 | **Aspect**      | **Design-Based**                           | **Model-Based**                    |
-|------------------|------------------------------|------------------------|
+|-----------------|-------------------------------|-------------------------|
 | **Approach**    | Relies on study design                     | Relies on statistical models       |
 | **Assumptions** | Fewer, often intuitive (e.g., cutoff)      | Stronger, often less testable      |
 | **Examples**    | RCTs, natural experiments, RD, DiD         | Structural models, PSM             |
 | **Strengths**   | Transparent, robust to misspecification    | Useful when design is not possible |
 | **Weaknesses**  | Limited generalizability, context-specific | Sensitive to assumptions           |
 
-: Comparison of Two Perspectives
+: (#tab:quasi-exp-comparison-perspectives) Comparison of Two Perspectives
 
-Both streams are complementary, and often, researchers combine elements of both to robustly estimate causal effects (i.e., multi-method studies). For example, a design-based approach might be supplemented with a model-based framework to address specific limitations like imperfect randomization.
+Both streams are complementary, and often, researchers combine elements of both to robustly estimate causal effects (i.e., multi-method studies). For example, a design-based approach might be supplemented with a model-based framework to address specific limitations like imperfect randomization (Table \@ref(tab:quasi-exp-comparison-perspectives)).
+
+------------------------------------------------------------------------
 
 ### Design-Based Perspective {#sec-design-based}
 
-The design-based perspective in causal inference emphasizes exploiting natural sources of variation that approximate **randomization**. Unlike structural models, which rely on extensive theoretical assumptions, design-based methods leverage **exogenous events, policy changes, or assignment rules** to infer causal effects with **minimal modeling assumptions**.
+The design-based perspective in causal inference emphasizes exploiting natural sources of variation that approximate **randomization** (Table \@ref(tab:quasi-exp-design-based-causal)). Unlike structural models, which rely on extensive theoretical assumptions, design-based methods leverage **exogenous events, policy changes, or assignment rules** to infer causal effects with **minimal modeling assumptions**.
 
 These methods are particularly useful when:
 
@@ -849,16 +1079,20 @@ These methods are particularly useful when:
 -   Quasi-random variation exists (e.g., firms, consumers, or individuals are assigned treatment based on factors outside their control).
 
 | **Method**                   | **Key Concept**                                    | **Assumptions**                                                        | **Example (Marketing & Economics)**                                     |
-|-----------------|-----------------|-------------------|--------------------|
+|----------------|----------------|--------------------|---------------------|
 | **Regression Discontinuity** | Units near a threshold are **as good as random**.  | No precise control over cutoff; outcomes continuous.                   | Loyalty program tiers, minimum wage effects.                            |
 | **Synthetic Control**        | Constructs a weighted synthetic counterfactual.    | Pre-treatment trends must match; no confounding post-treatment shocks. | National ad campaign impact, tax cut effects.                           |
 | **Event Studies**            | Measures how an event changes outcomes over time.  | Parallel pre-trends; no anticipatory effects.                          | Black Friday sales, stock price reactions.                              |
 | **Matching Methods**         | Matches similar treated & untreated units.         | Selection on observables; common support.                              | Ad exposure vs. non-exposure, education & earnings.                     |
 | **Instrumental Variables**   | Uses an exogenous variable to mimic randomization. | Instrument must be relevant; must not affect outcomes directly.        | Ad regulations as IV for ad exposure, lottery-based college admissions. |
 
+: (#tab:quasi-exp-design-based-causal) Summary of Design-based Causal Inference Methods
+
+------------------------------------------------------------------------
+
 ### Model-Based Perspective {#sec-model-based-perspective}
 
-The [model-based perspective](#sec-model-based-perspective) in causal inference relies on statistical modeling techniques to estimate treatment effects, rather than exploiting exogenous sources of variation as in [design-based approaches](#sec-design-based). In this framework, researchers **explicitly specify relationships between variables**, using mathematical models to control for confounding and estimate counterfactual outcomes.
+The [model-based perspective](#sec-model-based-perspective) in causal inference relies on statistical modeling techniques to estimate treatment effects, rather than exploiting exogenous sources of variation as in [design-based approaches](#sec-design-based). In this framework, researchers **explicitly specify relationships between variables**, using mathematical models to control for confounding and estimate counterfactual outcomes (Table \@ref(tab:quasi-exp-model-based)).
 
 Unlike other quasi-experimental designs that leverage external assignment mechanisms (e.g., a cutoff, policy change, or natural experiment), model-based methods assume that confounding can be adequately adjusted for using statistical techniques alone. This makes them highly flexible but also more vulnerable to model misspecification and omitted variable bias.
 
@@ -888,14 +1122,14 @@ Unlike other quasi-experimental designs that leverage external assignment mechan
 
     -   They can be applied in a wide range of settings where policy-driven variation does not exist.
 
-**Key Model-Based Methods in Causal Inference**
-
 | **Method**                                             | **Key Concept**                                                                | **Assumptions**                                                       | **Example (Marketing & Economics)**                                                      |
-|------------------|------------------|------------------|--------------------|
+|-----------------|------------------|-----------------|---------------------|
 | **Propensity Score Matching (PSM) / Weighting**        | Uses estimated probabilities of treatment to create comparable groups.         | Treatment assignment is modeled correctly; no unmeasured confounding. | Job training programs (matching participants to non-participants); Ad campaign exposure. |
 | **Structural Causal Models (SCMs) / DAGs**             | Specifies causal relationships using directed acyclic graphs (DAGs).           | Correct causal structure; no omitted paths.                           | Customer churn prediction; Impact of pricing on sales.                                   |
 | **Covariate Adjustment (Regression-Based Approaches)** | Uses regression to control for confounding variables.                          | Linear or nonlinear functional forms are correctly specified.         | Estimating the impact of online ads on revenue.                                          |
 | **Machine Learning for Causal Inference**              | Uses ML algorithms (e.g., causal forests, BART) to estimate treatment effects. | Assumes data-driven methods can capture complex relationships.        | Personalized marketing campaigns; Predicting loan default rates.                         |
+
+: (#tab:quasi-exp-model-based) Summary of Model-based Causal Inference Methods
 
 #### Propensity Score Matching and Weighting
 
@@ -905,7 +1139,7 @@ Propensity Score Matching estimates the probability of treatment assignment base
 
 -   Correct Model Specification: The propensity score model (typically a logistic regression) must correctly capture all relevant covariates affecting treatment assignment.
 
--   Ignorability: There are no unmeasured confounders---all relevant differences between treated and control groups are accounted for.
+-   Ignorability: There are no unmeasured confounders. All relevant differences between treated and control groups are accounted for.
 
 **Why It's Model-Based**
 
@@ -1003,7 +1237,7 @@ Hence, *the key question for each method is:*
 
 -   If your identification crucially depends on specifying a correct model or having strong assumptions about the data-generating process, you're more in the model-based camp.
 
-Most real-world applications lie somewhere in the middle, combining aspects of both approaches.
+Most real-world applications lie somewhere in the middle, combining aspects of both approaches (Table \@ref(tab:quasi-exp-model-vs-design).
 
 | **Feature**                            | **Design-Based Perspective**                                      | **Model-Based Perspective**                             |
 |------------------|-----------------------------|-------------------------|
@@ -1013,4 +1247,4 @@ Most real-world applications lie somewhere in the middle, combining aspects of b
 | **Handling of Unobserved Confounders** | Often addressed through **design assumptions**.                   | Assumes **ignorability** (no unobserved confounders).   |
 | **Examples**                           | RD, DiD, IV, Synthetic Control.                                   | PSM, DAGs, Regression-Based, ML-Based Causal Inference. |
 
-: **Model-Based vs. Design-Based Causal Inference: Key Differences**
+: (#tab:quasi-exp-model-vs-design) Model-Based vs. Design-Based Causal Inference: Key Differences

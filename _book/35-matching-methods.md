@@ -71,10 +71,13 @@ With Matching:
 
 -   Balanced data → Reduces discretion → More credible causal inference
 
++-----------------------+------------------------+----------------------+
 | Balance of Covariates | Complete Randomization | Fully Exact Matching |
-|-----------------------|------------------------|----------------------|
++=======================+========================+======================+
 | **Observed**          | On average             | Exact                |
++-----------------------+------------------------+----------------------+
 | **Unobserved**        | On average             | On average           |
++-----------------------+------------------------+----------------------+
 
 : Degree of Balance Across Designs
 
@@ -109,7 +112,7 @@ Matching relies on the standard set of assumptions underpinning [selection on ob
 Also known as the **no hidden bias** or **ignorability** assumption:
 
 $$
-(Y(0),\, Y(1)) \,\perp\, T \,\big|\, X
+(Y(0), Y(1)) \perp T \big| X
 $$
 
 This implies that, conditional on covariates $X$, treatment assignment is independent of the potential outcomes. In other words, there are no unobserved confounders once we adjust for $X$.
@@ -159,11 +162,15 @@ That is, there are **no interference or spillover effects** between units.
 
 Summary of Assumptions for Matching
 
++------------------------------+-------------------------------------------------------------------------------------+----------------------------------------------+
 | Assumption                   | Description                                                                         | Notation                                     |
-|------------------------------|-------------------------------------------------------------------------------------|----------------------------------------------|
++==============================+=====================================================================================+==============================================+
 | **Conditional Ignorability** | No hidden confounding after conditioning on covariates                              | $(Y(0), Y(1)) \perp T \mid X$                |
++------------------------------+-------------------------------------------------------------------------------------+----------------------------------------------+
 | **Overlap (Positivity)**     | Each unit has a non-zero probability of treatment and control assignment            | $0 < P(T=1 \mid X) < 1$                      |
++------------------------------+-------------------------------------------------------------------------------------+----------------------------------------------+
 | **SUTVA**                    | No interference between units; one unit's outcome unaffected by another's treatment | $Y_i(T_i)$ unaffected by $T_j$ for $j \ne i$ |
++------------------------------+-------------------------------------------------------------------------------------+----------------------------------------------+
 
 These three assumptions form the foundation for valid causal inference using matching methods.
 
@@ -473,34 +480,51 @@ $$
 
 The distinction between matching and regression comes down to how covariate-specific treatment effects $\delta_x$ are weighted:
 
-| Type       | Weighting Function                                                                   | Interpretation                                                                               | Makes Sense Because...                                                                                              |
-|------------|--------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
-| Matching   | $P(D_i = 1 \mid X_i = x)$                                                            | Weights more heavily where more treated units exist (ATT-focused)                            | We're interested in the effect on the treated, so more weight is placed where treated units are observed            |
-| Regression | $\begin{aligned}P(D_i = 1 \mid X_i = x)\\(1 - P(D_i = 1 \mid X_i = x))\end{aligned}$ | Weights more where treatment assignment has high variance (i.e., near 50/50 treated/control) | These cells provide lowest-variance estimates of $\delta_x$, assuming the treatment effect is homogenous across $X$ |
++-------------+--------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------+
+| Type        | Weighting Function                                                                   | Interpretation                                                                               | Makes Sense Because...                                                                                              |
++=============+======================================================================================+==============================================================================================+=====================================================================================================================+
+| Matching    | $P(D_i = 1 \mid X_i = x)$                                                            | Weights more heavily where more treated units exist (ATT-focused)                            | We're interested in the effect on the treated, so more weight is placed where treated units are observed            |
++-------------+--------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------+
+| Regression  | $\begin{aligned}P(D_i = 1 \mid X_i = x)\\(1 - P(D_i = 1 \mid X_i = x))\end{aligned}$ | Weights more where treatment assignment has high variance (i.e., near 50/50 treated/control) | These cells provide lowest-variance estimates of $\delta_x$, assuming the treatment effect is homogenous across $X$ |
++-------------+--------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------+---------------------------------------------------------------------------------------------------------------------+
 
 **Summary Table: Matching vs. Regression**
 
++----------------------------+----------------------------------------------------------+-----------------------------------------------------+
 | Feature                    | Matching                                                 | Regression (OLS)                                    |
-|----------------------------|----------------------------------------------------------|-----------------------------------------------------|
++============================+==========================================================+=====================================================+
 | **Functional Form**        | Less parametric; no assumption of linearity              | Parametric; usually assumes linearity               |
++----------------------------+----------------------------------------------------------+-----------------------------------------------------+
 | **Primary Estimand**       | ATT (effect on the treated)                              | ATE or effects of continuous/interacted treatments  |
++----------------------------+----------------------------------------------------------+-----------------------------------------------------+
 | **Balance**                | Enforces balance via matched samples                     | Does not guarantee balance                          |
++----------------------------+----------------------------------------------------------+-----------------------------------------------------+
 | **Diagnostics**            | Covariate SMDs, QQ plots, empirical distributions        | Residual plots, R-squared, heteroskedasticity tests |
++----------------------------+----------------------------------------------------------+-----------------------------------------------------+
 | **Unobserved Confounding** | Cannot be resolved; assumes ignorability                 | Same limitation                                     |
++----------------------------+----------------------------------------------------------+-----------------------------------------------------+
 | **Standard Errors**        | Larger; require bootstrapping                            | Smaller; closed-form under assumptions              |
++----------------------------+----------------------------------------------------------+-----------------------------------------------------+
 | **Best Used When**         | High control-to-treated ratio; misspecification concerns | Model is correctly specified; sufficient overlap    |
++----------------------------+----------------------------------------------------------+-----------------------------------------------------+
 
 ------------------------------------------------------------------------
 
 **Qualitative Comparisons**
 
++---------------------------------------------------------------------+----------------------------------------------------------------------+
 | Matching                                                            | Regression                                                           |
-|---------------------------------------------------------------------|----------------------------------------------------------------------|
++=====================================================================+======================================================================+
 | Not sensitive to the form of covariate-outcome relationship         | Can estimate continuous or interacted treatment effects              |
++---------------------------------------------------------------------+----------------------------------------------------------------------+
 | Easier to assess balance and interpret diagnostics                  | Easier to estimate the effects of all covariates, not just treatment |
++---------------------------------------------------------------------+----------------------------------------------------------------------+
 | Facilitates clear visual evaluation of overlap and balance          | Less intuitive diagnostics; model diagnostics used                   |
++---------------------------------------------------------------------+----------------------------------------------------------------------+
 | Helps when treatment is rare (prunes clearly incomparable controls) | Performs better with balanced treatment assignment                   |
++---------------------------------------------------------------------+----------------------------------------------------------------------+
 | Forces explicit enforcement of common support                       | May extrapolate outside the support of covariate distributions       |
++---------------------------------------------------------------------+----------------------------------------------------------------------+
 
 ------------------------------------------------------------------------
 
@@ -1251,13 +1275,13 @@ In LA-PSM:
 
 -   Match **current treated** individuals with **future treated** individuals based on: $$ \mathbb{P}(D_i(t) = 1 \mid X_i) $$
 
--   and require: $$ \exists \, s > t \quad \text{such that} \quad D_i(s) = 1 $$
+-   and require: $$ \exists  s > t \quad \text{such that} \quad D_i(s) = 1 $$
 
 Formally, define:
 
 -   Treatment group: $$ T = \{ i \mid D_i(t) = 1 \} $$
 
--   Control group: $$ C = \{ j \mid D_j(t) = 0 \quad \text{and} \quad \exists \, s>t : D_j(s) = 1 \} $$
+-   Control group: $$ C = \{ j \mid D_j(t) = 0 \quad \text{and} \quad \exists  s>t : D_j(s) = 1 \} $$
 
 Thus, both treatment and control groups are "eventual adopters," just at different times.
 
@@ -1334,13 +1358,19 @@ How to implement Dynamic LA-PSM:
 
 ------------------------------------------------------------------------
 
++--------------------+------------------------------------+--------------------------------------------+
 | Feature            | Static Look-Ahead PSM              | Dynamic Look-Ahead PSM                     |
-|:-------------------|:-----------------------------------|:-------------------------------------------|
++:===================+:===================================+:===========================================+
 | Matching Window    | Single, fixed window (e.g., $t=5$) | Rolling window at each time $t$            |
++--------------------+------------------------------------+--------------------------------------------+
 | Treated Group      | Treated at $t$                     | Treated at $t$                             |
++--------------------+------------------------------------+--------------------------------------------+
 | Control Group      | Future treated (after $t$)         | Future treated relative to each $t$        |
++--------------------+------------------------------------+--------------------------------------------+
 | Updates over time? | No                                 | Yes                                        |
++--------------------+------------------------------------+--------------------------------------------+
 | Suitable for       | Simple adoption settings           | Gradual adoption / time-sensitive settings |
++--------------------+------------------------------------+--------------------------------------------+
 
 > **Challenge:**\
 > Simulate your own dataset with hidden confounding and implement both Static and Dynamic Look-Ahead PSM.\
@@ -1960,15 +1990,23 @@ This is exemplified by *representation learning for causal inference* approaches
 
 #### Summary of Approaches
 
++-------------------------------+-----------------+-------------+-------------------------------------------------+--------------------------+
 | Method                        | Type            | Supervised? | Key Feature                                     | Reference                |
-|-------------------------------|-----------------|-------------|-------------------------------------------------|--------------------------|
++===============================+=================+=============+=================================================+==========================+
 | Lasso                         | Linear, sparse  | Yes         | Variable selection via $L_1$ penalty            | [@gordon2019comparison]  |
++-------------------------------+-----------------+-------------+-------------------------------------------------+--------------------------+
 | Penalized logistic regression | Linear          | Yes         | Regularized propensity score estimation         | [@eckles2021bias]        |
++-------------------------------+-----------------+-------------+-------------------------------------------------+--------------------------+
 | PCA                           | Linear          | No          | Projects onto directions of maximal variance    | --                       |
++-------------------------------+-----------------+-------------+-------------------------------------------------+--------------------------+
 | LPP                           | Linear          | No          | Preserves local neighborhood structure          | [@li2016matching]        |
++-------------------------------+-----------------+-------------+-------------------------------------------------+--------------------------+
 | Random projection             | Linear (random) | No          | Fast and preserves pairwise distances           | --                       |
++-------------------------------+-----------------+-------------+-------------------------------------------------+--------------------------+
 | Autoencoders                  | Nonlinear       | Yes         | Learns nonlinear representations                | [@ramachandra2018deep]   |
++-------------------------------+-----------------+-------------+-------------------------------------------------+--------------------------+
 | Joint representation learning | Nonlinear       | Yes         | Learns balanced low-dimensional representations | [@yao2018representation] |
++-------------------------------+-----------------+-------------+-------------------------------------------------+--------------------------+
 
 #### Practical Considerations
 
@@ -2439,12 +2477,17 @@ Additional Notes:
 
 #### Summary: Matching vs. Weighting in Multi-Treatment Settings
 
++------------+------------------------------------+---------------------+----------------------------------------+---------------------------------------------------------+
 | Method     | Approach                           | Estimands Supported | Pros                                   | Cons                                                    |
-|------------|------------------------------------|---------------------|----------------------------------------|---------------------------------------------------------|
++============+====================================+=====================+========================================+=========================================================+
 | `MatchIt`  | Pairwise matching (manual)         | ATT, ATC            | Intuitive; transparent matched pairs   | Manual; repeated steps; limited to pairwise comparisons |
++------------+------------------------------------+---------------------+----------------------------------------+---------------------------------------------------------+
 | `WeightIt` | Simultaneous weighting             | ATT, ATC, ATE       | Flexible; single model; scalable       | Requires model diagnostics                              |
++------------+------------------------------------+---------------------+----------------------------------------+---------------------------------------------------------+
 | `twang`    | Boosted weighting for GPS          | ATT, ATE            | Automatic tuning; longitudinal support | More complex interface                                  |
++------------+------------------------------------+---------------------+----------------------------------------+---------------------------------------------------------+
 | `CBPS`     | Balance-constrained GPS estimation | ATT, ATE            | Direct balance optimization            | May require customization                               |
++------------+------------------------------------+---------------------+----------------------------------------+---------------------------------------------------------+
 
 In general, weighting is more scalable and coherent for estimating causal effects in multi-treatment contexts, while matching can be useful when interpretability and transparency of individual pairings is important.
 
@@ -2638,15 +2681,23 @@ If treatment is clustered (e.g., by region or school), standard Rosenbaum bounds
 
 The table below shows $\Gamma$ thresholds needed to nullify treatment effects in real-world marketing studies:
 
++---------------------------+-------------------+-----------------------------------------------------------+
 | Study                     | Critical $\Gamma$ | Context                                                   |
-|---------------------------|-------------------|-----------------------------------------------------------|
++===========================+===================+===========================================================+
 | [@oestreicher2013content] | 1.5 -- 1.8        | User community participation on willingness to pay        |
++---------------------------+-------------------+-----------------------------------------------------------+
 | [@sun2013ad]              | 1.5               | Revenue-sharing program and content popularity            |
++---------------------------+-------------------+-----------------------------------------------------------+
 | [@manchanda2015social]    | 1.6               | Impact of social referrals on purchase behavior           |
++---------------------------+-------------------+-----------------------------------------------------------+
 | [@sudhir2015peter]        | 1.9 -- 2.2        | IT adoption effects on productivity                       |
++---------------------------+-------------------+-----------------------------------------------------------+
 | [@proserpio2017online]    | 2.0               | Management responses and online reputation                |
++---------------------------+-------------------+-----------------------------------------------------------+
 | [@zhang2022makes]         | 1.55              | Verified photos and Airbnb demand                         |
++---------------------------+-------------------+-----------------------------------------------------------+
 | [@chae2023paywall]        | 27.0              | Paywall suspensions and future subscriptions (not a typo) |
++---------------------------+-------------------+-----------------------------------------------------------+
 
 Packages
 
@@ -2917,11 +2968,15 @@ This makes RCR particularly useful for *stress testing* causal estimates: "How b
 
 This method has been applied to various marketing and digital strategy settings to assess the robustness of estimated effects. A few notable examples:
 
++------------------------+---------------------------------------------------------------------------+-------------------------------------+
 | Study                  | Context                                                                   | Minimum $\lambda$ to nullify effect |
-|------------------------|---------------------------------------------------------------------------|-------------------------------------|
++========================+===========================================================================+=====================================+
 | [@manchanda2015social] | **Social dollar effect**: impact of peer influence on purchasing behavior | 3.23                                |
++------------------------+---------------------------------------------------------------------------+-------------------------------------+
 | [@chae2023paywall]     | **Paywall suspension**: effect on future subscription behavior            | 6.69                                |
++------------------------+---------------------------------------------------------------------------+-------------------------------------+
 | [@sun2013ad]           | **Ad revenue-sharing**: impact on content popularity                      |                                     |
++------------------------+---------------------------------------------------------------------------+-------------------------------------+
 
 These high $\lambda$ values imply that unobserved selection would need to be 3 to 7 times stronger than observable selection to eliminate the estimated treatment effect. In practical terms, this offers strong evidence that the effects are robust to omitted variable bias.
 
@@ -3012,7 +3067,7 @@ Because $W_2$ is hidden, nothing inside the sample alone fixes (2). The literatu
 $$
 \frac{\operatorname{Cov}(X,W_2^{\!\top}\gamma_2)}
      {\operatorname{Var}(W_2^{\!\top}\gamma_2)}
-=\delta\;
+=\delta
 \frac{\operatorname{Cov}(X,W_1^{\!\top}\gamma_1)}
      {\operatorname{Var}(W_1^{\!\top}\gamma_1)} .
 \tag{3}
@@ -3026,13 +3081,13 @@ where
 @oster2019unobservable also assumes **coefficient alignment** ($\gamma_1=C\pi_1$) so we can link bias to the *movement* of $\widehat\beta$ and $R^2$ when controls are added. Under (1)--(3) the *long‑run* coefficient (with $W_2$ observed) satisfies
 
 $$
-\boxed{\;
+\boxed{
 \beta_{\text{long}}
 =\beta_{\text{med}}
 +\bigl(\beta_{\text{med}}-\beta_{\text{short}}\bigr)
      \frac{R^2_{\text{long}}-R^2_{\text{med}}}
           {R^2_{\text{med}}-R^2_{\text{short}}}
-\;}
+}
 \tag{4}
 $$ where "short" means no controls, "med" means with $W_1$, and "long" is the unfeasible full model. Equation (4) is the **coefficient‑stability adjustment**. The two sensitivity objects are
 
@@ -3040,7 +3095,7 @@ $$ where "short" means no controls, "med" means with $W_1$, and "long" is the un
 
     $$
     \beta^*(\delta,R^2_{\max})\equiv \beta_{\text{long}}
-    \quad\text{after substituting }R^2_{\text{long}}=R^2_{\max},\;
+    \quad\text{after substituting }R^2_{\text{long}}=R^2_{\max},
     \delta\text{ into (4);} \tag{5}
     $$
 
@@ -3048,7 +3103,7 @@ $$ where "short" means no controls, "med" means with $W_1$, and "long" is the un
 
     $$
     \delta^{\text{EA}}
-    \;=\;
+    =
     \inf\bigl\{\delta:\beta^*(\delta,R^2_{\max})=0\bigr\}.
     \tag{6}
     $$
@@ -3070,7 +3125,7 @@ is *always* ≤ 1 if $R^2_{\max}>R^2_{\text{med}}$ and $\beta_{\text{short}}\neq
 
 ------------------------------------------------------------------------
 
-@oster2019unobservable recommends $R^2_{\max}=1.3\,R^2_{\text{med}}$ based on external evidence from randomized experiments, but researchers should vary this choice---especially if $R^2_{\text{med}}$ is modest. @cinelli2020making re‑express the problem in partial‑$R^2$ space and propose the **robustness value**, implemented in the `sensemakr` package. @imbens2003sensitivity supply complementary contour‑plot tools.
+@oster2019unobservable recommends $R^2_{\max}=1.3R^2_{\text{med}}$ based on external evidence from randomized experiments, but researchers should vary this choice---especially if $R^2_{\text{med}}$ is modest. @cinelli2020making re‑express the problem in partial‑$R^2$ space and propose the **robustness value**, implemented in the `sensemakr` package. @imbens2003sensitivity supply complementary contour‑plot tools.
 
 ------------------------------------------------------------------------
 

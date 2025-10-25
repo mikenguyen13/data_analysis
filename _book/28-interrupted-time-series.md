@@ -1,31 +1,65 @@
-# Temporal Discontinuity Designs
+# Temporal Discontinuity Designs {#sec-temporal-discontinuity-designs}
 
-When evaluating the causal impact of a policy, intervention, or treatment that begins at a known time, two popular quasi-experimental methods are:
+When evaluating the impact of a policy, intervention, or treatment that **begins at a known point in time**, time becomes the running variable. In such settings, two widely used quasi-experimental methods offer powerful tools for causal inference:
 
 -   [Regression Discontinuity in Time](#sec-regression-discontinuity-in-time)
 -   [Interrupted Time Series](#sec-interrupted-time-series)
 
-Both leverage the fact that an intervention or policy starts at a specific point in time, but they differ in how they model the outcome around that point and in the assumptions they require.
+Both approaches exploit a **temporal cutoff** (i.e., the moment when an intervention begins) to identify changes in outcomes attributable to the treatment. However, they differ in how they conceptualize and model the data around that time point, as well as in the strength of assumptions required for valid inference.
 
--   Both use the timing of an intervention as the key to identifying a causal effect.
--   Both assume no other major changes that coincide exactly with the intervention.
+Despite their differences, RDiT and ITS are united by several key features:
 
-Unlike standard RD, which exploits variation in the **cross-sectional dimension** (e.g., eligibility thresholds), RDiT leverages variation in the **time dimension** to estimate causal effects.
+-   **Temporal Running Variable**: Time replaces the traditional cross-sectional score as the variable used to determine treatment status.
+-   **Known Intervention Start Date**: Both require a clearly defined moment when the policy or treatment began.
+-   **No Confounding Events**: Both assume **no other major changes** occurred simultaneously with the intervention that could affect outcomes.
+-   **No Cross-sectional Control Group**: These designs are especially valuable when there is **no suitable untreated group**, making methods like [difference-in-differences](#sec-difference-in-differences) infeasible.
 
-ITS and RDiT are particularly useful when:
+RDiT adapts the logic of standard RD to the **time dimension**, using the policy implementation date as the cutoff.
 
-1.  A policy is implemented at a fixed date for all subjects (e.g., a national tax reform).
-2.  A policy is implemented at different times for different subjects (e.g., state-level policy rollouts).
-3.  There is no suitable cross-sectional control group, making difference-in-differences infeasible.
+-   **Conceptualization**: Individuals or observations just before and after the intervention date are assumed to be comparable, akin to local randomization in time.
+-   **Estimation**: Typically modeled using local polynomial regression on either side of the cutoff date.
+-   **Strengths**: Provides **localized causal inference** near the intervention date; flexible with respect to functional form.
+-   **Limitations**: Sensitive to time trends and autocorrelation. Requires **dense temporal data** (e.g., daily or weekly) to support the assumption of continuity around the cutoff.
 
-|        Feature         |                     **RDiT**                      |                          **ITS**                          |
-|:---------------:|:------------------------:|:----------------------------:|
-|       **Focus**        |          Local neighborhood around $T^*$          |       Entire time series (long pre- and post-data)        |
-|    **Effect Model**    |          Assumes a sharp, immediate jump          |   Can capture abrupt or gradual changes (level & slope)   |
-|       **Method**       |     Local polynomial regression around cutoff     |        Segmented regression using the full series         |
-|   **Key Assumption**   | Units just before and after cutoff are comparable | Trend would continue unchanged in absence of intervention |
-| **Bandwidth / Window** |         Uses a bandwidth $h$ around $T^*$         |         Typically uses the entire pre/post period         |
-|  **Data Requirement**  |            High-resolution near $T^*$             |  Sufficient pre-/post- observations to establish trends   |
+> **Example**: Analyzing the effect of a new digital ad campaign launched nationwide on July 1st by comparing user engagement on June 30 vs. July 1.
+
+ITS adopts a broader, time-series approach, modeling **pre- and post-intervention trends** explicitly.
+
+-   **Conceptualization**: The intervention is viewed as an interruption in an ongoing time series process.
+-   **Estimation**: Involves fitting segmented regressions with separate intercepts and slopes before and after the policy.
+-   **Strengths**: Useful when interested in **long-term trends** and **sustained treatment effects**.
+-   **Limitations**: Requires strong assumptions about the functional form of time trends and absence of time-varying confounders. Less credible when data are sparse or highly aggregated (e.g., annual).
+
+> **Example**: Evaluating the impact of a minimum wage increase on monthly employment rates over a 5-year period.
+
+------------------------------------------------------------------------
+
+When to Use RDiT vs. ITS
+
+| Feature                | **RDiT**                                          | **ITS**                                                   |
+|:------------------|:------------------------|-----------------------------|
+| **Focus**              | Local neighborhood around $T^*$                   | Entire time series (long pre- and post-data)              |
+| **Effect Model**       | Assumes a sharp, immediate jump                   | Can capture abrupt or gradual changes (level & slope)     |
+| **Method**             | Local polynomial regression around cutoff         | Segmented regression using the full series                |
+| **Key Assumption**     | Units just before and after cutoff are comparable | Trend would continue unchanged in absence of intervention |
+| **Bandwidth / Window** | Uses a bandwidth $h$ around $T^*$                 | Typically uses the entire pre/post period                 |
+| **Data Requirement**   | High-resolution near $T^*$                        | Sufficient pre-/post- observations to establish trends    |
+
+: Differences between RDiT and ITS
+
+------------------------------------------------------------------------
+
+These methods are especially useful when:
+
+-   **Policy implemented at a fixed date** for all units (e.g., a national tax reform).
+-   **Policy phased in at different times** across units (e.g., state-by-state healthcare rollouts).
+-   **No valid cross-sectional comparison group** exists, ruling out [difference-in-differences](#sec-difference-in-differences) or matching.
+
+------------------------------------------------------------------------
+
+> **In summary**: When time is the assignment mechanism, RDiT and ITS allow researchers to recover causal estimates using pre/post timing alone. RDiT provides a more experimental design under stronger data density and local assumptions, while ITS offers a broader, long-run perspective with greater dependence on correct model specification.
+
+Later sections will explore estimation strategies, assumptions, and diagnostics for both approaches.
 
 ------------------------------------------------------------------------
 
@@ -48,11 +82,10 @@ Regression Discontinuity in Time is a special case of a [Regression Discontinuit
 Using a local polynomial approach near $T^*$:
 
 $$
-Y_t = \alpha_0 + \alpha_1 \bigl(T_t - T^*\bigr) \;+\; \tau\,D_t \;+\; \alpha_2 \bigl(T_t - T^*\bigr) D_t \;+\; \epsilon_t,
-\quad \text{for } |T_t - T^*| < h,
+Y_t = \alpha_0 + \alpha_1 \bigl(T_t - T^*\bigr) + \tau D_t + \alpha_2 \bigl(T_t - T^*\bigr) D_t + \epsilon_t,
 $$
 
-where:
+for $|T_t - T^*| < h$, where:
 
 -   $Y_t$ is the outcome at time $t$.
 -   $T_t$ is the time index (running variable).
@@ -63,9 +96,8 @@ where:
 
 Because RDiT focuses on a local window around $T^*$, it is best when you expect an immediate jump at the cutoff and when observations near the cutoff are likely to be similar except for the treatment.
 
-|                      |                                       |                                              |
-|-----------------|-------------------------|------------------------------|
 | **Criterion**        | **Standard RD**                       | **RDiT**                                     |
+|------------------|-------------------------|-----------------------------|
 | Running Variable     | Cross-sectional (e.g., test score)    | Time (e.g., policy implementation date)      |
 | Treatment Assignment | Based on threshold in $X$             | Based on threshold in $T^*$                  |
 | Assumptions          | No sorting, smooth potential outcomes | No anticipatory behavior, smooth confounders |
@@ -86,7 +118,7 @@ Because RDiT uses time-series data, it is essential to correct for serial correl
 1.  Clustered Standard Errors: Adjusts for within-time correlation, ensuring valid inference.
 2.  Newey-West HAC Standard Errors: Corrects for heteroskedasticity and serial correlation over time.
 
--   If serial dependence exists in $\epsilon_{it}$ (the error term), there is no straightforward fix---introducing a lagged dependent variable may mis-specify the model.
+-   If serial dependence exists in $\epsilon_{it}$ (the error term), there is no straightforward fix (introducing a lagged dependent variable may mis-specify the model).
 -   If serial dependence exists in $y_{it}$ (the outcome variable):
     -   With long windows, identifying the precise treatment effect becomes challenging.
     -   **Including a lagged dependent variable can help**, though bias may still arise from time-varying treatment effects or over-fitting.
@@ -165,7 +197,7 @@ Following @hausman2018, an augmented approach helps control for omitted variable
 
 ### Strengths of RDiT
 
-One of the key advantages of **Regression Discontinuity in Time** is its ability to handle cases where standard **Difference-in-Differences** approaches are infeasible. This typically occurs when treatment implementation lacks cross-sectional variation---meaning that all units receive treatment at the same time, leaving no untreated control group for comparison. In such cases, RDiT provides a viable alternative by exploiting temporal discontinuities in treatment assignment.
+One of the key advantages of **Regression Discontinuity in Time** is its ability to handle cases where standard [Difference-in-Differences](#sec-difference-in-differences) approaches are infeasible. This typically occurs when treatment implementation lacks cross-sectional variation, meaning that all units receive treatment at the same time, leaving no untreated control group for comparison. In such cases, RDiT provides a viable alternative by exploiting temporal discontinuities in treatment assignment.
 
 Notably, some studies combine both RDiT and DiD to strengthen identification and provide additional insights. For instance,
 
@@ -180,12 +212,12 @@ Event study methods, particularly modern implementations, have improved signific
 1.  **Longer time horizons**: Unlike traditional event studies, RDiT is not restricted to short-term dynamics and can capture effects that unfold gradually over extended periods.
 2.  **Higher-order time controls**: RDiT allows for more flexible modeling of time trends, including the use of higher-order polynomials, which may provide better approximations of underlying time dynamics.
 
-| **Method**                           | **Key Feature**                   | **Strengths**                           | **Weaknesses**                                                      |
-|----------------|----------------|----------------|-------------------------|
-| **Difference-in-Differences**        | Uses a control group              | Accounts for time-invariant confounders | Requires parallel trends assumption                                 |
-| **Event Study**                      | Models multiple time periods      | Estimates dynamic treatment effects     | Requires staggered interventions                                    |
-| **Pre/Post Comparison**              | Simple before/after design        | No control needed                       | Cannot separate treatment from time trends                          |
-| **Regression Discontinuity in Time** | Uses time as the running variable | Flexible polynomial trends              | Sensitive to polynomial choice, cannot model time-varying treatment |
+| **Method**                                                                    | **Key Feature**                   | **Strengths**                           | **Weaknesses**                                                      |
+|------------------|------------------|------------------|-------------------|
+| [**Difference-in-Differences**](#sec-difference-in-differences)               | Uses a control group              | Accounts for time-invariant confounders | Requires parallel trends assumption                                 |
+| [**Event Studies**](#sec-event-studies)                                       | Models multiple time periods      | Estimates dynamic treatment effects     | Requires staggered interventions                                    |
+| **Pre/Post Comparison**                                                       | Simple before/after design        | No control needed                       | Cannot separate treatment from time trends                          |
+| [**Regression Discontinuity in Time**](#sec-regression-discontinuity-in-time) | Uses time as the running variable | Flexible polynomial trends              | Sensitive to polynomial choice, cannot model time-varying treatment |
 
 : Comparison with Other Methods
 
@@ -224,7 +256,7 @@ To address these concerns, researchers must assume:
 1.  **The model is correctly specified**, meaning it includes all relevant confounders or that the polynomial approximation accurately captures time trends.
 2.  **The treatment effect is correctly specified**, whether assumed to be smooth, constant, or varying over time.
 
-Additionally, these two assumptions **must not interact**---in other words, the polynomial control should not be correlated with unobserved variation in the treatment effect. If this condition fails, bias from misspecification and treatment heterogeneity can compound [@hausman2018, p. 544].
+Additionally, these two assumptions **must not interact**. In other words, the polynomial control should not be correlated with unobserved variation in the treatment effect. If this condition fails, bias from misspecification and treatment heterogeneity can compound [@hausman2018, p. 544].
 
 #### Sorting and Anticipation Effects
 
@@ -297,7 +329,7 @@ Because RDiT operates in a time-series framework, serial dependence in the resid
 
 -   If autoregression is detected, consider including a lagged dependent variable to account for serial correlation.
 
--   However, be cautious---introducing a lagged outcome may create dynamic bias if the treatment effect itself influences the lag.
+-   However, be cautious because introducing a lagged outcome may create dynamic bias if the treatment effect itself influences the lag.
 
 7.  **Augmented Local Linear Approach**
 
@@ -322,7 +354,7 @@ Several studies exploit sudden policy changes or emission regulations to estimat
 
 -   @davis2008effect, @auffhammer2011clearing, and @chen2018effect all examine the impact of environmental regulations on air quality.
 
--   @gallego2013effect compares RDiT and Difference-in-Differences (DiD) estimates to assess the reliability of control groups in air pollution studies.
+-   @gallego2013effect compares RDiT and [DID](#sec-difference-in-differences) estimates to assess the reliability of control groups in air pollution studies.
 
 By leveraging RDiT, these studies isolate immediate changes in pollution levels at policy thresholds while controlling for underlying trends.
 
@@ -408,18 +440,29 @@ X <- 1.5 * t_vals + rnorm(n, sd=5)
 
 # Store everything in a single data frame
 df_full <- data.frame(t = t_vals, Y = Y, X = X)
+```
 
+
+``` r
 # -------------------------------------------------------------------
 # 2. Plot the Entire Dataset & Highlight the Cutoff
 # -------------------------------------------------------------------
-par(mfrow=c(1,2))  # We'll produce two plots side by side
+# par(mfrow=c(1,2))  # We'll produce two plots side by side
 
 # Plot 1: Full data
 plot(df_full$t, df_full$Y, pch=16,
      xlab="Time (t)", ylab="Outcome (Y)",
      main="Full Time Series with True Jump at T_star")
 abline(v=T_star, lwd=2)  # vertical line at the cutoff
+```
 
+<div class="figure" style="text-align: center">
+<img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-1-1.png" alt="Scatter plot of outcome Y against time  t, with data points forming an upward trajectory. A vertical black line at = 100 marks the location of a true jump in the outcome variable. Before and after the break, the trend remains positive, but there is a clear increase in level at the cutoff." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-1)Full Time Series with Structural Break at T*</p>
+</div>
+
+
+``` r
 # -------------------------------------------------------------------
 # 3. Restrict to a Local Bandwidth (h) Around T_star
 # -------------------------------------------------------------------
@@ -471,7 +514,10 @@ res_rdit_placebo <- coeftest(mod_rdit_placebo, vcov = vcovHC(mod_rdit_placebo, t
 # -------------------------------------------------------------------
 mod_rdit_aug <- lm(Y ~ X + t_centered + D + t_centered:D, data = df_local)
 res_rdit_aug <- coeftest(mod_rdit_aug, vcov = vcovHC(mod_rdit_aug, type="HC1"))
+```
 
+
+``` r
 # -------------------------------------------------------------------
 # 9. Plot the Local Data and Fitted RDiT Lines
 # -------------------------------------------------------------------
@@ -488,10 +534,13 @@ lines(df_local_sorted$t, pred_linear, lwd=2)
 abline(v=T_star, lwd=2)
 ```
 
-<img src="28-interrupted-time-series_files/figure-html/rdit-comprehensive-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-3-1.png" alt="Scatter plot of outcome Y versus time t, focused around = 80. Data points are fitted with two separate linear trends, one before and one after the vertical line at the cutoff T*. The outcome increases over time on both sides, with a visible jump at the cutoff." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-3)Local Linear Regression Around the Cutoff T*</p>
+</div>
+
 
 ``` r
-
 # -------------------------------------------------------------------
 # Print Summaries & Brief Interpretation
 # -------------------------------------------------------------------
@@ -584,7 +633,7 @@ print(res_rdit_aug)
 
 ## Interrupted Time Series {#sec-interrupted-time-series}
 
-Interrupted Time Series (ITS) is a powerful quasi-experimental method used to assess **how an intervention affects the level and/or trend of an outcome over time**. By analyzing long-term **pre- and post-intervention** data, ITS estimates what would have happened in the absence of the intervention---assuming the pre-existing trend would have continued unchanged.
+Interrupted Time Series (ITS) is a powerful quasi-experimental method used to assess **how an intervention affects the level and/or trend of an outcome over time**. By analyzing long-term **pre- and post-intervention** data, ITS estimates what would have happened in the absence of the intervention, assuming the pre-existing trend would have continued unchanged.
 
 ITS is particularly useful when a **policy, treatment, or intervention is implemented at a distinct point in time**, affecting an entire population or group simultaneously. It differs from RDiT in that it typically models **both abrupt and gradual changes** over time rather than exploiting a sharp discontinuity.
 
@@ -633,7 +682,9 @@ After an intervention, an outcome can exhibit four distinct patterns:
 | **Sustained effect**                   | A gradual, long-term shift in the outcome that smooths over time.    |
 | **Both immediate & sustained effects** | A combination of a sudden change and a long-term trend shift.        |
 
-: **Key assumptions** for ITS:
+: Scenarios for ITS
+
+Key assumptions for ITS:
 
 -   The **pre-intervention trend** would remain stable if the intervention never occurred (i.e., no major time-varying confounders coinciding with the intervention).
 -   Data is available for **multiple time points before and after** the intervention to estimate trends.
@@ -766,7 +817,10 @@ plot(
 abline(v = T_star, lwd = 2)  # vertical line for the intervention
 ```
 
-<img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-6-1.png" alt="Scatter plot of outcome Y against time T, showing an upward trend before and after the vertical line at T = 25. Post-intervention, the increase in Y accelerates, suggesting a structural change in level and slope due to the intervention." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-6)Time Series with Intervention at T*</p>
+</div>
 
 Model: $$Y_t = \beta_0 + \beta_1*T + \beta_2*D + \beta_3*(T*D) + \beta_4*P + \epsilon_t$$ where:
 
@@ -796,7 +850,10 @@ res_its <- coeftest(mod_its, vcov = vcovHC(mod_its, type="HC1"))
 # 5. Create Fitted Values for Plotting
 # -------------------------------------------------------------------
 df_its$pred_its <- predict(mod_its)
+```
 
+
+``` r
 # -------------------------------------------------------------------
 # 6. Plot the Observed Data & Fitted ITS Lines
 # -------------------------------------------------------------------
@@ -807,10 +864,13 @@ abline(v=T_star, lwd=2)
 lines(df_its$T, df_its$pred_its, lwd=2)
 ```
 
-<img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-8-1.png" alt="Time series plot with black dots representing observed outcomes and solid black lines indicating fitted linear trends. At approximately T = 25, the fitted line changes slope and level, marking the point of intervention. The pre- and post-intervention trends differ significantly." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-8)Interrupted Time Series: Observed vs. Fitted Outcomes</p>
+</div>
+
 
 ``` r
-
 # -------------------------------------------------------------------
 # 7. Summaries & Brief Interpretation
 # -------------------------------------------------------------------
@@ -877,7 +937,10 @@ legend(
 )
 ```
 
-<img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-4-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-10-1.png" alt="Line chart with time T on the x-axis and outcome Y on the y-axis. Gray dots represent observed data. A solid blue line shows the fitted trend before and after an intervention at T = 25, marked by a vertical black line. A dashed red line shows the projected outcome if the pre-intervention trend had continued, highlighting the treatment effect." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-10)Interrupted Time Series: Observed vs. Fitted vs. Counterfactual</p>
+</div>
 
 Notes on Real-World Usage:
 
@@ -922,13 +985,13 @@ To embed an RDiT-style local discontinuity, define a bandwidth $h$ around $T^*$ 
 
 $$
 \begin{aligned}
-Y_t =\;& \beta_0 
+Y_t =& \beta_0 
        + \beta_1 T_t 
        + \beta_2 D_t 
        + \beta_3 \bigl(T_t \times D_t\bigr)
        + \beta_4 P_t \\
      &\quad + \alpha_1 \bigl(T_t - T^*\bigr)\mathbf{1}\bigl(\lvert T_t - T^* \rvert < h\bigr)
-       + \alpha_2 \bigl(T_t - T^*\bigr) D_t \,\mathbf{1}\bigl(\lvert T_t - T^* \rvert < h\bigr) 
+       + \alpha_2 \bigl(T_t - T^*\bigr) D_t \mathbf{1}\bigl(\lvert T_t - T^* \rvert < h\bigr) 
        + \epsilon_t.
 \end{aligned}
 $$
@@ -964,7 +1027,7 @@ An ad hoc but sometimes practical workflow is:
 In practice, you could adjust the outcome by the estimated jump:
 
 $$
-Y_t^* = Y_t - \hat{\tau}\,D_t,
+Y_t^* = Y_t - \hat{\tau}D_t,
 $$
 
 and then fit the augmented model:
@@ -989,10 +1052,10 @@ Y_{t} &= \underbrace{\beta_0
            + \beta_3 \bigl(T_t \times D_t\bigr)
            + \beta_4 P_t}_{\text{Global ITS component}}
            \\
-       &\quad\;+\;
+       &\quad+
        \underbrace{\alpha_1 \bigl(T_t - T^*\bigr)\mathbf{1}\bigl(\lvert T_t - T^* \rvert < h\bigr) 
-           + \alpha_2 \bigl(T_t - T^*\bigr) D_t\,\mathbf{1}\bigl(\lvert T_t - T^* \rvert < h\bigr)}_{\text{Local RDiT component}}
-           \;+\; \epsilon_t.
+           + \alpha_2 \bigl(T_t - T^*\bigr) D_t\mathbf{1}\bigl(\lvert T_t - T^* \rvert < h\bigr)}_{\text{Local RDiT component}}
+           + \epsilon_t.
 \end{aligned}
 $$
 
@@ -1127,7 +1190,10 @@ df$Y_star <- df$Y - tau_hat * df$D
 mod_its_adjusted <- lm(Y_star ~ T_c + D + I(T_c*D) + P, data = df)
 res_its_adjusted <-
     coeftest(mod_its_adjusted, vcov = vcovHC(mod_its_adjusted, type = "HC1"))
+```
 
+
+``` r
 # -------------------------------------------------------------------
 # 5. Plot the Data and Fitted Lines
 # -------------------------------------------------------------------
@@ -1164,10 +1230,13 @@ lines(df$t,
       lwd = 2)
 ```
 
-<img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-6-1.png" width="90%" style="display: block; margin: auto;" />
+<div class="figure" style="text-align: center">
+<img src="28-interrupted-time-series_files/figure-html/unnamed-chunk-13-1.png" alt="Two-panel plot. The left panel shows a scatter plot of outcome Y over time t with a dashed vertical line at t = 75, overlaid by a piecewise linear blue fit indicating a hybrid RDiT+ITS model. The right panel displays the same data and cutoff, but with a red line representing a two-stage adjusted ITS fit. Both models capture a discontinuity in the outcome at the cutoff." width="90%" />
+<p class="caption">(\#fig:unnamed-chunk-13)Comparing Hybrid RDiT+ITS and Two-Stage Approaches for Estimating Discontinuities</p>
+</div>
+
 
 ``` r
-
 print(res_hybrid)
 #> 
 #> t test of coefficients:

@@ -6,16 +6,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Chapter 27 Regression Discontinuity | A Guide on Data Analysis</title>
 <meta name="author" content="Mike Nguyen">
-<meta name="description" content="Regression Discontinuity (RD) is a quasi-experimental design that exploits a discrete jump in treatment assignment based on a continuous (or approximately continuous) variable, often called the...">
+<meta name="description" content="Causal inference often requires creativity when randomized experiments are impractical, unethical, or too costly. In such situations, researchers turn to quasi-experimental designs that mimic the...">
 <meta name="generator" content="bookdown 0.43 with bs4_book()">
 <meta property="og:title" content="Chapter 27 Regression Discontinuity | A Guide on Data Analysis">
 <meta property="og:type" content="book">
 <meta property="og:url" content="https://bookdown.org/mike/data_analysis/sec-regression-discontinuity.html">
 <meta property="og:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
-<meta property="og:description" content="Regression Discontinuity (RD) is a quasi-experimental design that exploits a discrete jump in treatment assignment based on a continuous (or approximately continuous) variable, often called the...">
+<meta property="og:description" content="Causal inference often requires creativity when randomized experiments are impractical, unethical, or too costly. In such situations, researchers turn to quasi-experimental designs that mimic the...">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Chapter 27 Regression Discontinuity | A Guide on Data Analysis">
-<meta name="twitter:description" content="Regression Discontinuity (RD) is a quasi-experimental design that exploits a discrete jump in treatment assignment based on a continuous (or approximately continuous) variable, often called the...">
+<meta name="twitter:description" content="Causal inference often requires creativity when randomized experiments are impractical, unethical, or too costly. In such situations, researchers turn to quasi-experimental designs that mimic the...">
 <meta name="twitter:image" content="https://bookdown.org/mike/data_analysis//images/cover.jpg">
 <!-- JS --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://kit.fontawesome.com/6ecbd6c532.js" crossorigin="anonymous"></script><script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="libs/bootstrap-4.6.0/bootstrap.min.css" rel="stylesheet">
@@ -107,7 +107,7 @@
 <li class="book-part">B. QUASI-EXPERIMENTAL DESIGN</li>
 <li><a class="" href="sec-quasi-experimental.html"><span class="header-section-number">26</span> Quasi-Experimental Methods</a></li>
 <li><a class="active" href="sec-regression-discontinuity.html"><span class="header-section-number">27</span> Regression Discontinuity</a></li>
-<li><a class="" href="temporal-discontinuity-designs.html"><span class="header-section-number">28</span> Temporal Discontinuity Designs</a></li>
+<li><a class="" href="sec-temporal-discontinuity-designs.html"><span class="header-section-number">28</span> Temporal Discontinuity Designs</a></li>
 <li><a class="" href="sec-synthetic-difference-in-differences.html"><span class="header-section-number">29</span> Synthetic Difference-in-Differences</a></li>
 <li><a class="" href="sec-difference-in-differences.html"><span class="header-section-number">30</span> Difference-in-Differences</a></li>
 <li><a class="" href="sec-changes-in-changes.html"><span class="header-section-number">31</span> Changes-in-Changes</a></li>
@@ -130,7 +130,6 @@
 <li><a class="" href="appendix.html"><span class="header-section-number">A</span> Appendix</a></li>
 <li><a class="" href="bookdown-cheat-sheet.html"><span class="header-section-number">B</span> Bookdown cheat sheet</a></li>
 <li><a class="" href="references.html">References</a></li>
-<li><a class="" href="chapter-cluster-randomization-and-interference-bias.html"><span class="header-section-number">C</span> Chapter: Cluster Randomization and Interference Bias</a></li>
 </ul>
 
         <div class="book-extra">
@@ -142,60 +141,154 @@
 <h1>
 <span class="header-section-number">27</span> Regression Discontinuity<a class="anchor" aria-label="anchor" href="#sec-regression-discontinuity"><i class="fas fa-link"></i></a>
 </h1>
-<p>Regression Discontinuity (RD) is a quasi-experimental design that exploits a discrete jump in treatment assignment based on a continuous (or approximately continuous) variable, often called the <strong>running variable</strong>, <strong>forcing variable</strong>, or <strong>assignment variable</strong>.</p>
+<p>Causal inference often requires creativity when randomized experiments are impractical, unethical, or too costly. In such situations, researchers turn to quasi-experimental designs that mimic the structure of randomized experiments under certain assumptions. One of the most compelling and rigorous among these is the <strong>Regression Discontinuity (RD) design</strong>, a method that turns a seemingly arbitrary policy rule into an opportunity for causal estimation.</p>
+<p>Imagine a policy in which financial aid is awarded only to students whose family income falls below a certain threshold, or a marketing campaign targeted solely at customers with a credit score above a specified value. These cutoffs create a situation where treatment assignment hinges on a single continuous variable (e.g., income or credit score ) crossing a fixed boundary. This boundary, or <strong>cutoff</strong>, introduces a discrete change in treatment probability based on a smooth, underlying score. That is the central insight behind RD: when individuals just above and just below the threshold are otherwise similar, comparing their outcomes offers a window into <a href="sec-causal-inference.html#sec-local-average-treatment-effects">local average treatment effects</a>.</p>
+<p>The RD design exploits this structure by focusing on the “edge” (the region near the cutoff) where treatment assignment changes abruptly. While units far from the threshold may differ systematically, those close to it are assumed to be comparable, as if randomly assigned to treatment or control. This gives RD a compelling advantage: under relatively mild assumptions, it can deliver <strong>credible causal estimates</strong>, particularly in situations where <a href="sec-experimental-design.html#sec-experimental-design">randomized controlled trials</a> (RCTs) are unfeasible.</p>
+<p>Originally introduced by <span class="citation">Thistlethwaite and Campbell (<a href="references.html#ref-thistlethwaite1960">1960</a>)</span> in their evaluation of merit-based scholarships and their impact on academic outcomes, RD has since evolved into a widely used econometric tool across fields such as education, healthcare, marketing, political science, and finance. Its theoretical foundation was significantly refined and extended in modern work by <span class="citation">G. Imbens and Lemieux (<a href="references.html#ref-imbens2008regression">2008</a>)</span> and <span class="citation">Lee and Lemieux (<a href="references.html#ref-lee2010regression">2010</a>)</span>, who formalized its assumptions and estimation strategies.</p>
+<p>RD designs come in two primary flavors:</p>
 <ul>
-<li>A common application occurs when an intervention is assigned based on whether the running variable exceeds a predefined cutoff.</li>
-<li>The approach provides <strong>localized causal inference</strong> around the cutoff, akin to a <a href="sec-experimental-design.html#sec-the-gold-standard-randomized-controlled-trials">randomized experiment</a> in the local region.</li>
-<li>
-<strong>Historical Background:</strong> First introduced by <span class="citation">Thistlethwaite and Campbell (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-thistlethwaite1960">1960</a>)</span> in the context of merit awards and their effect on future academic outcomes.</li>
+<li><p><a href="sec-regression-discontinuity.html#sec-sharp-regression-discontinuity-design"><strong>Sharp RD</strong></a>, where the treatment assignment is perfectly determined by whether the running variable exceeds the cutoff.</p></li>
+<li><p><a href="sec-regression-discontinuity.html#sec-fuzzy-regression-discontinuity-design"><strong>Fuzzy RD</strong></a>, where the probability of treatment changes discontinuously at the cutoff but is not deterministically assigned.</p></li>
 </ul>
-<p><strong>Key References:</strong></p>
-<p>Foundational papers: <span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-imbens2008regression">G. Imbens and Lemieux 2008</a>; <a href="chapter-cluster-randomization-and-interference-bias.html#ref-lee2010regression">Lee and Lemieux 2010</a>)</span></p>
+<p>In either case, the defining characteristic is the <strong>discontinuity in the treatment assignment rule</strong> based on a continuous score, often referred to as the <strong>running variable</strong>, <strong>forcing variable</strong>, or <strong>assignment variable</strong>.</p>
+<p>Regression Discontinuity offers a powerful yet intuitive approach to causal inference, particularly when treatment assignment rules are rigid and known. In the sections that follow, we will develop the formal framework of RD designs, examine the key assumptions that underlie their validity, and apply the method to real-world business and policy problems.</p>
 <hr>
 <div id="conceptual-framework" class="section level2" number="27.1">
 <h2>
 <span class="header-section-number">27.1</span> Conceptual Framework<a class="anchor" aria-label="anchor" href="#conceptual-framework"><i class="fas fa-link"></i></a>
 </h2>
-<p>Regression discontinuity is best understood as a <strong>localized experiment at the threshold</strong>:</p>
+<p>To truly appreciate the logic of RD designs, one must think like an experimentalist, but with observational data. RD transforms a deterministic rule (e.g., a policy cutoff) into an opportunity for <strong>quasi-random assignment</strong>. It is, in essence, a <strong>localized experiment</strong> conducted at the threshold of a continuous running variable.</p>
+<p>At the heart of the RD framework is a deceptively simple idea: individuals just above and just below the cutoff are virtually identical in all respects, except for the treatment status induced by their position relative to the threshold. This intuition enables RD designs to estimate causal effects <strong>with high internal validity</strong>, even in the absence of random assignment.</p>
+<p>RD’s strength lies in its focus on a <strong>narrow window</strong> around the cutoff, often called the <strong>bandwidth</strong>, where the <a href="sec-quasi-experimental.html#sec-conditional-ignorability-assumption">assumption of exchangeability</a> is most plausible. Within this narrow range, the assignment mechanism approximates a randomized experiment.</p>
 <ul>
-<li><p><a href="sec-causal-inference.html#sec-internal-validity">Internal Validity</a>: Strong within a narrow bandwidth around the cutoff.</p></li>
-<li><p><a href="sec-causal-inference.html#sec-external-validity">External Validity</a>: Limited—results may not generalize beyond the bandwidth.</p></li>
-<li><p>Comparison to <a href="sec-experimental-design.html#sec-the-gold-standard-randomized-controlled-trials">Randomized Experiments</a>: Empirical evidence suggests that RD and randomized controlled trials yield similar estimates (<span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-chaplin2018internal">Chaplin et al. 2018</a>)</span>, <a href="https://www.mathematica.org/publications/replicating-experimental-impact-estimates-using-a-regression-discontinuity-approach">Mathematica</a>).</p></li>
+<li>
+<a href="sec-causal-inference.html#sec-internal-validity">Internal Validity</a>: Extremely strong near the cutoff. The closer the observations are to the threshold, the more credible the assumption that they are otherwise comparable.</li>
+<li>
+<a href="sec-causal-inference.html#sec-external-validity">External Validity</a>: More limited. Estimates are local to the cutoff and may not generalize to units far from the threshold. This tradeoff between precision and generalizability is a defining characteristic of RD.</li>
 </ul>
-<p>RD is connected to other causal inference methods:</p>
+<p>One of the most compelling validations of RD comes from empirical comparisons with randomized controlled trials (RCTs). Evidence from studies such as <span class="citation">Chaplin et al. (<a href="references.html#ref-chaplin2018internal">2018</a>)</span> and <span class="citation">Gleason, Resch, and Berk (<a href="references.html#ref-gleason2018rd">2018</a>)</span> suggest that RD and RCTs often yield <strong>remarkably similar treatment effect estimates</strong>, underscoring RD’s credibility when its assumptions are met. While RD is not a substitute for randomization, it can come surprisingly close in practice.</p>
+<p>RD is not an island; it shares conceptual and methodological links with several other causal inference frameworks. Understanding these connections helps clarify when RD is appropriate and how it complements alternative approaches.</p>
 <ul>
-<li><p><a href="sec-experimental-design.html#sec-the-gold-standard-randomized-controlled-trials">Randomized Experiment</a>: It’s local randomization.</p></li>
-<li><p><a href="sec-instrumental-variables.html#sec-instrumental-variables">Instrumental Variables</a>: RD can be viewed as a structural IV model <span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-angrist1999using">J. D. Angrist and Lavy 1999</a>)</span>.</p></li>
-<li><p><a href="sec-matching-methods.html#sec-matching-methods">Matching Methods</a>: RD is a special case where matching occurs at a single threshold <span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-heckman1999economics">J. J. Heckman, LaLonde, and Smith 1999</a>)</span>.</p></li>
-<li><p><a href="temporal-discontinuity-designs.html#sec-interrupted-time-series">Interrupted Time Series</a> (ITS): RD is preferable when the running variable is finely measured. However, with highly discrete time data (e.g., quarterly or annual), ITS may be more appropriate. Hence, RD is always better than ITS if data are infinite (or substantially large).</p></li>
-</ul>
-<hr>
-<div id="types-of-regression-discontinuity-designs" class="section level3" number="27.1.1">
-<h3>
-<span class="header-section-number">27.1.1</span> Types of Regression Discontinuity Designs<a class="anchor" aria-label="anchor" href="#types-of-regression-discontinuity-designs"><i class="fas fa-link"></i></a>
-</h3>
-<ol style="list-style-type: decimal">
 <li>
-<a href="sec-regression-discontinuity.html#sec-sharp-regression-discontinuity-design">Sharp RD</a>: Treatment probability jumps from 0 to 1 at the cutoff.</li>
+<a href="sec-experimental-design.html#sec-the-gold-standard-randomized-controlled-trials">Randomized Experiment</a>: RD can be seen as a <strong>local randomization design</strong> (treatment is “as-if” randomly assigned near the cutoff).</li>
 <li>
-<a href="sec-regression-discontinuity.html#sec-fuzzy-regression-discontinuity-design">Fuzzy RD</a>: Treatment probability changes discontinuously but does not reach 1.</li>
+<a href="sec-instrumental-variables.html#sec-instrumental-variables">Instrumental Variables</a>: RD can be framed as a special case of a structural IV model <span class="citation">(<a href="references.html#ref-angrist1999using">J. D. Angrist and Lavy 1999</a>)</span>, where the running variable induces exogenous variation in treatment at the threshold.</li>
 <li>
-<a href="sec-regression-discontinuity.html#sec-regression-kink-design">Kink RD</a>: Discontinuity occurs in the slope rather than the level of the running variable <span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-nielsen2010estimating">Nielsen, Sørensen, and Taber 2010</a>)</span> (see applications in <span class="citation">Böckerman, Kanninen, and Suoniemi (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-bockerman2018kink">2018</a>)</span> and theoretical foundations in <span class="citation">Card et al. (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-card2015inference">2015</a>)</span>).</li>
-<li>Regression Discontinuity in Time (i.e., <a href="temporal-discontinuity-designs.html#sec-interrupted-time-series">Interrupted Time Series</a>): The running variable is time.</li>
-</ol>
-<p>Additional variations:</p>
-<ul>
-<li><p><a href="sec-regression-discontinuity.html#sec-multi-cutoff-regression-discontinuity-design">Multiple Cutoffs</a>: Different thresholds across subgroups.</p></li>
-<li><p><a href="sec-regression-discontinuity.html#sec-multi-score-regression-discontinuity-design">Multiple Scores</a>: More than one running variable.</p></li>
-<li><p>Geographic RD: Cutoff is spatially defined.</p></li>
-<li><p>Dynamic Treatments: Treatment effects evolve over time.</p></li>
-<li><p>Continuous Treatments: Instead of binary treatment, intensity varies.</p></li>
+<a href="sec-matching-methods.html#sec-matching-methods">Matching Methods</a>: RD resembles a highly targeted form of matching (matching units just above and below a single threshold) <span class="citation">(<a href="references.html#ref-heckman1999economics">J. J. Heckman, LaLonde, and Smith 1999</a>)</span>.</li>
+<li>
+<a href="sec-temporal-discontinuity-designs.html#sec-interrupted-time-series">Interrupted Time Series</a> (ITS): RD outperforms ITS when the running variable is finely measured and continuous. However, in settings with highly discrete or temporally aggregated data (e.g., quarterly revenues or annual crime rates), ITS may be more suitable. Still, when the data are dense or effectively continuous, RD offers a more precise and defensible design.</li>
 </ul>
 <hr>
 </div>
-<div id="assumptions-for-rd-validity" class="section level3" number="27.1.2">
+<div id="types-of-regression-discontinuity-designs" class="section level2" number="27.2">
+<h2>
+<span class="header-section-number">27.2</span> Types of Regression Discontinuity Designs<a class="anchor" aria-label="anchor" href="#types-of-regression-discontinuity-designs"><i class="fas fa-link"></i></a>
+</h2>
+<p>RD is not a one-size-fits-all approach. While the classic setup involves a binary treatment determined by a threshold-crossing rule, numerous extensions and variants exist, each tailored to different research contexts. Understanding these variations is essential for choosing the appropriate design and interpreting results correctly.</p>
+<ol style="list-style-type: decimal">
+<li>
+<a href="sec-regression-discontinuity.html#sec-sharp-regression-discontinuity-design">Sharp RD</a>:The simplest and most intuitive form of RD:
+<ul>
+<li>
+<strong>Definition</strong>: Treatment assignment jumps <strong>deterministically</strong> from 0 to 1 at the cutoff.</li>
+<li>
+<strong>Implication</strong>: Individuals below the threshold are never treated; those above always are.</li>
+<li>
+<strong>Identification</strong>: The treatment effect is identified as the jump in the outcome at the cutoff.</li>
+<li>
+<strong>Example</strong>: A scholarship awarded strictly to students with test scores ≥ 85.</li>
+</ul>
+</li>
+<li>
+<a href="sec-regression-discontinuity.html#sec-fuzzy-regression-discontinuity-design">Fuzzy RD</a>:A generalization of the sharp design:
+<ul>
+<li>
+<strong>Definition</strong>: The probability of treatment increases <strong>discontinuously</strong> at the cutoff, but does not jump from 0 to 1.</li>
+<li>
+<strong>Implication</strong>: Some individuals below the cutoff may receive the treatment, and some above may not.</li>
+<li>
+<strong>Identification</strong>: Requires instrumental variable methods to estimate the <a href="sec-causal-inference.html#sec-local-average-treatment-effects">local average treatment effects</a> (LATE) for compliers.</li>
+<li>
+<strong>Example</strong>: A healthcare subsidy that is more likely, but not guaranteed, to be received by patients above a certain income level.</li>
+</ul>
+</li>
+<li>
+<a href="sec-regression-discontinuity.html#sec-regression-kink-design">Kink RD</a>:A subtler variant based on a change in slope:
+<ul>
+<li>
+<strong>Definition</strong>: The <strong>first derivative</strong> (slope) of the outcome changes at the cutoff, rather than its level.</li>
+<li>
+<strong>Identification</strong>: The treatment effect is identified from a discontinuity in the <strong>marginal effect</strong> of the running variable.</li>
+<li>
+<strong>Example</strong>: Tax incentives where the marginal benefit changes at a threshold income level.</li>
+<li>
+<strong>References</strong>: See theoretical foundations in <span class="citation">(<a href="references.html#ref-card2015inference">Card et al. 2015</a>)</span> and empirical applications in <span class="citation">(<a href="references.html#ref-bockerman2018kink">Böckerman, Kanninen, and Suoniemi 2018</a>; <a href="references.html#ref-nielsen2010estimating">Nielsen, Sørensen, and Taber 2010</a>)</span>.</li>
+</ul>
+</li>
+<li>Regression Discontinuity in Time (RDiT): Also known as a special case of <a href="sec-temporal-discontinuity-designs.html#sec-interrupted-time-series">Interrupted Time Series</a>:
+<ol style="list-style-type: decimal">
+<li>
+<strong>Definition</strong>: The running variable is <strong>time</strong>, and the cutoff corresponds to a policy implementation date or event.</li>
+<li>
+<strong>Application</strong>: Evaluates the immediate impact of an intervention that begins at a known point in time.</li>
+<li>
+<strong>Caveat</strong>: Since time trends are often confounded by other events, careful modeling of pre- and post-trends is essential.</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p>Note: RDiT is often less reliable than traditional RD due to potential violations of the continuity assumption, especially when time is measured in coarse intervals (e.g., quarterly or yearly).</p>
+</blockquote>
+<hr>
+<p>RD designs have been extended in several directions to accommodate real-world complexities:</p>
+<ul>
+<li>
+<a href="sec-regression-discontinuity.html#sec-multi-cutoff-regression-discontinuity-design">Multiple Cutoffs</a>:
+<ul>
+<li>
+<strong>Use case</strong>: Different treatment thresholds apply to different subgroups (e.g., age groups, regions).</li>
+<li>
+<strong>Challenge</strong>: Requires careful pooling and stratification to maintain comparability.</li>
+</ul>
+</li>
+<li>
+<a href="sec-regression-discontinuity.html#sec-multi-score-regression-discontinuity-design">Multiple Scores</a> (Multiple Running Variables):
+<ul>
+<li>
+<strong>Use case</strong>: Treatment depends on more than one score (e.g., income and age).</li>
+<li>
+<strong>Approach</strong>: Involves multivariate threshold rules or interaction effects.</li>
+</ul>
+</li>
+<li>Geographic RD (Spatial RD):
+<ul>
+<li>
+<strong>Definition</strong>: The cutoff is defined in space, such as administrative borders or policy boundaries.</li>
+<li>
+<strong>Example</strong>: A tax policy that applies only to businesses within a specific jurisdiction.</li>
+</ul>
+</li>
+<li>Dynamic Treatments:
+<ul>
+<li>
+<strong>Definition</strong>: Treatment effects may <strong>evolve over time</strong> after the initial intervention.</li>
+<li>
+<strong>Consideration</strong>: Requires longitudinal data and appropriate modeling of lagged effects.</li>
+</ul>
+</li>
+<li>Continuous Treatment Intensity (Dose-Response RD):
+<ul>
+<li>
+<strong>Definition</strong>: Instead of a binary treatment, units receive varying degrees of treatment intensity based on the running variable.</li>
+<li>
+<strong>Example</strong>: Advertising exposure that increases progressively with customer engagement scores.</li>
+</ul>
+</li>
+</ul>
+<hr>
+<div id="assumptions-for-rd-validity" class="section level3" number="27.2.1">
 <h3>
-<span class="header-section-number">27.1.2</span> Assumptions for RD Validity<a class="anchor" aria-label="anchor" href="#assumptions-for-rd-validity"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.2.1</span> Assumptions for RD Validity<a class="anchor" aria-label="anchor" href="#assumptions-for-rd-validity"><i class="fas fa-link"></i></a>
 </h3>
 <ol style="list-style-type: decimal">
 <li><p><strong>Independent Assignment:</strong> The treatment is assigned solely based on the running variable.</p></li>
@@ -208,16 +301,11 @@ E[Y(0)|X=x] \text{ and } E[Y(1)|X=x] \text{ are continuous at } x = c.
 <li><p><strong>Exogeneity of the Cutoff:</strong> The cutoff should not be manipulable. No confounding interventions at the cutoff.</p></li>
 <li><p><strong>No Discontinuity in Confounding Variables:</strong> Other covariates should be smooth at the threshold. A common test is to check for jumps in covariates unrelated to treatment.</p></li>
 </ol>
-<hr>
-</div>
-<div id="threats-to-rd-validity" class="section level3" number="27.1.3">
-<h3>
-<span class="header-section-number">27.1.3</span> Threats to RD Validity<a class="anchor" aria-label="anchor" href="#threats-to-rd-validity"><i class="fas fa-link"></i></a>
-</h3>
 <div class="inline-table"><table class="table table-sm">
+<caption>Threats to RD Validity</caption>
 <colgroup>
-<col width="22%">
-<col width="40%">
+<col width="15%">
+<col width="46%">
 <col width="37%">
 </colgroup>
 <thead><tr class="header">
@@ -243,19 +331,20 @@ E[Y(0)|X=x] \text{ and } E[Y(1)|X=x] \text{ are continuous at } x = c.
 </tr>
 </tbody>
 </table></div>
+<hr>
 </div>
 </div>
-<div id="model-estimation-strategies" class="section level2" number="27.2">
+<div id="model-estimation-strategies" class="section level2" number="27.3">
 <h2>
-<span class="header-section-number">27.2</span> Model Estimation Strategies<a class="anchor" aria-label="anchor" href="#model-estimation-strategies"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.3</span> Model Estimation Strategies<a class="anchor" aria-label="anchor" href="#model-estimation-strategies"><i class="fas fa-link"></i></a>
 </h2>
 <p>Under regression discontinuity framework, researchers can choose between <strong>parametric</strong> and <a href="sec-nonparametric-regression.html#sec-nonparametric-regression">nonparametric</a> models. The choice depends on assumptions about functional form, data availability, and the trade-off between flexibility and interpretability.</p>
-<div id="parametric-models-polynomial-regression" class="section level3" number="27.2.1">
+<div id="parametric-models-polynomial-regression" class="section level3" number="27.3.1">
 <h3>
-<span class="header-section-number">27.2.1</span> Parametric Models: Polynomial Regression<a class="anchor" aria-label="anchor" href="#parametric-models-polynomial-regression"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.3.1</span> Parametric Models: Polynomial Regression<a class="anchor" aria-label="anchor" href="#parametric-models-polynomial-regression"><i class="fas fa-link"></i></a>
 </h3>
-<p>Parametric models, such as linear regression, assume a specific functional form for the relationship between the dependent variable and predictors. One way to relax the strict linearity assumption is by incorporating <strong>polynomial functions</strong> of the forcing variable <span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-lee2010regression">Lee and Lemieux 2010</a>)</span>. The choice of polynomial degree should be determined based on data characteristics.</p>
-<p>However, using high-order polynomials comes with challenges. <span class="citation">Gelman and Imbens (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-gelman2019high">2019</a>)</span> highlight three key issues associated with global high-degree polynomials:</p>
+<p>Parametric models, such as linear regression, assume a specific functional form for the relationship between the dependent variable and predictors. One way to relax the strict linearity assumption is by incorporating <strong>polynomial functions</strong> of the forcing variable <span class="citation">(<a href="references.html#ref-lee2010regression">Lee and Lemieux 2010</a>)</span>. The choice of polynomial degree should be determined based on data characteristics.</p>
+<p>However, using high-order polynomials comes with challenges. <span class="citation">Gelman and Imbens (<a href="references.html#ref-gelman2019high">2019</a>)</span> highlight three key issues associated with global high-degree polynomials:</p>
 <ol style="list-style-type: decimal">
 <li>
 <strong>Imprecise Estimates Due to Noise</strong>: Higher-degree polynomials can overfit, capturing noise instead of meaningful patterns.</li>
@@ -266,11 +355,11 @@ E[Y(0)|X=x] \text{ and } E[Y(1)|X=x] \text{ are continuous at } x = c.
 </ol>
 <p>For these reasons, researchers are often advised to avoid global high-order polynomials and instead rely on alternative approaches (i.e., <a href="sec-nonparametric-regression.html#sec-nonparametric-regression">nonparametric</a> version).</p>
 </div>
-<div id="nonparametric-models-local-regression" class="section level3" number="27.2.2">
+<div id="nonparametric-models-local-regression" class="section level3" number="27.3.2">
 <h3>
-<span class="header-section-number">27.2.2</span> Nonparametric Models: Local Regression<a class="anchor" aria-label="anchor" href="#nonparametric-models-local-regression"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.3.2</span> Nonparametric Models: Local Regression<a class="anchor" aria-label="anchor" href="#nonparametric-models-local-regression"><i class="fas fa-link"></i></a>
 </h3>
-<p><a href="sec-nonparametric-regression.html#sec-nonparametric-regression">Nonparametric models</a>, such as <a href="sec-nonparametric-regression.html#sec-local-polynomial-regression">local polynomial regression</a>, offer greater flexibility by avoiding strong assumptions about functional form. Instead of fitting a single equation to the entire dataset, these methods estimate relationships <strong>locally</strong>—often using linear or quadratic polynomials within a neighborhood of each data point.</p>
+<p><a href="sec-nonparametric-regression.html#sec-nonparametric-regression">Nonparametric models</a>, such as <a href="sec-nonparametric-regression.html#sec-local-polynomial-regression">local polynomial regression</a>, offer greater flexibility by avoiding strong assumptions about functional form. Instead of fitting a single equation to the entire dataset, these methods estimate relationships <strong>locally</strong>, often using linear or quadratic polynomials within a neighborhood of each data point.</p>
 <ul>
 <li>Uses weighted observations near the cutoff.</li>
 <li>More flexible than global polynomial regression.</li>
@@ -289,9 +378,9 @@ E[Y(0)|X=x] \text{ and } E[Y(1)|X=x] \text{ are continuous at } x = c.
 <hr>
 </div>
 </div>
-<div id="formal-definition" class="section level2" number="27.3">
+<div id="formal-definition" class="section level2" number="27.4">
 <h2>
-<span class="header-section-number">27.3</span> Formal Definition<a class="anchor" aria-label="anchor" href="#formal-definition"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.4</span> Formal Definition<a class="anchor" aria-label="anchor" href="#formal-definition"><i class="fas fa-link"></i></a>
 </h2>
 <p>Let <span class="math inline">\(X_i\)</span> be the running variable, <span class="math inline">\(c\)</span> the cutoff, and <span class="math inline">\(D_i\)</span> the treatment indicator:</p>
 <p><span class="math display">\[ D_i = 1_{X_i &gt; c} \]</span></p>
@@ -303,21 +392,21 @@ E[Y(0)|X=x] \text{ and } E[Y(1)|X=x] \text{ are continuous at } x = c.
 <li><p><span class="math inline">\(X_i\)</span>: Running variable (continuous)</p></li>
 <li><p><span class="math inline">\(c\)</span>: Cutoff value</p></li>
 </ul>
-<div id="identification-assumptions" class="section level3" number="27.3.1">
+<div id="identification-assumptions" class="section level3" number="27.4.1">
 <h3>
-<span class="header-section-number">27.3.1</span> Identification Assumptions<a class="anchor" aria-label="anchor" href="#identification-assumptions"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.4.1</span> Identification Assumptions<a class="anchor" aria-label="anchor" href="#identification-assumptions"><i class="fas fa-link"></i></a>
 </h3>
-<div id="continuity-based-identification" class="section level4" number="27.3.1.1">
+<div id="continuity-based-identification" class="section level4" number="27.4.1.1">
 <h4>
-<span class="header-section-number">27.3.1.1</span> Continuity-Based Identification<a class="anchor" aria-label="anchor" href="#continuity-based-identification"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.4.1.1</span> Continuity-Based Identification<a class="anchor" aria-label="anchor" href="#continuity-based-identification"><i class="fas fa-link"></i></a>
 </h4>
 <p>RD estimates the [Local Average Treatment Effect] at the cutoff:</p>
 <p><span class="math display">\[ \begin{aligned} \alpha_{SRDD} &amp;= E[Y_{1i} - Y_{0i} | X_i = c] \\ &amp;= E[Y_{1i}|X_i = c] - E[Y_{0i}|X_i = c] \\ &amp;= \lim_{x \to c^+} E[Y_{1i}|X_i = x] - \lim_{x \to c^-} E[Y_{0i}|X_i = x] \end{aligned} \]</span></p>
 <p>This relies on the assumption that, in the absence of treatment, the conditional expectation of potential outcomes is <strong>continuous</strong> at the threshold <span class="math inline">\(c\)</span>.</p>
 </div>
-<div id="local-randomization-based-identification" class="section level4" number="27.3.1.2">
+<div id="local-randomization-based-identification" class="section level4" number="27.4.1.2">
 <h4>
-<span class="header-section-number">27.3.1.2</span> Local Randomization-Based Identification<a class="anchor" aria-label="anchor" href="#local-randomization-based-identification"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.4.1.2</span> Local Randomization-Based Identification<a class="anchor" aria-label="anchor" href="#local-randomization-based-identification"><i class="fas fa-link"></i></a>
 </h4>
 <p>Alternatively, identification can be achieved using local randomization within a small bandwidth <span class="math inline">\(W\)</span> (i.e., a neighborhood around the cutoff). The [Local Average Treatment Effect] in this case is:</p>
 <p><span class="math display">\[ \begin{aligned} \alpha_{LR} &amp;= E[Y_{1i} - Y_{0i}|X_i \in W] \\ &amp;= \frac{1}{N_1} \sum_{X_i \in W, D_i = 1} Y_i - \frac{1}{N_0} \sum_{X_i \in W, D_i = 0} Y_i \end{aligned} \]</span></p>
@@ -326,13 +415,13 @@ E[Y(0)|X=x] \text{ and } E[Y(1)|X=x] \text{ are continuous at } x = c.
 </div>
 </div>
 </div>
-<div id="estimation-and-inference" class="section level2" number="27.4">
+<div id="estimation-and-inference" class="section level2" number="27.5">
 <h2>
-<span class="header-section-number">27.4</span> Estimation and Inference<a class="anchor" aria-label="anchor" href="#estimation-and-inference"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.5</span> Estimation and Inference<a class="anchor" aria-label="anchor" href="#estimation-and-inference"><i class="fas fa-link"></i></a>
 </h2>
-<div id="local-randomization-based-approach" class="section level3" number="27.4.1">
+<div id="local-randomization-based-approach" class="section level3" number="27.5.1">
 <h3>
-<span class="header-section-number">27.4.1</span> Local Randomization-Based Approach<a class="anchor" aria-label="anchor" href="#local-randomization-based-approach"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.5.1</span> Local Randomization-Based Approach<a class="anchor" aria-label="anchor" href="#local-randomization-based-approach"><i class="fas fa-link"></i></a>
 </h3>
 <p>The local randomization approach additionally assumes that within the chosen window <span class="math inline">\(W = [c - w, c + w]\)</span>, treatment assignment is <strong>as good as random</strong>. This requires:</p>
 <ol style="list-style-type: decimal">
@@ -357,9 +446,9 @@ E[Y(0)|X=x] \text{ and } E[Y(1)|X=x] \text{ are continuous at } x = c.
 </ul>
 <hr>
 </div>
-<div id="sec-continuity-based-approach" class="section level3" number="27.4.2">
+<div id="sec-continuity-based-approach" class="section level3" number="27.5.2">
 <h3>
-<span class="header-section-number">27.4.2</span> Continuity-Based Approach<a class="anchor" aria-label="anchor" href="#sec-continuity-based-approach"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.5.2</span> Continuity-Based Approach<a class="anchor" aria-label="anchor" href="#sec-continuity-based-approach"><i class="fas fa-link"></i></a>
 </h3>
 <p>Also known as the <a href="sec-nonparametric-regression.html#sec-local-polynomial-regression">local polynomial regression method</a>, this approach estimates treatment effects by fitting a polynomial model locally around the cutoff. Global polynomial regression is not recommended due to issues such as:</p>
 <ul>
@@ -379,9 +468,9 @@ E[Y(0)|X=x] \text{ and } E[Y(1)|X=x] \text{ are continuous at } x = c.
 <hr>
 </div>
 </div>
-<div id="specification-checks" class="section level2" number="27.5">
+<div id="specification-checks" class="section level2" number="27.6">
 <h2>
-<span class="header-section-number">27.5</span> Specification Checks<a class="anchor" aria-label="anchor" href="#specification-checks"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6</span> Specification Checks<a class="anchor" aria-label="anchor" href="#specification-checks"><i class="fas fa-link"></i></a>
 </h2>
 <p>To validate the credibility of an RD design, researchers perform several specification checks:</p>
 <ol style="list-style-type: decimal">
@@ -392,9 +481,9 @@ E[Y(0)|X=x] \text{ and } E[Y(1)|X=x] \text{ are continuous at } x = c.
 <li><a href="sec-regression-discontinuity.html#manipulation-robust-regression-discontinuity-bounds">Manipulation-Robust Regression Discontinuity Bounds</a></li>
 </ol>
 <hr>
-<div id="sec-balance-checks" class="section level3" number="27.5.1">
+<div id="sec-balance-checks" class="section level3" number="27.6.1">
 <h3>
-<span class="header-section-number">27.5.1</span> Balance Checks<a class="anchor" aria-label="anchor" href="#sec-balance-checks"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.1</span> Balance Checks<a class="anchor" aria-label="anchor" href="#sec-balance-checks"><i class="fas fa-link"></i></a>
 </h3>
 <p>Also known as <strong>checking for discontinuities in average covariates</strong>, this test examines whether covariates that should not be affected by treatment exhibit a discontinuity at the cutoff.</p>
 <ul>
@@ -403,27 +492,27 @@ E[Y(0)|X=x] \text{ and } E[Y(1)|X=x] \text{ are continuous at } x = c.
 </ul>
 <hr>
 </div>
-<div id="sec-sorting-bunching-and-manipulation" class="section level3" number="27.5.2">
+<div id="sec-sorting-bunching-and-manipulation" class="section level3" number="27.6.2">
 <h3>
-<span class="header-section-number">27.5.2</span> Sorting, Bunching, and Manipulation<a class="anchor" aria-label="anchor" href="#sec-sorting-bunching-and-manipulation"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.2</span> Sorting, Bunching, and Manipulation<a class="anchor" aria-label="anchor" href="#sec-sorting-bunching-and-manipulation"><i class="fas fa-link"></i></a>
 </h3>
 <p>This test, also known as <strong>checking for discontinuities in the distribution of the forcing variable</strong>, detects whether subjects manipulate the running variable to sort into or out of treatment.</p>
-<p>If individuals can manipulate the running variable—especially when the cutoff is known in advance—this can lead to bunching behavior (i.e., clustering just above or below the cutoff).</p>
+<p>If individuals can manipulate the running variable, especially when the cutoff is known in advance, this can lead to bunching behavior (i.e., clustering just above or below the cutoff).</p>
 <ul>
 <li>If treatment is desirable, individuals will try to sort into treatment, leading to a gap just below the cutoff.</li>
 <li>If treatment is undesirable, individuals will try to avoid it, leading to a gap just above the cutoff.</li>
 </ul>
 <p>Under RD, we assume that there is no manipulation in the running variable. However, bunching behavior, where firms or individuals strategically manipulate their position, violates this assumption.</p>
 <ul>
-<li><p>To address this issue, the bunching approach estimates the counterfactual distribution—what the density of individuals would have been in the absence of manipulation.</p></li>
+<li><p>To address this issue, the bunching approach estimates the counterfactual distribution, what the density of individuals would have been in the absence of manipulation.</p></li>
 <li><p>The fraction of individuals who engaged in manipulation is then calculated by comparing the observed distribution to this counterfactual distribution.</p></li>
 <li><p>In a standard RD framework, this step is unnecessary because it assumes that the observed distribution and the counterfactual (manipulation-free) distribution are the same, implying no manipulation</p></li>
 </ul>
-<div id="mccrary-sorting-test" class="section level4" number="27.5.2.1">
+<div id="mccrary-sorting-test" class="section level4" number="27.6.2.1">
 <h4>
-<span class="header-section-number">27.5.2.1</span> McCrary Sorting Test<a class="anchor" aria-label="anchor" href="#mccrary-sorting-test"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.2.1</span> McCrary Sorting Test<a class="anchor" aria-label="anchor" href="#mccrary-sorting-test"><i class="fas fa-link"></i></a>
 </h4>
-<p>A widely used formal test is the McCrary density test <span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-mccrary2008manipulation">McCrary 2008</a>)</span>, later refined by <span class="citation">Cattaneo, Idrobo, and Titiunik (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-cattaneo2019practical">2019</a>)</span>.</p>
+<p>A widely used formal test is the McCrary density test <span class="citation">(<a href="references.html#ref-mccrary2008manipulation">McCrary 2008</a>)</span>, later refined by <span class="citation">Cattaneo, Idrobo, and Titiunik (<a href="references.html#ref-cattaneo2019practical">2019</a>)</span>.</p>
 <ul>
 <li>Null Hypothesis (<span class="math inline">\(H_0\)</span>): The density of the running variable is continuous at the cutoff.</li>
 <li>Alternative Hypothesis (<span class="math inline">\(H_a\)</span>): A discontinuity (jump) in the density function at the cutoff, suggesting manipulation.</li>
@@ -436,62 +525,72 @@ E[Y(0)|X=x] \text{ and } E[Y(1)|X=x] \text{ are continuous at } x = c.
 </li>
 </ul>
 </div>
-<div id="guidelines-for-assessing-manipulation" class="section level4" number="27.5.2.2">
+<div id="guidelines-for-assessing-manipulation" class="section level4" number="27.6.2.2">
 <h4>
-<span class="header-section-number">27.5.2.2</span> Guidelines for Assessing Manipulation<a class="anchor" aria-label="anchor" href="#guidelines-for-assessing-manipulation"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.2.2</span> Guidelines for Assessing Manipulation<a class="anchor" aria-label="anchor" href="#guidelines-for-assessing-manipulation"><i class="fas fa-link"></i></a>
 </h4>
 <ul>
 <li>
-<span class="citation">J. L. Zhang and Rubin (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-zhang2003estimation">2003</a>)</span>, <span class="citation">Lee (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-lee2009training">2009</a>)</span>, and <span class="citation">Aronow, Baron, and Pinson (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-aronow2019note">2019</a>)</span> provide criteria for evaluating manipulation risks.</li>
+<span class="citation">J. L. Zhang and Rubin (<a href="references.html#ref-zhang2003estimation">2003</a>)</span>, <span class="citation">Lee (<a href="references.html#ref-lee2009training">2009</a>)</span>, and <span class="citation">Aronow, Baron, and Pinson (<a href="references.html#ref-aronow2019note">2019</a>)</span> provide criteria for evaluating manipulation risks.</li>
 <li>Knowing your <strong>research design inside out</strong> is crucial to anticipating possible manipulation attempts.</li>
 <li>Manipulation is often <strong>one-sided</strong>, meaning subjects shift only in one direction relative to the cutoff. In rare cases, two-sided manipulation may occur but often cancels out.</li>
 <li>We could also observe partial manipulation in reality (e.g., when subjects can only imperfectly manipulate). However, since we typically treat it like a fuzzy RD, we would not encounter identification problems. In contrast, complete manipulation would lead to serious identification issues.</li>
 </ul>
 <p><strong>Bunching Methodology</strong></p>
 <ul>
-<li>Bunching occurs when individuals self-select into specific values of the running variable (e.g., policy thresholds). See <span class="citation">Kleven (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-kleven2016bunching">2016</a>)</span> for a review.</li>
-<li>The method helps estimate the counterfactual distribution—what the density would have been without manipulation.</li>
+<li>Bunching occurs when individuals self-select into specific values of the running variable (e.g., policy thresholds). See <span class="citation">Kleven (<a href="references.html#ref-kleven2016bunching">2016</a>)</span> for a review.</li>
+<li>The method helps estimate the counterfactual distribution (what the density would have been without manipulation).</li>
 <li>The fraction of individuals who manipulated can be estimated by comparing observed densities to the counterfactual.</li>
 </ul>
-<p>If the running variable and outcome are <strong>simultaneously determined</strong>, a modified RD estimator can be used for consistent estimation <span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-bajari2011regression">Bajari et al. 2011</a>)</span>:</p>
+<p>If the running variable and outcome are <strong>simultaneously determined</strong>, a modified RD estimator can be used for consistent estimation <span class="citation">(<a href="references.html#ref-bajari2011regression">Bajari et al. 2011</a>)</span>:</p>
 <ol style="list-style-type: decimal">
 <li>
 <strong>One-sided manipulation</strong>: Individuals shift only in <strong>one direction</strong> relative to the cutoff (similar to the monotonicity assumption in instrumental variables).</li>
 <li>
-<strong>Bounded manipulation (regularity assumption)</strong>: The density of individuals far from the threshold remains unaffected <span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-blomquist2021bunching">Blomquist et al. 2021</a>; <a href="chapter-cluster-randomization-and-interference-bias.html#ref-bertanha2021better">Bertanha, McCallum, and Seegert 2021</a>)</span>.</li>
+<strong>Bounded manipulation (regularity assumption)</strong>: The density of individuals far from the threshold remains unaffected <span class="citation">(<a href="references.html#ref-blomquist2021bunching">Blomquist et al. 2021</a>; <a href="references.html#ref-bertanha2021better">Bertanha, McCallum, and Seegert 2021</a>)</span>.</li>
 </ol>
 </div>
-<div id="steps-for-bunching-analysis" class="section level4" number="27.5.2.3">
+<div id="steps-for-bunching-analysis" class="section level4" number="27.6.2.3">
 <h4>
-<span class="header-section-number">27.5.2.3</span> Steps for Bunching Analysis<a class="anchor" aria-label="anchor" href="#steps-for-bunching-analysis"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.2.3</span> Steps for Bunching Analysis<a class="anchor" aria-label="anchor" href="#steps-for-bunching-analysis"><i class="fas fa-link"></i></a>
 </h4>
 <ol style="list-style-type: decimal">
-<li>Identify the window where bunching occurs (based on <span class="citation">Bosch, Dekker, and Strohmaier (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-bosch2020data">2020</a>)</span>). Perform robustness checks by varying the manipulation window.</li>
+<li>Identify the window where bunching occurs (based on <span class="citation">Bosch, Dekker, and Strohmaier (<a href="references.html#ref-bosch2020data">2020</a>)</span>). Perform robustness checks by varying the manipulation window.</li>
 <li>Estimate the manipulation-free counterfactual distribution.</li>
-<li>Standard errors for inference can be calculated (following <span class="citation">Chetty, Hendren, and Katz (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-chetty2016effects">2016</a>)</span>), where bootstrap resampling of residuals is used in estimating the counts of individuals within bins. However, this step may be unnecessary for large datasets.</li>
+<li>Standard errors for inference can be calculated (following <span class="citation">Chetty, Hendren, and Katz (<a href="references.html#ref-chetty2016effects">2016</a>)</span>), where bootstrap resampling of residuals is used in estimating the counts of individuals within bins. However, this step may be unnecessary for large datasets.</li>
 </ol>
 <p>If the bunching test fails to detect manipulation, we proceed to the <a href="sec-difference-in-differences.html#placebo-test">Placebo Test</a>.</p>
 <hr>
 <p><strong>McCrary Density Test (Discontinuity in Forcing Variable)</strong></p>
-<div class="sourceCode" id="cb727"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb856"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">rdd</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Simulated data without discontinuity</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb857"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Simulated data without discontinuity</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">100</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/rdd/man/DCdensity.html">DCdensity</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">0</span><span class="op">)</span>  <span class="co"># No discontinuity</span></span></code></pre></div>
-<div class="inline-figure"><img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-1-1.png" width="90%" style="display: block; margin: auto;"></div>
-<pre><code>#&gt; [1] 0.06355195
-
-# Simulated data with discontinuity
-x &lt;- runif(1000, -1, 1)
-x &lt;- x + 2 * (runif(1000, -1, 1) &gt; 0 &amp; x &lt; 0)
-DCdensity(x, 0)  # Discontinuity detected</code></pre>
-<div class="inline-figure"><img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-1-2.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:unnamed-chunk-2"></span>
+<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-2-1.png" alt="Scatter plot with data points and two smooth fitted curves, one on each side of the vertical cutoff at zero. Solid lines indicate the fitted regression curves, while dashed lines show confidence bands." width="90%"><p class="caption">
+Figure 2.2: Local Polynomial Regression without Discontinuity at Cutoff
+</p>
+</div>
+<pre><code>#&gt; [1] 0.06355195</code></pre>
+<div class="sourceCode" id="cb859"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Simulated data with discontinuity</span></span>
+<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">1000</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">x</span> <span class="op">+</span> <span class="fl">2</span> <span class="op">*</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html">runif</a></span><span class="op">(</span><span class="fl">1000</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="va">x</span> <span class="op">&lt;</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/pkg/rdd/man/DCdensity.html">DCdensity</a></span><span class="op">(</span><span class="va">x</span>, <span class="fl">0</span><span class="op">)</span>  <span class="co"># Discontinuity detected</span></span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:unnamed-chunk-3"></span>
+<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-3-1.png" alt="Scatter plot with data points and two smooth fitted curves, one on each side of the vertical cutoff at zero. Solid lines indicate the fitted regression curves, while dashed lines show confidence bands." width="90%"><p class="caption">
+Figure 2.3: Local Polynomial Regression with Discontinuity at Cutoff
+</p>
+</div>
 <pre><code>#&gt; [1] 0.001936782</code></pre>
 <p><strong>Cattaneo Density Test (Improved Version)</strong></p>
-<div class="sourceCode" id="cb730"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb861"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">rddensity</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Simulated continuous density</span></span>
@@ -536,9 +635,9 @@ DCdensity(x, 0)  # Discontinuity detected</code></pre>
 <span><span class="co"># Plot requires customization (refer to package documentation)</span></span></code></pre></div>
 </div>
 </div>
-<div id="placebo-tests" class="section level3" number="27.5.3">
+<div id="placebo-tests" class="section level3" number="27.6.3">
 <h3>
-<span class="header-section-number">27.5.3</span> Placebo Tests<a class="anchor" aria-label="anchor" href="#placebo-tests"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.3</span> Placebo Tests<a class="anchor" aria-label="anchor" href="#placebo-tests"><i class="fas fa-link"></i></a>
 </h3>
 <p>Placebo tests, also known as <strong>falsification checks</strong>, assess whether discontinuities appear at points other than the treatment cutoff. This helps verify that observed effects are causal rather than artifacts of the method or data.</p>
 <ul>
@@ -547,9 +646,9 @@ DCdensity(x, 0)  # Discontinuity detected</code></pre>
 <li>This approach is similar to <a href="sec-regression-discontinuity.html#sec-balance-checks">balance checks</a> in experimental design, ensuring no pre-existing differences. Remember, we can only test on observables, not unobservables.</li>
 </ul>
 <p>Under a valid RD design, <a href="sec-matching-methods.html#sec-matching-methods">matching methods</a> are unnecessary. Just as with <a href="sec-experimental-design.html#sec-the-gold-standard-randomized-controlled-trials">randomized experiments</a>, balance should naturally occur across the threshold. If adjustments are required, it suggests the <strong>RD assumptions may be invalid</strong>.</p>
-<div id="applications-of-placebo-tests" class="section level4" number="27.5.3.1">
+<div id="applications-of-placebo-tests" class="section level4" number="27.6.3.1">
 <h4>
-<span class="header-section-number">27.5.3.1</span> Applications of Placebo Tests<a class="anchor" aria-label="anchor" href="#applications-of-placebo-tests"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.3.1</span> Applications of Placebo Tests<a class="anchor" aria-label="anchor" href="#applications-of-placebo-tests"><i class="fas fa-link"></i></a>
 </h4>
 <ol style="list-style-type: decimal">
 <li>
@@ -562,9 +661,9 @@ DCdensity(x, 0)  # Discontinuity detected</code></pre>
 <strong>Assessing Sensitivity to Covariates:</strong> RD estimates should not be highly sensitive to the inclusion or exclusion of covariates.</li>
 </ol>
 </div>
-<div id="mathematical-specification" class="section level4" number="27.5.3.2">
+<div id="mathematical-specification" class="section level4" number="27.6.3.2">
 <h4>
-<span class="header-section-number">27.5.3.2</span> Mathematical Specification<a class="anchor" aria-label="anchor" href="#mathematical-specification"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.3.2</span> Mathematical Specification<a class="anchor" aria-label="anchor" href="#mathematical-specification"><i class="fas fa-link"></i></a>
 </h4>
 <p>The balance of observable characteristics on both sides of the threshold can be tested using:</p>
 <p><span class="math display">\[
@@ -580,9 +679,9 @@ Z_i = \alpha_0 + \alpha_1 f(X_i) + I(X_i \geq c) \alpha_2 + [f(X_i) \times I(X_i
 <hr>
 </div>
 </div>
-<div id="sensitivity-to-bandwidth-choice" class="section level3" number="27.5.4">
+<div id="sensitivity-to-bandwidth-choice" class="section level3" number="27.6.4">
 <h3>
-<span class="header-section-number">27.5.4</span> Sensitivity to Bandwidth Choice<a class="anchor" aria-label="anchor" href="#sensitivity-to-bandwidth-choice"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.4</span> Sensitivity to Bandwidth Choice<a class="anchor" aria-label="anchor" href="#sensitivity-to-bandwidth-choice"><i class="fas fa-link"></i></a>
 </h3>
 <p>The choice of bandwidth is crucial in RD estimation. Different bandwidth selection methods exist:</p>
 <ol style="list-style-type: decimal">
@@ -591,19 +690,19 @@ Z_i = \alpha_0 + \alpha_1 f(X_i) + I(X_i \geq c) \alpha_2 + [f(X_i) \times I(X_i
 <li>
 <strong>Data-Driven Selection (Cross-Validation):</strong> Optimizes bandwidth to minimize prediction error.</li>
 <li>
-<strong>Conservative Approach:</strong> Uses robust optimal bandwidth selection methods (e.g., <span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-calonico2020optimal">Calonico, Cattaneo, and Farrell 2020</a>)</span>).</li>
+<strong>Conservative Approach:</strong> Uses robust optimal bandwidth selection methods (e.g., <span class="citation">(<a href="references.html#ref-calonico2020optimal">Calonico, Cattaneo, and Farrell 2020</a>)</span>).</li>
 </ol>
 <p>The objective is to <strong>minimize mean squared error (MSE)</strong> between estimated and actual treatment effects.</p>
 </div>
-<div id="assessing-sensitivity" class="section level3" number="27.5.5">
+<div id="assessing-sensitivity" class="section level3" number="27.6.5">
 <h3>
-<span class="header-section-number">27.5.5</span> Assessing Sensitivity<a class="anchor" aria-label="anchor" href="#assessing-sensitivity"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.5</span> Assessing Sensitivity<a class="anchor" aria-label="anchor" href="#assessing-sensitivity"><i class="fas fa-link"></i></a>
 </h3>
 <ul>
 <li>Results should be <strong>consistent</strong> across reasonable bandwidth choices.</li>
 <li>The optimal bandwidth for estimating treatment effects may <strong>differ</strong> from the optimal bandwidth for testing covariates but should be fairly close.</li>
 </ul>
-<div class="sourceCode" id="cb731"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb862"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load required package</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">rdd</span><span class="op">)</span></span>
 <span></span>
@@ -632,11 +731,11 @@ Z_i = \alpha_0 + \alpha_1 f(X_i) + I(X_i \geq c) \alpha_2 + [f(X_i) \times I(X_i
 <span><span class="co">#&gt; [1] 0.4374142</span></span></code></pre></div>
 <hr>
 </div>
-<div id="manipulation-robust-regression-discontinuity-bounds" class="section level3" number="27.5.6">
+<div id="manipulation-robust-regression-discontinuity-bounds" class="section level3" number="27.6.6">
 <h3>
-<span class="header-section-number">27.5.6</span> Manipulation-Robust Regression Discontinuity Bounds<a class="anchor" aria-label="anchor" href="#manipulation-robust-regression-discontinuity-bounds"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.6</span> Manipulation-Robust Regression Discontinuity Bounds<a class="anchor" aria-label="anchor" href="#manipulation-robust-regression-discontinuity-bounds"><i class="fas fa-link"></i></a>
 </h3>
-<p>Regression Discontinuity designs rely on the assumption that the running variable <span class="math inline">\(X_i\)</span> is not manipulable by agents in the study. However, <span class="citation">McCrary (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-mccrary2008manipulation">2008</a>)</span> showed that a discontinuity in the density of <span class="math inline">\(X_i\)</span> at the cutoff may indicate manipulation, potentially invalidating RD estimates. The common approach to handling detected manipulation is:</p>
+<p>Regression Discontinuity designs rely on the assumption that the running variable <span class="math inline">\(X_i\)</span> is not manipulable by agents in the study. However, <span class="citation">McCrary (<a href="references.html#ref-mccrary2008manipulation">2008</a>)</span> showed that a discontinuity in the density of <span class="math inline">\(X_i\)</span> at the cutoff may indicate manipulation, potentially invalidating RD estimates. The common approach to handling detected manipulation is:</p>
 <ul>
 <li>If no manipulation is detected, proceed with RD analysis.</li>
 <li>If manipulation is detected, use the “doughnut-hole” method (i.e., excluding near-cutoff observations), but this contradicts the RD principles.</li>
@@ -648,7 +747,7 @@ Z_i = \alpha_0 + \alpha_1 f(X_i) + I(X_i \geq c) \alpha_2 + [f(X_i) \times I(X_i
 <li>
 <strong>Loss of Informative Data</strong>: Even when manipulation is detected, the data may still contain valuable information for causal inference.</li>
 </ol>
-<p>To address these challenges, <span class="citation">Gerard, Rokkanen, and Rothe (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-gerard2020bounds">2020</a>)</span> introduce a framework that accounts for manipulated observations rather than discarding them. This approach:</p>
+<p>To address these challenges, <span class="citation">Gerard, Rokkanen, and Rothe (<a href="references.html#ref-gerard2020bounds">2020</a>)</span> introduce a framework that accounts for manipulated observations rather than discarding them. This approach:</p>
 <ul>
 <li>Identifies the extent of manipulation.</li>
 <li>Computes worst-case bounds on treatment effects.</li>
@@ -679,9 +778,9 @@ Z_i = \alpha_0 + \alpha_1 f(X_i) + I(X_i \geq c) \alpha_2 + [f(X_i) \times I(X_i
 </ol>
 <p>If no always-assigned units exist (<span class="math inline">\(M_i = 1\)</span> for no units), the standard RD model holds.</p>
 <hr>
-<div id="key-assumptions" class="section level4" number="27.5.6.1">
+<div id="key-assumptions" class="section level4" number="27.6.6.1">
 <h4>
-<span class="header-section-number">27.5.6.1</span> Key Assumptions<a class="anchor" aria-label="anchor" href="#key-assumptions"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.6.1</span> Key Assumptions<a class="anchor" aria-label="anchor" href="#key-assumptions"><i class="fas fa-link"></i></a>
 </h4>
 <ol style="list-style-type: decimal">
 <li>
@@ -713,9 +812,9 @@ P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0).
 </ol>
 <p>When always-assigned units exist, the RD design effectively becomes <strong>fuzzy</strong>, since: 1. Some potentially-assigned units receive treatment while others do not. 2. Always-assigned units are always treated (or always untreated).</p>
 </div>
-<div id="estimating-treatment-effects" class="section level4" number="27.5.6.2">
+<div id="estimating-treatment-effects" class="section level4" number="27.6.6.2">
 <h4>
-<span class="header-section-number">27.5.6.2</span> Estimating Treatment Effects<a class="anchor" aria-label="anchor" href="#estimating-treatment-effects"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.6.2</span> Estimating Treatment Effects<a class="anchor" aria-label="anchor" href="#estimating-treatment-effects"><i class="fas fa-link"></i></a>
 </h4>
 <p>For potentially-assigned units, the <strong>causal effect of interest</strong> is:</p>
 <p><span class="math display">\[
@@ -723,9 +822,9 @@ P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0).
 \]</span></p>
 <p>This parameter represents the <a href="sec-causal-inference.html#sec-local-average-treatment-effects">local average treatment effect</a> for potentially-assigned compliers, i.e., those whose treatment status is affected by their running variable crossing the cutoff.</p>
 </div>
-<div id="bounding-treatment-effects" class="section level4" number="27.5.6.3">
+<div id="bounding-treatment-effects" class="section level4" number="27.6.6.3">
 <h4>
-<span class="header-section-number">27.5.6.3</span> Bounding Treatment Effects<a class="anchor" aria-label="anchor" href="#bounding-treatment-effects"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.6.3</span> Bounding Treatment Effects<a class="anchor" aria-label="anchor" href="#bounding-treatment-effects"><i class="fas fa-link"></i></a>
 </h4>
 <p>The approach to bounding treatment effects consists of two key steps:</p>
 <ol style="list-style-type: decimal">
@@ -776,9 +875,9 @@ P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0).
 </tbody>
 </table></div>
 </div>
-<div id="identification-challenges" class="section level4" number="27.5.6.4">
+<div id="identification-challenges" class="section level4" number="27.6.6.4">
 <h4>
-<span class="header-section-number">27.5.6.4</span> Identification Challenges<a class="anchor" aria-label="anchor" href="#identification-challenges"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.6.4</span> Identification Challenges<a class="anchor" aria-label="anchor" href="#identification-challenges"><i class="fas fa-link"></i></a>
 </h4>
 <p>A central challenge in manipulation-robust RD designs is the inability to directly distinguish <strong>always-assigned</strong> from <strong>potentially-assigned</strong> units. As a result, the <a href="sec-causal-inference.html#sec-local-average-treatment-effects">LATE</a> <span class="math inline">\(\Gamma\)</span> is not point identified. Instead, we establish sharp bounds on <span class="math inline">\(\Gamma\)</span>.</p>
 <p>These bounds leverage the stochastic dominance of potential outcome cumulative distribution functions over observed distributions. This allows us to infer treatment effects without making strong parametric assumptions.</p>
@@ -806,9 +905,9 @@ P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0).
 </li>
 </ul>
 <p>The measure <span class="math inline">\(\tau\)</span>, representing the proportion of always-assigned units near the cutoff, is point-identified using the discontinuity in the density of the running variable <span class="math inline">\(f_X\)</span> at <span class="math inline">\(c\)</span>.</p>
-<div id="identification-in-sharp-rd" class="section level5" number="27.5.6.4.1">
+<div id="identification-in-sharp-rd" class="section level5" number="27.6.6.4.1">
 <h5>
-<span class="header-section-number">27.5.6.4.1</span> Identification in Sharp RD<a class="anchor" aria-label="anchor" href="#identification-in-sharp-rd"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.6.4.1</span> Identification in Sharp RD<a class="anchor" aria-label="anchor" href="#identification-in-sharp-rd"><i class="fas fa-link"></i></a>
 </h5>
 <p>In a sharp RD design:</p>
 <ul>
@@ -823,37 +922,20 @@ P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0).
 </ul>
 <p>Since <span class="math inline">\(\tau\)</span> is point-identified, we can construct sharp bounds on <span class="math inline">\(\Gamma\)</span> by adjusting for the presence of <span class="math inline">\(T_1\)</span>.</p>
 </div>
-<div id="identification-in-fuzzy-rd" class="section level5" number="27.5.6.4.2">
+<div id="identification-in-fuzzy-rd" class="section level5" number="27.6.6.4.2">
 <h5>
-<span class="header-section-number">27.5.6.4.2</span> Identification in Fuzzy RD<a class="anchor" aria-label="anchor" href="#identification-in-fuzzy-rd"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.6.4.2</span> Identification in Fuzzy RD<a class="anchor" aria-label="anchor" href="#identification-in-fuzzy-rd"><i class="fas fa-link"></i></a>
 </h5>
-<p>In fuzzy RD, treatment assignment is not deterministic. The subpopulations observed in each treatment-status group at the cutoff are:</p>
-<div class="inline-table"><table class="table table-sm">
-<thead><tr class="header">
-<th><strong>Subpopulation</strong></th>
-<th><strong>Unit Types Present</strong></th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td><span class="math inline">\(X = c^+, D = 1\)</span></td>
-<td><span class="math inline">\(C_0, A_0, T_1\)</span></td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(X = c^-, D = 1\)</span></td>
-<td><span class="math inline">\(A_0\)</span></td>
-</tr>
-<tr class="odd">
-<td><span class="math inline">\(X= c^+, D = 0\)</span></td>
-<td><span class="math inline">\(N_0, U_1\)</span></td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(X = c^-, D = 0\)</span></td>
-<td><span class="math inline">\(C_0, N_0\)</span></td>
-</tr>
-</tbody>
-</table></div>
-<p><em>Source: Table on page 848 of <span class="citation">Gerard, Rokkanen, and Rothe (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-gerard2020bounds">2020</a>)</span></em></p>
-<p>Key Takeaways:</p>
+<p>In fuzzy RD, treatment assignment is not deterministic.</p>
+<!-- The subpopulations observed in each treatment-status group at the cutoff are: -->
+<!-- | **Subpopulation** | **Unit Types Present** | -->
+<!-- |-------------------|------------------------| -->
+<!-- | $X = c^+, D = 1$  | $C_0, A_0, T_1$        | -->
+<!-- | $X = c^-, D = 1$  | $A_0$                  | -->
+<!-- | $X= c^+, D = 0$   | $N_0, U_1$             | -->
+<!-- | $X = c^-, D = 0$  | $C_0, N_0$             | -->
+<!-- *Source: Table on page 848 of @gerard2020bounds* -->
+<!-- Key Takeaways: -->
 <ul>
 <li>
 <strong>Unit Types and Combinations</strong>: There are five distinct unit types and four combinations of treatment assignments and decisions relevant to the analysis. These distinctions are important because they affect how potential outcomes are analyzed and bounded.</li>
@@ -863,9 +945,9 @@ P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0).
 </ul>
 </div>
 </div>
-<div id="three-step-process-for-bounding-treatment-effects" class="section level4" number="27.5.6.5">
+<div id="three-step-process-for-bounding-treatment-effects" class="section level4" number="27.6.6.5">
 <h4>
-<span class="header-section-number">27.5.6.5</span> Three-Step Process for Bounding Treatment Effects<a class="anchor" aria-label="anchor" href="#three-step-process-for-bounding-treatment-effects"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.6.5</span> Three-Step Process for Bounding Treatment Effects<a class="anchor" aria-label="anchor" href="#three-step-process-for-bounding-treatment-effects"><i class="fas fa-link"></i></a>
 </h4>
 <p>The method to obtain sharp bounds on <span class="math inline">\(\Gamma\)</span> follows three steps:</p>
 <ol style="list-style-type: decimal">
@@ -891,12 +973,12 @@ P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0).
 <li>These bounds are sharp (i.e., they cannot be tightened further without additional assumptions) but remain empirically relevant.</li>
 </ul>
 </div>
-<div id="extensions" class="section level4" number="27.5.6.6">
+<div id="extensions" class="section level4" number="27.6.6.6">
 <h4>
-<span class="header-section-number">27.5.6.6</span> Extensions<a class="anchor" aria-label="anchor" href="#extensions"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.6.6.6</span> Extensions<a class="anchor" aria-label="anchor" href="#extensions"><i class="fas fa-link"></i></a>
 </h4>
 <ol style="list-style-type: decimal">
-<li>Quantile Treatment Effects (QTEs)</li>
+<li><strong>Quantile Treatment Effects (QTEs)</strong></li>
 </ol>
 <p>An alternative to average treatment effects is the quantile treatment effect (QTE), which focuses on different percentiles of the outcome distribution. Advantages of QTE bounds include:</p>
 <ul>
@@ -911,15 +993,16 @@ P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0).
 <strong>QTE inference remains meaningful</strong> even under substantial manipulation.</li>
 </ul>
 <ol start="2" style="list-style-type: decimal">
-<li>Discrete Outcome Extensions: The framework applies not only to continuous outcomes but also to <strong>discrete</strong> outcome variables.</li>
-<li>Role of Behavioral Assumptions</li>
+<li>
+<strong>Discrete Outcome Extensions</strong>: The framework applies not only to continuous outcomes but also to <strong>discrete</strong> outcome variables.</li>
+<li><strong>Role of Behavioral Assumptions</strong></li>
 </ol>
 <ul>
 <li>Making behavioral assumptions about high treatment likelihood among always-assigned units can refine the bounds.</li>
 <li>For example, assuming that most always-assigned units are treated allows for narrower bounds on treatment effects.</li>
 </ul>
 <ol start="4" style="list-style-type: decimal">
-<li>Incorporation of Covariates</li>
+<li><strong>Incorporation of Covariates</strong></li>
 </ol>
 <ul>
 <li>Including pre-treatment covariates can refine treatment effect bounds.</li>
@@ -931,9 +1014,9 @@ P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0).
 </ul>
 </li>
 </ul>
-<div class="sourceCode" id="cb732"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb863"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html">install_github</a></span><span class="op">(</span><span class="st">"francoisgerard/rdbounds/R"</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb733"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb864"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://renkun-ken.github.io/formattable/">formattable</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://r-datatable.com">data.table</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="http://www.nber.org/papers/w22892">rdbounds</a></span><span class="op">)</span></span>
@@ -977,16 +1060,16 @@ P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0).
 <span>        num_bootstraps <span class="op">=</span> <span class="fl">5</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.38047"</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:33:47.909864 Estimating CDFs for point estimates"</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:33:48.466955 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:33:50.700413 Estimating CDFs with nudged tau (tau_star)"</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:33:50.765021 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:33:54.245449 Beginning parallelized output by bootstrap.."</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:33:59.711629 Computing Confidence Intervals"</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:34:16.710439 Time taken:0.48 minutes"</span></span></code></pre></div>
-<div class="sourceCode" id="cb734"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; [1] "2025-07-12 14:20:49.220756 Estimating CDFs for point estimates"</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:20:49.464659 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:20:51.392993 Estimating CDFs with nudged tau (tau_star)"</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:20:51.43695 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:20:54.430783 Beginning parallelized output by bootstrap.."</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:20:58.439781 Computing Confidence Intervals"</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:21:11.066909 Time taken:0.36 minutes"</span></span></code></pre></div>
+<div class="sourceCode" id="cb865"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/rdbounds/man/rdbounds_summary.html">rdbounds_summary</a></span><span class="op">(</span><span class="va">rdbounds_est</span>, title_prefix <span class="op">=</span> <span class="st">"Sample Data Results"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "Time taken: 0.48 minutes"</span></span>
+<span><span class="co">#&gt; [1] "Time taken: 0.36 minutes"</span></span>
 <span><span class="co">#&gt; [1] "Sample size: 1000"</span></span>
 <span><span class="co">#&gt; [1] "Local Average Treatment Effect:"</span></span>
 <span><span class="co">#&gt; $tau_hat</span></span>
@@ -1066,7 +1149,7 @@ P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0).
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $TE_FRD_right_CI</span></span>
 <span><span class="co">#&gt; [1] -14.75421  15.58640</span></span></code></pre></div>
-<div class="sourceCode" id="cb735"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb866"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rdbounds_est_tau</span> <span class="op">&lt;-</span></span>
 <span>    <span class="fu"><a href="https://rdrr.io/pkg/rdbounds/man/rdbounds.html">rdbounds</a></span><span class="op">(</span></span>
 <span>        y <span class="op">=</span> <span class="va">df</span><span class="op">$</span><span class="va">y</span>,</span>
@@ -1089,29 +1172,34 @@ P(D = 1|X = c^+, M = 0) &gt; P(D = 1|X = c^-, M = 0).
 <span>        num_bootstraps <span class="op">=</span> <span class="fl">5</span></span>
 <span>    <span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "The proportion of always-assigned units just to the right of the cutoff is estimated to be 0.38047"</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:34:18.345701 Estimating CDFs for point estimates"</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:34:18.580208 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:34:21.070091 Estimating CDFs with nudged tau (tau_star)"</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:34:21.121132 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:34:24.568454 Beginning parallelized output by bootstrap.."</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:34:29.367159 Estimating CDFs with fixed tau value of: 0.025"</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:34:29.434238 Estimating CDFs with fixed tau value of: 0.05"</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:34:29.531261 Estimating CDFs with fixed tau value of: 0.1"</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:34:29.598908 Estimating CDFs with fixed tau value of: 0.2"</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:34:30.932877 Beginning parallelized output by bootstrap x fixed tau.."</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:34:33.544657 Computing Confidence Intervals"</span></span>
-<span><span class="co">#&gt; [1] "2025-05-14 20:34:50.413887 Time taken:0.54 minutes"</span></span></code></pre></div>
-<div class="sourceCode" id="cb736"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; [1] "2025-07-12 14:21:12.533854 Estimating CDFs for point estimates"</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:21:12.81822 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:21:14.650755 Estimating CDFs with nudged tau (tau_star)"</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:21:14.694363 .....Estimating CDFs for units just to the right of the cutoff"</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:21:17.795855 Beginning parallelized output by bootstrap.."</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:21:21.63014 Estimating CDFs with fixed tau value of: 0.025"</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:21:21.695359 Estimating CDFs with fixed tau value of: 0.05"</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:21:21.744351 Estimating CDFs with fixed tau value of: 0.1"</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:21:21.783942 Estimating CDFs with fixed tau value of: 0.2"</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:21:22.801664 Beginning parallelized output by bootstrap x fixed tau.."</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:21:25.071523 Computing Confidence Intervals"</span></span>
+<span><span class="co">#&gt; [1] "2025-07-12 14:21:37.107259 Time taken:0.41 minutes"</span></span></code></pre></div>
+<div class="sourceCode" id="cb867"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">causalverse</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/causalverse/man/plot_rd_aa_share.html">plot_rd_aa_share</a></span><span class="op">(</span><span class="va">rdbounds_est_tau</span><span class="op">)</span> <span class="co"># For SRD (default)</span></span></code></pre></div>
-<div class="inline-figure"><img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;"></div>
-<div class="sourceCode" id="cb737"><pre class="downlit sourceCode r">
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:unnamed-chunk-10"></span>
+<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-10-1.png" alt="Line chart showing ATE estimates plotted against the share of always-assigned units. Two solid lines with dots indicate upper and lower bounds of the estimated ATE as the share increases from 0 to 0.2. Dotted lines represent confidence intervals, and a red horizontal line marks zero." width="90%"><p class="caption">
+Figure 2.11: Robustness of Average Treatment Effect to Share of Always-assigned Units
+</p>
+</div>
+<div class="sourceCode" id="cb868"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># causalverse::plot_rd_aa_share(rdbounds_est_tau, rd_type = "FRD")  # For FRD</span></span></code></pre></div>
 </div>
 </div>
 </div>
-<div id="sec-fuzzy-regression-discontinuity-design" class="section level2" number="27.6">
+<div id="sec-fuzzy-regression-discontinuity-design" class="section level2" number="27.7">
 <h2>
-<span class="header-section-number">27.6</span> Fuzzy Regression Discontinuity Design<a class="anchor" aria-label="anchor" href="#sec-fuzzy-regression-discontinuity-design"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.7</span> Fuzzy Regression Discontinuity Design<a class="anchor" aria-label="anchor" href="#sec-fuzzy-regression-discontinuity-design"><i class="fas fa-link"></i></a>
 </h2>
 <p>A Fuzzy Regression Discontinuity Design occurs when the assignment rule at the cutoff does not perfectly determine treatment status but instead causes a discontinuity in the probability of treatment. Unlike a Sharp RD Design, where crossing the threshold fully determines treatment, in a fuzzy RD, some individuals on both sides of the threshold may or may not receive the treatment.</p>
 <p>If treatment is not strictly assigned at the cutoff, the usual RD estimator (which assumes deterministic assignment) <strong>is not valid</strong>. Instead, we use the cutoff as an <strong>instrumental variable</strong> to estimate the treatment effect for <strong>compliers</strong>, i.e., individuals whose treatment status depends on whether they cross the threshold.</p>
@@ -1128,9 +1216,9 @@ Z_i =
 <li><p>It strongly correlates with treatment (<span class="math inline">\(D_i\)</span>).</p></li>
 <li><p>It is exogenous, meaning it affects the outcome only through its effect on treatment.</p></li>
 </ul>
-<div id="compliance-types" class="section level3" number="27.6.1">
+<div id="compliance-types" class="section level3" number="27.7.1">
 <h3>
-<span class="header-section-number">27.6.1</span> Compliance Types<a class="anchor" aria-label="anchor" href="#compliance-types"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.7.1</span> Compliance Types<a class="anchor" aria-label="anchor" href="#compliance-types"><i class="fas fa-link"></i></a>
 </h3>
 <p>Since treatment assignment is no longer deterministic, individuals can be classified into four groups based on how they respond to the cutoff:</p>
 <ol style="list-style-type: decimal">
@@ -1141,9 +1229,9 @@ Z_i =
 </ol>
 <p>The <strong>Fuzzy RD estimator</strong> identifies the treatment effect <strong>only for compliers</strong>, because their treatment status depends on <span class="math inline">\(Z_i\)</span>.</p>
 </div>
-<div id="estimating-the-local-average-treatment-effect" class="section level3" number="27.6.2">
+<div id="estimating-the-local-average-treatment-effect" class="section level3" number="27.7.2">
 <h3>
-<span class="header-section-number">27.6.2</span> Estimating the Local Average Treatment Effect<a class="anchor" aria-label="anchor" href="#estimating-the-local-average-treatment-effect"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.7.2</span> Estimating the Local Average Treatment Effect<a class="anchor" aria-label="anchor" href="#estimating-the-local-average-treatment-effect"><i class="fas fa-link"></i></a>
 </h3>
 <p>We estimate the <a href="sec-causal-inference.html#sec-local-average-treatment-effects">LATE</a> using a <strong>ratio of discontinuities</strong>:</p>
 <p><span class="math display">\[
@@ -1169,9 +1257,9 @@ Z_i =
 </ol>
 <p>If these conditions hold, the fuzzy RD estimator gives a valid estimate of the causal effect of treatment for compliers.</p>
 </div>
-<div id="equivalent-representation-using-expectations" class="section level3" number="27.6.3">
+<div id="equivalent-representation-using-expectations" class="section level3" number="27.7.3">
 <h3>
-<span class="header-section-number">27.6.3</span> Equivalent Representation Using Expectations<a class="anchor" aria-label="anchor" href="#equivalent-representation-using-expectations"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.7.3</span> Equivalent Representation Using Expectations<a class="anchor" aria-label="anchor" href="#equivalent-representation-using-expectations"><i class="fas fa-link"></i></a>
 </h3>
 <p>We can also define <a href="sec-causal-inference.html#sec-local-average-treatment-effects">LATE</a> in terms of <strong>conditional expectations of treatment and outcome</strong>:</p>
 <p><span class="math display">\[
@@ -1179,9 +1267,9 @@ Z_i =
 \]</span></p>
 <p>where <span class="math inline">\(Z\)</span> is the instrument (indicator for being above the cutoff). This approach highlights the IV nature of fuzzy RD.</p>
 </div>
-<div id="estimation-strategies" class="section level3" number="27.6.4">
+<div id="estimation-strategies" class="section level3" number="27.7.4">
 <h3>
-<span class="header-section-number">27.6.4</span> Estimation Strategies<a class="anchor" aria-label="anchor" href="#estimation-strategies"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.7.4</span> Estimation Strategies<a class="anchor" aria-label="anchor" href="#estimation-strategies"><i class="fas fa-link"></i></a>
 </h3>
 <p>There are two equivalent ways to estimate the <a href="sec-causal-inference.html#sec-local-average-treatment-effects">LATE</a> in practice:</p>
 <p><strong>Approach 1: Two-Step Estimation</strong></p>
@@ -1239,13 +1327,13 @@ Y_i = \delta + \tau \widehat{D}_i + \lambda X_i + \nu_i
 </li>
 </ul>
 </div>
-<div id="practical-considerations-6" class="section level3" number="27.6.5">
+<div id="practical-considerations-6" class="section level3" number="27.7.5">
 <h3>
-<span class="header-section-number">27.6.5</span> Practical Considerations<a class="anchor" aria-label="anchor" href="#practical-considerations-6"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.7.5</span> Practical Considerations<a class="anchor" aria-label="anchor" href="#practical-considerations-6"><i class="fas fa-link"></i></a>
 </h3>
 <ul>
 <li>
-<strong>Bandwidth Selection</strong>: Only observations near the cutoff should be used. Methods like <strong>cross-validation</strong> or <span class="citation">Calonico, Cattaneo, and Farrell (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-calonico2020optimal">2020</a>)</span> optimal bandwidth selection can help.</li>
+<strong>Bandwidth Selection</strong>: Only observations near the cutoff should be used. Methods like <strong>cross-validation</strong> or <span class="citation">Calonico, Cattaneo, and Farrell (<a href="references.html#ref-calonico2020optimal">2020</a>)</span> optimal bandwidth selection can help.</li>
 <li>
 <strong>Polynomial Order</strong>: A <a href="sec-nonparametric-regression.html#sec-special-case-local-linear-regression">local linear model</a> is typically preferred, but higher-order polynomials may be used cautiously.</li>
 <li>
@@ -1254,9 +1342,9 @@ Y_i = \delta + \tau \widehat{D}_i + \lambda X_i + \nu_i
 <strong>Strong first-stage</strong> (e.g., F-stat <span class="math inline">\(\ge\)</span> 16); no exclusion restriction violations; same model for both outcome and treatment take-up.</li>
 </ul>
 </div>
-<div id="steps-for-fuzzy-rd" class="section level3" number="27.6.6">
+<div id="steps-for-fuzzy-rd" class="section level3" number="27.7.6">
 <h3>
-<span class="header-section-number">27.6.6</span> Steps for Fuzzy RD<a class="anchor" aria-label="anchor" href="#steps-for-fuzzy-rd"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.7.6</span> Steps for Fuzzy RD<a class="anchor" aria-label="anchor" href="#steps-for-fuzzy-rd"><i class="fas fa-link"></i></a>
 </h3>
 <p>1. Visualization</p>
 <ol style="list-style-type: decimal">
@@ -1329,9 +1417,9 @@ Y_i = \delta + \tau \widehat{D}_i + \lambda X_i + \nu_i
 <hr>
 </div>
 </div>
-<div id="sec-sharp-regression-discontinuity-design" class="section level2" number="27.7">
+<div id="sec-sharp-regression-discontinuity-design" class="section level2" number="27.8">
 <h2>
-<span class="header-section-number">27.7</span> Sharp Regression Discontinuity Design<a class="anchor" aria-label="anchor" href="#sec-sharp-regression-discontinuity-design"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.8</span> Sharp Regression Discontinuity Design<a class="anchor" aria-label="anchor" href="#sec-sharp-regression-discontinuity-design"><i class="fas fa-link"></i></a>
 </h2>
 <p>A Sharp Regression Discontinuity Design occurs when treatment assignment follows a strict rule at a known cutoff. That is, units receive treatment <strong>if and only if</strong> their running variable <span class="math inline">\(X_i\)</span> crosses a threshold <span class="math inline">\(c\)</span>:</p>
 <p><span class="math display">\[
@@ -1343,9 +1431,9 @@ D_i =
 \]</span></p>
 <p>Unlike <a href="sec-regression-discontinuity.html#sec-fuzzy-regression-discontinuity-design">Fuzzy RD</a>, where treatment probability changes discontinuously but is not deterministic, <a href="sec-regression-discontinuity.html#sec-sharp-regression-discontinuity-design">Sharp RD</a> ensures perfect compliance with the cutoff rule.</p>
 <p>The key idea is that <strong>units just below and just above the cutoff are nearly identical in expectation</strong>, except for their treatment status. This mimics <a href="sec-experimental-design.html#sec-the-gold-standard-randomized-controlled-trials">randomized experiments</a> in a local neighborhood around <span class="math inline">\(X = c\)</span>.</p>
-<div id="assumptions-for-identification" class="section level3" number="27.7.1">
+<div id="assumptions-for-identification" class="section level3" number="27.8.1">
 <h3>
-<span class="header-section-number">27.7.1</span> Assumptions for Identification<a class="anchor" aria-label="anchor" href="#assumptions-for-identification"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.8.1</span> Assumptions for Identification<a class="anchor" aria-label="anchor" href="#assumptions-for-identification"><i class="fas fa-link"></i></a>
 </h3>
 <p>For a valid Sharp RD design, we assume:</p>
 <ol style="list-style-type: decimal">
@@ -1375,9 +1463,9 @@ D_i =
 </ol>
 <p>If these conditions hold, the Sharp RD estimator provides an unbiased estimate of the causal effect of treatment.</p>
 </div>
-<div id="estimating-the-local-average-treatment-effect-1" class="section level3" number="27.7.2">
+<div id="estimating-the-local-average-treatment-effect-1" class="section level3" number="27.8.2">
 <h3>
-<span class="header-section-number">27.7.2</span> Estimating the Local Average Treatment Effect<a class="anchor" aria-label="anchor" href="#estimating-the-local-average-treatment-effect-1"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.8.2</span> Estimating the Local Average Treatment Effect<a class="anchor" aria-label="anchor" href="#estimating-the-local-average-treatment-effect-1"><i class="fas fa-link"></i></a>
 </h3>
 <p>The treatment effect at the cutoff is given by:</p>
 <p><span class="math display">\[
@@ -1385,9 +1473,9 @@ D_i =
 \]</span></p>
 <p>This represents the jump in the expected outcome at the cutoff.</p>
 </div>
-<div id="estimation-methods" class="section level3" number="27.7.3">
+<div id="estimation-methods" class="section level3" number="27.8.3">
 <h3>
-<span class="header-section-number">27.7.3</span> Estimation Methods<a class="anchor" aria-label="anchor" href="#estimation-methods"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.8.3</span> Estimation Methods<a class="anchor" aria-label="anchor" href="#estimation-methods"><i class="fas fa-link"></i></a>
 </h3>
 <ol style="list-style-type: decimal">
 <li><a href="sec-nonparametric-regression.html#sec-special-case-local-linear-regression">Local Linear Regression</a></li>
@@ -1432,9 +1520,9 @@ E[Y | X = x] = \sum_{i=1}^{n} K_h (X_i - x) Y_i.
 <li>A larger <span class="math inline">\(h\)</span> smooths noise but risks bias.</li>
 </ul>
 </div>
-<div id="steps-for-sharp-rd" class="section level3" number="27.7.4">
+<div id="steps-for-sharp-rd" class="section level3" number="27.8.4">
 <h3>
-<span class="header-section-number">27.7.4</span> Steps for Sharp RD<a class="anchor" aria-label="anchor" href="#steps-for-sharp-rd"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.8.4</span> Steps for Sharp RD<a class="anchor" aria-label="anchor" href="#steps-for-sharp-rd"><i class="fas fa-link"></i></a>
 </h3>
 <ol style="list-style-type: decimal">
 <li><strong>Visualization</strong></li>
@@ -1503,14 +1591,14 @@ W_i = \alpha + \beta (X_i - c) + \gamma D_i + \epsilon_i.
 <ul>
 <li>Re-run RD analysis using different bandwidths <span class="math inline">\(h\)</span>.</li>
 <li>If results change dramatically, treatment effects may be highly sensitive to bandwidth choice.</li>
-<li>Use data-driven bandwidth selection methods (e.g., <span class="citation">G. Imbens and Kalyanaraman (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-imbens2012optimal">2012</a>)</span>).</li>
+<li>Use data-driven bandwidth selection methods (e.g., <span class="citation">G. Imbens and Kalyanaraman (<a href="references.html#ref-imbens2012optimal">2012</a>)</span>).</li>
 </ul>
 <hr>
 </div>
 </div>
-<div id="sec-regression-kink-design" class="section level2" number="27.8">
+<div id="sec-regression-kink-design" class="section level2" number="27.9">
 <h2>
-<span class="header-section-number">27.8</span> Regression Kink Design<a class="anchor" aria-label="anchor" href="#sec-regression-kink-design"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.9</span> Regression Kink Design<a class="anchor" aria-label="anchor" href="#sec-regression-kink-design"><i class="fas fa-link"></i></a>
 </h2>
 <p>The Regression Kink Design (RKD) extends the logic of RD by exploiting <strong>changes in the slope</strong> of the treatment intensity function at a known threshold rather than a discontinuous jump in treatment assignment.</p>
 <p>Instead of an RD jump in treatment probability at <span class="math inline">\(X = c\)</span>, the treatment function <span class="math inline">\(b(X)\)</span> exhibits a <strong>kink</strong> at the cutoff:</p>
@@ -1520,9 +1608,9 @@ W_i = \alpha + \beta (X_i - c) + \gamma D_i + \epsilon_i.
 </ul>
 <p>Example: Unemployment Benefits</p>
 <p>Consider an unemployment insurance program where benefits increase at a diminishing rate as prior earnings increase. The function governing benefits, <span class="math inline">\(b(X)\)</span>, exhibits a kink at a threshold <span class="math inline">\(X = c\)</span>. The RKD framework allows us to estimate the marginal causal effect of additional benefits on employment duration.</p>
-<div id="sec-identification-in-sharp-regression-kink-design" class="section level3" number="27.8.1">
+<div id="sec-identification-in-sharp-regression-kink-design" class="section level3" number="27.9.1">
 <h3>
-<span class="header-section-number">27.8.1</span> Identification in Sharp Regression Kink Design<a class="anchor" aria-label="anchor" href="#sec-identification-in-sharp-regression-kink-design"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.9.1</span> Identification in Sharp Regression Kink Design<a class="anchor" aria-label="anchor" href="#sec-identification-in-sharp-regression-kink-design"><i class="fas fa-link"></i></a>
 </h3>
 <p>In a Sharp RKD, the treatment intensity function <span class="math inline">\(b(X)\)</span> exhibits a known change in slope at <span class="math inline">\(X = c\)</span>, formally:</p>
 <p><span class="math display">\[
@@ -1563,9 +1651,9 @@ D_i = b(X_i), \quad \text{where } b(X) \text{ has a kink at } X = c.
 </ol>
 <p>If these assumptions hold, <span class="math inline">\(\alpha_{KRD}\)</span> represents the marginal causal effect of treatment intensity on the outcome.</p>
 </div>
-<div id="sec-identification-in-fuzzy-regression-kink-design" class="section level3" number="27.8.2">
+<div id="sec-identification-in-fuzzy-regression-kink-design" class="section level3" number="27.9.2">
 <h3>
-<span class="header-section-number">27.8.2</span> Identification in Fuzzy Regression Kink Design<a class="anchor" aria-label="anchor" href="#sec-identification-in-fuzzy-regression-kink-design"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.9.2</span> Identification in Fuzzy Regression Kink Design<a class="anchor" aria-label="anchor" href="#sec-identification-in-fuzzy-regression-kink-design"><i class="fas fa-link"></i></a>
 </h3>
 <p>In Fuzzy RKD, the treatment function <span class="math inline">\(D_i\)</span> does not directly follow a deterministic function <span class="math inline">\(b(X)\)</span> but instead exhibits a kink in its probability distribution:</p>
 <p><span class="math display">\[
@@ -1600,9 +1688,9 @@ E[D | X] \text{ has a kink at } X = c.
 </ol>
 <p>If these assumptions hold, the Fuzzy RKD estimator identifies a local treatment effect.</p>
 </div>
-<div id="estimation-of-rkd-effects" class="section level3" number="27.8.3">
+<div id="estimation-of-rkd-effects" class="section level3" number="27.9.3">
 <h3>
-<span class="header-section-number">27.8.3</span> Estimation of RKD Effects<a class="anchor" aria-label="anchor" href="#estimation-of-rkd-effects"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.9.3</span> Estimation of RKD Effects<a class="anchor" aria-label="anchor" href="#estimation-of-rkd-effects"><i class="fas fa-link"></i></a>
 </h3>
 <p>RKD estimation involves three main steps:</p>
 <p><strong>Step 1: Estimating the Kink in the Outcome Function</strong></p>
@@ -1642,9 +1730,9 @@ E[D | X] \text{ has a kink at } X = c.
 <span class="math inline">\(\hat{\tau}_D\)</span> is the estimated kink in <span class="math inline">\(E[D | X]\)</span>.</li>
 </ul>
 </div>
-<div id="robustness-checks-1" class="section level3" number="27.8.4">
+<div id="robustness-checks" class="section level3" number="27.9.4">
 <h3>
-<span class="header-section-number">27.8.4</span> Robustness Checks<a class="anchor" aria-label="anchor" href="#robustness-checks-1"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.9.4</span> Robustness Checks<a class="anchor" aria-label="anchor" href="#robustness-checks"><i class="fas fa-link"></i></a>
 </h3>
 <ol style="list-style-type: decimal">
 <li>
@@ -1675,9 +1763,9 @@ E[D | X] \text{ has a kink at } X = c.
 <hr>
 </div>
 </div>
-<div id="sec-multi-cutoff-regression-discontinuity-design" class="section level2" number="27.9">
+<div id="sec-multi-cutoff-regression-discontinuity-design" class="section level2" number="27.10">
 <h2>
-<span class="header-section-number">27.9</span> Multi-Cutoff Regression Discontinuity Design<a class="anchor" aria-label="anchor" href="#sec-multi-cutoff-regression-discontinuity-design"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.10</span> Multi-Cutoff Regression Discontinuity Design<a class="anchor" aria-label="anchor" href="#sec-multi-cutoff-regression-discontinuity-design"><i class="fas fa-link"></i></a>
 </h2>
 <p>The Multi-Cutoff Regression Discontinuity Design extends the standard RD framework by allowing for <strong>multiple cutoff points</strong> across different groups or geographic regions. Instead of a single threshold <span class="math inline">\(c\)</span>, different subgroups are assigned different cutoffs <span class="math inline">\(C_i\)</span>. This framework allows for a <strong>heterogeneous treatment effect</strong> function:</p>
 <p><span class="math display">\[
@@ -1713,9 +1801,9 @@ E[D | X] \text{ has a kink at } X = c.
 </ul>
 </li>
 </ol>
-<div id="identification" class="section level3" number="27.9.1">
+<div id="identification" class="section level3" number="27.10.1">
 <h3>
-<span class="header-section-number">27.9.1</span> Identification<a class="anchor" aria-label="anchor" href="#identification"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.10.1</span> Identification<a class="anchor" aria-label="anchor" href="#identification"><i class="fas fa-link"></i></a>
 </h3>
 <p>Under the potential outcomes framework, each unit <span class="math inline">\(i\)</span> has:</p>
 <ul>
@@ -1735,9 +1823,9 @@ Y_i = D_i Y_{1i} + (1 - D_i) Y_{0i}.
 \tau(x, c) = E[Y_{1i} - Y_{0i} | X_i = x, C_i = c].
 \]</span></p>
 </div>
-<div id="key-assumptions-1" class="section level3" number="27.9.2">
+<div id="key-assumptions-1" class="section level3" number="27.10.2">
 <h3>
-<span class="header-section-number">27.9.2</span> Key Assumptions<a class="anchor" aria-label="anchor" href="#key-assumptions-1"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.10.2</span> Key Assumptions<a class="anchor" aria-label="anchor" href="#key-assumptions-1"><i class="fas fa-link"></i></a>
 </h3>
 <p>To ensure causal identification, we extend the standard RD assumptions:</p>
 <ol style="list-style-type: decimal">
@@ -1772,13 +1860,13 @@ Y_i = D_i Y_{1i} + (1 - D_i) Y_{0i}.
 </ol>
 <p>If these assumptions hold, each cutoff provides a valid local treatment effect estimate.</p>
 </div>
-<div id="estimation-approaches" class="section level3" number="27.9.3">
+<div id="estimation-approaches" class="section level3" number="27.10.3">
 <h3>
-<span class="header-section-number">27.9.3</span> Estimation Approaches<a class="anchor" aria-label="anchor" href="#estimation-approaches"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.10.3</span> Estimation Approaches<a class="anchor" aria-label="anchor" href="#estimation-approaches"><i class="fas fa-link"></i></a>
 </h3>
-<div id="pooling-cutoffs-with-fixed-effects" class="section level4" number="27.9.3.1">
+<div id="pooling-cutoffs-with-fixed-effects" class="section level4" number="27.10.3.1">
 <h4>
-<span class="header-section-number">27.9.3.1</span> Pooling Cutoffs with Fixed Effects<a class="anchor" aria-label="anchor" href="#pooling-cutoffs-with-fixed-effects"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.10.3.1</span> Pooling Cutoffs with Fixed Effects<a class="anchor" aria-label="anchor" href="#pooling-cutoffs-with-fixed-effects"><i class="fas fa-link"></i></a>
 </h4>
 <p>A straightforward way to estimate multi-cutoff RD is to include <strong>cutoff fixed effects</strong>:</p>
 <p><span class="math display">\[
@@ -1790,9 +1878,9 @@ Y_i = \alpha + \beta (X_i - C_i) + \tau D_i + \gamma C_i + \epsilon_i.
 <li><p><span class="math inline">\(C_i\)</span> is included as a <strong>fixed effect</strong> to account for different intercepts across groups.</p></li>
 </ul>
 </div>
-<div id="separate-rd-estimation-for-each-cutoff" class="section level4" number="27.9.3.2">
+<div id="separate-rd-estimation-for-each-cutoff" class="section level4" number="27.10.3.2">
 <h4>
-<span class="header-section-number">27.9.3.2</span> Separate RD Estimation for Each Cutoff<a class="anchor" aria-label="anchor" href="#separate-rd-estimation-for-each-cutoff"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.10.3.2</span> Separate RD Estimation for Each Cutoff<a class="anchor" aria-label="anchor" href="#separate-rd-estimation-for-each-cutoff"><i class="fas fa-link"></i></a>
 </h4>
 <p>Instead of pooling, we can estimate <strong>separate RD effects for each</strong> <span class="math inline">\(C_i\)</span>:</p>
 <p><span class="math display">\[
@@ -1800,9 +1888,9 @@ Y_i = \alpha + \beta (X_i - C_i) + \tau D_i + \gamma C_i + \epsilon_i.
 \]</span></p>
 <p>This approach allows for <strong>heterogeneous treatment effects</strong>.</p>
 </div>
-<div id="interaction-model-for-heterogeneous-effects" class="section level4" number="27.9.3.3">
+<div id="interaction-model-for-heterogeneous-effects" class="section level4" number="27.10.3.3">
 <h4>
-<span class="header-section-number">27.9.3.3</span> Interaction Model for Heterogeneous Effects<a class="anchor" aria-label="anchor" href="#interaction-model-for-heterogeneous-effects"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.10.3.3</span> Interaction Model for Heterogeneous Effects<a class="anchor" aria-label="anchor" href="#interaction-model-for-heterogeneous-effects"><i class="fas fa-link"></i></a>
 </h4>
 <p>To estimate how treatment effects vary with <span class="math inline">\(C_i\)</span>, we interact <span class="math inline">\(D_i\)</span> with <span class="math inline">\(C_i\)</span>:</p>
 <p><span class="math display">\[
@@ -1814,9 +1902,9 @@ Y_i = \alpha + \beta (X_i - C_i) + \tau D_i + \lambda D_i C_i + \epsilon_i.
 <li><p>A significant <span class="math inline">\(\lambda\)</span> implies that <span class="math inline">\(\tau(x, c)\)</span> is not constant across cutoffs.</p></li>
 </ul>
 </div>
-<div id="nonparametric-local-estimation" class="section level4" number="27.9.3.4">
+<div id="nonparametric-local-estimation" class="section level4" number="27.10.3.4">
 <h4>
-<span class="header-section-number">27.9.3.4</span> Nonparametric Local Estimation<a class="anchor" aria-label="anchor" href="#nonparametric-local-estimation"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.10.3.4</span> Nonparametric Local Estimation<a class="anchor" aria-label="anchor" href="#nonparametric-local-estimation"><i class="fas fa-link"></i></a>
 </h4>
 <p>A fully flexible approach estimates <span class="math inline">\(\tau(x, c)\)</span> separately at each cutoff using kernel-based methods:</p>
 <p><span class="math display">\[
@@ -1829,9 +1917,9 @@ Y_i = \alpha + \beta (X_i - C_i) + \tau D_i + \lambda D_i C_i + \epsilon_i.
 </ul>
 </div>
 </div>
-<div id="robustness-checks-2" class="section level3" number="27.9.4">
+<div id="robustness-checks-1" class="section level3" number="27.10.4">
 <h3>
-<span class="header-section-number">27.9.4</span> Robustness Checks<a class="anchor" aria-label="anchor" href="#robustness-checks-2"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.10.4</span> Robustness Checks<a class="anchor" aria-label="anchor" href="#robustness-checks-1"><i class="fas fa-link"></i></a>
 </h3>
 <ol style="list-style-type: decimal">
 <li><strong>Covariate Balance at Each Cutoff</strong></li>
@@ -1872,11 +1960,12 @@ f(X) \text{ should be continuous at } X = C_i.
 <li>Re-estimate treatment effects using different bandwidths.</li>
 <li>If <span class="math inline">\(\hat{\tau}(x,c)\)</span> changes drastically, it suggests sensitivity to bandwidth choice.</li>
 </ul>
+<hr>
 </div>
 </div>
-<div id="sec-multi-score-regression-discontinuity-design" class="section level2" number="27.10">
+<div id="sec-multi-score-regression-discontinuity-design" class="section level2" number="27.11">
 <h2>
-<span class="header-section-number">27.10</span> Multi-Score Regression Discontinuity Design<a class="anchor" aria-label="anchor" href="#sec-multi-score-regression-discontinuity-design"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.11</span> Multi-Score Regression Discontinuity Design<a class="anchor" aria-label="anchor" href="#sec-multi-score-regression-discontinuity-design"><i class="fas fa-link"></i></a>
 </h2>
 <p>The <strong>Multi-Score Regression Discontinuity Design</strong> extends the <strong>standard single-score RD</strong> and <a href="sec-regression-discontinuity.html#sec-multi-cutoff-regression-discontinuity-design">the multi-cutoff RD</a> by introducing multiple running variables that simultaneously determine treatment eligibility. Instead of relying on a single threshold for assignment, treatment now depends on a <strong>combination of multiple continuous scores</strong> crossing predetermined cutoffs.</p>
 <p>Multi-score RD is relevant when policy eligibility is based on multiple criteria, such as:</p>
@@ -1885,9 +1974,9 @@ f(X) \text{ should be continuous at } X = C_i.
 <li><p><strong>Healthcare</strong>: Medical trial eligibility based on both BMI and blood pressure levels.</p></li>
 <li><p><strong>Taxation</strong>: Tax incentives based on income level and household size.</p></li>
 </ul>
-<div id="general-framework" class="section level3" number="27.10.1">
+<div id="general-framework" class="section level3" number="27.11.1">
 <h3>
-<span class="header-section-number">27.10.1</span> General Framework<a class="anchor" aria-label="anchor" href="#general-framework"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.11.1</span> General Framework<a class="anchor" aria-label="anchor" href="#general-framework"><i class="fas fa-link"></i></a>
 </h3>
 <p>Each individual <span class="math inline">\(i\)</span> has:</p>
 <ul>
@@ -1901,9 +1990,9 @@ f(X) \text{ should be continuous at } X = C_i.
 \]</span></p>
 <p>This represents the <a href="sec-causal-inference.html#sec-local-average-treatment-effects">local average treatment effect</a> in a two-dimensional RD setting.</p>
 </div>
-<div id="identification-1" class="section level3" number="27.10.2">
+<div id="identification-1" class="section level3" number="27.11.2">
 <h3>
-<span class="header-section-number">27.10.2</span> Identification<a class="anchor" aria-label="anchor" href="#identification-1"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.11.2</span> Identification<a class="anchor" aria-label="anchor" href="#identification-1"><i class="fas fa-link"></i></a>
 </h3>
 <p>Under the potential outcomes framework, for each individual <span class="math inline">\(i\)</span>, we define:</p>
 <ul>
@@ -1924,9 +2013,9 @@ D_i =
 \end{cases}
 \]</span></p>
 </div>
-<div id="key-assumptions-2" class="section level3" number="27.10.3">
+<div id="key-assumptions-2" class="section level3" number="27.11.3">
 <h3>
-<span class="header-section-number">27.10.3</span> Key Assumptions<a class="anchor" aria-label="anchor" href="#key-assumptions-2"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.11.3</span> Key Assumptions<a class="anchor" aria-label="anchor" href="#key-assumptions-2"><i class="fas fa-link"></i></a>
 </h3>
 <p>To ensure valid causal inference, the multi-score RD framework extends the standard RD assumptions:</p>
 <ol style="list-style-type: decimal">
@@ -1963,13 +2052,13 @@ D_i =
 </ol>
 <p>If these assumptions hold, the treatment effect is identified as the discontinuity in <span class="math inline">\(E[Y | X_1, X_2]\)</span> at <span class="math inline">\((C_1, C_2)\)</span>.</p>
 </div>
-<div id="estimation-approaches-1" class="section level3" number="27.10.4">
+<div id="estimation-approaches-1" class="section level3" number="27.11.4">
 <h3>
-<span class="header-section-number">27.10.4</span> Estimation Approaches<a class="anchor" aria-label="anchor" href="#estimation-approaches-1"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.11.4</span> Estimation Approaches<a class="anchor" aria-label="anchor" href="#estimation-approaches-1"><i class="fas fa-link"></i></a>
 </h3>
-<div id="local-linear-regression-in-two-dimensions" class="section level4" number="27.10.4.1">
+<div id="local-linear-regression-in-two-dimensions" class="section level4" number="27.11.4.1">
 <h4>
-<span class="header-section-number">27.10.4.1</span> Local Linear Regression in Two Dimensions<a class="anchor" aria-label="anchor" href="#local-linear-regression-in-two-dimensions"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.11.4.1</span> Local Linear Regression in Two Dimensions<a class="anchor" aria-label="anchor" href="#local-linear-regression-in-two-dimensions"><i class="fas fa-link"></i></a>
 </h4>
 <p>The simplest approach is to estimate separate regressions <strong>on each side of the cutoff in both dimensions</strong>:</p>
 <p>For observations <strong>below the threshold</strong> <span class="math inline">\((C_1, C_2)\)</span>:</p>
@@ -1989,9 +2078,9 @@ Y_i = \gamma + \delta_1 (X_{1i} - C_1) + \delta_2 (X_{2i} - C_2) + \tau D_i + \n
 Y_i = \alpha + \sum_{k=1}^{K} \beta_k (X_{1i} - C_1)^k + \sum_{k=1}^{K} \gamma_k (X_{2i} - C_2)^k + \tau D_i + \epsilon_i.
 \]</span></p>
 </div>
-<div id="kernel-weighted-estimation" class="section level4" number="27.10.4.2">
+<div id="kernel-weighted-estimation" class="section level4" number="27.11.4.2">
 <h4>
-<span class="header-section-number">27.10.4.2</span> Kernel-Weighted Estimation<a class="anchor" aria-label="anchor" href="#kernel-weighted-estimation"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.11.4.2</span> Kernel-Weighted Estimation<a class="anchor" aria-label="anchor" href="#kernel-weighted-estimation"><i class="fas fa-link"></i></a>
 </h4>
 <p>A more flexible approach estimates <span class="math inline">\(\tau(x_1, x_2)\)</span> using nonparametric local regression:</p>
 <p><span class="math display">\[
@@ -2004,9 +2093,9 @@ Y_i = \alpha + \sum_{k=1}^{K} \beta_k (X_{1i} - C_1)^k + \sum_{k=1}^{K} \gamma_k
 <li><p><span class="math inline">\(h\)</span> is the bandwidth, selected via cross-validation.</p></li>
 </ul>
 </div>
-<div id="interaction-model-for-heterogeneous-effects-1" class="section level4" number="27.10.4.3">
+<div id="interaction-model-for-heterogeneous-effects-1" class="section level4" number="27.11.4.3">
 <h4>
-<span class="header-section-number">27.10.4.3</span> Interaction Model for Heterogeneous Effects<a class="anchor" aria-label="anchor" href="#interaction-model-for-heterogeneous-effects-1"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.11.4.3</span> Interaction Model for Heterogeneous Effects<a class="anchor" aria-label="anchor" href="#interaction-model-for-heterogeneous-effects-1"><i class="fas fa-link"></i></a>
 </h4>
 <p>To assess <strong>interaction effects between running variables</strong>, estimate:</p>
 <p><span class="math display">\[
@@ -2018,9 +2107,9 @@ Y_i = \alpha + \beta_1 (X_{1i} - C_1) + \beta_2 (X_{2i} - C_2) + \tau D_i + \lam
 </ul>
 </div>
 </div>
-<div id="robustness-checks-3" class="section level3" number="27.10.5">
+<div id="robustness-checks-2" class="section level3" number="27.11.5">
 <h3>
-<span class="header-section-number">27.10.5</span> Robustness Checks<a class="anchor" aria-label="anchor" href="#robustness-checks-3"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.11.5</span> Robustness Checks<a class="anchor" aria-label="anchor" href="#robustness-checks-2"><i class="fas fa-link"></i></a>
 </h3>
 <ol style="list-style-type: decimal">
 <li>
@@ -2050,9 +2139,9 @@ Y_i = \alpha + \beta_1 (X_{1i} - C_1) + \beta_2 (X_{2i} - C_2) + \tau D_i + \lam
 </ol>
 </div>
 </div>
-<div id="evaluation-of-a-regression-discontinuity-design" class="section level2" number="27.11">
+<div id="evaluation-of-a-regression-discontinuity-design" class="section level2" number="27.12">
 <h2>
-<span class="header-section-number">27.11</span> Evaluation of a Regression Discontinuity Design<a class="anchor" aria-label="anchor" href="#evaluation-of-a-regression-discontinuity-design"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12</span> Evaluation of a Regression Discontinuity Design<a class="anchor" aria-label="anchor" href="#evaluation-of-a-regression-discontinuity-design"><i class="fas fa-link"></i></a>
 </h2>
 <p>After estimating an RD model, it is crucial to evaluate whether the assumptions hold and whether the results are robust to different specifications. The key aspects of RD evaluation include:</p>
 <ol style="list-style-type: decimal">
@@ -2071,13 +2160,13 @@ Y_i = \alpha + \beta_1 (X_{1i} - C_1) + \beta_2 (X_{2i} - C_2) + \tau D_i + \lam
 <strong>External validity</strong>: assessing whether results generalize beyond the cutoff.</li>
 </ol>
 <p>A well-implemented RD should demonstrate a clear treatment effect at the cutoff while ensuring that no other discontinuous changes confound the effect.</p>
-<div id="graphical-and-formal-evidence" class="section level3" number="27.11.1">
+<div id="graphical-and-formal-evidence" class="section level3" number="27.12.1">
 <h3>
-<span class="header-section-number">27.11.1</span> Graphical and Formal Evidence<a class="anchor" aria-label="anchor" href="#graphical-and-formal-evidence"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.1</span> Graphical and Formal Evidence<a class="anchor" aria-label="anchor" href="#graphical-and-formal-evidence"><i class="fas fa-link"></i></a>
 </h3>
-<div id="visual-inspection-of-the-rd-effect" class="section level4" number="27.11.1.1">
+<div id="visual-inspection-of-the-rd-effect" class="section level4" number="27.12.1.1">
 <h4>
-<span class="header-section-number">27.11.1.1</span> Visual Inspection of the RD Effect<a class="anchor" aria-label="anchor" href="#visual-inspection-of-the-rd-effect"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.1.1</span> Visual Inspection of the RD Effect<a class="anchor" aria-label="anchor" href="#visual-inspection-of-the-rd-effect"><i class="fas fa-link"></i></a>
 </h4>
 <p>A fundamental step in RD analysis is to plot the outcome variable against the running variable:</p>
 <ul>
@@ -2087,9 +2176,9 @@ Y_i = \alpha + \beta_1 (X_{1i} - C_1) + \beta_2 (X_{2i} - C_2) + \tau D_i + \lam
 </ul>
 <p>Additionally, plotting treatment probability <span class="math inline">\(P(D = 1 | X)\)</span> ensures that assignment follows the expected RD rule.</p>
 </div>
-<div id="no-discontinuity-in-pre-treatment-covariates" class="section level4" number="27.11.1.2">
+<div id="no-discontinuity-in-pre-treatment-covariates" class="section level4" number="27.12.1.2">
 <h4>
-<span class="header-section-number">27.11.1.2</span> No Discontinuity in Pre-Treatment Covariates<a class="anchor" aria-label="anchor" href="#no-discontinuity-in-pre-treatment-covariates"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.1.2</span> No Discontinuity in Pre-Treatment Covariates<a class="anchor" aria-label="anchor" href="#no-discontinuity-in-pre-treatment-covariates"><i class="fas fa-link"></i></a>
 </h4>
 <p>To rule out omitted variable bias, we check whether other covariates (age, education, prior test scores, etc.) exhibit jumps at the cutoff.</p>
 <p>For each covariate <span class="math inline">\(W_i\)</span>, estimate:</p>
@@ -2101,9 +2190,9 @@ W_i = \alpha + f(X_i) \beta + \tau D_i + \epsilon_i.
 <li>Covariate jumps imply that factors other than treatment may be driving the observed outcome change.</li>
 </ul>
 </div>
-<div id="manipulation-test-mccrary-density-test" class="section level4" number="27.11.1.3">
+<div id="manipulation-test-mccrary-density-test" class="section level4" number="27.12.1.3">
 <h4>
-<span class="header-section-number">27.11.1.3</span> Manipulation Test (McCrary Density Test)<a class="anchor" aria-label="anchor" href="#manipulation-test-mccrary-density-test"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.1.3</span> Manipulation Test (McCrary Density Test)<a class="anchor" aria-label="anchor" href="#manipulation-test-mccrary-density-test"><i class="fas fa-link"></i></a>
 </h4>
 <p>A critical assumption in RD is that units cannot precisely manipulate their values of <span class="math inline">\(X_i\)</span>. If individuals can selectively sort around <span class="math inline">\(c\)</span> (e.g., students altering test scores to qualify for a scholarship), RD estimates become invalid.</p>
 <p>To test for manipulation, we estimate the density function of <span class="math inline">\(X\)</span> and test for a discontinuity at <span class="math inline">\(c\)</span>:</p>
@@ -2113,13 +2202,13 @@ W_i = \alpha + f(X_i) \beta + \tau D_i + \epsilon_i.
 <p>A significant difference suggests sorting behavior, which violates RD assumptions.</p>
 </div>
 </div>
-<div id="functional-form-of-the-running-variable" class="section level3" number="27.11.2">
+<div id="functional-form-of-the-running-variable" class="section level3" number="27.12.2">
 <h3>
-<span class="header-section-number">27.11.2</span> Functional Form of the Running Variable<a class="anchor" aria-label="anchor" href="#functional-form-of-the-running-variable"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.2</span> Functional Form of the Running Variable<a class="anchor" aria-label="anchor" href="#functional-form-of-the-running-variable"><i class="fas fa-link"></i></a>
 </h3>
-<div id="general-rd-model" class="section level4" number="27.11.2.1">
+<div id="general-rd-model" class="section level4" number="27.12.2.1">
 <h4>
-<span class="header-section-number">27.11.2.1</span> General RD Model<a class="anchor" aria-label="anchor" href="#general-rd-model"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.2.1</span> General RD Model<a class="anchor" aria-label="anchor" href="#general-rd-model"><i class="fas fa-link"></i></a>
 </h4>
 <p>The most flexible RD specification includes:</p>
 <ul>
@@ -2135,24 +2224,39 @@ Y_i = \alpha_0 + f(X_i) \alpha_1 + I(X_i \geq c) \alpha_2 + f(X_i) I(X_i \geq c)
 <li><p><span class="math inline">\(\alpha_3\)</span> tests for differences in slopes across the threshold.</p></li>
 </ul>
 </div>
-<div id="simple-case-linear-rd" class="section level4" number="27.11.2.2">
+<div id="simple-case-linear-rd" class="section level4" number="27.12.2.2">
 <h4>
-<span class="header-section-number">27.11.2.2</span> Simple Case: Linear RD<a class="anchor" aria-label="anchor" href="#simple-case-linear-rd"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.2.2</span> Simple Case: Linear RD<a class="anchor" aria-label="anchor" href="#simple-case-linear-rd"><i class="fas fa-link"></i></a>
 </h4>
 <p>If <span class="math inline">\(f(X_i)\)</span> is a linear function, we estimate:</p>
 <p><span class="math display">\[
 Y_i = \beta_0 + \beta_1 X_i + I(X_i \geq c) \beta_2 + \epsilon_i.
 \]</span></p>
-<div class="inline-figure"><img src="images/rd1.PNG" style="display: block; margin: 1em auto" width="600" height="300"></div>
+<div class="sourceCode" id="cb869"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/include_graphics.html">include_graphics</a></span><span class="op">(</span><span class="st">'images/rd1.PNG'</span><span class="op">)</span></span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:unnamed-chunk-11"></span>
+<img src="images/rd1.PNG" alt="Line graph illustrating a sharp regression discontinuity" width="90%"><p class="caption">
+Figure 2.12: Regression Discontinuity Design: Constant Slope
+</p>
+</div>
 <p>RD gives you <span class="math inline">\(\beta_2\)</span> (causal effect) of <span class="math inline">\(X\)</span> on <span class="math inline">\(Y\)</span> at the cutoff point</p>
 <p>In practice, everyone does</p>
 <p><span class="math display">\[ Y_i = \alpha_0 + f(x) \alpha _1 + [I(x_i \ge c)]\alpha_2 + [f(x_i)\times [I(x_i \ge c)]\alpha_3 + u_i \]</span></p>
 <div class="inline-figure"><img src="images/rd2.PNG" style="display: block; margin: 1em auto" width="600" height="300"></div>
+<div class="sourceCode" id="cb870"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/include_graphics.html">include_graphics</a></span><span class="op">(</span><span class="st">'images/rd2.PNG'</span><span class="op">)</span></span></code></pre></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:unnamed-chunk-12"></span>
+<img src="images/rd2.PNG" alt="Line graph illustrating a sharp regression discontinuity" width="90%"><p class="caption">
+Figure 2.13: Regression Discontinuity Design: Dynamic Slope
+</p>
+</div>
 <p>where we estimate different slope on different sides of the line. And if you estimate <span class="math inline">\(\alpha_3\)</span> to be no different from 0 then we return to the simple case.</p>
 </div>
-<div id="higher-order-polynomials" class="section level4" number="27.11.2.3">
+<div id="higher-order-polynomials" class="section level4" number="27.12.2.3">
 <h4>
-<span class="header-section-number">27.11.2.3</span> Higher-Order Polynomials<a class="anchor" aria-label="anchor" href="#higher-order-polynomials"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.2.3</span> Higher-Order Polynomials<a class="anchor" aria-label="anchor" href="#higher-order-polynomials"><i class="fas fa-link"></i></a>
 </h4>
 <p>A more flexible specification allows for nonlinear relationships:</p>
 <p><span class="math display">\[
@@ -2163,9 +2267,9 @@ Y_i = \beta_0 + \beta_1 X_i + \beta_2 X_i^2 + \beta_3 X_i^3 + \tau D_i + \epsilo
 <li>Overfitting is a risk, especially with limited data near <span class="math inline">\(c\)</span>.</li>
 </ul>
 </div>
-<div id="nonparametric-estimation" class="section level4" number="27.11.2.4">
+<div id="nonparametric-estimation" class="section level4" number="27.12.2.4">
 <h4>
-<span class="header-section-number">27.11.2.4</span> Nonparametric Estimation<a class="anchor" aria-label="anchor" href="#nonparametric-estimation"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.2.4</span> Nonparametric Estimation<a class="anchor" aria-label="anchor" href="#nonparametric-estimation"><i class="fas fa-link"></i></a>
 </h4>
 <p>When polynomial models are too restrictive, we use nonparametric <a href="sec-nonparametric-regression.html#sec-special-case-local-linear-regression">local linear regression</a>:</p>
 <p><span class="math display">\[
@@ -2178,13 +2282,13 @@ Y_i = \beta_0 + \beta_1 X_i + \beta_2 X_i^2 + \beta_3 X_i^3 + \tau D_i + \epsilo
 </ul>
 </div>
 </div>
-<div id="bandwidth-selection-2" class="section level3" number="27.11.3">
+<div id="bandwidth-selection-2" class="section level3" number="27.12.3">
 <h3>
-<span class="header-section-number">27.11.3</span> Bandwidth Selection<a class="anchor" aria-label="anchor" href="#bandwidth-selection-2"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.3</span> Bandwidth Selection<a class="anchor" aria-label="anchor" href="#bandwidth-selection-2"><i class="fas fa-link"></i></a>
 </h3>
-<div id="tradeoff-between-bias-and-efficiency" class="section level4" number="27.11.3.1">
+<div id="tradeoff-between-bias-and-efficiency" class="section level4" number="27.12.3.1">
 <h4>
-<span class="header-section-number">27.11.3.1</span> Tradeoff Between Bias and Efficiency<a class="anchor" aria-label="anchor" href="#tradeoff-between-bias-and-efficiency"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.3.1</span> Tradeoff Between Bias and Efficiency<a class="anchor" aria-label="anchor" href="#tradeoff-between-bias-and-efficiency"><i class="fas fa-link"></i></a>
 </h4>
 <p>Choosing an appropriate bandwidth <span class="math inline">\(h\)</span> is crucial:</p>
 <ul>
@@ -2192,32 +2296,32 @@ Y_i = \beta_0 + \beta_1 X_i + \beta_2 X_i^2 + \beta_3 X_i^3 + \tau D_i + \epsilo
 <li><p>Wider <span class="math inline">\(h\)</span>: More efficient estimates but potential bias.</p></li>
 </ul>
 </div>
-<div id="optimal-bandwidth-selection" class="section level4" number="27.11.3.2">
+<div id="optimal-bandwidth-selection" class="section level4" number="27.12.3.2">
 <h4>
-<span class="header-section-number">27.11.3.2</span> Optimal Bandwidth Selection<a class="anchor" aria-label="anchor" href="#optimal-bandwidth-selection"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.3.2</span> Optimal Bandwidth Selection<a class="anchor" aria-label="anchor" href="#optimal-bandwidth-selection"><i class="fas fa-link"></i></a>
 </h4>
 <p>Several methods exist for selecting <span class="math inline">\(h\)</span>:</p>
 <ol style="list-style-type: decimal">
 <li>
 <strong>Cross-validation</strong>: Minimizing mean squared error (MSE).</li>
 <li>
-<span class="citation">G. Imbens and Kalyanaraman (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-imbens2012optimal">2012</a>)</span> bandwidth selection:
+<span class="citation">G. Imbens and Kalyanaraman (<a href="references.html#ref-imbens2012optimal">2012</a>)</span> bandwidth selection:
 <ul>
 <li>Balances bias-variance tradeoff.</li>
 <li>Often reported in RD studies.</li>
 </ul>
 </li>
 <li>
-<span class="citation">Cattaneo, Idrobo, and Titiunik (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-cattaneo2019practical">2019</a>)</span> robust bandwidth selection:
+<span class="citation">Cattaneo, Idrobo, and Titiunik (<a href="references.html#ref-cattaneo2019practical">2019</a>)</span> robust bandwidth selection:
 <ul>
 <li>Focuses on valid inference, not just point estimation.</li>
 </ul>
 </li>
 </ol>
 </div>
-<div id="bandwidth-sensitivity-analysis" class="section level4" number="27.11.3.3">
+<div id="bandwidth-sensitivity-analysis" class="section level4" number="27.12.3.3">
 <h4>
-<span class="header-section-number">27.11.3.3</span> Bandwidth Sensitivity Analysis<a class="anchor" aria-label="anchor" href="#bandwidth-sensitivity-analysis"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.3.3</span> Bandwidth Sensitivity Analysis<a class="anchor" aria-label="anchor" href="#bandwidth-sensitivity-analysis"><i class="fas fa-link"></i></a>
 </h4>
 <p>A standard robustness check is estimating <span class="math inline">\(\tau\)</span> for different <span class="math inline">\(h\)</span> values:</p>
 <ul>
@@ -2226,13 +2330,13 @@ Y_i = \beta_0 + \beta_1 X_i + \beta_2 X_i^2 + \beta_3 X_i^3 + \tau D_i + \epsilo
 </ul>
 </div>
 </div>
-<div id="addressing-potential-confounders" class="section level3" number="27.11.4">
+<div id="addressing-potential-confounders" class="section level3" number="27.12.4">
 <h3>
-<span class="header-section-number">27.11.4</span> Addressing Potential Confounders<a class="anchor" aria-label="anchor" href="#addressing-potential-confounders"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.4</span> Addressing Potential Confounders<a class="anchor" aria-label="anchor" href="#addressing-potential-confounders"><i class="fas fa-link"></i></a>
 </h3>
-<div id="multiple-running-variables" class="section level4" number="27.11.4.1">
+<div id="multiple-running-variables" class="section level4" number="27.12.4.1">
 <h4>
-<span class="header-section-number">27.11.4.1</span> Multiple Running Variables<a class="anchor" aria-label="anchor" href="#multiple-running-variables"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.4.1</span> Multiple Running Variables<a class="anchor" aria-label="anchor" href="#multiple-running-variables"><i class="fas fa-link"></i></a>
 </h4>
 <p>If multiple forcing variables influence treatment (e.g., both math and English scores for honors eligibility), failing to account for them may introduce confounding.</p>
 <p>A solution is to extend RD to a <a href="sec-regression-discontinuity.html#sec-multi-score-regression-discontinuity-design">multi-score framework</a>:</p>
@@ -2244,9 +2348,9 @@ Y_i = \alpha_0 + f(X_{1i}, X_{2i}) \alpha_1 + I(X_{1i} \geq c_1, X_{2i} \geq c_2
 <li>Allows for interactions between assignment variables.</li>
 </ul>
 </div>
-<div id="bundling-of-institutions" class="section level4" number="27.11.4.2">
+<div id="bundling-of-institutions" class="section level4" number="27.12.4.2">
 <h4>
-<span class="header-section-number">27.11.4.2</span> Bundling of Institutions<a class="anchor" aria-label="anchor" href="#bundling-of-institutions"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.4.2</span> Bundling of Institutions<a class="anchor" aria-label="anchor" href="#bundling-of-institutions"><i class="fas fa-link"></i></a>
 </h4>
 <p>In cases where policies change at institutional levels (e.g., different states implementing varying minimum wages), treatment effects may reflect <strong>institutional bundling</strong> rather than individual cutoff effects.</p>
 <p>One solution is to include <strong>institution fixed effects</strong>:</p>
@@ -2256,9 +2360,9 @@ Y_i = \alpha + f(X_i) \beta + \tau D_i + \gamma C_j + \epsilon_i.
 <p>where <span class="math inline">\(C_j\)</span> is a categorical variable for institution <span class="math inline">\(j\)</span>.</p>
 </div>
 </div>
-<div id="external-validity-in-rd" class="section level3" number="27.11.5">
+<div id="external-validity-in-rd" class="section level3" number="27.12.5">
 <h3>
-<span class="header-section-number">27.11.5</span> External Validity in RD<a class="anchor" aria-label="anchor" href="#external-validity-in-rd"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.12.5</span> External Validity in RD<a class="anchor" aria-label="anchor" href="#external-validity-in-rd"><i class="fas fa-link"></i></a>
 </h3>
 <p>While RD provides strong internal validity, its generalizability is often limited:</p>
 <ol style="list-style-type: decimal">
@@ -2282,11 +2386,12 @@ Y_i = \alpha + f(X_i) \beta + \tau D_i + \gamma C_j + \epsilon_i.
 </ul>
 </li>
 </ol>
+<hr>
 </div>
 </div>
-<div id="applications-of-rd-designs" class="section level2" number="27.12">
+<div id="applications-of-rd-designs" class="section level2" number="27.13">
 <h2>
-<span class="header-section-number">27.12</span> Applications of RD Designs<a class="anchor" aria-label="anchor" href="#applications-of-rd-designs"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.13</span> Applications of RD Designs<a class="anchor" aria-label="anchor" href="#applications-of-rd-designs"><i class="fas fa-link"></i></a>
 </h2>
 <p>Regression Discontinuity (RD) designs have widespread applications in empirical research across <strong>economics, political science, marketing, and public policy</strong>. These applications leverage <strong>threshold-based decision rules</strong> to identify causal effects in real-world settings where <strong>randomized experiments</strong> are infeasible.</p>
 <p>Key applications include:</p>
@@ -2296,15 +2401,15 @@ Y_i = \alpha + f(X_i) \beta + \tau D_i + \gamma C_j + \epsilon_i.
 <li><p><strong>Healthcare</strong>: Assessing the effect of medical interventions assigned based on eligibility thresholds.</p></li>
 <li><p><strong>Labor Economics</strong>: Studying unemployment benefits and wage policies.</p></li>
 </ul>
-<div id="applications-in-marketing" class="section level3" number="27.12.1">
+<div id="applications-in-marketing" class="section level3" number="27.13.1">
 <h3>
-<span class="header-section-number">27.12.1</span> Applications in Marketing<a class="anchor" aria-label="anchor" href="#applications-in-marketing"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.13.1</span> Applications in Marketing<a class="anchor" aria-label="anchor" href="#applications-in-marketing"><i class="fas fa-link"></i></a>
 </h3>
 <p>RD has been widely applied in marketing research to estimate <strong>causal effects of pricing, advertising, and product positioning</strong>.</p>
 <ol style="list-style-type: decimal">
 <li><strong>Position Effects in Advertising</strong></li>
 </ol>
-<p><span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-narayanan2015position">Narayanan and Kalyanam 2015</a>)</span> uses an RD approach to estimate the causal impact of advertisement placement in search engines. Since ad placement follows an auction-based system, a discontinuity occurs where the top-ranked ad receives disproportionately more clicks than lower-ranked ads.</p>
+<p><span class="citation">(<a href="references.html#ref-narayanan2015position">Narayanan and Kalyanam 2015</a>)</span> uses an RD approach to estimate the causal impact of advertisement placement in search engines. Since ad placement follows an auction-based system, a discontinuity occurs where the top-ranked ad receives disproportionately more clicks than lower-ranked ads.</p>
 <p>Key insights:</p>
 <ul>
 <li><p>Higher-ranked ads generate more click-throughs, but this does not always translate into higher conversion rates.</p></li>
@@ -2313,25 +2418,27 @@ Y_i = \alpha + f(X_i) \beta + \tau D_i + \gamma C_j + \epsilon_i.
 <ol start="2" style="list-style-type: decimal">
 <li><strong>Identifying Causal Marketing Mix Effects</strong></li>
 </ol>
-<p><span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-hartmann2011identifying">Hartmann, Nair, and Narayanan 2011</a>)</span> presents a nonparametric RD estimation approach to identify causal effects of marketing mix variables, such as:</p>
+<p><span class="citation">(<a href="references.html#ref-hartmann2011identifying">Hartmann, Nair, and Narayanan 2011</a>)</span> presents a nonparametric RD estimation approach to identify causal effects of marketing mix variables, such as:</p>
 <ul>
 <li><p>Advertising budgets</p></li>
 <li><p>Price changes</p></li>
 <li><p>Promotional campaigns</p></li>
 </ul>
 <p>By comparing firms just above and below an expenditure threshold, the RD framework isolates the true causal impact of marketing spending on consumer behavior.</p>
+<!--# Application in Finance: "Balancing External vs. Internal Validity: An Application of Causal Forest in Finance"  -->
 </div>
-<div id="r-packages-for-rd-estimation" class="section level3" number="27.12.2">
+<div id="r-packages-for-rd-estimation" class="section level3" number="27.13.2">
 <h3>
-<span class="header-section-number">27.12.2</span> R Packages for RD Estimation<a class="anchor" aria-label="anchor" href="#r-packages-for-rd-estimation"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.13.2</span> R Packages for RD Estimation<a class="anchor" aria-label="anchor" href="#r-packages-for-rd-estimation"><i class="fas fa-link"></i></a>
 </h3>
 <p><strong>Key RD <a href="https://rdpackages.github.io/">Packages</a> in R</strong></p>
-<div class="inline-table"><table style="width:100%;" class="table table-sm">
+<div class="inline-table"><table class="table table-sm">
+<caption>Packages in R for RD Estimation</caption>
 <colgroup>
-<col width="24%">
-<col width="24%">
-<col width="26%">
-<col width="24%">
+<col width="15%">
+<col width="15%">
+<col width="40%">
+<col width="28%">
 </colgroup>
 <thead><tr class="header">
 <th><strong>Feature</strong></th>
@@ -2348,9 +2455,9 @@ Y_i = \alpha + f(X_i) \beta + \tau D_i + \gamma C_j + \epsilon_i.
 </tr>
 <tr class="even">
 <td><strong>Bandwidth Selection</strong></td>
-<td><span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-imbens2012optimal">G. Imbens and Kalyanaraman 2012</a>)</span></td>
-<td><span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-calonico2014robust">Calonico, Cattaneo, and Titiunik 2014</a>; <a href="chapter-cluster-randomization-and-interference-bias.html#ref-imbens2012optimal">G. Imbens and Kalyanaraman 2012</a> ; <a href="chapter-cluster-randomization-and-interference-bias.html#ref-calonico2020optimal">Calonico, Cattaneo, and Farrell 2020</a>)</span></td>
-<td><span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-imbens2012optimal">G. Imbens and Kalyanaraman 2012</a>)</span></td>
+<td><span class="citation">(<a href="references.html#ref-imbens2012optimal">G. Imbens and Kalyanaraman 2012</a>)</span></td>
+<td><span class="citation">(<a href="references.html#ref-calonico2014robust">Calonico, Cattaneo, and Titiunik 2014</a>; <a href="references.html#ref-imbens2012optimal">G. Imbens and Kalyanaraman 2012</a> ; <a href="references.html#ref-calonico2020optimal">Calonico, Cattaneo, and Farrell 2020</a>)</span></td>
+<td><span class="citation">(<a href="references.html#ref-imbens2012optimal">G. Imbens and Kalyanaraman 2012</a>)</span></td>
 </tr>
 <tr class="odd">
 <td><strong>Kernel Functions</strong></td>
@@ -2378,10 +2485,10 @@ Y_i = \alpha + f(X_i) \beta + \tau D_i + \gamma C_j + \epsilon_i.
 </tr>
 </tbody>
 </table></div>
-<p>For a detailed comparison, see <span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-thoemmes2017analysis">Thoemmes, Liao, and Jin 2017</a>)</span> (Table 1, p. 347).</p>
-<div id="specialized-rd-packages" class="section level4" number="27.12.2.1">
+<p>For a detailed comparison, see <span class="citation">(<a href="references.html#ref-thoemmes2017analysis">Thoemmes, Liao, and Jin 2017</a>)</span> (Table 1, p. 347).</p>
+<div id="specialized-rd-packages" class="section level4" number="27.13.2.1">
 <h4>
-<span class="header-section-number">27.12.2.1</span> Specialized RD Packages<a class="anchor" aria-label="anchor" href="#specialized-rd-packages"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.13.2.1</span> Specialized RD Packages<a class="anchor" aria-label="anchor" href="#specialized-rd-packages"><i class="fas fa-link"></i></a>
 </h4>
 <ul>
 <li>
@@ -2401,9 +2508,9 @@ Y_i = \alpha + f(X_i) \beta + \tau D_i + \gamma C_j + \epsilon_i.
 </ul>
 </div>
 </div>
-<div id="example-of-regression-discontinuity-in-education" class="section level3" number="27.12.3">
+<div id="example-of-regression-discontinuity-in-education" class="section level3" number="27.13.3">
 <h3>
-<span class="header-section-number">27.12.3</span> Example of Regression Discontinuity in Education<a class="anchor" aria-label="anchor" href="#example-of-regression-discontinuity-in-education"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.13.3</span> Example of Regression Discontinuity in Education<a class="anchor" aria-label="anchor" href="#example-of-regression-discontinuity-in-education"><i class="fas fa-link"></i></a>
 </h3>
 <p>We illustrate a Sharp RD using a simulated example of college GPA and future career success.</p>
 <p>Setup:</p>
@@ -2423,7 +2530,7 @@ X_i =
 \end{cases}
 \]</span></p>
 <p>We simulate 100 observations, where GPA is the forcing variable and career success depends on GPA and the treatment effect.</p>
-<div class="sourceCode" id="cb738"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb871"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Set seed for reproducibility</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span></span>
@@ -2439,13 +2546,18 @@ X_i =
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://qua.st/rddtools/">rddtools</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Format data for RD analysis</span></span>
-<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/rddtools/man/rdd_data.html">rdd_data</a></span><span class="op">(</span><span class="va">future_success</span>, <span class="va">GPA</span>, cutpoint <span class="op">=</span> <span class="fl">3.5</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Plot RD scatterplot</span></span>
+<span><span class="va">data</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/rddtools/man/rdd_data.html">rdd_data</a></span><span class="op">(</span><span class="va">future_success</span>, <span class="va">GPA</span>, cutpoint <span class="op">=</span> <span class="fl">3.5</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb872"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Plot RD scatterplot</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">data</span>, col <span class="op">=</span> <span class="st">"red"</span>, cex <span class="op">=</span> <span class="fl">0.5</span>, xlab <span class="op">=</span> <span class="st">"GPA"</span>, ylab <span class="op">=</span> <span class="st">"Future Success"</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:unnamed-chunk-14"></span>
+<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-14-1.png" alt="Scatter plot with GPA on the x-axis and future success on the y-axis. Red dots show average outcomes in GPA bins. A vertical dashed line at GPA = 3.5 marks a potential threshold. The data trend appears to rise steadily, with a sharp increase in future success for GPAs just above the cutoff." width="90%"><p class="caption">
+Figure 2.15: Binned Scatter Plot of GPA and Future Success with Threshold at 3.5
+</p>
+</div>
 <p>We estimate the Sharp RD treatment effect using <a href="sec-nonparametric-regression.html#sec-special-case-local-linear-regression">local linear regression</a>:</p>
-<div class="sourceCode" id="cb739"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb873"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Estimate the sharp RDD model</span></span>
 <span><span class="va">rdd_mod</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/rddtools/man/rdd_reg_lm.html">rdd_reg_lm</a></span><span class="op">(</span>rdd_object <span class="op">=</span> <span class="va">data</span>, slope <span class="op">=</span> <span class="st">"same"</span><span class="op">)</span></span>
 <span></span>
@@ -2471,15 +2583,20 @@ X_i =
 <span><span class="co">#&gt; Multiple R-squared:  0.9746, Adjusted R-squared:  0.9741 </span></span>
 <span><span class="co">#&gt; F-statistic:  1863 on 2 and 97 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
 <p>Plot the RD regression line with binned observations:</p>
-<div class="sourceCode" id="cb740"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb874"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Plot RD regression</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/plot.html">plot</a></span><span class="op">(</span><span class="va">rdd_mod</span>, cex <span class="op">=</span> <span class="fl">0.5</span>, col <span class="op">=</span> <span class="st">"red"</span>, xlab <span class="op">=</span> <span class="st">"GPA"</span>, ylab <span class="op">=</span> <span class="st">"Future Success"</span><span class="op">)</span></span></code></pre></div>
-<div class="inline-figure"><img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;"></div>
+<div class="figure" style="text-align: center">
+<span style="display:block;" id="fig:unnamed-chunk-16"></span>
+<img src="27-regression-discontinuity_files/figure-html/unnamed-chunk-16-1.png" alt="Line plot of GPA versus future success with four coarse bins. A dashed vertical line at GPA = 3.5 marks the cutoff. A sharp jump in the fitted line is visible at the cutoff, indicating a possible treatment effect. The x-axis spans 0 to 4 GPA, and the y-axis ranges from 14 to 28 in future success." width="90%"><p class="caption">
+Figure 2.17: Coarse Binned Regression Discontinuity Plot of GPA and Future Success
+</p>
+</div>
 <p>We verify whether results hold under different bandwidths and functional forms:</p>
 <ol style="list-style-type: decimal">
 <li>Varying the Bandwidth</li>
 </ol>
-<div class="sourceCode" id="cb741"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb875"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Using rdrobust for robust estimation</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">rdrobust</span><span class="op">)</span></span>
 <span></span>
@@ -2511,7 +2628,7 @@ X_i =
 <ol start="2" style="list-style-type: decimal">
 <li>McCrary Test for Manipulation</li>
 </ol>
-<div class="sourceCode" id="cb742"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb876"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">rddensity</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Check for discontinuities in GPA distribution</span></span>
@@ -2524,7 +2641,7 @@ X_i =
 <li>Polynomial Functional Forms</li>
 </ol>
 <p>We compare linear and quadratic specifications:</p>
-<div class="sourceCode" id="cb743"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb877"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Estimate RD with a quadratic polynomial</span></span>
 <span><span class="va">rdd_mod_quad</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/rddtools/man/rdd_reg_lm.html">rdd_reg_lm</a></span><span class="op">(</span>rdd_object <span class="op">=</span> <span class="va">data</span>, slope <span class="op">=</span> <span class="st">"separate"</span>, order <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">rdd_mod_quad</span><span class="op">)</span></span>
@@ -2551,9 +2668,9 @@ X_i =
 <span><span class="co">#&gt; Multiple R-squared:  0.9749, Adjusted R-squared:  0.9736 </span></span>
 <span><span class="co">#&gt; F-statistic:   731 on 5 and 94 DF,  p-value: &lt; 2.2e-16</span></span></code></pre></div>
 </div>
-<div id="example-of-occupational-licensing-and-market-efficiency" class="section level3" number="27.12.4">
+<div id="example-of-occupational-licensing-and-market-efficiency" class="section level3" number="27.13.4">
 <h3>
-<span class="header-section-number">27.12.4</span> Example of Occupational Licensing and Market Efficiency<a class="anchor" aria-label="anchor" href="#example-of-occupational-licensing-and-market-efficiency"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.13.4</span> Example of Occupational Licensing and Market Efficiency<a class="anchor" aria-label="anchor" href="#example-of-occupational-licensing-and-market-efficiency"><i class="fas fa-link"></i></a>
 </h3>
 <p>Occupational licensing is a form of labor market regulation that requires workers to obtain licenses or certifications before being allowed to work in specific professions. The debate around occupational licensing revolves around two competing effects:</p>
 <ol style="list-style-type: decimal">
@@ -2572,15 +2689,15 @@ X_i =
 </ul>
 </li>
 </ol>
-<p><span class="citation">Bowblis and Smith (<a href="chapter-cluster-randomization-and-interference-bias.html#ref-bowblis2021occupational">2021</a>)</span> investigates this tradeoff using a <a href="sec-regression-discontinuity.html#sec-fuzzy-regression-discontinuity-design">Fuzzy RD</a> based on a threshold rule:</p>
+<p><span class="citation">Bowblis and Smith (<a href="references.html#ref-bowblis2021occupational">2021</a>)</span> investigates this tradeoff using a <a href="sec-regression-discontinuity.html#sec-fuzzy-regression-discontinuity-design">Fuzzy RD</a> based on a threshold rule:</p>
 <ul>
 <li><p>Nursing homes with 120 or more beds are required to hire a certain fraction of licensed/certified workers.</p></li>
 <li><p>The study examines whether this policy improves quality of care or merely restricts labor market competition.</p></li>
 </ul>
 <hr>
-<div id="ols-estimation-naïve-approach-and-its-bias" class="section level4" number="27.12.4.1">
+<div id="ols-estimation-naïve-approach-and-its-bias" class="section level4" number="27.13.4.1">
 <h4>
-<span class="header-section-number">27.12.4.1</span> <strong>OLS Estimation: Naïve Approach and Its Bias</strong><a class="anchor" aria-label="anchor" href="#ols-estimation-na%C3%AFve-approach-and-its-bias"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.13.4.1</span> OLS Estimation: Naïve Approach and Its Bias<a class="anchor" aria-label="anchor" href="#ols-estimation-na%C3%AFve-approach-and-its-bias"><i class="fas fa-link"></i></a>
 </h4>
 <p>A simple <a href="linear-regression.html#ordinary-least-squares">Ordinary Least Squares</a> regression can be used to estimate the effect of licensed workers on quality of service:</p>
 <p><span class="math display">\[
@@ -2593,9 +2710,9 @@ Y_i = \alpha_0 + X_i \alpha_1 + LW_i \alpha_2 + \epsilon_i
 <li><p><span class="math inline">\(X_i\)</span> = Facility characteristics (e.g., size, staffing levels).</p></li>
 </ul>
 </div>
-<div id="potential-bias-in-alpha_2" class="section level4" number="27.12.4.2">
+<div id="potential-bias-in-alpha_2" class="section level4" number="27.13.4.2">
 <h4>
-<span class="header-section-number">27.12.4.2</span> Potential Bias in <span class="math inline">\(\alpha_2\)</span><a class="anchor" aria-label="anchor" href="#potential-bias-in-alpha_2"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.13.4.2</span> Potential Bias in <span class="math inline">\(\alpha_2\)</span><a class="anchor" aria-label="anchor" href="#potential-bias-in-alpha_2"><i class="fas fa-link"></i></a>
 </h4>
 <ol style="list-style-type: decimal">
 <li>Mitigation-Based Bias:
@@ -2612,9 +2729,9 @@ Y_i = \alpha_0 + X_i \alpha_1 + LW_i \alpha_2 + \epsilon_i
 </li>
 </ol>
 </div>
-<div id="fuzzy-rd-framework" class="section level4" number="27.12.4.3">
+<div id="fuzzy-rd-framework" class="section level4" number="27.13.4.3">
 <h4>
-<span class="header-section-number">27.12.4.3</span> <strong>Fuzzy RD Framework</strong><a class="anchor" aria-label="anchor" href="#fuzzy-rd-framework"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.13.4.3</span> Fuzzy RD Framework<a class="anchor" aria-label="anchor" href="#fuzzy-rd-framework"><i class="fas fa-link"></i></a>
 </h4>
 <p>The OLS model is endogenous, so we implement a <a href="sec-regression-discontinuity.html#sec-fuzzy-regression-discontinuity-design">Fuzzy RD Design</a> that exploits a discontinuity in licensing requirements at 120 beds.</p>
 <p><span class="math display">\[
@@ -2632,9 +2749,9 @@ Y_{ist} = \beta_0 + [I(Bed \geq 121)_{ist}]\beta_1 + f(Size_{ist}) \beta_2 + [f(
 <p>This model estimates discontinuities in quality outcomes at the 120-bed threshold.</p>
 <hr>
 </div>
-<div id="why-this-rd-is-fuzzy" class="section level4" number="27.12.4.4">
+<div id="why-this-rd-is-fuzzy" class="section level4" number="27.13.4.4">
 <h4>
-<span class="header-section-number">27.12.4.4</span> <strong>Why This RD is Fuzzy</strong><a class="anchor" aria-label="anchor" href="#why-this-rd-is-fuzzy"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.13.4.4</span> Why This RD is Fuzzy<a class="anchor" aria-label="anchor" href="#why-this-rd-is-fuzzy"><i class="fas fa-link"></i></a>
 </h4>
 <p>Unlike a <a href="sec-regression-discontinuity.html#sec-sharp-regression-discontinuity-design">Sharp RD</a>, treatment is not fully determined at the cutoff:</p>
 <ul>
@@ -2665,9 +2782,9 @@ Y_{ist} = \beta_0 + [I(Bed \geq 121)_{ist}]\beta_1 + f(Size_{ist}) \beta_2 + [f(
 </ol>
 <hr>
 </div>
-<div id="instrumental-variable-approach" class="section level4" number="27.12.4.5">
+<div id="instrumental-variable-approach" class="section level4" number="27.13.4.5">
 <h4>
-<span class="header-section-number">27.12.4.5</span> <strong>Instrumental Variable Approach</strong><a class="anchor" aria-label="anchor" href="#instrumental-variable-approach"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.13.4.5</span> Instrumental Variable Approach<a class="anchor" aria-label="anchor" href="#instrumental-variable-approach"><i class="fas fa-link"></i></a>
 </h4>
 <p>To correct for endogeneity, we use a two-stage least squares IV approach, where the running variable serves as an instrument for treatment intensity.</p>
 <p><strong>Stage 1: First-Stage Regression</strong></p>
@@ -2697,9 +2814,9 @@ Y_{ist} = \gamma_0 + \gamma_1 \hat{QWS}_{ist} + f(Size_{ist}) \delta_2 + [f(Size
 </ul>
 <hr>
 </div>
-<div id="empirical-challenges" class="section level4" number="27.12.4.6">
+<div id="empirical-challenges" class="section level4" number="27.13.4.6">
 <h4>
-<span class="header-section-number">27.12.4.6</span> <strong>Empirical Challenges</strong><a class="anchor" aria-label="anchor" href="#empirical-challenges"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.13.4.6</span> Empirical Challenges<a class="anchor" aria-label="anchor" href="#empirical-challenges"><i class="fas fa-link"></i></a>
 </h4>
 <ol style="list-style-type: decimal">
 <li>
@@ -2723,23 +2840,14 @@ Y_{ist} = \gamma_0 + \gamma_1 \hat{QWS}_{ist} + f(Size_{ist}) \delta_2 + [f(Size
 </ul>
 </li>
 </ol>
-<hr>
+<!-- ### Replicating [@carpenter2009effect] --><!-- A well-known RD study by [@carpenter2009effect] investigates the causal effect of legal drinking age on mortality rates. --><!-- Replication available at: [Philipp Leppert](https://rpubs.com/phle/r_tutorial_regression_discontinuity_design). --><!-- Data available at: [OpenICPSR](https://www.openicpsr.org/openicpsr/project/113550/version/V1/view?flag=follow&pageSize=100&sortOrder=(?title)&sortAsc=true). --><hr>
 </div>
 </div>
-<div id="replicating-carpenter2009effect" class="section level3" number="27.12.5">
+<div id="additional-rd-applications" class="section level3" number="27.13.5">
 <h3>
-<span class="header-section-number">27.12.5</span> Replicating <span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-carpenter2009effect">Carpenter and Dobkin 2009</a>)</span><a class="anchor" aria-label="anchor" href="#replicating-carpenter2009effect"><i class="fas fa-link"></i></a>
+<span class="header-section-number">27.13.5</span> Additional RD Applications<a class="anchor" aria-label="anchor" href="#additional-rd-applications"><i class="fas fa-link"></i></a>
 </h3>
-<p>A well-known RD study by <span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-carpenter2009effect">Carpenter and Dobkin 2009</a>)</span> investigates the causal effect of legal drinking age on mortality rates.</p>
-<p>Replication available at: <a href="https://rpubs.com/phle/r_tutorial_regression_discontinuity_design">Philipp Leppert</a>.</p>
-<p>Data available at: <a href="https://www.openicpsr.org/openicpsr/project/113550/version/V1/view?flag=follow&amp;pageSize=100&amp;sortOrder=(?title)&amp;sortAsc=true">OpenICPSR</a>.</p>
-<hr>
-</div>
-<div id="additional-rd-applications" class="section level3" number="27.12.6">
-<h3>
-<span class="header-section-number">27.12.6</span> Additional RD Applications<a class="anchor" aria-label="anchor" href="#additional-rd-applications"><i class="fas fa-link"></i></a>
-</h3>
-<p>For a comprehensive empirical RD application, see <span class="citation">(<a href="chapter-cluster-randomization-and-interference-bias.html#ref-thoemmes2017analysis">Thoemmes, Liao, and Jin 2017</a>)</span>, where:</p>
+<p>For a comprehensive empirical RD application, see <span class="citation">Thoemmes, Liao, and Jin (<a href="references.html#ref-thoemmes2017analysis">2017</a>)</span>, where:</p>
 <ul>
 <li><p>Multiple RD packages (<code>rdd</code>, <code>rdrobust</code>, <code>rddtools</code>) are tested.</p></li>
 <li><p>Robustness checks are performed across bandwidth selection and polynomial orders.</p></li>
@@ -2749,103 +2857,99 @@ Y_{ist} = \gamma_0 + \gamma_1 \hat{QWS}_{ist} + f(Size_{ist}) \delta_2 + [f(Size
 </div>
   <div class="chapter-nav">
 <div class="prev"><a href="sec-quasi-experimental.html"><span class="header-section-number">26</span> Quasi-Experimental Methods</a></div>
-<div class="next"><a href="temporal-discontinuity-designs.html"><span class="header-section-number">28</span> Temporal Discontinuity Designs</a></div>
+<div class="next"><a href="sec-temporal-discontinuity-designs.html"><span class="header-section-number">28</span> Temporal Discontinuity Designs</a></div>
 </div></main><div class="col-md-3 col-lg-2 d-none d-md-block sidebar sidebar-chapter">
     <nav id="toc" data-toggle="toc" aria-label="On this page"><h2>On this page</h2>
       <ul class="nav navbar-nav">
 <li><a class="nav-link" href="#sec-regression-discontinuity"><span class="header-section-number">27</span> Regression Discontinuity</a></li>
+<li><a class="nav-link" href="#conceptual-framework"><span class="header-section-number">27.1</span> Conceptual Framework</a></li>
 <li>
-<a class="nav-link" href="#conceptual-framework"><span class="header-section-number">27.1</span> Conceptual Framework</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#types-of-regression-discontinuity-designs"><span class="header-section-number">27.1.1</span> Types of Regression Discontinuity Designs</a></li>
-<li><a class="nav-link" href="#assumptions-for-rd-validity"><span class="header-section-number">27.1.2</span> Assumptions for RD Validity</a></li>
-<li><a class="nav-link" href="#threats-to-rd-validity"><span class="header-section-number">27.1.3</span> Threats to RD Validity</a></li>
+<a class="nav-link" href="#types-of-regression-discontinuity-designs"><span class="header-section-number">27.2</span> Types of Regression Discontinuity Designs</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#assumptions-for-rd-validity"><span class="header-section-number">27.2.1</span> Assumptions for RD Validity</a></li></ul>
+</li>
+<li>
+<a class="nav-link" href="#model-estimation-strategies"><span class="header-section-number">27.3</span> Model Estimation Strategies</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#parametric-models-polynomial-regression"><span class="header-section-number">27.3.1</span> Parametric Models: Polynomial Regression</a></li>
+<li><a class="nav-link" href="#nonparametric-models-local-regression"><span class="header-section-number">27.3.2</span> Nonparametric Models: Local Regression</a></li>
 </ul>
 </li>
 <li>
-<a class="nav-link" href="#model-estimation-strategies"><span class="header-section-number">27.2</span> Model Estimation Strategies</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#parametric-models-polynomial-regression"><span class="header-section-number">27.2.1</span> Parametric Models: Polynomial Regression</a></li>
-<li><a class="nav-link" href="#nonparametric-models-local-regression"><span class="header-section-number">27.2.2</span> Nonparametric Models: Local Regression</a></li>
+<a class="nav-link" href="#formal-definition"><span class="header-section-number">27.4</span> Formal Definition</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#identification-assumptions"><span class="header-section-number">27.4.1</span> Identification Assumptions</a></li></ul>
+</li>
+<li>
+<a class="nav-link" href="#estimation-and-inference"><span class="header-section-number">27.5</span> Estimation and Inference</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#local-randomization-based-approach"><span class="header-section-number">27.5.1</span> Local Randomization-Based Approach</a></li>
+<li><a class="nav-link" href="#sec-continuity-based-approach"><span class="header-section-number">27.5.2</span> Continuity-Based Approach</a></li>
 </ul>
 </li>
 <li>
-<a class="nav-link" href="#formal-definition"><span class="header-section-number">27.3</span> Formal Definition</a><ul class="nav navbar-nav"><li><a class="nav-link" href="#identification-assumptions"><span class="header-section-number">27.3.1</span> Identification Assumptions</a></li></ul>
-</li>
-<li>
-<a class="nav-link" href="#estimation-and-inference"><span class="header-section-number">27.4</span> Estimation and Inference</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#local-randomization-based-approach"><span class="header-section-number">27.4.1</span> Local Randomization-Based Approach</a></li>
-<li><a class="nav-link" href="#sec-continuity-based-approach"><span class="header-section-number">27.4.2</span> Continuity-Based Approach</a></li>
+<a class="nav-link" href="#specification-checks"><span class="header-section-number">27.6</span> Specification Checks</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sec-balance-checks"><span class="header-section-number">27.6.1</span> Balance Checks</a></li>
+<li><a class="nav-link" href="#sec-sorting-bunching-and-manipulation"><span class="header-section-number">27.6.2</span> Sorting, Bunching, and Manipulation</a></li>
+<li><a class="nav-link" href="#placebo-tests"><span class="header-section-number">27.6.3</span> Placebo Tests</a></li>
+<li><a class="nav-link" href="#sensitivity-to-bandwidth-choice"><span class="header-section-number">27.6.4</span> Sensitivity to Bandwidth Choice</a></li>
+<li><a class="nav-link" href="#assessing-sensitivity"><span class="header-section-number">27.6.5</span> Assessing Sensitivity</a></li>
+<li><a class="nav-link" href="#manipulation-robust-regression-discontinuity-bounds"><span class="header-section-number">27.6.6</span> Manipulation-Robust Regression Discontinuity Bounds</a></li>
 </ul>
 </li>
 <li>
-<a class="nav-link" href="#specification-checks"><span class="header-section-number">27.5</span> Specification Checks</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#sec-balance-checks"><span class="header-section-number">27.5.1</span> Balance Checks</a></li>
-<li><a class="nav-link" href="#sec-sorting-bunching-and-manipulation"><span class="header-section-number">27.5.2</span> Sorting, Bunching, and Manipulation</a></li>
-<li><a class="nav-link" href="#placebo-tests"><span class="header-section-number">27.5.3</span> Placebo Tests</a></li>
-<li><a class="nav-link" href="#sensitivity-to-bandwidth-choice"><span class="header-section-number">27.5.4</span> Sensitivity to Bandwidth Choice</a></li>
-<li><a class="nav-link" href="#assessing-sensitivity"><span class="header-section-number">27.5.5</span> Assessing Sensitivity</a></li>
-<li><a class="nav-link" href="#manipulation-robust-regression-discontinuity-bounds"><span class="header-section-number">27.5.6</span> Manipulation-Robust Regression Discontinuity Bounds</a></li>
+<a class="nav-link" href="#sec-fuzzy-regression-discontinuity-design"><span class="header-section-number">27.7</span> Fuzzy Regression Discontinuity Design</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#compliance-types"><span class="header-section-number">27.7.1</span> Compliance Types</a></li>
+<li><a class="nav-link" href="#estimating-the-local-average-treatment-effect"><span class="header-section-number">27.7.2</span> Estimating the Local Average Treatment Effect</a></li>
+<li><a class="nav-link" href="#equivalent-representation-using-expectations"><span class="header-section-number">27.7.3</span> Equivalent Representation Using Expectations</a></li>
+<li><a class="nav-link" href="#estimation-strategies"><span class="header-section-number">27.7.4</span> Estimation Strategies</a></li>
+<li><a class="nav-link" href="#practical-considerations-6"><span class="header-section-number">27.7.5</span> Practical Considerations</a></li>
+<li><a class="nav-link" href="#steps-for-fuzzy-rd"><span class="header-section-number">27.7.6</span> Steps for Fuzzy RD</a></li>
 </ul>
 </li>
 <li>
-<a class="nav-link" href="#sec-fuzzy-regression-discontinuity-design"><span class="header-section-number">27.6</span> Fuzzy Regression Discontinuity Design</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#compliance-types"><span class="header-section-number">27.6.1</span> Compliance Types</a></li>
-<li><a class="nav-link" href="#estimating-the-local-average-treatment-effect"><span class="header-section-number">27.6.2</span> Estimating the Local Average Treatment Effect</a></li>
-<li><a class="nav-link" href="#equivalent-representation-using-expectations"><span class="header-section-number">27.6.3</span> Equivalent Representation Using Expectations</a></li>
-<li><a class="nav-link" href="#estimation-strategies"><span class="header-section-number">27.6.4</span> Estimation Strategies</a></li>
-<li><a class="nav-link" href="#practical-considerations-6"><span class="header-section-number">27.6.5</span> Practical Considerations</a></li>
-<li><a class="nav-link" href="#steps-for-fuzzy-rd"><span class="header-section-number">27.6.6</span> Steps for Fuzzy RD</a></li>
+<a class="nav-link" href="#sec-sharp-regression-discontinuity-design"><span class="header-section-number">27.8</span> Sharp Regression Discontinuity Design</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#assumptions-for-identification"><span class="header-section-number">27.8.1</span> Assumptions for Identification</a></li>
+<li><a class="nav-link" href="#estimating-the-local-average-treatment-effect-1"><span class="header-section-number">27.8.2</span> Estimating the Local Average Treatment Effect</a></li>
+<li><a class="nav-link" href="#estimation-methods"><span class="header-section-number">27.8.3</span> Estimation Methods</a></li>
+<li><a class="nav-link" href="#steps-for-sharp-rd"><span class="header-section-number">27.8.4</span> Steps for Sharp RD</a></li>
 </ul>
 </li>
 <li>
-<a class="nav-link" href="#sec-sharp-regression-discontinuity-design"><span class="header-section-number">27.7</span> Sharp Regression Discontinuity Design</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#assumptions-for-identification"><span class="header-section-number">27.7.1</span> Assumptions for Identification</a></li>
-<li><a class="nav-link" href="#estimating-the-local-average-treatment-effect-1"><span class="header-section-number">27.7.2</span> Estimating the Local Average Treatment Effect</a></li>
-<li><a class="nav-link" href="#estimation-methods"><span class="header-section-number">27.7.3</span> Estimation Methods</a></li>
-<li><a class="nav-link" href="#steps-for-sharp-rd"><span class="header-section-number">27.7.4</span> Steps for Sharp RD</a></li>
+<a class="nav-link" href="#sec-regression-kink-design"><span class="header-section-number">27.9</span> Regression Kink Design</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#sec-identification-in-sharp-regression-kink-design"><span class="header-section-number">27.9.1</span> Identification in Sharp Regression Kink Design</a></li>
+<li><a class="nav-link" href="#sec-identification-in-fuzzy-regression-kink-design"><span class="header-section-number">27.9.2</span> Identification in Fuzzy Regression Kink Design</a></li>
+<li><a class="nav-link" href="#estimation-of-rkd-effects"><span class="header-section-number">27.9.3</span> Estimation of RKD Effects</a></li>
+<li><a class="nav-link" href="#robustness-checks"><span class="header-section-number">27.9.4</span> Robustness Checks</a></li>
 </ul>
 </li>
 <li>
-<a class="nav-link" href="#sec-regression-kink-design"><span class="header-section-number">27.8</span> Regression Kink Design</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#sec-identification-in-sharp-regression-kink-design"><span class="header-section-number">27.8.1</span> Identification in Sharp Regression Kink Design</a></li>
-<li><a class="nav-link" href="#sec-identification-in-fuzzy-regression-kink-design"><span class="header-section-number">27.8.2</span> Identification in Fuzzy Regression Kink Design</a></li>
-<li><a class="nav-link" href="#estimation-of-rkd-effects"><span class="header-section-number">27.8.3</span> Estimation of RKD Effects</a></li>
-<li><a class="nav-link" href="#robustness-checks-1"><span class="header-section-number">27.8.4</span> Robustness Checks</a></li>
+<a class="nav-link" href="#sec-multi-cutoff-regression-discontinuity-design"><span class="header-section-number">27.10</span> Multi-Cutoff Regression Discontinuity Design</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#identification"><span class="header-section-number">27.10.1</span> Identification</a></li>
+<li><a class="nav-link" href="#key-assumptions-1"><span class="header-section-number">27.10.2</span> Key Assumptions</a></li>
+<li><a class="nav-link" href="#estimation-approaches"><span class="header-section-number">27.10.3</span> Estimation Approaches</a></li>
+<li><a class="nav-link" href="#robustness-checks-1"><span class="header-section-number">27.10.4</span> Robustness Checks</a></li>
 </ul>
 </li>
 <li>
-<a class="nav-link" href="#sec-multi-cutoff-regression-discontinuity-design"><span class="header-section-number">27.9</span> Multi-Cutoff Regression Discontinuity Design</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#identification"><span class="header-section-number">27.9.1</span> Identification</a></li>
-<li><a class="nav-link" href="#key-assumptions-1"><span class="header-section-number">27.9.2</span> Key Assumptions</a></li>
-<li><a class="nav-link" href="#estimation-approaches"><span class="header-section-number">27.9.3</span> Estimation Approaches</a></li>
-<li><a class="nav-link" href="#robustness-checks-2"><span class="header-section-number">27.9.4</span> Robustness Checks</a></li>
+<a class="nav-link" href="#sec-multi-score-regression-discontinuity-design"><span class="header-section-number">27.11</span> Multi-Score Regression Discontinuity Design</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#general-framework"><span class="header-section-number">27.11.1</span> General Framework</a></li>
+<li><a class="nav-link" href="#identification-1"><span class="header-section-number">27.11.2</span> Identification</a></li>
+<li><a class="nav-link" href="#key-assumptions-2"><span class="header-section-number">27.11.3</span> Key Assumptions</a></li>
+<li><a class="nav-link" href="#estimation-approaches-1"><span class="header-section-number">27.11.4</span> Estimation Approaches</a></li>
+<li><a class="nav-link" href="#robustness-checks-2"><span class="header-section-number">27.11.5</span> Robustness Checks</a></li>
 </ul>
 </li>
 <li>
-<a class="nav-link" href="#sec-multi-score-regression-discontinuity-design"><span class="header-section-number">27.10</span> Multi-Score Regression Discontinuity Design</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#general-framework"><span class="header-section-number">27.10.1</span> General Framework</a></li>
-<li><a class="nav-link" href="#identification-1"><span class="header-section-number">27.10.2</span> Identification</a></li>
-<li><a class="nav-link" href="#key-assumptions-2"><span class="header-section-number">27.10.3</span> Key Assumptions</a></li>
-<li><a class="nav-link" href="#estimation-approaches-1"><span class="header-section-number">27.10.4</span> Estimation Approaches</a></li>
-<li><a class="nav-link" href="#robustness-checks-3"><span class="header-section-number">27.10.5</span> Robustness Checks</a></li>
+<a class="nav-link" href="#evaluation-of-a-regression-discontinuity-design"><span class="header-section-number">27.12</span> Evaluation of a Regression Discontinuity Design</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#graphical-and-formal-evidence"><span class="header-section-number">27.12.1</span> Graphical and Formal Evidence</a></li>
+<li><a class="nav-link" href="#functional-form-of-the-running-variable"><span class="header-section-number">27.12.2</span> Functional Form of the Running Variable</a></li>
+<li><a class="nav-link" href="#bandwidth-selection-2"><span class="header-section-number">27.12.3</span> Bandwidth Selection</a></li>
+<li><a class="nav-link" href="#addressing-potential-confounders"><span class="header-section-number">27.12.4</span> Addressing Potential Confounders</a></li>
+<li><a class="nav-link" href="#external-validity-in-rd"><span class="header-section-number">27.12.5</span> External Validity in RD</a></li>
 </ul>
 </li>
 <li>
-<a class="nav-link" href="#evaluation-of-a-regression-discontinuity-design"><span class="header-section-number">27.11</span> Evaluation of a Regression Discontinuity Design</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#graphical-and-formal-evidence"><span class="header-section-number">27.11.1</span> Graphical and Formal Evidence</a></li>
-<li><a class="nav-link" href="#functional-form-of-the-running-variable"><span class="header-section-number">27.11.2</span> Functional Form of the Running Variable</a></li>
-<li><a class="nav-link" href="#bandwidth-selection-2"><span class="header-section-number">27.11.3</span> Bandwidth Selection</a></li>
-<li><a class="nav-link" href="#addressing-potential-confounders"><span class="header-section-number">27.11.4</span> Addressing Potential Confounders</a></li>
-<li><a class="nav-link" href="#external-validity-in-rd"><span class="header-section-number">27.11.5</span> External Validity in RD</a></li>
-</ul>
-</li>
-<li>
-<a class="nav-link" href="#applications-of-rd-designs"><span class="header-section-number">27.12</span> Applications of RD Designs</a><ul class="nav navbar-nav">
-<li><a class="nav-link" href="#applications-in-marketing"><span class="header-section-number">27.12.1</span> Applications in Marketing</a></li>
-<li><a class="nav-link" href="#r-packages-for-rd-estimation"><span class="header-section-number">27.12.2</span> R Packages for RD Estimation</a></li>
-<li><a class="nav-link" href="#example-of-regression-discontinuity-in-education"><span class="header-section-number">27.12.3</span> Example of Regression Discontinuity in Education</a></li>
-<li><a class="nav-link" href="#example-of-occupational-licensing-and-market-efficiency"><span class="header-section-number">27.12.4</span> Example of Occupational Licensing and Market Efficiency</a></li>
-<li><a class="nav-link" href="#replicating-carpenter2009effect"><span class="header-section-number">27.12.5</span> Replicating (Carpenter and Dobkin 2009)</a></li>
-<li><a class="nav-link" href="#additional-rd-applications"><span class="header-section-number">27.12.6</span> Additional RD Applications</a></li>
+<a class="nav-link" href="#applications-of-rd-designs"><span class="header-section-number">27.13</span> Applications of RD Designs</a><ul class="nav navbar-nav">
+<li><a class="nav-link" href="#applications-in-marketing"><span class="header-section-number">27.13.1</span> Applications in Marketing</a></li>
+<li><a class="nav-link" href="#r-packages-for-rd-estimation"><span class="header-section-number">27.13.2</span> R Packages for RD Estimation</a></li>
+<li><a class="nav-link" href="#example-of-regression-discontinuity-in-education"><span class="header-section-number">27.13.3</span> Example of Regression Discontinuity in Education</a></li>
+<li><a class="nav-link" href="#example-of-occupational-licensing-and-market-efficiency"><span class="header-section-number">27.13.4</span> Example of Occupational Licensing and Market Efficiency</a></li>
+<li><a class="nav-link" href="#additional-rd-applications"><span class="header-section-number">27.13.5</span> Additional RD Applications</a></li>
 </ul>
 </li>
 </ul>
@@ -2865,7 +2969,7 @@ Y_{ist} = \gamma_0 + \gamma_1 \hat{QWS}_{ist} + f(Size_{ist}) \delta_2 + [f(Size
 <footer class="bg-primary text-light mt-5"><div class="container"><div class="row">
 
   <div class="col-12 col-md-6 mt-3">
-    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-06-05.</p>
+    <p>"<strong>A Guide on Data Analysis</strong>" was written by Mike Nguyen. It was last built on 2025-10-24.</p>
   </div>
 
   <div class="col-12 col-md-6 mt-3">
